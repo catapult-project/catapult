@@ -20,10 +20,7 @@ class ProjectConfig(object):
   """
   def __init__(self, top_level_dir, benchmark_dirs=None,
                benchmark_aliases=None, client_configs=None,
-               default_chrome_root=None, expectations_file=None,
-               expectations_files=None):
-    if expectations_file:
-      expectations_files = [expectations_file]
+               default_chrome_root=None, expectations_files=None):
     self._top_level_dir = top_level_dir
     self._benchmark_dirs = benchmark_dirs or []
     self._benchmark_aliases = benchmark_aliases or dict()
