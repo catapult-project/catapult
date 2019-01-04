@@ -128,12 +128,6 @@ class PossibleBrowser(possible_app.PossibleApp):
     """Tests for extension support."""
     raise NotImplementedError()
 
-  def IsRemote(self):
-    return False
-
-  def RunRemote(self):
-    pass
-
   def UpdateExecutableIfNeeded(self):
     pass
 

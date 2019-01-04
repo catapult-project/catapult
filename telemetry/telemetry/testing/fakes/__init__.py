@@ -211,7 +211,6 @@ class FakePossibleBrowser(object):
     self._returned_browser = FakeBrowser(FakeLinuxPlatform())
     self.browser_type = 'linux'
     self.supports_tab_control = False
-    self.is_remote = False
     self.execute_on_startup = execute_on_startup
     self.execute_after_browser_creation = execute_after_browser_creation
     self.browser_options = None  # This is set in SetUpEnvironment.
@@ -243,9 +242,6 @@ class FakePossibleBrowser(object):
     platform.
     """
     return self.returned_browser.platform
-
-  def IsRemote(self):
-    return self.is_remote
 
 
 class FakeSharedPageState(shared_page_state.SharedPageState):

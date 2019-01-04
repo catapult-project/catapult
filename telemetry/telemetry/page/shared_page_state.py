@@ -4,7 +4,6 @@
 
 import logging
 import os
-import sys
 
 from telemetry.core import exceptions
 from telemetry.core import platform as platform_module
@@ -110,9 +109,6 @@ class SharedPageState(story_module.SharedState):
       logging.warning(msg)
       logging.warning('You are trying to run a disabled test.')
 
-    if possible_browser.IsRemote():
-      possible_browser.RunRemote()
-      sys.exit(0)
     return possible_browser
 
   def DumpStateUponFailure(self, page, results):
