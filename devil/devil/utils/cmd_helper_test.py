@@ -262,6 +262,15 @@ class CmdHelperIterCmdOutputLinesTest(unittest.TestCase):
         else:
           self.fail()
 
+  # Because ADB is not going to add header information after carriage returns,
+  # this logic should not be splitting on them.
+  def testIterCmdOutputLines_ignoresCarriageReturns(self):
+    output_sequence = [_ProcessOutputEvent(read_contents='Not\rSplit')]
+    with _MockProcess(output_sequence=output_sequence) as mock_proc:
+      for _, line in enumerate(
+          cmd_helper._IterCmdOutputLines(mock_proc, 'mock_proc'), 1):
+        self.assertEquals("Not\rSplit", line)
+
 
 if __name__ == '__main__':
   unittest.main()

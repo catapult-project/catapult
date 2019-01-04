@@ -487,8 +487,8 @@ def _IterCmdOutputLines(process, cmd, iter_timeout=None, timeout=None,
 
     # Construct lines to yield from raw data.
     buffer_output += data
-    has_incomplete_line = buffer_output[-1] not in '\r\n'
-    lines = buffer_output.splitlines()
+    has_incomplete_line = buffer_output[-1] != '\n'
+    lines = filter(bool, buffer_output.split('\n'))
     buffer_output = lines.pop() if has_incomplete_line else ''
     for line in lines:
       yield line
