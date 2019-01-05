@@ -125,6 +125,7 @@ tracing_js_html_files = [
   "tracing/extras/importer/linux_perf/gesture_parser.html",
   "tracing/extras/importer/linux_perf/i2c_parser.html",
   "tracing/extras/importer/linux_perf/i915_parser.html",
+  "tracing/extras/importer/linux_perf/ion_heap_parser.html",
   "tracing/extras/importer/linux_perf/irq_parser.html",
   "tracing/extras/importer/linux_perf/kfunc_parser.html",
   "tracing/extras/importer/linux_perf/mali_parser.html",
