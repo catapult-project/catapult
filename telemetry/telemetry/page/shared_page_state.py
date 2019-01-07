@@ -19,14 +19,6 @@ from telemetry import story as story_module
 from telemetry.util import screenshot
 
 
-def _PrepareFinderOptions(finder_options, test, device_type):
-  browser_options = finder_options.browser_options
-  # Set up user agent.
-  browser_options.browser_user_agent_type = device_type
-
-  test.CustomizeBrowserOptions(finder_options.browser_options)
-
-
 class SharedPageState(story_module.SharedState):
   """
   This class contains all specific logic necessary to run a Chrome browser
@@ -37,31 +29,38 @@ class SharedPageState(story_module.SharedState):
 
   def __init__(self, test, finder_options, story_set):
     super(SharedPageState, self).__init__(test, finder_options, story_set)
-    if not issubclass(type(test), legacy_page_test.LegacyPageTest):
-      # This is to avoid the cyclic-import caused by timeline_based_page_test.
-      from telemetry.web_perf import timeline_based_page_test
-      self._test = timeline_based_page_test.TimelineBasedPageTest()
-    else:
-      self._test = test
+    self._page_test = None
+    if issubclass(type(test), legacy_page_test.LegacyPageTest):
+      # We only need a page_test for legacy measurements that involve running
+      # some commands before/after starting the browser or navigating to a page.
+      # This is not needed for newer timeline (tracing) based benchmarks which
+      # just collect a trace, then measurements are done after the fact by
+      # analysing the trace itself.
+      self._page_test = test
 
     if (self._device_type == 'desktop' and
         platform_module.GetHostPlatform().GetOSName() == 'chromeos'):
       self._device_type = 'chromeos'
 
-    _PrepareFinderOptions(finder_options, self._test, self._device_type)
+    browser_options = finder_options.browser_options
+    browser_options.browser_user_agent_type = self._device_type
+
+    if self._page_test:
+      self._page_test.CustomizeBrowserOptions(browser_options)
+
     self._browser = None
     self._finder_options = finder_options
-    self._possible_browser = self._GetPossibleBrowser(
-        self._test, finder_options)
+    self._possible_browser = self._GetPossibleBrowser()
 
     self._first_browser = True
     self._previous_page = None
     self._current_page = None
     self._current_tab = None
 
-    self._test.SetOptions(self._finder_options)
+    if self._page_test:
+      self._page_test.SetOptions(self._finder_options)
 
-    self._extra_wpr_args = self._finder_options.browser_options.extra_wpr_args
+    self._extra_wpr_args = browser_options.extra_wpr_args
 
     profiling_mod = browser_interval_profiling_controller
     self._interval_profiling_controller = (
@@ -88,26 +87,25 @@ class SharedPageState(story_module.SharedState):
   def browser(self):
     return self._browser
 
-  def _FindBrowser(self, finder_options):
-    possible_browser = browser_finder.FindBrowser(finder_options)
+  def _GetPossibleBrowser(self):
+    """Return a possible_browser with the given options."""
+    possible_browser = browser_finder.FindBrowser(self._finder_options)
     if not possible_browser:
       raise browser_finder_exceptions.BrowserFinderException(
           'Cannot find browser of type %s. \n\nAvailable browsers:\n%s\n' % (
-              finder_options.browser_options.browser_type,
+              self._finder_options.browser_options.browser_type,
               '\n'.join(browser_finder.GetAllAvailableBrowserTypes(
-                  finder_options))))
-    return possible_browser
+                  self._finder_options))))
 
-  def _GetPossibleBrowser(self, test, finder_options):
-    """Return a possible_browser with the given options for |test|. """
-    possible_browser = self._FindBrowser(finder_options)
-    finder_options.browser_options.browser_type = (
+    self._finder_options.browser_options.browser_type = (
         possible_browser.browser_type)
 
-    enabled, msg = decorators.IsEnabled(test, possible_browser)
-    if not enabled and not finder_options.run_disabled_tests:
-      logging.warning(msg)
-      logging.warning('You are trying to run a disabled test.')
+    if self._page_test:
+      # Check for Enabled/Disabled decorators on page_test.
+      skip, msg = decorators.ShouldSkip(self._page_test, possible_browser)
+      if skip and not self._finder_options.run_disabled_tests:
+        logging.warning(msg)
+        logging.warning('You are trying to run a disabled test.')
 
     return possible_browser
 
@@ -176,7 +174,8 @@ class SharedPageState(story_module.SharedState):
     assert self._browser is None
     self._AllowInteractionForStage('before-start-browser')
 
-    self._test.WillStartBrowser(self.platform)
+    if self._page_test:
+      self._page_test.WillStartBrowser(self.platform)
     # Create a deep copy of browser_options so that we can add page-level
     # arguments and url to it without polluting the run for the next page.
     browser_options = self._finder_options.browser_options.Copy()
@@ -192,7 +191,8 @@ class SharedPageState(story_module.SharedState):
       self._possible_browser.FlushOsPageCaches()
 
     self._browser = self._possible_browser.Create(clear_caches=False)
-    self._test.DidStartBrowser(self.browser)
+    if self._page_test:
+      self._page_test.DidStartBrowser(self.browser)
 
     if self._first_browser:
       self._first_browser = False
@@ -300,7 +300,7 @@ class SharedPageState(story_module.SharedState):
           self._current_page.page_set.serving_dirs |
           set([self._current_page.serving_dir]))
 
-    if self._test.clear_cache_before_each_run:
+    if self._page_test and self._page_test.clear_cache_before_each_run:
       self._current_tab.ClearCache(force=True)
 
   @property
@@ -313,18 +313,21 @@ class SharedPageState(story_module.SharedState):
 
   def NavigateToPage(self, action_runner, page):
     # Method called by page.Run(), lives in shared_state to avoid exposing
-    # references to the legacy self._test object.
-    self._test.WillNavigateToPage(page, action_runner.tab)
+    # references to the legacy self._page_test object.
+    if self._page_test:
+      self._page_test.WillNavigateToPage(page, action_runner.tab)
     with self.interval_profiling_controller.SamplePeriod(
         'navigation', action_runner):
       page.RunNavigateSteps(action_runner)
-    self._test.DidNavigateToPage(page, action_runner.tab)
+    if self._page_test:
+      self._page_test.DidNavigateToPage(page, action_runner.tab)
 
   def RunStory(self, results):
     self._PreparePage()
     self._current_page.Run(self)
-    self._test.ValidateAndMeasurePage(
-        self._current_page, self._current_tab, results)
+    if self._page_test:
+      self._page_test.ValidateAndMeasurePage(
+          self._current_page, self._current_tab, results)
 
   def TearDownState(self):
     self._StopBrowser()
