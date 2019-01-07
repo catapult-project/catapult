@@ -8,6 +8,7 @@ import os
 from telemetry.core import exceptions
 from telemetry.core import platform as platform_module
 from telemetry import decorators
+from telemetry.internal.backends.chrome import gpu_compositing_checker
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import browser_info as browser_info_module
@@ -193,6 +194,10 @@ class SharedPageState(story_module.SharedState):
     self._browser = self._possible_browser.Create(clear_caches=False)
     if self._page_test:
       self._page_test.DidStartBrowser(self.browser)
+
+    if browser_options.assert_gpu_compositing:
+      gpu_compositing_checker.AssertGpuCompositingEnabled(
+          self._browser.GetSystemInfo())
 
     if self._first_browser:
       self._first_browser = False
