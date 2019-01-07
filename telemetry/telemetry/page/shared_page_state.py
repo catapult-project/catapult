@@ -188,7 +188,14 @@ class SharedPageState(story_module.SharedState):
       browser_options.startup_url = page.startup_url
     browser_options.AppendExtraBrowserArgs(page.extra_browser_args)
     self._possible_browser.SetUpEnvironment(browser_options)
-    self._browser = self._possible_browser.Create()
+
+    # Clear caches before starting browser.
+    self.platform.FlushDnsCache()
+    if browser_options.clear_sytem_cache_for_browser_and_profile_on_start:
+      # TODO(crbug.com/811244): Consider whether we can do this unconditionally.
+      self._possible_browser.FlushOsPageCaches()
+
+    self._browser = self._possible_browser.Create(clear_caches=False)
     self._test.DidStartBrowser(self.browser)
 
     if self._first_browser:

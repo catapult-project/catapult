@@ -65,6 +65,9 @@ class FakePlatform(object):
   def Initialize(self):
     pass
 
+  def FlushDnsCache(self):
+    pass
+
   def SetFullPerformanceModeEnabled(self, enabled):
     pass
 
@@ -218,7 +221,8 @@ class FakePossibleBrowser(object):
     """The browser object that will be returned through later API calls."""
     return self._returned_browser
 
-  def Create(self):
+  def Create(self, clear_caches=True):
+    del clear_caches  # Unused.
     if self.execute_on_startup is not None:
       self.execute_on_startup()
     if self.execute_after_browser_creation is not None:
