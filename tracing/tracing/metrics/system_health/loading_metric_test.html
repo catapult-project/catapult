@@ -98,6 +98,75 @@ tr.b.unittest.testSuite(function() {
         800).diagnosticMaps).get('breakdown').get('resource_loading'), 100);
   });
 
+
+  test('timeToFirstViewportReady', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'pc',
+        start: 1200,
+        duration: 0.0,
+        args: {data: {navigationId: '0xsecondnav'}}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'pc',
+        start: 1300,
+        duration: 0.0,
+        args: {data: {navigationId: '0xsecondnav'}}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'visible',
+        start: 300,
+        duration: 0.0,
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('timeToFirstViewportReady');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(1000, hist.running.mean);
+  });
+
+
+  test('aboveTheFoldLoadedToVisibleHistogram', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'pc',
+        start: 1300,
+        duration: 0.0,
+        args: {data: {navigationId: '0xsecondnav'}}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 300,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef', data: {navigationId: '0xfirstnav'}}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 400,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef', data: {navigationId: '0xsecondnav'}}
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed(
+        'aboveTheFoldLoadedToVisible');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(900, hist.running.mean);
+  });
+
+
   test('timeToFirstContentfulPaintIgnoringWarmCache', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcess = model.rendererProcess;

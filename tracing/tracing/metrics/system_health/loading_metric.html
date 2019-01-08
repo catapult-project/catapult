@@ -112,6 +112,79 @@ tr.exportTo('tr.metrics.sh', function() {
     return targetEvents;
   }
 
+  function getMostRecentValidEvent(rendererHelper, category, title) {
+    const targetEvents = findAllEvents(rendererHelper, category, title);
+    // Want to keep the event with the most recent timestamp
+    let validEvent;
+    for (const targetEvent of targetEvents) {
+      if (rendererHelper.isTelemetryInternalEvent(targetEvent)) continue;
+      if (validEvent === undefined) {
+        validEvent = targetEvent;
+      } else {
+        // Want to keep the event with the most recent timestamp
+        if (validEvent.start < targetEvent.start) {
+          validEvent = targetEvent;
+        }
+      }
+    }
+    return validEvent;
+  }
+
+  function getAboveTheFoldLoadedToVisibleSamples(rendererHelper,
+      navIdToNavStartEvents) {
+    const samples = [];
+    // Want to measure the time from when navigation starts to when the load
+    // event fired for all non-ad resources.  This done with the associated
+    // navigation start event to the pc mark in the amp code, correlated by
+    // navigation id.
+    const pcEvent = getMostRecentValidEvent(
+        rendererHelper, 'blink.user_timing', 'pc');
+    if (pcEvent === undefined) return samples;
+
+    if (rendererHelper.isTelemetryInternalEvent(pcEvent)) return samples;
+    const navigationStartEvent = navIdToNavStartEvents.get(
+        pcEvent.args.data.navigationId);
+    if (navigationStartEvent === undefined) return samples;
+    const navStartToEventRange = tr.b.math.Range.fromExplicitRange(
+        navigationStartEvent.start, pcEvent.start);
+    const networkEvents = getNetworkEventsInRange(
+        rendererHelper.process, navStartToEventRange);
+    const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
+        rendererHelper.mainThread, networkEvents, navStartToEventRange);
+    samples.push({
+      value: navStartToEventRange.duration,
+      breakdownTree,
+      diagnostics: {
+        breakdown: createBreakdownDiagnostic(breakdownTree),
+        Start: new RelatedEventSet(navigationStartEvent),
+        End: new RelatedEventSet(pcEvent)
+      }
+    });
+
+    return samples;
+  }
+
+  function getFirstViewportReadySamples(rendererHelper) {
+    const samples = [];
+    // Want to measure the time from when the document is visible to the time
+    // when the load event fired for all non-ad resources.  This is done with
+    // two marks in the amp code: pc and visible.
+    const pcEvent = getMostRecentValidEvent(
+        rendererHelper, 'blink.user_timing', 'pc');
+    const visibleEvent = getMostRecentValidEvent(
+        rendererHelper, 'blink.user_timing', 'visible');
+    if (pcEvent !== undefined && visibleEvent !== undefined) {
+      samples.push({
+        value: pcEvent.start - visibleEvent.start,
+        diagnostics: {
+          Start: new RelatedEventSet(visibleEvent),
+          End: new RelatedEventSet(pcEvent)
+        }
+      });
+    }
+    return samples;
+  }
+
   function findTimeToXEntries(
       category, eventName, rendererHelper, frameToNavStartEvents,
       navIdToNavStartEvents) {
@@ -325,6 +398,11 @@ tr.exportTo('tr.metrics.sh', function() {
     const onLoadSamples = collectTimeToEvent(rendererHelper, findTimeToXEntries(
         'blink.user_timing', 'loadEventStart', rendererHelper,
         frameToNavStartEvents, navIdToNavStartEvents));
+    const aboveTheFoldLoadedToVisibleSamples =
+        getAboveTheFoldLoadedToVisibleSamples(
+            rendererHelper, navIdToNavStartEvents);
+    const firstViewportReadySamples = getFirstViewportReadySamples(
+        rendererHelper);
 
     return {
       frameToNavStartEvents,
@@ -332,6 +410,8 @@ tr.exportTo('tr.metrics.sh', function() {
       firstContentfulPaintSamples,
       firstContentfulPaintCpuTimeSamples,
       onLoadSamples,
+      aboveTheFoldLoadedToVisibleSamples,
+      firstViewportReadySamples,
     };
   }
 
@@ -470,6 +550,18 @@ tr.exportTo('tr.metrics.sh', function() {
           description: 'Time to First CPU Idle',
           summaryOptions: SUMMARY_OPTIONS,
         });
+    const aboveTheFoldLoadedToVisibleHistogram = histograms.createHistogram(
+        'aboveTheFoldLoadedToVisible', timeDurationInMs_smallerIsBetter, [], {
+          binBoundaries: TIME_TO_INTERACTIVE_BOUNDARIES,
+          description: 'Time from first visible to load for AMP pages only.',
+          summaryOptions: SUMMARY_OPTIONS,
+        });
+    const firstViewportReadyHistogram = histograms.createHistogram(
+        'timeToFirstViewportReady', timeDurationInMs_smallerIsBetter, [], {
+          binBoundaries: TIME_TO_INTERACTIVE_BOUNDARIES,
+          description: 'Time from navigation to load for AMP pages only. ',
+          summaryOptions: SUMMARY_OPTIONS,
+        });
 
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
@@ -492,6 +584,14 @@ tr.exportTo('tr.metrics.sh', function() {
           histograms);
       addSamplesToHistogram(
           samplesSet.onLoadSamples, onLoadHistogram, histograms);
+      addSamplesToHistogram(
+          samplesSet.aboveTheFoldLoadedToVisibleSamples,
+          aboveTheFoldLoadedToVisibleHistogram,
+          histograms);
+      addSamplesToHistogram(
+          samplesSet.firstViewportReadySamples,
+          firstViewportReadyHistogram,
+          histograms);
     }
 
     const samplesSet = collectMetricsFromLoadExpectations(model, chromeHelper);
