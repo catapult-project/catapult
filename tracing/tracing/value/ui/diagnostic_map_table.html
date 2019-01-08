@@ -82,7 +82,6 @@ tr.exportTo('tr.v.ui', function() {
           // https://github.com/catapult-project/catapult/issues/2842
           if (diagnostic instanceof tr.v.d.UnmergeableDiagnosticSet) continue;
           if (diagnostic instanceof tr.v.d.CollectedRelatedEventSet) continue;
-          if (diagnostic instanceof tr.v.d.GroupingPath) continue;
 
           names.add(name);
         }

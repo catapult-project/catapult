@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/fixed_color_scheme.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/value/diagnostics/breakdown.html">
-<link rel="import" href="/tracing/value/diagnostics/related_histogram_breakdown.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 <link rel="import" href="/tracing/value/ui/breakdown_span.html">
@@ -18,38 +17,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  test('instantiate_RelatedHistogramBreakdown', function() {
-    const breakdown = new tr.v.d.RelatedHistogramBreakdown();
-
-    const qux = new tr.v.Histogram('qux', tr.b.Unit.byName.timeDurationInMs);
-    qux.addSample(1);
-    breakdown.add(qux);
-
-    // The title of the analysis-link should match the histogram name, not the
-    // breakdown key.
-    const foo = new tr.v.Histogram('foo', tr.b.Unit.byName.timeDurationInMs);
-    breakdown.set('f', foo);
-
-    const bar = new tr.v.Histogram('bar', tr.b.Unit.byName.timeDurationInMs);
-    breakdown.add(bar);
-
-    for (let i = 0; i < 1e2; ++i) {
-      foo.addSample(i);
-      bar.addSample(i);
-    }
-
-    const span = tr.v.ui.createDiagnosticSpan(breakdown, '', new tr.v.Histogram(
-        '', tr.b.Unit.byName.timeDurationInMs));
-    assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
-    this.addHTMLOutput(span);
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
-        span, e => e.textContent === '9,901.000 ms'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
-        span, e => e.textContent === '4,950.000 ms'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
-        span, e => e.textContent === '8,000.000 ms'));
-  });
-
   test('instantiate_Breakdown', function() {
     let breakdown = new tr.v.d.Breakdown();
     breakdown.colorScheme =

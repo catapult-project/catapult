@@ -44,7 +44,6 @@ SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
 
 HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
     reserved_infos.DEVICE_IDS.name,
-    reserved_infos.RELATED_NAMES.name,
     reserved_infos.STORIES.name,
     reserved_infos.STORYSET_REPEATS.name,
     reserved_infos.STORY_TAGS.name,
@@ -173,9 +172,6 @@ def ProcessHistogramSet(histogram_dicts):
 
   with timing.WallTimeLogger('hs.ImportDicts'):
     histograms.ImportDicts(histogram_dicts)
-
-  with timing.WallTimeLogger('hs.ResolveRelatedHistograms'):
-    histograms.ResolveRelatedHistograms()
 
   with timing.WallTimeLogger('hs.DeduplicateDiagnostics'):
     histograms.DeduplicateDiagnostics()

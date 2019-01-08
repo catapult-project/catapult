@@ -12,7 +12,7 @@ from tracing.value.diagnostics import generic_set
 
 class HistogramSet(object):
   def __init__(self, histograms=()):
-    self._histograms_by_guid = {}
+    self._histograms = set()
     self._shared_diagnostics_by_guid = {}
     for hist in histograms:
       self.AddHistogram(hist)
@@ -23,7 +23,7 @@ class HistogramSet(object):
 
   def RemoveOrphanedDiagnostics(self):
     orphans = set(self._shared_diagnostics_by_guid.keys())
-    for h in self._histograms_by_guid.values():
+    for h in self._histograms:
       for d in h.diagnostics.values():
         if d.guid in orphans:
           orphans.remove(d.guid)
@@ -31,20 +31,17 @@ class HistogramSet(object):
       del self._shared_diagnostics_by_guid[guid]
 
   def FilterHistograms(self, discard):
-    self._histograms_by_guid = dict(
-        (guid, hist)
-        for guid, hist in self._histograms_by_guid.items()
+    self._histograms = set(
+        hist
+        for hist in self._histograms
         if not discard(hist))
 
   def AddHistogram(self, hist, diagnostics=None):
-    if hist.guid in self._histograms_by_guid:
-      raise ValueError('Cannot add same Histogram twice')
-
     if diagnostics:
       for name, diag in diagnostics.items():
         hist.diagnostics[name] = diag
 
-    self._histograms_by_guid[hist.guid] = hist
+    self._histograms.add(hist)
 
   def AddSharedDiagnostic(self, diag):
     self._shared_diagnostics_by_guid[diag.guid] = diag
@@ -56,7 +53,7 @@ class HistogramSet(object):
       hist.diagnostics[name] = diag
 
   def GetFirstHistogram(self):
-    for histogram in self._histograms_by_guid.values():
+    for histogram in self._histograms:
       return histogram
 
   def GetHistogramsNamed(self, name):
@@ -70,32 +67,14 @@ class HistogramSet(object):
   def GetSharedDiagnosticsOfType(self, typ):
     return [d for d in self.shared_diagnostics if isinstance(d, typ)]
 
-  def LookupHistogram(self, guid):
-    return self._histograms_by_guid.get(guid)
-
   def LookupDiagnostic(self, guid):
     return self._shared_diagnostics_by_guid.get(guid)
 
-  def ResolveRelatedHistograms(self):
-    histograms = self
-    def HandleDiagnosticMap(dm):
-      for diag in dm.values():
-        if isinstance(diag, histogram_module.RelatedHistogramMap):
-          diag.Resolve(histograms)
-
-    for hist in self:
-      HandleDiagnosticMap(hist.diagnostics)
-      for dm in hist.nan_diagnostic_maps:
-        HandleDiagnosticMap(dm)
-      for hbin in hist.bins:
-        for dm in hbin.diagnostic_maps:
-          HandleDiagnosticMap(dm)
-
   def __len__(self):
-    return len(self._histograms_by_guid)
+    return len(self._histograms)
 
   def __iter__(self):
-    for hist in self._histograms_by_guid.values():
+    for hist in self._histograms:
       yield hist
 
   def ImportDicts(self, dicts):

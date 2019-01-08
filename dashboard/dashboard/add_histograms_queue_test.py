@@ -44,7 +44,6 @@ TEST_HISTOGRAM = {
             'values': ['http://google.com/'],
         },
     },
-    'guid': 'c2c0fa00-060f-4d56-a1b7-51fde4767584',
     'name': 'foo',
     'running': [3, 3, 0.5972531564093516, 2, 1, 6, 2],
     'sampleValues': [1, 2, 3],
@@ -104,14 +103,11 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 
     histograms = histogram.Histogram.query().fetch()
     self.assertEqual(1, len(histograms))
-    self.assertEqual(TEST_HISTOGRAM['guid'], histograms[0].key.id())
 
     h = histograms[0]
     h1 = histograms[0].data
-    del h1['guid']
 
     h2 = copy.deepcopy(TEST_HISTOGRAM)
-    del h2['guid']
     self.assertEqual(h2, h1)
     self.assertEqual(test_key, h.test)
     self.assertEqual(123, h.revision)
@@ -128,18 +124,14 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.testapp.post('/add_histograms_queue', json.dumps(params))
 
     test_key = utils.TestKey(test_path)
-    original_histogram = TEST_HISTOGRAM
 
     histograms = histogram.Histogram.query().fetch()
     self.assertEqual(1, len(histograms))
-    self.assertEqual(original_histogram['guid'], histograms[0].key.id())
 
     h = histograms[0]
     h1 = histograms[0].data
-    del h1['guid']
 
     h2 = copy.deepcopy(TEST_HISTOGRAM)
-    del h2['guid']
     self.assertEqual(h2, h1)
     self.assertEqual(test_key, h.test)
     self.assertEqual(123, h.revision)

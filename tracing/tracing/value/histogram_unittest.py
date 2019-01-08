@@ -12,6 +12,7 @@ from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import related_event_set
+from tracing.value.diagnostics import related_name_map
 from tracing.value.diagnostics import reserved_infos
 from tracing.value.diagnostics import unmergeable_diagnostic_set as ums
 
@@ -191,26 +192,26 @@ class HistogramUnittest(unittest.TestCase):
   def testSerializationSize(self):
     hist = histogram.Histogram('', 'unitless', self.TEST_BOUNDARIES)
     d = hist.AsDict()
-    self.assertEqual(107, len(ToJSON(d)))
+    self.assertEqual(61, len(ToJSON(d)))
     self.assertIsNone(d.get('allBins'))
     self.assertDeepEqual(d, histogram.Histogram.FromDict(d).AsDict())
 
     hist.AddSample(100)
     d = hist.AsDict()
-    self.assertEqual(198, len(ToJSON(d)))
+    self.assertEqual(152, len(ToJSON(d)))
     self.assertIsInstance(d['allBins'], dict)
     self.assertDeepEqual(d, histogram.Histogram.FromDict(d).AsDict())
 
     hist.AddSample(100)
     d = hist.AsDict()
     # SAMPLE_VALUES grew by "100,"
-    self.assertEqual(202, len(ToJSON(d)))
+    self.assertEqual(156, len(ToJSON(d)))
     self.assertIsInstance(d['allBins'], dict)
     self.assertDeepEqual(d, histogram.Histogram.FromDict(d).AsDict())
 
     hist.AddSample(271, {'foo': generic_set.GenericSet(['bar'])})
     d = hist.AsDict()
-    self.assertEqual(268, len(ToJSON(d)))
+    self.assertEqual(222, len(ToJSON(d)))
     self.assertIsInstance(d['allBins'], dict)
     self.assertDeepEqual(d, histogram.Histogram.FromDict(d).AsDict())
 
@@ -219,7 +220,7 @@ class HistogramUnittest(unittest.TestCase):
     for i in range(10, 100):
       hist.AddSample(10 * i)
     d = hist.AsDict()
-    self.assertEqual(697, len(ToJSON(d)))
+    self.assertEqual(651, len(ToJSON(d)))
     self.assertIsInstance(d['allBins'], list)
     self.assertDeepEqual(d, histogram.Histogram.FromDict(d).AsDict())
 
@@ -229,7 +230,7 @@ class HistogramUnittest(unittest.TestCase):
     # retained.
     hist.max_num_sample_values = 10
     d = hist.AsDict()
-    self.assertEqual(389, len(ToJSON(d)))
+    self.assertEqual(343, len(ToJSON(d)))
     self.assertIsInstance(d['allBins'], list)
     self.assertDeepEqual(d, histogram.Histogram.FromDict(d).AsDict())
 
@@ -632,8 +633,8 @@ class DiagnosticMapUnittest(unittest.TestCase):
     })
     generic = generic_set.GenericSet(['generic diagnostic'])
     generic2 = generic_set.GenericSet(['generic diagnostic 2'])
-    related_map = histogram.RelatedHistogramMap()
-    related_map.Set('a', histogram.Histogram('histogram', 'count'))
+    related_map = related_name_map.RelatedNameMap()
+    related_map.Set('a', 'histogram')
 
     hist = histogram.Histogram('', 'count')
 

@@ -60,9 +60,6 @@ function mergeLeafHistograms(groupedHistograms, mergedHistograms) {
 
 function stripInternalDiagnostics(mergedHistograms) {
   for (const hist of mergedHistograms) {
-    hist.diagnostics.delete(tr.v.d.RESERVED_NAMES.MERGED_FROM);
-    hist.diagnostics.delete(tr.v.d.RESERVED_NAMES.MERGED_TO);
-    hist.diagnostics.delete(tr.v.d.RESERVED_NAMES.GROUPING_PATH);
     hist.diagnostics.delete(tr.v.d.RESERVED_NAMES.TEST_PATH);
   }
 }
@@ -70,14 +67,12 @@ function stripInternalDiagnostics(mergedHistograms) {
 function mergeHistograms(histogramsPath, groupingKeys) {
   const histograms = new tr.v.HistogramSet();
   histograms.importDicts(JSON.parse(tr.b.getSync('file://' + histogramsPath)));
-  histograms.resolveRelatedHistograms();
   histograms.buildGroupingsFromTags([tr.v.d.RESERVED_NAMES.STORY_TAGS]);
   const groupings = groupingKeys.map(findGrouping);
   const groupedHistograms = histograms.groupHistogramsRecursively(groupings);
   const mergedHistograms = new tr.v.HistogramSet();
   mergeLeafHistograms(groupedHistograms, mergedHistograms);
   mergedHistograms.deduplicateDiagnostics();
-  mergedHistograms.mergeRelationships();
   stripInternalDiagnostics(mergedHistograms);
   return mergedHistograms;
 }

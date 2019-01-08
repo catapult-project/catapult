@@ -48,6 +48,7 @@ tr.exportTo('tr.v.ui', function() {
       this.displayLabels_ = [];
       this.histograms_ = undefined;
       this.sourceHistograms_ = undefined;
+      this.filteredHistograms_ = undefined;
       this.groupedHistograms_ = undefined;
       this.hierarchies_ = undefined;
       this.tableRows_ = undefined;
@@ -95,6 +96,7 @@ tr.exportTo('tr.v.ui', function() {
     async build(histograms, sourceHistograms, displayLabels, opt_progress) {
       this.histograms_ = histograms;
       this.sourceHistograms_ = sourceHistograms;
+      this.filteredHistograms_ = undefined;
       this.groupedHistograms_ = undefined;
       this.displayLabels_ = displayLabels;
 
@@ -182,12 +184,39 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     async updateContents_() {
-      if (this.groupedHistograms_ === undefined) {
+      const previousRowStates = this.viewState.tableRowStates;
+
+      if (!this.filteredHistograms_) {
+        await this.progress_('Filtering rows...');
+        this.filteredHistograms_ = this.viewState.showAll ?
+          this.histograms : this.sourceHistograms_;
+
+        if (this.viewState.searchQuery) {
+          let query;
+          try {
+            query = new RegExp(this.viewState.searchQuery);
+          } catch (e) {
+          }
+          if (query !== undefined) {
+            this.filteredHistograms_ = new tr.v.HistogramSet(
+                [...this.filteredHistograms_].filter(
+                    hist => hist.name.match(query)));
+            if (this.filteredHistograms_.length === 0 &&
+                !this.viewState.showAll) {
+              await this.viewState.update({showAll: true});
+              return;
+            }
+          }
+        }
+        this.groupedHistograms_ = undefined;
+      }
+
+      if (!this.groupedHistograms_) {
         await this.progress_('Grouping Histograms...');
         this.groupHistograms_();
       }
 
-      if (this.hierarchies_ === undefined) {
+      if (!this.hierarchies_) {
         await this.progress_('Merging Histograms...');
         this.hierarchies_ = tr.v.HistogramSetHierarchy.build(
             this.groupedHistograms_);
@@ -195,39 +224,12 @@ tr.exportTo('tr.v.ui', function() {
       }
 
       const tableRowsDirty = this.tableRows_ === undefined;
-      const previousRowStates = this.viewState.tableRowStates;
-
       if (tableRowsDirty) {
-        await this.progress_('Filtering rows...');
-
-        let filteredHistograms = this.viewState.showAll ?
-          this.histograms : this.sourceHistograms_;
-        if (this.viewState.searchQuery) {
-          let query = undefined;
-          try {
-            query = new RegExp(this.viewState.searchQuery);
-          } catch (e) {
-          }
-          if (query !== undefined) {
-            filteredHistograms = new tr.v.HistogramSet(
-                [...filteredHistograms].filter(
-                    hist => hist.name.match(query)));
-            if (filteredHistograms.length === 0 &&
-                !this.viewState.showAll) {
-              await this.viewState.update({showAll: true});
-              return;
-            }
-          }
-        }
-
-        const filteredHierarchies = tr.v.HistogramSetHierarchy.filter(
-            this.hierarchies_, filteredHistograms);
-
         // Wait to set this.$.table.tableRows until we're ready for it to build
         // DOM. When tableRows are set on it, tr-ui-b-table calls
         // setTimeout(..., 0) to schedule rebuild for the next interpreter tick,
         // but that can happen in between the next await, which is too early.
-        this.tableRows_ = filteredHierarchies.map(hierarchy =>
+        this.tableRows_ = this.hierarchies_.map(hierarchy =>
           new tr.v.ui.HistogramSetTableRow(
               hierarchy, this.$.table, this.viewState));
 
@@ -338,8 +340,9 @@ tr.exportTo('tr.v.ui', function() {
         return true;
       }
 
-      this.groupedHistograms_ = this.histograms.groupHistogramsRecursively(
-          groupings, canSkipGrouping);
+      this.groupedHistograms_ =
+        this.filteredHistograms_.groupHistogramsRecursively(
+            groupings, canSkipGrouping);
 
       this.hierarchies_ = undefined;
     },
@@ -360,13 +363,13 @@ tr.exportTo('tr.v.ui', function() {
     async onViewStateUpdate_(event) {
       if (this.histograms_ === undefined) return;
 
-      if (event.delta.groupings !== undefined) {
-        this.groupedHistograms_ = undefined;
-      }
-
       if (event.delta.searchQuery !== undefined ||
           event.delta.showAll !== undefined) {
-        this.tableRows_ = undefined;
+        this.filteredHistograms_ = undefined;
+      }
+
+      if (event.delta.groupings !== undefined) {
+        this.groupedHistograms_ = undefined;
       }
 
       if (event.delta.displayStatistic !== undefined &&
@@ -400,6 +403,7 @@ tr.exportTo('tr.v.ui', function() {
                 'Only histogram-set-table may update tableRowStates');
           }
         }
+        return; // No need to re-enter updateContents_().
       }
 
       await this.updateContents_();

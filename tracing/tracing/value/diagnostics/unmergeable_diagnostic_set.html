@@ -59,23 +59,6 @@ tr.exportTo('tr.v.d', function() {
       this._diagnostics.push(clone);
     }
 
-    mergeRelationships(otherDiagnostic, parentHist, otherParentHist) {
-      if (otherDiagnostic instanceof UnmergeableDiagnosticSet) {
-        for (const subDiagnostic of otherDiagnostic) {
-          this.mergeRelationships(subDiagnostic, parentHist, otherParentHist);
-        }
-        return;
-      }
-      for (const subDiagnostic of this) {
-        if (!(subDiagnostic instanceof tr.v.d.RelatedHistogramMap) &&
-            !(subDiagnostic instanceof tr.v.d.RelatedHistogramBreakdown)) {
-          continue;
-        }
-        subDiagnostic.mergeRelationships(
-            otherDiagnostic, parentHist, otherParentHist);
-      }
-    }
-
     get length() {
       return this._diagnostics.length;
     }

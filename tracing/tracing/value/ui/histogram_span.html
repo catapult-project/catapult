@@ -482,14 +482,7 @@ tr.exportTo('tr.v.ui', function() {
       const metricDiagnosticMap = new tr.v.d.DiagnosticMap();
       const metadataDiagnosticMap = new tr.v.d.DiagnosticMap();
       for (const [key, diagnostic] of this.histogram.diagnostics) {
-        // Hide the 'mergedFrom' and 'mergedTo' diagnostics, which are
-        // implementation details.
-        if (key === tr.v.d.RESERVED_NAMES.MERGED_FROM) continue;
-        if (key === tr.v.d.RESERVED_NAMES.MERGED_TO) continue;
-
-        // Hide GroupingPaths and RelatedNameMaps, which are implementation
-        // details.
-        if (diagnostic instanceof tr.v.d.GroupingPath) continue;
+        // Hide implementation details.
         if (diagnostic instanceof tr.v.d.RelatedNameMap) continue;
 
         if (tr.v.d.RESERVED_NAMES_SET.has(key)) {

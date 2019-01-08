@@ -6,7 +6,6 @@ import json
 import math
 import numbers
 import random
-import uuid
 
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
@@ -357,68 +356,6 @@ class RunningStatistics(object):
     return result
 
 
-class HistogramRef(object):
-  __slots__ = '_guid',
-
-  def __init__(self, guid):
-    self._guid = guid
-
-  @property
-  def guid(self):
-    return self._guid
-
-
-class RelatedHistogramMap(diagnostic.Diagnostic):
-  __slots__ = '_histograms_by_name',
-
-  def __init__(self):
-    super(RelatedHistogramMap, self).__init__()
-    self._histograms_by_name = {}
-
-  def Get(self, name):
-    return self._histograms_by_name.get(name)
-
-  def Set(self, name, hist):
-    assert isinstance(hist, (Histogram, HistogramRef)), (
-        'Expected Histogram or HistogramRef, found %s: "%r"',
-        (type(hist).__name__, hist))
-    self._histograms_by_name[name] = hist
-
-  def Add(self, hist):
-    self.Set(hist.name, hist)
-
-  def __len__(self):
-    return len(self._histograms_by_name)
-
-  def __iter__(self):
-    for name, hist in self._histograms_by_name.items():
-      yield name, hist
-
-  def Resolve(self, histograms, required=False):
-    for name, hist in self:
-      if not isinstance(hist, HistogramRef):
-        continue
-
-      guid = hist.guid
-      hist = histograms.LookupHistogram(guid)
-      if isinstance(hist, Histogram):
-        self._histograms_by_name[name] = hist
-      else:
-        assert not required, ('Missing required Histogram %s' % guid)
-
-  def _AsDictInto(self, d):
-    d['values'] = {}
-    for name, hist in self:
-      d['values'][name] = hist.guid
-
-  @staticmethod
-  def FromDict(d):
-    result = RelatedHistogramMap()
-    for name, guid in d['values'].items():
-      result.Set(name, HistogramRef(guid))
-    return result
-
-
 class DiagnosticMap(dict):
   __slots__ = '_allow_reserved_names',
 
@@ -455,7 +392,10 @@ class DiagnosticMap(dict):
     for name, diagnostic_dict in dct.items():
       if isinstance(diagnostic_dict, StringTypes):
         self[name] = diagnostic_ref.DiagnosticRef(diagnostic_dict)
-      else:
+      elif diagnostic_dict['type'] not in [
+          'RelatedHistogramMap', 'RelatedHistogramBreakdown']:
+        # Ignore RelatedHistograms.
+        # TODO(benjhayden): Forget about RelatedHistograms in 2019 Q2.
         self[name] = diagnostic.Diagnostic.FromDict(diagnostic_dict)
 
   def ResolveSharedDiagnostics(self, histograms, required=False):
@@ -604,7 +544,6 @@ DEFAULT_SUMMARY_OPTIONS = {
 
 class Histogram(object):
   __slots__ = (
-      '_guid',
       '_bin_boundaries_dict',
       '_description',
       '_name',
@@ -626,8 +565,6 @@ class Histogram(object):
     if bin_boundaries is None:
       base_unit = unit.split('_')[0]
       bin_boundaries = DEFAULT_BOUNDARIES_FOR_UNIT[base_unit]
-
-    self._guid = None
 
     # Serialize bin boundaries here instead of holding a reference to it in case
     # it is modified.
@@ -686,17 +623,6 @@ class Histogram(object):
     return self._short_name
 
   @property
-  def guid(self):
-    if self._guid is None:
-      self._guid = str(uuid.uuid4())
-    return self._guid
-
-  @guid.setter
-  def guid(self, g):
-    assert self._guid is None, self._guid
-    self._guid = g
-
-  @property
   def bins(self):
     return self._bins
 
@@ -708,7 +634,6 @@ class Histogram(object):
   def FromDict(dct):
     boundaries = HistogramBinBoundaries.FromDict(dct.get('binBoundaries'))
     hist = Histogram(dct['name'], dct['unit'], boundaries)
-    hist.guid = dct['guid']
     if 'shortName' in dct:
       hist._short_name = dct['shortName']
     if 'description' in dct:
@@ -864,12 +789,6 @@ class Histogram(object):
         self._bins[i] = mybin = HistogramBin(mybin.range)
       mybin.AddBin(hbin)
 
-    merged_from = self.diagnostics.get(reserved_infos.MERGED_FROM.name)
-    if merged_from is None:
-      merged_from = RelatedHistogramMap()
-      self.diagnostics[reserved_infos.MERGED_FROM.name] = merged_from
-    merged_from.Set(len(merged_from), other)
-
     self.diagnostics.Merge(other.diagnostics)
 
   def CustomizeSummaryOptions(self, options):
@@ -917,7 +836,7 @@ class Histogram(object):
     return results
 
   def AsDict(self):
-    dct = {'name': self.name, 'unit': self.unit, 'guid': self.guid}
+    dct = {'name': self.name, 'unit': self.unit}
     if self._bin_boundaries_dict is not None:
       dct['binBoundaries'] = self._bin_boundaries_dict
     if self._short_name:

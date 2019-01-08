@@ -290,18 +290,10 @@ tr.exportTo('tr.v.ui', function() {
       let tableSum = 0;
       const histogramNames = [];
       for (const [key, value] of this.diagnostic) {
-        let histogramName;
-        let row;
-        if (value instanceof tr.v.Histogram) {
-          // TODO(#3761): Remove with RelatedHistogramBreakdown.
-          histogramName = value.name;
-          row = new BreakdownTableRow(
-              key, value.sum, histogramName, value.unit, colorScheme(key));
-        } else {
-          histogramName = getHistogramName(this.histogram_, this.name_, key);
-          row = new BreakdownTableRow(
-              key, value, histogramName, this.chart_.unit, colorScheme(key));
-        }
+        const histogramName = getHistogramName(
+            this.histogram_, this.name_, key);
+        const row = new BreakdownTableRow(
+            key, value, histogramName, this.chart_.unit, colorScheme(key));
         tableRows.push(row);
         if (row.numberValue !== undefined) tableSum += row.numberValue;
         if (histogramName) {

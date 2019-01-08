@@ -72,12 +72,6 @@ tr.exportTo('tr.v', function() {
             parseInt(1e3 * loadMark.durationMs / this.histograms_.length));
       }
 
-      await this.update_('Resolving Histogram relationships...');
-      const relatedMark = tr.b.Timing.mark(
-          'HistogramImporter', 'resolveRelatedHistograms');
-      await this.histograms_.resolveRelatedHistograms();
-      relatedMark.end();
-
       await this.update_('Displaying Histogram table...');
       await this.displayHistograms_();
     }

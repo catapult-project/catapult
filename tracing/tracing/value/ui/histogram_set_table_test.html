@@ -94,10 +94,11 @@ tr.b.unittest.testSuite(function() {
 
   test('controlSearchQuery', async function() {
     const histograms = new tr.v.HistogramSet();
-    const aHist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
+    const aHist = histograms.createHistogram('a', tr.b.Unit.byName.count,
+        {value: 1, diagnostics: {r: tr.v.d.Breakdown.fromEntries([['0', 1]])}});
     const bHist = histograms.createHistogram('b', tr.b.Unit.byName.count, []);
-    const related = new tr.v.d.RelatedHistogramMap();
-    related.set('0', bHist);
+    const related = new tr.v.d.RelatedNameMap();
+    related.set('0', bHist.name);
     aHist.diagnostics.set('r', related);
     const table = await buildTable(this, histograms);
     await table.viewState.tableRowStates.get('a').cells.get('Value').update(
@@ -162,8 +163,8 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     const aHist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     const bHist = histograms.createHistogram('b', tr.b.Unit.byName.count, []);
-    const related = new tr.v.d.RelatedHistogramMap();
-    related.set('0', bHist);
+    const related = new tr.v.d.RelatedNameMap();
+    related.set('0', bHist.name);
     aHist.diagnostics.set('r', related);
     const table = await buildTable(this, histograms);
 
@@ -182,8 +183,8 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     const aHist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     const bHist = histograms.createHistogram('b', tr.b.Unit.byName.count, []);
-    const related = new tr.v.d.RelatedHistogramMap();
-    related.set('0', bHist);
+    const related = new tr.v.d.RelatedNameMap();
+    related.set('0', bHist.name);
     aHist.diagnostics.set('r', related);
     const table = await buildTable(this, histograms);
 
@@ -1024,70 +1025,6 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(charts, 0);
   });
 
-  test('mergeRelationships', async function() {
-    const benchmarkStartMs = new Date().getTime();
-    const boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 150, 10);
-    const histograms = new tr.v.HistogramSet();
-
-    for (let i = 0; i < 2; ++i) {
-      for (let j = 0; j < 2; ++j) {
-        const sample = (i * 100) + (j * 10);
-
-        const sourceHist = histograms.createHistogram(
-            'source', tr.b.Unit.byName.count, [sample], {
-              binBoundaries: boundaries,
-              diagnostics: new Map([
-                [tr.v.d.RESERVED_NAMES.BENCHMARKS,
-                  new tr.v.d.GenericSet(['bench' + j])],
-                [tr.v.d.RESERVED_NAMES.STORIES,
-                  new tr.v.d.GenericSet(['story' + i])],
-                [tr.v.d.RESERVED_NAMES.LABELS,
-                  new tr.v.d.GenericSet(['Value'])],
-                [tr.v.d.RESERVED_NAMES.BENCHMARK_START,
-                  new tr.v.d.DateRange(benchmarkStartMs)],
-              ]),
-            });
-
-        const aHist = histograms.createHistogram(
-            'a', tr.b.Unit.byName.count, [sample / 10], {
-              binBoundaries: boundaries,
-              diagnostics: new Map([
-                [tr.v.d.RESERVED_NAMES.BENCHMARKS,
-                  new tr.v.d.GenericSet(['bench' + j])],
-                [tr.v.d.RESERVED_NAMES.STORIES,
-                  new tr.v.d.GenericSet(['story' + i])],
-                [tr.v.d.RESERVED_NAMES.LABELS,
-                  new tr.v.d.GenericSet(['Value'])],
-                [tr.v.d.RESERVED_NAMES.BENCHMARK_START,
-                  new tr.v.d.DateRange(benchmarkStartMs)],
-              ]),
-            });
-
-        const bHist = histograms.createHistogram(
-            'b', tr.b.Unit.byName.count, [sample * 9 / 10], {
-              binBoundaries: boundaries,
-              diagnostics: new Map([
-                [tr.v.d.RESERVED_NAMES.BENCHMARKS,
-                  new tr.v.d.GenericSet(['bench' + j])],
-                [tr.v.d.RESERVED_NAMES.STORIES,
-                  new tr.v.d.GenericSet(['story' + i])],
-                [tr.v.d.RESERVED_NAMES.LABELS,
-                  new tr.v.d.GenericSet(['Value'])],
-                [tr.v.d.RESERVED_NAMES.BENCHMARK_START,
-                  new tr.v.d.DateRange(benchmarkStartMs)],
-              ]),
-            });
-
-        const breakdown = new tr.v.d.RelatedHistogramBreakdown();
-        breakdown.add(aHist);
-        breakdown.add(bHist);
-        sourceHist.diagnostics.set('breakdown', breakdown);
-      }
-    }
-
-    const table = await buildTable(this, histograms);
-  });
-
   test('sortByDisplayStatistic', async function() {
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram(
@@ -1255,7 +1192,15 @@ tr.b.unittest.testSuite(function() {
         });
 
     const fooHist = histograms.createHistogram(
-        'foo', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [1], {
+        'foo', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, {
+          value: 1,
+          diagnostics: {
+            breakdown: tr.v.d.Breakdown.fromEntries([
+              ['bar', 1],
+              ['qux', 0],
+            ]),
+          },
+        }, {
           binBoundaries: TEST_BOUNDARIES,
         });
 
@@ -1263,9 +1208,9 @@ tr.b.unittest.testSuite(function() {
         'qux', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [], {
           binBoundaries: TEST_BOUNDARIES,
         });
-    const breakdown = new tr.v.d.RelatedHistogramBreakdown();
-    breakdown.set('bar', barHist);
-    breakdown.set('qux', quxHist);
+    const breakdown = new tr.v.d.RelatedNameMap();
+    breakdown.set('bar', barHist.name);
+    breakdown.set('qux', quxHist.name);
     fooHist.diagnostics.set('breakdown', breakdown);
 
     const table = await buildTable(this, histograms);

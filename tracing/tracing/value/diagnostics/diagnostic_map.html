@@ -75,7 +75,10 @@ tr.exportTo('tr.v.d', function() {
       for (const [name, diagnosticDict] of Object.entries(dict)) {
         if (typeof diagnosticDict === 'string') {
           this.set(name, new tr.v.d.DiagnosticRef(diagnosticDict));
-        } else {
+        } else if (diagnosticDict.type !== 'RelatedHistogramMap' &&
+                   diagnosticDict.type !== 'RelatedHistogramBreakdown') {
+          // Ignore RelatedHistograms.
+          // TODO(benjhayden): Forget about RelatedHistograms in 2019 Q2.
           this.set(name, tr.v.d.Diagnostic.fromDict(diagnosticDict));
         }
       }
@@ -128,12 +131,6 @@ tr.exportTo('tr.v.d', function() {
 
     addDiagnostics(other) {
       for (const [name, otherDiagnostic] of other) {
-        if (name === tr.v.d.RESERVED_NAMES.MERGED_FROM ||
-            name === tr.v.d.RESERVED_NAMES.MERGED_TO ||
-            name === tr.v.d.RESERVED_NAMES.GROUPING_PATH) {
-          continue;
-        }
-
         const myDiagnostic = this.get(name);
 
         if (myDiagnostic !== undefined &&
@@ -171,39 +168,8 @@ tr.exportTo('tr.v.d', function() {
             [myDiagnostic, clone]));
       }
     }
-
-    /**
-     * RelatedHistogram diagnostics cannot be merged when Histograms are merged
-     * because the related Histograms might not exist yet.
-     * This method assumes that all related Histograms exist and that duplicate
-     * Diagnostics have been deduplicated.
-     *
-     * @param {!tr.v.Histogram} parentHist
-     */
-    mergeRelationships(parentHist) {
-      for (const [name, diagnostic] of this) {
-        if (!(diagnostic instanceof tr.v.d.RelatedHistogramMap) &&
-            !(diagnostic instanceof tr.v.d.RelatedHistogramBreakdown) &&
-            !(diagnostic instanceof tr.v.d.UnmergeableDiagnosticSet)) {
-          continue;
-        }
-
-        for (const [unusedName, otherHist] of
-          this.get(tr.v.d.RESERVED_NAMES.MERGED_FROM)) {
-          const otherDiagnostic = otherHist.diagnostics.get(name);
-          if (!(otherDiagnostic instanceof tr.v.d.RelatedHistogramMap) &&
-              !(otherDiagnostic instanceof tr.v.d.RelatedHistogramBreakdown) &&
-              !(otherDiagnostic instanceof tr.v.d.UnmergeableDiagnosticSet)) {
-            continue;
-          }
-          diagnostic.mergeRelationships(otherDiagnostic, parentHist, otherHist);
-        }
-      }
-    }
   }
 
-  return {
-    DiagnosticMap,
-  };
+  return {DiagnosticMap};
 });
 </script>

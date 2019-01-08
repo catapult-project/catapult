@@ -19,7 +19,6 @@ ALL_NAMES = list(reserved_infos.AllNames())
 def _LoadHistogramSet(dicts):
   hs = histogram_set.HistogramSet()
   hs.ImportDicts(dicts)
-  hs.ResolveRelatedHistograms()
   return hs
 
 

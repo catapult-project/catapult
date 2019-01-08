@@ -40,7 +40,6 @@ def IterRows(histogram_dicts):
   """Iterate over histogram dicts yielding rows for a DataFrame or csv."""
   histograms = histogram_set.HistogramSet()
   histograms.ImportDicts(histogram_dicts)
-  histograms.ResolveRelatedHistograms()
   for hist in histograms:
     row = [getattr(hist, name) for _, name in _PROPERTIES]
     row.extend(

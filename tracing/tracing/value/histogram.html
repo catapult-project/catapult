@@ -159,12 +159,6 @@ tr.exportTo('tr.v', function() {
         binBoundaries = DEFAULT_BOUNDARIES_FOR_UNIT.get(baseUnit.unitName);
       }
 
-      // If this Histogram is being deserialized, then its guid will be set by
-      // fromDict().
-      // If this Histogram is being computed by a metric, then its guid will be
-      // allocated the first time the guid is gotten by asDict().
-      this.guid_ = undefined;
-
       // Serialize binBoundaries here instead of holding a reference to it in
       // case it is modified.
       this.binBoundariesDict_ = binBoundaries.asDict();
@@ -273,26 +267,9 @@ tr.exportTo('tr.v', function() {
       return this.name_;
     }
 
-    get guid() {
-      if (this.guid_ === undefined) {
-        this.guid_ = tr.b.GUID.allocateUUID4();
-      }
-
-      return this.guid_;
-    }
-
-    set guid(guid) {
-      if (this.guid_ !== undefined) {
-        throw new Error('Cannot reset guid');
-      }
-
-      this.guid_ = guid;
-    }
-
     static fromDict(dict) {
       const hist = new Histogram(dict.name, tr.b.Unit.fromJSON(dict.unit),
           HistogramBinBoundaries.fromDict(dict.binBoundaries));
-      hist.guid = dict.guid;
       if (dict.shortName) {
         hist.shortName = dict.shortName;
       }
@@ -601,20 +578,6 @@ tr.exportTo('tr.v', function() {
         this.running_ = this.running_.merge(other.running_);
       }
 
-      let mergedFrom = this.diagnostics.get(tr.v.d.RESERVED_NAMES.MERGED_FROM);
-      if (!mergedFrom) {
-        mergedFrom = new tr.v.d.RelatedHistogramMap();
-        this.diagnostics.set(tr.v.d.RESERVED_NAMES.MERGED_FROM, mergedFrom);
-      }
-      mergedFrom.set(mergedFrom.length, other);
-
-      let mergedTo = other.diagnostics.get(tr.v.d.RESERVED_NAMES.MERGED_TO);
-      if (!mergedTo) {
-        mergedTo = new tr.v.d.RelatedHistogramMap();
-        other.diagnostics.set(tr.v.d.RESERVED_NAMES.MERGED_TO, mergedTo);
-      }
-      mergedTo.set(mergedTo.length, this);
-
       this.diagnostics.addDiagnostics(other.diagnostics);
 
       for (const [stat, option] of other.summaryOptions) {
@@ -864,8 +827,8 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
-     * Create a new Histogram instance that is just like |this| except for its
-     * guid. This is useful when merging Histograms.
+     * Create a new Histogram instance that is just like |this|. This is useful
+     * when merging Histograms.
      * @return {!tr.v.Histogram}
      */
     clone() {
@@ -888,7 +851,7 @@ tr.exportTo('tr.v', function() {
      * Produce a Histogram with |this| Histogram's name, unit, description,
      * statistics, summaryOptions, sampleValues, and diagnostics, but with
      * |newBoundaries|.
-     * guid and sample diagnostics are not copied. In-bound Relationship
+     * sample diagnostics are not copied. In-bound Relationship
      * diagnostics are broken.
      *
      * @param {!tr.v.HistogramBinBoundaries} newBoundaries
@@ -919,7 +882,6 @@ tr.exportTo('tr.v', function() {
       const dict = {};
       dict.name = this.name;
       dict.unit = this.unit.asJSON();
-      dict.guid = this.guid;
       if (this.binBoundariesDict_ !== undefined) {
         dict.binBoundaries = this.binBoundariesDict_;
       }

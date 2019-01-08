@@ -27,6 +27,7 @@ tr.exportTo('tr.v.ui', function() {
     updateContents_() {
       Polymer.dom(this).textContent = '';
       for (const diagnostic of this.diagnostic) {
+        if (diagnostic instanceof tr.v.d.RelatedNameMap) continue;
         const div = document.createElement('div');
         div.appendChild(tr.v.ui.createDiagnosticSpan(
             diagnostic, this.name_, this.histogram_));

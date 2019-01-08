@@ -149,26 +149,6 @@ histogram.addSample(number, {name: diagnostic})
 
 ### Histogram Relationship Diagnostics
 
- * [RelatedHistogramMap](/tracing/tracing/value/diagnostics/related_histogram_map.html):
-   These are Maps from strings to references to other Histograms. Visually, they
-   are a set of HTML links where the text content of the link is the Map's
-   string key instead of the Histogram's name. One example application is when a
-   Histogram was produced not directly by a metric, but rather by merging
-   together other Histograms, then it will have a RelatedHistogramMap named
-   'mergedFrom' that refers to the Histograms that were merged by their grouping
-   key, e.g. the telemetry story name.
-
-   ![](/docs/images/how-to-write-metrics-related-histogram-map.png)
-
- * [RelatedHistogramBreakdown](/tracing/tracing/value/diagnostics/related_histogram_breakdown.html):
-   Structurally, this is a RelatedHistogramMap, but conceptually and visually, this
-   is a Breakdown. Whereas Breakdown's stacked bar chart derives its data from
-   the numbers contained explicitly in the Breakdown, a
-   RelatedHistogramBreakdown's stacked
-   bar chart derives its data from the referenced Histograms' sums.
-
-   ![](/docs/images/how-to-write-metrics-related-histogram-breakdown.png)
-
  * [RelatedNameMap](/tracing/tracing/value/diagnostics/related_name_map.html):
    This maps from short keys to Histogram name. These are correlated with
    Breakdowns. They are visualized as HTML links in Breakdowns.
@@ -182,9 +162,7 @@ histogram.addSample(number, {name: diagnostic})
    unitted number. This is only to allow Histograms in other parts of the trace
    viewer to display number sample diagnostics more intelligently than
    GenericSet can. If a metric wants to display number sample diagnostics
-   intelligently, then it should use RelatedHistogramMap; if it does not want to
-   monitor changes in those numbers, then the TBM2 maintainers can add a
-   HistogramDiagnostic that supports merging.
+   intelligently, then it should use Breakdown and RelatedNameMap.
 
 
 ### Reserved Names
@@ -211,7 +189,6 @@ Metrics may not use the following names for Histogram-level Diagnostics.
  * documentationUrls is a GenericSet of strings containing the urls to the
    documentation of the benchmarks/metrics.
  * gpus is a GenericSet of objects containing metadata about GPUs.
- * groupingPath is an implementation detail of merging Histograms.
  * labels is a GenericSet of strings containing [user-defined
    labels](https://github.com/catapult-project/catapult/blob/b0f1e24d4686b3ce46667c0124a186e414fbd006/telemetry/telemetry/internal/results/results_options.py#L82)
    for Telemetry results.
@@ -220,8 +197,6 @@ Metrics may not use the following names for Histogram-level Diagnostics.
  * masters is a GenericSet of strings containing bot master hostnames.
  * memoryAmounts is a GenericSet of numbers containing the total amount of RAM
    in the device that recorded the Chromium trace.
- * mergedFrom is an implementation detail of merging Histograms.
- * mergedTo is an implementation detail of merging Histograms.
  * osNames is a GenericSet of strings containing names of OSs like 'linux' and
    'mac'.
  * osVersions is a GenericSet of strings containing OS versions.

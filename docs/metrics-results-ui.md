@@ -136,11 +136,9 @@ sizes of component metrics for the selected samples.
 
 ![Breakdowns](/docs/images/how-to-write-metrics-breakdown.png)
 
-Other Histogram diagnostics may include RelatedHistogramBreakdown diagnostics,
-which indicate relative sizes of component metrics over all samples.
-
-![RelatedHistogramBreakdowns](/docs/images/how-to-write-metrics-related-histogram-breakdown.png)
-
+When the name of and entries in a Breakdown diagnostic align with a
+RelatedNameMap diagnostic on the parent Histogram, the table rows become
+clickable links to the related Histograms.
 For more about summation metrics, see [Diagnostic
 Metrics](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/speed/diagnostic_metrics.md#Summation-Diagnostics).
 

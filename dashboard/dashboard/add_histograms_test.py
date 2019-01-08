@@ -716,15 +716,12 @@ class AddHistogramsTest(AddHistogramsBaseTest):
   def setUp(self):
     super(AddHistogramsTest, self).setUp()
 
-  def TaskParamsByGuid(self):
+  def TaskParams(self):
     tasks = self.GetTaskQueueTasks(add_histograms.TASK_QUEUE_NAME)
-    params_by_guid = {}
+    params = []
     for task in tasks:
-      params = base64.b64decode(task['body'])
-      histogram_dicts = json.loads(params)
-      for d in histogram_dicts:
-        params_by_guid[d['data']['guid']] = d
-    return params_by_guid
+      params.extend(json.loads(base64.b64decode(task['body'])))
+    return params
 
   @mock.patch.object(
       add_histograms, '_QueueHistogramTasks')
@@ -824,7 +821,6 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.BENCHMARKS.name:
                     '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
             },
-            'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
             'unit': 'count'
         }, {
@@ -841,27 +837,19 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.STORIES.name:
                     'dc894bd9-0b73-4400-9d95-b21ee371031d',
             },
-            'guid': '2a714c36-f4ef-488d-8bee-93c7e3149388',
             'name': 'foo2',
             'unit': 'count'
         }
     ])
     self.PostAddHistogram({'data': data})
-    params_by_guid = self.TaskParamsByGuid()
+    params = self.TaskParams()
 
-    self.assertEqual(2, len(params_by_guid))
-    self.assertEqual(
-        'master/bot/benchmark/foo/story',
-        params_by_guid['4989617a-14d6-4f80-8f75-dafda2ff13b0']['test_path'])
-    self.assertEqual(
-        424242,
-        params_by_guid['4989617a-14d6-4f80-8f75-dafda2ff13b0']['revision'])
-    self.assertEqual(
-        'master/bot/benchmark/foo2/story',
-        params_by_guid['2a714c36-f4ef-488d-8bee-93c7e3149388']['test_path'])
-    self.assertEqual(
-        424242,
-        params_by_guid['2a714c36-f4ef-488d-8bee-93c7e3149388']['revision'])
+    self.assertEqual(2, len(params))
+    self.assertEqual(424242, params[0]['revision'])
+    self.assertEqual(424242, params[1]['revision'])
+    paths = set(p['test_path'] for p in params)
+    self.assertIn('master/bot/benchmark/foo/story', paths)
+    self.assertIn('master/bot/benchmark/foo2/story', paths)
 
   def testPostHistogramPassesHistogramLevelSparseDiagnostics(self):
     data = json.dumps([
@@ -897,7 +885,6 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.BENCHMARKS.name:
                     '876d0fba-1d12-4c00-a7e9-5fed467e19e3',
             },
-            'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
             'unit': 'count'
         }, {
@@ -914,23 +901,20 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.BENCHMARKS.name:
                     '876d0fba-1d12-4c00-a7e9-5fed467e19e3',
             },
-            'guid': '2a714c36-f4ef-488d-8bee-93c7e3149388',
             'name': 'foo2',
             'unit': 'count'
         }
     ])
     self.PostAddHistogram({'data': data})
-
-    params_by_guid = self.TaskParamsByGuid()
-    params = params_by_guid['2a714c36-f4ef-488d-8bee-93c7e3149388']
-    diagnostics = params['diagnostics']
-
-    self.assertEqual(1, len(diagnostics))
-    self.assertEqual(
-        ['test'], diagnostics[reserved_infos.DEVICE_IDS.name]['values'])
-    self.assertNotEqual(
-        '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-        diagnostics[reserved_infos.DEVICE_IDS.name]['guid'])
+    for params in self.TaskParams():
+      diagnostics = params['diagnostics']
+      if len(diagnostics) < 1:
+        continue
+      self.assertEqual(
+          ['test'], diagnostics[reserved_infos.DEVICE_IDS.name]['values'])
+      self.assertNotEqual(
+          '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+          diagnostics[reserved_infos.DEVICE_IDS.name]['guid'])
 
   def testPostHistogram_AddsNewSparseDiagnostic(self):
     diag_dict = {
@@ -971,15 +955,13 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.BENCHMARKS.name:
                     '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
             },
-            'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
             'unit': 'count'}
     ])
     self.PostAddHistogram({'data': data})
 
     diagnostics = histogram.SparseDiagnostic.query().fetch()
-    params_by_guid = self.TaskParamsByGuid()
-    params = params_by_guid['4989617a-14d6-4f80-8f75-dafda2ff13b0']
+    params = self.TaskParams()[0]
     hist = params['data']
 
     self.assertEqual(4, len(diagnostics))
@@ -1027,7 +1009,6 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.BENCHMARKS.name:
                     '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
             },
-            'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
             'unit': 'count'
         }
@@ -1035,9 +1016,7 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     self.PostAddHistogram({'data': data})
 
     diagnostics = histogram.SparseDiagnostic.query().fetch()
-    params_by_guid = self.TaskParamsByGuid()
-    params = params_by_guid['4989617a-14d6-4f80-8f75-dafda2ff13b0']
-    hist = params['data']
+    hist = self.TaskParams()[0]['data']
 
     self.assertEqual(3, len(diagnostics))
     self.assertEqual(
@@ -1081,7 +1060,6 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.BENCHMARKS.name:
                     '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
             },
-            'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
             'unit': 'count'
         }
@@ -1113,7 +1091,6 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.BENCHMARKS.name:
                     '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
             },
-            'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
             'unit': 'count'}
     ])
@@ -1144,7 +1121,6 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
                     '25f0a111-9bb4-4cea-b0c1-af2609623160'
             },
-            'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
             'unit': 'count'
         }
@@ -1189,7 +1165,6 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.BENCHMARKS.name:
                     '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
             },
-            'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
             'unit': 'count'}
         ])
@@ -1197,9 +1172,8 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     self.PostAddHistogram({'data': data})
 
     diagnostics = histogram.SparseDiagnostic.query().fetch()
-    params_by_guid = self.TaskParamsByGuid()
 
-    params = params_by_guid['4989617a-14d6-4f80-8f75-dafda2ff13b0']
+    params = self.TaskParams()[0]
     hist = params['data']
     owners_info = hist['diagnostics'][reserved_infos.OWNERS.name]
     self.assertEqual(4, len(diagnostics))
@@ -1265,7 +1239,6 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.OWNERS.name:
                     'cabb59fe-4bcf-4512-881c-d038c7a80635'
             },
-            'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
             'unit': 'count'
         }, {
@@ -1282,7 +1255,6 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.BENCHMARKS.name:
                     '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
             },
-            'guid': '5239617a-14d6-4f80-8f75-dafda2ff13b1',
             'name': 'bar',
             'unit': 'count'
         }])
@@ -1335,7 +1307,6 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.OWNERS.name:
                     'cabb59fe-4bcf-4512-881c-d038c7a80635'
             },
-            'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
             'unit': 'count'
         }, {
@@ -1352,7 +1323,6 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 reserved_infos.OWNERS.name:
                     '7c5bd92f-4146-411b-9192-248ffc1be92c'
             },
-            'guid': 'bda61ae3-0178-43f8-8aec-3ab78b9a2e18',
             'name': 'foo',
             'unit': 'count'
         }])

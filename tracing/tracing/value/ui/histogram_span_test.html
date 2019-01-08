@@ -247,13 +247,13 @@ tr.b.unittest.testSuite(function() {
     sampleBreakdown.set('x', 30 << 20);
     sampleBreakdown.set('y', 70 << 20);
     root.addSample(100 << 20, {sampleBreakdown});
-    const rhb = new tr.v.d.RelatedHistogramBreakdown();
+    const rhb = new tr.v.d.RelatedNameMap();
     root.diagnostics.set('rhb', rhb);
     const aHist = new tr.v.Histogram('a', tr.b.Unit.byName.sizeInBytes);
-    rhb.set('a', aHist);
+    rhb.set('a', aHist.name);
     aHist.addSample(10 << 20);
     const bHist = new tr.v.Histogram('b', tr.b.Unit.byName.sizeInBytes);
-    rhb.set('b', bHist);
+    rhb.set('b', bHist.name);
     bHist.addSample(90 << 20);
     const span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
@@ -264,11 +264,6 @@ tr.b.unittest.testSuite(function() {
         span, e => e.textContent === '30.0 MiB'));
     assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         span, e => e.textContent === '70.0 MiB'));
-    await span.rowState.update({diagnosticsTab: 'histogram diagnostics'});
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
-        span, e => e.textContent === '10.0 MiB'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
-        span, e => e.textContent === '90.0 MiB'));
   });
 
   test('diagnosticsTabs', async function() {
@@ -285,24 +280,15 @@ tr.b.unittest.testSuite(function() {
           diagnostics: new Map([
             [tr.v.d.RESERVED_NAMES.BENCHMARKS, new tr.v.d.GenericSet([
               'system_health.common_desktop'])],
-            ['breakdown', new tr.v.d.RelatedHistogramBreakdown()],
           ]),
         }));
     this.addHTMLOutput(span);
-    const metric = tr.ui.b.findDeepElementMatching(
-        span, '#metric_diagnostics');
-    assert.strictEqual(span.rowState.diagnosticsTab, metric.tabLabel);
-    const tabs = tr.ui.b.findDeepElementMatching(
-        span, 'TR-UI-B-TAB-VIEW');
-    assert.strictEqual(tabs.selectedSubView, metric);
 
     const sample = tr.ui.b.findDeepElementMatching(
         span, '#sample_diagnostics_container');
-    await span.rowState.update({diagnosticsTab: sample.tabLabel});
-    // Need to wait an extra frame here because updateDiagnostics_ cannot await
-    // on onSelectedDiagnosticsChanged_, which is called via the
-    // selected-tab-change event.
-    await tr.b.animationFrame();
+    assert.strictEqual(span.rowState.diagnosticsTab, sample.tabLabel);
+    const tabs = tr.ui.b.findDeepElementMatching(
+        span, 'TR-UI-B-TAB-VIEW');
     assert.strictEqual(tabs.selectedSubView, sample);
 
     const metadata = tr.ui.b.findDeepElementMatching(

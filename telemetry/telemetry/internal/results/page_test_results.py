@@ -336,7 +336,6 @@ class PageTestResults(object):
       return []
     self._histograms.ImportDicts(json.loads(vinn_result.stdout))
     self._histograms.ImportDicts(self._histogram_dicts_to_add)
-    self._histograms.ResolveRelatedHistograms()
 
   def __copy__(self):
     cls = self.__class__

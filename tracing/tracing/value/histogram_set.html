@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/utils.html">
-<link rel="import" href="/tracing/value/diagnostics/add_related_names.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/histogram_grouping.html">
 
@@ -16,7 +15,7 @@ found in the LICENSE file.
 tr.exportTo('tr.v', function() {
   class HistogramSet {
     constructor(opt_histograms) {
-      this.histogramsByGuid_ = new Map();
+      this.histograms_ = new Set();
       this.sharedDiagnosticsByGuid_ = new Map();
 
       if (opt_histograms !== undefined) {
@@ -24,6 +23,10 @@ tr.exportTo('tr.v', function() {
           this.addHistogram(hist);
         }
       }
+    }
+
+    has(hist) {
+      return this.histograms_.has(hist);
     }
 
     /**
@@ -59,7 +62,7 @@ tr.exportTo('tr.v', function() {
      * @param {(!Object|!tr.v.d.DiagnosticMap)=} opt_diagnostics
      */
     addHistogram(hist, opt_diagnostics) {
-      if (this.histogramsByGuid_.has(hist.guid)) {
+      if (this.has(hist)) {
         throw new Error('Cannot add same Histogram twice');
       }
 
@@ -72,7 +75,7 @@ tr.exportTo('tr.v', function() {
         }
       }
 
-      this.histogramsByGuid_.set(hist.guid, hist);
+      this.histograms_.add(hist);
     }
 
     /**
@@ -100,11 +103,11 @@ tr.exportTo('tr.v', function() {
     }
 
     get length() {
-      return this.histogramsByGuid_.size;
+      return this.histograms_.size;
     }
 
     * [Symbol.iterator]() {
-      for (const hist of this.histogramsByGuid_.values()) {
+      for (const hist of this.histograms_) {
         yield hist;
       }
     }
@@ -139,16 +142,6 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
-     * Lookup a Histogram by its guid.
-     *
-     * @param {string} guid
-     * @return {!tr.v.Histogram|undefined}
-     */
-    lookupHistogram(guid) {
-      return this.histogramsByGuid_.get(guid);
-    }
-
-    /**
      * Lookup a Diagnostic by its guid.
      *
      * @param {string} guid
@@ -158,34 +151,8 @@ tr.exportTo('tr.v', function() {
       return this.sharedDiagnosticsByGuid_.get(guid);
     }
 
-    resolveRelatedHistograms() {
-      const handleDiagnosticMap = dm => {
-        for (const [name, diagnostic] of dm) {
-          if (diagnostic instanceof tr.v.d.RelatedHistogramMap) {
-            diagnostic.resolve(this);
-          }
-        }
-      };
-
-      for (const hist of this) {
-        handleDiagnosticMap(hist.diagnostics);
-
-        for (const dm of hist.nanDiagnosticMaps) {
-          handleDiagnosticMap(dm);
-        }
-
-        for (const bin of hist.allBins) {
-          for (const dm of bin.diagnosticMaps) {
-            handleDiagnosticMap(dm);
-          }
-        }
-      }
-    }
-
     /**
      * Convert dicts to either Histograms or shared Diagnostics.
-     * Does not resolve RelatedHistogramMap diagnostics. See
-     * resolveRelatedHistograms().
      *
      * @param {!Object} dicts
      */
@@ -197,8 +164,6 @@ tr.exportTo('tr.v', function() {
 
     /**
      * Convert dict to either a Histogram or a shared Diagnostic.
-     * Does not resolve RelatedHistogramMap diagnostics. See
-     * resolveRelatedHistograms().
      *
      * @param {!Object} dict
      */
@@ -234,8 +199,8 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
-     * Find the Histograms that are not contained in any other Histograms'
-     * RelatedHistogramMap diagnostics.
+     * Find the Histograms whose names are not contained in any other
+     * Histograms' RelatedNameMap diagnostics.
      *
      * @return {!Array.<!tr.v.Histogram>}
      */
@@ -250,40 +215,13 @@ tr.exportTo('tr.v', function() {
         }
       }
 
-      const sourceHistograms = new Map();
+      const sourceHistograms = new HistogramSet;
       for (const hist of this) {
         if (!diagnosticNames.has(hist.name)) {
-          sourceHistograms.set(hist.guid, hist);
+          sourceHistograms.addHistogram(hist);
         }
       }
-
-      // TODO(#3761) Remove the rest of this function with RelatedHistogramMap.
-
-      // If a Histogram is in a RelatedHistogramMap,
-      // which can be owned either by Histograms or by numeric samples, then it
-      // is not a source Histogram.
-      function deleteSourceHistograms(diagnosticMap) {
-        for (const [name, diagnostic] of diagnosticMap) {
-          if (diagnostic instanceof tr.v.d.RelatedHistogramMap) {
-            for (const [name, relatedHist] of diagnostic) {
-              sourceHistograms.delete(relatedHist.guid);
-            }
-          }
-        }
-      }
-
-      for (const hist of this) {
-        deleteSourceHistograms(hist.diagnostics);
-        for (const dm of hist.nanDiagnosticMaps) {
-          deleteSourceHistograms(dm);
-        }
-        for (const b of hist.allBins) {
-          for (const dm of b.diagnosticMaps) {
-            deleteSourceHistograms(dm);
-          }
-        }
-      }
-      return new HistogramSet([...sourceHistograms.values()]);
+      return sourceHistograms;
     }
 
     /**
@@ -427,23 +365,8 @@ tr.exportTo('tr.v', function() {
       }
       return groupings;
     }
-
-    /*
-     * RelatedHistogram diagnostics cannot be merged when Histograms are merged
-     * because the related Histograms might not exist yet. Callers must
-     * call HistogramSet.deduplicateDiagnostics() and then
-     * HistogramSet.mergeRelationships() after merging Histograms in order to
-     * merge RelatedHistogram diagnostics.
-     */
-    mergeRelationships() {
-      for (const hist of this) {
-        hist.diagnostics.mergeRelationships(hist);
-      }
-    }
   }
 
-  return {
-    HistogramSet,
-  };
+  return {HistogramSet};
 });
 </script>

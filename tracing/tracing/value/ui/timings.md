@@ -40,8 +40,8 @@ Both measures and instant events are recorded as Events in Google Analytics.
      whenever it changes or the table is built.
    * `rowCollapsed` instant event recorded whenever a row is collapsed.
    * `rowExpanded` instant event recorded whenever a row is expanded.
-   * `selectHistogramNames` instant event recorded whenever a RelatedHistogram
-     link is clicked.
+   * `selectHistogramNames` instant event recorded whenever a breakdown related
+     histogram name link is clicked.
    * `sortColumn` instant event recorded whenever the user changes the sort
      column.
  * histogram-set-table-cell

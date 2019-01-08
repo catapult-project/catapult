@@ -7,6 +7,7 @@
 import json
 import logging
 import sys
+import uuid
 
 from google.appengine.ext import ndb
 
@@ -227,7 +228,6 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
 @ndb.tasklet
 def _AddHistogramFromData(params, revision, test_key, internal_only):
   data_dict = params['data']
-  guid = data_dict['guid']
   diagnostics = params.get('diagnostics')
   new_guids_to_existing_diagnostics = yield ProcessDiagnostics(
       diagnostics, revision, test_key, internal_only)
@@ -242,7 +242,7 @@ def _AddHistogramFromData(params, revision, test_key, internal_only):
   data = hs.GetFirstHistogram().AsDict()
 
   entity = histogram.Histogram(
-      id=guid, data=data, test=test_key, revision=revision,
+      id=str(uuid.uuid4()), data=data, test=test_key, revision=revision,
       internal_only=internal_only)
   yield entity.put_async()
 

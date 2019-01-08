@@ -99,9 +99,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   function invalidDiagnosticNameMetric(histograms, model) {
-    const hist = histograms.createHistogram('a', tr.b.Unit.byName.count, []);
-    hist.diagnostics.set(tr.v.d.RESERVED_NAMES.GROUPING_PATH,
-        new tr.v.d.GroupingPath([]));
+    histograms.createHistogram('a', tr.b.Unit.byName.count, [], {diagnostics: {
+      [tr.v.d.RESERVED_NAMES.BOTS]: new tr.v.d.GenericSet([]),
+    }});
   }
 
   tr.metrics.MetricRegistry.register(invalidDiagnosticNameMetric);
@@ -115,7 +115,7 @@ tr.b.unittest.testSuite(function() {
         'metrics': ['invalidDiagnosticNameMetric'],
       });
     }, Error, 'Illegal diagnostic name ' +
-        `"${tr.v.d.RESERVED_NAMES.GROUPING_PATH}" on Histogram "a"`);
+        `"${tr.v.d.RESERVED_NAMES.BOTS}" on Histogram "a"`);
   });
 
   test('validateCanonicalUrl', function() {

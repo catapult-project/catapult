@@ -26,6 +26,6 @@ class MergeHistogramsUnittest(unittest.TestCase):
                                                     ('name',))
     merged_histograms = histogram_set.HistogramSet()
     merged_histograms.ImportDicts(merged_dicts)
-    self.assertEqual(len(list(merged_histograms.shared_diagnostics)), 2)
+    self.assertEqual(len(list(merged_histograms.shared_diagnostics)), 0)
     self.assertEqual(len(merged_histograms), 2)
     os.remove(histograms_file.name)

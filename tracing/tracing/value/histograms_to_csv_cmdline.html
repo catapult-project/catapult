@@ -16,7 +16,6 @@ found in the LICENSE file.
 if (tr.isHeadless) {
   const histograms = new tr.v.HistogramSet();
   histograms.importDicts(JSON.parse(tr.b.getSync('file://' + sys.argv[1])));
-  histograms.resolveRelatedHistograms();
   const csv = new tr.v.CSVBuilder(histograms);
   csv.build();
   console.log(csv.toString());

@@ -117,7 +117,6 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
         self._isolate_server, self._isolate_hash, self._results_filename)
     histograms = histogram_set.HistogramSet()
     histograms.ImportDicts(histogram_dicts)
-    histograms.ResolveRelatedHistograms()
 
     histograms_by_path = self._CreateHistogramSetByTestPathDict(histograms)
     self._trace_urls = self._FindTraceUrls(histograms)
