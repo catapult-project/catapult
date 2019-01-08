@@ -401,7 +401,8 @@ class UtilsTest(testing_common.TestCase):
         'sheriff@foo.org',
         utils.GetSheriffForAutorollCommit({
             'author': {
-                'email': 'rl@skia-buildbots.google.com.iam.gserviceaccount.com',
+                'email':
+                    'chromium-autoroll@skia-public.iam.gserviceaccount.com',
             },
             'message': 'This is a roll.\n\nTBR=sheriff@foo.org,bar@foo.org\n\n',
         }))
@@ -409,7 +410,8 @@ class UtilsTest(testing_common.TestCase):
         'sheriff@v8.com',
         utils.GetSheriffForAutorollCommit({
             'author': {
-                'email': 'v8-autoroll@chromium.org',
+                'email': 'v8-ci-autoroll-builder@'
+                         'chops-service-accounts.iam.gserviceaccount.com',
             },
             'message': 'TBR=sheriff@v8.com',
         }))

@@ -36,6 +36,12 @@ OAUTH_SCOPES = (
 )
 OAUTH_ENDPOINTS = ['/api/', '/add_histograms']
 
+_AUTOROLL_DOMAINS = (
+    'chops-service-accounts.iam.gserviceaccount.com',
+    'skia-corp.google.com.iam.gserviceaccount.com',
+    'skia-public.iam.gserviceaccount.com',
+)
+
 
 def IsDevAppserver():
   return app_identity.get_application_id() == 'None'
@@ -647,8 +653,7 @@ def GetSheriffForAutorollCommit(commit_info):
   if not author:
     # Not a commit.
     return None
-  if (author != 'v8-autoroll@chromium.org' and
-      not author.endswith('skia-buildbots.google.com.iam.gserviceaccount.com')):
+  if author.split('@')[-1] not in _AUTOROLL_DOMAINS:
     # Not an autoroll.
     return None
   # This is an autoroll. The sheriff should be the first person on TBR list.

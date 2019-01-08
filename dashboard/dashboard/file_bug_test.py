@@ -347,7 +347,8 @@ class FileBugTest(testing_common.TestCase):
           'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
   @mock.patch('dashboard.services.gitiles_service.CommitInfo',
               mock.MagicMock(return_value={
-                  'author': {'email': 'v8-autoroll@chromium.org'},
+                  'author': {'email': 'v8-ci-autoroll-builder@chops-service-'
+                                      'accounts.iam.gserviceaccount.com'},
                   'message': 'This is a roll\n\nTBR=sheriff@bar.com'}))
   def testGet_WithFinish_CreatesBugSingleRevAutorollOwner(self):
     # When a POST request is sent with keys specified and with the finish
