@@ -203,7 +203,10 @@ tr.exportTo('tr.v', function() {
      * @param {!Object} dict
      */
     importDict(dict) {
-      if (dict.type && tr.v.d.Diagnostic.findTypeInfoWithName(dict.type)) {
+      if (dict.type !== undefined) {
+        if (!tr.v.d.Diagnostic.findTypeInfoWithName(dict.type)) {
+          throw new Error('Unrecognized shared diagnostic type ' + dict.type);
+        }
         this.sharedDiagnosticsByGuid_.set(dict.guid,
             tr.v.d.Diagnostic.fromDict(dict));
       } else {

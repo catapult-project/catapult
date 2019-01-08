@@ -100,7 +100,9 @@ class HistogramSet(object):
 
   def ImportDicts(self, dicts):
     for d in dicts:
-      if d.get('type') in all_diagnostics.GetDiagnosticTypenames():
+      if 'type' in d:
+        assert d['type'] in all_diagnostics.GetDiagnosticTypenames(), (
+            'Unrecognized shared diagnostic type ' + d['type'])
         diag = diagnostic.Diagnostic.FromDict(d)
         self._shared_diagnostics_by_guid[d['guid']] = diag
       else:

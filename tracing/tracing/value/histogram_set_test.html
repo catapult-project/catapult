@@ -17,6 +17,12 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   // TODO(#3812) Test groupHistogramsRecursively.
 
+  test('assertType', function() {
+    const hs = new tr.v.HistogramSet();
+    assert.throws(() => hs.importDict({type: ''}),
+        Error, 'Unrecognized shared diagnostic type ');
+  });
+
   test('importDicts', function() {
     const n = new tr.v.Histogram('foo', tr.b.Unit.byName.unitlessNumber);
     const histograms = new tr.v.HistogramSet([n]);

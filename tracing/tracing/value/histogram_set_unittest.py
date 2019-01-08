@@ -76,6 +76,11 @@ class HistogramSetUnittest(unittest.TestCase):
     hists2.ImportDicts(hists.AsDicts())
     self.assertEqual(len(hists), len(hists2))
 
+  def testAssertType(self):
+    hs = histogram_set.HistogramSet()
+    with self.assertRaises(AssertionError):
+      hs.ImportDicts([{'type': ''}])
+
   def testAddHistogramRaises(self):
     hist = histogram.Histogram('', 'unitless')
     hists = histogram_set.HistogramSet([hist])
