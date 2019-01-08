@@ -26,6 +26,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v.ui', function() {
+  function isLinkTuple(value) {
+    return ((value instanceof Array) &&
+            (value.length === 2) &&
+            (typeof value[0] === 'string') &&
+            tr.b.isUrl(value[1]));
+  }
+
   Polymer({
     is: 'tr-v-ui-generic-set-span',
     behaviors: [tr.v.ui.DIAGNOSTIC_SPAN_BEHAVIOR],
@@ -41,7 +48,7 @@ tr.exportTo('tr.v.ui', function() {
       for (const value of values) {
         if (typeof value !== 'number') {
           areAllNumbers = false;
-          if (typeof value !== 'string') {
+          if (typeof value !== 'string' && !isLinkTuple(value)) {
             areAllStrings = false;
             break;
           }
@@ -62,7 +69,12 @@ tr.exportTo('tr.v.ui', function() {
 
       for (const value of values) {
         const link = {textContent: '' + value};
-        if (tr.b.isUrl(value)) link.href = value;
+        if (isLinkTuple(value)) {
+          link.textContent = value[0];
+          link.href = value[1];
+        } else if (tr.b.isUrl(value)) {
+          link.href = value;
+        }
         if (this.name_ === tr.v.d.RESERVED_NAMES.TRACE_URLS) {
           link.textContent = value.substr(1 + value.lastIndexOf('/'));
         }

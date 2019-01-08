@@ -14,6 +14,19 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  test('link_tuple', function() {
+    const diagnostic = new tr.v.d.GenericSet([
+      ['label', 'http://example.com/'],
+    ]);
+    const span = tr.v.ui.createDiagnosticSpan(diagnostic);
+    assert.strictEqual('TR-V-UI-GENERIC-SET-SPAN', span.tagName);
+    this.addHTMLOutput(span);
+    const links = tr.ui.b.findDeepElementsMatching(span, 'a');
+    assert.lengthOf(links, diagnostic.size);
+    assert.strictEqual('label', links[0].textContent);
+    assert.strictEqual('http://example.com/', links[0].href);
+  });
+
   test('instantiate', function() {
     const diagnostic = new tr.v.d.GenericSet([{foo: 'bar', baz: [42]}]);
     const span = tr.v.ui.createDiagnosticSpan(diagnostic);
