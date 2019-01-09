@@ -12,6 +12,12 @@ from tracing.value.diagnostics import diagnostic
 
 class BreakdownUnittest(unittest.TestCase):
 
+  def testZero(self):
+    bd = breakdown.Breakdown()
+    self.assertEqual(0, len(bd))
+    bd.Set('b', 0)
+    self.assertEqual(0, len(bd))
+
   def testRoundtrip(self):
     bd = breakdown.Breakdown()
     bd.Set('one', 1)

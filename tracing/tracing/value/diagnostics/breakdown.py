@@ -59,6 +59,8 @@ class Breakdown(diagnostic.Diagnostic):
         'Expected basestring, found %s: "%r"' % (type(name).__name__, name))
     assert isinstance(value, numbers.Number), (
         'Expected number, found %s: "%r"', (type(value).__name__, value))
+    if value == 0:
+      return
     self._values[name] = value
 
   def Get(self, name):

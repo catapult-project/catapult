@@ -48,6 +48,7 @@ tr.exportTo('tr.v.d', function() {
           typeof value !== 'number') {
         throw new Error('Breakdown maps from strings to numbers');
       }
+      if (value === 0) return;
       this.values_.set(name, value);
     }
 
