@@ -78,6 +78,15 @@ def Delete(key):
 @ndb.tasklet
 def DeleteAsync(key):
   multipart_entity_key = ndb.Key(MultipartEntity, key)
+  # Check if the entity exists before attempting to delete it in order to avoid
+  # contention errors.
+  # "Every attempt to create, update, or delete an entity takes place in the
+  # context of a transaction,"
+  # "There is a write throughput limit of about one transaction per second
+  # within a single entity group"
+  entity = yield multipart_entity_key.get_async()
+  if not entity:
+    return
   yield (multipart_entity_key.delete_async(),
          MultipartEntity.DeleteAsync(multipart_entity_key))
 

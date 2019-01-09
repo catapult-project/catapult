@@ -48,6 +48,11 @@ class CachedPickledString(ndb.Model):
   expire_time = ndb.DateTimeProperty()
 
   @classmethod
+  def NamespacedKey(cls, key, namespace):
+    return ndb.Key(cls.__name__, namespaced_stored_object.NamespaceKey(
+        key, namespace))
+
+  @classmethod
   def GetExpiredKeys(cls):
     """Gets keys of expired entities.
 
@@ -140,15 +145,14 @@ def Delete(key):
 
 @ndb.tasklet
 def DeleteAsync(key):
-  internal_key = namespaced_stored_object.NamespaceKey(
-      key, datastore_hooks.INTERNAL)
-  external_key = namespaced_stored_object.NamespaceKey(
-      key, datastore_hooks.EXTERNAL)
-  yield (
-      ndb.delete_multi_async(
-          [ndb.Key('CachedPickledString', internal_key),
-           ndb.Key('CachedPickledString', external_key)]),
-      stored_object.DeleteAsync(key))
+  unnamespaced_future = stored_object.DeleteAsync(key)
+  # See the comment in stored_object.DeleteAsync() about this get().
+  entities = yield ndb.get_multi_async([
+      CachedPickledString.NamespacedKey(key, datastore_hooks.INTERNAL),
+      CachedPickledString.NamespacedKey(key, datastore_hooks.EXTERNAL),
+  ])
+  keys = [entity.key for entity in entities if entity]
+  yield (unnamespaced_future, ndb.delete_multi_async(keys))
 
 
 def DeleteAllExpiredEntities():
