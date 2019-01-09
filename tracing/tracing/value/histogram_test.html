@@ -66,7 +66,6 @@ tr.b.unittest.testSuite(function() {
     const hist = tr.v.Histogram.create('', unitlessNumber, [], {
       binBoundaries: tr.v.HistogramBinBoundaries.SINGULAR,
       description: 'foo',
-      shortName: 'shorty',
       diagnostics: {
         generic: new tr.v.d.GenericSet(['occam']),
       },
@@ -76,7 +75,6 @@ tr.b.unittest.testSuite(function() {
       }
     });
     assert.strictEqual(hist.description, 'foo');
-    assert.strictEqual(hist.shortName, 'shorty');
     assert.strictEqual(tr.b.getOnlyElement(
         hist.diagnostics.get('generic')), 'occam');
     assert.isFalse(hist.summaryOptions.get('count'));

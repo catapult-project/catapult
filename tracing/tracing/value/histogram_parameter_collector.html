@@ -17,13 +17,7 @@ tr.exportTo('tr.v', function() {
 
   const DEFAULT_POSSIBLE_GROUPS = [];
 
-  // Override HISTOGRAM_NAME so that we can display shortName.
-  DEFAULT_POSSIBLE_GROUPS.push(new tr.v.HistogramGrouping(
-      tr.v.HistogramGrouping.HISTOGRAM_NAME.key,
-      h => h.shortName || h.name));
-
   const EXCLUDED_GROUPING_KEYS = [
-    tr.v.HistogramGrouping.HISTOGRAM_NAME.key,
     tr.v.HistogramGrouping.DISPLAY_LABEL.key,
   ];
   // HISTOGRAM_NAME is overridden.

@@ -1351,49 +1351,6 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(barCell);
   });
 
-  test('shortName', async function() {
-    // One value has |name|='long name' and |shortName|='short name',
-    // another value has |name|='short name' to demonstrate the fundamental
-    // ambiguity that arises when Histograms can have multiple different
-    // "names".
-
-    const now = new Date().getTime();
-    const histograms = new tr.v.HistogramSet();
-    histograms.createHistogram(
-        'long name', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-        range(0, 100).map(i => Math.random() * 1e3), {
-          binBoundaries: TEST_BOUNDARIES,
-          shortName: 'short name',
-          diagnostics: new Map([
-            [tr.v.d.RESERVED_NAMES.LABELS,
-              new tr.v.d.GenericSet(['iteration A'])],
-            [tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(now)],
-          ]),
-        });
-
-    histograms.createHistogram(
-        'short name', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-        range(0, 100).map(i => Math.random() * 1e3), {
-          binBoundaries: TEST_BOUNDARIES,
-          diagnostics: new Map([
-            [tr.v.d.RESERVED_NAMES.LABELS,
-              new tr.v.d.GenericSet(['iteration B'])],
-            [tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(now)],
-          ]),
-        });
-
-    const table = await buildTable(this, histograms);
-    await table.viewState.update({groupings: [
-      new tr.v.HistogramGrouping(
-          tr.v.HistogramGrouping.HISTOGRAM_NAME.key,
-          h => h.shortName || h.name)]});
-
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
-        table, e => e.textContent === 'short name'));
-    assert.isUndefined(tr.ui.b.findDeepElementMatchingPredicate(
-        table, e => e.textContent === 'long name'));
-  });
-
   test('emptyAndMissing', async function() {
     const now = new Date().getTime();
     const histograms = new tr.v.HistogramSet();

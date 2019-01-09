@@ -17,7 +17,6 @@ dictionary represents either a Histogram or a Diagnostic.
     "name": "my amazing metric",
     "unit": "ms",
     "binBoundaries": [0, [0, 100, 10]],
-    "shortName": "my metric",
     "description": "this is my awesome amazing metric",
     "diagnostics": {
       "stories": "923e4567-e89b-12d3-a456-426655440000",
@@ -77,7 +76,6 @@ dictionary represents either a Histogram or a Diagnostic.
 
 ### Optional fields
 
- * `shortName`: any string, allows metrics to make results more user-friendly
  * `description`: any string, allows metrics to explain results in more depth
  * `binBoundaries`: an array that describes how to build bin boundaries
    The first element must be a number that specifies the boundary between the

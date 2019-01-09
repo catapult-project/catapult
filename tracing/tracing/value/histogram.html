@@ -176,7 +176,6 @@ tr.exportTo('tr.v', function() {
       this.numNans = 0;
       this.running_ = undefined;
       this.sampleValues_ = [];
-      this.shortName = undefined;
       this.summaryOptions = new Map(DEFAULT_SUMMARY_OPTIONS);
       this.summaryOptions.set('percentile', []);
       this.summaryOptions.set('iprs', []);
@@ -201,7 +200,6 @@ tr.exportTo('tr.v', function() {
      * @param {!Object|!Map} opt_options.summaryOptions
      * @param {!Object|!Map} opt_options.diagnostics
      * @param {string} opt_options.description
-     * @param {string} opt_options.shortName
      * @return {!tr.v.Histogram}
      */
     static create(name, unit, samples, opt_options) {
@@ -209,7 +207,6 @@ tr.exportTo('tr.v', function() {
       const hist = new Histogram(name, unit, options.binBoundaries);
 
       if (options.description) hist.description = options.description;
-      if (options.shortName) hist.shortName = options.shortName;
 
       if (options.summaryOptions) {
         let summaryOptions = options.summaryOptions;
@@ -270,9 +267,6 @@ tr.exportTo('tr.v', function() {
     static fromDict(dict) {
       const hist = new Histogram(dict.name, tr.b.Unit.fromJSON(dict.unit),
           HistogramBinBoundaries.fromDict(dict.binBoundaries));
-      if (dict.shortName) {
-        hist.shortName = dict.shortName;
-      }
       if (dict.description) {
         hist.description = dict.description;
       }
@@ -884,9 +878,6 @@ tr.exportTo('tr.v', function() {
       dict.unit = this.unit.asJSON();
       if (this.binBoundariesDict_ !== undefined) {
         dict.binBoundaries = this.binBoundariesDict_;
-      }
-      if (this.shortName) {
-        dict.shortName = this.shortName;
       }
       if (this.description) {
         dict.description = this.description;
