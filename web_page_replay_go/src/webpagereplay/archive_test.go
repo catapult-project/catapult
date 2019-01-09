@@ -30,6 +30,7 @@ func TestFindRequestFuzzyMatching(t *testing.T) {
 	req := createArchivedRequest(t, u, nil)
 	a.Requests[host] = make(map[string][]*ArchivedRequest)
 	a.Requests[host][u] = []*ArchivedRequest{req}
+	prepareArchiveForReplay(&a)
 
 	const newUrl = "https://example.com/a/b/c/+/query?usegapi=1&foo=yay&c=d&a=y"
 	newReq := httptest.NewRequest("GET", newUrl, nil)
@@ -58,6 +59,8 @@ func TestFindClosest(t *testing.T) {
 
 	const u3 = "https://example.com/index.html?a=b&c=d"
 	a.Requests[host][u3] = []*ArchivedRequest{createArchivedRequest(t, u3, nil)}
+
+	prepareArchiveForReplay(&a)
 
 	const newUrl = "https://example.com/index.html?c=e"
 	newReq := httptest.NewRequest("GET", newUrl, nil)
@@ -100,6 +103,7 @@ func TestMatchHeaders(t *testing.T) {
 		req := createArchivedRequest(t, u, headers)
 		a.Requests[host][u] = append(a.Requests[host][u], req)
 	}
+	prepareArchiveForReplay(&a)
 
 	newReq := httptest.NewRequest("GET", u, nil)
 	newReq.Header = headers
@@ -123,6 +127,7 @@ func TestNoHeadersMatch(t *testing.T) {
 	req := createArchivedRequest(t, u, headers)
 	a.Requests[host] = make(map[string][]*ArchivedRequest)
 	a.Requests[host][u] = []*ArchivedRequest{req}
+	prepareArchiveForReplay(&a)
 
 	newReq := httptest.NewRequest("GET", u, nil)
 	newReq.Header = headers
@@ -134,6 +139,112 @@ func TestNoHeadersMatch(t *testing.T) {
 	}
 	if got, want := foundReq.Header.Get("Accept-Encoding"), "gzip, deflate, br"; got != want {
 		t.Fatalf("expected %s , actual %s\n", want, got)
+	}
+}
+
+// Test tie-breaking when an archive contains multiple responses for the same request.
+func TestTieBreak(t *testing.T) {
+	a := newArchive()
+	const u = "https://example.com/mail/"
+	const host = "example.com"
+	const header1 = "1"
+	const header2 = "2"
+	{
+		headers := http.Header{}
+		headers.Set("matched", header1)
+		req := createArchivedRequest(t, u, headers)
+		a.Requests[host] = make(map[string][]*ArchivedRequest)
+		a.Requests[host][u] = []*ArchivedRequest{req}
+	}
+	{
+		headers := http.Header{}
+		headers.Set("matched", header2)
+		req := createArchivedRequest(t, u, headers)
+		a.Requests[host][u] = append(a.Requests[host][u], req)
+	}
+	prepareArchiveForReplay(&a)
+
+	newReq := httptest.NewRequest("GET", u, nil)
+	newReq.Header = http.Header{}
+
+	{
+		foundReq, _, err := a.FindRequest(newReq)
+		if err != nil {
+			t.Fatalf("failed to find %s: %v", u, err)
+		}
+		if got, want := foundReq.Header.Get("matched"), header1; got != want {
+			t.Fatalf("expected %s , actual %s\n", want, got)
+		}
+	}
+
+	{
+		foundReq, _, err := a.FindRequest(newReq)
+		if err != nil {
+			t.Fatalf("failed to find %s: %v", u, err)
+		}
+		if got, want := foundReq.Header.Get("matched"), header1; got != want {
+			t.Fatalf("expected %s , actual %s\n", want, got)
+		}
+	}
+}
+
+// Test tie breaking in chronological order when an archive contains multiple responses for
+// the same request.
+func TestTieBreakChronologicalOrder(t *testing.T) {
+	a := newArchive()
+	const u = "https://example.com/mail/"
+	const host = "example.com"
+	const header1 = "1"
+	const header2 = "2"
+	{
+		headers := http.Header{}
+		headers.Set("matched", header1)
+		req := createArchivedRequest(t, u, headers)
+		a.Requests[host] = make(map[string][]*ArchivedRequest)
+		a.Requests[host][u] = []*ArchivedRequest{req}
+	}
+	{
+		headers := http.Header{}
+		headers.Set("matched", header2)
+		req := createArchivedRequest(t, u, headers)
+		a.Requests[host][u] = append(a.Requests[host][u], req)
+	}
+	a.ServeResponseInChronologicalSequence = true
+	prepareArchiveForReplay(&a)
+
+	newReq := httptest.NewRequest("GET", u, nil)
+	newReq.Header = http.Header{}
+
+	{
+		foundReq, _, err := a.FindRequest(newReq)
+		if err != nil {
+			t.Fatalf("failed to find %s: %v", u, err)
+		}
+		if got, want := foundReq.Header.Get("matched"), header1; got != want {
+			t.Fatalf("expected %s , actual %s\n", want, got)
+		}
+	}
+
+	{
+		foundReq, _, err := a.FindRequest(newReq)
+		if err != nil {
+			t.Fatalf("failed to find %s: %v", u, err)
+		}
+		if got, want := foundReq.Header.Get("matched"), header2; got != want {
+			t.Fatalf("expected %s , actual %s\n", want, got)
+		}
+	}
+
+	// Test starting a new replay session to reset the serving sequence.
+	{
+		a.StartNewReplaySession()
+		foundReq, _, err := a.FindRequest(newReq)
+		if err != nil {
+			t.Fatalf("failed to find %s: %v", u, err)
+		}
+		if got, want := foundReq.Header.Get("matched"), header1; got != want {
+			t.Fatalf("expected %s , actual %s\n", want, got)
+		}
 	}
 }
 

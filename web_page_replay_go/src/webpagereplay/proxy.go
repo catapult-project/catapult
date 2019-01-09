@@ -83,6 +83,12 @@ func (proxy *replayingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 		os.Exit(0)
 		return
 	}
+	if req.URL.Path == "/web-page-replay-reset-replay-chronology" {
+		log.Printf("Received /web-page-replay-reset-replay-chronology")
+		log.Printf("Reset replay order to start.")
+		proxy.a.StartNewReplaySession()
+		return
+	}
 	fixupRequestURL(req, proxy.scheme)
 	logf := makeLogger(req)
 

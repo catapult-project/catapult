@@ -79,6 +79,7 @@ type ReplayCommand struct {
 
 	// Custom flags for replay.
 	rulesFile string
+	serveResponseInChronologicalSequence bool
 }
 
 type RootCACommand struct {
@@ -193,6 +194,15 @@ func (r *ReplayCommand) Flags() []cli.Flag {
 			Value:       "",
 			Usage:       "File containing rules to apply to responses during replay",
 			Destination: &r.rulesFile,
+		},
+		cli.BoolFlag{
+			Name:        "serve_response_in_chronological_sequence",
+			Usage:       "When an incoming request matches multiple recorded " +
+			             "responses, serve response in chronological sequence. " +
+			             "I.e. wpr responds to the first request with the first " +
+			             "recorded response, and the second request with the " +
+			             "second recorded response.",
+			Destination: &r.serveResponseInChronologicalSequence,
 		})
 }
 
@@ -370,6 +380,8 @@ func (r *ReplayCommand) Run(c *cli.Context) {
 		os.Exit(1)
 	}
 	log.Printf("Opened archive %s", archiveFileName)
+
+	archive.ServeResponseInChronologicalSequence = r.serveResponseInChronologicalSequence
 
 	timeSeedMs := archive.DeterministicTimeSeedMs
 	if timeSeedMs == 0 {
