@@ -2,47 +2,49 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 /**
  * Dictionary of constants (Initialized soon after loading by data from browser,
  * updated on load log).  The *Types dictionaries map strings to numeric IDs,
  * while the *TypeNames are the other way around.
  */
-var EventType = null;
-var EventTypeNames = null;
-var EventPhase = null;
-var EventSourceType = null;
-var EventSourceTypeNames = null;
-var ClientInfo = null;
-var NetError = null;
-var QuicError = null;
-var QuicRstStreamError = null;
-var LoadFlag = null;
-var CertStatusFlag = null;
-var LoadState = null;
-var AddressFamily = null;
-var DataReductionProxyBypassEventType = null;
+let EventType = null;
+let EventTypeNames = null;
+let EventPhase = null;
+let EventSourceType = null;
+let EventSourceTypeNames = null;
+let ClientInfo = null;
+let NetError = null;
+let QuicError = null;
+let QuicRstStreamError = null;
+let LoadFlag = null;
+let CertStatusFlag = null;
+let LoadState = null;
+let AddressFamily = null;
+let DataReductionProxyBypassEventType = null;
 
 /**
  * Dictionary of all constants, used for saving log files.
  */
-var Constants = null;
+let Constants = null;
 
 /**
  * Object to communicate between the renderer and the browser.
  * @type {!BrowserBridge}
  */
-var g_browser = null;
+let g_browser = null;
 
 /**
  * This class is the root view object of the page.  It owns all the other
  * views, and manages switching between them.  It is also responsible for
  * initializing the views and the BrowserBridge.
  */
-var MainView = (function() {
+const MainView = (function() {
   'use strict';
 
   // We inherit from WindowView
-  var superClass = WindowView;
+  const superClass = WindowView;
 
   /**
    * Main entry point. Called once the page has loaded.
@@ -51,8 +53,9 @@ var MainView = (function() {
   function MainView() {
     assertFirstConstructorCall(MainView);
 
-    if (hasTouchScreen())
+    if (hasTouchScreen()) {
       document.body.classList.add('touch');
+    }
 
     // This must be initialized before the tabs, so they can register as
     // observers.
@@ -70,7 +73,7 @@ var MainView = (function() {
     // a high level status (i.e. if we are displaying a log file or not).
     // Below it we will position the main tabs and their content area.
     this.topBarView_ = TopBarView.getInstance(this);
-    var verticalSplitView =
+    const verticalSplitView =
         new VerticalSplitView(this.topBarView_, this.tabSwitcher_);
 
     superClass.call(this, verticalSplitView);
@@ -97,7 +100,7 @@ var MainView = (function() {
 
   // Tracks if we're viewing a loaded log file, so views can behave
   // appropriately.  Global so safe to call during construction.
-  var isViewingLoadedLog = false;
+  let isViewingLoadedLog = false;
 
   MainView.isViewingLoadedLog = function() {
     return isViewingLoadedLog;
@@ -109,7 +112,7 @@ var MainView = (function() {
 
     // This is exposed both so the log import/export code can enumerate all the
     // tabs, and for testing.
-    tabSwitcher: function() {
+    tabSwitcher() {
       return this.tabSwitcher_;
     },
 
@@ -123,40 +126,40 @@ var MainView = (function() {
      * @param {string} opt_fileName The name of the log file that has been
      *     loaded, if we're loading a log file.
      */
-    onLoadLog: function(opt_fileName) {
+    onLoadLog(opt_fileName) {
       isViewingLoadedLog = true;
 
-      if (opt_fileName != undefined) {
+      if (opt_fileName !== undefined) {
         // If there's a file name, a log file was loaded, so display the
         // file's name in the status bar.
         this.topBarView_.switchToSubView('loaded').setFileName(opt_fileName);
       }
     },
 
-    switchToViewOnlyMode: function() {
+    switchToViewOnlyMode() {
       // Since this won't be dumped to a file, we don't want to remove
       // cookies and credentials.
       log_util.createLogDumpAsync('', log_util.loadLogFile, false);
     },
 
-    initTabs_: function() {
+    initTabs_() {
       this.tabIdToHash_ = {};
       this.hashToTabId_ = {};
 
       this.tabSwitcher_ = new TabSwitcherView(this.onTabSwitched_.bind(this));
 
       // Helper function to add a tab given the class for a view singleton.
-      var addTab = function(viewClass) {
-        var tabId = viewClass.TAB_ID;
-        var tabHash = viewClass.TAB_HASH;
-        var tabName = viewClass.TAB_NAME;
-        var view = viewClass.getInstance();
+      const addTab = function(viewClass) {
+        const tabId = viewClass.TAB_ID;
+        const tabHash = viewClass.TAB_HASH;
+        const tabName = viewClass.TAB_NAME;
+        const view = viewClass.getInstance();
 
         if (!tabId || !view || !tabHash || !tabName) {
           throw Error('Invalid view class for tab');
         }
 
-        if (tabHash.charAt(0) != '#') {
+        if (tabHash.charAt(0) !== '#') {
           throw Error('Tab hashes must start with a #');
         }
 
@@ -187,8 +190,8 @@ var MainView = (function() {
       // Tab links start off hidden (besides import) since a log file has not
       // been loaded yet. This must be done after all the tabs are added so
       // that the width of the tab-list div is correctly styled.
-      for (var tabId in this.tabSwitcher_.getAllTabViews()) {
-        if (tabId != ImportView.TAB_ID) {
+      for (const tabId in this.tabSwitcher_.getAllTabViews()) {
+        if (tabId !== ImportView.TAB_ID) {
           this.tabSwitcher_.showTabLink(tabId, false);
         }
       }
@@ -201,38 +204,40 @@ var MainView = (function() {
      * changed. It will update the current URL to reflect the new active tab,
      * so the back can be used to return to previous view.
      */
-    onTabSwitched_: function(oldTabId, newTabId) {
+    onTabSwitched_(oldTabId, newTabId) {
       // Update data needed by newly active tab, as it may be
       // significantly out of date.
-      if (g_browser)
+      if (g_browser) {
         g_browser.checkForUpdatedInfo();
+      }
 
       // Change the URL to match the new tab.
 
-      var newTabHash = this.tabIdToHash_[newTabId];
-      var parsed = parseUrlHash_(window.location.hash);
-      if (parsed.tabHash != newTabHash) {
+      const newTabHash = this.tabIdToHash_[newTabId];
+      const parsed = parseUrlHash_(window.location.hash);
+      if (parsed.tabHash !== newTabHash) {
         window.location.hash = newTabHash;
       }
     },
 
-    onUrlHashChange_: function() {
-      var parsed = parseUrlHash_(window.location.hash);
+    onUrlHashChange_() {
+      const parsed = parseUrlHash_(window.location.hash);
 
-      if (!parsed)
+      if (!parsed) {
         return;
+      }
 
       if (!parsed.tabHash) {
         // Default to the import tab.
         parsed.tabHash = ImportView.TAB_HASH;
       }
 
-      var tabId = this.hashToTabId_[parsed.tabHash];
+      const tabId = this.hashToTabId_[parsed.tabHash];
 
       if (tabId) {
         this.tabSwitcher_.switchToTab(tabId);
         if (parsed.parameters) {
-          var view = this.tabSwitcher_.getTabView(tabId);
+          const view = this.tabSwitcher_.getTabView(tabId);
           view.setParameters(parsed.parameters);
         }
       }
@@ -247,27 +252,29 @@ var MainView = (function() {
    * Parameters and values are decoded with decodeURIComponent().
    */
   function parseUrlHash_(hash) {
-    var parameters = hash.split('&');
+    const parameters = hash.split('&');
 
-    var tabHash = parameters[0];
-    if (tabHash == '' || tabHash == '#') {
+    let tabHash = parameters[0];
+    if (tabHash === '' || tabHash === '#') {
       tabHash = undefined;
     }
 
     // Split each string except the first around the '='.
-    var paramDict = null;
-    for (var i = 1; i < parameters.length; i++) {
-      var paramStrings = parameters[i].split('=');
-      if (paramStrings.length != 2)
+    let paramDict = null;
+    for (let i = 1; i < parameters.length; i++) {
+      const paramStrings = parameters[i].split('=');
+      if (paramStrings.length !== 2) {
         continue;
-      if (paramDict == null)
+      }
+      if (paramDict === null) {
         paramDict = {};
-      var key = decodeURIComponent(paramStrings[0]);
-      var value = decodeURIComponent(paramStrings[1]);
+      }
+      const key = decodeURIComponent(paramStrings[0]);
+      const value = decodeURIComponent(paramStrings[1]);
       paramDict[key] = value;
     }
 
-    return {tabHash: tabHash, parameters: paramDict};
+    return {tabHash, parameters: paramDict};
   }
 
   return MainView;
@@ -281,8 +288,9 @@ function ConstantsObserver() {}
  * @param {Object} receivedConstants The map of received constants.
  */
 ConstantsObserver.prototype.onReceivedConstants = function(receivedConstants) {
-  if (!areValidConstants(receivedConstants))
+  if (!areValidConstants(receivedConstants)) {
     return;
+  }
 
   Constants = receivedConstants;
 
@@ -303,10 +311,11 @@ ConstantsObserver.prototype.onReceivedConstants = function(receivedConstants) {
   DataReductionProxyBypassActionType =
       Constants.dataReductionProxyBypassActionType;
   // certStatusFlag may not be present when loading old log Files
-  if (typeof(Constants.certStatusFlag) == 'object')
+  if (typeof(Constants.certStatusFlag) === 'object') {
     CertStatusFlag = Constants.certStatusFlag;
-  else
+  } else {
     CertStatusFlag = {};
+  }
 
   timeutil.setTimeTickOffset(Constants.timeTickOffset);
 };
@@ -317,16 +326,16 @@ ConstantsObserver.prototype.onReceivedConstants = function(receivedConstants) {
  * @return {boolean} True if the |receivedConstants| object appears valid.
  */
 function areValidConstants(receivedConstants) {
-  return typeof(receivedConstants) == 'object' &&
-      typeof(receivedConstants.logEventTypes) == 'object' &&
-      typeof(receivedConstants.clientInfo) == 'object' &&
-      typeof(receivedConstants.logEventPhase) == 'object' &&
-      typeof(receivedConstants.logSourceType) == 'object' &&
-      typeof(receivedConstants.loadFlag) == 'object' &&
-      typeof(receivedConstants.netError) == 'object' &&
-      typeof(receivedConstants.addressFamily) == 'object' &&
-      typeof(receivedConstants.timeTickOffset) == 'string' &&
-      typeof(receivedConstants.logFormatVersion) == 'number';
+  return typeof(receivedConstants) === 'object' &&
+      typeof(receivedConstants.logEventTypes) === 'object' &&
+      typeof(receivedConstants.clientInfo) === 'object' &&
+      typeof(receivedConstants.logEventPhase) === 'object' &&
+      typeof(receivedConstants.logSourceType) === 'object' &&
+      typeof(receivedConstants.loadFlag) === 'object' &&
+      typeof(receivedConstants.netError) === 'object' &&
+      typeof(receivedConstants.addressFamily) === 'object' &&
+      typeof(receivedConstants.timeTickOffset) === 'string' &&
+      typeof(receivedConstants.logFormatVersion) === 'number';
 }
 
 /**
@@ -371,7 +380,7 @@ function quicRstStreamErrorToString(quicRstStreamError) {
  * @return {string} A representation of the given family.
  */
 function addressFamilyToString(family) {
-  var str = getKeyWithValue(AddressFamily, family);
+  const str = getKeyWithValue(AddressFamily, family);
   // All the address family start with ADDRESS_FAMILY_*.
   // Strip that prefix since it is redundant and only clutters the output.
   return str.replace(/^ADDRESS_FAMILY_/, '');
