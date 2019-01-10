@@ -23,14 +23,18 @@ suite('RequestBase', function() {
     cp.authorizationHeaders = originalAuthorizationHeaders;
   });
 
-  class TestRequest extends cp.RequestBase {
-    get url_() {
-      return '/url';
-    }
+  // HTML imports may not have loaded when suite() is called, but are loaded
+  // when tests are called.
+  function TestRequest(options) {
+    return new class TestRequest extends cp.RequestBase {
+      get url_() {
+        return '/url';
+      }
 
-    postProcess_(response) {
-      return response.map(x => x * x);
-    }
+      postProcess_(response) {
+        return response.map(x => x * x);
+      }
+    }(options);
   }
 
   test('authorizationHeaders', async() => {
