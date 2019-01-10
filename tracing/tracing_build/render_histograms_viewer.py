@@ -8,8 +8,6 @@ import re
 
 _DATA_START = '<div id="histogram-json-data" style="display:none;"><!--'
 _DATA_END = '--!></div>'
-# If you change this, please update "Fall-back to old formats."
-_JSON_TAG = '<histogram-json>%s</histogram-json>'
 
 
 def ExtractJSON(results_html):
@@ -34,39 +32,12 @@ def ExtractJSON(results_html):
       return []
   return results
 
-def ExtractLegacyJSON(results_html, json_tag):
-  results = []
-  pattern = '(.*?)'.join(re.escape(part) for part in json_tag.split('%s'))
-  flags = re.MULTILINE | re.DOTALL
-  for match in re.finditer(pattern, results_html, flags):
-    try:
-      results.append(json.loads(match.group(1)))
-    except ValueError:
-      logging.warn(
-          'Found existing results json, but failed to parse it: %s',
-          match.group(1))
-      return []
-  return results
-
 
 def ReadExistingResults(results_html):
   if not results_html:
     return []
 
   histogram_dicts = ExtractJSON(results_html)
-
-  # Fall-back to old formats.
-  if not histogram_dicts:
-    logging.warn('Using fallback format')
-    histogram_dicts = ExtractLegacyJSON(results_html, _JSON_TAG)
-  if not histogram_dicts:
-    histogram_dicts = ExtractLegacyJSON(
-        results_html, json_tag='<div class="histogram-json">%s</div>')
-  if not histogram_dicts:
-    match = re.search('<div id="value-set-json">(.*?)</div>', results_html,
-                      re.MULTILINE | re.DOTALL)
-    if match:
-      histogram_dicts = json.loads(match.group(1))
 
   if not histogram_dicts:
     logging.warn('Failed to extract previous results from HTML output')
