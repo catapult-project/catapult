@@ -159,6 +159,8 @@ class StartupTracingTest(unittest.TestCase):
         if e['title'].startswith('test-marker-')]
 
   @decorators.Isolated
+  # crbug.com/920454
+  @decorators.Disabled('chromeos')
   def testStopTracingWhileBrowserIsRunning(self):
     self.tracing_controller.StartTracing(self.config)
     with self.possible_browser.BrowserSession(self.browser_options) as browser:
@@ -169,6 +171,8 @@ class StartupTracingTest(unittest.TestCase):
     self.assertEquals(markers, ['test-marker-foo'])
 
   @decorators.Isolated
+  # crbug.com/920454
+  @decorators.Disabled('chromeos')
   def testCloseBrowserBeforeTracingIsStopped(self):
     self.tracing_controller.StartTracing(self.config)
     with self.possible_browser.BrowserSession(self.browser_options) as browser:
@@ -179,6 +183,8 @@ class StartupTracingTest(unittest.TestCase):
     self.assertEquals(markers, ['test-marker-bar'])
 
   @decorators.Isolated
+  # crbug.com/920454
+  @decorators.Disabled('chromeos')
   def testRestartBrowserWhileTracing(self):
     expected_markers = ['test-marker-%i' % i for i in xrange(4)]
     self.tracing_controller.StartTracing(self.config)
