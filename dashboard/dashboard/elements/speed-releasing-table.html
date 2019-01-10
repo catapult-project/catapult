@@ -158,266 +158,264 @@ found in the LICENSE file.
         </div>
       </template>
     </template>
-
   </template>
-  <script>
-    'use strict';
-    Polymer({
+</dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'speed-releasing-table',
+  properties: {
+    tableConfig: {
+      type: Object,
+      value: {},
+      notify: true,
+    },
+    tableName: {
+      type: String,
+      notify: true,
+    },
+    loading: {
+      type: Boolean,
+      value: false,
+      notify: true
+    },
+    error: {
+      type: String,
+      value: '',
+      notify: true
+    },
+    xsrfToken: {
+      type: String,
+      value: ''
+    },
+  },
 
-      is: 'speed-releasing-table',
-      properties: {
-        tableConfig: {
-          type: Object,
-          value: {},
-          notify: true,
-        },
-        tableName: {
-          type: String,
-          notify: true,
-        },
-        loading: {
-          type: Boolean,
-          value: false,
-          notify: true
-        },
-        error: {
-          type: String,
-          value: '',
-          notify: true
-        },
-        xsrfToken: {
-          type: String,
-          value: ''
-        },
-      },
+  getCurrOrRef(index) {
+    return index ? 'Reference' : 'Current';
+  },
 
-      getCurrOrRef(index) {
-        return index ? 'Reference' : 'Current';
-      },
+  /**
+    * Gets the specified value given a rev, bot, test.
+    */
+  getValue(rev, bot, test) {
+    const value = this.tableConfig.values[rev][bot][test];
+    if (value === null || value === undefined) {
+      return 'n/a';
+    }
+    const unit = this.tableConfig.units[test];
+    if (tr.b.Unit.byName[unit]) {
+      return (tr.b.Unit.byName[unit].format(value));
+    }
+    const unitInfo = tr.v.LEGACY_UNIT_INFO.get(unit);
+    if (unitInfo) {
+      return (tr.b.Unit.byName[unitInfo.name].format(value));
+    }
+    return value;
+  },
 
-      /**
-       * Gets the specified value given a rev, bot, test.
-       */
-      getValue(rev, bot, test) {
-        const value = this.tableConfig.values[rev][bot][test];
-        if (value === null || value === undefined) {
-          return 'n/a';
-        }
+  /*
+    * Calls this.getDelta and checks if the result is an improvement,
+    * regression, or zero.
+    */
+  getDeltaClassName(bot, test) {
+    // Passes in true; arbitrary choice since either true, false, or any
+    // other option would still result in the same positive or negative
+    // result.
+    let delta = this.getDelta(bot, test, 'true');
+    delta = parseInt(delta, 10);
+    if (delta < 0) {
+      return 'improvement';
+    } else if (delta > 0) {
+      return 'regression';
+    }
+    return 'zero';
+  },
+
+  /**
+    * Computes the abs/relative difference for the specified test.
+    */
+  getDelta(bot, test, abs) {
+    if (this.tableConfig.revisions.length === 2) {
+      const revA = this.tableConfig.revisions[1];
+      const revB = this.tableConfig.revisions[0];
+      const valueA = this.tableConfig.values[revA][bot][test];
+      const valueB = this.tableConfig.values[revB][bot][test];
+      if (valueA === null || valueA === undefined || valueB === null ||
+          valueB === undefined) {
+        return 'n/a';
+      }
+      if (abs === 'true') {
+        const difference = valueB - valueA;
         const unit = this.tableConfig.units[test];
+
         if (tr.b.Unit.byName[unit]) {
-          return (tr.b.Unit.byName[unit].format(value));
+          return (tr.b.Unit.byName[unit].format(difference));
         }
         const unitInfo = tr.v.LEGACY_UNIT_INFO.get(unit);
         if (unitInfo) {
-          return (tr.b.Unit.byName[unitInfo.name].format(value));
+          return (tr.b.Unit.byName[unitInfo.name].format(difference));
         }
-        return value;
-      },
-
-      /*
-       * Calls this.getDelta and checks if the result is an improvement,
-       * regression, or zero.
-       */
-      getDeltaClassName(bot, test) {
-        // Passes in true; arbitrary choice since either true, false, or any
-        // other option would still result in the same positive or negative
-        // result.
-        let delta = this.getDelta(bot, test, 'true');
-        delta = parseInt(delta, 10);
-        if (delta < 0) {
-          return 'improvement';
-        } else if (delta > 0) {
-          return 'regression';
-        }
-        return 'zero';
-      },
-
-      /**
-       * Computes the abs/relative difference for the specified test.
-       */
-      getDelta(bot, test, abs) {
-        if (this.tableConfig.revisions.length === 2) {
-          const revA = this.tableConfig.revisions[1];
-          const revB = this.tableConfig.revisions[0];
-          const valueA = this.tableConfig.values[revA][bot][test];
-          const valueB = this.tableConfig.values[revB][bot][test];
-          if (valueA === null || valueA === undefined || valueB === null ||
-              valueB === undefined) {
-            return 'n/a';
-          }
-          if (abs === 'true') {
-            const difference = valueB - valueA;
-            const unit = this.tableConfig.units[test];
-
-            if (tr.b.Unit.byName[unit]) {
-              return (tr.b.Unit.byName[unit].format(difference));
-            }
-            const unitInfo = tr.v.LEGACY_UNIT_INFO.get(unit);
-            if (unitInfo) {
-              return (tr.b.Unit.byName[unitInfo.name].format(difference));
-            }
-            return difference;
-          }
-          let relDiff;
-          if (valueA === valueB) {
-            relDiff = 0;
-          } else {
-            relDiff = (valueB / valueA) - 1;
-          }
-          return (tr.b.Unit.byName.normalizedPercentage.format(relDiff));
-        }
-      },
-
-      getPrettyTestName(test) {
-        return this.tableConfig.layout[test][1];
-      },
-
-      getCategory(test, index) {
-        const category = this.tableConfig.layout[test][0];
-        return category;
-      },
-
-      getCategoryCount(test) {
-        const category = this.tableConfig.layout[test][0];
-        return this.tableConfig.categories[category];
-      },
-
-      /**
-       * Finds where the last category ended and checks to see if the current
-       * index is part of a new category so we can style correctly.
-       * For example, if the first category contains 3 tests, that table
-       * header should span 3 rows. But we can only set the row-span once, or
-       * we end up with 3 table headers, all spanning 3 rows.
-       * If this function returns true, then we know we can safely set row-span.
-       *
-       * this.tableConfig.categories contains:
-       * {
-       *    categoryA: x,
-       *    categoryB: y,
-       *    categoryC: z,
-       *    ...
-       * }
-       * If it is the first iteration of a dom-repeat or if the index equals
-       * the sum of all of the previous category counts, then we know that this
-       * is the first instance of a new category. E.g. if index = x + y, we
-       * know it is the beginning of categoryC (category counts are not 0
-       * based, but dom-repeat's index is).
-       */
-      isFirstInCategory(index, test) {
-        const category = this.tableConfig.layout[test][0];
-        const keys = Object.keys(this.tableConfig.categories);
-        const categoryIndex = keys.indexOf(category);
-
-        let previousCategoryTotal = 0;
-        for (let i = 0; i < categoryIndex; i++) {
-          previousCategoryTotal += this.tableConfig.categories[keys[i]];
-        }
-        if (index === 0 || index === previousCategoryTotal) {
-          return true;
-        }
-        return false;
-      },
-
-      /*
-       * Handles adding the 'first-in-category' class to the correct
-       * table rows. The class will add a dark line to help separate
-       * categories visually.
-       */
-      getIsFirstInCategoryClass(index, test) {
-        const isFirstInCategory = this.isFirstInCategory(index, test);
-        if (isFirstInCategory) {
-          return 'first-in-category';
-        }
-        return '';
-      },
-
-      getURL(bot, test) {
-        return this.tableConfig.urlMap[bot + '/' + test];
-      },
-
-      getStartMilestoneLabel() {
-        return 'M' + this.tableConfig.displayMilestones[0];
-      },
-
-      getEndMilestoneLabel() {
-        if (this.tableConfig.displayMilestones[0] ===
-            this.tableConfig.displayMilestones[1]) {
-          return 'M' + (this.tableConfig.displayMilestones[1] + 1);
-        }
-        return 'M' + this.tableConfig.displayMilestones[1];
-      },
-
-      prevMilestone() {
-        this.navigateMilestones(0);
-      },
-
-      nextMilestone() {
-        this.navigateMilestones(1);
-      },
-
-      navigateMilestones(i) {
-        if (this.tableConfig.navigationMilestones[i] != null) {
-          window.location.href = window.location.pathname + '?m=' +
-                 this.tableConfig.navigationMilestones[i];
-        }
-        return null;
-      },
-
-      getPrevMilestoneLabel() {
-        return this.getMilestoneLabel(0);
-      },
-
-      getNextMilestoneLabel() {
-        return this.getMilestoneLabel(1);
-      },
-
-      getMilestoneLabel(i) {
-        if (this.tableConfig.navigationMilestones[i] != null) {
-          return this.tableConfig.navigationMilestones[i];
-        }
-        return null;
-      },
-
-      ready() {
-        const params = {};
-        const revA = uri.getParameter('revA');
-        if (revA) {
-          params.revA = revA;
-        }
-        const revB = uri.getParameter('revB');
-        if (revB) {
-          params.revB = revB;
-        }
-        const m = uri.getParameter('m');
-        if (m) {
-          params.m = m;
-        }
-        const path = this.tableName;
-        this.loading = true;
-        simple_xhr.send('/speed_releasing/' + path, params,
-            function(response) {
-              this.tableConfig.bots = response.table_bots;
-              this.tableConfig.tests = response.table_tests;
-              this.tableConfig.layout = response.table_layout;
-              this.tableConfig.name = response.name;
-              this.xsrfToken = response.xsrf_token;
-              this.tableConfig.values = response.values;
-              this.tableConfig.revisions = response.revisions;
-              this.tableConfig.units = response.units;
-              this.tableConfig.categories = response.categories;
-              this.tableConfig.urlMap = response.urls;
-              this.tableConfig.displayRevisions = response.display_revisions;
-              this.tableConfig.displayMilestones =
-                  response.display_milestones;
-              this.tableConfig.navigationMilestones =
-                  response.navigation_milestones;
-              this.loading = false;
-            }.bind(this),
-            function(msg) {
-              this.error = msg;
-              this.loading = false;
-            }.bind(this));
+        return difference;
       }
-    });
-  </script>
-</dom-module>
+      let relDiff;
+      if (valueA === valueB) {
+        relDiff = 0;
+      } else {
+        relDiff = (valueB / valueA) - 1;
+      }
+      return (tr.b.Unit.byName.normalizedPercentage.format(relDiff));
+    }
+  },
+
+  getPrettyTestName(test) {
+    return this.tableConfig.layout[test][1];
+  },
+
+  getCategory(test, index) {
+    const category = this.tableConfig.layout[test][0];
+    return category;
+  },
+
+  getCategoryCount(test) {
+    const category = this.tableConfig.layout[test][0];
+    return this.tableConfig.categories[category];
+  },
+
+  /**
+    * Finds where the last category ended and checks to see if the current
+    * index is part of a new category so we can style correctly.
+    * For example, if the first category contains 3 tests, that table
+    * header should span 3 rows. But we can only set the row-span once, or
+    * we end up with 3 table headers, all spanning 3 rows.
+    * If this function returns true, then we know we can safely set row-span.
+    *
+    * this.tableConfig.categories contains:
+    * {
+    *    categoryA: x,
+    *    categoryB: y,
+    *    categoryC: z,
+    *    ...
+    * }
+    * If it is the first iteration of a dom-repeat or if the index equals
+    * the sum of all of the previous category counts, then we know that this
+    * is the first instance of a new category. E.g. if index = x + y, we
+    * know it is the beginning of categoryC (category counts are not 0
+    * based, but dom-repeat's index is).
+    */
+  isFirstInCategory(index, test) {
+    const category = this.tableConfig.layout[test][0];
+    const keys = Object.keys(this.tableConfig.categories);
+    const categoryIndex = keys.indexOf(category);
+
+    let previousCategoryTotal = 0;
+    for (let i = 0; i < categoryIndex; i++) {
+      previousCategoryTotal += this.tableConfig.categories[keys[i]];
+    }
+    if (index === 0 || index === previousCategoryTotal) {
+      return true;
+    }
+    return false;
+  },
+
+  /*
+    * Handles adding the 'first-in-category' class to the correct
+    * table rows. The class will add a dark line to help separate
+    * categories visually.
+    */
+  getIsFirstInCategoryClass(index, test) {
+    const isFirstInCategory = this.isFirstInCategory(index, test);
+    if (isFirstInCategory) {
+      return 'first-in-category';
+    }
+    return '';
+  },
+
+  getURL(bot, test) {
+    return this.tableConfig.urlMap[bot + '/' + test];
+  },
+
+  getStartMilestoneLabel() {
+    return 'M' + this.tableConfig.displayMilestones[0];
+  },
+
+  getEndMilestoneLabel() {
+    if (this.tableConfig.displayMilestones[0] ===
+        this.tableConfig.displayMilestones[1]) {
+      return 'M' + (this.tableConfig.displayMilestones[1] + 1);
+    }
+    return 'M' + this.tableConfig.displayMilestones[1];
+  },
+
+  prevMilestone() {
+    this.navigateMilestones(0);
+  },
+
+  nextMilestone() {
+    this.navigateMilestones(1);
+  },
+
+  navigateMilestones(i) {
+    if (this.tableConfig.navigationMilestones[i] != null) {
+      window.location.href = window.location.pathname + '?m=' +
+              this.tableConfig.navigationMilestones[i];
+    }
+    return null;
+  },
+
+  getPrevMilestoneLabel() {
+    return this.getMilestoneLabel(0);
+  },
+
+  getNextMilestoneLabel() {
+    return this.getMilestoneLabel(1);
+  },
+
+  getMilestoneLabel(i) {
+    if (this.tableConfig.navigationMilestones[i] != null) {
+      return this.tableConfig.navigationMilestones[i];
+    }
+    return null;
+  },
+
+  ready() {
+    const params = {};
+    const revA = uri.getParameter('revA');
+    if (revA) {
+      params.revA = revA;
+    }
+    const revB = uri.getParameter('revB');
+    if (revB) {
+      params.revB = revB;
+    }
+    const m = uri.getParameter('m');
+    if (m) {
+      params.m = m;
+    }
+    const path = this.tableName;
+    this.loading = true;
+    simple_xhr.send('/speed_releasing/' + path, params,
+        function(response) {
+          this.tableConfig.bots = response.table_bots;
+          this.tableConfig.tests = response.table_tests;
+          this.tableConfig.layout = response.table_layout;
+          this.tableConfig.name = response.name;
+          this.xsrfToken = response.xsrf_token;
+          this.tableConfig.values = response.values;
+          this.tableConfig.revisions = response.revisions;
+          this.tableConfig.units = response.units;
+          this.tableConfig.categories = response.categories;
+          this.tableConfig.urlMap = response.urls;
+          this.tableConfig.displayRevisions = response.display_revisions;
+          this.tableConfig.displayMilestones =
+              response.display_milestones;
+          this.tableConfig.navigationMilestones =
+              response.navigation_milestones;
+          this.loading = false;
+        }.bind(this),
+        function(msg) {
+          this.error = msg;
+          this.loading = false;
+        }.bind(this));
+  }
+});
+</script>

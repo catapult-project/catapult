@@ -110,103 +110,103 @@ found in the LICENSE file.
       </template>
     </template>
   </template>
-  <script>
-    'use strict';
-    tr.exportTo('d', function() {
-      const BUG_DETAILS = new d.AsyncMap(async bugId =>
-        await simple_xhr.asPromise('/bug_details', {bug_id: bugId}));
-      return {
-        BUG_DETAILS,
-      };
-    });
-
-    Polymer({
-      is: 'bug-details',
-      properties: {
-        bisects: {
-          notify: true,
-          type: Array
-        },
-        bugId: {
-          notify: true,
-          type: Number,
-          observer: 'ready'
-        },
-        comments: {
-          notify: true,
-          type: Array
-        },
-        compactView: {
-          type: Boolean,
-          value: false
-        },
-        error: {
-          notify: true,
-          type: Boolean,
-          value: false
-        },
-        isValidBug: {
-          value: false,
-          type: Boolean
-        },
-        loading: {
-          notify: true,
-          type: Boolean,
-          value: true
-        },
-        owner: {
-          notify: true,
-          type: String
-        },
-        published: {
-          notify: true
-        },
-        reviewUrls: {
-          notify: true,
-          type: Array
-        },
-        state: {
-          notify: true,
-          type: String
-        },
-        status: {
-          notify: true,
-          type: String
-        },
-        summary: {
-          notify: true,
-          type: String
-        }
-      },
-
-      formatDate: d => d.getFullYear() + '-' + (d.getMonth() + 1) +
-                      '-' + d.getDate(),
-
-      async ready() {
-        if (this.bugId > 0) {
-          this.isValidBug = true;
-          try {
-            const details = await d.BUG_DETAILS.get(this.bugId);
-            this.bisects = details.bisects;
-            this.comments = details.comments;
-            this.owner = details.owner;
-            this.published = new Date(details.published);
-            this.reviewUrls = details.review_urls;
-            this.state = details.state;
-            this.status = details.status;
-            this.summary = details.summary;
-            this.loading = false;
-            this.error = undefined;
-          } catch (e) {
-            this.error = e;
-            this.loading = false;
-            this.isValidBug = false;
-          }
-        } else {
-          this.loading = false;
-          this.isValidBug = false;
-        }
-      }
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+tr.exportTo('d', function() {
+  const BUG_DETAILS = new d.AsyncMap(async bugId =>
+    await simple_xhr.asPromise('/bug_details', {bug_id: bugId}));
+  return {
+    BUG_DETAILS,
+  };
+});
+
+Polymer({
+  is: 'bug-details',
+  properties: {
+    bisects: {
+      notify: true,
+      type: Array
+    },
+    bugId: {
+      notify: true,
+      type: Number,
+      observer: 'ready'
+    },
+    comments: {
+      notify: true,
+      type: Array
+    },
+    compactView: {
+      type: Boolean,
+      value: false
+    },
+    error: {
+      notify: true,
+      type: Boolean,
+      value: false
+    },
+    isValidBug: {
+      value: false,
+      type: Boolean
+    },
+    loading: {
+      notify: true,
+      type: Boolean,
+      value: true
+    },
+    owner: {
+      notify: true,
+      type: String
+    },
+    published: {
+      notify: true
+    },
+    reviewUrls: {
+      notify: true,
+      type: Array
+    },
+    state: {
+      notify: true,
+      type: String
+    },
+    status: {
+      notify: true,
+      type: String
+    },
+    summary: {
+      notify: true,
+      type: String
+    }
+  },
+
+  formatDate: d => d.getFullYear() + '-' + (d.getMonth() + 1) +
+                  '-' + d.getDate(),
+
+  async ready() {
+    if (this.bugId > 0) {
+      this.isValidBug = true;
+      try {
+        const details = await d.BUG_DETAILS.get(this.bugId);
+        this.bisects = details.bisects;
+        this.comments = details.comments;
+        this.owner = details.owner;
+        this.published = new Date(details.published);
+        this.reviewUrls = details.review_urls;
+        this.state = details.state;
+        this.status = details.status;
+        this.summary = details.summary;
+        this.loading = false;
+        this.error = undefined;
+      } catch (e) {
+        this.error = e;
+        this.loading = false;
+        this.isValidBug = false;
+      }
+    } else {
+      this.loading = false;
+      this.isValidBug = false;
+    }
+  }
+});
+</script>

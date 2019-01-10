@@ -36,9 +36,11 @@ tr.b.unittest.testSuite(function() {
         ['story0', 'story1', 'story2', 'story3']);
 
     checkboxes[0].click();
+    await tr.b.animationFrame();
     assert.deepEqual(stf.selectedStoryNames, ['story0', 'story1', 'story2']);
 
     checkboxes[1].click();
+    await tr.b.animationFrame();
     assert.deepEqual(stf.selectedStoryNames,
         ['story0', 'story1', 'story2', 'story3']);
 

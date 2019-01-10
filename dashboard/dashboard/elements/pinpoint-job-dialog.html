@@ -76,131 +76,130 @@ found in the LICENSE file.
       </template>
     </paper-dialog>
   </template>
-  <script>
-    'use strict';
-
-    Polymer({
-      is: 'pinpoint-job-dialog',
-
-      properties: {
-        alerts: {},
-        bug_id: {
-          type: Number,
-        },
-        test_path: {
-          type: String,
-          value: '',
-        },
-        story_filter: {
-          type: String,
-          value: '',
-        },
-        start_commit: {
-          type: String,
-          value: '',
-        },
-        end_commit: {
-          type: String,
-          value: '',
-        },
-        pin: {
-          type: String,
-          value: '',
-        },
-        loading: {
-          type: Boolean,
-          value: false,
-        },
-        create_disabled: {
-          type: Boolean,
-          value: false,
-        },
-        error: {
-          type: String,
-          value: '',
-        }
-      },
-
-      computeIsDisabled(e) {
-        return !!e;
-      },
-
-      async onCreateJob(e) {
-        const alerts = [];
-        if (this.alerts) {
-          for (const a of this.alerts) {
-            alerts.push(a.key);
-          }
-        }
-
-        const params = {
-          test_path: this.test_path,
-          start_commit: this.start_commit,
-          end_commit: this.end_commit,
-          bug_id: this.bug_id,
-          story_filter: this.story_filter,
-          pin: this.pin,
-          bisect_mode: this.$.bisect_mode.selected,
-          alerts: JSON.stringify(alerts),
-        };
-
-        try {
-          this.error = '';
-          this.create_disabled = true;
-          const results = await simple_xhr.asPromise(
-              '/pinpoint/new/bisect', params);
-          this.fire('pinpoint-new-response', {
-            'jobId': results.jobId,
-            'jobUrl': results.jobUrl,
-          });
-          this.close();
-        } catch (e) {
-          this.error = e;
-        }
-        this.create_disabled = false;
-      },
-
-      ready() {
-      },
-
-      getCreateDisabled(createDisabled, loading) {
-        return createDisabled || loading;
-      },
-
-      /**
-       * Initializes and shows the bisect form.
-       */
-      async show() {
-        this.create_disabled = false;
-        this.loading = true;
-        this.story_filter = '';
-        this.pin = '';
-        this.error = '';
-        this.open();
-
-        try {
-          const params = {
-            test_path: this.test_path,
-          };
-
-          const results = await simple_xhr.asPromise(
-              '/pinpoint/new/prefill', params);
-          this.story_filter = results.story_filter;
-        } catch (e) {
-          this.error = e;
-        }
-
-        this.loading = false;
-      },
-
-      open() {
-        this.$.container.open();
-      },
-
-      close() {
-        this.$.container.close();
-      }
-
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'pinpoint-job-dialog',
+
+  properties: {
+    alerts: {},
+    bug_id: {
+      type: Number,
+    },
+    test_path: {
+      type: String,
+      value: '',
+    },
+    story_filter: {
+      type: String,
+      value: '',
+    },
+    start_commit: {
+      type: String,
+      value: '',
+    },
+    end_commit: {
+      type: String,
+      value: '',
+    },
+    pin: {
+      type: String,
+      value: '',
+    },
+    loading: {
+      type: Boolean,
+      value: false,
+    },
+    create_disabled: {
+      type: Boolean,
+      value: false,
+    },
+    error: {
+      type: String,
+      value: '',
+    }
+  },
+
+  computeIsDisabled(e) {
+    return !!e;
+  },
+
+  async onCreateJob(e) {
+    const alerts = [];
+    if (this.alerts) {
+      for (const a of this.alerts) {
+        alerts.push(a.key);
+      }
+    }
+
+    const params = {
+      test_path: this.test_path,
+      start_commit: this.start_commit,
+      end_commit: this.end_commit,
+      bug_id: this.bug_id,
+      story_filter: this.story_filter,
+      pin: this.pin,
+      bisect_mode: this.$.bisect_mode.selected,
+      alerts: JSON.stringify(alerts),
+    };
+
+    try {
+      this.error = '';
+      this.create_disabled = true;
+      const results = await simple_xhr.asPromise(
+          '/pinpoint/new/bisect', params);
+      this.fire('pinpoint-new-response', {
+        'jobId': results.jobId,
+        'jobUrl': results.jobUrl,
+      });
+      this.close();
+    } catch (e) {
+      this.error = e;
+    }
+    this.create_disabled = false;
+  },
+
+  ready() {
+  },
+
+  getCreateDisabled(createDisabled, loading) {
+    return createDisabled || loading;
+  },
+
+  /**
+    * Initializes and shows the bisect form.
+    */
+  async show() {
+    this.create_disabled = false;
+    this.loading = true;
+    this.story_filter = '';
+    this.pin = '';
+    this.error = '';
+    this.open();
+
+    try {
+      const params = {
+        test_path: this.test_path,
+      };
+
+      const results = await simple_xhr.asPromise(
+          '/pinpoint/new/prefill', params);
+      this.story_filter = results.story_filter;
+    } catch (e) {
+      this.error = e;
+    }
+
+    this.loading = false;
+  },
+
+  open() {
+    this.$.container.open();
+  },
+
+  close() {
+    this.$.container.close();
+  }
+
+});
+</script>

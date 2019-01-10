@@ -141,140 +141,140 @@ was just clicked.
       </paper-card>
     </dialog-container>
   </template>
-  <script>
-    'use strict';
-    Polymer({
-      is: 'chart-tooltip',
-      properties: {
-        alerts: {
-          notify: true,
-          observer: 'alertsChanged'
-        },
-        bugId: {
-          value: null,
-          notify: true
-        },
-        hideStddev: {
-          type: Boolean,
-          value: true
-        },
-        hideStdioUri: {
-          type: Boolean,
-          value: true
-        },
-        links: { notify: true },
-        pointId: { notify: true },
-        revisions: {
-          type: Array,
-          value() {
-            return [];
-          },
-          notify: true
-        },
-        stddev: { value: null },
-        stdioUri: { value: null },
-        testPath: {
-          notify: true,
-          observer: 'testPathChanged'
-        },
-        traceName: { value: null },
-        value: {
-          value: null,
-          notify: true
-        },
-        xsrfToken: { notify: true }
-      },
-
-      testPathChanged() {
-        if (this.testPath) {
-          const parts = this.testPath.split('/');
-          this.seriesName = parts.pop();
-          this.parentPath = parts.join('/');
-        }
-      },
-
-      /**
-       * Shows the CL descriptions for the given revision range.
-       */
-      onRevisionRangeClick(event, detail) {
-        window.open(
-            event.currentTarget.href, 'changelog', 'width=1000,height=1000');
-        event.preventDefault();
-      },
-
-      copyTextToClipboard(text) {
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        document.body.appendChild(textArea);
-        textArea.select();
-        let successful = false;
-        try {
-          successful = document.execCommand('copy');
-        } catch (e) {
-          successful = false;
-        }
-        document.body.removeChild(textArea);
-        return successful;
-      },
-
-      onCopyToClipboard(event) {
-        const link = event.model.item.url;
-        const success = this.copyTextToClipboard(link);
-        if (!success) {
-          window.prompt('Could not copy automatically, select and copy', link);
-        }
-      },
-
-      /**
-       * Updates the display of the triage-dialog.
-       * This method is called whenever the value of this.alerts changes,
-       * e.g. by chart-container when an alert is triaged.
-       */
-      alertsChanged() {
-        // The triage-dialog should be shown when there is some non-triaged
-        // alert, and hidden otherwise.
-        if (this.alerts && this.alerts.length) {
-          this.$.triage.show();
-        } else {
-          this.$.triage.close();
-        }
-      },
-
-      /**
-       * Fires a 'triaged' event, which should be caught in chart-container.
-       */
-      onUntriaged(event, detail) {
-        this.fire('triaged', {
-          'alerts': this.triagedAlerts,
-          'bugid': null
-        });
-      },
-
-      open() {
-        const oldLeft = this.$.container.offsetLeft;
-        const oldTop = this.$.container.offsetTop;
-        openAtPosition(oldTop, oldLeft);
-      },
-
-      close() {
-        if (this.$.container.opened) {
-          this.$.container.close();
-        }
-      },
-
-      openAtPosition(top, left) {
-        this.$.container.updatePositionFromCoords(top, left);
-        if (!this.$.container.opened) {
-          this.$.container.open();
-        }
-      },
-
-      bugNotInvalid(bugId) {
-        return bugId != -1;
-      },
-      bugNotIgnored(bugId) {
-        return bugId != -2;
-      }
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'chart-tooltip',
+  properties: {
+    alerts: {
+      notify: true,
+      observer: 'alertsChanged'
+    },
+    bugId: {
+      value: null,
+      notify: true
+    },
+    hideStddev: {
+      type: Boolean,
+      value: true
+    },
+    hideStdioUri: {
+      type: Boolean,
+      value: true
+    },
+    links: { notify: true },
+    pointId: { notify: true },
+    revisions: {
+      type: Array,
+      value() {
+        return [];
+      },
+      notify: true
+    },
+    stddev: { value: null },
+    stdioUri: { value: null },
+    testPath: {
+      notify: true,
+      observer: 'testPathChanged'
+    },
+    traceName: { value: null },
+    value: {
+      value: null,
+      notify: true
+    },
+    xsrfToken: { notify: true }
+  },
+
+  testPathChanged() {
+    if (this.testPath) {
+      const parts = this.testPath.split('/');
+      this.seriesName = parts.pop();
+      this.parentPath = parts.join('/');
+    }
+  },
+
+  /**
+    * Shows the CL descriptions for the given revision range.
+    */
+  onRevisionRangeClick(event, detail) {
+    window.open(
+        event.currentTarget.href, 'changelog', 'width=1000,height=1000');
+    event.preventDefault();
+  },
+
+  copyTextToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    let successful = false;
+    try {
+      successful = document.execCommand('copy');
+    } catch (e) {
+      successful = false;
+    }
+    document.body.removeChild(textArea);
+    return successful;
+  },
+
+  onCopyToClipboard(event) {
+    const link = event.model.item.url;
+    const success = this.copyTextToClipboard(link);
+    if (!success) {
+      window.prompt('Could not copy automatically, select and copy', link);
+    }
+  },
+
+  /**
+    * Updates the display of the triage-dialog.
+    * This method is called whenever the value of this.alerts changes,
+    * e.g. by chart-container when an alert is triaged.
+    */
+  alertsChanged() {
+    // The triage-dialog should be shown when there is some non-triaged
+    // alert, and hidden otherwise.
+    if (this.alerts && this.alerts.length) {
+      this.$.triage.show();
+    } else {
+      this.$.triage.close();
+    }
+  },
+
+  /**
+    * Fires a 'triaged' event, which should be caught in chart-container.
+    */
+  onUntriaged(event, detail) {
+    this.fire('triaged', {
+      'alerts': this.triagedAlerts,
+      'bugid': null
+    });
+  },
+
+  open() {
+    const oldLeft = this.$.container.offsetLeft;
+    const oldTop = this.$.container.offsetTop;
+    openAtPosition(oldTop, oldLeft);
+  },
+
+  close() {
+    if (this.$.container.opened) {
+      this.$.container.close();
+    }
+  },
+
+  openAtPosition(top, left) {
+    this.$.container.updatePositionFromCoords(top, left);
+    if (!this.$.container.opened) {
+      this.$.container.open();
+    }
+  },
+
+  bugNotInvalid(bugId) {
+    return bugId != -1;
+  },
+  bugNotIgnored(bugId) {
+    return bugId != -2;
+  }
+});
+</script>

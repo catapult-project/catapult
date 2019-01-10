@@ -61,73 +61,73 @@ found in the LICENSE file.
     </div>
 
   </template>
-  <script>
-    'use strict';
-
-    (function() {
-      Polymer({
-
-        is: 'bisect-button',
-        properties: {
-          alerts: {},
-          bisectInfo: {
-            notify: true
-          },
-          bugId: { notify: true },
-          xsrfToken: { notify: true }
-        },
-
-        ready() {
-          this.$.pinpoint.addEventListener(
-              'pinpoint-new-response',
-              this.onPinpointJobSubmitted.bind(this));
-        },
-
-        /**
-         * Determines whether or not this is bisectable.
-         */
-        computeCanBisect(bisectInfo) {
-          if (bisectInfo == null || !bisectInfo.canBisect) {
-            return false;
-          }
-
-          // We can't check how big the range is if they're git hashes, so just
-          // let them bisect since bisectInfo.canBisect is true.
-          if (typeof bisectInfo.badRev == 'string' ||
-              typeof bisectInfo.goodRev == 'string') {
-            return true;
-          }
-
-          // If there's only a single revision in the range, bisecting
-          // is pointless and the button should be disabled.
-          return (bisectInfo.badRev > bisectInfo.goodRev + 1);
-        },
-
-        onPinpointJobSubmitted(e) {
-          this.lastSubmittedJobId = e.detail.jobId;
-          this.lastSubmittedJobUrl = e.detail.jobUrl;
-
-          this.fire('display-toast', {'content': this.$.jobsubmitted});
-        },
-
-        /**
-         * Displays the bisect-form when the bisect button is clicked.
-         */
-        onBisect() {
-          const testPathParts = this.bisectInfo.testPath.split('/');
-          const botName = testPathParts[1];
-
-          if (d.PINPOINT_BOTS.indexOf(botName) != -1) {
-            this.$.pinpoint.test_path = this.bisectInfo.testPath;
-            this.$.pinpoint.start_commit = this.bisectInfo.goodRev;
-            this.$.pinpoint.end_commit = this.bisectInfo.badRev;
-            this.$.pinpoint.bug_id = this.bugId;
-            this.$.pinpoint.show();
-          } else {
-            this.$.bisect.show();
-          }
-        }
-      });
-    })();
-  </script>
 </dom-module>
+<script>
+'use strict';
+
+(function() {
+  Polymer({
+
+    is: 'bisect-button',
+    properties: {
+      alerts: {},
+      bisectInfo: {
+        notify: true
+      },
+      bugId: { notify: true },
+      xsrfToken: { notify: true }
+    },
+
+    ready() {
+      this.$.pinpoint.addEventListener(
+          'pinpoint-new-response',
+          this.onPinpointJobSubmitted.bind(this));
+    },
+
+    /**
+      * Determines whether or not this is bisectable.
+      */
+    computeCanBisect(bisectInfo) {
+      if (bisectInfo == null || !bisectInfo.canBisect) {
+        return false;
+      }
+
+      // We can't check how big the range is if they're git hashes, so just
+      // let them bisect since bisectInfo.canBisect is true.
+      if (typeof bisectInfo.badRev == 'string' ||
+          typeof bisectInfo.goodRev == 'string') {
+        return true;
+      }
+
+      // If there's only a single revision in the range, bisecting
+      // is pointless and the button should be disabled.
+      return (bisectInfo.badRev > bisectInfo.goodRev + 1);
+    },
+
+    onPinpointJobSubmitted(e) {
+      this.lastSubmittedJobId = e.detail.jobId;
+      this.lastSubmittedJobUrl = e.detail.jobUrl;
+
+      this.fire('display-toast', {'content': this.$.jobsubmitted});
+    },
+
+    /**
+      * Displays the bisect-form when the bisect button is clicked.
+      */
+    onBisect() {
+      const testPathParts = this.bisectInfo.testPath.split('/');
+      const botName = testPathParts[1];
+
+      if (d.PINPOINT_BOTS.indexOf(botName) != -1) {
+        this.$.pinpoint.test_path = this.bisectInfo.testPath;
+        this.$.pinpoint.start_commit = this.bisectInfo.goodRev;
+        this.$.pinpoint.end_commit = this.bisectInfo.badRev;
+        this.$.pinpoint.bug_id = this.bugId;
+        this.$.pinpoint.show();
+      } else {
+        this.$.bisect.show();
+      }
+    }
+  });
+})();
+</script>

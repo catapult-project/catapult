@@ -115,184 +115,183 @@ found in the LICENSE file.
       <paper-button raised on-click="onSubmit">Submit</paper-button>
     </div>
   </template>
-  
-  <script>
-    'use strict';
-    Polymer({
-      is: 'create-health-report-page',
-      properties: {
-        loading: {
-          type: Boolean,
-          value: false,
-          notify: true
-        },
-        error: {
-          type: String,
-          value: '',
-          notify: true
-        },
-        hideSuccess: {
-          type: Boolean,
-          value: true,
-        },
-        endpointName: {
-          type: String,
-        },
-        name: {
-          type: String,
-          notify: true
-        },
-        layout: {
-          type: String,
-          notify: true
-        },
-        bots: {
-          type: String,
-          notify: true
-        },
-        tests: {
-          type: String,
-          notify: true
-        },
-        xsrfToken: {
-          type: String,
-          value: ''
-        },
-        tableConfigs: {
-          type: Array,
-          value: [],
-        },
-        selectedTableConfig: {
-          type: String,
-          value: ''
-        }
-      },
-
-      onSubmit() {
-        const valid = this.validateInputs();
-        if (valid) {
-          this.checkToken();
-        }
-        this.error = '';
-      },
-
-      checkToken() {
-        const params = {
-          getToken: true,
-        };
-        simple_xhr.send('/create_health_report', params,
-            function(response) {
-              this.xsrfToken = response.xsrf_token;
-              this.loading = false;
-              this.buildTable(); // Needs to wait for response with token.
-            }.bind(this),
-            function(msg) {
-              this.error = msg;
-              this.loading = false;
-            }.bind(this));
-      },
-
-      buildTable() {
-        this.loading = true;
-        let override = 0;
-        if (this.selectedTableConfig == this.name) {
-          override = 1;  // Tell server it is okay to override the config.
-        }
-        const params = {
-          tableLayout: this.layout,
-          tableName: this.name,
-          tableBots: this.bots,
-          tableTests: this.tests,
-          xsrf_token: this.xsrfToken,
-          override,
-        };
-        simple_xhr.send('/create_health_report', params,
-            function(response) {
-              this.loading = false;
-              this.hideSuccess = false;
-              this.endpointName = response.name;
-              window.scrollTo(0, 0);
-            }.bind(this),
-            function(msg) {
-              this.error = msg;
-              this.loading = false;
-              window.scrollTo(0, 0);
-              this.hideSuccess = true;
-            }.bind(this));
-      },
-
-      /*
-       * Goes and grabs the table_config details to populate the form with.
-       */
-      onEditChanged(e) {
-        this.selectedTableConfig = e.detail.item.label;
-        if (!this.selectedTableConfig) {
-          this.name = '';
-          this.bots = '';
-          this.tests = '';
-          this.layout = '';
-          return;
-        }
-        const params = {
-          getTableConfigDetails: this.selectedTableConfig,
-          xsrf_token: this.xsrfToken,
-        };
-        simple_xhr.send('/create_health_report', params,
-            function(response) {
-              this.loading = false;
-              this.name = response.table_name;
-              this.bots = '';
-              for (const i in response.table_bots) {
-                this.bots += (response.table_bots[i] + '\n');
-              }
-              this.tests = '';
-              for (const k in response.table_tests) {
-                this.tests += (response.table_tests[k] + '\n');
-              }
-              this.layout = response.table_layout;
-            }.bind(this),
-            function(msg) {
-              this.error = msg;
-            }.bind(this));
-      },
-
-      validateInputs() {
-        let valid = true;
-        if (!this.name) {
-          valid = false;
-          this.$.name.invalid = true;
-        }
-        if (!this.bots) {
-          valid = false;
-          this.$.bots.invalid = true;
-        }
-        if (!this.tests) {
-          valid = false;
-          this.$.tests.invalid = true;
-        }
-        if (!this.layout) {
-          valid = false;
-          this.$.layout.invalid = true;
-        }
-        return valid;
-      },
-
-      ready() {
-        const params = {
-          getTableConfigList: true,
-          xsrf_token: this.xsrfToken,
-        };
-        this.loading = true;
-        simple_xhr.send('/create_health_report', params,
-            function(response) {
-              this.loading = false;
-              this.tableConfigs = response.table_config_list;
-            }.bind(this),
-            function(msg) {
-              this.error = msg;
-              this.loading = false;
-            }.bind(this));
-      }
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'create-health-report-page',
+  properties: {
+    loading: {
+      type: Boolean,
+      value: false,
+      notify: true
+    },
+    error: {
+      type: String,
+      value: '',
+      notify: true
+    },
+    hideSuccess: {
+      type: Boolean,
+      value: true,
+    },
+    endpointName: {
+      type: String,
+    },
+    name: {
+      type: String,
+      notify: true
+    },
+    layout: {
+      type: String,
+      notify: true
+    },
+    bots: {
+      type: String,
+      notify: true
+    },
+    tests: {
+      type: String,
+      notify: true
+    },
+    xsrfToken: {
+      type: String,
+      value: ''
+    },
+    tableConfigs: {
+      type: Array,
+      value: [],
+    },
+    selectedTableConfig: {
+      type: String,
+      value: ''
+    }
+  },
+
+  onSubmit() {
+    const valid = this.validateInputs();
+    if (valid) {
+      this.checkToken();
+    }
+    this.error = '';
+  },
+
+  checkToken() {
+    const params = {
+      getToken: true,
+    };
+    simple_xhr.send('/create_health_report', params,
+        function(response) {
+          this.xsrfToken = response.xsrf_token;
+          this.loading = false;
+          this.buildTable(); // Needs to wait for response with token.
+        }.bind(this),
+        function(msg) {
+          this.error = msg;
+          this.loading = false;
+        }.bind(this));
+  },
+
+  buildTable() {
+    this.loading = true;
+    let override = 0;
+    if (this.selectedTableConfig == this.name) {
+      override = 1;  // Tell server it is okay to override the config.
+    }
+    const params = {
+      tableLayout: this.layout,
+      tableName: this.name,
+      tableBots: this.bots,
+      tableTests: this.tests,
+      xsrf_token: this.xsrfToken,
+      override,
+    };
+    simple_xhr.send('/create_health_report', params,
+        function(response) {
+          this.loading = false;
+          this.hideSuccess = false;
+          this.endpointName = response.name;
+          window.scrollTo(0, 0);
+        }.bind(this),
+        function(msg) {
+          this.error = msg;
+          this.loading = false;
+          window.scrollTo(0, 0);
+          this.hideSuccess = true;
+        }.bind(this));
+  },
+
+  /*
+    * Goes and grabs the table_config details to populate the form with.
+    */
+  onEditChanged(e) {
+    this.selectedTableConfig = e.detail.item.label;
+    if (!this.selectedTableConfig) {
+      this.name = '';
+      this.bots = '';
+      this.tests = '';
+      this.layout = '';
+      return;
+    }
+    const params = {
+      getTableConfigDetails: this.selectedTableConfig,
+      xsrf_token: this.xsrfToken,
+    };
+    simple_xhr.send('/create_health_report', params,
+        function(response) {
+          this.loading = false;
+          this.name = response.table_name;
+          this.bots = '';
+          for (const i in response.table_bots) {
+            this.bots += (response.table_bots[i] + '\n');
+          }
+          this.tests = '';
+          for (const k in response.table_tests) {
+            this.tests += (response.table_tests[k] + '\n');
+          }
+          this.layout = response.table_layout;
+        }.bind(this),
+        function(msg) {
+          this.error = msg;
+        }.bind(this));
+  },
+
+  validateInputs() {
+    let valid = true;
+    if (!this.name) {
+      valid = false;
+      this.$.name.invalid = true;
+    }
+    if (!this.bots) {
+      valid = false;
+      this.$.bots.invalid = true;
+    }
+    if (!this.tests) {
+      valid = false;
+      this.$.tests.invalid = true;
+    }
+    if (!this.layout) {
+      valid = false;
+      this.$.layout.invalid = true;
+    }
+    return valid;
+  },
+
+  ready() {
+    const params = {
+      getTableConfigList: true,
+      xsrf_token: this.xsrfToken,
+    };
+    this.loading = true;
+    simple_xhr.send('/create_health_report', params,
+        function(response) {
+          this.loading = false;
+          this.tableConfigs = response.table_config_list;
+        }.bind(this),
+        function(msg) {
+          this.error = msg;
+          this.loading = false;
+        }.bind(this));
+  }
+});
+</script>

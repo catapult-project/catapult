@@ -65,59 +65,58 @@ found in the LICENSE file.
       </template>
     </template>
   </template>
-  <script>
-    'use strict';
-    Polymer({
-
-      is: 'speed-releasing-page',
-      properties: {
-        loading: {
-          type: Boolean,
-          value: false,
-          notify: true
-        },
-        error: {
-          type: String,
-          value: '',
-          notify: true
-        },
-        showList: {
-          type: Boolean,
-          notify: true,
-        },
-        tableList: {
-          type: Array,
-          notify: true,
-        },
-        tableName: {
-          type: String,
-          notify: true,
-        },
-      },
-
-      ready() {
-        const params = {};
-        let path = uri.getPathName();
-        if (!path) { // Go get the list.
-          path = '';
-          simple_xhr.send('/speed_releasing/' + path, params,
-              function(response) {
-                this.loading = false;
-                this.tableName = response.name;
-                this.showList = response.show_list;
-                this.tableList = response.list;
-              }.bind(this),
-              function(msg) {
-                this.error = msg;
-                this.loading = false;
-              }.bind(this));
-        } else { // POST in speed-releasing-table will get the values.
-          this.tableName = path;
-          this.showList = false;
-          this.loading = false;
-        }
-      }
-
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'speed-releasing-page',
+  properties: {
+    loading: {
+      type: Boolean,
+      value: false,
+      notify: true
+    },
+    error: {
+      type: String,
+      value: '',
+      notify: true
+    },
+    showList: {
+      type: Boolean,
+      notify: true,
+    },
+    tableList: {
+      type: Array,
+      notify: true,
+    },
+    tableName: {
+      type: String,
+      notify: true,
+    },
+  },
+
+  ready() {
+    const params = {};
+    let path = uri.getPathName();
+    if (!path) { // Go get the list.
+      path = '';
+      simple_xhr.send('/speed_releasing/' + path, params,
+          function(response) {
+            this.loading = false;
+            this.tableName = response.name;
+            this.showList = response.show_list;
+            this.tableList = response.list;
+          }.bind(this),
+          function(msg) {
+            this.error = msg;
+            this.loading = false;
+          }.bind(this));
+    } else { // POST in speed-releasing-table will get the values.
+      this.tableName = path;
+      this.showList = false;
+      this.loading = false;
+    }
+  }
+
+});
+</script>

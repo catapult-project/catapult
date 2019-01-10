@@ -36,37 +36,37 @@ an alert from an issue on the issue tracker.
     </div>
     <paper-spinner class="spinner" active$="{{loading}}"></paper-spinner>
   </template>
-  <script>
-    'use strict';
-    Polymer({
-
-      is: 'alert-remove-box',
-      properties: {
-        key: { notify: true },
-        xsrfToken: { notify: true }
-      },
-      /**
-       * Sends a request to /edit_anomalies to reset the bug ID of this alert.
-       */
-      onRemoveBug(event, detail) {
-        event.preventDefault();
-        this.loading = true;
-        const params = {
-          'keys': this.key,
-          'bug_id': 'REMOVE',
-          'xsrf_token': this.xsrfToken
-        };
-        simple_xhr.send('/edit_anomalies', params,
-            function(info) {
-              this.loading = false;
-              this.fire('untriaged', {'key': this.key});
-            }.bind(this),
-            function(msg) {
-              this.loading = false;
-              alert(msg);
-            }.bind(this)
-        );
-      }
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+
+  is: 'alert-remove-box',
+  properties: {
+    key: { notify: true },
+    xsrfToken: { notify: true }
+  },
+  /**
+    * Sends a request to /edit_anomalies to reset the bug ID of this alert.
+    */
+  onRemoveBug(event, detail) {
+    event.preventDefault();
+    this.loading = true;
+    const params = {
+      'keys': this.key,
+      'bug_id': 'REMOVE',
+      'xsrf_token': this.xsrfToken
+    };
+    simple_xhr.send('/edit_anomalies', params,
+        function(info) {
+          this.loading = false;
+          this.fire('untriaged', {'key': this.key});
+        }.bind(this),
+        function(msg) {
+          this.loading = false;
+          alert(msg);
+        }.bind(this)
+    );
+  }
+});
+</script>

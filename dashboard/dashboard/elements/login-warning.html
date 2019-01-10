@@ -18,20 +18,20 @@ found in the LICENSE file.
       when <a href$="{{loginLink}}">signed in</a> with a chromium.org account, which is linked to a google user.
     </div>
   </template>
-  <script>
-    'use strict';
-    Polymer({
-      is: 'login-warning',
-      properties: {
-        loginLink: { notify: true },
-        missing: {
-          value: null,
-          notify: true
-        }
-      },
-      get messageElement() {
-        return this.$.message;
-      }
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'login-warning',
+  properties: {
+    loginLink: { notify: true },
+    missing: {
+      value: null,
+      notify: true
+    }
+  },
+  get messageElement() {
+    return this.$.message;
+  }
+});
+</script>

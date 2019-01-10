@@ -56,34 +56,33 @@ found in the LICENSE file.
       </div>
     </paper-dialog>
   </template>
-  <script>
-    'use strict';
-    Polymer({
-
-      is: 'chart-legend-tooltip',
-      properties: {
-        description: {
-          notify: true,
-          type: String,
-        },
-        direction: {
-          notify: true,
-          type: String,
-        },
-        path: {
-          notify: true,
-          type: String,
-        },
-        units: {
-          notify: true,
-          type: String,
-        },
-      },
-
-      openTooltip(event) {
-        this.$.tooltip.positionTarget = event.target;
-        this.$.tooltip.open();
-      },
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'chart-legend-tooltip',
+  properties: {
+    description: {
+      notify: true,
+      type: String,
+    },
+    direction: {
+      notify: true,
+      type: String,
+    },
+    path: {
+      notify: true,
+      type: String,
+    },
+    units: {
+      notify: true,
+      type: String,
+    },
+  },
+
+  openTooltip(event) {
+    this.$.tooltip.positionTarget = event.target;
+    this.$.tooltip.open();
+  },
+});
+</script>

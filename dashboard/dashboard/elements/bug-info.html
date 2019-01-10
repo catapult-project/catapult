@@ -50,89 +50,89 @@ found in the LICENSE file.
       </div>
     </div>
   </template>
-  <script>
-    'use strict';
-    Polymer({
-      is: 'bug-info',
-      properties: {
-        alertsTable: { value: null},
-        bugId: { value: null},
-      },
-
-      /**
-       * Initializes this element.
-       * @param {Number} bugId A bug ID number.
-       * @param {HTMLElement} alertsTable HTML element of alerts-table.
-       */
-      initialize(bugId, alertsTable) {
-        this.$.container.style.display = '';
-        this.bugId = bugId;
-        this.alertsTable = alertsTable;
-        this.alertsTable.addEventListener('changeselection',
-            this.updateBugInfo.bind(this), false);
-        this.updateBugInfo();
-      },
-
-      /**
-       * Displays bug info; this will be either a revision range or a warning.
-       */
-      updateBugInfo() {
-        const alerts = this.getCheckedOrAllAlerts();
-        if (alerts.length == 0) {
-          this.$.warning.textContent =
-              'WARNING: There appear to be no alerts associated with this bug.';
-          return;
-        }
-
-        const minRevRange = this.alertsTable.getCommonRevisionRange(alerts);
-        if (minRevRange) {
-          let info = 'Minimum revision range for ' + alerts.length;
-          info += (alerts.length == 1) ? ' alert: ' : ' alerts: ';
-          info += minRevRange.start + ':' + minRevRange.end;
-          this.$.revision_range.innerText = info;
-          return;
-        }
-        this.$.warning.textContent =
-            'WARNING: Non-overlapping alerts are grouped together.';
-      },
-
-      /**
-       * Gets checked alerts, or all displayed alerts if none are checked.
-       *
-       * @param {Array.<Object>} alerts List of alerts.
-       * @param {Object} minRevRange Minimum revision range.
-       *
-       * @return {Array.<Object>} List of alerts.
-       */
-      getCheckedOrAllAlerts() {
-        let alerts = this.alertsTable.checkedAlerts;
-        if (!alerts || alerts.length == 0) {
-          alerts = this.alertsTable.alertList.filter(
-              function(alertRow) {
-                return !alertRow.hideRow;
-              });
-        }
-        return alerts;
-      },
-
-      /**
-       * Gets test path from the alert with the matching start revision number.
-       *
-       * @param {Number} start_revision A start revision number.
-       *
-       * @return {?string} The test path.
-       */
-      getTestPathFromStartRev(alerts, startRevision) {
-        for (let i = 0; i < alerts.length; i++) {
-          if (alerts[i].start_revision == startRevision) {
-            return alerts[i].master + '/' +
-                   alerts[i].bot + '/' +
-                   alerts[i].testsuite + '/' +
-                   alerts[i].test;
-          }
-        }
-        return null;
-      }
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'bug-info',
+  properties: {
+    alertsTable: { value: null},
+    bugId: { value: null},
+  },
+
+  /**
+    * Initializes this element.
+    * @param {Number} bugId A bug ID number.
+    * @param {HTMLElement} alertsTable HTML element of alerts-table.
+    */
+  initialize(bugId, alertsTable) {
+    this.$.container.style.display = '';
+    this.bugId = bugId;
+    this.alertsTable = alertsTable;
+    this.alertsTable.addEventListener('changeselection',
+        this.updateBugInfo.bind(this), false);
+    this.updateBugInfo();
+  },
+
+  /**
+    * Displays bug info; this will be either a revision range or a warning.
+    */
+  updateBugInfo() {
+    const alerts = this.getCheckedOrAllAlerts();
+    if (alerts.length == 0) {
+      this.$.warning.textContent =
+          'WARNING: There appear to be no alerts associated with this bug.';
+      return;
+    }
+
+    const minRevRange = this.alertsTable.getCommonRevisionRange(alerts);
+    if (minRevRange) {
+      let info = 'Minimum revision range for ' + alerts.length;
+      info += (alerts.length == 1) ? ' alert: ' : ' alerts: ';
+      info += minRevRange.start + ':' + minRevRange.end;
+      this.$.revision_range.innerText = info;
+      return;
+    }
+    this.$.warning.textContent =
+        'WARNING: Non-overlapping alerts are grouped together.';
+  },
+
+  /**
+    * Gets checked alerts, or all displayed alerts if none are checked.
+    *
+    * @param {Array.<Object>} alerts List of alerts.
+    * @param {Object} minRevRange Minimum revision range.
+    *
+    * @return {Array.<Object>} List of alerts.
+    */
+  getCheckedOrAllAlerts() {
+    let alerts = this.alertsTable.checkedAlerts;
+    if (!alerts || alerts.length == 0) {
+      alerts = this.alertsTable.alertList.filter(
+          function(alertRow) {
+            return !alertRow.hideRow;
+          });
+    }
+    return alerts;
+  },
+
+  /**
+    * Gets test path from the alert with the matching start revision number.
+    *
+    * @param {Number} start_revision A start revision number.
+    *
+    * @return {?string} The test path.
+    */
+  getTestPathFromStartRev(alerts, startRevision) {
+    for (let i = 0; i < alerts.length; i++) {
+      if (alerts[i].start_revision == startRevision) {
+        return alerts[i].master + '/' +
+                alerts[i].bot + '/' +
+                alerts[i].testsuite + '/' +
+                alerts[i].test;
+      }
+    }
+    return null;
+  }
+});
+</script>

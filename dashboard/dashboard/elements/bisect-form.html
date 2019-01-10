@@ -162,205 +162,205 @@ the bisect process after the user clicks on the bisect button.
       </div>
     </div>
   </template>
-  <script>
-    'use strict';
-    (function() {
-      /**
-       * Checks whether a revision appears to be OK to use for bisect.
-       * TODO(qyearsley): Extract common code in trace-form and bisect-form.
-       */
-      function validateRev(rev) {
-        if (/^[a-fA-F0-9]{40}$/.test(rev)) {
-          return true;
+</dom-module>
+<script>
+'use strict';
+(function() {
+  /**
+    * Checks whether a revision appears to be OK to use for bisect.
+    * TODO(qyearsley): Extract common code in trace-form and bisect-form.
+    */
+  function validateRev(rev) {
+    if (/^[a-fA-F0-9]{40}$/.test(rev)) {
+      return true;
+    }
+    if (!/^\d+/.test(rev)) {
+      return false;
+    }
+    rev = Number(rev);
+    return rev > 200000 && rev < 700000;
+  }
+
+  Polymer({
+    is: 'bisect-form',
+    properties: {
+      // Default values of variables that are bound to inputs in the form.
+      // See: http://goo.gl/I94Kyj
+      BISECT_MODE: {
+        type: String,
+        value: 'mean'
+      },
+      MAX_TIME_MINUTES: {
+        type: Number,
+        value: 20
+      },
+      REPEAT_COUNT: {
+        type: Number,
+        value: 20
+      },
+      alerts: {},
+      bugId: { notify: true },
+      earlierRevision: {
+        notify: true,
+        observer: 'earlierRevisionChanged'
+      },
+      laterRevision: {
+        notify: true,
+        observer: 'laterRevisionChanged'
+      },
+      useStaging: {
+        type: Boolean,
+        value: false,
+      },
+      testPath: { notify: true },
+      xsrfToken: { notify: true }
+    },
+
+    computeHasError(e) {
+      return !!e;
+    },
+
+    computeIsSelected(name, reference) {
+      return name == reference;
+    },
+
+    /**
+      * Initializes and shows the bisect form.
+      */
+    show() {
+      this.isAdmin = false,
+      this.useStaging = false,
+      this.loading = true;
+      this.open();
+      simple_xhr.send('/start_try_job',
+          {
+            'test_path': this.testPath,
+            'step': 'prefill-info',
+            'xsrf_token': this.xsrfToken
+          },
+          function successCallback(info) {
+            this.bot = info.bisect_bot;
+            this.botList = info.all_bots;
+            this.metric = info.default_metric;
+            this.metricList = info.all_metrics;
+            this.storyFilter = info.story_filter;
+            this.email = info.email;
+            this.suite = info.suite;
+            this.master = info.master;
+            this.internalOnly = info.internal_only;
+            this.isAdmin = info.is_admin;
+
+            this.loading = false;
+          }.bind(this),
+          function errorCallback(msg) {
+            this.fire('display-toast', {
+              'text': 'An error occurred: ' + msg,
+              'error': true
+            });
+            this.close();
+          }.bind(this));
+    },
+
+    /**
+      * Makes a request to /start_try_job to perform a bisect.
+      */
+    onSendToTrybot(event) {
+      const alerts = [];
+      if (this.alerts) {
+        for (const a of this.alerts) {
+          alerts.push(a.key);
         }
-        if (!/^\d+/.test(rev)) {
-          return false;
-        }
-        rev = Number(rev);
-        return rev > 200000 && rev < 700000;
       }
 
-      Polymer({
-        is: 'bisect-form',
-        properties: {
-          // Default values of variables that are bound to inputs in the form.
-          // See: http://goo.gl/I94Kyj
-          BISECT_MODE: {
-            type: String,
-            value: 'mean'
-          },
-          MAX_TIME_MINUTES: {
-            type: Number,
-            value: 20
-          },
-          REPEAT_COUNT: {
-            type: Number,
-            value: 20
-          },
-          alerts: {},
-          bugId: { notify: true },
-          earlierRevision: {
-            notify: true,
-            observer: 'earlierRevisionChanged'
-          },
-          laterRevision: {
-            notify: true,
-            observer: 'laterRevisionChanged'
-          },
-          useStaging: {
-            type: Boolean,
-            value: false,
-          },
-          testPath: { notify: true },
-          xsrfToken: { notify: true }
-        },
+      event.preventDefault();
+      this.loading = true;
+      const params = {
+        'step': 'perform-bisect',
+        'alerts': JSON.stringify(alerts),
+        'bisect_bot': this.bot,
+        'suite': this.suite,
+        'metric': this.metric,
+        'story_filter': this.storyFilter,
+        'good_revision': this.earlierRevision,
+        'bad_revision': this.laterRevision,
+        'repeat_count': this.REPEAT_COUNT,
+        'max_time_minutes': this.MAX_TIME_MINUTES,
+        'use_staging_bot': this.useStaging ? 'true' : '',
+        'master': this.master,
+        'internal_only': this.internalOnly,
+        'bisect_mode': this.BISECT_MODE,
+        'xsrf_token': this.xsrfToken
+      };
+      if (this.bugId) {
+        params.bug_id = this.bugId;
+      }
+      simple_xhr.send(
+          '/start_try_job', params,
+          function successCallback(info) {
+            this.lastSubmittedJobId = info.issue_id;
+            this.lastSubmittedJobUrl = info.issue_url;
+            this.fire('display-toast', {'content': this.$.jobsubmitted});
 
-        computeHasError(e) {
-          return !!e;
-        },
-
-        computeIsSelected(name, reference) {
-          return name == reference;
-        },
-
-        /**
-         * Initializes and shows the bisect form.
-         */
-        show() {
-          this.isAdmin = false,
-          this.useStaging = false,
-          this.loading = true;
-          this.open();
-          simple_xhr.send('/start_try_job',
-              {
-                'test_path': this.testPath,
-                'step': 'prefill-info',
-                'xsrf_token': this.xsrfToken
-              },
-              function successCallback(info) {
-                this.bot = info.bisect_bot;
-                this.botList = info.all_bots;
-                this.metric = info.default_metric;
-                this.metricList = info.all_metrics;
-                this.storyFilter = info.story_filter;
-                this.email = info.email;
-                this.suite = info.suite;
-                this.master = info.master;
-                this.internalOnly = info.internal_only;
-                this.isAdmin = info.is_admin;
-
-                this.loading = false;
-              }.bind(this),
-              function errorCallback(msg) {
-                this.fire('display-toast', {
-                  'text': 'An error occurred: ' + msg,
-                  'error': true
-                });
-                this.close();
-              }.bind(this));
-        },
-
-        /**
-         * Makes a request to /start_try_job to perform a bisect.
-         */
-        onSendToTrybot(event) {
-          const alerts = [];
-          if (this.alerts) {
-            for (const a of this.alerts) {
-              alerts.push(a.key);
+            // Refresh bisect result log element.
+            const bisectLog = document.getElementById('bisect-result-log');
+            if (bisectLog) {
+              bisectLog.refresh();
             }
-          }
 
-          event.preventDefault();
-          this.loading = true;
-          const params = {
-            'step': 'perform-bisect',
-            'alerts': JSON.stringify(alerts),
-            'bisect_bot': this.bot,
-            'suite': this.suite,
-            'metric': this.metric,
-            'story_filter': this.storyFilter,
-            'good_revision': this.earlierRevision,
-            'bad_revision': this.laterRevision,
-            'repeat_count': this.REPEAT_COUNT,
-            'max_time_minutes': this.MAX_TIME_MINUTES,
-            'use_staging_bot': this.useStaging ? 'true' : '',
-            'master': this.master,
-            'internal_only': this.internalOnly,
-            'bisect_mode': this.BISECT_MODE,
-            'xsrf_token': this.xsrfToken
-          };
-          if (this.bugId) {
-            params.bug_id = this.bugId;
-          }
-          simple_xhr.send(
-              '/start_try_job', params,
-              function successCallback(info) {
-                this.lastSubmittedJobId = info.issue_id;
-                this.lastSubmittedJobUrl = info.issue_url;
-                this.fire('display-toast', {'content': this.$.jobsubmitted});
+            this.close();
+          }.bind(this),
+          function errorCallback(msg) {
+            this.fire('display-toast', {
+              'text': 'An error occurred: ' + msg,
+              'error': true
+            });
+            this.close();
+          }.bind(this));
+    },
 
-                // Refresh bisect result log element.
-                const bisectLog = document.getElementById('bisect-result-log');
-                if (bisectLog) {
-                  bisectLog.refresh();
-                }
+    earlierRevisionChanged() {
+      this.error = '';
+      if (!validateRev(this.earlierRevision)) {
+        this.error = 'Revisions should be git commit positions or hashes.';
+        return;
+      }
+      this.onRevisionsChange();
+    },
 
-                this.close();
-              }.bind(this),
-              function errorCallback(msg) {
-                this.fire('display-toast', {
-                  'text': 'An error occurred: ' + msg,
-                  'error': true
-                });
-                this.close();
-              }.bind(this));
-        },
+    laterRevisionChanged() {
+      this.error = '';
+      if (!validateRev(this.laterRevision)) {
+        this.error = 'Revisions should be git commit positions or hashes.';
+        return;
+      }
+      this.onRevisionsChange();
+    },
 
-        earlierRevisionChanged() {
-          this.error = '';
-          if (!validateRev(this.earlierRevision)) {
-            this.error = 'Revisions should be git commit positions or hashes.';
-            return;
-          }
-          this.onRevisionsChange();
-        },
+    onRevisionsChange() {
+      if (this.earlierRevision == this.laterRevision) {
+        this.error = (
+          '"Both "earlier" and "later" are the same.');
+      }
+      if (!/^\d+$/.test(this.earlierRevision) ||
+          !/^\d+$/.test(this.laterRevision)) {
+        return;
+      }
+      if (Number(this.earlierRevision) >= Number(this.laterRevision)) {
+        this.error = (
+          '"Earlier revision" should be less than "later revision".');
+      }
+    },
 
-        laterRevisionChanged() {
-          this.error = '';
-          if (!validateRev(this.laterRevision)) {
-            this.error = 'Revisions should be git commit positions or hashes.';
-            return;
-          }
-          this.onRevisionsChange();
-        },
+    open() {
+      this.$.container.open();
+    },
 
-        onRevisionsChange() {
-          if (this.earlierRevision == this.laterRevision) {
-            this.error = (
-              '"Both "earlier" and "later" are the same.');
-          }
-          if (!/^\d+$/.test(this.earlierRevision) ||
-              !/^\d+$/.test(this.laterRevision)) {
-            return;
-          }
-          if (Number(this.earlierRevision) >= Number(this.laterRevision)) {
-            this.error = (
-              '"Earlier revision" should be less than "later revision".');
-          }
-        },
-
-        open() {
-          this.$.container.open();
-        },
-
-        close() {
-          this.$.container.close();
-        },
-        isNotReturnCode(bisectMode) {
-          return bisectMode != 'return_code';
-        }
-      });
-    })();
-  </script>
-</dom-module>
+    close() {
+      this.$.container.close();
+    },
+    isNotReturnCode(bisectMode) {
+      return bisectMode != 'return_code';
+    }
+  });
+})();
+</script>

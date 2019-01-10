@@ -82,115 +82,115 @@ found in the LICENSE file.
     </paper-dialog>
 
   </template>
-  <script>
-    'use strict';
-    (function() {
-      Polymer({
-        is: 'pinpoint-perf-job-dialog',
-        properties: {
-          error: {
-            type: String,
-            value: '',
-          },
-          startCommit: {
-            type: String,
-            value: '',
-          },
-          endCommit: {
-            type: String,
-            value: '',
-          },
-          startRepository: {
-            type: String,
-            value: '',
-          },
-          endRepository: {
-            type: String,
-            value: '',
-          },
-          useTrace: {
-            type: Boolean,
-          },
-          useAtrace: {
-            type: Boolean,
-          },
-          atraceCategories: {
-            type: String,
-          },
-          traceCategories: {
-            type: String,
-          },
-          testPath: {
-            type: String,
-            value: '',
-          },
-          xsrfToken: {
-          }
-        },
-
-        computeHasError: errorMessage => !!errorMessage,
-        computeIsAndroidBot(bot) {
-          return bot.indexOf('android') != -1;
-        },
-
-        /**
-         * Initializes and shows the trace form.
-         */
-        show() {
-          this.open();
-
-          this.atraceCategories =
-            'sched,freq,gfx,view,dalvik,webview,input,disk,am,' +
-            'wm,rs,binder_driver';
-          this.useAtrace = false;
-          this.traceCategories =
-            'toplevel,disabled-by-default-toplevel.flow';
-          this.useTrace = true;
-          this.bot = this.testPath.split('/')[1];
-        },
-
-        /**
-         * Makes a request to Pinpoint to perform a perf try job.
-         */
-        async onSendToTrybot(event) {
-          const args = [];
-          if (this.useTrace) {
-            args.push('--extra-chrome-categories', this.traceCategories);
-          }
-          if (this.useAtrace) {
-            args.push('--extra-atrace-categories', this.atraceCategories);
-          }
-
-          const params = {
-            test_path: this.testPath,
-            start_commit: this.startCommit,
-            end_commit: this.endCommit,
-            extra_test_args: JSON.stringify(args)
-          };
-
-          try {
-            this.error = '';
-            this.create_disabled = true;
-            const results = await simple_xhr.asPromise(
-                '/pinpoint/new/perf_try', params);
-            this.lastSubmittedJobId = results.jobId;
-            this.lastSubmittedJobUrl = results.jobUrl;
-            this.fire('display-toast', {'content': this.$.jobsubmitted});
-            this.close();
-          } catch (e) {
-            this.error = e;
-          }
-          this.create_disabled = false;
-        },
-
-        open() {
-          this.$.container.open();
-        },
-
-        close() {
-          this.$.container.close();
-        }
-      });
-    })();
-  </script>
 </dom-module>
+<script>
+'use strict';
+(function() {
+  Polymer({
+    is: 'pinpoint-perf-job-dialog',
+    properties: {
+      error: {
+        type: String,
+        value: '',
+      },
+      startCommit: {
+        type: String,
+        value: '',
+      },
+      endCommit: {
+        type: String,
+        value: '',
+      },
+      startRepository: {
+        type: String,
+        value: '',
+      },
+      endRepository: {
+        type: String,
+        value: '',
+      },
+      useTrace: {
+        type: Boolean,
+      },
+      useAtrace: {
+        type: Boolean,
+      },
+      atraceCategories: {
+        type: String,
+      },
+      traceCategories: {
+        type: String,
+      },
+      testPath: {
+        type: String,
+        value: '',
+      },
+      xsrfToken: {
+      }
+    },
+
+    computeHasError: errorMessage => !!errorMessage,
+    computeIsAndroidBot(bot) {
+      return bot.indexOf('android') != -1;
+    },
+
+    /**
+      * Initializes and shows the trace form.
+      */
+    show() {
+      this.open();
+
+      this.atraceCategories =
+        'sched,freq,gfx,view,dalvik,webview,input,disk,am,' +
+        'wm,rs,binder_driver';
+      this.useAtrace = false;
+      this.traceCategories =
+        'toplevel,disabled-by-default-toplevel.flow';
+      this.useTrace = true;
+      this.bot = this.testPath.split('/')[1];
+    },
+
+    /**
+      * Makes a request to Pinpoint to perform a perf try job.
+      */
+    async onSendToTrybot(event) {
+      const args = [];
+      if (this.useTrace) {
+        args.push('--extra-chrome-categories', this.traceCategories);
+      }
+      if (this.useAtrace) {
+        args.push('--extra-atrace-categories', this.atraceCategories);
+      }
+
+      const params = {
+        test_path: this.testPath,
+        start_commit: this.startCommit,
+        end_commit: this.endCommit,
+        extra_test_args: JSON.stringify(args)
+      };
+
+      try {
+        this.error = '';
+        this.create_disabled = true;
+        const results = await simple_xhr.asPromise(
+            '/pinpoint/new/perf_try', params);
+        this.lastSubmittedJobId = results.jobId;
+        this.lastSubmittedJobUrl = results.jobUrl;
+        this.fire('display-toast', {'content': this.$.jobsubmitted});
+        this.close();
+      } catch (e) {
+        this.error = e;
+      }
+      this.create_disabled = false;
+    },
+
+    open() {
+      this.$.container.open();
+    },
+
+    close() {
+      this.$.container.close();
+    }
+  });
+})();
+</script>

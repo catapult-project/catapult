@@ -37,16 +37,16 @@ for a bug succeeded or failed, or is currently in progress. */
     </style>
     <span class$="bisect-status {{status}}" title="{{status}}">&#8226;</span>
   </template>
-  <script>
-    'use strict';
-    Polymer({
-      is: 'bisect-status',
-      properties: {
-        status: {
-          type: String,
-          value: null
-        }
-      }
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'bisect-status',
+  properties: {
+    status: {
+      type: String,
+      value: null
+    }
+  }
+});
+</script>

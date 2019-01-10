@@ -12,6 +12,7 @@ found in the LICENSE file.
   <link rel="shortcut icon" href="data:image/x-icon;base64,"
         type="image/x-icon">
 
+  <script src="/components/webcomponentsjs/HTMLImports.js"></script>
   <link rel="import" href="/tracing/ui/base/base.html" data-suppress-import-order>
   <link rel="import" href="/tracing/base/unittest/interactive_test_runner.html">
   <style>
@@ -27,23 +28,24 @@ found in the LICENSE file.
 <body>
   <script>
     'use strict';
-
     window.addEventListener('load', function() {
-      tr.b.unittest.loadAndRunTests({
-        title: 'All Trace-Viewer Tests',
-        getAllSuiteRelPathsAsync() {
-          return tr.b.getAsync('/tracing/tests').then(function(json) {
-            return JSON.parse(json).test_relpaths;
-          }).catch(function(e) {
-            throw e;
-          });
-        },
-        testLinks: [
-          {linkPath: '/tracing_examples/skia_debugger.html',
-            title: 'Skia Debugger'},
-          {linkPath: '/tracing_examples/trace_viewer.html',
-            title: 'Trace File Viewer'}
-        ]
+      HTMLImports.whenReady(function loadAndRunTests(e) {
+        tr.b.unittest.loadAndRunTests({
+          title: 'All Trace-Viewer Tests',
+          getAllSuiteRelPathsAsync() {
+            return tr.b.getAsync('/tracing/tests').then(function(json) {
+              return JSON.parse(json).test_relpaths;
+            }).catch(function(e) {
+              throw e;
+            });
+          },
+          testLinks: [
+            {linkPath: '/tracing_examples/skia_debugger.html',
+              title: 'Skia Debugger'},
+            {linkPath: '/tracing_examples/trace_viewer.html',
+              title: 'Trace File Viewer'}
+          ]
+        });
       });
     });
   </script>

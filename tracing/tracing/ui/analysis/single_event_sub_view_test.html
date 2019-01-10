@@ -198,7 +198,11 @@ tr.b.unittest.testSuite(function() {
     const table = tr.ui.b.findDeepElementMatching(
         subView, 'tr-ui-b-table');
     assert.strictEqual(table.tableRows.length, 3);
-    assert.strictEqual(table.tableRows[0].value, 'b');
+    if (tr.isExported('tr-ui-e-chrome-codesearch')) {
+      assert.strictEqual(table.tableRows[0].value.innerText, 'b');
+    } else {
+      assert.strictEqual(table.tableRows[0].value, 'b');
+    }
     assert.strictEqual(table.tableRows[1].value.value, 0);
     assert.strictEqual(table.tableRows[1].value.unit,
         tr.b.Unit.byName.timeStampInMs);
@@ -217,7 +221,11 @@ tr.b.unittest.testSuite(function() {
     const table = tr.ui.b.findDeepElementMatching(
         subView, 'tr-ui-b-table');
     assert.strictEqual(table.tableRows.length, 4);
-    assert.strictEqual(table.tableRows[0].value, 'b');
+    if (tr.isExported('tr-ui-e-chrome-codesearch')) {
+      assert.strictEqual(table.tableRows[0].value.innerText, 'b');
+    } else {
+      assert.strictEqual(table.tableRows[0].value, 'b');
+    }
     assert.strictEqual(table.tableRows[1].value, 'foo');
     assert.strictEqual(table.tableRows[2].value.value, 0);
     assert.strictEqual(table.tableRows[2].value.unit,

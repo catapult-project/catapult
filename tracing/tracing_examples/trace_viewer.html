@@ -8,6 +8,7 @@ found in the LICENSE file.
 <head>
 <title>Simple Embedded Viewer</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script src="/components/webcomponentsjs/HTMLImports.js"></script>
 
 <link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/base/xhr.html">
@@ -177,6 +178,7 @@ found in the LICENSE file.
   }
 
   window.addEventListener('load', onLoad);
+  window.addEventListener('HTMLImportsLoaded', onLoad);
   </script>
 </body>
 </html>

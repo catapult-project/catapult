@@ -190,233 +190,233 @@ found in the LICENSE file.
       </template>
     </template>
   </template>
-  <script>
-    'use strict';
-    Polymer({
-
-      is: 'alerts-page',
-      properties: {
-        anomalies: {
-          type: Array,
-          value: () => []
-        },
-        totalAnomalyCount: {
-          // The total count may be different from the array length if there
-          // were too many anomalies to pull from the datastore.
-          type: Number,
-          value: 0
-        },
-        anomalyGroupCount: {
-          type: Number,
-          value: 0,
-        },
-        anomalyGroupsPerBug: {
-          type: Number,
-          value: 0,
-        },
-        anomalyBugsPerGroup: {
-          type: Number,
-          value: 0,
-        },
-        loading: {
-          type: Boolean,
-          value: true,
-          notify: true
-        },
-        error: {
-          type: String,
-          value: '',
-          notify: true
-        },
-        selectedSheriffIndex: {
-          type: Number,
-          value: -1
-        },
-        showingImprovements: {
-          type: Boolean,
-          value: false
-        },
-        showingTriaged: {
-          type: Boolean,
-          value: false
-        },
-        sortBy: {
-          type: String,
-          value: 'end_revision'
-        },
-        sortDirection: {
-          type: String,
-          value: 'down'
-        },
-        xsrfToken: {
-          type: String,
-          value: ''
-        },
-        anomalyCursor: {
-          type: String
-        },
-        anomaliesLoading: {
-          type: Boolean,
-          value: false
-        },
-      },
-
-      listeners: {
-        groupingStatistics: 'onGroupingStatistics_',
-      },
-
-      computeIsSingular: count => count === 1,
-
-      getLabel: toggleState => (toggleState ? 'hide' : 'show'),
-
-      onSheriffChange(e) {
-        const sheriff = e.detail.item.label;
-        if (!sheriff) {
-          return;
-        }
-        const params = uri.getAllParameters();
-        const oldSheriff = params.sheriff || 'Chromium Perf Sheriff';
-        if (oldSheriff === sheriff) {
-          return;
-        }
-        params.sheriff = sheriff;
-        // TODO(sullivan): changing the param should automatically update
-        // everything without needing to reload.
-        window.location.href = uri.getCurrentPathWithParams(params);
-      },
-
-      onToggleTriaged(e) {
-        const params = uri.getAllParameters();
-        if (params.triaged) {
-          delete params.triaged;
-        } else {
-          params.triaged = 'true';
-        }
-        // TODO(sullivan): changing the param should automatically update
-        // everything without needing to reload.
-        window.location.href = uri.getCurrentPathWithParams(params);
-      },
-
-      onToggleImprovements(e) {
-        const params = uri.getAllParameters();
-        if (params.improvements) {
-          delete params.improvements;
-        } else {
-          params.improvements = 'true';
-        }
-        // TODO(sullivan): changing the param should automatically update
-        // everything without needing to reload.
-        window.location.href = uri.getCurrentPathWithParams(params);
-      },
-
-      /*
-       * When a user clicks 'Show More' under an alerts-table, call /alerts
-       * again with the anomalyCursor that was returned on the previous call to
-       * /alerts. This will perform a paged query, starting at the cursor and
-       * returning up to 500 more anomalies.
-       */
-      onShowMoreAnomalies() {
-        const params = uri.getAllParameters();
-        if (this.anomalyCursor != null) {
-          params.anomaly_cursor = this.anomalyCursor;
-        }
-        this.anomaliesLoading = true;
-        simple_xhr.send('/alerts', params,
-            function(response) {
-              const allAnomalies =
-                  this.anomalies.concat(response.anomaly_list);
-              this.set('anomalies', allAnomalies);
-              this.totalAnomalyCount = response.anomaly_count;
-              this.anomalyCursor = response.anomaly_cursor;
-              this.moreAnomaliesExist = response.show_more_anomalies;
-              this.sheriffList = response.sheriff_list;
-              this.xsrfToken = response.xsrf_token;
-              this.anomaliesLoading = false;
-              this.updateFromURIParameters();
-            }.bind(this),
-            function(msg) {
-              this.error = msg;
-              this.anomaliesLoading = false;
-            }.bind(this));
-      },
-
-      onPopState(e) {
-        // Pop State event will have a non-null state if this came from an
-        // actual pop instead of the load event.
-        if (e.state) {
-          this.updateFromURIParameters();
-        }
-      },
-
-      onPushHistoryState(event, detail) {
-        const sender = event.currentTarget;
-        if (!sender) {
-          return;
-        }
-        const params = uri.getAllParameters();
-        params.sortby = sender.sortBy;
-        params.sortdirection = sender.sortDirection;
-        const newUri = uri.getCurrentPathWithParams(params);
-        history.pushState(params, '', newUri);
-      },
-
-      updateFromURIParameters() {
-        this.sortBy = uri.getParameter('sortby', 'end_revision');
-        this.sortDirection = uri.getParameter('sortdirection', 'down');
-        this.selectedSheriffIndex = this.sheriffList.indexOf(
-            uri.getParameter('sheriff', 'Chromium Perf Sheriff'));
-        this.showingImprovements = uri.getParameter('improvements', false);
-        this.showingTriaged = uri.getParameter('triaged', false);
-      },
-
-      getAlertCount(anomalyListLength) {
-        if (anomalyListLength < this.totalAnomalyCount) {
-          return anomalyListLength + ' of ' + this.totalAnomalyCount;
-        }
-        return anomalyListLength;
-      },
-
-      onGroupingStatistics_(event) {
-        if (event.target.id === 'anomaly-table') {
-          this.set('anomalyGroupCount', event.detail.groupCount);
-          if (event.detail.bugsPerGroup) {
-            this.set('anomalyBugsPerGroup', event.detail.bugsPerGroup);
-          }
-          if (event.detail.groupsPerBug) {
-            this.set('anomalyGroupsPerBug', event.detail.groupsPerBug);
-          }
-        }
-      },
-
-      ready() {
-        this.sheriff = uri.getParameter('sheriff', 'Chromium Perf Sheriff');
-        this.showImprovements = uri.getParameter('improvements', false);
-        this.showTriaged = uri.getParameter('triaged', false);
-        const params = {
-          'sheriff': this.sheriff
-        };
-        if (this.showImprovements) {
-          params.improvements = true;
-        }
-        if (this.showTriaged) {
-          params.triaged = true;
-        }
-        simple_xhr.send('/alerts', params,
-            function(response) {
-              this.anomalies = response.anomaly_list;
-              this.totalAnomalyCount = response.anomaly_count;
-              this.sheriffList = response.sheriff_list;
-              this.xsrfToken = response.xsrf_token;
-              this.moreAnomaliesExist = response.show_more_anomalies;
-              this.anomalyCursor = response.anomaly_cursor;
-              this.loading = false;
-              this.updateFromURIParameters();
-            }.bind(this),
-            function(msg) {
-              this.error = msg;
-              this.loading = false;
-            }.bind(this));
-      }
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+
+  is: 'alerts-page',
+  properties: {
+    anomalies: {
+      type: Array,
+      value: () => []
+    },
+    totalAnomalyCount: {
+      // The total count may be different from the array length if there
+      // were too many anomalies to pull from the datastore.
+      type: Number,
+      value: 0
+    },
+    anomalyGroupCount: {
+      type: Number,
+      value: 0,
+    },
+    anomalyGroupsPerBug: {
+      type: Number,
+      value: 0,
+    },
+    anomalyBugsPerGroup: {
+      type: Number,
+      value: 0,
+    },
+    loading: {
+      type: Boolean,
+      value: true,
+      notify: true
+    },
+    error: {
+      type: String,
+      value: '',
+      notify: true
+    },
+    selectedSheriffIndex: {
+      type: Number,
+      value: -1
+    },
+    showingImprovements: {
+      type: Boolean,
+      value: false
+    },
+    showingTriaged: {
+      type: Boolean,
+      value: false
+    },
+    sortBy: {
+      type: String,
+      value: 'end_revision'
+    },
+    sortDirection: {
+      type: String,
+      value: 'down'
+    },
+    xsrfToken: {
+      type: String,
+      value: ''
+    },
+    anomalyCursor: {
+      type: String
+    },
+    anomaliesLoading: {
+      type: Boolean,
+      value: false
+    },
+  },
+
+  listeners: {
+    groupingStatistics: 'onGroupingStatistics_',
+  },
+
+  computeIsSingular: count => count === 1,
+
+  getLabel: toggleState => (toggleState ? 'hide' : 'show'),
+
+  onSheriffChange(e) {
+    const sheriff = e.detail.item.label;
+    if (!sheriff) {
+      return;
+    }
+    const params = uri.getAllParameters();
+    const oldSheriff = params.sheriff || 'Chromium Perf Sheriff';
+    if (oldSheriff === sheriff) {
+      return;
+    }
+    params.sheriff = sheriff;
+    // TODO(sullivan): changing the param should automatically update
+    // everything without needing to reload.
+    window.location.href = uri.getCurrentPathWithParams(params);
+  },
+
+  onToggleTriaged(e) {
+    const params = uri.getAllParameters();
+    if (params.triaged) {
+      delete params.triaged;
+    } else {
+      params.triaged = 'true';
+    }
+    // TODO(sullivan): changing the param should automatically update
+    // everything without needing to reload.
+    window.location.href = uri.getCurrentPathWithParams(params);
+  },
+
+  onToggleImprovements(e) {
+    const params = uri.getAllParameters();
+    if (params.improvements) {
+      delete params.improvements;
+    } else {
+      params.improvements = 'true';
+    }
+    // TODO(sullivan): changing the param should automatically update
+    // everything without needing to reload.
+    window.location.href = uri.getCurrentPathWithParams(params);
+  },
+
+  /*
+    * When a user clicks 'Show More' under an alerts-table, call /alerts
+    * again with the anomalyCursor that was returned on the previous call to
+    * /alerts. This will perform a paged query, starting at the cursor and
+    * returning up to 500 more anomalies.
+    */
+  onShowMoreAnomalies() {
+    const params = uri.getAllParameters();
+    if (this.anomalyCursor != null) {
+      params.anomaly_cursor = this.anomalyCursor;
+    }
+    this.anomaliesLoading = true;
+    simple_xhr.send('/alerts', params,
+        function(response) {
+          const allAnomalies =
+              this.anomalies.concat(response.anomaly_list);
+          this.set('anomalies', allAnomalies);
+          this.totalAnomalyCount = response.anomaly_count;
+          this.anomalyCursor = response.anomaly_cursor;
+          this.moreAnomaliesExist = response.show_more_anomalies;
+          this.sheriffList = response.sheriff_list;
+          this.xsrfToken = response.xsrf_token;
+          this.anomaliesLoading = false;
+          this.updateFromURIParameters();
+        }.bind(this),
+        function(msg) {
+          this.error = msg;
+          this.anomaliesLoading = false;
+        }.bind(this));
+  },
+
+  onPopState(e) {
+    // Pop State event will have a non-null state if this came from an
+    // actual pop instead of the load event.
+    if (e.state) {
+      this.updateFromURIParameters();
+    }
+  },
+
+  onPushHistoryState(event, detail) {
+    const sender = event.currentTarget;
+    if (!sender) {
+      return;
+    }
+    const params = uri.getAllParameters();
+    params.sortby = sender.sortBy;
+    params.sortdirection = sender.sortDirection;
+    const newUri = uri.getCurrentPathWithParams(params);
+    history.pushState(params, '', newUri);
+  },
+
+  updateFromURIParameters() {
+    this.sortBy = uri.getParameter('sortby', 'end_revision');
+    this.sortDirection = uri.getParameter('sortdirection', 'down');
+    this.selectedSheriffIndex = this.sheriffList.indexOf(
+        uri.getParameter('sheriff', 'Chromium Perf Sheriff'));
+    this.showingImprovements = uri.getParameter('improvements', false);
+    this.showingTriaged = uri.getParameter('triaged', false);
+  },
+
+  getAlertCount(anomalyListLength) {
+    if (anomalyListLength < this.totalAnomalyCount) {
+      return anomalyListLength + ' of ' + this.totalAnomalyCount;
+    }
+    return anomalyListLength;
+  },
+
+  onGroupingStatistics_(event) {
+    if (event.target.id === 'anomaly-table') {
+      this.set('anomalyGroupCount', event.detail.groupCount);
+      if (event.detail.bugsPerGroup) {
+        this.set('anomalyBugsPerGroup', event.detail.bugsPerGroup);
+      }
+      if (event.detail.groupsPerBug) {
+        this.set('anomalyGroupsPerBug', event.detail.groupsPerBug);
+      }
+    }
+  },
+
+  ready() {
+    this.sheriff = uri.getParameter('sheriff', 'Chromium Perf Sheriff');
+    this.showImprovements = uri.getParameter('improvements', false);
+    this.showTriaged = uri.getParameter('triaged', false);
+    const params = {
+      'sheriff': this.sheriff
+    };
+    if (this.showImprovements) {
+      params.improvements = true;
+    }
+    if (this.showTriaged) {
+      params.triaged = true;
+    }
+    simple_xhr.send('/alerts', params,
+        function(response) {
+          this.anomalies = response.anomaly_list;
+          this.totalAnomalyCount = response.anomaly_count;
+          this.sheriffList = response.sheriff_list;
+          this.xsrfToken = response.xsrf_token;
+          this.moreAnomaliesExist = response.show_more_anomalies;
+          this.anomalyCursor = response.anomaly_cursor;
+          this.loading = false;
+          this.updateFromURIParameters();
+        }.bind(this),
+        function(msg) {
+          this.error = msg;
+          this.loading = false;
+        }.bind(this));
+  }
+});
+</script>

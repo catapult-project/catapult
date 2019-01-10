@@ -42,10 +42,15 @@ tr.exportTo('tr.b.unittest', function() {
       if (!document.currentScript) {
         throw new Error('Cannot call testSuite except during load.');
       }
-      const linkDoc = document.currentScript.ownerDocument;
-      const url = linkDoc.URL;
-      const name = this.guessModuleNameFromURL_(url);
-      return name;
+      try {
+        throw new Error('');
+      } catch (e) {
+        const stack = e.stack.split('\n');
+        let url = stack[stack.length - 1].slice(7);
+        url = url.slice(0, url.lastIndexOf(':'));
+        url = url.slice(0, url.lastIndexOf(':')); // Yes, again.
+        return this.guessModuleNameFromURL_(url);
+      }
     },
 
     guessModuleNameFromURL_(url) {
@@ -57,11 +62,11 @@ tr.exportTo('tr.b.unittest', function() {
       if (path[0] !== '/') {
         throw new Error('malformed path');
       }
-      if (path.substring(path.length - 5) !== '.html') {
+      const i = path.indexOf('.html');
+      if (i < 0) {
         throw new Error('Cannot define testSuites outside html imports');
       }
-      const parts = path.substring(1, path.length - 5).split('/');
-      return parts.join('.');
+      return path.substring(1, i).split('/').join('.');
     }
   };
 

@@ -20,37 +20,37 @@ The bug-info-span is a in-line element showing a bug ID with link, etc.
                       xsrf-token="{{xsrfToken}}">
     </alert-remove-box>
   </template>
-  <script>
-    'use strict';
-    Polymer({
-      is: 'bug-info-span',
-      properties: {
-        bugId: {
-          type: Number,
-          value: 0
-        },
-        xsrfToken: {
-          value: null,
-          notify: true
-        },
-        recovered: {
-          type: Boolean,
-          value: false
-        },
-        key: {
-          value: null,
-          notify: true
-        }
-      },
-
-      computeIsPositive: n => n > 0,
-
-      statusString() {
-        if (this.bugId == -1) return 'Invalid';
-        if (this.bugId == -2) return 'Ignored';
-        if (this.recovered) return 'Recovered';
-        return '';
-      }
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'bug-info-span',
+  properties: {
+    bugId: {
+      type: Number,
+      value: 0
+    },
+    xsrfToken: {
+      value: null,
+      notify: true
+    },
+    recovered: {
+      type: Boolean,
+      value: false
+    },
+    key: {
+      value: null,
+      notify: true
+    }
+  },
+
+  computeIsPositive: n => n > 0,
+
+  statusString() {
+    if (this.bugId == -1) return 'Invalid';
+    if (this.bugId == -2) return 'Ignored';
+    if (this.recovered) return 'Recovered';
+    return '';
+  }
+});
+</script>

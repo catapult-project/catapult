@@ -100,90 +100,90 @@ found in the LICENSE file.
       </div>
     </paper-material>
   </template>
-  <script>
-  'use strict';
-  Polymer({
-    is: 'story-tag-filter',
-    properties: {
-      dropdownOpen_: {
-        type: Boolean,
-        value: false
-      },
-
-      tags_: {
-        type: Array,
-        value: [],
-        notify: true
-      },
-
-      selectedTags_: {
-        type: Array,
-        value: [],
-        notify: true
-      }
-    },
-
-    created() {
-      this.tagMap_ = undefined;
-    },
-
-    get selectedStoryNames() {
-      const storyNames = new Set();
-      for (const tag of this.tags_) {
-        // Returns all stories if no tags are selected
-        if (this.selectedTags_.length && !this.isSelected_(tag)) continue;
-        for (const storyName of
-          this.tagMap_.tagsToStoryNames.get(tag)) {
-          storyNames.add(storyName);
-        }
-      }
-      return Array.from(storyNames).sort();
-    },
-
-    set tagMap(t) {
-      this.tagMap_ = t;
-      const keys = Array.from(this.tagMap_.tagsToStoryNames.keys());
-      keys.sort();
-      this.set('tags_', keys);
-      this.set('selectedTags_', []);
-    },
-
-    isSelected_(item) {
-      const checkbox = this.$$('#checkbox-' + item);
-      if (checkbox == undefined) return false;
-      return checkbox.checked;
-    },
-
-    onFilterClick_() {
-      this.set('dropdownOpen_', !this.dropdownOpen);
-      if (this.dropdownOpen_) this.$['dropdown-container'].focus();
-    },
-
-    onIconCancel_(event) {
-      this.$$('#checkbox-' + event.model.item).click();
-      this.onTagCheck_();
-    },
-
-    onBlurInput_(event) {
-      // Must be called by any element in the dropdown that can gain focus, so
-      // when focus is lost the dropdown closes.
-      if (!tr.ui.b.elementIsChildOf(event.relatedTarget,
-          this.$['dropdown-container']) &&
-          (event.relatedTarget !== this.$['dropdown-container'])) {
-        this.set('dropdownOpen_', false);
-      }
-    },
-
-    onTagCheck_() {
-      const newSelectedTags = [];
-      for (const tag of this.tags_) {
-        if (!this.isSelected_(tag)) continue;
-        newSelectedTags.push(tag);
-      }
-
-      this.set('selectedTags_', newSelectedTags);
-      this.fire('selected-stories-changed', newSelectedTags);
-    }
-  });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'story-tag-filter',
+  properties: {
+    dropdownOpen_: {
+      type: Boolean,
+      value: false
+    },
+
+    tags_: {
+      type: Array,
+      value: [],
+      notify: true
+    },
+
+    selectedTags_: {
+      type: Array,
+      value: [],
+      notify: true
+    }
+  },
+
+  created() {
+    this.tagMap_ = undefined;
+  },
+
+  get selectedStoryNames() {
+    const storyNames = new Set();
+    for (const tag of this.tags_) {
+      // Returns all stories if no tags are selected
+      if (this.selectedTags_.length && !this.isSelected_(tag)) continue;
+      for (const storyName of
+        this.tagMap_.tagsToStoryNames.get(tag)) {
+        storyNames.add(storyName);
+      }
+    }
+    return Array.from(storyNames).sort();
+  },
+
+  set tagMap(t) {
+    this.tagMap_ = t;
+    const keys = Array.from(this.tagMap_.tagsToStoryNames.keys());
+    keys.sort();
+    this.set('tags_', keys);
+    this.set('selectedTags_', []);
+  },
+
+  isSelected_(item) {
+    const checkbox = this.$$('#checkbox-' + item);
+    if (checkbox == undefined) return false;
+    return checkbox.checked;
+  },
+
+  onFilterClick_() {
+    this.set('dropdownOpen_', !this.dropdownOpen);
+    if (this.dropdownOpen_) this.$['dropdown-container'].focus();
+  },
+
+  onIconCancel_(event) {
+    this.$$('#checkbox-' + event.model.item).click();
+    this.onTagCheck_();
+  },
+
+  onBlurInput_(event) {
+    // Must be called by any element in the dropdown that can gain focus, so
+    // when focus is lost the dropdown closes.
+    if (!tr.ui.b.elementIsChildOf(event.relatedTarget,
+        this.$['dropdown-container']) &&
+        (event.relatedTarget !== this.$['dropdown-container'])) {
+      this.set('dropdownOpen_', false);
+    }
+  },
+
+  onTagCheck_() {
+    const newSelectedTags = [];
+    for (const tag of this.tags_) {
+      if (!this.isSelected_(tag)) continue;
+      newSelectedTags.push(tag);
+    }
+
+    this.set('selectedTags_', newSelectedTags);
+    this.fire('selected-stories-changed', newSelectedTags);
+  }
+});
+</script>

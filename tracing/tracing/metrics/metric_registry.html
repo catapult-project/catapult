@@ -78,8 +78,11 @@ tr.exportTo('tr.metrics', function() {
     }
 
     if (!metricPath[1].endsWith('_test.html') &&
+        !metricPath[1].endsWith('_test.html.js') &&
         metricPath[1] !== expectedFilename &&
-        metricPath.join('_') !== expectedFilename) {
+        metricPath[1] !== expectedFilename + '.js' &&
+        metricPath.join('_') !== expectedFilename &&
+        metricPath.join('_') !== expectedFilename + '.js') {
       throw new Error(
           'Expected ' + metricName + ' to be in a file named ' +
           expectedFilename + '; actual: ' + metricPath.join('/') +

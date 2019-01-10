@@ -106,71 +106,70 @@ In order to apply the `Roboto` font to this element, make sure you've imported `
       <content></content>
     </div>
   </template>
+</dom-module>
+<script>
+Polymer({
+  is: 'paper-tab',
 
-  <script>
-    Polymer({
-      is: 'paper-tab',
+  behaviors: [
+    Polymer.IronControlState,
+    Polymer.IronButtonState,
+    Polymer.PaperRippleBehavior
+  ],
 
-      behaviors: [
-        Polymer.IronControlState,
-        Polymer.IronButtonState,
-        Polymer.PaperRippleBehavior
-      ],
+  properties: {
 
-      properties: {
+    /**
+      * If true, the tab will forward keyboard clicks (enter/space) to
+      * the first anchor element found in its descendants
+      */
+    link: {
+      type: Boolean,
+      value: false,
+      reflectToAttribute: true
+    }
 
-        /**
-         * If true, the tab will forward keyboard clicks (enter/space) to
-         * the first anchor element found in its descendants
-         */
-        link: {
-          type: Boolean,
-          value: false,
-          reflectToAttribute: true
-        }
+  },
 
-      },
+  hostAttributes: {
+    role: 'tab'
+  },
 
-      hostAttributes: {
-        role: 'tab'
-      },
+  listeners: {
+    down: '_updateNoink',
+    tap: '_onTap'
+  },
 
-      listeners: {
-        down: '_updateNoink',
-        tap: '_onTap'
-      },
+  attached: function() {
+    this._updateNoink();
+  },
 
-      attached: function() {
-        this._updateNoink();
-      },
+  get _parentNoink () {
+    var parent = Polymer.dom(this).parentNode;
+    return !!parent && !!parent.noink;
+  },
 
-      get _parentNoink () {
-        var parent = Polymer.dom(this).parentNode;
-        return !!parent && !!parent.noink;
-      },
+  _updateNoink: function() {
+    this.noink = !!this.noink || !!this._parentNoink;
+  },
 
-      _updateNoink: function() {
-        this.noink = !!this.noink || !!this._parentNoink;
-      },
+  _onTap: function(event) {
+    if (this.link) {
+      var anchor = this.queryEffectiveChildren('a');
 
-      _onTap: function(event) {
-        if (this.link) {
-          var anchor = this.queryEffectiveChildren('a');
-
-          if (!anchor) {
-            return;
-          }
-
-          // Don't get stuck in a loop delegating
-          // the listener from the child anchor
-          if (event.target === anchor) {
-            return;
-          }
-
-          anchor.click();
-        }
+      if (!anchor) {
+        return;
       }
 
-    });
-  </script>
-</dom-module>
+      // Don't get stuck in a loop delegating
+      // the listener from the child anchor
+      if (event.target === anchor) {
+        return;
+      }
+
+      anchor.click();
+    }
+  }
+
+});
+</script>

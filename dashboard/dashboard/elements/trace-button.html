@@ -47,27 +47,24 @@ See https://github.com/catapult-project/catapult/issues/1905
         end-repository="{{traceInfo.badRevRepo}}"
         test-path="{{traceInfo.testPath}}"></pinpoint-perf-job-dialog>
   </template>
-  <script>
-    'use strict';
-    (function() {
-      Polymer({
-
-        is: 'trace-button',
-        properties: {
-          bugId: { notify: true },
-          traceInfo: {
-            notify: true
-          },
-          xsrfToken: { notify: true }
-        },
-
-        /**
-         * Displays the trace-form when the trace button is clicked.
-         */
-        onTrace() {
-          this.$.pinpoint.show();
-        }
-      });
-    })();
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'trace-button',
+  properties: {
+    bugId: { notify: true },
+    traceInfo: {
+      notify: true
+    },
+    xsrfToken: { notify: true }
+  },
+
+  /**
+    * Displays the trace-form when the trace button is clicked.
+    */
+  onTrace() {
+    this.$.pinpoint.show();
+  }
+});
+</script>

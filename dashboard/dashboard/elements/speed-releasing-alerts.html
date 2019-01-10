@@ -66,81 +66,79 @@ found in the LICENSE file.
         </div>
       </template>
     </template>
-
   </template>
-  <script>
-    'use strict';
-    Polymer({
-
-      is: 'speed-releasing-alerts',
-      properties: {
-        tableName: {
-          type: String,
-          notify: true,
-        },
-        loading: {
-          type: Boolean,
-          value: false,
-          notify: true
-        },
-        error: {
-          type: String,
-          value: '',
-          notify: true
-        },
-        xsrfToken: {
-          type: String,
-          value: ''
-        },
-        sortBy: {
-          type: String,
-          value: 'end_revision'
-        },
-        sortDirection: {
-          type: String,
-          value: 'up'
-        }
-      },
-
-      onPushHistoryState(event, detail) {
-        const sender = event.currentTarget;
-        if (!sender) {
-          return;
-        }
-        const params = uri.getAllParameters();
-        params.sortby = sender.sortBy;
-        params.sortdirection = sender.sortDirection;
-        const newUri = uri.getCurrentPathWithParams(params);
-        history.pushState(params, '', newUri);
-      },
-
-      ready() {
-        const params = {};
-        const revA = uri.getParameter('revA');
-        if (revA) {
-          params.revA = revA;
-        }
-        const revB = uri.getParameter('revB');
-        if (revB) {
-          params.revB = revB;
-        }
-        const m = uri.getParameter('m');
-        if (m) {
-          params.m = m;
-        }
-        params.anomalies = true;
-        const path = this.tableName;
-        this.loading = true;
-        simple_xhr.send('/speed_releasing/' + path, params,
-            function(response) {
-              this.anomalies = response.anomalies;
-              this.loading = false;
-            }.bind(this),
-            function(msg) {
-              this.error = msg;
-              this.loading = false;
-            }.bind(this));
-      }
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'speed-releasing-alerts',
+  properties: {
+    tableName: {
+      type: String,
+      notify: true,
+    },
+    loading: {
+      type: Boolean,
+      value: false,
+      notify: true
+    },
+    error: {
+      type: String,
+      value: '',
+      notify: true
+    },
+    xsrfToken: {
+      type: String,
+      value: ''
+    },
+    sortBy: {
+      type: String,
+      value: 'end_revision'
+    },
+    sortDirection: {
+      type: String,
+      value: 'up'
+    }
+  },
+
+  onPushHistoryState(event, detail) {
+    const sender = event.currentTarget;
+    if (!sender) {
+      return;
+    }
+    const params = uri.getAllParameters();
+    params.sortby = sender.sortBy;
+    params.sortdirection = sender.sortDirection;
+    const newUri = uri.getCurrentPathWithParams(params);
+    history.pushState(params, '', newUri);
+  },
+
+  ready() {
+    const params = {};
+    const revA = uri.getParameter('revA');
+    if (revA) {
+      params.revA = revA;
+    }
+    const revB = uri.getParameter('revB');
+    if (revB) {
+      params.revB = revB;
+    }
+    const m = uri.getParameter('m');
+    if (m) {
+      params.m = m;
+    }
+    params.anomalies = true;
+    const path = this.tableName;
+    this.loading = true;
+    simple_xhr.send('/speed_releasing/' + path, params,
+        function(response) {
+          this.anomalies = response.anomalies;
+          this.loading = false;
+        }.bind(this),
+        function(msg) {
+          this.error = msg;
+          this.loading = false;
+        }.bind(this));
+  }
+});
+</script>

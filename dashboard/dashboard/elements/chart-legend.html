@@ -244,282 +244,279 @@ found in the LICENSE file.
             </paper-material>
           </template>
         </div>
-
-
       </iron-collapse>
     </div>
-
   </template>
-  <script>
-    'use strict';
-    Polymer({
+</dom-module>
+<script>
+'use strict';
+Polymer({
 
-      is: 'chart-legend',
-      properties: {
-        collapseLegend: { notify: true },
-        deltaAbsolute: { notify: true },
-        deltaPercent: { notify: true },
-        indicesToGraph: { notify: true },
-        seriesGroupList: {
-          notify: true,
-          type: Array,
-          value: () => []
-        },
-        showCompact: { notify: true },
-        showDelta: { notify: true }
-      },
+  is: 'chart-legend',
+  properties: {
+    collapseLegend: { notify: true },
+    deltaAbsolute: { notify: true },
+    deltaPercent: { notify: true },
+    indicesToGraph: { notify: true },
+    seriesGroupList: {
+      notify: true,
+      type: Array,
+      value: () => []
+    },
+    showCompact: { notify: true },
+    showDelta: { notify: true }
+  },
 
-      computeIsPositive(iterInfo, prop) {
-        return iterInfo.base[prop] > 0;
-      },
-      computeIsUndefined: x => x === undefined,
-      computeSelectionIsAll: seriesGroup => seriesGroup.selection == 'all',
+  computeIsPositive(iterInfo, prop) {
+    return iterInfo.base[prop] > 0;
+  },
+  computeIsUndefined: x => x === undefined,
+  computeSelectionIsAll: seriesGroup => seriesGroup.selection == 'all',
 
-      getTestIndexInSeriesGroup(seriesGroupIndex, name) {
-        const tests = this.seriesGroupList[seriesGroupIndex].tests;
-        for (let i = 0; i < tests.length; i++) {
-          if (name == tests[i].name) {
-            return i;
-          }
-        }
-        return null;
-      },
+  getTestIndexInSeriesGroup(seriesGroupIndex, name) {
+    const tests = this.seriesGroupList[seriesGroupIndex].tests;
+    for (let i = 0; i < tests.length; i++) {
+      if (name == tests[i].name) {
+        return i;
+      }
+    }
+    return null;
+  },
 
-      /**
-       * Event handler for the change event of any of the checkboxes.
-       */
-      onCheckboxClicked(event, detail) {
-        const onCheckboxClickedMark = tr.b.Timing.mark(
-            'chart-legend', 'onCheckboxClicked');
-        const test = event.model.test;
-        const seriesGroupIndex = this.$.grouplist.indexForElement(event.target);
-        const testIndex = this.getTestIndexInSeriesGroup(
-            seriesGroupIndex, test.name);
-        if (testIndex !== null) {
-          this.set('seriesGroupList.' + seriesGroupIndex + '.tests.' +
-              testIndex + '.selected', event.currentTarget.checked);
-        }
-        this.updateIndicesToGraph(
-            test.index, event.currentTarget.checked);
-        this.updateSeriesGroupCheckedState(seriesGroupIndex);
-        this.updateNumHidden(seriesGroupIndex);
-        this.fireChartStateChangedEvent();
-        onCheckboxClickedMark.end();
-      },
+  /**
+    * Event handler for the change event of any of the checkboxes.
+    */
+  onCheckboxClicked(event, detail) {
+    const onCheckboxClickedMark = tr.b.Timing.mark(
+        'chart-legend', 'onCheckboxClicked');
+    const test = event.model.test;
+    const seriesGroupIndex = this.$.grouplist.indexForElement(event.target);
+    const testIndex = this.getTestIndexInSeriesGroup(
+        seriesGroupIndex, test.name);
+    if (testIndex !== null) {
+      this.set('seriesGroupList.' + seriesGroupIndex + '.tests.' +
+          testIndex + '.selected', event.currentTarget.checked);
+    }
+    this.updateIndicesToGraph(
+        test.index, event.currentTarget.checked);
+    this.updateSeriesGroupCheckedState(seriesGroupIndex);
+    this.updateNumHidden(seriesGroupIndex);
+    this.fireChartStateChangedEvent();
+    onCheckboxClickedMark.end();
+  },
 
-      /**
-       * Updates seriesGroup based on its tests selection state.
-       * A series group is a dictionary that describe the selection state
-       * for a set of series within a test path.
-       *
-       * seriesGroup has the following properties:
-       *   {
-       *        'path': 'ChromiumPerf/linux/dromaeo/Total',
-       *        'tests': [{
-       *             name: 'Total',
-       *             direction: 'Lower is better',
-       *             units: 'm/s',
-       *             etc...
-       *        }],
-       *        'selection': 'all',
-       *        'numHidden': null
-       *   }
-       *
-       * @param {Object} seriesGroup A group of series.
-       */
-      updateSeriesGroupCheckedState(seriesGroupIndex) {
-        const allSelected = [];
-        const allUnselected = [];
-        const seriesGroup = this.seriesGroupList[seriesGroupIndex];
-        seriesGroup.tests.forEach(function(test) {
-          if (test.selected) {
-            allSelected.push(test);
-          } else {
-            allUnselected.push(test);
-          }
-        }.bind(this));
+  /**
+    * Updates seriesGroup based on its tests selection state.
+    * A series group is a dictionary that describe the selection state
+    * for a set of series within a test path.
+    *
+    * seriesGroup has the following properties:
+    *   {
+    *        'path': 'ChromiumPerf/linux/dromaeo/Total',
+    *        'tests': [{
+    *             name: 'Total',
+    *             direction: 'Lower is better',
+    *             units: 'm/s',
+    *             etc...
+    *        }],
+    *        'selection': 'all',
+    *        'numHidden': null
+    *   }
+    *
+    * @param {Object} seriesGroup A group of series.
+    */
+  updateSeriesGroupCheckedState(seriesGroupIndex) {
+    const allSelected = [];
+    const allUnselected = [];
+    const seriesGroup = this.seriesGroupList[seriesGroupIndex];
+    seriesGroup.tests.forEach(function(test) {
+      if (test.selected) {
+        allSelected.push(test);
+      } else {
+        allUnselected.push(test);
+      }
+    }.bind(this));
 
-        if (allSelected.length == seriesGroup.tests.length) {
-          this.set(
-              'seriesGroupList.' + seriesGroupIndex + '.selection', 'all');
-        } else if (allUnselected.length == seriesGroup.tests.length) {
-          this.set(
-              'seriesGroupList.' + seriesGroupIndex + '.selection', 'none');
-        } else {
-          this.set(
-              'seriesGroupList.' + seriesGroupIndex + '.selection', null);
-        }
-      },
+    if (allSelected.length == seriesGroup.tests.length) {
+      this.set(
+          'seriesGroupList.' + seriesGroupIndex + '.selection', 'all');
+    } else if (allUnselected.length == seriesGroup.tests.length) {
+      this.set(
+          'seriesGroupList.' + seriesGroupIndex + '.selection', 'none');
+    } else {
+      this.set(
+          'seriesGroupList.' + seriesGroupIndex + '.selection', null);
+    }
+  },
 
-      /**
-       * Updates numHidden properties for a seriesGroup.  This is to show the
-       * number of hidden series link.
-       */
-      updateNumHidden(seriesGroupIndex) {
-        let numHidden = 0;
-        let numCanHide = 0;
-        const seriesGroup = this.seriesGroupList[seriesGroupIndex];
-        seriesGroup.tests.forEach(function(test) {
-          if (test.hidden) {
-            numHidden++;
-          } else if (!test.checked) {
-            numCanHide++;
-          }
-        });
-
-        // Don't show more/less link if the only series shown are the important.
-        if (numHidden > 0) {
-          this.set(
-              'seriesGroupList.' + seriesGroupIndex + '.numHidden', numHidden);
-        } else if (numCanHide > 0) {
-          this.set(
-              'seriesGroupList.' + seriesGroupIndex + '.numHidden', 0);
-        } else {
-          this.set(
-              'seriesGroupList.' + seriesGroupIndex + '.numHidden', null);
-        }
-      },
-
-      /**
-       * Event handler for the change event of check all checkboxes.
-       */
-      onCheckAllCheckboxClicked(event, detail) {
-        const sender = event.currentTarget;
-        const groupIndex = event.model.groupIndex;
-
-        this.set(
-            'seriesGroupList.' + groupIndex + '.selection', (
-              sender.checked ? 'all' : 'none'));
-        const tests = this.seriesGroupList[groupIndex].tests;
-        for (let i = 0; i < tests.length; i++) {
-          if (tests[i].index != undefined) {
-            this.set(
-                'seriesGroupList.' + groupIndex + '.tests.' + i + '.selected',
-                sender.checked);
-            this.updateIndicesToGraph(tests[i].index, sender.checked);
-          }
-        }
-
-        this.fireChartStateChangedEvent();
-      },
-
-      /**
-       * Event handler for series group close button clicked.
-       */
-      onCloseSeriesGroupClicked(event, detail) {
-        const model = event.model;
-        this.fire('seriesgroupclosed', {'groupIndex': model.groupIndex});
-      },
-
-      /**
-       * Event handler for click event of expand link.
-       */
-      onExpandSeriesClicked(event, detail) {
-        const groupIndex = this.$.grouplist.modelForElement(
-            event.target).groupIndex;
-        const isCollapse = event.currentTarget.text == 'less' ? true : false;
-        const seriesGroup = this.seriesGroupList[groupIndex];
-        seriesGroup.tests.forEach(function(test, index) {
-          if (isCollapse) {
-            if (!test.selected) {
-              this.set(
-                  'seriesGroupList.' + groupIndex + '.tests.' + index +
-                  '.hidden',
-                  true);
-            }
-          } else {
-            this.set(
-                'seriesGroupList.' + groupIndex + '.tests.' + index +
-                  '.hidden',
-                false);
-          }
-        }.bind(this));
-        this.updateNumHidden(groupIndex);
-      },
-
-      fireChartStateChangedEvent() {
-        this.fire('chartstatechanged', {
-          target: this,
-          stateName: 'chartstatechanged',
-          state: this.seriesGroupList
-        });
-      },
-
-      /**
-       * Handler for the click event of the select all traces button.
-       * Updates this.indicesToGraph to contain all traces.
-       * @param {Event=} opt_noEvent The click event, not used.
-       */
-      onSelectAll(opt_noEvent) {
-        this.set('indicesToGraph', []);
-        for (let i = 0; i < this.seriesGroupList.length; i++) {
-          const group = this.seriesGroupList[i];
-          for (let j = 0; j < group.tests.length; j++) {
-            this.set('seriesGroupList.' + i + '.tests.' + j + '.selected',
-                true);
-            this.push('indicesToGraph', group.tests[j].index);
-          }
-          this.updateSeriesGroupCheckedState(i);
-          this.updateNumHidden(i);
-        }
-        this.fireChartStateChangedEvent();
-      },
-
-      /**
-       * Handler for the click event of the deselect all traces button.
-       * @param {Event=} opt_noEvent The click event, not used.
-       */
-      onDeselectAll(opt_noEvent) {
-        this.set('indicesToGraph', []);
-        for (let i = 0; i < this.seriesGroupList.length; i++) {
-          const group = this.seriesGroupList[i];
-          for (let j = 0; j < group.tests.length; j++) {
-            this.set('seriesGroupList.' + i + '.tests.' + j + '.selected',
-                false);
-          }
-          this.updateSeriesGroupCheckedState(i);
-          this.updateNumHidden(i);
-        }
-        this.fireChartStateChangedEvent();
-      },
-
-      seriesMouseover(event, detail) {
-        this.fire('seriesmouseover', {
-          'index': event.model.index
-        });
-      },
-
-      seriesMouseout(event, detail) {
-        this.fire('seriesmouseout', {
-          'index': event.model.index
-        });
-      },
-
-      /**
-       * Adds or removes a series index from |this.indicesToGraph|.
-       * @param {number} index The index to add or remove.
-       * @param {boolean} selected Whether to add the index.
-       */
-      updateIndicesToGraph(index, selected) {
-        if (selected) {
-          if (this.indicesToGraph.indexOf(index) == -1) {
-            this.push('indicesToGraph', index);
-          }
-        } else {
-          if (this.indicesToGraph.indexOf(index) != -1) {
-            this.splice('indicesToGraph',
-                this.indicesToGraph.indexOf(index), 1);
-          }
-        }
-      },
-
-      /**
-       * Toggles legend window to collapse or expand.
-       */
-      toggleLegend() {
-        this.$['collapsible-legend'].toggle();
-        this.collapseLegend = !this.collapseLegend;
+  /**
+    * Updates numHidden properties for a seriesGroup.  This is to show the
+    * number of hidden series link.
+    */
+  updateNumHidden(seriesGroupIndex) {
+    let numHidden = 0;
+    let numCanHide = 0;
+    const seriesGroup = this.seriesGroupList[seriesGroupIndex];
+    seriesGroup.tests.forEach(function(test) {
+      if (test.hidden) {
+        numHidden++;
+      } else if (!test.checked) {
+        numCanHide++;
       }
     });
-  </script>
-</dom-module>
+
+    // Don't show more/less link if the only series shown are the important.
+    if (numHidden > 0) {
+      this.set(
+          'seriesGroupList.' + seriesGroupIndex + '.numHidden', numHidden);
+    } else if (numCanHide > 0) {
+      this.set(
+          'seriesGroupList.' + seriesGroupIndex + '.numHidden', 0);
+    } else {
+      this.set(
+          'seriesGroupList.' + seriesGroupIndex + '.numHidden', null);
+    }
+  },
+
+  /**
+    * Event handler for the change event of check all checkboxes.
+    */
+  onCheckAllCheckboxClicked(event, detail) {
+    const sender = event.currentTarget;
+    const groupIndex = event.model.groupIndex;
+
+    this.set(
+        'seriesGroupList.' + groupIndex + '.selection', (
+          sender.checked ? 'all' : 'none'));
+    const tests = this.seriesGroupList[groupIndex].tests;
+    for (let i = 0; i < tests.length; i++) {
+      if (tests[i].index != undefined) {
+        this.set(
+            'seriesGroupList.' + groupIndex + '.tests.' + i + '.selected',
+            sender.checked);
+        this.updateIndicesToGraph(tests[i].index, sender.checked);
+      }
+    }
+
+    this.fireChartStateChangedEvent();
+  },
+
+  /**
+    * Event handler for series group close button clicked.
+    */
+  onCloseSeriesGroupClicked(event, detail) {
+    const model = event.model;
+    this.fire('seriesgroupclosed', {'groupIndex': model.groupIndex});
+  },
+
+  /**
+    * Event handler for click event of expand link.
+    */
+  onExpandSeriesClicked(event, detail) {
+    const groupIndex = this.$.grouplist.modelForElement(
+        event.target).groupIndex;
+    const isCollapse = event.currentTarget.text == 'less' ? true : false;
+    const seriesGroup = this.seriesGroupList[groupIndex];
+    seriesGroup.tests.forEach(function(test, index) {
+      if (isCollapse) {
+        if (!test.selected) {
+          this.set(
+              'seriesGroupList.' + groupIndex + '.tests.' + index +
+              '.hidden',
+              true);
+        }
+      } else {
+        this.set(
+            'seriesGroupList.' + groupIndex + '.tests.' + index +
+              '.hidden',
+            false);
+      }
+    }.bind(this));
+    this.updateNumHidden(groupIndex);
+  },
+
+  fireChartStateChangedEvent() {
+    this.fire('chartstatechanged', {
+      target: this,
+      stateName: 'chartstatechanged',
+      state: this.seriesGroupList
+    });
+  },
+
+  /**
+    * Handler for the click event of the select all traces button.
+    * Updates this.indicesToGraph to contain all traces.
+    * @param {Event=} opt_noEvent The click event, not used.
+    */
+  onSelectAll(opt_noEvent) {
+    this.set('indicesToGraph', []);
+    for (let i = 0; i < this.seriesGroupList.length; i++) {
+      const group = this.seriesGroupList[i];
+      for (let j = 0; j < group.tests.length; j++) {
+        this.set('seriesGroupList.' + i + '.tests.' + j + '.selected',
+            true);
+        this.push('indicesToGraph', group.tests[j].index);
+      }
+      this.updateSeriesGroupCheckedState(i);
+      this.updateNumHidden(i);
+    }
+    this.fireChartStateChangedEvent();
+  },
+
+  /**
+    * Handler for the click event of the deselect all traces button.
+    * @param {Event=} opt_noEvent The click event, not used.
+    */
+  onDeselectAll(opt_noEvent) {
+    this.set('indicesToGraph', []);
+    for (let i = 0; i < this.seriesGroupList.length; i++) {
+      const group = this.seriesGroupList[i];
+      for (let j = 0; j < group.tests.length; j++) {
+        this.set('seriesGroupList.' + i + '.tests.' + j + '.selected',
+            false);
+      }
+      this.updateSeriesGroupCheckedState(i);
+      this.updateNumHidden(i);
+    }
+    this.fireChartStateChangedEvent();
+  },
+
+  seriesMouseover(event, detail) {
+    this.fire('seriesmouseover', {
+      'index': event.model.index
+    });
+  },
+
+  seriesMouseout(event, detail) {
+    this.fire('seriesmouseout', {
+      'index': event.model.index
+    });
+  },
+
+  /**
+    * Adds or removes a series index from |this.indicesToGraph|.
+    * @param {number} index The index to add or remove.
+    * @param {boolean} selected Whether to add the index.
+    */
+  updateIndicesToGraph(index, selected) {
+    if (selected) {
+      if (this.indicesToGraph.indexOf(index) == -1) {
+        this.push('indicesToGraph', index);
+      }
+    } else {
+      if (this.indicesToGraph.indexOf(index) != -1) {
+        this.splice('indicesToGraph',
+            this.indicesToGraph.indexOf(index), 1);
+      }
+    }
+  },
+
+  /**
+    * Toggles legend window to collapse or expand.
+    */
+  toggleLegend() {
+    this.$['collapsible-legend'].toggle();
+    this.collapseLegend = !this.collapseLegend;
+  }
+});
+</script>

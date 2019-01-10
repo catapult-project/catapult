@@ -947,6 +947,12 @@ window.HTMLImports.addModule(function(scope) {
     nextToParseInDoc: function(doc, link) {
       if (doc && this._mayParse.indexOf(doc) < 0) {
         this._mayParse.push(doc);
+        for (const child of doc.body.children) {
+          if (['link', 'script', 'style'].includes(child.tagName.toLowerCase())) continue;
+          if (child.__importParsed) continue;
+          child.__importParsed = true;
+          document.body.appendChild(child);
+        }
         var nodes = doc.querySelectorAll(this.parseSelectorsForNode(doc));
         for (var i = 0, l = nodes.length, n; i < l && (n = nodes[i]); i++) {
           if (!this.isParsed(n)) {

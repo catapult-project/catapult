@@ -44,22 +44,23 @@ tr.b.unittest.testSuite(function() {
     return chart;
   }
 
-  test('instantiate basic', function() {
+  test('instantiate_basic', function() {
     testing_common.mockChartJson(dromaeoCharts);
     const chart = createChart();
     this.addHTMLOutput(chart);
     chart.addSeriesGroup(dromaeoCharts.graphParams);
   }, testOptions);
 
-  test('data is loaded when a series group is added', function() {
+  test('data_is_loaded_when_a_series_group_is_added', async function() {
     testing_common.mockChartJson(dromaeoCharts);
     const chart = createChart();
-    chart.addSeriesGroup(dromaeoCharts.graphParams);
     this.addHTMLOutput(chart);
+    chart.addSeriesGroup(dromaeoCharts.graphParams);
+    await tr.b.timeout(100);
     assert.strictEqual(chart.getDataForFlot().length, 3);
   }, testOptions);
 
-  test('warning added for stale series', function() {
+  test('warning_added_for_stale_series', function() {
     const graphJson = testing_common.deepCopy(dromaeoCharts.graphSelectedJson);
     for (const annotation in graphJson.annotations['0']) {
       graphJson.annotations['0'][annotation].timestamp -= 8 * 86400000;
@@ -95,11 +96,12 @@ tr.b.unittest.testSuite(function() {
         'android-nexus6/sunspider/Total');
   }, testOptions);
 
-  test('unseletected has displayName', function() {
+  test('unselected_has_displayName', async function() {
     testing_common.mockChartJson(dromaeoCharts);
     const chart = createChart();
     this.addHTMLOutput(chart);
     chart.addSeriesGroup(dromaeoCharts.graphParams);
+    await tr.b.timeout(100);
     assert.strictEqual(chart.seriesGroupList[0].tests[0].displayName, 'dom');
     assert.strictEqual(chart.seriesGroupList[0].tests[1].displayName,
         'http___dromaeo.com?dom-attr');
@@ -117,7 +119,7 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
-  test('showTooltip uses uri bug_id', function() {
+  test('showTooltip_uses_uri_bug_id', async function() {
     uri.getQueryString = function() { return '?bug_id=123'; };
 
     testing_common.mockChartJson(
@@ -128,6 +130,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(chart);
     chart.addSeriesGroup(dromaeoCharts.graphParams);
     chart.addSeriesGroup(sunspiderCharts.graphParams);
+    await tr.b.timeout(100);
     chart.showTooltip(0, 0);
     assert.strictEqual(chart.$.tooltip.bugId, '123');
   }, testOptionsUri);

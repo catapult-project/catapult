@@ -188,128 +188,127 @@ found in the LICENSE file.
       </ul>
     </nav>
   </template>
-  <script>
-    'use strict';
-
-    Polymer({
-      is: 'nav-bar',
-      ready() {
-        simple_xhr.send('/navbar',
-            {'path': location.pathname + location.search},
-            function(response) {
-              this.loginUrl = response.login_url;
-              this.displayUsername = response.display_username;
-              this.isAdmin = response.is_admin;
-            }.bind(this));
-
-        if (window.location.hostname !== 'chromeperf.appspot.com') {
-          this.$.demo.style.display = 'list-item';
-          this.$.demo.style.color = 'black';
-          window.document.body.style.border = '3px solid #0f0';
-        }
-      },
-
-      /**
-       * Opens a window with new Chromium bug, pre-filled with some info.
-       * @param {string} summary The title of the bug.
-       * @param {string} comment The description of the bug.
-       * @param {Array} labels A list of labels to apply to the bug.
-       * @param {Array} cc A list of email addresses to cc on the bug.
-       */
-      openCrBugWindow(summary, comment, labels, cc, components) {
-        let url = 'https://code.google.com/p/chromium/issues/entry?';
-        url += [
-          'summary=' + encodeURIComponent(summary),
-          'comment=' + encodeURIComponent(comment),
-          'labels=' + encodeURIComponent(labels.join(',')),
-          'components=' + encodeURIComponent(components.join(',')),
-          'cc=' + encodeURIComponent(cc.join(','))
-        ].join('&');
-        window.open(url, '_blank');
-      },
-
-      /**
-       * Opens a window to report a general dashboard bug.
-       */
-      reportBug() {
-        const os = this.guessOS();
-        let chromeVersion = 'unknown';
-        const chromeVersionMatch = navigator.userAgent.match(/Chrome\/(\S*)/);
-        if (chromeVersionMatch) {
-          chromeVersion = chromeVersionMatch[1];
-        }
-        let description = 'Chrome version: ' + chromeVersion;
-        description += ' (' + os + ')\n';
-        description += 'URL: ' + document.location.href + '\n\n';
-        description += 'Please copy and paste any errors from JavaScript';
-        description += ' console (';
-        description += (os == 'Mac' ? 'Command+Option+J' : 'Ctrl+Shift+J');
-        description += ' to open):\n\n';
-        description += 'Please describe the problem:\n';
-        this.openCrBugWindow(
-            'Perf Dashboard: ', description, [], [], ['Speed>Dashboard']);
-      },
-
-      /**
-       * Guesses user's OS from user agent string (for pre-filling bug labels).
-       * @return {string} The name of an OS.
-       */
-      guessOS() {
-        const userAgentContains = function(s) {
-          return navigator.userAgent.indexOf(s) != -1;
-        };
-        if (userAgentContains('CrOS')) {
-          return 'Chrome OS';
-        } else if (userAgentContains('Windows')) {
-          return 'Windows';
-        } else if (userAgentContains('Macintosh')) {
-          return 'Mac';
-        } else if (userAgentContains('Linux')) {
-          return 'Linux';
-        } else if (userAgentContains('Android')) {
-          return 'Android';
-        }
-        return 'unknown';
-      },
-
-      fileIpWhitelistRequest() {
-        const description = 'Please whitelist the following IP addresses ' +
-            'to send data to the Chrome Perf Dashboard:\n' +
-            '<IP ADDRESSES HERE>\n\n' +
-            'These buildbots are for:\n';
-        const labels = ['Performance-Dashboard-IPWhitelist',
-          'Restrict-View-Google'];
-        this.openCrBugWindow(
-            'IP Whitelist Request', description, labels, [], ['Speed>Dashboard']);
-      },
-
-      fileBotWhitelistRequest() {
-        const description = 'Please make the following bots and all their data ' +
-            'publicly available, with no google.com login required: \n' +
-            '<BOT NAMES HERE>\n\n';
-        const labels = ['Performance-Dashboard-BotWhitelist',
-          'Restrict-View-Google'];
-        this.openCrBugWindow('Bot Whitelist Request', description, labels, [],
-            ['Speed>Dashboard']);
-      },
-
-      fileMonitoringRequest() {
-        const description = 'Please add monitoring for the following tests:\n\n' +
-            'Test owner (see http://go/perf-test-owners):\n' +
-            'Bot name pattern:\n' +
-            'Test suite names:\n' +
-            'Restrict to these specific measurements and test cases (if any):\n' +
-            'Restrict to specific statistics (avg, max, etc): \n' +
-            'Email address and/or URL of sheriff rotation: \n' +
-            'Receive individual email alerts immediately or as a daily' +
-            ' summary?\nShould these alerts be Google-internal?\n';
-        const labels = [
-          'Performance-Dashboard-MonitoringRequest',
-          'Restrict-View-Google'
-        ];
-        this.openCrBugWindow('Monitoring Request', description, labels, [],
-            ['Speed>Dashboard']);
-      }
-    });
-  </script>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'nav-bar',
+  ready() {
+    simple_xhr.send('/navbar',
+        {'path': location.pathname + location.search},
+        function(response) {
+          this.loginUrl = response.login_url;
+          this.displayUsername = response.display_username;
+          this.isAdmin = response.is_admin;
+        }.bind(this));
+
+    if (window.location.hostname !== 'chromeperf.appspot.com') {
+      this.$.demo.style.display = 'list-item';
+      this.$.demo.style.color = 'black';
+      window.document.body.style.border = '3px solid #0f0';
+    }
+  },
+
+  /**
+    * Opens a window with new Chromium bug, pre-filled with some info.
+    * @param {string} summary The title of the bug.
+    * @param {string} comment The description of the bug.
+    * @param {Array} labels A list of labels to apply to the bug.
+    * @param {Array} cc A list of email addresses to cc on the bug.
+    */
+  openCrBugWindow(summary, comment, labels, cc, components) {
+    let url = 'https://code.google.com/p/chromium/issues/entry?';
+    url += [
+      'summary=' + encodeURIComponent(summary),
+      'comment=' + encodeURIComponent(comment),
+      'labels=' + encodeURIComponent(labels.join(',')),
+      'components=' + encodeURIComponent(components.join(',')),
+      'cc=' + encodeURIComponent(cc.join(','))
+    ].join('&');
+    window.open(url, '_blank');
+  },
+
+  /**
+    * Opens a window to report a general dashboard bug.
+    */
+  reportBug() {
+    const os = this.guessOS();
+    let chromeVersion = 'unknown';
+    const chromeVersionMatch = navigator.userAgent.match(/Chrome\/(\S*)/);
+    if (chromeVersionMatch) {
+      chromeVersion = chromeVersionMatch[1];
+    }
+    let description = 'Chrome version: ' + chromeVersion;
+    description += ' (' + os + ')\n';
+    description += 'URL: ' + document.location.href + '\n\n';
+    description += 'Please copy and paste any errors from JavaScript';
+    description += ' console (';
+    description += (os == 'Mac' ? 'Command+Option+J' : 'Ctrl+Shift+J');
+    description += ' to open):\n\n';
+    description += 'Please describe the problem:\n';
+    this.openCrBugWindow(
+        'Perf Dashboard: ', description, [], [], ['Speed>Dashboard']);
+  },
+
+  /**
+    * Guesses user's OS from user agent string (for pre-filling bug labels).
+    * @return {string} The name of an OS.
+    */
+  guessOS() {
+    const userAgentContains = function(s) {
+      return navigator.userAgent.indexOf(s) != -1;
+    };
+    if (userAgentContains('CrOS')) {
+      return 'Chrome OS';
+    } else if (userAgentContains('Windows')) {
+      return 'Windows';
+    } else if (userAgentContains('Macintosh')) {
+      return 'Mac';
+    } else if (userAgentContains('Linux')) {
+      return 'Linux';
+    } else if (userAgentContains('Android')) {
+      return 'Android';
+    }
+    return 'unknown';
+  },
+
+  fileIpWhitelistRequest() {
+    const description = 'Please whitelist the following IP addresses ' +
+        'to send data to the Chrome Perf Dashboard:\n' +
+        '<IP ADDRESSES HERE>\n\n' +
+        'These buildbots are for:\n';
+    const labels = ['Performance-Dashboard-IPWhitelist',
+      'Restrict-View-Google'];
+    this.openCrBugWindow(
+        'IP Whitelist Request', description, labels, [], ['Speed>Dashboard']);
+  },
+
+  fileBotWhitelistRequest() {
+    const description = 'Please make the following bots and all their data ' +
+        'publicly available, with no google.com login required: \n' +
+        '<BOT NAMES HERE>\n\n';
+    const labels = ['Performance-Dashboard-BotWhitelist',
+      'Restrict-View-Google'];
+    this.openCrBugWindow('Bot Whitelist Request', description, labels, [],
+        ['Speed>Dashboard']);
+  },
+
+  fileMonitoringRequest() {
+    const description = 'Please add monitoring for the following tests:\n\n' +
+        'Test owner (see http://go/perf-test-owners):\n' +
+        'Bot name pattern:\n' +
+        'Test suite names:\n' +
+        'Restrict to these specific measurements and test cases (if any):\n' +
+        'Restrict to specific statistics (avg, max, etc): \n' +
+        'Email address and/or URL of sheriff rotation: \n' +
+        'Receive individual email alerts immediately or as a daily' +
+        ' summary?\nShould these alerts be Google-internal?\n';
+    const labels = [
+      'Performance-Dashboard-MonitoringRequest',
+      'Restrict-View-Google'
+    ];
+    this.openCrBugWindow('Monitoring Request', description, labels, [],
+        ['Speed>Dashboard']);
+  }
+});
+</script>
