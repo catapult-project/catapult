@@ -14,7 +14,7 @@ class TestBugs(unittest.TestCase):
         {
             'bug': {
                 'id': 12345,
-                'summary': '1%-5% regression in loading.mobile at 123:125',
+                'summary': u'1%-\u221e% regression in loading at 123:125',
                 'published': '2018-04-09T17:01:09',
                 'updated': '2018-04-12T06:38:34',
                 'state': 'closed',

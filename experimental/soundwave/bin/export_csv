@@ -27,6 +27,10 @@ def OutputStream(filename):
       yield f
 
 
+def EncodeUnicode(v):
+  return v.encode('utf-8') if isinstance(v, unicode) else v
+
+
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument(
@@ -47,7 +51,7 @@ def main():
       writer = csv.writer(out)
       writer.writerow(header)
       for row in cur:
-        writer.writerow(row)
+        writer.writerow([EncodeUnicode(v) for v in row])
   finally:
     con.close()
 

@@ -10,7 +10,7 @@ from soundwave import pandas_sqlite
 TABLE_NAME = 'bugs'
 COLUMN_TYPES = (
     ('id', 'int64'),  # crbug number identifying this issue
-    ('summary', str),  # issue title ('1%-5% regression in loading.mobile ...')
+    ('summary', unicode),  # issue title ('1%-5% regression in loading ...')
     ('published', 'datetime64[ns]'),  # when the issue got created
     ('updated', 'datetime64[ns]'),  # when the issue got last updated
     ('state', str),  # usually either 'open' or 'closed'
