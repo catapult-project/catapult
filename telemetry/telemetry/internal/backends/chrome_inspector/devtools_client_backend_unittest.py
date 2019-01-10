@@ -80,6 +80,8 @@ class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
     self.assertTrue('blank.html' in c2.contexts[0]['url'])
     self.assertEqual(c2.GetInspectorBackend(context_id), backend)
 
+  # crbug.com/920454
+  @decorators.Disabled('chromeos')
   def testTracing(self):
     devtools_client = self._devtools_client
     if not devtools_client.IsChromeTracingSupported():
