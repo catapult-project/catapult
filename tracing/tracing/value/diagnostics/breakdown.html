@@ -18,6 +18,12 @@ tr.exportTo('tr.v.d', function() {
       this.colorScheme = undefined;
     }
 
+    truncate(unit) {
+      for (const [name, value] of this) {
+        this.values_.set(name, unit.truncate(value));
+      }
+    }
+
     clone() {
       const clone = new Breakdown();
       clone.colorScheme = this.colorScheme;

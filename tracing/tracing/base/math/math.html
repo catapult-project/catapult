@@ -203,6 +203,11 @@ tr.exportTo('tr.b.math', function() {
     return pow10 * Math.ceil(x / pow10);
   }
 
+  function truncate(value, digits) {
+    const pow10 = Math.pow(10, digits);
+    return Math.round(value * pow10) / pow10;
+  }
+
   /**
    *  Uses the 1-2-5 series to find the closest prefered number to min
    *  whose absolute value is at least the absolute value of |min|.
@@ -240,6 +245,7 @@ tr.exportTo('tr.b.math', function() {
     lesserWholeNumber,
     greaterWholeNumber,
     preferredNumberLargerThanMin,
+    truncate,
   };
 });
 </script>

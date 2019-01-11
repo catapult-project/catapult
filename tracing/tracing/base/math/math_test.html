@@ -10,6 +10,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  test('truncate', function() {
+    assert.strictEqual(3, tr.b.math.truncate(10 / 3, 0));
+    assert.strictEqual(3.3, tr.b.math.truncate(10 / 3, 1));
+    assert.strictEqual(3.33, tr.b.math.truncate(10 / 3, 2));
+    assert.strictEqual(3.333, tr.b.math.truncate(10 / 3, 3));
+    assert.strictEqual(3.3333, tr.b.math.truncate(10 / 3, 4));
+  });
+
   test('erf', function() {
     assert.closeTo(-1, tr.b.math.erf(-1e10), 1e-6);
     assert.closeTo(-0.8427, tr.b.math.erf(-1), 1e-6);

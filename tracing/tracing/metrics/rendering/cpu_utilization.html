@@ -113,6 +113,7 @@ tr.exportTo('tr.metrics.rendering', function() {
   function addCpuUtilizationHistograms(
       histograms, model, segments, shouldNormalize, segmentCostFunc,
       histogramNameFunc, description, unit) {
+    if (!unit) unit = tr.b.Unit.byName.unitlessNumber;
     const histogramMap = new Map();
     for (const category of ALL_CATEGORIES) {
       const histogram = histograms.createHistogram(

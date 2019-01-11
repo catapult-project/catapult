@@ -106,8 +106,8 @@ tr.exportTo('tr.v.d', function() {
         d.events.push({
           stableId: event.stableId,
           title: event.title,
-          start: event.start,
-          duration: event.duration
+          start: tr.b.Unit.byName.timeStampInMs.truncate(event.start),
+          duration: tr.b.Unit.byName.timeDurationInMs.truncate(event.duration),
         });
       }
     }

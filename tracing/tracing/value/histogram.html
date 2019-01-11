@@ -153,6 +153,9 @@ tr.exportTo('tr.v', function() {
    */
   class Histogram {
     constructor(name, unit, opt_binBoundaries) {
+      if (!(unit instanceof tr.b.Unit)) {
+        throw new Error('unit must be a Unit: ' + unit);
+      }
       let binBoundaries = opt_binBoundaries;
       if (!binBoundaries) {
         const baseUnit = unit.baseUnit ? unit.baseUnit : unit;
@@ -431,9 +434,15 @@ tr.exportTo('tr.v', function() {
      * @param {(!Object|!tr.v.d.DiagnosticMap)=} opt_diagnostics
      */
     addSample(value, opt_diagnostics) {
-      if (opt_diagnostics &&
-          !(opt_diagnostics instanceof tr.v.d.DiagnosticMap)) {
-        opt_diagnostics = tr.v.d.DiagnosticMap.fromObject(opt_diagnostics);
+      if (opt_diagnostics) {
+        if (!(opt_diagnostics instanceof tr.v.d.DiagnosticMap)) {
+          opt_diagnostics = tr.v.d.DiagnosticMap.fromObject(opt_diagnostics);
+        }
+        for (const [name, diag] of opt_diagnostics) {
+          if (diag instanceof tr.v.d.Breakdown) {
+            diag.truncate(this.unit);
+          }
+        }
       }
 
       if (typeof(value) !== 'number' || isNaN(value)) {
@@ -447,6 +456,8 @@ tr.exportTo('tr.v', function() {
           this.running_ = new tr.b.math.RunningStatistics();
         }
         this.running_.add(value);
+
+        value = this.unit.truncate(value);
 
         const binIndex = this.getBinIndexForValue(value);
         let bin = this.allBins[binIndex];
@@ -898,6 +909,7 @@ tr.exportTo('tr.v', function() {
 
       if (this.numValues) {
         dict.sampleValues = this.sampleValues.slice();
+        this.running.truncate(this.unit);
         dict.running = this.running_.asDict();
         dict.allBins = this.allBinsAsDict_();
       }

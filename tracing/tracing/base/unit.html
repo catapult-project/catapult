@@ -88,6 +88,53 @@ tr.exportTo('tr.b', function() {
       return this.jsonName;
     },
 
+    /**
+     * Remove insignificant digits from a number so that it consumes less disk
+     * space when serialized.
+     *
+     * @param {number} value
+     * @return {number}
+     */
+    truncate(value) {
+      if (typeof value !== 'number') return value;
+      if (0 === (value % 1)) return value;
+
+      if (typeof this.formatSpec_ !== 'function' &&
+          (!this.formatSpec_.unitScale ||
+           ((this.formatSpec_.unitScale.length === 1) &&
+            (this.formatSpec_.unitScale[0].value === 1)))) {
+        const digits = this.formatSpec_.maximumFractionDigits ||
+          this.formatSpec_.minimumFractionDigits;
+        return tr.b.math.truncate(value, digits + 1);
+      }
+
+      // If formatSpec is a function or uses a unitScale, then its formatting is
+      // unpredictable.
+      // Binary search to find the smallest number of decimal digits that
+      // preserves the correct formatted value.
+
+      const formatted = this.format(value);
+      let test = Math.round(value);
+      if (formatted === this.format(test)) return test;
+
+      let lo = 1;
+      let hi = 16;
+      while (lo < hi - 1) {
+        const digits = parseInt((lo + hi) / 2);
+        test = tr.b.math.truncate(value, digits);
+        if (formatted === this.format(test)) {
+          hi = digits;
+        } else {
+          lo = digits;
+        }
+      }
+
+      test = tr.b.math.truncate(value, lo);
+      if (formatted === this.format(test)) return test;
+
+      return tr.b.math.truncate(value, hi);
+    },
+
     getUnitScale_(opt_context) {
       let formatSpec = this.formatSpec_;
       let formatSpecWasFunction = false;

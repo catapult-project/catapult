@@ -133,6 +133,37 @@ tr.exportTo('tr.b.math', function() {
       return result;
     }
 
+    truncate(unit) {
+      this.max_ = unit.truncate(this.max_);
+      if (this.meanlogs_ !== undefined) {
+        // geomean = exp(meanlogs)
+        // meanlogs is serialized, but geomean is displayed.
+        // truncate meanlogs such that geomean is unaffected.
+        const formatted = unit.format(this.geometricMean);
+        let lo = 1;
+        let hi = 16;
+        while (lo < hi - 1) {
+          const digits = parseInt((lo + hi) / 2);
+          const test = tr.b.math.truncate(this.meanlogs_, digits);
+          if (formatted === unit.format(Math.exp(test))) {
+            hi = digits;
+          } else {
+            lo = digits;
+          }
+        }
+        const test = tr.b.math.truncate(this.meanlogs_, lo);
+        if (formatted === unit.format(Math.exp(test))) {
+          this.meanlogs_ = test;
+        } else {
+          this.meanlogs_ = tr.b.math.truncate(this.meanlogs_, hi);
+        }
+      }
+      this.mean_ = unit.truncate(this.mean_);
+      this.min_ = unit.truncate(this.min_);
+      this.sum_ = unit.truncate(this.sum_);
+      this.variance_ = unit.truncate(this.variance_);
+    }
+
     asDict() {
       if (!this.count) {
         return [];

@@ -4,8 +4,11 @@ Copyright (c) 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
 <link rel="import" href="/tracing/base/math/running_statistics.html">
 <link rel="import" href="/tracing/base/math/statistics.html">
+<link rel="import" href="/tracing/base/unit.html">
+
 <script>
 'use strict';
 
@@ -18,6 +21,23 @@ tr.b.unittest.testSuite(function() {
     data.forEach(x => running.add(x));
     return running;
   }
+
+  test('truncate', function() {
+    const running = run([50, 60, 70 + (1 / 3)]);
+    assert.closeTo(59.533, running.geometricMean, 1e-3);
+    assert.strictEqual(
+        '[3,70.33333333333333,4.0865378041527345,60.11111111111111,50,' +
+        '180.33333333333331,206.74074074074068]',
+        JSON.stringify(running.asDict()));
+
+    running.truncate(tr.b.Unit.byName.unitlessNumber);
+    assert.closeTo(59.533, running.geometricMean, 1e-3);
+    assert.strictEqual(70.3333, running.max);
+    assert.strictEqual(4.086538, running.meanlogs_);
+    assert.strictEqual(60.1111, running.mean);
+    assert.strictEqual(180.3333, running.sum);
+    assert.strictEqual(206.7407, running.variance_);
+  });
 
   test('sum', function() {
     let data;
