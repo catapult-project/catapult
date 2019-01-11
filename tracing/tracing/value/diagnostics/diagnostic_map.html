@@ -76,9 +76,10 @@ tr.exportTo('tr.v.d', function() {
         if (typeof diagnosticDict === 'string') {
           this.set(name, new tr.v.d.DiagnosticRef(diagnosticDict));
         } else if (diagnosticDict.type !== 'RelatedHistogramMap' &&
-                   diagnosticDict.type !== 'RelatedHistogramBreakdown') {
-          // Ignore RelatedHistograms.
-          // TODO(benjhayden): Forget about RelatedHistograms in 2019 Q2.
+                   diagnosticDict.type !== 'RelatedHistogramBreakdown' &&
+                   diagnosticDict.type !== 'TagMap') {
+          // Ignore RelatedHistograms and TagMaps.
+          // TODO(benjhayden): Forget about them in 2019 Q2.
           this.set(name, tr.v.d.Diagnostic.fromDict(diagnosticDict));
         }
       }

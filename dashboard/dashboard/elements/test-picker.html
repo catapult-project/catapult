@@ -10,7 +10,6 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/dashboard/elements/autocomplete-box.html">
-<link rel="import" href="/dashboard/elements/story_tag_filter.html">
 <link rel="import" href="/dashboard/static/async_map.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/tracing/value/diagnostics/reserved_names.html">
@@ -108,28 +107,8 @@ tr.exportTo('d', function() {
     }
   }
 
-  class TagMapCache extends d.AsyncMap {
-    async process_(path) {
-      const params = {
-        test_path: path,
-        end_revision: 'last',
-        name: tr.v.d.RESERVED_NAMES.TAG_MAP
-      };
-
-      try {
-        const diagnostics = await simple_xhr.asPromise(
-            '/get_diagnostics', params);
-        if (diagnostics.length === 0) return undefined;
-        return tr.v.d.Diagnostic.fromDict(diagnostics[0]);
-      } catch (e) {
-        return undefined;
-      }
-    }
-  }
-
   return {
     Subtests,
-    TagMapCache,
   };
 });
 
@@ -188,11 +167,6 @@ Polymer({
     },
 
     xsrfToken: { notify: true },
-
-    tagMapCache: {
-      type: tr.v.d.TagMap,
-      value: () => new d.TagMapCache()
-    },
 
     storySet: {
       type: Set,
@@ -303,21 +277,6 @@ Polymer({
         updateBotMenuMark.end();
       }
     } else {
-      if (boxIndex == 1) {
-        const tagMap = await this.tagMapCache.get(
-            this.getCurrentSelectedPathUpTo(0));
-
-        if (tagMap) {
-          const tags = tagMap.tagsToStoryNames.keys();
-          const storySet = new Set();
-          for (const tag of tags) {
-            for (const story of tagMap.tagsToStoryNames.get(tag)) {
-              storySet.add(story);
-            }
-          }
-          this.set('storySet', storySet);
-        }
-      }
       if (box.selectedItem) {
         await this.updateSubtestMenus(boxIndex + 1);
       }
@@ -458,18 +417,6 @@ Polymer({
     }
 
     this.updateAddButtonState();
-
-    // Insert story tag filter if the box contains stories
-    if (this.subtestsAreStories(subtests)) {
-      const selectedBox = this.$$('#selection-' + startIndex);
-      const tagFilter = document.createElement('story-tag-filter');
-      tagFilter.addEventListener('selected-stories-changed',
-          this.onSelectedStoriesChanged.bind(this));
-      tagFilter.tagMap = await this.tagMapCache.get(
-          this.getCurrentSelectedPathUpTo(0));
-      selectedBox.parentNode.insertBefore(tagFilter, selectedBox);
-      selectedBox.set('placeholder', 'Story');
-    }
   },
 
   async updateAddButtonState() {

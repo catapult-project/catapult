@@ -52,32 +52,6 @@ const MOCK_RESPONSE = {
   }
 };
 
-const MOCK_STORY_TAG_RESPONSE = [
-  {
-    name: tr.v.d.RESERVED_NAMES.TAG_MAP,
-    test_path: 'tag_map',
-    data: {
-      type: 'TagMap',
-      guid: 'abcd',
-      tagsToStoryNames: {
-        audio_playback: ['story0', 'story1', 'story2'],
-        canvas_animation: ['story0', 'story1', 'story3'],
-        css_animation: ['story3', 'story4'],
-        extension: ['story0', 'story1', 'story2'],
-        images: ['story0', 'story1', 'story2', 'story5'],
-        infinite_scroll: ['story0', 'story2', 'story7'],
-        international: ['story0', 'story5', 'story6'],
-        emerging_market: ['story0', 'story4'],
-        javascript_heavy: ['story0', 'story5', 'story6'],
-        scroll: ['story2', 'story5', 'story6'],
-        pinch_zoom: ['story3', 'story5', 'story6'],
-        tabs_switching: ['story0', 'story4', 'story6'],
-        video_playback: ['story0', 'story5', 'story6'],
-        webgl: ['story3', 'story4', 'story6'],
-        web_storage: ['story0', 'story5', 'story6']
-      }}}
-];
-
 tr.b.unittest.testSuite(function() {
   const testOptions = {
     setUp() {
@@ -227,65 +201,5 @@ tr.b.unittest.testSuite(function() {
         testPicker.subtests.get('foo'), Promise);
     testing_common.clearXhrMock();
   });
-
-  test('instantiateWithTagFilter', async function() {
-    testing_common.addXhrMock('*', JSON.stringify(MOCK_RESPONSE));
-    testing_common.addXhrMock('/get_diagnostics',
-        JSON.stringify(MOCK_STORY_TAG_RESPONSE));
-
-    const testPicker = document.createElement('test-picker');
-    testPicker.testSuites = {
-      'endure': {
-        'mas': {'Chromium': {'mac': false, 'win7': true}},
-        'dep': true
-      },
-      'dromaeo': {
-        'mas': {'Chromium': {'mac': false, 'win7': false}}
-      },
-      'blink_perf': {
-        'mas': {'Chromium': {'mac': false, 'win7': false}},
-      },
-      'foo': {
-        'mas': {'Chromium': {'mac': false, 'win7': true}}
-      }
-    };
-
-    testPicker.subtests.populateForTest(new Map([
-      ['Chromium/mac/blink_perf', [{name: 'textarea-edit'}]],
-      ['Chromium/mac/blink_perf/textarea-edit', [
-        {name: 'story0'},
-        {name: 'story1'},
-        {name: 'story2'},
-        {name: 'story3'},
-        {name: 'story4'},
-        {name: 'story5'},
-        {name: 'story6'},
-        {name: 'story7'},
-      ]],
-    ]));
-
-    testPicker.tagMapCache.populateForTest([['Chromium/mac/blink_perf',
-      new tr.v.d.TagMap({
-        tagsToStoryNames: {
-          audio_playback: ['story0', 'story1', 'story2'],
-          canvas_animation: ['story0', 'story1', 'story3'],
-          css_animation: ['story3', 'story4'],
-          extension: ['story0', 'story1', 'story2'],
-          images: ['story0', 'story1', 'story2', 'story5'],
-          infinite_scroll: ['story0', 'story2', 'story7'],
-          international: ['story0', 'story5', 'story6'],
-          emerging_market: ['story0', 'story4'],
-          javascript_heavy: ['story0', 'story5', 'story6'],
-          scroll: ['story2', 'story5', 'story6'],
-          pinch_zoom: ['story3', 'story5', 'story6'],
-          tabs_switching: ['story0', 'story4', 'story6'],
-          video_playback: ['story0', 'story5', 'story6'],
-          webgl: ['story3', 'story4', 'story6'],
-          web_storage: ['story0', 'story5', 'story6']
-        }
-      })]]);
-
-    this.addHTMLOutput(testPicker);
-  }, testOptions);
 });
 </script>
