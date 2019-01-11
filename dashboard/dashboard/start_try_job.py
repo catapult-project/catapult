@@ -264,7 +264,7 @@ def GetBisectConfig(
     A dictionary with the result; if successful, this will contain "config",
     which is a config string; if there's an error, this will contain "error".
   """
-  command = GuessCommand(bisect_bot, suite, story_filter=story_filter)
+  command = _GuessCommand(bisect_bot, suite, story_filter)
   if not command:
     return {'error': 'Could not guess command for %r.' % suite}
 
@@ -328,44 +328,6 @@ def GuessTargetArch(bisect_bot):
     return 'ia32'
 
 
-def _GetPerfTryConfig(
-    bisect_bot, suite, good_revision, bad_revision,
-    chrome_trace_filter_string=None, atrace_filter_string=None):
-  """Fills in a JSON response with the filled-in config file.
-
-  Args:
-    bisect_bot: Bisect bot name.
-    suite: Test suite name.
-    good_revision: Known good revision number.
-    bad_revision: Known bad revision number.
-    chrome_trace_filter_string: Argument to telemetry --extra-chrome-categories.
-    atrace_filter_string: Argument to telemetry --extra-atrace-categories.
-
-  Returns:
-    A dictionary with the result; if successful, this will contain "config",
-    which is a config string; if there's an error, this will contain "error".
-  """
-  command = GuessCommand(
-      bisect_bot, suite, chrome_trace_filter_string=chrome_trace_filter_string,
-      atrace_filter_string=atrace_filter_string)
-  if not command:
-    return {'error': 'Only Telemetry is supported at the moment.'}
-
-  if not can_bisect.IsValidRevisionForBisect(good_revision):
-    return {'error': 'Invalid "good" revision "%s".' % good_revision}
-  if not can_bisect.IsValidRevisionForBisect(bad_revision):
-    return {'error': 'Invalid "bad" revision "%s".' % bad_revision}
-
-  config_dict = {
-      'command': command,
-      'good_revision': str(good_revision),
-      'bad_revision': str(bad_revision),
-      'repeat_count': '1',
-      'max_time_minutes': '60',
-  }
-  return config_dict
-
-
 def _GetAvailableBisectBots(master_name):
   """Gets all available bisect bots corresponding to a master name."""
   bisect_bot_map = namespaced_stored_object.Get(can_bisect.BISECT_BOT_MAP_KEY)
@@ -410,15 +372,12 @@ def _IsNonTelemetrySuiteName(suite):
           suite.startswith('resource_sizes'))
 
 
-def GuessCommand(
-    bisect_bot, suite, story_filter=None, chrome_trace_filter_string=None,
-    atrace_filter_string=None):
+def _GuessCommand(bisect_bot, suite, story_filter):
   """Returns a command to use in the bisect configuration."""
   if _IsNonTelemetrySuiteName(suite):
     return _GuessCommandNonTelemetry(suite, bisect_bot)
-  return _GuessCommandTelemetry(
-      suite, bisect_bot, story_filter, chrome_trace_filter_string,
-      atrace_filter_string)
+  else:
+    return _GuessCommandTelemetry(suite, bisect_bot, story_filter)
 
 
 def _GuessCommandNonTelemetry(suite, bisect_bot):
@@ -451,9 +410,7 @@ def _GuessCommandNonTelemetry(suite, bisect_bot):
   return ' '.join(command)
 
 
-def _GuessCommandTelemetry(
-    suite, bisect_bot, story_filter, chrome_trace_filter_string,
-    atrace_filter_string):
+def _GuessCommandTelemetry(suite, bisect_bot, story_filter):
   """Returns a command to use given that |suite| is a Telemetry benchmark."""
   command = []
 
@@ -476,12 +433,6 @@ def _GuessCommandTelemetry(
   ])
   if story_filter:
     command.append('--story-filter=%s' % pipes.quote(story_filter))
-
-  if chrome_trace_filter_string:
-    command.append('--extra-chrome-categories=%s' % chrome_trace_filter_string)
-
-  if atrace_filter_string:
-    command.append('--extra-atrace-categories=%s' % atrace_filter_string)
 
   # Test command might be a little different from the test name on the bots.
   if suite == 'blink_perf':

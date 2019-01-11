@@ -60,20 +60,6 @@ _EXPECTED_PERF_CONFIG_DIFF = """config = {
  }
 """
 
-_EXPECTED_PERF_CONFIG_TRACING_DIFF = """config = {
--  'command': '',
--  'metric': '',
--  'repeat_count': '',
--  'max_time_minutes': '',
-+  "bad_revision": "215828",
-+  "command": "src/tools/perf/run_benchmark -v --browser=release --output-format=chartjson --upload-results --pageset-repeat=1 --also-run-disabled-tests --extra-chrome-categories=toplevel --extra-atrace-categories=battor dromaeo.jslibstylejquery",
-+  "good_revision": "215806",
-+  "max_time_minutes": "60",
-+  "repeat_count": "1",
-+  "try_job_id": 1
- }
-"""
-
 _FAKE_XSRF_TOKEN = '1234567890'
 
 _ISSUE_CREATED_RESPONSE = """Issue created. https://test-rietveld.appspot.com/33001
