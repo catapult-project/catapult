@@ -401,57 +401,6 @@ class BatteryUtilsGetChargingTest(BatteryUtilsTest):
       self.assertFalse(self.battery.GetCharging())
 
 
-class BatteryUtilsGetNetworkDataTest(BatteryUtilsTest):
-
-  def testGetNetworkData_noDataUsage(self):
-    with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['dumpsys', 'batterystats', '-c'],
-            check_return=True, large_output=True),
-         _DUMPSYS_OUTPUT),
-        (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_snd'),
-            self.ShellError()),
-        (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_rcv'),
-            self.ShellError())):
-      self.assertEquals(self.battery.GetNetworkData('test_package1'), (0, 0))
-
-  def testGetNetworkData_badPackage(self):
-    with self.assertCall(
-        self.call.device.RunShellCommand(
-            ['dumpsys', 'batterystats', '-c'],
-            check_return=True, large_output=True),
-        _DUMPSYS_OUTPUT):
-      self.assertEqual(self.battery.GetNetworkData('asdf'), None)
-
-  def testGetNetworkData_packageNotCached(self):
-    with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['dumpsys', 'batterystats', '-c'],
-            check_return=True, large_output=True),
-         _DUMPSYS_OUTPUT),
-        (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_snd'), 1),
-        (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_rcv'), 2)):
-      self.assertEqual(self.battery.GetNetworkData('test_package1'), (1, 2))
-
-  def testGetNetworkData_packageCached(self):
-    self.battery._cache['uids'] = {'test_package1': '1000'}
-    with self.assertCalls(
-        (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_snd'), 1),
-        (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_rcv'), 2)):
-      self.assertEqual(self.battery.GetNetworkData('test_package1'), (1, 2))
-
-  def testGetNetworkData_clearedCache(self):
-    with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['dumpsys', 'batterystats', '-c'],
-            check_return=True, large_output=True),
-         _DUMPSYS_OUTPUT),
-        (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_snd'), 1),
-        (self.call.device.ReadFile('/proc/uid_stat/1000/tcp_rcv'), 2)):
-      self.battery._cache.clear()
-      self.assertEqual(self.battery.GetNetworkData('test_package1'), (1, 2))
-
-
 class BatteryUtilsLetBatteryCoolToTemperatureTest(BatteryUtilsTest):
 
   @mock.patch('time.sleep', mock.Mock())

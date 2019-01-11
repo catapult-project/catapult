@@ -343,19 +343,6 @@ class Platform(object):
     real_logging.info('IsMonitoringPower: %s', self._is_monitoring_power)
     return self._is_monitoring_power
 
-  def CanMonitorNetworkData(self):
-    """Returns true if network data can be retrieved, false otherwise."""
-    return self._platform_backend.CanMonitorNetworkData()
-
-  def GetNetworkData(self, browser):
-    """Get current network data.
-    Returns:
-      Tuple of (sent_data, received_data) in kb if data can be found,
-      None otherwise.
-    """
-    assert browser.platform == self
-    return self._platform_backend.GetNetworkData(browser)
-
   def IsCooperativeShutdownSupported(self):
     """Indicates whether CooperativelyShutdown, below, is supported.
     It is not necessary to implement it on all platforms."""

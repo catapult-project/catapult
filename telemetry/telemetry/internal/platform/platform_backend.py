@@ -213,12 +213,6 @@ class PlatformBackend(object):
   def StopMonitoringPower(self):
     raise NotImplementedError()
 
-  def CanMonitorNetworkData(self):
-    return False
-
-  def GetNetworkData(self, browser):
-    raise NotImplementedError()
-
   def CanTakeScreenshot(self):
     return False
 

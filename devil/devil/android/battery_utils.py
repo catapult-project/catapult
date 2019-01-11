@@ -241,44 +241,6 @@ class BatteryUtils(object):
         'Unable to find fuel gauge.')
 
   @decorators.WithTimeoutAndRetriesFromInstance()
-  def GetNetworkData(self, package, timeout=None, retries=None):
-    """Get network data for specific package.
-
-    Args:
-      package: package name you want network data for.
-      timeout: timeout in seconds
-      retries: number of retries
-
-    Returns:
-      Tuple of (sent_data, recieved_data)
-      None if no network data found
-    """
-    # If device_utils clears cache, cache['uids'] doesn't exist
-    if 'uids' not in self._cache:
-      self._cache['uids'] = {}
-    if package not in self._cache['uids']:
-      self.GetPowerData()
-      if package not in self._cache['uids']:
-        logger.warning('No UID found for %s. Can\'t get network data.',
-                       package)
-        return None
-
-    network_data_path = '/proc/uid_stat/%s/' % self._cache['uids'][package]
-    try:
-      send_data = int(self._device.ReadFile(network_data_path + 'tcp_snd'))
-    # If ReadFile throws exception, it means no network data usage file for
-    # package has been recorded. Return 0 sent and 0 received.
-    except device_errors.AdbShellCommandFailedError:
-      logger.warning('No sent data found for package %s', package)
-      send_data = 0
-    try:
-      recv_data = int(self._device.ReadFile(network_data_path + 'tcp_rcv'))
-    except device_errors.AdbShellCommandFailedError:
-      logger.warning('No received data found for package %s', package)
-      recv_data = 0
-    return (send_data, recv_data)
-
-  @decorators.WithTimeoutAndRetriesFromInstance()
   def GetPowerData(self, timeout=None, retries=None):
     """Get power data for device.
 
