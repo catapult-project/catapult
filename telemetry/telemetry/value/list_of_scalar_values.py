@@ -95,6 +95,10 @@ class ListOfScalarValues(summarizable.SummarizableValue):
     self._std = std
 
   @property
+  def mean(self):
+    return _Mean(self.values)
+
+  @property
   def std(self):
     return self._std
 

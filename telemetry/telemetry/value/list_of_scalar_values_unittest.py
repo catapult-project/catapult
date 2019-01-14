@@ -223,6 +223,7 @@ class ValueTest(TestBase):
 
     self.assertTrue(isinstance(v, list_of_scalar_values.ListOfScalarValues))
     self.assertEquals(v.values, [1, 2])
+    self.assertEquals(v.mean, 1.5)
     self.assertEquals(v.std, 0.7071)
     self.assertEquals(improvement_direction.DOWN, v.improvement_direction)
 
@@ -239,6 +240,7 @@ class ValueTest(TestBase):
 
     self.assertTrue(isinstance(v, list_of_scalar_values.ListOfScalarValues))
     self.assertEquals(v.values, [1.3, 2.7, 4.5, 2.1, 3.4])
+    self.assertEquals(v.mean, 2.8)
     self.assertEquals(v.std, 0.901)
 
   def testFromDictWithoutImprovementDirection(self):
