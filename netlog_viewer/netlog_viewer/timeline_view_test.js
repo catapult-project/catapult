@@ -65,7 +65,7 @@ GEN_INCLUDE(['net_internals_test.js']);
     onLogDumpCreated(logDumpText) {
       const logDump = JSON.parse(logDumpText);
 
-      logDump.constants.timeTickOffset = '0';
+      logDump.constants.timeTickOffset = 0;
       logDump.events = [];
 
       const source = new NetInternalsTest.Source(1, EventSourceType.SOCKET);

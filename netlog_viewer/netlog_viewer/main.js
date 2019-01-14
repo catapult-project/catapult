@@ -320,6 +320,12 @@ ConstantsObserver.prototype.onReceivedConstants = function(receivedConstants) {
   timeutil.setTimeTickOffset(Constants.timeTickOffset);
 };
 
+
+function isNetLogNumber(value) {
+  return (typeof(value) === 'number') ||
+         (typeof(value) === 'string' && !isNaN(parseInt(value)));
+}
+
 /**
  * Returns true if it's given a valid-looking constants object.
  * @param {Object} receivedConstants The received map of constants.
@@ -335,6 +341,7 @@ function areValidConstants(receivedConstants) {
       typeof(receivedConstants.netError) === 'object' &&
       typeof(receivedConstants.addressFamily) === 'object' &&
       typeof(receivedConstants.timeTickOffset) === 'string' &&
+      isNetLogNumber(receivedConstants.timeTickOffset) &&
       typeof(receivedConstants.logFormatVersion) === 'number';
 }
 
