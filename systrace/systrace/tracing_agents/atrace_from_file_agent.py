@@ -24,7 +24,7 @@ ADB_IGNORE_REGEXP = r'^capturing trace\.\.\. done|^capturing trace\.\.\.'
 
 # Constants required for converting perfetto traces.
 LINUX_SHA1 = 'cd9dbc5c92ed0167245c4559bf1971bb21378928'
-MAC_SHA1 = 'aed4ad02da526a3f1e4f9df47d4989ae9305b30e'
+MAC_SHA1 = 'db102fe4e12c45e30a09f88e163cd75c974adbf4'
 T2T_OUTPUT = 'trace.systrace'
 
 def try_create_agent(options):
@@ -52,7 +52,7 @@ def convert_perfetto_trace(in_file):
     t2t_path += '-mac-' + MAC_SHA1
     loaded_t2t = load_trace_to_text(t2t_path, 'mac', MAC_SHA1)
   if loaded_t2t:
-    os.chmod(t2t_path, stat.S_IXUSR)
+    os.chmod(t2t_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
     return subprocess.call([t2t_path, 'systrace', in_file, T2T_OUTPUT]) == 0
   return False
 
@@ -62,7 +62,6 @@ def load_trace_to_text(t2t_path, platform, sha_value):
       url = ('https://storage.googleapis.com/chromium-telemetry/binary_dependencies/trace_to_text-'
              + platform + '-' + sha_value)
       return urllib.urlretrieve(url, t2t_path)
-  os.chmod(t2t_path, stat.S_IRUSR)
   with open(t2t_path, 'rb') as t2t:
     existing_file_hash = hashlib.sha1(t2t.read()).hexdigest()
     if existing_file_hash != sha_value:
