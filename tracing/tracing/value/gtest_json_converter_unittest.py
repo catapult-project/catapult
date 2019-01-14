@@ -8,7 +8,7 @@ from tracing.value import gtest_json_converter
 from tracing.value.diagnostics import reserved_infos
 
 
-NANO_TO_MILLISECONDS = 1000000
+NANO_TO_MILLISECONDS = 0.000001
 
 
 class GtestJsonConverterUnittest(unittest.TestCase):

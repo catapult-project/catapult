@@ -104,7 +104,7 @@ def _ConvertUnit(unit):
   # microseconds, but histograms only support milliseconds. So, convert here if
   # we can.
   if unit == 'us':
-    return 'msBestFitFormat_smallerIsBetter', 1000
+    return 'msBestFitFormat_smallerIsBetter', 0.001
   if unit == 'ns':
-    return 'msBestFitFormat_smallerIsBetter', 1000000
+    return 'msBestFitFormat_smallerIsBetter', 0.000001
   return 'unitless_smallerIsBetter', 1
