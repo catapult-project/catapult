@@ -56,6 +56,9 @@ def _CreateOptionParser():
   parser.add_option('-c', '--chrome_categories', help='Chrome tracing '
                     'categories to record.', default=_DEFAULT_CHROME_CATEGORIES,
                     type='string')
+  parser.add_option('-u', '--atrace-buffer-size', help='Number of bytes to'
+                    ' be used for capturing atrace data', type='int',
+                    default=None, dest='trace_buf_size')
 
   parser.add_option_group(chrome_startup_tracing_agent.add_options(parser))
   parser.add_option_group(atrace_agent.add_options(parser))
