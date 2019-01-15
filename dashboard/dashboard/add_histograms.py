@@ -39,6 +39,7 @@ SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
     reserved_infos.OS_VERSIONS.name,
     reserved_infos.OWNERS.name,
     reserved_infos.PRODUCT_VERSIONS.name,
+    reserved_infos.TAG_MAP.name,
 ])
 
 HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([

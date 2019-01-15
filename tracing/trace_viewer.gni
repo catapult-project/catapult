@@ -553,6 +553,7 @@ tracing_js_html_files = [
   "tracing/value/diagnostics/related_name_map.html",
   "tracing/value/diagnostics/reserved_names.html",
   "tracing/value/diagnostics/scalar.html",
+  "tracing/value/diagnostics/tag_map.html",
   "tracing/value/diagnostics/unmergeable_diagnostic_set.html",
   "tracing/value/histogram.html",
   "tracing/value/histogram_grouping.html",
@@ -583,6 +584,7 @@ tracing_js_html_files = [
   "tracing/value/ui/scalar_diagnostic_span.html",
   "tracing/value/ui/scalar_map_table.html",
   "tracing/value/ui/scalar_span.html",
+  "tracing/value/ui/tag_map_span.html",
   "tracing/value/ui/unmergeable_diagnostic_set_span.html",
   "tracing/value/ui/visualizations_data_container.html",
 ]

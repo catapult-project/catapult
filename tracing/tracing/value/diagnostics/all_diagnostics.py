@@ -13,6 +13,7 @@ _MODULES_BY_DIAGNOSTIC_NAME = {
     'UnmergeableDiagnosticSet': 'diagnostics.unmergeable_diagnostic_set',
     'RelatedEventSet': 'diagnostics.related_event_set',
     'DateRange': 'diagnostics.date_range',
+    'TagMap': 'diagnostics.tag_map',
     'RelatedNameMap': 'diagnostics.related_name_map',
 }
 

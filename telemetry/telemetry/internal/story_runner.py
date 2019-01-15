@@ -28,6 +28,7 @@ from telemetry.util import wpr_modes
 from telemetry.web_perf import story_test
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
+from tracing.value.diagnostics import tag_map
 
 
 # Allowed stages to pause for user interaction at.
@@ -93,6 +94,14 @@ def ProcessCommandLineArgs(parser, args):
 
   if args.pageset_repeat < 1:
     parser.error('--pageset-repeat must be a positive integer.')
+
+
+def _GenerateTagMapFromStorySet(stories):
+  tagmap = tag_map.TagMap({})
+  for s in stories:
+    for t in s.tags:
+      tagmap.AddTagAndStoryDisplayName(t, s.name)
+  return tagmap
 
 
 @contextlib.contextmanager
@@ -302,6 +311,11 @@ def Run(test, story_set, finder_options, results, max_failures=None,
 
     for name, diag in device_info_diags.iteritems():
       results.AddSharedDiagnosticToAllHistograms(name, diag)
+
+    tagmap = _GenerateTagMapFromStorySet(stories)
+    if tagmap.tags_to_story_names:
+      results.AddSharedDiagnosticToAllHistograms(
+          reserved_infos.TAG_MAP.name, tagmap)
 
     if state:
       has_existing_exception = sys.exc_info() != (None, None, None)

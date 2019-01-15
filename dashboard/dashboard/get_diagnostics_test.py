@@ -18,31 +18,31 @@ _TEST_DIAGNOSTIC_DATA = [
         'start_revision': 1,
         'end_revision': 3,
         'test_path': 'foobar',
-        'name': 'occam',
+        'name': 'tag_map',
         'data': {'type': 'GenericSet', 'guid': 'abc', 'values': ['foo', 'bar']}
     }, {
         'start_revision': 5,
         'end_revision': 7,
         'test_path': 'foobar',
-        'name': 'occam',
+        'name': 'tag_map',
         'data': {'type': 'GenericSet', 'guid': 'def', 'values': ['foo', 'bar']}
     }, {
         'start_revision': 12,
         'end_revision': 15,
         'test_path': 'foobar',
-        'name': 'occam',
+        'name': 'tag_map',
         'data': {'type': 'GenericSet', 'guid': 'ghi', 'values': ['foo', 'bar']}
     }, {
         'start_revision': 3,
         'end_revision': 8,
         'test_path': 'foobar',
-        'name': 'occam',
+        'name': 'tag_map',
         'data': {'type': 'GenericSet', 'guid': 'jkl', 'values': ['foo', 'bar']}
     }, {
         'start_revision': 10,
         'end_revision': sys.maxint,
         'test_path': 'abcdef',
-        'name': 'occam',
+        'name': 'tag_map',
         'data': {'type': 'GenericSet', 'guid': 'mno', 'values': ['foo', 'bar']}
     }
 ]
@@ -75,7 +75,7 @@ class GetDiagnosticsTest(testing_common.TestCase):
           'start_revision': entry,
           'end_revision': entry + 10,
           'test_path': 'foobar',
-          'name': 'occam',
+          'name': 'tag_map',
           'data': {
               'type': 'GenericSet',
               'guid': 'guid' + str(entry),
@@ -140,7 +140,7 @@ class GetDiagnosticsTest(testing_common.TestCase):
         '/get_diagnostics', {
             'end_revision': 'last',
             'test_path': 'abcdef',
-            'name': 'occam'
+            'name': 'tag_map'
         }
     )
     data = json.loads(response.body)
@@ -154,7 +154,7 @@ class GetDiagnosticsTest(testing_common.TestCase):
         '/get_diagnostics', {
             'end_revision': 'last',
             'test_path': 'foobar',
-            'name': 'occam'
+            'name': 'tag_map'
         }, status=400)
 
   def testGetMultipleDiagnosticsByTestPath(self):
