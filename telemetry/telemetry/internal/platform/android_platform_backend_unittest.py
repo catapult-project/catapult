@@ -19,10 +19,9 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         android_platform_backend,
         ['perf_control', 'thermal_throttle'])
 
-    self.fix_adb_instability_patcher = mock.patch.object(
-        android_platform_backend, '_FixPossibleAdbInstability')
-    self.fix_adb_instability_patcher.start()
-
+    # Skip _FixPossibleAdbInstability by setting psutil to None.
+    self._actual_ps_util = android_platform_backend.psutil
+    android_platform_backend.psutil = None
     self.battery_patcher = mock.patch.object(battery_utils, 'BatteryUtils')
     self.battery_patcher.start()
 
@@ -38,7 +37,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
 
   def tearDown(self):
     self._stubs.Restore()
-    self.fix_adb_instability_patcher.stop()
+    android_platform_backend.psutil = self._actual_ps_util
     self.battery_patcher.stop()
     self.device_patcher.stop()
 
@@ -174,6 +173,7 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
         ['perf_control'])
     self.battery_patcher = mock.patch.object(battery_utils, 'BatteryUtils')
     self.battery_patcher.start()
+    self._actual_ps_util = android_platform_backend.psutil
 
     def get_prop(name, cache=None):
       del cache  # unused
@@ -188,31 +188,34 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
 
   def tearDown(self):
     self._stubs.Restore()
+    android_platform_backend.psutil = self._actual_ps_util
     self.battery_patcher.stop()
     self.device_patcher.stop()
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testPsutil1(self):
-    with mock.patch.object(
-        android_platform_backend, 'psutil', self.psutil_1_0()) as psutil:
-      # Mock an empty /proc/pid/stat.
-      with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
-                      return_value=''):
-        backend = android_platform_backend.AndroidPlatformBackend(
-            android_device.AndroidDevice('1234'))
-        cpu_stats = backend.GetCpuStats('7702')
-        self.assertEquals({}, cpu_stats)
-        self.assertEquals([[0]], psutil.set_cpu_affinity_args)
+    psutil = self.psutil_1_0()
+    android_platform_backend.psutil = psutil
+
+    # Mock an empty /proc/pid/stat.
+    with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
+                    return_value=''):
+      backend = android_platform_backend.AndroidPlatformBackend(
+          android_device.AndroidDevice('1234'))
+      cpu_stats = backend.GetCpuStats('7702')
+      self.assertEquals({}, cpu_stats)
+      self.assertEquals([[0]], psutil.set_cpu_affinity_args)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testPsutil2(self):
-    with mock.patch.object(
-        android_platform_backend, 'psutil', self.psutil_2_0()) as psutil:
-      # Mock an empty /proc/pid/stat.
-      with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
-                      return_value=''):
-        backend = android_platform_backend.AndroidPlatformBackend(
-            android_device.AndroidDevice('1234'))
-        cpu_stats = backend.GetCpuStats('7702')
-        self.assertEquals({}, cpu_stats)
-        self.assertEquals([[0]], psutil.set_cpu_affinity_args)
+    psutil = self.psutil_2_0()
+    android_platform_backend.psutil = psutil
+
+    # Mock an empty /proc/pid/stat.
+    with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
+                    return_value=''):
+      backend = android_platform_backend.AndroidPlatformBackend(
+          android_device.AndroidDevice('1234'))
+      cpu_stats = backend.GetCpuStats('7702')
+      self.assertEquals({}, cpu_stats)
+      self.assertEquals([[0]], psutil.set_cpu_affinity_args)
