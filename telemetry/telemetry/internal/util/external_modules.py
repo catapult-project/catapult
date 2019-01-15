@@ -5,18 +5,25 @@
 import importlib
 import logging
 
-from distutils import version  # pylint: disable=no-name-in-module
+from py_utils import modules_util
 
-# LooseVersion allows versions like "1.8.0rc1" (default numpy on macOS Sierra)
-# and "2.4.13.2" (a version of OpenCV 2.x).
+
+# Map of module names to their required min/max version.
+# DEPRECATED: Do not add new modules to this dict. New external depencencies
+# should be provided via vpython instead. See: crbug.com/777865.
 MODULES = {
-    'cv2': (version.LooseVersion('2.4.8'), version.LooseVersion('3.0.0')),
-    'numpy': (version.LooseVersion('1.8.0'), version.LooseVersion('1.12.0')),
-    'psutil': (version.LooseVersion('0.5.0'), None),
+    'cv2': ('2.4.8', '3.0.0'),
+    'numpy': ('1.8.0', '1.12.0'),
+    'psutil': ('0.5.0', None),
 }
 
+
 def ImportRequiredModule(module):
-  """Tries to import the desired module.
+  """Tries to import the desired module (DEPRECATED).
+
+  External modules should be provided via vpython and imported using the
+  regular python `import` statement. To ensure a particular module version
+  has been loaded use modules_util.RequireVersion instead.
 
   Returns:
     The module on success, raises error on failure.
@@ -26,21 +33,18 @@ def ImportRequiredModule(module):
   if versions is None:
     raise NotImplementedError('Please teach telemetry about module %s.' %
                               module)
-  min_version, max_version = versions
 
   module = importlib.import_module(module)
-  if ((min_version is not None and
-       version.LooseVersion(module.__version__) < min_version) or
-      (max_version is not None and
-       version.LooseVersion(module.__version__) >= max_version)):
-    raise ImportError(('Incorrect {0} version found, expected {1} <= version '
-                       '< {2}, found version {3}').format(
-                           module.__name__, min_version, max_version,
-                           module.__version__))
+  modules_util.RequireVersion(module, *versions)
   return module
 
+
 def ImportOptionalModule(module):
-  """Tries to import the desired module.
+  """Tries to import the desired module (DEPRECATED).
+
+  External modules should be provided via vpython and imported using the
+  regular python `import` statement. To ensure a particular module version
+  has been loaded use modules_util.RequireVersion instead.
 
   Returns:
     The module if successful, None if not."""
