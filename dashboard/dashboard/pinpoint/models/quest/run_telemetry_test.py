@@ -36,6 +36,10 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
     if story:
       extra_test_args += ('--story-filter', story)
 
+    tags = arguments.get('tags')
+    if tags:
+      extra_test_args += ('--story-tag-filter', tags)
+
     # TODO: Workaround for crbug.com/677843.
     if (benchmark.startswith('startup.warm') or
         benchmark.startswith('start_with_url.warm')):
