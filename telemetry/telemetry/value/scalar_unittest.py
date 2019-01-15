@@ -43,22 +43,6 @@ class ValueTest(TestBase):
 
     self.assertEquals(expected, str(v))
 
-  def testBuildbotValueType(self):
-    page0 = self.pages[0]
-    v = scalar.ScalarValue(page0, 'x', 'unit', 3, important=True,
-                           improvement_direction=improvement_direction.DOWN)
-    self.assertEquals('default', v.GetBuildbotDataType(
-        value.COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT))
-    self.assertEquals([3], v.GetBuildbotValue())
-    self.assertEquals(('x', page0.name),
-                      v.GetChartAndTraceNameForPerPageResult())
-
-    v = scalar.ScalarValue(page0, 'x', 'unit', 3, important=False,
-                           improvement_direction=improvement_direction.DOWN)
-    self.assertEquals(
-        'unimportant',
-        v.GetBuildbotDataType(value.COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT))
-
   def testScalarSamePageMerging(self):
     page0 = self.pages[0]
     v0 = scalar.ScalarValue(page0, 'x', 'unit', 1,
@@ -131,17 +115,32 @@ class ValueTest(TestBase):
   def testAsDict(self):
     v = scalar.ScalarValue(None, 'x', 'unit', 42, important=False,
                            improvement_direction=improvement_direction.DOWN)
-    d = v.AsDictWithoutBaseClassEntries()
+    d = v.AsDict()
 
-    self.assertEquals(d, {'value': 42})
+    self.assertEquals(d, {
+        'value': 42,
+        'important': False,
+        'improvement_direction': 'down',
+        'name': 'x',
+        'type': 'scalar',
+        'units': 'unit'
+    })
 
   def testNoneValueAsDict(self):
     v = scalar.ScalarValue(None, 'x', 'unit', None, important=False,
                            none_value_reason='n',
                            improvement_direction=improvement_direction.DOWN)
-    d = v.AsDictWithoutBaseClassEntries()
+    d = v.AsDict()
 
-    self.assertEquals(d, {'value': None, 'none_value_reason': 'n'})
+    self.assertEquals(d, {
+        'value': None,
+        'none_value_reason': 'n',
+        'important': False,
+        'improvement_direction': 'down',
+        'name': 'x',
+        'type': 'scalar',
+        'units': 'unit'
+    })
 
   def testFromDictInt(self):
     d = {

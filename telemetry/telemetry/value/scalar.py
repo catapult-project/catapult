@@ -46,22 +46,6 @@ class ScalarValue(summarizable.SummarizableValue):
                 self.improvement_direction,
                 self.grouping_keys)
 
-  def GetBuildbotDataType(self, output_context):
-    if self._IsImportantGivenOutputIntent(output_context):
-      return 'default'
-    return 'unimportant'
-
-  def GetBuildbotValue(self):
-    # Buildbot's print_perf_results method likes to get lists for all values,
-    # even when they are scalar, so list-ize the return value.
-    return [self.value]
-
-  def GetRepresentativeNumber(self):
-    return self.value
-
-  def GetRepresentativeString(self):
-    return str(self.value)
-
   @staticmethod
   def GetJSONTypeName():
     return 'scalar'

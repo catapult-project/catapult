@@ -26,13 +26,6 @@ from telemetry.core import util
 
 from py_utils import discover
 
-# When converting a Value to its buildbot equivalent, the context in which the
-# value is being interpreted actually affects the conversion. This is insane,
-# but there you have it. There are three contexts in which Values are converted
-# for use by buildbot, represented by these output-intent values.
-PER_PAGE_RESULT_OUTPUT_CONTEXT = 'per-page-result-output-context'
-COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT = 'merged-pages-result-output-context'
-SUMMARY_RESULT_OUTPUT_CONTEXT = 'summary-result-output-context'
 
 class Value(object):
   """An abstract value produced by a telemetry page test.
@@ -133,25 +126,6 @@ class Value(object):
     """
     raise NotImplementedError()
 
-  def _IsImportantGivenOutputIntent(self, output_context):
-    if output_context == PER_PAGE_RESULT_OUTPUT_CONTEXT:
-      return False
-    elif output_context == COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT:
-      return self.important
-    elif output_context == SUMMARY_RESULT_OUTPUT_CONTEXT:
-      return self.important
-
-  def GetBuildbotDataType(self, output_context):
-    """Returns the buildbot's equivalent data_type.
-
-    This should be one of the values accepted by perf_tests_results_helper.py.
-    """
-    raise NotImplementedError()
-
-  def GetBuildbotValue(self):
-    """Returns the buildbot's equivalent value."""
-    raise NotImplementedError()
-
   def GetChartAndTraceNameForPerPageResult(self):
     chart_name, _ = _ConvertValueNameToChartAndTraceName(self.name)
     trace_name = self.page.name
@@ -173,20 +147,6 @@ class Value(object):
       return chart_name, trace_name + trace_tag
     else:
       return chart_name, trace_name
-
-  def GetRepresentativeNumber(self):
-    """Gets a single scalar value that best-represents this value.
-
-    Returns None if not possible.
-    """
-    raise NotImplementedError()
-
-  def GetRepresentativeString(self):
-    """Gets a string value that best-represents this value.
-
-    Returns None if not possible.
-    """
-    raise NotImplementedError()
 
   @staticmethod
   def GetJSONTypeName():
@@ -218,14 +178,6 @@ class Value(object):
       d['grouping_keys'] = self.grouping_keys
 
     return d
-
-  def AsDictWithoutBaseClassEntries(self):
-    full_dict = self.AsDict()
-    base_dict_keys = set(self._AsDictImpl().keys())
-
-    # Extracts only entries added by the subclass.
-    return dict([(k, v) for (k, v) in full_dict.iteritems()
-                 if k not in base_dict_keys])
 
   @staticmethod
   def FromDict(value_dict, page_dict):

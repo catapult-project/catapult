@@ -35,19 +35,9 @@ class ValueTest(TestBase):
     self.assertEquals(expected, str(v))
     self.assertEquals(v.expected, False)
 
-  def testBuildbotAndRepresentativeValue(self):
-    v = skip.SkipValue(self.pages[0], 'page skipped for testing reason', True)
-    self.assertIsNone(v.GetBuildbotValue())
-    self.assertIsNone(v.GetBuildbotDataType(
-        value.COMPUTED_PER_PAGE_SUMMARY_OUTPUT_CONTEXT))
-    self.assertIsNone(v.GetChartAndTraceNameForPerPageResult())
-    self.assertIsNone(v.GetRepresentativeNumber())
-    self.assertIsNone(v.GetRepresentativeString())
-    self.assertEquals(v.expected, True)
-
   def testAsDict(self):
     v = skip.SkipValue(self.pages[0], 'page skipped for testing reason', False)
-    d = v.AsDictWithoutBaseClassEntries()
+    d = v.AsDict()
     self.assertEquals(d['reason'], 'page skipped for testing reason')
     self.assertEquals(d['is_expected'], False)
 

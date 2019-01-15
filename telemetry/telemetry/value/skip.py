@@ -32,19 +32,7 @@ class SkipValue(value_module.Value):
   def expected(self):
     return self._is_expected
 
-  def GetBuildbotDataType(self, output_context):
-    return None
-
-  def GetBuildbotValue(self):
-    return None
-
   def GetChartAndTraceNameForPerPageResult(self):
-    return None
-
-  def GetRepresentativeNumber(self):
-    return None
-
-  def GetRepresentativeString(self):
     return None
 
   @staticmethod

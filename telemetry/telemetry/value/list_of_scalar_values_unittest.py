@@ -176,7 +176,7 @@ class ValueTest(TestBase):
     v = list_of_scalar_values.ListOfScalarValues(
         None, 'x', 'unit', [1, 2],
         important=False, improvement_direction=improvement_direction.DOWN)
-    d = v.AsDictWithoutBaseClassEntries()
+    d = v.AsDict()
 
     self.assertEquals(d['values'], [1, 2])
     self.assertAlmostEqual(d['std'], 0.7071, places=4)
@@ -204,11 +204,11 @@ class ValueTest(TestBase):
         None, 'x', 'unit', None,
         important=False, none_value_reason='n',
         improvement_direction=improvement_direction.UP)
-    d = v.AsDictWithoutBaseClassEntries()
+    d = v.AsDict()
 
-    self.assertEquals(
-        d,
-        {'values': None, 'none_value_reason': 'n', 'std': None})
+    self.assertIsNone(d['values'])
+    self.assertEquals(d['none_value_reason'], 'n')
+    self.assertIsNone(d['std'])
 
   def testFromDictInts(self):
     d = {

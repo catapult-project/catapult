@@ -12,7 +12,6 @@ from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.internal.util import file_handle
 from telemetry import value as value_module
-from tracing.trace_data import trace_data as trace_data_module
 
 
 class TraceValue(value_module.Value):
@@ -42,11 +41,6 @@ class TraceValue(value_module.Value):
       return self._cloud_url
     elif self._serialized_file_handle:
       return self._serialized_file_handle.GetAbsPath()
-
-  def _GetTraceParts(self, trace_data):
-    return [(trace_data.GetTracesFor(p), p)
-            for p in trace_data_module.ALL_TRACE_PARTS
-            if trace_data.HasTracesFor(p)]
 
   def _GetTempFileHandle(self, trace_data):
     tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
@@ -88,18 +82,6 @@ class TraceValue(value_module.Value):
   @property
   def filename(self):
     return self._temp_file.GetAbsPath()
-
-  def GetBuildbotDataType(self, output_context):
-    return None
-
-  def GetBuildbotValue(self):
-    return None
-
-  def GetRepresentativeNumber(self):
-    return None
-
-  def GetRepresentativeString(self):
-    return None
 
   @staticmethod
   def GetJSONTypeName():

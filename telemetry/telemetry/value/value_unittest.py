@@ -36,20 +36,8 @@ class ValueForTest(value.Value):
   def MergeLikeValuesFromDifferentPages(cls, values):
     pass
 
-  def GetBuildbotDataType(self, output_context):
-    pass
-
-  def GetBuildbotValue(self):
-    pass
-
   def GetChartAndTraceNameForComputedSummaryResult(
       self, trace_tag):
-    pass
-
-  def GetRepresentativeNumber(self):
-    pass
-
-  def GetRepresentativeString(self):
     pass
 
   @staticmethod

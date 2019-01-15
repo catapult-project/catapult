@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 import json
 
-from telemetry.util import perf_tests_helper
 from telemetry import value as value_module
 from telemetry.value import histogram_util
 from telemetry.value import summarizable
@@ -67,16 +66,6 @@ class HistogramValue(summarizable.SummarizableValue):
                 self.improvement_direction,
                 self.grouping_keys)
 
-  def GetBuildbotDataType(self, output_context):
-    if self._IsImportantGivenOutputIntent(output_context):
-      return 'histogram'
-    return 'unimportant-histogram'
-
-  def GetBuildbotValue(self):
-    # More buildbot insanity: perf_tests_results_helper requires the histogram
-    # to be an array of size one.
-    return [self.ToJSONString()]
-
   def ToJSONString(self):
     # This has to hand-JSONify the histogram to ensure the order of keys
     # produced is stable across different systems.
@@ -88,14 +77,6 @@ class HistogramValue(summarizable.SummarizableValue):
     # Sigh, buildbot, Y U gotta be that way.
     return '{"buckets": [%s]}' % (
         ', '.join([b.ToJSONString() for b in self.buckets]))
-
-  def GetRepresentativeNumber(self):
-    (mean, _) = perf_tests_helper.GeomMeanAndStdDevFromHistogram(
-        self.ToJSONString())
-    return mean
-
-  def GetRepresentativeString(self):
-    return self.GetBuildbotValue()
 
   @staticmethod
   def GetJSONTypeName():

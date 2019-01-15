@@ -44,29 +44,6 @@ class ValueTest(TestBase):
 
     self.assertEquals(expected, str(v))
 
-  def testHistogramBasic(self):
-    page0 = self.pages[0]
-    histogram = histogram_module.HistogramValue(
-        page0, 'x', 'counts',
-        raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
-        important=False, improvement_direction=improvement_direction.UP)
-    self.assertEquals(
-        ['{"buckets": [{"low": 1, "high": 2, "count": 1}]}'],
-        histogram.GetBuildbotValue())
-    self.assertEquals(1.5,
-                      histogram.GetRepresentativeNumber())
-    self.assertEquals(
-        ['{"buckets": [{"low": 1, "high": 2, "count": 1}]}'],
-        histogram.GetBuildbotValue())
-
-    self.assertEquals(
-        'unimportant-histogram',
-        histogram.GetBuildbotDataType(value.SUMMARY_RESULT_OUTPUT_CONTEXT))
-    histogram.important = True
-    self.assertEquals(
-        'histogram',
-        histogram.GetBuildbotDataType(value.SUMMARY_RESULT_OUTPUT_CONTEXT))
-
   def testBucketAsDict(self):
     bucket = histogram_module.HistogramValueBucket(33, 45, 78)
     d = bucket.AsDict()
@@ -82,9 +59,9 @@ class ValueTest(TestBase):
         None, 'x', 'counts',
         raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
         important=False, improvement_direction=improvement_direction.DOWN)
-    d = histogram.AsDictWithoutBaseClassEntries()
+    d = histogram.AsDict()
 
-    self.assertEquals(['buckets'], d.keys())
+    self.assertIn('buckets', d.keys())
     self.assertTrue(isinstance(d['buckets'], list))
     self.assertEquals(len(d['buckets']), 1)
 
@@ -99,9 +76,6 @@ class ValueTest(TestBase):
     v = value.Value.FromDict(d, {})
 
     self.assertTrue(isinstance(v, histogram_module.HistogramValue))
-    self.assertEquals(
-        ['{"buckets": [{"low": 1, "high": 2, "count": 1}]}'],
-        v.GetBuildbotValue())
     self.assertEquals(improvement_direction.DOWN, v.improvement_direction)
 
   def testFromDictWithoutImprovementDirection(self):
