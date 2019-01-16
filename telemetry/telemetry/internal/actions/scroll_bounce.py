@@ -20,8 +20,10 @@ class ScrollBounceAction(page_action.ElementPageAction):
                overscroll=10,
                repeat_count=10,
                speed_in_pixels_per_second=400,
-               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
-    super(ScrollBounceAction, self).__init__(selector, text, element_function)
+               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT,
+               timeout=page_action.DEFAULT_TIMEOUT):
+    super(ScrollBounceAction, self).__init__(
+        selector, text, element_function, timeout=timeout)
     if direction not in ['down', 'up', 'left', 'right']:
       raise page_action.PageActionNotSupported(
           'Invalid scroll direction: %s' % self.direction)
@@ -97,4 +99,4 @@ class ScrollBounceAction(page_action.ElementPageAction):
         speed=self._speed)
     self.EvaluateCallback(tab, code)
     tab.WaitForJavaScriptCondition(
-        'window.__scrollBounceActionDone', timeout=60)
+        'window.__scrollBounceActionDone', timeout=self.timeout)

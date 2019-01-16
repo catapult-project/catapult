@@ -14,8 +14,9 @@ class PinchAction(page_action.PageAction):
                top_anchor_ratio=0.5,
                scale_factor=None,
                speed_in_pixels_per_second=800,
-               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
-    super(PinchAction, self).__init__()
+               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT,
+               timeout=page_action.DEFAULT_TIMEOUT):
+    super(PinchAction, self).__init__(timeout=timeout)
     self._left_anchor_ratio = left_anchor_ratio
     self._top_anchor_ratio = top_anchor_ratio
     self._scale_factor = scale_factor
@@ -62,4 +63,5 @@ class PinchAction(page_action.PageAction):
         scale_factor=scale_factor,
         speed=self._speed)
     tab.EvaluateJavaScript(code)
-    tab.WaitForJavaScriptCondition('window.__pinchActionDone', timeout=60)
+    tab.WaitForJavaScriptCondition(
+        'window.__pinchActionDone', timeout=self.timeout)

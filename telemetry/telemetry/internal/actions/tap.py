@@ -16,8 +16,9 @@ class TapAction(page_action.ElementPageAction):
                left_position_percentage=0.5,
                top_position_percentage=0.5,
                duration_ms=50,
-               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
-    super(TapAction, self).__init__(selector, text, element_function)
+               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT,
+               timeout=page_action.DEFAULT_TIMEOUT):
+    super(TapAction, self).__init__(selector, text, element_function, timeout)
     self._left_position_percentage = left_position_percentage
     self._top_position_percentage = top_position_percentage
     self._duration_ms = duration_ms
@@ -68,4 +69,4 @@ class TapAction(page_action.ElementPageAction):
     # evaluated on the new page).
     tab.WaitForJavaScriptCondition(
         'window.__tapActionDone || window.__tapAction === undefined',
-        timeout=60)
+        timeout=self.timeout)

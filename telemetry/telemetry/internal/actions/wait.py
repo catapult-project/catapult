@@ -9,16 +9,12 @@ from telemetry.internal.actions import page_action
 import py_utils
 
 class WaitForElementAction(page_action.ElementPageAction):
-  def __init__(self, selector=None, text=None, element_function=None,
-               timeout_in_seconds=60):
-    super(WaitForElementAction, self).__init__(selector, text, element_function)
-    self._timeout_in_seconds = timeout_in_seconds
 
   def RunAction(self, tab):
     code = 'function(element) { return element != null; }'
     try:
       self.EvaluateCallback(tab, code, wait=True,
-                            timeout_in_seconds=self._timeout_in_seconds)
+                            timeout_in_seconds=self.timeout)
     except py_utils.TimeoutException as e:
       # Rethrow with the original stack trace for better debugging.
       raise py_utils.TimeoutException, \

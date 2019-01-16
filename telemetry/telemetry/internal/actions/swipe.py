@@ -18,8 +18,9 @@ class SwipeAction(page_action.ElementPageAction):
                direction='left',
                distance=100,
                speed_in_pixels_per_second=800,
-               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
-    super(SwipeAction, self).__init__(selector, text, element_function)
+               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT,
+               timeout=page_action.DEFAULT_TIMEOUT):
+    super(SwipeAction, self).__init__(selector, text, element_function, timeout)
     if direction not in ['down', 'up', 'left', 'right']:
       raise page_action.PageActionNotSupported(
           'Invalid swipe direction: %s' % direction)
@@ -78,4 +79,5 @@ class SwipeAction(page_action.ElementPageAction):
         distance=self._distance,
         speed=self._speed)
     self.EvaluateCallback(tab, code)
-    tab.WaitForJavaScriptCondition('window.__swipeActionDone', timeout=60)
+    tab.WaitForJavaScriptCondition(
+        'window.__swipeActionDone', timeout=self.timeout)

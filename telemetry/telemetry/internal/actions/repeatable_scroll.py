@@ -12,15 +12,15 @@ from telemetry.web_perf import timeline_interaction_record
 class RepeatableScrollAction(page_action.PageAction):
 
   def __init__(self, x_scroll_distance_ratio=0.0, y_scroll_distance_ratio=0.5,
-               repeat_count=0, repeat_delay_ms=250, timeout=60,
+               repeat_count=0, repeat_delay_ms=250,
+               timeout=page_action.DEFAULT_TIMEOUT,
                prevent_fling=None, speed=None):
-    super(RepeatableScrollAction, self).__init__()
+    super(RepeatableScrollAction, self).__init__(timeout=timeout)
     self._x_scroll_distance_ratio = x_scroll_distance_ratio
     self._y_scroll_distance_ratio = y_scroll_distance_ratio
     self._repeat_count = repeat_count
     self._repeat_delay_ms = repeat_delay_ms
     self._windowsize = []
-    self._timeout = timeout
     self._prevent_fling = prevent_fling
     self._speed = speed
 
@@ -47,4 +47,4 @@ class RepeatableScrollAction(page_action.PageAction):
         repeat_delay_ms=self._repeat_delay_ms,
         interaction_marker_name=timeline_interaction_record.GetJavaScriptMarker(
             'Gesture_ScrollAction', [timeline_interaction_record.REPEATABLE]),
-        timeout=self._timeout)
+        timeout=self.timeout)

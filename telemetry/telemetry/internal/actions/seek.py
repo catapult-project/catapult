@@ -30,10 +30,9 @@ class SeekAction(media_action.MediaAction):
                timeout_in_seconds=0,
                log_time=True,
                label=''):
-    super(SeekAction, self).__init__()
+    super(SeekAction, self).__init__(timeout=timeout_in_seconds)
     self._seconds = seconds
     self._selector = selector if selector else ''
-    self._timeout_in_seconds = timeout_in_seconds
     self._log_time = log_time
     self._label = label
 
@@ -51,9 +50,8 @@ class SeekAction(media_action.MediaAction):
           seconds=str(self._seconds),
           log_time=self._log_time,
           label=self._label)
-      if self._timeout_in_seconds > 0:
-        self.WaitForEvent(tab, self._selector, 'seeked',
-                          self._timeout_in_seconds)
+      if self.timeout > 0:
+        self.WaitForEvent(tab, self._selector, 'seeked', self.timeout)
     except exceptions.EvaluateException:
       raise page_action.PageActionFailed('Cannot seek media element(s) with '
                                          'selector = %s.' % self._selector)

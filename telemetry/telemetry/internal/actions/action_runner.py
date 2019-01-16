@@ -7,6 +7,7 @@ import time
 import urlparse
 
 from telemetry.core import exceptions
+from telemetry.internal.actions import page_action
 from telemetry.internal.actions.drag import DragAction
 from telemetry.internal.actions.javascript_click import ClickElementAction
 from telemetry.internal.actions.key_event import KeyPressAction
@@ -128,7 +129,7 @@ class ActionRunner(object):
     """ Wait for network quiesence on the page.
     Args:
       timeout_in_seconds: maximum amount of time (seconds) to wait for network
-        quiesence unil raising exception.
+        quiesence before raising exception.
 
     Raises:
       py_utils.TimeoutException when the timeout is reached but the page's
@@ -172,7 +173,7 @@ class ActionRunner(object):
     self._tab.PrepareForLeakDetection()
 
   def Navigate(self, url, script_to_evaluate_on_commit=None,
-               timeout_in_seconds=60):
+               timeout_in_seconds=page_action.DEFAULT_TIMEOUT):
     """Navigates to |url|.
 
     If |script_to_evaluate_on_commit| is given, the script source string will be
@@ -191,7 +192,8 @@ class ActionRunner(object):
     """ Navigate back to the previous page."""
     self.ExecuteJavaScript('window.history.back()')
 
-  def WaitForNavigate(self, timeout_in_seconds_seconds=60):
+  def WaitForNavigate(
+      self, timeout_in_seconds_seconds=page_action.DEFAULT_TIMEOUT):
     start_time = time.time()
     self._tab.WaitForNavigate(timeout_in_seconds_seconds)
 
@@ -222,6 +224,8 @@ class ActionRunner(object):
     Raises:
       EvaluationException: The statement failed to execute.
     """
+    if 'timeout' not in kwargs:
+      kwargs['timeout'] = page_action.DEFAULT_TIMEOUT
     return self._tab.ExecuteJavaScript(*args, **kwargs)
 
   def EvaluateJavaScript(self, *args, **kwargs):
@@ -244,6 +248,8 @@ class ActionRunner(object):
       EvaluationException: The statement expression failed to execute
           or the evaluation result can not be JSON-ized.
     """
+    if 'timeout' not in kwargs:
+      kwargs['timeout'] = page_action.DEFAULT_TIMEOUT
     return self._tab.EvaluateJavaScript(*args, **kwargs)
 
   def WaitForJavaScriptCondition(self, *args, **kwargs):
@@ -260,6 +266,8 @@ class ActionRunner(object):
       Additional keyword arguments provide values to be interpolated within
           the expression. See telemetry.util.js_template for details.
     """
+    if 'timeout' not in kwargs:
+      kwargs['timeout'] = page_action.DEFAULT_TIMEOUT
     return self._tab.WaitForJavaScriptCondition(*args, **kwargs)
 
   def Wait(self, seconds):
@@ -272,7 +280,7 @@ class ActionRunner(object):
       time.sleep(seconds)
 
   def WaitForElement(self, selector=None, text=None, element_function=None,
-                     timeout_in_seconds=60):
+                     timeout_in_seconds=page_action.DEFAULT_TIMEOUT):
     """Wait for an element to appear in the document.
 
     The element may be selected via selector, text, or element_function.
@@ -284,13 +292,14 @@ class ActionRunner(object):
       element_function: A JavaScript function (as string) that is used
           to retrieve the element. For example:
           '(function() { return foo.element; })()'.
-      timeout_in_seconds: The timeout in seconds (default to 60).
+      timeout_in_seconds: The timeout in seconds.
     """
     self._RunAction(WaitForElementAction(
         selector=selector, text=text, element_function=element_function,
-        timeout_in_seconds=timeout_in_seconds))
+        timeout=timeout_in_seconds))
 
-  def TapElement(self, selector=None, text=None, element_function=None):
+  def TapElement(self, selector=None, text=None, element_function=None,
+                 timeout=page_action.DEFAULT_TIMEOUT):
     """Tap an element.
 
     The element may be selected via selector, text, or element_function.
@@ -304,7 +313,8 @@ class ActionRunner(object):
           '(function() { return foo.element; })()'.
     """
     self._RunAction(TapAction(
-        selector=selector, text=text, element_function=element_function))
+        selector=selector, text=text, element_function=element_function,
+        timeout=timeout))
 
   def ClickElement(self, selector=None, text=None, element_function=None):
     """Click an element.
@@ -446,7 +456,7 @@ class ActionRunner(object):
                                     y_scroll_distance_ratio=0.5,
                                     repeat_count=0,
                                     repeat_delay_ms=250,
-                                    timeout=60,
+                                    timeout=page_action.DEFAULT_TIMEOUT,
                                     prevent_fling=None,
                                     speed=None):
     """Perform a browser driven repeatable scroll gesture.
@@ -589,16 +599,17 @@ class ActionRunner(object):
         overscroll=overscroll, repeat_count=repeat_count,
         speed_in_pixels_per_second=speed_in_pixels_per_second))
 
-  def MouseClick(self, selector=None):
+  def MouseClick(self, selector=None, timeout=page_action.DEFAULT_TIMEOUT):
     """Mouse click the given element.
 
     Args:
       selector: A CSS selector describing the element.
     """
-    self._RunAction(MouseClickAction(selector=selector))
+    self._RunAction(MouseClickAction(selector=selector, timeout=timeout))
 
   def SwipePage(self, left_start_ratio=0.5, top_start_ratio=0.5,
-                direction='left', distance=100, speed_in_pixels_per_second=800):
+                direction='left', distance=100, speed_in_pixels_per_second=800,
+                timeout=page_action.DEFAULT_TIMEOUT):
     """Perform swipe gesture on the page.
 
     Args:
@@ -616,12 +627,14 @@ class ActionRunner(object):
     self._RunAction(SwipeAction(
         left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
         direction=direction, distance=distance,
-        speed_in_pixels_per_second=speed_in_pixels_per_second))
+        speed_in_pixels_per_second=speed_in_pixels_per_second,
+        timeout=timeout))
 
   def SwipeElement(self, selector=None, text=None, element_function=None,
                    left_start_ratio=0.5, top_start_ratio=0.5,
                    direction='left', distance=100,
-                   speed_in_pixels_per_second=800):
+                   speed_in_pixels_per_second=800,
+                   timeout=page_action.DEFAULT_TIMEOUT):
     """Perform swipe gesture on the element.
 
     The element may be selected via selector, text, or element_function.
@@ -648,9 +661,11 @@ class ActionRunner(object):
         selector=selector, text=text, element_function=element_function,
         left_start_ratio=left_start_ratio, top_start_ratio=top_start_ratio,
         direction=direction, distance=distance,
-        speed_in_pixels_per_second=speed_in_pixels_per_second))
+        speed_in_pixels_per_second=speed_in_pixels_per_second,
+        timeout=timeout))
 
-  def PressKey(self, key, repeat_count=1, repeat_delay_ms=100, timeout=60):
+  def PressKey(self, key, repeat_count=1, repeat_delay_ms=100,
+               timeout=page_action.DEFAULT_TIMEOUT):
     """Perform a key press.
 
     Args:
@@ -664,7 +679,8 @@ class ActionRunner(object):
       self._RunAction(KeyPressAction(key, timeout=timeout))
       self.Wait(repeat_delay_ms / 1000.0)
 
-  def EnterText(self, text, character_delay_ms=100, timeout=60):
+  def EnterText(self, text, character_delay_ms=100,
+                timeout=page_action.DEFAULT_TIMEOUT):
     """Enter text by performing key presses.
 
     Args:

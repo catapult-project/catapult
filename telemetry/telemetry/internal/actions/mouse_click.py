@@ -29,4 +29,5 @@ class MouseClickAction(page_action.ElementPageAction):
           });
         }'''
     self.EvaluateCallback(tab, code)
-    tab.WaitForJavaScriptCondition('window.__mouseClickActionDone', timeout=60)
+    tab.WaitForJavaScriptCondition(
+        'window.__mouseClickActionDone', timeout=self.timeout)

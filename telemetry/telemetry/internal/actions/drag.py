@@ -28,8 +28,10 @@ class DragAction(page_action.ElementPageAction):
                left_start_ratio=None, top_start_ratio=None, left_end_ratio=None,
                top_end_ratio=None, speed_in_pixels_per_second=800,
                use_touch=False,
-               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT):
-    super(DragAction, self).__init__(selector, text, element_function)
+               synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT,
+               timeout=page_action.DEFAULT_TIMEOUT):
+    super(DragAction, self).__init__(
+        selector, text, element_function, timeout=timeout)
     self._left_start_ratio = left_start_ratio
     self._top_start_ratio = top_start_ratio
     self._left_end_ratio = left_end_ratio
@@ -97,4 +99,5 @@ class DragAction(page_action.ElementPageAction):
         speed=self._speed,
         gesture_source_type=gesture_source_type)
     self.EvaluateCallback(tab, code)
-    tab.WaitForJavaScriptCondition('window.__dragActionDone', timeout=60)
+    tab.WaitForJavaScriptCondition(
+        'window.__dragActionDone', timeout=self.timeout)
