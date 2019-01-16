@@ -62,7 +62,7 @@ _COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT = (
     u"""<b>\U0001f4cd Found a significant difference after 1 commit.</b>
 https://testbed.example.com/job/1
 
-<b>Subject.</b> by roll@account.com
+<b>Subject.</b> by chromium-autoroll@skia-public.iam.gserviceaccount.com
 https://example.com/repository/+/git_hash
 0 \u2192 1.235 (+1.235)
 
@@ -165,9 +165,10 @@ class BugCommentTest(test.TestCase):
     commit_as_dict.return_value = {
         'repository': 'chromium',
         'git_hash': 'git_hash',
+        'url': 'https://example.com/repository/+/git_hash',
         'author': 'author@chromium.org',
         'subject': 'Subject.',
-        'url': 'https://example.com/repository/+/git_hash',
+        'message': 'Subject.\n\nCommit message.',
     }
 
     self.get_issue.return_value = {'status': 'Untriaged'}
@@ -191,9 +192,10 @@ class BugCommentTest(test.TestCase):
     commit_as_dict.return_value = {
         'repository': 'chromium',
         'git_hash': 'git_hash',
+        'url': 'https://example.com/repository/+/git_hash',
         'author': 'author@chromium.org',
         'subject': 'Subject.',
-        'url': 'https://example.com/repository/+/git_hash',
+        'message': 'Subject.\n\nCommit message.',
     }
 
     self.get_issue.return_value = {'status': 'Untriaged'}
@@ -226,9 +228,10 @@ class BugCommentTest(test.TestCase):
     differences.return_value = [(None, c)]
     result_values.side_effect = [0], [1.23456]
     patch_as_dict.return_value = {
+        'url': 'https://codereview.com/c/672011/2f0d5c7',
         'author': 'author@chromium.org',
         'subject': 'Subject.',
-        'url': 'https://codereview.com/c/672011/2f0d5c7',
+        'message': 'Subject.\n\nCommit message.',
     }
 
     self.get_issue.return_value = {'status': 'Untriaged'}
@@ -253,9 +256,10 @@ class BugCommentTest(test.TestCase):
     differences.return_value = [(None, c)]
     result_values.side_effect = [0], [1.23456]
     patch_as_dict.return_value = {
+        'url': 'https://codereview.com/c/672011/2f0d5c7',
         'author': 'author@chromium.org',
         'subject': 'Subject.',
-        'url': 'https://codereview.com/c/672011/2f0d5c7',
+        'message': 'Subject.\n\nCommit message.',
     }
 
     self.get_issue.return_value = {'status': 'Assigned'}
@@ -278,9 +282,10 @@ class BugCommentTest(test.TestCase):
     differences.return_value = [(None, c)]
     result_values.side_effect = [0], [1.23456]
     patch_as_dict.return_value = {
+        'url': 'https://codereview.com/c/672011/2f0d5c7',
         'author': 'author@chromium.org',
         'subject': 'Subject.',
-        'url': 'https://codereview.com/c/672011/2f0d5c7',
+        'message': 'Subject.\n\nCommit message.',
     }
 
     self.get_issue.return_value = {'status': 'Fixed'}
@@ -305,16 +310,18 @@ class BugCommentTest(test.TestCase):
         {
             'repository': 'chromium',
             'git_hash': 'git_hash_1',
+            'url': 'https://example.com/repository/+/git_hash_1',
             'author': 'author1@chromium.org',
             'subject': 'Subject.',
-            'url': 'https://example.com/repository/+/git_hash_1',
+            'message': 'Subject.\n\nCommit message.',
         },
         {
             'repository': 'chromium',
             'git_hash': 'git_hash_2',
+            'url': 'https://example.com/repository/+/git_hash_2',
             'author': 'author2@chromium.org',
             'subject': 'Subject.',
-            'url': 'https://example.com/repository/+/git_hash_2',
+            'message': 'Subject.\n\nCommit message.',
         },
     )
 
@@ -339,11 +346,10 @@ class BugCommentTest(test.TestCase):
     commit_as_dict.return_value = {
         'repository': 'chromium',
         'git_hash': 'git_hash',
-        'author': 'roll@account.com',
-        'subject': 'Subject.',
-        'reviewers': ['reviewer@chromium.org'],
         'url': 'https://example.com/repository/+/git_hash',
-        'tbr': 'sheriff@bar.com',
+        'author': 'chromium-autoroll@skia-public.iam.gserviceaccount.com',
+        'subject': 'Subject.',
+        'message': 'Subject.\n\nCommit message.\n\nTBR=sheriff@bar.com',
     }
 
     self.get_issue.return_value = {'status': 'Untriaged'}
@@ -355,7 +361,7 @@ class BugCommentTest(test.TestCase):
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT,
         status='Assigned', owner='sheriff@bar.com',
-        cc_list=['roll@account.com'])
+        cc_list=['chromium-autoroll@skia-public.iam.gserviceaccount.com'])
 
   @mock.patch.object(job.job_state.JobState, 'ScheduleWork',
                      mock.MagicMock(side_effect=AssertionError('Error string')))

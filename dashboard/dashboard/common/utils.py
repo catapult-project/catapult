@@ -642,25 +642,11 @@ def GetRowKey(testmetadata_key, revision):
   test_container_key = GetTestContainerKey(testmetadata_key)
   return ndb.Key('Row', revision, parent=test_container_key)
 
-def GetSheriffForAutorollCommit(commit_info):
-  if not commit_info:
-    return None
-  if commit_info.get('tbr'):
-    return commit_info['tbr']
-  if not isinstance(commit_info.get('author'), dict):
-    return None
-  author = commit_info.get('author', {}).get('email')
-  if not author:
-    # Not a commit.
-    return None
+def GetSheriffForAutorollCommit(author, message):
   if author.split('@')[-1] not in _AUTOROLL_DOMAINS:
     # Not an autoroll.
     return None
   # This is an autoroll. The sheriff should be the first person on TBR list.
-  message = commit_info['message']
-  if not message:
-    # Malformed commit??
-    return None
   m = re.search(r'TBR=([^,^\s]*)', message)
   if not m:
     return None

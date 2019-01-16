@@ -381,43 +381,25 @@ class UtilsTest(testing_common.TestCase):
     self.assertFalse(utils.IsGroupMember('foo@bar.com', 'group'))
     self.assertEqual(1, mock_logging_error.call_count)
 
-  def testGetSheriffForAutorollCommit_InvalidCommit_ReturnsNone(self):
-    self.assertIsNone(utils.GetSheriffForAutorollCommit(None))
-    self.assertIsNone(utils.GetSheriffForAutorollCommit({}))
-    self.assertIsNone(utils.GetSheriffForAutorollCommit({'author': {}}))
-
   def testGetSheriffForAutorollCommit_NotAutoroll_ReturnsNone(self):
-    self.assertIsNone(utils.GetSheriffForAutorollCommit({
-        'author': {'email': 'user@foo.org'},
-        'message': 'TBR=donotreturnme@foo.org',
-    }))
-    self.assertIsNone(utils.GetSheriffForAutorollCommit({
-        'author': {'email': 'not-a-roll@foo.org'},
-        'message': 'TBR=donotreturnme@foo.org',
-    }))
+    self.assertIsNone(utils.GetSheriffForAutorollCommit(
+        'user@foo.org', 'TBR=donotreturnme@foo.org'))
+    self.assertIsNone(utils.GetSheriffForAutorollCommit(
+        'not-a-roll@foo.org', 'TBR=donotreturnme@foo.org'))
 
   def testGetSheriffForAutorollCommit_AutoRoll_ReturnsSheriff(self):
     self.assertEqual(
         'sheriff@foo.org',
-        utils.GetSheriffForAutorollCommit({
-            'author': {
-                'email':
-                    'chromium-autoroll@skia-public.iam.gserviceaccount.com',
-            },
-            'message': 'This is a roll.\n\nTBR=sheriff@foo.org,bar@foo.org\n\n',
-        }))
+        utils.GetSheriffForAutorollCommit(
+            'chromium-autoroll@skia-public.iam.gserviceaccount.com',
+            'This is a roll.\n\nTBR=sheriff@foo.org,bar@foo.org\n\n'
+        ))
     self.assertEqual(
         'sheriff@v8.com',
-        utils.GetSheriffForAutorollCommit({
-            'author': {
-                'email': 'v8-ci-autoroll-builder@'
-                         'chops-service-accounts.iam.gserviceaccount.com',
-            },
-            'message': 'TBR=sheriff@v8.com',
-        }))
-    self.assertEqual(
-        'tbr@sheriff.com',
-        utils.GetSheriffForAutorollCommit({'tbr': 'tbr@sheriff.com'}))
+        utils.GetSheriffForAutorollCommit(
+            'v8-ci-autoroll-builder@'
+            'chops-service-accounts.iam.gserviceaccount.com',
+            'TBR=sheriff@v8.com'))
 
 
 def _MakeMockFetch(base64_encoded=True, status=200):

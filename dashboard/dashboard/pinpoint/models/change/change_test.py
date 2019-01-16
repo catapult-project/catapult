@@ -69,18 +69,22 @@ class ChangeTest(test.TestCase):
                 'commit_position': 123456,
                 'git_hash': 'commit_123',
                 'repository': 'chromium',
-                'subject': 'Subject.',
-                'time': 'Fri Jan 01 00:01:00 2018',
+                'created': '2018-01-01T00:01:00',
                 'url': u'https://chromium.googlesource.com/chromium/src/+/commit_123',
+                'subject': 'Subject.',
+                'message': 'Subject.\n\nCommit message.\n'
+                           'Cr-Commit-Position: refs/heads/master@{#123456}',
             },
             {
                 'author': 'author@chromium.org',
                 'commit_position': 123456,
                 'git_hash': 'commit_456',
                 'repository': 'catapult',
-                'subject': 'Subject.',
-                'time': 'Fri Jan 01 00:01:00 2018',
+                'created': '2018-01-01T00:01:00',
                 'url': u'https://chromium.googlesource.com/catapult/+/commit_456',
+                'subject': 'Subject.',
+                'message': 'Subject.\n\nCommit message.\n'
+                           'Cr-Commit-Position: refs/heads/master@{#123456}',
             },
         ],
         'patch': {
@@ -88,9 +92,11 @@ class ChangeTest(test.TestCase):
             'change': 'repo~branch~id',
             'revision': 'abc123',
             'server': 'https://codereview.com',
-            'subject': 'Patch subject.',
-            'time': '2018-02-01 23:46:56.000000000',
+            'created': '2018-02-01T23:46:56',
             'url': 'https://codereview.com/c/project/name/+/567890/5',
+            'subject': 'Patch subject.',
+            'message': 'Subject\n\nCommit message.\n'
+                       'Change-Id: I0123456789abcdef',
         },
     }
     self.assertEqual(c.AsDict(), expected)

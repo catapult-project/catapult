@@ -78,11 +78,14 @@ deps_os = {
 
     expected = {
         'repository': 'chromium',
-        'git_hash': 'aaa7336',
+        'git_hash': 'commit_0',
         'url': test.CHROMIUM_URL + '/+/aaa7336',
-        'subject': 'Subject.',
         'author': 'author@chromium.org',
-        'time': 'Fri Jan 01 00:01:00 2016',
+        'created': '2016-01-01T00:01:00',
+        'subject': 'Subject.',
+        'message': 'Subject.\n\n'
+                   'Commit message.\n'
+                   'Cr-Commit-Position: refs/heads/master@{#437745}',
         'commit_position': 437745,
     }
     self.assertEqual(Commit(0).AsDict(), expected)

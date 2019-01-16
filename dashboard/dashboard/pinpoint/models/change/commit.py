@@ -3,8 +3,10 @@
 # found in the LICENSE file.
 
 import collections
+import datetime
 import re
 
+from dashboard.pinpoint.models.change import commit_cache
 from dashboard.pinpoint.models.change import repository as repository_module
 from dashboard.services import gitiles_service
 
@@ -88,28 +90,38 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     return frozenset(commits)
 
   def AsDict(self):
-    # CommitInfo is cached in gitiles_service.
-    commit_info = gitiles_service.CommitInfo(self.repository_url, self.git_hash)
-    details = {
+    d = {
         'repository': self.repository,
-        'git_hash': commit_info['commit'],
-        'url': self.repository_url + '/+/' + commit_info['commit'],
-        'subject': commit_info['message'].split('\n', 1)[0],
-        'author': commit_info['author']['email'],
-        'time': commit_info['committer']['time'],
+        'git_hash': self.git_hash,
     }
-    commit_position = _ParseCommitPosition(commit_info['message'])
-    if commit_position:
-      details['commit_position'] = commit_position
-    author = details['author']
-    if (author == 'v8-autoroll@chromium.org' or
-        author.endswith('skia-buildbots.google.com.iam.gserviceaccount.com')):
+
+    try:
+      d.update(commit_cache.Get(self.id_string))
+      d['created'] = d['created'].isoformat()
+    except KeyError:
+      commit_info = gitiles_service.CommitInfo(
+          self.repository_url, self.git_hash)
+      url = self.repository_url + '/+/' + commit_info['commit']
+      author = commit_info['author']['email']
+      created = datetime.datetime.strptime(
+          commit_info['committer']['time'], '%a %b %d %H:%M:%S %Y')
+      subject = commit_info['message'].split('\n', 1)[0]
       message = commit_info['message']
-      if message:
-        m = re.search(r'TBR=([^,^\s]*)', message)
-        if m:
-          details['tbr'] = m.group(1)
-    return details
+
+      d.update({
+          'url': url,
+          'author': author,
+          'created': created.isoformat(),
+          'subject': subject,
+          'message': message,
+      })
+      commit_cache.Put(self.id_string, url, author, created, subject, message)
+
+    commit_position = _ParseCommitPosition(d['message'])
+    if commit_position:
+      d['commit_position'] = commit_position
+
+    return d
 
   @classmethod
   def FromDep(cls, dep):

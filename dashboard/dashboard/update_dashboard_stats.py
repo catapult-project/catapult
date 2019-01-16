@@ -101,7 +101,7 @@ def _GetDiffCommitTimeFromJob(job):
     for d in diffs:
       diff = d[1].AsDict()
       commit_time = datetime.datetime.strptime(
-          diff['commits'][0]['time'], '%a %b %d %X %Y')
+          diff['commits'][0]['created'], '%Y-%m-%dT%H:%M:%S')
       return commit_time
   except httplib.HTTPException:
     return None

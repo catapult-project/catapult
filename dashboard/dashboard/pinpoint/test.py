@@ -64,6 +64,8 @@ class TestCase(testing_common.TestCase):
                         'ref': 'refs/changes/90/567890/5',
                     },
                 },
+                'commit_with_footers': 'Subject\n\nCommit message.\n'
+                                       'Change-Id: I0123456789abcdef',
             },
         },
     }
@@ -85,8 +87,7 @@ def _CommitInfoStub(repository_url, git_hash):
       'author': {'email': 'author@chromium.org'},
       'commit': git_hash,
       'committer': {'time': 'Fri Jan 01 00:01:00 2018'},
-      'message': 'Subject.\n\n'
-                 'Commit message.\n'
+      'message': 'Subject.\n\nCommit message.\n'
                  'Cr-Commit-Position: refs/heads/master@{#123456}',
   }
 

@@ -6,7 +6,6 @@ from dashboard.pinpoint.models.change import patch
 from dashboard.pinpoint import test
 
 
-
 def Patch(revision='abc123'):
   return patch.GerritPatch('https://codereview.com', 'repo~branch~id', revision)
 
@@ -28,6 +27,8 @@ _GERRIT_CHANGE_INFO = {
                     'ref': 'refs/changes/77/658277/5',
                 },
             },
+            'commit_with_footers': 'Subject\n\nCommit message.\n'
+                                   'Change-Id: I0123456789abcdef',
         },
         'other revision': {
             '_number': 4,
@@ -78,9 +79,10 @@ class GerritPatchTest(test.TestCase):
         'change': 'repo~branch~id',
         'revision': 'current revision',
         'url': 'https://codereview.com/c/chromium/src/+/658277/5',
-        'subject': 'Subject',
         'author': 'author@example.org',
-        'time': '2018-02-01 23:46:56.000000000',
+        'created': '2018-02-01T23:46:56',
+        'subject': 'Subject',
+        'message': 'Subject\n\nCommit message.\nChange-Id: I0123456789abcdef',
     }
     self.assertEqual(p.AsDict(), expected)
 

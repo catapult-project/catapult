@@ -249,7 +249,8 @@ class Job(ndb.Model):
 
       # TODO: Assign the largest difference, not the last one.
       owner = commit_info['author']
-      sheriff = utils.GetSheriffForAutorollCommit(commit_info)
+      sheriff = utils.GetSheriffForAutorollCommit(
+          commit_info['author'], commit_info['message'])
       cc_list.add(commit_info['author'])
 
       values_a = self.state.ResultValues(change_a)
