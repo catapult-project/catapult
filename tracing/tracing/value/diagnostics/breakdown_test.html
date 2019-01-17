@@ -12,13 +12,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  test('zero', function() {
-    const a = new tr.v.d.Breakdown();
-    assert.strictEqual(a.size, 0);
-    a.set('b', 0);
-    assert.strictEqual(a.size, 0);
-  });
-
   test('merge', function() {
     const a = new tr.v.d.Breakdown();
     a.set('x', 1);
