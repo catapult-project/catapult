@@ -14,7 +14,6 @@ from telemetry import story
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry import decorators
-from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import user_agent
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
@@ -309,50 +308,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
       story_runner.Run(test, story_set, options, results)
-
-  def testRunPageWithStartupUrl(self):
-    num_times_browser_closed = [0]
-
-    class TestSharedState(shared_page_state.SharedPageState):
-
-      def _StopBrowser(self):
-        if self._browser:
-          num_times_browser_closed[0] += 1
-        super(TestSharedState, self)._StopBrowser()
-
-    story_set = story.StorySet()
-    page = page_module.Page(
-        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
-        startup_url='about:blank', shared_page_state_class=TestSharedState,
-        name='blank.html')
-    story_set.AddStory(page)
-
-    class Measurement(legacy_page_test.LegacyPageTest):
-
-      def __init__(self):
-        super(Measurement, self).__init__()
-
-      def ValidateAndMeasurePage(self, page, tab, results):
-        del page, tab, results  # not used
-
-    options = options_for_unittests.GetCopy()
-    options.pageset_repeat = 2
-    options.output_formats = ['none']
-    options.suppress_gtest_report = True
-    if not browser_finder.FindBrowser(options):
-      return
-
-    with tempfile_ext.NamedTemporaryDirectory('page_E2E_tests') as tempdir:
-      options.output_dir = tempdir
-      test = Measurement()
-      SetUpStoryRunnerArguments(options)
-      results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(test, story_set, options, results)
-      self.assertEquals('about:blank', options.browser_options.startup_url)
-      # _StopBrowser should be called 2 times:
-      # 1. browser restarts after page 1 run
-      # 2. in the TearDownState after all the pages have run.
-      self.assertEquals(num_times_browser_closed[0], 2)
 
   # Ensure that story_runner calls cleanUp when a page run fails.
   def testCleanUpPage(self):

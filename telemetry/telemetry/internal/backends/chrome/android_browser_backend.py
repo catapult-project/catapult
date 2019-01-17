@@ -59,7 +59,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # stopping also clears the app state in Android's activity manager.
     self.platform_backend.StopApplication(self._backend_settings.package)
 
-  def Start(self, startup_args, startup_url=None):
+  def Start(self, startup_args):
     assert not startup_args, (
         'Startup arguments for Android should be set during '
         'possible_browser.SetUpEnvironment')
@@ -68,7 +68,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self.device.StartActivity(
         intent.Intent(package=self._backend_settings.package,
                       activity=self._backend_settings.activity,
-                      action=None, data=startup_url, category=None,
+                      action=None, data='about:blank', category=None,
                       extras=user_agent_dict),
         blocking=True)
     try:

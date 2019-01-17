@@ -140,7 +140,6 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         # may not be guaranteed the same each time
         # For example, see: crbug.com/865895#c17
         startup_args = self.GetBrowserStartupArgs(self._browser_options)
-        startup_url = self._browser_options.startup_url
         returned_browser = None
 
         browser_backend = desktop_browser_backend.DesktopBrowserBackend(
@@ -153,8 +152,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
           self._ClearCachesOnStart()
 
         return browser.Browser(
-            browser_backend, self._platform_backend, startup_args,
-            startup_url=startup_url)
+            browser_backend, self._platform_backend, startup_args)
       except Exception: # pylint: disable=broad-except
         report = 'Browser creation failed (attempt %d of %d)' % (
             (x + 1), num_retries)

@@ -51,9 +51,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __del__(self):
     self.Close()
 
-  def Start(self, startup_args, startup_url=None):
-    assert not startup_url, 'startup_url not supported by cros backend'
-
+  def Start(self, startup_args):
     # Remove the stale file with the devtools port / browser target
     # prior to restarting chrome.
     self._cri.RmRF(self._GetDevToolsActivePortPath())

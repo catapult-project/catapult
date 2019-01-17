@@ -88,11 +88,6 @@ class StorySetSmokeTest(unittest.TestCase):
         # unicode.
         isinstance(story.url, basestring),
         msg='page %s \'s url must have type string' % story.name)
-    self.assertTrue(
-        isinstance(story.startup_url, str),
-        msg=(
-            'page %s \'s startup_url field must have type string'
-            % story.name))
     self.assertIsInstance(
         story.make_javascript_deterministic,
         bool,

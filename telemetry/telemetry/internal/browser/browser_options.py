@@ -340,7 +340,6 @@ class BrowserOptions(object):
 
     # pylint: disable=invalid-name
     self.clear_sytem_cache_for_browser_and_profile_on_start = False
-    self.startup_url = 'about:blank'
 
     # Background pages of built-in component extensions can interfere with
     # performance measurements.

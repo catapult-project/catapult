@@ -180,8 +180,6 @@ class SharedPageState(story_module.SharedState):
     # Create a deep copy of browser_options so that we can add page-level
     # arguments and url to it without polluting the run for the next page.
     browser_options = self._finder_options.browser_options.Copy()
-    if page.startup_url:
-      browser_options.startup_url = page.startup_url
     browser_options.AppendExtraBrowserArgs(page.extra_browser_args)
     self._possible_browser.SetUpEnvironment(browser_options)
 
@@ -214,12 +212,6 @@ class SharedPageState(story_module.SharedState):
     page_set = page.page_set
     self._current_page = page
 
-    if self._browser and page.startup_url:
-      assert not self.platform.tracing_controller.is_tracing_running, (
-          'Should not restart browser when tracing is already running. For '
-          'TimelineBasedMeasurement (TBM) benchmarks, you should not use '
-          'startup_url.')
-      self._StopBrowser()
     started_browser = not self.browser
 
     archive_path = page_set.WprFilePathForStory(page, self.platform.GetOSName())

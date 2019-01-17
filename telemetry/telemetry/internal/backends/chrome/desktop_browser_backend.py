@@ -203,7 +203,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     browser_target = lines[1] if len(lines) >= 2 else None
     return devtools_port, browser_target
 
-  def Start(self, startup_args, startup_url=None):
+  def Start(self, startup_args):
     assert not self._proc, 'Must call Close() before Start()'
 
     # macOS displays a blocking crash resume dialog that we need to suppress.
@@ -223,8 +223,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     cmd = [self._executable]
     cmd.extend(startup_args)
-    if startup_url:
-      cmd.append(startup_url)
+    cmd.append('about:blank')
     env = os.environ.copy()
     env['CHROME_HEADLESS'] = '1'  # Don't upload minidumps.
     env['BREAKPAD_DUMP_LOCATION'] = self._tmp_minidump_dir
