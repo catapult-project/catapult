@@ -48,7 +48,7 @@ class FromDictTest(unittest.TestCase):
   def testAllArguments(self):
     arguments = dict(_BASE_ARGUMENTS)
     arguments['story'] = 'http://www.fifa.com/'
-    arguments['tags'] = 'tag1,tag2'
+    arguments['story_tags'] = 'tag1,tag2'
     quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
 
     extra_args = [
