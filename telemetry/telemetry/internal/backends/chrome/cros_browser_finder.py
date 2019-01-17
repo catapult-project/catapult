@@ -25,7 +25,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
 
   def __init__(self, browser_type, finder_options, cros_platform, is_guest):
     super(PossibleCrOSBrowser, self).__init__(browser_type, 'cros', True)
-    assert browser_type in FindAllBrowserTypes(finder_options), (
+    del finder_options
+    assert browser_type in FindAllBrowserTypes(), (
         'Please add %s to cros_browser_finder.FindAllBrowserTypes()' %
         browser_type)
     self._platform = cros_platform
@@ -169,7 +170,7 @@ def CanFindAvailableBrowsers(finder_options):
           cros_interface.HasSSH())
 
 
-def FindAllBrowserTypes(_):
+def FindAllBrowserTypes():
   return [
       'cros-chrome',
       'cros-chrome-guest',

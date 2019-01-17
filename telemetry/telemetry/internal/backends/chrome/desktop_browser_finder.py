@@ -29,10 +29,11 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
   def __init__(self, browser_type, finder_options, executable, flash_path,
                is_content_shell, browser_directory, is_local_build=False):
+    del finder_options
     target_os = sys.platform.lower()
     super(PossibleDesktopBrowser, self).__init__(
         browser_type, target_os, not is_content_shell)
-    assert browser_type in FindAllBrowserTypes(finder_options), (
+    assert browser_type in FindAllBrowserTypes(), (
         'Please add %s to desktop_browser_finder.FindAllBrowserTypes' %
         browser_type)
     self._local_executable = executable
@@ -227,7 +228,7 @@ def SelectDefaultBrowser(possible_browsers):
 def CanFindAvailableBrowsers():
   return not platform_module.GetHostPlatform().GetOSName() == 'chromeos'
 
-def FindAllBrowserTypes(_):
+def FindAllBrowserTypes():
   return [
       'exact',
       'reference',

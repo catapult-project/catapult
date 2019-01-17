@@ -75,7 +75,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
                backend_settings, local_apk=None):
     super(PossibleAndroidBrowser, self).__init__(
         browser_type, 'android', backend_settings.supports_tab_control)
-    assert browser_type in FindAllBrowserTypes(finder_options), (
+    assert browser_type in FindAllBrowserTypes(), (
         'Please add %s to android_browser_finder.FindAllBrowserTypes' %
         browser_type)
     self._platform = android_platform
@@ -322,8 +322,7 @@ def _CanPossiblyHandlePath(apk_path):
   return apk_path and apk_path[-4:].lower() == '.apk'
 
 
-def FindAllBrowserTypes(options):
-  del options  # unused
+def FindAllBrowserTypes():
   browser_types = [b.browser_type for b in ANDROID_BACKEND_SETTINGS]
   return browser_types + ['exact', 'reference']
 
