@@ -45,7 +45,6 @@ from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
-from tracing.value.diagnostics import tag_map
 
 # This linter complains if we define classes nested inside functions.
 # pylint: disable=bad-super-call
@@ -811,60 +810,6 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertIn(reserved_infos.ARCHITECTURES.name, first_histogram_diags)
     self.assertIn(reserved_infos.OS_NAMES.name, first_histogram_diags)
     self.assertIn(reserved_infos.OS_VERSIONS.name, first_histogram_diags)
-
-  def testRunStoryAddsTagMap(self):
-    story_set = story_module.StorySet()
-    story_set.AddStory(DummyLocalStory(FooStoryState, 'foo', ['bar']))
-    story_runner.Run(DummyTest(), story_set, self.options, self.results)
-
-    hs = histogram_set.HistogramSet()
-    hs.ImportDicts(self.results.AsHistogramDicts())
-    tagmap = None
-    for diagnostic in hs.shared_diagnostics:
-      if isinstance(diagnostic, tag_map.TagMap):
-        tagmap = diagnostic
-        break
-
-    self.assertIsNotNone(tagmap)
-    self.assertListEqual(['bar'], tagmap.tags_to_story_names.keys())
-    self.assertSetEqual(set(['foo']), tagmap.tags_to_story_names['bar'])
-
-  def testRunStoryAddsTagMapEvenInFatalException(self):
-    self.StubOutExceptionFormatting()
-    story_set = story_module.StorySet()
-
-    class Test(legacy_page_test.LegacyPageTest):
-      def __init__(self, *args):
-        super(Test, self).__init__(*args)
-
-      def RunPage(self, *_):
-        raise MemoryError('Fatal exception')
-
-      def ValidateAndMeasurePage(self, page, tab, results):
-        pass
-
-    s1 = DummyLocalStory(TestSharedPageState, name='foo', tags=['footag'])
-    s2 = DummyLocalStory(TestSharedPageState, name='bar', tags=['bartag'])
-    story_set.AddStory(s1)
-    story_set.AddStory(s2)
-    test = Test()
-    with self.assertRaises(MemoryError):
-      story_runner.Run(test, story_set, self.options, self.results)
-    self.assertIn('Fatal exception', self.fake_stdout.getvalue())
-
-    hs = histogram_set.HistogramSet()
-    hs.ImportDicts(self.results.AsHistogramDicts())
-    tagmap = None
-    for diagnostic in hs.shared_diagnostics:
-      if isinstance(diagnostic, tag_map.TagMap):
-        tagmap = diagnostic
-        break
-
-    self.assertIsNotNone(tagmap)
-    self.assertSetEqual(
-        set(['footag', 'bartag']), set(tagmap.tags_to_story_names.keys()))
-    self.assertSetEqual(set(['foo']), tagmap.tags_to_story_names['footag'])
-    self.assertSetEqual(set(['bar']), tagmap.tags_to_story_names['bartag'])
 
   @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUpdateAndCheckArchives(self):

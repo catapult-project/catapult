@@ -80,6 +80,10 @@ class HistogramSet(object):
   def ImportDicts(self, dicts):
     for d in dicts:
       if 'type' in d:
+        # TODO(benjhayden): Forget about TagMaps in 2019Q2.
+        if d['type'] == 'TagMap':
+          continue
+
         assert d['type'] in all_diagnostics.GetDiagnosticTypenames(), (
             'Unrecognized shared diagnostic type ' + d['type'])
         diag = diagnostic.Diagnostic.FromDict(d)

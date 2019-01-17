@@ -23,6 +23,11 @@ tr.b.unittest.testSuite(function() {
         Error, 'Unrecognized shared diagnostic type ');
   });
 
+  test('ignoreTagMap', function() {
+    const hs = new tr.v.HistogramSet();
+    hs.importDict({type: 'TagMap'});
+  });
+
   test('importDicts', function() {
     const n = new tr.v.Histogram('foo', tr.b.Unit.byName.unitlessNumber);
     const histograms = new tr.v.HistogramSet([n]);

@@ -34,6 +34,9 @@ class HistogramSetUnittest(unittest.TestCase):
     with self.assertRaises(AssertionError):
       hs.ImportDicts([{'type': ''}])
 
+  def testIgnoreTagMap(self):
+    histogram_set.HistogramSet().ImportDicts([{'type': 'TagMap'}])
+
   def testFilterHistogram(self):
     a = histogram.Histogram('a', 'unitless')
     b = histogram.Histogram('b', 'unitless')

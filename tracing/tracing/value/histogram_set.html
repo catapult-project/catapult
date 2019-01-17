@@ -168,6 +168,9 @@ tr.exportTo('tr.v', function() {
      */
     importDict(dict) {
       if (dict.type !== undefined) {
+        // TODO(benjhayden): Forget about TagMaps in 2019Q2.
+        if (dict.type === 'TagMap') return;
+
         if (!tr.v.d.Diagnostic.findTypeInfoWithName(dict.type)) {
           throw new Error('Unrecognized shared diagnostic type ' + dict.type);
         }

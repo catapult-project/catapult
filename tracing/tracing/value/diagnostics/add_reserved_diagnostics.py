@@ -170,10 +170,6 @@ def AddReservedDiagnostics(histogram_dicts, names_to_values):
   histograms.ImportDicts(dicts_across_repeats)
   histograms.ImportDicts(hs_with_no_stories.AsDicts())
 
-  # Merge tagmaps since we OBBS may produce several for shared runs
-  _MergeAndReplaceSharedDiagnostics(
-      reserved_infos.TAG_MAP.name, histograms)
-
   histograms.DeduplicateDiagnostics()
   for name, value in names_to_values.items():
     assert name in ALL_NAMES

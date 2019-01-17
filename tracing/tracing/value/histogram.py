@@ -390,12 +390,14 @@ class DiagnosticMap(dict):
 
   def AddDicts(self, dct):
     for name, diagnostic_dict in dct.items():
+      if name == 'tagmap':
+        continue
       if isinstance(diagnostic_dict, StringTypes):
         self[name] = diagnostic_ref.DiagnosticRef(diagnostic_dict)
       elif diagnostic_dict['type'] not in [
-          'RelatedHistogramMap', 'RelatedHistogramBreakdown']:
-        # Ignore RelatedHistograms.
-        # TODO(benjhayden): Forget about RelatedHistograms in 2019 Q2.
+          'RelatedHistogramMap', 'RelatedHistogramBreakdown', 'TagMap']:
+        # Ignore RelatedHistograms and TagMaps.
+        # TODO(benjhayden): Forget about them in 2019 Q2.
         self[name] = diagnostic.Diagnostic.FromDict(diagnostic_dict)
 
   def ResolveSharedDiagnostics(self, histograms, required=False):
