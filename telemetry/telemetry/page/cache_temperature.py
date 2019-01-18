@@ -84,6 +84,10 @@ class CacheManipulator(object):
     cls.PrepareRendererCache(page, tab, previous_page)
     tab.Close()
 
+    # Flush and discard current tracing data, so the trace does not contain
+    # events from the tab just closed.
+    browser.platform.tracing_controller.FlushTracing(discard_current=True)
+
 
 class AnyCacheManipulator(CacheManipulator):
   RENDERER_TEMPERATURE = ANY

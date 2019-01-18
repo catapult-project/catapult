@@ -52,9 +52,15 @@ class TracingController(tracing_agent.TracingAgent):
     """
     return self._tracing_controller_backend.StopTracing()
 
-  def FlushTracing(self):
-    """Flush tracing buffer and continue tracing."""
-    self._tracing_controller_backend.FlushTracing()
+  def FlushTracing(self, discard_current=False):
+    """Flush tracing buffer and continue tracing.
+
+    Args:
+      discard_current: optional bool, if True the current tracing data will
+        be discarded before tracing continues.
+    """
+    self._tracing_controller_backend.FlushTracing(
+        discard_current=discard_current)
 
   @property
   def is_tracing_running(self):

@@ -32,6 +32,13 @@ def _IterAllTracingAgentClasses():
       tracing_agent.TracingAgent).itervalues()
 
 
+class _TraceDataDiscarder(object):
+  """A do-nothing data builder that just discards trace data."""
+  def AddTraceFor(self, trace_part, value):
+    del trace_part  # Unused.
+    del value  # Unused.
+
+
 class _TracingState(object):
 
   def __init__(self, config, timeout):
@@ -158,11 +165,19 @@ class TracingControllerBackend(object):
 
     return (builder.AsData(), self._nonfatal_exceptions)
 
-  def FlushTracing(self):
+  def FlushTracing(self, discard_current=False):
     assert self.is_tracing_running, 'Can only flush tracing when tracing is on.'
     self._IssueClockSyncMarker()
 
     raised_exception_messages = []
+
+    # pylint: disable=redefined-variable-type
+    # See: https://github.com/PyCQA/pylint/issues/710
+    if discard_current:
+      trace_builder = _TraceDataDiscarder()
+    else:
+      trace_builder = self._current_state.builder
+
     # Flushing the controller's pytrace is not supported.
     for agent in self._active_agents_instances:
       try:
@@ -172,7 +187,7 @@ class TracingControllerBackend(object):
             with self._CollectNonfatalException('FlushAgentTracing'):
               agent.FlushAgentTracing(self._current_state.config,
                                       self._current_state.timeout,
-                                      self._current_state.builder)
+                                      trace_builder)
       except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
