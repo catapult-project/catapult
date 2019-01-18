@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env vpython
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -30,14 +30,18 @@ from devil.utils import reset_usb  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
 
+from py_utils import modules_util
+
+
+# Script depends on features from psutil version 2.0 or higher.
+modules_util.RequireVersion(psutil, '2.0')
+
 
 def KillAllAdb():
   def get_all_adb():
     for p in psutil.process_iter():
       try:
-        # Note: p.as_dict is compatible with both older (v1 and under) as well
-        # as newer (v2 and over) versions of psutil.
-        # See: http://grodola.blogspot.com/2014/01/psutil-20-porting.html
+        # Retrieve all required process infos at once.
         pinfo = p.as_dict(attrs=['pid', 'name', 'cmdline'])
         if pinfo['name'] == 'adb':
           pinfo['cmdline'] = ' '.join(pinfo['cmdline'])
