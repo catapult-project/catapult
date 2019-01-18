@@ -189,7 +189,7 @@ class SharedPageState(story_module.SharedState):
       # TODO(crbug.com/811244): Consider whether we can do this unconditionally.
       self._possible_browser.FlushOsPageCaches()
 
-    self._browser = self._possible_browser.Create(clear_caches=False)
+    self._browser = self._possible_browser.Create()
     if self._page_test:
       self._page_test.DidStartBrowser(self.browser)
 

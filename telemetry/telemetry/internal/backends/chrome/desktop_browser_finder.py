@@ -120,7 +120,10 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
       shutil.rmtree(self._profile_directory, ignore_errors=True)
       self._profile_directory = None
 
-  def Create(self, clear_caches=True):
+  def Create(self, clear_caches=False):
+    # TODO(crbug.com/811244): Remove when callers no longer use this option.
+    assert not clear_caches, 'Option no longer supported, see: crbug.com/811244'
+
     if self._flash_path and not os.path.exists(self._flash_path):
       logging.warning(
           'Could not find Flash at %s. Continuing without Flash.\n'
@@ -146,10 +149,6 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
             self._platform_backend, self._browser_options,
             self._browser_directory, self._profile_directory,
             self._local_executable, self._flash_path, self._is_content_shell)
-
-        # TODO(crbug.com/811244): Remove when this is handled by shared state.
-        if clear_caches:
-          self._ClearCachesOnStart()
 
         return browser.Browser(
             browser_backend, self._platform_backend, startup_args)

@@ -207,9 +207,12 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       finally:
         self._flag_changer = None
 
-  def Create(self, clear_caches=True):
+  def Create(self, clear_caches=False):
     """Launch the browser on the device and return a Browser object."""
-    return self._GetBrowserInstance(existing=False, clear_caches=clear_caches)
+    # TODO(crbug.com/811244): Remove when callers no longer use this option.
+    assert not clear_caches, 'Option no longer supported, see: crbug.com/811244'
+
+    return self._GetBrowserInstance(existing=False)
 
   def FindExistingBrowser(self):
     """Find a browser running on the device and bind a Browser object to it.
@@ -220,16 +223,13 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
     A BrowserGoneException is raised if the browser cannot be found.
     """
-    return self._GetBrowserInstance(existing=True, clear_caches=False)
+    return self._GetBrowserInstance(existing=True)
 
-  def _GetBrowserInstance(self, existing, clear_caches):
+  def _GetBrowserInstance(self, existing):
     browser_backend = android_browser_backend.AndroidBrowserBackend(
         self._platform_backend, self._browser_options,
         self.browser_directory, self.profile_directory,
         self._backend_settings)
-    # TODO(crbug.com/811244): Remove when this is handled by shared state.
-    if clear_caches:
-      self._ClearCachesOnStart()
     try:
       return browser.Browser(
           browser_backend, self._platform_backend, startup_args=(),

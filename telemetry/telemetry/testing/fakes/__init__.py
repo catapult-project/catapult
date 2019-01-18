@@ -220,7 +220,7 @@ class FakePossibleBrowser(object):
     """The browser object that will be returned through later API calls."""
     return self._returned_browser
 
-  def Create(self, clear_caches=True):
+  def Create(self, clear_caches=False):
     del clear_caches  # Unused.
     if self.execute_on_startup is not None:
       self.execute_on_startup()
