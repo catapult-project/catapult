@@ -2611,6 +2611,35 @@ class DeviceUtilsGetSetEnforce(DeviceUtilsTest):
       self.device.SetEnforce(enabled='0')  # Not recommended but it works!
 
 
+class DeviceUtilsGetWebViewUpdateServiceDumpTest(DeviceUtilsTest):
+
+  def testGetWebViewUpdateServiceDump_success(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.OREO):
+      with self.assertCall(self.call.adb.Shell('dumpsys webviewupdate'),
+                           'Fallback logic enabled: true\n'
+                           'Current WebView package (name, version): '
+                           '(com.google.android.webview, 61.0.3163.98)'):
+        update = self.device.GetWebViewUpdateServiceDump()
+        self.assertEqual(True, update['FallbackLogicEnabled'])
+        self.assertEqual('com.google.android.webview',
+                         update['CurrentWebViewPackage'])
+
+  def testGetWebViewUpdateServiceDump_missingkey(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.OREO):
+      with self.assertCall(self.call.adb.Shell('dumpsys webviewupdate'),
+                           'Fallback logic enabled: true'):
+        with self.assertRaises(device_errors.CommandFailedError):
+          self.device.GetWebViewUpdateServiceDump()
+
+  def testGetWebViewUpdateServiceDump_noop(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT_MR1):
+      with self.assertCalls():
+        self.device.GetWebViewUpdateServiceDump()
+
+
 class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
 
   def testSetWebViewImplementation_success(self):
@@ -2623,6 +2652,37 @@ class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
         'cmd webviewupdate set-webview-implementation foo.org'), 'Oops!'):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.SetWebViewImplementation('foo.org')
+
+
+class DeviceUtilsSetWebViewFallbackLogicTest(DeviceUtilsTest):
+
+  def testSetWebViewFallbackLogic_False_success(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT):
+      with self.assertCall(self.call.adb.Shell(
+          'cmd webviewupdate enable-redundant-packages'), 'Success'):
+        self.device.SetWebViewFallbackLogic(False)
+
+  def testSetWebViewFallbackLogic_True_success(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT):
+      with self.assertCall(self.call.adb.Shell(
+          'cmd webviewupdate disable-redundant-packages'), 'Success'):
+        self.device.SetWebViewFallbackLogic(True)
+
+  def testSetWebViewFallbackLogic_failure(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT):
+      with self.assertCall(self.call.adb.Shell(
+          'cmd webviewupdate enable-redundant-packages'), 'Oops!'):
+        with self.assertRaises(device_errors.CommandFailedError):
+          self.device.SetWebViewFallbackLogic(False)
+
+  def testSetWebViewFallbackLogic_noop(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.MARSHMALLOW):
+      with self.assertCalls():
+        self.device.SetWebViewFallbackLogic(False)
 
 
 class DeviceUtilsTakeScreenshotTest(DeviceUtilsTest):

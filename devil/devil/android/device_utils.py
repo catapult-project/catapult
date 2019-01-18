@@ -235,6 +235,13 @@ _PARCEL_RESULT_RE = re.compile(
 _EBUSY_RE = re.compile(
     r'mkdir failed for ([^,]*), Device or resource busy')
 
+_WEBVIEW_SYSUPDATE_CURRENT_PKG_RE = re.compile(
+    r'Current WebView package.*:.*\(([a-z.]*),')
+_WEBVIEW_SYSUPDATE_FALLBACK_LOGIC_RE = re.compile(
+    r'Fallback logic enabled: (true|false)')
+
+_GOOGLE_FEATURES_RE = re.compile(r'^\s*com\.google\.')
+
 PS_COLUMNS = ('name', 'pid', 'ppid')
 ProcessInfo = collections.namedtuple('ProcessInfo', PS_COLUMNS)
 
@@ -1007,15 +1014,11 @@ class DeviceUtils(object):
     installed = self._GetApplicationPathsInternal(package_name)
     if not installed:
       return
-    try:
-      self.adb.Uninstall(package_name, keep_data)
-      self._cache['package_apk_paths'][package_name] = []
-      self._cache['package_apk_checksums'][package_name] = set()
-    except:
-      # Clear cache since we can't be sure of the state.
-      self._cache['package_apk_paths'].pop(package_name, 0)
-      self._cache['package_apk_checksums'].pop(package_name, 0)
-      raise
+    # cached package paths are indeterminate due to system apps taking over
+    # user apps after uninstall, so clear it
+    self._cache['package_apk_paths'].pop(package_name, 0)
+    self._cache['package_apk_checksums'].pop(package_name, 0)
+    self.adb.Uninstall(package_name, keep_data)
 
   def _CheckSdkLevel(self, required_sdk_level):
     """Raises an exception if the device does not have the required SDK level.
@@ -2630,6 +2633,47 @@ class DeviceUtils(object):
         check_return=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetWebViewUpdateServiceDump(self, timeout=None, retries=None):
+    """Get the WebView update command sysdump on the device.
+
+    Returns:
+      A dictionary with these possible entries:
+        FallbackLogicEnabled: True|False
+        CurrentWebViewPackage: "package name"
+
+    It may return an empty dictionary if device does not
+    support the "dumpsys webviewupdate" command.
+
+    Raises:
+      CommandFailedError on failure.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+    """
+    result = {}
+
+    # Command was implemented starting in Oreo
+    if self.build_version_sdk < version_codes.OREO:
+      return result
+
+    output = self.RunShellCommand(
+        ['dumpsys', 'webviewupdate'], check_return=True)
+    for line in output:
+      match = re.search(_WEBVIEW_SYSUPDATE_CURRENT_PKG_RE, line)
+      if match:
+        result['CurrentWebViewPackage'] = match.group(1)
+      match = re.search(_WEBVIEW_SYSUPDATE_FALLBACK_LOGIC_RE, line)
+      if match:
+        result['FallbackLogicEnabled'] = \
+            True if match.group(1) == 'true' else False
+
+    missing_fields = set(['CurrentWebViewPackage', 'FallbackLogicEnabled']) - \
+                     set(result.keys())
+    if len(missing_fields) > 0:
+      raise device_errors.CommandFailedError(
+          '%s not found in dumpsys webviewupdate' % str(list(missing_fields)))
+    return result
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
   def SetWebViewImplementation(self, package_name, timeout=None, retries=None):
     """Select the WebView implementation to the specified package.
 
@@ -2652,6 +2696,37 @@ class DeviceUtils(object):
     else:
       raise device_errors.CommandFailedError(
           'Error setting WebView provider: %s' % output, str(self))
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def SetWebViewFallbackLogic(self, enabled, timeout=None, retries=None):
+    """Select the WebView implementation to the specified package.
+
+    Args:
+      enabled: bool - True for enabled, False for disabled
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Raises:
+      CommandFailedError on failure.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+    """
+
+    # command is not available pre-monochrome, treat as no-op
+    if self.build_version_sdk < version_codes.NOUGAT:
+      return
+
+    # redundant-packages is the opposite of fallback logic
+    enable_string = 'disable' if enabled else 'enable'
+    output = self.RunShellCommand(
+        ['cmd', 'webviewupdate', '%s-redundant-packages' % enable_string],
+        single_line=True, check_return=True)
+    if output == 'Success':
+      logging.info('WebView Fallback Logic is %s',
+                   'enabled' if enabled else 'disabled')
+    else:
+      raise device_errors.CommandFailedError(
+          'Error setting WebView Fallback Logic: %s' % output, str(self))
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def TakeScreenshot(self, host_path=None, timeout=None, retries=None):
