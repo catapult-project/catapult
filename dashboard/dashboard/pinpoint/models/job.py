@@ -450,14 +450,14 @@ def _FormatDifferenceForBug(commit_info, values_a, values_b, metric):
   subject = '<b>%s</b> by %s' % (commit_info['subject'], commit_info['author'])
 
   if values_a:
-    mean_a = float(sum(values_a)) / len(values_a)
+    mean_a = job_state.Mean(values_a)
     formatted_a = '%.4g' % mean_a
   else:
     mean_a = None
     formatted_a = 'No values'
 
   if values_b:
-    mean_b = float(sum(values_b)) / len(values_b)
+    mean_b = job_state.Mean(values_b)
     formatted_b = '%.4g' % mean_b
   else:
     mean_b = None

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import math
 import unittest
 
 from dashboard.pinpoint import test
@@ -141,3 +142,15 @@ class ScheduleWorkTest(unittest.TestCase):
     self.assertTrue(state.ScheduleWork())
     with self.assertRaisesRegexp(Exception, expected_regexp):
       self.assertFalse(state.ScheduleWork())
+
+
+class MeanTest(unittest.TestCase):
+
+  def testValidValues(self):
+    self.assertEqual(2, job_state.Mean([1, 2, 3]))
+
+  def testInvalidValues(self):
+    self.assertEqual(2, job_state.Mean([1, 2, 3, None]))
+
+  def testNoValues(self):
+    self.assertTrue(math.isnan(job_state.Mean([None])))

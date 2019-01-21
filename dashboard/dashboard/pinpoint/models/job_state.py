@@ -252,9 +252,9 @@ class JobState(object):
           any_unknowns = True
 
       # Compare result values.
-      values_a = tuple(_Mean(execution.result_values)
+      values_a = tuple(Mean(execution.result_values)
                        for execution in executions_a if execution.result_values)
-      values_b = tuple(_Mean(execution.result_values)
+      values_b = tuple(Mean(execution.result_values)
                        for execution in executions_b if execution.result_values)
       if values_a and values_b:
         if (hasattr(self, '_comparison_magnitude') and
@@ -288,7 +288,7 @@ class JobState(object):
         if attempt.completed:
           pass_fails.append(int(attempt.failed))
       if pass_fails:
-        result_values.append(_Mean(pass_fails))
+        result_values.append(Mean(pass_fails))
 
     elif self._comparison_mode == 'performance':
       for attempt in self._attempts[change]:
@@ -306,5 +306,8 @@ def _ExecutionsPerQuest(attempts):
   return executions
 
 
-def _Mean(values):
+def Mean(values):
+  values = [v for v in values if isinstance(v, (int, long, float))]
+  if len(values) == 0:
+    return float('nan')
   return float(sum(values)) / len(values)
