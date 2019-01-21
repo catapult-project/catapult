@@ -209,12 +209,7 @@ class ReadGraphJsonValue(quest.Quest):
   @classmethod
   def FromDict(cls, arguments):
     chart = arguments.get('chart')
-    if not chart:
-      raise TypeError('Missing "chart" argument.')
-
     trace = arguments.get('trace')
-    if not trace:
-      raise TypeError('Missing "trace" argument.')
 
     return cls(chart, trace)
 
@@ -234,6 +229,10 @@ class _ReadGraphJsonValueExecution(execution.Execution):
   def _Poll(self):
     graphjson = _RetrieveOutputJson(
         self._isolate_server, self._isolate_hash, 'chartjson-output.json')
+
+    if not self._chart and not self._trace:
+      self._Complete(result_values=tuple([]))
+      return
 
     if self._chart not in graphjson:
       raise ReadValueError('The chart "%s" is not in the results.' %

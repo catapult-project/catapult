@@ -10,6 +10,9 @@ from google.appengine.ext import ndb
 
 from dashboard.pinpoint.models.quest import read_value
 from tracing_build import render_histograms_viewer
+from tracing.value import gtest_json_converter
+from tracing.value.diagnostics import generic_set
+from tracing.value.diagnostics import reserved_infos
 
 
 class Results2Error(Exception):
@@ -104,16 +107,25 @@ def _FetchHistograms(job):
   for change in _ChangeList(job):
     for attempt in job.state._attempts[change]:
       for execution in attempt.executions:
-        if not isinstance(
+        if isinstance(
             execution, read_value._ReadHistogramsJsonValueExecution):
-          continue
-
-        # The histogram sets are very big. Since we have limited
-        # memory, delete the histogram sets as we go along.
-        histogram_set = _HistogramSetFromExecution(execution)
-        for histogram in histogram_set:
-          yield histogram
-        del histogram_set
+          # The histogram sets are very big. Since we have limited
+          # memory, delete the histogram sets as we go along.
+          histogram_set = _JsonFromExecution(execution)
+          for histogram in histogram_set:
+            yield histogram
+          del histogram_set
+        elif isinstance(
+            execution, read_value._ReadGraphJsonValueExecution):
+          graphjson_results = _JsonFromExecution(execution)
+          hs = gtest_json_converter.ConvertGtestJson(graphjson_results)
+          hs.AddSharedDiagnosticToAllHistograms(
+              reserved_infos.LABELS.name,
+              generic_set.GenericSet([str(change)]))
+          hs = hs.AsDicts()
+          for histogram in hs:
+            yield histogram
+          del hs
 
 
 def _ChangeList(job):
@@ -132,7 +144,7 @@ def _ChangeList(job):
   return job.state._changes
 
 
-def _HistogramSetFromExecution(execution):
+def _JsonFromExecution(execution):
   if hasattr(execution, '_isolate_server'):
     isolate_server = execution._isolate_server
   else:

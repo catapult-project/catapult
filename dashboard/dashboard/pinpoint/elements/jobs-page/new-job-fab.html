@@ -53,7 +53,7 @@ found in the LICENSE file.
           <form action="/api/new" method="POST">
             <input type="hidden" name="start_git_hash" value="HEAD">
             <input type="hidden" name="end_git_hash" value="HEAD">
-            <input type="hidden" name="target" value="[[telemetryIsolate(configuration)]]">
+            <input type="hidden" name="target" value="[[telemetryIsolate(configuration, benchmark)]]">
             <paper-input name="bug_id" label="Bug ID"></paper-input>
             <paper-input name="patch" label="Gerrit URL" required></paper-input>
             <paper-dropdown-menu name="configuration" label="Bot" horizontal-align="left" selected-item-label="{{configuration}}" required>
@@ -64,7 +64,7 @@ found in the LICENSE file.
                 </template>
               </paper-listbox>
             </paper-dropdown-menu>
-            <paper-input name="benchmark" label="Benchmark" required></paper-input>
+            <paper-input name="benchmark" label="Benchmark" value="{{benchmark::input}}" required></paper-input>
             <paper-input name="story" label="Story (optional)"></paper-input>
             <paper-input name="story_tags" label="Story Tags (optional, comma-separated)"></paper-input>
             <paper-input name="extra_test_args" label="Extra Test Arguments (optional)"></paper-input>
@@ -79,10 +79,17 @@ found in the LICENSE file.
 
   <script>
     'use strict';
+
+    const _NON_TELEMETRY_TARGETS = [
+      'base_perftests', 'angle_perftests', 'cc_perftests',
+      'gpu_perftests', 'load_library_perf_tests', 'media_perftests',
+      'net_perftests', 'tracing_perftests'];
+
     Polymer({
       is: 'new-job-fab',
 
       properties: {
+        benchmark: String,
         configuration: String,
         error: Object,
       },
@@ -104,7 +111,10 @@ found in the LICENSE file.
         this.$.try_dialog.close();
       },
 
-      telemetryIsolate(configuration) {
+      telemetryIsolate(configuration, benchmark) {
+        if (_NON_TELEMETRY_TARGETS.indexOf(benchmark) != -1) {
+          return benchmark;
+        }
         // TODO(dtu): Figure out the proper place for this lookup.
         if (configuration.toLowerCase().includes('webview')) {
           return 'performance_webview_test_suite';

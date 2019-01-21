@@ -65,14 +65,16 @@ class ReadGraphJsonValueQuestTest(unittest.TestCase):
   def testMissingChart(self):
     arguments = dict(_BASE_ARGUMENTS_GRAPH_JSON)
     del arguments['chart']
-    with self.assertRaises(TypeError):
-      read_value.ReadGraphJsonValue.FromDict(arguments)
+    quest = read_value.ReadGraphJsonValue.FromDict(arguments)
+    expected = read_value.ReadGraphJsonValue(None, 'trace_name')
+    self.assertEqual(quest, expected)
 
   def testMissingTrace(self):
     arguments = dict(_BASE_ARGUMENTS_GRAPH_JSON)
     del arguments['trace']
-    with self.assertRaises(TypeError):
-      read_value.ReadGraphJsonValue.FromDict(arguments)
+    quest = read_value.ReadGraphJsonValue.FromDict(arguments)
+    expected = read_value.ReadGraphJsonValue('chart_name', None)
+    self.assertEqual(quest, expected)
 
 
 class _ReadValueExecutionTest(unittest.TestCase):
