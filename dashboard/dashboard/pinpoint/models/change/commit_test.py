@@ -90,6 +90,56 @@ deps_os = {
     }
     self.assertEqual(Commit(0).AsDict(), expected)
 
+  def testAsDict_UtcOffsetPositive(self):
+    self.commit_info.side_effect = None
+    self.commit_info.return_value = {
+        'author': {'email': 'author@chromium.org'},
+        'commit': 'aaa7336',
+        'committer': {'time': 'Fri Jan 01 00:01:00 2016 +0000'},
+        'message': 'Subject.\n\n'
+                   'Commit message.\n'
+                   'Cr-Commit-Position: refs/heads/master@{#437745}',
+    }
+
+    expected = {
+        'repository': 'chromium',
+        'git_hash': 'commit_0',
+        'url': test.CHROMIUM_URL + '/+/aaa7336',
+        'author': 'author@chromium.org',
+        'created': '2016-01-01T00:01:00',
+        'subject': 'Subject.',
+        'message': 'Subject.\n\n'
+                   'Commit message.\n'
+                   'Cr-Commit-Position: refs/heads/master@{#437745}',
+        'commit_position': 437745,
+    }
+    self.assertEqual(Commit(0).AsDict(), expected)
+
+  def testAsDict_UtcOffsetNegative(self):
+    self.commit_info.side_effect = None
+    self.commit_info.return_value = {
+        'author': {'email': 'author@chromium.org'},
+        'commit': 'aaa7336',
+        'committer': {'time': 'Fri Jan 01 00:01:00 2016 -0000'},
+        'message': 'Subject.\n\n'
+                   'Commit message.\n'
+                   'Cr-Commit-Position: refs/heads/master@{#437745}',
+    }
+
+    expected = {
+        'repository': 'chromium',
+        'git_hash': 'commit_0',
+        'url': test.CHROMIUM_URL + '/+/aaa7336',
+        'author': 'author@chromium.org',
+        'created': '2016-01-01T00:01:00',
+        'subject': 'Subject.',
+        'message': 'Subject.\n\n'
+                   'Commit message.\n'
+                   'Cr-Commit-Position: refs/heads/master@{#437745}',
+        'commit_position': 437745,
+    }
+    self.assertEqual(Commit(0).AsDict(), expected)
+
   def testFromDepNewRepo(self):
     dep = commit.Dep('https://new/repository/url.git', 'git_hash')
     c = commit.Commit.FromDep(dep)

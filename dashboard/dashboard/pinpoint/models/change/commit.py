@@ -18,6 +18,33 @@ class NonLinearError(Exception):
 Dep = collections.namedtuple('Dep', ('repository_url', 'git_hash'))
 
 
+def ParseDateWithUTCOffset(date_string):
+  # Parsing the utc offset within strptime isn't supported until python 3, so
+  # using workaround from https://stackoverflow.com/questions/26165659/
+  if '+' in date_string:
+    utc_sign = '+'
+  elif '-' in date_string:
+    utc_sign = '-'
+  else:
+    utc_sign = None
+
+  if utc_sign:
+    date_string, utc_offset = date_string.split(utc_sign)
+    date_string = date_string.strip()
+
+  dt = datetime.datetime.strptime(
+      date_string, '%a %b %d %H:%M:%S %Y')
+
+  if utc_sign and len(utc_offset) == 4:
+    if utc_sign == '+':
+      dt -= datetime.timedelta(
+          hours=int(utc_offset[0:2]), minutes=int(utc_offset[2:]))
+    elif utc_sign == '-':
+      dt += datetime.timedelta(
+          hours=int(utc_offset[0:2]), minutes=int(utc_offset[2:]))
+  return dt
+
+
 class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
   """A git repository pinned to a particular commit."""
 
@@ -103,8 +130,9 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
           self.repository_url, self.git_hash)
       url = self.repository_url + '/+/' + commit_info['commit']
       author = commit_info['author']['email']
-      created = datetime.datetime.strptime(
-          commit_info['committer']['time'], '%a %b %d %H:%M:%S %Y')
+
+      created = ParseDateWithUTCOffset(commit_info['committer']['time'])
+
       subject = commit_info['message'].split('\n', 1)[0]
       message = commit_info['message']
 
