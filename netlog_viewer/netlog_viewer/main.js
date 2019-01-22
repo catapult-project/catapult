@@ -23,6 +23,7 @@ let CertStatusFlag = null;
 let LoadState = null;
 let AddressFamily = null;
 let DataReductionProxyBypassEventType = null;
+let DataReductionProxyBypassActionType = null;
 
 /**
  * Dictionary of all constants, used for saving log files.
