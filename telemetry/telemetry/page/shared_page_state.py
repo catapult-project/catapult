@@ -234,11 +234,15 @@ class SharedPageState(story_module.SharedState):
       while len(self.browser.tabs) > 1:
         self.browser.tabs[-1].Close()
 
+      # Don't close the last tab on android as some tests require the last tab
+      # not to be closed.
+      should_close_last_tab = self.platform.GetOSName() != 'android'
+
       # If we didn't start the browser, then there is a single tab left from the
       # previous story. The tab may have some state that may effect the next
       # story. Close it to reset the state. Tab.Close(), when there is only one
       # tab left, creates a new tab and closes the old tab.
-      if not started_browser:
+      if not started_browser and should_close_last_tab:
         self.browser.tabs[-1].Close()
 
       # Must wait for tab to commit otherwise it can commit after the next
@@ -247,7 +251,8 @@ class SharedPageState(story_module.SharedState):
       # the first navigation in a PageSet freezing indefinitely because the
       # navigation was silently canceled when |self.browser.tabs[0]| was
       # committed.
-      self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
+      if started_browser or should_close_last_tab:
+        self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
 
     # Reset traffic shaping to speed up cache temperature setup.
     self.platform.network_controller.UpdateTrafficSettings(0, 0, 0)

@@ -390,6 +390,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
   # ChromeOS), the page state is reset. The first page scrolls to the end, and
   # the second page loads the same url and checks the scroll position to ensure
   # it is at the top.
+  @decorators.Disabled('android')  # Tests behavior not applicable to android.
   def testPageResetWhenBrowserReusedBetweenStories(self):
     class NoClosingBrowserSharedState(shared_page_state.SharedPageState):
       # Simulate what ChromeOS does.
