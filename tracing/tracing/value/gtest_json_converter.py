@@ -71,7 +71,9 @@ def ConvertGtestJson(gtest_json):
           0, # meanlogs
           mean, # mean
           mean, # min
-          mean, # sum
+          2 * mean, # sum, this must be count * mean otherwise the reported mean
+                    # is incorrect after merging statistics when reserved
+                    # diagnostics are added.
           std_dev * std_dev, # variance
       ])
 

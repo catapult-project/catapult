@@ -48,8 +48,10 @@ class GtestJsonConverterUnittest(unittest.TestCase):
     # assertAlmostEqual necessary to avoid floating point precision issues.
     self.assertAlmostEqual(story1.average, 10.12345)
     self.assertAlmostEqual(story1.standard_deviation, 0.54321)
+    self.assertAlmostEqual(story1.sum, story1.num_values * story1.average)
     self.assertEqual(story2.average, 30)
     self.assertEqual(story2.standard_deviation, 0)
+    self.assertEqual(story2.sum, story2.num_values * story2.average)
     self.assertEqual(story1.unit, story2.unit)
     self.assertEqual(story1.unit, 'ms_smallerIsBetter')
 
@@ -69,9 +71,11 @@ class GtestJsonConverterUnittest(unittest.TestCase):
     self.assertAlmostEqual(story1.average, 100000 * NANO_TO_MILLISECONDS)
     self.assertAlmostEqual(story1.standard_deviation,
                            2543.543 * NANO_TO_MILLISECONDS)
+    self.assertAlmostEqual(story1.sum, story1.num_values * story1.average)
     self.assertAlmostEqual(story2.average, 12345.6789 * NANO_TO_MILLISECONDS)
     self.assertAlmostEqual(story2.standard_deviation,
                            301.2 * NANO_TO_MILLISECONDS)
+    self.assertAlmostEqual(story2.sum, story2.num_values * story2.average)
     self.assertEqual(story1.unit, story2.unit)
     self.assertEqual(story1.unit, 'msBestFitFormat_smallerIsBetter')
 
@@ -102,7 +106,9 @@ class GtestJsonConverterUnittest(unittest.TestCase):
 
     self.assertEqual(story1.average, 10)
     self.assertEqual(story1.standard_deviation, 1)
+    self.assertEqual(story1.sum, story1.num_values * story1.average)
     self.assertAlmostEqual(story2.average, 123.4)
     self.assertAlmostEqual(story2.standard_deviation, 7.89)
+    self.assertAlmostEqual(story2.sum, story2.num_values * story2.average)
     self.assertEqual(story1.unit, story2.unit)
     self.assertEqual(story1.unit, 'unitless_smallerIsBetter')
