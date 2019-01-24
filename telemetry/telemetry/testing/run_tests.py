@@ -29,8 +29,15 @@ import typ
 class RunTestsCommand(command_line.OptparseCommand):
   """Run unit tests"""
 
-  usage = ('[test_name_1 test_name_2 ...] [<options>] or '
-           '--test-filter=<test_name_1>::<test_name_2>::... [<options>]')
+  usage = (
+      '\n\n  ./run_tests [test_name_1 test_name_2 ...] [<options>]\n\n'
+      'You can get a list of potential test names by running\n\n'
+      '  ./run_tests --list-only\n\n'
+      'For a test that looks like \n'
+      '"telemetry.web_perf.timeline_based_measurement_unittest.LegacyTim'
+      'elineBasedMetricsTests.testDuplicateRepeatableInteractions",\n'
+      'You can use any substring of it, i.e.\n\n'
+      '  ./run_tests testDuplicateRepeatableInteractions\n')
   xvfb_process = None
 
   def __init__(self):
@@ -41,7 +48,7 @@ class RunTestsCommand(command_line.OptparseCommand):
   def CreateParser(cls):
     options = browser_options.BrowserFinderOptions()
     options.browser_type = 'any'
-    parser = options.CreateParser('%%prog %s' % cls.usage)
+    parser = options.CreateParser(cls.usage)
     return parser
 
   @classmethod
