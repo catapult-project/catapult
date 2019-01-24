@@ -6,6 +6,7 @@ import json
 
 from tracing.value import histogram
 from tracing.value import histogram_set
+from tracing.value import legacy_unit_info
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
@@ -97,16 +98,12 @@ def ConvertGtestJsonFile(filepath):
 
 
 def _ConvertUnit(unit):
-  # We assume that smaller is better since we don't have an actual way to
-  # determine what the improvement direction is and most or all metrics from
-  # gtest perf tests have a downward improvement direction.
+  # Try to convert the unit using the mapping from legacy_unit_info, falling
+  # back to checking the histogram units directly, and defaulting to unitless if
+  # the unit is unrecognized.
+  legacy_unit = legacy_unit_info.LEGACY_UNIT_INFO.get(unit)
+  if legacy_unit != None:
+    return legacy_unit.AsTuple()
   if unit in histogram.UNIT_NAMES:
-    return unit + '_smallerIsBetter', 1
-  # A number of existing gtest perf tests report time in units like
-  # microseconds, but histograms only support milliseconds. So, convert here if
-  # we can.
-  if unit == 'us':
-    return 'msBestFitFormat_smallerIsBetter', 0.001
-  if unit == 'ns':
-    return 'msBestFitFormat_smallerIsBetter', 0.000001
+    return unit, 1
   return 'unitless_smallerIsBetter', 1

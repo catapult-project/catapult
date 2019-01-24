@@ -30,7 +30,7 @@ tr.exportTo('tr.v', function() {
     defaultImprovementDirection: tr.b.ImprovementDirection.SMALLER_IS_BETTER,
   });
   LEGACY_UNIT_INFO.set('Hz', {
-    name: 'unitlessNumber',
+    name: 'frequencyInHertz',
     // Higher frequencies are faster.
     defaultImprovementDirection: tr.b.ImprovementDirection.BIGGER_IS_BETTER,
   });
@@ -259,8 +259,13 @@ tr.exportTo('tr.v', function() {
     defaultImprovementDirection: tr.b.ImprovementDirection.SMALLER_IS_BETTER,
   });
   LEGACY_UNIT_INFO.set('us', {
-    name: 'timeDurationInMs',
+    name: 'timeInMsAutoFormat',
     conversionFactor: 1e-3,
+    defaultImprovementDirection: tr.b.ImprovementDirection.SMALLER_IS_BETTER,
+  });
+  LEGACY_UNIT_INFO.set('ns', {
+    name: 'timeInMsAutoFormat',
+    conversionFactor: 1e-6,
     defaultImprovementDirection: tr.b.ImprovementDirection.SMALLER_IS_BETTER,
   });
 
