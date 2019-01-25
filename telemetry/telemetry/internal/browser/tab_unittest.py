@@ -3,52 +3,21 @@
 # found in the LICENSE file.
 
 import logging
-import tempfile
 import time
 
 from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.browser.web_contents import ServiceWorkerState
-from telemetry.internal.image_processing import video
 from telemetry.testing import tab_test_case
 from telemetry.timeline import model
 from telemetry.timeline import tracing_config
 from telemetry.util import image_util
-from telemetry.util import rgba_color
 
 import py_utils
 
 
 def _IsDocumentVisible(tab):
   return not tab.EvaluateJavaScript('document.hidden || document.webkitHidden')
-
-
-class FakePlatformBackend(object):
-  def __init__(self):
-    self.platform = FakePlatform()
-
-  def DidStartBrowser(self, _, _2):
-    pass
-
-  def WillCloseBrowser(self, _, _2):
-    pass
-
-
-class FakePlatform(object):
-  def __init__(self):
-    self._is_video_capture_running = False
-
-  #pylint: disable=unused-argument
-  def StartVideoCapture(self, min_bitrate_mbps):
-    self._is_video_capture_running = True
-
-  def StopVideoCapture(self):
-    self._is_video_capture_running = False
-    return video.Video(tempfile.NamedTemporaryFile())
-
-  @property
-  def is_video_capture_running(self):
-    return self._is_video_capture_running
 
 
 class TabTest(tab_test_case.TabTestCase):
@@ -103,41 +72,6 @@ class TabTest(tab_test_case.TabTestCase):
     url = self.UrlOfUnittestFile('blank.html')
     self._tab.Navigate(url)
     self.assertEquals(self._tab.url, url)
-
-  #pylint: disable=protected-access
-  def testIsVideoCaptureRunning(self):
-    original_platform_backend = self._tab.browser._platform_backend
-    try:
-      self._tab.browser._platform_backend = FakePlatformBackend()
-      self.assertFalse(self._tab.is_video_capture_running)
-      self._tab.StartVideoCapture(min_bitrate_mbps=2)
-      self.assertTrue(self._tab.is_video_capture_running)
-      self.assertIsNotNone(self._tab.StopVideoCapture())
-      self.assertFalse(self._tab.is_video_capture_running)
-    finally:
-      self._tab.browser._platform_backend = original_platform_backend
-
-  # Test failing on android: http://crbug.com/437057
-  # and mac: http://crbug.com/468675
-  @decorators.Disabled('android', 'chromeos', 'mac')
-  def testHighlight(self):
-    self.assertEquals(self._tab.url, 'about:blank')
-    config = tracing_config.TracingConfig()
-    config.chrome_trace_config.SetLowOverheadFilter()
-    config.enable_chrome_trace = True
-    self._browser.platform.tracing_controller.StartTracing(config)
-    self._tab.Highlight(rgba_color.WEB_PAGE_TEST_ORANGE)
-    self._tab.ClearHighlight(rgba_color.WEB_PAGE_TEST_ORANGE)
-    trace_data, errors = self._browser.platform.tracing_controller.StopTracing()
-    self.assertEqual(errors, [])
-    timeline_model = model.TimelineModel(trace_data)
-    renderer_thread = timeline_model.GetFirstRendererThread(self._tab.id)
-    found_video_start_event = False
-    for event in renderer_thread.async_slices:
-      if event.name == '__ClearHighlight.video_capture_start':
-        found_video_start_event = True
-        break
-    self.assertTrue(found_video_start_event)
 
   def testGetFirstRendererThread_singleTab(self):
     self.assertEqual(len(self.tabs), 1)  # We have a single tab/page.

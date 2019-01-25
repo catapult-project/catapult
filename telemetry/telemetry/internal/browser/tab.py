@@ -4,7 +4,7 @@
 
 from telemetry.internal.actions import action_runner
 from telemetry.internal.browser import web_contents
-from telemetry.internal.image_processing import video
+
 
 DEFAULT_TAB_TIMEOUT = 60
 
@@ -121,112 +121,6 @@ class Tab(web_contents.WebContents):
       exceptions.DevtoolsTargetCrashException
     """
     return self._inspector_backend.Screenshot(timeout)
-
-  @property
-  def video_capture_supported(self):
-    """True if the browser instance is capable of capturing video."""
-    return self.browser.platform.CanCaptureVideo()
-
-  def Highlight(self, color):
-    """Synchronously highlights entire tab contents with the given RgbaColor.
-
-    TODO(tonyg): It is possible that the z-index hack here might not work for
-    all pages. If this happens, DevTools also provides a method for this.
-
-    Raises:
-      exceptions.EvaluateException
-      exceptions.WebSocketDisconnected
-      exceptions.TimeoutException
-      exceptions.DevtoolsTargetCrashException
-    """
-    screen_save = 'window.__telemetry_screen_%d' % int(color)
-    self.ExecuteJavaScript(
-        """
-        (function() {
-          var screen = document.createElement('div');
-          screen.style.background = {{ color }};
-          screen.style.position = 'fixed';
-          screen.style.top = '0';
-          screen.style.left = '0';
-          screen.style.width = '100%';
-          screen.style.height = '100%';
-          screen.style.zIndex = '2147483638';
-          document.body.appendChild(screen);
-          requestAnimationFrame(function() {
-            requestAnimationFrame(function() {
-              {{ @screen_save }} = screen;
-            });
-          });
-        })();
-        """,
-        color='rgba(%d, %d, %d, %d)' % (color.r, color.g, color.b, color.a),
-        screen_save=screen_save)
-    self.WaitForJavaScriptCondition(
-        '!!{{ @screen_save }}', screen_save=screen_save, timeout=5)
-
-  def ClearHighlight(self, color):
-    """Clears a highlight of the given bitmap.RgbaColor.
-
-    Raises:
-      exceptions.EvaluateException
-      exceptions.WebSocketDisconnected
-      exceptions.TimeoutException
-      exceptions.DevtoolsTargetCrashException
-    """
-    screen_save = 'window.__telemetry_screen_%d' % int(color)
-    self.ExecuteJavaScript("""
-        (function() {
-          document.body.removeChild({{ @screen_save }});
-          requestAnimationFrame(function() {
-            requestAnimationFrame(function() {
-              {{ @screen_save }} = null;
-              console.time('__ClearHighlight.video_capture_start');
-              console.timeEnd('__ClearHighlight.video_capture_start');
-            });
-          });
-        })();
-        """, screen_save=screen_save)
-    self.WaitForJavaScriptCondition(
-        '!{{ @screen_save }}', screen_save=screen_save, timeout=5)
-
-  def StartVideoCapture(self, min_bitrate_mbps,
-                        highlight_bitmap=video.HIGHLIGHT_ORANGE_FRAME):
-    """Starts capturing video of the tab's contents.
-
-    This works by flashing the entire tab contents to a arbitrary color and then
-    starting video recording. When the frames are processed, we can look for
-    that flash as the content bounds.
-
-    Args:
-      min_bitrate_mbps: The minimum caputre bitrate in MegaBits Per Second.
-          The platform is free to deliver a higher bitrate if it can do so
-          without increasing overhead.
-
-    Raises:
-      exceptions.EvaluateException
-      exceptions.WebSocketDisconnected
-      exceptions.TimeoutException
-      exceptions.DevtoolsTargetCrashException
-      ValueError: If the required |min_bitrate_mbps| can't be achieved.
-    """
-    self.Highlight(highlight_bitmap)
-    self.browser.platform.StartVideoCapture(min_bitrate_mbps)
-    self.ClearHighlight(highlight_bitmap)
-
-  @property
-  def is_video_capture_running(self):
-    return self.browser.platform.is_video_capture_running
-
-  def StopVideoCapture(self):
-    """Stops recording video of the tab's contents.
-
-    This looks for the initial color flash in the first frame to establish the
-    tab content boundaries and then omits all frames displaying the flash.
-
-    Returns:
-      video: A video object which is a telemetry.core.Video
-    """
-    return self.browser.platform.StopVideoCapture()
 
   def GetCookieByName(self, name, timeout=DEFAULT_TAB_TIMEOUT):
     """Returns the value of the cookie by the given |name|.

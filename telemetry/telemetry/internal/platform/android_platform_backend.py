@@ -7,14 +7,12 @@ import os
 import posixpath
 import re
 import subprocess
-import tempfile
 
 from telemetry.core import android_platform
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.forwarders import android_forwarder
-from telemetry.internal.image_processing import video
 from telemetry.internal.platform import android_device
 from telemetry.internal.platform import linux_based_platform_backend
 from telemetry.internal.platform.power_monitor import android_dumpsys_power_monitor
@@ -35,7 +33,6 @@ from devil.android.perf import perf_control
 from devil.android.perf import thermal_throttle
 from devil.android.sdk import shared_prefs
 from devil.android.tools import provision_devices
-from devil.android.tools import video_recorder
 
 try:
   # devil.android.forwarder uses fcntl, which doesn't exist on Windows.
@@ -95,7 +92,6 @@ class AndroidPlatformBackend(
             android_fuelgauge_power_monitor.FuelGaugePowerMonitor(
                 self._battery),
         ], self._battery))
-    self._video_recorder = None
     self._system_ui = None
 
     _FixPossibleAdbInstability()
@@ -374,35 +370,6 @@ class AndroidPlatformBackend(
 
   def InstallApplication(self, application):
     self._device.Install(application)
-
-  @decorators.Cache
-  def CanCaptureVideo(self):
-    return self.GetOSVersionName() >= 'K'
-
-  def StartVideoCapture(self, min_bitrate_mbps):
-    """Starts the video capture at specified bitrate."""
-    min_bitrate_mbps = max(min_bitrate_mbps, 0.1)
-    if min_bitrate_mbps > 100:
-      raise ValueError('Android video capture cannot capture at %dmbps. '
-                       'Max capture rate is 100mbps.' % min_bitrate_mbps)
-    if self.is_video_capture_running:
-      self._video_recorder.Stop()
-    self._video_recorder = video_recorder.VideoRecorder(
-        self._device, megabits_per_second=min_bitrate_mbps)
-    self._video_recorder.Start(timeout=5)
-
-  @property
-  def is_video_capture_running(self):
-    return self._video_recorder is not None
-
-  def StopVideoCapture(self):
-    assert self.is_video_capture_running, 'Must start video capture first'
-    self._video_recorder.Stop()
-    video_file_obj = tempfile.NamedTemporaryFile()
-    self._video_recorder.Pull(video_file_obj.name)
-    self._video_recorder = None
-
-    return video.Video(video_file_obj)
 
   def CanMonitorPower(self):
     return self._power_monitor.CanMonitorPower()

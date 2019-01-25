@@ -243,33 +243,6 @@ class Platform(object):
     """Installs the given application."""
     return self._platform_backend.InstallApplication(application)
 
-  def CanCaptureVideo(self):
-    """Returns a bool indicating whether the platform supports video capture."""
-    return self._platform_backend.CanCaptureVideo()
-
-  def StartVideoCapture(self, min_bitrate_mbps):
-    """Starts capturing video.
-
-    Outer framing may be included (from the OS, browser window, and webcam).
-
-    Args:
-      min_bitrate_mbps: The minimum capture bitrate in MegaBits Per Second.
-          The platform is free to deliver a higher bitrate if it can do so
-          without increasing overhead.
-
-    Raises:
-      ValueError if the required |min_bitrate_mbps| can't be achieved.
-    """
-    return self._platform_backend.StartVideoCapture(min_bitrate_mbps)
-
-  def StopVideoCapture(self):
-    """Stops capturing video.
-
-    Returns:
-      A telemetry.core.video.Video object.
-    """
-    return self._platform_backend.StopVideoCapture()
-
   def CanMonitorPower(self):
     """Returns True iff power can be monitored asynchronously via
     StartMonitoringPower() and StopMonitoringPower().
