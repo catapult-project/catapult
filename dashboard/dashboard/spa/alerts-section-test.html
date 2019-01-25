@@ -138,7 +138,7 @@ suite('alerts-section', function() {
 
     let newBugBody;
     window.fetch = async(url, options) => {
-      assert.strictEqual(url, '/api/alerts/new_bug');
+      assert.strictEqual(url, '/api/new_bug');
       newBugBody = options.body;
       return {
         async json() {

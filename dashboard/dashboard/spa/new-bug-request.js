@@ -21,7 +21,7 @@ tr.exportTo('cp', () => {
     }
 
     get url_() {
-      return '/api/alerts/new_bug';
+      return '/api/new_bug';
     }
 
     postProcess_(json) {
