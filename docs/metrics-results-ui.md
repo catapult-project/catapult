@@ -314,6 +314,17 @@ std will be displayed in the reference column.
 ![Select a summary statistic.
 ](/docs/images/metrics-results-ui-summary-statistic-selector.png)
 
+Among these statistics, percentiles, interpercentile ranges and confidence
+intervals are listed as pct_XXX, ipr_XXX_YYY and CI_XXX_[lower/upper].
+value of XXX can be between 000 to 100 which covers range of 0.00 to 1.00.
+  * pct_XXX: The sample value at X.XX percentile (e.g. pct_095 for 0.95
+  percentile).
+  * ipr_XXX_YYY: The inter percentile range between X.XX and Y.YY percentile.
+  * CI_XXX_lower: The lower bound of X.XX confidence interval of mean.
+  * CI_XXX_upper: The upper bound of X.XX confidence interval of mean.
+  * CI_XXX: The difference between the upper bound and lower bound of X.XX
+  confidence interval.
+
 ### The Download CSV Button
 
 Clicking this button downloads a CSV file that can be imported into a

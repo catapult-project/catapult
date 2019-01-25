@@ -25,6 +25,8 @@ tr.exportTo('tr.v', function() {
 
   const DEFAULT_BOUNDARIES_FOR_UNIT = new Map();
 
+  const DEFAULT_ITERATION_FOR_BOOTSTRAP_RESAMPLING = 500;
+
   const DELTA = String.fromCharCode(916);
   const Z_SCORE_NAME = 'z-score';
   const P_VALUE_NAME = 'p-value';
@@ -179,9 +181,11 @@ tr.exportTo('tr.v', function() {
       this.numNans = 0;
       this.running_ = undefined;
       this.sampleValues_ = [];
+      this.sampleMeans_ = [];
       this.summaryOptions = new Map(DEFAULT_SUMMARY_OPTIONS);
       this.summaryOptions.set('percentile', []);
       this.summaryOptions.set('iprs', []);
+      this.summaryOptions.set('ci', []);
       this.unit = unit;
     }
 
@@ -455,6 +459,7 @@ tr.exportTo('tr.v', function() {
         if (this.running_ === undefined) {
           this.running_ = new tr.b.math.RunningStatistics();
         }
+        this.sampleMeans_ = [];
         this.running_.add(value);
 
         value = this.unit.truncate(value);
@@ -475,6 +480,37 @@ tr.exportTo('tr.v', function() {
 
       tr.b.math.Statistics.uniformlySampleStream(this.sampleValues_,
           this.numValues + this.numNans, value, this.maxNumSampleValues);
+    }
+
+    resampleMean_(percent) {
+      const filteredSamples = this.sampleValues_.
+          filter(value => typeof(value) === 'number' && !isNaN(value));
+      const sampleCount = filteredSamples.length;
+      if (sampleCount === 0 || percent <= 0.0 || percent >= 1.0) {
+        return [undefined, undefined];
+      } else if (sampleCount === 1) {
+        return [filteredSamples[0], filteredSamples[0]];
+      }
+
+      const iterations = DEFAULT_ITERATION_FOR_BOOTSTRAP_RESAMPLING;
+      if (this.sampleMeans_.length !== iterations) {
+        this.sampleMeans_ = [];
+        for (let i = 0; i < iterations; i++) {
+          let tempSum = 0.0;
+          for (let j = 0; j < sampleCount; j++) {
+            tempSum += filteredSamples[Math.floor(
+                Math.random() * sampleCount)];
+          }
+
+          this.sampleMeans_.push(tempSum / sampleCount);
+        }
+        this.sampleMeans_.sort((a, b) => a - b);
+      }
+
+      return [
+        this.sampleMeans_[Math.floor((iterations - 1) * (0.5 - percent / 2))],
+        this.sampleMeans_[Math.ceil((iterations - 1) * (0.5 + percent / 2))],
+      ];
     }
 
     sampleValuesInto(samples) {
@@ -583,6 +619,7 @@ tr.exportTo('tr.v', function() {
         this.running_ = this.running_.merge(other.running_);
       }
 
+      this.sampleMeans_ = [];
       this.diagnostics.addDiagnostics(other.diagnostics);
 
       for (const [stat, option] of other.summaryOptions) {
@@ -600,6 +637,11 @@ tr.exportTo('tr.v', function() {
               if (found) break;
             }
             if (!found) thisIprs.push(ipr);
+          }
+        } else if (stat === 'ci') {
+          const CIs = this.summaryOptions.get(stat);
+          for (const CI of option) {
+            if (!CIs.includes(CI)) CIs.push(CI);
           }
         } else if (option && !this.summaryOptions.get(stat)) {
           this.summaryOptions.set(stat, true);
@@ -623,6 +665,7 @@ tr.exportTo('tr.v', function() {
      * @param {!Array.<number>=} summaryOptions.percentile Numbers in (0,1)
      * @param {!Array.<!tr.b.Range>=} summaryOptions.iprs Ranges of numbers in
      *     (0,1).
+     * @param {!Array.<number>=} summaryOptions.ci Numbers in (0,1)
      */
     customizeSummaryOptions(summaryOptions) {
       for (const [key, value] of Object.entries(summaryOptions)) {
@@ -672,6 +715,22 @@ tr.exportTo('tr.v', function() {
         const percentile = this.getApproximatePercentile(percent);
         if (typeof(percentile) !== 'number') return undefined;
         return new tr.b.Scalar(this.unit, percentile);
+      }
+      if (statName.substr(0, 3) === 'ci_') {
+        const percent = percentFromString(statName.substr(3, 3));
+        const [lowCI, highCI] = this.resampleMean_(percent);
+        if (statName.substr(7) === 'lower') {
+          if (typeof(lowCI) !== 'number') return undefined;
+          return new tr.b.Scalar(this.unit, lowCI);
+        } else if (statName.substr(7) === 'upper') {
+          if (typeof(highCI) !== 'number') return undefined;
+          return new tr.b.Scalar(this.unit, highCI);
+        }
+
+        if (typeof(highCI) !== 'number' || typeof(lowCI) !== 'number') {
+          return undefined;
+        }
+        return new tr.b.Scalar(this.unit, highCI - lowCI);
       }
       if (statName.substr(0, 4) === 'ipr_') {
         let lower = percentFromString(statName.substr(4, 3));
@@ -746,6 +805,13 @@ tr.exportTo('tr.v', function() {
             statisticsNames.add(
                 'ipr_' + tr.v.percentToString(range.min, true) +
                 '_' + tr.v.percentToString(range.max, true));
+          }
+        } else if (statName === 'ci') {
+          for (const CIpctile of option) {
+            const CIpctStr = tr.v.percentToString(CIpctile);
+            statisticsNames.add('ci_' + CIpctStr + '_lower');
+            statisticsNames.add('ci_' + CIpctStr + '_upper');
+            statisticsNames.add('ci_' + CIpctStr);
           }
         } else if (option) {
           statisticsNames.add(statName);
@@ -842,7 +908,7 @@ tr.exportTo('tr.v', function() {
       const hist = new Histogram(this.name, this.unit, binBoundaries);
       for (const [stat, option] of this.summaryOptions) {
         // Copy arrays, but not ipr Ranges.
-        if (stat === 'percentile' || stat === 'iprs') {
+        if (stat === 'percentile' || stat === 'iprs' || stat === 'ci') {
           hist.summaryOptions.set(stat, Array.from(option));
         } else {
           hist.summaryOptions.set(stat, option);
@@ -874,7 +940,7 @@ tr.exportTo('tr.v', function() {
       }
       for (const [stat, option] of this.summaryOptions) {
         // Copy the array of percentiles.
-        if (stat === 'percentile') {
+        if (stat === 'percentile' || stat === 'ci') {
           rebinned.summaryOptions.set(stat, Array.from(option));
         } else {
           rebinned.summaryOptions.set(stat, option);
@@ -925,6 +991,9 @@ tr.exportTo('tr.v', function() {
           // Use a more compact JSON format than Range supports.
           if (value.length === 0) continue;
           option = value.map(r => [r.min, r.max]);
+        } else if (name === 'ci') {
+          if (value.length === 0) continue;
+          option = Array.from(value);
         } else if (value === DEFAULT_SUMMARY_OPTIONS.get(name)) {
           continue;
         } else {

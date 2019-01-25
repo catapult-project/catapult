@@ -578,7 +578,8 @@ tr.b.unittest.testSuite(function() {
       std: true,
       nans: true,
       geometricMean: true,
-      percentile: [0.5, 1]
+      percentile: [0.5, 1],
+      ci: [0.01, 0.95]
     });
 
     // Test round-tripping summaryOptions.
@@ -606,6 +607,12 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(stats.get('pct_100').value, 70, 1);
     assert.strictEqual(stats.get('geometricMean').unit, hist.unit);
     assert.closeTo(stats.get('geometricMean').value, 59.439, 1e-3);
+    assert(stats.get('ci_095_lower').value < stats.get('avg').value);
+    assert(stats.get('ci_095_upper').value > stats.get('avg').value);
+    assert.strictEqual(stats.get('ci_095').value,
+        stats.get('ci_095_upper').value - stats.get('ci_095_lower').value);
+    assert.strictEqual(stats.get('ci_001_lower').value, stats.get('avg').value);
+    assert.strictEqual(stats.get('ci_001_upper').value, stats.get('avg').value);
   });
 
   test('statisticsScalarsNoSummaryOptions', function() {
@@ -623,7 +630,8 @@ tr.b.unittest.testSuite(function() {
       sum: false,
       avg: false,
       std: false,
-      percentile: []
+      percentile: [],
+      ci: []
     });
 
     assert.strictEqual(hist.statisticsScalars.size, 0);
@@ -639,7 +647,8 @@ tr.b.unittest.testSuite(function() {
       sum: true,
       avg: true,
       std: true,
-      percentile: [0, 0.01, 0.1, 0.5, 0.995, 1]
+      percentile: [0, 0.01, 0.1, 0.5, 0.995, 1],
+      ci: [0.1, 0.8]
     });
 
     const stats = hist.statisticsScalars;
@@ -655,6 +664,12 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(stats.get('pct_050'));
     assert.isUndefined(stats.get('pct_099_5'));
     assert.isUndefined(stats.get('pct_100'));
+    assert.isUndefined(stats.get('ci_010_lower'));
+    assert.isUndefined(stats.get('ci_010_upper'));
+    assert.isUndefined(stats.get('ci_010'));
+    assert.isUndefined(stats.get('ci_080_lower'));
+    assert.isUndefined(stats.get('ci_080_upper'));
+    assert.isUndefined(stats.get('ci_080'));
   });
 
   test('sampleValues', function() {
