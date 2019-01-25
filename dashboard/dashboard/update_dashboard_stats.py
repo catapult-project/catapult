@@ -87,8 +87,11 @@ def _CreateHistogramSet(
   return histograms
 
 
-def _CreateHistogram(name, unit, story=None):
+def _CreateHistogram(name, unit, story=None, summary_options=None):
   h = histogram_module.Histogram(name, unit)
+  if summary_options:
+    h.CustomizeSummaryOptions(summary_options)
+
   if story:
     h.diagnostics[reserved_infos.STORIES.name] = (
         generic_set.GenericSet([story]))
@@ -140,6 +143,117 @@ def _FetchStatsForJob(job, commit_time):
       time_from_job_to_culprit))
 
 
+@ndb.tasklet
+def _FetchPerformancePinpointJobs(start_date, end_date):
+  query = job_module.Job.query().order(-job_module.Job.updated)
+  jobs, next_cursor, more = yield query.fetch_page_async(_MAX_JOBS_TO_FETCH)
+
+  def _IsValidJob(job):
+    if not job.completed:
+      return False
+    if job.comparison_mode != job_state.PERFORMANCE:
+      return False
+    return job.updated > start_date and job.updated <= end_date
+
+  oldest_job = None
+  if jobs:
+    oldest_job = jobs[-1].updated
+  total_jobs = [j for j in jobs if _IsValidJob(j)]
+
+  # We'll search back up to a week for a job that ended between the range
+  # specified.
+  while (oldest_job and oldest_job >= start_date) and more:
+    jobs, next_cursor, more = yield query.fetch_page_async(
+        _MAX_JOBS_TO_FETCH, start_cursor=next_cursor)
+
+    total_jobs.extend([j for j in jobs if _IsValidJob(j)])
+
+    oldest_job = None
+    if jobs:
+      oldest_job = jobs[-1].updated
+
+  raise ndb.Return(total_jobs)
+
+
+@ndb.tasklet
+def _ProcessPinpointStats(offset=0):
+  end_date = datetime.datetime.now() - datetime.timedelta(days=offset)
+  start_date = end_date - datetime.timedelta(days=1)
+  commit_pos = int(time.mktime(end_date.timetuple()))
+
+  completed_jobs = yield _FetchPerformancePinpointJobs(start_date, end_date)
+
+  jobs_by_bot = collections.defaultdict(
+      lambda: collections.defaultdict(
+          lambda: {'pass': 0, 'fail': 0, 'norepro': 0, 'total': 0}))
+
+  for j in completed_jobs:
+    bot = j.arguments.get('configuration')
+    benchmark = j.arguments.get('benchmark')
+
+    if j.failed:
+      jobs_by_bot[bot][benchmark]['fail'] += 1
+    else:
+      if j.difference_count == 0:
+        jobs_by_bot[bot][benchmark]['norepro'] += 1
+      else:
+        jobs_by_bot[bot][benchmark]['pass'] += 1
+    jobs_by_bot[bot][benchmark]['total'] += 1
+
+  default_opts = {
+      'avg': True,
+      'std': False,
+      'count': False,
+      'max': False,
+      'min': False,
+      'sum': True
+  }
+
+  avg_opts = {
+      'avg': True,
+      'std': False,
+      'count': False,
+      'max': False,
+      'min': False,
+      'sum': False
+  }
+
+  def _UnitType(k):
+    unit = 'count_biggerIsBetter'
+    if k in ['fail', 'norepro']:
+      unit = 'count_smallerIsBetter'
+    return unit
+
+  for bot, benchmark_dict in jobs_by_bot.iteritems():
+    hists = []
+
+    summaries = {'total': 0, 'norepro': 0, 'fail': 0, 'pass': 0}
+
+    for benchmark, values in benchmark_dict.iteritems():
+      for k, v in values.iteritems():
+        h = _CreateHistogram(
+            k, _UnitType(k), story=benchmark, summary_options=default_opts)
+        h.AddSample(v)
+        hists.append(h)
+        summaries[k] += v
+
+    for k, v in summaries.iteritems():
+      h = _CreateHistogram(k, _UnitType(k), summary_options=default_opts)
+      h.AddSample(v)
+      hists.append(h)
+
+      if summaries['total'] > 0 and k != 'total':
+        h = _CreateHistogram(
+            k + '.normalized', _UnitType(k), summary_options=avg_opts)
+        h.AddSample(v/float(summaries['total']))
+        hists.append(h)
+
+    hs = _CreateHistogramSet(
+        'ChromiumPerfFyi', bot, 'pinpoint.success', commit_pos, hists)
+    deferred.defer(
+        add_histograms.ProcessHistogramSet, hs.AsDicts())
+
+
 @ndb.synctasklet
 def _FetchDashboardStats():
   process_alerts_future = _ProcessAlerts()
@@ -148,6 +262,7 @@ def _FetchDashboardStats():
       datetime.datetime.now() - datetime.timedelta(days=14))
 
   yield [
+      _ProcessPinpointStats(),
       _ProcessPinpointJobs(completed_jobs),
       process_alerts_future]
 
