@@ -133,3 +133,7 @@ class Oobe(web_contents.WebContents):
     self._GaiaWebviewContext().WaitForJavaScriptCondition(
         "document.getElementById({{ field }}) != null",
         field=field, timeout=20)
+
+  def SetUpOnlineDemoMode(self):
+    """Starts online demo mode setup."""
+    self._ExecuteOobeApi('Oobe.setUpOnlineDemoModeForTesting')
