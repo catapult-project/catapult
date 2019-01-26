@@ -45,7 +45,7 @@ class FakePossibleBrowser(object):
 
 
 class BrowserIntervalProfilingControllerTest(unittest.TestCase):
-  def testSupportedAndroid(self):
+  def testSupportedAndroidWithValidSamplePeriod(self):
     possible_browser = FakePossibleBrowser(
         FakeAndroidPlatformBackend(version_codes.OREO))
     profiling_mod = browser_interval_profiling_controller
@@ -66,6 +66,11 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
       self.assertEqual(
           controller._platform_controller.SamplePeriod.call_count, 2)
 
+  def testSupportedAndroidWithInvalidSamplePeriod(self):
+    possible_browser = FakePossibleBrowser(
+        FakeAndroidPlatformBackend(version_codes.OREO))
+    profiling_mod = browser_interval_profiling_controller
+
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
@@ -78,7 +83,7 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
       self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
       self.assertIs(controller._platform_controller, None)
 
-  def testUnsupportedAndroid(self):
+  def testUnsupportedAndroidWithValidSamplePeriod(self):
     possible_browser = FakePossibleBrowser(
         FakeAndroidPlatformBackend(version_codes.KITKAT))
     profiling_mod = browser_interval_profiling_controller
@@ -95,6 +100,11 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
       self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
       self.assertIs(controller._platform_controller, None)
 
+  def testUnsupportedAndroidWithInvalidSamplePeriod(self):
+    possible_browser = FakePossibleBrowser(
+        FakeAndroidPlatformBackend(version_codes.KITKAT))
+    profiling_mod = browser_interval_profiling_controller
+
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
@@ -107,9 +117,10 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
       self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
       self.assertIs(controller._platform_controller, None)
 
-  def testSupportedDesktop(self):
+  def testLinuxWithValidAndInvalidSamplePeriods(self):
     possible_browser = FakePossibleBrowser(FakeLinuxPlatformBackend())
     profiling_mod = browser_interval_profiling_controller
+
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
@@ -127,6 +138,11 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
       # constructor.
       self.assertEqual(
           controller._platform_controller.SamplePeriod.call_count, 1)
+
+  def testLinuxWithInvalidSamplePeriod(self):
+    possible_browser = FakePossibleBrowser(FakeLinuxPlatformBackend())
+    profiling_mod = browser_interval_profiling_controller
+
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
@@ -139,9 +155,10 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
       self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
       self.assertIs(controller._platform_controller, None)
 
-  def testUnsupportedDesktop(self):
+  def testUnsupportedPlatformWithValidSamplePeriod(self):
     possible_browser = FakePossibleBrowser(FakeWindowsPlatformBackend())
     profiling_mod = browser_interval_profiling_controller
+
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
@@ -153,6 +170,11 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
       self.assertEqual(mock_classes['_AndroidController'].call_count, 0)
       self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
       self.assertIs(controller._platform_controller, None)
+
+  def testUnsupportedPlatformWithInvalidSamplePeriod(self):
+    possible_browser = FakePossibleBrowser(FakeWindowsPlatformBackend())
+    profiling_mod = browser_interval_profiling_controller
+
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
