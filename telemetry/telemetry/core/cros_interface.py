@@ -68,6 +68,26 @@ def GetAllCmdOutput(args, cwd=None, quiet=False):
     return stdout, stderr
 
 
+def StartCmd(args, cwd=None, quiet=False):
+  """Starts a subprocess to execute a program and returns its handle.
+
+  Args:
+    args: A string or a sequence of program arguments. The program to execute is
+      the string or the first item in the args sequence.
+    cwd: If not None, the subprocess's current directory will be changed to
+      |cwd| before it's executed.
+
+  Returns:
+     An instance of subprocess.Popen associated with the live process.
+  """
+  if not quiet:
+    logging.debug(' '.join(args) + ' ' + (cwd or ''))
+  return subprocess.Popen(args=args,
+                          cwd=cwd,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE)
+
+
 def HasSSH():
   try:
     RunCmd(['ssh'], quiet=True)
@@ -229,12 +249,18 @@ class CrOSInterface(object):
   def RunCmdOnDevice(self, args, cwd=None, quiet=False, connect_timeout=None):
     stdout, stderr = GetAllCmdOutput(
         self.FormSSHCommandLine(args, connect_timeout=connect_timeout),
-        cwd,
+        cwd=cwd,
         quiet=quiet)
     # The initial login will add the host to the hosts file but will also print
     # a warning to stderr that we need to remove.
     stderr = self._RemoveSSHWarnings(stderr)
     return stdout, stderr
+
+  def StartCmdOnDevice(self, args, cwd=None, quiet=False, connect_timeout=None):
+    return StartCmd(
+        self.FormSSHCommandLine(args, connect_timeout=connect_timeout),
+        cwd=cwd,
+        quiet=quiet)
 
   def TryLogin(self):
     logging.debug('TryLogin()')
@@ -309,10 +335,10 @@ class CrOSInterface(object):
       self.PushFile(f.name, remote_filename)
 
   def GetFile(self, filename, destfile=None):
-    """Copies a local file |filename| to |destfile| on the device.
+    """Copies a remote file |filename| on the device to a local file |destfile|.
 
     Args:
-      filename: The name of the local source file.
+      filename: The name of the remote source file.
       destfile: The name of the file to copy to, and if it is not specified
         then it is the basename of the source file.
 

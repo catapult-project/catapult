@@ -72,11 +72,22 @@ class CrosPlatformBackend(
                     (str(args), stderr))
     return stdout
 
+  def StartCommand(self, args, cwd=None, quiet=False, connect_timeout=None):
+    if not isinstance(args, list):
+      args = [args]
+    return self._cri.StartCmdOnDevice(args, cwd, quiet, connect_timeout)
+
+  def GetFile(self, filename, destfile=None):
+    return self._cri.GetFile(filename, destfile)
+
   def GetFileContents(self, filename):
     try:
       return self.RunCommand(['cat', filename])
     except AssertionError:
       return ''
+
+  def PushContents(self, text, remote_filename):
+    return self._cri.PushContents(text, remote_filename)
 
   def GetPsOutput(self, columns, pid=None):
     return ps_util.GetPsOutputWithPlatformBackend(self, columns, pid)

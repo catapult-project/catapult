@@ -160,6 +160,20 @@ class CrOSInterfaceTest(unittest.TestCase):
       assert stdout.strip() == "--arg=$HOME;;$PATH"
 
   @decorators.Enabled('chromeos')
+  def testStartCmdOnDevice(self):
+    options = options_for_unittests.GetCopy()
+    with cros_interface.CrOSInterface(options.cros_remote,
+                                      options.cros_remote_ssh_port,
+                                      options.cros_ssh_identity) as cri:
+      p = cri.StartCmdOnDevice(['true'])
+      p.wait()
+      self.assertEqual(p.returncode, 0)
+
+      p = cri.StartCmdOnDevice(['false'])
+      p.wait()
+      self.assertEqual(p.returncode, 1)
+
+  @decorators.Enabled('chromeos')
   @mock.patch.object(cros_interface.CrOSInterface, 'RunCmdOnDevice')
   def testTryLoginSuccess(self, mock_run_cmd):
     mock_run_cmd.return_value = ('root\n', '')
