@@ -8,6 +8,7 @@ import re
 import zipfile
 
 from devil import base_error
+from devil.android.ndk import abis
 from devil.android.sdk import aapt
 
 
@@ -257,10 +258,10 @@ class ApkHelper(object):
       if len(path_tokens) >= 2 and path_tokens[0] == 'lib':
         libs.add(path_tokens[1])
     lib_to_abi = {
-        'armeabi-v7a': ['armeabi-v7a', 'arm64-v8a'],
-        'arm64-v8a': ['arm64-v8a'],
-        'x86': ['x86', 'x64'],
-        'x64': ['x64']
+        abis.ARM: [abis.ARM, abis.ARM_64],
+        abis.ARM_64: [abis.ARM_64],
+        abis.X86: [abis.X86, abis.X86_64],
+        abis.X86_64: [abis.X86_64]
     }
     try:
       output = set()
