@@ -10,7 +10,6 @@ import unittest
 from devil import base_error
 from devil import devil_env
 from devil.android import apk_helper
-from devil.android.ndk import abis
 from devil.utils import mock_calls
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
@@ -230,8 +229,8 @@ class ApkHelperTest(mock_calls.TestCase):
 
   def testGetArchitectures(self):
     AbiPair = collections.namedtuple('AbiPair', ['abi32bit', 'abi64bit'])
-    for abi_pair in [AbiPair('lib/' + abis.ARM, 'lib/' + abis.ARM_64),
-                     AbiPair('lib/' + abis.X86, 'lib/' + abis.X86_64)]:
+    for abi_pair in [AbiPair('lib/armeabi-v7a', 'lib/arm64-v8a'),
+                     AbiPair('lib/x86', 'lib/x64')]:
       with _MockListApkPaths([abi_pair.abi32bit]):
         helper = apk_helper.ApkHelper('')
         self.assertEquals(set([os.path.basename(abi_pair.abi32bit),

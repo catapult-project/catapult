@@ -2310,11 +2310,7 @@ class DeviceUtils(object):
 
   @property
   def product_cpu_abi(self):
-    """Returns the product cpu abi of the device (e.g. 'armeabi-v7a').
-
-    For supported ABIs, the return value will be one of the values defined in
-    devil.android.ndk.abis.
-    """
+    """Returns the product cpu abi of the device (e.g. 'armeabi-v7a')."""
     return self.GetProp('ro.product.cpu.abi', cache=True)
 
   @property
@@ -2440,8 +2436,7 @@ class DeviceUtils(object):
       retries: number of retries
 
     Returns:
-      The device's main ABI name. For supported ABIs, the return value will be
-      one of the values defined in devil.android.ndk.abis.
+      The device's main ABI name.
 
     Raises:
       CommandTimeoutError on timeout.
@@ -2940,7 +2935,7 @@ class DeviceUtils(object):
           the last attempt if there are no available devices. It will only reset
           those that appear to be android devices.
       abis: A list of ABIs for which the device needs to support at least one of
-          (optional). See devil.android.ndk.abis for valid values.
+          (optional).
       A device serial, or a list of device serials (optional).
 
     Returns:
