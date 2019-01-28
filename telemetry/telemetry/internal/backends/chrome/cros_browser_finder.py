@@ -86,10 +86,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     for extension in self._browser_options.extensions_to_load:
       self._platform_backend.cri.RmRF(posixpath.dirname(extension.local_path))
 
-  def Create(self, clear_caches=False):
-    # TODO(crbug.com/811244): Remove when callers no longer use this option.
-    assert not clear_caches, 'Option no longer supported, see: crbug.com/811244'
-
+  def Create(self):
     startup_args = self.GetBrowserStartupArgs(self._browser_options)
 
     browser_backend = cros_browser_backend.CrOSBrowserBackend(

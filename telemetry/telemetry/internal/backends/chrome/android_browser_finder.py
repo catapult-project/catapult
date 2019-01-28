@@ -207,11 +207,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       finally:
         self._flag_changer = None
 
-  def Create(self, clear_caches=False):
+  def Create(self):
     """Launch the browser on the device and return a Browser object."""
-    # TODO(crbug.com/811244): Remove when callers no longer use this option.
-    assert not clear_caches, 'Option no longer supported, see: crbug.com/811244'
-
     return self._GetBrowserInstance(existing=False)
 
   def FindExistingBrowser(self):
