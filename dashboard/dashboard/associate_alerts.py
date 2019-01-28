@@ -124,10 +124,7 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
         })
         return
 
-    for a in alert_entities:
-      a.bug_id = bug_id
-
-    ndb.put_multi(alert_entities)
+    AssociateAlerts(bug_id, alert_entities)
 
     self.RenderHtml('bug_result.html', {'bug_id': bug_id})
 
@@ -172,6 +169,12 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
         'message': message,
         'parameters': parameters or {}
     })
+
+
+def AssociateAlerts(bug_id, alerts):
+  for a in alerts:
+    a.bug_id = bug_id
+  ndb.put_multi(alerts)
 
 
 def _RevisionRangeFromSummary(summary):

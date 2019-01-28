@@ -79,6 +79,11 @@ Permitted sheriffs can file new bugs for alerts by posting to `/api/new_bug`. It
 accepts `owner`, `cc`, `summary`, `description`, zero or more `label`, zero or
 more `component`, zero or more alert `key`. It returns json `{bug_id, error}`.
 
+## Assign Alerts to Existing Bug
+
+Permitted sheriffs can assign alerts to an existing bug by posting to
+`/api/existing_bug`. It accepts `bug` and one or more `key`.
+
 ## Bugs
 
 For internal users only, the bugs API gives data about bugs so that it can
