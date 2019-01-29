@@ -253,6 +253,32 @@ def _ProcessPinpointStats(offset=0):
     deferred.defer(
         add_histograms.ProcessHistogramSet, hs.AsDicts())
 
+  # Create one "uber" bot to contain all benchmarks results, just for ease of
+  # use.
+  summaries = {'total': 0, 'norepro': 0, 'fail': 0, 'pass': 0}
+  hists = []
+
+  for bot, benchmark_dict in jobs_by_bot.iteritems():
+    for benchmark, values in benchmark_dict.iteritems():
+      for k, v in values.iteritems():
+        summaries[k] += v
+
+  for k, v in summaries.iteritems():
+    h = _CreateHistogram(k, _UnitType(k), summary_options=default_opts)
+    h.AddSample(v)
+    hists.append(h)
+
+    if summaries['total'] > 0 and k != 'total':
+      h = _CreateHistogram(
+          k + '.normalized', _UnitType(k), summary_options=avg_opts)
+      h.AddSample(v/float(summaries['total']))
+      hists.append(h)
+
+  hs = _CreateHistogramSet(
+      'ChromiumPerfFyi.all', 'all', 'pinpoint.success', commit_pos, hists)
+  deferred.defer(
+      add_histograms.ProcessHistogramSet, hs.AsDicts())
+
 
 @ndb.synctasklet
 def _FetchDashboardStats():

@@ -104,6 +104,9 @@ class UpdateDashboardStatsTest(test.TestCase):
       update_dashboard_stats, '_ProcessPinpointJobs',
       mock.MagicMock(side_effect=_FakeTasklet))
   @mock.patch.object(
+      update_dashboard_stats, '_ProcessPinpointStats',
+      mock.MagicMock(side_effect=_FakeTasklet))
+  @mock.patch.object(
       update_dashboard_stats.deferred, 'defer')
   def testPost_ProcessAlerts_NoAlerts(self, mock_defer):
     created = datetime.datetime.now() - datetime.timedelta(days=2)
