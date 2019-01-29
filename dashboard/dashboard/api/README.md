@@ -90,6 +90,8 @@ For internal users only, the bugs API gives data about bugs so that it can
 easily be lined up with alerts. URL pattern for accessing bugs:
 
  * `/api/bugs/id`: Get all the information about bug `id`.
+ * `/api/bugs/recent`: Get an array of performance regression bugs created in
+   the last 5 days.
 
 The bugs API returns the following JSON about the bug:
 

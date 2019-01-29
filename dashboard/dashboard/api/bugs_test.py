@@ -19,6 +19,25 @@ class MockIssueTrackerService(object):
     pass
 
   @classmethod
+  def List(cls, *unused_args, **unused_kwargs):
+    return {'items': [
+        {
+            'id': 12345,
+            'summary': '5% regression in bot/suite/x at 10000:20000',
+            'state': 'open',
+            'status': 'New',
+            'author': {'name': 'exam...@google.com'},
+        },
+        {
+            'id': 13579,
+            'summary': '1% regression in bot/suite/y at 10000:20000',
+            'state': 'closed',
+            'status': 'WontFix',
+            'author': {'name': 'exam...@google.com'},
+        },
+    ]}
+
+  @classmethod
   def GetIssue(cls, _):
     return {
         'cc': [
@@ -145,6 +164,11 @@ class BugsTest(testing_common.TestCase):
     bug = self.GetJsonValue(response, 'bug')
     self.assertNotIn('comments', bug)
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  def testPost_Recent(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
+    self.assertEqual(MockIssueTrackerService.List()['items'], self.GetJsonValue(
+        self.Post('/api/bugs/recent'), 'bugs'))
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   def testPost_WithInvalidBugIdParameter_ShowsError(self):

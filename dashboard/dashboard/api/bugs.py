@@ -21,7 +21,7 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
     if not datastore_hooks.IsUnalteredQueryPermitted():
       raise api_request_handler.ForbiddenError()
 
-  def Post(self, *args):
+  def Post(self, bug_id, *unused_args):
     """Returns alert data in response to API requests.
 
     Argument:
@@ -30,11 +30,21 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
     Outputs:
       JSON data for the bug, see README.md.
     """
+    service = issue_tracker_service.IssueTrackerService(
+        utils.ServiceAccountHttp())
+
+    if bug_id == 'recent':
+      response = service.List(
+          q='opened-after:today-5',
+          label='Type-Bug-Regression,Performance',
+          sort='-id')
+      return {'bugs': response.get('items', [])}
+
     try:
-      bug_id = int(args[0])
+      bug_id = int(bug_id)
     except ValueError:
       raise api_request_handler.BadRequestError(
-          'Invalid bug ID "%s".' % args[0])
+          'Invalid bug ID "%s".' % bug_id)
 
     try:
       include_comments = api_utils.ParseBool(
@@ -43,8 +53,6 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
       raise api_request_handler.BadRequestError(
           "value of |with_comments| should be 'true' or 'false'")
 
-    service = issue_tracker_service.IssueTrackerService(
-        utils.ServiceAccountHttp())
     issue = service.GetIssue(bug_id)
     bisects = try_job.TryJob.query(try_job.TryJob.bug_id == bug_id).fetch()
 
