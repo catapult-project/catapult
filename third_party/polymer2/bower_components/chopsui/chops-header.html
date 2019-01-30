@@ -77,7 +77,7 @@
         </span>
       </div>
     </div>
-    <div class="header-section" style="flex-grow: 1;">
+    <div class="header-section">
       <slot></slot>
     </div>
   </template>
@@ -117,6 +117,13 @@
           /* URL for the image location of the application's logo. No logo is
            * shown if this is not specified. */
           logoSrc: String,
+          // TODO(zhangtiff): Also make the :host element extend the "header"
+          // tag once browsers implement extending native elements with web
+          // components.
+          role: {
+            type: String,
+            reflectToAttribute: true,
+          },
         };
       }
     }

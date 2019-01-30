@@ -1,0 +1,67 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="chops-signin-aware">
+  <template>
+  </template>
+</dom-module>
+<script>
+'use strict';
+// This component adapts chops-signin to an API that is more familiar to Polymer
+// components. Use this table to convert from google-signin-aware:
+
+// google-signin-aware                    chops-signin-aware
+//                         *events*
+// google-signin-aware-success            user-update
+// google-signin-aware-signed-out         user-update
+// signed-in-changed                      user-update
+//                         *properties*
+// signedIn                               signedIn
+// (getAuthResponse())                    authHeaders
+// clientId                               (set window.AUTH_CLIENT_ID)
+// scopes                                 (not supported)
+// height                                 (not supported)
+// theme                                  (not supported)
+// (user.getBasicProfile())               profile
+
+class ChopsSigninAware extends Polymer.Element {
+  static get is() {
+    return 'chops-signin-aware';
+  }
+
+  static get properties() {
+    return {
+      authHeaders: {type: Object, notify: true, readOnly: true},
+      profile: {type: Object, notify: true, readOnly: true},
+      signedIn: {type: Boolean, notify: true, readOnly: true},
+    };
+  }
+
+  connectedCallback() {
+    this.onUserUpdate_ = this.onUserUpdate_.bind(this);
+    window.addEventListener('user-update', this.onUserUpdate_);
+    this.updateProperties_();
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener('user-update', this.onUserUpdate_);
+  }
+
+  updateProperties_() {
+    const self = this;
+    return window.getAuthorizationHeaders().then(function(headers) {
+      self._setAuthHeaders(headers);
+      self._setProfile(window.getUserProfileSync());
+      self._setSignedIn(!!self.profile);
+    });
+  }
+
+  onUserUpdate_() {
+    const self = this;
+    return this.updateProperties_().then(function() {
+      self.dispatchEvent(new CustomEvent('user-update'));
+    });
+  }
+}
+
+customElements.define(ChopsSigninAware.is, ChopsSigninAware);
+</script>
