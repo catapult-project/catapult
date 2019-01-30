@@ -4,7 +4,7 @@
 
 import collections
 
-from tracing.value import histogram as histogram_module
+from tracing.value import histogram as histogram
 from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
@@ -16,6 +16,11 @@ class HistogramSet(object):
     self._shared_diagnostics_by_guid = {}
     for hist in histograms:
       self.AddHistogram(hist)
+
+  def CreateHistogram(self, name, unit, samples, **options):
+    hist = histogram.Histogram.Create(name, unit, samples, **options)
+    self.AddHistogram(hist)
+    return hist
 
   @property
   def shared_diagnostics(self):
@@ -53,8 +58,8 @@ class HistogramSet(object):
       hist.diagnostics[name] = diag
 
   def GetFirstHistogram(self):
-    for histogram in self._histograms:
-      return histogram
+    for hist in self._histograms:
+      return hist
 
   def GetHistogramsNamed(self, name):
     return [h for h in self if h.name == name]
@@ -89,7 +94,7 @@ class HistogramSet(object):
         diag = diagnostic.Diagnostic.FromDict(d)
         self._shared_diagnostics_by_guid[d['guid']] = diag
       else:
-        hist = histogram_module.Histogram.FromDict(d)
+        hist = histogram.Histogram.FromDict(d)
         hist.diagnostics.ResolveSharedDiagnostics(self)
         self.AddHistogram(hist)
 
