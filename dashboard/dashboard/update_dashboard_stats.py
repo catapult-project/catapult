@@ -224,6 +224,9 @@ def _ProcessPinpointStats(offset=0):
       unit = 'count_smallerIsBetter'
     return unit
 
+  data_by_benchmark = collections.defaultdict(
+      lambda: {'pass': 0, 'fail': 0, 'norepro': 0, 'total': 0})
+
   for bot, benchmark_dict in jobs_by_bot.iteritems():
     hists = []
 
@@ -236,6 +239,7 @@ def _ProcessPinpointStats(offset=0):
         h.AddSample(v)
         hists.append(h)
         summaries[k] += v
+        data_by_benchmark[benchmark][k] += v
 
     for k, v in summaries.iteritems():
       h = _CreateHistogram(k, _UnitType(k), summary_options=default_opts)
@@ -258,10 +262,13 @@ def _ProcessPinpointStats(offset=0):
   summaries = {'total': 0, 'norepro': 0, 'fail': 0, 'pass': 0}
   hists = []
 
-  for bot, benchmark_dict in jobs_by_bot.iteritems():
-    for benchmark, values in benchmark_dict.iteritems():
-      for k, v in values.iteritems():
-        summaries[k] += v
+  for benchmark, values in data_by_benchmark.iteritems():
+    for k, v in values.iteritems():
+      h = _CreateHistogram(
+          k, _UnitType(k), story=benchmark, summary_options=default_opts)
+      h.AddSample(v)
+      hists.append(h)
+      summaries[k] += v
 
   for k, v in summaries.iteritems():
     h = _CreateHistogram(k, _UnitType(k), summary_options=default_opts)

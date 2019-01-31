@@ -67,7 +67,8 @@ class UpdateDashboardStatsTest(test.TestCase):
     self.testapp = webtest.TestApp(app)
 
   def _CreateJob(
-      self, hash1, hash2, comparison_mode, created, bug_id, exception=None):
+      self, hash1, hash2, comparison_mode, created, bug_id, exception=None,
+      arguments=None):
     old_commit = commit.Commit('chromium', hash1)
     change_a = change_module.Change((old_commit,))
 
@@ -76,8 +77,7 @@ class UpdateDashboardStatsTest(test.TestCase):
 
     job = job_module.Job.New(
         (_QuestStub(),), (change_a, change_b),
-        comparison_mode=comparison_mode,
-        bug_id=bug_id)
+        comparison_mode=comparison_mode, bug_id=bug_id, arguments=arguments)
     job.created = created
     job.exception = exception
     job.state.ScheduleWork()
@@ -132,12 +132,17 @@ class UpdateDashboardStatsTest(test.TestCase):
   def testPost_ProcessPinpointStats_Success(self, mock_defer):
     created = datetime.datetime.now() - datetime.timedelta(hours=12)
     j = self._CreateJob(
-        'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 12345)
+        'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 12345,
+        arguments={'configuration': 'bot1', 'benchmark': 'suite1'})
     j.updated = created + datetime.timedelta(hours=1)
     j.put()
-    anomaly_entity = anomaly.Anomaly(
-        test=utils.TestKey('M/B/S'), bug_id=12345, timestamp=created)
-    anomaly_entity.put()
+
+    created = datetime.datetime.now() - datetime.timedelta(hours=12)
+    j = self._CreateJob(
+        'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 12345,
+        arguments={'configuration': 'bot2', 'benchmark': 'suite2'})
+    j.updated = created + datetime.timedelta(hours=1)
+    j.put()
 
     self.testapp.get('/update_dashboard_stats')
     self.assertTrue(mock_defer.called)
