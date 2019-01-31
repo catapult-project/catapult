@@ -260,27 +260,6 @@ class Timeseries2Test(testing_common.TestCase):
       self.assertEqual(datetime.datetime.utcfromtimestamp(ri).isoformat(),
                        datum[2])
 
-  def testCachePublic(self):
-    self._MockData()
-    params = dict(
-        test_suite='suite', measurement='measure', bot='master:bot',
-        test_case='case', build_type='test',
-        columns='revision,revisions,avg,std,alert,diagnostics,histogram')
-    response = self.Post('/api/timeseries2', params)
-    self.assertEqual('public, max-age=604800',
-                     response.headers['Cache-Control'])
-
-  def testCachePrivate(self):
-    self._MockData(internal_only=True)
-    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    params = dict(
-        test_suite='suite', measurement='measure', bot='master:bot',
-        test_case='case', build_type='test',
-        columns='revision,revisions,avg,std,alert,diagnostics,histogram')
-    response = self.Post('/api/timeseries2', params)
-    self.assertEqual('private, max-age=604800',
-                     response.headers['Cache-Control'])
-
   def testHistogramsOnly(self):
     self._MockData()
     response = self._Post(
