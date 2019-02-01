@@ -178,7 +178,8 @@ class RunTestsCommand(command_line.OptparseCommand):
       runner.args.jobs = max(int(args.jobs) // 4, 1)
     else:
       runner.args.jobs = max(int(args.jobs) // 2, 1)
-
+    runner.args.expectations_files = args.expectations_files
+    runner.args.tags = args.tags
     runner.args.skip = args.skip
     runner.args.metadata = args.metadata
     runner.args.passthrough = args.passthrough

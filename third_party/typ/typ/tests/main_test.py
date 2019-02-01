@@ -866,6 +866,27 @@ class TestCli(test_case.MainTestCase):
         self.assertIn('skip_test.SkipSetup.test_notrun was skipped unexpectedly',
                       out)
 
+    def test_skip_test_with_expectations_file_skip_expectation(self):
+        files = {'fail_test.py': FAIL_TEST_PY,
+                 'expectations.txt': d("""\
+                  # tags: [ foo bar ]
+                  crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Failure Skip Crash ]
+                """)}
+        _, out, _, files = self.check(['--write-full-results-to',
+                                       'full_results.json',
+                                       '-X', 'expectations.txt',
+                                       '-x', 'foo'],
+                                      files=files, ret=0, err='')
+        self.assertIn('[1/1] fail_test.FailingTest.test_fail was skipped\n',
+                      out)
+        self.assertIn('0 tests passed, 1 skipped, 0 failures.\n', out)
+        results = json.loads(files['full_results.json'])
+        results = results['tests']['fail_test']['FailingTest']['test_fail']
+        self.assertEqual(results['actual'],'SKIP')
+        self.assertEqual(results['expected'],'CRASH FAIL SKIP')
+        self.assertNotIn('is_unexpected', results)
+        self.assertNotIn('is_regression', results)
+
     def test_verbose_2(self):
         self.check(['-vv', '-j', '1', 'output_test.PassTest'],
                    files=OUTPUT_TEST_FILES, ret=0,

@@ -2,11 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
+import tempfile
 import unittest
+import json
 
+
+from telemetry import project_config
+from telemetry import decorators
 from telemetry.core import util
 from telemetry.testing import run_tests
-
+from telemetry.testing import unittest_runner
 
 class MockArgs(object):
   def __init__(self):
@@ -41,6 +47,51 @@ class MockPlatform(object):
 
 
 class RunTestsUnitTest(unittest.TestCase):
+  def setUp(self):
+    self._test_result = {}
+
+  def _RunUnitWithExpectationFile(self, full_test_name, expectation,
+                                  test_tags='foo', extra_args=None,
+                                  expected_exit_code=0):
+    extra_args = [] if not extra_args else extra_args
+    expectations = ('# tags: [ foo bar mac ]\n'
+                    'crbug.com/123 [ %s ] %s [ %s ]')
+    expectations = expectations % (test_tags, full_test_name, expectation)
+    expectations_file = tempfile.NamedTemporaryFile(delete=False)
+    expectations_file.write(expectations)
+    results = tempfile.NamedTemporaryFile(delete=False)
+    results.close()
+    expectations_file.close()
+    config = project_config.ProjectConfig(
+        top_level_dir=os.path.join(util.GetTelemetryDir(), 'examples'),
+        client_configs=[],
+        expectations_files=[expectations_file.name],
+        benchmark_dirs=[
+            os.path.join(util.GetTelemetryDir(), 'examples', 'browser_tests')]
+    )
+    try:
+      passed_args = ([full_test_name, '--no-browser',
+                      ('--write-full-results-to=%s' % results.name)] +
+                     ['--tag=%s' % tag for tag in test_tags.split()])
+      ret = unittest_runner.Run(config, passed_args=passed_args + extra_args)
+      self.assertEqual(ret, expected_exit_code)
+      with open(results.name) as f:
+        self._test_result = json.load(f)
+    finally:
+      os.remove(expectations_file.name)
+      os.remove(results.name)
+    return self._test_result
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testSkipTestWithExpectationsFileWithSkipExpectation(self):
+    self._RunUnitWithExpectationFile('unit_tests_test.PassingTest.test_pass',
+                                     'Skip Failure Crash')
+    test_result = (self._test_result['tests']['unit_tests_test']['PassingTest']
+                   ['test_pass'])
+    self.assertEqual(test_result['actual'], 'SKIP')
+    self.assertEqual(test_result['expected'], 'CRASH FAIL SKIP')
+    self.assertNotIn('is_unexpected', test_result)
+    self.assertNotIn('is_regression', test_result)
 
   def _GetEnabledTests(self, browser_type, os_name, os_version_name,
                        supports_tab_control, args=None):

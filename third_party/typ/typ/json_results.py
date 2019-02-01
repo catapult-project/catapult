@@ -183,7 +183,7 @@ def _results_for_test(test_name, results):
 
             # This assumes that the expected values are the same for every
             # invocation of the test.
-            value['expected'] = ' '.join(r.expected)
+            value['expected'] = ' '.join(sorted(r.expected))
 
     if not actuals:  # pragma: untested
         actuals.append('SKIP')

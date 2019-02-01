@@ -901,7 +901,8 @@ def _run_one_test(child, test_input):
             # get here with a test we wanted to skip?
             h.restore_output()
             return Result(test_name, ResultType.Skip, started, 0,
-                          child.worker_num, unexpected=False, pid=pid)
+                          child.worker_num, expected=expected_results,
+                          unexpected=False, pid=pid)
 
         try:
             suite = child.loader.loadTestsFromName(test_name)
