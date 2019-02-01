@@ -16,11 +16,11 @@ suite('RequestBase', function() {
   let originalAuthorizationHeaders;
   setup(() => {
     originalFetch = window.fetch;
-    originalAuthorizationHeaders = cp.authorizationHeaders;
+    originalAuthorizationHeaders = window.getAuthorizationHeaders;
   });
   teardown(() => {
     window.fetch = originalFetch;
-    cp.authorizationHeaders = originalAuthorizationHeaders;
+    window.getAuthorizationHeaders = originalAuthorizationHeaders;
   });
 
   // HTML imports may not have loaded when suite() is called, but are loaded
@@ -37,8 +37,8 @@ suite('RequestBase', function() {
     }(options);
   }
 
-  test('authorizationHeaders', async() => {
-    cp.authorizationHeaders = async() => [
+  test('getAuthorizationHeaders', async() => {
+    window.getAuthorizationHeaders = async() => [
       ['Authorization', 'test Authorization'],
     ];
     window.fetch = async(url, options) => {

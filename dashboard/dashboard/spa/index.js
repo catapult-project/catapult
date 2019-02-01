@@ -4,6 +4,9 @@
 */
 'use strict';
 
+window.AUTH_CLIENT_ID =
+  '62121018386-rhk28ad5lbqheinh05fgau3shotl2t6c.apps.googleusercontent.com';
+
 tr.exportTo('window', () => {
   const DEBUG = location.hostname === 'localhost';
   const PRODUCTION = 'v2spa-dot-chromeperf.appspot.com';
