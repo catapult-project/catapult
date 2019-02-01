@@ -123,10 +123,13 @@ tr.exportTo('tr.metrics', function() {
     if (!requiredCategories) return;
 
     if (!categories) {
+      let entries = model.metadata.map(m => m.name);
+      if (entries.length === 1 && entries[0] === 'metadata') {
+        entries = Object.keys(model.metadata[0].value);
+      }
       throw new Error(
-          'Missing trace config metadata (' +
-          model.metadata.length + ' metadata entries: ' +
-          model.metadata.map(m => m.name).join(', '));
+          'Missing trace config metadata (' + entries.length +
+          ' metadata entries: ' + entries.join(', ') + ')');
     }
 
     for (const cat of requiredCategories) {
