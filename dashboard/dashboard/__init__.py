@@ -25,6 +25,7 @@ THIRD_PARTY_LIBRARIES = [
     'flot',
     'jquery',
     'polymer',
+    'polymer2/bower_components/chopsui',
     'six',
     'gae_ts_mon',
 ]

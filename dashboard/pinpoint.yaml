@@ -38,6 +38,11 @@ handlers:
   upload: polymer/components/.*/.*\.(html|js|css)$
   secure: always
 
+- url: /chopsui/(.*\.(html|js|css))$
+  static_files: chopsui/\1
+  upload: chopsui/.*\.(html|js|css)$
+  secure: always
+
 - url: /dashboard/elements/(.*\.html)$
   static_files: dashboard/elements/\1
   upload: dashboard/elements/.*\.html$
