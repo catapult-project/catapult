@@ -135,6 +135,19 @@ class BrowserTestRunnerTest(unittest.TestCase):
     self.assertNotIn('is_regression', test_result)
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testSkipTestCmdArgsWithExpectationsFile(self):
+    test_result = self._RunBrowserTest('skip_tests_test',
+                                       'SkipTestExpectationFiles',
+                                       'PassTest', 'Crash Failure',
+                                       extra_args=['--skip=*PassTest'])
+    test_result = (test_result['tests']['browser_tests']
+                   ['skip_tests_test']['SkipTestExpectationFiles']['PassTest'])
+    self.assertEqual(test_result['expected'], 'SKIP')
+    self.assertEqual(test_result['actual'], 'SKIP')
+    self.assertNotIn('is_unexpected', test_result)
+    self.assertNotIn('is_regression', test_result)
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testTagGenerationExpectedPass(self):
     test_result = self._RunBrowserTest('generate_tags_test',
                                        'GenerateTagsTest', 'PassTest', 'Pass')

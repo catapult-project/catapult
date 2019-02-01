@@ -887,6 +887,28 @@ class TestCli(test_case.MainTestCase):
         self.assertNotIn('is_unexpected', results)
         self.assertNotIn('is_regression', results)
 
+    def test_skip_test_with_expectations_file_skip_with_cmd_args(self):
+        files = {'pass_test.py': PASS_TEST_PY,
+                 'expectations.txt': d("""\
+                  # tags: [ foo bar ]
+                  crbug.com/12345 [ foo ] pass_test.PassingTest.test_pass [ Failure Crash Pass ]
+                """)}
+        _, out, _, files = self.check(['--write-full-results-to',
+                                       'full_results.json',
+                                       '-X', 'expectations.txt',
+                                       '-x', 'foo',
+                                       '--skip', '*test_pass'],
+                                      files=files, ret=0, err='')
+        self.assertIn('[1/1] pass_test.PassingTest.test_pass was skipped\n',
+                      out)
+        self.assertIn('0 tests passed, 1 skipped, 0 failures.\n', out)
+        results = json.loads(files['full_results.json'])
+        results = results['tests']['pass_test']['PassingTest']['test_pass']
+        self.assertEqual(results['actual'],'SKIP')
+        self.assertEqual(results['expected'],'SKIP')
+        self.assertNotIn('is_unexpected', results)
+        self.assertNotIn('is_regression', results)
+
     def test_verbose_2(self):
         self.check(['-vv', '-j', '1', 'output_test.PassTest'],
                    files=OUTPUT_TEST_FILES, ret=0,

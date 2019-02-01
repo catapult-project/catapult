@@ -93,6 +93,18 @@ class RunTestsUnitTest(unittest.TestCase):
     self.assertNotIn('is_unexpected', test_result)
     self.assertNotIn('is_regression', test_result)
 
+  @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testSkipTestCmdArgsWithExpectationsFile(self):
+    self._RunUnitWithExpectationFile('unit_tests_test.PassingTest.test_pass',
+                                     'Crash Failure',
+                                     extra_args=['--skip=*test_pass'])
+    test_result = (self._test_result['tests']['unit_tests_test']['PassingTest']
+                   ['test_pass'])
+    self.assertEqual(test_result['actual'], 'SKIP')
+    self.assertEqual(test_result['expected'], 'SKIP')
+    self.assertNotIn('is_unexpected', test_result)
+    self.assertNotIn('is_regression', test_result)
+
   def _GetEnabledTests(self, browser_type, os_name, os_version_name,
                        supports_tab_control, args=None):
     if not args:
