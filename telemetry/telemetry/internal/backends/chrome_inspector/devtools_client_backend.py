@@ -124,6 +124,7 @@ class DevToolsClientConfig(object):
     assert not self._created, 'DevTools client has already been created'
     devtools_client = DevToolsClientBackend(self)
     self._created = True
+    logging.info('Created DevToolsClientBackend from %s', self)
     return devtools_client
 
   def Close(self):
@@ -138,7 +139,10 @@ class DevToolsClientConfig(object):
 
     http = devtools_http.DevToolsHttp(self.local_port)
     try:
-      return _IsDevToolsAgentAvailable(http)
+      ready = _IsDevToolsAgentAvailable(http)
+      if ready:
+        logging.info('DevTools http agent is ready.')
+      return ready
     finally:
       http.Disconnect()
 
@@ -155,6 +159,7 @@ class DevToolsClientConfig(object):
           'Unexpected error checking if %s is ready.', self)
       return False
     else:
+      logging.info('Websocket at %s is ready.', self)
       return True
     finally:
       ws.Disconnect()
