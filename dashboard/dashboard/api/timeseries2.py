@@ -294,7 +294,7 @@ class TimeseriesQuery(object):
         self._private = True
       datum = self._Datum(alert.end_revision)
       # TODO(benjhayden) bisect_status
-      datum['alert'] = alerts.GetAnomalyDict(alert)
+      datum['alert'] = alerts.AnomalyDicts([alert], v2=True)[0]
 
   @ndb.tasklet
   def _FetchHistograms(self):

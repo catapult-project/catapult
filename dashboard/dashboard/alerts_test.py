@@ -95,6 +95,46 @@ class AlertsTest(testing_common.TestCase):
       key_map[end_rev] = anomaly_key.urlsafe()
     return key_map
 
+  def testV2(self):
+    alert = anomaly.Anomaly(
+        bug_id=10,
+        end_revision=20,
+        internal_only=True,
+        is_improvement=True,
+        median_after_anomaly=30,
+        median_before_anomaly=40,
+        recovered=True,
+        sheriff=sheriff.Sheriff(
+            id='Sheriff2',
+            labels=['Cr-component'],
+            email='sullivan@google.com').put(),
+        start_revision=5,
+        test=utils.TestKey('m/b/s/m/c'),
+        units='ms',
+    ).put().get()
+    actual = alerts.GetAnomalyDict(alert, v2=True)
+    del actual['dashboard_link']
+    self.assertEqual({
+        'bug_components': ['component'],
+        'bug_id': 10,
+        'bug_labels': ['Restrict-View-Google'],
+        'descriptor': {
+            'testSuite': 's',
+            'measurement': 'm',
+            'bot': 'm:b',
+            'testCase': 'c',
+            'statistic': None,
+        },
+        'end_revision': 20,
+        'improvement': True,
+        'key': alert.key.urlsafe(),
+        'median_after_anomaly': 30,
+        'median_before_anomaly': 40,
+        'recovered': True,
+        'start_revision': 5,
+        'units': 'ms',
+    }, actual)
+
   def testGet(self):
     response = self.testapp.get('/alerts')
     self.assertEqual('text/html', response.content_type)

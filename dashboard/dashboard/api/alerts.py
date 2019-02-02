@@ -79,8 +79,6 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
     except request_handler.InvalidInputError as e:
       raise api_request_handler.BadRequestError(e.message)
 
-    anomaly_dicts = alerts.AnomalyDicts(
-        [a for a in alert_list if a.key.kind() == 'Anomaly'])
-
-    response['anomalies'] = anomaly_dicts
+    response['anomalies'] = alerts.AnomalyDicts(
+        alert_list, self.request.get('v2'))
     return response

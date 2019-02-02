@@ -132,7 +132,7 @@ class Timeseries2Test(testing_common.TestCase):
       self.assertEqual(ri, datum[2])
       self.assertEqual(0.5 + i, datum[3])
       if i == 5:
-        self.assertEqual('measure/case', datum[4]['test'])
+        self.assertEqual('case', datum[4]['descriptor']['testCase'])
       else:
         self.assertEqual(None, datum[4])
       if i in [0, 5]:
