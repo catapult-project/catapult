@@ -16,22 +16,6 @@ class Oobe(web_contents.WebContents):
   def __init__(self, inspector_backend):
     super(Oobe, self).__init__(inspector_backend)
 
-  @staticmethod
-  def Canonicalize(user, remove_dots=True):
-    """Get rid of dots in |user| and add @gmail.com."""
-    # Canonicalize.
-    user = user.lower()
-    if user.find('@') == -1:
-      username = user
-      domain = 'gmail.com'
-    else:
-      username, domain = user.split('@')
-
-    # Remove dots for gmail.
-    if remove_dots and domain == 'gmail.com':
-      username = username.replace('.', '')
-    return '%s@%s' % (username, domain)
-
   def _GaiaWebviewContext(self):
     webview_contexts = self.GetWebviewContexts()
     for webview in webview_contexts:
@@ -116,21 +100,6 @@ class Oobe(web_contents.WebContents):
           'Oobe.isEnrollmentSuccessfulForTest()', timeout=30)
       self._ExecuteOobeApi('Oobe.enterpriseEnrollmentDone')
 
-  def NavigateUnicornLogin(self, child_user, child_pass,
-                           parent_user, parent_pass):
-    """Logs into a unicorn account."""
-    self._ExecuteOobeApi('Oobe.skipToLoginForTesting')
-    py_utils.WaitFor(self._GaiaWebviewContext, 20)
-    # Enter child credentials.
-    self._NavigateWebviewLogin(child_user, child_pass, False)
-    # Click on parent button.
-    self._ClickGaiaButton(self.Canonicalize(parent_user, remove_dots=False))
-    # Enter parent password.
-    self._NavigateWebviewEntry('password', parent_pass, 'passwordNext')
-    # Final click.
-    self._ClickGaiaButton('Yes')
-    py_utils.WaitFor(lambda: not self._GaiaWebviewContext(), 60)
-
   def _NavigateWebviewLogin(self, username, password, wait_for_close):
     """Logs into the webview-based GAIA screen."""
     self._NavigateWebviewEntry('identifierId', username, 'identifierNext')
@@ -164,25 +133,6 @@ class Oobe(web_contents.WebContents):
     self._GaiaWebviewContext().WaitForJavaScriptCondition(
         "document.getElementById({{ field }}) != null",
         field=field, timeout=20)
-
-  def _ClickGaiaButton(self, button_text):
-    """Click the button on the gaia page that matches |button_text|."""
-    get_button_js = '''
-        (function() {
-          buttons = document.querySelectorAll('[role="button"]');
-          if (buttons == null)
-            return false;
-          for (var i=0; i < buttons.length; ++i) {
-            if (buttons[i].textContent.search('%s') != -1) {
-              buttons[i].click();
-              return true;
-            }
-          }
-          return false;
-        })();
-    ''' % button_text
-    self._GaiaWebviewContext().WaitForJavaScriptCondition(
-        get_button_js, timeout=20)
 
   def SetUpOnlineDemoMode(self):
     """Starts online demo mode setup."""
