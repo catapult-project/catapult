@@ -4,10 +4,12 @@
 
 import logging
 import os
+import tempfile
 
 from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.backends.chrome import cros_test_case
+from telemetry.internal.backends.chrome import oobe
 
 import py_utils
 
@@ -47,46 +49,41 @@ class CrOSCryptohomeTest(cros_test_case.CrOSTestCase):
 
 
 class CrOSLoginTest(cros_test_case.CrOSTestCase):
-  def _GetCredentials(self, credentials=None):
-    """Read username and password from credentials.txt. The file is a single
-    line of the format username:password. Alternatively, |credentials| is used,
-    also of the same format."""
-    credentials_file = os.path.join(os.path.dirname(__file__),
-                                    'credentials.txt')
-    if not credentials and os.path.exists(credentials_file):
+  def _GetCredentialsIter(self, credentials_file=None):
+    """Read username and password from credentials.txt. Each line is of the
+    format username:password. For unicorn accounts, the file may contain
+    multiple lines of credentials."""
+    if not credentials_file:
+      credentials_file = os.path.join(os.path.dirname(__file__),
+                                      'credentials.txt')
+    if os.path.exists(credentials_file):
       with open(credentials_file) as f:
-        credentials = f.read().strip()
-
-    if not credentials:
-      return (None, None)
-
-    username, password = credentials.split(':')
-    return self._Canonicalize(username, password)
-
-  def _Canonicalize(self, user, password):
-    """Get rid of dots in username and add @gmail.com."""
-    # Canonicalize.
-    user = user.lower()
-    if user.find('@') == -1:
-      username = user
-      domain = 'gmail.com'
-    else:
-      username, domain = user.split('@')
-
-    # Remove dots.
-    if domain == 'gmail.com':
-      username = username.replace('.', '')
-    return ('%s@%s' % (username, domain), password)
+        for credentials in f:
+          username, password = credentials.strip().split(':')
+          yield username, password
 
   @decorators.Enabled('chromeos')
   def testCanonicalize(self):
-    (username, password) = self._Canonicalize('User.1', 'foo.1')
-    self.assertEquals(username, 'user1@gmail.com')
-    self.assertEquals(password, 'foo.1')
+    """Test Oobe.Canonicalize function."""
+    self.assertEquals(oobe.Oobe.Canonicalize('User.1'), 'user1@gmail.com')
+    self.assertEquals(oobe.Oobe.Canonicalize('User.2', remove_dots=False),
+                      'user.2@gmail.com')
+    self.assertEquals(oobe.Oobe.Canonicalize('User.3@chromium.org'),
+                      'user.3@chromium.org')
 
-    (username, password) = self._Canonicalize('user.1@chromium.org', 'bar.1')
-    self.assertEquals(username, 'user.1@chromium.org')
-    self.assertEquals(password, 'bar.1')
+  @decorators.Enabled('chromeos')
+  def testGetCredentials(self):
+    fd, cred_file = tempfile.mkstemp()
+    try:
+      os.write(fd, 'user1:pass1\nuser2:pass2\nuser3:pass3')
+      os.close(fd)
+      cred_iter = self._GetCredentialsIter(cred_file)
+      for i in range(1, 4):
+        username, password = next(cred_iter)
+        self.assertEquals(username, 'user%d' % i)
+        self.assertEquals(password, 'pass%d' % i)
+    finally:
+      os.unlink(cred_file)
 
   @decorators.Enabled('chromeos')
   def testLoginStatus(self):
@@ -118,16 +115,16 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
   @decorators.Disabled('all')
   def testGaiaLogin(self):
     """Tests gaia login. Use credentials in credentials.txt if it exists,
-    otherwise use powerloadtest."""
+    otherwise use autotest.catapult."""
     if self._is_guest:
       return
-    username, password = self._GetCredentials()
-    if not username or not password:
+    try:
+      username, password = next(self._GetCredentialsIter())
+    except StopIteration:
       username = 'autotest.catapult'
       password = 'autotest'
-    username, password = self._Canonicalize(username, password)
     with self._CreateBrowser(gaia_login=True,
-                             username=username,
+                             username=oobe.Oobe.Canonicalize(username),
                              password=password):
       self.assertTrue(py_utils.WaitFor(self._IsCryptohomeMounted, 10))
 
@@ -139,18 +136,37 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
     if self._is_guest:
       return
 
-    username, password = self._GetCredentials()
-    if not username or not password:
+    try:
+      username, password = next(self._GetCredentialsIter())
+    except StopIteration:
       return
     # Enroll the device.
     with self._CreateBrowser(auto_login=False) as browser:
-      browser.oobe.NavigateGaiaLogin(username, password,
+      browser.oobe.NavigateGaiaLogin(username=oobe.Oobe.Canonicalize(username),
+                                     password=password,
                                      enterprise_enroll=True,
                                      for_user_triggered_enrollment=True)
 
     # Check for the existence of the device policy file.
     self.assertTrue(py_utils.WaitFor(lambda: self._cri.FileExistsOnDevice(
         '/home/.shadow/install_attributes.pb'), 15))
+
+  @decorators.Enabled('chromeos')
+  def testUnicornLogin(self):
+    """Tests unicorn account login."""
+    if self._is_guest:
+      return
+
+    try:
+      creds_iter = self._GetCredentialsIter()
+      child_user, child_pass = next(creds_iter)
+      parent_user, parent_pass = next(creds_iter)
+    except StopIteration:
+      return
+    with self._CreateBrowser(auto_login=False) as browser:
+      browser.oobe.NavigateUnicornLogin(child_user, child_pass,
+                                        parent_user, parent_pass)
+      self.assertTrue(py_utils.WaitFor(self._IsCryptohomeMounted, 10))
 
 
 class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
