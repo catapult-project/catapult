@@ -29,7 +29,9 @@ BUILD_URLS_V = BUILD_URLS_CAMELCASE + '_v'
 
 def main():
   parser = argparse.ArgumentParser(
-      description='Adds reserved diagnostics to a HistogramSet.',
+      description='Adds reserved diagnostics to a HistogramSet, merges '
+      'Histograms across story repetitions and across stories, optionally '
+      'batches results into multiple files.',
       add_help=False)
   parser.add_argument('input_path',
                       help='HistogramSet JSON file path (input).')
@@ -41,7 +43,13 @@ def main():
   parser.add_argument(
       '--output_path',
       help='If present, will write new HistogramSet to this file instead of '
-           'clobbering the file referenced by input_path.')
+           'clobbering the file referenced by input_path. If max_bytes > 0, '
+           'then multiple files may be produced with consecutive integers '
+           'between the base name and extension of the output_path.')
+  parser.add_argument('--max_bytes', type=int, default=0, help=(
+      'If non-zero, results will be split to multiple files, each smaller than '
+      'MAX_BYTES. If max_bytes is smaller than a single Histogram, then its '
+      'file may be larger than max_bytes, or an exception may be raised.'))
   parser.add_argument('-h', '--help', action='help',
                       help='Show this help message and exit.')
   arg_names_to_infos = {}
@@ -78,15 +86,25 @@ def main():
   with open(args.input_path, 'r') as f:
     dicts = json.loads(f.read())
 
-  results_json = add_reserved_diagnostics.AddReservedDiagnostics(
-      dicts, names_to_values)
+  if args.stdout and args.max_bytes:
+    args.max_bytes = 0
+
+  json_batches = add_reserved_diagnostics.AddReservedDiagnostics(
+      dicts, names_to_values, args.max_bytes)
 
   if args.stdout:
-    print results_json
+    assert len(json_batches) == 1, len(json_batches)
+    print json_batches[0]
   else:
     path = args.output_path or args.input_path
-    with open(path, 'w') as f:
-      f.write(results_json)
+    if len(json_batches) == 1:
+      with open(path, 'w') as f:
+        f.write(json_batches[0])
+    else:
+      base, ext = os.path.splitext(path)
+      for i, hs in enumerate(json_batches):
+        with open('%s.%04d%s' % (base, i, ext), 'w') as f:
+          f.write(hs)
 
   return 0
 
