@@ -10,8 +10,6 @@ from dashboard.pinpoint.models.quest import run_test
 
 _DEFAULT_EXTRA_ARGS = [
     '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
-    '--isolated-script-test-chartjson-output',
-    '${ISOLATED_OUTDIR}/chartjson-output.json',
 ]
 
 class RunPerformanceTest(run_test.RunTest):
