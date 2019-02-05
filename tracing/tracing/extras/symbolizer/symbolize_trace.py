@@ -356,7 +356,7 @@ class MemoryMap(NodeWrapper):
       return 'Region(0x{:X} - 0x{:X}, {})'.format(
           self.start_address, self.end_address, self.file_path)
 
-  def __init__(self, process_mmaps_node):
+  def __init__(self, process_mmaps_node, process):
     regions = []
     for region_node in process_mmaps_node['vm_regions']:
       file_offset = long(region_node['fo'], 16) if 'fo' in region_node else 0
@@ -393,8 +393,15 @@ class MemoryMap(NodeWrapper):
     # based on the first region's base address.
     last_region_with_file_path = {}
     for region in regions:
-      if (region.file_path in last_region_with_file_path and
-          region.file_offset == 0):
+      # If the file was mapped from apk, the start address of first mapping
+      # cannot be used since other files than library can be mapped from apk.
+      # Use the start address provided by metadata in these cases. See
+      # https://crbug.com/927357.
+      if 'base.apk' in region.file_path and process.library_start_address > 0:
+        region.file_offset = (
+            region.start_address - process.library_start_address)
+      elif (region.file_path in last_region_with_file_path and
+            region.file_offset == 0):
         region.file_offset = (
             region.start_address -
             last_region_with_file_path[region.file_path].start_address)
@@ -796,6 +803,7 @@ class Trace(NodeWrapper):
       self._type_name_map = TypeNameMap()
       self._string_map = StringMap()
       self._heap_dump_version = None
+      self._library_start_address = 0
 
     @property
     def modified(self):
@@ -826,6 +834,10 @@ class Trace(NodeWrapper):
     @property
     def type_name_map(self):
       return self._type_name_map
+
+    @property
+    def library_start_address(self):
+      return self._library_start_address
 
     def ApplyModifications(self):
       """Calls ApplyModifications() on contained wrappers."""
@@ -905,6 +917,9 @@ class Trace(NodeWrapper):
               self._UseHeapDumpVersion(self.HEAP_DUMP_VERSION_LEGACY),
               event['args']['stackFrames'],
               process._string_map)
+        elif name == 'chrome_library_address':
+          process._library_start_address = (
+              int(event['args']['start_address'], 16))
       elif phase == self._EVENT_PHASE_MEMORY_DUMP:
         dumps = event['args']['dumps']
         process_mmaps = dumps.get('process_mmaps')
@@ -944,7 +959,8 @@ class Trace(NodeWrapper):
       pe.process._heap_dump_version = self._heap_dump_version
       if pe.process_mmaps_node:
         # Now parse the most recent memory map.
-        pe.process._memory_map = MemoryMap(pe.process_mmaps_node)
+        pe.process._memory_map = MemoryMap(pe.process_mmaps_node,
+                                           pe.process)
       self._processes.append(pe.process)
 
   @property
