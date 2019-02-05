@@ -9,6 +9,15 @@ from telemetry.internal.browser import browser_options
 
 
 class BrowserOptionsTest(unittest.TestCase):
+  def testBrowserMultipleValues_UseLast(self):
+    options = browser_options.BrowserFinderOptions()
+    parser = options.CreateParser()
+    parser.parse_args(['--browser=stable', '--browser=reference'])
+    self.assertEqual(
+        options.browser_type, 'reference',
+        'Note that this test is needed for run_performance_tests.py.'
+        'See crbug.com/928928.')
+
   def testDefaults(self):
     options = browser_options.BrowserFinderOptions()
     parser = options.CreateParser()
