@@ -29,7 +29,7 @@ try:
   try:
     import winreg  # pylint: disable=import-error
   except ImportError:
-    import _winreg as winreg  # pylint: disable=import-error
+    import _winreg as winreg  # pylint: disable=import-error,wrong-import-order
   import win32security  # pylint: disable=import-error
 except ImportError:
   pywintypes = None
