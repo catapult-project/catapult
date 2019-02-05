@@ -26,4 +26,14 @@ class InspectorLog(object):
                         entry['source'], entry['text'], entry.get('url', ''))
 
   def _Enable(self, timeout=10):
-    self._inspector_websocket.SyncRequest({'method': 'Log.enable'}, timeout)
+    try:
+      self._inspector_websocket.SyncRequest({'method': 'Log.enable'}, timeout)
+    except:
+      # This is the first DevTools call typically made to a page, so an
+      # exception indicates the renderer may be hung. Attempt to crash it so we
+      # can see all threads' stacks. (The request comes in on the IO thread,
+      # which is usually not blocked.)
+      #
+      # TODO(crbug.com/917211): consider removing once this bug is diagnosed.
+      self._inspector_websocket.SyncRequest({'method': 'Page.crash'}, timeout)
+      raise
