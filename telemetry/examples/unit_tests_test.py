@@ -8,3 +8,6 @@ class PassingTest(unittest.TestCase):
   def test_pass(self):
     pass
 
+class SkipTest(unittest.TestCase):
+  def test_skip(self):
+    self.skipTest('SKIPPING TEST')

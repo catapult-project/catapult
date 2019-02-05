@@ -988,6 +988,7 @@ def _result_from_test_result(test_result, test_name, started, took, out, err,
             unexpected = actual not in expected_results
         else:
             unexpected = False
+            expected_results = {ResultType.Skip}
     elif test_result.expectedFailures:
         actual = ResultType.Failure
         code = 1

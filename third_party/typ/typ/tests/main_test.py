@@ -35,6 +35,18 @@ if is_python3:  # pragma: python3
 d = textwrap.dedent
 
 
+SKIP_TEST_PY = """
+import unittest
+
+class SkipTest(unittest.TestCase):
+    def test_skip(self):
+        self.skipTest('SKIPPING TEST')
+"""
+
+
+SKIP_TEST_FILES = {'skip_test.py': SKIP_TEST_PY}
+
+
 PASS_TEST_PY = """
 import unittest
 import time
@@ -305,13 +317,13 @@ class TestCli(test_case.MainTestCase):
             'fail_test.py': FAIL_TEST_PY,
         }
         # This isn't supported yet.
-        self.check(['-X', 'expectations_1.txt', '-X', 'expectations_2.txt', 
+        self.check(['-X', 'expectations_1.txt', '-X', 'expectations_2.txt',
                     '-x', 'foo'], files=files, ret=1)
 
     def test_expectations_file_has_syntax_error(self):
         files = {
             'expectations.txt': d('''\
-                # tags: [ 
+                # tags: [
                 crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Failure ]
                 '''),
             'fail_test.py': FAIL_TEST_PY,
@@ -860,7 +872,7 @@ class TestCli(test_case.MainTestCase):
                 'crbug.com/23456 skip_test.SkipSetup.test_notrun [ Pass ]\n',
             'skip_test.py': SF_TEST_PY
         }
-        _, out, _, _ = self.check(['-X', 'expectations.txt', 
+        _, out, _, _ = self.check(['-X', 'expectations.txt',
                                    'skip_test.SkipSetup.test_notrun'],
                                    files=files, ret=1, err='')
         self.assertIn('skip_test.SkipSetup.test_notrun was skipped unexpectedly',
@@ -898,6 +910,36 @@ class TestCli(test_case.MainTestCase):
                                        '-X', 'expectations.txt',
                                        '-x', 'foo',
                                        '--skip', '*test_pass'],
+                                      files=files, ret=0, err='')
+        self.assertIn('[1/1] pass_test.PassingTest.test_pass was skipped\n',
+                      out)
+        self.assertIn('0 tests passed, 1 skipped, 0 failures.\n', out)
+        results = json.loads(files['full_results.json'])
+        results = results['tests']['pass_test']['PassingTest']['test_pass']
+        self.assertEqual(results['actual'],'SKIP')
+        self.assertEqual(results['expected'],'SKIP')
+        self.assertNotIn('is_unexpected', results)
+        self.assertNotIn('is_regression', results)
+
+    def test_skip_test_no_expectations_file(self):
+        files = {'skip_test.py': SKIP_TEST_PY}
+        _, out, _, files = self.check(['--write-full-results-to',
+                                       'full_results.json'],
+                                      files=files, ret=0, err='')
+        self.assertIn('[1/1] skip_test.SkipTest.test_skip was skipped\n', out)
+        self.assertIn('0 tests passed, 1 skipped, 0 failures.\n', out)
+        results = json.loads(files['full_results.json'])
+        results = results['tests']['skip_test']['SkipTest']['test_skip']
+        self.assertEqual(results['actual'],'SKIP')
+        self.assertEqual(results['expected'],'SKIP')
+        self.assertNotIn('is_unexpected', results)
+        self.assertNotIn('is_regression', results)
+
+    def test_skip_test_no_expectations_file_cmd_args_skip(self):
+        files = PASS_TEST_FILES
+        _, out, _, files = self.check(['--write-full-results-to',
+                                       'full_results.json',
+                                       '--skip','*test_pass'],
                                       files=files, ret=0, err='')
         self.assertIn('[1/1] pass_test.PassingTest.test_pass was skipped\n',
                       out)

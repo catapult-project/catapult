@@ -75,7 +75,6 @@ class BrowserTestRunnerTest(unittest.TestCase):
            '--test-filter=%s' % test_filter] + extra_args)
       with open(temp_file_name) as f:
         self._test_result = json.load(f)
-
       (actual_successes,
        actual_failures,
        actual_skips) = self._ExtractTestResults(self._test_result)
@@ -142,6 +141,29 @@ class BrowserTestRunnerTest(unittest.TestCase):
                                        extra_args=['--skip=*PassTest'])
     test_result = (test_result['tests']['browser_tests']
                    ['skip_tests_test']['SkipTestExpectationFiles']['PassTest'])
+    self.assertEqual(test_result['expected'], 'SKIP')
+    self.assertEqual(test_result['actual'], 'SKIP')
+    self.assertNotIn('is_unexpected', test_result)
+    self.assertNotIn('is_regression', test_result)
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testSkipTestCmdArgNoExpectationsFile(self):
+    self.baseTest('.*PassTest.*', [], [], test_name='SkipTest',
+                  skips=['browser_tests.skip_tests_test.SkipTest.PassTest'],
+                  extra_args=['--skip=*PassTest'])
+    test_result = (self._test_result['tests']['browser_tests']
+                   ['skip_tests_test']['SkipTest']['PassTest'])
+    self.assertEqual(test_result['expected'], 'SKIP')
+    self.assertEqual(test_result['actual'], 'SKIP')
+    self.assertNotIn('is_unexpected', test_result)
+    self.assertNotIn('is_regression', test_result)
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testSkipTestNoExpectationsFile(self):
+    self.baseTest('.*SkipTest.*', [], [], test_name='SkipTest',
+                  skips=['browser_tests.skip_tests_test.SkipTest.SkipTest'])
+    test_result = (self._test_result['tests']['browser_tests']
+                   ['skip_tests_test']['SkipTest']['SkipTest'])
     self.assertEqual(test_result['expected'], 'SKIP')
     self.assertEqual(test_result['actual'], 'SKIP')
     self.assertNotIn('is_unexpected', test_result)
