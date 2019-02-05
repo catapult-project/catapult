@@ -12,18 +12,9 @@ from operator import attrgetter
 
 from telemetry.timeline import bounds
 from telemetry.timeline import event_container
-from telemetry.timeline import inspector_importer
 from telemetry.timeline import process as process_module
 from telemetry.timeline import trace_event_importer
 from tracing.trace_data import trace_data as trace_data_module
-
-
-# Register importers for data
-
-_IMPORTERS = [
-    inspector_importer.InspectorTimelineImporter,
-    trace_event_importer.TraceEventTimelineImporter
-]
 
 
 class MarkerMismatchError(Exception):
@@ -40,7 +31,9 @@ class MarkerOverlapError(Exception):
 
 class TimelineModel(event_container.TimelineEventContainer):
   def __init__(self, trace_data=None, shift_world_to_zero=True):
-    """ Initializes a TimelineModel.
+    """Initializes a TimelineModel.
+
+    This class is deprecated, no new clients should use it.
 
     Args:
         trace_data: trace_data.TraceData containing events to import
@@ -245,18 +238,15 @@ class TimelineModel(event_container.TimelineEventContainer):
     return renderer_thread
 
   def _CreateImporters(self, trace_data):
-    def FindImporterClassForPart(part):
-      for importer_class in _IMPORTERS:
-        if importer_class.GetSupportedPart() == part:
-          return importer_class
+    # Only TraceEventTimelineImporter (for CHROME_TRACE_PART) is supported.
+    # Do not add any new importers to this deprecated TimelineModel class.
+    importer_cls = trace_event_importer.TraceEventTimelineImporter
+    importer_part = importer_cls.GetSupportedPart()
 
     importers = []
-    for part in trace_data.active_parts:
-      importer_class = FindImporterClassForPart(part)
-      if not importer_class:
-        logging.warning('No importer found for %s' % repr(part))
-      else:
-        importers.append(importer_class(self, trace_data))
-        importers.sort(key=lambda k: k.import_order)
+    if importer_part in trace_data.active_parts:
+      importers.append(importer_cls(self, trace_data))
+    else:
+      logging.warning('No traces found for %r', importer_part)
 
     return importers

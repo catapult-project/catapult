@@ -19,8 +19,7 @@ from tracing.trace_data import trace_data as trace_data_module
 
 class TraceEventTimelineImporter(importer.TimelineImporter):
   def __init__(self, model, trace_data):
-    super(TraceEventTimelineImporter, self).__init__(
-        model, trace_data, import_order=1)
+    super(TraceEventTimelineImporter, self).__init__(model, trace_data)
     assert isinstance(trace_data, trace_data_module.TraceData)
     self._trace_data = trace_data
 

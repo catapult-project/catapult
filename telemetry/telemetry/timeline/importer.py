@@ -5,10 +5,9 @@
 
 class TimelineImporter(object):
   """Reads TraceData and populates timeline model with what it finds."""
-  def __init__(self, model, trace_data, import_order):
+  def __init__(self, model, trace_data):
     self._model = model
     self._trace_data = trace_data
-    self.import_order = import_order
 
   @staticmethod
   def GetSupportedPart():
