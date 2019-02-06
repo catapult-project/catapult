@@ -169,6 +169,10 @@ def _GenerateQuests(arguments):
                   'telemetry_perf_tests', 'telemetry_perf_webview_tests'):
       quest_classes = (quest_module.FindIsolate, quest_module.RunTelemetryTest,
                        quest_module.ReadHistogramsJsonValue)
+    elif target == 'vr_perf_tests':
+      quest_classes = (quest_module.FindIsolate,
+                       quest_module.RunVrTelemetryTest,
+                       quest_module.ReadHistogramsJsonValue)
     else:
       quest_classes = (quest_module.FindIsolate, quest_module.RunGTest,
                        quest_module.ReadGraphJsonValue)

@@ -241,3 +241,18 @@ class NewTest(_NewTest):
     response = self.Post('/api/new', _BASE_REQUEST, status=200)
     job = job_module.JobFromId(json.loads(response.body)['jobId'])
     self.assertEqual(job.user, testing_common.INTERNAL_USER.email())
+
+  def testVrQuest(self):
+    request = dict(_BASE_REQUEST)
+    request['target'] = 'vr_perf_tests'
+    configuration = dict(_CONFIGURATION_ARGUMENTS)
+    configuration['browser'] = 'android-chromium'
+    request.update(configuration)
+    del request['configuration']
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertEqual(len(job.state._quests), 3)
+    self.assertIsInstance(job.state._quests[0], quest_module.FindIsolate)
+    self.assertIsInstance(job.state._quests[1], quest_module.RunVrTelemetryTest)
+    self.assertIsInstance(job.state._quests[2],
+                          quest_module.ReadHistogramsJsonValue)
