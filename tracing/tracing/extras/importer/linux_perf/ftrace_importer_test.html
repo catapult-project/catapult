@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/in_memory_trace_stream.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/linux_perf/ftrace_importer.html">
+o<link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/model/clock_sync_manager.html">
 
@@ -681,6 +682,25 @@ tr.b.unittest.testSuite(function() {
     const m = newModel(lines.join('\n'));
     const slice = m.kernel.getOrCreateCpu(1).slices[0];
     assert.strictEqual(slice.title, 'foo');
+  });
+
+  test('emptyTrace_noClockSyncError', function() {
+    const trace1 = '# tracer: nop\n';
+    const trace2 = JSON.stringify({
+      traceEvents: [
+        {ts: 0, pid: 0, tid: 0, ph: 'i', cat: 'c', name: 'taskA', args: {}},
+        {ts: 1000, pid: 0, tid: 0, ph: 'c', cat: 'metadata',
+          args: { issue_ts: 500, sync_id: 'abc' }},
+        {ts: 2000, pid: 0, tid: 0, ph: 'i', cat: 'c', name: 'taskA', args: {}}
+      ]});
+
+    assert.isTrue(FTraceImporter.canImport(trace1));
+
+    // Verify that creating the model doesn't throw a clock sync error
+    // because there's no clock sync marker.
+    tr.c.TestUtils.newModelWithEvents([trace1, trace2], {
+      shiftWorldToZero: false
+    });
   });
 });
 </script>
