@@ -24,14 +24,15 @@ _TRACE2HTML_PATH = os.path.join(_TRACING_DIR, 'bin', 'trace2html')
 
 
 class NonSerializableTraceData(Exception):
-  """Raised when raw trace data cannot be serialized to TraceData."""
+  """Raised when raw trace data cannot be serialized."""
   pass
 
 
 class TraceDataPart(object):
-  """TraceData can have a variety of events.
+  """Trace data can come from a variety of tracing agents.
 
-  These are called "parts" and are accessed by the following fixed field names.
+  Data from each agent is collected into a trace "part" and accessed by the
+  following fixed field names.
   """
   def __init__(self, raw_field_name):
     self._raw_field_name = raw_field_name
@@ -93,53 +94,34 @@ def _GetFilePathForTrace(trace, dir_path):
     return fp.name
 
 
-class TraceData(object):
-  """ TraceData holds a collection of traces from multiple sources.
+class _TraceData(object):
+  """Provides read access to traces collected from multiple tracing agents.
 
-  A TraceData can have multiple active parts. Each part represents traces
-  collected from a different trace agent.
+  Instances are created by calling the AsData() method on a TraceDataWriter.
+
+  Note: this API allows direct access to trace data in memory and, thus,
+  may require a lot of memory if the traces to process are very large.
+  This has lead to OOM errors in Telemetry in the past (e.g. crbug/672097).
+
+  TODO(crbug/928278): This object is provided only to support legacy TBMv1
+  metric computation, and should be removed when no such clients remain. New
+  clients should instead call SerializeAsHtml() on the TraceDataWriter and
+  pass the serialized output to an external trace processing script.
   """
-  def __init__(self):
-    """Creates TraceData from the given data."""
-    self._raw_data = {}
-    self._events_are_safely_mutable = False
-
-  def _SetFromBuilder(self, d):
-    self._raw_data = d
-    self._events_are_safely_mutable = True
-
-  @property
-  def events_are_safely_mutable(self):
-    """Returns true if the events in this value are completely sealed.
-
-    Some importers want to take complex fields out of the TraceData and add
-    them to the model, changing them subtly as they do so. If the TraceData
-    was constructed with data that is shared with something outside the trace
-    data, for instance a test harness, then this mutation is unexpected. But,
-    if the values are sealed, then mutating the events is a lot faster.
-
-    We know if events are sealed if the value came from a string, or if the
-    value came from a TraceDataBuilder.
-    """
-    return self._events_are_safely_mutable
+  def __init__(self, raw_data):
+    self._raw_data = raw_data
 
   @property
   def active_parts(self):
     return {p for p in ALL_TRACE_PARTS if p.raw_field_name in self._raw_data}
 
   def HasTracesFor(self, part):
-    return _HasTraceFor(part, self._raw_data)
+    assert isinstance(part, TraceDataPart)
+    traces = self._raw_data.get(part.raw_field_name)
+    return traces is not None and len(traces) > 0
 
   def GetTracesFor(self, part):
-    """ Return the list of traces for |part| in string or dictionary forms.
-
-    Note: since this API return the traces that can be directly accessed in
-    memory, it may require lots of memory usage as some of the trace can be
-    very big.
-    For references, we have cases where Telemetry is OOM'ed because the memory
-    required for processing the trace in Python is too big (crbug.com/672097).
-    """
-    assert isinstance(part, TraceDataPart)
+    """Return the list of traces for |part| in string or dictionary forms."""
     if not self.HasTracesFor(part):
       return []
     traces_list = self._raw_data[part.raw_field_name]
@@ -153,16 +135,17 @@ class TraceData(object):
     return traces_list
 
   def GetTraceFor(self, part):
-    assert isinstance(part, TraceDataPart)
     traces = self.GetTracesFor(part)
     assert len(traces) == 1
     return traces[0]
 
   def CleanUpAllTraces(self):
-    """ Remove all the traces that this has handles to.
+    """Remove all the traces that this has handles to.
+
+    TODO(crbug/928278): Move this method to TraceDataWriter.
 
     Those include traces stored in memory & on disk. After invoking this,
-    one can no longer uses this object for collecting the traces.
+    one can no longer uses this object for reading the trace data.
     """
     for traces_list in self._raw_data.values():
       for trace in traces_list:
@@ -173,6 +156,7 @@ class TraceData(object):
   def Serialize(self, file_path, trace_title=''):
     """Serializes the trace result to |file_path|.
 
+    TODO(crbug/928278): Move this method to TraceDataWriter.
     """
     if not self._raw_data:
       logging.warning('No traces to convert to html.')
@@ -269,17 +253,23 @@ class TraceFileHandle(object):
 class TraceDataBuilder(object):
   """TraceDataBuilder helps build up a trace from multiple trace agents.
 
-  TraceData is supposed to be immutable, but it is useful during recording to
-  have a mutable version. That is TraceDataBuilder.
+  TODO(crbug/928278): This class is meant to become the "write only" part
+  of data collection. Clients should be able to collect and serialized merged
+  trace data using this object, without having to call AsData() which provides
+  the "trace reading" service for legacy clients.
   """
   def __init__(self):
     self._raw_data = {}
 
   def AsData(self):
+    """Allow in-memory access to read the collected trace data.
+
+    TODO(crbug/928278): This method is only provided to support legacy TBMv1
+    metric computation, and should be removed when no such clients remain.
+    """
     if self._raw_data is None:
       raise Exception('Can only AsData once')
-    data = TraceData()
-    data._SetFromBuilder(self._raw_data)
+    data = _TraceData(self._raw_data)
     self._raw_data = None
     return data
 
@@ -300,22 +290,19 @@ class TraceDataBuilder(object):
     self._raw_data.setdefault(part.raw_field_name, [])
     self._raw_data[part.raw_field_name].append(trace)
 
-  def HasTracesFor(self, part):
-    return _HasTraceFor(part, self._raw_data)
-
 
 def CreateTraceDataFromRawData(raw_data):
-  """Convenient method for creating a TraceData object from |raw_data|.
-     This is mostly used for testing.
+  """Convenient method for creating a _TraceData object from |raw_data|.
 
-     Args:
-        raw_data can be:
-            + A dictionary that repsents multiple trace parts. Keys of the
-            dictionary must always contain 'traceEvents', as chrome trace
-            must always present.
-            + A list that represents Chrome trace events.
-            + JSON string of either above.
+   This is mostly used for testing.
 
+   Args:
+      raw_data can be:
+          + A dictionary that repsents multiple trace parts. Keys of the
+          dictionary must always contain 'traceEvents', as chrome trace
+          must always present.
+          + A list that represents Chrome trace events.
+          + JSON string of either above.
   """
   raw_data = copy.deepcopy(raw_data)
   if isinstance(raw_data, StringTypes):

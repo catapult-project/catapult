@@ -18,8 +18,7 @@ class TraceValue(value_module.Value):
   def __init__(self, page, trace_data, important=False, description=None,
                file_path=None, remote_path=None, upload_bucket=None,
                cloud_url=None):
-    """A value that contains a TraceData object and knows how to
-    output it.
+    """A value that contains trace data and knows how to output it.
 
     Adding TraceValues and outputting as JSON will produce a directory full of
     HTML files called trace_files. Outputting as chart JSON will also produce
