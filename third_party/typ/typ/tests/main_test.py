@@ -881,7 +881,9 @@ class TestCli(test_case.MainTestCase):
     def test_skip_test_with_expectations_file_skip_expectation(self):
         files = {'fail_test.py': FAIL_TEST_PY,
                  'expectations.txt': d("""\
-                  # tags: [ foo bar ]
+                  # tags: [ foo bar
+                  #         bat
+                  # ]
                   crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Failure Skip Crash ]
                 """)}
         _, out, _, files = self.check(['--write-full-results-to',

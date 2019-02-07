@@ -141,6 +141,7 @@ class TaggedTestListParser(object):
                         right_bracket = line.find(']')
                         if right_bracket == -1:
                             tag_set.update(line[1:].split())
+                            lineno += 1
                         else:
                             tag_set.update(line[1:right_bracket].split())
                             if line[right_bracket+1:]:
@@ -148,7 +149,6 @@ class TaggedTestListParser(object):
                                     lineno,
                                     'Nothing is allowed after a closing tag '
                                     'bracket')
-                        lineno += 1
                 else:
                     if line[right_bracket+1:]:
                         raise ParseError(

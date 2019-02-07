@@ -171,6 +171,20 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
 
+    def testSingleLineTagAfterMultiLineTagWorks(self):
+        expectations_file = """
+# This is a test expectation file.
+#
+# tags: [ tag1 tag2
+#         tag3 tag5
+#         tag6
+# ]
+# tags: [ tag4 ]
+
+crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
+"""
+        expectations_parser.TaggedTestListParser(expectations_file)
+
     def testParseBadMultiline_1(self):
         raw_data = ('# tags: [ Mac\n'
                     '          Win\n'
