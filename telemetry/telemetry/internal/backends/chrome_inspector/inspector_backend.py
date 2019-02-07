@@ -6,6 +6,7 @@ import functools
 import logging
 import socket
 import sys
+import time
 
 from py_trace_event import trace_event
 
@@ -546,10 +547,22 @@ class InspectorBackend(object):
       return self._runtime.Evaluate(expression, context_id, timeout,
                                     user_gesture)
     except inspector_websocket.WebSocketException as e:
-      # Assume the renderer's main thread is hung. Try to use DevTools
-      # to crash the target renderer process (on its IO thread) so we
-      # get a minidump we can symbolize.
-      self._runtime.Crash(context_id, timeout)
+      logging.error('Renderer process hung; forcibly crashing it and '
+                    'GPU process. Note that GPU process minidumps '
+                    'require --enable-gpu-benchmarking browser arg.')
+      # In Telemetry-based GPU tests, the GPU process is likely hung, and that's
+      # the reason the renderer process is hung. Crash it so we can see a
+      # symbolized minidump. From manual testing, it is important that this be
+      # done before crashing the renderer process, or the GPU process's minidump
+      # doesn't show up for some reason.
+      self._runtime.CrashGpuProcess(timeout)
+      # Assume the renderer's main thread is hung. Try to use DevTools to crash
+      # the target renderer process (on its IO thread) so we get a minidump we
+      # can symbolize.
+      self._runtime.CrashRendererProcess(context_id, timeout)
+      # Wait several seconds for these minidumps to be written, so the calling
+      # code has a better chance of discovering them.
+      time.sleep(5)
       raise e
 
   @_HandleInspectorWebSocketExceptions

@@ -332,9 +332,12 @@ class Browser(app.App):
     return self._browser_backend.supports_power_metrics
 
   def LogSymbolizedUnsymbolizedMinidumps(self, log_level):
-    if not self.GetAllUnsymbolizedMinidumpPaths():
+    paths = self.GetAllUnsymbolizedMinidumpPaths()
+    if not paths:
+      logging.log(log_level, 'No unsymbolized minidump paths')
       return
-    for unsymbolized_path in self.GetAllUnsymbolizedMinidumpPaths()[:10]:
+    logging.log(log_level, 'Unsymbolized minidump paths: ' + str(paths))
+    for unsymbolized_path in paths:
       sym = self.SymbolizeMinidump(unsymbolized_path)
       if sym[0]:
         logging.log(log_level, 'Symbolized minidump:\n%s', sym[1])

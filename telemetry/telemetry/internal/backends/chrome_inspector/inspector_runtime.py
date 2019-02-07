@@ -72,7 +72,7 @@ class InspectorRuntime(object):
                                             timeout=30)
     return self._all_context_ids
 
-  def Crash(self, context_id, timeout):
+  def CrashRendererProcess(self, context_id, timeout):
     request = {
         'method': 'Page.crash',
     }
@@ -80,6 +80,13 @@ class InspectorRuntime(object):
       self.EnableAllContexts()
       request['params']['contextId'] = context_id
     res = self._inspector_websocket.SyncRequest(request, timeout)
+    if 'error' in res:
+      raise exceptions.EvaluateException(res['error']['message'])
+    return res
+
+  def CrashGpuProcess(self, timeout):
+    res = self._inspector_websocket.SyncRequest(
+        {'method': 'Browser.crashGpuProcess'}, timeout)
     if 'error' in res:
       raise exceptions.EvaluateException(res['error']['message'])
     return res
