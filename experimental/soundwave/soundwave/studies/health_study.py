@@ -2,9 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from services import dashboard_service
-
-
 CLOUD_PATH = 'gs://chome-health-tvdata/datasets/health_study.csv'
 
 OVERALL_PSS = ('memory:{browser}:all_processes:reported_by_os:system_memory'
@@ -30,13 +27,8 @@ STARTUP_BY_BROWSER = {
 
 
 def IterSystemHealthBots():
-  description = dashboard_service.Describe('memory.top_10_mobile')
-  for bot in description['bots']:
-    if 'Internal' not in bot:
-      continue
-    if 'low-end' in bot or '512' in bot:
-      continue
-    yield bot.replace(':', '/')
+  yield 'ChromiumPerf/android-go-perf'
+  yield 'ChromiumPerfFyi/android-go_webview-perf'
 
 
 def GetBrowserFromBot(bot):
