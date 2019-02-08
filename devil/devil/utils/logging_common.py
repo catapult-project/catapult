@@ -8,32 +8,13 @@ import time
 
 
 def AddLoggingArguments(parser):
-  """Adds standard logging flags to the parser.
-
-  After parsing args, remember to invoke InitializeLogging() with the parsed
-  args, to configure the log level.
-  """
-  group = parser.add_mutually_exclusive_group()
-  group.add_argument(
+  parser.add_argument(
       '-v', '--verbose', action='count', default=0,
       help='Log more. Use multiple times for even more logging.')
-  group.add_argument(
-      '-q', '--quiet', action='count', default=0,
-      help=('Log less (suppress output). Use multiple times for even less '
-            'output.'))
 
 
 def InitializeLogging(args, handler=None):
-  """Initialized the log level based on commandline flags.
-
-  This expects to be given an "args" object with the options defined by
-  AddLoggingArguments().
-  """
-  if args.quiet >= 2:
-    log_level = logging.CRITICAL
-  elif args.quiet == 1:
-    log_level = logging.ERROR
-  elif args.verbose == 0:
+  if args.verbose == 0:
     log_level = logging.WARNING
   elif args.verbose == 1:
     log_level = logging.INFO
