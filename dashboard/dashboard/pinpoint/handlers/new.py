@@ -16,7 +16,7 @@ _ERROR_BUG_ID = 'Bug ID must be an integer.'
 _ERROR_TAGS_DICT = 'Tags must be a dict of key/value string pairs.'
 _ERROR_UNSUPPORTED = 'This benchmark (%s) is unsupported.'
 
-_UNSUPPORTED_BENCHMARKS = ['loading.desktop.network_service']
+_UNSUPPORTED_BENCHMARKS = []
 
 
 class New(api_request_handler.ApiRequestHandler):
