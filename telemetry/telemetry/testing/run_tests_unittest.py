@@ -83,7 +83,7 @@ class RunTestsUnitTest(unittest.TestCase):
   def baseTest(self,
                failures, successes, skips, test_name='',
                extra_args=None):
-    extra_args = [] if not extra_args else extra_args
+    extra_args = extra_args or []
     config = project_config.ProjectConfig(
         top_level_dir=os.path.join(util.GetTelemetryDir(), 'examples'),
         client_configs=[],
@@ -112,7 +112,7 @@ class RunTestsUnitTest(unittest.TestCase):
   def _RunUnitWithExpectationFile(self, full_test_name, expectation,
                                   test_tags='foo', extra_args=None,
                                   expected_exit_code=0):
-    extra_args = [] if not extra_args else extra_args
+    extra_args = extra_args or []
     expectations = ('# tags: [ foo bar mac ]\n'
                     'crbug.com/123 [ %s ] %s [ %s ]')
     expectations = expectations % (test_tags, full_test_name, expectation)

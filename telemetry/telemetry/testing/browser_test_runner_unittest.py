@@ -56,8 +56,8 @@ class BrowserTestRunnerTest(unittest.TestCase):
   def baseTest(self, test_filter,
                failures, successes, test_name='SimpleTest',
                skips=None, extra_args=None):
-    skips = []  if not skips else skips
-    extra_args = [] if not extra_args else extra_args
+    skips = skips or []
+    extra_args = extra_args or []
     config = project_config.ProjectConfig(
         top_level_dir=os.path.join(util.GetTelemetryDir(), 'examples'),
         client_configs=[],
@@ -87,7 +87,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
   def _RunBrowserTest(self, modulename, classname,
                       test_name, expectation, test_tags='foo',
                       extra_args=None, expected_exit_code=0):
-    extra_args = [] if not extra_args else extra_args
+    extra_args = extra_args or []
     expectations = ('# tags: [ foo bar mac ]\n'
                     'crbug.com/123 [ %s ] '
                     'browser_tests.%s.%s.%s'
