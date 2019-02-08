@@ -330,6 +330,9 @@ class TestCli(test_case.MainTestCase):
         }
         self.check(['-X', 'expectations.txt', '-x', 'foo'], files=files, ret=1)
 
+    def test_pass_retry_only_flaky_tests_arg(self):
+        self.check(['--retry-only-retry-on-failure-tests'], ret=0)
+
     def test_fail(self):
         _, out, _, _ = self.check([], files=FAIL_TEST_FILES, ret=1, err='')
         self.assertIn('fail_test.FailingTest.test_fail failed unexpectedly',

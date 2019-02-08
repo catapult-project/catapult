@@ -172,6 +172,11 @@ class ArgumentParser(argparse.ArgumentParser):
                                     'test run.'))
             self.add_argument('--retry-limit', type=int, default=0,
                               help='Retries each failure up to N times.')
+            self.add_argument('--retry-only-retry-on-failure-tests',
+                              action='store_true',
+                              help=('Retries are only for tests that have the'
+                                    ' RetryOnFailure tag in the test'
+                                    ' expectations file'))
             self.add_argument('--terminal-width', type=int,
                               default=self._host.terminal_width(),
                               help=argparse.SUPPRESS)
