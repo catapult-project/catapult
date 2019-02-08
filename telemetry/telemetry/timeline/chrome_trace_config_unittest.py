@@ -132,22 +132,22 @@ class ChromeTraceConfigTests(unittest.TestCase):
     with self.assertRaises(AssertionError):
       config.GetChromeTraceCategoriesAndOptionsForDevTools()
 
-  def testHistograms(self):
+  def testUMAHistograms(self):
     config = chrome_trace_config.ChromeTraceConfig()
-    config.EnableHistograms('Event.Latency.ScrollUpdate.Touch.Metric1')
+    config.EnableUMAHistograms('Event.Latency.ScrollUpdate.Touch.Metric1')
     self.assertEquals({
         'histogramNames': ['Event.Latency.ScrollUpdate.Touch.Metric1'],
         'recordMode': 'recordAsMuchAsPossible'
     }, config.GetChromeTraceConfigForDevTools())
 
-    config.EnableHistograms('Event.Latency.ScrollUpdate.Touch.Metric2')
+    config.EnableUMAHistograms('Event.Latency.ScrollUpdate.Touch.Metric2')
     self.assertEquals({
         'histogramNames': ['Event.Latency.ScrollUpdate.Touch.Metric1',
                            'Event.Latency.ScrollUpdate.Touch.Metric2'],
         'recordMode': 'recordAsMuchAsPossible'
     }, config.GetChromeTraceConfigForDevTools())
 
-    config.EnableHistograms('AnotherMetric', 'LastMetric')
+    config.EnableUMAHistograms('AnotherMetric', 'LastMetric')
     self.assertEquals({
         'histogramNames': ['Event.Latency.ScrollUpdate.Touch.Metric1',
                            'Event.Latency.ScrollUpdate.Touch.Metric2',

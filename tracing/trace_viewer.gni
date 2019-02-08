@@ -224,6 +224,7 @@ tracing_js_html_files = [
   "tracing/metrics/system_health/webview_startup_metric.html",
   "tracing/metrics/tabs_metric.html",
   "tracing/metrics/tracing_metric.html",
+  "tracing/metrics/uma_metric.html",
   "tracing/metrics/v8/execution_metric.html",
   "tracing/metrics/v8/gc_metric.html",
   "tracing/metrics/v8/runtime_stats_metric.html",

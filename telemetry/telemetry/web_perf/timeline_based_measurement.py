@@ -304,6 +304,10 @@ class TimelineBasedMeasurement(story_test.StoryTest):
 
   def _ComputeTimelineBasedMetrics(self, results, trace_value):
     metrics = self._tbm_options.GetTimelineBasedMetrics()
+    if (self._tbm_options.config.chrome_trace_config.HasUMAHistograms() and
+        'umaMetric' not in metrics):
+      raise Exception('UMA histograms are enabled but umaMetric is not used')
+
     extra_import_options = {
         'trackDetailedModelStats': True
     }
