@@ -14,7 +14,7 @@ CustomFormatter = logging_common.CustomFormatter
 
 
 _WrappedLoggingArgs = collections.namedtuple(
-    '_WrappedLoggingArgs', ['verbose'])
+    '_WrappedLoggingArgs', ['verbose', 'quiet'])
 
 
 def SetLogLevel(verbose_count, add_handler=True):
@@ -25,5 +25,5 @@ def SetLogLevel(verbose_count, add_handler=True):
     add_handler: If true, adds a handler with |CustomFormatter|.
   """
   logging_common.InitializeLogging(
-      _WrappedLoggingArgs(verbose_count),
+      _WrappedLoggingArgs(verbose_count, 0),
       handler=None if add_handler else logging.NullHandler())
