@@ -40,9 +40,13 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
     if story_tags:
       extra_test_args += ('--story-tag-filter', story_tags)
 
+    network_service_cold = benchmark.startswith(
+        'loading.desktop.network_service') and '.cold' in story
+
     # TODO: Workaround for crbug.com/677843.
     if (benchmark.startswith('startup.warm') or
-        benchmark.startswith('start_with_url.warm')):
+        benchmark.startswith('start_with_url.warm') or
+        network_service_cold):
       extra_test_args += ('--pageset-repeat', '2')
     else:
       extra_test_args += ('--pageset-repeat', '1')
