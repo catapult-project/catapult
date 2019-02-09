@@ -256,17 +256,36 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
       raise NonLinearError('Repositories differ between Commits: %s vs %s' %
                            (commit_a.repository, commit_b.repository))
 
-    commits = gitiles_service.CommitRange(commit_a.repository_url,
-                                          commit_a.git_hash, commit_b.git_hash)
+    # We need to get the full list of commits in between two git hashes, and
+    # only look into the chain formed by following the first parents of each
+    # commit. This gives us a linear view of the log even in the presence of
+    # merge commits.
+    commits = []
+
+    # The commit_range by default is in reverse-chronological (latest commit
+    # first) order. This means we should keep following the first parent to get
+    # the linear history for a branch that we're exploring.
+    expected_parent = commit_b.git_hash
+    commit_range = gitiles_service.CommitRange(commit_a.repository_url,
+                                               commit_a.git_hash,
+                                               commit_b.git_hash)
+    for commit in commit_range:
+      # Skip commits until we find the parent we're looking for.
+      if commit['commit'] == expected_parent:
+        commits.append(commit)
+        if 'parents' in commit and len(commit['parents']):
+          expected_parent = commit['parents'][0]
+
     # We don't handle NotFoundErrors because we assume that all Commits either
     # came from this method or were already validated elsewhere.
     if len(commits) == 0:
       raise NonLinearError('Commit "%s" does not come before commit "%s".' %
-                           commit_a, commit_b)
+                           (commit_a, commit_b))
+
     if len(commits) == 1:
       return commit_a
-    commits.pop(0)  # Remove commit_b from the range.
 
+    commits.pop(0)  # Remove commit_b from the range.
     return cls(commit_a.repository, commits[len(commits) / 2]['commit'])
 
 

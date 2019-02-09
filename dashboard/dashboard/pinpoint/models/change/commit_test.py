@@ -2,12 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import re
+
 from dashboard.pinpoint.models.change import commit
 from dashboard.pinpoint import test
 
 
 def Commit(number, repository='chromium'):
-  return commit.Commit(repository, 'commit_' + str(number))
+  return commit.Commit(repository=repository, git_hash='commit_' + str(number))
 
 
 class CommitTest(test.TestCase):
@@ -232,3 +234,32 @@ class MidpointTest(test.TestCase):
 
     with self.assertRaises(commit.NonLinearError):
       commit.Commit.Midpoint(Commit(1), Commit(9))
+
+  def testMidpointWithMergeCommits(self):
+    midpoint = commit.Commit.Midpoint(
+        commit.Commit(repository='chromium', git_hash='commit_0'),
+        commit.Commit(repository='chromium', git_hash='mc_4'))
+    self.assertEqual(midpoint,
+                     commit.Commit(repository='chromium', git_hash='commit_2'))
+
+  def testContinuousMidpointWithMergeCommits(self):
+
+    def _Midpoints(start_point, end_point):
+      midpoint = commit.Commit.Midpoint(start_point, end_point)
+      while midpoint.git_hash != start_point.git_hash:
+        yield midpoint
+        start_point = midpoint
+        midpoint = commit.Commit.Midpoint(start_point, end_point)
+
+    start = commit.Commit(repository='chromium', git_hash='mc_1')
+    end = commit.Commit(repository='chromium', git_hash='mc_100')
+    count = 0
+    matcher = re.compile(r'^mc_\d+$')
+    for midpoint in _Midpoints(start, end):
+      self.assertRegexpMatches(midpoint.git_hash, matcher)
+      count += 1
+      self.assertLess(count, 100)
+
+    # Check that the midpoint search algorithm runs in log2(N) time.
+    self.assertGreater(count, 0)
+    self.assertLess(count, 8)
