@@ -69,7 +69,6 @@ from typ.printer import Printer
 from typ.test_case import convert_newlines, TestCase, MainTestCase
 from typ.version import VERSION
 
-
 __all__ = [
     'ArgumentParser',
     'Expectation',

@@ -16,16 +16,14 @@ from collections import OrderedDict
 
 import json
 
-
 class ResultType(object):
     Pass = 'PASS'
     Failure = 'FAIL'
     Timeout = 'TIMEOUT'
     Crash = 'CRASH'
     Skip = 'SKIP'
-    RetryOnFailure = 'RetryOnFailure'
 
-    values = (Pass, Failure, Timeout, Crash, Skip, RetryOnFailure)
+    values = (Pass, Failure, Timeout, Crash, Skip)
 
 
 class Result(object):

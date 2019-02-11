@@ -303,5 +303,5 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
     def testParseRetryOnFailureExpectation(self):
         raw_data = (
             '# tags: [ Linux ]\n'
-            'crbug.com/23456 [ Linux ] b1/s1 [ Crash RetryOnFailure Failure ]\n')
+            'crbug.com/23456 [ Linux ] b1/s1 [ RetryOnFailure ]\n')
         expectations_parser.TaggedTestListParser(raw_data)

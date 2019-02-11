@@ -696,7 +696,8 @@ class TestCli(test_case.MainTestCase):
              '1 test passed, 1 skipped, 0 failures.'))
 
     def test_skip_via_expectations(self):
-        files = {'expectations.txt': 'crbug.com/23456 fail_test.FailingTest.test_fail [ Skip ]\n',
+        files = {'expectations.txt':
+                 'crbug.com/23456 fail_test.FailingTest.test_fail [ Skip ]\n',
                  'fail_test.py': FAIL_TEST_PY,
                  'pass_test.py': PASS_TEST_PY}
         self.check(['-X', 'expectations.txt'], files=files, ret=0)
@@ -878,8 +879,8 @@ class TestCli(test_case.MainTestCase):
         _, out, _, _ = self.check(['-X', 'expectations.txt',
                                    'skip_test.SkipSetup.test_notrun'],
                                    files=files, ret=1, err='')
-        self.assertIn('skip_test.SkipSetup.test_notrun was skipped unexpectedly',
-                      out)
+        self.assertIn('skip_test.SkipSetup.test_notrun was skipped unexpectedly'
+                      ,out)
 
     def test_skip_test_with_expectations_file_skip_expectation(self):
         files = {'fail_test.py': FAIL_TEST_PY,

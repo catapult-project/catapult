@@ -22,7 +22,7 @@ _EXPECTATION_MAP = {
     'Pass': ResultType.Pass,
     'Timeout': ResultType.Timeout,
     'Skip': ResultType.Skip,
-    'RetryOnFailure': ResultType.RetryOnFailure
+    'RetryOnFailure': 'RETRY_ON_FAILURE'
 }
 
 def _group_to_string(group):
