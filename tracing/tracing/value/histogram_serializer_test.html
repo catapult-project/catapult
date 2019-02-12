@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright 2019 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/histogram_serializer.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('objects', function() {
+    const serializer = new tr.v.HistogramSerializer();
+    assert.strictEqual(0, serializer.getOrAllocateId('a'));
+    assert.strictEqual(1, serializer.getOrAllocateId(['b']));
+    assert.strictEqual(0, serializer.getOrAllocateId('a'));
+    assert.strictEqual(1, serializer.getOrAllocateId(['b']));
+  });
+
+  test('diagnostics', function() {
+    const serializer = new tr.v.HistogramSerializer();
+    assert.strictEqual(0, serializer.getOrAllocateDiagnosticId(
+        'a', new tr.v.d.GenericSet(['b'])));
+    assert.strictEqual(1, serializer.getOrAllocateDiagnosticId(
+        'a', new tr.v.d.GenericSet(['c'])));
+    assert.strictEqual(0, serializer.getOrAllocateDiagnosticId(
+        'a', new tr.v.d.GenericSet(['b'])));
+    assert.strictEqual(1, serializer.getOrAllocateDiagnosticId(
+        'a', new tr.v.d.GenericSet(['c'])));
+  });
+});
+</script>
