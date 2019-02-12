@@ -30,7 +30,7 @@ class ConfigTest(test.TestCase):
   def testGet_External(self):
     self.SetCurrentUser('external@chromium.org')
 
-    actual = json.loads(self.testapp.get('/api/config').body)
+    actual = json.loads(self.testapp.post('/api/config').body)
     expected = {
         'configurations': ['chromium-rel-mac11-pro'],
     }
@@ -39,7 +39,7 @@ class ConfigTest(test.TestCase):
   def testGet_Internal(self):
     self.SetCurrentUser('internal@chromium.org')
 
-    actual = json.loads(self.testapp.get('/api/config').body)
+    actual = json.loads(self.testapp.post('/api/config').body)
     expected = {
         'configurations': ['internal-only-bot'],
     }

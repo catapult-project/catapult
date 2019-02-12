@@ -2,16 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
-import webapp2
-
+from dashboard.api import api_request_handler
 from dashboard.common import bot_configurations
 
 
-class Config(webapp2.RequestHandler):
+class Config(api_request_handler.ApiRequestHandler):
   """Handler returning site configuration details."""
 
-  def get(self):
-    self.response.out.write(json.dumps({
-        'configurations': bot_configurations.List(),
-    }))
+  def _CheckUser(self):
+    pass
+
+  def Post(self):
+    return {'configurations': bot_configurations.List()}

@@ -48,7 +48,7 @@ found in the LICENSE file.
         <template is="dom-if" if="[[error]]">
           <p class="error">[[error]]
         </template>
-        <iron-ajax auto url="/api/config" last-response="{{config}}"></iron-ajax>
+        <iron-ajax method="post" headers="[[authHeaders]]" auto url="/api/config" last-response="{{config}}"></iron-ajax>
         <iron-form id="try_form" headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
             <input type="hidden" name="start_git_hash" value="HEAD">
