@@ -56,8 +56,7 @@ tr.exportTo('tr.metrics', function() {
       if (metric === undefined) {
         throw new Error(`"${metricName}" is not a registered metric.`);
       }
-      validateTraceCategories(
-          metric.metadata.requiredCategories, categories, model);
+      validateTraceCategories(metric.metadata.requiredCategories, categories);
       try {
         metric.constructor(histograms, model, options);
       } catch (e) {
@@ -119,15 +118,10 @@ tr.exportTo('tr.metrics', function() {
     }
   }
 
-  function validateTraceCategories(requiredCategories, categories, model) {
+  function validateTraceCategories(requiredCategories, categories) {
     if (!requiredCategories) return;
 
-    if (!categories) {
-      throw new Error(
-          'Missing trace config metadata (' +
-          model.metadata.length + ' metadata entries: ' +
-          model.metadata.map(m => m.name).join(', '));
-    }
+    if (!categories) throw new Error('Missing trace config metadata');
 
     for (const cat of requiredCategories) {
       const isDisabledByDefault = (cat.indexOf('disabled-by-default') === 0);
