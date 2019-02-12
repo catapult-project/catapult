@@ -882,6 +882,48 @@ class TestCli(test_case.MainTestCase):
         self.assertIn('skip_test.SkipSetup.test_notrun was skipped unexpectedly'
                       ,out)
 
+    def test_retryonfailure_test_fails(self):
+        files = {'fail_test.py': FAIL_TEST_PY,
+                 'expectations.txt': d("""\
+                  # tags: [ foo bar ]
+                  crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ RetryOnFailure ]
+                """)}
+        _, out, _, files = self.check(['--write-full-results-to',
+                                       'full_results.json',
+                                       '-X', 'expectations.txt',
+                                       '-x', 'foo'],
+                                      files=files, ret=1, err='')
+        self.assertIn('[1/1] fail_test.FailingTest.test_fail failed unexpectedly:\n',
+                      out)
+        self.assertIn('0 tests passed, 0 skipped, 1 failure.\n', out)
+        results = json.loads(files['full_results.json'])
+        results = results['tests']['fail_test']['FailingTest']['test_fail']
+        self.assertEqual(results['actual'],'FAIL')
+        self.assertEqual(results['expected'],'PASS')
+        self.assertIn('is_unexpected', results)
+        self.assertIn('is_regression', results)
+
+    def test_retryonfailure_test_passes(self):
+        files = {'pass_test.py': PASS_TEST_PY,
+                 'expectations.txt': d("""\
+                  # tags: [ foo bar ]
+                  crbug.com/12345 [ foo ] pass_test.PassingTest.test_pass [ RetryOnFailure ]
+                """)}
+        _, out, _, files = self.check(['--write-full-results-to',
+                                       'full_results.json',
+                                       '-X', 'expectations.txt',
+                                       '-x', 'foo'],
+                                      files=files, ret=0, err='')
+        self.assertIn('[1/1] pass_test.PassingTest.test_pass passed\n',
+                      out)
+        self.assertIn('1 test passed, 0 skipped, 0 failures.\n', out)
+        results = json.loads(files['full_results.json'])
+        results = results['tests']['pass_test']['PassingTest']['test_pass']
+        self.assertEqual(results['actual'],'PASS')
+        self.assertEqual(results['expected'],'PASS')
+        self.assertNotIn('is_unexpected', results)
+        self.assertNotIn('is_regression', results)
+
     def test_skip_test_with_expectations_file_skip_expectation(self):
         files = {'fail_test.py': FAIL_TEST_PY,
                  'expectations.txt': d("""\

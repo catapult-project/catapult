@@ -141,6 +141,18 @@ class RunTestsUnitTest(unittest.TestCase):
       os.remove(results.name)
     return self._test_result
 
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testRetryOnFailureExpectationWithPassingTest(self):
+    self._RunUnitWithExpectationFile('unit_tests_test.PassingTest.test_pass',
+                                     'RetryOnFailure')
+    test_result = (self._test_result['tests']['unit_tests_test']['PassingTest']
+                   ['test_pass'])
+    self.assertEqual(test_result['actual'], 'PASS')
+    self.assertEqual(test_result['expected'], 'PASS')
+    self.assertNotIn('is_unexpected', test_result)
+    self.assertNotIn('is_regression', test_result)
+
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testSkipTestCmdArgNoExpectationsFile(self):
     self.baseTest([],
