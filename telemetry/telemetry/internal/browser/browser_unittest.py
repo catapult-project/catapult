@@ -273,7 +273,9 @@ class TestBrowserCreation(unittest.TestCase):
   @decorators.Disabled('win10')  # crbug.com/902268
   def testSuccessfullyStartBrowserWithSystemCacheClearOptions(self):
     browser_options = self.browser_options
+    # TODO(crbug.com/811244): Switch to using new name of this property.
     browser_options.clear_sytem_cache_for_browser_and_profile_on_start = True
+    self.assertTrue(browser_options.flush_os_page_caches_on_start)
     with self.browser_to_create.BrowserSession(browser_options) as browser:
       tab = browser.tabs.New()
       tab.Navigate('about:blank')

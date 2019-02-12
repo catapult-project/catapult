@@ -186,8 +186,7 @@ class SharedPageState(story_module.SharedState):
 
     # Clear caches before starting browser.
     self.platform.FlushDnsCache()
-    if browser_options.clear_sytem_cache_for_browser_and_profile_on_start:
-      # TODO(crbug.com/811244): Consider whether we can do this unconditionally.
+    if browser_options.flush_os_page_caches_on_start:
       self._possible_browser.FlushOsPageCaches()
 
     self._browser = self._possible_browser.Create()

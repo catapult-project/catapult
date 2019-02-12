@@ -367,8 +367,11 @@ class BrowserOptions(object):
     self.disable_background_networking = True
     self.browser_user_agent_type = None
 
-    # pylint: disable=invalid-name
-    self.clear_sytem_cache_for_browser_and_profile_on_start = False
+    # Some benchmarks (startup, loading, and memory related) need this to get
+    # more representative measurements. Only has an effect for page sets based
+    # on SharedPageState. New clients should probably define their own shared
+    # state and make cache clearing decisions on their own.
+    self.flush_os_page_caches_on_start = False
 
     # Background pages of built-in component extensions can interfere with
     # performance measurements.
@@ -403,6 +406,16 @@ class BrowserOptions(object):
     # The list of compatibility change that you want to enforce, mainly for
     # earlier versions of Chrome
     self.compatibility_mode = []
+
+  @property
+  def clear_sytem_cache_for_browser_and_profile_on_start(self):
+    # TODO(crbug.com/811244): Remove this alias when clients use the new name.
+    return self.flush_os_page_caches_on_start
+
+  @clear_sytem_cache_for_browser_and_profile_on_start.setter
+  def clear_sytem_cache_for_browser_and_profile_on_start(self, value):
+    # TODO(crbug.com/811244): Remove this alias when clients use the new name.
+    self.flush_os_page_caches_on_start = value
 
   def __repr__(self):
     # This works around the infinite loop caused by the introduction of a
