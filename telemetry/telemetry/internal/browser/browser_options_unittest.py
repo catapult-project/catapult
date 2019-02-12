@@ -100,6 +100,15 @@ class BrowserOptionsTest(unittest.TestCase):
 
     self.assertTrue(options.enable_systrace)
 
+  def testIncompatibleIntervalProfilingPeriods(self):
+    options = browser_options.BrowserFinderOptions()
+    parser = options.CreateParser()
+
+    with self.assertRaises(SystemExit) as context:
+      parser.parse_args(['--interval-profiling-period=story_run',
+                         '--interval-profiling-period=navigation'])
+    self.assertEqual(context.exception.code, 1)
+
   def testMergeDefaultValues(self):
     options = browser_options.BrowserFinderOptions()
     options.already_true = True

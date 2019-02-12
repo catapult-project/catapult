@@ -200,10 +200,15 @@ class TestPageRun(unittest.TestCase):
           mock.call.current_tab.CollectGarbage(),
           mock.call.current_tab.CollectGarbage(),
           mock.call.current_tab.CollectGarbage(),
+          mock.call.interval_profiling_controller.SamplePeriod(
+              'story_run', mock_action_runner),
+          mock.call.interval_profiling_controller.SamplePeriod().__enter__(),
           mock.call.NavigateToPage(mock_action_runner, p),
           mock.call.interval_profiling_controller.SamplePeriod(
               'interactions', mock_action_runner),
           mock.call.interval_profiling_controller.SamplePeriod().__enter__(),
+          mock.call.interval_profiling_controller.SamplePeriod().__exit__(
+              None, None, None),
           mock.call.interval_profiling_controller.SamplePeriod().__exit__(
               None, None, None)
       ]

@@ -175,7 +175,7 @@ class BrowserFinderOptions(optparse.Values):
         'used.')
     parser.add_option_group(group)
 
-    # CPU profiling on Android.
+    # CPU profiling on Android/Linux.
     group = optparse.OptionGroup(parser, (
         'CPU profiling over intervals of interest, '
         'Android and Linux only'))
@@ -185,11 +185,13 @@ class BrowserFinderOptions(optparse.Values):
         help='Run the CPU profiler on this process/thread (default=%default).')
     group.add_option(
         '--interval-profiling-period', dest='interval_profiling_periods',
-        type='choice', choices=('navigation', 'interactions'), action='append',
-        default=[], metavar='PERIOD',
+        type='choice',
+        choices=('navigation', 'interactions', 'story_run'),
+        action='append', default=[], metavar='PERIOD',
         help='Run the CPU profiler during this test period. '
-        'May be specified multiple times; available choices '
-        'are ["navigation", "interactions"]. Profile data will be written to'
+        'May be specified multiple times except when the story_run period is '
+        'used; available choices are ["navigation", "interactions", '
+        '"story_run"]. Profile data will be written to '
         'artifacts/*.perf.data (Android) or artifacts/*.profile.pb (Linux) '
         'files in the output directory. See '
         'https://developer.android.com/ndk/guides/simpleperf for more info on '
@@ -198,7 +200,7 @@ class BrowserFinderOptions(optparse.Values):
         '--interval-profiling-frequency', default=1000, metavar='FREQUENCY',
         type=int,
         help='Frequency of CPU profiling samples, in samples per second '
-        '(default=%default).')
+        '(default=%default). This flag is used only on Android')
     parser.add_option_group(group)
 
     # Browser options.
@@ -264,6 +266,15 @@ class BrowserFinderOptions(optparse.Values):
           if len(browser_types[device_name]) == 0:
             print '     No browsers found for this device'
         sys.exit(0)
+
+      # Profiling other periods along with the story_run period leads to running
+      # multiple profiling processes at the same time. The effects of performing
+      # muliple CPU profiling at the same time is unclear and may generate
+      # incorrect profiles so this will not be supported.
+      if (len(self.interval_profiling_periods) > 1
+          and 'story_run' in self.interval_profiling_periods):
+        print 'Cannot specify other periods along with the story_run period.'
+        sys.exit(1)
 
       # Parse browser options.
       self.browser_options.UpdateFromParseResults(self)
