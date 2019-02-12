@@ -17,6 +17,7 @@ from tracing.value.diagnostics import reserved_infos
 
 _BASE_ARGUMENTS_HISTOGRAMS = {'benchmark': 'speedometer'}
 _BASE_ARGUMENTS_GRAPH_JSON = {
+    'benchmark': 'base_perftests',
     'chart': 'chart_name',
     'trace': 'trace_name',
 }
@@ -29,7 +30,6 @@ class ReadHistogramsJsonValueQuestTest(unittest.TestCase):
         _BASE_ARGUMENTS_HISTOGRAMS)
     expected = read_value.ReadHistogramsJsonValue(
         'speedometer/perf_results.json')
-    print quest._results_filename
     self.assertEqual(quest, expected)
 
   def testAllArguments(self):
@@ -59,21 +59,24 @@ class ReadGraphJsonValueQuestTest(unittest.TestCase):
 
   def testMinimumArguments(self):
     quest = read_value.ReadGraphJsonValue.FromDict(_BASE_ARGUMENTS_GRAPH_JSON)
-    expected = read_value.ReadGraphJsonValue('chart_name', 'trace_name')
+    expected = read_value.ReadGraphJsonValue(
+        'base_perftests/perf_results.json', 'chart_name', 'trace_name')
     self.assertEqual(quest, expected)
 
   def testMissingChart(self):
     arguments = dict(_BASE_ARGUMENTS_GRAPH_JSON)
     del arguments['chart']
     quest = read_value.ReadGraphJsonValue.FromDict(arguments)
-    expected = read_value.ReadGraphJsonValue(None, 'trace_name')
+    expected = read_value.ReadGraphJsonValue(
+        'base_perftests/perf_results.json', None, 'trace_name')
     self.assertEqual(quest, expected)
 
   def testMissingTrace(self):
     arguments = dict(_BASE_ARGUMENTS_GRAPH_JSON)
     del arguments['trace']
     quest = read_value.ReadGraphJsonValue.FromDict(arguments)
-    expected = read_value.ReadGraphJsonValue('chart_name', None)
+    expected = read_value.ReadGraphJsonValue(
+        'base_perftests/perf_results.json', 'chart_name', None)
     self.assertEqual(quest, expected)
 
 
@@ -536,7 +539,8 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(
         {'chart': {'traces': {'trace': ['126444.869721', '0.0']}}})
 
-    quest = read_value.ReadGraphJsonValue('chart', 'trace')
+    quest = read_value.ReadGraphJsonValue(
+        'chartjson-output.json', 'chart', 'trace')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
@@ -547,7 +551,8 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
   def testReadGraphJsonValueWithMissingFile(self):
     self._retrieve.return_value = '{"files": {}}'
 
-    quest = read_value.ReadGraphJsonValue('metric', 'test')
+    quest = read_value.ReadGraphJsonValue(
+        'base_perftests/perf_results.json', 'metric', 'test')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
@@ -556,7 +561,8 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
   def testReadGraphJsonValueWithMissingChart(self):
     self.SetOutputFileContents({})
 
-    quest = read_value.ReadGraphJsonValue('metric', 'test')
+    quest = read_value.ReadGraphJsonValue(
+        'base_perftests/perf_results.json', 'metric', 'test')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
@@ -565,7 +571,8 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
   def testReadGraphJsonValueWithMissingTrace(self):
     self.SetOutputFileContents({'chart': {'traces': {}}})
 
-    quest = read_value.ReadGraphJsonValue('metric', 'test')
+    quest = read_value.ReadGraphJsonValue(
+        'base_perftests/perf_results.json', 'metric', 'test')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 

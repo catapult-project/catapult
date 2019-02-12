@@ -190,12 +190,14 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
 
 class ReadGraphJsonValue(quest.Quest):
 
-  def __init__(self, chart, trace):
+  def __init__(self, results_filename, chart, trace):
+    self._results_filename = results_filename
     self._chart = chart
     self._trace = trace
 
   def __eq__(self, other):
     return (isinstance(other, type(self)) and
+            self._results_filename == other._results_filename and
             self._chart == other._chart and
             self._trace == other._trace)
 
@@ -210,20 +212,31 @@ class ReadGraphJsonValue(quest.Quest):
     del change
 
     return _ReadGraphJsonValueExecution(
-        self._chart, self._trace, isolate_server, isolate_hash)
+        self._results_filename, self._chart, self._trace,
+        isolate_server, isolate_hash)
 
   @classmethod
   def FromDict(cls, arguments):
+    benchmark = arguments.get('benchmark')
+    if not benchmark:
+      raise TypeError('Missing "benchmark" argument.')
+    if _IsWindows(arguments):
+      results_filename = ntpath.join(benchmark, 'perf_results.json')
+    else:
+      results_filename = posixpath.join(benchmark, 'perf_results.json')
+
     chart = arguments.get('chart')
     trace = arguments.get('trace')
 
-    return cls(chart, trace)
+    return cls(results_filename, chart, trace)
 
 
 class _ReadGraphJsonValueExecution(execution.Execution):
 
-  def __init__(self, chart, trace, isolate_server, isolate_hash):
+  def __init__(
+      self, results_filename, chart, trace, isolate_server, isolate_hash):
     super(_ReadGraphJsonValueExecution, self).__init__()
+    self._results_filename = results_filename
     self._chart = chart
     self._trace = trace
     self._isolate_server = isolate_server
@@ -234,7 +247,7 @@ class _ReadGraphJsonValueExecution(execution.Execution):
 
   def _Poll(self):
     graphjson = _RetrieveOutputJson(
-        self._isolate_server, self._isolate_hash, 'chartjson-output.json')
+        self._isolate_server, self._isolate_hash, self._results_filename)
 
     if not self._chart and not self._trace:
       self._Complete(result_values=tuple([]))
