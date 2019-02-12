@@ -22,19 +22,20 @@ tr.exportTo('tr.model', function() {
    *
    * @constructor
    */
-  function InstantEvent(category, title, colorId, start, args) {
+  function InstantEvent(category, title, colorId, start, args, parent) {
     tr.model.TimedEvent.call(this, start);
 
     this.category = category || '';
     this.title = title;
     this.colorId = colorId;
     this.args = args;
+    this.parent_ = parent;
 
     this.type = undefined;
   }
 
   InstantEvent.prototype = {
-    __proto__: tr.model.TimedEvent.prototype
+    __proto__: tr.model.TimedEvent.prototype,
   };
 
   /**
@@ -46,7 +47,7 @@ tr.exportTo('tr.model', function() {
    *
    * @constructor
    */
-  function GlobalInstantEvent(category, title, colorId, start, args) {
+  function GlobalInstantEvent(category, title, colorId, start, args, parent) {
     InstantEvent.apply(this, arguments);
     this.type = InstantEventType.GLOBAL;
   }
@@ -56,7 +57,11 @@ tr.exportTo('tr.model', function() {
     get userFriendlyName() {
       return 'Global instant event ' + this.title + ' @ ' +
           tr.b.Unit.byName.timeStampInMs.format(start);
-    }
+    },
+
+    get stableId() {
+      return 'instant.' + this.parent_.instantEvents.indexOf(this);
+    },
   };
 
   /**
@@ -67,7 +72,7 @@ tr.exportTo('tr.model', function() {
    *
    * @constructor
    */
-  function ProcessInstantEvent(category, title, colorId, start, args) {
+  function ProcessInstantEvent(category, title, colorId, start, args, parent) {
     InstantEvent.apply(this, arguments);
     this.type = InstantEventType.PROCESS;
   }
@@ -78,7 +83,12 @@ tr.exportTo('tr.model', function() {
     get userFriendlyName() {
       return 'Process-level instant event ' + this.title + ' @ ' +
           tr.b.Unit.byName.timeStampInMs.format(start);
-    }
+    },
+
+    get stableId() {
+      return this.parent_.stableId + '.instant.' +
+        this.parent_.instantEvents.indexOf(this);
+    },
   };
 
   tr.model.EventRegistry.register(
@@ -97,4 +107,3 @@ tr.exportTo('tr.model', function() {
   };
 });
 </script>
-

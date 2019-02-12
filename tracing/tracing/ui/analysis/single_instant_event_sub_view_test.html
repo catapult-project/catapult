@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
     const p52 = model.getOrCreateProcess(52);
     const t53 = p52.getOrCreateThread(53);
 
-    const ie = new tr.model.ProcessInstantEvent('cat', 'title', 7, 10, {});
+    const ie = new tr.model.ProcessInstantEvent('cat', 'title', 7, 10, {}, p52);
     ie.duration = 20;
     p52.instantEvents.push(ie);
 

@@ -706,12 +706,15 @@ tr.exportTo('tr.e.importer', function() {
       }
 
       let constructor;
+      let parent;
       switch (event.s) {
         case 'g':
           constructor = tr.model.GlobalInstantEvent;
+          parent = this.model_;
           break;
         case 'p':
           constructor = tr.model.ProcessInstantEvent;
+          parent = this.model_.getOrCreateProcess(event.pid);
           break;
         default:
           this.model_.importWarning({
@@ -723,22 +726,8 @@ tr.exportTo('tr.e.importer', function() {
 
       const instantEvent = new constructor(event.cat, event.name,
           getEventColor(event), this.toModelTimeFromUs_(event.ts),
-          this.deepCopyIfNeeded_(event.args));
-
-      switch (instantEvent.type) {
-        case tr.model.InstantEventType.GLOBAL:
-          this.model_.instantEvents.push(instantEvent);
-          break;
-
-        case tr.model.InstantEventType.PROCESS: {
-          const process = this.model_.getOrCreateProcess(event.pid);
-          process.instantEvents.push(instantEvent);
-          break;
-        }
-
-        default:
-          throw new Error('Unknown instant event type: ' + event.s);
-      }
+          this.deepCopyIfNeeded_(event.args), parent);
+      parent.instantEvents.push(instantEvent);
     },
 
     getOrCreateProfileTree_(sampleType, id) {
