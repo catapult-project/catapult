@@ -63,8 +63,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     config.enable_chrome_trace = True
     tracing_controller.StartTracing(config)
 
-    trace_data, errors = tracing_controller.StopTracing()
-    self.assertEqual(errors, [])
+    trace_data = tracing_controller.StopTracing()
     # Test that trace data is parsable
     model = model_module.TimelineModel(trace_data)
     assert len(model.processes) > 0
@@ -77,8 +76,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     tracing_controller.StartTracing(config)
     self.assertFalse(tracing_controller.StartTracing(config))
 
-    trace_data, errors = tracing_controller.StopTracing()
-    self.assertEqual(errors, [])
+    trace_data = tracing_controller.StopTracing()
     # Test that trace data is parsable
     model_module.TimelineModel(trace_data)
     self.assertFalse(tracing_controller.is_tracing_running)
@@ -110,8 +108,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
       tab.AddTimelineMarker('test-marker-%d' % i)
 
     # Stop tracing.
-    trace_data, errors = tracing_controller.StopTracing()
-    self.assertEqual(errors, [])
+    trace_data = tracing_controller.StopTracing()
     self.assertFalse(tracing_controller.is_tracing_running)
 
     # Check that the markers 'test-marker-0', 'flush-tracing',
@@ -147,8 +144,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     tab.AddTimelineMarker('test-marker-after')
 
     # Stop tracing.
-    trace_data, errors = tracing_controller.StopTracing()
-    self.assertEqual(errors, [])
+    trace_data = tracing_controller.StopTracing()
     self.assertFalse(tracing_controller.is_tracing_running)
 
     # Check that the marker after flushing is found, but not the one before
@@ -180,9 +176,8 @@ class StartupTracingTest(unittest.TestCase):
 
   def StopTracingAndGetTestMarkers(self):
     self.assertTrue(self.tracing_controller.is_tracing_running)
-    trace_data, errors = self.tracing_controller.StopTracing()
+    trace_data = self.tracing_controller.StopTracing()
     self.assertFalse(self.tracing_controller.is_tracing_running)
-    self.assertEqual(errors, [])
     return [
         e['title']
         for e in ReadMarkerEvents(trace_data)

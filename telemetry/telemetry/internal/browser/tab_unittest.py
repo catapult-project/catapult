@@ -80,8 +80,7 @@ class TabTest(tab_test_case.TabTestCase):
     config.enable_chrome_trace = True
     self._browser.platform.tracing_controller.StartTracing(config)
     self._tab.AddTimelineMarker('single-tab-marker')
-    trace_data, errors = self._browser.platform.tracing_controller.StopTracing()
-    self.assertEqual(errors, [])
+    trace_data = self._browser.platform.tracing_controller.StopTracing()
     timeline_model = model.TimelineModel(trace_data)
 
     # Check that we can find the marker injected into the trace.
@@ -103,8 +102,7 @@ class TabTest(tab_test_case.TabTestCase):
     self._browser.platform.tracing_controller.StartTracing(config)
     first_tab.AddTimelineMarker('background-tab')
     second_tab.AddTimelineMarker('foreground-tab')
-    trace_data, errors = self._browser.platform.tracing_controller.StopTracing()
-    self.assertEqual(errors, [])
+    trace_data = self._browser.platform.tracing_controller.StopTracing()
     timeline_model = model.TimelineModel(trace_data)
 
     # Check that we can find the marker injected into the foreground tab.
