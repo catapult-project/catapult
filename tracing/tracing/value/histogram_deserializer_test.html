@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<!--
+Copyright 2019 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/histogram_deserializer.html">
+
+<script>
+'use strict';
+tr.b.unittest.testSuite(function() {
+  test('objects', function() {
+    const deserializer = new tr.v.HistogramDeserializer(['a', ['b']], {});
+    assert.strictEqual('a', deserializer.getObject(0));
+    assert.deepEqual(['b'], deserializer.getObject(1));
+    assert.isUndefined(deserializer.getObject(2));
+  });
+});
+</script>
