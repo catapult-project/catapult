@@ -58,7 +58,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(m.sA.selectionState, SelectionState.BRIGHTENED1);
     assert.strictEqual(m.sB.selectionState, SelectionState.BRIGHTENED0);
     bs.unapplyFromEventSelectionStates();
-    assert.strictEqual(m.sA.selectionState, SelectionState.NONE);
+    assert.strictEqual(m.sA.selectionState, SelectionState.DIMMED0);
   });
 
   test('brushingStateWithFindMatches', function() {
@@ -69,8 +69,8 @@ tr.b.unittest.testSuite(function() {
     bs.findMatches = new EventSet([m.sA, m.sB]);
 
     bs.applyToEventSelectionStates(m);
-    assert.strictEqual(m.sA.selectionState, SelectionState.BRIGHTENED0);
-    assert.strictEqual(m.sB.selectionState, SelectionState.DIMMED1);
+    assert.strictEqual(m.sA.selectionState, SelectionState.BRIGHTENED1);
+    assert.strictEqual(m.sB.selectionState, SelectionState.BRIGHTENED0);
     assert.strictEqual(m.sC.selectionState, SelectionState.DIMMED0);
     bs.unapplyFromEventSelectionStates();
     assert.strictEqual(m.sA.selectionState, SelectionState.DIMMED0);

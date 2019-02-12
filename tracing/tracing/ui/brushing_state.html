@@ -152,35 +152,46 @@ tr.exportTo('tr.ui.b', function() {
       this.viewSpecificBrushingStates_ = viewSpecificBrushingStates;
     },
 
-    get dimmedEvents_() {
-      const dimmedEvents = new EventSet();
-      dimmedEvents.addEventSet(this.findMatches);
-      dimmedEvents.addEventSet(this.analysisViewRelatedEvents_);
-      return dimmedEvents;
+    /**
+     * If there are any events in analysisLinkHoveredEvents
+     * or analysisViewRelatedEvents or findMatches then the
+     * default should be SelectionState.DIMMED0.
+     * Otherwise the default is SelectionState.NONE.
+    **/
+    get defaultState_() {
+      const standoutEventExists = (
+        this.analysisLinkHoveredEvents_.length > 0 ||
+        this.analysisViewRelatedEvents_.length > 0 ||
+        this.findMatches_.length > 0);
+
+      return (standoutEventExists ?
+        SelectionState.DIMMED0 : SelectionState.NONE);
     },
 
     get brightenedEvents_() {
       const brightenedEvents = new EventSet();
+      brightenedEvents.addEventSet(this.findMatches);
+      brightenedEvents.addEventSet(this.analysisViewRelatedEvents_);
       brightenedEvents.addEventSet(this.selection_);
       brightenedEvents.addEventSet(this.analysisLinkHoveredEvents_);
       return brightenedEvents;
     },
 
     /**
-     * This function sets the SelectionStates according to these rules:
+     * This function sets the SelectionStates based on levels:
+     * - +1 level if the event is either findMatches or
+     * analysisViewRelatedEvents
+     * - +1 level if the event is in analysisLinkHoveredEvents
+     * - +1 level if the event is in selection
      *
-     * - Events in ONE of findMatches or analysisViewRelatedEvents
-     * are set to SelectionState.BRIGHTENED0.
-     * - Events in BOTH of findMatches and analysisViewRelatedEvents
-     * are set to SelectionState.BRIGHTENED1.
-     * - Events in ONE of selection or analysisLinkHoveredEvents
-     * are set to SelectionState.DIMMED1.
-     * - Events in BOTH selection and analysisLinkHoveredEvents
-     * are set to SelectionState.DIMMED2.
-     * - Events not in any of the above are set to SelectionState.NONE
-     * if there are no events in selection or analysisLinkHoveredEvents
-     * (i.e. model is "default bright") or SelectionState.DIMMED0 (i.e.
-     * model is "default dimmed").
+     * The associated brightness from level:
+     * - Level 1:  SelectionState.BRIGHTENED0
+     * - Level 2:  SelectionState.BRIGHTENED1
+     * - Level 3:  SelectionState.BRIGHTENED2
+     *
+     * If there are events in findMatches or analysisViewRelatedEvents
+     * or analysisLinkHoveredEvents, then all other events are set to
+     * SelectionState.DIMMED0. Otherwise the default is SelectionState.NONE
      *
      * It is up to the caller to assure that all of the SelectionStates
      * are the same before calling this function. Normally,
@@ -190,13 +201,10 @@ tr.exportTo('tr.ui.b', function() {
     applyToEventSelectionStates(model) {
       this.appliedToModel_ = model;
 
-      const dimmedEvents = this.dimmedEvents_;
-
       // It's possible for this to get called with an undefined model pointer.
       // If so, skip adjusting the defaults.
       if (model) {
-        const newDefaultState = (
-          dimmedEvents.length ? SelectionState.DIMMED0 : SelectionState.NONE);
+        const newDefaultState = this.defaultState_;
 
         // Since all the states are the same, we can get the current default
         // state by looking at the first element.
@@ -213,27 +221,20 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       // Now we apply the other rules above.
-      let score;
-      for (const e of dimmedEvents) {
-        score = 0;
-        if (this.findMatches_.contains(e)) {
-          score++;
-        }
-        if (this.analysisViewRelatedEvents_.contains(e)) {
-          score++;
-        }
-        e.selectionState = SelectionState.getFromDimmingLevel(score);
-      }
-
+      let level;
       for (const e of this.brightenedEvents_) {
-        score = 0;
-        if (this.selection_.contains(e)) {
-          score++;
+        level = 0;
+        if (this.analysisViewRelatedEvents_.contains(e) ||
+            this.findMatches_.contains(e)) {
+          level++;
         }
         if (this.analysisLinkHoveredEvents_.contains(e)) {
-          score++;
+          level++;
         }
-        e.selectionState = SelectionState.getFromBrighteningLevel(score);
+        if (this.selection_.contains(e)) {
+          level++;
+        }
+        e.selectionState = SelectionState.getFromBrighteningLevel(level);
       }
     },
 
@@ -259,14 +260,9 @@ tr.exportTo('tr.ui.b', function() {
       const model = this.appliedToModel_;
       this.appliedToModel_ = undefined;
 
-      const dimmedEvents = this.dimmedEvents_;
-      const defaultState = (
-        dimmedEvents.length ? SelectionState.DIMMED0 : SelectionState.NONE);
+      const defaultState = this.defaultState_;
 
       for (const e of this.brightenedEvents_) {
-        e.selectionState = defaultState;
-      }
-      for (const e of dimmedEvents) {
         e.selectionState = defaultState;
       }
       return defaultState;
