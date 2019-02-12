@@ -68,6 +68,8 @@ class NewBugTest(testing_common.TestCase):
   def testInvalidUser(self):
     self.Post('/api/new_bug', status=403)
 
+  @mock.patch.object(
+      file_bug.auto_bisect, 'StartNewBisectForBug', mock.MagicMock())
   def testSuccess(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     path = 'm/b/s/m/c'

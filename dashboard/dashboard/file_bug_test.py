@@ -363,13 +363,13 @@ class FileBugTest(testing_common.TestCase):
     # The response page should have a bug number.
     self.assertIn('277761', response.body)
 
-    # Three HTTP requests are made when filing a bug with owner; test third
-    # request for owner hame.
+    # Two HTTP requests are made when filing a bug; only test 2nd request.
     comment = MockIssueTrackerService.add_comment_args[1]
     self.assertIn(
-        'Assigning to sheriff sheriff@bar.com because this autoroll',
-        comment)
-    self.assertIn('This is a roll', comment)
+        'https://chromeperf.appspot.com/group_report?bug_id=277761', comment)
+    self.assertIn('https://chromeperf.appspot.com/group_report?sid=', comment)
+    self.assertIn(
+        '\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux', comment)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(
@@ -536,6 +536,7 @@ class FileBugTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(return_value=testing_common.FakeResponseObject(
           200, '[]')))
+
   def testGet_WithFinish_SucceedsWithNoVersions(self):
     # Here, we test that we don't label the bug with an unexpected value when
     # there is no version information from omahaproxy (for whatever reason)

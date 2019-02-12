@@ -338,8 +338,8 @@ def _GetSingleCLForAnomalies(alerts):
     return None
   return revision
 
-def _AssignBugToCLAuthor(bug_id, alert, service):
-  """Assigns the bug to the author of the given revision."""
+
+def _GetCommitInfoForAlert(alert):
   repository_url = None
   repositories = namespaced_stored_object.Get('repositories')
   test_path = utils.TestPath(alert.test)
@@ -349,7 +349,7 @@ def _AssignBugToCLAuthor(bug_id, alert, service):
     repository_url = repositories['clank']['repository_url']
   if not repository_url:
     # Can't get committer info from this repository.
-    return
+    return None
 
   rev = str(auto_bisect.GetRevisionForBisect(alert.end_revision, alert.test))
   # TODO(sullivan, dtu): merge this with similar pinoint code.
@@ -365,26 +365,20 @@ def _AssignBugToCLAuthor(bug_id, alert, service):
     rev = result['git_sha']
   if not re.match(r'[a-fA-F0-9]{40}$', rev):
     # This still isn't a git hash; can't assign bug.
-    return
+    return None
 
-  commit_info = gitiles_service.CommitInfo(repository_url, rev)
+  return gitiles_service.CommitInfo(repository_url, rev)
+
+def _AssignBugToCLAuthor(bug_id, commit_info, service):
+  """Assigns the bug to the author of the given revision."""
   author = commit_info['author']['email']
   message = commit_info['message']
-  sheriff = utils.GetSheriffForAutorollCommit(author, message)
-  if sheriff:
-    service.AddBugComment(
-        bug_id,
-        ('Assigning to sheriff %s because this autoroll is '
-         'the only CL in range:\n%s') % (sheriff, message),
-        status='Assigned',
-        owner=sheriff)
-  else:
-    service.AddBugComment(
-        bug_id,
-        'Assigning to %s because this is the only CL in range:\n%s' % (
-            author, message),
-        status='Assigned',
-        owner=author)
+  service.AddBugComment(
+      bug_id,
+      'Assigning to %s because this is the only CL in range:\n%s' % (
+          author, message),
+      status='Assigned',
+      owner=author)
 
 def FileBug(http, owner, cc, summary, description, labels, components,
             urlsafe_keys):
@@ -425,9 +419,17 @@ def FileBug(http, owner, cc, summary, description, labels, components,
   if all(k.kind() == 'Anomaly' for k in alert_keys):
     logging.info('Kicking bisect for bug ' + str(bug_id))
     culprit_rev = _GetSingleCLForAnomalies(alerts)
+
+    needs_bisect = True
     if culprit_rev is not None:
-      _AssignBugToCLAuthor(bug_id, alerts[0], dashboard_issue_tracker_service)
-    else:
+      commit_info = _GetCommitInfoForAlert(alerts[0])
+      if commit_info:
+        author = commit_info['author']['email']
+        message = commit_info['message']
+        if not utils.GetSheriffForAutorollCommit(author, message):
+          needs_bisect = False
+
+    if needs_bisect:
       bisect_result = auto_bisect.StartNewBisectForBug(bug_id)
       if 'error' in bisect_result:
         logging.info('Failed to kick bisect for ' + str(bug_id))
@@ -435,6 +437,10 @@ def FileBug(http, owner, cc, summary, description, labels, components,
       else:
         logging.info('Successfully kicked bisect for ' + str(bug_id))
         template_params.update(bisect_result)
+    else:
+      _AssignBugToCLAuthor(
+          bug_id, commit_info, dashboard_issue_tracker_service)
+
   else:
     kinds = set()
     for k in alert_keys:
