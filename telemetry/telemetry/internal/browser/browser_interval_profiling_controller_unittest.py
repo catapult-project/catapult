@@ -25,6 +25,15 @@ class FakeAndroidPlatformBackend(object):
   def GetOSName(self):
     return 'android'
 
+class FakeChromeOSPlatformBackend(object):
+  def GetOSName(self):
+    return 'chromeos'
+
+  def GetFileContents(self, _):
+    return '0'
+
+  def PushContents(self, *_):
+    return
 
 class FakeLinuxPlatformBackend(object):
   def GetOSName(self):
@@ -53,15 +62,17 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
-        _LinuxController=mock.DEFAULT) as mock_classes:
+        _LinuxController=mock.DEFAULT,
+        _ChromeOSController=mock.DEFAULT) as mock_classes:
       controller = profiling_mod.BrowserIntervalProfilingController(
-          possible_browser, '', ['period1', 'period2'], 1)
+          possible_browser, '', ['period1', 'period2'], 1, [])
       with controller.SamplePeriod('period1', None):
         pass
       with controller.SamplePeriod('period2', None):
         pass
       self.assertEqual(mock_classes['_AndroidController'].call_count, 1)
       self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
+      self.assertEqual(mock_classes['_ChromeOSController'].call_count, 0)
       self.assertTrue(controller._platform_controller)
       self.assertEqual(
           controller._platform_controller.SamplePeriod.call_count, 2)
@@ -74,14 +85,39 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
-        _LinuxController=mock.DEFAULT) as mock_classes:
+        _LinuxController=mock.DEFAULT,
+        _ChromeOSController=mock.DEFAULT) as mock_classes:
       controller = profiling_mod.BrowserIntervalProfilingController(
-          possible_browser, '', [], 1)
+          possible_browser, '', [], 1, '')
       with controller.SamplePeriod('period1', None):
         pass
       self.assertEqual(mock_classes['_AndroidController'].call_count, 0)
       self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
+      self.assertEqual(mock_classes['_ChromeOSController'].call_count, 0)
       self.assertIs(controller._platform_controller, None)
+
+  def testSupportedAndroidWithSystemWideProfiling(self):
+    possible_browser = FakePossibleBrowser(
+        FakeAndroidPlatformBackend(version_codes.OREO))
+    profiling_mod = browser_interval_profiling_controller
+
+    with self.assertRaises(ValueError) as context:
+      profiling_mod.BrowserIntervalProfilingController(
+          possible_browser, 'system_wide', ['period1'], 1, [])
+    self.assertTrue('System-wide profiling is not supported on Android.'
+                    in context.exception)
+
+  def testSupportedAndroidWithProfilerOptions(self):
+    possible_browser = FakePossibleBrowser(
+        FakeAndroidPlatformBackend(version_codes.OREO))
+    profiling_mod = browser_interval_profiling_controller
+
+    with self.assertRaises(ValueError) as context:
+      profiling_mod.BrowserIntervalProfilingController(
+          possible_browser, '', ['period1'], 1, ['some profiler options'])
+    self.assertTrue(
+        'Additional arguments to the profiler is not supported on Android.'
+        in context.exception)
 
   def testUnsupportedAndroidWithValidSamplePeriod(self):
     possible_browser = FakePossibleBrowser(
@@ -91,13 +127,15 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
-        _LinuxController=mock.DEFAULT) as mock_classes:
+        _LinuxController=mock.DEFAULT,
+        _ChromeOSController=mock.DEFAULT) as mock_classes:
       controller = profiling_mod.BrowserIntervalProfilingController(
-          possible_browser, '', ['period1'], 1)
+          possible_browser, '', ['period1'], 1, [])
       with controller.SamplePeriod('period1', None):
         pass
       self.assertEqual(mock_classes['_AndroidController'].call_count, 0)
       self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
+      self.assertEqual(mock_classes['_ChromeOSController'].call_count, 0)
       self.assertIs(controller._platform_controller, None)
 
   def testUnsupportedAndroidWithInvalidSamplePeriod(self):
@@ -108,13 +146,15 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
-        _LinuxController=mock.DEFAULT) as mock_classes:
+        _LinuxController=mock.DEFAULT,
+        _ChromeOSController=mock.DEFAULT) as mock_classes:
       controller = profiling_mod.BrowserIntervalProfilingController(
-          possible_browser, '', [], 1)
+          possible_browser, '', [], 1, [])
       with controller.SamplePeriod('period1', None):
         pass
       self.assertEqual(mock_classes['_AndroidController'].call_count, 0)
       self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
+      self.assertEqual(mock_classes['_ChromeOSController'].call_count, 0)
       self.assertIs(controller._platform_controller, None)
 
   def testLinuxWithValidAndInvalidSamplePeriods(self):
@@ -124,15 +164,17 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
-        _LinuxController=mock.DEFAULT) as mock_classes:
+        _LinuxController=mock.DEFAULT,
+        _ChromeOSController=mock.DEFAULT) as mock_classes:
       controller = profiling_mod.BrowserIntervalProfilingController(
-          possible_browser, '', ['period1', 'period6'], 1)
+          possible_browser, '', ['period1', 'period6'], 1, [])
       with controller.SamplePeriod('period1', None):
         pass
       with controller.SamplePeriod('period2', None):
         pass
       self.assertEqual(mock_classes['_AndroidController'].call_count, 0)
       self.assertEqual(mock_classes['_LinuxController'].call_count, 1)
+      self.assertEqual(mock_classes['_ChromeOSController'].call_count, 0)
       self.assertTrue(controller._platform_controller)
       # Only one sample period, because 'period2' not in periods args to
       # constructor.
@@ -146,14 +188,154 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
-        _LinuxController=mock.DEFAULT) as mock_classes:
+        _LinuxController=mock.DEFAULT,
+        _ChromeOSController=mock.DEFAULT) as mock_classes:
       controller = profiling_mod.BrowserIntervalProfilingController(
-          possible_browser, '', [], 1)
+          possible_browser, '', [], 1, [])
       with controller.SamplePeriod('period1', None):
         pass
       self.assertEqual(mock_classes['_AndroidController'].call_count, 0)
       self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
+      self.assertEqual(mock_classes['_ChromeOSController'].call_count, 0)
       self.assertIs(controller._platform_controller, None)
+
+  def testLinuxWithSystemWideProfiling(self):
+    possible_browser = FakePossibleBrowser(FakeLinuxPlatformBackend())
+    profiling_mod = browser_interval_profiling_controller
+
+    with self.assertRaises(ValueError) as context:
+      profiling_mod.BrowserIntervalProfilingController(
+          possible_browser, 'system_wide', ['period1'], 1, [])
+    self.assertTrue('Only profiling renderer main thread is supported on Linux.'
+                    ' Got process name \"system_wide\" and thread name \"\".'
+                    in context.exception)
+
+  def testLinuxWithProfilerOptions(self):
+    possible_browser = FakePossibleBrowser(FakeLinuxPlatformBackend())
+    profiling_mod = browser_interval_profiling_controller
+
+    with self.assertRaises(ValueError) as context:
+      profiling_mod.BrowserIntervalProfilingController(
+          possible_browser, '', ['period1'], 1, ['some profiler options'])
+    self.assertTrue(
+        'Additional arguments to the profiler is not supported on Linux.'
+        in context.exception)
+
+  def testChromeOSWithValidSamplePeriod(self):
+    possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
+    profiling_mod = browser_interval_profiling_controller
+
+    with mock.patch.multiple(
+        'telemetry.internal.browser.browser_interval_profiling_controller',
+        _AndroidController=mock.DEFAULT,
+        _LinuxController=mock.DEFAULT,
+        _ChromeOSController=mock.DEFAULT) as mock_classes:
+      controller = profiling_mod.BrowserIntervalProfilingController(
+          possible_browser, 'system_wide', ['period1', 'period2'], 1,
+          ['some profiler options'])
+      with controller.SamplePeriod('period1', None):
+        pass
+      with controller.SamplePeriod('period2', None):
+        pass
+      self.assertEqual(mock_classes['_AndroidController'].call_count, 0)
+      self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
+      self.assertEqual(mock_classes['_ChromeOSController'].call_count, 1)
+      self.assertTrue(controller._platform_controller)
+      self.assertEqual(
+          controller._platform_controller.SamplePeriod.call_count, 2)
+
+  def testChromeOSWithInvalidSamplePeriod(self):
+    possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
+    profiling_mod = browser_interval_profiling_controller
+
+    with mock.patch.multiple(
+        'telemetry.internal.browser.browser_interval_profiling_controller',
+        _AndroidController=mock.DEFAULT,
+        _LinuxController=mock.DEFAULT,
+        _ChromeOSController=mock.DEFAULT) as mock_classes:
+      controller = profiling_mod.BrowserIntervalProfilingController(
+          possible_browser, 'system_wide', [], 1, ['some profiler options'])
+      with controller.SamplePeriod('period1', None):
+        pass
+      self.assertEqual(mock_classes['_AndroidController'].call_count, 0)
+      self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
+      self.assertEqual(mock_classes['_ChromeOSController'].call_count, 0)
+      self.assertIs(controller._platform_controller, None)
+
+  def testChromeOSWithThreadName(self):
+    possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
+    profiling_mod = browser_interval_profiling_controller
+
+    with self.assertRaises(ValueError) as context:
+      profiling_mod.BrowserIntervalProfilingController(
+          possible_browser, 'system_wide:some_thread', ['period1'], 1,
+          ['some profiler options'])
+    self.assertTrue(
+        'Thread name should be empty for system-wide profiling on ChromeOS.'
+        ' Got thread name \"some_thread\".' in context.exception)
+
+  def testChromeOSWithOutSystemWideProfiling(self):
+    possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
+    profiling_mod = browser_interval_profiling_controller
+
+    with self.assertRaises(ValueError) as context:
+      profiling_mod.BrowserIntervalProfilingController(
+          possible_browser, '', ['period1'], 1, ['some profiler options'])
+    self.assertTrue(
+        'Only system-wide profiling is supported on ChromeOS.'
+        ' Got process name \"\".'
+        in context.exception)
+
+  def testChromeOSWithOutProfilerOptions(self):
+    possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
+    profiling_mod = browser_interval_profiling_controller
+
+    with self.assertRaises(ValueError) as context:
+      profiling_mod.BrowserIntervalProfilingController(
+          possible_browser, 'system_wide', ['period1'], 1, [])
+    self.assertTrue('Profiler options must be provided to run the linux perf'
+                    ' tool on ChromeOS.' in context.exception)
+
+  def testChromeOSWithProfilerOptionsContainsInvalidPerfCommand(self):
+    possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
+    profiling_mod = browser_interval_profiling_controller
+
+    with self.assertRaises(ValueError) as context:
+      profiling_mod.BrowserIntervalProfilingController(
+          possible_browser, 'system_wide', ['period1'], 1,
+          ['random', 'command'])
+    self.assertTrue(
+        'Only the record and stat perf subcommands are allowed.'
+        ' Got \"random\" perf subcommand.'
+        in context.exception)
+
+  def testChromeOSWithProfilerOptionsContainsOutputFlag(self):
+    possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
+    profiling_mod = browser_interval_profiling_controller
+
+    with self.assertRaises(ValueError) as context:
+      profiling_mod.BrowserIntervalProfilingController(
+          possible_browser, 'system_wide', ['period1'], 1,
+          ['record', '-o', 'file'])
+    self.assertTrue(
+        "Cannot pass the output filename flag in the profiler options."
+        " Constructed command ['/usr/bin/perf', 'record', '-o', 'file',"
+        " '-a']."
+        in context.exception)
+
+  def testChromeOSWithProfilerOptionsContainsSubcommand(self):
+    possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
+    profiling_mod = browser_interval_profiling_controller
+
+    with self.assertRaises(ValueError) as context:
+      profiling_mod.BrowserIntervalProfilingController(
+          possible_browser, 'system_wide', ['period1'], 1,
+          ['record', '--', 'some subcommand'])
+    self.assertTrue(
+        "Cannot pass a command to run in the profiler options."
+        " Constructed command ['/usr/bin/perf', 'record', '--',"
+        " 'some subcommand', '-a']."
+        in context.exception)
 
   def testUnsupportedPlatformWithValidSamplePeriod(self):
     possible_browser = FakePossibleBrowser(FakeWindowsPlatformBackend())
@@ -162,13 +344,15 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
-        _LinuxController=mock.DEFAULT) as mock_classes:
+        _LinuxController=mock.DEFAULT,
+        _ChromeOSController=mock.DEFAULT) as mock_classes:
       controller = profiling_mod.BrowserIntervalProfilingController(
-          possible_browser, '', ['period1'], 1)
+          possible_browser, '', ['period1'], 1, [])
       with controller.SamplePeriod('period1', None):
         pass
       self.assertEqual(mock_classes['_AndroidController'].call_count, 0)
       self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
+      self.assertEqual(mock_classes['_ChromeOSController'].call_count, 0)
       self.assertIs(controller._platform_controller, None)
 
   def testUnsupportedPlatformWithInvalidSamplePeriod(self):
@@ -178,11 +362,13 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
     with mock.patch.multiple(
         'telemetry.internal.browser.browser_interval_profiling_controller',
         _AndroidController=mock.DEFAULT,
-        _LinuxController=mock.DEFAULT) as mock_classes:
+        _LinuxController=mock.DEFAULT,
+        _ChromeOSController=mock.DEFAULT) as mock_classes:
       controller = profiling_mod.BrowserIntervalProfilingController(
-          possible_browser, '', [], 1)
+          possible_browser, '', [], 1, [])
       with controller.SamplePeriod('period1', None):
         pass
       self.assertEqual(mock_classes['_AndroidController'].call_count, 0)
       self.assertEqual(mock_classes['_LinuxController'].call_count, 0)
+      self.assertEqual(mock_classes['_ChromeOSController'].call_count, 0)
       self.assertIs(controller._platform_controller, None)

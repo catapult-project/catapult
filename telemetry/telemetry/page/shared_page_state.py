@@ -69,7 +69,8 @@ class SharedPageState(story_module.SharedState):
             possible_browser=self._possible_browser,
             process_name=finder_options.interval_profiling_target,
             periods=finder_options.interval_profiling_periods,
-            frequency=finder_options.interval_profiling_frequency))
+            frequency=finder_options.interval_profiling_frequency,
+            profiler_options=finder_options.interval_profiler_options))
 
     self.platform.SetFullPerformanceModeEnabled(
         finder_options.full_performance_mode)
