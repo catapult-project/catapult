@@ -1,6 +1,5 @@
 Quick descriptions of the scripts in tracing/bin/:
 
- * `add_reserved_diagnostics`: Legacy alias for `prepare_upload`.
  * `chartjson2histograms`: Converts a chartjson file to HistogramSet JSON.
  * `compare_samples`: Compares metric results between two runs. Supports
    chart-json, HistogramSet JSON, and buildbot formats.
@@ -18,11 +17,6 @@ Quick descriptions of the scripts in tracing/bin/:
    sequence of grouping keys, produces a new HistogramSet JSON.
  * `merge_traces`: Merge traces from either vulcanized HTML or JSON files to
    either a vulcanized HTML or a JSON file.
- * `prepare_upload`: Prepares HistogramSet JSON for upload to the chromeperf
-   dashboard:
-    * merges results across story repeats and across stories,
-    * adds metadata diagnostics
-    * batches results into multiple files.
  * `results2json`: Extracts HistogramSet JSON from a results.html file.
  * `run_dev_server_tests`: Automatically run tracing dev server tests.
  * `run_metric`: Run a metric over one or more traces, produce vulcanized
