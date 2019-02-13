@@ -60,6 +60,10 @@ tr.exportTo('tr.model', function() {
   GlobalMemoryDump.prototype = {
     __proto__: tr.model.ContainerMemoryDump.prototype,
 
+    get stableId() {
+      return 'memory.' + this.model.globalMemoryDumps.indexOf(this);
+    },
+
     get userFriendlyName() {
       return 'Global memory dump at ' +
           tr.b.Unit.byName.timeStampInMs.format(this.start);

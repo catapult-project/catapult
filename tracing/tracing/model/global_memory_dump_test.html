@@ -1156,6 +1156,37 @@ tr.b.unittest.testSuite(function() {
     checkDumpTrees(containerDumps, allTreeRecipes);
   }
 
+  test('stableId', function() {
+    const m = new Model();
+    const io = new tr.importer.ImportOptions();
+    io.showImportWarnings = false;
+    m.importOptions = io;
+
+    buildDumpTrees([
+      [  // GMD.
+        {
+          'name': 'globalSharedDump1'
+        },
+        {
+          'name': 'globalSharedDump2'
+        }
+      ],
+      [  // PMD.
+        {
+          'name': 'v8',
+          'children': [
+            {
+              'name': 'isolate'
+            }
+          ]
+        }
+      ]
+    ], m);
+
+    assert.strictEqual(m.globalMemoryDumps[0].stableId, 'memory.0');
+    assert.strictEqual(m.processes[0].memoryDumps[0].stableId, '0.memory.0');
+  });
+
   // Check that the testSizesCalculation testing helper method above
   // actually performs the expected checks. Since it will be used heavily
   // throughout this file (where it is expected to pass), we only need to

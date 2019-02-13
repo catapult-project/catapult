@@ -67,6 +67,11 @@ tr.exportTo('tr.model', function() {
   ProcessMemoryDump.prototype = {
     __proto__: tr.model.ContainerMemoryDump.prototype,
 
+    get stableId() {
+      return this.process.stableId + '.memory.' +
+        this.process.memoryDumps.indexOf(this);
+    },
+
     get userFriendlyName() {
       return 'Process memory dump at ' +
           tr.b.Unit.byName.timeStampInMs.format(this.start);
