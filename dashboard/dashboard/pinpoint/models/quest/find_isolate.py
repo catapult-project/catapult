@@ -26,22 +26,24 @@ class IsolateNotFoundError(StandardError):
 
 class FindIsolate(quest.Quest):
 
-  def __init__(self, builder, target):
+  def __init__(self, builder, target, bucket):
     self._builder_name = builder
     self._target = target
+    self._bucket = bucket
 
     self._previous_builds = {}
 
   def __eq__(self, other):
     return (isinstance(other, type(self)) and
+            self._bucket == other._bucket and
             self._builder_name == other._builder_name)
 
   def __str__(self):
     return 'Build'
 
   def Start(self, change):
-    return _FindIsolateExecution(self._builder_name, self._target, change,
-                                 self._previous_builds)
+    return _FindIsolateExecution(self._builder_name, self._target, self._bucket,
+                                 change, self._previous_builds)
 
   @classmethod
   def FromDict(cls, arguments):
@@ -53,15 +55,20 @@ class FindIsolate(quest.Quest):
     if not target:
       raise TypeError('Missing "target" argument.')
 
-    return cls(builder, target)
+    bucket = arguments.get('bucket')
+    if not bucket:
+      raise TypeError('Missing "bucket" argument.')
+
+    return cls(builder, target, bucket)
 
 
 class _FindIsolateExecution(execution.Execution):
 
-  def __init__(self, builder_name, target, change, previous_builds):
+  def __init__(self, builder_name, target, bucket, change, previous_builds):
     super(_FindIsolateExecution, self).__init__()
     self._builder_name = builder_name
     self._target = target
+    self._bucket = bucket
     self._change = change
     # previous_builds is shared among all Executions of the same Quest.
     self._previous_builds = previous_builds
@@ -155,6 +162,12 @@ class _FindIsolateExecution(execution.Execution):
     }
     self._Complete(result_arguments=result_arguments)
 
+  @property
+  def bucket(self):
+    if hasattr(self, '_bucket'):
+      return self._bucket
+    return BUCKET
+
   def _RequestBuild(self):
     """Requests a build.
 
@@ -166,12 +179,13 @@ class _FindIsolateExecution(execution.Execution):
       self._build = self._previous_builds[self._change]
     else:
       # Request a build!
-      buildbucket_info = _RequestBuild(self._builder_name, self._change)
+      buildbucket_info = _RequestBuild(
+          self._builder_name, self._change, self.bucket)
       self._build = buildbucket_info['build']['id']
       self._previous_builds[self._change] = self._build
 
 
-def _RequestBuild(builder_name, change):
+def _RequestBuild(builder_name, change, bucket):
   deps_overrides = {dep.repository_url: dep.git_hash for dep in change.deps}
   parameters = {
       'builder_name': builder_name,
@@ -186,4 +200,4 @@ def _RequestBuild(builder_name, change):
     parameters['properties'].update(change.patch.BuildParameters())
 
   # TODO: Look up Buildbucket bucket from builder_name.
-  return buildbucket_service.Put(BUCKET, parameters)
+  return buildbucket_service.Put(bucket, parameters)
