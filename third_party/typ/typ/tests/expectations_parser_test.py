@@ -300,8 +300,10 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         self.assertIn('  - Tags Batman, Batman and Batman are'
                       ' part of the same tag set', str(context.exception))
 
-    def testParseRetryOnFailureExpectation(self):
+    def testRetryOnFailureExpectation(self):
         raw_data = (
             '# tags: [ Linux ]\n'
             'crbug.com/23456 [ Linux ] b1/s1 [ RetryOnFailure ]\n')
-        expectations_parser.TaggedTestListParser(raw_data)
+        parser = expectations_parser.TaggedTestListParser(raw_data)
+        exp = parser.expectations[0]
+        self.assertEqual(exp.should_retry_on_failure, True)

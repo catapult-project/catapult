@@ -21,8 +21,7 @@ _EXPECTATION_MAP = {
     'Failure': ResultType.Failure,
     'Pass': ResultType.Pass,
     'Timeout': ResultType.Timeout,
-    'Skip': ResultType.Skip,
-    'RetryOnFailure': 'RETRY_ON_FAILURE'
+    'Skip': ResultType.Skip
 }
 
 def _group_to_string(group):
@@ -37,7 +36,8 @@ class ParseError(Exception):
 
 
 class Expectation(object):
-    def __init__(self, reason, test, tags, results):
+    def __init__(self, reason, test, tags, results,
+                 retry_on_failure=False):
         """Constructor for expectations.
 
         Args:
@@ -56,6 +56,7 @@ class Expectation(object):
         self._test = test
         self._tags = frozenset(tags)
         self._results = frozenset(results)
+        self.should_retry_on_failure = retry_on_failure
 
     def __eq__(self, other):
         return (self.reason == other.reason and self.test == other.test
@@ -209,16 +210,21 @@ class TaggedTestListParser(object):
             raise ParseError(lineno, error_msg)
 
         results = []
+        retry_on_failure = False
         for r in raw_results.split():
             try:
-                # The test expectations may contain tags like RetryOnFailure
-                # We do not want those tags in the expected results
-                if _EXPECTATION_MAP[r] in ResultType.values:
+                # The test expectations may contain expected results and
+                # the RetryOnFailure tag
+                if r in  _EXPECTATION_MAP:
                     results.append(_EXPECTATION_MAP[r])
+                elif r == 'RetryOnFailure':
+                    retry_on_failure = True
+                else:
+                    raise KeyError
             except KeyError:
                 raise ParseError(lineno, 'Unknown result type "%s"' % r)
 
-        return Expectation(reason, test, tags, results)
+        return Expectation(reason, test, tags, results, retry_on_failure)
 
 
 class TestExpectations(object):
