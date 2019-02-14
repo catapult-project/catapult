@@ -505,10 +505,10 @@ class Runner(object):
 
         self._run_one_set(self.stats, result_set, test_set)
 
-        failed_tests = sorted(json_results.failed_test_names(result_set))
+        regressions = sorted(json_results.regressions(result_set))
         retry_limit = self.args.retry_limit
 
-        while retry_limit and failed_tests:
+        while retry_limit and regressions:
             if retry_limit == self.args.retry_limit:
                 self.flush()
                 self.args.overwrite = False
@@ -522,12 +522,12 @@ class Runner(object):
             self.print_('')
 
             stats = Stats(self.args.status_format, h.time, 1)
-            stats.total = len(failed_tests)
-            tests_to_retry = TestSet(isolated_tests=list(failed_tests))
+            stats.total = len(regressions)
+            tests_to_retry = TestSet(isolated_tests=list(regressions))
             retry_set = ResultSet()
             self._run_one_set(stats, retry_set, tests_to_retry)
             result_set.results.extend(retry_set.results)
-            failed_tests = json_results.failed_test_names(retry_set)
+            regressions = json_results.regressions(retry_set)
             retry_limit -= 1
 
         if retry_limit != self.args.retry_limit:

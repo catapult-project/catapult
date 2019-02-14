@@ -4,6 +4,10 @@
 
 import unittest
 
+class FailingTest(unittest.TestCase):
+  def test_fail(self):
+    self.fail()
+
 class PassingTest(unittest.TestCase):
   def test_pass(self):
     pass

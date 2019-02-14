@@ -1065,6 +1065,29 @@ class TestCli(test_case.MainTestCase):
         self.assertEqual(event['args']['expected'], ['PASS'])
         self.assertEqual(event['args']['actual'], 'PASS')
 
+    def test_expected_failure_does_not_get_retried(self):
+        files = {'fail_test.py': FAIL_TEST_PY,
+                 'expectations.txt': d("""\
+                  # tags: [ foo bar
+                  #         bat
+                  # ]
+                  crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Failure ]
+                """)}
+        _, out, _, files = self.check(['--write-full-results-to',
+                                       'full_results.json',
+                                       '--retry-limit','3',
+                                       '-X', 'expectations.txt',
+                                       '-x', 'foo'],
+                                      files=files, ret=0, err='')
+
+        results = json.loads(files['full_results.json'])
+        result = results['tests']['fail_test']['FailingTest']['test_fail']
+        self.assertIn('test_fail failed as expected', out)
+        self.assertIn('0 tests passed, 0 skipped, 1 failure.', out)
+        self.assertNotIn('Retrying failed tests', out)
+        self.assertEqual(result['expected'], 'FAIL')
+        self.assertEqual(result['actual'], 'FAIL')
+        self.assertNotIn('is_unexpected', result)
 
 class TestMain(TestCli):
     prog = []
