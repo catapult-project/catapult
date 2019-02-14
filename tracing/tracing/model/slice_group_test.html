@@ -930,6 +930,9 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(slices.length, 2);
     assert.strictEqual(slices[0].title, 's0');
     assert.strictEqual(slices[1].title, 's2');
+
+    // Test no ranges at all.
+    assert.isTrue(group.getDescendantEventsInSortedRanges([]).next().done);
   });
 });
 </script>
