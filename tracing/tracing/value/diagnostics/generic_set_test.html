@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/value/diagnostics/generic_set.html">
+<link rel="import" href="/tracing/value/histogram_deserializer.html">
 
 <script>
 'use strict';
@@ -59,6 +60,16 @@ tr.b.unittest.testSuite(function() {
   test('setsWithObjectsDoNotSupportFastPath', function() {
     const a = new tr.v.d.GenericSet([{foo: 'bar'}]);
     assert.isUndefined(a.hashKey);
+  });
+
+  test('deserialize', function() {
+    const d = new tr.v.HistogramDeserializer(['aaa', 'bbb']);
+    const a = tr.v.d.GenericSet.deserialize(0, d);
+    assert.strictEqual(tr.b.getOnlyElement(a), 'aaa');
+    const b = tr.v.d.GenericSet.deserialize([0, 1], d);
+    assert.lengthOf(b, 2);
+    assert.isTrue(b.has('aaa'));
+    assert.isTrue(b.has('bbb'));
   });
 });
 </script>

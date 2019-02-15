@@ -23,6 +23,9 @@ class GenericSet(diagnostic.Diagnostic):
     self._values = list(values)
     self._comparable_set = None
 
+  def __contains__(self, value):
+    return value in self._values
+
   def __iter__(self):
     for value in self._values:
       yield value
@@ -72,6 +75,12 @@ class GenericSet(diagnostic.Diagnostic):
 
   def _AsDictInto(self, dct):
     dct['values'] = list(self)
+
+  @staticmethod
+  def Deserialize(data, deserializer):
+    if not isinstance(data, list):
+      data = [data]
+    return GenericSet([deserializer.GetObject(i) for i in data])
 
   @staticmethod
   def FromDict(dct):

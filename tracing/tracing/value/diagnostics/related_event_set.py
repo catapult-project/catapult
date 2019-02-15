@@ -24,6 +24,14 @@ class RelatedEventSet(diagnostic.Diagnostic):
       yield event
 
   @staticmethod
+  def Deserialize(data, deserializer):
+    events = RelatedEventSet()
+    for event in data:
+      event[1] = deserializer.GetObject(event[1])
+      events.Add(dict(zip(['stableId', 'title', 'start', 'duration'], event)))
+    return events
+
+  @staticmethod
   def FromDict(d):
     result = RelatedEventSet()
     for event in d['events']:

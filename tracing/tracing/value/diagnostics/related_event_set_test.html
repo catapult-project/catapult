@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/histogram_deserializer.html">
 
 <script>
 'use strict';
@@ -87,6 +88,17 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(aSlice.stableId, aSlice2.stableId);
     const bSlice2 = tr.b.getOnlyElement(mergedEvents.get('http://b'));
     assert.strictEqual(bSlice.stableId, bSlice2.stableId);
+  });
+
+  test('deserialize', function() {
+    const d = new tr.v.HistogramDeserializer(['aaa']);
+    const events = tr.v.d.RelatedEventSet.deserialize([[42, 0, 10, 20]], d);
+    assert.lengthOf(events, 1);
+    const event = [...events][0];
+    assert.strictEqual(event.stableId, 42);
+    assert.strictEqual(event.title, 'aaa');
+    assert.strictEqual(event.start, 10);
+    assert.strictEqual(event.duration, 20);
   });
 });
 </script>

@@ -57,6 +57,13 @@ class RelatedNameMap(diagnostic.Diagnostic):
     dct['names'] = dict(self._map)
 
   @staticmethod
+  def Deserialize(data, deserializer):
+    names = RelatedNameMap()
+    for key, name in zip(deserializer.GetObject(data[0]), data[1:]):
+      names.Set(deserializer.GetObject(key), deserializer.GetObject(name))
+    return names
+
+  @staticmethod
   def FromDict(dct):
     names = RelatedNameMap()
     for key, name in dct['names'].items():

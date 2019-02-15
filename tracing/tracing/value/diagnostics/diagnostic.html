@@ -110,6 +110,15 @@ tr.exportTo('tr.v.d', function() {
       if (d.guid !== undefined) diagnostic.guid = d.guid;
       return diagnostic;
     }
+
+    static deserialize(type, d, deserializer) {
+      const typeInfo = Diagnostic.findTypeInfoWithName(type);
+      if (!typeInfo) {
+        throw new Error('Unrecognized diagnostic type: ' + type);
+      }
+
+      return typeInfo.constructor.deserialize(d, deserializer);
+    }
   }
 
   const options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
@@ -119,10 +128,19 @@ tr.exportTo('tr.v.d', function() {
 
   Diagnostic.addEventListener('will-register', function(e) {
     const constructor = e.typeInfo.constructor;
+
+    if (!(constructor.deserialize instanceof Function) ||
+        (constructor.deserialize === Diagnostic.deserialize) ||
+        (constructor.deserialize.length !== 2)) {
+      throw new Error(
+          `Please define ${constructor.name}.deserialize(data, deserializer)`);
+    }
+
     if (!(constructor.fromDict instanceof Function) ||
         (constructor.fromDict === Diagnostic.fromDict) ||
         (constructor.fromDict.length !== 1)) {
-      throw new Error('Diagnostics must define fromDict(d)');
+      throw new Error(
+          `Please define ${constructor.name}.fromDict(d)`);
     }
   });
 

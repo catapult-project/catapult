@@ -4,6 +4,7 @@
 
 import unittest
 
+from tracing.value import histogram_deserializer
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import generic_set
 
@@ -98,3 +99,13 @@ class GenericSetUnittest(unittest.TestCase):
     gs = generic_set.GenericSet([])
     with self.assertRaises(AssertionError):
       gs.GetOnlyElement()
+
+  def testDeserialize(self):
+    d = histogram_deserializer.HistogramDeserializer(['aaa', 'bbb'])
+    a = generic_set.GenericSet.Deserialize(0, d)
+    self.assertEqual(len(a), 1)
+    self.assertIn('aaa', a)
+    b = generic_set.GenericSet.Deserialize([0, 1], d)
+    self.assertEqual(len(b), 2)
+    self.assertIn('aaa', b)
+    self.assertIn('bbb', b)

@@ -93,3 +93,10 @@ class Diagnostic(object):
   def AddDiagnostic(self, unused_other_diagnostic):
     raise Exception('Abstract virtual method: subclasses must override '
                     'this method if they override canAddDiagnostic')
+
+
+def Deserialize(type_name, data, deserializer):
+  cls = all_diagnostics.GetDiagnosticClassForName(type_name)
+  if not cls:
+    raise ValueError('Unrecognized diagnostic type: ' + type_name)
+  return cls.Deserialize(data, deserializer)

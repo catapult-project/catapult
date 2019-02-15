@@ -25,6 +25,14 @@ tr.exportTo('tr.v.d', function() {
       this.range_.addValue(ms);
     }
 
+    get minTimestamp() {
+      return this.range_.min;
+    }
+
+    get maxTimestamp() {
+      return this.range_.max;
+    }
+
     get minDate() {
       return new Date(this.range_.min);
     }
@@ -67,6 +75,15 @@ tr.exportTo('tr.v.d', function() {
       d.min = this.range_.min;
       if (this.durationMs === 0) return;
       d.max = this.range_.max;
+    }
+
+    static deserialize(data, deserializer) {
+      if (data instanceof Array) {
+        const dr = new DateRange(data[0]);
+        dr.range_.addValue(data[1]);
+        return dr;
+      }
+      return new DateRange(data);
     }
 
     static fromDict(d) {

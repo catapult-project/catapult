@@ -32,6 +32,10 @@ tr.exportTo('tr.v.d', function() {
       d.value = this.value.asDict();
     }
 
+    static deserialize(value, deserializer) {
+      return Scalar.fromDict({value});
+    }
+
     static fromDict(d) {
       return new Scalar(tr.b.Scalar.fromDict(d.value));
     }

@@ -93,6 +93,18 @@ tr.exportTo('tr.v.d', function() {
       return breakdown;
     }
 
+    static deserialize(data, deserializer) {
+      const breakdown = new Breakdown();
+      breakdown.colorScheme = deserializer.getObject(data[0]);
+      const keys = deserializer.getObject(data[1]);
+      for (let i = 0; i < keys.length; ++i) {
+        breakdown.set(
+            deserializer.getObject(keys[i]),
+            tr.b.numberFromJson(data[i + 2]));
+      }
+      return breakdown;
+    }
+
     static fromDict(d) {
       const breakdown = new Breakdown();
       for (const [name, value] of Object.entries(d.values)) {

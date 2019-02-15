@@ -83,6 +83,17 @@ tr.exportTo('tr.v.d', function() {
       return names;
     }
 
+    static deserialize(data, deserializer) {
+      const names = new RelatedNameMap();
+      const keys = deserializer.getObject(data[0]);
+      for (let i = 0; i < keys.length; ++i) {
+        names.set(
+            deserializer.getObject(keys[i]),
+            deserializer.getObject(data[i + 1]));
+      }
+      return names;
+    }
+
     static fromDict(d) {
       return RelatedNameMap.fromEntries(Object.entries(d.names || {}));
     }

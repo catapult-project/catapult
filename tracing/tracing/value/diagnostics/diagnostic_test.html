@@ -20,11 +20,11 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual('foo', clone.guid);
   });
 
-  test('equalitySmokeTest', function() {
-    const infos = tr.v.d.Diagnostic.getAllRegisteredTypeInfos();
-
-    for (const info of infos) {
+  test('smoke', function() {
+    for (const info of tr.v.d.Diagnostic.getAllRegisteredTypeInfos()) {
       assert.hasOwnProperty(info, 'equals');
+      assert.hasOwnProperty(info.constructor, 'fromDict');
+      assert.hasOwnProperty(info.constructor, 'deserialize');
     }
   });
 });

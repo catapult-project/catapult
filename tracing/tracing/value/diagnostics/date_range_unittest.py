@@ -29,3 +29,12 @@ class DateRangeUnittest(unittest.TestCase):
     dr = date_range.DateRange(1496693745123)
     dr.AddDiagnostic(date_range.DateRange(1496693746123))
     self.assertEqual(dr.max_timestamp, 1496693746123)
+
+  def testDeserialize(self):
+    dr = date_range.DateRange.Deserialize(1496693746123, None)
+    self.assertEqual(dr.min_timestamp, 1496693746123)
+    self.assertEqual(dr.max_timestamp, 1496693746123)
+
+    dr = date_range.DateRange.Deserialize([1496693746000, 1496693746123], None)
+    self.assertEqual(dr.min_timestamp, 1496693746000)
+    self.assertEqual(dr.max_timestamp, 1496693746123)

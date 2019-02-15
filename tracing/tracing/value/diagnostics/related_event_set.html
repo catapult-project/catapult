@@ -112,6 +112,15 @@ tr.exportTo('tr.v.d', function() {
       }
     }
 
+    static deserialize(data, deserializer) {
+      return new RelatedEventSet(data.map(event => new tr.v.d.EventRef({
+        stableId: event[0],
+        title: deserializer.getObject(event[1]),
+        start: event[2],
+        duration: event[3],
+      })));
+    }
+
     static fromDict(d) {
       return new RelatedEventSet(d.events.map(
           event => new tr.v.d.EventRef(event)));

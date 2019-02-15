@@ -103,6 +103,13 @@ tr.exportTo('tr.v.d', function() {
       d.values = Array.from(this);
     }
 
+    static deserialize(data, deserializer) {
+      if (!(data instanceof Array)) {
+        data = [data];
+      }
+      return new GenericSet(data.map(datum => deserializer.getObject(datum)));
+    }
+
     static fromDict(d) {
       return new GenericSet(d.values);
     }

@@ -8,6 +8,7 @@ import unittest
 
 from tracing.value.diagnostics import breakdown
 from tracing.value.diagnostics import diagnostic
+from tracing.value import histogram_deserializer
 
 
 class BreakdownUnittest(unittest.TestCase):
@@ -29,3 +30,12 @@ class BreakdownUnittest(unittest.TestCase):
     self.assertTrue(math.isnan(clone.Get('nun')))
     self.assertEqual(clone.Get('ninf'), float('-inf'))
     self.assertEqual(clone.Get('long'), 2**65)
+
+  def testDeserialize(self):
+    d = histogram_deserializer.HistogramDeserializer([
+        'a', 'b', 'c', [0, 1, 2], 'colors'])
+    b = breakdown.Breakdown.Deserialize([4, 3, 1, 2, 3], d)
+    self.assertEqual(b.color_scheme, 'colors')
+    self.assertEqual(b.Get('a'), 1)
+    self.assertEqual(b.Get('b'), 2)
+    self.assertEqual(b.Get('c'), 3)

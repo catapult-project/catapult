@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/value/diagnostics/breakdown.html">
+<link rel="import" href="/tracing/value/histogram_deserializer.html">
 
 <script>
 'use strict';
@@ -32,6 +33,20 @@ tr.b.unittest.testSuite(function() {
     a.colorScheme = 'fake color scheme';
     assert.isFalse(a.canAddDiagnostic(b));
     assert.isFalse(b.canAddDiagnostic(a));
+  });
+
+  test('deserialize', function() {
+    const b = tr.v.d.Breakdown.deserialize(
+        [4, 3, 1, 2, 3],
+        new tr.v.HistogramDeserializer([
+          'a', 'b', 'c',
+          [0, 1, 2],
+          'colors',
+        ]));
+    assert.strictEqual(b.colorScheme, 'colors');
+    assert.strictEqual(b.get('a'), 1);
+    assert.strictEqual(b.get('b'), 2);
+    assert.strictEqual(b.get('c'), 3);
   });
 });
 </script>
