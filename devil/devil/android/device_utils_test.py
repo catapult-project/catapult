@@ -3210,7 +3210,6 @@ class DeviceUtilsChangeOwner(DeviceUtilsTest):
 
 class DeviceUtilsChangeSecurityContext(DeviceUtilsTest):
 
-
   def testChangeSecurityContext(self):
     with self.assertCalls(
         (self.call.device.RunShellCommand(
@@ -3218,6 +3217,49 @@ class DeviceUtilsChangeSecurityContext(DeviceUtilsTest):
             as_root=device_utils._FORCE_SU, check_return=True))):
       self.device.ChangeSecurityContext('u:object_r:system_data_file:s0',
                                         ['/path', '/path2'])
+
+
+class DeviceUtilsLocale(DeviceUtilsTest):
+
+  def testLocaleLegacy(self):
+    with self.assertCalls(
+        (self.call.device.GetProp('persist.sys.locale', cache=False), ''),
+        (self.call.device.GetProp('persist.sys.language', cache=False), 'en'),
+        (self.call.device.GetProp('persist.sys.country', cache=False), 'US')):
+      self.assertEquals(self.device.GetLocale(), ('en', 'US'))
+
+  def testLocale(self):
+    with self.assertCalls(
+        (self.call.device.GetProp('persist.sys.locale', cache=False), 'en-US'),
+        (self.call.device.GetProp('persist.sys.locale', cache=False),
+         'en-US-sw')):
+      self.assertEquals(self.device.GetLocale(), ('en', 'US'))
+      self.assertEquals(self.device.GetLocale(), ('en', 'US-sw'))
+
+  def testBadLocale(self):
+    with self.assertCalls(
+        (self.call.device.GetProp('persist.sys.locale', cache=False), 'en')):
+      self.assertEquals(self.device.GetLocale(), ('', ''))
+
+
+  def testLanguageAndCountryLegacy(self):
+    with self.assertCalls(
+        (self.call.device.GetProp('persist.sys.locale', cache=False), ''),
+        (self.call.device.GetProp('persist.sys.language', cache=False), 'en'),
+        (self.call.device.GetProp('persist.sys.country', cache=False), 'US'),
+        (self.call.device.GetProp('persist.sys.locale', cache=False), ''),
+        (self.call.device.GetProp('persist.sys.language', cache=False), 'en'),
+        (self.call.device.GetProp('persist.sys.country', cache=False), 'US')):
+      self.assertEquals(self.device.GetLanguage(), 'en')
+      self.assertEquals(self.device.GetCountry(), 'US')
+
+  def testLanguageAndCountry(self):
+    with self.assertCalls(
+        (self.call.device.GetProp('persist.sys.locale', cache=False), 'en-US'),
+        (self.call.device.GetProp('persist.sys.locale', cache=False), 'en-US')):
+      self.assertEquals(self.device.GetLanguage(), 'en')
+      self.assertEquals(self.device.GetCountry(), 'US')
+
 
 if __name__ == '__main__':
   logging.getLogger().setLevel(logging.DEBUG)

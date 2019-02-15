@@ -2224,20 +2224,42 @@ class DeviceUtils(object):
     else:
       return False
 
+  def GetLocale(self, cache=False):
+    """Returns the locale setting on the device.
+
+    Args:
+      cache: Whether to use cached properties when available.
+    Returns:
+      A pair (language, country).
+    """
+    locale = self.GetProp('persist.sys.locale', cache=cache)
+    if locale:
+      if '-' not in locale:
+        logging.error('Unparsable locale: %s', locale)
+        return ('', '')  # Behave as if persist.sys.locale is undefined.
+      return tuple(locale.split('-', 1))
+    return (self.GetProp('persist.sys.language', cache=cache),
+            self.GetProp('persist.sys.country', cache=cache))
+
   def GetLanguage(self, cache=False):
     """Returns the language setting on the device.
+
+    DEPRECATED: Prefer GetLocale() instead.
+
     Args:
       cache: Whether to use cached properties when available.
     """
-    return self.GetProp('persist.sys.language', cache=cache)
+    return self.GetLocale(cache=cache)[0]
 
   def GetCountry(self, cache=False):
     """Returns the country setting on the device.
 
+    DEPRECATED: Prefer GetLocale() instead.
+
     Args:
       cache: Whether to use cached properties when available.
     """
-    return self.GetProp('persist.sys.country', cache=cache)
+    return self.GetLocale(cache=cache)[1]
 
   @property
   def screen_density(self):
