@@ -5,7 +5,9 @@
 import unittest
 
 from typ import expectations_parser
+from typ import json_results
 
+ResultType = json_results.ResultType
 
 class TaggedTestListParserTest(unittest.TestCase):
     def testInitWithGoodData(self):
@@ -307,3 +309,32 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         parser = expectations_parser.TaggedTestListParser(raw_data)
         exp = parser.expectations[0]
         self.assertEqual(exp.should_retry_on_failure, True)
+
+    def testIsTestRetryOnFailure(self):
+        raw_data = (
+            '# tags: [ Linux ]\n'
+            'crbug.com/23456 [ Linux ] b1/s1 [ Failure ]\n'
+            'crbug.com/23456 [ Linux ] b1/s1 [ RetryOnFailure ]\n'
+            'crbug.com/24341 [ Linux ] b1/s2 [ RetryOnFailure ]\n'
+            'crbug.com/24341 [ Linux ] b1/s3 [ Failure ]\n')
+        test_expectations = expectations_parser.TestExpectations(['Linux'])
+        self.assertEqual(test_expectations.parse_tagged_list(raw_data),
+                         (0,None))
+        self.assertEqual(test_expectations.expectations_for('b1/s1'),
+                         (set([ResultType.Failure]), True))
+        self.assertEqual(test_expectations.expectations_for('b1/s2'),
+                         (set([ResultType.Pass]), True))
+        self.assertEqual(test_expectations.expectations_for('b1/s3'),
+                         (set([ResultType.Failure]), False))
+        self.assertEqual(test_expectations.expectations_for('b1/s4'),
+                         (set([ResultType.Pass]), False))
+
+    def testIsTestRetryOnFailureUsingGlob(self):
+        raw_data = (
+            '# tags: [ Linux ]\n'
+            'crbug.com/23456 [ Linux ] b1/* [ RetryOnFailure ]\n')
+        test_expectations = expectations_parser.TestExpectations(['Linux'])
+        self.assertEqual(test_expectations.parse_tagged_list(raw_data),
+                         (0, None))
+        self.assertEqual(test_expectations.expectations_for('b1/s1'),
+                         (set([ResultType.Pass]), True))

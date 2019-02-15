@@ -265,7 +265,9 @@ class TestExpectations(object):
 
         return 0, None
 
-    def expected_results_for(self, test):
+    def expectations_for(self, test):
+        # Returns a tuple of (expectations, should_retry_on_failure)
+        #
         # A given test may have multiple expectations, each with different
         # sets of tags that apply and different expected results, e.g.:
         #
@@ -277,17 +279,20 @@ class TestExpectations(object):
         # a subset of the ones in effect, and  return the union of all of the
         # results. For example, if the runner is running with {Debug, Mac, Mac10.12}
         # then lines with no tags, {Mac}, or {Debug, Mac} would all match, but
-        # {Debug, Win} would not.
+        # {Debug, Win} would not. We also have to set the should_retry_on_failure
+        # boolean variable to True if any of the expectations have the
+        # should_retry_on_failure flag set to true
         #
         # The longest matching test string (name or glob) has priority.
         results = set()
-
+        should_retry_on_failure = False
         # First, check for an exact match on the test name.
         for exp in self.individual_exps.get(test, []):
             if exp.tags.issubset(self.tags):
                 results.update(exp.results)
-        if results:
-            return results
+                should_retry_on_failure |= exp.should_retry_on_failure
+        if results or should_retry_on_failure:
+            return (results or {ResultType.Pass}), should_retry_on_failure
 
         # If we didn't find an exact match, check for matching globs. Match by
         # the most specific (i.e., longest) glob first. Because self.globs is
@@ -297,12 +302,13 @@ class TestExpectations(object):
                 for exp in exps:
                     if exp.tags.issubset(self.tags):
                         results.update(exp.results)
-
+                        should_retry_on_failure |= exp.should_retry_on_failure
                 # if *any* of the exps matched, results will be non-empty,
                 # and we're done. If not, keep looking through ever-shorter
                 # globs.
-                if results:
-                    return results
+                if results or should_retry_on_failure:
+                    return ((results or {ResultType.Pass}),
+                            should_retry_on_failure)
 
         # Nothing matched, so by default, the test is expected to pass.
-        return {ResultType.Pass}
+        return {ResultType.Pass}, False

@@ -884,9 +884,10 @@ def _run_one_test(child, test_input):
     # but could come up when testing non-typ code as well.
     h.capture_output(divert=not child.passthrough)
     if child.has_expectations:
-      expected_results = child.expectations.expected_results_for(test_name)
+      expected_results, should_retry_on_failure = (child.expectations
+                                                   .expectations_for(test_name))
     else:
-      expected_results = {ResultType.Pass}
+      expected_results, should_retry_on_failure = {ResultType.Pass}, False
 
     ex_str = ''
     try:
