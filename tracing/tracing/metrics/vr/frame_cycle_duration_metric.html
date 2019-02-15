@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/importer/find_input_expectations.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
@@ -12,6 +13,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.vr', function() {
+  const VR_GL_THREAD_NAME = 'VrShellGL';
+
   function createHistograms(histograms, name, options, hasCpuTime) {
     const createdHistograms = {
       wall: histograms.createHistogram(
@@ -27,35 +30,17 @@ tr.exportTo('tr.metrics.vr', function() {
 
   function frameCycleDurationMetric(histograms, model, opt_options) {
     const histogramsByEventTitle = new Map();
-    histogramsByEventTitle.set('Vr.DrawFrame',
-        createHistograms(histograms, 'draw_frame',
-            {description: 'Duration to render one frame'}, true));
-    histogramsByEventTitle.set('Vr.AcquireGvrFrame',
-        createHistograms(histograms, 'acquire_frame',
-            {description: 'Duration acquire a frame from GVR'}, true));
-    histogramsByEventTitle.set(
-        'Vr.ProcessControllerInput',
-        createHistograms(
-            histograms, 'update_controller',
-            {description: 'Duration to query input from the controller'},
-            true));
-    histogramsByEventTitle.set(
-        'Vr.ProcessControllerInputForWebXr',
-        createHistograms(
-            histograms, 'update_controller_webxr',
-            {description: 'Duration to query input from the controller ' +
-                'for WebXR'},
-            true));
-    histogramsByEventTitle.set('Vr.SubmitFrameNow',
-        createHistograms(histograms, 'submit_frame',
-            {description: 'Duration to submit a frame to GVR'}, true));
-    histogramsByEventTitle.set('Vr.PostSubmitDrawOnGpu',
-        createHistograms(histograms, 'post_submit_draw_on_gpu',
-            {description: 'Duration to draw a frame on GPU post submit to ' +
-                'GVR. Note this duration may include time spent on ' +
-                'reprojection'}, false));
+    const expectationEvents = tr.importer.VR_EXPECTATION_EVENTS;
+    // Map the events that we use to generate the input expectations.
+    for (const eventName in expectationEvents) {
+      const extraInfo = expectationEvents[eventName];
+      histogramsByEventTitle.set(eventName, createHistograms(
+          histograms, extraInfo.histogramName,
+          {description: extraInfo.description}, extraInfo.hasCpuTime));
+    }
 
-    // TODO(crbug/884259): Remove the following aliases after some time.
+    // TODO(https://crbug.com/884259): Remove these once the reference build is
+    // rolled past the point that the names were changed.
     histogramsByEventTitle.set('VrShellGl::DrawFrame',
         histogramsByEventTitle.get('Vr.DrawFrame'));
     histogramsByEventTitle.set('VrShellGl::AcquireFrame',
@@ -178,12 +163,11 @@ tr.exportTo('tr.metrics.vr', function() {
       }
 
       for (const helper of chromeHelper.browserHelpers) {
-        // The events are traced on the GL thread in the browser process.
-        // Unfortunately, this thread has no name.
-        // TODO(tiborg): Give GL thread a name and reference the thread by
-        // the given name.
+        // TODO(https://crbug.com/884259): Remove the unnamed thread matching
+        // once the reference build is rolled to the point where the thread
+        // is always named.
         const glThreads = helper.process.findAllThreadsMatching(
-            thread => !thread.name);
+            thread => !thread.name || thread.name === VR_GL_THREAD_NAME);
 
         for (const glThread of glThreads) {
           for (const event of glThread.getDescendantEvents()) {

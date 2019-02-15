@@ -155,6 +155,7 @@ tr.b.unittest.testSuite(function() {
       const browserMainThread = browserProcess.getOrCreateThread(0);
       browserMainThread.name = 'CrBrowserMain';
       const browserGlThread = browserProcess.getOrCreateThread(1);
+      browserGlThread.name = 'VrShellGL';
       const group = browserGlThread.sliceGroup;
       createSubSlices(durations, 0, group);
       group.createSubSlices();

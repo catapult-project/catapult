@@ -56,13 +56,13 @@ tr.b.unittest.testSuite(function() {
           'WebVR FPS').addSeries(series);
 
       model.gpuMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          {title: 'VrShellGl::DrawFrame', start: 5, end: 10,
+          {title: 'Vr.DrawFrame', start: 5, end: 10,
             type: tr.model.ThreadSlice}));
       model.gpuMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          {title: 'VrShellGl::DrawFrame', start: 995, end: 1000,
+          {title: 'Vr.DrawFrame', start: 995, end: 1000,
             type: tr.model.ThreadSlice}));
       model.gpuMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          {title: 'VrShellGl::DrawFrame', start: 1010, end: 1050,
+          {title: 'Vr.DrawFrame', start: 1010, end: 1050,
             type: tr.model.ThreadSlice}));
     };
 

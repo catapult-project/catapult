@@ -82,7 +82,51 @@ tr.exportTo('tr.importer', function() {
     'gpu.WebVR frame time (ms)',
     'gpu.WebVR pose prediction (ms)',
   ];
-  const VR_EVENT_NAMES = [
+  /* These are a subset of the events used by frameCycleDurationMetric since
+   * the ones not included here should happen in between the ones that are, so
+   * they aren't any help in calculating the expectation ranges. The extra
+   * information is unused here, but having a single copy that gets referenced
+   * helps prevent the expectation and metric calculations from getting out of
+   * sync if event names change.
+   */
+  const VR_EXPECTATION_EVENTS = {
+    'Vr.AcquireGvrFrame': {
+      'histogramName': 'acquire_frame',
+      'description': 'Duration acquire a frame from GVR',
+      'hasCpuTime': true,
+    },
+    'Vr.DrawFrame': {
+      'histogramName': 'draw_frame',
+      'description': 'Duration to render one frame',
+      'hasCpuTime': true,
+    },
+    'Vr.PostSubmitDrawOnGpu': {
+      'histogramName': 'post_submit_draw_on_gpu',
+      'description': 'Duration to draw a frame on GPU post submit to ' +
+                     'GVR. Note this duration may include time spent on ' +
+                     'reprojection',
+      'hasCpuTime': false,
+    },
+    'Vr.ProcessControllerInput': {
+      'histogramName': 'update_controller',
+      'description': 'Duration to query input from the controller',
+      'hasCpuTime': true,
+    },
+    'Vr.ProcessControllerInputForWebXr': {
+      'histogramName': 'update_controller_webxr',
+      'description': 'Duration to query input from the controller for WebXR',
+      'hasCpuTime': true,
+    },
+    'Vr.SubmitFrameNow': {
+      'histogramName': 'submit_frame',
+      'description': 'Duration to submit a frame to GVR',
+      'hasCpuTime': true,
+    }
+  };
+  /* These are legacy names that we have aliases for. They can be removed as
+   * part of https://crbug.com/884259.
+   */
+  const VR_LEGACY_EVENT_NAMES = [
     'VrShellGl::AcquireFrame',
     'VrShellGl::DrawFrame',
     'VrShellGl::DrawSubmitFrameWhenReady',
@@ -833,7 +877,8 @@ tr.exportTo('tr.importer', function() {
       for (const thread of Object.values(proc.threads)) {
         for (const container of thread.childEventContainers()) {
           for (const slice of container.slices) {
-            if (VR_EVENT_NAMES.includes(slice.title)) {
+            if (VR_LEGACY_EVENT_NAMES.includes(slice.title) ||
+                slice.title in VR_EXPECTATION_EVENTS) {
               events.push(slice);
               vrEventStart = Math.min(vrEventStart, slice.start);
             }
@@ -1404,6 +1449,7 @@ tr.exportTo('tr.importer', function() {
     findInputExpectations,
     compareEvents,
     CSS_ANIMATION_TITLE,
+    VR_EXPECTATION_EVENTS,
   };
 });
 </script>
