@@ -2,24 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.internal.platform import tracing_agent
-
-
-class TracingController(tracing_agent.TracingAgent):
+class TracingController(object):
 
   def __init__(self, tracing_controller_backend):
-    """Provides control of the tracing systems supported by telemetry."""
-    super(TracingController, self).__init__(
-        tracing_controller_backend._platform_backend)
+    """Provides control of the tracing systems supported by Telemetry."""
     self._tracing_controller_backend = tracing_controller_backend
 
-  @property
-  def telemetry_info(self):
-    return self._tracing_controller_backend.telemetry_info
-
-  @telemetry_info.setter
-  def telemetry_info(self, ii):
-    self._tracing_controller_backend.telemetry_info = ii
+  def SetTelemetryInfo(self, telemetry_info):
+    """Set the TelemetryInfo object to be recorded in the trace data."""
+    self._tracing_controller_backend.SetTelemetryInfo(telemetry_info)
 
   def StartTracing(self, tracing_config, timeout=10):
     """Starts tracing.
@@ -69,27 +60,6 @@ class TracingController(tracing_agent.TracingAgent):
   def IsChromeTracingSupported(self):
     """Returns whether chrome tracing is supported."""
     return self._tracing_controller_backend.IsChromeTracingSupported()
-
-  def StartAgentTracing(self, config, timeout=10):
-    """ Starts agent tracing for tracing controller"""
-    return self._tracing_controller_backend.StartAgentTracing(config, timeout)
-
-  def StopAgentTracing(self):
-    """ Stops agent tracing for tracing controller. """
-    return self._tracing_controller_backend.StopAgentTracing()
-
-  def CollectAgentTraceData(self, trace_data_builder, timeout=None):
-    """ Collect tracing data. """
-    return self._tracing_controller_backend.CollectTraceData(trace_data_builder,
-                                                             timeout=timeout)
-
-  def SupportsExplicitClockSync(self):
-    return self._tracing_controller_backend.SupportsExplicitClockSync()
-
-  def RecordClockSyncMarker(self, sync_id,
-                            record_controller_clocksync_marker_callback):
-    return self._tracing_controller_backend.RecordClockSyncMarker(
-        sync_id, record_controller_clocksync_marker_callback)
 
   def ClearStateIfNeeded(self):
     """Clear tracing state if needed."""

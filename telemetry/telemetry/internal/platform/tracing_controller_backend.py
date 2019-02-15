@@ -14,22 +14,35 @@ import uuid
 
 from py_trace_event import trace_event
 from telemetry.core import exceptions
-from telemetry.core import util
-from telemetry.internal.platform import tracing_agent
+from telemetry.internal.platform.tracing_agent import atrace_tracing_agent
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
+from telemetry.internal.platform.tracing_agent import cpu_tracing_agent
+from telemetry.internal.platform.tracing_agent import display_tracing_agent
 from telemetry.timeline import tracing_config
-from tracing.trace_data import trace_data as trace_data_module
+from tracing.trace_data import trace_data
 
 from py_utils import atexit_with_log
-from py_utils import discover
 
 
-def _IterAllTracingAgentClasses():
-  tracing_agent_dir = os.path.join(
-      os.path.dirname(os.path.realpath(__file__)), 'tracing_agent')
-  return discover.DiscoverClasses(
-      tracing_agent_dir, util.GetTelemetryDir(),
-      tracing_agent.TracingAgent).itervalues()
+_TRACING_AGENT_CLASSES = (
+    chrome_tracing_agent.ChromeTracingAgent,
+    atrace_tracing_agent.AtraceTracingAgent,
+    cpu_tracing_agent.CpuTracingAgent,
+    display_tracing_agent.DisplayTracingAgent
+)
+
+
+def _GenerateClockSyncId():
+  return str(uuid.uuid4())
+
+
+@contextlib.contextmanager
+def _DisableGarbageCollection():
+  try:
+    gc.disable()
+    yield
+  finally:
+    gc.enable()
 
 
 class _TraceDataDiscarder(object):
@@ -42,7 +55,7 @@ class _TraceDataDiscarder(object):
 class _TracingState(object):
 
   def __init__(self, config, timeout):
-    self._builder = trace_data_module.TraceDataBuilder()
+    self._builder = trace_data.TraceDataBuilder()
     self._config = config
     self._timeout = timeout
 
@@ -63,13 +76,13 @@ class TracingControllerBackend(object):
   def __init__(self, platform_backend):
     self._platform_backend = platform_backend
     self._current_state = None
-    self._supported_agents_classes = [
-        agent_classes for agent_classes in _IterAllTracingAgentClasses() if
-        agent_classes.IsSupported(platform_backend)]
     self._active_agents_instances = []
     self._trace_log = None
     self._is_tracing_controllable = True
     self._telemetry_info = None
+
+  def SetTelemetryInfo(self, telemetry_info):
+    self._telemetry_info = telemetry_info
 
   def StartTracing(self, config, timeout):
     if self.is_tracing_running:
@@ -79,37 +92,17 @@ class TracingControllerBackend(object):
     assert len(self._active_agents_instances) == 0
 
     self._current_state = _TracingState(config, timeout)
-    # Hack: chrome tracing agent may only depend on the number of alive chrome
-    # devtools processes, rather platform (when startup tracing is not
-    # supported), hence we add it to the list of supported agents here if it was
-    # not added.
-    if (chrome_tracing_agent.ChromeTracingAgent.IsSupported(
-        self._platform_backend) and
-        not chrome_tracing_agent.ChromeTracingAgent in
-        self._supported_agents_classes):
-      self._supported_agents_classes.append(
-          chrome_tracing_agent.ChromeTracingAgent)
 
     self.StartAgentTracing(config, timeout)
-    for agent_class in self._supported_agents_classes:
-      agent = agent_class(self._platform_backend)
-      with trace_event.trace('StartAgentTracing',
-                             agent=str(agent.__class__.__name__)):
-        if agent.StartAgentTracing(config, timeout):
-          self._active_agents_instances.append(agent)
+    for agent_class in _TRACING_AGENT_CLASSES:
+      if agent_class.IsSupported(self._platform_backend):
+        agent = agent_class(self._platform_backend)
+        with trace_event.trace('StartAgentTracing',
+                               agent=str(agent.__class__.__name__)):
+          if agent.StartAgentTracing(config, timeout):
+            self._active_agents_instances.append(agent)
 
     return True
-
-  def _GenerateClockSyncId(self):
-    return str(uuid.uuid4())
-
-  @contextlib.contextmanager
-  def _DisableGarbageCollection(self):
-    try:
-      gc.disable()
-      yield
-    finally:
-      gc.enable()
 
   def StopTracing(self):
     assert self.is_tracing_running, 'Can only stop tracing when tracing is on.'
@@ -178,7 +171,7 @@ class TracingControllerBackend(object):
           '\n'.join(raised_exception_messages))
 
   def StartAgentTracing(self, config, timeout):
-    self._is_tracing_controllable = self._IsTracingControllable()
+    self._is_tracing_controllable = trace_event.is_tracing_controllable()
     if not self._is_tracing_controllable:
       return False
 
@@ -213,10 +206,10 @@ class TracingControllerBackend(object):
       trace_event.clock_sync(sync_id, issue_ts=issue_ts)
 
   def _IssueClockSyncMarker(self):
-    with self._DisableGarbageCollection():
+    with _DisableGarbageCollection():
       for agent in self._active_agents_instances:
         if agent.SupportsExplicitClockSync():
-          sync_id = self._GenerateClockSyncId()
+          sync_id = _GenerateClockSyncId()
           with trace_event.trace('RecordClockSyncMarker',
                                  agent=str(agent.__class__.__name__),
                                  sync_id=sync_id):
@@ -233,9 +226,7 @@ class TracingControllerBackend(object):
 
   @property
   def is_chrome_tracing_running(self):
-    return self.is_tracing_running and any(
-        isinstance(agent, chrome_tracing_agent.ChromeTracingAgent)
-        for agent in self._active_agents_instances)
+    return self._GetActiveChromeTracingAgent() is not None
 
   def _GetActiveChromeTracingAgent(self):
     if not self.is_tracing_running:
@@ -259,19 +250,8 @@ class TracingControllerBackend(object):
       return agent.trace_config_file
     return None
 
-  def _IsTracingControllable(self):
-    return trace_event.is_tracing_controllable()
-
   def ClearStateIfNeeded(self):
     chrome_tracing_agent.ClearStarupTracingStateIfNeeded(self._platform_backend)
-
-  @property
-  def telemetry_info(self):
-    return self._telemetry_info
-
-  @telemetry_info.setter
-  def telemetry_info(self, ii):
-    self._telemetry_info = ii
 
   def CollectAgentTraceData(self, trace_data_builder):
     if not self._is_tracing_controllable:
@@ -280,7 +260,7 @@ class TracingControllerBackend(object):
     with open(self._trace_log, 'r') as fp:
       data = ast.literal_eval(fp.read() + ']')
     trace_data_builder.AddTraceFor(
-        trace_data_module.TELEMETRY_PART,
+        trace_data.TELEMETRY_PART,
         {
             "traceEvents": data,
             "metadata": {
