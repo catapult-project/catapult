@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from py_trace_event import trace_event
+
 
 class TracingAgent(object):
   """A tracing agent provided by the platform.
@@ -18,8 +20,9 @@ class TracingAgent(object):
   NOTE: All subclasses of TracingAgent must not change the constructor's
   parameters so the agents can be dynamically constructed in
   tracing_controller_backend.
-
   """
+
+  __metaclass__ = trace_event.TracedMetaClass
 
   def __init__(self, platform_backend):
     self._platform_backend = platform_backend

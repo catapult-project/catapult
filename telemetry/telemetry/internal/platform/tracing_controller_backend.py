@@ -96,10 +96,8 @@ class TracingControllerBackend(object):
     for agent_class in _TRACING_AGENT_CLASSES:
       if agent_class.IsSupported(self._platform_backend):
         agent = agent_class(self._platform_backend)
-        with trace_event.trace('StartAgentTracing',
-                               agent=str(agent.__class__.__name__)):
-          if agent.StartAgentTracing(config, timeout):
-            self._active_agents_instances.append(agent)
+        if agent.StartAgentTracing(config, timeout):
+          self._active_agents_instances.append(agent)
 
     return True
 
@@ -111,18 +109,14 @@ class TracingControllerBackend(object):
     raised_exception_messages = []
     for agent in reversed(self._active_agents_instances):
       try:
-        with trace_event.trace('StopAgentTracing',
-                               agent=str(agent.__class__.__name__)):
-          agent.StopAgentTracing()
+        agent.StopAgentTracing()
       except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
 
     for agent in self._active_agents_instances:
       try:
-        with trace_event.trace('CollectAgentTraceData',
-                               agent=str(agent.__class__.__name__)):
-          agent.CollectAgentTraceData(builder)
+        agent.CollectAgentTraceData(builder)
       except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
@@ -153,11 +147,9 @@ class TracingControllerBackend(object):
     for agent in self._active_agents_instances:
       try:
         if agent.SupportsFlushingAgentTracing():
-          with trace_event.trace('FlushAgentTracing',
-                                 agent=str(agent.__class__.__name__)):
-            agent.FlushAgentTracing(self._current_state.config,
-                                    self._current_state.timeout,
-                                    trace_builder)
+          agent.FlushAgentTracing(self._current_state.config,
+                                  self._current_state.timeout,
+                                  trace_builder)
       except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))

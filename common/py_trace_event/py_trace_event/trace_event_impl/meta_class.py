@@ -10,7 +10,8 @@ from py_trace_event.trace_event_impl import decorators
 class TracedMetaClass(type):
   def __new__(cls, name, bases, attrs):
     for attr_name, attr_value in attrs.iteritems():
-      if isinstance(attr_value, types.FunctionType):
+      if (not attr_name.startswith('_') and
+          isinstance(attr_value, types.FunctionType)):
         attrs[attr_name] = decorators.traced(attr_value)
 
     return super(TracedMetaClass, cls).__new__(cls, name, bases, attrs)
