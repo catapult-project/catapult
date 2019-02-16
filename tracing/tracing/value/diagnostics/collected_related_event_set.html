@@ -36,6 +36,12 @@ tr.exportTo('tr.v.d', function() {
       return CollectedRelatedEventSet.fromDict({events});
     }
 
+    serialize(serializer) {
+      const d = {};
+      this.asDictInto(d);
+      return d.events;
+    }
+
     static fromDict(d) {
       const result = new CollectedRelatedEventSet();
       for (const [canonicalUrl, events] of Object.entries(d.events)) {

@@ -9,9 +9,19 @@ from tracing.value.diagnostics import diagnostic
 class RelatedEventSet(diagnostic.Diagnostic):
   __slots__ = '_events_by_stable_id',
 
-  def __init__(self):
+  def __init__(self, events=()):
     super(RelatedEventSet, self).__init__()
     self._events_by_stable_id = {}
+    for e in events:
+      self.Add(e)
+
+  def __eq__(self, other):
+    if len(self) != len(other):
+      return False
+    for event in self:
+      if event['stableId'] not in other._events_by_stable_id:
+        return False
+    return True
 
   def Add(self, event):
     self._events_by_stable_id[event['stableId']] = event
@@ -37,6 +47,16 @@ class RelatedEventSet(diagnostic.Diagnostic):
     for event in d['events']:
       result.Add(event)
     return result
+
+  def Serialize(self, serializer):
+    return [
+        [
+            e['stableId'],
+            serializer.GetOrAllocateId(e['title']),
+            e['start'],
+            e['duration'],
+        ]
+        for e in self]
 
   def _AsDictInto(self, d):
     d['events'] = [event for event in self]

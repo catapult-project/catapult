@@ -8,9 +8,9 @@ from tracing.value.diagnostics import diagnostic
 class RelatedNameMap(diagnostic.Diagnostic):
   __slots__ = '_map',
 
-  def __init__(self):
+  def __init__(self, entries=None):
     super(RelatedNameMap, self).__init__()
-    self._map = {}
+    self._map = entries or {}
 
   def __len__(self):
     return len(self._map)
@@ -52,6 +52,14 @@ class RelatedNameMap(diagnostic.Diagnostic):
 
   def Values(self):
     return self._map.values()
+
+  def Serialize(self, serializer):
+    keys = self._map.keys()
+    keys.sort()
+    names = [serializer.GetOrAllocateId(self.Get(k)) for k in keys]
+    keys_id = serializer.GetOrAllocateId([
+        serializer.GetOrAllocateId(k) for k in keys])
+    return [keys_id] + names
 
   def _AsDictInto(self, dct):
     dct['names'] = dict(self._map)

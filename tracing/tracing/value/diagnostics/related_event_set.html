@@ -48,6 +48,14 @@ tr.exportTo('tr.v.d', function() {
       return clone;
     }
 
+    equals(other) {
+      if (this.length !== other.length) return false;
+      for (const event of this) {
+        if (!other.has(event)) return false;
+      }
+      return true;
+    }
+
     /**
      * @param {!(tr.v.d.EventRef|tr.model.Event)} event
      */
@@ -98,6 +106,15 @@ tr.exportTo('tr.v.d', function() {
           throw new Error('Unable to find Event ' + stableId);
         }
       }
+    }
+
+    serialize(serializer) {
+      return [...this].map(event => [
+        event.stableId,
+        serializer.getOrAllocateId(event.title),
+        event.start,
+        event.duration,
+      ]);
     }
 
     asDictInto_(d) {

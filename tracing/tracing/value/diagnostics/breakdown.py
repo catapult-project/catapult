@@ -20,7 +20,17 @@ class Breakdown(diagnostic.Diagnostic):
   def __init__(self):
     super(Breakdown, self).__init__()
     self._values = {}
-    self._color_scheme = None
+    self._color_scheme = ''
+
+  def __eq__(self, other):
+    if self._color_scheme != other._color_scheme:
+      return False
+    if len(self._values) != len(other._values):
+      return False
+    for k, v in self:
+      if v != other.Get(k):
+        return False
+    return True
 
   @property
   def color_scheme(self):
@@ -46,6 +56,15 @@ class Breakdown(diagnostic.Diagnostic):
       result.Set(name, value)
     return result
 
+  def Serialize(self, serializer):
+    keys = self._values.keys()
+    keys.sort()
+    return [
+        serializer.GetOrAllocateId(self.color_scheme),
+        serializer.GetOrAllocateId([
+            serializer.GetOrAllocateId(k) for k in keys]),
+    ] + [self.Get(k) for k in keys]
+
   def _AsDictInto(self, d):
     d['values'] = {}
     for name, value in self:
@@ -63,6 +82,13 @@ class Breakdown(diagnostic.Diagnostic):
       d['values'][name] = value
     if self._color_scheme:
       d['colorScheme'] = self._color_scheme
+
+  @staticmethod
+  def FromEntries(entries):
+    b = Breakdown()
+    for name, value in entries.items():
+      b.Set(name, value)
+    return b
 
   def Set(self, name, value):
     assert isinstance(name, StringTypes), (

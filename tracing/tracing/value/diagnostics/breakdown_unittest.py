@@ -6,6 +6,7 @@ import json
 import math
 import unittest
 
+from tracing.value import histogram_serializer
 from tracing.value.diagnostics import breakdown
 from tracing.value.diagnostics import diagnostic
 from tracing.value import histogram_deserializer
@@ -39,3 +40,12 @@ class BreakdownUnittest(unittest.TestCase):
     self.assertEqual(b.Get('a'), 1)
     self.assertEqual(b.Get('b'), 2)
     self.assertEqual(b.Get('c'), 3)
+
+  def testSerialize(self):
+    s = histogram_serializer.HistogramSerializer()
+    b = breakdown.Breakdown.FromEntries({'a': 10, 'b': 20})
+    self.assertEqual(b.Serialize(s), [0, 3, 10, 20])
+    self.assertEqual(s.GetOrAllocateId(''), 0)
+    self.assertEqual(s.GetOrAllocateId('a'), 1)
+    self.assertEqual(s.GetOrAllocateId('b'), 2)
+    self.assertEqual(s.GetOrAllocateId([1, 2]), 3)

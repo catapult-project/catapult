@@ -16,6 +16,11 @@ tr.exportTo('tr.v.d', function() {
     constructor(opt_info) {
       super();
       this.map_ = new Map();
+      if (opt_info) {
+        for (const [key, name] of Object.entries(opt_info)) {
+          this.set(key, name);
+        }
+      }
     }
 
     clone() {
@@ -52,6 +57,15 @@ tr.exportTo('tr.v.d', function() {
               `"${existing}" != "${name}"`);
         }
       }
+    }
+
+    serialize(serializer) {
+      const keys = [...this.map_.keys()];
+      keys.sort();
+      const names = keys.map(k => serializer.getOrAllocateId(this.get(k)));
+      const keysId = serializer.getOrAllocateId(keys.map(k =>
+        serializer.getOrAllocateId(k)));
+      return [keysId, ...names];
     }
 
     asDictInto_(d) {

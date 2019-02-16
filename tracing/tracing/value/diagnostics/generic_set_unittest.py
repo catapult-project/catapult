@@ -5,6 +5,7 @@
 import unittest
 
 from tracing.value import histogram_deserializer
+from tracing.value import histogram_serializer
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import generic_set
 
@@ -109,3 +110,10 @@ class GenericSetUnittest(unittest.TestCase):
     self.assertEqual(len(b), 2)
     self.assertIn('aaa', b)
     self.assertIn('bbb', b)
+
+  def testSerialize(self):
+    s = histogram_serializer.HistogramSerializer()
+    g = generic_set.GenericSet(['a', 'b'])
+    self.assertEqual(g.Serialize(s), [0, 1])
+    g = generic_set.GenericSet(['a'])
+    self.assertEqual(g.Serialize(s), 0)

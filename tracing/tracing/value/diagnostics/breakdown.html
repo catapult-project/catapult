@@ -15,7 +15,7 @@ tr.exportTo('tr.v.d', function() {
     constructor() {
       super();
       this.values_ = new Map();
-      this.colorScheme = undefined;
+      this.colorScheme = '';
     }
 
     truncate(unit) {
@@ -29,6 +29,15 @@ tr.exportTo('tr.v.d', function() {
       clone.colorScheme = this.colorScheme;
       clone.addDiagnostic(this);
       return clone;
+    }
+
+    equals(other) {
+      if (this.colorScheme !== other.colorScheme) return false;
+      if (this.values_.size !== other.values_.size) return false;
+      for (const [k, v] of this) {
+        if (v !== other.get(k)) return false;
+      }
+      return true;
     }
 
     canAddDiagnostic(otherDiagnostic) {
@@ -73,6 +82,17 @@ tr.exportTo('tr.v.d', function() {
 
     get size() {
       return this.values_.size;
+    }
+
+    serialize(serializer) {
+      const keys = [...this.values_.keys()];
+      keys.sort();
+      return [
+        serializer.getOrAllocateId(this.colorScheme),
+        serializer.getOrAllocateId(keys.map(k =>
+          serializer.getOrAllocateId(k))),
+        ...keys.map(k => this.get(k)),
+      ];
     }
 
     asDictInto_(d) {

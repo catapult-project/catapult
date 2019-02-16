@@ -28,6 +28,10 @@ tr.exportTo('tr.v.d', function() {
       return new Scalar(this.value);
     }
 
+    serialize(serializer) {
+      return this.value.asDict();
+    }
+
     asDictInto_(d) {
       d.value = this.value.asDict();
     }

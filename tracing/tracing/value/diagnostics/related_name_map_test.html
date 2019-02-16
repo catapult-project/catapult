@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/diagnostics/related_name_map.html">
 <link rel="import" href="/tracing/value/histogram_deserializer.html">
+<link rel="import" href="/tracing/value/histogram_serializer.html">
 
 <script>
 'use strict';
@@ -21,6 +21,13 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(names.get('a'), 'd');
     assert.strictEqual(names.get('b'), 'e');
     assert.strictEqual(names.get('c'), 'f');
+  });
+
+  test('serialize', function() {
+    const names = tr.v.d.RelatedNameMap.fromEntries([
+      ['a', 'x'], ['b', 'y'], ['c', 'z']]);
+    const s = new tr.v.HistogramSerializer();
+    assert.deepEqual(names.serialize(s), [6, 0, 1, 2]);
   });
 });
 </script>

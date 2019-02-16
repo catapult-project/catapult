@@ -71,6 +71,11 @@ tr.exportTo('tr.v.d', function() {
       return `${minDate} - ${maxDate}`;
     }
 
+    serialize(serializer) {
+      if (this.durationMs === 0) return this.range_.min;
+      return [this.range_.min, this.range_.max];
+    }
+
     asDictInto_(d) {
       d.min = this.range_.min;
       if (this.durationMs === 0) return;

@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/value/diagnostics/generic_set.html">
 <link rel="import" href="/tracing/value/histogram_deserializer.html">
+<link rel="import" href="/tracing/value/histogram_serializer.html">
 
 <script>
 'use strict';
@@ -70,6 +71,16 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(b, 2);
     assert.isTrue(b.has('aaa'));
     assert.isTrue(b.has('bbb'));
+  });
+
+  test('serialize', function() {
+    const s = new tr.v.HistogramSerializer();
+    let g = new tr.v.d.GenericSet(['a']);
+    assert.strictEqual(g.serialize(s), 0);
+    assert.strictEqual(s.getOrAllocateId('a'), 0);
+    g = new tr.v.d.GenericSet(['a', 'b']);
+    assert.deepEqual(g.serialize(s), [0, 1]);
+    assert.strictEqual(s.getOrAllocateId('b'), 1);
   });
 });
 </script>
