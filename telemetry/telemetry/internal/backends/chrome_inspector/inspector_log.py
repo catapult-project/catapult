@@ -35,5 +35,7 @@ class InspectorLog(object):
       # which is usually not blocked.)
       #
       # TODO(crbug.com/917211): consider removing once this bug is diagnosed.
+      logging.error('Renderer process seems to have hung during browser start '
+                    'and Log.enable DevTools call; forcibly crashing it.')
       self._inspector_websocket.SyncRequest({'method': 'Page.crash'}, timeout)
       raise
