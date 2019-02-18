@@ -111,23 +111,6 @@ class _TraceData(object):
   def __init__(self, raw_data):
     self._raw_data = raw_data
 
-  def __getitem__(self, index):
-    # TODO(crbug/928278): This is a temporary trampoline method for clients
-    # that currently do:
-    #
-    #     trace_data = tracing_backend.StopTracing()[0]
-    #
-    # The return value of StopTracing is being changed so now it only returns
-    # a single value, a _TraceData instance. After all clients switch to doing
-    # just:
-    #
-    #     trace_data = tracing_backend.StopTracing()
-    #
-    # this method can be removed.
-    if index != 0:
-      raise IndexError(index)
-    return self
-
   @property
   def active_parts(self):
     return {p for p in ALL_TRACE_PARTS if p.raw_field_name in self._raw_data}

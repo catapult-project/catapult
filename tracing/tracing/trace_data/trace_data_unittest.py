@@ -48,15 +48,6 @@ class TraceDataTest(unittest.TestCase):
         'traceEvents', [])
     self.assertEquals(1, len(events))
 
-  def testGetAsSingleItem(self):
-    # TODO(crbug.com/928278): Remove test when clients no longer use this
-    # idiom to get trace data from StopController() calls.
-    def FakeStopController():
-      return trace_data.CreateTraceDataFromRawData([{'ph': 'B'}])
-
-    data = FakeStopController()[0]
-    self.assertTrue(data.HasTracesFor(trace_data.CHROME_TRACE_PART))
-
 
 class TraceDataBuilderTest(unittest.TestCase):
   def testBasicChrome(self):
