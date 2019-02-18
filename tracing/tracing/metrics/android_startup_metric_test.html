@@ -39,13 +39,25 @@ tr.b.unittest.testSuite(function() {
   function fillModelWithOneBrowserSession(model, offset, incrementForMetrics) {
     // In order for the tests below to succeed with strictEqual, the floating
     // point values should have exact representation as IEEE754 float.
-    createBrowserThread(model).asyncSliceGroup.push(
+    const browserMainThread = createBrowserThread(model);
+    browserMainThread.asyncSliceGroup.push(
         tr.c.TestUtils.newAsyncSliceEx({
           cat: 'startup',
           title: 'Startup.BrowserMessageLoopStartTimeFromMainEntry3',
           start: (offset + 6800.125),
           duration: (incrementForMetrics + 1700.0625)}));
+    browserMainThread.asyncSliceGroup.push(
+        tr.c.TestUtils.newAsyncSliceEx({
+          cat: 'navigation',
+          title: 'Navigation StartToCommit',
+          start: (offset + 9000.5 + incrementForMetrics),
+          duration: (incrementForMetrics + 2000.5)}));
     const rendererMainThread = createRendererThread(model);
+    rendererMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'startup',
+      title: 'content::Start',
+      start: (offset + 9500.125 + incrementForMetrics),
+      duration: 10000.0}));
     rendererMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'loading,rail,devtools.timeline',
       title: 'firstContentfulPaint',
@@ -67,13 +79,15 @@ tr.b.unittest.testSuite(function() {
   // first messageloop start and FCP events in the trace. The specific lengths
   // are not important.
   function addEarlyEventsToBeIgnored(model, offset) {
-    createBrowserThread(model).asyncSliceGroup.push(
+    const browserMainThread = createBrowserThread(model);
+    browserMainThread.asyncSliceGroup.push(
         tr.c.TestUtils.newAsyncSliceEx({
           cat: 'startup',
           title: 'Startup.BrowserMessageLoopStartTimeFromMainEntry3',
           start: (offset + 1.0),
           duration: 10.0}));
-    createRendererThread(model).sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+    const rendererMainThread = createRendererThread(model);
+    rendererMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'loading,rail,devtools.timeline',
       title: 'firstContentfulPaint',
       start: (offset + 2.0),
@@ -89,18 +103,29 @@ tr.b.unittest.testSuite(function() {
     });
   }
 
+  function verifyHistogram(histograms, name, numValues, average) {
+    const histogram = histograms.getHistogramNamed(name);
+    assert.strictEqual(numValues, histogram.numValues);
+    assert.strictEqual(average, histogram.average);
+  }
+
+  function verifyHistogramRange(histograms, name, numValues, min, max) {
+    const histogram = histograms.getHistogramNamed(name);
+    assert.strictEqual(numValues, histogram.numValues);
+    assert.strictEqual(min, histogram.min);
+    assert.strictEqual(max, histogram.max);
+  }
+
   // Checks recording of the main histograms in the simplest case.
   test('androidStartupMetric_simple', function() {
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.androidStartupMetric(histograms, makeTestModel(0.0, 0.0));
-    const messageLoopStartHistogram = histograms.getHistogramNamed(
-        'messageloop_start_time');
-    assert.strictEqual(1, messageLoopStartHistogram.numValues);
-    assert.strictEqual(1700.0625, messageLoopStartHistogram.average);
-    const firstContentfulPaintHistogram = histograms.getHistogramNamed(
-        'first_contentful_paint_time');
-    assert.strictEqual(1, firstContentfulPaintHistogram.numValues);
-    assert.strictEqual(1600.0, firstContentfulPaintHistogram.average);
+    verifyHistogram(histograms, 'messageloop_start_time', 1, 1700.0625);
+    verifyHistogram(histograms, 'experimental_navigation_start_time', 1,
+        2200.375);
+    verifyHistogram(histograms, 'navigation_commit_time', 1, 4200.875);
+    verifyHistogram(histograms, 'experimental_content_start_time', 1, 2700);
+    verifyHistogram(histograms, 'first_contentful_paint_time', 1, 1600);
   });
 
   // Emulates loss of the initial message loop start event. Checks that this
@@ -118,13 +143,26 @@ tr.b.unittest.testSuite(function() {
               start: 2.0,
               duration: 1.0,
               args: {frame: '0x0'}}));
-        createBrowserThread(model).asyncSliceGroup.push(
+        const browserMainThread = createBrowserThread(model);
+        browserMainThread.asyncSliceGroup.push(
             tr.c.TestUtils.newAsyncSliceEx({
               cat: 'startup',
               title: 'Startup.BrowserMessageLoopStartTimeFromMainEntry3',
               start: (20.0 + 1.0),
               duration: 10.0}));
-        createRendererThread(model).sliceGroup.pushSlice(
+        browserMainThread.asyncSliceGroup.push(
+            tr.c.TestUtils.newAsyncSliceEx({
+              cat: 'navigation',
+              title: 'Navigation StartToCommit',
+              start: (20.0 + 11.0),
+              duration: 10.0}));
+        const rendererMainThread = createRendererThread(model);
+        rendererMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'startup',
+          title: 'content::Start',
+          start: (20.0 + 1.75),
+          duration: 10.0}));
+        rendererMainThread.sliceGroup.pushSlice(
             tr.c.TestUtils.newSliceEx({
               cat: 'loading,rail,devtools.timeline',
               title: 'firstContentfulPaint',
@@ -137,14 +175,47 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.androidStartupMetric(histograms,
         makeTestModelWithOneEventMissing(0.0));
-    const messageLoopStartHistogram = histograms.getHistogramNamed(
-        'messageloop_start_time');
-    assert.strictEqual(1, messageLoopStartHistogram.numValues);
-    assert.strictEqual(1700.0625, messageLoopStartHistogram.average);
-    const firstContentfulPaintHistogram = histograms.getHistogramNamed(
-        'first_contentful_paint_time');
-    assert.strictEqual(1, firstContentfulPaintHistogram.numValues);
-    assert.strictEqual(1600.0, firstContentfulPaintHistogram.average);
+    verifyHistogram(histograms, 'messageloop_start_time', 1, 1700.0625);
+    verifyHistogram(histograms, 'experimental_navigation_start_time', 1,
+        2200.375);
+    verifyHistogram(histograms, 'navigation_commit_time', 1, 4200.875);
+    verifyHistogram(histograms, 'experimental_content_start_time', 1, 2700);
+    verifyHistogram(histograms, 'first_contentful_paint_time', 1, 1600);
+  });
+
+  test('androidStartupMetric_missingExperimentalEvents', function() {
+    function makeTestModelWithMissingExperimentalEvents() {
+      return tr.c.TestUtils.newModel(function(model) {
+        const browserMainThread = createBrowserThread(model);
+        browserMainThread.asyncSliceGroup.push(
+            tr.c.TestUtils.newAsyncSliceEx({
+              cat: 'startup',
+              title: 'Startup.BrowserMessageLoopStartTimeFromMainEntry3',
+              start: (20.0 + 1.0),
+              duration: 10.0}));
+        const rendererMainThread = createRendererThread(model);
+        rendererMainThread.sliceGroup.pushSlice(
+            tr.c.TestUtils.newSliceEx({
+              cat: 'loading,rail,devtools.timeline',
+              title: 'firstContentfulPaint',
+              start: (20.0 + 2.0),
+              duration: 1.0,
+              args: {frame: '0x0'}}));
+        addEarlyEventsToBeIgnored(model, 0.0, 0.0);
+        addEarlyEventsToBeIgnored(model, 10.0);
+      });
+    }
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.androidStartupMetric(histograms,
+        makeTestModelWithMissingExperimentalEvents());
+    verifyHistogram(histograms, 'messageloop_start_time', 1, 10);
+    verifyHistogram(histograms, 'experimental_navigation_start_time', 0,
+        undefined);
+    verifyHistogram(histograms, 'navigation_commit_time', 0, undefined);
+    verifyHistogram(histograms, 'experimental_content_start_time', 0,
+        undefined);
+    verifyHistogram(histograms, 'first_contentful_paint_time', 1, 2);
   });
 
   // Checks the metrics after adding an offset to events in the model, and
@@ -152,14 +223,12 @@ tr.b.unittest.testSuite(function() {
   test('androidStartupMetric_withOffsetAndLongerTask', function() {
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.androidStartupMetric(histograms, makeTestModel(5.0, 7.0));
-    const messageLoopStartHistogram = histograms.getHistogramNamed(
-        'messageloop_start_time');
-    assert.strictEqual(1, messageLoopStartHistogram.numValues);
-    assert.strictEqual(1707.0625, messageLoopStartHistogram.average);
-    const firstContentfulPaintHistogram = histograms.getHistogramNamed(
-        'first_contentful_paint_time');
-    assert.strictEqual(1, firstContentfulPaintHistogram.numValues);
-    assert.strictEqual(1607.0, firstContentfulPaintHistogram.average);
+    verifyHistogram(histograms, 'messageloop_start_time', 1, 1707.0625);
+    verifyHistogram(histograms, 'experimental_navigation_start_time', 1,
+        2207.375);
+    verifyHistogram(histograms, 'navigation_commit_time', 1, 4214.875);
+    verifyHistogram(histograms, 'experimental_content_start_time', 1, 2707);
+    verifyHistogram(histograms, 'first_contentful_paint_time', 1, 1607);
   });
 
   test('androidStartupMetric_twoSessions', function() {
@@ -176,16 +245,16 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.androidStartupMetric(histograms,
         makeTestModelWithTwoSessionsOneDelayed(10000.0, delta));
-    const messageLoopStartHistogram = histograms.getHistogramNamed(
-        'messageloop_start_time');
-    assert.strictEqual(2, messageLoopStartHistogram.numValues);
-    assert.strictEqual(1700.0625, messageLoopStartHistogram.min);
-    assert.strictEqual(1700.0625 + delta, messageLoopStartHistogram.max);
-    const firstContentfulPaintHistogram = histograms.getHistogramNamed(
-        'first_contentful_paint_time');
-    assert.strictEqual(2, firstContentfulPaintHistogram.numValues);
-    assert.strictEqual(1600.0, firstContentfulPaintHistogram.min);
-    assert.strictEqual(1600.0 + delta, firstContentfulPaintHistogram.max);
+    verifyHistogramRange(histograms, 'messageloop_start_time',
+        2, 1700.0625, 1700.0625 + delta);
+    verifyHistogramRange(histograms, 'experimental_navigation_start_time',
+        2, 2200.375, 2200.375 + delta);
+    verifyHistogramRange(histograms, 'navigation_commit_time',
+        2, 4200.875, 4200.875 + delta * 2);
+    verifyHistogramRange(histograms, 'experimental_content_start_time',
+        2, 2700, 2700 + delta);
+    verifyHistogramRange(histograms, 'first_contentful_paint_time',
+        2, 1600, 1600 + delta);
   });
 });
 </script>
