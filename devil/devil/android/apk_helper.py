@@ -5,11 +5,13 @@
 """Module containing utilities for apk packages."""
 
 import re
+import xml.etree.ElementTree
 import zipfile
 
 from devil import base_error
 from devil.android.ndk import abis
 from devil.android.sdk import aapt
+from devil.utils import cmd_helper
 
 
 _MANIFEST_ATTRIBUTE_RE = re.compile(
@@ -46,9 +48,8 @@ def ToHelper(path_or_helper):
 # matches the height of the stack). Each line parsed (either an attribute or an
 # element) is added to the node at the top of the stack (after the stack has
 # been popped/pushed due to indentation).
-def _ParseManifestFromApk(apk_path):
-  aapt_output = aapt.Dump('xmltree', apk_path, 'AndroidManifest.xml')
-
+def _ParseManifestFromApk(apk):
+  aapt_output = aapt.Dump('xmltree', apk.path, 'AndroidManifest.xml')
   parsed_manifest = {}
   node_stack = [parsed_manifest]
   indent = '  '
@@ -105,6 +106,47 @@ def _ParseManifestFromApk(apk_path):
   return parsed_manifest
 
 
+def _ParseManifestFromBundle(bundle):
+  cmd = [bundle.path, 'dump-manifest']
+  status, stdout, stderr = cmd_helper.GetCmdStatusOutputAndError(cmd)
+  if status != 0:
+    raise Exception('Failed running {} with output\n{}\n{}'.format(
+        ' '.join(cmd), stdout, stderr))
+  return ParseManifestFromXml(stdout)
+
+
+def ParseManifestFromXml(xml_str):
+  """Parse an android bundle manifest.
+
+    As ParseManifestFromAapt, but uses the xml output from bundletool. Each
+    element is a dict, mapping attribute or children by name. Attributes map to
+    a dict (as they are unique), children map to a list of dicts (as there may
+    be multiple children with the same name).
+
+  Args:
+    xml_str (str) An xml string that is an android manifest.
+
+  Returns:
+    A dict holding the parsed manifest, as with ParseManifestFromAapt.
+  """
+  root = xml.etree.ElementTree.fromstring(xml_str)
+  return {root.tag: [_ParseManifestXMLNode(root)]}
+
+
+def _ParseManifestXMLNode(node):
+  out = {}
+  for name, value in node.attrib.items():
+    cleaned_name = name.replace(
+        '{http://schemas.android.com/apk/res/android}',
+        'android:').replace(
+            '{http://schemas.android.com/tools}',
+            'tools:')
+    out[cleaned_name] = value
+  for child in node:
+    out.setdefault(child.tag, []).append(_ParseManifestXMLNode(child))
+  return out
+
+
 def _ParseNumericKey(obj, key, default=0):
   val = obj.get(key)
   if val is None:
@@ -152,6 +194,10 @@ class ApkHelper(object):
   @property
   def path(self):
     return self._apk_path
+
+  @property
+  def is_bundle(self):
+    return self._apk_path.endswith('_bundle')
 
   def GetActivityName(self):
     """Returns the name of the first launcher Activity in the apk."""
@@ -236,7 +282,11 @@ class ApkHelper(object):
 
   def _GetManifest(self):
     if not self._manifest:
-      self._manifest = _ParseManifestFromApk(self._apk_path)
+      app = ToHelper(self._apk_path)
+      if app.is_bundle:
+        self._manifest = _ParseManifestFromBundle(app)
+      else:
+        self._manifest = _ParseManifestFromApk(app)
     return self._manifest
 
   def _ResolveName(self, name):
