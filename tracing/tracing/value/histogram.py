@@ -422,6 +422,10 @@ class DiagnosticMap(dict):
       elif required:
         raise ValueError('Unable to find shared Diagnostic ' + guid)
 
+  def Serialize(self, serializer):
+    return [serializer.GetOrAllocateDiagnosticId(name, diag)
+            for name, diag in self.items()]
+
   def AsDict(self):
     dct = {}
     for name, diag in self.items():

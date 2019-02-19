@@ -109,6 +109,14 @@ tr.exportTo('tr.v.d', function() {
       }
     }
 
+    serialize(serializer) {
+      const data = [];
+      for (const [name, diagnostic] of this) {
+        data.push(serializer.getOrAllocateDiagnosticId(name, diagnostic));
+      }
+      return data;
+    }
+
     asDict() {
       const dict = {};
       for (const [name, diagnostic] of this) {
