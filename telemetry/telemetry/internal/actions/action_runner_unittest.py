@@ -14,50 +14,9 @@ from telemetry.testing import tab_test_case
 from telemetry.timeline import chrome_trace_category_filter
 from telemetry.timeline import model
 from telemetry.timeline import tracing_config
-from telemetry.web_perf import timeline_interaction_record as tir_module
+from telemetry.util import trace_processor
 
 import py_utils
-
-
-class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
-
-  def GetInteractionRecords(self, trace_data):
-    timeline_model = model.TimelineModel(trace_data)
-    renderer_thread = timeline_model.GetFirstRendererThread(self._tab.id)
-    return [
-        tir_module.TimelineInteractionRecord.FromAsyncEvent(e)
-        for e in renderer_thread.async_slices
-        if tir_module.IsTimelineInteractionRecord(e.name)
-    ]
-
-  def VerifyIssuingInteractionRecords(self, **interaction_kwargs):
-    action_runner = action_runner_module.ActionRunner(
-        self._tab, skip_waits=True)
-    self.Navigate('interaction_enabled_page.html')
-    action_runner.Wait(1)
-    config = tracing_config.TracingConfig()
-    config.chrome_trace_config.SetLowOverheadFilter()
-    config.enable_chrome_trace = True
-    self._browser.platform.tracing_controller.StartTracing(config)
-    with action_runner.CreateInteraction('InteractionName',
-                                         **interaction_kwargs):
-      pass
-    trace_data = self._browser.platform.tracing_controller.StopTracing()
-
-    records = self.GetInteractionRecords(trace_data)
-    self.assertEqual(
-        1,
-        len(records),
-        'Failed to issue the interaction record on the tracing timeline.')
-    self.assertEqual('InteractionName', records[0].label)
-    for attribute_name in interaction_kwargs:
-      self.assertTrue(getattr(records[0], attribute_name))
-
-  # Test disabled for android: crbug.com/437057
-  # Test disabled for linux: crbug.com/513874
-  @decorators.Disabled('android', 'chromeos', 'linux')
-  def testIssuingMultipleMeasurementInteractionRecords(self):
-    self.VerifyIssuingInteractionRecords(repeatable=True)
 
 
 class ActionRunnerMeasureMemoryTest(tab_test_case.TabTestCase):
@@ -477,6 +436,20 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
 
     action_runner.EnterOverviewMode()
     action_runner.ExitOverviewMode()
+
+  def testCreateInteraction(self):
+    action_runner = action_runner_module.ActionRunner(self._tab)
+    self.Navigate('interaction_enabled_page.html')
+    action_runner.Wait(1)
+    config = tracing_config.TracingConfig()
+    config.chrome_trace_config.SetLowOverheadFilter()
+    config.enable_chrome_trace = True
+    self._browser.platform.tracing_controller.StartTracing(config)
+    with action_runner.CreateInteraction('InteractionName', repeatable=True):
+      pass
+    trace_data = self._browser.platform.tracing_controller.StopTracing()
+    markers = trace_processor.ExtractTimelineMarkers(trace_data)
+    self.assertIn('Interaction.InteractionName/repeatable', markers)
 
 
 class InteractionTest(unittest.TestCase):
