@@ -14,10 +14,26 @@ tr.exportTo('tr.v', function() {
   class HistogramDeserializer {
     constructor(objects, diagnostics) {
       this.objects_ = objects;
+      this.diagnostics_ = [];
+      for (const [type, diagnosticsByName] of Object.entries(
+          diagnostics || {})) {
+        for (const [name, diagnosticsById] of Object.entries(
+            diagnosticsByName)) {
+          for (const [id, data] of Object.entries(diagnosticsById)) {
+            const diagnostic = tr.v.d.Diagnostic.deserialize(
+                type, data, this);
+            this.diagnostics_[parseInt(id)] = {name, diagnostic};
+          }
+        }
+      }
     }
 
     getObject(id) {
       return this.objects_[id];
+    }
+
+    getDiagnostic(id) {
+      return this.diagnostics_[parseInt(id)];
     }
   }
 

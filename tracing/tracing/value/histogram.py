@@ -384,6 +384,16 @@ class DiagnosticMap(dict):
     dict.__setitem__(self, name, diag)
 
   @staticmethod
+  def Deserialize(data, deserializer):
+    dm = DiagnosticMap()
+    dm.DeserializeAdd(data, deserializer)
+    return dm
+
+  def DeserializeAdd(self, data, deserializer):
+    for i in data:
+      self.update(deserializer.GetDiagnostic(i))
+
+  @staticmethod
   def FromDict(dct):
     dm = DiagnosticMap()
     dm.AddDicts(dct)
