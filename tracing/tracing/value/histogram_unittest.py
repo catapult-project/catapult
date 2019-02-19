@@ -165,6 +165,12 @@ class HistogramUnittest(unittest.TestCase):
     hist = histogram.Histogram('', 'n%')
     self.assertEqual(len(hist.bins), 22)
 
+    hist = histogram.Histogram('', 'n%+')
+    self.assertEqual(len(hist.bins), 22)
+
+    hist = histogram.Histogram('', 'n%-')
+    self.assertEqual(len(hist.bins), 22)
+
     hist = histogram.Histogram('', 'sizeInBytes')
     self.assertEqual(len(hist.bins), 102)
 

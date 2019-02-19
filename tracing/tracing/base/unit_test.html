@@ -18,6 +18,15 @@ tr.b.unittest.testSuite(function() {
   const Unit = tr.b.Unit;
   const UnitPrefixScale = tr.b.UnitPrefixScale;
 
+  test('json2', function() {
+    assert.strictEqual(Unit.byName.count,
+        Unit.fromJSON(Unit.byName.count.asJSON2()));
+    assert.strictEqual(Unit.byName.count_smallerIsBetter,
+        Unit.fromJSON(Unit.byName.count_smallerIsBetter.asJSON2()));
+    assert.strictEqual(Unit.byName.count_biggerIsBetter,
+        Unit.fromJSON(Unit.byName.count_biggerIsBetter.asJSON2()));
+  });
+
   test('truncate', function() {
     assert.isTrue(isNaN(Unit.byName.count.truncate(NaN)));
     assert.isUndefined(Unit.byName.count.truncate(undefined));

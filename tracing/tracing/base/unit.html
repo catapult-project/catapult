@@ -88,6 +88,11 @@ tr.exportTo('tr.b', function() {
       return this.jsonName;
     },
 
+    asJSON2() {
+      return this.asJSON().replace(
+          '_smallerIsBetter', '-').replace('_biggerIsBetter', '+');
+    },
+
     /**
      * Remove insignificant digits from a number so that it consumes less disk
      * space when serialized.
@@ -282,9 +287,14 @@ tr.exportTo('tr.b', function() {
   Unit.byJSONName = {};
 
   Unit.fromJSON = function(object) {
-    const u = Unit.byJSONName[object];
-    if (u) {
-      return u;
+    if (typeof(object) === 'string') {
+      if (object.endsWith('+')) {
+        object = object.slice(0, object.length - 1) + '_biggerIsBetter';
+      } else if (object.endsWith('-')) {
+        object = object.slice(0, object.length - 1) + '_smallerIsBetter';
+      }
+      const u = Unit.byJSONName[object];
+      if (u) return u;
     }
     throw new Error(`Unrecognized unit "${object}"`);
   };

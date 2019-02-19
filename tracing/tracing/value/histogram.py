@@ -501,6 +501,8 @@ def ExtendUnitNames():
   for name in list(UNIT_NAMES):
     UNIT_NAMES.append(name + '_biggerIsBetter')
     UNIT_NAMES.append(name + '_smallerIsBetter')
+    UNIT_NAMES.append(name + '-')
+    UNIT_NAMES.append(name + '+')
 
 ExtendUnitNames()
 
@@ -566,7 +568,7 @@ class Histogram(object):
         'Unrecognized unit "%r"' % unit)
 
     if bin_boundaries is None:
-      base_unit = unit.split('_')[0]
+      base_unit = unit.split('_')[0].strip('+-')
       bin_boundaries = DEFAULT_BOUNDARIES_FOR_UNIT[base_unit]
 
     # Serialize bin boundaries here instead of holding a reference to it in case
