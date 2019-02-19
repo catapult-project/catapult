@@ -407,16 +407,6 @@ class BrowserOptions(object):
     # earlier versions of Chrome
     self.compatibility_mode = []
 
-  @property
-  def clear_sytem_cache_for_browser_and_profile_on_start(self):
-    # TODO(crbug.com/811244): Remove this alias when clients use the new name.
-    return self.flush_os_page_caches_on_start
-
-  @clear_sytem_cache_for_browser_and_profile_on_start.setter
-  def clear_sytem_cache_for_browser_and_profile_on_start(self, value):
-    # TODO(crbug.com/811244): Remove this alias when clients use the new name.
-    self.flush_os_page_caches_on_start = value
-
   def __repr__(self):
     # This works around the infinite loop caused by the introduction of a
     # circular reference with _finder_options.
