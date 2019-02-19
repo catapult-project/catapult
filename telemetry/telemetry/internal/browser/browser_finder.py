@@ -20,9 +20,24 @@ BROWSER_FINDERS = [
 ]
 
 
-def FindAllBrowserTypes():
+def _GetBrowserFinders(supported_platforms):
+  if not supported_platforms or 'all' in supported_platforms:
+    return BROWSER_FINDERS
+  browser_finders = []
+  if any(p in supported_platforms for p in ['mac', 'linux', 'win']):
+    browser_finders.append(desktop_browser_finder)
+  if 'android' in supported_platforms:
+    browser_finders.append(android_browser_finder)
+  if 'chromeos' in supported_platforms:
+    browser_finders.append(cros_browser_finder)
+  return browser_finders
+
+
+def FindAllBrowserTypes(browser_finders=None):
   browsers = []
-  for bf in BROWSER_FINDERS:
+  if not browser_finders:
+    browser_finders = BROWSER_FINDERS
+  for bf in browser_finders:
     browsers.extend(bf.FindAllBrowserTypes())
   return browsers
 
@@ -61,8 +76,11 @@ def FindBrowser(options):
   devices = device_finder.GetDevicesMatchingOptions(options)
   browsers = []
   default_browsers = []
+
+  browser_finders = _GetBrowserFinders(options.target_platforms)
+
   for device in devices:
-    for finder in BROWSER_FINDERS:
+    for finder in browser_finders:
       if(options.browser_type and options.browser_type != 'any' and
          options.browser_type not in finder.FindAllBrowserTypes()):
         continue
@@ -96,7 +114,7 @@ def FindBrowser(options):
 
   chosen_browser = None
   if options.browser_type == 'any':
-    types = FindAllBrowserTypes()
+    types = FindAllBrowserTypes(browser_finders)
     chosen_browser = min(browsers, key=lambda b: types.index(b.browser_type))
   else:
     matching_browsers = [

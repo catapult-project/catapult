@@ -102,6 +102,8 @@ class Benchmark(command_line.Command):
 
   def Run(self, finder_options):
     """Do not override this method."""
+    finder_options.target_platforms = self.GetSupportedPlatforms(
+        self.SUPPORTED_PLATFORMS)
     return story_runner.RunBenchmark(self, finder_options)
 
   @property
@@ -133,6 +135,19 @@ class Benchmark(command_line.Command):
   @classmethod
   def HasTraceRerunDebugOption(cls):
     return False
+
+  @classmethod
+  def GetSupportedPlatforms(cls, supported_platforms):
+    """Returns a list of platforms supported by this benchmark.
+
+    Returns:
+      A set of names of supported platforms. The supported platforms are a list
+      of strings that would match possible values from platform.GetOsName().
+    """
+    result = set()
+    for p in supported_platforms:
+      result.update(p.GetSupportedPlatforms())
+    return frozenset(result)
 
   def GetTraceRerunCommands(self):
     if self.HasTraceRerunDebugOption():
