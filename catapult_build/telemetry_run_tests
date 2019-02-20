@@ -13,12 +13,6 @@ _TELEMETRY_BIN_DIR = os.path.abspath(
 
 
 def main(args):
-  print 'Fetching Telemetry dependencies...'
-  subprocess.check_call(
-      [sys.executable,
-       os.path.join(_TELEMETRY_BIN_DIR, 'fetch_telemetry_binary_dependencies')])
-
-  print 'Done fetching Telemetry dependencies.'
   print 'Running Telemetry tests...'
   subprocess.check_call(
       [sys.executable, os.path.join(_TELEMETRY_BIN_DIR, 'run_tests')] + args)

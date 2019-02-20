@@ -150,12 +150,8 @@ class RunTestsCommand(command_line.OptparseCommand):
       possible_browser = browser_finder.FindBrowser(args)
       platform = possible_browser.platform
 
-    fetch_reference_chrome_binary = False
-    # Fetch all binaries needed by telemetry before we run the benchmark.
-    if possible_browser and possible_browser.browser_type == 'reference':
-      fetch_reference_chrome_binary = True
-    binary_manager.FetchBinaryDependencies(
-        platform, args.client_configs, fetch_reference_chrome_binary)
+    # Note that FindBrowser() above also fetches some binary dependencies.
+    binary_manager.PrefetchBinaryDependencies(platform, args.client_configs)
 
     # Telemetry seems to overload the system if we run one test per core,
     # so we scale things back a fair amount. Many of the telemetry tests

@@ -115,7 +115,7 @@ _CATAPULT_TESTS = [
     },
     {
         'name': 'Telemetry Tests with Stable Browser (Desktop)',
-        'path': 'catapult_build/fetch_telemetry_deps_and_run_tests',
+        'path': 'catapult_build/telemetry_run_tests',
         'additional_args': [
             '--browser=reference',
             '--start-xvfb'
@@ -125,7 +125,7 @@ _CATAPULT_TESTS = [
     },
     {
         'name': 'Telemetry Tests with Stable Browser (Android)',
-        'path': 'catapult_build/fetch_telemetry_deps_and_run_tests',
+        'path': 'catapult_build/telemetry_run_tests',
         'additional_args': [
             '--browser=reference',
             '--device=android',
