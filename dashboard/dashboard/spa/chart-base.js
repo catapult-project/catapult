@@ -12,6 +12,10 @@ tr.exportTo('cp', () => {
       return line.data.filter(datum => datum.icon);
     }
 
+    hasCursor_(axis) {
+      return axis.cursor && axis.cursor.pct;
+    }
+
     antiBrushes_(brushes) {
       return ChartBase.antiBrushes(brushes);
     }

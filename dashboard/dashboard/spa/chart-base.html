@@ -139,6 +139,16 @@ found in the LICENSE file.
             </template>
           </template>
 
+          <template is="dom-if" if="[[hasCursor_(yAxis)]]">
+            <line
+                x1="0"
+                x2="100%"
+                y1$="[[yAxis.cursor.pct]]"
+                y2$="[[yAxis.cursor.pct]]"
+                style$="stroke: [[yAxis.cursor.color]];">
+            </line>
+          </template>
+
           <template is="dom-if" if="[[xAxis.showTickLines]]">
             <template is="dom-repeat" items="[[xAxis.ticks]]" as="tick">
               <line
@@ -148,6 +158,16 @@ found in the LICENSE file.
                   y2="100%">
               </line>
             </template>
+          </template>
+
+          <template is="dom-if" if="[[hasCursor_(xAxis)]]">
+            <line
+                x1$="[[xAxis.cursor.pct]]"
+                x2$="[[xAxis.cursor.pct]]"
+                y1="0"
+                y2="100%"
+                style$="stroke: [[xAxis.cursor.color]];">
+            </line>
           </template>
 
           <template is="dom-repeat" items="[[antiBrushes_(xAxis.brushes)]]" as="antiBrush">
