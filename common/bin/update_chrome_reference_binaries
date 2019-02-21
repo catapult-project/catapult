@@ -18,6 +18,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import urllib2
 import zipfile
 
@@ -155,9 +156,50 @@ def _QueuePlatformUpdate(platform, version, config, channel):
     os.makedirs(reference_builds_folder)
   local_dest_path = os.path.join(reference_builds_folder, filename)
   cloud_storage.Get(CHROME_GS_BUCKET, remote_path, local_dest_path)
+  _ModifyBuildIfNeeded(local_dest_path, platform)
   config.AddCloudStorageDependencyUpdateJob(
       'chrome_%s' % channel, platform, local_dest_path, version=version,
       execute_job=False)
+
+
+def _ModifyBuildIfNeeded(location, platform):
+  """Hook to modify the build before saving it for Telemetry to use.
+
+  This can be used to remove various utilities that cause noise in a
+  test environment. Right now, it is just used to remove Keystone,
+  which is a tool used to autoupdate Chrome.
+  """
+  if platform == 'mac_x86_64':
+    _RemoveKeystoneFromBuild(location)
+    return
+
+  if 'mac' in platform:
+    raise NotImplementedError(
+        'Platform <%s> sounds like it is an OSX version. If so, we may need to '
+        'remove Keystone from it per crbug.com/932615. Please edit this script'
+        ' and teach it what needs to be done :).')
+
+
+def _RemoveKeystoneFromBuild(location):
+  """Removes the Keystone autoupdate binary from the chrome mac zipfile."""
+  temp_location = tempfile.mkdtemp(prefix='RemoveKeystoneFromBuild')
+  try:
+    subprocess.check_call(['unzip', '-q', location, '-d', temp_location])
+    versions_folder = os.path.join(temp_location, 'chrome-mac', 'Google Chrome.app',
+                                   'Contents', 'Versions')
+    versions = os.listdir(versions_folder)
+    if len(versions) != 1:
+      raise ValueError('Should have one version in the Versions folder '
+                       'for Chrome, but actually have %s' % versions)
+    version = versions[0]
+    shutil.rmtree(os.path.join(
+        versions_folder, version, 'Google Chrome Framework.framework',
+        'Frameworks', 'KeystoneRegistration.framework'))
+    os.remove(location)
+    subprocess.check_call(['zip', '--quiet', '--recurse-paths', '--symlinks',
+                           location, temp_location])
+  finally:
+    shutil.rmtree(temp_location)
 
 
 def UpdateBuilds():
@@ -172,7 +214,6 @@ def UpdateBuilds():
       if current_version and current_version == channel_version:
         continue
       _QueuePlatformUpdate(platform, channel_version, config, channel)
-    # TODO: move execute update jobs here, and add committing/uploading the cl.
 
   print 'Updating chrome builds with downloaded binaries'
   config.ExecuteUpdateJobs(force=True)
@@ -180,10 +221,7 @@ def UpdateBuilds():
 
 def main():
   logging.getLogger().setLevel(logging.DEBUG)
-  #TODO(aiolos): alert sheriffs via email when an error is seen.
-  #This should be added when alerts are added when updating the build.
   UpdateBuilds()
-  # TODO(aiolos): Add --commit flag. crbug.com/547229
 
 if __name__ == '__main__':
   main()
