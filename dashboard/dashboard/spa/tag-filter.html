@@ -10,11 +10,12 @@ found in the LICENSE file.
 <dom-module id="tag-filter">
   <template>
     <style>
-      :host {
+      #container {
         align-items: center;
         border-right: 1px solid black;
         display: flex;
         flex-direction: column;
+        height: 100%;
         padding-right: 8px;
       }
       #head {
@@ -24,12 +25,16 @@ found in the LICENSE file.
       }
     </style>
 
-    <span id="tag_head">Tags</span>
-    <option-group
-        state-path="[[statePath]].tags"
-        root-state-path="[[statePath]].tags"
-        on-option-select="onTagSelect_">
-    </option-group>
+    <template is="dom-if" if="[[!isEmpty_(tags.options)]]">
+      <div id="container">
+        <span id="tag_head">Tags</span>
+        <option-group
+            state-path="[[statePath]].tags"
+            root-state-path="[[statePath]].tags"
+            on-option-select="onTagSelect_">
+        </option-group>
+      </div>
+    </template>
   </template>
 </dom-module>
 <script src="/dashboard/spa/tag-filter.js"></script>
