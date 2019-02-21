@@ -588,10 +588,10 @@ class AndroidPlatformBackend(
     return 'Cannot get standard output on Android'
 
   def GetStackTrace(self):
-    """Returns stack trace.
+    """Returns a recent stack trace from a crash.
 
     The stack trace consists of raw logcat dump, logcat dump with symbols,
-    and stack info from tomstone files.
+    and stack info from tombstone files, all concatenated into one string.
     """
     def Decorate(title, content):
       return "%s\n%s\n%s\n" % (title, content, '*' * 80)
@@ -602,23 +602,29 @@ class AndroidPlatformBackend(
     # Get the last lines of logcat (large enough to contain stacktrace)
     logcat = self.GetLogCat()
     ret += Decorate('Logcat', logcat)
-    stack = os.path.join(util.GetChromiumSrcDir(), 'third_party',
-                         'android_platform', 'development', 'scripts', 'stack')
+    chromium_src_dir = util.GetChromiumSrcDir()
+    stack = os.path.join(chromium_src_dir, 'third_party', 'android_platform',
+                         'development', 'scripts', 'stack')
+
+    # Determine the build directory.
+    build_path = None
+    for b in util.GetBuildDirectories():
+      if os.path.exists(b):
+        build_path = b
+        break
+
     # Try to symbolize logcat.
     if os.path.exists(stack):
       cmd = [stack]
       arch = self.GetArchName()
       arch = _ARCH_TO_STACK_TOOL_ARCH.get(arch, arch)
       cmd.append('--arch=%s' % arch)
-      for build_path in util.GetBuildDirectories():
-        if os.path.exists(build_path):
-          cmd.append('--output-directory=%s' % build_path)
-          break
+      cmd.append('--output-directory=%s' % build_path)
       p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
       ret += Decorate('Stack from Logcat', p.communicate(input=logcat)[0])
 
     # Try to get tombstones.
-    tombstones = os.path.join(util.GetChromiumSrcDir(), 'build', 'android',
+    tombstones = os.path.join(chromium_src_dir, 'build', 'android',
                               'tombstones.py')
     if os.path.exists(tombstones):
       tombstones_cmd = [
@@ -629,14 +635,65 @@ class AndroidPlatformBackend(
       ret += Decorate('Tombstones',
                       subprocess.Popen(tombstones_cmd,
                                        stdout=subprocess.PIPE).communicate()[0])
-    return (True, ret)
 
-  def GetMinidumpPath(self):
-    return None
+    # Attempt to get detailed stack traces with Crashpad.
+    minidump_stackwalk_path = os.path.join(build_path, 'minidump_stackwalk')
+    if os.access(minidump_stackwalk_path, os.X_OK):
+      crashpad_cmd = [
+          os.path.join(chromium_src_dir, 'build', 'android', 'stacktrace',
+                       'crashpad_stackwalker.py'),
+          '--device', self._device.adb.GetDeviceSerial(),
+          '--adb-path', self._device.adb.GetAdbPath(),
+          '--build-path', build_path,
+          '--chrome-cache-path',
+          os.path.join(
+              self.GetProfileDir(
+                  self._ExtractLastNativeCrashPackageFromLogcat(logcat)),
+              'cache'),
+      ]
+      ret += Decorate('Crashpad stackwalk',
+                      subprocess.Popen(crashpad_cmd,
+                                       stdout=subprocess.PIPE).communicate()[0])
+    return (True, ret)
 
   def IsScreenOn(self):
     """Determines if device screen is on."""
     return self._device.IsScreenOn()
+
+  @staticmethod
+  def _ExtractLastNativeCrashPackageFromLogcat(
+      logcat, default_package_name='com.google.android.apps.chrome'):
+    # pylint: disable=line-too-long
+    # Match against lines like:
+    # <unimportant prefix> : Fatal signal 5 (SIGTRAP), code -6 in tid NNNNN (oid.apps.chrome)
+    # <a few more lines>
+    # <unimportant prefix>: Build fingerprint: 'google/bullhead/bullhead:7.1.2/N2G47F/3769476:userdebug/dev-keys'
+    # <a few more lines>
+    # <unimportant prefix> : pid: NNNNN, tid: NNNNN, name: oid.apps.chrome  >>> com.google.android.apps.chrome <<<
+    # pylint: enable=line-too-long
+    fatal_signal_re = re.compile(r'.*: Fatal signal [0-9]')
+    build_fingerprint_re = re.compile(r'.*: Build fingerprint: ')
+    package_re = re.compile(r'.*: pid: [0-9]+, tid: [0-9]+, name: .*'
+                            r'>>> (?P<package_name>[^ ]+) <<<')
+    last_package = default_package_name
+    build_fingerprint_found = False
+    lookahead_lines_remaining = 0
+    for line in logcat.splitlines():
+      if fatal_signal_re.match(line):
+        lookahead_lines_remaining = 10
+        continue
+      if not lookahead_lines_remaining:
+        build_fingerprint_found = False
+      else:
+        lookahead_lines_remaining -= 1
+        if build_fingerprint_re.match(line):
+          build_fingerprint_found = True
+          continue
+        if build_fingerprint_found:
+          m = package_re.match(line)
+          if m:
+            last_package = m.group('package_name')
+    return last_package
 
   @staticmethod
   def _IsScreenLocked(input_methods):

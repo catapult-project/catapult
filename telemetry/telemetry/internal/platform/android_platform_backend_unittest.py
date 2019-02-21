@@ -2,9 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 import unittest
 
 from telemetry import decorators
+from telemetry.core import util
 from telemetry.internal.platform import android_device
 from telemetry.internal.platform import android_platform_backend
 from telemetry.testing import system_stub
@@ -42,36 +44,37 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     self.battery_patcher.stop()
     self.device_patcher.stop()
 
+  @staticmethod
+  def CreatePlatformBackendForTest():
+    return android_platform_backend.AndroidPlatformBackend(
+        android_device.AndroidDevice('12345'))
+
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsSvelte(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='svelte'):
-      backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('12345'))
+      backend = self.CreatePlatformBackendForTest()
       self.assertTrue(backend.IsSvelte())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsNotSvelte(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='foo'):
-      backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('12345'))
+      backend = self.CreatePlatformBackendForTest()
       self.assertFalse(backend.IsSvelte())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsAosp(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='aosp'):
-      backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('12345'))
+      backend = self.CreatePlatformBackendForTest()
       self.assertTrue(backend.IsAosp())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsNotAosp(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='foo'):
-      backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('12345'))
+      backend = self.CreatePlatformBackendForTest()
       self.assertFalse(backend.IsAosp())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
@@ -84,8 +87,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         '1074470376 1074470912 1102155776\n')
     with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
                     return_value=proc_stat_content):
-      backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('12345'))
+      backend = self.CreatePlatformBackendForTest()
       cpu_stats = backend.GetCpuStats('7702')
       self.assertEquals(cpu_stats, {'CpuProcessTime': 0.05})
 
@@ -94,8 +96,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     # Mock an empty /proc/pid/stat.
     with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
                     return_value=''):
-      backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('1234'))
+      backend = self.CreatePlatformBackendForTest()
       cpu_stats = backend.GetCpuStats('7702')
       self.assertEquals(cpu_stats, {})
 
@@ -126,16 +127,47 @@ class AndroidPlatformBackendTest(unittest.TestCase):
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsScreenLockedTrue(self):
     test_input = ['a=b', 'mHasBeenInactive=true']
-    backend = android_platform_backend.AndroidPlatformBackend(
-        android_device.AndroidDevice('success'))
+    backend = self.CreatePlatformBackendForTest()
     self.assertTrue(backend._IsScreenLocked(test_input))
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsScreenLockedFalse(self):
     test_input = ['a=b', 'mHasBeenInactive=false']
-    backend = android_platform_backend.AndroidPlatformBackend(
-        android_device.AndroidDevice('success'))
+    backend = self.CreatePlatformBackendForTest()
     self.assertFalse(backend._IsScreenLocked(test_input))
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
+  def testPackageExtractionNotFound(self):
+    backend = self.CreatePlatformBackendForTest()
+    self.assertEquals(
+        'com.google.android.apps.chrome',
+        backend._ExtractLastNativeCrashPackageFromLogcat('no crash info here'))
+
+  @staticmethod
+  def GetExampleLogcat():
+    test_file = os.path.join(util.GetUnittestDataDir(), 'crash_in_logcat.txt')
+    with open(test_file) as f:
+      return f.read()
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
+  def testPackageExtractionFromRealExample(self):
+    backend = self.CreatePlatformBackendForTest()
+    self.assertEquals('com.google.android.apps.chrome',
+                      backend._ExtractLastNativeCrashPackageFromLogcat(
+                          self.GetExampleLogcat(),
+                          default_package_name='invalid'))
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
+  def testPackageExtractionWithTwoCrashes(self):
+    """Check that among two matches the latest package name is taken."""
+    backend = self.CreatePlatformBackendForTest()
+    original_logcat = self.GetExampleLogcat()
+    mutated_logcat = original_logcat.replace('com.google.android.apps.chrome',
+                                             'com.android.chrome')
+    concatenated_logcat = '\n'.join([original_logcat, mutated_logcat])
+    self.assertEquals(
+        'com.android.chrome',
+        backend._ExtractLastNativeCrashPackageFromLogcat(concatenated_logcat))
 
 
 class AndroidPlatformBackendPsutilTest(unittest.TestCase):
