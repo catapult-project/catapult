@@ -159,30 +159,6 @@ class GpuTabTest(tab_test_case.TabTestCase):
             255, 255, 255, tolerance=2)
 
 
-class MediaRouterDialogTabTest(tab_test_case.TabTestCase):
-  @classmethod
-  def CustomizeBrowserOptions(cls, options):
-    options.AppendExtraBrowserArgs('--media-router=1')
-    # This test depends on the WebUI Cast dialog, so disable the Views dialog to
-    # ensure the WebUI dialog is enabled.
-    options.AppendExtraBrowserArgs('--disable-features=ViewsCastDialog')
-
-  # There is no media router dialog on android/chromeos, it is a desktop-only
-  # feature.
-  @decorators.Disabled('android', 'chromeos')
-  @decorators.Disabled('win')  # catapult/issues/2282
-  def testMediaRouterDialog(self):
-    self._tab.Navigate(self.UrlOfUnittestFile('cast.html'))
-    self._tab.WaitForDocumentReadyStateToBeComplete()
-    self._tab.action_runner.TapElement(selector='#start_session_button')
-    # Wait for media router dialog
-    start_time = time.time()
-    while (time.time() - start_time < 5 and
-           len(self.tabs) != 2):
-      time.sleep(1)
-    self.assertEquals(len(self.tabs), 2)
-    self.assertEquals(self.tabs[1].url, 'chrome://media-router/')
-
 class ServiceWorkerTabTest(tab_test_case.TabTestCase):
   def testIsServiceWorkerActivatedOrNotRegistered(self):
     self._tab.Navigate(self.UrlOfUnittestFile('blank.html'))
