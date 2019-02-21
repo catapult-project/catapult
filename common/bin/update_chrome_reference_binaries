@@ -197,7 +197,7 @@ def _RemoveKeystoneFromBuild(location):
         'Frameworks', 'KeystoneRegistration.framework'))
     os.remove(location)
     subprocess.check_call(['zip', '--quiet', '--recurse-paths', '--symlinks',
-                           location, temp_location])
+                           location, os.path.join(temp_location, 'chrome-mac')])
   finally:
     shutil.rmtree(temp_location)
 
