@@ -15,11 +15,13 @@ found in the LICENSE file.
       }
     </style>
 
-    <b style="margin: 4px;">Recommended</b>
-    <option-group
-        state-path="[[statePath]].recommended"
-        root-state-path="[[statePath]]">
-    </option-group>
+    <template is="dom-if" if="[[!isEmpty_(recommended.options)]]">
+      <b style="margin: 4px;">Recommended</b>
+      <option-group
+          state-path="[[statePath]].recommended"
+          root-state-path="[[statePath]]">
+      </option-group>
+    </template>
   </template>
 </dom-module>
 <script src="/dashboard/spa/recommended-options.js"></script>
