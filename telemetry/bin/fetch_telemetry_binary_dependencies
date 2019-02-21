@@ -20,7 +20,8 @@ def main():
   platform = platform_module.GetHostPlatform()
 
   binary_manager.InitDependencyManager(client_configs)
-  binary_manager.PrefetchBinaryDependencies(platform, client_configs)
+  binary_manager.FetchBinaryDependencies(platform, client_configs,
+      fetch_reference_chrome_binary=False)
 
 if __name__ == "__main__":
   main()
