@@ -99,6 +99,22 @@ tr.exportTo('cp', () => {
     },
   };
 
+  ChartBase.reducers = {
+    boldLine: (state, {lineIndex}, rootState) => {
+      const lines = state.lines.map((line, index) => {
+        const strokeWidth = (index === lineIndex) ? 2 : 1;
+        return {...line, strokeWidth};
+      });
+      if (lineIndex !== undefined && lineIndex !== (lines.length - 1)) {
+        // Move lineIndex to the end so it is drawn over top of any other
+        // lines.
+        [lines[lineIndex], lines[lines.length - 1]] =
+          [lines[lines.length - 1], lines[lineIndex]];
+      }
+      return {...state, lines};
+    },
+  };
+
   ChartBase.antiBrushes = brushes => {
     if (!brushes || brushes.length === 0) return [];
     if (brushes.length % 2 === 1) throw new Error('Odd number of brushes');

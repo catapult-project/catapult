@@ -29,6 +29,94 @@ suite('chart-base', function() {
     document.documentElement.style.minWidth = 0;
   });
 
+  test('boldLine', async function() {
+    const chart = fixture('test');
+    chart.dispatch(Redux.UPDATE('test', cp.ChartBase.buildState({
+      lines: [
+        {
+          path: 'M0,0 L100,100',
+          color: 'red',
+          strokeWidth: 1,
+          shadePoints: '0,50 50,100 100,50',
+          shadeFill: 'hsla(0, 50%, 50%, 0.5)',
+          data: [
+            {xPct: '50%', yPct: '50%', icon: 'cp:error', iconColor: 'blue'},
+          ],
+        },
+        {
+          path: 'M0,100 L100,0',
+          color: 'green',
+          strokeWidth: 1,
+          shadePoints: '0,50 100,50 50,0',
+          shadeFill: 'hsla(100, 50%, 50%, 0.5)',
+        },
+      ],
+      xAxis: {
+        brushes: [{xPct: '20%'}, {xPct: '80%'}],
+        showTickLines: true,
+        height: '20px',
+        ticks: [
+          {xPct: '10%', text: '10%'},
+          {xPct: '50%', text: '50%'},
+          {xPct: '90%', text: '90%'},
+        ],
+      },
+      yAxis: {
+        showTickLines: true,
+        width: '50px',
+        ticks: [
+          {yPct: '10%', text: '10%'},
+          {yPct: '50%', text: '50%'},
+          {yPct: '90%', text: '90%'},
+        ],
+      },
+      tooltip: {
+        isVisible: true,
+        color: 'purple',
+        left: '50%',
+        top: '50%',
+        rows: [
+          {name: 'left top', value: 'right top', color: 'red'},
+          {name: 'center', colspan: 2, color: 'green'},
+          {name: 'left bottom', value: 'right bottom', color: 'blue'},
+        ],
+      },
+    })));
+    await cp.afterRender();
+
+    chart.dispatch({
+      type: cp.ChartBase.reducers.boldLine.name,
+      statePath: 'test',
+      lineIndex: 0,
+    });
+    await cp.afterRender();
+    // boldLine moves the selected line to the end of `lines` so it is drawn
+    // over top of the other lines.
+    assert.strictEqual(chart.lines[0].color, 'green');
+    assert.strictEqual(chart.lines[1].color, 'red');
+    assert.strictEqual(chart.lines[0].strokeWidth, 1);
+    assert.strictEqual(chart.lines[1].strokeWidth, 2);
+
+    chart.dispatch({
+      type: cp.ChartBase.reducers.boldLine.name,
+      statePath: 'test',
+      lineIndex: 0,
+    });
+    await cp.afterRender();
+    assert.strictEqual(chart.lines[0].color, 'red');
+    assert.strictEqual(chart.lines[1].color, 'green');
+    assert.strictEqual(chart.lines[0].strokeWidth, 1);
+    assert.strictEqual(chart.lines[1].strokeWidth, 2);
+
+    chart.dispatch({
+      type: cp.ChartBase.reducers.boldLine.name,
+      statePath: 'test',
+    });
+    await cp.afterRender();
+    assert.strictEqual(chart.lines[0].strokeWidth, 1);
+    assert.strictEqual(chart.lines[1].strokeWidth, 1);
+  });
+
   test('lines', async function() {
     const chart = fixture('test');
     chart.dispatch(Redux.UPDATE('test', cp.ChartBase.buildState({
