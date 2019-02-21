@@ -2,7 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import base64
 import datetime
+import json
 import os
 import shutil
 import tempfile
@@ -96,3 +98,30 @@ class TraceDataBuilderTest(unittest.TestCase):
     self.assertRaises(
         Exception,
         lambda: builder.AddTraceFor(trace_data.TELEMETRY_PART, {}))
+
+
+class TraceFileHandleTest(unittest.TestCase):
+  def testB64EncodedData(self):
+    is_compressed = False
+    handle = trace_data.TraceFileHandle(is_compressed)
+    handle.Open()
+    original_data = {"msg": "The answer is 42"}
+    b64_data = base64.b64encode(json.dumps(original_data))
+    handle.AppendTraceData(b64_data, b64=True)
+    handle.Close()
+    out_data = handle.AsTraceData()
+    self.assertEqual(original_data, out_data)
+
+  def testB64EncodedCompressedData(self):
+    is_compressed = True
+    handle = trace_data.TraceFileHandle(is_compressed)
+    handle.Open()
+    original_data = {"msg": "The answer is 42"}
+    # gzip.compress() does not work in python 2. So hardcode the encoded data
+    # here.
+    b64_compressed_data = "H4sIAIDMblwAA6tWyi1OV7JSUArJSFVIzCs" \
+        "uTy1SyCxWMDFSquUCAA4QMtscAAAA"
+    handle.AppendTraceData(b64_compressed_data, b64=True)
+    handle.Close()
+    out_data = handle.AsTraceData()
+    self.assertEqual(original_data, out_data)

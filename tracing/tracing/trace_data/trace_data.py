@@ -2,7 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import base64
 import copy
+import gzip
 import json
 import logging
 import os
@@ -197,18 +199,20 @@ class TraceFileHandle(object):
   callsite is repsonsible for discarding the file when they no longer need the
   tracing data. Call TraceFileHandle.Clean when you done using this object.
   """
-  def __init__(self):
+  def __init__(self, compressed):
     self._backing_file = None
     self._file_path = None
     self._trace_data = None
+    self._compressed = compressed
 
   def Open(self):
     assert not self._backing_file and not self._file_path
-    self._backing_file = tempfile.NamedTemporaryFile(delete=False, mode='a')
+    self._backing_file = tempfile.NamedTemporaryFile(delete=False, mode='ab')
 
-  def AppendTraceData(self, partial_trace_data):
+  def AppendTraceData(self, partial_trace_data, b64=False):
     assert isinstance(partial_trace_data, StringTypes)
-    self._backing_file.write(partial_trace_data)
+    self._backing_file.write(
+        base64.b64decode(partial_trace_data) if b64 else partial_trace_data)
 
   @property
   def file_path(self):
@@ -234,7 +238,8 @@ class TraceFileHandle(object):
     if self._trace_data:
       return self._trace_data
     assert self._file_path
-    with open(self._file_path) as f:
+    opn = gzip.open if self._compressed else open
+    with opn(self._file_path, 'rb') as f:
       self._trace_data = json.load(f)
     self.Clean()
     return self._trace_data
