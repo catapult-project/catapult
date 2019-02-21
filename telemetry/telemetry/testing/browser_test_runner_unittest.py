@@ -122,6 +122,19 @@ class BrowserTestRunnerTest(unittest.TestCase):
     return test_result
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testDoesRetryOnFailureRetriesAndEventuallyPasses(self):
+    extra_args = ['--retry-limit=3', '--retry-only-retry-on-failure-tests']
+    test_result = self._RunBrowserTest('flaky_test', 'FlakyTests', 'FlakyTest',
+                                       'RetryOnFailure',
+                                       extra_args=extra_args)
+    results = (test_result['tests']['browser_tests']['flaky_test']
+               ['FlakyTests']['FlakyTest'])
+    self.assertEqual(results['expected'], 'PASS')
+    self.assertEqual(results['actual'], 'FAIL FAIL FAIL PASS')
+    self.assertNotIn('is_unexpected', results)
+    self.assertNotIn('is_regression', results)
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testSkipTestWithExpectationsFileWithSkipExpectation(self):
     test_result = self._RunBrowserTest('skip_tests_test',
                                        'SkipTestExpectationFiles',

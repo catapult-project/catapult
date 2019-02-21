@@ -502,13 +502,28 @@ class Runner(object):
 
     def _run_tests(self, result_set, test_set, all_tests):
         h = self.host
+        self.last_runs_retry_on_failure_tests = set()
+
+        def get_tests_to_retry(results):
+            # If the --retry-only-retry-on-failure-tests command line argument
+            # is passed , then a set of test failures with the RetryOnFailure
+            # expectation from the last run of tests will be returned. The
+            # self.last_runs_retry_on_failure_tests will be set to an empty set
+            # for the next run of tests. Otherwise all regressions from the
+            # last run will be returned.
+            if self.args.retry_only_retry_on_failure_tests:
+                ret = self.last_runs_retry_on_failure_tests.copy()
+                self.last_runs_retry_on_failure_tests = set()
+                return ret
+            else:
+                return json_results.regressions(results)
 
         self._run_one_set(self.stats, result_set, test_set)
 
-        regressions = sorted(json_results.regressions(result_set))
+        tests_to_retry = sorted(get_tests_to_retry(result_set))
         retry_limit = self.args.retry_limit
 
-        while retry_limit and regressions:
+        while retry_limit and tests_to_retry:
             if retry_limit == self.args.retry_limit:
                 self.flush()
                 self.args.overwrite = False
@@ -522,12 +537,12 @@ class Runner(object):
             self.print_('')
 
             stats = Stats(self.args.status_format, h.time, 1)
-            stats.total = len(regressions)
-            tests_to_retry = TestSet(isolated_tests=list(regressions))
+            stats.total = len(tests_to_retry)
+            tests_to_retry = TestSet(isolated_tests=list(tests_to_retry))
             retry_set = ResultSet()
             self._run_one_set(stats, retry_set, tests_to_retry)
             result_set.results.extend(retry_set.results)
-            regressions = json_results.regressions(retry_set)
+            tests_to_retry = get_tests_to_retry(retry_set)
             retry_limit -= 1
 
         if retry_limit != self.args.retry_limit:
@@ -581,7 +596,12 @@ class Runner(object):
                     running_jobs.add(test_input.name)
                     self._print_test_started(stats, test_input)
 
-                result = pool.get()
+                result, should_retry_on_failure = pool.get()
+                if (self.args.retry_only_retry_on_failure_tests and
+                    result.actual == ResultType.Failure and
+                    should_retry_on_failure):
+                    self.last_runs_retry_on_failure_tests.add(result.name)
+
                 running_jobs.remove(result.name)
                 result_set.add(result)
                 stats.finished += 1
@@ -901,9 +921,9 @@ def _run_one_test(child, test_input):
             # in find_tests() and run() instead, so that we'd never actually
             # get here with a test we wanted to skip?
             h.restore_output()
-            return Result(test_name, ResultType.Skip, started, 0,
-                          child.worker_num, expected=expected_results,
-                          unexpected=False, pid=pid)
+            return (Result(test_name, ResultType.Skip, started, 0,
+                           child.worker_num, expected=expected_results,
+                           unexpected=False, pid=pid), False)
 
         try:
             suite = child.loader.loadTestsFromName(test_name)
@@ -929,9 +949,9 @@ def _run_one_test(child, test_input):
             err += '\n  ' + '\n  '.join(ex_str.splitlines())
 
         h.restore_output()
-        return Result(test_name, ResultType.Failure, started, took=0,
-                      worker=child.worker_num, unexpected=True, code=1,
-                      err=err, pid=pid)
+        return (Result(test_name, ResultType.Failure, started, took=0,
+                       worker=child.worker_num, unexpected=True, code=1,
+                       err=err, pid=pid), False)
 
     test_case = tests[0]
     if isinstance(test_case, TypTestCase):
@@ -952,9 +972,10 @@ def _run_one_test(child, test_input):
         out, err = h.restore_output()
 
     took = h.time() - started
-    return _result_from_test_result(test_result, test_name, started, took, out,
+    return (_result_from_test_result(test_result, test_name, started, took, out,
                                     err, child.worker_num, pid,
-                                    expected_results, child.has_expectations)
+                                    expected_results, child.has_expectations),
+            should_retry_on_failure)
 
 
 def _run_under_debugger(host, test_case, suite,

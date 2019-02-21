@@ -4,6 +4,16 @@
 
 import unittest
 
+class PassRetryOnFailureTest(unittest.TestCase):
+  _retry = 0
+
+  def test_retry_on_failure(self):
+    cls = self.__class__
+    if cls._retry == 3:
+      return
+    cls._retry += 1
+    self.fail()
+
 class FailingTest(unittest.TestCase):
   def test_fail(self):
     self.fail()

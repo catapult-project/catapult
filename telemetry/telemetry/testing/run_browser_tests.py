@@ -329,7 +329,8 @@ def RunTests(args):
   runner.args.write_trace_to = options.write_trace_to
   runner.args.list_only = options.list_only
   runner.classifier = _GetClassifier(options)
-
+  runner.args.retry_only_retry_on_failure_tests = (
+      options.retry_only_retry_on_failure_tests)
   runner.args.suffixes = TEST_SUFFIXES
 
   # Since sharding logic is handled by browser_test_runner harness by passing
