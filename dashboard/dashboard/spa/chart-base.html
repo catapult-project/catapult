@@ -30,7 +30,6 @@ found in the LICENSE file.
         cursor: ew-resize;
         position: absolute;
         top: 0;
-        width: 100%;
       }
 
       .brush_handle path {
@@ -111,7 +110,7 @@ found in the LICENSE file.
         <template is="dom-repeat" items="[[xAxis.brushes]]" as="brush" index-as="brushIndex">
           <div class="brush_handle"
                on-track="onTrackBrushHandle_"
-               style$="transform: translateX([[brush.xPct]]) translateX(-5px);">
+               style$="left: calc([[brush.xPct]] -5px);">
             <svg
                 height$="[[brushPointSize_(brushSize)]]"
                 width$="[[brushSize]]"
