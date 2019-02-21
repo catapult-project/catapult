@@ -199,10 +199,6 @@ class _TestCondition(object):
   def __str__(self):
     raise NotImplementedError
 
-  def GetSupportedPlatforms(self):
-    """Returns a set of supported platforms."""
-    raise NotImplementedError
-
 
 class _TestConditionByPlatformList(_TestCondition):
   def __init__(self, platforms, name):
@@ -216,9 +212,6 @@ class _TestConditionByPlatformList(_TestCondition):
   def __str__(self):
     return self._name
 
-  def GetSupportedPlatforms(self):
-    return set(self._platforms)
-
 
 class _AllTestCondition(_TestCondition):
   def ShouldDisable(self, platform, finder_options):
@@ -228,8 +221,6 @@ class _AllTestCondition(_TestCondition):
   def __str__(self):
     return 'All'
 
-  def GetSupportedPlatforms(self):
-    return set(['all'])
 
 class _TestConditionAndroidSvelte(_TestCondition):
   """Matches android devices with a svelte (low-memory) build."""
@@ -240,8 +231,6 @@ class _TestConditionAndroidSvelte(_TestCondition):
   def __str__(self):
     return 'Android Svelte'
 
-  def GetSupportedPlatforms(self):
-    return set(['android'])
 
 class _TestConditionByAndroidModel(_TestCondition):
   def __init__(self, model, name=None):
@@ -255,9 +244,6 @@ class _TestConditionByAndroidModel(_TestCondition):
   def __str__(self):
     return self._name
 
-  def GetSupportedPlatforms(self):
-    return set(['android'])
-
 class _TestConditionAndroidWebview(_TestCondition):
   def ShouldDisable(self, platform, finder_options):
     return (platform.GetOSName() == 'android' and
@@ -265,9 +251,6 @@ class _TestConditionAndroidWebview(_TestCondition):
 
   def __str__(self):
     return 'Android Webview'
-
-  def GetSupportedPlatforms(self):
-    return set(['android'])
 
 class _TestConditionAndroidNotWebview(_TestCondition):
   def ShouldDisable(self, platform, finder_options):
@@ -277,8 +260,6 @@ class _TestConditionAndroidNotWebview(_TestCondition):
   def __str__(self):
     return 'Android but not webview'
 
-  def GetSupportedPlatforms(self):
-    return set(['android'])
 
 class _TestConditionByMacVersion(_TestCondition):
   def __init__(self, version, name=None):
@@ -287,9 +268,6 @@ class _TestConditionByMacVersion(_TestCondition):
 
   def __str__(self):
     return self._name
-
-  def GetSupportedPlatforms(self):
-    return set(['mac'])
 
   def ShouldDisable(self, platform, finder_options):
     if platform.GetOSName() != 'mac':
@@ -305,9 +283,6 @@ class _TestConditionByWinVersion(_TestCondition):
   def __str__(self):
     return self._name
 
-  def GetSupportedPlatforms(self):
-    return set(['win'])
-
   def ShouldDisable(self, platform, finder_options):
     if platform.GetOSName() != 'win':
       return False
@@ -322,12 +297,6 @@ class _TestConditionLogicalAndConditions(_TestCondition):
   def __str__(self):
     return self._name
 
-  def GetSupportedPlatforms(self):
-    platforms = set()
-    for cond in self._conditions:
-      platforms.update(cond.GetSupportedPlatforms())
-    return platforms
-
   def ShouldDisable(self, platform, finder_options):
     return all(
         c.ShouldDisable(platform, finder_options) for c in self._conditions)
@@ -340,12 +309,6 @@ class _TestConditionLogicalOrConditions(_TestCondition):
 
   def __str__(self):
     return self._name
-
-  def GetSupportedPlatforms(self):
-    platforms = set()
-    for cond in self._conditions:
-      platforms.update(cond.GetSupportedPlatforms())
-    return platforms
 
   def ShouldDisable(self, platform, finder_options):
     return any(

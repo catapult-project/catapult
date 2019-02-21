@@ -33,8 +33,6 @@ class BrowserFinderOptions(optparse.Values):
 
     self.browser_type = browser_type
     self.browser_executable = None
-    # The set of possible platforms the browser should run on.
-    self.target_platforms = None
     self.chrome_root = None  # Path to src/
     self.chromium_output_dir = None  # E.g.: out/Debug
     self.device = None
