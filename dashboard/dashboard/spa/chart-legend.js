@@ -24,6 +24,7 @@ tr.exportTo('cp', () => {
     }
 
     async onLeafClick_(event) {
+      event.stopPropagation();
       this.dispatchEvent(new CustomEvent('leaf-click', {
         bubbles: true,
         composed: true,
