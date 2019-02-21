@@ -182,10 +182,11 @@ def _ModifyBuildIfNeeded(location, platform):
 
 def _RemoveKeystoneFromBuild(location):
   """Removes the Keystone autoupdate binary from the chrome mac zipfile."""
-  temp_location = tempfile.mkdtemp(prefix='RemoveKeystoneFromBuild')
+  logging.info('Removing keystone from mac build at %s' % location)
+  temp_folder = tempfile.mkdtemp(prefix='RemoveKeystoneFromBuild')
   try:
-    subprocess.check_call(['unzip', '-q', location, '-d', temp_location])
-    versions_folder = os.path.join(temp_location, 'chrome-mac', 'Google Chrome.app',
+    subprocess.check_call(['unzip', '-q', location, '-d', temp_folder])
+    versions_folder = os.path.join(temp_folder, 'chrome-mac', 'Google Chrome.app',
                                    'Contents', 'Versions')
     versions = os.listdir(versions_folder)
     if len(versions) != 1:
@@ -197,9 +198,10 @@ def _RemoveKeystoneFromBuild(location):
         'Frameworks', 'KeystoneRegistration.framework'))
     os.remove(location)
     subprocess.check_call(['zip', '--quiet', '--recurse-paths', '--symlinks',
-                           location, os.path.join(temp_location, 'chrome-mac')])
+                           location, 'chrome-mac'],
+                           cwd=temp_folder)
   finally:
-    shutil.rmtree(temp_location)
+    shutil.rmtree(temp_folder)
 
 
 def UpdateBuilds():
