@@ -34,7 +34,6 @@ THIRD_PARTY_LIBRARIES = [
 DASHBOARD_FILES = [
     'appengine_config.py',
     'app.yaml',
-    'v2spa.yaml',
     'scripts.yaml',
     'cron.yaml',
     'dashboard',

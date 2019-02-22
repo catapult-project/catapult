@@ -4,15 +4,37 @@ available for preview at https://v2spa-dot-chromeperf.appspot.com .
 In order to develop or deploy v2spa, a one-time setup is required:
 ```
 cd dashboard
-ln -sf ../third_party/polymer2
-ln -sf ../third_party/redux
+ln -sf ../devil/devil/
+ln -sf ../third_party/apiclient/apiclient/
+ln -sf ../third_party/apiclient/googleapiclient/
+ln -sf ../third_party/cloudstorage/
+ln -sf ../third_party/flot/
+ln -sf ../third_party/gae_ts_mon/
+ln -sf ../third_party/httplib2/httplib2/
+ln -sf ../third_party/jquery/
+ln -sf ../third_party/oauth2client/oauth2client/
+ln -sf ../third_party/polymer
+ln -sf ../third_party/polymer-svg-template/
+ln -sf ../third_party/polymer/components/
+ln -sf ../third_party/polymer2/
+ln -sf ../third_party/polymer2/bower_components/
+ln -sf ../third_party/redux/
+ln -sf ../third_party/redux/redux.min.js
+ln -sf ../third_party/six/
+ln -sf ../third_party/uritemplate/uritemplate/
+ln -sf ../tracing/third_party/gl-matrix/dist/gl-matrix-min.js
+ln -sf ../tracing/third_party/mannwhitneyu/
 ln -sf ../tracing/tracing
-ln -sf polymer2/bower_components
-ln -sf redux/redux.min.js
+ln -sf ../tracing/tracing_build/
+ln -sf ../tracing/tracing_project.py
+ln -sf /usr/lib/python2.7/dist-packages/jinja2/
+ln -sf /usr/lib/python2.7/dist-packages/markupsafe/
 ```
 
-In order to deploy v2spa.yaml to v2spa-dot-chromeperf.appspot.com, run
-`dashboard/bin/deploy_v2spa`. That serves a vulcanized HTML file at `/` and the
+Checkout the `v2spa` branch.
+
+In order to deploy v2spa to v2spa-dot-chromeperf.appspot.com, run
+`dashboard/bin/deploy`. That serves a vulcanized HTML file at `/` and the
 same script request handlers as V1, which is configured in app.yaml and
 continues to be deployed to chromeperf.appspot.com by `dashboard/bin/deploy`.
 

@@ -1,7 +1,7 @@
-# This file is included by both app.yaml and v2spa.yaml to describe all of the
+# This file is included by app.yaml to describe all of the
 # script request handlers that need to be protected by login:admin. The
 # including yaml file needs to describe '/.*' (app.yaml) or '/' and '/.+'
-# (v2spa.yaml) in order to ensure the order is correct.
+# (v2spa) in order to ensure the order is correct.
 
 skip_files:
 - ^(.*/)?#.*#$
