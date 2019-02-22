@@ -39,19 +39,6 @@ tr.exportTo('tr.metrics.vr', function() {
           {description: extraInfo.description}, extraInfo.hasCpuTime));
     }
 
-    // TODO(https://crbug.com/884259): Remove these once the reference build is
-    // rolled past the point that the names were changed.
-    histogramsByEventTitle.set('VrShellGl::DrawFrame',
-        histogramsByEventTitle.get('Vr.DrawFrame'));
-    histogramsByEventTitle.set('VrShellGl::AcquireFrame',
-        histogramsByEventTitle.get('Vr.AcquireGvrFrame'));
-    histogramsByEventTitle.set('VrShellGl::UpdateController',
-        histogramsByEventTitle.get('Vr.ProcessControllerInput'));
-    histogramsByEventTitle.set('VrShellGl::DrawFrameSubmitNow',
-        histogramsByEventTitle.get('Vr.SubmitFrameNow'));
-    histogramsByEventTitle.set('VrShellGl::PostSubmitDrawOnGpu',
-        histogramsByEventTitle.get('Vr.PostSubmitDrawOnGpu'));
-
     // Scene update metrics.
     histogramsByEventTitle.set(
         'UiScene::OnBeginFrame.UpdateAnimationsAndOpacity',
@@ -163,11 +150,7 @@ tr.exportTo('tr.metrics.vr', function() {
       }
 
       for (const helper of chromeHelper.browserHelpers) {
-        // TODO(https://crbug.com/884259): Remove the unnamed thread matching
-        // once the reference build is rolled to the point where the thread
-        // is always named.
-        const glThreads = helper.process.findAllThreadsMatching(
-            thread => !thread.name || thread.name === VR_GL_THREAD_NAME);
+        const glThreads = helper.process.findAllThreadsNamed(VR_GL_THREAD_NAME);
 
         for (const glThread of glThreads) {
           for (const event of glThread.getDescendantEvents()) {

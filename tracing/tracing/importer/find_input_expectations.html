@@ -123,16 +123,6 @@ tr.exportTo('tr.importer', function() {
       'hasCpuTime': true,
     }
   };
-  /* These are legacy names that we have aliases for. They can be removed as
-   * part of https://crbug.com/884259.
-   */
-  const VR_LEGACY_EVENT_NAMES = [
-    'VrShellGl::AcquireFrame',
-    'VrShellGl::DrawFrame',
-    'VrShellGl::DrawSubmitFrameWhenReady',
-    'VrShellGl::DrawUiView',
-    'VrShellGl::UpdateController',
-  ];
   /* 1s is a bit arbitrary, but it reliably avoids all the jank caused by
    * VR entry.
    */
@@ -877,8 +867,7 @@ tr.exportTo('tr.importer', function() {
       for (const thread of Object.values(proc.threads)) {
         for (const container of thread.childEventContainers()) {
           for (const slice of container.slices) {
-            if (VR_LEGACY_EVENT_NAMES.includes(slice.title) ||
-                slice.title in VR_EXPECTATION_EVENTS) {
+            if (slice.title in VR_EXPECTATION_EVENTS) {
               events.push(slice);
               vrEventStart = Math.min(vrEventStart, slice.start);
             }
