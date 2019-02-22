@@ -656,8 +656,8 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(stats.get('min').value, Infinity);
     assert.strictEqual(stats.get('max').value, -Infinity);
     assert.strictEqual(stats.get('sum').value, 0);
-    assert.strictEqual(stats.get('avg'), undefined);
-    assert.strictEqual(stats.get('std'), undefined);
+    assert.isUndefined(stats.get('avg'));
+    assert.isUndefined(stats.get('std'));
     assert.isUndefined(stats.get('pct_000'));
     assert.isUndefined(stats.get('pct_001'));
     assert.isUndefined(stats.get('pct_010'));

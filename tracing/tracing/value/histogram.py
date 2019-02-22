@@ -35,7 +35,7 @@ DEFAULT_ITERATION_FOR_BOOTSTRAP_RESAMPLING = 500
 # 0.xx produces '0xx',
 # 0.xxy produces '0xx_y',
 # 1.0 produces '100'.
-def PercentToString(percent):
+def PercentToString(percent, force3=False):
   if percent < 0 or percent > 1:
     raise ValueError('percent must be in [0,1]')
   if percent == 0:
@@ -47,8 +47,15 @@ def PercentToString(percent):
     raise ValueError('Unexpected percent')
   s += '0' * max(4 - len(s), 0)
   if len(s) > 4:
-    s = s[:4] + '_' + s[4:]
+    if force3:
+      s = s[:4]
+    else:
+      s = s[:4] + '_' + s[4:]
   return '0' + s[2:]
+
+
+def PercentFromString(s):
+  return float(s[0] + '.' + s[1:].replace('_', ''))
 
 
 # This variation of binary search returns the index |hi| into |ary| for which
@@ -698,6 +705,10 @@ class Histogram(object):
     if 'running' in dct:
       hist._running = RunningStatistics.FromDict(dct['running'])
     if 'summaryOptions' in dct:
+      if 'iprs' in dct['summaryOptions']:
+        dct['summaryOptions']['iprs'] = [
+            Range.FromExplicitRange(r[0], r[1])
+            for r in dct['summaryOptions']['iprs']]
       hist.CustomizeSummaryOptions(dct['summaryOptions'])
     if 'maxNumSampleValues' in dct:
       hist._max_num_sample_values = dct['maxNumSampleValues']
@@ -875,45 +886,86 @@ class Histogram(object):
         self._bin_boundaries_dict))
 
   @property
+  def statistics_names(self):
+    names = set()
+    for stat_name, option in self._summary_options.items():
+      if stat_name == 'percentile':
+        for pctile in option:
+          names.add('pct_' + PercentToString(pctile))
+      elif stat_name == 'iprs':
+        for rang in option:
+          names.add('ipr_' + PercentToString(rang.min, True) +
+                    '_' + PercentToString(rang.max, True))
+      elif stat_name == 'ci':
+        for ci in option:
+          ps = PercentToString(ci)
+          names.add('ci_' + ps + '_lower')
+          names.add('ci_' + ps + '_upper')
+          names.add('ci_' + ps)
+      elif option:
+        names.add(stat_name)
+    return names
+
+  def GetStatisticScalar(self, stat_name):
+    if stat_name == 'avg':
+      if self.average is None:
+        return None
+      return Scalar(self.unit, self.average)
+
+    if stat_name == 'std':
+      if self.standard_deviation is None:
+        return None
+      return Scalar(self.unit, self.standard_deviation)
+
+    if stat_name == 'geometricMean':
+      if self.geometric_mean is None:
+        return None
+      return Scalar(self.unit, self.geometric_mean)
+
+    if stat_name in ['min', 'max', 'sum']:
+      if self._running is None:
+        self._running = RunningStatistics()
+      return Scalar(self.unit, getattr(self._running, stat_name))
+
+    if stat_name == 'nans':
+      return Scalar('count_smallerIsBetter', self.num_nans)
+
+    if stat_name == 'count':
+      return Scalar('count_smallerIsBetter', self.num_values)
+
+    if stat_name.startswith('pct_'):
+      if self.num_values == 0:
+        return None
+      percent = PercentFromString(stat_name[4:])
+      percentile = self.GetApproximatePercentile(percent)
+      return Scalar(self.unit, percentile)
+
+    if stat_name.startswith('ci_'):
+      if self.num_values == 0:
+        return None
+      ci = PercentFromString(stat_name[3:6])
+      [ci_lower, ci_upper] = self._ResampleMean(ci)
+      if stat_name.endswith('lower'):
+        return Scalar(self.unit, ci_lower)
+      if stat_name.endswith('upper'):
+        return Scalar(self.unit, ci_upper)
+      return Scalar(self.unit, ci_upper - ci_lower)
+
+    if stat_name.startswith('ipr_'):
+      lower = PercentFromString(stat_name[4:7])
+      upper = PercentFromString(stat_name[8:])
+      if lower >= upper:
+        raise ValueError('Invalid inter-percentile range: ' + stat_name)
+      return Scalar(self.unit, (self.GetApproximatePercentile(upper) -
+                                self.GetApproximatePercentile(lower)))
+
+  @property
   def statistics_scalars(self):
     results = {}
-    for stat_name, option in self._summary_options.items():
-      if not option:
-        continue
-      if stat_name == 'percentile':
-        for percent in option:
-          percentile = self.GetApproximatePercentile(percent)
-          results['pct_' + PercentToString(percent)] = Scalar(
-              self.unit, percentile)
-      elif stat_name == 'ci':
-        for ci_percent in option:
-          [ci_lower, ci_upper] = self._ResampleMean(ci_percent)
-          results['ci_' + PercentToString(ci_percent) + '_lower'] = Scalar(
-              self.unit, ci_lower)
-          results['ci_' + PercentToString(ci_percent) + '_upper'] = Scalar(
-              self.unit, ci_upper)
-          results['ci_' + PercentToString(ci_percent)] = Scalar(
-              self.unit, ci_upper - ci_lower)
-      elif stat_name == 'nans':
-        results['nans'] = Scalar('count', self.num_nans)
-      else:
-        if stat_name == 'count':
-          stat_unit = 'count'
-        else:
-          stat_unit = self.unit
-        if stat_name == 'std':
-          key = 'stddev'
-        elif stat_name == 'avg':
-          key = 'mean'
-        elif stat_name == 'geometricMean':
-          key = 'geometric_mean'
-        else:
-          key = stat_name
-        if self._running is None:
-          self._running = RunningStatistics()
-        stat_value = getattr(self._running, key)
-        if isinstance(stat_value, numbers.Number):
-          results[stat_name] = Scalar(stat_unit, stat_value)
+    for name in self.statistics_names:
+      scalar = self.GetStatisticScalar(name)
+      if scalar:
+        results[name] = scalar
     return results
 
   def AsDict(self):
@@ -941,6 +993,13 @@ class Histogram(object):
     any_overridden_summary_options = False
     for name, option in self._summary_options.items():
       if name == 'percentile' or name == 'ci':
+        if len(option) == 0:
+          continue
+      elif name == 'iprs':
+        if len(option) == 0:
+          continue
+        option = [[r.min, r.max] for r in option]
+      elif name == 'ci':
         if len(option) == 0:
           continue
       elif option == DEFAULT_SUMMARY_OPTIONS[name]:
