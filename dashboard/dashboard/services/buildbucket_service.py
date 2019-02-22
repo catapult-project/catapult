@@ -15,19 +15,19 @@ API_BASE_URL = 'https://cr-buildbucket.appspot.com/api/buildbucket/v1/'
 _BUCKET_NAME = 'master.tryserver.chromium.perf'
 
 
-def Put(bucket, parameters):
+def Put(bucket, tags, parameters):
   body = {
       'bucket': bucket,
+      'tags': tags,
       'parameters_json': json.dumps(parameters, separators=(',', ':')),
   }
   return request.RequestJson(API_BASE_URL + 'builds', method='PUT', body=body)
-
 
 # TODO: Deprecated. Use Put() instead.
 def PutJob(job, bucket=_BUCKET_NAME):
   """Creates a job via buildbucket's API."""
   parameters = job.GetBuildParameters()
-  response_content = Put(bucket, parameters)
+  response_content = Put(bucket, [], parameters)
   job.response_fields = response_content.get('build')
   return job.response_fields.get('id')
 

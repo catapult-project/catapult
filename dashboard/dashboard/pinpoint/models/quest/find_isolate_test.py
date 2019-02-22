@@ -129,21 +129,28 @@ class BuildTest(_FindIsolateExecutionTest):
     execution.Poll()
 
     self.assertFalse(execution.completed)
-    put.assert_called_once_with(find_isolate.BUCKET, {
-        'builder_name': 'Mac Builder',
-        'properties': {
-            'clobber': True,
-            'parent_got_revision': 'commit_123',
-            'deps_revision_overrides': {test.CATAPULT_URL: 'commit_456'},
-            'patch_gerrit_url': 'https://codereview.com',
-            'patch_issue': 567890,
-            'patch_project': 'project/name',
-            'patch_ref': 'refs/changes/90/567890/5',
-            'patch_repository_url': test.CHROMIUM_URL,
-            'patch_set': 5,
-            'patch_storage': 'gerrit',
+    put.assert_called_once_with(
+        find_isolate.BUCKET,
+        [
+            'buildset:commit/git/commit_123',
+            'buildset:patch/gerrit/codereview.com/567890/5'
+        ],
+        {
+            'builder_name': 'Mac Builder',
+            'properties': {
+                'clobber': True,
+                'parent_got_revision': 'commit_123',
+                'deps_revision_overrides': {test.CATAPULT_URL: 'commit_456'},
+                'patch_gerrit_url': 'https://codereview.com',
+                'patch_issue': 567890,
+                'patch_project': 'project/name',
+                'patch_ref': 'refs/changes/90/567890/5',
+                'patch_repository_url': test.CHROMIUM_URL,
+                'patch_set': 5,
+                'patch_storage': 'gerrit',
+            }
         }
-    })
+    )
 
   def testBuildLifecycle(self, put, get_job_status):
     change = change_test.Change(123, 456, patch=True)
@@ -156,21 +163,28 @@ class BuildTest(_FindIsolateExecutionTest):
     execution.Poll()
 
     self.assertFalse(execution.completed)
-    put.assert_called_once_with('luci.bucket', {
-        'builder_name': 'Mac Builder',
-        'properties': {
-            'clobber': True,
-            'parent_got_revision': 'commit_123',
-            'deps_revision_overrides': {test.CATAPULT_URL: 'commit_456'},
-            'patch_gerrit_url': 'https://codereview.com',
-            'patch_issue': 567890,
-            'patch_project': 'project/name',
-            'patch_ref': 'refs/changes/90/567890/5',
-            'patch_repository_url': test.CHROMIUM_URL,
-            'patch_set': 5,
-            'patch_storage': 'gerrit',
+    put.assert_called_once_with(
+        'luci.bucket',
+        [
+            'buildset:commit/git/commit_123',
+            'buildset:patch/gerrit/codereview.com/567890/5'
+        ],
+        {
+            'builder_name': 'Mac Builder',
+            'properties': {
+                'clobber': True,
+                'parent_got_revision': 'commit_123',
+                'deps_revision_overrides': {test.CATAPULT_URL: 'commit_456'},
+                'patch_gerrit_url': 'https://codereview.com',
+                'patch_issue': 567890,
+                'patch_project': 'project/name',
+                'patch_ref': 'refs/changes/90/567890/5',
+                'patch_repository_url': test.CHROMIUM_URL,
+                'patch_set': 5,
+                'patch_storage': 'gerrit',
+            }
         }
-    })
+    )
 
     # Check build status.
     get_job_status.return_value = {'build': {

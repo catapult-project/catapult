@@ -186,6 +186,12 @@ class _FindIsolateExecution(execution.Execution):
 
 
 def _RequestBuild(builder_name, change, bucket):
+  builder_tags = [
+      'buildset:commit/git/%s' % change.base_commit.git_hash
+  ]
+  if change.patch:
+    builder_tags.append(change.patch.BuildsetTags())
+
   deps_overrides = {dep.repository_url: dep.git_hash for dep in change.deps}
   parameters = {
       'builder_name': builder_name,
@@ -200,4 +206,4 @@ def _RequestBuild(builder_name, change, bucket):
     parameters['properties'].update(change.patch.BuildParameters())
 
   # TODO: Look up Buildbucket bucket from builder_name.
-  return buildbucket_service.Put(bucket, parameters)
+  return buildbucket_service.Put(bucket, builder_tags, parameters)
