@@ -16,21 +16,46 @@ import unittest
 from telemetry import decorators
 from telemetry.internal.platform import platform_backend
 from telemetry.internal.platform import tracing_agent
+from telemetry.internal.platform.tracing_agent import telemetry_tracing_agent
 from telemetry.internal.platform import tracing_controller_backend
 from telemetry.timeline import tracing_config
 
 import mock
 
 
-def MockAgentClass(can_start=True, supports_clock_sync=True):
+def MockAgentClass(can_start=True, supports_clock_sync=True,
+                   clock_sync_recorder=False):
   """Factory to create mock tracing agent classes."""
-  def record_clock_sync_marker(sync_id, callback):
-    callback(sync_id, 1)
+  if clock_sync_recorder:
+    supports_clock_sync = False  # Can't be both issuer and recorder.
+    spec = telemetry_tracing_agent.TelemetryTracingAgent
+  else:
+    spec = tracing_agent.TracingAgent
 
-  agent = mock.Mock(spec=tracing_agent.TracingAgent)
+  agent = mock.Mock(spec=spec)
   agent.StartAgentTracing.return_value = can_start
   agent.SupportsExplicitClockSync.return_value = supports_clock_sync
-  agent.RecordClockSyncMarker.side_effect = record_clock_sync_marker
+
+  if clock_sync_recorder:
+    clock_syncs = []
+    def record_clock_sync(sync_id, issue_ts):
+      del issue_ts  # Unused.
+      clock_syncs.append(sync_id)
+
+    def collect_clock_syncs(trace_data, timeout=None):
+      del timeout  # Unused.
+      # Copy the clock_syncs to the trace data, then clear our own list.
+      trace_data.clock_syncs = list(clock_syncs)
+      clock_syncs[:] = []
+
+    agent.RecordIssuerClockSyncMarker = record_clock_sync
+    agent.CollectAgentTraceData = collect_clock_syncs
+  elif supports_clock_sync:
+    def issue_clock_sync(sync_id, callback):
+      callback(sync_id, 1)
+
+    agent.RecordClockSyncMarker.side_effect = issue_clock_sync
+
   AgentClass = mock.Mock(return_value=agent)
   AgentClass.IsSupported.return_value = True
   return AgentClass
@@ -57,24 +82,20 @@ class TracingControllerBackendTest(unittest.TestCase):
         tracing_controller_backend.TracingControllerBackend(mock_platform))
     self.config = tracing_config.TracingConfig()
 
-    # Replace the list of real tracing agent classes, with a single simple
-    # mock agent class. Tests can also override this list.
-    self._TRACING_AGENT_CLASSES = []
+    # Replace the list of real tracing agent classes with one containing:
+    # - a mock TelemetryTracingAgent to work as clock sync recorder, and
+    # - a simple mock TracingAgent.
+    # Tests can also override this list using _SetTracingAgentClasses.
+    self._TRACING_AGENT_CLASSES = [
+        MockAgentClass(clock_sync_recorder=True),
+        MockAgentClass()]
     mock.patch(
         'telemetry.internal.platform.tracing_controller_backend'
         '._TRACING_AGENT_CLASSES', new=self._TRACING_AGENT_CLASSES).start()
-    self._SetTracingAgentClasses(MockAgentClass())
 
-    # Replace the real TraceDataBuilder with our fake one, also wire it up
-    # so we can keep track of trace_event.clock_sync calls.
-    def clock_sync(sync_id, issue_ts):
-      del issue_ts  # Unused.
-      self.controller._current_state.builder.clock_syncs.append(sync_id)
-
+    # Replace the real TraceDataBuilder with a fake one to record clock_syncs.
     mock.patch('tracing.trace_data.trace_data.TraceDataBuilder',
                new=FakeTraceDataBuilder).start()
-    mock.patch('py_trace_event.trace_event.clock_sync',
-               side_effect=clock_sync).start()
 
   def tearDown(self):
     if self.controller.is_tracing_running:
@@ -143,14 +164,6 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertNotEqual(sync_event_one, sync_event_two)
 
   @decorators.Isolated
-  def testCollectAgentDataBeforeStoppingTracing(self):
-    self.assertFalse(self.controller.is_tracing_running)
-    self.assertTrue(self.controller.StartTracing(self.config, 30))
-    self.assertTrue(self.controller.is_tracing_running)
-    with self.assertRaises(AssertionError):
-      self.controller.CollectAgentTraceData(None)
-
-  @decorators.Isolated
   def testFlush(self):
     self.assertFalse(self.controller.is_tracing_running)
     self.assertIsNone(self.controller._current_state)
@@ -178,7 +191,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertEqual(len(data.clock_syncs), 6)
 
   @decorators.Isolated
-  def testNonWorkingAgent(self):
+  def testNoWorkingAgents(self):
     self._SetTracingAgentClasses(MockAgentClass(can_start=False))
     self.assertFalse(self.controller.is_tracing_running)
     self.assertTrue(self.controller.StartTracing(self.config, 30))
@@ -190,19 +203,22 @@ class TracingControllerBackendTest(unittest.TestCase):
 
   @decorators.Isolated
   def testNoClockSyncSupport(self):
-    self._SetTracingAgentClasses(MockAgentClass(supports_clock_sync=False))
+    self._SetTracingAgentClasses(
+        MockAgentClass(clock_sync_recorder=True),
+        MockAgentClass(supports_clock_sync=False))
     self.assertFalse(self.controller.is_tracing_running)
     self.assertTrue(self.controller.StartTracing(self.config, 30))
     self.assertTrue(self.controller.is_tracing_running)
-    self.assertEquals(len(self.controller._active_agents_instances), 1)
+    self.assertEquals(len(self.controller._active_agents_instances), 2)
     data = self.controller.StopTracing()
     self.assertFalse(self.controller.is_tracing_running)
     self.assertEqual(len(data.clock_syncs), 0)
 
   @decorators.Isolated
   def testMultipleAgents(self):
-    # Only 4 agents can start and, from those, only 2 support clock sync.
+    # Only 5 agents can start and, from those, only 2 support clock sync.
     self._SetTracingAgentClasses(
+        MockAgentClass(clock_sync_recorder=True),
         MockAgentClass(),
         MockAgentClass(),
         MockAgentClass(can_start=False),
@@ -213,16 +229,16 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertFalse(self.controller.is_tracing_running)
     self.assertTrue(self.controller.StartTracing(self.config, 30))
     self.assertTrue(self.controller.is_tracing_running)
-    self.assertEquals(len(self.controller._active_agents_instances), 4)
+    self.assertEquals(len(self.controller._active_agents_instances), 5)
     data = self.controller.StopTracing()
     self.assertFalse(self.controller.is_tracing_running)
     self.assertEqual(len(data.clock_syncs), 2)
 
   @decorators.Isolated
-  @mock.patch('py_trace_event.trace_event.is_tracing_controllable')
-  def testIssueClockSyncMarker_tracingNotControllable(self, is_controllable):
-    is_controllable.return_value = False
+  def testIssueClockSyncMarker_noClockSyncRecorder(self):
+    # Only 4 agents can start, but the clock sync recorder cant.
     self._SetTracingAgentClasses(
+        MockAgentClass(clock_sync_recorder=True, can_start=False),
         MockAgentClass(),
         MockAgentClass(),
         MockAgentClass(can_start=False),

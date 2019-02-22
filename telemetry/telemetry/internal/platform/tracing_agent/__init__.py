@@ -6,7 +6,12 @@
 class TracingAgent(object):
   """A tracing agent provided by the platform.
 
-  A tracing agent can gather data with Start() until Stop().
+  A tracing agent can gather data from StartAgentTracing() until
+  StopAgentTracing(), the trade data itself should then be collected with
+  CollectAgentTraceData(). Note, after calling StartAgentTracing, clients
+  *must* also make sure to call StopAgentTracing + CollectAgentTraceData in
+  order to free up any resources that the agents might hold.
+
   Before constructing an TracingAgent, check whether it's supported on the
   platform with IsSupported method first.
 
