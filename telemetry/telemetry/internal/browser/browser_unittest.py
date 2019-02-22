@@ -17,7 +17,6 @@ from telemetry.internal.platform import gpu_info
 from telemetry.internal.platform import system_info
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
-from telemetry.timeline import tracing_config
 
 from devil.android import app_ui
 
@@ -132,21 +131,6 @@ class BrowserTest(browser_test_case.BrowserTestCase):
 
     model_name_re = r"[a-zA-Z]* [0-9.]*"
     self.assertNotEqual(re.match(model_name_re, info.model_name), None)
-
-  # crbug.com/628836 (CrOS, where system-guest indicates ChromeOS guest)
-  # github.com/catapult-project/catapult/issues/3130 (Windows)
-  @decorators.Disabled('cros-chrome-guest', 'system-guest', 'chromeos', 'win')
-  def testIsTracingRunning(self):
-    tracing_controller = self._browser.platform.tracing_controller
-    if not tracing_controller.IsChromeTracingSupported():
-      return
-    self.assertFalse(tracing_controller.is_tracing_running)
-    config = tracing_config.TracingConfig()
-    config.enable_chrome_trace = True
-    tracing_controller.StartTracing(config)
-    self.assertTrue(tracing_controller.is_tracing_running)
-    tracing_controller.StopTracing()
-    self.assertFalse(tracing_controller.is_tracing_running)
 
   @decorators.Enabled('android')
   def testGetAppUi(self):

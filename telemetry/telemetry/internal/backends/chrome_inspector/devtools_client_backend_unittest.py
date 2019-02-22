@@ -4,9 +4,6 @@
 
 from telemetry import decorators
 from telemetry.testing import browser_test_case
-from telemetry.timeline import model
-from telemetry.timeline import tracing_config
-from tracing.trace_data import trace_data
 
 
 class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
@@ -79,21 +76,3 @@ class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
     self.assertEqual(len(c2.contexts), 1)
     self.assertTrue('blank.html' in c2.contexts[0]['url'])
     self.assertEqual(c2.GetInspectorBackend(context_id), backend)
-
-  # crbug.com/920454
-  @decorators.Disabled('chromeos')
-  def testTracing(self):
-    devtools_client = self._devtools_client
-    if not devtools_client.IsChromeTracingSupported():
-      self.skipTest('Browser does not support tracing, skipping test.')
-
-    # Start Chrome tracing.
-    config = tracing_config.TracingConfig()
-    config.enable_chrome_trace = True
-    devtools_client.StartChromeTracing(config)
-
-    # Stop Chrome tracing and check that the resulting data is valid.
-    builder = trace_data.TraceDataBuilder()
-    devtools_client.StopChromeTracing()
-    devtools_client.CollectChromeTracingData(builder)
-    model.TimelineModel(builder.AsData())
