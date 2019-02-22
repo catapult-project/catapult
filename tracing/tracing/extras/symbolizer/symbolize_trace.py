@@ -863,6 +863,7 @@ class Trace(NodeWrapper):
     self._is_linux = False
     self._is_cros = False
     self._is_android = False
+    self._is_cast = False
 
     # Misc per-process information needed only during parsing.
     class ProcessExt(object):
@@ -1016,6 +1017,14 @@ class Trace(NodeWrapper):
   @property
   def is_android(self):
     return self._is_android
+
+  @property
+  def is_cast(self):
+    return self._is_cast
+
+  @is_cast.setter
+  def is_cast(self, new_value):
+    self._is_cast = new_value
 
   @property
   def is_64bit(self):
@@ -1375,6 +1384,16 @@ def RemapAndroidFiles(symfiles, output_path, chrome_soname):
       # which is not accurate.
       symfile.symbolizable_path = 'android://{}'.format(symfile.path)
 
+def RemapCastFiles(symfiles, output_path):
+  for symfile in symfiles:
+    # In Chromecast, the symfile.path is structured as absolute path, which
+    # means it will break if we use os.path.join(output_path, symfile.path). For
+    # example, the unstripped library of libassistant located at
+    # out/target/product/[device]/symbols/system/chrome/lib/libassistant.so, the
+    # symfile.path will be /system/chrome/lib/libassistant.so
+    #
+    # See also: https://docs.python.org/3/library/os.path.html#os.path.join
+    symfile.symbolizable_path = output_path + symfile.path
 
 def RemapMacFiles(symfiles, symbol_base_directory, version,
                   only_symbolize_chrome_symbols):
@@ -1429,6 +1448,8 @@ def SymbolizeTrace(options, trace, symbolizer):
                  'specify output directory to properly symbolize it.')
       RemapAndroidFiles(symfiles, os.path.abspath(options.output_directory),
                         trace.library_name)
+    if trace.is_cast:
+      RemapCastFiles(symfiles, os.path.abspath(options.output_directory))
 
     if not trace.is_chromium:
       if symbolizer.is_mac:
@@ -1606,6 +1627,10 @@ def main(args):
       help="Indicate that the memlog trace is from a local build of Chromium.")
 
   parser.add_argument(
+      '--is-cast', action='store_true',
+      help="Indicate that the memlog trace is from cast devices.")
+
+  parser.add_argument(
       '--output-directory',
       help='The path to the build output directory, such as out/Debug.')
 
@@ -1656,6 +1681,8 @@ def main(args):
   print('Trace loaded for %s/%s' % (trace.os, trace.version))
 
   trace.is_chromium = options.is_local_build
+
+  trace.is_cast = options.is_cast
 
   # Perform some sanity checks.
   if (trace.is_win and sys.platform != 'win32' and
