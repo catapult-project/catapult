@@ -11,6 +11,9 @@ libraries:
 - name: webapp2
   version: "2.5.2"
 
+builtins:
+- deferred: on
+
 handlers:
 
 - url: /api/migrate
@@ -30,6 +33,10 @@ handlers:
   secure: always
 
 - url: /api/.*
+  script: dashboard.pinpoint.dispatcher.APP
+  secure: always
+
+- url: /cron/.*
   script: dashboard.pinpoint.dispatcher.APP
   secure: always
 

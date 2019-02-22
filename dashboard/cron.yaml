@@ -50,6 +50,12 @@ cron:
   url: /update_test_suites
   schedule: every 20 minutes
 
+- description: Restart pinpoint jobs that encounter failures
+  url: /cron/refresh-jobs
+  schedule: every 30 minutes
+  target: pinpoint
+
+
 # The backup cron job is disabled temporarily in order to check whether
 # it is responsible for increased cost on the weekends.
 # See: https://github.com/catapult-project/catapult/issues/1944

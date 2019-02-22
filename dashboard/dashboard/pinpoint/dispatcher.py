@@ -26,6 +26,8 @@ _URL_MAPPING = [
 
     # Used internally by Pinpoint. Not accessible from the public API.
     webapp2.Route(r'/api/run/<job_id>', handlers.Run),
+
+    webapp2.Route(r'/cron/refresh-jobs', handlers.RefreshJobs),
 ]
 
 APP = webapp2.WSGIApplication(_URL_MAPPING, debug=False)
