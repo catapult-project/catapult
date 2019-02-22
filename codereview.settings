@@ -1,5 +1,5 @@
 # This file is used by git-cl to get repository specific information.
-BUG_PREFIX: catapult:#
+BUG_PREFIX: chromium:
 CC_LIST: catapult-reviews@chromium.org
 GERRIT_HOST: True
 PROJECT: catapult
