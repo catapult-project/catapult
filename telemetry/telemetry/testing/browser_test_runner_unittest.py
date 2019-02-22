@@ -85,24 +85,29 @@ class BrowserTestRunnerTest(unittest.TestCase):
       os.remove(temp_file_name)
 
   def _RunBrowserTest(self, modulename, classname,
-                      test_name, expectation, test_tags='foo',
-                      extra_args=None, expected_exit_code=0):
+                      test_name, expectation='Pass', test_tags='foo',
+                      extra_args=None, expected_exit_code=0,
+                      include_expectations=True):
     extra_args = extra_args or []
-    expectations = ('# tags: [ foo bar mac ]\n'
-                    'crbug.com/123 [ %s ] '
-                    'browser_tests.%s.%s.%s'
-                    ' [ %s ]')
-    expectations = expectations % (test_tags, modulename,
-                                   classname, test_name, expectation)
-    expectations_file = tempfile.NamedTemporaryFile(delete=False)
-    expectations_file.write(expectations)
+    if include_expectations:
+      expectations = ('# tags: [ foo bar mac ]\n'
+                      'crbug.com/123 [ %s ] '
+                      'browser_tests.%s.%s.%s'
+                      ' [ %s ]')
+      expectations = expectations % (test_tags, modulename,
+                                     classname, test_name, expectation)
+      expectations_file = tempfile.NamedTemporaryFile(delete=False)
+      expectations_file.write(expectations)
+      expectations_file.close()
+      expectations_file_paths = [expectations_file.name]
+    else:
+      expectations_file_paths = []
     results = tempfile.NamedTemporaryFile(delete=False)
     results.close()
-    expectations_file.close()
     config = project_config.ProjectConfig(
         top_level_dir=os.path.join(util.GetTelemetryDir(), 'examples'),
         client_configs=[],
-        expectations_files=[expectations_file.name],
+        expectations_files=expectations_file_paths,
         benchmark_dirs=[
             os.path.join(util.GetTelemetryDir(), 'examples', 'browser_tests')]
     )
@@ -117,9 +122,24 @@ class BrowserTestRunnerTest(unittest.TestCase):
       with open(results.name) as f:
         test_result = json.load(f)
     finally:
-      os.remove(expectations_file.name)
+      if expectations_file_paths:
+        os.remove(expectations_file.name)
       os.remove(results.name)
     return test_result
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testOverridingExpectationsFilesFunction(self):
+    test_results = self._RunBrowserTest('includes_test_expectations_files_test',
+                                        'IncludesTestExpectationsFiles',
+                                        'FailTest',
+                                        include_expectations=False)
+    test_result = (test_results['tests']['browser_tests']
+                   ['includes_test_expectations_files_test']
+                   ['IncludesTestExpectationsFiles']['FailTest'])
+    self.assertEqual(test_result['expected'], 'FAIL')
+    self.assertEqual(test_result['actual'], 'FAIL')
+    self.assertNotIn('is_unexpected', test_result)
+    self.assertNotIn('is_regression', test_result)
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testDoesRetryOnFailureRetriesAndEventuallyPasses(self):

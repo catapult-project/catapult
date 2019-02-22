@@ -182,6 +182,16 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
     del finder_options, possible_browser
     return []
 
+  @classmethod
+  def ExpectationsFiles(cls):
+    """Subclasses can override this class method to return a list of absolute
+    paths to the test expectations files.
+
+    Returns:
+    A list of test expectations file paths. The paths must be absolute.
+    """
+    return []
+
 def LoadAllTestsInModule(module):
   """ Load all tests & generated browser tests in a given module.
 

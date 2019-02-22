@@ -258,7 +258,6 @@ def RunTests(args):
     PrintTelemetryHelp()
     return parser.exit_status
   binary_manager.InitDependencyManager(options.client_configs)
-  not_using_typ_expectation = len(options.expectations_files) == 0
   for start_dir in options.start_dirs:
     modules_to_classes = discover.DiscoverClasses(
         start_dir,
@@ -280,6 +279,13 @@ def RunTests(args):
     print 'Available tests: %s' % '\n'.join(
         cl.Name() for cl in browser_test_classes)
     return 1
+
+  test_class_expectations_files = test_class.ExpectationsFiles()
+
+  # all file paths in test_class_expectations-files must be absolute
+  assert all(os.path.isabs(path) for path in test_class_expectations_files)
+  options.expectations_files.extend(test_class_expectations_files)
+  not_using_typ_expectation = len(options.expectations_files) == 0
 
   # Create test context.
   context = browser_test_context.TypTestContext()
