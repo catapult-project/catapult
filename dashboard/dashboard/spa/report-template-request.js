@@ -20,9 +20,9 @@ tr.exportTo('cp', () => {
     }
 
     get url_() {
-      return '/api/report/template';
+      return ReportTemplateRequest.URL;
     }
   }
-
+  ReportTemplateRequest.URL = '/api/report/template';
   return {ReportTemplateRequest};
 });

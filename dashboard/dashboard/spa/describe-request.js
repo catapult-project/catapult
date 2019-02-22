@@ -13,7 +13,7 @@ tr.exportTo('cp', () => {
     }
 
     get url_() {
-      return '/api/describe';
+      return DescribeRequest.URL;
     }
 
     static mergeDescriptor(merged, descriptor) {
@@ -34,6 +34,6 @@ tr.exportTo('cp', () => {
       }
     }
   }
-
+  DescribeRequest.URL = '/api/describe';
   return {DescribeRequest};
 });

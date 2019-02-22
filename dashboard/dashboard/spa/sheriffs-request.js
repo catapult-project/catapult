@@ -11,9 +11,9 @@ tr.exportTo('cp', () => {
     }
 
     get url_() {
-      return '/api/sheriffs';
+      return SheriffsRequest.URL;
     }
   }
-
+  SheriffsRequest.URL = '/api/sheriffs';
   return {SheriffsRequest};
 });

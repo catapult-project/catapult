@@ -77,7 +77,7 @@ tr.exportTo('cp', () => {
     }
 
     get url_() {
-      return '/api/timeseries2';
+      return TimeseriesRequest.URL;
     }
 
     postProcess_(response) {
@@ -97,6 +97,8 @@ tr.exportTo('cp', () => {
           cp.normalize(this.columns_, row), unit, conversionFactor));
     }
   }
+
+  TimeseriesRequest.URL = '/api/timeseries2';
 
   return {
     getColumnsByLevelOfDetail,

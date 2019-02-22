@@ -11,13 +11,13 @@ tr.exportTo('cp', () => {
     }
 
     get url_() {
-      return '/api/bugs/recent';
+      return RecentBugsRequest.URL;
     }
 
     postProcess_(json) {
       return json.bugs;
     }
   }
-
+  RecentBugsRequest.URL = '/api/bugs/recent';
   return {RecentBugsRequest};
 });

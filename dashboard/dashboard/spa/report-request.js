@@ -16,9 +16,10 @@ tr.exportTo('cp', () => {
     }
 
     get url_() {
-      return '/api/report/generate';
+      return ReportRequest.URL;
     }
   }
 
+  ReportRequest.URL = '/api/report/generate';
   return {ReportRequest};
 });

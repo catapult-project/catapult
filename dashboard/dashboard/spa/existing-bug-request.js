@@ -10,12 +10,13 @@ tr.exportTo('cp', () => {
       this.method_ = 'POST';
       this.body_ = new FormData();
       for (const key of options.alertKeys) this.body_.append('key', key);
-      this.body_.set('bug_id', options.bugId);
+      this.body_.set('bug', options.bugId);
     }
 
     get url_() {
-      return '/api/alerts/existing_bug';
+      return ExistingBugRequest.URL;
     }
   }
+  ExistingBugRequest.URL = '/api/existing_bug';
   return {ExistingBugRequest};
 });

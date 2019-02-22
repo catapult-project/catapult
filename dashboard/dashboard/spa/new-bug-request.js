@@ -21,12 +21,13 @@ tr.exportTo('cp', () => {
     }
 
     get url_() {
-      return '/api/new_bug';
+      return NewBugRequest.URL;
     }
 
     postProcess_(json) {
       return json.bug_id;
     }
   }
+  NewBugRequest.URL = '/api/new_bug';
   return {NewBugRequest};
 });

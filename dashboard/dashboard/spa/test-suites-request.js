@@ -11,9 +11,9 @@ tr.exportTo('cp', () => {
     }
 
     get url_() {
-      return '/api/test_suites';
+      return TestSuitesRequest.URL;
     }
   }
-
+  TestSuitesRequest.URL = '/api/test_suites';
   return {TestSuitesRequest};
 });

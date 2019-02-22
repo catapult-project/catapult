@@ -15,9 +15,9 @@ tr.exportTo('cp', () => {
     }
 
     get url_() {
-      return '/api/alerts';
+      return AlertsRequest.URL;
     }
   }
-
+  AlertsRequest.URL = '/api/alerts';
   return {AlertsRequest};
 });

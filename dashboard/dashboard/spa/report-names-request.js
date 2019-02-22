@@ -11,7 +11,7 @@ tr.exportTo('cp', () => {
     }
 
     get url_() {
-      return '/api/report/names';
+      return ReportNamesRequest.URL;
     }
 
     postProcess_(json) {
@@ -20,6 +20,6 @@ tr.exportTo('cp', () => {
       });
     }
   }
-
+  ReportNamesRequest.URL = '/api/report/names';
   return {ReportNamesRequest};
 });

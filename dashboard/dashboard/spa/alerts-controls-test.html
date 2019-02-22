@@ -22,20 +22,16 @@ suite('alerts-controls', function() {
   setup(() => {
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
-      if (url === '/api/report/names') {
-        return {
-          async json() {
+      return {
+        async json() {
+          if (url === cp.ReportNamesRequest.URL) {
             return [{name: 'aaa', id: 42, modified: new Date()}];
           }
-        };
-      }
-      if (url === '/api/sheriffs') {
-        return {
-          async json() {
+          if (url === cp.SheriffsRequest.URL) {
             return ['ccc', 'ddd'];
           }
-        };
-      }
+        },
+      };
     };
     localStorage.setItem('recentlyModifiedBugs', JSON.stringify([
       {id: 42, summary: 'bbb'},
