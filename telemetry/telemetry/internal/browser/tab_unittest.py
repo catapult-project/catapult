@@ -9,8 +9,6 @@ from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.browser.web_contents import ServiceWorkerState
 from telemetry.testing import tab_test_case
-from telemetry.timeline import model
-from telemetry.timeline import tracing_config
 from telemetry.util import image_util
 
 import py_utils
@@ -72,49 +70,6 @@ class TabTest(tab_test_case.TabTestCase):
     url = self.UrlOfUnittestFile('blank.html')
     self._tab.Navigate(url)
     self.assertEquals(self._tab.url, url)
-
-  def testGetFirstRendererThread_singleTab(self):
-    self.assertEqual(len(self.tabs), 1)  # We have a single tab/page.
-    config = tracing_config.TracingConfig()
-    config.chrome_trace_config.SetLowOverheadFilter()
-    config.enable_chrome_trace = True
-    self._browser.platform.tracing_controller.StartTracing(config)
-    self._tab.AddTimelineMarker('single-tab-marker')
-    trace_data = self._browser.platform.tracing_controller.StopTracing()
-    timeline_model = model.TimelineModel(trace_data)
-
-    # Check that we can find the marker injected into the trace.
-    renderer_thread = timeline_model.GetFirstRendererThread(self._tab.id)
-    markers = list(renderer_thread.IterTimelineMarkers('single-tab-marker'))
-    self.assertEqual(len(markers), 1)
-
-  @decorators.Enabled('has tabs')
-  def testGetFirstRendererThread_multipleTabs(self):
-    # Make sure a couple of tabs exist.
-    first_tab = self._tab
-    second_tab = self._browser.tabs.New()
-    second_tab.Navigate('about:blank')
-    second_tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
-
-    config = tracing_config.TracingConfig()
-    config.chrome_trace_config.SetLowOverheadFilter()
-    config.enable_chrome_trace = True
-    self._browser.platform.tracing_controller.StartTracing(config)
-    first_tab.AddTimelineMarker('background-tab')
-    second_tab.AddTimelineMarker('foreground-tab')
-    trace_data = self._browser.platform.tracing_controller.StopTracing()
-    timeline_model = model.TimelineModel(trace_data)
-
-    # Check that we can find the marker injected into the foreground tab.
-    renderer_thread = timeline_model.GetFirstRendererThread(second_tab.id)
-    markers = list(renderer_thread.IterTimelineMarkers([
-        'foreground-tab', 'background-tab']))
-    self.assertEqual(len(markers), 1)
-    self.assertEqual(markers[0].name, 'foreground-tab')
-
-    # Check that trying to find the background tab rases an error.
-    with self.assertRaises(AssertionError):
-      timeline_model.GetFirstRendererThread(first_tab.id)
 
   @decorators.Disabled('android') # https://crbug.com/463933
   def testTabIsAlive(self):
