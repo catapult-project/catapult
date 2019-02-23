@@ -314,7 +314,7 @@ def RunTests(args):
   possible_browser = browser_finder.FindBrowser(context.finder_options)
 
   # Setup typ runner.
-  runner = typ.Runner()
+  test_class._typ_runner = runner = typ.Runner()
   options.tags.extend(test_class.GenerateTags(context.finder_options,
                                               possible_browser))
   runner.context = context

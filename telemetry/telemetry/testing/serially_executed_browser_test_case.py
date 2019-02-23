@@ -11,7 +11,7 @@ from py_utils import cloud_storage
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.testing import browser_test_context
-
+from typ import json_results
 
 DEFAULT_LOG_FORMAT = (
     '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
@@ -19,6 +19,12 @@ DEFAULT_LOG_FORMAT = (
 
 
 class SeriallyExecutedBrowserTestCase(unittest.TestCase):
+
+  # Below is a reference to the typ.Runner instance. It will be used in
+  # member functions like GetExpectationsForTest() to get test information
+  # from the typ.Runner instance running the test.
+  _typ_runner = None
+
   def __init__(self, methodName):
     super(SeriallyExecutedBrowserTestCase, self).__init__(methodName)
     self._private_methodname = methodName
@@ -191,6 +197,26 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
     A list of test expectations file paths. The paths must be absolute.
     """
     return []
+
+  def GetExpectationsForTest(self):
+    """Subclasses can override this method to return a tuple containing a set
+    of expected results and a flag indicating if the test has the RetryOnFailure
+    expectation. Tests members may want to know the test expectation in order to
+    modify its behavior for certain expectations. For instance GPU tests want
+    to avoid symbolizing any crash dumps in the case of expected test failures
+    or when tests are being retried because they are expected to be flaky.
+
+    Returns:
+    A tuple containing set of expected results for a test and a boolean value
+    indicating if the test contains the RetryOnFailure expectation. When there
+    are no expectations files passed to typ, then a tuple of
+    (set(['PASS']), False) should be returned from this function.
+    """
+    cls = self.__class__
+    if cls._typ_runner.has_expectations:
+      return cls._typ_runner.expectations.expectations_for(self.id())
+    else:
+      return (set([json_results.ResultType.Pass]), False)
 
 def LoadAllTestsInModule(module):
   """ Load all tests & generated browser tests in a given module.

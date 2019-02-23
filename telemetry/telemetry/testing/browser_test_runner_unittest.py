@@ -128,6 +128,39 @@ class BrowserTestRunnerTest(unittest.TestCase):
     return test_result
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testGetExpectationsForTestFunctionWithOutExpectationsFile(self):
+    test_result = self._RunBrowserTest('tests_get_expectations_for_test',
+                                       'CallsGetExpectationsForTest',
+                                       'HasNoExpectationsFile',
+                                       include_expectations=False,
+                                       expected_exit_code=0)
+    test_result = (test_result['tests']['browser_tests']
+                   ['tests_get_expectations_for_test']
+                   ['CallsGetExpectationsForTest']
+                   ['HasNoExpectationsFile'])
+    self.assertEqual(test_result['expected'], 'PASS')
+    self.assertEqual(test_result['actual'], 'PASS')
+    self.assertNotIn('is_unexpected', test_result)
+    self.assertNotIn('is_regression', test_result)
+
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testGetExpectationsForTestFunctionWithExpectationsFile(self):
+    test_result = self._RunBrowserTest('tests_get_expectations_for_test',
+                                       'CallsGetExpectationsForTest',
+                                       'HasExpectationsFile',
+                                       'RetryOnFailure Failure',
+                                       extra_args=['-x', 'foo'])
+    test_result = (test_result['tests']['browser_tests']
+                   ['tests_get_expectations_for_test']
+                   ['CallsGetExpectationsForTest']
+                   ['HasExpectationsFile'])
+    self.assertEqual(test_result['expected'], 'FAIL')
+    self.assertEqual(test_result['actual'], 'PASS')
+    self.assertIn('is_unexpected', test_result)
+    self.assertNotIn('is_regression', test_result)
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testOverridingExpectationsFilesFunction(self):
     test_results = self._RunBrowserTest('includes_test_expectations_files_test',
                                         'IncludesTestExpectationsFiles',
