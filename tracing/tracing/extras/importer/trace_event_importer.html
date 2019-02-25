@@ -2258,10 +2258,16 @@ tr.exportTo('tr.e.importer', function() {
           continue;
         }
 
+        const fullFlowId = JSON.stringify({
+          id: event.id,
+          cat: event.cat,
+          name: event.name
+        });
+
         // Support for Flow API v1.
         let flowEvent;
         if (event.ph === 's') {
-          if (flowIdToEvent[event.id]) {
+          if (flowIdToEvent[fullFlowId]) {
             this.model_.importWarning({
               type: 'flow_slice_start_error',
               message: 'event id ' + event.id + ' already seen when ' +
@@ -2276,9 +2282,9 @@ tr.exportTo('tr.e.importer', function() {
                   'at an actual slice, so cannot be created.'});
             continue;
           }
-          flowIdToEvent[event.id] = flowEvent;
+          flowIdToEvent[fullFlowId] = flowEvent;
         } else if (event.ph === 't' || event.ph === 'f') {
-          flowEvent = flowIdToEvent[event.id];
+          flowEvent = flowIdToEvent[fullFlowId];
           if (flowEvent === undefined) {
             this.model_.importWarning({
               type: 'flow_slice_ordering_error',
@@ -2322,12 +2328,12 @@ tr.exportTo('tr.e.importer', function() {
               message: 'event id ' + event.id + ' does not end ' +
                   'at an actual slice, so cannot be created.'});
           }
-          flowIdToEvent[event.id] = undefined;
+          flowIdToEvent[fullFlowId] = undefined;
 
           // If this is a step, then create another flow event.
           if (ok && event.ph === 't') {
             flowEvent = createFlowEvent(thread, event);
-            flowIdToEvent[event.id] = flowEvent;
+            flowIdToEvent[fullFlowId] = flowEvent;
           }
         }
       }

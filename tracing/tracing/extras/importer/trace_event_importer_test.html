@@ -2669,6 +2669,91 @@ tr.b.unittest.testSuite(function() {
     checkParsedAndStreamInput(events, checkModel);
   });
 
+  // Verify that flow events with identical ids but different (category, name)
+  // pairs show up as different events.
+  test('importFlowEventFullFlowId', function() {
+    function checkModel(m) {
+      const t = m.processes[52].threads[53];
+
+      assert.isDefined(t);
+      assert.strictEqual(m.flowEvents.length, 4);
+      assert.strictEqual(m.flowIntervalTree.size, 4);
+
+      const f0 = m.flowEvents[0];
+      assert.strictEqual(f0.title, 'a');
+      assert.strictEqual(f0.category, 'foo');
+      assert.strictEqual(f0.id, 72);
+      assert.closeTo(f0.start, 0.001, 1e-5);
+      assert.closeTo(12 / 1000, f0.duration, 1e-5);
+      assert.strictEqual(f0.startSlice.title, 'aSlice');
+      assert.strictEqual(f0.endSlice.title, 'bSlice');
+
+      // TODO(nduca): Replace this assertion with something better when
+      // flow events don't create synthetic slices on their own.
+      assert.isDefined(f0.startSlice);
+      assert.isDefined(f0.endSlice);
+
+      const f1 = m.flowEvents[1];
+      assert.strictEqual(f1.title, 'b');
+      assert.strictEqual(f1.category, 'foo');
+      assert.strictEqual(f1.id, 72);
+      assert.closeTo(f1.start, 0.001, 1e-5);
+      assert.closeTo(12 / 1000, f1.duration, 1e-5);
+      assert.strictEqual(f1.startSlice.title, 'aSlice');
+      assert.strictEqual(f1.endSlice.title, 'bSlice');
+
+      assert.isDefined(f1.startSlice);
+      assert.isDefined(f1.endSlice);
+
+      const f2 = m.flowEvents[2];
+      assert.strictEqual(f2.title, f0.title);
+      assert.strictEqual(f2.category, f0.category);
+      assert.strictEqual(f2.id, f0.id);
+      assert.closeTo(20 / 1000, f2.duration, 1e-5);
+
+      assert.strictEqual(f2.startSlice.title, 'bSlice');
+      assert.strictEqual(f2.endSlice.title, 'cSlice');
+
+      const f3 = m.flowEvents[3];
+      assert.strictEqual(f3.title, f1.title);
+      assert.strictEqual(f3.category, f1.category);
+      assert.strictEqual(f3.id, f1.id);
+      assert.closeTo(20 / 1000, f3.duration, 1e-5);
+
+      assert.strictEqual(f3.startSlice.title, 'bSlice');
+      assert.strictEqual(f3.endSlice.title, 'cSlice');
+
+      assert.deepEqual(f0.startSlice.outFlowEvents, [f0, f1]);
+      assert.deepEqual(f0.endSlice.inFlowEvents, [f0, f1]);
+      assert.deepEqual(f2.startSlice.outFlowEvents, [f2, f3]);
+      assert.deepEqual(f2.endSlice.inFlowEvents, [f2, f3]);
+
+      assert.deepEqual(f1.startSlice.outFlowEvents, [f0, f1]);
+      assert.deepEqual(f1.endSlice.inFlowEvents, [f0, f1]);
+      assert.deepEqual(f3.startSlice.outFlowEvents, [f2, f3]);
+      assert.deepEqual(f3.endSlice.inFlowEvents, [f2, f3]);
+    }
+
+    const events = [
+      { name: 'aSlice', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 547, ph: 'B', args: {} },  // @suppress longLineCheck
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {} },  // @suppress longLineCheck
+      { id: 72, pid: 52, tid: 53, ts: 549, ph: 'E', args: {} },  // @suppress longLineCheck
+      { id: 72, pid: 52, tid: 53, ts: 549, ph: 'E', args: {} },  // @suppress longLineCheck
+      { name: 'b', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 548, ph: 's', args: {} },  // @suppress longLineCheck
+
+      { name: 'bSlice', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 559, ph: 'B', args: {} },  // @suppress longLineCheck
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 560, ph: 't', args: {} },  // @suppress longLineCheck
+      { name: 'b', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 560, ph: 't', args: {} },  // @suppress longLineCheck
+      { id: 72, pid: 52, tid: 53, ts: 561, ph: 'E', args: {} },  // @suppress longLineCheck
+
+      { name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 580, ph: 'f', args: {} },   // @suppress longLineCheck
+      { name: 'b', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 580, ph: 'f', args: {} },   // @suppress longLineCheck
+      { name: 'cSlice', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 581, ph: 'B', args: {} },  // @suppress longLineCheck
+      { id: 72, pid: 52, tid: 53, ts: 582, ph: 'E', args: {} }  // @suppress longLineCheck
+    ];
+    checkParsedAndStreamInput(events, checkModel);
+  });
+
   test('importOldFlowEventBindtoNext', function() {
     function checkModel(m) {
       assert.strictEqual(m.flowEvents.length, 1);
