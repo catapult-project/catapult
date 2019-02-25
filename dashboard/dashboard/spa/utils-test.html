@@ -357,5 +357,9 @@ suite('basic tests', function() {
     assert.strictEqual('x', cp.plural(1, 'es', 'x'));
     assert.strictEqual('es', cp.plural(2, 'es', 'x'));
   });
+
+  test('generateColors', function() {
+    assert.lengthOf(cp.generateColors(10), 10);
+  });
 });
 </script>

@@ -50,7 +50,7 @@ tr.exportTo('tr.b', function() {
 
   SinebowColorGenerator.PHI = (1 + Math.sqrt(5)) / 2;
 
-  SinebowColorGenerator.sinebow_ = function(h) {
+  SinebowColorGenerator.sinebow = function(h) {
     h += 0.5;
     h = -h;
     let r = Math.sin(Math.PI * h);
@@ -67,7 +67,7 @@ tr.exportTo('tr.b', function() {
   };
 
   SinebowColorGenerator.nthColor = function(n) {
-    return SinebowColorGenerator.sinebow_(n * this.PHI);
+    return SinebowColorGenerator.sinebow(n * this.PHI);
   };
 
   SinebowColorGenerator.calculateColor = function(r, g, b, a, brightness) {

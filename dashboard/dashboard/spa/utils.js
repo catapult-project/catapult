@@ -430,6 +430,46 @@ tr.exportTo('cp', () => {
     return pluralSuffix;
   }
 
+  /**
+   * Compute a given number of colors by evenly spreading them around the
+   * sinebow hue circle, or, if a Range of brightnesses is given, the hue x
+   * brightness cylinder.
+   *
+   * @param {Number} numColors
+   * @param {!Range} opt_options.brightnessRange
+   * @param {Number} opt_options.brightnessPct
+   * @param {Number} opt_options.hueOffset
+   * @return {!Array.<!tr.b.Color>}
+   */
+  function generateColors(numColors, opt_options) {
+    const options = opt_options || {};
+    const brightnessRange = options.brightnessRange;
+    const hueOffset = options.hueOffset || 0;
+    const colors = [];
+    if (numColors > 15 && brightnessRange) {
+      // Evenly spread numColors around the surface of the hue x brightness
+      // cylinder. Maximize distance between (huePct, brightnessPct) vectors.
+      const numCycles = Math.round(numColors / 15);
+      for (let i = 0; i < numCycles; ++i) {
+        colors.push.apply(colors, generateColors(15, {
+          brightnessPct: brightnessRange.lerp(i / (numCycles - 1)),
+        }));
+      }
+    } else {
+      // Evenly spread numColors throughout the sinebow hue circle.
+      const brightnessPct = (options.brightnessPct === undefined) ? 0.5 :
+        options.brightnessPct;
+      for (let i = 0; i < numColors; ++i) {
+        const huePct = hueOffset + (i / numColors);
+        const [r, g, b] = tr.b.SinebowColorGenerator.sinebow(huePct);
+        const rgba = tr.b.SinebowColorGenerator.calculateColor(
+            r, g, b, 1, brightnessPct * 2);
+        colors.push(tr.b.Color.fromString(rgba));
+      }
+    }
+    return colors;
+  }
+
   return {
     BatchIterator,
     NON_BREAKING_SPACE,
@@ -440,6 +480,7 @@ tr.exportTo('cp', () => {
     buildProperties,
     buildState,
     deepFreeze,
+    generateColors,
     getActiveElement,
     idle,
     isElementChildOf,
