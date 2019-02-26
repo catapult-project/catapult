@@ -320,8 +320,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
 
     self.assertRaises(exceptions.EvaluateException, WillFail)
 
-  # https://github.com/catapult-project/catapult/issues/3099
-  @decorators.Disabled('android')
+  @decorators.Disabled('android', 'mac')  # crbug.com/934649
   def testScrollToElement(self):
     self.Navigate('page_with_swipeables.html')
     action_runner = action_runner_module.ActionRunner(
