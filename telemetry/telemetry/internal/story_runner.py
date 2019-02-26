@@ -333,6 +333,10 @@ def RunBenchmark(benchmark, finder_options):
 
   benchmark_metadata = benchmark.GetMetadata()
   possible_browser = browser_finder.FindBrowser(finder_options)
+  if not possible_browser:
+    logging.error('No browser of type "%s" found for benchmark "%s"' % (
+        finder_options.browser_options.browser_type, benchmark.Name()))
+    return 0
   expectations = benchmark.expectations
 
   target_platform = None
