@@ -116,7 +116,7 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     self._RunScrollDistanceTest(
         1000, 300, page_action.GESTURE_SOURCE_MOUSE, 200)
 
-  @decorators.Disabled('android')  # crbug.com/934649
+  @decorators.Disabled('android', 'mac')  # crbug.com/934649
   @decorators.Disabled('chromeos', 'linux')  # crbug.com/805523
   @decorators.Disabled('win-reference')  # crbug.com/805523
   def testWheelScrollDistanceWhileZoomed(self):
