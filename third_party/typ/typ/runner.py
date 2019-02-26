@@ -589,7 +589,7 @@ class Runner(object):
                          _setup_process, _teardown_process)
         try:
             while test_inputs or running_jobs:
-                while test_inputs and (len(running_jobs) < self.args.jobs):
+                while test_inputs and (len(running_jobs) < jobs):
                     test_input = test_inputs.pop(0)
                     stats.started += 1
                     pool.send(test_input)
