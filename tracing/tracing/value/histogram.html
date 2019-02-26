@@ -113,6 +113,14 @@ tr.exportTo('tr.v', function() {
       }
     }
 
+    serialize(serializer) {
+      if (!this.diagnosticMaps.length) {
+        return this.count;
+      }
+      return [this.count, ...this.diagnosticMaps.map(d => [
+        undefined, ...d.serialize(serializer)])];
+    }
+
     asDict() {
       if (!this.diagnosticMaps.length) {
         return [this.count];
@@ -710,8 +718,8 @@ tr.exportTo('tr.v', function() {
             tr.b.Unit.byName.count_smallerIsBetter, this.numValues);
       }
       if (statName.substr(0, 4) === 'pct_') {
-        const percent = percentFromString(statName.substr(4));
         if (this.numValues === 0) return undefined;
+        const percent = percentFromString(statName.substr(4));
         const percentile = this.getApproximatePercentile(percent);
         if (typeof(percentile) !== 'number') return undefined;
         return new tr.b.Scalar(this.unit, percentile);
@@ -949,6 +957,27 @@ tr.exportTo('tr.v', function() {
       return rebinned;
     }
 
+    serialize(serializer) {
+      let nanBin = this.numNans;
+      if (this.nanDiagnosticMaps.length) {
+        nanBin = [nanBin, ...this.nanDiagnosticMaps.map(dm => [
+          undefined, ...dm.serialize(serializer)])];
+      }
+      this.diagnostics.set(tr.v.d.RESERVED_NAMES.STATISTICS_NAMES,
+          new tr.v.d.GenericSet([...this.statisticsNames].sort()));
+      this.diagnostics.set(tr.v.d.RESERVED_NAMES.DESCRIPTION,
+          new tr.v.d.GenericSet([this.description].sort()));
+      return [
+        serializer.getOrAllocateId(this.name),
+        this.unit.asJSON2(),
+        serializer.getOrAllocateId(this.binBoundariesDict_),
+        this.diagnostics.serialize(serializer),
+        this.running_ ? this.running_.asDict() : 0,
+        this.serializeBins_(serializer),
+        nanBin,
+      ];
+    }
+
     asDict() {
       const dict = {};
       dict.name = this.name;
@@ -1007,6 +1036,49 @@ tr.exportTo('tr.v', function() {
       }
 
       return dict;
+    }
+
+    serializeBins_(serializer) {
+      // dict.allBins may be either an array or a dict, whichever is more
+      // efficient.
+      // The overhead of the array form is significant when the histogram is
+      // sparse, and the overhead of the dict form is significant when the
+      // histogram is dense.
+      // The dict form is more efficient when more than half of allBins are
+      // empty. The array form is more efficient when fewer than half of
+      // allBins are empty.
+
+      const numBins = this.allBins.length;
+
+      // If allBins are empty, then don't serialize anything for them.
+      let emptyBins = 0;
+
+      for (let i = 0; i < numBins; ++i) {
+        if (this.allBins[i].count === 0) {
+          ++emptyBins;
+        }
+      }
+
+      if (emptyBins === numBins) {
+        return 0;
+      }
+
+      if (emptyBins > (numBins / 2)) {
+        const allBinsDict = {};
+        for (let i = 0; i < numBins; ++i) {
+          const bin = this.allBins[i];
+          if (bin.count > 0) {
+            allBinsDict[i] = bin.serialize(serializer);
+          }
+        }
+        return allBinsDict;
+      }
+
+      const allBinsArray = [];
+      for (let i = 0; i < numBins; ++i) {
+        allBinsArray.push(this.allBins[i].serialize(serializer));
+      }
+      return allBinsArray;
     }
 
     allBinsAsDict_() {

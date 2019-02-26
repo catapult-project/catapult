@@ -12,6 +12,20 @@ found in the LICENSE file.
 
 tr.exportTo('tr.v', function() {
   class HistogramSerializer {
+    static serialize(histograms) {
+      const serializer = new HistogramSerializer();
+      histograms = histograms.map(h => h.serialize(serializer));
+      const diagnostics = serializer.diagnosticsByType_;
+      for (const diagnosticsByName of Object.values(diagnostics)) {
+        for (const diagnosticsById of Object.values(diagnosticsByName)) {
+          for (const [id, diag] of Object.entries(diagnosticsById)) {
+            diagnosticsById[id] = diag.serialize(serializer);
+          }
+        }
+      }
+      return [serializer.objects_, diagnostics, ...histograms];
+    }
+
     constructor() {
       this.objects_ = [];
       this.idsByJson_ = new Map();

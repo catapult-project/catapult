@@ -509,9 +509,6 @@ class HistogramUnittest(unittest.TestCase):
     stats = hist.statistics_scalars
     self.assertEqual(stats['nans'].value, 0)
     self.assertEqual(stats['count'].value, 0)
-    self.assertEqual(stats['min'].value, histogram.JS_MAX_VALUE)
-    self.assertEqual(stats['max'].value, -histogram.JS_MAX_VALUE)
-    self.assertEqual(stats['sum'].value, 0)
     self.assertNotIn('avg', stats)
     self.assertNotIn('stddev', stats)
     self.assertNotIn('pct_000', stats)

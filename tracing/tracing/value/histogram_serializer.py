@@ -2,8 +2,18 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-
 import json
+
+
+def Serialize(histograms):
+  serializer = HistogramSerializer()
+  histograms = [h.Serialize(serializer) for h in histograms]
+  diagnostics = serializer._diagnostics_by_type
+  for diagnostics_by_name in diagnostics.values():
+    for diagnostics_by_id in diagnostics_by_name.values():
+      for did, diag in diagnostics_by_id.items():
+        diagnostics_by_id[did] = diag.Serialize(serializer)
+  return [serializer._objects, diagnostics] + histograms
 
 
 class HistogramSerializer(object):
