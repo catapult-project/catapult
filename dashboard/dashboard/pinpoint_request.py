@@ -115,6 +115,10 @@ def _GetIsolateTarget(bot_name, suite, start_commit,
       raise InvalidParamsError('Only telemetry is supported at the moment.')
     return suite
 
+  # ChromeVR
+  if suite.startswith('xr.'):
+    return 'vr_perf_tests'
+
   try:
     # TODO: Remove this code path in 2019.
     average_commit = (int(start_commit) + int(end_commit)) / 2

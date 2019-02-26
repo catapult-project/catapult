@@ -100,6 +100,20 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_IsolateTarget_VRTests(self):
+    params = {
+        'test_path': 'ChromiumPerf/mac/xr.static.foo/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'extra_test_args': json.dumps(
+            ['--extra-trace-args', 'abc,123,foo']),
+    }
+    results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+    self.assertEqual('vr_perf_tests', results['target'])
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_IsolateTarget_Telemetry(self):
     params = {
         'test_path': 'ChromiumPerf/mac/system_health/foo',
