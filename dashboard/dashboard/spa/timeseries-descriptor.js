@@ -172,7 +172,7 @@ tr.exportTo('cp', () => {
   TimeseriesDescriptor.reducers = {
     receiveTestSuites: (state, {suites}, rootState) => {
       const suite = TimeseriesDescriptor.State.suite({suite: {
-        isAggregated: state.suite.isAggregated,
+        ...state.suite,
         options: suites,
       }});
       return {...state, suite};

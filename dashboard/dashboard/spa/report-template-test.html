@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<!--
+Copyright 2019 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/dashboard/spa/report-template.html">
+
+<test-fixture id="test">
+  <template>
+    <report-template state-path="test"></report-template>
+  </template>
+</test-fixture>
+
+<script>
+'use strict';
+suite('report-template', function() {
+  let originalFetch;
+  let templateBody;
+  setup(() => {
+    originalFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      return {
+        async json() {
+          if (url === cp.ReportTemplateRequest.URL) {
+            templateBody = new Map(options.body);
+            return [];
+          }
+          if (url === cp.TestSuitesRequest.URL) {
+            return ['suite'];
+          }
+          if (url === cp.DescribeRequest.URL) {
+            return {
+              bots: ['master:bot'],
+              measurements: ['measurement'],
+              cases: ['case'],
+            };
+          }
+        },
+      };
+    };
+    fixture('test').dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', cp.ReportTemplate.buildState({
+          id: 42,
+          name: 'test name',
+          owners: 'me@chromium.org',
+          rows: [
+            cp.ReportTemplate.newTemplateRow({
+              label: 'label',
+              suites: ['suite'],
+              measurement: 'measurement',
+              bots: ['master:bot'],
+              cases: ['case'],
+            }),
+          ],
+          statistic: cp.MenuInput.buildState({
+            options: ['avg', 'std'],
+            selectedOptions: ['avg'],
+          }),
+          url: 'http://example.com',
+        }))));
+  });
+  teardown(() => {
+    window.fetch = originalFetch;
+  });
+
+  test('canSave', function() {
+    assert.isTrue(cp.ReportTemplate.canSave(
+        'name', 'owner@chromium.org', {selectedOptions: ['avg']}, [{
+          label: 'label',
+          suite: {selectedOptions: ['suite']},
+          measurement: {selectedOptions: ['measurement']},
+          bot: {selectedOptions: ['bot']},
+        }]));
+    assert.isFalse(cp.ReportTemplate.canSave(
+        '', 'owner@chromium.org', {selectedOptions: ['avg']}, [{
+          label: 'label',
+          suite: {selectedOptions: ['suite']},
+          measurement: {selectedOptions: ['measurement']},
+          bot: {selectedOptions: ['bot']},
+        }]));
+    assert.isFalse(cp.ReportTemplate.canSave(
+        'name', '', {selectedOptions: ['avg']}, [{
+          label: 'label',
+          suite: {selectedOptions: ['suite']},
+          measurement: {selectedOptions: ['measurement']},
+          bot: {selectedOptions: ['bot']},
+        }]));
+    assert.isFalse(cp.ReportTemplate.canSave(
+        'name', 'owner@chromium.org', {selectedOptions: []}, [{
+          label: 'label',
+          suite: {selectedOptions: ['suite']},
+          measurement: {selectedOptions: ['measurement']},
+          bot: {selectedOptions: ['bot']},
+        }]));
+    assert.isFalse(cp.ReportTemplate.canSave(
+        'name', 'owner@chromium.org', {selectedOptions: ['avg']}, [{
+          label: '',
+          suite: {selectedOptions: ['suite']},
+          measurement: {selectedOptions: ['measurement']},
+          bot: {selectedOptions: ['bot']},
+        }]));
+    assert.isFalse(cp.ReportTemplate.canSave(
+        'name', 'owner@chromium.org', {selectedOptions: ['avg']}, [{
+          label: 'label',
+          suite: {selectedOptions: []},
+          measurement: {selectedOptions: ['measurement']},
+          bot: {selectedOptions: ['bot']},
+        }]));
+    assert.isFalse(cp.ReportTemplate.canSave(
+        'name', 'owner@chromium.org', {selectedOptions: ['avg']}, [{
+          label: 'label',
+          suite: {selectedOptions: ['suite']},
+          measurement: {selectedOptions: []},
+          bot: {selectedOptions: ['bot']},
+        }]));
+    assert.isFalse(cp.ReportTemplate.canSave(
+        'name', 'owner@chromium.org', {selectedOptions: ['avg']}, [{
+          label: 'label',
+          suite: {selectedOptions: ['suite']},
+          measurement: {selectedOptions: ['measurement', 'another']},
+          bot: {selectedOptions: ['bot']},
+        }]));
+    assert.isFalse(cp.ReportTemplate.canSave(
+        'name', 'owner@chromium.org', {selectedOptions: ['avg']}, [{
+          label: 'label',
+          suite: {selectedOptions: ['suite']},
+          measurement: {selectedOptions: ['measurement']},
+          bot: {selectedOptions: []},
+        }]));
+  });
+
+  test('addRemoveRow', async function() {
+    const template = fixture('test');
+    await cp.afterRender();
+    assert.lengthOf(template.rows, 1);
+
+    template.shadowRoot.querySelector('iron-icon').click();
+    await cp.afterRender();
+    assert.lengthOf(template.rows, 2);
+
+    template.shadowRoot.querySelectorAll('iron-icon')[3].click();
+    await cp.afterRender();
+    assert.lengthOf(template.rows, 1);
+  });
+
+  test('save', async function() {
+    const template = fixture('test');
+    await cp.afterRender();
+    template.$.save.click();
+    await cp.afterRender();
+    assert.strictEqual('42', templateBody.get('id'));
+    assert.strictEqual('test name', templateBody.get('name'));
+    assert.strictEqual('me@chromium.org', templateBody.get('owners'));
+    assert.deepEqual(JSON.parse(templateBody.get('template')), {
+      url: 'http://example.com',
+      statistics: ['avg'],
+      rows: [{
+        label: 'label',
+        suites: ['suite'],
+        measurement: 'measurement',
+        bots: ['master:bot'],
+        cases: ['case'],
+      }],
+    });
+  });
+});
+</script>

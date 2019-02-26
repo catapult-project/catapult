@@ -56,6 +56,7 @@ tr.exportTo('cp', () => {
     },
 
     recommendOptions: statePath => async(dispatch, getState) => {
+      if (!Polymer.Path.get(getState(), statePath)) return;
       dispatch({
         type: RecommendedOptions.reducers.recommendOptions.name,
         statePath,
