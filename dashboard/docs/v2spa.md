@@ -38,8 +38,8 @@ In order to deploy v2spa to v2spa-dot-chromeperf.appspot.com, run
 same script request handlers as V1, which is configured in app.yaml and
 continues to be deployed to chromeperf.appspot.com by `dashboard/bin/deploy`.
 
-In order to develop v2spa locally, run `dev_appserver.py v2spa_dev.yaml` to
+In order to develop v2spa locally, run `dev_appserver.py dev.yaml` to
 serve the unvulcanized sources at http://localhost:8080 to speed up reloading
-changes. `v2spa_dev.yaml` is not intended to be deployed even to a dev instance.
+changes. `dev.yaml` is not intended to be deployed even to a dev instance.
 When running on localhost, V2SPA does not send requests to the backend, so no
 script request handlers are needed.
