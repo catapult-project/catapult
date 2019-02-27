@@ -140,6 +140,32 @@ def Percentile(ary, percent):
   return ary[int((len(ary) - 1) * percent)]
 
 
+class HistogramError(ValueError):
+  """Base execption type for Histogram related exceptions."""
+  pass
+
+
+class InvalidBucketError(HistogramError):
+  """Context-carrying exception type for invalid bucket values."""
+
+  def __init__(self, bucket_index, value, buckets):
+    """Raised when a provided index to a bucket is not valid.
+
+    Arguments:
+      - bucket_index: a numeric index.
+      - value: a dict associated with the provided bucket index.
+      - buckets: a list of valid bucket definitions.
+    """
+    super(InvalidBucketError, self).__init__()
+    self.bucket_index = bucket_index
+    self.value = value
+    self.buckets = buckets
+
+  def __str__(self):
+    return 'Invalid Bucket: %s not a valid offset from [0..%s); value = %r' % (
+        self.bucket_index, len(self.buckets), self.value)
+
+
 class Range(object):
   __slots__ = '_empty', '_min', '_max'
 
@@ -707,6 +733,9 @@ class Histogram(object):
       else:
         for i, bin_dct in dct['allBins'].items():
           i = int(i)
+          # Check whether i is a valid index before using it as a list index.
+          if i >= len(hist._bins) or i < 0:
+            raise InvalidBucketError(i, bin_dct, hist._bins)
           hist._bins[i] = HistogramBin(hist._bins[i].range)
           hist._bins[i].FromDict(bin_dct)
     if 'running' in dct:

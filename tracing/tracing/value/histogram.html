@@ -298,6 +298,13 @@ tr.exportTo('tr.v', function() {
           }
         } else {
           for (const [i, binDict] of Object.entries(dict.allBins)) {
+            // Check whether i is a valid index before indexing it.
+            if (i >= hist.allBins.length || i < 0) {
+              throw new Error(
+                  'Invalid index "' + i +
+                  '" out of bounds of [0..' + hist.allBins.length + ')');
+            }
+
             hist.allBins[i] = new HistogramBin(hist.allBins[i].range);
             hist.allBins[i].fromDict(binDict);
           }

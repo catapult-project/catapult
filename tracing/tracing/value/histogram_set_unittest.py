@@ -10,6 +10,7 @@ from tracing.value.diagnostics import date_range
 from tracing.value.diagnostics import diagnostic_ref
 from tracing.value.diagnostics import generic_set
 
+
 class HistogramSetUnittest(unittest.TestCase):
 
   def testGetSharedDiagnosticsOfType(self):

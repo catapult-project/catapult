@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import copy
 import json
 import math
 import unittest
@@ -239,6 +240,38 @@ class HistogramUnittest(unittest.TestCase):
     self.assertEqual(343, len(ToJSON(d)))
     self.assertIsInstance(d['allBins'], list)
     self.assertDeepEqual(d, histogram.Histogram.FromDict(d).AsDict())
+
+    # Test the case where 'allBins' isn't a list and we're attempting to index
+    # an invalid bucket.
+    e = copy.deepcopy(d)
+    e['allBins'] = {'1000': {}}
+    with self.assertRaises(histogram.InvalidBucketError):
+      _ = histogram.Histogram.FromDict(e).AsDict()
+
+  def testManyBinsRoundtrip(self):
+    # In this test we want to create a histogram which will have less than half
+    # of the bins populated, so we can force the bin compaction (instead of a
+    # list of bins, use a dictionary of bins) to do the conversion. We ensure
+    # that the dict key ordering is not going to be an issue in the
+    # serialisation and deserialisation roundtrip.
+    hist = histogram.Histogram('', 'unitless', self.TEST_BOUNDARIES)
+
+    # 400 allows us to fit the elements in approximately log10(10000) bins which
+    # should give us more empty bins than there are non-empty bins. We also add
+    # samples from either end of the range, by treating odd numbers in the
+    # beginning and even numbers as negative offsets from the max of the range
+    # (10,000).
+    for sample in xrange(0, 400):
+      hist.AddSample(sample if sample % 2 else 10000 - sample)
+
+    d = hist.AsDict()
+    self.assertIsInstance(d['allBins'], dict)
+    self.assertEqual(400, hist.num_values)
+    self.assertEqual((len(hist.bins) / 2) - 1, len(d['allBins']))
+
+    # Ensure that we can reconstitute a histogram properly from a dict.
+    e = histogram.Histogram.FromDict(d)
+    self.assertEqual(d, e.AsDict())
 
   def testBasic(self):
     hist = histogram.Histogram('', 'unitless', self.TEST_BOUNDARIES)

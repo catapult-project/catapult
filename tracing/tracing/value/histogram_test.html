@@ -277,6 +277,44 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(320, JSON.stringify(dict).length);
     assert.lengthOf(dict.allBins, 12);
     assert.deepEqual(dict, tr.v.Histogram.fromDict(dict).asDict());
+
+    // Test the case where 'allBins' isn't a list and we're attempting to index
+    // an invalid bucket. We start with a deep copy of the dict.
+    const e = JSON.parse(JSON.stringify(dict));
+    e.allBins = {1000: {}};
+    assert.throws(() => { tr.v.Histogram.fromDict(e).asDict(); }, {
+      name: 'Error',
+      message: /Invalid index/,
+    });
+  });
+
+  test('manyBinsRoundtrip', function() {
+    // In this test we want to create a histogram which will have less than half
+    // of the bins populated, so we can force the bin compaction (instead of a
+    // list of bind, use an object mapping bins to values) to do the conversion.
+    // We ensure that the object key ordering is not going to be an issue in the
+    // serialisation and deserialisation rundtrip.
+    const hist = new tr.v.Histogram('', unitlessNumber,
+        tr.v.HistogramBinBoundaries.createLinear(0, 1000, 10));
+
+    // Adding 400 samples allows us to fit the elements in approximately
+    // log10(1,000) bins which should give us more empty bins than there are
+    // non-empty bins. We also add samples from either end of the range, by
+    // treating odd numbers in the beginning and even numbers as negative
+    // offsets from the max of the range (1,000).
+    const samples = 400;
+    for (let sample = 0; sample < samples; ++sample) {
+      hist.addSample((sample % 2) ? sample : 10000 - sample);
+    }
+
+    const d = hist.asDict();
+    assert.strictEqual(samples, hist.numValues);
+    assert.strictEqual((hist.allBins.length / 2) - 1,
+        Object.entries(d.allBins).length);
+
+    // Ensure that we can reconstitute a histogram properly from a dict.
+    const e = tr.v.Histogram.fromDict(d);
+    assert.deepEqual(hist, e);
   });
 
   test('significance', function() {
