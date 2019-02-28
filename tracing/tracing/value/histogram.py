@@ -519,16 +519,28 @@ class HistogramBin(object):
         self._diagnostic_maps.append(DiagnosticMap.FromDict(
             diagnostic_map_dict))
 
+  def AsDict(self):
+    if len(self._diagnostic_maps) == 0:
+      return [self.count]
+    return [self.count, [d.AsDict() for d in self._diagnostic_maps]]
+
   def Serialize(self, serializer):
     if len(self._diagnostic_maps) == 0:
       return self.count
     return [self.count] + [
         [None] + d.Serialize(serializer) for d in self._diagnostic_maps]
 
-  def AsDict(self):
-    if len(self._diagnostic_maps) == 0:
-      return [self.count]
-    return [self.count, [d.AsDict() for d in self._diagnostic_maps]]
+  def Deserialize(self, data, deserializer):
+    if not isinstance(data, list):
+      self._count = data
+      return
+    self._count = data[0]
+    for sample in data[1:]:
+      # TODO(benjhayden): class Sample
+      if not isinstance(sample, list):
+        continue
+      self._diagnostic_maps.append(DiagnosticMap.Deserialize(
+          sample[1:], deserializer))
 
 
 # TODO(#3814) Presubmit to compare with unit.html.
@@ -714,6 +726,82 @@ class Histogram(object):
   @property
   def diagnostics(self):
     return self._diagnostics
+
+  def _DeserializeStatistics(self):
+    statistics_names = self.diagnostics.get(
+        reserved_infos.STATISTICS_NAMES.name)
+    if not statistics_names:
+      return
+    for stat_name in statistics_names:
+      if stat_name.startswith('pct_'):
+        percent = PercentFromString(stat_name[4:])
+        self._summary_options.get('percentile').append(percent)
+      elif stat_name.startswith('ipr_'):
+        lower = PercentFromString(stat_name[4:7])
+        upper = PercentFromString(stat_name[8:])
+        self._summary_options.get('iprs').push(
+            Range.FromExplicitRange(lower, upper))
+    for stat_name in self._summary_options.keys():
+      if stat_name in ['percentile', 'iprs']:
+        continue
+      self._summary_options[stat_name] = stat_name in statistics_names
+
+  def _DeserializeBin(self, i, bin_data, deserializer):
+    # Copy HistogramBin on write, share the rest with the other
+    # Histograms that use the same HistogramBinBoundaries.
+    self._bins[i] = HistogramBin(self._bins[i].range)
+    self._bins[i].Deserialize(bin_data, deserializer)
+
+    # TODO(benjhayden): Remove after class Sample.
+    if not isinstance(bin_data, list):
+      return
+    for sample in bin_data[1:]:
+      if isinstance(sample, list):
+        sample = sample[0]
+      self._sample_values.append(sample)
+
+
+  def _DeserializeBins(self, bins, deserializer):
+    if isinstance(bins, list):
+      for i, bin_data in enumerate(bins):
+        self._DeserializeBin(i, bin_data, deserializer)
+    else:
+      for i, bin_data in bins.items():
+        self._DeserializeBin(int(i), bin_data, deserializer)
+
+  @staticmethod
+  def Deserialize(data, deserializer):
+    name, unit, boundaries, diagnostics, running, bins, nan_bin = data
+    name = deserializer.GetObject(name)
+    boundaries = HistogramBinBoundaries.FromDict(
+        deserializer.GetObject(boundaries))
+    hist = Histogram(name, unit, boundaries)
+
+    hist._diagnostics.DeserializeAdd(diagnostics, deserializer)
+
+    desc = hist.diagnostics.get(reserved_infos.DESCRIPTION.name)
+    if desc:
+      hist.description = list(desc)[0]
+
+    hist._DeserializeStatistics()
+
+    if running:
+      hist._running = RunningStatistics.FromDict(running)
+
+    if bins:
+      hist._DeserializeBins(bins, deserializer)
+
+    if isinstance(nan_bin, list):
+      # TODO(benjhayden): hist._nan_bin
+      hist._num_nans = nan_bin[0]
+      for sample in nan_bin[1:]:
+        # TODO(benjhayden): class Sample
+        hist._nan_diagnostic_maps.append(
+            DiagnosticMap.Deserialize(sample[1:], deserializer))
+    elif nan_bin:
+      hist._num_nans = nan_bin
+
+    return hist
 
   @staticmethod
   def FromDict(dct):

@@ -104,6 +104,20 @@ tr.exportTo('tr.v', function() {
       this.count += other.count;
     }
 
+    deserialize(data, deserializer) {
+      if (!(data instanceof Array)) {
+        this.count = data;
+        return;
+      }
+      this.count = data[0];
+      for (const sample of data.slice(1)) {
+        // TODO(benjhayden): class Sample
+        if (!(sample instanceof Array)) continue;
+        this.diagnosticMaps.push(tr.v.d.DiagnosticMap.deserialize(
+            sample.slice(1), deserializer));
+      }
+    }
+
     fromDict(dict) {
       this.count = dict[0];
       if (dict.length > 1) {
@@ -277,6 +291,107 @@ tr.exportTo('tr.v', function() {
 
     get name() {
       return this.name_;
+    }
+
+    deserializeStatistics_() {
+      const statisticsNames = this.diagnostics.get(
+          tr.v.d.RESERVED_NAMES.STATISTICS_NAMES);
+      if (!statisticsNames) return;
+      for (const statName of statisticsNames) {
+        if (statName.startsWith('pct_')) {
+          const percent = percentFromString(statName.substr(4));
+          this.summaryOptions.get('percentile').push(percent);
+        } else if (statName.startsWith('ipr_')) {
+          const lower = percentFromString(statName.substr(4, 3));
+          const upper = percentFromString(statName.substr(8));
+          this.summaryOptions.get('iprs').push(
+              tr.b.math.Range.fromExplicitRange(lower, upper));
+        } else if (statName.startsWith('ci_')) {
+          const percent = percentFromString(
+              statName.replace('_lower', '').replace('_upper', '').substr(3));
+          if (!this.summaryOptions.get('ci').includes(percent)) {
+            this.summaryOptions.get('ci').push(percent);
+          }
+        }
+      }
+      for (const statName of this.summaryOptions.keys()) {
+        if (statName === 'percentile' ||
+            statName === 'iprs' ||
+            statName === 'ci') {
+          continue;
+        }
+        this.summaryOptions.set(statName, statisticsNames.has(statName));
+      }
+    }
+
+    deserializeBin_(i, bin, deserializer) {
+      // Copy HistogramBin on write, share the rest with the other
+      // Histograms that use the same HistogramBinBoundaries.
+      this.allBins[i] = new HistogramBin(this.allBins[i].range);
+      this.allBins[i].deserialize(bin, deserializer);
+
+      // TODO(benjhayden): Remove after class Sample.
+      if (!(bin instanceof Array)) return;
+      for (let sample of bin.slice(1)) {
+        if (sample instanceof Array) {
+          sample = sample[0];
+        }
+        this.sampleValues_.push(sample);
+      }
+    }
+
+    deserializeBins_(bins, deserializer) {
+      if (bins instanceof Array) {
+        for (let i = 0; i < bins.length; ++i) {
+          this.deserializeBin_(i, bins[i], deserializer);
+        }
+      } else {
+        for (const [i, binData] of Object.entries(bins)) {
+          this.deserializeBin_(i, binData, deserializer);
+        }
+      }
+    }
+
+    static deserialize(data, deserializer) {
+      const [name, unit, boundaries, diagnostics, running, bins, nanBin] = data;
+      const hist = new Histogram(
+          deserializer.getObject(name),
+          tr.b.Unit.fromJSON(unit),
+          HistogramBinBoundaries.fromDict(deserializer.getObject(boundaries)));
+
+      hist.diagnostics.deserializeAdd(diagnostics, deserializer);
+
+      const description = hist.diagnostics.get(
+          tr.v.d.RESERVED_NAMES.DESCRIPTION);
+      if (description && description.length) {
+        hist.description = [...description][0];
+      }
+
+      hist.deserializeStatistics_();
+
+      if (running) {
+        hist.running_ = tr.b.math.RunningStatistics.fromDict(running);
+      }
+
+      if (bins) {
+        hist.deserializeBins_(bins, deserializer);
+      }
+
+      if (nanBin) {
+        // TODO(benjhayden): hist.nanBin
+        if (!(nanBin instanceof Array)) {
+          hist.numNans = nanBin;
+        } else {
+          hist.numNans = nanBin[0];
+          for (const sample of nanBin.slice(1)) {
+            if (!(sample instanceof Array)) continue;
+            hist.nanDiagnosticMaps.push(tr.v.d.DiagnosticMap.deserialize(
+                sample.slice(1), deserializer));
+          }
+        }
+      }
+
+      return hist;
     }
 
     static fromDict(dict) {

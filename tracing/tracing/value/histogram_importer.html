@@ -98,7 +98,12 @@ tr.exportTo('tr.v', function() {
           if (endIndex < 0) return;
           const json = this.string_.substring(this.dataOffset_, endIndex);
           const dict = JSON.parse(json);
-          this.histograms_.importDict(dict);
+          if (dict instanceof Array) {
+            // TODO(benjhayden): progress callback
+            this.histograms_.importDicts(dict);
+          } else {
+            this.histograms_.importLegacyDict(dict);
+          }
           // Continue after last found newline character.
           this.dataOffset_ = endIndex + 1;
         }

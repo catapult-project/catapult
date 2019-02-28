@@ -19,13 +19,13 @@ tr.b.unittest.testSuite(function() {
 
   test('assertType', function() {
     const hs = new tr.v.HistogramSet();
-    assert.throws(() => hs.importDict({type: ''}),
+    assert.throws(() => hs.importLegacyDict({type: ''}),
         Error, 'Unrecognized shared diagnostic type ');
   });
 
   test('ignoreTagMap', function() {
     const hs = new tr.v.HistogramSet();
-    hs.importDict({type: 'TagMap'});
+    hs.importLegacyDict({type: 'TagMap'});
   });
 
   test('importDicts', function() {

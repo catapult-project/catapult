@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/histogram_deserializer.html">
 <link rel="import" href="/tracing/value/histogram_grouping.html">
 
 <script>
@@ -150,14 +151,29 @@ tr.exportTo('tr.v', function() {
       return this.sharedDiagnosticsByGuid_.get(guid);
     }
 
+    deserialize(data) {
+      for (const hist of tr.v.HistogramDeserializer.deserialize(data)) {
+        this.addHistogram(hist);
+      }
+    }
+
     /**
      * Convert dicts to either Histograms or shared Diagnostics.
      *
      * @param {!Object} dicts
      */
     importDicts(dicts) {
+      // The new HistogramSet JSON format is an array of at least 3 arrays.
+      if ((dicts instanceof Array) &&
+          (dicts.length > 2) &&
+          (dicts[0] instanceof Array)) {
+        this.deserialize(dicts);
+        return;
+      }
+
+      // The original HistogramSet JSON format was a flat array of objects.
       for (const dict of dicts) {
-        this.importDict(dict);
+        this.importLegacyDict(dict);
       }
     }
 
@@ -166,7 +182,7 @@ tr.exportTo('tr.v', function() {
      *
      * @param {!Object} dict
      */
-    importDict(dict) {
+    importLegacyDict(dict) {
       if (dict.type !== undefined) {
         // TODO(benjhayden): Forget about TagMaps in 2019Q2.
         if (dict.type === 'TagMap') return;

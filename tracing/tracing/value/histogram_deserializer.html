@@ -12,6 +12,12 @@ found in the LICENSE file.
 
 tr.exportTo('tr.v', function() {
   class HistogramDeserializer {
+    static deserialize(data) {
+      const deserializer = new HistogramDeserializer(data[0], data[1]);
+      return data.slice(2).map(datum =>
+        tr.v.Histogram.deserialize(datum, deserializer));
+    }
+
     constructor(objects, diagnostics) {
       this.objects_ = objects;
       this.diagnostics_ = [];

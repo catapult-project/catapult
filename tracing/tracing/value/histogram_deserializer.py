@@ -2,7 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from tracing.value import histogram
 from tracing.value.diagnostics import diagnostic
+
+
+def Deserialize(data):
+  deserializer = HistogramDeserializer(data[0], data[1])
+  return {histogram.Histogram.Deserialize(datum, deserializer)
+          for datum in data[2:]}
 
 
 class HistogramDeserializer(object):
