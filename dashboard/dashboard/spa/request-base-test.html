@@ -5,12 +5,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <link rel="import" href="/dashboard/spa/request-base.html">
+<script type="module" src="/dashboard/spa/result-channel-sender.js"></script>
 
-<script>
+<script type="module">
 'use strict';
+import ResultChannelSender from './result-channel-sender.js';
+
 suite('RequestBase', function() {
   let originalFetch;
   let originalAuthorizationHeaders;
@@ -31,16 +34,16 @@ suite('RequestBase', function() {
         return '/url';
       }
 
-      postProcess_(response) {
-        return response.map(x => x * x);
+      postProcess_(response, isFromChannel = false) {
+        return response.map(x => (isFromChannel ? x : (x * x)));
       }
     }(options);
   }
 
   test('getAuthorizationHeaders', async() => {
-    window.getAuthorizationHeaders = async() => [
-      ['Authorization', 'test Authorization'],
-    ];
+    window.getAuthorizationHeaders = async() => {
+      return {Authorization: 'test Authorization'};
+    };
     window.fetch = async(url, options) => {
       assert.strictEqual('test Authorization',
           options.headers.get('Authorization'));
@@ -85,6 +88,31 @@ suite('RequestBase', function() {
     assert.strictEqual(request.response, request.response);
     const response = await request.response;
     assert.deepEqual([1], response);
+  });
+
+  test('reader', async function() {
+    window.fetch = async(url, options) => {
+      return {
+        async json() {
+          return [3, 4, 5];
+        }
+      };
+    };
+
+    const request = new TestRequest({});
+    const reader = request.reader();
+
+    const sender = new ResultChannelSender(request.channelName);
+    sender.send((async function* () {
+      yield [6, 7, 8];
+      yield [9, 10, 11];
+    })());
+
+    const results = [];
+    for await (const result of reader) {
+      results.push(result);
+    }
+    assert.deepEqual(results, [[9, 16, 25], [6, 7, 8], [9, 10, 11]]);
   });
 });
 </script>

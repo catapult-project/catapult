@@ -38,6 +38,7 @@ tr.exportTo('cp', () => {
     if (datum.std) datum.std *= conversionFactor;
     if (datum.sum) datum.sum *= conversionFactor;
 
+    if (datum.alert) datum.alert = cp.AlertsSection.transformAlert(datum.alert);
     if (datum.diagnostics) {
       datum.diagnostics = tr.v.d.DiagnosticMap.fromDict(datum.diagnostics);
     }
@@ -80,7 +81,7 @@ tr.exportTo('cp', () => {
       return TimeseriesRequest.URL;
     }
 
-    postProcess_(response) {
+    postProcess_(response, isFromChannel = false) {
       if (!response) return;
       let unit = tr.b.Unit.byJSONName[response.units];
       let conversionFactor = 1;
@@ -93,8 +94,15 @@ tr.exportTo('cp', () => {
           unit = tr.b.Unit.byName.unitlessNumber;
         }
       }
+
+      // The backend returns denormalized (tabular) data, but
+      // TimeseriesCacheRequest yields normalized (objects) data for speed.
+      // Rely on TimeseriesCacheRequest to merge data from network requests in
+      // with previous data, so this code does not need to worry about merging
+      // across levels of detail.
       return response.data.map(row => transformDatum(
-          cp.normalize(this.columns_, row), unit, conversionFactor));
+          (isFromChannel ? row : cp.normalize(this.columns_, row)),
+          unit, conversionFactor));
     }
   }
 
