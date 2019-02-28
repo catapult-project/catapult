@@ -341,7 +341,6 @@ function areValidConstants(receivedConstants) {
       typeof(receivedConstants.loadFlag) === 'object' &&
       typeof(receivedConstants.netError) === 'object' &&
       typeof(receivedConstants.addressFamily) === 'object' &&
-      typeof(receivedConstants.timeTickOffset) === 'string' &&
       isNetLogNumber(receivedConstants.timeTickOffset) &&
       typeof(receivedConstants.logFormatVersion) === 'number';
 }
