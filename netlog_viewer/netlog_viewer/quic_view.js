@@ -61,6 +61,7 @@ var QuicView = (function() {
   QuicView.STATUS_DISABLE_BIDIRECTIONAL_STREAMS =
       'quic-view-disable-bidirectional-streams';
   QuicView.STATUS_RACE_CERT_VERIFICATION = 'quic-view-race-cert-verification';
+  QuicView.STATUS_RACE_STALE_DNS_ON_CONNECTION = 'quic-view-race-stale-dns-on-connection';
   QuicView.STATUS_ESTIMATE_INITIAL_RTT = 'quic-view-estimate-initial-rtt';
   QuicView.STATUS_FORCE_HOL_BLOCKING = 'quic-view-force-hol-blocking';
   QuicView.STATUS_MAX_SERVER_CONFIGS_STORED_IN_PROPERTIES =
@@ -133,6 +134,8 @@ var QuicView = (function() {
           !!quicInfo.disable_bidirectional_streams;
       $(QuicView.STATUS_RACE_CERT_VERIFICATION).textContent =
           !!quicInfo.race_cert_verification;
+      $(QuicView.STATUS_RACE_STALE_DNS_ON_CONNECTION).textContent =
+          !!quicInfo.race_stale_dns_on_connection;
       $(QuicView.STATUS_ESTIMATE_INITIAL_RTT).textContent =
           !!quicInfo.estimate_initial_rtt;
       $(QuicView.STATUS_FORCE_HOL_BLOCKING).textContent =
