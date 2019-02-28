@@ -208,6 +208,7 @@ class ChartJsonTest(unittest.TestCase):
   def testAsChartDictWithTraceValuesThatHasTirLabel(self):
     v = trace.TraceValue(self._story_set[0],
                          trace_data.CreateTraceDataFromRawData([{'test': 1}]))
+    v.SerializeTraceData()
     v.tir_label = 'background'
     results = _MakePageTestResults()
     results.WillRunPage(self._story_set[0])
