@@ -285,7 +285,6 @@ def RunTests(args):
   # all file paths in test_class_expectations-files must be absolute
   assert all(os.path.isabs(path) for path in test_class_expectations_files)
   options.expectations_files.extend(test_class_expectations_files)
-  not_using_typ_expectation = len(options.expectations_files) == 0
 
   # Create test context.
   context = browser_test_context.TypTestContext()
@@ -353,35 +352,7 @@ def RunTests(args):
   except KeyboardInterrupt:
     print >> sys.stderr, "interrupted, exiting"
     ret = 130
-  finally:
-    if (options.write_full_results_to and
-        os.path.exists(options.write_full_results_to) and
-        not_using_typ_expectation):
-      # Set expectation of all skipped tests to skip to keep the test behavior
-      # the same as when typ doesn't support test expectation.
-      # (also see crbug.com/904019) for why this work around is needed)
-      # TODO(crbug.com/698902): remove this once gpu tests are converted to use
-      # typ's expectation.
-      _SetSkippedTestExpectationsToSkip(options.write_full_results_to)
   return ret
-
-
-def _SetSkippedTestExpectationsToSkip(full_results_file_path):
-  with open(full_results_file_path) as f:
-    results = json.load(f)
-  root_node = results['tests']
-  queue = [root_node]
-  while queue:
-    curr_node = queue.pop()
-    if 'actual' in curr_node:
-      if curr_node['actual'] == 'SKIP':
-        curr_node['expected'] = 'SKIP'
-    else:
-      for v in curr_node.values():
-        queue.append(v)
-  with open(full_results_file_path, 'w') as f:
-    json.dump(results, f, indent=2)
-
 
 def _SetUpProcess(child, context):
   args = context.finder_options
