@@ -298,7 +298,6 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           logging.error('Too many failures. Aborting.')
           return
   finally:
-    results.ComputeTimelineBasedMetrics()
     results.PopulateHistogramSet()
 
     for name, diag in device_info_diags.iteritems():

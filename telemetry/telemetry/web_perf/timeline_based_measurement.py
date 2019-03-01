@@ -3,11 +3,16 @@
 # found in the LICENSE file.
 import collections
 import logging
+import os
+import time
+
+from tracing.metrics import metric_runner
 
 from telemetry.timeline import chrome_trace_category_filter
 from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_config
 from telemetry.value import trace
+from telemetry.value import common_value_helpers
 from telemetry.web_perf.metrics import timeline_based_metric
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_interaction_record as tir_module
@@ -266,25 +271,24 @@ class TimelineBasedMeasurement(story_test.StoryTest):
         file_path=results.telemetry_info.trace_local_path,
         remote_path=results.telemetry_info.trace_remote_path,
         upload_bucket=results.telemetry_info.upload_bucket,
-        cloud_url=results.telemetry_info.trace_remote_url,
-        trace_url=results.telemetry_info.trace_url)
+        cloud_url=results.telemetry_info.trace_remote_url)
     results.AddValue(trace_value)
-    if self._tbm_options.GetTimelineBasedMetrics():
-      assert not self._tbm_options.GetLegacyTimelineBasedMetrics(), (
-          'Specifying both TBMv1 and TBMv2 metrics is not allowed.')
-      # The metrics computation happens later asynchronously in
-      # results.ComputeTimelineBasedMetrics().
-      trace_value.SetTimelineBasedMetrics(
-          self._tbm_options.GetTimelineBasedMetrics())
-    else:
-      # Run all TBMv1 metrics if no other metric is specified
-      # (legacy behavior)
-      if not self._tbm_options.GetLegacyTimelineBasedMetrics():
-        raise Exception(
-            'Please specify the TBMv1 metrics you are interested in '
-            'explicitly.')
-      trace_value.SerializeTraceData()
-      self._ComputeLegacyTimelineBasedMetrics(results, trace_result)
+
+    try:
+      if self._tbm_options.GetTimelineBasedMetrics():
+        assert not self._tbm_options.GetLegacyTimelineBasedMetrics(), (
+            'Specifying both TBMv1 and TBMv2 metrics is not allowed.')
+        self._ComputeTimelineBasedMetrics(results, trace_value)
+      else:
+        # Run all TBMv1 metrics if no other metric is specified
+        # (legacy behavior)
+        if not self._tbm_options.GetLegacyTimelineBasedMetrics():
+          raise Exception(
+              'Please specify the TBMv1 metrics you are interested in '
+              'explicitly.')
+        self._ComputeLegacyTimelineBasedMetrics(results, trace_result)
+    finally:
+      trace_result.CleanUpAllTraces()
 
   def DidRunStory(self, platform, results):
     """Clean up after running the story."""
@@ -296,8 +300,41 @@ class TimelineBasedMeasurement(story_test.StoryTest):
           remote_path=results.telemetry_info.trace_remote_path,
           upload_bucket=results.telemetry_info.upload_bucket,
           cloud_url=results.telemetry_info.trace_remote_url)
-      trace_value.SerializeTraceData()
       results.AddValue(trace_value)
+
+  def _ComputeTimelineBasedMetrics(self, results, trace_value):
+    metrics = self._tbm_options.GetTimelineBasedMetrics()
+    if (self._tbm_options.config.chrome_trace_config.HasUMAHistograms() and
+        'umaMetric' not in metrics):
+      raise Exception('UMA histograms are enabled but umaMetric is not used')
+
+    extra_import_options = {
+        'trackDetailedModelStats': True
+    }
+    trace_size_in_mib = os.path.getsize(trace_value.filename) / (2 ** 20)
+    # Bails out on trace that are too big. See crbug.com/812631 for more
+    # details.
+    if trace_size_in_mib > 400:
+      results.Fail('Trace size is too big: %s MiB' % trace_size_in_mib)
+      return
+
+    logging.info('Starting to compute metrics on trace')
+    start = time.time()
+    mre_result = metric_runner.RunMetric(
+        trace_value.filename, metrics, extra_import_options,
+        report_progress=False, canonical_url=results.telemetry_info.trace_url)
+    logging.info('Processing resulting traces took %.3f seconds' % (
+        time.time() - start))
+    page = results.current_page
+
+    for f in mre_result.failures:
+      results.Fail(f.stack)
+
+    histogram_dicts = mre_result.pairs.get('histograms', [])
+    results.ImportHistogramDicts(histogram_dicts)
+
+    for d in mre_result.pairs.get('scalars', []):
+      results.AddValue(common_value_helpers.TranslateScalarValue(d, page))
 
   def _ComputeLegacyTimelineBasedMetrics(self, results, trace_result):
     model = model_module.TimelineModel(trace_result)

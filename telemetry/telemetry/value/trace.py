@@ -17,30 +17,22 @@ from telemetry import value as value_module
 class TraceValue(value_module.Value):
   def __init__(self, page, trace_data, important=False, description=None,
                file_path=None, remote_path=None, upload_bucket=None,
-               cloud_url=None, trace_url=None):
+               cloud_url=None):
     """A value that contains trace data and knows how to output it.
 
     Adding TraceValues and outputting as JSON will produce a directory full of
     HTML files called trace_files. Outputting as chart JSON will also produce
     an index, files.html, linking to each of these files.
-
-    Args:
-      cloud_url: The URL to upload the data to. This can be None when not
-                 uploading data to the cloud.
-      trace_url: The URL to the trace file (typically in the local file system).
     """
     super(TraceValue, self).__init__(
         page, name='trace', units='', important=important,
         description=description, tir_label=None, grouping_keys=None)
-    self._trace_data = trace_data
-    self._temp_file = None
+    self._temp_file = self._GetTempFileHandle(trace_data)
     self._file_path = file_path
     self._remote_path = remote_path
     self._upload_bucket = upload_bucket
     self._cloud_url = cloud_url
     self._serialized_file_handle = None
-    self._timeline_based_metrics = None
-    self._trace_url = trace_url
 
   @property
   def value(self):
@@ -48,10 +40,6 @@ class TraceValue(value_module.Value):
       return self._cloud_url
     elif self._serialized_file_handle:
       return self._serialized_file_handle.GetAbsPath()
-
-  def SerializeTraceData(self):
-    if not self._temp_file:
-      self._temp_file = self._GetTempFileHandle(self._trace_data)
 
   def _GetTempFileHandle(self, trace_data):
     tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
@@ -69,20 +57,12 @@ class TraceValue(value_module.Value):
       page_name = 'None'
     return 'TraceValue(%s, %s)' % (page_name, self.name)
 
-  def SetTimelineBasedMetrics(self, metrics):
-    assert not self._temp_file, 'Trace data should not already be serialized.'
-    self._timeline_based_metrics = metrics
-
   def CleanUp(self):
     """Cleans up tempfile after it is no longer needed.
 
     A cleaned up TraceValue cannot be used for further operations. CleanUp()
     may be called more than once without error.
     """
-    if self._trace_data:
-      self._trace_data.CleanUpAllTraces()
-      self._trace_data = None
-
     if self._temp_file is None:
       return
     os.remove(self._temp_file.GetAbsPath())
@@ -96,23 +76,10 @@ class TraceValue(value_module.Value):
 
   @property
   def cleaned_up(self):
-    return self._temp_file is None and self._trace_data is None
-
-  @property
-  def is_serialized(self):
-    return self._temp_file is not None
-
-  @property
-  def trace_url(self):
-    return self._trace_url
-
-  @property
-  def timeline_based_metric(self):
-    return self._timeline_based_metrics
+    return self._temp_file is None
 
   @property
   def filename(self):
-    assert self._temp_file, "Trace data must be serialized."
     return self._temp_file.GetAbsPath()
 
   @staticmethod

@@ -82,7 +82,6 @@ class ValueTest(TestBase):
           upload_bucket=trace.cloud_storage.PUBLIC_BUCKET,
           remote_path='a.html',
           cloud_url='http://example.com/a.html')
-      v.SerializeTraceData()
       fh = v.Serialize()
       cloud_url = v.UploadToCloud()
       d = v.AsDict()
@@ -104,7 +103,6 @@ class ValueTest(TestBase):
           upload_bucket=trace.cloud_storage.PUBLIC_BUCKET,
           remote_path='a.html',
           cloud_url='http://example.com/a.html')
-      v.SerializeTraceData()
       cloud_url = v.UploadToCloud()
       d = v.AsDict()
       self.assertEqual(d['cloud_url'], cloud_url)
@@ -124,7 +122,6 @@ class ValueTest(TestBase):
     }
     data = trace_data.CreateTraceDataFromRawData(raw_data)
     v = trace.TraceValue(None, data)
-    v.SerializeTraceData()
     tempdir = tempfile.mkdtemp()
     temp_path = os.path.join(tempdir, 'test.json')
     chrome_seen = False
