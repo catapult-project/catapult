@@ -27,6 +27,7 @@ class TraceValue(value_module.Value):
     super(TraceValue, self).__init__(
         page, name='trace', units='', important=important,
         description=description, tir_label=None, grouping_keys=None)
+    self._trace_data = trace_data
     self._temp_file = self._GetTempFileHandle(trace_data)
     self._file_path = file_path
     self._remote_path = remote_path
@@ -40,6 +41,10 @@ class TraceValue(value_module.Value):
       return self._cloud_url
     elif self._serialized_file_handle:
       return self._serialized_file_handle.GetAbsPath()
+
+  def SerializeTraceData(self):
+    if not self._temp_file:
+      self._temp_file = self._GetTempFileHandle(self._trace_data)
 
   def _GetTempFileHandle(self, trace_data):
     tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
