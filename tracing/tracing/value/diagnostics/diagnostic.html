@@ -149,13 +149,6 @@ tr.exportTo('tr.v.d', function() {
       throw new Error(
           `Please define ${constructor.name}.serialize(serializer)`);
     }
-
-    if (!(constructor.prototype.serialize instanceof Function) ||
-        (constructor.prototype.serialize === Diagnostic.prototype.serialize) ||
-        (constructor.prototype.serialize.length !== 1)) {
-      throw new Error(
-          `Please define ${constructor.name}.serialize(serializer)`);
-    }
   });
 
   return {
