@@ -134,6 +134,19 @@ class Benchmark(command_line.Command):
   def HasTraceRerunDebugOption(cls):
     return False
 
+  @classmethod
+  def GetSupportedPlatformNames(cls, supported_platforms):
+    """Returns a list of platforms supported by this benchmark.
+
+    Returns:
+      A set of names of supported platforms. The supported platforms are a list
+      of strings that would match possible values from platform.GetOsName().
+    """
+    result = set()
+    for p in supported_platforms:
+      result.update(p.GetSupportedPlatformNames())
+    return frozenset(result)
+
   def GetTraceRerunCommands(self):
     if self.HasTraceRerunDebugOption():
       return [['Debug Trace', '--rerun-with-debug-trace']]
