@@ -4,6 +4,8 @@
 */
 'use strict';
 tr.exportTo('cp', () => {
+  const NOTIFICATION_MS = 5000;
+
   class ChromeperfApp extends cp.ElementBase {
     async ready() {
       super.ready();
@@ -24,7 +26,7 @@ tr.exportTo('cp', () => {
     }
 
     async onReopenClosedAlerts_(event) {
-      // TODO (#4461)
+      await this.dispatch('reopenClosedAlerts', this.statePath);
     }
 
     async onReopenClosedChart_() {
@@ -36,11 +38,18 @@ tr.exportTo('cp', () => {
     }
 
     async onNewAlertsSection_(event) {
-      // TODO (#4461)
+      await this.dispatch({
+        type: ChromeperfApp.reducers.newAlerts.name,
+        statePath: this.statePath,
+      });
     }
 
     async onNewChart_(event) {
       // TODO (#4461)
+    }
+
+    async onCloseAlerts_(event) {
+      await this.dispatch('closeAlerts', this.statePath, event.model.id);
     }
 
     async onCloseAllCharts_(event) {
@@ -59,6 +68,9 @@ tr.exportTo('cp', () => {
   ChromeperfApp.State = {
     enableNav: options => true,
     isLoading: options => true,
+    alertsSectionIds: options => [],
+    alertsSectionsById: options => {return {};},
+    closedAlertsIds: options => [],
     // App-route sets |route|, and redux sets |reduxRoutePath|.
     // ChromeperfApp translates between them.
     // https://stackoverflow.com/questions/41440316
@@ -103,6 +115,36 @@ tr.exportTo('cp', () => {
         }));
       },
 
+    closeAlerts: (statePath, sectionId) => async(dispatch, getState) => {
+      dispatch({
+        type: ChromeperfApp.reducers.closeAlerts.name,
+        statePath,
+        sectionId,
+      });
+
+      await cp.timeout(NOTIFICATION_MS);
+      const state = Polymer.Path.get(getState(), statePath);
+      if (!state.closedAlertsIds.includes(sectionId)) {
+        // This alerts section was reopened.
+        return;
+      }
+      dispatch({
+        type: ChromeperfApp.reducers.forgetClosedAlerts.name,
+        statePath,
+      });
+    },
+
+    reopenClosedAlerts: statePath => async(dispatch, getState) => {
+      const state = Polymer.Path.get(getState(), statePath);
+      dispatch(Redux.UPDATE(statePath, {
+        alertsSectionIds: [
+          ...state.alertsSectionIds,
+          ...state.closedAlertsIds,
+        ],
+        closedAlertsIds: [],
+      }));
+    },
+
     userUpdate: statePath => async(dispatch, getState) => {
       const profile = await window.getUserProfileAsync();
       dispatch(Redux.UPDATE('', {
@@ -120,6 +162,56 @@ tr.exportTo('cp', () => {
             VULCANIZED_TIMESTAMP.getTime() - (1000 * 60 * 60 * 7))) + ' PT';
       }
       return cp.buildState(ChromeperfApp.State, {vulcanizedDate});
+    },
+
+    newAlerts: (state, {options}, rootState) => {
+      for (const alerts of Object.values(state.alertsSectionsById)) {
+        // If the user mashes the ALERTS button, don't open copies of the same
+        // alerts section.
+        if (!cp.AlertsSection.matchesOptions(alerts, options)) continue;
+        if (state.alertsSectionIds.includes(alerts.sectionId)) return state;
+        return {
+          ...state,
+          closedAlertsIds: [],
+          alertsSectionIds: [
+            alerts.sectionId,
+            ...state.alertsSectionIds,
+          ],
+        };
+      }
+
+      const sectionId = tr.b.GUID.allocateSimple();
+      const newSection = cp.AlertsSection.buildState({sectionId, ...options});
+      const alertsSectionsById = {...state.alertsSectionsById};
+      alertsSectionsById[sectionId] = newSection;
+      state = {...state};
+      const alertsSectionIds = Array.from(state.alertsSectionIds);
+      alertsSectionIds.push(sectionId);
+      return {...state, alertsSectionIds, alertsSectionsById};
+    },
+
+    closeAlerts: (state, {sectionId}, rootState) => {
+      const sectionIdIndex = state.alertsSectionIds.indexOf(sectionId);
+      const alertsSectionIds = [...state.alertsSectionIds];
+      alertsSectionIds.splice(sectionIdIndex, 1);
+      let closedAlertsIds = [];
+      if (!cp.AlertsSection.isEmpty(
+          state.alertsSectionsById[sectionId])) {
+        closedAlertsIds = [sectionId];
+      }
+      return {...state, alertsSectionIds, closedAlertsIds};
+    },
+
+    forgetClosedAlerts: (state, action, rootState) => {
+      const alertsSectionsById = {...state.alertsSectionsById};
+      for (const id of state.closedAlertsIds) {
+        delete alertsSectionsById[id];
+      }
+      return {
+        ...state,
+        alertsSectionsById,
+        closedAlertsIds: [],
+      };
     },
   };
 

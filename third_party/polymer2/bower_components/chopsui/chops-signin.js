@@ -35,6 +35,14 @@
 
   function onAuthLoaded() {
     if (!window.gapi || !gapi.auth2) return;
+    if (window.AUTH_CLIENT_ID === undefined) {
+      window.setTimeout(onAuthLoaded, 20);
+      return;
+    }
+    if (window.AUTH_CLIENT_ID === '') {
+      console.log('Not initializing gapi.auth2.');
+      return;
+    }
     const auth = gapi.auth2.init({
       client_id: window.AUTH_CLIENT_ID,
       scope: 'email',

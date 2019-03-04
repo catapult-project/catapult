@@ -11,17 +11,20 @@ tr.exportTo('cp', () => {
     }
 
     showSheriff_(bug, report) {
-      return ((bug.selectedOptions.length === 0) &&
+      return (bug && report &&
+              (bug.selectedOptions.length === 0) &&
               (report.selectedOptions.length === 0));
     }
 
     showBug_(sheriff, report) {
-      return ((sheriff.selectedOptions.length === 0) &&
+      return (sheriff && report &&
+              (sheriff.selectedOptions.length === 0) &&
               (report.selectedOptions.length === 0));
     }
 
     showReport_(sheriff, bug) {
-      return ((sheriff.selectedOptions.length === 0) &&
+      return (sheriff && bug &&
+              (sheriff.selectedOptions.length === 0) &&
               (bug.selectedOptions.length === 0));
     }
 

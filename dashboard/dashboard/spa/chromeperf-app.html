@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/bower_components/chopsui/chops-header.html">
 <link rel="import" href="/bower_components/chopsui/chops-signin-aware.html">
 <link rel="import" href="/bower_components/chopsui/chops-signin.html">
+<link rel="import" href="/dashboard/spa/alerts-section.html">
 <link rel="import" href="/dashboard/spa/cp-icons.html">
 <link rel="import" href="/dashboard/spa/element-base.html">
 <link rel="import" href="/dashboard/spa/raised-button.html">
@@ -50,6 +51,19 @@ found in the LICENSE file.
 
       chops-signin {
         margin: 4px;
+      }
+
+      alerts-section {
+        display: block;
+        margin: 0;
+        padding: 16px;
+      }
+
+      alerts-section {
+        /* Use full-bleed dividers between sections.
+           https://material.io/guidelines/components/dividers.html
+         */
+        border-bottom: 1px solid var(--primary-color-medium);
       }
 
       cp-toast {
@@ -150,12 +164,24 @@ found in the LICENSE file.
 
     <cp-loading loading$="[[isLoading]]"></cp-loading>
 
-    TODO report-section, alerts-sections, chart-sections
+    TODO report-section, chart-sections
+
+    <template is="dom-repeat" items="[[alertsSectionIds]]" as="id" index-as="idIndex">
+      <alerts-section
+          state-path="[[statePath]].alertsSectionsById.[[id]]"
+          linked-state-path="[[statePath]].linkedChartState"
+          on-require-sign-in="requireSignIn_"
+          on-new-chart="onNewChart_"
+          on-close-section="onCloseAlerts_">
+      </alerts-section>
+    </template>
+
 
     <div class="buttons bottom">
       <span class="spacer"></span>
 
       <raised-button
+          id="new_alerts"
           title="New Alerts section"
           on-click="onNewAlertsSection_">
         <iron-icon icon="cp:alert">
@@ -186,6 +212,13 @@ found in the LICENSE file.
     <span style="color: grey;">
       [[vulcanizedDate]]
     </span>
+
+    <cp-toast opened="[[!isEmpty_(closedAlertsIds)]]">
+      <raised-button id="reopen_alerts" on-click="onReopenClosedAlerts_">
+        <iron-icon icon="cp:alert"></iron-icon>
+        Reopen alerts
+      </raised-button>
+    </cp-toast>
   </template>
 </dom-module>
 <script src="/dashboard/spa/chromeperf-app.js"></script>

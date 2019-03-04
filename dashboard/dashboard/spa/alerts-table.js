@@ -27,7 +27,7 @@ tr.exportTo('cp', () => {
 
     allTriaged_(alertGroups, showingTriaged) {
       if (showingTriaged) return alertGroups.length === 0;
-      return alertGroups.filter(group =>
+      return (alertGroups || []).filter(group =>
         group.alerts.length > group.triaged.count).length === 0;
     }
 

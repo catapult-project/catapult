@@ -600,6 +600,39 @@ tr.exportTo('cp', () => {
     };
   };
 
+  AlertsSection.isEmpty = state => {
+    if (!state) return true;
+    if (state.sheriff && state.sheriff.selectedOptions &&
+        state.sheriff.selectedOptions.length) {
+      return false;
+    }
+    if (state.bug && state.bug.selectedOptions &&
+        state.bug.selectedOptions.length) {
+      return false;
+    }
+    if (state.report && state.report.selectedOptions &&
+        state.report.selectedOptions.length) {
+      return false;
+    }
+    return true;
+  };
+
+  AlertsSection.matchesOptions = (state, options) => {
+    if (!tr.b.setsEqual(new Set(options.reports),
+        new Set(state.report.selectedOptions))) {
+      return false;
+    }
+    if (!tr.b.setsEqual(new Set(options.sheriffs),
+        new Set(state.sheriff.selectedOptions))) {
+      return false;
+    }
+    if (!tr.b.setsEqual(new Set(options.bugs),
+        new Set(state.bug.selectedOptions))) {
+      return false;
+    }
+    return true;
+  };
+
   cp.ElementBase.register(AlertsSection);
   return {AlertsSection};
 });
