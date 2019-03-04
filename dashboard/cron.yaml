@@ -55,6 +55,10 @@ cron:
   schedule: every 30 minutes
   target: pinpoint
 
+- description: Purge Pinpoint's expired isolates from datastore.
+  url: /cron/isolate-cleanup
+  schedule: every 24 hours
+  target: pinpoint
 
 # The backup cron job is disabled temporarily in order to check whether
 # it is responsible for increased cost on the weekends.

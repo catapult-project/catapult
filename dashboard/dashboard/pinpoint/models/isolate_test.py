@@ -6,6 +6,8 @@ import datetime
 
 import mock
 
+from google.appengine.ext import ndb
+
 from dashboard.pinpoint.models.change import change_test
 from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint import test
@@ -64,3 +66,31 @@ class IsolateTest(test.TestCase):
 
     with self.assertRaises(KeyError):
       isolate.Get('Mac Builder Perf', change_test.Change(1), 'target_name')
+
+  def testDeleteExpiredIsolate(self):
+    isolate_infos = (
+        ('Mac Builder Perf', change_test.Change(0), 'target_name',
+         'https://isolate.server', '123'),
+        ('Mac Builder Perf', change_test.Change(1), 'target_name',
+         'https://isolate.server', '456'),
+    )
+    isolate.Put(isolate_infos)
+
+    cur = ndb.Key('Isolate', isolate._Key(
+        'Mac Builder Perf', change_test.Change(0), 'target_name')).get()
+    cur.created = datetime.datetime.now() - datetime.timedelta(hours=1)
+    cur.put()
+
+    cur = ndb.Key('Isolate', isolate._Key(
+        isolate_infos[1][0], isolate_infos[1][1], isolate_infos[1][2])).get()
+    cur.created = datetime.datetime.now() - (
+        isolate.ISOLATE_EXPIRY_DURATION + datetime.timedelta(hours=1))
+    cur.put()
+
+    isolate.DeleteExpiredIsolates()
+
+    q = isolate.Isolate.query()
+    isolates = q.fetch()
+
+    self.assertEqual(1, len(isolates))
+    self.assertEqual('123', isolates[0].isolate_hash)

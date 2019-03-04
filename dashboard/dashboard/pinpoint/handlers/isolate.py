@@ -11,6 +11,7 @@ https://github.com/luci/luci-py/blob/master/appengine/isolate/doc/client/Design.
 """
 
 import json
+import webapp2
 
 from dashboard.api import api_request_handler
 from dashboard.common import utils
@@ -135,3 +136,8 @@ class Isolate(api_request_handler.ApiRequestHandler):
       parameter_values.append(parameter_value)
 
     return parameter_values
+
+
+class IsolateCleanup(webapp2.RequestHandler):
+  def get(self):
+    isolate.DeleteExpiredIsolates()
