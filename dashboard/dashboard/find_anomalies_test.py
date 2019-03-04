@@ -106,27 +106,31 @@ class ProcessAlertsTest(testing_common.TestCase):
     super(ProcessAlertsTest, self).setUp()
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
-  def _AddDataForTests(self, stats=None):
+  def _AddDataForTests(self, stats=None, masters=None):
+    if not masters:
+      masters = ['ChromiumGPU']
     testing_common.AddTests(
-        ['ChromiumGPU'],
+        masters,
         ['linux-release'], {
             'scrolling_benchmark': {
                 'ref': {},
             },
         })
-    ref = utils.TestKey(
-        'ChromiumGPU/linux-release/scrolling_benchmark/ref').get()
-    ref.units = 'ms'
-    for i in range(9000, 10070, 5):
-      # Internal-only data should be found.
-      test_container_key = utils.GetTestContainerKey(ref.key)
-      r = graph_data.Row(
-          id=i + 1, value=float(i * 3),
-          parent=test_container_key, internal_only=True)
-      if stats:
-        for s in stats:
-          setattr(r, s, i)
-      r.put()
+
+    for m in masters:
+      ref = utils.TestKey(
+          '%s/linux-release/scrolling_benchmark/ref' % m).get()
+      ref.units = 'ms'
+      for i in range(9000, 10070, 5):
+        # Internal-only data should be found.
+        test_container_key = utils.GetTestContainerKey(ref.key)
+        r = graph_data.Row(
+            id=i + 1, value=float(i * 3),
+            parent=test_container_key, internal_only=True)
+        if stats:
+          for s in stats:
+            setattr(r, s, i)
+        r.put()
 
   def _DataSeries(self):
     return [(r.revision, r, r.value) for r in list(graph_data.Row.query())]
@@ -215,6 +219,25 @@ class ProcessAlertsTest(testing_common.TestCase):
             start_revision=10037, end_revision=10041, sheriff_name='sheriff',
             internal_only=False, units='ms', absolute_delta=500,
             statistic='avg'))
+
+  @mock.patch.object(
+      find_anomalies, '_ProcesssTestStat')
+  def testProcessTest_SkipsClankInternal(self, mock_process_stat):
+    mock_process_stat.side_effect = _MockTasklet
+
+    self._AddDataForTests(masters=['ClankInternal'])
+    test_path = 'ClankInternal/linux-release/scrolling_benchmark/ref'
+    test = utils.TestKey(test_path).get()
+
+    a = anomaly.Anomaly(
+        test=test.key, start_revision=10061, end_revision=10062,
+        statistic='avg')
+    a.put()
+
+    find_anomalies.ProcessTests([test.key])
+    self.ExecuteDeferredTasks('default')
+
+    self.assertFalse(mock_process_stat.called)
 
   @mock.patch.object(
       find_anomalies, '_ProcesssTestStat')

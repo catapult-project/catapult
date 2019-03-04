@@ -51,6 +51,14 @@ def _ProcessTest(test_key):
   Args:
     test_key: The ndb.Key for a TestMetadata.
   """
+  # We're dropping clank support, which goes through the old recipe_bisect
+  # system. For now, we're simply disabling alert generation and stopping
+  # bisects from getting kicked off. We'll follow up with a more thorough
+  # removal of all old bisect related code.
+  # crbug.com/937230
+  if test_key.id().startswith('ClankInternal'):
+    raise ndb.Return(None)
+
   test = yield test_key.get_async()
 
   sheriff = yield _GetSheriffForTest(test)
