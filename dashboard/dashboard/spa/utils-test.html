@@ -19,7 +19,7 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-suite('basic tests', function() {
+suite('utils', function() {
   test('setImmutable', function() {
     assert.deepEqual({b: 'c'}, cp.setImmutable(
         {a: []}, '', {b: 'c'}));
@@ -195,6 +195,14 @@ suite('basic tests', function() {
 
   test('normalize', function() {
     assert.deepEqual({a: 1, b: 2}, cp.normalize(['a', 'b'], [1, 2]));
+  });
+
+  test('BatchIterator empty', async function() {
+    const batches = [];
+    for await (const batch of new cp.BatchIterator([])) {
+      batches.push(batch);
+    }
+    assert.lengthOf(batches, 0);
   });
 
   test('BatchIterator 1 Promise success', async function() {

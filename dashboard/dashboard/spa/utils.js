@@ -372,6 +372,8 @@ tr.exportTo('cp', () => {
     }
 
     async* [Symbol.asyncIterator]() {
+      if (!this.promises_.size) return;
+
       // Yield the first result immediately in order to allow the user to start
       // to understand it (c.f. First Contentful Paint), and also to measure how
       // long it takes the caller to render the data. Use that measurement as an
