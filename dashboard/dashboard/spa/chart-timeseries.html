@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--
+Copyright 2019 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/spa/chart-base.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/layout-timeseries.html">
+<link rel="import" href="/dashboard/spa/place-holder.html">
+<link rel="import" href="/dashboard/spa/timeseries-merger.html">
+<link rel="import" href="/dashboard/spa/timeseries-request.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+<link rel="import" href="/tracing/base/color_scheme.html">
+<link rel="import" href="/tracing/base/sinebow_color_generator.html">
+
+<dom-module id="chart-timeseries">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      place-holder {
+        @apply --chart-placeholder;
+      }
+    </style>
+
+    <template is="dom-if" if="[[showPlaceholder(isLoading, lines)]]">
+      <place-holder>
+        <slot></slot>
+      </place-holder>
+    </template>
+
+    <template is="dom-if" if="[[!showPlaceholder(isLoading, lines)]]">
+      <chart-base
+          state-path="[[statePath]]"
+          on-get-tooltip="onGetTooltip_"
+          on-mouse-leave-main="onMouseLeaveMain_">
+      </chart-base>
+    </template>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/chart-timeseries.js"></script>

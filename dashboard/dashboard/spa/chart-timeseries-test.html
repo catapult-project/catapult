@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<!--
+Copyright 2019 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/dashboard/spa/chart-timeseries.html">
+<script type="module" src="/dashboard/spa/result-channel-sender.js"></script>
+
+<test-fixture id="test">
+  <template>
+    <chart-timeseries state-path="test"></chart-timeseries>
+  </template>
+</test-fixture>
+
+<script type="module">
+'use strict';
+import ResultChannelSender from './result-channel-sender.js';
+
+suite('chart-timeseries', function() {
+  let originalFetch;
+  let timeseriesBody;
+  setup(() => {
+    originalFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      return {
+        async json() {
+          if (url === cp.TimeseriesRequest.URL) {
+            timeseriesBody = new Map(options.body);
+            return {
+              units: options.body.get('measurement'),
+              data: [
+                [10, 1000, 1, 1],
+                [20, 2000, 2, 1],
+              ],
+            };
+          }
+        },
+      };
+    };
+    fixture('test').dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', cp.ChartTimeseries.buildState({
+          yAxis: {
+            showTickLines: true,
+          },
+          xAxis: {
+            height: 15,
+            showTickLines: true,
+          },
+        }))));
+  });
+
+  teardown(() => {
+    window.fetch = originalFetch;
+  });
+
+  test('load', async function() {
+    const ct = fixture('test');
+    await cp.afterRender();
+    ct.dispatch(Redux.UPDATE('test', {lineDescriptors: [{
+      suites: ['suite'],
+      bots: ['master:bot'],
+      measurement: 'ms',
+      statistic: 'avg',
+      buildType: 'test',
+      cases: [],
+    }]}));
+    await cp.afterRender();
+    assert.strictEqual('suite', timeseriesBody.get('test_suite'));
+    assert.strictEqual('ms', timeseriesBody.get('measurement'));
+    assert.strictEqual('master:bot', timeseriesBody.get('bot'));
+    assert.strictEqual('avg', timeseriesBody.get('statistic'));
+    assert.strictEqual('test', timeseriesBody.get('build_type'));
+    assert.strictEqual('revision,timestamp,avg,count',
+        timeseriesBody.get('columns'));
+    assert.isUndefined(timeseriesBody.get('min_revision'));
+    assert.isUndefined(timeseriesBody.get('max_revision'));
+    assert.strictEqual(ct.lines[0].path, 'M1.2,96.5 L98.8,3.6');
+  });
+
+  test('lineCountChange', async function() {
+    const ct = fixture('test');
+    await cp.afterRender();
+    let lineCountChanges = 0;
+    ct.addEventListener('line-count-change', () => {
+      ++lineCountChanges;
+    });
+
+    ct.dispatch(Redux.UPDATE('test', {lineDescriptors: [{
+      suites: ['suite'],
+      bots: ['master:bot'],
+      measurement: 'ms',
+      statistic: 'avg',
+      buildType: 'test',
+      cases: [],
+    }]}));
+    await cp.afterRender();
+    assert.strictEqual(lineCountChanges, 1);
+  });
+
+  test('loadPersistent', async function() {
+    // Load 2 lines (ms, sizeInBytes), each requiring 2 fetches (aaa, bbb).
+    // Receive fetches in this order:
+    // ms aaa, sizeInBytes aaa, ms bbb, sizeInBytes bbb.
+    // Test that loadLines doesn't forget any data.
+
+    const ct = fixture('test');
+    await cp.afterRender();
+
+    window.fetch = async(url, options) => {
+      return {
+        async json() {
+          return null;
+        },
+      };
+    };
+
+    ct.dispatch(Redux.UPDATE('test', {
+      lineDescriptors: [
+        {
+          suites: ['suite'],
+          bots: ['master:bot'],
+          measurement: 'ms',
+          statistic: 'avg',
+          buildType: 'test',
+          cases: ['aaa', 'bbb'],
+        },
+        {
+          suites: ['suite'],
+          bots: ['master:bot'],
+          measurement: 'sizeInBytes',
+          statistic: 'avg',
+          buildType: 'test',
+          cases: ['aaa', 'bbb'],
+        },
+      ],
+    }));
+    await cp.afterRender();
+
+    assert.isTrue(ct.isLoading);
+    assert.lengthOf(ct.lines, 0);
+
+    const url = location.origin + cp.TimeseriesRequest.URL + '?';
+    const aMsParams = new URLSearchParams({
+      test_suite: 'suite',
+      measurement: 'ms',
+      bot: 'master:bot',
+      test_case: 'aaa',
+      statistic: 'avg',
+      build_type: 'test',
+      columns: 'revision,timestamp,avg,count',
+    });
+    new ResultChannelSender(url + aMsParams).send((async function* () {
+      yield {
+        units: 'ms',
+        data: [
+          {revision: 10, timestamp: 1000, avg: 1, count: 1},
+          {revision: 20, timestamp: 2000, avg: 2, count: 1},
+        ],
+      };
+    })());
+    await cp.afterRender();
+    assert.lengthOf(ct.lines, 1);
+    assert.strictEqual(ct.lines[0].data[0].y, 1);
+    assert.strictEqual(ct.lines[0].data[1].y, 2);
+    assert.isTrue(ct.isLoading);
+
+    const aBytesParams = new URLSearchParams({
+      test_suite: 'suite',
+      measurement: 'sizeInBytes',
+      bot: 'master:bot',
+      test_case: 'aaa',
+      statistic: 'avg',
+      build_type: 'test',
+      columns: 'revision,timestamp,avg,count',
+    });
+    new ResultChannelSender(url + aBytesParams).send((async function* () {
+      yield {
+        units: 'sizeInBytes',
+        data: [
+          {revision: 10, timestamp: 1000, avg: 1, count: 1},
+          {revision: 20, timestamp: 2000, avg: 2, count: 1},
+        ],
+      };
+    })());
+    await cp.afterRender();
+    assert.lengthOf(ct.lines, 2);
+    assert.strictEqual(ct.lines[0].data[0].y, 1);
+    assert.strictEqual(ct.lines[0].data[1].y, 2);
+    assert.strictEqual(ct.lines[1].data[0].y, 1);
+    assert.strictEqual(ct.lines[1].data[1].y, 2);
+    assert.isTrue(ct.isLoading);
+
+    const bMsParams = new URLSearchParams({
+      test_suite: 'suite',
+      measurement: 'ms',
+      bot: 'master:bot',
+      test_case: 'bbb',
+      statistic: 'avg',
+      build_type: 'test',
+      columns: 'revision,timestamp,avg,count',
+    });
+    new ResultChannelSender(url + bMsParams).send((async function* () {
+      yield {
+        units: 'ms',
+        data: [
+          {revision: 10, timestamp: 1000, avg: 10, count: 1},
+          {revision: 20, timestamp: 2000, avg: 20, count: 1},
+        ],
+      };
+    })());
+    await cp.afterRender();
+    assert.lengthOf(ct.lines, 2);
+    assert.strictEqual(ct.lines[0].data[0].y, 5.5);
+    assert.strictEqual(ct.lines[0].data[1].y, 11);
+    assert.strictEqual(ct.lines[1].data[0].y, 1);
+    assert.strictEqual(ct.lines[1].data[1].y, 2);
+    assert.isTrue(ct.isLoading);
+
+    const bBytesParams = new URLSearchParams({
+      test_suite: 'suite',
+      measurement: 'sizeInBytes',
+      bot: 'master:bot',
+      test_case: 'bbb',
+      statistic: 'avg',
+      build_type: 'test',
+      columns: 'revision,timestamp,avg,count',
+    });
+    new ResultChannelSender(url + bBytesParams).send((async function* () {
+      yield {
+        units: 'sizeInBytes',
+        data: [
+          {revision: 10, timestamp: 1000, avg: 10, count: 1},
+          {revision: 20, timestamp: 2000, avg: 20, count: 1},
+        ],
+      };
+    })());
+    await cp.afterRender();
+    assert.lengthOf(ct.lines, 2);
+    assert.strictEqual(ct.lines[0].data[0].y, 5.5);
+    assert.strictEqual(ct.lines[0].data[1].y, 11);
+    assert.strictEqual(ct.lines[1].data[0].y, 5.5);
+    assert.strictEqual(ct.lines[1].data[1].y, 11);
+
+    assert.isFalse(ct.isLoading);
+  });
+
+  test('tooltip', async function() {
+    const ct = fixture('test');
+    await cp.afterRender();
+    ct.dispatch(Redux.UPDATE('test', {lineDescriptors: [{
+      suites: ['suite'],
+      bots: ['master:bot'],
+      measurement: 'ms',
+      statistic: 'avg',
+      buildType: 'test',
+      cases: [],
+    }]}));
+    await cp.afterRender();
+    const cb = ct.shadowRoot.querySelector('chart-base');
+    cb.dispatchEvent(new CustomEvent('get-tooltip', {
+      detail: {
+        mainRect: await cp.measureElement(cb),
+        nearestLine: ct.lines[0],
+        nearestPoint: ct.lines[0].data[0],
+      },
+    }));
+
+    assert.strictEqual(2, ct.lines[0].strokeWidth);
+    assert.isTrue(ct.state.tooltip.isVisible);
+    assert.strictEqual(ct.lines[0].color, ct.state.tooltip.color);
+    assert.strictEqual('1.2%', ct.state.tooltip.left);
+    assert.strictEqual('100%', ct.state.tooltip.top);
+    assert.lengthOf(ct.state.tooltip.rows, 7);
+    assert.strictEqual('value', ct.state.tooltip.rows[0].name);
+    assert.strictEqual('1.000 ms', ct.state.tooltip.rows[0].value);
+    assert.strictEqual('revision', ct.state.tooltip.rows[1].name);
+    assert.strictEqual(10, ct.state.tooltip.rows[1].value);
+    assert.strictEqual('uploaded', ct.state.tooltip.rows[2].name);
+    assert.strictEqual('build type', ct.state.tooltip.rows[3].name);
+    assert.strictEqual('test', ct.state.tooltip.rows[3].value);
+    assert.strictEqual('test suite', ct.state.tooltip.rows[4].name);
+    assert.strictEqual('suite', ct.state.tooltip.rows[4].value);
+    assert.strictEqual('measurement', ct.state.tooltip.rows[5].name);
+    assert.strictEqual('ms', ct.state.tooltip.rows[5].value);
+    assert.strictEqual('bot', ct.state.tooltip.rows[6].name);
+    assert.strictEqual('master:bot', ct.state.tooltip.rows[6].value);
+
+    cb.dispatchEvent(new CustomEvent('mouse-leave-main'));
+    await cp.afterRender();
+    assert.strictEqual(1, ct.lines[0].strokeWidth);
+    assert.isUndefined(ct.state.tooltip);
+  });
+
+  test('mouseYTicks', async function() {
+    // When there are multiple units, yAxis.ticks should only be displayed when
+    // the user is hovering over a line.
+
+    const ct = fixture('test');
+    await cp.afterRender();
+    ct.dispatch(Redux.UPDATE('test', {
+      lineDescriptors: [
+        {
+          suites: ['suite'],
+          bots: ['master:bot'],
+          measurement: 'sizeInBytes',
+          statistic: 'avg',
+          buildType: 'test',
+          cases: [],
+        },
+        {
+          suites: ['suite'],
+          bots: ['master:bot'],
+          measurement: 'ms',
+          statistic: 'avg',
+          buildType: 'test',
+          cases: [],
+        },
+      ]
+    }));
+    await cp.afterRender();
+
+    assert.lengthOf(ct.state.yAxis.ticks, 0);
+
+    const cb = ct.shadowRoot.querySelector('chart-base');
+    cb.dispatchEvent(new CustomEvent('get-tooltip', {
+      detail: {
+        mainRect: await cp.measureElement(cb),
+        nearestLine: ct.lines[0],
+        nearestPoint: ct.lines[0].data[0],
+      },
+    }));
+
+    await cp.afterRender();
+    assert.lengthOf(ct.state.yAxis.ticks, 5);
+
+    cb.dispatchEvent(new CustomEvent('mouse-leave-main'));
+    await cp.afterRender();
+    assert.lengthOf(ct.state.yAxis.ticks, 0);
+  });
+
+  test('lineDescriptorEqual', function() {
+    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+      suites: ['bbb'],
+      bots: ['ccc', 'ddd'],
+      cases: ['eee', 'fff'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 10,
+      maxRevision: 100,
+    }, {
+      suites: ['bbb', 'aaa'],
+      bots: ['ddd', 'ccc'],
+      cases: ['fff', 'eee'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 10,
+      maxRevision: 100,
+    }));
+
+    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+      suites: ['bbb'],
+      bots: ['ddd'],
+      cases: ['eee', 'fff'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 10,
+      maxRevision: 100,
+    }, {
+      suites: ['bbb'],
+      bots: ['ddd', 'ccc'],
+      cases: ['fff', 'eee'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 0,
+      maxRevision: 100,
+    }));
+
+    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+      suites: ['bbb'],
+      bots: ['ddd'],
+      cases: ['fff'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 10,
+      maxRevision: 100,
+    }, {
+      suites: ['bbb'],
+      bots: ['ddd'],
+      cases: ['fff', 'eee'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 0,
+      maxRevision: 100,
+    }));
+
+    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+      suites: ['bbb'],
+      bots: ['ccc', 'ddd'],
+      cases: ['eee', 'fff'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 10,
+      maxRevision: 100,
+    }, {
+      suites: ['bbb'],
+      bots: ['ddd', 'ccc'],
+      cases: ['fff', 'eee'],
+      measurement: 'mm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 10,
+      maxRevision: 100,
+    }));
+
+    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+      suites: ['bbb'],
+      bots: ['ccc', 'ddd'],
+      cases: ['eee', 'fff'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 10,
+      maxRevision: 100,
+    }, {
+      suites: ['bbb'],
+      bots: ['ddd', 'ccc'],
+      cases: ['fff', 'eee'],
+      measurement: 'mmm',
+      statistic: 'std',
+      buildType: 'test',
+      minRevision: 10,
+      maxRevision: 100,
+    }));
+
+    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+      suites: ['bbb'],
+      bots: ['ccc', 'ddd'],
+      cases: ['eee', 'fff'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 10,
+      maxRevision: 100,
+    }, {
+      suites: ['bbb'],
+      bots: ['ddd', 'ccc'],
+      cases: ['fff', 'eee'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'ref',
+      minRevision: 10,
+      maxRevision: 100,
+    }));
+
+    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+      suites: ['bbb'],
+      bots: ['ccc', 'ddd'],
+      cases: ['eee', 'fff'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 10,
+      maxRevision: 100,
+    }, {
+      suites: ['bbb'],
+      bots: ['ddd', 'ccc'],
+      cases: ['fff', 'eee'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 0,
+      maxRevision: 100,
+    }));
+
+    assert.isTrue(cp.ChartTimeseries.lineDescriptorEqual({
+      suites: ['aaa', 'bbb'],
+      bots: ['ccc', 'ddd'],
+      cases: ['eee', 'fff'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 10,
+      maxRevision: 100,
+    }, {
+      suites: ['bbb', 'aaa'],
+      bots: ['ddd', 'ccc'],
+      cases: ['fff', 'eee'],
+      measurement: 'mmm',
+      statistic: 'avg',
+      buildType: 'test',
+      minRevision: 10,
+      maxRevision: 100,
+    }));
+  });
+
+  test('createFetchDescriptors', async function() {
+    assert.deepEqual(cp.ChartTimeseries.createFetchDescriptors({
+      suites: ['aaa', 'bbb'],
+      bots: ['ccc', 'ddd'],
+      measurement: 'mmm',
+      cases: [],
+      buildType: 'test',
+      statistic: 'avg',
+    }, cp.LEVEL_OF_DETAIL.ALERTS), [
+      {
+        suite: 'aaa',
+        bot: 'ccc',
+        case: undefined,
+        measurement: 'mmm',
+        statistic: 'avg',
+        buildType: 'test',
+        levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+      },
+      {
+        suite: 'aaa',
+        bot: 'ddd',
+        case: undefined,
+        measurement: 'mmm',
+        statistic: 'avg',
+        buildType: 'test',
+        levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+      },
+      {
+        suite: 'bbb',
+        bot: 'ccc',
+        case: undefined,
+        measurement: 'mmm',
+        statistic: 'avg',
+        buildType: 'test',
+        levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+      },
+      {
+        suite: 'bbb',
+        bot: 'ddd',
+        case: undefined,
+        measurement: 'mmm',
+        statistic: 'avg',
+        buildType: 'test',
+        levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+      },
+    ]);
+
+    assert.deepEqual(cp.ChartTimeseries.createFetchDescriptors({
+      suites: ['aaa'],
+      bots: ['ccc'],
+      measurement: 'mmm',
+      cases: ['bbb', 'ddd'],
+      buildType: 'test',
+      statistic: 'avg',
+    }, cp.LEVEL_OF_DETAIL.ALERTS), [
+      {
+        suite: 'aaa',
+        bot: 'ccc',
+        measurement: 'mmm',
+        case: 'bbb',
+        statistic: 'avg',
+        buildType: 'test',
+        levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+      },
+      {
+        suite: 'aaa',
+        bot: 'ccc',
+        case: 'ddd',
+        measurement: 'mmm',
+        statistic: 'avg',
+        buildType: 'test',
+        levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+      },
+    ]);
+  });
+});
+</script>
