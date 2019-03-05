@@ -12,8 +12,9 @@ found in the LICENSE file.
 <link rel="import" href="/bower_components/chopsui/chops-signin.html">
 <link rel="import" href="/dashboard/spa/alerts-section.html">
 <link rel="import" href="/dashboard/spa/cp-icons.html">
+<link rel="import" href="/dashboard/spa/cp-loading.html">
 <link rel="import" href="/dashboard/spa/element-base.html">
-<link rel="import" href="/dashboard/spa/raised-button.html">
+<link rel="import" href="/dashboard/spa/test-suites-request.html">
 
 <dom-module id="chromeperf-app">
   <template>
@@ -28,29 +29,43 @@ found in the LICENSE file.
         color: var(--primary-color-dark, blue);
       }
 
-      .spacer {
-        flex-grow: 1;
-        margin: auto;
-      }
-
-      .buttons {
-        display: flex;
-        flex-grow: 1;
-        justify-content: center;
-        font-size: var(--font-size, 13px);
-      }
-
-      .bottom.buttons {
-        margin: 12px 0;
-        justify-content: space-evenly;
-      }
-
-      .bottom.buttons raised-button {
-        flex-grow: 1;
+      iron-icon {
+        margin: 0 4px;
       }
 
       chops-signin {
-        margin: 4px;
+        margin-left: 16px;
+      }
+
+      #body {
+        display: flex;
+      }
+      #drawer {
+        background: white;
+        border-right: 1px solid var(--primary-color-medium, blue);
+        margin-top: 50px;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        user-select: none;
+        z-index: var(--layer-drawer, 200);
+      }
+      #drawer:hover {
+        box-shadow: 5px 0 5px 0 rgba(0, 0, 0, 0.2);
+      }
+      #main {
+        overflow: auto;
+        position: absolute;
+        flex-grow: 1;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+
+      #main[enableNav] {
+        left: 32px;
+        margin-top: 50px;
       }
 
       alerts-section {
@@ -66,6 +81,40 @@ found in the LICENSE file.
         border-bottom: 1px solid var(--primary-color-medium);
       }
 
+      .nav_button_label {
+        display: none;
+        margin-right: 8px;
+      }
+      #drawer:hover .nav_button_label {
+        display: inline;
+      }
+      .drawerbutton {
+        align-items: center;
+        background-color: var(--background-color, white);
+        border: 0;
+        cursor: pointer;
+        display: flex;
+        padding: 8px 0;
+        white-space: nowrap;
+        width: 100%;
+      }
+      .drawerbutton:hover {
+        background-color: var(--neutral-color-light, lightgrey);
+      }
+      .drawerbutton[disabled] {
+        color: var(--neutral-color-dark, grey);
+      }
+      .drawerbutton iron-icon {
+        color: var(--primary-color-dark, blue);
+      }
+      .drawerbutton[disabled] iron-icon {
+        color: var(--neutral-color-dark, grey);
+      }
+      a.drawerbutton {
+        color: inherit;
+        text-decoration: none;
+      }
+
       cp-toast {
         border-radius: 24px;
         cursor: pointer;
@@ -73,14 +122,31 @@ found in the LICENSE file.
         user-select: none;
       }
 
-      cp-toast iron-icon {
-        color: var(--background-color, white);
+      #old_pages {
+        color: var(--foreground-color, black);
+        position: relative;
+      }
+      #old_pages iron-icon {
+        margin: 0;
+      }
+      #old_pages_menu {
+        background-color: var(--background-color, white);
+        border: 1px solid var(--primary-color-medium, blue);
+        display: none;
+        flex-direction: column;
+        padding: 8px;
+        position: absolute;
+        width: calc(100% - 16px);
+        z-index: var(--layer-menu, 100);
+      }
+      #old_pages:hover #old_pages_menu {
+        display: flex;
       }
 
-      @media (max-width: 1100px) {
-        .nav_button_label {
-          display: none;
-        }
+      #vulcanized {
+        color: grey;
+        margin: 16px;
+        text-align: right;
       }
     </style>
 
@@ -89,70 +155,13 @@ found in the LICENSE file.
 
     <template is="dom-if" if="[[enableNav]]">
       <chops-header app-title="Chromium Performance">
-        <div class="buttons">
-          <raised-button
-              title="Open Report"
-              disabled$="[[showingReportSection]]"
-              on-click="onShowReportSection_">
-            <iron-icon icon="cp:report">
-            </iron-icon>
-            Report
-          </raised-button>
-
-          <raised-button
-              title="New Alerts section"
-              on-click="onNewAlertsSection_">
-            <iron-icon icon="cp:alert">
-            </iron-icon>
-            <span class="nav_button_label">
-              Alerts
-            </span>
-          </raised-button>
-
-          <raised-button
-              title="New Chart"
-              on-click="onNewChart_">
-            <iron-icon icon="cp:chart">
-            </iron-icon>
-            <span class="nav_button_label">
-              New Chart
-            </span>
-          </raised-button>
-
-          <raised-button
-              title="Close all charts"
-              disabled$="[[isEmpty_(chartSectionIds)]]"
-              on-click="onCloseAllCharts_">
-            <iron-icon icon="cp:close">
-            </iron-icon>
-            <span class="nav_button_label">
-              Close charts
-            </span>
-          </raised-button>
+        <div id="old_pages">
+          OLD PAGES <iron-icon icon="cp:more"></iron-icon>
+          <div id="old_pages_menu">
+            <a target="_blank" href="/alerts">Alerts</a>
+            <a target="_blank" href="/report">Charts</a>
+          </div>
         </div>
-
-        <a href="https://github.com/catapult-project/catapult/tree/master/dashboard"
-            target="_blank"
-            title="Documentation">
-          <iron-icon icon="cp:help">
-          </iron-icon>
-        </a>
-
-        <template is="dom-if" if="[[isInternal_(userEmail)]]">
-          <a href="http://go/chromeperf-v2-status"
-              target="_blank"
-              title="Status of this prototype">
-            <iron-icon icon="cp:update">
-            </iron-icon>
-          </a>
-        </template>
-
-        <a href$="https://bugs.chromium.org/p/chromium/issues/entry?description=Describe+the+problem:+%0A%0A%0AURL:+[[escapedUrl_(route.path)]]&components=Speed%3EDashboard&summary=[chromeperf2]+"
-            target="_blank"
-            title="File a bug">
-          <iron-icon icon="cp:feedback">
-          </iron-icon>
-        </a>
 
         <template is="dom-if" if="[[isProduction]]">
           <chops-signin></chops-signin>
@@ -164,54 +173,78 @@ found in the LICENSE file.
 
     <cp-loading loading$="[[isLoading]]"></cp-loading>
 
-    TODO report-section, chart-sections
+    <div id="body">
+      <template is="dom-if" if="[[enableNav]]">
+        <div id="drawer">
+          <button class="drawerbutton"
+              disabled$="[[showingReportSection]]"
+              on-click="onShowReportSection_">
+            <iron-icon icon="cp:report"></iron-icon>
+            <span class="nav_button_label">Open report</span>
+          </button>
 
-    <template is="dom-repeat" items="[[alertsSectionIds]]" as="id" index-as="idIndex">
-      <alerts-section
-          state-path="[[statePath]].alertsSectionsById.[[id]]"
-          linked-state-path="[[statePath]].linkedChartState"
-          on-require-sign-in="requireSignIn_"
-          on-new-chart="onNewChart_"
-          on-close-section="onCloseAlerts_">
-      </alerts-section>
-    </template>
+          <button class="drawerbutton"
+              on-click="onNewAlertsSection_">
+            <iron-icon icon="cp:alert"></iron-icon>
+            <span class="nav_button_label">New alerts section</span>
+          </button>
 
+          <button class="drawerbutton"
+              on-click="onNewChart_">
+            <iron-icon icon="cp:chart"></iron-icon>
+            <span class="nav_button_label">New Chart</span>
+          </button>
 
-    <div class="buttons bottom">
-      <span class="spacer"></span>
+          <button class="drawerbutton"
+              disabled$="[[isEmpty_(chartSectionIds)]]"
+              on-click="onCloseAllCharts_">
+            <iron-icon icon="cp:close"></iron-icon>
+            <span class="nav_button_label">Close all charts</span>
+          </button>
 
-      <raised-button
-          id="new_alerts"
-          title="New Alerts section"
-          on-click="onNewAlertsSection_">
-        <iron-icon icon="cp:alert">
-        </iron-icon>
-        Alerts
-      </raised-button>
+          <a class="drawerbutton"
+              href="https://github.com/catapult-project/catapult/tree/master/dashboard"
+              target="_blank">
+            <iron-icon icon="cp:help"></iron-icon>
+            <span class="nav_button_label">Documentation</span>
+          </a>
 
-      <raised-button
-          title="New Chart"
-          on-click="onNewChart_">
-        <iron-icon icon="cp:chart">
-        </iron-icon>
-        New Chart
-      </raised-button>
+          <template is="dom-if" if="[[isInternal_(userEmail)]]">
+            <a class="drawerbutton"
+                href="http://go/chromeperf-v2-status"
+                target="_blank">
+              <iron-icon icon="cp:update"></iron-icon>
+              <span class="nav_button_label">Status of this prototype</span>
+            </a>
+          </template>
 
-      <raised-button
-          title="Close all charts"
-          disabled$="[[isEmpty_(chartSectionIds)]]"
-          on-click="onCloseAllCharts_">
-        <iron-icon icon="cp:close">
-        </iron-icon>
-        Close charts
-      </raised-button>
+          <a class="drawerbutton"
+              href$="https://bugs.chromium.org/p/chromium/issues/entry?description=Describe+the+problem:+%0A%0A%0AURL:+[[escapedUrl_(route.path)]]&components=Speed%3EDashboard&summary=[chromeperf2]+"
+              target="_blank">
+            <iron-icon icon="cp:feedback"></iron-icon>
+            <span class="nav_button_label">File a bug</span>
+          </a>
+        </div>
+      </template>
 
-      <span class="spacer"></span>
+      <div id="main" enableNav$="[[enableNav]]">
+        TODO report-section, chart-sections
+
+        <template is="dom-repeat" items="[[alertsSectionIds]]" as="id" index-as="idIndex">
+          <alerts-section
+              state-path="[[statePath]].alertsSectionsById.[[id]]"
+              linked-state-path="[[statePath]].linkedChartState"
+              on-require-sign-in="requireSignIn_"
+              on-new-chart="onNewChart_"
+              on-close-section="onCloseAlerts_">
+          </alerts-section>
+        </template>
+
+        <div id="vulcanized">
+          [[vulcanizedDate]]
+        </div>
+      </div>
     </div>
-
-    <span style="color: grey;">
-      [[vulcanizedDate]]
-    </span>
 
     <cp-toast opened="[[!isEmpty_(closedAlertsIds)]]">
       <raised-button id="reopen_alerts" on-click="onReopenClosedAlerts_">
