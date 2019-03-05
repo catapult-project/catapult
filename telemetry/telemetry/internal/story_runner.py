@@ -329,7 +329,6 @@ def RunBenchmark(benchmark, finder_options):
   Returns:
     1 if there is failure or 2 if there is an uncaught exception.
   """
-  benchmark.CustomizeBrowserOptions(finder_options.browser_options)
   benchmark.CustomizeOptions(finder_options)
 
   benchmark_metadata = benchmark.GetMetadata()

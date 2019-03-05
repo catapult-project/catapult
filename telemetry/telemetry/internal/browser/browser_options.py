@@ -389,10 +389,6 @@ class BrowserOptions(object):
     self.logs_cloud_bucket = cloud_storage.TELEMETRY_OUTPUT
     self.logs_cloud_remote_path = None
 
-    # TODO(danduong): Find a way to store target_os here instead of
-    # finder_options.
-    self._finder_options = None
-
     # Whether to take screen shot for failed page & put them in telemetry's
     # profiling results.
     self.take_screenshot_for_failed_page = False
@@ -408,11 +404,7 @@ class BrowserOptions(object):
     self.compatibility_mode = []
 
   def __repr__(self):
-    # This works around the infinite loop caused by the introduction of a
-    # circular reference with _finder_options.
-    obj = self.__dict__.copy()
-    del obj['_finder_options']
-    return str(sorted(obj.items()))
+    return str(sorted(self.__dict__.items()))
 
   def Copy(self):
     return copy.deepcopy(self)
@@ -496,7 +488,6 @@ class BrowserOptions(object):
         delattr(finder_options, o)
 
     self.browser_type = finder_options.browser_type
-    self._finder_options = finder_options
 
     if hasattr(self, 'extra_browser_args_as_string'):
       tmp = shlex.split(
@@ -536,10 +527,6 @@ class BrowserOptions(object):
     # This deferred import is necessary because browser_options is imported in
     # telemetry/telemetry/__init__.py.
     finder_options.browser_options = CreateChromeBrowserOptions(self)
-
-  @property
-  def finder_options(self):
-    return self._finder_options
 
   @property
   def extra_browser_args(self):
