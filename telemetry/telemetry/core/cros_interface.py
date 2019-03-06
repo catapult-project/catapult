@@ -556,14 +556,13 @@ class CrOSInterface(object):
     return False
 
   def TakeScreenshot(self, file_path):
-    stdout, stderr = self.RunCmdOnDevice(
-        ['/usr/local/autotest/bin/screenshot.py', file_path])
+    """Takes a screenshot, saves to |file_path|."""
+    stdout, stderr = self.RunCmdOnDevice(['/usr/local/sbin/screenshot',
+                                          file_path])
     return stdout == '' and stderr == ''
 
   def TakeScreenshotWithPrefix(self, screenshot_prefix):
     """Takes a screenshot, useful for debugging failures."""
-    # TODO(achuith): Find a better location for screenshots. Cros autotests
-    # upload everything in /var/log so use /var/log/screenshots for now.
     screenshot_dir = '/var/log/screenshots/'
     screenshot_ext = '.png'
 
