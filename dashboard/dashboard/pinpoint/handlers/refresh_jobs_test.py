@@ -20,16 +20,16 @@ class RefreshJobsTest(test.TestCase):
     j1 = job_module.Job.New((), ())
     j1.task = '123'
     j1.put()
-    j1._Schedule = mock.MagicMock()
-    j1.Fail = mock.MagicMock()
+    j1._Schedule = mock.MagicMock() # pylint: disable=invalid-name
+    j1.Fail = mock.MagicMock() # pylint: disable=invalid-name
 
     j2 = job_module.Job.New((), ())
     j2.task = '123'
     j2.put()
     j2.updated = datetime.datetime.now() - datetime.timedelta(hours=8)
     j2.put()
-    j2._Schedule = mock.MagicMock()
-    j2.Fail = mock.MagicMock()
+    j2._Schedule = mock.MagicMock() # pylint: disable=invalid-name
+    j2.Fail = mock.MagicMock() # pylint: disable=invalid-name
 
     self.testapp.get('/cron/refresh-jobs')
 

@@ -178,7 +178,7 @@ def _FetchPerformancePinpointJobs(start_date, end_date):
 @ndb.tasklet
 def _ProcessPinpointStats(offset=0):
   end_date = datetime.datetime.now() - datetime.timedelta(days=offset)
-  start_date = end_date - datetime.timedelta(days=1)
+  start_date = end_date - datetime.timedelta(days=7)
   commit_pos = int(time.mktime(end_date.timetuple()))
 
   completed_jobs = yield _FetchPerformancePinpointJobs(start_date, end_date)
