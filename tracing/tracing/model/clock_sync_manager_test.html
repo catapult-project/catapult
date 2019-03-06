@@ -467,5 +467,20 @@ tr.b.unittest.testSuite(function() {
       '}'
     ].join('\n'));
   }, testOptions);
+
+  test('completeSyncIds_incompleteSync', function() {
+    const mgr = new ClockSyncManager();
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
+
+    assert.deepEqual(mgr.completeSyncIds, []);
+  }, testOptions);
+
+  test('completeSyncIds_oneCompleteSync', function() {
+    const mgr = new ClockSyncManager();
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 350);
+
+    assert.deepEqual(mgr.completeSyncIds, ['sync1']);
+  }, testOptions);
 });
 </script>

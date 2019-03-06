@@ -59,6 +59,16 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     self.assertIn('trace-event', markers)
 
   @decorators.Isolated
+  def testGotClockSyncMarkers(self):
+    self.tracing_controller.StartTracing(self.config)
+    self.assertTrue(self.tracing_controller.is_tracing_running)
+    trace_data = self.tracing_controller.StopTracing()
+    self.assertFalse(self.tracing_controller.is_tracing_running)
+
+    complete_sync_ids = trace_processor.ExtractCompleteSyncIds(trace_data)
+    self.assertEqual(len(complete_sync_ids), 1)
+
+  @decorators.Isolated
   def testStartAndStopTraceMultipleTimes(self):
     self.tracing_controller.StartTracing(self.config)
     self.assertTrue(self.tracing_controller.is_tracing_running)

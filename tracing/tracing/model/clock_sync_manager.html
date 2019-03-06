@@ -127,6 +127,18 @@ tr.exportTo('tr.model', function() {
       this.onSyncCompleted_(markers[0], marker);
     },
 
+    /**
+     * @return {Array.<string>} The array of sync IDs
+     * that have two sync markers.
+     */
+    get completeSyncIds() {
+      const completeSyncIds = [];
+      for (const [syncId, markers] of this.markersBySyncId) {
+        if (markers.length === 2) completeSyncIds.push(syncId);
+      }
+      return completeSyncIds;
+    },
+
     // TODO(charliea): Remove this once the clockSyncMetric is no longer using
     // it.
     get markersBySyncId() {
