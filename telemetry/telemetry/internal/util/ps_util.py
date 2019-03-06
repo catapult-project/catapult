@@ -52,6 +52,24 @@ def GetPsOutputWithPlatformBackend(platform_backend, columns, pid):
   return platform_backend.RunCommand(args).splitlines()
 
 
+def _GetProcessDescription(process):
+  import psutil  # pylint: disable=import-error
+  try:
+    if inspect.ismethod(process.name):
+      name = process.name()
+    else:  # Process.name is a property in old versions of psutil.
+      name = process.name
+    if inspect.ismethod(process.cmdline):
+      cmdline = process.cmdline()
+    else:
+      cmdline = process.cmdline
+    return '%s (%s) - %s' % (name, process.pid, cmdline)
+  except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied
+         ) as e:
+    return 'unknown (%s): %r' % (
+        process.pid, e)
+
+
 def ListAllSubprocesses():
   try:
     import psutil
@@ -71,21 +89,8 @@ def ListAllSubprocesses():
   if children:
     processes_info = []
     for p in children:
-      if inspect.ismethod(p.name):
-        name = p.name()
-      else:  # Process.name is a property in old versions of psutil.
-        name = p.name
-      process_info = '%s (%s)' % (name, p.pid)
-      try:
-        if inspect.ismethod(p.cmdline):
-          cmdline = p.cmdline()
-        else:
-          cmdline = p.cmdline
-        process_info += ' - %s' % cmdline
-      except Exception as e: # pylint: disable=broad-except
-        logging.warning(str(e))
-      processes_info.append(process_info)
-    logging.warning('Running sub processes (%i processes): %s',
+      processes_info.append(_GetProcessDescription(p))
+    logging.warning('Running sub processes (%i processes):\n%s',
                     len(children), '\n'.join(processes_info))
 
 
