@@ -231,12 +231,12 @@ def GetClassifier(args, possible_browser):
 
   def ClassifyTestWithoutBrowser(test_set, test):
     name = test.id()
-    if _SkipMatch(name, args.skip):
-      test_set.tests_to_skip.append(
-          typ.TestInput(name, 'skipped because matched --skip'))
-      return
     if (not selected_tests or
         _MatchesSelectedTest(name, selected_tests, selected_tests_are_exact)):
+      if _SkipMatch(name, args.skip):
+        test_set.tests_to_skip.append(
+            typ.TestInput(name, 'skipped because matched --skip'))
+        return
       # TODO(telemetry-team): Make sure that all telemetry unittest that invokes
       # actual browser are subclasses of browser_test_case.BrowserTestCase
       # (crbug.com/537428)
@@ -248,12 +248,12 @@ def GetClassifier(args, possible_browser):
 
   def ClassifyTestWithBrowser(test_set, test):
     name = test.id()
-    if _SkipMatch(name, args.skip):
-      test_set.tests_to_skip.append(
-          typ.TestInput(name, 'skipped because matched --skip'))
-      return
     if (not selected_tests or
         _MatchesSelectedTest(name, selected_tests, selected_tests_are_exact)):
+      if _SkipMatch(name, args.skip):
+        test_set.tests_to_skip.append(
+            typ.TestInput(name, 'skipped because matched --skip'))
+        return
       assert hasattr(test, '_testMethodName')
       method = getattr(
           test, test._testMethodName)  # pylint: disable=protected-access
