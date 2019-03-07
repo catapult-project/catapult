@@ -4,7 +4,7 @@
 
 import unittest
 
-class PassRetryOnFailureTest(unittest.TestCase):
+class ExampleTests(unittest.TestCase):
   _retry = 0
 
   def test_retry_on_failure(self):
@@ -14,18 +14,15 @@ class PassRetryOnFailureTest(unittest.TestCase):
     cls._retry += 1
     self.fail()
 
-class FailingTest(unittest.TestCase):
   def test_fail(self):
     self.fail()
 
-class AnotherFailingTest(unittest.TestCase):
-  def test_fail(self):
+  def test_also_fail(self):
     self.fail()
 
-class PassingTest(unittest.TestCase):
   def test_pass(self):
     pass
 
-class SkipTest(unittest.TestCase):
   def test_skip(self):
     self.skipTest('SKIPPING TEST')
+
