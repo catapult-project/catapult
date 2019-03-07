@@ -75,7 +75,7 @@ suite('basic tests', function() {
 
     const div = document.createElement('div');
     document.body.appendChild(div);
-    div.root = div.createShadowRoot();
+    div.root = div.attachShadow({mode: 'open'});
     const child = document.createElement('div');
     div.root.appendChild(child);
     assert.isTrue(cp.isElementChildOf(child, document.body));

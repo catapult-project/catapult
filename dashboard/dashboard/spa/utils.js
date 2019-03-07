@@ -116,16 +116,17 @@ tr.exportTo('cp', () => {
     return hex;
   }
 
+  const DOCUMENT_READY = (async() => {
+    while (document.readyState !== 'complete') {
+      await animationFrame();
+    }
+  })();
+
   /*
    * Returns the bounding rect of the given element.
    */
   async function measureElement(element) {
-    if (!measureElement.READY) {
-      measureElement.READY = cp.animationFrame().then(() => {
-        measureElement.READY = undefined;
-      });
-    }
-    await measureElement.READY;
+    await DOCUMENT_READY;
     return element.getBoundingClientRect();
   }
 
@@ -136,8 +137,10 @@ tr.exportTo('cp', () => {
   MEASURE_TEXT_HOST.style.position = 'fixed';
   MEASURE_TEXT_HOST.style.visibility = 'hidden';
   MEASURE_TEXT_HOST.style.zIndex = -1000;
-  window.addEventListener('load', () =>
-    document.body.appendChild(MEASURE_TEXT_HOST));
+  MEASURE_TEXT_HOST.readyPromise = (async() => {
+    await DOCUMENT_READY;
+    document.body.appendChild(MEASURE_TEXT_HOST);
+  })();
 
   // Assuming the computed style of MEASURE_TEXT_HOST doesn't change, measuring
   // a string with the same options should always return the same size, so the
@@ -152,6 +155,8 @@ tr.exportTo('cp', () => {
    * opt_options to a <span> containing textContent.
    */
   async function measureText(textContent, opt_options) {
+    await MEASURE_TEXT_HOST.readyPromise;
+
     let cacheKey = {textContent, ...opt_options};
     cacheKey = JSON.stringify(cacheKey, Object.keys(cacheKey).sort());
     if (MEASURE_TEXT_CACHE.has(cacheKey)) {
