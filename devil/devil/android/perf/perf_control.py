@@ -28,11 +28,19 @@ _PERFORMANCE_MODE_DEFINITIONS = {
   'AFTKMST12': {
     'default_mode_governor': 'interactive',
   },
+  # Pixel 3
+  'blueline': {
+    'default_mode_governor': 'schedutil',
+  },
   'GT-I9300': {
     'default_mode_governor': 'pegasusq',
   },
   'Galaxy Nexus': {
     'default_mode_governor': 'interactive',
+  },
+  # Pixel
+  'msm8996': {
+    'default_mode_governor': 'sched',
   },
   'Nexus 7': {
     'default_mode_governor': 'interactive',
@@ -78,6 +86,10 @@ _PERFORMANCE_MODE_DEFINITIONS = {
   },
 }
 
+def _GetPerfModeDefinitions(product_model):
+  if product_model.startswith('AOSP on '):
+    product_model = product_model.replace('AOSP on ', '')
+  return _PERFORMANCE_MODE_DEFINITIONS.get(product_model)
 
 def _NoisyWarning(message):
   message += ' Results may be NOISY!!'
@@ -148,8 +160,7 @@ class PerfControl(object):
     except device_errors.CommandFailedError:
       _NoisyWarning('Need root for performance mode.')
       return
-    mode_definitions = _PERFORMANCE_MODE_DEFINITIONS.get(
-        self._device.product_model)
+    mode_definitions = _GetPerfModeDefinitions(self._device.product_model)
     if not mode_definitions:
       self.SetScalingGovernor('performance')
       return
@@ -170,8 +181,7 @@ class PerfControl(object):
     """Sets the performance mode for the device to its default mode."""
     if not self._device.HasRoot():
       return
-    mode_definitions = _PERFORMANCE_MODE_DEFINITIONS.get(
-        self._device.product_model)
+    mode_definitions = _GetPerfModeDefinitions(self._device.product_model)
     if not mode_definitions:
       self.SetScalingGovernor('ondemand')
     else:
