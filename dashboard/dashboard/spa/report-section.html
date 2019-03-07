@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!--
+Copyright 2019 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/spa/cp-dialog.html">
+<link rel="import" href="/dashboard/spa/cp-loading.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/report-controls.html">
+<link rel="import" href="/dashboard/spa/report-names-request.html">
+<link rel="import" href="/dashboard/spa/report-request.html">
+<link rel="import" href="/dashboard/spa/report-table.html">
+<link rel="import" href="/dashboard/spa/report-template.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+
+<dom-module id="report-section">
+  <template>
+    <style>
+      #tables {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+      }
+      report-template {
+        background-color: var(--background-color, white);
+        overflow: auto;
+      }
+    </style>
+
+    <report-controls state-path="[[statePath]]">
+    </report-controls>
+
+    <cp-loading loading$="[[isLoading]]"></cp-loading>
+
+    <div id="tables">
+      <template is="dom-repeat" items="[[tables]]" as="table" index-as="tableIndex">
+        <cp-loading loading$="[[table.isLoading]]"></cp-loading>
+
+        <report-table state-path="[[statePath]].tables.[[tableIndex]]">
+        </report-table>
+
+        <template is="dom-if" if="[[table.isEditing]]">
+          <cp-dialog>
+            <report-template state-path="[[statePath]].tables.[[tableIndex]]"
+                on-save="onSave_">
+            </report-template>
+          </cp-dialog>
+        </template>
+      </template>
+    </div>
+  </template>
+</dom-module>
+<script src="/dashboard/spa/report-section.js"></script>

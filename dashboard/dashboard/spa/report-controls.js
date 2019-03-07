@@ -90,7 +90,6 @@ tr.exportTo('cp', () => {
       Object.keys(ReportControls.CHROMIUM_MILESTONES));
 
   ReportControls.State = {
-    isLoading: options => false,
     milestone: options => parseInt(options.milestone) ||
       ReportControls.CURRENT_MILESTONE,
     minRevision: options => options.minRevision,
@@ -108,8 +107,6 @@ tr.exportTo('cp', () => {
         ReportControls.DEFAULT_NAME,
       ],
     }),
-    tables: options => [PLACEHOLDER_TABLE],
-    tooltip: options => {return {};},
   };
 
   ReportControls.buildState = options => cp.buildState(
@@ -121,40 +118,6 @@ tr.exportTo('cp', () => {
   };
   ReportControls.observers = [
   ];
-
-  const DASHES = '-'.repeat(5);
-  const PLACEHOLDER_TABLE = {
-    name: DASHES,
-    isPlaceholder: true,
-    statistics: ['avg'],
-    report: {rows: []},
-  };
-  // Keep this the same shape as the default report so that the buttons don't
-  // move when the default report loads.
-  for (let i = 0; i < 4; ++i) {
-    const scalars = [];
-    for (let j = 0; j < 4 * PLACEHOLDER_TABLE.statistics.length; ++j) {
-      scalars.push({value: 0, unit: tr.b.Unit.byName.count});
-    }
-    PLACEHOLDER_TABLE.report.rows.push({
-      labelParts: [
-        {
-          href: '',
-          label: DASHES,
-          isFirst: true,
-          rowCount: 1,
-        },
-      ],
-      scalars,
-    });
-  }
-
-  ReportControls.placeholderTable = name => {
-    return {
-      ...PLACEHOLDER_TABLE,
-      name,
-    };
-  };
 
   ReportControls.DEFAULT_NAME = 'Chromium Performance Overview';
   ReportControls.CREATE = '[Create new report]';
