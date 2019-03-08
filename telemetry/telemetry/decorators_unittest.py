@@ -25,63 +25,13 @@ class FakeTest(object):
 
 class TestDisableDecorators(unittest.TestCase):
 
-  def testDisabledStringOnFunction(self):
+  def testCannotDisableClasses(self):
 
-    @decorators.Disabled('bar')
-    def Sum():
-      return 1 + 1
-
-    self.assertEquals({'bar'}, decorators.GetDisabledAttributes(Sum))
-
-    @decorators.Disabled('bar')
-    @decorators.Disabled('baz')
-    @decorators.Disabled('bart', 'baz')
-    def Product():
-      return 1 * 1
-
-    self.assertEquals({'bar', 'bart', 'baz'},
-                      decorators.GetDisabledAttributes(Product))
-
-  def testDisabledStringOnClass(self):
-
-    @decorators.Disabled('windshield')
     class Ford(object):
       pass
 
-    self.assertEquals({'windshield'}, decorators.GetDisabledAttributes(Ford))
-
-    @decorators.Disabled('windows', 'Drive')
-    @decorators.Disabled('wheel')
-    @decorators.Disabled('windows')
-    class Honda(object):
-      pass
-
-    self.assertEquals({'windshield'}, decorators.GetDisabledAttributes(Ford))
-    self.assertEquals({'wheel', 'Drive', 'windows'},
-                      decorators.GetDisabledAttributes(Honda))
-
-  def testDisabledStringOnSubClass(self):
-
-    @decorators.Disabled('windshield')
-    class Car(object):
-      pass
-
-    class Ford(Car):
-      pass
-
-    self.assertEquals({'windshield'}, decorators.GetDisabledAttributes(Car))
-    self.assertFalse(decorators.GetDisabledAttributes(Ford))
-
-    @decorators.Disabled('windows', 'Drive')
-    @decorators.Disabled('wheel')
-    @decorators.Disabled('windows')
-    class Honda(Car):
-      pass
-
-    self.assertFalse(decorators.GetDisabledAttributes(Ford))
-    self.assertEquals({'windshield'}, decorators.GetDisabledAttributes(Car))
-    self.assertEquals({'wheel', 'Drive', 'windows'},
-                      decorators.GetDisabledAttributes(Honda))
+    with self.assertRaises(ValueError):
+      decorators.Disabled('example')(Ford)
 
   def testDisabledStringOnMethod(self):
 
@@ -126,65 +76,13 @@ class TestDisableDecorators(unittest.TestCase):
 
 class TestEnableDecorators(unittest.TestCase):
 
-  def testEnabledStringOnFunction(self):
+  def testCannotEnableClasses(self):
 
-    @decorators.Enabled('minus', 'power')
-    def Sum():
-      return 1 + 1
-
-    self.assertEquals({'minus', 'power'}, decorators.GetEnabledAttributes(Sum))
-
-    @decorators.Enabled('dot')
-    @decorators.Enabled('product')
-    @decorators.Enabled('product', 'dot')
-    def Product():
-      return 1 * 1
-
-    self.assertEquals({'dot', 'product'},
-                      decorators.GetEnabledAttributes(Product))
-
-  def testEnabledStringOnClass(self):
-
-    @decorators.Enabled('windshield', 'light')
     class Ford(object):
       pass
 
-    self.assertEquals({'windshield', 'light'},
-                      decorators.GetEnabledAttributes(Ford))
-
-    @decorators.Enabled('wheel', 'Drive')
-    @decorators.Enabled('wheel')
-    @decorators.Enabled('windows')
-    class Honda(object):
-      pass
-
-    self.assertEquals({'wheel', 'Drive', 'windows'},
-                      decorators.GetEnabledAttributes(Honda))
-    self.assertEquals({'windshield', 'light'},
-                      decorators.GetEnabledAttributes(Ford))
-
-  def testEnabledStringOnSubClass(self):
-
-    @decorators.Enabled('windshield')
-    class Car(object):
-      pass
-
-    class Ford(Car):
-      pass
-
-    self.assertEquals({'windshield'}, decorators.GetEnabledAttributes(Car))
-    self.assertFalse(decorators.GetEnabledAttributes(Ford))
-
-    @decorators.Enabled('windows', 'Drive')
-    @decorators.Enabled('wheel')
-    @decorators.Enabled('windows')
-    class Honda(Car):
-      pass
-
-    self.assertFalse(decorators.GetEnabledAttributes(Ford))
-    self.assertEquals({'windshield'}, decorators.GetEnabledAttributes(Car))
-    self.assertEquals({'wheel', 'Drive', 'windows'},
-                      decorators.GetEnabledAttributes(Honda))
+    with self.assertRaises(ValueError):
+      decorators.Disabled('example')(Ford)
 
   def testEnabledStringOnMethod(self):
 
