@@ -14,6 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/spa/cp-icons.html">
 <link rel="import" href="/dashboard/spa/cp-loading.html">
 <link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/report-section.html">
 <link rel="import" href="/dashboard/spa/test-suites-request.html">
 
 <dom-module id="chromeperf-app">
@@ -68,17 +69,15 @@ found in the LICENSE file.
         margin-top: 50px;
       }
 
-      alerts-section {
-        display: block;
-        margin: 0;
-        padding: 16px;
-      }
-
+      report-section,
       alerts-section {
         /* Use full-bleed dividers between sections.
            https://material.io/guidelines/components/dividers.html
          */
         border-bottom: 1px solid var(--primary-color-medium);
+        display: block;
+        margin: 0;
+        padding: 16px;
       }
 
       .nav_button_label {
@@ -228,7 +227,19 @@ found in the LICENSE file.
       </template>
 
       <div id="main" enableNav$="[[enableNav]]">
-        TODO report-section, chart-sections
+        <template is="dom-if" if="[[reportSection]]">
+          <iron-collapse opened="[[showingReportSection]]">
+            <report-section
+                state-path="[[statePath]].reportSection"
+                on-require-sign-in="requireSignIn_"
+                on-close-section="hideReportSection_"
+                on-alerts="onReportAlerts_"
+                on-new-chart="onNewChart_">
+            </report-section>
+          </iron-collapse>
+        </template>
+
+        TODO chart-sections
 
         <template is="dom-repeat" items="[[alertsSectionIds]]" as="id" index-as="idIndex">
           <alerts-section

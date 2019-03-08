@@ -33,8 +33,22 @@ tr.exportTo('cp', () => {
       // TODO (#4461)
     }
 
+    async requireSignIn_(event) {
+      if (this.userEmail || !this.isProduction) return;
+      const auth = await window.getAuthInstanceAsync();
+      await auth.signIn();
+    }
+
+    hideReportSection_(event) {
+      this.dispatch(Redux.UPDATE(this.statePath, {
+        showingReportSection: false,
+      }));
+    }
+
     async onShowReportSection_(event) {
-      // TODO (#4461)
+      await this.dispatch(Redux.UPDATE(this.statePath, {
+        showingReportSection: true,
+      }));
     }
 
     async onNewAlertsSection_(event) {
@@ -50,6 +64,14 @@ tr.exportTo('cp', () => {
 
     async onCloseAlerts_(event) {
       await this.dispatch('closeAlerts', this.statePath, event.model.id);
+    }
+
+    async onReportAlerts_(event) {
+      await this.dispatch({
+        type: ChromeperfApp.reducers.newAlerts.name,
+        statePath: this.statePath,
+        options: event.detail.options,
+      });
     }
 
     async onCloseAllCharts_(event) {
@@ -68,6 +90,10 @@ tr.exportTo('cp', () => {
   ChromeperfApp.State = {
     enableNav: options => true,
     isLoading: options => true,
+    reportSection: options => cp.ReportSection.buildState({
+      sources: [cp.ReportControls.DEFAULT_NAME],
+    }),
+    showingReportSection: options => true,
     alertsSectionIds: options => [],
     alertsSectionsById: options => {return {};},
     closedAlertsIds: options => [],
