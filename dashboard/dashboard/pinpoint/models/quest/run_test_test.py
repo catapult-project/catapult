@@ -20,10 +20,13 @@ _BASE_ARGUMENTS = {
 }
 
 
+_BASE_SWARMING_TAGS = {}
+
+
 class StartTest(unittest.TestCase):
 
   def testStart(self):
-    quest = run_test.RunTest('server', DIMENSIONS, ['arg'])
+    quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS)
     execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
     self.assertEqual(execution._extra_args, ['arg'])
 
@@ -32,7 +35,7 @@ class FromDictTest(unittest.TestCase):
 
   def testMinimumArguments(self):
     quest = run_test.RunTest.FromDict(_BASE_ARGUMENTS)
-    expected = run_test.RunTest('server', DIMENSIONS, [])
+    expected = run_test.RunTest('server', DIMENSIONS, [], _BASE_SWARMING_TAGS)
     self.assertEqual(quest, expected)
 
   def testAllArguments(self):
@@ -41,7 +44,8 @@ class FromDictTest(unittest.TestCase):
     quest = run_test.RunTest.FromDict(arguments)
 
     extra_args = ['--custom-arg', 'custom value']
-    expected = run_test.RunTest('server', DIMENSIONS, extra_args)
+    expected = run_test.RunTest('server', DIMENSIONS, extra_args,
+                                _BASE_SWARMING_TAGS)
     self.assertEqual(quest, expected)
 
   def testMissingSwarmingServer(self):
@@ -60,7 +64,7 @@ class FromDictTest(unittest.TestCase):
     arguments = dict(_BASE_ARGUMENTS)
     arguments['dimensions'] = json.dumps(DIMENSIONS)
     quest = run_test.RunTest.FromDict(arguments)
-    expected = run_test.RunTest('server', DIMENSIONS, [])
+    expected = run_test.RunTest('server', DIMENSIONS, [], _BASE_SWARMING_TAGS)
     self.assertEqual(quest, expected)
 
   def testInvalidExtraTestArgs(self):
@@ -75,7 +79,8 @@ class FromDictTest(unittest.TestCase):
     quest = run_test.RunTest.FromDict(arguments)
 
     extra_args = ['--custom-arg', 'custom value']
-    expected = run_test.RunTest('server', DIMENSIONS, extra_args)
+    expected = run_test.RunTest('server', DIMENSIONS, extra_args,
+                                _BASE_SWARMING_TAGS)
     self.assertEqual(quest, expected)
 
 
@@ -181,7 +186,7 @@ class RunTestFullTest(_RunTestExecutionTest):
     # Goes through a full run of two Executions.
 
     # Call RunTest.Start() to create an Execution.
-    quest = run_test.RunTest('server', DIMENSIONS, ['arg'])
+    quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS)
     execution = quest.Start('change_1', 'isolate server', 'input isolate hash')
 
     swarming_task_result.assert_not_called()
@@ -268,7 +273,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
     swarming_task_result.return_value = {'state': 'BOT_DIED'}
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
-    quest = run_test.RunTest('server', DIMENSIONS, ['arg'])
+    quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS)
     execution = quest.Start(None, 'isolate server', 'input isolate hash')
     execution.Poll()
     execution.Poll()
@@ -290,7 +295,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
     }
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
-    quest = run_test.RunTest('server', DIMENSIONS, ['arg'])
+    quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS)
     execution = quest.Start(None, 'isolate server', 'isolate_hash')
     execution.Poll()
     execution.Poll()
@@ -319,7 +324,7 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
     }
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
-    quest = run_test.RunTest('server', DIMENSIONS, ['arg'])
+    quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS)
     execution = quest.Start(None, 'isolate server', 'isolate_hash')
     execution.Poll()
     execution.Poll()
@@ -341,7 +346,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     swarming_tasks_new.return_value = {'task_id': 'task id'}
     swarming_task_result.return_value = {'state': 'EXPIRED'}
 
-    quest = run_test.RunTest('server', DIMENSIONS, ['arg'])
+    quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS)
     execution = quest.Start('change_1', 'isolate server', 'input isolate hash')
     execution.Poll()
     with self.assertRaises(run_test.SwarmingExpiredError):
@@ -356,7 +361,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     swarming_tasks_new.return_value = {'task_id': 'task id'}
     swarming_task_result.return_value = {'state': 'CANCELED'}
 
-    quest = run_test.RunTest('server', DIMENSIONS, ['arg'])
+    quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS)
     execution = quest.Start('change_1', 'isolate server', 'input isolate hash')
     execution.Poll()
     execution.Poll()
@@ -383,7 +388,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
                                  swarming_tasks_new):
     # Executions after the first must wait for the first execution to get a bot
     # ID. To preserve device affinity, they must use the same bot.
-    quest = run_test.RunTest('server', DIMENSIONS, ['arg'])
+    quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS)
     execution_1 = quest.Start('change_1', 'input isolate server',
                               'input isolate hash')
     execution_2 = quest.Start('change_2', 'input isolate server',

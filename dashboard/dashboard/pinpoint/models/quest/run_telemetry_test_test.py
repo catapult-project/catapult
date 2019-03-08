@@ -27,14 +27,48 @@ _BASE_EXTRA_ARGS = [
 ] + _COMBINED_DEFAULT_EXTRA_ARGS
 
 
+_BASE_SWARMING_TAGS = {}
+
+
 class StartTest(unittest.TestCase):
 
   def testStart(self):
     quest = run_telemetry_test.RunTelemetryTest(
-        'server', run_test_test.DIMENSIONS, ['arg'])
+        'server', run_test_test.DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS)
     execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
     self.assertEqual(execution._extra_args,
                      ['arg', '--results-label', 'change'])
+
+  def testSwarmingTags(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['browser'] = 'android-webview'
+    quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
+    execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
+    self.assertEqual(
+        execution._swarming_tags, {'benchmark': 'speedometer',
+                                   'change': 'change', 'hasfilter': '0'})
+
+  def testSwarmingTagsWithStoryFilter(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['browser'] = 'android-webview'
+    arguments['story'] = 'sfilter'
+    quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
+    execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
+    self.assertEqual(
+        execution._swarming_tags, {'benchmark': 'speedometer',
+                                   'change': 'change', 'hasfilter': '1',
+                                   'storyfilter': 'sfilter'})
+
+  def testSwarmingTagsWithStoryTagFilter(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['browser'] = 'android-webview'
+    arguments['story_tags'] = 'tfilter'
+    quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
+    execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
+    self.assertEqual(
+        execution._swarming_tags, {'benchmark': 'speedometer',
+                                   'change': 'change', 'hasfilter': '1',
+                                   'tagfilter': 'tfilter'})
 
 
 class FromDictTest(unittest.TestCase):
@@ -42,7 +76,8 @@ class FromDictTest(unittest.TestCase):
   def testMinimumArguments(self):
     quest = run_telemetry_test.RunTelemetryTest.FromDict(_BASE_ARGUMENTS)
     expected = run_telemetry_test.RunTelemetryTest(
-        'server', run_test_test.DIMENSIONS, _BASE_EXTRA_ARGS)
+        'server', run_test_test.DIMENSIONS, _BASE_EXTRA_ARGS,
+        _BASE_SWARMING_TAGS)
     self.assertEqual(quest, expected)
 
   def testAllArguments(self):
@@ -57,7 +92,7 @@ class FromDictTest(unittest.TestCase):
         '--browser', 'release',
     ] + _COMBINED_DEFAULT_EXTRA_ARGS
     expected = run_telemetry_test.RunTelemetryTest(
-        'server', run_test_test.DIMENSIONS, extra_args)
+        'server', run_test_test.DIMENSIONS, extra_args, _BASE_SWARMING_TAGS)
     self.assertEqual(quest, expected)
 
   def testMissingBenchmark(self):
@@ -82,7 +117,7 @@ class FromDictTest(unittest.TestCase):
         '--pageset-repeat', '2', '--browser', 'release',
     ] + _COMBINED_DEFAULT_EXTRA_ARGS
     expected = run_telemetry_test.RunTelemetryTest(
-        'server', run_test_test.DIMENSIONS, extra_args)
+        'server', run_test_test.DIMENSIONS, extra_args, _BASE_SWARMING_TAGS)
     self.assertEqual(quest, expected)
 
   def testWebviewFlag(self):
@@ -96,5 +131,5 @@ class FromDictTest(unittest.TestCase):
         '../../out/Release/apks/SystemWebViewShell.apk',
     ] + _COMBINED_DEFAULT_EXTRA_ARGS
     expected = run_telemetry_test.RunTelemetryTest(
-        'server', run_test_test.DIMENSIONS, extra_args)
+        'server', run_test_test.DIMENSIONS, extra_args, _BASE_SWARMING_TAGS)
     self.assertEqual(quest, expected)
