@@ -162,7 +162,11 @@ class Job(ndb.Model):
 
   @property
   def url(self):
-    return 'https://%s/job/%s' % (os.environ['HTTP_HOST'], self.job_id)
+    host = os.environ['HTTP_HOST']
+    # TODO(crbug.com/939723): Remove this workaround when not needed.
+    if host == 'pinpoint.chromeperf.appspot.com':
+      host = 'pinpoint-dot-chromeperf.appspot.com'
+    return 'https://%s/job/%s' % (host, self.job_id)
 
   @property
   def results_url(self):
