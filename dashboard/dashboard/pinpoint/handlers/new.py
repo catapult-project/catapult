@@ -68,14 +68,14 @@ def _CreateJob(request):
 def _ArgumentsWithConfiguration(original_arguments):
   # "configuration" is a special argument that maps to a list of preset
   # arguments. Pull any arguments from the specified "configuration", if any.
+  new_arguments = original_arguments.copy()
+
   configuration = original_arguments.get('configuration')
   if configuration:
-    new_arguments = bot_configurations.Get(configuration)
-  else:
-    new_arguments = {}
-
-  # Override the configuration arguments with the API-provided arguments.
-  new_arguments.update(original_arguments)
+    default_arguments = bot_configurations.Get(configuration)
+    if default_arguments:
+      for k, v in default_arguments.items():
+        new_arguments.setdefault(k, v)
 
   if new_arguments.get('benchmark') in _UNSUPPORTED_BENCHMARKS:
     raise ValueError(_ERROR_UNSUPPORTED % new_arguments.get('benchmark'))

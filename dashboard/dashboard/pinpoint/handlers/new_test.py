@@ -103,6 +103,15 @@ class NewTest(_NewTest):
         result['jobUrl'],
         'https://testbed.example.com/job/%s' % result['jobId'])
 
+  def testBrowserOverride(self):
+    request = dict(_BASE_REQUEST)
+    request['browser'] = 'debug'
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertIsInstance(job.state._quests[1], quest_module.RunTelemetryTest)
+    self.assertIn('debug', job.state._quests[1]._extra_args)
+    self.assertNotIn('release', job.state._quests[1]._extra_args)
+
   def testComparisonModeFunctional(self):
     request = dict(_BASE_REQUEST)
     request['comparison_mode'] = 'functional'
