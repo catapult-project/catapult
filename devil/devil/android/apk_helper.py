@@ -98,7 +98,8 @@ def _ParseManifestFromApk(apk):
       manifest_key = m.group(1)
       if manifest_key in node:
         raise base_error.BaseError(
-            "A single attribute should have one key and one value")
+            "A single attribute should have one key and one value: {}"
+            .format(line))
       else:
         node[manifest_key] = m.group(2) or m.group(3)
       continue

@@ -868,14 +868,18 @@ class DeviceUtils(object):
       min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
   def Install(self, apk, allow_downgrade=False, reinstall=False,
               permissions=None, timeout=None, retries=None):
-    """Install an APK.
+    """Install an APK or app bundle.
 
-    Noop if an identical APK is already installed.
+    Noop if an identical APK is already installed. If installing a bundle, the
+    bundletools helper script (bin/*_bundle) should be used rather than the .aab
+    file.
 
     Args:
-      apk: An ApkHelper instance or string containing the path to the APK.
+      apk: An ApkHelper instance or string containing the path to the APK or
+        bundle.
       allow_downgrade: A boolean indicating if we should allow downgrades.
       reinstall: A boolean indicating if we should keep any existing app data.
+        Ignored if |apk| is a bundle.
       permissions: Set of permissions to set. If not set, finds permissions with
           apk helper. To set no permissions, pass [].
       timeout: timeout in seconds
@@ -924,10 +928,23 @@ class DeviceUtils(object):
   def _InstallInternal(self, base_apk, split_apks, allow_downgrade=False,
                        reinstall=False, allow_cached_props=False,
                        permissions=None):
+    base_apk = apk_helper.ToHelper(base_apk)
+    if base_apk.is_bundle:
+      if split_apks:
+        raise device_errors.CommandFailedError(
+            'Attempted to install a bundle {} while specifying split apks'
+            .format(base_apk))
+      if allow_downgrade:
+        logging.warning('Installation of a bundle requested with '
+                        'allow_downgrade=False. This is not possible with '
+                        'bundletools, no downgrading is possible. This '
+                        'flag will be ignored and installation will proceed.')
+      # |allow_cached_props| is unused and ignored for bundles.
+      self._InstallBundleInternal(base_apk, permissions)
+      return
+
     if split_apks:
       self._CheckSdkLevel(version_codes.LOLLIPOP)
-
-    base_apk = apk_helper.ToHelper(base_apk)
 
     all_apks = [base_apk.path]
     if split_apks:
@@ -992,6 +1009,17 @@ class DeviceUtils(object):
     # Upon success, we know the device checksums, but not their paths.
     if host_checksums is not None:
       self._cache['package_apk_checksums'][package_name] = host_checksums
+
+  def _InstallBundleInternal(self, bundle, permissions):
+    status = cmd_helper.RunCmd(
+        [bundle.path, 'install', '--device', self.serial])
+    if status != 0:
+      raise device_errors.CommandFailedError('Cound not install {}'.format(
+          bundle.path))
+    if (permissions is None
+        and self.build_version_sdk >= version_codes.MARSHMALLOW):
+      permissions = bundle.GetPermissions()
+    self.GrantPermissions(bundle.GetPackageName(), permissions)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def Uninstall(self, package_name, keep_data=False, timeout=None,

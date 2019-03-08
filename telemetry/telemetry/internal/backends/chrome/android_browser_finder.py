@@ -128,13 +128,14 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     # the APK.
     apks = self._platform_backend.device.GetApplicationPaths(
         self._backend_settings.package)
-    # A package can map to multiple APKs iff the package overrides the app on
-    # the system image. Such overrides should not happen on perf bots.
-    assert len(apks) == 1
-    base_apk = apks[0]
-    if not base_apk or not base_apk.endswith('/base.apk'):
-      return None
-    return base_apk[:-9]
+    # A package can map to multiple APKs if the package overrides the app on
+    # the system image. Such overrides should not happen on perf bots. The
+    # package can also map to multiple apks if splits are used. In all cases, we
+    # want the directory that contains base.apk.
+    for apk in apks:
+      if apk.endswith('/base.apk'):
+        return apk[:-9]
+    return None
 
   @property
   def profile_directory(self):
@@ -304,7 +305,12 @@ def CanFindAvailableBrowsers():
 
 
 def _CanPossiblyHandlePath(apk_path):
-  return apk_path and apk_path[-4:].lower() == '.apk'
+  if not apk_path:
+    return False
+  _, ext = os.path.splitext(apk_path)
+  if ext.lower() == '.apk':
+    return True
+  return apk_helper.ToHelper(apk_path).is_bundle
 
 
 def FindAllBrowserTypes():

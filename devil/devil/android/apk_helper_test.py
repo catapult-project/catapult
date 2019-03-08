@@ -252,48 +252,48 @@ class ApkHelperTest(mock_calls.TestCase):
   def testParseXmlManifest(self):
     self.assertEquals({
         'manifest': [
-          {'android:compileSdkVersion': '28',
-           'android:versionCode': '2',
-           'uses-sdk': [
-               {'android:minSdkVersion': '24',
-                'android:targetSdkVersion': '28'}],
-           'uses-permission': [
-               {'android:name':
-                'android.permission.ACCESS_COARSE_LOCATION'},
-               {'android:name':
-                'android.permission.ACCESS_NETWORK_STATE'}],
-           'application': [
-             {'android:allowBackup': 'true',
-              'android:extractNativeLibs': 'false',
-              'android:fullBackupOnly': 'false',
-              'meta-data': [
-                  {'android:name': 'android.allow_multiple',
-                   'android:value': 'true'},
-                  {'android:name': 'multiwindow',
-                   'android:value': 'true'}],
-              'activity': [
-                {'android:configChanges': '0x00001fb3',
-                 'android:excludeFromRecents': 'true',
-                 'android:name': 'ChromeLauncherActivity',
-                 'intent-filter': [
-                     {'action': [
-                         {'android:name': 'dummy.action'}],
-                      'category': [
-                         {'android:name': 'DAYDREAM'},
-                         {'android:name': 'CARDBOARD'}]}]},
-                {'android:enabled': 'false',
-                 'android:name': 'MediaLauncherActivity',
-                 'intent-filter': [
-                     {'tools:ignore': 'AppLinkUrlError',
-                      'action': [{'android:name': 'VIEW'}],
-                      'category': [{'android:name': 'DEFAULT'}],
-                      'data': [
-                          {'android:mimeType': 'audio/*'},
-                          {'android:mimeType': 'image/*'},
-                          {'android:mimeType': 'video/*'},
-                          {'android:scheme': 'file'},
-                          {'android:scheme': 'content'}]}]}]}]}]},
-                      apk_helper.ParseManifestFromXml("""
+            {'android:compileSdkVersion': '28',
+             'android:versionCode': '2',
+             'uses-sdk': [
+                 {'android:minSdkVersion': '24',
+                  'android:targetSdkVersion': '28'}],
+             'uses-permission': [
+                 {'android:name':
+                  'android.permission.ACCESS_COARSE_LOCATION'},
+                 {'android:name':
+                  'android.permission.ACCESS_NETWORK_STATE'}],
+             'application': [
+                 {'android:allowBackup': 'true',
+                  'android:extractNativeLibs': 'false',
+                  'android:fullBackupOnly': 'false',
+                  'meta-data': [
+                      {'android:name': 'android.allow_multiple',
+                       'android:value': 'true'},
+                      {'android:name': 'multiwindow',
+                       'android:value': 'true'}],
+                  'activity': [
+                      {'android:configChanges': '0x00001fb3',
+                       'android:excludeFromRecents': 'true',
+                       'android:name': 'ChromeLauncherActivity',
+                       'intent-filter': [
+                           {'action': [
+                               {'android:name': 'dummy.action'}],
+                            'category': [
+                                {'android:name': 'DAYDREAM'},
+                                {'android:name': 'CARDBOARD'}]}]},
+                      {'android:enabled': 'false',
+                       'android:name': 'MediaLauncherActivity',
+                       'intent-filter': [
+                           {'tools:ignore': 'AppLinkUrlError',
+                            'action': [{'android:name': 'VIEW'}],
+                            'category': [{'android:name': 'DEFAULT'}],
+                            'data': [
+                                {'android:mimeType': 'audio/*'},
+                                {'android:mimeType': 'image/*'},
+                                {'android:mimeType': 'video/*'},
+                                {'android:scheme': 'file'},
+                                {'android:scheme': 'content'}]}]}]}]}]},
+        apk_helper.ParseManifestFromXml("""
     <manifest xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
               android:compileSdkVersion="28" android:versionCode="2">
