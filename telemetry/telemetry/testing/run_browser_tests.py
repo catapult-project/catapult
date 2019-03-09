@@ -4,6 +4,7 @@
 
 import fnmatch
 import os
+import re
 import sys
 import json
 
@@ -152,30 +153,22 @@ def _SplitShardsByTime(test_cases, total_shards, test_times,
   return res
 
 
-def _DoesTestMatchFilter(test_filter, test_name):
-  return any(fnmatch.fnmatch(test_name, pattern)
-             for pattern in test_filter.split('::'))
-
-
 def LoadTestCasesToBeRun(
-    test_class, finder_options, test_filter_str, filter_tests_after_sharding,
+    test_class, finder_options, filter_regex_str, filter_tests_after_sharding,
     total_shards, shard_index, test_times, debug_shard_distributions):
   test_cases = []
-  match_everything = lambda *args: True
-  if test_filter_str:
-    test_filter_matcher_func = _DoesTestMatchFilter
-  else:
-    test_filter_matcher_func = match_everything
+  real_regex = re.compile(filter_regex_str)
+  noop_regex = re.compile('')
   if filter_tests_after_sharding:
-    test_filter_matcher = match_everything
-    post_test_filter_matcher = test_filter_matcher_func
+    filter_regex = noop_regex
+    post_filter_regex = real_regex
   else:
-    test_filter_matcher = test_filter_matcher_func
-    post_test_filter_matcher = match_everything
+    filter_regex = real_regex
+    post_filter_regex = noop_regex
 
   for t in serially_executed_browser_test_case.GenerateTestCases(
       test_class, finder_options):
-    if test_filter_matcher(test_filter_str, t.id()):
+    if filter_regex.search(t.shortName()):
       test_cases.append(t)
 
   if test_times:
@@ -183,7 +176,7 @@ def LoadTestCasesToBeRun(
     shards = _SplitShardsByTime(test_cases, total_shards, test_times,
                                 debug_shard_distributions)
     return [t for t in shards[shard_index]
-            if post_test_filter_matcher(test_filter_str, t.id())]
+            if post_filter_regex.search(t.shortName())]
   else:
     test_cases.sort(key=lambda t: t.shortName())
     test_range = _TestRangeForShard(total_shards, shard_index, len(test_cases))
@@ -196,7 +189,7 @@ def LoadTestCasesToBeRun(
       # debugging and comparison purposes.
       _DebugShardDistributions(tmp_shards, None)
     return [t for t in test_cases[test_range[0]:test_range[1]]
-            if post_test_filter_matcher(test_filter_str, t.id())]
+            if post_filter_regex.search(t.shortName())]
 
 
 def _CreateTestArgParsers():
@@ -205,9 +198,7 @@ def _CreateTestArgParsers():
 
   parser.add_argument(
       '--test-filter', type=str, default='', action='store',
-      help='Pass a double-colon-separated ("::") list of exact test names or '
-      'globs, to run just that subset of tests. fnmatch will be used to '
-      'match globs to test names')
+      help='Run only tests whose names match the given filter regexp.')
   parser.add_argument(
       '--filter-tests-after-sharding', default=False, action='store_true',
       help=('Apply the test filter after tests are split for sharding. Useful '
@@ -310,7 +301,7 @@ def RunTests(args):
       test_times = abbr_results.get('times')
   tests_to_run = LoadTestCasesToBeRun(
       test_class=test_class, finder_options=context.finder_options,
-      test_filter_str=options.test_filter,
+      filter_regex_str=options.test_filter,
       filter_tests_after_sharding=options.filter_tests_after_sharding,
       total_shards=options.total_shards, shard_index=options.shard_index,
       test_times=test_times,
