@@ -66,9 +66,8 @@ class RunTestsCommand(command_line.OptparseCommand):
                       help='Ignore @Disabled and @Enabled restrictions.')
     parser.add_option('--test-filter', metavar='TEST_NAMES',
                       help=('a double-colon-separated ("::") list of'
-                            ' test names or globs, to run just that subset'
-                            'of tests. Globs are matched to tests using '
-                            'fnmatch'))
+                            'exact test names, to run just that subset'
+                            'of tests'))
     parser.add_option('--client-config', dest='client_configs',
                       action='append', default=[])
     parser.add_option('--disable-logging-config', action='store_true',
@@ -95,7 +94,7 @@ class RunTestsCommand(command_line.OptparseCommand):
 
     if args.test_filter and args.positional_args:
       parser.error(
-          'Cannot specify test names in positional args and use'
+          'Cannot specify test names in postitional args and use'
           '--test-filter flag at the same time.')
 
     if args.no_browser:
@@ -225,16 +224,15 @@ def _SkipMatch(name, skipGlobs):
 def GetClassifier(args, possible_browser):
   if args.test_filter:
     selected_tests = args.test_filter.split('::')
-    selected_tests_match_pattern = True
+    selected_tests_are_exact = True
   else:
     selected_tests = args.positional_args
-    selected_tests_match_pattern = False
+    selected_tests_are_exact = False
 
   def ClassifyTestWithoutBrowser(test_set, test):
     name = test.id()
     if (not selected_tests or
-        _MatchesSelectedTest(
-            name, selected_tests, selected_tests_match_pattern)):
+        _MatchesSelectedTest(name, selected_tests, selected_tests_are_exact)):
       if _SkipMatch(name, args.skip):
         test_set.tests_to_skip.append(
             typ.TestInput(name, 'skipped because matched --skip'))
@@ -251,8 +249,7 @@ def GetClassifier(args, possible_browser):
   def ClassifyTestWithBrowser(test_set, test):
     name = test.id()
     if (not selected_tests or
-        _MatchesSelectedTest(
-            name, selected_tests, selected_tests_match_pattern)):
+        _MatchesSelectedTest(name, selected_tests, selected_tests_are_exact)):
       if _SkipMatch(name, args.skip):
         test_set.tests_to_skip.append(
             typ.TestInput(name, 'skipped because matched --skip'))
@@ -274,12 +271,11 @@ def GetClassifier(args, possible_browser):
     return ClassifyTestWithoutBrowser
 
 
-def _MatchesSelectedTest(name, selected_tests, selected_tests_match_pattern):
+def _MatchesSelectedTest(name, selected_tests, selected_tests_are_exact):
   if not selected_tests:
     return False
-  if selected_tests_match_pattern:
-    return any(fnmatch.fnmatch(name, pattern) if pattern.endswith('*')
-               else pattern == name for pattern in selected_tests)
+  if selected_tests_are_exact:
+    return name in selected_tests
   else:
     return any(test in name for test in selected_tests)
 
