@@ -30,7 +30,7 @@ class TestDisableDecorators(unittest.TestCase):
     class Ford(object):
       pass
 
-    with self.assertRaises(ValueError):
+    with self.assertRaises(TypeError):
       decorators.Disabled('example')(Ford)
 
   def testDisabledStringOnMethod(self):
@@ -81,7 +81,7 @@ class TestEnableDecorators(unittest.TestCase):
     class Ford(object):
       pass
 
-    with self.assertRaises(ValueError):
+    with self.assertRaises(TypeError):
       decorators.Disabled('example')(Ford)
 
   def testEnabledStringOnMethod(self):

@@ -115,9 +115,9 @@ def Disabled(*args):
   """
 
   def _Disabled(func):
-    if type(func).__name__ != 'function':
-      raise ValueError('Decorators cannot disable classes. '
-                       'You need to place them on the methods instead.')
+    if inspect.isclass(func):
+      raise TypeError('Decorators cannot disable classes. '
+                      'You need to place them on the test methods instead.')
     disabled_attr_name = DisabledAttributeName(func)
     if not hasattr(func, disabled_attr_name):
       setattr(func, disabled_attr_name, set())
@@ -149,9 +149,9 @@ def Enabled(*args):
   """
 
   def _Enabled(func):
-    if type(func).__name__ != 'function':
-      raise ValueError('Decorators cannot enable classes. '
-                       'You need to place them on the methods instead.')
+    if inspect.isclass(func):
+      raise TypeError('Decorators cannot enable classes. '
+                      'You need to place them on the test methods instead.')
     enabled_attr_name = EnabledAttributeName(func)
     if not hasattr(func, enabled_attr_name):
       setattr(func, enabled_attr_name, set())
