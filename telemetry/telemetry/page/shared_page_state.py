@@ -28,8 +28,9 @@ class SharedPageState(story_module.SharedState):
 
   _device_type = None
 
-  def __init__(self, test, finder_options, story_set):
-    super(SharedPageState, self).__init__(test, finder_options, story_set)
+  def __init__(self, test, finder_options, story_set, possible_browser=None):
+    super(SharedPageState, self).__init__(
+        test, finder_options, story_set, possible_browser)
     self._page_test = None
     if issubclass(type(test), legacy_page_test.LegacyPageTest):
       # We only need a page_test for legacy measurements that involve running
@@ -51,7 +52,8 @@ class SharedPageState(story_module.SharedState):
 
     self._browser = None
     self._finder_options = finder_options
-    self._possible_browser = self._GetPossibleBrowser()
+    if not self._possible_browser:
+      self._possible_browser = self._GetPossibleBrowser()
 
     self._first_browser = True
     self._previous_page = None
@@ -80,10 +82,6 @@ class SharedPageState(story_module.SharedState):
   @property
   def interval_profiling_controller(self):
     return self._interval_profiling_controller
-
-  @property
-  def possible_browser(self):
-    return self._possible_browser
 
   @property
   def browser(self):

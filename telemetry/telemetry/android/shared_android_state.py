@@ -15,7 +15,7 @@ class SharedAndroidState(story_module.SharedState):
   Email telemetry@chromium.org if you feel like you must use it.
   """
 
-  def __init__(self, test, finder_options, story_set):
+  def __init__(self, test, finder_options, story_set, possible_browser=None):
     """This method is styled on unittest.TestCase.setUpClass.
 
     Args:
@@ -23,7 +23,8 @@ class SharedAndroidState(story_module.SharedState):
       options: a BrowserFinderOptions instance with command line options.
       story_set: a story.StorySet instance.
     """
-    super(SharedAndroidState, self).__init__(test, finder_options, story_set)
+    super(SharedAndroidState, self).__init__(
+        test, finder_options, story_set, possible_browser)
     if not isinstance(
         test, timeline_based_measurement.TimelineBasedMeasurement):
       raise ValueError(
