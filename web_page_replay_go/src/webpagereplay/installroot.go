@@ -46,7 +46,7 @@ func (i *Installer) InstallRoot(certFile string, keyFile string) error {
 	fmt.Printf("Attempting to install root certificate in %q\n", dbPath)
 
 	i.RemoveRoot()
-	cmd := exec.Command("certutil", "-d", dbPath, "-A", "-n", CAName, "-t", "C,p,p")
+	cmd := exec.Command(i.CertUtilBinaryPath, "-d", dbPath, "-A", "-n", CAName, "-t", "C,p,p")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -89,6 +89,6 @@ func (i *Installer) RemoveRoot() {
 	fmt.Printf("Removing root certificate %s from NSS (i.e. Chrome)\n", getCAName())
 	// Try to delete any existing certificate. We ignore failures since the
 	// root might not yet exist.
-	cmd := exec.Command("certutil", "-d", getDbPath(), "-D", "-n", getCAName())
+	cmd := exec.Command(i.CertUtilBinaryPath, "-d", getDbPath(), "-D", "-n", getCAName())
 	cmd.Run()
 }

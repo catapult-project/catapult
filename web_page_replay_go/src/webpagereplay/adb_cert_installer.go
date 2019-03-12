@@ -24,8 +24,9 @@ var (
 )
 
 type Installer struct {
-	AndroidDeviceId string
-	AdbBinaryPath   string
+	AndroidDeviceId    string
+	AdbBinaryPath      string
+	CertUtilBinaryPath string
 }
 
 // Runs the adb command.

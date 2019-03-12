@@ -78,7 +78,7 @@ type ReplayCommand struct {
 	cmd    cli.Command
 
 	// Custom flags for replay.
-	rulesFile string
+	rulesFile                            string
 	serveResponseInChronologicalSequence bool
 }
 
@@ -196,12 +196,12 @@ func (r *ReplayCommand) Flags() []cli.Flag {
 			Destination: &r.rulesFile,
 		},
 		cli.BoolFlag{
-			Name:        "serve_response_in_chronological_sequence",
-			Usage:       "When an incoming request matches multiple recorded " +
-			             "responses, serve response in chronological sequence. " +
-			             "I.e. wpr responds to the first request with the first " +
-			             "recorded response, and the second request with the " +
-			             "second recorded response.",
+			Name: "serve_response_in_chronological_sequence",
+			Usage: "When an incoming request matches multiple recorded " +
+				"responses, serve response in chronological sequence. " +
+				"I.e. wpr responds to the first request with the first " +
+				"recorded response, and the second request with the " +
+				"second recorded response.",
 			Destination: &r.serveResponseInChronologicalSequence,
 		})
 }
@@ -219,6 +219,17 @@ func (r *RootCACommand) Flags() []cli.Flag {
 			Value:       "adb",
 			Usage:       "Path to adb binary. Only relevant for Android",
 			Destination: &r.installer.AdbBinaryPath,
+		},
+		// Most desktop machines Google engineers use come with certutil installed.
+		// In the chromium lab, desktop bots do not have certutil. Instead, desktop bots
+		// deploy certutil binaries to <chromium src>/third_party/nss/certutil.
+		// To accommodate chromium bots, the following flag accepts a custom path to
+		// certutil. Otherwise WPR assumes that certutil resides in the PATH.
+		cli.StringFlag{
+			Name:        "certutil_path",
+			Value:       "certutil",
+			Usage:       "Path to Network Security Services (NSS)'s certutil tool.",
+			Destination: &r.installer.CertUtilBinaryPath,
 		})
 }
 
@@ -417,7 +428,8 @@ func (r *ReplayCommand) Run(c *cli.Context) {
 }
 
 func (r *RootCACommand) Install(c *cli.Context) {
-	if err := r.installer.InstallRoot(r.certConfig.certFile, r.certConfig.keyFile); err != nil {
+	if err := r.installer.InstallRoot(
+		r.certConfig.certFile, r.certConfig.keyFile); err != nil {
 		fmt.Fprintf(os.Stderr, "Install root failed: %v", err)
 		os.Exit(1)
 	}
