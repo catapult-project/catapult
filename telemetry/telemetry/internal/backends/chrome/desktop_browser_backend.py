@@ -251,19 +251,15 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     else:
       self._proc = subprocess.Popen(cmd, env=env)
 
-    try:
-      self.BindDevToolsClient()
-      # browser is foregrounded by default on Windows and Linux, but not Mac.
-      if self.browser.platform.GetOSName() == 'mac':
-        subprocess.Popen([
-            'osascript', '-e',
-            ('tell application "%s" to activate' % self._executable)
-        ])
-      if self._supports_extensions:
-        self._WaitForExtensionsToLoad()
-    except:
-      self.Close()
-      raise
+    self.BindDevToolsClient()
+    # browser is foregrounded by default on Windows and Linux, but not Mac.
+    if self.browser.platform.GetOSName() == 'mac':
+      subprocess.Popen([
+          'osascript', '-e',
+          ('tell application "%s" to activate' % self._executable)
+      ])
+    if self._supports_extensions:
+      self._WaitForExtensionsToLoad()
 
   def BindDevToolsClient(self):
     # In addition to the work performed by the base class, quickly check if
