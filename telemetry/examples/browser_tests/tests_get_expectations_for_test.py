@@ -11,24 +11,24 @@ class CallsGetExpectationsForTest(
     serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
 
   @classmethod
-  def GenerateTestCases__RunWithExpectionsFile(cls, options):
+  def GenerateTestCases__RunsWithExpectionsFile(cls, options):
     del options
     yield 'HasExpectationsFile', ()
 
   @classmethod
-  def GenerateTestCases__RunWithOutExpectionsFile(cls, options):
+  def GenerateTestCases__RunsWithoutExpectionsFile(cls, options):
     del options
     yield 'HasNoExpectationsFile', ()
 
-  def _RunWithExpectionsFile(self):
-    if self.GetExpectationsForTest() == (set([json_results.ResultType.Failure]),
-                                         True):
+  def _RunsWithExpectionsFile(self):
+    if (self.GetExpectationsForTest() ==
+        (set([json_results.ResultType.Failure]), True)):
       return
     self.fail()
 
-  def _RunWithOutExpectionsFile(self):
-    if self.GetExpectationsForTest() == (set([json_results.ResultType.Pass]),
-                                         False):
+  def _RunsWithoutExpectionsFile(self):
+    if (self.GetExpectationsForTest() ==
+        (set([json_results.ResultType.Pass]), False)):
       return
     self.fail()
 
