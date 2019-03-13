@@ -30,6 +30,11 @@ TEST_BUILD_TYPE = 'test'
 REFERENCE_BUILD_TYPE = 'ref'
 STATISTICS = ['avg', 'count', 'max', 'min', 'std', 'sum']
 NO_MITIGATIONS_CASE = 'no-mitigations'
+STATISTICS_REGEX = '(.*)_(%s)' % '|'.join(STATISTICS + [
+    r'pct_[\d_]+',
+    r'ipr_[\d_]+',
+    r'ci_[\d]{3}(?:_lower|_upper)?',
+])
 
 # This stored object contains a list of test path component strings that must be
 # joined with the subsequent test path component in order to form a composite
@@ -216,14 +221,11 @@ class Descriptor(object):
     measurement, test_case = yield cls._MeasurementCase(test_suite, path)
 
     statistic = None
-    pct_match = re.match(r'(.*)_(pct_[\d_]+)', measurement)
-    if pct_match:
-      measurement, statistic = pct_match.groups()
-    else:
-      for suffix in STATISTICS:
-        if measurement.endswith('_' + suffix):
-          statistic = suffix
-          measurement = measurement[:-(1 + len(suffix))]
+    if measurement != 'jank_count':
+      # TODO: Handle other measurements ending with statistics?
+      stat_match = re.match(STATISTICS_REGEX, measurement)
+      if stat_match:
+        measurement, statistic = stat_match.groups()
 
     if path:
       raise ValueError('Unable to parse %r' % test_path)
