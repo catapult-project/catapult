@@ -305,6 +305,10 @@ tr.exportTo('cp', () => {
     return dict;
   }
 
+  function denormalize(objects, columnNames) {
+    return objects.map(obj => columnNames.map(col => obj[col]));
+  }
+
   async function* asGenerator(promise) {
     yield await promise;
   }
@@ -487,6 +491,7 @@ tr.exportTo('cp', () => {
     buildProperties,
     buildState,
     deepFreeze,
+    denormalize,
     generateColors,
     getActiveElement,
     idle,

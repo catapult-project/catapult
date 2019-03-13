@@ -59,7 +59,7 @@ tr.exportTo('cp', () => {
     },
     zeroYAxis: options => false,
     fixedXAxis: options => false,
-    mode: options => 'normalizeUnit',
+    mode: options => cp.MODE.NORMALIZE_UNIT,
     levelOfDetail: options => options.levelOfDetail || cp.LEVEL_OF_DETAIL.XY,
   };
 
@@ -238,7 +238,7 @@ tr.exportTo('cp', () => {
         if (data.length === 0) continue;
 
         let unit = timeserieses[0][0].unit;
-        if (state.mode === 'delta') {
+        if (state.mode === cp.MODE.DELTA) {
           unit = unit.correspondingDeltaUnit;
           const offset = data[0].y;
           for (const datum of data) datum.y -= offset;
@@ -265,13 +265,15 @@ tr.exportTo('cp', () => {
     // state.yAxis.ticks.
     mouseYTicks: (state, {line}, rootState) => {
       if (!state.yAxis.generateTicks) return state;
-      if (!((state.mode === 'normalizeLine') || (state.mode === 'center')) &&
+      const isNormalizeLine = (
+        state.mode === cp.MODE.NORMALIZE_LINE || state.mode === cp.MODE.CENTER);
+      if (!isNormalizeLine &&
           (state.yAxis.ticksForUnitName.size === 1)) {
         return state;
       }
       let ticks = [];
       if (line) {
-        if (state.mode === 'normalizeLine' || state.mode === 'center') {
+        if (isNormalizeLine) {
           ticks = line.ticks;
         } else {
           ticks = state.yAxis.ticksForUnitName.get(

@@ -18,7 +18,7 @@ suite('layout-timeseries', function() {
     return tr.b.math.Range.fromExplicitRange(min, max);
   }
 
-  test('normalizeUnit', async function() {
+  test('normalize unit', async function() {
     const input = {
       lines: [
         {
@@ -75,9 +75,9 @@ suite('layout-timeseries', function() {
     ]);
   });
 
-  test('normalizeLine', async function() {
+  test('normalize line', async function() {
     const input = {
-      mode: 'normalizeLine',
+      mode: cp.MODE.NORMALIZE_LINE,
       lines: [
         {
           unit: tr.b.Unit.byName.count_smallerIsBetter,
@@ -141,7 +141,7 @@ suite('layout-timeseries', function() {
 
   test('delta', async function() {
     const input = {
-      mode: 'delta',
+      mode: cp.MODE.DELTA,
       lines: [
         {
           unit: tr.b.Unit.byName.count_smallerIsBetter,
@@ -199,7 +199,7 @@ suite('layout-timeseries', function() {
 
   test('center', async function() {
     const input = {
-      mode: 'center',
+      mode: cp.MODE.CENTER,
       lines: [
         {
           unit: tr.b.Unit.byName.count_smallerIsBetter,
