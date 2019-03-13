@@ -1,0 +1,3 @@
+# tags: [foo bar honda]
+
+[ foo ] browser_tests.browser_test.ImplementsExpectationsFilesFunction.FailingTest [ Failure ]

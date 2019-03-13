@@ -1,3 +1,0 @@
-# tags: [foo bar honda]
-
-crbug.com/124 [ bar ] browser_tests.includes_test_expectations_files_test.IncludesTestExpectationsFiles.FailTest [ Failure ]
