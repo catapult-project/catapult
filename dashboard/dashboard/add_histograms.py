@@ -56,11 +56,120 @@ TASK_QUEUE_NAME = 'histograms-queue'
 
 _RETRY_PARAMS = cloudstorage.RetryParams(backoff_factor=1.1)
 _TASK_RETRY_LIMIT = 4
+_ZLIB_BUFFER_SIZE = 4096
 
 
 def _CheckRequest(condition, msg):
   if not condition:
     raise api_request_handler.BadRequestError(msg)
+
+
+class DecompressFileWrapper(object):
+  """A file-like object implementing inline decompression.
+
+  This class wraps a file-like object and does chunk-based decoding of the data.
+  We only implement the read() function supporting fixed-chunk reading, capped
+  to a predefined constant buffer length.
+
+  Example
+
+    with open('filename', 'r') as input:
+      decompressor = DecompressFileWrapper(input)
+      while True:
+        chunk = decompressor.read(4096)
+        if len(chunk) == 0:
+          break
+        // handle the chunk with size <= 4096
+  """
+
+  def __init__(self, source_file, buffer_size=_ZLIB_BUFFER_SIZE):
+    self.source_file = source_file
+    self.decompressor = zlib.decompressobj()
+    self.buffer_size = buffer_size
+
+  def __enter__(self):
+    return self
+
+  def read(self, size=None): # pylint: disable=invalid-name
+    if size is None or size < 0:
+      size = self.buffer_size
+
+    # We want to read chunks of data from the buffer, chunks at a time.
+    temporary_buffer = self.decompressor.unconsumed_tail
+    if len(temporary_buffer) < self.buffer_size / 2:
+      raw_buffer = self.source_file.read(size)
+      if raw_buffer != '':
+        temporary_buffer += raw_buffer
+
+    if len(temporary_buffer) == 0:
+      return u''
+
+    decompressed_data = self.decompressor.decompress(temporary_buffer, size)
+    return decompressed_data
+
+  def close(self): # pylint: disable=invalid-name
+    self.decompressor.flush()
+
+  def __exit__(self, exception_type, exception_value, execution_traceback):
+    self.close()
+    return False
+
+
+def _LoadHistogramList(input_file):
+  """Incremental file decoding and JSON parsing when handling new histograms.
+
+  This helper function takes an input file which yields fragments of JSON
+  encoded histograms then incrementally builds the list of histograms to return
+  the fully formed list in the end.
+
+  Returns
+    This function returns an instance of a list() containing dict()s decoded
+    from the input_file.
+
+  Raises
+    This function may raise ValueError instances if we end up not finding valid
+    JSON fragments inside the file.
+  """
+  histogram_dicts = list()
+  json_decoder = json.JSONDecoder()
+  with timing.WallTimeLogger('json.load'):
+    chunk = str()
+    while True:
+      new_chunk = str(input_file.read(_ZLIB_BUFFER_SIZE))
+      chunk += new_chunk
+      if len(chunk) == 0:
+        break
+
+      try:
+        obj, pos = json_decoder.raw_decode(chunk)
+
+        if isinstance(obj, list):
+          # We handle the case for when we find a list of dicts in the data.
+          histogram_dicts.extend(obj)
+        elif isinstance(obj, dict):
+          # If we found a single dict, we append this fully-formed dict to the
+          # end of the list.
+          histogram_dicts.append(obj)
+        else:
+          # If we don't support the object is in the file (because we
+          # don't have enough input to the decoder) then we raise a ValueError,
+          # handled below.
+          raise ValueError('Unsupported object: %r' % (obj))
+
+        # It's critical for us to retain the remainder of the chunk we've
+        # been reading, before we seek new chunks to handle.
+        chunk = chunk[pos:]
+      except ValueError, _:
+        # If we encounter a ValueError, we first try reading more from the
+        # input file. If we've reached the end of the input file, we can then
+        # propagate the error upward, since this means we can't meaningfully
+        # parse the final part of the input file.
+        new_chunk = input_file.read(_ZLIB_BUFFER_SIZE)
+        if len(new_chunk) == 0:
+          raise
+        chunk += new_chunk
+
+  return histogram_dicts
 
 
 class AddHistogramsProcessHandler(request_handler.RequestHandler):
@@ -75,16 +184,15 @@ class AddHistogramsProcessHandler(request_handler.RequestHandler):
       try:
         gcs_file = cloudstorage.open(
             gcs_file_path, 'r', retry_params=_RETRY_PARAMS)
-        contents = gcs_file.read()
-        data_str = zlib.decompress(contents)
+        with DecompressFileWrapper(gcs_file) as decompressing_file:
+          histogram_dicts = _LoadHistogramList(decompressing_file)
+
         gcs_file.close()
+
+        ProcessHistogramSet(histogram_dicts)
       finally:
         cloudstorage.delete(gcs_file_path, retry_params=_RETRY_PARAMS)
 
-      with timing.WallTimeLogger('json.loads'):
-        histogram_dicts = json.loads(data_str)
-
-      ProcessHistogramSet(histogram_dicts)
     except Exception as e: # pylint: disable=broad-except
       logging.error('Error processing histograms: %r', e.message)
       self.response.out.write(json.dumps({'error': e.message}))

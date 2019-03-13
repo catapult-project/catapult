@@ -5,6 +5,8 @@
 import base64
 import json
 import mock
+import random
+import string
 import sys
 import webapp2
 import webtest
@@ -111,6 +113,36 @@ def _CreateHistogram(
   return histograms
 
 
+class BufferedFakeFile(object):
+  def __init__(self, data=str()):
+    self.data = data
+    self.position = 0
+
+  def read(self, size=None): # pylint: disable=invalid-name
+    if self.position == len(self.data):
+      return ''
+    if size is None or size < 0:
+      result = self.data[self.position:]
+      self.position = len(self.data)
+      return result
+    if size > len(self.data) + self.position:
+      result = self.data[self.position:]
+      self.position = len(self.data)
+      return result
+
+    current_position = self.position
+    self.position += size
+    result = self.data[current_position:self.position]
+    return result
+
+  def write(self, data): # pylint: disable=invalid-name
+    self.data += data
+    return len(data)
+
+  def close(self): # pylint: disable=invalid-name
+    pass
+
+
 class AddHistogramsBaseTest(testing_common.TestCase):
 
   def setUp(self):
@@ -142,20 +174,14 @@ class AddHistogramsBaseTest(testing_common.TestCase):
     self.addCleanup(patcher.stop)
 
   def PostAddHistogram(self, data, status=200):
-    mock_obj = mock.MagicMock()
-
-    def _PassToRead(data_out):
-      mock_obj.read.return_value = data_out
-
-    mock_obj.write.side_effect = _PassToRead
+    mock_obj = mock.MagicMock(wraps=BufferedFakeFile())
     self.mock_cloudstorage.open.return_value = mock_obj
 
     self.testapp.post('/add_histograms', data, status=status)
     self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
 
   def PostAddHistogramProcess(self, data):
-    mock_read = mock.MagicMock()
-    mock_read.read.return_value = zlib.compress(data)
+    mock_read = mock.MagicMock(wraps=BufferedFakeFile(zlib.compress(data)))
     self.mock_cloudstorage.open.return_value = mock_read
 
     # TODO(simonhatch): Should we surface the error somewhere that can be
@@ -1446,3 +1472,99 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     add_histograms._LogDebugInfo(histograms)
     self.assertEqual('No LOG_URLS in data.', mock_log.call_args_list[0][0][0])
     self.assertEqual('No BUILD_URLS in data.', mock_log.call_args_list[1][0][0])
+
+
+def RandomChars(length):
+  for _ in xrange(length):
+    yield '%s' % (random.choice(string.letters))
+
+
+class DecompressFileWrapperTest(testing_common.TestCase):
+
+  def testBasic(self):
+    filesize = 1024 * 256
+    random.seed(1)
+    payload = ''.join([x for x in RandomChars(filesize)])
+    random.seed(None)
+    self.assertEqual(len(payload), filesize)
+    input_file = BufferedFakeFile(zlib.compress(payload))
+    retrieved_payload = str()
+    with add_histograms.DecompressFileWrapper(input_file, 2048) as decompressor:
+      while True:
+        chunk = decompressor.read(1024)
+        if len(chunk) == 0:
+          break
+        retrieved_payload += chunk
+    self.assertEqual(payload, retrieved_payload)
+
+  def testDecompressionFail(self):
+    filesize = 1024 * 256
+    random.seed(1)
+    payload = ''.join([x for x in RandomChars(filesize)])
+    random.seed(None)
+    self.assertEqual(len(payload), filesize)
+
+    # We create a BufferedFakeFile which does not contain zlib-compressed data.
+    input_file = BufferedFakeFile(payload)
+    retrieved_payload = str()
+    with self.assertRaises(zlib.error):
+      with add_histograms.DecompressFileWrapper(input_file, 2048) as d:
+        while True:
+          chunk = d.read(1024)
+          if len(chunk) == 0:
+            break
+          retrieved_payload += chunk
+
+  def testJSON(self):
+    # Create a JSON payload that's compressed and loaded appropriately.
+    def _MakeHistogram(name):
+      h = histogram_module.Histogram(name, 'count')
+      for i in xrange(100):
+        h.AddSample(i)
+      return h
+
+    hists = [_MakeHistogram('hist_%d' % i) for i in xrange(1000)]
+    histograms = histogram_set.HistogramSet(hists)
+    histograms.AddSharedDiagnosticToAllHistograms(
+        reserved_infos.MASTERS.name,
+        generic_set.GenericSet(['master']))
+    histograms.AddSharedDiagnosticToAllHistograms(
+        reserved_infos.BOTS.name,
+        generic_set.GenericSet(['bot']))
+    histograms.AddSharedDiagnosticToAllHistograms(
+        reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
+        generic_set.GenericSet([12345]))
+    histograms.AddSharedDiagnosticToAllHistograms(
+        reserved_infos.BENCHMARKS.name,
+        generic_set.GenericSet(['benchmark']))
+    histograms.AddSharedDiagnosticToAllHistograms(
+        reserved_infos.DEVICE_IDS.name,
+        generic_set.GenericSet(['device_foo']))
+
+    input_file_compressed = BufferedFakeFile(
+        zlib.compress(json.dumps(histograms.AsDicts())))
+    input_file_raw = BufferedFakeFile(json.dumps(histograms.AsDicts()))
+
+    loaded_compressed_histograms = histogram_set.HistogramSet()
+
+    with add_histograms.DecompressFileWrapper(
+        input_file_compressed, 256) as decompressor:
+      loaded_compressed_histograms.ImportDicts(
+          add_histograms._LoadHistogramList(decompressor))
+
+    loaded_compressed_histograms.DeduplicateDiagnostics()
+
+    loaded_raw_histograms = histogram_set.HistogramSet()
+    loaded_raw_histograms.ImportDicts(
+        add_histograms._LoadHistogramList(input_file_raw))
+    loaded_raw_histograms.DeduplicateDiagnostics()
+
+    self.assertEquals(sorted(loaded_raw_histograms.AsDicts()),
+                      sorted(loaded_compressed_histograms.AsDicts()))
+
+  def testJSONFail(self):
+    input_file_compressed = BufferedFakeFile("Not JSON")
+
+    with self.assertRaises(ValueError):
+      _ = add_histograms._LoadHistogramList(input_file_compressed)
+
