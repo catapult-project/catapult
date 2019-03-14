@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<!--
+Copyright 2019 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/dashboard/spa/chart-section.html">
+
+<test-fixture id="test">
+  <template>
+    <chart-section state-path="test" linked-state-path="linked">
+    </chart-section>
+  </template>
+</test-fixture>
+
+<script>
+'use strict';
+window.AUTH_CLIENT_ID = '';
+
+suite('chart-section', function() {
+  let originalFetch;
+  let originalAuthorizationHeaders;
+  let timeseriesBody;
+  setup(() => {
+    originalAuthorizationHeaders = window.getAuthorizationHeaders;
+    window.getAuthorizationHeaders = async() => {
+      return {};
+    };
+
+    originalFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      return {
+        async json() {
+          if (url === cp.TestSuitesRequest.URL) {
+            return ['suite_a', 'suite_b', 'suite_c'];
+          }
+          if (url === cp.DescribeRequest.URL) {
+            return {
+              measurements: ['measure'],
+              bots: ['master:bot'],
+            };
+          }
+          if (url === cp.TimeseriesRequest.URL) {
+            timeseriesBody = new Map(options.body);
+            return {
+              units: options.body.get('measurement'),
+              data: [
+                [10, 1000, 1, 1],
+                [20, 2000, 2, 1],
+              ],
+            };
+          }
+        },
+      };
+    };
+
+    fixture('test').dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', cp.ChartSection.buildState({}))));
+  });
+  teardown(() => {
+    window.fetch = originalFetch;
+    window.getAuthorizationHeaders = originalAuthorizationHeaders;
+  });
+
+  test('descriptor', async function() {
+    const chart = fixture('test');
+    await cp.afterRender();
+    await chart.dispatch(Redux.UPDATE(chart.statePath, {
+      descriptor: cp.TimeseriesDescriptor.buildState({
+        suite: {
+          selectedOptions: ['suite'],
+        },
+        bot: {
+          selectedOptions: ['master:bot'],
+        },
+        case: {
+          selectedOptions: [],
+        },
+        measurement: {
+          selectedOptions: ['ms'],
+        },
+      }),
+    }));
+    await cp.afterRender();
+    chart.$.descriptor.dispatchEvent(new CustomEvent('matrix-change'));
+    await cp.afterRender();
+    assert.deepEqual(chart.lineDescriptors, [{
+      bots: ['master:bot'],
+      buildType: 'test',
+      cases: [],
+      measurement: 'ms',
+      statistic: 'avg',
+      suites: ['suite'],
+    }]);
+  });
+
+  test('statistic', async function() {
+    const chart = fixture('test');
+    await cp.afterRender();
+    await chart.dispatch(Redux.UPDATE('test', {
+      descriptor: cp.TimeseriesDescriptor.buildState({
+        suite: {
+          selectedOptions: ['suite'],
+        },
+        bot: {
+          selectedOptions: ['master:bot'],
+        },
+        case: {
+          selectedOptions: [],
+        },
+        measurement: {
+          selectedOptions: ['ms'],
+        },
+      }),
+    }));
+    chart.$.statistic.dispatchEvent(new CustomEvent('option-select'));
+    await cp.afterRender();
+    assert.deepEqual(chart.lineDescriptors, [{
+      bots: ['master:bot'],
+      buildType: 'test',
+      cases: [],
+      measurement: 'ms',
+      statistic: 'avg',
+      suites: ['suite'],
+    }]);
+  });
+
+  test('title', async function() {
+    const chart = fixture('test');
+    await cp.afterRender();
+    chart.$.title.value = 'test';
+    chart.$.title.dispatchEvent(new CustomEvent('keyup'));
+    await cp.afterRender();
+    assert.strictEqual('test', chart.title);
+    assert.isTrue(chart.isTitleCustom);
+  });
+});
+</script>

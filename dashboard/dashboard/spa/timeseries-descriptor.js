@@ -292,6 +292,34 @@ tr.exportTo('cp', () => {
     return {suites, measurements, bots, cases};
   };
 
+  TimeseriesDescriptor.createLineDescriptors = ({
+    suiteses, measurements, botses, caseses, statistics,
+    buildTypes,
+  }) => {
+    const lineDescriptors = [];
+    for (const suites of suiteses) {
+      for (const measurement of measurements) {
+        for (const bots of botses) {
+          for (const cases of caseses) {
+            for (const statistic of statistics) {
+              for (const buildType of buildTypes) {
+                lineDescriptors.push({
+                  suites,
+                  measurement,
+                  bots,
+                  cases,
+                  statistic,
+                  buildType,
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+    return lineDescriptors;
+  };
+
   cp.ElementBase.register(TimeseriesDescriptor);
   return {TimeseriesDescriptor};
 });
