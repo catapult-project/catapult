@@ -11,11 +11,15 @@ found in the LICENSE file.
 <link rel="import" href="/bower_components/chopsui/chops-signin-aware.html">
 <link rel="import" href="/bower_components/chopsui/chops-signin.html">
 <link rel="import" href="/dashboard/spa/alerts-section.html">
+<link rel="import" href="/dashboard/spa/chart-section.html">
 <link rel="import" href="/dashboard/spa/cp-icons.html">
 <link rel="import" href="/dashboard/spa/cp-loading.html">
+<link rel="import" href="/dashboard/spa/cp-toast.html">
 <link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/raised-button.html">
 <link rel="import" href="/dashboard/spa/report-section.html">
 <link rel="import" href="/dashboard/spa/test-suites-request.html">
+<link rel="import" href="/tracing/base/guid.html">
 
 <dom-module id="chromeperf-app">
   <template>
@@ -70,7 +74,8 @@ found in the LICENSE file.
       }
 
       report-section,
-      alerts-section {
+      alerts-section,
+      chart-section {
         /* Use full-bleed dividers between sections.
            https://material.io/guidelines/components/dividers.html
          */
@@ -117,8 +122,20 @@ found in the LICENSE file.
       cp-toast {
         border-radius: 24px;
         cursor: pointer;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 8px;
+        padding: 8px 0;
         text-transform: uppercase;
         user-select: none;
+        white-space: nowrap;
+        width: 100%;
+      }
+
+      cp-toast raised-button {
+        background-color: var(--primary-color-dark, blue);
+        color: var(--background-color, white);
+        padding: 8px;
       }
 
       #old_pages {
@@ -245,8 +262,6 @@ found in the LICENSE file.
           </iron-collapse>
         </template>
 
-        TODO chart-sections
-
         <template is="dom-repeat" items="[[alertsSectionIds]]" as="id" index-as="idIndex">
           <alerts-section
               state-path="[[statePath]].alertsSectionsById.[[id]]"
@@ -255,6 +270,16 @@ found in the LICENSE file.
               on-new-chart="onNewChart_"
               on-close-section="onCloseAlerts_">
           </alerts-section>
+        </template>
+
+        <template is="dom-repeat" items="[[chartSectionIds]]" as="id" index-as="idIndex">
+          <chart-section
+              state-path="[[statePath]].chartSectionsById.[[id]]"
+              linked-state-path="[[statePath]].linkedChartState"
+              on-require-sign-in="requireSignIn_"
+              on-new-chart="onNewChart_"
+              on-close-section="onCloseChart_">
+          </chart-section>
         </template>
 
         <div id="vulcanized">
@@ -267,6 +292,13 @@ found in the LICENSE file.
       <raised-button id="reopen_alerts" on-click="onReopenClosedAlerts_">
         <iron-icon icon="cp:alert"></iron-icon>
         Reopen alerts
+      </raised-button>
+    </cp-toast>
+
+    <cp-toast opened="[[!isEmpty_(closedChartIds)]]">
+      <raised-button id="reopen_chart" on-click="onReopenClosedChart_">
+        <iron-icon icon="cp:chart"></iron-icon>
+        Reopen chart
       </raised-button>
     </cp-toast>
   </template>

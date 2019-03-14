@@ -18,6 +18,14 @@ tr.exportTo('cp', () => {
       this.debounceJobs_ = new Map();
     }
 
+    add_() {
+      let sum = arguments[0];
+      for (const arg of Array.from(arguments).slice(1)) {
+        sum += arg;
+      }
+      return sum;
+    }
+
     isEqual_() {
       const test = arguments[0];
       for (const arg of Array.from(arguments).slice(1)) {

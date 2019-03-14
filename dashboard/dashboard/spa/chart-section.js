@@ -411,6 +411,105 @@ tr.exportTo('cp', () => {
     return title;
   };
 
+  ChartSection.isEmpty = state => {
+    if (!state) return true;
+    if (!state.descriptor) return true;
+    if (!state.descriptor.suite) return true;
+    if (!state.descriptor.measurement) return true;
+    if (!state.descriptor.bot) return true;
+    if (!state.descriptor.case) return true;
+    if (state.descriptor.suite.selectedOptions.length === 0 &&
+        state.descriptor.measurement.selectedOptions.length === 0 &&
+        state.descriptor.bot.selectedOptions.length === 0 &&
+        state.descriptor.case.selectedOptions.length === 0) {
+      return true;
+    }
+    return false;
+  };
+
+  ChartSection.matchesOptions = (state, options) => {
+    if (!options ||
+        !state ||
+        !state.descriptor ||
+        !state.descriptor.suite ||
+        !state.descriptor.measurement ||
+        !state.descriptor.bot ||
+        !state.descriptor.case) {
+      return false;
+    }
+    if (options.mode !== undefined &&
+        options.mode !== state.mode) {
+      return false;
+    }
+    if (options.isLinked !== undefined &&
+        options.isLinked !== state.isLinked) {
+      return false;
+    }
+    if (options.zeroYAxis !== undefined &&
+        options.zeroYAxis !== state.zeroYAxis) {
+      return false;
+    }
+    if (options.fixedXAxis !== undefined &&
+        options.fixedXAxis !== state.fixedXAxis) {
+      return false;
+    }
+    if (options.parameters) {
+      if (options.parameters.suites && !tr.b.setsEqual(
+          new Set(options.parameters.suites),
+          new Set(state.descriptor.suite.selectedOptions))) {
+        return false;
+      }
+      if (options.parameters.measurements && !tr.b.setsEqual(
+          new Set(options.parameters.measurements),
+          new Set(state.descriptor.measurement.selectedOptions))) {
+        return false;
+      }
+      if (options.parameters.bots && !tr.b.setsEqual(
+          new Set(options.parameters.bots),
+          new Set(state.descriptor.bot.selectedOptions))) {
+        return false;
+      }
+      if (options.parameters.cases && !tr.b.setsEqual(
+          new Set(options.parameters.cases),
+          new Set(state.descriptor.case.selectedOptions))) {
+        return false;
+      }
+      if (options.parameters.suitesAggregated !== undefined &&
+          options.parameters.suitesAggregated !=
+          state.descriptor.suite.isAggregated) {
+        return false;
+      }
+      if (options.parameters.botsAggregated !== undefined &&
+          options.parameters.botsAggregated !=
+          state.descriptor.bot.isAggregated) {
+        return false;
+      }
+      if (options.parameters.casesAggregated !== undefined &&
+          options.parameters.casesAggregated !=
+          state.descriptor.case.isAggregated) {
+        return false;
+      }
+      if (options.parameters.statistics && !tr.b.setsEqual(
+          new Set(options.parameters.statistics),
+          new Set(state.statistic.selectedOptions))) {
+        return false;
+      }
+    }
+    if (options.minRevision !== undefined &&
+        options.minRevision !== state.minRevision) {
+      return false;
+    }
+    if (options.maxRevision !== undefined &&
+        options.maxRevision !== state.maxRevision) {
+      return false;
+    }
+    if (options.selectedRelatedTabName !== undefined &&
+        options.selectedRelatedTabName !== state.selectedRelatedTabName) {
+      return false;
+    }
+    return true;
+  };
+
   cp.ElementBase.register(ChartSection);
 
   return {ChartSection};

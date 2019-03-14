@@ -618,6 +618,9 @@ tr.exportTo('cp', () => {
   };
 
   AlertsSection.matchesOptions = (state, options) => {
+    if (!options || !state || !state.report || !state.sheriff || !state.bug) {
+      return false;
+    }
     if (!tr.b.setsEqual(new Set(options.reports),
         new Set(state.report.selectedOptions))) {
       return false;

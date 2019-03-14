@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<!--
+Copyright 2019 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+<script src="/bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="/dashboard/spa/chromeperf-app.html">
+
+<test-fixture id="test">
+  <template>
+    <chromeperf-app state-path="test"></chromeperf-app>
+  </template>
+</test-fixture>
+
+<script>
+'use strict';
+window.AUTH_CLIENT_ID = '';
+
+suite('chromeperf-app', function() {
+  let originalFetch;
+  let originalAuthorizationHeaders;
+  setup(() => {
+    originalAuthorizationHeaders = window.getAuthorizationHeaders;
+    window.getAuthorizationHeaders = async() => {
+      return {};
+    };
+    originalFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      return {
+        async json() {
+          if (url === cp.DescribeRequest.URL) {
+            return {
+              measurements: ['measure'],
+              bots: ['master:bot'],
+            };
+          }
+          if (url === cp.AlertsRequest.URL) {
+            return {anomalies: []};
+          }
+          if (url === cp.SheriffsRequest.URL) {
+            return ['ccc', 'ddd'];
+          }
+          if (url === cp.ReportNamesRequest.URL) {
+            return [{
+              name: cp.ReportControls.DEFAULT_NAME,
+              id: 42,
+              modified: new Date(),
+            }];
+          }
+        },
+      };
+    };
+  });
+  teardown(() => {
+    window.fetch = originalFetch;
+    window.getAuthorizationHeaders = originalAuthorizationHeaders;
+  });
+
+  test('newAlerts', async function() {
+    const app = fixture('test');
+    await cp.afterRender();
+    assert.lengthOf(app.alertsSectionIds, 0);
+    app.$.new_alerts.click();
+    await cp.afterRender();
+    assert.lengthOf(app.alertsSectionIds, 1);
+  });
+
+  test('closeAlerts', async function() {
+    const app = fixture('test');
+    await cp.afterRender();
+    app.$.new_alerts.click();
+    await cp.afterRender();
+    const alerts = app.shadowRoot.querySelector('alerts-section');
+    alerts.dispatchEvent(new CustomEvent('close-section'));
+    await cp.afterRender();
+    assert.lengthOf(app.alertsSectionIds, 0);
+    // Empty alerts-sections are forgotten instantly and can't be reopened.
+    assert.lengthOf(app.closedAlertsIds, 0);
+  });
+
+  test('reopenAlerts', async function() {
+    const app = fixture('test');
+    await cp.afterRender();
+    app.$.new_alerts.click();
+    await cp.afterRender();
+    const alerts = app.shadowRoot.querySelector('alerts-section');
+    // Make the alerts-section not empty so that it can be reopened.
+    app.dispatch(Redux.UPDATE(alerts.statePath + '.bug', {
+      selectedOptions: [42],
+    }));
+    alerts.$.controls.dispatchEvent(new CustomEvent('sources', {
+      detail: {sources: [{bug: 42}]},
+    }));
+    await cp.afterRender();
+    alerts.dispatchEvent(new CustomEvent('close-section'));
+    await cp.afterRender();
+    assert.lengthOf(app.alertsSectionIds, 0);
+    assert.lengthOf(app.closedAlertsIds, 1);
+    app.$.reopen_alerts.click();
+    await cp.afterRender();
+    assert.lengthOf(app.alertsSectionIds, 1);
+  });
+
+  test('newChart', async function() {
+    const app = fixture('test');
+    await cp.afterRender();
+    assert.lengthOf(app.chartSectionIds, 0);
+    app.$.new_chart.click();
+    await cp.afterRender();
+    assert.lengthOf(app.chartSectionIds, 1);
+  });
+
+  test('closeChart', async function() {
+    const app = fixture('test');
+    await cp.afterRender();
+    app.$.new_chart.click();
+    await cp.afterRender();
+    const chart = app.shadowRoot.querySelector('chart-section');
+    chart.dispatchEvent(new CustomEvent('close-section'));
+    await cp.afterRender();
+    assert.lengthOf(app.chartSectionIds, 0);
+    // Empty chart-sections are forgotten instantly and can't be reopened.
+    assert.lengthOf(app.closedChartIds, 0);
+  });
+
+  test('closeAllCharts', async function() {
+    const app = fixture('test');
+    await cp.afterRender();
+    app.$.new_chart.click();
+    await cp.afterRender();
+    app.$.close_charts.click();
+    await cp.afterRender();
+    assert.lengthOf(app.chartSectionIds, 0);
+  });
+
+  test('reopenCharts', async function() {
+    const app = fixture('test');
+    await cp.afterRender();
+    app.$.new_chart.click();
+    await cp.afterRender();
+    const chart = app.shadowRoot.querySelector('chart-section');
+    // Make the chart-section not empty so that it can be reopened.
+    await app.dispatch(Redux.UPDATE(chart.statePath + '.descriptor', {
+      suite: {
+        ...chart.descriptor.suite,
+        selectedOptions: ['suite:name'],
+      },
+      measurement: {
+        ...chart.descriptor.measurement,
+        selectedOptions: ['ms'],
+      },
+      bot: {
+        ...chart.descriptor.bot,
+        selectedOptions: ['master:bot'],
+      },
+    }));
+    chart.$.controls.dispatchEvent(new CustomEvent('matrix-change'));
+    await cp.afterRender();
+
+    chart.dispatchEvent(new CustomEvent('close-section'));
+    await cp.afterRender();
+    assert.lengthOf(app.chartSectionIds, 0);
+    assert.lengthOf(app.closedChartIds, 1);
+
+    app.$.reopen_chart.click();
+    await cp.afterRender();
+    assert.lengthOf(app.chartSectionIds, 1);
+  });
+});
+</script>

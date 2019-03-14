@@ -13,13 +13,14 @@ tr.exportTo('cp', () => {
     }
 
     get url_() {
-      return '/short_uri';
+      return SessionIdRequest.URL;
     }
 
     postProcess_(json) {
       return json.sid;
     }
   }
+  SessionIdRequest.URL = '/short_uri';
 
   return {SessionIdRequest};
 });
