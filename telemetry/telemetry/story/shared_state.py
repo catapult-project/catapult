@@ -15,7 +15,7 @@ class SharedState(object):
   __metaclass__ = trace_event.TracedMetaClass
 
   #pylint: disable=unused-argument
-  def __init__(self, test, finder_options, story_set, possible_browser=None):
+  def __init__(self, test, finder_options, story_set, possible_browser):
     """ This method is styled on unittest.TestCase.setUpClass.
     Override to do any action before running stories that
     share this same state.

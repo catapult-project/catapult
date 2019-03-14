@@ -19,6 +19,7 @@ from telemetry.core import exceptions
 from telemetry.core import platform as platform_module
 from telemetry.internal.actions import page_action
 from telemetry.internal.browser import browser_finder
+from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.results import results_options
 from telemetry.internal.util import exception_formatter
 from telemetry import page
@@ -171,6 +172,21 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
             msg='Exception raised when cleaning story run: ')
 
 
+def _GetPossibleBrowser(finder_options):
+  """Return a possible_browser with the given options."""
+  possible_browser = browser_finder.FindBrowser(finder_options)
+  if not possible_browser:
+    raise browser_finder_exceptions.BrowserFinderException(
+        'Cannot find browser of type %s. \n\nAvailable browsers:\n%s\n' % (
+            finder_options.browser_options.browser_type,
+            '\n'.join(browser_finder.GetAllAvailableBrowserTypes(
+                finder_options))))
+
+  finder_options.browser_options.browser_type = possible_browser.browser_type
+
+  return possible_browser
+
+
 def Run(test, story_set, finder_options, results, max_failures=None,
         expectations=None, max_num_values=sys.maxint):
   """Runs a given test against a given page_set with the given options.
@@ -224,6 +240,8 @@ def Run(test, story_set, finder_options, results, max_failures=None,
   if effective_max_failures is None:
     effective_max_failures = max_failures
 
+  possible_browser = _GetPossibleBrowser(finder_options)
+
   state = None
   device_info_diags = {}
   # TODO(crbug.com/866458): unwind the nested blocks
@@ -239,7 +257,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           # state after this story run, we want to construct the shared
           # state for the next story from the original finder_options.
           state = story_set.shared_state_class(
-              test, finder_options.Copy(), story_set)
+              test, finder_options.Copy(), story_set, possible_browser)
 
         results.WillRunPage(story, storyset_repeat_counter)
         story_run = results.current_page_run
@@ -247,10 +265,14 @@ def Run(test, story_set, finder_options, results, max_failures=None,
         if expectations:
           disabled = expectations.IsStoryDisabled(
               story, state.platform, finder_options)
-          if disabled and not finder_options.run_disabled_tests:
-            results.Skip(disabled)
-            results.DidRunPage(story)
-            continue
+          if disabled:
+            if finder_options.run_disabled_tests:
+              logging.warning('Force running a disabled story: %s' %
+                              story.name)
+            else:
+              results.Skip(disabled)
+              results.DidRunPage(story)
+              continue
 
         try:
           if state.platform:

@@ -254,8 +254,9 @@ class FakePossibleBrowser(object):
 
 
 class FakeSharedPageState(shared_page_state.SharedPageState):
-  def __init__(self, test, finder_options, story_set):
-    super(FakeSharedPageState, self).__init__(test, finder_options, story_set)
+  def __init__(self, test, finder_options, story_set, possible_browser):
+    super(FakeSharedPageState, self).__init__(
+        test, finder_options, story_set, possible_browser)
 
   def _GetPossibleBrowser(self):
     p = FakePossibleBrowser()

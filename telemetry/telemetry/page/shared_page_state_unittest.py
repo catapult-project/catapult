@@ -5,6 +5,7 @@
 import unittest
 
 from telemetry.core import platform as platform_module
+from telemetry.internal.browser import browser_finder
 from telemetry.page import page
 from telemetry.page import legacy_page_test
 from telemetry.page import shared_page_state
@@ -27,11 +28,13 @@ class SharedPageStateTests(unittest.TestCase):
     self.options.use_live_sites = False
     self.options.output_formats = ['none']
     self.options.suppress_gtest_report = True
+    self.possible_browser = browser_finder.FindBrowser(self.options)
 
   def testUseLiveSitesFlagSet(self):
     self.options.use_live_sites = True
+    test = DummyTest()
     run_state = shared_page_state.SharedPageState(
-        DummyTest(), self.options, story_module.StorySet())
+        test, self.options, story_module.StorySet(), self.possible_browser)
     try:
       self.assertTrue(run_state.platform.network_controller.is_open)
       self.assertEquals(run_state.platform.network_controller.wpr_mode,
@@ -41,8 +44,9 @@ class SharedPageStateTests(unittest.TestCase):
       run_state.TearDownState()
 
   def testUseLiveSitesFlagUnset(self):
+    test = DummyTest()
     run_state = shared_page_state.SharedPageState(
-        DummyTest(), self.options, story_module.StorySet())
+        test, self.options, story_module.StorySet(), self.possible_browser)
     try:
       self.assertTrue(run_state.platform.network_controller.is_open)
       self.assertEquals(run_state.platform.network_controller.wpr_mode,
@@ -53,8 +57,9 @@ class SharedPageStateTests(unittest.TestCase):
 
   def testWPRRecordEnable(self):
     self.options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
+    test = DummyTest()
     run_state = shared_page_state.SharedPageState(
-        DummyTest(), self.options, story_module.StorySet())
+        test, self.options, story_module.StorySet(), self.possible_browser)
     try:
       self.assertTrue(run_state.platform.network_controller.is_open)
       self.assertEquals(run_state.platform.network_controller.wpr_mode,
@@ -66,7 +71,7 @@ class SharedPageStateTests(unittest.TestCase):
   def testConstructorCallsSetOptions(self):
     test = DummyTest()
     run_state = shared_page_state.SharedPageState(
-        test, self.options, story_module.StorySet())
+        test, self.options, story_module.StorySet(), self.possible_browser)
     try:
       self.assertEqual(test.options, self.options)
     finally:
@@ -81,7 +86,8 @@ class SharedPageStateTests(unittest.TestCase):
     test = DummyTest()
     story_set = story_module.StorySet()
     story_set.AddStory(story)
-    run_state = story.shared_state_class(test, self.options, story_set)
+    run_state = story.shared_state_class(
+        test, self.options, story_set, self.possible_browser)
     try:
       browser_options = self.options.browser_options
       actual_user_agent = browser_options.browser_user_agent_type

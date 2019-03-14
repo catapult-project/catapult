@@ -18,7 +18,7 @@ from devil.android.sdk import intent
 
 class SharedAndroidStoryState(story_module.SharedState):
 
-  def __init__(self, test, finder_options, story_set, possible_browser=None):
+  def __init__(self, test, finder_options, story_set, possible_browser):
     """
     Args:
       test: (unused)

@@ -15,7 +15,7 @@ class SharedAndroidState(story_module.SharedState):
   Email telemetry@chromium.org if you feel like you must use it.
   """
 
-  def __init__(self, test, finder_options, story_set, possible_browser=None):
+  def __init__(self, test, finder_options, story_set, possible_browser):
     """This method is styled on unittest.TestCase.setUpClass.
 
     Args:
