@@ -2,8 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-
 import contextlib
+import os
 import shutil
 import tempfile
 
@@ -28,3 +28,32 @@ def NamedTemporaryDirectory(suffix='', prefix='tmp', dir=None):
     yield d
   finally:
     shutil.rmtree(d)
+
+
+@contextlib.contextmanager
+def NamedTemporaryFile(mode='w+b', suffix='', prefix='tmp'):
+  """A conext manager to hold a named temporary file.
+
+  It's similar to Python's tempfile.NamedTemporaryFile except:
+  - The file is _not_ deleted when you close the temporary file handle, so you
+    can close it and then use the name of the file to re-open it later.
+  - The file *is* always deleted when exiting the context managed code.
+  """
+  with NamedTemporaryDirectory() as temp_dir:
+    yield tempfile.NamedTemporaryFile(
+        mode=mode, suffix=suffix, prefix=prefix, dir=temp_dir, delete=False)
+
+
+@contextlib.contextmanager
+def TemporaryFileName(prefix='tmp', suffix=''):
+  """A context manager to just get the path to a file that does not exist.
+
+  The parent directory of the file is a newly clreated temporary directory,
+  and the name of the file is just `prefix + suffix`. The file istelf is not
+  created, you are in fact guaranteed that it does not exit.
+
+  The entire parent directory, possibly including the named temporary file and
+  any sibling files, is entirely deleted when exiting the context managed code.
+  """
+  with NamedTemporaryDirectory() as temp_dir:
+    yield os.path.join(temp_dir, prefix + suffix)
