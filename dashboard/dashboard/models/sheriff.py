@@ -71,6 +71,10 @@ class Sheriff(internal_only_model.InternalOnlyModel):
   # A list of labels to add to all bugs for the sheriffing rotation.
   labels = ndb.StringProperty(repeated=True, indexed=False)
 
+  # Always use memcache for the Sheriff configuration, since this changes very
+  # rarely.
+  _use_memcache = True
+
   def _pre_put_hook(self):
     """Checks that the Sheriff properties are OK before putting."""
     if (self.internal_only and self.email
