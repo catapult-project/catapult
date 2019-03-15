@@ -215,7 +215,10 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
     with timing.WallTimeLogger('decompress'):
       try:
         data_str = self.request.body
-        zlib.decompress(data_str)
+
+        # Try to decompress at most 100 bytes from the data, only to determine
+        # if we've been given compressed payload.
+        zlib.decompressobj().decompress(data_str, 100)
         logging.info('Recieved compressed data.')
       except zlib.error:
         data_str = self.request.get('data')
