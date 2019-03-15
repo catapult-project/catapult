@@ -5,6 +5,8 @@
 """URL endpoint for adding new histograms to the dashboard."""
 
 import cloudstorage
+import decimal
+import ijson
 import json
 import logging
 import sys
@@ -130,46 +132,26 @@ def _LoadHistogramList(input_file):
     This function may raise ValueError instances if we end up not finding valid
     JSON fragments inside the file.
   """
-  histogram_dicts = list()
-  json_decoder = json.JSONDecoder()
-  with timing.WallTimeLogger('json.load'):
-    chunk = str()
-    while True:
-      new_chunk = str(input_file.read(_ZLIB_BUFFER_SIZE))
-      chunk += new_chunk
-      if len(chunk) == 0:
-        break
-
-      try:
-        obj, pos = json_decoder.raw_decode(chunk)
-
+  try:
+    with timing.WallTimeLogger('json.load'):
+      def NormalizeDecimals(obj):
+        # Traverse every object in obj to turn Decimal objects into floats.
+        if isinstance(obj, decimal.Decimal):
+          return float(obj)
+        if isinstance(obj, dict):
+          for k, v in obj.iteritems():
+            obj[k] = NormalizeDecimals(v)
         if isinstance(obj, list):
-          # We handle the case for when we find a list of dicts in the data.
-          histogram_dicts.extend(obj)
-        elif isinstance(obj, dict):
-          # If we found a single dict, we append this fully-formed dict to the
-          # end of the list.
-          histogram_dicts.append(obj)
-        else:
-          # If we don't support the object is in the file (because we
-          # don't have enough input to the decoder) then we raise a ValueError,
-          # handled below.
-          raise ValueError('Unsupported object: %r' % (obj))
+          obj = [NormalizeDecimals(x) for x in obj]
+        return obj
 
-        # It's critical for us to retain the remainder of the chunk we've
-        # been reading, before we seek new chunks to handle.
-        chunk = chunk[pos:]
-      except ValueError, _:
-        # If we encounter a ValueError, we first try reading more from the
-        # input file. If we've reached the end of the input file, we can then
-        # propagate the error upward, since this means we can't meaningfully
-        # parse the final part of the input file.
-        new_chunk = input_file.read(_ZLIB_BUFFER_SIZE)
-        if len(new_chunk) == 0:
-          raise
-        chunk += new_chunk
+      objects = [NormalizeDecimals(x) for x in ijson.items(input_file, 'item')]
 
-  return histogram_dicts
+  except ijson.JSONError as e:
+    # Wrap exception in a ValueError
+    raise ValueError('Failed to parse JSON: %s' % (e))
+
+  return objects
 
 
 class AddHistogramsProcessHandler(request_handler.RequestHandler):

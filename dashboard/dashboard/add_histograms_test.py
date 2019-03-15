@@ -142,6 +142,13 @@ class BufferedFakeFile(object):
   def close(self): # pylint: disable=invalid-name
     pass
 
+  def __exit__(self, *args):
+    self.close()
+    return False
+
+  def __enter__(self):
+    return self
+
 
 class AddHistogramsBaseTest(testing_common.TestCase):
 
@@ -1563,8 +1570,15 @@ class DecompressFileWrapperTest(testing_common.TestCase):
                       sorted(loaded_compressed_histograms.AsDicts()))
 
   def testJSONFail(self):
-    input_file_compressed = BufferedFakeFile("Not JSON")
+    with BufferedFakeFile('Not JSON') as input_file:
+      with self.assertRaises(ValueError):
+        _ = add_histograms._LoadHistogramList(input_file)
 
-    with self.assertRaises(ValueError):
-      _ = add_histograms._LoadHistogramList(input_file_compressed)
+  def testIncrementalJSONSupport(self):
+    with BufferedFakeFile('[{"key": "value incomplete"') as input_file:
+      with self.assertRaises(ValueError):
+        _ = add_histograms._LoadHistogramList(input_file)
 
+    with BufferedFakeFile('[{"key": "complete list"}]') as input_file:
+      dicts = add_histograms._LoadHistogramList(input_file)
+      self.assertSequenceEqual([{u'key': u'complete list'}], dicts)
