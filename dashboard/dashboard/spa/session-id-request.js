@@ -9,7 +9,7 @@ tr.exportTo('cp', () => {
       super(options);
       this.method_ = 'POST';
       this.body_ = new FormData();
-      this.body.set('page_state', JSON.stringify(options.sessionState));
+      this.body_.set('page_state', JSON.stringify(options.sessionState));
     }
 
     get url_() {

@@ -546,6 +546,21 @@ tr.exportTo('cp', () => {
     },
   };
 
+  AlertsSection.newStateOptionsFromQueryParams = queryParams => {
+    return {
+      sheriffs: queryParams.getAll('sheriff').map(
+          sheriffName => sheriffName.replace(/_/g, ' ')),
+      bugs: queryParams.getAll('bug'),
+      reports: queryParams.getAll('ar'),
+      minRevision: queryParams.get('minRev'),
+      maxRevision: queryParams.get('maxRev'),
+      sortColumn: queryParams.get('sort') || 'startRevision',
+      showingImprovements: queryParams.get('improvements') !== null,
+      showingTriaged: queryParams.get('triaged') !== null,
+      sortDescending: queryParams.get('descending') !== null,
+    };
+  };
+
   AlertsSection.transformAlert = alert => {
     let deltaValue = alert.median_after_anomaly -
       alert.median_before_anomaly;
@@ -615,6 +630,43 @@ tr.exportTo('cp', () => {
       return false;
     }
     return true;
+  };
+
+  AlertsSection.getSessionState = state => {
+    return {
+      sheriffs: state.sheriff.selectedOptions,
+      bugs: state.bug.selectedOptions,
+      showingImprovements: state.showingImprovements,
+      showingTriaged: state.showingTriaged,
+      sortColumn: state.sortColumn,
+      sortDescending: state.sortDescending,
+    };
+  };
+
+  AlertsSection.getRouteParams = state => {
+    const queryParams = new URLSearchParams();
+    for (const sheriff of state.sheriff.selectedOptions) {
+      queryParams.append('sheriff', sheriff.replace(/ /g, '_'));
+    }
+    for (const bug of state.bug.selectedOptions) {
+      queryParams.append('bug', bug);
+    }
+    for (const name of state.report.selectedOptions) {
+      queryParams.append('ar', name);
+    }
+    if (state.minRevision && state.minRevision.match(/^\d+$/)) {
+      queryParams.set('minRev', state.minRevision);
+    }
+    if (state.maxRevision && state.maxRevision.match(/^\d+$/)) {
+      queryParams.set('maxRev', state.maxRevision);
+    }
+    if (state.showingImprovements) queryParams.set('improvements', '');
+    if (state.showingTriaged) queryParams.set('triaged', '');
+    if (state.sortColumn !== 'startRevision') {
+      queryParams.set('sort', state.sortColumn);
+    }
+    if (state.sortDescending) queryParams.set('descending', '');
+    return queryParams;
   };
 
   AlertsSection.matchesOptions = (state, options) => {

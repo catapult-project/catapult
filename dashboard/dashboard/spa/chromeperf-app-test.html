@@ -31,6 +31,15 @@ suite('chromeperf-app', function() {
     window.fetch = async(url, options) => {
       return {
         async json() {
+          if (url.startsWith(cp.SessionStateRequest.URL)) {
+            return {
+              reportSection: {
+                milestone: 72,
+                sources: ['from session'],
+              },
+              showingReportSection: true,
+            };
+          }
           if (url === cp.DescribeRequest.URL) {
             return {
               measurements: ['measure'],
@@ -95,10 +104,12 @@ suite('chromeperf-app', function() {
       detail: {sources: [{bug: 42}]},
     }));
     await cp.afterRender();
+
     alerts.dispatchEvent(new CustomEvent('close-section'));
     await cp.afterRender();
     assert.lengthOf(app.alertsSectionIds, 0);
     assert.lengthOf(app.closedAlertsIds, 1);
+
     app.$.reopen_alerts.click();
     await cp.afterRender();
     assert.lengthOf(app.alertsSectionIds, 1);
@@ -107,7 +118,9 @@ suite('chromeperf-app', function() {
   test('newChart', async function() {
     const app = fixture('test');
     await cp.afterRender();
+    await cp.afterRender();  // Again to wait for receiveSessionState.
     assert.lengthOf(app.chartSectionIds, 0);
+
     app.$.new_chart.click();
     await cp.afterRender();
     assert.lengthOf(app.chartSectionIds, 1);
@@ -139,6 +152,7 @@ suite('chromeperf-app', function() {
   test('reopenCharts', async function() {
     const app = fixture('test');
     await cp.afterRender();
+    await cp.afterRender();  // Again to wait for receiveSessionState.
     app.$.new_chart.click();
     await cp.afterRender();
     const chart = app.shadowRoot.querySelector('chart-section');
@@ -168,6 +182,58 @@ suite('chromeperf-app', function() {
     app.$.reopen_chart.click();
     await cp.afterRender();
     assert.lengthOf(app.chartSectionIds, 1);
+  });
+
+  test('restoreFromRoute session', async function() {
+    const app = fixture('test');
+    await cp.afterRender();
+    await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
+      session: 42,
+    }));
+    // TODO Figure out why this can take 200ms.
+    while (app.reduxRoutePath === '#') await cp.animationFrame();
+    assert.strictEqual('report=from+session&minRev=612437&maxRev=625896',
+        app.reduxRoutePath);
+  });
+
+  test('restoreFromRoute report', async function() {
+    const app = fixture('test');
+    await cp.afterRender();
+    await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
+      report: 'name',
+    }));
+    await cp.afterRender();
+    assert.strictEqual('name', app.reportSection.source.selectedOptions[0]);
+  });
+
+  test('restoreFromRoute sheriff', async function() {
+    const app = fixture('test');
+    await cp.afterRender();
+    await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
+      sheriff: 'name',
+    }));
+    await cp.afterRender();
+    assert.strictEqual('name', app.alertsSectionsById[
+        app.alertsSectionIds[0]].sheriff.selectedOptions[0]);
+    assert.strictEqual('sheriff=name', app.reduxRoutePath);
+  });
+
+  test('restoreFromRoute chart', async function() {
+    const app = fixture('test');
+    await cp.afterRender();
+    await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
+      suite: 'suite:name',
+      measurement: 'measure',
+      bot: 'master:bot',
+    }));
+    await cp.afterRender();
+    assert.lengthOf(app.chartSectionIds, 1);
+    assert.strictEqual('suite:name', app.chartSectionsById[
+        app.chartSectionIds].descriptor.suite.selectedOptions[0]);
+    assert.strictEqual('measure', app.chartSectionsById[
+        app.chartSectionIds].descriptor.measurement.selectedOptions[0]);
+    assert.strictEqual('master:bot', app.chartSectionsById[
+        app.chartSectionIds].descriptor.bot.selectedOptions[0]);
   });
 });
 </script>

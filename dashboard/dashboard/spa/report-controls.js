@@ -82,6 +82,8 @@ tr.exportTo('cp', () => {
     70: 587811,
     71: 599034,
     72: 612437,
+    73: 625896,
+    74: 638880,
   };
 
   ReportControls.CURRENT_MILESTONE = tr.b.math.Statistics.max(

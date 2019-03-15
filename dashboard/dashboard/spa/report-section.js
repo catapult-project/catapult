@@ -40,6 +40,20 @@ tr.exportTo('cp', () => {
   ];
 
   ReportSection.actions = {
+    restoreState: (statePath, options) => async(dispatch, getState) => {
+      dispatch({
+        type: ReportSection.reducers.restoreState.name,
+        statePath,
+        options,
+      });
+      const state = Polymer.Path.get(getState(), statePath);
+      if (state.minRevision === undefined ||
+          state.maxRevision === undefined) {
+        cp.ReportControls.actions.selectMilestone(
+            statePath, state.milestone)(dispatch, getState);
+      }
+    },
+
     loadReports: statePath => async(dispatch, getState) => {
       let state = Polymer.Path.get(getState(), statePath);
       if (!state.minRevision || !state.maxRevision) return;
@@ -85,6 +99,24 @@ tr.exportTo('cp', () => {
   };
 
   ReportSection.reducers = {
+    restoreState: (state, action, rootState) => {
+      if (!action.options) return state;
+      const source = {
+        ...state.source,
+        selectedOptions: action.options.sources,
+      };
+      return {
+        ...state,
+        source,
+        milestone: parseInt(action.options.milestone ||
+          cp.ReportControls.CURRENT_MILESTONE),
+        minRevision: action.options.minRevision,
+        maxRevision: action.options.maxRevision,
+        minRevisionInput: action.options.minRevision,
+        maxRevisionInput: action.options.maxRevision,
+      };
+    },
+
     requestReports: (state, action, rootState) => {
       const tables = [];
       const tableNames = new Set();
@@ -217,6 +249,62 @@ tr.exportTo('cp', () => {
         required: true,
       },
     };
+  };
+
+  function maybeInt(x) {
+    const i = parseInt(x);
+    return isNaN(i) ? x : i;
+  }
+
+  ReportSection.newStateOptionsFromQueryParams = queryParams => {
+    const options = {
+      sources: queryParams.getAll('report'),
+      milestone: parseInt(queryParams.get('m')) || undefined,
+      minRevision: maybeInt(queryParams.get('minRev')) || undefined,
+      maxRevision: maybeInt(queryParams.get('maxRev')) || undefined,
+    };
+    if (options.maxRevision < options.minRevision) {
+      [options.maxRevision, options.minRevision] = [
+        options.minRevision, options.maxRevision];
+    }
+    if (options.milestone === undefined &&
+        options.minRevision !== undefined &&
+        options.maxRevision !== undefined) {
+      for (const [milestone, milestoneRevision] of Object.entries(
+          cp.ReportControls.CHROMIUM_MILESTONES)) {
+        if ((milestoneRevision >= options.minRevision) &&
+            ((options.maxRevision === 'latest') ||
+             (options.maxRevision >= milestoneRevision))) {
+          options.milestone = milestone;
+          break;
+        }
+      }
+    }
+    return options;
+  };
+
+  ReportSection.getSessionState = state => {
+    return {
+      sources: state.source.selectedOptions,
+      milestone: state.milestone,
+    };
+  };
+
+  ReportSection.getRouteParams = state => {
+    const routeParams = new URLSearchParams();
+    const selectedOptions = state.source.selectedOptions;
+    if (state.containsDefaultSection &&
+        selectedOptions.length === 1 &&
+        selectedOptions[0] === cp.ReportControls.DEFAULT_NAME) {
+      return routeParams;
+    }
+    for (const option of selectedOptions) {
+      if (option === cp.ReportControls.CREATE) continue;
+      routeParams.append('report', option);
+    }
+    routeParams.set('minRev', state.minRevision);
+    routeParams.set('maxRev', state.maxRevision);
+    return routeParams;
   };
 
   function chartHref(lineDescriptor) {

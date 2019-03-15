@@ -57,17 +57,21 @@ suite('report-controls', function() {
   test('milestones', async function() {
     const controls = fixture('test');
     await cp.afterRender();
-    assert.strictEqual(612437, controls.minRevision);
+    assert.strictEqual(cp.ReportControls.CHROMIUM_MILESTONES[
+        cp.ReportControls.CURRENT_MILESTONE], controls.minRevision);
     assert.strictEqual('latest', controls.maxRevision);
 
     controls.$.prev_mstone.click();
     await cp.afterRender();
-    assert.strictEqual(599034, controls.minRevision);
-    assert.strictEqual(612437, controls.maxRevision);
+    assert.strictEqual(cp.ReportControls.CHROMIUM_MILESTONES[
+        cp.ReportControls.CURRENT_MILESTONE - 1], controls.minRevision);
+    assert.strictEqual(cp.ReportControls.CHROMIUM_MILESTONES[
+        cp.ReportControls.CURRENT_MILESTONE], controls.maxRevision);
 
     controls.$.next_mstone.click();
     await cp.afterRender();
-    assert.strictEqual(612437, controls.minRevision);
+    assert.strictEqual(cp.ReportControls.CHROMIUM_MILESTONES[
+        cp.ReportControls.CURRENT_MILESTONE], controls.minRevision);
     assert.strictEqual('latest', controls.maxRevision);
   });
 
@@ -79,7 +83,8 @@ suite('report-controls', function() {
       options = e.detail.options;
     });
     controls.$.alerts.click();
-    assert.strictEqual('612437', options.minRevision);
+    assert.strictEqual(cp.ReportControls.CHROMIUM_MILESTONES[
+        cp.ReportControls.CURRENT_MILESTONE], controls.minRevision);
     assert.strictEqual('latest', options.maxRevision);
     assert.deepEqual([cp.ReportControls.DEFAULT_NAME], options.reports);
     assert.isTrue(options.showingTriaged);
