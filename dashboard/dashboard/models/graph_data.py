@@ -135,7 +135,11 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
   NOTE: If you remove any properties from TestMetadata, they should be added to
   the TEST_EXCLUDE_PROPERTIES list in migrate_test_names.py.
   """
-  _use_memcache = True
+  # Our access patterns don't generally involve the same TestMetadata being
+  # accessed again and again across multiple requests. Don't put them into
+  # memcache when accessed by default. For more info, see:
+  # https://cloud.google.com/appengine/docs/python/ndb/cache
+  _use_memcache = False
 
   internal_only = ndb.BooleanProperty(default=False, indexed=True)
 
