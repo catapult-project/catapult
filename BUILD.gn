@@ -81,6 +81,7 @@ group("telemetry_chrome_test_support") {
     "third_party/html5lib-python/",
     "third_party/httplib2/",
     "third_party/idb/",
+    "third_party/ijson/",
     "third_party/jquery/",
     "third_party/mapreduce/",
     "third_party/mocha/",
