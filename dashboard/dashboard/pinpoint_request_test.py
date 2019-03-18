@@ -219,6 +219,25 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertFalse(mock_crrev.called)
 
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      pinpoint_request.crrev_service, 'GetNumbering')
+  def testPinpointParams_V8(self, mock_crrev):
+    mock_crrev.return_value = {'git_sha': 'acbd'}
+    params = {
+        'test_path': 'internal.client.v8/Pixel2/v8/JSTests/Array/Total',
+        'start_commit': '1234',
+        'end_commit': '5678',
+        'extra_test_args': '',
+    }
+    results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+    self.assertEqual('', results['target'])
+    mock_crrev.assert_any_call(
+        number='1234', numbering_identifier='refs/heads/master',
+        numbering_type='COMMIT_POSITION', project='chromium', repo='v8/v8')
+
 
 class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
 
@@ -630,3 +649,28 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual('https://path/to/patch', results['pin'])
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      pinpoint_request.crrev_service, 'GetNumbering')
+  def testPinpointParams_V8(self, mock_crrev):
+    mock_crrev.return_value = {'git_sha': 'acbd'}
+    params = {
+        'test_path': 'internal.client.v8/Pixel2/v8/JSTests/Array/Total',
+        'start_commit': '1234',
+        'end_commit': '5678',
+        'bug_id': 1,
+        'bisect_mode': 'performance',
+        'story_filter': '',
+        'pin': 'https://path/to/patch',
+    }
+    results = pinpoint_request.PinpointParamsFromBisectParams(params)
+
+    self.assertNotIn('tir_label', results)
+    self.assertNotIn('trace', results)
+    self.assertEqual('', results['chart'])
+    self.assertEqual('', results['target'])
+    mock_crrev.assert_any_call(
+        number='1234', numbering_identifier='refs/heads/master',
+        numbering_type='COMMIT_POSITION', project='chromium', repo='v8/v8')

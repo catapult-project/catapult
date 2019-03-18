@@ -14,7 +14,6 @@ _UNBISECTABLE_SUITES = [
     'browser_tests',
     'content_browsertests',
     'sizes',
-    'v8',
 ]
 
 # The bisect bot map stored in datastore is expected to be

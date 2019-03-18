@@ -950,6 +950,14 @@ class StartBisectTest(testing_common.TestCase):
         bisect_bot='winx64nvidia_perf_bisect',
         suite='performance_browser_tests')
 
+  def testGetConfig_UnsupportedSuite(self):
+    response = start_try_job.GetBisectConfig(
+        bisect_bot='Pixel2', suite='v8', master_name='internal.client.v8',
+        metric='JSTests/Array/Total', good_revision='265549',
+        bad_revision='265556', repeat_count='15', max_time_minutes='8',
+        bug_id='-1')
+    self.assertEqual({'error': 'Could not guess command for \'v8\'.'}, response)
+
   def testGuessMetric_SummaryMetricWithNoTIRLabel(self):
     testing_common.AddTests(
         ['M'], ['b'],

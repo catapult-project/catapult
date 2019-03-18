@@ -27,6 +27,10 @@ class CanBisectTest(testing_common.TestCase):
     self.assertTrue(
         can_bisect.IsValidTestForBisect('SupportedMaster/b/t/foo'))
 
+  def testIsValidTestForBisect_V8_IsSupported(self):
+    self.assertTrue(can_bisect.IsValidTestForBisect(
+        'SupportedMaster/Pixel2/v8/JSTests/Array/Total'))
+
   def testIsValidTestForBisect_RefTest_ReturnsFalse(self):
     self.assertFalse(
         can_bisect.IsValidTestForBisect('SupportedMaster/b/t/ref'))

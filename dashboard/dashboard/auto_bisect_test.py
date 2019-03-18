@@ -133,9 +133,9 @@ class StartNewBisectForBugTest(testing_common.TestCase):
     mock_perform_bisect.assert_called_once_with(job)
 
   def testStartNewBisectForBug_UnbisectableTest_ReturnsError(self):
-    testing_common.AddTests(['V8'], ['x86'], {'v8': {'sunspider': {}}})
-    # The test suite "v8" is in the black-list of test suite names.
-    test_key = utils.TestKey('V8/x86/v8/sunspider')
+    testing_common.AddTests(['Sizes'], ['x86'], {'sizes': {'abcd': {}}})
+    # The test suite "sizes" is in the black-list of test suite names.
+    test_key = utils.TestKey('Sizes/x86/sizes/abcd')
     anomaly.Anomaly(
         bug_id=444, test=test_key,
         start_revision=155000, end_revision=155100,

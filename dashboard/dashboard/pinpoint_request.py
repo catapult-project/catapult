@@ -15,10 +15,14 @@ from dashboard.common import utils
 from dashboard.services import crrev_service
 from dashboard.services import pinpoint_service
 
+_NON_CHROME_TARGETS = ['v8']
 _ISOLATE_TARGETS = [
     'angle_perftests', 'cc_perftests', 'gpu_perftests',
     'load_library_perf_tests', 'media_perftests', 'net_perftests',
     'performance_browser_tests', 'tracing_perftests']
+_SUITE_CRREV_CONFIGS = {
+    'v8': ['chromium', 'v8/v8'],
+}
 
 
 class InvalidParamsError(Exception):
@@ -87,16 +91,19 @@ def ParseMetricParts(test_path_parts):
   return '', metric_parts[0], ''
 
 
-def ResolveToGitHash(commit_position):
-  # TODO: This function assumes Chromium.
+def ResolveToGitHash(commit_position, suite):
   try:
     int(commit_position)
+    if suite in _SUITE_CRREV_CONFIGS:
+      project, repo = _SUITE_CRREV_CONFIGS[suite]
+    else:
+      project, repo = 'chromium', 'chromium/src'
     result = crrev_service.GetNumbering(
         number=commit_position,
         numbering_identifier='refs/heads/master',
         numbering_type='COMMIT_POSITION',
-        project='chromium',
-        repo='chromium/src')
+        project=project,
+        repo=repo)
     if 'error' in result:
       raise InvalidParamsError(
           'Error retrieving commit info: %s' % result['error'].get('message'))
@@ -110,6 +117,9 @@ def ResolveToGitHash(commit_position):
 
 def _GetIsolateTarget(bot_name, suite, start_commit,
                       end_commit, only_telemetry=False):
+  if suite in _NON_CHROME_TARGETS:
+    return ''
+
   if suite in _ISOLATE_TARGETS:
     if only_telemetry:
       raise InvalidParamsError('Only telemetry is supported at the moment.')
@@ -139,8 +149,11 @@ def _GetIsolateTarget(bot_name, suite, start_commit,
 
 def ParseTIRLabelChartNameAndTraceName(test_path_parts):
   """Returns tir_label, chart_name, trace_name from a test path."""
-  test = ndb.Key('TestMetadata', '/'.join(test_path_parts)).get()
+  suite = test_path_parts[2]
+  if suite in _NON_CHROME_TARGETS:
+    return '', '', ''
 
+  test = ndb.Key('TestMetadata', '/'.join(test_path_parts)).get()
   tir_label, chart_name, trace_name = ParseMetricParts(test_path_parts)
   if trace_name and test.unescaped_story_name:
     trace_name = test.unescaped_story_name
@@ -185,8 +198,8 @@ def PinpointParamsFromPerfTryParams(params):
 
   start_commit = params['start_commit']
   end_commit = params['end_commit']
-  start_git_hash = ResolveToGitHash(start_commit)
-  end_git_hash = ResolveToGitHash(end_commit)
+  start_git_hash = ResolveToGitHash(start_commit, suite)
+  end_git_hash = ResolveToGitHash(end_commit, suite)
 
   # Pinpoint also requires you specify which isolate target to run the
   # test, so we derive that from the suite name. Eventually, this would
@@ -254,8 +267,8 @@ def PinpointParamsFromBisectParams(params):
 
   start_commit = params['start_commit']
   end_commit = params['end_commit']
-  start_git_hash = ResolveToGitHash(start_commit)
-  end_git_hash = ResolveToGitHash(end_commit)
+  start_git_hash = ResolveToGitHash(start_commit, suite)
+  end_git_hash = ResolveToGitHash(end_commit, suite)
 
   # Pinpoint also requires you specify which isolate target to run the
   # test, so we derive that from the suite name. Eventually, this would
