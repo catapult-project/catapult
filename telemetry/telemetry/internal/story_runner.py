@@ -200,6 +200,11 @@ def Run(test, story_set, finder_options, results, max_failures=None,
 
   # Filter page set based on options.
   stories = story_module.StoryFilter.FilterStorySet(story_set)
+  wpr_archive_info = story_set.wpr_archive_info
+  # Sort the stories based on the archive name, to minimize how often the
+  # network replay-server needs to be restarted.
+  if wpr_archive_info:
+    stories = sorted(stories, key=wpr_archive_info.WprFilePathForStory)
 
   if finder_options.print_only:
     if finder_options.print_only == 'tags':
@@ -229,7 +234,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
         cloud_storage.GetFilesInDirectoryIfChanged(directory,
                                                    story_set.bucket)
     if story_set.archive_data_file and not _UpdateAndCheckArchives(
-        story_set.archive_data_file, story_set.wpr_archive_info, stories):
+        story_set.archive_data_file, wpr_archive_info, stories):
       return
 
   if not stories:
