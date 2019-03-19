@@ -118,6 +118,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._executable = executable
     self._flash_path = flash_path
     self._is_content_shell = is_content_shell
+    self._logged_start_command = False
 
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._proc = None
@@ -232,7 +233,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       sys.stderr.write(
           'Chrome log file will be saved in %s\n' % self.log_file_path)
       env['CHROME_LOG_FILE'] = self.log_file_path
-    # Make sure we have predictable lanugage settings that don't differ from the
+    # Make sure we have predictable language settings that don't differ from the
     # recording.
     for name in ('LC_ALL', 'LC_MESSAGES', 'LANG'):
       encoding = 'en_US.UTF-8'
@@ -241,8 +242,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                      name, env[name], encoding)
       env[name] = 'en_US.UTF-8'
 
-    logging.info('Chrome Env: %s', repr(env))
-    logging.info('Starting Chrome %s', cmd)
+    self.LogStartCommand(cmd, env)
 
     if not self.browser_options.show_stdout:
       self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
@@ -260,6 +260,23 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       ])
     if self._supports_extensions:
       self._WaitForExtensionsToLoad()
+
+  def LogStartCommand(self, command, env):
+    """Log the command used to start Chrome.
+
+    In order to keep the length of logs down (see crbug.com/943650),
+    we only print the start command for the first time Chrome is started.
+    The command may change between runs, but usually in innocuous ways like
+    --user-data-dir changes to a new temporary directory. Some benchmarks
+    do use different startup arguments for different stories, but this is
+    discouraged. This method could be changed to print arguments that are
+    different since the last run if need be.
+    """
+    if self._logged_start_command:
+      logging.info('Starting Chrome.')
+    else:
+      logging.info('Starting Chrome: %s\n\nEnv: %s', ' '.join(command), env)
+      self._logged_start_command = True
 
   def BindDevToolsClient(self):
     # In addition to the work performed by the base class, quickly check if

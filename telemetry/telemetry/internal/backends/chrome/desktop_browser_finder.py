@@ -262,9 +262,6 @@ def FindAllAvailableBrowsers(finder_options, device):
     flash_path = binary_manager.LocalPath('flash', arch_name, os_name)
   except dependency_manager.NoPathFoundError:
     flash_path = None
-    logging.warning(
-        'Chrome build location for %s_%s not found. Browser will be run '
-        'without Flash.', os_name, arch_name)
 
   chromium_app_names = []
   if sys.platform == 'darwin':
