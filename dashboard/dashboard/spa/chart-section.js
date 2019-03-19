@@ -266,8 +266,8 @@ tr.exportTo('cp', () => {
     loadTimeseries: (state, action, rootState) => {
       const title = ChartSection.computeTitle(state);
       const legend = ChartSection.buildLegend(
-          ChartSection.parameterMatrix(state));
-      const parameterMatrix = ChartSection.parameterMatrix(state);
+          cp.SparklineCompound.parameterMatrix(state));
+      const parameterMatrix = cp.SparklineCompound.parameterMatrix(state);
       const lineDescriptors = cp.TimeseriesDescriptor.createLineDescriptors(
           parameterMatrix);
       return {
@@ -291,7 +291,7 @@ tr.exportTo('cp', () => {
     },
 
     deselectLine: (state, action, rootState) => {
-      const parameterMatrix = ChartSection.parameterMatrix(state);
+      const parameterMatrix = cp.SparklineCompound.parameterMatrix(state);
       const lineDescriptors = cp.TimeseriesDescriptor.createLineDescriptors(
           parameterMatrix);
       return {
@@ -407,20 +407,6 @@ tr.exportTo('cp', () => {
     stripSharedPrefix(legendItems);
 
     return legendItems;
-  };
-
-  ChartSection.parameterMatrix = state => {
-    const descriptor = cp.TimeseriesDescriptor.getParameterMatrix(
-        state.descriptor.suite, state.descriptor.measurement,
-        state.descriptor.bot, state.descriptor.case);
-    return {
-      suiteses: descriptor.suites,
-      measurements: descriptor.measurements,
-      botses: descriptor.bots,
-      caseses: descriptor.cases,
-      statistics: state.statistic.selectedOptions,
-      buildTypes: ['test'],
-    };
   };
 
   /*
