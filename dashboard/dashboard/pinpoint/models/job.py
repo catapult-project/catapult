@@ -32,6 +32,7 @@ _CRYING_CAT_FACE = u'\U0001f63f'
 _RIGHT_ARROW = u'\u2192'
 _ROUND_PUSHPIN = u'\U0001f4cd'
 
+_MAX_RECOVERABLE_RETRIES = 3
 
 OPTION_STATE = 'STATE'
 OPTION_TAGS = 'TAGS'
@@ -102,6 +103,8 @@ class Job(ndb.Model):
   exception = ndb.TextProperty()
 
   difference_count = ndb.IntegerProperty()
+
+  retry_count = ndb.IntegerProperty(default=0)
 
 
   @classmethod
@@ -339,7 +342,7 @@ class Job(ndb.Model):
     comment = '\n'.join((title, self.url, '', sys.exc_info()[1].message))
     self._PostBugComment(comment)
 
-  def _Schedule(self):
+  def _Schedule(self, countdown=_TASK_INTERVAL):
     # Set a task name to deduplicate retries. This adds some latency, but we're
     # not latency-sensitive. If Job.Run() works asynchronously in the future,
     # we don't need to worry about duplicate tasks.
@@ -348,13 +351,27 @@ class Job(ndb.Model):
     try:
       task = taskqueue.add(
           queue_name='job-queue', url='/api/run/' + self.job_id,
-          name=task_name, countdown=_TASK_INTERVAL)
+          name=task_name, countdown=countdown)
     except (apiproxy_errors.DeadlineExceededError, taskqueue.TransientError):
       task = taskqueue.add(
           queue_name='job-queue', url='/api/run/' + self.job_id,
-          name=task_name, countdown=_TASK_INTERVAL)
+          name=task_name, countdown=countdown)
 
     self.task = task.name
+
+  def _MaybeScheduleRetry(self):
+    if not hasattr(self, 'retry_count') or self.retry_count is None:
+      self.retry_count = 0
+
+    if self.retry_count >= _MAX_RECOVERABLE_RETRIES:
+      return False
+
+    self.retry_count += 1
+
+    # Back off exponentially
+    self._Schedule(countdown=_TASK_INTERVAL * (2 ** self.retry_count))
+
+    return True
 
   def Run(self):
     """Runs this Job.
@@ -378,6 +395,12 @@ class Job(ndb.Model):
         self._Schedule()
       else:
         self._Complete()
+
+      self.retry_count = 0
+    except job_state.JobStateRecoverableError:
+      if not self._MaybeScheduleRetry():
+        self.Fail()
+        raise
     except BaseException:
       self.Fail()
       raise

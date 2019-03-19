@@ -12,6 +12,7 @@ from dashboard.common import utils
 from dashboard.models import histogram
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job
+from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint import test
 
 
@@ -110,6 +111,60 @@ _COMMENT_CODE_REVIEW = (
     u"""\U0001f4cd Job complete.
 
 See results at: https://testbed.example.com/job/1""")
+
+
+class RetryTest(test.TestCase):
+  def setUp(self):
+    super(RetryTest, self).setUp()
+
+  def testStarted_RecoverableError_BacksOff(self):
+    j = job.Job.New((), (), comparison_mode='performance')
+    j.Start()
+    j.state.Explore = mock.MagicMock(
+        side_effect=job_state.JobStateRecoverableError)
+    j._Schedule = mock.MagicMock()
+    j.put = mock.MagicMock()
+    j.Fail = mock.MagicMock()
+
+    j.Run()
+    j.Run()
+    j.Run()
+    self.assertEqual(j._Schedule.call_args_list[0],
+                     mock.call(countdown=job._TASK_INTERVAL * 2))
+    self.assertEqual(j._Schedule.call_args_list[1],
+                     mock.call(countdown=job._TASK_INTERVAL * 4))
+    self.assertEqual(j._Schedule.call_args_list[2],
+                     mock.call(countdown=job._TASK_INTERVAL * 8))
+    self.assertFalse(j.Fail.called)
+
+    with self.assertRaises(job_state.JobStateRecoverableError):
+      j.Run()
+    self.assertTrue(j.Fail.called)
+
+  def testStarted_RecoverableError_Resets(self):
+    j = job.Job.New((), (), comparison_mode='performance')
+    j.Start()
+    j.state.Explore = mock.MagicMock(
+        side_effect=job_state.JobStateRecoverableError)
+    j._Schedule = mock.MagicMock()
+    j.put = mock.MagicMock()
+    j.Fail = mock.MagicMock()
+
+    j.Run()
+    j.Run()
+    j.Run()
+    self.assertEqual(j._Schedule.call_args_list[0],
+                     mock.call(countdown=job._TASK_INTERVAL * 2))
+    self.assertEqual(j._Schedule.call_args_list[1],
+                     mock.call(countdown=job._TASK_INTERVAL * 4))
+    self.assertEqual(j._Schedule.call_args_list[2],
+                     mock.call(countdown=job._TASK_INTERVAL * 8))
+    self.assertFalse(j.Fail.called)
+
+    j.state.Explore = mock.MagicMock()
+    j.Run()
+
+    self.assertEqual(0, j.retry_count)
 
 
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())

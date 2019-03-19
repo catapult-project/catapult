@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import collections
+import httplib
 import logging
 
 from dashboard.common import math_utils
@@ -17,6 +18,10 @@ _REPEAT_COUNT_INCREASE = 10
 FUNCTIONAL = 'functional'
 PERFORMANCE = 'performance'
 COMPARISON_MODES = (FUNCTIONAL, PERFORMANCE)
+
+
+class JobStateRecoverableError(Exception):
+  pass
 
 
 class JobState(object):
@@ -115,6 +120,8 @@ class JobState(object):
           midpoint = change_module.Change.Midpoint(change_a, change_b)
         except change_module.NonLinearError:
           continue
+        except httplib.HTTPException:
+          raise JobStateRecoverableError()
 
         logging.info('Adding Change %s.', midpoint)
         self.AddChange(midpoint, index)
