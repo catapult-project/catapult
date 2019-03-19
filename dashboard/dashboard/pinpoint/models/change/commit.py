@@ -6,6 +6,8 @@ import collections
 import datetime
 import re
 
+from google.appengine.ext import deferred
+
 from dashboard.pinpoint.models.change import commit_cache
 from dashboard.pinpoint.models.change import repository as repository_module
 from dashboard.services import gitiles_service
@@ -116,15 +118,9 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
 
     return frozenset(commits)
 
-  def AsDict(self):
-    d = {
-        'repository': self.repository,
-        'git_hash': self.git_hash,
-    }
-
+  def CacheCommitInfo(self):
     try:
-      d.update(commit_cache.Get(self.id_string))
-      d['created'] = d['created'].isoformat()
+      return commit_cache.Get(self.id_string)
     except KeyError:
       commit_info = gitiles_service.CommitInfo(
           self.repository_url, self.git_hash)
@@ -136,14 +132,24 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
       subject = commit_info['message'].split('\n', 1)[0]
       message = commit_info['message']
 
-      d.update({
+      commit_cache.Put(self.id_string, url, author, created, subject, message)
+
+      return {
           'url': url,
           'author': author,
-          'created': created.isoformat(),
+          'created': created,
           'subject': subject,
           'message': message,
-      })
-      commit_cache.Put(self.id_string, url, author, created, subject, message)
+      }
+
+  def AsDict(self):
+    d = {
+        'repository': self.repository,
+        'git_hash': self.git_hash,
+    }
+
+    d.update(self.CacheCommitInfo())
+    d['created'] = d['created'].isoformat()
 
     commit_position = _ParseCommitPosition(d['message'])
     if commit_position:
@@ -286,7 +292,17 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
       return commit_a
 
     commits.pop(0)  # Remove commit_b from the range.
+
+    deferred.defer(
+        _CacheCommitDetails,
+        commit_a.repository, commits[len(commits) / 2]['commit'])
+
     return cls(commit_a.repository, commits[len(commits) / 2]['commit'])
+
+
+def _CacheCommitDetails(repository, git_url):
+  c = Commit(repository, git_url)
+  c.CacheCommitInfo()
 
 
 def _ParseCommitPosition(commit_message):

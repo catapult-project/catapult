@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import mock
 import re
 
 from dashboard.pinpoint.models.change import commit
@@ -241,6 +242,16 @@ class MidpointTest(test.TestCase):
         commit.Commit(repository='chromium', git_hash='mc_4'))
     self.assertEqual(midpoint,
                      commit.Commit(repository='chromium', git_hash='commit_2'))
+
+  @mock.patch.object(
+      commit.deferred, 'defer')
+  def testMidpointCachesData(self, mock_defer):
+    midpoint = commit.Commit.Midpoint(
+        commit.Commit(repository='chromium', git_hash='commit_0'),
+        commit.Commit(repository='chromium', git_hash='mc_4'))
+
+    mock_defer.assert_called_once_with(
+        commit._CacheCommitDetails, midpoint.repository, midpoint.git_hash)
 
   def testContinuousMidpointWithMergeCommits(self):
 
