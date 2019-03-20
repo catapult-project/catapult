@@ -16,6 +16,15 @@ class ThreadedWorkQueueTests(unittest.TestCase):
     wq = threaded_work_queue.ThreadedWorkQueue(num_threads=4)
     self._RunSimpleDecrementingTest(wq)
 
+  def testSingleThreadedWithException(self):
+    def Ex():
+      raise Exception("abort")
+
+    wq = threaded_work_queue.ThreadedWorkQueue(num_threads=1)
+    wq.PostAnyThreadTask(Ex)
+    res = wq.Run()
+    self.assertEquals(res, None)
+
   def _RunSimpleDecrementingTest(self, wq):
 
     remaining = [10]

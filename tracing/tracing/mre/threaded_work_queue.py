@@ -98,6 +98,11 @@ class ThreadedWorkQueue(object):
     while True:
       if self._stop:
         break
+      # Since this is single-threaded, if both task-lists are empty, then
+      # nothing will be able to add any more tasks to either task-queue.
+      if self._any_thread_tasks.empty() and self._main_thread_tasks.empty():
+        self.Stop()
+        break
       self._TryToRunOneTask(self._any_thread_tasks)
       self._TryToRunOneTask(self._main_thread_tasks)
 
