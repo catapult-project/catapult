@@ -94,38 +94,40 @@ class Browser(app.App):
     return extension_dict.ExtensionDict(self._browser_backend.extension_backend)
 
   def _LogBrowserInfo(self):
-    logging.info('Browser started (pid=%s).', self._browser_backend.GetPid())
-    logging.info('OS: %s %s',
-                 self._platform_backend.platform.GetOSName(),
-                 self._platform_backend.platform.GetOSVersionName())
+    logs = []
+    logs.append(' Browser started (pid=%s).' % self._browser_backend.GetPid())
+    logs.append(' OS: %s %s' % (
+        self._platform_backend.platform.GetOSName(),
+        self._platform_backend.platform.GetOSVersionName()))
     os_detail = self._platform_backend.platform.GetOSVersionDetailString()
     if os_detail:
-      logging.info('Detailed OS version: %s', os_detail)
+      logs.append(' Detailed OS version: %s' % os_detail)
     system_info = self.GetSystemInfo()
     if system_info:
       if system_info.model_name:
-        logging.info('Model: %s', system_info.model_name)
+        logs.append(' Model: %s' % system_info.model_name)
       if system_info.command_line:
-        logging.info('Browser command line: %s', system_info.command_line)
+        logging.debug('Browser command line: %s', system_info.command_line)
       if system_info.gpu:
         for i, device in enumerate(system_info.gpu.devices):
-          logging.info('GPU device %d: %s', i, device)
+          logs.append(' GPU device %d: %s' % (i, device))
         if system_info.gpu.aux_attributes:
-          logging.info('GPU Attributes:')
+          logs.append(' GPU Attributes:')
           for k, v in sorted(system_info.gpu.aux_attributes.iteritems()):
-            logging.info('  %-20s: %s', k, v)
+            logs.append('  %-20s: %s' % (k, v))
         if system_info.gpu.feature_status:
-          logging.info('Feature Status:')
+          logs.append(' Feature Status:')
           for k, v in sorted(system_info.gpu.feature_status.iteritems()):
-            logging.info('  %-20s: %s', k, v)
+            logs.append('  %-20s: %s' % (k, v))
         if system_info.gpu.driver_bug_workarounds:
-          logging.info('Driver Bug Workarounds:')
+          logs.append(' Driver Bug Workarounds:')
           for workaround in system_info.gpu.driver_bug_workarounds:
-            logging.info('  %s', workaround)
+            logs.append('  %s' % workaround)
       else:
-        logging.info('No GPU devices')
+        logs.append(' No GPU devices')
     else:
       logging.warning('System info not supported')
+    logging.info('Browser information:\n%s', '\n'.join(logs))
 
   def _GetStatsCommon(self, pid_stats_function):
     browser_pid = self._browser_backend.GetPid()
