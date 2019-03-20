@@ -41,7 +41,7 @@ class MapRunner(object):
     self._map_results_file = None
 
     if jobs == AUTO_JOB_COUNT:
-      jobs = multiprocessing.cpu_count()
+      jobs = min(len(self._trace_handles), multiprocessing.cpu_count())
     self._wq = threaded_work_queue.ThreadedWorkQueue(num_threads=jobs)
 
   def _ProcessOneTrace(self, trace_handle):
