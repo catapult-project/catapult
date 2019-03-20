@@ -264,6 +264,13 @@ class RunTestFullTest(_RunTestExecutionTest):
 
     self.assertNewTaskHasDimensions(swarming_tasks_new)
 
+  def testStart_NoSwarmingTags(self, swarming_task_result, swarming_tasks_new):
+    del swarming_task_result
+    del swarming_tasks_new
+
+    quest = run_test.RunTest('server', DIMENSIONS, ['arg'], None)
+    quest.Start('change_1', 'isolate server', 'input isolate hash')
+
 
 @mock.patch('dashboard.services.swarming.Tasks.New')
 @mock.patch('dashboard.services.swarming.Task.Result')

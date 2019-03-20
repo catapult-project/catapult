@@ -133,7 +133,9 @@ class RunTest(quest.Quest):
              swarming_tags):
     index = self._execution_counts[change]
     self._execution_counts[change] += 1
-    swarming_tags.update(self._swarming_tags)
+
+    if self._swarming_tags:
+      swarming_tags.update(self._swarming_tags)
 
     if len(self._canonical_executions) <= index:
       execution = _RunTestExecution(self._swarming_server, self._dimensions,
