@@ -158,38 +158,6 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(
       pinpoint_request.crrev_service, 'GetNumbering',
       mock.MagicMock(return_value={'git_sha': 'abcd'}))
-  def testPinpointParams_OldIsolateTarget_Telemetry(self):
-    params = {
-        'test_path': 'ChromiumPerf/android-nexus5x/system_health/foo',
-        'start_commit': '572200',
-        'end_commit': '572300',
-        'extra_test_args': '',
-    }
-    results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
-
-    self.assertEqual('telemetry_perf_tests', results['target'])
-
-  @mock.patch.object(
-      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  @mock.patch.object(
-      pinpoint_request.crrev_service, 'GetNumbering',
-      mock.MagicMock(return_value={'git_sha': 'abcd'}))
-  def testPinpointParams_OldIsolateTarget_WebviewTelemetry(self):
-    params = {
-        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': '572200',
-        'end_commit': '572300',
-        'extra_test_args': '',
-    }
-    results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
-
-    self.assertEqual('telemetry_perf_webview_tests', results['target'])
-
-  @mock.patch.object(
-      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
-  @mock.patch.object(
-      pinpoint_request.crrev_service, 'GetNumbering',
-      mock.MagicMock(return_value={'git_sha': 'abcd'}))
   def testPinpointParams_ConvertsCommitsToGitHashes(self):
     params = {
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
