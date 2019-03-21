@@ -25,7 +25,10 @@ THIRD_PARTY_LIBRARIES = [
     'oauth2client',
     'pipeline',
     'polymer',
+    'polymer2/bower_components',
     'polymer2/bower_components/chopsui',
+    'polymer-svg-template',
+    'redux/redux.min.js',
     'six',
     'uritemplate',
     'webtest',
@@ -46,7 +49,8 @@ DASHBOARD_FILES = [
 TRACING_PATHS = [
     'tracing/tracing',
     'tracing/tracing_build',
-    'tracing/third_party/gl-matrix/dist/gl-matrix-min.js'
+    'tracing/third_party/gl-matrix/dist/gl-matrix-min.js',
+    'tracing/third_party/mannwhitneyu',
 ]
 
 
