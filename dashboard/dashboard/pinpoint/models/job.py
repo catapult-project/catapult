@@ -366,9 +366,7 @@ class Job(ndb.Model):
           queue_name='job-queue', url='/api/run/' + self.job_id,
           name=task_name, countdown=countdown)
     except (apiproxy_errors.DeadlineExceededError, taskqueue.TransientError):
-      task = taskqueue.add(
-          queue_name='job-queue', url='/api/run/' + self.job_id,
-          name=task_name, countdown=countdown)
+      raise job_state.JobStateRecoverableError()
 
     self.task = task.name
 
