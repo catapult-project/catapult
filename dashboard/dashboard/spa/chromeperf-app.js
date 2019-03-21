@@ -210,6 +210,7 @@ tr.exportTo('cp', () => {
       dispatch(Redux.UPDATE('', {
         userEmail: profile ? profile.getEmail() : '',
       }));
+      if (profile) ChromeperfApp.actions.getRecentBugs()(dispatch, getState);
     },
 
     restoreSessionState: (statePath, sessionId) =>
@@ -408,6 +409,13 @@ tr.exportTo('cp', () => {
       ChromeperfApp.actions.updateLocation(statePath)(dispatch, getState);
     },
 
+    getRecentBugs: () => async(dispatch, getState) => {
+      const bugs = await new cp.RecentBugsRequest().response;
+      dispatch({
+        type: ChromeperfApp.reducers.receiveRecentBugs.name,
+        bugs,
+      });
+    },
   };
 
   ChromeperfApp.reducers = {
@@ -591,6 +599,26 @@ tr.exportTo('cp', () => {
         }
       }
       return state;
+    },
+
+    receiveRecentBugs: (rootState, {bugs}) => {
+      const recentPerformanceBugs = bugs && bugs.map(bug => {
+        let revisionRange = bug.summary.match(/.* (\d+):(\d+)$/);
+        if (revisionRange === null) {
+          revisionRange = new tr.b.math.Range();
+        } else {
+          revisionRange = tr.b.math.Range.fromExplicitRange(
+              parseInt(revisionRange[1]), parseInt(revisionRange[2]));
+        }
+        return {
+          id: '' + bug.id,
+          status: bug.status,
+          owner: bug.owner ? bug.owner.name : '',
+          summary: cp.breakWords(bug.summary),
+          revisionRange,
+        };
+      });
+      return {...rootState, recentPerformanceBugs};
     },
   };
 
