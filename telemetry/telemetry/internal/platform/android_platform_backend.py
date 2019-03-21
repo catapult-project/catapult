@@ -11,7 +11,6 @@ import subprocess
 from telemetry.core import android_platform
 from telemetry.core import exceptions
 from telemetry.core import util
-from telemetry import compat_mode_options
 from telemetry import decorators
 from telemetry.internal.forwarders import android_forwarder
 from telemetry.internal.platform import android_device
@@ -62,27 +61,23 @@ _DEVICE_CLEAR_SYSTEM_CACHE_TOOL_LOCATION = '/data/local/tmp/clear_system_cache'
 
 class AndroidPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
-  def __init__(self, device, require_root):
+  def __init__(self, device):
     assert device, (
         'AndroidPlatformBackend can only be initialized from remote device')
     super(AndroidPlatformBackend, self).__init__(device)
     self._device = device_utils.DeviceUtils(device.device_id)
-    self._require_root = require_root
-    if self._require_root:
-      # Trying to root the device, if possible.
-      if not self._device.HasRoot():
-        try:
-          self._device.EnableRoot()
-        except device_errors.CommandFailedError:
-          logging.warning('Unable to root %s', str(self._device))
-      self._can_elevate_privilege = (
-          self._device.HasRoot() or self._device.NeedsSU())
-      assert self._can_elevate_privilege, (
-          'Android device must have root access to run Telemetry')
-      self._enable_performance_mode = device.enable_performance_mode
-    else:
-      self._enable_performance_mode = False
+    # Trying to root the device, if possible.
+    if not self._device.HasRoot():
+      try:
+        self._device.EnableRoot()
+      except device_errors.CommandFailedError:
+        logging.warning('Unable to root %s', str(self._device))
+    self._can_elevate_privilege = (
+        self._device.HasRoot() or self._device.NeedsSU())
+    assert self._can_elevate_privilege, (
+        'Android device must have root access to run Telemetry')
     self._battery = battery_utils.BatteryUtils(self._device)
+    self._enable_performance_mode = device.enable_performance_mode
     self._surface_stats_collector = None
     self._perf_tests_setup = perf_control.PerfControl(self._device)
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._device)
@@ -112,9 +107,7 @@ class AndroidPlatformBackend(
   @classmethod
   def CreatePlatformForDevice(cls, device, finder_options):
     assert cls.SupportsDevice(device)
-    require_root = (compat_mode_options.DONT_REQUIRE_ROOTED_DEVICE not in
-                    finder_options.browser_options.compatibility_mode)
-    platform_backend = AndroidPlatformBackend(device, require_root)
+    platform_backend = AndroidPlatformBackend(device)
     return android_platform.AndroidPlatform(platform_backend)
 
   def _CreateForwarderFactory(self):
@@ -558,10 +551,7 @@ class AndroidPlatformBackend(
     Args:
       package: The full package name string of the application.
     """
-    if self._require_root:
-      return '/data/data/%s/' % package
-    else:
-      return '/data/local/tmp/%s/' % package
+    return '/data/data/%s/' % package
 
   def SetDebugApp(self, package):
     """Set application to debugging.
