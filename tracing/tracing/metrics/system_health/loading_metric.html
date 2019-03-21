@@ -30,26 +30,6 @@ tr.exportTo('tr.metrics.sh', function() {
   const EventFinderUtils = tr.e.chrome.EventFinderUtils;
 
   /**
-   * @param  {!tr.model.Process} process
-   * @param  {!tr.b.math.Range} range
-   * @return {Array.<tr.model.Event>} An array of network events of a process
-   * and that are intersecting a range.
-   */
-  function getNetworkEventsInRange(process, range) {
-    const networkEvents = [];
-    for (const thread of Object.values(process.threads)) {
-      const threadHelper = new tr.model.helpers.ChromeThreadHelper(thread);
-      const events = threadHelper.getNetworkEvents();
-      for (const event of events) {
-        if (range.intersectsExplicitRangeInclusive(event.start, event.end)) {
-          networkEvents.push(event);
-        }
-      }
-    }
-    return networkEvents;
-  }
-
-  /**
    * @param {!Object.<string, Object>} breakdownTree
    * @return {tr.v.d.Breakdown} A breakdown with categories and the total time
    * (ms) spent under each category.
@@ -147,7 +127,7 @@ tr.exportTo('tr.metrics.sh', function() {
     if (navigationStartEvent === undefined) return samples;
     const navStartToEventRange = tr.b.math.Range.fromExplicitRange(
         navigationStartEvent.start, pcEvent.start);
-    const networkEvents = getNetworkEventsInRange(
+    const networkEvents = EventFinderUtils.getNetworkEventsInRange(
         rendererHelper.process, navStartToEventRange);
     const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents, navStartToEventRange);
@@ -226,7 +206,7 @@ tr.exportTo('tr.metrics.sh', function() {
     for (const { targetEvent, navigationStartEvent, url } of timeToXEntries) {
       const navStartToEventRange = tr.b.math.Range.fromExplicitRange(
           navigationStartEvent.start, targetEvent.start);
-      const networkEvents = getNetworkEventsInRange(
+      const networkEvents = EventFinderUtils.getNetworkEventsInRange(
           rendererHelper.process, navStartToEventRange);
       const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
           rendererHelper.mainThread, networkEvents, navStartToEventRange);
@@ -277,7 +257,7 @@ tr.exportTo('tr.metrics.sh', function() {
       navigationStart, fmpMarkerEvent, url) {
     const navStartToFMPRange = tr.b.math.Range.fromExplicitRange(
         navigationStart.start, fmpMarkerEvent.start);
-    const networkEvents = getNetworkEventsInRange(
+    const networkEvents = EventFinderUtils.getNetworkEventsInRange(
         rendererHelper.process, navStartToFMPRange);
     const timeToFirstMeaningfulPaint = navStartToFMPRange.duration;
     const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
@@ -353,7 +333,7 @@ tr.exportTo('tr.metrics.sh', function() {
     const navStartToEventTimeRange =
         tr.b.math.Range.fromExplicitRange(
             navigationStartTime, eventTimestamp);
-    const networkEvents = getNetworkEventsInRange(
+    const networkEvents = EventFinderUtils.getNetworkEventsInRange(
         rendererHelper.process, navStartToEventTimeRange);
     const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents,
@@ -616,8 +596,7 @@ tr.exportTo('tr.metrics.sh', function() {
   tr.metrics.MetricRegistry.register(loadingMetric);
 
   return {
-    loadingMetric,
-    getNetworkEventsInRange,
+    loadingMetric
   };
 });
 </script>

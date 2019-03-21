@@ -78,6 +78,26 @@ tr.exportTo('tr.e.chrome', function() {
     }
 
     /**
+     * @param  {!tr.model.Process} process
+     * @param  {!tr.b.math.Range} range
+     * @return {Array.<tr.model.Event>} An array of network events of a process
+     * and that are intersecting a range.
+     */
+    static getNetworkEventsInRange(process, range) {
+      const networkEvents = [];
+      for (const thread of Object.values(process.threads)) {
+        const threadHelper = new tr.model.helpers.ChromeThreadHelper(thread);
+        const events = threadHelper.getNetworkEvents();
+        for (const event of events) {
+          if (range.intersectsExplicitRangeInclusive(event.start, event.end)) {
+            networkEvents.push(event);
+          }
+        }
+      }
+      return networkEvents;
+    }
+
+    /**
      * Returns a map of frame id to main thread slices of |rendererHelper| with
      * title |eventTitle| and categry |eventCategory|, sorted by start
      * time. Returned slices do not include telemetry internal events.

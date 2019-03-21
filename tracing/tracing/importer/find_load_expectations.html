@@ -22,27 +22,6 @@ tr.exportTo('tr.importer', function() {
     'about:blank',
   ];
 
-
-  /**
-   * @param  {!tr.model.Process} process
-   * @param  {!tr.b.math.Range} range
-   * @return {Array.<tr.model.Event>} An array of network events of a process
-   * and that are intersecting a range.
-   */
-  function getNetworkEventsInRange(process, range) {
-    const networkEvents = [];
-    for (const thread of Object.values(process.threads)) {
-      const threadHelper = new tr.model.helpers.ChromeThreadHelper(thread);
-      const events = threadHelper.getNetworkEvents();
-      for (const event of events) {
-        if (range.intersectsExplicitRangeInclusive(event.start, event.end)) {
-          networkEvents.push(event);
-        }
-      }
-    }
-    return networkEvents;
-  }
-
   function findFrameLoaderSnapshotAt(rendererHelper, frameIdRef, ts) {
     const objects = rendererHelper.process.objects;
     const frameLoaderInstances = objects.instancesByTypeName_.FrameLoader;
@@ -118,9 +97,11 @@ tr.exportTo('tr.importer', function() {
         task => task.range.intersectsExplicitRangeInclusive(
             firstMeaningfulPaintTime, searchWindowEnd));
 
-    const resourceLoadEvents = getNetworkEventsInRange(rendererHelper.process,
-        tr.b.math.Range.fromExplicitRange(navigationStart.start,
-            searchWindowEnd));
+    const resourceLoadEvents =
+        tr.e.chrome.EventFinderUtils.getNetworkEventsInRange(
+            rendererHelper.process,
+            tr.b.math.Range.fromExplicitRange(navigationStart.start,
+                searchWindowEnd));
 
     const firstCpuIdleTime =
         tr.e.chrome.findFirstCpuIdleTime(
