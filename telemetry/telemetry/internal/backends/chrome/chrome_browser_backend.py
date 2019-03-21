@@ -110,6 +110,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
           timeout=self.browser_options.browser_startup_timeout)
     except (py_utils.TimeoutException, exceptions.ProcessGoneException) as e:
       if not self.IsBrowserRunning():
+        logging.exception(e)  # crbug.com/940075
         raise exceptions.BrowserGoneException(self.browser, e)
       raise exceptions.BrowserConnectionGoneException(self.browser, e)
 
