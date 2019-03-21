@@ -45,6 +45,16 @@ class RunnerTests(TestCase):
         ret, _, _ = r.run()
         self.assertEqual(ret, 0)
 
+    def test_assert_test_name_starts_with_test_name_prefix(self):
+        r = Runner()
+        r.args.test_name_prefix = 'typ.tests.runner_test.MockTest.'
+        r._set_up_runner()
+        with self.assertRaises(AssertionError) as context:
+            r.find_tests(r.args)
+        self.assertIn(
+            'The test\'s fully qualified name must start with the test name '
+            'prefix passed in at the command line', str(context.exception))
+
     @unittest.skipIf(sys.version_info.major == 3, 'fails under python3')
     def test_exception_in_teardown(self):
         r = Runner()

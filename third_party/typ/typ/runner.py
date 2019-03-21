@@ -191,6 +191,9 @@ class Runner(object):
             _sort_inputs(test_set.parallel_tests +
                          test_set.isolated_tests +
                          test_set.tests_to_skip)]
+            if self.args.test_name_prefix:
+                self.args.metadata.append(
+                    'test_name_prefix=' + self.args.test_name_prefix)
             if self.args.list_only:
                 self.print_('\n'.join(all_tests))
             else:
@@ -454,11 +457,37 @@ class Runner(object):
             names = self.top_level_dirs
         return names
 
+    def _test_adder(self, test_set, classifier):
+        def add_tests(obj):
+            if isinstance(obj, unittest.suite.TestSuite):
+                for el in obj:
+                    add_tests(el)
+            elif (obj.id().startswith('unittest.loader.LoadTestsFailure') or
+                  obj.id().startswith('unittest.loader.ModuleImportFailure')):
+                # Access to protected member pylint: disable=W0212
+                module_name = obj._testMethodName
+                try:
+                    method = getattr(obj, obj._testMethodName)
+                    method()
+                except Exception as e:
+                    if 'LoadTests' in obj.id():
+                        raise _AddTestsError('%s.load_tests() failed: %s'
+                                             % (module_name, str(e)))
+                    else:
+                        raise _AddTestsError(str(e))
+            else:
+                assert isinstance(obj, unittest.TestCase)
+                assert obj.id().startswith(self.args.test_name_prefix), (
+                    'The test\'s fully qualified name must start with the '
+                    'test name prefix passed in at the command line')
+                classifier(test_set, obj)
+        return add_tests
+
     def _add_tests_to_set(self, test_set, suffixes, top_level_dirs, classifier,
                           name):
         h = self.host
         loader = self.loader
-        add_tests = _test_adder(test_set, classifier)
+        add_tests = self._test_adder(test_set, classifier)
 
         found = set()
         for d in top_level_dirs:
@@ -491,7 +520,8 @@ class Runner(object):
                             add_tests(suite)
                 elif not name in found:
                     found.add(name)
-                    add_tests(loader.loadTestsFromName(name))
+                    add_tests(loader.loadTestsFromName(
+                        self.args.test_name_prefix + name))
 
         # pylint: disable=no-member
         if hasattr(loader, 'errors') and loader.errors:  # pragma: python3
@@ -794,7 +824,7 @@ def _matches(name, globs):
 
 def _default_classifier(args):
     def default_classifier(test_set, test):
-        name = test.id()
+        name = test.id()[len(args.test_name_prefix):]
         if not args.all and _matches(name, args.skip):
             test_set.tests_to_skip.append(TestInput(name,
                                                     'skipped by request'))
@@ -803,30 +833,6 @@ def _default_classifier(args):
         else:
             test_set.parallel_tests.append(TestInput(name))
     return default_classifier
-
-
-def _test_adder(test_set, classifier):
-    def add_tests(obj):
-        if isinstance(obj, unittest.suite.TestSuite):
-            for el in obj:
-                add_tests(el)
-        elif (obj.id().startswith('unittest.loader.LoadTestsFailure') or
-              obj.id().startswith('unittest.loader.ModuleImportFailure')):
-            # Access to protected member pylint: disable=W0212
-            module_name = obj._testMethodName
-            try:
-                method = getattr(obj, obj._testMethodName)
-                method()
-            except Exception as e:
-                if 'LoadTests' in obj.id():
-                    raise _AddTestsError('%s.load_tests() failed: %s'
-                                         % (module_name, str(e)))
-                else:
-                    raise _AddTestsError(str(e))
-        else:
-            assert isinstance(obj, unittest.TestCase)
-            classifier(test_set, obj)
-    return add_tests
 
 
 class _Child(object):
@@ -851,6 +857,7 @@ class _Child(object):
         self.cov = None
         self.has_expectations = parent.has_expectations
         self.expectations = parent.expectations
+        self.test_name_prefix = parent.args.test_name_prefix
 
 
 def _setup_process(host, worker_num, child):
@@ -926,7 +933,8 @@ def _run_one_test(child, test_input):
                            unexpected=False, pid=pid), False)
 
         try:
-            suite = child.loader.loadTestsFromName(test_name)
+            suite = child.loader.loadTestsFromName(
+                child.test_name_prefix + test_name)
         except Exception as e:
             ex_str = ('loadTestsFromName("%s") failed: %s\n%s\n' %
                       (test_name, e, traceback.format_exc()))
