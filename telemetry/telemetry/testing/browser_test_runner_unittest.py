@@ -137,11 +137,37 @@ class BrowserTestRunnerTest(unittest.TestCase):
     self.assertEqual(tags, set(['android', 'marshmellow', 'system']))
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testShortenTestNameUsingTestNamePrefixCommandLineArg(self):
+    self._RunTest(
+        test_filter='', expected_failures=[],
+        expected_successes=['FailingTest'],
+        test_name='ImplementsGenerateTagsFunction',
+        tags=['foo'], expectations=_MakeTestExpectations(
+            'FailingTest', ['foo'], 'Failure'),
+        extra_args=['--test-name-prefix=browser_tests.browser_test.'
+                    'ImplementsGenerateTagsFunction.'])
+    test_result = (
+        self._test_result['tests']['FailingTest'])
+    self.assertEqual(test_result['expected'], 'FAIL')
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testShortenSkipGlobUsingTestNamePrefixCommandLineArg(self):
+    self._RunTest(
+        test_filter='', expected_failures=[], expected_successes=[],
+        expected_skips=['FailingTest'],
+        test_name='ImplementsExpectationsFilesFunction',
+        extra_args=[
+            '-x=foo', '--test-name-prefix='
+            'browser_tests.browser_test.ImplementsExpectationsFilesFunction.',
+            '--skip=FailingTest'])
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testGetExpectationsFromTypWithoutExpectationsFile(self):
     test_name = ('browser_tests.browser_test.'
                  'GetsExpectationsFromTyp.HasNoExpectationsFile')
     self._RunTest(
-        test_name, [], [test_name], test_name='GetsExpectationsFromTyp')
+        test_filter=test_name, expected_failures=[],
+        expected_successes=[test_name], test_name='GetsExpectationsFromTyp')
     test_result = (
         self._test_result['tests']['browser_tests']['browser_test']
         ['GetsExpectationsFromTyp']['HasNoExpectationsFile'])
@@ -155,7 +181,8 @@ class BrowserTestRunnerTest(unittest.TestCase):
     test_name = ('browser_tests.browser_test'
                  '.GetsExpectationsFromTyp.HasExpectationsFile')
     self._RunTest(
-        test_name, [test_name], [], test_name='GetsExpectationsFromTyp',
+        test_filter=test_name, expected_failures=[test_name],
+        expected_successes=[], test_name='GetsExpectationsFromTyp',
         expectations=_MakeTestExpectations(
             test_name, ['foo'], 'RetryOnFailure Failure'), tags=['foo'])
     test_result = (
@@ -171,7 +198,8 @@ class BrowserTestRunnerTest(unittest.TestCase):
     test_name = ('browser_tests.browser_test.'
                  'ImplementsExpectationsFilesFunction.FailingTest')
     self._RunTest(
-        test_name, [], [test_name],
+        test_filter=test_name, expected_failures=[],
+        expected_successes=[test_name],
         test_name='ImplementsExpectationsFilesFunction', extra_args=['-x=foo'])
     test_result = (
         self._test_result['tests']['browser_tests']['browser_test']
@@ -187,7 +215,8 @@ class BrowserTestRunnerTest(unittest.TestCase):
     extra_args = [
         '--retry-limit=3', '--retry-only-retry-on-failure-tests']
     self._RunTest(
-        test_name, [], [test_name], test_name='FlakyTest',
+        test_filter=test_name, expected_failures=[],
+        expected_successes=[test_name], test_name='FlakyTest',
         extra_args=extra_args, expectations=_MakeTestExpectations(
             test_name, ['foo'], 'RetryOnFailure'), tags=['foo'])
     results = (
@@ -203,8 +232,9 @@ class BrowserTestRunnerTest(unittest.TestCase):
     test_name = ('browser_tests.browser_test'
                  '.TestsWillBeDisabled.SupposedToPass')
     self._RunTest(
-        test_name, [], [], expected_skips=[test_name],
-        test_name='TestsWillBeDisabled', expectations=_MakeTestExpectations(
+        test_filter=test_name, expected_failures=[], expected_successes=[],
+        expected_skips=[test_name], test_name='TestsWillBeDisabled',
+        expectations=_MakeTestExpectations(
             test_name, ['foo'], 'Skip'), tags=['foo'])
     test_result = (
         self._test_result['tests']['browser_tests']['browser_test']
@@ -219,8 +249,9 @@ class BrowserTestRunnerTest(unittest.TestCase):
     test_name = ('browser_tests.browser_test'
                  '.TestsWillBeDisabled.SupposedToPass')
     self._RunTest(
-        test_name, [], [], expected_skips=[test_name],
-        test_name='TestsWillBeDisabled', expectations=_MakeTestExpectations(
+        test_filter=test_name, expected_failures=[], expected_successes=[],
+        expected_skips=[test_name], test_name='TestsWillBeDisabled',
+        expectations=_MakeTestExpectations(
             test_name, ['foo'], 'Failure'), tags=['foo'],
         extra_args=['--skip=*SupposedToPass'])
     test_result = (
@@ -237,7 +268,8 @@ class BrowserTestRunnerTest(unittest.TestCase):
         'browser_tests.browser_test.'
         'TestsWillBeDisabled.SupposedToPass')
     self._RunTest(
-        test_name, [], [], test_name='TestsWillBeDisabled',
+        test_filter=test_name, expected_failures=[], expected_successes=[],
+        test_name='TestsWillBeDisabled',
         expected_skips=[test_name],
         extra_args=['--skip=*SupposedToPass'])
     test_result = (
@@ -253,7 +285,8 @@ class BrowserTestRunnerTest(unittest.TestCase):
     test_name = ('browser_tests.browser_test.'
                  'TestsWillBeDisabled.ThisTestSkips')
     self._RunTest(
-        test_name, [], [], test_name='TestsWillBeDisabled',
+        test_filter=test_name, expected_failures=[], expected_successes=[],
+        test_name='TestsWillBeDisabled',
         expected_skips=[test_name])
     test_result = (
         self._test_result['tests']['browser_tests']['browser_test']
@@ -268,7 +301,9 @@ class BrowserTestRunnerTest(unittest.TestCase):
     test_name = ('browser_tests.browser_test'
                  '.ImplementsGenerateTagsFunction.FailingTest')
     self._RunTest(
-        test_name, [], [test_name], test_name='ImplementsGenerateTagsFunction',
+        test_filter=test_name, expected_failures=[],
+        expected_successes=[test_name],
+        test_name='ImplementsGenerateTagsFunction',
         expectations=_MakeTestExpectations(test_name, ['foo'], 'Failure'),
         tags=['foo'])
     test_result = (
@@ -282,7 +317,8 @@ class BrowserTestRunnerTest(unittest.TestCase):
     test_name = ('browser_tests.browser_test'
                  '.ImplementsGenerateTagsFunction.FailingTest')
     self._RunTest(
-        test_name, [], [], expected_skips=[test_name],
+        test_filter=test_name, expected_failures=[], expected_successes=[],
+        expected_skips=[test_name],
         test_name='ImplementsGenerateTagsFunction',
         tags=['foo'], expectations=_MakeTestExpectations(
             test_name, ['foo'], 'Skip'))

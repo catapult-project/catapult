@@ -249,7 +249,10 @@ def _GetClassifier(args):
         test,
         serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
       return
-    name = test.id()
+    assert test.id().startswith(args.test_name_prefix), (
+        'The test\'s fully qualified name must start with the '
+        'test name prefix passed in at the command line')
+    name = test.id()[len(args.test_name_prefix):]
     if _SkipMatch(name, args.skip):
       test_set.tests_to_skip.append(
           typ.TestInput(name, 'skipped because matched --skip'))
@@ -345,6 +348,7 @@ def RunTests(args):
   runner.classifier = _GetClassifier(options)
   runner.args.retry_only_retry_on_failure_tests = (
       options.retry_only_retry_on_failure_tests)
+  runner.args.test_name_prefix = options.test_name_prefix
   runner.args.suffixes = TEST_SUFFIXES
 
   # Since sharding logic is handled by browser_test_runner harness by passing
