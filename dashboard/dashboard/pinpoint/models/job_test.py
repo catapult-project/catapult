@@ -239,6 +239,30 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
+  def testCompletedWithInvalidIssue(
+      self, differences, result_values, commit_as_dict):
+    c = change.Change((change.Commit('chromium', 'git_hash'),))
+    differences.return_value = [(None, c)]
+    result_values.side_effect = [0], [1.23456]
+    commit_as_dict.return_value = {
+        'repository': 'chromium',
+        'git_hash': 'git_hash',
+        'url': 'https://example.com/repository/+/git_hash',
+        'author': 'author@chromium.org',
+        'subject': 'Subject.',
+        'message': 'Subject.\n\nCommit message.',
+    }
+
+    self.get_issue.return_value = None
+
+    j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
+    j.Run()
+
+    self.assertFalse(self.add_bug_comment.called)
+
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedWithCommitAndDocs(
       self, differences, result_values, commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))

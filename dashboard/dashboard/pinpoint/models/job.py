@@ -293,8 +293,10 @@ class Job(ndb.Model):
     # Bring it all together.
     comment = '\n\n'.join((header, body, footer))
     current_bug_status = self._GetBugStatus()
-    if (not current_bug_status or
-        current_bug_status in ['Untriaged', 'Unconfirmed', 'Available']):
+    if not current_bug_status:
+      return
+
+    if (current_bug_status in ['Untriaged', 'Unconfirmed', 'Available']):
       # Set the bug status and owner if this bug is opened and unowned.
       self._PostBugComment(comment, status='Assigned',
                            cc_list=sorted(cc_list), owner=owner)
@@ -481,6 +483,9 @@ class Job(ndb.Model):
     issue_tracker = issue_tracker_service.IssueTrackerService(
         utils.ServiceAccountHttp())
     issue_data = issue_tracker.GetIssue(self.bug_id)
+    if not issue_data:
+      return None
+
     return issue_data.get('status')
 
 
