@@ -16,6 +16,8 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   const ColorScheme = tr.b.ColorScheme;
+  const newAsyncSliceEx = tr.c.TestUtils.newAsyncSliceEx;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
 
   function createMainProcesses(m) {
     m.browserProcess = m.getOrCreateProcess(1);
@@ -124,6 +126,45 @@ tr.b.unittest.testSuite(function() {
 
     assert.isTrue(m.renderer1.important);
     assert.isFalse(m.renderer2.important);
+  });
+
+  test('missedFrameAlerts', function() {
+    const m = tr.c.TestUtils.newModelWithAuditor(function(m) {
+      m.renderProcess = m.getOrCreateProcess(1);
+      m.compositorThread = m.renderProcess.getOrCreateThread(2);
+      m.compositorThread.name = 'Compositor'; // required
+
+      m.browserProcess = m.getOrCreateProcess(3);
+      m.browserThread = m.browserProcess.getOrCreateThread(4);
+      m.browserThread.name = 'CrBrowserMain'; // required
+
+      const noArgsFrameSlice = newAsyncSliceEx({
+        title: 'PipelineReporter', start: 200, duration: 15, args: {}});
+
+      const submittedFrameSlice = newAsyncSliceEx({
+        title: 'PipelineReporter',
+        start: 200,
+        duration: 15,
+        args: {
+          termination_status: 'submitted_frame'
+        }
+      });
+
+      const missedFrameSlice = newAsyncSliceEx({
+        title: 'PipelineReporter',
+        start: 200,
+        duration: 15,
+        args: {
+          termination_status: 'missed_frame'
+        }
+      });
+
+      m.compositorThread.asyncSliceGroup.push(noArgsFrameSlice);
+      m.compositorThread.asyncSliceGroup.push(submittedFrameSlice);
+      m.compositorThread.asyncSliceGroup.push(missedFrameSlice);
+    }, tr.e.audits.ChromeAuditor);
+
+    assert.strictEqual(m.alerts.length, 1);
   });
 });
 </script>

@@ -12,6 +12,7 @@ found in the LICENSE file.
     href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
 <link rel="import"
     href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
+<link rel="import" href="/tracing/model/alert.html">
 <link rel="import" href="/tracing/model/constants.html">
 <link rel="import" href="/tracing/model/event_info.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
@@ -24,6 +25,8 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.e.audits', function() {
   const Auditor = tr.c.Auditor;
+  const Alert = tr.model.Alert;
+  const EventInfo = tr.model.EventInfo;
 
   /**
    * Auditor for Chrome-specific traces.
@@ -40,6 +43,28 @@ tr.exportTo('tr.e.audits', function() {
     } else {
       this.modelHelper = undefined;
     }
+  }
+
+  function getMissedFrameAlerts(rendererHelpers) {
+    const alerts = [];
+    for (const rendererHelper of rendererHelpers) {
+      if (!rendererHelper.compositorThread) continue;
+      const thread = rendererHelper.compositorThread;
+      const asyncSlices = Object.values(thread.asyncSliceGroup.slices);
+      for (const slice of asyncSlices) {
+        if (slice.title !== 'PipelineReporter' ||
+            !slice.args.termination_status ||
+            slice.args.termination_status !== 'missed_frame') continue;
+        const alertSlices = [slice].concat(slice.subSlices);
+        alerts.push(new Alert(
+            new EventInfo(
+                'Missed Frame',
+                'Frame was not submitted before deadline.'),
+            slice.start,
+            alertSlices));
+      }
+    }
+    return alerts;
   }
 
   ChromeAuditor.prototype = {
@@ -72,6 +97,10 @@ tr.exportTo('tr.e.audits', function() {
           tr.model.BROWSER_PROCESS_PID_REF,
           this.modelHelper.browserProcess.pid);
       this.model.applyObjectRefPatchups();
+
+      const alerts = getMissedFrameAlerts(
+          Object.values(this.modelHelper.rendererHelpers));
+      this.model.alerts = this.model.alerts.concat(alerts);
     }
   };
 
