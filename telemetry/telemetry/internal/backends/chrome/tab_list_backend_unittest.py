@@ -8,6 +8,11 @@ from telemetry.testing import tab_test_case
 
 
 class TabListBackendTest(tab_test_case.TabTestCase):
+
+  @classmethod
+  def CustomizeBrowserOptions(cls, options):
+    options.AppendExtraBrowserArgs(['--disable-popup-blocking'])
+
   @decorators.Enabled('has tabs')
   def testNewTab(self):
     tabs = set(tab.id for tab in self.tabs)
@@ -17,6 +22,18 @@ class TabListBackendTest(tab_test_case.TabTestCase):
       tabs.add(new_tab_id)
       new_tabs = set(tab.id for tab in self.tabs)
       self.assertEqual(tabs, new_tabs)
+
+  @decorators.Enabled('has tabs')
+  def testNewWindow(self):
+    already_open_tab_ids = set(tab.id for tab in self.tabs)
+    number_already_open_tabs = len(already_open_tab_ids)
+    self.assertTrue(number_already_open_tabs > 0)
+
+    new_window = self.tabs.New(in_new_window=True, timeout=1)
+    self.assertNotIn(new_window.id, already_open_tab_ids)
+    # Now the browser does know about the popup.
+    self.assertEqual(len(self.tabs), number_already_open_tabs + 1)
+    self.assertTrue(new_window in self.tabs)
 
   @decorators.Enabled('has tabs')
   def testTabIdMatchesContextId(self):
