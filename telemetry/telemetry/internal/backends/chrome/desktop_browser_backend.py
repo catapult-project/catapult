@@ -224,6 +224,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       ])
 
     cmd = [self._executable]
+    if self.browser.platform.GetOSName() == 'mac':
+      cmd.append('--use-mock-keychain')  # crbug.com/865247
     cmd.extend(startup_args)
     cmd.append('about:blank')
     env = os.environ.copy()
