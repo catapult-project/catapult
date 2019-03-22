@@ -477,9 +477,6 @@ class Runner(object):
                         raise _AddTestsError(str(e))
             else:
                 assert isinstance(obj, unittest.TestCase)
-                assert obj.id().startswith(self.args.test_name_prefix), (
-                    'The test\'s fully qualified name must start with the '
-                    'test name prefix passed in at the command line')
                 classifier(test_set, obj)
         return add_tests
 
