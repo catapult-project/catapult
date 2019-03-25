@@ -16,6 +16,7 @@ from systrace.tracing_agents import atrace_agent
 
 from devil.android import device_utils
 from devil.android.sdk import intent
+from py_utils import tempfile_ext
 
 
 DEVICE_SERIAL = 'AG8404EC0444AGC'
@@ -50,9 +51,7 @@ class AtraceAgentTest(unittest.TestCase):
     devices = device_utils.DeviceUtils.HealthyDevices()
     package_info = util.get_supported_browsers()['stable']
     device = devices[0]
-    output_file_name = util.generate_random_filename_for_test()
-
-    try:
+    with tempfile_ext.TemporaryFileName() as output_file_name:
       # Launch the browser before tracing.
       device.StartActivity(
           intent.Intent(activity=package_info.activity,
@@ -76,12 +75,7 @@ class AtraceAgentTest(unittest.TestCase):
       # Verify results.
       with open(output_file_name, 'r') as f:
         full_trace = f.read()
-        self.assertTrue('CPU#'in full_trace)
-    except:
-      raise
-    finally:
-      if os.path.exists(output_file_name):
-        os.remove(output_file_name)
+      self.assertTrue('CPU#' in full_trace)
 
   @decorators.HostOnlyTest
   def test_construct_atrace_args(self):

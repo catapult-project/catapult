@@ -4,8 +4,6 @@
 
 import optparse
 import os
-import random
-import string
 import sys
 
 from devil.android.constants import chrome
@@ -93,18 +91,6 @@ def get_device_sdk_version():
     raise Exception("Failed to get device sdk version")
 
   return version
-
-
-def generate_random_filename_for_test():
-  """Used for temporary files used in tests.
-
-  Files created from 'NamedTemporaryFile' have inconsistent reuse support across
-  platforms, so it's not guaranteed that they can be reopened. Since many tests
-  communicate files via path, we typically use this method, as well as
-  manual file removal."""
-  name = ''.join(random.choice(string.ascii_uppercase +
-              string.digits) for _ in range(10))
-  return os.path.abspath(name)
 
 
 def get_supported_browsers():

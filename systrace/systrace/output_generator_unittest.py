@@ -14,7 +14,6 @@ from systrace import decorators
 from systrace import output_generator
 from systrace import trace_result
 from systrace import update_systrace_trace_viewer
-from systrace import util
 from tracing.trace_data import trace_data as trace_data_module
 
 
@@ -53,18 +52,14 @@ class OutputGeneratorTest(unittest.TestCase):
         update_systrace_trace_viewer.SYSTRACE_TRACE_VIEWER_HTML_FILE))
     with open(ATRACE_DATA) as f:
       atrace_data = f.read().replace(" ", "").strip()
-      trace_results = [trace_result.TraceResult('systemTraceEvents',
-                       atrace_data)]
-      output_file_name = util.generate_random_filename_for_test()
-      final_path = output_generator.GenerateHTMLOutput(trace_results,
-                                                       output_file_name)
+    trace_results = [trace_result.TraceResult('systemTraceEvents', atrace_data)]
+    with tempfile_ext.TemporaryFileName() as output_file_name:
+      output_generator.GenerateHTMLOutput(trace_results, output_file_name)
       with open(output_file_name, 'r') as f:
-        output_generator.GenerateHTMLOutput(trace_results, f.name)
         html_output = f.read()
-        trace_data = (html_output.split(
-          '<script class="trace-data" type="application/text">')[1].split(
-          '</script>'))[0].replace(" ", "").strip()
-      os.remove(final_path)
+      trace_data = (html_output.split(
+        '<script class="trace-data" type="application/text">')[1].split(
+        '</script>'))[0].replace(" ", "").strip()
 
     # Ensure the trace data written in HTML is located within the
     # correct place in the HTML document and that the data is not
