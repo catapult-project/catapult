@@ -22,8 +22,9 @@ class PlatformScreenshotTest(tab_test_case.TabTestCase):
       self.assertTrue(self._platform.CanTakeScreenshot())
 
   # Run this test in serial to avoid multiple browsers pop up on the screen.
+  # Disabled: Mac: crbug.com/660587, ChromeOs: crbug.com/944366.
   @decorators.Isolated
-  @decorators.Disabled('mac')  # crbug.com/660587
+  @decorators.Disabled('mac', 'chromeos')
   def testScreenshot(self):
     if not self._platform.CanTakeScreenshot():
       self.skipTest('Platform does not support screenshots, skipping test.')
