@@ -3,11 +3,13 @@
 # found in the LICENSE file.
 
 import json
+import urlparse
 
 from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.quest import execution
 from dashboard.pinpoint.models.quest import quest
 from dashboard.services import buildbucket_service
+from dashboard.services import gerrit_service
 
 
 BUCKET = 'master.tryserver.chromium.perf'
@@ -181,23 +183,49 @@ class _FindIsolateExecution(execution.Execution):
       # Request a build!
       buildbucket_info = _RequestBuild(
           self._builder_name, self._change, self.bucket)
+
       self._build = buildbucket_info['build']['id']
       self._previous_builds[self._change] = self._build
 
 
 def _RequestBuild(builder_name, change, bucket):
-  builder_tags = [
-      'buildset:commit/git/%s' % change.base_commit.git_hash
-  ]
+  base_as_dict = change.base_commit.AsDict()
+  review_url = base_as_dict.get('review_url')
+  if not review_url:
+    raise BuildError(
+        'Could not find gerrit review url for commit: ' + str(base_as_dict))
+
+  change_id = base_as_dict.get('change_id')
+  if not change_id:
+    raise BuildError(
+        'Could not find gerrit change id for commit: ' + str(base_as_dict))
+
+  url_parts = urlparse.urlparse(review_url)
+  base_review_url = urlparse.urlunsplit(
+      (url_parts.scheme, url_parts.netloc, '', '', ''))
+
+  change_info = gerrit_service.GetChange(base_review_url, change_id)
+
+  commit_url_parts = urlparse.urlparse(base_as_dict['url'])
+
+  # Note: The ordering here for buildbucket v1 api is important.
+  # crbug.com/937392
+  builder_tags = []
   if change.patch:
     builder_tags.append(change.patch.BuildsetTags())
+  builder_tags.append(
+      'buildset:commit/gitiles/%s/%s/+/%s' % (
+          commit_url_parts.netloc,
+          change_info['project'],
+          change.base_commit.git_hash)
+  )
 
   deps_overrides = {dep.repository_url: dep.git_hash for dep in change.deps}
   parameters = {
       'builder_name': builder_name,
       'properties': {
           'clobber': True,
-          'parent_got_revision': change.base_commit.git_hash,
+          'revision': change.base_commit.git_hash,
           'deps_revision_overrides': deps_overrides,
       },
   }

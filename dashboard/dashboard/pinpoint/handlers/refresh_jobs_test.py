@@ -53,8 +53,8 @@ class RefreshJobsTest(test.TestCase):
     j2.put()
     j2.updated = datetime.datetime.now() - datetime.timedelta(hours=8)
     j2.put()
-    j2._Schedule = mock.MagicMock()
-    j2.Fail = mock.MagicMock()
+    j2._Schedule = mock.MagicMock() # pylint: disable=invalid-name
+    j2.Fail = mock.MagicMock() # pylint: disable=invalid-name
 
     layered_cache.Set(
         refresh_jobs._JOB_CACHE_KEY % j2.job_id,
@@ -82,8 +82,8 @@ class RefreshJobsTest(test.TestCase):
     j2.put()
     j2.updated = datetime.datetime.now() - datetime.timedelta(hours=8)
     j2.put()
-    j2._Schedule = mock.MagicMock()
-    j2.Fail = mock.MagicMock()
+    j2._Schedule = mock.MagicMock() # pylint: disable=invalid-name
+    j2.Fail = mock.MagicMock() # pylint: disable=invalid-name
 
     layered_cache.Set(
         refresh_jobs._JOB_CACHE_KEY % j2.job_id,

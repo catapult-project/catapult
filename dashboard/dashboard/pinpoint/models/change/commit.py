@@ -155,6 +155,14 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     if commit_position:
       d['commit_position'] = commit_position
 
+    review_url = _ParseCommitField('Reviewed-on: ', d['message'])
+    if review_url:
+      d['review_url'] = review_url
+
+    change_id = _ParseCommitField('Change-Id: ', d['message'])
+    if change_id:
+      d['change_id'] = change_id
+
     return d
 
   @classmethod
@@ -317,4 +325,12 @@ def _ParseCommitPosition(commit_message):
                     commit_message, re.MULTILINE)
   if match:
     return int(match.group(1))
+  return None
+
+
+def _ParseCommitField(field, commit_message):
+  for l in commit_message.splitlines():
+    match = l.split(field)
+    if len(match) == 2:
+      return match[1]
   return None

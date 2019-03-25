@@ -117,6 +117,23 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
 @mock.patch('dashboard.services.buildbucket_service.Put')
 class BuildTest(_FindIsolateExecutionTest):
 
+  def testBuildNoReviewUrl(self, put, _):
+    change = change_test.Change(123, 456, patch=True)
+    results = change.base_commit.AsDict()
+    del results['review_url']
+    change.base_commit.AsDict = mock.MagicMock(return_value=results)
+
+    quest = find_isolate.FindIsolate(
+        'Mac Builder', 'telemetry_perf_tests', 'luci.bucket')
+    execution = quest.Start(change)
+    del execution._bucket
+
+    # Request a build.
+    put.return_value = {'build': {'id': 'build_id'}}
+    execution.Poll()
+
+    self.assertExecutionFailure(execution, find_isolate.BuildError)
+
   def testBuildNoBucket(self, put, _):
     change = change_test.Change(123, 456, patch=True)
     quest = find_isolate.FindIsolate(
@@ -132,14 +149,15 @@ class BuildTest(_FindIsolateExecutionTest):
     put.assert_called_once_with(
         find_isolate.BUCKET,
         [
-            'buildset:commit/git/commit_123',
-            'buildset:patch/gerrit/codereview.com/567890/5'
+            'buildset:patch/gerrit/codereview.com/567890/5',
+            'buildset:commit/gitiles/chromium.googlesource.com/'
+            'project/name/+/commit_123'
         ],
         {
             'builder_name': 'Mac Builder',
             'properties': {
                 'clobber': True,
-                'parent_got_revision': 'commit_123',
+                'revision': 'commit_123',
                 'deps_revision_overrides': {test.CATAPULT_URL: 'commit_456'},
                 'patch_gerrit_url': 'https://codereview.com',
                 'patch_issue': 567890,
@@ -166,14 +184,15 @@ class BuildTest(_FindIsolateExecutionTest):
     put.assert_called_once_with(
         'luci.bucket',
         [
-            'buildset:commit/git/commit_123',
-            'buildset:patch/gerrit/codereview.com/567890/5'
+            'buildset:patch/gerrit/codereview.com/567890/5',
+            'buildset:commit/gitiles/chromium.googlesource.com/'
+            'project/name/+/commit_123',
         ],
         {
             'builder_name': 'Mac Builder',
             'properties': {
                 'clobber': True,
-                'parent_got_revision': 'commit_123',
+                'revision': 'commit_123',
                 'deps_revision_overrides': {test.CATAPULT_URL: 'commit_456'},
                 'patch_gerrit_url': 'https://codereview.com',
                 'patch_issue': 567890,

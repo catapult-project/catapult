@@ -76,6 +76,7 @@ deps_os = {
         'committer': {'time': 'Fri Jan 01 00:01:00 2016'},
         'message': 'Subject.\n\n'
                    'Commit message.\n'
+                   'Reviewed-on: https://foo/c/chromium/src/+/123\n'
                    'Cr-Commit-Position: refs/heads/master@{#437745}',
     }
 
@@ -88,7 +89,9 @@ deps_os = {
         'subject': 'Subject.',
         'message': 'Subject.\n\n'
                    'Commit message.\n'
+                   'Reviewed-on: https://foo/c/chromium/src/+/123\n'
                    'Cr-Commit-Position: refs/heads/master@{#437745}',
+        'review_url': 'https://foo/c/chromium/src/+/123',
         'commit_position': 437745,
     }
     self.assertEqual(Commit(0).AsDict(), expected)

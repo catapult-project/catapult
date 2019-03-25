@@ -95,6 +95,8 @@ def _CommitInfoStub(repository_url, git_hash, override=False):
       'commit': git_hash,
       'committer': {'time': 'Fri Jan 01 00:01:00 2018'},
       'message': 'Subject.\n\nCommit message.\n'
+                 'Reviewed-on: https://foo.bar/+/123456\n'
+                 'Change-Id: If32lalatdfg325simon8943washere98j589\n'
                  'Cr-Commit-Position: refs/heads/master@{#123456}',
       'parents': parents,
   }
