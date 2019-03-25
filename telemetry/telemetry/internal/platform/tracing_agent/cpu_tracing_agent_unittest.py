@@ -93,31 +93,32 @@ class CpuTracingAgentTest(unittest.TestCase):
   @decorators.Enabled('linux', 'mac')
   def testCollectAgentTraceDataBeforeStop(self):
     self._agent.StartAgentTracing(self._config, 0)
-    self.assertRaises(AssertionError, self._agent.CollectAgentTraceData,
-                      trace_data.TraceDataBuilder())
+    with self.assertRaises(AssertionError):
+      with trace_data.TraceDataBuilder() as builder:
+        self._agent.CollectAgentTraceData(builder)
     self._agent.StopAgentTracing()
 
   # Flaky on Win (crbug.com/803210).
   @decorators.Enabled('linux', 'mac')
   def testCollectAgentTraceData(self):
-    builder = trace_data.TraceDataBuilder()
     self._agent.StartAgentTracing(self._config, 0)
     self._agent.StopAgentTracing()
-    self._agent.CollectAgentTraceData(builder)
-    self.assertFalse(self._agent._snapshot_ongoing)
-    data = builder.AsData()
+    with trace_data.TraceDataBuilder() as builder:
+      self._agent.CollectAgentTraceData(builder)
+      self.assertFalse(self._agent._snapshot_ongoing)
+      data = builder.AsData()
     self.assertTrue(data.HasTracesFor(trace_data.CPU_TRACE_DATA))
 
   # Flaky on Win (crbug.com/803210).
   @decorators.Enabled('linux', 'mac')
   def testCollectAgentTraceDataFormat(self):
-    builder = trace_data.TraceDataBuilder()
     self._agent.StartAgentTracing(self._config, 0)
     time.sleep(2)
     self._agent.StopAgentTracing()
-    self._agent.CollectAgentTraceData(builder)
-    data = builder.AsData().GetTraceFor(
-        trace_data.CPU_TRACE_DATA)['traceEvents']
+    with trace_data.TraceDataBuilder() as builder:
+      self._agent.CollectAgentTraceData(builder)
+      data = builder.AsData().GetTraceFor(
+          trace_data.CPU_TRACE_DATA)['traceEvents']
 
     self.assertEquals(set(data[0].keys()), set(TRACE_EVENT_KEYS))
     self.assertEquals(set(data[0]['args']['snapshot'].keys()),
@@ -129,13 +130,13 @@ class CpuTracingAgentTest(unittest.TestCase):
   # Flaky on Win (crbug.com/803210).
   @decorators.Enabled('linux', 'mac')
   def testContainsRealProcesses(self):
-    builder = trace_data.TraceDataBuilder()
     self._agent.StartAgentTracing(self._config, 0)
     time.sleep(2)
     self._agent.StopAgentTracing()
-    self._agent.CollectAgentTraceData(builder)
-    data = builder.AsData().GetTraceFor(
-        trace_data.CPU_TRACE_DATA)['traceEvents']
+    with trace_data.TraceDataBuilder() as builder:
+      self._agent.CollectAgentTraceData(builder)
+      data = builder.AsData().GetTraceFor(
+          trace_data.CPU_TRACE_DATA)['traceEvents']
 
     for snapshot in data:
       found_unittest_process = False
@@ -149,11 +150,11 @@ class CpuTracingAgentTest(unittest.TestCase):
   # Flaky on Win (crbug.com/803210).
   @decorators.Enabled('linux', 'mac')
   def testTraceSpecifiesTelemetryClockDomain(self):
-    builder = trace_data.TraceDataBuilder()
     self._agent.StartAgentTracing(self._config, 0)
     self._agent.StopAgentTracing()
-    self._agent.CollectAgentTraceData(builder)
-    cpu_trace = builder.AsData().GetTraceFor(trace_data.CPU_TRACE_DATA)
+    with trace_data.TraceDataBuilder() as builder:
+      self._agent.CollectAgentTraceData(builder)
+      cpu_trace = builder.AsData().GetTraceFor(trace_data.CPU_TRACE_DATA)
 
     self.assertEqual(cpu_trace['metadata']['clock-domain'], 'TELEMETRY')
 
