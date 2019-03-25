@@ -20,6 +20,11 @@ _UNBISECTABLE_SUITES = [
 # a dict mapping master names to [perf bot, bisect bot] pairs.
 # If a master name is not in the dict, bisect isn't supported.
 BISECT_BOT_MAP_KEY = 'bisect_bot_map'
+# The file bug bisect blacklist in datastore is expected to be a dict mapping
+# master names to nothing (i.e. a set since JSON does not support actual sets).
+# If a master name is in the dict, automatic bisects kicked off by alert
+# triaging are not supported.
+FILE_BUG_BISECT_BLACKLIST_KEY = 'file_bug_bisect_blacklist'
 
 
 def IsValidTestForBisect(test_path):
@@ -45,6 +50,15 @@ def _MasterNameIsWhitelisted(master_name):
     return True  # If there's no list available, all names are OK.
   whitelisted_masters = list(bisect_bot_map)
   return master_name in whitelisted_masters
+
+
+def MasterNameIsBlacklistedForTriageBisects(master_name):
+  """Checks whether a master name is blacklisted for alert triage bisects."""
+  file_bug_bisect_blacklist = namespaced_stored_object.Get(
+      FILE_BUG_BISECT_BLACKLIST_KEY)
+  if not file_bug_bisect_blacklist:
+    return False  # If there's no blacklist, all masters are OK.
+  return master_name in file_bug_bisect_blacklist
 
 
 def IsValidRevisionForBisect(revision):

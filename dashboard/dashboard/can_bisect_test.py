@@ -39,6 +39,22 @@ class CanBisectTest(testing_common.TestCase):
     self.assertFalse(
         can_bisect.IsValidTestForBisect('X/b/t/foo'))
 
+  def testMasterNameIsBlacklistedForTriageBisects_NoMasters_ReturnsFalse(self):
+    self.assertFalse(
+        can_bisect.MasterNameIsBlacklistedForTriageBisects('foo'))
+
+  def testMasterNameIsBlacklistedForTriageBisects_NoMatch_ReturnsFalse(self):
+    namespaced_stored_object.Set(
+        can_bisect.FILE_BUG_BISECT_BLACKLIST_KEY, {'bar': []})
+    self.assertFalse(
+        can_bisect.MasterNameIsBlacklistedForTriageBisects('foo'))
+
+  def testMasterNameIsBlacklistedForTriageBisects_Match_ReturnsTrue(self):
+    namespaced_stored_object.Set(
+        can_bisect.FILE_BUG_BISECT_BLACKLIST_KEY, {'foo': []})
+    self.assertTrue(
+        can_bisect.MasterNameIsBlacklistedForTriageBisects('foo'))
+
 
 if __name__ == '__main__':
   unittest.main()
