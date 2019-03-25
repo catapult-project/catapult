@@ -241,7 +241,7 @@ class TimelineModel(event_container.TimelineEventContainer):
     importer_part = importer_cls.GetSupportedPart()
 
     importers = []
-    if importer_part in trace_data.active_parts:
+    if trace_data.HasTracesFor(importer_part):
       importers.append(importer_cls(self, trace_data))
     else:
       logging.warning('No traces found for %r', importer_part)

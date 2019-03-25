@@ -113,10 +113,6 @@ class _TraceData(object):
   def __init__(self, raw_data):
     self._raw_data = raw_data
 
-  @property
-  def active_parts(self):
-    return {p for p in ALL_TRACE_PARTS if p.raw_field_name in self._raw_data}
-
   def HasTracesFor(self, part):
     assert isinstance(part, TraceDataPart)
     traces = self._raw_data.get(part.raw_field_name)
