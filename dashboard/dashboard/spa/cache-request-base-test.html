@@ -16,8 +16,9 @@ import {
   CacheRequestBase,
   READONLY,
   READWRITE,
-  flushWriterForTest,
   clearInProgressForTest,
+  deleteDatabaseForTest,
+  flushWriterForTest,
 } from './cache-request-base.js';
 
 suite('CacheRequestBase', function() {
@@ -41,8 +42,7 @@ suite('CacheRequestBase', function() {
     }
 
     async writeDatabase({key, value}) {
-      const db = await this.databasePromise;
-      const transaction = db.transaction(['store'], READWRITE);
+      const transaction = await this.transaction(['store'], READWRITE);
       const dataStore = transaction.objectStore('store');
       dataStore.put(value, key);
       await transaction.complete;
@@ -53,6 +53,17 @@ suite('CacheRequestBase', function() {
     const request = new TestCacheRequest(
         {request: {url: 'https://example.com/pathname'}});
     assert.strictEqual(request.databasePromise, request.databasePromise);
+  });
+
+  test('transaction recreates db', async function() {
+    const request = new class extends TestCacheRequest {
+      get databaseName() {
+        return 'transaction recreates db';
+      }
+    }({request: {url: 'https://example.com/pathname'}});
+    assert.isDefined(await request.transaction(['store'], READONLY));
+    await deleteDatabaseForTest(request.databaseName);
+    assert.isDefined(await request.transaction(['store'], READONLY));
   });
 
   test('responsePromise is memoized', function() {
@@ -143,8 +154,7 @@ suite('CacheRequestBase', function() {
     assert.strictEqual(undefined, await finder.findInProgressRequest(
         r => true));
 
-    const db = await writer.databasePromise;
-    const transaction = db.transaction(['store'], 'readonly');
+    const transaction = await writer.transaction(['store'], 'readonly');
     const dataStore = transaction.objectStore('store');
     assert.strictEqual('value', await dataStore.get('key'));
   });

@@ -33,6 +33,19 @@ export class CacheRequestBase {
     TASK_QUEUE.cancelFlush();
   }
 
+  // This wraps awaiting databasePromise and opening a transaction, which can
+  // fail if the user clears Indexed DB in devtools > Application.
+  async transaction(stores, mode) {
+    const db = await this.databasePromise;
+    try {
+      return db.transaction(stores, mode);
+    } catch (err) {
+      CONNECTION_POOL.delete(this.databaseName);
+      this.databasePromise_ = undefined;
+      return this.transaction(stores, mode);
+    }
+  }
+
   get databasePromise() {
     if (!this.databasePromise_) this.databasePromise_ = this.openDatabase_();
     return this.databasePromise_;
@@ -88,11 +101,13 @@ export class CacheRequestBase {
     return null;
   }
 
-  respond() {
-    this.fetchEvent.respondWith(this.responsePromise.then(response => {
+  async respond() {
+    const responsePromise = this.responsePromise.then(response => {
       this.onResponded();
       return jsonResponse(response);
-    }));
+    });
+    this.fetchEvent.respondWith(responsePromise);
+    return await responsePromise;
   }
 
   async writeDatabase(options) {

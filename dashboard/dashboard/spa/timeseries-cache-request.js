@@ -190,10 +190,13 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
     if (!this.body_.has('columns')) throw new Error('Missing columns');
     this.columns_ = this.body_.get('columns').split(',');
 
-    this.maxRevision_ = parseInt(this.body_.get('max_revision')) || undefined;
-    this.minRevision_ = parseInt(this.body_.get('min_revision')) || undefined;
-    this.revisionRange_ = Range.fromExplicitRange(
-        this.minRevision_ || 0, this.maxRevision_ || Number.MAX_SAFE_INTEGER);
+    const maxRevision = parseInt(this.body_.get('max_revision')) || undefined;
+    const minRevision = parseInt(this.body_.get('min_revision')) || undefined;
+    this.revisionRange_ = new Range();
+    this.revisionRange_.addValue(
+        (minRevision === undefined) ? 0 : minRevision);
+    this.revisionRange_.addValue(
+        (maxRevision === undefined) ? Number.MAX_SAFE_INTEGER : maxRevision);
 
     this.testSuite_ = this.body_.get('test_suite') || '';
     this.measurement_ = this.body_.get('measurement') || '';
@@ -271,6 +274,10 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
     const columns = new Set(this.columns_);
     for (const col of columns) {
       if (col === 'revision') continue;
+
+      // Always fetch alerts fresh. They can change.
+      if (col === 'alert') continue;
+
       const availableRange = availableRangeByCol.get(col);
       if (!availableRange) continue;
       if (this.revisionRange_.duration === availableRange.duration) {
@@ -371,12 +378,13 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
       finalResult = {...result, data: mergedData};
       yield finalResult;
     }
-    this.scheduleWrite(finalResult);
+    if (finalResult.data && finalResult.data.length) {
+      this.scheduleWrite(finalResult);
+    }
   }
 
   async readDatabase_() {
-    const db = await this.databasePromise;
-    const transaction = db.transaction(STORES, READONLY);
+    const transaction = await this.transaction(STORES, READONLY);
 
     const dataPointsPromise = this.getDataPoints_(transaction);
     const [
@@ -434,13 +442,15 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
 
   async getDataPoints_(transaction) {
     const dataStore = transaction.objectStore(STORE_DATA);
-    if (!this.minRevision_ && !this.maxRevision_) {
+    if (!this.body_.get('min_revision') && !this.body_.get('max_revision')) {
       const dataPoints = await dataStore.getAll();
       return dataPoints;
     }
 
     const dataPoints = [];
-    dataStore.iterateCursor(this.range_, cursor => {
+    const range = IDBKeyRange.bound(
+        this.revisionRange_.min, this.revisionRange_.max);
+    dataStore.iterateCursor(range, cursor => {
       if (!cursor) return;
       dataPoints.push(cursor.value);
       cursor.continue();
@@ -450,21 +460,8 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
     return dataPoints;
   }
 
-  get range_() {
-    if (this.minRevision_ && this.maxRevision_) {
-      return IDBKeyRange.bound(this.minRevision_, this.maxRevision_);
-    }
-    if (this.minRevision_ && !this.maxRevision_) {
-      return IDBKeyRange.lowerBound(this.minRevision_);
-    }
-    if (!this.minRevision_ && this.maxRevision_) {
-      return IDBKeyRange.upperBound(this.maxRevision_);
-    }
-  }
-
   async writeDatabase({data, ...metadata}) {
-    const db = await this.databasePromise;
-    const transaction = db.transaction(STORES, READWRITE);
+    const transaction = await this.transaction(STORES, READWRITE);
     await Promise.all([
       this.updateAccessTime_(transaction),
       this.writeData_(transaction, data),
@@ -476,7 +473,7 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
 
   async writeRanges_(transaction, data) {
     const revisionRange = Range.fromExplicitRange(
-        this.minRevision_ || 0,
+        this.revisionRange_.min,
         data[data.length - 1].revision);
     const rangeStore = transaction.objectStore(STORE_RANGES);
     await Promise.all(this.columns_.map(async col => {

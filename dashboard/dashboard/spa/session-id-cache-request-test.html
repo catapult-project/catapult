@@ -34,7 +34,11 @@ class MockFetchEvent {
   }
 
   waitUntil(promise) {
-    this.waitUntil = promise;
+    this.waitUntil_ = promise;
+  }
+
+  async wait() {
+    return await this.waitUntil_;
   }
 }
 
@@ -87,10 +91,10 @@ suite('SessionIdCacheRequest', function() {
     let error;
     try {
       await cacheRequest.respond();
+      await fetchEvent.wait();
     } catch (err) {
       error = err.message;
     }
-    if (!error) await cp.timeout(1e4);
     assert.strictEqual(`short_uri expected ${sid} actual invalid`, error);
     const response = await fetchEvent.response;
     assert.strictEqual(sid, response.sid);
@@ -102,7 +106,7 @@ suite('SessionIdCacheRequest', function() {
     const sid =
     'c8b044f9d703ebaf9094056de7314e2ce70bdb3c15296dc2770146a6f62c234e';
     window.fetch = async() => {
-      throw new Error('fetch was unexpectedly called');
+      throw new Error('fetch was unexpectedly called in "hit"');
     };
     const db = await idb.open('short_uri', 1, db => {
       db.createObjectStore('sids');
@@ -128,7 +132,7 @@ suite('SessionIdCacheRequest', function() {
     '382d309f29a5039934f803d3dfb4ff2782de77292755d61ddfa990c69c0d1dc2';
     window.fetch = async() => {
       window.fetch = async() => {
-        throw new Error('fetch was unexpectedly called');
+        throw new Error('fetch was unexpectedly called in "in progress"');
       };
       return testUtils.jsonResponse({sid});
     };
