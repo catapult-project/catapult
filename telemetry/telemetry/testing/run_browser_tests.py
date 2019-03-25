@@ -159,7 +159,8 @@ def _DoesTestMatchFilter(test_filter, test_name):
 
 def LoadTestCasesToBeRun(
     test_class, finder_options, test_filter_str, filter_tests_after_sharding,
-    total_shards, shard_index, test_times, debug_shard_distributions):
+    total_shards, shard_index, test_times, debug_shard_distributions,
+    typ_options):
   test_cases = []
   match_everything = lambda *args: True
   if test_filter_str:
@@ -175,15 +176,19 @@ def LoadTestCasesToBeRun(
 
   for t in serially_executed_browser_test_case.GenerateTestCases(
       test_class, finder_options):
-    if test_filter_matcher(test_filter_str, t.id()):
+    assert t.id().startswith(typ_options.test_name_prefix), (
+        'The test prefix passed at the command line does not match the prefix '
+        'of the tests generated')
+    if test_filter_matcher(
+        test_filter_str, t.id()[len(typ_options.test_name_prefix):]):
       test_cases.append(t)
-
   if test_times:
     # Assign tests to shards.
     shards = _SplitShardsByTime(test_cases, total_shards, test_times,
                                 debug_shard_distributions)
     return [t for t in shards[shard_index]
-            if post_test_filter_matcher(test_filter_str, t.id())]
+            if post_test_filter_matcher(
+                test_filter_str, t.id()[len(typ_options.test_name_prefix):])]
   else:
     test_cases.sort(key=lambda t: t.shortName())
     test_range = _TestRangeForShard(total_shards, shard_index, len(test_cases))
@@ -196,7 +201,8 @@ def LoadTestCasesToBeRun(
       # debugging and comparison purposes.
       _DebugShardDistributions(tmp_shards, None)
     return [t for t in test_cases[test_range[0]:test_range[1]]
-            if post_test_filter_matcher(test_filter_str, t.id())]
+            if post_test_filter_matcher(
+                test_filter_str, t.id()[len(typ_options.test_name_prefix):])]
 
 
 def _CreateTestArgParsers():
@@ -317,7 +323,8 @@ def RunTests(args):
       filter_tests_after_sharding=options.filter_tests_after_sharding,
       total_shards=options.total_shards, shard_index=options.shard_index,
       test_times=test_times,
-      debug_shard_distributions=options.debug_shard_distributions)
+      debug_shard_distributions=options.debug_shard_distributions,
+      typ_options=options)
   for t in tests_to_run:
     context.test_case_ids_to_run.add(t.id())
   context.Freeze()

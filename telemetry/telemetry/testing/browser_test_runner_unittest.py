@@ -162,6 +162,17 @@ class BrowserTestRunnerTest(unittest.TestCase):
             '--skip=FailingTest'])
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testShortenTestFilterGlobsUsingTestNamePrefixCommandLineArg(self):
+    self._RunTest(
+        'FailingTest', [], ['FailingTest'],
+        test_name='ImplementsGenerateTagsFunction',
+        expectations=_MakeTestExpectations('FailingTest', ['foo'], 'Failure'),
+        tags=['foo'],
+        extra_args=[
+            '-x=foo', '--test-name-prefix='
+            'browser_tests.browser_test.ImplementsGenerateTagsFunction.'])
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testGetExpectationsFromTypWithoutExpectationsFile(self):
     test_name = ('browser_tests.browser_test.'
                  'GetsExpectationsFromTyp.HasNoExpectationsFile')
@@ -440,10 +451,11 @@ class BrowserTestRunnerTest(unittest.TestCase):
     self.shardingRangeTestHelper(1, 1)
     self.shardingRangeTestHelper(2, 1)
 
-  def baseShardingTest(self, total_shards, shard_index, failures, successes,
+  def BaseShardingTest(self, total_shards, shard_index, failures, successes,
                        opt_abbr_input_json_file=None,
                        opt_test_filter='',
-                       opt_filter_tests_after_sharding=False):
+                       opt_filter_tests_after_sharding=False,
+                       opt_test_name_prefix=''):
     config = project_config.ProjectConfig(
         top_level_dir=os.path.join(util.GetTelemetryDir(), 'examples'),
         client_configs=[],
@@ -462,6 +474,8 @@ class BrowserTestRunnerTest(unittest.TestCase):
           '--test-filter=%s' % opt_test_filter]
     if opt_filter_tests_after_sharding:
       opt_args += ['--filter-tests-after-sharding']
+    if opt_test_name_prefix:
+      opt_args += ['--test-name-prefix=%s' % opt_test_name_prefix]
     try:
       browser_test_runner.Run(
           config,
@@ -480,20 +494,20 @@ class BrowserTestRunnerTest(unittest.TestCase):
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testShardedTestRun(self):
-    self.baseShardingTest(3, 0, [], [
+    self.BaseShardingTest(3, 0, [], [
         'browser_tests.simple_sharding_test.SimpleShardingTest.Test1',
         'browser_tests.simple_sharding_test.SimpleShardingTest.Test2',
         'browser_tests.simple_sharding_test.SimpleShardingTest.Test3',
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_0',
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_1',
     ])
-    self.baseShardingTest(3, 1, [], [
+    self.BaseShardingTest(3, 1, [], [
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_2',
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_3',
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_4',
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_5',
     ])
-    self.baseShardingTest(3, 2, [], [
+    self.BaseShardingTest(3, 2, [], [
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_6',
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_7',
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_8',
@@ -552,7 +566,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
     # not well defined, and the sorting is stable afterward.  The
     # expectations have been adjusted for this fact.
     try:
-      self.baseShardingTest(4, 0, [], [
+      self.BaseShardingTest(4, 0, [], [
           'browser_tests.simple_sharding_test' +
           '.SimpleShardingTest.passing_test_0',
           'browser_tests.simple_sharding_test' +
@@ -562,7 +576,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
           'browser_tests.simple_sharding_test' +
           '.SimpleShardingTest.passing_test_9'
       ], temp_file_name)
-      self.baseShardingTest(4, 1, [], [
+      self.BaseShardingTest(4, 1, [], [
           'browser_tests.simple_sharding_test' +
           '.SimpleShardingTest.Test1',
           'browser_tests.simple_sharding_test' +
@@ -570,7 +584,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
           'browser_tests.simple_sharding_test' +
           '.SimpleShardingTest.passing_test_6'
       ], temp_file_name)
-      self.baseShardingTest(4, 2, [], [
+      self.BaseShardingTest(4, 2, [], [
           'browser_tests.simple_sharding_test' +
           '.SimpleShardingTest.Test2',
           'browser_tests.simple_sharding_test' +
@@ -578,13 +592,35 @@ class BrowserTestRunnerTest(unittest.TestCase):
           'browser_tests.simple_sharding_test' +
           '.SimpleShardingTest.passing_test_7'
       ], temp_file_name)
-      self.baseShardingTest(4, 3, [], [
+      self.BaseShardingTest(4, 3, [], [
           'browser_tests.simple_sharding_test.SimpleShardingTest.Test3',
           'browser_tests.simple_sharding_test' +
           '.SimpleShardingTest.passing_test_4',
           'browser_tests.simple_sharding_test' +
           '.SimpleShardingTest.passing_test_8'
       ], temp_file_name)
+    finally:
+      os.remove(temp_file_name)
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testFilterTestShortenedNameAfterShardingWithoutTestTimes(self):
+    self.BaseShardingTest(
+        4, 3, [], ['passing_test_8'],
+        opt_test_name_prefix=('browser_tests.'
+                              'simple_sharding_test.SimpleShardingTest.'),
+        opt_test_filter='passing_test_8',
+        opt_filter_tests_after_sharding=True)
+
+  @decorators.Disabled('chromeos')  # crbug.com/696553
+  def testFilterTestShortenedNameAfterShardingWithTestTimes(self):
+    temp_file_name = self.writeMockTestResultsFile()
+    try:
+      self.BaseShardingTest(
+          4, 3, [], ['passing_test_8'], temp_file_name,
+          opt_test_name_prefix=('browser_tests.'
+                                'simple_sharding_test.SimpleShardingTest.'),
+          opt_test_filter='passing_test_8',
+          opt_filter_tests_after_sharding=True)
     finally:
       os.remove(temp_file_name)
 
@@ -596,7 +632,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_2',
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_6']
     try:
-      self.baseShardingTest(
+      self.BaseShardingTest(
           4, 1, [], successes, temp_file_name,
           opt_test_filter=_MakeTestFilter(successes),
           opt_filter_tests_after_sharding=True)
