@@ -151,6 +151,9 @@ def AddReservedDiagnostics(histogram_dicts, names_to_values, max_bytes=0):
   # filter out every histogram with no stories, then merge. If you keep the
   # histograms with no story, you end up with duplicates.
   hs_with_stories = _LoadHistogramSet(histogram_dicts)
+  if len(hs_with_stories) == 0:
+    return []
+
   hs_with_stories.FilterHistograms(
       lambda h: not h.diagnostics.get(reserved_infos.STORIES.name, []))
 
@@ -219,5 +222,8 @@ def AddReservedDiagnostics(histogram_dicts, names_to_values, max_bytes=0):
     histograms.AddSharedDiagnosticToAllHistograms(
         name, generic_set.GenericSet([value]))
   histograms.RemoveOrphanedDiagnostics()
+
+  if len(histograms) == 0:
+    return []
 
   return Batch(histograms, max_bytes)

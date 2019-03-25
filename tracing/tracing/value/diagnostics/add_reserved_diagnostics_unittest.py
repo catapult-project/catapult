@@ -35,6 +35,11 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
     with self.assertRaises(ValueError):
       add_reserved_diagnostics.Batch(hs, 1, strict=True)
 
+  def testEmpty(self):
+    hs = histogram_set.HistogramSet()
+    self.assertEqual(0, len(add_reserved_diagnostics.AddReservedDiagnostics(
+        hs.AsDicts(), {})))
+
   def testBatch(self):
     hs = histogram_set.HistogramSet([
         self._CreateHistogram(
