@@ -4,6 +4,7 @@
 
 import contextlib
 import gc
+import os
 import sys
 import traceback
 import uuid
@@ -46,10 +47,20 @@ def _DisableGarbageCollection():
 
 
 class _TraceDataDiscarder(object):
-  """A do-nothing data builder that just discards trace data."""
-  def AddTraceFor(self, trace_part, value):
-    del trace_part  # Unused.
-    del value  # Unused.
+  """A do-nothing data builder that just discards trace data.
+
+  TODO(crbug.com/928278): This should be moved as a "discarding mode" in
+  TraceDataBuilder itself.
+  """
+  def OpenTraceHandleFor(self, part, compressed=False):
+    del part  # Unused.
+    del compressed  # Unused.
+    return open(os.devnull, 'wb')
+
+  def AddTraceFor(self, part, data, allow_unstructured=False):
+    assert not allow_unstructured
+    del part  # Unused.
+    del data  # Unused.
 
 
 class _TracingState(object):

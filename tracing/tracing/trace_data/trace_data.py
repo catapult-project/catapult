@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import base64
+import collections
 import gzip
 import json
 import logging
@@ -66,12 +66,12 @@ ALL_TRACE_PARTS = {ANDROID_PROCESS_DATA_PART,
 def _GetFilePathForTrace(trace, dir_path):
   """ Return path to a file that contains |trace|.
 
-  Note: if |trace| is an instance of TraceFileHandle, this reuses the trace path
+  Note: if |trace| is an instance of _TraceItem, this reuses the trace path
   that the trace file handle holds. Otherwise, it creates a new trace file
   in |dir_path| directory.
   """
-  if isinstance(trace, TraceFileHandle):
-    return trace.file_path
+  if isinstance(trace, _TraceItem):
+    return trace.handle.name
   with tempfile.NamedTemporaryFile(mode='w', dir=dir_path, delete=False) as fp:
     if isinstance(trace, StringTypes):
       fp.write(trace)
@@ -80,6 +80,10 @@ def _GetFilePathForTrace(trace, dir_path):
     else:
       raise TypeError('Trace is of unknown type.')
     return fp.name
+
+
+_TraceItem = collections.namedtuple(
+    '_TraceItem', ['part_name', 'handle', 'compressed'])
 
 
 class _TraceData(object):
@@ -112,10 +116,13 @@ class _TraceData(object):
     # Since this API return the traces in memory form, and since the memory
     # bottleneck of Telemetry is for keeping trace in memory, there is no uses
     # in keeping the on-disk form of tracing beyond this point. Hence we convert
-    # all traces for part of form TraceFileHandle to the JSON form.
-    for i, data in enumerate(traces_list):
-      if isinstance(data, TraceFileHandle):
-        traces_list[i] = data.AsTraceData()
+    # all traces for part of form _TraceItem to the JSON form.
+    for i, trace in enumerate(traces_list):
+      if isinstance(trace, _TraceItem):
+        opener = gzip.open if trace.compressed else open
+        with opener(trace.handle.name, 'rb') as f:
+          traces_list[i] = json.load(f)
+        os.remove(trace.handle.name)
     return traces_list
 
   def GetTraceFor(self, part):
@@ -133,8 +140,8 @@ class _TraceData(object):
     """
     for traces_list in self._raw_data.values():
       for trace in traces_list:
-        if isinstance(trace, TraceFileHandle):
-          trace.Clean()
+        if isinstance(trace, _TraceItem):
+          os.remove(trace.handle.name)
     self._raw_data = {}
 
   def Serialize(self, file_path, trace_title=None):
@@ -171,74 +178,6 @@ class _TraceData(object):
       shutil.rmtree(temp_dir)
 
 
-class TraceFileHandle(object):
-  """A trace file handle object allows storing trace data on disk.
-
-  TraceFileHandle API allows one to collect traces from Chrome into disk instead
-  of keeping them in memory. This is important for keeping memory usage of
-  Telemetry low to avoid OOM (see:
-  https://github.com/catapult-project/catapult/issues/3119).
-
-  The fact that this uses a file underneath to store tracing data means the
-  callsite is repsonsible for discarding the file when they no longer need the
-  tracing data. Call TraceFileHandle.Clean when you done using this object.
-  """
-  def __init__(self, compressed):
-    self._backing_file = None
-    self._file_path = None
-    self._trace_data = None
-    self._compressed = compressed
-
-  def Open(self):
-    assert not self._backing_file and not self._file_path
-    self._backing_file = tempfile.NamedTemporaryFile(delete=False, mode='ab')
-
-  def AppendTraceData(self, partial_trace_data, b64=False):
-    assert isinstance(partial_trace_data, StringTypes)
-    self._backing_file.write(
-        base64.b64decode(partial_trace_data) if b64 else partial_trace_data)
-
-  @property
-  def file_path(self):
-    assert self._file_path, (
-        'Either the handle need to be closed first or this handle is cleaned')
-    return self._file_path
-
-  def Close(self):
-    assert self._backing_file
-    self._backing_file.close()
-    self._file_path = self._backing_file.name
-    self._backing_file = None
-
-  def AsTraceData(self):
-    """Get the object form of trace data that this handle manages.
-
-    *Warning: this can have large memory footprint if the trace data is big.
-
-    Since this requires the in-memory form of the trace, it is no longer useful
-    to still keep the backing file underneath, invoking this will also discard
-    the file to avoid the risk of leaking the backing trace file.
-    """
-    if self._trace_data:
-      return self._trace_data
-    assert self._file_path
-    opn = gzip.open if self._compressed else open
-    with opn(self._file_path, 'rb') as f:
-      self._trace_data = json.load(f)
-    self.Clean()
-    return self._trace_data
-
-  def Clean(self):
-    """Remove the backing file used for storing trace on disk.
-
-    This should be called when and only when you no longer need to use
-    TraceFileHandle.
-    """
-    assert self._file_path
-    os.remove(self._file_path)
-    self._file_path = None
-
-
 class TraceDataBuilder(object):
   """TraceDataBuilder helps build up a trace from multiple trace agents.
 
@@ -268,13 +207,23 @@ class TraceDataBuilder(object):
     self._raw_data = None
     return data
 
+  def OpenTraceHandleFor(self, part, compressed=False):
+    if not isinstance(part, TraceDataPart):
+      raise TypeError('part must be a TraceDataPart instance')
+    trace = _TraceItem(
+        part_name=part.raw_field_name,
+        handle=tempfile.NamedTemporaryFile(delete=False),
+        compressed=compressed)
+    self.AddTraceFor(part, trace)
+    return trace.handle
+
   def AddTraceFor(self, part, data, allow_unstructured=False):
     """Record new trace data into this builder.
 
     Args:
       part: A TraceDataPart instance.
-      data: The trace data to write: a json-serializable dict, a
-        TraceFileHandle, or unstructured text data as a string.
+      data: The trace data to write: a json-serializable dict, or unstructured
+        text data as a string.
       allow_unstructured: This must be set to True to allow passing
         unstructured text data as input. Note: the use of this flag is
         discouraged and only exists to support legacy clients; new tracing
@@ -287,7 +236,7 @@ class TraceDataBuilder(object):
     if isinstance(data, StringTypes):
       if not allow_unstructured:
         raise ValueError('must pass allow_unstructured=True for text data')
-    elif not isinstance(data, (dict, TraceFileHandle)):
+    elif not isinstance(data, (dict, _TraceItem)):
       raise TypeError('invalid trace data type')
 
     self._raw_data.setdefault(part.raw_field_name, [])

@@ -57,6 +57,32 @@ class TraceDataBuilderTest(unittest.TestCase):
       with self.assertRaises(ValueError):
         builder.AddTraceFor(trace_data.TELEMETRY_PART, 'unstructured trace')
 
+  def testOpenTraceHandleFor(self):
+    original_data = {'msg': 'The answer is 42'}
+    with trace_data.TraceDataBuilder() as builder:
+      with builder.OpenTraceHandleFor(trace_data.CHROME_TRACE_PART) as handle:
+        handle.write(json.dumps(original_data))
+      out_data = builder.AsData().GetTraceFor(trace_data.CHROME_TRACE_PART)
+
+    # Trace handle should be cleaned up.
+    self.assertFalse(os.path.exists(handle.name))
+    self.assertEqual(original_data, out_data)
+
+  def testOpenTraceHandleForCompressedData(self):
+    original_data = {'msg': 'The answer is 42'}
+    # gzip.compress() does not work in python 2, so hardcode the encoded data.
+    compressed_data = base64.b64decode(
+        'H4sIAIDMblwAA6tWyi1OV7JSUArJSFVIzCsuTy1SyCxWMDFSquUCAA4QMtscAAAA')
+    with trace_data.TraceDataBuilder() as builder:
+      with builder.OpenTraceHandleFor(
+          trace_data.CHROME_TRACE_PART, compressed=True) as handle:
+        handle.write(compressed_data)
+      out_data = builder.AsData().GetTraceFor(trace_data.CHROME_TRACE_PART)
+
+    # Trace handle should be cleaned up.
+    self.assertFalse(os.path.exists(handle.name))
+    self.assertEqual(original_data, out_data)
+
   def testCantWriteAfterCleanup(self):
     with trace_data.TraceDataBuilder() as builder:
       builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
@@ -73,30 +99,3 @@ class TraceDataBuilderTest(unittest.TestCase):
       builder.AsData().CleanUpAllTraces()
       with self.assertRaises(Exception):
         builder.AsData()
-
-
-class TraceFileHandleTest(unittest.TestCase):
-  def testB64EncodedData(self):
-    is_compressed = False
-    handle = trace_data.TraceFileHandle(is_compressed)
-    handle.Open()
-    original_data = {"msg": "The answer is 42"}
-    b64_data = base64.b64encode(json.dumps(original_data))
-    handle.AppendTraceData(b64_data, b64=True)
-    handle.Close()
-    out_data = handle.AsTraceData()
-    self.assertEqual(original_data, out_data)
-
-  def testB64EncodedCompressedData(self):
-    is_compressed = True
-    handle = trace_data.TraceFileHandle(is_compressed)
-    handle.Open()
-    original_data = {"msg": "The answer is 42"}
-    # gzip.compress() does not work in python 2. So hardcode the encoded data
-    # here.
-    b64_compressed_data = "H4sIAIDMblwAA6tWyi1OV7JSUArJSFVIzCs" \
-        "uTy1SyCxWMDFSquUCAA4QMtscAAAA"
-    handle.AppendTraceData(b64_compressed_data, b64=True)
-    handle.Close()
-    out_data = handle.AsTraceData()
-    self.assertEqual(original_data, out_data)
