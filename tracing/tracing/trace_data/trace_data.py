@@ -24,11 +24,6 @@ _TRACING_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 _TRACE2HTML_PATH = os.path.join(_TRACING_DIR, 'bin', 'trace2html')
 
 
-class NonSerializableTraceData(Exception):
-  """Raised when raw trace data cannot be serialized."""
-  pass
-
-
 class TraceDataPart(object):
   """Trace data can come from a variety of tracing agents.
 
@@ -66,14 +61,6 @@ ALL_TRACE_PARTS = {ANDROID_PROCESS_DATA_PART,
                    CHROME_TRACE_PART,
                    CPU_TRACE_DATA,
                    TELEMETRY_PART}
-
-ALL_TRACE_PARTS_RAW_NAMES = set(k.raw_field_name for k in ALL_TRACE_PARTS)
-
-def _HasTraceFor(part, raw):
-  assert isinstance(part, TraceDataPart)
-  if part.raw_field_name not in raw:
-    return False
-  return len(raw[part.raw_field_name]) > 0
 
 
 def _GetFilePathForTrace(trace, dir_path):
