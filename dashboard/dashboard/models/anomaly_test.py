@@ -162,6 +162,11 @@ class AnomalyTest(testing_common.TestCase):
     self.assertEqual(1, len(anomalies))
     self.assertEqual(None, anomalies[0].bug_id)
 
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+        bug_id='*').get_result()
+    self.assertEqual(1, len(anomalies))
+    self.assertEqual(42, anomalies[0].bug_id)
+
   def testIsImprovement(self):
     self._CreateAnomaly()
     self._CreateAnomaly(is_improvement=True)

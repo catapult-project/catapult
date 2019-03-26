@@ -12,6 +12,7 @@ from google.appengine.ext import ndb
 
 from dashboard.common import timing
 from dashboard.common import utils
+from dashboard.common import datastore_hooks
 from dashboard.models import internal_only_model
 from dashboard.models import sheriff as sheriff_module
 
@@ -216,10 +217,11 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         query = query.filter(cls.is_improvement == is_improvement)
       if bug_id is not None:
         if bug_id == '':
-          bug_id = None
-        else:
-          bug_id = int(bug_id)
-        query = query.filter(cls.bug_id == bug_id)
+          query = query.filter(cls.bug_id == None)
+        elif bug_id != '*':
+          query = query.filter(cls.bug_id == int(bug_id))
+        # bug_id='*' translates to bug_id != None, which is handled with the
+        # other inequality filters.
       if recovered is not None:
         query = query.filter(cls.recovered == recovered)
       if test or test_keys:
@@ -239,11 +241,17 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         query = query.filter(cls.benchmark_name == test_suite_name)
 
       query, post_filters = cls._InequalityFilters(
-          query, inequality_property, min_end_revision, max_end_revision,
-          min_start_revision, max_start_revision, min_timestamp, max_timestamp)
+          query, inequality_property, bug_id,
+          min_end_revision, max_end_revision,
+          min_start_revision, max_start_revision,
+          min_timestamp, max_timestamp)
       if post_filters:
         keys_only = False
       query = query.order(-cls.timestamp)
+
+      if start_cursor:
+        # "BadArgumentError: _MultiQuery with cursors requires __key__ order"
+        query = query.order(cls.key)
 
       futures = [query.fetch_page_async(
           limit, start_cursor=start_cursor, keys_only=keys_only)]
@@ -272,7 +280,7 @@ class Anomaly(internal_only_model.InternalOnlyModel):
 
   @classmethod
   def _InequalityFilters(
-      cls, query, inequality_property,
+      cls, query, inequality_property, bug_id,
       min_end_revision, max_end_revision,
       min_start_revision, max_start_revision,
       min_timestamp, max_timestamp):
@@ -293,6 +301,9 @@ class Anomaly(internal_only_model.InternalOnlyModel):
     elif inequality_property == 'timestamp':
       if min_timestamp is None and max_timestamp is None:
         inequality_property = None
+    elif inequality_property == 'bug_id':
+      if bug_id != '*':
+        inequality_property = None
     elif inequality_property != 'key':
       inequality_property = None
 
@@ -304,10 +315,24 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         inequality_property = 'end_revision'
       elif min_timestamp or max_timestamp:
         inequality_property = 'timestamp'
+      elif bug_id == '*':
+        inequality_property = 'bug_id'
 
     post_filters = []
     if not inequality_property:
       return query, post_filters
+
+    if not datastore_hooks.IsUnalteredQueryPermitted():
+      # _DatastorePreHook will filter internal_only=False. index.yaml does not
+      # specify indexes for `internal_only, $inequality_property, -timestamp`.
+      # Use post_filters for all inequality properties.
+      inequality_property = ''
+
+    if bug_id == '*':
+      if inequality_property == 'bug_id':
+        query = query.filter(cls.bug_id != None).order(cls.bug_id)
+      else:
+        post_filters.append(lambda a: a.bug_id != None)
 
     if min_start_revision:
       min_start_revision = int(min_start_revision)
