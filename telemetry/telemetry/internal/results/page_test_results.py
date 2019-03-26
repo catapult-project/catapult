@@ -528,7 +528,15 @@ class PageTestResults(object):
 
   def ComputeTimelineBasedMetrics(self):
     assert not self._current_page_run, 'Cannot compute metrics while running.'
-    pool = ThreadPool(multiprocessing.cpu_count())
+    def _GetCpuCount():
+      try:
+        return multiprocessing.cpu_count()
+      except NotImplementedError:
+        # Some platforms can raise a NotImplementedError from cpu_count(). Use a
+        # small number of threads in that case.
+        return 10
+
+    pool = ThreadPool(_GetCpuCount())
     runs_and_values = self._FindRunsAndValuesWithTimelineBasedMetrics()
     for result in pool.imap_unordered(_ComputeMetricsInPool, runs_and_values):
       self._current_page_run = result['run']
