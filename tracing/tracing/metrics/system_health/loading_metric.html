@@ -110,7 +110,7 @@ tr.exportTo('tr.metrics.sh', function() {
     return validEvent;
   }
 
-  function getAboveTheFoldLoadedToVisibleSamples(rendererHelper,
+  function getFirstViewportReadySamples(rendererHelper,
       navIdToNavStartEvents) {
     const samples = [];
     // Want to measure the time from when navigation starts to when the load
@@ -144,7 +144,7 @@ tr.exportTo('tr.metrics.sh', function() {
     return samples;
   }
 
-  function getFirstViewportReadySamples(rendererHelper) {
+  function getAboveTheFoldLoadedToVisibleSamples(rendererHelper) {
     const samples = [];
     // Want to measure the time from when the document is visible to the time
     // when the load event fired for all non-ad resources.  This is done with
@@ -155,7 +155,7 @@ tr.exportTo('tr.metrics.sh', function() {
         rendererHelper, 'blink.user_timing', 'visible');
     if (pcEvent !== undefined && visibleEvent !== undefined) {
       samples.push({
-        value: pcEvent.start - visibleEvent.start,
+        value: Math.max(0.0, pcEvent.start - visibleEvent.start),
         diagnostics: {
           Start: new RelatedEventSet(visibleEvent),
           End: new RelatedEventSet(pcEvent)
@@ -379,10 +379,9 @@ tr.exportTo('tr.metrics.sh', function() {
         'blink.user_timing', 'loadEventStart', rendererHelper,
         frameToNavStartEvents, navIdToNavStartEvents));
     const aboveTheFoldLoadedToVisibleSamples =
-        getAboveTheFoldLoadedToVisibleSamples(
-            rendererHelper, navIdToNavStartEvents);
+        getAboveTheFoldLoadedToVisibleSamples(rendererHelper);
     const firstViewportReadySamples = getFirstViewportReadySamples(
-        rendererHelper);
+        rendererHelper, navIdToNavStartEvents);
 
     return {
       frameToNavStartEvents,

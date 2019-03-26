@@ -100,7 +100,7 @@ tr.b.unittest.testSuite(function() {
   });
 
 
-  test('timeToFirstViewportReady', function() {
+  test('aboveTheFoldLoadedToVisibleHistogram', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcess = model.rendererProcess;
       const mainThread = model.rendererMain;
@@ -127,13 +127,13 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    const hist = histograms.getHistogramNamed('timeToFirstViewportReady');
+    const hist = histograms.getHistogramNamed('aboveTheFoldLoadedToVisible');
     assert.strictEqual(1, hist.running.count);
     assert.strictEqual(1000, hist.running.mean);
   });
 
 
-  test('aboveTheFoldLoadedToVisibleHistogram', function() {
+  test('timeToFirstViewportReady', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcess = model.rendererProcess;
       const mainThread = model.rendererMain;
@@ -161,8 +161,7 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    const hist = histograms.getHistogramNamed(
-        'aboveTheFoldLoadedToVisible');
+    const hist = histograms.getHistogramNamed('timeToFirstViewportReady');
     assert.strictEqual(1, hist.running.count);
     assert.strictEqual(900, hist.running.mean);
   });
