@@ -186,7 +186,7 @@ def _SendPerfTryJobEmail(job):
                  html=email_report['html'])
 
 
-def _GetMergeIssueDetails(issue_tracker, commit_cache_key):
+def GetMergeIssueDetails(issue_tracker, commit_cache_key):
   """Get's the issue this one might be merged into.
 
   Returns: A dict with the following fields:
@@ -250,11 +250,14 @@ def _PostSuccessfulResult(job, issue_tracker):
   if job.bug_id < 0:
     return
 
-  commit_cache_key = _GetCommitHashCacheKey(job.results_data)
+  commit_cache_key = None
+  if job.results_data.get('culprit_data'):
+    commit_cache_key = _GetCommitHashCacheKey(
+        job.results_data['culprit_data']['cl'])
 
   # Check to see if there's already an issue for this commit, if so we can
   # potentially merge the bugs.
-  merge_details = _GetMergeIssueDetails(issue_tracker, commit_cache_key)
+  merge_details = GetMergeIssueDetails(issue_tracker, commit_cache_key)
 
   # Only skip cc'ing the authors if we're going to merge this isn't another
   # issue.
@@ -285,36 +288,43 @@ def _PostSuccessfulResult(job, issue_tracker):
   logging.info('Updated bug %s with results from %s',
                job.bug_id, job.buildbucket_job_id)
 
+  UpdateMergeIssue(commit_cache_key, merge_details, job.bug_id)
+
+
+def UpdateMergeIssue(commit_cache_key, merge_details, bug_id):
+  if not merge_details:
+    return
+
   # If the issue we were going to merge into was itself a duplicate, we don't
   # dup against it but we also don't merge existing anomalies to it or cache it.
   if merge_details['issue'].get('status') == (
       issue_tracker_service.STATUS_DUPLICATE):
     return
 
-  _MapAnomaliesAndUpdateBug(merge_details['id'], job)
-  _UpdateCacheKeyForIssue(merge_details['id'], commit_cache_key, job)
+  _MapAnomaliesAndUpdateBug(merge_details['id'], bug_id)
+  _UpdateCacheKeyForIssue(merge_details['id'], commit_cache_key, bug_id)
 
 
-def _MapAnomaliesAndUpdateBug(merge_issue_id, job):
+def _MapAnomaliesAndUpdateBug(merge_issue_id, bug_id):
   if merge_issue_id:
-    _MapAnomaliesToMergeIntoBug(merge_issue_id, job.bug_id)
+    _MapAnomaliesToMergeIntoBug(merge_issue_id, bug_id)
     # Mark the duplicate bug's Bug entity status as closed so that
     # it doesn't get auto triaged.
-    bug = ndb.Key('Bug', job.bug_id).get()
+    bug = ndb.Key('Bug', bug_id).get()
     if bug:
       bug.status = bug_data.BUG_STATUS_CLOSED
       bug.put()
 
 
-def _UpdateCacheKeyForIssue(merge_issue_id, commit_cache_key, job):
+def _UpdateCacheKeyForIssue(merge_issue_id, commit_cache_key, bug_id):
   # Cache the commit info and bug ID to datastore when there is no duplicate
   # issue that this issue is getting merged into. This has to be done only
   # after the issue is updated successfully with bisect information.
   if commit_cache_key and not merge_issue_id:
-    layered_cache.SetExternal(commit_cache_key, str(job.bug_id),
+    layered_cache.SetExternal(commit_cache_key, str(bug_id),
                               days_to_keep=30)
     logging.info('Cached bug id %s and commit info %s in the datastore.',
-                 job.bug_id, commit_cache_key)
+                 bug_id, commit_cache_key)
 
 
 def _PostFailedResult(job, issue_tracker):
@@ -356,7 +366,7 @@ def _MapAnomaliesToMergeIntoBug(dest_bug_id, source_bug_id):
   ndb.put_multi(anomalies)
 
 
-def _GetCommitHashCacheKey(results_data):
+def _GetCommitHashCacheKey(git_hash):
   """Gets a commit hash cache key for the given bisect results output.
 
   Args:
@@ -366,9 +376,9 @@ def _GetCommitHashCacheKey(results_data):
     A string to use as a layered_cache key, or None if we don't want
     to merge any bugs based on this bisect result.
   """
-  if results_data.get('culprit_data'):
-    return _COMMIT_HASH_CACHE_KEY % results_data['culprit_data']['cl']
-  return None
+  if not git_hash:
+    return None
+  return _COMMIT_HASH_CACHE_KEY % git_hash
 
 
 def _GetAuthorsToCC(results_data):

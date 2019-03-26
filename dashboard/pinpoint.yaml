@@ -6,6 +6,8 @@ threadsafe: true
 instance_class: F4_1G
 
 libraries:
+- name: jinja2
+  version: "2.6"
 - name: pycrypto
   version: "2.6"
 - name: webapp2
