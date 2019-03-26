@@ -13,12 +13,11 @@ from tracing.trace_data import trace_data
 
 class TimelineModelUnittest(unittest.TestCase):
   def testEmptyImport(self):
-    timeline_model.TimelineModel(trace_data.CreateTraceDataFromRawData({}))
+    timeline_model.TimelineModel(trace_data.CreateFromRawChromeEvents([]))
 
   def testBrowserProcess(self):
-    builder = trace_data.TraceDataBuilder()
-    builder.AddTraceFor(trace_data.CHROME_TRACE_PART, {
-        "traceEvents": [{
+    trace = trace_data.CreateFromRawChromeEvents([
+        {
             "name": "process_name",
             "args": {"name": "Browser"},
             "pid": 5,
@@ -29,9 +28,8 @@ class TimelineModelUnittest(unittest.TestCase):
             "pid": 5,
             "tid": 32578,
             "ph": "M"
-        }]
-    })
-    model = timeline_model.TimelineModel(builder.AsData())
+        }])
+    model = timeline_model.TimelineModel(trace)
     self.assertEquals(5, model.browser_process.pid)
 
 

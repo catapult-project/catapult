@@ -3,101 +3,66 @@
 # found in the LICENSE file.
 
 import base64
-import datetime
 import json
 import os
-import shutil
-import tempfile
 import unittest
 
+from py_utils import tempfile_ext
 from tracing.trace_data import trace_data
-from tracing_build import html2trace
 
 
 class TraceDataTest(unittest.TestCase):
-  def testSerialize(self):
-    test_dir = tempfile.mkdtemp()
-    trace_path = os.path.join(test_dir, 'test_trace.json')
-    try:
-      ri = trace_data.CreateTraceDataFromRawData({'traceEvents': [1, 2, 3]})
-      ri.Serialize(trace_path)
-      with open(trace_path) as f:
-        json_traces = html2trace.ReadTracesFromHTMLFile(f)
-      self.assertEqual(json_traces, [{'traceEvents': [1, 2, 3]}])
-    finally:
-      shutil.rmtree(test_dir)
-
-  def testEmptyArrayValue(self):
-    # We can import empty lists and empty string.
-    d = trace_data.CreateTraceDataFromRawData([])
-    self.assertFalse(d.HasTracesFor(trace_data.CHROME_TRACE_PART))
-
-  def testInvalidTrace(self):
-    with self.assertRaises(AssertionError):
-      trace_data.CreateTraceDataFromRawData({'hello': 1})
-
-  def testListForm(self):
-    d = trace_data.CreateTraceDataFromRawData([{'ph': 'B'}])
+  def testHasTracesForChrome(self):
+    d = trace_data.CreateFromRawChromeEvents([{'ph': 'B'}])
     self.assertTrue(d.HasTracesFor(trace_data.CHROME_TRACE_PART))
-    events = d.GetTracesFor(trace_data.CHROME_TRACE_PART)[0].get(
-        'traceEvents', [])
-    self.assertEquals(1, len(events))
 
-  def testStringForm(self):
-    d = trace_data.CreateTraceDataFromRawData('[{"ph": "B"}]')
-    self.assertTrue(d.HasTracesFor(trace_data.CHROME_TRACE_PART))
-    events = d.GetTracesFor(trace_data.CHROME_TRACE_PART)[0].get(
-        'traceEvents', [])
-    self.assertEquals(1, len(events))
+  def testHasNotTracesForCpu(self):
+    d = trace_data.CreateFromRawChromeEvents([{'ph': 'B'}])
+    self.assertFalse(d.HasTracesFor(trace_data.CPU_TRACE_DATA))
+
+  def testGetTracesForChrome(self):
+    d = trace_data.CreateFromRawChromeEvents([{'ph': 'B'}])
+    ts = d.GetTracesFor(trace_data.CHROME_TRACE_PART)
+    self.assertEqual(len(ts), 1)
+    self.assertEqual(ts[0], {'traceEvents': [{'ph': 'B'}]})
+
+  def testGetNoTracesForCpu(self):
+    d = trace_data.CreateFromRawChromeEvents([{'ph': 'B'}])
+    ts = d.GetTracesFor(trace_data.CPU_TRACE_DATA)
+    self.assertEqual(ts, [])
 
 
 class TraceDataBuilderTest(unittest.TestCase):
-  def testBasicChrome(self):
-    builder = trace_data.TraceDataBuilder()
-    builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
-                        {'traceEvents': [1, 2, 3]})
+  def testAddTraceDataAndSerialize(self):
+    with tempfile_ext.TemporaryFileName() as trace_path:
+      with trace_data.TraceDataBuilder() as builder:
+        builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
+                            {'traceEvents': [1, 2, 3]})
+        builder.Serialize(trace_path)
+        self.assertTrue(os.path.exists(trace_path))
+        self.assertGreater(os.stat(trace_path).st_size, 0)  # File not empty.
 
-    d = builder.AsData()
-    self.assertTrue(d.HasTracesFor(trace_data.CHROME_TRACE_PART))
+  def testAddTraceForRaisesWithInvalidPart(self):
+    with trace_data.TraceDataBuilder() as builder:
+      with self.assertRaises(AssertionError):
+        builder.AddTraceFor('not_a_trace_part', {})
 
-    self.assertRaises(Exception, builder.AsData)
+  def testCantWriteAfterCleanup(self):
+    with trace_data.TraceDataBuilder() as builder:
+      builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
+                          {'traceEvents': [1, 2, 3]})
+      builder.CleanUpTraceData()
+      with self.assertRaises(Exception):
+        builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
+                            {'traceEvents': [1, 2, 3]})
 
-  def testSetTraceFor(self):
-    telemetry_trace = {
-        'traceEvents': [1, 2, 3],
-        'metadata': {
-            'field1': 'value1'
-        }
-    }
-
-    builder = trace_data.TraceDataBuilder()
-    builder.AddTraceFor(trace_data.TELEMETRY_PART, telemetry_trace)
-    d = builder.AsData()
-
-    self.assertEqual(d.GetTracesFor(trace_data.TELEMETRY_PART),
-                     [telemetry_trace])
-
-  def testSetTraceForRaisesWithInvalidPart(self):
-    builder = trace_data.TraceDataBuilder()
-
-    self.assertRaises(AssertionError,
-                      lambda: builder.AddTraceFor('not_a_trace_part', {}))
-
-  def testSetTraceForRaisesWithInvalidTrace(self):
-    builder = trace_data.TraceDataBuilder()
-
-    self.assertRaises(
-        AssertionError,
-        lambda: builder.AddTraceFor(trace_data.TELEMETRY_PART,
-                                    datetime.time.min))
-
-  def testSetTraceForRaisesAfterAsData(self):
-    builder = trace_data.TraceDataBuilder()
-    builder.AsData()
-
-    self.assertRaises(
-        Exception,
-        lambda: builder.AddTraceFor(trace_data.TELEMETRY_PART, {}))
+  def testCantCallAsDataTwice(self):
+    with trace_data.TraceDataBuilder() as builder:
+      builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
+                          {'traceEvents': [1, 2, 3]})
+      builder.AsData().CleanUpAllTraces()
+      with self.assertRaises(Exception):
+        builder.AsData()
 
 
 class TraceFileHandleTest(unittest.TestCase):

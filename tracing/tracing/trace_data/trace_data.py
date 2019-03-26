@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import base64
-import copy
 import gzip
 import json
 import logging
@@ -151,7 +150,7 @@ class _TraceData(object):
           trace.Clean()
     self._raw_data = {}
 
-  def Serialize(self, file_path, trace_title=''):
+  def Serialize(self, file_path, trace_title=None):
     """Serializes the trace result to |file_path|.
 
     TODO(crbug/928278): Move this method to TraceDataWriter.
@@ -171,12 +170,14 @@ class _TraceData(object):
           trace_files.append(path)
       logging.info('Trace sizes in bytes: %s', trace_size_data)
 
-      start_time = time.time()
-      cmd = (
-          ['python', _TRACE2HTML_PATH] + trace_files +
-          ['--output', file_path] + ['--title', trace_title])
-      subprocess.check_output(cmd)
+      cmd = ['python', _TRACE2HTML_PATH]
+      cmd.extend(trace_files)
+      cmd.extend(['--output', file_path])
+      if trace_title is not None:
+        cmd.extend(['--title', trace_title])
 
+      start_time = time.time()
+      subprocess.check_output(cmd)
       elapsed_time = time.time() - start_time
       logging.info('trace2html finished in %.02f seconds.', elapsed_time)
     finally:
@@ -262,6 +263,12 @@ class TraceDataBuilder(object):
   def __init__(self):
     self._raw_data = {}
 
+  def __enter__(self):
+    return self
+
+  def __exit__(self, *args):
+    self.CleanUpTraceData()
+
   def AsData(self):
     """Allow in-memory access to read the collected trace data.
 
@@ -275,6 +282,13 @@ class TraceDataBuilder(object):
     return data
 
   def AddTraceFor(self, part, trace):
+    """Record new trace data into this builder.
+
+    Args:
+      part: A TraceDataPart instance.
+      trace: The trace data to write: a json-serializable dict, a
+        TraceFileHandle, or unstructured text data as a string.
+    """
     assert isinstance(part, TraceDataPart), part
     if part == CHROME_TRACE_PART:
       assert (isinstance(trace, dict) or
@@ -291,42 +305,59 @@ class TraceDataBuilder(object):
     self._raw_data.setdefault(part.raw_field_name, [])
     self._raw_data[part.raw_field_name].append(trace)
 
+  def CleanUpTraceData(self):
+    """Clean up resources used by the data builder.
 
-def CreateTraceDataFromRawData(raw_data):
-  """Convenient method for creating a _TraceData object from |raw_data|.
+    Clients are responsible for calling this method when they are done
+    serializing or extracting the written trace data.
 
-   This is mostly used for testing.
+    For convenience, clients may also use the TraceDataBuilder in a with
+    statement for automated cleaning up, e.g.
 
-   Args:
-      raw_data can be:
-          + A dictionary that repsents multiple trace parts. Keys of the
-          dictionary must always contain 'traceEvents', as chrome trace
-          must always present.
-          + A list that represents Chrome trace events.
-          + JSON string of either above.
+        with trace_data.TraceDataBuilder() as builder:
+          builder.AddTraceFor(trace_part, data)
+          builder.Serialize(output_file)
+    """
+    if self._raw_data is None:
+      return  # Owner of the raw trace data is now responsible for clean up.
+    self.AsData().CleanUpAllTraces()
+
+  def Serialize(self, file_path, trace_title=None):
+    """Serialize the trace data to a file.
+
+    Note: Due to implementation limitations, this also implicitly cleans up
+    the trace data. However, clients shouldn't rely on this behavior and make
+    sure to clean up the TraceDataBuilder themselves too.
+    """
+    data = self.AsData()
+    try:
+      data.Serialize(file_path, trace_title)
+    finally:
+      data.CleanUpAllTraces()
+
+
+def CreateTestTrace(number=1):
+  """Convenient helper method to create trace data objects for testing.
+
+  Objects are created via the usual trace data writing route, so clients are
+  also responsible for cleaning up trace data themselves.
+
+  Clients are meant to treat these test traces as opaque. No guarantees are
+  made about their contents, which they shouldn't try to read.
   """
-  raw_data = copy.deepcopy(raw_data)
-  if isinstance(raw_data, StringTypes):
-    json_data = json.loads(raw_data)
-  else:
-    json_data = raw_data
+  builder = TraceDataBuilder()
+  builder.AddTraceFor(CHROME_TRACE_PART, {'traceEvents': [{'test': number}]})
+  return builder.AsData()
 
-  b = TraceDataBuilder()
-  if not json_data:
-    return b.AsData()
-  if isinstance(json_data, dict):
-    assert 'traceEvents' in json_data, 'Only raw chrome trace is supported'
-    trace_parts_keys = []
-    for k in json_data:
-      if k != 'traceEvents' and k in ALL_TRACE_PARTS_RAW_NAMES:
-        trace_parts_keys.append(k)
-        b.AddTraceFor(TraceDataPart(k), json_data[k])
-    # Delete the data for extra keys to form trace data for Chrome part only.
-    for k in trace_parts_keys:
-      del json_data[k]
-    b.AddTraceFor(CHROME_TRACE_PART, json_data)
-  elif isinstance(json_data, list):
-    b.AddTraceFor(CHROME_TRACE_PART, {'traceEvents': json_data})
-  else:
-    raise NonSerializableTraceData('Unrecognized data format.')
-  return b.AsData()
+
+def CreateFromRawChromeEvents(events):
+  """Convenient helper to create trace data objects from raw Chrome events.
+
+  This bypasses trace data writing, going directly to the in-memory json trace
+  representation, so there is no need for trace file cleanup.
+
+  This is used only for testing legacy clients that still read trace data.
+  """
+  assert isinstance(events, list)
+  return _TraceData({
+      CHROME_TRACE_PART.raw_field_name: [{'traceEvents': events}]})

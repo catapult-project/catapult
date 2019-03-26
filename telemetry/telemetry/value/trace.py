@@ -67,7 +67,7 @@ class TraceValue(value_module.Value):
       page_name = self.page.name
     else:
       page_name = 'None'
-    return 'TraceValue(%s, %s)' % (page_name, self.name)
+    return 'TraceValue(%r, %r)' % (page_name, self.name)
 
   def SetTimelineBasedMetrics(self, metrics):
     assert not self._temp_file, 'Trace data should not already be serialized.'

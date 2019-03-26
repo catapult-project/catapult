@@ -132,7 +132,6 @@ class TelemetryInfoTest(unittest.TestCase):
     self.assertEquals(story_diag.AsDict()['values'], ['story2'])
 
 
-
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def setUp(self):
     story_set = story.StorySet(base_dir=os.path.dirname(__file__))
@@ -469,56 +468,57 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
   def testTraceValue(self):
     results = self.getPageTestResults()
-    results.WillRunPage(self.pages[0])
-    results.AddValue(trace.TraceValue(
-        None, trace_data.CreateTraceDataFromRawData([[{'test': 1}]])))
-    results.DidRunPage(self.pages[0])
+    try:
+      results.WillRunPage(self.pages[0])
+      results.AddValue(trace.TraceValue(None, trace_data.CreateTestTrace(1)))
+      results.DidRunPage(self.pages[0])
 
-    results.WillRunPage(self.pages[1])
-    results.AddValue(trace.TraceValue(
-        None, trace_data.CreateTraceDataFromRawData([[{'test': 2}]])))
-    results.DidRunPage(self.pages[1])
+      results.WillRunPage(self.pages[1])
+      results.AddValue(trace.TraceValue(None, trace_data.CreateTestTrace(2)))
+      results.DidRunPage(self.pages[1])
 
-    results.PrintSummary()
+      results.PrintSummary()
 
-    values = results.FindAllTraceValues()
-    self.assertEquals(2, len(values))
+      values = results.FindAllTraceValues()
+      self.assertEquals(2, len(values))
+    finally:
+      results.CleanUp()
 
   def testCleanUpCleansUpTraceValues(self):
     results = self.getPageTestResults()
-    v0 = trace.TraceValue(
-        None, trace_data.CreateTraceDataFromRawData([{'test': 1}]))
-    v1 = trace.TraceValue(
-        None, trace_data.CreateTraceDataFromRawData([{'test': 2}]))
+    try:
+      v0 = trace.TraceValue(None, trace_data.CreateTestTrace(1))
+      v1 = trace.TraceValue(None, trace_data.CreateTestTrace(2))
 
-    results.WillRunPage(self.pages[0])
-    results.AddValue(v0)
-    results.DidRunPage(self.pages[0])
+      results.WillRunPage(self.pages[0])
+      results.AddValue(v0)
+      results.DidRunPage(self.pages[0])
 
-    results.WillRunPage(self.pages[1])
-    results.AddValue(v1)
-    results.DidRunPage(self.pages[1])
+      results.WillRunPage(self.pages[1])
+      results.AddValue(v1)
+      results.DidRunPage(self.pages[1])
+    finally:
+      results.CleanUp()
 
-    results.CleanUp()
     self.assertTrue(v0.cleaned_up)
     self.assertTrue(v1.cleaned_up)
 
   def testNoTracesLeftAfterCleanUp(self):
     results = self.getPageTestResults()
-    v0 = trace.TraceValue(None,
-                          trace_data.CreateTraceDataFromRawData([{'test': 1}]))
-    v1 = trace.TraceValue(None,
-                          trace_data.CreateTraceDataFromRawData([{'test': 2}]))
+    try:
+      v0 = trace.TraceValue(None, trace_data.CreateTestTrace(1))
+      v1 = trace.TraceValue(None, trace_data.CreateTestTrace(2))
 
-    results.WillRunPage(self.pages[0])
-    results.AddValue(v0)
-    results.DidRunPage(self.pages[0])
+      results.WillRunPage(self.pages[0])
+      results.AddValue(v0)
+      results.DidRunPage(self.pages[0])
 
-    results.WillRunPage(self.pages[1])
-    results.AddValue(v1)
-    results.DidRunPage(self.pages[1])
+      results.WillRunPage(self.pages[1])
+      results.AddValue(v1)
+      results.DidRunPage(self.pages[1])
+    finally:
+      results.CleanUp()
 
-    results.CleanUp()
     self.assertFalse(results.FindAllTraceValues())
 
   def testPrintSummaryDisabledResults(self):

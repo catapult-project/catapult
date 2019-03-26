@@ -29,8 +29,9 @@ class MergeTracesTest(unittest.TestCase):
 
   def _SerializeTrace(self, filename, trace):
     filepath = os.path.join(self.test_dir, filename)
-    ri = trace_data.CreateTraceDataFromRawData(trace)
-    ri.Serialize(filepath)
+    with trace_data.TraceDataBuilder() as builder:
+      builder.AddTraceFor(trace_data.CHROME_TRACE_PART, trace)
+      builder.Serialize(filepath)
     return filepath
 
   def testSimple(self):

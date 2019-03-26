@@ -206,22 +206,24 @@ class ChartJsonTest(unittest.TestCase):
     self.assertTrue(d['enabled'])
 
   def testAsChartDictWithTraceValuesThatHasTirLabel(self):
-    v = trace.TraceValue(self._story_set[0],
-                         trace_data.CreateTraceDataFromRawData([{'test': 1}]))
-    v.SerializeTraceData()
-    v.tir_label = 'background'
     results = _MakePageTestResults()
-    results.WillRunPage(self._story_set[0])
-    results.AddValue(v)
-    results.DidRunPage(self._story_set[0])
+    try:
+      results.WillRunPage(self._story_set[0])
+      v = trace.TraceValue(self._story_set[0], trace_data.CreateTestTrace())
+      v.SerializeTraceData()
+      v.tir_label = 'background'
+      results.AddValue(v)
+      results.DidRunPage(self._story_set[0])
 
-    d = chart_json_output_formatter.ResultsAsChartDict(
-        self._benchmark_metadata, results)
+      d = chart_json_output_formatter.ResultsAsChartDict(
+          self._benchmark_metadata, results)
 
-    self.assertTrue('trace' in d['charts'])
-    self.assertTrue('http://www.foo.com/' in d['charts']['trace'],
-                    msg=d['charts']['trace'])
-    self.assertTrue(d['enabled'])
+      self.assertTrue('trace' in d['charts'])
+      self.assertTrue('http://www.foo.com/' in d['charts']['trace'],
+                      msg=d['charts']['trace'])
+      self.assertTrue(d['enabled'])
+    finally:
+      results.CleanUp()
 
   def testAsChartDictValueSmokeTest(self):
     v0 = list_of_scalar_values.ListOfScalarValues(
