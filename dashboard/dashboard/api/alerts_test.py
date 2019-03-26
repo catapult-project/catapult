@@ -61,6 +61,13 @@ class AlertsGeneralTest(testing_common.TestCase):
     entity.recovered = recovered
     return entity.put().urlsafe()
 
+  def testCountLimit(self):
+    self._CreateAnomaly()
+    self._CreateAnomaly()
+    response = self._Post(limit=1, count_limit=10)
+    self.assertEqual(1, len(response['anomalies']))
+    self.assertEqual(2, response['count'])
+
   def testAllExternal(self):
     self._CreateAnomaly()
     self._CreateAnomaly(internal_only=True)

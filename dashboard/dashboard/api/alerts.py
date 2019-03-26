@@ -49,12 +49,13 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
             template_id))
 
       try:
-        alert_list, next_cursor, _ = anomaly.Anomaly.QueryAsync(
+        alert_list, next_cursor, count = anomaly.Anomaly.QueryAsync(
             bot_name=self.request.get('bot', None),
             bug_id=self.request.get('bug_id', None),
             is_improvement=is_improvement,
             key=self.request.get('key', None),
             limit=int(self.request.get('limit', 100)),
+            count_limit=int(self.request.get('count_limit', 0)),
             master_name=self.request.get('master', None),
             max_end_revision=self.request.get('max_end_revision', None),
             max_start_revision=self.request.get('max_start_revision', None),
@@ -68,6 +69,7 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
             test=self.request.get('test', None),
             test_keys=test_keys,
             test_suite_name=self.request.get('test_suite', None)).get_result()
+        response['count'] = count
       except AssertionError:
         alert_list, next_cursor = [], None
       if next_cursor:
@@ -80,5 +82,5 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
       raise api_request_handler.BadRequestError(e.message)
 
     response['anomalies'] = alerts.AnomalyDicts(
-        alert_list, self.request.get('v2'))
+        alert_list, utils.ParseBool(self.request.get('v2', None)))
     return response
