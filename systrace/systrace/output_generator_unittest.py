@@ -9,6 +9,7 @@ import json
 import os
 import unittest
 
+from py_utils import tempfile_ext
 from systrace import decorators
 from systrace import output_generator
 from systrace import trace_result
@@ -74,49 +75,42 @@ class OutputGeneratorTest(unittest.TestCase):
   @decorators.HostOnlyTest
   def testHtmlOutputGenerationFormatsMultipleTraces(self):
     trace_results = []
-    trace_data_builder = trace_data_module.TraceDataBuilder()
+    with trace_data_module.TraceDataBuilder() as trace_data_builder:
+      with open(ATRACE_DATA) as fp:
+        atrace_data = fp.read()
+      trace_results.append(
+          trace_result.TraceResult('systemTraceEvents', atrace_data))
+      trace_data_builder.AddTraceFor(trace_data_module.ATRACE_PART, atrace_data,
+                                     allow_unstructured=True)
 
-    with open(ATRACE_DATA) as fp:
-      atrace_data = fp.read()
-    trace_results.append(
-        trace_result.TraceResult('systemTraceEvents', atrace_data))
-    trace_data_builder.AddTraceFor(trace_data_module.ATRACE_PART, atrace_data)
+      with open(ATRACE_PROCESS_DUMP_DATA) as fp:
+        atrace_process_dump_data = fp.read()
+      trace_results.append(trace_result.TraceResult(
+          'atraceProcessDump', atrace_process_dump_data))
+      trace_data_builder.AddTraceFor(trace_data_module.ATRACE_PROCESS_DUMP_PART,
+                                     atrace_process_dump_data,
+                                     allow_unstructured=True)
 
-    with open(ATRACE_PROCESS_DUMP_DATA) as fp:
-      atrace_process_dump_data = fp.read()
-    trace_results.append(
-        trace_result.TraceResult('atraceProcessDump', atrace_process_dump_data))
-    trace_data_builder.AddTraceFor(trace_data_module.ATRACE_PROCESS_DUMP_PART,
-                                   atrace_process_dump_data)
+      with open(COMBINED_PROFILE_CHROME_DATA) as fp:
+        chrome_data = json.load(fp)
+      trace_results.append(
+          trace_result.TraceResult('traceEvents', chrome_data))
+      trace_data_builder.AddTraceFor(
+          trace_data_module.CHROME_TRACE_PART, chrome_data)
 
-    with open(COMBINED_PROFILE_CHROME_DATA) as fp:
-      chrome_data = fp.read()
-    trace_results.append(
-        trace_result.TraceResult('traceEvents', json.loads(chrome_data)))
-    trace_data_builder.AddTraceFor(
-        trace_data_module.CHROME_TRACE_PART, json.loads(chrome_data))
+      trace_results.append(
+          trace_result.TraceResult('systraceController', str({})))
+      trace_data_builder.AddTraceFor(trace_data_module.TELEMETRY_PART, {})
 
-    trace_results.append(
-        trace_result.TraceResult('systraceController', str({})))
-    trace_data_builder.AddTraceFor(trace_data_module.TELEMETRY_PART, {})
+      with tempfile_ext.NamedTemporaryDirectory() as temp_dir:
+        data_builder_out = os.path.join(temp_dir, 'data_builder.html')
+        output_generator_out = os.path.join(temp_dir, 'output_generator.html')
+        output_generator.GenerateHTMLOutput(trace_results, output_generator_out)
+        trace_data_builder.Serialize(data_builder_out, 'Systrace')
 
-    try:
-      data_builder_out = util.generate_random_filename_for_test()
-      output_generator_out = util.generate_random_filename_for_test()
-      output_generator.GenerateHTMLOutput(trace_results, output_generator_out)
-      trace_data_builder.AsData().Serialize(data_builder_out, 'Systrace')
+        output_generator_md5sum = hashlib.md5(
+            open(output_generator_out, 'rb').read()).hexdigest()
+        data_builder_md5sum = hashlib.md5(
+            open(data_builder_out, 'rb').read()).hexdigest()
 
-      output_generator_md5sum = hashlib.md5(
-          open(output_generator_out, 'rb').read()).hexdigest()
-      data_builder_md5sum = hashlib.md5(
-          open(data_builder_out, 'rb').read()).hexdigest()
-
-      self.assertEqual(output_generator_md5sum, data_builder_md5sum)
-    finally:
-      def del_if_exist(path):
-        try:
-          os.remove(path)
-        except IOError:
-          pass
-      del_if_exist(output_generator_out)
-      del_if_exist(data_builder_out)
+        self.assertEqual(output_generator_md5sum, data_builder_md5sum)

@@ -47,7 +47,6 @@ from systrace.tracing_agents import atrace_from_file_agent
 from systrace.tracing_agents import atrace_process_dump
 from systrace.tracing_agents import ftrace_agent
 from systrace.tracing_agents import walt_agent
-# pylint: enable=wrong-import-position
 
 
 ALL_MODULES = [atrace_agent, atrace_from_file_agent, atrace_process_dump,

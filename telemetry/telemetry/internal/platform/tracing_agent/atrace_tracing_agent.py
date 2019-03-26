@@ -57,4 +57,5 @@ class AtraceTracingAgent(tracing_agent.TracingAgent):
       raise exceptions.AtraceTracingError(
           'Timed out retrieving the atrace tracing data from device %s.'
           % self._device)
-    trace_data_builder.AddTraceFor(trace_data.ATRACE_PART, results.raw_data)
+    trace_data_builder.AddTraceFor(trace_data.ATRACE_PART, results.raw_data,
+                                   allow_unstructured=True)

@@ -28,7 +28,7 @@ class AtraceTracingAgentTest(unittest.TestCase):
     mock_trace_builder = mock.NonCallableMagicMock(spec=['AddTraceFor'])
     atrace_agent.CollectAgentTraceData(mock_trace_builder)
     mock_trace_builder.AddTraceFor.assert_called_once_with(
-        trace_data.ATRACE_PART, empty_atrace_output)
+        trace_data.ATRACE_PART, empty_atrace_output, allow_unstructured=True)
 
   @mock.patch.object(systrace_atrace_agent.AtraceAgent, 'GetResults')
   def testCollectAgentTraceDataTimeout(self, mock_get_results):

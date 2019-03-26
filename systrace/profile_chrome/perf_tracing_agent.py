@@ -26,7 +26,6 @@ try:
   # pylint: disable=F0401,no-name-in-module,wrong-import-position
   from telemetry.internal.platform.profiler import android_profiling_helper
   from telemetry.internal.util import binary_manager
-  # pylint: enable=wrong-import-position
 except ImportError:
   android_profiling_helper = None
   binary_manager = None

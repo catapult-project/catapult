@@ -44,15 +44,25 @@ class TraceDataBuilderTest(unittest.TestCase):
 
   def testAddTraceForRaisesWithInvalidPart(self):
     with trace_data.TraceDataBuilder() as builder:
-      with self.assertRaises(AssertionError):
+      with self.assertRaises(TypeError):
         builder.AddTraceFor('not_a_trace_part', {})
+
+  def testAddTraceWithUnstructuredData(self):
+    with trace_data.TraceDataBuilder() as builder:
+      builder.AddTraceFor(trace_data.TELEMETRY_PART, 'unstructured trace',
+                          allow_unstructured=True)
+
+  def testAddTraceRaisesWithImplicitUnstructuredData(self):
+    with trace_data.TraceDataBuilder() as builder:
+      with self.assertRaises(ValueError):
+        builder.AddTraceFor(trace_data.TELEMETRY_PART, 'unstructured trace')
 
   def testCantWriteAfterCleanup(self):
     with trace_data.TraceDataBuilder() as builder:
       builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
                           {'traceEvents': [1, 2, 3]})
       builder.CleanUpTraceData()
-      with self.assertRaises(Exception):
+      with self.assertRaises(RuntimeError):
         builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
                             {'traceEvents': [1, 2, 3]})
 
