@@ -19,9 +19,12 @@ _TESTS = [
     {'path': os.path.join(
         _CATAPULT_PATH, 'catapult_build', 'bin', 'run_py_tests')},
     {'path': os.path.join(_CATAPULT_PATH, 'common', 'bin', 'run_tests')},
+    {'path': os.path.join(
+        _CATAPULT_PATH, 'common', 'py_trace_event', 'bin', 'run_tests')},
     {'path': os.path.join(_CATAPULT_PATH, 'dependency_manager', 'bin', 'run_tests')},
     {'path': os.path.join(_CATAPULT_PATH, 'telemetry', 'bin', 'run_tests')},
-    {'path': os.path.join(_CATAPULT_PATH, 'third_party', 'vinn', 'run_test')},
+    {'path': os.path.join(
+        _CATAPULT_PATH, 'third_party', 'vinn', 'bin', 'run_tests')},
     # TODO(anniesullie): Add dashboard tests when SDK issues are sorted out.
 ]
 
@@ -30,3 +33,4 @@ if __name__ == '__main__':
   sys.path.append(_CATAPULT_PATH)
   from catapult_build import test_runner
   sys.exit(test_runner.Main('project', _TESTS, sys.argv))
+

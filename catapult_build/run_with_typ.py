@@ -9,7 +9,7 @@ import os
 import sys
 
 
-def Run(top_level_dir, path=None, suffixes=None):
+def Run(top_level_dir, path=None, suffixes=None, **kwargs):
   """Runs a set of Python tests using typ.
 
   Args:
@@ -29,7 +29,8 @@ def Run(top_level_dir, path=None, suffixes=None):
       top_level_dir=top_level_dir,
       path=(path or []),
       coverage_source=[top_level_dir],
-      suffixes=suffixes)
+      suffixes=suffixes,
+      **kwargs)
 
 
 def _AddToPathIfNeeded(path):

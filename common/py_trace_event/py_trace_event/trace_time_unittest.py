@@ -86,7 +86,7 @@ class TimerTest(unittest.TestCase):
     # Test requires QPC to be available on platform.
     if not trace_time.IsQPCUsable():
       return True
-    self.assertGreater(trace_time.monotonic(), 0)
+    self.assertGreater(trace_time.Now(), 0)
 
   # Works even if QPC would work.
   def testGetWinNowFunction_GetTickCount(self):
@@ -94,7 +94,7 @@ class TimerTest(unittest.TestCase):
             or sys.platform.startswith(trace_time._PLATFORMS['cygwin'])):
       return True
     with self.ReplaceQPCCheck(lambda: False):
-      self.assertGreater(trace_time.monotonic(), 0)
+      self.assertGreater(trace_time.Now(), 0)
 
   # Linux tests.
   def testGetClockGetTimeClockNumber_linux(self):

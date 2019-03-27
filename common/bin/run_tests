@@ -6,33 +6,23 @@
 import os
 import sys
 
+
 _CATAPULT_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', '..'))
-
-_PY_UTILS_PATH = os.path.abspath(
-    os.path.join(_CATAPULT_PATH, 'common', 'py_utils'))
-
-
-def _RunTestsOrDie(top_level_dir):
-  exit_code = run_with_typ.Run(top_level_dir, path=[_PY_UTILS_PATH])
-  if exit_code:
-    sys.exit(exit_code)
-
-
-def _AddToPathIfNeeded(path):
-  if path not in sys.path:
-    sys.path.insert(0, path)
+_TESTS = [
+    {'path': os.path.join(
+        _CATAPULT_PATH, 'common', 'eslint', 'bin', 'run_tests')},
+    {'path': os.path.join(
+        _CATAPULT_PATH, 'common', 'py_trace_event', 'bin', 'run_tests')},
+    {'path': os.path.join(
+        _CATAPULT_PATH, 'common', 'py_utils', 'bin', 'run_tests')},
+    {'path': os.path.join(
+        _CATAPULT_PATH, 'common', 'py_vulcanize', 'bin', 'run_py_tests')},
+]
 
 
 if __name__ == '__main__':
-  _AddToPathIfNeeded(_CATAPULT_PATH)
+  sys.path.append(_CATAPULT_PATH)
+  from catapult_build import test_runner
+  sys.exit(test_runner.Main('project', _TESTS, sys.argv))
 
-  from hooks import install
-  if '--no-install-hooks' in sys.argv:
-    sys.argv.remove('--no-install-hooks')
-  else:
-    install.InstallHooks()
-
-  from catapult_build import run_with_typ
-  _RunTestsOrDie(_PY_UTILS_PATH)
-  sys.exit(0)

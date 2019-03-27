@@ -5,38 +5,34 @@
 import logging
 import os
 import sys
-import tempfile
 import unittest
 
 from log import *
 from parsed_trace_events import *
+from py_utils import tempfile_ext
 
 
 class LogIOTest(unittest.TestCase):
   def test_enable_with_file(self):
-    file = tempfile.NamedTemporaryFile()
-    trace_enable(open(file.name, 'w+'))
-    trace_disable()
-    e = ParsedTraceEvents(trace_filename = file.name)
-    file.close()
-    self.assertTrue(len(e) > 0)
+    with tempfile_ext.TemporaryFileName() as filename:
+      trace_enable(open(filename, 'w+'))
+      trace_disable()
+      e = ParsedTraceEvents(trace_filename=filename)
+      self.assertTrue(len(e) > 0)
 
   def test_enable_with_filename(self):
-    file = tempfile.NamedTemporaryFile()
-    trace_enable(file.name)
-    trace_disable()
-    e = ParsedTraceEvents(trace_filename = file.name)
-    file.close()
-    self.assertTrue(len(e) > 0)
+    with tempfile_ext.TemporaryFileName() as filename:
+      trace_enable(filename)
+      trace_disable()
+      e = ParsedTraceEvents(trace_filename=filename)
+      self.assertTrue(len(e) > 0)
 
   def test_enable_with_implicit_filename(self):
     expected_filename = "%s.json" % sys.argv[0]
     def do_work():
-      file = tempfile.NamedTemporaryFile()
       trace_enable()
       trace_disable()
-      e = ParsedTraceEvents(trace_filename = expected_filename)
-      file.close()
+      e = ParsedTraceEvents(trace_filename=expected_filename)
       self.assertTrue(len(e) > 0)
     try:
       do_work()
