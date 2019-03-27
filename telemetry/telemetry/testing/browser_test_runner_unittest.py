@@ -189,16 +189,15 @@ class BrowserTestRunnerTest(unittest.TestCase):
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testGetExpectationsFromTypWithExpectationsFile(self):
-    test_name = ('browser_tests.browser_test'
-                 '.GetsExpectationsFromTyp.HasExpectationsFile')
+    test_name = 'HasExpectationsFile'
     self._RunTest(
         test_filter=test_name, expected_failures=[test_name],
         expected_successes=[], test_name='GetsExpectationsFromTyp',
         expectations=_MakeTestExpectations(
-            test_name, ['foo'], 'RetryOnFailure Failure'), tags=['foo'])
-    test_result = (
-        self._test_result['tests']['browser_tests']['browser_test']
-        ['GetsExpectationsFromTyp']['HasExpectationsFile'])
+            test_name, ['foo'], 'RetryOnFailure Failure'), tags=['foo'],
+        extra_args=[('--test-name-prefix=browser_tests.'
+                     'browser_test.GetsExpectationsFromTyp.')])
+    test_result = self._test_result['tests']['HasExpectationsFile']
     self.assertEqual(test_result['expected'], 'FAIL')
     self.assertEqual(test_result['actual'], 'PASS')
     self.assertIn('is_unexpected', test_result)

@@ -814,6 +814,12 @@ class Runner(object):
             trace['traceEvents'].append(event)
         return trace
 
+    def expectations_for(self, test_case):
+      if self.has_expectations:
+          return self.expectations.expectations_for(
+              test_case.id()[len(self.args.test_name_prefix):])
+      else:
+          return (set([ResultType.Pass]), False)
 
 def _matches(name, globs):
     return any(fnmatch.fnmatch(name, glob) for glob in globs)

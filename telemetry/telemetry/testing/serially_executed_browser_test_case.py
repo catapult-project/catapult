@@ -11,7 +11,6 @@ from py_utils import cloud_storage
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.testing import browser_test_context
-from typ import json_results
 
 DEFAULT_LOG_FORMAT = (
     '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
@@ -212,11 +211,7 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
     are no expectations files passed to typ, then a tuple of
     (set(['PASS']), False) should be returned from this function.
     """
-    cls = self.__class__
-    if cls._typ_runner.has_expectations:
-      return cls._typ_runner.expectations.expectations_for(self.id())
-    else:
-      return (set([json_results.ResultType.Pass]), False)
+    return self.__class__._typ_runner.expectations_for(self)
 
   @classmethod
   def GetPlatformTags(cls, browser):
