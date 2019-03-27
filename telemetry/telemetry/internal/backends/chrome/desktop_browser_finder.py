@@ -130,23 +130,20 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
     self._InitPlatformIfNeeded()
 
-
+    # TODO(crbug.com/944343): Fix these retries. They leave the user-data-dir
+    # around, which contains DevToolsActivePort file.
     num_retries = 3
     for x in range(0, num_retries):
-      returned_browser = None
       try:
         # Note: we need to regenerate the browser startup arguments for each
         # browser startup attempt since the state of the startup arguments
         # may not be guaranteed the same each time
         # For example, see: crbug.com/865895#c17
         startup_args = self.GetBrowserStartupArgs(self._browser_options)
-        returned_browser = None
-
         browser_backend = desktop_browser_backend.DesktopBrowserBackend(
             self._platform_backend, self._browser_options,
             self._browser_directory, self._profile_directory,
             self._local_executable, self._flash_path, self._is_content_shell)
-
         return browser.Browser(
             browser_backend, self._platform_backend, startup_args)
       except Exception: # pylint: disable=broad-except
@@ -155,13 +152,6 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         if x < num_retries - 1:
           report += ', retrying'
         logging.warning(report)
-        # Attempt to clean up things left over from the failed browser startup.
-        try:
-          if returned_browser:
-            returned_browser.DumpStateUponFailure()
-            returned_browser.Close()
-        except Exception: # pylint: disable=broad-except
-          pass
         # Re-raise the exception the last time through.
         if x == num_retries - 1:
           raise
