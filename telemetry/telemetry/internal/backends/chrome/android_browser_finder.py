@@ -28,6 +28,7 @@ from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import android_device
 from telemetry.internal.util import binary_manager
+from telemetry.internal.util import format_for_logging
 
 
 ANDROID_BACKEND_SETTINGS = (
@@ -191,7 +192,10 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         device, self._backend_settings.command_line_name, use_legacy_path=
         compact_mode_options.LEGACY_COMMAND_LINE_PATH in
         browser_options.compatibility_mode)
-    self._flag_changer.ReplaceFlags(startup_args)
+    self._flag_changer.ReplaceFlags(startup_args, log_flags=False)
+    formatted_args = format_for_logging.ShellFormat(
+        startup_args, trim=browser_options.trim_logs)
+    logging.info('Flags set on device were %s', formatted_args)
     # Stop any existing browser found already running on the device. This is
     # done *after* setting the command line flags, in case some other Android
     # process manages to trigger Chrome's startup before we do.

@@ -170,6 +170,8 @@ class SharedPageState(story_module.SharedState):
 
     if self._first_browser:
       self._first_browser = False
+      # Cut back on mostly redundant logs length per crbug.com/943650.
+      self._finder_options.browser_options.trim_logs = True
     self._AllowInteractionForStage('after-start-browser')
 
   def WillRunStory(self, page):

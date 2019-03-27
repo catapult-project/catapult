@@ -24,6 +24,7 @@ import dependency_manager  # pylint: disable=import-error
 from telemetry.internal.util import binary_manager
 from telemetry.core import exceptions
 from telemetry.internal.backends.chrome import chrome_browser_backend
+from telemetry.internal.util import format_for_logging
 from telemetry.internal.util import path
 
 
@@ -118,7 +119,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._executable = executable
     self._flash_path = flash_path
     self._is_content_shell = is_content_shell
-    self._logged_start_command = False
 
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._proc = None
@@ -267,18 +267,18 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     """Log the command used to start Chrome.
 
     In order to keep the length of logs down (see crbug.com/943650),
-    we only print the start command for the first time Chrome is started.
+    we sometimes trim the start command depending on browser_options.
     The command may change between runs, but usually in innocuous ways like
     --user-data-dir changes to a new temporary directory. Some benchmarks
     do use different startup arguments for different stories, but this is
     discouraged. This method could be changed to print arguments that are
     different since the last run if need be.
     """
-    if self._logged_start_command:
-      logging.info('Starting Chrome.')
-    else:
-      logging.info('Starting Chrome: %s\n\nEnv: %s', ' '.join(command), env)
-      self._logged_start_command = True
+    formatted_command = format_for_logging.ShellFormat(
+        command, trim=self.browser_options.trim_logs)
+    logging.info('Starting Chrome: %s\n', formatted_command)
+    if not self.browser_options.trim_logs:
+      logging.info('Chrome Env: %s', env)
 
   def BindDevToolsClient(self):
     # In addition to the work performed by the base class, quickly check if

@@ -384,6 +384,11 @@ class BrowserOptions(object):
 
     self.logging_verbosity = self._DEFAULT_LOGGING_LEVEL
 
+    # Whether to log verbose browser details like the full commandline used to
+    # start the browser. This variable can be changed from one run to another
+    # in order to cut back on log sizes. See crbug.com/943650.
+    self.trim_logs = False
+
     # The cloud storage bucket & path for uploading logs data produced by the
     # browser to.
     # If logs_cloud_remote_path is None, a random remote path is generated every

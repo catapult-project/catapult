@@ -9,6 +9,7 @@ from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.backends.chrome import misc_web_contents_backend
+from telemetry.internal.util import format_for_logging
 
 import py_utils
 
@@ -70,7 +71,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             'boolean:true',
             'array:string:"%s"' % ','.join(startup_args),
             'array:string:']
-    logging.info(' '.join(args))
+    formatted_args = format_for_logging.ShellFormat(
+        args, trim=self.browser_options.trim_logs)
+    logging.info('Starting Chrome: %s', formatted_args)
     self._cri.RunCmdOnDevice(args)
 
     # Wait for new chrome and oobe.
