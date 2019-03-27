@@ -298,12 +298,6 @@ def RunTests(args):
         cl.Name() for cl in browser_test_classes)
     return 1
 
-  test_class_expectations_files = test_class.ExpectationsFiles()
-
-  # all file paths in test_class_expectations-files must be absolute
-  assert all(os.path.isabs(path) for path in test_class_expectations_files)
-  options.expectations_files.extend(test_class_expectations_files)
-
   # Create test context.
   context = browser_test_context.TypTestContext()
   for c in options.client_configs:
@@ -330,6 +324,11 @@ def RunTests(args):
   context.Freeze()
   browser_test_context._global_test_context = context
   possible_browser = browser_finder.FindBrowser(context.finder_options)
+
+  test_class_expectations_files = test_class.ExpectationsFiles()
+  # all file paths in test_class_expectations-files must be absolute
+  assert all(os.path.isabs(path) for path in test_class_expectations_files)
+  options.expectations_files.extend(test_class_expectations_files)
 
   # Setup typ runner.
   test_class._typ_runner = runner = typ.Runner()
