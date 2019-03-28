@@ -218,6 +218,7 @@ tracing_js_html_files = [
   "tracing/metrics/system_health/long_tasks_metric.html",
   "tracing/metrics/system_health/memory_metric.html",
   "tracing/metrics/system_health/new_cpu_time_metric.html",
+  "tracing/metrics/system_health/persecond_metric.html",
   "tracing/metrics/system_health/power_metric.html",
   "tracing/metrics/system_health/responsiveness_metric.html",
   "tracing/metrics/system_health/utils.html",
