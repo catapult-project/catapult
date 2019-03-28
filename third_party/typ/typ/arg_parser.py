@@ -65,10 +65,6 @@ class ArgumentParser(argparse.ArgumentParser):
                               action='append',
                               help=('Globs of tests to run in isolation '
                                     '(serially).'))
-            self.add_argument('--skip', metavar='glob', default=[],
-                              action='append',
-                              help=('Globs of test names to skip ('
-                                    'defaults to %(default)s).'))
             self.add_argument('--suffixes', metavar='glob', default=[],
                               action='append',
                               help=('Globs of test filenames to look for ('
@@ -199,6 +195,16 @@ class ArgumentParser(argparse.ArgumentParser):
             self.add_argument('--top-level-dirs', action='append', default=[],
                               help=('Sets the top directory of project '
                                     '(used when running subdirs).'))
+            self.add_argument('--skip', metavar='glob', default=[],
+                              action='append',
+                              help=('Globs of test names to skip ('
+                                    'defaults to %(default)s).'))
+            self.add_argument(
+                '--test-filter', type=str, default='', action='store',
+                help='Pass a double-colon-separated ("::") list of exact test '
+                'names or globs, to run just that subset of tests. fnmatch will '
+                'be used to match globs to test names')
+
 
     def parse_args(self, args=None, namespace=None):
         try:

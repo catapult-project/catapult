@@ -64,19 +64,10 @@ class RunTestsCommand(command_line.OptparseCommand):
                       dest='run_disabled_tests',
                       action='store_true', default=False,
                       help='Ignore @Disabled and @Enabled restrictions.')
-    parser.add_option('--test-filter', metavar='TEST_NAMES',
-                      help=('a double-colon-separated ("::") list of'
-                            ' test names or globs, to run just that subset'
-                            'of tests. Globs are matched to tests using '
-                            'fnmatch'))
     parser.add_option('--client-config', dest='client_configs',
                       action='append', default=[])
     parser.add_option('--disable-logging-config', action='store_true',
                       default=False, help='Configure logging (default on)')
-    parser.add_option('--skip', metavar='glob', default=[],
-                      action='append', help=(
-                          'Globs of test names to skip (defaults to '
-                          '%(default)s).'))
 
     typ.ArgumentParser.add_option_group(parser,
                                         "Options for running the tests",

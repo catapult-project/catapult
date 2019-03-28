@@ -210,11 +210,6 @@ def _CreateTestArgParsers():
   parser.add_argument('test', type=str, help='Name of the test suite to run')
 
   parser.add_argument(
-      '--test-filter', type=str, default='', action='store',
-      help='Pass a double-colon-separated ("::") list of exact test names or '
-      'globs, to run just that subset of tests. fnmatch will be used to '
-      'match globs to test names')
-  parser.add_argument(
       '--filter-tests-after-sharding', default=False, action='store_true',
       help=('Apply the test filter after tests are split for sharding. Useful '
             'for reproducing bugs related to the order in which tests run.'))
@@ -236,9 +231,6 @@ def _CreateTestArgParsers():
       '--client-config', dest='client_configs', action='append', default=[])
   parser.add_argument(
       '--start-dir', dest='start_dirs', action='append', default=[])
-  parser.add_argument(
-      '--skip', metavar='glob', default=[], action='append',
-      help=('Globs of test names to skip (defaults to %(default)s).'))
   return parser
 
 
