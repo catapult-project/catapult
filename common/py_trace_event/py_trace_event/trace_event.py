@@ -73,8 +73,8 @@ if trace_event_impl:
   def trace_is_enabled():
     return trace_event_impl.trace_is_enabled()
 
-  def trace_enable(logfile):
-    return trace_event_impl.trace_enable(logfile)
+  def trace_enable(logfile, proto_format=False):
+    return trace_event_impl.trace_enable(logfile, proto_format)
 
   def trace_disable():
     return trace_event_impl.trace_disable()

@@ -8,6 +8,7 @@ import sys
 import time
 import threading
 
+from py_trace_event.trace_event_impl import perfetto_trace_writer
 from py_trace_event import trace_time
 
 from py_utils import lock
@@ -48,11 +49,22 @@ def _disallow_tracing_control():
   global _control_allowed
   _control_allowed = False
 
-def trace_enable(log_file=None):
-  _trace_enable(log_file)
+def trace_enable(log_file=None, proto_format=False):
+  """ Enable tracing.
+
+  Args:
+    log_file: file to write trace into. Can be a file-like object,
+      a name of file, or None. If None, file name is constructed
+      from executable name.
+    proto_format: whether to use protobuf trace format or json trace
+      format (default is json).
+  """
+  _trace_enable(log_file, proto_format)
 
 @_locked
-def _trace_enable(log_file=None):
+def _trace_enable(log_file=None, proto_format=False):
+  global _proto_format
+  _proto_format = proto_format
   global _enabled
   if _enabled:
     raise TraceException("Already enabled")
@@ -65,7 +77,10 @@ def _trace_enable(log_file=None):
       n = 'trace_event'
     else:
       n = sys.argv[0]
-    log_file = open("%s.json" % n, "ab", False)
+    if proto_format:
+      log_file = open("%s.pb" % n, "ab", False)
+    else:
+      log_file = open("%s.json" % n, "ab", False)
     _note("trace_event: tracelog name is %s.json" % n)
   elif isinstance(log_file, basestring):
     _note("trace_event: tracelog name is %s" % log_file)
@@ -82,16 +97,35 @@ def _trace_enable(log_file=None):
     creator = lastpos == 0
     if creator:
       _note("trace_event: Opened new tracelog, lastpos=%i", lastpos)
-      _log_file.write('[')
 
       tid = threading.current_thread().ident
       if not tid:
         tid = os.getpid()
-      x = {"ph": "M", "category": "process_argv",
-           "pid": os.getpid(), "tid": threading.current_thread().ident,
-           "ts": trace_time.Now(),
-           "name": "process_argv", "args": {"argv": sys.argv}}
-      _log_file.write("%s\n" % json.dumps(x))
+
+      if _proto_format:  # Write trace in proto format.
+        tid = threading.current_thread().ident
+        perfetto_trace_writer.write_thread_descriptor_event(
+            output=_log_file,
+            pid=os.getpid(),
+            tid=tid,
+            ts=trace_time.Now(),
+        )
+        perfetto_trace_writer.write_event(
+            output=_log_file,
+            ph="M",
+            category="process_argv",
+            name="process_argv",
+            ts=trace_time.Now(),
+            args=sys.argv,
+            tid=tid,
+        )
+      else:  # Write trace in json format.
+        _log_file.write('[')
+        x = {"ph": "M", "category": "process_argv",
+             "pid": os.getpid(), "tid": threading.current_thread().ident,
+             "ts": trace_time.Now(),
+             "name": "process_argv", "args": {"argv": sys.argv}}
+        _log_file.write("%s\n" % json.dumps(x))
     else:
       _note("trace_event: Opened existing tracelog")
     _log_file.flush()
@@ -111,13 +145,27 @@ def trace_disable():
   _enabled = False
   _flush(close=True)
 
+
 def _flush(close=False):
   global _log_file
+  global _proto_format
   with lock.FileLock(_log_file, lock.LOCK_EX):
     _log_file.seek(0, os.SEEK_END)
     if len(_cur_events):
-      _log_file.write(",\n")
-      _log_file.write(",\n".join([json.dumps(e) for e in _cur_events]))
+      if _proto_format:
+        for e in _cur_events:
+          perfetto_trace_writer.write_event(
+              output=_log_file,
+              ph=e["ph"],
+              category=e["category"],
+              name=e["name"],
+              ts=e["ts"],
+              args=e["args"],
+              tid=threading.current_thread().ident,
+          )
+      else:
+        _log_file.write(",\n")
+        _log_file.write(",\n".join([json.dumps(e) for e in _cur_events]))
       del _cur_events[:]
 
     if close:
