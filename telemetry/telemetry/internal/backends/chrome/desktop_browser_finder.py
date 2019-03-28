@@ -23,6 +23,8 @@ from telemetry.internal.util import binary_manager
 # This is a workaround for https://goo.gl/1tGNgd
 from telemetry.internal.util import path as path_module
 
+_BROWSER_STARTUP_TRIES = 3
+
 
 class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   """A desktop browser that can be controlled."""
@@ -130,10 +132,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
     self._InitPlatformIfNeeded()
 
-    # TODO(crbug.com/944343): Fix these retries. They leave the user-data-dir
-    # around, which contains DevToolsActivePort file.
-    num_retries = 3
-    for x in range(0, num_retries):
+    for x in range(0, _BROWSER_STARTUP_TRIES):
       try:
         # Note: we need to regenerate the browser startup arguments for each
         # browser startup attempt since the state of the startup arguments
@@ -147,13 +146,19 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         return browser.Browser(
             browser_backend, self._platform_backend, startup_args)
       except Exception: # pylint: disable=broad-except
-        report = 'Browser creation failed (attempt %d of %d)' % (
-            (x + 1), num_retries)
-        if x < num_retries - 1:
-          report += ', retrying'
-        logging.warning(report)
-        # Re-raise the exception the last time through.
-        if x == num_retries - 1:
+        retry = x < _BROWSER_STARTUP_TRIES - 1
+        retry_message = 'retrying' if retry else 'giving up'
+        logging.warn('Browser creation failed (attempt %d of %d), %s.',
+                     (x + 1), _BROWSER_STARTUP_TRIES, retry_message)
+        if retry:
+          # Reset the environment to prevent leftovers in the profile
+          # directory from influencing the next try.
+          # CleanUpEnvironment sets browser_options to None,
+          # so we must save them.
+          saved_browser_options = self._browser_options
+          self.CleanUpEnvironment()
+          self.SetUpEnvironment(saved_browser_options)
+        else:
           raise
 
   def GetBrowserStartupArgs(self, browser_options):
