@@ -51,6 +51,10 @@ class ExecutionResults(execution_test._ExecutionStub):
     self._Complete(result_arguments={'arg key': 'arg value'},
                    result_values=self._result_for_test)
 
+def _StubFunc(*args, **kwargs):
+  del args
+  del  kwargs
+
 
 @ndb.tasklet
 def _FakeTasklet(*args):
@@ -101,14 +105,10 @@ class UpdateDashboardStatsTest(test.TestCase):
     self.assertTrue(mock_defer.called)
 
   @mock.patch.object(
-      update_dashboard_stats, '_ProcessPinpointJobs',
-      mock.MagicMock(side_effect=_FakeTasklet))
+      update_dashboard_stats, '_ProcessPinpointJobs', _StubFunc)
   @mock.patch.object(
-      update_dashboard_stats, '_ProcessPinpointStats',
-      mock.MagicMock(side_effect=_FakeTasklet))
-  @mock.patch.object(
-      update_dashboard_stats.deferred, 'defer')
-  def testPost_ProcessAlerts_NoAlerts(self, mock_defer):
+      update_dashboard_stats, '_ProcessPinpointStats', _StubFunc)
+  def testPost_ProcessAlerts_NoAlerts(self):
     created = datetime.datetime.now() - datetime.timedelta(days=2)
     sheriff = ndb.Key('Sheriff', 'Chromium Perf Sheriff')
     anomaly_entity = anomaly.Anomaly(
@@ -116,20 +116,22 @@ class UpdateDashboardStatsTest(test.TestCase):
     anomaly_entity.put()
 
     self.testapp.get('/update_dashboard_stats')
+
+    self.ExecuteDeferredTasks('default', recurse=False)
+
+    patcher = mock.patch('update_dashboard_stats.deferred.defer')
+    self.addCleanup(patcher.stop)
+    mock_defer = patcher.start()
     self.assertFalse(mock_defer.called)
 
   @mock.patch.object(
-      update_dashboard_stats, '_ProcessAlerts',
-      mock.MagicMock(side_effect=_FakeTasklet))
+      update_dashboard_stats, '_ProcessAlerts', _StubFunc)
   @mock.patch.object(
       change_module.Change, 'Midpoint',
       mock.MagicMock(side_effect=commit.NonLinearError))
   @mock.patch.object(
-      update_dashboard_stats.deferred, 'defer')
-  @mock.patch.object(
-      update_dashboard_stats, '_ProcessPinpointJobs',
-      mock.MagicMock(side_effect=_FakeTasklet))
-  def testPost_ProcessPinpointStats_Success(self, mock_defer):
+      update_dashboard_stats, '_ProcessPinpointJobs', _StubFunc)
+  def testPost_ProcessPinpointStats_Success(self):
     created = datetime.datetime.now() - datetime.timedelta(hours=12)
     j = self._CreateJob(
         'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 12345,
@@ -145,6 +147,13 @@ class UpdateDashboardStatsTest(test.TestCase):
     j.put()
 
     self.testapp.get('/update_dashboard_stats')
+
+    patcher = mock.patch('update_dashboard_stats.deferred.defer')
+    self.addCleanup(patcher.stop)
+    mock_defer = patcher.start()
+
+    self.ExecuteDeferredTasks('default', recurse=False)
+
     self.assertTrue(mock_defer.called)
 
   @mock.patch.object(
@@ -173,17 +182,13 @@ class UpdateDashboardStatsTest(test.TestCase):
       gerrit_service, 'GetChange',
       mock.MagicMock(side_effect=httplib.HTTPException))
   @mock.patch.object(
-      update_dashboard_stats, '_ProcessAlerts',
-      mock.MagicMock(side_effect=_FakeTasklet))
+      update_dashboard_stats, '_ProcessAlerts', _StubFunc)
   @mock.patch.object(
-      update_dashboard_stats, '_ProcessPinpointStats',
-      mock.MagicMock(side_effect=_FakeTasklet))
+      update_dashboard_stats, '_ProcessPinpointStats', _StubFunc)
   @mock.patch.object(
       change_module.Change, 'Midpoint',
       mock.MagicMock(side_effect=commit.NonLinearError))
-  @mock.patch.object(
-      update_dashboard_stats.deferred, 'defer')
-  def testPost_ProcessPinpoint_NoResults(self, mock_defer):
+  def testPost_ProcessPinpoint_NoResults(self):
     created = datetime.datetime.now() - datetime.timedelta(days=1)
 
     anomaly_entity = anomaly.Anomaly(
@@ -219,6 +224,10 @@ class UpdateDashboardStatsTest(test.TestCase):
         'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 1)
 
     self.testapp.get('/update_dashboard_stats')
+
+    patcher = mock.patch('update_dashboard_stats.deferred.defer')
+    self.addCleanup(patcher.stop)
+    mock_defer = patcher.start()
     self.assertFalse(mock_defer.called)
 
 

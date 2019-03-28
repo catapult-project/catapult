@@ -31,7 +31,9 @@ class UpdateDashboardStatsHandler(request_handler.RequestHandler):
 
   def get(self):
     datastore_hooks.SetPrivilegedRequest()
-    _FetchDashboardStats()
+    deferred.defer(_ProcessAlerts)
+    deferred.defer(_ProcessPinpointStats)
+    deferred.defer(_ProcessPinpointJobs)
 
 
 def _FetchCompletedPinpointJobs(start_date):
@@ -175,7 +177,7 @@ def _FetchPerformancePinpointJobs(start_date, end_date):
   raise ndb.Return(total_jobs)
 
 
-@ndb.tasklet
+@ndb.synctasklet
 def _ProcessPinpointStats(offset=0):
   end_date = datetime.datetime.now() - datetime.timedelta(days=offset)
   start_date = end_date - datetime.timedelta(days=7)
@@ -288,19 +290,6 @@ def _ProcessPinpointStats(offset=0):
 
 
 @ndb.synctasklet
-def _FetchDashboardStats():
-  process_alerts_future = _ProcessAlerts()
-
-  completed_jobs = _FetchCompletedPinpointJobs(
-      datetime.datetime.now() - datetime.timedelta(days=14))
-
-  yield [
-      _ProcessPinpointStats(),
-      _ProcessPinpointJobs(completed_jobs),
-      process_alerts_future]
-
-
-@ndb.tasklet
 def _ProcessAlerts():
   sheriff = ndb.Key('Sheriff', 'Chromium Perf Sheriff')
   ts_start = datetime.datetime.now() - datetime.timedelta(days=1)
@@ -349,8 +338,11 @@ def _ProcessAlertsForBot(bot_name, alerts):
       add_histograms.ProcessHistogramSet, hs.AsDicts())
 
 
-@ndb.tasklet
-def _ProcessPinpointJobs(jobs_and_commits):
+@ndb.synctasklet
+def _ProcessPinpointJobs():
+  jobs_and_commits = yield _FetchCompletedPinpointJobs(
+      datetime.datetime.now() - datetime.timedelta(days=14))
+
   job_results = yield [_FetchStatsForJob(j, c) for j, c in jobs_and_commits]
   job_results = [j for j in job_results if j]
   if not job_results:

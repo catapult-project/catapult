@@ -116,13 +116,14 @@ class TestCase(unittest.TestCase):
             self.ExecuteTaskQueueTasks(handler_name, task_queue_name))
     return responses
 
-  def ExecuteDeferredTasks(self, task_queue_name):
+  def ExecuteDeferredTasks(self, task_queue_name, recurse=True):
     task_queue = self.testbed.get_stub(testbed.TASKQUEUE_SERVICE_NAME)
     tasks = task_queue.GetTasks(task_queue_name)
     task_queue.FlushQueue(task_queue_name)
     for task in tasks:
       deferred.run(base64.b64decode(task['body']))
-      self.ExecuteDeferredTasks(task_queue_name)
+      if recurse:
+        self.ExecuteDeferredTasks(task_queue_name)
 
   def GetTaskQueueTasks(self, task_queue_name):
     task_queue = self.testbed.get_stub(testbed.TASKQUEUE_SERVICE_NAME)
