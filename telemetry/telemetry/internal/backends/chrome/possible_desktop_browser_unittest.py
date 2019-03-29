@@ -6,14 +6,8 @@ import os
 import shutil
 import tempfile
 import unittest
-import mock
 
-from pyfakefs import fake_filesystem_unittest
-
-from telemetry import decorators
 from telemetry.internal.backends.chrome import desktop_browser_finder
-from telemetry.internal.backends.chrome import desktop_browser_backend
-from telemetry.internal.browser import browser
 from telemetry.internal.browser import browser_options
 
 class PossibleDesktopBrowserTest(unittest.TestCase):
@@ -28,64 +22,6 @@ class PossibleDesktopBrowserTest(unittest.TestCase):
     profile_dir = self._finder_options.browser_options.profile_dir
     if profile_dir and os.path.exists(profile_dir):
       shutil.rmtree(self._finder_options.chrome_root, ignore_errors=True)
-
-  @decorators.Disabled('android')
-  def testCreate_Retries_DevToolsActivePort(self):
-    """Tests that the retries that Create() does delete the devtools file.
-
-    If the retries do not delete this file, then we can have a race condition
-    between a second run of Chrome creating overwriting the last run's file
-    and Telemetry finding it.
-    """
-    self.assertGreater(
-        desktop_browser_finder._BROWSER_STARTUP_TRIES, 1,
-        "This test should be deleted if we turn off retries.")
-    fs_patcher = fake_filesystem_unittest.Patcher()
-    fs_patcher.setUp()
-    try:
-      possible_browser = desktop_browser_finder.PossibleDesktopBrowser(
-          'exact', None, None, None, None, None)
-      fake_options = mock.MagicMock()
-      possible_browser.GetBrowserStartupArgs = mock.MagicMock()
-      desktop_browser_backend.DesktopBrowserBackend = mock.MagicMock()
-
-      # It is necessary to put the "run" variable inside self.
-      # Otherwise I get an UnboundLocalError inside the function when I try
-      # to increment it.
-      # This can be replaced by using "nonlocal" once we move to python3.
-      self.run = 0
-
-      def FakeBrowserInit_FailUntilLastTry(*args, **kwargs):
-        del args
-        del kwargs
-        self.assertTrue(possible_browser._profile_directory)
-        self.assertTrue(desktop_browser_backend.DEVTOOLS_ACTIVE_PORT_FILE)
-        devtools_file_path = os.path.join(
-            possible_browser._profile_directory,
-            desktop_browser_backend.DEVTOOLS_ACTIVE_PORT_FILE)
-        self.assertFalse(
-            os.path.exists(devtools_file_path),
-            "SetUpEnvironment should delete the devtools file")
-        fs_patcher.fs.CreateFile(devtools_file_path)
-        self.assertTrue(
-            os.path.exists(devtools_file_path),
-            "Smoke check to make sure that CreateFile worked")
-        self.run += 1
-        if self.run < desktop_browser_finder._BROWSER_STARTUP_TRIES:
-          raise Exception
-
-      browser.Browser = mock.MagicMock(
-          side_effect=FakeBrowserInit_FailUntilLastTry)
-      fake_options.dont_override_profile = False
-      fake_options.profile_dir = None
-      possible_browser.SetUpEnvironment(fake_options)
-
-      possible_browser.Create()
-
-      self.assertEqual(self.run,
-                       desktop_browser_finder._BROWSER_STARTUP_TRIES)
-    finally:
-      fs_patcher.tearDown()
 
   def testCopyProfileFilesSimple(self):
     source_path = os.path.join(self._finder_options.chrome_root, 'AUTHORS')
