@@ -188,11 +188,15 @@ class BugCommentTest(test.TestCase):
     j.Start()
     j.Run()
 
+    self.ExecuteDeferredTasks('default')
+
     self.assertFalse(self.add_bug_comment.called)
 
   def testStarted(self):
     j = job.Job.New((), (), bug_id=123456)
     j.Start()
+
+    self.ExecuteDeferredTasks('default')
 
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_STARTED, send_email=False)
@@ -201,12 +205,16 @@ class BugCommentTest(test.TestCase):
     j = job.Job.New((), (), bug_id=123456)
     j.Run()
 
+    self.ExecuteDeferredTasks('default')
+
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_NO_COMPARISON)
 
   def testCompletedNoDifference(self):
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
+
+    self.ExecuteDeferredTasks('default')
 
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_NO_DIFFERENCES)
@@ -231,6 +239,8 @@ class BugCommentTest(test.TestCase):
 
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
+
+    self.ExecuteDeferredTasks('default')
 
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_COMMIT,
@@ -259,6 +269,8 @@ class BugCommentTest(test.TestCase):
 
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
+
+    self.ExecuteDeferredTasks('default')
 
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_COMMIT,
@@ -295,6 +307,8 @@ class BugCommentTest(test.TestCase):
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
 
+    self.ExecuteDeferredTasks('default')
+
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_COMMIT,
         status='Assigned', owner='author@chromium.org',
@@ -321,6 +335,8 @@ class BugCommentTest(test.TestCase):
 
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
+
+    self.ExecuteDeferredTasks('default')
 
     self.assertFalse(self.add_bug_comment.called)
 
@@ -356,6 +372,8 @@ class BugCommentTest(test.TestCase):
 
     j.Run()
 
+    self.ExecuteDeferredTasks('default')
+
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_COMMIT_AND_DOCS,
         status='Assigned', owner='author@chromium.org',
@@ -382,6 +400,8 @@ class BugCommentTest(test.TestCase):
 
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
+
+    self.ExecuteDeferredTasks('default')
 
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_PATCH,
@@ -412,8 +432,10 @@ class BugCommentTest(test.TestCase):
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
 
+    self.ExecuteDeferredTasks('default')
+
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_WITH_PATCH,
+        123456, _COMMENT_COMPLETED_WITH_PATCH, owner=None, status=None,
         cc_list=['author@chromium.org'], merge_issue=None)
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
@@ -439,8 +461,10 @@ class BugCommentTest(test.TestCase):
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
 
+    self.ExecuteDeferredTasks('default')
+
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_WITH_PATCH,
+        123456, _COMMENT_COMPLETED_WITH_PATCH, owner=None, status=None,
         cc_list=['author@chromium.org'], merge_issue=None)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
@@ -476,6 +500,8 @@ class BugCommentTest(test.TestCase):
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
 
+    self.ExecuteDeferredTasks('default')
+
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_TWO_DIFFERENCES,
         status='Assigned', owner='author2@chromium.org',
@@ -505,6 +531,8 @@ class BugCommentTest(test.TestCase):
     j.put()
     j.Run()
 
+    self.ExecuteDeferredTasks('default')
+
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT,
         status='Assigned', owner='sheriff@bar.com',
@@ -518,6 +546,8 @@ class BugCommentTest(test.TestCase):
     with self.assertRaises(AssertionError):
       j.Run()
 
+    self.ExecuteDeferredTasks('default')
+
     self.add_bug_comment.assert_called_once_with(123456, _COMMENT_FAILED)
 
   @mock.patch('dashboard.services.gerrit_service.PostChangeComment')
@@ -525,6 +555,8 @@ class BugCommentTest(test.TestCase):
     j = job.Job.New(
         (), (), gerrit_server='https://review.com', gerrit_change_id='123456')
     j.Run()
+
+    self.ExecuteDeferredTasks('default')
 
     post_change_comment.assert_called_once_with(
         'https://review.com', '123456', _COMMENT_CODE_REVIEW)

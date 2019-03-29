@@ -10,6 +10,7 @@ import uuid
 
 from google.appengine.api import datastore_errors
 from google.appengine.api import taskqueue
+from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 from google.appengine.runtime import apiproxy_errors
 
@@ -40,6 +41,9 @@ OPTION_TAGS = 'TAGS'
 
 
 COMPARISON_MODES = job_state.COMPARISON_MODES
+
+RETRY_OPTIONS = taskqueue.TaskRetryOptions(task_retry_limit=8,
+                                           min_backoff_seconds=2)
 
 
 def JobFromId(job_id):
@@ -215,7 +219,9 @@ class Job(ndb.Model):
 
     title = _ROUND_PUSHPIN + ' Pinpoint job started.'
     comment = '\n'.join((title, self.url))
-    self._PostBugComment(comment, send_email=False)
+    deferred.defer(
+        _PostBugCommentDeferred, self.bug_id, comment, send_email=False,
+        _retry_options=RETRY_OPTIONS)
 
   def _Complete(self):
     if self.comparison_mode:
@@ -233,7 +239,9 @@ class Job(ndb.Model):
     if not self.comparison_mode:
       # There is no comparison metric.
       title = "<b>%s Job complete. See results below.</b>" % _ROUND_PUSHPIN
-      self._PostBugComment('\n'.join((title, self.url)))
+      deferred.defer(
+          _PostBugCommentDeferred, self.bug_id, '\n'.join((title, self.url)),
+          _retry_options=RETRY_OPTIONS)
       return
 
     # There is a comparison metric.
@@ -241,7 +249,9 @@ class Job(ndb.Model):
 
     if not differences:
       title = "<b>%s Couldn't reproduce a difference.</b>" % _ROUND_PUSHPIN
-      self._PostBugComment('\n'.join((title, self.url)))
+      deferred.defer(
+          _PostBugCommentDeferred, self.bug_id, '\n'.join((title, self.url)),
+          _retry_options=RETRY_OPTIONS)
       return
 
     # Include list of Changes.
@@ -267,28 +277,13 @@ class Job(ndb.Model):
           commit_infos[0]['git_hash'])
 
     owner, sheriff, cc_list = self._ComputePostOwnerSheriffCCList(commit_infos)
-    merge_details, cc_list = self._ComputePostMergeDetails(
-        commit_cache_key, cc_list)
-
     # Bring it all together.
     comment = self._FormatComment(difference_details, commit_infos, sheriff)
 
-    current_bug_status = self._GetBugStatus()
-    if not current_bug_status:
-      return
-
-    if current_bug_status in ['Untriaged', 'Unconfirmed', 'Available']:
-      # Set the bug status and owner if this bug is opened and unowned.
-      self._PostBugComment(comment, status='Assigned',
-                           cc_list=sorted(cc_list), owner=owner,
-                           merge_issue=merge_details.get('id'))
-    else:
-      # Only update the comment and cc list if this bug is assigned or closed.
-      self._PostBugComment(comment, cc_list=sorted(cc_list),
-                           merge_issue=merge_details.get('id'))
-
-    update_bug_with_results.UpdateMergeIssue(
-        commit_cache_key, merge_details, self.bug_id)
+    deferred.defer(
+        _UpdatePostAndMergeDeferred,
+        comment, commit_cache_key, self.bug_id, cc_list, owner,
+        _retry_options=RETRY_OPTIONS)
 
   def _FormatComment(self, difference_details, commit_infos, sheriff):
     if len(difference_details) == 1:
@@ -316,17 +311,6 @@ class Job(ndb.Model):
     # Bring it all together.
     comment = '\n\n'.join((header, body, footer))
     return comment
-
-  def _ComputePostMergeDetails(self, commit_cache_key, cc_list):
-    merge_details = {}
-    if commit_cache_key:
-      issue_tracker = issue_tracker_service.IssueTrackerService(
-          utils.ServiceAccountHttp())
-      merge_details = update_bug_with_results.GetMergeIssueDetails(
-          issue_tracker, commit_cache_key)
-      if merge_details['id']:
-        cc_list = []
-    return merge_details, cc_list
 
   def _ComputePostOwnerSheriffCCList(self, commit_infos):
     owner = None
@@ -369,10 +353,12 @@ class Job(ndb.Model):
 
   def _UpdateGerritIfNeeded(self):
     if self.gerrit_server and self.gerrit_change_id:
-      gerrit_service.PostChangeComment(
+      deferred.defer(
+          _UpdateGerritDeferred,
           self.gerrit_server,
           self.gerrit_change_id,
-          '%s Job complete.\n\nSee results at: %s' % (_ROUND_PUSHPIN, self.url))
+          '%s Job complete.\n\nSee results at: %s' % (_ROUND_PUSHPIN, self.url),
+          _retry_options=RETRY_OPTIONS)
 
   def Fail(self, exception=None):
     if exception:
@@ -388,11 +374,12 @@ class Job(ndb.Model):
     elif self.exception:
       exc_message = self.exception.splitlines()[-1]
 
-    comment = '\n'.join((title, self.url, '', exc_message))
-
     self.task = None
 
-    self._PostBugComment(comment)
+    comment = '\n'.join((title, self.url, '', exc_message))
+    deferred.defer(
+        _PostBugCommentDeferred, self.bug_id, comment,
+        _retry_options=RETRY_OPTIONS)
 
   def _Schedule(self, countdown=_TASK_INTERVAL):
     # Set a task name to deduplicate retries. This adds some latency, but we're
@@ -505,25 +492,69 @@ class Job(ndb.Model):
       d['tags'] = {'tags': self.tags}
     return d
 
-  def _PostBugComment(self, *args, **kwargs):
-    if not self.bug_id:
-      return
 
-    issue_tracker = issue_tracker_service.IssueTrackerService(
-        utils.ServiceAccountHttp())
-    issue_tracker.AddBugComment(self.bug_id, *args, **kwargs)
+def _GetBugStatus(issue_tracker, bug_id):
+  if not bug_id:
+    return None
 
-  def _GetBugStatus(self):
-    if not self.bug_id:
-      return None
+  issue_data = issue_tracker.GetIssue(bug_id)
+  if not issue_data:
+    return None
 
-    issue_tracker = issue_tracker_service.IssueTrackerService(
-        utils.ServiceAccountHttp())
-    issue_data = issue_tracker.GetIssue(self.bug_id)
-    if not issue_data:
-      return None
+  return issue_data.get('status')
 
-    return issue_data.get('status')
+
+def _ComputePostMergeDetails(issue_tracker, commit_cache_key, cc_list):
+  merge_details = {}
+  if commit_cache_key:
+    merge_details = update_bug_with_results.GetMergeIssueDetails(
+        issue_tracker, commit_cache_key)
+    if merge_details['id']:
+      cc_list = []
+  return merge_details, cc_list
+
+
+def _PostBugCommentDeferred(bug_id, *args, **kwargs):
+  if not bug_id:
+    return
+
+  issue_tracker = issue_tracker_service.IssueTrackerService(
+      utils.ServiceAccountHttp())
+  issue_tracker.AddBugComment(bug_id, *args, **kwargs)
+
+
+def _UpdatePostAndMergeDeferred(
+    comment, commit_cache_key, bug_id, cc_list, owner):
+  if not bug_id:
+    return
+
+  issue_tracker = issue_tracker_service.IssueTrackerService(
+      utils.ServiceAccountHttp())
+
+  merge_details, cc_list = _ComputePostMergeDetails(
+      issue_tracker, commit_cache_key, cc_list)
+
+  current_bug_status = _GetBugStatus(issue_tracker, bug_id)
+  if not current_bug_status:
+    return
+
+  status = None
+  bug_owner = None
+  if current_bug_status in ['Untriaged', 'Unconfirmed', 'Available']:
+    # Set the bug status and owner if this bug is opened and unowned.
+    status = 'Assigned'
+    bug_owner = owner
+
+  issue_tracker.AddBugComment(bug_id, comment, status=status,
+                              cc_list=sorted(cc_list), owner=bug_owner,
+                              merge_issue=merge_details.get('id'))
+
+  update_bug_with_results.UpdateMergeIssue(
+      commit_cache_key, merge_details, bug_id)
+
+
+def _UpdateGerritDeferred(*args, **kwargs):
+  gerrit_service.PostChangeComment(*args, **kwargs)
 
 
 def _FormatDifferenceForBug(commit_info, values_a, values_b, metric):
