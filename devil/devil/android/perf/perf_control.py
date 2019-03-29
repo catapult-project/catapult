@@ -30,6 +30,16 @@ _PERFORMANCE_MODE_DEFINITIONS = {
   },
   # Pixel 3
   'blueline': {
+     'high_perf_mode': {
+       'bring_cpu_cores_online': True,
+       # The SoC is Arm big.LITTLE. The cores 0..3 are LITTLE, the 4..7 are big.
+       'cpu_max_freq': {'0..3': 1228800, '4..7': 1536000},
+       'gpu_max_freq': 520000000,
+     },
+     'default_mode': {
+       'cpu_max_freq': {'0..3': 1766400, '4..7': 2649600},
+       'gpu_max_freq': 710000000,
+     },
     'default_mode_governor': 'schedutil',
   },
   'GT-I9300': {
@@ -40,6 +50,16 @@ _PERFORMANCE_MODE_DEFINITIONS = {
   },
   # Pixel
   'msm8996': {
+     'high_perf_mode': {
+       'bring_cpu_cores_online': True,
+       'cpu_max_freq': 1209600,
+       'gpu_max_freq': 315000000,
+     },
+     'default_mode': {
+       # The SoC is Arm big.LITTLE. The cores 0..1 are LITTLE, the 2..3 are big.
+       'cpu_max_freq': {'0..1': 1593600, '2..3': 2150400},
+       'gpu_max_freq': 624000000,
+     },
     'default_mode_governor': 'sched',
   },
   'Nexus 7': {
