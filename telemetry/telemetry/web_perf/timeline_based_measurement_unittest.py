@@ -366,8 +366,9 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
 
   # TODO(ksakamoto): enable this in reference once the reference build of
   # telemetry is updated.
+  # Disabled on all platforms due to flakiness: https://crbug.com/947269.
   @decorators.Disabled('reference')
-  @decorators.Disabled('chromeos')
+  @decorators.Disabled('all')
   def testFirstPaintMetricSmoke(self):
     ps = self.CreateEmptyPageSet()
     ps.AddStory(TestTimelinebasedMeasurementPage(ps, ps.base_dir))
