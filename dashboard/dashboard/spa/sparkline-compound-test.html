@@ -68,7 +68,10 @@ suite('sparkline-compound', function() {
 
     fixture('test').dispatch(Redux.CHAIN(
         Redux.ENSURE('test'),
-        Redux.UPDATE('test', cp.SparklineCompound.buildState({}))));
+        Redux.UPDATE('test', {
+          ...cp.SparklineCompound.buildState({}),
+          chartLayout: {},
+        })));
   });
   teardown(() => {
     window.fetch = originalFetch;

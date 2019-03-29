@@ -119,7 +119,7 @@ found in the LICENSE file.
           <template is="dom-repeat" items="[[filterBugs_(recentPerformanceBugs, onlyIntersectingBugs, selectedRange)]]" as="bug" index-as="bugIndex">
             <tr>
               <td class="bug_id"
-                  on-click="onRecentPerformanceBugTap_"
+                  on-click="onRecentPerformanceBugClick_"
                   tabindex="0">
                 [[bug.id]]
               </td>

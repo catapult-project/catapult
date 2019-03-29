@@ -5,13 +5,13 @@
 
 :root {
   --layer-menu: 100;
+  --layer-drawer: 200;
   --layer-hidden: -100;
-  --font-size: 13px;
   --icon-size: 24px;
 
   /* https://material.io/guidelines/motion/material-motion.html#material-motion-how-does-material-move */
-  --transition-long: 0.8s;
-  --transition-short: 0.4s;
+  --transition-long: 0.5s;
+  --transition-short: 0.3s;
 
   --primary-color-dark: hsl(231, 48%, 48%);
   --primary-color-medium: hsl(231, 45%, 84%);
@@ -32,8 +32,12 @@
                  0 2px 4px -1px rgba(0, 0, 0, 0.4);
 }
 
+:root, body, chromeperf-app {
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: helvetica,arial,sans-serif;
-  font-size: var(--font-size);
+  font-size: 13px;
 }

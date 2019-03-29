@@ -21,6 +21,14 @@ tr.exportTo('cp', () => {
       this.route = {prefix: '', path: this.reduxRoutePath};
     }
 
+    observeAppRoute_() {
+      if (!this.readied) return;
+      if (this.route.path === '') {
+        this.dispatch('reset', this.statePath);
+        return;
+      }
+    }
+
     async onUserUpdate_() {
       await this.dispatch('userUpdate', this.statePath);
     }
@@ -136,6 +144,7 @@ tr.exportTo('cp', () => {
 
   ChromeperfApp.observers = [
     'observeReduxRoute_(reduxRoutePath)',
+    'observeAppRoute_(route)',
     ('observeSections_(showingReportSection, reportSection, ' +
      'alertsSectionsById, chartSectionsById)'),
   ];
@@ -255,7 +264,8 @@ tr.exportTo('cp', () => {
         return;
       }
 
-      if (routeParams.get('sheriff') !== null ||
+      if (routeParams.get('alerts') !== null ||
+          routeParams.get('sheriff') !== null ||
           routeParams.get('bug') !== null ||
           routeParams.get('ar') !== null) {
         const options = cp.AlertsSection.newStateOptionsFromQueryParams(
@@ -359,7 +369,7 @@ tr.exportTo('cp', () => {
 
     reset: statePath => async(dispatch, getState) => {
       cp.ReportSection.actions.restoreState(`${statePath}.reportSection`, {
-        sources: [cp.ReportSection.DEFAULT_NAME]
+        sources: [cp.ReportControls.DEFAULT_NAME]
       })(dispatch, getState);
       dispatch(Redux.CHAIN(
           Redux.UPDATE(statePath, {showingReportSection: true}),

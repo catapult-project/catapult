@@ -8,13 +8,14 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/spa/alerts-controls.html">
 <link rel="import" href="/dashboard/spa/alerts-request.html">
 <link rel="import" href="/dashboard/spa/alerts-table.html">
+<link rel="import" href="/dashboard/spa/chart-compound.html">
 <link rel="import" href="/dashboard/spa/cp-loading.html">
 <link rel="import" href="/dashboard/spa/element-base.html">
 <link rel="import" href="/dashboard/spa/existing-bug-request.html">
+<link rel="import" href="/dashboard/spa/group-alerts.html">
 <link rel="import" href="/dashboard/spa/new-bug-request.html">
 <link rel="import" href="/dashboard/spa/triage-existing.html">
 <link rel="import" href="/dashboard/spa/triage-new.html">
-<link rel="import" href="/dashboard/static/group_alerts.html">
 <link rel="import" href="/tracing/value/legacy_unit_info.html">
 
 <dom-module id="alerts-section">
@@ -56,15 +57,15 @@ found in the LICENSE file.
         on-sources="onSources_">
     </alerts-controls>
 
-    <cp-loading loading$="[[isLoading]]">
+    <cp-loading loading$="[[isLoading_(isLoading, preview.isLoading)]]">
     </cp-loading>
 
     <template is="dom-if" if="[[!isEmpty_(alertGroups)]]">
       <div id="triage_controls"
            anySelected$="[[!isEqual_(0, selectedAlertsCount)]]">
         <div id="count">
-          [[selectedAlertsCount]] selected
-          alert[[plural_(selectedAlertsCount)]]
+          [[selectedAlertsCount]] selected of
+          [[summary_(showingTriaged, alertGroups)]]
         </div>
 
         <span style="position: relative;">
@@ -111,11 +112,19 @@ found in the LICENSE file.
 
     <alerts-table
         state-path="[[statePath]]"
-        on-select-alert="onSelectAlert_"
-        on-sort="onSort_">
+        on-selected="onSelected_"
+        on-alert-click="onAlertClick_">
     </alerts-table>
 
-    <!-- TODO chart-complex -->
+    <iron-collapse opened="[[!allTriaged_(alertGroups, showingTriaged)]]">
+      <chart-compound
+          id="preview"
+          state-path="[[statePath]].preview"
+          linked-state-path="[[linkedStatePath]]"
+          on-line-count-change="onPreviewLineCountChange_">
+        Select alerts using the checkboxes in the table above to preview their timeseries.
+      </chart-compound>
+    </iron-collapse>
   </template>
 </dom-module>
 <script src="/dashboard/spa/alerts-section.js"></script>

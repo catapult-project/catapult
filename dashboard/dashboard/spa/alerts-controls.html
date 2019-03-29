@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/dashboard/spa/alerts-table.html">
 <link rel="import" href="/dashboard/spa/cp-icons.html">
 <link rel="import" href="/dashboard/spa/cp-switch.html">
 <link rel="import" href="/dashboard/spa/element-base.html">
@@ -23,16 +24,16 @@ found in the LICENSE file.
         margin-bottom: 8px;
       }
 
-      #sheriff {
-        width: 350px;
-      }
-
       #sheriff-container,
       #bug-container,
       #report-container,
-      #min-revision,
-      #max-revision {
+      #report,
+      #min-revision {
         margin-right: 8px;
+      }
+
+      #report-container {
+        display: flex;
       }
 
       #triaged {
@@ -40,9 +41,8 @@ found in the LICENSE file.
         margin-right: 8px;
       }
 
-      #summary {
+      #spacer {
         flex-grow: 1;
-        text-align: center;
       }
 
       #recent-bugs-container {
@@ -65,12 +65,22 @@ found in the LICENSE file.
         padding: 0;
       }
 
-      #close {
-        align-self: flex-start;
+      #filter[enabled] {
+        background-color: var(--primary-color-dark, blue);
+        border-radius: 50%;
+        color: var(--background-color, white);
+        padding: 4px;
+      }
+
+      iron-icon {
         cursor: pointer;
         flex-shrink: 0;
         height: var(--icon-size, 1em);
         width: var(--icon-size, 1em);
+      }
+
+      #close {
+        align-self: flex-start;
       }
 
       #edit, #documentation {
@@ -79,57 +89,82 @@ found in the LICENSE file.
       }
     </style>
 
+    <chops-signin-aware on-user-update="onUserUpdate_">
+    </chops-signin-aware>
+
     <iron-collapse
         horizontal
         id="sheriff-container"
-        opened="[[showSheriff_(bug, report)]]">
+        opened="[[showMenuInput_(showEmptyInputs, sheriff, bug, report, minRevision, maxRevision)]]">
       <menu-input
           id="sheriff"
           state-path="[[statePath]].sheriff"
           on-clear="onSheriffClear_"
           on-option-select="onSheriffSelect_">
+        <recommended-options slot="top" state-path="[[statePath]].sheriff">
+        </recommended-options>
       </menu-input>
     </iron-collapse>
 
     <iron-collapse
         horizontal
         id="bug-container"
-        opened="[[showBug_(sheriff, report)]]">
+        opened="[[showMenuInput_(showEmptyInputs, bug, sheriff, report, minRevision, maxRevision)]]">
       <menu-input
           id="bug"
           state-path="[[statePath]].bug"
           on-clear="onBugClear_"
           on-input-keyup="onBugKeyup_"
           on-option-select="onBugSelect_">
+        <recommended-options slot="top" state-path="[[statePath]].bug">
+        </recommended-options>
       </menu-input>
     </iron-collapse>
 
     <iron-collapse
         horizontal
         id="report-container"
-        opened="[[showReport_(sheriff, bug)]]">
+        opened="[[showMenuInput_(showEmptyInputs, report, sheriff, bug, minRevision, maxRevision)]]">
       <menu-input
           id="report"
           state-path="[[statePath]].report"
           on-clear="onReportClear_"
-          on-input-keyup="onReportKeyup_"
           on-option-select="onReportSelect_">
+        <recommended-options slot="top" state-path="[[statePath]].report">
+        </recommended-options>
       </menu-input>
     </iron-collapse>
 
-    <cp-input
-        id="min-revision"
-        value="[[minRevision]]"
-        label="Min Revision"
-        on-keyup="onMinRevisionKeyup_">
-    </cp-input>
+    <iron-collapse
+        horizontal
+        id="sheriff-container"
+        opened="[[showInput_(showEmptyInputs, minRevision, maxRevision, sheriff, bug, report)]]">
+      <cp-input
+          id="min-revision"
+          value="[[minRevision]]"
+          label="Min Revision"
+          on-keyup="onMinRevisionKeyup_">
+      </cp-input>
+    </iron-collapse>
 
-    <cp-input
-        id="max-revision"
-        value="[[maxRevision]]"
-        label="Max Revision"
-        on-keyup="onMaxRevisionKeyup_">
-    </cp-input>
+    <iron-collapse
+        horizontal
+        id="sheriff-container"
+        opened="[[showInput_(showEmptyInputs, minRevision, maxRevision, sheriff, bug, report)]]">
+      <cp-input
+          id="max-revision"
+          value="[[maxRevision]]"
+          label="Max Revision"
+          on-keyup="onMaxRevisionKeyup_">
+      </cp-input>
+    </iron-collapse>
+
+    <iron-icon
+        id="filter"
+        icon="cp:filter"
+        enabled$="[[showEmptyInputs]]"
+        on-click="onFilter_">
+    </iron-icon>
 
     <cp-switch
         id="improvements"
@@ -157,17 +192,13 @@ found in the LICENSE file.
       </template>
     </cp-switch>
 
-    <span id="summary">
-      <template is="dom-if" if="[[!areAlertGroupsPlaceholders]]">
-        [[summary_(showingTriaged, alertGroups)]]
-      </template>
-    </span>
+    <span id=spacer></span>
 
     <span id="recent-bugs-container">
       <raised-button
           id="recent-bugs"
           disabled$="[[isEmpty_(recentlyModifiedBugs)]]"
-          on-click="onTapRecentlyModifiedBugs_">
+          on-click="onClickRecentlyModifiedBugs_">
         Recent Bugs
       </raised-button>
 

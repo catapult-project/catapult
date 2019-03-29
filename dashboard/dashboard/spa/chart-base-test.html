@@ -29,6 +29,67 @@ suite('chart-base', function() {
     document.documentElement.style.minWidth = 0;
   });
 
+  test('mouse-leave-main', async function() {
+    const chart = fixture('test');
+    chart.dispatch(Redux.UPDATE('test', cp.ChartBase.buildState({
+      showTooltip: true,
+      lines: [
+        {
+          path: 'M0,0 L100,100',
+          color: 'red',
+          strokeWidth: 1,
+          shadePoints: '0,50 50,100 100,50',
+          shadeFill: 'hsla(0, 50%, 50%, 0.5)',
+          data: [
+            {xPct: 0, yPct: 0},
+            {xPct: 100, yPct: 100},
+          ],
+        },
+      ],
+    })));
+    chart.$.main.style.setProperty('--mouse', 'inside');
+    let mouseLeftEvents = 0;
+    chart.addEventListener('mouse-leave-main', e => {
+      ++mouseLeftEvents;
+    });
+    let getTooltipEvents = 0;
+    chart.addEventListener('get-tooltip', e => {
+      ++getTooltipEvents;
+    });
+
+    // onMouseMoveMain_ debounces after an animationFrame, so wait for 2 frames
+    // to make sure the debounce happens.
+
+    const mouseEvent = new CustomEvent('mousemove');
+    mouseEvent.x = 0;
+    mouseEvent.y = 0;
+    chart.$.main.dispatchEvent(mouseEvent);
+    assert.strictEqual(0, mouseLeftEvents);
+    assert.strictEqual(0, getTooltipEvents);
+    await cp.animationFrame();
+    await cp.animationFrame();
+    assert.strictEqual(0, mouseLeftEvents);
+    assert.strictEqual(1, getTooltipEvents);
+
+    mouseEvent.x = 500;
+    mouseEvent.y = 500;
+    chart.$.main.dispatchEvent(mouseEvent);
+    chart.$.main.dispatchEvent(mouseEvent);
+    chart.$.main.dispatchEvent(mouseEvent);
+    assert.strictEqual(0, mouseLeftEvents);
+    assert.strictEqual(1, getTooltipEvents);
+    await cp.animationFrame();
+    await cp.animationFrame();
+    assert.strictEqual(0, mouseLeftEvents);
+    assert.strictEqual(2, getTooltipEvents);
+
+    chart.$.main.style.setProperty('--mouse', 'outside');
+    await cp.animationFrame();
+    await cp.animationFrame();
+    assert.strictEqual(1, mouseLeftEvents);
+    assert.strictEqual(2, getTooltipEvents);
+  });
+
   test('boldLine', async function() {
     const chart = fixture('test');
     chart.dispatch(Redux.UPDATE('test', cp.ChartBase.buildState({
@@ -40,7 +101,7 @@ suite('chart-base', function() {
           shadePoints: '0,50 50,100 100,50',
           shadeFill: 'hsla(0, 50%, 50%, 0.5)',
           data: [
-            {xPct: '50%', yPct: '50%', icon: 'cp:error', iconColor: 'blue'},
+            {xPct: 50, yPct: 50, icon: 'cp:error', iconColor: 'blue'},
           ],
         },
         {
@@ -128,7 +189,7 @@ suite('chart-base', function() {
           shadePoints: '0,50 50,100 100,50',
           shadeFill: 'hsla(0, 50%, 50%, 0.5)',
           data: [
-            {xPct: '50%', yPct: '50%', icon: 'cp:error', iconColor: 'blue'},
+            {xPct: 50, yPct: 50, icon: 'cp:error', iconColor: 'blue'},
           ],
         },
         {
@@ -174,7 +235,8 @@ suite('chart-base', function() {
 
     assert.strictEqual('50%', chart.$.tooltip.style.left);
     assert.strictEqual('50%', chart.$.tooltip.style.top);
-    assert.strictEqual('purple', chart.$.tooltip.style.borderColor);
+    assert.strictEqual('purple',
+        chart.$.tooltip.querySelector('table').style.borderColor);
     assert.strictEqual('flex', getComputedStyle(chart.$.tooltip).display);
 
     assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>

@@ -67,6 +67,11 @@ suite('report-table', function() {
     await cp.afterRender();
     await cp.afterRender();
     assert.deepEqual(report.tooltip.rows, [['suite', 'bot', 'case']]);
+    const reportRect = report.getBoundingClientRect();
+    assert.strictEqual(report.tooltip.top,
+        tr.children[0].getBoundingClientRect().bottom - reportRect.top);
+    assert.strictEqual(report.tooltip.left,
+        tr.children[3].getBoundingClientRect().left - reportRect.left);
 
     const a = tr.children[0].children[0];
     let chartOptions;

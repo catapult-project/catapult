@@ -309,8 +309,8 @@ tr.exportTo('cp', () => {
       const relatedTabs = [];
       const parameterMatrix = cp.SparklineCompound.parameterMatrix(state);
       const revisions = {
-        minRevision: state.minRevision,
-        maxRevision: state.maxRevision,
+        minRevision: state.chartLayout.minRevision,
+        maxRevision: state.chartLayout.maxRevision,
         zeroYAxis: state.zeroYAxis,
         fixedXAxis: state.fixedXAxis,
         mode: state.mode,

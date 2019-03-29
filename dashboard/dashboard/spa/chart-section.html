@@ -142,6 +142,11 @@ found in the LICENSE file.
         </chart-legend>
       </iron-collapse>
     </div>
+
+    <iron-collapse opened="[[isExpanded]]">
+      <sparkline-compound state-path="[[statePath]]">
+      </sparkline-compound>
+    </iron-collapse>
   </template>
 </dom-module>
 <script src="/dashboard/spa/chart-section.js"></script>

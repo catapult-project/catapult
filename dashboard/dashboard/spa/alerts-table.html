@@ -160,12 +160,12 @@ found in the LICENSE file.
 
               <th>
                 <column-head
-                    name="testSuite"
+                    name="suite"
                     sort-column="[[sortColumn]]"
                     sort-descending="[[sortDescending]]"
                     disabled="[[areAlertGroupsPlaceholders]]"
                     on-click="onSort_">
-                  Test Suite
+                  Suite
                 </column-head>
               </th>
 
@@ -204,15 +204,15 @@ found in the LICENSE file.
                 </column-head>
               </th>
 
-              <template is="dom-if" if="[[showTestCaseColumn]]">
+              <template is="dom-if" if="[[showCaseColumn]]">
                 <th>
                   <column-head
-                      name="testCase"
+                      name="case"
                       sort-column="[[sortColumn]]"
                       sort-descending="[[sortDescending]]"
                       disabled="[[areAlertGroupsPlaceholders]]"
                       on-click="onSort_">
-                    Test case
+                    Case
                   </column-head>
                 </th>
               </template>
@@ -245,7 +245,7 @@ found in the LICENSE file.
             <tbody expandedGroup$="[[isExpandedGroup_(alertGroup.isExpanded, alertGroup.triaged.isExpanded)]]">
               <template is="dom-repeat" items="[[alertGroup.alerts]]" as="alert" index-as="alertIndex">
                 <template is="dom-if" if="[[shouldDisplayAlert_(areAlertGroupsPlaceholders, showingTriaged, alertGroup, alertIndex, alertGroup.triaged.isExpanded)]]">
-                  <tr on-click="onRowTap_">
+                  <tr on-click="onRowClick_">
 
                     <td>
                       <template is="dom-if"
@@ -299,13 +299,18 @@ found in the LICENSE file.
                     </template>
 
                     <td>
-                      <a href="[[alertRevisionHref_(alert)]]" target="_blank">
+                      <template is="dom-if" if="[[alertRevisionHref_(alert)]]">
+                        <a href="[[alertRevisionHref_(alert)]]" target="_blank">
+                          [[alertRevisionString_(alert)]]
+                        </a>
+                      </template>
+                      <template is="dom-if" if="[[!alertRevisionHref_(alert)]]">
                         [[alertRevisionString_(alert)]]
-                      </a>
+                      </template>
                     </td>
 
                     <td style$="color: [[alert.color]];">
-                      [[breakWords_(alert.testSuite)]]
+                      [[breakWords_(alert.suite)]]
                     </td>
                     <td style$="color: [[alert.color]];">
                       [[breakWords_(alert.measurement)]]
@@ -321,9 +326,9 @@ found in the LICENSE file.
                       [[alert.bot]]
                     </td>
 
-                    <template is="dom-if" if="[[showTestCaseColumn]]">
+                    <template is="dom-if" if="[[showCaseColumn]]">
                       <td style$="color: [[alert.color]];">
-                        [[breakWords_(alert.testCase)]]
+                        [[breakWords_(alert.case)]]
                       </td>
                     </template>
 

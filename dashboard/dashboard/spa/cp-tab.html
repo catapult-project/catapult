@@ -9,12 +9,15 @@ found in the LICENSE file.
   <template>
     <style>
       :host {
-        border-bottom: 2px solid var(--primary-color-light, lightblue);
+        background-color: var(--primary-color-light, lightblue);
+        border-left: 1px solid var(--primary-color-dark, blue);
+        border-right: 1px solid var(--primary-color-dark, blue);
         cursor: pointer;
         padding: 8px;
       }
       :host([checked]) {
-        border-bottom: 2px solid var(--primary-color-dark, blue);
+        background-color: var(--primary-color-dark, blue);
+        color: var(--background-color, white);
         text-shadow: 1px 0 0 currentColor;
       }
     </style>

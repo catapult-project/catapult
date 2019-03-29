@@ -96,6 +96,7 @@ tr.exportTo('cp', () => {
   ChartSection.State = {
     sectionId: options => options.sectionId || tr.b.GUID.allocateSimple(),
     ...cp.ChartCompound.State,
+    ...cp.SparklineCompound.State,
     descriptor: options => {
       const params = options.parameters || {};
 
@@ -174,7 +175,12 @@ tr.exportTo('cp', () => {
     },
 
     loadTimeseries: statePath => async(dispatch, getState) => {
-      dispatch({type: ChartSection.reducers.loadTimeseries.name, statePath});
+      dispatch(Redux.CHAIN(
+          {type: ChartSection.reducers.loadTimeseries.name, statePath},
+          {
+            type: cp.SparklineCompound.reducers.buildRelatedTabs.name,
+            statePath,
+          }));
 
       const state = Polymer.Path.get(getState(), statePath);
       if (state.selectedLineDescriptorHash) {
@@ -265,9 +271,8 @@ tr.exportTo('cp', () => {
   ChartSection.reducers = {
     loadTimeseries: (state, action, rootState) => {
       const title = ChartSection.computeTitle(state);
-      const legend = ChartSection.buildLegend(
-          cp.SparklineCompound.parameterMatrix(state));
       const parameterMatrix = cp.SparklineCompound.parameterMatrix(state);
+      const legend = ChartSection.buildLegend(parameterMatrix);
       const lineDescriptors = cp.TimeseriesDescriptor.createLineDescriptors(
           parameterMatrix);
       return {

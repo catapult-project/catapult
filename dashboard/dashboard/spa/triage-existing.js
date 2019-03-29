@@ -54,7 +54,7 @@ tr.exportTo('cp', () => {
       await this.dispatch('toggleOnlyIntersectingBugs', this.statePath);
     }
 
-    async onRecentPerformanceBugTap_(event) {
+    async onRecentPerformanceBugClick_(event) {
       await this.dispatch('recentPerformanceBug', this.statePath,
           event.model.bug.id);
       this.$.bug_input.focus();

@@ -29,8 +29,8 @@ suite('alerts-table', function() {
     assert.strictEqual('rgb(128, 128, 128)', getComputedStyle(
         tr.ui.b.findDeepElementMatching(table, 'table')).color);
     const dashes = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
-      e.innerHTML.trim() === cp.AlertsTable.DASHES);
-    assert.lengthOf(dashes, 30);
+      e.innerText && e.innerText.trim() === cp.AlertsTable.DASHES);
+    assert.lengthOf(dashes, 35);
   });
 
   test('allTriaged newAlerts', async function() {

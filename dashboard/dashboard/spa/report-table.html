@@ -95,6 +95,10 @@ found in the LICENSE file.
         position: absolute;
         z-index: var(--layer-hidden);
       }
+
+      iron-icon[hidden] {
+        display: none;
+      }
     </style>
 
     <div class="report_name">
@@ -117,14 +121,13 @@ found in the LICENSE file.
           on-click="onCopy_">
       </iron-icon>
 
-      <template is="dom-if" if="[[canEdit_(userEmail)]]">
-        <iron-icon
-            id="edit"
-            icon="cp:edit"
-            title="Edit template"
-            on-click="onToggleEditing_">
-        </iron-icon>
-      </template>
+      <iron-icon
+          id="edit"
+          hidden$="[[!canEdit_(owners, userEmail)]]"
+          icon="cp:edit"
+          title="Edit template"
+          on-click="onToggleEditing_">
+      </iron-icon>
     </div>
 
     <table id="table" placeholder$="[[isPlaceholder]]">

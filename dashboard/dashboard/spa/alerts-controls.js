@@ -8,41 +8,63 @@ tr.exportTo('cp', () => {
     connectedCallback() {
       super.connectedCallback();
       this.dispatch('connected', this.statePath);
+
+      this.dispatchSources_();
     }
 
-    showSheriff_(bug, report) {
-      return (bug && report &&
-              (bug.selectedOptions.length === 0) &&
-              (report.selectedOptions.length === 0));
+    async onUserUpdate_() {
+      await this.dispatch('loadReportNames', this.statePath);
+      await this.dispatch('loadSheriffs', this.statePath);
     }
 
-    showBug_(sheriff, report) {
-      return (sheriff && report &&
-              (sheriff.selectedOptions.length === 0) &&
-              (report.selectedOptions.length === 0));
+    async onFilter_() {
+      await this.dispatch(Redux.TOGGLE(this.statePath + '.showEmptyInputs'));
     }
 
-    showReport_(sheriff, bug) {
-      return (sheriff && bug &&
-              (sheriff.selectedOptions.length === 0) &&
-              (bug.selectedOptions.length === 0));
+    showMenuInput_(showEmptyInputs, thisInput, thatInput, otherInput,
+        minRevision, maxRevision) {
+      if (showEmptyInputs) return true;
+      if (thisInput && thisInput.selectedOptions.length) return true;
+      if (!thatInput || !otherInput) return true;
+      if (thatInput.selectedOptions.length === 0 &&
+          otherInput.selectedOptions.length === 0 &&
+          !minRevision && !maxRevision) {
+        // Show all inputs when they're all empty.
+        return true;
+      }
+      return false;
+    }
+
+    showInput_(showEmptyInputs, thisInput, thatInput, menuA, menuB, menuC) {
+      if (showEmptyInputs) return true;
+      if (thisInput) return true;
+      if (!menuA || !menuB || !menuC) return true;
+      if (menuA.selectedOptions.length === 0 &&
+          menuB.selectedOptions.length === 0 &&
+          menuC.selectedOptions.length === 0 &&
+          !thatInput) {
+        // Show all inputs when they're all empty.
+        return true;
+      }
+      return false;
+    }
+
+    arePlaceholders_(alertGroups) {
+      return alertGroups === cp.AlertsTable.PLACEHOLDER_ALERT_GROUPS;
     }
 
     crbug_(bugId) {
       return `http://crbug.com/${bugId}`;
     }
 
-    summary_(showingTriaged, alertGroups) {
-      return AlertsControls.summary(showingTriaged, alertGroups);
-    }
-
     async dispatchSources_() {
+      if (!this.sheriff || !this.bug || !this.report) return;
       const sources = await AlertsControls.compileSources(
           this.sheriff.selectedOptions,
           this.bug.selectedOptions,
           this.report.selectedOptions,
           this.minRevision, this.maxRevision,
-          this.showingImprovements);
+          this.showingImprovements, this.showingTriaged);
       this.dispatchEvent(new CustomEvent('sources', {
         bubbles: true,
         composed: true,
@@ -69,6 +91,10 @@ tr.exportTo('cp', () => {
     }
 
     async onBugSelect_(event) {
+      await this.dispatch(Redux.UPDATE(this.statePath, {
+        showingTriaged: true,
+        showingImprovements: true,
+      }));
       this.dispatchSources_();
     }
 
@@ -77,26 +103,26 @@ tr.exportTo('cp', () => {
       this.dispatchSources_();
     }
 
-    async onReportKeyup_(event) {
-      await this.dispatch('onReportKeyup', this.statePath, event.detail.value);
-    }
-
     async onReportSelect_(event) {
       this.dispatchSources_();
     }
 
     async onMinRevisionKeyup_(event) {
-      this.dispatch(Redux.UPDATE(this.statePath, {
-        minRevision: event.detail.value,
+      await this.dispatch(Redux.UPDATE(this.statePath, {
+        minRevision: event.target.value,
       }));
-      this.dispatchSources_();
+      this.debounce('dispatchSources', () => {
+        this.dispatchSources_();
+      }, Polymer.Async.timeOut.after(AlertsControls.TYPING_DEBOUNCE_MS));
     }
 
     async onMaxRevisionKeyup_(event) {
-      this.dispatch(Redux.UPDATE(this.statePath, {
-        maxRevision: event.detail.value,
+      await this.dispatch(Redux.UPDATE(this.statePath, {
+        maxRevision: event.target.value,
       }));
-      this.dispatchSources_();
+      this.debounce('dispatchSources', () => {
+        this.dispatchSources_();
+      }, Polymer.Async.timeOut.after(AlertsControls.TYPING_DEBOUNCE_MS));
     }
 
     async onToggleImprovements_(event) {
@@ -108,7 +134,7 @@ tr.exportTo('cp', () => {
       this.dispatch(Redux.TOGGLE(this.statePath + '.showingTriaged'));
     }
 
-    async onTapRecentlyModifiedBugs_(event) {
+    async onClickRecentlyModifiedBugs_(event) {
       await this.dispatch('toggleRecentlyModifiedBugs', this.statePath);
     }
 
@@ -135,6 +161,8 @@ tr.exportTo('cp', () => {
     }
   }
 
+  AlertsControls.TYPING_DEBOUNCE_MS = 300;
+
   AlertsControls.State = {
     bug: options => cp.MenuInput.buildState({
       label: 'Bug',
@@ -158,9 +186,13 @@ tr.exportTo('cp', () => {
       options: [],
       selectedOptions: options.sheriffs || [],
     }),
+    showEmptyInputs: options => options.showEmptyInputs || false,
+    showingTriaged: options => options.showingTriaged || false,
     showingImprovements: options => options.showingImprovements || false,
     showingRecentlyModifiedBugs: options => false,
     triagedBugId: options => 0,
+    alertGroups: options => options.alertGroups ||
+      cp.AlertsTable.PLACEHOLDER_ALERT_GROUPS,
   };
 
   AlertsControls.observers = [
@@ -174,6 +206,10 @@ tr.exportTo('cp', () => {
   AlertsControls.properties = {
     ...cp.buildProperties('state', AlertsControls.State),
     recentPerformanceBugs: {statePath: 'recentPerformanceBugs'},
+  };
+
+  AlertsControls.properties.areAlertGroupsPlaceholders = {
+    computed: 'arePlaceholders_(alertGroups)',
   };
 
   AlertsControls.actions = {
@@ -205,7 +241,11 @@ tr.exportTo('cp', () => {
         statePath,
         sheriffs,
       });
-      dispatch(cp.MenuInput.actions.focus(statePath + '.sheriff'));
+
+      const state = Polymer.Path.get(getState(), statePath);
+      if (state.sheriff.selectedOptions.length === 0) {
+        dispatch(cp.MenuInput.actions.focus(statePath + '.sheriff'));
+      }
     },
 
     connected: statePath => async(dispatch, getState) => {
@@ -277,21 +317,31 @@ tr.exportTo('cp', () => {
     return isNaN(x) ? undefined : x;
   }
 
+  // Maximum number of alerts to count (not return) when fetching alerts for a
+  // sheriff rotation. When non-zero, /api/alerts returns the number of alerts
+  // that would match the datastore query (up to COUNT_LIMIT) as response.count.
+  // The maximum number of alerts to return from /api/alerts is given by `limit`
+  // in AlertsRequest.
+  // See count_limit in Anomaly.QueryAsync() and totalCount in AlertsSection.
+  const COUNT_LIMIT = 5000;
+
   AlertsControls.compileSources = async(
-    sheriffs, bugs, reports, minRevision, maxRevision, improvements) => {
+    sheriffs, bugs, reports, minRevision, maxRevision, improvements,
+    showingTriaged) => {
     // Returns a list of AlertsRequest bodies. See ../api/alerts.py for
     // request body parameters.
-    const revisions = {
-      min_end_revision: maybeInt(minRevision),
-      max_start_revision: maybeInt(maxRevision),
-    };
+    const revisions = {};
+    minRevision = maybeInt(minRevision);
+    maxRevision = maybeInt(maxRevision);
+    if (minRevision !== undefined) revisions.min_end_revision = minRevision;
+    if (maxRevision !== undefined) revisions.max_start_revision = maxRevision;
     const sources = [];
     for (const sheriff of sheriffs) {
-      sources.push({
-        sheriff,
-        is_improvement: improvements,
-        ...revisions,
-      });
+      const source = {sheriff, recovered: false, ...revisions};
+      source.count_limit = COUNT_LIMIT;
+      source.is_improvement = improvements;
+      if (!showingTriaged) source.bug_id = '';
+      sources.push(source);
     }
     for (const bug of bugs) {
       sources.push({bug_id: bug, ...revisions});
@@ -307,25 +357,10 @@ tr.exportTo('cp', () => {
         }
       }
     }
-    return sources;
-  };
-
-  AlertsControls.summary = (showingTriaged, alertGroups) => {
-    if (!alertGroups) return '';
-    let groups = 0;
-    let total = 0;
-    for (const group of alertGroups) {
-      if (showingTriaged) {
-        ++groups;
-        total += group.alerts.length;
-      } else if (group.alerts.length > group.triaged.count) {
-        ++groups;
-        total += group.alerts.length - group.triaged.count;
-      }
+    if (sources.length === 0 && (minRevision || maxRevision)) {
+      sources.push(revisions);
     }
-    return (
-      `${total} alert${cp.plural(total)} in ` +
-      `${groups} group${cp.plural(groups)}`);
+    return sources;
   };
 
   cp.ElementBase.register(AlertsControls);

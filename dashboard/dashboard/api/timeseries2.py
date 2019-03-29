@@ -200,6 +200,11 @@ class TimeseriesQuery(object):
     if 'revisions' in self._columns or 'annotations' in self._columns:
       return projection, limit
 
+    # Disable projection queries for timestamp for now. There's just an index
+    # for ascending revision, not descending revision with timestamp.
+    if 'timestamp' in self._columns:
+      return projection, limit
+
     # There is no index like (parent_test, -timestamp, revision, value):
     self._ResolveTimestamps()
 

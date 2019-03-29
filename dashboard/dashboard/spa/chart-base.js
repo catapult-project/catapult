@@ -20,6 +20,26 @@ tr.exportTo('cp', () => {
       return ChartBase.antiBrushes(brushes);
     }
 
+    pct_(x) {
+      return x + '%';
+    }
+
+    brushPointSize_(brushSize) {
+      if (Number.isNaN(brushSize)) return 0;
+      return brushSize * 1.5;
+    }
+
+    tickAnchor_(tick) {
+      return tick.anchor || 'middle';
+    }
+
+    onMainClick_(event) {
+      this.dispatchEvent(new CustomEvent('chart-click', {
+        bubbles: true,
+        composed: true,
+      }));
+    }
+
     tooltipHidden_(tooltip) {
       return !tooltip || !tooltip.isVisible || this.isEmpty_(tooltip.rows);
     }
@@ -29,9 +49,17 @@ tr.exportTo('cp', () => {
           '--mouse').includes('inside');
     }
 
-    maybePollMouseLeaveMain_() {
+    async maybePollMouseLeaveMain_() {
       if (this.mouseLeaveMainPoller_) return;
+
       this.mouseLeaveMainPoller_ = this.pollMouseLeaveMain_();
+      await this.mouseLeaveMainPoller_;
+      this.mouseLeaveMainPoller_ = undefined;
+      this.previousNearestPoint = undefined;
+      this.dispatchEvent(new CustomEvent('mouse-leave-main', {
+        bubbles: true,
+        composed: true,
+      }));
     }
 
     async pollMouseLeaveMain_() {
@@ -43,23 +71,6 @@ tr.exportTo('cp', () => {
       while (this.isMouseOverMain) {
         await cp.animationFrame();
       }
-      this.dispatchEvent(new CustomEvent('mouse-leave-main', {
-        bubbles: true,
-        composed: true,
-      }));
-      this.mouseLeaveMainPoller_ = undefined;
-    }
-
-    brushPointSize_(brushSize) {
-      if (Number.isNaN(brushSize)) return 0;
-      return brushSize * 1.5;
-    }
-
-    onMainClick_(event) {
-      this.dispatchEvent(new CustomEvent('chart-click', {
-        bubbles: true,
-        composed: true,
-      }));
     }
 
     async onTrackBrushHandle_(event) {
@@ -197,6 +208,7 @@ tr.exportTo('cp', () => {
   };
 
   ChartBase.getNearestPoint = (pt, rect, lines) => {
+    if (!lines) return {};
     const xPct = tr.b.math.normalize(pt.x, rect.left, rect.right) * 100;
     const yPct = tr.b.math.normalize(pt.y, rect.top, rect.bottom) * 100;
     let nearestPoint;

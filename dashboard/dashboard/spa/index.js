@@ -4,17 +4,18 @@
 */
 'use strict';
 
-window.AUTH_CLIENT_ID =
-  '62121018386-rhk28ad5lbqheinh05fgau3shotl2t6c.apps.googleusercontent.com';
-
 tr.exportTo('window', () => {
-  const DEBUG = location.hostname === 'localhost';
+  const IS_DEBUG = location.hostname === 'localhost';
   const PRODUCTION = 'v2spa-dot-chromeperf.appspot.com';
   const IS_PRODUCTION = location.hostname === PRODUCTION;
 
+  let AUTH_CLIENT_ID =
+    '62121018386-rhk28ad5lbqheinh05fgau3shotl2t6c.apps.googleusercontent.com';
+  if (!IS_PRODUCTION) AUTH_CLIENT_ID = '';
+
   // Register the Service Worker when in production. Service Workers are not
   // helpful in development mode because all backend responses are being mocked.
-  if ('serviceWorker' in navigator && !DEBUG) {
+  if ('serviceWorker' in navigator && !IS_DEBUG) {
     document.addEventListener('DOMContentLoaded', async() => {
       await navigator.serviceWorker.register(
           'service-worker.js?' + VULCANIZED_TIMESTAMP.getTime());
@@ -29,6 +30,8 @@ tr.exportTo('window', () => {
   }
 
   return {
+    AUTH_CLIENT_ID,
+    IS_DEBUG,
     IS_PRODUCTION,
   };
 });

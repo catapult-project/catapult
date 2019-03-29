@@ -148,7 +148,11 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False):
       bug_labels.add('Restrict-View-Google')
     tags = bug_label_patterns.GetBugLabelsForTest(test_key)
     if anomaly_entity.sheriff:
-      tags += anomaly_entity.sheriff.get().labels
+      try:
+        tags += anomaly_entity.sheriff.get().labels
+      except AssertionError:
+        # The Sheriff is internal_only even though the alert isn't.
+        pass
     for tag in tags:
       if tag.startswith('Cr-'):
         bug_components.add(tag.replace('Cr-', '').replace('-', '>'))

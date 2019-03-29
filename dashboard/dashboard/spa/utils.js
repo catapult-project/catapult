@@ -49,6 +49,7 @@ tr.exportTo('cp', () => {
   }
 
   function deepFreeze(o) {
+    if (!o) return o;
     Object.freeze(o);
     for (const [name, value] of Object.entries(o)) {
       if (typeof(value) !== 'object') continue;

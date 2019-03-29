@@ -52,6 +52,10 @@ tr.exportTo('cp', () => {
       this.$.scratch.innerText = '';
     }
 
+    async onToggleEditing_(event) {
+      await this.dispatch(Redux.TOGGLE(this.statePath + '.isEditing'));
+    }
+
     async onOpenChart_(event) {
       event.preventDefault();
 
@@ -111,8 +115,8 @@ tr.exportTo('cp', () => {
       return 2 * this.lengthOf_(statistics);
     }
 
-    canEdit_(userEmail) {
-      return ReportTable.canEdit(table, userEmail);
+    canEdit_(owners, userEmail) {
+      return ReportTable.canEdit(owners, userEmail);
     }
 
     async onEnterRow_(event) {
@@ -125,14 +129,14 @@ tr.exportTo('cp', () => {
         }
       }
       if (!tr) return;
-      const td = tr.querySelector('scalar-span');
+      const td = tr.querySelector('scalar-span').parentNode;
       const tdRect = await cp.measureElement(td);
       const thisRect = await cp.measureElement(this);
       await this.dispatch(Redux.UPDATE(this.statePath, {
         tooltip: {
           rows: event.model.row.actualDescriptors.map(descriptor => [
             descriptor.testSuite, descriptor.bot, descriptor.testCase]),
-          top: (tdRect.bottom - thisRect.bottom),
+          top: (tdRect.bottom - thisRect.top),
           left: (tdRect.left - thisRect.left),
         },
       }));
@@ -160,7 +164,10 @@ tr.exportTo('cp', () => {
   ReportTable.buildState = options => cp.buildState(
       ReportTable.State, options);
 
-  ReportTable.properties = cp.buildProperties('state', ReportTable.State);
+  ReportTable.properties = {
+    ...cp.buildProperties('state', ReportTable.State),
+    userEmail: {statePath: 'userEmail'},
+  };
 
   const DASHES = '-'.repeat(5);
   const PLACEHOLDER_TABLE = {
