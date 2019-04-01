@@ -548,6 +548,26 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (126444.869721,))
     self.assertRetrievedOutputJson()
 
+  def testReadGraphJsonValue_PerformanceBrowserTests(self):
+    contents = {'chart': {'traces': {'trace': ['126444.869721', '0.0']}}}
+    self._retrieve.side_effect = (
+        '{"files": {"browser_tests/perf_results.json": {"h": "foo"}}}',
+        json.dumps(contents),
+    )
+
+    quest = read_value.ReadGraphJsonValue(
+        'performance_browser_tests/perf_results.json', 'chart', 'trace')
+    execution = quest.Start(None, 'server', 'output hash')
+    execution.Poll()
+
+    self.assertReadValueSuccess(execution)
+    self.assertEqual(execution.result_values, (126444.869721,))
+    expected_calls = [
+        mock.call('server', 'output hash'),
+        mock.call('server', 'foo'),
+    ]
+    self.assertEqual(self._retrieve.mock_calls, expected_calls)
+
   def testReadGraphJsonValueWithMissingFile(self):
     self._retrieve.return_value = '{"files": {}}'
 

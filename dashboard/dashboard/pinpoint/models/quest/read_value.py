@@ -279,6 +279,13 @@ def _RetrieveOutputJson(isolate_server, isolate_hash, filename):
       isolate_server, isolate_hash))['files']
 
   if filename not in output_files:
-    raise ReadValueError("The test didn't produce %s." % filename)
+    if 'performance_browser_tests' not in filename:
+      raise ReadValueError("The test didn't produce %s." % filename)
+
+    # TODO(simonhatch): Remove this once crbug.com/947501 is resolved.
+    filename = filename.replace(
+        'performance_browser_tests', 'browser_tests')
+    if filename not in output_files:
+      raise ReadValueError("The test didn't produce %s." % filename)
   output_json_isolate_hash = output_files[filename]['h']
   return json.loads(isolate.Retrieve(isolate_server, output_json_isolate_hash))
