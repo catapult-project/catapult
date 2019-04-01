@@ -41,11 +41,11 @@ class CrOSBrowserMockCreationTest(unittest.TestCase):
         'args': 'chrome --foo',
     }
 
-    # Mock the DevToolsClientConfig class, so we don't actually try to connect
+    # Mock GetDevToolsBackEndIfReady, so we don't actually try to connect
     # to a devtools agent.
     self.devtools_config = self._PatchClass(
         'telemetry.internal.backends.chrome_inspector.'
-        'devtools_client_backend.DevToolsClientConfig')
+        'devtools_client_backend.GetDevToolsBackEndIfReady')
 
     # Mock the MiscWebContentsBackend, this is used to check for OOBE.
     self.misc_web_contents_backend = self._PatchClass(
