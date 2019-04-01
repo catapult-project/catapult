@@ -66,15 +66,20 @@ def trace_can_enable():
 # used in class definition scope.
 TracedMetaClass = type
 
+
 if trace_event_impl:
   import time
 
+  # Trace file formats
+  JSON = trace_event_impl.JSON
+  JSON_WITH_METADATA = trace_event_impl.JSON_WITH_METADATA
+  PROTOBUF = trace_event_impl.PROTOBUF
 
   def trace_is_enabled():
     return trace_event_impl.trace_is_enabled()
 
-  def trace_enable(logfile, proto_format=False):
-    return trace_event_impl.trace_enable(logfile, proto_format)
+  def trace_enable(logfile, format=None):
+    return trace_event_impl.trace_enable(logfile, format)
 
   def trace_disable():
     return trace_event_impl.trace_disable()
@@ -93,6 +98,9 @@ if trace_event_impl:
   def trace_set_thread_name(thread_name):
     trace_event_impl.add_trace_event("M", trace_time.Now(), "__metadata",
                                      "thread_name", {"name": thread_name})
+
+  def trace_add_metadata(metadata):
+    trace_event_impl.trace_add_metadata(metadata)
 
   def trace(name, **kwargs):
     return trace_event_impl.trace(name, **kwargs)
@@ -123,6 +131,11 @@ if trace_event_impl:
 
 else:
   import contextlib
+
+  # Trace file formats
+  JSON = None
+  JSON_WITH_METADATA = None
+  PROTOBUF = None
 
   def trace_enable():
     raise TraceException(

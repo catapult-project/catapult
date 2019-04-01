@@ -20,11 +20,11 @@ from py_utils import tempfile_ext
 class TraceEventTests(unittest.TestCase):
 
   @contextlib.contextmanager
-  def _test_trace(self, disable=True):
+  def _test_trace(self, disable=True, format=None):
     with tempfile_ext.TemporaryFileName() as filename:
       self._log_path = filename
       try:
-        trace_event.trace_enable(self._log_path)
+        trace_event.trace_enable(self._log_path, format=format)
         yield
       finally:
         if disable:
@@ -412,6 +412,45 @@ class TraceEventTests(unittest.TestCase):
         self.assertEquals(parent_close['category'], 'python')
         self.assertEquals(parent_close['name'], 'parent')
         self.assertEquals(parent_close['ph'], 'E')
+
+  def testFormatJson(self):
+    with self._test_trace(format=trace_event.JSON):
+      trace_event.trace_flush()
+      with open(self._log_path, 'r') as f:
+        log_output = json.loads(f.read() + ']')
+    self.assertEquals(len(log_output), 1)
+    self.assertEquals(log_output[0]['ph'], 'M')
+
+  def testFormatJsonWithMetadata(self):
+    with self._test_trace(format=trace_event.JSON_WITH_METADATA):
+      trace_event.trace_disable()
+      with open(self._log_path, 'r') as f:
+        log_output = json.load(f)
+    self.assertEquals(len(log_output), 2)
+    events = log_output['traceEvents']
+    self.assertEquals(len(events), 1)
+    self.assertEquals(events[0]['ph'], 'M')
+
+  def testFormatProtobuf(self):
+    with self._test_trace(format=trace_event.PROTOBUF):
+      trace_event.trace_flush()
+      with open(self._log_path, 'r') as f:
+        self.assertGreater(len(f.read()), 0)
+
+  def testAddMetadata(self):
+    with self._test_trace(format=trace_event.JSON_WITH_METADATA):
+      trace_event.trace_add_metadata({'version': 1})
+      trace_event.trace_disable()
+      with open(self._log_path, 'r') as f:
+        log_output = json.load(f)
+    self.assertEquals(len(log_output), 2)
+    self.assertEquals(log_output['metadata']['version'], 1)
+
+  def testAddMetadataInJsonFormatRaises(self):
+    with self._test_trace(format=trace_event.JSON):
+      with self.assertRaises(log.TraceException):
+        trace_event.trace_add_metadata({'version': 1})
+
 
 if __name__ == '__main__':
   logging.getLogger().setLevel(logging.DEBUG)

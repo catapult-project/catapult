@@ -14,12 +14,31 @@ from py_trace_event import trace_time
 from py_utils import lock
 
 
+# Trace file formats:
+
+# Legacy format: json list of events.
+# Events can be written from multiple processes, but since no process
+# can be sure that it is the last one, nobody writes the closing ']'.
+# So the resulting file is not technically correct json.
+JSON = "json"
+
+# Full json with events and metadata.
+# This format produces correct json ready to feed into TraceDataBuilder.
+# Note that it is the responsibility of the user of py_trace_event to make sure
+# that trace_disable() is called after all child processes have finished.
+JSON_WITH_METADATA = "json_with_metadata"
+
+# Perfetto protobuf trace format.
+PROTOBUF = "protobuf"
+
+
 _lock = threading.Lock()
 
 _enabled = False
 _log_file = None
 
 _cur_events = [] # events that have yet to be buffered
+_metadata = {}
 
 _tls = threading.local() # tls used to detect forking/etc
 _atexit_regsitered_for_pid = None
@@ -49,22 +68,64 @@ def _disallow_tracing_control():
   global _control_allowed
   _control_allowed = False
 
-def trace_enable(log_file=None, proto_format=False):
+def trace_enable(log_file=None, format=None):
   """ Enable tracing.
 
   Args:
     log_file: file to write trace into. Can be a file-like object,
       a name of file, or None. If None, file name is constructed
       from executable name.
-    proto_format: whether to use protobuf trace format or json trace
-      format (default is json).
+    format: trace file format. See trace_event.py for available options.
   """
-  _trace_enable(log_file, proto_format)
+  if format is None:
+    format = JSON
+  _trace_enable(log_file, format)
+
+def _write_header():
+  tid = threading.current_thread().ident
+  if not tid:
+    tid = os.getpid()
+
+  if _format == PROTOBUF:
+    tid = threading.current_thread().ident
+    perfetto_trace_writer.write_thread_descriptor_event(
+        output=_log_file,
+        pid=os.getpid(),
+        tid=tid,
+        ts=trace_time.Now(),
+    )
+    perfetto_trace_writer.write_event(
+        output=_log_file,
+        ph="M",
+        category="process_argv",
+        name="process_argv",
+        ts=trace_time.Now(),
+        args=sys.argv,
+        tid=tid,
+    )
+  else:
+    if _format == JSON:
+      _log_file.write('[')
+    elif _format == JSON_WITH_METADATA:
+      _log_file.write('{"traceEvents": [\n')
+    else:
+      raise TraceException("Unknown format: %s" % _format)
+    json.dump({
+        "ph": "M",
+        "category": "process_argv",
+        "pid": os.getpid(),
+        "tid": threading.current_thread().ident,
+        "ts": trace_time.Now(),
+        "name": "process_argv",
+        "args": {"argv": sys.argv},
+    }, _log_file)
+    _log_file.write('\n')
+
 
 @_locked
-def _trace_enable(log_file=None, proto_format=False):
-  global _proto_format
-  _proto_format = proto_format
+def _trace_enable(log_file=None, format=None):
+  global _format
+  _format = format
   global _enabled
   if _enabled:
     raise TraceException("Already enabled")
@@ -77,17 +138,17 @@ def _trace_enable(log_file=None, proto_format=False):
       n = 'trace_event'
     else:
       n = sys.argv[0]
-    if proto_format:
+    if _format == PROTOBUF:
       log_file = open("%s.pb" % n, "ab", False)
     else:
       log_file = open("%s.json" % n, "ab", False)
-    _note("trace_event: tracelog name is %s.json" % n)
   elif isinstance(log_file, basestring):
-    _note("trace_event: tracelog name is %s" % log_file)
     log_file = open("%s" % log_file, "ab", False)
   elif not hasattr(log_file, 'fileno'):
     raise TraceException(
         "Log file must be None, a string, or file-like object with a fileno()")
+
+  _note("trace_event: tracelog name is %s" % log_file)
 
   _log_file = log_file
   with lock.FileLock(_log_file, lock.LOCK_EX):
@@ -97,35 +158,7 @@ def _trace_enable(log_file=None, proto_format=False):
     creator = lastpos == 0
     if creator:
       _note("trace_event: Opened new tracelog, lastpos=%i", lastpos)
-
-      tid = threading.current_thread().ident
-      if not tid:
-        tid = os.getpid()
-
-      if _proto_format:  # Write trace in proto format.
-        tid = threading.current_thread().ident
-        perfetto_trace_writer.write_thread_descriptor_event(
-            output=_log_file,
-            pid=os.getpid(),
-            tid=tid,
-            ts=trace_time.Now(),
-        )
-        perfetto_trace_writer.write_event(
-            output=_log_file,
-            ph="M",
-            category="process_argv",
-            name="process_argv",
-            ts=trace_time.Now(),
-            args=sys.argv,
-            tid=tid,
-        )
-      else:  # Write trace in json format.
-        _log_file.write('[')
-        x = {"ph": "M", "category": "process_argv",
-             "pid": os.getpid(), "tid": threading.current_thread().ident,
-             "ts": trace_time.Now(),
-             "name": "process_argv", "args": {"argv": sys.argv}}
-        _log_file.write("%s\n" % json.dumps(x))
+      _write_header()
     else:
       _note("trace_event: Opened existing tracelog")
     _log_file.flush()
@@ -145,35 +178,51 @@ def trace_disable():
   _enabled = False
   _flush(close=True)
 
+def _write_cur_events():
+  if _format == PROTOBUF:
+    for e in _cur_events:
+      perfetto_trace_writer.write_event(
+          output=_log_file,
+          ph=e["ph"],
+          category=e["category"],
+          name=e["name"],
+          ts=e["ts"],
+          args=e["args"],
+          tid=threading.current_thread().ident,
+      )
+  elif _format in (JSON, JSON_WITH_METADATA):
+    for e in _cur_events:
+      _log_file.write(",\n")
+      json.dump(e, _log_file)
+  else:
+    raise TraceException("Unknown format: %s" % _format)
+  del _cur_events[:]
+
+def _write_footer():
+  if _format == PROTOBUF:
+    # TODO: implement writing metadata in PROTOBUF format
+    pass
+  elif _format == JSON:
+    # In JSON format we might not be the only process writing to this logfile.
+    # So, we will simply close the file rather than writing the trailing ] that
+    # it technically requires. The trace viewer understands this and
+    # will insert a trailing ] during loading.
+    pass
+  elif _format == JSON_WITH_METADATA:
+    _log_file.write('],\n"metadata": ')
+    json.dump(_metadata, _log_file)
+    _log_file.write('}')
+  else:
+    raise TraceException("Unknown format: %s" % _format)
 
 def _flush(close=False):
   global _log_file
-  global _proto_format
   with lock.FileLock(_log_file, lock.LOCK_EX):
     _log_file.seek(0, os.SEEK_END)
     if len(_cur_events):
-      if _proto_format:
-        for e in _cur_events:
-          perfetto_trace_writer.write_event(
-              output=_log_file,
-              ph=e["ph"],
-              category=e["category"],
-              name=e["name"],
-              ts=e["ts"],
-              args=e["args"],
-              tid=threading.current_thread().ident,
-          )
-      else:
-        _log_file.write(",\n")
-        _log_file.write(",\n".join([json.dumps(e) for e in _cur_events]))
-      del _cur_events[:]
-
+      _write_cur_events()
     if close:
-      # We might not be the only process writing to this logfile. So,
-      # we will simply close the file rather than writign the trailing ] that
-      # it technically requires. The trace viewer understands that this may
-      # happen and will insert a trailing ] during loading.
-      pass
+      _write_footer()
     _log_file.flush()
 
   if close:
@@ -205,13 +254,15 @@ def add_trace_event(ph, ts, category, name, args=None):
       tid = os.getpid()
     _tls.tid = tid
 
-  _cur_events.append({"ph": ph,
-                      "category": category,
-                      "pid": _tls.pid,
-                      "tid": _tls.tid,
-                      "ts": ts,
-                      "name": name,
-                      "args": args or {}});
+  _cur_events.append({
+      "ph": ph,
+      "category": category,
+      "pid": _tls.pid,
+      "tid": _tls.tid,
+      "ts": ts,
+      "name": name,
+      "args": args or {},
+  });
 
 def trace_begin(name, args=None):
   add_trace_event("B", trace_time.Now(), "python", name, args)
@@ -222,6 +273,17 @@ def trace_end(name, args=None):
 def trace_set_thread_name(thread_name):
   add_trace_event("M", trace_time.Now(), "__metadata", "thread_name",
                   {"name": thread_name})
+
+def trace_add_metadata(metadata):
+  global _metadata
+  if _format == PROTOBUF:
+    raise NotImplementedError("Metadata in protobuf format not implemented")
+  elif _format == JSON:
+    raise TraceException("Can't write metadata in JSON format")
+  elif _format == JSON_WITH_METADATA:
+    _metadata = metadata
+  else:
+    raise TraceException("Unknown format: %s" % _format)
 
 def _trace_disable_atexit():
   trace_disable()
