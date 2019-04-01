@@ -525,6 +525,17 @@ class PageTestResults(object):
       self._story_run_count[story] = 1
     self._current_page_run = None
 
+  def _AddPageResults(self, result):
+    self._current_page_run = result['run']
+    try:
+      for fail in result['fail']:
+        self.Fail(fail)
+      if result['histogram_dicts']:
+        self.ImportHistogramDicts(result['histogram_dicts'])
+      for scalar in result['scalars']:
+        self.AddValue(scalar)
+    finally:
+      self._current_page_run = None
 
   def ComputeTimelineBasedMetrics(self):
     assert not self._current_page_run, 'Cannot compute metrics while running.'
@@ -536,20 +547,19 @@ class PageTestResults(object):
         # small number of threads in that case.
         return 10
 
-    pool = ThreadPool(_GetCpuCount())
     runs_and_values = self._FindRunsAndValuesWithTimelineBasedMetrics()
-    for result in pool.imap_unordered(_ComputeMetricsInPool, runs_and_values):
-      self._current_page_run = result['run']
-      try:
-        for fail in result['fail']:
-          self.Fail(fail)
-        if result['histogram_dicts']:
-          self.ImportHistogramDicts(result['histogram_dicts'])
-        for scalar in result['scalars']:
-          self.AddValue(scalar)
-      finally:
-        self._current_page_run = None
+    if not runs_and_values:
+      return
 
+    threads_count = min(_GetCpuCount(), len(runs_and_values))
+    pool = ThreadPool(threads_count)
+    try:
+      for result in pool.imap_unordered(_ComputeMetricsInPool,
+                                        runs_and_values):
+        self._AddPageResults(result)
+    finally:
+      pool.terminate()
+      pool.join()
 
   def InterruptBenchmark(self, stories, repeat_count):
     self.telemetry_info.InterruptBenchmark()
