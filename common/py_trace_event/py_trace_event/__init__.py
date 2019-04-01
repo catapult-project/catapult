@@ -6,4 +6,7 @@ import sys
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 PY_UTILS = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..', 'py_utils'))
+PROTOBUF = os.path.abspath(os.path.join(
+    SCRIPT_DIR, '..', 'third_party', 'protobuf'))
 sys.path.append(PY_UTILS)
+sys.path.append(PROTOBUF)
