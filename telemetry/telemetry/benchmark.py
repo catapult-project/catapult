@@ -8,7 +8,6 @@ import sys
 from py_utils import class_util
 from py_utils import expectations_parser
 from telemetry import decorators
-from telemetry.internal import story_runner
 from telemetry.internal.util import command_line
 from telemetry.page import legacy_page_test
 from telemetry.story import expectations as expectations_module
@@ -101,10 +100,12 @@ class Benchmark(command_line.Command):
     return False
 
   def Run(self, finder_options):
-    """Do not override this method."""
-    finder_options.target_platforms = self.GetSupportedPlatformNames(
-        self.SUPPORTED_PLATFORMS)
-    return story_runner.RunBenchmark(self, finder_options)
+    """Do not use this method.
+
+    To run a benchmark, call story_runner.RunBenchmark().
+    """
+    del finder_options
+    assert False
 
   @property
   def max_failures(self):
@@ -368,10 +369,3 @@ class Benchmark(command_line.Command):
   def expectations(self):
     return self._expectations
 
-
-def AddCommandLineArgs(parser):
-  story_runner.AddCommandLineArgs(parser)
-
-
-def ProcessCommandLineArgs(parser, args):
-  story_runner.ProcessCommandLineArgs(parser, args)

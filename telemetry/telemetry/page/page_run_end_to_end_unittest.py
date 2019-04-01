@@ -14,6 +14,7 @@ from telemetry import story
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry import decorators
+from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import user_agent
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
@@ -145,7 +146,15 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       test = Test()
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(test, story_set, options, results)
+      possible_browser = browser_finder.FindBrowser(options)
+      story_runner.RunStorySet(
+          test,
+          story_set,
+          possible_browser,
+          None, # expectations
+          options.browser_options,
+          options,
+          results)
       self.assertEquals(len(story_set), len(GetSuccessfulPageRuns(results)))
       # Browser is started once per story run, except in ChromeOS where a single
       # instance is reused for all stories.
@@ -186,7 +195,16 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(test, story_set, options, results)
+      possible_browser = browser_finder.FindBrowser(options)
+      story_runner.RunStorySet(
+          test=test,
+          story_set=story_set,
+          possible_browser=possible_browser,
+          expectations=None,
+          browser_options=options.browser_options,
+          finder_options=options,
+          results=results,
+      )
 
       self.assertTrue(hasattr(test, 'hasRun') and test.hasRun)
 
@@ -217,7 +235,16 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(test, story_set, options, results)
+      possible_browser = browser_finder.FindBrowser(options)
+      story_runner.RunStorySet(
+          test=test,
+          story_set=story_set,
+          possible_browser=possible_browser,
+          expectations=None,
+          browser_options=options.browser_options,
+          finder_options=options,
+          results=results,
+      )
 
   def testTrafficSettings(self):
     story_set = story.StorySet()
@@ -257,7 +284,16 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(test, story_set, options, results)
+      possible_browser = browser_finder.FindBrowser(options)
+      story_runner.RunStorySet(
+          test=test,
+          story_set=story_set,
+          possible_browser=possible_browser,
+          expectations=None,
+          browser_options=options.browser_options,
+          finder_options=options,
+          results=results,
+      )
       failure_messages = []
       for r in results.all_page_runs:
         if r.failure_str:
@@ -307,7 +343,16 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(test, story_set, options, results)
+      possible_browser = browser_finder.FindBrowser(options)
+      story_runner.RunStorySet(
+          test=test,
+          story_set=story_set,
+          possible_browser=possible_browser,
+          expectations=None,
+          browser_options=options.browser_options,
+          finder_options=options,
+          results=results,
+      )
 
   # Ensure that story_runner calls cleanUp when a page run fails.
   def testCleanUpPage(self):
@@ -339,7 +384,16 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(test, story_set, options, results)
+      possible_browser = browser_finder.FindBrowser(options)
+      story_runner.RunStorySet(
+          test=test,
+          story_set=story_set,
+          possible_browser=possible_browser,
+          expectations=None,
+          browser_options=options.browser_options,
+          finder_options=options,
+          results=results,
+      )
       assert test.did_call_clean_up
 
   # Ensure skipping the test if shared state cannot be run on the browser.
@@ -380,7 +434,16 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.suppress_gtest_report = True
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results)
+    possible_browser = browser_finder.FindBrowser(options)
+    story_runner.RunStorySet(
+        test=test,
+        story_set=story_set,
+        possible_browser=possible_browser,
+        expectations=None,
+        browser_options=options.browser_options,
+        finder_options=options,
+        results=results,
+    )
     self.assertFalse(test.will_navigate_to_page_called)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.skipped_values))
@@ -442,7 +505,16 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.suppress_gtest_report = True
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results)
+    possible_browser = browser_finder.FindBrowser(options)
+    story_runner.RunStorySet(
+        test=test,
+        story_set=story_set,
+        possible_browser=possible_browser,
+        expectations=None,
+        browser_options=options.browser_options,
+        finder_options=options,
+        results=results,
+    )
     self.assertTrue(test_page.was_page_at_top_on_start)
 
   def _RunPageTestThatRaisesAppCrashException(self, test, max_failures):
@@ -461,8 +533,17 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.suppress_gtest_report = True
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results,
-                     max_failures=max_failures)
+    possible_browser = browser_finder.FindBrowser(options)
+    story_runner.RunStorySet(
+        test=test,
+        story_set=story_set,
+        possible_browser=possible_browser,
+        expectations=None,
+        browser_options=options.browser_options,
+        finder_options=options,
+        results=results,
+        max_failures=max_failures,
+    )
     return results
 
   def testSingleTabMeansCrashWillCauseFailure(self):
@@ -500,8 +581,16 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.suppress_gtest_report = True
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-
-    story_runner.Run(test, story_set, options, results)
+    possible_browser = browser_finder.FindBrowser(options)
+    story_runner.RunStorySet(
+        test=test,
+        story_set=story_set,
+        possible_browser=possible_browser,
+        expectations=None,
+        browser_options=options.browser_options,
+        finder_options=options,
+        results=results,
+    )
 
     self.longMessage = True
     self.assertIn('Example Domain', body[0],
@@ -543,8 +632,17 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.suppress_gtest_report = True
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(EmptyMetadataForTest(), options)
-      story_runner.Run(DummyTest(), story_set, options, results,
-                       max_failures=2)
+      possible_browser = browser_finder.FindBrowser(options)
+      story_runner.RunStorySet(
+          test=DummyTest(),
+          story_set=story_set,
+          possible_browser=possible_browser,
+          expectations=None,
+          browser_options=options.browser_options,
+          finder_options=options,
+          results=results,
+          max_failures=2,
+      )
       self.assertTrue(results.had_failures)
       if not platform_screenshot_supported[0] and tab_screenshot_supported[0]:
         artifacts = results._artifact_results.GetTestArtifacts(
@@ -583,8 +681,17 @@ class FakePageRunEndToEndTests(unittest.TestCase):
     story_set.AddStory(failing_page)
     results = results_options.CreateResults(
         EmptyMetadataForTest(), self.options)
-    story_runner.Run(DummyTest(), story_set, self.options, results,
-                     max_failures=2)
+    possible_browser = browser_finder.FindBrowser(self.options)
+    story_runner.RunStorySet(
+        test=DummyTest(),
+        story_set=story_set,
+        possible_browser=possible_browser,
+        expectations=None,
+        browser_options=self.options.browser_options,
+        finder_options=self.options,
+        results=results,
+        max_failures=2,
+    )
     self.assertTrue(results.had_failures)
 
   def testScreenShotTakenForFailedPageOnSupportedPlatform(self):
@@ -618,8 +725,17 @@ class FakePageRunEndToEndTests(unittest.TestCase):
       # closed. On windows, we can't delete the temp directory if a file in that
       # directory is still in use.
       with results:
-        story_runner.Run(DummyTest(), story_set, self.options, results,
-                         max_failures=2)
+        possible_browser = browser_finder.FindBrowser(self.options)
+        story_runner.RunStorySet(
+            test=DummyTest(),
+            story_set=story_set,
+            possible_browser=possible_browser,
+            expectations=None,
+            browser_options=self.options.browser_options,
+            finder_options=self.options,
+            results=results,
+            max_failures=2,
+        )
         self.assertTrue(results.had_failures)
         artifacts = results._artifact_results.GetTestArtifacts(
             failing_page.name)

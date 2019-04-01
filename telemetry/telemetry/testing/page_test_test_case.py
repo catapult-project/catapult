@@ -9,6 +9,7 @@ import unittest
 from telemetry import benchmark
 from telemetry import story
 from telemetry.core import util
+from telemetry.internal.browser import browser_finder
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.page import page as page_module
@@ -70,5 +71,13 @@ class PageTestTestCase(unittest.TestCase):
     options.output_trace_tag = None
     story_runner.ProcessCommandLineArgs(temp_parser, options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(measurement, ps, options, results)
+    possible_browser = browser_finder.FindBrowser(options)
+    story_runner.RunStorySet(
+        measurement,
+        ps,
+        possible_browser,
+        None, # expectations
+        options.browser_options,
+        options,
+        results)
     return results
