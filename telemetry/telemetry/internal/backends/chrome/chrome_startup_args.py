@@ -73,6 +73,9 @@ def GetFromBrowserOptions(browser_options):
   # small number of times to users and should not be part of perf comparisons.
   args.append('--disable-search-geolocation-disclosure')
 
+  # Telemetry controls startup tracing via DevTools.
+  args.append('--trace-startup-owner=devtools')
+
   if (browser_options.logging_verbosity ==
       browser_options.NON_VERBOSE_LOGGING):
     args.extend(['--enable-logging', '--v=0'])
