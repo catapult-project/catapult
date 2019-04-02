@@ -4,18 +4,14 @@
 
 import json
 import os
-import StringIO
 import tempfile
+import StringIO
 import unittest
 
 from telemetry import benchmark
 from telemetry import benchmark_runner
-from telemetry.core import util
-from telemetry import page as page_module
-from telemetry import project_config
 from telemetry import story as story_module
-from telemetry.testing import fakes
-
+from telemetry import page as page_module
 import mock
 
 
@@ -45,7 +41,7 @@ class BenchmarkBar(benchmark.Benchmark):
     return 'BenchmarkBar'
 
 
-class PrintBenchmarkListUnittest(unittest.TestCase):
+class BenchmarkRunnerUnittest(unittest.TestCase):
 
   def setUp(self):
     self._stream = StringIO.StringIO()
@@ -132,39 +128,3 @@ class PrintBenchmarkListUnittest(unittest.TestCase):
 
     finally:
       os.remove(expectations_file.name)
-
-
-class BenchmarkRunnerUnittest(unittest.TestCase):
-
-  def setUp(self):
-    TELEMETRY_DIR = util.GetTelemetryDir()
-    self._project_config = project_config.ProjectConfig(
-        top_level_dir=os.path.join(TELEMETRY_DIR, 'examples'),
-        benchmark_dirs=[os.path.join(TELEMETRY_DIR, 'examples', 'benchmarks')]
-    )
-
-  @mock.patch('telemetry.internal.story_runner.RunBenchmark')
-  @mock.patch('telemetry.internal.browser.browser_finder.FindBrowser')
-  def testCommandLineInvocation(self, find_browser_mock, run_benchmark_mock):
-    def CheckRunBenchmarkCall(
-        benchmark_to_run, story_set, possible_browser, *args, **kwargs):
-      del story_set # unused
-      del args # unused
-      del kwargs # unused
-      self.assertEqual(benchmark_to_run.Name(), 'tbm_sample.tbm_sample')
-      self.assertEqual(possible_browser.browser_type, 'browser_for_test')
-    run_benchmark_mock.side_effect = CheckRunBenchmarkCall
-
-    fake_browser = fakes.FakePossibleBrowser(browser_type='browser_for_test')
-    find_browser_mock.return_value = fake_browser
-
-    benchmark_runner.main(self._project_config, [
-        'test',
-        'run',
-        'tbm_sample.tbm_sample',
-        '--browser',
-        'browser_for_test',
-    ])
-
-    run_benchmark_mock.assert_called_once()
-

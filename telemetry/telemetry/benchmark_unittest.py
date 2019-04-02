@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import optparse
 import unittest
 
 from telemetry import android
@@ -39,15 +40,12 @@ class TestBenchmark(benchmark.Benchmark):
 class BenchmarkTest(unittest.TestCase):
 
   def testPageTestWithIncompatibleStory(self):
-    options = options_for_unittests.GetCopy()
-
     b = TestBenchmark(story_module.Story(
         name='test story',
         shared_state_class=shared_page_state.SharedPageState))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
-      story_runner.RunBenchmark(b, b.CreateStorySet(options), None,
-                                options.browser_options, options)
+      b.Run(options_for_unittests.GetCopy())
 
     state_class = story_module.SharedState
     b = TestBenchmark(story_module.Story(
@@ -55,37 +53,34 @@ class BenchmarkTest(unittest.TestCase):
         shared_state_class=state_class))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
-      story_runner.RunBenchmark(b, b.CreateStorySet(options), None,
-                                options.browser_options, options)
+      b.Run(options_for_unittests.GetCopy())
 
     b = TestBenchmark(android.AndroidStory(
         name='test benchmark', start_intent=None))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
-      story_runner.RunBenchmark(b, b.CreateStorySet(options), None,
-                                options.browser_options, options)
+      b.Run(options_for_unittests.GetCopy())
 
   def testPageTestWithCompatibleStory(self):
-    original_run_fn = story_runner.RunStorySet
+    original_run_fn = story_runner.Run
     was_run = [False]
     def RunStub(*arg, **kwargs):
       del arg, kwargs
       was_run[0] = True
-    story_runner.RunStorySet = RunStub
+    story_runner.Run = RunStub
 
     try:
       options = options_for_unittests.GetCopy()
       options.output_formats = ['none']
-      options.output_dir = ''
-      options.upload_results = False
       options.suppress_gtest_report = True
-      options.results_label = ''
+      parser = optparse.OptionParser()
+      benchmark.AddCommandLineArgs(parser)
+      options.MergeDefaultValues(parser.get_default_values())
 
       b = TestBenchmark(page.Page(url='about:blank', name='about:blank'))
-      story_runner.RunBenchmark(b, b.CreateStorySet(options), None,
-                                options.browser_options, options)
+      b.Run(options)
     finally:
-      story_runner.RunStorySet = original_run_fn
+      story_runner.Run = original_run_fn
 
     self.assertTrue(was_run[0])
 
@@ -107,6 +102,40 @@ class BenchmarkTest(unittest.TestCase):
         '"UnknownTestType" is not a PageTest or a StoryTest')
     with self.assertRaisesRegexp(TypeError, type_error_regex):
       UnknownTestTypeBenchmark().CreatePageTest(options=None)
+
+  def testBenchmarkWithOverridenShouldAddValue(self):
+    class ShouldNotAddValueBenchmark(TestBenchmark):
+
+      @classmethod
+      def ShouldAddValue(cls, unused_value, unused_is_first_result):
+        return False
+
+    original_run_fn = story_runner.Run
+    valid_should_add_value = [False]
+
+    def RunStub(test, story_set_module, finder_options, results,
+                *args, **kwargs): # pylint: disable=unused-argument
+      should_add_value = results._should_add_value
+      valid = should_add_value == ShouldNotAddValueBenchmark.ShouldAddValue
+      valid_should_add_value[0] = valid
+
+    story_runner.Run = RunStub
+
+    try:
+      options = options_for_unittests.GetCopy()
+      options.output_formats = ['none']
+      options.suppress_gtest_report = True
+      parser = optparse.OptionParser()
+      benchmark.AddCommandLineArgs(parser)
+      options.MergeDefaultValues(parser.get_default_values())
+
+      b = ShouldNotAddValueBenchmark(
+          page.Page(url='about:blank', name='about:blank'))
+      b.Run(options)
+    finally:
+      story_runner.Run = original_run_fn
+
+    self.assertTrue(valid_should_add_value[0])
 
   def testBenchmarkExpectationsEmpty(self):
     b = TestBenchmark(story_module.Story(
@@ -212,6 +241,9 @@ class BenchmarkTest(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.extra_chrome_categories = 'toplevel,net'
+    parser = optparse.OptionParser()
+    benchmark.AddCommandLineArgs(parser)
+    options.MergeDefaultValues(parser.get_default_values())
 
     b = TbmBenchmark(None)
     tbm = b.CreatePageTest(options)
@@ -228,6 +260,9 @@ class BenchmarkTest(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.extra_atrace_categories = 'foo,bar'
+    parser = optparse.OptionParser()
+    benchmark.AddCommandLineArgs(parser)
+    options.MergeDefaultValues(parser.get_default_values())
 
     b = TbmBenchmark(None)
     tbm = b.CreatePageTest(options)
@@ -246,6 +281,9 @@ class BenchmarkTest(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.extra_atrace_categories = 'foo,bar'
+    parser = optparse.OptionParser()
+    benchmark.AddCommandLineArgs(parser)
+    options.MergeDefaultValues(parser.get_default_values())
 
     b = TbmBenchmark(None)
     tbm = b.CreatePageTest(options)
@@ -261,6 +299,9 @@ class BenchmarkTest(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.enable_systrace = True
+    parser = optparse.OptionParser()
+    benchmark.AddCommandLineArgs(parser)
+    options.MergeDefaultValues(parser.get_default_values())
 
     b = TbmBenchmark(None)
     tbm = b.CreatePageTest(options)
