@@ -111,17 +111,20 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(2, hist.min, 1e-6);
     assert.closeTo(2, hist.max, 1e-6);
     assert.closeTo(2, hist.average, 1e-6);
+    assert.strictEqual(hist.diagnostics.size, 0);
 
     hist = histograms.getHistogramNamed(
         'thread_renderer_main_cpu_time_per_frame');
     assert.closeTo(4, hist.min, 1e-6);
     assert.closeTo(4, hist.max, 1e-6);
     assert.closeTo(4, hist.average, 1e-6);
+    assert.strictEqual(hist.diagnostics.size, 0);
 
     hist = histograms.getHistogramNamed('thread_IO_cpu_time_per_frame');
     assert.closeTo(1, hist.min, 1e-6);
     assert.closeTo(1, hist.max, 1e-6);
     assert.closeTo(1, hist.average, 1e-6);
+    assert.strictEqual(hist.diagnostics.size, 0);
 
     // Also, verify fast_path threads, that includs IO threads and the browser
     // main thread, but not the renderer main thread.
@@ -130,6 +133,7 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(3, hist.min, 1e-6);
     assert.closeTo(3, hist.max, 1e-6);
     assert.closeTo(3, hist.average, 1e-6);
+    assert.strictEqual(hist.diagnostics.size, 1);
 
     // Verify sum of all threads.
     hist = histograms.getHistogramNamed('thread_total_all_cpu_time_per_frame');
