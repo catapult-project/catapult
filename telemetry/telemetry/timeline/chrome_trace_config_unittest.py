@@ -154,3 +154,11 @@ class ChromeTraceConfigTests(unittest.TestCase):
                            'AnotherMetric', 'LastMetric'],
         'recordMode': 'recordAsMuchAsPossible'
     }, config.GetChromeTraceConfigForDevTools())
+
+  def testTraceBufferSize(self):
+    config = chrome_trace_config.ChromeTraceConfig()
+    config.SetTraceBufferSizeInKb(42)
+    self.assertEquals({
+        'recordMode': 'recordAsMuchAsPossible',
+        'traceBufferSizeInKb': 42
+    }, config.GetChromeTraceConfigForDevTools())

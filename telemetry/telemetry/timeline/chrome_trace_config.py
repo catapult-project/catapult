@@ -13,6 +13,7 @@ ECHO_TO_CONSOLE = 'trace-to-console'
 RECORD_AS_MUCH_AS_POSSIBLE = 'record-as-much-as-possible'
 RECORD_CONTINUOUSLY = 'record-continuously'
 RECORD_UNTIL_FULL = 'record-until-full'
+TRACE_BUFFER_SIZE_IN_KB = 'trace_buffer_size_in_kb'
 
 # Map telemetry's tracing record_mode to the DevTools API string.
 # (The keys happen to be the same as the values.)
@@ -70,6 +71,7 @@ class ChromeTraceConfig(object):
     self._memory_dump_config = None
     self._enable_systrace = False
     self._uma_histogram_names = []
+    self._trace_buffer_size_in_kb = None
 
   def SetLowOverheadFilter(self):
     self._category_filter = (
@@ -108,6 +110,9 @@ class ChromeTraceConfig(object):
   def SetEnableSystrace(self):
     self._enable_systrace = True
 
+  def SetTraceBufferSizeInKb(self, size):
+    self._trace_buffer_size_in_kb = size
+
   def EnableUMAHistograms(self, *args):
     for uma_histogram_name in args:
       self._uma_histogram_names.append(uma_histogram_name)
@@ -138,9 +143,12 @@ class ChromeTraceConfig(object):
     if self._memory_dump_config:
       result.update(self._memory_dump_config.GetDictForChromeTracing())
     if self._enable_systrace:
-      result.update({ENABLE_SYSTRACE_PARAM: True})
+      result[ENABLE_SYSTRACE_PARAM] = True
     if self._uma_histogram_names:
       result[UMA_HISTOGRAM_NAMES_PARAM] = self._uma_histogram_names
+    if self._trace_buffer_size_in_kb:
+      result[TRACE_BUFFER_SIZE_IN_KB] = self._trace_buffer_size_in_kb
+
     return result
 
   @property
