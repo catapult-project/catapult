@@ -368,8 +368,9 @@ class AndroidPlatformBackend(
   def CanLaunchApplication(self, application):
     return bool(self._device.GetApplicationPaths(application))
 
-  def InstallApplication(self, application):
-    self._device.Install(application)
+  # pylint: disable=arguments-differ
+  def InstallApplication(self, application, modules=None):
+    self._device.Install(application, modules=modules)
 
   def CanMonitorPower(self):
     return self._power_monitor.CanMonitorPower()

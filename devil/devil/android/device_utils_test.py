@@ -810,6 +810,11 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
       self.device.Install(DeviceUtilsInstallTest.mock_apk,
           reinstall=True, retries=0, permissions=[], allow_downgrade=True)
 
+  def testInstall_modulesSpecified(self):
+    with self.assertRaises(device_errors.CommandFailedError):
+      self.device.Install(DeviceUtilsInstallTest.mock_apk,
+          modules=['base'])
+
 
 class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
 
@@ -891,6 +896,42 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
         self.device.InstallSplitApk(DeviceUtilsInstallSplitApkTest.mock_apk,
             ['split1.apk', 'split2.apk', 'split3.apk'], permissions=[],
             retries=0)
+
+
+class DeviceUtilsInstallBundleTest(DeviceUtilsTest):
+  mock_apk = _MockApkHelper('/fake/test/app_bundle', 'test.package', ['p1'])
+
+  def testInstallBundle_noPriorInstall(self):
+    with self.patch_call(self.call.device.build_version_sdk, return_value=23):
+      with self.assertCalls(
+          (mock.call.devil.utils.cmd_helper.RunCmd(
+              ['/fake/test/app_bundle', 'install', '--device',
+                  self.device.serial]), 0),
+          (self.call.device.GrantPermissions('test.package', ['p1']), [])):
+        self.device.Install(DeviceUtilsInstallBundleTest.mock_apk)
+
+  def testInstallBundle_modulesSpecified(self):
+    with self.patch_call(self.call.device.build_version_sdk, return_value=23):
+      with self.assertCalls(
+          (mock.call.devil.utils.cmd_helper.RunCmd(
+              ['/fake/test/app_bundle', 'install', '--device',
+                  self.device.serial, '-m', 'base']), 0),
+          (self.call.device.GrantPermissions('test.package', ['p1']), [])):
+        self.device.Install(
+            DeviceUtilsInstallBundleTest.mock_apk, modules=['base'])
+
+  def testInstallBundle_permissionsPreM(self):
+    with self.patch_call(self.call.device.build_version_sdk, return_value=20):
+      with self.assertCalls(
+          (mock.call.devil.utils.cmd_helper.RunCmd(
+              ['/fake/test/app_bundle', 'install', '--device',
+                  self.device.serial]), 0)):
+        self.device.Install(DeviceUtilsInstallBundleTest.mock_apk)
+
+  def testInstallBundle_splitApks(self):
+    with self.assertRaises(device_errors.CommandFailedError):
+      self.device.InstallSplitApk(
+          DeviceUtilsInstallBundleTest.mock_apk, ['apk1', 'apk2'])
 
 
 class DeviceUtilsUninstallTest(DeviceUtilsTest):

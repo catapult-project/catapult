@@ -13,6 +13,7 @@ from py_utils import tempfile_ext
 from telemetry.core import android_platform
 from telemetry.core import exceptions
 from telemetry import decorators
+from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.platform import android_platform_backend
@@ -160,6 +161,28 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
     self.assertFalse(android_browser_finder._CanPossiblyHandlePath('f.bundle'))
     self.assertFalse(android_browser_finder._CanPossiblyHandlePath(''))
     self.assertFalse(android_browser_finder._CanPossiblyHandlePath('fooaab'))
+
+  def testModulesPassedToInstallApplicationForBundle(self):
+    self.finder_options.modules_to_install = ['base']
+    self.fs.CreateFile('foo_bundle')
+    possible_browser = android_browser_finder.PossibleAndroidBrowser(
+        'android-chromium-bundle', self.finder_options, self.fake_platform,
+        android_browser_backend_settings.ANDROID_CHROMIUM_BUNDLE, 'foo_bundle')
+    with mock.patch.object(
+        self.fake_platform, 'InstallApplication') as m:
+      possible_browser.UpdateExecutableIfNeeded()
+      m.assert_called_with('foo_bundle', modules=set(['base']))
+
+  def testModulesNotPassedToInstallApplicationForApk(self):
+    self.finder_options.modules_to_install = ['base']
+    self.fs.CreateFile('foo.apk')
+    possible_browser = android_browser_finder.PossibleAndroidBrowser(
+        'android-chromium-bundle', self.finder_options, self.fake_platform,
+        android_browser_backend_settings.ANDROID_CHROMIUM_BUNDLE, 'foo.apk')
+    with mock.patch.object(
+        self.fake_platform, 'InstallApplication') as m:
+      possible_browser.UpdateExecutableIfNeeded()
+      m.assert_called_with('foo.apk', modules=None)
 
 
 def _MockPossibleBrowser(modified_at):

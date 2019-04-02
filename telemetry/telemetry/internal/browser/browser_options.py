@@ -176,6 +176,12 @@ class BrowserFinderOptions(optparse.Values):
         'If not specified, only 0 or 1 connected devices are supported. '
         'If specified as "android", all available Android devices are '
         'used.')
+    group.add_option(
+        '--install-bundle-module', dest='modules_to_install', action='append',
+        default=['base'],
+        help='Specify Android App Bundle modules to install in addition to the '
+             'base module. Ignored on Non-Android platforms or if using a '
+             'standard APK instead of bundles.')
     parser.add_option_group(group)
 
     # CPU profiling on Android/Linux/ChromeOS.

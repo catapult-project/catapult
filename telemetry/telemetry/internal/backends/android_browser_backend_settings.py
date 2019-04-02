@@ -93,6 +93,15 @@ class GenericChromeBackendSettings(AndroidBrowserBackendSettings):
     return super(GenericChromeBackendSettings, cls).__new__(cls, **kwargs)
 
 
+class GenericChromeBundleBackendSettings(GenericChromeBackendSettings):
+  def GetApkName(self, device):
+    del device  # unused
+    # Bundles are created using the generated tool in the output directory's
+    # bin directory instead of being output to the apk directory at compile
+    # time like a normal APK.
+    return os.path.join('..', 'bin', self.apk_name)
+
+
 class ChromeBackendSettings(GenericChromeBackendSettings):
   def GetApkName(self, device):
     assert self.apk_name is None
@@ -195,6 +204,11 @@ ANDROID_CHROMIUM = GenericChromeBackendSettings(
     package='org.chromium.chrome',
     apk_name='ChromePublic.apk')
 
+ANDROID_CHROMIUM_BUNDLE = GenericChromeBundleBackendSettings(
+    browser_type='android-chromium-bundle',
+    package='org.chromium.chrome',
+    apk_name='chrome_modern_public_bundle')
+
 ANDROID_CHROME = ChromeBackendSettings(
     browser_type='android-chrome',
     package='com.google.android.apps.chrome')
@@ -222,6 +236,7 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_WEBVIEW_GOOGLE,
     ANDROID_WEBVIEW_INSTRUMENTATION,
     ANDROID_CHROMIUM,
+    ANDROID_CHROMIUM_BUNDLE,
     ANDROID_CHROME,
     ANDROID_CHROME_BETA,
     ANDROID_CHROME_DEV,

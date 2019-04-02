@@ -239,9 +239,9 @@ class Platform(object):
     """Returns whether the platform can launch the given application."""
     return self._platform_backend.CanLaunchApplication(application)
 
-  def InstallApplication(self, application):
+  def InstallApplication(self, application, **kwargs):
     """Installs the given application."""
-    return self._platform_backend.InstallApplication(application)
+    return self._platform_backend.InstallApplication(application, **kwargs)
 
   def CanMonitorPower(self):
     """Returns True iff power can be monitored asynchronously via

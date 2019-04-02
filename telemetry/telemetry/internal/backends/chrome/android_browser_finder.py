@@ -85,6 +85,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     self._backend_settings = backend_settings
     self._local_apk = local_apk
     self._flag_changer = None
+    self._modules_to_install = None
 
     if self._local_apk is None and finder_options.chrome_root is not None:
       self._local_apk = self._backend_settings.FindLocalApk(
@@ -92,6 +93,9 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
     # At this point the local_apk, if any, must exist.
     assert self._local_apk is None or os.path.exists(self._local_apk)
+
+    if self._local_apk and apk_helper.ToHelper(self._local_apk).is_bundle:
+      self._modules_to_install = set(finder_options.modules_to_install)
 
     self._embedder_apk = None
     if self._backend_settings.requires_embedder:
@@ -285,7 +289,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     # TODO(crbug.com/815133): This logic should belong to backend_settings.
     if self._local_apk:
       logging.warn('Installing %s on device if needed.', self._local_apk)
-      self.platform.InstallApplication(self._local_apk)
+      self.platform.InstallApplication(
+          self._local_apk, modules=self._modules_to_install)
 
     if self._embedder_apk:
       logging.warn('Installing %s on device if needed.', self._embedder_apk)

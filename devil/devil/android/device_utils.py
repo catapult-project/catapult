@@ -867,7 +867,7 @@ class DeviceUtils(object):
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
   def Install(self, apk, allow_downgrade=False, reinstall=False,
-              permissions=None, timeout=None, retries=None):
+              permissions=None, timeout=None, retries=None, modules=None):
     """Install an APK or app bundle.
 
     Noop if an identical APK is already installed. If installing a bundle, the
@@ -884,6 +884,8 @@ class DeviceUtils(object):
           apk helper. To set no permissions, pass [].
       timeout: timeout in seconds
       retries: number of retries
+      modules: An iterable containing specific bundle modules to install.
+          Error if set and |apk| points to an APK instead of a bundle.
 
     Raises:
       CommandFailedError if the installation fails.
@@ -891,7 +893,8 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
     """
     self._InstallInternal(apk, None, allow_downgrade=allow_downgrade,
-                          reinstall=reinstall, permissions=permissions)
+                          reinstall=reinstall, permissions=permissions,
+                          modules=modules)
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
@@ -927,7 +930,7 @@ class DeviceUtils(object):
 
   def _InstallInternal(self, base_apk, split_apks, allow_downgrade=False,
                        reinstall=False, allow_cached_props=False,
-                       permissions=None):
+                       permissions=None, modules=None):
     base_apk = apk_helper.ToHelper(base_apk)
     if base_apk.is_bundle:
       if split_apks:
@@ -940,8 +943,12 @@ class DeviceUtils(object):
                         'bundletools, no downgrading is possible. This '
                         'flag will be ignored and installation will proceed.')
       # |allow_cached_props| is unused and ignored for bundles.
-      self._InstallBundleInternal(base_apk, permissions)
+      self._InstallBundleInternal(base_apk, permissions, modules)
       return
+
+    if modules:
+      raise device_errors.CommandFailedError(
+          'Attempted to specify modules to install when providing an APK')
 
     if split_apks:
       self._CheckSdkLevel(version_codes.LOLLIPOP)
@@ -1010,9 +1017,12 @@ class DeviceUtils(object):
     if host_checksums is not None:
       self._cache['package_apk_checksums'][package_name] = host_checksums
 
-  def _InstallBundleInternal(self, bundle, permissions):
-    status = cmd_helper.RunCmd(
-        [bundle.path, 'install', '--device', self.serial])
+  def _InstallBundleInternal(self, bundle, permissions, modules):
+    cmd = [bundle.path, 'install', '--device', self.serial]
+    if modules:
+      for m in modules:
+        cmd.extend(['-m', m])
+    status = cmd_helper.RunCmd(cmd)
     if status != 0:
       raise device_errors.CommandFailedError('Cound not install {}'.format(
           bundle.path))
