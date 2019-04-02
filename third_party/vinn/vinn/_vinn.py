@@ -11,6 +11,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import time
 import re
 import json
 import tempfile
@@ -131,6 +132,22 @@ def _GetD8BinaryPathForPlatform():
         ' supported' % (platform.system(), platform.machine()))
 
 
+# Speculative change to workaround a failure on Windows: speculation is that the
+# script attempts to remove a file before the process using the file has
+# completely terminated. So the function here attempts to retry a few times with
+# a second timeout between retries. More details at https://crbug.com/946012
+def _RemoveTreeWithRetry(tree, retry=3):
+  for count in range(retry):
+    try:
+      shutil.rmtree(tree)
+      return
+    except:
+      if count == retry - 1:
+        raise
+      logging.warning('Removing %s failed. Retrying in 1 second ...' % tree)
+      time.sleep(1)
+
+
 class RunResult(object):
   def __init__(self, returncode, stdout):
     self.returncode = returncode
@@ -189,7 +206,7 @@ def RunFile(file_path, source_paths=None, js_args=None, v8_args=None,
         f.write('\nHTMLImportsLoader.loadFile(%s);' % abs_file_path_str)
     return _RunFileWithD8(temp_boostrap_file, js_args, v8_args, stdout, stdin)
   finally:
-    shutil.rmtree(temp_dir)
+    _RemoveTreeWithRetry(temp_dir)
 
 
 def ExecuteJsString(js_string, source_paths=None, js_args=None, v8_args=None,
@@ -217,7 +234,7 @@ def RunJsString(js_string, source_paths=None, js_args=None, v8_args=None,
       f.write(js_string)
     return RunFile(temp_file, source_paths, js_args, v8_args, stdout, stdin)
   finally:
-    shutil.rmtree(temp_dir)
+    _RemoveTreeWithRetry(temp_dir)
 
 
 def _RunFileWithD8(js_file_path, js_args, v8_args, stdout, stdin):
