@@ -6,6 +6,8 @@ import collections
 import httplib
 import logging
 
+from google.appengine.api import urlfetch_errors
+
 from dashboard.common import math_utils
 from dashboard.pinpoint.models import attempt as attempt_module
 from dashboard.pinpoint.models import change as change_module
@@ -117,7 +119,8 @@ class JobState(object):
           midpoint = change_module.Change.Midpoint(change_a, change_b)
         except change_module.NonLinearError:
           continue
-        except httplib.HTTPException:
+        except (httplib.HTTPException,
+                urlfetch_errors.DeadlineExceededError):
           raise errors.RecoverableError()
 
         logging.info('Adding Change %s.', midpoint)
