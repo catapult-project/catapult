@@ -13,6 +13,9 @@ import json
 import re
 import shlex
 
+from oauth2client import client
+
+from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models.quest import execution as execution_module
 from dashboard.pinpoint.models.quest import quest
 from dashboard.services import swarming
@@ -240,6 +243,12 @@ class _RunTestExecution(execution_module.Execution):
     return details
 
   def _Poll(self):
+    try:
+      self._PollSwarming()
+    except client.AccessTokenRefreshError:
+      raise errors.RecoverableError()
+
+  def _PollSwarming(self):
     if not self._task_id:
       self._StartTask()
       return

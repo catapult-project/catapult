@@ -10,6 +10,7 @@ from dashboard.common import math_utils
 from dashboard.pinpoint.models import attempt as attempt_module
 from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import compare
+from dashboard.pinpoint.models import errors
 
 
 _REPEAT_COUNT_INCREASE = 10
@@ -18,10 +19,6 @@ _REPEAT_COUNT_INCREASE = 10
 FUNCTIONAL = 'functional'
 PERFORMANCE = 'performance'
 COMPARISON_MODES = (FUNCTIONAL, PERFORMANCE)
-
-
-class JobStateRecoverableError(Exception):
-  pass
 
 
 class JobState(object):
@@ -121,7 +118,7 @@ class JobState(object):
         except change_module.NonLinearError:
           continue
         except httplib.HTTPException:
-          raise JobStateRecoverableError()
+          raise errors.RecoverableError()
 
         logging.info('Adding Change %s.', midpoint)
         self.AddChange(midpoint, index)

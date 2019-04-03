@@ -4,6 +4,7 @@
 
 import unittest
 
+from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models.quest import execution
 
 
@@ -21,6 +22,13 @@ class ExecutionException(_ExecutionStub):
 
   def _Poll(self):
     raise StandardError('An unhandled, unexpected exception.')
+
+
+class ExecutionException2(_ExecutionStub):
+  """This Execution always fails on first Poll()."""
+
+  def _Poll(self):
+    raise errors.RecoverableError()
 
 
 class ExecutionFail(_ExecutionStub):
@@ -101,4 +109,9 @@ class ExecutionTest(unittest.TestCase):
   def testExecutionException(self):
     e = ExecutionException()
     with self.assertRaises(StandardError):
+      e.Poll()
+
+  def testExecutionRecoverableException(self):
+    e = ExecutionException2()
+    with self.assertRaises(errors.RecoverableError):
       e.Poll()

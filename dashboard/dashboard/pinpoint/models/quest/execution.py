@@ -4,6 +4,8 @@
 
 import traceback
 
+from dashboard.pinpoint.models import errors
+
 
 class Execution(object):
   """Object tracking the execution of a Quest.
@@ -93,6 +95,8 @@ class Execution(object):
 
     try:
       self._Poll()
+    except errors.RecoverableError:
+      raise
     except StandardError:
       # StandardError most likely indicates a bug in the code.
       # We should fail fast to aid debugging.

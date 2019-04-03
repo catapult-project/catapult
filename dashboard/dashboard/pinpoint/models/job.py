@@ -17,6 +17,7 @@ from google.appengine.runtime import apiproxy_errors
 from dashboard import update_bug_with_results
 from dashboard.common import utils
 from dashboard.models import histogram
+from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models import results2
 from dashboard.services import gerrit_service
@@ -392,7 +393,7 @@ class Job(ndb.Model):
           queue_name='job-queue', url='/api/run/' + self.job_id,
           name=task_name, countdown=countdown)
     except (apiproxy_errors.DeadlineExceededError, taskqueue.TransientError):
-      raise job_state.JobStateRecoverableError()
+      raise errors.RecoverableError()
 
     self.task = task.name
 
@@ -434,7 +435,7 @@ class Job(ndb.Model):
         self._Complete()
 
       self.retry_count = 0
-    except job_state.JobStateRecoverableError:
+    except errors.RecoverableError:
       if not self._MaybeScheduleRetry():
         self.Fail()
         raise

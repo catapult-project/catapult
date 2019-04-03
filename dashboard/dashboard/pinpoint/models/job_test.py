@@ -12,8 +12,8 @@ from dashboard.common import layered_cache
 from dashboard.common import utils
 from dashboard.models import histogram
 from dashboard.pinpoint.models import change
+from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import job
-from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint import test
 
 
@@ -122,7 +122,7 @@ class RetryTest(test.TestCase):
     j = job.Job.New((), (), comparison_mode='performance')
     j.Start()
     j.state.Explore = mock.MagicMock(
-        side_effect=job_state.JobStateRecoverableError)
+        side_effect=errors.RecoverableError)
     j._Schedule = mock.MagicMock()
     j.put = mock.MagicMock()
     j.Fail = mock.MagicMock()
@@ -138,7 +138,7 @@ class RetryTest(test.TestCase):
                      mock.call(countdown=job._TASK_INTERVAL * 8))
     self.assertFalse(j.Fail.called)
 
-    with self.assertRaises(job_state.JobStateRecoverableError):
+    with self.assertRaises(errors.RecoverableError):
       j.Run()
     self.assertTrue(j.Fail.called)
 
@@ -146,7 +146,7 @@ class RetryTest(test.TestCase):
     j = job.Job.New((), (), comparison_mode='performance')
     j.Start()
     j.state.Explore = mock.MagicMock(
-        side_effect=job_state.JobStateRecoverableError)
+        side_effect=errors.RecoverableError)
     j._Schedule = mock.MagicMock()
     j.put = mock.MagicMock()
     j.Fail = mock.MagicMock()
