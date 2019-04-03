@@ -101,10 +101,13 @@ class Benchmark(command_line.Command):
     return False
 
   def Run(self, finder_options):
-    """Do not override this method."""
-    finder_options.target_platforms = self.GetSupportedPlatformNames(
-        self.SUPPORTED_PLATFORMS)
-    return story_runner.RunBenchmark(self, finder_options)
+    """ Runs a benchmark (DEPRECATED).
+
+    This method is left for compatibility with old tests.
+    Please use story_runner.RunBenchmark() instead.
+    TODO(crbug.com/939374): remove this method.
+    """
+    return story_runner.SetUpAndRunBenchmark(self, finder_options)
 
   @property
   def max_failures(self):
@@ -370,8 +373,21 @@ class Benchmark(command_line.Command):
 
 
 def AddCommandLineArgs(parser):
+  """ Adds arguments to parser (DEPRECATED).
+
+  This method is left for compatibility with old tests.
+  Please call story_runner.AddCommandLineArgs directly.
+  TODO(crbug.com/939374): remove this method.
+  """
   story_runner.AddCommandLineArgs(parser)
 
 
 def ProcessCommandLineArgs(parser, args):
+  """ Processes command line arguments (DEPRECATED).
+
+  This method is left for compatibility with old tests.
+  Please call story_runner.ProcessCommandLineArgs directly.
+  TODO(crbug.com/939374): remove this method.
+  """
   story_runner.ProcessCommandLineArgs(parser, args)
+
