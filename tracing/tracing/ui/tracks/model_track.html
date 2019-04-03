@@ -420,8 +420,12 @@ tr.exportTo('tr.ui.tracks', function() {
       const startY = this.calculateTrackY_(startTrack, canvasBounds);
       const endY = this.calculateTrackY_(endTrack, canvasBounds);
 
-      const pixelStartY = pixelRatio * startY;
-      const pixelEndY = pixelRatio * endY;
+      // Flow arrows' y values are calculated in world space. If the canvas
+      // was repositioned as the user scrolled down we offset any
+      // canvas translations here.
+      const worldOffset = this.getBoundingClientRect().top - canvasBounds.top;
+      const pixelStartY = pixelRatio * (startY - worldOffset);
+      const pixelEndY = pixelRatio * (endY - worldOffset);
 
       const startXView = dt.xWorldToView(flowEvent.start);
       const endXView = dt.xWorldToView(flowEvent.end);
