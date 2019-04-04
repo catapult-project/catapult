@@ -595,6 +595,9 @@ class AndroidPlatformBackend(
     and stack info from tombstone files, all concatenated into one string.
     """
     def Decorate(title, content):
+      if content.isspace():
+        content = ('**EMPTY** - could be explained by log messages '
+                   'preceding the previous python Traceback - best wishes')
       return "%s\n%s\n%s\n" % (title, content, '*' * 80)
 
     # Get the UI nodes that can be found on the screen
