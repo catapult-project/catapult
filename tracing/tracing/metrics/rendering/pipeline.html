@@ -91,6 +91,7 @@ tr.exportTo('tr.metrics.rendering', function() {
         tr.model.helpers.ChromeModelHelper);
 
     const renderers = modelHelper.telemetryHelper.renderersWithIR;
+    if (renderers.length === 0) return;
     const rasterThreads = renderers[0].rasterWorkerThreads;
 
     let earliestStart = undefined;
@@ -226,7 +227,7 @@ tr.exportTo('tr.metrics.rendering', function() {
           flow.SurfaceAggregation.end - flow.SubmitCompositorFrame.end,
           {breakdown: generateBreakdownForCompositorPipelineInService_(flow)});
 
-      if (rasterDuration.start && rasterDuration.end) {
+      if (rasterDuration && rasterDuration.start && rasterDuration.end) {
         const receiveToStart = rasterDuration.start -
             flow.ReceiveBeginFrame.start;
         const receiveToEnd = rasterDuration.end - flow.ReceiveBeginFrame.end;
