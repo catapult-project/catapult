@@ -699,6 +699,9 @@ class AndroidPlatformBackend(
           m = package_re.match(line)
           if m:
             last_package = m.group('package_name')
+            # The package name may have a trailing process name in it,
+            # for example: "org.chromium.chrome:privileged_process0".
+            last_package = last_package.split(':')[0]
     return last_package
 
   @staticmethod

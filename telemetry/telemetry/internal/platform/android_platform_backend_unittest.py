@@ -158,6 +158,17 @@ class AndroidPlatformBackendTest(unittest.TestCase):
                           default_package_name='invalid'))
 
   @decorators.Disabled('chromeos', 'mac', 'win')
+  def testPackageExtractionWithProcessName(self):
+    backend = self.CreatePlatformBackendForTest()
+    test_file = os.path.join(util.GetUnittestDataDir(),
+                             'crash_in_logcat_with_process_name.txt')
+    with open(test_file) as f:
+      logcat = f.read()
+    self.assertEquals(
+        "org.chromium.chrome",
+        backend._ExtractLastNativeCrashPackageFromLogcat(logcat))
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testPackageExtractionWithTwoCrashes(self):
     """Check that among two matches the latest package name is taken."""
     backend = self.CreatePlatformBackendForTest()
