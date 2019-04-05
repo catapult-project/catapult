@@ -6,6 +6,26 @@
 tr.exportTo('cp', () => {
   class CpDialog extends Polymer.Element {
     static get is() { return 'cp-dialog'; }
+
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            left: 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: var(--layer-drawer, 200);
+          }
+        </style>
+        <slot></slot>
+      `;
+    }
   }
   customElements.define(CpDialog.is, CpDialog);
 });
