@@ -77,6 +77,16 @@ tr.exportTo('tr.ui.e.v8', function() {
       match: full => full.endsWith('STRING_TYPE'),
       keyToName: key => key,
       nameToKey: name => name
+    },
+    Maps: {
+      match: full => full.startsWith('MAP_') && full.endsWith('_TYPE'),
+      keyToName: key => key,
+      nameToKey: name => name
+    },
+    DescriptorArrays: {
+      match: full => full.endsWith('DESCRIPTOR_ARRAY_TYPE'),
+      keyToName: key => key,
+      nameToKey: name => name
     }
   };
 
