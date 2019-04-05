@@ -7,6 +7,56 @@
   class CpTextarea extends Polymer.Element {
     static get is() { return 'cp-textarea'; }
 
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            border-radius: 4px;
+            border: 1px solid var(--neutral-color-dark, grey);
+            cursor: text;
+            display: flex;
+            outline: none;
+            padding: 4px;
+            position: relative;
+          }
+          #label {
+            background-color: var(--background-color, white);
+            color: var(--primary-color-dark, blue);
+            font-size: smaller;
+            padding: 4px;
+            position: absolute;
+            transform: translate(0px, -1.5em);
+            transition: color var(--transition-short, 0.2s);
+            white-space: nowrap;
+          }
+          :host([focused]) {
+            border: 2px solid var(--primary-color-dark, blue);
+            padding: 3px;
+          }
+          :host([focused]) #label {
+            color: var(--primary-color-dark, blue);
+          }
+          textarea {
+            border: 0;
+            flex-grow: 1;
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+            padding: 4px;
+          }
+        </style>
+
+        <div id="label">[[label]]</div>
+        <textarea
+            id="input"
+            value="[[value]]"
+            on-blur="onBlur_"
+            on-focus="onFocus_"
+            on-keyup="onKeyup_">
+        </textarea>
+      `;
+    }
+
     async connectedCallback() {
       super.connectedCallback();
       if (this.autofocus) {
