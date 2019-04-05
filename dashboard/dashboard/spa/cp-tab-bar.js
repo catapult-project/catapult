@@ -6,6 +6,21 @@
 (() => {
   class CpTabBar extends Polymer.Element {
     static get is() { return 'cp-tab-bar'; }
+
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            align-items: center;
+            color: var(--primary-color-dark, blue);
+            display: flex;
+            margin-top: 8px;
+          }
+        </style>
+        <slot></slot>
+      `;
+    }
+
     async ready() {
       super.ready();
       await cp.afterRender();
