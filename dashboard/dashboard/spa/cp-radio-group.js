@@ -7,6 +7,21 @@
   class CpRadioGroup extends Polymer.Element {
     static get is() { return 'cp-radio-group'; }
 
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            display: flex;
+            flex-direction: column;
+          }
+          ::slotted(cp-radio) {
+            margin: 4px 0;
+          }
+        </style>
+        <slot></slot>
+      `;
+    }
+
     ready() {
       super.ready();
       this.addEventListener('change', this.onItemChange_.bind(this));
