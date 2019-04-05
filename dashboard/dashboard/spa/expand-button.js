@@ -5,6 +5,25 @@
 'use strict';
 tr.exportTo('cp', () => {
   class ExpandButton extends cp.ElementBase {
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            display: flex;
+            cursor: pointer;
+          }
+          iron-icon {
+            height: 20px;
+            width: 20px;
+          }
+        </style>
+
+        <iron-icon icon="[[getIcon_(isExpanded)]]">
+        </iron-icon>
+        <slot></slot>
+      `;
+    }
+
     ready() {
       super.ready();
       this.addEventListener('click', this.onClick_.bind(this));

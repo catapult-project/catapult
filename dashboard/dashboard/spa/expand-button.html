@@ -5,24 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/dashboard/spa/cp-icons.html">
 <link rel="import" href="/dashboard/spa/element-base.html">
 
-<dom-module id="expand-button">
-  <template>
-    <style>
-      :host {
-        display: flex;
-        cursor: pointer;
-      }
-      iron-icon {
-        height: 20px;
-        width: 20px;
-      }
-    </style>
-
-    <iron-icon icon="[[getIcon_(isExpanded)]]">
-    </iron-icon>
-    <slot></slot>
-  </template>
-</dom-module>
 <script src="/dashboard/spa/expand-button.js"></script>
