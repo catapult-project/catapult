@@ -7,6 +7,26 @@
   class CpToast extends Polymer.Element {
     static get is() { return 'cp-toast'; }
 
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            bottom: 0;
+            left: 0;
+            right: 0;
+            position: fixed;
+          }
+          :host(:not([opened])) {
+            visibility: hidden;
+          }
+        </style>
+
+        <iron-collapse opened="[[opened]]">
+          <slot></slot>
+        </iron-collapse>
+      `;
+    }
+
     /*
      * Autocloses after `wait` ms if open() is not called again in the interim.
      * Does not autoclose if `wait` is false.

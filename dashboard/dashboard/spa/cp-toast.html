@@ -8,23 +8,4 @@ found in the LICENSE file.
 <link rel="import" href="/bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="/dashboard/spa/utils.html">
 
-<dom-module id="cp-toast">
-  <template>
-    <style>
-      :host {
-        bottom: 0;
-        left: 0;
-        right: 0;
-        position: fixed;
-      }
-      :host(:not([opened])) {
-        visibility: hidden;
-      }
-    </style>
-
-    <iron-collapse opened="[[opened]]">
-      <slot></slot>
-    </iron-collapse>
-  </template>
-</dom-module>
 <script src="/dashboard/spa/cp-toast.js"></script>
