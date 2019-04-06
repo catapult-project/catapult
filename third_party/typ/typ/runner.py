@@ -72,22 +72,39 @@ class TestInput(object):
 
 class TestSet(object):
 
-    def __init__(self, parallel_tests=None, isolated_tests=None,
-                 tests_to_skip=None):
-
-        def promote(tests):
-            tests = tests or []
-            return [test if isinstance(test, TestInput) else TestInput(test)
-                    for test in tests]
-
-        self.parallel_tests = promote(parallel_tests)
-        self.isolated_tests = promote(isolated_tests)
-        self.tests_to_skip = promote(tests_to_skip)
+    def __init__(self, test_name_prefix=''):
+        self.test_name_prefix = test_name_prefix
+        self.parallel_tests = []
+        self.isolated_tests = []
+        self.tests_to_skip = []
 
     def copy(self):
-        return TestSet(
-            self.parallel_tests[:], self.isolated_tests[:],
-            self.tests_to_skip[:])
+        test_set = TestSet(self.test_name_prefix)
+        test_set.tests_to_skip = self.tests_to_skip[:]
+        test_set.isolated_tests = self.isolated_tests[:]
+        test_set.parallel_tests = self.parallel_tests[:]
+        return test_set
+
+    def _get_test_name(self, test_case):
+        _validate_test_starts_with_prefix(
+            self.test_name_prefix, test_case.id())
+        return test_case.id()[len(self.test_name_prefix):]
+
+    def add_test_to_skip(self, test_case, reason=''):
+        self.tests_to_skip.append(
+            TestInput(self._get_test_name(test_case), reason))
+
+    def add_test_to_run_isolated(self, test_case):
+        self.isolated_tests.append(TestInput(self._get_test_name(test_case)))
+
+    def add_test_to_run_in_parallel(self, test_case):
+        self.parallel_tests.append(TestInput(self._get_test_name(test_case)))
+
+
+def _validate_test_starts_with_prefix(prefix, test_name):
+    assert test_name.startswith(prefix), (
+        'The test prefix passed at the command line does not match the prefix '
+        'of all the tests generated')
 
 
 class WinMultiprocessing(object):
@@ -396,7 +413,7 @@ class Runner(object):
         self.expectations = expectations
 
     def find_tests(self, args):
-        test_set = TestSet()
+        test_set = TestSet(self.args.test_name_prefix)
 
         orig_skip = unittest.skip
         orig_skip_if = unittest.skipIf
@@ -406,7 +423,7 @@ class Runner(object):
 
         try:
             names = self._name_list_from_args(args)
-            classifier = self.classifier or _default_classifier(args)
+            classifier = self.classifier or self.default_classifier
 
             for name in names:
                 try:
@@ -457,34 +474,11 @@ class Runner(object):
             names = self.top_level_dirs
         return names
 
-    def _test_adder(self, test_set, classifier):
-        def add_tests(obj):
-            if isinstance(obj, unittest.suite.TestSuite):
-                for el in obj:
-                    add_tests(el)
-            elif (obj.id().startswith('unittest.loader.LoadTestsFailure') or
-                  obj.id().startswith('unittest.loader.ModuleImportFailure')):
-                # Access to protected member pylint: disable=W0212
-                module_name = obj._testMethodName
-                try:
-                    method = getattr(obj, obj._testMethodName)
-                    method()
-                except Exception as e:
-                    if 'LoadTests' in obj.id():
-                        raise _AddTestsError('%s.load_tests() failed: %s'
-                                             % (module_name, str(e)))
-                    else:
-                        raise _AddTestsError(str(e))
-            else:
-                assert isinstance(obj, unittest.TestCase)
-                classifier(test_set, obj)
-        return add_tests
-
     def _add_tests_to_set(self, test_set, suffixes, top_level_dirs, classifier,
                           name):
         h = self.host
         loader = self.loader
-        add_tests = self._test_adder(test_set, classifier)
+        add_tests = _test_adder(test_set, classifier)
 
         found = set()
         for d in top_level_dirs:
@@ -565,7 +559,12 @@ class Runner(object):
 
             stats = Stats(self.args.status_format, h.time, 1)
             stats.total = len(tests_to_retry)
-            tests_to_retry = TestSet(isolated_tests=list(tests_to_retry))
+            test_set = TestSet(self.args.test_name_prefix)
+            for name in tests_to_retry:
+                test_set.add_test_to_run_isolated(
+                    list(self.loader.loadTestsFromName(
+                        self.args.test_name_prefix + name))[0])
+            tests_to_retry = test_set
             retry_set = ResultSet()
             self._run_one_set(stats, retry_set, tests_to_retry)
             result_set.results.extend(retry_set.results)
@@ -821,21 +820,65 @@ class Runner(object):
       else:
           return (set([ResultType.Pass]), False)
 
-def _matches(name, globs):
-    return any(fnmatch.fnmatch(name, glob) for glob in globs)
+    def default_classifier(self, test_set, test):
+        if self.matches_filter(test):
+            if not self.args.all and self.should_skip(test):
+                test_set.add_test_to_skip(test, 'skipped by request')
+            elif self.should_isolate(test):
+                test_set.add_test_to_run_isolated(test)
+            else:
+                test_set.add_test_to_run_in_parallel(test)
 
+    def matches_filter(self, test_case):
+        _validate_test_starts_with_prefix(
+            self.args.test_name_prefix, test_case.id())
+        test_name = test_case.id()[len(self.args.test_name_prefix):]
+        return (not self.args.test_filter or any(
+            fnmatch.fnmatch(test_name, glob)
+            for glob in self.args.test_filter.split('::')))
 
-def _default_classifier(args):
-    def default_classifier(test_set, test):
-        name = test.id()[len(args.test_name_prefix):]
-        if not args.all and _matches(name, args.skip):
-            test_set.tests_to_skip.append(TestInput(name,
-                                                    'skipped by request'))
-        elif _matches(name, args.isolate):
-            test_set.isolated_tests.append(TestInput(name))
+    def should_isolate(self, test_case):
+        _validate_test_starts_with_prefix(
+            self.args.test_name_prefix, test_case.id())
+        test_name = test_case.id()[len(self.args.test_name_prefix):]
+        return any(fnmatch.fnmatch(test_name, glob)
+                   for glob in self.args.isolate)
+
+    def should_skip(self, test_case):
+        _validate_test_starts_with_prefix(
+            self.args.test_name_prefix, test_case.id())
+        test_name = test_case.id()[len(self.args.test_name_prefix):]
+        if self.has_expectations:
+            expected_results, _ = self.expectations.expectations_for(test_name)
         else:
-            test_set.parallel_tests.append(TestInput(name))
-    return default_classifier
+            expected_results = set([ResultType.Pass])
+        return (
+            ResultType.Skip in expected_results or
+            any(fnmatch.fnmatch(test_name, glob) for glob in self.args.skip))
+
+
+def _test_adder(test_set, classifier):
+        def add_tests(obj):
+            if isinstance(obj, unittest.suite.TestSuite):
+                for el in obj:
+                    add_tests(el)
+            elif (obj.id().startswith('unittest.loader.LoadTestsFailure') or
+                  obj.id().startswith('unittest.loader.ModuleImportFailure')):
+                # Access to protected member pylint: disable=W0212
+                module_name = obj._testMethodName
+                try:
+                    method = getattr(obj, obj._testMethodName)
+                    method()
+                except Exception as e:
+                    if 'LoadTests' in obj.id():
+                        raise _AddTestsError('%s.load_tests() failed: %s'
+                                             % (module_name, str(e)))
+                    else:
+                        raise _AddTestsError(str(e))
+            else:
+                assert isinstance(obj, unittest.TestCase)
+                classifier(test_set, obj)
+        return add_tests
 
 
 class _Child(object):
