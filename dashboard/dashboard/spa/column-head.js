@@ -7,6 +7,45 @@ tr.exportTo('cp', () => {
   class ColumnHead extends Polymer.Element {
     static get is() { return 'column-head'; }
 
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            align-items: center;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            transition: background var(--transition-long, 1s);
+          }
+          :host(:not([disabled])) {
+            cursor: pointer;
+          }
+          :host(:hover:not([disabled])) {
+            background: white radial-gradient(circle, transparent 1%, white 1%)
+            center/15000%;
+          }
+          :host(:active:not([disabled])) {
+            background-color: var(--primary-color-medium, lightblue);
+            background-size: 100%;
+            transition: background 0s;
+          }
+          #icon {
+            transition: color var(--transition-short, 0.5s);
+          }
+          #icon[empty] {
+            color: transparent;
+          }
+        </style>
+
+        <iron-icon
+            id="icon"
+            empty$="[[isIconEmpty_(disabled, name, sortColumn)]]"
+            icon="[[getIcon_(sortDescending)]]">
+        </iron-icon>
+        <slot></slot>
+      `;
+    }
+
     isIconEmpty_(disabled, name, sortColumn) {
       return disabled || (name !== sortColumn);
     }

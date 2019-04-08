@@ -8,30 +8,4 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/spa/option-group.html">
 <link rel="import" href="/dashboard/spa/utils.html">
 
-<dom-module id="memory-components">
-  <template>
-    <style>
-      :host {
-        display: flex;
-      }
-
-      .column {
-        border-bottom: 1px solid var(--primary-color-dark, blue);
-        margin-bottom: 4px;
-        max-height: 143px;
-        overflow-y: auto;
-      }
-    </style>
-
-    <template is="dom-repeat" items="[[columns]]" as="column" index-as="columnIndex">
-      <div class="column">
-        <option-group
-            state-path="[[statePath]].columns.[[columnIndex]]"
-            root-state-path="[[statePath]].columns.[[columnIndex]]"
-            on-option-select="onColumnSelect_">
-        </option-group>
-      </div>
-    </template>
-  </template>
-</dom-module>
 <script src="/dashboard/spa/memory-components.js"></script>

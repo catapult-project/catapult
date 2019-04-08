@@ -5,6 +5,213 @@
 'use strict';
 tr.exportTo('cp', () => {
   class ReportTable extends cp.ElementBase {
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            position: relative;
+          }
+          .report_name {
+            display: flex;
+            justify-content: center;
+            margin: 24px 0 0 0;
+          }
+
+          table {
+            border-collapse: collapse;
+          }
+
+          table[placeholder] {
+            color: var(--neutral-color-dark);
+          }
+
+          h2 {
+            text-align: center;
+            margin: 0;
+          }
+
+          .name_column {
+            text-align: left;
+          }
+
+          td, th {
+            padding: 4px;
+            vertical-align: top;
+          }
+
+          #edit,
+          #copy,
+          #documentation {
+            color: var(--primary-color-dark);
+            cursor: pointer;
+            flex-shrink: 0;
+            margin: 0 0 0 8px;
+            padding: 0;
+            width: var(--icon-size, 1em);
+            height: var(--icon-size, 1em);
+          }
+
+          .report_name span {
+            position: relative;
+            display: flex;
+            align-items: center;
+          }
+
+          #tooltip {
+            display: none;
+            position: absolute;
+            z-index: var(--layer-menu);
+          }
+
+          :host(:hover) #tooltip {
+            display: block;
+          }
+
+          #tooltip table {
+            background-color: var(--background-color, white);
+            border: 2px solid var(--primary-color-dark, blue);
+            padding: 8px;
+          }
+
+          #tooltip td {
+            padding: 2px;
+          }
+
+          #copied {
+            display: flex;
+            justify-content: center;
+            background-color: var(--primary-color-dark, blue);
+            color: var(--background-color, white);
+            padding: 8px;
+          }
+
+          #scratch {
+            opacity: 0;
+            position: absolute;
+            z-index: var(--layer-hidden);
+          }
+
+          iron-icon[hidden] {
+            display: none;
+          }
+        </style>
+
+        <div class="report_name">
+          <h2>[[name]]</h2>
+
+          <template is="dom-if" if="[[url]]">
+            <a id="documentation"
+                href="[[url]]"
+                target="_blank"
+                title="Documentation">
+              <iron-icon icon="cp:help">
+              </iron-icon>
+            </a>
+          </template>
+
+          <iron-icon
+              id="copy"
+              icon="cp:copy"
+              title="Copy measurements"
+              on-click="onCopy_">
+          </iron-icon>
+
+          <iron-icon
+              id="edit"
+              hidden$="[[!canEdit_(owners, userEmail)]]"
+              icon="cp:edit"
+              title="Edit template"
+              on-click="onToggleEditing_">
+          </iron-icon>
+        </div>
+
+        <table id="table" placeholder$="[[isPlaceholder]]">
+          <thead>
+            <tr>
+              <th colspan$="[[maxLabelParts]]">&nbsp;</th>
+              <th colspan$="[[lengthOf_(statistics)]]">
+                [[prevMstoneLabel_(milestone, maxRevision)]]
+                <br>
+                [[minRevision]]
+              </th>
+              <th colspan$="[[lengthOf_(statistics)]]">
+                [[curMstoneLabel_(milestone, maxRevision)]]
+                <br>
+                [[maxRevision]]
+              </th>
+              <th colspan$="[[numChangeColumns_(statistics)]]">Change</th>
+            </tr>
+            <template is="dom-if" if="[[isMultiple_(statistics)]]">
+              <tr>
+                <th colspan$="[[maxLabelParts]]">&nbsp;</th>
+                <template is="dom-repeat" items="[[statistics]]" as="statistic">
+                  <th>[[statistic]]</th>
+                </template>
+                <template is="dom-repeat" items="[[statistics]]" as="statistic">
+                  <th>[[statistic]]</th>
+                </template>
+                <template is="dom-repeat" items="[[statistics]]" as="statistic">
+                  <th colspan="2">[[statistic]]</th>
+                </template>
+              </tr>
+            </template>
+          </thead>
+
+          <tbody>
+            <template is="dom-repeat" items="[[rows]]" as="row">
+              <tr on-mouseenter="onEnterRow_">
+                <template is="dom-repeat" items="[[row.labelParts]]"
+                    as="labelPart" index-as="labelPartIndex">
+                  <template is="dom-if" if="[[labelPart.isFirst]]">
+                    <td row-span="[[labelPart.rowCount]]">
+                      <a href="[[labelPart.href]]"
+                          on-click="onOpenChart_">
+                        [[labelPart.label]]
+                      </a>
+                    </td>
+                  </template>
+                </template>
+
+                <template is="dom-repeat" items="[[row.scalars]]" as="scalar">
+                  <td>
+                    <scalar-span
+                        unit="[[scalar.unit]]"
+                        unit-prefix="[[scalar.unitPrefix]]"
+                        value="[[scalar.value]]">
+                    </scalar-span>
+                  </td>
+                </template>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+
+        <div id="tooltip"
+            style$="top: [[tooltip.top]]px; left: [[tooltip.left]]px;">
+          <template is="dom-if" if="[[!isEmpty_(tooltip.rows)]]">
+            <table>
+              <tbody>
+                <template is="dom-repeat" items="[[tooltip.rows]]" as="row">
+                  <tr>
+                    <template is="dom-repeat" items="[[row]]" as="cell">
+                      <td>[[cell]]</td>
+                    </template>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </template>
+        </div>
+
+        <div id="scratch">
+        </div>
+
+        <cp-toast id="copied">
+          Copied measurements
+        </cp-toast>
+      `;
+    }
+
     prevMstoneLabel_(milestone, maxRevision) {
       if (maxRevision === 'latest') milestone += 1;
       return `M${milestone - 1}`;

@@ -5,6 +5,101 @@
 'use strict';
 tr.exportTo('cp', () => {
   class ReportControls extends cp.ElementBase {
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            display: flex;
+            align-items: center;
+          }
+
+          #source {
+            width: 250px;
+          }
+
+          #prev_mstone,
+          #next_mstone {
+            font-size: larger;
+          }
+
+          #alerts {
+            color: var(--primary-color-dark);
+          }
+
+          #min_revision {
+            margin-right: 8px;
+          }
+
+          #min_revision,
+          #max_revision {
+            width: 84px;
+          }
+
+          #close {
+            align-self: flex-start;
+            cursor: pointer;
+            flex-shrink: 0;
+            height: var(--icon-size, 1em);
+            width: var(--icon-size, 1em);
+          }
+
+          .spacer {
+            flex-grow: 1;
+          }
+        </style>
+
+        <menu-input id="source" state-path="[[statePath]].source"></menu-input>
+
+        <raised-button
+            id="alerts"
+            title="Alerts"
+            on-click="onAlerts_">
+          <iron-icon icon="cp:alert">
+          </iron-icon>
+          <span class="nav_button_label">
+            Alerts
+          </span>
+        </raised-button>
+
+        <span class="spacer">&nbsp;</span>
+
+        <raised-button
+            id="prev_mstone"
+            disabled$="[[!isPreviousMilestone_(milestone)]]"
+            on-click="onPreviousMilestone_">
+          [[prevMstoneButtonLabel_(milestone, maxRevision)]]
+          <iron-icon icon="cp:left"></iron-icon>
+        </raised-button>
+
+        <cp-input
+            id="min_revision"
+            value="[[minRevisionInput]]"
+            label="Min Revision"
+            on-keyup="onMinRevisionKeyup_">
+        </cp-input>
+
+        <cp-input
+            id="max_revision"
+            value="[[maxRevisionInput]]"
+            label="Max Revision"
+            on-keyup="onMaxRevisionKeyup_">
+        </cp-input>
+
+        <raised-button
+            id="next_mstone"
+            disabled$="[[!isNextMilestone_(milestone)]]"
+            on-click="onNextMilestone_">
+          <iron-icon icon="cp:right"></iron-icon>
+          M[[add_(milestone, 1)]]
+        </raised-button>
+
+        <span class="spacer">&nbsp;</span>
+
+        <iron-icon id="close" icon="cp:close" on-click="onCloseSection_">
+        </iron-icon>
+      `;
+    }
+
     connectedCallback() {
       super.connectedCallback();
       this.dispatch('connected', this.statePath);

@@ -7,6 +7,31 @@ tr.exportTo('cp', () => {
   class ScalarSpan extends Polymer.Element {
     static get is() { return 'scalar-span'; }
 
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+            white-space: nowrap;
+          }
+          span[change="improvement"] {
+            color: var(--improvement-color);
+          }
+          span[change="regression"] {
+            color: var(--error-color);
+          }
+        </style>
+
+        <span id="span"
+            change$="[[change_(unit, value)]]"
+            title$="[[change_(unit, value)]]">
+          [[format_(unit, value, maximumFractionDigits, unitPrefix)]]
+        </span>
+      `;
+    }
+
     change_(unit, value) {
       return ScalarSpan.getChange(unit, value);
     }

@@ -5,6 +5,46 @@
 'use strict';
 tr.exportTo('cp', () => {
   class ReportSection extends cp.ElementBase {
+    static get template() {
+      return Polymer.html`
+        <style>
+          #tables {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+          }
+          report-template {
+            background-color: var(--background-color, white);
+            overflow: auto;
+          }
+        </style>
+
+        <report-controls state-path="[[statePath]]">
+        </report-controls>
+
+        <cp-loading loading$="[[isLoading]]"></cp-loading>
+
+        <div id="tables">
+          <template is="dom-repeat" items="[[tables]]" as="table"
+                                    index-as="tableIndex">
+            <cp-loading loading$="[[table.isLoading]]"></cp-loading>
+
+            <report-table state-path="[[statePath]].tables.[[tableIndex]]">
+            </report-table>
+
+            <template is="dom-if" if="[[table.isEditing]]">
+              <cp-dialog>
+                <report-template
+                    state-path="[[statePath]].tables.[[tableIndex]]"
+                    on-save="onSave_">
+                </report-template>
+              </cp-dialog>
+            </template>
+          </template>
+        </div>
+      `;
+    }
+
     ready() {
       super.ready();
       this.scrollIntoView(true);

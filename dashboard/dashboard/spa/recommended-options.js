@@ -10,6 +10,24 @@ tr.exportTo('cp', () => {
   ];
 
   class RecommendedOptions extends cp.ElementBase {
+    static get template() {
+      return Polymer.html`
+        <style>
+          option-group {
+            border-bottom: 1px solid var(--primary-color-dark, blue);
+          }
+        </style>
+
+        <template is="dom-if" if="[[!isEmpty_(recommended.options)]]">
+          <b style="margin: 4px;">Recommended</b>
+          <option-group
+              state-path="[[statePath]].recommended"
+              root-state-path="[[statePath]]">
+          </option-group>
+        </template>
+      `;
+    }
+
     ready() {
       super.ready();
       if (!this.optionRecommendations) this.dispatch('getRecommendations');

@@ -5,6 +5,253 @@
 'use strict';
 tr.exportTo('cp', () => {
   class AlertsControls extends cp.ElementBase {
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            align-items: center;
+            display: flex;
+            margin-bottom: 8px;
+          }
+
+          #sheriff-container,
+          #bug-container,
+          #report-container,
+          #report,
+          #min-revision {
+            margin-right: 8px;
+          }
+
+          #report-container {
+            display: flex;
+          }
+
+          #triaged {
+            margin-left: 8px;
+            margin-right: 8px;
+          }
+
+          #spacer {
+            flex-grow: 1;
+          }
+
+          #recent-bugs-container {
+            position: relative;
+          }
+
+          .bug_notification {
+            background-color: var(--background-color, white);
+            box-shadow: var(--elevation-2);
+            overflow: hidden;
+            padding: 8px;
+            position: absolute;
+            right: 0;
+            white-space: nowrap;
+            z-index: var(--layer-menu, 100);
+          }
+
+          #recent-bugs-table {
+            margin: 0;
+            padding: 0;
+          }
+
+          #filter[enabled] {
+            background-color: var(--primary-color-dark, blue);
+            border-radius: 50%;
+            color: var(--background-color, white);
+            padding: 4px;
+          }
+
+          iron-icon {
+            cursor: pointer;
+            flex-shrink: 0;
+            height: var(--icon-size, 1em);
+            width: var(--icon-size, 1em);
+          }
+
+          #close {
+            align-self: flex-start;
+          }
+
+          #edit, #documentation {
+            color: var(--primary-color-dark, blue);
+            padding: 8px;
+          }
+        </style>
+
+        <chops-signin-aware on-user-update="onUserUpdate_">
+        </chops-signin-aware>
+
+        <iron-collapse
+            horizontal
+            id="sheriff-container"
+            opened="[[showMenuInput_(showEmptyInputs, sheriff, bug, report,
+                                     minRevision, maxRevision)]]">
+          <menu-input
+              id="sheriff"
+              state-path="[[statePath]].sheriff"
+              on-clear="onSheriffClear_"
+              on-option-select="onSheriffSelect_">
+            <recommended-options slot="top" state-path="[[statePath]].sheriff">
+            </recommended-options>
+          </menu-input>
+        </iron-collapse>
+
+        <iron-collapse
+            horizontal
+            id="bug-container"
+            opened="[[showMenuInput_(showEmptyInputs, bug, sheriff, report,
+                                     minRevision, maxRevision)]]">
+          <menu-input
+              id="bug"
+              state-path="[[statePath]].bug"
+              on-clear="onBugClear_"
+              on-input-keyup="onBugKeyup_"
+              on-option-select="onBugSelect_">
+            <recommended-options slot="top" state-path="[[statePath]].bug">
+            </recommended-options>
+          </menu-input>
+        </iron-collapse>
+
+        <iron-collapse
+            horizontal
+            id="report-container"
+            opened="[[showMenuInput_(showEmptyInputs, report, sheriff, bug,
+                                     minRevision, maxRevision)]]">
+          <menu-input
+              id="report"
+              state-path="[[statePath]].report"
+              on-clear="onReportClear_"
+              on-option-select="onReportSelect_">
+            <recommended-options slot="top" state-path="[[statePath]].report">
+            </recommended-options>
+          </menu-input>
+        </iron-collapse>
+
+        <iron-collapse
+            horizontal
+            id="sheriff-container"
+            opened="[[showInput_(showEmptyInputs, minRevision, maxRevision,
+                                 sheriff, bug, report)]]">
+          <cp-input
+              id="min-revision"
+              value="[[minRevision]]"
+              label="Min Revision"
+              on-keyup="onMinRevisionKeyup_">
+          </cp-input>
+        </iron-collapse>
+
+        <iron-collapse
+            horizontal
+            id="sheriff-container"
+            opened="[[showInput_(showEmptyInputs, minRevision, maxRevision,
+                                 sheriff, bug, report)]]">
+          <cp-input
+              id="max-revision"
+              value="[[maxRevision]]"
+              label="Max Revision"
+              on-keyup="onMaxRevisionKeyup_">
+          </cp-input>
+        </iron-collapse>
+
+        <iron-icon
+            id="filter"
+            icon="cp:filter"
+            enabled$="[[showEmptyInputs]]"
+            on-click="onFilter_">
+        </iron-icon>
+
+        <cp-switch
+            id="improvements"
+            disabled="[[!isEmpty_(bug.selectedOptions)]]"
+            checked$="[[showingImprovements]]"
+            on-change="onToggleImprovements_">
+          <template is="dom-if" if="[[showingImprovements]]">
+            Regressions and Improvements
+          </template>
+          <template is="dom-if" if="[[!showingImprovements]]">
+            Regressions Only
+          </template>
+        </cp-switch>
+
+        <cp-switch
+            id="triaged"
+            disabled="[[!isEmpty_(bug.selectedOptions)]]"
+            checked$="[[showingTriaged]]"
+            on-change="onToggleTriaged_">
+          <template is="dom-if" if="[[showingTriaged]]">
+            New and Triaged
+          </template>
+          <template is="dom-if" if="[[!showingTriaged]]">
+            New Only
+          </template>
+        </cp-switch>
+
+        <span id=spacer></span>
+
+        <span id="recent-bugs-container">
+          <raised-button
+              id="recent-bugs"
+              disabled$="[[isEmpty_(recentlyModifiedBugs)]]"
+              on-click="onClickRecentlyModifiedBugs_">
+            Recent Bugs
+          </raised-button>
+
+          <iron-collapse
+              class="bug_notification"
+              opened="[[hasTriagedNew]]">
+            Created
+            <a href="[[crbug_(triagedBugId)]]" target="_blank">
+              [[triagedBugId]]
+            </a>
+          </iron-collapse>
+
+          <iron-collapse
+              class="bug_notification"
+              opened="[[hasTriagedExisting]]">
+            Updated
+            <a href="[[crbug_(triagedBugId)]]" target="_blank">
+              [[triagedBugId]]
+            </a>
+          </iron-collapse>
+
+          <iron-collapse
+              class="bug_notification"
+              opened="[[hasIgnored]]">
+            Ignored [[ignoredCount]] alert[[plural_(ignoredCount)]]
+          </iron-collapse>
+
+          <iron-collapse
+              class="bug_notification"
+              opened="[[showingRecentlyModifiedBugs]]"
+              on-blur="onRecentlyModifiedBugsBlur_">
+            <table id="recent-bugs-table">
+              <thead>
+                <tr>
+                  <th>Bug #</th>
+                  <th>Summary</th>
+                </tr>
+              </thead>
+              <template is="dom-repeat" items="[[recentlyModifiedBugs]]"
+                                        as="bug">
+                <tr>
+                  <td>
+                    <a href="[[crbug_(bug.id)]]" target="_blank">
+                      [[bug.id]]
+                    </a>
+                  </td>
+                  <td>[[bug.summary]]</td>
+                </tr>
+              </template>
+            </table>
+          </iron-collapse>
+        </span>
+
+        <iron-icon id="close" icon="cp:close" on-click="onClose_">
+        </iron-icon>
+      `;
+    }
+
     connectedCallback() {
       super.connectedCallback();
       this.dispatch('connected', this.statePath);

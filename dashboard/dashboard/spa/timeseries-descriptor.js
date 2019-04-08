@@ -5,6 +5,124 @@
 'use strict';
 tr.exportTo('cp', () => {
   class TimeseriesDescriptor extends cp.ElementBase {
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            display: flex;
+          }
+          menu-input {
+            margin-right: 8px;
+          }
+          .error {
+            color: var(--error-color, red);
+            position: absolute;
+            visibility: hidden;
+          }
+          .error[visible] {
+            visibility: visible;
+          }
+          cp-checkbox[hidden] {
+            visibility: hidden;
+          }
+        </style>
+
+        <div>
+          <menu-input
+              state-path="[[statePath]].suite"
+              on-option-select="onSuiteSelect_">
+            <recommended-options slot="top" state-path="[[statePath]].suite">
+            </recommended-options>
+          </menu-input>
+
+          <div class="error" visible$="[[isEmpty_(suite.selectedOptions)]]">
+            At least one required
+          </div>
+
+          <template is="dom-if" if="[[suite.canAggregate]]">
+            <cp-checkbox
+                hidden$="[[isEmpty_(suite.selectedOptions)]]"
+                disabled$="[[!isMultiple_(suite.selectedOptions)]]"
+                checked="[[suite.isAggregated]]"
+                on-change="onSuiteAggregateChange_">
+              Aggregate
+            </cp-checkbox>
+          </template>
+        </div>
+
+        <div>
+          <menu-input
+              state-path="[[statePath]].measurement"
+              on-option-select="onMeasurementSelect_">
+            <div slot="top">
+              <recommended-options state-path="[[statePath]].measurement">
+              </recommended-options>
+              <memory-components state-path="[[statePath]].measurement">
+              </memory-components>
+            </div>
+          </menu-input>
+
+          <template is="dom-if" if="[[!measurement.requireSingle]]">
+            <div class="error"
+                 visible$="[[isEmpty_(measurement.selectedOptions)]]">
+              At least one required
+            </div>
+          </template>
+
+          <template is="dom-if" if="[[measurement.requireSingle]]">
+            <div class="error"
+                 visible$="[[showExactlyOneRequiredMeasurement_(measurement)]]">
+              Exactly one required
+            </div>
+          </template>
+        </div>
+
+        <div>
+          <menu-input
+              state-path="[[statePath]].bot"
+              on-option-select="onBotSelect_">
+            <recommended-options slot="top" state-path="[[statePath]].bot">
+            </recommended-options>
+          </menu-input>
+
+          <div class="error" visible$="[[isEmpty_(bot.selectedOptions)]]">
+            At least one required
+          </div>
+
+          <template is="dom-if" if="[[bot.canAggregate]]">
+            <cp-checkbox
+                hidden$="[[isEmpty_(bot.selectedOptions)]]"
+                disabled$="[[!isMultiple_(bot.selectedOptions)]]"
+                checked="[[bot.isAggregated]]"
+                on-change="onBotAggregateChange_">
+              Aggregate
+            </cp-checkbox>
+          </template>
+        </div>
+
+        <div>
+          <menu-input
+              state-path="[[statePath]].case"
+              on-option-select="onCaseSelect_">
+            <recommended-options slot="top" state-path="[[statePath]].case">
+            </recommended-options>
+
+            <tag-filter slot="left" state-path="[[statePath]].case">
+            </tag-filter>
+          </menu-input>
+
+          <template is="dom-if" if="[[case.canAggregate]]">
+            <cp-checkbox
+                disabled$="[[!isMultiple_(case.selectedOptions)]]"
+                checked="[[case.isAggregated]]"
+                on-change="onCaseAggregateChange_">
+              Aggregate
+            </cp-checkbox>
+          </template>
+        </div>
+      `;
+    }
+
     async ready() {
       super.ready();
       await this.dispatch('ready', this.statePath);

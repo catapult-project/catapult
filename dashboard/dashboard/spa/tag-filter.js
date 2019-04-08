@@ -5,6 +5,37 @@
 'use strict';
 tr.exportTo('cp', () => {
   class TagFilter extends cp.ElementBase {
+    static get template() {
+      return Polymer.html`
+        <style>
+          #container {
+            align-items: center;
+            border-right: 1px solid black;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding-right: 8px;
+          }
+          #head {
+            padding: 4px;
+            color: var(--neutral-color-dark, grey);
+            font-weight: bold;
+          }
+        </style>
+
+        <template is="dom-if" if="[[!isEmpty_(tags.options)]]">
+          <div id="container">
+            <span id="tag_head">Tags</span>
+            <option-group
+                state-path="[[statePath]].tags"
+                root-state-path="[[statePath]].tags"
+                on-option-select="onTagSelect_">
+            </option-group>
+          </div>
+        </template>
+      `;
+    }
+
     onTagSelect_(event) {
       this.dispatch('filter', this.statePath);
     }

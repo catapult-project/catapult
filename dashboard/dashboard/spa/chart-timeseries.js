@@ -5,6 +5,33 @@
 'use strict';
 tr.exportTo('cp', () => {
   class ChartTimeseries extends cp.ElementBase {
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            display: block;
+          }
+          place-holder {
+            @apply --chart-placeholder;
+          }
+        </style>
+
+        <template is="dom-if" if="[[showPlaceholder(isLoading, lines)]]">
+          <place-holder>
+            <slot></slot>
+          </place-holder>
+        </template>
+
+        <template is="dom-if" if="[[!showPlaceholder(isLoading, lines)]]">
+          <chart-base
+              state-path="[[statePath]]"
+              on-get-tooltip="onGetTooltip_"
+              on-mouse-leave-main="onMouseLeaveMain_">
+          </chart-base>
+        </template>
+      `;
+    }
+
     showPlaceholder(isLoading, lines) {
       return !isLoading && this.isEmpty_(lines);
     }

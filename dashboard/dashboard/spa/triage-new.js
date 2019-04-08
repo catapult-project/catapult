@@ -5,6 +5,83 @@
 'use strict';
 tr.exportTo('cp', () => {
   class TriageNew extends cp.ElementBase {
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            background: var(--background-color);
+            box-shadow: var(--elevation-2);
+            display: none;
+            flex-direction: column;
+            min-width: 500px;
+            outline: none;
+            padding: 16px;
+            position: absolute;
+            right: 0;
+            z-index: var(--layer-menu);
+          }
+          :host([is-open]) {
+            display: flex;
+          }
+          *:not(:nth-child(2)) {
+            margin-top: 12px;
+          }
+        </style>
+
+        <cp-input
+            label="Summary"
+            tabindex="0"
+            value="[[summary]]"
+            on-change="onSummary_">
+        </cp-input>
+
+        <cp-input
+            label="Owner"
+            tabindex="0"
+            value="[[owner]]"
+            on-change="onOwner_">
+        </cp-input>
+
+        <cp-input
+            label="CC"
+            tabindex="0"
+            value="[[cc]]"
+            on-change="onCC_">
+        </cp-input>
+
+        <cp-textarea
+            autofocus
+            id="description"
+            label="Description"
+            tabindex="0"
+            value="[[description]]"
+            on-keyup="onDescription_">
+        </cp-textarea>
+
+        <template is="dom-repeat" items="[[labels]]" as="label">
+          <cp-checkbox
+              checked="[[label.isEnabled]]"
+              tabindex="0"
+              on-change="onLabel_">
+            [[label.name]]
+          </cp-checkbox>
+        </template>
+
+        <template is="dom-repeat" items="[[components]]" as="component">
+          <cp-checkbox
+              checked="[[component.isEnabled]]"
+              tabindex="0"
+              on-change="onComponent_">
+            [[component.name]]
+          </cp-checkbox>
+        </template>
+
+        <raised-button on-click="onSubmit_" tabindex="0">
+          Submit
+        </raised-button>
+      `;
+    }
+
     ready() {
       super.ready();
       this.addEventListener('blur', this.onBlur_.bind(this));

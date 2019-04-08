@@ -12,6 +12,118 @@ tr.exportTo('cp', () => {
   const ENOUGH_LOADING_MS = 60000;
 
   class AlertsSection extends cp.ElementBase {
+    static get template() {
+      return Polymer.html`
+        <style>
+          #triage_controls {
+            align-items: center;
+            display: flex;
+            padding-left: 24px;
+            transition: background-color var(--transition-short, 0.2s),
+                        color var(--transition-short, 0.2s);
+          }
+
+          #triage_controls[anySelected] {
+            background-color: var(--primary-color-light, lightblue);
+            color: var(--primary-color-dark, blue);
+          }
+
+          #triage_controls .button {
+            background: unset;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 8px;
+            text-transform: uppercase;
+          }
+
+          #triage_controls .button[disabled] {
+            color: var(--neutral-color-dark, grey);
+            font-weight: normal;
+          }
+
+          #count {
+            flex-grow: 1;
+          }
+        </style>
+
+        <alerts-controls
+            id="controls"
+            state-path="[[statePath]]"
+            on-sources="onSources_">
+        </alerts-controls>
+
+        <cp-loading loading$="[[isLoading_(isLoading, preview.isLoading)]]">
+        </cp-loading>
+
+        <template is="dom-if" if="[[!isEmpty_(alertGroups)]]">
+          <div id="triage_controls"
+              anySelected$="[[!isEqual_(0, selectedAlertsCount)]]">
+            <div id="count">
+              [[selectedAlertsCount]] selected of
+              [[summary_(showingTriaged, alertGroups)]]
+            </div>
+
+            <span style="position: relative;">
+              <div class="button"
+                  disabled$="[[!canTriage_(alertGroups)]]"
+                  on-click="onTriageNew_">
+                New Bug
+              </div>
+
+              <triage-new
+                  tabindex="0"
+                  state-path="[[statePath]].newBug"
+                  on-submit="onTriageNewSubmit_">
+              </triage-new>
+            </span>
+
+            <span style="position: relative;">
+              <div class="button"
+                  disabled$="[[!canTriage_(alertGroups)]]"
+                  on-click="onTriageExisting_">
+                Existing Bug
+              </div>
+
+              <triage-existing
+                  tabindex="0"
+                  state-path="[[statePath]].existingBug"
+                  on-submit="onTriageExistingSubmit_">
+              </triage-existing>
+            </span>
+
+            <div class="button"
+                disabled$="[[!canTriage_(alertGroups)]]"
+                on-click="onIgnore_">
+              Ignore
+            </div>
+
+            <div class="button"
+                disabled$="[[!canUnassignAlerts_(alertGroups)]]"
+                on-click="onUnassign_">
+              Unassign
+            </div>
+          </div>
+        </template>
+
+        <alerts-table
+            state-path="[[statePath]]"
+            on-selected="onSelected_"
+            on-alert-click="onAlertClick_">
+        </alerts-table>
+
+        <iron-collapse opened="[[!allTriaged_(alertGroups, showingTriaged)]]">
+          <chart-compound
+              id="preview"
+              state-path="[[statePath]].preview"
+              linked-state-path="[[linkedStatePath]]"
+              on-line-count-change="onPreviewLineCountChange_">
+            Select alerts using the checkboxes in the table above to preview
+            their timeseries.
+          </chart-compound>
+        </iron-collapse>
+      `;
+    }
+
     ready() {
       super.ready();
       this.scrollIntoView(true);

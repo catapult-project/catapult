@@ -5,6 +5,34 @@
 'use strict';
 tr.exportTo('cp', () => {
   class MemoryComponents extends cp.ElementBase {
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            display: flex;
+          }
+
+          .column {
+            border-bottom: 1px solid var(--primary-color-dark, blue);
+            margin-bottom: 4px;
+            max-height: 143px;
+            overflow-y: auto;
+          }
+        </style>
+
+        <template is="dom-repeat" items="[[columns]]" as="column"
+                                  index-as="columnIndex">
+          <div class="column">
+            <option-group
+                state-path="[[statePath]].columns.[[columnIndex]]"
+                root-state-path="[[statePath]].columns.[[columnIndex]]"
+                on-option-select="onColumnSelect_">
+            </option-group>
+          </div>
+        </template>
+      `;
+    }
+
     async onColumnSelect_(event) {
       await this.dispatch('onColumnSelect', this.statePath);
       this.dispatchEvent(new CustomEvent('option-select', {

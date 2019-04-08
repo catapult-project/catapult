@@ -7,6 +7,50 @@ tr.exportTo('cp', () => {
   class ChartLegend extends Polymer.Element {
     static get is() { return 'chart-legend'; }
 
+    static get template() {
+      return Polymer.html`
+        <style>
+          :host {
+            display: flex;
+            flex-direction: column;
+          }
+          :host * {
+            flex-shrink: 0;
+          }
+          chart-legend {
+            margin-left: 16px;
+          }
+          .leaf {
+            cursor: pointer;
+          }
+          .leaf:hover {
+            background: #eee;
+          }
+        </style>
+
+        <template is="dom-repeat" items="[[items]]">
+          <template is="dom-if" if="[[item.children]]">
+            <div class="branch">
+              [[item.label]]
+            </div>
+
+            <chart-legend items="[[item.children]]">
+            </chart-legend>
+          </template>
+
+          <template is="dom-if" if="[[!item.children]]">
+            <div class="leaf"
+                style$="color: [[item.color]];"
+                on-mouseover="onLeafMouseOver_"
+                on-mouseout="onLeafMouseOut_"
+                on-click="onLeafClick_">
+              [[item.label]]
+            </div>
+          </template>
+        </template>
+      `;
+    }
+
     async onLeafMouseOver_(event) {
       this.dispatchEvent(new CustomEvent('leaf-mouseover', {
         bubbles: true,
