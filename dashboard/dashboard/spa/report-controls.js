@@ -193,7 +193,7 @@ tr.exportTo('cp', () => {
     maxRevision: options => options.maxRevision,
     minRevisionInput: options => options.minRevision,
     maxRevisionInput: options => options.maxRevision,
-    sectionId: options => options.sectionId || tr.b.GUID.allocateSimple(),
+    sectionId: options => options.sectionId || cp.simpleGUID(),
     source: options => cp.MenuInput.buildState({
       label: 'Reports (loading)',
       options: [

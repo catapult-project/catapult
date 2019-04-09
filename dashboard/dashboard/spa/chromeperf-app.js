@@ -737,7 +737,7 @@ tr.exportTo('cp', () => {
         };
       }
 
-      const sectionId = tr.b.GUID.allocateSimple();
+      const sectionId = cp.simpleGUID();
       const newSection = cp.AlertsSection.buildState({sectionId, ...options});
       const alertsSectionsById = {...state.alertsSectionsById};
       alertsSectionsById[sectionId] = newSection;
@@ -798,7 +798,7 @@ tr.exportTo('cp', () => {
         };
       }
 
-      const sectionId = tr.b.GUID.allocateSimple();
+      const sectionId = cp.simpleGUID();
       const newSection = {
         type: cp.ChartSection.is,
         sectionId,

@@ -225,7 +225,7 @@ tr.exportTo('cp', () => {
   }
 
   ChartSection.State = {
-    sectionId: options => options.sectionId || tr.b.GUID.allocateSimple(),
+    sectionId: options => options.sectionId || cp.simpleGUID(),
     ...cp.ChartCompound.State,
     ...cp.SparklineCompound.State,
     descriptor: options => {

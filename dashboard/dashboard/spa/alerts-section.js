@@ -228,7 +228,7 @@ tr.exportTo('cp', () => {
     isLoading: options => false,
     newBug: options => cp.TriageNew.buildState({}),
     preview: options => cp.ChartCompound.buildState(options),
-    sectionId: options => options.sectionId || tr.b.GUID.allocateSimple(),
+    sectionId: options => options.sectionId || cp.simpleGUID(),
     selectedAlertPath: options => undefined,
     totalCount: options => 0,
   };

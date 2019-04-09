@@ -482,6 +482,11 @@ tr.exportTo('cp', () => {
     return colors;
   }
 
+  let nextGUID = 0;
+  function simpleGUID() {
+    return ++nextGUID;
+  }
+
   return {
     BatchIterator,
     NON_BREAKING_SPACE,
@@ -506,6 +511,7 @@ tr.exportTo('cp', () => {
     plural,
     setImmutable,
     sha,
+    simpleGUID,
     timeout,
   };
 });
