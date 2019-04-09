@@ -22,7 +22,7 @@ class TestMakeUploadRequest(unittest.TestCase):
 
     def test_basic_upload(self):
         results = json_results.ResultSet()
-        full_results = json_results.make_full_results({}, 0, [], results)
+        full_results = json_results.make_full_results([], 0, [], results)
         url, content_type, data = json_results.make_upload_request(
             'localhost', 'fake_builder_name', 'fake_master', 'fake_test_type',
             full_results)
@@ -83,11 +83,9 @@ class TestMakeFullResults(unittest.TestCase):
                                            unexpected=False))
 
         full_results = json_results.make_full_results(
-            {'foo': 'bar'}, 0, test_names, result_set)
+            ['foo=bar'], 0, test_names, result_set)
         expected_full_results = {
             'foo': 'bar',
-            'metadata': {
-                'foo': 'bar'},
             'interrupted': False,
             'num_failures_by_type': {
                 'FAIL': 1,

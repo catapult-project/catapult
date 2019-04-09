@@ -970,7 +970,6 @@ class TestCli(test_case.MainTestCase):
                                        'full_results.json',
                                        '-X', 'expectations.txt',
                                        '-x', 'foo',
-                                       '-x', 'bar',
                                        '--retry-limit', '3',
                                        '--retry-only-retry-on-failure-tests'],
                                       files=files, ret=0, err='')
@@ -978,13 +977,11 @@ class TestCli(test_case.MainTestCase):
                       out)
         self.assertIn('0 tests passed, 0 skipped, 1 failure.\n', out)
         results = json.loads(files['full_results.json'])
-        test_results = results['tests']['fail_test']['FailingTest']['test_fail']
-        self.assertEqual(test_results['actual'],'FAIL FAIL FAIL FAIL')
-        self.assertEqual(test_results['expected'],'FAIL')
+        results = results['tests']['fail_test']['FailingTest']['test_fail']
+        self.assertEqual(results['actual'],'FAIL FAIL FAIL FAIL')
+        self.assertEqual(results['expected'],'FAIL')
         self.assertNotIn('is_unexpected', results)
         self.assertNotIn('is_regression', results)
-        self.assertEqual(results['metadata']['tags'], ['foo', 'bar'])
-        self.assertEqual(results['metadata']['expectations_files'], ['expectations.txt'])
 
     def test_skip_test_with_expectations_file_skip_expectation(self):
         files = {'fail_test.py': FAIL_TEST_PY,
@@ -1109,7 +1106,7 @@ class TestCli(test_case.MainTestCase):
         results = json.loads(files['full_results.json'])
         self.assertEqual(results['tests']['test_fail']['actual'], 'FAIL')
         # also test if the test_name_prefix key value pair is in the JSON results
-        self.assertEqual(results['metadata']['test_name_prefix'], 'fail_test.FailingTest.')
+        self.assertEqual(results['test_name_prefix'], 'fail_test.FailingTest.')
 
     def test_implement_test_name_prefix_exclusion_in_trace_results(self):
         files = {'fail_test.py': FAIL_TEST_PY}

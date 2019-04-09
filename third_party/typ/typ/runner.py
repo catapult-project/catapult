@@ -139,7 +139,6 @@ class Runner(object):
         self.final_responses = []
         self.has_expectations = False
         self.expectations = None
-        self.metadata = {}
 
         # initialize self.args to the defaults.
         parser = ArgumentParser(self.host)
@@ -209,21 +208,14 @@ class Runner(object):
             _sort_inputs(test_set.parallel_tests +
                          test_set.isolated_tests +
                          test_set.tests_to_skip)]
-            self.metadata = {tup[0]:tup[1]
-                             for  tup in
-                             [md.split('=', 1) for md in self.args.metadata]}
             if self.args.test_name_prefix:
-                self.metadata['test_name_prefix'] = self.args.test_name_prefix
-            if self.args.tags:
-                self.metadata['tags'] = self.args.tags
-            if self.args.expectations_files:
-                self.metadata[
-                    'expectations_files'] = self.args.expectations_files
+                self.args.metadata.append(
+                    'test_name_prefix=' + self.args.test_name_prefix)
             if self.args.list_only:
                 self.print_('\n'.join(all_tests))
             else:
                 for _ in range(self.args.repeat):
-                    current_ret, full_results=self._run_tests(
+                    current_ret, full_results= self._run_tests(
                         result_set, test_set.copy(), all_tests)
                     ret = ret or current_ret
 
@@ -582,7 +574,7 @@ class Runner(object):
         if retry_limit != self.args.retry_limit:
             self.print_('')
 
-        full_results = json_results.make_full_results(self.metadata,
+        full_results = json_results.make_full_results(self.args.metadata,
                                                       int(h.time()),
                                                       all_tests, result_set)
 
@@ -793,9 +785,9 @@ class Runner(object):
         trace = OrderedDict()
         trace['traceEvents'] = []
         trace['otherData'] = {}
-
-        if self.metadata:
-            trace['otherData'] = self.metadata
+        for m in self.args.metadata:
+            k, v = m.split('=')
+            trace['otherData'][k] = v
 
         for result in result_set.results:
             started = int((result.started - self.stats.started_time) * 1000000)
