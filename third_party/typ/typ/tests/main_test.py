@@ -989,7 +989,7 @@ class TestCli(test_case.MainTestCase):
                   # tags: [ foo bar
                   #         bat
                   # ]
-                  crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Skip ]
+                  crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Failure Skip Crash ]
                 """)}
         _, out, _, files = self.check(['--write-full-results-to',
                                        'full_results.json',
@@ -1002,7 +1002,7 @@ class TestCli(test_case.MainTestCase):
         results = json.loads(files['full_results.json'])
         results = results['tests']['fail_test']['FailingTest']['test_fail']
         self.assertEqual(results['actual'],'SKIP')
-        self.assertEqual(results['expected'],'SKIP')
+        self.assertEqual(results['expected'],'CRASH FAIL SKIP')
         self.assertNotIn('is_unexpected', results)
         self.assertNotIn('is_regression', results)
 
@@ -1010,7 +1010,7 @@ class TestCli(test_case.MainTestCase):
         files = {'pass_test.py': PASS_TEST_PY,
                  'expectations.txt': d("""\
                   # tags: [ foo bar ]
-                  crbug.com/12345 [ foo ] pass_test.PassingTest.test_pass [ Pass ]
+                  crbug.com/12345 [ foo ] pass_test.PassingTest.test_pass [ Failure Crash Pass ]
                 """)}
         _, out, _, files = self.check(['--write-full-results-to',
                                        'full_results.json',
@@ -1065,17 +1065,6 @@ class TestCli(test_case.MainTestCase):
              '--test-name-prefix', 'pass_test.PassingTest.'],
             files=files, ret=0, err='')
         self.assertIn('[1/1] test_pass passed\n', out)
-
-    def test_implement_test_name_prefix_exclusion_in_test_filter(self):
-        files = OUTPUT_TEST_FILES
-        _, out, _, files = self.check(
-            ['--write-full-results-to', 'full_results.json',
-             '--test-name-prefix', 'output_test.',
-             '--test-filter', '*test_out'],
-            files=files, ret=0, err='')
-        results = json.loads(files['full_results.json'])
-        self.assertEqual(len(results['tests']), 1)
-        self.assertIn('[1/1] PassTest.test_out passed\n', out)
 
     def test_implement_test_name_prefix_exclusion_in_expectations_files(self):
         files = {'fail_test.py': FAIL_TEST_PY,
