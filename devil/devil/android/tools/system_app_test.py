@@ -21,6 +21,16 @@ with devil_env.SysPath(devil_env.PYMOCK_PATH):
   import mock
 
 
+_PACKAGE_NAME = 'com.android'
+_PACKAGE_PATH = '/path/to/com.android.apk'
+_PM_LIST_PACKAGES_COMMAND = ['pm', 'list', 'packages', '-f', '-u',
+                             _PACKAGE_NAME]
+_PM_LIST_PACKAGES_OUTPUT_WITH_PATH = ['package:/path/to/other=' + _PACKAGE_NAME
+                                      + '.other', 'package:' + _PACKAGE_PATH +
+                                      '=' + _PACKAGE_NAME]
+_PM_LIST_PACKAGES_OUTPUT_WITHOUT_PATH = ['package:/path/to/other=' +
+                                         _PACKAGE_NAME + '.other']
+
 class SystemAppTest(unittest.TestCase):
 
   def testDoubleEnableModification(self):
@@ -63,6 +73,62 @@ class SystemAppTest(unittest.TestCase):
 
     mock_device.SetProp.assert_called_once_with(
         system_app._ENABLE_MODIFICATION_PROP, '0')
+
+  def test_GetApplicationPaths_found(self):
+    """Path found in output along with another package having similar name."""
+    # pylint: disable=protected-access
+    mock_device = mock.Mock(spec=device_utils.DeviceUtils)
+    mock_device.RunShellCommand.configure_mock(
+        return_value=_PM_LIST_PACKAGES_OUTPUT_WITH_PATH
+    )
+
+    paths = system_app._GetApplicationPaths(mock_device, _PACKAGE_NAME)
+
+    self.assertEquals([_PACKAGE_PATH], paths)
+    mock_device.RunShellCommand.assert_called_once_with(
+        _PM_LIST_PACKAGES_COMMAND, check_return=True)
+
+  def test_GetApplicationPaths_notFound(self):
+    """Path not found in output, only another package with similar name."""
+    # pylint: disable=protected-access
+    mock_device = mock.Mock(spec=device_utils.DeviceUtils)
+    mock_device.RunShellCommand.configure_mock(
+        return_value=_PM_LIST_PACKAGES_OUTPUT_WITHOUT_PATH
+    )
+
+    paths = system_app._GetApplicationPaths(mock_device, _PACKAGE_NAME)
+
+    self.assertEquals([], paths)
+    mock_device.RunShellCommand.assert_called_once_with(
+        _PM_LIST_PACKAGES_COMMAND, check_return=True)
+
+  def test_GetApplicationPaths_noPaths(self):
+    """Nothing containing text of package name found in output."""
+    # pylint: disable=protected-access
+    mock_device = mock.Mock(spec=device_utils.DeviceUtils)
+    mock_device.RunShellCommand.configure_mock(
+        return_value=[]
+    )
+
+    paths = system_app._GetApplicationPaths(mock_device, _PACKAGE_NAME)
+
+    self.assertEquals([], paths)
+    mock_device.RunShellCommand.assert_called_once_with(
+        _PM_LIST_PACKAGES_COMMAND, check_return=True)
+
+  def test_GetApplicationPaths_emptyName(self):
+    """Called with empty name, should not return any packages."""
+    # pylint: disable=protected-access
+    mock_device = mock.Mock(spec=device_utils.DeviceUtils)
+    mock_device.RunShellCommand.configure_mock(
+        return_value=_PM_LIST_PACKAGES_OUTPUT_WITH_PATH
+    )
+
+    paths = system_app._GetApplicationPaths(mock_device, '')
+
+    self.assertEquals([], paths)
+    mock_device.RunShellCommand.assert_called_once_with(
+        _PM_LIST_PACKAGES_COMMAND[:-1] + [''], check_return=True)
 
 
 if __name__ == '__main__':

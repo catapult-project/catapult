@@ -10,6 +10,7 @@ import contextlib
 import logging
 import os
 import posixpath
+import re
 import sys
 
 
@@ -41,6 +42,8 @@ SPECIAL_SYSTEM_APP_LOCATIONS = {
   'com.google.ar.core': '/data/app/',
 }
 
+# Gets app path and package name pm list packages -f output.
+_PM_LIST_PACKAGE_PATH_RE = re.compile(r'^\s*package:(\S+)=(\S+)\s*$')
 
 def RemoveSystemApps(device, package_names):
   """Removes the given system apps.
@@ -77,11 +80,29 @@ def _FindSystemPackagePaths(device, system_package_list):
   """Finds all system paths for the given packages."""
   found_paths = []
   for system_package in system_package_list:
-    paths = device.GetApplicationPaths(system_package)
+    paths = _GetApplicationPaths(device, system_package)
     p = _GetSystemPath(system_package, paths)
     if p:
       found_paths.append(p)
   return found_paths
+
+
+# Find all application paths, even those flagged as uninstalled, as these
+# would still block another package with the same name from installation
+# if they differ in signing keys.
+# TODO(aluo): Move this into device_utils.py
+def _GetApplicationPaths(device, package):
+  paths = []
+  lines = device.RunShellCommand(['pm', 'list', 'packages', '-f', '-u',
+                                  package], check_return=True)
+  for line in lines:
+    match = re.match(_PM_LIST_PACKAGE_PATH_RE, line)
+    if match:
+      path = match.group(1)
+      package_name = match.group(2)
+      if package_name == package:
+        paths.append(path)
+  return paths
 
 
 def _GetSystemPath(package, paths):
