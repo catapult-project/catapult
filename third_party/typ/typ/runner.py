@@ -976,20 +976,20 @@ def _run_one_test(child, test_input):
                            child.worker_num, expected=expected_results,
                            unexpected=False, pid=pid), False)
 
+        test_name_to_load = child.test_name_prefix + test_name
         try:
-            suite = child.loader.loadTestsFromName(
-                child.test_name_prefix + test_name)
+            suite = child.loader.loadTestsFromName(test_name_to_load)
         except Exception as e:
             ex_str = ('loadTestsFromName("%s") failed: %s\n%s\n' %
-                      (test_name, e, traceback.format_exc()))
+                      (test_name_to_load, e, traceback.format_exc()))
             try:
-                suite = _load_via_load_tests(child, test_name)
+                suite = _load_via_load_tests(child, test_name_to_load)
                 ex_str += ('\nload_via_load_tests(\"%s\") returned %d tests\n' %
-                           (test_name, len(list(suite))))
+                           (test_name_to_load, len(list(suite))))
             except Exception as e:  # pragma: untested
                 suite = []
                 ex_str += ('\nload_via_load_tests("%s") failed: %s\n%s\n' %
-                           (test_name, e, traceback.format_exc()))
+                           (test_name_to_load, e, traceback.format_exc()))
     finally:
         unittest.skip = orig_skip
         unittest.skipIf = orig_skip_if

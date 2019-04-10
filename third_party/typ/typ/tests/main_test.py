@@ -187,11 +187,11 @@ def method_pass(self):
 
 
 def load_tests(_, _2, _3):
-    setattr(BaseTest, "test_fail", method_fail)
-    setattr(BaseTest, "test_pass", method_pass)
+    setattr(BaseTest, "a/b/fail.html", method_fail)
+    setattr(BaseTest, "a/b/pass.html", method_pass)
     suite = unittest.TestSuite()
-    suite.addTest(BaseTest("test_fail"))
-    suite.addTest(BaseTest("test_pass"))
+    suite.addTest(BaseTest("a/b/fail.html"))
+    suite.addTest(BaseTest("a/b/pass.html"))
     return suite
 """
 
@@ -619,10 +619,12 @@ class TestCli(test_case.MainTestCase):
 
     def test_load_tests_single_worker(self):
         files = LOAD_TEST_FILES
-        _, out, _, _ = self.check(['-j', '1', '-v'], files=files, ret=1,
-                                  err='')
-        self.assertIn('[1/2] load_test.BaseTest.test_fail failed', out)
-        self.assertIn('[2/2] load_test.BaseTest.test_pass passed', out)
+        _, out, _, _ = self.check([
+            '-j', '1', '-v', '--test-name-prefix',
+            'load_test.BaseTest.'], files=files, ret=1, err='')
+        print out
+        self.assertIn('[1/2] a/b/fail.html failed', out)
+        self.assertIn('[2/2] a/b/pass.html passed', out)
         self.assertIn('1 test passed, 0 skipped, 1 failure.\n', out)
 
     def test_load_tests_multiple_workers(self):
@@ -631,8 +633,8 @@ class TestCli(test_case.MainTestCase):
         # The output for this test is nondeterministic since we may run
         # two tests in parallel. So, we just test that some of the substrings
         # we care about are present.
-        self.assertIn('test_pass passed', out)
-        self.assertIn('test_fail failed', out)
+        self.assertIn('a/b/pass.html passed', out)
+        self.assertIn('a/b/fail.html failed', out)
         self.assertIn('1 test passed, 0 skipped, 1 failure.\n', out)
 
     def test_missing_builder_name(self):
