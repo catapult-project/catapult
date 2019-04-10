@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import ConfigCacheRequest from './config-cache-request.js';
 import DescribeCacheRequest from './describe-cache-request.js';
 import ReportCacheRequest from './report-cache-request.js';
 import ReportNamesCacheRequest from './report-names-cache-request.js';
@@ -17,6 +18,7 @@ self.addEventListener('activate', activateEvent => {
 });
 
 const FETCH_HANDLERS = {
+  '/api/config': ConfigCacheRequest,
   '/api/describe': DescribeCacheRequest,
   '/api/report/generate': ReportCacheRequest,
   '/api/report/names': ReportNamesCacheRequest,
