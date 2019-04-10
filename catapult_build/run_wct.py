@@ -16,7 +16,8 @@ _AddToPathIfNeeded(os.path.join(_CATAPULT_PATH, 'common', 'node_runner'))
 from node_runner import node_util  # pylint: disable=wrong-import-position,import-error
 
 NODE_MODULES = node_util.GetNodeModulesPath()
-RUN_WCT = os.path.join(NODE_MODULES, 'chops-wct-runner', 'src', 'run-wct.js')
+RUN_WCT = os.path.join(
+    NODE_MODULES, '@chopsui', 'wct-runner', 'src', 'run-wct.js')
 
 
 def RunWct(base_dir, dep_dirs, debug=False, prefix=''):
