@@ -12,7 +12,7 @@ from dashboard.common import namespaced_stored_object
 # The revision info (stored in datastore) is a dict mapping of revision type,
 # which should be a string starting with "r_", to a dict of properties for
 # that revision, including "name" and "url".
-_REVISION_INFO_KEY = 'revision_info'
+REVISION_INFO_KEY = 'revision_info'
 
 
 class ChartHandler(request_handler.RequestHandler):
@@ -33,5 +33,5 @@ class ChartHandler(request_handler.RequestHandler):
 
   def _GetChartValues(self):
     return {
-        'revision_info': namespaced_stored_object.Get(_REVISION_INFO_KEY) or {},
+        'revision_info': namespaced_stored_object.Get(REVISION_INFO_KEY) or {},
     }
