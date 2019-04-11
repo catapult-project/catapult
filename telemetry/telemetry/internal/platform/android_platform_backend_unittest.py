@@ -47,7 +47,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
   @staticmethod
   def CreatePlatformBackendForTest():
     return android_platform_backend.AndroidPlatformBackend(
-        android_device.AndroidDevice('12345'))
+        android_device.AndroidDevice('12345'), True)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsSvelte(self):
@@ -242,7 +242,7 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
       with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
                       return_value=''):
         backend = android_platform_backend.AndroidPlatformBackend(
-            android_device.AndroidDevice('1234'))
+            android_device.AndroidDevice('1234'), True)
         cpu_stats = backend.GetCpuStats('7702')
         self.assertEquals({}, cpu_stats)
         self.assertEquals([[0]], psutil.set_cpu_affinity_args)
@@ -255,7 +255,7 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
       with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
                       return_value=''):
         backend = android_platform_backend.AndroidPlatformBackend(
-            android_device.AndroidDevice('1234'))
+            android_device.AndroidDevice('1234'), True)
         cpu_stats = backend.GetCpuStats('7702')
         self.assertEquals({}, cpu_stats)
         self.assertEquals([[0]], psutil.set_cpu_affinity_args)

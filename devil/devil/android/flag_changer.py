@@ -74,6 +74,8 @@ class FlagChanger(object):
     if use_legacy_path:
       cmdline_path, alternate_cmdline_path = (
           alternate_cmdline_path, cmdline_path)
+      if not self._device.HasRoot():
+        raise ValueError('use_legacy_path requires a rooted device')
     self._cmdline_path = cmdline_path
 
     if self._device.PathExists(alternate_cmdline_path):
@@ -179,10 +181,14 @@ class FlagChanger(object):
     """Set SELinux to permissive, if needed.
 
     On Android N and above this is needed in order to allow Chrome to read the
-    command line file.
+    legacy command line file.
 
     TODO(crbug.com/699082): Remove when a better solution exists.
     """
+    # TODO(crbug.com/948578): figure out the exact scenarios where the lowered
+    # permissions are needed, and document them in the code.
+    if not self._device.HasRoot():
+      return
     if (self._device.build_version_sdk >= version_codes.NOUGAT and
         self._device.GetEnforce()):
       self._device.SetEnforce(enabled=False)

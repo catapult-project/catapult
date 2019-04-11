@@ -12,7 +12,7 @@ import sys
 
 from py_utils import cloud_storage  # pylint: disable=import-error
 
-from telemetry import compact_mode_options
+from telemetry import compat_mode_options
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.internal.browser import browser_finder
@@ -102,20 +102,21 @@ class BrowserFinderOptions(optparse.Values):
         default=socket.getservbyname('ssh'),
         dest='cros_remote_ssh_port',
         help='The SSH port of the remote ChromeOS device (requires --remote).')
-    compact_mode_options_list = [
-        compact_mode_options.NO_FIELD_TRIALS,
-        compact_mode_options.IGNORE_CERTIFICATE_ERROR,
-        compact_mode_options.LEGACY_COMMAND_LINE_PATH,
-        compact_mode_options.GPU_BENCHMARKING_FALLBACKS]
+    compat_mode_options_list = [
+        compat_mode_options.NO_FIELD_TRIALS,
+        compat_mode_options.IGNORE_CERTIFICATE_ERROR,
+        compat_mode_options.LEGACY_COMMAND_LINE_PATH,
+        compat_mode_options.GPU_BENCHMARKING_FALLBACKS,
+        compat_mode_options.DONT_REQUIRE_ROOTED_DEVICE]
     parser.add_option(
         '--compatibility-mode',
         action='append',
         dest='compatibility_mode',
-        choices=compact_mode_options_list,
+        choices=compat_mode_options_list,
         default=[],
         help='Select the compatibility change that you want to enforce when '
              'running benchmarks. The options are: %s' % ', '.join(
-                 compact_mode_options_list))
+                 compat_mode_options_list))
     identity = None
     testing_rsa = os.path.join(
         util.GetTelemetryThirdPartyDir(), 'chromite', 'ssh_keys', 'testing_rsa')

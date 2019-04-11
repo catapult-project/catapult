@@ -133,7 +133,7 @@ group("telemetry_chrome_test_support") {
     "telemetry/telemetry/benchmark_runner.py",
     "telemetry/telemetry/benchmark_runner_unittest.py",
     "telemetry/telemetry/benchmark_unittest.py",
-    "telemetry/telemetry/compact_mode_options.py",
+    "telemetry/telemetry/compat_mode_options.py",
     "telemetry/telemetry/decorators.py",
     "telemetry/telemetry/decorators_unittest.py",
     "telemetry/telemetry/project_config.py",
