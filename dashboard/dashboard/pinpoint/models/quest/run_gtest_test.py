@@ -12,11 +12,13 @@ from dashboard.pinpoint.models.quest import run_test_test
 _BASE_ARGUMENTS = {
     'swarming_server': 'server',
     'dimensions': run_test_test.DIMENSIONS,
+    'benchmark': 'foo_test',
 }
 
 
 _BASE_EXTRA_ARGS = [
-    '--gtest_repeat=1'
+    '--gtest_repeat=1',
+    '--gtest-benchmark-name', 'foo_test'
 ] + run_gtest._DEFAULT_EXTRA_ARGS + run_performance_test._DEFAULT_EXTRA_ARGS
 
 

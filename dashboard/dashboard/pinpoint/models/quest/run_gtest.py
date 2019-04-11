@@ -21,6 +21,8 @@ class RunGTest(run_performance_test.RunPerformanceTest):
       extra_test_args.append('--gtest_filter=' + test)
 
     extra_test_args.append('--gtest_repeat=1')
+    extra_test_args.append('--gtest-benchmark-name')
+    extra_test_args.append(arguments.get('benchmark'))
 
     extra_test_args += _DEFAULT_EXTRA_ARGS
     extra_test_args += super(RunGTest, cls)._ExtraTestArgs(arguments)
