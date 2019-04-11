@@ -595,7 +595,7 @@ class AndroidPlatformBackend(
     and stack info from tombstone files, all concatenated into one string.
     """
     def Decorate(title, content):
-      if content.isspace():
+      if not content or content.isspace():
         content = ('**EMPTY** - could be explained by log messages '
                    'preceding the previous python Traceback - best wishes')
       return "%s\n%s\n%s\n" % (title, content, '*' * 80)
