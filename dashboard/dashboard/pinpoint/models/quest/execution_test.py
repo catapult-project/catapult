@@ -4,6 +4,8 @@
 
 import unittest
 
+from oauth2client import client
+
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models.quest import execution
 
@@ -28,7 +30,7 @@ class ExecutionException2(_ExecutionStub):
   """This Execution always fails on first Poll()."""
 
   def _Poll(self):
-    raise errors.RecoverableError()
+    raise client.AccessTokenRefreshError()
 
 
 class ExecutionFail(_ExecutionStub):
