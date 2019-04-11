@@ -92,7 +92,8 @@ def PackSPA(catapult_path, temp_dir, deployment_paths):
 
   vulcanize_cmd = [
     os.path.join(node_modules, 'vulcanize', 'bin', 'vulcanize'),
-    '--strip-comments', '--inline-scripts', '--inline-css'
+    '--strip-comments', '--inline-scripts', '--inline-css',
+    '--exclude=/index.js',
   ]
 
   for path in sorted(deployment_paths):

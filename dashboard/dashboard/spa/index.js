@@ -35,3 +35,5 @@ tr.exportTo('window', () => {
     IS_PRODUCTION,
   };
 });
+
+import './cp-input.js';

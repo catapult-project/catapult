@@ -15,6 +15,7 @@ const {
 module.exports = {
   entry: {
     'service-worker': path.resolve(__dirname, 'service-worker.js'),
+    'index': path.resolve(__dirname, 'index.js'),
   },
   output: {
     filename: '[name].js',

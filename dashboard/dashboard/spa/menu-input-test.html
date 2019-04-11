@@ -45,7 +45,19 @@ setup(() => {
 });
 
 suite('menu-input', function() {
-  test('focus', () => {
+  function importModule(url) {
+    // await import('./cp-input.js') works in Chrome, but not in eslint.
+    return new Promise(resolve => {
+      const script = document.createElement('script');
+      script.onload = resolve;
+      script.type = 'module';
+      script.src = url;
+      document.head.appendChild(script);
+    });
+  }
+
+  test('focus', async function() {
+    await importModule('./cp-input.js');
     const [xxxInput, yyyInput] = fixture('test');
     xxxInput.$.input.click();
     assert.isTrue(xxxInput.isFocused);
@@ -56,7 +68,7 @@ suite('menu-input', function() {
     assert.isTrue(yyyInput.isFocused);
   });
 
-  test('inputValue', () => {
+  test('inputValue', async function() {
     assert.strictEqual('q', cp.MenuInput.inputValue(true, 'q', undefined));
     assert.strictEqual('', cp.MenuInput.inputValue(false, 'q', undefined));
     assert.strictEqual('', cp.MenuInput.inputValue(false, 'q', []));
