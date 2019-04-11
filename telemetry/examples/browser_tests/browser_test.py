@@ -93,10 +93,14 @@ class ImplementsExpectationsFilesFunction(
   @classmethod
   def GenerateTestCases__RunsFailingTest(cls, options):
     del options
-    yield 'FailingTest', ()
+    yield 'a/b/fail-test.html', ()
 
   def _RunsFailingTest(self):
     assert False
+
+  @classmethod
+  def GetJSONResultsDelimiter(cls):
+    return '/'
 
   @classmethod
   def ExpectationsFiles(cls):
@@ -111,7 +115,7 @@ class FlakyTest(
   @classmethod
   def GenerateTestCases__RunFlakyTest(cls, options):
     del options  # Unused.
-    yield 'RunFlakyTest', ()
+    yield 'a\\b\\c\\flaky-test.html', ()
 
   def _RunFlakyTest(self):
     cls = self.__class__
@@ -119,6 +123,10 @@ class FlakyTest(
       cls._retry_count += 1
       self.fail()
     return
+
+  @staticmethod
+  def GetJSONResultsDelimiter():
+    return '\\'
 
 
 class TestsWillBeDisabled(

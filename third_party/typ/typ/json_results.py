@@ -59,10 +59,11 @@ class ResultSet(object):
         self.results.append(result)
 
 
-TEST_SEPARATOR = '.'
+DEFAULT_TEST_SEPARATOR = '.'
 
 
-def make_full_results(metadata, seconds_since_epoch, all_test_names, results):
+def make_full_results(metadata, seconds_since_epoch, all_test_names, results,
+                      test_separator=DEFAULT_TEST_SEPARATOR):
     """Convert the typ results to the Chromium JSON test result format.
 
     See http://www.chromium.org/developers/the-json-test-results-format
@@ -72,7 +73,7 @@ def make_full_results(metadata, seconds_since_epoch, all_test_names, results):
     full_results = OrderedDict()
     full_results['version'] = 3
     full_results['interrupted'] = False
-    full_results['path_delimiter'] = TEST_SEPARATOR
+    full_results['path_delimiter'] = test_separator
     full_results['seconds_since_epoch'] = seconds_since_epoch
 
     full_results.update(
@@ -96,7 +97,8 @@ def make_full_results(metadata, seconds_since_epoch, all_test_names, results):
 
     for test_name in all_test_names:
         value = _results_for_test(test_name, results)
-        _add_path_to_trie(full_results['tests'], test_name, value)
+        _add_path_to_trie(
+            full_results['tests'], test_name, value, test_separator)
         if value.get('is_regression'):
             full_results['num_regressions'] += 1
 
@@ -197,14 +199,14 @@ def _results_for_test(test_name, results):
     value['times'] = times
     return value
 
-def _add_path_to_trie(trie, path, value):
-    if TEST_SEPARATOR not in path:
+def _add_path_to_trie(trie, path, value, test_separator):
+    if test_separator not in path:
         trie[path] = value
         return
-    directory, rest = path.split(TEST_SEPARATOR, 1)
+    directory, rest = path.split(test_separator, 1)
     if directory not in trie:
         trie[directory] = {}
-    _add_path_to_trie(trie[directory], rest, value)
+    _add_path_to_trie(trie[directory], rest, value, test_separator)
 
 
 def _encode_multipart_form_data(attrs, test_results):

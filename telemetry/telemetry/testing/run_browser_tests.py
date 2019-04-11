@@ -348,6 +348,7 @@ def RunTests(args):
       options.retry_only_retry_on_failure_tests)
   runner.args.test_name_prefix = options.test_name_prefix
   runner.args.suffixes = TEST_SUFFIXES
+  runner.path_delimiter = test_class.GetJSONResultsDelimiter()
 
   # Since sharding logic is handled by browser_test_runner harness by passing
   # browser_test_context.test_case_ids_to_run to subprocess to indicate test

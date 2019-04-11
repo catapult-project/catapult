@@ -11,6 +11,7 @@ from py_utils import cloud_storage
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.testing import browser_test_context
+from typ import json_results
 
 DEFAULT_LOG_FORMAT = (
     '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
@@ -234,6 +235,13 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
         platform.GetOSVersionName(), platform.GetOSName(), browser.browser_type]
     return [tag.lower() for tag in tags if tag]
 
+  @staticmethod
+  def GetJSONResultsDelimiter():
+    """This method returns the path delimiter that will be used to seperate
+    a test name into parts. By default, the delimiter is '.'
+    """
+    return json_results.DEFAULT_TEST_SEPARATOR
+
 
 def LoadAllTestsInModule(module):
   """ Load all tests & generated browser tests in a given module.
@@ -293,7 +301,7 @@ def _GenerateTestMethod(based_method, args):
 
 
 _TEST_GENERATOR_PREFIX = 'GenerateTestCases_'
-_INVALID_TEST_NAME_RE = re.compile(r'[^a-zA-Z0-9_]')
+_INVALID_TEST_NAME_RE = re.compile(r'[^a-zA-Z0-9_\.\\\/-]')
 
 def _ValidateTestMethodname(test_name):
   assert not bool(_INVALID_TEST_NAME_RE.search(test_name))

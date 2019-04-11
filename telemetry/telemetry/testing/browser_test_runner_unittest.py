@@ -154,12 +154,12 @@ class BrowserTestRunnerTest(unittest.TestCase):
   def testShortenSkipGlobUsingTestNamePrefixCommandLineArg(self):
     self._RunTest(
         test_filter='', expected_failures=[], expected_successes=[],
-        expected_skips=['FailingTest'],
+        expected_skips=['a/b/fail-test.html'],
         test_name='ImplementsExpectationsFilesFunction',
         extra_args=[
             '-x=foo', '--test-name-prefix='
             'browser_tests.browser_test.ImplementsExpectationsFilesFunction.',
-            '--skip=FailingTest'])
+            '--skip=a/b/fail-test.html'])
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testShortenTestFilterGlobsUsingTestNamePrefixCommandLineArg(self):
@@ -205,15 +205,18 @@ class BrowserTestRunnerTest(unittest.TestCase):
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testOverrideExpectationsFilesFunction(self):
-    test_name = ('browser_tests.browser_test.'
-                 'ImplementsExpectationsFilesFunction.FailingTest')
+    test_name = ('a/b/fail-test.html')
     self._RunTest(
         test_filter=test_name, expected_failures=[],
         expected_successes=[test_name],
-        test_name='ImplementsExpectationsFilesFunction', extra_args=['-x=foo'])
+        test_name='ImplementsExpectationsFilesFunction',
+        extra_args=[
+            '-x=foo',
+            '--test-name-prefix=browser_tests.browser_test.'
+            'ImplementsExpectationsFilesFunction.'])
     test_result = (
-        self._test_result['tests']['browser_tests']['browser_test']
-        ['ImplementsExpectationsFilesFunction']['FailingTest'])
+        self._test_result['tests']['a']['b']['fail-test.html'])
+    self.assertEqual(self._test_result['path_delimiter'], '/')
     self.assertEqual(test_result['expected'], 'FAIL')
     self.assertEqual(test_result['actual'], 'FAIL')
     self.assertNotIn('is_unexpected', test_result)
@@ -221,17 +224,18 @@ class BrowserTestRunnerTest(unittest.TestCase):
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testDoesRetryOnFailureRetriesAndEventuallyPasses(self):
-    test_name = 'browser_tests.browser_test.FlakyTest.RunFlakyTest'
+    test_name = 'a\\b\\c\\flaky-test.html'
     extra_args = [
-        '--retry-limit=3', '--retry-only-retry-on-failure-tests']
+        '--retry-limit=3', '--retry-only-retry-on-failure-tests',
+        '--test-name-prefix', 'browser_tests.browser_test.FlakyTest.']
     self._RunTest(
         test_filter=test_name, expected_failures=[],
         expected_successes=[test_name], test_name='FlakyTest',
         extra_args=extra_args, expectations=_MakeTestExpectations(
             test_name, ['foo'], 'RetryOnFailure'), tags=['foo'])
     results = (
-        self._test_result['tests']['browser_tests']['browser_test']
-        ['FlakyTest']['RunFlakyTest'])
+        self._test_result['tests']['a']['b']['c']['flaky-test.html'])
+    self.assertEqual(self._test_result['path_delimiter'], '\\')
     self.assertEqual(results['expected'], 'PASS')
     self.assertEqual(results['actual'], 'FAIL FAIL FAIL PASS')
     self.assertNotIn('is_unexpected', results)
