@@ -434,6 +434,8 @@ ChromeperfApp.observers = [
 ChromeperfApp.actions = {
   ready: (statePath, routeParams) =>
     async(dispatch, getState) => {
+      ChromeperfApp.actions.getRevisionInfo()(dispatch, getState);
+
       dispatch(Redux.CHAIN(
           Redux.ENSURE(statePath),
           Redux.ENSURE('userEmail', ''),
@@ -501,7 +503,14 @@ ChromeperfApp.actions = {
     dispatch(Redux.UPDATE('', {
       userEmail: profile ? profile.getEmail() : '',
     }));
+    ChromeperfApp.actions.getRevisionInfo()(dispatch, getState);
     if (profile) ChromeperfApp.actions.getRecentBugs()(dispatch, getState);
+  },
+
+  getRevisionInfo: () => async(dispatch, getState) => {
+    const revisionInfo = await new cp.ConfigRequest(
+        {key: 'revision_info'}).response;
+    dispatch(Redux.UPDATE('', {revisionInfo}));
   },
 
   restoreSessionState: (statePath, sessionId) =>

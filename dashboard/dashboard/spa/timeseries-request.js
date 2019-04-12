@@ -8,8 +8,20 @@ tr.exportTo('cp', () => {
     XY: 'XY',
     ALERTS: 'ALERTS',
     ANNOTATIONS: 'ANNOTATIONS',
-    HISTOGRAMS: 'HISTOGRAMS',
+    DETAILS: 'DETAILS',
   });
+
+  const DETAILS_COLUMNS = new Set([
+    'revision',
+    'timestamp',
+    'avg', 'std', 'count',  // TODO other statistics
+    'revisions',
+    'annotations',
+    // TODO Uncomment when ready to display these:
+    // 'alert',
+    // 'diagnostics',
+    // 'histogram',
+  ]);
 
   function getColumnsByLevelOfDetail(levelOfDetail, statistic) {
     switch (levelOfDetail) {
@@ -23,8 +35,8 @@ tr.exportTo('cp', () => {
           ...getColumnsByLevelOfDetail(LEVEL_OF_DETAIL.ALERTS, statistic),
           'diagnostics', 'revisions',
         ]);
-      case LEVEL_OF_DETAIL.HISTOGRAMS:
-        return new Set(['revision', 'histogram']);
+      case LEVEL_OF_DETAIL.DETAILS:
+        return DETAILS_COLUMNS;
       default:
         throw new Error(`${levelOfDetail} is not a valid Level Of Detail`);
     }

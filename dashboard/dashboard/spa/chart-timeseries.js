@@ -142,6 +142,9 @@ tr.exportTo('cp', () => {
 
     getTooltip: (statePath, mainRect, line, lineIndex, datum) =>
       async(dispatch, getState) => {
+        // Warning: If this action does not dispatch synchronously, then it is
+        // possible for the tooltip to get stuck if hideTooltip is dispatched
+        // while awaiting here.
         dispatch(Redux.CHAIN(
             {
               type: ChartTimeseries.reducers.getTooltip.name,
@@ -319,6 +322,31 @@ tr.exportTo('cp', () => {
 
       const rows = [];
 
+      if (state.brushRevisions.length === 0) {
+        rows.push({
+          colspan: 2, color: 'var(--primary-color-dark, blue)',
+          name: 'Click for details'
+        });
+      } else {
+        let isBrushed = false;
+        for (const range of ChartTimeseries.revisionRanges(
+            state.brushRevisions)) {
+          isBrushed = range.min < datum.x && datum.x < range.max;
+          if (isBrushed) break;
+        }
+        if (isBrushed) {
+          rows.push({
+            colspan: 2, color: 'var(--primary-color-dark, blue)',
+            name: 'Click to reset details'
+          });
+        } else {
+          rows.push({
+            colspan: 2, color: 'var(--primary-color-dark, blue)',
+            name: cp.CTRL_KEY_NAME + '+click to compare details'
+          });
+        }
+      }
+
       if (datum.icon === 'cp:clock') {
         const days = Math.floor(tr.b.convertUnit(
             new Date() - datum.datum.timestamp,
@@ -346,14 +374,24 @@ tr.exportTo('cp', () => {
 
       rows.push({name: 'value', value: line.unit.format(datum.y)});
 
-      rows.push({name: 'revision', value: datum.datum.revision});
-      for (const [name, value] of Object.entries(datum.datum.revisions || {})) {
+      let foundRevision = false;
+      for (const [rName, value] of Object.entries(
+          datum.datum.revisions || {})) {
+        const {name} = ChartTimeseries.revisionLink(
+            rootState.revisionInfo, rName);
         rows.push({name, value});
+
+        if (!foundRevision) {
+          foundRevision = (parseInt(datum.datum.revision) === value);
+        }
+      }
+      if (!foundRevision) {
+        rows.push({name: 'revision', value: datum.datum.revision});
       }
 
       rows.push({
-        name: 'uploaded',
-        value: datum.datum.timestamp.toString(),
+        name: 'Upload timestamp',
+        value: tr.b.formatDate(datum.datum.timestamp),
       });
 
       rows.push({name: 'build type', value: line.descriptor.buildType});
@@ -412,19 +450,25 @@ tr.exportTo('cp', () => {
     },
   };
 
-  // Snap to nearest existing revision
   ChartTimeseries.brushRevisions = state => {
     const brushes = state.brushRevisions.map(x => {
-      let closestDatum;
+      const xPctRange = tr.b.math.Range.fromExplicitRange(0, 100);
       for (const line of state.lines) {
-        const datum = tr.b.findClosestElementInSortedArray(
+        const index = tr.b.findLowIndexInSortedArray(
             line.data, d => d.x, x);
-        if (closestDatum === undefined ||
-            (Math.abs(closestDatum.x - x) > Math.abs(datum.x - x))) {
-          closestDatum = datum;
-        }
+        if (!line.data[index]) continue;
+        // Now, line.data[index].x >= x
+
+        const thisMax = line.data[index].xPct;
+        const thisMin = (index > 0) ? line.data[index - 1].xPct : thisMax;
+
+        if (thisMax === x) return {x, xPct: line.data[index].xPct + '%'};
+
+        xPctRange.min = Math.max(xPctRange.min, thisMin);
+        xPctRange.max = Math.min(xPctRange.max, thisMax);
       }
-      return {x, xPct: closestDatum.xPct + '%'};
+      if (xPctRange.isEmpty) return {x: 0, xPct: '0%'};
+      return {x, xPct: xPctRange.center + '%'};
     });
     return {...state, xAxis: {...state.xAxis, brushes}};
   };
@@ -574,6 +618,23 @@ tr.exportTo('cp', () => {
 
     lineData.sort((a, b) => a.x - b.x);
     return lineData;
+  };
+
+  ChartTimeseries.revisionRanges = brushRevisions => {
+    const revisionRanges = [];
+    for (let i = 0; i < brushRevisions.length; i += 2) {
+      revisionRanges.push(tr.b.math.Range.fromExplicitRange(
+          brushRevisions[i], brushRevisions[i + 1]));
+    }
+    return revisionRanges;
+  };
+
+  ChartTimeseries.revisionLink = (revisionInfo, rName, r1, r2) => {
+    if (!revisionInfo) return {name: rName};
+    const info = revisionInfo[rName];
+    if (!info) return {name: rName};
+    const url = info.url.replace('{{R1}}', r1 || r2).replace('{{R2}}', r2);
+    return {name: info.name, url};
   };
 
   cp.ElementBase.register(ChartTimeseries);

@@ -487,8 +487,23 @@ tr.exportTo('cp', () => {
     return ++nextGUID;
   }
 
+  function* enumerate(iter) {
+    let i = -1;
+    for (const value of iter) {
+      yield [++i, value];
+    }
+  }
+
+  const IS_MAC = navigator.platform.startsWith('Mac');
+  const CTRL_KEY_NAME = IS_MAC ? 'command' : 'Ctrl';
+
+  function hasCtrlKey(event) {
+    return IS_MAC ? event.metaKey : event.ctrlKey;
+  }
+
   return {
     BatchIterator,
+    CTRL_KEY_NAME,
     NON_BREAKING_SPACE,
     ZERO_WIDTH_SPACE,
     afterRender,
@@ -498,8 +513,10 @@ tr.exportTo('cp', () => {
     buildState,
     deepFreeze,
     denormalize,
+    enumerate,
     generateColors,
     getActiveElement,
+    hasCtrlKey,
     idle,
     isElementChildOf,
     measureElement,

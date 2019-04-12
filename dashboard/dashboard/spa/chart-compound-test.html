@@ -168,8 +168,8 @@ suite('chart-compound', function() {
     }));
     await cp.afterRender();
 
-    assert.strictEqual('49.5%', cc.minimapLayout.xAxis.brushes[0].xPct);
-    assert.strictEqual('94.9%', cc.minimapLayout.xAxis.brushes[1].xPct);
+    assert.strictEqual('49%', cc.minimapLayout.xAxis.brushes[0].xPct);
+    assert.strictEqual('94.4%', cc.minimapLayout.xAxis.brushes[1].xPct);
     assert.closeTo(cc.chartLayout.minRevision,
         cc.minimapLayout.xAxis.range.lerp(0.5), MS_PER_YEAR / 100);
     assert.closeTo(cc.chartLayout.maxRevision,

@@ -13,86 +13,15 @@ tr.exportTo('cp', () => {
     return datum.revision;
   }
 
-  function mergeStatistics(target, source) {
-    // Merge min, max, sum, avg, std, count from source into target.
-    // See also tr.b.math.RunningStatistics.merge()
-
-    if (target.min === undefined) {
-      if (source.min !== undefined) {
-        target.min = source.min;
-      }
-    } else if (source.min !== undefined) {
-      target.min = Math.min(target.min, source.min);
-    }
-
-    if (target.max === undefined) {
-      if (source.max !== undefined) {
-        target.max = source.max;
-      }
-    } else if (source.max !== undefined) {
-      target.max = Math.max(target.max, source.max);
-    }
-
-    if (source.sum) target.sum = source.sum + (target.sum || 0);
-
-    // The following uses Welford's algorithm for computing running mean
-    // and variance. See http://www.johndcook.com/blog/standard_deviation.
-
-    const deltaMean = target.avg - source.avg;
-    target.avg = (
-      (target.avg * target.count) + (source.avg * source.count)) /
-      (target.count + source.count);
-
-    const thisVar = target.std * target.std;
-    const otherVar = source.std * source.std;
-    const thisCount = target.count;
-    target.count += source.count;
-    target.std = Math.sqrt(thisVar + otherVar + (
-      thisCount * source.count * deltaMean * deltaMean /
-      target.count));
-  }
-
-  // Merge source datum into target datum.
-  function mergeData(target, source) {
-    if (target.revision === undefined) {
-      // target is empty, so clone source into it.
-      Object.assign(target, source);
-      if (target.diagnostics) {
-        const shallowClone = new tr.v.d.DiagnosticMap();
-        shallowClone.addDiagnostics(target.diagnostics);
-        target.diagnostics = shallowClone;
-      }
-      return;
-    }
-
-    mergeStatistics(target, source);
-
-    target.revision = Math.min(target.revision, source.revision);
-    if (source.timestamp < target.timestamp) {
-      target.timestamp = source.timestamp;
-    }
-
-    // Merge diagnostics from source into target.
-    if (source.diagnostics) {
-      if (!target.diagnostics) {
-        target.diagnostics = new tr.v.d.DiagnosticMap();
-      }
-      target.diagnostics.addDiagnostics(source.diagnostics);
-    }
-  }
-
   class TimeseriesIterator {
     constructor(timeseries, range) {
-      this.minRevision_ = range.minRevision;
-      this.maxRevision_ = range.maxRevision;
       this.timeseries_ = timeseries;
 
       // This may be fractional. See roundIndex_ and indexDelta_.
-      this.index_ = this.findStartIndex_();
+      this.index_ = this.findStartIndex_(range);
 
       // The index of the last datum that will be yielded:
-      this.endIndex_ = Math.min(
-          this.findEndIndex_(), this.timeseries_.length - 1);
+      this.endIndex_ = this.findEndIndex_(range);
 
       // this.timeseries_ may have many thousands of data points. Processing
       // that much data could take a lot of time, and would be wasted since
@@ -106,22 +35,22 @@ tr.exportTo('cp', () => {
           1, (this.endIndex_ - this.index_) / MAX_POINTS);
     }
 
-    findStartIndex_() {
-      if (this.minRevision_) {
-        return tr.b.findLowIndexInSortedArray(
-            this.timeseries_, getX,
-            this.minRevision_);
-      }
-      return 0;
+    findStartIndex_(range) {
+      if (!range || (!range.min && !range.minRevision)) return 0;
+      return Math.min(
+          this.timeseries_.length - 1,
+          tr.b.findLowIndexInSortedArray(
+              this.timeseries_, getX, range.min || range.minRevision));
     }
 
-    findEndIndex_() {
-      if (this.maxRevision_) {
-        return tr.b.findLowIndexInSortedArray(
-            this.timeseries_, getX,
-            this.maxRevision_);
+    findEndIndex_(range) {
+      if (!range || (!range.max && !range.maxRevision)) {
+        return this.timeseries_.length - 1;
       }
-      return this.timeseries_.length - 1;
+      return Math.min(
+          this.timeseries_.length - 1,
+          tr.b.findLowIndexInSortedArray(
+              this.timeseries_, getX, range.max || range.maxRevision));
     }
 
     get current() {
@@ -163,7 +92,7 @@ tr.exportTo('cp', () => {
         let minX = Infinity;
         for (const iterator of this.iterators_) {
           if (!iterator.current) continue;
-          mergeData(merged, iterator.current);
+          TimeseriesMerger.mergeData(merged, iterator.current);
           if (!iterator.done) {
             minX = Math.min(minX, getX(iterator.current));
           }
@@ -179,6 +108,77 @@ tr.exportTo('cp', () => {
       }
     }
   }
+
+  TimeseriesMerger.mergeStatistics = (target, source) => {
+    // Merge min, max, sum, avg, std, count from source into target.
+    // See also tr.b.math.RunningStatistics.merge()
+
+    if (target.min === undefined) {
+      if (source.min !== undefined) {
+        target.min = source.min;
+      }
+    } else if (source.min !== undefined) {
+      target.min = Math.min(target.min, source.min);
+    }
+
+    if (target.max === undefined) {
+      if (source.max !== undefined) {
+        target.max = source.max;
+      }
+    } else if (source.max !== undefined) {
+      target.max = Math.max(target.max, source.max);
+    }
+
+    if (source.sum) target.sum = source.sum + (target.sum || 0);
+
+    // The following uses Welford's algorithm for computing running mean
+    // and variance. See http://www.johndcook.com/blog/standard_deviation.
+
+    const deltaMean = target.avg - source.avg;
+    target.avg = (
+      (target.avg * target.count) + (source.avg * source.count)) /
+      (target.count + source.count);
+
+    const thisVar = target.std * target.std;
+    const otherVar = source.std * source.std;
+    const thisCount = target.count;
+    target.count += source.count;
+
+    if (!isNaN(thisVar) && !isNaN(otherVar)) {
+      target.std = Math.sqrt(thisVar + otherVar + (
+        thisCount * source.count * deltaMean * deltaMean /
+        target.count));
+    }
+  };
+
+  // Merge source datum into target datum.
+  TimeseriesMerger.mergeData = (target, source) => {
+    if (target.revision === undefined) {
+      // target is empty, so clone source into it.
+      Object.assign(target, source);
+      if (target.diagnostics) {
+        const shallowClone = new tr.v.d.DiagnosticMap();
+        shallowClone.addDiagnostics(target.diagnostics);
+        target.diagnostics = shallowClone;
+      }
+      return;
+    }
+
+    TimeseriesMerger.mergeStatistics(target, source);
+
+    target.revision = Math.min(target.revision, source.revision);
+    if (source.timestamp < target.timestamp) {
+      target.timestamp = source.timestamp;
+    }
+
+    // Merge diagnostics from source into target.
+    if (source.diagnostics) {
+      if (!target.diagnostics) {
+        target.diagnostics = new tr.v.d.DiagnosticMap();
+      }
+      target.diagnostics.addDiagnostics(source.diagnostics);
+    }
+  };
 
   return {TimeseriesMerger};
 });

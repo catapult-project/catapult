@@ -306,6 +306,11 @@ tr.exportTo('cp', () => {
       this.dispatchEvent(new CustomEvent('chart-click', {
         bubbles: true,
         composed: true,
+        detail: {
+          ctrlKey: cp.hasCtrlKey(event),
+          nearestLine: this.previousNearestLine,
+          nearestPoint: this.previousNearestPoint,
+        },
       }));
     }
 
@@ -325,6 +330,7 @@ tr.exportTo('cp', () => {
       await this.mouseLeaveMainPoller_;
       this.mouseLeaveMainPoller_ = undefined;
       this.previousNearestPoint = undefined;
+      this.previousNearestLine = undefined;
       this.dispatchEvent(new CustomEvent('mouse-leave-main', {
         bubbles: true,
         composed: true,
@@ -367,10 +373,15 @@ tr.exportTo('cp', () => {
             event, mainRect, this.lines);
         if (!nearestPoint) return;
 
+        // If the mouse left main in between onMouseMoveMain_() and now, don't
+        // re-display tooltip.
+        if (!this.isMouseOverMain) return;
+
         // It might be expensive to build and render the tooltip, so only
         // dispatch get-tooltip when the nearestPoint changes.
         if (nearestPoint === this.previousNearestPoint) return;
         this.previousNearestPoint = nearestPoint;
+        this.previousNearestLine = nearestLine;
 
         this.dispatchEvent(new CustomEvent('get-tooltip', {
           bubbles: true,
