@@ -3,43 +3,42 @@
    found in the LICENSE file.
 */
 'use strict';
-(() => {
-  class CpTabBar extends Polymer.Element {
-    static get is() { return 'cp-tab-bar'; }
 
-    static get template() {
-      return Polymer.html`
-        <style>
-          :host {
-            align-items: center;
-            color: var(--primary-color-dark, blue);
-            display: flex;
-            margin-top: 8px;
-          }
-        </style>
-        <slot></slot>
-      `;
-    }
+export default class CpTabBar extends Polymer.Element {
+  static get is() { return 'cp-tab-bar'; }
 
-    async ready() {
-      super.ready();
-      await cp.afterRender();
-      this.observeSelected_();
-    }
-
-    async observeSelected_() {
-      for (const item of this.querySelectorAll('cp-tab')) {
-        item.checked = (item.name === this.selected);
-      }
-    }
+  static get template() {
+    return Polymer.html`
+      <style>
+        :host {
+          align-items: center;
+          color: var(--primary-color-dark, blue);
+          display: flex;
+          margin-top: 8px;
+        }
+      </style>
+      <slot></slot>
+    `;
   }
 
-  CpTabBar.properties = {
-    selected: {
-      type: String,
-      observer: 'observeSelected_',
-    },
-  };
+  async ready() {
+    super.ready();
+    await cp.afterRender();
+    this.observeSelected_();
+  }
 
-  customElements.define(CpTabBar.is, CpTabBar);
-})();
+  async observeSelected_() {
+    for (const item of this.querySelectorAll('cp-tab')) {
+      item.checked = (item.name === this.selected);
+    }
+  }
+}
+
+CpTabBar.properties = {
+  selected: {
+    type: String,
+    observer: 'observeSelected_',
+  },
+};
+
+customElements.define(CpTabBar.is, CpTabBar);
