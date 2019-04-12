@@ -52,7 +52,19 @@ suite('timeseries-descriptor', function() {
     window.fetch = originalFetch;
   });
 
+  function importModule(url) {
+    // await import('./cp-input.js') works in Chrome, but not in eslint.
+    return new Promise(resolve => {
+      const script = document.createElement('script');
+      script.onload = resolve;
+      script.type = 'module';
+      script.src = url;
+      document.head.appendChild(script);
+    });
+  }
+
   test('suite select describe', async function() {
+    await importModule('./cp-checkbox.js');
     const td = fixture('test');
     td.dispatch(Redux.UPDATE('test', cp.TimeseriesDescriptor.buildState({
     })));
@@ -70,6 +82,7 @@ suite('timeseries-descriptor', function() {
   });
 
   test('option-select matrix-change', async function() {
+    await importModule('./cp-checkbox.js');
     const td = fixture('test');
     td.dispatch(Redux.UPDATE('test', cp.TimeseriesDescriptor.buildState({
     })));

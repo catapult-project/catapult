@@ -48,7 +48,19 @@ setup(() => {
 });
 
 suite('tag-filter', function() {
+  function importModule(url) {
+    // await import('./cp-input.js') works in Chrome, but not in eslint.
+    return new Promise(resolve => {
+      const script = document.createElement('script');
+      script.onload = resolve;
+      script.type = 'module';
+      script.src = url;
+      document.head.appendChild(script);
+    });
+  }
+
   test('filter', async function() {
+    await importModule('./cp-checkbox.js');
     const tagFilter = fixture('test');
     await cp.afterRender();
 

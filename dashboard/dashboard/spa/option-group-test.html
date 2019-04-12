@@ -33,6 +33,17 @@ setup(() => {
 });
 
 suite('option-group', function() {
+  function importModule(url) {
+    // await import('./cp-input.js') works in Chrome, but not in eslint.
+    return new Promise(resolve => {
+      const script = document.createElement('script');
+      script.onload = resolve;
+      script.type = 'module';
+      script.src = url;
+      document.head.appendChild(script);
+    });
+  }
+
   test('groupValues', function() {
     const actual = cp.OptionGroup.groupValues([
       'aaa',
@@ -81,6 +92,7 @@ suite('option-group', function() {
   });
 
   test('select simple', async function() {
+    await importModule('./cp-checkbox.js');
     const optionGroup = fixture('test');
     await cp.afterRender();
     const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /aaa/);
@@ -90,6 +102,7 @@ suite('option-group', function() {
   });
 
   test('deselect simple', async function() {
+    await importModule('./cp-checkbox.js');
     const optionGroup = fixture('test');
     await cp.afterRender();
     optionGroup.dispatch(Redux.UPDATE('test', {selectedOptions: ['aaa']}));
@@ -100,6 +113,7 @@ suite('option-group', function() {
   });
 
   test('select all descendents', async function() {
+    await importModule('./cp-checkbox.js');
     const optionGroup = fixture('test');
     await cp.afterRender();
     const bLeaf = tr.ui.b.findDeepElementWithTextContent(optionGroup, /bbb/);
@@ -110,6 +124,7 @@ suite('option-group', function() {
   });
 
   test('deselect all descendents', async function() {
+    await importModule('./cp-checkbox.js');
     const optionGroup = fixture('test');
     await cp.afterRender();
     optionGroup.dispatch(Redux.UPDATE('test', {selectedOptions: [
@@ -122,6 +137,7 @@ suite('option-group', function() {
   });
 
   test('select tri-state single', async function() {
+    await importModule('./cp-checkbox.js');
     const optionGroup = fixture('test');
     await cp.afterRender();
     optionGroup.dispatch(Redux.UPDATE('test', {selectedOptions: []}));
@@ -132,6 +148,7 @@ suite('option-group', function() {
   });
 
   test('select tri-state all descendents', async function() {
+    await importModule('./cp-checkbox.js');
     const optionGroup = fixture('test');
     await cp.afterRender();
     optionGroup.dispatch(Redux.UPDATE('test', {selectedOptions: ['bbb:ddd']}));

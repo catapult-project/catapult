@@ -22,6 +22,17 @@ suite('alerts-table', function() {
     fixture('test').dispatch(Redux.ENSURE('test'));
   });
 
+  function importModule(url) {
+    // await import('./cp-input.js') works in Chrome, but not in eslint.
+    return new Promise(resolve => {
+      const script = document.createElement('script');
+      script.onload = resolve;
+      script.type = 'module';
+      script.src = url;
+      document.head.appendChild(script);
+    });
+  }
+
   test('placeholder', async function() {
     const table = fixture('test');
     table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({})));
@@ -404,6 +415,7 @@ suite('alerts-table', function() {
   });
 
   test('selectAlert single', async function() {
+    await importModule('./cp-checkbox.js');
     const table = fixture('test');
     table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
       alertGroups: [
@@ -437,6 +449,7 @@ suite('alerts-table', function() {
   });
 
   test('selectAlert toggleAll', async function() {
+    await importModule('./cp-checkbox.js');
     const table = fixture('test');
     table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
       alertGroups: [
@@ -485,6 +498,7 @@ suite('alerts-table', function() {
   });
 
   test('selectAlert shiftKey', async function() {
+    await importModule('./cp-checkbox.js');
     const table = fixture('test');
     table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
       alertGroups: [

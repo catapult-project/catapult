@@ -120,6 +120,17 @@ suite('alerts-section', function() {
     localStorage.removeItem('recentlyModifiedBugs');
   });
 
+  function importModule(url) {
+    // await import('./cp-input.js') works in Chrome, but not in eslint.
+    return new Promise(resolve => {
+      const script = document.createElement('script');
+      script.onload = resolve;
+      script.type = 'module';
+      script.src = url;
+      document.head.appendChild(script);
+    });
+  }
+
   test('summary', function() {
     assert.strictEqual('0 alerts',
         cp.AlertsSection.summary(undefined, undefined));
@@ -151,6 +162,7 @@ suite('alerts-section', function() {
   });
 
   test('triageNew', async function() {
+    await importModule('./cp-checkbox.js');
     const section = fixture('test');
     await cp.afterRender();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
@@ -189,6 +201,7 @@ suite('alerts-section', function() {
   });
 
   test('triageExisting', async function() {
+    await importModule('./cp-checkbox.js');
     const section = fixture('test');
     await cp.afterRender();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
@@ -227,6 +240,7 @@ suite('alerts-section', function() {
   });
 
   test('ignore', async function() {
+    await importModule('./cp-checkbox.js');
     const section = fixture('test');
     await cp.afterRender();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
@@ -258,6 +272,7 @@ suite('alerts-section', function() {
   });
 
   test('unassign', async function() {
+    await importModule('./cp-checkbox.js');
     const section = fixture('test');
     await cp.afterRender();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {

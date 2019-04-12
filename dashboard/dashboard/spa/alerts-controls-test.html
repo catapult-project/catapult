@@ -47,6 +47,17 @@ suite('alerts-controls', function() {
     localStorage.removeItem('recentlyModifiedBugs');
   });
 
+  function importModule(url) {
+    // await import('./cp-input.js') works in Chrome, but not in eslint.
+    return new Promise(resolve => {
+      const script = document.createElement('script');
+      script.onload = resolve;
+      script.type = 'module';
+      script.src = url;
+      document.head.appendChild(script);
+    });
+  }
+
   test('connected', async function() {
     const controls = fixture('test');
     await cp.afterRender();
@@ -60,6 +71,7 @@ suite('alerts-controls', function() {
   });
 
   test('change', async function() {
+    await importModule('./cp-checkbox.js');
     const controls = fixture('test');
     let sources;
     controls.addEventListener('sources', e => {
