@@ -20,8 +20,13 @@ with devil_env.SysPath(devil_env.PYMOCK_PATH):
 # pylint: disable=line-too-long
 _MANIFEST_DUMP = """N: android=http://schemas.android.com/apk/res/android
   E: manifest (line=1)
+    A: android:versionCode(0x0101021b)=(type 0x10)0x166de1ea
+    A: android:versionName(0x0101021c)="75.0.3763.0" (Raw: "75.0.3763.0")
     A: package="org.chromium.abc" (Raw: "org.chromium.abc")
     A: split="random_split" (Raw: "random_split")
+    E: uses-sdk (line=2)
+      A: android:minSdkVersion(0x0101020c)=(type 0x10)0x15
+      A: android:targetSdkVersion(0x01010270)=(type 0x10)0x1c
     E: uses-permission (line=2)
       A: android:name(0x01010003)="android.permission.INTERNET" (Raw: "android.permission.INTERNET")
     E: uses-permission (line=3)
@@ -113,6 +118,14 @@ _SINGLE_J4_INSTRUMENTATION_MANIFEST_DUMP = """N: android=http://schemas.android.
       A: android:name(0x01010003)="org.chromium.RandomJ4TestRunner" (Raw: "org.chromium.RandomJ4TestRunner")
       A: android:targetPackage(0x01010021)="org.chromium.random_package" (Raw:"org.chromium.random_pacakge")
       A: junit4=(type 0x12)0xffffffff (Raw: "true")
+"""
+
+_TARGETING_PRE_RELEASE_Q_MANIFEST_DUMP = """N: android=http://schemas.android.com/apk/res/android
+  E: manifest (line=1)
+    A: package="org.chromium.xyz" (Raw: "org.chromium.xyz")
+    E: uses-sdk (line=2)
+      A: android:minSdkVersion(0x0101020c)=(type 0x10)0x15
+      A: android:targetSdkVersion(0x01010270)="Q" (Raw: "Q")
 """
 
 _NO_NAMESPACE_MANIFEST_DUMP = """E: manifest (line=1)
@@ -223,6 +236,31 @@ class ApkHelperTest(mock_calls.TestCase):
       helper = apk_helper.ApkHelper('')
       self.assertEquals([('name1', 'value1'), ('name2', 'value2')],
                         helper.GetAllMetadata())
+
+  def testGetVersionCode(self):
+    with _MockAaptDump(_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper('')
+      self.assertEquals(376300010, helper.GetVersionCode())
+
+  def testGetVersionName(self):
+    with _MockAaptDump(_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper('')
+      self.assertEquals('75.0.3763.0', helper.GetVersionName())
+
+  def testGetMinSdkVersion_integerValue(self):
+    with _MockAaptDump(_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper('')
+      self.assertEquals(21, helper.GetMinSdkVersion())
+
+  def testGetTargetSdkVersion_integerValue(self):
+    with _MockAaptDump(_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper('')
+      self.assertEquals('28', helper.GetTargetSdkVersion())
+
+  def testGetTargetSdkVersion_stringValue(self):
+    with _MockAaptDump(_TARGETING_PRE_RELEASE_Q_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper('')
+      self.assertEquals('Q', helper.GetTargetSdkVersion())
 
   def testGetSingleInstrumentationName_strippedNamespaces(self):
     with _MockAaptDump(_NO_NAMESPACE_MANIFEST_DUMP):
