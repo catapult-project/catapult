@@ -58,6 +58,17 @@ suite('report-table', function() {
         }))));
   });
 
+  function importModule(url) {
+    // await import('./cp-input.js') works in Chrome, but not in eslint.
+    return new Promise(resolve => {
+      const script = document.createElement('script');
+      script.onload = resolve;
+      script.type = 'module';
+      script.src = url;
+      document.head.appendChild(script);
+    });
+  }
+
   test('tooltip', async function() {
     const report = fixture('test');
     await cp.afterRender();
@@ -92,6 +103,7 @@ suite('report-table', function() {
   });
 
   test('copy', async function() {
+    await importModule('./cp-toast.js');
     const report = fixture('test');
     await cp.afterRender();
     report.$.copy.click();

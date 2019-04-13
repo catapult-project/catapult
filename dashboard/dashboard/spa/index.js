@@ -40,4 +40,5 @@ import './chromeperf-app.js';
 import './cp-input.js';
 import './cp-tab-bar.js';
 import './cp-tab.js';
+import './cp-toast.js';
 import './cp-checkbox.js';
