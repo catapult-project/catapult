@@ -120,12 +120,14 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         '--start-maximized',
         # Disable sounds.
         '--ash-disable-system-sounds',
-        '--mute-audio',
         # Skip user image selection screen, and post login screens.
         '--oobe-skip-postlogin',
         # Debug logging.
         '--vmodule=%s' % vmodule,
     ])
+
+    if browser_options.mute_audio:
+      startup_args.append('--mute-audio')
 
     if not browser_options.expect_policy_fetch:
       startup_args.append('--allow-failed-policy-fetch-for-test')

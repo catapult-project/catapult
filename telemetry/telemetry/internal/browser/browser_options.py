@@ -596,6 +596,8 @@ class CrosBrowserOptions(ChromeBrowserOptions):
     self.expect_policy_fetch = False
     # Disable GAIA/enterprise services.
     self.disable_gaia_services = True
+    # Mute audio.
+    self.mute_audio = True
 
     # TODO(cywang): crbug.com/760414
     # Add login delay for ARC container boot time measurement for now.
