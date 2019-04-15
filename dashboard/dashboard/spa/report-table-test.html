@@ -8,6 +8,7 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/report-table.html">
+<script src="/dashboard/spa/import-module.js">
 
 <test-fixture id="test">
   <template>
@@ -57,17 +58,6 @@ suite('report-table', function() {
           ],
         }))));
   });
-
-  function importModule(url) {
-    // await import('./cp-input.js') works in Chrome, but not in eslint.
-    return new Promise(resolve => {
-      const script = document.createElement('script');
-      script.onload = resolve;
-      script.type = 'module';
-      script.src = url;
-      document.head.appendChild(script);
-    });
-  }
 
   test('tooltip', async function() {
     const report = fixture('test');

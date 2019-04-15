@@ -8,6 +8,7 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/option-group.html">
+<script src="/dashboard/spa/import-module.js">
 
 <test-fixture id="test">
   <template>
@@ -33,17 +34,6 @@ setup(() => {
 });
 
 suite('option-group', function() {
-  function importModule(url) {
-    // await import('./cp-input.js') works in Chrome, but not in eslint.
-    return new Promise(resolve => {
-      const script = document.createElement('script');
-      script.onload = resolve;
-      script.type = 'module';
-      script.src = url;
-      document.head.appendChild(script);
-    });
-  }
-
   test('groupValues', function() {
     const actual = cp.OptionGroup.groupValues([
       'aaa',

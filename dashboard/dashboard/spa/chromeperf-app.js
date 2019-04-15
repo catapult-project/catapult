@@ -3,6 +3,9 @@
    found in the LICENSE file.
 */
 'use strict';
+
+import ReportSection from './report-section.js';
+
 const NOTIFICATION_MS = 5000;
 
 export default class ChromeperfApp extends cp.ElementBase {
@@ -401,7 +404,7 @@ ChromeperfApp.State = {
   isLoading: options => true,
   readied: options => false,
 
-  reportSection: options => cp.ReportSection.buildState({
+  reportSection: options => ReportSection.buildState({
     sources: [cp.ReportControls.DEFAULT_NAME],
   }),
   showingReportSection: options => true,
@@ -528,7 +531,7 @@ ChromeperfApp.actions = {
             type: ChromeperfApp.reducers.updateLargeDom.name,
             appStatePath: statePath,
           }));
-      await cp.ReportSection.actions.restoreState(
+      await ReportSection.actions.restoreState(
           `${statePath}.reportSection`, sessionState.reportSection
       )(dispatch, getState);
       await ChromeperfApp.actions.updateLocation(statePath)(
@@ -548,9 +551,9 @@ ChromeperfApp.actions = {
     }
 
     if (routeParams.get('report') !== null) {
-      const options = cp.ReportSection.newStateOptionsFromQueryParams(
+      const options = ReportSection.newStateOptionsFromQueryParams(
           routeParams);
-      cp.ReportSection.actions.restoreState(
+      ReportSection.actions.restoreState(
           `${statePath}.reportSection`, options)(dispatch, getState);
       return;
     }
@@ -627,7 +630,7 @@ ChromeperfApp.actions = {
     if (state.showingReportSection &&
         (nonEmptyAlerts.length === 0) &&
         (nonEmptyCharts.length === 0)) {
-      routeParams = cp.ReportSection.getRouteParams(state.reportSection);
+      routeParams = ReportSection.getRouteParams(state.reportSection);
     }
 
     if (!state.showingReportSection &&
@@ -659,7 +662,7 @@ ChromeperfApp.actions = {
   },
 
   reset: statePath => async(dispatch, getState) => {
-    cp.ReportSection.actions.restoreState(`${statePath}.reportSection`, {
+    ReportSection.actions.restoreState(`${statePath}.reportSection`, {
       sources: [cp.ReportControls.DEFAULT_NAME]
     })(dispatch, getState);
     dispatch(Redux.CHAIN(
@@ -940,7 +943,7 @@ ChromeperfApp.getSessionState = state => {
   return {
     enableNav: state.enableNav,
     showingReportSection: state.showingReportSection,
-    reportSection: cp.ReportSection.getSessionState(
+    reportSection: ReportSection.getSessionState(
         state.reportSection),
     alertsSections,
     chartSections,

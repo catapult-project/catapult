@@ -284,7 +284,7 @@ suite('utils', function() {
     for await (const {results, errors} of batches) {
       iterations.push({results, errors: errors.map(e => e.message)});
     }
-    assert.lengthOf(iterations, 2);
+    assert.lengthOf(iterations, 2, JSON.stringify(iterations));
     assert.deepEqual([], iterations[0].errors);
     assert.deepEqual(['a', 'b'], iterations[0].results);
     assert.deepEqual([], iterations[1].errors);
@@ -296,7 +296,7 @@ suite('utils', function() {
       yield 'a';
       await cp.timeout(5);
       yield 'b';
-      await cp.timeout(20);
+      await cp.timeout(40);
       yield 'c';
     })()]);
     const iterations = [];
@@ -304,7 +304,7 @@ suite('utils', function() {
       iterations.push({results, errors: errors.map(e => e.message)});
       await cp.timeout(10);
     }
-    assert.lengthOf(iterations, 3);
+    assert.lengthOf(iterations, 3, JSON.stringify(iterations));
     assert.deepEqual([], iterations[0].errors);
     assert.deepEqual(['a'], iterations[0].results);
     assert.deepEqual([], iterations[1].errors);
@@ -329,7 +329,7 @@ suite('utils', function() {
       (async function* () {
         await cp.timeout(5);
         yield 'c0';
-        await cp.timeout(20);
+        await cp.timeout(40);
         yield 'c1';
       })(),
     ]);
@@ -338,7 +338,7 @@ suite('utils', function() {
       iterations.push({results, errors: errors.map(e => e.message)});
       await cp.timeout(10);
     }
-    assert.lengthOf(iterations, 3);
+    assert.lengthOf(iterations, 3, JSON.stringify(iterations));
     assert.deepEqual([], iterations[0].errors);
     assert.deepEqual(['a0', 'b0'], iterations[0].results);
     assert.deepEqual(['c0', 'a1', 'b1'], iterations[1].results);

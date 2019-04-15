@@ -9,6 +9,7 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/bower_components/polymer/polymer.html">
 <link rel="import" href="/dashboard/spa/utils.html">
+<script src="/dashboard/spa/import-module.js">
 
 <test-fixture id="test">
   <template>
@@ -19,17 +20,6 @@ found in the LICENSE file.
 <script>
 'use strict';
 suite('cp-toast', function() {
-  function importModule(url) {
-    // await import('./cp-input.js') works in Chrome, but not in eslint.
-    return new Promise(resolve => {
-      const script = document.createElement('script');
-      script.onload = resolve;
-      script.type = 'module';
-      script.src = url;
-      document.head.appendChild(script);
-    });
-  }
-
   test('autoclose', async function() {
     await importModule('./cp-toast.js');
     const toast = fixture('test');
