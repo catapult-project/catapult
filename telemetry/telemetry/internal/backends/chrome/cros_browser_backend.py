@@ -89,6 +89,12 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         # incognito browser in a separate process, which we need to wait for.
         try:
           py_utils.WaitFor(lambda: pid != self.GetPid(), 15)
+
+          # Also make sure we reconnect the devtools client to the new browser
+          # process. It's important to do this before waiting for _IsLoggedIn,
+          # otherwise the devtools connection check will still try to reach the
+          # older DevTools agent (and fail to do so).
+          self.BindDevToolsClient()
         except py_utils.TimeoutException:
           self._RaiseOnLoginFailure(
               'Failed to restart browser in guest mode (pid %d).' % pid)
@@ -204,13 +210,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return not self._GetLoginStatus()
 
   def _WaitForLogin(self):
-    # For incognito mode, the session manager actually relaunches chrome with
-    # new arguments, so we have to wait for the browser to restart and then
-    # bind the new DevTools agent to this backend. It's important to do this
-    # before waiting for _IsLoggedIn, otherwise the devtools connection check
-    # will still try to reach the older DevTools agent (and fail to do so).
-    self.BindDevToolsClient()
-
     # Wait for cryptohome to mount.
     py_utils.WaitFor(self._IsLoggedIn, 900)
 
