@@ -242,6 +242,12 @@ _WEBVIEW_SYSUPDATE_CURRENT_PKG_RE = re.compile(
     r'Current WebView package.*:.*\(([a-z.]*),')
 _WEBVIEW_SYSUPDATE_FALLBACK_LOGIC_RE = re.compile(
     r'Fallback logic enabled: (true|false)')
+_WEBVIEW_SYSUPDATE_PACKAGE_INSTALLED_RE = re.compile(
+    r'(?:Valid|Invalid) package\s+(\S+)\s+\(.*\),?\s+(.*)$')
+_WEBVIEW_SYSUPDATE_PACKAGE_NOT_INSTALLED_RE = re.compile(
+    r'(\S+)\s+(is NOT installed\.)')
+_WEBVIEW_SYSUPDATE_MIN_VERSION_CODE = re.compile(
+    r'Minimum WebView version code: (\d+)')
 
 _GOOGLE_FEATURES_RE = re.compile(r'^\s*com\.google\.')
 
@@ -2708,6 +2714,9 @@ class DeviceUtils(object):
       A dictionary with these possible entries:
         FallbackLogicEnabled: True|False
         CurrentWebViewPackage: "package name"
+        MinimumWebViewVersionCode: int
+        WebViewPackages: Dict of installed WebView providers, mapping "package
+            name" to "reason it's valid/invalid."
 
     It may return an empty dictionary if device does not
     support the "dumpsys webviewupdate" command.
@@ -2725,6 +2734,7 @@ class DeviceUtils(object):
 
     output = self.RunShellCommand(
         ['dumpsys', 'webviewupdate'], check_return=True)
+    webview_packages = {}
     for line in output:
       match = re.search(_WEBVIEW_SYSUPDATE_CURRENT_PKG_RE, line)
       if match:
@@ -2733,6 +2743,21 @@ class DeviceUtils(object):
       if match:
         result['FallbackLogicEnabled'] = \
             True if match.group(1) == 'true' else False
+      match = re.search(_WEBVIEW_SYSUPDATE_PACKAGE_INSTALLED_RE, line)
+      if match:
+        package_name = match.group(1)
+        reason = match.group(2)
+        webview_packages[package_name] = reason
+      match = re.search(_WEBVIEW_SYSUPDATE_PACKAGE_NOT_INSTALLED_RE, line)
+      if match:
+        package_name = match.group(1)
+        reason = match.group(2)
+        webview_packages[package_name] = reason
+      match = re.search(_WEBVIEW_SYSUPDATE_MIN_VERSION_CODE, line)
+      if match:
+        result['MinimumWebViewVersionCode'] = int(match.group(1))
+    if webview_packages:
+      result['WebViewPackages'] = webview_packages
 
     missing_fields = set(['CurrentWebViewPackage', 'FallbackLogicEnabled']) - \
                      set(result.keys())
@@ -2756,12 +2781,43 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
+    installed = self.GetApplicationPaths(package_name)
+    if not installed:
+      raise device_errors.CommandFailedError(
+          '%s is not installed' % package_name, str(self))
     output = self.RunShellCommand(
         ['cmd', 'webviewupdate', 'set-webview-implementation', package_name],
-        single_line=True, check_return=True)
+        single_line=True,
+        check_return=False)
     if output == 'Success':
       logging.info('WebView provider set to: %s', package_name)
     else:
+      dumpsys_output = self.GetWebViewUpdateServiceDump()
+      webview_packages = dumpsys_output.get('WebViewPackages')
+      if webview_packages:
+        reason = webview_packages.get(package_name)
+        if not reason:
+          all_provider_package_names = webview_packages.keys()
+          raise device_errors.CommandFailedError(
+              '%s is not in the system WebView provider list. Must choose one '
+              'of %r.' % (package_name, all_provider_package_names), str(self))
+        if re.search(r'is\s+NOT\s+installed/enabled for all users', reason):
+          raise device_errors.CommandFailedError(
+              '%s is disabled, make sure to disable WebView fallback logic' %
+              package_name, str(self))
+        if re.search(r'No WebView-library manifest flag', reason):
+          raise device_errors.CommandFailedError(
+              '%s does not declare a WebView native library, so it cannot '
+              'be a WebView provider' % package_name, str(self))
+        if re.search(r'SDK version too low', reason):
+          raise device_errors.CommandFailedError(
+              '%s needs a higher targetSdkVersion (must be >= %d)' %
+              (package_name, self.build_version_sdk), str(self))
+        if re.search(r'Version code too low', reason):
+          raise device_errors.CommandFailedError(
+              '%s needs a higher versionCode (must be >= %d)' %
+              (package_name, dumpsys_output.get('MinimumWebViewVersionCode')),
+              str(self))
       raise device_errors.CommandFailedError(
           'Error setting WebView provider: %s' % output, str(self))
 
