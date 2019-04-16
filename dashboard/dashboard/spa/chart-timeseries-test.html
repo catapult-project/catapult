@@ -166,6 +166,7 @@ suite('chart-timeseries', function() {
       };
     })());
     await cp.afterRender();
+    await cp.afterRender();
     assert.lengthOf(ct.lines, 1);
     assert.strictEqual(ct.lines[0].data[0].y, 1);
     assert.strictEqual(ct.lines[0].data[1].y, 2);

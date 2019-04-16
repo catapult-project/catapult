@@ -274,15 +274,19 @@ suite('utils', function() {
   });
 
   test('BatchIterator 1 generator, 2 batches', async function() {
+    const resolves = [];
+    const promiseA = new Promise(resolve => resolves.push(resolve));
     const batches = new cp.BatchIterator([(async function* () {
       yield 'a';
       yield 'b';
-      await cp.timeout(10);
+      await promiseA;
       yield 'c';
     })()]);
     const iterations = [];
     for await (const {results, errors} of batches) {
       iterations.push({results, errors: errors.map(e => e.message)});
+      const resolve = resolves.shift();
+      if (resolve) resolve();
     }
     assert.lengthOf(iterations, 2, JSON.stringify(iterations));
     assert.deepEqual([], iterations[0].errors);
@@ -292,17 +296,21 @@ suite('utils', function() {
   });
 
   test('BatchIterator 1 generator, 3 batches', async function() {
+    const resolves = [];
+    const promiseA = new Promise(resolve => resolves.push(resolve));
+    const promiseB = new Promise(resolve => resolves.push(resolve));
     const batches = new cp.BatchIterator([(async function* () {
       yield 'a';
-      await cp.timeout(5);
+      await promiseA;
       yield 'b';
-      await cp.timeout(40);
+      await promiseB;
       yield 'c';
     })()]);
     const iterations = [];
     for await (const {results, errors} of batches) {
       iterations.push({results, errors: errors.map(e => e.message)});
-      await cp.timeout(10);
+      const resolve = resolves.shift();
+      if (resolve) resolve();
     }
     assert.lengthOf(iterations, 3, JSON.stringify(iterations));
     assert.deepEqual([], iterations[0].errors);
@@ -314,29 +322,33 @@ suite('utils', function() {
   });
 
   test('BatchIterator 3 generators, 3 batches', async function() {
+    const resolves = [];
+    const promiseA = new Promise(resolve => resolves.push(resolve));
+    const promiseB = new Promise(resolve => resolves.push(resolve));
     const batches = new cp.BatchIterator([
       (async function* () {
         yield 'a0';
-        await cp.timeout(5);
+        await promiseA;
         yield 'a1';
       })(),
       (async function* () {
         yield 'b0';
-        await cp.timeout(5);
+        await promiseA;
         yield 'b1';
         throw new Error('bbb');
       })(),
       (async function* () {
-        await cp.timeout(5);
+        await promiseA;
         yield 'c0';
-        await cp.timeout(40);
+        await promiseB;
         yield 'c1';
       })(),
     ]);
     const iterations = [];
     for await (const {results, errors} of batches) {
       iterations.push({results, errors: errors.map(e => e.message)});
-      await cp.timeout(10);
+      const resolve = resolves.shift();
+      if (resolve) resolve();
     }
     assert.lengthOf(iterations, 3, JSON.stringify(iterations));
     assert.deepEqual([], iterations[0].errors);
