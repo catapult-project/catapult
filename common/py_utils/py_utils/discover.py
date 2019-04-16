@@ -33,6 +33,9 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*'):
   # traversing |top_level_dir|.
   sub_paths.sort(key=lambda paths_tuple: paths_tuple[0])
   for dir_path, _, filenames in sub_paths:
+    if not os.path.isfile(os.path.join(dir_path, '__init__.py')):
+      # This directory is not a module
+      continue
     # Sort the directories to walk recursively by the directory path.
     filenames.sort()
     for filename in filenames:
