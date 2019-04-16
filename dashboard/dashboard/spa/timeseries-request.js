@@ -51,7 +51,7 @@ tr.exportTo('cp', () => {
     if (datum.std) datum.std *= conversionFactor;
     if (datum.sum) datum.sum *= conversionFactor;
 
-    if (datum.alert) datum.alert = cp.AlertsSection.transformAlert(datum.alert);
+    if (datum.alert) datum.alert = cp.transformAlert(datum.alert);
     if (datum.diagnostics) {
       datum.diagnostics = tr.v.d.DiagnosticMap.fromDict(datum.diagnostics);
     }

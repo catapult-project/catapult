@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/bower_components/polymer/polymer.html">
-<link rel="import" href="/dashboard/spa/alerts-section.html">
 <script src="/dashboard/spa/import-module.js">
 
 <test-fixture id="test">
@@ -114,7 +113,7 @@ suite('alerts-section', function() {
           ],
         }),
         Redux.ENSURE('test'),
-        Redux.UPDATE('test', cp.AlertsSection.buildState({}))));
+        Redux.UPDATE('test', AlertsSection.buildState({}))));
   });
   teardown(() => {
     window.fetch = originalFetch;
@@ -122,30 +121,31 @@ suite('alerts-section', function() {
   });
 
   test('summary', function() {
+    const {default: AlertsSection} = await importModule('./alerts-section.js');
     assert.strictEqual('0 alerts',
-        cp.AlertsSection.summary(undefined, undefined));
+        AlertsSection.summary(undefined, undefined));
     assert.strictEqual('0 alerts',
-        cp.AlertsSection.summary(true, undefined));
+        AlertsSection.summary(true, undefined));
 
     assert.strictEqual('1 displayed in 1 group of 1 alert',
-        cp.AlertsSection.summary(true, [{alerts: [{}]}], 0));
+        AlertsSection.summary(true, [{alerts: [{}]}], 0));
     assert.strictEqual('1 displayed in 1 group of 10 alerts',
-        cp.AlertsSection.summary(true, [{alerts: [{}]}], 10));
+        AlertsSection.summary(true, [{alerts: [{}]}], 10));
     assert.strictEqual('2 displayed in 1 group of 2 alerts',
-        cp.AlertsSection.summary(true, [{alerts: [{}, {}]}], 0));
+        AlertsSection.summary(true, [{alerts: [{}, {}]}], 0));
     assert.strictEqual('2 displayed in 2 groups of 2 alerts',
-        cp.AlertsSection.summary(true, [{alerts: [{}]}, {alerts: [{}]}], 0));
+        AlertsSection.summary(true, [{alerts: [{}]}, {alerts: [{}]}], 0));
 
     assert.strictEqual('0 displayed in 0 groups of 0 alerts',
-        cp.AlertsSection.summary(false, [
+        AlertsSection.summary(false, [
           {triaged: {count: 1}, alerts: [{}]},
         ], 0));
     assert.strictEqual('1 displayed in 1 group of 1 alert',
-        cp.AlertsSection.summary(false, [
+        AlertsSection.summary(false, [
           {triaged: {count: 1}, alerts: [{}, {}]},
         ], 0));
     assert.strictEqual('1 displayed in 1 group of 1 alert',
-        cp.AlertsSection.summary(false, [
+        AlertsSection.summary(false, [
           {triaged: {count: 0}, alerts: [{}]},
           {triaged: {count: 1}, alerts: [{}]},
         ], 0));
@@ -153,6 +153,7 @@ suite('alerts-section', function() {
 
   test('triageNew', async function() {
     await importModule('./cp-checkbox.js');
+    const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
     await cp.afterRender();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
@@ -192,6 +193,7 @@ suite('alerts-section', function() {
 
   test('triageExisting', async function() {
     await importModule('./cp-checkbox.js');
+    const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
     await cp.afterRender();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
@@ -231,6 +233,7 @@ suite('alerts-section', function() {
 
   test('ignore', async function() {
     await importModule('./cp-checkbox.js');
+    const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
     await cp.afterRender();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
@@ -263,6 +266,7 @@ suite('alerts-section', function() {
 
   test('unassign', async function() {
     await importModule('./cp-checkbox.js');
+    const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
     await cp.afterRender();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {

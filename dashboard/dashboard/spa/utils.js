@@ -501,6 +501,60 @@ tr.exportTo('cp', () => {
     return IS_MAC ? event.metaKey : event.ctrlKey;
   }
 
+  function transformAlert(alert) {
+    let deltaValue = alert.median_after_anomaly -
+      alert.median_before_anomaly;
+    const percentDeltaValue = deltaValue / alert.median_before_anomaly;
+
+    let improvementDirection = tr.b.ImprovementDirection.BIGGER_IS_BETTER;
+    if (alert.improvement === (deltaValue < 0)) {
+      improvementDirection = tr.b.ImprovementDirection.SMALLER_IS_BETTER;
+    }
+    const unitSuffix = tr.b.Unit.nameSuffixForImprovementDirection(
+        improvementDirection);
+
+    let baseUnit = tr.b.Unit.byName[alert.units];
+    if (!baseUnit ||
+        baseUnit.improvementDirection !== improvementDirection) {
+      let unitName = 'unitlessNumber';
+      if (tr.b.Unit.byName[alert.units + unitSuffix]) {
+        unitName = alert.units;
+      } else {
+        const info = tr.v.LEGACY_UNIT_INFO.get(alert.units);
+        if (info) {
+          unitName = info.name;
+          deltaValue *= info.conversionFactor || 1;
+        }
+      }
+      baseUnit = tr.b.Unit.byName[unitName + unitSuffix];
+    }
+    const [master, bot] = alert.descriptor.bot.split(':');
+
+    return {
+      baseUnit,
+      bot,
+      bugComponents: alert.bug_components,
+      bugId: alert.bug_id === undefined ? '' : alert.bug_id,
+      bugLabels: alert.bug_labels,
+      deltaUnit: baseUnit.correspondingDeltaUnit,
+      deltaValue,
+      key: alert.key,
+      improvement: alert.improvement,
+      isSelected: false,
+      master,
+      measurement: alert.descriptor.measurement,
+      statistic: alert.descriptor.statistic,
+      percentDeltaUnit: tr.b.Unit.byName[
+          'normalizedPercentageDelta' + unitSuffix],
+      percentDeltaValue,
+      startRevision: alert.start_revision,
+      endRevision: alert.end_revision,
+      case: alert.descriptor.testCase,
+      suite: alert.descriptor.testSuite,
+      v1ReportLink: alert.dashboard_link,
+    };
+  }
+
   return {
     BatchIterator,
     CTRL_KEY_NAME,
@@ -530,5 +584,6 @@ tr.exportTo('cp', () => {
     sha,
     simpleGUID,
     timeout,
+    transformAlert,
   };
 });

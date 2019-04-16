@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import AlertsSection from './alerts-section.js';
 import ReportSection from './report-section.js';
 
 const NOTIFICATION_MS = 5000;
@@ -562,7 +563,7 @@ ChromeperfApp.actions = {
         routeParams.get('sheriff') !== null ||
         routeParams.get('bug') !== null ||
         routeParams.get('ar') !== null) {
-      const options = cp.AlertsSection.newStateOptionsFromQueryParams(
+      const options = AlertsSection.newStateOptionsFromQueryParams(
           routeParams);
       // Hide the report section and create a single alerts-section.
       dispatch(Redux.CHAIN(
@@ -615,7 +616,7 @@ ChromeperfApp.actions = {
     const state = Polymer.Path.get(rootState, statePath);
     if (!state.readied) return;
     const nonEmptyAlerts = state.alertsSectionIds.filter(id =>
-      !cp.AlertsSection.isEmpty(state.alertsSectionsById[id]));
+      !AlertsSection.isEmpty(state.alertsSectionsById[id]));
     const nonEmptyCharts = state.chartSectionIds.filter(id =>
       !cp.ChartSection.isEmpty(state.chartSectionsById[id]));
 
@@ -636,7 +637,7 @@ ChromeperfApp.actions = {
     if (!state.showingReportSection &&
         (nonEmptyAlerts.length === 1) &&
         (nonEmptyCharts.length === 0)) {
-      routeParams = cp.AlertsSection.getRouteParams(
+      routeParams = AlertsSection.getRouteParams(
           state.alertsSectionsById[nonEmptyAlerts[0]]);
     }
 
@@ -736,7 +737,7 @@ ChromeperfApp.reducers = {
     for (const alerts of Object.values(state.alertsSectionsById)) {
       // If the user mashes the ALERTS button, don't open copies of the same
       // alerts section.
-      if (!cp.AlertsSection.matchesOptions(alerts, options)) continue;
+      if (!AlertsSection.matchesOptions(alerts, options)) continue;
       if (state.alertsSectionIds.includes(alerts.sectionId)) return state;
       return {
         ...state,
@@ -749,7 +750,7 @@ ChromeperfApp.reducers = {
     }
 
     const sectionId = cp.simpleGUID();
-    const newSection = cp.AlertsSection.buildState({sectionId, ...options});
+    const newSection = AlertsSection.buildState({sectionId, ...options});
     const alertsSectionsById = {...state.alertsSectionsById};
     alertsSectionsById[sectionId] = newSection;
     state = {...state};
@@ -771,7 +772,7 @@ ChromeperfApp.reducers = {
     const alertsSectionIds = [...state.alertsSectionIds];
     alertsSectionIds.splice(sectionIdIndex, 1);
     let closedAlertsIds = [];
-    if (!cp.AlertsSection.isEmpty(
+    if (!AlertsSection.isEmpty(
         state.alertsSectionsById[sectionId])) {
       closedAlertsIds = [sectionId];
     }
@@ -929,8 +930,8 @@ ChromeperfApp.reducers = {
 ChromeperfApp.getSessionState = state => {
   const alertsSections = [];
   for (const id of state.alertsSectionIds) {
-    if (cp.AlertsSection.isEmpty(state.alertsSectionsById[id])) continue;
-    alertsSections.push(cp.AlertsSection.getSessionState(
+    if (AlertsSection.isEmpty(state.alertsSectionsById[id])) continue;
+    alertsSections.push(AlertsSection.getSessionState(
         state.alertsSectionsById[id]));
   }
   const chartSections = [];
