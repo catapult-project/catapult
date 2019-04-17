@@ -264,19 +264,21 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
 
     def testEachTagInGroupIsNotFromDisjointTagSets(self):
         raw_data = (
+            '# tags: [ webgl-version-1 ]\n'
             '# tags: [ Mac Win Amd Intel]\n'
             '# tags: [Linux Batman Robin Superman]\n'
-            'crbug.com/23456 [ Mac Win Amd Robin Linux ] b1/s1 [ Pass ]\n')
+            'crbug.com/23456 [ Mac Win Amd Robin Linux webgl-version-1 ] b1/s1 [ Pass ]\n')
         with self.assertRaises(expectations_parser.ParseError) as context:
             expectations_parser.TaggedTestListParser(raw_data)
         self.assertIn(
-            '3: The tag group contains tags '
+            '4: The tag group contains tags '
             'that are part of the same tag set\n',
             str(context.exception))
         self.assertIn('  - Tags Linux and Robin are part of the same tag set',
                       str(context.exception))
         self.assertIn('  - Tags Amd, Mac and Win are part of the same tag set',
                       str(context.exception))
+        self.assertNotIn('  - Tags webgl-version-1', str(context.exception))
 
     def testEachTagInGroupIsFromDisjointTagSets(self):
         raw_data = (

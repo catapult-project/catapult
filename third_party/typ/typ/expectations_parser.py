@@ -210,8 +210,9 @@ class TaggedTestListParser(object):
             for t in tags:
                 tags_by_tag_set_id[self._tag_to_tag_set[t]].append(t)
             for tag_intersection in tags_by_tag_set_id.values():
-                error_msg += ('\n  - Tags %s are part of the same tag set' %
-                              _group_to_string(sorted(tag_intersection)))
+                if len(tag_intersection) > 1:
+                    error_msg += ('\n  - Tags %s are part of the same tag set' %
+                                  _group_to_string(sorted(tag_intersection)))
             raise ParseError(lineno, error_msg)
 
         results = []
