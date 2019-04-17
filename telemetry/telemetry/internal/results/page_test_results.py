@@ -36,48 +36,55 @@ from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import reserved_infos
 
 def _ComputeMetricsInPool((run, trace_value)):
-  assert not trace_value.is_serialized, "TraceValue should not be serialized."
-  retvalue = {
-      'run': run,
-      'fail': [],
-      'histogram_dicts': None,
-      'scalars': []
-  }
-  extra_import_options = {
-      'trackDetailedModelStats': True
-  }
+  try:
+    assert not trace_value.is_serialized, "TraceValue should not be serialized."
+    retvalue = {
+        'run': run,
+        'fail': [],
+        'histogram_dicts': None,
+        'scalars': []
+    }
+    extra_import_options = {
+        'trackDetailedModelStats': True
+    }
 
-  trace_value.SerializeTraceData()
-  trace_size_in_mib = os.path.getsize(trace_value.filename) / (2 ** 20)
-  # Bails out on trace that are too big. See crbug.com/812631 for more
-  # details.
-  if trace_size_in_mib > 400:
-    retvalue['fail'].append(
-        'Trace size is too big: %s MiB' % trace_size_in_mib)
+    trace_value.SerializeTraceData()
+    trace_size_in_mib = os.path.getsize(trace_value.filename) / (2 ** 20)
+    # Bails out on trace that are too big. See crbug.com/812631 for more
+    # details.
+    if trace_size_in_mib > 400:
+      retvalue['fail'].append(
+          'Trace size is too big: %s MiB' % trace_size_in_mib)
+      return retvalue
+
+    logging.info('Starting to compute metrics on trace')
+    start = time.time()
+    mre_result = metric_runner.RunMetric(
+        trace_value.filename, trace_value.timeline_based_metric,
+        extra_import_options, report_progress=False,
+        canonical_url=trace_value.trace_url)
+    logging.info('Processing resulting traces took %.3f seconds' % (
+        time.time() - start))
+
+    if mre_result.failures:
+      for f in mre_result.failures:
+        retvalue['fail'].append(f.stack)
+
+    histogram_dicts = mre_result.pairs.get('histograms', [])
+    retvalue['histogram_dicts'] = histogram_dicts
+
+    scalars = []
+    for d in mre_result.pairs.get('scalars', []):
+      scalars.append(common_value_helpers.TranslateScalarValue(
+          d, trace_value.page))
+    retvalue['scalars'] = scalars
     return retvalue
-
-  logging.info('Starting to compute metrics on trace')
-  start = time.time()
-  mre_result = metric_runner.RunMetric(
-      trace_value.filename, trace_value.timeline_based_metric,
-      extra_import_options, report_progress=False,
-      canonical_url=trace_value.trace_url)
-  logging.info('Processing resulting traces took %.3f seconds' % (
-      time.time() - start))
-
-  if mre_result.failures:
-    for f in mre_result.failures:
-      retvalue['fail'].append(f.stack)
-
-  histogram_dicts = mre_result.pairs.get('histograms', [])
-  retvalue['histogram_dicts'] = histogram_dicts
-
-  scalars = []
-  for d in mre_result.pairs.get('scalars', []):
-    scalars.append(common_value_helpers.TranslateScalarValue(d,
-                                                             trace_value.page))
-  retvalue['scalars'] = scalars
-  return retvalue
+  except Exception as e:  # pylint: disable=broad-except
+    # logging exception here is the only way to get a stack trace since
+    # multiprocessing's pool implementation does not save that data. See
+    # crbug.com/953365.
+    logging.exception(e)
+    raise
 
 
 class TelemetryInfo(object):
