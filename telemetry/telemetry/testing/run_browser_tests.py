@@ -152,21 +152,13 @@ def _SplitShardsByTime(test_cases, total_shards, test_times,
   return res
 
 
-def _DoesTestMatchFilter(test_filter, test_name):
-  return any(fnmatch.fnmatch(test_name, pattern)
-             for pattern in test_filter.split('::'))
-
-
 def LoadTestCasesToBeRun(
-    test_class, finder_options, test_filter_str, filter_tests_after_sharding,
+    test_class, finder_options, filter_tests_after_sharding,
     total_shards, shard_index, test_times, debug_shard_distributions,
-    typ_options):
+    typ_runner):
   test_cases = []
-  match_everything = lambda *args: True
-  if test_filter_str:
-    test_filter_matcher_func = _DoesTestMatchFilter
-  else:
-    test_filter_matcher_func = match_everything
+  match_everything = lambda _: True
+  test_filter_matcher_func = typ_runner.matches_filter
   if filter_tests_after_sharding:
     test_filter_matcher = match_everything
     post_test_filter_matcher = test_filter_matcher_func
@@ -176,19 +168,14 @@ def LoadTestCasesToBeRun(
 
   for t in serially_executed_browser_test_case.GenerateTestCases(
       test_class, finder_options):
-    assert t.id().startswith(typ_options.test_name_prefix), (
-        'The test prefix passed at the command line does not match the prefix '
-        'of the tests generated')
-    if test_filter_matcher(
-        test_filter_str, t.id()[len(typ_options.test_name_prefix):]):
+    if test_filter_matcher(t):
       test_cases.append(t)
   if test_times:
     # Assign tests to shards.
     shards = _SplitShardsByTime(test_cases, total_shards, test_times,
                                 debug_shard_distributions)
     return [t for t in shards[shard_index]
-            if post_test_filter_matcher(
-                test_filter_str, t.id()[len(typ_options.test_name_prefix):])]
+            if post_test_filter_matcher(t)]
   else:
     test_cases.sort(key=lambda t: t.shortName())
     test_range = _TestRangeForShard(total_shards, shard_index, len(test_cases))
@@ -201,8 +188,7 @@ def LoadTestCasesToBeRun(
       # debugging and comparison purposes.
       _DebugShardDistributions(tmp_shards, None)
     return [t for t in test_cases[test_range[0]:test_range[1]]
-            if post_test_filter_matcher(
-                test_filter_str, t.id()[len(typ_options.test_name_prefix):])]
+            if post_test_filter_matcher(t)]
 
 
 def _CreateTestArgParsers():
@@ -238,7 +224,7 @@ def _SkipMatch(name, skipGlobs):
   return any(fnmatch.fnmatch(name, glob) for glob in skipGlobs)
 
 
-def _GetClassifier(args):
+def _GetClassifier(typ_runner):
   def _SeriallyExecutedBrowserTestCaseClassifer(test_set, test):
     # Do not pick up tests that do not inherit from
     # serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase
@@ -247,16 +233,11 @@ def _GetClassifier(args):
         test,
         serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
       return
-    assert test.id().startswith(args.test_name_prefix), (
-        'The test\'s fully qualified name must start with the '
-        'test name prefix passed in at the command line')
-    name = test.id()[len(args.test_name_prefix):]
-    if _SkipMatch(name, args.skip):
-      test_set.tests_to_skip.append(
-          typ.TestInput(name, 'skipped because matched --skip'))
+    if typ_runner.should_skip(test):
+      test_set.add_test_to_skip(test, 'skipped because matched --skip')
       return
     # For now, only support running these tests serially.
-    test_set.isolated_tests.append(typ.TestInput(name))
+    test_set.add_test_to_run_isolated(test)
   return _SeriallyExecutedBrowserTestCaseClassifer
 
 
@@ -290,77 +271,81 @@ def RunTests(args):
         cl.Name() for cl in browser_test_classes)
     return 1
 
+  test_class._typ_runner = typ_runner = typ.Runner()
+
   # Create test context.
-  context = browser_test_context.TypTestContext()
+  typ_runner.context = browser_test_context.TypTestContext()
   for c in options.client_configs:
-    context.client_configs.append(c)
-  context.finder_options = ProcessCommandLineOptions(
+    typ_runner.context.client_configs.append(c)
+  typ_runner.context.finder_options = ProcessCommandLineOptions(
       test_class, options, extra_args)
-  context.test_class = test_class
-  context.expectations_files = options.expectations_files
+  typ_runner.context.test_class = test_class
+  typ_runner.context.expectations_files = options.expectations_files
   test_times = None
   if options.read_abbreviated_json_results_from:
     with open(options.read_abbreviated_json_results_from, 'r') as f:
       abbr_results = json.load(f)
       test_times = abbr_results.get('times')
-  tests_to_run = LoadTestCasesToBeRun(
-      test_class=test_class, finder_options=context.finder_options,
-      test_filter_str=options.test_filter,
-      filter_tests_after_sharding=options.filter_tests_after_sharding,
-      total_shards=options.total_shards, shard_index=options.shard_index,
-      test_times=test_times,
-      debug_shard_distributions=options.debug_shard_distributions,
-      typ_options=options)
-  for t in tests_to_run:
-    context.test_case_ids_to_run.add(t.id())
-  context.Freeze()
-  browser_test_context._global_test_context = context
-  possible_browser = browser_finder.FindBrowser(context.finder_options)
 
   test_class_expectations_files = test_class.ExpectationsFiles()
   # all file paths in test_class_expectations-files must be absolute
   assert all(os.path.isabs(path) for path in test_class_expectations_files)
   options.expectations_files.extend(test_class_expectations_files)
 
-  # Setup typ runner.
-  test_class._typ_runner = runner = typ.Runner()
-  options.tags.extend(test_class.GenerateTags(context.finder_options,
-                                              possible_browser))
-  runner.context = context
-  runner.setup_fn = _SetUpProcess
-  runner.teardown_fn = _TearDownProcess
-  runner.args.expectations_files = options.expectations_files
-  runner.args.tags = options.tags
-  runner.args.jobs = options.jobs
-  runner.args.metadata = options.metadata
-  runner.args.passthrough = options.passthrough
-  runner.args.path = options.path
-  runner.args.repeat = options.repeat
-  runner.args.retry_limit = options.retry_limit
-  runner.args.test_results_server = options.test_results_server
-  runner.args.test_type = options.test_type
-  runner.args.top_level_dir = options.top_level_dir
-  runner.args.write_full_results_to = options.write_full_results_to
-  runner.args.write_trace_to = options.write_trace_to
-  runner.args.list_only = options.list_only
-  runner.classifier = _GetClassifier(options)
-  runner.args.retry_only_retry_on_failure_tests = (
+  # Setup typ.Runner instance.
+  typ_runner.setup_fn = _SetUpProcess
+  typ_runner.teardown_fn = _TearDownProcess
+  typ_runner.args.expectations_files = options.expectations_files
+  typ_runner.args.tags = options.tags
+  typ_runner.args.jobs = options.jobs
+  typ_runner.args.metadata = options.metadata
+  typ_runner.args.passthrough = options.passthrough
+  typ_runner.args.path = options.path
+  typ_runner.args.repeat = options.repeat
+  typ_runner.args.retry_limit = options.retry_limit
+  typ_runner.args.test_results_server = options.test_results_server
+  typ_runner.args.test_type = options.test_type
+  typ_runner.args.top_level_dir = options.top_level_dir
+  typ_runner.args.write_full_results_to = options.write_full_results_to
+  typ_runner.args.write_trace_to = options.write_trace_to
+  typ_runner.args.list_only = options.list_only
+  typ_runner.args.skip = options.skip
+  typ_runner.classifier = _GetClassifier(typ_runner)
+  typ_runner.args.retry_only_retry_on_failure_tests = (
       options.retry_only_retry_on_failure_tests)
-  runner.args.test_name_prefix = options.test_name_prefix
-  runner.args.suffixes = TEST_SUFFIXES
-  runner.path_delimiter = test_class.GetJSONResultsDelimiter()
+  typ_runner.args.test_name_prefix = options.test_name_prefix
+  typ_runner.args.test_filter = options.test_filter
+  typ_runner.args.suffixes = TEST_SUFFIXES
+  typ_runner.path_delimiter = test_class.GetJSONResultsDelimiter()
+
+  tests_to_run = LoadTestCasesToBeRun(
+      test_class=test_class, finder_options=typ_runner.context.finder_options,
+      filter_tests_after_sharding=options.filter_tests_after_sharding,
+      total_shards=options.total_shards, shard_index=options.shard_index,
+      test_times=test_times,
+      debug_shard_distributions=options.debug_shard_distributions,
+      typ_runner=typ_runner)
+  for t in tests_to_run:
+    typ_runner.context.test_case_ids_to_run.add(t.id())
+  typ_runner.context.Freeze()
+  browser_test_context._global_test_context = typ_runner.context
 
   # Since sharding logic is handled by browser_test_runner harness by passing
   # browser_test_context.test_case_ids_to_run to subprocess to indicate test
   # cases to be run, we explicitly disable sharding logic in typ.
-  runner.args.total_shards = 1
-  runner.args.shard_index = 0
+  typ_runner.args.total_shards = 1
+  typ_runner.args.shard_index = 0
 
-  runner.args.timing = True
-  runner.args.verbose = options.verbose
-  runner.win_multiprocessing = typ.WinMultiprocessing.importable
+  typ_runner.args.timing = True
+  typ_runner.args.verbose = options.verbose
+  typ_runner.win_multiprocessing = typ.WinMultiprocessing.importable
+
+  possible_browser = browser_finder.FindBrowser(
+      typ_runner.context.finder_options)
+  typ_runner.args.tags.extend(test_class.GenerateTags(
+      typ_runner.context.finder_options, possible_browser))
   try:
-    ret, _, _ = runner.run()
+    ret, _, _ = typ_runner.run()
   except KeyboardInterrupt:
     print >> sys.stderr, "interrupted, exiting"
     ret = 130
