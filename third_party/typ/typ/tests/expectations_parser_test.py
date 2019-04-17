@@ -28,9 +28,9 @@ crbug.com/23456 [ Mac Debug ] b1/s2 [ Skip ]
         self.assertEqual(tag_sets, parser.tag_sets)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/12345', 'b1/s1',
-                                            ['Mac'], ['SKIP']),
+                                            ['Mac'], ['SKIP'], 9),
             expectations_parser.Expectation('crbug.com/23456', 'b1/s2',
-                                            ['Mac', 'Debug'], ['SKIP'])
+                                            ['Mac', 'Debug'], ['SKIP'], 10)
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
@@ -65,7 +65,7 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/23456', 'b1/s2',
-                                            ['Mac'], ['SKIP'])
+                                            ['Mac'], ['SKIP'], 2)
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
@@ -80,7 +80,7 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/12345', 'b1/s1', [],
-                                            ['SKIP']),
+                                            ['SKIP'], 2),
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
@@ -89,7 +89,7 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
         raw_data = '# tags: [ All ]\n[ All ] b1/s1 [ Skip ]'
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
-            expectations_parser.Expectation(None, 'b1/s1', ['All'], ['SKIP']),
+            expectations_parser.Expectation(None, 'b1/s1', ['All'], ['SKIP'], 2),
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
@@ -98,7 +98,7 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
         raw_data = '# tags: [ All ]\nb1/s1 [ Skip ]'
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
-            expectations_parser.Expectation(None, 'b1/s1', [], ['SKIP']),
+            expectations_parser.Expectation(None, 'b1/s1', [], ['SKIP'], 2),
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
@@ -111,11 +111,11 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
             expectations_parser.Expectation(
-                'crbug.com/123', 'b1/s1', ['All'], ['SKIP']),
+                'crbug.com/123', 'b1/s1', ['All'], ['SKIP'], 2),
             expectations_parser.Expectation(
-                'crbug.com/124', 'b1/s2', ['None'], ['PASS']),
+                'crbug.com/124', 'b1/s2', ['None'], ['PASS'], 3),
             expectations_parser.Expectation(
-                'crbug.com/125', 'b1/s3', ['Batman'], ['FAIL'])
+                'crbug.com/125', 'b1/s3', ['Batman'], ['FAIL'], 4)
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
@@ -156,7 +156,7 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
         )
         expected_outcomes = [
             expectations_parser.Expectation(
-                'crbug.com/123', 'b.1/http://google.com', ['Mac'], ['SKIP'])
+                'crbug.com/123', 'b.1/http://google.com', ['Mac'], ['SKIP'], 2)
         ]
         parser = expectations_parser.TaggedTestListParser(raw_data)
         for i in range(len(parser.expectations)):
@@ -168,7 +168,7 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/23456', 'b1/s2',
-                                            ['Mac'], ['SKIP'])
+                                            ['Mac'], ['SKIP'], 2)
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
