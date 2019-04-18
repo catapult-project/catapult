@@ -9,7 +9,7 @@
 // https://github.com/uupaa/dynamic-import-polyfill/blob/master/importModule.js
 function importModule(url) {
   return new Promise((resolve, reject) => {
-    const vector = 'importModule' + Math.random();
+    const vector = 'importModule' + parseInt(Math.random() * 1e10);
     const script = document.createElement('script');
     const destructor = () => {
       delete window[vector];

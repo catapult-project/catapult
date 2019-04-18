@@ -7,7 +7,20 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/chart-section.html">
+<link rel="import" href="/bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="/dashboard/spa/chart-compound.html">
+<link rel="import" href="/dashboard/spa/chart-legend.html">
+<link rel="import" href="/dashboard/spa/chart-timeseries.html">
+<link rel="import" href="/dashboard/spa/cp-loading.html">
+<link rel="import" href="/dashboard/spa/describe-request.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/expand-button.html">
+<link rel="import" href="/dashboard/spa/menu-input.html">
+<link rel="import" href="/dashboard/spa/sparkline-compound.html">
+<link rel="import" href="/dashboard/spa/test-suites-request.html">
+<link rel="import" href="/dashboard/spa/timeseries-descriptor.html">
+<link rel="import" href="/dashboard/static/memory_related_names.html">
+<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -56,10 +69,6 @@ suite('chart-section', function() {
         },
       };
     };
-
-    fixture('test').dispatch(Redux.CHAIN(
-        Redux.ENSURE('test'),
-        Redux.UPDATE('test', cp.ChartSection.buildState({}))));
   });
   teardown(() => {
     window.fetch = originalFetch;
@@ -67,7 +76,10 @@ suite('chart-section', function() {
   });
 
   test('descriptor', async function() {
+    const {default: ChartSection} = await importModule('./chart-section.js');
     const chart = fixture('test');
+    chart.dispatch(Redux.ENSURE('test'));
+    chart.dispatch(Redux.UPDATE('test', ChartSection.buildState({})));
     await cp.afterRender();
     await chart.dispatch(Redux.UPDATE(chart.statePath, {
       descriptor: cp.TimeseriesDescriptor.buildState({
@@ -99,7 +111,10 @@ suite('chart-section', function() {
   });
 
   test('statistic', async function() {
+    const {default: ChartSection} = await importModule('./chart-section.js');
     const chart = fixture('test');
+    chart.dispatch(Redux.ENSURE('test'));
+    chart.dispatch(Redux.UPDATE('test', ChartSection.buildState({})));
     await cp.afterRender();
     await chart.dispatch(Redux.UPDATE('test', {
       descriptor: cp.TimeseriesDescriptor.buildState({
@@ -130,7 +145,10 @@ suite('chart-section', function() {
   });
 
   test('title', async function() {
+    const {default: ChartSection} = await importModule('./chart-section.js');
     const chart = fixture('test');
+    chart.dispatch(Redux.ENSURE('test'));
+    chart.dispatch(Redux.UPDATE('test', ChartSection.buildState({})));
     await cp.afterRender();
     chart.$.title.value = 'test';
     chart.$.title.dispatchEvent(new CustomEvent('keyup'));

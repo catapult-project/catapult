@@ -5,6 +5,7 @@
 'use strict';
 
 import AlertsSection from './alerts-section.js';
+import ChartSection from './chart-section.js';
 import ReportSection from './report-section.js';
 
 const NOTIFICATION_MS = 5000;
@@ -581,7 +582,7 @@ ChromeperfApp.actions = {
         routeParams.get('suite') !== null ||
         routeParams.get('chart') !== null) {
       // Hide the report section and create a single chart.
-      const options = cp.ChartSection.newStateOptionsFromQueryParams(
+      const options = ChartSection.newStateOptionsFromQueryParams(
           routeParams);
       dispatch(Redux.UPDATE(statePath, {showingReportSection: false}));
       ChromeperfApp.actions.newChart(statePath, options)(dispatch, getState);
@@ -618,7 +619,7 @@ ChromeperfApp.actions = {
     const nonEmptyAlerts = state.alertsSectionIds.filter(id =>
       !AlertsSection.isEmpty(state.alertsSectionsById[id]));
     const nonEmptyCharts = state.chartSectionIds.filter(id =>
-      !cp.ChartSection.isEmpty(state.chartSectionsById[id]));
+      !ChartSection.isEmpty(state.chartSectionsById[id]));
 
     let routeParams;
 
@@ -644,7 +645,7 @@ ChromeperfApp.actions = {
     if (!state.showingReportSection &&
         (nonEmptyAlerts.length === 0) &&
         (nonEmptyCharts.length === 1)) {
-      routeParams = cp.ChartSection.getRouteParams(
+      routeParams = ChartSection.getRouteParams(
           state.chartSectionsById[nonEmptyCharts[0]]);
     }
 
@@ -796,7 +797,7 @@ ChromeperfApp.reducers = {
       // If the user mashes the OPEN CHART button in the alerts-section, for
       // example, don't open multiple copies of the same chart.
       if ((options && options.clone) ||
-          !cp.ChartSection.matchesOptions(chart, options)) {
+          !ChartSection.matchesOptions(chart, options)) {
         continue;
       }
       if (state.chartSectionIds.includes(chart.sectionId)) return state;
@@ -812,9 +813,9 @@ ChromeperfApp.reducers = {
 
     const sectionId = cp.simpleGUID();
     const newSection = {
-      type: cp.ChartSection.is,
+      type: ChartSection.is,
       sectionId,
-      ...cp.ChartSection.buildState(options || {}),
+      ...ChartSection.buildState(options || {}),
     };
     const chartSectionsById = {...state.chartSectionsById};
     chartSectionsById[sectionId] = newSection;
@@ -838,7 +839,7 @@ ChromeperfApp.reducers = {
     const chartSectionIds = [...state.chartSectionIds];
     chartSectionIds.splice(sectionIdIndex, 1);
     let closedChartIds = [];
-    if (!cp.ChartSection.isEmpty(state.chartSectionsById[action.sectionId])) {
+    if (!ChartSection.isEmpty(state.chartSectionsById[action.sectionId])) {
       closedChartIds = [action.sectionId];
     }
     return {...state, chartSectionIds, closedChartIds};
@@ -936,8 +937,8 @@ ChromeperfApp.getSessionState = state => {
   }
   const chartSections = [];
   for (const id of state.chartSectionIds) {
-    if (cp.ChartSection.isEmpty(state.chartSectionsById[id])) continue;
-    chartSections.push(cp.ChartSection.getSessionState(
+    if (ChartSection.isEmpty(state.chartSectionsById[id])) continue;
+    chartSections.push(ChartSection.getSessionState(
         state.chartSectionsById[id]));
   }
 
