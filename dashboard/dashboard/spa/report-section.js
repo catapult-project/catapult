@@ -4,6 +4,8 @@
 */
 'use strict';
 
+import ReportTable from './report-table.js';
+
 export default class ReportSection extends cp.ElementBase {
   static get template() {
     return Polymer.html`
@@ -64,7 +66,7 @@ export default class ReportSection extends cp.ElementBase {
 ReportSection.State = {
   ...cp.ReportControls.State,
   isLoading: options => false,
-  tables: options => [cp.ReportTable.placeholderTable(
+  tables: options => [ReportTable.placeholderTable(
       cp.ReportControls.DEFAULT_NAME)],
 };
 
@@ -174,7 +176,7 @@ ReportSection.reducers = {
         if (name === cp.ReportControls.CREATE) {
           tables.push(ReportSection.newTemplate(rootState.userEmail));
         } else {
-          tables.push(cp.ReportTable.placeholderTable(name));
+          tables.push(ReportTable.placeholderTable(name));
         }
       }
     }

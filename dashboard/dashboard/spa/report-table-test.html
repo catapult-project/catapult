@@ -7,7 +7,9 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/report-table.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/scalar-span.html">
+<link rel="import" href="/dashboard/spa/utils.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -19,48 +21,48 @@ found in the LICENSE file.
 <script>
 'use strict';
 suite('report-table', function() {
-  setup(() => {
-    fixture('test').dispatch(Redux.CHAIN(
-        Redux.ENSURE('test'),
-        Redux.UPDATE('test', cp.ReportTable.buildState({
-          minRevision: 10,
-          maxRevision: 100,
-          rows: [
-            {
-              suite: {
-                selectedOptions: ['suite'],
-              },
-              measurement: {
-                selectedOptions: ['measure'],
-              },
-              bot: {
-                selectedOptions: ['bot'],
-              },
-              case: {
-                selectedOptions: ['case'],
-              },
-              actualDescriptors: [
-                {
-                  testSuite: 'suite',
-                  bot: 'bot',
-                  testCase: 'case',
-                },
-              ],
-              labelParts: [
-                {isFirst: true, rowCount: 2, label: 'measure', href: '/'},
-              ],
-              scalars: [
-                {unit: tr.b.Unit.byName.count, value: 2},
-                {unit: tr.b.Unit.byName.count, value: 1},
-                {unit: tr.b.Unit.byName.countDelta_smallerIsBetter, value: -1},
-              ],
-            },
-          ],
-        }))));
-  });
+  const OPTIONS = {
+    minRevision: 10,
+    maxRevision: 100,
+    rows: [
+      {
+        suite: {
+          selectedOptions: ['suite'],
+        },
+        measurement: {
+          selectedOptions: ['measure'],
+        },
+        bot: {
+          selectedOptions: ['bot'],
+        },
+        case: {
+          selectedOptions: ['case'],
+        },
+        actualDescriptors: [
+          {
+            testSuite: 'suite',
+            bot: 'bot',
+            testCase: 'case',
+          },
+        ],
+        labelParts: [
+          {isFirst: true, rowCount: 2, label: 'measure', href: '/'},
+        ],
+        scalars: [
+          {unit: tr.b.Unit.byName.count, value: 2},
+          {unit: tr.b.Unit.byName.count, value: 1},
+          {unit: tr.b.Unit.byName.countDelta_smallerIsBetter, value: -1},
+        ],
+      },
+    ],
+  };
 
   test('tooltip', async function() {
+    const {default: ReportTable} = await importModule('./report-table.js');
     const report = fixture('test');
+    report.dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', ReportTable.buildState(OPTIONS))));
     await cp.afterRender();
 
     const tr = report.$.table.querySelector('tbody').children[0];
@@ -93,8 +95,11 @@ suite('report-table', function() {
   });
 
   test('copy', async function() {
-    await importModule('./cp-toast.js');
+    const {default: ReportTable} = await importModule('./report-table.js');
     const report = fixture('test');
+    report.dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', ReportTable.buildState(OPTIONS))));
     await cp.afterRender();
     report.$.copy.click();
     assert.isTrue(report.$.copied.opened);
