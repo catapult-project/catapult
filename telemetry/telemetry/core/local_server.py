@@ -6,10 +6,12 @@
 # It is used by tracing in tvcm/browser_controller.
 import collections
 import json
+import logging
 import os
 import re
 import subprocess
 import sys
+import time
 
 from telemetry.core import util
 
@@ -119,8 +121,21 @@ class LocalServer(object):
 
   def Close(self):
     if self._subprocess:
-      # TODO(tonyg): Should this block until it goes away?
       self._subprocess.kill()
+      # kill() does not close the handle to the process. On Windows, a process
+      # will live until you delete all handles to that subprocess, so
+      # ps_util.ListAllSubprocesses will find this subprocess if
+      # we haven't garbage-collected the handle yet. poll() should close the
+      # handle once the process dies.
+      time.sleep(.01)
+      for _ in range(100):
+        if self._subprocess.poll() is None:
+          time.sleep(.1)
+          continue
+        break
+      else:
+        logging.warn('Local server subprocess is still running after we '
+                     'attempted to kill it.')
       self._subprocess = None
     if self._devnull:
       self._devnull.close()
@@ -167,6 +182,8 @@ class LocalServerController(object):
     return self._local_servers_by_class.values()
 
   def Close(self):
+    # TODO(crbug.com/953365): This is a terrible infinite loop scenario
+    # and we should fix it.
     while len(self._local_servers_by_class):
       server = self._local_servers_by_class.itervalues().next()
       try:
