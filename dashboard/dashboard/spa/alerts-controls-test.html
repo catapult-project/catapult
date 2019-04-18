@@ -62,6 +62,7 @@ suite('alerts-controls', function() {
 
   test('change', async function() {
     await importModule('./cp-checkbox.js');
+    await importModule('./cp-switch.js');
     const controls = fixture('test');
     let sources;
     controls.addEventListener('sources', e => {
