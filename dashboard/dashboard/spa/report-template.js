@@ -48,6 +48,10 @@ tr.exportTo('cp', () => {
             margin-right: 8px;
           }
 
+          cp-input {
+            margin-top: 12px;
+          }
+
           #cancel,
           #save {
             flex-grow: 1;
