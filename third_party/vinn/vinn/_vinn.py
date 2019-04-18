@@ -196,17 +196,26 @@ def RunFile(file_path, source_paths=None, js_args=None, v8_args=None,
 
   try:
     temp_dir = tempfile.mkdtemp()
-    temp_boostrap_file = os.path.join(temp_dir, '_tmp_boostrap.js')
-    with open(temp_boostrap_file, 'w') as f:
+    temp_bootstrap_file = os.path.join(temp_dir, '_tmp_bootstrap.js')
+    with open(temp_bootstrap_file, 'w') as f:
       f.write(_GetBootStrapJsContent(source_paths))
       if extension == '.html':
         f.write('\nHTMLImportsLoader.loadHTMLFile(%s, %s);' %
                 (abs_file_path_str, abs_file_path_str))
       else:
         f.write('\nHTMLImportsLoader.loadFile(%s);' % abs_file_path_str)
-    return _RunFileWithD8(temp_boostrap_file, js_args, v8_args, stdout, stdin)
-  finally:
-    _RemoveTreeWithRetry(temp_dir)
+    result = _RunFileWithD8(temp_bootstrap_file, js_args, v8_args, stdout, stdin)
+  except:
+    # Save the exception.
+    t, v, tb = sys.exc_info()
+    try:
+      _RemoveTreeWithRetry(temp_dir)
+    except:
+      logging.error('Failed to remove temp dir %s.', temp_dir)
+    # Re-raise original exception.
+    raise t, v, tb
+  _RemoveTreeWithRetry(temp_dir)
+  return result
 
 
 def ExecuteJsString(js_string, source_paths=None, js_args=None, v8_args=None,
@@ -232,9 +241,18 @@ def RunJsString(js_string, source_paths=None, js_args=None, v8_args=None,
       temp_file = os.path.join(temp_dir, 'temp_program.js')
     with open(temp_file, 'w') as f:
       f.write(js_string)
-    return RunFile(temp_file, source_paths, js_args, v8_args, stdout, stdin)
-  finally:
-    _RemoveTreeWithRetry(temp_dir)
+    result = RunFile(temp_file, source_paths, js_args, v8_args, stdout, stdin)
+  except:
+    # Save the exception.
+    t, v, tb = sys.exc_info()
+    try:
+      _RemoveTreeWithRetry(temp_dir)
+    except:
+      logging.error('Failed to remove temp dir %s.', temp_dir)
+    # Re-raise original exception.
+    raise t, v, tb
+  _RemoveTreeWithRetry(temp_dir)
+  return result
 
 
 def _RunFileWithD8(js_file_path, js_args, v8_args, stdout, stdin):
