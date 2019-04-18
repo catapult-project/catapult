@@ -166,7 +166,10 @@ tr.exportTo('tr.ui.analysis', function() {
           tr.v.HistogramBinBoundaries.createLinear(
               leftBoundary, rightBoundary,
               Math.ceil(Math.sqrt(this.currentSelection_.length))));
-      histogram.customizeSummaryOptions({sum: false});
+      histogram.customizeSummaryOptions({
+        sum: false,
+        percentile: [0.5, 0.9],
+      });
       for (const slice of this.currentSelection_) {
         histogram.addSample(slice[selectedKey],
             buildDiagnostics_(slice));
