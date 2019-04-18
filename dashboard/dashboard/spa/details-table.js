@@ -347,16 +347,16 @@ tr.exportTo('cp', () => {
   function getDescriptorParts(lineDescriptor, descriptorFlags) {
     const descriptorParts = [];
     if (descriptorFlags.suite) {
-      descriptorParts.push(lineDescriptor.suites.join('\n'));
+      descriptorParts.push(lineDescriptor.suites.map(cp.breakWords).join('\n'));
     }
     if (descriptorFlags.measurement) {
-      descriptorParts.push(lineDescriptor.measurement);
+      descriptorParts.push(cp.breakWords(lineDescriptor.measurement));
     }
     if (descriptorFlags.bot) {
-      descriptorParts.push(lineDescriptor.bots.join('\n'));
+      descriptorParts.push(lineDescriptor.bots.map(cp.breakWords).join('\n'));
     }
     if (descriptorFlags.cases) {
-      descriptorParts.push(lineDescriptor.cases.join('\n'));
+      descriptorParts.push(lineDescriptor.cases.map(cp.breakWords).join('\n'));
     }
     if (descriptorFlags.buildType) {
       descriptorParts.push(lineDescriptor.buildType);
