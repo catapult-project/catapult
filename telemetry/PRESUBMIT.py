@@ -116,7 +116,7 @@ def _ValidateAllDependenciesFiles(input_api, output_api):
   results = []
   telemetry_dir = input_api.PresubmitLocalPath()
   binary_dependencies = input_api.os_path.join(
-      telemetry_dir, 'telemetry', 'internal', 'binary_dependencies.json')
+      telemetry_dir, 'telemetry', 'binary_dependencies.json')
   telemetry_unittest_dependencies = input_api.os_path.join(
       telemetry_dir, 'telemetry', 'telemetry_unittest_deps.json')
   for path in [binary_dependencies, telemetry_unittest_dependencies]:

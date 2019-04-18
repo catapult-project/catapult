@@ -20,7 +20,7 @@ from telemetry.core import util
 
 
 TELEMETRY_PROJECT_CONFIG = os.path.join(
-    util.GetTelemetryDir(), 'telemetry', 'internal', 'binary_dependencies.json')
+    util.GetTelemetryDir(), 'telemetry', 'binary_dependencies.json')
 
 
 CHROME_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'common', 'py_utils',
@@ -214,8 +214,7 @@ def _FetchReferenceBrowserBinary(platform):
 def UpdateDependency(dependency, dep_local_path, version,
                      os_name=None, arch_name=None):
   config = os.path.join(
-      util.GetTelemetryDir(), 'telemetry', 'internal',
-      'binary_dependencies.json')
+      util.GetTelemetryDir(), 'telemetry', 'binary_dependencies.json')
 
   if not os_name:
     assert not arch_name, 'arch_name is specified but not os_name'

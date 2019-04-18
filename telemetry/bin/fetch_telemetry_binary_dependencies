@@ -15,7 +15,7 @@ def main():
     print "Usage: {}".format(sys.argv[0])
     return
 
-  # telemetry/internal/binary_dependencies.json will be loaded by default
+  # telemetry/binary_dependencies.json will be loaded by default
   client_configs = []
   platform = platform_module.GetHostPlatform()
 
