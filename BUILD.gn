@@ -130,6 +130,7 @@ group("telemetry_chrome_test_support") {
   data += [
     "telemetry/telemetry/__init__.py",
     "telemetry/telemetry/benchmark.py",
+    "telemetry/telemetry/benchmark_run_unittest.py",
     "telemetry/telemetry/benchmark_runner.py",
     "telemetry/telemetry/benchmark_runner_unittest.py",
     "telemetry/telemetry/benchmark_unittest.py",

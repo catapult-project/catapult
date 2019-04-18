@@ -8,7 +8,6 @@ import sys
 
 from telemetry import benchmark
 from telemetry import story
-from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_options
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
@@ -235,16 +234,11 @@ class WprRecorder(object):
     self._options.pageset_repeat = 1
     self._story_set.wpr_archive_info.AddNewTemporaryRecording()
     self._record_page_test.CustomizeBrowserOptions(self._options)
-    possible_browser = browser_finder.FindBrowser(self._options)
-    story_runner.RunStorySet(
-        test=self._record_page_test,
-        story_set=self._story_set,
-        possible_browser=possible_browser,
-        expectations=None,
-        browser_options=self._options.browser_options,
-        finder_options=self._options,
-        results=results,
-    )
+    story_runner.Run(
+        self._record_page_test,
+        self._story_set,
+        self._options,
+        results)
 
   def HandleResults(self, results, upload_to_cloud_storage):
     if results.failures or results.skipped_values:

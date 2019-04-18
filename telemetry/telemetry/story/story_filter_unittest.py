@@ -12,19 +12,17 @@ from telemetry.story import story_filter as story_filter_module
 class FilterTest(unittest.TestCase):
 
   def setUp(self):
-    self.story_set = story.StorySet()
+    story_set = story.StorySet()
     self.p1 = page.Page(
-        url='file://your/smile/widen.html', page_set=self.story_set,
+        url='file://your/smile/widen.html', page_set=story_set,
         name='MayYour.smile_widen', tags=['tag1', 'tag2'])
     self.p2 = page.Page(
-        url='file://share_a/smile/too.html', page_set=self.story_set,
+        url='file://share_a/smile/too.html', page_set=story_set,
         name='ShareA.smiles_too', tags=['tag1'])
     self.p3 = page.Page(
-        url='file://share_a/smile/too.html', page_set=self.story_set,
+        url='file://share_a/smile/too.html', page_set=story_set,
         name='share_a/smile/too.html', tags=['tag2'])
     self.pages = [self.p1, self.p2, self.p3]
-    for p in self.pages:
-      self.story_set.AddStory(p)
 
   @staticmethod
   def ProcessCommandLineArgs(parser=None, **kwargs):
@@ -46,9 +44,8 @@ class FilterTest(unittest.TestCase):
         parser, Options(**kwargs))
 
   def assertPagesSelected(self, expected):
-    result = story_filter_module.StoryFilter.FilterStorySet(self.story_set)
-    selected_stories = list(result)
-    self.assertEqual(expected, selected_stories)
+    result = story_filter_module.StoryFilter.FilterStorySet(self.pages)
+    self.assertEqual(expected, result)
 
   def testNoFilterMatchesAll(self):
     self.ProcessCommandLineArgs()
