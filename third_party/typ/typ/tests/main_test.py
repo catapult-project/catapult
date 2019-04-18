@@ -917,13 +917,15 @@ class TestCli(test_case.MainTestCase):
     def test_retryonfailure_test_fails(self):
         files = {'fail_test.py': FAIL_TEST_PY,
                  'expectations.txt': d("""\
-                  # tags: [ foo bar ]
-                  crbug.com/12345 [ foo ] test_fail [ RetryOnFailure ]
+                  # tags: [ Foo ]
+                  # tags: [ Bar ]
+                  crbug.com/12345 [ foo bar ] test_fail [ RetryOnFailure ]
                 """)}
         _, out, _, files = self.check(['--write-full-results-to',
                                        'full_results.json',
                                        '-X', 'expectations.txt',
-                                       '-x', 'foo',
+                                       '-x', 'Foo',
+                                       '-x', 'Bar',
                                        '--retry-limit', '3',
                                        '--retry-only-retry-on-failure-tests',
                                        '--test-name-prefix',
