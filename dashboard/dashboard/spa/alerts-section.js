@@ -4,6 +4,9 @@
 */
 'use strict';
 
+import TriageNew from './triage-new.js';
+import TriageExisting from './triage-existing.js';
+
 const NOTIFICATION_MS = 5000;
 
 // loadMore() below chases cursors when loading untriaged alerts until it's
@@ -224,9 +227,9 @@ export default class AlertsSection extends cp.ElementBase {
 AlertsSection.State = {
   ...cp.AlertsTable.State,
   ...cp.AlertsControls.State,
-  existingBug: options => cp.TriageExisting.buildState({}),
+  existingBug: options => TriageExisting.buildState({}),
   isLoading: options => false,
-  newBug: options => cp.TriageNew.buildState({}),
+  newBug: options => TriageNew.buildState({}),
   preview: options => cp.ChartCompound.buildState(options),
   sectionId: options => options.sectionId || cp.simpleGUID(),
   selectedAlertPath: options => undefined,
@@ -746,7 +749,7 @@ AlertsSection.reducers = {
   openNewBugDialog: (state, action, rootState) => {
     const alerts = cp.AlertsTable.getSelectedAlerts(state.alertGroups);
     if (alerts.length === 0) return state;
-    const newBug = cp.TriageNew.buildState({
+    const newBug = TriageNew.buildState({
       isOpen: true, alerts, cc: action.userEmail,
     });
     return {...state, newBug};
@@ -759,7 +762,7 @@ AlertsSection.reducers = {
       ...state,
       existingBug: {
         ...state.existingBug,
-        ...cp.TriageExisting.buildState({alerts, isOpen: true}),
+        ...TriageExisting.buildState({alerts, isOpen: true}),
       },
     };
   },

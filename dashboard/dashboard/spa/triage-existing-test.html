@@ -7,12 +7,15 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/triage-existing.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<script src="/dashboard/spa/import-module.js"></script>
 
 <script>
 'use strict';
 suite('triage-existing', function() {
-  test('filterBugs', function() {
+  test('filterBugs', async function() {
+    const {default: TriageExisting} = await importModule(
+        './triage-existing.js');
     const bugs = [
       {revisionRange: tr.b.math.Range.fromExplicitRange(9, 9)},
       {revisionRange: tr.b.math.Range.fromExplicitRange(9, 10)},
@@ -20,13 +23,13 @@ suite('triage-existing', function() {
       {revisionRange: tr.b.math.Range.fromExplicitRange(21, 21)},
     ];
     const selectedRange = tr.b.math.Range.fromExplicitRange(10, 20);
-    assert.deepEqual([], cp.TriageExisting.filterBugs(bugs, false, undefined));
-    assert.deepEqual([], cp.TriageExisting.filterBugs(
+    assert.deepEqual([], TriageExisting.filterBugs(bugs, false, undefined));
+    assert.deepEqual([], TriageExisting.filterBugs(
         undefined, false, selectedRange));
-    assert.strictEqual(bugs, cp.TriageExisting.filterBugs(
+    assert.strictEqual(bugs, TriageExisting.filterBugs(
         bugs, false, selectedRange));
 
-    const actual = cp.TriageExisting.filterBugs(bugs, true, selectedRange);
+    const actual = TriageExisting.filterBugs(bugs, true, selectedRange);
     assert.notInclude(actual, bugs[0]);
     assert.include(actual, bugs[1]);
     assert.include(actual, bugs[2]);

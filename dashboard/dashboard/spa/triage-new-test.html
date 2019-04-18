@@ -7,14 +7,17 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/triage-new.html">
+<link rel="import" href="/dashboard/spa/cp-textarea.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<script src="/dashboard/spa/import-module.js"></script>
 
 <script>
 'use strict';
 suite('triage-new', function() {
-  test('summarize', function() {
-    assert.strictEqual('', cp.TriageNew.summarize());
-    assert.strictEqual('10% regression in aaa at 123', cp.TriageNew.summarize([
+  test('summarize', async function() {
+    const {default: TriageNew} = await importModule('./triage-new.js');
+    assert.strictEqual('', TriageNew.summarize());
+    assert.strictEqual('10% regression in aaa at 123', TriageNew.summarize([
       {
         percentDeltaValue: 0.1,
         startRevision: 123,
@@ -23,7 +26,7 @@ suite('triage-new', function() {
       },
     ]));
     const expected = '10%-20% regression in aaa,bbb at 123:234';
-    assert.strictEqual(expected, cp.TriageNew.summarize([
+    assert.strictEqual(expected, TriageNew.summarize([
       {
         percentDeltaValue: 0.1,
         startRevision: 123,
@@ -39,7 +42,8 @@ suite('triage-new', function() {
     ]));
   });
 
-  test('collectAlertProperties', function() {
+  test('collectAlertProperties', async function() {
+    const {default: TriageNew} = await importModule('./triage-new.js');
     const expected = [
       {name: 'aaa', isEnabled: true},
       {name: 'bbb', isEnabled: true},
@@ -47,7 +51,7 @@ suite('triage-new', function() {
       {name: 'Pri-2', isEnabled: true},
       {name: 'Type-Bug-Regression', isEnabled: true},
     ];
-    const actual = cp.TriageNew.collectAlertProperties([
+    const actual = TriageNew.collectAlertProperties([
       {bugLabels: ['aaa', 'bbb']},
       {bugLabels: ['aaa', 'ccc']},
     ], 'bugLabels');
