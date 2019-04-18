@@ -268,6 +268,11 @@ tr.exportTo('cp', () => {
         if (data.length === 0) continue;
 
         let unit = timeserieses[0][0].unit;
+        if (lineDescriptor.statistic === 'count' ||
+            lineDescriptor.statistic === 'nans') {
+          // See tr.v.Histogram.getStatisticScalar().
+          unit = tr.b.Unit.byName.count;
+        }
         if (state.mode === cp.MODE.DELTA) {
           unit = unit.correspondingDeltaUnit;
           const offset = data[0].y;
