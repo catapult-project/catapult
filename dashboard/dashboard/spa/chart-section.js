@@ -5,6 +5,7 @@
 'use strict';
 
 import ChartCompound from './chart-compound.js';
+import SparklineCompound from './sparkline-compound.js';
 
 export default class ChartSection extends cp.ElementBase {
   static get template() {
@@ -229,7 +230,7 @@ export default class ChartSection extends cp.ElementBase {
 ChartSection.State = {
   sectionId: options => options.sectionId || cp.simpleGUID(),
   ...ChartCompound.State,
-  ...cp.SparklineCompound.State,
+  ...SparklineCompound.State,
   descriptor: options => {
     const params = options.parameters || {};
 
@@ -311,7 +312,7 @@ ChartSection.actions = {
     dispatch(Redux.CHAIN(
         {type: ChartSection.reducers.loadTimeseries.name, statePath},
         {
-          type: cp.SparklineCompound.reducers.buildRelatedTabs.name,
+          type: SparklineCompound.reducers.buildRelatedTabs.name,
           statePath,
         }));
 
@@ -404,7 +405,7 @@ ChartSection.actions = {
 ChartSection.reducers = {
   loadTimeseries: (state, action, rootState) => {
     const title = ChartSection.computeTitle(state);
-    const parameterMatrix = cp.SparklineCompound.parameterMatrix(state);
+    const parameterMatrix = SparklineCompound.parameterMatrix(state);
     const legend = ChartSection.buildLegend(parameterMatrix);
     const lineDescriptors = cp.TimeseriesDescriptor.createLineDescriptors(
         parameterMatrix);
@@ -429,7 +430,7 @@ ChartSection.reducers = {
   },
 
   deselectLine: (state, action, rootState) => {
-    const parameterMatrix = cp.SparklineCompound.parameterMatrix(state);
+    const parameterMatrix = SparklineCompound.parameterMatrix(state);
     const lineDescriptors = cp.TimeseriesDescriptor.createLineDescriptors(
         parameterMatrix);
     return {

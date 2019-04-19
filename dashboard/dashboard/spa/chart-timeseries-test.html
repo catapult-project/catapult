@@ -156,7 +156,8 @@ suite('chart-timeseries', function() {
       build_type: 'test',
       columns: 'revision,timestamp,avg,count',
     });
-    new ResultChannelSender(url + aMsParams).send((async function* () {
+    let sender = new ResultChannelSender(url + aMsParams);
+    await sender.send((async function* () {
       yield {
         units: 'ms',
         data: [
@@ -181,7 +182,8 @@ suite('chart-timeseries', function() {
       build_type: 'test',
       columns: 'revision,timestamp,avg,count',
     });
-    new ResultChannelSender(url + aBytesParams).send((async function* () {
+    sender = new ResultChannelSender(url + aBytesParams);
+    await sender.send((async function* () {
       yield {
         units: 'sizeInBytes',
         data: [
@@ -207,7 +209,7 @@ suite('chart-timeseries', function() {
       build_type: 'test',
       columns: 'revision,timestamp,avg,count',
     });
-    const sender = new ResultChannelSender(url + bMsParams);
+    sender = new ResultChannelSender(url + bMsParams);
     await sender.send((async function* () {
       yield {
         units: 'ms',
@@ -235,7 +237,8 @@ suite('chart-timeseries', function() {
       build_type: 'test',
       columns: 'revision,timestamp,avg,count',
     });
-    new ResultChannelSender(url + bBytesParams).send((async function* () {
+    sender = new ResultChannelSender(url + bBytesParams);
+    await sender.send((async function* () {
       yield {
         units: 'sizeInBytes',
         data: [

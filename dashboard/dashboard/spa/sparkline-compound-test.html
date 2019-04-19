@@ -7,8 +7,13 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/sparkline-compound.html">
+
+<link rel="import" href="/bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="/dashboard/spa/chart-timeseries.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
 <link rel="import" href="/dashboard/spa/timeseries-descriptor.html">
+<link rel="import" href="/dashboard/static/memory_related_names.html">
+<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -66,19 +71,20 @@ suite('sparkline-compound', function() {
         },
       };
     };
-
-    fixture('test').dispatch(Redux.CHAIN(
-        Redux.ENSURE('test'),
-        Redux.UPDATE('test', {
-          ...cp.SparklineCompound.buildState({}),
-          chartLayout: {},
-        })));
   });
   teardown(() => {
     window.fetch = originalFetch;
   });
 
   test('build', async function() {
+    const {default: SparklineCompound} = await importModule(
+        './sparkline-compound.js');
+    fixture('test').dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', {
+          ...SparklineCompound.buildState({}),
+          chartLayout: {},
+        })));
     const sc = fixture('test');
     await cp.afterRender();
     await sc.dispatch(Redux.CHAIN(
@@ -97,7 +103,7 @@ suite('sparkline-compound', function() {
           statistic: {selectedOptions: ['avg']},
         }),
         {
-          type: cp.SparklineCompound.reducers.buildRelatedTabs.name,
+          type: SparklineCompound.reducers.buildRelatedTabs.name,
           statePath: 'test',
         }));
     await cp.afterRender();
@@ -107,7 +113,7 @@ suite('sparkline-compound', function() {
     assert.lengthOf(sc.relatedTabs[1].sparklines, 3);
     assert.lengthOf(sc.relatedTabs[2].sparklines, 5);
 
-    await sc.dispatch(cp.SparklineCompound.actions.selectRelatedTab(
+    await sc.dispatch(SparklineCompound.actions.selectRelatedTab(
         sc.statePath, 'Suites'));
     await cp.afterRender();
 
@@ -118,6 +124,14 @@ suite('sparkline-compound', function() {
   });
 
   test('observeCursor', async function() {
+    const {default: SparklineCompound} = await importModule(
+        './sparkline-compound.js');
+    fixture('test').dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', {
+          ...SparklineCompound.buildState({}),
+          chartLayout: {},
+        })));
     const sc = fixture('test');
     await cp.afterRender();
     await sc.dispatch(Redux.CHAIN(
@@ -137,11 +151,11 @@ suite('sparkline-compound', function() {
           statistic: {selectedOptions: ['avg']},
         }),
         {
-          type: cp.SparklineCompound.reducers.buildRelatedTabs.name,
+          type: SparklineCompound.reducers.buildRelatedTabs.name,
           statePath: 'test',
         }));
     await cp.afterRender();
-    await sc.dispatch(cp.SparklineCompound.actions.selectRelatedTab(
+    await sc.dispatch(SparklineCompound.actions.selectRelatedTab(
         sc.statePath, 'Suites'));
     await cp.afterRender();
     await sc.dispatch(Redux.UPDATE(sc.statePath, {
@@ -160,6 +174,14 @@ suite('sparkline-compound', function() {
   });
 
   test('observeRevisions', async function() {
+    const {default: SparklineCompound} = await importModule(
+        './sparkline-compound.js');
+    fixture('test').dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', {
+          ...SparklineCompound.buildState({}),
+          chartLayout: {},
+        })));
     const sc = fixture('test');
     await cp.afterRender();
     await sc.dispatch(Redux.CHAIN(
@@ -178,11 +200,11 @@ suite('sparkline-compound', function() {
           statistic: {selectedOptions: ['avg']},
         }),
         {
-          type: cp.SparklineCompound.reducers.buildRelatedTabs.name,
+          type: SparklineCompound.reducers.buildRelatedTabs.name,
           statePath: 'test',
         }));
     await cp.afterRender();
-    await sc.dispatch(cp.SparklineCompound.actions.selectRelatedTab(
+    await sc.dispatch(SparklineCompound.actions.selectRelatedTab(
         sc.statePath, 'Suites'));
     await cp.afterRender();
 
@@ -210,6 +232,14 @@ suite('sparkline-compound', function() {
   });
 
   test('click', async function() {
+    const {default: SparklineCompound} = await importModule(
+        './sparkline-compound.js');
+    fixture('test').dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', {
+          ...SparklineCompound.buildState({}),
+          chartLayout: {},
+        })));
     const sc = fixture('test');
     await cp.afterRender();
     await sc.dispatch(Redux.CHAIN(
@@ -228,11 +258,11 @@ suite('sparkline-compound', function() {
           statistic: {selectedOptions: ['avg']},
         }),
         {
-          type: cp.SparklineCompound.reducers.buildRelatedTabs.name,
+          type: SparklineCompound.reducers.buildRelatedTabs.name,
           statePath: 'test',
         }));
     await cp.afterRender();
-    await sc.dispatch(cp.SparklineCompound.actions.selectRelatedTab(
+    await sc.dispatch(SparklineCompound.actions.selectRelatedTab(
         sc.statePath, 'Suites'));
     await cp.afterRender();
 
