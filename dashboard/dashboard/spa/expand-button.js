@@ -3,76 +3,71 @@
    found in the LICENSE file.
 */
 'use strict';
-tr.exportTo('cp', () => {
-  class ExpandButton extends cp.ElementBase {
-    static get template() {
-      return Polymer.html`
-        <style>
-          :host {
-            display: flex;
-            cursor: pointer;
-          }
-          iron-icon {
-            height: 20px;
-            width: 20px;
-          }
-        </style>
 
-        <iron-icon icon="[[getIcon_(isExpanded)]]">
-        </iron-icon>
-        <slot></slot>
-      `;
-    }
+export default class ExpandButton extends cp.ElementBase {
+  static get template() {
+    return Polymer.html`
+      <style>
+        :host {
+          display: flex;
+          cursor: pointer;
+        }
+        iron-icon {
+          height: 20px;
+          width: 20px;
+        }
+      </style>
 
-    ready() {
-      super.ready();
-      this.addEventListener('click', this.onClick_.bind(this));
-    }
-
-    async onClick_(event) {
-      await this.dispatch('toggle', this.statePath);
-    }
-
-    getIcon_(isExpanded) {
-      return ExpandButton.getIcon(isExpanded, this.horizontal, this.after);
-    }
+      <iron-icon icon="[[getIcon_(isExpanded)]]">
+      </iron-icon>
+      <slot></slot>
+    `;
   }
 
-  ExpandButton.getIcon = (isExpanded, horizontal, after) => {
-    if (after) isExpanded = !isExpanded;
-    if (horizontal) {
-      return (isExpanded ? 'cp:left' : 'cp:right');
-    }
-    return (isExpanded ? 'cp:less' : 'cp:more');
-  };
+  ready() {
+    super.ready();
+    this.addEventListener('click', this.onClick_.bind(this));
+  }
 
-  const ExpandState = {
-    isExpanded: options => options.isExpanded || false,
-  };
+  async onClick_(event) {
+    await this.dispatch('toggle', this.statePath);
+  }
 
-  ExpandButton.properties = {
-    ...cp.buildProperties('state', ExpandState),
-    horizontal: {
-      type: Boolean,
-      value: false,
-    },
-    after: {
-      type: Boolean,
-      value: false,
-    },
-  };
+  getIcon_(isExpanded) {
+    return ExpandButton.getIcon(isExpanded, this.horizontal, this.after);
+  }
+}
 
-  ExpandButton.buildState = options => cp.buildState(ExpandState, options);
+ExpandButton.getIcon = (isExpanded, horizontal, after) => {
+  if (after) isExpanded = !isExpanded;
+  if (horizontal) {
+    return (isExpanded ? 'cp:left' : 'cp:right');
+  }
+  return (isExpanded ? 'cp:less' : 'cp:more');
+};
 
-  ExpandButton.actions = {
-    toggle: statePath => async(dispatch, getState) => {
-      dispatch(Redux.TOGGLE(statePath + '.isExpanded'));
-    },
-  };
+const ExpandState = {
+  isExpanded: options => options.isExpanded || false,
+};
 
-  cp.ElementBase.register(ExpandButton);
+ExpandButton.properties = {
+  ...cp.buildProperties('state', ExpandState),
+  horizontal: {
+    type: Boolean,
+    value: false,
+  },
+  after: {
+    type: Boolean,
+    value: false,
+  },
+};
 
-  return {
-    ExpandButton,
-  };
-});
+ExpandButton.buildState = options => cp.buildState(ExpandState, options);
+
+ExpandButton.actions = {
+  toggle: statePath => async(dispatch, getState) => {
+    dispatch(Redux.TOGGLE(statePath + '.isExpanded'));
+  },
+};
+
+cp.ElementBase.register(ExpandButton);

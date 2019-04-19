@@ -45,3 +45,4 @@ import './cp-switch.js';
 import './cp-tab-bar.js';
 import './cp-tab.js';
 import './cp-toast.js';
+import './expand-button.js';
