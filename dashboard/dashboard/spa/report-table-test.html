@@ -21,48 +21,50 @@ found in the LICENSE file.
 <script>
 'use strict';
 suite('report-table', function() {
-  const OPTIONS = {
-    minRevision: 10,
-    maxRevision: 100,
-    rows: [
-      {
-        suite: {
-          selectedOptions: ['suite'],
-        },
-        measurement: {
-          selectedOptions: ['measure'],
-        },
-        bot: {
-          selectedOptions: ['bot'],
-        },
-        case: {
-          selectedOptions: ['case'],
-        },
-        actualDescriptors: [
-          {
-            testSuite: 'suite',
-            bot: 'bot',
-            testCase: 'case',
+  function options() {
+    return {
+      minRevision: 10,
+      maxRevision: 100,
+      rows: [
+        {
+          suite: {
+            selectedOptions: ['suite'],
           },
-        ],
-        labelParts: [
-          {isFirst: true, rowCount: 2, label: 'measure', href: '/'},
-        ],
-        scalars: [
-          {unit: tr.b.Unit.byName.count, value: 2},
-          {unit: tr.b.Unit.byName.count, value: 1},
-          {unit: tr.b.Unit.byName.countDelta_smallerIsBetter, value: -1},
-        ],
-      },
-    ],
-  };
+          measurement: {
+            selectedOptions: ['measure'],
+          },
+          bot: {
+            selectedOptions: ['bot'],
+          },
+          case: {
+            selectedOptions: ['case'],
+          },
+          actualDescriptors: [
+            {
+              testSuite: 'suite',
+              bot: 'bot',
+              testCase: 'case',
+            },
+          ],
+          labelParts: [
+            {isFirst: true, rowCount: 2, label: 'measure', href: '/'},
+          ],
+          scalars: [
+            {unit: tr.b.Unit.byName.count, value: 2},
+            {unit: tr.b.Unit.byName.count, value: 1},
+            {unit: tr.b.Unit.byName.countDelta_smallerIsBetter, value: -1},
+          ],
+        },
+      ],
+    };
+  }
 
   test('tooltip', async function() {
     const {default: ReportTable} = await importModule('./report-table.js');
     const report = fixture('test');
     report.dispatch(Redux.CHAIN(
         Redux.ENSURE('test'),
-        Redux.UPDATE('test', ReportTable.buildState(OPTIONS))));
+        Redux.UPDATE('test', ReportTable.buildState(options()))));
     await cp.afterRender();
 
     const tr = report.$.table.querySelector('tbody').children[0];
@@ -99,7 +101,7 @@ suite('report-table', function() {
     const report = fixture('test');
     report.dispatch(Redux.CHAIN(
         Redux.ENSURE('test'),
-        Redux.UPDATE('test', ReportTable.buildState(OPTIONS))));
+        Redux.UPDATE('test', ReportTable.buildState(options()))));
     await cp.afterRender();
     report.$.copy.click();
     assert.isTrue(report.$.copied.opened);

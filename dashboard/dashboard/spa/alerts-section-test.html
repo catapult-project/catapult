@@ -11,11 +11,9 @@ found in the LICENSE file.
 <link rel="import" href="/bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="/bower_components/polymer/polymer.html">
 <link rel="import" href="/dashboard/spa/alerts-controls.html">
-<link rel="import" href="/dashboard/spa/alerts-request.html">
 <link rel="import" href="/dashboard/spa/alerts-table.html">
 <link rel="import" href="/dashboard/spa/chart-timeseries.html">
 <link rel="import" href="/dashboard/spa/cp-radio-group.html">
-<link rel="import" href="/dashboard/spa/cp-switch.html">
 <link rel="import" href="/dashboard/spa/describe-request.html">
 <link rel="import" href="/dashboard/spa/details-table.html">
 <link rel="import" href="/dashboard/spa/element-base.html">
@@ -39,6 +37,7 @@ found in the LICENSE file.
 window.AUTH_CLIENT_ID = '';
 
 suite('alerts-section', function() {
+  let AlertsRequest;
   let originalFetch;
   let existingBugBody;
   let newBugBody;
@@ -65,7 +64,7 @@ suite('alerts-section', function() {
           if (url === cp.SheriffsRequest.URL) {
             return [];
           }
-          if (url === cp.AlertsRequest.URL) {
+          if (url === AlertsRequest.URL) {
             const improvements = Boolean(options.body.get('improvements'));
             const alerts = [];
             const measurements = ['mmm0', 'mmm1', 'mmm2'];
@@ -148,6 +147,7 @@ suite('alerts-section', function() {
   });
 
   test('triageNew', async function() {
+    AlertsRequest = (await importModule('./alerts-request.js')).default;
     await importModule('./cp-checkbox.js');
     const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
@@ -210,6 +210,7 @@ suite('alerts-section', function() {
   });
 
   test('triageExisting', async function() {
+    AlertsRequest = (await importModule('./alerts-request.js')).default;
     await importModule('./cp-checkbox.js');
     const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
@@ -272,6 +273,7 @@ suite('alerts-section', function() {
   });
 
   test('ignore', async function() {
+    AlertsRequest = (await importModule('./alerts-request.js')).default;
     await importModule('./cp-checkbox.js');
     const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
@@ -327,6 +329,7 @@ suite('alerts-section', function() {
   });
 
   test('unassign', async function() {
+    AlertsRequest = (await importModule('./alerts-request.js')).default;
     await importModule('./cp-checkbox.js');
     const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');

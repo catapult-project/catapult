@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import AlertsRequest from './alerts-request.js';
 import ChartCompound from './chart-compound.js';
 import TriageExisting from './triage-existing.js';
 import TriageNew from './triage-new.js';
@@ -249,7 +250,7 @@ AlertsSection.properties = {
 };
 
 async function wrapRequest(body) {
-  const request = new cp.AlertsRequest({body});
+  const request = new AlertsRequest({body});
   const response = await request.response;
   return {body, response};
 }
