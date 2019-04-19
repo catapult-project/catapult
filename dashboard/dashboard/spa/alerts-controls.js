@@ -7,6 +7,7 @@
 import './cp-checkbox.js';
 import './cp-input.js';
 import './cp-switch.js';
+import './raised-button.js';
 import SheriffsRequest from './sheriffs-request.js';
 
 export default class AlertsControls extends cp.ElementBase {

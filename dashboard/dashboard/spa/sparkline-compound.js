@@ -4,6 +4,10 @@
 */
 'use strict';
 
+import './cp-loading.js';
+import './cp-tab-bar.js';
+import './cp-tab.js';
+
 export default class SparklineCompound extends cp.ElementBase {
   static get template() {
     const chartPath = Polymer.html([

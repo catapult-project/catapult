@@ -4,6 +4,9 @@
 */
 'use strict';
 
+import './cp-input.js';
+import './raised-button.js';
+
 export default class ReportControls extends cp.ElementBase {
   static get template() {
     return Polymer.html`

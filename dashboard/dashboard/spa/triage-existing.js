@@ -4,6 +4,10 @@
 */
 'use strict';
 
+import './cp-input.js';
+import './cp-switch.js';
+import './raised-button.js';
+
 export default class TriageExisting extends cp.ElementBase {
   static get template() {
     return Polymer.html`

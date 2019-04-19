@@ -4,6 +4,9 @@
 */
 'use strict';
 
+import './cp-loading.js';
+import './cp-toast.js';
+import './raised-button.js';
 import AlertsSection from './alerts-section.js';
 import ChartCompound from './chart-compound.js';
 import ChartSection from './chart-section.js';

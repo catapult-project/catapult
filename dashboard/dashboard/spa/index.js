@@ -37,12 +37,3 @@ tr.exportTo('window', () => {
 });
 
 import './chromeperf-app.js';
-import './cp-checkbox.js';
-import './cp-dialog.js';
-import './cp-input.js';
-import './cp-loading.js';
-import './cp-switch.js';
-import './cp-tab-bar.js';
-import './cp-tab.js';
-import './cp-toast.js';
-import './expand-button.js';

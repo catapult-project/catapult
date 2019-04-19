@@ -5,6 +5,9 @@
 'use strict';
 
 import './chart-legend.js';
+import './cp-input.js';
+import './cp-loading.js';
+import './expand-button.js';
 import ChartCompound from './chart-compound.js';
 import SparklineCompound from './sparkline-compound.js';
 

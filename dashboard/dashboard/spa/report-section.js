@@ -4,6 +4,8 @@
 */
 'use strict';
 
+import './cp-dialog.js';
+import './cp-loading.js';
 import ReportControls from './report-controls.js';
 import ReportRequest from './report-request.js';
 import ReportTable from './report-table.js';

@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-loading.js';
 import AlertsControls from './alerts-controls.js';
 import AlertsRequest from './alerts-request.js';
 import ChartCompound from './chart-compound.js';
