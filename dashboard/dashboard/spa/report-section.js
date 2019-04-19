@@ -6,6 +6,7 @@
 
 import ReportControls from './report-controls.js';
 import ReportTable from './report-table.js';
+import ReportTemplate from './report-template.js';
 
 export default class ReportSection extends cp.ElementBase {
   static get template() {
@@ -272,7 +273,7 @@ ReportSection.newTemplate = userEmail => {
     owners: userEmail,
     url: '',
     statistics: [],
-    rows: [cp.ReportTemplate.newTemplateRow({})],
+    rows: [ReportTemplate.newTemplateRow({})],
     statistic: {
       label: 'Statistics',
       query: '',
