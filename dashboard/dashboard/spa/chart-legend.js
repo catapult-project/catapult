@@ -3,87 +3,82 @@
    found in the LICENSE file.
 */
 'use strict';
-tr.exportTo('cp', () => {
-  class ChartLegend extends Polymer.Element {
-    static get is() { return 'chart-legend'; }
 
-    static get template() {
-      return Polymer.html`
-        <style>
-          :host {
-            display: flex;
-            flex-direction: column;
-          }
-          :host * {
-            flex-shrink: 0;
-          }
-          chart-legend {
-            margin-left: 16px;
-          }
-          .leaf {
-            cursor: pointer;
-          }
-          .leaf:hover {
-            background: #eee;
-          }
-        </style>
+export default class ChartLegend extends Polymer.Element {
+  static get is() { return 'chart-legend'; }
 
-        <template is="dom-repeat" items="[[items]]">
-          <template is="dom-if" if="[[item.children]]">
-            <div class="branch">
-              [[item.label]]
-            </div>
+  static get template() {
+    return Polymer.html`
+      <style>
+        :host {
+          display: flex;
+          flex-direction: column;
+        }
+        :host * {
+          flex-shrink: 0;
+        }
+        chart-legend {
+          margin-left: 16px;
+        }
+        .leaf {
+          cursor: pointer;
+        }
+        .leaf:hover {
+          background: #eee;
+        }
+      </style>
 
-            <chart-legend items="[[item.children]]">
-            </chart-legend>
-          </template>
+      <template is="dom-repeat" items="[[items]]">
+        <template is="dom-if" if="[[item.children]]">
+          <div class="branch">
+            [[item.label]]
+          </div>
 
-          <template is="dom-if" if="[[!item.children]]">
-            <div class="leaf"
-                style$="color: [[item.color]];"
-                on-mouseover="onLeafMouseOver_"
-                on-mouseout="onLeafMouseOut_"
-                on-click="onLeafClick_">
-              [[item.label]]
-            </div>
-          </template>
+          <chart-legend items="[[item.children]]">
+          </chart-legend>
         </template>
-      `;
-    }
 
-    async onLeafMouseOver_(event) {
-      this.dispatchEvent(new CustomEvent('leaf-mouseover', {
-        bubbles: true,
-        composed: true,
-        detail: event.model.item,
-      }));
-    }
-
-    async onLeafMouseOut_(event) {
-      this.dispatchEvent(new CustomEvent('leaf-mouseout', {
-        bubbles: true,
-        composed: true,
-        detail: event.model.item,
-      }));
-    }
-
-    async onLeafClick_(event) {
-      event.stopPropagation();
-      this.dispatchEvent(new CustomEvent('leaf-click', {
-        bubbles: true,
-        composed: true,
-        detail: event.model.item,
-      }));
-    }
+        <template is="dom-if" if="[[!item.children]]">
+          <div class="leaf"
+              style$="color: [[item.color]];"
+              on-mouseover="onLeafMouseOver_"
+              on-mouseout="onLeafMouseOut_"
+              on-click="onLeafClick_">
+            [[item.label]]
+          </div>
+        </template>
+      </template>
+    `;
   }
 
-  ChartLegend.properties = {
-    items: {type: Array},
-  };
+  async onLeafMouseOver_(event) {
+    this.dispatchEvent(new CustomEvent('leaf-mouseover', {
+      bubbles: true,
+      composed: true,
+      detail: event.model.item,
+    }));
+  }
 
-  customElements.define(ChartLegend.is, ChartLegend);
+  async onLeafMouseOut_(event) {
+    this.dispatchEvent(new CustomEvent('leaf-mouseout', {
+      bubbles: true,
+      composed: true,
+      detail: event.model.item,
+    }));
+  }
 
-  return {
-    ChartLegend,
-  };
-});
+  async onLeafClick_(event) {
+    event.stopPropagation();
+    this.dispatchEvent(new CustomEvent('leaf-click', {
+      bubbles: true,
+      composed: true,
+      detail: event.model.item,
+    }));
+  }
+}
+
+ChartLegend.properties = {
+  items: {type: Array},
+};
+
+customElements.define(ChartLegend.is, ChartLegend);

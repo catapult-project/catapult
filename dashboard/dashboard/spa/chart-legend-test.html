@@ -7,7 +7,10 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/chart-legend.html">
+
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -19,6 +22,7 @@ found in the LICENSE file.
 'use strict';
 suite('chart-legend', function() {
   test('recursive', async function() {
+    await importModule('./chart-legend.js');
     const chartLegend = fixture('test');
     chartLegend.items = [
       {label: 'A', color: 'red'},
@@ -46,6 +50,7 @@ suite('chart-legend', function() {
   });
 
   test('leafClick', async function() {
+    await importModule('./chart-legend.js');
     const chartLegend = fixture('test');
     chartLegend.items = [
       {label: 'A', color: 'red'},

@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './chart-legend.js';
 import ChartCompound from './chart-compound.js';
 import SparklineCompound from './sparkline-compound.js';
 
