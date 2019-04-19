@@ -7,6 +7,8 @@
 import AlertsControls from './alerts-controls.js';
 import AlertsRequest from './alerts-request.js';
 import ChartCompound from './chart-compound.js';
+import ExistingBugRequest from './existing-bug-request.js';
+import NewBugRequest from './new-bug-request.js';
 import TriageExisting from './triage-existing.js';
 import TriageNew from './triage-new.js';
 
@@ -388,7 +390,7 @@ AlertsSection.actions = {
         state.alertGroups);
     const alertKeys = new Set(selectedAlerts.map(a => a.key));
     try {
-      const request = new cp.ExistingBugRequest({alertKeys, bugId});
+      const request = new ExistingBugRequest({alertKeys, bugId});
       await request.response;
       dispatch({
         type: AlertsSection.reducers.removeOrUpdateAlerts.name,
@@ -476,7 +478,7 @@ AlertsSection.actions = {
 
     let bugId;
     try {
-      const request = new cp.NewBugRequest({
+      const request = new NewBugRequest({
         alertKeys,
         ...state.newBug,
         labels: state.newBug.labels.filter(
