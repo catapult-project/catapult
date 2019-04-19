@@ -7,7 +7,12 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/report-controls.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/menu-input.html">
+<link rel="import" href="/dashboard/spa/raised-button.html">
+<link rel="import" href="/dashboard/spa/report-names-request.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -27,7 +32,7 @@ suite('report-controls', function() {
           if (url === cp.ReportNamesRequest.URL) {
             return [
               {
-                name: cp.ReportControls.DEFAULT_NAME,
+                name: 'Chromium Performance Overview',
                 id: 10,
                 modified: new Date(),
               },
@@ -37,9 +42,6 @@ suite('report-controls', function() {
         },
       };
     };
-    fixture('test').dispatch(Redux.CHAIN(
-        Redux.ENSURE('test'),
-        Redux.UPDATE('test', cp.ReportControls.buildState({}))));
   });
   teardown(() => {
     window.fetch = originalFetch;
@@ -47,46 +49,61 @@ suite('report-controls', function() {
 
   test('connected', async function() {
     // ReportNamesRequest
+    const {default: ReportControls} = await importModule(
+        './report-controls.js');
     const controls = fixture('test');
+    controls.dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', ReportControls.buildState({}))));
     await cp.afterRender();
     assert.isDefined(tr.ui.b.findDeepElementWithTextContent(
-        controls, new RegExp(cp.ReportControls.DEFAULT_NAME)));
+        controls, new RegExp(ReportControls.DEFAULT_NAME)));
     assert.isDefined(tr.ui.b.findDeepElementWithTextContent(controls, /aaa/));
   });
 
   test('milestones', async function() {
+    const {default: ReportControls} = await importModule(
+        './report-controls.js');
     const controls = fixture('test');
+    controls.dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', ReportControls.buildState({}))));
     await cp.afterRender();
-    assert.strictEqual(cp.ReportControls.CHROMIUM_MILESTONES[
-        cp.ReportControls.CURRENT_MILESTONE], controls.minRevision);
+    assert.strictEqual(ReportControls.CHROMIUM_MILESTONES[
+        ReportControls.CURRENT_MILESTONE], controls.minRevision);
     assert.strictEqual('latest', controls.maxRevision);
 
     controls.$.prev_mstone.click();
     await cp.afterRender();
-    assert.strictEqual(cp.ReportControls.CHROMIUM_MILESTONES[
-        cp.ReportControls.CURRENT_MILESTONE - 1], controls.minRevision);
-    assert.strictEqual(cp.ReportControls.CHROMIUM_MILESTONES[
-        cp.ReportControls.CURRENT_MILESTONE], controls.maxRevision);
+    assert.strictEqual(ReportControls.CHROMIUM_MILESTONES[
+        ReportControls.CURRENT_MILESTONE - 1], controls.minRevision);
+    assert.strictEqual(ReportControls.CHROMIUM_MILESTONES[
+        ReportControls.CURRENT_MILESTONE], controls.maxRevision);
 
     controls.$.next_mstone.click();
     await cp.afterRender();
-    assert.strictEqual(cp.ReportControls.CHROMIUM_MILESTONES[
-        cp.ReportControls.CURRENT_MILESTONE], controls.minRevision);
+    assert.strictEqual(ReportControls.CHROMIUM_MILESTONES[
+        ReportControls.CURRENT_MILESTONE], controls.minRevision);
     assert.strictEqual('latest', controls.maxRevision);
   });
 
   test('alerts', async function() {
+    const {default: ReportControls} = await importModule(
+        './report-controls.js');
     const controls = fixture('test');
+    controls.dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', ReportControls.buildState({}))));
     await cp.afterRender();
     let options;
     controls.addEventListener('alerts', e => {
       options = e.detail.options;
     });
     controls.$.alerts.click();
-    assert.strictEqual(cp.ReportControls.CHROMIUM_MILESTONES[
-        cp.ReportControls.CURRENT_MILESTONE], controls.minRevision);
+    assert.strictEqual(ReportControls.CHROMIUM_MILESTONES[
+        ReportControls.CURRENT_MILESTONE], controls.minRevision);
     assert.strictEqual('latest', options.maxRevision);
-    assert.deepEqual([cp.ReportControls.DEFAULT_NAME], options.reports);
+    assert.deepEqual([ReportControls.DEFAULT_NAME], options.reports);
     assert.isTrue(options.showingTriaged);
   });
 });

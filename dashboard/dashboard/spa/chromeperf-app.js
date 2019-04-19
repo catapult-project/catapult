@@ -7,6 +7,7 @@
 import AlertsSection from './alerts-section.js';
 import ChartSection from './chart-section.js';
 import ReportSection from './report-section.js';
+import ReportControls from './report-controls.js';
 
 const NOTIFICATION_MS = 5000;
 
@@ -407,7 +408,7 @@ ChromeperfApp.State = {
   readied: options => false,
 
   reportSection: options => ReportSection.buildState({
-    sources: [cp.ReportControls.DEFAULT_NAME],
+    sources: [ReportControls.DEFAULT_NAME],
   }),
   showingReportSection: options => true,
 
@@ -665,7 +666,7 @@ ChromeperfApp.actions = {
 
   reset: statePath => async(dispatch, getState) => {
     ReportSection.actions.restoreState(`${statePath}.reportSection`, {
-      sources: [cp.ReportControls.DEFAULT_NAME]
+      sources: [ReportControls.DEFAULT_NAME]
     })(dispatch, getState);
     dispatch(Redux.CHAIN(
         Redux.UPDATE(statePath, {showingReportSection: true}),

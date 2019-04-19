@@ -9,7 +9,8 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 
 <link rel="import" href="/dashboard/spa/element-base.html">
-<link rel="import" href="/dashboard/spa/report-controls.html">
+<link rel="import" href="/dashboard/spa/menu-input.html">
+<link rel="import" href="/dashboard/spa/raised-button.html">
 <link rel="import" href="/dashboard/spa/report-names-request.html">
 <link rel="import" href="/dashboard/spa/report-request.html">
 <link rel="import" href="/dashboard/spa/report-template.html">
@@ -31,16 +32,18 @@ suite('report-section', function() {
     window.fetch = async(url, options) => {
       return {
         async json() {
+          const {default: ReportControls} = await importModule(
+              './report-controls.js');
           if (url === cp.ReportNamesRequest.URL) {
             return [{
-              name: cp.ReportControls.DEFAULT_NAME,
+              name: ReportControls.DEFAULT_NAME,
               id: 42,
               modified: new Date(),
             }];
           }
           if (url === cp.ReportRequest.URL) {
             return {
-              name: cp.ReportControls.DEFAULT_NAME,
+              name: ReportControls.DEFAULT_NAME,
               owners: ['me@chromium.org'],
               url: 'http://example.com/',
               report: {
@@ -53,8 +56,8 @@ suite('report-section', function() {
                     testCases: ['case'],
                     measurement: 'measurement',
                     data: {
-                      [cp.ReportControls.CHROMIUM_MILESTONES[
-                          cp.ReportControls.CURRENT_MILESTONE]]: {
+                      [ReportControls.CHROMIUM_MILESTONES[
+                          ReportControls.CURRENT_MILESTONE]]: {
                         descriptors: [
                           {
                             testSuite: 'suite',
@@ -64,8 +67,8 @@ suite('report-section', function() {
                           },
                         ],
                         statistics: [10, 0, 0, 100, 0, 0, 100],
-                        revision: cp.ReportControls.CHROMIUM_MILESTONES[
-                            cp.ReportControls.CURRENT_MILESTONE],
+                        revision: ReportControls.CHROMIUM_MILESTONES[
+                            ReportControls.CURRENT_MILESTONE],
                       },
                       latest: {
                         descriptors: [
@@ -96,11 +99,11 @@ suite('report-section', function() {
 
   test('loadReports', async function() {
     const {default: ReportSection} = await importModule('./report-section.js');
-    const section = fixture('test');
-    section.dispatch(Redux.CHAIN(
+    fixture('test').dispatch(Redux.CHAIN(
         Redux.ENSURE('test'),
-        Redux.ENSURE('test.source')));
-    section.dispatch(Redux.UPDATE('test', ReportSection.buildState({})));
+        Redux.ENSURE('test.source'),
+        Redux.UPDATE('test', ReportSection.buildState({}))));
+    const section = fixture('test');
     assert.isTrue(section.tables[0].isPlaceholder);
     while (section.tables[0].isPlaceholder) {
       await cp.afterRender();
