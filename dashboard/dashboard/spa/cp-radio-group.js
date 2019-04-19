@@ -3,48 +3,49 @@
    found in the LICENSE file.
 */
 'use strict';
-(() => {
-  class CpRadioGroup extends Polymer.Element {
-    static get is() { return 'cp-radio-group'; }
 
-    static get template() {
-      return Polymer.html`
-        <style>
-          :host {
-            display: flex;
-            flex-direction: column;
-          }
-          ::slotted(cp-radio) {
-            margin: 4px 0;
-          }
-        </style>
-        <slot></slot>
-      `;
-    }
+import './cp-radio.js';
 
-    ready() {
-      super.ready();
-      this.addEventListener('change', this.onItemChange_.bind(this));
-    }
+export default class CpRadioGroup extends Polymer.Element {
+  static get is() { return 'cp-radio-group'; }
 
-    onItemChange_(event) {
-      this.selected = event.target.name;
-    }
-
-    observeSelected_(newValue, oldValue) {
-      for (const item of this.querySelectorAll('cp-radio')) {
-        item.checked = (item.name === this.selected);
-      }
-      this.dispatchEvent(new CustomEvent('selected-changed', {
-        bubbles: true,
-        composed: true,
-        detail: {value: this.selected},
-      }));
-    }
+  static get template() {
+    return Polymer.html`
+      <style>
+        :host {
+          display: flex;
+          flex-direction: column;
+        }
+        ::slotted(cp-radio) {
+          margin: 4px 0;
+        }
+      </style>
+      <slot></slot>
+    `;
   }
 
-  CpRadioGroup.properties = {selected: {type: String}};
-  CpRadioGroup.observers = ['observeSelected_(selected)'];
+  ready() {
+    super.ready();
+    this.addEventListener('change', this.onItemChange_.bind(this));
+  }
 
-  customElements.define(CpRadioGroup.is, CpRadioGroup);
-})();
+  onItemChange_(event) {
+    this.selected = event.target.name;
+  }
+
+  observeSelected_(newValue, oldValue) {
+    for (const item of this.querySelectorAll('cp-radio')) {
+      item.checked = (item.name === this.selected);
+    }
+    this.dispatchEvent(new CustomEvent('selected-changed', {
+      bubbles: true,
+      composed: true,
+      detail: {value: this.selected},
+    }));
+  }
+}
+
+CpRadioGroup.properties = {selected: {type: String}};
+CpRadioGroup.observers = ['observeSelected_(selected)'];
+
+customElements.define(CpRadioGroup.is, CpRadioGroup);

@@ -4,6 +4,8 @@
 */
 'use strict';
 
+import './cp-radio-group.js';
+
 const MS_PER_DAY = tr.b.convertUnit(
     1, tr.b.UnitScale.TIME.DAY, tr.b.UnitScale.TIME.MILLI_SEC);
 const MS_PER_MONTH = tr.b.convertUnit(
