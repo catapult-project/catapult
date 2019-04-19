@@ -124,7 +124,7 @@ _TARGETING_PRE_RELEASE_Q_MANIFEST_DUMP = """N: android=http://schemas.android.co
   E: manifest (line=1)
     A: package="org.chromium.xyz" (Raw: "org.chromium.xyz")
     E: uses-sdk (line=2)
-      A: android:minSdkVersion(0x0101020c)=(type 0x10)0x15
+      A: android:minSdkVersion(0x0101020c)="Q" (Raw: "Q")
       A: android:targetSdkVersion(0x01010270)="Q" (Raw: "Q")
 """
 
@@ -250,7 +250,12 @@ class ApkHelperTest(mock_calls.TestCase):
   def testGetMinSdkVersion_integerValue(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals(21, helper.GetMinSdkVersion())
+      self.assertEquals('21', helper.GetMinSdkVersion())
+
+  def testGetMinSdkVersion_stringValue(self):
+    with _MockAaptDump(_TARGETING_PRE_RELEASE_Q_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper('')
+      self.assertEquals('Q', helper.GetMinSdkVersion())
 
   def testGetTargetSdkVersion_integerValue(self):
     with _MockAaptDump(_MANIFEST_DUMP):

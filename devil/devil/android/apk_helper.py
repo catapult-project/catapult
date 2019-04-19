@@ -300,17 +300,30 @@ class ApkHelper(object):
       return ''
 
   def GetMinSdkVersion(self):
-    """Returns the minSdkVersion as an integer, or None if not available."""
+    """Returns the minSdkVersion as a string, or None if not available.
+
+    Note: this cannot always be cast to an integer."""
     manifest_info = self._GetManifest()
     try:
       uses_sdk = manifest_info['manifest'][0]['uses-sdk'][0]
       min_sdk_version = uses_sdk['android:minSdkVersion']
-      return int(min_sdk_version, 16)
+      try:
+        # The common case is for this to be an integer. Convert to decimal
+        # notation (rather than hexadecimal) for readability, but convert back
+        # to a string for type consistency with the general case.
+        return str(int(min_sdk_version, 16))
+      except ValueError:
+        # In general (ex. apps with minSdkVersion set to pre-release Android
+        # versions), minSdkVersion can be a string (usually, the OS codename
+        # letter). For simplicity, don't do any validation on the value.
+        return min_sdk_version
     except KeyError:
       return None
 
   def GetTargetSdkVersion(self):
-    """Returns the targetSdkVersion as a string."""
+    """Returns the targetSdkVersion as a string, or None if not available.
+
+    Note: this cannot always be cast to an integer."""
     manifest_info = self._GetManifest()
     try:
       uses_sdk = manifest_info['manifest'][0]['uses-sdk'][0]
@@ -326,7 +339,7 @@ class ApkHelper(object):
         # For simplicity, don't do any validation on the value.
         return target_sdk_version
     except KeyError:
-      return ''
+      return None
 
   def _GetManifest(self):
     if not self._manifest:
