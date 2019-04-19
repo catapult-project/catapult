@@ -7,8 +7,9 @@
 import AlertsSection from './alerts-section.js';
 import ChartCompound from './chart-compound.js';
 import ChartSection from './chart-section.js';
-import ReportSection from './report-section.js';
+import ConfigRequest from './config-request.js';
 import ReportControls from './report-controls.js';
+import ReportSection from './report-section.js';
 
 const NOTIFICATION_MS = 5000;
 
@@ -515,7 +516,7 @@ ChromeperfApp.actions = {
   },
 
   getRevisionInfo: () => async(dispatch, getState) => {
-    const revisionInfo = await new cp.ConfigRequest(
+    const revisionInfo = await new ConfigRequest(
         {key: 'revision_info'}).response;
     dispatch(Redux.UPDATE('', {revisionInfo}));
   },

@@ -12,7 +12,6 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/spa/menu-input.html">
 <link rel="import" href="/dashboard/spa/raised-button.html">
 <link rel="import" href="/dashboard/spa/report-names-request.html">
-<link rel="import" href="/dashboard/spa/report-request.html">
 <link rel="import" href="/dashboard/spa/timeseries-descriptor.html">
 <link rel="import" href="/dashboard/spa/utils.html">
 <script src="/dashboard/spa/import-module.js"></script>
@@ -41,7 +40,9 @@ suite('report-section', function() {
               modified: new Date(),
             }];
           }
-          if (url === cp.ReportRequest.URL) {
+          const {default: ReportRequest} = await importModule(
+              './report-request.js');
+          if (url === ReportRequest.URL) {
             return {
               name: ReportControls.DEFAULT_NAME,
               owners: ['me@chromium.org'],

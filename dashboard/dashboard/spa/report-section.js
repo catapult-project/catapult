@@ -5,6 +5,7 @@
 'use strict';
 
 import ReportControls from './report-controls.js';
+import ReportRequest from './report-request.js';
 import ReportTable from './report-table.js';
 import ReportTemplate from './report-template.js';
 
@@ -117,7 +118,7 @@ ReportSection.actions = {
     for (const name of names) {
       for (const templateInfo of reportTemplateInfos) {
         if (templateInfo.name === name) {
-          readers.push(new cp.ReportRequest(
+          readers.push(new ReportRequest(
               {...templateInfo, revisions}).reader());
         }
       }
