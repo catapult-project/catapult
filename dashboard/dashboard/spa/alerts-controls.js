@@ -7,6 +7,7 @@
 import './cp-checkbox.js';
 import './cp-input.js';
 import './cp-switch.js';
+import SheriffsRequest from './sheriffs-request.js';
 
 export default class AlertsControls extends cp.ElementBase {
   static get template() {
@@ -486,7 +487,7 @@ AlertsControls.actions = {
   },
 
   loadSheriffs: statePath => async(dispatch, getState) => {
-    const sheriffs = await new cp.SheriffsRequest().response;
+    const sheriffs = await new SheriffsRequest().response;
     dispatch({
       type: AlertsControls.reducers.receiveSheriffs.name,
       statePath,

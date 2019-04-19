@@ -26,8 +26,6 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/spa/raised-button.html">
 <link rel="import" href="/dashboard/spa/recent-bugs-request.html">
 <link rel="import" href="/dashboard/spa/report-names-request.html">
-<link rel="import" href="/dashboard/spa/session-id-request.html">
-<link rel="import" href="/dashboard/spa/session-state-request.html">
 <link rel="import" href="/dashboard/spa/test-suites-request.html">
 <link rel="import" href="/dashboard/spa/timeseries-descriptor.html">
 <link rel="import" href="/dashboard/spa/timeseries-request.html">
@@ -58,7 +56,9 @@ suite('chromeperf-app', function() {
     window.fetch = async(url, options) => {
       return {
         async json() {
-          if (url.startsWith(cp.SessionStateRequest.URL)) {
+          const {default: SessionStateRequest} = await importModule(
+              './session-state-request.js');
+          if (url.startsWith(SessionStateRequest.URL)) {
             return {
               reportSection: {
                 milestone: 72,
@@ -78,12 +78,16 @@ suite('chromeperf-app', function() {
           if (url === AlertsRequest.URL) {
             return {anomalies: []};
           }
-          if (url === cp.SheriffsRequest.URL) {
+          const {default: SheriffsRequest} = await importModule(
+              './sheriffs-request.js');
+          if (url === SheriffsRequest.URL) {
             return ['ccc', 'ddd'];
           }
           if (url === cp.ReportNamesRequest.URL) {
+            const {default: ReportControls} = await importModule(
+                './report-controls.js');
             return [{
-              name: cp.ReportControls.DEFAULT_NAME,
+              name: ReportControls.DEFAULT_NAME,
               id: 42,
               modified: new Date(),
             }];

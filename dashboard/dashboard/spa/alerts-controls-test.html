@@ -15,7 +15,6 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/spa/menu-input.html">
 <link rel="import" href="/dashboard/spa/raised-button.html">
 <link rel="import" href="/dashboard/spa/report-names-request.html">
-<link rel="import" href="/dashboard/spa/sheriffs-request.html">
 <link rel="import" href="/dashboard/spa/utils.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
@@ -30,6 +29,7 @@ found in the LICENSE file.
 window.AUTH_CLIENT_ID = '';
 
 suite('alerts-controls', function() {
+  let SheriffsRequest;
   let originalFetch;
   setup(() => {
     originalFetch = window.fetch;
@@ -39,7 +39,7 @@ suite('alerts-controls', function() {
           if (url === cp.ReportNamesRequest.URL) {
             return [{name: 'aaa', id: 42, modified: new Date()}];
           }
-          if (url === cp.SheriffsRequest.URL) {
+          if (url === SheriffsRequest.URL) {
             return ['ccc', 'ddd'];
           }
         },
@@ -57,6 +57,7 @@ suite('alerts-controls', function() {
   test('connected', async function() {
     const {default: AlertsControls} = await importModule(
         './alerts-controls.js');
+    SheriffsRequest = (await importModule('./sheriffs-request.js')).default;
     fixture('test').dispatch(Redux.CHAIN(
         Redux.ENSURE('test'),
         Redux.UPDATE('test', AlertsControls.buildState({}))));
@@ -75,10 +76,11 @@ suite('alerts-controls', function() {
   test('change', async function() {
     const {default: AlertsControls} = await importModule(
         './alerts-controls.js');
-    const controls = fixture('test');
-    controls.dispatch(Redux.CHAIN(
+    SheriffsRequest = (await importModule('./sheriffs-request.js')).default;
+    fixture('test').dispatch(Redux.CHAIN(
         Redux.ENSURE('test'),
         Redux.UPDATE('test', AlertsControls.buildState({}))));
+    const controls = fixture('test');
     let sources;
     controls.addEventListener('sources', e => {
       sources = e.detail.sources;

@@ -3,17 +3,15 @@
    found in the LICENSE file.
 */
 'use strict';
-tr.exportTo('cp', () => {
-  class SheriffsRequest extends cp.RequestBase {
-    constructor(options = {}) {
-      super(options);
-      this.method_ = 'POST';
-    }
 
-    get url_() {
-      return SheriffsRequest.URL;
-    }
+export default class SheriffsRequest extends cp.RequestBase {
+  constructor(options = {}) {
+    super(options);
+    this.method_ = 'POST';
   }
-  SheriffsRequest.URL = '/api/sheriffs';
-  return {SheriffsRequest};
-});
+
+  get url_() {
+    return SheriffsRequest.URL;
+  }
+}
+SheriffsRequest.URL = '/api/sheriffs';

@@ -3,18 +3,15 @@
    found in the LICENSE file.
 */
 'use strict';
-tr.exportTo('cp', () => {
-  class SessionStateRequest extends cp.RequestBase {
-    constructor(options) {
-      super(options);
-      this.sessionId_ = options.sessionId;
-    }
 
-    get url_() {
-      return `${SessionStateRequest.URL}?v2=true&sid=${this.sessionId_}`;
-    }
+export default class SessionStateRequest extends cp.RequestBase {
+  constructor(options) {
+    super(options);
+    this.sessionId_ = options.sessionId;
   }
-  SessionStateRequest.URL = '/short_uri';
 
-  return {SessionStateRequest};
-});
+  get url_() {
+    return `${SessionStateRequest.URL}?v2=true&sid=${this.sessionId_}`;
+  }
+}
+SessionStateRequest.URL = '/short_uri';
