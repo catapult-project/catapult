@@ -4,6 +4,10 @@
 */
 'use strict';
 
+import './cp-checkbox.js';
+import './cp-input.js';
+import './cp-textarea.js';
+
 export default class TriageNew extends cp.ElementBase {
   static get template() {
     return Polymer.html`
