@@ -7,7 +7,18 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/chart-compound.html">
+
+<link rel="import" href="/bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="/dashboard/spa/chart-timeseries.html">
+<link rel="import" href="/dashboard/spa/cp-radio-group.html">
+<link rel="import" href="/dashboard/spa/cp-switch.html">
+<link rel="import" href="/dashboard/spa/describe-request.html">
+<link rel="import" href="/dashboard/spa/details-table.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/test-suites-request.html">
+<link rel="import" href="/dashboard/spa/timeseries-request.html">
+<link rel="import" href="/dashboard/static/memory_related_names.html">
+<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -61,14 +72,6 @@ suite('chart-compound', function() {
         },
       };
     };
-
-    fixture('test').dispatch(Redux.CHAIN(
-        Redux.ENSURE('test'),
-        Redux.UPDATE('test', cp.ChartCompound.buildState({
-        })),
-        Redux.ENSURE('linked'),
-        Redux.UPDATE('linked', cp.buildState(cp.ChartCompound.LinkedState, {
-        }))));
   });
 
   teardown(() => {
@@ -76,7 +79,15 @@ suite('chart-compound', function() {
   });
 
   test('load', async function() {
+    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
+    cc.dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', ChartCompound.buildState({
+        })),
+        Redux.ENSURE('linked'),
+        Redux.UPDATE('linked', cp.buildState(ChartCompound.LinkedState, {
+        }))));
     await cp.afterRender();
     await cc.dispatch(Redux.UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
@@ -102,7 +113,15 @@ suite('chart-compound', function() {
   });
 
   test('brushMinimap', async function() {
+    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
+    cc.dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', ChartCompound.buildState({
+        })),
+        Redux.ENSURE('linked'),
+        Redux.UPDATE('linked', cp.buildState(ChartCompound.LinkedState, {
+        }))));
     await cp.afterRender();
     await cc.dispatch(Redux.UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
@@ -128,7 +147,15 @@ suite('chart-compound', function() {
   });
 
   test('linkedCursor', async function() {
+    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
+    cc.dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', ChartCompound.buildState({
+        })),
+        Redux.ENSURE('linked'),
+        Redux.UPDATE('linked', cp.buildState(ChartCompound.LinkedState, {
+        }))));
     await cp.afterRender();
     await cc.dispatch(Redux.UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
@@ -152,7 +179,15 @@ suite('chart-compound', function() {
   });
 
   test('linkedRevisions', async function() {
+    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
+    cc.dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', ChartCompound.buildState({
+        })),
+        Redux.ENSURE('linked'),
+        Redux.UPDATE('linked', cp.buildState(ChartCompound.LinkedState, {
+        }))));
     await cp.afterRender();
     await cc.dispatch(Redux.UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
@@ -177,7 +212,15 @@ suite('chart-compound', function() {
   });
 
   test('linkedMode', async function() {
+    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
+    cc.dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', ChartCompound.buildState({
+        })),
+        Redux.ENSURE('linked'),
+        Redux.UPDATE('linked', cp.buildState(ChartCompound.LinkedState, {
+        }))));
     await cp.afterRender();
     await cc.dispatch(Redux.UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
@@ -199,7 +242,15 @@ suite('chart-compound', function() {
   });
 
   test('linkedZeroYAxis', async function() {
+    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
+    cc.dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', ChartCompound.buildState({
+        })),
+        Redux.ENSURE('linked'),
+        Redux.UPDATE('linked', cp.buildState(ChartCompound.LinkedState, {
+        }))));
     await cp.afterRender();
     await cc.dispatch(Redux.UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
@@ -226,7 +277,15 @@ suite('chart-compound', function() {
   });
 
   test('linkedFixedXAxis', async function() {
+    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
+    cc.dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', ChartCompound.buildState({
+        })),
+        Redux.ENSURE('linked'),
+        Redux.UPDATE('linked', cp.buildState(ChartCompound.LinkedState, {
+        }))));
     await cp.afterRender();
     await cc.dispatch(Redux.UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],

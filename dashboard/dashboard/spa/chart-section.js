@@ -4,6 +4,8 @@
 */
 'use strict';
 
+import ChartCompound from './chart-compound.js';
+
 export default class ChartSection extends cp.ElementBase {
   static get template() {
     return Polymer.html`
@@ -226,7 +228,7 @@ export default class ChartSection extends cp.ElementBase {
 
 ChartSection.State = {
   sectionId: options => options.sectionId || cp.simpleGUID(),
-  ...cp.ChartCompound.State,
+  ...ChartCompound.State,
   ...cp.SparklineCompound.State,
   descriptor: options => {
     const params = options.parameters || {};

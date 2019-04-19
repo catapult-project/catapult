@@ -4,8 +4,9 @@
 */
 'use strict';
 
-import TriageNew from './triage-new.js';
+import ChartCompound from './chart-compound.js';
 import TriageExisting from './triage-existing.js';
+import TriageNew from './triage-new.js';
 
 const NOTIFICATION_MS = 5000;
 
@@ -230,7 +231,7 @@ AlertsSection.State = {
   existingBug: options => TriageExisting.buildState({}),
   isLoading: options => false,
   newBug: options => TriageNew.buildState({}),
-  preview: options => cp.ChartCompound.buildState(options),
+  preview: options => ChartCompound.buildState(options),
   sectionId: options => options.sectionId || cp.simpleGUID(),
   selectedAlertPath: options => undefined,
   totalCount: options => 0,
