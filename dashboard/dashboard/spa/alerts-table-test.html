@@ -7,7 +7,11 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/alerts-table.html">
+
+<link rel="import" href="/dashboard/spa/column-head.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/scalar-span.html">
+<link rel="import" href="/dashboard/spa/utils.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -19,24 +23,26 @@ found in the LICENSE file.
 <script>
 'use strict';
 suite('alerts-table', function() {
-  setup(() => {
-    fixture('test').dispatch(Redux.ENSURE('test'));
-  });
-
   test('placeholder', async function() {
+    const {default: AlertsTable} = await importModule(
+        './alerts-table.js');
+    fixture('test').dispatch(Redux.ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({})));
+    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({})));
     await cp.afterRender();
     assert.strictEqual('rgb(128, 128, 128)', getComputedStyle(
         tr.ui.b.findDeepElementMatching(table, 'table')).color);
     const dashes = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
-      e.innerText && e.innerText.trim() === cp.AlertsTable.DASHES);
+      e.innerText && e.innerText.trim() === AlertsTable.DASHES);
     assert.lengthOf(dashes, 35);
   });
 
   test('allTriaged newAlerts', async function() {
+    const {default: AlertsTable} = await importModule(
+        './alerts-table.js');
+    fixture('test').dispatch(Redux.ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           isSelected: false,
@@ -83,8 +89,11 @@ suite('alerts-table', function() {
   });
 
   test('allTriaged showingTriaged', async function() {
+    const {default: AlertsTable} = await importModule(
+        './alerts-table.js');
+    fixture('test').dispatch(Redux.ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
       showingTriaged: true,
       alertGroups: [],
     })));
@@ -94,8 +103,11 @@ suite('alerts-table', function() {
   });
 
   test('sort', async function() {
+    const {default: AlertsTable} = await importModule(
+        './alerts-table.js');
+    fixture('test').dispatch(Redux.ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           isSelected: false,
@@ -188,41 +200,43 @@ suite('alerts-table', function() {
   });
 
   test('shouldDisplayAlert', async function() {
-    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(
+    const {default: AlertsTable} = await importModule(
+        './alerts-table.js');
+    assert.isTrue(AlertsTable.shouldDisplayAlert(
         true, false, {}, -1, false));
-    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(
+    assert.isTrue(AlertsTable.shouldDisplayAlert(
         false, true, {isExpanded: true}, -1, false));
-    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(
+    assert.isTrue(AlertsTable.shouldDisplayAlert(
         false, true, {isExpanded: false}, 0, false));
-    assert.isFalse(cp.AlertsTable.shouldDisplayAlert(
+    assert.isFalse(AlertsTable.shouldDisplayAlert(
         false, false, {alerts: []}, 0, false));
-    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(
+    assert.isTrue(AlertsTable.shouldDisplayAlert(
         false, false, {isExpanded: true, alerts: [{}]}, 0, false));
-    assert.isFalse(cp.AlertsTable.shouldDisplayAlert(false, false, {
+    assert.isFalse(AlertsTable.shouldDisplayAlert(false, false, {
       isExpanded: true,
       alerts: [
         {bugId: 42},
         {},
       ],
     }, 0, false));
-    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(false, false, {
+    assert.isTrue(AlertsTable.shouldDisplayAlert(false, false, {
       isExpanded: true,
       alerts: [
         {bugId: 42},
         {},
       ],
     }, 1, false));
-    assert.isFalse(cp.AlertsTable.shouldDisplayAlert(
+    assert.isFalse(AlertsTable.shouldDisplayAlert(
         false, false, {alerts: [{bugId: 42}]}, 0, false));
-    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(
+    assert.isTrue(AlertsTable.shouldDisplayAlert(
         false, false, {alerts: [{bugId: 42}]}, 0, true));
-    assert.isFalse(cp.AlertsTable.shouldDisplayAlert(false, false, {
+    assert.isFalse(AlertsTable.shouldDisplayAlert(false, false, {
       alerts: [
         {bugId: 42},
         {},
       ],
     }, 0, false));
-    assert.isTrue(cp.AlertsTable.shouldDisplayAlert(false, false, {
+    assert.isTrue(AlertsTable.shouldDisplayAlert(false, false, {
       alerts: [
         {bugId: 42},
         {},
@@ -231,40 +245,47 @@ suite('alerts-table', function() {
   });
 
   test('shouldDisplayExpandGroupButton', async function() {
-    assert.isTrue(cp.AlertsTable.shouldDisplayExpandGroupButton(
+    const {default: AlertsTable} = await importModule(
+        './alerts-table.js');
+    assert.isTrue(AlertsTable.shouldDisplayExpandGroupButton(
         {alerts: [{}, {}]}, 0, true));
-    assert.isFalse(cp.AlertsTable.shouldDisplayExpandGroupButton(
+    assert.isFalse(AlertsTable.shouldDisplayExpandGroupButton(
         {alerts: [{}, {}]}, 1, true));
-    assert.isFalse(cp.AlertsTable.shouldDisplayExpandGroupButton(
+    assert.isFalse(AlertsTable.shouldDisplayExpandGroupButton(
         {alerts: [{}]}, 0, true));
-    assert.isTrue(cp.AlertsTable.shouldDisplayExpandGroupButton(
+    assert.isTrue(AlertsTable.shouldDisplayExpandGroupButton(
         {alerts: [{}, {}], triaged: {count: 0}}, 0, false));
-    assert.isFalse(cp.AlertsTable.shouldDisplayExpandGroupButton(
+    assert.isFalse(AlertsTable.shouldDisplayExpandGroupButton(
         {alerts: [{bugId: 42}, {}], triaged: {count: 1}}, 1, false));
-    assert.isTrue(cp.AlertsTable.shouldDisplayExpandGroupButton(
+    assert.isTrue(AlertsTable.shouldDisplayExpandGroupButton(
         {alerts: [{bugId: 42}, {}, {}], triaged: {count: 1}}, 1, false));
-    assert.isFalse(cp.AlertsTable.shouldDisplayExpandGroupButton(
+    assert.isFalse(AlertsTable.shouldDisplayExpandGroupButton(
         {alerts: [{bugId: 42}, {}, {}], triaged: {count: 1}}, 0, false));
   });
 
   test('shouldDisplayExpandTriagedButton', async function() {
-    assert.isFalse(cp.AlertsTable.shouldDisplayExpandTriagedButton(
+    const {default: AlertsTable} = await importModule(
+        './alerts-table.js');
+    assert.isFalse(AlertsTable.shouldDisplayExpandTriagedButton(
         true, {triaged: {count: 1}}, 0));
-    assert.isFalse(cp.AlertsTable.shouldDisplayExpandTriagedButton(
+    assert.isFalse(AlertsTable.shouldDisplayExpandTriagedButton(
         false, {triaged: {count: 0}}, 0));
-    assert.isTrue(cp.AlertsTable.shouldDisplayExpandTriagedButton(
+    assert.isTrue(AlertsTable.shouldDisplayExpandTriagedButton(
         false, {triaged: {count: 1}, alerts: [
           {}, {bugId: 42},
         ]}, 0));
-    assert.isTrue(cp.AlertsTable.shouldDisplayExpandTriagedButton(
+    assert.isTrue(AlertsTable.shouldDisplayExpandTriagedButton(
         false, {triaged: {count: 1}, alerts: [
           {bugId: 42}, {},
         ]}, 1));
   });
 
   test('shouldDisplaySelectedCount newAlerts', async function() {
+    const {default: AlertsTable} = await importModule(
+        './alerts-table.js');
+    fixture('test').dispatch(Redux.ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           isSelected: false,
@@ -316,8 +337,11 @@ suite('alerts-table', function() {
   });
 
   test('shouldDisplaySelectedCount showingTriaged', async function() {
+    const {default: AlertsTable} = await importModule(
+        './alerts-table.js');
+    fixture('test').dispatch(Redux.ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
       showingTriaged: true,
       alertGroups: [
         {
@@ -370,8 +394,11 @@ suite('alerts-table', function() {
   });
 
   test('isAlertIgnored', async function() {
+    const {default: AlertsTable} = await importModule(
+        './alerts-table.js');
+    fixture('test').dispatch(Redux.ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
       showingTriaged: true,
       alertGroups: [
         {
@@ -405,9 +432,11 @@ suite('alerts-table', function() {
   });
 
   test('selectAlert single', async function() {
-    await importModule('./cp-checkbox.js');
+    const {default: AlertsTable} = await importModule(
+        './alerts-table.js');
+    fixture('test').dispatch(Redux.ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           triaged: {count: 0, isExpanded: false},
@@ -439,9 +468,11 @@ suite('alerts-table', function() {
   });
 
   test('selectAlert toggleAll', async function() {
-    await importModule('./cp-checkbox.js');
+    const {default: AlertsTable} = await importModule(
+        './alerts-table.js');
+    fixture('test').dispatch(Redux.ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           triaged: {count: 0, isExpanded: false},
@@ -488,9 +519,11 @@ suite('alerts-table', function() {
   });
 
   test('selectAlert shiftKey', async function() {
-    await importModule('./cp-checkbox.js');
+    const {default: AlertsTable} = await importModule(
+        './alerts-table.js');
+    fixture('test').dispatch(Redux.ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', cp.AlertsTable.buildState({
+    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           isExpanded: true,
