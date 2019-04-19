@@ -3,67 +3,64 @@
    found in the LICENSE file.
 */
 'use strict';
-tr.exportTo('cp', () => {
-  class ScalarSpan extends Polymer.Element {
-    static get is() { return 'scalar-span'; }
 
-    static get template() {
-      return Polymer.html`
-        <style>
-          :host {
-            display: flex;
-            flex-direction: row;
-            justify-content: flex-end;
-            white-space: nowrap;
-          }
-          span[change="improvement"] {
-            color: var(--improvement-color);
-          }
-          span[change="regression"] {
-            color: var(--error-color);
-          }
-        </style>
+export default class ScalarSpan extends Polymer.Element {
+  static get is() { return 'scalar-span'; }
 
-        <span id="span"
-            change$="[[change_(unit, value)]]"
-            title$="[[change_(unit, value)]]">
-          [[format_(unit, value, maximumFractionDigits, unitPrefix)]]
-        </span>
-      `;
-    }
+  static get template() {
+    return Polymer.html`
+      <style>
+        :host {
+          display: flex;
+          flex-direction: row;
+          justify-content: flex-end;
+          white-space: nowrap;
+        }
+        span[change="improvement"] {
+          color: var(--improvement-color);
+        }
+        span[change="regression"] {
+          color: var(--error-color);
+        }
+      </style>
 
-    change_(unit, value) {
-      return ScalarSpan.getChange(unit, value);
-    }
-
-    format_(unit, value, maximumFractionDigits, unitPrefix) {
-      return !unit ? '' : unit.format(
-          value, {maximumFractionDigits, unitPrefix});
-    }
+      <span id="span"
+          change$="[[change_(unit, value)]]"
+          title$="[[change_(unit, value)]]">
+        [[format_(unit, value, maximumFractionDigits, unitPrefix)]]
+      </span>
+    `;
   }
 
-  ScalarSpan.getChange = (unit, value) => {
-    if (!unit) return '';
-    if (!unit.isDelta) return '';
-    if (unit.improvementDirection === tr.b.ImprovementDirection.DONT_CARE) {
-      return '';
-    }
-    if (value === 0) return '';
-    if (unit.improvementDirection ===
-        tr.b.ImprovementDirection.BIGGER_IS_BETTER) {
-      return value > 0 ? 'improvement' : 'regression';
-    }
-    return value < 0 ? 'improvement' : 'regression';
-  };
+  change_(unit, value) {
+    return ScalarSpan.getChange(unit, value);
+  }
 
-  ScalarSpan.properties = {
-    maximumFractionDigits: {type: Number},
-    unit: {type: Object},
-    unitPrefix: {type: Object},
-    value: {type: Number},
-  };
+  format_(unit, value, maximumFractionDigits, unitPrefix) {
+    return !unit ? '' : unit.format(
+        value, {maximumFractionDigits, unitPrefix});
+  }
+}
 
-  customElements.define(ScalarSpan.is, ScalarSpan);
+ScalarSpan.getChange = (unit, value) => {
+  if (!unit) return '';
+  if (!unit.isDelta) return '';
+  if (unit.improvementDirection === tr.b.ImprovementDirection.DONT_CARE) {
+    return '';
+  }
+  if (value === 0) return '';
+  if (unit.improvementDirection ===
+      tr.b.ImprovementDirection.BIGGER_IS_BETTER) {
+    return value > 0 ? 'improvement' : 'regression';
+  }
+  return value < 0 ? 'improvement' : 'regression';
+};
 
-  return {ScalarSpan};
-});
+ScalarSpan.properties = {
+  maximumFractionDigits: {type: Number},
+  unit: {type: Object},
+  unitPrefix: {type: Object},
+  value: {type: Number},
+};
+
+customElements.define(ScalarSpan.is, ScalarSpan);

@@ -7,11 +7,15 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
+
 <custom-style>
 <link rel="stylesheet" href="/dashboard/spa/index.css">
 </custom-style>
-<link rel="import" href="/dashboard/spa/scalar-span.html">
+
+<link rel="import" href="/bower_components/polymer/polymer.html">
 <link rel="import" href="/dashboard/spa/utils.html">
+<link rel="import" href="/tracing/base/unit.html">
+<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="format">
   <template>
@@ -23,6 +27,7 @@ found in the LICENSE file.
 'use strict';
 suite('scalar-span', function() {
   test('format', async function() {
+    await importModule('./scalar-span.js');
     const scalarSpan = fixture('format');
     scalarSpan.unit = tr.b.Unit.byName.timeDurationInMsDelta_smallerIsBetter;
     scalarSpan.value = 1.111111;
@@ -35,22 +40,23 @@ suite('scalar-span', function() {
     assert.strictEqual('improvement', scalarSpan.$.span.getAttribute('change'));
   });
 
-  test('getChange', function() {
-    assert.strictEqual('', cp.ScalarSpan.getChange(undefined, 1));
-    assert.strictEqual('', cp.ScalarSpan.getChange(tr.b.Unit.byName.count, 1));
-    assert.strictEqual('', cp.ScalarSpan.getChange(
+  test('getChange', async function() {
+    const {default: ScalarSpan} = await importModule('./scalar-span.js');
+    assert.strictEqual('', ScalarSpan.getChange(undefined, 1));
+    assert.strictEqual('', ScalarSpan.getChange(tr.b.Unit.byName.count, 1));
+    assert.strictEqual('', ScalarSpan.getChange(
         tr.b.Unit.byName.countDelta, 1));
-    assert.strictEqual('regression', cp.ScalarSpan.getChange(
+    assert.strictEqual('regression', ScalarSpan.getChange(
         tr.b.Unit.byName.countDelta_biggerIsBetter, -1));
-    assert.strictEqual('regression', cp.ScalarSpan.getChange(
+    assert.strictEqual('regression', ScalarSpan.getChange(
         tr.b.Unit.byName.countDelta_smallerIsBetter, 1));
-    assert.strictEqual('improvement', cp.ScalarSpan.getChange(
+    assert.strictEqual('improvement', ScalarSpan.getChange(
         tr.b.Unit.byName.countDelta_biggerIsBetter, 1));
-    assert.strictEqual('improvement', cp.ScalarSpan.getChange(
+    assert.strictEqual('improvement', ScalarSpan.getChange(
         tr.b.Unit.byName.countDelta_smallerIsBetter, -1));
-    assert.strictEqual('', cp.ScalarSpan.getChange(
+    assert.strictEqual('', ScalarSpan.getChange(
         tr.b.Unit.byName.countDelta_biggerIsBetter, 0));
-    assert.strictEqual('', cp.ScalarSpan.getChange(
+    assert.strictEqual('', ScalarSpan.getChange(
         tr.b.Unit.byName.countDelta_smallerIsBetter, 0));
   });
 });
