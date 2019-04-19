@@ -7,7 +7,16 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/alerts-controls.html">
+
+<link rel="import" href="/bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="/dashboard/spa/alerts-table.html">
+<link rel="import" href="/dashboard/spa/cp-icons.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/menu-input.html">
+<link rel="import" href="/dashboard/spa/raised-button.html">
+<link rel="import" href="/dashboard/spa/report-names-request.html">
+<link rel="import" href="/dashboard/spa/sheriffs-request.html">
+<link rel="import" href="/dashboard/spa/utils.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -39,9 +48,6 @@ suite('alerts-controls', function() {
     localStorage.setItem('recentlyModifiedBugs', JSON.stringify([
       {id: 42, summary: 'bbb'},
     ]));
-    fixture('test').dispatch(Redux.CHAIN(
-        Redux.ENSURE('test'),
-        Redux.UPDATE('test', cp.AlertsControls.buildState({}))));
   });
   teardown(() => {
     window.fetch = originalFetch;
@@ -49,7 +55,13 @@ suite('alerts-controls', function() {
   });
 
   test('connected', async function() {
+    const {default: AlertsControls} = await importModule(
+        './alerts-controls.js');
+    fixture('test').dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', AlertsControls.buildState({}))));
     const controls = fixture('test');
+    await cp.afterRender();
     await cp.afterRender();
     assert.isDefined(tr.ui.b.findDeepElementWithTextContent(controls, /aaa/));
     assert.isDefined(tr.ui.b.findDeepElementsMatchingPredicate(controls, e =>
@@ -61,9 +73,12 @@ suite('alerts-controls', function() {
   });
 
   test('change', async function() {
-    await importModule('./cp-checkbox.js');
-    await importModule('./cp-switch.js');
+    const {default: AlertsControls} = await importModule(
+        './alerts-controls.js');
     const controls = fixture('test');
+    controls.dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', AlertsControls.buildState({}))));
     let sources;
     controls.addEventListener('sources', e => {
       sources = e.detail.sources;
@@ -78,7 +93,7 @@ suite('alerts-controls', function() {
 
     controls.$['min-revision'].value = '10';
     controls.$['min-revision'].dispatchEvent(new CustomEvent('keyup'));
-    await cp.timeout(cp.AlertsControls.TYPING_DEBOUNCE_MS + 10);
+    await cp.timeout(AlertsControls.TYPING_DEBOUNCE_MS + 10);
     assert.lengthOf(sources, 1);
     assert.strictEqual('ccc', sources[0].sheriff);
     assert.strictEqual(10, sources[0].min_end_revision);
@@ -86,7 +101,7 @@ suite('alerts-controls', function() {
 
     controls.$['max-revision'].value = '20';
     controls.$['max-revision'].dispatchEvent(new CustomEvent('keyup'));
-    await cp.timeout(cp.AlertsControls.TYPING_DEBOUNCE_MS + 10);
+    await cp.timeout(AlertsControls.TYPING_DEBOUNCE_MS + 10);
     assert.lengthOf(sources, 1);
     assert.strictEqual('ccc', sources[0].sheriff);
     assert.strictEqual(10, sources[0].min_end_revision);
@@ -95,7 +110,7 @@ suite('alerts-controls', function() {
     sources = [];
 
     controls.$.improvements.click();
-    await cp.timeout(cp.AlertsControls.TYPING_DEBOUNCE_MS + 10);
+    await cp.timeout(AlertsControls.TYPING_DEBOUNCE_MS + 10);
     assert.strictEqual('ccc', sources[0].sheriff);
     assert.isTrue(sources[0].is_improvement);
     assert.strictEqual(10, sources[0].min_end_revision);

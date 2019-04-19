@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import AlertsControls from './alerts-controls.js';
 import AlertsRequest from './alerts-request.js';
 import ChartCompound from './chart-compound.js';
 import TriageExisting from './triage-existing.js';
@@ -228,7 +229,7 @@ export default class AlertsSection extends cp.ElementBase {
 
 AlertsSection.State = {
   ...cp.AlertsTable.State,
-  ...cp.AlertsControls.State,
+  ...AlertsControls.State,
   existingBug: options => TriageExisting.buildState({}),
   isLoading: options => false,
   newBug: options => TriageNew.buildState({}),

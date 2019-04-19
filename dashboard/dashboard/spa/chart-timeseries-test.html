@@ -207,7 +207,8 @@ suite('chart-timeseries', function() {
       build_type: 'test',
       columns: 'revision,timestamp,avg,count',
     });
-    new ResultChannelSender(url + bMsParams).send((async function* () {
+    const sender = new ResultChannelSender(url + bMsParams);
+    await sender.send((async function* () {
       yield {
         units: 'ms',
         data: [
