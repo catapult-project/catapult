@@ -68,7 +68,7 @@ def _ComputeMetricsInPool((run, trace_value)):
 
     if mre_result.failures:
       for f in mre_result.failures:
-        retvalue['fail'].append(f.stack)
+        retvalue['fail'].append(str(f))
 
     histogram_dicts = mre_result.pairs.get('histograms', [])
     retvalue['histogram_dicts'] = histogram_dicts
@@ -668,7 +668,8 @@ class PageTestResults(object):
     # TODO(#4258): Relax this assertion.
     assert self._current_page_run, 'Not currently running test.'
     if isinstance(failure, basestring):
-      failure_str = 'Failure recorded: %s' % failure
+      failure_str = 'Failure recorded for page %s: %s' % (
+          self._current_page_run.story.name, failure)
     else:
       failure_str = ''.join(traceback.format_exception(*failure))
     logging.error(failure_str)
