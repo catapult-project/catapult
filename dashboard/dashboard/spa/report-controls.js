@@ -183,6 +183,7 @@ ReportControls.CHROMIUM_MILESTONES = {
   72: 612437,
   73: 625896,
   74: 638880,
+  75: 652427,
 };
 
 ReportControls.CURRENT_MILESTONE = tr.b.math.Statistics.max(
