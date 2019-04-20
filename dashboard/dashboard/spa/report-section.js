@@ -7,6 +7,7 @@
 import './cp-dialog.js';
 import './cp-loading.js';
 import ReportControls from './report-controls.js';
+import ReportNamesRequest from './report-names-request.js';
 import ReportRequest from './report-request.js';
 import ReportTable from './report-table.js';
 import ReportTemplate from './report-template.js';
@@ -114,7 +115,7 @@ ReportSection.actions = {
       name !== ReportControls.CREATE);
     const requestedReports = new Set(state.source.selectedOptions);
     const revisions = [state.minRevision, state.maxRevision];
-    const reportTemplateInfos = await new cp.ReportNamesRequest().response;
+    const reportTemplateInfos = await new ReportNamesRequest().response;
     const readers = [];
 
     for (const name of names) {

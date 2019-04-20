@@ -3,23 +3,21 @@
    found in the LICENSE file.
 */
 'use strict';
-tr.exportTo('cp', () => {
-  class ReportNamesRequest extends cp.RequestBase {
-    constructor(options = {}) {
-      super(options);
-      this.method_ = 'POST';
-    }
 
-    get url_() {
-      return ReportNamesRequest.URL;
-    }
-
-    postProcess_(json) {
-      return json.map(info => {
-        return {...info, modified: new Date(info.modified)};
-      });
-    }
+export default class ReportNamesRequest extends cp.RequestBase {
+  constructor(options = {}) {
+    super(options);
+    this.method_ = 'POST';
   }
-  ReportNamesRequest.URL = '/api/report/names';
-  return {ReportNamesRequest};
-});
+
+  get url_() {
+    return ReportNamesRequest.URL;
+  }
+
+  postProcess_(json) {
+    return json.map(info => {
+      return {...info, modified: new Date(info.modified)};
+    });
+  }
+}
+ReportNamesRequest.URL = '/api/report/names';

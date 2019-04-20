@@ -7,9 +7,10 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
+
 <link rel="import" href="/dashboard/spa/element-base.html">
 <link rel="import" href="/dashboard/spa/menu-input.html">
-<link rel="import" href="/dashboard/spa/report-names-request.html">
+<link rel="import" href="/dashboard/spa/request-base.html">
 <link rel="import" href="/dashboard/spa/utils.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
@@ -22,13 +23,15 @@ found in the LICENSE file.
 <script>
 'use strict';
 suite('report-controls', function() {
+  let ReportNamesRequest;
   let originalFetch;
+
   setup(() => {
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {
         async json() {
-          if (url === cp.ReportNamesRequest.URL) {
+          if (url === ReportNamesRequest.URL) {
             return [
               {
                 name: 'Chromium Performance Overview',
@@ -48,6 +51,8 @@ suite('report-controls', function() {
 
   test('connected', async function() {
     // ReportNamesRequest
+    ReportNamesRequest = (await importModule(
+        './report-names-request.js')).default;
     const {default: ReportControls} = await importModule(
         './report-controls.js');
     const controls = fixture('test');
@@ -61,6 +66,8 @@ suite('report-controls', function() {
   });
 
   test('milestones', async function() {
+    ReportNamesRequest = (await importModule(
+        './report-names-request.js')).default;
     const {default: ReportControls} = await importModule(
         './report-controls.js');
     const controls = fixture('test');
@@ -87,6 +94,8 @@ suite('report-controls', function() {
   });
 
   test('alerts', async function() {
+    ReportNamesRequest = (await importModule(
+        './report-names-request.js')).default;
     const {default: ReportControls} = await importModule(
         './report-controls.js');
     const controls = fixture('test');

@@ -14,8 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/spa/element-base.html">
 <link rel="import" href="/dashboard/spa/menu-input.html">
 <link rel="import" href="/dashboard/spa/raised-button.html">
-<link rel="import" href="/dashboard/spa/report-names-request.html">
-<link rel="import" href="/dashboard/spa/scalar-span.html">
+<link rel="import" href="/dashboard/spa/request-base.html">
 <link rel="import" href="/dashboard/spa/utils.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
@@ -30,14 +29,16 @@ found in the LICENSE file.
 window.AUTH_CLIENT_ID = '';
 
 suite('alerts-controls', function() {
+  let ReportNamesRequest;
   let SheriffsRequest;
   let originalFetch;
+
   setup(() => {
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {
         async json() {
-          if (url === cp.ReportNamesRequest.URL) {
+          if (url === ReportNamesRequest.URL) {
             return [{name: 'aaa', id: 42, modified: new Date()}];
           }
           if (url === SheriffsRequest.URL) {
@@ -56,6 +57,10 @@ suite('alerts-controls', function() {
   });
 
   test('connected', async function() {
+    SheriffsRequest = (await importModule(
+        './sheriffs-request.js')).default;
+    ReportNamesRequest = (await importModule(
+        './report-names-request.js')).default;
     const {default: AlertsControls} = await importModule(
         './alerts-controls.js');
     SheriffsRequest = (await importModule('./sheriffs-request.js')).default;
@@ -75,6 +80,10 @@ suite('alerts-controls', function() {
   });
 
   test('change', async function() {
+    SheriffsRequest = (await importModule(
+        './sheriffs-request.js')).default;
+    ReportNamesRequest = (await importModule(
+        './report-names-request.js')).default;
     const {default: AlertsControls} = await importModule(
         './alerts-controls.js');
     SheriffsRequest = (await importModule('./sheriffs-request.js')).default;

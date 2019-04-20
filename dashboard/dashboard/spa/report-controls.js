@@ -6,6 +6,7 @@
 
 import './cp-input.js';
 import './raised-button.js';
+import ReportNamesRequest from './report-names-request.js';
 
 export default class ReportControls extends cp.ElementBase {
   static get template() {
@@ -249,7 +250,7 @@ ReportControls.actions = {
   },
 
   loadSources: statePath => async(dispatch, getState) => {
-    const reportTemplateInfos = await new cp.ReportNamesRequest().response;
+    const reportTemplateInfos = await new ReportNamesRequest().response;
     const reportNames = reportTemplateInfos.map(t => t.name);
     dispatch({
       type: ReportControls.reducers.receiveSourceOptions.name,

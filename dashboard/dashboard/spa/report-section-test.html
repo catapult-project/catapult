@@ -10,7 +10,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/dashboard/spa/element-base.html">
 <link rel="import" href="/dashboard/spa/menu-input.html">
-<link rel="import" href="/dashboard/spa/report-names-request.html">
 <link rel="import" href="/dashboard/spa/timeseries-descriptor.html">
 <link rel="import" href="/dashboard/spa/utils.html">
 <script src="/dashboard/spa/import-module.js"></script>
@@ -32,7 +31,9 @@ suite('report-section', function() {
         async json() {
           const {default: ReportControls} = await importModule(
               './report-controls.js');
-          if (url === cp.ReportNamesRequest.URL) {
+          const {default: ReportNamesRequest} = await importModule(
+              './report-names-request.js');
+          if (url === ReportNamesRequest.URL) {
             return [{
               name: ReportControls.DEFAULT_NAME,
               id: 42,

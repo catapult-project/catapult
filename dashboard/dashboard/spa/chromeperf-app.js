@@ -11,6 +11,7 @@ import AlertsSection from './alerts-section.js';
 import ChartCompound from './chart-compound.js';
 import ChartSection from './chart-section.js';
 import ConfigRequest from './config-request.js';
+import RecentBugsRequest from './recent-bugs-request.js';
 import ReportControls from './report-controls.js';
 import ReportSection from './report-section.js';
 import SessionIdRequest from './session-id-request.js';
@@ -724,7 +725,7 @@ ChromeperfApp.actions = {
   },
 
   getRecentBugs: () => async(dispatch, getState) => {
-    const bugs = await new cp.RecentBugsRequest().response;
+    const bugs = await new RecentBugsRequest().response;
     dispatch({
       type: ChromeperfApp.reducers.receiveRecentBugs.name,
       bugs,

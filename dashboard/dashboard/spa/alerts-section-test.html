@@ -19,8 +19,6 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/spa/group-alerts.html">
 <link rel="import" href="/dashboard/spa/menu-input.html">
 <link rel="import" href="/dashboard/spa/raised-button.html">
-<link rel="import" href="/dashboard/spa/report-names-request.html">
-<link rel="import" href="/dashboard/spa/scalar-span.html">
 <link rel="import" href="/dashboard/spa/test-suites-request.html">
 <link rel="import" href="/dashboard/spa/timeseries-request.html">
 <link rel="import" href="/dashboard/spa/utils.html">
@@ -42,6 +40,7 @@ suite('alerts-section', function() {
   let AlertsRequest;
   let ExistingBugRequest;
   let NewBugRequest;
+  let ReportNamesRequest;
   let SheriffsRequest;
 
   let originalFetch;
@@ -60,7 +59,7 @@ suite('alerts-section', function() {
             newBugBody = options.body;
             return {bug_id: 57};
           }
-          if (url === cp.ReportNamesRequest.URL) {
+          if (url === ReportNamesRequest.URL) {
             return [{name: 'aaa', id: 42, modified: new Date()}];
           }
           if (url === ExistingBugRequest.URL) {
@@ -122,6 +121,8 @@ suite('alerts-section', function() {
   });
 
   test('summary', async function() {
+    SheriffsRequest = (await importModule(
+        './sheriffs-request.js')).default;
     const {default: AlertsSection} = await importModule('./alerts-section.js');
     assert.strictEqual('0 alerts',
         AlertsSection.summary(undefined, undefined));
@@ -156,6 +157,8 @@ suite('alerts-section', function() {
     SheriffsRequest = (await importModule('./sheriffs-request.js')).default;
     AlertsRequest = (await importModule('./alerts-request.js')).default;
     NewBugRequest = (await importModule('./new-bug-request.js')).default;
+    ReportNamesRequest = (await importModule(
+        './report-names-request.js')).default;
     ExistingBugRequest = (await importModule(
         './existing-bug-request.js')).default;
 
@@ -224,6 +227,8 @@ suite('alerts-section', function() {
     SheriffsRequest = (await importModule('./sheriffs-request.js')).default;
     AlertsRequest = (await importModule('./alerts-request.js')).default;
     NewBugRequest = (await importModule('./new-bug-request.js')).default;
+    ReportNamesRequest = (await importModule(
+        './report-names-request.js')).default;
     ExistingBugRequest = (await importModule(
         './existing-bug-request.js')).default;
     await importModule('./cp-checkbox.js');
@@ -291,6 +296,8 @@ suite('alerts-section', function() {
     SheriffsRequest = (await importModule('./sheriffs-request.js')).default;
     AlertsRequest = (await importModule('./alerts-request.js')).default;
     NewBugRequest = (await importModule('./new-bug-request.js')).default;
+    ReportNamesRequest = (await importModule(
+        './report-names-request.js')).default;
     ExistingBugRequest = (await importModule(
         './existing-bug-request.js')).default;
     await importModule('./cp-checkbox.js');
@@ -351,6 +358,8 @@ suite('alerts-section', function() {
     SheriffsRequest = (await importModule('./sheriffs-request.js')).default;
     AlertsRequest = (await importModule('./alerts-request.js')).default;
     NewBugRequest = (await importModule('./new-bug-request.js')).default;
+    ReportNamesRequest = (await importModule(
+        './report-names-request.js')).default;
     ExistingBugRequest = (await importModule(
         './existing-bug-request.js')).default;
 
