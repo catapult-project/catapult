@@ -6,6 +6,7 @@
 
 import './cp-input.js';
 import './raised-button.js';
+import TimeseriesDescriptor from './timeseries-descriptor.js';
 
 export default class ReportTemplate extends cp.ElementBase {
   static get template() {
@@ -307,7 +308,7 @@ ReportTemplate.newTemplateRow = ({
 }) => {
   return {
     label: label || '',
-    ...cp.TimeseriesDescriptor.buildState({
+    ...TimeseriesDescriptor.buildState({
       suite: {
         canAggregate: false,
         isAggregated: true,

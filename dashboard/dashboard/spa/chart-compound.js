@@ -5,6 +5,8 @@
 'use strict';
 
 import './cp-radio-group.js';
+import './cp-radio.js';
+import './cp-switch.js';
 
 const MS_PER_DAY = tr.b.convertUnit(
     1, tr.b.UnitScale.TIME.DAY, tr.b.UnitScale.TIME.MILLI_SEC);

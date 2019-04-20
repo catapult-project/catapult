@@ -10,6 +10,7 @@ import './cp-loading.js';
 import './expand-button.js';
 import ChartCompound from './chart-compound.js';
 import SparklineCompound from './sparkline-compound.js';
+import TimeseriesDescriptor from './timeseries-descriptor.js';
 
 export default class ChartSection extends cp.ElementBase {
   static get template() {
@@ -246,7 +247,7 @@ ChartSection.State = {
       params.casesAggregated = params.testCasesAggregated;
     }
 
-    return cp.TimeseriesDescriptor.buildState({
+    return TimeseriesDescriptor.buildState({
       suite: {
         selectedOptions: params.suites,
         isAggregated: params.suitesAggregated,
@@ -411,7 +412,7 @@ ChartSection.reducers = {
     const title = ChartSection.computeTitle(state);
     const parameterMatrix = SparklineCompound.parameterMatrix(state);
     const legend = ChartSection.buildLegend(parameterMatrix);
-    const lineDescriptors = cp.TimeseriesDescriptor.createLineDescriptors(
+    const lineDescriptors = TimeseriesDescriptor.createLineDescriptors(
         parameterMatrix);
     return {
       ...state,
@@ -435,7 +436,7 @@ ChartSection.reducers = {
 
   deselectLine: (state, action, rootState) => {
     const parameterMatrix = SparklineCompound.parameterMatrix(state);
-    const lineDescriptors = cp.TimeseriesDescriptor.createLineDescriptors(
+    const lineDescriptors = TimeseriesDescriptor.createLineDescriptors(
         parameterMatrix);
     return {
       ...state,

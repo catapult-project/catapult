@@ -7,6 +7,7 @@
 import './cp-loading.js';
 import './cp-tab-bar.js';
 import './cp-tab.js';
+import TimeseriesDescriptor from './timeseries-descriptor.js';
 
 export default class SparklineCompound extends cp.ElementBase {
   static get template() {
@@ -165,7 +166,7 @@ SparklineCompound.actions = {
 };
 
 function createSparkline(name, sparkLayout, revisions, matrix) {
-  const lineDescriptors = cp.TimeseriesDescriptor.createLineDescriptors(
+  const lineDescriptors = TimeseriesDescriptor.createLineDescriptors(
       matrix);
   if (lineDescriptors.length === 1) {
     lineDescriptors.push({
@@ -215,7 +216,7 @@ function parametersFromMatrix(matrix) {
 }
 
 SparklineCompound.parameterMatrix = state => {
-  const descriptor = cp.TimeseriesDescriptor.getParameterMatrix(
+  const descriptor = TimeseriesDescriptor.getParameterMatrix(
       state.descriptor.suite,
       state.descriptor.measurement,
       state.descriptor.bot,

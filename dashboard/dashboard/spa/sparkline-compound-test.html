@@ -10,8 +10,12 @@ found in the LICENSE file.
 
 <link rel="import" href="/bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="/dashboard/spa/chart-timeseries.html">
+<link rel="import" href="/dashboard/spa/describe-request.html">
 <link rel="import" href="/dashboard/spa/element-base.html">
-<link rel="import" href="/dashboard/spa/timeseries-descriptor.html">
+<link rel="import" href="/dashboard/spa/memory-components.html">
+<link rel="import" href="/dashboard/spa/menu-input.html">
+<link rel="import" href="/dashboard/spa/tag-filter.html">
+<link rel="import" href="/dashboard/spa/test-suites-request.html">
 <link rel="import" href="/dashboard/static/memory_related_names.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
@@ -79,6 +83,8 @@ suite('sparkline-compound', function() {
   test('build', async function() {
     const {default: SparklineCompound} = await importModule(
         './sparkline-compound.js');
+    const {default: TimeseriesDescriptor} = await importModule(
+        './timeseries-descriptor.js');
     fixture('test').dispatch(Redux.CHAIN(
         Redux.ENSURE('test'),
         Redux.UPDATE('test', {
@@ -89,7 +95,7 @@ suite('sparkline-compound', function() {
     await cp.afterRender();
     await sc.dispatch(Redux.CHAIN(
         Redux.UPDATE('test', {
-          descriptor: cp.TimeseriesDescriptor.buildState({
+          descriptor: TimeseriesDescriptor.buildState({
             suite: {selectedOptions: ['suite:xxx', 'suite:yyy', 'suite:zzz']},
             measurement: {selectedOptions: ['ms']},
             bot: {selectedOptions: [
@@ -126,6 +132,8 @@ suite('sparkline-compound', function() {
   test('observeCursor', async function() {
     const {default: SparklineCompound} = await importModule(
         './sparkline-compound.js');
+    const {default: TimeseriesDescriptor} = await importModule(
+        './timeseries-descriptor.js');
     fixture('test').dispatch(Redux.CHAIN(
         Redux.ENSURE('test'),
         Redux.UPDATE('test', {
@@ -137,7 +145,7 @@ suite('sparkline-compound', function() {
     await sc.dispatch(Redux.CHAIN(
         Redux.UPDATE('test', {
           mode: cp.MODE.NORMALIZE_UNIT,
-          descriptor: cp.TimeseriesDescriptor.buildState({
+          descriptor: TimeseriesDescriptor.buildState({
             suite: {selectedOptions: ['suite:xxx', 'suite:yyy', 'suite:zzz']},
             measurement: {selectedOptions: ['ms']},
             bot: {selectedOptions: [
@@ -176,6 +184,8 @@ suite('sparkline-compound', function() {
   test('observeRevisions', async function() {
     const {default: SparklineCompound} = await importModule(
         './sparkline-compound.js');
+    const {default: TimeseriesDescriptor} = await importModule(
+        './timeseries-descriptor.js');
     fixture('test').dispatch(Redux.CHAIN(
         Redux.ENSURE('test'),
         Redux.UPDATE('test', {
@@ -186,7 +196,7 @@ suite('sparkline-compound', function() {
     await cp.afterRender();
     await sc.dispatch(Redux.CHAIN(
         Redux.UPDATE('test', {
-          descriptor: cp.TimeseriesDescriptor.buildState({
+          descriptor: TimeseriesDescriptor.buildState({
             suite: {selectedOptions: ['suite:xxx', 'suite:yyy', 'suite:zzz']},
             measurement: {selectedOptions: ['ms']},
             bot: {selectedOptions: [
@@ -234,6 +244,8 @@ suite('sparkline-compound', function() {
   test('click', async function() {
     const {default: SparklineCompound} = await importModule(
         './sparkline-compound.js');
+    const {default: TimeseriesDescriptor} = await importModule(
+        './timeseries-descriptor.js');
     fixture('test').dispatch(Redux.CHAIN(
         Redux.ENSURE('test'),
         Redux.UPDATE('test', {
@@ -244,7 +256,7 @@ suite('sparkline-compound', function() {
     await cp.afterRender();
     await sc.dispatch(Redux.CHAIN(
         Redux.UPDATE('test', {
-          descriptor: cp.TimeseriesDescriptor.buildState({
+          descriptor: TimeseriesDescriptor.buildState({
             suite: {selectedOptions: ['suite:xxx', 'suite:yyy', 'suite:zzz']},
             measurement: {selectedOptions: ['ms']},
             bot: {selectedOptions: [
