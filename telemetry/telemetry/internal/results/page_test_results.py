@@ -550,15 +550,17 @@ class PageTestResults(object):
       try:
         return multiprocessing.cpu_count()
       except NotImplementedError:
-        # Some platforms can raise a NotImplementedError from cpu_count(). Use a
-        # small number of threads in that case.
-        return 10
+        # Some platforms can raise a NotImplementedError from cpu_count()
+        logging.warn('cpu_count() not implemented.')
+        return 8
 
     runs_and_values = self._FindRunsAndValuesWithTimelineBasedMetrics()
     if not runs_and_values:
       return
 
-    threads_count = min(_GetCpuCount(), len(runs_and_values))
+    # Note that this is speculatively halved as an attempt to fix
+    # crbug.com/953365.
+    threads_count = min(_GetCpuCount()/2 or 1, len(runs_and_values))
     pool = ThreadPool(threads_count)
     try:
       for result in pool.imap_unordered(_ComputeMetricsInPool,
