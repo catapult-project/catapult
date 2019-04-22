@@ -2818,6 +2818,10 @@ class DeviceUtils(object):
               '%s needs a higher versionCode (must be >= %d)' %
               (package_name, dumpsys_output.get('MinimumWebViewVersionCode')),
               str(self))
+        if re.search(r'Incorrect signature', reason):
+          raise device_errors.CommandFailedError(
+              '%s is not signed with release keys (but user builds require '
+              'this for WebView providers)' % package_name, str(self))
       raise device_errors.CommandFailedError(
           'Error setting WebView provider: %s' % output, str(self))
 
