@@ -50,7 +50,6 @@ from dashboard import report
 from dashboard import short_uri
 from dashboard import speed_releasing
 from dashboard import start_try_job
-from dashboard import update_bug_with_results
 from dashboard import update_dashboard_stats
 from dashboard import update_test_suite_descriptors
 from dashboard import update_test_suites
@@ -138,8 +137,6 @@ _URL_MAPPING = [
      speed_releasing.SpeedReleasingHandler),
     ('/speed_releasing', speed_releasing.SpeedReleasingHandler),
     ('/start_try_job', start_try_job.StartBisectHandler),
-    ('/update_bug_with_results',
-     update_bug_with_results.UpdateBugWithResultsHandler),
     ('/update_dashboard_stats',
      update_dashboard_stats.UpdateDashboardStatsHandler),
     ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler),
