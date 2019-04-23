@@ -4,7 +4,9 @@
 */
 'use strict';
 
-export default class ReportRequest extends cp.RequestBase {
+import RequestBase from './request-base.js';
+
+export default class ReportRequest extends RequestBase {
   constructor(options) {
     super(options);
     this.name_ = options.name;

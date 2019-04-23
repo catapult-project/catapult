@@ -7,10 +7,17 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/layout-timeseries.html">
+<link rel="import" href="/dashboard/spa/dependencies.html">
+<script src="/dashboard/spa/import-module.js"></script>
 
-<script>
+<script type="module">
 'use strict';
+import {
+  MODE,
+  computeTicks,
+  layoutTimeseries,
+} from './layout-timeseries.js';
+
 suite('layout-timeseries', function() {
   // suite() callbacks may be called before imports are loaded, so wrap
   // references to |tr|.
@@ -52,8 +59,8 @@ suite('layout-timeseries', function() {
         generateTicks: true,
       },
     };
-    await cp.layoutTimeseries.readyPromise;
-    const output = cp.layoutTimeseries(input);
+    await layoutTimeseries.readyPromise;
+    const output = layoutTimeseries(input);
 
     assert.strictEqual(output.lines[0].path, 'M1.2,97.2 L50,99.8 L98.8,94.7');
     assert.strictEqual(output.lines[1].path, 'M1.2,50.1 L50,96.5 L98.8,3.6');
@@ -77,7 +84,7 @@ suite('layout-timeseries', function() {
 
   test('normalize line', async function() {
     const input = {
-      mode: cp.MODE.NORMALIZE_LINE,
+      mode: MODE.NORMALIZE_LINE,
       lines: [
         {
           unit: tr.b.Unit.byName.count_smallerIsBetter,
@@ -110,8 +117,8 @@ suite('layout-timeseries', function() {
         generateTicks: true,
       },
     };
-    await cp.layoutTimeseries.readyPromise;
-    const output = cp.layoutTimeseries(input);
+    await layoutTimeseries.readyPromise;
+    const output = layoutTimeseries(input);
 
     assert.strictEqual(output.lines[0].path, 'M1.2,50.1 L50,96.5 L98.8,3.6');
     assert.strictEqual(output.lines[1].path, 'M1.2,50.1 L50,96.5 L98.8,3.6');
@@ -141,7 +148,7 @@ suite('layout-timeseries', function() {
 
   test('delta', async function() {
     const input = {
-      mode: cp.MODE.DELTA,
+      mode: MODE.DELTA,
       lines: [
         {
           unit: tr.b.Unit.byName.count_smallerIsBetter,
@@ -174,8 +181,8 @@ suite('layout-timeseries', function() {
         generateTicks: true,
       },
     };
-    await cp.layoutTimeseries.readyPromise;
-    const output = cp.layoutTimeseries(input);
+    await layoutTimeseries.readyPromise;
+    const output = layoutTimeseries(input);
 
     assert.strictEqual(output.lines[0].path, 'M1.2,97.2 L50,99.8 L98.8,94.7');
     assert.strictEqual(output.lines[1].path, 'M1.2,50.1 L50,96.5 L98.8,3.6');
@@ -199,7 +206,7 @@ suite('layout-timeseries', function() {
 
   test('center', async function() {
     const input = {
-      mode: cp.MODE.CENTER,
+      mode: MODE.CENTER,
       lines: [
         {
           unit: tr.b.Unit.byName.count_smallerIsBetter,
@@ -232,8 +239,8 @@ suite('layout-timeseries', function() {
         generateTicks: true,
       },
     };
-    await cp.layoutTimeseries.readyPromise;
-    const output = cp.layoutTimeseries(input);
+    await layoutTimeseries.readyPromise;
+    const output = layoutTimeseries(input);
 
     assert.strictEqual(output.lines[0].path, 'M1.2,50 L50,54.7 L98.8,45.4');
     assert.strictEqual(output.lines[1].path, 'M1.2,50.1 L50,96.5 L98.8,3.6');
@@ -262,22 +269,22 @@ suite('layout-timeseries', function() {
   });
 
   test('computeTicks', async function() {
-    assert.deepEqual(cp.computeTicks(explicitRange(-11, 11)), [
+    assert.deepEqual(computeTicks(explicitRange(-11, 11)), [
       -10.5, -5.25, 0, 5.25, 10.5,
     ]);
-    assert.deepEqual(cp.computeTicks(explicitRange(1, 11)), [
+    assert.deepEqual(computeTicks(explicitRange(1, 11)), [
       2, 4.25, 6.5, 8.75, 11,
     ]);
-    assert.deepEqual(cp.computeTicks(explicitRange(-1, 11)), [
+    assert.deepEqual(computeTicks(explicitRange(-1, 11)), [
       0, 2.75, 5.5, 8.25, 11,
     ]);
-    assert.deepEqual(cp.computeTicks(explicitRange(-11111, 11111)), [
+    assert.deepEqual(computeTicks(explicitRange(-11111, 11111)), [
       -10500, -5250, 0, 5250, 10500,
     ]);
-    assert.deepEqual(cp.computeTicks(explicitRange(1, 11111)), [
+    assert.deepEqual(computeTicks(explicitRange(1, 11111)), [
       1000, 3500, 6000, 8500, 11000,
     ]);
-    assert.deepEqual(cp.computeTicks(explicitRange(-1, 11111)), [
+    assert.deepEqual(computeTicks(explicitRange(-1, 11111)), [
       0, 2500, 5000, 7500, 10000,
     ]);
   });
@@ -309,8 +316,8 @@ suite('layout-timeseries', function() {
       yAxis: {
       },
     };
-    await cp.layoutTimeseries.readyPromise;
-    const output = cp.layoutTimeseries(input);
+    await layoutTimeseries.readyPromise;
+    const output = layoutTimeseries(input);
 
     assert.deepEqual(output.xAxis.ticks, [
       {text: 12900, xPct: '10%'},
@@ -347,8 +354,8 @@ suite('layout-timeseries', function() {
       yAxis: {
       },
     };
-    await cp.layoutTimeseries.readyPromise;
-    const output = cp.layoutTimeseries(input);
+    await layoutTimeseries.readyPromise;
+    const output = layoutTimeseries(input);
 
     assert.strictEqual(JSON.stringify(output.xAxis.ticks), JSON.stringify([
       {
@@ -418,8 +425,8 @@ suite('layout-timeseries', function() {
       yAxis: {
       },
     };
-    await cp.layoutTimeseries.readyPromise;
-    const output = cp.layoutTimeseries(input);
+    await layoutTimeseries.readyPromise;
+    const output = layoutTimeseries(input);
 
     assert.strictEqual(JSON.stringify(output.xAxis.ticks), JSON.stringify([
       {
@@ -490,8 +497,8 @@ suite('layout-timeseries', function() {
       yAxis: {
       },
     };
-    await cp.layoutTimeseries.readyPromise;
-    const output = cp.layoutTimeseries(input);
+    await layoutTimeseries.readyPromise;
+    const output = layoutTimeseries(input);
 
     assert.strictEqual(JSON.stringify(output.xAxis.ticks), JSON.stringify([
       {

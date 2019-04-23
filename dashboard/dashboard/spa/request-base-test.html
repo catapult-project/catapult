@@ -7,11 +7,12 @@ found in the LICENSE file.
 
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
-<link rel="import" href="/dashboard/spa/request-base.html">
-<script type="module" src="/dashboard/spa/result-channel-sender.js"></script>
+<link rel="import" href="/dashboard/spa/dependencies.html">
 
 <script type="module">
 'use strict';
+
+import RequestBase from './request-base.js';
 import ResultChannelSender from './result-channel-sender.js';
 
 suite('RequestBase', function() {
@@ -30,7 +31,7 @@ suite('RequestBase', function() {
   // HTML imports may not have loaded when suite() is called, but are loaded
   // when tests are called.
   function TestRequest(options) {
-    return new class TestRequest extends cp.RequestBase {
+    return new class TestRequest extends RequestBase {
       get url_() {
         return '/url';
       }

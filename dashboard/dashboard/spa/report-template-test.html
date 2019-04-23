@@ -7,16 +7,7 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-
-<link rel="import" href="/dashboard/spa/cp-icons.html">
-<link rel="import" href="/dashboard/spa/describe-request.html">
-<link rel="import" href="/dashboard/spa/element-base.html">
-<link rel="import" href="/dashboard/spa/memory-components.html">
-<link rel="import" href="/dashboard/spa/menu-input.html">
-<link rel="import" href="/dashboard/spa/report-template-request.html">
-<link rel="import" href="/dashboard/spa/tag-filter.html">
-<link rel="import" href="/dashboard/spa/test-suites-request.html">
-<link rel="import" href="/dashboard/spa/utils.html">
+<link rel="import" href="/dashboard/spa/dependencies.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -25,8 +16,15 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script>
+<script type="module">
 'use strict';
+
+import DescribeRequest from './describe-request.js';
+import ReportTemplateRequest from './report-template-request.js';
+import TestSuitesRequest from './test-suites-request.js';
+import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {afterRender} from './utils.js';
+
 suite('report-template', function() {
   let originalFetch;
   let templateBody;
@@ -35,14 +33,14 @@ suite('report-template', function() {
     window.fetch = async(url, options) => {
       return {
         async json() {
-          if (url === cp.ReportTemplateRequest.URL) {
+          if (url === ReportTemplateRequest.URL) {
             templateBody = new Map(options.body);
             return [];
           }
-          if (url === cp.TestSuitesRequest.URL) {
+          if (url === TestSuitesRequest.URL) {
             return ['suite'];
           }
-          if (url === cp.DescribeRequest.URL) {
+          if (url === DescribeRequest.URL) {
             return {
               bots: ['master:bot'],
               measurements: ['measurement'],
@@ -126,12 +124,13 @@ suite('report-template', function() {
   });
 
   test('addRemoveRow', async function() {
+    const {default: MenuInput} = await importModule('./menu-input.js');
     const {default: ReportTemplate} = await importModule(
         './report-template.js');
     const template = fixture('test');
-    template.dispatch(Redux.CHAIN(
-        Redux.ENSURE('test'),
-        Redux.UPDATE('test', ReportTemplate.buildState({
+    template.dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', ReportTemplate.buildState({
           id: 42,
           name: 'test name',
           owners: 'me@chromium.org',
@@ -144,31 +143,32 @@ suite('report-template', function() {
               cases: ['case'],
             }),
           ],
-          statistic: cp.MenuInput.buildState({
+          statistic: MenuInput.buildState({
             options: ['avg', 'std'],
             selectedOptions: ['avg'],
           }),
           url: 'http://example.com',
         }))));
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(template.rows, 1);
 
     template.shadowRoot.querySelector('iron-icon').click();
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(template.rows, 2);
 
     template.shadowRoot.querySelectorAll('iron-icon')[3].click();
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(template.rows, 1);
   });
 
   test('save', async function() {
+    const {default: MenuInput} = await importModule('./menu-input.js');
     const {default: ReportTemplate} = await importModule(
         './report-template.js');
     const template = fixture('test');
-    template.dispatch(Redux.CHAIN(
-        Redux.ENSURE('test'),
-        Redux.UPDATE('test', ReportTemplate.buildState({
+    template.dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', ReportTemplate.buildState({
           id: 42,
           name: 'test name',
           owners: 'me@chromium.org',
@@ -181,15 +181,15 @@ suite('report-template', function() {
               cases: ['case'],
             }),
           ],
-          statistic: cp.MenuInput.buildState({
+          statistic: MenuInput.buildState({
             options: ['avg', 'std'],
             selectedOptions: ['avg'],
           }),
           url: 'http://example.com',
         }))));
-    await cp.afterRender();
+    await afterRender();
     template.$.save.click();
-    await cp.afterRender();
+    await afterRender();
     assert.strictEqual('42', templateBody.get('id'));
     assert.strictEqual('test name', templateBody.get('name'));
     assert.strictEqual('me@chromium.org', templateBody.get('owners'));

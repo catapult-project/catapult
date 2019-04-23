@@ -7,16 +7,17 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/timeseries-merger.html">
-<link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/dashboard/spa/dependencies.html">
 
-<script>
+<script type="module">
 'use strict';
+import TimeseriesMerger from './timeseries-merger.js';
+
 suite('TimeseriesMerger', function() {
   test('minRevision', async function() {
     // Filter out data points before minRevision.
 
-    const merged = [...new cp.TimeseriesMerger([
+    const merged = [...new TimeseriesMerger([
       [
         {revision: 5, avg: 2, count: 1},
         {revision: 10, avg: 2, count: 1},
@@ -39,7 +40,7 @@ suite('TimeseriesMerger', function() {
   test('maxRevision', async function() {
     // Filter out data points after maxRevision.
 
-    const merged = [...new cp.TimeseriesMerger([
+    const merged = [...new TimeseriesMerger([
       [
         {revision: 20, avg: 2, count: 5},
         {revision: 25, avg: 2, count: 5},
@@ -62,7 +63,7 @@ suite('TimeseriesMerger', function() {
   test('avg', async function() {
     // Compute weighted average
 
-    const merged = [...new cp.TimeseriesMerger([
+    const merged = [...new TimeseriesMerger([
       [
         {revision: 10, avg: 10, count: 1},
       ],
@@ -77,7 +78,7 @@ suite('TimeseriesMerger', function() {
 
   test('std', async function() {
     // Merge standard deviation using Welford's algorithm.
-    const merged = [...new cp.TimeseriesMerger([
+    const merged = [...new TimeseriesMerger([
       [
         {revision: 10, avg: 2, std: 1, count: 5},
       ],
@@ -92,7 +93,7 @@ suite('TimeseriesMerger', function() {
   test('count', async function() {
     // Sum sample count statistic.
 
-    const merged = [...new cp.TimeseriesMerger([
+    const merged = [...new TimeseriesMerger([
       [
         {revision: 10, avg: 2, count: 5},
       ],
@@ -108,7 +109,7 @@ suite('TimeseriesMerger', function() {
   test('sum', async function() {
     // Sum sample sum statistic.
 
-    const merged = [...new cp.TimeseriesMerger([
+    const merged = [...new TimeseriesMerger([
       [
         {revision: 10, avg: 2, count: 5, sum: 10},
       ],
@@ -124,7 +125,7 @@ suite('TimeseriesMerger', function() {
   test('min', async function() {
     // Compute the min of the sample min statistic.
 
-    const merged = [...new cp.TimeseriesMerger([
+    const merged = [...new TimeseriesMerger([
       [
         {revision: 10, avg: 2, count: 5, min: 1},
       ],
@@ -140,7 +141,7 @@ suite('TimeseriesMerger', function() {
   test('max', async function() {
     // Compute the max of the sample max statistic.
 
-    const merged = [...new cp.TimeseriesMerger([
+    const merged = [...new TimeseriesMerger([
       [
         {revision: 10, avg: 2, count: 5, max: 1},
       ],
@@ -156,7 +157,7 @@ suite('TimeseriesMerger', function() {
   test('diagnostics', async function() {
     // Merge DiagnosticMaps.
 
-    const merged = [...new cp.TimeseriesMerger([
+    const merged = [...new TimeseriesMerger([
       [
         {revision: 10, avg: 2, count: 1, diagnostics:
           tr.v.d.DiagnosticMap.fromObject({a: new tr.v.d.GenericSet(['a'])})},
@@ -186,7 +187,7 @@ suite('TimeseriesMerger', function() {
   });
 
   test('unaligned', async function() {
-    const merged = [...new cp.TimeseriesMerger([
+    const merged = [...new TimeseriesMerger([
       [
         {revision: 12, avg: 10, count: 1},
         {revision: 14, avg: 20, count: 1},

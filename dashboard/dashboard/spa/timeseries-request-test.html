@@ -7,12 +7,16 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/timeseries-request.html">
-<script type="module" src="/dashboard/spa/result-channel-sender.js"></script>
+<link rel="import" href="/dashboard/spa/dependencies.html">
+<script src="/dashboard/spa/import-module.js"></script>
 
 <script type="module">
 'use strict';
 import ResultChannelSender from './result-channel-sender.js';
+import {
+  TimeseriesRequest,
+  LEVEL_OF_DETAIL,
+} from './timeseries-request.js';
 
 suite('TimeseriesRequest', function() {
   let originalFetch;
@@ -35,8 +39,8 @@ suite('TimeseriesRequest', function() {
       };
     };
 
-    const request = new cp.TimeseriesRequest({
-      levelOfDetail: cp.LEVEL_OF_DETAIL.XY,
+    const request = new TimeseriesRequest({
+      levelOfDetail: LEVEL_OF_DETAIL.XY,
     });
     const reader = request.reader();
 
@@ -80,24 +84,24 @@ suite('TimeseriesRequest', function() {
   });
 
   test('xy', () => {
-    const request = new cp.TimeseriesRequest({
-      levelOfDetail: cp.LEVEL_OF_DETAIL.XY,
+    const request = new TimeseriesRequest({
+      levelOfDetail: LEVEL_OF_DETAIL.XY,
     });
     const expectedColumns = 'revision,timestamp,avg,count';
     assert.strictEqual(request.body_.get('columns'), expectedColumns);
   });
 
   test('alerts', () => {
-    const request = new cp.TimeseriesRequest({
-      levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+    const request = new TimeseriesRequest({
+      levelOfDetail: LEVEL_OF_DETAIL.ALERTS,
     });
     const expectedColumns = 'revision,alert';
     assert.strictEqual(request.body_.get('columns'), expectedColumns);
   });
 
   test('annotations', () => {
-    const request = new cp.TimeseriesRequest({
-      levelOfDetail: cp.LEVEL_OF_DETAIL.ANNOTATIONS,
+    const request = new TimeseriesRequest({
+      levelOfDetail: LEVEL_OF_DETAIL.ANNOTATIONS,
     });
     const expectedColumns =
       'revision,timestamp,avg,count,alert,diagnostics,revisions';
@@ -105,8 +109,8 @@ suite('TimeseriesRequest', function() {
   });
 
   test('details', async function() {
-    const request = new cp.TimeseriesRequest({
-      levelOfDetail: cp.LEVEL_OF_DETAIL.DETAILS,
+    const request = new TimeseriesRequest({
+      levelOfDetail: LEVEL_OF_DETAIL.DETAILS,
     });
     const expectedColumns = 'revision,timestamp,avg,std,count,' +
       'revisions,annotations';
@@ -132,8 +136,8 @@ suite('TimeseriesRequest', function() {
         }
       };
     };
-    const request = new cp.TimeseriesRequest({
-      levelOfDetail: cp.LEVEL_OF_DETAIL.ANNOTATIONS,
+    const request = new TimeseriesRequest({
+      levelOfDetail: LEVEL_OF_DETAIL.ANNOTATIONS,
     });
     const response = await request.response;
     assert.lengthOf(response, 1);
@@ -159,8 +163,8 @@ suite('TimeseriesRequest', function() {
         }
       };
     };
-    const request = new cp.TimeseriesRequest({
-      levelOfDetail: cp.LEVEL_OF_DETAIL.XY,
+    const request = new TimeseriesRequest({
+      levelOfDetail: LEVEL_OF_DETAIL.XY,
     });
     const response = await request.response;
     assert.lengthOf(response, 1);

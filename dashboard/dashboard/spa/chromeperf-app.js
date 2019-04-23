@@ -11,15 +11,28 @@ import AlertsSection from './alerts-section.js';
 import ChartCompound from './chart-compound.js';
 import ChartSection from './chart-section.js';
 import ConfigRequest from './config-request.js';
+import ElementBase from './element-base.js';
 import RecentBugsRequest from './recent-bugs-request.js';
 import ReportControls from './report-controls.js';
 import ReportSection from './report-section.js';
 import SessionIdRequest from './session-id-request.js';
 import SessionStateRequest from './session-state-request.js';
+import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+
+import {
+  afterRender,
+  breakWords,
+  buildProperties,
+  buildState,
+  simpleGUID,
+  timeout,
+} from './utils.js';
 
 const NOTIFICATION_MS = 5000;
 
-export default class ChromeperfApp extends cp.ElementBase {
+export default class ChromeperfApp extends ElementBase {
+  static get is() { return 'chromeperf-app'; }
+
   static get template() {
     return Polymer.html`
       <style>
@@ -347,13 +360,13 @@ export default class ChromeperfApp extends cp.ElementBase {
   }
 
   hideReportSection_(event) {
-    this.dispatch(Redux.UPDATE(this.statePath, {
+    this.dispatch(UPDATE(this.statePath, {
       showingReportSection: false,
     }));
   }
 
   async onShowReportSection_(event) {
-    await this.dispatch(Redux.UPDATE(this.statePath, {
+    await this.dispatch(UPDATE(this.statePath, {
       showingReportSection: true,
     }));
   }
@@ -424,7 +437,7 @@ ChromeperfApp.State = {
   alertsSectionsById: options => {return {};},
   closedAlertsIds: options => [],
 
-  linkedChartState: options => cp.buildState(
+  linkedChartState: options => buildState(
       ChartCompound.LinkedState, {}),
 
   chartSectionIds: options => [],
@@ -433,7 +446,7 @@ ChromeperfApp.State = {
 };
 
 ChromeperfApp.properties = {
-  ...cp.buildProperties('state', ChromeperfApp.State),
+  ...buildProperties('state', ChromeperfApp.State),
   route: {type: Object},
   userEmail: {statePath: 'userEmail'},
 };
@@ -450,14 +463,14 @@ ChromeperfApp.actions = {
     async(dispatch, getState) => {
       ChromeperfApp.actions.getRevisionInfo()(dispatch, getState);
 
-      dispatch(Redux.CHAIN(
-          Redux.ENSURE(statePath),
-          Redux.ENSURE('userEmail', ''),
-          Redux.ENSURE('largeDom', false),
+      dispatch(CHAIN(
+          ENSURE(statePath),
+          ENSURE('userEmail', ''),
+          ENSURE('largeDom', false),
       ));
 
       // Wait for ChromeperfApp and its reducers to be registered.
-      await cp.afterRender();
+      await afterRender();
 
       dispatch({
         type: ChromeperfApp.reducers.ready.name,
@@ -475,7 +488,7 @@ ChromeperfApp.actions = {
           statePath, routeParams)(dispatch, getState);
 
       // The app is done loading.
-      dispatch(Redux.UPDATE(statePath, {
+      dispatch(UPDATE(statePath, {
         isLoading: false,
         readied: true,
       }));
@@ -489,7 +502,7 @@ ChromeperfApp.actions = {
     });
     ChromeperfApp.actions.updateLocation(statePath)(dispatch, getState);
 
-    await cp.timeout(NOTIFICATION_MS);
+    await timeout(NOTIFICATION_MS);
     const state = Polymer.Path.get(getState(), statePath);
     if (!state.closedAlertsIds.includes(sectionId)) {
       // This alerts section was reopened.
@@ -503,7 +516,7 @@ ChromeperfApp.actions = {
 
   reopenClosedAlerts: statePath => async(dispatch, getState) => {
     const state = Polymer.Path.get(getState(), statePath);
-    dispatch(Redux.UPDATE(statePath, {
+    dispatch(UPDATE(statePath, {
       alertsSectionIds: [
         ...state.alertsSectionIds,
         ...state.closedAlertsIds,
@@ -514,7 +527,7 @@ ChromeperfApp.actions = {
 
   userUpdate: statePath => async(dispatch, getState) => {
     const profile = await window.getUserProfileAsync();
-    dispatch(Redux.UPDATE('', {
+    dispatch(UPDATE('', {
       userEmail: profile ? profile.getEmail() : '',
     }));
     ChromeperfApp.actions.getRevisionInfo()(dispatch, getState);
@@ -524,7 +537,7 @@ ChromeperfApp.actions = {
   getRevisionInfo: () => async(dispatch, getState) => {
     const revisionInfo = await new ConfigRequest(
         {key: 'revision_info'}).response;
-    dispatch(Redux.UPDATE('', {revisionInfo}));
+    dispatch(UPDATE('', {revisionInfo}));
   },
 
   restoreSessionState: (statePath, sessionId) =>
@@ -532,7 +545,7 @@ ChromeperfApp.actions = {
       const request = new SessionStateRequest({sessionId});
       const sessionState = await request.response;
 
-      await dispatch(Redux.CHAIN(
+      await dispatch(CHAIN(
           {
             type: ChromeperfApp.reducers.receiveSessionState.name,
             statePath,
@@ -551,7 +564,7 @@ ChromeperfApp.actions = {
 
   restoreFromRoute: (statePath, routeParams) => async(dispatch, getState) => {
     if (routeParams.has('nonav')) {
-      dispatch(Redux.UPDATE(statePath, {enableNav: false}));
+      dispatch(UPDATE(statePath, {enableNav: false}));
     }
 
     const sessionId = routeParams.get('session');
@@ -576,8 +589,8 @@ ChromeperfApp.actions = {
       const options = AlertsSection.newStateOptionsFromQueryParams(
           routeParams);
       // Hide the report section and create a single alerts-section.
-      dispatch(Redux.CHAIN(
-          Redux.UPDATE(statePath, {showingReportSection: false}),
+      dispatch(CHAIN(
+          UPDATE(statePath, {showingReportSection: false}),
           {
             type: ChromeperfApp.reducers.newAlerts.name,
             statePath,
@@ -593,7 +606,7 @@ ChromeperfApp.actions = {
       // Hide the report section and create a single chart.
       const options = ChartSection.newStateOptionsFromQueryParams(
           routeParams);
-      dispatch(Redux.UPDATE(statePath, {showingReportSection: false}));
+      dispatch(UPDATE(statePath, {showingReportSection: false}));
       ChromeperfApp.actions.newChart(statePath, options)(dispatch, getState);
       return;
     }
@@ -605,7 +618,7 @@ ChromeperfApp.actions = {
     const request = new SessionIdRequest({sessionState});
     const session = await request.response;
     const reduxRoutePath = new URLSearchParams({session});
-    dispatch(Redux.UPDATE(statePath, {reduxRoutePath}));
+    dispatch(UPDATE(statePath, {reduxRoutePath}));
   },
 
   // Compute one of 5 styles of route path (the part of the URL after the
@@ -669,21 +682,21 @@ ChromeperfApp.actions = {
 
     // The extra '#' prevents observeAppRoute_ from dispatching reset.
     const reduxRoutePath = routeParams.toString() || '#';
-    dispatch(Redux.UPDATE(statePath, {reduxRoutePath}));
+    dispatch(UPDATE(statePath, {reduxRoutePath}));
   },
 
   reset: statePath => async(dispatch, getState) => {
     ReportSection.actions.restoreState(`${statePath}.reportSection`, {
       sources: [ReportControls.DEFAULT_NAME]
     })(dispatch, getState);
-    dispatch(Redux.CHAIN(
-        Redux.UPDATE(statePath, {showingReportSection: true}),
+    dispatch(CHAIN(
+        UPDATE(statePath, {showingReportSection: true}),
         {type: ChromeperfApp.reducers.closeAllAlerts.name, statePath}));
     ChromeperfApp.actions.closeAllCharts(statePath)(dispatch, getState);
   },
 
   newChart: (statePath, options) => async(dispatch, getState) => {
-    dispatch(Redux.CHAIN(
+    dispatch(CHAIN(
         {
           type: ChromeperfApp.reducers.newChart.name,
           statePath,
@@ -704,7 +717,7 @@ ChromeperfApp.actions = {
     });
     ChromeperfApp.actions.updateLocation(statePath)(dispatch, getState);
 
-    await cp.timeout(NOTIFICATION_MS);
+    await timeout(NOTIFICATION_MS);
     const state = Polymer.Path.get(getState(), statePath);
     if (!state.closedChartIds.includes(sectionId)) {
       // This chart was reopened.
@@ -740,7 +753,7 @@ ChromeperfApp.reducers = {
       vulcanizedDate = tr.b.formatDate(new Date(
           VULCANIZED_TIMESTAMP.getTime() - (1000 * 60 * 60 * 7))) + ' PT';
     }
-    return cp.buildState(ChromeperfApp.State, {vulcanizedDate});
+    return buildState(ChromeperfApp.State, {vulcanizedDate});
   },
 
   newAlerts: (state, {options}, rootState) => {
@@ -759,7 +772,7 @@ ChromeperfApp.reducers = {
       };
     }
 
-    const sectionId = cp.simpleGUID();
+    const sectionId = simpleGUID();
     const newSection = AlertsSection.buildState({sectionId, ...options});
     const alertsSectionsById = {...state.alertsSectionsById};
     alertsSectionsById[sectionId] = newSection;
@@ -820,7 +833,7 @@ ChromeperfApp.reducers = {
       };
     }
 
-    const sectionId = cp.simpleGUID();
+    const sectionId = simpleGUID();
     const newSection = {
       type: ChartSection.is,
       sectionId,
@@ -834,7 +847,7 @@ ChromeperfApp.reducers = {
     chartSectionIds.push(sectionId);
 
     if (chartSectionIds.length === 1 && options) {
-      const linkedChartState = cp.buildState(
+      const linkedChartState = buildState(
           ChartCompound.LinkedState, options);
       state = {...state, linkedChartState};
     }
@@ -929,7 +942,7 @@ ChromeperfApp.reducers = {
         id: '' + bug.id,
         status: bug.status,
         owner: bug.owner ? bug.owner.name : '',
-        summary: cp.breakWords(bug.summary),
+        summary: breakWords(bug.summary),
         revisionRange,
       };
     });
@@ -961,4 +974,4 @@ ChromeperfApp.getSessionState = state => {
   };
 };
 
-cp.ElementBase.register(ChromeperfApp);
+ElementBase.register(ChromeperfApp);

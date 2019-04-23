@@ -7,16 +7,11 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<script type="module" src="/dashboard/spa/task-queue.js"></script>
 
 <script type="module">
 'use strict';
 import TASK_QUEUE from './task-queue.js';
-
-// TODO import from utils.js
-function timeout(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+import {timeout} from './utils.js';
 
 suite('TASK_QUEUE', function() {
   test('flush', async() => {
