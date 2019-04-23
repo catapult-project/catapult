@@ -165,6 +165,7 @@ tr.exportTo('tr.metrics.sh', function() {
     return samples;
   }
 
+  // Assume that this event has |event.arg.frame|.
   function findTimeToXEntries(
       category, eventName, rendererHelper, frameToNavStartEvents,
       navIdToNavStartEvents) {
@@ -358,6 +359,41 @@ tr.exportTo('tr.metrics.sh', function() {
     };
   }
 
+  function getCandidateIndex(entry) {
+    return entry.targetEvent.args.data.candidateIndex;
+  }
+
+  function findLastCandidateForEachNavigation(timeToXEntries) {
+    const entryMap = new Map();
+    for (const e of timeToXEntries) {
+      const navStartEvent = e.navigationStartEvent;
+      if (!entryMap.has(navStartEvent)) {
+        entryMap.set(navStartEvent, []);
+      }
+      entryMap.get(navStartEvent).push(e);
+    }
+    const lastCandidates = [];
+    for (const timeToXEntriesByNavigation of entryMap.values()) {
+      let lastCandidate = timeToXEntriesByNavigation.shift();
+      for (const entry of timeToXEntriesByNavigation) {
+        if (getCandidateIndex(entry) > getCandidateIndex(lastCandidate)) {
+          lastCandidate = entry;
+        }
+      }
+      lastCandidates.push(lastCandidate);
+    }
+    return lastCandidates;
+  }
+
+  function findFCPPlusPlusSamples(rendererHelper, title, frameToNavStartEvents,
+      navIdToNavStartEvents) {
+    const timeToXEntries = findTimeToXEntries('loading', title, rendererHelper,
+        frameToNavStartEvents, navIdToNavStartEvents);
+    const lastCandidateEvents =
+        findLastCandidateForEachNavigation(timeToXEntries);
+    return collectTimeToEvent(rendererHelper, lastCandidateEvents);
+  }
+
   function collectLoadingMetricsForRenderer(rendererHelper) {
     const frameToNavStartEvents =
         EventFinderUtils.getSortedMainThreadEventsByFrame(
@@ -382,6 +418,12 @@ tr.exportTo('tr.metrics.sh', function() {
         getAboveTheFoldLoadedToVisibleSamples(rendererHelper);
     const firstViewportReadySamples = getFirstViewportReadySamples(
         rendererHelper, navIdToNavStartEvents);
+    const largestImagePaintSamples = findFCPPlusPlusSamples(rendererHelper,
+        'LargestImagePaint::Candidate', frameToNavStartEvents,
+        navIdToNavStartEvents);
+    const largestTextPaintSamples = findFCPPlusPlusSamples(rendererHelper,
+        'LargestTextPaint::Candidate', frameToNavStartEvents,
+        navIdToNavStartEvents);
 
     return {
       frameToNavStartEvents,
@@ -391,6 +433,8 @@ tr.exportTo('tr.metrics.sh', function() {
       onLoadSamples,
       aboveTheFoldLoadedToVisibleSamples,
       firstViewportReadySamples,
+      largestImagePaintSamples,
+      largestTextPaintSamples,
     };
   }
 
@@ -541,6 +585,18 @@ tr.exportTo('tr.metrics.sh', function() {
           description: 'Time from navigation to load for AMP pages only. ',
           summaryOptions: SUMMARY_OPTIONS,
         });
+    const largestImagePaintHistogram = histograms.createHistogram(
+        'largestImagePaint', timeDurationInMs_smallerIsBetter, [], {
+          binBoundaries: LOADING_METRIC_BOUNDARIES,
+          description: 'Time to Largest Image Paint',
+          summaryOptions: SUMMARY_OPTIONS,
+        });
+    const largestTextPaintHistogram = histograms.createHistogram(
+        'largestTextPaint', timeDurationInMs_smallerIsBetter, [], {
+          binBoundaries: LOADING_METRIC_BOUNDARIES,
+          description: 'Time to Largest Text Paint',
+          summaryOptions: SUMMARY_OPTIONS,
+        });
 
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
@@ -570,6 +626,14 @@ tr.exportTo('tr.metrics.sh', function() {
       addSamplesToHistogram(
           samplesSet.firstViewportReadySamples,
           firstViewportReadyHistogram,
+          histograms);
+      addSamplesToHistogram(
+          samplesSet.largestImagePaintSamples,
+          largestImagePaintHistogram,
+          histograms);
+      addSamplesToHistogram(
+          samplesSet.largestTextPaintSamples,
+          largestTextPaintHistogram,
           histograms);
     }
 

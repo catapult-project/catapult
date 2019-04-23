@@ -99,6 +99,182 @@ tr.b.unittest.testSuite(function() {
         800).diagnosticMaps).get('breakdown').get('resource_loading'), 100);
   });
 
+  test('timeToLargestImagePaint', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'LargestImagePaint::Candidate',
+        start: 1000,
+        duration: 0.0,
+        args: {
+          frame: '0xdeadbeef',
+          data: { candidateIndex: 1 }}
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('largestImagePaint');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(800, hist.running.mean);
+  });
+
+  test('timeToLargestTextPaint', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'LargestTextPaint::Candidate',
+        start: 1000,
+        duration: 0.0,
+        args: {
+          frame: '0xdeadbeef',
+          data: { candidateIndex: 1 }}
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('largestTextPaint');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(800, hist.running.mean);
+  });
+
+  test('FCPPlusPlus_lastIsCandidateIsFinal', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'LargestTextPaint::Candidate',
+        start: 1200,
+        duration: 0.0,
+        args: {
+          frame: '0xdeadbeef',
+          data: { candidateIndex: 1 }}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'LargestTextPaint::Candidate',
+        start: 1100,
+        duration: 0.0,
+        args: {
+          frame: '0xdeadbeef',
+          data: { candidateIndex: 3 }}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'LargestTextPaint::Candidate',
+        start: 1000,
+        duration: 0.0,
+        args: {
+          frame: '0xdeadbeef',
+          data: { candidateIndex: 2 }}
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('largestTextPaint');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(900, hist.running.mean);
+  });
+
+  test('FCPPlusPlus_eachCandidatePerNavigation', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        args: {frame: 'firstframeid'}
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: 'firstframeid'},
+            documentLoaderURL: 'http://example.com'
+          });
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'LargestTextPaint::Candidate',
+        start: 1200,
+        duration: 0.0,
+        args: {
+          frame: 'firstframeid',
+          data: { candidateIndex: 1 }}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 2000,
+        duration: 0.0,
+        args: {frame: 'secondframeid'}
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 2300,
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: 'secondframeid'},
+            documentLoaderURL: 'http://example.com'
+          });
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'LargestTextPaint::Candidate',
+        start: 3200,
+        duration: 0.0,
+        args: {
+          frame: 'secondframeid',
+          data: { candidateIndex: 1 }}
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('largestTextPaint');
+    assert.strictEqual(2, hist.running.count);
+    // avg([1000, 1200])
+    assert.strictEqual(1100, hist.running.mean);
+  });
 
   test('aboveTheFoldLoadedToVisibleHistogram', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
