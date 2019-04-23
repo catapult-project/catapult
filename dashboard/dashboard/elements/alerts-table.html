@@ -54,7 +54,7 @@ found in the LICENSE file.
 
       #alerts #groupheader {
         padding: 3px;
-        width: 23px;
+        width: 55px;
       }
 
       #alerts #checkheader, #alerts #graphheader {
@@ -278,7 +278,7 @@ found in the LICENSE file.
         line-height: 17px;
         min-width: 17px;
         padding: 1px;
-        width: 20px;
+        width: fit-content;
       }
 
       #alerts .kd-button:hover {
@@ -351,7 +351,9 @@ found in the LICENSE file.
             <a class="kd-button counter"
                expanded$="{{item.expanded}}"
                on-click="onExpandGroupButtonClicked"
-               hidden$="{{!computeIsPlural(item.size)}}">{{item.size}}</a>
+               hidden$="{{!computeIsPlural(item.size)}}">
+              {{item.untriagedCount}}/{{item.size}}
+            </a>
           </td>
           <td>
             <input type="checkbox"
@@ -368,7 +370,7 @@ found in the LICENSE file.
             </a>
           </td>
 
-          <td hidden$="{{item.hide_bug_id}}">
+          <td>
             <bug-info-span bug-id="{{item.bug_id}}"
                            key="{{item.key}}"
                            recovered$="{{item.recovered}}"
@@ -580,7 +582,6 @@ found in the LICENSE file.
       this.recursingAlertListChanged = true;
       this.initRowsBasedOnQueryParameters();
       this.showAlertsGrouped();
-      this.updateBugColumn();
       this.maybeDisableButtons();
       this.onCheckboxChange();
       this.recursingAlertListChanged = false;
@@ -591,8 +592,6 @@ found in the LICENSE file.
       const groupsByBug = new Map();
       for (const alertsInGroup of groupedAlerts) {
         for (const alert of alertsInGroup) {
-          if (!alert.bug_id) continue;
-
           if (!bugsByGroup.has(alert.group)) {
             bugsByGroup.set(alert.group, new Set());
           }
@@ -647,17 +646,22 @@ found in the LICENSE file.
       // array directly.
       for (let i = 0; i < this.alertList.length; i++) {
         const alert = this.alertList[i];
+        const untriaged =
+            (alert.bug_id === undefined || alert.bug_id === null) ? 1 : 0;
         if (alert.group) {
           alert.index = i;
           if (alert.group in groupMap) {
             alert.rowType = 'group-member';
             alert.hideRow = true;
+            alert.untriagedCount = 0;
             alert.size = 0;
             groupMap[alert.group].push(alert);
             groupMap[alert.group][0].size += 1;
+            groupMap[alert.group][0].untriagedCount += untriaged;
           } else {
             alert.rowType = 'group-header';
             alert.hideRow = false;
+            alert.untriagedCount = untriaged;
             alert.size = 1;
             groupMap[alert.group] = [alert];
             alertOrder.push(alert.group);
@@ -665,6 +669,7 @@ found in the LICENSE file.
         } else {
           alert.rowType = 'group-header';
           alert.hideRow = false;
+          alert.untriagedCount = untriaged;
           alert.size = 1;
           groupMap[i] = [alert];
           alertOrder.push(i);
@@ -697,12 +702,14 @@ found in the LICENSE file.
       this.selectAlertsInKeysParameter(orderedAlertList);
       for (let i = 0; i < orderedAlertList.length; i++) {
         const alert = orderedAlertList[i];
+        this.setAlertList(i, 'expanded', alert.expanded);
         this.setAlertList(i, 'hideRow', alert.hideRow);
         this.setAlertList(i, 'improvement', alert.improvement);
-        this.setAlertList(i, 'size', alert.size);
-        this.setAlertList(i, 'expanded', alert.expanded);
         this.setAlertList(i, 'rowType', alert.rowType);
         this.setAlertList(i, 'selected', alert.selected);
+        this.setAlertList(i, 'size', alert.size);
+        this.setAlertList(i, 'untriagedCount', alert.untriagedCount);
+        this.setAlertList(i, 'xsrfToken', this.xsrfToken);
       }
     },
 
@@ -774,37 +781,6 @@ found in the LICENSE file.
       for (let i = 0; i < Math.min(n, this.alertList.length); i++) {
         this.alertList[i].selected = true;
         this.alertList[i].hideRow = false;
-      }
-    },
-
-    /**
-      * Shows or hides the bug id column depending on whether there are any
-      * triaged alerts listed in the table.
-      */
-    updateBugColumn() {
-      // We need the xsrf token to be set in the individual bug-info-span
-      // element, and this can be done by setting it in the alert objects,
-      // and binding xsrfToken in the template above.
-      for (let i = 0; i < this.alertList.length; i++) {
-        this.setAlertList(i, 'xsrfToken', this.xsrfToken);
-      }
-      // Make a list of all bug IDs that indicate an alert is triaged.
-      // This includes the pseudo-bug-ids indicating invalid or ignored.
-      // Note: The 'hideRow' parameter is set in static/alerts.js, and it
-      // indicates that the 'triaged' query parameter is not set.
-      const alertsWithBugs = this.alertList.filter(function(alertRow) {
-        return alertRow.bug_id && !alertRow.hideRow;
-      });
-      const shouldHideBugId = alertsWithBugs.length == 0;
-      // Hide the bug id th element.
-      if (shouldHideBugId) {
-        this.$.bug_id.style.display = 'none';
-      } else {
-        this.$.bug_id.style.display = '';
-      }
-      // Hide or show all of the bug id data cells in the table.
-      for (let i = 0; i < this.alertList.length; i++) {
-        this.setAlertList(i, 'hide_bug_id', shouldHideBugId);
       }
     },
 
@@ -1233,7 +1209,6 @@ found in the LICENSE file.
         }
       }.bind(this));
       this.onCheckboxChange();
-      this.updateBugColumn();
     },
 
     isHighlighted(commonRevisionRange, alert) {
