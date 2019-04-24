@@ -53,6 +53,7 @@ found in the LICENSE file.
       runTestCase(painterTestQuicError());
       runTestCase(painterTestQuicCryptoHandshakeMessage());
       runTestCase(painterTestHexEncodedBytes());
+      runTestCase(painterTestBase64EncodedBytes());
       runTestCase(painterTestCertVerifierJob());
       runTestCase(painterTestCertVerifyResult());
       runTestCase(painterTestCheckedCert());
@@ -1005,6 +1006,38 @@ QuicError.QUIC_NETWORK_IDLE_TIMEOUT + ' (QUIC_NETWORK_IDLE_TIMEOUT)';
 '31 31   Mon, 19 Dec 2011\n' +
 '                                20 32 32 3A 34 36 3A 35  39 20 47 4D       ' +
 '         22:46:59 GM';
+
+    return testCase;
+  }
+
+  /**
+   * Tests the formatting of bytes sent/received as hex + ASCII.
+   */
+  function painterTestBase64EncodedBytes() {
+    const testCase = {};
+    testCase.tickOffset = 1337911098473;
+
+    testCase.logEntries = [
+      {
+        'params': {
+          'byte_count': 780,
+          'bytes': 'wMH1EyAAhDJEE/88MFRAIMX7'
+        },
+        'phase': EventPhase.PHASE_NONE,
+        'source': {'id': 637, 'type': EventSourceType.SOCKET},
+        'time': '953918484',
+        'type': EventType.SOCKET_BYTES_SENT
+      }
+    ];
+
+    testCase.expectedText =
+'t=1338865016957 [st=0]  SOCKET_BYTES_SENT\n' +
+'                        --> byte_count = 780\n' +
+'                        --> bytes =\n' +
+'                          C0 C1 F5 13 20 00 84 32  44 13 ' +
+    'FF 3C 30 54 40 20   ....  .2D..<0T@ \n' +
+    '                          C5 FB                                      ' +
+    '        ..';
 
     return testCase;
   }

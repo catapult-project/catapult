@@ -112,47 +112,76 @@ let proxySettingsToString;
   }
 
   /**
-   * |hexString| must be a string of hexadecimal characters with no whitespace,
-   * whose length is a multiple of two.  Writes multiple lines to |out| with
-   * the hexadecimal characters from |hexString| on the left, in groups of
-   * two, and their corresponding ASCII characters on the right.
+   * |bytes| must be an array-like object of bytes.  Writes multiple lines to
+   * |out| with the hexadecimal characters from |bytes| on the left, in
+   * groups of two, and their corresponding ASCII characters on the
+   * right.
    *
    * 16 bytes will be placed on each line of the output string, split into two
    * columns of 8.
    */
-  function writeHexString(hexString, out) {
-    const asciiCharsPerLine = 16;
-    // Number of transferred bytes in a line of output.  Length of a
-    // line is roughly 4 times larger.
-    const hexCharsPerLine = 2 * asciiCharsPerLine;
-    for (let i = 0; i < hexString.length; i += hexCharsPerLine) {
-      let hexLine = '';
-      let asciiLine = '';
-      for (let j = i; j < i + hexCharsPerLine && j < hexString.length; j += 2) {
-        // Split into two columns of 8 bytes each.
-        if (j === i + hexCharsPerLine / 2) {
-          hexLine += ' ';
+  function writeHexString(bytes, out) {
+    function byteToPaddedHex(b) {
+      let str = b.toString(16).toUpperCase();
+      if (str.length < 2) {
+        str = '0' + str;
+      }
+      return str;
+    }
+
+    const kBytesPerLine = 16;
+    // Returns pretty printed kBytesPerLine bytes starting from
+    // bytes[startIndex], in hexdump style format.
+    function formatLine(startIndex) {
+      let result = ' ';
+
+      // Append a hex formatting of |bytes|.
+      for (let i = 0; i < kBytesPerLine; ++i) {
+        result += ' ';
+
+        // Add a separator every 8 bytes.
+        if ((i % 8) === 0) {
+          result += ' ';
         }
-        const hex = hexString.substr(j, 2);
-        hexLine += hex + ' ';
-        const charCode = parseInt(hex, 16);
-        // For ASCII codes 32 though 126, display the corresponding
-        // characters.  Use a space for nulls, and a period for
-        // everything else.
-        if (charCode >= 0x20 && charCode <= 0x7E) {
-          asciiLine += String.fromCharCode(charCode);
-        } else if (charCode === 0x00) {
-          asciiLine += ' ';
+
+        // Output hex for the byte, or space if no bytes remain.
+        const byteIndex = startIndex + i;
+        if (byteIndex < bytes.length) {
+          result += byteToPaddedHex(bytes[byteIndex]);
         } else {
-          asciiLine += '.';
+          result += '  ';
         }
       }
 
-      // Make the ASCII text for the last line of output align with the previous
-      // lines.
-      hexLine +=
-          makeRepeatedString(' ', 3 * asciiCharsPerLine + 1 - hexLine.length);
-      out.writeLine('   ' + hexLine + '  ' + asciiLine);
+      result += '   ';
+
+      // Append an ASCII formatting of the bytes, where ASCII codes 32
+      // though 126 display the corresponding characters, nulls are
+      // represented by spaces, and any other character is represented
+      // by a period.
+      for (let i = 0; i < kBytesPerLine; ++i) {
+        const byteIndex = startIndex + i;
+        if (byteIndex >= bytes.length) {
+          break;
+        }
+
+        const curByte = bytes[byteIndex];
+
+        if (curByte >= 0x20 && curByte <= 0x7E) {
+          result += String.fromCharCode(curByte);
+        } else if (curByte === 0x00) {
+          result += ' ';
+        } else {
+          result += '.';
+        }
+      }
+
+      return result;
+    }
+
+    // Output lines for each group of kBytesPerLine bytes.
+    for (let i = 0; i < bytes.length; i += kBytesPerLine) {
+      out.writeLine(formatLine(i));
     }
   }
 
@@ -295,6 +324,42 @@ let proxySettingsToString;
   }
 
   /**
+   * Parses |hexStr| to an array of bytes, or returns null if the input is not a
+   * valid hex string.
+   */
+  function tryParseHexToBytes(hexStr) {
+    if ((hexStr.length % 2) !== 0) {
+      return null;
+    }
+
+    const result = [];
+    for (let i = 0; i < hexStr.length; i += 2) {
+      const value = parseInt(hexStr.substr(i, 2), 16);
+      if (isNaN(value)) {
+        return null;
+      }
+      result.push(value);
+    }
+
+    return result;
+  }
+
+  /**
+   * Parses a base64 encoded string to a Uint8Array of bytes.
+   */
+  function tryParseBase64ToBytes(b64Str) {
+    let decodedStr;
+
+    try {
+      decodedStr = atob(b64Str);
+    } catch (e) {
+      return null;
+    }
+
+    return Uint8Array.from(decodedStr, c => c.charCodeAt(0));
+  }
+
+  /**
    * Default parameter writer that outputs a visualization of field named |key|
    * with value |value| to |out|.
    */
@@ -305,10 +370,24 @@ let proxySettingsToString;
     }
 
     // For transferred bytes, display the bytes in hex and ASCII.
+    // TODO(eroman): 'hex_encoded_bytes' was removed in M73, and
+    //               support for it can be removed in the future.
     if (key === 'hex_encoded_bytes' && typeof value === 'string') {
-      out.writeArrowKey(key);
-      writeHexString(value, out);
-      return;
+      const bytes = tryParseHexToBytes(value);
+      if (bytes) {
+        out.writeArrowKey(key);
+        writeHexString(bytes, out);
+        return;
+      }
+    }
+
+    if (key === 'bytes' && typeof value === 'string') {
+      const bytes = tryParseBase64ToBytes(value);
+      if (bytes) {
+        out.writeArrowKey(key);
+        writeHexString(bytes, out);
+        return;
+      }
     }
 
     // Handle source_dependency entries - add link and map source type to
