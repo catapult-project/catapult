@@ -4,8 +4,6 @@
 */
 'use strict';
 
-import {simpleGUID, timeout} from './utils.js';
-
 export default class CpToast extends Polymer.Element {
   static get is() { return 'cp-toast'; }
 
@@ -47,8 +45,8 @@ export default class CpToast extends Polymer.Element {
   async open(wait = 10000) {
     this.opened = true;
     if (!wait) return;
-    const start = this.openId_ = simpleGUID();
-    if (typeof wait === 'number') wait = timeout(wait);
+    const start = this.openId_ = cp.simpleGUID();
+    if (typeof wait === 'number') wait = cp.timeout(wait);
     await wait;
     if (this.openId_ !== start) return;
     this.opened = false;

@@ -7,18 +7,6 @@
 import './cp-radio-group.js';
 import './cp-radio.js';
 import './cp-switch.js';
-import ChartTimeseries from './chart-timeseries.js';
-import DetailsTable from './details-table.js';
-import ElementBase from './element-base.js';
-import {CHAIN, TOGGLE, UPDATE} from './simple-redux.js';
-import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
-import {MODE} from './layout-timeseries.js';
-
-import {
-  buildProperties,
-  buildState,
-  setImmutable,
-} from './utils.js';
 
 const MS_PER_DAY = tr.b.convertUnit(
     1, tr.b.UnitScale.TIME.DAY, tr.b.UnitScale.TIME.MILLI_SEC);
@@ -29,9 +17,7 @@ const MS_PER_MONTH = tr.b.convertUnit(
   * ChartCompound synchronizes revision ranges and axis properties between a
   * minimap and a main chart, and among any number of other linked charts.
   */
-export default class ChartCompound extends ElementBase {
-  static get is() { return 'chart-compound'; }
-
+export default class ChartCompound extends cp.ElementBase {
   static get template() {
     return Polymer.html`
       <style>
@@ -221,12 +207,12 @@ export default class ChartCompound extends ElementBase {
 
   fewEnoughLines_(lineDescriptors) {
     return lineDescriptors &&
-        lineDescriptors.length < ChartTimeseries.MAX_LINES;
+        lineDescriptors.length < cp.ChartTimeseries.MAX_LINES;
   }
 
   async onGetTooltip_(event) {
     const p = event.detail.nearestPoint;
-    this.dispatch(UPDATE(this.statePath, {
+    this.dispatch(Redux.UPDATE(this.statePath, {
       cursorRevision: p.x,
       cursorScalar: new tr.b.Scalar(p.datum.unit, p.y),
     }));
@@ -255,23 +241,23 @@ export default class ChartCompound extends ElementBase {
 
   async onMenuKeyup_(event) {
     if (event.key === 'Escape') {
-      await this.dispatch(UPDATE(this.statePath, {
+      await this.dispatch(Redux.UPDATE(this.statePath, {
         isShowingOptions: false,
       }));
     }
   }
 
   async onMenuBlur_(event) {
-    if (isElementChildOf(event.relatedTarget, this.$.options_container)) {
+    if (cp.isElementChildOf(event.relatedTarget, this.$.options_container)) {
       return;
     }
-    await this.dispatch(UPDATE(this.statePath, {
+    await this.dispatch(Redux.UPDATE(this.statePath, {
       isShowingOptions: false,
     }));
   }
 
   async onOptionsToggle_(event) {
-    await this.dispatch(TOGGLE(this.statePath + '.isShowingOptions'));
+    await this.dispatch(Redux.TOGGLE(this.statePath + '.isShowingOptions'));
   }
 
   async onMinimapBrush_(event) {
@@ -291,18 +277,18 @@ export default class ChartCompound extends ElementBase {
   }
 
   async onToggleZeroYAxis_(event) {
-    await this.dispatch(TOGGLE(this.statePath + '.zeroYAxis'));
+    await this.dispatch(Redux.TOGGLE(this.statePath + '.zeroYAxis'));
     await this.dispatch('load', this.statePath);
     if (this.isLinked) {
-      await this.dispatch(TOGGLE(
+      await this.dispatch(Redux.TOGGLE(
           this.linkedStatePath + '.linkedZeroYAxis'));
     }
   }
 
   async onToggleFixedXAxis_(event) {
-    await this.dispatch(TOGGLE(this.statePath + '.fixedXAxis'));
+    await this.dispatch(Redux.TOGGLE(this.statePath + '.fixedXAxis'));
     if (this.isLinked) {
-      await this.dispatch(TOGGLE(
+      await this.dispatch(Redux.TOGGLE(
           this.linkedStatePath + '.linkedFixedXAxis'));
     }
     await this.dispatch('load', this.statePath);
@@ -317,7 +303,7 @@ export default class ChartCompound extends ElementBase {
 
   observeLinkedCursor_() {
     if (!this.isLinked) return;
-    this.dispatch(UPDATE(this.statePath, {
+    this.dispatch(Redux.UPDATE(this.statePath, {
       cursorRevision: this.linkedCursorRevision,
       cursorScalar: this.linkedCursorScalar,
     }));
@@ -329,7 +315,7 @@ export default class ChartCompound extends ElementBase {
         this.linkedMaxRevision === this.maxRevision) {
       return;
     }
-    this.dispatch(UPDATE(this.statePath, {
+    this.dispatch(Redux.UPDATE(this.statePath, {
       minRevision: this.linkedMinRevision,
       maxRevision: this.linkedMaxRevision,
     }));
@@ -339,30 +325,30 @@ export default class ChartCompound extends ElementBase {
   observeLinkedMode_() {
     if (!this.isLinked) return;
     if (this.mode === this.linkedMode) return;
-    this.dispatch(UPDATE(this.statePath, {mode: this.linkedMode}));
+    this.dispatch(Redux.UPDATE(this.statePath, {mode: this.linkedMode}));
     this.dispatch('load', this.statePath);
   }
 
   observeLinkedZeroYAxis_() {
     if (!this.isLinked) return;
     if (this.zeroYAxis === this.linkedZeroYAxis) return;
-    this.dispatch(TOGGLE(this.statePath + '.zeroYAxis'));
+    this.dispatch(Redux.TOGGLE(this.statePath + '.zeroYAxis'));
     this.dispatch('load', this.statePath);
   }
 
   observeLinkedFixedXAxis_() {
     if (!this.isLinked) return;
     if (this.fixedXAxis === this.linkedFixedXAxis) return;
-    this.dispatch(TOGGLE(this.statePath + '.fixedXAxis'));
+    this.dispatch(Redux.TOGGLE(this.statePath + '.fixedXAxis'));
     this.dispatch('load', this.statePath);
   }
 
   onModeChange_(event) {
-    this.dispatch(UPDATE(this.statePath, {mode: event.detail.value}));
+    this.dispatch(Redux.UPDATE(this.statePath, {mode: event.detail.value}));
     this.dispatch('load', this.statePath);
 
     if (this.isLinked) {
-      this.dispatch(UPDATE(this.linkedStatePath, {
+      this.dispatch(Redux.UPDATE(this.linkedStatePath, {
         linkedMode: event.detail.value,
       }));
     }
@@ -389,7 +375,7 @@ export default class ChartCompound extends ElementBase {
     if (this.isLinked &&
         (this.cursorRevision !== this.linkedCursorRevision ||
           this.cursorScalar !== this.linkedCursorScalar)) {
-      this.dispatch(UPDATE(this.linkedStatePath, {
+      this.dispatch(Redux.UPDATE(this.linkedStatePath, {
         linkedCursorRevision: this.cursorRevision,
         linkedCursorScalar: this.cursorScalar,
       }));
@@ -402,8 +388,8 @@ ChartCompound.State = {
   isExpanded: options => options.isExpanded !== false,
   minimapLayout: options => {
     const minimapLayout = {
-      ...ChartTimeseries.buildState({
-        levelOfDetail: LEVEL_OF_DETAIL.XY,
+      ...cp.ChartTimeseries.buildState({
+        levelOfDetail: cp.LEVEL_OF_DETAIL.XY,
       }),
       graphHeight: 40,
     };
@@ -413,8 +399,8 @@ ChartCompound.State = {
     return minimapLayout;
   },
   chartLayout: options => {
-    const chartLayout = ChartTimeseries.buildState({
-      levelOfDetail: LEVEL_OF_DETAIL.ANNOTATIONS,
+    const chartLayout = cp.ChartTimeseries.buildState({
+      levelOfDetail: cp.LEVEL_OF_DETAIL.ANNOTATIONS,
       showTooltip: true,
     });
     chartLayout.xAxis.height = 15;
@@ -424,20 +410,20 @@ ChartCompound.State = {
     chartLayout.brushRevisions = options.brushRevisions || [];
     return chartLayout;
   },
-  details: options => DetailsTable.buildState({}),
+  details: options => cp.DetailsTable.buildState({}),
   isShowingOptions: options => false,
   isLinked: options => options.isLinked !== false,
   cursorRevision: options => 0,
   cursorScalar: options => undefined,
   minRevision: options => options.minRevision,
   maxRevision: options => options.maxRevision,
-  mode: options => options.mode || MODE.NORMALIZE_UNIT,
+  mode: options => options.mode || cp.MODE.NORMALIZE_UNIT,
   zeroYAxis: options => options.zeroYAxis || false,
   fixedXAxis: options => options.fixedXAxis !== false,
 };
 
 ChartCompound.buildState = options =>
-  buildState(ChartCompound.State, options);
+  cp.buildState(ChartCompound.State, options);
 
 ChartCompound.observers = [
   'observeLinkedCursor_(linkedCursorRevision, linkedCursorScalar)',
@@ -453,14 +439,14 @@ ChartCompound.LinkedState = {
   linkedCursorScalar: options => undefined,
   linkedMinRevision: options => options.minRevision,
   linkedMaxRevision: options => options.maxRevision,
-  linkedMode: options => options.mode || MODE.NORMALIZE_UNIT,
+  linkedMode: options => options.mode || cp.MODE.NORMALIZE_UNIT,
   linkedZeroYAxis: options => options.zeroYAxis || false,
   linkedFixedXAxis: options => options.fixedXAxis !== false,
 };
 
 ChartCompound.properties = {
-  ...buildProperties('state', ChartCompound.State),
-  ...buildProperties('linkedState', ChartCompound.LinkedState),
+  ...cp.buildProperties('state', ChartCompound.State),
+  ...cp.buildProperties('linkedState', ChartCompound.LinkedState),
   isChartLoading: {
     computed: 'identity_(chartLayout.isLoading)',
     observer: 'observeChartLoading_',
@@ -489,7 +475,7 @@ ChartCompound.actions = {
           linkedMaxRevision === state.linkedMaxRevision) {
         return;
       }
-      dispatch(UPDATE(linkedStatePath, {
+      dispatch(Redux.UPDATE(linkedStatePath, {
         linkedMinRevision, linkedMaxRevision,
       }));
     },
@@ -524,9 +510,9 @@ ChartCompound.actions = {
     const state = Polymer.Path.get(getState(), statePath);
     if (!state || !state.lineDescriptors ||
         state.lineDescriptors.length === 0) {
-      dispatch(CHAIN(
-          UPDATE(`${statePath}.minimapLayout`, {lineDescriptors: []}),
-          UPDATE(`${statePath}.chartLayout`, {lineDescriptors: []}),
+      dispatch(Redux.CHAIN(
+          Redux.UPDATE(`${statePath}.minimapLayout`, {lineDescriptors: []}),
+          Redux.UPDATE(`${statePath}.chartLayout`, {lineDescriptors: []}),
       ));
       return;
     }
@@ -549,7 +535,7 @@ ChartCompound.actions = {
     }
 
     // Never set zeroYAxis on the minimap. It's too short to waste space.
-    dispatch(UPDATE(`${statePath}.minimapLayout`, {
+    dispatch(Redux.UPDATE(`${statePath}.minimapLayout`, {
       lineDescriptors: minimapLineDescriptors,
       brushRevisions: [minRevision, maxRevision],
       fixedXAxis: state.fixedXAxis,
@@ -563,7 +549,7 @@ ChartCompound.actions = {
       ];
     }
 
-    dispatch(UPDATE(`${statePath}.chartLayout`, {
+    dispatch(Redux.UPDATE(`${statePath}.chartLayout`, {
       lineDescriptors,
       minRevision,
       maxRevision,
@@ -571,11 +557,11 @@ ChartCompound.actions = {
       mode: state.mode,
       zeroYAxis: state.zeroYAxis,
     }));
-    dispatch(UPDATE(`${statePath}.details`, {
+    dispatch(Redux.UPDATE(`${statePath}.details`, {
       lineDescriptors,
       minRevision,
       maxRevision,
-      revisionRanges: ChartTimeseries.revisionRanges(
+      revisionRanges: cp.ChartTimeseries.revisionRanges(
           state.chartLayout.brushRevisions),
     }));
   },
@@ -592,7 +578,7 @@ ChartCompound.reducers = {
   detailsColorByLine: (state, action, rootState) => {
     const colorByLine = state.chartLayout.lines.map(line => {
       return {
-        descriptor: ChartTimeseries.stringifyDescriptor(line.descriptor),
+        descriptor: cp.ChartTimeseries.stringifyDescriptor(line.descriptor),
         color: line.color,
       };
     });
@@ -623,7 +609,7 @@ ChartCompound.reducers = {
       brushRevisions.push(parseInt(revRange.center));
     }
     const chartLayout = {...state.chartLayout, brushRevisions};
-    const revisionRanges = ChartTimeseries.revisionRanges(brushRevisions);
+    const revisionRanges = cp.ChartTimeseries.revisionRanges(brushRevisions);
     const details = {...state.details, revisionRanges};
     return {...state, chartLayout, details};
   },
@@ -636,7 +622,7 @@ ChartCompound.reducers = {
     if (datumIndex < 0) return state;
 
     // If nearestPoint is in revisionRanges, reset brushes.
-    for (const range of ChartTimeseries.revisionRanges(
+    for (const range of cp.ChartTimeseries.revisionRanges(
         state.chartLayout.brushRevisions)) {
       if (range.min < nearestPoint.x && nearestPoint.x < range.max) {
         const xAxis = {...state.chartLayout.xAxis, brushes: []};
@@ -673,7 +659,7 @@ ChartCompound.reducers = {
     const xAxis = {...state.chartLayout.xAxis, brushes};
     const chartLayout = {...state.chartLayout, brushRevisions, xAxis};
 
-    const revisionRanges = ChartTimeseries.revisionRanges(brushRevisions);
+    const revisionRanges = cp.ChartTimeseries.revisionRanges(brushRevisions);
     const details = {...state.details, revisionRanges};
     return {...state, chartLayout, details};
   },
@@ -724,7 +710,7 @@ ChartCompound.reducers = {
 
     if (state.cursorScalar && state.chartLayout && state.chartLayout.yAxis) {
       let yRange;
-      if (state.mode === MODE.NORMALIZE_UNIT) {
+      if (state.mode === cp.MODE.NORMALIZE_UNIT) {
         if (state.chartLayout.yAxis.rangeForUnitName) {
           yRange = state.chartLayout.yAxis.rangeForUnitName.get(
               state.cursorScalar.unit.baseUnit.unitName);
@@ -854,7 +840,7 @@ ChartCompound.reducers = {
         hue = 40;  // orange
       }
       const iconColor = `hsl(${hue}, 90%, 60%)`;
-      return setImmutable(line, `data.${line.data.length - 1}`, datum => {
+      return cp.setImmutable(line, `data.${line.data.length - 1}`, datum => {
         return {...datum, icon: 'cp:clock', iconColor};
       });
     });
@@ -868,12 +854,12 @@ ChartCompound.reducers = {
 ChartCompound.findFirstNonEmptyLineDescriptor = async(
   lineDescriptors, refStatePath, dispatch, getState) => {
   for (const lineDescriptor of lineDescriptors) {
-    const fetchDescriptors = ChartTimeseries.createFetchDescriptors(
-        lineDescriptor, LEVEL_OF_DETAIL.XY);
+    const fetchDescriptors = cp.ChartTimeseries.createFetchDescriptors(
+        lineDescriptor, cp.LEVEL_OF_DETAIL.XY);
 
     const results = await Promise.all(fetchDescriptors.map(
         async fetchDescriptor => {
-          const reader = new TimeseriesRequest(fetchDescriptor).reader();
+          const reader = new cp.TimeseriesRequest(fetchDescriptor).reader();
           for await (const timeseries of reader) {
             return timeseries;
           }
@@ -948,4 +934,4 @@ ChartCompound.computeMaxRevision = (
   return maxRevision;
 };
 
-ElementBase.register(ChartCompound);
+cp.ElementBase.register(ChartCompound);

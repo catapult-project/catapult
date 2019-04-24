@@ -4,8 +4,6 @@
 */
 'use strict';
 
-import {afterRender} from './utils.js';
-
 export default class CpTabBar extends Polymer.Element {
   static get is() { return 'cp-tab-bar'; }
 
@@ -25,7 +23,7 @@ export default class CpTabBar extends Polymer.Element {
 
   async ready() {
     super.ready();
-    await afterRender();
+    await cp.afterRender();
     this.observeSelected_();
   }
 

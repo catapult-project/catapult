@@ -7,13 +7,13 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-
+<link rel="import" href="/dashboard/spa/simple-redux.html">
+<script type="module" src="/dashboard/spa/cache-request-base.js"></script>
+<script type="module" src="/dashboard/spa/report-cache-request.js"></script>
 <script type="module">
 'use strict';
 import testUtils from './cache-request-base.js';
 import ReportCacheRequest from './report-cache-request.js';
-import {timeout} from './utils.js';
-
 suite('ReportCacheRequest', function() {
   class MockFetchEvent {
     constructor(parameters) {
@@ -125,7 +125,7 @@ suite('ReportCacheRequest', function() {
       // return before the network, as is typical in production. If the network
       // returns before the database, then generateResults() will not wait for
       // the database.
-      await timeout(10);
+      await cp.timeout(10);
       return testUtils.jsonResponse(response);
     };
   }

@@ -7,7 +7,12 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/dependencies.html">
+
+<link rel="import" href="/dashboard/spa/describe-request.html">
+<link rel="import" href="/dashboard/spa/memory-components.html">
+<link rel="import" href="/dashboard/spa/menu-input.html">
+<link rel="import" href="/dashboard/spa/tag-filter.html">
+<link rel="import" href="/dashboard/spa/test-suites-request.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -16,14 +21,8 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script type="module">
+<script>
 'use strict';
-
-import DescribeRequest from './describe-request.js';
-import TestSuitesRequest from './test-suites-request.js';
-import {ENSURE, TOGGLE, UPDATE} from './simple-redux.js';
-import {afterRender} from './utils.js';
-
 suite('timeseries-descriptor', function() {
   let originalFetch;
   setup(() => {
@@ -31,10 +30,10 @@ suite('timeseries-descriptor', function() {
     window.fetch = async(url, options) => {
       return {
         async json() {
-          if (url === TestSuitesRequest.URL) {
+          if (url === cp.TestSuitesRequest.URL) {
             return ['suite_a', 'suite_b', 'suite_c'];
           }
-          if (url === DescribeRequest.URL) {
+          if (url === cp.DescribeRequest.URL) {
             return {
               measurements: [
                 'measurement_a', 'measurement_b', 'measurement_c',
@@ -61,13 +60,13 @@ suite('timeseries-descriptor', function() {
     await importModule('./cp-checkbox.js');
     const {default: TimeseriesDescriptor} = await importModule(
         './timeseries-descriptor.js');
-    fixture('test').dispatch(ENSURE('test'));
+    fixture('test').dispatch(Redux.ENSURE('test'));
     const td = fixture('test');
-    td.dispatch(UPDATE('test', TimeseriesDescriptor.buildState({})));
-    await afterRender();
+    td.dispatch(Redux.UPDATE('test', TimeseriesDescriptor.buildState({})));
+    await cp.afterRender();
 
     tr.ui.b.findDeepElementWithTextContent(td, /suite_a/).click();
-    await afterRender();
+    await cp.afterRender();
 
     const state = td.getState().test;
     assert.lengthOf(state.measurement.options, 3);
@@ -81,10 +80,10 @@ suite('timeseries-descriptor', function() {
     await importModule('./cp-checkbox.js');
     const {default: TimeseriesDescriptor} = await importModule(
         './timeseries-descriptor.js');
-    fixture('test').dispatch(ENSURE('test'));
+    fixture('test').dispatch(Redux.ENSURE('test'));
     const td = fixture('test');
-    td.dispatch(UPDATE('test', TimeseriesDescriptor.buildState({})));
-    await afterRender();
+    td.dispatch(Redux.UPDATE('test', TimeseriesDescriptor.buildState({})));
+    await cp.afterRender();
 
     let matrix;
     td.addEventListener('matrix-change', e => {
@@ -93,24 +92,24 @@ suite('timeseries-descriptor', function() {
 
     tr.ui.b.findDeepElementWithTextContent(td, /suite_a/).click();
     tr.ui.b.findDeepElementWithTextContent(td, /suite_b/).click();
-    await afterRender();
+    await cp.afterRender();
     tr.ui.b.findDeepElementWithTextContent(td, /measurement_a/).click();
     tr.ui.b.findDeepElementWithTextContent(td, /bot_a/).click();
     tr.ui.b.findDeepElementWithTextContent(td, /bot_b/).click();
-    await afterRender();
+    await cp.afterRender();
 
     assert.deepEqual([['suite_a', 'suite_b']], matrix.suites);
     assert.deepEqual(['measurement_a'], matrix.measurements);
     assert.deepEqual([['bot_a', 'bot_b']], matrix.bots);
     assert.deepEqual([[]], matrix.cases);
 
-    td.dispatch(TOGGLE('test.suite.isAggregated'));
-    td.dispatch(TOGGLE('test.bot.isAggregated'));
-    td.dispatch(TOGGLE('test.case.isAggregated'));
+    td.dispatch(Redux.TOGGLE('test.suite.isAggregated'));
+    td.dispatch(Redux.TOGGLE('test.bot.isAggregated'));
+    td.dispatch(Redux.TOGGLE('test.case.isAggregated'));
 
     tr.ui.b.findDeepElementWithTextContent(td, /case_a/).click();
     tr.ui.b.findDeepElementWithTextContent(td, /case_b/).click();
-    await afterRender();
+    await cp.afterRender();
 
     assert.deepEqual([['suite_a'], ['suite_b']], matrix.suites);
     assert.deepEqual(['measurement_a'], matrix.measurements);

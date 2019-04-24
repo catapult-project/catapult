@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/dependencies.html">
+<link rel="import" href="/dashboard/spa/memory-components.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -16,63 +16,59 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script type="module">
+<script>
 'use strict';
-
-import {UPDATE} from './simple-redux.js';
-import {afterRender} from './utils.js';
+setup(() => {
+  fixture('test').dispatch(Redux.UPDATE('', {
+    test: cp.MemoryComponents.buildState({
+      options: [
+        // See getNumericName in memoryMetric:
+        // /tracing/tracing/metrics/system_health/memory_metric.html
+        'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size',
+        'memory:chrome:aaa_process:reported_bbb:ccc:eee_size',
+        'memory:chrome:aaa_process:reported_bbb:fff:ddd_size',
+        'memory:chrome:aaa_process:reported_bbb:fff:eee_size',
+        'memory:chrome:aaa_process:reported_ggg:ccc:ddd_size',
+        'memory:chrome:aaa_process:reported_ggg:ccc:eee_size',
+        'memory:chrome:aaa_process:reported_ggg:fff:ddd_size',
+        'memory:chrome:aaa_process:reported_ggg:fff:eee_size',
+        'memory:chrome:hhh_process:reported_bbb:ccc:ddd_size',
+        'memory:chrome:hhh_process:reported_bbb:ccc:eee_size',
+        'memory:chrome:hhh_process:reported_bbb:fff:ddd_size',
+        'memory:chrome:hhh_process:reported_bbb:fff:eee_size',
+        'memory:chrome:hhh_process:reported_ggg:ccc:ddd_size',
+        'memory:chrome:hhh_process:reported_ggg:ccc:eee_size',
+        'memory:chrome:hhh_process:reported_ggg:fff:ddd_size',
+        'memory:chrome:hhh_process:reported_ggg:fff:eee_size',
+        'memory:webview:aaa_process:reported_bbb:ccc:ddd_size',
+        'memory:webview:aaa_process:reported_bbb:ccc:eee_size',
+        'memory:webview:aaa_process:reported_bbb:fff:ddd_size',
+        'memory:webview:aaa_process:reported_bbb:fff:eee_size',
+        'memory:webview:aaa_process:reported_ggg:ccc:ddd_size',
+        'memory:webview:aaa_process:reported_ggg:ccc:eee_size',
+        'memory:webview:aaa_process:reported_ggg:fff:ddd_size',
+        'memory:webview:aaa_process:reported_ggg:fff:eee_size',
+        'memory:webview:hhh_process:reported_bbb:ccc:ddd_size',
+        'memory:webview:hhh_process:reported_bbb:ccc:eee_size',
+        'memory:webview:hhh_process:reported_bbb:fff:ddd_size',
+        'memory:webview:hhh_process:reported_bbb:fff:eee_size',
+        'memory:webview:hhh_process:reported_ggg:ccc:ddd_size',
+        'memory:webview:hhh_process:reported_ggg:ccc:eee_size',
+        'memory:webview:hhh_process:reported_ggg:fff:ddd_size',
+        'memory:webview:hhh_process:reported_ggg:fff:eee_size',
+      ],
+      selectedOptions: [
+        'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size',
+      ],
+    }),
+  }));
+});
 
 suite('memory-components', function() {
-  const OPTIONS = {
-    options: [
-      // See getNumericName in memoryMetric:
-      // /tracing/tracing/metrics/system_health/memory_metric.html
-      'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size',
-      'memory:chrome:aaa_process:reported_bbb:ccc:eee_size',
-      'memory:chrome:aaa_process:reported_bbb:fff:ddd_size',
-      'memory:chrome:aaa_process:reported_bbb:fff:eee_size',
-      'memory:chrome:aaa_process:reported_ggg:ccc:ddd_size',
-      'memory:chrome:aaa_process:reported_ggg:ccc:eee_size',
-      'memory:chrome:aaa_process:reported_ggg:fff:ddd_size',
-      'memory:chrome:aaa_process:reported_ggg:fff:eee_size',
-      'memory:chrome:hhh_process:reported_bbb:ccc:ddd_size',
-      'memory:chrome:hhh_process:reported_bbb:ccc:eee_size',
-      'memory:chrome:hhh_process:reported_bbb:fff:ddd_size',
-      'memory:chrome:hhh_process:reported_bbb:fff:eee_size',
-      'memory:chrome:hhh_process:reported_ggg:ccc:ddd_size',
-      'memory:chrome:hhh_process:reported_ggg:ccc:eee_size',
-      'memory:chrome:hhh_process:reported_ggg:fff:ddd_size',
-      'memory:chrome:hhh_process:reported_ggg:fff:eee_size',
-      'memory:webview:aaa_process:reported_bbb:ccc:ddd_size',
-      'memory:webview:aaa_process:reported_bbb:ccc:eee_size',
-      'memory:webview:aaa_process:reported_bbb:fff:ddd_size',
-      'memory:webview:aaa_process:reported_bbb:fff:eee_size',
-      'memory:webview:aaa_process:reported_ggg:ccc:ddd_size',
-      'memory:webview:aaa_process:reported_ggg:ccc:eee_size',
-      'memory:webview:aaa_process:reported_ggg:fff:ddd_size',
-      'memory:webview:aaa_process:reported_ggg:fff:eee_size',
-      'memory:webview:hhh_process:reported_bbb:ccc:ddd_size',
-      'memory:webview:hhh_process:reported_bbb:ccc:eee_size',
-      'memory:webview:hhh_process:reported_bbb:fff:ddd_size',
-      'memory:webview:hhh_process:reported_bbb:fff:eee_size',
-      'memory:webview:hhh_process:reported_ggg:ccc:ddd_size',
-      'memory:webview:hhh_process:reported_ggg:ccc:eee_size',
-      'memory:webview:hhh_process:reported_ggg:fff:ddd_size',
-      'memory:webview:hhh_process:reported_ggg:fff:eee_size',
-    ],
-    selectedOptions: [
-      'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size',
-    ],
-  };
-
   test('select', async function() {
-    const {default: MemoryComponents} = await importModule(
-        './memory-components.js');
-    fixture('test').dispatch(UPDATE('', {
-      test: MemoryComponents.buildState(OPTIONS),
-    }));
+    await importModule('./cp-checkbox.js');
     const memoryComponents = fixture('test');
-    await afterRender();
+    await cp.afterRender();
     let state = memoryComponents.getState().test;
     assert.lengthOf(state.columns, 5);
     assert.strictEqual('chrome', state.columns[0].options[0].value);
@@ -93,7 +89,7 @@ suite('memory-components', function() {
 
     const ggg = tr.ui.b.findDeepElementWithTextContent(memoryComponents, /ggg/);
     ggg.click();
-    await afterRender();
+    await cp.afterRender();
     state = memoryComponents.getState().test;
     assert.include(state.selectedOptions,
         'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size');
@@ -106,7 +102,7 @@ suite('memory-components', function() {
 
     const eee = tr.ui.b.findDeepElementWithTextContent(memoryComponents, /eee/);
     eee.click();
-    await afterRender();
+    await cp.afterRender();
     state = memoryComponents.getState().test;
     assert.include(state.selectedOptions,
         'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size');
@@ -119,7 +115,7 @@ suite('memory-components', function() {
 
     const ddd = tr.ui.b.findDeepElementWithTextContent(memoryComponents, /ddd/);
     ddd.click();
-    await afterRender();
+    await cp.afterRender();
     state = memoryComponents.getState().test;
     assert.notInclude(state.selectedOptions,
         'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size');
@@ -132,7 +128,7 @@ suite('memory-components', function() {
 
     const bbb = tr.ui.b.findDeepElementWithTextContent(memoryComponents, /bbb/);
     bbb.click();
-    await afterRender();
+    await cp.afterRender();
     state = memoryComponents.getState().test;
     assert.notInclude(state.selectedOptions,
         'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size');

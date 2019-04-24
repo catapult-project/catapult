@@ -8,9 +8,19 @@ import {
   CacheRequestBase, READONLY, READWRITE, jsonResponse,
 } from './cache-request-base.js';
 
-import sha from './sha.js';
-
 const STORE_SIDS = 'sids';
+
+// TODO share with utils.js when vulcanize is replaced with webpack
+async function sha(s) {
+  s = new TextEncoder('utf-8').encode(s);
+  const hash = await crypto.subtle.digest('SHA-256', s);
+  const view = new DataView(hash);
+  let hex = '';
+  for (let i = 0; i < view.byteLength; i += 4) {
+    hex += ('00000000' + view.getUint32(i).toString(16)).slice(-8);
+  }
+  return hex;
+}
 
 export default class SessionIdCacheRequest extends CacheRequestBase {
   get timingCategory() {

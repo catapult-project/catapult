@@ -7,7 +7,13 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/dependencies.html">
+
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/memory-components.html">
+<link rel="import" href="/dashboard/spa/menu-input.html">
+<link rel="import" href="/dashboard/spa/request-base.html">
+<link rel="import" href="/dashboard/spa/tag-filter.html">
+<link rel="import" href="/dashboard/spa/utils.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -18,10 +24,6 @@ found in the LICENSE file.
 
 <script type="module">
 'use strict';
-
-import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
-import {afterRender} from './utils.js';
-
 suite('report-section', function() {
   let originalFetch;
   setup(async() => {
@@ -100,14 +102,14 @@ suite('report-section', function() {
 
   test('loadReports', async function() {
     const {default: ReportSection} = await importModule('./report-section.js');
-    fixture('test').dispatch(CHAIN(
-        ENSURE('test'),
-        ENSURE('test.source'),
-        UPDATE('test', ReportSection.buildState({}))));
+    fixture('test').dispatch(Redux.CHAIN(
+        Redux.ENSURE('test'),
+        Redux.ENSURE('test.source'),
+        Redux.UPDATE('test', ReportSection.buildState({}))));
     const section = fixture('test');
     assert.isTrue(section.tables[0].isPlaceholder);
     while (section.tables[0].isPlaceholder) {
-      await afterRender();
+      await cp.afterRender();
     }
     assert.lengthOf(section.tables[0].rows, 1);
     assert.strictEqual('group', section.tables[0].rows[0].labelParts[0].label);

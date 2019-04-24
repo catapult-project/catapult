@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/dependencies.html">
+<link rel="import" href="/dashboard/spa/option-group.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -17,26 +17,25 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script type="module">
+<script>
 'use strict';
-
-import {UPDATE} from './simple-redux.js';
-import {afterRender} from './utils.js';
+setup(() => {
+  fixture('test').dispatch(Redux.UPDATE('', {
+    test: cp.OptionGroup.buildState({
+      options: new Set([
+        'aaa',
+        'bbb:ccc',
+        'bbb:ddd',
+        'bbb:ddd:eee',
+        'bbb:ddd:fff',
+      ]),
+    }),
+  }));
+});
 
 suite('option-group', function() {
-  const OPTIONS = {
-    options: new Set([
-      'aaa',
-      'bbb:ccc',
-      'bbb:ddd',
-      'bbb:ddd:eee',
-      'bbb:ddd:fff',
-    ]),
-  };
-
-  test('groupValues', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
-    const actual = OptionGroup.groupValues([
+  test('groupValues', function() {
+    const actual = cp.OptionGroup.groupValues([
       'aaa',
       'bbb:ccc',
       'bbb:ddd',
@@ -83,87 +82,69 @@ suite('option-group', function() {
   });
 
   test('select simple', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
-    fixture('test').dispatch(UPDATE('', {
-      test: OptionGroup.buildState(OPTIONS),
-    }));
+    await importModule('./cp-checkbox.js');
     const optionGroup = fixture('test');
-    await afterRender();
+    await cp.afterRender();
     const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /aaa/);
     checkbox.$.native.click();
-    await afterRender();
+    await cp.afterRender();
     assert.deepEqual(['aaa'], optionGroup.getState().test.selectedOptions);
   });
 
   test('deselect simple', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
-    fixture('test').dispatch(UPDATE('', {
-      test: OptionGroup.buildState(OPTIONS),
-    }));
+    await importModule('./cp-checkbox.js');
     const optionGroup = fixture('test');
-    await afterRender();
-    optionGroup.dispatch(UPDATE('test', {selectedOptions: ['aaa']}));
+    await cp.afterRender();
+    optionGroup.dispatch(Redux.UPDATE('test', {selectedOptions: ['aaa']}));
     const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /aaa/);
     checkbox.$.native.click();
-    await afterRender();
+    await cp.afterRender();
     assert.deepEqual([], optionGroup.getState().test.selectedOptions);
   });
 
   test('select all descendents', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
-    fixture('test').dispatch(UPDATE('', {
-      test: OptionGroup.buildState(OPTIONS),
-    }));
+    await importModule('./cp-checkbox.js');
     const optionGroup = fixture('test');
-    await afterRender();
+    await cp.afterRender();
     const bLeaf = tr.ui.b.findDeepElementWithTextContent(optionGroup, /bbb/);
     bLeaf.$.native.click();
-    await afterRender();
+    await cp.afterRender();
     assert.deepEqual(['bbb:ccc', 'bbb:ddd', 'bbb:ddd:eee', 'bbb:ddd:fff'],
         optionGroup.getState().test.selectedOptions);
   });
 
   test('deselect all descendents', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
-    fixture('test').dispatch(UPDATE('', {
-      test: OptionGroup.buildState(OPTIONS),
-    }));
+    await importModule('./cp-checkbox.js');
     const optionGroup = fixture('test');
-    await afterRender();
-    optionGroup.dispatch(UPDATE('test', {selectedOptions: [
+    await cp.afterRender();
+    optionGroup.dispatch(Redux.UPDATE('test', {selectedOptions: [
       'bbb:ccc', 'bbb:ddd', 'bbb:ddd:eee', 'bbb:ddd:fff',
     ]}));
     const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /ddd/);
     checkbox.$.native.click();
-    await afterRender();
+    await cp.afterRender();
     assert.deepEqual(['bbb:ccc'], optionGroup.getState().test.selectedOptions);
   });
 
   test('select tri-state single', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
-    fixture('test').dispatch(UPDATE('', {
-      test: OptionGroup.buildState(OPTIONS),
-    }));
+    await importModule('./cp-checkbox.js');
     const optionGroup = fixture('test');
-    await afterRender();
-    optionGroup.dispatch(UPDATE('test', {selectedOptions: []}));
+    await cp.afterRender();
+    optionGroup.dispatch(Redux.UPDATE('test', {selectedOptions: []}));
     const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /ddd/);
     checkbox.$.native.click();
-    await afterRender();
+    await cp.afterRender();
     assert.deepEqual(['bbb:ddd'], optionGroup.getState().test.selectedOptions);
   });
 
   test('select tri-state all descendents', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
-    fixture('test').dispatch(UPDATE('', {
-      test: OptionGroup.buildState(OPTIONS),
-    }));
+    await importModule('./cp-checkbox.js');
     const optionGroup = fixture('test');
-    await afterRender();
-    optionGroup.dispatch(UPDATE('test', {selectedOptions: ['bbb:ddd']}));
+    await cp.afterRender();
+    optionGroup.dispatch(Redux.UPDATE('test', {selectedOptions: ['bbb:ddd']}));
     const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /ddd/);
     checkbox.$.native.click();
-    await afterRender();
+    await cp.afterRender();
     assert.deepEqual(['bbb:ddd', 'bbb:ddd:eee', 'bbb:ddd:fff'],
         optionGroup.getState().test.selectedOptions);
   });

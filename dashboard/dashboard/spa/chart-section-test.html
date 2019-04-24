@@ -7,7 +7,18 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/dependencies.html">
+
+<link rel="import" href="/bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="/dashboard/spa/chart-timeseries.html">
+<link rel="import" href="/dashboard/spa/describe-request.html">
+<link rel="import" href="/dashboard/spa/details-table.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/memory-components.html">
+<link rel="import" href="/dashboard/spa/menu-input.html">
+<link rel="import" href="/dashboard/spa/tag-filter.html">
+<link rel="import" href="/dashboard/spa/test-suites-request.html">
+<link rel="import" href="/dashboard/spa/timeseries-request.html">
+<link rel="import" href="/dashboard/static/memory_related_names.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -17,15 +28,8 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script type="module">
+<script>
 'use strict';
-
-import DescribeRequest from './describe-request.js';
-import TestSuitesRequest from './test-suites-request.js';
-import {ENSURE, UPDATE} from './simple-redux.js';
-import {TimeseriesRequest} from './timeseries-request.js';
-import {afterRender} from './utils.js';
-
 window.AUTH_CLIENT_ID = '';
 
 suite('chart-section', function() {
@@ -42,16 +46,16 @@ suite('chart-section', function() {
     window.fetch = async(url, options) => {
       return {
         async json() {
-          if (url === TestSuitesRequest.URL) {
+          if (url === cp.TestSuitesRequest.URL) {
             return ['suite_a', 'suite_b', 'suite_c'];
           }
-          if (url === DescribeRequest.URL) {
+          if (url === cp.DescribeRequest.URL) {
             return {
               measurements: ['measure'],
               bots: ['master:bot'],
             };
           }
-          if (url === TimeseriesRequest.URL) {
+          if (url === cp.TimeseriesRequest.URL) {
             timeseriesBody = new Map(options.body);
             return {
               units: options.body.get('measurement'),
@@ -75,10 +79,10 @@ suite('chart-section', function() {
     const {default: TimeseriesDescriptor} = await importModule(
         './timeseries-descriptor.js');
     const chart = fixture('test');
-    chart.dispatch(ENSURE('test'));
-    chart.dispatch(UPDATE('test', ChartSection.buildState({})));
-    await afterRender();
-    await chart.dispatch(UPDATE(chart.statePath, {
+    chart.dispatch(Redux.ENSURE('test'));
+    chart.dispatch(Redux.UPDATE('test', ChartSection.buildState({})));
+    await cp.afterRender();
+    await chart.dispatch(Redux.UPDATE(chart.statePath, {
       descriptor: TimeseriesDescriptor.buildState({
         suite: {
           selectedOptions: ['suite'],
@@ -94,9 +98,9 @@ suite('chart-section', function() {
         },
       }),
     }));
-    await afterRender();
+    await cp.afterRender();
     chart.$.descriptor.dispatchEvent(new CustomEvent('matrix-change'));
-    await afterRender();
+    await cp.afterRender();
     assert.deepEqual(chart.lineDescriptors, [{
       bots: ['master:bot'],
       buildType: 'test',
@@ -112,10 +116,10 @@ suite('chart-section', function() {
     const {default: TimeseriesDescriptor} = await importModule(
         './timeseries-descriptor.js');
     const chart = fixture('test');
-    chart.dispatch(ENSURE('test'));
-    chart.dispatch(UPDATE('test', ChartSection.buildState({})));
-    await afterRender();
-    await chart.dispatch(UPDATE('test', {
+    chart.dispatch(Redux.ENSURE('test'));
+    chart.dispatch(Redux.UPDATE('test', ChartSection.buildState({})));
+    await cp.afterRender();
+    await chart.dispatch(Redux.UPDATE('test', {
       descriptor: TimeseriesDescriptor.buildState({
         suite: {
           selectedOptions: ['suite'],
@@ -132,7 +136,7 @@ suite('chart-section', function() {
       }),
     }));
     chart.$.statistic.dispatchEvent(new CustomEvent('option-select'));
-    await afterRender();
+    await cp.afterRender();
     assert.deepEqual(chart.lineDescriptors, [{
       bots: ['master:bot'],
       buildType: 'test',
@@ -146,12 +150,12 @@ suite('chart-section', function() {
   test('title', async function() {
     const {default: ChartSection} = await importModule('./chart-section.js');
     const chart = fixture('test');
-    chart.dispatch(ENSURE('test'));
-    chart.dispatch(UPDATE('test', ChartSection.buildState({})));
-    await afterRender();
+    chart.dispatch(Redux.ENSURE('test'));
+    chart.dispatch(Redux.UPDATE('test', ChartSection.buildState({})));
+    await cp.afterRender();
     chart.$.title.value = 'test';
     chart.$.title.dispatchEvent(new CustomEvent('keyup'));
-    await afterRender();
+    await cp.afterRender();
     assert.strictEqual('test', chart.title);
     assert.isTrue(chart.isTitleCustom);
   });

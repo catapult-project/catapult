@@ -5,19 +5,8 @@
 'use strict';
 
 import './cp-toast.js';
-import './scalar-span.js';
-import ElementBase from './element-base.js';
-import {TOGGLE, UPDATE} from './simple-redux.js';
 
-import {
-  buildProperties,
-  buildState,
-  measureElement,
-} from './utils.js';
-
-export default class ReportTable extends ElementBase {
-  static get is() { return 'report-table'; }
-
+export default class ReportTable extends cp.ElementBase {
   static get template() {
     return Polymer.html`
       <style>
@@ -273,7 +262,7 @@ export default class ReportTable extends ElementBase {
   }
 
   async onToggleEditing_(event) {
-    await this.dispatch(TOGGLE(this.statePath + '.isEditing'));
+    await this.dispatch(Redux.TOGGLE(this.statePath + '.isEditing'));
   }
 
   async onOpenChart_(event) {
@@ -350,9 +339,9 @@ export default class ReportTable extends ElementBase {
     }
     if (!tr) return;
     const td = tr.querySelector('scalar-span').parentNode;
-    const tdRect = await measureElement(td);
-    const thisRect = await measureElement(this);
-    await this.dispatch(UPDATE(this.statePath, {
+    const tdRect = await cp.measureElement(td);
+    const thisRect = await cp.measureElement(this);
+    await this.dispatch(Redux.UPDATE(this.statePath, {
       tooltip: {
         rows: event.model.row.actualDescriptors.map(descriptor => [
           descriptor.testSuite, descriptor.bot, descriptor.testCase]),
@@ -381,11 +370,11 @@ ReportTable.State = {
   tooltip: options => {return {};},
 };
 
-ReportTable.buildState = options => buildState(
+ReportTable.buildState = options => cp.buildState(
     ReportTable.State, options);
 
 ReportTable.properties = {
-  ...buildProperties('state', ReportTable.State),
+  ...cp.buildProperties('state', ReportTable.State),
   userEmail: {statePath: 'userEmail'},
 };
 
@@ -423,4 +412,4 @@ ReportTable.placeholderTable = name => {
   };
 };
 
-ElementBase.register(ReportTable);
+cp.ElementBase.register(ReportTable);

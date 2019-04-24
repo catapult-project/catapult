@@ -10,7 +10,30 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/dashboard/spa/index.css">
 </custom-style>
 
-<link rel="import" href="/dashboard/spa/dependencies.html">
+<link rel="import" href="/tracing/base/base.html" data-suppress-import-order>
+
+<link rel="import" href="/bower_components/app-route/app-location.html">
+<link rel="import" href="/bower_components/app-route/app-route.html">
+<link rel="import" href="/bower_components/chopsui/chops-header.html">
+<link rel="import" href="/bower_components/chopsui/chops-signin-aware.html">
+<link rel="import" href="/bower_components/chopsui/chops-signin.html">
+<link rel="import" href="/bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="/dashboard/spa/chart-timeseries.html">
+<link rel="import" href="/dashboard/spa/column-head.html">
+<link rel="import" href="/dashboard/spa/cp-icons.html">
+<link rel="import" href="/dashboard/spa/describe-request.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/group-alerts.html">
+<link rel="import" href="/dashboard/spa/memory-components.html">
+<link rel="import" href="/dashboard/spa/menu-input.html">
+<link rel="import" href="/dashboard/spa/recommended-options.html">
+<link rel="import" href="/dashboard/spa/request-base.html">
+<link rel="import" href="/dashboard/spa/tag-filter.html">
+<link rel="import" href="/dashboard/spa/test-suites-request.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+<link rel="import" href="/dashboard/static/memory_related_names.html">
+<link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/value/legacy_unit_info.html">
 
 <script src="/index.js"></script>
 <chromeperf-app state-path="chromeperfApp"></chromeperf-app>

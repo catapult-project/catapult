@@ -6,21 +6,9 @@
 
 import './cp-input.js';
 import './raised-button.js';
-import ElementBase from './element-base.js';
-import MenuInput from './menu-input.js';
-import OptionGroup from './option-group.js';
 import ReportNamesRequest from './report-names-request.js';
-import {UPDATE} from './simple-redux.js';
 
-import {
-  buildProperties,
-  buildState,
-  simpleGUID,
-} from './utils.js';
-
-export default class ReportControls extends ElementBase {
-  static get is() { return 'report-controls'; }
-
+export default class ReportControls extends cp.ElementBase {
   static get template() {
     return Polymer.html`
       <style>
@@ -210,8 +198,8 @@ ReportControls.State = {
   maxRevision: options => options.maxRevision,
   minRevisionInput: options => options.minRevision,
   maxRevisionInput: options => options.maxRevision,
-  sectionId: options => options.sectionId || simpleGUID(),
-  source: options => MenuInput.buildState({
+  sectionId: options => options.sectionId || cp.simpleGUID(),
+  source: options => cp.MenuInput.buildState({
     label: 'Reports (loading)',
     options: [
       ReportControls.DEFAULT_NAME,
@@ -223,11 +211,11 @@ ReportControls.State = {
   }),
 };
 
-ReportControls.buildState = options => buildState(
+ReportControls.buildState = options => cp.buildState(
     ReportControls.State, options);
 
 ReportControls.properties = {
-  ...buildProperties('state', ReportControls.State),
+  ...cp.buildProperties('state', ReportControls.State),
   userEmail: {statePath: 'userEmail'},
 };
 ReportControls.observers = [
@@ -249,7 +237,7 @@ ReportControls.actions = {
     }
 
     if (state.source.selectedOptions.length === 0) {
-      MenuInput.actions.focus(
+      cp.MenuInput.actions.focus(
           statePath + '.source')(dispatch, getState);
     }
   },
@@ -274,16 +262,16 @@ ReportControls.actions = {
 
   setMinRevision: (statePath, minRevisionInput) =>
     async(dispatch, getState) => {
-      dispatch(UPDATE(statePath, {minRevisionInput}));
+      dispatch(Redux.UPDATE(statePath, {minRevisionInput}));
       if (!minRevisionInput.match(/^\d{6}$/)) return;
-      dispatch(UPDATE(statePath, {minRevision: minRevisionInput}));
+      dispatch(Redux.UPDATE(statePath, {minRevision: minRevisionInput}));
     },
 
   setMaxRevision: (statePath, maxRevisionInput) =>
     async(dispatch, getState) => {
-      dispatch(UPDATE(statePath, {maxRevisionInput}));
+      dispatch(Redux.UPDATE(statePath, {maxRevisionInput}));
       if (!maxRevisionInput.match(/^\d{6}$/)) return;
-      dispatch(UPDATE(statePath, {maxRevision: maxRevisionInput}));
+      dispatch(Redux.UPDATE(statePath, {maxRevision: maxRevisionInput}));
     },
 };
 
@@ -303,7 +291,7 @@ ReportControls.reducers = {
   },
 
   receiveSourceOptions: (state, {reportNames}, rootState) => {
-    const options = OptionGroup.groupValues(reportNames);
+    const options = cp.OptionGroup.groupValues(reportNames);
     if (window.IS_DEBUG || rootState.userEmail) {
       options.push(ReportControls.CREATE);
     }
@@ -312,4 +300,4 @@ ReportControls.reducers = {
   },
 };
 
-ElementBase.register(ReportControls);
+cp.ElementBase.register(ReportControls);

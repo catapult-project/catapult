@@ -7,16 +7,13 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
+<link rel="import" href="/dashboard/spa/details-fetcher.html">
 
-<script type="module">
+<script>
 'use strict';
-
 suite('details-fetcher', function() {
   test('matchRange', async function() {
-    const {RangeFinder} = await importModule('./details-fetcher.js');
-    const {minRevision, maxRevision} = RangeFinder.matchRange(
+    const {minRevision, maxRevision} = cp.RangeFinder.matchRange(
         tr.b.math.Range.fromExplicitRange(3, 5), [
           {revision: 1},
           {revision: 2},

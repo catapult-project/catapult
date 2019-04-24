@@ -4,8 +4,6 @@
 */
 'use strict';
 
-import {getActiveElement, timeout} from './utils.js';
-
 export default class CpInput extends Polymer.Element {
   static get is() { return 'cp-input'; }
 
@@ -101,8 +99,8 @@ export default class CpInput extends Polymer.Element {
     // Sometimes there can be so much rendering happening around
     // connectedCallback and other state updates that the first focus()
     // doesn't take. Try, try again.
-    while (getActiveElement() !== this.nativeInput) {
-      await timeout(50);
+    while (cp.getActiveElement() !== this.nativeInput) {
+      await cp.timeout(50);
       this.nativeInput.focus();
     }
 
@@ -115,8 +113,8 @@ export default class CpInput extends Polymer.Element {
 
   async blur() {
     this.nativeInput.blur();
-    while (getActiveElement() === this.nativeInput) {
-      await timeout(50);
+    while (cp.getActiveElement() === this.nativeInput) {
+      await cp.timeout(50);
       this.nativeInput.blur();
     }
   }

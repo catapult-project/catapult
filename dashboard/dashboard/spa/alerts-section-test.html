@@ -7,7 +7,22 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/dependencies.html">
+
+<link rel="import" href="/bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/dashboard/spa/chart-timeseries.html">
+<link rel="import" href="/dashboard/spa/column-head.html">
+<link rel="import" href="/dashboard/spa/cp-icons.html">
+<link rel="import" href="/dashboard/spa/describe-request.html">
+<link rel="import" href="/dashboard/spa/details-table.html">
+<link rel="import" href="/dashboard/spa/element-base.html">
+<link rel="import" href="/dashboard/spa/group-alerts.html">
+<link rel="import" href="/dashboard/spa/menu-input.html">
+<link rel="import" href="/dashboard/spa/test-suites-request.html">
+<link rel="import" href="/dashboard/spa/timeseries-request.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+<link rel="import" href="/dashboard/static/memory_related_names.html">
+<link rel="import" href="/tracing/value/legacy_unit_info.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -16,12 +31,8 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script type="module">
+<script>
 'use strict';
-import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
-import {afterRender} from './utils.js';
-import DescribeRequest from './describe-request.js';
-
 window.AUTH_CLIENT_ID = '';
 
 suite('alerts-section', function() {
@@ -40,7 +51,7 @@ suite('alerts-section', function() {
     window.fetch = async(url, options) => {
       return {
         async json() {
-          if (url === DescribeRequest.URL) {
+          if (url === cp.DescribeRequest.URL) {
             return {};
           }
           if (url === NewBugRequest.URL) {
@@ -153,8 +164,8 @@ suite('alerts-section', function() {
     await importModule('./cp-checkbox.js');
     const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
-    section.dispatch(CHAIN(
-        UPDATE('', {
+    section.dispatch(Redux.CHAIN(
+        Redux.UPDATE('', {
           recentPerformanceBugs: [
             {
               id: '123456',
@@ -173,15 +184,15 @@ suite('alerts-section', function() {
             },
           ],
         }),
-        ENSURE('test'),
-        UPDATE('test', AlertsSection.buildState({}))));
-    await afterRender();
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', AlertsSection.buildState({}))));
+    await cp.afterRender();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
       detail: {sources: [
         {bug: 42},
       ]},
     }));
-    await afterRender();
+    await cp.afterRender();
 
     const selectAll = tr.ui.b.findDeepElementMatching(
         section, 'th cp-checkbox');
@@ -194,7 +205,7 @@ suite('alerts-section', function() {
 
     const submit = tr.ui.b.findDeepElementWithTextContent(section, /SUBMIT/i);
     submit.click();
-    await afterRender();
+    await cp.afterRender();
 
     assert.deepEqual(['Pri-2', 'Type-Bug-Regression'],
         newBugBody.getAll('label'));
@@ -222,8 +233,8 @@ suite('alerts-section', function() {
     await importModule('./cp-checkbox.js');
     const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
-    section.dispatch(CHAIN(
-        UPDATE('', {
+    section.dispatch(Redux.CHAIN(
+        Redux.UPDATE('', {
           recentPerformanceBugs: [
             {
               id: '123456',
@@ -242,15 +253,15 @@ suite('alerts-section', function() {
             },
           ],
         }),
-        ENSURE('test'),
-        UPDATE('test', AlertsSection.buildState({}))));
-    await afterRender();
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', AlertsSection.buildState({}))));
+    await cp.afterRender();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
       detail: {sources: [
         {bug: 42},
       ]},
     }));
-    await afterRender();
+    await cp.afterRender();
 
     const selectAll = tr.ui.b.findDeepElementMatching(
         section, 'th cp-checkbox');
@@ -262,13 +273,13 @@ suite('alerts-section', function() {
         section, /Existing Bug/);
     button.click();
 
-    section.dispatch(UPDATE('test.existingBug', {bugId: '123456'}));
-    await afterRender();
+    section.dispatch(Redux.UPDATE('test.existingBug', {bugId: '123456'}));
+    await cp.afterRender();
 
     const menu = tr.ui.b.findDeepElementMatching(section, 'triage-existing');
     const submit = tr.ui.b.findDeepElementWithTextContent(menu, /SUBMIT/i);
     submit.click();
-    await afterRender();
+    await cp.afterRender();
 
     assert.strictEqual('123456', existingBugBody.get('bug'));
     assert.lengthOf(existingBugBody.getAll('key'), 10);
@@ -291,8 +302,8 @@ suite('alerts-section', function() {
     await importModule('./cp-checkbox.js');
     const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
-    section.dispatch(CHAIN(
-        UPDATE('', {
+    section.dispatch(Redux.CHAIN(
+        Redux.UPDATE('', {
           recentPerformanceBugs: [
             {
               id: '123456',
@@ -311,15 +322,15 @@ suite('alerts-section', function() {
             },
           ],
         }),
-        ENSURE('test'),
-        UPDATE('test', AlertsSection.buildState({}))));
-    await afterRender();
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', AlertsSection.buildState({}))));
+    await cp.afterRender();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
       detail: {sources: [
         {bug: 42},
       ]},
     }));
-    await afterRender();
+    await cp.afterRender();
 
     const selectAll = tr.ui.b.findDeepElementMatching(
         section, 'th cp-checkbox');
@@ -330,7 +341,7 @@ suite('alerts-section', function() {
     const ignore = tr.ui.b.findDeepElementWithTextContent(section,
         /^\W*Ignore\W*$/i);
     ignore.click();
-    await afterRender();
+    await cp.afterRender();
 
     assert.strictEqual('-2', existingBugBody.get('bug'));
     assert.lengthOf(existingBugBody.getAll('key'), 10);
@@ -354,8 +365,8 @@ suite('alerts-section', function() {
     await importModule('./cp-checkbox.js');
     const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
-    section.dispatch(CHAIN(
-        UPDATE('', {
+    section.dispatch(Redux.CHAIN(
+        Redux.UPDATE('', {
           recentPerformanceBugs: [
             {
               id: '123456',
@@ -374,15 +385,15 @@ suite('alerts-section', function() {
             },
           ],
         }),
-        ENSURE('test'),
-        UPDATE('test', AlertsSection.buildState({}))));
-    await afterRender();
+        Redux.ENSURE('test'),
+        Redux.UPDATE('test', AlertsSection.buildState({}))));
+    await cp.afterRender();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
       detail: {sources: [
         {bug: 42},
       ]},
     }));
-    await afterRender();
+    await cp.afterRender();
 
     const selectAll = tr.ui.b.findDeepElementMatching(
         section, 'th cp-checkbox');
@@ -393,7 +404,7 @@ suite('alerts-section', function() {
     const ignore = tr.ui.b.findDeepElementWithTextContent(section,
         /^\W*Unassign\W*$/i);
     ignore.click();
-    await afterRender();
+    await cp.afterRender();
 
     assert.strictEqual('0', existingBugBody.get('bug'));
     assert.lengthOf(existingBugBody.getAll('key'), 10);

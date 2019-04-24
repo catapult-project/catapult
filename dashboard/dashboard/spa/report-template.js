@@ -6,19 +6,9 @@
 
 import './cp-input.js';
 import './raised-button.js';
-import ElementBase from './element-base.js';
-import ReportTemplateRequest from './report-template-request.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
-import {TOGGLE, UPDATE} from './simple-redux.js';
 
-import {
-  buildProperties,
-  buildState,
-} from './utils.js';
-
-export default class ReportTemplate extends ElementBase {
-  static get is() { return 'report-template'; }
-
+export default class ReportTemplate extends cp.ElementBase {
   static get template() {
     return Polymer.html`
       <style>
@@ -190,29 +180,29 @@ export default class ReportTemplate extends ElementBase {
   }
 
   async onCancel_(event) {
-    await this.dispatch(TOGGLE(this.statePath + '.isEditing'));
+    await this.dispatch(Redux.TOGGLE(this.statePath + '.isEditing'));
   }
 
   async onTemplateNameKeyUp_(event) {
-    await this.dispatch(UPDATE(this.statePath, {
+    await this.dispatch(Redux.UPDATE(this.statePath, {
       name: event.target.value,
     }));
   }
 
   async onTemplateOwnersKeyUp_(event) {
-    await this.dispatch(UPDATE(this.statePath, {
+    await this.dispatch(Redux.UPDATE(this.statePath, {
       owners: event.target.value,
     }));
   }
 
   async onTemplateUrlKeyUp_(event) {
-    await this.dispatch(UPDATE(this.statePath, {
+    await this.dispatch(Redux.UPDATE(this.statePath, {
       url: event.target.value,
     }));
   }
 
   async onTemplateRowLabelKeyUp_(event) {
-    await this.dispatch(UPDATE(
+    await this.dispatch(Redux.UPDATE(
         this.statePath + '.rows.' + event.model.rowIndex,
         {label: event.target.value}));
   }
@@ -243,11 +233,11 @@ ReportTemplate.State = {
   url: options => options.url || '',
 };
 
-ReportTemplate.buildState = options => buildState(
+ReportTemplate.buildState = options => cp.buildState(
     ReportTemplate.State, options);
 
 ReportTemplate.properties = {
-  ...buildProperties('state', ReportTemplate.State),
+  ...cp.buildProperties('state', ReportTemplate.State),
 };
 
 ReportTemplate.actions = {
@@ -270,9 +260,9 @@ ReportTemplate.actions = {
     },
 
   save: statePath => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {isLoading: true, isEditing: false}));
+    dispatch(Redux.UPDATE(statePath, {isLoading: true, isEditing: false}));
     const table = Polymer.Path.get(getState(), statePath);
-    const request = new ReportTemplateRequest({
+    const request = new cp.ReportTemplateRequest({
       id: table.id,
       name: table.name,
       owners: table.owners.split(',').map(o => o.replace(/ /g, '')),
@@ -289,7 +279,7 @@ ReportTemplate.actions = {
       }),
     });
     const reportTemplateInfos = await request.response;
-    dispatch(UPDATE('', {reportTemplateInfos}));
+    dispatch(Redux.UPDATE('', {reportTemplateInfos}));
   },
 };
 
@@ -361,4 +351,4 @@ ReportTemplate.canSave = (name, owners, statistic, rows) => {
   return true;
 };
 
-ElementBase.register(ReportTemplate);
+cp.ElementBase.register(ReportTemplate);

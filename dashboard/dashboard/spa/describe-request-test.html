@@ -7,13 +7,10 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/dependencies.html">
+<link rel="import" href="/dashboard/spa/describe-request.html">
 
-<script type="module">
+<script>
 'use strict';
-
-import DescribeRequest from './describe-request.js';
-
 suite('DescribeRequest', function() {
   test('mergeDescriptor', async function() {
     const merged = {
@@ -24,7 +21,7 @@ suite('DescribeRequest', function() {
         ['tagA', new Set(['caseA', 'caseB'])],
       ]),
     };
-    DescribeRequest.mergeDescriptor(merged, {
+    cp.DescribeRequest.mergeDescriptor(merged, {
       bots: ['botB', 'botC'],
       measurements: ['measurementB', 'measurementC'],
       cases: ['caseB', 'caseC'],

@@ -7,8 +7,9 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/dashboard/spa/utils.html">
+<link rel="import" href="/tracing/base/timing.html">
 
 <test-fixture id="input">
   <template>
@@ -16,21 +17,19 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script type="module">
+<script>
 'use strict';
-import * as utils from './utils.js';
-
 suite('utils', function() {
   test('setImmutable', function() {
-    assert.deepEqual({b: 'c'}, utils.setImmutable(
+    assert.deepEqual({b: 'c'}, cp.setImmutable(
         {a: []}, '', {b: 'c'}));
-    assert.deepEqual({a: [], b: 'c'}, utils.setImmutable(
+    assert.deepEqual({a: [], b: 'c'}, cp.setImmutable(
         {a: []}, '', rootState => {
           return {...rootState, b: 'c'};
         }));
-    assert.deepEqual({a: [{b: 'c'}]}, utils.setImmutable(
+    assert.deepEqual({a: [{b: 'c'}]}, cp.setImmutable(
         {a: []}, 'a.0.b', 'c'));
-    assert.deepEqual({a: {b: 1, c: 2}}, utils.setImmutable(
+    assert.deepEqual({a: {b: 1, c: 2}}, cp.setImmutable(
         {a: {b: 1}}, 'a', o => {
           return {...o, c: 2};
         }));
@@ -47,7 +46,7 @@ suite('utils', function() {
         }
       },
     };
-    utils.deepFreeze(frozen);
+    cp.deepFreeze(frozen);
     assert.throws(() => {
       frozen.str = 'x';
     }, 'Cannot assign to read only property');
@@ -65,13 +64,13 @@ suite('utils', function() {
   });
 
   test('isElementChildOf', function() {
-    assert.isTrue(utils.isElementChildOf(
+    assert.isTrue(cp.isElementChildOf(
         document.body, document.body.parentElement));
-    assert.isTrue(utils.isElementChildOf(
+    assert.isTrue(cp.isElementChildOf(
         document.body.children[0], document.body.parentElement));
-    assert.isFalse(utils.isElementChildOf(
+    assert.isFalse(cp.isElementChildOf(
         document.body, document.body));
-    assert.isFalse(utils.isElementChildOf(
+    assert.isFalse(cp.isElementChildOf(
         document.body.parentElement, document.body));
 
     const div = document.createElement('div');
@@ -79,17 +78,17 @@ suite('utils', function() {
     div.root = div.attachShadow({mode: 'open'});
     const child = document.createElement('div');
     div.root.appendChild(child);
-    assert.isTrue(utils.isElementChildOf(child, document.body));
+    assert.isTrue(cp.isElementChildOf(child, document.body));
   });
 
   test('getActiveElement', function() {
     const input = fixture('input');
     input.focus();
-    assert.strictEqual(input, utils.getActiveElement());
+    assert.strictEqual(input, cp.getActiveElement());
   });
 
   test('measureElement', async function() {
-    const rect = await utils.measureElement(fixture('input'));
+    const rect = await cp.measureElement(fixture('input'));
     assert.isBelow(0, rect.bottom);
     assert.isBelow(0, rect.height);
     assert.isBelow(0, rect.left);
@@ -101,14 +100,14 @@ suite('utils', function() {
   });
 
   test('measureText cache', async function() {
-    assert.strictEqual(await utils.measureText('hello'),
-        await utils.measureText('hello'));
+    assert.strictEqual(await cp.measureText('hello'),
+        await cp.measureText('hello'));
   });
 
   test('measureText', async function() {
     const [rect, larger] = await Promise.all([
-      utils.measureText('hello'),
-      utils.measureText('hello', {fontSize: 'larger'}),
+      cp.measureText('hello'),
+      cp.measureText('hello', {fontSize: 'larger'}),
     ]);
     assert.isBelow(0, rect.height);
     assert.isBelow(0, rect.width);
@@ -116,11 +115,17 @@ suite('utils', function() {
     assert.isBelow(rect.width, larger.width);
   });
 
+  test('sha', async function() {
+    assert.strictEqual(
+        'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+        await cp.sha(''));
+  });
+
   test('measureTrace', function() {
     tr.b.Timing.mark('spa/utils-test', 'measureTrace').end();
     tr.b.Timing.mark('spa/utils-test', 'measureTrace').end();
     tr.b.Timing.mark('spa/utils-test', 'measureTrace').end();
-    const trace = utils.measureTrace();
+    const trace = cp.measureTrace();
     assert.lengthOf(trace.filter(e =>
       e.name === 'spa/utils-test:measureTrace'), 3);
   });
@@ -129,7 +134,7 @@ suite('utils', function() {
     tr.b.Timing.mark('spa/utils-test', 'measureHistograms').end();
     tr.b.Timing.mark('spa/utils-test', 'measureHistograms').end();
     tr.b.Timing.mark('spa/utils-test', 'measureHistograms').end();
-    const histograms = utils.measureHistograms();
+    const histograms = cp.measureHistograms();
     const hist = histograms.getHistogramNamed(
         'spa/utils-test:measureHistograms');
     assert.strictEqual(3, hist.numValues);
@@ -139,12 +144,12 @@ suite('utils', function() {
     tr.b.Timing.mark('spa/utils-test', 'measureTable').end();
     tr.b.Timing.mark('spa/utils-test', 'measureTable').end();
     tr.b.Timing.mark('spa/utils-test', 'measureTable').end();
-    const rows = utils.measureTable().split('\n');
+    const rows = cp.measureTable().split('\n');
     assert.include(rows, '0     spa/utils-test:measureTable');
   });
 
   test('buildProperties', function() {
-    const properties = utils.buildProperties('state', {
+    const properties = cp.buildProperties('state', {
       aaa: options => options.aaa || [],
       bbb: {
         reflectToAttribute: true,
@@ -165,9 +170,9 @@ suite('utils', function() {
     assert.isTrue(properties.bbb.reflectToAttribute);
 
     assert.throws(() =>
-      utils.buildProperties('state', {state: () => 0}));
+      cp.buildProperties('state', {state: () => 0}));
     assert.throws(() =>
-      utils.buildProperties('state', {statePath: () => 0}));
+      cp.buildProperties('state', {statePath: () => 0}));
   });
 
   test('buildState', function() {
@@ -182,19 +187,19 @@ suite('utils', function() {
       aaa: ['A'],
       b: 'b',
     };
-    const state = utils.buildState(configs, options);
+    const state = cp.buildState(configs, options);
     assert.strictEqual('A', state.aaa[0]);
     assert.strictEqual('bbb', state.bbb);
     assert.strictEqual(0, state.ccc);
   });
 
   test('normalize', function() {
-    assert.deepEqual({a: 1, b: 2}, utils.normalize(['a', 'b'], [1, 2]));
+    assert.deepEqual({a: 1, b: 2}, cp.normalize(['a', 'b'], [1, 2]));
   });
 
   test('BatchIterator empty', async function() {
     const batches = [];
-    for await (const batch of new utils.BatchIterator([])) {
+    for await (const batch of new cp.BatchIterator([])) {
       batches.push(batch);
     }
     assert.lengthOf(batches, 0);
@@ -202,7 +207,7 @@ suite('utils', function() {
 
   test('BatchIterator 1 Promise success', async function() {
     let complete;
-    const batches = new utils.BatchIterator([new Promise(resolve => {
+    const batches = new cp.BatchIterator([new Promise(resolve => {
       complete = resolve;
     })]);
     const iterations = [];
@@ -222,7 +227,7 @@ suite('utils', function() {
 
   test('BatchIterator 1 Promise error', async function() {
     let complete;
-    const batches = new utils.BatchIterator([new Promise((resolve, reject) => {
+    const batches = new cp.BatchIterator([new Promise((resolve, reject) => {
       complete = reject;
     })]);
     const iterations = [];
@@ -241,7 +246,7 @@ suite('utils', function() {
   });
 
   test('BatchIterator 1 generator-1 success', async function() {
-    const batches = new utils.BatchIterator([(async function* () {
+    const batches = new cp.BatchIterator([(async function* () {
       yield 'hello';
     })()]);
     const iterations = [];
@@ -255,7 +260,7 @@ suite('utils', function() {
   });
 
   test('BatchIterator 1 generator-1 error', async function() {
-    const batches = new utils.BatchIterator([(async function* () {
+    const batches = new cp.BatchIterator([(async function* () {
       throw new Error('hello');
     })()]);
     const iterations = [];
@@ -271,7 +276,7 @@ suite('utils', function() {
   test('BatchIterator 1 generator, 2 batches', async function() {
     const resolves = [];
     const promiseA = new Promise(resolve => resolves.push(resolve));
-    const batches = new utils.BatchIterator([(async function* () {
+    const batches = new cp.BatchIterator([(async function* () {
       yield 'a';
       yield 'b';
       await promiseA;
@@ -294,7 +299,7 @@ suite('utils', function() {
     const resolves = [];
     const promiseA = new Promise(resolve => resolves.push(resolve));
     const promiseB = new Promise(resolve => resolves.push(resolve));
-    const batches = new utils.BatchIterator([(async function* () {
+    const batches = new cp.BatchIterator([(async function* () {
       yield 'a';
       await promiseA;
       yield 'b';
@@ -320,7 +325,7 @@ suite('utils', function() {
     const resolves = [];
     const promiseA = new Promise(resolve => resolves.push(resolve));
     const promiseB = new Promise(resolve => resolves.push(resolve));
-    const batches = new utils.BatchIterator([
+    const batches = new cp.BatchIterator([
       (async function* () {
         yield 'a0';
         await promiseA;
@@ -355,26 +360,26 @@ suite('utils', function() {
   });
 
   test('breakWords', function() {
-    assert.strictEqual(utils.NON_BREAKING_SPACE, utils.breakWords(''));
-    const Z = utils.ZERO_WIDTH_SPACE;
-    assert.strictEqual(`a${Z}_b`, utils.breakWords('a_b'));
-    assert.strictEqual(`a:${Z}b`, utils.breakWords('a:b'));
-    assert.strictEqual(`a.${Z}b`, utils.breakWords('a.b'));
-    assert.strictEqual(`a${Z}B`, utils.breakWords('aB'));
+    assert.strictEqual(cp.NON_BREAKING_SPACE, cp.breakWords(''));
+    const Z = cp.ZERO_WIDTH_SPACE;
+    assert.strictEqual(`a${Z}_b`, cp.breakWords('a_b'));
+    assert.strictEqual(`a:${Z}b`, cp.breakWords('a:b'));
+    assert.strictEqual(`a.${Z}b`, cp.breakWords('a.b'));
+    assert.strictEqual(`a${Z}B`, cp.breakWords('aB'));
   });
 
   test('plural', function() {
-    assert.strictEqual('s', utils.plural(0));
-    assert.strictEqual('', utils.plural(1));
-    assert.strictEqual('s', utils.plural(2));
+    assert.strictEqual('s', cp.plural(0));
+    assert.strictEqual('', cp.plural(1));
+    assert.strictEqual('s', cp.plural(2));
 
-    assert.strictEqual('es', utils.plural(0, 'es', 'x'));
-    assert.strictEqual('x', utils.plural(1, 'es', 'x'));
-    assert.strictEqual('es', utils.plural(2, 'es', 'x'));
+    assert.strictEqual('es', cp.plural(0, 'es', 'x'));
+    assert.strictEqual('x', cp.plural(1, 'es', 'x'));
+    assert.strictEqual('es', cp.plural(2, 'es', 'x'));
   });
 
   test('generateColors', function() {
-    assert.lengthOf(utils.generateColors(10), 10);
+    assert.lengthOf(cp.generateColors(10), 10);
   });
 });
 </script>

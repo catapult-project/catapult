@@ -6,24 +6,14 @@
 
 import './cp-dialog.js';
 import './cp-loading.js';
-import ElementBase from './element-base.js';
 import ReportControls from './report-controls.js';
 import ReportNamesRequest from './report-names-request.js';
 import ReportRequest from './report-request.js';
 import ReportTable from './report-table.js';
 import ReportTemplate from './report-template.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
-import {UPDATE} from './simple-redux.js';
 
-import {
-  BatchIterator,
-  buildProperties,
-  buildState,
-} from './utils.js';
-
-export default class ReportSection extends ElementBase {
-  static get is() { return 'report-section'; }
-
+export default class ReportSection extends cp.ElementBase {
   static get template() {
     return Polymer.html`
       <style>
@@ -87,11 +77,11 @@ ReportSection.State = {
       ReportControls.DEFAULT_NAME)],
 };
 
-ReportSection.buildState = options => buildState(
+ReportSection.buildState = options => cp.buildState(
     ReportSection.State, options);
 
 ReportSection.properties = {
-  ...buildProperties('state', ReportSection.State),
+  ...cp.buildProperties('state', ReportSection.State),
   userEmail: {statePath: 'userEmail'},
 };
 ReportSection.observers = [
@@ -138,7 +128,7 @@ ReportSection.actions = {
       }
     }
 
-    for await (const {results, errors} of new BatchIterator(readers)) {
+    for await (const {results, errors} of new cp.BatchIterator(readers)) {
       state = Polymer.Path.get(getState(), statePath);
       if (!tr.b.setsEqual(requestedReports, new Set(
           state.source.selectedOptions)) ||
@@ -153,7 +143,7 @@ ReportSection.actions = {
       });
     }
 
-    dispatch(UPDATE(statePath, {isLoading: false}));
+    dispatch(Redux.UPDATE(statePath, {isLoading: false}));
   },
 };
 
@@ -490,7 +480,7 @@ ReportSection.transformReportRow = (
     scalars,
     label: row.label,
     actualDescriptors,
-    ...buildState(TimeseriesDescriptor.State, {
+    ...cp.buildState(TimeseriesDescriptor.State, {
       suite: {
         selectedOptions: row.suites,
         isAggregated: true,
@@ -514,4 +504,4 @@ ReportSection.transformReportRow = (
   };
 };
 
-ElementBase.register(ReportSection);
+cp.ElementBase.register(ReportSection);

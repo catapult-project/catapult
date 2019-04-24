@@ -8,19 +8,8 @@ import './cp-checkbox.js';
 import './cp-input.js';
 import './cp-textarea.js';
 import './raised-button.js';
-import ElementBase from './element-base.js';
-import {UPDATE} from './simple-redux.js';
 
-import {
-  buildProperties,
-  buildState,
-  isElementChildOf,
-  setImmutable,
-} from './utils.js';
-
-export default class TriageNew extends ElementBase {
-  static get is() { return 'triage-new'; }
-
+export default class TriageNew extends cp.ElementBase {
   static get template() {
     return Polymer.html`
       <style>
@@ -112,7 +101,7 @@ export default class TriageNew extends ElementBase {
 
   async onBlur_(event) {
     if (event.relatedTarget === this ||
-        isElementChildOf(event.relatedTarget, this)) {
+        cp.isElementChildOf(event.relatedTarget, this)) {
       return;
     }
     await this.dispatch('close', this.statePath);
@@ -177,31 +166,31 @@ TriageNew.State = {
   summary: options => TriageNew.summarize(options.alerts),
 };
 
-TriageNew.buildState = options => buildState(TriageNew.State, options);
-TriageNew.properties = buildProperties('state', TriageNew.State);
+TriageNew.buildState = options => cp.buildState(TriageNew.State, options);
+TriageNew.properties = cp.buildProperties('state', TriageNew.State);
 TriageNew.observers = [
   'observeIsOpen_(isOpen)',
 ];
 
 TriageNew.actions = {
   close: statePath => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {isOpen: false}));
+    dispatch(Redux.UPDATE(statePath, {isOpen: false}));
   },
 
   summary: (statePath, summary) => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {summary}));
+    dispatch(Redux.UPDATE(statePath, {summary}));
   },
 
   owner: (statePath, owner) => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {owner}));
+    dispatch(Redux.UPDATE(statePath, {owner}));
   },
 
   cc: (statePath, cc) => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {cc}));
+    dispatch(Redux.UPDATE(statePath, {cc}));
   },
 
   description: (statePath, description) => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {description}));
+    dispatch(Redux.UPDATE(statePath, {description}));
   },
 
   label: (statePath, name) => async(dispatch, getState) => {
@@ -225,7 +214,7 @@ TriageNew.reducers = {
   toggleLabel: (state, action, rootState) => {
     for (let i = 0; i < state.labels.length; ++i) {
       if (state.labels[i].name === action.name) {
-        return setImmutable(
+        return cp.setImmutable(
             state, `labels.${i}.isEnabled`, e => !e);
       }
     }
@@ -235,7 +224,7 @@ TriageNew.reducers = {
   toggleComponent: (state, action, rootState) => {
     for (let i = 0; i < state.components.length; ++i) {
       if (state.components[i].name === action.name) {
-        return setImmutable(
+        return cp.setImmutable(
             state, `components.${i}.isEnabled`, e => !e);
       }
     }
@@ -299,4 +288,4 @@ TriageNew.collectAlertProperties = (alerts, property) => {
   });
 };
 
-ElementBase.register(TriageNew);
+cp.ElementBase.register(TriageNew);

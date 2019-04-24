@@ -7,18 +7,8 @@
 import './cp-input.js';
 import './cp-switch.js';
 import './raised-button.js';
-import ElementBase from './element-base.js';
-import {TOGGLE, UPDATE} from './simple-redux.js';
 
-import {
-  buildProperties,
-  buildState,
-  isElementChildOf,
-} from './utils.js';
-
-export default class TriageExisting extends ElementBase {
-  static get is() { return 'triage-existing'; }
-
+export default class TriageExisting extends cp.ElementBase {
   static get template() {
     return Polymer.html`
       <style>
@@ -180,7 +170,7 @@ export default class TriageExisting extends ElementBase {
 
   async onBlur_(event) {
     if (event.relatedTarget === this ||
-        isElementChildOf(event.relatedTarget, this)) {
+        cp.isElementChildOf(event.relatedTarget, this)) {
       this.$.bug_input.focus();
       return;
     }
@@ -232,10 +222,10 @@ TriageExisting.State = {
 };
 
 TriageExisting.buildState = options =>
-  buildState(TriageExisting.State, options);
+  cp.buildState(TriageExisting.State, options);
 
 TriageExisting.properties = {
-  ...buildProperties('state', TriageExisting.State),
+  ...cp.buildProperties('state', TriageExisting.State),
   recentPerformanceBugs: {statePath: 'recentPerformanceBugs'},
 };
 
@@ -243,15 +233,15 @@ TriageExisting.observers = ['observeIsOpen_(isOpen)'];
 
 TriageExisting.actions = {
   toggleOnlyIntersectingBugs: statePath => async(dispatch, getState) => {
-    dispatch(TOGGLE(`${statePath}.onlyIntersectingBugs`));
+    dispatch(Redux.TOGGLE(`${statePath}.onlyIntersectingBugs`));
   },
 
   recentPerformanceBug: (statePath, bugId) => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {bugId}));
+    dispatch(Redux.UPDATE(statePath, {bugId}));
   },
 
   close: statePath => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {isOpen: false}));
+    dispatch(Redux.UPDATE(statePath, {isOpen: false}));
   },
 };
 
@@ -263,4 +253,4 @@ TriageExisting.filterBugs =
       bug.revisionRange.intersectsRangeInclusive(selectedRange));
   };
 
-ElementBase.register(TriageExisting);
+cp.ElementBase.register(TriageExisting);

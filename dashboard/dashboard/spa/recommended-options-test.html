@@ -7,8 +7,8 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/dashboard/spa/recommended-options.html">
 
 <test-fixture id="test">
   <template>
@@ -16,26 +16,23 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script type="module">
+<script>
 'use strict';
-
-import {UPDATE} from './simple-redux.js';
-import {afterRender} from './utils.js';
+setup(() => {
+  localStorage.removeItem(cp.RecommendedOptions.STORAGE_KEY);
+});
 
 suite('recommended-options', function() {
   test('getRecommendations', async function() {
-    const {default: RecommendedOptions} = await importModule(
-        './recommended-options.js');
-    localStorage.removeItem(RecommendedOptions.STORAGE_KEY);
     const now = new Date().getTime();
-    localStorage.setItem(RecommendedOptions.STORAGE_KEY, JSON.stringify({
+    localStorage.setItem(cp.RecommendedOptions.STORAGE_KEY, JSON.stringify({
       aaa: [
-        new Date(now - 1 - RecommendedOptions.OLD_MS),
-        new Date(now - 2 - RecommendedOptions.OLD_MS),
-        new Date(now - 3 - RecommendedOptions.OLD_MS),
+        new Date(now - 1 - cp.RecommendedOptions.OLD_MS),
+        new Date(now - 2 - cp.RecommendedOptions.OLD_MS),
+        new Date(now - 3 - cp.RecommendedOptions.OLD_MS),
       ],
       bbb: [
-        new Date(now - RecommendedOptions.OLD_MS + 1000),
+        new Date(now - cp.RecommendedOptions.OLD_MS + 1000),
       ],
       ccc: [
         new Date(now - 1),
@@ -43,8 +40,8 @@ suite('recommended-options', function() {
     }));
     const rec = fixture('test');
     rec.ready();
-    rec.dispatch(UPDATE('', {
-      test: RecommendedOptions.buildState({
+    rec.dispatch(Redux.UPDATE('', {
+      test: cp.RecommendedOptions.buildState({
         options: ['aaa', 'bbb', 'ccc'],
       }),
     }));
@@ -53,68 +50,62 @@ suite('recommended-options', function() {
   });
 
   test('select', async function() {
-    const {default: RecommendedOptions} = await importModule(
-        './recommended-options.js');
-    localStorage.removeItem(RecommendedOptions.STORAGE_KEY);
     // localStorage is updated when the user selects an option.
     const rec = fixture('test');
-    rec.dispatch(UPDATE('', {
-      test: RecommendedOptions.buildState({
+    rec.dispatch(Redux.UPDATE('', {
+      test: cp.RecommendedOptions.buildState({
         options: ['aaa', 'bbb', 'ccc'],
         selectedOptions: [],
       }),
     }));
-    await afterRender();
-    rec.dispatch(UPDATE('test', {selectedOptions: ['aaa']}));
-    await afterRender();
+    await cp.afterRender();
+    rec.dispatch(Redux.UPDATE('test', {selectedOptions: ['aaa']}));
+    await cp.afterRender();
     let optionRecommendations = JSON.parse(localStorage.getItem(
-        RecommendedOptions.STORAGE_KEY));
+        cp.RecommendedOptions.STORAGE_KEY));
     assert.lengthOf(optionRecommendations.aaa, 1);
 
     // localStorage is not updated when the user selects a whole group of
     // options.
-    rec.dispatch(UPDATE('test', {selectedOptions: ['bbb', 'ccc']}));
-    await afterRender();
+    rec.dispatch(Redux.UPDATE('test', {selectedOptions: ['bbb', 'ccc']}));
+    await cp.afterRender();
     optionRecommendations = JSON.parse(localStorage.getItem(
-        RecommendedOptions.STORAGE_KEY));
+        cp.RecommendedOptions.STORAGE_KEY));
     assert.lengthOf(optionRecommendations.aaa, 1);
   });
 
   test('recommendOptions', async function() {
-    const {default: RecommendedOptions} = await importModule(
-        './recommended-options.js');
-    localStorage.removeItem(RecommendedOptions.STORAGE_KEY);
     // recommended options change when optionValues change.
     const now = new Date().getTime();
-    localStorage.setItem(RecommendedOptions.STORAGE_KEY, JSON.stringify({
+    localStorage.setItem(cp.RecommendedOptions.STORAGE_KEY, JSON.stringify({
       aaa: [
-        new Date(now - 1 - RecommendedOptions.OLD_MS),
-        new Date(now - 2 - RecommendedOptions.OLD_MS),
-        new Date(now - 3 - RecommendedOptions.OLD_MS),
+        new Date(now - 1 - cp.RecommendedOptions.OLD_MS),
+        new Date(now - 2 - cp.RecommendedOptions.OLD_MS),
+        new Date(now - 3 - cp.RecommendedOptions.OLD_MS),
       ],
       bbb: [
-        new Date(now - RecommendedOptions.OLD_MS + 1000),
+        new Date(now - cp.RecommendedOptions.OLD_MS + 1000),
       ],
       ccc: [
         new Date(now - 1),
       ],
     }));
     const rec = fixture('test');
-    rec.dispatch(UPDATE('', {
+    rec.dispatch(Redux.UPDATE('', {
       optionRecommendations: undefined,
     }));
-    await afterRender();
+    await cp.afterRender();
     rec.ready();
-    rec.dispatch(UPDATE('', {
-      test: RecommendedOptions.buildState({
+    rec.dispatch(Redux.UPDATE('', {
+      test: cp.RecommendedOptions.buildState({
         options: ['aaa', 'bbb', 'ccc'],
       }),
     }));
     let state = rec.getState().test;
     assert.deepEqual(['ccc', 'bbb'], state.recommended.optionValues);
 
-    rec.dispatch(UPDATE('test', {optionValues: ['ddd', 'ccc']}));
-    await afterRender();
+    rec.dispatch(Redux.UPDATE('test', {optionValues: ['ddd', 'ccc']}));
+    await cp.afterRender();
     state = rec.getState().test;
     assert.deepEqual(['ccc'], state.recommended.optionValues);
   });

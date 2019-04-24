@@ -7,8 +7,8 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
+<link rel="import" href="/dashboard/spa/chart-base.html">
+<link rel="import" href="/dashboard/spa/cp-icons.html">
 
 <test-fixture id="test">
   <template>
@@ -16,12 +16,11 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script type="module">
+<script>
 'use strict';
-import {afterRender, animationFrame} from './utils.js';
-
 suite('chart-base', function() {
   setup(() => {
+    fixture('test').dispatch(Redux.ENSURE('test'));
     // Mocha sets min-width: 900px inside #subsuites, but only 500px outside it,
     // which makes it difficult to see the chart in 'lines'. Reset those
     // min-widths so that the chart can expand to an appropriate size.
@@ -31,11 +30,8 @@ suite('chart-base', function() {
   });
 
   test('mouse-leave-main', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
-    const {ENSURE, UPDATE} = await importModule('./simple-redux.js');
-    fixture('test').dispatch(ENSURE('test'));
     const chart = fixture('test');
-    chart.dispatch(UPDATE('test', ChartBase.buildState({
+    chart.dispatch(Redux.UPDATE('test', cp.ChartBase.buildState({
       showTooltip: true,
       lines: [
         {
@@ -70,8 +66,8 @@ suite('chart-base', function() {
     chart.$.main.dispatchEvent(mouseEvent);
     assert.strictEqual(0, mouseLeftEvents);
     assert.strictEqual(0, getTooltipEvents);
-    await animationFrame();
-    await animationFrame();
+    await cp.animationFrame();
+    await cp.animationFrame();
     assert.strictEqual(0, mouseLeftEvents);
     assert.strictEqual(1, getTooltipEvents);
 
@@ -82,24 +78,21 @@ suite('chart-base', function() {
     chart.$.main.dispatchEvent(mouseEvent);
     assert.strictEqual(0, mouseLeftEvents);
     assert.strictEqual(1, getTooltipEvents);
-    await animationFrame();
-    await animationFrame();
+    await cp.animationFrame();
+    await cp.animationFrame();
     assert.strictEqual(0, mouseLeftEvents);
     assert.strictEqual(2, getTooltipEvents);
 
     chart.$.main.style.setProperty('--mouse', 'outside');
-    await animationFrame();
-    await animationFrame();
+    await cp.animationFrame();
+    await cp.animationFrame();
     assert.strictEqual(1, mouseLeftEvents);
     assert.strictEqual(2, getTooltipEvents);
   });
 
   test('boldLine', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
-    const {ENSURE, UPDATE} = await importModule('./simple-redux.js');
-    fixture('test').dispatch(ENSURE('test'));
     const chart = fixture('test');
-    chart.dispatch(UPDATE('test', ChartBase.buildState({
+    chart.dispatch(Redux.UPDATE('test', cp.ChartBase.buildState({
       lines: [
         {
           path: 'M0,0 L100,100',
@@ -150,14 +143,14 @@ suite('chart-base', function() {
         ],
       },
     })));
-    await afterRender();
+    await cp.afterRender();
 
     chart.dispatch({
-      type: ChartBase.reducers.boldLine.name,
+      type: cp.ChartBase.reducers.boldLine.name,
       statePath: 'test',
       lineIndex: 0,
     });
-    await afterRender();
+    await cp.afterRender();
     // boldLine moves the selected line to the end of `lines` so it is drawn
     // over top of the other lines.
     assert.strictEqual(chart.lines[0].color, 'green');
@@ -166,31 +159,28 @@ suite('chart-base', function() {
     assert.strictEqual(chart.lines[1].strokeWidth, 2);
 
     chart.dispatch({
-      type: ChartBase.reducers.boldLine.name,
+      type: cp.ChartBase.reducers.boldLine.name,
       statePath: 'test',
       lineIndex: 0,
     });
-    await afterRender();
+    await cp.afterRender();
     assert.strictEqual(chart.lines[0].color, 'red');
     assert.strictEqual(chart.lines[1].color, 'green');
     assert.strictEqual(chart.lines[0].strokeWidth, 1);
     assert.strictEqual(chart.lines[1].strokeWidth, 2);
 
     chart.dispatch({
-      type: ChartBase.reducers.boldLine.name,
+      type: cp.ChartBase.reducers.boldLine.name,
       statePath: 'test',
     });
-    await afterRender();
+    await cp.afterRender();
     assert.strictEqual(chart.lines[0].strokeWidth, 1);
     assert.strictEqual(chart.lines[1].strokeWidth, 1);
   });
 
   test('lines', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
-    const {ENSURE, UPDATE} = await importModule('./simple-redux.js');
-    fixture('test').dispatch(ENSURE('test'));
     const chart = fixture('test');
-    chart.dispatch(UPDATE('test', ChartBase.buildState({
+    chart.dispatch(Redux.UPDATE('test', cp.ChartBase.buildState({
       lines: [
         {
           path: 'M0,0 L100,100',
@@ -241,7 +231,7 @@ suite('chart-base', function() {
         ],
       },
     })));
-    await afterRender();
+    await cp.afterRender();
 
     assert.strictEqual('50%', chart.$.tooltip.style.left);
     assert.strictEqual('50%', chart.$.tooltip.style.top);
@@ -362,47 +352,41 @@ suite('chart-base', function() {
       e.getAttribute('y2') === '100%'));
   });
 
-  test('antiBrushes empty', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
-    assert.deepEqual([], ChartBase.antiBrushes());
-    assert.deepEqual([], ChartBase.antiBrushes([]));
+  test('antiBrushes empty', function() {
+    assert.deepEqual([], cp.ChartBase.antiBrushes());
+    assert.deepEqual([], cp.ChartBase.antiBrushes([]));
   });
 
-  test('antiBrushes odd', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
-    assert.throws(() => ChartBase.antiBrushes([{}]));
-    assert.throws(() => ChartBase.antiBrushes([{}, {}, {}]));
+  test('antiBrushes odd', function() {
+    assert.throws(() => cp.ChartBase.antiBrushes([{}]));
+    assert.throws(() => cp.ChartBase.antiBrushes([{}, {}, {}]));
   });
 
-  test('antiBrushes 0-100', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
-    assert.deepEqual([], ChartBase.antiBrushes([
+  test('antiBrushes 0-100', function() {
+    assert.deepEqual([], cp.ChartBase.antiBrushes([
       {xPct: 0}, {xPct: 100},
     ]));
   });
 
-  test('antiBrushes 20-80', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
+  test('antiBrushes 20-80', function() {
     assert.deepEqual([
       {start: '0%', length: '20%'},
       {start: '80%', length: '20%'},
-    ], ChartBase.antiBrushes([
+    ], cp.ChartBase.antiBrushes([
       {xPct: 20}, {xPct: 80},
     ]));
   });
 
-  test('antiBrushes 20-100', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
+  test('antiBrushes 20-100', function() {
     assert.deepEqual([
       {start: '0%', length: '20%'},
-    ], ChartBase.antiBrushes([
+    ], cp.ChartBase.antiBrushes([
       {xPct: 20}, {xPct: 100},
     ]));
   });
 
-  test('antiBrushes 0-80', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
-    assert.deepEqual([{start: '80%', length: '20%'}], ChartBase.antiBrushes(
+  test('antiBrushes 0-80', function() {
+    assert.deepEqual([{start: '80%', length: '20%'}], cp.ChartBase.antiBrushes(
         [{xPct: 0}, {xPct: 80}]));
   });
 });

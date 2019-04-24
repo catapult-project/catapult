@@ -4,17 +4,7 @@
 */
 'use strict';
 
-import ElementBase from './element-base.js';
-import {TOGGLE} from './simple-redux.js';
-
-import {
-  buildProperties,
-  buildState,
-} from './utils.js';
-
-export default class ExpandButton extends ElementBase {
-  static get is() { return 'expand-button'; }
-
+export default class ExpandButton extends cp.ElementBase {
   static get template() {
     return Polymer.html`
       <style>
@@ -61,7 +51,7 @@ const ExpandState = {
 };
 
 ExpandButton.properties = {
-  ...buildProperties('state', ExpandState),
+  ...cp.buildProperties('state', ExpandState),
   horizontal: {
     type: Boolean,
     value: false,
@@ -72,12 +62,12 @@ ExpandButton.properties = {
   },
 };
 
-ExpandButton.buildState = options => buildState(ExpandState, options);
+ExpandButton.buildState = options => cp.buildState(ExpandState, options);
 
 ExpandButton.actions = {
   toggle: statePath => async(dispatch, getState) => {
-    dispatch(TOGGLE(statePath + '.isExpanded'));
+    dispatch(Redux.TOGGLE(statePath + '.isExpanded'));
   },
 };
 
-ElementBase.register(ExpandButton);
+cp.ElementBase.register(ExpandButton);

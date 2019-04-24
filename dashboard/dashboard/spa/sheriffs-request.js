@@ -4,9 +4,7 @@
 */
 'use strict';
 
-import RequestBase from './request-base.js';
-
-export default class SheriffsRequest extends RequestBase {
+export default class SheriffsRequest extends cp.RequestBase {
   constructor(options = {}) {
     super(options);
     this.method_ = 'POST';

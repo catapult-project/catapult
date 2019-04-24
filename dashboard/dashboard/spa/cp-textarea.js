@@ -4,8 +4,6 @@
 */
 'use strict';
 
-import {getActiveElement, timeout} from './utils.js';
-
 export default class CpTextarea extends Polymer.Element {
   static get is() { return 'cp-textarea'; }
 
@@ -77,16 +75,16 @@ export default class CpTextarea extends Polymer.Element {
 
   async focus() {
     this.nativeInput.focus();
-    while (getActiveElement() !== this.nativeInput) {
-      await timeout(50);
+    while (cp.getActiveElement() !== this.nativeInput) {
+      await cp.timeout(50);
       this.nativeInput.focus();
     }
   }
 
   async blur() {
     this.nativeInput.blur();
-    while (getActiveElement() === this.nativeInput) {
-      await timeout(50);
+    while (cp.getActiveElement() === this.nativeInput) {
+      await cp.timeout(50);
       this.nativeInput.blur();
     }
   }

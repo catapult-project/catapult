@@ -4,9 +4,7 @@
 */
 'use strict';
 
-import RequestBase from './request-base.js';
-
-export default class SessionStateRequest extends RequestBase {
+export default class SessionStateRequest extends cp.RequestBase {
   constructor(options) {
     super(options);
     this.sessionId_ = options.sessionId;

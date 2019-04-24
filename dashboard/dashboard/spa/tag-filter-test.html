@@ -7,7 +7,8 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/dependencies.html">
+<link rel="import" href="/bower_components/polymer/polymer.html">
+<link rel="import" href="/dashboard/spa/tag-filter.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -16,57 +17,53 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script type="module">
+<script>
 'use strict';
-
-import {UPDATE} from './simple-redux.js';
-import {afterRender} from './utils.js';
+setup(() => {
+  fixture('test').dispatch(Redux.UPDATE('', {
+    test: {
+      ...cp.MenuInput.buildState({
+        label: 'Test',
+        options: new Set([
+          'aaa',
+          'bbb',
+          'ccc',
+          'ddd',
+          'eee',
+        ]),
+      }),
+      tags: {
+        options: cp.OptionGroup.groupValues(new Set([
+          'xxx',
+          'yyy',
+        ])),
+        map: new Map([
+          ['xxx', ['aaa', 'ccc']],
+          ['yyy', ['bbb', 'ddd']],
+        ]),
+        selectedOptions: [],
+        query: '',
+      },
+    },
+  }));
+});
 
 suite('tag-filter', function() {
   test('filter', async function() {
-    const {default: MenuInput} = await importModule('./menu-input.js');
-    const {default: OptionGroup} = await importModule('./option-group.js');
-    const {default: TagFilter} = await importModule('./tag-filter.js');
-
-    fixture('test').dispatch(UPDATE('', {
-      test: {
-        ...MenuInput.buildState({
-          label: 'Test',
-          options: new Set([
-            'aaa',
-            'bbb',
-            'ccc',
-            'ddd',
-            'eee',
-          ]),
-        }),
-        tags: {
-          options: OptionGroup.groupValues(new Set([
-            'xxx',
-            'yyy',
-          ])),
-          map: new Map([
-            ['xxx', ['aaa', 'ccc']],
-            ['yyy', ['bbb', 'ddd']],
-          ]),
-          selectedOptions: [],
-          query: '',
-        },
-      },
-    }));
+    await importModule('./cp-checkbox.js');
     const tagFilter = fixture('test');
-    await afterRender();
+    await cp.afterRender();
 
     const xxx = tr.ui.b.findDeepElementWithTextContent(tagFilter, /xxx/);
     xxx.$.native.click();
-    await afterRender();
+    await cp.afterRender();
     let state = tagFilter.getState().test;
     assert.deepEqual(['aaa', 'ccc'],
         state.options[0].options.map(o => o.value));
     assert.deepEqual(['aaa', 'ccc'], state.selectedOptions);
 
     xxx.$.native.click();
-    await afterRender();
+    await cp.afterRender();
     state = tagFilter.getState().test;
     assert.deepEqual(['aaa', 'bbb', 'ccc', 'ddd', 'eee'],
         state.options[0].options.map(o => o.value));
@@ -74,14 +71,14 @@ suite('tag-filter', function() {
 
     const yyy = tr.ui.b.findDeepElementWithTextContent(tagFilter, /yyy/);
     yyy.$.native.click();
-    await afterRender();
+    await cp.afterRender();
     state = tagFilter.getState().test;
     assert.deepEqual(['bbb', 'ddd'],
         state.options[0].options.map(o => o.value));
     assert.deepEqual(['bbb', 'ddd'], state.selectedOptions);
 
     xxx.$.native.click();
-    await afterRender();
+    await cp.afterRender();
     state = tagFilter.getState().test;
     assert.deepEqual(['aaa', 'bbb', 'ccc', 'ddd'],
         state.options[0].options.map(o => o.value));
