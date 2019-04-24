@@ -15,7 +15,6 @@ from dashboard import mock_oauth2_decorator
 
 from dashboard import bug_details
 from dashboard.common import testing_common
-from dashboard.models import try_job
 from dashboard.services import issue_tracker_service
 
 
@@ -66,15 +65,6 @@ class BugDetailsHandlerTest(testing_common.TestCase):
       issue_tracker_service.IssueTrackerService, 'GetIssueComments',
       mock.MagicMock(return_value=GET_COMMENTS_DATA))
   def testPost(self):
-    try_job.TryJob(
-        bug_id=12345, status='started', bot='win_perf',
-        results_data={}).put()
-    try_job.TryJob(
-        bug_id=12345, status='failed', bot='android_bisect',
-        results_data={'metric': 'foo'}).put()
-    try_job.TryJob(
-        bug_id=99999, status='failed', bot='win_perf',
-        results_data={'metric': 'foo'}).put()
     response = self.testapp.post('/bug_details', {'bug_id': '12345'})
     self.assertEqual(
         'Regression in sunspider',
@@ -97,13 +87,6 @@ class BugDetailsHandlerTest(testing_common.TestCase):
     self.assertItemsEqual(
         ['https://codereview.chromium.org/2707483002'],
         self.GetJsonValue(response, 'review_urls'))
-    bisects = self.GetJsonValue(response, 'bisects')
-    self.assertEqual(2, len(bisects))
-    self.assertEqual('started', bisects[0]['status'])
-    self.assertIsNone(bisects[0]['metric'])
-    self.assertEqual('failed', bisects[1]['status'])
-    self.assertEqual('foo', bisects[1]['metric'])
-    self.assertEqual('android_bisect', bisects[1]['bot'])
 
 
 if __name__ == '__main__':

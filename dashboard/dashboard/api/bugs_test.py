@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import datetime
 import mock
 import unittest
 
@@ -10,7 +9,6 @@ from dashboard.api import api_auth
 from dashboard.api import bugs
 from dashboard.common import testing_common
 from dashboard.common import utils
-from dashboard.models import try_job
 
 
 class MockIssueTrackerService(object):
@@ -109,18 +107,6 @@ class BugsTest(testing_common.TestCase):
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   def testPost_WithValidBug_ShowsData(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    try_job.TryJob(
-        bug_id=123456, status='started', bot='win_perf',
-        results_data={}, config='config = {"command": "cmd"}',
-        last_ran_timestamp=datetime.datetime(2017, 01, 01)).put()
-    try_job.TryJob(
-        bug_id=123456, status='failed', bot='android_bisect',
-        results_data={'metric': 'foo'},
-        config='config = {"command": "cmd"}').put()
-    try_job.TryJob(
-        bug_id=99999, status='failed', bot='win_perf',
-        results_data={'metric': 'foo'},
-        config='config = {"command": "cmd"}').put()
     response = self.Post('/api/bugs/123456?include_comments=true')
     bug = self.GetJsonValue(response, 'bug')
     self.assertEqual('The bug title', bug.get('summary'))
@@ -136,30 +122,11 @@ class BugsTest(testing_common.TestCase):
     self.assertEqual('Comment two', bug.get('comments')[1].get('content'))
     self.assertEqual(
         'author-two@chromium.org', bug.get('comments')[1].get('author'))
-    self.assertEqual(2, len(bug.get('legacy_bisects')))
-    self.assertEqual('started', bug.get('legacy_bisects')[0].get('status'))
-    self.assertEqual('cmd', bug.get('legacy_bisects')[0].get('command'))
-    self.assertEqual('2017-01-01T00:00:00', bug.get('legacy_bisects')[0].get(
-        'started_timestamp'))
-    self.assertEqual('', bug.get('legacy_bisects')[1].get(
-        'started_timestamp'))
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   def testPost_WithValidBugButNoComments(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
 
-    try_job.TryJob(
-        bug_id=123456, status='started', bot='win_perf',
-        results_data={}, config='config = {"command": "cmd"}',
-        last_ran_timestamp=datetime.datetime(2017, 01, 01)).put()
-    try_job.TryJob(
-        bug_id=123456, status='failed', bot='android_bisect',
-        results_data={'metric': 'foo'},
-        config='config = {"command": "cmd"}').put()
-    try_job.TryJob(
-        bug_id=99999, status='failed', bot='win_perf',
-        results_data={'metric': 'foo'},
-        config='config = {"command": "cmd"}').put()
     response = self.Post('/api/bugs/123456')
     bug = self.GetJsonValue(response, 'bug')
     self.assertNotIn('comments', bug)

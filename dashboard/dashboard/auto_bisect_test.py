@@ -9,11 +9,9 @@ import mock
 
 from dashboard import auto_bisect
 from dashboard.common import namespaced_stored_object
-from dashboard.common import request_handler
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
-from dashboard.models import try_job
 
 
 class StartNewBisectForBugTest(testing_common.TestCase):
@@ -24,113 +22,6 @@ class StartNewBisectForBugTest(testing_common.TestCase):
     namespaced_stored_object.Set('bot_configurations', {
         'linux-pinpoint': {},
     })
-
-  @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
-  def testStartNewBisectForBug_StartsBisect(self, mock_perform_bisect):
-    testing_common.AddTests(
-        ['ChromiumPerf'], ['linux-release'], {'sunspider': {'score': {
-            'page_1': {}, 'page_2': {}}}})
-    test_key = utils.TestKey('ChromiumPerf/linux-release/sunspider/score')
-    anomaly.Anomaly(
-        bug_id=111, test=test_key,
-        start_revision=300100, end_revision=300200,
-        median_before_anomaly=100, median_after_anomaly=200).put()
-    auto_bisect.StartNewBisectForBug(111)
-    job = try_job.TryJob.query(try_job.TryJob.bug_id == 111).get()
-    self.assertNotIn('--story-filter', job.config)
-    mock_perform_bisect.assert_called_once_with(job)
-
-  @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
-  def testStartNewBisectForBug_StartsBisectWithStoryFilter(
-      self, mock_perform_bisect):
-    testing_common.AddTests(
-        ['ChromiumPerf'], ['linux-release'], {'sunspider': {'score': {
-            'page_1': {}, 'page_2': {}}}})
-    test_key = utils.TestKey(
-        'ChromiumPerf/linux-release/sunspider/score/page_2')
-    anomaly.Anomaly(
-        bug_id=111, test=test_key,
-        start_revision=300100, end_revision=300200,
-        median_before_anomaly=100, median_after_anomaly=200).put()
-    auto_bisect.StartNewBisectForBug(111)
-    job = try_job.TryJob.query(try_job.TryJob.bug_id == 111).get()
-    self.assertIn('--story-filter', job.config)
-    mock_perform_bisect.assert_called_once_with(job)
-
-  def testStartNewBisectForBug_RevisionTooLow_ReturnsError(self):
-    testing_common.AddTests(
-        ['ChromiumPerf'], ['linux-release'], {'sunspider': {'score': {}}})
-    test_key = utils.TestKey('ChromiumPerf/linux-release/sunspider/score')
-    anomaly.Anomaly(
-        bug_id=222, test=test_key,
-        start_revision=1200, end_revision=1250,
-        median_before_anomaly=100, median_after_anomaly=200).put()
-    result = auto_bisect.StartNewBisectForBug(222)
-    self.assertEqual({'error': 'Invalid "good" revision: 1199.'}, result)
-
-  def testStartNewBisectForBug_RevisionsEqual_ReturnsError(self):
-    testing_common.AddTests(
-        ['ChromiumPerf'], ['linux-release'], {'sunspider': {'score': {}}})
-    test_key = utils.TestKey('ChromiumPerf/linux-release/sunspider/score')
-    testing_common.AddRows(
-        'ChromiumPerf/linux-release/sunspider/score',
-        {
-            11990: {
-                'a_default_rev': 'r_foo',
-                'r_foo': '9e29b5bcd08357155b2859f87227d50ed60cf857'
-            },
-            12500: {
-                'a_default_rev': 'r_foo',
-                'r_foo': 'fc34e5346446854637311ad7793a95d56e314042'
-            }
-        })
-    anomaly.Anomaly(
-        bug_id=222, test=test_key,
-        start_revision=12500, end_revision=12500,
-        median_before_anomaly=100, median_after_anomaly=200).put()
-    result = auto_bisect.StartNewBisectForBug(222)
-    self.assertEqual(
-        {'error': 'Same "good"/"bad" revisions, bisect skipped'}, result)
-
-  @mock.patch.object(
-      auto_bisect.start_try_job, 'PerformBisect',
-      mock.MagicMock(side_effect=request_handler.InvalidInputError(
-          'Some reason')))
-  def testStartNewBisectForBug_InvalidInputErrorRaised_ReturnsError(self):
-    testing_common.AddTests(['Foo'], ['bar'], {'sunspider': {'score': {}}})
-    test_key = utils.TestKey('Foo/bar/sunspider/score')
-    anomaly.Anomaly(
-        bug_id=345, test=test_key,
-        start_revision=300100, end_revision=300200,
-        median_before_anomaly=100, median_after_anomaly=200).put()
-    result = auto_bisect.StartNewBisectForBug(345)
-    self.assertEqual({'error': 'Some reason'}, result)
-
-  @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
-  def testStartNewBisectForBug_WithDefaultRevs_StartsBisect(
-      self, mock_perform_bisect):
-    testing_common.AddTests(
-        ['ChromiumPerf'], ['linux-release'], {'sunspider': {'score': {}}})
-    test_key = utils.TestKey('ChromiumPerf/linux-release/sunspider/score')
-    testing_common.AddRows(
-        'ChromiumPerf/linux-release/sunspider/score',
-        {
-            11990: {
-                'a_default_rev': 'r_foo',
-                'r_foo': '9e29b5bcd08357155b2859f87227d50ed60cf857'
-            },
-            12500: {
-                'a_default_rev': 'r_foo',
-                'r_foo': 'fc34e5346446854637311ad7793a95d56e314042'
-            }
-        })
-    anomaly.Anomaly(
-        bug_id=333, test=test_key,
-        start_revision=12000, end_revision=12500,
-        median_before_anomaly=100, median_after_anomaly=200).put()
-    auto_bisect.StartNewBisectForBug(333)
-    job = try_job.TryJob.query(try_job.TryJob.bug_id == 333).get()
-    mock_perform_bisect.assert_called_once_with(job)
 
   def testStartNewBisectForBug_UnbisectableTest_ReturnsError(self):
     testing_common.AddTests(['Sizes'], ['x86'], {'sizes': {'abcd': {}}})

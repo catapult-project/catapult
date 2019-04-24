@@ -11,11 +11,9 @@ from dashboard import can_bisect
 from dashboard import pinpoint_request
 from dashboard import start_try_job
 from dashboard.common import namespaced_stored_object
-from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
-from dashboard.models import try_job
 from dashboard.services import pinpoint_service
 
 
@@ -57,10 +55,10 @@ def _StartBisectForBug(bug_id):
 
   bot_configurations = namespaced_stored_object.Get('bot_configurations')
 
-  if test.bot_name in bot_configurations.keys():
-    return _StartPinpointBisect(bug_id, test_anomaly, test)
-
-  return _StartRecipeBisect(bug_id, test_anomaly, test)
+  if test.bot_name not in bot_configurations.keys():
+    raise NotBisectableError(
+        'Bot: %s has no corresponding Pinpoint bot.' % test.bot_name)
+  return _StartPinpointBisect(bug_id, test_anomaly, test)
 
 
 def _StartPinpointBisect(bug_id, test_anomaly, test):
@@ -93,78 +91,6 @@ def _StartPinpointBisect(bug_id, test_anomaly, test):
     del results['jobUrl']
 
   return results
-
-
-def _StartRecipeBisect(bug_id, test_anomaly, test):
-  bisect_job = _MakeBisectTryJob(bug_id, test_anomaly, test)
-  bisect_job_key = bisect_job.put()
-
-  try:
-    bisect_result = start_try_job.PerformBisect(bisect_job)
-  except request_handler.InvalidInputError as e:
-    bisect_result = {'error': e.message}
-  if 'error' in bisect_result:
-    bisect_job_key.delete()
-  return bisect_result
-
-
-def _MakeBisectTryJob(bug_id, test_anomaly, test):
-  """Tries to automatically select parameters for a bisect job.
-
-  Args:
-    bug_id: A bug ID which some alerts are associated with.
-
-  Returns:
-    A TryJob entity, which has not yet been put in the datastore.
-
-  Raises:
-    NotBisectableError: A valid bisect config could not be created.
-  """
-  good_revision = GetRevisionForBisect(test_anomaly.start_revision - 1, test)
-  bad_revision = GetRevisionForBisect(test_anomaly.end_revision, test)
-  if not can_bisect.IsValidRevisionForBisect(good_revision):
-    raise NotBisectableError('Invalid "good" revision: %s.' % good_revision)
-  if not can_bisect.IsValidRevisionForBisect(bad_revision):
-    raise NotBisectableError('Invalid "bad" revision: %s.' % bad_revision)
-  if test_anomaly.start_revision == test_anomaly.end_revision:
-    raise NotBisectableError(
-        'Same "good"/"bad" revisions, bisect skipped')
-
-  metric = start_try_job.GuessMetric(test.test_path)
-  story_filter = start_try_job.GuessStoryFilter(test.test_path)
-
-  bisect_bot = start_try_job.GuessBisectBot(test.master_name, test.bot_name)
-  if not bisect_bot:
-    raise NotBisectableError(
-        'Could not select a bisect bot: %s for (%s, %s)' % (
-            bisect_bot, test.master_name, test.bot_name))
-
-  new_bisect_config = start_try_job.GetBisectConfig(
-      bisect_bot=bisect_bot,
-      master_name=test.master_name,
-      suite=test.suite_name,
-      metric=metric,
-      story_filter=story_filter,
-      good_revision=good_revision,
-      bad_revision=bad_revision,
-      repeat_count=10,
-      max_time_minutes=20,
-      bug_id=bug_id)
-
-  if 'error' in new_bisect_config:
-    raise NotBisectableError('Could not make a valid config.')
-
-  config_python_string = utils.BisectConfigPythonString(new_bisect_config)
-
-  bisect_job = try_job.TryJob(
-      bot=bisect_bot,
-      config=config_python_string,
-      bug_id=bug_id,
-      master_name=test.master_name,
-      internal_only=test.internal_only,
-      job_type='bisect')
-
-  return bisect_job
 
 
 def _ChooseTest(anomalies):
@@ -256,34 +182,3 @@ def GetRevisionForBisect(revision, test_key):
   if row and hasattr(row, 'a_default_rev') and hasattr(row, row.a_default_rev):
     return getattr(row, row.a_default_rev)
   return revision
-
-
-def _PrintStartedAndFailedBisectJobs():
-  """Prints started and failed bisect jobs in datastore."""
-  failed_jobs = try_job.TryJob.query(
-      try_job.TryJob.status == 'failed').fetch()
-  started_jobs = try_job.TryJob.query(
-      try_job.TryJob.status == 'started').fetch()
-
-  return {
-      'headline': 'Bisect Jobs',
-      'results': [
-          _JobsListResult('Failed jobs', failed_jobs),
-          _JobsListResult('Started jobs', started_jobs),
-      ]
-  }
-
-
-def _JobsListResult(title, jobs):
-  """Returns one item in a list of results to be displayed on result.html."""
-  return {
-      'name': '%s: %d' % (title, len(jobs)),
-      'value': '\n'.join(_JobLine(job) for job in jobs),
-      'class': 'results-pre'
-  }
-
-
-def _JobLine(job):
-  """Returns a string with information about one TryJob entity."""
-  config = job.config.replace('\n', '') if job.config else 'No config.'
-  return 'Bug ID %d. %s' % (job.bug_id, config)

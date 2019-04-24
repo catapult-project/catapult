@@ -11,7 +11,6 @@ from google.appengine.ext import ndb
 from dashboard.common import layered_cache
 from dashboard.models import anomaly
 from dashboard.models import bug_data
-from dashboard.models import try_job
 from dashboard.services import issue_tracker_service
 
 
@@ -21,14 +20,6 @@ _NOT_DUPLICATE_MULTIPLE_BUGS_MSG = """
 Possible duplicate of crbug.com/%s, but not merging issues due to multiple
 culprits in destination issue.
 """
-
-
-class BisectJobFailure(Exception):
-  pass
-
-
-class BugUpdateFailure(Exception):
-  pass
 
 
 def GetMergeIssueDetails(issue_tracker, commit_cache_key):
@@ -58,16 +49,6 @@ def GetMergeIssueDetails(issue_tracker, commit_cache_key):
   # just keep things simple and flat for now.
   if merge_issue.get('status') != issue_tracker_service.STATUS_DUPLICATE:
     merge_issue_id = str(merge_issue.get('id'))
-
-  # We also don't want to duplicate against an issue that already has a bunch
-  # of bisects pointing at different culprits.
-  if merge_issue_id:
-    jobs = try_job.TryJob.query(
-        try_job.TryJob.bug_id == int(merge_issue_id)).fetch()
-    culprits = set([j.GetCulpritCL() for j in jobs if j.GetCulpritCL()])
-    if len(culprits) >= 2:
-      additional_comments += _NOT_DUPLICATE_MULTIPLE_BUGS_MSG % merge_issue_id
-      merge_issue_id = None
 
   return {
       'issue': merge_issue,

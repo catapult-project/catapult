@@ -9,7 +9,6 @@ import re
 
 from dashboard import oauth2_decorator
 from dashboard.common import request_handler
-from dashboard.models import try_job
 from dashboard.services import issue_tracker_service
 
 
@@ -44,7 +43,7 @@ def GetBugDetails(bug_id, http):
   bug_details = _GetDetailsFromMonorail(bug_id, http)
   bug_details['review_urls'] = _GetLinkedRevisions(
       bug_details['comments'])
-  bug_details['bisects'] = _GetBisectsForBug(bug_id)
+  bug_details['bisects'] = []
   return bug_details
 
 
@@ -76,12 +75,3 @@ def _GetLinkedRevisions(comments):
     if m:
       review_urls.append(m.group(2))
   return review_urls
-
-def _GetBisectsForBug(bug_id):
-  bisects = try_job.TryJob.query(try_job.TryJob.bug_id == bug_id).fetch()
-  return [{
-      'status': b.status,
-      'bot': b.bot,
-      'buildbucket_link': '/buildbucket_job_status/%s' % b.buildbucket_job_id,
-      'metric': (b.results_data or {}).get('metric'),
-  } for b in bisects]

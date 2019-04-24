@@ -44,12 +44,10 @@ from dashboard import migrate_test_names
 from dashboard import navbar
 from dashboard import oauth2_decorator
 from dashboard import pinpoint_request
-from dashboard import post_bisect_results
 from dashboard import put_entities_task
 from dashboard import report
 from dashboard import short_uri
 from dashboard import speed_releasing
-from dashboard import start_try_job
 from dashboard import update_dashboard_stats
 from dashboard import update_test_suite_descriptors
 from dashboard import update_test_suites
@@ -129,14 +127,12 @@ _URL_MAPPING = [
      pinpoint_request.PinpointNewPerfTryRequestHandler),
     ('/pinpoint/new/prefill',
      pinpoint_request.PinpointNewPrefillRequestHandler),
-    ('/post_bisect_results', post_bisect_results.PostBisectResultsHandler),
     ('/put_entities_task', put_entities_task.PutEntitiesTaskHandler),
     ('/report', report.ReportHandler),
     ('/short_uri', short_uri.ShortUriHandler),
     (r'/speed_releasing/(.*)',
      speed_releasing.SpeedReleasingHandler),
     ('/speed_releasing', speed_releasing.SpeedReleasingHandler),
-    ('/start_try_job', start_try_job.StartBisectHandler),
     ('/update_dashboard_stats',
      update_dashboard_stats.UpdateDashboardStatsHandler),
     ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler),

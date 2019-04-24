@@ -6,7 +6,6 @@ from dashboard.api import api_request_handler
 from dashboard.api import utils as api_utils
 from dashboard.common import datastore_hooks
 from dashboard.common import utils
-from dashboard.models import try_job
 from dashboard.services import issue_tracker_service
 
 
@@ -54,7 +53,7 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
           "value of |with_comments| should be 'true' or 'false'")
 
     issue = service.GetIssue(bug_id)
-    bisects = try_job.TryJob.query(try_job.TryJob.bug_id == bug_id).fetch()
+    bisects = []
 
     def _FormatDate(d):
       if not d:
@@ -72,7 +71,7 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
                 'https://chromeperf.appspot.com/buildbucket_job_status/%s' %
                 b.buildbucket_job_id),
             'command': b.GetConfigDict()['command'],
-            'culprit': self._GetCulpritInfo(b),
+            'culprit': None,
             'metric': (b.results_data or {}).get('metric'),
             'started_timestamp': _FormatDate(b.last_ran_timestamp),
         } for b in bisects],
@@ -96,14 +95,3 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
       } for comment in comments]
 
     return response
-
-  def _GetCulpritInfo(self, try_job_entity):
-    if not try_job_entity.results_data:
-      return None
-    culprit = try_job_entity.results_data.get('culprit_data')
-    if not culprit:
-      return None
-    return {
-        'cl': culprit.get('cl'),
-        'subject': culprit.get('subject'),
-    }
