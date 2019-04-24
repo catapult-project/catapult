@@ -40,6 +40,13 @@ found in the LICENSE file.
             <td>
               <paper-input type="text" value="[[bot]]" disabled></paper-input>
             </td>
+            <td>Story Filter:</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>
+              <paper-input id="story-filter" label="Story Filter (optional)" value="{{story_filter::input}}" disabled$="[[loading]]"></paper-input>
+            </td>
           </tr>
           <tr>
             <td><paper-checkbox checked="{{useTrace::input}}"></paper-checkbox>Chrome trace <a href="https://cs.chromium.org/chromium/src/base/trace_event/trace_config.h?rcl=c8db6c6371ca047c24d41f3972d5819bc83d83ae&l=125" target="_blank">filter string</a>:</td>
@@ -93,6 +100,14 @@ found in the LICENSE file.
         type: String,
         value: '',
       },
+      loading: {
+        type: Boolean,
+        value: false,
+      },
+      story_filter: {
+        type: String,
+        value: '',
+      },
       startCommit: {
         type: String,
         value: '',
@@ -137,7 +152,7 @@ found in the LICENSE file.
     /**
       * Initializes and shows the trace form.
       */
-    show() {
+    async show() {
       this.open();
 
       this.atraceCategories =
@@ -148,6 +163,22 @@ found in the LICENSE file.
         'toplevel,disabled-by-default-toplevel.flow';
       this.useTrace = true;
       this.bot = this.testPath.split('/')[1];
+
+      this.loading = true;
+      this.story_filter = '';
+      try {
+        const params = {
+          test_path: this.testPath,
+        };
+
+        const results = await simple_xhr.asPromise(
+            '/pinpoint/new/prefill', params);
+        this.story_filter = results.story_filter;
+      } catch (e) {
+        this.error = e;
+      }
+
+      this.loading = false;
     },
 
     /**
@@ -164,6 +195,7 @@ found in the LICENSE file.
 
       const params = {
         test_path: this.testPath,
+        story_filter: this.story_filter,
         start_commit: this.startCommit,
         end_commit: this.endCommit,
         extra_test_args: JSON.stringify(args)

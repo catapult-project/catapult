@@ -79,10 +79,25 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     self.assertEqual({'foo': 'bar'}, json.loads(response.body))
 
   @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_StoryFilterSet(self):
+    params = {
+        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'extra_test_args': '',
+        'story_filter': 'story',
+    }
+    results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+    self.assertEqual('story', results['story'])
+
+  @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=False))
   def testPinpointParams_InvalidSheriff_RaisesError(self):
     params = {
-        'test_path': 'ChromiumPerf/foo/blah/foo'
+        'test_path': 'ChromiumPerf/foo/blah/foo',
+        'story_filter': '',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromPerfTryParams(params)
@@ -94,6 +109,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'test_path': 'ChromiumPerf/mac/cc_perftests/foo',
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
+        'story_filter': '',
     }
     with self.assertRaises(pinpoint_request.InvalidParamsError):
       pinpoint_request.PinpointParamsFromPerfTryParams(params)
@@ -107,6 +123,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'extra_test_args': json.dumps(
             ['--extra-trace-args', 'abc,123,foo']),
+        'story_filter': '',
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
@@ -121,6 +138,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'end_commit': 'efgh5678',
         'extra_test_args': json.dumps(
             ['--extra-trace-args', 'abc,123,foo']),
+        'story_filter': '',
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
@@ -143,6 +161,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
         'extra_test_args': '',
+        'story_filter': '',
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
@@ -164,6 +183,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'start_commit': '1234',
         'end_commit': '5678',
         'extra_test_args': '',
+        'story_filter': '',
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
@@ -180,6 +200,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'start_commit': 'abcd1234',
         'end_commit': 'efgh5678',
         'extra_test_args': '',
+        'story_filter': '',
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
@@ -198,6 +219,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         'start_commit': '1234',
         'end_commit': '5678',
         'extra_test_args': '',
+        'story_filter': '',
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 

@@ -202,6 +202,7 @@ def PinpointParamsFromPerfTryParams(params):
   end_commit = params['end_commit']
   start_git_hash = ResolveToGitHash(start_commit, suite)
   end_git_hash = ResolveToGitHash(end_commit, suite)
+  story_filter = params['story_filter']
 
   # Pinpoint also requires you specify which isolate target to run the
   # test, so we derive that from the suite name. Eventually, this would
@@ -214,7 +215,7 @@ def PinpointParamsFromPerfTryParams(params):
   email = utils.GetEmail()
   job_name = 'Try job on %s/%s' % (bot_name, suite)
 
-  return {
+  pinpoint_params = {
       'configuration': bot_name,
       'benchmark': suite,
       'start_git_hash': start_git_hash,
@@ -224,6 +225,11 @@ def PinpointParamsFromPerfTryParams(params):
       'user': email,
       'name': job_name
   }
+
+  if story_filter:
+    pinpoint_params['story'] = story_filter
+
+  return pinpoint_params
 
 
 def PinpointParamsFromBisectParams(params):
