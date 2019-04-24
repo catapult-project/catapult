@@ -11,6 +11,7 @@ import("//build/config/compiler/compiler.gni")
 group("telemetry_chrome_test_support") {
   testonly = true
   data = []
+  data_deps = []
 
   data += [
     "AUTHORS",
@@ -106,6 +107,10 @@ group("telemetry_chrome_test_support") {
     "third_party/zipfile/",
   ]
 
+  data_deps += [
+    "third_party/vinn",
+  ]
+
   data += [
     "tracing/BUILD.gn",
     "tracing/LICENSE",
@@ -155,12 +160,6 @@ group("telemetry_chrome_test_support") {
   ]
 
   data += [
-    "third_party/vinn/OWNERS",
-    "third_party/vinn/bin/",
-    "third_party/vinn/vinn/",
-  ]
-
-  data += [
     "telemetry/telemetry/internal/__init__.py",
     "telemetry/telemetry/internal/snap_page_util.py",
     "telemetry/telemetry/internal/snap_page_util_unittest.py",
@@ -178,41 +177,5 @@ group("telemetry_chrome_test_support") {
     "telemetry/telemetry/internal/testing/",
     "telemetry/telemetry/internal/util/",
   ]
-
-  data += [
-    "third_party/vinn/third_party/parse5/",
-  ]
-
-  data += [
-    "third_party/vinn/third_party/v8/LICENSE",
-    "third_party/vinn/third_party/v8/LICENSE.strongtalk",
-    "third_party/vinn/third_party/v8/LICENSE.v8",
-    "third_party/vinn/third_party/v8/LICENSE.valgrind",
-    "third_party/vinn/third_party/v8/README.chromium",
-  ]
-
-  if (is_mac) {
-    data += [ "third_party/vinn/third_party/v8/mac/" ]
-  }
-
-  if (is_win) {
-    data += [ "third_party/vinn/third_party/v8/win/" ]
-  }
-
-  if (is_chromeos) {
-    data += [ "third_party/vinn/third_party/v8/linux/arm/" ]
-  }
-
-  if (is_chromeos) {
-    data += [ "third_party/vinn/third_party/v8/linux/mips/" ]
-  }
-
-  if (is_chromeos) {
-    data += [ "third_party/vinn/third_party/v8/linux/mips64/" ]
-  }
-
-  if (is_linux || is_android) {
-    data += [ "third_party/vinn/third_party/v8/linux/x86_64/" ]
-  }
 
 }

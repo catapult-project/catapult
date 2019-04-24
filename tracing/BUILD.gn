@@ -21,3 +21,26 @@ action("generate_about_tracing") {
     "--outdir", rebase_path(output_resource_dir, root_build_dir),
   ]
 }
+
+# This could likely be refined & narrowed s.t. the interface targets below
+# only include what they need.
+group("tracing_common") {
+  visibility = [ ":*" ]
+
+  data = [
+    "../third_party/polymer/",
+    "third_party/",
+    "tracing/",
+    "tracing_project.py",
+  ]
+
+  data_deps = [
+    "../third_party/vinn",
+  ]
+}
+
+# GN interface. Should remain stable, even if the implementation doesn't.
+
+group("convert_chart_json") {
+  data_deps = [ ":tracing_common" ]
+}
