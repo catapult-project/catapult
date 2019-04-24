@@ -28,7 +28,7 @@ tr.exportTo('tr.e.chrome', function() {
   // top level scheduler task cannot be handled until the end of that task.
   const SCHEDULER_TOP_LEVEL_TASK_TITLE = 'ThreadControllerImpl::RunTask';
 
-  const SCHEDULOER_TOP_LEVEL_TASKS = new Set([
+  const SCHEDULER_TOP_LEVEL_TASKS = new Set([
     // Current title for the scheduler top level task.
     SCHEDULER_TOP_LEVEL_TASK_TITLE,
     // Previous names scheduler top level tasks, kept for backwards
@@ -238,9 +238,11 @@ tr.exportTo('tr.e.chrome', function() {
      */
     static findToplevelSchedulerTasks(mainThread) {
       const tasks = [];
-      tasks.push(...mainThread.findTopmostSlices(
+      for (const task of mainThread.findTopmostSlices(
           slice => slice.category === 'toplevel' &&
-          SCHEDULOER_TOP_LEVEL_TASKS.has(slice.title)));
+          SCHEDULER_TOP_LEVEL_TASKS.has(slice.title))) {
+        tasks.push(task);
+      }
       return tasks;
     }
   }
