@@ -10,6 +10,7 @@ Eventually, this will be based on adb_wrapper.
 
 import calendar
 import collections
+import contextlib
 import fnmatch
 import json
 import logging
@@ -1924,8 +1925,29 @@ class DeviceUtils(object):
           device_path if not rename else [_RenamePath(p) for p in device_path])
     self.RunShellCommand(args, as_root=as_root, check_return=True)
 
+  @contextlib.contextmanager
+  def _CopyToReadableLocation(self, device_path):
+    """Context manager to copy a file to a globally readable temp file.
+
+    This uses root permission to copy a file to a globally readable named
+    temporary file. The temp file is removed when this contextmanager is closed.
+
+    Args:
+      device_path: A string containing the absolute path of the file (on the
+        device) to copy.
+    Yields:
+      The globally readable file object.
+    """
+    with device_temp_file.DeviceTempFile(self.adb) as device_temp:
+      cmd = 'SRC=%s DEST=%s;cp "$SRC" "$DEST" && chmod 666 "$DEST"' % (
+          cmd_helper.SingleQuote(device_path),
+          cmd_helper.SingleQuote(device_temp.name))
+      self.RunShellCommand(cmd, shell=True, as_root=True, check_return=True)
+      yield device_temp
+
   @decorators.WithTimeoutAndRetriesFromInstance()
-  def PullFile(self, device_path, host_path, timeout=None, retries=None):
+  def PullFile(self, device_path, host_path, as_root=False, timeout=None,
+               retries=None):
     """Pull a file from the device.
 
     Args:
@@ -1933,6 +1955,7 @@ class DeviceUtils(object):
                    from the device.
       host_path: A string containing the absolute path of the destination on
                  the host.
+      as_root: Whether root permissions should be used to pull the file.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -1944,7 +1967,14 @@ class DeviceUtils(object):
     dirname = os.path.dirname(host_path)
     if dirname and not os.path.exists(dirname):
       os.makedirs(dirname)
-    self.adb.Pull(device_path, host_path)
+    if as_root and self.NeedsSU():
+      if not self.PathExists(device_path, as_root=True):
+        raise device_errors.CommandFailedError(
+            '%r: No such file or directory' % device_path, str(self))
+      with self._CopyToReadableLocation(device_path) as readable_temp_file:
+        self.adb.Pull(readable_temp_file.name, host_path)
+    else:
+      self.adb.Pull(device_path, host_path)
 
   def _ReadFileWithPull(self, device_path):
     try:
@@ -1991,12 +2021,8 @@ class DeviceUtils(object):
       return _JoinLines(self.RunShellCommand(
           ['cat', device_path], as_root=as_root, check_return=True))
     elif as_root and self.NeedsSU():
-      with device_temp_file.DeviceTempFile(self.adb) as device_temp:
-        cmd = 'SRC=%s DEST=%s;cp "$SRC" "$DEST" && chmod 666 "$DEST"' % (
-            cmd_helper.SingleQuote(device_path),
-            cmd_helper.SingleQuote(device_temp.name))
-        self.RunShellCommand(cmd, shell=True, as_root=True, check_return=True)
-        return self._ReadFileWithPull(device_temp.name)
+      with self._CopyToReadableLocation(device_path) as readable_temp_file:
+        return self._ReadFileWithPull(readable_temp_file.name)
     else:
       return self._ReadFileWithPull(device_path)
 
