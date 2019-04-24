@@ -403,8 +403,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         const categoryGroup = categorySet[i].children;
         for (let j = 0; j < categoryGroup.length; ++j) {
           const categoryEl = categoryGroup[j].children[0];
+          const category = categoryEl.value;
+          const enabledByDefault = !category.startsWith('disabled-by-default-');
           categoryEl.checked = shouldReadFromSettings ?
-            tr.b.Settings.get(categoryEl.value, false, this.settings_key_) :
+            tr.b.Settings.get(category, enabledByDefault, this.settings_key_) :
             false;
         }
       }
