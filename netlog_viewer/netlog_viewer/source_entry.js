@@ -90,7 +90,12 @@ class SourceEntry {
       case EventSourceType.SOCKS_CONNECT_JOB:
       case EventSourceType.HTTP_PROXY_CONNECT_JOB:
       case EventSourceType.WEB_SOCKET_TRANSPORT_CONNECT_JOB:
-        this.description_ = e.params.group_name;
+        if ((typeof e.params.group_id) === 'string') {
+          this.description_ = e.params.group_id;
+        } else if ((typeof e.params.group_name) === 'string') {
+          // Prior to M75, the connect job group name was here.
+          this.description_ = e.params.group_name;
+        }
         break;
       case EventSourceType.HOST_RESOLVER_IMPL_JOB:
       case EventSourceType.HOST_RESOLVER_IMPL_PROC_TASK:
@@ -216,6 +221,10 @@ class SourceEntry {
         return this.entries_[1];
       }
       if (this.entries_[1].type === EventType.IPV6_PROBE_RUNNING) {
+        return this.entries_[1];
+      }
+
+      if (this.entries_[1].type === EventType.SOCKET_POOL_CONNECT_JOB_CREATED) {
         return this.entries_[1];
       }
     }
