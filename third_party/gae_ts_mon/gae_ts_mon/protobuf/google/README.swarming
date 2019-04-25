@@ -13,19 +13,29 @@ for protobufs shown below (e.g. adding this file).
 
 Name: Protocol Buffers
 Short Name: protobuf
-Version: 3.5.1
-Revision: 106ffc04be1abf3ff3399f54ccf149815b287dd9
-Home-page: https://github.com/google/protobuf
+Version: 3.6.1
+Revision: 48cb18e5c419ddd23d9badcfe4e9df7bde1979b2
+Home-page: https://github.com/protocolbuffers/protobuf
 License: New BSD License
 
 Description:
 Protocol Buffers are Google's data interchange format.
 
 Reproduce:
-- fetch and unpack https://github.com/google/protobuf/releases/download/v3.5.1/protobuf-python-3.5.1.zip
-- run `python ./python/setup.py build`
-- remove all "*_test.py" from "./python/lib/google/protobuf"
-- copy "./python/lib/google/protobuf" here
+
+```
+curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.6.1/protobuf-python-3.6.1.zip
+unzip protobuf-python-3.6.1.zip
+cd protobuf-3.6.1/python
+# You need protoc in $PATH from infra.git:
+python setup.py build
+rm -rf ../..
+git rm -rf protobuf
+mv protobuf-3.6.1/python/build/lib/google/protobuf .
+find protobuf -name "*_test.py" -delete
+git add protobuf
+rm -rf protobuf-3.6.1 protobuf-python-3.6.1.zip
+```
 
 ---
 
@@ -36,5 +46,8 @@ Home-page: https://grpc.io/
 License: Apache License 2.0
 
 Local modifications in ./rpc
- - protoc --python_out=. *.proto
- - touch __init__.py
+```
+touch __init__.py
+cd ../..
+protoc --python_out=. google/rpc/*.proto
+```

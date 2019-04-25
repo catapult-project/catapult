@@ -40,6 +40,7 @@ class Target(object):
       setattr(self, field, value)
 
   def __eq__(self, other):
+    # pylint: disable=unidiomatic-typecheck
     if type(self) != type(other):
       return False
 

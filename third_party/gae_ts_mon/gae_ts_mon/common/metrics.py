@@ -33,6 +33,7 @@ class Field(object):
     self.name = name
 
   def __eq__(self, other):
+    # pylint: disable=unidiomatic-typecheck
     return (type(self) == type(other) and
             self.__dict__ == other.__dict__)
 
@@ -137,10 +138,12 @@ class Metric(object):
     self._sorted_field_names = sorted(x.name for x in field_spec)
     self._description = description
     self._units = units
+    self._enable_cumulative_set = False
 
     interface.register(self)
 
   def __eq__(self, other):
+    # pylint: disable=unidiomatic-typecheck
     return (type(self) == type(other)
             and self.__dict__ == other.__dict__)
 
@@ -310,6 +313,23 @@ class Metric(object):
     interface.state.store.incr(
         self.name, self._validate_fields(fields), target_fields,
         delta, modify_fn=modify_fn)
+
+  def dangerously_enable_cumulative_set(self):
+    """Enables using set() with cumulative distributions.
+
+    Currently only used by CumulativeDistributionMetric.
+
+    [Warning!] You should almost certainly not use this method!
+
+    The only appropriate use case for this functionality is if the cumulative
+    distribution is calculated elsewhere and needs to be proxied through this
+    library.
+    """
+    self._enable_cumulative_set = True
+
+  def dangerously_set_start_time(self, start_time):
+    """Allows setting start time, however is almost surely not recommended."""
+    self._start_time = start_time
 
 
 class StringMetric(Metric):
@@ -510,8 +530,7 @@ class _DistributionMetricBase(Metric):
     Args:
       value: A infra_libs.ts_mon.Distribution.
     """
-
-    if self._is_cumulative:
+    if self._is_cumulative and not self._enable_cumulative_set:
       raise TypeError(
           'Cannot set() a cumulative DistributionMetric (use add() instead)')
 

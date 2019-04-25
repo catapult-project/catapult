@@ -1,11 +1,14 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+# pylint: disable=wrong-import-position
 
 import google  # provided by GAE
 import imp
 import os
 import sys
+
+from . import utils
 
 # Adds third_party to sys.path so the packages inside work.  Do not
 # import third_party directly - it mysteriously flakes on GAE under
@@ -27,6 +30,8 @@ if 'infra_libs' not in sys.modules:  # pragma: no cover
 
 sys.modules['infra_libs'].ts_mon = sys.modules[__package__]
 sys.modules['infra_libs.ts_mon'] = sys.modules[__package__]
+sys.modules['infra_libs'].utils = utils
+sys.modules['infra_libs.utils'] = utils
 
 # Put the httplib2_utils package into infra_lib directly.
 import infra_libs.ts_mon.httplib2_utils
@@ -39,6 +44,7 @@ from config import instrument_endpoint
 from config import instrument_wsgi_application
 from config import reset_for_unittest
 from infra_libs.ts_mon.handlers import app
+from infra_libs.ts_mon.handlers import TSMonJSHandler
 
 # The remaining lines are copied from infra_libs/ts_mon/__init__.py.
 from infra_libs.ts_mon.common.distribution import Distribution

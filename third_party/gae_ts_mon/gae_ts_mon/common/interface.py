@@ -139,9 +139,44 @@ def _generate_proto():
   data_sets = {}
 
   count = 0
-  for (target, metric, start_time, end_time, fields_values
+  for (target, metric, start_times, end_time, fields_values
        ) in state.store.get_all():
     for fields, value in fields_values.iteritems():
+      # Each stream is identified by a unique set of field values.
+      # e.g.,
+      #   - ('metric:result': 'success', 'metric:command': 'get_name')
+      #   - ('metric:result': 'failure', 'metric:command': 'get_name')
+      #
+      # In default, the start time of all data points for a single stream
+      # should be set with the first time of a value change in the stream,
+      # until metric.reset() invoked.
+      #
+      # e.g.,
+      # At 00:00.
+      #   {value: 1,
+      #    fields: ('metric:result': 'success', 'metric:command': 'get_name'),
+      #    start_timestamp=0, end_timestamp=0}
+      #
+      # At 00:01.
+      #   {value: 1,
+      #    fields: ('metric:result': 'success', 'metric:command': 'get_name'),
+      #    start_timestamp=0, end_timestamp=1}
+      #
+      # At 00:02.
+      #   {value: 2,
+      #    fields: ('metric:result': 'success', 'metric:command': 'get_name'),
+      #    start_timestamp=0, end_timestamp=2}
+      #
+      # This is important for cumulative metrics, because the monitoring
+      # backend detects the restart of a monitoring target and inserts a reset
+      # point to make Delta()/Rate() computation results accurate.
+
+      # If a given metric has own start_time, which can be set via
+      # metric.dangerously_set_start_time(), then report all the data points
+      # with the metric-level start_time.
+      #
+      # Otherwise, report data points with the first value change time.
+      start_time = metric.start_time or start_times[fields]
       if count >= METRICS_DATA_LENGTH_LIMIT:
         yield proto
         proto = metrics_pb2.MetricsPayload()

@@ -81,6 +81,17 @@ server_response_status = metrics.CounterMetric('http/server_response_status',
     ])
 
 
+def update_http_metrics(client, name, response_status_code, elapsed_ms,
+                        request_size=None, response_size=None):
+  durations.add(elapsed_ms, fields={'client':client, 'name':name})
+  response_status.increment(
+      fields={'client':client, 'status': response_status_code, 'name': name})
+  if request_size is not None:
+    request_bytes.add(request_size, fields={'client':client, 'name':name})
+  if response_size is not None:
+    response_bytes.add(response_size, fields={'client':client, 'name':name})
+
+
 def update_http_server_metrics(endpoint_name, response_status_code, elapsed_ms,
                                request_size=None, response_size=None,
                                user_agent=None):
