@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="clickToggles">
   <template>
@@ -19,29 +18,29 @@ found in the LICENSE file.
 <script type="module">
 'use strict';
 
+import ExpandButton from './expand-button.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
 import {UPDATE} from './simple-redux.js';
 
 suite('expand-button', function() {
   test('click toggles isExpanded', async function() {
-    const {default: ExpandButton} = await importModule('./expand-button.js');
     const expandButton = fixture('clickToggles');
     expandButton.dispatch(UPDATE(
         expandButton.statePath, ExpandButton.buildState({})));
     assert.isFalse(expandButton.isExpanded);
-    assert.isFalse(Polymer.Path.get(
+    assert.isFalse(get(
         expandButton.getState(), `${expandButton.statePath}.isExpanded`));
     expandButton.click();
     assert.isTrue(expandButton.isExpanded);
-    assert.isTrue(Polymer.Path.get(
+    assert.isTrue(get(
         expandButton.getState(), `${expandButton.statePath}.isExpanded`));
     expandButton.click();
     assert.isFalse(expandButton.isExpanded);
-    assert.isFalse(Polymer.Path.get(
+    assert.isFalse(get(
         expandButton.getState(), `${expandButton.statePath}.isExpanded`));
   });
 
   test('getIcon', async function() {
-    const {default: ExpandButton} = await importModule('./expand-button.js');
     assert.strictEqual('cp:more', ExpandButton.getIcon(false, false, false));
     assert.strictEqual('cp:less', ExpandButton.getIcon(false, false, true));
     assert.strictEqual('cp:right', ExpandButton.getIcon(false, true, false));

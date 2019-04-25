@@ -19,6 +19,8 @@ import TimeseriesDescriptor from './timeseries-descriptor.js';
 import sha from './sha.js';
 import {CHAIN, UPDATE} from './simple-redux.js';
 import {MODE} from './layout-timeseries.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,
@@ -30,7 +32,7 @@ export default class ChartSection extends ElementBase {
   static get is() { return 'chart-section'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         #controls {
           align-items: center;
@@ -319,7 +321,7 @@ ChartSection.properties = {
 ChartSection.actions = {
   maybeLoadTimeseries: statePath => async(dispatch, getState) => {
     // If the first 3 components are filled, then load the timeseries.
-    const state = Polymer.Path.get(getState(), statePath);
+    const state = get(getState(), statePath);
     if (state.descriptor.suite.selectedOptions.length &&
         state.descriptor.measurement.selectedOptions.length &&
         state.statistic.selectedOptions.length) {
@@ -337,7 +339,7 @@ ChartSection.actions = {
           statePath,
         }));
 
-    const state = Polymer.Path.get(getState(), statePath);
+    const state = get(getState(), statePath);
     if (state.selectedLineDescriptorHash) {
       // Restore from URL.
       for (const lineDescriptor of state.lineDescriptors) {
@@ -358,7 +360,7 @@ ChartSection.actions = {
   legendMouseOver: (statePath, lineDescriptor) =>
     async(dispatch, getState) => {
       const chartPath = statePath + '.chartLayout';
-      const state = Polymer.Path.get(getState(), statePath);
+      const state = get(getState(), statePath);
       lineDescriptor = JSON.stringify(lineDescriptor);
       for (let lineIndex = 0; lineIndex < state.chartLayout.lines.length;
         ++lineIndex) {
@@ -414,7 +416,7 @@ ChartSection.actions = {
   },
 
   updateLegendColors: statePath => async(dispatch, getState) => {
-    const state = Polymer.Path.get(getState(), statePath);
+    const state = get(getState(), statePath);
     if (!state || !state.legend) return;
     dispatch({
       type: ChartSection.reducers.updateLegendColors.name,

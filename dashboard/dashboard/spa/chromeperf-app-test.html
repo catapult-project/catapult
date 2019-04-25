@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -19,7 +18,13 @@ found in the LICENSE file.
 <script type="module">
 'use strict';
 
+import AlertsRequest from './alerts-request.js';
+import ChromeperfApp from './chromeperf-app.js';
 import DescribeRequest from './describe-request.js';
+import ReportControls from './report-controls.js';
+import ReportNamesRequest from './report-names-request.js';
+import SessionStateRequest from './session-state-request.js';
+import SheriffsRequest from './sheriffs-request.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender, animationFrame} from './utils.js';
 
@@ -37,8 +42,6 @@ suite('chromeperf-app', function() {
     window.fetch = async(url, options) => {
       return {
         async json() {
-          const {default: SessionStateRequest} = await importModule(
-              './session-state-request.js');
           if (url.startsWith(SessionStateRequest.URL)) {
             return {
               reportSection: {
@@ -54,21 +57,13 @@ suite('chromeperf-app', function() {
               bots: ['master:bot'],
             };
           }
-          const {default: AlertsRequest} = await importModule(
-              './alerts-request.js');
           if (url === AlertsRequest.URL) {
             return {anomalies: []};
           }
-          const {default: SheriffsRequest} = await importModule(
-              './sheriffs-request.js');
           if (url === SheriffsRequest.URL) {
             return ['ccc', 'ddd'];
           }
-          const {default: ReportNamesRequest} = await importModule(
-              './report-names-request.js');
           if (url === ReportNamesRequest.URL) {
-            const {default: ReportControls} = await importModule(
-                './report-controls.js');
             return [{
               name: ReportControls.DEFAULT_NAME,
               id: 42,
@@ -85,7 +80,6 @@ suite('chromeperf-app', function() {
   });
 
   test('newAlerts', async function() {
-    await importModule('./chromeperf-app.js');
     const app = fixture('test');
     await afterRender();
     assert.lengthOf(app.alertsSectionIds, 0);
@@ -95,7 +89,6 @@ suite('chromeperf-app', function() {
   });
 
   test('closeAlerts', async function() {
-    await importModule('./chromeperf-app.js');
     const app = fixture('test');
     await afterRender();
     app.$.new_alerts.click();
@@ -109,7 +102,6 @@ suite('chromeperf-app', function() {
   });
 
   test('reopenAlerts', async function() {
-    await importModule('./chromeperf-app.js');
     const app = fixture('test');
     await afterRender();
     app.$.new_alerts.click();
@@ -135,7 +127,6 @@ suite('chromeperf-app', function() {
   });
 
   test('newChart', async function() {
-    await importModule('./chromeperf-app.js');
     const app = fixture('test');
     await afterRender();
     await afterRender();  // Again to wait for receiveSessionState.
@@ -147,7 +138,6 @@ suite('chromeperf-app', function() {
   });
 
   test('closeChart', async function() {
-    await importModule('./chromeperf-app.js');
     const app = fixture('test');
     await afterRender();
     await afterRender();
@@ -163,7 +153,6 @@ suite('chromeperf-app', function() {
   });
 
   test('closeAllCharts', async function() {
-    await importModule('./chromeperf-app.js');
     const app = fixture('test');
     await afterRender();
     app.$.new_chart.click();
@@ -174,7 +163,6 @@ suite('chromeperf-app', function() {
   });
 
   test('reopenCharts', async function() {
-    await importModule('./chromeperf-app.js');
     const app = fixture('test');
     await afterRender();
     await afterRender();  // Again to wait for receiveSessionState.
@@ -210,7 +198,6 @@ suite('chromeperf-app', function() {
   });
 
   test('restoreFromRoute session', async function() {
-    await importModule('./chromeperf-app.js');
     const app = fixture('test');
     await afterRender();
     await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
@@ -223,7 +210,6 @@ suite('chromeperf-app', function() {
   });
 
   test('restoreFromRoute report', async function() {
-    await importModule('./chromeperf-app.js');
     const app = fixture('test');
     await afterRender();
     await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
@@ -234,7 +220,6 @@ suite('chromeperf-app', function() {
   });
 
   test('restoreFromRoute sheriff', async function() {
-    await importModule('./chromeperf-app.js');
     const app = fixture('test');
     await afterRender();
     await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
@@ -247,7 +232,6 @@ suite('chromeperf-app', function() {
   });
 
   test('restoreFromRoute chart', async function() {
-    await importModule('./chromeperf-app.js');
     const app = fixture('test');
     await afterRender();
     await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({

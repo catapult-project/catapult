@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -20,9 +19,11 @@ found in the LICENSE file.
 'use strict';
 
 import DescribeRequest from './describe-request.js';
+import SparklineCompound from './sparkline-compound.js';
+import TimeseriesDescriptor from './timeseries-descriptor.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
-import {TimeseriesRequest} from './timeseries-request.js';
 import {MODE} from './layout-timeseries.js';
+import {TimeseriesRequest} from './timeseries-request.js';
 import {afterRender, denormalize} from './utils.js';
 
 window.AUTH_CLIENT_ID = '';
@@ -79,10 +80,6 @@ suite('sparkline-compound', function() {
   });
 
   test('build', async function() {
-    const {default: SparklineCompound} = await importModule(
-        './sparkline-compound.js');
-    const {default: TimeseriesDescriptor} = await importModule(
-        './timeseries-descriptor.js');
     fixture('test').dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', {
@@ -128,10 +125,6 @@ suite('sparkline-compound', function() {
   });
 
   test('observeCursor', async function() {
-    const {default: SparklineCompound} = await importModule(
-        './sparkline-compound.js');
-    const {default: TimeseriesDescriptor} = await importModule(
-        './timeseries-descriptor.js');
     fixture('test').dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', {
@@ -180,10 +173,6 @@ suite('sparkline-compound', function() {
   });
 
   test('observeRevisions', async function() {
-    const {default: SparklineCompound} = await importModule(
-        './sparkline-compound.js');
-    const {default: TimeseriesDescriptor} = await importModule(
-        './timeseries-descriptor.js');
     fixture('test').dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', {
@@ -240,10 +229,6 @@ suite('sparkline-compound', function() {
   });
 
   test('click', async function() {
-    const {default: SparklineCompound} = await importModule(
-        './sparkline-compound.js');
-    const {default: TimeseriesDescriptor} = await importModule(
-        './timeseries-descriptor.js');
     fixture('test').dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', {

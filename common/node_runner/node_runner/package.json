@@ -16,6 +16,11 @@
   "private": true,
   "dependencies": {
     "@chopsui/wct-runner": "^0.0.3",
+    "@polymer/app-route": "^3.0.0",
+    "@polymer/iron-collapse": "^3.0.0",
+    "@polymer/iron-icon": "^3.0.0",
+    "@polymer/iron-iconset-svg": "^3.0.0",
+    "@polymer/polymer": "^3.0.0",
     "dom5": "^1.0.0",
     "escodegen": "^1.11.0",
     "eslint": "^4.0.0",

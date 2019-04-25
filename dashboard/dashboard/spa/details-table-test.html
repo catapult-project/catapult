@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -20,6 +19,7 @@ found in the LICENSE file.
 <script type="module">
 'use strict';
 
+import DetailsTable from './details-table.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {afterRender, denormalize} from './utils.js';
@@ -78,7 +78,6 @@ suite('details-table', function() {
   });
 
   test('load', async function() {
-    const {default: DetailsTable} = await importModule('./details-table.js');
     fixture('test').dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', DetailsTable.buildState({}))));
@@ -115,7 +114,6 @@ suite('details-table', function() {
   });
 
   test('extractCommonLinkRows', async function() {
-    const {default: DetailsTable} = await importModule('./details-table.js');
     const bodies = [
       {
         linkRows: [
@@ -169,7 +167,6 @@ suite('details-table', function() {
   });
 
   test('descriptorFlags', async function() {
-    const {default: DetailsTable} = await importModule('./details-table.js');
     const flags = DetailsTable.descriptorFlags([
       {suites: ['suite'], measurement: 'measure a', bots: [], cases: ['d']},
       {suites: ['suite'], measurement: 'measure b', bots: [], cases: ['c']},
@@ -181,7 +178,6 @@ suite('details-table', function() {
   });
 
   test('buildCell', async function() {
-    const {default: DetailsTable} = await importModule('./details-table.js');
     const links = [];
     const scalars = [];
     const setLink = (name, url, label) => links.push({name, url, label});

@@ -5,10 +5,15 @@
 'use strict';
 
 import './scalar-span.js';
+import '/@polymer/polymer/lib/elements/dom-if.js';
+import '/@polymer/polymer/lib/elements/dom-repeat.js';
+import * as PolymerAsync from '/@polymer/polymer/lib/utils/async.js';
 import ChartTimeseries from './chart-timeseries.js';
 import ElementBase from './element-base.js';
 import TimeseriesMerger from './timeseries-merger.js';
 import {DetailsFetcher} from './details-fetcher.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   breakWords,
@@ -28,7 +33,7 @@ export default class DetailsTable extends ElementBase {
   static get is() { return 'details-table'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           align-items: center;
@@ -154,7 +159,7 @@ export default class DetailsTable extends ElementBase {
   observeConfig_(lineDescriptors, revisionRanges) {
     this.debounce('load', () => {
       this.dispatch('load', this.statePath);
-    }, Polymer.Async.microTask);
+    }, PolymerAsync.microTask);
   }
 
   getColor_(colorByLine, body) {
@@ -193,7 +198,7 @@ DetailsTable.observers = [
 
 DetailsTable.actions = {
   load: statePath => async(dispatch, getState) => {
-    let state = Polymer.Path.get(getState(), statePath);
+    let state = get(getState(), statePath);
     if (!state) return;
 
     const started = performance.now();
@@ -208,7 +213,7 @@ DetailsTable.actions = {
         state.minRevision, state.maxRevision,
         state.revisionRanges);
     for await (const {timeseriesesByLine, errors} of fetcher) {
-      state = Polymer.Path.get(getState(), statePath);
+      state = get(getState(), statePath);
       if (!state || state.started !== started) break;
 
       dispatch({

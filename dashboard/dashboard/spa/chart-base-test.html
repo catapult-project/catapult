@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -18,7 +17,11 @@ found in the LICENSE file.
 
 <script type="module">
 'use strict';
-import {afterRender, animationFrame} from './utils.js';
+
+import ChartBase from './chart-base.js';
+import findElements from './find-elements.js';
+import {ENSURE, UPDATE} from './simple-redux.js';
+import {afterRender, animationFrame, timeout} from './utils.js';
 
 suite('chart-base', function() {
   setup(() => {
@@ -31,8 +34,6 @@ suite('chart-base', function() {
   });
 
   test('mouse-leave-main', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
-    const {ENSURE, UPDATE} = await importModule('./simple-redux.js');
     fixture('test').dispatch(ENSURE('test'));
     const chart = fixture('test');
     chart.dispatch(UPDATE('test', ChartBase.buildState({
@@ -95,8 +96,6 @@ suite('chart-base', function() {
   });
 
   test('boldLine', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
-    const {ENSURE, UPDATE} = await importModule('./simple-redux.js');
     fixture('test').dispatch(ENSURE('test'));
     const chart = fixture('test');
     chart.dispatch(UPDATE('test', ChartBase.buildState({
@@ -186,8 +185,6 @@ suite('chart-base', function() {
   });
 
   test('lines', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
-    const {ENSURE, UPDATE} = await importModule('./simple-redux.js');
     fixture('test').dispatch(ENSURE('test'));
     const chart = fixture('test');
     chart.dispatch(UPDATE('test', ChartBase.buildState({
@@ -249,140 +246,136 @@ suite('chart-base', function() {
         chart.$.tooltip.querySelector('table').style.borderColor);
     assert.strictEqual('flex', getComputedStyle(chart.$.tooltip).display);
 
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'foreignObject' &&
       e.className.baseVal === 'icon' &&
       e.getAttribute('x') === '50%' &&
-      e.getAttribute('y') === '50%'));
+      e.getAttribute('y') === '50%')[0]);
 
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'IRON-ICON' &&
       e.icon === 'cp:error' &&
-      e.style.color === 'blue'));
+      e.style.color === 'blue')[0]);
 
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'polygon' &&
       e.getAttribute('points') === '0,50 50,100 100,50' &&
-      e.getAttribute('fill') === 'hsla(0, 50%, 50%, 0.5)'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.getAttribute('fill') === 'hsla(0, 50%, 50%, 0.5)')[0]);
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'polygon' &&
       e.getAttribute('points') === '0,50 100,50 50,0' &&
-      e.getAttribute('fill') === 'hsla(100, 50%, 50%, 0.5)'));
+      e.getAttribute('fill') === 'hsla(100, 50%, 50%, 0.5)')[0]);
 
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'path' &&
       e.getAttribute('d') === 'M0,0 L100,100' &&
-      e.getAttribute('stroke') === 'red'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.getAttribute('stroke') === 'red')[0]);
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'path' &&
       e.getAttribute('d') === 'M0,100 L100,0' &&
-      e.getAttribute('stroke') === 'green'));
+      e.getAttribute('stroke') === 'green')[0]);
 
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'text' &&
       e.getAttribute('y') === '10%' &&
       e.getAttribute('x') === '50px' &&
-      e.textContent.trim() === '10%'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.textContent.trim() === '10%')[0]);
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'text' &&
       e.getAttribute('y') === '50%' &&
       e.getAttribute('x') === '50px' &&
-      e.textContent.trim() === '50%'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.textContent.trim() === '50%')[0]);
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'text' &&
       e.getAttribute('y') === '90%' &&
       e.getAttribute('x') === '50px' &&
-      e.textContent.trim() === '90%'));
+      e.textContent.trim() === '90%')[0]);
 
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'text' &&
       e.getAttribute('y') === '100%' &&
       e.getAttribute('x') === '10%' &&
-      e.textContent.trim() === '10%'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.textContent.trim() === '10%')[0]);
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'text' &&
       e.getAttribute('y') === '100%' &&
       e.getAttribute('x') === '50%' &&
-      e.textContent.trim() === '50%'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.textContent.trim() === '50%')[0]);
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'text' &&
       e.getAttribute('y') === '100%' &&
       e.getAttribute('x') === '90%' &&
-      e.textContent.trim() === '90%'));
+      e.textContent.trim() === '90%')[0]);
 
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'rect' &&
       e.getAttribute('y') === '0' &&
       e.getAttribute('x') === '0%' &&
       e.getAttribute('height') === '100%' &&
-      e.getAttribute('width') === '20%'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.getAttribute('width') === '20%')[0]);
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'rect' &&
       e.getAttribute('y') === '0' &&
       e.getAttribute('x') === '80%' &&
       e.getAttribute('height') === '100%' &&
-      e.getAttribute('width') === '20%'));
+      e.getAttribute('width') === '20%')[0]);
 
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'line' &&
       e.getAttribute('x1') === '0' &&
       e.getAttribute('x2') === '100%' &&
       e.getAttribute('y1') === '10%' &&
-      e.getAttribute('y2') === '10%'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.getAttribute('y2') === '10%')[0]);
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'line' &&
       e.getAttribute('x1') === '0' &&
       e.getAttribute('x2') === '100%' &&
       e.getAttribute('y1') === '50%' &&
-      e.getAttribute('y2') === '50%'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.getAttribute('y2') === '50%')[0]);
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'line' &&
       e.getAttribute('x1') === '0' &&
       e.getAttribute('x2') === '100%' &&
       e.getAttribute('y1') === '90%' &&
-      e.getAttribute('y2') === '90%'));
+      e.getAttribute('y2') === '90%')[0]);
 
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'line' &&
       e.getAttribute('x1') === '10%' &&
       e.getAttribute('x2') === '10%' &&
       e.getAttribute('y1') === '0' &&
-      e.getAttribute('y2') === '100%'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.getAttribute('y2') === '100%')[0]);
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'line' &&
       e.getAttribute('x1') === '50%' &&
       e.getAttribute('x2') === '50%' &&
       e.getAttribute('y1') === '0' &&
-      e.getAttribute('y2') === '100%'));
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(chart, e =>
+      e.getAttribute('y2') === '100%')[0]);
+    assert.isDefined(findElements(chart, e =>
       e.tagName === 'line' &&
       e.getAttribute('x1') === '90%' &&
       e.getAttribute('x2') === '90%' &&
       e.getAttribute('y1') === '0' &&
-      e.getAttribute('y2') === '100%'));
+      e.getAttribute('y2') === '100%')[0]);
   });
 
   test('antiBrushes empty', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
     assert.deepEqual([], ChartBase.antiBrushes());
     assert.deepEqual([], ChartBase.antiBrushes([]));
   });
 
   test('antiBrushes odd', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
     assert.throws(() => ChartBase.antiBrushes([{}]));
     assert.throws(() => ChartBase.antiBrushes([{}, {}, {}]));
   });
 
   test('antiBrushes 0-100', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
     assert.deepEqual([], ChartBase.antiBrushes([
       {xPct: 0}, {xPct: 100},
     ]));
   });
 
   test('antiBrushes 20-80', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
     assert.deepEqual([
       {start: '0%', length: '20%'},
       {start: '80%', length: '20%'},
@@ -392,7 +385,6 @@ suite('chart-base', function() {
   });
 
   test('antiBrushes 20-100', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
     assert.deepEqual([
       {start: '0%', length: '20%'},
     ], ChartBase.antiBrushes([
@@ -401,7 +393,6 @@ suite('chart-base', function() {
   });
 
   test('antiBrushes 0-80', async function() {
-    const {default: ChartBase} = await importModule('./chart-base.js');
     assert.deepEqual([{start: '80%', length: '20%'}], ChartBase.antiBrushes(
         [{xPct: 0}, {xPct: 80}]));
   });

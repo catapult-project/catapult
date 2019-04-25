@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -19,15 +18,15 @@ found in the LICENSE file.
 <script type="module">
 'use strict';
 
+import MenuInput from './menu-input.js';
+import OptionGroup from './option-group.js';
+import TagFilter from './tag-filter.js';
+import findElements from './find-elements.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
 
 suite('tag-filter', function() {
   test('filter', async function() {
-    const {default: MenuInput} = await importModule('./menu-input.js');
-    const {default: OptionGroup} = await importModule('./option-group.js');
-    const {default: TagFilter} = await importModule('./tag-filter.js');
-
     fixture('test').dispatch(UPDATE('', {
       test: {
         ...MenuInput.buildState({
@@ -57,7 +56,8 @@ suite('tag-filter', function() {
     const tagFilter = fixture('test');
     await afterRender();
 
-    const xxx = tr.ui.b.findDeepElementWithTextContent(tagFilter, /xxx/);
+    const xxx = findElements(tagFilter, e =>
+      e.matches('cp-checkbox') && /xxx/.test(e.textContent))[0];
     xxx.$.native.click();
     await afterRender();
     let state = tagFilter.getState().test;
@@ -72,7 +72,8 @@ suite('tag-filter', function() {
         state.options[0].options.map(o => o.value));
     assert.deepEqual([], state.selectedOptions);
 
-    const yyy = tr.ui.b.findDeepElementWithTextContent(tagFilter, /yyy/);
+    const yyy = findElements(tagFilter, e =>
+      e.matches('cp-checkbox') && /yyy/.test(e.textContent))[0];
     yyy.$.native.click();
     await afterRender();
     state = tagFilter.getState().test;

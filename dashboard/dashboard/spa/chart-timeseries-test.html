@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -19,6 +18,7 @@ found in the LICENSE file.
 <script type="module">
 'use strict';
 
+import ChartTimeseries from './chart-timeseries.js';
 import ResultChannelSender from './result-channel-sender.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
@@ -54,8 +54,6 @@ suite('chart-timeseries', function() {
   });
 
   test('load', async function() {
-    const {default: ChartTimeseries} = await importModule(
-        './chart-timeseries.js');
     fixture('test').dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', ChartTimeseries.buildState({
@@ -91,8 +89,6 @@ suite('chart-timeseries', function() {
   });
 
   test('lineCountChange', async function() {
-    const {default: ChartTimeseries} = await importModule(
-        './chart-timeseries.js');
     fixture('test').dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', ChartTimeseries.buildState({
@@ -129,8 +125,6 @@ suite('chart-timeseries', function() {
     // ms aaa, sizeInBytes aaa, ms bbb, sizeInBytes bbb.
     // Test that loadLines doesn't forget any data.
 
-    const {default: ChartTimeseries} = await importModule(
-        './chart-timeseries.js');
     fixture('test').dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', ChartTimeseries.buildState({
@@ -290,8 +284,6 @@ suite('chart-timeseries', function() {
   });
 
   test('tooltip', async function() {
-    const {default: ChartTimeseries} = await importModule(
-        './chart-timeseries.js');
     fixture('test').dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', ChartTimeseries.buildState({
@@ -356,8 +348,6 @@ suite('chart-timeseries', function() {
     // When there are multiple units, yAxis.ticks should only be displayed when
     // the user is hovering over a line.
 
-    const {default: ChartTimeseries} = await importModule(
-        './chart-timeseries.js');
     fixture('test').dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', ChartTimeseries.buildState({
@@ -413,8 +403,6 @@ suite('chart-timeseries', function() {
   });
 
   test('lineDescriptorEqual', async function() {
-    const {default: ChartTimeseries} = await importModule(
-        './chart-timeseries.js');
     assert.isFalse(ChartTimeseries.lineDescriptorEqual({
       suites: ['bbb'],
       bots: ['ccc', 'ddd'],
@@ -577,8 +565,6 @@ suite('chart-timeseries', function() {
   });
 
   test('createFetchDescriptors', async function() {
-    const {default: ChartTimeseries} = await importModule(
-        './chart-timeseries.js');
     assert.deepEqual(ChartTimeseries.createFetchDescriptors({
       suites: ['aaa', 'bbb'],
       bots: ['ccc', 'ddd'],

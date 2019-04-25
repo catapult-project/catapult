@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -21,6 +20,8 @@ found in the LICENSE file.
 
 import DescribeRequest from './describe-request.js';
 import TestSuitesRequest from './test-suites-request.js';
+import TimeseriesDescriptor from './timeseries-descriptor.js';
+import findElements from './find-elements.js';
 import {ENSURE, TOGGLE, UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
 
@@ -58,15 +59,13 @@ suite('timeseries-descriptor', function() {
   });
 
   test('suite select describe', async function() {
-    await importModule('./cp-checkbox.js');
-    const {default: TimeseriesDescriptor} = await importModule(
-        './timeseries-descriptor.js');
     fixture('test').dispatch(ENSURE('test'));
     const td = fixture('test');
     td.dispatch(UPDATE('test', TimeseriesDescriptor.buildState({})));
     await afterRender();
 
-    tr.ui.b.findDeepElementWithTextContent(td, /suite_a/).click();
+    findElements(td, e =>
+      e.matches('cp-checkbox') && /suite_a/.test(e.textContent))[0].click();
     await afterRender();
 
     const state = td.getState().test;
@@ -78,9 +77,6 @@ suite('timeseries-descriptor', function() {
   });
 
   test('option-select matrix-change', async function() {
-    await importModule('./cp-checkbox.js');
-    const {default: TimeseriesDescriptor} = await importModule(
-        './timeseries-descriptor.js');
     fixture('test').dispatch(ENSURE('test'));
     const td = fixture('test');
     td.dispatch(UPDATE('test', TimeseriesDescriptor.buildState({})));
@@ -91,12 +87,18 @@ suite('timeseries-descriptor', function() {
       matrix = e.detail;
     });
 
-    tr.ui.b.findDeepElementWithTextContent(td, /suite_a/).click();
-    tr.ui.b.findDeepElementWithTextContent(td, /suite_b/).click();
+    findElements(td, e =>
+      e.matches('cp-checkbox') && /suite_a/.test(e.textContent))[0].click();
+    findElements(td, e =>
+      e.matches('cp-checkbox') && /suite_b/.test(e.textContent))[0].click();
     await afterRender();
-    tr.ui.b.findDeepElementWithTextContent(td, /measurement_a/).click();
-    tr.ui.b.findDeepElementWithTextContent(td, /bot_a/).click();
-    tr.ui.b.findDeepElementWithTextContent(td, /bot_b/).click();
+    findElements(td, e =>
+      e.matches('cp-checkbox') &&
+      /measurement_a/.test(e.textContent))[0].click();
+    findElements(td, e =>
+      e.matches('cp-checkbox') && /bot_a/.test(e.textContent))[0].click();
+    findElements(td, e =>
+      e.matches('cp-checkbox') && /bot_b/.test(e.textContent))[0].click();
     await afterRender();
 
     assert.deepEqual([['suite_a', 'suite_b']], matrix.suites);
@@ -108,8 +110,10 @@ suite('timeseries-descriptor', function() {
     td.dispatch(TOGGLE('test.bot.isAggregated'));
     td.dispatch(TOGGLE('test.case.isAggregated'));
 
-    tr.ui.b.findDeepElementWithTextContent(td, /case_a/).click();
-    tr.ui.b.findDeepElementWithTextContent(td, /case_b/).click();
+    findElements(td, e =>
+      e.matches('cp-checkbox') && /case_a/.test(e.textContent))[0].click();
+    findElements(td, e =>
+      e.matches('cp-checkbox') && /case_b/.test(e.textContent))[0].click();
     await afterRender();
 
     assert.deepEqual([['suite_a'], ['suite_b']], matrix.suites);

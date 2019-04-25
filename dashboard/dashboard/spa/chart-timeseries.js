@@ -5,12 +5,16 @@
 'use strict';
 
 import './place-holder.js';
+import '/@polymer/polymer/lib/elements/dom-if.js';
+import * as PolymerAsync from '/@polymer/polymer/lib/utils/async.js';
 import ChartBase from './chart-base.js';
 import ElementBase from './element-base.js';
+import TimeseriesMerger from './timeseries-merger.js';
 import {CHAIN, UPDATE} from './simple-redux.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {MODE, layoutTimeseries} from './layout-timeseries.js';
-import TimeseriesMerger from './timeseries-merger.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   BatchIterator,
@@ -25,7 +29,7 @@ export default class ChartTimeseries extends ElementBase {
   static get is() { return 'chart-timeseries'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           display: block;
@@ -73,7 +77,7 @@ export default class ChartTimeseries extends ElementBase {
     // same task, so use debounce to only call load() once.
     this.debounce('load', () => {
       this.dispatch('load', this.statePath);
-    }, Polymer.Async.microTask);
+    }, PolymerAsync.microTask);
   }
 
   observeLines_(newLines, oldLines) {
@@ -143,14 +147,14 @@ ChartTimeseries.lineDescriptorEqual = (a, b) => {
 
 ChartTimeseries.actions = {
   load: statePath => async(dispatch, getState) => {
-    let state = Polymer.Path.get(getState(), statePath);
+    let state = get(getState(), statePath);
     if (!state) return;
 
     dispatch(UPDATE(statePath, {isLoading: true, lines: []}));
 
     await ChartTimeseries.loadLines(statePath)(dispatch, getState);
 
-    state = Polymer.Path.get(getState(), statePath);
+    state = get(getState(), statePath);
     if (!state) {
       // User closed the chart before it could finish loading
       return;
@@ -203,7 +207,7 @@ ChartTimeseries.actions = {
   // appropriately. Measuring elements is asynchronous, so this logic needs to
   // be an action creator.
   measureYTicks: statePath => async(dispatch, getState) => {
-    const ticks = collectYAxisTicks(Polymer.Path.get(getState(), statePath));
+    const ticks = collectYAxisTicks(get(getState(), statePath));
     if (ticks.length === 0) return;
     dispatch({
       type: ChartTimeseries.reducers.yAxisWidth.name,
@@ -562,7 +566,7 @@ async function* generateTimeseries(
 }
 
 ChartTimeseries.loadLines = statePath => async(dispatch, getState) => {
-  const state = Polymer.Path.get(getState(), statePath);
+  const state = get(getState(), statePath);
   const generator = generateTimeseries(
       state.lineDescriptors.slice(0, ChartTimeseries.MAX_LINES),
       {minRevision: state.minRevision, maxRevision: state.maxRevision},
@@ -570,7 +574,7 @@ ChartTimeseries.loadLines = statePath => async(dispatch, getState) => {
   for await (const {timeseriesesByLine, errors} of generator) {
     if (!layoutTimeseries.isReady) await layoutTimeseries.readyPromise;
 
-    const state = Polymer.Path.get(getState(), statePath);
+    const state = get(getState(), statePath);
     if (!state) {
       // This chart is no longer in the redux store.
       return;

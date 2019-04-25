@@ -13,7 +13,6 @@ found in the LICENSE file.
 </custom-style>
 
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="format">
   <template>
@@ -23,11 +22,12 @@ found in the LICENSE file.
 
 <script type="module">
 'use strict';
+
+import ScalarSpan from './scalar-span.js';
 import {afterRender} from './utils.js';
 
 suite('scalar-span', function() {
   test('format', async function() {
-    await importModule('./scalar-span.js');
     const scalarSpan = fixture('format');
     scalarSpan.unit = tr.b.Unit.byName.timeDurationInMsDelta_smallerIsBetter;
     scalarSpan.value = 1.111111;
@@ -41,7 +41,6 @@ suite('scalar-span', function() {
   });
 
   test('getChange', async function() {
-    const {default: ScalarSpan} = await importModule('./scalar-span.js');
     assert.strictEqual('', ScalarSpan.getChange(undefined, 1));
     assert.strictEqual('', ScalarSpan.getChange(tr.b.Unit.byName.count, 1));
     assert.strictEqual('', ScalarSpan.getChange(

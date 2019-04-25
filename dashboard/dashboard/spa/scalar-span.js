@@ -4,11 +4,13 @@
 */
 'use strict';
 
-export default class ScalarSpan extends Polymer.Element {
+import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
+
+export default class ScalarSpan extends PolymerElement {
   static get is() { return 'scalar-span'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           display: flex;
@@ -37,7 +39,7 @@ export default class ScalarSpan extends Polymer.Element {
   }
 
   format_(unit, value, maximumFractionDigits, unitPrefix) {
-    return !unit ? '' : unit.format(
+    return !unit ? value : unit.format(
         value, {maximumFractionDigits, unitPrefix});
   }
 }

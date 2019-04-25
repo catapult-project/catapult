@@ -6,6 +6,7 @@
 
 import ElementBase from './element-base.js';
 import {TOGGLE} from './simple-redux.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,
@@ -16,7 +17,7 @@ export default class ExpandButton extends ElementBase {
   static get is() { return 'expand-button'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           display: flex;

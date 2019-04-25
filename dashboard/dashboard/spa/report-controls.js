@@ -11,6 +11,8 @@ import MenuInput from './menu-input.js';
 import OptionGroup from './option-group.js';
 import ReportNamesRequest from './report-names-request.js';
 import {UPDATE} from './simple-redux.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,
@@ -22,7 +24,7 @@ export default class ReportControls extends ElementBase {
   static get is() { return 'report-controls'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           display: flex;
@@ -198,10 +200,10 @@ ReportControls.CHROMIUM_MILESTONES = {
   75: 652427,
 };
 
-ReportControls.CURRENT_MILESTONE = tr.b.math.Statistics.max(
-    Object.keys(ReportControls.CHROMIUM_MILESTONES));
-const MIN_MILESTONE = tr.b.math.Statistics.min(
-    Object.keys(ReportControls.CHROMIUM_MILESTONES));
+ReportControls.CURRENT_MILESTONE = Object.keys(
+    ReportControls.CHROMIUM_MILESTONES).reduce((a, b) => Math.max(a, b));
+const MIN_MILESTONE = Object.keys(ReportControls.CHROMIUM_MILESTONES).reduce(
+    (a, b) => Math.min(a, b));
 
 ReportControls.State = {
   milestone: options => parseInt(options.milestone) ||
@@ -240,12 +242,12 @@ ReportControls.actions = {
   connected: statePath => async(dispatch, getState) => {
     await ReportControls.actions.loadSources(statePath)(dispatch, getState);
 
-    let state = Polymer.Path.get(getState(), statePath);
+    let state = get(getState(), statePath);
     if (state.minRevision === undefined ||
         state.maxRevision === undefined) {
       ReportControls.actions.selectMilestone(
           statePath, state.milestone)(dispatch, getState);
-      state = Polymer.Path.get(getState(), statePath);
+      state = get(getState(), statePath);
     }
 
     if (state.source.selectedOptions.length === 0) {

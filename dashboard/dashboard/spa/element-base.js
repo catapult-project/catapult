@@ -4,6 +4,11 @@
 */
 'use strict';
 
+import {Debouncer} from '/@polymer/polymer/lib/utils/debounce.js';
+import * as PolymerAsync from '/@polymer/polymer/lib/utils/async.js';
+import {PolymerElement} from '/@polymer/polymer/polymer-element.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+
 import {
   DEFAULT_REDUCER_WRAPPERS,
   createSimpleStore,
@@ -16,26 +21,78 @@ import {
   plural,
 } from './utils.js';
 
-const ReduxMixin = PolymerRedux(createSimpleStore({
-  devtools: {
-    // Do not record changes automatically when in a production environment.
-    shouldRecordChanges: !window.IS_PRODUCTION,
+// Lazily create STORE because Redux might not be loaded yet. In tests, it's
+// loaded via an html import, whereas subclasses are loaded via es6 import.
+// redux/es/redux.mjs uses require so it doesn't work in webpack.
+// redux/es/redux.js uses a bare import so it doesn't work in tests.
+let STORE;
+function getStore() {
+  if (!STORE) {
+    STORE = createSimpleStore({
+      devtools: {
+        // Do not record changes automatically when in a production environment.
+        shouldRecordChanges: !window.IS_PRODUCTION,
 
-    // Increase the maximum number of actions stored in the history tree. The
-    // oldest actions are removed once maxAge is reached.
-    maxAge: 75,
-  },
-}));
+        // Increase the maximum number of actions stored in the history tree.
+        // The oldest actions are removed once maxAge is reached.
+        maxAge: 75,
+      },
+    });
+  }
+  return STORE;
+}
 
 /*
-  * This base class mixes Polymer.Element with Polymer-Redux and provides
+  * This base class mixes PolymerElement with Polymer-Redux and provides
   * utility functions to help data-bindings in elements perform minimal
   * computation without computed properties.
   */
-export default class ElementBase extends ReduxMixin(Polymer.Element) {
+export default class ElementBase extends PolymerElement {
   constructor() {
     super();
     this.debounceJobs_ = new Map();
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.unsubscribeRedux_ = getStore().subscribe(() => this.updateState_());
+    this.updateState_();
+  }
+
+  getState() {
+    return getStore().getState();
+  }
+
+  dispatch(...args) {
+    let [action] = args;
+    if (typeof action === 'string') {
+      if (typeof this.constructor.actions[action] !== 'function') {
+        throw new TypeError(
+            `Invalid action creator ${this.constructor.is}.actions.${action}`);
+      }
+      action = this.constructor.actions[action](...args.slice(1));
+    }
+    return getStore().dispatch(action);
+  }
+
+  updateState_() {
+    const state = this.getState();
+    let propertiesChanged = false;
+    for (const [name, prop] of Object.entries(this.constructor.properties)) {
+      const {statePath} = this.constructor.properties[name];
+      if (!statePath) continue;
+      const value = (typeof statePath === 'function') ?
+        statePath.call(this, state) :
+        get(state, statePath);
+      const changed = this._setPendingPropertyOrPath(name, value, true);
+      propertiesChanged = propertiesChanged || changed;
+    }
+    if (propertiesChanged) this._invalidateProperties();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.unsubscribeRedux_();
   }
 
   add_() {
@@ -76,15 +133,15 @@ export default class ElementBase extends ReduxMixin(Polymer.Element) {
   }
 
   /**
-    * Wrap Polymer.Debouncer in a friendlier syntax.
+    * Wrap Debouncer in a friendlier syntax.
     *
     * @param {*} jobName
     * @param {Function()} callback
-    * @param {Object=} asyncModule See Polymer.Async.
+    * @param {Object=} asyncModule See PolymerAsync.
     */
   debounce(jobName, callback, opt_asyncModule) {
-    const asyncModule = opt_asyncModule || Polymer.Async.microTask;
-    this.debounceJobs_.set(jobName, Polymer.Debouncer.debounce(
+    const asyncModule = opt_asyncModule || PolymerAsync.microTask;
+    this.debounceJobs_.set(jobName, Debouncer.debounce(
         this.debounceJobs_.get(jobName), asyncModule, callback));
   }
 

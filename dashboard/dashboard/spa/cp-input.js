@@ -4,13 +4,14 @@
 */
 'use strict';
 
+import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
 import {getActiveElement, timeout} from './utils.js';
 
-export default class CpInput extends Polymer.Element {
+export default class CpInput extends PolymerElement {
   static get is() { return 'cp-input'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           align-items: center;

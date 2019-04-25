@@ -6,6 +6,9 @@
 
 import './cp-dialog.js';
 import './cp-loading.js';
+import '/@polymer/polymer/lib/elements/dom-if.js';
+import '/@polymer/polymer/lib/elements/dom-repeat.js';
+import * as PolymerAsync from '/@polymer/polymer/lib/utils/async.js';
 import ElementBase from './element-base.js';
 import ReportControls from './report-controls.js';
 import ReportNamesRequest from './report-names-request.js';
@@ -14,6 +17,8 @@ import ReportTable from './report-table.js';
 import ReportTemplate from './report-template.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
 import {UPDATE} from './simple-redux.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   BatchIterator,
@@ -25,7 +30,7 @@ export default class ReportSection extends ElementBase {
   static get is() { return 'report-section'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         #tables {
           align-items: center;
@@ -76,7 +81,7 @@ export default class ReportSection extends ElementBase {
   observeSources_() {
     this.debounce('loadReports', () => {
       this.dispatch('loadReports', this.statePath);
-    }, Polymer.Async.timeOut.after(200));
+    }, PolymerAsync.timeOut.after(200));
   }
 }
 
@@ -105,7 +110,7 @@ ReportSection.actions = {
       statePath,
       options,
     });
-    const state = Polymer.Path.get(getState(), statePath);
+    const state = get(getState(), statePath);
     if (state.minRevision === undefined ||
         state.maxRevision === undefined) {
       ReportControls.actions.selectMilestone(
@@ -114,7 +119,7 @@ ReportSection.actions = {
   },
 
   loadReports: statePath => async(dispatch, getState) => {
-    let state = Polymer.Path.get(getState(), statePath);
+    let state = get(getState(), statePath);
     if (!state.minRevision || !state.maxRevision) return;
 
     dispatch({
@@ -139,7 +144,7 @@ ReportSection.actions = {
     }
 
     for await (const {results, errors} of new BatchIterator(readers)) {
-      state = Polymer.Path.get(getState(), statePath);
+      state = get(getState(), statePath);
       if (!tr.b.setsEqual(requestedReports, new Set(
           state.source.selectedOptions)) ||
           (state.minRevision !== revisions[0]) ||

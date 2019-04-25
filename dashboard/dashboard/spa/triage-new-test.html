@@ -8,13 +8,13 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <script type="module">
 'use strict';
+import TriageNew from './triage-new.js';
+
 suite('triage-new', function() {
   test('summarize', async function() {
-    const {default: TriageNew} = await importModule('./triage-new.js');
     assert.strictEqual('', TriageNew.summarize());
     assert.strictEqual('10% regression in aaa at 123', TriageNew.summarize([
       {
@@ -42,7 +42,6 @@ suite('triage-new', function() {
   });
 
   test('collectAlertProperties', async function() {
-    const {default: TriageNew} = await importModule('./triage-new.js');
     const expected = [
       {name: 'aaa', isEnabled: true},
       {name: 'bbb', isEnabled: true},

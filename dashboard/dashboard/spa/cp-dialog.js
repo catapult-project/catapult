@@ -4,11 +4,13 @@
 */
 'use strict';
 
-export default class CpDialog extends Polymer.Element {
+import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
+
+export default class CpDialog extends PolymerElement {
   static get is() { return 'cp-dialog'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           background: rgba(0, 0, 0, 0.8);

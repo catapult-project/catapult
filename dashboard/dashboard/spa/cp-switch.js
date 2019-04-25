@@ -4,11 +4,13 @@
 */
 'use strict';
 
-export default class CpSwitch extends Polymer.Element {
+import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
+
+export default class CpSwitch extends PolymerElement {
   static get is() { return 'cp-switch'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           padding: 8px;

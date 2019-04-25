@@ -4,11 +4,13 @@
 */
 'use strict';
 
-export default class CpLoading extends Polymer.Element {
+import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
+
+export default class CpLoading extends PolymerElement {
   static get is() { return 'cp-loading'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           display: block;

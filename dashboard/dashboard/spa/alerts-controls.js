@@ -9,6 +9,9 @@ import './cp-input.js';
 import './cp-switch.js';
 import './raised-button.js';
 import './recommended-options.js';
+import '/@polymer/polymer/lib/elements/dom-if.js';
+import '/@polymer/polymer/lib/elements/dom-repeat.js';
+import * as PolymerAsync from '/@polymer/polymer/lib/utils/async.js';
 import AlertsTable from './alerts-table.js';
 import ElementBase from './element-base.js';
 import MenuInput from './menu-input.js';
@@ -16,6 +19,8 @@ import OptionGroup from './option-group.js';
 import ReportNamesRequest from './report-names-request.js';
 import SheriffsRequest from './sheriffs-request.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   buildState,
@@ -26,7 +31,7 @@ export default class AlertsControls extends ElementBase {
   static get is() { return 'alerts-controls'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           align-items: center;
@@ -317,7 +322,7 @@ export default class AlertsControls extends ElementBase {
   }
 
   arePlaceholders_(alertGroups) {
-    return alertGroups === AlertsTable.PLACEHOLDER_ALERT_GROUPS;
+    return alertGroups === AlertsTable.placeholderAlertGroups();
   }
 
   crbug_(bugId) {
@@ -380,7 +385,7 @@ export default class AlertsControls extends ElementBase {
     }));
     this.debounce('dispatchSources', () => {
       this.dispatchSources_();
-    }, Polymer.Async.timeOut.after(AlertsControls.TYPING_DEBOUNCE_MS));
+    }, PolymerAsync.timeOut.after(AlertsControls.TYPING_DEBOUNCE_MS));
   }
 
   async onMaxRevisionKeyup_(event) {
@@ -389,7 +394,7 @@ export default class AlertsControls extends ElementBase {
     }));
     this.debounce('dispatchSources', () => {
       this.dispatchSources_();
-    }, Polymer.Async.timeOut.after(AlertsControls.TYPING_DEBOUNCE_MS));
+    }, PolymerAsync.timeOut.after(AlertsControls.TYPING_DEBOUNCE_MS));
   }
 
   async onToggleImprovements_(event) {
@@ -459,7 +464,7 @@ AlertsControls.State = {
   showingRecentlyModifiedBugs: options => false,
   triagedBugId: options => 0,
   alertGroups: options => options.alertGroups ||
-    AlertsTable.PLACEHOLDER_ALERT_GROUPS,
+    AlertsTable.placeholderAlertGroups(),
 };
 
 AlertsControls.observers = [
@@ -509,7 +514,7 @@ AlertsControls.actions = {
       sheriffs,
     });
 
-    const state = Polymer.Path.get(getState(), statePath);
+    const state = get(getState(), statePath);
     if (state.sheriff.selectedOptions.length === 0) {
       dispatch(MenuInput.actions.focus(statePath + '.sheriff'));
     }

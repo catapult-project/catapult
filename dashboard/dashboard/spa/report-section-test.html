@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -19,6 +18,10 @@ found in the LICENSE file.
 <script type="module">
 'use strict';
 
+import ReportControls from './report-controls.js';
+import ReportNamesRequest from './report-names-request.js';
+import ReportRequest from './report-request.js';
+import ReportSection from './report-section.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
 
@@ -29,10 +32,6 @@ suite('report-section', function() {
     window.fetch = async(url, options) => {
       return {
         async json() {
-          const {default: ReportControls} = await importModule(
-              './report-controls.js');
-          const {default: ReportNamesRequest} = await importModule(
-              './report-names-request.js');
           if (url === ReportNamesRequest.URL) {
             return [{
               name: ReportControls.DEFAULT_NAME,
@@ -40,8 +39,6 @@ suite('report-section', function() {
               modified: new Date(),
             }];
           }
-          const {default: ReportRequest} = await importModule(
-              './report-request.js');
           if (url === ReportRequest.URL) {
             return {
               name: ReportControls.DEFAULT_NAME,
@@ -99,7 +96,6 @@ suite('report-section', function() {
   });
 
   test('loadReports', async function() {
-    const {default: ReportSection} = await importModule('./report-section.js');
     fixture('test').dispatch(CHAIN(
         ENSURE('test'),
         ENSURE('test.source'),

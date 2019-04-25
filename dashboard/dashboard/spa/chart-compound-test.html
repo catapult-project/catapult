@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -20,6 +19,7 @@ found in the LICENSE file.
 <script type="module">
 'use strict';
 
+import ChartCompound from './chart-compound.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {MODE} from './layout-timeseries.js';
 import {TimeseriesRequest} from './timeseries-request.js';
@@ -75,7 +75,6 @@ suite('chart-compound', function() {
   });
 
   test('load', async function() {
-    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
     cc.dispatch(CHAIN(
         ENSURE('test'),
@@ -109,7 +108,6 @@ suite('chart-compound', function() {
   });
 
   test('brushMinimap', async function() {
-    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
     cc.dispatch(CHAIN(
         ENSURE('test'),
@@ -143,7 +141,6 @@ suite('chart-compound', function() {
   });
 
   test('linkedCursor', async function() {
-    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
     cc.dispatch(CHAIN(
         ENSURE('test'),
@@ -175,7 +172,6 @@ suite('chart-compound', function() {
   });
 
   test('linkedRevisions', async function() {
-    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
     cc.dispatch(CHAIN(
         ENSURE('test'),
@@ -208,7 +204,6 @@ suite('chart-compound', function() {
   });
 
   test('linkedMode', async function() {
-    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
     cc.dispatch(CHAIN(
         ENSURE('test'),
@@ -238,7 +233,6 @@ suite('chart-compound', function() {
   });
 
   test('linkedZeroYAxis', async function() {
-    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
     cc.dispatch(CHAIN(
         ENSURE('test'),
@@ -273,7 +267,6 @@ suite('chart-compound', function() {
   });
 
   test('linkedFixedXAxis', async function() {
-    const {default: ChartCompound} = await importModule('./chart-compound.js');
     const cc = fixture('test');
     cc.dispatch(CHAIN(
         ENSURE('test'),

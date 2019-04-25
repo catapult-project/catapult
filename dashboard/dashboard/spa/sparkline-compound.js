@@ -7,12 +7,16 @@
 import './cp-loading.js';
 import './cp-tab-bar.js';
 import './cp-tab.js';
+import '/@polymer/polymer/lib/elements/dom-if.js';
+import '/@polymer/polymer/lib/elements/dom-repeat.js';
 import ChartTimeseries from './chart-timeseries.js';
 import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
 import {MODE} from './layout-timeseries.js';
 import {UPDATE} from './simple-redux.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   breakWords,
@@ -24,11 +28,11 @@ export default class SparklineCompound extends ElementBase {
   static get is() { return 'sparkline-compound'; }
 
   static get template() {
-    const chartPath = Polymer.html([
+    const chartPath = html([
       '[[statePath]].relatedTabs.[[tabIndex]].renderedSparklines.' +
       '[[sparklineIndex]].layout',
     ]);
-    return Polymer.html`
+    return html`
       <style>
         .related_tab {
           background-color: var(--primary-color-light, lightblue);
@@ -157,7 +161,7 @@ SparklineCompound.observers = [
 SparklineCompound.actions = {
   selectRelatedTab: (statePath, selectedRelatedTabName) =>
     async(dispatch, getState) => {
-      const state = Polymer.Path.get(getState(), statePath);
+      const state = get(getState(), statePath);
       if (selectedRelatedTabName === state.selectedRelatedTabName) {
         selectedRelatedTabName = '';
       }

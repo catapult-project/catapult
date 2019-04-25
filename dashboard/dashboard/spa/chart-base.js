@@ -4,8 +4,15 @@
 */
 'use strict';
 
+import '/@polymer/polymer/lib/elements/dom-if.js';
+import '/@polymer/polymer/lib/elements/dom-repeat.js';
+import * as PolymerAsync from '/@polymer/polymer/lib/utils/async.js';
 import ElementBase from './element-base.js';
 import {UPDATE} from './simple-redux.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
+
+import {GestureEventListeners} from
+  '/@polymer/polymer/lib/mixins/gesture-event-listeners.js';
 
 import {
   animationFrame,
@@ -15,278 +22,277 @@ import {
   measureElement,
 } from './utils.js';
 
-// This must be defined outside ChartBase.template in order to allow
-// PolymerSvgTemplate to access the currentScript's document.
-const TEMPLATE = Polymer.html`
-  <style>
-    :host {
-      display: flex;
-    }
 
-    #right {
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-    }
+export default class ChartBase extends GestureEventListeners(ElementBase) {
+  static get is() { return 'chart-base'; }
 
-    #brush_handles {
-      position: relative;
-      height: 15px;
-    }
+  static get template() {
+    const template = html`
+      <style>
+        :host {
+          display: flex;
+        }
 
-    .brush_handle {
-      cursor: ew-resize;
-      position: absolute;
-      top: 0;
-    }
+        #right {
+          display: flex;
+          flex-direction: column;
+          flex-grow: 1;
+        }
 
-    .brush_handle path {
-      fill: rgba(0, 0, 0, 0.3);
-    }
+        #brush_handles {
+          position: relative;
+          height: 15px;
+        }
 
-    path {
-      vector-effect: non-scaling-stroke;
-    }
+        .brush_handle {
+          cursor: ew-resize;
+          position: absolute;
+          top: 0;
+        }
 
-    rect {
-      opacity: 0.05;
-    }
+        .brush_handle path {
+          fill: rgba(0, 0, 0, 0.3);
+        }
 
-    #yaxis {
-      margin-right: 3px;
-    }
+        path {
+          vector-effect: non-scaling-stroke;
+        }
 
-    #xaxis {
-      margin-top: 3px;
-    }
+        rect {
+          opacity: 0.05;
+        }
 
-    #xaxis, #yaxis {
-      user-select: none;
-    }
+        #yaxis {
+          margin-right: 3px;
+        }
 
-    line {
-      stroke-width: 1;
-      stroke: #ccc;
-    }
+        #xaxis {
+          margin-top: 3px;
+        }
 
-    #main {
-      --mouse: outside;
-      position: relative;
-    }
+        #xaxis, #yaxis {
+          user-select: none;
+        }
 
-    #main:hover {
-      --mouse: inside;
-    }
+        line {
+          stroke-width: 1;
+          stroke: #ccc;
+        }
 
-    #tooltip {
-      display: flex;
-      position: absolute;
-      white-space: pre;
-      z-index: var(--layer-menu, 100);
-    }
+        #main {
+          --mouse: outside;
+          position: relative;
+        }
 
-    #tooltip[hidden] {
-      display: none;
-    }
+        #main:hover {
+          --mouse: inside;
+        }
 
-    #tooltip table {
-      background-color: var(--background-color, white);
-      border-style: solid;
-      border-width: 2px;
-    }
+        #tooltip {
+          display: flex;
+          position: absolute;
+          white-space: pre;
+          z-index: var(--layer-menu, 100);
+        }
 
-    #tooltip td {
-      vertical-align: text-top;
-    }
+        #tooltip[hidden] {
+          display: none;
+        }
 
-    .icon {
-      /* UA stylesheet sets overflow:hidden for foreignObject, so prevent
-        overflow.
-      */
-      height: 100%;
-      transform: translate(-12px, -12px);
-      width: 100%;
-    }
+        #tooltip table {
+          background-color: var(--background-color, white);
+          border-style: solid;
+          border-width: 2px;
+        }
 
-    .icon iron-icon {
-      position: static;
-    }
-  </style>
+        #tooltip td {
+          vertical-align: text-top;
+        }
 
-  <svg
-      id="yaxis"
-      width$="[[yAxis.width]]"
-      height$="[[graphHeight]]"
-      style$="margin-top: [[brushPointSize_(brushSize)]]px;
-              margin-bottom: [[xAxis.height]]px;">
-    <template is="dom-repeat" items="[[yAxis.ticks]]" as="tick">
-      <text
-          x$="[[yAxis.width]]"
-          y$="[[tick.yPct]]"
-          text-anchor="end"
-          alignment-baseline$="[[tickAnchor_(tick)]]">
-        [[tick.text]]
-      </text>
-    </template>
-  </svg>
+        .icon {
+          /* UA stylesheet sets overflow:hidden for foreignObject, so prevent
+            overflow.
+          */
+          height: 100%;
+          transform: translate(-12px, -12px);
+          width: 100%;
+        }
 
-  <div id="right">
-    <div id="brush_handles">
-      <template is="dom-repeat" items="[[xAxis.brushes]]" as="brush"
-          index-as="brushIndex">
-        <div class="brush_handle"
-            on-track="onTrackBrushHandle_"
-            style$="left: calc([[brush.xPct]] - 5px);">
-          <svg
-              height$="[[brushPointSize_(brushSize)]]"
-              width$="[[brushSize]]"
-              viewBox="0 0 2 3">
-            <path d="M0,0 L2,0 L2,2 L1,3 L0,2">
-            </path>
-          </svg>
-        </div>
-      </template>
-    </div>
+        .icon iron-icon {
+          position: static;
+        }
+      </style>
 
-    <div id="main"
-        on-mousemove="onMouseMoveMain_">
       <svg
-          width="100%"
+          id="yaxis"
+          width$="[[yAxis.width]]"
           height$="[[graphHeight]]"
-          preserveAspectRatio="none"
-          on-click="onMainClick_">
-        <template is="dom-if" if="[[yAxis.showTickLines]]">
-          <template is="dom-repeat" items="[[yAxis.ticks]]" as="tick">
-            <line
-                x1="0"
-                x2="100%"
-                y1$="[[tick.yPct]]"
-                y2$="[[tick.yPct]]">
-            </line>
-          </template>
-        </template>
-
-        <template is="dom-if" if="[[hasCursor_(yAxis)]]">
-          <line
-              x1="0"
-              x2="100%"
-              y1$="[[yAxis.cursor.pct]]"
-              y2$="[[yAxis.cursor.pct]]"
-              style$="stroke: [[yAxis.cursor.color]];">
-          </line>
-        </template>
-
-        <template is="dom-if" if="[[xAxis.showTickLines]]">
-          <template is="dom-repeat" items="[[xAxis.ticks]]" as="tick">
-            <line
-                x1$="[[tick.xPct]]"
-                x2$="[[tick.xPct]]"
-                y1="0"
-                y2="100%">
-            </line>
-          </template>
-        </template>
-
-        <template is="dom-if" if="[[hasCursor_(xAxis)]]">
-          <line
-              x1$="[[xAxis.cursor.pct]]"
-              x2$="[[xAxis.cursor.pct]]"
-              y1="0"
-              y2="100%"
-              style$="stroke: [[xAxis.cursor.color]];">
-          </line>
-        </template>
-
-        <template is="dom-repeat" items="[[antiBrushes_(xAxis.brushes)]]"
-            as="antiBrush">
-          <rect
-              x$="[[antiBrush.start]]"
-              y="0"
-              width$="[[antiBrush.length]]"
-              height="100%">
-          </rect>
-        </template>
-
-        <template is="dom-repeat" items="[[lines]]" as="line">
-          <svg
-              viewBox="0 0 100 100"
-              x="0"
-              y="0"
-              width="100%"
-              height="100%"
-              preserveAspectRatio="none">
-            <path
-                d$="[[line.path]]"
-                stroke$="[[line.color]]"
-                stroke-width$="[[line.strokeWidth]]"
-                fill="none">
-            </path>
-            <template is="dom-if" if="[[line.shadePoints]]">
-              <polygon
-                  points$="[[line.shadePoints]]"
-                  fill$="[[line.shadeFill]]"
-                  stroke="0">
-              </polygon>
-            </template>
-          </svg>
-
-          <template is="dom-repeat" items="[[collectIcons_(line)]]"
-              as="datum">
-            <foreignObject
-                x$="[[pct_(datum.xPct)]]"
-                y$="[[pct_(datum.yPct)]]"
-                class="icon">
-              <body xmlns="http://www.w3.org/1999/xhtml">
-                <iron-icon
-                    icon$="[[datum.icon]]"
-                    style$="color: [[datum.iconColor]]">
-                </iron-icon>
-              </body>
-            </foreignObject>
-          </template>
+          style$="margin-top: [[brushPointSize_(brushSize)]]px;
+                  margin-bottom: [[xAxis.height]]px;">
+        <template is="dom-repeat" items="[[yAxis.ticks]]" as="tick">
+          <text
+              x$="[[yAxis.width]]"
+              y$="[[tick.yPct]]"
+              text-anchor="end"
+              alignment-baseline$="[[tickAnchor_(tick)]]">
+            [[tick.text]]
+          </text>
         </template>
       </svg>
 
-      <div id="tooltip"
-          hidden$="[[tooltipHidden_(tooltip)]]"
-          style$="left: [[tooltip.left]]; right: [[tooltip.right]];
-                  top: [[tooltip.top]]; bottom: [[tooltip.bottom]];">
-        <table style$="border-color: [[tooltip.color]];">
-          <template is="dom-repeat" items="[[tooltip.rows]]" as="row">
-            <tr style$="color: [[row.color]]">
-              <td colspan$="[[row.colspan]]">[[row.name]]</td>
-              <template is="dom-if" if="[[!isEqual_(row.colspan, 2)]]">
-                <td>[[row.value]]</td>
-              </template>
-            </tr>
+      <div id="right">
+        <div id="brush_handles">
+          <template is="dom-repeat" items="[[xAxis.brushes]]" as="brush"
+              index-as="brushIndex">
+            <div class="brush_handle"
+                on-track="onTrackBrushHandle_"
+                style$="left: calc([[brush.xPct]] - 5px);">
+              <svg
+                  height$="[[brushPointSize_(brushSize)]]"
+                  width$="[[brushSize]]"
+                  viewBox="0 0 2 3">
+                <path d="M0,0 L2,0 L2,2 L1,3 L0,2">
+                </path>
+              </svg>
+            </div>
           </template>
-        </table>
+        </div>
+
+        <div id="main"
+            on-mousemove="onMouseMoveMain_">
+          <svg
+              width="100%"
+              height$="[[graphHeight]]"
+              preserveAspectRatio="none"
+              on-click="onMainClick_">
+            <template is="dom-if" if="[[yAxis.showTickLines]]">
+              <template is="dom-repeat" items="[[yAxis.ticks]]" as="tick">
+                <line
+                    x1="0"
+                    x2="100%"
+                    y1$="[[tick.yPct]]"
+                    y2$="[[tick.yPct]]">
+                </line>
+              </template>
+            </template>
+
+            <template is="dom-if" if="[[hasCursor_(yAxis)]]">
+              <line
+                  x1="0"
+                  x2="100%"
+                  y1$="[[yAxis.cursor.pct]]"
+                  y2$="[[yAxis.cursor.pct]]"
+                  style$="stroke: [[yAxis.cursor.color]];">
+              </line>
+            </template>
+
+            <template is="dom-if" if="[[xAxis.showTickLines]]">
+              <template is="dom-repeat" items="[[xAxis.ticks]]" as="tick">
+                <line
+                    x1$="[[tick.xPct]]"
+                    x2$="[[tick.xPct]]"
+                    y1="0"
+                    y2="100%">
+                </line>
+              </template>
+            </template>
+
+            <template is="dom-if" if="[[hasCursor_(xAxis)]]">
+              <line
+                  x1$="[[xAxis.cursor.pct]]"
+                  x2$="[[xAxis.cursor.pct]]"
+                  y1="0"
+                  y2="100%"
+                  style$="stroke: [[xAxis.cursor.color]];">
+              </line>
+            </template>
+
+            <template is="dom-repeat" items="[[antiBrushes_(xAxis.brushes)]]"
+                as="antiBrush">
+              <rect
+                  x$="[[antiBrush.start]]"
+                  y="0"
+                  width$="[[antiBrush.length]]"
+                  height="100%">
+              </rect>
+            </template>
+
+            <template is="dom-repeat" items="[[lines]]" as="line">
+              <svg
+                  viewBox="0 0 100 100"
+                  x="0"
+                  y="0"
+                  width="100%"
+                  height="100%"
+                  preserveAspectRatio="none">
+                <path
+                    d$="[[line.path]]"
+                    stroke$="[[line.color]]"
+                    stroke-width$="[[line.strokeWidth]]"
+                    fill="none">
+                </path>
+                <template is="dom-if" if="[[line.shadePoints]]">
+                  <polygon
+                      points$="[[line.shadePoints]]"
+                      fill$="[[line.shadeFill]]"
+                      stroke="0">
+                  </polygon>
+                </template>
+              </svg>
+
+              <template is="dom-repeat" items="[[collectIcons_(line)]]"
+                  as="datum">
+                <foreignObject
+                    x$="[[pct_(datum.xPct)]]"
+                    y$="[[pct_(datum.yPct)]]"
+                    class="icon">
+                  <body xmlns="http://www.w3.org/1999/xhtml">
+                    <iron-icon
+                        icon="[[datum.icon]]"
+                        style$="color: [[datum.iconColor]]">
+                    </iron-icon>
+                  </body>
+                </foreignObject>
+              </template>
+            </template>
+          </svg>
+
+          <div id="tooltip"
+              hidden$="[[tooltipHidden_(tooltip)]]"
+              style$="left: [[tooltip.left]]; right: [[tooltip.right]];
+                      top: [[tooltip.top]]; bottom: [[tooltip.bottom]];">
+            <table style$="border-color: [[tooltip.color]];">
+              <template is="dom-repeat" items="[[tooltip.rows]]" as="row">
+                <tr style$="color: [[row.color]]">
+                  <td colspan$="[[row.colspan]]">[[row.name]]</td>
+                  <template is="dom-if" if="[[!isEqual_(row.colspan, 2)]]">
+                    <td>[[row.value]]</td>
+                  </template>
+                </tr>
+              </template>
+            </table>
+          </div>
+        </div>
+
+        <svg
+            id="xaxis"
+            width="100%"
+            height$="[[xAxis.height]]">
+          <template is="dom-repeat" items="[[xAxis.ticks]]" as="tick">
+            <text
+                x$="[[tick.xPct]]"
+                y="100%"
+                text-anchor$="[[tickAnchor_(tick)]]"
+                alignment-baseline="after-edge">
+              [[tick.text]]
+            </text>
+          </template>
+        </svg>
       </div>
-    </div>
-
-    <svg
-        id="xaxis"
-        width="100%"
-        height$="[[xAxis.height]]">
-      <template is="dom-repeat" items="[[xAxis.ticks]]" as="tick">
-        <text
-            x$="[[tick.xPct]]"
-            y="100%"
-            text-anchor$="[[tickAnchor_(tick)]]"
-            alignment-baseline="after-edge">
-          [[tick.text]]
-        </text>
-      </template>
-    </svg>
-  </div>
-`;
-PolymerSvgTemplate(TEMPLATE.content, document);
-
-export default class ChartBase extends Polymer.GestureEventListeners(
-    ElementBase) {
-  static get is() { return 'chart-base'; }
-
-  static get template() { return TEMPLATE; }
+    `;
+    PolymerSvgTemplate(template.content, document);
+    return template;
+  }
 
   collectIcons_(line) {
     if (!line || !line.data) return [];
@@ -401,7 +407,7 @@ export default class ChartBase extends Polymer.GestureEventListeners(
         detail: {mainRect, nearestPoint, nearestLine},
       }));
       this.maybePollMouseLeaveMain_();
-    }, Polymer.Async.animationFrame);
+    }, PolymerAsync.animationFrame);
   }
 }
 

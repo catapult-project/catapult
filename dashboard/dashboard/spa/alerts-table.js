@@ -4,11 +4,14 @@
 */
 'use strict';
 
+import './column-head.js';
 import './cp-checkbox.js';
 import './expand-button.js';
-import './column-head.js';
 import './scalar-span.js';
+import '/@polymer/polymer/lib/elements/dom-if.js';
+import '/@polymer/polymer/lib/elements/dom-repeat.js';
 import ElementBase from './element-base.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   breakWords,
@@ -21,7 +24,7 @@ export default class AlertsTable extends ElementBase {
   static get is() { return 'alerts-table'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         #cat {
           display: block;
@@ -471,7 +474,7 @@ export default class AlertsTable extends ElementBase {
   }
 
   arePlaceholders_(alertGroups) {
-    return alertGroups === AlertsTable.PLACEHOLDER_ALERT_GROUPS;
+    return alertGroups === AlertsTable.placeholderAlertGroups();
   }
 
   async onSelectAll_(event) {
@@ -610,39 +613,43 @@ AlertsTable.sortGroups = (
   return alertGroups;
 };
 
-AlertsTable.PLACEHOLDER_ALERT_GROUPS = [];
 AlertsTable.DASHES = '-'.repeat(5);
-for (let i = 0; i < 5; ++i) {
-  AlertsTable.PLACEHOLDER_ALERT_GROUPS.push({
-    isSelected: false,
-    triaged: {
-      count: 0,
-      isExpanded: false,
-    },
-    alerts: [
-      {
-        bugId: AlertsTable.DASHES,
-        startRevision: AlertsTable.DASHES,
-        endRevision: AlertsTable.DASHES,
-        suite: AlertsTable.DASHES,
-        measurement: AlertsTable.DASHES,
-        master: AlertsTable.DASHES,
-        bot: AlertsTable.DASHES,
-        case: AlertsTable.DASHES,
-        deltaValue: 0,
-        deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
-        percentDeltaValue: 0,
-        percentDeltaUnit:
-          tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+const PLACEHOLDER_ALERT_GROUPS = [];
+AlertsTable.placeholderAlertGroups = () => {
+  if (PLACEHOLDER_ALERT_GROUPS.length) return PLACEHOLDER_ALERT_GROUPS;
+  for (let i = 0; i < 5; ++i) {
+    PLACEHOLDER_ALERT_GROUPS.push({
+      isSelected: false,
+      triaged: {
+        count: 0,
+        isExpanded: false,
       },
-    ],
-  });
-}
+      alerts: [
+        {
+          bugId: AlertsTable.DASHES,
+          startRevision: AlertsTable.DASHES,
+          endRevision: AlertsTable.DASHES,
+          suite: AlertsTable.DASHES,
+          measurement: AlertsTable.DASHES,
+          master: AlertsTable.DASHES,
+          bot: AlertsTable.DASHES,
+          case: AlertsTable.DASHES,
+          deltaValue: 0,
+          deltaUnit: tr.b.Unit.byName.countDelta_biggerIsBetter,
+          percentDeltaValue: 0,
+          percentDeltaUnit:
+            tr.b.Unit.byName.normalizedPercentageDelta_biggerIsBetter,
+        },
+      ],
+    });
+  }
+  return PLACEHOLDER_ALERT_GROUPS;
+};
 
 AlertsTable.State = {
   previousSelectedAlertKey: options => undefined,
   alertGroups: options => options.alertGroups ||
-    AlertsTable.PLACEHOLDER_ALERT_GROUPS,
+    AlertsTable.placeholderAlertGroups(),
   selectedAlertsCount: options => 0,
   showBugColumn: options => options.showBugColumn !== false,
   showMasterColumn: options => options.showMasterColumn !== false,
@@ -690,7 +697,7 @@ AlertsTable.actions = {
 
 AlertsTable.reducers = {
   sort: (state, action, rootState) => {
-    if (state.alertGroups === AlertsTable.PLACEHOLDER_ALERT_GROUPS) {
+    if (state.alertGroups === AlertsTable.placeholderAlertGroups()) {
       return state;
     }
     const sortDescending = state.sortDescending ^ (state.sortColumn ===

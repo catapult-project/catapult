@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -19,11 +18,13 @@ found in the LICENSE file.
 <script type="module">
 'use strict';
 
+import ReportControls from './report-controls.js';
+import findElements from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
+import ReportNamesRequest from './report-names-request.js';
 
 suite('report-controls', function() {
-  let ReportNamesRequest;
   let originalFetch;
 
   setup(() => {
@@ -51,25 +52,18 @@ suite('report-controls', function() {
 
   test('connected', async function() {
     // ReportNamesRequest
-    ReportNamesRequest = (await importModule(
-        './report-names-request.js')).default;
-    const {default: ReportControls} = await importModule(
-        './report-controls.js');
     const controls = fixture('test');
     controls.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', ReportControls.buildState({}))));
     await afterRender();
-    assert.isDefined(tr.ui.b.findDeepElementWithTextContent(
-        controls, new RegExp(ReportControls.DEFAULT_NAME)));
-    assert.isDefined(tr.ui.b.findDeepElementWithTextContent(controls, /aaa/));
+    assert.isDefined(findElements(controls, e =>
+      new RegExp(ReportControls.DEFAULT_NAME).test(e.textContent))[0]);
+    assert.isDefined(findElements(controls, e =>
+      /aaa/.test(e.textContent))[0]);
   });
 
   test('milestones', async function() {
-    ReportNamesRequest = (await importModule(
-        './report-names-request.js')).default;
-    const {default: ReportControls} = await importModule(
-        './report-controls.js');
     const controls = fixture('test');
     controls.dispatch(CHAIN(
         ENSURE('test'),
@@ -94,10 +88,6 @@ suite('report-controls', function() {
   });
 
   test('alerts', async function() {
-    ReportNamesRequest = (await importModule(
-        './report-names-request.js')).default;
-    const {default: ReportControls} = await importModule(
-        './report-controls.js');
     const controls = fixture('test');
     controls.dispatch(CHAIN(
         ENSURE('test'),

@@ -4,9 +4,10 @@
 */
 'use strict';
 
+import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
 import {simpleGUID, timeout} from './utils.js';
 
-export default class CpToast extends Polymer.Element {
+export default class CpToast extends PolymerElement {
   static get is() { return 'cp-toast'; }
 
   static get properties() {
@@ -20,7 +21,7 @@ export default class CpToast extends Polymer.Element {
   }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           bottom: 0;

@@ -4,11 +4,13 @@
 */
 'use strict';
 
-export default class CpCheckbox extends Polymer.Element {
+import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
+
+export default class CpCheckbox extends PolymerElement {
   static get is() { return 'cp-checkbox'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           align-items: center;

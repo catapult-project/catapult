@@ -4,8 +4,11 @@
 */
 'use strict';
 
+import '/@polymer/polymer/lib/elements/dom-repeat.js';
 import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,
@@ -16,7 +19,7 @@ export default class MemoryComponents extends ElementBase {
   static get is() { return 'memory-components'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           display: flex;
@@ -76,7 +79,7 @@ MemoryComponents.observers = [
 
 MemoryComponents.actions = {
   buildColumns: statePath => async(dispatch, getState) => {
-    if (!Polymer.Path.get(getState(), statePath)) return;
+    if (!get(getState(), statePath)) return;
     dispatch({
       type: MemoryComponents.reducers.buildColumns.name,
       statePath,

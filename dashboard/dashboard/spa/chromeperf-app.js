@@ -4,9 +4,13 @@
 */
 'use strict';
 
+import './chops-header.js';
 import './cp-loading.js';
 import './cp-toast.js';
 import './raised-button.js';
+import '/@polymer/polymer/lib/elements/dom-if.js';
+import '/@polymer/polymer/lib/elements/dom-repeat.js';
+import * as PolymerAsync from '/@polymer/polymer/lib/utils/async.js';
 import AlertsSection from './alerts-section.js';
 import ChartCompound from './chart-compound.js';
 import ChartSection from './chart-section.js';
@@ -18,6 +22,8 @@ import ReportSection from './report-section.js';
 import SessionIdRequest from './session-id-request.js';
 import SessionStateRequest from './session-state-request.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   afterRender,
@@ -34,7 +40,7 @@ export default class ChromeperfApp extends ElementBase {
   static get is() { return 'chromeperf-app'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         chops-header {
           background: var(--background-color, white);
@@ -318,7 +324,7 @@ export default class ChromeperfApp extends ElementBase {
 
   async ready() {
     super.ready();
-    const routeParams = new URLSearchParams(this.route.path);
+    const routeParams = new URLSearchParams(this.route && this.route.path);
     this.dispatch('ready', this.statePath, routeParams);
   }
 
@@ -406,7 +412,7 @@ export default class ChromeperfApp extends ElementBase {
     if (!this.readied) return;
     this.debounce('updateLocation', () => {
       this.dispatch('updateLocation', this.statePath);
-    }, Polymer.Async.animationFrame);
+    }, PolymerAsync.animationFrame);
   }
 
   isInternal_(userEmail) {
@@ -503,7 +509,7 @@ ChromeperfApp.actions = {
     ChromeperfApp.actions.updateLocation(statePath)(dispatch, getState);
 
     await timeout(NOTIFICATION_MS);
-    const state = Polymer.Path.get(getState(), statePath);
+    const state = get(getState(), statePath);
     if (!state.closedAlertsIds.includes(sectionId)) {
       // This alerts section was reopened.
       return;
@@ -515,7 +521,7 @@ ChromeperfApp.actions = {
   },
 
   reopenClosedAlerts: statePath => async(dispatch, getState) => {
-    const state = Polymer.Path.get(getState(), statePath);
+    const state = get(getState(), statePath);
     dispatch(UPDATE(statePath, {
       alertsSectionIds: [
         ...state.alertsSectionIds,
@@ -613,7 +619,7 @@ ChromeperfApp.actions = {
   },
 
   saveSession: statePath => async(dispatch, getState) => {
-    const state = Polymer.Path.get(getState(), statePath);
+    const state = get(getState(), statePath);
     const sessionState = ChromeperfApp.getSessionState(state);
     const request = new SessionIdRequest({sessionState});
     const session = await request.response;
@@ -636,7 +642,7 @@ ChromeperfApp.actions = {
   //     wait for a round-trip.
   updateLocation: statePath => async(dispatch, getState) => {
     const rootState = getState();
-    const state = Polymer.Path.get(rootState, statePath);
+    const state = get(rootState, statePath);
     if (!state.readied) return;
     const nonEmptyAlerts = state.alertsSectionIds.filter(id =>
       !AlertsSection.isEmpty(state.alertsSectionsById[id]));
@@ -718,7 +724,7 @@ ChromeperfApp.actions = {
     ChromeperfApp.actions.updateLocation(statePath)(dispatch, getState);
 
     await timeout(NOTIFICATION_MS);
-    const state = Polymer.Path.get(getState(), statePath);
+    const state = get(getState(), statePath);
     if (!state.closedChartIds.includes(sectionId)) {
       // This chart was reopened.
       return;
@@ -868,7 +874,7 @@ ChromeperfApp.reducers = {
   },
 
   updateLargeDom: (rootState, action, rootStateAgain) => {
-    const state = Polymer.Path.get(rootState, action.appStatePath);
+    const state = get(rootState, action.appStatePath);
     const sectionCount = (
       state.chartSectionIds.length + state.alertsSectionIds.length);
     return {...rootState, largeDom: (sectionCount > 3)};

@@ -4,8 +4,11 @@
 */
 'use strict';
 
+import '/@polymer/polymer/lib/elements/dom-if.js';
 import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,
@@ -21,7 +24,7 @@ export default class RecommendedOptions extends ElementBase {
   static get is() { return 'recommended-options'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         option-group {
           border-bottom: 1px solid var(--primary-color-dark, blue);
@@ -84,7 +87,7 @@ RecommendedOptions.actions = {
   },
 
   recommendOptions: statePath => async(dispatch, getState) => {
-    if (!Polymer.Path.get(getState(), statePath)) return;
+    if (!get(getState(), statePath)) return;
     dispatch({
       type: RecommendedOptions.reducers.recommendOptions.name,
       statePath,
@@ -100,9 +103,8 @@ RecommendedOptions.actions = {
 };
 
 RecommendedOptions.STORAGE_KEY = 'optionRecommendations';
-RecommendedOptions.OLD_MS = tr.b.convertUnit(
-    12, tr.b.UnitScale.TIME.WEEK, tr.b.UnitScale.TIME.MILLI_SEC);
 RecommendedOptions.OPTION_LIMIT = 5;
+RecommendedOptions.OLD_MS = 1000 * 60 * 60 * 24 * 7 * 12;
 
 RecommendedOptions.reducers = {
   getRecommendations: (rootState) => {

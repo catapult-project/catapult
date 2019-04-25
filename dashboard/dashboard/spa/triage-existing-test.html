@@ -8,14 +8,14 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <script type="module">
 'use strict';
+
+import TriageExisting from './triage-existing.js';
+
 suite('triage-existing', function() {
   test('filterBugs', async function() {
-    const {default: TriageExisting} = await importModule(
-        './triage-existing.js');
     const bugs = [
       {revisionRange: tr.b.math.Range.fromExplicitRange(9, 9)},
       {revisionRange: tr.b.math.Range.fromExplicitRange(9, 10)},

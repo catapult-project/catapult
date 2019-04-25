@@ -4,9 +4,12 @@
 */
 'use strict';
 
+import '/@polymer/polymer/lib/elements/dom-if.js';
+import '/@polymer/polymer/lib/elements/dom-repeat.js';
 import './cp-checkbox.js';
 import './expand-button.js';
 import ElementBase from './element-base.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,
@@ -18,7 +21,7 @@ export default class OptionGroup extends ElementBase {
   static get is() { return 'option-group'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           display: flex;
@@ -56,38 +59,45 @@ export default class OptionGroup extends ElementBase {
         }
       </style>
 
-      <template is="dom-repeat" items="[[options]]" as="option"
+      <dom-repeat items="[[options]]" as="option"
                                 index-as="optionIndex">
-        <template is="dom-if" if="[[matches_(option, query)]]">
-          <div class="row" indent$="[[indentRow_(option)]]">
-            <template is="dom-if" if="[[option.options]]">
-              <expand-button
-                  state-path="[[statePath]].options.[[optionIndex]]"
-                  tabindex="0">
-                [[countDescendents_(option.options)]]
-              </expand-button>
+        <template>
+          <dom-if if="[[matches_(option, query)]]">
+            <template>
+              <div class="row" indent$="[[indentRow_(option)]]">
+                <dom-if if="[[option.options]]">
+                  <template>
+                    <expand-button
+                        state-path="[[statePath]].options.[[optionIndex]]"
+                        tabindex="0">
+                      [[countDescendents_(option.options)]]
+                    </expand-button>
+                  </template>
+                </dom-if>
+
+                <cp-checkbox
+                    checked="[[isSelected_(option, selectedOptions)]]"
+                    disabled="[[option.disabled]]"
+                    tabindex="0"
+                    on-change="onSelect_">
+                  [[label_(option)]]
+                </cp-checkbox>
+              </div>
+
+              <dom-if if="[[shouldStampSubOptions_(option, query)]]">
+                <template>
+                  <iron-collapse opened="[[isExpanded_(option, query)]]">
+                    <option-group
+                        state-path="[[statePath]].options.[[optionIndex]]"
+                        root-state-path="[[rootStatePath]]">
+                    </option-group>
+                  </iron-collapse>
+                </template>
+              </dom-if>
             </template>
-
-            <cp-checkbox
-                checked="[[isSelected_(option, selectedOptions)]]"
-                disabled="[[option.disabled]]"
-                tabindex="0"
-                on-change="onSelect_">
-              [[label_(option)]]
-            </cp-checkbox>
-          </div>
-
-          <template is="dom-if" if="[[shouldStampSubOptions_(
-              option, query)]]">
-            <iron-collapse opened="[[isExpanded_(option, query)]]">
-              <option-group
-                  state-path="[[statePath]].options.[[optionIndex]]"
-                  root-state-path="[[rootStatePath]]">
-              </option-group>
-            </iron-collapse>
-          </template>
+          </dom-if>
         </template>
-      </template>
+      </dom-repeat>
     `;
   }
 

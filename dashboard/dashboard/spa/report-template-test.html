@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -20,6 +19,8 @@ found in the LICENSE file.
 'use strict';
 
 import DescribeRequest from './describe-request.js';
+import MenuInput from './menu-input.js';
+import ReportTemplate from './report-template.js';
 import ReportTemplateRequest from './report-template-request.js';
 import TestSuitesRequest from './test-suites-request.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
@@ -56,8 +57,6 @@ suite('report-template', function() {
   });
 
   test('canSave', async function() {
-    const {default: ReportTemplate} = await importModule(
-        './report-template.js');
     assert.isTrue(ReportTemplate.canSave(
         'name', 'owner@chromium.org', {selectedOptions: ['avg']}, [{
           label: 'label',
@@ -124,9 +123,6 @@ suite('report-template', function() {
   });
 
   test('addRemoveRow', async function() {
-    const {default: MenuInput} = await importModule('./menu-input.js');
-    const {default: ReportTemplate} = await importModule(
-        './report-template.js');
     const template = fixture('test');
     template.dispatch(CHAIN(
         ENSURE('test'),
@@ -162,9 +158,6 @@ suite('report-template', function() {
   });
 
   test('save', async function() {
-    const {default: MenuInput} = await importModule('./menu-input.js');
-    const {default: ReportTemplate} = await importModule(
-        './report-template.js');
     const template = fixture('test');
     template.dispatch(CHAIN(
         ENSURE('test'),

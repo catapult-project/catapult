@@ -4,11 +4,13 @@
 */
 'use strict';
 
-export default class RaisedButton extends Polymer.Element {
+import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
+
+export default class RaisedButton extends PolymerElement {
   static get is() { return 'raised-button'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           align-items: center;

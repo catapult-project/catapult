@@ -4,13 +4,14 @@
 */
 'use strict';
 
+import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
 import {getActiveElement, timeout} from './utils.js';
 
-export default class CpTextarea extends Polymer.Element {
+export default class CpTextarea extends PolymerElement {
   static get is() { return 'cp-textarea'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           border-radius: 4px;

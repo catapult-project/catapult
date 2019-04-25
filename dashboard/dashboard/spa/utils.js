@@ -4,6 +4,9 @@
 */
 'use strict';
 
+import {afterNextRender} from '/@polymer/polymer/lib/utils/render-status.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+
 /**
   * Like Polymer.Path.set(), but returns a modified clone of root instead of
   * modifying root. In order to compute a new value from the existing value at
@@ -87,11 +90,7 @@ export function getActiveElement() {
 }
 
 export function afterRender() {
-  return new Promise(resolve => {
-    Polymer.RenderStatus.afterNextRender({}, () => {
-      resolve();
-    });
-  });
+  return new Promise(resolve => afterNextRender({}, resolve));
 }
 
 export function timeout(ms) {
@@ -243,7 +242,7 @@ export function buildProperties(statePropertyName, configs) {
       statePath(state) {
         const statePath = this[statePathPropertyName];
         if (statePath === undefined) return {};
-        return Polymer.Path.get(state, statePath) || {};
+        return get(state, statePath) || {};
       },
     },
   };

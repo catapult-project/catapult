@@ -6,6 +6,7 @@
 
 import './cp-checkbox.js';
 import './recommended-options.js';
+import '/@polymer/polymer/lib/elements/dom-if.js';
 import DescribeRequest from './describe-request.js';
 import ElementBase from './element-base.js';
 import MemoryComponents from './memory-components.js';
@@ -14,6 +15,8 @@ import OptionGroup from './option-group.js';
 import TagFilter from './tag-filter.js';
 import TestSuitesRequest from './test-suites-request.js';
 import {TOGGLE} from './simple-redux.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   BatchIterator,
@@ -25,7 +28,7 @@ export default class TimeseriesDescriptor extends ElementBase {
   static get is() { return 'timeseries-descriptor'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           display: flex;
@@ -254,7 +257,7 @@ TimeseriesDescriptor.actions = {
     const suitesLoaded = TimeseriesDescriptor.actions.loadSuites(
         statePath)(dispatch, getState);
 
-    const state = Polymer.Path.get(getState(), statePath);
+    const state = get(getState(), statePath);
     if (state && state.suite && state.suite.selectedOptions &&
         state.suite.selectedOptions.length) {
       await Promise.all([
@@ -286,7 +289,7 @@ TimeseriesDescriptor.actions = {
       cases: new Set(),
       caseTags: new Map(),
     };
-    let state = Polymer.Path.get(getState(), statePath);
+    let state = get(getState(), statePath);
     if (state.suite.selectedOptions.length === 0) {
       dispatch({
         type: TimeseriesDescriptor.reducers.receiveDescriptor.name,
@@ -304,7 +307,7 @@ TimeseriesDescriptor.actions = {
     const descriptors = state.suite.selectedOptions.map(suite =>
       new DescribeRequest({suite}).response);
     for await (const {results, errors} of new BatchIterator(descriptors)) {
-      state = Polymer.Path.get(getState(), statePath);
+      state = get(getState(), statePath);
       if (!state.suite || !tr.b.setsEqual(
           suites, new Set(state.suite.selectedOptions))) {
         // The user changed the set of selected suites, so stop handling
@@ -328,7 +331,7 @@ TimeseriesDescriptor.actions = {
       statePath,
     });
 
-    state = Polymer.Path.get(getState(), statePath);
+    state = get(getState(), statePath);
 
     if (state.measurement.selectedOptions.length === 0) {
       MenuInput.actions.focus(`${statePath}.measurement`)(

@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -18,27 +17,27 @@ found in the LICENSE file.
 
 <script type="module">
 'use strict';
+
+import AlertsTable from './alerts-table.js';
+import findElements from './find-elements.js';
 import {ENSURE, UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
 
 suite('alerts-table', function() {
   test('placeholder', async function() {
-    const {default: AlertsTable} = await importModule(
-        './alerts-table.js');
     fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
     table.dispatch(UPDATE('test', AlertsTable.buildState({})));
     await afterRender();
+    const baseTable = findElements(table, e => e.matches('table'))[0];
     assert.strictEqual('rgb(128, 128, 128)', getComputedStyle(
-        tr.ui.b.findDeepElementMatching(table, 'table')).color);
-    const dashes = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
+        baseTable).color);
+    const dashes = findElements(table, e =>
       e.innerText && e.innerText.trim() === AlertsTable.DASHES);
     assert.lengthOf(dashes, 35);
   });
 
   test('allTriaged newAlerts', async function() {
-    const {default: AlertsTable} = await importModule(
-        './alerts-table.js');
     fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
     table.dispatch(UPDATE('test', AlertsTable.buildState({
@@ -83,13 +82,11 @@ suite('alerts-table', function() {
       ],
     })));
     await afterRender();
-    assert.isDefined(tr.ui.b.findDeepElementMatching(table,
-        'iron-icon[icon="cp-big:cat"]'));
+    assert.isDefined(findElements(table, e =>
+      e.matches('iron-icon[icon="cp-big:cat"]'))[0]);
   });
 
   test('allTriaged showingTriaged', async function() {
-    const {default: AlertsTable} = await importModule(
-        './alerts-table.js');
     fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
     table.dispatch(UPDATE('test', AlertsTable.buildState({
@@ -97,13 +94,11 @@ suite('alerts-table', function() {
       alertGroups: [],
     })));
     await afterRender();
-    assert.isDefined(tr.ui.b.findDeepElementMatching(table,
-        'iron-icon[icon="cp-big:cat"]'));
+    assert.isDefined(findElements(table,
+        e => e.matches('iron-icon[icon="cp-big:cat"]'))[0]);
   });
 
   test('sort', async function() {
-    const {default: AlertsTable} = await importModule(
-        './alerts-table.js');
     fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
     table.dispatch(UPDATE('test', AlertsTable.buildState({
@@ -181,8 +176,8 @@ suite('alerts-table', function() {
     })));
     await afterRender();
 
-    const measurementColumn = tr.ui.b.findDeepElementMatching(
-        table, 'column-head[name="measurement"]');
+    const measurementColumn = findElements(table, e =>
+      e.matches('column-head[name="measurement"]'))[0];
     measurementColumn.click();
     await afterRender();
     let state = table.getState().test;
@@ -199,8 +194,6 @@ suite('alerts-table', function() {
   });
 
   test('shouldDisplayAlert', async function() {
-    const {default: AlertsTable} = await importModule(
-        './alerts-table.js');
     assert.isTrue(AlertsTable.shouldDisplayAlert(
         true, false, {}, -1, false));
     assert.isTrue(AlertsTable.shouldDisplayAlert(
@@ -244,8 +237,6 @@ suite('alerts-table', function() {
   });
 
   test('shouldDisplayExpandGroupButton', async function() {
-    const {default: AlertsTable} = await importModule(
-        './alerts-table.js');
     assert.isTrue(AlertsTable.shouldDisplayExpandGroupButton(
         {alerts: [{}, {}]}, 0, true));
     assert.isFalse(AlertsTable.shouldDisplayExpandGroupButton(
@@ -263,8 +254,6 @@ suite('alerts-table', function() {
   });
 
   test('shouldDisplayExpandTriagedButton', async function() {
-    const {default: AlertsTable} = await importModule(
-        './alerts-table.js');
     assert.isFalse(AlertsTable.shouldDisplayExpandTriagedButton(
         true, {triaged: {count: 1}}, 0));
     assert.isFalse(AlertsTable.shouldDisplayExpandTriagedButton(
@@ -280,8 +269,6 @@ suite('alerts-table', function() {
   });
 
   test('shouldDisplaySelectedCount newAlerts', async function() {
-    const {default: AlertsTable} = await importModule(
-        './alerts-table.js');
     fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
     table.dispatch(UPDATE('test', AlertsTable.buildState({
@@ -327,7 +314,7 @@ suite('alerts-table', function() {
       ],
     })));
     await afterRender();
-    const selectedCounts = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
+    const selectedCounts = findElements(table, e =>
       e.tagName === 'CP-CHECKBOX' && e.textContent.trim() === '1/2');
     assert.lengthOf(selectedCounts, 1);
     const row = selectedCounts[0].parentElement.parentElement;
@@ -336,8 +323,6 @@ suite('alerts-table', function() {
   });
 
   test('shouldDisplaySelectedCount showingTriaged', async function() {
-    const {default: AlertsTable} = await importModule(
-        './alerts-table.js');
     fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
     table.dispatch(UPDATE('test', AlertsTable.buildState({
@@ -384,7 +369,7 @@ suite('alerts-table', function() {
       ],
     })));
     await afterRender();
-    const selectedCounts = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
+    const selectedCounts = findElements(table, e =>
       e.tagName === 'CP-CHECKBOX' && e.textContent.trim() === '1/2');
     assert.lengthOf(selectedCounts, 1);
     const row = selectedCounts[0].parentElement.parentElement;
@@ -393,8 +378,6 @@ suite('alerts-table', function() {
   });
 
   test('isAlertIgnored', async function() {
-    const {default: AlertsTable} = await importModule(
-        './alerts-table.js');
     fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
     table.dispatch(UPDATE('test', AlertsTable.buildState({
@@ -426,13 +409,11 @@ suite('alerts-table', function() {
       ],
     })));
     await afterRender();
-    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(table, e =>
-      e.tagName === 'TD' && e.textContent.trim() === 'ignored'));
+    assert.isDefined(findElements(table, e =>
+      e.tagName === 'TD' && e.textContent.trim() === 'ignored')[0]);
   });
 
   test('selectAlert single', async function() {
-    const {default: AlertsTable} = await importModule(
-        './alerts-table.js');
     fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
     table.dispatch(UPDATE('test', AlertsTable.buildState({
@@ -459,16 +440,14 @@ suite('alerts-table', function() {
       ],
     })));
     await afterRender();
-    const checkbox = tr.ui.b.findDeepElementMatching(
-        tr.ui.b.findDeepElementMatching(table, 'tbody'), 'cp-checkbox');
+    const tbody = findElements(table, e => e.matches('tbody'))[0];
+    const checkbox = findElements(tbody, e => e.matches('cp-checkbox'))[0];
     checkbox.click();
     await afterRender();
     assert.isTrue(table.getState().test.alertGroups[0].alerts[0].isSelected);
   });
 
   test('selectAlert toggleAll', async function() {
-    const {default: AlertsTable} = await importModule(
-        './alerts-table.js');
     fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
     table.dispatch(UPDATE('test', AlertsTable.buildState({
@@ -509,8 +488,8 @@ suite('alerts-table', function() {
       ],
     })));
     await afterRender();
-    const checkbox = tr.ui.b.findDeepElementMatching(
-        tr.ui.b.findDeepElementMatching(table, 'tbody'), 'cp-checkbox');
+    const tbody = findElements(table, e => e.matches('tbody'))[0];
+    const checkbox = findElements(tbody, e => e.matches('cp-checkbox'))[0];
     checkbox.click();
     await afterRender();
     assert.isTrue(table.getState().test.alertGroups[0].alerts[0].isSelected);
@@ -518,8 +497,6 @@ suite('alerts-table', function() {
   });
 
   test('selectAlert shiftKey', async function() {
-    const {default: AlertsTable} = await importModule(
-        './alerts-table.js');
     fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
     table.dispatch(UPDATE('test', AlertsTable.buildState({
@@ -613,8 +590,9 @@ suite('alerts-table', function() {
       ],
     })));
     await afterRender();
-    const checkboxes = tr.ui.b.findDeepElementsMatching(
-        tr.ui.b.findDeepElementMatching(table, 'tbody'), 'cp-checkbox');
+    const checkboxes = findElements(
+        findElements(table, e => e.matches('tbody'))[0],
+        e => e.matches('cp-checkbox'));
     checkboxes[1].click();
     checkboxes[3].$.native.dispatchEvent(new CustomEvent('change', {
       detail: {shiftKey: true},

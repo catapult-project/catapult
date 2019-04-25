@@ -4,11 +4,13 @@
 */
 'use strict';
 
-export default class CpTab extends Polymer.Element {
+import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
+
+export default class CpTab extends PolymerElement {
   static get is() { return 'cp-tab'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           background-color: var(--primary-color-light, lightblue);

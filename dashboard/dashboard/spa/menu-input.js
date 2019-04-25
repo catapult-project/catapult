@@ -8,6 +8,7 @@ import './cp-input.js';
 import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
 import {UPDATE} from './simple-redux.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,
@@ -20,7 +21,7 @@ export default class MenuInput extends ElementBase {
   static get is() { return 'menu-input'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           display: block;

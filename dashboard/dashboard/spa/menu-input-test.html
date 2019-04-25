@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -20,11 +19,11 @@ found in the LICENSE file.
 <script type="module">
 'use strict';
 
+import MenuInput from './menu-input.js';
 import {UPDATE} from './simple-redux.js';
 
 suite('menu-input', function() {
   test('focus', async function() {
-    const {default: MenuInput} = await importModule('./menu-input.js');
     fixture('test')[0].dispatch(UPDATE('', {
       xxx: MenuInput.buildState({
         label: 'XXX',
@@ -58,7 +57,6 @@ suite('menu-input', function() {
   });
 
   test('inputValue', async function() {
-    const {default: MenuInput} = await importModule('./menu-input.js');
     fixture('test')[0].dispatch(UPDATE('', {
       xxx: MenuInput.buildState({
         label: 'XXX',

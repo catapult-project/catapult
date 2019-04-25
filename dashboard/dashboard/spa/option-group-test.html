@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -20,6 +19,8 @@ found in the LICENSE file.
 <script type="module">
 'use strict';
 
+import OptionGroup from './option-group.js';
+import findElements from './find-elements.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
 
@@ -35,7 +36,6 @@ suite('option-group', function() {
   };
 
   test('groupValues', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
     const actual = OptionGroup.groupValues([
       'aaa',
       'bbb:ccc',
@@ -83,40 +83,40 @@ suite('option-group', function() {
   });
 
   test('select simple', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
     fixture('test').dispatch(UPDATE('', {
       test: OptionGroup.buildState(OPTIONS),
     }));
     const optionGroup = fixture('test');
     await afterRender();
-    const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /aaa/);
+    const checkbox = findElements(optionGroup, e =>
+      e.matches('cp-checkbox') && /aaa/.test(e.textContent))[0];
     checkbox.$.native.click();
     await afterRender();
     assert.deepEqual(['aaa'], optionGroup.getState().test.selectedOptions);
   });
 
   test('deselect simple', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
     fixture('test').dispatch(UPDATE('', {
       test: OptionGroup.buildState(OPTIONS),
     }));
     const optionGroup = fixture('test');
     await afterRender();
     optionGroup.dispatch(UPDATE('test', {selectedOptions: ['aaa']}));
-    const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /aaa/);
+    const checkbox = findElements(optionGroup, e =>
+      e.matches('cp-checkbox') && /aaa/.test(e.textContent))[0];
     checkbox.$.native.click();
     await afterRender();
     assert.deepEqual([], optionGroup.getState().test.selectedOptions);
   });
 
   test('select all descendents', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
     fixture('test').dispatch(UPDATE('', {
       test: OptionGroup.buildState(OPTIONS),
     }));
     const optionGroup = fixture('test');
     await afterRender();
-    const bLeaf = tr.ui.b.findDeepElementWithTextContent(optionGroup, /bbb/);
+    const bLeaf = findElements(optionGroup, e =>
+      e.matches('cp-checkbox') && /bbb/.test(e.textContent))[0];
     bLeaf.$.native.click();
     await afterRender();
     assert.deepEqual(['bbb:ccc', 'bbb:ddd', 'bbb:ddd:eee', 'bbb:ddd:fff'],
@@ -124,7 +124,6 @@ suite('option-group', function() {
   });
 
   test('deselect all descendents', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
     fixture('test').dispatch(UPDATE('', {
       test: OptionGroup.buildState(OPTIONS),
     }));
@@ -133,35 +132,36 @@ suite('option-group', function() {
     optionGroup.dispatch(UPDATE('test', {selectedOptions: [
       'bbb:ccc', 'bbb:ddd', 'bbb:ddd:eee', 'bbb:ddd:fff',
     ]}));
-    const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /ddd/);
+    const checkbox = findElements(optionGroup, e =>
+      e.matches('cp-checkbox') && /ddd/.test(e.textContent))[0];
     checkbox.$.native.click();
     await afterRender();
     assert.deepEqual(['bbb:ccc'], optionGroup.getState().test.selectedOptions);
   });
 
   test('select tri-state single', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
     fixture('test').dispatch(UPDATE('', {
       test: OptionGroup.buildState(OPTIONS),
     }));
     const optionGroup = fixture('test');
     await afterRender();
     optionGroup.dispatch(UPDATE('test', {selectedOptions: []}));
-    const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /ddd/);
+    const checkbox = findElements(optionGroup, e =>
+      e.matches('cp-checkbox') && /ddd/.test(e.textContent))[0];
     checkbox.$.native.click();
     await afterRender();
     assert.deepEqual(['bbb:ddd'], optionGroup.getState().test.selectedOptions);
   });
 
   test('select tri-state all descendents', async function() {
-    const {default: OptionGroup} = await importModule('./option-group.js');
     fixture('test').dispatch(UPDATE('', {
       test: OptionGroup.buildState(OPTIONS),
     }));
     const optionGroup = fixture('test');
     await afterRender();
     optionGroup.dispatch(UPDATE('test', {selectedOptions: ['bbb:ddd']}));
-    const checkbox = tr.ui.b.findDeepElementWithTextContent(optionGroup, /ddd/);
+    const checkbox = findElements(optionGroup, e =>
+      e.matches('cp-checkbox') && /ddd/.test(e.textContent))[0];
     checkbox.$.native.click();
     await afterRender();
     assert.deepEqual(['bbb:ddd', 'bbb:ddd:eee', 'bbb:ddd:fff'],

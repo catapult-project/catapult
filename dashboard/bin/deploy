@@ -130,6 +130,12 @@ def PackSPA(catapult_path, temp_dir, deployment_paths):
   minify = os.path.join(node_modules, '..', 'minify')
   subprocess.check_output([minify, vulcanized_index])
 
+  packed_index_js = os.path.join(webpack_dir, 'index.js')
+  minifyjs = os.path.join(node_modules, '..', 'minifyjs')
+  subprocess.check_output([minifyjs, packed_index_js])
+  sw_js = os.path.join(webpack_dir, 'service-worker.js')
+  subprocess.check_output([minifyjs, sw_js])
+
   deployment_paths.append(webpack_dir)
   deployment_paths.append(vulcanized_index)
 

@@ -19,6 +19,8 @@ if __name__ == '__main__':
   from catapult_build import run_wct
   debug = len(sys.argv) > 1 and sys.argv[1] == 'debug'
   deps = [
+      os.path.join(CATAPULT_PATH, 'common', 'node_runner', 'node_runner',
+      'node_modules'),
       os.path.join(CATAPULT_PATH, 'third_party', 'polymer2'),
       os.path.join(CATAPULT_PATH, 'third_party'),
       os.path.join(CATAPULT_PATH, 'third_party', 'redux'),

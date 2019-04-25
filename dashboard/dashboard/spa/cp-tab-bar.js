@@ -4,13 +4,14 @@
 */
 'use strict';
 
+import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
 import {afterRender} from './utils.js';
 
-export default class CpTabBar extends Polymer.Element {
+export default class CpTabBar extends PolymerElement {
   static get is() { return 'cp-tab-bar'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         :host {
           align-items: center;

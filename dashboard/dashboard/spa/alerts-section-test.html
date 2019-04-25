@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -18,19 +17,21 @@ found in the LICENSE file.
 
 <script type="module">
 'use strict';
+
+import AlertsRequest from './alerts-request.js';
+import AlertsSection from './alerts-section.js';
+import DescribeRequest from './describe-request.js';
+import ExistingBugRequest from './existing-bug-request.js';
+import NewBugRequest from './new-bug-request.js';
+import ReportNamesRequest from './report-names-request.js';
+import SheriffsRequest from './sheriffs-request.js';
+import findElements from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
-import DescribeRequest from './describe-request.js';
 
 window.AUTH_CLIENT_ID = '';
 
 suite('alerts-section', function() {
-  let AlertsRequest;
-  let ExistingBugRequest;
-  let NewBugRequest;
-  let ReportNamesRequest;
-  let SheriffsRequest;
-
   let originalFetch;
   let existingBugBody;
   let newBugBody;
@@ -109,9 +110,6 @@ suite('alerts-section', function() {
   });
 
   test('summary', async function() {
-    SheriffsRequest = (await importModule(
-        './sheriffs-request.js')).default;
-    const {default: AlertsSection} = await importModule('./alerts-section.js');
     assert.strictEqual('0 alerts',
         AlertsSection.summary(undefined, undefined));
     assert.strictEqual('0 alerts',
@@ -142,16 +140,6 @@ suite('alerts-section', function() {
   });
 
   test('triageNew', async function() {
-    SheriffsRequest = (await importModule('./sheriffs-request.js')).default;
-    AlertsRequest = (await importModule('./alerts-request.js')).default;
-    NewBugRequest = (await importModule('./new-bug-request.js')).default;
-    ReportNamesRequest = (await importModule(
-        './report-names-request.js')).default;
-    ExistingBugRequest = (await importModule(
-        './existing-bug-request.js')).default;
-
-    await importModule('./cp-checkbox.js');
-    const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
     section.dispatch(CHAIN(
         UPDATE('', {
@@ -183,16 +171,18 @@ suite('alerts-section', function() {
     }));
     await afterRender();
 
-    const selectAll = tr.ui.b.findDeepElementMatching(
-        section, 'th cp-checkbox');
+    const selectAll = findElements(section, e =>
+      e.matches('th cp-checkbox'))[0];
     selectAll.click();
     let state = section.getState().test;
     assert.strictEqual(10, state.selectedAlertsCount);
 
-    const button = tr.ui.b.findDeepElementWithTextContent(section, /New Bug/);
+    const button = findElements(section, e =>
+      e.matches('div.button') && /New Bug/.test(e.textContent))[0];
     button.click();
 
-    const submit = tr.ui.b.findDeepElementWithTextContent(section, /SUBMIT/i);
+    const submit = findElements(section, e =>
+      e.matches('raised-button') && /SUBMIT/i.test(e.textContent))[0];
     submit.click();
     await afterRender();
 
@@ -212,15 +202,6 @@ suite('alerts-section', function() {
   });
 
   test('triageExisting', async function() {
-    SheriffsRequest = (await importModule('./sheriffs-request.js')).default;
-    AlertsRequest = (await importModule('./alerts-request.js')).default;
-    NewBugRequest = (await importModule('./new-bug-request.js')).default;
-    ReportNamesRequest = (await importModule(
-        './report-names-request.js')).default;
-    ExistingBugRequest = (await importModule(
-        './existing-bug-request.js')).default;
-    await importModule('./cp-checkbox.js');
-    const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
     section.dispatch(CHAIN(
         UPDATE('', {
@@ -252,21 +233,22 @@ suite('alerts-section', function() {
     }));
     await afterRender();
 
-    const selectAll = tr.ui.b.findDeepElementMatching(
-        section, 'th cp-checkbox');
+    const selectAll = findElements(section, e =>
+      e.matches('th cp-checkbox'))[0];
     selectAll.click();
     let state = section.getState().test;
     assert.strictEqual(10, state.selectedAlertsCount);
 
-    const button = tr.ui.b.findDeepElementWithTextContent(
-        section, /Existing Bug/);
+    const button = findElements(section, e =>
+      e.matches('div') && /Existing Bug/.test(e.textContent))[0];
     button.click();
 
     section.dispatch(UPDATE('test.existingBug', {bugId: '123456'}));
     await afterRender();
 
-    const menu = tr.ui.b.findDeepElementMatching(section, 'triage-existing');
-    const submit = tr.ui.b.findDeepElementWithTextContent(menu, /SUBMIT/i);
+    const menu = findElements(section, e => e.matches('triage-existing'))[0];
+    const submit = findElements(menu, e =>
+      e.matches('raised-button') && /SUBMIT/i.test(e.textContent))[0];
     submit.click();
     await afterRender();
 
@@ -281,15 +263,6 @@ suite('alerts-section', function() {
   });
 
   test('ignore', async function() {
-    SheriffsRequest = (await importModule('./sheriffs-request.js')).default;
-    AlertsRequest = (await importModule('./alerts-request.js')).default;
-    NewBugRequest = (await importModule('./new-bug-request.js')).default;
-    ReportNamesRequest = (await importModule(
-        './report-names-request.js')).default;
-    ExistingBugRequest = (await importModule(
-        './existing-bug-request.js')).default;
-    await importModule('./cp-checkbox.js');
-    const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
     section.dispatch(CHAIN(
         UPDATE('', {
@@ -321,14 +294,14 @@ suite('alerts-section', function() {
     }));
     await afterRender();
 
-    const selectAll = tr.ui.b.findDeepElementMatching(
-        section, 'th cp-checkbox');
+    const selectAll = findElements(section, e =>
+      e.matches('th cp-checkbox'))[0];
     selectAll.click();
     let state = section.getState().test;
     assert.strictEqual(10, state.selectedAlertsCount);
 
-    const ignore = tr.ui.b.findDeepElementWithTextContent(section,
-        /^\W*Ignore\W*$/i);
+    const ignore = findElements(section, e =>
+      e.matches('div') && /^\W*Ignore\W*$/i.test(e.textContent))[0];
     ignore.click();
     await afterRender();
 
@@ -343,16 +316,6 @@ suite('alerts-section', function() {
   });
 
   test('unassign', async function() {
-    SheriffsRequest = (await importModule('./sheriffs-request.js')).default;
-    AlertsRequest = (await importModule('./alerts-request.js')).default;
-    NewBugRequest = (await importModule('./new-bug-request.js')).default;
-    ReportNamesRequest = (await importModule(
-        './report-names-request.js')).default;
-    ExistingBugRequest = (await importModule(
-        './existing-bug-request.js')).default;
-
-    await importModule('./cp-checkbox.js');
-    const {default: AlertsSection} = await importModule('./alerts-section.js');
     const section = fixture('test');
     section.dispatch(CHAIN(
         UPDATE('', {
@@ -384,15 +347,15 @@ suite('alerts-section', function() {
     }));
     await afterRender();
 
-    const selectAll = tr.ui.b.findDeepElementMatching(
-        section, 'th cp-checkbox');
+    const selectAll = findElements(section, e =>
+      e.matches('th cp-checkbox'))[0];
     selectAll.click();
     let state = section.getState().test;
     assert.strictEqual(10, state.selectedAlertsCount);
 
-    const ignore = tr.ui.b.findDeepElementWithTextContent(section,
-        /^\W*Unassign\W*$/i);
-    ignore.click();
+    const unassign = findElements(section, e =>
+      e.matches('div') && /^\W*Unassign\W*$/i.test(e.textContent))[0];
+    unassign.click();
     await afterRender();
 
     assert.strictEqual('0', existingBugBody.get('bug'));

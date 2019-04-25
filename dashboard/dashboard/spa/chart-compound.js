@@ -7,23 +7,21 @@
 import './cp-radio-group.js';
 import './cp-radio.js';
 import './cp-switch.js';
+import '/@polymer/polymer/lib/elements/dom-if.js';
 import ChartTimeseries from './chart-timeseries.js';
 import DetailsTable from './details-table.js';
 import ElementBase from './element-base.js';
 import {CHAIN, TOGGLE, UPDATE} from './simple-redux.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {MODE} from './layout-timeseries.js';
+import {get} from '/@polymer/polymer/lib/utils/path.js';
+import {html} from '/@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,
   buildState,
   setImmutable,
 } from './utils.js';
-
-const MS_PER_DAY = tr.b.convertUnit(
-    1, tr.b.UnitScale.TIME.DAY, tr.b.UnitScale.TIME.MILLI_SEC);
-const MS_PER_MONTH = tr.b.convertUnit(
-    1, tr.b.UnitScale.TIME.MONTH, tr.b.UnitScale.TIME.MILLI_SEC);
 
 /**
   * ChartCompound synchronizes revision ranges and axis properties between a
@@ -33,7 +31,7 @@ export default class ChartCompound extends ElementBase {
   static get is() { return 'chart-compound'; }
 
   static get template() {
-    return Polymer.html`
+    return html`
       <style>
         #minimap,
         #chart {
@@ -484,7 +482,7 @@ ChartCompound.actions = {
   updateLinkedRevisions: (
       linkedStatePath, linkedMinRevision, linkedMaxRevision) =>
     async(dispatch, getState) => {
-      const state = Polymer.Path.get(getState(), linkedStatePath);
+      const state = get(getState(), linkedStatePath);
       if (linkedMinRevision === state.linkedMinRevision &&
           linkedMaxRevision === state.linkedMaxRevision) {
         return;
@@ -521,7 +519,7 @@ ChartCompound.actions = {
   //  * A lineDescriptor for the ref build is added to chartLayout if there's
   //    only one lineDescriptor.
   load: statePath => async(dispatch, getState) => {
-    const state = Polymer.Path.get(getState(), statePath);
+    const state = get(getState(), statePath);
     if (!state || !state.lineDescriptors ||
         state.lineDescriptors.length === 0) {
       dispatch(CHAIN(
@@ -773,7 +771,7 @@ ChartCompound.reducers = {
   toggleLinked: (state, {linkedStatePath}, rootState) => {
     state = {...state, isLinked: !state.isLinked};
     if (state.isLinked) {
-      const linkedState = Polymer.Path.get(rootState, linkedStatePath);
+      const linkedState = get(rootState, linkedStatePath);
       state = {
         ...state,
         cursorRevision: linkedState.linkedCursorRevision,
@@ -837,6 +835,8 @@ ChartCompound.reducers = {
       return state;
     }
 
+    const MS_PER_DAY = tr.b.convertUnit(
+        1, tr.b.UnitScale.TIME.DAY, tr.b.UnitScale.TIME.MILLI_SEC);
     const now = new Date();
     const staleMs = window.IS_DEBUG ? 1 : MS_PER_DAY;
     const staleTimestamp = now - staleMs;
@@ -922,6 +922,9 @@ ChartCompound.computeMinRevision = (
       minRevision < lastRevision) {
     return minRevision;
   }
+
+  const MS_PER_MONTH = tr.b.convertUnit(
+      1, tr.b.UnitScale.TIME.MONTH, tr.b.UnitScale.TIME.MILLI_SEC);
 
   let closestTimestamp = Infinity;
   const minTimestampMs = new Date() - MS_PER_MONTH;

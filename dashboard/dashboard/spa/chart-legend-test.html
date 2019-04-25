@@ -8,7 +8,6 @@ found in the LICENSE file.
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
-<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -18,11 +17,13 @@ found in the LICENSE file.
 
 <script type="module">
 'use strict';
+
+import './chart-legend.js';
+import findElements from './find-elements.js';
 import {afterRender} from './utils.js';
 
 suite('chart-legend', function() {
   test('recursive', async function() {
-    await importModule('./chart-legend.js');
     const chartLegend = fixture('test');
     chartLegend.items = [
       {label: 'A', color: 'red'},
@@ -35,9 +36,9 @@ suite('chart-legend', function() {
     ];
     await afterRender();
 
-    const aLeaf = tr.ui.b.findDeepElementWithTextContent(chartLegend, /A/);
-    const cLeaf = tr.ui.b.findDeepElementWithTextContent(chartLegend, /C/);
-    const eLeaf = tr.ui.b.findDeepElementWithTextContent(chartLegend, /E/);
+    const aLeaf = findElements(chartLegend, e => /A/.test(e.textContent))[0];
+    const cLeaf = findElements(chartLegend, e => /C/.test(e.textContent))[0];
+    const eLeaf = findElements(chartLegend, e => /E/.test(e.textContent))[0];
     assert.strictEqual('red', aLeaf.style.color);
     assert.strictEqual('green', cLeaf.style.color);
     assert.strictEqual('blue', eLeaf.style.color);
@@ -50,7 +51,6 @@ suite('chart-legend', function() {
   });
 
   test('leafClick', async function() {
-    await importModule('./chart-legend.js');
     const chartLegend = fixture('test');
     chartLegend.items = [
       {label: 'A', color: 'red'},
