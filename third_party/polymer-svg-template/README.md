@@ -7,3 +7,7 @@ Security Critical: no
 Description:
 This function allows defining Polymer dom-modules that contain svg that contain
 templates such as dom-if and dom-repeat.
+
+Changes:
+Optionally accept the ownerDocument as a parameter because currentScript is
+unavailable in ES6 modules.

@@ -12,9 +12,7 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/dashboard/spa/index.css">
 </custom-style>
 
-<link rel="import" href="/bower_components/polymer/polymer.html">
-<link rel="import" href="/dashboard/spa/utils.html">
-<link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/dashboard/spa/dependencies.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="format">
@@ -23,20 +21,22 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script>
+<script type="module">
 'use strict';
+import {afterRender} from './utils.js';
+
 suite('scalar-span', function() {
   test('format', async function() {
     await importModule('./scalar-span.js');
     const scalarSpan = fixture('format');
     scalarSpan.unit = tr.b.Unit.byName.timeDurationInMsDelta_smallerIsBetter;
     scalarSpan.value = 1.111111;
-    await cp.afterRender();
+    await afterRender();
     assert.strictEqual('+1.111 ms', scalarSpan.$.span.textContent.trim());
     assert.strictEqual('regression', scalarSpan.$.span.getAttribute('change'));
 
     scalarSpan.unit = tr.b.Unit.byName.timeDurationInMsDelta_biggerIsBetter;
-    await cp.afterRender();
+    await afterRender();
     assert.strictEqual('improvement', scalarSpan.$.span.getAttribute('change'));
   });
 

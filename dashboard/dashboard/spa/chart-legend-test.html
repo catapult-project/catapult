@@ -7,9 +7,7 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-
-<link rel="import" href="/bower_components/polymer/polymer.html">
-<link rel="import" href="/dashboard/spa/utils.html">
+<link rel="import" href="/dashboard/spa/dependencies.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -18,8 +16,10 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script>
+<script type="module">
 'use strict';
+import {afterRender} from './utils.js';
+
 suite('chart-legend', function() {
   test('recursive', async function() {
     await importModule('./chart-legend.js');
@@ -33,7 +33,7 @@ suite('chart-legend', function() {
         ]},
       ]},
     ];
-    await cp.afterRender();
+    await afterRender();
 
     const aLeaf = tr.ui.b.findDeepElementWithTextContent(chartLegend, /A/);
     const cLeaf = tr.ui.b.findDeepElementWithTextContent(chartLegend, /C/);
@@ -59,7 +59,7 @@ suite('chart-legend', function() {
     chartLegend.addEventListener('leaf-click', event => {
       leafClickEvent = event;
     });
-    await cp.afterRender();
+    await afterRender();
     const leaf = chartLegend.shadowRoot.querySelector('.leaf');
     leaf.click();
     assert.strictEqual(chartLegend.items[0], leafClickEvent.detail);

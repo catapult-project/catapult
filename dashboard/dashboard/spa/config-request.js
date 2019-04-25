@@ -4,7 +4,9 @@
 */
 'use strict';
 
-export default class ConfigRequest extends cp.RequestBase {
+import RequestBase from './request-base.js';
+
+export default class ConfigRequest extends RequestBase {
   constructor(options) {
     super(options);
     this.method_ = 'POST';

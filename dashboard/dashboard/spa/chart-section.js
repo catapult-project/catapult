@@ -8,11 +8,27 @@ import './chart-legend.js';
 import './cp-input.js';
 import './cp-loading.js';
 import './expand-button.js';
+import ChartBase from './chart-base.js';
 import ChartCompound from './chart-compound.js';
+import ChartTimeseries from './chart-timeseries.js';
+import ElementBase from './element-base.js';
+import MenuInput from './menu-input.js';
+import OptionGroup from './option-group.js';
 import SparklineCompound from './sparkline-compound.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
+import sha from './sha.js';
+import {CHAIN, UPDATE} from './simple-redux.js';
+import {MODE} from './layout-timeseries.js';
 
-export default class ChartSection extends cp.ElementBase {
+import {
+  buildProperties,
+  buildState,
+  simpleGUID,
+} from './utils.js';
+
+export default class ChartSection extends ElementBase {
+  static get is() { return 'chart-section'; }
+
   static get template() {
     return Polymer.html`
       <style>
@@ -170,7 +186,7 @@ export default class ChartSection extends cp.ElementBase {
   }
 
   async onTitleKeyup_(event) {
-    await this.dispatch(Redux.UPDATE(this.statePath, {
+    await this.dispatch(UPDATE(this.statePath, {
       title: event.target.value,
       isTitleCustom: true,
     }));
@@ -233,7 +249,7 @@ export default class ChartSection extends cp.ElementBase {
 }
 
 ChartSection.State = {
-  sectionId: options => options.sectionId || cp.simpleGUID(),
+  sectionId: options => options.sectionId || simpleGUID(),
   ...ChartCompound.State,
   ...SparklineCompound.State,
   descriptor: options => {
@@ -279,7 +295,7 @@ ChartSection.State = {
         selectedOptions = options.parameters.statistics;
       }
     }
-    return cp.MenuInput.buildState({
+    return MenuInput.buildState({
       label: 'Statistics',
       required: true,
       selectedOptions,
@@ -289,12 +305,12 @@ ChartSection.State = {
   histograms: options => undefined,
 };
 
-ChartSection.buildState = options => cp.buildState(
+ChartSection.buildState = options => buildState(
     ChartSection.State, options);
 
 ChartSection.properties = {
-  ...cp.buildProperties('state', ChartSection.State),
-  ...cp.buildProperties('linkedState', {
+  ...buildProperties('state', ChartSection.State),
+  ...buildProperties('linkedState', {
     // ChartSection only needs the linkedStatePath property to forward to
     // ChartCompound.
   }),
@@ -309,12 +325,12 @@ ChartSection.actions = {
         state.statistic.selectedOptions.length) {
       ChartSection.actions.loadTimeseries(statePath)(dispatch, getState);
     } else {
-      dispatch(Redux.UPDATE(statePath, {lineDescriptors: []}));
+      dispatch(UPDATE(statePath, {lineDescriptors: []}));
     }
   },
 
   loadTimeseries: statePath => async(dispatch, getState) => {
-    dispatch(Redux.CHAIN(
+    dispatch(CHAIN(
         {type: ChartSection.reducers.loadTimeseries.name, statePath},
         {
           type: SparklineCompound.reducers.buildRelatedTabs.name,
@@ -325,13 +341,13 @@ ChartSection.actions = {
     if (state.selectedLineDescriptorHash) {
       // Restore from URL.
       for (const lineDescriptor of state.lineDescriptors) {
-        const lineDescriptorHash = await cp.sha(
-            cp.ChartTimeseries.stringifyDescriptor(lineDescriptor));
+        const lineDescriptorHash = await sha(
+            ChartTimeseries.stringifyDescriptor(lineDescriptor));
         if (!lineDescriptorHash.startsWith(
             state.selectedLineDescriptorHash)) {
           continue;
         }
-        dispatch(Redux.UPDATE(statePath, {
+        dispatch(UPDATE(statePath, {
           lineDescriptors: [lineDescriptor],
         }));
         break;
@@ -348,14 +364,14 @@ ChartSection.actions = {
         ++lineIndex) {
         const line = state.chartLayout.lines[lineIndex];
         if (JSON.stringify(line.descriptor) === lineDescriptor) {
-          dispatch(Redux.CHAIN(
+          dispatch(CHAIN(
               {
-                type: cp.ChartTimeseries.reducers.mouseYTicks.name,
+                type: ChartTimeseries.reducers.mouseYTicks.name,
                 statePath: chartPath,
                 line,
               },
               {
-                type: cp.ChartBase.reducers.boldLine.name,
+                type: ChartBase.reducers.boldLine.name,
                 statePath: chartPath,
                 lineIndex,
               },
@@ -367,13 +383,13 @@ ChartSection.actions = {
 
   legendMouseOut: statePath => async(dispatch, getState) => {
     const chartPath = statePath + '.chartLayout';
-    dispatch(Redux.CHAIN(
+    dispatch(CHAIN(
         {
-          type: cp.ChartTimeseries.reducers.mouseYTicks.name,
+          type: ChartTimeseries.reducers.mouseYTicks.name,
           statePath: chartPath,
         },
         {
-          type: cp.ChartBase.reducers.boldLine.name,
+          type: ChartBase.reducers.boldLine.name,
           statePath: chartPath,
         },
     ));
@@ -385,8 +401,8 @@ ChartSection.actions = {
         type: ChartSection.reducers.selectLine.name,
         statePath,
         lineDescriptor,
-        selectedLineDescriptorHash: await cp.sha(
-            cp.ChartTimeseries.stringifyDescriptor(lineDescriptor)),
+        selectedLineDescriptorHash: await sha(
+            ChartTimeseries.stringifyDescriptor(lineDescriptor)),
       });
     },
 
@@ -449,14 +465,14 @@ ChartSection.reducers = {
     if (!state.legend) return state;
     const colorMap = new Map();
     for (const line of state.chartLayout.lines) {
-      colorMap.set(cp.ChartTimeseries.stringifyDescriptor(
+      colorMap.set(ChartTimeseries.stringifyDescriptor(
           line.descriptor), line.color);
     }
     function handleLegendEntry(entry) {
       if (entry.children) {
         return {...entry, children: entry.children.map(handleLegendEntry)};
       }
-      const color = colorMap.get(cp.ChartTimeseries.stringifyDescriptor(
+      const color = colorMap.get(ChartTimeseries.stringifyDescriptor(
           entry.lineDescriptor)) || 'grey';
       return {...entry, color};
     }
@@ -619,7 +635,7 @@ ChartSection.getSessionState = state => {
 
 ChartSection.getRouteParams = state => {
   const allBotsSelected = state.descriptor.bot.selectedOptions.length ===
-      cp.OptionGroup.countDescendents(state.descriptor.bot.options);
+      OptionGroup.countDescendents(state.descriptor.bot.options);
 
   if (state.descriptor.suite.selectedOptions.length > 2 ||
       state.descriptor.case.selectedOptions.length > 2 ||
@@ -670,7 +686,7 @@ ChartSection.getRouteParams = state => {
   if (state.maxRevision !== undefined) {
     routeParams.set('maxRev', state.maxRevision);
   }
-  if (state.mode !== cp.MODE.NORMALIZE_UNIT) {
+  if (state.mode !== MODE.NORMALIZE_UNIT) {
     routeParams.set('mode', state.mode);
   }
   if (state.selectedLineDescriptorHash) {
@@ -809,4 +825,4 @@ ChartSection.matchesOptions = (state, options) => {
   return true;
 };
 
-cp.ElementBase.register(ChartSection);
+ElementBase.register(ChartSection);

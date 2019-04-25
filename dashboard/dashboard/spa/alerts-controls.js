@@ -8,11 +8,23 @@ import './cp-checkbox.js';
 import './cp-input.js';
 import './cp-switch.js';
 import './raised-button.js';
+import './recommended-options.js';
 import AlertsTable from './alerts-table.js';
+import ElementBase from './element-base.js';
+import MenuInput from './menu-input.js';
+import OptionGroup from './option-group.js';
 import ReportNamesRequest from './report-names-request.js';
 import SheriffsRequest from './sheriffs-request.js';
+import {TOGGLE, UPDATE} from './simple-redux.js';
 
-export default class AlertsControls extends cp.ElementBase {
+import {
+  buildState,
+  buildProperties,
+} from './utils.js';
+
+export default class AlertsControls extends ElementBase {
+  static get is() { return 'alerts-controls'; }
+
   static get template() {
     return Polymer.html`
       <style>
@@ -273,7 +285,7 @@ export default class AlertsControls extends cp.ElementBase {
   }
 
   async onFilter_() {
-    await this.dispatch(Redux.TOGGLE(this.statePath + '.showEmptyInputs'));
+    await this.dispatch(TOGGLE(this.statePath + '.showEmptyInputs'));
   }
 
   showMenuInput_(showEmptyInputs, thisInput, thatInput, otherInput,
@@ -328,7 +340,7 @@ export default class AlertsControls extends cp.ElementBase {
   }
 
   async onSheriffClear_(event) {
-    this.dispatch(cp.MenuInput.actions.focus(this.statePath + '.sheriff'));
+    this.dispatch(MenuInput.actions.focus(this.statePath + '.sheriff'));
     this.dispatchSources_();
   }
 
@@ -337,7 +349,7 @@ export default class AlertsControls extends cp.ElementBase {
   }
 
   async onBugClear_(event) {
-    this.dispatch(cp.MenuInput.actions.focus(this.statePath + '.bug'));
+    this.dispatch(MenuInput.actions.focus(this.statePath + '.bug'));
     this.dispatchSources_();
   }
 
@@ -346,7 +358,7 @@ export default class AlertsControls extends cp.ElementBase {
   }
 
   async onBugSelect_(event) {
-    await this.dispatch(Redux.UPDATE(this.statePath, {
+    await this.dispatch(UPDATE(this.statePath, {
       showingTriaged: true,
       showingImprovements: true,
     }));
@@ -354,7 +366,7 @@ export default class AlertsControls extends cp.ElementBase {
   }
 
   async onReportClear_(event) {
-    this.dispatch(cp.MenuInput.actions.focus(this.statePath + '.report'));
+    this.dispatch(MenuInput.actions.focus(this.statePath + '.report'));
     this.dispatchSources_();
   }
 
@@ -363,7 +375,7 @@ export default class AlertsControls extends cp.ElementBase {
   }
 
   async onMinRevisionKeyup_(event) {
-    await this.dispatch(Redux.UPDATE(this.statePath, {
+    await this.dispatch(UPDATE(this.statePath, {
       minRevision: event.target.value,
     }));
     this.debounce('dispatchSources', () => {
@@ -372,7 +384,7 @@ export default class AlertsControls extends cp.ElementBase {
   }
 
   async onMaxRevisionKeyup_(event) {
-    await this.dispatch(Redux.UPDATE(this.statePath, {
+    await this.dispatch(UPDATE(this.statePath, {
       maxRevision: event.target.value,
     }));
     this.debounce('dispatchSources', () => {
@@ -381,12 +393,12 @@ export default class AlertsControls extends cp.ElementBase {
   }
 
   async onToggleImprovements_(event) {
-    this.dispatch(Redux.TOGGLE(this.statePath + '.showingImprovements'));
+    this.dispatch(TOGGLE(this.statePath + '.showingImprovements'));
     this.dispatchSources_();
   }
 
   async onToggleTriaged_(event) {
-    this.dispatch(Redux.TOGGLE(this.statePath + '.showingTriaged'));
+    this.dispatch(TOGGLE(this.statePath + '.showingTriaged'));
   }
 
   async onClickRecentlyModifiedBugs_(event) {
@@ -419,7 +431,7 @@ export default class AlertsControls extends cp.ElementBase {
 AlertsControls.TYPING_DEBOUNCE_MS = 300;
 
 AlertsControls.State = {
-  bug: options => cp.MenuInput.buildState({
+  bug: options => MenuInput.buildState({
     label: 'Bug',
     options: [],
     selectedOptions: options.bugs,
@@ -431,12 +443,12 @@ AlertsControls.State = {
   maxRevision: options => options.maxRevision || '',
   minRevision: options => options.minRevision || '',
   recentlyModifiedBugs: options => [],
-  report: options => cp.MenuInput.buildState({
+  report: options => MenuInput.buildState({
     label: 'Report',
     options: [],
     selectedOptions: options.reports || [],
   }),
-  sheriff: options => cp.MenuInput.buildState({
+  sheriff: options => MenuInput.buildState({
     label: 'Sheriff',
     options: [],
     selectedOptions: options.sheriffs || [],
@@ -456,10 +468,10 @@ AlertsControls.observers = [
 ];
 
 AlertsControls.buildState = options =>
-  cp.buildState(AlertsControls.State, options);
+  buildState(AlertsControls.State, options);
 
 AlertsControls.properties = {
-  ...cp.buildProperties('state', AlertsControls.State),
+  ...buildProperties('state', AlertsControls.State),
   recentPerformanceBugs: {statePath: 'recentPerformanceBugs'},
 };
 
@@ -469,7 +481,7 @@ AlertsControls.properties.areAlertGroupsPlaceholders = {
 
 AlertsControls.actions = {
   toggleRecentlyModifiedBugs: statePath => async(dispatch, getState) => {
-    dispatch(Redux.TOGGLE(`${statePath}.showingRecentlyModifiedBugs`));
+    dispatch(TOGGLE(`${statePath}.showingRecentlyModifiedBugs`));
   },
 
   onBugKeyup: (statePath, bugId) => async(dispatch, getState) => {
@@ -483,8 +495,8 @@ AlertsControls.actions = {
   loadReportNames: statePath => async(dispatch, getState) => {
     const reportTemplateInfos = await new ReportNamesRequest().response;
     const reportNames = reportTemplateInfos.map(t => t.name);
-    dispatch(Redux.UPDATE(statePath + '.report', {
-      options: cp.OptionGroup.groupValues(reportNames),
+    dispatch(UPDATE(statePath + '.report', {
+      options: OptionGroup.groupValues(reportNames),
       label: `Reports (${reportNames.length})`,
     }));
   },
@@ -499,7 +511,7 @@ AlertsControls.actions = {
 
     const state = Polymer.Path.get(getState(), statePath);
     if (state.sheriff.selectedOptions.length === 0) {
-      dispatch(cp.MenuInput.actions.focus(statePath + '.sheriff'));
+      dispatch(MenuInput.actions.focus(statePath + '.sheriff'));
     }
   },
 
@@ -523,7 +535,7 @@ AlertsControls.actions = {
 
 AlertsControls.reducers = {
   receiveSheriffs: (state, {sheriffs}, rootState) => {
-    const sheriff = cp.MenuInput.buildState({
+    const sheriff = MenuInput.buildState({
       label: `Sheriffs (${sheriffs.length})`,
       options: sheriffs,
       selectedOptions: state.sheriff ? state.sheriff.selectedOptions : [],
@@ -618,4 +630,4 @@ AlertsControls.compileSources = async(
   return sources;
 };
 
-cp.ElementBase.register(AlertsControls);
+ElementBase.register(AlertsControls);

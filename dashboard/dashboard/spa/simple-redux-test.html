@@ -7,14 +7,16 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/simple-redux.html">
+<link rel="import" href="/dashboard/spa/dependencies.html">
 
-<script>
+<script type="module">
 'use strict';
+import * as SimpleRedux from './simple-redux.js';
+
 suite('simple-redux', function() {
   test('renameReducer', function() {
     function cer() {}
-    const renamer = Redux.renameReducer('redu');
+    const renamer = SimpleRedux.renameReducer('redu');
     renamer(cer);
     assert.strictEqual('reducer', cer.name);
   });
@@ -23,8 +25,8 @@ suite('simple-redux', function() {
     function testRegisterReducer(state, action) {
       return {...state, test: action.testValue};
     }
-    Redux.registerReducer(testRegisterReducer);
-    const store = Redux.createSimpleStore();
+    SimpleRedux.registerReducer(testRegisterReducer);
+    const store = SimpleRedux.createSimpleStore();
     store.dispatch({type: testRegisterReducer.name, testValue: 42});
     assert.strictEqual(42, store.getState().test);
   });
@@ -38,13 +40,13 @@ suite('simple-redux', function() {
         localState.b = b;
       },
     };
-    Redux.registerReducers(reducers, [
-      Redux.renameReducer('namespace.'),
-      Redux.freezingReducer,
-      Redux.statePathReducer,
+    SimpleRedux.registerReducers(reducers, [
+      SimpleRedux.renameReducer('namespace.'),
+      SimpleRedux.freezingReducer,
+      SimpleRedux.statePathReducer,
     ]);
-    const store = Redux.createSimpleStore();
-    store.dispatch(Redux.UPDATE('', {b: {}}));
+    const store = SimpleRedux.createSimpleStore();
+    store.dispatch(SimpleRedux.UPDATE('', {b: {}}));
 
     store.dispatch({type: reducers.a.name, statePath: 'b', a: ''});
     assert.strictEqual('', store.getState().b.a);
@@ -57,7 +59,7 @@ suite('simple-redux', function() {
   });
 
   test('statePathReducer', function() {
-    const reducer = Redux.statePathReducer((localState, action, rootState) => {
+    const reducer = SimpleRedux.statePathReducer((localState, action) => {
       return {...localState, test: action.testValue};
     });
     assert.deepEqual({a: [{b: {pre: 1, test: 'c'}}]}, reducer(
@@ -65,7 +67,7 @@ suite('simple-redux', function() {
   });
 
   test('freezingReducer', function() {
-    const reducer = Redux.freezingReducer((state, action) => {
+    const reducer = SimpleRedux.freezingReducer((state, action) => {
       state.modification = 'error';
     });
     assert.throws(() => reducer({}, {}));
@@ -75,49 +77,51 @@ suite('simple-redux', function() {
     function testRegisterReducer(state, action) {
       return {...state, test: action.testValue};
     }
-    Redux.registerReducer(Redux.timeReducer()(testRegisterReducer));
-    const store = Redux.createSimpleStore();
+    SimpleRedux.registerReducer(SimpleRedux.timeReducer()(testRegisterReducer));
+    const store = SimpleRedux.createSimpleStore();
     store.dispatch({type: testRegisterReducer.name, testValue: 42});
     assert.isBelow(0, window.performance.getEntriesByName(
         'reducer testRegisterReducer').length);
   });
 
   test('thunk', function() {
-    const store = Redux.createSimpleStore();
+    const store = SimpleRedux.createSimpleStore();
     const actionCreator = (testValue) => (dispatch, getState) => {
-      dispatch(Redux.UPDATE('', {testValue}));
+      dispatch(SimpleRedux.UPDATE('', {testValue}));
     };
     store.dispatch(actionCreator(42));
     assert.strictEqual(42, store.getState().testValue);
   });
 
   test('nothunk', function() {
-    const store = Redux.createSimpleStore({useThunk: false});
+    const store = SimpleRedux.createSimpleStore({useThunk: false});
     const actionCreator = (testValue) => (dispatch, getState) => {
-      dispatch(Redux.UPDATE('', {testValue}));
+      dispatch(SimpleRedux.UPDATE('', {testValue}));
     };
     assert.throws(() => store.dispatch(actionCreator(42)));
   });
 
   test('CHAIN', function() {
-    const store = Redux.createSimpleStore();
-    store.dispatch(Redux.CHAIN(
-        Redux.UPDATE('a', {testValue: 0}),
-        Redux.UPDATE('b', {testValue: 1}),
+    const store = SimpleRedux.createSimpleStore();
+    store.dispatch(SimpleRedux.CHAIN(
+        SimpleRedux.UPDATE('a', {testValue: 0}),
+        SimpleRedux.UPDATE('b', {testValue: 1}),
     ));
     assert.strictEqual(0, store.getState().a.testValue);
     assert.strictEqual(1, store.getState().b.testValue);
   });
 
   test('UPDATE', function() {
-    const store = Redux.createSimpleStore();
-    store.dispatch(Redux.UPDATE('a', {testValue: 42}));
+    const store = SimpleRedux.createSimpleStore();
+    store.dispatch(SimpleRedux.UPDATE('a', {testValue: 42}));
     assert.strictEqual(42, store.getState().a.testValue);
   });
 
   test('TOGGLE', function() {
-    const store = Redux.createSimpleStore({defaultState: {testValue: false}});
-    store.dispatch(Redux.TOGGLE('testValue'));
+    const store = SimpleRedux.createSimpleStore({
+      defaultState: {testValue: false},
+    });
+    store.dispatch(SimpleRedux.TOGGLE('testValue'));
     assert.isTrue(store.getState().testValue);
   });
 });

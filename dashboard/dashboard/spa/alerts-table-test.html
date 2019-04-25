@@ -7,11 +7,7 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-
-<link rel="import" href="/dashboard/spa/column-head.html">
-<link rel="import" href="/dashboard/spa/element-base.html">
-<link rel="import" href="/dashboard/spa/scalar-span.html">
-<link rel="import" href="/dashboard/spa/utils.html">
+<link rel="import" href="/dashboard/spa/dependencies.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -20,16 +16,19 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script>
+<script type="module">
 'use strict';
+import {ENSURE, UPDATE} from './simple-redux.js';
+import {afterRender} from './utils.js';
+
 suite('alerts-table', function() {
   test('placeholder', async function() {
     const {default: AlertsTable} = await importModule(
         './alerts-table.js');
-    fixture('test').dispatch(Redux.ENSURE('test'));
+    fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({})));
-    await cp.afterRender();
+    table.dispatch(UPDATE('test', AlertsTable.buildState({})));
+    await afterRender();
     assert.strictEqual('rgb(128, 128, 128)', getComputedStyle(
         tr.ui.b.findDeepElementMatching(table, 'table')).color);
     const dashes = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
@@ -40,9 +39,9 @@ suite('alerts-table', function() {
   test('allTriaged newAlerts', async function() {
     const {default: AlertsTable} = await importModule(
         './alerts-table.js');
-    fixture('test').dispatch(Redux.ENSURE('test'));
+    fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
+    table.dispatch(UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           isSelected: false,
@@ -83,7 +82,7 @@ suite('alerts-table', function() {
         },
       ],
     })));
-    await cp.afterRender();
+    await afterRender();
     assert.isDefined(tr.ui.b.findDeepElementMatching(table,
         'iron-icon[icon="cp-big:cat"]'));
   });
@@ -91,13 +90,13 @@ suite('alerts-table', function() {
   test('allTriaged showingTriaged', async function() {
     const {default: AlertsTable} = await importModule(
         './alerts-table.js');
-    fixture('test').dispatch(Redux.ENSURE('test'));
+    fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
+    table.dispatch(UPDATE('test', AlertsTable.buildState({
       showingTriaged: true,
       alertGroups: [],
     })));
-    await cp.afterRender();
+    await afterRender();
     assert.isDefined(tr.ui.b.findDeepElementMatching(table,
         'iron-icon[icon="cp-big:cat"]'));
   });
@@ -105,9 +104,9 @@ suite('alerts-table', function() {
   test('sort', async function() {
     const {default: AlertsTable} = await importModule(
         './alerts-table.js');
-    fixture('test').dispatch(Redux.ENSURE('test'));
+    fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
+    table.dispatch(UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           isSelected: false,
@@ -180,19 +179,19 @@ suite('alerts-table', function() {
         },
       ],
     })));
-    await cp.afterRender();
+    await afterRender();
 
     const measurementColumn = tr.ui.b.findDeepElementMatching(
         table, 'column-head[name="measurement"]');
     measurementColumn.click();
-    await cp.afterRender();
+    await afterRender();
     let state = table.getState().test;
     assert.strictEqual('aaa', state.alertGroups[0].alerts[0].measurement);
     assert.strictEqual('bbb', state.alertGroups[1].alerts[0].measurement);
     assert.strictEqual('ccc', state.alertGroups[2].alerts[0].measurement);
 
     measurementColumn.click();
-    await cp.afterRender();
+    await afterRender();
     state = table.getState().test;
     assert.strictEqual('ccc', state.alertGroups[0].alerts[0].measurement);
     assert.strictEqual('bbb', state.alertGroups[1].alerts[0].measurement);
@@ -283,9 +282,9 @@ suite('alerts-table', function() {
   test('shouldDisplaySelectedCount newAlerts', async function() {
     const {default: AlertsTable} = await importModule(
         './alerts-table.js');
-    fixture('test').dispatch(Redux.ENSURE('test'));
+    fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
+    table.dispatch(UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           isSelected: false,
@@ -327,7 +326,7 @@ suite('alerts-table', function() {
         },
       ],
     })));
-    await cp.afterRender();
+    await afterRender();
     const selectedCounts = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
       e.tagName === 'CP-CHECKBOX' && e.textContent.trim() === '1/2');
     assert.lengthOf(selectedCounts, 1);
@@ -339,9 +338,9 @@ suite('alerts-table', function() {
   test('shouldDisplaySelectedCount showingTriaged', async function() {
     const {default: AlertsTable} = await importModule(
         './alerts-table.js');
-    fixture('test').dispatch(Redux.ENSURE('test'));
+    fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
+    table.dispatch(UPDATE('test', AlertsTable.buildState({
       showingTriaged: true,
       alertGroups: [
         {
@@ -384,7 +383,7 @@ suite('alerts-table', function() {
         },
       ],
     })));
-    await cp.afterRender();
+    await afterRender();
     const selectedCounts = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
       e.tagName === 'CP-CHECKBOX' && e.textContent.trim() === '1/2');
     assert.lengthOf(selectedCounts, 1);
@@ -396,9 +395,9 @@ suite('alerts-table', function() {
   test('isAlertIgnored', async function() {
     const {default: AlertsTable} = await importModule(
         './alerts-table.js');
-    fixture('test').dispatch(Redux.ENSURE('test'));
+    fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
+    table.dispatch(UPDATE('test', AlertsTable.buildState({
       showingTriaged: true,
       alertGroups: [
         {
@@ -426,7 +425,7 @@ suite('alerts-table', function() {
         },
       ],
     })));
-    await cp.afterRender();
+    await afterRender();
     assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(table, e =>
       e.tagName === 'TD' && e.textContent.trim() === 'ignored'));
   });
@@ -434,9 +433,9 @@ suite('alerts-table', function() {
   test('selectAlert single', async function() {
     const {default: AlertsTable} = await importModule(
         './alerts-table.js');
-    fixture('test').dispatch(Redux.ENSURE('test'));
+    fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
+    table.dispatch(UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           triaged: {count: 0, isExpanded: false},
@@ -459,20 +458,20 @@ suite('alerts-table', function() {
         },
       ],
     })));
-    await cp.afterRender();
+    await afterRender();
     const checkbox = tr.ui.b.findDeepElementMatching(
         tr.ui.b.findDeepElementMatching(table, 'tbody'), 'cp-checkbox');
     checkbox.click();
-    await cp.afterRender();
+    await afterRender();
     assert.isTrue(table.getState().test.alertGroups[0].alerts[0].isSelected);
   });
 
   test('selectAlert toggleAll', async function() {
     const {default: AlertsTable} = await importModule(
         './alerts-table.js');
-    fixture('test').dispatch(Redux.ENSURE('test'));
+    fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
+    table.dispatch(UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           triaged: {count: 0, isExpanded: false},
@@ -509,11 +508,11 @@ suite('alerts-table', function() {
         },
       ],
     })));
-    await cp.afterRender();
+    await afterRender();
     const checkbox = tr.ui.b.findDeepElementMatching(
         tr.ui.b.findDeepElementMatching(table, 'tbody'), 'cp-checkbox');
     checkbox.click();
-    await cp.afterRender();
+    await afterRender();
     assert.isTrue(table.getState().test.alertGroups[0].alerts[0].isSelected);
     assert.isTrue(table.getState().test.alertGroups[0].alerts[1].isSelected);
   });
@@ -521,9 +520,9 @@ suite('alerts-table', function() {
   test('selectAlert shiftKey', async function() {
     const {default: AlertsTable} = await importModule(
         './alerts-table.js');
-    fixture('test').dispatch(Redux.ENSURE('test'));
+    fixture('test').dispatch(ENSURE('test'));
     const table = fixture('test');
-    table.dispatch(Redux.UPDATE('test', AlertsTable.buildState({
+    table.dispatch(UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           isExpanded: true,
@@ -613,14 +612,14 @@ suite('alerts-table', function() {
         },
       ],
     })));
-    await cp.afterRender();
+    await afterRender();
     const checkboxes = tr.ui.b.findDeepElementsMatching(
         tr.ui.b.findDeepElementMatching(table, 'tbody'), 'cp-checkbox');
     checkboxes[1].click();
     checkboxes[3].$.native.dispatchEvent(new CustomEvent('change', {
       detail: {shiftKey: true},
     }));
-    await cp.afterRender();
+    await afterRender();
     assert.isFalse(table.getState().test.alertGroups[0].alerts[0].isSelected);
     assert.isTrue(table.getState().test.alertGroups[0].alerts[1].isSelected);
     assert.isTrue(table.getState().test.alertGroups[0].alerts[2].isSelected);

@@ -4,7 +4,9 @@
 */
 'use strict';
 
-export default class SessionIdRequest extends cp.RequestBase {
+import RequestBase from './request-base.js';
+
+export default class SessionIdRequest extends RequestBase {
   constructor(options) {
     super(options);
     this.method_ = 'POST';

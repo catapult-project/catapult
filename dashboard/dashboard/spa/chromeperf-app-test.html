@@ -7,28 +7,7 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-
-<link rel="import" href="/bower_components/app-route/app-location.html">
-<link rel="import" href="/bower_components/app-route/app-route.html">
-<link rel="import" href="/bower_components/chopsui/chops-header.html">
-<link rel="import" href="/bower_components/chopsui/chops-signin-aware.html">
-<link rel="import" href="/bower_components/chopsui/chops-signin.html">
-<link rel="import" href="/bower_components/iron-collapse/iron-collapse.html">
-<link rel="import" href="/dashboard/spa/chart-timeseries.html">
-<link rel="import" href="/dashboard/spa/cp-icons.html">
-<link rel="import" href="/dashboard/spa/describe-request.html">
-<link rel="import" href="/dashboard/spa/details-table.html">
-<link rel="import" href="/dashboard/spa/element-base.html">
-<link rel="import" href="/dashboard/spa/expand-button.html">
-<link rel="import" href="/dashboard/spa/group-alerts.html">
-<link rel="import" href="/dashboard/spa/memory-components.html">
-<link rel="import" href="/dashboard/spa/menu-input.html">
-<link rel="import" href="/dashboard/spa/tag-filter.html">
-<link rel="import" href="/dashboard/spa/test-suites-request.html">
-<link rel="import" href="/dashboard/spa/timeseries-request.html">
-<link rel="import" href="/dashboard/spa/utils.html">
-<link rel="import" href="/dashboard/static/memory_related_names.html">
-<link rel="import" href="/tracing/value/legacy_unit_info.html">
+<link rel="import" href="/dashboard/spa/dependencies.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -37,8 +16,13 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script>
+<script type="module">
 'use strict';
+
+import DescribeRequest from './describe-request.js';
+import {UPDATE} from './simple-redux.js';
+import {afterRender, animationFrame} from './utils.js';
+
 window.AUTH_CLIENT_ID = '';
 
 suite('chromeperf-app', function() {
@@ -64,7 +48,7 @@ suite('chromeperf-app', function() {
               showingReportSection: true,
             };
           }
-          if (url === cp.DescribeRequest.URL) {
+          if (url === DescribeRequest.URL) {
             return {
               measurements: ['measure'],
               bots: ['master:bot'],
@@ -103,94 +87,102 @@ suite('chromeperf-app', function() {
   test('newAlerts', async function() {
     await importModule('./chromeperf-app.js');
     const app = fixture('test');
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(app.alertsSectionIds, 0);
     app.$.new_alerts.click();
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(app.alertsSectionIds, 1);
   });
 
   test('closeAlerts', async function() {
+    await importModule('./chromeperf-app.js');
     const app = fixture('test');
-    await cp.afterRender();
+    await afterRender();
     app.$.new_alerts.click();
-    await cp.afterRender();
+    await afterRender();
     const alerts = app.shadowRoot.querySelector('alerts-section');
     alerts.dispatchEvent(new CustomEvent('close-section'));
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(app.alertsSectionIds, 0);
     // Empty alerts-sections are forgotten instantly and can't be reopened.
     assert.lengthOf(app.closedAlertsIds, 0);
   });
 
   test('reopenAlerts', async function() {
+    await importModule('./chromeperf-app.js');
     const app = fixture('test');
-    await cp.afterRender();
+    await afterRender();
     app.$.new_alerts.click();
-    await cp.afterRender();
+    await afterRender();
     const alerts = app.shadowRoot.querySelector('alerts-section');
     // Make the alerts-section not empty so that it can be reopened.
-    app.dispatch(Redux.UPDATE(alerts.statePath + '.bug', {
+    app.dispatch(UPDATE(alerts.statePath + '.bug', {
       selectedOptions: [42],
     }));
     alerts.$.controls.dispatchEvent(new CustomEvent('sources', {
       detail: {sources: [{bug: 42}]},
     }));
-    await cp.afterRender();
+    await afterRender();
 
     alerts.dispatchEvent(new CustomEvent('close-section'));
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(app.alertsSectionIds, 0);
     assert.lengthOf(app.closedAlertsIds, 1);
 
     app.$.reopen_alerts.click();
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(app.alertsSectionIds, 1);
   });
 
   test('newChart', async function() {
+    await importModule('./chromeperf-app.js');
     const app = fixture('test');
-    await cp.afterRender();
-    await cp.afterRender();  // Again to wait for receiveSessionState.
+    await afterRender();
+    await afterRender();  // Again to wait for receiveSessionState.
     assert.lengthOf(app.chartSectionIds, 0);
 
     app.$.new_chart.click();
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(app.chartSectionIds, 1);
   });
 
   test('closeChart', async function() {
+    await importModule('./chromeperf-app.js');
     const app = fixture('test');
-    await cp.afterRender();
+    await afterRender();
+    await afterRender();
     app.$.new_chart.click();
-    await cp.afterRender();
+    await afterRender();
+    await afterRender();
     const chart = app.shadowRoot.querySelector('chart-section');
     chart.dispatchEvent(new CustomEvent('close-section'));
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(app.chartSectionIds, 0);
     // Empty chart-sections are forgotten instantly and can't be reopened.
     assert.lengthOf(app.closedChartIds, 0);
   });
 
   test('closeAllCharts', async function() {
+    await importModule('./chromeperf-app.js');
     const app = fixture('test');
-    await cp.afterRender();
+    await afterRender();
     app.$.new_chart.click();
-    await cp.afterRender();
+    await afterRender();
     app.$.close_charts.click();
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(app.chartSectionIds, 0);
   });
 
   test('reopenCharts', async function() {
+    await importModule('./chromeperf-app.js');
     const app = fixture('test');
-    await cp.afterRender();
-    await cp.afterRender();  // Again to wait for receiveSessionState.
+    await afterRender();
+    await afterRender();  // Again to wait for receiveSessionState.
     app.$.new_chart.click();
-    await cp.afterRender();
+    await afterRender();
     const chart = app.shadowRoot.querySelector('chart-section');
     // Make the chart-section not empty so that it can be reopened.
-    await app.dispatch(Redux.UPDATE(chart.statePath + '.descriptor', {
+    await app.dispatch(UPDATE(chart.statePath + '.descriptor', {
       suite: {
         ...chart.descriptor.suite,
         selectedOptions: ['suite:name'],
@@ -205,61 +197,65 @@ suite('chromeperf-app', function() {
       },
     }));
     chart.$.controls.dispatchEvent(new CustomEvent('matrix-change'));
-    await cp.afterRender();
+    await afterRender();
 
     chart.dispatchEvent(new CustomEvent('close-section'));
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(app.chartSectionIds, 0);
     assert.lengthOf(app.closedChartIds, 1);
 
     app.$.reopen_chart.click();
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(app.chartSectionIds, 1);
   });
 
   test('restoreFromRoute session', async function() {
+    await importModule('./chromeperf-app.js');
     const app = fixture('test');
-    await cp.afterRender();
+    await afterRender();
     await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
       session: 42,
     }));
     // TODO Figure out why this can take 200ms.
-    while (app.reduxRoutePath === '#') await cp.animationFrame();
+    while (app.reduxRoutePath === '#') await animationFrame();
     assert.strictEqual('report=from+session&minRev=612437&maxRev=625896',
         app.reduxRoutePath);
   });
 
   test('restoreFromRoute report', async function() {
+    await importModule('./chromeperf-app.js');
     const app = fixture('test');
-    await cp.afterRender();
+    await afterRender();
     await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
       report: 'name',
     }));
-    await cp.afterRender();
+    await afterRender();
     assert.strictEqual('name', app.reportSection.source.selectedOptions[0]);
   });
 
   test('restoreFromRoute sheriff', async function() {
+    await importModule('./chromeperf-app.js');
     const app = fixture('test');
-    await cp.afterRender();
+    await afterRender();
     await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
       sheriff: 'name',
     }));
-    await cp.afterRender();
+    await afterRender();
     assert.strictEqual('name', app.alertsSectionsById[
         app.alertsSectionIds[0]].sheriff.selectedOptions[0]);
     assert.strictEqual('sheriff=name', app.reduxRoutePath);
   });
 
   test('restoreFromRoute chart', async function() {
+    await importModule('./chromeperf-app.js');
     const app = fixture('test');
-    await cp.afterRender();
+    await afterRender();
     await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
       suite: 'suite:name',
       measurement: 'measure',
       bot: 'master:bot',
     }));
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(app.chartSectionIds, 1);
     assert.strictEqual('suite:name', app.chartSectionsById[
         app.chartSectionIds].descriptor.suite.selectedOptions[0]);

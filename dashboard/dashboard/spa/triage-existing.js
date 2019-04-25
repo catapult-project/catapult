@@ -7,8 +7,18 @@
 import './cp-input.js';
 import './cp-switch.js';
 import './raised-button.js';
+import ElementBase from './element-base.js';
+import {TOGGLE, UPDATE} from './simple-redux.js';
 
-export default class TriageExisting extends cp.ElementBase {
+import {
+  buildProperties,
+  buildState,
+  isElementChildOf,
+} from './utils.js';
+
+export default class TriageExisting extends ElementBase {
+  static get is() { return 'triage-existing'; }
+
   static get template() {
     return Polymer.html`
       <style>
@@ -170,7 +180,7 @@ export default class TriageExisting extends cp.ElementBase {
 
   async onBlur_(event) {
     if (event.relatedTarget === this ||
-        cp.isElementChildOf(event.relatedTarget, this)) {
+        isElementChildOf(event.relatedTarget, this)) {
       this.$.bug_input.focus();
       return;
     }
@@ -222,10 +232,10 @@ TriageExisting.State = {
 };
 
 TriageExisting.buildState = options =>
-  cp.buildState(TriageExisting.State, options);
+  buildState(TriageExisting.State, options);
 
 TriageExisting.properties = {
-  ...cp.buildProperties('state', TriageExisting.State),
+  ...buildProperties('state', TriageExisting.State),
   recentPerformanceBugs: {statePath: 'recentPerformanceBugs'},
 };
 
@@ -233,15 +243,15 @@ TriageExisting.observers = ['observeIsOpen_(isOpen)'];
 
 TriageExisting.actions = {
   toggleOnlyIntersectingBugs: statePath => async(dispatch, getState) => {
-    dispatch(Redux.TOGGLE(`${statePath}.onlyIntersectingBugs`));
+    dispatch(TOGGLE(`${statePath}.onlyIntersectingBugs`));
   },
 
   recentPerformanceBug: (statePath, bugId) => async(dispatch, getState) => {
-    dispatch(Redux.UPDATE(statePath, {bugId}));
+    dispatch(UPDATE(statePath, {bugId}));
   },
 
   close: statePath => async(dispatch, getState) => {
-    dispatch(Redux.UPDATE(statePath, {isOpen: false}));
+    dispatch(UPDATE(statePath, {isOpen: false}));
   },
 };
 
@@ -253,4 +263,4 @@ TriageExisting.filterBugs =
       bug.revisionRange.intersectsRangeInclusive(selectedRange));
   };
 
-cp.ElementBase.register(TriageExisting);
+ElementBase.register(TriageExisting);

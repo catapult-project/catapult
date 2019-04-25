@@ -7,8 +7,8 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/chart-timeseries.html">
-<script type="module" src="/dashboard/spa/result-channel-sender.js"></script>
+<link rel="import" href="/dashboard/spa/dependencies.html">
+<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -18,7 +18,11 @@ found in the LICENSE file.
 
 <script type="module">
 'use strict';
+
 import ResultChannelSender from './result-channel-sender.js';
+import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
+import {afterRender, measureElement} from './utils.js';
 
 window.AUTH_CLIENT_ID = '';
 
@@ -30,7 +34,7 @@ suite('chart-timeseries', function() {
     window.fetch = async(url, options) => {
       return {
         async json() {
-          if (url === cp.TimeseriesRequest.URL) {
+          if (url === TimeseriesRequest.URL) {
             timeseriesBody = new Map(options.body);
             return {
               units: options.body.get('measurement'),
@@ -43,9 +47,18 @@ suite('chart-timeseries', function() {
         },
       };
     };
-    fixture('test').dispatch(Redux.CHAIN(
-        Redux.ENSURE('test'),
-        Redux.UPDATE('test', cp.ChartTimeseries.buildState({
+  });
+
+  teardown(() => {
+    window.fetch = originalFetch;
+  });
+
+  test('load', async function() {
+    const {default: ChartTimeseries} = await importModule(
+        './chart-timeseries.js');
+    fixture('test').dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', ChartTimeseries.buildState({
           yAxis: {
             showTickLines: true,
           },
@@ -54,16 +67,9 @@ suite('chart-timeseries', function() {
             showTickLines: true,
           },
         }))));
-  });
-
-  teardown(() => {
-    window.fetch = originalFetch;
-  });
-
-  test('load', async function() {
     const ct = fixture('test');
-    await cp.afterRender();
-    ct.dispatch(Redux.UPDATE('test', {lineDescriptors: [{
+    await afterRender();
+    ct.dispatch(UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
       bots: ['master:bot'],
       measurement: 'ms',
@@ -71,7 +77,7 @@ suite('chart-timeseries', function() {
       buildType: 'test',
       cases: [],
     }]}));
-    await cp.afterRender();
+    await afterRender();
     assert.strictEqual('suite', timeseriesBody.get('test_suite'));
     assert.strictEqual('ms', timeseriesBody.get('measurement'));
     assert.strictEqual('master:bot', timeseriesBody.get('bot'));
@@ -85,14 +91,27 @@ suite('chart-timeseries', function() {
   });
 
   test('lineCountChange', async function() {
+    const {default: ChartTimeseries} = await importModule(
+        './chart-timeseries.js');
+    fixture('test').dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', ChartTimeseries.buildState({
+          yAxis: {
+            showTickLines: true,
+          },
+          xAxis: {
+            height: 15,
+            showTickLines: true,
+          },
+        }))));
     const ct = fixture('test');
-    await cp.afterRender();
+    await afterRender();
     let lineCountChanges = 0;
     ct.addEventListener('line-count-change', () => {
       ++lineCountChanges;
     });
 
-    ct.dispatch(Redux.UPDATE('test', {lineDescriptors: [{
+    ct.dispatch(UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
       bots: ['master:bot'],
       measurement: 'ms',
@@ -100,7 +119,7 @@ suite('chart-timeseries', function() {
       buildType: 'test',
       cases: [],
     }]}));
-    await cp.afterRender();
+    await afterRender();
     assert.strictEqual(lineCountChanges, 1);
   });
 
@@ -110,8 +129,21 @@ suite('chart-timeseries', function() {
     // ms aaa, sizeInBytes aaa, ms bbb, sizeInBytes bbb.
     // Test that loadLines doesn't forget any data.
 
+    const {default: ChartTimeseries} = await importModule(
+        './chart-timeseries.js');
+    fixture('test').dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', ChartTimeseries.buildState({
+          yAxis: {
+            showTickLines: true,
+          },
+          xAxis: {
+            height: 15,
+            showTickLines: true,
+          },
+        }))));
     const ct = fixture('test');
-    await cp.afterRender();
+    await afterRender();
 
     window.fetch = async(url, options) => {
       return {
@@ -121,7 +153,7 @@ suite('chart-timeseries', function() {
       };
     };
 
-    ct.dispatch(Redux.UPDATE('test', {
+    ct.dispatch(UPDATE('test', {
       lineDescriptors: [
         {
           suites: ['suite'],
@@ -141,12 +173,12 @@ suite('chart-timeseries', function() {
         },
       ],
     }));
-    await cp.afterRender();
+    await afterRender();
 
     assert.isTrue(ct.isLoading);
     assert.lengthOf(ct.lines, 0);
 
-    const url = location.origin + cp.TimeseriesRequest.URL + '?';
+    const url = location.origin + TimeseriesRequest.URL + '?';
     const aMsParams = new URLSearchParams({
       test_suite: 'suite',
       measurement: 'ms',
@@ -166,8 +198,8 @@ suite('chart-timeseries', function() {
         ],
       };
     })());
-    await cp.afterRender();
-    await cp.afterRender();
+    await afterRender();
+    await afterRender();
     assert.lengthOf(ct.lines, 1);
     assert.strictEqual(ct.lines[0].data[0].y, 1);
     assert.strictEqual(ct.lines[0].data[1].y, 2);
@@ -192,7 +224,7 @@ suite('chart-timeseries', function() {
         ],
       };
     })());
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(ct.lines, 2);
     assert.strictEqual(ct.lines[0].data[0].y, 1);
     assert.strictEqual(ct.lines[0].data[1].y, 2);
@@ -219,8 +251,8 @@ suite('chart-timeseries', function() {
         ],
       };
     })());
-    await cp.afterRender();
-    await cp.afterRender();
+    await afterRender();
+    await afterRender();
     assert.lengthOf(ct.lines, 2);
     assert.strictEqual(ct.lines[0].data[0].y, 5.5);
     assert.strictEqual(ct.lines[0].data[1].y, 11);
@@ -247,7 +279,7 @@ suite('chart-timeseries', function() {
         ],
       };
     })());
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(ct.lines, 2);
     assert.strictEqual(ct.lines[0].data[0].y, 5.5);
     assert.strictEqual(ct.lines[0].data[1].y, 11);
@@ -258,9 +290,22 @@ suite('chart-timeseries', function() {
   });
 
   test('tooltip', async function() {
+    const {default: ChartTimeseries} = await importModule(
+        './chart-timeseries.js');
+    fixture('test').dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', ChartTimeseries.buildState({
+          yAxis: {
+            showTickLines: true,
+          },
+          xAxis: {
+            height: 15,
+            showTickLines: true,
+          },
+        }))));
     const ct = fixture('test');
-    await cp.afterRender();
-    ct.dispatch(Redux.UPDATE('test', {lineDescriptors: [{
+    await afterRender();
+    ct.dispatch(UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
       bots: ['master:bot'],
       measurement: 'ms',
@@ -268,16 +313,16 @@ suite('chart-timeseries', function() {
       buildType: 'test',
       cases: [],
     }]}));
-    await cp.afterRender();
+    await afterRender();
     const cb = ct.shadowRoot.querySelector('chart-base');
     cb.dispatchEvent(new CustomEvent('get-tooltip', {
       detail: {
-        mainRect: await cp.measureElement(cb),
+        mainRect: await measureElement(cb),
         nearestLine: ct.lines[0],
         nearestPoint: ct.lines[0].data[0],
       },
     }));
-    await cp.afterRender();
+    await afterRender();
 
     assert.strictEqual(2, ct.lines[0].strokeWidth);
     assert.isTrue(ct.state.tooltip.isVisible);
@@ -302,7 +347,7 @@ suite('chart-timeseries', function() {
     assert.strictEqual('master:bot', ct.state.tooltip.rows[7].value);
 
     cb.dispatchEvent(new CustomEvent('mouse-leave-main'));
-    await cp.afterRender();
+    await afterRender();
     assert.strictEqual(1, ct.lines[0].strokeWidth);
     assert.isUndefined(ct.state.tooltip);
   });
@@ -311,9 +356,22 @@ suite('chart-timeseries', function() {
     // When there are multiple units, yAxis.ticks should only be displayed when
     // the user is hovering over a line.
 
+    const {default: ChartTimeseries} = await importModule(
+        './chart-timeseries.js');
+    fixture('test').dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', ChartTimeseries.buildState({
+          yAxis: {
+            showTickLines: true,
+          },
+          xAxis: {
+            height: 15,
+            showTickLines: true,
+          },
+        }))));
     const ct = fixture('test');
-    await cp.afterRender();
-    ct.dispatch(Redux.UPDATE('test', {
+    await afterRender();
+    ct.dispatch(UPDATE('test', {
       lineDescriptors: [
         {
           suites: ['suite'],
@@ -333,29 +391,31 @@ suite('chart-timeseries', function() {
         },
       ]
     }));
-    await cp.afterRender();
+    await afterRender();
 
     assert.lengthOf(ct.state.yAxis.ticks, 0);
 
     const cb = ct.shadowRoot.querySelector('chart-base');
     cb.dispatchEvent(new CustomEvent('get-tooltip', {
       detail: {
-        mainRect: await cp.measureElement(cb),
+        mainRect: await measureElement(cb),
         nearestLine: ct.lines[0],
         nearestPoint: ct.lines[0].data[0],
       },
     }));
 
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(ct.state.yAxis.ticks, 5);
 
     cb.dispatchEvent(new CustomEvent('mouse-leave-main'));
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(ct.state.yAxis.ticks, 0);
   });
 
-  test('lineDescriptorEqual', function() {
-    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+  test('lineDescriptorEqual', async function() {
+    const {default: ChartTimeseries} = await importModule(
+        './chart-timeseries.js');
+    assert.isFalse(ChartTimeseries.lineDescriptorEqual({
       suites: ['bbb'],
       bots: ['ccc', 'ddd'],
       cases: ['eee', 'fff'],
@@ -375,7 +435,7 @@ suite('chart-timeseries', function() {
       maxRevision: 100,
     }));
 
-    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+    assert.isFalse(ChartTimeseries.lineDescriptorEqual({
       suites: ['bbb'],
       bots: ['ddd'],
       cases: ['eee', 'fff'],
@@ -395,7 +455,7 @@ suite('chart-timeseries', function() {
       maxRevision: 100,
     }));
 
-    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+    assert.isFalse(ChartTimeseries.lineDescriptorEqual({
       suites: ['bbb'],
       bots: ['ddd'],
       cases: ['fff'],
@@ -415,7 +475,7 @@ suite('chart-timeseries', function() {
       maxRevision: 100,
     }));
 
-    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+    assert.isFalse(ChartTimeseries.lineDescriptorEqual({
       suites: ['bbb'],
       bots: ['ccc', 'ddd'],
       cases: ['eee', 'fff'],
@@ -435,7 +495,7 @@ suite('chart-timeseries', function() {
       maxRevision: 100,
     }));
 
-    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+    assert.isFalse(ChartTimeseries.lineDescriptorEqual({
       suites: ['bbb'],
       bots: ['ccc', 'ddd'],
       cases: ['eee', 'fff'],
@@ -455,7 +515,7 @@ suite('chart-timeseries', function() {
       maxRevision: 100,
     }));
 
-    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+    assert.isFalse(ChartTimeseries.lineDescriptorEqual({
       suites: ['bbb'],
       bots: ['ccc', 'ddd'],
       cases: ['eee', 'fff'],
@@ -475,7 +535,7 @@ suite('chart-timeseries', function() {
       maxRevision: 100,
     }));
 
-    assert.isFalse(cp.ChartTimeseries.lineDescriptorEqual({
+    assert.isFalse(ChartTimeseries.lineDescriptorEqual({
       suites: ['bbb'],
       bots: ['ccc', 'ddd'],
       cases: ['eee', 'fff'],
@@ -495,7 +555,7 @@ suite('chart-timeseries', function() {
       maxRevision: 100,
     }));
 
-    assert.isTrue(cp.ChartTimeseries.lineDescriptorEqual({
+    assert.isTrue(ChartTimeseries.lineDescriptorEqual({
       suites: ['aaa', 'bbb'],
       bots: ['ccc', 'ddd'],
       cases: ['eee', 'fff'],
@@ -517,14 +577,16 @@ suite('chart-timeseries', function() {
   });
 
   test('createFetchDescriptors', async function() {
-    assert.deepEqual(cp.ChartTimeseries.createFetchDescriptors({
+    const {default: ChartTimeseries} = await importModule(
+        './chart-timeseries.js');
+    assert.deepEqual(ChartTimeseries.createFetchDescriptors({
       suites: ['aaa', 'bbb'],
       bots: ['ccc', 'ddd'],
       measurement: 'mmm',
       cases: [],
       buildType: 'test',
       statistic: 'avg',
-    }, cp.LEVEL_OF_DETAIL.ALERTS), [
+    }, LEVEL_OF_DETAIL.ALERTS), [
       {
         suite: 'aaa',
         bot: 'ccc',
@@ -532,7 +594,7 @@ suite('chart-timeseries', function() {
         measurement: 'mmm',
         statistic: 'avg',
         buildType: 'test',
-        levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+        levelOfDetail: LEVEL_OF_DETAIL.ALERTS,
       },
       {
         suite: 'aaa',
@@ -541,7 +603,7 @@ suite('chart-timeseries', function() {
         measurement: 'mmm',
         statistic: 'avg',
         buildType: 'test',
-        levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+        levelOfDetail: LEVEL_OF_DETAIL.ALERTS,
       },
       {
         suite: 'bbb',
@@ -550,7 +612,7 @@ suite('chart-timeseries', function() {
         measurement: 'mmm',
         statistic: 'avg',
         buildType: 'test',
-        levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+        levelOfDetail: LEVEL_OF_DETAIL.ALERTS,
       },
       {
         suite: 'bbb',
@@ -559,18 +621,18 @@ suite('chart-timeseries', function() {
         measurement: 'mmm',
         statistic: 'avg',
         buildType: 'test',
-        levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+        levelOfDetail: LEVEL_OF_DETAIL.ALERTS,
       },
     ]);
 
-    assert.deepEqual(cp.ChartTimeseries.createFetchDescriptors({
+    assert.deepEqual(ChartTimeseries.createFetchDescriptors({
       suites: ['aaa'],
       bots: ['ccc'],
       measurement: 'mmm',
       cases: ['bbb', 'ddd'],
       buildType: 'test',
       statistic: 'avg',
-    }, cp.LEVEL_OF_DETAIL.ALERTS), [
+    }, LEVEL_OF_DETAIL.ALERTS), [
       {
         suite: 'aaa',
         bot: 'ccc',
@@ -578,7 +640,7 @@ suite('chart-timeseries', function() {
         case: 'bbb',
         statistic: 'avg',
         buildType: 'test',
-        levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+        levelOfDetail: LEVEL_OF_DETAIL.ALERTS,
       },
       {
         suite: 'aaa',
@@ -587,7 +649,7 @@ suite('chart-timeseries', function() {
         measurement: 'mmm',
         statistic: 'avg',
         buildType: 'test',
-        levelOfDetail: cp.LEVEL_OF_DETAIL.ALERTS,
+        levelOfDetail: LEVEL_OF_DETAIL.ALERTS,
       },
     ]);
   });

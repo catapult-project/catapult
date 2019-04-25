@@ -7,7 +7,8 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/dashboard/spa/details-table.html">
+<link rel="import" href="/dashboard/spa/dependencies.html">
+<script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
   <template>
@@ -16,8 +17,13 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script>
+<script type="module">
 'use strict';
+
+import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {TimeseriesRequest} from './timeseries-request.js';
+import {afterRender, denormalize} from './utils.js';
+
 suite('details-table', function() {
   let MS_PER_YEAR;  // tr might not be loaded yet.
   const NOW_MS = new Date().getTime();
@@ -39,7 +45,7 @@ suite('details-table', function() {
     window.fetch = async(url, options) => {
       return {
         async json() {
-          if (url === cp.TimeseriesRequest.URL) {
+          if (url === TimeseriesRequest.URL) {
             const data = [];
             const sequenceLength = 100;
             const minRevision = parseInt(options.body.get('min_revision') || 1);
@@ -58,18 +64,13 @@ suite('details-table', function() {
             }
             return {
               units: options.body.get('measurement'),
-              data: cp.denormalize(
+              data: denormalize(
                   data, options.body.get('columns').split(',')),
             };
           }
         },
       };
     };
-
-    fixture('test').dispatch(Redux.CHAIN(
-        Redux.ENSURE('test'),
-        Redux.UPDATE('test', cp.DetailsTable.buildState({
-        }))));
   });
 
   teardown(() => {
@@ -77,9 +78,13 @@ suite('details-table', function() {
   });
 
   test('load', async function() {
+    const {default: DetailsTable} = await importModule('./details-table.js');
+    fixture('test').dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', DetailsTable.buildState({}))));
     const dt = fixture('test');
-    await cp.afterRender();
-    await dt.dispatch(Redux.UPDATE('test', {
+    await afterRender();
+    await dt.dispatch(UPDATE('test', {
       lineDescriptors: [{
         suites: ['suite'],
         bots: ['master:bot'],
@@ -92,7 +97,7 @@ suite('details-table', function() {
         tr.b.math.Range.fromExplicitRange(5.5, 6.5),
       ],
     }));
-    await cp.afterRender();
+    await afterRender();
     assert.lengthOf(dt.bodies, 1);
     assert.lengthOf(dt.bodies[0].linkRows, 1);
     assert.strictEqual('Upload timestamp', dt.bodies[0].linkRows[0].label);
@@ -110,6 +115,7 @@ suite('details-table', function() {
   });
 
   test('extractCommonLinkRows', async function() {
+    const {default: DetailsTable} = await importModule('./details-table.js');
     const bodies = [
       {
         linkRows: [
@@ -147,7 +153,7 @@ suite('details-table', function() {
         ],
       },
     ];
-    const actual = cp.DetailsTable.extractCommonLinkRows(bodies);
+    const actual = DetailsTable.extractCommonLinkRows(bodies);
     const expected = [
       {label: 'a', cells: [
         {label: 'a0', href: 'http://a0'},
@@ -163,7 +169,8 @@ suite('details-table', function() {
   });
 
   test('descriptorFlags', async function() {
-    const flags = cp.DetailsTable.descriptorFlags([
+    const {default: DetailsTable} = await importModule('./details-table.js');
+    const flags = DetailsTable.descriptorFlags([
       {suites: ['suite'], measurement: 'measure a', bots: [], cases: ['d']},
       {suites: ['suite'], measurement: 'measure b', bots: [], cases: ['c']},
     ]);
@@ -174,6 +181,7 @@ suite('details-table', function() {
   });
 
   test('buildCell', async function() {
+    const {default: DetailsTable} = await importModule('./details-table.js');
     const links = [];
     const scalars = [];
     const setLink = (name, url, label) => links.push({name, url, label});
@@ -257,7 +265,7 @@ suite('details-table', function() {
         },
       ],
     ];
-    cp.DetailsTable.buildCell(setLink, setScalar, timeserieses, range, {
+    DetailsTable.buildCell(setLink, setScalar, timeserieses, range, {
       r_chromium: {
         name: 'Chromium Git Hash',
         url: 'https://chromium.googlesource.com/chromium/src/+log/{{R1}}..{{R2}}',

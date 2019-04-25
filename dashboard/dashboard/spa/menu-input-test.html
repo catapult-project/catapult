@@ -7,8 +7,7 @@ found in the LICENSE file.
 
 <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 <script src="/bower_components/web-component-tester/browser.js"></script>
-<link rel="import" href="/bower_components/polymer/polymer.html">
-<link rel="import" href="/dashboard/spa/menu-input.html">
+<link rel="import" href="/dashboard/spa/dependencies.html">
 <script src="/dashboard/spa/import-module.js"></script>
 
 <test-fixture id="test">
@@ -18,36 +17,36 @@ found in the LICENSE file.
   </template>
 </test-fixture>
 
-<script>
+<script type="module">
 'use strict';
-setup(() => {
-  fixture('test')[0].dispatch(Redux.UPDATE('', {
-    xxx: cp.MenuInput.buildState({
-      label: 'XXX',
-      options: new Set([
-        'aaa',
-        'bbb:ccc',
-        'bbb:ddd',
-        'bbb:ddd:eee',
-        'bbb:ddd:fff',
-      ]),
-    }),
-    yyy: cp.MenuInput.buildState({
-      label: 'YYY',
-      options: new Set([
-        'aaa',
-        'bbb:ccc',
-        'bbb:ddd',
-        'bbb:ddd:eee',
-        'bbb:ddd:fff',
-      ]),
-    }),
-  }));
-});
+
+import {UPDATE} from './simple-redux.js';
 
 suite('menu-input', function() {
   test('focus', async function() {
-    await importModule('./cp-input.js');
+    const {default: MenuInput} = await importModule('./menu-input.js');
+    fixture('test')[0].dispatch(UPDATE('', {
+      xxx: MenuInput.buildState({
+        label: 'XXX',
+        options: new Set([
+          'aaa',
+          'bbb:ccc',
+          'bbb:ddd',
+          'bbb:ddd:eee',
+          'bbb:ddd:fff',
+        ]),
+      }),
+      yyy: MenuInput.buildState({
+        label: 'YYY',
+        options: new Set([
+          'aaa',
+          'bbb:ccc',
+          'bbb:ddd',
+          'bbb:ddd:eee',
+          'bbb:ddd:fff',
+        ]),
+      }),
+    }));
     const [xxxInput, yyyInput] = fixture('test');
     xxxInput.$.input.click();
     assert.isTrue(xxxInput.isFocused);
@@ -59,11 +58,34 @@ suite('menu-input', function() {
   });
 
   test('inputValue', async function() {
-    assert.strictEqual('q', cp.MenuInput.inputValue(true, 'q', undefined));
-    assert.strictEqual('', cp.MenuInput.inputValue(false, 'q', undefined));
-    assert.strictEqual('', cp.MenuInput.inputValue(false, 'q', []));
-    assert.strictEqual('o', cp.MenuInput.inputValue(false, 'q', ['o']));
-    assert.strictEqual('[2 selected]', cp.MenuInput.inputValue(
+    const {default: MenuInput} = await importModule('./menu-input.js');
+    fixture('test')[0].dispatch(UPDATE('', {
+      xxx: MenuInput.buildState({
+        label: 'XXX',
+        options: new Set([
+          'aaa',
+          'bbb:ccc',
+          'bbb:ddd',
+          'bbb:ddd:eee',
+          'bbb:ddd:fff',
+        ]),
+      }),
+      yyy: MenuInput.buildState({
+        label: 'YYY',
+        options: new Set([
+          'aaa',
+          'bbb:ccc',
+          'bbb:ddd',
+          'bbb:ddd:eee',
+          'bbb:ddd:fff',
+        ]),
+      }),
+    }));
+    assert.strictEqual('q', MenuInput.inputValue(true, 'q', undefined));
+    assert.strictEqual('', MenuInput.inputValue(false, 'q', undefined));
+    assert.strictEqual('', MenuInput.inputValue(false, 'q', []));
+    assert.strictEqual('o', MenuInput.inputValue(false, 'q', ['o']));
+    assert.strictEqual('[2 selected]', MenuInput.inputValue(
         false, 'q', ['o', 'p']));
   });
 });

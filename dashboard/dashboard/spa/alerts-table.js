@@ -6,8 +6,20 @@
 
 import './cp-checkbox.js';
 import './expand-button.js';
+import './column-head.js';
+import './scalar-span.js';
+import ElementBase from './element-base.js';
 
-export default class AlertsTable extends cp.ElementBase {
+import {
+  breakWords,
+  buildProperties,
+  buildState,
+  setImmutable,
+} from './utils.js';
+
+export default class AlertsTable extends ElementBase {
+  static get is() { return 'alerts-table'; }
+
   static get template() {
     return Polymer.html`
       <style>
@@ -416,7 +428,7 @@ export default class AlertsTable extends cp.ElementBase {
   }
 
   breakWords_(str) {
-    return cp.breakWords(str);
+    return breakWords(str);
   }
 
   isExpandedGroup_(groupIsExpanded, triagedIsExpanded) {
@@ -641,8 +653,8 @@ AlertsTable.State = {
   sortDescending: options => options.sortDescending || false,
 };
 
-AlertsTable.properties = cp.buildProperties('state', AlertsTable.State);
-AlertsTable.buildState = options => cp.buildState(AlertsTable.State, options);
+AlertsTable.properties = buildProperties('state', AlertsTable.State);
+AlertsTable.buildState = options => buildState(AlertsTable.State, options);
 
 AlertsTable.properties.areAlertGroupsPlaceholders = {
   computed: 'arePlaceholders_(alertGroups)',
@@ -749,11 +761,11 @@ AlertsTable.reducers = {
         });
       } else {
         // Only toggle this alert.
-        alerts = cp.setImmutable(
+        alerts = setImmutable(
             alerts, `${action.alertIndex}.isSelected`, isSelected);
       }
 
-      alertGroups = cp.setImmutable(
+      alertGroups = setImmutable(
           state.alertGroups, `${action.alertGroupIndex}.alerts`, alerts);
     }
 
@@ -788,4 +800,4 @@ AlertsTable.reducers = {
   },
 };
 
-cp.ElementBase.register(AlertsTable);
+ElementBase.register(AlertsTable);
