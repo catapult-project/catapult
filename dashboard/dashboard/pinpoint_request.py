@@ -8,10 +8,14 @@ import json
 
 from google.appengine.ext import ndb
 
+from dashboard import find_change_points
 from dashboard import start_try_job
 from dashboard.common import descriptor
+from dashboard.common import math_utils
 from dashboard.common import request_handler
 from dashboard.common import utils
+from dashboard.models import anomaly_config
+from dashboard.models import graph_data
 from dashboard.services import crrev_service
 from dashboard.services import pinpoint_service
 
@@ -91,6 +95,39 @@ def ParseMetricParts(test_path_parts):
   # left empty and implied to be summary.
   assert len(metric_parts) == 1
   return '', metric_parts[0], ''
+
+
+def _GitHashToCommitPosition(commit_position):
+  try:
+    commit_position = int(commit_position)
+  except ValueError:
+    result = crrev_service.GetCommit(commit_position)
+    if 'error' in result:
+      raise InvalidParamsError(
+          'Error retrieving commit info: %s' % result['error'].get('message'))
+    commit_position = int(result['number'])
+  return commit_position
+
+
+def FindMagnitudeBetweenCommits(test_key, start_commit, end_commit):
+  start_commit = _GitHashToCommitPosition(start_commit)
+  end_commit = _GitHashToCommitPosition(end_commit)
+
+  test = test_key.get()
+  num_points = anomaly_config.GetAnomalyConfigDict(test).get(
+      'min_segment_size', find_change_points.MIN_SEGMENT_SIZE)
+  start_rows = graph_data.GetRowsForTestBeforeAfterRev(
+      test_key, start_commit, num_points, 0)
+  end_rows = graph_data.GetRowsForTestBeforeAfterRev(
+      test_key, end_commit, 0, num_points)
+
+  if not start_rows or not end_rows:
+    return None
+
+  median_before = math_utils.Median([r.value for r in start_rows])
+  median_after = math_utils.Median([r.value for r in end_rows])
+
+  return median_after - median_before
 
 
 def ResolveToGitHash(commit_position, suite):
@@ -299,6 +336,10 @@ def PinpointParamsFromBisectParams(params):
   if alert_key:
     alert = ndb.Key(urlsafe=alert_key).get()
     alert_magnitude = alert.median_after_anomaly - alert.median_before_anomaly
+
+  if not alert_magnitude:
+    alert_magnitude = FindMagnitudeBetweenCommits(
+        utils.TestKey(test_path), start_commit, end_commit)
 
   pinpoint_params = {
       'configuration': bot_name,

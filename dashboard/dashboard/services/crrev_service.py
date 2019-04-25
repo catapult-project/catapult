@@ -7,8 +7,9 @@
 from dashboard.services import request
 
 
+_URL = 'https://cr-rev.appspot.com/_ah/api/crrev/v1/'
+
 def GetNumbering(number, numbering_identifier, numbering_type, project, repo):
-  url = 'https://cr-rev.appspot.com/_ah/api/crrev/v1/get_numbering'
   params = {
       'number': number,
       'numbering_identifier': numbering_identifier,
@@ -17,4 +18,7 @@ def GetNumbering(number, numbering_identifier, numbering_type, project, repo):
       'repo': repo
   }
 
-  return request.RequestJson(url, 'GET', **params)
+  return request.RequestJson(_URL + 'get_numbering', 'GET', **params)
+
+def GetCommit(git_sha):
+  return request.RequestJson(_URL + 'commit/%s' % git_sha, 'GET', None)
