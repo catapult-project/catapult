@@ -15,6 +15,7 @@
   "gypfile": false,
   "private": true,
   "dependencies": {
+    "@chopsui/tsmon-client": "0.0.1",
     "@chopsui/wct-runner": "^0.0.3",
     "@polymer/app-route": "^3.0.0",
     "@polymer/iron-collapse": "^3.0.0",
