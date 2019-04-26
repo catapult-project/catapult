@@ -62,10 +62,9 @@ def _ComputeMetricsInPool((run, trace_value)):
 
     logging.info('%s: Starting to compute metrics on trace.', story_name)
     start = time.time()
-    mre_result = metric_runner.RunMetric(
+    mre_result = metric_runner.RunMetricOnSingleTrace(
         trace_value.filename, trace_value.timeline_based_metric,
-        extra_import_options, report_progress=False,
-        canonical_url=trace_value.trace_url)
+        extra_import_options, canonical_url=trace_value.trace_url)
     logging.info('%s: Computing metrics took %.3f seconds.' % (
         story_name, time.time() - start))
 
