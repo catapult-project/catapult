@@ -10,21 +10,8 @@ from tracing.trace_data import trace_data
 from py_trace_event import trace_event
 
 
-class FakeTraceDataBuilder(object):
-  def __init__(self):
-    """A fake trace bulder that just captures trace data written to it."""
-    self._data = None
-
-  def AddTraceFor(self, trace_part, data):
-    assert self._data is None
-    assert trace_part is trace_data.TELEMETRY_PART
-    self._data = data
-
-  def GetEventNames(self):
-    return [e['name'] for e in self._data['traceEvents']]
-
-  def GetTelemetryInfo(self):
-    return self._data['metadata']['telemetry']
+def GetEventNames(trace):
+  return (e['name'] for e in trace['traceEvents'])
 
 
 @unittest.skipUnless(trace_event.is_tracing_controllable(),
@@ -44,17 +31,19 @@ class TelemetryTracingAgentTest(unittest.TestCase):
     with trace_event.trace('test-marker'):
       pass
     self.agent.StopAgentTracing()
-    trace = FakeTraceDataBuilder()
-    self.agent.CollectAgentTraceData(trace)
-    self.assertIn('test-marker', trace.GetEventNames())
+    with trace_data.TraceDataBuilder() as builder:
+      self.agent.CollectAgentTraceData(builder)
+      trace = builder.AsData().GetTraceFor(trace_data.TELEMETRY_PART)
+    self.assertIn('test-marker', GetEventNames(trace))
 
   def testRecordClockSync(self):
     self.agent.StartAgentTracing(self.config, timeout=10)
     self.agent.RecordIssuerClockSyncMarker('1234', issue_ts=0)
     self.agent.StopAgentTracing()
-    trace = FakeTraceDataBuilder()
-    self.agent.CollectAgentTraceData(trace)
-    self.assertIn('clock_sync', trace.GetEventNames())
+    with trace_data.TraceDataBuilder() as builder:
+      self.agent.CollectAgentTraceData(builder)
+      trace = builder.AsData().GetTraceFor(trace_data.TELEMETRY_PART)
+    self.assertIn('clock_sync', GetEventNames(trace))
 
   def testWriteTelemetryInfo(self):
     info = page_test_results.TelemetryInfo()
@@ -62,10 +51,11 @@ class TelemetryTracingAgentTest(unittest.TestCase):
     info.benchmark_start_epoch = 0
 
     self.agent.StartAgentTracing(self.config, timeout=10)
-    self.agent.SetTelemetryInfo(info)
+    telemetry_tracing_agent.SetTelemetryInfo(info)
     self.agent.StopAgentTracing()
-    trace = FakeTraceDataBuilder()
-    self.agent.CollectAgentTraceData(trace)
-    benchmarks = trace.GetTelemetryInfo()['benchmarks']
+    with trace_data.TraceDataBuilder() as builder:
+      self.agent.CollectAgentTraceData(builder)
+      trace = builder.AsData().GetTraceFor(trace_data.TELEMETRY_PART)
+    benchmarks = trace['metadata']['telemetry']['benchmarks']
     self.assertEqual(len(benchmarks), 1)
     self.assertEqual(benchmarks[0], 'example')

@@ -91,9 +91,7 @@ class TracingControllerBackend(object):
     self._is_tracing_controllable = True
 
   def SetTelemetryInfo(self, telemetry_info):
-    agent = self._GetActiveTelemetryTracingAgent()
-    if agent is not None:
-      agent.SetTelemetryInfo(telemetry_info)
+    telemetry_tracing_agent.SetTelemetryInfo(telemetry_info)
 
   def StartTracing(self, config, timeout):
     if self.is_tracing_running:
