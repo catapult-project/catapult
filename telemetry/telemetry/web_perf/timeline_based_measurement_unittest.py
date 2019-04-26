@@ -274,6 +274,7 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     return runner_options
 
   @decorators.Disabled('chromeos')
+  @decorators.Disabled('win')  # crbug.com/956812
   @decorators.Isolated
   def testTraceCaptureUponFailure(self):
     ps = self.CreateEmptyPageSet()
