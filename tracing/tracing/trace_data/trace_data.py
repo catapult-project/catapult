@@ -208,14 +208,6 @@ class TraceDataBuilder(object):
     return data
 
   def OpenTraceHandleFor(self, part, compressed=False):
-    """Open a file handle for writing trace data into it.
-
-    Args:
-      part: A TraceDataPart instance.
-      compressed: An optional Boolean, indicates whether the written data is
-        gzipped. Note, this information is currently only used by the AsData()
-        method in order to be able to open and read the written data.
-    """
     if not isinstance(part, TraceDataPart):
       raise TypeError('part must be a TraceDataPart instance')
     trace = _TraceItem(
@@ -224,27 +216,6 @@ class TraceDataBuilder(object):
         compressed=compressed)
     self.AddTraceFor(part, trace)
     return trace.handle
-
-  def AddTraceFileFor(self, part, trace_file):
-    """Move a file with trace data into this builder.
-
-    This is useful for situations where a client might want to start collecting
-    trace data into a file, even before the TraceDataBuilder itself is created.
-
-    Args:
-      part: A TraceDataPart instance.
-      trace_file: A path to a file containing trace data. Note: for efficiency
-        the file is moved rather than copied into the builder. Therefore the
-        source file will no longer exist after calling this method; and the
-        lifetime of the trace data will thereafter be managed by this builder.
-    """
-    with self.OpenTraceHandleFor(part) as handle:
-      pass
-    if os.name == 'nt':
-      # On windows os.rename won't overwrite, so the destination path needs to
-      # be removed first.
-      os.remove(handle.name)
-    os.rename(trace_file, handle.name)
 
   def AddTraceFor(self, part, data, allow_unstructured=False):
     """Record new trace data into this builder.
