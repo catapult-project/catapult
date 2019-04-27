@@ -929,6 +929,7 @@ triaging functionality in the chart.
 
       this.updateSeriesGroupLoadingCounter(pathsForUpdate, true);
 
+      if (window.METRICS) METRICS.startLoadChart();
       const req = simple_xhr.send(
           '/graph_json',
           {'graphs': JSON.stringify(params)},
@@ -944,6 +945,7 @@ triaging functionality in the chart.
             this.updateSeriesGroupLoadingCounter(
                 pathsForUpdate, false);
             this.$['loading-div'].style.display = 'none';
+            if (window.METRICS) METRICS.endLoadChart();
           }.bind(this),
           function(error) {
             if (error) {

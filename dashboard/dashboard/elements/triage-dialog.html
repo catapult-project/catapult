@@ -445,6 +445,8 @@ Polymer({
     * @return {Object} The window that was opened.
     */
   openAndPost(url, data, target) {
+    if (window.METRICS) METRICS.endTriage();
+    if (window.METRICS) METRICS.startTriage();
     const popup = window.open('about:blank', target, 'width=600,height=480');
     const form = document.createElement('form');
     form.action = url;

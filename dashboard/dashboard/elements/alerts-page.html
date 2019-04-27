@@ -334,6 +334,7 @@ Polymer({
           this.xsrfToken = response.xsrf_token;
           this.anomaliesLoading = false;
           this.updateFromURIParameters();
+          if (window.METRICS) METRICS.endLoadAlerts();
         }.bind(this),
         function(msg) {
           this.error = msg;
@@ -402,6 +403,7 @@ Polymer({
     if (this.showTriaged) {
       params.triaged = true;
     }
+    if (window.METRICS) METRICS.startLoadAlerts();
     simple_xhr.send('/alerts', params,
         function(response) {
           this.anomalies = response.anomaly_list;

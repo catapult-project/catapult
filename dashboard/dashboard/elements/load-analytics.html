@@ -5,10 +5,16 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<script src="/tsmon-client.js"></script>
+<script src="/dashboard/static/metrics.js"></script>
+
 <dom-module id="load-analytics">
 </dom-module>
 <script>
 'use strict';
+
+METRICS.frontendVersion = 1;
+
 Polymer({
   is: 'load-analytics',
   ready() {
@@ -31,3 +37,4 @@ Polymer({
   }
 });
 </script>
+

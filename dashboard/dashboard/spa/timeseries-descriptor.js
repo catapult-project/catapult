@@ -165,19 +165,36 @@ export default class TimeseriesDescriptor extends ElementBase {
   }
 
   async onSuiteSelect_(event) {
+    METRICS.startLoadMenu();
     await this.dispatch('describeSuites', this.statePath);
+    METRICS.endLoadMenu();
     this.dispatchMatrixChange_();
   }
 
   async onMeasurementSelect_(event) {
+    METRICS.startLoadMenu();
+    // The next menu is already loaded. Add a sample to the load/menu metric
+    // (even though it's zero) because the V1 UI adds a sample in this
+    // situation. This load/menu sample can be removed when V1 UI is removed.
+    METRICS.endLoadMenu();
     this.dispatchMatrixChange_();
   }
 
   async onBotSelect_(event) {
+    METRICS.startLoadMenu();
+    // The next menu is already loaded. Add a sample to the load/menu metric
+    // (even though it's zero) because the V1 UI adds a sample in this
+    // situation. This load/menu sample can be removed when V1 UI is removed.
+    METRICS.endLoadMenu();
     this.dispatchMatrixChange_();
   }
 
   async onCaseSelect_(event) {
+    METRICS.startLoadMenu();
+    // The next menu is already loaded. Add a sample to the load/menu metric
+    // (even though it's zero) because the V1 UI adds a sample in this
+    // situation. This load/menu sample can be removed when V1 UI is removed.
+    METRICS.endLoadMenu();
     this.dispatchMatrixChange_();
   }
 

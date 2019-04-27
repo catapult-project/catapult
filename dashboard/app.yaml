@@ -69,6 +69,11 @@ handlers:
   upload: gl-matrix-min.js
   secure: always
 
+- url: /tsmon-client.js
+  static_files: tsmon-client.js
+  upload: tsmon-client.js
+  secure: always
+
 - url: /.*
   script: dashboard.dispatcher.APP
   secure: always

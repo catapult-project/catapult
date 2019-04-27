@@ -4,6 +4,8 @@
 */
 'use strict';
 
+METRICS.frontendVersion = 2;
+
 window.IS_DEBUG = location.hostname === 'localhost';
 const PRODUCTION = 'v2spa-dot-chromeperf.appspot.com';
 window.IS_PRODUCTION = location.hostname === PRODUCTION;

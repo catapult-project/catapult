@@ -325,6 +325,7 @@ ChartSection.actions = {
     if (state.descriptor.suite.selectedOptions.length &&
         state.descriptor.measurement.selectedOptions.length &&
         state.statistic.selectedOptions.length) {
+      METRICS.endChartAction();
       ChartSection.actions.loadTimeseries(statePath)(dispatch, getState);
     } else {
       dispatch(UPDATE(statePath, {lineDescriptors: []}));

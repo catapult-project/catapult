@@ -566,6 +566,7 @@ async function* generateTimeseries(
 }
 
 ChartTimeseries.loadLines = statePath => async(dispatch, getState) => {
+  METRICS.startLoadChart();
   const state = get(getState(), statePath);
   const generator = generateTimeseries(
       state.lineDescriptors.slice(0, ChartTimeseries.MAX_LINES),
@@ -586,6 +587,7 @@ ChartTimeseries.loadLines = statePath => async(dispatch, getState) => {
       statePath,
     });
     ChartTimeseries.actions.measureYTicks(statePath)(dispatch, getState);
+    if (timeseriesesByLine.length) METRICS.endLoadChart();
   }
 };
 

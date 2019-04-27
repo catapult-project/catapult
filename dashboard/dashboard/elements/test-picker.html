@@ -267,13 +267,15 @@ Polymer({
     const box = this.getSelectionMenu(boxIndex);
     if (box === undefined) return;
 
+    if (window.METRICS) METRICS.startLoadMenu();
+
     if (boxIndex == 0) {
       this.updateTestSuiteDescription();
       if (box.selectedItem) {
         // Only update the Bot menu if a Test Suite is selected.
         const updateBotMenuMark = tr.b.Timing.mark(
             'testPicker', 'updateBotMenu');
-        this.updateBotMenu();
+        await this.updateBotMenu();
         updateBotMenuMark.end();
       }
     } else {
@@ -288,6 +290,7 @@ Polymer({
       if (nextMenu) nextMenu.focus();
       onDropdownSelectMark.end();
     }
+    if (window.METRICS) METRICS.endLoadMenu();
   },
 
   updateTestSuiteDescription() {
@@ -464,6 +467,7 @@ Polymer({
     * Fires add event on 'Add' button clicked.
     */
   onAddButtonClicked(event, detail) {
+    if (window.METRICS) METRICS.endChartAction();
     this.fire('add');
   },
 

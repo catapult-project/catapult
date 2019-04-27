@@ -121,6 +121,9 @@ def _AllSdkThirdPartyLibraryPaths():
 def _CatapultThirdPartyLibraryPaths():
   """Returns a list of required third-party libraries in catapult."""
   paths = []
+  paths.append(os.path.join(
+      _CATAPULT_PATH, 'common', 'node_runner', 'node_runner', 'node_modules',
+      '@chopsui', 'tsmon-client', 'tsmon-client.js'))
   for library in THIRD_PARTY_LIBRARIES:
     paths.append(os.path.join(_CATAPULT_PATH, 'third_party', library))
   return paths

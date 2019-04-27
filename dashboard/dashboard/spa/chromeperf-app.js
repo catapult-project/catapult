@@ -533,6 +533,7 @@ ChromeperfApp.actions = {
 
   userUpdate: statePath => async(dispatch, getState) => {
     const profile = await window.getUserProfileAsync();
+    METRICS.signedIn = Boolean(profile);
     dispatch(UPDATE('', {
       userEmail: profile ? profile.getEmail() : '',
     }));
@@ -838,6 +839,8 @@ ChromeperfApp.reducers = {
         ],
       };
     }
+
+    if (!options) METRICS.startChartAction();
 
     const sectionId = simpleGUID();
     const newSection = {

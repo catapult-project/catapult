@@ -382,6 +382,9 @@ Polymer({
   },
 
   onFocusInput() {
+    if (this.id === 'selection-0' && !this.selectedItem && window.METRICS) {
+      METRICS.startChartAction();
+    }
     this.set('dropdownOpen', true);
     this.$.textbox.readonly = false;
   },
