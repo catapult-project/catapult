@@ -33,6 +33,7 @@ from dashboard import graph_csv
 from dashboard import graph_json
 from dashboard import graph_revisions
 from dashboard import group_report
+from dashboard import jstsmon
 from dashboard import layered_cache_delete_expired
 from dashboard import list_monitored_tests
 from dashboard import list_tests
@@ -68,6 +69,7 @@ from dashboard.api import timeseries2
 
 
 _URL_MAPPING = [
+    ('/_/jstsmon', jstsmon.JsTsMonHandler),
     ('/add_histograms', add_histograms.AddHistogramsHandler),
     ('/add_histograms/process', add_histograms.AddHistogramsProcessHandler),
     ('/add_histograms_queue', add_histograms_queue.AddHistogramsQueueHandler),
