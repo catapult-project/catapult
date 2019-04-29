@@ -11,38 +11,52 @@ found in the LICENSE file.
 'use strict';
 
 /**
- * @fileoverview Parses fence events in the Linux event trace format.
+ * @fileoverview Parses dma-fence events in the Linux event trace format.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
   const ColorScheme = tr.b.ColorScheme;
   const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
-   * Parses linux fence trace events.
+   * Parses linux dma-fence trace events.
    * @constructor
    */
-  function FenceParser(importer) {
+  function DmaFenceParser(importer) {
     Parser.call(this, importer);
 
     this.model_ = importer.model_;
     importer.registerEventHandler(
+        'dma_fence_init',
+        DmaFenceParser.prototype.initEvent.bind(this));
+    importer.registerEventHandler(
+        'dma_fence_destroy',
+        DmaFenceParser.prototype.fenceDestroyEvent.bind(this));
+    importer.registerEventHandler(
+        'dma_fence_enable_signal',
+        DmaFenceParser.prototype.fenceEnableSignalEvent.bind(this));
+    importer.registerEventHandler(
+        'dma_fence_signaled',
+        DmaFenceParser.prototype.fenceSignaledEvent.bind(this));
+
+    // support legacy event names
+    importer.registerEventHandler(
         'fence_init',
-        FenceParser.prototype.initEvent.bind(this));
+        DmaFenceParser.prototype.initEvent.bind(this));
     importer.registerEventHandler(
         'fence_destroy',
-        FenceParser.prototype.fenceDestroyEvent.bind(this));
+        DmaFenceParser.prototype.fenceDestroyEvent.bind(this));
     importer.registerEventHandler(
         'fence_enable_signal',
-        FenceParser.prototype.fenceEnableSignalEvent.bind(this));
+        DmaFenceParser.prototype.fenceEnableSignalEvent.bind(this));
     importer.registerEventHandler(
         'fence_signaled',
-        FenceParser.prototype.fenceSignaledEvent.bind(this));
+        DmaFenceParser.prototype.fenceSignaledEvent.bind(this));
     this.model_ = importer.model_;
   }
 
   const fenceRE = /driver=(\S+) timeline=(\S+) context=(\d+) seqno=(\d+)/;
 
-  FenceParser.prototype = {
+  DmaFenceParser.prototype = {
     __proto__: Parser.prototype,
 
     /**
@@ -154,10 +168,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
   };
 
-  Parser.register(FenceParser);
+  Parser.register(DmaFenceParser);
 
   return {
-    FenceParser,
+    DmaFenceParser,
   };
 });
 </script>

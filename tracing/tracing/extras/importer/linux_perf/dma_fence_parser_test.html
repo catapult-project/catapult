@@ -12,6 +12,18 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  test('dmaFenceEventImport', function() {
+    const lines = [
+      '       test-3268  ( 3214) [010] ....   505.064394: dma_fence_init: driver=virtio_gpu timeline=controlq context=1 seqno=0', // @suppress longLineCheck
+      'kworker/2:1-109   (  109) [002] d...   505.065121: dma_fence_signaled: driver=virtio_gpu timeline=controlq context=1 seqno=109779', // @suppress longLineCheck
+    ];
+
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+      shiftWorldToZero: false
+    });
+    assert.isFalse(m.hasImportWarnings);
+  });
+
   test('fenceEventImport', function() {
     const lines = [
       'HwBinder:595_2-650   (  595) [001] .... 584509.195956: ' +
