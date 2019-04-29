@@ -63,149 +63,55 @@ ALL_TRACE_PARTS = {ANDROID_PROCESS_DATA_PART,
                    TELEMETRY_PART}
 
 
-def _GetFilePathForTrace(trace, dir_path):
-  """ Return path to a file that contains |trace|.
-
-  Note: if |trace| is an instance of _TraceItem, this reuses the trace path
-  that the trace file handle holds. Otherwise, it creates a new trace file
-  in |dir_path| directory.
-  """
-  if isinstance(trace, _TraceItem):
-    return trace.handle.name
-  with tempfile.NamedTemporaryFile(mode='w', dir=dir_path, delete=False) as fp:
-    if isinstance(trace, StringTypes):
-      fp.write(trace)
-    elif isinstance(trace, dict) or isinstance(trace, list):
-      json.dump(trace, fp)
-    else:
-      raise TypeError('Trace is of unknown type.')
-    return fp.name
-
-
-_TraceItem = collections.namedtuple(
-    '_TraceItem', ['part_name', 'handle', 'compressed'])
-
-
 class _TraceData(object):
   """Provides read access to traces collected from multiple tracing agents.
 
   Instances are created by calling the AsData() method on a TraceDataWriter.
-
-  Note: this API allows direct access to trace data in memory and, thus,
-  may require a lot of memory if the traces to process are very large.
-  This has lead to OOM errors in Telemetry in the past (e.g. crbug/672097).
-
-  TODO(crbug/928278): This object is provided only to support legacy TBMv1
-  metric computation, and should be removed when no such clients remain. New
-  clients should instead call SerializeAsHtml() on the TraceDataWriter and
-  pass the serialized output to an external trace processing script.
   """
   def __init__(self, raw_data):
     self._raw_data = raw_data
 
   def HasTracesFor(self, part):
-    assert isinstance(part, TraceDataPart)
-    traces = self._raw_data.get(part.raw_field_name)
-    return traces is not None and len(traces) > 0
+    return bool(self.GetTracesFor(part))
 
   def GetTracesFor(self, part):
     """Return the list of traces for |part| in string or dictionary forms."""
-    if not self.HasTracesFor(part):
-      return []
-    traces_list = self._raw_data[part.raw_field_name]
-    # Since this API return the traces in memory form, and since the memory
-    # bottleneck of Telemetry is for keeping trace in memory, there is no uses
-    # in keeping the on-disk form of tracing beyond this point. Hence we convert
-    # all traces for part of form _TraceItem to the JSON form.
-    for i, trace in enumerate(traces_list):
-      if isinstance(trace, _TraceItem):
-        opener = gzip.open if trace.compressed else open
-        with opener(trace.handle.name, 'rb') as f:
-          traces_list[i] = json.load(f)
-        os.remove(trace.handle.name)
-    return traces_list
+    if not isinstance(part, TraceDataPart):
+      raise TypeError('part must be a TraceDataPart instance')
+    return self._raw_data.get(part.raw_field_name, [])
 
   def GetTraceFor(self, part):
     traces = self.GetTracesFor(part)
     assert len(traces) == 1
     return traces[0]
 
-  def CleanUpAllTraces(self):
-    """Remove all the traces that this has handles to.
 
-    TODO(crbug/928278): Move this method to TraceDataWriter.
-
-    Those include traces stored in memory & on disk. After invoking this,
-    one can no longer uses this object for reading the trace data.
-    """
-    for traces_list in self._raw_data.values():
-      for trace in traces_list:
-        if isinstance(trace, _TraceItem):
-          os.remove(trace.handle.name)
-    self._raw_data = {}
-
-  def Serialize(self, file_path, trace_title=None):
-    """Serializes the trace result to |file_path|.
-
-    TODO(crbug/928278): Move this method to TraceDataWriter.
-    """
-    if not self._raw_data:
-      logging.warning('No traces to convert to html.')
-      return
-    temp_dir = tempfile.mkdtemp()
-    trace_files = []
-    try:
-      trace_size_data = {}
-      for part, traces_list in self._raw_data.items():
-        for trace in traces_list:
-          path = _GetFilePathForTrace(trace, temp_dir)
-          trace_size_data.setdefault(part, 0)
-          trace_size_data[part] += os.path.getsize(path)
-          trace_files.append(path)
-      logging.info('Trace sizes in bytes: %s', trace_size_data)
-
-      cmd = ['python', _TRACE2HTML_PATH]
-      cmd.extend(trace_files)
-      cmd.extend(['--output', file_path])
-      if trace_title is not None:
-        cmd.extend(['--title', trace_title])
-
-      start_time = time.time()
-      subprocess.check_output(cmd)
-      elapsed_time = time.time() - start_time
-      logging.info('trace2html finished in %.02f seconds.', elapsed_time)
-    finally:
-      shutil.rmtree(temp_dir)
+_TraceItem = collections.namedtuple(
+    '_TraceItem', ['part_name', 'handle', 'compressed'])
 
 
 class TraceDataBuilder(object):
   """TraceDataBuilder helps build up a trace from multiple trace agents.
 
-  TODO(crbug/928278): This class is meant to become the "write only" part
-  of data collection. Clients should be able to collect and serialized merged
-  trace data using this object, without having to call AsData() which provides
-  the "trace reading" service for legacy clients.
+  Note: the collected trace data is maintained in a set of temporary files to
+  be later processed e.g. by the Serialize() method. To ensure proper clean up
+  of such files clients must call the CleanUpTraceData() method or, even easier,
+  use the context manager API, e.g.:
+
+      with trace_data.TraceDataBuilder() as builder:
+        builder.AddTraceFor(trace_part, data)
+        builder.Serialize(output_file)
   """
   def __init__(self):
-    self._raw_data = {}
+    self._traces = []
+    self._frozen = False
+    self._temp_dir = tempfile.mkdtemp()
 
   def __enter__(self):
     return self
 
   def __exit__(self, *args):
     self.CleanUpTraceData()
-
-  def AsData(self):
-    """Allow in-memory access to read the collected trace data.
-
-    TODO(crbug/928278): This method is only provided to support legacy TBMv1
-    metric computation, and should be removed when no such clients remain.
-    """
-    if self._raw_data is None:
-      raise RuntimeError('Can only AsData once')
-    data = _TraceData(self._raw_data)
-    self._raw_data = None
-    return data
 
   def OpenTraceHandleFor(self, part, compressed=False):
     """Open a file handle for writing trace data into it.
@@ -218,11 +124,13 @@ class TraceDataBuilder(object):
     """
     if not isinstance(part, TraceDataPart):
       raise TypeError('part must be a TraceDataPart instance')
+    if self._frozen:
+      raise RuntimeError('trace data builder is no longer open for writing')
     trace = _TraceItem(
         part_name=part.raw_field_name,
-        handle=tempfile.NamedTemporaryFile(delete=False),
+        handle=tempfile.NamedTemporaryFile(delete=False, dir=self._temp_dir),
         compressed=compressed)
-    self.AddTraceFor(part, trace)
+    self._traces.append(trace)
     return trace.handle
 
   def AddTraceFileFor(self, part, trace_file):
@@ -258,48 +166,82 @@ class TraceDataBuilder(object):
         discouraged and only exists to support legacy clients; new tracing
         agents should all produce structured trace data (e.g. proto or json).
     """
-    if self._raw_data is None:
-      raise RuntimeError('trace builder is no longer open for writing')
-    if not isinstance(part, TraceDataPart):
-      raise TypeError('part must be a TraceDataPart instance')
     if isinstance(data, StringTypes):
       if not allow_unstructured:
         raise ValueError('must pass allow_unstructured=True for text data')
-    elif not isinstance(data, (dict, _TraceItem)):
+      do_write = lambda d, f: f.write(d)
+    elif isinstance(data, dict):
+      do_write = json.dump
+    else:
       raise TypeError('invalid trace data type')
+    with self.OpenTraceHandleFor(part) as handle:
+      do_write(data, handle)
 
-    self._raw_data.setdefault(part.raw_field_name, [])
-    self._raw_data[part.raw_field_name].append(data)
+  def Freeze(self):
+    """Do not allow writing any more data into this builder."""
+    self._frozen = True
+    return self
 
   def CleanUpTraceData(self):
-    """Clean up resources used by the data builder.
-
-    Clients are responsible for calling this method when they are done
-    serializing or extracting the written trace data.
-
-    For convenience, clients may also use the TraceDataBuilder in a with
-    statement for automated cleaning up, e.g.
-
-        with trace_data.TraceDataBuilder() as builder:
-          builder.AddTraceFor(trace_part, data)
-          builder.Serialize(output_file)
-    """
-    if self._raw_data is None:
-      return  # Owner of the raw trace data is now responsible for clean up.
-    self.AsData().CleanUpAllTraces()
+    """Clean up resources used by the data builder."""
+    if self._traces is None:
+      return  # Already cleaned up.
+    self.Freeze()
+    for trace in self._traces:
+      # Make sure all trace handles are closed. It's fine if we close some
+      # of them multiple times.
+      trace.handle.close()
+    shutil.rmtree(self._temp_dir)
+    self._temp_dir = None
+    self._traces = None
 
   def Serialize(self, file_path, trace_title=None):
-    """Serialize the trace data to a file.
+    """Serialize the trace data to a file in HTML format."""
+    self.Freeze()
+    assert self._traces, 'trace data has already been cleaned up'
 
-    Note: Due to implementation limitations, this also implicitly cleans up
-    the trace data. However, clients shouldn't rely on this behavior and make
-    sure to clean up the TraceDataBuilder themselves too.
+    trace_size_data = collections.defaultdict(int)
+    trace_files = []
+    for trace in self._traces:
+      trace_size_data[trace.part_name] += os.path.getsize(trace.handle.name)
+      trace_files.append(trace.handle.name)
+    logging.info('Trace sizes in bytes: %s', dict(trace_size_data))
+
+    cmd = ['python', _TRACE2HTML_PATH]
+    cmd.extend(trace_files)
+    cmd.extend(['--output', file_path])
+    if trace_title is not None:
+      cmd.extend(['--title', trace_title])
+
+    start_time = time.time()
+    subprocess.check_output(cmd)
+    elapsed_time = time.time() - start_time
+    logging.info('trace2html finished in %.02f seconds.', elapsed_time)
+
+  def AsData(self):
+    """Allow in-memory access to read the collected JSON trace data.
+
+    This method is only provided for writing tests which require read access
+    to the collected trace data (e.g. for tracing agents to test they correctly
+    write data), and to support legacy TBMv1 metric computation. Only traces
+    in JSON format are supported.
+
+    Be careful: this may require a lot of memory if the traces to process are
+    very large. This has lead in the past to OOM errors (e.g. crbug/672097).
+
+    TODO(crbug/928278): Ideally, this method should be removed when it can be
+    entirely replaced by calls to an external trace processor.
     """
-    data = self.AsData()
-    try:
-      data.Serialize(file_path, trace_title)
-    finally:
-      data.CleanUpAllTraces()
+    self.Freeze()
+    assert self._traces, 'trace data has already been cleaned up'
+
+    raw_data = {}
+    for trace in self._traces:
+      traces_for_part = raw_data.setdefault(trace.part_name, [])
+      opener = gzip.open if trace.compressed else open
+      with opener(trace.handle.name, 'rb') as f:
+        traces_for_part.append(json.load(f))
+    return _TraceData(raw_data)
 
 
 def CreateTestTrace(number=1):
@@ -313,7 +255,7 @@ def CreateTestTrace(number=1):
   """
   builder = TraceDataBuilder()
   builder.AddTraceFor(CHROME_TRACE_PART, {'traceEvents': [{'test': number}]})
-  return builder.AsData()
+  return builder.Freeze()
 
 
 def CreateFromRawChromeEvents(events):

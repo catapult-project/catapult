@@ -136,7 +136,7 @@ class TracingControllerBackend(object):
           'Exceptions raised when trying to stop tracing:\n' +
           '\n'.join(raised_exception_messages))
 
-    return builder.AsData()
+    return builder.Freeze()
 
   def FlushTracing(self, discard_current=False):
     assert self.is_tracing_running, 'Can only flush tracing when tracing is on.'

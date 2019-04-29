@@ -104,10 +104,11 @@ class TraceDataBuilderTest(unittest.TestCase):
         builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
                             {'traceEvents': [1, 2, 3]})
 
-  def testCantCallAsDataTwice(self):
+  def testCantWriteAfterFreeze(self):
     with trace_data.TraceDataBuilder() as builder:
       builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
                           {'traceEvents': [1, 2, 3]})
-      builder.AsData().CleanUpAllTraces()
-      with self.assertRaises(Exception):
-        builder.AsData()
+      builder.Freeze()
+      with self.assertRaises(RuntimeError):
+        builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
+                            {'traceEvents': [1, 2, 3]})

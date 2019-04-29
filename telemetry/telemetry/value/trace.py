@@ -15,7 +15,7 @@ from telemetry import value as value_module
 
 
 class TraceValue(value_module.Value):
-  def __init__(self, page, trace_data, important=False, description=None,
+  def __init__(self, page, trace_builder, important=False, description=None,
                file_path=None, remote_path=None, upload_bucket=None,
                cloud_url=None, trace_url=None):
     """A value that contains trace data and knows how to output it.
@@ -25,14 +25,18 @@ class TraceValue(value_module.Value):
     an index, files.html, linking to each of these files.
 
     Args:
+      page: A Page object, may be given as None to indicate that the value
+        represents results for multiple pages.
+      trace_builder: A frozen TraceDataBuilder object, containing all the
+        trace data collected from multiple tracing agents.
       cloud_url: The URL to upload the data to. This can be None when not
-                 uploading data to the cloud.
+        uploading data to the cloud.
       trace_url: The URL to the trace file (typically in the local file system).
     """
     super(TraceValue, self).__init__(
         page, name='trace', units='', important=important,
         description=description, tir_label=None, grouping_keys=None)
-    self._trace_data = trace_data
+    self._trace_builder = trace_builder
     self._temp_file = None
     self._file_path = file_path
     self._remote_path = remote_path
@@ -51,15 +55,15 @@ class TraceValue(value_module.Value):
 
   def SerializeTraceData(self):
     if not self._temp_file:
-      self._temp_file = self._GetTempFileHandle(self._trace_data)
+      self._temp_file = self._GetTempFileHandle(self._trace_builder)
 
-  def _GetTempFileHandle(self, trace_data):
+  def _GetTempFileHandle(self, trace_builder):
     tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
     tf.close()
     title = ''
     if self.page:
       title = self.page.name
-    trace_data.Serialize(tf.name, trace_title=title)
+    trace_builder.Serialize(tf.name, trace_title=title)
     return file_handle.FromFilePath(tf.name)
 
   def __repr__(self):
@@ -79,9 +83,9 @@ class TraceValue(value_module.Value):
     A cleaned up TraceValue cannot be used for further operations. CleanUp()
     may be called more than once without error.
     """
-    if self._trace_data:
-      self._trace_data.CleanUpAllTraces()
-      self._trace_data = None
+    if self._trace_builder:
+      self._trace_builder.CleanUpTraceData()
+      self._trace_builder = None
 
     if self._temp_file is None:
       return
@@ -96,7 +100,7 @@ class TraceValue(value_module.Value):
 
   @property
   def cleaned_up(self):
-    return self._temp_file is None and self._trace_data is None
+    return self._temp_file is None and self._trace_builder is None
 
   @property
   def is_serialized(self):

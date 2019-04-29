@@ -2,10 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
-import shutil
-import tempfile
-
+from py_utils import tempfile_ext
 from tracing.mre import map_single_trace
 
 
@@ -44,52 +41,59 @@ function processTrace(results, model) {
 """
 
 
-def _SerializeAndProcessTrace(trace_data, process_trace_func_code):
-  temp_dir = tempfile.mkdtemp()
-  try:
-    trace_file_path = os.path.join(temp_dir, 'temp_trace')
-    trace_data.Serialize(trace_file_path)
-    return map_single_trace.ExecuteTraceMappingCode(
-        trace_file_path, process_trace_func_code)
-  finally:
-    shutil.rmtree(temp_dir)
+def _SerializeAndProcessTrace(trace_builder, process_trace_func_code):
+  """Load data into a trace model and run a query on it.
+
+  The current implementation works by loading the trace data into the TBMv2,
+  i.e. JavaScript based, timeline model. But this is an implementation detail,
+  clients for the public methods of this module should remain agnostic about
+  the model being used for trace processing.
+  """
+  with tempfile_ext.TemporaryFileName() as trace_file:
+    try:
+      trace_builder.Serialize(trace_file)
+      return map_single_trace.ExecuteTraceMappingCode(
+          trace_file, process_trace_func_code)
+    finally:
+      trace_builder.CleanUpTraceData()
 
 
-def ExtractTimelineMarkers(trace_data):
+def ExtractTimelineMarkers(trace_builder):
   """Get a list with the titles of 'blink.console' events found in a trace.
 
   This will include any events that were inserted using tab.AddTimelineMarker
   while a trace was being recorded.
 
-  The current implementation works by loading the trace data into the TBMv2,
-  i.e. JavaScript based, timeline model. But this is an implementation detail,
-  clients remain agnostic about the model used for trace processing.
+  Args:
+    trace_builder: A TraceDataBuilder object; trace data is extracted from it
+      and the builder itself is cleaned up.
   """
-  return _SerializeAndProcessTrace(trace_data, _GET_TIMELINE_MARKERS)['markers']
+  return _SerializeAndProcessTrace(
+      trace_builder, _GET_TIMELINE_MARKERS)['markers']
 
 
-def ExtractMemoryDumpIds(trace_data):
+def ExtractMemoryDumpIds(trace_builder):
   """Get a list with the ids of 'GlobalMemoryDump' events found in a trace.
 
-  The current implementation works by loading the trace data into the TBMv2,
-  i.e. JavaScript based, timeline model. But this is an implementation detail,
-  clients remain agnostic about the model used for trace processing.
+  Args:
+    trace_builder: A TraceDataBuilder object; trace data is extracted from it
+      and the builder itself is cleaned up.
   """
   event_ids = _SerializeAndProcessTrace(
-      trace_data, _GET_MEMORY_DUMP_EVENT_IDS)['event_ids']
+      trace_builder, _GET_MEMORY_DUMP_EVENT_IDS)['event_ids']
   # Event ids look like this: 'disabled-by-default-memory-infra:87890:ptr:0x3'.
   # The part after the last ':' is the dump id.
   return [eid.rsplit(':')[-1] for eid in event_ids]
 
 
-def ExtractCompleteSyncIds(trace_data):
-  """Get a list of ids of complete syncs (i.e. those that have markers
-  from two clock domains).
+def ExtractCompleteSyncIds(trace_builder):
+  """Get a list of ids of complete clock syncs.
 
-  The current implementation works by loading the trace data into the TBMv2,
-  i.e. JavaScript based, timeline model. But this is an implementation detail,
-  clients remain agnostic about the model used for trace processing.
+  Complete clock syncs a those that have markers from two clock domains.
+
+  Args:
+    trace_builder: A TraceDataBuilder object; trace data is extracted from it
+      and the builder itself is cleaned up.
   """
   return _SerializeAndProcessTrace(
-      trace_data, _GET_COMPLETE_SYNC_IDS)['sync_ids']
-
+      trace_builder, _GET_COMPLETE_SYNC_IDS)['sync_ids']
