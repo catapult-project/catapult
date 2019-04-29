@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <chromeperf-app state-path="test"></chromeperf-app>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -31,6 +25,15 @@ import {afterRender, animationFrame} from './utils.js';
 window.AUTH_CLIENT_ID = '';
 
 suite('chromeperf-app', function() {
+  async function fixture() {
+    const app = document.createElement('chromeperf-app');
+    app.statePath = 'test';
+    document.body.appendChild(app);
+    await afterRender();
+    await afterRender();  // Again to wait for receiveSessionState.
+    return app;
+  }
+
   let originalFetch;
   let originalAuthorizationHeaders;
   setup(() => {
@@ -75,13 +78,16 @@ suite('chromeperf-app', function() {
     };
   });
   teardown(() => {
+    for (const child of document.body.children) {
+      if (!child.matches('chromeperf-app')) continue;
+      document.body.removeChild(child);
+    }
     window.fetch = originalFetch;
     window.getAuthorizationHeaders = originalAuthorizationHeaders;
   });
 
   test('newAlerts', async function() {
-    const app = fixture('test');
-    await afterRender();
+    const app = await fixture();
     assert.lengthOf(app.alertsSectionIds, 0);
     app.$.new_alerts.click();
     await afterRender();
@@ -89,8 +95,7 @@ suite('chromeperf-app', function() {
   });
 
   test('closeAlerts', async function() {
-    const app = fixture('test');
-    await afterRender();
+    const app = await fixture();
     app.$.new_alerts.click();
     await afterRender();
     const alerts = app.shadowRoot.querySelector('alerts-section');
@@ -102,8 +107,7 @@ suite('chromeperf-app', function() {
   });
 
   test('reopenAlerts', async function() {
-    const app = fixture('test');
-    await afterRender();
+    const app = await fixture();
     app.$.new_alerts.click();
     await afterRender();
     const alerts = app.shadowRoot.querySelector('alerts-section');
@@ -127,9 +131,7 @@ suite('chromeperf-app', function() {
   });
 
   test('newChart', async function() {
-    const app = fixture('test');
-    await afterRender();
-    await afterRender();  // Again to wait for receiveSessionState.
+    const app = await fixture();
     assert.lengthOf(app.chartSectionIds, 0);
 
     app.$.new_chart.click();
@@ -138,9 +140,7 @@ suite('chromeperf-app', function() {
   });
 
   test('closeChart', async function() {
-    const app = fixture('test');
-    await afterRender();
-    await afterRender();
+    const app = await fixture();
     app.$.new_chart.click();
     await afterRender();
     await afterRender();
@@ -153,8 +153,7 @@ suite('chromeperf-app', function() {
   });
 
   test('closeAllCharts', async function() {
-    const app = fixture('test');
-    await afterRender();
+    const app = await fixture();
     app.$.new_chart.click();
     await afterRender();
     app.$.close_charts.click();
@@ -163,9 +162,7 @@ suite('chromeperf-app', function() {
   });
 
   test('reopenCharts', async function() {
-    const app = fixture('test');
-    await afterRender();
-    await afterRender();  // Again to wait for receiveSessionState.
+    const app = await fixture();
     app.$.new_chart.click();
     await afterRender();
     const chart = app.shadowRoot.querySelector('chart-section');
@@ -198,20 +195,17 @@ suite('chromeperf-app', function() {
   });
 
   test('restoreFromRoute session', async function() {
-    const app = fixture('test');
-    await afterRender();
+    const app = await fixture();
     await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
       session: 42,
     }));
-    // TODO Figure out why this can take 200ms.
     while (app.reduxRoutePath === '#') await animationFrame();
     assert.strictEqual('report=from+session&minRev=612437&maxRev=625896',
         app.reduxRoutePath);
   });
 
   test('restoreFromRoute report', async function() {
-    const app = fixture('test');
-    await afterRender();
+    const app = await fixture();
     await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
       report: 'name',
     }));
@@ -220,8 +214,7 @@ suite('chromeperf-app', function() {
   });
 
   test('restoreFromRoute sheriff', async function() {
-    const app = fixture('test');
-    await afterRender();
+    const app = await fixture();
     await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
       sheriff: 'name',
     }));
@@ -232,8 +225,7 @@ suite('chromeperf-app', function() {
   });
 
   test('restoreFromRoute chart', async function() {
-    const app = fixture('test');
-    await afterRender();
+    const app = await fixture();
     await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
       suite: 'suite:name',
       measurement: 'measure',

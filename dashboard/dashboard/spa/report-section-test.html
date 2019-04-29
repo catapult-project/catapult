@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <report-section state-path="test"></report-section>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -96,11 +90,14 @@ suite('report-section', function() {
   });
 
   test('loadReports', async function() {
-    fixture('test').dispatch(CHAIN(
+    const section = document.createElement('report-section');
+    section.statePath = 'test';
+    await section.dispatch(CHAIN(
         ENSURE('test'),
         ENSURE('test.source'),
         UPDATE('test', ReportSection.buildState({}))));
-    const section = fixture('test');
+    document.body.appendChild(section);
+    await afterRender();
     assert.isTrue(section.tables[0].isPlaceholder);
     while (section.tables[0].isPlaceholder) {
       await afterRender();

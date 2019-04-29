@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="input">
-  <template>
-    <input>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 import * as utils from './utils.js';
@@ -82,13 +76,16 @@ suite('utils', function() {
   });
 
   test('getActiveElement', function() {
-    const input = fixture('input');
+    const input = document.createElement('input');
+    document.body.appendChild(input);
     input.focus();
     assert.strictEqual(input, utils.getActiveElement());
   });
 
   test('measureElement', async function() {
-    const rect = await utils.measureElement(fixture('input'));
+    const input = document.createElement('input');
+    document.body.appendChild(input);
+    const rect = await utils.measureElement(input);
     assert.isBelow(0, rect.bottom);
     assert.isBelow(0, rect.height);
     assert.isBelow(0, rect.left);

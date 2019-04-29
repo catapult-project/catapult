@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <alerts-section state-path="test"></alerts-section>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -32,6 +26,36 @@ import {afterRender} from './utils.js';
 window.AUTH_CLIENT_ID = '';
 
 suite('alerts-section', function() {
+  async function fixture() {
+    const section = document.createElement('alerts-section');
+    section.statePath = 'test';
+    await section.dispatch(CHAIN(
+        UPDATE('', {
+          recentPerformanceBugs: [
+            {
+              id: '123456',
+              summary: 'bug 123456 summary',
+              revisionRange: tr.b.math.Range.fromExplicitRange(123, 456),
+            },
+            {
+              id: '234567',
+              summary: 'bug 234567 summary',
+              revisionRange: tr.b.math.Range.fromExplicitRange(234, 567),
+            },
+            {
+              id: '345678',
+              summary: 'bug 345678 summary',
+              revisionRange: tr.b.math.Range.fromExplicitRange(345, 678),
+            },
+          ],
+        }),
+        ENSURE('test'),
+        UPDATE('test', AlertsSection.buildState({}))));
+    document.body.appendChild(section);
+    await afterRender();
+    return section;
+  }
+
   let originalFetch;
   let existingBugBody;
   let newBugBody;
@@ -105,6 +129,10 @@ suite('alerts-section', function() {
     ]));
   });
   teardown(() => {
+    for (const child of document.body.children) {
+      if (!child.matches('alerts-section')) continue;
+      document.body.removeChild(child);
+    }
     window.fetch = originalFetch;
     localStorage.removeItem('recentlyModifiedBugs');
   });
@@ -140,30 +168,7 @@ suite('alerts-section', function() {
   });
 
   test('triageNew', async function() {
-    const section = fixture('test');
-    section.dispatch(CHAIN(
-        UPDATE('', {
-          recentPerformanceBugs: [
-            {
-              id: '123456',
-              summary: 'bug 123456 summary',
-              revisionRange: tr.b.math.Range.fromExplicitRange(123, 456),
-            },
-            {
-              id: '234567',
-              summary: 'bug 234567 summary',
-              revisionRange: tr.b.math.Range.fromExplicitRange(234, 567),
-            },
-            {
-              id: '345678',
-              summary: 'bug 345678 summary',
-              revisionRange: tr.b.math.Range.fromExplicitRange(345, 678),
-            },
-          ],
-        }),
-        ENSURE('test'),
-        UPDATE('test', AlertsSection.buildState({}))));
-    await afterRender();
+    const section = await fixture();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
       detail: {sources: [
         {bug: 42},
@@ -202,30 +207,7 @@ suite('alerts-section', function() {
   });
 
   test('triageExisting', async function() {
-    const section = fixture('test');
-    section.dispatch(CHAIN(
-        UPDATE('', {
-          recentPerformanceBugs: [
-            {
-              id: '123456',
-              summary: 'bug 123456 summary',
-              revisionRange: tr.b.math.Range.fromExplicitRange(123, 456),
-            },
-            {
-              id: '234567',
-              summary: 'bug 234567 summary',
-              revisionRange: tr.b.math.Range.fromExplicitRange(234, 567),
-            },
-            {
-              id: '345678',
-              summary: 'bug 345678 summary',
-              revisionRange: tr.b.math.Range.fromExplicitRange(345, 678),
-            },
-          ],
-        }),
-        ENSURE('test'),
-        UPDATE('test', AlertsSection.buildState({}))));
-    await afterRender();
+    const section = await fixture();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
       detail: {sources: [
         {bug: 42},
@@ -263,30 +245,7 @@ suite('alerts-section', function() {
   });
 
   test('ignore', async function() {
-    const section = fixture('test');
-    section.dispatch(CHAIN(
-        UPDATE('', {
-          recentPerformanceBugs: [
-            {
-              id: '123456',
-              summary: 'bug 123456 summary',
-              revisionRange: tr.b.math.Range.fromExplicitRange(123, 456),
-            },
-            {
-              id: '234567',
-              summary: 'bug 234567 summary',
-              revisionRange: tr.b.math.Range.fromExplicitRange(234, 567),
-            },
-            {
-              id: '345678',
-              summary: 'bug 345678 summary',
-              revisionRange: tr.b.math.Range.fromExplicitRange(345, 678),
-            },
-          ],
-        }),
-        ENSURE('test'),
-        UPDATE('test', AlertsSection.buildState({}))));
-    await afterRender();
+    const section = await fixture();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
       detail: {sources: [
         {bug: 42},
@@ -316,30 +275,7 @@ suite('alerts-section', function() {
   });
 
   test('unassign', async function() {
-    const section = fixture('test');
-    section.dispatch(CHAIN(
-        UPDATE('', {
-          recentPerformanceBugs: [
-            {
-              id: '123456',
-              summary: 'bug 123456 summary',
-              revisionRange: tr.b.math.Range.fromExplicitRange(123, 456),
-            },
-            {
-              id: '234567',
-              summary: 'bug 234567 summary',
-              revisionRange: tr.b.math.Range.fromExplicitRange(234, 567),
-            },
-            {
-              id: '345678',
-              summary: 'bug 345678 summary',
-              revisionRange: tr.b.math.Range.fromExplicitRange(345, 678),
-            },
-          ],
-        }),
-        ENSURE('test'),
-        UPDATE('test', AlertsSection.buildState({}))));
-    await afterRender();
+    const section = await fixture();
     section.$.controls.dispatchEvent(new CustomEvent('sources', {
       detail: {sources: [
         {bug: 42},

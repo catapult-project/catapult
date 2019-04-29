@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <report-template state-path="test"></report-template>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -27,6 +21,35 @@ import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
 
 suite('report-template', function() {
+  async function fixture() {
+    const template = document.createElement('report-template');
+    template.statePath = 'test';
+    await template.dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', ReportTemplate.buildState({
+          id: 42,
+          name: 'test name',
+          owners: 'me@chromium.org',
+          rows: [
+            ReportTemplate.newTemplateRow({
+              label: 'label',
+              suites: ['suite'],
+              measurement: 'measurement',
+              bots: ['master:bot'],
+              cases: ['case'],
+            }),
+          ],
+          statistic: MenuInput.buildState({
+            options: ['avg', 'std'],
+            selectedOptions: ['avg'],
+          }),
+          url: 'http://example.com',
+        }))));
+    document.body.appendChild(template);
+    await afterRender();
+    return template;
+  }
+
   let originalFetch;
   let templateBody;
   setup(() => {
@@ -123,29 +146,7 @@ suite('report-template', function() {
   });
 
   test('addRemoveRow', async function() {
-    const template = fixture('test');
-    template.dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', ReportTemplate.buildState({
-          id: 42,
-          name: 'test name',
-          owners: 'me@chromium.org',
-          rows: [
-            ReportTemplate.newTemplateRow({
-              label: 'label',
-              suites: ['suite'],
-              measurement: 'measurement',
-              bots: ['master:bot'],
-              cases: ['case'],
-            }),
-          ],
-          statistic: MenuInput.buildState({
-            options: ['avg', 'std'],
-            selectedOptions: ['avg'],
-          }),
-          url: 'http://example.com',
-        }))));
-    await afterRender();
+    const template = await fixture();
     assert.lengthOf(template.rows, 1);
 
     template.shadowRoot.querySelector('iron-icon').click();
@@ -158,29 +159,7 @@ suite('report-template', function() {
   });
 
   test('save', async function() {
-    const template = fixture('test');
-    template.dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', ReportTemplate.buildState({
-          id: 42,
-          name: 'test name',
-          owners: 'me@chromium.org',
-          rows: [
-            ReportTemplate.newTemplateRow({
-              label: 'label',
-              suites: ['suite'],
-              measurement: 'measurement',
-              bots: ['master:bot'],
-              cases: ['case'],
-            }),
-          ],
-          statistic: MenuInput.buildState({
-            options: ['avg', 'std'],
-            selectedOptions: ['avg'],
-          }),
-          url: 'http://example.com',
-        }))));
-    await afterRender();
+    const template = await fixture();
     template.$.save.click();
     await afterRender();
     assert.strictEqual('42', templateBody.get('id'));

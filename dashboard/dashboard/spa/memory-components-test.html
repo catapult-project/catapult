@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <memory-components state-path="test"></memory-components>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -67,10 +61,12 @@ suite('memory-components', function() {
   };
 
   test('select', async function() {
-    fixture('test').dispatch(UPDATE('', {
+    const memoryComponents = document.createElement('memory-components');
+    memoryComponents.statePath = 'test';
+    await memoryComponents.dispatch(UPDATE('', {
       test: MemoryComponents.buildState(OPTIONS),
     }));
-    const memoryComponents = fixture('test');
+    document.body.appendChild(memoryComponents);
     await afterRender();
     let state = memoryComponents.getState().test;
     assert.lengthOf(state.columns, 5);

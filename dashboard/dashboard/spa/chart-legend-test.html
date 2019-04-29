@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <chart-legend></chart-legend>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -24,7 +18,8 @@ import {afterRender} from './utils.js';
 
 suite('chart-legend', function() {
   test('recursive', async function() {
-    const chartLegend = fixture('test');
+    const chartLegend = document.createElement('chart-legend');
+    document.body.appendChild(chartLegend);
     chartLegend.items = [
       {label: 'A', color: 'red'},
       {label: 'B', children: [
@@ -51,7 +46,8 @@ suite('chart-legend', function() {
   });
 
   test('leafClick', async function() {
-    const chartLegend = fixture('test');
+    const chartLegend = document.createElement('chart-legend');
+    document.body.appendChild(chartLegend);
     chartLegend.items = [
       {label: 'A', color: 'red'},
     ];

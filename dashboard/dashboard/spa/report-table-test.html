@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <report-table state-path="test"></report-table>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -23,6 +17,17 @@ import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
 
 suite('report-table', function() {
+  async function fixture() {
+    const report = document.createElement('report-table');
+    report.statePath = 'test';
+    await report.dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', ReportTable.buildState(options()))));
+    document.body.appendChild(report);
+    await afterRender();
+    return report;
+  }
+
   function options() {
     return {
       minRevision: 10,
@@ -62,12 +67,7 @@ suite('report-table', function() {
   }
 
   test('tooltip', async function() {
-    const report = fixture('test');
-    report.dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', ReportTable.buildState(options()))));
-    await afterRender();
-
+    const report = await fixture();
     const tr = report.$.table.querySelector('tbody').children[0];
     tr.dispatchEvent(new CustomEvent('mouseenter', {}));
     await afterRender();
@@ -98,11 +98,7 @@ suite('report-table', function() {
   });
 
   test('copy', async function() {
-    const report = fixture('test');
-    report.dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', ReportTable.buildState(options()))));
-    await afterRender();
+    const report = await fixture();
     report.$.copy.click();
     assert.isTrue(report.$.copied.opened);
   });

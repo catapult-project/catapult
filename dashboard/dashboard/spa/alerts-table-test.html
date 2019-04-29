@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <alerts-table state-path="test">
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -25,9 +19,11 @@ import {afterRender} from './utils.js';
 
 suite('alerts-table', function() {
   test('placeholder', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const table = fixture('test');
-    table.dispatch(UPDATE('test', AlertsTable.buildState({})));
+    const table = document.createElement('alerts-table');
+    table.statePath = 'test';
+    await table.dispatch(ENSURE('test'));
+    await table.dispatch(UPDATE('test', AlertsTable.buildState({})));
+    document.body.appendChild(table);
     await afterRender();
     const baseTable = findElements(table, e => e.matches('table'))[0];
     assert.strictEqual('rgb(128, 128, 128)', getComputedStyle(
@@ -38,9 +34,10 @@ suite('alerts-table', function() {
   });
 
   test('allTriaged newAlerts', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const table = fixture('test');
-    table.dispatch(UPDATE('test', AlertsTable.buildState({
+    const table = document.createElement('alerts-table');
+    table.statePath = 'test';
+    await table.dispatch(ENSURE('test'));
+    await table.dispatch(UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           isSelected: false,
@@ -81,27 +78,31 @@ suite('alerts-table', function() {
         },
       ],
     })));
+    document.body.appendChild(table);
     await afterRender();
     assert.isDefined(findElements(table, e =>
       e.matches('iron-icon[icon="cp-big:cat"]'))[0]);
   });
 
   test('allTriaged showingTriaged', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const table = fixture('test');
-    table.dispatch(UPDATE('test', AlertsTable.buildState({
+    const table = document.createElement('alerts-table');
+    table.statePath = 'test';
+    await table.dispatch(ENSURE('test'));
+    await table.dispatch(UPDATE('test', AlertsTable.buildState({
       showingTriaged: true,
       alertGroups: [],
     })));
+    document.body.appendChild(table);
     await afterRender();
     assert.isDefined(findElements(table,
         e => e.matches('iron-icon[icon="cp-big:cat"]'))[0]);
   });
 
   test('sort', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const table = fixture('test');
-    table.dispatch(UPDATE('test', AlertsTable.buildState({
+    const table = document.createElement('alerts-table');
+    table.statePath = 'test';
+    await table.dispatch(ENSURE('test'));
+    await table.dispatch(UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           isSelected: false,
@@ -174,6 +175,7 @@ suite('alerts-table', function() {
         },
       ],
     })));
+    document.body.appendChild(table);
     await afterRender();
 
     const measurementColumn = findElements(table, e =>
@@ -269,9 +271,10 @@ suite('alerts-table', function() {
   });
 
   test('shouldDisplaySelectedCount newAlerts', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const table = fixture('test');
-    table.dispatch(UPDATE('test', AlertsTable.buildState({
+    const table = document.createElement('alerts-table');
+    table.statePath = 'test';
+    await table.dispatch(ENSURE('test'));
+    await table.dispatch(UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           isSelected: false,
@@ -313,6 +316,7 @@ suite('alerts-table', function() {
         },
       ],
     })));
+    document.body.appendChild(table);
     await afterRender();
     const selectedCounts = findElements(table, e =>
       e.tagName === 'CP-CHECKBOX' && e.textContent.trim() === '1/2');
@@ -323,9 +327,10 @@ suite('alerts-table', function() {
   });
 
   test('shouldDisplaySelectedCount showingTriaged', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const table = fixture('test');
-    table.dispatch(UPDATE('test', AlertsTable.buildState({
+    const table = document.createElement('alerts-table');
+    table.statePath = 'test';
+    await table.dispatch(ENSURE('test'));
+    await table.dispatch(UPDATE('test', AlertsTable.buildState({
       showingTriaged: true,
       alertGroups: [
         {
@@ -368,6 +373,7 @@ suite('alerts-table', function() {
         },
       ],
     })));
+    document.body.appendChild(table);
     await afterRender();
     const selectedCounts = findElements(table, e =>
       e.tagName === 'CP-CHECKBOX' && e.textContent.trim() === '1/2');
@@ -378,9 +384,10 @@ suite('alerts-table', function() {
   });
 
   test('isAlertIgnored', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const table = fixture('test');
-    table.dispatch(UPDATE('test', AlertsTable.buildState({
+    const table = document.createElement('alerts-table');
+    table.statePath = 'test';
+    await table.dispatch(ENSURE('test'));
+    await table.dispatch(UPDATE('test', AlertsTable.buildState({
       showingTriaged: true,
       alertGroups: [
         {
@@ -408,15 +415,17 @@ suite('alerts-table', function() {
         },
       ],
     })));
+    document.body.appendChild(table);
     await afterRender();
     assert.isDefined(findElements(table, e =>
       e.tagName === 'TD' && e.textContent.trim() === 'ignored')[0]);
   });
 
   test('selectAlert single', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const table = fixture('test');
-    table.dispatch(UPDATE('test', AlertsTable.buildState({
+    const table = document.createElement('alerts-table');
+    table.statePath = 'test';
+    await table.dispatch(ENSURE('test'));
+    await table.dispatch(UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           triaged: {count: 0, isExpanded: false},
@@ -439,6 +448,7 @@ suite('alerts-table', function() {
         },
       ],
     })));
+    document.body.appendChild(table);
     await afterRender();
     const tbody = findElements(table, e => e.matches('tbody'))[0];
     const checkbox = findElements(tbody, e => e.matches('cp-checkbox'))[0];
@@ -448,9 +458,10 @@ suite('alerts-table', function() {
   });
 
   test('selectAlert toggleAll', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const table = fixture('test');
-    table.dispatch(UPDATE('test', AlertsTable.buildState({
+    const table = document.createElement('alerts-table');
+    table.statePath = 'test';
+    await table.dispatch(ENSURE('test'));
+    await table.dispatch(UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           triaged: {count: 0, isExpanded: false},
@@ -487,6 +498,7 @@ suite('alerts-table', function() {
         },
       ],
     })));
+    document.body.appendChild(table);
     await afterRender();
     const tbody = findElements(table, e => e.matches('tbody'))[0];
     const checkbox = findElements(tbody, e => e.matches('cp-checkbox'))[0];
@@ -497,9 +509,10 @@ suite('alerts-table', function() {
   });
 
   test('selectAlert shiftKey', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const table = fixture('test');
-    table.dispatch(UPDATE('test', AlertsTable.buildState({
+    const table = document.createElement('alerts-table');
+    table.statePath = 'test';
+    await table.dispatch(ENSURE('test'));
+    await table.dispatch(UPDATE('test', AlertsTable.buildState({
       alertGroups: [
         {
           isExpanded: true,
@@ -589,6 +602,7 @@ suite('alerts-table', function() {
         },
       ],
     })));
+    document.body.appendChild(table);
     await afterRender();
     const checkboxes = findElements(
         findElements(table, e => e.matches('tbody'))[0],

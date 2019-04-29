@@ -9,13 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <chart-section state-path="test" linked-state-path="linked">
-    </chart-section>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -23,13 +16,26 @@ import ChartSection from './chart-section.js';
 import DescribeRequest from './describe-request.js';
 import TestSuitesRequest from './test-suites-request.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
-import {ENSURE, UPDATE} from './simple-redux.js';
+import findElements from './find-elements.js';
+import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {afterRender} from './utils.js';
 
 window.AUTH_CLIENT_ID = '';
 
 suite('chart-section', function() {
+  async function fixture() {
+    const chart = document.createElement('chart-section');
+    chart.statePath = 'test';
+    chart.linkedStatePath = 'linked';
+    await chart.dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', ChartSection.buildState({}))));
+    document.body.appendChild(chart);
+    await afterRender();
+    return chart;
+  }
+
   let originalFetch;
   let originalAuthorizationHeaders;
   let timeseriesBody;
@@ -67,15 +73,16 @@ suite('chart-section', function() {
     };
   });
   teardown(() => {
+    for (const child of document.body.children) {
+      if (!child.matches('chart-section')) continue;
+      document.body.removeChild(child);
+    }
     window.fetch = originalFetch;
     window.getAuthorizationHeaders = originalAuthorizationHeaders;
   });
 
   test('descriptor', async function() {
-    const chart = fixture('test');
-    chart.dispatch(ENSURE('test'));
-    chart.dispatch(UPDATE('test', ChartSection.buildState({})));
-    await afterRender();
+    const chart = await fixture();
     await chart.dispatch(UPDATE(chart.statePath, {
       descriptor: TimeseriesDescriptor.buildState({
         suite: {
@@ -106,10 +113,7 @@ suite('chart-section', function() {
   });
 
   test('statistic', async function() {
-    const chart = fixture('test');
-    chart.dispatch(ENSURE('test'));
-    chart.dispatch(UPDATE('test', ChartSection.buildState({})));
-    await afterRender();
+    const chart = await fixture();
     await chart.dispatch(UPDATE('test', {
       descriptor: TimeseriesDescriptor.buildState({
         suite: {
@@ -139,10 +143,7 @@ suite('chart-section', function() {
   });
 
   test('title', async function() {
-    const chart = fixture('test');
-    chart.dispatch(ENSURE('test'));
-    chart.dispatch(UPDATE('test', ChartSection.buildState({})));
-    await afterRender();
+    const chart = await fixture();
     chart.$.title.value = 'test';
     chart.$.title.dispatchEvent(new CustomEvent('keyup'));
     await afterRender();

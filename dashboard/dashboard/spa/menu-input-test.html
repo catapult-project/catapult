@@ -9,13 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <menu-input state-path="xxx"></menu-input>
-    <menu-input state-path="yyy"></menu-input>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -24,7 +17,11 @@ import {UPDATE} from './simple-redux.js';
 
 suite('menu-input', function() {
   test('focus', async function() {
-    fixture('test')[0].dispatch(UPDATE('', {
+    const xxxInput = document.createElement('menu-input');
+    xxxInput.statePath = 'xxx';
+    const yyyInput = document.createElement('menu-input');
+    yyyInput.statePath = 'yyy';
+    await xxxInput.dispatch(UPDATE('', {
       xxx: MenuInput.buildState({
         label: 'XXX',
         options: new Set([
@@ -46,7 +43,8 @@ suite('menu-input', function() {
         ]),
       }),
     }));
-    const [xxxInput, yyyInput] = fixture('test');
+    document.body.appendChild(xxxInput);
+    document.body.appendChild(yyyInput);
     xxxInput.$.input.click();
     assert.isTrue(xxxInput.isFocused);
     assert.isFalse(yyyInput.isFocused);
@@ -57,28 +55,6 @@ suite('menu-input', function() {
   });
 
   test('inputValue', async function() {
-    fixture('test')[0].dispatch(UPDATE('', {
-      xxx: MenuInput.buildState({
-        label: 'XXX',
-        options: new Set([
-          'aaa',
-          'bbb:ccc',
-          'bbb:ddd',
-          'bbb:ddd:eee',
-          'bbb:ddd:fff',
-        ]),
-      }),
-      yyy: MenuInput.buildState({
-        label: 'YYY',
-        options: new Set([
-          'aaa',
-          'bbb:ccc',
-          'bbb:ddd',
-          'bbb:ddd:eee',
-          'bbb:ddd:fff',
-        ]),
-      }),
-    }));
     assert.strictEqual('q', MenuInput.inputValue(true, 'q', undefined));
     assert.strictEqual('', MenuInput.inputValue(false, 'q', undefined));
     assert.strictEqual('', MenuInput.inputValue(false, 'q', []));

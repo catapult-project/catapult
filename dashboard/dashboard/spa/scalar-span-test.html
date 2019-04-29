@@ -14,12 +14,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="format">
-  <template>
-    <scalar-span></scalar-span>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -28,7 +22,8 @@ import {afterRender} from './utils.js';
 
 suite('scalar-span', function() {
   test('format', async function() {
-    const scalarSpan = fixture('format');
+    const scalarSpan = document.createElement('scalar-span');
+    document.body.appendChild(scalarSpan);
     scalarSpan.unit = tr.b.Unit.byName.timeDurationInMsDelta_smallerIsBetter;
     scalarSpan.value = 1.111111;
     await afterRender();

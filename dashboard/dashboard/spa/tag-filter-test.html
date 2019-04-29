@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <tag-filter state-path="test"></tag-filter>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -27,7 +21,9 @@ import {afterRender} from './utils.js';
 
 suite('tag-filter', function() {
   test('filter', async function() {
-    fixture('test').dispatch(UPDATE('', {
+    const tagFilter = document.createElement('tag-filter');
+    tagFilter.statePath = 'test';
+    await tagFilter.dispatch(UPDATE('', {
       test: {
         ...MenuInput.buildState({
           label: 'Test',
@@ -53,7 +49,7 @@ suite('tag-filter', function() {
         },
       },
     }));
-    const tagFilter = fixture('test');
+    document.body.appendChild(tagFilter);
     await afterRender();
 
     const xxx = findElements(tagFilter, e =>

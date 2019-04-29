@@ -9,13 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <option-group state-path="test" root-state-path="test">
-    </option-group>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -25,6 +18,18 @@ import {UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
 
 suite('option-group', function() {
+  async function fixture() {
+    const optionGroup = document.createElement('option-group');
+    optionGroup.statePath = 'test';
+    optionGroup.rootStatePath = 'test';
+    optionGroup.dispatch(UPDATE('', {
+      test: OptionGroup.buildState(OPTIONS),
+    }));
+    document.body.appendChild(optionGroup);
+    await afterRender();
+    return optionGroup;
+  }
+
   const OPTIONS = {
     options: new Set([
       'aaa',
@@ -83,11 +88,7 @@ suite('option-group', function() {
   });
 
   test('select simple', async function() {
-    fixture('test').dispatch(UPDATE('', {
-      test: OptionGroup.buildState(OPTIONS),
-    }));
-    const optionGroup = fixture('test');
-    await afterRender();
+    const optionGroup = await fixture();
     const checkbox = findElements(optionGroup, e =>
       e.matches('cp-checkbox') && /aaa/.test(e.textContent))[0];
     checkbox.$.native.click();
@@ -96,11 +97,7 @@ suite('option-group', function() {
   });
 
   test('deselect simple', async function() {
-    fixture('test').dispatch(UPDATE('', {
-      test: OptionGroup.buildState(OPTIONS),
-    }));
-    const optionGroup = fixture('test');
-    await afterRender();
+    const optionGroup = await fixture();
     optionGroup.dispatch(UPDATE('test', {selectedOptions: ['aaa']}));
     const checkbox = findElements(optionGroup, e =>
       e.matches('cp-checkbox') && /aaa/.test(e.textContent))[0];
@@ -110,11 +107,7 @@ suite('option-group', function() {
   });
 
   test('select all descendents', async function() {
-    fixture('test').dispatch(UPDATE('', {
-      test: OptionGroup.buildState(OPTIONS),
-    }));
-    const optionGroup = fixture('test');
-    await afterRender();
+    const optionGroup = await fixture();
     const bLeaf = findElements(optionGroup, e =>
       e.matches('cp-checkbox') && /bbb/.test(e.textContent))[0];
     bLeaf.$.native.click();
@@ -124,11 +117,7 @@ suite('option-group', function() {
   });
 
   test('deselect all descendents', async function() {
-    fixture('test').dispatch(UPDATE('', {
-      test: OptionGroup.buildState(OPTIONS),
-    }));
-    const optionGroup = fixture('test');
-    await afterRender();
+    const optionGroup = await fixture();
     optionGroup.dispatch(UPDATE('test', {selectedOptions: [
       'bbb:ccc', 'bbb:ddd', 'bbb:ddd:eee', 'bbb:ddd:fff',
     ]}));
@@ -140,11 +129,7 @@ suite('option-group', function() {
   });
 
   test('select tri-state single', async function() {
-    fixture('test').dispatch(UPDATE('', {
-      test: OptionGroup.buildState(OPTIONS),
-    }));
-    const optionGroup = fixture('test');
-    await afterRender();
+    const optionGroup = await fixture();
     optionGroup.dispatch(UPDATE('test', {selectedOptions: []}));
     const checkbox = findElements(optionGroup, e =>
       e.matches('cp-checkbox') && /ddd/.test(e.textContent))[0];
@@ -154,11 +139,7 @@ suite('option-group', function() {
   });
 
   test('select tri-state all descendents', async function() {
-    fixture('test').dispatch(UPDATE('', {
-      test: OptionGroup.buildState(OPTIONS),
-    }));
-    const optionGroup = fixture('test');
-    await afterRender();
+    const optionGroup = await fixture();
     optionGroup.dispatch(UPDATE('test', {selectedOptions: ['bbb:ddd']}));
     const checkbox = findElements(optionGroup, e =>
       e.matches('cp-checkbox') && /ddd/.test(e.textContent))[0];

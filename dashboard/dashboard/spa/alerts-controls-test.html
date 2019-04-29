@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <alerts-controls state-path="test"></alerts-controls>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -53,15 +47,21 @@ suite('alerts-controls', function() {
     ]));
   });
   teardown(() => {
+    for (const child of document.body.children) {
+      if (!child.matches('alerts-controls')) continue;
+      document.body.removeChild(child);
+    }
     window.fetch = originalFetch;
     localStorage.removeItem('recentlyModifiedBugs');
   });
 
   test('connected', async function() {
-    fixture('test').dispatch(CHAIN(
+    const controls = document.createElement('alerts-controls');
+    controls.statePath = 'test';
+    controls.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', AlertsControls.buildState({}))));
-    const controls = fixture('test');
+    document.body.appendChild(controls);
     await afterRender();
     await afterRender();
     assert.isDefined(findElements(controls, e => /aaa/.test(e.textContent))[0]);
@@ -74,10 +74,12 @@ suite('alerts-controls', function() {
   });
 
   test('change', async function() {
-    fixture('test').dispatch(CHAIN(
+    const controls = document.createElement('alerts-controls');
+    controls.statePath = 'test';
+    controls.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', AlertsControls.buildState({}))));
-    const controls = fixture('test');
+    document.body.appendChild(controls);
     let sources;
     controls.addEventListener('sources', e => {
       sources = e.detail.sources;

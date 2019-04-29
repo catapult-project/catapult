@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <report-controls state-path="test"></report-controls>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -25,6 +19,17 @@ import {afterRender} from './utils.js';
 import ReportNamesRequest from './report-names-request.js';
 
 suite('report-controls', function() {
+  async function fixture() {
+    const controls = document.createElement('report-controls');
+    controls.statePath = 'test';
+    await controls.dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', ReportControls.buildState({}))));
+    document.body.appendChild(controls);
+    await afterRender();
+    return controls;
+  }
+
   let originalFetch;
 
   setup(() => {
@@ -52,11 +57,7 @@ suite('report-controls', function() {
 
   test('connected', async function() {
     // ReportNamesRequest
-    const controls = fixture('test');
-    controls.dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', ReportControls.buildState({}))));
-    await afterRender();
+    const controls = await fixture();
     assert.isDefined(findElements(controls, e =>
       new RegExp(ReportControls.DEFAULT_NAME).test(e.textContent))[0]);
     assert.isDefined(findElements(controls, e =>
@@ -64,11 +65,7 @@ suite('report-controls', function() {
   });
 
   test('milestones', async function() {
-    const controls = fixture('test');
-    controls.dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', ReportControls.buildState({}))));
-    await afterRender();
+    const controls = await fixture();
     assert.strictEqual(ReportControls.CHROMIUM_MILESTONES[
         ReportControls.CURRENT_MILESTONE], controls.minRevision);
     assert.strictEqual('latest', controls.maxRevision);
@@ -88,11 +85,7 @@ suite('report-controls', function() {
   });
 
   test('alerts', async function() {
-    const controls = fixture('test');
-    controls.dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', ReportControls.buildState({}))));
-    await afterRender();
+    const controls = await fixture();
     let options;
     controls.addEventListener('alerts', e => {
       options = e.detail.options;

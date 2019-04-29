@@ -9,14 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="icon">
-  <template>
-    <column-head>
-      AAA
-    </column-head>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -24,7 +16,9 @@ import ColumnHead from './column-head.js';
 
 suite('column-head', function() {
   test('icon', async function() {
-    const columnHead = fixture('icon');
+    const columnHead = document.createElement('column-head');
+    columnHead.innerText = 'AAA';
+    document.body.appendChild(columnHead);
     columnHead.name = 'A';
     columnHead.sortColumn = 'B';
     columnHead.sortDescending = false;

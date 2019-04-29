@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <chart-timeseries state-path="test"></chart-timeseries>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -27,6 +21,25 @@ import {afterRender, measureElement} from './utils.js';
 window.AUTH_CLIENT_ID = '';
 
 suite('chart-timeseries', function() {
+  async function fixture() {
+    const ct = document.createElement('chart-timeseries');
+    ct.statePath = 'test';
+    await ct.dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', ChartTimeseries.buildState({
+          yAxis: {
+            showTickLines: true,
+          },
+          xAxis: {
+            height: 15,
+            showTickLines: true,
+          },
+        }))));
+    document.body.appendChild(ct);
+    await afterRender();
+    return ct;
+  }
+
   let originalFetch;
   let timeseriesBody;
   setup(() => {
@@ -50,24 +63,16 @@ suite('chart-timeseries', function() {
   });
 
   teardown(() => {
+    for (const child of document.body.children) {
+      if (!child.matches('chart-timeseries')) continue;
+      document.body.removeChild(child);
+    }
     window.fetch = originalFetch;
   });
 
   test('load', async function() {
-    fixture('test').dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', ChartTimeseries.buildState({
-          yAxis: {
-            showTickLines: true,
-          },
-          xAxis: {
-            height: 15,
-            showTickLines: true,
-          },
-        }))));
-    const ct = fixture('test');
-    await afterRender();
-    ct.dispatch(UPDATE('test', {lineDescriptors: [{
+    const ct = await fixture();
+    await ct.dispatch(UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
       bots: ['master:bot'],
       measurement: 'ms',
@@ -89,19 +94,7 @@ suite('chart-timeseries', function() {
   });
 
   test('lineCountChange', async function() {
-    fixture('test').dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', ChartTimeseries.buildState({
-          yAxis: {
-            showTickLines: true,
-          },
-          xAxis: {
-            height: 15,
-            showTickLines: true,
-          },
-        }))));
-    const ct = fixture('test');
-    await afterRender();
+    const ct = await fixture();
     let lineCountChanges = 0;
     ct.addEventListener('line-count-change', () => {
       ++lineCountChanges;
@@ -125,19 +118,7 @@ suite('chart-timeseries', function() {
     // ms aaa, sizeInBytes aaa, ms bbb, sizeInBytes bbb.
     // Test that loadLines doesn't forget any data.
 
-    fixture('test').dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', ChartTimeseries.buildState({
-          yAxis: {
-            showTickLines: true,
-          },
-          xAxis: {
-            height: 15,
-            showTickLines: true,
-          },
-        }))));
-    const ct = fixture('test');
-    await afterRender();
+    const ct = await fixture();
 
     window.fetch = async(url, options) => {
       return {
@@ -219,6 +200,7 @@ suite('chart-timeseries', function() {
       };
     })());
     await afterRender();
+    await afterRender();
     assert.lengthOf(ct.lines, 2);
     assert.strictEqual(ct.lines[0].data[0].y, 1);
     assert.strictEqual(ct.lines[0].data[1].y, 2);
@@ -284,20 +266,8 @@ suite('chart-timeseries', function() {
   });
 
   test('tooltip', async function() {
-    fixture('test').dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', ChartTimeseries.buildState({
-          yAxis: {
-            showTickLines: true,
-          },
-          xAxis: {
-            height: 15,
-            showTickLines: true,
-          },
-        }))));
-    const ct = fixture('test');
-    await afterRender();
-    ct.dispatch(UPDATE('test', {lineDescriptors: [{
+    const ct = await fixture();
+    await ct.dispatch(UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
       bots: ['master:bot'],
       measurement: 'ms',
@@ -314,6 +284,7 @@ suite('chart-timeseries', function() {
         nearestPoint: ct.lines[0].data[0],
       },
     }));
+    await afterRender();
     await afterRender();
 
     assert.strictEqual(2, ct.lines[0].strokeWidth);
@@ -348,20 +319,8 @@ suite('chart-timeseries', function() {
     // When there are multiple units, yAxis.ticks should only be displayed when
     // the user is hovering over a line.
 
-    fixture('test').dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', ChartTimeseries.buildState({
-          yAxis: {
-            showTickLines: true,
-          },
-          xAxis: {
-            height: 15,
-            showTickLines: true,
-          },
-        }))));
-    const ct = fixture('test');
-    await afterRender();
-    ct.dispatch(UPDATE('test', {
+    const ct = await fixture();
+    await ct.dispatch(UPDATE('test', {
       lineDescriptors: [
         {
           suites: ['suite'],

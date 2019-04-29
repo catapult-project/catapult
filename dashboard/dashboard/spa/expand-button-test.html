@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="clickToggles">
-  <template>
-    <expand-button state-path="clickToggles"></expand-button>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -24,7 +18,9 @@ import {UPDATE} from './simple-redux.js';
 
 suite('expand-button', function() {
   test('click toggles isExpanded', async function() {
-    const expandButton = fixture('clickToggles');
+    const expandButton = document.createElement('expand-button');
+    expandButton.statePath = 'clickToggles';
+    document.body.appendChild(expandButton);
     expandButton.dispatch(UPDATE(
         expandButton.statePath, ExpandButton.buildState({})));
     assert.isFalse(expandButton.isExpanded);

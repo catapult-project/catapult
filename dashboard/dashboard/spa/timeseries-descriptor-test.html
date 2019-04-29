@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <timeseries-descriptor state-path="test"></timeseries-descriptor>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -55,13 +49,19 @@ suite('timeseries-descriptor', function() {
   });
 
   teardown(() => {
+    for (const child of document.body.children) {
+      if (!child.matches('timeseries-descriptor')) continue;
+      document.body.removeChild(child);
+    }
     window.fetch = originalFetch;
   });
 
   test('suite select describe', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const td = fixture('test');
+    const td = document.createElement('timeseries-descriptor');
+    td.statePath = 'test';
+    td.dispatch(ENSURE('test'));
     td.dispatch(UPDATE('test', TimeseriesDescriptor.buildState({})));
+    document.body.appendChild(td);
     await afterRender();
 
     findElements(td, e =>
@@ -77,9 +77,11 @@ suite('timeseries-descriptor', function() {
   });
 
   test('option-select matrix-change', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const td = fixture('test');
+    const td = document.createElement('timeseries-descriptor');
+    td.statePath = 'test';
+    td.dispatch(ENSURE('test'));
     td.dispatch(UPDATE('test', TimeseriesDescriptor.buildState({})));
+    document.body.appendChild(td);
     await afterRender();
 
     let matrix;

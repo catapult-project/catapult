@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <chart-base state-path="test"></chart-base>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -34,9 +28,11 @@ suite('chart-base', function() {
   });
 
   test('mouse-leave-main', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const chart = fixture('test');
-    chart.dispatch(UPDATE('test', ChartBase.buildState({
+    const chart = document.createElement('chart-base');
+    chart.statePath = 'test';
+    await chart.dispatch(ENSURE('test'));
+    document.body.appendChild(chart);
+    await chart.dispatch(UPDATE('test', ChartBase.buildState({
       showTooltip: true,
       lines: [
         {
@@ -96,9 +92,11 @@ suite('chart-base', function() {
   });
 
   test('boldLine', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const chart = fixture('test');
-    chart.dispatch(UPDATE('test', ChartBase.buildState({
+    const chart = document.createElement('chart-base');
+    chart.statePath = 'test';
+    await chart.dispatch(ENSURE('test'));
+    document.body.appendChild(chart);
+    await chart.dispatch(UPDATE('test', ChartBase.buildState({
       lines: [
         {
           path: 'M0,0 L100,100',
@@ -185,9 +183,11 @@ suite('chart-base', function() {
   });
 
   test('lines', async function() {
-    fixture('test').dispatch(ENSURE('test'));
-    const chart = fixture('test');
-    chart.dispatch(UPDATE('test', ChartBase.buildState({
+    const chart = document.createElement('chart-base');
+    chart.statePath = 'test';
+    await chart.dispatch(ENSURE('test'));
+    document.body.appendChild(chart);
+    await chart.dispatch(UPDATE('test', ChartBase.buildState({
       lines: [
         {
           path: 'M0,0 L100,100',

@@ -9,12 +9,6 @@ found in the LICENSE file.
 <script src="/bower_components/web-component-tester/browser.js"></script>
 <link rel="import" href="/dashboard/spa/dependencies.html">
 
-<test-fixture id="test">
-  <template>
-    <sparkline-compound state-path="test"></sparkline-compound>
-  </template>
-</test-fixture>
-
 <script type="module">
 'use strict';
 
@@ -79,15 +73,22 @@ suite('sparkline-compound', function() {
     window.fetch = originalFetch;
   });
 
-  test('build', async function() {
-    fixture('test').dispatch(CHAIN(
+  async function fixture() {
+    const sc = document.createElement('sparkline-compound');
+    sc.statePath = 'test';
+    await sc.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', {
           ...SparklineCompound.buildState({}),
           chartLayout: {},
         })));
-    const sc = fixture('test');
+    document.body.appendChild(sc);
     await afterRender();
+    return sc;
+  }
+
+  test('build', async function() {
+    const sc = await fixture();
     await sc.dispatch(CHAIN(
         UPDATE('test', {
           descriptor: TimeseriesDescriptor.buildState({
@@ -125,14 +126,7 @@ suite('sparkline-compound', function() {
   });
 
   test('observeCursor', async function() {
-    fixture('test').dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', {
-          ...SparklineCompound.buildState({}),
-          chartLayout: {},
-        })));
-    const sc = fixture('test');
-    await afterRender();
+    const sc = await fixture();
     await sc.dispatch(CHAIN(
         UPDATE('test', {
           mode: MODE.NORMALIZE_UNIT,
@@ -173,14 +167,7 @@ suite('sparkline-compound', function() {
   });
 
   test('observeRevisions', async function() {
-    fixture('test').dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', {
-          ...SparklineCompound.buildState({}),
-          chartLayout: {},
-        })));
-    const sc = fixture('test');
-    await afterRender();
+    const sc = await fixture();
     await sc.dispatch(CHAIN(
         UPDATE('test', {
           descriptor: TimeseriesDescriptor.buildState({
@@ -229,14 +216,7 @@ suite('sparkline-compound', function() {
   });
 
   test('click', async function() {
-    fixture('test').dispatch(CHAIN(
-        ENSURE('test'),
-        UPDATE('test', {
-          ...SparklineCompound.buildState({}),
-          chartLayout: {},
-        })));
-    const sc = fixture('test');
-    await afterRender();
+    const sc = await fixture();
     await sc.dispatch(CHAIN(
         UPDATE('test', {
           descriptor: TimeseriesDescriptor.buildState({
