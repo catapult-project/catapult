@@ -29,6 +29,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         'dma_fence_init',
         DmaFenceParser.prototype.initEvent.bind(this));
     importer.registerEventHandler(
+        'dma_fence_emit',
+        DmaFenceParser.prototype.initEvent.bind(this));
+    importer.registerEventHandler(
         'dma_fence_destroy',
         DmaFenceParser.prototype.fenceDestroyEvent.bind(this));
     importer.registerEventHandler(
@@ -37,10 +40,19 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     importer.registerEventHandler(
         'dma_fence_signaled',
         DmaFenceParser.prototype.fenceSignaledEvent.bind(this));
+    importer.registerEventHandler(
+        'dma_fence_wait_start',
+        DmaFenceParser.prototype.fenceWaitEvent.bind(this));
+    importer.registerEventHandler(
+        'dma_fence_wait_end',
+        DmaFenceParser.prototype.fenceWaitEvent.bind(this));
 
     // support legacy event names
     importer.registerEventHandler(
         'fence_init',
+        DmaFenceParser.prototype.initEvent.bind(this));
+    importer.registerEventHandler(
+        'fence_emit',
         DmaFenceParser.prototype.initEvent.bind(this));
     importer.registerEventHandler(
         'fence_destroy',
@@ -51,6 +63,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     importer.registerEventHandler(
         'fence_signaled',
         DmaFenceParser.prototype.fenceSignaledEvent.bind(this));
+    importer.registerEventHandler(
+        'fence_wait_start',
+        DmaFenceParser.prototype.fenceWaitEvent.bind(this));
+    importer.registerEventHandler(
+        'fence_wait_end',
+        DmaFenceParser.prototype.fenceWaitEvent.bind(this));
+
     this.model_ = importer.model_;
   }
 
@@ -94,8 +113,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             '', name,
             ColorScheme.getColorIdForGeneralPurposeString(colorName),
             thread.lastActiveTs, {
-              'driver': event[1],
-              'context': event[3]
+              driver: event[1],
+              context: event[3]
             },
             duration);
         thread.thread.sliceGroup.pushSlice(slice);
@@ -123,8 +142,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             '', name,
             ColorScheme.getColorIdForGeneralPurposeString(colorName),
             thread.lastActiveTs, {
-              'driver': event[1],
-              'context': event[3]
+              driver: event[1],
+              context: event[3]
             },
             duration);
         thread.thread.sliceGroup.pushSlice(slice);
@@ -152,8 +171,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             '', name,
             ColorScheme.getColorIdForGeneralPurposeString(colorName),
             thread.lastActiveTs, {
-              'driver': event[1],
-              'context': event[3]
+              driver: event[1],
+              context: event[3]
             },
             duration);
         thread.thread.sliceGroup.pushSlice(slice);
@@ -166,6 +185,40 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
+    fenceWaitEvent(eventName, cpuNumber, pid, ts, eventBase) {
+      if (eventBase.tgid === undefined) return false;
+      const event = fenceRE.exec(eventBase.details);
+      if (!event) return false;
+
+      const tgid = parseInt(eventBase.tgid);
+      const thread = this.model_.getOrCreateProcess(tgid)
+          .getOrCreateThread(pid);
+      thread.name = eventBase.threadName;
+
+      const slices = thread.kernelSliceGroup;
+      if (!slices.isTimestampValidForBeginOrEnd(ts)) {
+        this.model_.importWarning({
+          type: 'parse_error',
+          message: 'Timestamps are moving backward.'
+        });
+        return false;
+      }
+
+      const name = 'dma_fence_wait("' + event[2] + '")';
+      if (eventName.endsWith('start')) {
+        const slice = slices.beginSlice(null, name, ts, {
+          driver: event[1],
+          context: event[3],
+          seqno: event[4],
+        });
+      } else {
+        if (slices.openSliceCount > 0) {
+          slices.endSlice(ts);
+        }
+      }
+
+      return true;
+    },
   };
 
   Parser.register(DmaFenceParser);
