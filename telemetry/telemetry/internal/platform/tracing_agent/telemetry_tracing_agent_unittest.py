@@ -38,7 +38,7 @@ class TelemetryTracingAgentTest(unittest.TestCase):
 
   def testRecordClockSync(self):
     self.agent.StartAgentTracing(self.config, timeout=10)
-    self.agent.RecordIssuerClockSyncMarker('1234', issue_ts=0)
+    telemetry_tracing_agent.RecordIssuerClockSyncMarker('1234', issue_ts=0)
     self.agent.StopAgentTracing()
     with trace_data.TraceDataBuilder() as builder:
       self.agent.CollectAgentTraceData(builder)

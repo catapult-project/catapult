@@ -11,9 +11,14 @@ from tracing.trace_data import trace_data
 from py_trace_event import trace_event
 
 
+def IsAgentEnabled():
+  """Returns True if the agent is currently enabled and tracing."""
+  return trace_event.trace_is_enabled()
+
+
 def SetTelemetryInfo(telemetry_info):
   """Record Telemetry metadata if tracing is enabled."""
-  if trace_event.trace_is_enabled():
+  if IsAgentEnabled():
     trace_event.trace_add_metadata({
         # TODO(crbug.com/948633): For right now, we use "TELEMETRY" as the
         # clock domain to guarantee that Telemetry is given its own clock
@@ -33,6 +38,16 @@ def SetTelemetryInfo(telemetry_info):
   else:
     logging.warning(
         'Telemetry tracing agent is not enabled. Discarding Telemetry info.')
+
+
+def RecordIssuerClockSyncMarker(sync_id, issue_ts):
+  """Record clock sync event.
+
+  Args:
+    sync_id: Unique id for sync event.
+    issue_ts: timestamp before issuing clock sync to agent.
+  """
+  trace_event.clock_sync(sync_id, issue_ts=issue_ts)
 
 
 class TelemetryTracingAgent(tracing_agent.TracingAgent):
@@ -57,7 +72,7 @@ class TelemetryTracingAgent(tracing_agent.TracingAgent):
 
   @property
   def is_tracing(self):
-    return trace_event.trace_is_enabled()
+    return IsAgentEnabled()
 
   def StartAgentTracing(self, config, timeout):
     del config  # Unused.
@@ -86,13 +101,3 @@ class TelemetryTracingAgent(tracing_agent.TracingAgent):
     trace_data_builder.AddTraceFileFor(
         trace_data.TELEMETRY_PART, self._trace_file.name)
     self._trace_file = None
-
-  @staticmethod
-  def RecordIssuerClockSyncMarker(sync_id, issue_ts):
-    """Record clock sync event.
-
-    Args:
-      sync_id: Unique id for sync event.
-      issue_ts: timestamp before issuing clock sync to agent.
-    """
-    trace_event.clock_sync(sync_id, issue_ts=issue_ts)

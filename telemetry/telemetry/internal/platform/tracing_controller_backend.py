@@ -20,10 +20,8 @@ from telemetry.timeline import tracing_config
 from tracing.trace_data import trace_data
 
 
-# Note: TelemetryTracingAgent must be first so that we (1) can record debug
-# trace events when the other agents start/stop, and (2) simplify the code
-# below in _GetActiveTelemetryTracingAgent() to find the clock sync and
-# telemetry metadata recorder (assumes it's always the first).
+# Note: TelemetryTracingAgent should be first so that we can record debug
+# trace events when the other agents start/stop.
 _TRACING_AGENT_CLASSES = (
     telemetry_tracing_agent.TelemetryTracingAgent,
     chrome_tracing_agent.ChromeTracingAgent,
@@ -169,8 +167,7 @@ class TracingControllerBackend(object):
           '\n'.join(raised_exception_messages))
 
   def _IssueClockSyncMarker(self):
-    recorder = self._GetActiveTelemetryTracingAgent()
-    if recorder is None:
+    if not telemetry_tracing_agent.IsAgentEnabled():
       return
 
     with _DisableGarbageCollection():
@@ -180,8 +177,8 @@ class TracingControllerBackend(object):
           with trace_event.trace('RecordClockSyncMarker',
                                  agent=str(agent.__class__.__name__),
                                  sync_id=sync_id):
-            agent.RecordClockSyncMarker(sync_id,
-                                        recorder.RecordIssuerClockSyncMarker)
+            agent.RecordClockSyncMarker(
+                sync_id, telemetry_tracing_agent.RecordIssuerClockSyncMarker)
 
   def IsChromeTracingSupported(self):
     return chrome_tracing_agent.ChromeTracingAgent.IsSupported(
@@ -194,14 +191,6 @@ class TracingControllerBackend(object):
   @property
   def is_chrome_tracing_running(self):
     return self._GetActiveChromeTracingAgent() is not None
-
-  def _GetActiveTelemetryTracingAgent(self):
-    if not self._active_agents_instances:
-      return None
-    agent = self._active_agents_instances[0]
-    if isinstance(agent, telemetry_tracing_agent.TelemetryTracingAgent):
-      return agent
-    return None
 
   def _GetActiveChromeTracingAgent(self):
     if not self.is_tracing_running:
