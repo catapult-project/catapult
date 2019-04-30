@@ -12,6 +12,7 @@ import stat
 import subprocess
 import sys
 import time
+import threading
 import re
 import json
 import tempfile
@@ -136,6 +137,7 @@ def _GetD8BinaryPathForPlatform():
 # script attempts to remove a file before the process using the file has
 # completely terminated. So the function here attempts to retry a few times with
 # a second timeout between retries. More details at https://crbug.com/946012
+# TODO(sadrul): delete this speculative change since it didn't work.
 def _RemoveTreeWithRetry(tree, retry=3):
   for count in range(retry):
     try:
@@ -169,12 +171,12 @@ def ExecuteFile(file_path, source_paths=None, js_args=None, v8_args=None,
   Returns:
      The string output from running the JS program.
   """
-  res = RunFile(file_path, source_paths, js_args, v8_args, stdout, stdin)
+  res = RunFile(file_path, source_paths, js_args, v8_args, None, stdout, stdin)
   return res.stdout
 
 
 def RunFile(file_path, source_paths=None, js_args=None, v8_args=None,
-            stdout=subprocess.PIPE, stdin=subprocess.PIPE):
+            timeout=None, stdout=subprocess.PIPE, stdin=subprocess.PIPE):
   """Runs JavaScript program in |file_path|.
 
   Args are same as ExecuteFile.
@@ -204,7 +206,8 @@ def RunFile(file_path, source_paths=None, js_args=None, v8_args=None,
                 (abs_file_path_str, abs_file_path_str))
       else:
         f.write('\nHTMLImportsLoader.loadFile(%s);' % abs_file_path_str)
-    result = _RunFileWithD8(temp_bootstrap_file, js_args, v8_args, stdout, stdin)
+    result = _RunFileWithD8(temp_bootstrap_file, js_args, v8_args, timeout,
+                            stdout, stdin)
   except:
     # Save the exception.
     t, v, tb = sys.exc_info()
@@ -241,7 +244,8 @@ def RunJsString(js_string, source_paths=None, js_args=None, v8_args=None,
       temp_file = os.path.join(temp_dir, 'temp_program.js')
     with open(temp_file, 'w') as f:
       f.write(js_string)
-    result = RunFile(temp_file, source_paths, js_args, v8_args, stdout, stdin)
+    result = RunFile(temp_file, source_paths, js_args, v8_args, None, stdout,
+                     stdin)
   except:
     # Save the exception.
     t, v, tb = sys.exc_info()
@@ -255,7 +259,25 @@ def RunJsString(js_string, source_paths=None, js_args=None, v8_args=None,
   return result
 
 
-def _RunFileWithD8(js_file_path, js_args, v8_args, stdout, stdin):
+def _KillProcess(process, description):
+  # kill() does not close the handle to the process. On Windows, a process
+  # will live until you delete all handles to that subprocess, so
+  # ps_util.ListAllSubprocesses will find this subprocess if
+  # we haven't garbage-collected the handle yet. poll() should close the
+  # handle once the process dies.
+  process.kill()
+  time.sleep(.01)
+  for _ in range(100):
+    if process.poll() is None:
+      time.sleep(.1)
+      continue
+    break
+  else:
+    logging.warn('process %s is still running after we '
+                 'attempted to kill it.', description)
+
+
+def _RunFileWithD8(js_file_path, js_args, v8_args, timeout, stdout, stdin):
   """ Execute the js_files with v8 engine and return the output of the program.
 
   Args:
@@ -263,6 +285,8 @@ def _RunFileWithD8(js_file_path, js_args, v8_args, stdout, stdin):
     js_args: a list of arguments to passed to the |js_file_path| program.
     v8_args: extra arguments to pass into d8. (for the full list of these
       options, run d8 --help)
+    timeout: how many seconds to wait for d8 to finish. If None or 0 then
+      this will wait indefinitely.
     stdout: where to pipe the stdout of the executed program to. If
       subprocess.PIPE is used, stdout will be returned in RunResult.out.
       Otherwise RunResult.out is None
@@ -281,7 +305,13 @@ def _RunFileWithD8(js_file_path, js_args, v8_args, stdout, stdin):
 
   # Set stderr=None since d8 doesn't write into stderr anyway.
   sp = subprocess.Popen(args, stdout=stdout, stderr=None, stdin=stdin)
+  if timeout:
+    deadline = time.time() + timeout
+    timeout_thread = threading.Timer(timeout, _KillProcess, args=(sp, 'd8'))
+    timeout_thread.start()
   out, _ = sp.communicate()
+  if timeout:
+    timeout_thread.cancel()
 
   # On Windows, d8's print() method add the carriage return characters \r to
   # newline, which make the output different from d8 on posix. We remove the
@@ -329,5 +359,6 @@ def main():
       '--source_paths is not specified. Use %s for search path.' %
       args.source_paths)
   res = RunFile(args.file_name, source_paths=args.source_paths,
-                js_args=args.js_args, stdout=sys.stdout, stdin=sys.stdin)
+                js_args=args.js_args, timeout=None, stdout=sys.stdout,
+                stdin=sys.stdin)
   return res.returncode

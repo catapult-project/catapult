@@ -35,6 +35,9 @@ from tracing.value import histogram_set
 from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import reserved_infos
 
+_TEN_MINUTES = 60*10
+
+
 def _ComputeMetricsInPool((run, trace_value)):
   story_name = run.story.name
   try:
@@ -62,9 +65,16 @@ def _ComputeMetricsInPool((run, trace_value)):
 
     logging.info('%s: Starting to compute metrics on trace.', story_name)
     start = time.time()
+    # This timeout needs to be coordinated with the Swarming IO timeout for the
+    # task that runs this code. If this timeout is longer or close in length
+    # to the swarming IO timeout then we risk being forcibly killed for not
+    # producing any output. Note that this could be fixed by periodically
+    # outputing logs while waiting for metrics to be calculated.
+    timeout = _TEN_MINUTES
     mre_result = metric_runner.RunMetricOnSingleTrace(
         trace_value.filename, trace_value.timeline_based_metric,
-        extra_import_options, canonical_url=trace_value.trace_url)
+        extra_import_options, canonical_url=trace_value.trace_url,
+        timeout=timeout)
     logging.info('%s: Computing metrics took %.3f seconds.' % (
         story_name, time.time() - start))
 

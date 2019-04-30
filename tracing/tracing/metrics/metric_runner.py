@@ -50,7 +50,7 @@ def RunMetric(filename, metrics, extra_import_options=None,
   return result[canonical_url]
 
 def RunMetricOnSingleTrace(filename, metrics, extra_import_options=None,
-                           canonical_url=None):
+                           canonical_url=None, timeout=None):
   """A simplified RunMetric() that skips using MapRunner.
 
   This avoids the complexity of multithreading and progress
@@ -62,7 +62,8 @@ def RunMetricOnSingleTrace(filename, metrics, extra_import_options=None,
   trace_handle = file_handle.URLFileHandle(canonical_url, filename_url)
   job = _GetMetricRunnerHandle(metrics)
   return map_single_trace.MapSingleTrace(
-      trace_handle, job, extra_import_options=extra_import_options)
+      trace_handle, job, extra_import_options=extra_import_options,
+      timeout=timeout)
 
 def RunMetricOnTraceHandles(trace_handles, metrics, extra_import_options=None,
                             report_progress=True):
