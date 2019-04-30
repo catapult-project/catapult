@@ -314,8 +314,8 @@ class TelemetryInfo(object):
 
 class PageTestResults(object):
   def __init__(self, output_formatters=None,
-               progress_reporter=None, trace_tag='', output_dir=None,
-               should_add_value=lambda v, is_first: True,
+               progress_reporter=None, output_dir=None,
+               should_add_value=None,
                benchmark_enabled=True, upload_bucket=None,
                artifact_results=None, benchmark_metadata=None):
     """
@@ -325,8 +325,6 @@ class PageTestResults(object):
           as CsvPivotTableOutputFormatter, which output the test results as CSV.
       progress_reporter: An instance of progress_reporter.ProgressReporter,
           to be used to output test status/results progressively.
-      trace_tag: A string to append to the buildbot trace name. Currently only
-          used for buildbot.
       output_dir: A string specified the directory where to store the test
           artifacts, e.g: trace, videos,...
       should_add_value: A function that takes two arguments: a value name and
@@ -338,17 +336,17 @@ class PageTestResults(object):
       benchmark_metadata: A benchmark.BenchmarkMetadata object. This is used in
           the chart JSON output formatter.
     """
-    # TODO(chrishenry): Figure out if trace_tag is still necessary.
-
     super(PageTestResults, self).__init__()
     self._progress_reporter = (
         progress_reporter if progress_reporter is not None
         else reporter_module.ProgressReporter())
     self._output_formatters = (
         output_formatters if output_formatters is not None else [])
-    self._trace_tag = trace_tag
     self._output_dir = output_dir
-    self._should_add_value = should_add_value
+    if should_add_value is not None:
+      self._should_add_value = should_add_value
+    else:
+      self._should_add_value = lambda v, is_first: True
 
     self._current_page_run = None
     self._all_page_runs = []

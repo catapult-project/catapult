@@ -67,7 +67,6 @@ class PageTestTestCase(unittest.TestCase):
     options.output_file = None
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    options.output_trace_tag = None
     story_runner.ProcessCommandLineArgs(temp_parser, options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(measurement, ps, options, results)

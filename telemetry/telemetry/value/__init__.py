@@ -126,11 +126,6 @@ class Value(object):
     """
     raise NotImplementedError()
 
-  def GetChartAndTraceNameForPerPageResult(self):
-    chart_name, _ = _ConvertValueNameToChartAndTraceName(self.name)
-    trace_name = self.page.name
-    return chart_name, trace_name
-
   @property
   def name_suffix(self):
     """Returns the string after a . in the name, or the full name otherwise."""
@@ -138,15 +133,6 @@ class Value(object):
       return self.name.split('.', 1)[1]
     else:
       return self.name
-
-  def GetChartAndTraceNameForComputedSummaryResult(
-      self, trace_tag):
-    chart_name, trace_name = (
-        _ConvertValueNameToChartAndTraceName(self.name))
-    if trace_tag:
-      return chart_name, trace_name + trace_tag
-    else:
-      return chart_name, trace_name
 
   @staticmethod
   def GetJSONTypeName():
@@ -290,39 +276,3 @@ def MergedTirLabel(values):
     return first_tir_label
   else:
     return None
-
-
-def ValueNameFromTraceAndChartName(trace_name, chart_name=None):
-  """Mangles a trace name plus optional chart name into a standard string.
-
-  A value might just be a bareword name, e.g. numPixels. In that case, its
-  chart may be None.
-
-  But, a value might also be intended for display with other values, in which
-  case the chart name indicates that grouping. So, you might have
-  screen.numPixels, screen.resolution, where chartName='screen'.
-  """
-  assert trace_name != 'url', 'The name url cannot be used'
-  if chart_name:
-    return '%s.%s' % (chart_name, trace_name)
-  else:
-    assert '.' not in trace_name, (
-        'Trace names cannot contain "." with an '
-        'empty chart_name since this is used to delimit chart_name.trace_name.')
-    return trace_name
-
-
-def _ConvertValueNameToChartAndTraceName(value_name):
-  """Converts a value_name into the equivalent chart-trace name pair.
-
-  Buildbot represents values by the measurement name and an optional trace name,
-  whereas telemetry represents values with a chart_name.trace_name convention,
-  where chart_name is optional. This convention is also used by chart_json.
-
-  This converts from the telemetry convention to the buildbot convention,
-  returning a 2-tuple (measurement_name, trace_name).
-  """
-  if '.' in value_name:
-    return value_name.split('.', 1)
-  else:
-    return value_name, value_name

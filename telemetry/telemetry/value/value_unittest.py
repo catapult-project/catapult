@@ -36,10 +36,6 @@ class ValueForTest(value.Value):
   def MergeLikeValuesFromDifferentPages(cls, values):
     pass
 
-  def GetChartAndTraceNameForComputedSummaryResult(
-      self, trace_tag):
-    pass
-
   @staticmethod
   def GetJSONTypeName():
     pass

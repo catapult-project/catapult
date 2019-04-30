@@ -32,9 +32,6 @@ class SkipValue(value_module.Value):
   def expected(self):
     return self._is_expected
 
-  def GetChartAndTraceNameForPerPageResult(self):
-    return None
-
   @staticmethod
   def GetJSONTypeName():
     return 'skip'

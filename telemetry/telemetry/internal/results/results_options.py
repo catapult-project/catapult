@@ -61,11 +61,6 @@ def AddResultsOptions(parser):
       default=util.GetBaseDir(),
       help='Where to save output data after the run.')
   group.add_option(
-      '--output-trace-tag',
-      default='',
-      help='Append a tag to the key of each result trace. Use '
-      'with html output formats.')
-  group.add_option(
       '--reset-results', action='store_true', help='Delete all stored results.')
   group.add_option(
       '--upload-results',
@@ -126,7 +121,7 @@ def _GetProgressReporter(output_skipped_tests_summary, suppress_gtest_report):
 
 
 def CreateResults(benchmark_metadata, options,
-                  should_add_value=lambda name, is_first: True,
+                  should_add_value=None,
                   benchmark_enabled=True):
   """
   Args:
