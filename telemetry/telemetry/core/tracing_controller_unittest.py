@@ -110,6 +110,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     self.assertIn('after-flush', markers)
 
   @decorators.Isolated
+  @decorators.Disabled('win')  # https://crbug.com/957831
   def testFlushTracingDiscardCurrent(self):
     self.tracing_controller.StartTracing(self.config)
     self.assertTrue(self.tracing_controller.is_tracing_running)
@@ -157,7 +158,7 @@ class StartupTracingTest(unittest.TestCase):
     return trace_processor.ExtractTimelineMarkers(trace_data)
 
   @decorators.Isolated
-  @decorators.Disabled('chromeos')  # crbug.com/920454
+  @decorators.Disabled('chromeos')  # https://crbug.com/920454
   def testStopTracingWhileBrowserIsRunning(self):
     self.tracing_controller.StartTracing(self.config)
     with self.possible_browser.BrowserSession(self.browser_options) as browser:
@@ -168,7 +169,8 @@ class StartupTracingTest(unittest.TestCase):
     self.assertIn('trace-event', markers)
 
   @decorators.Isolated
-  @decorators.Disabled('chromeos')  # crbug.com/920454
+  @decorators.Disabled('chromeos')  # https://crbug.com/920454
+  @decorators.Disabled('win')  # https://crbug.com/957831
   def testCloseBrowserBeforeTracingIsStopped(self):
     self.tracing_controller.StartTracing(self.config)
     with self.possible_browser.BrowserSession(self.browser_options) as browser:
@@ -179,7 +181,8 @@ class StartupTracingTest(unittest.TestCase):
     self.assertIn('trace-event', markers)
 
   @decorators.Isolated
-  @decorators.Disabled('chromeos')  # crbug.com/920454
+  @decorators.Disabled('chromeos')  # https://crbug.com/920454
+  @decorators.Disabled('win')  # https://crbug.com/957831
   def testRestartBrowserWhileTracing(self):
     expected_markers = ['trace-event-%i' % i for i in xrange(4)]
     self.tracing_controller.StartTracing(self.config)
