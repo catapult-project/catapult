@@ -1,10 +1,8 @@
-# Owners: These folks have a very good understanding of the tracing
-# system and how the UI bits fit together. Good for reviews of large
-# architectual changes, or areas of the code where you may need more
-# information.
-fmeawad@chromium.org
 benjhayden@chromium.org
-lpy@chromium.org
+oysteine@chromium.org  # Prefers python reviews.
+perezju@chromium.org  # Prefers python reviews.
+crouleau@chromium.org
+dberris@chromium.org
 
 # For changes related to system_health/loading_metric.html and its tests.
 kouhei@chromium.org
@@ -19,3 +17,5 @@ nduca@chromium.org
 # dsinclair@chromium.org
 # charliea@chromium.org
 # eakuefner@chromium.org
+# fmeawad@chromium.org
+# lpy@chromium.org
