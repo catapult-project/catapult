@@ -287,11 +287,6 @@ def RunTests(args):
       abbr_results = json.load(f)
       test_times = abbr_results.get('times')
 
-  test_class_expectations_files = test_class.ExpectationsFiles()
-  # all file paths in test_class_expectations-files must be absolute
-  assert all(os.path.isabs(path) for path in test_class_expectations_files)
-  options.expectations_files.extend(test_class_expectations_files)
-
   # Setup typ.Runner instance.
   typ_runner.setup_fn = _SetUpProcess
   typ_runner.teardown_fn = _TearDownProcess
@@ -329,6 +324,17 @@ def RunTests(args):
     typ_runner.context.test_case_ids_to_run.add(t.id())
   typ_runner.context.Freeze()
   browser_test_context._global_test_context = typ_runner.context
+
+  # several class level variables are set for GPU tests  when
+  # LoadTestCasesToBeRun is called. Functions line ExpectationsFiles and
+  # GenerateTags which use these variables should be called after
+  # LoadTestCasesToBeRun
+
+  test_class_expectations_files = test_class.ExpectationsFiles()
+  # all file paths in test_class_expectations-files must be absolute
+  assert all(os.path.isabs(path) for path in test_class_expectations_files)
+  typ_runner.args.expectations_files.extend(
+      test_class_expectations_files)
 
   # Since sharding logic is handled by browser_test_runner harness by passing
   # browser_test_context.test_case_ids_to_run to subprocess to indicate test
