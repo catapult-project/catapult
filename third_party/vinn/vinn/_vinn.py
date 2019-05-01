@@ -44,6 +44,7 @@ _HTML_TO_JS_GENERATOR_JS_DIR = os.path.abspath(
 
 
 _BOOTSTRAP_JS_CONTENT = None
+_NUM_TRIALS = 3
 
 
 def _ValidateSourcePaths(source_paths):
@@ -196,8 +197,7 @@ def RunFile(file_path, source_paths=None, js_args=None, v8_args=None,
 
   abs_file_path_str = _EscapeJsString(os.path.abspath(file_path))
 
-  num_trials = 3
-  for trial in range(num_trials):
+  for trial in range(_NUM_TRIALS):
     try:
       temp_dir = tempfile.mkdtemp()
       temp_bootstrap_file = os.path.join(temp_dir, '_tmp_bootstrap.js')
@@ -217,10 +217,10 @@ def RunFile(file_path, source_paths=None, js_args=None, v8_args=None,
         _RemoveTreeWithRetry(temp_dir)
       except:
         logging.error('Failed to remove temp dir %s.', temp_dir)
-      if 'Error reading' in v:  # Handle crbug.com/953365
-        if trial == num_trials - 1:
+      if 'Error reading' in str(v):  # Handle crbug.com/953365
+        if trial == _NUM_TRIALS - 1:
           logging.error(
-              'Failed to run file with D8 after %s tries.', num_trials)
+              'Failed to run file with D8 after %s tries.', _NUM_TRIALS)
           raise t, v, tb
         logging.warn('Hit error %s. Retrying after sleeping.', v)
         time.sleep(10)

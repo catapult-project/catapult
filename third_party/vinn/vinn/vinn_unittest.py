@@ -15,6 +15,7 @@ sys.path.append(
 import mock
 
 import vinn
+from vinn import _vinn
 
 def _EscapeJsString(s):
   return json.dumps(s)
@@ -311,6 +312,18 @@ class VinnUnittest(unittest.TestCase):
     c_duration = float(m[0])
     b_duration = float(m[1])
     self.assertTrue(b_duration > c_duration)
+
+  def testRetries(self):
+    file_path = self.GetTestFilePath('load_simple_js.js')
+    def RaiseRuntimeError(*args, **kwargs):
+      del args, kwargs
+      raise RuntimeError('Error reading "blah blah"')
+    with mock.patch('vinn._vinn._RunFileWithD8') as mock_d8_runner, \
+        mock.patch('time.sleep'):
+      mock_d8_runner.side_effect = RaiseRuntimeError
+      with self.assertRaises(RuntimeError):
+        output = vinn.ExecuteFile(file_path, source_paths=[self.test_data_dir])
+      self.assertEqual(len(mock_d8_runner.mock_calls), _vinn._NUM_TRIALS)
 
 
 class PathUtilUnittest(unittest.TestCase):
