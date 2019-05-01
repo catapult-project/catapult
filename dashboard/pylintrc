@@ -1,3 +1,8 @@
+[MASTER]
+
+# Do not lint generated protobuf files.
+ignore=sheriff_pb2.py
+
 [MESSAGES CONTROL]
 
 # Disable the message, report, category or checker with the given id(s).

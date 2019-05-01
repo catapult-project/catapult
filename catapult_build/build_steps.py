@@ -215,15 +215,45 @@ def main(args=None):
   parser.add_argument('--output-json', help='Output for buildbot status page')
   args = parser.parse_args(args)
 
-  steps = [{
-      # Always remove stale files first. Not listed as a test above
-      # because it is a step and not a test, and must be first.
-      'name': 'Remove Stale files',
-      'cmd': ['python',
-              os.path.join(args.api_path_checkout,
-                           'catapult_build', 'remove_stale_files.py'),
-              args.api_path_checkout, ','.join(_STALE_FILE_TYPES)]
-  }]
+  proto_output_path = os.path.join(args.api_path_checkout, 'dashboard',
+                                   'dashboard', 'sheriff_config', 'proto')
+  proto_input_path = os.path.join(args.api_path_checkout, 'dashboard',
+                                  'dashboard', 'proto')
+  proto_files = [os.path.join(proto_input_path, p) for p in ['sheriff.proto']]
+
+  steps = [
+      {
+          # Always remove stale files first. Not listed as a test above
+          # because it is a step and not a test, and must be first.
+          'name':
+              'Remove Stale files',
+          'cmd': [
+              'python',
+              os.path.join(args.api_path_checkout, 'catapult_build',
+                           'remove_stale_files.py'),
+              args.api_path_checkout,
+              ','.join(_STALE_FILE_TYPES),
+          ]
+      },
+
+      # Since we might not have access to 'make', let's run the protobuf
+      # compiler directly.
+      {
+          # We want to run the proto compiler to generate the right data in
+          # the right places.
+          'name':
+              'Generate protocol buffers',
+          'cmd': [
+              'protoc',
+              '--proto_path',
+              proto_input_path,
+              '--python_out',
+              proto_output_path,
+          ] + proto_files,
+      },
+  ]
+
+
   if args.platform == 'android':
     # On Android, we need to prepare the devices a bit before using them in
     # tests. These steps are not listed as tests above because they aren't
@@ -248,6 +278,7 @@ def main(args=None):
                                  'android', 'tools', 'device_status.py')],
         },
     ])
+
 
   for test in _CATAPULT_TESTS:
     if args.platform in test.get('disabled', []):

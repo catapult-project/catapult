@@ -27,6 +27,7 @@ _EXCLUDED_PATHS = (
     r'.*README\.md$',
     r'^dashboard[\\/]dashboard[\\/]api[\\/]examples[\\/].*.js',
     r'^dashboard[\\/]dashboard[\\/]templates[\\/].*',
+    r'^dashboard[\\/]dashboard[\\/]sheriff_config[\\/].*_pb2.py$',
     r'^experimental[\\/]heatmap[\\/].*',
     r'^experimental[\\/]trace_on_tap[\\/]third_party[\\/].*',
     r'^experimental[\\/]perf_sheriffing_emailer[\\/].*.js',

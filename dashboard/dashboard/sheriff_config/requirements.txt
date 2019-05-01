@@ -1,0 +1,5 @@
+gunicorn==19.9.0
+Flask==1.0.2
+google-cloud-datastore
+protobuf>=3.4.0
+
