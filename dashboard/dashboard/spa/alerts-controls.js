@@ -436,6 +436,7 @@ export default class AlertsControls extends ElementBase {
 AlertsControls.TYPING_DEBOUNCE_MS = 300;
 
 AlertsControls.State = {
+  errors: options => [],
   bug: options => MenuInput.buildState({
     label: 'Bug',
     options: [],
@@ -498,20 +499,30 @@ AlertsControls.actions = {
   },
 
   loadReportNames: statePath => async(dispatch, getState) => {
-    const reportTemplateInfos = await new ReportNamesRequest().response;
-    const reportNames = reportTemplateInfos.map(t => t.name);
-    dispatch(UPDATE(statePath + '.report', {
-      options: OptionGroup.groupValues(reportNames),
-      label: `Reports (${reportNames.length})`,
-    }));
+    let infos;
+    let error;
+    try {
+      infos = await new ReportNamesRequest().response;
+    } catch (err) {
+      error = err;
+    }
+    dispatch({
+      type: AlertsControls.reducers.receiveReportNames.name,
+      statePath, infos, error,
+    });
   },
 
   loadSheriffs: statePath => async(dispatch, getState) => {
-    const sheriffs = await new SheriffsRequest().response;
+    let sheriffs;
+    let error;
+    try {
+      sheriffs = await new SheriffsRequest().response;
+    } catch (err) {
+      error = err;
+    }
     dispatch({
       type: AlertsControls.reducers.receiveSheriffs.name,
-      statePath,
-      sheriffs,
+      statePath, sheriffs, error,
     });
 
     const state = get(getState(), statePath);
@@ -539,7 +550,27 @@ AlertsControls.actions = {
 };
 
 AlertsControls.reducers = {
-  receiveSheriffs: (state, {sheriffs}, rootState) => {
+  receiveReportNames: (state, {infos, error}, rootState) => {
+    if (error) {
+      const errors = [...new Set([error.message, ...state.errors])];
+      return {...state, errors};
+    }
+
+    const reportNames = infos.map(t => t.name);
+    const report = {
+      ...state.report,
+      options: OptionGroup.groupValues(reportNames),
+      label: `Reports (${reportNames.length})`,
+    };
+    return {...state, report};
+  },
+
+  receiveSheriffs: (state, {sheriffs, error}, rootState) => {
+    if (error) {
+      const errors = [...new Set([error.message, ...state.errors])];
+      return {...state, errors};
+    }
+
     const sheriff = MenuInput.buildState({
       label: `Sheriffs (${sheriffs.length})`,
       options: sheriffs,

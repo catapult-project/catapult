@@ -95,6 +95,7 @@ ChartTimeseries.MAX_LINES = 10;
 
 ChartTimeseries.State = {
   ...ChartBase.State,
+  errors: options => new Set(),
   lines: options => ChartBase.State.lines(options),
   lineDescriptors: options => [],
   minRevision: options => undefined,
@@ -150,7 +151,11 @@ ChartTimeseries.actions = {
     let state = get(getState(), statePath);
     if (!state) return;
 
-    dispatch(UPDATE(statePath, {isLoading: true, lines: []}));
+    dispatch(UPDATE(statePath, {
+      isLoading: true,
+      lines: [],
+      errors: new Set(),
+    }));
 
     await ChartTimeseries.loadLines(statePath)(dispatch, getState);
 
@@ -280,7 +285,11 @@ ChartTimeseries.assignColors = lines => {
 
 ChartTimeseries.reducers = {
   // Aggregate timeserieses, assign colors, layout chart data, snap revisions.
-  layout: (state, {timeseriesesByLine}, rootState) => {
+  layout: (state, {timeseriesesByLine, errors}, rootState) => {
+    errors = errors.map(e => e.message);
+    errors = new Set([...state.errors, ...errors]);
+    state = {...state, errors};
+
     const lines = [];
     for (const {lineDescriptor, timeserieses} of timeseriesesByLine) {
       const data = ChartTimeseries.aggregateTimeserieses(
@@ -584,6 +593,7 @@ ChartTimeseries.loadLines = statePath => async(dispatch, getState) => {
     dispatch({
       type: ChartTimeseries.reducers.layout.name,
       timeseriesesByLine,
+      errors,
       statePath,
     });
     ChartTimeseries.actions.measureYTicks(statePath)(dispatch, getState);

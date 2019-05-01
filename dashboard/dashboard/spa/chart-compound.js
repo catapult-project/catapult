@@ -7,6 +7,7 @@
 import './cp-radio-group.js';
 import './cp-radio.js';
 import './cp-switch.js';
+import './error-set.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import ChartTimeseries from './chart-timeseries.js';
 import DetailsTable from './details-table.js';
@@ -106,6 +107,10 @@ export default class ChartCompound extends ElementBase {
           Displaying the first 10 lines. Select other items in order to
           display them.
         </div>
+
+        <error-set errors="[[union_(
+            minimapLayout.errors, chartLayout.errors)]]">
+        </error-set>
 
         <span
             id="options_container"
@@ -874,8 +879,12 @@ ChartCompound.findFirstNonEmptyLineDescriptor = async(
     const results = await Promise.all(fetchDescriptors.map(
         async fetchDescriptor => {
           const reader = new TimeseriesRequest(fetchDescriptor).reader();
-          for await (const timeseries of reader) {
-            return timeseries;
+          try {
+            for await (const timeseries of reader) {
+              return timeseries;
+            }
+          } catch (err) {
+            // Ignore errors here.
           }
         }));
 

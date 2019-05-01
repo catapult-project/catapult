@@ -6,6 +6,7 @@
 
 import {assert} from 'chai';
 import ChartCompound from './chart-compound.js';
+import findElements from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {MODE} from './layout-timeseries.js';
 import {TimeseriesRequest} from './timeseries-request.js';
@@ -54,6 +55,7 @@ suite('chart-compound', function() {
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           if (url === TimeseriesRequest.URL) {
             const data = [];
@@ -190,5 +192,25 @@ suite('chart-compound', function() {
 
     assert.isFalse(cc.fixedXAxis);
     assert.isFalse(cc.chartLayout.fixedXAxis);
+  });
+
+  test('Error loading timeseries', async function() {
+    const setupFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      if (url === TimeseriesRequest.URL) {
+        return {
+          ok: false,
+          status: 500,
+          statusText: 'test',
+        };
+      }
+      return await setupFetch(url, options);
+    };
+
+    const section = await fixture();
+    const divs = findElements(section, e => e.matches('div.error') &&
+      /Error loading timeseries for suite\/ms\/master:bot\/: 500 test/.test(
+          e.textContent));
+    assert.lengthOf(divs, 1);
   });
 });

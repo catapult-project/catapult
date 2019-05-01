@@ -16,7 +16,12 @@ export default class ReportNamesRequest extends RequestBase {
     return ReportNamesRequest.URL;
   }
 
+  get description_() {
+    return 'loading report names';
+  }
+
   postProcess_(json) {
+    if (json.error) throw new Error(json.error);
     return json.map(info => {
       return {...info, modified: new Date(info.modified)};
     });

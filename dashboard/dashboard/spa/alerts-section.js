@@ -5,6 +5,7 @@
 'use strict';
 
 import './cp-loading.js';
+import './error-set.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import AlertsControls from './alerts-controls.js';
 import AlertsRequest from './alerts-request.js';
@@ -84,6 +85,7 @@ export default class AlertsSection extends ElementBase {
           on-sources="onSources_">
       </alerts-controls>
 
+      <error-set errors="[[errors]]"></error-set>
       <cp-loading loading$="[[isLoading_(isLoading, preview.isLoading)]]">
       </cp-loading>
 
@@ -804,6 +806,10 @@ AlertsSection.reducers = {
   },
 
   receiveAlerts: (state, {alerts, errors, totalCount}, rootState) => {
+    errors = errors.map(e => e.message);
+    errors = [...new Set([...state.errors, ...errors])];
+    state = {...state, errors};
+
     // |alerts| are all new.
     // Group them together with previously-received alerts from
     // state.alertGroups[].alerts.
@@ -920,6 +926,7 @@ AlertsSection.reducers = {
   startLoadingAlerts: (state, {started}, rootState) => {
     return {
       ...state,
+      errors: [],
       alertGroups: AlertsTable.placeholderAlertGroups(),
       isLoading: true,
       started,

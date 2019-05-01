@@ -9,6 +9,30 @@ import ResultChannelSender from './result-channel-sender.js';
 import ResultChannelReceiver from './result-channel-receiver.js';
 
 suite('ResultChannelReceiver', function() {
+  test('pass errors through', async function() {
+    const url = 'pass errors through';
+    const sender = new ResultChannelSender(url);
+    const receiver = new ResultChannelReceiver(url);
+    sender.send((async function* () {
+      throw new Error('occam');
+    })());
+
+    // Start the receiver after the sender has sent its messages.
+    // The receiver should queue all messages until the caller is ready for
+    // them.
+    const results = [];
+    let error;
+    try {
+      for await (const result of receiver) {
+        results.push(result);
+      }
+    } catch (err) {
+      error = err.message;
+    }
+    assert.lengthOf(results, 0);
+    assert.strictEqual('occam', error);
+  });
+
   test('receives two queued messages', async() => {
     const url = 'receives two queued messages';
     const sender = new ResultChannelSender(url);

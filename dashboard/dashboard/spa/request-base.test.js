@@ -50,6 +50,7 @@ suite('RequestBase', function() {
       assert.strictEqual('test Authorization',
           options.headers.get('Authorization'));
       return {
+        ok: true,
         async json() {
           return [1];
         }
@@ -65,6 +66,7 @@ suite('RequestBase', function() {
   test('postProcess', async() => {
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           return [3, 4, 5];
         }
@@ -81,6 +83,7 @@ suite('RequestBase', function() {
         throw new Error('Unexpected call to fetch()');
       };
       return {
+        ok: true,
         async json() {
           return [1];
         }
@@ -97,6 +100,7 @@ suite('RequestBase', function() {
     window.IS_DEBUG = false;
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           return [3, 4, 5];
         }

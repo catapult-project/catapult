@@ -10,8 +10,10 @@ import DescribeRequest from './describe-request.js';
 import RecentBugsRequest from './recent-bugs-request.js';
 import ReportControls from './report-controls.js';
 import ReportNamesRequest from './report-names-request.js';
+import SessionIdRequest from './session-id-request.js';
 import SessionStateRequest from './session-state-request.js';
 import SheriffsRequest from './sheriffs-request.js';
+import findElements from './find-elements.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender, animationFrame} from './utils.js';
 import {assert} from 'chai';
@@ -43,6 +45,7 @@ suite('chromeperf-app', function() {
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           if (url === RecentBugsRequest.URL) {
             return {
@@ -266,5 +269,89 @@ suite('chromeperf-app', function() {
     assert.lengthOf(state.recentPerformanceBugs, 2);
     assert.strictEqual(123, state.recentPerformanceBugs[1].revisionRange.min);
     assert.strictEqual(456, state.recentPerformanceBugs[1].revisionRange.max);
+  });
+
+  test('Error loading session', async function() {
+    const setupFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      if (url.startsWith(SessionStateRequest.URL + '?')) {
+        return {
+          ok: false,
+          status: 500,
+          statusText: 'test',
+        };
+      }
+      return await setupFetch(url, options);
+    };
+
+    const app = await fixture();
+    await app.dispatch('restoreFromRoute', app.statePath, new URLSearchParams({
+      session: 42,
+    }));
+    await afterRender();
+    const divs = findElements(app, e => e.matches('div.error') &&
+      /Error loading session/.test(e.textContent));
+    assert.lengthOf(divs, 1);
+  });
+
+  test('Error saving session', async function() {
+    const setupFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      if (url === SessionIdRequest.URL) {
+        return {
+          ok: false,
+          status: 500,
+          statusText: 'test',
+        };
+      }
+      return await setupFetch(url, options);
+    };
+
+    const app = await fixture();
+
+    // Make two non-empty chart-sections so app tries to save session state.
+    app.$.new_chart.click();
+    await afterRender();
+    let chart = app.shadowRoot.querySelector('chart-section');
+    await app.dispatch(UPDATE(chart.statePath + '.descriptor', {
+      suite: {
+        ...chart.descriptor.suite,
+        selectedOptions: ['suite:name'],
+      },
+      measurement: {
+        ...chart.descriptor.measurement,
+        selectedOptions: ['ms'],
+      },
+      bot: {
+        ...chart.descriptor.bot,
+        selectedOptions: ['master:bot'],
+      },
+    }));
+    chart.$.controls.dispatchEvent(new CustomEvent('matrix-change'));
+    await afterRender();
+
+    app.$.new_chart.click();
+    await afterRender();
+    chart = findElements(app, e => e.matches('chart-section'))[1];
+    await app.dispatch(UPDATE(chart.statePath + '.descriptor', {
+      suite: {
+        ...chart.descriptor.suite,
+        selectedOptions: ['suite:name'],
+      },
+      measurement: {
+        ...chart.descriptor.measurement,
+        selectedOptions: ['ms'],
+      },
+      bot: {
+        ...chart.descriptor.bot,
+        selectedOptions: ['master:bot'],
+      },
+    }));
+    chart.$.controls.dispatchEvent(new CustomEvent('matrix-change'));
+    await afterRender();
+
+    const divs = findElements(app, e => e.matches('div.error') &&
+      /Error saving session state: 500 test/.test(e.textContent));
+    assert.lengthOf(divs, 1);
   });
 });

@@ -106,6 +106,17 @@ export default class ElementBase extends PolymerElement {
     return sum;
   }
 
+  union_() {
+    const results = new Set();
+    for (const arg of Array.from(arguments)) {
+      if (!arg) continue;
+      for (const elem of arg) {
+        results.add(elem);
+      }
+    }
+    return [...results];
+  }
+
   isEqual_() {
     const test = arguments[0];
     for (const arg of Array.from(arguments).slice(1)) {

@@ -97,6 +97,15 @@ export class TimeseriesRequest extends RequestBase {
     return TimeseriesRequest.URL;
   }
 
+  get description_() {
+    return 'loading timeseries for ' + [
+      this.body_.get('test_suite'),
+      this.body_.get('measurement'),
+      this.body_.get('bot'),
+      this.body_.get('test_case') || '',
+    ].join('/');
+  }
+
   postProcess_(response, isFromChannel = false) {
     if (!response) return;
     let unit = tr.b.Unit.byJSONName[response.units];

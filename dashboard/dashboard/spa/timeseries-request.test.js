@@ -24,6 +24,7 @@ suite('TimeseriesRequest', function() {
     window.IS_DEBUG = false;
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           return {
             units: 'ms',
@@ -115,6 +116,7 @@ suite('TimeseriesRequest', function() {
     const unit = tr.b.Unit.byName.timeDurationInMs;
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           const diagnostics = {
             [tr.v.d.RESERVED_NAMES.DEVICE_IDS]: new tr.v.d.GenericSet([
@@ -149,6 +151,7 @@ suite('TimeseriesRequest', function() {
   test('postProcess xy legacy unit', async() => {
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           return {
             units: 'kb',

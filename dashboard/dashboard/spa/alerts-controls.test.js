@@ -25,6 +25,7 @@ suite('alerts-controls', function() {
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           if (url === ReportNamesRequest.URL) {
             return [{name: 'aaa', id: 42, modified: new Date()}];

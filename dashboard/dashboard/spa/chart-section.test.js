@@ -41,6 +41,7 @@ suite('chart-section', function() {
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           if (url === TestSuitesRequest.URL) {
             return ['suite_a', 'suite_b', 'suite_c'];

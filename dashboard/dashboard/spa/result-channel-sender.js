@@ -10,8 +10,12 @@ export default class ResultChannelSender {
   }
 
   async send(asyncGenerator) {
-    for await (const payload of asyncGenerator) {
-      this.channel_.postMessage({type: 'RESULT', payload});
+    try {
+      for await (const payload of asyncGenerator) {
+        this.channel_.postMessage({type: 'RESULT', payload});
+      }
+    } catch (err) {
+      this.channel_.postMessage({type: 'ERROR', payload: err.message});
     }
     this.channel_.postMessage({type: 'DONE'});
     this.channel_.close();

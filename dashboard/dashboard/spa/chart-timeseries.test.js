@@ -39,6 +39,7 @@ suite('chart-timeseries', function() {
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           if (url === TimeseriesRequest.URL) {
             timeseriesBody = new Map(options.body);
@@ -116,6 +117,7 @@ suite('chart-timeseries', function() {
     window.IS_DEBUG = false;
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           return null;
         },

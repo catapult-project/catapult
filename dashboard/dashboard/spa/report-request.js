@@ -20,6 +20,10 @@ export default class ReportRequest extends RequestBase {
   get url_() {
     return ReportRequest.URL;
   }
+
+  get description_() {
+    return 'loading report';
+  }
 }
 
 ReportRequest.URL = '/api/report/generate';

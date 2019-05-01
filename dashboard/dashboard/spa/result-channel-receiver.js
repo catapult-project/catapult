@@ -30,6 +30,9 @@ export default class ResultChannelReceiver {
       case 'RESULT':
         return {done: false, value: payload};
 
+      case 'ERROR':
+        throw new Error(payload);
+
       case 'DONE':
         this.channel_.removeEventListener('message', this.handleMessage_);
         this.channel_.close();

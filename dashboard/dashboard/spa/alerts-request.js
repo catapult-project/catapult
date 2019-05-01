@@ -18,6 +18,10 @@ export default class AlertsRequest extends RequestBase {
     }
   }
 
+  get description_() {
+    return 'loading alerts';
+  }
+
   get url_() {
     return AlertsRequest.URL;
   }

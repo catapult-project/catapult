@@ -57,6 +57,7 @@ suite('alerts-section', function() {
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           if (url === DescribeRequest.URL) {
             return {};
@@ -295,5 +296,69 @@ suite('alerts-section', function() {
 
     state = section.getState().test;
     assert.isBelow(0, state.alertGroups.length);
+  });
+
+  test('Error loading sheriffs', async function() {
+    const setupFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      if (url === SheriffsRequest.URL) {
+        return {
+          ok: false,
+          status: 500,
+          statusText: 'test',
+        };
+      }
+      return await setupFetch(url, options);
+    };
+
+    const section = await fixture();
+    const divs = findElements(section, e => e.matches('div.error') &&
+      /Error loading sheriffs: 500 test/.test(e.textContent));
+    assert.lengthOf(divs, 1);
+  });
+
+  test('Error loading report names', async function() {
+    const setupFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      if (url === ReportNamesRequest.URL) {
+        return {
+          ok: false,
+          status: 500,
+          statusText: 'test',
+        };
+      }
+      return await setupFetch(url, options);
+    };
+
+    const section = await fixture();
+    const divs = findElements(section, e => e.matches('div.error') &&
+      /Error loading report names: 500 test/.test(e.textContent));
+    assert.lengthOf(divs, 1);
+  });
+
+  test('Error loading alerts', async function() {
+    const setupFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      if (url === AlertsRequest.URL) {
+        return {
+          ok: false,
+          status: 500,
+          statusText: 'test',
+        };
+      }
+      return await setupFetch(url, options);
+    };
+
+    const section = await fixture();
+    section.$.controls.dispatchEvent(new CustomEvent('sources', {
+      detail: {sources: [
+        {bug: 42},
+      ]},
+    }));
+    await afterRender();
+
+    const divs = findElements(section, e => e.matches('div.error') &&
+      /Error loading alerts: 500 test/.test(e.textContent));
+    assert.lengthOf(divs, 1);
   });
 });

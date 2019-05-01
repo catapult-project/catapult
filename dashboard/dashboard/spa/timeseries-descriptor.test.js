@@ -18,6 +18,7 @@ suite('timeseries-descriptor', function() {
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           if (url === TestSuitesRequest.URL) {
             return ['suite_a', 'suite_b', 'suite_c'];
@@ -61,12 +62,11 @@ suite('timeseries-descriptor', function() {
       e.matches('cp-checkbox') && /suite_a/.test(e.textContent))[0].click();
     await afterRender();
 
-    const state = td.getState().test;
-    assert.lengthOf(state.measurement.options, 3);
-    assert.lengthOf(state.bot.options, 3);
-    assert.lengthOf(state.case.options, 1);
-    assert.lengthOf(state.case.options[0].options, 3);
-    assert.lengthOf(state.case.tags.options, 3);
+    assert.lengthOf(td.measurement.options, 3);
+    assert.lengthOf(td.bot.options, 3);
+    assert.lengthOf(td.case.options, 1);
+    assert.lengthOf(td.case.options[0].options, 3);
+    assert.lengthOf(td.case.tags.options, 3);
   });
 
   test('option-select matrix-change', async function() {

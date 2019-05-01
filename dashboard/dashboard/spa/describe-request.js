@@ -18,6 +18,20 @@ export default class DescribeRequest extends RequestBase {
     return DescribeRequest.URL;
   }
 
+  get description_() {
+    return 'describing suite ' + this.body_.get('test_suite');
+  }
+
+  postProcess_(response, isFromChannel = false) {
+    if (!response) throw new Error('null descriptor');
+    if (response.error) throw new Error(response.error);
+    if (!response.bots) throw new Error('missing bots');
+    if (!response.bots.length) throw new Error('empty bots');
+    if (!response.measurements) throw new Error('missing measurements');
+    if (!response.measurements.length) throw new Error('empty measurements');
+    return response;
+  }
+
   static mergeDescriptor(merged, descriptor) {
     for (const bot of (descriptor.bots || [])) merged.bots.add(bot);
     for (const measurement of (descriptor.measurements || [])) {

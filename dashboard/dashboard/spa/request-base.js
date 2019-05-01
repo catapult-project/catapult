@@ -35,8 +35,12 @@ export default class RequestBase {
 
       // The service worker doesn't actually run on localhost.
       if (window.IS_DEBUG) return;
-      for await (const update of receiver) {
-        yield this.postProcess_(update, true);
+      try {
+        for await (const update of receiver) {
+          yield this.postProcess_(update, true);
+        }
+      } catch (err) {
+        throw new Error(`Error ${this.description_}: ${err.message}`);
       }
     }).call(this);
   }
@@ -63,7 +67,19 @@ export default class RequestBase {
       method: this.method_,
     });
     mark.end();
-    return this.postProcess_(await response.json());
+    if (!response.ok) {
+      throw new Error(`Error ${this.description_}: ` +
+        `${response.status} ${response.statusText}`);
+    }
+    try {
+      return this.postProcess_(await response.json());
+    } catch (err) {
+      throw new Error(`Error ${this.description_}: ${err.message}`);
+    }
+  }
+
+  get description_() {
+    return 'fetching ' + this.url_;
   }
 
   postProcess_(response, isFromChannel = false) {

@@ -15,5 +15,9 @@ export default class TestSuitesRequest extends RequestBase {
   get url_() {
     return TestSuitesRequest.URL;
   }
+
+  get description_() {
+    return 'loading suites';
+  }
 }
 TestSuitesRequest.URL = '/api/test_suites';

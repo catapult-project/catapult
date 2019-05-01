@@ -29,6 +29,7 @@ suite('report-controls', function() {
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           if (url === ReportNamesRequest.URL) {
             return [

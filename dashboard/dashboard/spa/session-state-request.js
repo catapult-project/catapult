@@ -15,5 +15,9 @@ export default class SessionStateRequest extends RequestBase {
   get url_() {
     return `${SessionStateRequest.URL}?v2=true&sid=${this.sessionId_}`;
   }
+
+  get description_() {
+    return 'loading session state';
+  }
 }
 SessionStateRequest.URL = '/short_uri';

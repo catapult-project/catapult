@@ -4,10 +4,11 @@
 */
 'use strict';
 
-import {assert} from 'chai';
+import ResultChannelReceiver from './result-channel-receiver.js';
 import SessionIdCacheRequest from './session-id-cache-request.js';
-import testUtils from './cache-request-base.js';
 import idb from 'idb';
+import testUtils from './cache-request-base.js';
+import {assert} from 'chai';
 
 class MockFetchEvent {
   constructor(state) {
@@ -78,10 +79,14 @@ suite('SessionIdCacheRequest', function() {
     window.fetch = async() => testUtils.jsonResponse({sid: 'invalid'});
     const fetchEvent = new MockFetchEvent('invalid');
     const cacheRequest = new SessionIdCacheRequest(fetchEvent);
+    const receiver = new ResultChannelReceiver(fetchEvent.request.url + '?' +
+    new URLSearchParams({page_state: JSON.stringify('invalid')}));
+    await cacheRequest.respond();
+    await fetchEvent.wait();
     let error;
     try {
-      await cacheRequest.respond();
-      await fetchEvent.wait();
+      for await (const unused of receiver) {
+      }
     } catch (err) {
       error = err.message;
     }

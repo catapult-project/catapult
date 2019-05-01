@@ -15,5 +15,9 @@ export default class SheriffsRequest extends RequestBase {
   get url_() {
     return SheriffsRequest.URL;
   }
+
+  get description_() {
+    return 'loading sheriffs';
+  }
 }
 SheriffsRequest.URL = '/api/sheriffs';

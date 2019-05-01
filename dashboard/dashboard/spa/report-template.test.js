@@ -49,6 +49,7 @@ suite('report-template', function() {
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           if (url === ReportTemplateRequest.URL) {
             templateBody = new Map(options.body);

@@ -18,7 +18,12 @@ export default class SessionIdRequest extends RequestBase {
     return SessionIdRequest.URL;
   }
 
+  get description_() {
+    return 'saving session state';
+  }
+
   postProcess_(json) {
+    if (json.error) throw new Error(json.error);
     return json.sid;
   }
 }

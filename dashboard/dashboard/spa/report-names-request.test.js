@@ -26,6 +26,7 @@ suite('ReportNamesRequest', function() {
 
     window.fetch = async(url, options) => {
       return {
+        ok: true,
         async json() {
           return expected.map(info => {
             return {...info, modified: info.modified.toISOString()};
