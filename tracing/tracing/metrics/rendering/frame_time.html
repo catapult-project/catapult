@@ -32,6 +32,7 @@ found in the LICENSE file.
  * percentage_smooth is lower (worse) if we have 10 100ms-frames instead of 5
  * 1s-frames. I think it makes more sense to compute the percentage of
  * non-smooth time during animation.
+ * This metric does not require summary_options as it reports only one number.
  *
  * frame_lengths
  * ============================
@@ -43,13 +44,15 @@ found in the LICENSE file.
  * avg_surface_fps
  * ==============================
  * Average number of frames, ignoring short frames, per second during
- * animations.
+ * animations. The jank_count does not require summary_options as it reports
+ * only one number.
  *
  * jank_count
  * =========================
  * The number of times that frame lengths are increased, during animations. For
  * example, if frame lengths are 1, 1, 1, 2, 3, 1, 1 vsyncs, then jank_count
- * will be 2 (1 -> 2 and 2 -> 3).
+ * will be 2 (1 -> 2 and 2 -> 3). The jank_count does not require
+ * summary_options as it reports only one number.
  *
  * ui_frame_times
  * ==============
@@ -169,7 +172,7 @@ tr.exportTo('tr.metrics.rendering', function() {
         100 * tr.b.math.Statistics.sum(frameTimes, (x => (x < 17 ? 1 : 0))) /
             frameTimes.length,
         { description: 'Percentage of frames that were hitting 60 FPS.',
-          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
+          summaryOptions: {},
         });
   }
 
@@ -228,7 +231,7 @@ tr.exportTo('tr.metrics.rendering', function() {
             totalFrameDuration,
             tr.b.UnitScale.TIME.MILLI_SEC, tr.b.UnitScale.TIME.SEC),
         { description: 'Average frames per second.',
-          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
+          summaryOptions: {},
         });
   }
 
@@ -257,7 +260,7 @@ tr.exportTo('tr.metrics.rendering', function() {
         tr.b.Unit.byName.count_smallerIsBetter,
         jankCount,
         { description: 'Number of changes in frame rate.',
-          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
+          summaryOptions: {},
         });
   }
 

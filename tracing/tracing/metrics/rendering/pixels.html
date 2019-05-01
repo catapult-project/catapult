@@ -24,11 +24,13 @@ found in the LICENSE file.
  * mean_pixels_checkerboarded. This claim is not consistent with numbers from
  * the perf dashboard. We should either correct the documentations or fix the
  * metrics.
+ * This metric does not require summary_options as it reports only one number.
  *
  * mean_pixels_checkerboarded
  * ==========================
  * The percentage of tiles which are only missing. It does not take into
  * consideration tiles which are of low or non-ideal resolution.
+ * This metric does not require summary_options as it reports only one number.
  */
 tr.exportTo('tr.metrics.rendering', function() {
   const IMPL_THREAD_RENDERING_STATS_EVENT =
@@ -87,14 +89,14 @@ tr.exportTo('tr.metrics.rendering', function() {
         100 * tr.b.math.Statistics.mean(approximatedPixelPercentages),
         { description: 'Percentage of pixels that were approximated ' +
                        '(checkerboarding, low-resolution tiles, etc.).',
-        summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
+        summaryOptions: {},
         });
     histograms.createHistogram(
         'mean_pixels_checkerboarded',
         tr.b.Unit.byName.normalizedPercentage_smallerIsBetter,
         100 * tr.b.math.Statistics.mean(checkerboardedPixelPercentages),
         { description: 'Percentage of pixels that were checkerboarded.',
-          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
+          summaryOptions: {},
         });
   }
 
