@@ -196,28 +196,39 @@ def RunFile(file_path, source_paths=None, js_args=None, v8_args=None,
 
   abs_file_path_str = _EscapeJsString(os.path.abspath(file_path))
 
-  try:
-    temp_dir = tempfile.mkdtemp()
-    temp_bootstrap_file = os.path.join(temp_dir, '_tmp_bootstrap.js')
-    with open(temp_bootstrap_file, 'w') as f:
-      f.write(_GetBootStrapJsContent(source_paths))
-      if extension == '.html':
-        f.write('\nHTMLImportsLoader.loadHTMLFile(%s, %s);' %
-                (abs_file_path_str, abs_file_path_str))
-      else:
-        f.write('\nHTMLImportsLoader.loadFile(%s);' % abs_file_path_str)
-    result = _RunFileWithD8(temp_bootstrap_file, js_args, v8_args, timeout,
-                            stdout, stdin)
-  except:
-    # Save the exception.
-    t, v, tb = sys.exc_info()
+  num_trials = 3
+  for trial in range(num_trials):
     try:
-      _RemoveTreeWithRetry(temp_dir)
+      temp_dir = tempfile.mkdtemp()
+      temp_bootstrap_file = os.path.join(temp_dir, '_tmp_bootstrap.js')
+      with open(temp_bootstrap_file, 'w') as f:
+        f.write(_GetBootStrapJsContent(source_paths))
+        if extension == '.html':
+          f.write('\nHTMLImportsLoader.loadHTMLFile(%s, %s);' %
+                  (abs_file_path_str, abs_file_path_str))
+        else:
+          f.write('\nHTMLImportsLoader.loadFile(%s);' % abs_file_path_str)
+      result = _RunFileWithD8(temp_bootstrap_file, js_args, v8_args, timeout,
+                              stdout, stdin)
     except:
-      logging.error('Failed to remove temp dir %s.', temp_dir)
-    # Re-raise original exception.
-    raise t, v, tb
-  _RemoveTreeWithRetry(temp_dir)
+      # Save the exception.
+      t, v, tb = sys.exc_info()
+      try:
+        _RemoveTreeWithRetry(temp_dir)
+      except:
+        logging.error('Failed to remove temp dir %s.', temp_dir)
+      if 'Error reading' in v:  # Handle crbug.com/953365
+        if trial == num_trials - 1:
+          logging.error(
+              'Failed to run file with D8 after %s tries.', num_trials)
+          raise t, v, tb
+        logging.warn('Hit error %s. Retrying after sleeping.', v)
+        time.sleep(10)
+        continue
+      # Re-raise original exception.
+      raise t, v, tb
+    _RemoveTreeWithRetry(temp_dir)
+    break
   return result
 
 
