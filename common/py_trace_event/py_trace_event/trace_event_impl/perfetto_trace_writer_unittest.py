@@ -23,11 +23,11 @@ class PerfettoTraceWriterTest(unittest.TestCase):
         output=result,
         pid=1,
         tid=2,
-        ts=2076949764620672,
+        ts=1556716807306,
     )
     expected_output = (
-        '\n\x18P\x80\x80@\xc8\x02\x01\xe2\x02\x0e\x08\x01\x10'
-        '\x020\x80\xb8\xaf\xc4\xe8\xd9\xb3\xe9\x1c'
+        '\n\x17P\x80\x80@\xc8\x02\x01\xe2\x02\r\x08\x01\x10'
+        '\x020\x90\xf6\xc2\x82\xb6\xfa\xe1\x02'
     )
     self.assertEqual(expected_output, result.getvalue())
 
@@ -37,22 +37,22 @@ class PerfettoTraceWriterTest(unittest.TestCase):
         output=result,
         pid=1,
         tid=2,
-        ts=2076949764620672,
+        ts=1556716807306,
     )
     perfetto_trace_writer.write_event(
         output=result,
         ph="M",
         category="category",
         name="event_name",
-        ts=2076949764620673,
+        ts=1556716807406,
         args={},
         tid=2,
     )
     expected_output = (
-       '\n\x18P\x80\x80@\xc8\x02\x01\xe2\x02\x0e\x08\x01\x10\x020\x80\xb8'
-       '\xaf\xc4\xe8\xd9\xb3\xe9\x1c\n1P\x80\x80@Z\x0b\x08\xe8\x07\x18\x002'
-       '\x04\x08\x00\x10Mb\x1e\n\x0c\x08\x00\x12\x08category'
-       '\x12\x0e\x08\x00\x12\nevent_name'
+       '\n\x17P\x80\x80@\xc8\x02\x01\xe2\x02\r\x08\x01\x10'
+       '\x020\x90\xf6\xc2\x82\xb6\xfa\xe1\x02\n2P\x80\x80@Z\x0c\x08'
+       '\xa0\x8d\x06\x18\x012\x04\x08\x01\x10Mb\x1e\n\x0c\x08\x01'
+       '\x12\x08category\x12\x0e\x08\x01\x12\nevent_name'
     )
     self.assertEqual(expected_output, result.getvalue())
 

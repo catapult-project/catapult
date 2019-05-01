@@ -42,7 +42,8 @@ def _intern_category(category, trace_packet, tid):
   global _interned_categories_by_tid
   categories = _interned_categories_by_tid[tid]
   if category not in categories:
-    categories[category] = len(categories)
+    # note that interning indices start from 1
+    categories[category] = len(categories) + 1
     if trace_packet.interned_data is None:
       trace_packet.interned_data = proto.InternedData()
     trace_packet.interned_data.event_category = proto.EventCategory()
@@ -55,7 +56,8 @@ def _intern_event_name(event_name, trace_packet, tid):
   global _interned_event_names_by_tid
   event_names = _interned_event_names_by_tid[tid]
   if event_name not in event_names:
-    event_names[event_name] = len(event_names)
+    # note that interning indices start from 1
+    event_names[event_name] = len(event_names) + 1
     if trace_packet.interned_data is None:
       trace_packet.interned_data = proto.InternedData()
     trace_packet.interned_data.legacy_event_name = proto.LegacyEventName()
