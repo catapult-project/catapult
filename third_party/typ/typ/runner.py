@@ -218,8 +218,8 @@ class Runner(object):
             if self.args.tags:
                 self.metadata['tags'] = self.args.tags
             if self.args.expectations_files:
-                self.metadata[
-                    'expectations_files'] = self.args.expectations_files
+                self.metadata['expectations_files'] = [
+                    os.path.basename(p) for p in self.args.expectations_files]
             if self.args.list_only:
                 self.print_('\n'.join(all_tests))
             else:
