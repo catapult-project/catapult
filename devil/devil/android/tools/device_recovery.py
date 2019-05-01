@@ -6,6 +6,7 @@
 """A script to recover devices in a known bad state."""
 
 import argparse
+import glob
 import logging
 import os
 import signal
@@ -64,10 +65,56 @@ def KillAllAdb():
       pass
 
 
+def TryAuth(device):
+  """Uses anything in ~/.android/ that looks like a key to auth with the device.
+
+  Args:
+    device: The DeviceUtils device to attempt to auth.
+
+  Returns:
+    True if device successfully authed.
+  """
+  possible_keys = glob.glob(os.path.join(adb_wrapper.ADB_HOST_KEYS_DIR, '*key'))
+  if len(possible_keys) <= 1:
+    logger.warning(
+        'Only %d ADB keys available. Not forcing auth.', len(possible_keys))
+    return False
+
+  KillAllAdb()
+  adb_wrapper.AdbWrapper.StartServer(keys=possible_keys)
+  new_state = device.adb.GetState()
+  if new_state != 'device':
+    logger.error(
+        'Auth failed. Device %s still stuck in %s.', str(device), new_state)
+    return False
+
+  # It worked! Now register the host's default ADB key on the device so we don't
+  # have to do all that again.
+  pub_key = os.path.join(adb_wrapper.ADB_HOST_KEYS_DIR, 'adbkey.pub')
+  if not os.path.exists(pub_key):  # This really shouldn't happen.
+    logger.error('Default ADB key not available at %s.', pub_key)
+    return False
+
+  with open(pub_key) as f:
+    pub_key_contents = f.read()
+  try:
+    device.WriteFile(adb_wrapper.ADB_KEYS_FILE, pub_key_contents, as_root=True)
+  except (device_errors.CommandTimeoutError,
+          device_errors.CommandFailedError,
+          device_errors.DeviceUnreachableError):
+    logger.exception('Unable to write default ADB key to %s.', str(device))
+    return False
+  return True
+
+
 def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
   if device_status.IsBlacklisted(device.adb.GetDeviceSerial(),
                                  blacklist):
     logger.debug('%s is blacklisted, skipping recovery.', str(device))
+    return
+
+  if device.adb.GetState() == 'unauthorized' and TryAuth(device):
+    logger.info('Successfully authed device %s!', str(device))
     return
 
   if should_reboot(device):
@@ -140,7 +187,7 @@ def RecoverDevices(devices, blacklist, enable_usb_reset=False):
   should_restart_adb = should_restart_usb.union(set(
       status['serial'] for status in statuses
       if status['adb_status'] == 'unauthorized'))
-  should_reboot_device = should_restart_adb.union(set(
+  should_reboot_device = should_restart_usb.union(set(
       status['serial'] for status in statuses
       if status['blacklisted']))
 

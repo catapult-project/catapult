@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 ADB_KEYS_FILE = '/data/misc/adb/adb_keys'
+ADB_HOST_KEYS_DIR = os.path.join(os.path.expanduser('~'), '.android')
 
 DEFAULT_TIMEOUT = 30
 DEFAULT_RETRIES = 2
@@ -262,7 +263,7 @@ class AdbWrapper(object):
   @classmethod
   @decorators.WithTimeoutAndConditionalRetries(_ShouldRetryAdbCmd)
   def _RunAdbCmd(cls, args, timeout=None, retries=None, device_serial=None,
-                 check_error=True, cpu_affinity=None):
+                 check_error=True, cpu_affinity=None, additional_env=None):
     if timeout:
       remaining = timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime()
       if remaining:
@@ -271,10 +272,13 @@ class AdbWrapper(object):
         timeout = 0.95 * remaining
       else:
         timeout = None
+    env = cls._ADB_ENV.copy()
+    if additional_env:
+      env.update(additional_env)
     try:
       status, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
           cls._BuildAdbCmd(args, device_serial, cpu_affinity=cpu_affinity),
-          timeout, env=cls._ADB_ENV)
+          timeout, env=env)
     except OSError as e:
       if e.errno in (errno.ENOENT, errno.ENOEXEC):
         raise device_errors.NoAdbError(msg=str(e))
@@ -368,10 +372,21 @@ class AdbWrapper(object):
     cls._RunAdbCmd(['kill-server'], timeout=timeout, retries=retries)
 
   @classmethod
-  def StartServer(cls, timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):
+  def StartServer(cls, keys=None, timeout=DEFAULT_TIMEOUT,
+                  retries=DEFAULT_RETRIES):
+    """Starts the ADB server.
+
+    Args:
+      keys: (optional) List of local ADB keys to use to auth with devices.
+      timeout: (optional) Timeout per try in seconds.
+      retries: (optional) Number of retries to attempt.
+    """
+    additional_env = {}
+    if keys:
+      additional_env['ADB_VENDOR_KEYS'] = ':'.join(keys)
     # CPU affinity is used to reduce adb instability http://crbug.com/268450
     cls._RunAdbCmd(['start-server'], timeout=timeout, retries=retries,
-                   cpu_affinity=0)
+                   cpu_affinity=0, additional_env=additional_env)
 
   @classmethod
   def GetDevices(cls, timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):

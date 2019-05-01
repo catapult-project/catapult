@@ -108,7 +108,7 @@ class FastbootUtils(object):
     This waits for the device serial to show up in fastboot devices output.
     """
     def fastboot_mode():
-      return self._serial in self.fastboot.Devices()
+      return any(self._serial == str(d) for d in self.fastboot.Devices())
 
     timeout_retry.WaitFor(fastboot_mode, wait_period=self._FASTBOOT_WAIT_TIME)
 
