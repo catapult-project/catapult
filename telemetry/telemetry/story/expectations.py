@@ -393,6 +393,8 @@ ANDROID_NEXUS6_WEBVIEW = _TestConditionLogicalAndConditions(
     [ANDROID_NEXUS6, ANDROID_WEBVIEW], 'Nexus6 Webview')
 ANDROID_NEXUS5X_WEBVIEW = _TestConditionLogicalAndConditions(
     [ANDROID_NEXUS5X, ANDROID_WEBVIEW], 'Nexus5X Webview')
+ANDROID_GO_WEBVIEW = _TestConditionLogicalAndConditions(
+    [ANDROID_GO, ANDROID_WEBVIEW], 'Android Go Webview')
 
 EXPECTATION_NAME_MAP = {
     'All': ALL,
@@ -420,5 +422,6 @@ EXPECTATION_NAME_MAP = {
     'Mac_10.11': MAC_10_11,
     'Mac_10.12': MAC_10_12,
     'Nexus6_Webview': ANDROID_NEXUS6_WEBVIEW,
-    'Nexus5X_Webview': ANDROID_NEXUS5X_WEBVIEW
+    'Nexus5X_Webview': ANDROID_NEXUS5X_WEBVIEW,
+    'Android_Go_Webview': ANDROID_GO_WEBVIEW,
 }

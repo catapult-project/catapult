@@ -457,6 +457,31 @@ class TestConditionTest(unittest.TestCase):
             self._platform, self._finder_options))
     self.assertEquals('Win 10', str(expectations.WIN_10))
 
+  def testAndroidGoWebviewFalseOnNotWebview(self):
+    self._platform.SetOSName('android')
+    self._finder_options.browser_type = 'android'
+    self._platform.SetDeviceTypeName('gobo')
+    self.assertFalse(
+        expectations.ANDROID_GO_WEBVIEW.ShouldDisable(
+            self._platform, self._finder_options))
+
+  def testAndroidGoWebviewFalseOnNotNexus6(self):
+    self._platform.SetOSName('android')
+    self._finder_options.browser_type = 'android-webview'
+    self._platform.SetDeviceTypeName('Nexus 5X')
+    self.assertFalse(
+        expectations.ANDROID_GO_WEBVIEW.ShouldDisable(
+            self._platform, self._finder_options))
+
+  def testAndroidGoWebviewReturnsTrue(self):
+    self._platform.SetOSName('android')
+    self._finder_options.browser_type = 'android-webview'
+    self._platform.SetDeviceTypeName('gobo')
+    self.assertTrue(
+        expectations.ANDROID_GO_WEBVIEW.ShouldDisable(
+            self._platform, self._finder_options))
+
+
 
 class StoryExpectationsTest(unittest.TestCase):
   def setUp(self):
