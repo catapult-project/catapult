@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import * as Redux from 'redux';
 import {deepFreeze, setImmutable} from './utils.js';
 
 // See architecture.md for background and explanations.
@@ -200,3 +201,8 @@ registerReducer(statePathReducer(function TOGGLE(state) {
 }));
 
 export const TOGGLE = statePath => {return {type: 'TOGGLE', statePath};};
+
+registerReducer(function RESET(rootState, {state = {}}) {
+  return state;
+});
+export const RESET = {type: 'RESET'};

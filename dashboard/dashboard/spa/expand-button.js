@@ -6,7 +6,7 @@
 
 import ElementBase from './element-base.js';
 import {TOGGLE} from './simple-redux.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,

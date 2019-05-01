@@ -11,8 +11,8 @@ import MenuInput from './menu-input.js';
 import OptionGroup from './option-group.js';
 import ReportNamesRequest from './report-names-request.js';
 import {UPDATE} from './simple-redux.js';
-import {get} from '/@polymer/polymer/lib/utils/path.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,

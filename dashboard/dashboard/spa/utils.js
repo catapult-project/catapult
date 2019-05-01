@@ -4,8 +4,8 @@
 */
 'use strict';
 
-import {afterNextRender} from '/@polymer/polymer/lib/utils/render-status.js';
-import {get} from '/@polymer/polymer/lib/utils/path.js';
+import {afterNextRender} from '@polymer/polymer/lib/utils/render-status.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
 
 /**
   * Like Polymer.Path.set(), but returns a modified clone of root instead of
@@ -364,41 +364,43 @@ export class BatchIterator {
     return batch;
   }
 
-  async* [Symbol.asyncIterator]() {
-    if (!this.promises_.size) return;
+  [Symbol.asyncIterator]() {
+    return (async function* () {
+      if (!this.promises_.size) return;
 
-    // Yield the first result immediately in order to allow the user to start
-    // to understand it (c.f. First Contentful Paint), and also to measure how
-    // long it takes the caller to render the data. Use that measurement as an
-    // estimation of how long to wait before yielding the next batch of
-    // results. This first batch may contain multiple results/errors if
-    // multiple tasks resolve in the same tick, or if a generator yields
-    // multiple results synchronously.
-    await Promise.race(this.promises_);
-    let start = performance.now();
-    yield this.batch_();
-    let processingMs = performance.now() - start;
-
-    while (this.promises_.size ||
-            this.results_.length || this.errors_.length) {
-      // Wait for a result or error to become available.
-      // This may not be necessary if a promise resolved while the caller was
-      // processing previous results.
-      if (!this.results_.length && !this.errors_.length) {
-        await Promise.race(this.promises_);
-      }
-
-      // Wait for either the delay to resolve or all generators to be done.
-      // This can't use Promise.all() because generators can add new promises.
-      const delay = this.getDelay_(processingMs);
-      while (!delay.resolved && this.promises_.size) {
-        await Promise.race([delay, ...this.promises_]);
-      }
-
-      start = performance.now();
+      // Yield the first result immediately in order to allow the user to start
+      // to understand it (c.f. First Contentful Paint), and also to measure how
+      // long it takes the caller to render the data. Use that measurement as an
+      // estimation of how long to wait before yielding the next batch of
+      // results. This first batch may contain multiple results/errors if
+      // multiple tasks resolve in the same tick, or if a generator yields
+      // multiple results synchronously.
+      await Promise.race(this.promises_);
+      let start = performance.now();
       yield this.batch_();
-      processingMs = performance.now() - start;
-    }
+      let processingMs = performance.now() - start;
+
+      while (this.promises_.size ||
+              this.results_.length || this.errors_.length) {
+        // Wait for a result or error to become available.
+        // This may not be necessary if a promise resolved while the caller was
+        // processing previous results.
+        if (!this.results_.length && !this.errors_.length) {
+          await Promise.race(this.promises_);
+        }
+
+        // Wait for either the delay to resolve or all generators to be done.
+        // This can't use Promise.all() because generators can add new promises.
+        const delay = this.getDelay_(processingMs);
+        while (!delay.resolved && this.promises_.size) {
+          await Promise.race([delay, ...this.promises_]);
+        }
+
+        start = performance.now();
+        yield this.batch_();
+        processingMs = performance.now() - start;
+      }
+    }).call(this);
   }
 }
 

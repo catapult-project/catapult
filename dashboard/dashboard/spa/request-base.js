@@ -26,17 +26,19 @@ export default class RequestBase {
 
   // Some CacheRequest classes use ResultChannelSender to stream parts of the
   // requested data as it becomes available.
-  async* reader() {
-    // Create the receiver before fetching so we don't miss any results.
-    const receiver = new ResultChannelReceiver(this.channelName);
-    const response = await this.response;
-    if (response) yield response;
+  reader() {
+    return (async function* () {
+      // Create the receiver before fetching so we don't miss any results.
+      const receiver = new ResultChannelReceiver(this.channelName);
+      const response = await this.response;
+      if (response) yield response;
 
-    // The service worker doesn't actually run on localhost.
-    if (window.IS_DEBUG) return;
-    for await (const update of receiver) {
-      yield this.postProcess_(update, true);
-    }
+      // The service worker doesn't actually run on localhost.
+      if (window.IS_DEBUG) return;
+      for await (const update of receiver) {
+        yield this.postProcess_(update, true);
+      }
+    }).call(this);
   }
 
   get channelName() {

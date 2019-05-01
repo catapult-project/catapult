@@ -19,7 +19,7 @@ class TestListHandler(webapp2.RequestHandler):
     for test in project.FindAllTestModuleRelPaths():
       test = '/' + test.replace(os.sep, '/')
       if '/spa/' in test:
-        # Tests in spa/ are run by run_wct_tests, so don't run them here.
+        # Tests in spa/ are run by run_spa_tests, so don't run them here.
         continue
       test_relpaths.append(test)
 

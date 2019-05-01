@@ -8,7 +8,7 @@ import './cp-input.js';
 import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
 import {UPDATE} from './simple-redux.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,

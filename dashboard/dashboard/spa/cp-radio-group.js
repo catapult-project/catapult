@@ -4,7 +4,7 @@
 */
 'use strict';
 
-import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
+import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
 import './cp-radio.js';
 
 export default class CpRadioGroup extends PolymerElement {

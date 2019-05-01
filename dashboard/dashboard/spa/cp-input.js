@@ -4,7 +4,7 @@
 */
 'use strict';
 
-import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
+import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
 import {getActiveElement, timeout} from './utils.js';
 
 export default class CpInput extends PolymerElement {

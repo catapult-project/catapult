@@ -5,16 +5,16 @@
 'use strict';
 
 import './place-holder.js';
-import '/@polymer/polymer/lib/elements/dom-if.js';
-import * as PolymerAsync from '/@polymer/polymer/lib/utils/async.js';
+import '@polymer/polymer/lib/elements/dom-if.js';
+import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import ChartBase from './chart-base.js';
 import ElementBase from './element-base.js';
 import TimeseriesMerger from './timeseries-merger.js';
 import {CHAIN, UPDATE} from './simple-redux.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {MODE, layoutTimeseries} from './layout-timeseries.js';
-import {get} from '/@polymer/polymer/lib/utils/path.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   BatchIterator,

@@ -4,15 +4,15 @@
 */
 'use strict';
 
-import '/@polymer/polymer/lib/elements/dom-if.js';
-import '/@polymer/polymer/lib/elements/dom-repeat.js';
-import * as PolymerAsync from '/@polymer/polymer/lib/utils/async.js';
+import '@polymer/polymer/lib/elements/dom-if.js';
+import '@polymer/polymer/lib/elements/dom-repeat.js';
+import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import ElementBase from './element-base.js';
 import {UPDATE} from './simple-redux.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {GestureEventListeners} from
-  '/@polymer/polymer/lib/mixins/gesture-event-listeners.js';
+  '@polymer/polymer/lib/mixins/gesture-event-listeners.js';
 
 import {
   animationFrame,

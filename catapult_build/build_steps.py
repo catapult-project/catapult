@@ -62,8 +62,8 @@ _CATAPULT_TESTS = [
         'disabled': ['android'],
     },
     {
-        'name': 'Dashboard WCT Tests',
-        'path': 'dashboard/bin/run_wct_tests',
+        'name': 'Dashboard SPA Tests',
+        'path': 'dashboard/bin/run_spa_tests',
         'disabled': ['android', 'win', 'mac'],
     },
     {
@@ -210,7 +210,6 @@ def main(args=None):
   parser.add_argument('--api-path-checkout', help='Path to catapult checkout')
   parser.add_argument('--app-engine-sdk-pythonpath',
                       help='PYTHONPATH to include app engine SDK path')
-  parser.add_argument('--wct-path', help='Path to infra/testing/wct binary')
   parser.add_argument('--platform',
                       help='Platform name (linux, mac, or win)')
   parser.add_argument('--output-json', help='Output for buildbot status page')

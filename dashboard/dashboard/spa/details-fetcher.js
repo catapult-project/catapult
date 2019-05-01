@@ -63,22 +63,24 @@ export class DetailsFetcher {
     this.batches_ = new BatchIterator([]);
   }
 
-  async* [Symbol.asyncIterator]() {
-    if (!this.revisionRanges_ || this.revisionRanges_.length === 0) return;
+  [Symbol.asyncIterator]() {
+    return (async function* () {
+      if (!this.revisionRanges_ || this.revisionRanges_.length === 0) return;
 
-    for (const [lineIndex, {fetchDescriptors}] of enumerate(
-        this.fetchDescriptorsByLine_)) {
-      for (const [fetchIndex, fetchDescriptor] of enumerate(
-          fetchDescriptors)) {
-        this.batches_.add(this.fetchTimeseries_(
-            lineIndex, fetchIndex, fetchDescriptor));
+      for (const [lineIndex, {fetchDescriptors}] of enumerate(
+          this.fetchDescriptorsByLine_)) {
+        for (const [fetchIndex, fetchDescriptor] of enumerate(
+            fetchDescriptors)) {
+          this.batches_.add(this.fetchTimeseries_(
+              lineIndex, fetchIndex, fetchDescriptor));
+        }
       }
-    }
 
-    for await (const {results, errors} of this.batches_) {
-      const timeseriesesByLine = this.timeseriesesByLine_.populatedResults;
-      yield {errors, timeseriesesByLine};
-    }
+      for await (const {results, errors} of this.batches_) {
+        const timeseriesesByLine = this.timeseriesesByLine_.populatedResults;
+        yield {errors, timeseriesesByLine};
+      }
+    }).call(this);
   }
 
   // Start fetches for detail data for each brushed revision range.
@@ -97,13 +99,15 @@ export class DetailsFetcher {
   }
 
   // Collate detail data in timeseriesesByLine_.
-  async* fetchDetails_(lineIndex, rangeIndex, fetchIndex, fetchDescriptor) {
-    const request = new TimeseriesRequest(fetchDescriptor);
-    for await (const timeseries of request.reader()) {
-      this.timeseriesesByLine_.receive(
-          lineIndex, rangeIndex, fetchIndex, timeseries);
-      yield {/* Pump BatchIterator. */};
-    }
+  fetchDetails_(lineIndex, rangeIndex, fetchIndex, fetchDescriptor) {
+    return (async function* () {
+      const request = new TimeseriesRequest(fetchDescriptor);
+      for await (const timeseries of request.reader()) {
+        this.timeseriesesByLine_.receive(
+            lineIndex, rangeIndex, fetchIndex, timeseries);
+        yield {/* Pump BatchIterator. */};
+      }
+    }).call(this);
   }
 }
 

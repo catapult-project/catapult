@@ -318,69 +318,71 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
     })));
   }
 
-  async* generateResults() {
-    const cacheResult = {...await this.cacheResultPromise};
-    let finalResult = cacheResult;
-    let availableRangeByCol = new Map();
-    let mergedData = [];
-    if (cacheResult && cacheResult.data) {
-      mergedData = [...cacheResult.data];
-      availableRangeByCol = cacheResult.availableRangeByCol;
-      delete cacheResult.availableRangeByCol;
-      yield cacheResult;
-    }
+  generateResults() {
+    return (async function* () {
+      const cacheResult = {...await this.cacheResultPromise};
+      let finalResult = cacheResult;
+      let availableRangeByCol = new Map();
+      let mergedData = [];
+      if (cacheResult && cacheResult.data) {
+        mergedData = [...cacheResult.data];
+        availableRangeByCol = cacheResult.availableRangeByCol;
+        delete cacheResult.availableRangeByCol;
+        yield cacheResult;
+      }
 
-    const slices = await this.slicesPromise;
-    const matchingSlices = new Set();
-    await this.findInProgressRequest(async other => {
-      if (other.databaseName_ !== this.databaseName_) return;
+      const slices = await this.slicesPromise;
+      const matchingSlices = new Set();
+      await this.findInProgressRequest(async other => {
+        if (other.databaseName_ !== this.databaseName_) return;
 
-      const otherSlices = await other.slicesPromise;
-      for (const slice of slices) {
-        for (const otherSlice of otherSlices) {
-          const intersection = slice.revisionRange.findIntersection(
-              otherSlice.revisionRange);
-          if (intersection.duration < slice.revisionRange.duration) {
-            continue;
-          }
+        const otherSlices = await other.slicesPromise;
+        for (const slice of slices) {
+          for (const otherSlice of otherSlices) {
+            const intersection = slice.revisionRange.findIntersection(
+                otherSlice.revisionRange);
+            if (intersection.duration < slice.revisionRange.duration) {
+              continue;
+            }
 
-          for (const col of slice.columns) {
-            if (col === 'revision') continue;
-            if (otherSlice.columns.has(col)) {
-              // If a col is already being fetched by an otherSlice, then
-              // don't fetch it.
-              slice.columns.delete(col);
-              matchingSlices.add(otherSlice);
+            for (const col of slice.columns) {
+              if (col === 'revision') continue;
+              if (otherSlice.columns.has(col)) {
+                // If a col is already being fetched by an otherSlice, then
+                // don't fetch it.
+                slice.columns.delete(col);
+                matchingSlices.add(otherSlice);
+              }
+            }
+            // If all cols are already being fetched by an otherSlice, then
+            // don't fetch it.
+            if (slice.columns.size === 1) {
+              slices.delete(slice);
             }
           }
-          // If all cols are already being fetched by an otherSlice, then
-          // don't fetch it.
-          if (slice.columns.size === 1) {
-            slices.delete(slice);
-          }
         }
-      }
-    });
+      });
 
-    const sliceResponses = [];
-    for (const slice of slices) sliceResponses.push(slice.responsePromise);
-    for (const slice of matchingSlices) {
-      sliceResponses.push(slice.responsePromise);
-    }
-
-    for await (const result of raceAllPromises(sliceResponses)) {
-      if (!result || result.error || !result.data || !result.data.length) {
-        continue;
+      const sliceResponses = [];
+      for (const slice of slices) sliceResponses.push(slice.responsePromise);
+      for (const slice of matchingSlices) {
+        sliceResponses.push(slice.responsePromise);
       }
-      mergeObjectArrays('revision', mergedData, result.data.filter(d => (
-        d.revision >= this.revisionRange_.min &&
-        d.revision <= this.revisionRange_.max)));
-      finalResult = {...result, data: mergedData};
-      yield finalResult;
-    }
-    if (finalResult.data && finalResult.data.length) {
-      this.scheduleWrite(finalResult);
-    }
+
+      for await (const result of raceAllPromises(sliceResponses)) {
+        if (!result || result.error || !result.data || !result.data.length) {
+          continue;
+        }
+        mergeObjectArrays('revision', mergedData, result.data.filter(d => (
+          d.revision >= this.revisionRange_.min &&
+          d.revision <= this.revisionRange_.max)));
+        finalResult = {...result, data: mergedData};
+        yield finalResult;
+      }
+      if (finalResult.data && finalResult.data.length) {
+        this.scheduleWrite(finalResult);
+      }
+    }).call(this);
   }
 
   async readDatabase_() {

@@ -4,7 +4,7 @@
 */
 'use strict';
 
-import idb from '/idb/idb.js';
+import idb from 'idb';
 import TASK_QUEUE from './task-queue.js';
 
 // Transaction modes

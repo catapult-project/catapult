@@ -1,0 +1,20 @@
+#!/usr/bin/python
+# Copyright 2019 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import os
+import subprocess
+import sys
+
+
+CATAPULT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.insert(0, CATAPULT)
+sys.path.insert(0, os.path.join(CATAPULT, 'common', 'py_utils'))
+sys.path.insert(0, os.path.join(CATAPULT, 'common', 'node_runner'))
+from node_runner import node_util  # pylint: disable=wrong-import-position,import-error
+os.environ['NODE_PATH'] = node_util.GetNodeModulesPath()
+KARMA = os.path.join(node_util.GetNodeModulesPath(), 'karma/bin/karma')
+command = [node_util.GetNodePath(), KARMA, 'start'] + sys.argv[1:]
+os.chdir(os.path.join(CATAPULT, 'dashboard/dashboard/spa'))
+sys.exit(subprocess.call(command))

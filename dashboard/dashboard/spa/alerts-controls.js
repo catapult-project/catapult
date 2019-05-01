@@ -9,9 +9,9 @@ import './cp-input.js';
 import './cp-switch.js';
 import './raised-button.js';
 import './recommended-options.js';
-import '/@polymer/polymer/lib/elements/dom-if.js';
-import '/@polymer/polymer/lib/elements/dom-repeat.js';
-import * as PolymerAsync from '/@polymer/polymer/lib/utils/async.js';
+import '@polymer/polymer/lib/elements/dom-if.js';
+import '@polymer/polymer/lib/elements/dom-repeat.js';
+import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import AlertsTable from './alerts-table.js';
 import ElementBase from './element-base.js';
 import MenuInput from './menu-input.js';
@@ -19,8 +19,8 @@ import OptionGroup from './option-group.js';
 import ReportNamesRequest from './report-names-request.js';
 import SheriffsRequest from './sheriffs-request.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
-import {get} from '/@polymer/polymer/lib/utils/path.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   buildState,

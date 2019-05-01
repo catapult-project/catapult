@@ -6,7 +6,7 @@
 
 import './cp-checkbox.js';
 import './recommended-options.js';
-import '/@polymer/polymer/lib/elements/dom-if.js';
+import '@polymer/polymer/lib/elements/dom-if.js';
 import DescribeRequest from './describe-request.js';
 import ElementBase from './element-base.js';
 import MemoryComponents from './memory-components.js';
@@ -15,8 +15,8 @@ import OptionGroup from './option-group.js';
 import TagFilter from './tag-filter.js';
 import TestSuitesRequest from './test-suites-request.js';
 import {TOGGLE} from './simple-redux.js';
-import {get} from '/@polymer/polymer/lib/utils/path.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   BatchIterator,

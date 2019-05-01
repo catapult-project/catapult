@@ -19,8 +19,8 @@ import TimeseriesDescriptor from './timeseries-descriptor.js';
 import sha from './sha.js';
 import {CHAIN, UPDATE} from './simple-redux.js';
 import {MODE} from './layout-timeseries.js';
-import {get} from '/@polymer/polymer/lib/utils/path.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,

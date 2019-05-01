@@ -8,10 +8,10 @@ import './column-head.js';
 import './cp-checkbox.js';
 import './expand-button.js';
 import './scalar-span.js';
-import '/@polymer/polymer/lib/elements/dom-if.js';
-import '/@polymer/polymer/lib/elements/dom-repeat.js';
+import '@polymer/polymer/lib/elements/dom-if.js';
+import '@polymer/polymer/lib/elements/dom-repeat.js';
 import ElementBase from './element-base.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   breakWords,

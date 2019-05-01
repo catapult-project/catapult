@@ -8,9 +8,9 @@ import './chops-header.js';
 import './cp-loading.js';
 import './cp-toast.js';
 import './raised-button.js';
-import '/@polymer/polymer/lib/elements/dom-if.js';
-import '/@polymer/polymer/lib/elements/dom-repeat.js';
-import * as PolymerAsync from '/@polymer/polymer/lib/utils/async.js';
+import '@polymer/polymer/lib/elements/dom-if.js';
+import '@polymer/polymer/lib/elements/dom-repeat.js';
+import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import AlertsSection from './alerts-section.js';
 import ChartCompound from './chart-compound.js';
 import ChartSection from './chart-section.js';
@@ -22,8 +22,8 @@ import ReportSection from './report-section.js';
 import SessionIdRequest from './session-id-request.js';
 import SessionStateRequest from './session-state-request.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
-import {get} from '/@polymer/polymer/lib/utils/path.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   afterRender,
@@ -510,7 +510,8 @@ ChromeperfApp.actions = {
 
     await timeout(NOTIFICATION_MS);
     const state = get(getState(), statePath);
-    if (!state.closedAlertsIds.includes(sectionId)) {
+    if (!state || !state.closedAlertsIds ||
+        !state.closedAlertsIds.includes(sectionId)) {
       // This alerts section was reopened.
       return;
     }
@@ -538,7 +539,9 @@ ChromeperfApp.actions = {
       userEmail: profile ? profile.getEmail() : '',
     }));
     ChromeperfApp.actions.getRevisionInfo()(dispatch, getState);
-    if (profile) ChromeperfApp.actions.getRecentBugs()(dispatch, getState);
+    if (profile) {
+      await ChromeperfApp.actions.getRecentBugs()(dispatch, getState);
+    }
   },
 
   getRevisionInfo: () => async(dispatch, getState) => {
@@ -644,7 +647,7 @@ ChromeperfApp.actions = {
   updateLocation: statePath => async(dispatch, getState) => {
     const rootState = getState();
     const state = get(rootState, statePath);
-    if (!state.readied) return;
+    if (!state || !state.readied) return;
     const nonEmptyAlerts = state.alertsSectionIds.filter(id =>
       !AlertsSection.isEmpty(state.alertsSectionsById[id]));
     const nonEmptyCharts = state.chartSectionIds.filter(id =>
@@ -726,7 +729,8 @@ ChromeperfApp.actions = {
 
     await timeout(NOTIFICATION_MS);
     const state = get(getState(), statePath);
-    if (!state.closedChartIds.includes(sectionId)) {
+    if (!state || !state.closedChartIds ||
+        !state.closedChartIds.includes(sectionId)) {
       // This chart was reopened.
       return;
     }

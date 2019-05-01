@@ -4,7 +4,7 @@
 */
 'use strict';
 
-import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
+import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
 
 export default class CpDialog extends PolymerElement {
   static get is() { return 'cp-dialog'; }

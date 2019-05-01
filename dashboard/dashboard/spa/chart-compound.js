@@ -7,15 +7,15 @@
 import './cp-radio-group.js';
 import './cp-radio.js';
 import './cp-switch.js';
-import '/@polymer/polymer/lib/elements/dom-if.js';
+import '@polymer/polymer/lib/elements/dom-if.js';
 import ChartTimeseries from './chart-timeseries.js';
 import DetailsTable from './details-table.js';
 import ElementBase from './element-base.js';
 import {CHAIN, TOGGLE, UPDATE} from './simple-redux.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {MODE} from './layout-timeseries.js';
-import {get} from '/@polymer/polymer/lib/utils/path.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,

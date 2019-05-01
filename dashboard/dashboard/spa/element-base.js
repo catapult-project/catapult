@@ -4,13 +4,16 @@
 */
 'use strict';
 
-import {Debouncer} from '/@polymer/polymer/lib/utils/debounce.js';
-import * as PolymerAsync from '/@polymer/polymer/lib/utils/async.js';
-import {PolymerElement} from '/@polymer/polymer/polymer-element.js';
-import {get} from '/@polymer/polymer/lib/utils/path.js';
+import '@chopsui/tsmon-client';
+import 'dashboard-metrics';
+import {Debouncer} from '@polymer/polymer/lib/utils/debounce.js';
+import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
+import {PolymerElement} from '@polymer/polymer/polymer-element.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
 
 import {
   DEFAULT_REDUCER_WRAPPERS,
+  RESET,
   createSimpleStore,
   freezingReducer,
   registerReducers,
@@ -147,6 +150,10 @@ export default class ElementBase extends PolymerElement {
 
   // This is used to bind state properties in `buildProperties()` in utils.js.
   identity_(x) { return x; }
+
+  static resetStoreForTest() {
+    getStore().dispatch(RESET);
+  }
 }
 
 if (window.location.hostname === 'localhost') {

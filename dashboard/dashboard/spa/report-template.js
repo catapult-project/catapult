@@ -6,14 +6,14 @@
 
 import './cp-input.js';
 import './raised-button.js';
-import '/@polymer/polymer/lib/elements/dom-if.js';
-import '/@polymer/polymer/lib/elements/dom-repeat.js';
+import '@polymer/polymer/lib/elements/dom-if.js';
+import '@polymer/polymer/lib/elements/dom-repeat.js';
 import ElementBase from './element-base.js';
 import ReportTemplateRequest from './report-template-request.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
-import {get} from '/@polymer/polymer/lib/utils/path.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,

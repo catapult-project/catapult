@@ -5,7 +5,7 @@
 'use strict';
 
 import './cp-loading.js';
-import '/@polymer/polymer/lib/elements/dom-if.js';
+import '@polymer/polymer/lib/elements/dom-if.js';
 import AlertsControls from './alerts-controls.js';
 import AlertsRequest from './alerts-request.js';
 import AlertsTable from './alerts-table.js';
@@ -19,8 +19,8 @@ import TriageExisting from './triage-existing.js';
 import TriageNew from './triage-new.js';
 import groupAlerts from './group-alerts.js';
 import {UPDATE} from './simple-redux.js';
-import {get} from '/@polymer/polymer/lib/utils/path.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   BatchIterator,
@@ -404,7 +404,7 @@ AlertsSection.actions = {
     // alerts-controls.
     await timeout(NOTIFICATION_MS);
     state = get(getState(), statePath);
-    if (state.triagedBugId !== triagedBugId) return;
+    if (!state || (state.triagedBugId !== triagedBugId)) return;
     dispatch(AlertsSection.actions.cancelTriagedExisting(statePath));
   },
 
@@ -456,7 +456,7 @@ AlertsSection.actions = {
     // alerts-controls.
     await timeout(NOTIFICATION_MS);
     state = get(getState(), statePath);
-    if (state.ignoredCount !== ignoredCount) return;
+    if (!state || (state.ignoredCount !== ignoredCount)) return;
     dispatch(UPDATE(statePath, {
       hasIgnored: false,
       ignoredCount: 0,
@@ -548,7 +548,7 @@ AlertsSection.actions = {
     // alerts-controls.
     await timeout(NOTIFICATION_MS);
     state = get(getState(), statePath);
-    if (state.triagedBugId !== bugId) return;
+    if (!state || state.triagedBugId !== bugId) return;
     dispatch(UPDATE(statePath, {
       hasTriagedNew: false,
       triagedBugId: 0,

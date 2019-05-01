@@ -4,10 +4,10 @@
 */
 'use strict';
 
-import '/@polymer/polymer/lib/elements/dom-if.js';
+import '@polymer/polymer/lib/elements/dom-if.js';
 import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   buildProperties,

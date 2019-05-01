@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 'use strict';
 
-import {PolymerElement, html} from '/@polymer/polymer/polymer-element.js';
+import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
 
 export class ChopsHeader extends PolymerElement {
   static get is() { return 'chops-header'; }

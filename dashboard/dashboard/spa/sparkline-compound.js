@@ -7,16 +7,16 @@
 import './cp-loading.js';
 import './cp-tab-bar.js';
 import './cp-tab.js';
-import '/@polymer/polymer/lib/elements/dom-if.js';
-import '/@polymer/polymer/lib/elements/dom-repeat.js';
+import '@polymer/polymer/lib/elements/dom-if.js';
+import '@polymer/polymer/lib/elements/dom-repeat.js';
 import ChartTimeseries from './chart-timeseries.js';
 import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
 import {MODE} from './layout-timeseries.js';
 import {UPDATE} from './simple-redux.js';
-import {get} from '/@polymer/polymer/lib/utils/path.js';
-import {html} from '/@polymer/polymer/polymer-element.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
+import {html} from '@polymer/polymer/polymer-element.js';
 
 import {
   breakWords,
