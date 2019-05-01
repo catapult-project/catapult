@@ -259,12 +259,13 @@ def RunJsString(js_string, source_paths=None, js_args=None, v8_args=None,
   return result
 
 
-def _KillProcess(process, description):
+def _KillProcess(process, name, reason):
   # kill() does not close the handle to the process. On Windows, a process
   # will live until you delete all handles to that subprocess, so
   # ps_util.ListAllSubprocesses will find this subprocess if
   # we haven't garbage-collected the handle yet. poll() should close the
   # handle once the process dies.
+  logging.warn('Killing process %s because %s.', name, reason)
   process.kill()
   time.sleep(.01)
   for _ in range(100):
@@ -274,7 +275,7 @@ def _KillProcess(process, description):
     break
   else:
     logging.warn('process %s is still running after we '
-                 'attempted to kill it.', description)
+                 'attempted to kill it.', name)
 
 
 def _RunFileWithD8(js_file_path, js_args, v8_args, timeout, stdout, stdin):
@@ -307,7 +308,8 @@ def _RunFileWithD8(js_file_path, js_args, v8_args, timeout, stdout, stdin):
   sp = subprocess.Popen(args, stdout=stdout, stderr=None, stdin=stdin)
   if timeout:
     deadline = time.time() + timeout
-    timeout_thread = threading.Timer(timeout, _KillProcess, args=(sp, 'd8'))
+    timeout_thread = threading.Timer(timeout, _KillProcess, args=(
+        sp, 'd8', 'it timed out'))
     timeout_thread.start()
   out, _ = sp.communicate()
   if timeout:
