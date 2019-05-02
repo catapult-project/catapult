@@ -18,10 +18,4 @@ group("devil") {
     "//tools/android/forwarder2",
     "//tools/android/md5sum",
   ]
-  data_deps = [
-    "../third_party/gsutil",
-  ]
-  data = [
-    "devil/",
-  ]
 }

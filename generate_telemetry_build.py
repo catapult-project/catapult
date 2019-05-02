@@ -51,6 +51,9 @@ EXCLUDED_PATHS = {
   'docs/',
   'experimental/',
   'generate_telemetry_build.py',
+  'telemetry/telemetry/bin/',
+  'telemetry/telemetry/data/',
+  'telemetry/telemetry/internal/bin/',
   'third_party/Paste/',
   'third_party/google-endpoints/',
   'third_party/polymer2/',
@@ -59,10 +62,6 @@ EXCLUDED_PATHS = {
 
 
 SEPARATE_TARGETS = {
-  'devil': 'devil',
-  'telemetry': 'telemetry',
-  'third_party/gsutil': 'third_party/gsutil',
-  'third_party/typ': 'third_party/typ',
   'third_party/vinn': 'third_party/vinn',
 }
 
