@@ -340,3 +340,10 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
                          (0, None))
         self.assertEqual(test_expectations.expectations_for('b1/s1'),
                          (set([ResultType.Pass]), True))
+
+    def testGlobsCanOnlyHaveStarInEnd(self):
+        raw_data = (
+            '# tags: [ Linux ]\n'
+            'crbug.com/23456 [ Linux ] b1/*/c [ RetryOnFailure ]\n')
+        with self.assertRaises(expectations_parser.ParseError):
+            expectations_parser.TaggedTestListParser(raw_data)

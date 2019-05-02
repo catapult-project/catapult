@@ -197,6 +197,11 @@ class TaggedTestListParser(object):
         reason, raw_tags, test, raw_results, _ = match.groups()
         tags = [raw_tag.lower() for raw_tag in raw_tags.split()] if raw_tags else []
         tag_set_ids = set()
+
+        if '*' in test[:-1]:
+            raise ParseError(lineno,
+                'Invalid glob, \'*\' can only be at the end of the pattern')
+
         for t in tags:
             if not t in  self._tag_to_tag_set:
                 raise ParseError(lineno, 'Unknown tag "%s"' % t)
