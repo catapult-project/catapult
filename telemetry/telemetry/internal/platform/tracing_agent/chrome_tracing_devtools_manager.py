@@ -21,17 +21,15 @@ def _RemoveStaleDevToolsClient(platform_backend):
       devtools_clients_map)
 
 
-def RegisterDevToolsClient(devtools_client_backend, platform_backend):
+def RegisterDevToolsClient(devtools_client_backend):
   """Register DevTools client
 
   This should only be called from DevToolsClientBackend when it is initialized.
   """
   remote_port = str(devtools_client_backend.remote_port)
-  if platform_backend not in _platform_backends_to_devtools_clients_maps:
-    _platform_backends_to_devtools_clients_maps[platform_backend] = {}
-  devtools_clients_map = (
-      _platform_backends_to_devtools_clients_maps[platform_backend])
-  devtools_clients_map[remote_port] = devtools_client_backend
+  platform_clients = _platform_backends_to_devtools_clients_maps.setdefault(
+      devtools_client_backend.platform_backend, {})
+  platform_clients[remote_port] = devtools_client_backend
 
 
 def IsSupported(platform_backend):

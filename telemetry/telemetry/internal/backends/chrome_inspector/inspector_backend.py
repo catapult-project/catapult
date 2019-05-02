@@ -53,12 +53,11 @@ class InspectorBackend(object):
 
   __metaclass__ = trace_event.TracedMetaClass
 
-  def __init__(self, app, devtools_client, context, timeout=120):
+  def __init__(self, devtools_client, context, timeout=120):
     self._websocket = inspector_websocket.InspectorWebsocket()
     self._websocket.RegisterDomain(
         'Inspector', self._HandleInspectorDomainNotification)
 
-    self._app = app
     self._devtools_client = devtools_client
     # Be careful when using the context object, since the data may be
     # outdated since this is never updated once InspectorBackend is
@@ -96,7 +95,7 @@ class InspectorBackend(object):
 
   @property
   def app(self):
-    return self._app
+    return self._devtools_client.app_backend.app
 
   @property
   def url(self):

@@ -68,7 +68,7 @@ class FakeContextMap(object):
 
 
 class FakeDevtoolsClient(object):
-  def __init__(self, remote_port):
+  def __init__(self, remote_port, platform_backend):
     self.is_alive = True
     self.is_tracing_running = False
     self.remote_port = remote_port
@@ -76,6 +76,7 @@ class FakeDevtoolsClient(object):
     self.will_raise_exception_in_clock_sync = False
     self.collected = False
     self.chrome_branch_number = 9001
+    self.platform_backend = platform_backend
 
   def IsAlive(self):
     return self.is_alive
@@ -144,22 +145,22 @@ class ChromeTracingAgentTest(unittest.TestCase):
 
   def testRegisterDevtoolsClient(self):
     chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        FakeDevtoolsClient(1), self.platform1)
+        FakeDevtoolsClient(1, self.platform1))
     chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        FakeDevtoolsClient(2), self.platform1)
+        FakeDevtoolsClient(2, self.platform1))
     chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        FakeDevtoolsClient(3), self.platform1)
+        FakeDevtoolsClient(3, self.platform1))
 
     tracing_agent_of_platform1 = self.StartTracing(self.platform1)
 
     chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        FakeDevtoolsClient(4), self.platform1)
+        FakeDevtoolsClient(4, self.platform1))
     chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        FakeDevtoolsClient(5), self.platform2)
+        FakeDevtoolsClient(5, self.platform2))
 
     self.StopTracing(tracing_agent_of_platform1)
     chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        FakeDevtoolsClient(6), self.platform1)
+        FakeDevtoolsClient(6, self.platform1))
 
   def testIsSupportWithoutStartupTracingSupport(self):
     self.assertFalse(
@@ -169,12 +170,10 @@ class ChromeTracingAgentTest(unittest.TestCase):
     self.assertFalse(
         chrome_tracing_agent.ChromeTracingAgent.IsSupported(self.platform3))
 
-    devtool1 = FakeDevtoolsClient(1)
-    devtool2 = FakeDevtoolsClient(2)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool1, self.platform1)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool2, self.platform2)
+    devtool1 = FakeDevtoolsClient(1, self.platform1)
+    devtool2 = FakeDevtoolsClient(2, self.platform2)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool1)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool2)
     devtool2.is_alive = False
 
     # Chrome tracing is only supported on platform 1 since only platform 1 has
@@ -194,26 +193,21 @@ class ChromeTracingAgentTest(unittest.TestCase):
     self.assertTrue(
         chrome_tracing_agent.ChromeTracingAgent.IsSupported(desktop_platform))
 
-    devtool = FakeDevtoolsClient(1)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool, desktop_platform)
+    devtool = FakeDevtoolsClient(1, desktop_platform)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool)
     self.assertTrue(
         chrome_tracing_agent.ChromeTracingAgent.IsSupported(desktop_platform))
 
   def testStartAndStopTracing(self):
-    devtool1 = FakeDevtoolsClient(1)
-    devtool2 = FakeDevtoolsClient(2)
-    devtool3 = FakeDevtoolsClient(3)
-    devtool4 = FakeDevtoolsClient(2)
+    devtool1 = FakeDevtoolsClient(1, self.platform1)
+    devtool2 = FakeDevtoolsClient(2, self.platform1)
+    devtool3 = FakeDevtoolsClient(3, self.platform1)
+    devtool4 = FakeDevtoolsClient(2, self.platform2)
     # Register devtools 1, 2, 3 on platform1 and devtool 4 on platform 2
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool1, self.platform1)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool2, self.platform1)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool3, self.platform1)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool4, self.platform2)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool1)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool2)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool3)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool4)
     devtool2.is_alive = False
 
     tracing_agent1 = self.StartTracing(self.platform1)
@@ -248,20 +242,15 @@ class ChromeTracingAgentTest(unittest.TestCase):
     self.assertTrue(devtool4.collected)
 
   def testFlushTracing(self):
-    devtool1 = FakeDevtoolsClient(1)
-    devtool2 = FakeDevtoolsClient(2)
-    devtool3 = FakeDevtoolsClient(3)
-    devtool4 = FakeDevtoolsClient(2)
-
-    # Register devtools 1, 2, 3 on platform1 and devtool 4 on platform 2.
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool1, self.platform1)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool2, self.platform1)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool3, self.platform1)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool4, self.platform2)
+    devtool1 = FakeDevtoolsClient(1, self.platform1)
+    devtool2 = FakeDevtoolsClient(2, self.platform1)
+    devtool3 = FakeDevtoolsClient(3, self.platform1)
+    devtool4 = FakeDevtoolsClient(2, self.platform2)
+    # Register devtools 1, 2, 3 on platform1 and devtool 4 on platform 2
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool1)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool2)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool3)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool4)
     devtool2.is_alive = False
 
     tracing_agent1 = self.StartTracing(self.platform1)
@@ -299,13 +288,11 @@ class ChromeTracingAgentTest(unittest.TestCase):
     self.assertFalse(devtool4.is_tracing_running)
 
   def testExceptionRaisedInStopTracing(self):
-    devtool1 = FakeDevtoolsClient(1)
-    devtool2 = FakeDevtoolsClient(2)
+    devtool1 = FakeDevtoolsClient(1, self.platform1)
+    devtool2 = FakeDevtoolsClient(2, self.platform1)
     # Register devtools 1, 2 on platform 1
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool1, self.platform1)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool2, self.platform1)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool1)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool2)
     tracing_agent1 = self.StartTracing(self.platform1)
 
     self.assertTrue(devtool1.is_tracing_running)
@@ -322,22 +309,19 @@ class ChromeTracingAgentTest(unittest.TestCase):
     devtool1.is_alive = False
     devtool2.is_alive = False
     # Register devtools 3 on platform 1 should not raise any exception.
-    devtool3 = FakeDevtoolsClient(3)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool3, self.platform1)
+    devtool3 = FakeDevtoolsClient(3, self.platform1)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool3)
 
     # Start & Stop tracing on platform 1 should work just fine.
     tracing_agent2 = self.StartTracing(self.platform1)
     self.StopTracing(tracing_agent2)
 
   def testExceptionRaisedInStartTracing(self):
-    devtool1 = FakeDevtoolsClient(1)
-    devtool2 = FakeDevtoolsClient(2)
+    devtool1 = FakeDevtoolsClient(1, self.platform1)
+    devtool2 = FakeDevtoolsClient(2, self.platform1)
     # Register devtools 1, 2 on platform 1
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool1, self.platform1)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool2, self.platform1)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool1)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool2)
 
     with self.assertRaises(chrome_tracing_agent.ChromeTracingStartedError):
       self.StartTracing(self.platform1, throw_exception=True)
@@ -349,9 +333,8 @@ class ChromeTracingAgentTest(unittest.TestCase):
     devtool1.is_alive = False
     devtool2.is_alive = False
     # Register devtools 3 on platform 1 should not raise any exception.
-    devtool3 = FakeDevtoolsClient(3)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool3, self.platform1)
+    devtool3 = FakeDevtoolsClient(3, self.platform1)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool3)
 
     # Start & Stop tracing on platform 1 should work just fine.
     tracing_agent2 = self.StartTracing(self.platform1)
@@ -363,10 +346,9 @@ class ChromeTracingAgentTest(unittest.TestCase):
     self.assertFalse(devtool3.is_tracing_running)
 
   def testExceptionRaisedInClockSync(self):
-    devtool1 = FakeDevtoolsClient(1)
-    # Register devtools 1, 2 on platform 1
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool1, self.platform1)
+    devtool1 = FakeDevtoolsClient(1, self.platform1)
+    # Register devtools 1 on platform 1
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool1)
     tracing_agent1 = self.StartTracing(self.platform1)
 
     self.assertTrue(devtool1.is_tracing_running)
@@ -377,9 +359,8 @@ class ChromeTracingAgentTest(unittest.TestCase):
 
     devtool1.is_alive = False
     # Register devtools 2 on platform 1 should not raise any exception.
-    devtool2 = FakeDevtoolsClient(2)
-    chrome_tracing_devtools_manager.RegisterDevToolsClient(
-        devtool2, self.platform1)
+    devtool2 = FakeDevtoolsClient(2, self.platform1)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(devtool2)
 
     # Start & Stop tracing on platform 1 should work just fine.
     tracing_agent2 = self.StartTracing(self.platform1)
