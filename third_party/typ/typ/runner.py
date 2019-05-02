@@ -830,7 +830,7 @@ class Runner(object):
 
     def default_classifier(self, test_set, test):
         if self.matches_filter(test):
-            if not self.args.all and self.should_skip(test):
+            if self.should_skip(test):
                 test_set.add_test_to_skip(test, 'skipped by request')
             elif self.should_isolate(test):
                 test_set.add_test_to_run_isolated(test)
@@ -855,6 +855,8 @@ class Runner(object):
     def should_skip(self, test_case):
         _validate_test_starts_with_prefix(
             self.args.test_name_prefix, test_case.id())
+        if self.args.all:
+          return False
         test_name = test_case.id()[len(self.args.test_name_prefix):]
         if self.has_expectations:
             expected_results, _ = self.expectations.expectations_for(test_name)
