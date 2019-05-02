@@ -23,7 +23,7 @@ class PerfettoTraceWriterTest(unittest.TestCase):
         output=result,
         pid=1,
         tid=2,
-        ts=1556716807306,
+        ts=1556716807306000,
     )
     expected_output = (
         '\n\x17P\x80\x80@\xc8\x02\x01\xe2\x02\r\x08\x01\x10'
@@ -37,14 +37,14 @@ class PerfettoTraceWriterTest(unittest.TestCase):
         output=result,
         pid=1,
         tid=2,
-        ts=1556716807306,
+        ts=1556716807306000,
     )
     perfetto_trace_writer.write_event(
         output=result,
         ph="M",
         category="category",
         name="event_name",
-        ts=1556716807406,
+        ts=1556716807406000,
         args={},
         tid=2,
     )

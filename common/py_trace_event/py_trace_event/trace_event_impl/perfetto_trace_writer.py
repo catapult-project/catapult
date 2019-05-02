@@ -76,10 +76,10 @@ def write_thread_descriptor_event(output, pid, tid, ts):
     output: a file-like object to write events into.
     pid: process ID.
     tid: thread ID.
-    ts: timestamp in milliseconds.
+    ts: timestamp in microseconds.
   """
   global _last_timestamps
-  ts_us = int(1000 * ts)
+  ts_us = int(ts)
   _last_timestamps[tid] = ts_us
 
   thread_descriptor_packet = proto.TracePacket()
@@ -107,14 +107,14 @@ def write_event(output, ph, category, name, ts, args, tid):
     ph: phase of event.
     category: category of event.
     name: event name.
-    ts: timestamp in milliseconds.
+    ts: timestamp in microseconds.
     args: this argument is currently ignored.
     tid: thread ID.
   """
   del args  # TODO(khokhlov): Encode args as DebugAnnotations.
 
   global _last_timestamps
-  ts_us = int(1000 * ts)
+  ts_us = int(ts)
   delta_ts = ts_us - _last_timestamps[tid]
 
   packet = proto.TracePacket()
