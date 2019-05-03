@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import collections
+import itertools
 import sys
 
 from google.appengine.ext import ndb
@@ -144,12 +145,12 @@ class SparseDiagnostic(JsonModel):
         prev = d
 
       # Now fixup all the start/end revisions.
-      for i in xrange(len(unique_diagnostics)):
+      for i, diagnostic in enumerate(unique_diagnostics):
         if i == len(unique_diagnostics) - 1:
-          unique_diagnostics[i].end_revision = sys.maxsize
+          diagnostic.end_revision = sys.maxsize
         else:
-          unique_diagnostics[i].end_revision = (
-              unique_diagnostics[i+1].start_revision - 1)
+          diagnostic.end_revision = (
+              unique_diagnostics[i + 1].start_revision - 1)
 
       futures.extend(ndb.put_multi_async(unique_diagnostics))
 
@@ -224,7 +225,7 @@ def _FindOrInsertNamedDiagnosticsOutOfOrder(
   new_guid = new_diagnostic.key.id()
   guid_mapping = {}
 
-  for i in xrange(len(old_diagnostics)):
+  for i in itertools.islice(itertools.count(0), len(old_diagnostics)):
     cur = old_diagnostics[i]
 
     suite_key = utils.TestKey('/'.join(cur.test.id().split('/')[:3]))

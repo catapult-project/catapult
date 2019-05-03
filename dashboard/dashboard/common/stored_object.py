@@ -108,7 +108,7 @@ class MultipartEntity(ndb.Model):
 
     string_id = self.key.string_id()
     part_keys = [ndb.Key(MultipartEntity, string_id, PartEntity, i + 1)
-                 for i in xrange(self.size)]
+                 for i in range(self.size)]
     part_entities = yield ndb.get_multi_async(part_keys)
     serialized = ''.join(p.value for p in part_entities if p is not None)
     self.SetData(pickle.loads(serialized))
@@ -122,13 +122,11 @@ class MultipartEntity(ndb.Model):
   @ndb.tasklet
   def PutAsync(self):
     """Stores serialized data over multiple PartEntity."""
-    serialized_parts = _Serialize(self.GetData())
-    part_list = []
-    num_parts = len(serialized_parts)
-    for i in xrange(num_parts):
-      part = PartEntity(id=i + 1, parent=self.key, value=serialized_parts[i])
-      part_list.append(part)
-    self.size = num_parts
+    part_list = [
+        PartEntity(id=i + 1, parent=self.key, value=part)
+        for i, part in enumerate(_Serialize(self.GetData()))
+    ]
+    self.size = len(part_list)
     yield ndb.put_multi_async(part_list + [self])
 
   def GetData(self):
@@ -160,6 +158,6 @@ def _Serialize(value):
   serialized = pickle.dumps(value, 2)
   length = len(serialized)
   values = []
-  for i in xrange(0, length, _CHUNK_SIZE):
+  for i in range(0, length, _CHUNK_SIZE):
     values.append(serialized[i:i + _CHUNK_SIZE])
   return values

@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import itertools
 import json
 import mock
 
@@ -705,11 +706,14 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
     t = graph_data.TestMetadata(id=params['test_path'])
     t.put()
 
-    rows = {}
-    for i in xrange(1000, 1100, 2):
-      rows[i] = {'value': 0.1}
-    for i in xrange(1101, 1200, 2):
-      rows[i] = {'value': 0.5}
+    rows = dict(
+        itertools.chain(
+            zip(
+                itertools.islice(itertools.count(1000, 2), 50),
+                itertools.repeat({'value': 0.1})),
+            zip(
+                itertools.islice(itertools.count(1101, 2), 50),
+                itertools.repeat({'value': 0.5}))))
 
     testing_common.AddRows(params['test_path'], rows)
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -744,11 +748,14 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
     t = graph_data.TestMetadata(id=params['test_path'])
     t.put()
 
-    rows = {}
-    for i in xrange(1000, 1100, 2):
-      rows[i] = {'value': 0.1}
-    for i in xrange(1101, 1200, 2):
-      rows[i] = {'value': 0.5}
+    rows = dict(
+        itertools.chain(
+            zip(
+                itertools.islice(itertools.count(1000, 2), 50),
+                itertools.repeat({'value': 0.1})),
+            zip(
+                itertools.islice(itertools.count(1101, 2), 50),
+                itertools.repeat({'value': 0.5}))))
 
     testing_common.AddRows(params['test_path'], rows)
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -803,12 +810,15 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
     t.overridden_anomaly_config = a.key
     t.put()
 
-    rows = {}
-    for i in xrange(1000, 1149, 2):
-      rows[i] = {'value': -100.0}
-    rows[1050] = {'value': 0.1}
-    for i in xrange(1101, 1200, 2):
-      rows[i] = {'value': 0.5}
+    rows = dict(
+        itertools.chain(
+            zip(
+                itertools.islice(itertools.count(1000, 2), 75),
+                itertools.repeat({'value': -100.0})),
+            [(1050, {'value': 0.1})],
+            zip(
+                itertools.islice(itertools.count(1101, 2), 50),
+                itertools.repeat({'value': 0.5}))))
 
     testing_common.AddRows(params['test_path'], rows)
     results = pinpoint_request.PinpointParamsFromBisectParams(params)

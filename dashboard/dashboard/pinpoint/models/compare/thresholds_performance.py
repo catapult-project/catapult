@@ -84,7 +84,7 @@ def _PValues(arguments):
   a = []
   b = []
   p_values = []
-  for _ in xrange(max_sample_size):
+  for _ in range(max_sample_size):
     a.append(stats.norm.rvs())
     b.append(stats.norm.rvs(distance_stddev))
     p_values.append(stats.mannwhitneyu(a, b, alternative='two-sided').pvalue)
@@ -94,7 +94,7 @@ def _PValues(arguments):
 def _PrintThresholds(distance, thresholds):
   """Groups values into lines of 10 so they fit in the 80-character limit."""
   print('# ' + '%.1f' % distance)
-  for i in xrange(0, len(thresholds), 10):
+  for i in range(0, len(thresholds), 10):
     threshold_line = thresholds[i:i + 10]
     print(', '.join(_Format(threshold) for threshold in threshold_line) + ',')
 

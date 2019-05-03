@@ -63,7 +63,7 @@ def _Threshold(p_value, failure_rate, sample_size):
 def _PrintThresholds(distance, thresholds):
   """Groups values into lines of 10 so they fit in the 80-character limit."""
   print('# ' + '%.1f' % distance)
-  for i in xrange(0, len(thresholds), 10):
+  for i in range(0, len(thresholds), 10):
     threshold_line = thresholds[i:i + 10]
     print(', '.join(_Format(threshold) for threshold in threshold_line) + ',')
 

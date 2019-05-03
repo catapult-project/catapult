@@ -57,7 +57,7 @@ class Timeseries2Test(testing_common.TestCase):
     test.UpdateSheriff()
     test.put()
 
-    for i in xrange(1, 21, 2):
+    for i in range(1, 21, 2):
       graph_data.Row(
           error=(i / 2.0),
           id=i,
@@ -214,7 +214,7 @@ class Timeseries2Test(testing_common.TestCase):
     old_std_test.UpdateSheriff()
     old_std_test.put()
 
-    for i in xrange(1, 21, 2):
+    for i in range(1, 21, 2):
       graph_data.Row(parent=old_avg_test.key, id=i, value=float(i)).put()
       graph_data.Row(parent=old_std_test.key, id=i, value=(i / 2.0)).put()
       graph_data.Row(parent=old_count_test.key, id=i, value=10).put()
@@ -226,7 +226,7 @@ class Timeseries2Test(testing_common.TestCase):
         units='units')
     new_test.UpdateSheriff()
     new_test.put()
-    for i in xrange(21, 41, 2):
+    for i in range(21, 41, 2):
       graph_data.Row(
           d_count=10,
           error=(i / 2.0),

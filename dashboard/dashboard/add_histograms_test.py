@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import base64
+import itertools
 import json
 import mock
 import random
@@ -765,11 +766,11 @@ class AddHistogramsTest(AddHistogramsBaseTest):
   def testPostHistogram_TooManyHistograms_Splits(self, mock_queue):
     def _MakeHistogram(name):
       h = histogram_module.Histogram(name, 'count')
-      for i in xrange(100):
+      for i in range(100):
         h.AddSample(i)
       return h
 
-    hists = [_MakeHistogram('hist_%d' % i) for i in xrange(100)]
+    hists = [_MakeHistogram('hist_%d' % i) for i in range(100)]
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.MASTERS.name,
@@ -796,11 +797,11 @@ class AddHistogramsTest(AddHistogramsBaseTest):
   def testPostHistogram_FewHistograms_SingleTask(self, mock_queue):
     def _MakeHistogram(name):
       h = histogram_module.Histogram(name, 'count')
-      for i in xrange(100):
+      for i in range(100):
         h.AddSample(i)
       return h
 
-    hists = [_MakeHistogram('hist_%d' % i) for i in xrange(50)]
+    hists = [_MakeHistogram('hist_%d' % i) for i in range(50)]
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.MASTERS.name,
@@ -1486,7 +1487,7 @@ class AddHistogramsTest(AddHistogramsBaseTest):
 
 
 def RandomChars(length):
-  for _ in xrange(length):
+  for _ in itertools.islice(itertools.count(0), length):
     yield '%s' % (random.choice(string.letters))
 
 
@@ -1530,11 +1531,14 @@ class DecompressFileWrapperTest(testing_common.TestCase):
     # Create a JSON payload that's compressed and loaded appropriately.
     def _MakeHistogram(name):
       h = histogram_module.Histogram(name, 'count')
-      for i in xrange(100):
+      for i in range(100):
         h.AddSample(i)
       return h
 
-    hists = [_MakeHistogram('hist_%d' % i) for i in xrange(1000)]
+    hists = [
+        _MakeHistogram('hist_%d' % i)
+        for i in itertools.islice(itertools.count(0), 1000)
+    ]
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.MASTERS.name,

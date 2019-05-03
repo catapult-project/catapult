@@ -6,8 +6,12 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from future_builtins import map # pylint: disable=redefined-builtin
 
+import functools
+import itertools
 import json
+import operator
 
 from google.appengine.api import app_identity
 from google.appengine.api import mail
@@ -242,9 +246,14 @@ def _QueueChangeTestPatternsTasks(old_patterns, new_patterns):
   added_patterns, removed_patterns = _ComputeDeltas(old_patterns, new_patterns)
   patterns = list(added_patterns) + list(removed_patterns)
 
-  for i in xrange(0, len(patterns), _NUM_PATTERNS_PER_TASK):
-    pattern_sublist = patterns[i:i+_NUM_PATTERNS_PER_TASK]
+  def Chunks(seq, size):
+    for i in itertools.count(0, size):
+      if i < len(seq):
+        yield seq[i:i+size]
+      else:
+        break
 
+  for pattern_sublist in Chunks(patterns, _NUM_PATTERNS_PER_TASK):
     deferred.defer(_GetTestPathsAndAddTask, pattern_sublist)
 
 
@@ -276,15 +285,16 @@ def _RemoveOverlapping(added_items, removed_items):
 
 def _AllTestPathsMatchingPatterns(patterns_list):
   """Returns a list of all test paths matching the given list of patterns."""
-  matching_patterns_futures = [
-      list_tests.GetTestsMatchingPatternAsync(p) for p in patterns_list]
+  def GetResult(future):
+    return set(future.get_result())
 
-  test_paths = set()
-  for i in xrange(len(patterns_list)):
-    matching_patterns = matching_patterns_futures[i].get_result()
-    test_paths |= set(matching_patterns)
-
-  return sorted(test_paths)
+  return sorted(
+      functools.reduce(
+          operator.ior,
+          map(
+              GetResult,
+              map(list_tests.GetTestsMatchingPatternAsync,
+                  patterns_list)), set()))
 
 
 def _AddTestsToPutToTaskQueue(test_paths):

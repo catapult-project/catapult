@@ -151,14 +151,14 @@ def _CommitRangeStub(repository_url, first_git_hash, last_git_hash):
     # For the other branch, we automatically generate from oc_99..oc_1.
     branch_other = [
         dict([('git_hash', 'oc_%s' % (x)), ('parents', ['oc_%s' % (x - 1)])])
-        for x in xrange(last_number - 1, first_number, -1)
+        for x in range(last_number - 1, first_number, -1)
     ]
 
     # For the master branch, we automatically generate from mc_99..mc_1 -- we
     # add the mc_100 commit later which has two parents.
     branch_master = [
         dict([('git_hash', 'mc_%s' % (x)), ('parents', ['mc_%s' % (x - 1)])])
-        for x in xrange(last_number - 1, first_number, -1)
+        for x in range(last_number - 1, first_number, -1)
     ]
 
     # Interleave elements evenly from each branch.
@@ -184,4 +184,4 @@ def _CommitRangeStub(repository_url, first_git_hash, last_git_hash):
   # From here we use the default algorithm for generating a linear range of
   # commits.
   return [_CommitInfoStub(repository_url, 'commit_' + str(x))
-          for x in xrange(last_number, first_number, -1)]
+          for x in range(last_number, first_number, -1)]

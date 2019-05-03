@@ -95,8 +95,7 @@ def _CheckAndDeleteMastersTask():
     raise ndb.Return(result)
 
   masters_tests = yield [_GetFirstBot(m) for m in masters]
-  masters_to_delete = [
-      masters[i] for i in xrange(len(masters)) if not masters_tests[i]]
+  masters_to_delete = [m for i, m in enumerate(masters) if not masters_tests[i]]
 
   for m in masters_to_delete:
     logging.info('Deleting master: %s', str(m))
@@ -117,8 +116,7 @@ def _CheckAndDeleteBotsTask():
     raise ndb.Return(result)
 
   bots_tests = yield [_GetFirstTest(b) for b in bots]
-  bots_to_delete = [
-      bots[i] for i in xrange(len(bots)) if not bots_tests[i]]
+  bots_to_delete = [b for i, b in enumerate(bots) if not bots_tests[i]]
 
   for b in bots_to_delete:
     logging.info('Deleting bot: %s', str(b))

@@ -76,7 +76,7 @@ class ExploreTest(test.TestCase):
     state = job_state.JobState(quests, comparison_mode=job_state.FUNCTIONAL)
     state.AddChange(change_test.Change(1))
     state.AddChange(change_test.Change(9))
-    for _ in xrange(5):
+    for _ in range(5):
       # More Attempts give more confidence that they are, indeed, the same.
       state.AddAttempts(change_test.Change(1))
       state.AddAttempts(change_test.Change(9))

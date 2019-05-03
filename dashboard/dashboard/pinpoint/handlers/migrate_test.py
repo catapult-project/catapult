@@ -25,7 +25,7 @@ class MigrateTest(test.TestCase):
     self.addCleanup(patcher.stop)
     patcher.start()
 
-    for _ in xrange(20):
+    for _ in range(20):
       job.Job.New((), ())
 
   def testGet_NoMigration(self):

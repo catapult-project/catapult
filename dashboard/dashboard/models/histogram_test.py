@@ -61,16 +61,19 @@ class SparseDiagnosticTest(testing_common.TestCase):
         ]
     }
     for k, diagnostic_samples in data_samples.items():
-      for i in xrange(len(diagnostic_samples)):
+      for i, sample in enumerate(diagnostic_samples):
         start_revision = i * 10
         end_revision = (i + 1) * 10 - 1
         if i == len(diagnostic_samples) - 1:
           end_revision = sys.maxsize
 
         e = histogram.SparseDiagnostic(
-            data=diagnostic_samples[i], test=test_key,
-            start_revision=start_revision, end_revision=end_revision,
-            name=k, internal_only=False)
+            data=sample,
+            test=test_key,
+            start_revision=start_revision,
+            end_revision=end_revision,
+            name=k,
+            internal_only=False)
         e.put()
 
   def testFixupDiagnostics_Middle_FixesRange(self):

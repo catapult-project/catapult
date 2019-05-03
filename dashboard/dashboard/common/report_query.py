@@ -221,9 +221,10 @@ class ReportQuery(object):
     statistics = yield [self._GetStatistic(datum, desc, rev, stat)
                         for stat in descriptor.STATISTICS]
     statistics = {
-        descriptor.STATISTICS[i]: statistics[i]
-        for i in xrange(len(statistics))
-        if statistics[i] is not None}
+        descriptor.STATISTICS[i]: stat
+        for i, stat in enumerate(statistics)
+        if stat is not None
+    }
     if 'avg' not in statistics:
       raise ndb.Return()
 

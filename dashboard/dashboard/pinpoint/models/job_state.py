@@ -5,8 +5,10 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from future_builtins import map # pylint: disable=redefined-builtin
 
 import collections
+import functools
 import httplib
 import logging
 
@@ -82,7 +84,7 @@ class JobState(object):
     else:
       change_with_pin = change
 
-    for _ in xrange(_REPEAT_COUNT_INCREASE):
+    for _ in range(_REPEAT_COUNT_INCREASE):
       attempt = attempt_module.Attempt(self._quests, change_with_pin)
       self._attempts[change].append(attempt)
 
@@ -113,7 +115,8 @@ class JobState(object):
     # The Change insertion simultaneously uses and modifies the list indices.
     # However, the loop index goes in reverse order and Changes are only added
     # after the loop index, so the loop never encounters the modified items.
-    for index in xrange(len(self._changes) - 1, 0, -1):
+    # TODO: consider using `reduce(...)` here to implement a fold?
+    for index in range(len(self._changes) - 1, 0, -1):
       change_a = self._changes[index - 1]
       change_b = self._changes[index]
       comparison = self._Compare(change_a, change_b)
@@ -180,33 +183,46 @@ class JobState(object):
       A list of tuples: [(Change_before, Change_after), ...]
     """
     differences = []
-    for index in xrange(1, len(self._changes)):
-      change_a = self._changes[index - 1]
-      change_b = self._changes[index]
-      if self._Compare(change_a, change_b) == compare.DIFFERENT:
-        differences.append((change_a, change_b))
+    def Comparison(a, b):
+      if self._Compare(a, b) == compare.DIFFERENT:
+        differences.append((a, b))
+      return b
+    functools.reduce(Comparison, self._changes, None)
     return differences
 
   def AsDict(self):
-    state = []
-    for change in self._changes:
-      state.append({
+    def Transform(change):
+      return ({
           'attempts': [attempt.AsDict() for attempt in self._attempts[change]],
           'change': change.AsDict(),
           'comparisons': {},
           'result_values': self.ResultValues(change),
-      })
+      }, change)
 
-    for index in xrange(1, len(self._changes)):
-      comparison = self._Compare(self._changes[index - 1], self._changes[index])
-      state[index - 1]['comparisons']['next'] = comparison
-      state[index]['comparisons']['prev'] = comparison
+    def CollectStates(states, change_b):
+      if len(states) == 0:
+        states.append(Transform(change_b))
+        return states
+
+      transformed_a, change_a = states.pop()
+      transformed_b, change_b = Transform(change_b)
+      comparison = self._Compare(change_a, change_b)
+      transformed_a['comparisons']['next'] = comparison
+      transformed_b['comparisons']['prev'] = comparison
+      states.extend([(transformed_a, change_a), (transformed_b, change_b)])
+      return states
 
     return {
-        'comparison_mode': self._comparison_mode,
-        'metric': self.metric,
-        'quests': list(map(str, self._quests)),
-        'state': state,
+        'comparison_mode':
+            self._comparison_mode,
+        'metric':
+            self.metric,
+        'quests':
+            list(map(str, self._quests)),
+        'state': [
+            transformed for transformed, _ in functools.reduce(
+                CollectStates, self._changes, [])
+        ]
     }
 
   def _Compare(self, change_a, change_b):

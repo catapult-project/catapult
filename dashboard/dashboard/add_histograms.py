@@ -359,7 +359,7 @@ def _ValidateMasterBotBenchmarkName(master, bot, benchmark):
 def _QueueHistogramTasks(tasks):
   queue = taskqueue.Queue(TASK_QUEUE_NAME)
   futures = []
-  for i in xrange(0, len(tasks), taskqueue.MAX_TASKS_PER_ADD):
+  for i in range(0, len(tasks), taskqueue.MAX_TASKS_PER_ADD):
     f = queue.add_async(tasks[i:i + taskqueue.MAX_TASKS_PER_ADD])
     futures.append(f)
   for f in futures:

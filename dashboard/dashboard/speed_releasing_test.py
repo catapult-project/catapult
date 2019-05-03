@@ -133,7 +133,7 @@ class SpeedReleasingTest(testing_common.TestCase):
       test.put()
 
     # Add some (10 * len(keys)) non-triaged alerts.
-    for end_rev in xrange(420500, 421500, 100):
+    for end_rev in range(420500, 421500, 100):
       for test_key in test_keys:
         ref_test_key = utils.TestKey('%s_ref' % utils.TestPath(test_key))
         anomaly_entity = anomaly.Anomaly(

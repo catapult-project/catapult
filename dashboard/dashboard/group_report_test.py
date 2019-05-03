@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import itertools
 import json
 import unittest
 
@@ -96,7 +97,10 @@ class GroupReportTest(testing_common.TestCase):
     alert_list = self.GetJsonValue(response, 'alert_list')
 
     # Confirm the first N keys are the selected keys.
-    first_keys = [alert_list[i]['key'] for i in xrange(len(selected_keys))]
+    first_keys = [
+        alert['key']
+        for alert in itertools.islice(alert_list, len(selected_keys))
+    ]
     self.assertSetEqual(set(selected_keys), set(first_keys))
 
     # Expect selected alerts + overlapping alerts,
@@ -123,7 +127,10 @@ class GroupReportTest(testing_common.TestCase):
     alert_list = self.GetJsonValue(response, 'alert_list')
 
     # Confirm the first N keys are the selected keys.
-    first_keys = [alert_list[i]['key'] for i in xrange(len(selected_keys))]
+    first_keys = [
+        alert['key']
+        for alert in itertools.islice(alert_list, len(selected_keys))
+    ]
     self.assertSetEqual(set(selected_keys), set(first_keys))
     self.assertEqual(2, len(alert_list))
 
