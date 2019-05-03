@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import unittest
 
 from oauth2client import client
@@ -23,7 +27,7 @@ class ExecutionException(_ExecutionStub):
   """This Execution always fails with a fatal exception on first Poll()."""
 
   def _Poll(self):
-    raise StandardError('An unhandled, unexpected exception.')
+    raise execution.FatalError('An unhandled, unexpected exception.')
 
 
 class ExecutionException2(_ExecutionStub):
@@ -37,14 +41,15 @@ class ExecutionFail(_ExecutionStub):
   """This Execution always fails on first Poll()."""
 
   def _Poll(self):
-    raise Exception('Expected error for testing.')
+    raise execution.InformationalError('Expected error for testing.')
 
 
 class ExecutionFail2(_ExecutionStub):
   """This Execution always fails on first Poll()."""
 
   def _Poll(self):
-    raise Exception('A different expected error for testing.')
+    raise execution.InformationalError(
+        'A different expected error for testing.')
 
 
 class ExecutionPass(_ExecutionStub):
@@ -103,14 +108,14 @@ class ExecutionTest(unittest.TestCase):
 
     self.assertTrue(e.completed)
     self.assertTrue(e.failed)
-    expected = 'Exception: Expected error for testing.'
+    expected = 'InformationalError: Expected error for testing.'
     self.assertEqual(e.exception.splitlines()[-1], expected)
     self.assertEqual(e.result_values, ())
     self.assertEqual(e.result_arguments, {})
 
   def testExecutionException(self):
     e = ExecutionException()
-    with self.assertRaises(StandardError):
+    with self.assertRaises(execution.FatalError):
       e.Poll()
 
   def testExecutionRecoverableException(self):

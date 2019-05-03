@@ -8,6 +8,9 @@ The general approach that this function takes is similar to that
 of skiaperf.com. For the implementation that this is based on, see:
 http://goo.gl/yikYZY
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import math
 

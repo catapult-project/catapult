@@ -17,6 +17,9 @@ hypothesis. This means we need more information to make a decision. As the
 sample sizes increase, the high threshold decreases until it crosses the
 low threshold. This way, there's a limit on the number of repeats.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 
 def HighThreshold(mode, magnitude, sample_size):

@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import math
 import unittest
 
@@ -138,7 +142,8 @@ class ScheduleWorkTest(unittest.TestCase):
         quest_test.QuestFail2())]
     state = job_state.JobState(quests)
     state.AddChange(change_test.Change(123))
-    expected_regexp = '7/10.*\nException: Expected error for testing.$'
+    expected_regexp = ('.*7/10.*\nInformationalError: Expected error for '
+                       'testing.$')
     self.assertTrue(state.ScheduleWork())
     with self.assertRaisesRegexp(Exception, expected_regexp):
       self.assertFalse(state.ScheduleWork())

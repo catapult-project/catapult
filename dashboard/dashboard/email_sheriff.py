@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Provides a function for emailing an alert to a sheriff on duty."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import logging
 

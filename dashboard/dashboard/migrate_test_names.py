@@ -16,6 +16,9 @@ For any rename, there could be hundreds of TestMetadatas and many thousands of
 Rows. Datastore operations often time out after a few hundred puts(), so this
 task is split up using the task queue.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import re
 
@@ -509,7 +512,7 @@ def _GetOrCreate(
       'id': new_name,
       'parent': parent_key,
   }
-  for prop, val in old_entity.to_dict(exclude=exclude).iteritems():
+  for prop, val in old_entity.to_dict(exclude=exclude).items():
     create_args[prop] = val
   new_entity = cls(**create_args)
   raise ndb.Return(new_entity)

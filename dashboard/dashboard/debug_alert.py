@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Provides an interface for debugging the anomaly detection function."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import json
 import urllib

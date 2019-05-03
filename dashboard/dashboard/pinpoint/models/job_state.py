@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import collections
 import httplib
 import logging
@@ -134,7 +138,7 @@ class JobState(object):
 
   def ScheduleWork(self):
     work_left = False
-    for attempts in self._attempts.itervalues():
+    for attempts in self._attempts.values():
       for attempt in attempts:
         if attempt.completed:
           continue
@@ -149,7 +153,7 @@ class JobState(object):
 
   def _RaiseErrorIfAllAttemptsFailed(self):
     counter = collections.Counter()
-    for attempts in self._attempts.itervalues():
+    for attempts in self._attempts.values():
       for attempt in attempts:
         if not attempt.exception:
           return
@@ -160,7 +164,7 @@ class JobState(object):
       return
 
     exception, exception_count = most_common_exceptions[0]
-    attempt_count = sum(counter.itervalues())
+    attempt_count = sum(counter.values())
     raise Exception(
         'All of the runs failed. The most common error (%d/%d runs) '
         'was:\n%s' % (exception_count, attempt_count, exception))
@@ -201,7 +205,7 @@ class JobState(object):
     return {
         'comparison_mode': self._comparison_mode,
         'metric': self.metric,
-        'quests': map(str, self._quests),
+        'quests': list(map(str, self._quests)),
         'state': state,
     }
 
@@ -229,7 +233,7 @@ class JobState(object):
     if any(not attempt.completed for attempt in attempts_a + attempts_b):
       return compare.PENDING
 
-    attempt_count = (len(attempts_a) + len(attempts_b)) / 2
+    attempt_count = (len(attempts_a) + len(attempts_b)) // 2
 
     executions_by_quest_a = _ExecutionsPerQuest(attempts_a)
     executions_by_quest_b = _ExecutionsPerQuest(attempts_b)
@@ -270,7 +274,7 @@ class JobState(object):
           if max_iqr:
             comparison_magnitude = abs(self._comparison_magnitude / max_iqr)
           else:
-            comparison_magnitude = 1000  # Something very large.
+            comparison_magnitude = 1000.0  # Something very large.
         else:
           comparison_magnitude = 1.0
         comparison = compare.Compare(values_a, values_b, attempt_count,
@@ -314,7 +318,7 @@ def _ExecutionsPerQuest(attempts):
 
 
 def Mean(values):
-  values = [v for v in values if isinstance(v, (int, long, float))]
+  values = [v for v in values if isinstance(v, (int, float))]
   if len(values) == 0:
     return float('nan')
   return float(sum(values)) / len(values)

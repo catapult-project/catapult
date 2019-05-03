@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import json
 import sys
 
@@ -56,12 +60,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
             },
         ]
     }
-    for k, diagnostic_samples in data_samples.iteritems():
+    for k, diagnostic_samples in data_samples.items():
       for i in xrange(len(diagnostic_samples)):
         start_revision = i * 10
         end_revision = (i + 1) * 10 - 1
         if i == len(diagnostic_samples) - 1:
-          end_revision = sys.maxint
+          end_revision = sys.maxsize
 
         e = histogram.SparseDiagnostic(
             data=diagnostic_samples[i], test=test_key,
@@ -82,15 +86,15 @@ class SparseDiagnosticTest(testing_common.TestCase):
 
     e = histogram.SparseDiagnostic(
         data=data, test=test_key,
-        start_revision=5, end_revision=sys.maxint,
+        start_revision=5, end_revision=sys.maxsize,
         name='owners', internal_only=False)
     e.put()
 
     histogram.SparseDiagnostic.FixDiagnostics(test_key).get_result()
 
     expected = {
-        'owners': [(0, 4), (5, 9), (10, 19), (20, sys.maxint)],
-        'bugs': [(0, 9), (10, 19), (20, sys.maxint)],
+        'owners': [(0, 4), (5, 9), (10, 19), (20, sys.maxsize)],
+        'bugs': [(0, 9), (10, 19), (20, sys.maxsize)],
     }
     diags = histogram.SparseDiagnostic.query().fetch()
     for d in diags:
@@ -112,15 +116,15 @@ class SparseDiagnosticTest(testing_common.TestCase):
 
     e = histogram.SparseDiagnostic(
         data=data, test=test_key,
-        start_revision=100, end_revision=sys.maxint,
+        start_revision=100, end_revision=sys.maxsize,
         name='owners', internal_only=False)
     e.put()
 
     histogram.SparseDiagnostic.FixDiagnostics(test_key).get_result()
 
     expected = {
-        'owners': [(0, 9), (10, 19), (20, 99), (100, sys.maxint)],
-        'bugs': [(0, 9), (10, 19), (20, sys.maxint)],
+        'owners': [(0, 9), (10, 19), (20, 99), (100, sys.maxsize)],
+        'bugs': [(0, 9), (10, 19), (20, sys.maxsize)],
     }
     diags = histogram.SparseDiagnostic.query().fetch()
     for d in diags:
@@ -144,15 +148,15 @@ class SparseDiagnosticTest(testing_common.TestCase):
 
     e = histogram.SparseDiagnostic(
         data=data, test=test_key1,
-        start_revision=5, end_revision=sys.maxint,
+        start_revision=5, end_revision=sys.maxsize,
         name='owners', internal_only=False)
     e.put()
 
     histogram.SparseDiagnostic.FixDiagnostics(test_key2).get_result()
 
     expected = {
-        'owners': [(0, 9), (10, 19), (20, sys.maxint)],
-        'bugs': [(0, 9), (10, 19), (20, sys.maxint)],
+        'owners': [(0, 9), (10, 19), (20, sys.maxsize)],
+        'bugs': [(0, 9), (10, 19), (20, sys.maxsize)],
     }
     diags = histogram.SparseDiagnostic.query(
         histogram.SparseDiagnostic.test == test_key2).fetch()
@@ -175,15 +179,15 @@ class SparseDiagnosticTest(testing_common.TestCase):
 
     e = histogram.SparseDiagnostic(
         data=data, test=test_key,
-        start_revision=5, end_revision=sys.maxint,
+        start_revision=5, end_revision=sys.maxsize,
         name='owners', internal_only=False)
     e.put()
 
     histogram.SparseDiagnostic.FixDiagnostics(test_key).get_result()
 
     expected = {
-        'owners': [(0, 9), (10, 19), (20, sys.maxint)],
-        'bugs': [(0, 9), (10, 19), (20, sys.maxint)],
+        'owners': [(0, 9), (10, 19), (20, sys.maxsize)],
+        'bugs': [(0, 9), (10, 19), (20, sys.maxsize)],
     }
     diags = histogram.SparseDiagnostic.query(
         histogram.SparseDiagnostic.test == test_key).fetch()
@@ -209,13 +213,13 @@ class SparseDiagnosticTest(testing_common.TestCase):
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
         data=data_samples[0], test=test_key, start_revision=1,
-        end_revision=sys.maxint, id=data_samples[0]['guid'],
+        end_revision=sys.maxsize, id=data_samples[0]['guid'],
         name=reserved_infos.OWNERS.name)
     entity.put()
 
     entity = histogram.SparseDiagnostic(
         data=data_samples[1], test=test_key, start_revision=1,
-        end_revision=sys.maxint, id=data_samples[1]['guid'],
+        end_revision=sys.maxsize, id=data_samples[1]['guid'],
         name=reserved_infos.BUG_COMPONENTS.name)
     entity.put()
 
@@ -238,7 +242,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
         data=data_sample, test=test_key, start_revision=1,
-        end_revision=sys.maxint, id=data_sample['guid'],
+        end_revision=sys.maxsize, id=data_sample['guid'],
         name=reserved_infos.OWNERS.name)
     entity.put()
 
@@ -261,7 +265,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
         data=json.dumps(data_sample), test=test_key, start_revision=1,
-        end_revision=sys.maxint, id=data_sample['guid'])
+        end_revision=sys.maxsize, id=data_sample['guid'])
     entity.put()
 
     lookup_result = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
@@ -287,13 +291,13 @@ class SparseDiagnosticTest(testing_common.TestCase):
     test_key = utils.TestKey('Chromium/win7/foo')
     entity = histogram.SparseDiagnostic(
         data=data_samples[0], test=test_key, start_revision=1,
-        end_revision=sys.maxint, id=data_samples[0]['guid'],
+        end_revision=sys.maxsize, id=data_samples[0]['guid'],
         name=reserved_infos.OWNERS.name)
     entity.put()
 
     entity = histogram.SparseDiagnostic(
         data=data_samples[1], test=test_key, start_revision=2,
-        end_revision=sys.maxint, id=data_samples[1]['guid'],
+        end_revision=sys.maxsize, id=data_samples[1]['guid'],
         name=reserved_infos.OWNERS.name)
     entity.put()
 
@@ -304,7 +308,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
         reserved_infos.OWNERS.name).get('values'), data_samples[1]['values'])
 
   def _CreateGenericDiagnostic(
-      self, name, values, test_key, start_revision, end_revision=sys.maxint):
+      self, name, values, test_key, start_revision, end_revision=sys.maxsize):
     d = generic_set.GenericSet([values])
     e = histogram.SparseDiagnostic(
         id=d.guid, data=d.AsDict(), name=name, test=test_key,
@@ -312,7 +316,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
     return e
 
   def _AddGenericDiagnostic(
-      self, name, values, test_key, start_revision, end_revision=sys.maxint):
+      self, name, values, test_key, start_revision, end_revision=sys.maxsize):
     e = self._CreateGenericDiagnostic(
         name, values, test_key, start_revision, end_revision)
     e.put()
@@ -365,7 +369,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
     self._CheckExpectations(
         e, guid_mapping,
         [
-            (1, sys.maxint, [u'm1']),
+            (1, sys.maxsize, [u'm1']),
         ])
 
   def testFindOrInsertDiagnostics_Latest_Different(self):
@@ -382,7 +386,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
         e, guid_mapping,
         [
             (1, 9, [u'm1']),
-            (10, sys.maxint, [u'm2']),
+            (10, sys.maxsize, [u'm2']),
         ])
 
   def testFindOrInsertDiagnostics_Latest_New(self):
@@ -397,7 +401,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
     self._CheckExpectations(
         e, guid_mapping,
         [
-            (10, sys.maxint, [u'm1']),
+            (10, sys.maxsize, [u'm1']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Same(self):
@@ -414,7 +418,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
     self._CheckExpectations(
         e, guid_mapping,
         [
-            (1, sys.maxint, [u'm1']),
+            (1, sys.maxsize, [u'm1']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Before_Same(self):
@@ -431,7 +435,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
     self._CheckExpectations(
         e, guid_mapping,
         [
-            (1, sys.maxint, [u'm1']),
+            (1, sys.maxsize, [u'm1']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Before_Diff(self):
@@ -449,7 +453,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
         e, guid_mapping,
         [
             (1, 4, [u'm2']),
-            (5, sys.maxint, [u'm1']),
+            (5, sys.maxsize, [u'm1']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Splits_CurSame_NextDiff(self):
@@ -468,7 +472,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
         [
             (1, 4, [u'm1']),
             (5, 9, [u'm2']),
-            (10, sys.maxint, [u'm1']),
+            (10, sys.maxsize, [u'm1']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Splits_CurDiff_NextNone(self):
@@ -486,7 +490,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
         e, guid_mapping,
         [
             (1, 11, [u'm1']),
-            (12, sys.maxint, [u'm2']),
+            (12, sys.maxsize, [u'm2']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Splits_CurDiff_NextNone_Rev(self):
@@ -505,7 +509,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
         [
             (1, 7, [u'm1']),
             (8, 9, [u'm2']),
-            (10, sys.maxint, [u'm1']),
+            (10, sys.maxsize, [u'm1']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Splits_CurDiff_HasRevs(self):
@@ -526,7 +530,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
             (1, 4, [u'm1']),
             (5, 7, [u'm2']),
             (8, 9, [u'm1']),
-            (10, sys.maxint, [u'm2']),
+            (10, sys.maxsize, [u'm2']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Splits_CurDiff_NextDiff(self):
@@ -545,7 +549,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
         [
             (1, 4, [u'm1']),
             (5, 9, [u'm2']),
-            (10, sys.maxint, [u'm3']),
+            (10, sys.maxsize, [u'm3']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Splits_CurDiff_NextSame(self):
@@ -563,7 +567,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
         e, guid_mapping,
         [
             (1, 4, [u'm1']),
-            (5, sys.maxint, [u'm3']),
+            (5, sys.maxsize, [u'm3']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Clobber_NoNext_NoRevs(self):
@@ -581,7 +585,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
         e, guid_mapping,
         [
             (1, 9, [u'm1']),
-            (10, sys.maxint, [u'm2']),
+            (10, sys.maxsize, [u'm2']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Clobber_NoNext_Revs(self):
@@ -601,7 +605,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
         [
             (1, 9, [u'm1']),
             (10, 14, [u'm2']),
-            (15, sys.maxint, [u'm3']),
+            (15, sys.maxsize, [u'm3']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Clobber_Next_Revs(self):
@@ -623,7 +627,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
             (1, 9, [u'm1']),
             (10, 12, [u'm2']),
             (13, 14, [u'm3']),
-            (15, sys.maxint, [u'm4']),
+            (15, sys.maxsize, [u'm4']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Clobber_Next_Revs_Same(self):
@@ -642,7 +646,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
         e, guid_mapping,
         [
             (1, 9, [u'm1']),
-            (10, sys.maxint, [u'm2']),
+            (10, sys.maxsize, [u'm2']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Clobber_Next_NoRevs_Diff(self):
@@ -662,7 +666,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
         [
             (1, 9, [u'm1']),
             (10, 14, [u'm4']),
-            (15, sys.maxint, [u'm3']),
+            (15, sys.maxsize, [u'm3']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Clobber_Next_NoRevs_Same(self):
@@ -681,7 +685,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
         e, guid_mapping,
         [
             (1, 9, [u'm1']),
-            (10, sys.maxint, [u'm3']),
+            (10, sys.maxsize, [u'm3']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Clobber_Next_Prev_Same(self):
@@ -699,7 +703,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
     self._CheckExpectations(
         e, guid_mapping,
         [
-            (1, sys.maxint, [u'm1']),
+            (1, sys.maxsize, [u'm1']),
         ])
 
   def testFindOrInsertDiagnostics_OutOfOrder_Clobber_NextDiff_PrevSame(self):
@@ -718,5 +722,5 @@ class SparseDiagnosticTest(testing_common.TestCase):
         e, guid_mapping,
         [
             (1, 14, [u'm1']),
-            (15, sys.maxint, [u'm3']),
+            (15, sys.maxsize, [u'm3']),
         ])

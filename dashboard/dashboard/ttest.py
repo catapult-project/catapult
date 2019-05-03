@@ -22,6 +22,9 @@ References:
   http://en.wikipedia.org/wiki/Welch%27s_t-test
   https://github.com/scipy/scipy/blob/master/scipy/stats/stats.py#L3244
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import bisect
 import collections

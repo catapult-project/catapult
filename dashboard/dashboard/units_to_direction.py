@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Map of test units to improvement direction."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 from google.appengine.ext import ndb
 
@@ -51,7 +54,7 @@ def UpdateFromJson(units_dict):
       units_to_direction_entity.put()
 
   # Add new UnitsToDirection entities.
-  for unit, value in units_dict.iteritems():
+  for unit, value in units_dict.items():
     if not isinstance(value, dict):
       continue
     if unit not in existing_units:

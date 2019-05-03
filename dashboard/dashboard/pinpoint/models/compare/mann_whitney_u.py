@@ -11,6 +11,9 @@ Which is provided under a BSD-style license.
 There is also a JavaScript version in Catapult:
   https://github.com/catapult-project/catapult/blob/master/tracing/third_party/mannwhitneyu/mannwhitneyu.js
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import itertools
 import math

@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import datetime
 import json
 import sys
@@ -266,7 +270,7 @@ class FileBugTest(testing_common.TestCase):
   def testGet_WithFinish_CreatesBug_WithDocs(self):
     diag_dict = generic_set.GenericSet([[u'Benchmark doc link', u'http://docs']])
     diag = histogram.SparseDiagnostic(
-        data=diag_dict.AsDict(), start_revision=1, end_revision=sys.maxint,
+        data=diag_dict.AsDict(), start_revision=1, end_revision=sys.maxsize,
         name=reserved_infos.DOCUMENTATION_URLS.name,
         test=utils.TestKey('ChromiumPerf/linux/scrolling'))
     diag.put()

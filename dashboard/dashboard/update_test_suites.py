@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Functions for fetching and updating a list of top-level tests."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import collections
 import logging
@@ -147,7 +150,7 @@ def _CreateTestSuiteDict():
 
   # Should have a dict of {suite: [all suites]}
   # Now generate masters
-  for k, v in result.iteritems():
+  for k, v in result.items():
     current_suites = v['suites']
     v['mas'] = {}
 

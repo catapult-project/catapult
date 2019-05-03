@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import collections
 import datetime
 import re
@@ -82,11 +86,11 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
       return frozenset()  # No DEPS file => no DEPS.
 
     deps_data = {'Var': lambda variable: deps_data['vars'][variable]}
-    exec deps_file_contents in deps_data  # pylint: disable=exec-used
+    exec(deps_file_contents, deps_data)  # pylint: disable=exec-used
 
     # Pull out deps dict, including OS-specific deps.
     deps_dict = deps_data['deps']
-    for deps_os in deps_data.get('deps_os', {}).itervalues():
+    for deps_os in deps_data.get('deps_os', {}).values():
       deps_dict.update(deps_os)
 
     # Pull out vars dict to format brace variables.
@@ -94,7 +98,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
 
     # Convert deps strings to repository and git hash.
     commits = []
-    for dep_value in deps_dict.itervalues():
+    for dep_value in deps_dict.values():
       if isinstance(dep_value, basestring):
         dep_string = dep_value
       else:
@@ -303,9 +307,9 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
 
     deferred.defer(
         _CacheCommitDetails,
-        commit_a.repository, commits[len(commits) / 2]['commit'])
+        commit_a.repository, commits[len(commits) // 2]['commit'])
 
-    return cls(commit_a.repository, commits[len(commits) / 2]['commit'])
+    return cls(commit_a.repository, commits[len(commits) // 2]['commit'])
 
 
 def _CacheCommitDetails(repository, git_url):

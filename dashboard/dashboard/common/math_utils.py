@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Basic statistics-related math functions used by the dashboard."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import math
 
@@ -17,8 +20,8 @@ def Median(values):
   if not values:
     return float('nan')
   sorted_values = sorted(values)
-  mid = len(values) / 2
-  if len(values) % 2 == 1:
+  mid, mod = divmod(len(values), 2)
+  if mod == 1:
     return float(sorted_values[mid])
   return (sorted_values[mid - 1] + sorted_values[mid]) / 2.0
 
@@ -75,7 +78,7 @@ def Percentile(values, percentile):
     https://en.wikipedia.org/wiki/Percentile
   """
   values = sorted(values)
-  index = len(values) * percentile - 0.5
+  index = float(len(values)) * percentile - 0.5
   floor = max(math.floor(index), 0)
   ceil = min(math.ceil(index), len(values) - 1)
   if floor == ceil:

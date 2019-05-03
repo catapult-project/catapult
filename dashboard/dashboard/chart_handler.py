@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Base class for request handlers that display charts."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import json
 

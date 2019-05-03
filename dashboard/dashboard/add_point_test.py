@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import copy
 import json
 import math
@@ -1409,9 +1413,9 @@ class FlattenTraceTest(testing_common.TestCase):
   def testFlattenTrace_ScalarLongValue(self):
     """Tests that scalar values can be longs."""
     trace = self._SampleTrace()
-    trace.update({'value': 1000000000L})
+    trace.update({'value': 1000000000})
     row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
-    self.assertEqual(row['value'], 1000000000L)
+    self.assertEqual(row['value'], 1000000000)
     self.assertEqual(row['error'], 0)
 
   def testFlattenTrace_InvalidScalarValue_RaisesError(self):
@@ -1437,11 +1441,11 @@ class FlattenTraceTest(testing_common.TestCase):
     trace = self._SampleTrace()
     trace.update({
         'type': 'list_of_scalar_values',
-        'values': [1000000000L, 2000000000L],
+        'values': [1000000000, 2000000000],
     })
     row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
-    self.assertAlmostEqual(row['value'], 1500000000L)
-    self.assertAlmostEqual(row['error'], 500000000L)
+    self.assertAlmostEqual(row['value'], 1500000000)
+    self.assertAlmostEqual(row['error'], 500000000)
 
   def testFlattenTrace_ListValueWithStd(self):
     """Tests that lists with reported std use std as error."""

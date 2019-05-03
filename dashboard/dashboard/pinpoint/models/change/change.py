@@ -2,8 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import collections
-import itertools
+
+try:
+  from itertools import zip_longest
+except ImportError:
+  from itertools import izip_longest as zip_longest
 
 from dashboard.pinpoint.models.change import commit as commit_module
 from dashboard.pinpoint.models.change import patch as patch_module
@@ -79,7 +87,7 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
     commits = collections.OrderedDict(self.commits)
     commits.update(other.commits)
     commits = tuple(commit_module.Commit(repository, git_hash)
-                    for repository, git_hash in commits.iteritems())
+                    for repository, git_hash in commits.items())
 
     if self.patch and other.patch:
       raise NotImplementedError(
@@ -232,7 +240,7 @@ def _FindMidpoints(commits_a, commits_b):
   """
   commits_midpoint = []
 
-  for commit_a, commit_b in itertools.izip_longest(commits_a, commits_b):
+  for commit_a, commit_b in zip_longest(commits_a, commits_b):
     if not (commit_a and commit_b):
       # If the commit lists are not the same length, bail out. That could happen
       # if commits_b has a repository that was not found in the DEPS of

@@ -8,9 +8,11 @@ This code is adapted from SciPy:
   https://github.com/scipy/scipy/blob/master/scipy/stats/stats.py
 Which is provided under a BSD-style license.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import bisect
-import itertools
 import math
 
 
@@ -27,7 +29,7 @@ def KolmogorovSmirnov(x, y):
   data_all = x + y
   cdf1 = [bisect.bisect(x, value) / float(n1) for value in data_all]
   cdf2 = [bisect.bisect(y, value) / float(n2) for value in data_all]
-  d = max(math.fabs(a - b) for a, b in itertools.izip(cdf1, cdf2))
+  d = max(math.fabs(a - b) for a, b in zip(cdf1, cdf2))
   # Note: d absolute not signed distance
   en = math.sqrt(n1 * n2 / float(n1 + n2))
   return _Kolmogorov((en + 0.12 + 0.11 / en) * d)

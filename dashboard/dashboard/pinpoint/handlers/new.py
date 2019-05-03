@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import json
 
 from dashboard.api import api_request_handler
@@ -74,7 +78,7 @@ def _ArgumentsWithConfiguration(original_arguments):
   if configuration:
     default_arguments = bot_configurations.Get(configuration)
     if default_arguments:
-      for k, v in default_arguments.items():
+      for k, v in list(default_arguments.items()):
         new_arguments.setdefault(k, v)
 
   if new_arguments.get('benchmark') in _UNSUPPORTED_BENCHMARKS:
@@ -200,7 +204,7 @@ def _ValidateTags(tags):
   if not isinstance(tags_dict, dict):
     raise ValueError(_ERROR_TAGS_DICT)
 
-  for k, v in tags_dict.iteritems():
+  for k, v in tags_dict.items():
     if not isinstance(k, basestring) or not isinstance(v, basestring):
       raise ValueError(_ERROR_TAGS_DICT)
 

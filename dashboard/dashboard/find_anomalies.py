@@ -8,6 +8,9 @@ This module contains the ProcessTest function, which searches the recent
 points in a test for potential regressions or improvements, and creates
 new Anomaly entities.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import logging
 
@@ -75,7 +78,7 @@ def _ProcessTest(test_key):
   if ref_test:
     ref_rows_by_stat = yield GetRowsToAnalyzeAsync(ref_test, max_num_rows)
 
-  for s, rows in rows_by_stat.iteritems():
+  for s, rows in rows_by_stat.items():
     if rows:
       yield _ProcesssTestStat(
           config, sheriff, test, s, rows, ref_rows_by_stat.get(s))
@@ -182,7 +185,7 @@ def GetRowsToAnalyzeAsync(test, max_num_rows):
     results[s] = _FetchRowsByStat(
         test.key, s, latest_alert_by_stat[s], max_num_rows)
 
-  for s in results.iterkeys():
+  for s in results.keys():
     results[s] = yield results[s]
 
   raise ndb.Return(results)

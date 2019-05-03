@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Provides an endpoint for getting details about a sheriffed bug."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import json
 import re

@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Provides a layer of abstraction for the issue tracker API."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import httplib
 import json
@@ -226,7 +229,7 @@ class IssueTrackerService(object):
     if not bug_id or bug_id < 0:
       return None
     response = self._MakeGetCommentsRequest(bug_id)
-    if response and all(v in response.keys()
+    if response and all(v in list(response.keys())
                         for v in ['totalResults', 'items']):
       bug_comments = response.get('items')[response.get('totalResults') - 1]
       if bug_comments.get('content') and bug_comments.get('published'):

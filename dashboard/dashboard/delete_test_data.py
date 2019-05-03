@@ -13,6 +13,9 @@ For any delete, there could be hundreds of TestMetadatas and many thousands of
 Rows. Datastore operations often time out after a few hundred deletes(), so this
 task is split up using the task queue.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 from google.appengine.api import mail
 from google.appengine.api import taskqueue

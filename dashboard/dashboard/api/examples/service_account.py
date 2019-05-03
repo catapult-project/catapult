@@ -22,6 +22,9 @@ Getting set up:
 3. Modify the example below to use httplib2 and oauth2client libraries to
    authenticate.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import httplib2
 from oauth2client import service_account
@@ -45,4 +48,4 @@ def MakeApiRequest():
 if __name__ == '__main__':
   RESPONSE, CONTENT = MakeApiRequest()
   # Check response and do stuff with content!
-  print RESPONSE, CONTENT
+  print(RESPONSE, CONTENT)

@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Small test to send a put request to buildbucket."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import re
 

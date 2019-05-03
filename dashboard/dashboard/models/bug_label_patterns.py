@@ -7,6 +7,9 @@
 This is used to decide which bug labels should be applied by default
 to bugs filed for alerts on particular tests.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 from google.appengine.ext import ndb
 
@@ -45,7 +48,7 @@ def GetBugLabelPatterns():
 def GetBugLabelsForTest(test):
   """Returns a list of bug labels to be applied to the test."""
   matching = []
-  for label, patterns in GetBugLabelPatterns().iteritems():
+  for label, patterns in GetBugLabelPatterns().items():
     for pattern in patterns:
       if utils.TestMatchesPattern(test, pattern):
         matching.append(label)

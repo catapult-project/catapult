@@ -29,6 +29,9 @@ both caches.
 Although this module contains ndb.Model classes, these are not intended
 to be used directly by other modules.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import cPickle
 import datetime

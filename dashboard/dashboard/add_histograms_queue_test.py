@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import copy
 import json
 import sys
@@ -181,7 +185,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
         'type': 'GenericSet',
     }
     diag = histogram.SparseDiagnostic(
-        data=diag_dict, start_revision=1, end_revision=sys.maxint,
+        data=diag_dict, start_revision=1, end_revision=sys.maxsize,
         test=utils.TestKey('Chromium/win7/suite/metric'))
     diag.put()
     histogram.HistogramRevisionRecord.GetOrCreate(
@@ -214,7 +218,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     }
     diag = histogram.SparseDiagnostic(
         data=diag_dict, name='owners',
-        start_revision=1, end_revision=sys.maxint,
+        start_revision=1, end_revision=sys.maxsize,
         test=utils.TestKey('Chromium/win7/suite/metric'))
     diag.put()
     histogram.HistogramRevisionRecord.GetOrCreate(
@@ -431,7 +435,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 
     row = rows_by_path.pop('Chromium/win7/suite/metric')
     self.assertEqual(0, len(rows_by_path))
-    fields = row.to_dict().iterkeys()
+    fields = iter(row.to_dict().keys())
     d_fields = []
     r_fields = []
     a_fields = []
@@ -484,7 +488,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 
     ndb.put_multi(rows)
     row = graph_data.Row.query().fetch()[0]
-    fields = row.to_dict().iterkeys()
+    fields = iter(row.to_dict().keys())
     d_fields = [field for field in fields if field.startswith('d_')]
 
     self.assertEqual(1, len(d_fields))

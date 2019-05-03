@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """URL endpoint to allow Buildbot slaves to post data to the dashboard."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import copy
 import json
@@ -189,7 +192,7 @@ def _ValidateDashboardJson(dash_json_dict):
 
   charts = dash_json_dict.get('chart_data', {}).get('charts', {})
 
-  for _, v in charts.iteritems():
+  for _, v in charts.items():
     if not isinstance(v, dict):
       raise BadRequestError('Expected be dict: %s' % str(v))
 
@@ -476,7 +479,7 @@ def _ExtractValueAndError(trace):
 
 
 def _IsNumber(v):
-  return isinstance(v, float) or isinstance(v, int) or isinstance(v, long)
+  return isinstance(v, float) or isinstance(v, int) or isinstance(v, int)
 
 
 def _GeomMeanAndStdDevFromHistogram(histogram):
@@ -776,7 +779,7 @@ def _GetSupplementalColumns(row):
     A dict of valid supplemental columns.
   """
   columns = {}
-  for (name, value) in row.get('supplemental_columns', {}).iteritems():
+  for (name, value) in row.get('supplemental_columns', {}).items():
     # Don't allow too many columns
     if len(columns) == _MAX_NUM_COLUMNS:
       logging.warn('Too many columns, some being dropped.')

@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import collections
 import json
 import ntpath
@@ -116,7 +120,7 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
     elif self._hist_name:
       # Histograms don't exist, which means this is summary
       summary_value = []
-      for test_path, histograms_for_test_path in histograms_by_path.iteritems():
+      for test_path, histograms_for_test_path in histograms_by_path.items():
         if test_path.startswith(test_path_to_match):
           for h in histograms_for_test_path:
             summary_value.extend(self._GetValuesOrStatistic(h))

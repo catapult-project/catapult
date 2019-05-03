@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """General functions which are useful throughout this project."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import logging
 import os
@@ -217,6 +220,30 @@ def MostSpecificMatchingPattern(test, pattern_data_tuples):
   */*/*/Bar would match more closely than */*/*/Bar.*
   */*/*/Bar.* would match more closely than */*/*/*
   """
+
+  # To implement this properly, we'll use a matcher trie. This trie data
+  # structure will take the tuple of patterns like:
+  #
+  #   */*/*/Bar
+  #   */*/*/Bar.*
+  #   */*/*/*
+  #
+  # and create a trie of the following form:
+  #
+  #   (all, *) -> (all, *) -> (all, *) -> (specific, Bar)
+  #                               T
+  #                               + -> (partial, Bar.*)
+  #                               |
+  #                               + -> (all, *)
+  #
+  #
+  # We can then traverse this trie, where we order the matchers by exactness,
+  # and return the deepest pattern that matches.
+  #
+  # For now, we'll keep this as is.
+  #
+  # TODO(dberris): Refactor this to build a trie.
+
   matching_patterns = []
   for p, v in pattern_data_tuples:
     if not TestMatchesPattern(test, p):
@@ -252,7 +279,7 @@ def MostSpecificMatchingPattern(test, pattern_data_tuples):
         return 1
       return 0
 
-  matching_patterns.sort(cmp=CmpPatterns)
+  matching_patterns.sort(cmp=CmpPatterns)  # pylint: disable=using-cmp-argument
 
   return matching_patterns[0][1]
 

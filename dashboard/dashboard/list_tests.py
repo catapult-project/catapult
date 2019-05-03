@@ -8,6 +8,9 @@ This module contains functions for listing:
  - Sub-tests for a given test suite (in a tree structure).
  - Tests which match a given test path pattern.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import json
 
@@ -153,10 +156,10 @@ def _SubTestsDict(paths, deprecated):
       merged[test_name]['sub_tests'].append(sub_test_path)
 
   if deprecated:
-    for k, v in merged.iteritems():
+    for k, v in merged.items():
       merged[k]['deprecated'] = True
 
-  for k, v in merged.iteritems():
+  for k, v in merged.items():
     merged[k]['sub_tests'] = _SubTestsDict(v['sub_tests'], deprecated)
   return merged
 
@@ -171,7 +174,7 @@ def _MapTestDescendantsToSubTestPaths(keys):
     A list of test paths for all descendant TestMetadata entities that have
     associated Row entities. These test paths omit the Master/bot/suite part.
   """
-  return map(_SubTestPath, keys)
+  return list(map(_SubTestPath, keys))
 
 
 def _SubTestPath(test_key):
@@ -395,7 +398,7 @@ def _GetSelectedTestPathsForDict(test_path_dict):
   paths = []
   test_key_futures = []
   any_missing = False
-  for path, selection in test_path_dict.iteritems():
+  for path, selection in test_path_dict.items():
     if selection == 'core':
       try:
         paths.extend(_GetCoreTestPathsForTest(path, True))
@@ -444,7 +447,7 @@ def _GetSelectedTestPathsForDict(test_path_dict):
 
 def _GetUnselectedTestPathsForDict(test_path_dict):
   paths = []
-  for path, selection in test_path_dict.iteritems():
+  for path, selection in test_path_dict.items():
     if selection == 'core':
       paths.extend(_GetCoreTestPathsForTest(path, False))
     elif selection == 'all':

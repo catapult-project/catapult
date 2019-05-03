@@ -2,11 +2,26 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import traceback
 
 from oauth2client import client
 
 from dashboard.pinpoint.models import errors
+
+
+class FatalError(Exception):
+  """Base class for all execution errors.
+
+  These errors propagate further for debugging.
+  """
+
+
+class InformationalError(Exception):
+  """Errors that are non-fatal and logged."""
 
 
 class Execution(object):
@@ -99,15 +114,18 @@ class Execution(object):
       self._Poll()
     except client.AccessTokenRefreshError:
       raise errors.RecoverableError()
-    except StandardError:
-      # StandardError most likely indicates a bug in the code.
-      # We should fail fast to aid debugging.
+    except (FatalError, RuntimeError):
+      # Some built-in exceptions are derived from RuntimeError which we'd like
+      # to treat as errors.
       raise
     except Exception:  # pylint: disable=broad-except
       # We allow broad exception handling here, because we log the exception and
       # display it in the UI.
       self._completed = True
       self._exception = traceback.format_exc()
+    except:
+      # All other exceptions must be propagated.
+      raise
 
   def _Poll(self):
     raise NotImplementedError()

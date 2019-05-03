@@ -5,8 +5,12 @@ ignore=sheriff_pb2.py
 
 [MESSAGES CONTROL]
 
+enable=python3
+
 # Disable the message, report, category or checker with the given id(s).
 # TODO: Shrink this list to as small as possible.
+# Disable some specific python3 incompatibilities that we cannot use yet in
+# Python 2.7.
 disable=
   design,
   similarities,
@@ -33,6 +37,13 @@ disable=
   star-args,
   super-on-old-class,
 
+  xrange-builtin,
+  basestring-builtin,
+  range-builtin-not-iterating,
+  map-builtin-not-iterating,
+  zip-builtin-not-iterating,
+  long-builtin,
+  round-builtin,
 
 [REPORTS]
 

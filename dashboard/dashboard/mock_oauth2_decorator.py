@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Mocks out oauth2_decorator for unit testing."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 from apiclient import http
 from dashboard import oauth2_decorator

@@ -7,6 +7,9 @@
 This is meant to be used with /load_from_prod in order to easily grab
 data for a graph to a local server for testing.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import base64
 import json
@@ -80,7 +83,7 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
     entities += sheriffs
 
     # Convert the entities to protobuf message strings and output as JSON.
-    protobuf_strings = map(EntityToBinaryProtobuf, entities)
+    protobuf_strings = list(map(EntityToBinaryProtobuf, entities))
     self.response.out.write(json.dumps(protobuf_strings))
 
   def _DumpAnomalyDataForSheriff(self):
@@ -121,7 +124,7 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
     entities.append(sheriff)
 
     # Convert the entities to protobuf message strings and output as JSON.
-    protobuf_strings = map(EntityToBinaryProtobuf, entities)
+    protobuf_strings = list(map(EntityToBinaryProtobuf, entities))
     self.response.out.write(json.dumps(protobuf_strings))
 
   def _GetTestAncestors(self, test_keys):

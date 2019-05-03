@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """URL endpoint for the main page which lists recent anomalies."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import datetime
 import logging

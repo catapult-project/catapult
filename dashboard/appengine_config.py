@@ -8,6 +8,9 @@ This module is loaded before others and can be used to set up the
 App Engine environment. See:
   https://cloud.google.com/appengine/docs/python/tools/appengineconfig
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import os
 

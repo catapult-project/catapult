@@ -27,6 +27,9 @@ the table. We can split each test into different categories and rename the tests
 to something more useful for the user.
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 import json
 
 from google.appengine.ext import ndb

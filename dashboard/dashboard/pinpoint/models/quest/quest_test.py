@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import itertools
 import unittest
 
@@ -31,7 +35,7 @@ class QuestCycle(_QuestStub):
     self._execution_classes = itertools.cycle(quests)
 
   def Start(self, change):
-    return self._execution_classes.next().Start(change)
+    return next(self._execution_classes).Start(change)
 
 
 class QuestByChange(_QuestStub):

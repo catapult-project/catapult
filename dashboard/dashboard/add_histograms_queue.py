@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """URL endpoint to add new histograms to the datastore."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import json
 import logging
@@ -172,7 +175,7 @@ def _ProcessRowAndHistogram(params):
   if histogram_helpers.IsLegacyBenchmark(benchmark_name):
     statistics_scalars = {}
 
-  for stat_name, scalar in statistics_scalars.iteritems():
+  for stat_name, scalar in statistics_scalars.items():
     if histogram_helpers.ShouldFilterStatistic(
         histogram_name, benchmark_name, stat_name):
       continue
@@ -196,7 +199,7 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
   test_key = parent_test.key
 
   stat_names_to_test_keys = {k: v.key for k, v in
-                             legacy_parent_tests.iteritems()}
+                             legacy_parent_tests.items()}
   rows = CreateRowEntities(
       data_dict, test_key, stat_names_to_test_keys, revision)
   if not rows:
@@ -209,7 +212,7 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
   if is_monitored:
     tests_keys.append(parent_test.key)
 
-  for legacy_parent_test in legacy_parent_tests.itervalues():
+  for legacy_parent_test in legacy_parent_tests.values():
     is_monitored = legacy_parent_test.sheriff and legacy_parent_test.has_rows
     if is_monitored:
       tests_keys.append(legacy_parent_test.key)
@@ -235,7 +238,7 @@ def _AddHistogramFromData(params, revision, test_key, internal_only):
   hs = histogram_set.HistogramSet()
   hs.ImportDicts([data_dict])
   for new_guid, existing_diagnostic in (
-      new_guids_to_existing_diagnostics.iteritems()):
+      iter(new_guids_to_existing_diagnostics.items())):
     hs.ReplaceSharedDiagnostic(
         new_guid, diagnostic_ref.DiagnosticRef(
             existing_diagnostic['guid']))
@@ -253,11 +256,11 @@ def ProcessDiagnostics(diagnostic_data, revision, test_key, internal_only):
     raise ndb.Return({})
 
   diagnostic_entities = []
-  for name, diagnostic_datum in diagnostic_data.iteritems():
+  for name, diagnostic_datum in diagnostic_data.items():
     guid = diagnostic_datum['guid']
     diagnostic_entities.append(histogram.SparseDiagnostic(
         id=guid, name=name, data=diagnostic_datum, test=test_key,
-        start_revision=revision, end_revision=sys.maxint,
+        start_revision=revision, end_revision=sys.maxsize,
         internal_only=internal_only))
 
   suite_key = utils.TestKey('/'.join(test_key.id().split('/')[:3]))
@@ -301,7 +304,7 @@ def CreateRowEntities(
   rows.append(graph_data.Row(id=revision, parent=test_container_key,
                              **properties))
 
-  for stat_name, suffixed_key in stat_names_to_test_keys.iteritems():
+  for stat_name, suffixed_key in stat_names_to_test_keys.items():
     row_dict = _MakeRowDict(revision, suffixed_key.id(), h, stat_name=stat_name)
     properties = add_point.GetAndValidateRowProperties(row_dict)
     test_container_key = utils.GetTestContainerKey(suffixed_key)
@@ -328,7 +331,7 @@ def _MakeRowDict(revision, test_path, tracing_histogram, stat_name=None):
   if trace_url_set and not is_summary:
     d['supplemental_columns']['a_tracing_uri'] = list(trace_url_set)[-1]
 
-  for diag_name, annotation in DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES.iteritems():
+  for diag_name, annotation in DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES.items():
     revision_info = tracing_histogram.diagnostics.get(diag_name)
     if not revision_info:
       continue
@@ -382,7 +385,7 @@ def _AddStdioUri(name, link_list, row_dict):
 
 def _PopulateNumericalFields(row_dict, tracing_histogram):
   statistics_scalars = tracing_histogram.statistics_scalars
-  for name, scalar in statistics_scalars.iteritems():
+  for name, scalar in statistics_scalars.items():
     # We'll skip avg/std since these are already stored as value/error in rows.
     if name in ('avg', 'std'):
       continue

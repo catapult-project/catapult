@@ -9,6 +9,9 @@ API documentation: https://developers.google.com/sheets/api/reference/rest/
 This service uses the default application credentials, so it can only access
 public spreadsheets.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import logging
 
@@ -34,7 +37,7 @@ def GetRange(spreadsheet_id, sheet_name, range_in_sheet):
       credentials=credentials,
       discoveryServiceUrl=DISCOVERY_URL)
   sheet_range = '%s!%s' % (sheet_name, range_in_sheet)
-  result = service.spreadsheets().values().get(
+  result = list(service.spreadsheets().values()).get(
       spreadsheetId=spreadsheet_id, range=sheet_range).execute()
   values = result.get('values', [])
   if not values:

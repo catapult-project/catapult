@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """URL endpoint to add new graph data to the datastore."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import json
 import logging
@@ -313,7 +316,7 @@ def _GetOrCreateTest(name, parent_test_path, properties):
         properties['improvement_direction'] = direction
 
   # Go through the list of general properties and update if necessary.
-  for prop, value in properties.items():
+  for prop, value in list(properties.items()):
     if (hasattr(existing, prop) and value is not None and
         getattr(existing, prop) != value):
       setattr(existing, prop, value)

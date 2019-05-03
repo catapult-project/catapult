@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import json
 import unittest
 
@@ -34,7 +38,8 @@ class DumpGraphJsonTest(testing_common.TestCase):
     # be returned: the Master, Bot and TestMetadata entities.
     response = self.testapp.get('/dump_graph_json', {'test_path': 'M/b/foo'})
     protobuf_strings = json.loads(response.body)
-    entities = map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings)
+    entities = list(
+        map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings))
     self.assertEqual(3, len(entities))
     masters = _EntitiesOfKind(entities, 'Master')
     bots = _EntitiesOfKind(entities, 'Bot')
@@ -63,7 +68,8 @@ class DumpGraphJsonTest(testing_common.TestCase):
         '/dump_graph_json',
         {'test_path': 'M/b/foo'})
     protobuf_strings = json.loads(response.body)
-    entities = map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings)
+    entities = list(
+        map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings))
     out_rows = _EntitiesOfKind(entities, 'Row')
     expected_num_rows = dump_graph_json._DEFAULT_MAX_POINTS
     self.assertEqual(expected_num_rows, len(out_rows))
@@ -78,7 +84,8 @@ class DumpGraphJsonTest(testing_common.TestCase):
         '/dump_graph_json',
         {'test_path': 'M/b/foo', 'end_rev': 1199})
     protobuf_strings = json.loads(response.body)
-    entities = map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings)
+    entities = list(
+        map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings))
     out_rows = _EntitiesOfKind(entities, 'Row')
     expected_num_rows = min(dump_graph_json._DEFAULT_MAX_POINTS, 200)
     self.assertEqual(expected_num_rows, len(out_rows))
@@ -89,7 +96,8 @@ class DumpGraphJsonTest(testing_common.TestCase):
         '/dump_graph_json',
         {'test_path': 'M/b/foo', 'num_points': 4})
     protobuf_strings = json.loads(response.body)
-    entities = map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings)
+    entities = list(
+        map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings))
     out_rows = _EntitiesOfKind(entities, 'Row')
     rev_nums = [row.revision for row in out_rows]
     expected_rev_range = range(highest_rev, highest_rev - 4, -1)
@@ -108,7 +116,8 @@ class DumpGraphJsonTest(testing_common.TestCase):
         {'test_path': 'M/b/foo'})
     protobuf_strings = json.loads(response.body)
     self.assertEqual(5, len(protobuf_strings))
-    entities = map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings)
+    entities = list(
+        map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings))
     anomalies = _EntitiesOfKind(entities, 'Anomaly')
     sheriffs = _EntitiesOfKind(entities, 'Sheriff')
     self.assertEqual(1, len(anomalies))
@@ -147,7 +156,8 @@ class DumpGraphJsonTest(testing_common.TestCase):
         {'sheriff': 'Chromium Perf Sheriff'})
     protobuf_strings = json.loads(response.body)
     self.assertEqual(default_max_points + 5, len(protobuf_strings))
-    entities = map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings)
+    entities = list(
+        map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings))
     rows = _EntitiesOfKind(entities, 'Row')
     anomalies = _EntitiesOfKind(entities, 'Anomaly')
     sheriffs = _EntitiesOfKind(entities, 'Sheriff')

@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import json
 import unittest
 
@@ -316,7 +320,7 @@ class GraphJsonTest(testing_common.TestCase):
             'ChromiumGPU/win7/dromaeo/dom': [],
         })
     flot = json.loads(flot_json_str)
-    self.assertEqual(1, len(flot['error_bars'].keys()))
+    self.assertEqual(1, len(list(flot['error_bars'].keys())))
     rev = 0
     for col_dom, col_top, col_bottom in zip(
         flot['data']['0']['data'],
@@ -650,7 +654,7 @@ class GraphJsonTest(testing_common.TestCase):
     self.assertEqual(1, len(flot['data']))
     self.assertEqual(5, len(flot['data']['0']['data']))
     self.assertEqual(1, len(flot['annotations']['series']))
-    self.assertEqual(5, len(flot['annotations'].get('0').keys()))
+    self.assertEqual(5, len(list(flot['annotations'].get('0').keys())))
     self.assertEqual(5, len(flot['error_bars']['0'][0]['data']))
     self.assertEqual(5, len(flot['error_bars']['0'][1]['data']))
 
@@ -701,8 +705,10 @@ class GraphJsonTest(testing_common.TestCase):
     self.assertEqual(2, len(flot['data']))
     self.assertEqual(5, len(flot['data'][sub_test_a_index]['data']))
     self.assertEqual(2, len(flot['annotations']['series']))
-    self.assertEqual(5, len(flot['annotations'].get(sub_test_a_index).keys()))
-    self.assertEqual(5, len(flot['annotations'].get(sub_test_b_index).keys()))
+    self.assertEqual(
+        5, len(list(flot['annotations'].get(sub_test_a_index).keys())))
+    self.assertEqual(
+        5, len(list(flot['annotations'].get(sub_test_b_index).keys())))
 
   def testGetGraphJson_ManyUnselected_ReturnsNothing(self):
     testing_common.AddTests(

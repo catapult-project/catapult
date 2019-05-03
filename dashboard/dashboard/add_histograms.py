@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """URL endpoint for adding new histograms to the dashboard."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import cloudstorage
 import decimal
@@ -139,7 +142,7 @@ def _LoadHistogramList(input_file):
         if isinstance(obj, decimal.Decimal):
           return float(obj)
         if isinstance(obj, dict):
-          for k, v in obj.iteritems():
+          for k, v in obj.items():
             obj[k] = NormalizeDecimals(v)
         if isinstance(obj, list):
           obj = [NormalizeDecimals(x) for x in obj]
@@ -335,7 +338,7 @@ def ProcessHistogramSet(histogram_dicts):
             revision, last_added.revision).get_result())
 
   with timing.WallTimeLogger('ReplaceSharedDiagnostic calls'):
-    for new_guid, old_diagnostic in new_guids_to_old_diagnostics.iteritems():
+    for new_guid, old_diagnostic in new_guids_to_old_diagnostics.items():
       histograms.ReplaceSharedDiagnostic(
           new_guid, diagnostic.Diagnostic.FromDict(old_diagnostic))
 
@@ -433,10 +436,10 @@ def _MakeTaskDict(
   # same diagnostic out (datastore contention), at the cost of copyin the
   # data. These are sparsely written to datastore anyway, so the extra
   # storage should be minimal.
-  for d in diagnostics.itervalues():
+  for d in diagnostics.values():
     d.ResetGuid()
 
-  diagnostics = {k: d.AsDict() for k, d in diagnostics.iteritems()}
+  diagnostics = {k: d.AsDict() for k, d in diagnostics.items()}
 
   params['diagnostics'] = diagnostics
   params['data'] = hist.AsDict()
@@ -448,23 +451,23 @@ def FindSuiteLevelSparseDiagnostics(
     histograms, suite_key, revision, internal_only):
   diagnostics = {}
   for hist in histograms:
-    for name, diag in hist.diagnostics.iteritems():
+    for name, diag in hist.diagnostics.items():
       if name in SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
         existing_entity = diagnostics.get(name)
         if existing_entity is None:
           diagnostics[name] = histogram.SparseDiagnostic(
               id=diag.guid, data=diag.AsDict(), test=suite_key,
-              start_revision=revision, end_revision=sys.maxint, name=name,
+              start_revision=revision, end_revision=sys.maxsize, name=name,
               internal_only=internal_only)
         elif existing_entity.key.id() != diag.guid:
           raise ValueError(
               name + ' diagnostics must be the same for all histograms')
-  return diagnostics.values()
+  return list(diagnostics.values())
 
 
 def FindHistogramLevelSparseDiagnostics(hist):
   diagnostics = {}
-  for name, diag in hist.diagnostics.iteritems():
+  for name, diag in hist.diagnostics.items():
     if name in HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
       diagnostics[name] = diag
   return diagnostics
@@ -504,7 +507,7 @@ def ComputeRevision(histograms):
                   ' or POINT_ID')
     rev = revision_timestamps.max_timestamp
 
-  if not isinstance(rev, (long, int)):
+  if not isinstance(rev, int):
     raise api_request_handler.BadRequestError(
         'Point ID must be an integer.')
 
@@ -515,7 +518,7 @@ def InlineDenseSharedDiagnostics(histograms):
   # TODO(896856): Delete inlined diagnostics from the set
   for hist in histograms:
     diagnostics = hist.diagnostics
-    for name, diag in diagnostics.iteritems():
+    for name, diag in diagnostics.items():
       if name not in SPARSE_DIAGNOSTIC_NAMES:
         diag.Inline()
 
@@ -526,6 +529,6 @@ def _PurgeHistogramBinData(histograms):
   for cur_hist in histograms:
     for cur_bin in cur_hist.bins:
       for dm in cur_bin.diagnostic_maps:
-        keys = dm.keys()
+        keys = list(dm.keys())
         for k in keys:
           del dm[k]

@@ -17,6 +17,9 @@ https://developers.google.com/api-client-library/python/auth/installed-app
 For a more complete working example, see the depot_tools auth code:
 https://cs.chromium.org/chromium/tools/depot_tools/auth.py
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import httplib2
 from oauth2client import client
@@ -43,11 +46,13 @@ def MakeApiRequest():
   print(
       'Go to the following link in your browser:\n\n'
       '    %s\n' % authorize_url)
+
+  # pylint:disable=raw_input-builtin
   code = raw_input('Enter verification code: ').strip()
   try:
     creds = flow.step2_exchange(code)
   except client.FlowExchangeError as e:
-    print 'Authentication has failed: %s' % e
+    print('Authentication has failed: %s' % e)
     return None, None
 
   http_auth = creds.authorize(httplib2.Http())
@@ -61,4 +66,4 @@ def MakeApiRequest():
 if __name__ == '__main__':
   RESPONSE, CONTENT = MakeApiRequest()
   # Check response and do stuff with content!
-  print RESPONSE, CONTENT
+  print(RESPONSE, CONTENT)

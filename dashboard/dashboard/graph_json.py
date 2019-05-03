@@ -7,6 +7,9 @@
 This serves the JSON in the format consumed by Flot:
 https://github.com/flot/flot/blob/master/API.md
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import copy
 import datetime
@@ -115,7 +118,7 @@ def _ResolveTestPathDict(test_path_dict, is_selected):
   # TODO(eakuefner): These are old-style test path dicts which means that []
   # doesn't mean 'no tests' but rather 'all tests'. Remove this hack.
   if is_selected:
-    for test, selected in test_path_dict.iteritems():
+    for test, selected in test_path_dict.items():
       if selected == []:
         test_path_dict[test] = 'all'
 
@@ -150,7 +153,7 @@ def GetGraphJson(
   if not is_selected and len(test_paths) > _MAX_UNSELECTED_TESTS:
     return json.dumps({'data': {}, 'annotations': {}, 'error_bars': {}})
 
-  test_keys = map(utils.TestKey, test_paths)
+  test_keys = list(map(utils.TestKey, test_paths))
   test_entities = ndb.get_multi(test_keys)
   test_entities = [t for t in test_entities if t is not None and t.has_rows]
 
@@ -247,7 +250,7 @@ def _PointInfoDict(row, anomaly_annotation_map):
     anomaly_entity = anomaly_annotation_map.get(row.revision)
     point_info['g_anomaly'] = alerts.GetAnomalyDict(anomaly_entity)
   row_dict = row.to_dict()
-  for name, val in row_dict.iteritems():
+  for name, val in row_dict.items():
     if _IsMarkdownLink(val) and 'Buildbot stdio' in val:
       logdog_link, status_page_link = _GetUpdatedBuildbotLinks(val)
       if logdog_link:

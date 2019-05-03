@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 from dashboard import file_bug
 from dashboard.api import api_request_handler
 from dashboard.common import utils

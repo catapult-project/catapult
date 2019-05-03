@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import json
 import urlparse
 
@@ -15,15 +19,15 @@ from dashboard.services import gerrit_service
 BUCKET = 'master.tryserver.chromium.perf'
 
 
-class BuildError(Exception):
-  """Raised when the build fails."""
-
-
-class IsolateNotFoundError(StandardError):
+class IsolateNotFoundError(execution.FatalError):
   """Raised when the build succeeds, but Pinpoint can't find the isolate.
 
   This error is fatal to the Job.
   """
+
+
+class BuildError(execution.InformationalError):
+  """Raised when the build fails."""
 
 
 class FindIsolate(quest.Quest):
@@ -49,19 +53,11 @@ class FindIsolate(quest.Quest):
 
   @classmethod
   def FromDict(cls, arguments):
-    builder = arguments.get('builder')
-    if not builder:
-      raise TypeError('Missing "builder" argument.')
+    for arg in ('builder', 'target', 'bucket'):
+      if arg not in arguments:
+        raise TypeError('Missing "{0}" argument'.format(arg))
 
-    target = arguments.get('target')
-    if not target:
-      raise TypeError('Missing "target" argument.')
-
-    bucket = arguments.get('bucket')
-    if not bucket:
-      raise TypeError('Missing "bucket" argument.')
-
-    return cls(builder, target, bucket)
+    return cls(arguments['builder'], arguments['target'], arguments['bucket'])
 
 
 class _FindIsolateExecution(execution.Execution):

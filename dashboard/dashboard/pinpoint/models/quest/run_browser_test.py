@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Quest for running a browser test in Swarming."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 from dashboard.pinpoint.models.quest import run_test
 

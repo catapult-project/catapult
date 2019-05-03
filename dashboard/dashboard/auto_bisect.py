@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """URL endpoint for a cron job to automatically run bisects."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import json
 import logging
@@ -55,7 +58,7 @@ def _StartBisectForBug(bug_id):
 
   bot_configurations = namespaced_stored_object.Get('bot_configurations')
 
-  if test.bot_name not in bot_configurations.keys():
+  if test.bot_name not in list(bot_configurations.keys()):
     raise NotBisectableError(
         'Bot: %s has no corresponding Pinpoint bot.' % test.bot_name)
   return _StartPinpointBisect(bug_id, test_anomaly, test)

@@ -9,6 +9,9 @@ An isolate is a way to describe the dependencies of a specific build.
 More about isolates:
 https://github.com/luci/luci-py/blob/master/appengine/isolate/doc/client/Design.md
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import json
 import webapp2
@@ -95,7 +98,7 @@ class Isolate(api_request_handler.ApiRequestHandler):
     # Put information into the datastore.
     isolate_infos = [
         (builder_name, change, target, isolate_server, isolate_hash)
-        for target, isolate_hash in isolate_map.iteritems()]
+        for target, isolate_hash in isolate_map.items()]
     isolate.Put(isolate_infos)
 
     # Respond to the API user.

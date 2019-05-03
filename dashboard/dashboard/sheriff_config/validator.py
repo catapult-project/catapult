@@ -7,6 +7,9 @@
 This module defines functions for validating protocol buffers for defining
 sheriff subscription configurations.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 from google.protobuf import json_format
 from dashboard.sheriff_config.proto import sheriff_pb2

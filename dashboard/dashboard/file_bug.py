@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Provides the web interface for filing a bug on the issue tracker."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import json
 import logging
@@ -179,7 +182,7 @@ def _AdditionalDetails(bug_id, alerts):
 
     docs_by_suite[suite] = docs
 
-  for k, v in docs_by_suite.iteritems():
+  for k, v in docs_by_suite.items():
     comment += '\n\n%s - %s:\n  %s' % (k, v[0], v[1])
 
   return comment

@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import unittest
 import webapp2
 import webtest
@@ -312,14 +316,14 @@ class ListTestSuitesTest(testing_common.TestCase):
     suites = update_test_suites._FetchSuites()
     suite_keys = [s.key for s in suites]
     self.assertEqual(
-        map(utils.TestKey, [
+        list(map(utils.TestKey, [
             'Chromium/mac/dromaeo',
             'Chromium/mac/really',
             'Chromium/mac/scrolling',
             'Chromium/win7/dromaeo',
             'Chromium/win7/really',
             'Chromium/win7/scrolling',
-        ]),
+        ])),
         suite_keys)
 
   def testGetSubTestPath(self):

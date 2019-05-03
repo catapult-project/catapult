@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Base classes for Model classes that can be internal-only."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 from google.appengine.ext import ndb
 

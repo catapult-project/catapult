@@ -9,6 +9,9 @@ An isolate is a way to describe the dependencies of a specific build.
 More about isolates:
 https://github.com/luci/luci-py/blob/master/appengine/isolate/doc/client/Design.md
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import datetime
 

@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Provides oauth2 decorators in a mockable way."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 from oauth2client.appengine import OAuth2Decorator
 

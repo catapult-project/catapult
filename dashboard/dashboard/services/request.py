@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import httplib
 import httplib2
 import json
@@ -58,12 +62,12 @@ def Request(url, method='GET', body=None,
 
   if parameters:
     # URL-encode the parameters.
-    for key, value in parameters.items():
+    for key, value in list(parameters.items()):
       if value is None:
         del parameters[key]
       if isinstance(value, bool):
         parameters[key] = str(value).lower()
-    url += '?' + urllib.urlencode(sorted(parameters.iteritems()), doseq=True)
+    url += '?' + urllib.urlencode(sorted(parameters.items()), doseq=True)
 
   kwargs = {'method': method}
   if body:

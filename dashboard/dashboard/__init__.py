@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import os
 import sys
 
@@ -110,9 +114,9 @@ def _AllSdkThirdPartyLibraryPaths():
   except ImportError:
     # TODO: Put the Cloud SDK in the path with the binary dependency manager.
     # https://github.com/catapult-project/catapult/issues/2135
-    print 'This script requires the Google Cloud SDK to be in PATH.'
-    print 'Install at https://cloud.google.com/sdk and then run'
-    print '`gcloud components install app-engine-python`'
+    print('This script requires the Google Cloud SDK to be in PATH.')
+    print('Install at https://cloud.google.com/sdk and then run')
+    print('`gcloud components install app-engine-python`')
     sys.exit(1)
 
   return dev_appserver.EXTRA_PATHS

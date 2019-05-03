@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import logging
 import time
 
@@ -149,7 +153,7 @@ def _UpdateDescriptor(test_suite, namespace, start_cursor=None,
       'measurements': list(sorted(measurements)),
       'bots': list(sorted(bots)),
       'cases': list(sorted(cases)),
-      'caseTags': {tag: sorted(cases) for tag, cases in case_tags.items()}
+      'caseTags': {tag: sorted(cases) for tag, cases in list(case_tags.items())}
   }
 
   key = namespaced_stored_object.NamespaceKey(

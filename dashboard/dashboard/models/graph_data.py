@@ -55,6 +55,9 @@ IMPORTANT: If you add new kinds to this file, you must also add them to the
 Daily Backup url in cron.yaml in order for them to be properly backed up.
 See: https://developers.google.com/appengine/articles/scheduled_backups
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import logging
 

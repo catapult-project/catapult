@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import logging
 
 from google.appengine.ext import ndb
@@ -90,7 +94,7 @@ class ReportQuery(object):
 
   def _IgnoreStaleData(self, tri, table_row):
     # Ignore data from test cases that were removed.
-    for rev, data in table_row['data'].iteritems():
+    for rev, data in table_row['data'].items():
       new_data = []
       for datum in data:
         max_rev_key = (
@@ -101,11 +105,11 @@ class ReportQuery(object):
 
   def _IgnoreIncomparableData(self, table_row):
     # Ignore data from test cases that are not present for every rev.
-    for rev, data in table_row['data'].iteritems():
+    for rev, data in table_row['data'].items():
       new_data = []
       for datum in data:
         all_revs = True
-        for other_data in table_row['data'].itervalues():
+        for other_data in table_row['data'].values():
           any_desc = False
           for other_datum in other_data:
             if other_datum['descriptor'] == datum['descriptor']:
@@ -133,7 +137,7 @@ class ReportQuery(object):
         break
 
   def _IgnoreDataWithWrongUnits(self, table_row):
-    for rev, data in table_row['data'].iteritems():
+    for rev, data in table_row['data'].items():
       new_data = []
       for datum in data:
         if datum['units'] == table_row['units']:
@@ -143,7 +147,7 @@ class ReportQuery(object):
       table_row['data'][rev] = new_data
 
   def _MergeData(self, table_row):
-    for rev, data in table_row['data'].iteritems():
+    for rev, data in table_row['data'].items():
       statistics = histogram_module.RunningStatistics()
       for datum in data:
         statistics = statistics.Merge(datum['statistics'])

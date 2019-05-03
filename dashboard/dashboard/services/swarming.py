@@ -9,6 +9,9 @@ a test run.
 
 API explorer: https://goo.gl/uxPUZo
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 from dashboard.services import request
 
@@ -66,7 +69,7 @@ class Bots(object):
     """Provides list of known bots. Deleted bots will not be listed."""
     if dimensions:
       dimensions = tuple(':'.join(dimension)
-                         for dimension in dimensions.iteritems())
+                         for dimension in dimensions.items())
 
     url = '%s/%s/bots/list' % (self._server, _API_PATH)
     return request.RequestJson(

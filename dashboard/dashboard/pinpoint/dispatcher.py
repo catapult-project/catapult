@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """Dispatches requests to request handler classes."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import webapp2
 

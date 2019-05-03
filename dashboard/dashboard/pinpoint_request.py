@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 """URL endpoint containing server-side functionality for pinpoint jobs."""
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import json
 
@@ -20,8 +23,8 @@ from dashboard.services import crrev_service
 from dashboard.services import pinpoint_service
 
 _NON_CHROME_TARGETS = ['v8']
-# TODO(simonhatch): Find a more official way to lookup isolate targets for suites.
-# crbug.com/950165
+# TODO(simonhatch): Find a more official way to lookup isolate targets for
+# suites; crbug.com/950165
 _ISOLATE_TARGETS = [
     'angle_perftests', 'base_perftests', 'cc_perftests', 'gpu_perftests',
     'load_library_perf_tests', 'media_perftests', 'net_perftests',

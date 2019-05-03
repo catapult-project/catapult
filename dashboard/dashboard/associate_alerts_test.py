@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import unittest
 
 import mock
@@ -43,10 +47,10 @@ class AssociateAlertsTest(testing_common.TestCase):
             'mean_frame_time': {},
         }
     })
-    return map(utils.TestKey, [
+    return list(map(utils.TestKey, [
         'ChromiumGPU/linux-release/scrolling-benchmark/first_paint',
         'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time',
-    ])
+    ]))
 
   def _AddAnomalies(self):
     """Adds sample Anomaly data and returns a dict of revision to key."""

@@ -13,6 +13,9 @@ represent a real change in the underlying data source.
 
 See: http://en.wikipedia.org/wiki/Step_detection
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import collections
 

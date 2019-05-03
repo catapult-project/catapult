@@ -13,6 +13,9 @@ are used to label this mini-chart with dates.
 This list is cached, since querying all Row entities for a given test takes a
 long time. This module also provides a function for updating the cache.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import bisect
 import json
@@ -118,7 +121,7 @@ def _UpdateCache(test_key):
       graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
 
   # Using a large batch_size speeds up queries with > 1000 Rows.
-  rows = map(_MakeTriplet, query.iter(batch_size=1000))
+  rows = list(map(_MakeTriplet, query.iter(batch_size=1000)))
   # Note: Unit tests do not call datastore_hooks with the above query, but
   # it is called in production and with more recent SDK.
   datastore_hooks.CancelSinglePrivilegedRequest()
@@ -156,7 +159,7 @@ def AddRowsToCacheAsync(row_entities):
     test_key_to_futures[test_key] = namespaced_stored_object.GetAsync(
         _CACHE_KEY % test_path)
 
-  yield test_key_to_futures.values()
+  yield list(test_key_to_futures.values())
 
   test_key_to_rows = {}
   for row in row_entities:

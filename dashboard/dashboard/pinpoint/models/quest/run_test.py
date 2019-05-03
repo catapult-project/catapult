@@ -7,6 +7,9 @@
 This is the only Quest/Execution where the Execution has a reference back to
 modify the Quest.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
 
 import collections
 import json
@@ -71,12 +74,11 @@ _VPYTHON_PARAMS = {
 }
 
 
-class RunTestError(Exception):
-
+class RunTestError(execution_module.InformationalError):
   pass
 
 
-class SwarmingExpiredError(StandardError):
+class SwarmingExpiredError(execution_module.FatalError):
   """Raised when the Swarming task expires before running.
 
   This error is fatal, and stops the entire Job. If this error happens, the
@@ -366,4 +368,4 @@ def _ParseException(log):
       return line
 
     # Skip the line containing the code at the stack frame location.
-    log_iterator.next()
+    next(log_iterator)
