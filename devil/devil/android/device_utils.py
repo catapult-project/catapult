@@ -1171,11 +1171,16 @@ class DeviceUtils(object):
     def handle_large_output(cmd, large_output_mode):
       if large_output_mode:
         with device_temp_file.DeviceTempFile(self.adb) as large_output_file:
-          cmd = '( %s )>%s 2>&1' % (cmd, large_output_file.name)
+          large_output_cmd = '( %s )>%s 2>&1' % (cmd, large_output_file.name)
           logger.debug('Large output mode enabled. Will write output to '
                        'device and read results from file.')
-          handle_large_command(cmd)
-          return self.ReadFile(large_output_file.name, force_pull=True)
+          try:
+            handle_large_command(large_output_cmd)
+            return self.ReadFile(large_output_file.name, force_pull=True)
+          except device_errors.AdbShellCommandFailedError as exc:
+            output = self.ReadFile(large_output_file.name, force_pull=True)
+            raise device_errors.AdbShellCommandFailedError(
+                cmd, output, exc.status, exc.device_serial)
       else:
         try:
           return handle_large_command(cmd)
