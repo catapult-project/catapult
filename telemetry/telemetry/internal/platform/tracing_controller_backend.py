@@ -151,12 +151,17 @@ class TracingControllerBackend(object):
     else:
       trace_builder = self._current_state.builder
 
+    # The _current_state.timeout records the timeout value that was used on the
+    # call to StartTracing. In practice, however, FlushTracing takes a bit
+    # longer and using the same timeout lead to flakes (crbug.com/954229). Thus
+    # we expand the value a bit here.
+    timeout = int(self._current_state.timeout * 1.5)
+
     for agent in self._active_agents_instances:
       try:
         if agent.SupportsFlushingAgentTracing():
           agent.FlushAgentTracing(self._current_state.config,
-                                  self._current_state.timeout,
-                                  trace_builder)
+                                  timeout, trace_builder)
       except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
