@@ -192,7 +192,7 @@ def LoadTestCasesToBeRun(
 
 
 def _CreateTestArgParsers():
-  parser = typ.ArgumentParser(discovery=False, reporting=True, running=True)
+  parser = typ.ArgumentParser(discovery=True, reporting=True, running=True)
   parser.add_argument('test', type=str, help='Name of the test suite to run')
 
   parser.add_argument(
@@ -305,6 +305,7 @@ def RunTests(args):
   typ_runner.args.write_trace_to = options.write_trace_to
   typ_runner.args.list_only = options.list_only
   typ_runner.args.skip = options.skip
+  typ_runner.args.all = options.all
   typ_runner.classifier = _GetClassifier(typ_runner)
   typ_runner.args.retry_only_retry_on_failure_tests = (
       options.retry_only_retry_on_failure_tests)

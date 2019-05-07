@@ -153,13 +153,13 @@ class BrowserTestRunnerTest(unittest.TestCase):
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testShortenSkipGlobUsingTestNamePrefixCommandLineArg(self):
     self._RunTest(
-        test_filter='', expected_failures=[], expected_successes=[],
-        expected_skips=['a/b/fail-test.html'],
+        test_filter='', expected_failures=[],
+        expected_successes=['a/b/fail-test.html'], expected_skips=[],
         test_name='ImplementsExpectationsFilesFunction',
         extra_args=[
             '-x=foo', '--test-name-prefix='
             'browser_tests.browser_test.ImplementsExpectationsFilesFunction.',
-            '--skip=a/b/fail-test.html'])
+            '--skip=a/b/fail-test.html', '--all'])
 
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testShortenTestFilterGlobsUsingTestNamePrefixCommandLineArg(self):
