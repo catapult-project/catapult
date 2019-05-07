@@ -106,7 +106,8 @@ class TaggedTestListParser(object):
     """
 
     TAG_TOKEN = '# tags: ['
-    _MATCH_STRING = r'^(?:(crbug.com/\d+) )?'  # The bug field (optional).
+    # The bug field (optional), including optional subproject.
+    _MATCH_STRING = r'^(?:(crbug.com/(?:[^/]*/)?\d+) )?'
     _MATCH_STRING += r'(?:\[ (.+) \] )?'  # The label field (optional).
     _MATCH_STRING += r'(\S+) '  # The test path field.
     _MATCH_STRING += r'\[ ([^\[.]+) \]'  # The expectation field.
