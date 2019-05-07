@@ -34,6 +34,7 @@ from py_utils import tempfile_ext
 logger = logging.getLogger(__name__)
 
 _SYSTEM_PATH_RE = re.compile(r'^\s*\/system\/')
+_WEBVIEW_INSTALL_TIMEOUT = 300
 
 @contextlib.contextmanager
 def UseWebViewProvider(device, apk, expected_package=''):
@@ -82,7 +83,11 @@ def UseWebViewProvider(device, apk, expected_package=''):
             str(non_system_paths))
       elif system_paths:
         # app is system app, use ReplaceSystemApp to install
-        with system_app.ReplaceSystemApp(device, package_name, apk):
+        with system_app.ReplaceSystemApp(
+            device,
+            package_name,
+            apk,
+            install_timeout=_WEBVIEW_INSTALL_TIMEOUT):
           _SetWebViewProvider(device, package_name)
           yield
       else:
@@ -140,7 +145,8 @@ def _UninstallNonSystemApp(device, package_name):
         yield
       finally:
         for host_path in reversed(host_paths):
-          device.Install(host_path, reinstall=True)
+          device.Install(host_path, reinstall=True,
+                         timeout=_WEBVIEW_INSTALL_TIMEOUT)
   else:
     yield
 
@@ -149,7 +155,7 @@ def _UninstallNonSystemApp(device, package_name):
 def _InstallApp(device, apk):
   """ Make apk installed while in scope. """
   package_name = apk_helper.GetPackageName(apk)
-  device.Install(apk, reinstall=True)
+  device.Install(apk, reinstall=True, timeout=_WEBVIEW_INSTALL_TIMEOUT)
   try:
     yield
   finally:

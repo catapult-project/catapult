@@ -2756,6 +2756,16 @@ class DeviceUtilsGetWebViewUpdateServiceDumpTest(DeviceUtilsTest):
       with self.assertCalls():
         self.device.GetWebViewUpdateServiceDump()
 
+  def testGetWebViewUpdateServiceDump_noPackage(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.OREO):
+      with self.assertCall(self.call.adb.Shell('dumpsys webviewupdate'),
+                           'Fallback logic enabled: true\n'
+                           'Current WebView package is null'):
+        update = self.device.GetWebViewUpdateServiceDump()
+        self.assertEqual(True, update['FallbackLogicEnabled'])
+        self.assertEqual(None, update['CurrentWebViewPackage'])
+
 
 class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
 

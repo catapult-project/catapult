@@ -60,7 +60,8 @@ def RemoveSystemApps(device, package_names):
 
 
 @contextlib.contextmanager
-def ReplaceSystemApp(device, package_name, replacement_apk):
+def ReplaceSystemApp(device, package_name, replacement_apk,
+                     install_timeout=None):
   """A context manager that replaces the given system app while in scope.
 
   Args:
@@ -71,7 +72,7 @@ def ReplaceSystemApp(device, package_name, replacement_apk):
   """
   storage_dir = device_temp_file.NamedDeviceTemporaryDirectory(device.adb)
   relocate_app = _RelocateApp(device, package_name, storage_dir.name)
-  install_app = _TemporarilyInstallApp(device, replacement_apk)
+  install_app = _TemporarilyInstallApp(device, replacement_apk, install_timeout)
   with storage_dir, relocate_app, install_app:
     yield
 
@@ -178,9 +179,13 @@ def _RelocateApp(device, package_name, relocate_to):
 
 
 @contextlib.contextmanager
-def _TemporarilyInstallApp(device, apk):
+def _TemporarilyInstallApp(device, apk, install_timeout=None):
   """A context manager that installs an app while in scope."""
-  device.Install(apk, reinstall=True)
+  if install_timeout is None:
+    device.Install(apk, reinstall=True)
+  else:
+    device.Install(apk, reinstall=True, timeout=install_timeout)
+
   try:
     yield
   finally:
