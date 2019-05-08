@@ -310,7 +310,8 @@ class AdbWrapper(object):
       timeout: Timeout in seconds.
       retries: Number of retries.
       check_error: Check that the command doesn't return an error message. This
-        does NOT check the exit status of shell commands.
+        does check the error status of adb but DOES NOT check the exit status
+        of shell commands.
 
     Returns:
       The output of the command.
@@ -319,13 +320,17 @@ class AdbWrapper(object):
                            device_serial=self._device_serial,
                            check_error=check_error)
 
-  def _IterRunDeviceAdbCmd(self, args, iter_timeout, timeout):
+  def _IterRunDeviceAdbCmd(self, args, iter_timeout, timeout,
+                           check_error=True):
     """Runs an adb command and returns an iterator over its output lines.
 
     Args:
       args: A list of arguments to adb.
       iter_timeout: Timeout for each iteration in seconds.
       timeout: Timeout for the entire command in seconds.
+      check_error: Check that the command succeeded. This does check the
+        error status of the adb command but DOES NOT check the exit status
+        of shell commands.
 
     Yields:
       The output of the command line by line.
@@ -334,7 +339,8 @@ class AdbWrapper(object):
         self._BuildAdbCmd(args, self._device_serial),
         iter_timeout=iter_timeout,
         timeout=timeout,
-        env=self._ADB_ENV)
+        env=self._ADB_ENV,
+        check_status=check_error)
 
   def __eq__(self, other):
     """Consider instances equal if they refer to the same device.
@@ -618,7 +624,7 @@ class AdbWrapper(object):
 
   def Logcat(self, clear=False, dump=False, filter_specs=None,
              logcat_format=None, ring_buffer=None, iter_timeout=None,
-             timeout=None, retries=DEFAULT_RETRIES):
+             check_error=True, timeout=None, retries=DEFAULT_RETRIES):
     """Get an iterable over the logcat output.
 
     Args:
@@ -634,6 +640,7 @@ class AdbWrapper(object):
       iter_timeout: If set and neither clear nor dump is set, the number of
         seconds to wait between iterations. If no line is found before the
         given number of seconds elapses, the iterable will yield None.
+      check_error: Whether to check the exit status of the logcat command.
       timeout: (optional) If set, timeout per try in seconds. If clear or dump
         is set, defaults to DEFAULT_TIMEOUT.
       retries: (optional) If clear or dump is set, the number of retries to
@@ -659,10 +666,13 @@ class AdbWrapper(object):
       cmd.extend(filter_specs)
 
     if use_iter:
-      return self._IterRunDeviceAdbCmd(cmd, iter_timeout, timeout)
+      return self._IterRunDeviceAdbCmd(
+          cmd, iter_timeout, timeout, check_error=check_error)
     else:
       timeout = timeout if timeout is not None else DEFAULT_TIMEOUT
-      return self._RunDeviceAdbCmd(cmd, timeout, retries).splitlines()
+      output = self._RunDeviceAdbCmd(
+          cmd, timeout, retries, check_error=check_error)
+      return output.splitlines()
 
   def Forward(self, local, remote, allow_rebind=False,
               timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):

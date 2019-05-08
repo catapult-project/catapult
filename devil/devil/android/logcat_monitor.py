@@ -31,7 +31,7 @@ class LogcatMonitor(object):
       r'(?P<log_level>%s) +(?P<component>%s) *: +(?P<message>%s)$')
 
   def __init__(self, adb, clear=True, filter_specs=None, output_file=None,
-               transform_func=None):
+               transform_func=None, check_error=True):
     """Create a LogcatMonitor instance.
 
     Args:
@@ -41,11 +41,14 @@ class LogcatMonitor(object):
       output_file: File path to save recorded logcat.
       transform_func: An optional unary callable that takes and returns
         a list of lines, possibly transforming them in the process.
+      check_error: Check for and raise an exception on nonzero exit codes
+        from the underlying logcat command.
     """
     if isinstance(adb, adb_wrapper.AdbWrapper):
       self._adb = adb
     else:
       raise ValueError('Unsupported type passed for argument "device"')
+    self._check_error = check_error
     self._clear = clear
     self._filter_specs = filter_specs
     self._output_file = output_file
@@ -168,9 +171,11 @@ class LogcatMonitor(object):
     def record_to_file():
       # Write the log with line buffering so the consumer sees each individual
       # line.
-      for data in self._adb.Logcat(filter_specs=self._filter_specs,
-                                   logcat_format='threadtime',
-                                   iter_timeout=self._RECORD_ITER_TIMEOUT):
+      for data in self._adb.Logcat(
+          filter_specs=self._filter_specs,
+          logcat_format='threadtime',
+          iter_timeout=self._RECORD_ITER_TIMEOUT,
+          check_error=self._check_error):
         if self._stop_recording_event.isSet():
           return
 
