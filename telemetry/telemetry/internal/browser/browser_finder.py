@@ -50,11 +50,10 @@ def FindBrowser(options):
     A BrowserFinderOptions object.
 
   Returns:
-    A PossibleBrowser object. None if there are no available browsers.
+    A PossibleBrowser object. None if browser does not exist in DUT.
 
   Raises:
-    BrowserFinderException: No browser satisfies given options,
-      or options improperly set, or an error occurred.
+    BrowserFinderException: Options improperly set, or an error occurred.
   """
   if options.__class__.__name__ == '_FakeBrowserFinderOptions':
     return options.fake_possible_browser
@@ -123,9 +122,8 @@ def FindBrowser(options):
         if b.browser_type == options.browser_type and
         b.SupportsOptions(options.browser_options)]
     if not matching_browsers:
-      raise browser_finder_exceptions.BrowserFinderException(
-          'Cannot find browser of type %s' % options.browser_type)
-
+      logging.warning('Cannot find any matched browser')
+      return None
     if len(matching_browsers) > 1:
       logging.warning('Multiple browsers of the same type found: %r',
                       matching_browsers)

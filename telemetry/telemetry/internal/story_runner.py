@@ -16,6 +16,7 @@ from py_utils import memory_debug  # pylint: disable=import-error
 from py_utils import logging_util  # pylint: disable=import-error
 
 from telemetry.core import exceptions
+from telemetry.core import platform as platform_module
 from telemetry.internal.actions import page_action
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
@@ -176,9 +177,13 @@ def _GetPossibleBrowser(finder_options):
   possible_browser = browser_finder.FindBrowser(finder_options)
   if not possible_browser:
     raise browser_finder_exceptions.BrowserFinderException(
-        'Cannot find browser of type %s.' %
-        finder_options.browser_options.browser_type)
+        'Cannot find browser of type %s. \n\nAvailable browsers:\n%s\n' % (
+            finder_options.browser_options.browser_type,
+            '\n'.join(browser_finder.GetAllAvailableBrowserTypes(
+                finder_options))))
+
   finder_options.browser_options.browser_type = possible_browser.browser_type
+
   return possible_browser
 
 
@@ -354,14 +359,29 @@ def RunBenchmark(benchmark, finder_options):
   benchmark.CustomizeOptions(finder_options)
 
   benchmark_metadata = benchmark.GetMetadata()
-  possible_browser = _GetPossibleBrowser(finder_options)
+  possible_browser = browser_finder.FindBrowser(finder_options)
+  if not possible_browser:
+    logging.error('No browser of type "%s" found for benchmark "%s"' % (
+        finder_options.browser_options.browser_type, benchmark.Name()))
+    return 0
   expectations = benchmark.expectations
+
+  target_platform = None
+  if possible_browser:
+    target_platform = possible_browser.platform
+  else:
+    target_platform = platform_module.GetHostPlatform()
 
   if not hasattr(finder_options, 'print_only') or not finder_options.print_only:
     can_run_on_platform = benchmark._CanRunOnPlatform(
-        possible_browser.platform, finder_options)
-    expectations_disabled = expectations.IsBenchmarkDisabled(
-        possible_browser.platform, finder_options)
+        target_platform, finder_options)
+
+    expectations_disabled = False
+    # For now, test expectations are only applicable in the cases where the
+    # testing target involves a browser.
+    if possible_browser:
+      expectations_disabled = expectations.IsBenchmarkDisabled(
+          possible_browser.platform, finder_options)
 
     if expectations_disabled or not can_run_on_platform:
       print '%s is disabled on the selected browser' % benchmark.Name()

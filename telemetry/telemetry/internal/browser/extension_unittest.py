@@ -11,7 +11,6 @@ import unittest
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
-from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import extension_to_load
 from telemetry.testing import options_for_unittests
 
@@ -28,9 +27,8 @@ class ExtensionTest(unittest.TestCase):
   @contextlib.contextmanager
   def CreateBrowser(self, extensions_to_load):
     self._options.browser_options.extensions_to_load = extensions_to_load
-    try:
-      browser_to_create = browser_finder.FindBrowser(self._options)
-    except browser_finder_exceptions.BrowserFinderException:
+    browser_to_create = browser_finder.FindBrowser(self._options)
+    if not browser_to_create:
       self.skipTest("Did not find a browser that supports extensions")
 
     platform = browser_to_create.platform
