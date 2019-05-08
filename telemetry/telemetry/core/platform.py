@@ -421,3 +421,12 @@ class Platform(object):
       temp: temperature target in degrees C.
     """
     return self._platform_backend.WaitForBatteryTemperature(temp)
+
+  def WaitForCpuTemperature(self, temp):
+    """Waits for the CPU temperature to be less than temp.
+
+    Args:
+      temp: A float containing the maximum temperature to allow
+      in degrees c.
+    """
+    return self._platform_backend.WaitForCpuTemperature(temp)

@@ -240,3 +240,6 @@ class PlatformBackend(object):
 
   def WaitForBatteryTemperature(self, temp):
     pass
+
+  def WaitForCpuTemperature(self, temp):
+    pass
