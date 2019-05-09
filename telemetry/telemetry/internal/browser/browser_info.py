@@ -38,29 +38,6 @@ class BrowserInfo(object):
       result = tab.EvaluateJavaScript(_CHECK_WEBGL_SUPPORTED_SCRIPT)
     return result
 
-  def HasFlingGestureSupport(self):
-    # Synthetic fling gestures weren't properly tracked by telemetry until
-    # Chromium branch number 2339 (see crrev.com/1003023002).
-    # TODO(jdduke): Resolve lack of branch number support for content_shell
-    # targets, see crbug.com/470273.
-    branch_num = (
-        self._browser._browser_backend.devtools_client.GetChromeBranchNumber())
-    return branch_num >= 2339
-
-  def HasDiagonalScrollingSupport(self):
-    # Diagonal scrolling was not supported in the ScrollAction until
-    # Chromium branch number 2332
-    branch_num = (
-        self._browser._browser_backend.devtools_client.GetChromeBranchNumber())
-    return branch_num >= 2332
-
-  def HasRepeatableSynthesizeScrollGesture(self):
-    # Repeatable SynthesizeScrollGesture scrolling was not supported until
-    # Chromium branch number 2480
-    branch_num = (
-        self._browser._browser_backend.devtools_client.GetChromeBranchNumber())
-    return branch_num >= 2480
-
   @property
   def browser_type(self):
     return self._browser.browser_type

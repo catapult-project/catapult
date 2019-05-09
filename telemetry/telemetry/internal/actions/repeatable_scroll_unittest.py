@@ -35,9 +35,6 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
   # Test flaky on chromeos: https://crbug.com/826527.
   @decorators.Disabled('android', 'chromeos')
   def testRepeatableScrollActionNoRepeats(self):
-    if not self._browser_info.HasRepeatableSynthesizeScrollGesture():
-      return
-
     expected_scroll = (self._window_height / 2) - 1
 
     i = repeatable_scroll.RepeatableScrollAction(y_scroll_distance_ratio=0.5)
@@ -57,9 +54,6 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
   # Flaky on chromeos: https://crbug.com/932104.
   @decorators.Disabled('android', 'chromeos')
   def testRepeatableScrollActionTwoRepeats(self):
-    if not self._browser_info.HasRepeatableSynthesizeScrollGesture():
-      return
-
     expected_scroll = ((self._window_height / 2) - 1) * 3
 
     i = repeatable_scroll.RepeatableScrollAction(
@@ -80,9 +74,8 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
   # TODO(ulan): enable for Android after catapult:#2475 is fixed.
   @decorators.Disabled('all')
   def testRepeatableScrollActionNoRepeatsZoomed(self):
-    if (not self._browser_info.HasRepeatableSynthesizeScrollGesture() or
-        not page_action.IsGestureSourceTypeSupported(self._tab, 'touch')):
-      return
+    if not page_action.IsGestureSourceTypeSupported(self._tab, 'touch'):
+      self.skipText('touch gestures not supported')
 
     self._tab.action_runner.PinchPage(scale_factor=0.1)
 

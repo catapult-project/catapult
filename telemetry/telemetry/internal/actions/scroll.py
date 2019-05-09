@@ -46,13 +46,6 @@ class ScrollAction(page_action.ElementPageAction):
           'function() { return 0 + {{ @expr }}; }', expr=distance_expr)
 
   def WillRunAction(self, tab):
-    if self._direction in ('downleft', 'downright', 'upleft', 'upright'):
-      # Diagonal scrolling support was added in Chrome branch number 2332.
-      branch_num = (
-          tab.browser._browser_backend.devtools_client.GetChromeBranchNumber())
-      if branch_num < 2332:
-        raise ValueError('Diagonal scrolling requires Chrome branch number'
-                         ' 2332 or later. Found branch number %d' % branch_num)
     utils.InjectJavaScript(tab, 'gesture_common.js')
     utils.InjectJavaScript(tab, 'scroll.js')
 

@@ -197,13 +197,6 @@ class ScrollActionTest(tab_test_case.TabTestCase):
   # https://github.com/catapult-project/catapult/issues/3099
   @decorators.Disabled('android')
   def testDiagonalScrollAction(self):
-    # Diagonal scrolling was not supported in the ScrollAction until Chrome
-    # branch number 2332
-    branch_num = self._tab.browser._browser_backend.devtools_client \
-        .GetChromeBranchNumber()
-    if branch_num < 2332:
-      return
-
     self._MakePageVerticallyScrollable()
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
