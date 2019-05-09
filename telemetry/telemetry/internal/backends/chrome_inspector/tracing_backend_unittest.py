@@ -121,8 +121,24 @@ class TracingBackendUnittest(unittest.TestCase):
         'Tracing is already started',
         backend.StartTracing, config.chrome_trace_config)
 
+  def testStopTracingFailure(self):
+    self._inspector_socket.AddResponseHandler('Tracing.start', lambda req: {})
+    self._inspector_socket.AddResponseHandler(
+        'Tracing.end',
+        lambda req: {'error': {'message': 'Tracing had an error'}})
+    self._inspector_socket.AddResponseHandler(
+        'Tracing.hasCompleted', lambda req: {})
+    backend = tracing_backend.TracingBackend(self._inspector_socket)
+    config = tracing_config.TracingConfig()
+    backend.StartTracing(config._chrome_trace_config)
+    self.assertRaisesRegexp(
+        tracing_backend.TracingUnexpectedResponseException,
+        'Tracing had an error',
+        backend.StopTracing)
+
   def testStartTracingWithoutCollection(self):
     self._inspector_socket.AddResponseHandler('Tracing.start', lambda req: {})
+    self._inspector_socket.AddResponseHandler('Tracing.end', lambda req: {})
     self._inspector_socket.AddEvent(
         'Tracing.dataCollected', {'value': [{'ph': 'B'}]}, 1)
     self._inspector_socket.AddEvent(

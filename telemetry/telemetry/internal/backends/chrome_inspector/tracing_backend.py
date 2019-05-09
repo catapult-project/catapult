@@ -177,7 +177,11 @@ class TracingBackend(object):
         self._inspector_websocket.SendAndIgnoreResponse(req)
 
       req = {'method': 'Tracing.end'}
-      self._inspector_websocket.SendAndIgnoreResponse(req)
+      response = self._inspector_websocket.SyncRequest(req, timeout=2)
+      if 'error' in response:
+        raise TracingUnexpectedResponseException(
+            'Inspector returned unexpected response for '
+            'Tracing.end:\n' + json.dumps(response, indent=2))
 
     self._is_tracing_running = False
     self._start_issued = False
