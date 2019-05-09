@@ -130,9 +130,14 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
   def SupportsExplicitClockSync(self):
     return True
 
-  def _RecordClockSyncMarkerDevTools(
-      self, sync_id, record_controller_clock_sync_marker_callback,
-      devtools_clients):
+  def RecordClockSyncMarker(self, sync_id,
+                            record_controller_clock_sync_marker_callback):
+    devtools_clients = (chrome_tracing_devtools_manager
+                        .GetActiveDevToolsClients(self._platform_backend))
+    if not devtools_clients:
+      logging.info('No devtools clients for issuing clock sync.')
+      return False
+
     has_clock_synced = False
     for client in devtools_clients:
       try:
@@ -148,48 +153,6 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
       raise ChromeClockSyncError(
           'Failed to issue clock sync to devtools client')
     record_controller_clock_sync_marker_callback(sync_id, timestamp)
-
-  def _RecordClockSyncMarkerAsyncEvent(
-      self, sync_id, record_controller_clock_sync_marker_callback):
-    has_clock_synced = False
-    for backend in self._IterFirstTabBackends():
-      try:
-        timestamp = trace_time.Now()
-        backend.AddTimelineMarker('ClockSyncEvent.%s' % sync_id)
-        has_clock_synced = True
-        break
-      except Exception: # pylint: disable=broad-except
-        logging.exception('Failed to record clock sync marker with sync_id=%r '
-                          'via inspector backend %r:', sync_id, backend)
-    if not has_clock_synced:
-      raise ChromeClockSyncError(
-          'Failed to issue clock sync to devtools client')
-    record_controller_clock_sync_marker_callback(sync_id, timestamp)
-
-  def RecordClockSyncMarker(self, sync_id,
-                            record_controller_clock_sync_marker_callback):
-    devtools_clients = (chrome_tracing_devtools_manager
-                        .GetActiveDevToolsClients(self._platform_backend))
-    if not devtools_clients:
-      logging.info('No devtools clients for issuing clock sync.')
-      return False
-    version = None
-    for client in devtools_clients:
-      version = client.GetChromeBranchNumber()
-      break
-    logging.info('Chrome version: %s', version)
-    # Note, we aren't sure whether 2744 is the correct cut-off point which
-    # Chrome will support clock sync marker, however we verified that 2743 does
-    # not support clock sync (catapult/issues/2804) hence we use it here.
-    # On the next update of Chrome ref build, if testTBM2ForSmoke still fails,
-    # the cut-off branch number will need to be bumped up again.
-    if version and int(version) > 2743:
-      self._RecordClockSyncMarkerDevTools(
-          sync_id, record_controller_clock_sync_marker_callback,
-          devtools_clients)
-    else:  # TODO(rnephew): Remove once chrome stable is past branch 2743.
-      self._RecordClockSyncMarkerAsyncEvent(
-          sync_id, record_controller_clock_sync_marker_callback)
     return True
 
   def StopAgentTracing(self):
