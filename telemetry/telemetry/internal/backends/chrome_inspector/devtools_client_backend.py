@@ -371,7 +371,7 @@ class _DevToolsClientBackend(object):
     self._CreateTracingBackendIfNeeded()
     return self._tracing_backend.IsTracingSupported()
 
-  def StartChromeTracing(self, trace_config, timeout=10):
+  def StartChromeTracing(self, trace_config, timeout=20):
     """
     Args:
         trace_config: An tracing_config.TracingConfig instance.

@@ -81,7 +81,7 @@ class FakeDevtoolsClient(object):
   def IsAlive(self):
     return self.is_alive
 
-  def StartChromeTracing(self, trace_options, timeout=10):
+  def StartChromeTracing(self, trace_options, timeout=20):
     del trace_options, timeout  # unused
     self.is_tracing_running = True
 

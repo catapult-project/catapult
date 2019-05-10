@@ -117,7 +117,7 @@ class TracingBackend(object):
   def is_tracing_running(self):
     return self._is_tracing_running
 
-  def StartTracing(self, chrome_trace_config, timeout=10):
+  def StartTracing(self, chrome_trace_config, timeout=20):
     """When first called, starts tracing, and returns True.
 
     If called during tracing, tracing is unchanged, and it returns False.
