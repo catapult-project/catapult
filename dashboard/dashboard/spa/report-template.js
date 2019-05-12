@@ -15,13 +15,31 @@ import {TOGGLE, UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
-import {
-  buildProperties,
-  buildState,
-} from './utils.js';
-
 export default class ReportTemplate extends ElementBase {
   static get is() { return 'report-template'; }
+
+  static get properties() {
+    return {
+      statePath: String,
+      id: Number,
+      name: String,
+      owners: Array,
+      rows: Array,
+      statistic: Object,
+      url: String,
+    };
+  }
+
+  static buildState(options = {}) {
+    return {
+      id: options.id || 0,
+      name: options.name || '',
+      owners: options.owners || [],
+      rows: options.rows || [],
+      statistic: options.statistic,
+      url: options.url || '',
+    };
+  }
 
   static get template() {
     return html`
@@ -237,22 +255,6 @@ export default class ReportTemplate extends ElementBase {
     }));
   }
 }
-
-ReportTemplate.State = {
-  id: options => options.id || 0,
-  name: options => options.name || '',
-  owners: options => options.owners || [],
-  rows: options => options.rows || [],
-  statistic: options => options.statistic,
-  url: options => options.url || '',
-};
-
-ReportTemplate.buildState = options => buildState(
-    ReportTemplate.State, options);
-
-ReportTemplate.properties = {
-  ...buildProperties('state', ReportTemplate.State),
-};
 
 ReportTemplate.actions = {
   removeRow: (statePath, rowIndex) =>

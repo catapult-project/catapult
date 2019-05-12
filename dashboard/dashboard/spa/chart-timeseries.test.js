@@ -287,31 +287,31 @@ suite('chart-timeseries', function() {
     await afterRender();
 
     assert.strictEqual(2, ct.lines[0].strokeWidth);
-    assert.isTrue(ct.state.tooltip.isVisible);
-    assert.strictEqual(ct.lines[0].color, ct.state.tooltip.color);
-    assert.strictEqual('1.2%', ct.state.tooltip.left);
-    assert.strictEqual('100%', ct.state.tooltip.top);
-    assert.lengthOf(ct.state.tooltip.rows, 8);
-    assert.strictEqual('Click for details', ct.state.tooltip.rows[0].name);
-    assert.strictEqual(2, ct.state.tooltip.rows[0].colspan);
-    assert.strictEqual('value', ct.state.tooltip.rows[1].name);
-    assert.strictEqual('1.000 ms', ct.state.tooltip.rows[1].value);
-    assert.strictEqual('revision', ct.state.tooltip.rows[2].name);
-    assert.strictEqual(10, ct.state.tooltip.rows[2].value);
-    assert.strictEqual('Upload timestamp', ct.state.tooltip.rows[3].name);
-    assert.strictEqual('build type', ct.state.tooltip.rows[4].name);
-    assert.strictEqual('test', ct.state.tooltip.rows[4].value);
-    assert.strictEqual('test suite', ct.state.tooltip.rows[5].name);
-    assert.strictEqual('suite', ct.state.tooltip.rows[5].value);
-    assert.strictEqual('measurement', ct.state.tooltip.rows[6].name);
-    assert.strictEqual('ms', ct.state.tooltip.rows[6].value);
-    assert.strictEqual('bot', ct.state.tooltip.rows[7].name);
-    assert.strictEqual('master:bot', ct.state.tooltip.rows[7].value);
+    assert.isTrue(ct.tooltip.isVisible);
+    assert.strictEqual(ct.lines[0].color, ct.tooltip.color);
+    assert.strictEqual('1.2%', ct.tooltip.left);
+    assert.strictEqual('100%', ct.tooltip.top);
+    assert.lengthOf(ct.tooltip.rows, 8);
+    assert.strictEqual('Click for details', ct.tooltip.rows[0].name);
+    assert.strictEqual(2, ct.tooltip.rows[0].colspan);
+    assert.strictEqual('value', ct.tooltip.rows[1].name);
+    assert.strictEqual('1.000 ms', ct.tooltip.rows[1].value);
+    assert.strictEqual('revision', ct.tooltip.rows[2].name);
+    assert.strictEqual(10, ct.tooltip.rows[2].value);
+    assert.strictEqual('Upload timestamp', ct.tooltip.rows[3].name);
+    assert.strictEqual('build type', ct.tooltip.rows[4].name);
+    assert.strictEqual('test', ct.tooltip.rows[4].value);
+    assert.strictEqual('test suite', ct.tooltip.rows[5].name);
+    assert.strictEqual('suite', ct.tooltip.rows[5].value);
+    assert.strictEqual('measurement', ct.tooltip.rows[6].name);
+    assert.strictEqual('ms', ct.tooltip.rows[6].value);
+    assert.strictEqual('bot', ct.tooltip.rows[7].name);
+    assert.strictEqual('master:bot', ct.tooltip.rows[7].value);
 
     cb.dispatchEvent(new CustomEvent('mouse-leave-main'));
     await afterRender();
     assert.strictEqual(1, ct.lines[0].strokeWidth);
-    assert.isUndefined(ct.state.tooltip);
+    assert.isUndefined(ct.tooltip);
   });
 
   test('mouseYTicks', async function() {
@@ -341,7 +341,7 @@ suite('chart-timeseries', function() {
     }));
     await afterRender();
 
-    assert.lengthOf(ct.state.yAxis.ticks, 0);
+    assert.lengthOf(ct.yAxis.ticks, 0);
 
     const cb = ct.shadowRoot.querySelector('chart-base');
     cb.dispatchEvent(new CustomEvent('get-tooltip', {
@@ -353,11 +353,11 @@ suite('chart-timeseries', function() {
     }));
 
     await afterRender();
-    assert.lengthOf(ct.state.yAxis.ticks, 5);
+    assert.lengthOf(ct.yAxis.ticks, 5);
 
     cb.dispatchEvent(new CustomEvent('mouse-leave-main'));
     await afterRender();
-    assert.lengthOf(ct.state.yAxis.ticks, 0);
+    assert.lengthOf(ct.yAxis.ticks, 0);
   });
 
   test('lineDescriptorEqual', async function() {

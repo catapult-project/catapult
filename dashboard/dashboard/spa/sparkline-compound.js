@@ -15,17 +15,37 @@ import OptionGroup from './option-group.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
 import {MODE} from './layout-timeseries.js';
 import {UPDATE} from './simple-redux.js';
+import {breakWords} from './utils.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
-import {
-  breakWords,
-  buildProperties,
-  buildState,
-} from './utils.js';
-
 export default class SparklineCompound extends ElementBase {
   static get is() { return 'sparkline-compound'; }
+
+  static get properties() {
+    return {
+      statePath: String,
+      lineDescriptors: Array,
+      relatedTabs: Array,
+      selectedRelatedTabName: String,
+      cursorRevision: Number,
+      cursorScalar: Object,
+      minRevision: Number,
+      maxRevision: Number,
+    };
+  }
+
+  static buildState(options = {}) {
+    return {
+      lineDescriptors: [],
+      relatedTabs: [],
+      selectedRelatedTabName: options.selectedRelatedTabName || '',
+      cursorRevision: 0,
+      cursorScalar: undefined,
+      minRevision: options.minRevision,
+      maxRevision: options.maxRevision,
+    };
+  }
 
   static get template() {
     const chartPath = html([
@@ -108,6 +128,33 @@ export default class SparklineCompound extends ElementBase {
     `;
   }
 
+  stateChanged(rootState) {
+    if (!this.statePath) return;
+
+    const oldCursorRevision = this.cursorRevision;
+    const oldCursorScalar = this.cursorScalar;
+    const oldMinRevision = this.minRevision;
+    const oldMaxRevision = this.maxRevision;
+
+    this.setProperties(get(rootState, this.statePath));
+
+    if (this.minRevision !== oldMinRevision ||
+        this.maxRevision !== oldMaxRevision) {
+      this.dispatch({
+        type: SparklineCompound.reducers.updateSparklineRevisions.name,
+        statePath: this.statePath,
+      });
+    }
+
+    if (this.cursorRevision !== oldCursorRevision ||
+        this.cursorScalar !== oldCursorScalar) {
+      this.dispatch({
+        type: SparklineCompound.reducers.setCursors.name,
+        statePath: this.statePath,
+      });
+    }
+  }
+
   async onRelatedTabClick_(event) {
     this.dispatch('selectRelatedTab', this.statePath, event.model.tab.name);
   }
@@ -123,40 +170,7 @@ export default class SparklineCompound extends ElementBase {
       detail: {options: event.model.sparkline.chartOptions},
     }));
   }
-
-  observeRevisions_() {
-    this.dispatch({
-      type: SparklineCompound.reducers.updateSparklineRevisions.name,
-      statePath: this.statePath,
-    });
-  }
-
-  observeCursor_(cursorRevision, cursorScalar) {
-    this.dispatch({
-      type: SparklineCompound.reducers.setCursors.name,
-      statePath: this.statePath,
-    });
-  }
 }
-
-SparklineCompound.State = {
-  lineDescriptors: options => [],
-  relatedTabs: options => [],
-  selectedRelatedTabName: options => options.selectedRelatedTabName || '',
-  cursorRevision: options => 0,
-  cursorScalar: options => undefined,
-  minRevision: options => options.minRevision,
-  maxRevision: options => options.maxRevision,
-};
-
-SparklineCompound.buildState = options => buildState(
-    SparklineCompound.State, options);
-SparklineCompound.properties = buildProperties(
-    'state', SparklineCompound.State);
-SparklineCompound.observers = [
-  'observeRevisions_(minRevision, maxRevision)',
-  'observeCursor_(cursorRevision, cursorScalar)',
-];
 
 SparklineCompound.actions = {
   selectRelatedTab: (statePath, selectedRelatedTabName) =>

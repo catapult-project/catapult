@@ -14,18 +14,70 @@ import MenuInput from './menu-input.js';
 import OptionGroup from './option-group.js';
 import TagFilter from './tag-filter.js';
 import TestSuitesRequest from './test-suites-request.js';
+import {BatchIterator} from './utils.js';
 import {TOGGLE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
-import {
-  BatchIterator,
-  buildProperties,
-  buildState,
-} from './utils.js';
-
 export default class TimeseriesDescriptor extends ElementBase {
   static get is() { return 'timeseries-descriptor'; }
+
+  static get properties() {
+    return {
+      statePath: String,
+      suite: Object,
+      measurement: Object,
+      bot: Object,
+      case: Object,
+    };
+  }
+
+  static buildState(options) {
+    if (!options) options = {};
+    const suite = options.suite || {};
+    suite.label = 'Suite';
+    suite.required = true;
+    if (!suite.options) suite.options = [];
+
+    const measurement = options.measurement || {};
+    measurement.label = 'Measurement';
+    measurement.required = true;
+    if (!measurement.options) measurement.options = [];
+
+    const bot = options.bot || {};
+    bot.label = 'Bot';
+    bot.required = true;
+    if (!bot.options) bot.options = [];
+
+    const cas = options.case || {};
+    cas.label = 'Case';
+    if (!cas.options) cas.options = [];
+    if (!cas.tags) cas.tags = {};
+    if (!cas.tags.options) cas.tags.options = [];
+
+    return {
+      suite: {
+        isAggregated: suite.isAggregated !== false,
+        canAggregate: suite.canAggregate !== false,
+        ...MenuInput.buildState(suite),
+      },
+      measurement: {
+        ...MemoryComponents.buildState(measurement),
+        ...MenuInput.buildState(measurement),
+      },
+      bot: {
+        isAggregated: bot.isAggregated !== false,
+        canAggregate: bot.canAggregate !== false,
+        ...MenuInput.buildState(bot),
+      },
+      case: {
+        isAggregated: cas.isAggregated !== false,
+        canAggregate: cas.canAggregate !== false,
+        ...MenuInput.buildState(cas),
+        ...TagFilter.buildState(cas.tags),
+      },
+    };
+  }
 
   static get template() {
     return html`
@@ -214,61 +266,6 @@ export default class TimeseriesDescriptor extends ElementBase {
   }
 }
 
-TimeseriesDescriptor.State = {
-  suite: options => {
-    const suite = (options || {}).suite || {};
-    suite.label = 'Suite';
-    suite.required = true;
-    if (!suite.options) suite.options = [];
-    return {
-      isAggregated: suite.isAggregated !== false,
-      canAggregate: suite.canAggregate !== false,
-      ...MenuInput.buildState(suite),
-    };
-  },
-  measurement: options => {
-    const measurement = (options || {}).measurement || {};
-    measurement.label = 'Measurement';
-    measurement.required = true;
-    if (!measurement.options) measurement.options = [];
-    return {
-      ...MemoryComponents.buildState(measurement),
-      ...MenuInput.buildState(measurement),
-    };
-  },
-  bot: options => {
-    const bot = (options || {}).bot || {};
-    bot.label = 'Bot';
-    bot.required = true;
-    if (!bot.options) bot.options = [];
-    return {
-      isAggregated: bot.isAggregated !== false,
-      canAggregate: bot.canAggregate !== false,
-      ...MenuInput.buildState(bot),
-    };
-  },
-  case: options => {
-    const cas = (options || {}).case || {};
-    cas.label = 'Case';
-    if (!cas.options) cas.options = [];
-    if (!cas.tags) cas.tags = {};
-    if (!cas.tags.options) cas.tags.options = [];
-    return {
-      isAggregated: cas.isAggregated !== false,
-      canAggregate: cas.canAggregate !== false,
-      ...MenuInput.buildState(cas),
-      ...TagFilter.buildState(cas.tags),
-    };
-  },
-};
-
-TimeseriesDescriptor.buildState = options => buildState(
-    TimeseriesDescriptor.State, options);
-
-TimeseriesDescriptor.properties = {
-  ...buildProperties('state', TimeseriesDescriptor.State),
-};
-
 TimeseriesDescriptor.actions = {
   ready: statePath => async(dispatch, getState) => {
     const suitesLoaded = TimeseriesDescriptor.actions.loadSuites(
@@ -360,10 +357,10 @@ TimeseriesDescriptor.actions = {
 TimeseriesDescriptor.reducers = {
   receiveTestSuites: (state, {suites}, rootState) => {
     if (!state) return state;
-    const suite = TimeseriesDescriptor.State.suite({suite: {
+    const suite = {
       ...state.suite,
-      options: suites,
-    }});
+      ...MenuInput.buildState({...state.suite, options: suites}),
+    };
     return {...state, suite};
   },
 

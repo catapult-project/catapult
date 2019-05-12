@@ -22,13 +22,69 @@ import {TOGGLE, UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
-import {
-  buildState,
-  buildProperties,
-} from './utils.js';
-
 export default class AlertsControls extends ElementBase {
   static get is() { return 'alerts-controls'; }
+
+  static get properties() {
+    return {
+      recentPerformanceBugs: Array,
+      areAlertGroupsPlaceholders: Boolean,
+
+      statePath: String,
+      errors: Array,
+      bug: Object,
+      hasTriagedNew: Boolean,
+      hasTriagedExisting: Boolean,
+      hasIgnored: Boolean,
+      ignoredCount: Number,
+      maxRevision: String,
+      minRevision: String,
+      recentlyModifiedBugs: Array,
+      report: Object,
+      sheriff: Object,
+      showEmptyInputs: Boolean,
+      showingTriaged: Boolean,
+      showingImprovements: Boolean,
+      showingRecentlyModifiedBugs: Boolean,
+      triagedBugId: Number,
+      alertGroups: Array,
+    };
+  }
+
+  static buildState(options = {}) {
+    return {
+      errors: [],
+      bug: MenuInput.buildState({
+        label: 'Bug',
+        options: [],
+        selectedOptions: options.bugs,
+      }),
+      hasTriagedNew: false,
+      hasTriagedExisting: false,
+      hasIgnored: false,
+      ignoredCount: 0,
+      maxRevision: options.maxRevision || '',
+      minRevision: options.minRevision || '',
+      recentlyModifiedBugs: [],
+      report: MenuInput.buildState({
+        label: 'Report',
+        options: [],
+        selectedOptions: options.reports || [],
+      }),
+      sheriff: MenuInput.buildState({
+        label: 'Sheriff',
+        options: [],
+        selectedOptions: options.sheriffs || [],
+      }),
+      showEmptyInputs: options.showEmptyInputs || false,
+      showingTriaged: options.showingTriaged || false,
+      showingImprovements: options.showingImprovements || false,
+      showingRecentlyModifiedBugs: false,
+      triagedBugId: 0,
+      alertGroups: options.alertGroups ||
+        AlertsTable.placeholderAlertGroups(),
+    };
+  }
 
   static get template() {
     return html`
@@ -284,6 +340,21 @@ export default class AlertsControls extends ElementBase {
     this.dispatchSources_();
   }
 
+  stateChanged(rootState) {
+    if (!this.statePath) return;
+    const oldRecentPerformanceBugs = this.recentPerformanceBugs;
+    this.set('recentPerformanceBugs', rootState.recentPerformanceBugs);
+    this.setProperties(get(rootState, this.statePath));
+    this.set('areAlertGroupsPlaceholders', this.alertGroups ===
+      AlertsTable.placeholderAlertGroups());
+    if (this.hasTriagedNew || this.hasTriagedExisting || this.hasIgnored) {
+      this.$['recent-bugs'].scrollIntoView(true);
+    }
+    if (this.recentPerformanceBugs !== oldRecentPerformanceBugs) {
+      this.dispatch('observeRecentPerformanceBugs', this.statePath);
+    }
+  }
+
   async onUserUpdate_() {
     await this.dispatch('loadReportNames', this.statePath);
     await this.dispatch('loadSheriffs', this.statePath);
@@ -296,7 +367,10 @@ export default class AlertsControls extends ElementBase {
   showMenuInput_(showEmptyInputs, thisInput, thatInput, otherInput,
       minRevision, maxRevision) {
     if (showEmptyInputs) return true;
-    if (thisInput && thisInput.selectedOptions.length) return true;
+    if (thisInput && thisInput.selectedOptions &&
+        thisInput.selectedOptions.length) {
+      return true;
+    }
     if (!thatInput || !otherInput) return true;
     if (thatInput.selectedOptions.length === 0 &&
         otherInput.selectedOptions.length === 0 &&
@@ -319,10 +393,6 @@ export default class AlertsControls extends ElementBase {
       return true;
     }
     return false;
-  }
-
-  arePlaceholders_(alertGroups) {
-    return alertGroups === AlertsTable.placeholderAlertGroups();
   }
 
   crbug_(bugId) {
@@ -421,69 +491,9 @@ export default class AlertsControls extends ElementBase {
       detail: {sectionId: this.sectionId},
     }));
   }
-
-  observeTriaged_() {
-    if (this.hasTriagedNew || this.hasTriagedExisting || this.hasIgnored) {
-      this.$['recent-bugs'].scrollIntoView(true);
-    }
-  }
-
-  observeRecentPerformanceBugs_() {
-    this.dispatch('observeRecentPerformanceBugs', this.statePath);
-  }
 }
 
 AlertsControls.TYPING_DEBOUNCE_MS = 300;
-
-AlertsControls.State = {
-  errors: options => [],
-  bug: options => MenuInput.buildState({
-    label: 'Bug',
-    options: [],
-    selectedOptions: options.bugs,
-  }),
-  hasTriagedNew: options => false,
-  hasTriagedExisting: options => false,
-  hasIgnored: options => false,
-  ignoredCount: options => 0,
-  maxRevision: options => options.maxRevision || '',
-  minRevision: options => options.minRevision || '',
-  recentlyModifiedBugs: options => [],
-  report: options => MenuInput.buildState({
-    label: 'Report',
-    options: [],
-    selectedOptions: options.reports || [],
-  }),
-  sheriff: options => MenuInput.buildState({
-    label: 'Sheriff',
-    options: [],
-    selectedOptions: options.sheriffs || [],
-  }),
-  showEmptyInputs: options => options.showEmptyInputs || false,
-  showingTriaged: options => options.showingTriaged || false,
-  showingImprovements: options => options.showingImprovements || false,
-  showingRecentlyModifiedBugs: options => false,
-  triagedBugId: options => 0,
-  alertGroups: options => options.alertGroups ||
-    AlertsTable.placeholderAlertGroups(),
-};
-
-AlertsControls.observers = [
-  'observeTriaged_(hasIgnored, hasTriagedExisting, hasTriagedNew)',
-  'observeRecentPerformanceBugs_(recentPerformanceBugs)',
-];
-
-AlertsControls.buildState = options =>
-  buildState(AlertsControls.State, options);
-
-AlertsControls.properties = {
-  ...buildProperties('state', AlertsControls.State),
-  recentPerformanceBugs: {statePath: 'recentPerformanceBugs'},
-};
-
-AlertsControls.properties.areAlertGroupsPlaceholders = {
-  computed: 'arePlaceholders_(alertGroups)',
-};
 
 AlertsControls.actions = {
   toggleRecentlyModifiedBugs: statePath => async(dispatch, getState) => {

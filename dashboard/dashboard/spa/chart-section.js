@@ -21,15 +21,82 @@ import {CHAIN, UPDATE} from './simple-redux.js';
 import {MODE} from './layout-timeseries.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
-
-import {
-  buildProperties,
-  buildState,
-  simpleGUID,
-} from './utils.js';
+import {simpleGUID} from './utils.js';
 
 export default class ChartSection extends ElementBase {
   static get is() { return 'chart-section'; }
+
+  static get properties() {
+    return {
+      statePath: String,
+      linkedStatePath: String,
+      sectionId: Number,
+      descriptor: Object,
+      title: String,
+      isTitleCustom: Boolean,
+      legend: Object,
+      selectedLineDescriptorHash: String,
+      isLoading: Boolean,
+      ...ChartCompound.properties,
+      ...SparklineCompound.properties,
+    };
+  }
+
+  static buildState(options = {}) {
+    const params = options.parameters || {};
+
+    // Support old spelling of some parameters including 'test'.
+    if (params.testSuites || params.testCases) {
+      params.suites = params.testSuites;
+      params.suitesAggregated = params.testSuitesAggregated;
+      params.cases = params.testCases;
+      params.casesAggregated = params.testCasesAggregated;
+    }
+
+    const descriptor = TimeseriesDescriptor.buildState({
+      suite: {
+        selectedOptions: params.suites,
+        isAggregated: params.suitesAggregated,
+      },
+      measurement: {
+        selectedOptions: params.measurements,
+      },
+      bot: {
+        selectedOptions: params.bots,
+        isAggregated: params.botsAggregated,
+      },
+      case: {
+        selectedOptions: params.cases,
+        isAggregated: params.casesAggregated,
+      },
+    });
+
+    let selectedOptions = ['avg'];
+    if (options.statistics) selectedOptions = options.statistics;
+    if (options.parameters && options.parameters.statistics) {
+      // Support old format.
+      selectedOptions = options.parameters.statistics;
+    }
+    const statistic = MenuInput.buildState({
+      label: 'Statistics',
+      required: true,
+      selectedOptions,
+      options: ['avg', 'std', 'count', 'min', 'max', 'sum'],
+    });
+
+    return {
+      sectionId: options.sectionId || simpleGUID(),
+      ...ChartCompound.buildState(options),
+      ...SparklineCompound.buildState(options),
+      descriptor,
+      title: options.title || '',
+      isTitleCustom: false,
+      legend: undefined,
+      selectedLineDescriptorHash: options.selectedLineDescriptorHash,
+      isLoading: false,
+      statistic,
+    };
+  }
 
   static get template() {
     return html`
@@ -144,7 +211,7 @@ export default class ChartSection extends ElementBase {
         <iron-collapse
             id="legend_container"
             horizontal
-            opened="[[isLegendOpen_(isExpanded, legend, histograms)]]"
+            opened="[[isLegendOpen_(isExpanded, legend)]]"
             on-click="onLegendClick_">
           <chart-legend
               items="[[legend]]"
@@ -174,8 +241,8 @@ export default class ChartSection extends ElementBase {
     return false;
   }
 
-  isLegendOpen_(isExpanded, legend, histograms) {
-    return isExpanded && !this.isEmpty_(legend) && this.isEmpty_(histograms);
+  isLegendOpen_(isExpanded, legend) {
+    return isExpanded && !this.isEmpty_(legend);
   }
 
   async onMatrixChange_(event) {
@@ -249,74 +316,6 @@ export default class ChartSection extends ElementBase {
     this.dispatch('updateLegendColors', this.statePath);
   }
 }
-
-ChartSection.State = {
-  sectionId: options => options.sectionId || simpleGUID(),
-  ...ChartCompound.State,
-  ...SparklineCompound.State,
-  descriptor: options => {
-    const params = options.parameters || {};
-
-    // Support old spelling of some parameters including 'test'.
-    if (params.testSuites || params.testCases) {
-      params.suites = params.testSuites;
-      params.suitesAggregated = params.testSuitesAggregated;
-      params.cases = params.testCases;
-      params.casesAggregated = params.testCasesAggregated;
-    }
-
-    return TimeseriesDescriptor.buildState({
-      suite: {
-        selectedOptions: params.suites,
-        isAggregated: params.suitesAggregated,
-      },
-      measurement: {
-        selectedOptions: params.measurements,
-      },
-      bot: {
-        selectedOptions: params.bots,
-        isAggregated: params.botsAggregated,
-      },
-      case: {
-        selectedOptions: params.cases,
-        isAggregated: params.casesAggregated,
-      },
-    });
-  },
-  title: options => options.title || '',
-  isTitleCustom: options => false,
-  legend: options => undefined,
-  selectedLineDescriptorHash: options => options.selectedLineDescriptorHash,
-  isLoading: options => false,
-  statistic: options => {
-    let selectedOptions = ['avg'];
-    if (options) {
-      if (options.statistics) selectedOptions = options.statistics;
-      if (options.parameters && options.parameters.statistics) {
-        // Support old format.
-        selectedOptions = options.parameters.statistics;
-      }
-    }
-    return MenuInput.buildState({
-      label: 'Statistics',
-      required: true,
-      selectedOptions,
-      options: ['avg', 'std', 'count', 'min', 'max', 'sum'],
-    });
-  },
-  histograms: options => undefined,
-};
-
-ChartSection.buildState = options => buildState(
-    ChartSection.State, options);
-
-ChartSection.properties = {
-  ...buildProperties('state', ChartSection.State),
-  ...buildProperties('linkedState', {
-    // ChartSection only needs the linkedStatePath property to forward to
-    // ChartCompound.
-  }),
-};
 
 ChartSection.actions = {
   maybeLoadTimeseries: statePath => async(dispatch, getState) => {
@@ -605,9 +604,9 @@ Don't change the session state (aka options) format!
   selectedLineDescriptorHash: string,
 }
 
-This format is slightly different from ChartSection.State, which has
-`descriptor` (which does not include statistics) instead of `parameters`
-(which does include statistics).
+This format is slightly different from ChartSection.buildState(), which has
+`descriptor` (which does not include statistics) instead of `parameters` (which
+does include statistics).
 */
 
 ChartSection.getSessionState = state => {

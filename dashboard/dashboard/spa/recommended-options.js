@@ -10,11 +10,6 @@ import OptionGroup from './option-group.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
-import {
-  buildProperties,
-  buildState,
-} from './utils.js';
-
 const DEFAULT_RECOMMENDATIONS = [
   'Chromium Perf Sheriff',
   'memory:chrome:all_processes:reported_by_chrome:effective_size',
@@ -22,6 +17,21 @@ const DEFAULT_RECOMMENDATIONS = [
 
 export default class RecommendedOptions extends ElementBase {
   static get is() { return 'recommended-options'; }
+
+  static get properties() {
+    return {
+      ...OptionGroup.properties,
+      recommended: Object,
+      optionRecommendations: Array,
+    };
+  }
+
+  static buildState(options) {
+    return {
+      ...OptionGroup.buildState(options),
+      recommended: options.recommended || {},
+    };
+  }
 
   static get template() {
     return html`
@@ -46,40 +56,30 @@ export default class RecommendedOptions extends ElementBase {
     if (!this.optionRecommendations) this.dispatch('getRecommendations');
   }
 
-  observeOptionValues_(newOptionValues, oldOptionValues) {
-    this.dispatch('recommendOptions', this.statePath);
-  }
+  stateChanged(rootState) {
+    if (!this.statePath) return;
 
-  observeSelectedOptions_(newSelectedOptions, oldSelectedOptions) {
-    // This can't just listen for option-select because that only fires when
-    // the user selects a recommended option.
-    if (!newSelectedOptions || !oldSelectedOptions) return;
-    const addedOptions = newSelectedOptions.filter(o =>
-      !oldSelectedOptions.includes(o));
-    if (addedOptions.length !== 1) return;
-    // Ignore when users deselect options or select whole groups of options.
-    this.dispatch('updateRecommendations', addedOptions[0]);
+    this.set('optionRecommendations', rootState.optionRecommendations);
+    const oldSelectedOptions = this.selectedOptions;
+    const oldOptionValues = this.optionValues;
+    const state = get(rootState, this.statePath);
+    this.setProperties(state);
+    if (this.optionValues !== oldOptionValues) {
+      this.dispatch('recommendOptions', this.statePath);
+    }
+    if (this.selectedOptions !== oldSelectedOptions &&
+        oldSelectedOptions && this.selectedOptions) {
+      // This can't just listen for option-select because that only fires when
+      // the user selects a recommended option.
+      const addedOptions = this.selectedOptions.filter(o =>
+        !oldSelectedOptions.includes(o));
+      // Ignore when users deselect options or select whole groups of options.
+      if (addedOptions.length === 1) {
+        this.dispatch('updateRecommendations', addedOptions[0]);
+      }
+    }
   }
 }
-
-RecommendedOptions.State = {
-  ...OptionGroup.RootState,
-  ...OptionGroup.State,
-  recommended: options => options.recommended || {},
-};
-
-RecommendedOptions.buildState = options => buildState(
-    RecommendedOptions.State, options);
-
-RecommendedOptions.properties = {
-  ...buildProperties('state', RecommendedOptions.State),
-  optionRecommendations: {statePath: 'optionRecommendations'},
-};
-
-RecommendedOptions.properties.selectedOptions.observer =
-  'observeSelectedOptions_';
-RecommendedOptions.properties.optionValues.observer =
-  'observeOptionValues_';
 
 RecommendedOptions.actions = {
   getRecommendations: () => async(dispatch, getState) => {

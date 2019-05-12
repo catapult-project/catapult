@@ -4,21 +4,45 @@
 */
 'use strict';
 
-import '@polymer/polymer/lib/elements/dom-if.js';
-import '@polymer/polymer/lib/elements/dom-repeat.js';
 import './cp-checkbox.js';
 import './expand-button.js';
+import '@polymer/polymer/lib/elements/dom-if.js';
+import '@polymer/polymer/lib/elements/dom-repeat.js';
 import ElementBase from './element-base.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
-import {
-  buildProperties,
-  buildState,
-} from './utils.js';
-
-// See State and RootState below for usage.
 export default class OptionGroup extends ElementBase {
   static get is() { return 'option-group'; }
+
+  static get properties() {
+    return {
+      statePath: String,
+
+      // Elements of this array look like {
+      //   isExpanded, label, options, value, valueLowerCase}.
+      options: Array,
+
+      optionValues: Array,
+
+      rootStatePath: String,
+      // Array of string values.
+      selectedOptions: Array,
+
+      // Set this to filter options. An option matches the query if its
+      // valueLowerCase contains all of the space-separated parts of the query.
+      query: String,
+    };
+  }
+
+  static buildState(options = {}) {
+    return {
+      options: OptionGroup.groupValues(options.options || []),
+      optionValues: options.options || new Set(),
+      selectedOptions: options.selectedOptions || [],
+      query: '',
+    };
+  }
 
   static get template() {
     return html`
@@ -101,6 +125,14 @@ export default class OptionGroup extends ElementBase {
     `;
   }
 
+  stateChanged(rootState) {
+    if (!this.statePath || !this.rootStatePath) return;
+    this.setProperties({
+      ...get(rootState, this.rootStatePath),
+      ...get(rootState, this.statePath),
+    });
+  }
+
   // There may be thousands of options in an option-group. It could cost a lot
   // of memory and CPU to stamp (create DOM for) all of them. That DOM may or
   // may not be needed, so we can speed up loading by waiting to stamp it
@@ -165,35 +197,6 @@ export default class OptionGroup extends ElementBase {
 // that they display quickly. Groups with more options than this will only be
 // stamped to the DOM when the user expands the group in order to save memory.
 OptionGroup.TOO_MANY_OPTIONS = 20;
-
-OptionGroup.State = {
-  // Elements of this array look like {
-  //   isExpanded, label, options, value, valueLowerCase}.
-  options: options => OptionGroup.groupValues(options.options) || [],
-  optionValues: options => options.options || new Set(),
-};
-
-OptionGroup.RootState = {
-  // Array of string values.
-  selectedOptions: options => options.selectedOptions || [],
-
-  // Set this to filter options.
-  // An option matches the query if its valueLowerCase contains all of the
-  // space-separated parts of the query.
-  query: options => '',
-};
-
-OptionGroup.buildState = options => {
-  return {
-    ...buildState(OptionGroup.State, options),
-    ...buildState(OptionGroup.RootState, options),
-  };
-};
-
-OptionGroup.properties = {
-  ...buildProperties('state', OptionGroup.State),
-  ...buildProperties('rootState', OptionGroup.RootState),
-};
 
 OptionGroup.getAnyGroups = options =>
   (options || []).filter(o => o.options).length > 0;

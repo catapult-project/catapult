@@ -19,14 +19,54 @@ import {html} from '@polymer/polymer/polymer-element.js';
 import {
   BatchIterator,
   CTRL_KEY_NAME,
-  buildProperties,
-  buildState,
   generateColors,
   measureText,
 } from './utils.js';
 
 export default class ChartTimeseries extends ElementBase {
   static get is() { return 'chart-timeseries'; }
+
+  static get properties() {
+    return {
+      ...ChartBase.properties,
+      errors: Array,
+      lines: Array,
+      lineDescriptors: Array,
+      minRevision: Number,
+      maxRevision: Number,
+      brushRevisions: Array,
+      isLoading: Boolean,
+      zeroYAxis: Boolean,
+      fixedXAxis: Boolean,
+      mode: String,
+      levelOfDetail: String,
+    };
+  }
+
+  static buildState(options = {}) {
+    const state = ChartBase.buildState(options);
+    state.yAxis = {
+      generateTicks: options.generateYTicks !== false,
+      ...state.yAxis,
+    };
+    state.xAxis = {
+      generateTicks: options.generateXTicks !== false,
+      ...state.xAxis,
+    };
+    return {
+      ...state,
+      errors: new Set(),
+      lineDescriptors: [],
+      minRevision: undefined,
+      maxRevision: undefined,
+      brushRevisions: [],
+      isLoading: false,
+      zeroYAxis: false,
+      fixedXAxis: false,
+      mode: MODE.NORMALIZE_UNIT,
+      levelOfDetail: options.levelOfDetail || LEVEL_OF_DETAIL.XY,
+    };
+  }
 
   static get template() {
     return html`
@@ -55,6 +95,42 @@ export default class ChartTimeseries extends ElementBase {
     `;
   }
 
+  stateChanged(rootState) {
+    if (!this.statePath) return;
+
+    const oldLineCount = this.lines ? this.lines.length : 0;
+    const oldLineDescriptors = this.lineDescriptors;
+    const oldMode = this.mode;
+    const oldFixedXAxis = this.fixedXAxis;
+    const oldZeroYAxis = this.zeroYAxis;
+    const oldMinRevision = this.minRevision;
+    const oldMaxRevision = this.maxRevision;
+
+    this.setProperties(get(rootState, this.statePath));
+
+    const newLineCount = this.lines ? this.lines.length : 0;
+    if (newLineCount !== oldLineCount) {
+      this.dispatchEvent(new CustomEvent('line-count-change', {
+        bubbles: true,
+        composed: true,
+      }));
+    }
+
+    if (this.lineDescriptors !== oldLineDescriptors ||
+        this.mode !== oldMode ||
+        this.fixedXAxis !== oldFixedXAxis ||
+        this.zeroYAxis !== oldZeroYAxis ||
+        this.minRevision !== oldMinRevision ||
+        this.maxRevision !== oldMaxRevision) {
+      // Changing any of these properties causes Polymer to call this method.
+      // Changing all at once causes Polymer to call it many times within the
+      // same task, so use debounce to only call load() once.
+      this.debounce('load', () => {
+        this.dispatch('load', this.statePath);
+      }, PolymerAsync.microTask);
+    }
+  }
+
   showPlaceholder(isLoading, lines) {
     return !isLoading && this.isEmpty_(lines);
   }
@@ -70,60 +146,9 @@ export default class ChartTimeseries extends ElementBase {
   async onMouseLeaveMain_(event) {
     await this.dispatch('hideTooltip', this.statePath);
   }
-
-  observeLineDescriptors_() {
-    // Changing any of these properties causes Polymer to call this method.
-    // Changing all at once causes Polymer to call it many times within the
-    // same task, so use debounce to only call load() once.
-    this.debounce('load', () => {
-      this.dispatch('load', this.statePath);
-    }, PolymerAsync.microTask);
-  }
-
-  observeLines_(newLines, oldLines) {
-    const newLength = newLines ? newLines.length : 0;
-    const oldLength = oldLines ? oldLines.length : 0;
-    if (newLength === oldLength) return;
-    this.dispatchEvent(new CustomEvent('line-count-change', {
-      bubbles: true,
-      composed: true,
-    }));
-  }
 }
 
 ChartTimeseries.MAX_LINES = 10;
-
-ChartTimeseries.State = {
-  ...ChartBase.State,
-  errors: options => new Set(),
-  lines: options => ChartBase.State.lines(options),
-  lineDescriptors: options => [],
-  minRevision: options => undefined,
-  maxRevision: options => undefined,
-  brushRevisions: options => [],
-  isLoading: options => false,
-  xAxis: options => {
-    return {...ChartBase.State.xAxis(options), generateTicks: true};
-  },
-  yAxis: options => {
-    return {...ChartBase.State.yAxis(options), generateTicks: true};
-  },
-  zeroYAxis: options => false,
-  fixedXAxis: options => false,
-  mode: options => MODE.NORMALIZE_UNIT,
-  levelOfDetail: options => options.levelOfDetail || LEVEL_OF_DETAIL.XY,
-};
-
-ChartTimeseries.properties = buildProperties(
-    'state', ChartTimeseries.State);
-ChartTimeseries.buildState = options => buildState(
-    ChartTimeseries.State, options);
-
-ChartTimeseries.properties.lines.observer = 'observeLines_';
-ChartTimeseries.observers = [
-  'observeLineDescriptors_(lineDescriptors, mode, fixedXAxis, zeroYAxis, ' +
-      'maxRevision, minRevision)',
-];
 
 function arraySetEqual(a, b) {
   if (a.length !== b.length) return false;

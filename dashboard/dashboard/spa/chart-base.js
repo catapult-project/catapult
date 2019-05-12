@@ -9,22 +9,63 @@ import '@polymer/polymer/lib/elements/dom-repeat.js';
 import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import ElementBase from './element-base.js';
 import {UPDATE} from './simple-redux.js';
+import {animationFrame, hasCtrlKey, measureElement} from './utils.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
 import {GestureEventListeners} from
   '@polymer/polymer/lib/mixins/gesture-event-listeners.js';
 
-import {
-  animationFrame,
-  buildProperties,
-  buildState,
-  hasCtrlKey,
-  measureElement,
-} from './utils.js';
-
-
 export default class ChartBase extends GestureEventListeners(ElementBase) {
   static get is() { return 'chart-base'; }
+
+  static get properties() {
+    return {
+      statePath: String,
+      brushSize: Number,
+      graphHeight: Number,
+      lines: Array,
+      showTooltip: Boolean,
+      tooltip: Object,
+      xAxis: Object,
+      yAxis: Object,
+    };
+  }
+
+  static buildState(options = {}) {
+    return {
+      brushSize: options.brushSize || 10,
+      graphHeight: options.graphHeight || 200,
+      lines: options.lines || [],
+      showTooltip: options.showTooltip || false,
+      tooltip: {
+        isVisible: false,
+        left: '',
+        right: '',
+        top: '',
+        bottom: '',
+        color: '',
+        rows: [],
+        ...options.tooltip,
+      },
+      xAxis: {
+        brushes: [],
+        height: 0,
+        range: new tr.b.math.Range(),
+        showTickLines: false,
+        ticks: [],
+        ...options.xAxis,
+      },
+      yAxis: {
+        brushes: [],
+        range: new tr.b.math.Range(),
+        showTickLines: false,
+        ticks: [],
+        width: 0,
+        ...options.yAxis,
+      },
+    };
+  }
 
   static get template() {
     const template = html`
@@ -410,48 +451,6 @@ export default class ChartBase extends GestureEventListeners(ElementBase) {
     }, PolymerAsync.animationFrame);
   }
 }
-
-ChartBase.State = {
-  brushSize: options => options.brushSize || 10,
-  graphHeight: options => options.graphHeight || 200,
-  lines: options => options.lines || [],
-  showTooltip: options => options.showTooltip || false,
-  tooltip: options => {
-    return {
-      isVisible: false,
-      left: '',
-      right: '',
-      top: '',
-      bottom: '',
-      color: '',
-      rows: [],
-      ...options.tooltip,
-    };
-  },
-  xAxis: options => {
-    return {
-      brushes: [],
-      height: 0,
-      range: new tr.b.math.Range(),
-      showTickLines: false,
-      ticks: [],
-      ...options.xAxis,
-    };
-  },
-  yAxis: options => {
-    return {
-      brushes: [],
-      range: new tr.b.math.Range(),
-      showTickLines: false,
-      ticks: [],
-      width: 0,
-      ...options.yAxis,
-    };
-  },
-};
-
-ChartBase.properties = buildProperties('state', ChartBase.State);
-ChartBase.buildState = options => buildState(ChartBase.State, options);
 
 ChartBase.actions = {
   brushX: (statePath, brushIndex, xPct) => async(dispatch, getState) => {

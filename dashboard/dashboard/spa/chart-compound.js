@@ -17,12 +17,7 @@ import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {MODE} from './layout-timeseries.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
-
-import {
-  buildProperties,
-  buildState,
-  setImmutable,
-} from './utils.js';
+import {setImmutable} from './utils.js';
 
 /**
   * ChartCompound synchronizes revision ranges and axis properties between a
@@ -30,6 +25,86 @@ import {
   */
 export default class ChartCompound extends ElementBase {
   static get is() { return 'chart-compound'; }
+
+  static get properties() {
+    return {
+      linkedStatePath: String,
+      linkedCursorRevision: Number,
+      linkedCursorScalar: Object,
+      linkedMinRevision: Number,
+      linkedMaxRevision: Number,
+      linkedMode: String,
+      linkedZeroYAxis: Boolean,
+      linkedFixedXAxis: Boolean,
+
+      statePath: String,
+      lineDescriptors: Array,
+      isExpanded: Boolean,
+      minimapLayout: Object,
+      chartLayout: Object,
+      details: Object,
+      isShowingOptions: Boolean,
+      isLinked: Boolean,
+      cursorRevision: Number,
+      cursorScalar: Object,
+      minRevision: Number,
+      maxRevision: Number,
+      mode: String,
+      zeroYAxis: Boolean,
+      fixedXAxis: Boolean,
+    };
+  }
+
+  static buildState(options = {}) {
+    const minimapLayout = {
+      ...ChartTimeseries.buildState({
+        levelOfDetail: LEVEL_OF_DETAIL.XY,
+      }),
+      graphHeight: 40,
+    };
+    minimapLayout.xAxis.height = 15;
+    minimapLayout.yAxis.width = 50;
+    minimapLayout.yAxis.generateTicks = false;
+
+    const chartLayout = ChartTimeseries.buildState({
+      levelOfDetail: LEVEL_OF_DETAIL.ANNOTATIONS,
+      showTooltip: true,
+    });
+    chartLayout.xAxis.height = 15;
+    chartLayout.xAxis.showTickLines = true;
+    chartLayout.yAxis.width = 50;
+    chartLayout.yAxis.showTickLines = true;
+    chartLayout.brushRevisions = options.brushRevisions || [];
+
+    return {
+      lineDescriptors: [],
+      isExpanded: options.isExpanded !== false,
+      minimapLayout,
+      chartLayout,
+      details: DetailsTable.buildState(),
+      isShowingOptions: false,
+      isLinked: options.isLinked !== false,
+      cursorRevision: 0,
+      cursorScalar: undefined,
+      minRevision: options.minRevision,
+      maxRevision: options.maxRevision,
+      mode: options.mode || MODE.NORMALIZE_UNIT,
+      zeroYAxis: options.zeroYAxis || false,
+      fixedXAxis: options.fixedXAxis !== false,
+    };
+  }
+
+  static buildLinkedState(options = {}) {
+    return {
+      linkedCursorRevision: undefined,
+      linkedCursorScalar: undefined,
+      linkedMinRevision: options.minRevision,
+      linkedMaxRevision: options.maxRevision,
+      linkedMode: options.mode || MODE.NORMALIZE_UNIT,
+      linkedZeroYAxis: options.zeroYAxis || false,
+      linkedFixedXAxis: options.fixedXAxis !== false,
+    };
+  }
 
   static get template() {
     return html`
@@ -216,6 +291,112 @@ export default class ChartCompound extends ElementBase {
     `;
   }
 
+  stateChanged(rootState) {
+    if (!this.statePath || !this.linkedStatePath) return;
+
+    const oldChartLoading = this.chartLayout && this.chartLayout.isLoading;
+    const oldCursorRevision = this.cursorRevision;
+    const oldCursorScalar = this.cursorScalar;
+    const oldFixedXAxis = this.fixedXAxis;
+    const oldLineDescriptors = this.lineDescriptors;
+    const oldLinkedCursorRevision = this.linkedCursorRevision;
+    const oldLinkedCursorScalar = this.linkedCursorScalar;
+    const oldLinkedFixedXAxis = this.linkedFixedXAxis;
+    const oldLinkedMaxRevision = this.linkedMaxRevision;
+    const oldLinkedMinRevision = this.linkedMinRevision;
+    const oldLinkedMode = this.linkedMode;
+    const oldLinkedZeroYAxis = this.linkedZeroYAxis;
+    const oldMinRevision = this.minRevision;
+    const oldMaxRevision = this.maxRevision;
+    const oldMode = this.mode;
+    const oldZeroYAxis = this.zeroYAxis;
+
+    this.setProperties({
+      ...get(rootState, this.linkedStatePath),
+      ...get(rootState, this.statePath),
+    });
+
+    if (oldChartLoading && !this.chartLayout.isLoading) {
+      this.dispatch({
+        type: ChartCompound.reducers.updateStale.name,
+        statePath: this.statePath,
+      });
+    }
+
+    if (this.lineDescriptors !== oldLineDescriptors ||
+        this.minRevision !== oldMinRevision ||
+        this.maxRevision !== oldMaxRevision ||
+        this.mode !== oldMode ||
+        this.fixedXAxis !== oldFixedXAxis ||
+        this.zeroYAxis !== oldZeroYAxis) {
+      this.dispatch('load', this.statePath);
+    }
+
+    if (this.cursorRevision !== oldCursorRevision ||
+        this.cursorScalar !== oldCursorScalar) {
+      // The `cursorRevision` and `cursorScalar` properties are set either from
+      // onGetTooltip_ as the user mouses around this main chart, or from
+      // linkedCursor as the user mouses around the main chart in a different
+      // chart-compound.
+      this.dispatch({
+        type: ChartCompound.reducers.setCursors.name,
+        statePath: this.statePath,
+      });
+    }
+
+    if (this.isLinked) {
+      let delta = {};
+      if (this.linkedCursorRevision !== oldLinkedCursorRevision) {
+        delta.cursorRevision = this.linkedCursorRevision;
+      }
+      if (this.linkedCursorScalar !== oldLinkedCursorScalar) {
+        delta.cursorScalar = this.linkedCursorScalar;
+      }
+      if (this.linkedMinRevision !== oldLinkedMinRevision) {
+        delta.minRevision = this.linkedMinRevision;
+      }
+      if (this.linkedMaxRevision !== oldLinkedMaxRevision) {
+        delta.maxRevision = this.linkedMaxRevision;
+      }
+      if (this.linkedMode !== oldLinkedMode) {
+        delta.mode = this.linkedMode;
+      }
+      if (this.linkedZeroYAxis !== oldLinkedZeroYAxis) {
+        delta.zeroYAxis = this.linkedZeroYAxis;
+      }
+      if (this.linkedFixedXAxis !== oldLinkedFixedXAxis) {
+        delta.fixedXAxis = this.linkedFixedXAxis;
+      }
+      if (Object.keys(delta).length > 0) {
+        this.dispatch(UPDATE(this.statePath, delta));
+      }
+
+      delta = {};
+      if (this.cursorRevision !== oldCursorRevision) {
+        delta.linkedCursorRevision = this.cursorRevision;
+      }
+      if (this.cursorScalar !== oldCursorScalar) {
+        delta.linkedCursorScalar = this.cursorScalar;
+      }
+      if (this.minRevision !== oldMinRevision) {
+        delta.linkedMinRevision = this.minRevision;
+      }
+      if (this.maxRevision !== oldMaxRevision) {
+        delta.linkedMaxRevision = this.maxRevision;
+      }
+      if (this.mode !== oldMode) delta.linkedMode = this.mode;
+      if (this.zeroYAxis !== oldZeroYAxis) {
+        delta.linkedZeroYAxis = this.zeroYAxis;
+      }
+      if (this.fixedXAxis !== oldFixedXAxis) {
+        delta.linkedFixedXAxis = this.fixedXAxis;
+      }
+      if (Object.keys(delta).length > 0) {
+        this.dispatch(UPDATE(this.linkedStatePath, delta));
+      }
+    }
+  }
+
   hideOptions_(minimapLayout) {
     return this.$.minimap.showPlaceholder(
         (minimapLayout && minimapLayout.isLoading),
@@ -311,166 +492,10 @@ export default class ChartCompound extends ElementBase {
     await this.dispatch('load', this.statePath);
   }
 
-  observeLineDescriptors_(newLineDescriptors, oldLineDescriptors) {
-    // Sometimes polymer calls some observers even when nothing changed.
-    // Ignore them.
-    if (newLineDescriptors === oldLineDescriptors) return;
-    this.dispatch('load', this.statePath);
-  }
-
-  observeLinkedCursor_() {
-    if (!this.isLinked) return;
-    this.dispatch(UPDATE(this.statePath, {
-      cursorRevision: this.linkedCursorRevision,
-      cursorScalar: this.linkedCursorScalar,
-    }));
-  }
-
-  observeLinkedRevisions_() {
-    if (!this.isLinked) return;
-    if (this.linkedMinRevision === this.minRevision &&
-        this.linkedMaxRevision === this.maxRevision) {
-      return;
-    }
-    this.dispatch(UPDATE(this.statePath, {
-      minRevision: this.linkedMinRevision,
-      maxRevision: this.linkedMaxRevision,
-    }));
-    this.dispatch('load', this.statePath);
-  }
-
-  observeLinkedMode_() {
-    if (!this.isLinked) return;
-    if (this.mode === this.linkedMode) return;
-    this.dispatch(UPDATE(this.statePath, {mode: this.linkedMode}));
-    this.dispatch('load', this.statePath);
-  }
-
-  observeLinkedZeroYAxis_() {
-    if (!this.isLinked) return;
-    if (this.zeroYAxis === this.linkedZeroYAxis) return;
-    this.dispatch(TOGGLE(this.statePath + '.zeroYAxis'));
-    this.dispatch('load', this.statePath);
-  }
-
-  observeLinkedFixedXAxis_() {
-    if (!this.isLinked) return;
-    if (this.fixedXAxis === this.linkedFixedXAxis) return;
-    this.dispatch(TOGGLE(this.statePath + '.fixedXAxis'));
-    this.dispatch('load', this.statePath);
-  }
-
-  onModeChange_(event) {
-    this.dispatch(UPDATE(this.statePath, {mode: event.detail.value}));
-    this.dispatch('load', this.statePath);
-
-    if (this.isLinked) {
-      this.dispatch(UPDATE(this.linkedStatePath, {
-        linkedMode: event.detail.value,
-      }));
-    }
-  }
-
-  observeChartLoading_(newLoading, oldLoading) {
-    if (oldLoading && !newLoading) {
-      this.dispatch({
-        type: ChartCompound.reducers.updateStale.name,
-        statePath: this.statePath,
-      });
-    }
-  }
-
-  // The `cursorRevision` and `cursorScalar` properties are set either from
-  // onGetTooltip_ as the user mouses around this main chart, or from
-  // observeLinkedCursor_ as the user mouses around the main chart in a
-  // different chart-compound.
-  observeCursor_(cursorRevision, cursorScalar) {
-    this.dispatch({
-      type: ChartCompound.reducers.setCursors.name,
-      statePath: this.statePath,
-    });
-    if (this.isLinked &&
-        (this.cursorRevision !== this.linkedCursorRevision ||
-          this.cursorScalar !== this.linkedCursorScalar)) {
-      this.dispatch(UPDATE(this.linkedStatePath, {
-        linkedCursorRevision: this.cursorRevision,
-        linkedCursorScalar: this.cursorScalar,
-      }));
-    }
+  async onModeChange_(event) {
+    await this.dispatch(UPDATE(this.statePath, {mode: event.detail.value}));
   }
 }
-
-ChartCompound.State = {
-  lineDescriptors: options => [],
-  isExpanded: options => options.isExpanded !== false,
-  minimapLayout: options => {
-    const minimapLayout = {
-      ...ChartTimeseries.buildState({
-        levelOfDetail: LEVEL_OF_DETAIL.XY,
-      }),
-      graphHeight: 40,
-    };
-    minimapLayout.xAxis.height = 15;
-    minimapLayout.yAxis.width = 50;
-    minimapLayout.yAxis.generateTicks = false;
-    return minimapLayout;
-  },
-  chartLayout: options => {
-    const chartLayout = ChartTimeseries.buildState({
-      levelOfDetail: LEVEL_OF_DETAIL.ANNOTATIONS,
-      showTooltip: true,
-    });
-    chartLayout.xAxis.height = 15;
-    chartLayout.xAxis.showTickLines = true;
-    chartLayout.yAxis.width = 50;
-    chartLayout.yAxis.showTickLines = true;
-    chartLayout.brushRevisions = options.brushRevisions || [];
-    return chartLayout;
-  },
-  details: options => DetailsTable.buildState({}),
-  isShowingOptions: options => false,
-  isLinked: options => options.isLinked !== false,
-  cursorRevision: options => 0,
-  cursorScalar: options => undefined,
-  minRevision: options => options.minRevision,
-  maxRevision: options => options.maxRevision,
-  mode: options => options.mode || MODE.NORMALIZE_UNIT,
-  zeroYAxis: options => options.zeroYAxis || false,
-  fixedXAxis: options => options.fixedXAxis !== false,
-};
-
-ChartCompound.buildState = options =>
-  buildState(ChartCompound.State, options);
-
-ChartCompound.observers = [
-  'observeLinkedCursor_(linkedCursorRevision, linkedCursorScalar)',
-  'observeLinkedRevisions_(linkedMinRevision, linkedMaxRevision)',
-  'observeLinkedMode_(linkedMode)',
-  'observeLinkedZeroYAxis_(linkedZeroYAxis)',
-  'observeLinkedFixedXAxis_(linkedFixedXAxis)',
-  'observeCursor_(cursorRevision, cursorScalar)',
-];
-
-ChartCompound.LinkedState = {
-  linkedCursorRevision: options => undefined,
-  linkedCursorScalar: options => undefined,
-  linkedMinRevision: options => options.minRevision,
-  linkedMaxRevision: options => options.maxRevision,
-  linkedMode: options => options.mode || MODE.NORMALIZE_UNIT,
-  linkedZeroYAxis: options => options.zeroYAxis || false,
-  linkedFixedXAxis: options => options.fixedXAxis !== false,
-};
-
-ChartCompound.properties = {
-  ...buildProperties('state', ChartCompound.State),
-  ...buildProperties('linkedState', ChartCompound.LinkedState),
-  isChartLoading: {
-    computed: 'identity_(chartLayout.isLoading)',
-    observer: 'observeChartLoading_',
-  },
-};
-
-ChartCompound.properties.lineDescriptors.observer = 'observeLineDescriptors_';
 
 ChartCompound.actions = {
   brushChart: (statePath, nearestLine, nearestPoint, addBrush) =>

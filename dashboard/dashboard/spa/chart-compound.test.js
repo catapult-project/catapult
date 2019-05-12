@@ -10,7 +10,7 @@ import findElements from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {MODE} from './layout-timeseries.js';
 import {TimeseriesRequest} from './timeseries-request.js';
-import {afterRender, buildState, denormalize} from './utils.js';
+import {afterRender, denormalize} from './utils.js';
 
 suite('chart-compound', function() {
   let MS_PER_YEAR;  // tr might not be loaded yet.
@@ -22,11 +22,9 @@ suite('chart-compound', function() {
     cc.linkedStatePath = 'linked';
     await cc.dispatch(CHAIN(
         ENSURE('test'),
-        UPDATE('test', ChartCompound.buildState({
-        })),
+        UPDATE('test', ChartCompound.buildState()),
         ENSURE('linked'),
-        UPDATE('linked', buildState(ChartCompound.LinkedState, {
-        }))));
+        UPDATE('linked', ChartCompound.buildLinkedState())));
     document.body.appendChild(cc);
     await cc.dispatch(UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
@@ -142,6 +140,7 @@ suite('chart-compound', function() {
       linkedMinRevision: NOW_MS - (MS_PER_YEAR / 2),
       linkedMaxRevision: NOW_MS - (MS_PER_YEAR / 20),
     }));
+    await afterRender();
     await afterRender();
 
     assert.strictEqual('49%', cc.minimapLayout.xAxis.brushes[0].xPct);

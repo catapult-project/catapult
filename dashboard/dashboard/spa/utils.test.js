@@ -137,51 +137,6 @@ suite('utils', function() {
     assert.include(rows, '0     spa/utils-test:measureTable');
   });
 
-  test('buildProperties', function() {
-    const properties = utils.buildProperties('state', {
-      aaa: options => options.aaa || [],
-      bbb: {
-        reflectToAttribute: true,
-        value: options => options.bbb || '',
-      },
-    });
-    assert.strictEqual(String, properties.statePath.type);
-    assert.isTrue(properties.state.readOnly);
-    /* TODO(#4461) Uncomment this when this test moves to Polymer2.
-    assert.isDefined(properties.state.statePath({}));
-    assert.isDefined(properties.state.statePath.apply({}, {}));
-    const fakeState = {aaa: ['overriddenAAA'], bbb: 'overriddenBBB'};
-    assert.strictEqual(fakeState, properties.state.statePath.apply(
-      {statePath: 'test'}, {test: fakeState}));
-    */
-    assert.strictEqual('identity_(state.aaa)', properties.aaa.computed);
-    assert.strictEqual('identity_(state.bbb)', properties.bbb.computed);
-    assert.isTrue(properties.bbb.reflectToAttribute);
-
-    assert.throws(() =>
-      utils.buildProperties('state', {state: () => 0}));
-    assert.throws(() =>
-      utils.buildProperties('state', {statePath: () => 0}));
-  });
-
-  test('buildState', function() {
-    const configs = {
-      aaa: options => options.aaa || [],
-      bbb: {
-        value: options => (options.b || '').repeat(3),
-      },
-      ccc: () => 0,
-    };
-    const options = {
-      aaa: ['A'],
-      b: 'b',
-    };
-    const state = utils.buildState(configs, options);
-    assert.strictEqual('A', state.aaa[0]);
-    assert.strictEqual('bbb', state.bbb);
-    assert.strictEqual(0, state.ccc);
-  });
-
   test('normalize', function() {
     assert.deepEqual({a: 1, b: 2}, utils.normalize(['a', 'b'], [1, 2]));
   });

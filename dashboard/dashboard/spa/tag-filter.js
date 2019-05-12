@@ -7,15 +7,24 @@
 import '@polymer/polymer/lib/elements/dom-if.js';
 import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
-
-import {
-  buildProperties,
-  buildState,
-} from './utils.js';
 
 export default class TagFilter extends ElementBase {
   static get is() { return 'tag-filter'; }
+
+  static get properties() {
+    return {
+      statePath: String,
+      tags: Object,
+    };
+  }
+
+  static buildState(options) {
+    const tags = OptionGroup.buildState(options);
+    tags.map = options.map || new Map();
+    return {tags};
+  }
 
   static get template() {
     return html`
@@ -52,18 +61,6 @@ export default class TagFilter extends ElementBase {
     this.dispatch('filter', this.statePath);
   }
 }
-
-TagFilter.State = {
-  tags: options => {
-    const tags = OptionGroup.buildState(options);
-    tags.map = options.map || new Map();
-    return tags;
-  },
-};
-
-TagFilter.properties = buildProperties('state', TagFilter.State);
-TagFilter.buildState = options => buildState(
-    TagFilter.State, options);
 
 TagFilter.actions = {
   filter: statePath => async(dispatch, getState) => {

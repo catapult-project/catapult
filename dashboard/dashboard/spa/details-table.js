@@ -12,15 +12,9 @@ import ChartTimeseries from './chart-timeseries.js';
 import ElementBase from './element-base.js';
 import TimeseriesMerger from './timeseries-merger.js';
 import {DetailsFetcher} from './details-fetcher.js';
+import {breakWords, enumerate} from './utils.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
-
-import {
-  breakWords,
-  buildProperties,
-  buildState,
-  enumerate,
-} from './utils.js';
 
 // Sort hidden rows after rows with visible labels.
 const HIDE_ROW_PREFIX = String.fromCharCode('z'.charCodeAt(0) + 1).repeat(3);
@@ -31,6 +25,33 @@ const MAX_REVISION_LENGTH = 30;
 
 export default class DetailsTable extends ElementBase {
   static get is() { return 'details-table'; }
+
+  static get properties() {
+    return {
+      statePath: String,
+      isLoading: Boolean,
+      colorByLine: Array,
+      lineDescriptors: Array,
+      minRevision: Number,
+      maxRevision: Number,
+      revisionRanges: Array,
+      commonLinkRows: Array,
+      bodies: Array,
+    };
+  }
+
+  static buildState(options = {}) {
+    return {
+      isLoading: false,
+      colorByLine: [],
+      lineDescriptors: options.lineDescriptors || [],
+      minRevision: options.minRevision || 0,
+      maxRevision: options.maxRevision || Number.MAX_SAFE_INTEGER,
+      revisionRanges: options.revisionRanges || [],
+      commonLinkRows: [],
+      bodies: [],
+    };
+  }
 
   static get template() {
     return html`
@@ -156,10 +177,20 @@ export default class DetailsTable extends ElementBase {
     `;
   }
 
-  observeConfig_(lineDescriptors, revisionRanges) {
-    this.debounce('load', () => {
-      this.dispatch('load', this.statePath);
-    }, PolymerAsync.microTask);
+  stateChanged(rootState) {
+    if (!this.statePath) return;
+
+    const oldLineDescriptors = this.lineDescriptors;
+    const oldRevisionRanges = this.revisionRanges;
+
+    this.setProperties(get(rootState, this.statePath));
+
+    if (this.lineDescriptors !== oldLineDescriptors ||
+        this.revisionRanges !== oldRevisionRanges) {
+      this.debounce('load', () => {
+        this.dispatch('load', this.statePath);
+      }, PolymerAsync.microTask);
+    }
   }
 
   getColor_(colorByLine, body) {
@@ -176,25 +207,6 @@ export default class DetailsTable extends ElementBase {
     return !isLoading || !this.isEmpty_(bodies);
   }
 }
-
-DetailsTable.State = {
-  isLoading: options => false,
-  colorByLine: options => [],
-  lineDescriptors: options => options.lineDescriptors || [],
-  minRevision: options => options.minRevision || 0,
-  maxRevision: options => options.maxRevision || Number.MAX_SAFE_INTEGER,
-  revisionRanges: options => options.revisionRanges || [],
-  commonLinkRows: options => [],
-  bodies: options => [],
-};
-
-DetailsTable.properties = buildProperties(
-    'state', DetailsTable.State);
-DetailsTable.buildState = options => buildState(
-    DetailsTable.State, options);
-DetailsTable.observers = [
-  'observeConfig_(lineDescriptors, revisionRanges)',
-];
 
 DetailsTable.actions = {
   load: statePath => async(dispatch, getState) => {

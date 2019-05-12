@@ -16,18 +16,32 @@ import ReportRequest from './report-request.js';
 import ReportTable from './report-table.js';
 import ReportTemplate from './report-template.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
+import {BatchIterator} from './utils.js';
 import {UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
-import {
-  BatchIterator,
-  buildProperties,
-  buildState,
-} from './utils.js';
+const DEBOUNCE_LOAD_MS = 200;
 
 export default class ReportSection extends ElementBase {
   static get is() { return 'report-section'; }
+
+  static get properties() {
+    return {
+      statePath: String,
+      isLoading: Boolean,
+      tables: Array,
+    };
+  }
+
+  static buildState(options = {}) {
+    return {
+      ...ReportControls.buildState(options),
+      isLoading: false,
+      tables: [ReportTable.placeholderTable(
+          ReportControls.DEFAULT_NAME)],
+    };
+  }
 
   static get template() {
     return html`
@@ -78,30 +92,27 @@ export default class ReportSection extends ElementBase {
     await this.dispatch('loadReports', this.statePath);
   }
 
-  observeSources_() {
-    this.debounce('loadReports', () => {
-      this.dispatch('loadReports', this.statePath);
-    }, PolymerAsync.timeOut.after(200));
+  stateChanged(rootState) {
+    if (!this.statePath) return;
+    const state = get(rootState, this.statePath);
+
+    const sourcesChanged = (
+      state && this.source && state.source && (
+        (this.minRevision !== state.minRevision) ||
+        (this.maxRevision !== state.maxRevision) ||
+        !tr.b.setsEqual(
+            new Set(this.source.selectedOptions),
+            new Set(state.source.selectedOptions))));
+
+    this.setProperties(state);
+
+    if (sourcesChanged) {
+      this.debounce('loadReports', () => {
+        this.dispatch('loadReports', this.statePath);
+      }, PolymerAsync.timeOut.after(DEBOUNCE_LOAD_MS));
+    }
   }
 }
-
-ReportSection.State = {
-  ...ReportControls.State,
-  isLoading: options => false,
-  tables: options => [ReportTable.placeholderTable(
-      ReportControls.DEFAULT_NAME)],
-};
-
-ReportSection.buildState = options => buildState(
-    ReportSection.State, options);
-
-ReportSection.properties = {
-  ...buildProperties('state', ReportSection.State),
-  userEmail: {statePath: 'userEmail'},
-};
-ReportSection.observers = [
-  'observeSources_(source.selectedOptions, minRevision, maxRevision)',
-];
 
 ReportSection.actions = {
   restoreState: (statePath, options) => async(dispatch, getState) => {
@@ -495,7 +506,7 @@ ReportSection.transformReportRow = (
     scalars,
     label: row.label,
     actualDescriptors,
-    ...buildState(TimeseriesDescriptor.State, {
+    ...TimeseriesDescriptor.buildState({
       suite: {
         selectedOptions: row.suites,
         isAggregated: true,

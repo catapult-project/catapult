@@ -26,8 +26,6 @@ import {html} from '@polymer/polymer/polymer-element.js';
 import {
   BatchIterator,
   animationFrame,
-  buildProperties,
-  buildState,
   plural,
   setImmutable,
   simpleGUID,
@@ -44,6 +42,36 @@ const ENOUGH_LOADING_MS = 60000;
 
 export default class AlertsSection extends ElementBase {
   static get is() { return 'alerts-section'; }
+
+  static get properties() {
+    return {
+      statePath: String,
+      linkedStatePath: String,
+      ...AlertsTable.properties,
+      ...AlertsControls.properties,
+      existingBug: Object,
+      isLoading: Boolean,
+      newBug: Object,
+      preview: Object,
+      sectionId: Number,
+      selectedAlertPath: String,
+      totalCount: Number,
+    };
+  }
+
+  static buildState(options = {}) {
+    return {
+      ...AlertsTable.buildState(options),
+      ...AlertsControls.buildState(options),
+      existingBug: TriageExisting.buildState({}),
+      isLoading: false,
+      newBug: TriageNew.buildState({}),
+      preview: ChartCompound.buildState(options),
+      sectionId: options.sectionId || simpleGUID(),
+      selectedAlertPath: undefined,
+      totalCount: 0,
+    };
+  }
 
   static get template() {
     return html`
@@ -254,29 +282,6 @@ export default class AlertsSection extends ElementBase {
     this.dispatch('updateAlertColors', this.statePath);
   }
 }
-
-AlertsSection.State = {
-  ...AlertsTable.State,
-  ...AlertsControls.State,
-  existingBug: options => TriageExisting.buildState({}),
-  isLoading: options => false,
-  newBug: options => TriageNew.buildState({}),
-  preview: options => ChartCompound.buildState(options),
-  sectionId: options => options.sectionId || simpleGUID(),
-  selectedAlertPath: options => undefined,
-  totalCount: options => 0,
-};
-
-AlertsSection.buildState = options =>
-  buildState(AlertsSection.State, options);
-
-AlertsSection.properties = {
-  ...buildProperties('state', AlertsSection.State),
-  ...buildProperties('linkedState', {
-    // AlertsSection only needs the linkedStatePath property to forward to
-    // ChartCompound.
-  }),
-};
 
 async function wrapRequest(body) {
   const request = new AlertsRequest({body});

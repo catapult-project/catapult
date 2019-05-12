@@ -10,16 +10,47 @@ import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
 import ElementBase from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
-
-import {
-  buildProperties,
-  buildState,
-  measureElement,
-} from './utils.js';
+import {measureElement} from './utils.js';
 
 export default class ReportTable extends ElementBase {
   static get is() { return 'report-table'; }
+
+  static get properties() {
+    return {
+      userEmail: String,
+
+      statePath: String,
+      milestone: Number,
+      minRevision: String,
+      maxRevision: String,
+      name: String,
+      url: String,
+      isPlaceholder: Boolean,
+      maxLabelParts: Number,
+      statistics: Array,
+      rows: Array,
+      owners: Array,
+      tooltip: Object,
+    };
+  }
+
+  static buildState(options = {}) {
+    return {
+      milestone: options.milestone,
+      minRevision: options.minRevision,
+      maxRevision: options.maxRevision,
+      name: options.name || '',
+      url: options.url || '',
+      isPlaceholder: options.isPlaceholder || false,
+      maxLabelParts: options.maxLabelParts || 1,
+      statistics: options.statistics || ['avg'],
+      rows: options.rows || [],
+      owners: options.owners || [],
+      tooltip: {},
+    };
+  }
 
   static get template() {
     return html`
@@ -228,6 +259,11 @@ export default class ReportTable extends ElementBase {
     `;
   }
 
+  stateChanged(rootState) {
+    this.set('userEmail', rootState.userEmail);
+    super.stateChanged(rootState);
+  }
+
   prevMstoneLabel_(milestone, maxRevision) {
     if (maxRevision === 'latest') milestone += 1;
     return `M${milestone - 1}`;
@@ -369,28 +405,6 @@ export default class ReportTable extends ElementBase {
 ReportTable.canEdit = (owners, userEmail) =>
   window.IS_DEBUG ||
   (owners && userEmail && owners.includes(userEmail));
-
-ReportTable.State = {
-  milestone: options => options.milestone,
-  minRevision: options => options.minRevision,
-  maxRevision: options => options.maxRevision,
-  name: options => options.name || '',
-  url: options => options.url || '',
-  isPlaceholder: options => options.isPlaceholder || false,
-  maxLabelParts: options => options.maxLabelParts || 1,
-  statistics: options => options.statistics || ['avg'],
-  rows: options => options.rows || [],
-  owners: options => options.owners || [],
-  tooltip: options => {return {};},
-};
-
-ReportTable.buildState = options => buildState(
-    ReportTable.State, options);
-
-ReportTable.properties = {
-  ...buildProperties('state', ReportTable.State),
-  userEmail: {statePath: 'userEmail'},
-};
 
 const DASHES = '-'.repeat(5);
 const PLACEHOLDER_TABLE = {

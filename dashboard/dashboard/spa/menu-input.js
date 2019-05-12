@@ -8,17 +8,37 @@ import './cp-input.js';
 import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
 import {UPDATE} from './simple-redux.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
-
-import {
-  buildProperties,
-  buildState,
-  isElementChildOf,
-  setImmutable,
-} from './utils.js';
+import {isElementChildOf, setImmutable} from './utils.js';
 
 export default class MenuInput extends ElementBase {
   static get is() { return 'menu-input'; }
+
+  static get properties() {
+    return {
+      statePath: String,
+      ...OptionGroup.properties,
+      label: String,
+      focusTimestamp: Number,
+      largeDom: Boolean,
+      hasBeenOpened: Boolean,
+      isFocused: Boolean,
+      required: Boolean,
+      requireSingle: Boolean,
+    };
+  }
+
+  static buildState(options = {}) {
+    return {
+      ...OptionGroup.buildState(options),
+      alwaysEnabled: options.alwaysEnabled !== false,
+      hasBeenOpened: false,
+      label: '',
+      requireSingle: options.requireSingle || false,
+      required: options.required || false,
+    };
+  }
 
   static get template() {
     return html`
@@ -92,6 +112,17 @@ export default class MenuInput extends ElementBase {
     this.observeIsFocused_();
   }
 
+  stateChanged(rootState) {
+    if (!this.statePath) return;
+    this.largeDom = rootState.largeDom;
+    this.rootFocusTimestamp = rootState.focusTimestamp;
+    this.setProperties(get(rootState, this.statePath));
+    const isFocused = (rootState.focusTimestamp === this.focusTimestamp);
+    const focusChanged = (isFocused !== this.isFocused);
+    this.isFocused = isFocused;
+    if (focusChanged) this.observeIsFocused_();
+  }
+
   async observeIsFocused_() {
     if (this.isFocused) {
       this.$.input.focus();
@@ -159,29 +190,6 @@ MenuInput.inputValue = (isFocused, query, selectedOptions) => {
   if (selectedOptions.length === 1) return selectedOptions[0];
   return `[${selectedOptions.length} selected]`;
 };
-
-MenuInput.State = {
-  ...OptionGroup.RootState,
-  ...OptionGroup.State,
-  alwaysEnabled: options => options.alwaysEnabled !== false,
-  focusTimestamp: options => undefined,
-  hasBeenOpened: options => false,
-  label: options => options.label || '',
-  requireSingle: options => options.requireSingle || false,
-  required: options => options.required || false,
-};
-
-MenuInput.buildState = options => buildState(
-    MenuInput.State, options);
-
-MenuInput.properties = {
-  ...buildProperties('state', MenuInput.State),
-  largeDom: {statePath: 'largeDom'},
-  rootFocusTimestamp: {statePath: 'focusTimestamp'},
-  isFocused: {computed: 'isEqual_(focusTimestamp, rootFocusTimestamp)'},
-};
-
-MenuInput.observers = ['observeIsFocused_(isFocused)'];
 
 MenuInput.actions = {
   focus: inputStatePath => async(dispatch, getState) => {

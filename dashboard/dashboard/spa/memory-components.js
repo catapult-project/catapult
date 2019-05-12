@@ -10,13 +10,23 @@ import OptionGroup from './option-group.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
-import {
-  buildProperties,
-  buildState,
-} from './utils.js';
-
 export default class MemoryComponents extends ElementBase {
   static get is() { return 'memory-components'; }
+
+  static get properties() {
+    return {
+      ...OptionGroup.properties,
+      columns: Array,
+    };
+  }
+
+  static buildState(options = {}) {
+    return {
+      ...OptionGroup.buildState(options),
+      columns: MemoryComponents.buildColumns(
+          options.options || [], options.selectedOptions || []),
+    };
+  }
 
   static get template() {
     return html`
@@ -46,6 +56,18 @@ export default class MemoryComponents extends ElementBase {
     `;
   }
 
+  stateChanged(rootState) {
+    if (!this.statePath) return;
+
+    const oldOptions = this.options;
+    const oldSelectedOptions = this.selectedOptions;
+    this.setProperties(get(rootState, this.statePath));
+    if (this.options !== oldOptions ||
+        this.selectedOptions !== oldSelectedOptions) {
+      this.dispatch('buildColumns', this.statePath);
+    }
+  }
+
   async onColumnSelect_(event) {
     await this.dispatch('onColumnSelect', this.statePath);
     this.dispatchEvent(new CustomEvent('option-select', {
@@ -53,29 +75,7 @@ export default class MemoryComponents extends ElementBase {
       composed: true,
     }));
   }
-
-  async observeOptions_(options, selectedOptions) {
-    this.dispatch('buildColumns', this.statePath);
-  }
 }
-
-MemoryComponents.State = {
-  ...OptionGroup.RootState,
-  ...OptionGroup.State,
-  columns: options => MemoryComponents.buildColumns(
-      options.options || [], options.selectedOptions || []),
-};
-
-MemoryComponents.buildState = options => buildState(
-    MemoryComponents.State, options);
-
-MemoryComponents.properties = {
-  ...buildProperties('state', MemoryComponents.State),
-};
-
-MemoryComponents.observers = [
-  'observeOptions_(options, selectedOptions)',
-];
 
 MemoryComponents.actions = {
   buildColumns: statePath => async(dispatch, getState) => {

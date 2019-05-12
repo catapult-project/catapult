@@ -11,17 +11,39 @@ import './raised-button.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
 import ElementBase from './element-base.js';
 import {UPDATE} from './simple-redux.js';
+import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
-
-import {
-  buildProperties,
-  buildState,
-  isElementChildOf,
-  setImmutable,
-} from './utils.js';
+import {isElementChildOf, setImmutable} from './utils.js';
 
 export default class TriageNew extends ElementBase {
   static get is() { return 'triage-new'; }
+
+  static get properties() {
+    return {
+      statePath: String,
+      cc: String,
+      components: Array,
+      description: String,
+      isOpen: {type: Boolean, reflectToAttribute: true},
+      labels: Array,
+      owner: String,
+      summary: String,
+    };
+  }
+
+  static buildState(options = {}) {
+    return {
+      cc: options.cc || '',
+      components: TriageNew.collectAlertProperties(
+          options.alerts, 'bugComponents'),
+      description: options.description || '',
+      isOpen: options.isOpen || false,
+      labels: TriageNew.collectAlertProperties(
+          options.alerts, 'bugLabels'),
+      owner: options.owner || '',
+      summary: TriageNew.summarize(options.alerts),
+    };
+  }
 
   static get template() {
     return html`
@@ -100,6 +122,15 @@ export default class TriageNew extends ElementBase {
     `;
   }
 
+  stateChanged(rootState) {
+    const oldIsOpen = this.isOpen;
+    super.stateChanged(rootState);
+
+    if (this.isOpen && !oldIsOpen) {
+      this.$.description.focus();
+    }
+  }
+
   ready() {
     super.ready();
     this.addEventListener('blur', this.onBlur_.bind(this));
@@ -118,12 +149,6 @@ export default class TriageNew extends ElementBase {
       return;
     }
     await this.dispatch('close', this.statePath);
-  }
-
-  observeIsOpen_() {
-    if (this.isOpen) {
-      this.$.description.focus();
-    }
   }
 
   async onSummary_(event) {
@@ -163,27 +188,6 @@ export default class TriageNew extends ElementBase {
     }));
   }
 }
-
-TriageNew.State = {
-  cc: options => options.cc || '',
-  components: options => TriageNew.collectAlertProperties(
-      options.alerts, 'bugComponents'),
-  description: options => '',
-  isOpen: {
-    value: options => options.isOpen || false,
-    reflectToAttribute: true,
-  },
-  labels: options => TriageNew.collectAlertProperties(
-      options.alerts, 'bugLabels'),
-  owner: options => '',
-  summary: options => TriageNew.summarize(options.alerts),
-};
-
-TriageNew.buildState = options => buildState(TriageNew.State, options);
-TriageNew.properties = buildProperties('state', TriageNew.State);
-TriageNew.observers = [
-  'observeIsOpen_(isOpen)',
-];
 
 TriageNew.actions = {
   close: statePath => async(dispatch, getState) => {
