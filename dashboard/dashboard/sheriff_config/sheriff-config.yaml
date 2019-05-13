@@ -7,6 +7,7 @@ runtime: python37
 instance_class: F2
 entrypoint: gunicorn -b :$PORT main:APP --workers 2
 
+handlers:
 - url: /.*
   secure: always
   redirect_http_response_code: 301

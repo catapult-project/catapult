@@ -12,7 +12,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from google.protobuf import json_format
-from dashboard.sheriff_config.proto import sheriff_pb2
+from proto import sheriff_pb2
 
 
 class Error(Exception):

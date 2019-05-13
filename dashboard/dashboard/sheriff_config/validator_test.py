@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import unittest
-from dashboard.sheriff_config import validator
+import validator
 
 
 class ValidatorTest(unittest.TestCase):

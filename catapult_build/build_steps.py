@@ -13,7 +13,6 @@ import sys
 # name (required): The name of the step, to show on the buildbot status page.
 # path (required): The path to the executable which runs the tests.
 # additional_args (optional): An array of optional arguments.
-# uses_app_engine_sdk (optional): True if app engine SDK must be in PYTHONPATH.
 # uses_sandbox_env (optional): True if CHROME_DEVEL_SANDBOX must be in
 #   environment.
 # disabled (optional): List of platforms the test is disabled on. May contain
@@ -58,7 +57,6 @@ _CATAPULT_TESTS = [
         'name': 'Dashboard Python Tests',
         'path': 'dashboard/bin/run_py_tests',
         'additional_args': ['--no-install-hooks'],
-        'uses_app_engine_sdk': True,
         'disabled': ['android'],
     },
     {
@@ -288,11 +286,10 @@ def main(args=None):
         'env': {}
     }
 
-    # vpython doesn't integrate well with app engine SDK yet
-    if test.get('uses_app_engine_sdk'):
-      executable = 'python'
-    else:
-      executable = 'vpython.bat' if sys.platform == 'win32' else 'vpython'
+    executable = 'vpython.bat' if sys.platform == 'win32' else 'vpython'
+
+    # Always add the appengine SDK path.
+    step['env']['PYTHONPATH'] = args.app_engine_sdk_pythonpath
 
     step['cmd'] = [
         executable, os.path.join(args.api_path_checkout, test['path'])]
@@ -300,8 +297,6 @@ def main(args=None):
       step['cmd'] += ['--device=' + args.platform]
     if test.get('additional_args'):
       step['cmd'] += test['additional_args']
-    if test.get('uses_app_engine_sdk'):
-      step['env']['PYTHONPATH'] = args.app_engine_sdk_pythonpath
     if test.get('uses_sandbox_env'):
       step['env']['CHROME_DEVEL_SANDBOX'] = '/opt/chromium/chrome_sandbox'
     if test.get('outputs_presentation_json'):
