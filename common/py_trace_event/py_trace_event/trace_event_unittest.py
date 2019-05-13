@@ -10,10 +10,12 @@ import multiprocessing
 import os
 import time
 import unittest
+import sys
 
 from py_trace_event import trace_event
 from py_trace_event import trace_time
 from py_trace_event.trace_event_impl import log
+from py_trace_event.trace_event_impl import multiprocessing_shim
 from py_utils import tempfile_ext
 
 
@@ -70,10 +72,15 @@ class TraceEventTests(unittest.TestCase):
     assert False
 
   def testDisable(self):
+    _old_multiprocessing_process = multiprocessing.Process
     with self._test_trace(disable=False):
       with open(self._log_path, 'r') as f:
         self.assertTrue(trace_event.trace_is_enabled())
+        self.assertEqual(
+            multiprocessing.Process, multiprocessing_shim.ProcessShim)
         trace_event.trace_disable()
+        self.assertEqual(
+            multiprocessing.Process, _old_multiprocessing_process)
         self.assertEquals(len(json.loads(f.read() + ']')), 1)
         self.assertFalse(trace_event.trace_is_enabled())
 
@@ -386,6 +393,21 @@ class TraceEventTests(unittest.TestCase):
         self.assertEquals(parent_close['category'], 'python')
         self.assertEquals(parent_close['name'], 'parent_event')
         self.assertEquals(parent_close['ph'], 'E')
+
+  @unittest.skipIf(sys.platform == 'win32', 'crbug.com/945819')
+  def testTracingControlDisabledInChildButNotInParent(self):
+    def child(resp):
+      # test tracing is not controllable in the child
+      resp.put(trace_event.is_tracing_controllable())
+
+    with self._test_trace():
+      q = multiprocessing.Queue()
+      p = multiprocessing.Process(target=child, args=[q])
+      p.start()
+      # test tracing is controllable in the parent
+      self.assertTrue(trace_event.is_tracing_controllable())
+      self.assertFalse(q.get())
+      p.join()
 
   def testMultiprocessExceptionInChild(self):
     def bad_child():
