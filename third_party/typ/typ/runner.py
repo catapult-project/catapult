@@ -548,35 +548,48 @@ class Runner(object):
             else:
                 return json_results.regressions(results)
 
-        self._run_one_set(self.stats, result_set, test_set)
+        if len(test_set.parallel_tests):
+            jobs = min(
+                len(test_set.parallel_tests), self.args.jobs)
+        else:
+            jobs = 1
+
+        child = _Child(self)
+        pool = make_pool(h, jobs, _run_one_test, child,
+                         _setup_process, _teardown_process)
+
+        self._run_one_set(self.stats, result_set, test_set, jobs, pool)
 
         tests_to_retry = sorted(get_tests_to_retry(result_set))
         retry_limit = self.args.retry_limit
+        try:
+            while retry_limit and tests_to_retry:
+                if retry_limit == self.args.retry_limit:
+                    self.flush()
+                    self.args.overwrite = False
+                    self.printer.should_overwrite = False
+                    self.args.verbose = min(self.args.verbose, 1)
 
-        while retry_limit and tests_to_retry:
-            if retry_limit == self.args.retry_limit:
-                self.flush()
-                self.args.overwrite = False
-                self.printer.should_overwrite = False
-                self.args.verbose = min(self.args.verbose, 1)
+                self.print_('')
+                self.print_('Retrying failed tests (attempt #%d of %d)...' %
+                            (self.args.retry_limit - retry_limit + 1,
+                             self.args.retry_limit))
+                self.print_('')
 
-            self.print_('')
-            self.print_('Retrying failed tests (attempt #%d of %d)...' %
-                        (self.args.retry_limit - retry_limit + 1,
-                         self.args.retry_limit))
-            self.print_('')
-
-            stats = Stats(self.args.status_format, h.time, 1)
-            stats.total = len(tests_to_retry)
-            test_set = TestSet(self.args.test_name_prefix)
-            test_set.isolated_tests = [
-                TestInput(name) for name in tests_to_retry]
-            tests_to_retry = test_set
-            retry_set = ResultSet()
-            self._run_one_set(stats, retry_set, tests_to_retry)
-            result_set.results.extend(retry_set.results)
-            tests_to_retry = get_tests_to_retry(retry_set)
-            retry_limit -= 1
+                stats = Stats(self.args.status_format, h.time, 1)
+                stats.total = len(tests_to_retry)
+                test_set = TestSet(self.args.test_name_prefix)
+                test_set.isolated_tests = [
+                    TestInput(name) for name in tests_to_retry]
+                tests_to_retry = test_set
+                retry_set = ResultSet()
+                self._run_one_set(stats, retry_set, tests_to_retry, 1, pool)
+                result_set.results.extend(retry_set.results)
+                tests_to_retry = get_tests_to_retry(retry_set)
+                retry_limit -= 1
+            pool.close()
+        finally:
+            self.final_responses.extend(pool.join())
 
         if retry_limit != self.args.retry_limit:
             self.print_('')
@@ -589,12 +602,12 @@ class Runner(object):
         return (json_results.exit_code_from_full_results(full_results),
                 full_results)
 
-    def _run_one_set(self, stats, result_set, test_set):
+    def _run_one_set(self, stats, result_set, test_set, jobs, pool):
         self._skip_tests(stats, result_set, test_set.tests_to_skip)
         self._run_list(stats, result_set,
-                       test_set.parallel_tests, self.args.jobs)
+                       test_set.parallel_tests, jobs, pool)
         self._run_list(stats, result_set,
-                       test_set.isolated_tests, 1)
+                       test_set.isolated_tests, 1, pool)
 
     def _skip_tests(self, stats, result_set, tests_to_skip):
         for test_input in tests_to_skip:
@@ -610,39 +623,27 @@ class Runner(object):
             stats.finished += 1
             self._print_test_finished(stats, result)
 
-    def _run_list(self, stats, result_set, test_inputs, jobs):
-        h = self.host
+    def _run_list(self, stats, result_set, test_inputs, jobs, pool):
         running_jobs = set()
 
-        jobs = min(len(test_inputs), jobs)
-        if not jobs:
-            return
+        while test_inputs or running_jobs:
+            while test_inputs and (len(running_jobs) < jobs):
+                test_input = test_inputs.pop(0)
+                stats.started += 1
+                pool.send(test_input)
+                running_jobs.add(test_input.name)
+                self._print_test_started(stats, test_input)
 
-        child = _Child(self)
-        pool = make_pool(h, jobs, _run_one_test, child,
-                         _setup_process, _teardown_process)
-        try:
-            while test_inputs or running_jobs:
-                while test_inputs and (len(running_jobs) < jobs):
-                    test_input = test_inputs.pop(0)
-                    stats.started += 1
-                    pool.send(test_input)
-                    running_jobs.add(test_input.name)
-                    self._print_test_started(stats, test_input)
+            result, should_retry_on_failure = pool.get()
+            if (self.args.retry_only_retry_on_failure_tests and
+                result.actual == ResultType.Failure and
+                should_retry_on_failure):
+                self.last_runs_retry_on_failure_tests.add(result.name)
 
-                result, should_retry_on_failure = pool.get()
-                if (self.args.retry_only_retry_on_failure_tests and
-                    result.actual == ResultType.Failure and
-                    should_retry_on_failure):
-                    self.last_runs_retry_on_failure_tests.add(result.name)
-
-                running_jobs.remove(result.name)
-                result_set.add(result)
-                stats.finished += 1
-                self._print_test_finished(stats, result)
-            pool.close()
-        finally:
-            self.final_responses.extend(pool.join())
+            running_jobs.remove(result.name)
+            result_set.add(result)
+            stats.finished += 1
+            self._print_test_finished(stats, result)
 
     def _print_test_started(self, stats, test_input):
         if self.args.quiet:
