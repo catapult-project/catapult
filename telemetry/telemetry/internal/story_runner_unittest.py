@@ -1457,8 +1457,8 @@ class StoryRunnerTest(unittest.TestCase):
     try:
       options.output_dir = tmp_path
       rc = story_runner.RunBenchmark(fake_benchmark, options)
-      # Test should return 0 since only error messages are logged.
-      self.assertEqual(rc, 0)
+      # Test should return -1 since the test was skipped.
+      self.assertEqual(rc, -1)
     finally:
       shutil.rmtree(tmp_path)
 

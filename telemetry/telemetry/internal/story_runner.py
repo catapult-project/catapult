@@ -364,7 +364,10 @@ def RunBenchmark(benchmark, finder_options):
   """Run this test with the given options.
 
   Returns:
-    1 if there is failure or 2 if there is an uncaught exception.
+    -1 if the benchmark was skipped,
+    0 for success
+    1 if there was a failure
+    2 if there was an uncaught exception.
   """
   benchmark.CustomizeOptions(finder_options)
 
@@ -373,7 +376,7 @@ def RunBenchmark(benchmark, finder_options):
   if not possible_browser:
     logging.error('No browser of type "%s" found for benchmark "%s"' % (
         finder_options.browser_options.browser_type, benchmark.Name()))
-    return 0
+    return -1
   expectations = benchmark.expectations
 
   target_platform = None
@@ -412,9 +415,7 @@ def RunBenchmark(benchmark, finder_options):
             benchmark_enabled=False
             ) as results:
           results.PrintSummary()
-        # When a disabled benchmark is run we now want to return success since
-        # we are no longer filtering these out in the buildbot recipes.
-        return 0
+        return -1
 
   pt = benchmark.CreatePageTest(finder_options)
   pt.__name__ = benchmark.__class__.__name__
@@ -434,7 +435,12 @@ def RunBenchmark(benchmark, finder_options):
     try:
       Run(pt, stories, finder_options, results, benchmark.max_failures,
           expectations=expectations, max_num_values=benchmark.MAX_NUM_VALUES)
-      return_code = 1 if results.had_failures else 0
+      if results.had_failures:
+        return_code = 1
+      elif results.had_successes_not_skipped:
+        return_code = 0
+      else:
+        return_code = -1  # All stories were skipped.
       # We want to make sure that all expectations are linked to real stories,
       # this will log error messages if names do not match what is in the set.
       benchmark.GetBrokenExpectations(stories)

@@ -437,5 +437,8 @@ def main(environment):
   options.positional_args = args
   command.ProcessCommandLineArgs(parser, options, environment)
 
-  return command().Run(options)
-
+  return_code = command().Run(options)
+  if return_code == -1:
+    logging.warn('No stories were run.')
+    return 0
+  return return_code

@@ -474,6 +474,10 @@ class PageTestResults(object):
     return failed_pages
 
   @property
+  def had_successes_not_skipped(self):
+    return bool(self.pages_that_succeeded_and_not_skipped)
+
+  @property
   def had_failures(self):
     return any(run.failed for run in self.all_page_runs)
 
