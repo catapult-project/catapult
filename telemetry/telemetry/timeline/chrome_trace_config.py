@@ -151,28 +151,6 @@ class ChromeTraceConfig(object):
 
     return result
 
-  @property
-  def requires_modern_devtools_tracing_start_api(self):
-    """Returns True iff the config CANNOT be passed via the legacy DevTools API.
-
-    Legacy DevTools Tracing.start API:
-      Available since:    the introduction of the Tracing.start request.
-      Parameters:         categories (string), options (string),
-                          bufferUsageReportingInterval (number),
-                          transferMode (enum).
-      TraceConfig method: GetChromeTraceCategoriesAndOptionsStringsForDevTools()
-
-    Modern DevTools Tracing.start API:
-      Available since:    Chrome 51.0.2683.0.
-      Parameters:         traceConfig (dict),
-                          bufferUsageReportingInterval (number),
-                          transferMode (enum).
-      TraceConfig method: GetChromeTraceConfigDictForDevTools()
-    """
-    # Memory dump config cannot be passed via the 'options' string (legacy API)
-    # in the DevTools Tracing.start request.
-    return bool(self._memory_dump_config)
-
   def GetChromeTraceConfigForDevTools(self):
     """Map the config to a DevTools API config dictionary.
 
@@ -188,13 +166,6 @@ class ChromeTraceConfig(object):
     if self._enable_systrace:
       result.update({ENABLE_SYSTRACE_PARAM: True})
     return ConvertDictKeysToCamelCaseRecursively(result)
-
-  def GetChromeTraceCategoriesAndOptionsForDevTools(self):
-    """Map the categories and options to their DevTools API counterparts."""
-    assert not self.requires_modern_devtools_tracing_start_api
-    options_parts = [RECORD_MODE_MAP[self._record_mode]]
-    return (self._category_filter.stable_filter_string,
-            ','.join(options_parts))
 
 
 class MemoryDumpConfig(object):
