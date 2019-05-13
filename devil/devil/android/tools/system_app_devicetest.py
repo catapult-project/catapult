@@ -39,7 +39,7 @@ class SystemAppDeviceTest(device_test_case.DeviceTestCase):
     self._cached_apks = {}
     for o in self._original_paths:
       h = os.path.join(self._apk_cache_dir, posixpath.basename(o))
-      self._device.PullFile(o, h)
+      self._device.PullFile(o, h, timeout=60)
       self._cached_apks[h] = o
 
   def tearDown(self):
