@@ -28,7 +28,7 @@ CHROME_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'common', 'py_utils',
 
 
 SUPPORTED_DEP_PLATFORMS = (
-    'linux_aarch64', 'linux_x86_64', 'linux_armv7l', 'linux_mips'
+    'linux_aarch64', 'linux_x86_64', 'linux_armv7l', 'linux_mips',
     'mac_x86_64',
     'win_x86', 'win_AMD64',
     'android_arm64-v8a', 'android_armeabi-v7a', 'android_arm', 'android_x64',
