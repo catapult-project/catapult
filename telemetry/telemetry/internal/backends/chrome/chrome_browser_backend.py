@@ -178,6 +178,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def supports_tab_control(self):
     return self._supports_tab_control
 
+  @property
+  def supports_tracing(self):
+    return True
+
   def GetProcessName(self, cmd_line):
     """Returns a user-friendly name for the process of the given |cmd_line|."""
     if not cmd_line:

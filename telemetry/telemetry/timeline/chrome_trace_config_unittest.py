@@ -22,6 +22,12 @@ class ChromeTraceConfigTests(unittest.TestCase):
         'recordMode': 'recordAsMuchAsPossible'
     }, config.GetChromeTraceConfigForDevTools())
 
+    # Trace categories and options for DevTools (legacy API).
+    self.assertFalse(config.requires_modern_devtools_tracing_start_api)
+    self.assertEquals(
+        ('', 'record-as-much-as-possible'),
+        config.GetChromeTraceCategoriesAndOptionsForDevTools())
+
   def testBasic(self):
     category_filter = chrome_trace_category_filter.ChromeTraceCategoryFilter(
         'x,-y,disabled-by-default-z,DELAY(7;foo)')
@@ -44,6 +50,13 @@ class ChromeTraceConfigTests(unittest.TestCase):
         'recordMode': 'recordUntilFull',
         'syntheticDelays': ['DELAY(7;foo)']
     }, config.GetChromeTraceConfigForDevTools())
+
+    # Trace categories and options for DevTools (legacy API).
+    self.assertFalse(config.requires_modern_devtools_tracing_start_api)
+    self.assertEquals(
+        ('x,disabled-by-default-z,-y,DELAY(7;foo)',
+         'record-until-full'),
+        config.GetChromeTraceCategoriesAndOptionsForDevTools())
 
     # Test correct modification of config after enabling systrace.
     config.SetEnableSystrace()
@@ -84,6 +97,11 @@ class ChromeTraceConfigTests(unittest.TestCase):
         'recordMode': 'traceToConsole'
     }, config.GetChromeTraceConfigForDevTools())
 
+    # Trace categories and options for DevTools (legacy API).
+    self.assertTrue(config.requires_modern_devtools_tracing_start_api)
+    with self.assertRaises(AssertionError):
+      config.GetChromeTraceCategoriesAndOptionsForDevTools()
+
     dump_config.AddTrigger('light', 250)
     dump_config.AddTrigger('detailed', 2000)
 
@@ -108,6 +126,11 @@ class ChromeTraceConfigTests(unittest.TestCase):
         },
         'recordMode': 'traceToConsole'
     }, config.GetChromeTraceConfigForDevTools())
+
+    # Trace categories and options for DevTools (legacy API).
+    self.assertTrue(config.requires_modern_devtools_tracing_start_api)
+    with self.assertRaises(AssertionError):
+      config.GetChromeTraceCategoriesAndOptionsForDevTools()
 
   def testUMAHistograms(self):
     config = chrome_trace_config.ChromeTraceConfig()

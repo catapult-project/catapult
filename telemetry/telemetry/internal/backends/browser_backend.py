@@ -84,6 +84,10 @@ class BrowserBackend(app_backend.AppBackend):
     return self._tab_list_backend_class(self)
 
   @property
+  def supports_tracing(self):
+    raise NotImplementedError()
+
+  @property
   def supports_app_ui_interactions(self):
     return False
 

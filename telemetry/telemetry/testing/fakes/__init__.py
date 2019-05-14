@@ -421,6 +421,9 @@ class _FakeTracingController(object):
   def ClearStateIfNeeded(self):
     pass
 
+  def IsChromeTracingSupported(self):
+    return True
+
 
 class _FakeNetworkController(object):
   def __init__(self):

@@ -17,6 +17,7 @@ from telemetry.internal.backends.chrome_inspector import memory_backend
 from telemetry.internal.backends.chrome_inspector import system_info_backend
 from telemetry.internal.backends.chrome_inspector import tracing_backend
 from telemetry.internal.backends.chrome_inspector import window_manager_backend
+from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
 
@@ -105,6 +106,11 @@ class _DevToolsClientBackend(object):
     return self._app_backend.platform_backend
 
   @property
+  def supports_tracing(self):
+    return (isinstance(self.app_backend, browser_backend.BrowserBackend)
+            and self.app_backend.supports_tracing)
+
+  @property
   def supports_overriding_memory_pressure_notifications(self):
     return (
         isinstance(self.app_backend, browser_backend.BrowserBackend)
@@ -112,7 +118,31 @@ class _DevToolsClientBackend(object):
 
   @property
   def is_tracing_running(self):
+    if not self.supports_tracing:
+      return False
+    if not self._tracing_backend:
+      return False
     return self._tracing_backend.is_tracing_running
+
+  @property
+  def support_startup_tracing(self):
+    # Startup tracing with --trace-config-file flag was not supported until
+    # Chromium branch number 2512 (see crrev.com/1309243004 and
+    # crrev.com/1353583002).
+    if not chrome_tracing_agent.ChromeTracingAgent.IsStartupTracingSupported(
+        self.platform_backend):
+      return False
+    # TODO(zhenw): Remove this once stable Chrome and reference browser have
+    # passed 2512.
+    return self.GetChromeBranchNumber() >= 2512
+
+  @property
+  def support_modern_devtools_tracing_start_api(self):
+    # Modern DevTools Tracing.start API (via 'traceConfig' parameter) was not
+    # supported until Chromium branch number 2683 (see crrev.com/1808353002).
+    # TODO(petrcermak): Remove this once stable Chrome and reference browser
+    # have passed 2683.
+    return self.GetChromeBranchNumber() >= 2683
 
   def Connect(self, devtools_port, browser_target):
     try:
@@ -146,6 +176,9 @@ class _DevToolsClientBackend(object):
     # devtools_http.DevToolsClientConnectionError.
     self.GetVersion()
 
+    if not self.supports_tracing:
+      return
+
     # Ensure that the inspector websocket is ready. This may raise a
     # inspector_websocket.WebSocketException or socket.error if not ready.
     self._browser_websocket = inspector_websocket.InspectorWebsocket()
@@ -153,12 +186,15 @@ class _DevToolsClientBackend(object):
 
     chrome_tracing_devtools_manager.RegisterDevToolsClient(self)
 
-    # Telemetry has started Chrome tracing if there is a trace config, we use
-    # this info to create the TracingBackend in the correct state.
-    is_tracing_running = bool(
+    # Telemetry has started Chrome tracing if there is trace config, so start
+    # tracing on this newly created devtools client if needed.
+    trace_config = (
         self.platform_backend.tracing_controller_backend.GetChromeTraceConfig())
-    self._tracing_backend = tracing_backend.TracingBackend(
-        self._browser_websocket, is_tracing_running)
+    is_tracing = trace_config and self.support_startup_tracing
+
+    self._CreateTracingBackendIfNeeded(is_tracing_running=is_tracing)
+    if trace_config and not is_tracing:
+      self.StartChromeTracing(trace_config)
 
   def Close(self):
     if self._tracing_backend is not None:
@@ -311,6 +347,13 @@ class _DevToolsClientBackend(object):
       self._wm_backend = window_manager_backend.WindowManagerBackend(
           self._browser_websocket)
 
+  def _CreateTracingBackendIfNeeded(self, is_tracing_running=False):
+    assert self.supports_tracing
+    if not self._tracing_backend:
+      self._tracing_backend = tracing_backend.TracingBackend(
+          self._browser_websocket, is_tracing_running,
+          self.support_modern_devtools_tracing_start_api)
+
   def _CreateMemoryBackendIfNeeded(self):
     assert self.supports_overriding_memory_pressure_notifications
     if not self._memory_backend:
@@ -322,12 +365,19 @@ class _DevToolsClientBackend(object):
       self._system_info_backend = system_info_backend.SystemInfoBackend(
           self.browser_target_url)
 
+  def IsChromeTracingSupported(self):
+    if not self.supports_tracing:
+      return False
+    self._CreateTracingBackendIfNeeded()
+    return self._tracing_backend.IsTracingSupported()
+
   def StartChromeTracing(self, trace_config, timeout=20):
     """
     Args:
         trace_config: An tracing_config.TracingConfig instance.
     """
     assert trace_config and trace_config.enable_chrome_trace
+    self._CreateTracingBackendIfNeeded()
     return self._tracing_backend.StartTracing(
         trace_config.chrome_trace_config, timeout)
 
@@ -366,6 +416,7 @@ class _DevToolsClientBackend(object):
     return next(self._IterInspectorBackends(['page']), None)
 
   def CollectChromeTracingData(self, trace_data_builder, timeout=120):
+    self._CreateTracingBackendIfNeeded()
     self._tracing_backend.CollectTraceData(trace_data_builder, timeout)
 
   # This call may be made early during browser bringup and may cause the
@@ -390,6 +441,7 @@ class _DevToolsClientBackend(object):
       TracingUnexpectedResponseException: If the response contains an error
       or does not contain the expected result.
     """
+    self._CreateTracingBackendIfNeeded()
     return self._tracing_backend.DumpMemory(timeout=timeout)
 
   def SetMemoryPressureNotificationsSuppressed(self, suppressed, timeout=30):

@@ -32,6 +32,16 @@ def RegisterDevToolsClient(devtools_client_backend):
   platform_clients[remote_port] = devtools_client_backend
 
 
+def IsSupported(platform_backend):
+  _RemoveStaleDevToolsClient(platform_backend)
+  devtools_clients_map = _platform_backends_to_devtools_clients_maps.get(
+      platform_backend, {})
+  for _, devtools_client in devtools_clients_map.iteritems():
+    if devtools_client.IsChromeTracingSupported():
+      return True
+  return False
+
+
 def GetDevToolsClients(platform_backend):
   """Get DevTools clients including the ones that are no longer connectable."""
   devtools_clients_map = _platform_backends_to_devtools_clients_maps.get(
