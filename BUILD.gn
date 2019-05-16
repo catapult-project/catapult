@@ -28,7 +28,6 @@ group("telemetry_chrome_test_support") {
     "catapult_build/",
     "dashboard/",
     "dependency_manager/",
-    "devil/",
     "firefighter/",
     "hooks/",
     "infra/",
@@ -36,6 +35,11 @@ group("telemetry_chrome_test_support") {
     "systrace/",
     "trace_processor/",
     "web_page_replay_go/",
+  ]
+
+  data_deps += [
+    "devil",
+    "telemetry",
   ]
 
   data += [
@@ -49,25 +53,6 @@ group("telemetry_chrome_test_support") {
   ]
 
   data += [
-    "telemetry/BUILD.gn",
-    "telemetry/OWNERS",
-    "telemetry/PRESUBMIT.py",
-    "telemetry/README.md",
-    "telemetry/cloud_storage",
-    "telemetry/json_format",
-    "telemetry/pylintrc",
-    "telemetry/telemetry.gyp",
-    "telemetry/telemetry.isolate",
-    "telemetry/update_docs",
-    "telemetry/validate_binary_dependencies",
-    "telemetry/bin/",
-    "telemetry/build/",
-    "telemetry/docs/",
-    "telemetry/examples/",
-    "telemetry/third_party/",
-  ]
-
-  data += [
     "third_party/WebOb/",
     "third_party/apiclient/",
     "third_party/beautifulsoup4/",
@@ -78,7 +63,6 @@ group("telemetry_chrome_test_support") {
     "third_party/flot/",
     "third_party/gae_ts_mon/",
     "third_party/graphy/",
-    "third_party/gsutil/",
     "third_party/html5lib-python/",
     "third_party/httplib2/",
     "third_party/idb/",
@@ -100,7 +84,6 @@ group("telemetry_chrome_test_support") {
     "third_party/six/",
     "third_party/snap-it/",
     "third_party/tsmon_client/",
-    "third_party/typ/",
     "third_party/uritemplate/",
     "third_party/webapp2/",
     "third_party/webtest/",
@@ -108,6 +91,8 @@ group("telemetry_chrome_test_support") {
   ]
 
   data_deps += [
+    "third_party/gsutil",
+    "third_party/typ",
     "third_party/vinn",
   ]
 
@@ -130,52 +115,6 @@ group("telemetry_chrome_test_support") {
     "tracing/tracing/",
     "tracing/tracing_build/",
     "tracing/tracing_examples/",
-  ]
-
-  data += [
-    "telemetry/telemetry/__init__.py",
-    "telemetry/telemetry/benchmark.py",
-    "telemetry/telemetry/benchmark_run_unittest.py",
-    "telemetry/telemetry/benchmark_runner.py",
-    "telemetry/telemetry/benchmark_runner_unittest.py",
-    "telemetry/telemetry/benchmark_unittest.py",
-    "telemetry/telemetry/binary_dependencies.json",
-    "telemetry/telemetry/compat_mode_options.py",
-    "telemetry/telemetry/decorators.py",
-    "telemetry/telemetry/decorators_unittest.py",
-    "telemetry/telemetry/project_config.py",
-    "telemetry/telemetry/record_wpr.py",
-    "telemetry/telemetry/record_wpr_unittest.py",
-    "telemetry/telemetry/telemetry_unittest_deps.json",
-    "telemetry/telemetry/android/",
-    "telemetry/telemetry/core/",
-    "telemetry/telemetry/page/",
-    "telemetry/telemetry/story/",
-    "telemetry/telemetry/testing/",
-    "telemetry/telemetry/timeline/",
-    "telemetry/telemetry/util/",
-    "telemetry/telemetry/value/",
-    "telemetry/telemetry/web_perf/",
-    "telemetry/telemetry/wpr/",
-  ]
-
-  data += [
-    "telemetry/telemetry/internal/__init__.py",
-    "telemetry/telemetry/internal/snap_page_util.py",
-    "telemetry/telemetry/internal/snap_page_util_unittest.py",
-    "telemetry/telemetry/internal/story_runner.py",
-    "telemetry/telemetry/internal/story_runner_unittest.py",
-    "telemetry/telemetry/internal/actions/",
-    "telemetry/telemetry/internal/app/",
-    "telemetry/telemetry/internal/backends/",
-    "telemetry/telemetry/internal/browser/",
-    "telemetry/telemetry/internal/browser_profiles/",
-    "telemetry/telemetry/internal/forwarders/",
-    "telemetry/telemetry/internal/image_processing/",
-    "telemetry/telemetry/internal/platform/",
-    "telemetry/telemetry/internal/results/",
-    "telemetry/telemetry/internal/testing/",
-    "telemetry/telemetry/internal/util/",
   ]
 
 }
