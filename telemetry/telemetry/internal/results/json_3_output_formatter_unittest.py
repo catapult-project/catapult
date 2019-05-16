@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 import StringIO
+import tempfile
 import time
 import unittest
 
@@ -214,20 +215,22 @@ class Json3OutputFormatterTest(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['json-test-results']
     options.upload_results = False
-    tempfile_dir = 'unittest_results'
-    options.output_dir = tempfile_dir
-    options.suppress_gtest_report = False
-    options.results_label = None
-    results_options.ProcessCommandLineArgs(options)
-    results = results_options.CreateResults(
-        benchmark_metadata, options, benchmark_enabled=False)
-    results.PrintSummary()
-    results.CloseOutputFormatters()
+    tempfile_dir = tempfile.mkdtemp(prefix='unittest_results')
+    try:
+      options.output_dir = tempfile_dir
+      options.suppress_gtest_report = False
+      options.results_label = None
+      results_options.ProcessCommandLineArgs(options)
+      results = results_options.CreateResults(
+          benchmark_metadata, options, benchmark_enabled=False)
+      results.PrintSummary()
+      results.CloseOutputFormatters()
 
-    tempfile_name = os.path.join(tempfile_dir, 'test-results.json')
-    with open(tempfile_name) as f:
-      json_test_results = json.load(f)
-    shutil.rmtree(tempfile_dir)
+      tempfile_name = os.path.join(tempfile_dir, 'test-results.json')
+      with open(tempfile_name) as f:
+        json_test_results = json.load(f)
+    finally:
+      shutil.rmtree(tempfile_dir)
 
     self.assertEquals(json_test_results['interrupted'], False)
     self.assertEquals(json_test_results['num_failures_by_type'], {})
@@ -242,33 +245,35 @@ class Json3OutputFormatterTest(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['json-test-results']
     options.upload_results = False
-    tempfile_dir = 'unittest_results'
-    options.output_dir = tempfile_dir
-    options.suppress_gtest_report = False
-    options.results_label = None
-    results_options.ProcessCommandLineArgs(options)
-    results = results_options.CreateResults(benchmark_metadata, options)
+    tempfile_dir = tempfile.mkdtemp(prefix='unittest_results')
+    try:
+      options.output_dir = tempfile_dir
+      options.suppress_gtest_report = False
+      options.results_label = None
+      results_options.ProcessCommandLineArgs(options)
+      results = results_options.CreateResults(benchmark_metadata, options)
 
-    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
-    test_page = page_module.Page(
-        'http://www.foo.com/', story_set, story_set.base_dir, name='Foo')
-    results.WillRunPage(test_page)
-    v0 = scalar.ScalarValue(
-        results.current_page,
-        'foo',
-        'seconds',
-        3,
-        improvement_direction=improvement_direction.DOWN)
-    results.AddValue(v0)
-    results.current_page_run.SetDuration(5.0123)
-    results.DidRunPage(test_page)
-    results.PrintSummary()
-    results.CloseOutputFormatters()
+      story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+      test_page = page_module.Page(
+          'http://www.foo.com/', story_set, story_set.base_dir, name='Foo')
+      results.WillRunPage(test_page)
+      v0 = scalar.ScalarValue(
+          results.current_page,
+          'foo',
+          'seconds',
+          3,
+          improvement_direction=improvement_direction.DOWN)
+      results.AddValue(v0)
+      results.current_page_run.SetDuration(5.0123)
+      results.DidRunPage(test_page)
+      results.PrintSummary()
+      results.CloseOutputFormatters()
 
-    tempfile_name = os.path.join(tempfile_dir, 'test-results.json')
-    with open(tempfile_name) as f:
-      json_test_results = json.load(f)
-    shutil.rmtree(tempfile_dir)
+      tempfile_name = os.path.join(tempfile_dir, 'test-results.json')
+      with open(tempfile_name) as f:
+        json_test_results = json.load(f)
+    finally:
+      shutil.rmtree(tempfile_dir)
 
     self.assertEquals(json_test_results['interrupted'], False)
     self.assertEquals(json_test_results['num_failures_by_type'], {'PASS': 1})
