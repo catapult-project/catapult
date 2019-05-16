@@ -1,9 +1,16 @@
-  # Copyright 2017 The Chromium Authors. All rights reserved.
+# Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+"""Output formatter for JSON Test Results Format.
+
+See
+https://chromium.googlesource.com/chromium/src/+/master/docs/testing/json_test_results_format.md
+for details.
+"""
 
 import collections
 import json
+import os
 
 from telemetry.internal.results import output_formatter
 
@@ -21,8 +28,6 @@ def ResultsAsDict(page_test_results, artifacts=None):
 
   To serialize results as JSON we first convert them to a dict that can be
   serialized by the json module.
-
-  See: https://www.chromium.org/developers/the-json-test-results-format
 
   Args:
     page_test_results: a PageTestResults object
@@ -76,6 +81,11 @@ def ResultsAsDict(page_test_results, artifacts=None):
     if story_artifacts:
       test['artifacts'] = dict(story_artifacts)
 
+    # Shard index is really only useful for failed tests. See crbug.com/960951
+    # for details.
+    if run.failed and 'GTEST_SHARD_INDEX' in os.environ:
+      test['shard'] = int(os.environ['GTEST_SHARD_INDEX'])
+
   # The following logic can interfere with calculating flakiness percentages.
   # The logic does allow us to re-run tests without them automatically
   # being marked as flaky by the flakiness dashboard and milo.
@@ -100,18 +110,12 @@ class JsonOutputFormatter(output_formatter.OutputFormatter):
     self.artifacts = artifacts
 
   def Format(self, page_test_results):
-    """Serialize page test results in JSON Test Results format.
-
-    See: https://www.chromium.org/developers/the-json-test-results-format
-    """
+    """Serialize page test results in JSON Test Results format."""
     json.dump(
         ResultsAsDict(page_test_results, self.artifacts),
         self.output_stream, indent=2, sort_keys=True, separators=(',', ': '))
     self.output_stream.write('\n')
 
   def FormatDisabled(self, page_test_results):
-    """Serialize disabled benchmark in JSON Test Results format.
-
-    See: https://www.chromium.org/developers/the-json-test-results-format
-    """
+    """Serialize disabled benchmark in JSON Test Results format."""
     self.Format(page_test_results)
