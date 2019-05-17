@@ -26,6 +26,7 @@ class TracePacket(object):
     self.incremental_state_cleared = None
     self.track_event = None
     self.trusted_packet_sequence_id = None
+    self.chrome_benchmark_metadata = None
 
   def encode(self):
     parts = []
@@ -48,6 +49,11 @@ class TracePacket(object):
     if self.thread_descriptor is not None:
       tag = encoder.TagBytes(44, wire_format.WIRETYPE_LENGTH_DELIMITED)
       data = self.thread_descriptor.encode()
+      length = encoder._VarintBytes(len(data))
+      parts += [tag, length, data]
+    if self.chrome_benchmark_metadata is not None:
+      tag = encoder.TagBytes(48, wire_format.WIRETYPE_LENGTH_DELIMITED)
+      data = self.chrome_benchmark_metadata.encode()
       length = encoder._VarintBytes(len(data))
       parts += [tag, length, data]
 
@@ -158,6 +164,51 @@ class LegacyEvent(object):
     if self.phase is not None:
       writer = encoder.Int32Encoder(2, False, False)
       writer(parts.append, self.phase)
+
+    return b"".join(parts)
+
+
+class ChromeBenchmarkMetadata(object):
+  def __init__(self):
+    self.benchmark_start_time_us = None
+    self.story_run_time_us = None
+    self.benchmark_name = None
+    self.benchmark_description = None
+    self.story_name = None
+    self.story_tags = None
+    self.story_run_index = None
+    self.label = None
+    self.had_failures = None
+
+  def encode(self):
+    parts = []
+    if self.benchmark_start_time_us is not None:
+      writer = encoder.Int64Encoder(1, False, False)
+      writer(parts.append, self.benchmark_start_time_us)
+    if self.story_run_time_us is not None:
+      writer = encoder.Int64Encoder(2, False, False)
+      writer(parts.append, self.story_run_time_us)
+    if self.benchmark_name is not None:
+      writer = encoder.StringEncoder(3, False, False)
+      writer(parts.append, self.benchmark_name)
+    if self.benchmark_description is not None:
+      writer = encoder.StringEncoder(4, False, False)
+      writer(parts.append, self.benchmark_description)
+    if self.label is not None:
+      writer = encoder.StringEncoder(5, False, False)
+      writer(parts.append, self.label)
+    if self.story_name is not None:
+      writer = encoder.StringEncoder(6, False, False)
+      writer(parts.append, self.story_name)
+    if self.story_tags is not None:
+      writer = encoder.StringEncoder(7, is_repeated=True, is_packed=False)
+      writer(parts.append, self.story_tags)
+    if self.story_run_index is not None:
+      writer = encoder.Int32Encoder(8, False, False)
+      writer(parts.append, self.story_run_index)
+    if self.had_failures is not None:
+      writer = encoder.BoolEncoder(9, False, False)
+      writer(parts.append, self.had_failures)
 
     return b"".join(parts)
 

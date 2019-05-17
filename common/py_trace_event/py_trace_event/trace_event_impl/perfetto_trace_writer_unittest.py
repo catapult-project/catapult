@@ -56,3 +56,25 @@ class PerfettoTraceWriterTest(unittest.TestCase):
     )
     self.assertEqual(expected_output, result.getvalue())
 
+  def testWriteMetadata(self):
+    result = StringIO.StringIO()
+    perfetto_trace_writer.write_metadata(
+        output=result,
+        benchmark_start_time_us=1556716807306000,
+        story_run_time_us=1556716807406000,
+        benchmark_name="benchmark",
+        benchmark_description="description",
+        story_name="story",
+        story_tags=["foo", "bar"],
+        story_run_index=0,
+        label="label",
+        had_failures=False,
+    )
+    expected_output = (
+        '\nI\x82\x03F\x08\x90\xf6\xc2\x82\xb6\xfa\xe1'
+        '\x02\x10\xb0\x83\xc9\x82\xb6\xfa\xe1\x02\x1a\tbenchmark"'
+        '\x0bdescription*\x05label2\x05story:\x03foo:\x03bar@\x00H\x00'
+    )
+    self.assertEqual(expected_output, result.getvalue())
+
+

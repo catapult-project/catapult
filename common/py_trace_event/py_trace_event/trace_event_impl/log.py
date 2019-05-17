@@ -207,8 +207,21 @@ def _write_cur_events():
 
 def _write_footer():
   if _format == PROTOBUF:
-    # TODO: implement writing metadata in PROTOBUF format
-    pass
+    if "telemetry" in _metadata:
+      telemetry_info = _metadata["telemetry"]
+      perfetto_trace_writer.write_metadata(
+          output=_log_file,
+          benchmark_start_time_us=telemetry_info["benchmarkStart"],
+          story_run_time_us=telemetry_info["traceStart"],
+          benchmark_name=telemetry_info["benchmarks"][0],
+          benchmark_description=telemetry_info.get(
+              "benchmarkDescriptions", ["(description missing)"])[0],
+          story_name=telemetry_info["stories"][0],
+          story_tags=telemetry_info["storyTags"],
+          story_run_index=telemetry_info["storysetRepeats"][0],
+          label=telemetry_info.get("label", None),
+          had_failures=telemetry_info.get("hadFailures", None),
+      )
   elif _format == JSON:
     # In JSON format we might not be the only process writing to this logfile.
     # So, we will simply close the file rather than writing the trailing ] that
@@ -283,12 +296,10 @@ def trace_set_thread_name(thread_name):
 
 def trace_add_metadata(metadata):
   global _metadata
-  if _format == PROTOBUF:
-    raise NotImplementedError("Metadata in protobuf format not implemented")
+  if _format in [PROTOBUF, JSON_WITH_METADATA]:
+    _metadata = metadata
   elif _format == JSON:
     raise TraceException("Can't write metadata in JSON format")
-  elif _format == JSON_WITH_METADATA:
-    _metadata = metadata
   else:
     raise TraceException("Unknown format: %s" % _format)
 

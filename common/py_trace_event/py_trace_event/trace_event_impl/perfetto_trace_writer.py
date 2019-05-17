@@ -134,3 +134,33 @@ def write_event(output, ph, category, name, ts, args, tid):
   packet.track_event.legacy_event = legacy_event
   proto.write_trace_packet(output, packet)
 
+
+def write_metadata(
+    output,
+    benchmark_start_time_us,
+    story_run_time_us,
+    benchmark_name,
+    benchmark_description,
+    story_name,
+    story_tags,
+    story_run_index,
+    label=None,
+    had_failures=None,
+):
+  metadata = proto.ChromeBenchmarkMetadata()
+  metadata.benchmark_start_time_us = int(benchmark_start_time_us)
+  metadata.story_run_time_us = int(story_run_time_us)
+  metadata.benchmark_name = benchmark_name
+  metadata.benchmark_description = benchmark_description
+  metadata.story_name = story_name
+  metadata.story_tags = list(story_tags)
+  metadata.story_run_index = int(story_run_index)
+  if label is not None:
+    metadata.label = label
+  if had_failures is not None:
+    metadata.had_failures = had_failures
+
+  packet = proto.TracePacket()
+  packet.chrome_benchmark_metadata = metadata
+  proto.write_trace_packet(output, packet)
+
