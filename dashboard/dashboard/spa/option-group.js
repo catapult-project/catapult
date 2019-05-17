@@ -185,7 +185,11 @@ export default class OptionGroup extends ElementBase {
   }
 
   async onSelect_(event) {
-    await this.dispatch('select', this.rootStatePath, event.model.option);
+    await this.dispatch({
+      type: OptionGroup.reducers.select.name,
+      statePath: this.rootStatePath,
+      option: event.model.option,
+    });
     this.dispatchEvent(new CustomEvent('option-select', {
       bubbles: true,
       composed: true,
@@ -339,16 +343,6 @@ OptionGroup.simplifyOption = option => {
     };
   }
   return option.options[0];
-};
-
-OptionGroup.actions = {
-  select: (statePath, option) => async(dispatch, getState) => {
-    dispatch({
-      type: OptionGroup.reducers.select.name,
-      statePath,
-      option,
-    });
-  },
 };
 
 OptionGroup.reducers = {

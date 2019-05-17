@@ -410,7 +410,8 @@ export default class ChartBase extends GestureEventListeners(ElementBase) {
   async onTrackBrushHandle_(event) {
     const xPct = ChartBase.computeBrush(
         event.detail.x, await measureElement(this.$.main));
-    this.dispatch('brushX', this.statePath, event.model.brushIndex, xPct);
+    this.dispatch(UPDATE(
+        `${this.statePath}.xAxis.brushes.${event.model.brushIndex}`, {xPct}));
     this.dispatchEvent(new CustomEvent('brush', {
       bubbles: true,
       composed: true,
@@ -451,13 +452,6 @@ export default class ChartBase extends GestureEventListeners(ElementBase) {
     }, PolymerAsync.animationFrame);
   }
 }
-
-ChartBase.actions = {
-  brushX: (statePath, brushIndex, xPct) => async(dispatch, getState) => {
-    const path = `${statePath}.xAxis.brushes.${brushIndex}`;
-    dispatch(UPDATE(path, {xPct}));
-  },
-};
 
 ChartBase.reducers = {
   boldLine: (state, {lineIndex}, rootState) => {

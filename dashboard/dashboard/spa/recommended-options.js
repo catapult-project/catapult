@@ -53,7 +53,11 @@ export default class RecommendedOptions extends ElementBase {
 
   ready() {
     super.ready();
-    if (!this.optionRecommendations) this.dispatch('getRecommendations');
+    if (!this.optionRecommendations) {
+      this.dispatch({
+        type: RecommendedOptions.reducers.getRecommendations.name,
+      });
+    }
   }
 
   stateChanged(rootState) {
@@ -64,8 +68,11 @@ export default class RecommendedOptions extends ElementBase {
     const oldOptionValues = this.optionValues;
     const state = get(rootState, this.statePath);
     this.setProperties(state);
-    if (this.optionValues !== oldOptionValues) {
-      this.dispatch('recommendOptions', this.statePath);
+    if (this.optionValues && this.optionValues !== oldOptionValues) {
+      this.dispatch({
+        type: RecommendedOptions.reducers.recommendOptions.name,
+        statePath: this.statePath,
+      });
     }
     if (this.selectedOptions !== oldSelectedOptions &&
         oldSelectedOptions && this.selectedOptions) {
@@ -75,32 +82,14 @@ export default class RecommendedOptions extends ElementBase {
         !oldSelectedOptions.includes(o));
       // Ignore when users deselect options or select whole groups of options.
       if (addedOptions.length === 1) {
-        this.dispatch('updateRecommendations', addedOptions[0]);
+        this.dispatch({
+          type: RecommendedOptions.reducers.updateRecommendations.name,
+          addedOption: addedOptions[0],
+        });
       }
     }
   }
 }
-
-RecommendedOptions.actions = {
-  getRecommendations: () => async(dispatch, getState) => {
-    dispatch({type: RecommendedOptions.reducers.getRecommendations.name});
-  },
-
-  recommendOptions: statePath => async(dispatch, getState) => {
-    if (!get(getState(), statePath)) return;
-    dispatch({
-      type: RecommendedOptions.reducers.recommendOptions.name,
-      statePath,
-    });
-  },
-
-  updateRecommendations: addedOption => async(dispatch, getState) => {
-    dispatch({
-      type: RecommendedOptions.reducers.updateRecommendations.name,
-      addedOption,
-    });
-  },
-};
 
 RecommendedOptions.STORAGE_KEY = 'optionRecommendations';
 RecommendedOptions.OPTION_LIMIT = 5;

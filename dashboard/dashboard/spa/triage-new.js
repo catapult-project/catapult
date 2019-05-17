@@ -139,7 +139,7 @@ export default class TriageNew extends ElementBase {
 
   async onKeyup_(event) {
     if (event.key === 'Escape') {
-      await this.dispatch('close', this.statePath);
+      await this.dispatch(UPDATE(this.statePath, {isOpen: false}));
     }
   }
 
@@ -148,11 +148,11 @@ export default class TriageNew extends ElementBase {
         isElementChildOf(event.relatedTarget, this)) {
       return;
     }
-    await this.dispatch('close', this.statePath);
+    await this.dispatch(UPDATE(this.statePath, {isOpen: false}));
   }
 
   async onSummary_(event) {
-    await this.dispatch('summary', this.statePath, event.target.value);
+    await this.dispatch(UPDATE(this.statePath, {summary: event.target.value}));
   }
 
   async onDescription_(event) {
@@ -160,72 +160,43 @@ export default class TriageNew extends ElementBase {
       await this.onSubmit_(event);
       return;
     }
-    await this.dispatch('description', this.statePath, event.target.value);
+    await this.dispatch(UPDATE(this.statePath, {
+      description: event.target.value,
+    }));
   }
 
   async onLabel_(event) {
-    await this.dispatch('label', this.statePath, event.model.label.name);
+    await this.dispatch({
+      type: TriageNew.reducers.toggleLabel.name,
+      statePath: this.statePath,
+      name: event.model.label.name,
+    });
   }
 
   async onComponent_(event) {
-    await this.dispatch('component', this.statePath,
-        event.model.component.name);
+    await this.dispatch({
+      type: TriageNew.reducers.toggleComponent.name,
+      statePath: this.statePath,
+      name: event.model.component.name,
+    });
   }
 
   async onOwner_(event) {
-    await this.dispatch('owner', this.statePath, event.target.value);
+    await this.dispatch(UPDATE(this.statePath, {owner: event.target.value}));
   }
 
   async onCC_(event) {
-    await this.dispatch('cc', this.statePath, event.target.value);
+    await this.dispatch(UPDATE(this.statePath, {cc: event.target.value}));
   }
 
   async onSubmit_(event) {
-    await this.dispatch('close', this.statePath);
+    await this.dispatch(UPDATE(this.statePath, {isOpen: false}));
     this.dispatchEvent(new CustomEvent('submit', {
       bubbles: true,
       composed: true,
     }));
   }
 }
-
-TriageNew.actions = {
-  close: statePath => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {isOpen: false}));
-  },
-
-  summary: (statePath, summary) => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {summary}));
-  },
-
-  owner: (statePath, owner) => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {owner}));
-  },
-
-  cc: (statePath, cc) => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {cc}));
-  },
-
-  description: (statePath, description) => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {description}));
-  },
-
-  label: (statePath, name) => async(dispatch, getState) => {
-    dispatch({
-      type: TriageNew.reducers.toggleLabel.name,
-      statePath,
-      name,
-    });
-  },
-
-  component: (statePath, name) => async(dispatch, getState) => {
-    dispatch({
-      type: TriageNew.reducers.toggleComponent.name,
-      statePath,
-      name,
-    });
-  },
-};
 
 TriageNew.reducers = {
   toggleLabel: (state, action, rootState) => {
