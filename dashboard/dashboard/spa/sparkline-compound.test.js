@@ -13,8 +13,6 @@ import {MODE} from './layout-timeseries.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {afterRender, denormalize} from './utils.js';
 
-window.AUTH_CLIENT_ID = '';
-
 suite('sparkline-compound', function() {
   let MS_PER_YEAR;  // tr might not be loaded yet.
   const NOW_MS = new Date().getTime();

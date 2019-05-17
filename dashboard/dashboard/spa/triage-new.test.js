@@ -4,10 +4,24 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import TriageNew from './triage-new.js';
+import findElements from './find-elements.js';
+import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {afterRender, timeout} from './utils.js';
+import {assert} from 'chai';
 
 suite('triage-new', function() {
+  async function fixture(options) {
+    const tn = document.createElement('triage-new');
+    tn.statePath = 'test';
+    await tn.dispatch(CHAIN(
+        ENSURE('test'),
+        UPDATE('test', TriageNew.buildState(options))));
+    document.body.appendChild(tn);
+    await afterRender();
+    return tn;
+  }
+
   test('summarize', async function() {
     assert.strictEqual('', TriageNew.summarize());
     assert.strictEqual('10% regression in aaa at 123', TriageNew.summarize([
@@ -48,5 +62,74 @@ suite('triage-new', function() {
       {bugLabels: ['aaa', 'ccc']},
     ], 'bugLabels');
     assert.deepEqual(expected, actual);
+  });
+
+  test('edit', async function() {
+    const tn = await fixture({
+      isOpen: true,
+      alerts: [
+        {
+          bugComponents: ['component'],
+          bugLabels: ['label'],
+          percentDeltaValue: 0.1,
+          startRevision: 10,
+          endRevision: 20,
+          measurement: 'measurement',
+        },
+      ],
+    });
+
+    tn.$.summary.value = 'summary';
+    tn.$.summary.dispatchEvent(new CustomEvent('change'));
+    await afterRender();
+    assert.strictEqual('summary', tn.summary);
+
+    tn.$.description.value = 'description';
+    tn.$.description.dispatchEvent(new CustomEvent('keyup'));
+    await afterRender();
+    assert.strictEqual('description', tn.description);
+
+    assert.isTrue(tn.labels[0].isEnabled);
+    findElements(tn, e =>
+      e.matches('cp-checkbox') && /label/.test(e.textContent))[0].click();
+    await afterRender();
+    assert.isFalse(tn.labels[0].isEnabled);
+
+    assert.isTrue(tn.components[0].isEnabled);
+    findElements(tn, e =>
+      e.matches('cp-checkbox') && /component/.test(e.textContent))[0].click();
+    await afterRender();
+    assert.isFalse(tn.components[0].isEnabled);
+
+    tn.$.owner.value = 'owner';
+    tn.$.owner.dispatchEvent(new CustomEvent('change'));
+    await afterRender();
+    assert.strictEqual('owner', tn.owner);
+
+    tn.$.cc.value = 'cc';
+    tn.$.cc.dispatchEvent(new CustomEvent('change'));
+    await afterRender();
+    assert.strictEqual('cc', tn.cc);
+
+    let submitEvent;
+    tn.addEventListener('submit', e => {
+      submitEvent = e;
+    });
+    tn.$.submit.click();
+    await afterRender();
+    assert.isDefined(submitEvent);
+    assert.isFalse(tn.isOpen);
+
+    tn.dispatch(UPDATE(tn.statePath, {isOpen: true}));
+    await afterRender();
+    tn.dispatchEvent(new CustomEvent('blur'));
+    await afterRender();
+    assert.isFalse(tn.isOpen);
+
+    tn.dispatch(UPDATE(tn.statePath, {isOpen: true}));
+    await afterRender();
+    tn.onKeyup_({key: 'Escape'});
+    await afterRender();
+    assert.isFalse(tn.isOpen);
   });
 });

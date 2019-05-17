@@ -300,6 +300,8 @@ class Descriptor(object):
   def _AppendMeasurement(self, test_paths):
     poly_measurement_test_suites = yield self._GetConfiguration(
         POLY_MEASUREMENT_TEST_SUITES_KEY, [])
+    poly_measurement_test_suites += yield self._GetConfiguration(
+        TWO_TWO_TEST_SUITES_KEY, [])
     if self.test_suite in poly_measurement_test_suites:
       raise ndb.Return({p + '/' + self.measurement.replace(':', '/')
                         for p in test_paths})

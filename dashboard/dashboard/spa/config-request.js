@@ -17,5 +17,9 @@ export default class ConfigRequest extends RequestBase {
   get url_() {
     return ConfigRequest.URL;
   }
+
+  get description_() {
+    return `loading ${this.body_.get('key')}`;
+  }
 }
 ConfigRequest.URL = '/api/config';

@@ -20,8 +20,8 @@ const DETAILS_COLUMNS = new Set([
   'avg', 'std', 'count',  // TODO other statistics
   'revisions',
   'annotations',
+  'alert',
   // TODO Uncomment when ready to display these:
-  // 'alert',
   // 'diagnostics',
   // 'histogram',
 ]);
@@ -79,7 +79,7 @@ export class TimeseriesRequest extends RequestBase {
       this.body_.set('statistic', options.statistic);
     }
 
-    if (options.buildType) this.body_.set('build_type', options.buildType);
+    this.body_.set('build_type', options.buildType || 'test');
 
     this.columns_ = [...getColumnsByLevelOfDetail(
         options.levelOfDetail, this.statistic_)];

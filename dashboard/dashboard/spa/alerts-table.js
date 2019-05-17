@@ -11,7 +11,7 @@ import './scalar-span.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
 import ElementBase from './element-base.js';
-import {breakWords, setImmutable} from './utils.js';
+import {breakWords, crbug, setImmutable} from './utils.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
@@ -348,7 +348,8 @@ export default class AlertsTable extends ElementBase {
                               </template>
                               <template is="dom-if"
     if="[[!isAlertIgnored_(alert.bugId)]]">
-                                <a href="https://crbug.com/[[alert.bugId]]" target="_blank">
+                                <a href="[[crbug_(alert.bugId)]]"
+    target="_blank">
                                   [[alert.bugId]]
                                 </a>
                               </template>
@@ -505,6 +506,10 @@ export default class AlertsTable extends ElementBase {
 
   isAlertIgnored_(bugId) {
     return bugId < 0;
+  }
+
+  crbug_(bugId) {
+    return crbug(bugId);
   }
 
   async onSelectAll_(event) {

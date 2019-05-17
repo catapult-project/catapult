@@ -19,10 +19,10 @@ export default class ScalarSpan extends PolymerElement {
           white-space: nowrap;
         }
         span[change="improvement"] {
-          color: var(--improvement-color);
+          color: var(--improvement-color, green)
         }
         span[change="regression"] {
-          color: var(--error-color);
+          color: var(--error-color, red);
         }
       </style>
 

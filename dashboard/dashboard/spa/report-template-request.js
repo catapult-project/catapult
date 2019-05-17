@@ -24,5 +24,9 @@ export default class ReportTemplateRequest extends RequestBase {
   get url_() {
     return ReportTemplateRequest.URL;
   }
+
+  get description_() {
+    return `saving template for ${this.body_.get('name')}`;
+  }
 }
 ReportTemplateRequest.URL = '/api/report/template';

@@ -34,7 +34,7 @@ export default class MenuInput extends ElementBase {
       ...OptionGroup.buildState(options),
       alwaysEnabled: options.alwaysEnabled !== false,
       hasBeenOpened: false,
-      label: '',
+      label: options.label || '',
       requireSingle: options.requireSingle || false,
       required: options.required || false,
     };
@@ -117,7 +117,8 @@ export default class MenuInput extends ElementBase {
     this.largeDom = rootState.largeDom;
     this.rootFocusTimestamp = rootState.focusTimestamp;
     this.setProperties(get(rootState, this.statePath));
-    const isFocused = (rootState.focusTimestamp === this.focusTimestamp);
+    const isFocused = (this.focusTimestamp || false) &&
+      (rootState.focusTimestamp === this.focusTimestamp);
     const focusChanged = (isFocused !== this.isFocused);
     this.isFocused = isFocused;
     if (focusChanged) this.observeIsFocused_();

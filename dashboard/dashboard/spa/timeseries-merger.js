@@ -178,4 +178,19 @@ TimeseriesMerger.mergeData = (target, source) => {
     }
     target.diagnostics.addDiagnostics(source.diagnostics);
   }
+
+  if (target.alert && (target.alert.endRevision !== target.revision)) {
+    target.alert = undefined;
+  }
+  if (source.alert && (source.alert.endRevision === target.revision) &&
+      (!target.alert ||
+       ((target.alert.improvement && !source.alert.improvement) ||
+       (target.alert.bugId && !source.alert.bugId) ||
+       (Math.abs(target.alert.percentDeltaValue) <
+        Math.abs(source.alert.percentDeltaValue))))) {
+    // It's more important to show untriaged regressions than triaged
+    // regressions than improvements.
+    // It's more important to show larger regressions than smaller ones.
+    target.alert = source.alert;
+  }
 };

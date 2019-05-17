@@ -4,19 +4,13 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import AlertsControls from './alerts-controls.js';
 import ReportNamesRequest from './report-names-request.js';
 import SheriffsRequest from './sheriffs-request.js';
 import findElements from './find-elements.js';
 import {CHAIN, ENSURE, TOGGLE, UPDATE} from './simple-redux.js';
-
-import {
-  afterRender,
-  timeout,
-} from './utils.js';
-
-window.AUTH_CLIENT_ID = '';
+import {afterRender, timeout} from './utils.js';
+import {assert} from 'chai';
 
 suite('alerts-controls', function() {
   let originalFetch;

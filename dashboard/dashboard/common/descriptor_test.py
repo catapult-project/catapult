@@ -34,7 +34,6 @@ class DescriptorTest(testing_common.TestCase):
         'resource_sizes:foo',
         'sizes',
         'polymeasurement',
-        'TEST_PARTIAL_TEST_SUITE:two_two',
     ])
     stored_object.Set(descriptor.TWO_TWO_TEST_SUITES_KEY, [
         'TEST_PARTIAL_TEST_SUITE:two_two',

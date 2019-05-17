@@ -137,6 +137,7 @@ class AlertsTest(testing_common.TestCase):
         'recovered': True,
         'start_revision': 5,
         'units': 'ms',
+        'pinpoint_bisects': [],
     }, actual)
 
   def testGet(self):

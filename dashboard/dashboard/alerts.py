@@ -173,6 +173,7 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False):
         'testCase': desc.test_case,
         'statistic': desc.statistic,
     }
+    dct['pinpoint_bisects'] = anomaly_entity.pinpoint_bisects
   else:
     test_path_parts = test_path.split('/')
     dct['absolute_delta'] = '%s' % anomaly_entity.GetDisplayAbsoluteChanged()

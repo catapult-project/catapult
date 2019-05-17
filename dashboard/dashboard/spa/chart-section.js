@@ -32,7 +32,7 @@ export default class ChartSection extends ElementBase {
       linkedStatePath: String,
       sectionId: Number,
       descriptor: Object,
-      title: String,
+      title_: String,
       isTitleCustom: Boolean,
       legend: Object,
       selectedLineDescriptorHash: String,
@@ -89,7 +89,7 @@ export default class ChartSection extends ElementBase {
       ...ChartCompound.buildState(options),
       ...SparklineCompound.buildState(options),
       descriptor,
-      title: options.title || '',
+      title_: options.title || '',
       isTitleCustom: false,
       legend: undefined,
       selectedLineDescriptorHash: options.selectedLineDescriptorHash,
@@ -167,7 +167,7 @@ export default class ChartSection extends ElementBase {
           <iron-collapse opened="[[!isExpanded]]">
             <cp-input
                 id="title"
-                value="[[title]]"
+                value="[[title_]]"
                 label="Title"
                 on-keyup="onTitleKeyup_">
             </cp-input>
@@ -256,7 +256,7 @@ export default class ChartSection extends ElementBase {
 
   async onTitleKeyup_(event) {
     await this.dispatch(UPDATE(this.statePath, {
-      title: event.target.value,
+      title_: event.target.value,
       isTitleCustom: true,
     }));
   }
@@ -270,7 +270,7 @@ export default class ChartSection extends ElementBase {
           clone: true,
           minRevision: this.minRevision,
           maxRevision: this.maxRevision,
-          title: this.title,
+          title: this.title_,
           parameters: {
             suites: [...this.descriptor.suite.selectedOptions],
             suitesAggregated: this.descriptor.suite.isAggregated,
@@ -321,8 +321,11 @@ ChartSection.actions = {
   maybeLoadTimeseries: statePath => async(dispatch, getState) => {
     // If the first 3 components are filled, then load the timeseries.
     const state = get(getState(), statePath);
-    if (state.descriptor.suite.selectedOptions.length &&
+    if (state.descriptor.suite.selectedOptions &&
+        state.descriptor.suite.selectedOptions.length &&
+        state.descriptor.measurement.selectedOptions &&
         state.descriptor.measurement.selectedOptions.length &&
+        state.statistic.selectedOptions &&
         state.statistic.selectedOptions.length) {
       METRICS.endChartAction();
       ChartSection.actions.loadTimeseries(statePath)(dispatch, getState);
@@ -427,14 +430,14 @@ ChartSection.actions = {
 
 ChartSection.reducers = {
   loadTimeseries: (state, action, rootState) => {
-    const title = ChartSection.computeTitle(state);
+    const title_ = ChartSection.computeTitle(state);
     const parameterMatrix = SparklineCompound.parameterMatrix(state);
     const legend = ChartSection.buildLegend(parameterMatrix);
     const lineDescriptors = TimeseriesDescriptor.createLineDescriptors(
         parameterMatrix);
     return {
       ...state,
-      title,
+      title_,
       legend,
       lineDescriptors,
     };
@@ -623,7 +626,7 @@ ChartSection.getSessionState = state => {
     },
     isLinked: state.isLinked,
     isExpanded: state.isExpanded,
-    title: state.title,
+    title: state.title_,
     minRevision: state.minRevision,
     maxRevision: state.maxRevision,
     brushRevisions: state.chartLayout && state.chartLayout.brushRevisions,
@@ -715,7 +718,7 @@ ChartSection.getRouteParams = state => {
 };
 
 ChartSection.computeTitle = state => {
-  if (state.isTitleCustom) return state.title;
+  if (state.isTitleCustom) return state.title_;
   let title = state.descriptor.measurement.selectedOptions.join(', ');
   if (state.descriptor.bot.selectedOptions.length > 0 &&
       state.descriptor.bot.selectedOptions.length < 4) {

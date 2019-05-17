@@ -68,14 +68,24 @@ suite('details-table', function() {
     window.fetch = originalFetch;
   });
 
-  test('load', async function() {
+  async function fixture() {
     const dt = document.createElement('details-table');
     dt.statePath = 'test';
     dt.dispatch(CHAIN(
+        UPDATE('', {
+          revisionInfo: {},
+          bisectMasterWhitelist: ['whitelistedMaster'],
+          bisectSuiteBlacklist: ['blacklistedSuite'],
+        }),
         ENSURE('test'),
         UPDATE('test', DetailsTable.buildState({}))));
     document.body.appendChild(dt);
     await afterRender();
+    return dt;
+  }
+
+  test('load', async function() {
+    const dt = await fixture();
     await dt.dispatch(UPDATE('test', {
       lineDescriptors: [{
         suites: ['suite'],
@@ -171,10 +181,6 @@ suite('details-table', function() {
   });
 
   test('buildCell', async function() {
-    const links = [];
-    const scalars = [];
-    const setLink = (name, url, label) => links.push({name, url, label});
-    const setScalar = (name, value, unit) => scalars.push({name, value, unit});
     const range = tr.b.math.Range.fromExplicitRange(3, 4);
     const timeserieses = [
       [
@@ -254,7 +260,7 @@ suite('details-table', function() {
         },
       ],
     ];
-    DetailsTable.buildCell(setLink, setScalar, timeserieses, range, {
+    const revisionInfo = {
       r_chromium: {
         name: 'Chromium Git Hash',
         url: 'https://chromium.googlesource.com/chromium/src/+log/{{R1}}..{{R2}}',
@@ -263,29 +269,62 @@ suite('details-table', function() {
         name: 'ARC Revision',
         url: 'https://chrome-internal.googlesource.com/arc/arc/+log/{{R1}}..{{R2}}',
       },
-    });
+    };
+    const masterWhitelist = null;
+    const suiteBlacklist = null;
+    const lineDescriptor = {
+      suites: ['suite'],
+      measurement: 'measure',
+      bots: ['master:bot'],
+      cases: ['case'],
+      statistic: 'avg',
+      buildType: 'test',
+    };
+    const {scalars, links, alerts, bisectCell} = DetailsTable.buildCell(
+        lineDescriptor, timeserieses, range, revisionInfo,
+        masterWhitelist, suiteBlacklist);
+
     assert.lengthOf(links, 3);
-    assert.strictEqual('Chromium Git Hash', links[0].name);
-    assert.strictEqual(links[0].url,
+    assert.strictEqual(links.get('Chromium Git Hash').href,
         'https://chromium.googlesource.com/chromium/src/+log/2..4');
-    assert.strictEqual('2 - 4', links[0].label);
-    assert.strictEqual('ARC Revision', links[1].name);
-    assert.strictEqual(links[1].url,
+    assert.strictEqual('2 - 4', links.get('Chromium Git Hash').label);
+    assert.strictEqual(links.get('ARC Revision').href,
         'https://chrome-internal.googlesource.com/arc/arc/+log/2..4');
-    assert.strictEqual('2 - 4', links[1].label);
-    assert.strictEqual('Upload timestamp', links[2].name);
-    assert.strictEqual('', links[2].url);
+    assert.strictEqual('2 - 4', links.get('ARC Revision').label);
+    assert.strictEqual('', links.get('Upload timestamp').href);
     assert.strictEqual('1970-01-01 00:00:03 - 1970-01-01 00:00:04',
-        links[2].label);
+        links.get('Upload timestamp').label);
+
     assert.lengthOf(scalars, 3);
-    assert.strictEqual('avg', scalars[0].name);
-    assert.approximately(35.714, scalars[0].value, 1e-3);
-    assert.strictEqual(tr.b.Unit.byName.count, scalars[0].unit);
-    assert.strictEqual('std', scalars[1].name);
-    assert.approximately(91.807, scalars[1].value, 1e-3);
-    assert.strictEqual(tr.b.Unit.byName.count, scalars[1].unit);
-    assert.strictEqual('count', scalars[2].name);
-    assert.strictEqual(140, scalars[2].value);
-    assert.strictEqual(tr.b.Unit.byName.count, scalars[2].unit);
+    assert.approximately(35.714, scalars.get('avg').value, 1e-3);
+    assert.strictEqual(tr.b.Unit.byName.count, scalars.get('avg').unit);
+    assert.approximately(91.807, scalars.get('std').value, 1e-3);
+    assert.strictEqual(tr.b.Unit.byName.count, scalars.get('std').unit);
+    assert.strictEqual(140, scalars.get('count').value);
+    assert.strictEqual(tr.b.Unit.byName.count, scalars.get('count').unit);
+  });
+
+  test('single revision cannot bisect', async function() {
+    const dt = await fixture();
+  });
+
+  test('multiple timeseries cannot bisect', async function() {
+    const dt = await fixture();
+  });
+
+  test('ref build cannot bisect', async function() {
+    const dt = await fixture();
+  });
+
+  test('blacklisted suite cannot bisect', async function() {
+    const dt = await fixture();
+  });
+
+  test('blacklisted master cannot bisect', async function() {
+    const dt = await fixture();
+  });
+
+  test('bisect', async function() {
+    const dt = await fixture();
   });
 });

@@ -17,7 +17,7 @@ import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {MODE} from './layout-timeseries.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
-import {setImmutable} from './utils.js';
+import {isElementChildOf, setImmutable} from './utils.js';
 
 /**
   * ChartCompound synchronizes revision ranges and axis properties between a
@@ -284,8 +284,9 @@ export default class ChartCompound extends ElementBase {
 
       <iron-collapse opened="[[isExpanded]]">
         <details-table
-          id="details"
-          state-path="[[statePath]].details">
+            id="details"
+            state-path="[[statePath]].details"
+            on-reload-chart="onReload_">
         </details-table>
       </iron-collapse>
     `;
@@ -476,24 +477,18 @@ export default class ChartCompound extends ElementBase {
 
   async onToggleZeroYAxis_(event) {
     await this.dispatch(TOGGLE(this.statePath + '.zeroYAxis'));
-    await this.dispatch('load', this.statePath);
-    if (this.isLinked) {
-      await this.dispatch(TOGGLE(
-          this.linkedStatePath + '.linkedZeroYAxis'));
-    }
   }
 
   async onToggleFixedXAxis_(event) {
     await this.dispatch(TOGGLE(this.statePath + '.fixedXAxis'));
-    if (this.isLinked) {
-      await this.dispatch(TOGGLE(
-          this.linkedStatePath + '.linkedFixedXAxis'));
-    }
-    await this.dispatch('load', this.statePath);
   }
 
   async onModeChange_(event) {
     await this.dispatch(UPDATE(this.statePath, {mode: event.detail.value}));
+  }
+
+  async onReload_(event) {
+    await this.dispatch('load', this.statePath);
   }
 }
 

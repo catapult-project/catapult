@@ -338,8 +338,9 @@ function normalizeLinesInPlace(lines, opt_options) {
     if (zeroYAxis) line.yRange.addValue(0);
 
     for (const datum of line.data) {
-      xRange.addValue(getX(datum));
-      line.yRange.addValue(datum.y);
+      const x = getX(datum);
+      if (typeof(x) === 'number') xRange.addValue(x);
+      if (typeof(datum.y) === 'number') line.yRange.addValue(datum.y);
     }
 
     // normalize count_biggerIsBetter together with count_smallerIsBetter for

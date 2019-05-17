@@ -478,5 +478,14 @@ export function transformAlert(alert) {
     case: alert.descriptor.testCase,
     suite: alert.descriptor.testSuite,
     v1ReportLink: alert.dashboard_link,
+    pinpointJobs: alert.pinpoint_bisects,
   };
+}
+
+export function crbug(bugId) {
+  return `http://crbug.com/${bugId}`;
+}
+
+export function pinpointJob(jobId) {
+  return 'https://pinpoint-dot-chromeperf.appspot.com/job/' + jobId;
 }

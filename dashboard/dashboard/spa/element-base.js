@@ -54,6 +54,7 @@ export default class ElementBase extends PolymerElement {
   constructor() {
     super();
     this.debounceJobs_ = new Map();
+    this.store = getStore();
   }
 
   connectedCallback() {
@@ -114,6 +115,10 @@ export default class ElementBase extends PolymerElement {
       if (arg !== test) return false;
     }
     return true;
+  }
+
+  default_(test, ifFalsy) {
+    return test || ifFalsy;
   }
 
   plural_(count, pluralSuffix = 's', singularSuffix = '') {

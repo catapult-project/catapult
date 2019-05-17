@@ -4,17 +4,16 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import ChartSection from './chart-section.js';
 import DescribeRequest from './describe-request.js';
 import TestSuitesRequest from './test-suites-request.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
 import findElements from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {MODE} from './layout-timeseries.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {afterRender} from './utils.js';
-
-window.AUTH_CLIENT_ID = '';
+import {assert} from 'chai';
 
 suite('chart-section', function() {
   async function fixture() {
@@ -141,7 +140,65 @@ suite('chart-section', function() {
     chart.$.title.value = 'test';
     chart.$.title.dispatchEvent(new CustomEvent('keyup'));
     await afterRender();
-    assert.strictEqual('test', chart.title);
+    assert.strictEqual('test', chart.title_);
     assert.isTrue(chart.isTitleCustom);
+  });
+
+  test('getRouteParams', async function() {
+    const state = {
+      descriptor: {
+        suite: {
+          selectedOptions: ['suite'],
+          isAggregated: false,
+        },
+        measurement: {
+          selectedOptions: ['measurement'],
+        },
+        bot: {
+          selectedOptions: ['master:bot'],
+          options: [],
+          isAggregated: false,
+        },
+        case: {
+          selectedOptions: ['case'],
+          isAggregated: false,
+          tags: {
+            selectedOptions: ['tag'],
+          },
+        },
+      },
+      statistic: {
+        selectedOptions: ['std'],
+      },
+      minRevision: 5,
+      maxRevision: 50,
+      selectedLineDescriptorHash: 'abcdefzzzz',
+      selectedRelatedTabName: 'Related',
+      isExpanded: false,
+      fixedXAxis: false,
+      zeroYAxis: true,
+      chartLayout: {
+        brushRevisions: [10, 20],
+      },
+      mode: MODE.NORMALIZE_LINE,
+    };
+    const params = ChartSection.getRouteParams(state);
+    assert.strictEqual('std', params.get('stat'));
+    assert.strictEqual('tag', params.get('caseTag'));
+    assert.strictEqual('case', params.get('case'));
+    assert.isTrue(params.has('splitCases'));
+    assert.strictEqual('suite', params.get('suite'));
+    assert.isTrue(params.has('splitSuites'));
+    assert.strictEqual('measurement', params.get('measurement'));
+    assert.strictEqual('master:bot', params.get('bot'));
+    assert.isTrue(params.has('natural'));
+    assert.isTrue(params.has('zeroY'));
+    assert.strictEqual('Related', params.get('spark'));
+    assert.isTrue(params.has('compact'));
+    assert.strictEqual('10-20', params.get('brush'));
+    assert.strictEqual(MODE.NORMALIZE_LINE, params.get('mode'));
+    assert.strictEqual('abcdef', params.get('select'));
+    assert.strictEqual('5', params.get('minRev'));
+    assert.strictEqual('50', params.get('maxRev'));
   });
 });

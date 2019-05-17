@@ -49,7 +49,7 @@ export default class TriageNew extends ElementBase {
     return html`
       <style>
         :host {
-          background: var(--background-color);
+          background: var(--background-color, white);
           box-shadow: var(--elevation-2);
           display: none;
           flex-direction: column;
@@ -58,7 +58,7 @@ export default class TriageNew extends ElementBase {
           padding: 16px;
           position: absolute;
           right: 0;
-          z-index: var(--layer-menu);
+          z-index: var(--layer-menu, 100);
         }
         :host([is-open]) {
           display: flex;
@@ -69,6 +69,7 @@ export default class TriageNew extends ElementBase {
       </style>
 
       <cp-input
+          id="summary"
           label="Summary"
           tabindex="0"
           value="[[summary]]"
@@ -76,6 +77,7 @@ export default class TriageNew extends ElementBase {
       </cp-input>
 
       <cp-input
+          id="owner"
           label="Owner"
           tabindex="0"
           value="[[owner]]"
@@ -83,6 +85,7 @@ export default class TriageNew extends ElementBase {
       </cp-input>
 
       <cp-input
+          id="cc"
           label="CC"
           tabindex="0"
           value="[[cc]]"
@@ -116,7 +119,10 @@ export default class TriageNew extends ElementBase {
         </cp-checkbox>
       </template>
 
-      <raised-button on-click="onSubmit_" tabindex="0">
+      <raised-button
+          id="submit"
+          on-click="onSubmit_"
+          tabindex="0">
         Submit
       </raised-button>
     `;
@@ -265,6 +271,7 @@ TriageNew.collectAlertProperties = (alerts, property) => {
     labels.add('Type-Bug-Regression');
   }
   for (const alert of alerts) {
+    if (!alert[property]) continue;
     for (const label of alert[property]) {
       labels.add(label);
     }

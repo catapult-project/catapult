@@ -5,10 +5,16 @@
 'use strict';
 
 import './chops-header.js';
+import './chops-signin-aware.js';
 import './cp-loading.js';
 import './cp-toast.js';
 import './error-set.js';
 import './raised-button.js';
+import '@polymer/app-route/app-location.js';
+import '@polymer/app-route/app-route.js';
+import '@polymer/iron-collapse/iron-collapse.js';
+import '@polymer/iron-icon/iron-icon.js';
+import '@polymer/iron-iconset-svg/iron-iconset-svg.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
 import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
@@ -34,6 +40,13 @@ import {
 } from './utils.js';
 
 const NOTIFICATION_MS = 5000;
+
+// Map from redux store keys to ConfigRequest keys.
+const CONFIG_KEYS = {
+  revisionInfo: 'revision_info',
+  bisectMasterWhitelist: 'bisect_bot_map',
+  bisectSuiteBlacklist: 'bisect_suite_blacklist',
+};
 
 export default class ChromeperfApp extends ElementBase {
   static get is() { return 'chromeperf-app'; }
@@ -512,7 +525,7 @@ export default class ChromeperfApp extends ElementBase {
 ChromeperfApp.actions = {
   ready: (statePath, routeParams) =>
     async(dispatch, getState) => {
-      ChromeperfApp.actions.getRevisionInfo()(dispatch, getState);
+      ChromeperfApp.actions.getConfigs()(dispatch, getState);
 
       dispatch(CHAIN(
           ENSURE(statePath),
@@ -583,16 +596,24 @@ ChromeperfApp.actions = {
     dispatch(UPDATE('', {
       userEmail: profile ? profile.getEmail() : '',
     }));
-    ChromeperfApp.actions.getRevisionInfo()(dispatch, getState);
+    ChromeperfApp.actions.getConfigs()(dispatch, getState);
     if (profile) {
       await ChromeperfApp.actions.getRecentBugs()(dispatch, getState);
     }
   },
 
-  getRevisionInfo: () => async(dispatch, getState) => {
-    const revisionInfo = await new ConfigRequest(
-        {key: 'revision_info'}).response;
-    dispatch(UPDATE('', {revisionInfo}));
+  getConfig: (reduxKey, backendKey) => async(dispatch, getState) => {
+    const request = new ConfigRequest({key: backendKey});
+    dispatch(UPDATE('', {[reduxKey]: await request.response}));
+  },
+
+  getConfigs: () => async(dispatch, getState) => {
+    const promises = [];
+    for (const [reduxKey, backendKey] of Object.entries(CONFIG_KEYS)) {
+      promises.push(ChromeperfApp.actions.getConfig(
+          reduxKey, backendKey)(dispatch, getState));
+    }
+    await Promise.all(promises);
   },
 
   restoreSessionState: (statePath, sessionId) =>
@@ -923,6 +944,7 @@ ChromeperfApp.reducers = {
   },
 
   closeChart: (state, action, rootState) => {
+    if (!state) return state;
     // Don't remove the section from chartSectionsById until
     // forgetClosedChart.
     const sectionIdIndex = state.chartSectionIds.indexOf(action.sectionId);

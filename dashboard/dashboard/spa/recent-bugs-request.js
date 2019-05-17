@@ -16,6 +16,10 @@ export default class RecentBugsRequest extends RequestBase {
     return RecentBugsRequest.URL;
   }
 
+  get description_() {
+    return `loading recent bugs`;
+  }
+
   postProcess_(json) {
     return json.bugs;
   }

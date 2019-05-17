@@ -13,7 +13,7 @@ import ElementBase from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
-import {isElementChildOf} from './utils.js';
+import {measureElement, isElementChildOf} from './utils.js';
 
 export default class TriageExisting extends ElementBase {
   static get is() { return 'triage-existing'; }
@@ -68,6 +68,7 @@ export default class TriageExisting extends ElementBase {
           align-items: center;
           display: flex;
           margin: 0;
+          min-width: 400px;
           padding: 0;
         }
 
@@ -108,7 +109,7 @@ export default class TriageExisting extends ElementBase {
         }
 
         td:nth-of-type(4) {
-          max-width: 500px;
+          min-width: 400px;
         }
       </style>
 
@@ -178,15 +179,18 @@ export default class TriageExisting extends ElementBase {
     super.ready();
     this.addEventListener('blur', this.onBlur_.bind(this));
     this.addEventListener('keyup', this.onKeyup_.bind(this));
-    this.style.minWidth = (window.innerWidth * 0.6) + 'px';
   }
 
-  stateChanged(rootState) {
+  async stateChanged(rootState) {
     const oldIsOpen = this.isOpen;
     this.set('recentPerformanceBugs', rootState.recentPerformanceBugs);
     super.stateChanged(rootState);
 
     if (this.isOpen && !oldIsOpen) {
+      const rect = await measureElement(this);
+      // The drawer is about 33px. There's 32px of padding in this dialog.
+      this.style.maxWidth = (rect.right - 33 - 32) + 'px';
+
       this.$.bug_input.focus();
     }
   }

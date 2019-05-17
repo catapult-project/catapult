@@ -119,6 +119,7 @@ class TimeseriesSlice {
     this.measurement = options.measurement;
     this.method = options.method;
     this.revisionRange = options.revisionRange;
+    this.statistic = options.statistic;
     this.testCase = options.testCase;
     this.testSuite = options.testSuite;
     this.url = options.url;
@@ -147,6 +148,7 @@ class TimeseriesSlice {
     body.set('measurement', this.measurement);
     body.set('bot', this.bot);
     body.set('columns', columns.join(','));
+    body.set('statistic', this.statistic);
     if (this.buildType) body.set('build_type', this.buildType);
     if (this.testCase) body.set('test_case', this.testCase);
     if (this.revisionRange.min) {
@@ -167,6 +169,7 @@ class TimeseriesSlice {
     if (responseJson.data) {
       responseJson.data = normalize(responseJson.data, columns);
     }
+    responseJson.columns = columns;
     return responseJson;
   }
 }
@@ -201,6 +204,7 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
     this.testSuite_ = this.body_.get('test_suite') || '';
     this.measurement_ = this.body_.get('measurement') || '';
     this.bot_ = this.body_.get('bot') || '';
+    this.statistic_ = this.body_.get('statistic') || 'avg';
     this.testCase_ = this.body_.get('test_case') || '';
     this.buildType_ = this.body_.get('build_type') || '';
 
@@ -285,7 +289,7 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
       }
     }
 
-    // If all cols but revisions are available for the request range, then
+    // If all cols but 'revision' are available for the request range, then
     // don't fetch from the network.
     if (columns.size === 1) return new Set();
 
@@ -294,6 +298,7 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
     let availableRange = this.revisionRange_;
     for (const col of columns) {
       if (col === 'revision') continue;
+
       const availableForCol = availableRangeByCol.get(col);
       if (!availableForCol) {
         availableRange = new Range();
@@ -312,6 +317,7 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
       measurement: this.measurement_,
       method: this.fetchEvent.request.method,
       revisionRange,
+      statistic: this.statistic_,
       testCase: this.testCase_,
       testSuite: this.testSuite_,
       url: this.fetchEvent.request.url,
@@ -369,13 +375,32 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
         sliceResponses.push(slice.responsePromise);
       }
 
+      finalResult.columns = [];
+
       for await (const result of raceAllPromises(sliceResponses)) {
         if (!result || result.error || !result.data || !result.data.length) {
           continue;
         }
+
+        if (result.columns.includes('alert')) {
+          // This request fetched alerts, so remove all alerts from mergedData
+          // in case they've been nudged.
+          for (const datum of mergedData) {
+            if (datum.revision >= this.revisionRange_.min &&
+                datum.revision <= this.revisionRange_.max) {
+              delete datum.alert;
+            }
+          }
+        }
+
+        result.columns = [...new Set([
+          ...result.columns,
+          ...finalResult.columns,
+        ])];
         mergeObjectArrays('revision', mergedData, result.data.filter(d => (
           d.revision >= this.revisionRange_.min &&
           d.revision <= this.revisionRange_.max)));
+
         finalResult = {...result, data: mergedData};
         yield finalResult;
       }
@@ -480,6 +505,7 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
     const rangeStore = transaction.objectStore(STORE_RANGES);
     await Promise.all(this.columns_.map(async col => {
       if (col === 'revision') return;
+      if (col === 'alert') return;
       const prevRangesRaw = (await rangeStore.get(col)) || [];
       const prevRanges = prevRangesRaw.map(Range.fromDict);
       const newRanges = revisionRange.mergeIntoArray(prevRanges);

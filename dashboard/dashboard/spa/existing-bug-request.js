@@ -18,5 +18,10 @@ export default class ExistingBugRequest extends RequestBase {
   get url_() {
     return ExistingBugRequest.URL;
   }
+
+  get description_() {
+    return `assigning ${this.body_.getAll('key').length} alerts to
+      ${this.body_.get('bug')}`;
+  }
 }
 ExistingBugRequest.URL = '/api/existing_bug';

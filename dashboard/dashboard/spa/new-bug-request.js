@@ -26,6 +26,10 @@ export default class NewBugRequest extends RequestBase {
     return NewBugRequest.URL;
   }
 
+  get description_() {
+    return `creating new bug "${this.body_.get('summary')}"`;
+  }
+
   postProcess_(json) {
     return json.bug_id;
   }

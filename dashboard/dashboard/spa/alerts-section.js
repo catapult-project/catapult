@@ -571,6 +571,8 @@ AlertsSection.actions = {
     });
     if (sources.length) {
       dispatch(MenuInput.actions.blurAll());
+    } else {
+      AlertsSection.actions.maybeLayoutPreview(statePath)(dispatch, getState);
     }
 
     // When a request for untriaged alerts finishes, a request is started for
@@ -613,6 +615,7 @@ AlertsSection.actions = {
           batches, state.alertGroups, nextRequests, triagedRequests,
           triagedMaxStartRevision, started);
       await animationFrame();
+      AlertsSection.actions.maybeLayoutPreview(statePath)(dispatch, getState);
     }
 
     dispatch({
@@ -637,7 +640,7 @@ AlertsSection.actions = {
 
   maybeLayoutPreview: statePath => async(dispatch, getState) => {
     const state = get(getState(), statePath);
-    if (!state.selectedAlertsCount) {
+    if (!state || !state.selectedAlertsCount) {
       dispatch(UPDATE(`${statePath}.preview`, {lineDescriptors: []}));
       return;
     }
@@ -653,7 +656,7 @@ AlertsSection.computeLineDescriptor = alert => {
     measurement: alert.measurement,
     bots: [alert.master + ':' + alert.bot],
     cases: [alert.case],
-    statistic: 'avg',
+    statistic: alert.statistic,
     buildType: 'test',
   };
 };
@@ -825,6 +828,15 @@ AlertsSection.reducers = {
       }
     }
 
+    // Automatically select all alerts for bugs.
+    if (state.bug.selectedOptions.length > 0 &&
+        state.sheriff.selectedOptions.length === 0 &&
+        state.report.selectedOptions.length === 0) {
+      for (const alert of alerts) {
+        alert.isSelected = true;
+      }
+    }
+
     if (!alerts.length) {
       return state;
       // Wait till finalizeAlerts to display the happy cat.
@@ -885,7 +897,10 @@ AlertsSection.reducers = {
     // Don't automatically select the first group. Users often want to sort
     // the table by some column before previewing any alerts.
 
-    return AlertsSection.reducers.updateColumns({...state, alertGroups});
+    state = {...state, alertGroups};
+    state = AlertsSection.reducers.updateColumns(state);
+    state = AlertsSection.reducers.updateSelectedAlertsCount(state);
+    return state;
   },
 
   finalizeAlerts: (state, action, rootState) => {
@@ -949,8 +964,10 @@ AlertsSection.newStateOptionsFromQueryParams = queryParams => {
     minRevision: queryParams.get('minRev') || queryParams.get('rev'),
     maxRevision: queryParams.get('maxRev') || queryParams.get('rev'),
     sortColumn: queryParams.get('sort') || 'startRevision',
-    showingImprovements: queryParams.get('improvements') !== null,
-    showingTriaged: queryParams.get('triaged') !== null,
+    showingImprovements: ((queryParams.get('improvements') !== null) ||
+      (queryParams.get('bug') !== null)),
+    showingTriaged: ((queryParams.get('triaged') !== null) ||
+      (queryParams.get('bug') !== null)),
     sortDescending: queryParams.get('descending') !== null,
   };
 };
@@ -1020,8 +1037,13 @@ AlertsSection.getRouteParams = state => {
     }
   }
 
-  if (state.showingImprovements) queryParams.set('improvements', '');
-  if (state.showingTriaged) queryParams.set('triaged', '');
+  // #bug implies #improvements and #triaged
+  if (state.showingImprovements && !queryParams.get('bug')) {
+    queryParams.set('improvements', '');
+  }
+  if (state.showingTriaged && !queryParams.get('bug')) {
+    queryParams.set('triaged', '');
+  }
   if (state.sortColumn !== 'startRevision') {
     queryParams.set('sort', state.sortColumn);
   }

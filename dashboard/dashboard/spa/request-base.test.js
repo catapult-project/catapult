@@ -19,7 +19,6 @@ suite('RequestBase', function() {
   teardown(() => {
     window.fetch = originalFetch;
     window.getAuthorizationHeaders = originalAuthorizationHeaders;
-    window.AUTH_CLIENT_ID = '';
   });
 
   // HTML imports may not have loaded when suite() is called, but are loaded

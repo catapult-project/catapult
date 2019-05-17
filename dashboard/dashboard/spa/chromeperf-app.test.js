@@ -18,8 +18,6 @@ import {UPDATE} from './simple-redux.js';
 import {afterRender, animationFrame} from './utils.js';
 import {assert} from 'chai';
 
-window.AUTH_CLIENT_ID = '';
-
 suite('chromeperf-app', function() {
   async function fixture() {
     const app = document.createElement('chromeperf-app');

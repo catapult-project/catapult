@@ -16,8 +16,6 @@ import findElements from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
 
-window.AUTH_CLIENT_ID = '';
-
 suite('alerts-section', function() {
   async function fixture() {
     const section = document.createElement('alerts-section');

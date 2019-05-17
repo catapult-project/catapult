@@ -11,8 +11,6 @@ import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {afterRender, measureElement} from './utils.js';
 
-window.AUTH_CLIENT_ID = '';
-
 suite('chart-timeseries', function() {
   async function fixture() {
     const ct = document.createElement('chart-timeseries');

@@ -269,6 +269,7 @@ ReportSection.reducers = {
         internal: report.internal,
         canEdit: false,
         isEditing: false,
+        isPlaceholder: false,
         rows,
         tooltip: {},
         maxLabelParts,
@@ -300,6 +301,7 @@ ReportSection.reducers = {
 ReportSection.newTemplate = userEmail => {
   return {
     isEditing: true,
+    isPlaceholder: false,
     name: '',
     owners: userEmail,
     url: '',

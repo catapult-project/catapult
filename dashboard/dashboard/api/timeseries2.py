@@ -40,7 +40,7 @@ class Timeseries2Handler(api_request_handler.ApiRequestHandler):
         measurement=self.request.get('measurement'),
         bot=self.request.get('bot'),
         test_case=self.request.get('test_case'),
-        statistic=None,
+        statistic=self.request.get('statistic', None),
         build_type=self.request.get('build_type'))
     min_revision = self.request.get('min_revision')
     min_revision = int(min_revision) if min_revision else None
@@ -136,13 +136,16 @@ class TimeseriesQuery(object):
   def _CreateTestKeys(self):
     desc = self._descriptor.Clone()
 
+    self._statistic_columns = [
+        col for col in self._columns if col in descriptor.STATISTICS]
+    if desc.statistic and desc.statistic not in self._statistic_columns:
+      self._statistic_columns.append(desc.statistic)
+
     desc.statistic = None
     unsuffixed_test_paths = desc.ToTestPathsSync()
     self._unsuffixed_test_metadata_keys = [
         utils.TestMetadataKey(path) for path in unsuffixed_test_paths]
 
-    self._statistic_columns = [
-        col for col in self._columns if col in descriptor.STATISTICS]
     test_paths = []
     for statistic in self._statistic_columns:
       desc.statistic = statistic

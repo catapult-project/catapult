@@ -27,12 +27,4 @@ if ('serviceWorker' in navigator && !IS_DEBUG) {
   });
 }
 
-// These packages use base imports so they can be webpacked but not dynamically
-// loaded in tests.
-import '@polymer/app-route/app-location.js';
-import '@polymer/app-route/app-route.js';
-import '@polymer/iron-collapse/iron-collapse.js';
-import '@polymer/iron-icon/iron-icon.js';
-import '@polymer/iron-iconset-svg/iron-iconset-svg.js';
-
 import './chromeperf-app.js';

@@ -6,7 +6,7 @@
 
 import 'bower_components/webcomponentsjs/webcomponents-loader.js';
 import ElementBase from './element-base.js';
-import {animationFrame} from './utils.js';
+import {animationFrame, afterRender} from './utils.js';
 
 Mocha.before(async function() {
   const deps = document.createElement('link');
@@ -20,7 +20,10 @@ Mocha.before(async function() {
 });
 
 Mocha.beforeEach(async function() {
+  window.AUTH_CLIENT_ID = '';
+  window.location.hash = '';
   ElementBase.resetStoreForTest();
+  await afterRender();
 });
 
 const testsContext = require.context('.', true, /\.test\.js$/);
