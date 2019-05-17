@@ -212,12 +212,6 @@ tr.exportTo('tr.metrics.rendering', function() {
         continue;
       }
 
-      const sourceFrameNumber = flow.SubmitCompositorFrame.parentSlice
-          .args.source_frame_number_;
-
-      const rasterDuration =
-          getRasterTaskTimes(sourceFrameNumber, model);
-
       issueToReceipt.addSample(flow.ReceiveBeginFrame.start -
                                flow.IssueBeginFrame.start);
       receiptToSubmit.addSample(
@@ -227,18 +221,25 @@ tr.exportTo('tr.metrics.rendering', function() {
           flow.SurfaceAggregation.end - flow.SubmitCompositorFrame.end,
           {breakdown: generateBreakdownForCompositorPipelineInService_(flow)});
 
-      if (rasterDuration && rasterDuration.start && rasterDuration.end) {
-        const receiveToStart = rasterDuration.start -
-            flow.ReceiveBeginFrame.start;
-        const receiveToEnd = rasterDuration.end - flow.ReceiveBeginFrame.end;
+      if (flow.SubmitCompositorFrame.parentSlice) {
+        const sourceFrameNumber = flow.SubmitCompositorFrame.parentSlice
+            .args.source_frame_number_;
+        const rasterDuration =
+            getRasterTaskTimes(sourceFrameNumber, model);
+        if (rasterDuration && rasterDuration.start && rasterDuration.end) {
+          const receiveToStart = rasterDuration.start -
+              flow.ReceiveBeginFrame.start;
+          const receiveToEnd = rasterDuration.end - flow.ReceiveBeginFrame.end;
 
-        // receiveToStart can be negative if the earliest raster task for
-        // a frame starts before receiveBeginFrame starts.
-        // The same is true for receiveToEnd
-        // Only positive samples are added.
-        if (receiveToEnd > 0) {
-          issueToRasterStart.addSample(receiveToStart > 0 ? receiveToStart : 0);
-          issueToRasterEnd.addSample(receiveToEnd);
+          // receiveToStart can be negative if the earliest raster task for
+          // a frame starts before receiveBeginFrame starts.
+          // The same is true for receiveToEnd
+          // Only positive samples are added.
+          if (receiveToEnd > 0) {
+            issueToRasterStart.addSample(
+                receiveToStart > 0 ? receiveToStart : 0);
+            issueToRasterEnd.addSample(receiveToEnd);
+          }
         }
       }
       if (flow.SurfaceAggregation.args &&
