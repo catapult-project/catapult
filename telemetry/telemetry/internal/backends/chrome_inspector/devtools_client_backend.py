@@ -27,6 +27,14 @@ class TabNotFoundError(exceptions.Error):
   pass
 
 
+class UnsupportedVersionError(exceptions.Error):
+  pass
+
+
+# Only versions of Chrome from M58 and above are supported. Older versions
+# did not support many of the modern features currently in use by Telemetry.
+MIN_SUPPORTED_BRANCH_NUMBER = 3029
+
 # The first WebSocket connections or calls against a newly-started
 # browser, specifically in Debug builds, can take a long time. Give
 # them 60s to complete instead of the default 10s used in many places
@@ -171,9 +179,12 @@ class _DevToolsClientBackend(object):
     self._remote_port = self._forwarder._remote_port
 
     self._devtools_http = devtools_http.DevToolsHttp(self.local_port)
-    # If the agent is not alive and ready, this will raise a
-    # devtools_http.DevToolsClientConnectionError.
-    self.GetVersion()
+    # If the agent is not alive and ready, trying to get the branch number will
+    # raise a devtools_http.DevToolsClientConnectionError.
+    branch_number = self.GetChromeBranchNumber()
+    if branch_number < MIN_SUPPORTED_BRANCH_NUMBER:
+      raise UnsupportedVersionError(
+          'Chrome branch number %d is no longer supported' % branch_number)
 
     if not self.supports_tracing:
       return
