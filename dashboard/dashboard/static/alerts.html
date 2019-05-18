@@ -23,6 +23,11 @@ found in the LICENSE file.
 
   <body>
     <nav-bar></nav-bar>
+    <div style="background-color: yellow; padding: 8px;">
+      <a id="v2" href="https://v2spa-dot-chromeperf.appspot.com/#sheriff=">
+        Try the new frontend!
+      </a>
+    </div>
     <toplevel-toast></toplevel-toast>
     <alerts-page></alerts-page>
     <load-analytics></load-analytics>
@@ -31,6 +36,9 @@ found in the LICENSE file.
       'use strict';
       // The Google analytics code assumes there will be a script element to
       // inject into in the page. This empty element is used for that.
+      document.querySelector('#v2').href += encodeURI(
+          new URLSearchParams(location.search.substr(1)).get('sheriff') ||
+          'Chromium Perf Sheriff');
     </script>
   </body>
 </html>
