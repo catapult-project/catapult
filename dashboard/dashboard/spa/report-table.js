@@ -8,7 +8,7 @@ import './cp-toast.js';
 import './scalar-span.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
-import ElementBase from './element-base.js';
+import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
@@ -312,7 +312,7 @@ export default class ReportTable extends ElementBase {
   }
 
   async onToggleEditing_(event) {
-    await this.dispatch(TOGGLE(this.statePath + '.isEditing'));
+    await STORE.dispatch(TOGGLE(this.statePath + '.isEditing'));
   }
 
   async onOpenChart_(event) {
@@ -391,7 +391,7 @@ export default class ReportTable extends ElementBase {
     const td = tr.querySelector('scalar-span').parentNode;
     const tdRect = await measureElement(td);
     const thisRect = await measureElement(this);
-    await this.dispatch(UPDATE(this.statePath, {
+    await STORE.dispatch(UPDATE(this.statePath, {
       tooltip: {
         rows: event.model.row.actualDescriptors.map(descriptor => [
           descriptor.testSuite, descriptor.bot, descriptor.testCase]),

@@ -5,8 +5,8 @@
 'use strict';
 
 import './cp-input.js';
-import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
+import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
@@ -149,7 +149,7 @@ export default class MenuInput extends ElementBase {
   }
 
   async onFocus_(event) {
-    await this.dispatch('focus', this.statePath);
+    MenuInput.focus(this.statePath);
   }
 
   async onBlur_(event) {
@@ -157,7 +157,10 @@ export default class MenuInput extends ElementBase {
       this.$.input.focus();
       return;
     }
-    await this.dispatch('blur', this.statePath);
+    STORE.dispatch(UPDATE(this.statePath, {
+      focusTimestamp: window.performance.now(),
+      query: '',
+    }));
   }
 
   async onKeyup_(event) {
@@ -165,7 +168,7 @@ export default class MenuInput extends ElementBase {
       this.$.input.blur();
       return;
     }
-    await this.dispatch('onKeyup', this.statePath, event.target.value);
+    STORE.dispatch(UPDATE(this.statePath, {query: event.target.value}));
     this.dispatchEvent(new CustomEvent('input-keyup', {
       detail: {
         key: event.key,
@@ -175,12 +178,25 @@ export default class MenuInput extends ElementBase {
   }
 
   async onClear_(event) {
-    await this.dispatch('clear', this.statePath);
+    STORE.dispatch(UPDATE(this.statePath, {query: '', selectedOptions: []}));
+    MenuInput.focus(this.statePath);
     this.dispatchEvent(new CustomEvent('clear'));
     this.dispatchEvent(new CustomEvent('option-select', {
       bubbles: true,
       composed: true,
     }));
+  }
+
+  static focus(inputStatePath) {
+    STORE.dispatch({
+      type: MenuInput.reducers.focus.name,
+      // NOT "statePath"! statePathReducer would mess that up.
+      inputStatePath,
+    });
+  }
+
+  static blurAll() {
+    STORE.dispatch({type: MenuInput.reducers.focus.name});
   }
 }
 
@@ -190,36 +206,6 @@ MenuInput.inputValue = (isFocused, query, selectedOptions) => {
   if (selectedOptions.length === 0) return '';
   if (selectedOptions.length === 1) return selectedOptions[0];
   return `[${selectedOptions.length} selected]`;
-};
-
-MenuInput.actions = {
-  focus: inputStatePath => async(dispatch, getState) => {
-    dispatch({
-      type: MenuInput.reducers.focus.name,
-      // NOT "statePath"! statePathReducer would mess that up.
-      inputStatePath,
-    });
-  },
-
-  blurAll: () => async(dispatch, getState) => {
-    dispatch({type: MenuInput.reducers.focus.name});
-  },
-
-  blur: statePath => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {
-      focusTimestamp: window.performance.now(),
-      query: '',
-    }));
-  },
-
-  clear: statePath => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {query: '', selectedOptions: []}));
-    MenuInput.actions.focus(statePath)(dispatch, getState);
-  },
-
-  onKeyup: (statePath, query) => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {query}));
-  },
 };
 
 MenuInput.reducers = {

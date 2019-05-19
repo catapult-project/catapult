@@ -8,6 +8,7 @@ import AlertDetail from './alert-detail.js';
 import ExistingBugRequest from './existing-bug-request.js';
 import NewBugRequest from './new-bug-request.js';
 import findElements from './find-elements.js';
+import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender, animationFrame, timeout} from './utils.js';
@@ -17,7 +18,7 @@ suite('alert-detail', function() {
   async function fixture(options) {
     const ad = document.createElement('alert-detail');
     ad.statePath = 'test';
-    await ad.dispatch(UPDATE('test', AlertDetail.buildState(options)));
+    await STORE.dispatch(UPDATE('test', AlertDetail.buildState(options)));
     document.body.appendChild(ad);
     await afterRender();
     return ad;
@@ -91,7 +92,7 @@ suite('alert-detail', function() {
       e.matches('raised-button') && /Nudge/.test(e.textContent))[0];
     nudge.click();
     await afterRender();
-    assert.isTrue(ad.getState().test.nudge.isOpen);
+    assert.isTrue(STORE.getState().test.nudge.isOpen);
   });
 
   test('chart', async function() {
@@ -167,7 +168,7 @@ suite('alert-detail', function() {
       e.matches('raised-button') && /Existing Bug/.test(e.textContent))[0];
     existingBug.click();
     await afterRender();
-    ad.dispatch(UPDATE('test.existingBug', {bugId: '123456'}));
+    STORE.dispatch(UPDATE('test.existingBug', {bugId: '123456'}));
     await afterRender();
     assert.strictEqual(0, ad.bugId);
     let resolveExistingBug;

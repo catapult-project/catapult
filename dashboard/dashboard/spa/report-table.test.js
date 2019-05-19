@@ -4,16 +4,17 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import ReportTable from './report-table.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {STORE} from './element-base.js';
 import {afterRender} from './utils.js';
+import {assert} from 'chai';
 
 suite('report-table', function() {
   async function fixture() {
     const report = document.createElement('report-table');
     report.statePath = 'test';
-    await report.dispatch(CHAIN(
+    await STORE.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', ReportTable.buildState(options()))));
     document.body.appendChild(report);

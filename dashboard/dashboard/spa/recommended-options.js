@@ -5,8 +5,8 @@
 'use strict';
 
 import '@polymer/polymer/lib/elements/dom-if.js';
-import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
+import {ElementBase, STORE} from './element-base.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
@@ -54,7 +54,7 @@ export default class RecommendedOptions extends ElementBase {
   ready() {
     super.ready();
     if (!this.optionRecommendations) {
-      this.dispatch({
+      STORE.dispatch({
         type: RecommendedOptions.reducers.getRecommendations.name,
       });
     }
@@ -69,7 +69,7 @@ export default class RecommendedOptions extends ElementBase {
     const state = get(rootState, this.statePath);
     this.setProperties(state);
     if (this.optionValues && this.optionValues !== oldOptionValues) {
-      this.dispatch({
+      STORE.dispatch({
         type: RecommendedOptions.reducers.recommendOptions.name,
         statePath: this.statePath,
       });
@@ -82,7 +82,7 @@ export default class RecommendedOptions extends ElementBase {
         !oldSelectedOptions.includes(o));
       // Ignore when users deselect options or select whole groups of options.
       if (addedOptions.length === 1) {
-        this.dispatch({
+        STORE.dispatch({
           type: RecommendedOptions.reducers.updateRecommendations.name,
           addedOption: addedOptions[0],
         });

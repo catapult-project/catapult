@@ -4,14 +4,15 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import DescribeRequest from './describe-request.js';
 import SparklineCompound from './sparkline-compound.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {MODE} from './layout-timeseries.js';
+import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {afterRender, denormalize} from './utils.js';
+import {assert} from 'chai';
 
 suite('sparkline-compound', function() {
   let MS_PER_YEAR;  // tr might not be loaded yet.
@@ -72,7 +73,7 @@ suite('sparkline-compound', function() {
   async function fixture() {
     const sc = document.createElement('sparkline-compound');
     sc.statePath = 'test';
-    await sc.dispatch(CHAIN(
+    await STORE.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', {
           ...SparklineCompound.buildState({}),
@@ -85,7 +86,7 @@ suite('sparkline-compound', function() {
 
   test('build', async function() {
     const sc = await fixture();
-    await sc.dispatch(CHAIN(
+    await STORE.dispatch(CHAIN(
         UPDATE('test', {
           descriptor: TimeseriesDescriptor.buildState({
             suite: {selectedOptions: ['suite:xxx', 'suite:yyy', 'suite:zzz']},
@@ -111,8 +112,7 @@ suite('sparkline-compound', function() {
     assert.lengthOf(sc.relatedTabs[1].sparklines, 3);
     assert.lengthOf(sc.relatedTabs[2].sparklines, 5);
 
-    await sc.dispatch(SparklineCompound.actions.selectRelatedTab(
-        sc.statePath, 'Suites'));
+    await SparklineCompound.selectRelatedTab(sc.statePath, 'Suites');
     await afterRender();
 
     assert.lengthOf(sc.relatedTabs[0].renderedSparklines, 3);
@@ -123,7 +123,7 @@ suite('sparkline-compound', function() {
 
   test('observeCursor', async function() {
     const sc = await fixture();
-    await sc.dispatch(CHAIN(
+    await STORE.dispatch(CHAIN(
         UPDATE('test', {
           mode: MODE.NORMALIZE_UNIT,
           descriptor: TimeseriesDescriptor.buildState({
@@ -144,10 +144,9 @@ suite('sparkline-compound', function() {
           statePath: 'test',
         }));
     await afterRender();
-    await sc.dispatch(SparklineCompound.actions.selectRelatedTab(
-        sc.statePath, 'Suites'));
+    await SparklineCompound.selectRelatedTab(sc.statePath, 'Suites');
     await afterRender();
-    await sc.dispatch(UPDATE(sc.statePath, {
+    await STORE.dispatch(UPDATE(sc.statePath, {
       cursorRevision: NOW_MS - (MS_PER_YEAR / 20),
       cursorScalar: new tr.b.Scalar(tr.b.Unit.byJSONName.ms, 1.5),
     }));
@@ -164,7 +163,7 @@ suite('sparkline-compound', function() {
 
   test('observeRevisions', async function() {
     const sc = await fixture();
-    await sc.dispatch(CHAIN(
+    await STORE.dispatch(CHAIN(
         UPDATE('test', {
           descriptor: TimeseriesDescriptor.buildState({
             suite: {selectedOptions: ['suite:xxx', 'suite:yyy', 'suite:zzz']},
@@ -184,8 +183,7 @@ suite('sparkline-compound', function() {
           statePath: 'test',
         }));
     await afterRender();
-    await sc.dispatch(SparklineCompound.actions.selectRelatedTab(
-        sc.statePath, 'Suites'));
+    await SparklineCompound.selectRelatedTab(sc.statePath, 'Suites');
     await afterRender();
 
     let sparks = sc.relatedTabs[0].renderedSparklines;
@@ -196,7 +194,7 @@ suite('sparkline-compound', function() {
     assert.isUndefined(sparks[2].layout.minRevision);
     assert.isUndefined(sparks[2].layout.maxRevision);
 
-    await sc.dispatch(UPDATE(sc.statePath, {
+    await STORE.dispatch(UPDATE(sc.statePath, {
       minRevision: NOW_MS - (MS_PER_YEAR / 2),
       maxRevision: NOW_MS - (MS_PER_YEAR / 20),
     }));
@@ -213,7 +211,7 @@ suite('sparkline-compound', function() {
 
   test('click', async function() {
     const sc = await fixture();
-    await sc.dispatch(CHAIN(
+    await STORE.dispatch(CHAIN(
         UPDATE('test', {
           descriptor: TimeseriesDescriptor.buildState({
             suite: {selectedOptions: ['suite:xxx', 'suite:yyy', 'suite:zzz']},
@@ -233,8 +231,7 @@ suite('sparkline-compound', function() {
           statePath: 'test',
         }));
     await afterRender();
-    await sc.dispatch(SparklineCompound.actions.selectRelatedTab(
-        sc.statePath, 'Suites'));
+    await SparklineCompound.selectRelatedTab(sc.statePath, 'Suites');
     await afterRender();
 
     let newChartEvents = 0;

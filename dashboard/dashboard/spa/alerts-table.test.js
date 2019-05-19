@@ -4,18 +4,19 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import AlertsTable from './alerts-table.js';
 import findElements from './find-elements.js';
 import {ENSURE, UPDATE} from './simple-redux.js';
+import {STORE} from './element-base.js';
 import {afterRender} from './utils.js';
+import {assert} from 'chai';
 
 suite('alerts-table', function() {
   async function fixture(options = {}) {
     const table = document.createElement('alerts-table');
     table.statePath = 'test';
-    await table.dispatch(ENSURE('test'));
-    await table.dispatch(UPDATE('test', AlertsTable.buildState(options)));
+    STORE.dispatch(ENSURE('test'));
+    STORE.dispatch(UPDATE('test', AlertsTable.buildState(options)));
     document.body.appendChild(table);
     await afterRender();
     return table;
@@ -172,14 +173,14 @@ suite('alerts-table', function() {
       e.matches('column-head[name="measurement"]'))[0];
     measurementColumn.click();
     await afterRender();
-    let state = table.getState().test;
+    let state = STORE.getState().test;
     assert.strictEqual('aaa', state.alertGroups[0].alerts[0].measurement);
     assert.strictEqual('bbb', state.alertGroups[1].alerts[0].measurement);
     assert.strictEqual('ccc', state.alertGroups[2].alerts[0].measurement);
 
     measurementColumn.click();
     await afterRender();
-    state = table.getState().test;
+    state = STORE.getState().test;
     assert.strictEqual('ccc', state.alertGroups[0].alerts[0].measurement);
     assert.strictEqual('bbb', state.alertGroups[1].alerts[0].measurement);
     assert.strictEqual('aaa', state.alertGroups[2].alerts[0].measurement);
@@ -426,7 +427,7 @@ suite('alerts-table', function() {
     const checkbox = findElements(tbody, e => e.matches('cp-checkbox'))[0];
     checkbox.click();
     await afterRender();
-    assert.isTrue(table.getState().test.alertGroups[0].alerts[0].isSelected);
+    assert.isTrue(STORE.getState().test.alertGroups[0].alerts[0].isSelected);
   });
 
   test('selectAlert toggleAll', async function() {
@@ -471,8 +472,8 @@ suite('alerts-table', function() {
     const checkbox = findElements(tbody, e => e.matches('cp-checkbox'))[0];
     checkbox.click();
     await afterRender();
-    assert.isTrue(table.getState().test.alertGroups[0].alerts[0].isSelected);
-    assert.isTrue(table.getState().test.alertGroups[0].alerts[1].isSelected);
+    assert.isTrue(STORE.getState().test.alertGroups[0].alerts[0].isSelected);
+    assert.isTrue(STORE.getState().test.alertGroups[0].alerts[1].isSelected);
   });
 
   test('selectAlert shiftKey', async function() {
@@ -574,10 +575,10 @@ suite('alerts-table', function() {
       detail: {shiftKey: true},
     }));
     await afterRender();
-    assert.isFalse(table.getState().test.alertGroups[0].alerts[0].isSelected);
-    assert.isTrue(table.getState().test.alertGroups[0].alerts[1].isSelected);
-    assert.isTrue(table.getState().test.alertGroups[0].alerts[2].isSelected);
-    assert.isTrue(table.getState().test.alertGroups[0].alerts[3].isSelected);
-    assert.isFalse(table.getState().test.alertGroups[0].alerts[4].isSelected);
+    assert.isFalse(STORE.getState().test.alertGroups[0].alerts[0].isSelected);
+    assert.isTrue(STORE.getState().test.alertGroups[0].alerts[1].isSelected);
+    assert.isTrue(STORE.getState().test.alertGroups[0].alerts[2].isSelected);
+    assert.isTrue(STORE.getState().test.alertGroups[0].alerts[3].isSelected);
+    assert.isFalse(STORE.getState().test.alertGroups[0].alerts[4].isSelected);
   });
 });

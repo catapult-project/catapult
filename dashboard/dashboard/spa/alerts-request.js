@@ -29,6 +29,6 @@ export default class AlertsRequest extends RequestBase {
 AlertsRequest.URL = '/api/alerts';
 
 // Maximum number of alerts to fetch from the datastore in a single request.
-// AlertsSection.actions.loadAlerts may chase cursors to load more alerts via
+// AlertsSection.loadAlerts() may chase cursors to load more alerts via
 // subsequent requests.
 AlertsRequest.PAGE_LIMIT = 500;

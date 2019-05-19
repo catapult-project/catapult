@@ -11,8 +11,8 @@ import './cp-radio.js';
 import './error-set.js';
 import './raised-button.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
-import ElementBase from './element-base.js';
 import NewPinpointRequest from './new-pinpoint-request.js';
+import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 import {isElementChildOf, pinpointJob} from './utils.js';
@@ -254,7 +254,7 @@ export default class BisectDialog extends ElementBase {
 
   async onKeyup_(event) {
     if (event.key === 'Escape') {
-      await this.dispatch(UPDATE(this.statePath, {isOpen: false}));
+      await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
     }
   }
 
@@ -263,45 +263,45 @@ export default class BisectDialog extends ElementBase {
         isElementChildOf(event.relatedTarget, this)) {
       return;
     }
-    await this.dispatch(UPDATE(this.statePath, {isOpen: false}));
+    await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
   }
 
   async onCancel_(event) {
-    await this.dispatch(UPDATE(this.statePath, {isOpen: false}));
+    await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
   }
 
   async onStartRevision_(event) {
-    await this.dispatch(UPDATE(this.statePath, {
+    await STORE.dispatch(UPDATE(this.statePath, {
       startRevision: event.detail.value,
     }));
   }
 
   async onEndRevision_(event) {
-    await this.dispatch(UPDATE(this.statePath, {
+    await STORE.dispatch(UPDATE(this.statePath, {
       endRevision: event.detail.value,
     }));
   }
 
   async onBugId_(event) {
-    await this.dispatch(UPDATE(this.statePath, {bugId: event.detail.value}));
+    await STORE.dispatch(UPDATE(this.statePath, {bugId: event.detail.value}));
   }
 
   async onModeChange_(event) {
     if (!event.detail.value) return;
-    await this.dispatch(UPDATE(this.statePath, {mode: event.detail.value}));
+    await STORE.dispatch(UPDATE(this.statePath, {mode: event.detail.value}));
   }
 
   async onPatch_(event) {
-    await this.dispatch(UPDATE(this.statePath, {patch: event.detail.value}));
+    await STORE.dispatch(UPDATE(this.statePath, {patch: event.detail.value}));
   }
 
   async onOpen_(event) {
-    await this.dispatch(UPDATE(this.statePath, {isOpen: true}));
+    await STORE.dispatch(UPDATE(this.statePath, {isOpen: true}));
   }
 
   async onSubmit_(event) {
     try {
-      this.dispatch(UPDATE(this.statePath, {isOpen: false, isLoading: true}));
+      STORE.dispatch(UPDATE(this.statePath, {isOpen: false, isLoading: true}));
       const request = new NewPinpointRequest({
         alerts: this.alertKeys,
         suite: this.suite,
@@ -316,9 +316,9 @@ export default class BisectDialog extends ElementBase {
         endRevision: this.endRevision,
       });
       const jobId = await request.response;
-      this.dispatch(UPDATE(this.statePath, {isLoading: false, jobId}));
+      STORE.dispatch(UPDATE(this.statePath, {isLoading: false, jobId}));
     } catch (err) {
-      this.dispatch(UPDATE(this.statePath, {
+      STORE.dispatch(UPDATE(this.statePath, {
         isLoading: false,
         errors: [err.message],
       }));

@@ -4,13 +4,14 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import ChartCompound from './chart-compound.js';
 import findElements from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {MODE} from './layout-timeseries.js';
+import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {afterRender, denormalize} from './utils.js';
+import {assert} from 'chai';
 
 suite('chart-compound', function() {
   let MS_PER_YEAR;  // tr might not be loaded yet.
@@ -20,13 +21,13 @@ suite('chart-compound', function() {
     const cc = document.createElement('chart-compound');
     cc.statePath = 'test';
     cc.linkedStatePath = 'linked';
-    await cc.dispatch(CHAIN(
+    await STORE.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', ChartCompound.buildState()),
         ENSURE('linked'),
         UPDATE('linked', ChartCompound.buildLinkedState())));
     document.body.appendChild(cc);
-    await cc.dispatch(UPDATE('test', {lineDescriptors: [{
+    await STORE.dispatch(UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
       bots: ['master:bot'],
       measurement: 'ms',
@@ -105,7 +106,7 @@ suite('chart-compound', function() {
 
   test('brushMinimap', async function() {
     const cc = await fixture();
-    cc.dispatch(UPDATE('test.minimapLayout.xAxis', {brushes: [
+    STORE.dispatch(UPDATE('test.minimapLayout.xAxis', {brushes: [
       {xPct: '10%'}, {xPct: '90%'},
     ]}));
     cc.$.minimap.dispatchEvent(new CustomEvent('brush', {
@@ -121,7 +122,7 @@ suite('chart-compound', function() {
 
   test('linkedCursor', async function() {
     const cc = await fixture();
-    await cc.dispatch(UPDATE('linked', {
+    await STORE.dispatch(UPDATE('linked', {
       linkedCursorRevision: NOW_MS - (MS_PER_YEAR / 20),
       linkedCursorScalar: new tr.b.Scalar(
           tr.b.Unit.byName.timeDurationInMs, 2.5),
@@ -136,7 +137,7 @@ suite('chart-compound', function() {
 
   test('linkedRevisions', async function() {
     const cc = await fixture();
-    await cc.dispatch(UPDATE('linked', {
+    await STORE.dispatch(UPDATE('linked', {
       linkedMinRevision: NOW_MS - (MS_PER_YEAR / 2),
       linkedMaxRevision: NOW_MS - (MS_PER_YEAR / 20),
     }));
@@ -153,7 +154,7 @@ suite('chart-compound', function() {
 
   test('linkedMode', async function() {
     const cc = await fixture();
-    await cc.dispatch(UPDATE('linked', {
+    await STORE.dispatch(UPDATE('linked', {
       linkedMode: MODE.DELTA,
     }));
     await afterRender();
@@ -170,7 +171,7 @@ suite('chart-compound', function() {
         'timeDurationInMs');
     assert.isBelow(0, yRange.min);
 
-    await cc.dispatch(UPDATE('linked', {
+    await STORE.dispatch(UPDATE('linked', {
       linkedZeroYAxis: true,
     }));
     await afterRender();
@@ -184,7 +185,7 @@ suite('chart-compound', function() {
 
   test('linkedFixedXAxis', async function() {
     const cc = await fixture();
-    await cc.dispatch(UPDATE('linked', {
+    await STORE.dispatch(UPDATE('linked', {
       linkedFixedXAxis: false,
     }));
     await afterRender();

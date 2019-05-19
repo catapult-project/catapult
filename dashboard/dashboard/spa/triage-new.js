@@ -9,7 +9,7 @@ import './cp-input.js';
 import './cp-textarea.js';
 import './raised-button.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
-import ElementBase from './element-base.js';
+import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
@@ -145,7 +145,7 @@ export default class TriageNew extends ElementBase {
 
   async onKeyup_(event) {
     if (event.key === 'Escape') {
-      await this.dispatch(UPDATE(this.statePath, {isOpen: false}));
+      await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
     }
   }
 
@@ -154,11 +154,11 @@ export default class TriageNew extends ElementBase {
         isElementChildOf(event.relatedTarget, this)) {
       return;
     }
-    await this.dispatch(UPDATE(this.statePath, {isOpen: false}));
+    await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
   }
 
   async onSummary_(event) {
-    await this.dispatch(UPDATE(this.statePath, {summary: event.target.value}));
+    await STORE.dispatch(UPDATE(this.statePath, {summary: event.target.value}));
   }
 
   async onDescription_(event) {
@@ -166,13 +166,13 @@ export default class TriageNew extends ElementBase {
       await this.onSubmit_(event);
       return;
     }
-    await this.dispatch(UPDATE(this.statePath, {
+    await STORE.dispatch(UPDATE(this.statePath, {
       description: event.target.value,
     }));
   }
 
   async onLabel_(event) {
-    await this.dispatch({
+    await STORE.dispatch({
       type: TriageNew.reducers.toggleLabel.name,
       statePath: this.statePath,
       name: event.model.label.name,
@@ -180,7 +180,7 @@ export default class TriageNew extends ElementBase {
   }
 
   async onComponent_(event) {
-    await this.dispatch({
+    await STORE.dispatch({
       type: TriageNew.reducers.toggleComponent.name,
       statePath: this.statePath,
       name: event.model.component.name,
@@ -188,15 +188,15 @@ export default class TriageNew extends ElementBase {
   }
 
   async onOwner_(event) {
-    await this.dispatch(UPDATE(this.statePath, {owner: event.target.value}));
+    await STORE.dispatch(UPDATE(this.statePath, {owner: event.target.value}));
   }
 
   async onCC_(event) {
-    await this.dispatch(UPDATE(this.statePath, {cc: event.target.value}));
+    await STORE.dispatch(UPDATE(this.statePath, {cc: event.target.value}));
   }
 
   async onSubmit_(event) {
-    await this.dispatch(UPDATE(this.statePath, {isOpen: false}));
+    await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
     this.dispatchEvent(new CustomEvent('submit', {
       bubbles: true,
       composed: true,

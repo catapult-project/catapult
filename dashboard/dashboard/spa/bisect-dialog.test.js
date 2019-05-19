@@ -7,6 +7,7 @@
 import BisectDialog from './bisect-dialog.js';
 import NewPinpointRequest from './new-pinpoint-request.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {STORE} from './element-base.js';
 import {afterRender, timeout} from './utils.js';
 import {assert} from 'chai';
 
@@ -14,7 +15,7 @@ suite('bisect-dialog', function() {
   async function fixture() {
     const bd = document.createElement('bisect-dialog');
     bd.statePath = 'test';
-    bd.dispatch(CHAIN(
+    STORE.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', BisectDialog.buildState({
           alertKeys: ['alert key'],

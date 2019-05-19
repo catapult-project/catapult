@@ -4,9 +4,10 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import MenuInput from './menu-input.js';
+import {STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
+import {assert} from 'chai';
 
 suite('menu-input', function() {
   teardown(() => {
@@ -21,7 +22,7 @@ suite('menu-input', function() {
     xxxInput.statePath = 'xxx';
     const yyyInput = document.createElement('menu-input');
     yyyInput.statePath = 'yyy';
-    await xxxInput.dispatch(UPDATE('', {
+    await STORE.dispatch(UPDATE('', {
       xxx: MenuInput.buildState({
         label: 'XXX',
         options: new Set([

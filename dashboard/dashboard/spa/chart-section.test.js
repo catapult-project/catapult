@@ -11,6 +11,7 @@ import TimeseriesDescriptor from './timeseries-descriptor.js';
 import findElements from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {MODE} from './layout-timeseries.js';
+import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {afterRender} from './utils.js';
 import {assert} from 'chai';
@@ -20,7 +21,7 @@ suite('chart-section', function() {
     const chart = document.createElement('chart-section');
     chart.statePath = 'test';
     chart.linkedStatePath = 'linked';
-    await chart.dispatch(CHAIN(
+    await STORE.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', ChartSection.buildState({}))));
     document.body.appendChild(chart);
@@ -76,7 +77,7 @@ suite('chart-section', function() {
 
   test('descriptor', async function() {
     const chart = await fixture();
-    await chart.dispatch(UPDATE(chart.statePath, {
+    await STORE.dispatch(UPDATE(chart.statePath, {
       descriptor: TimeseriesDescriptor.buildState({
         suite: {
           selectedOptions: ['suite'],
@@ -107,7 +108,7 @@ suite('chart-section', function() {
 
   test('statistic', async function() {
     const chart = await fixture();
-    await chart.dispatch(UPDATE('test', {
+    await STORE.dispatch(UPDATE('test', {
       descriptor: TimeseriesDescriptor.buildState({
         suite: {
           selectedOptions: ['suite'],

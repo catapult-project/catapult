@@ -5,8 +5,8 @@
 'use strict';
 
 import '@polymer/polymer/lib/elements/dom-if.js';
-import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
+import {ElementBase, STORE} from './element-base.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
@@ -58,18 +58,12 @@ export default class TagFilter extends ElementBase {
   }
 
   onTagSelect_(event) {
-    this.dispatch('filter', this.statePath);
+    STORE.dispatch({
+      type: TagFilter.reducers.filter.name,
+      statePath: this.statePath,
+    });
   }
 }
-
-TagFilter.actions = {
-  filter: statePath => async(dispatch, getState) => {
-    dispatch({
-      type: TagFilter.reducers.filter.name,
-      statePath,
-    });
-  },
-};
 
 TagFilter.reducers = {
   filter: state => {

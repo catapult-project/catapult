@@ -4,13 +4,14 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import DescribeRequest from './describe-request.js';
 import TestSuitesRequest from './test-suites-request.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
 import findElements from './find-elements.js';
 import {ENSURE, TOGGLE, UPDATE} from './simple-redux.js';
+import {STORE} from './element-base.js';
 import {afterRender} from './utils.js';
+import {assert} from 'chai';
 
 suite('timeseries-descriptor', function() {
   let originalFetch;
@@ -53,8 +54,8 @@ suite('timeseries-descriptor', function() {
   test('suite select describe', async function() {
     const td = document.createElement('timeseries-descriptor');
     td.statePath = 'test';
-    td.dispatch(ENSURE('test'));
-    td.dispatch(UPDATE('test', TimeseriesDescriptor.buildState({})));
+    STORE.dispatch(ENSURE('test'));
+    STORE.dispatch(UPDATE('test', TimeseriesDescriptor.buildState({})));
     document.body.appendChild(td);
     await afterRender();
 
@@ -72,8 +73,8 @@ suite('timeseries-descriptor', function() {
   test('option-select matrix-change', async function() {
     const td = document.createElement('timeseries-descriptor');
     td.statePath = 'test';
-    td.dispatch(ENSURE('test'));
-    td.dispatch(UPDATE('test', TimeseriesDescriptor.buildState({})));
+    STORE.dispatch(ENSURE('test'));
+    STORE.dispatch(UPDATE('test', TimeseriesDescriptor.buildState({})));
     document.body.appendChild(td);
     await afterRender();
 
@@ -101,9 +102,9 @@ suite('timeseries-descriptor', function() {
     assert.deepEqual([['bot_a', 'bot_b']], matrix.bots);
     assert.deepEqual([[]], matrix.cases);
 
-    td.dispatch(TOGGLE('test.suite.isAggregated'));
-    td.dispatch(TOGGLE('test.bot.isAggregated'));
-    td.dispatch(TOGGLE('test.case.isAggregated'));
+    STORE.dispatch(TOGGLE('test.suite.isAggregated'));
+    STORE.dispatch(TOGGLE('test.bot.isAggregated'));
+    STORE.dispatch(TOGGLE('test.case.isAggregated'));
 
     findElements(td, e =>
       e.matches('cp-checkbox') && /case_a/.test(e.textContent))[0].click();

@@ -4,11 +4,12 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import ChartBase from './chart-base.js';
 import findElements from './find-elements.js';
 import {ENSURE, UPDATE} from './simple-redux.js';
+import {STORE} from './element-base.js';
 import {afterRender, animationFrame} from './utils.js';
+import {assert} from 'chai';
 
 suite('chart-base', function() {
   setup(() => {
@@ -31,9 +32,9 @@ suite('chart-base', function() {
     const chart = document.createElement('chart-base');
     chart.style.maxWidth = '550px';
     chart.statePath = 'test';
-    await chart.dispatch(ENSURE('test'));
+    await STORE.dispatch(ENSURE('test'));
     document.body.appendChild(chart);
-    await chart.dispatch(UPDATE('test', ChartBase.buildState({
+    await STORE.dispatch(UPDATE('test', ChartBase.buildState({
       showTooltip: true,
       lines: [
         {
@@ -95,9 +96,9 @@ suite('chart-base', function() {
   test('boldLine', async function() {
     const chart = document.createElement('chart-base');
     chart.statePath = 'test';
-    await chart.dispatch(ENSURE('test'));
+    await STORE.dispatch(ENSURE('test'));
     document.body.appendChild(chart);
-    await chart.dispatch(UPDATE('test', ChartBase.buildState({
+    await STORE.dispatch(UPDATE('test', ChartBase.buildState({
       lines: [
         {
           path: 'M0,0 L100,100',
@@ -150,7 +151,7 @@ suite('chart-base', function() {
     })));
     await afterRender();
 
-    chart.dispatch({
+    STORE.dispatch({
       type: ChartBase.reducers.boldLine.name,
       statePath: 'test',
       lineIndex: 0,
@@ -163,7 +164,7 @@ suite('chart-base', function() {
     assert.strictEqual(chart.lines[0].strokeWidth, 1);
     assert.strictEqual(chart.lines[1].strokeWidth, 2);
 
-    chart.dispatch({
+    STORE.dispatch({
       type: ChartBase.reducers.boldLine.name,
       statePath: 'test',
       lineIndex: 0,
@@ -174,7 +175,7 @@ suite('chart-base', function() {
     assert.strictEqual(chart.lines[0].strokeWidth, 1);
     assert.strictEqual(chart.lines[1].strokeWidth, 2);
 
-    chart.dispatch({
+    STORE.dispatch({
       type: ChartBase.reducers.boldLine.name,
       statePath: 'test',
     });
@@ -186,9 +187,9 @@ suite('chart-base', function() {
   test('lines', async function() {
     const chart = document.createElement('chart-base');
     chart.statePath = 'test';
-    await chart.dispatch(ENSURE('test'));
+    await STORE.dispatch(ENSURE('test'));
     document.body.appendChild(chart);
-    await chart.dispatch(UPDATE('test', ChartBase.buildState({
+    await STORE.dispatch(UPDATE('test', ChartBase.buildState({
       lines: [
         {
           path: 'M0,0 L100,100',

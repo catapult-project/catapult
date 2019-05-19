@@ -7,7 +7,7 @@
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
 import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
-import ElementBase from './element-base.js';
+import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {animationFrame, hasCtrlKey, measureElement} from './utils.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
@@ -410,7 +410,7 @@ export default class ChartBase extends GestureEventListeners(ElementBase) {
   async onTrackBrushHandle_(event) {
     const xPct = ChartBase.computeBrush(
         event.detail.x, await measureElement(this.$.main));
-    this.dispatch(UPDATE(
+    STORE.dispatch(UPDATE(
         `${this.statePath}.xAxis.brushes.${event.model.brushIndex}`, {xPct}));
     this.dispatchEvent(new CustomEvent('brush', {
       bubbles: true,

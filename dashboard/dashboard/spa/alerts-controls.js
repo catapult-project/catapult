@@ -13,11 +13,11 @@ import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
 import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import AlertsTable from './alerts-table.js';
-import ElementBase from './element-base.js';
 import MenuInput from './menu-input.js';
 import OptionGroup from './option-group.js';
 import ReportNamesRequest from './report-names-request.js';
 import SheriffsRequest from './sheriffs-request.js';
+import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
 import {crbug} from './utils.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
@@ -343,9 +343,18 @@ export default class AlertsControls extends ElementBase {
 
   connectedCallback() {
     super.connectedCallback();
-    this.dispatch('connected', this.statePath);
-
+    AlertsControls.connected(this.statePath);
     this.dispatchSources_();
+  }
+
+  static async connected(statePath) {
+    AlertsControls.loadReportNames(statePath);
+    AlertsControls.loadSheriffs(statePath);
+    STORE.dispatch({
+      type: AlertsControls.reducers.receiveRecentlyModifiedBugs.name,
+      statePath,
+      json: localStorage.getItem('recentlyModifiedBugs'),
+    });
   }
 
   stateChanged(rootState) {
@@ -361,16 +370,52 @@ export default class AlertsControls extends ElementBase {
       this.$['recent-bugs'].scrollIntoView(true);
     }
     if (this.recentPerformanceBugs !== oldRecentPerformanceBugs) {
-      this.dispatch('observeRecentPerformanceBugs', this.statePath);
+      STORE.dispatch({
+        type: AlertsControls.reducers.receiveRecentPerformanceBugs.name,
+        statePath: this.statePath,
+      });
     }
     if (this.userEmail !== oldUserEmail) {
-      this.dispatch('loadReportNames', this.statePath);
-      this.dispatch('loadSheriffs', this.statePath);
+      AlertsControls.loadReportNames(this.statePath);
+      AlertsControls.loadSheriffs(this.statePath);
+    }
+  }
+
+  static async loadReportNames(statePath) {
+    let infos;
+    let error;
+    try {
+      infos = await new ReportNamesRequest().response;
+    } catch (err) {
+      error = err;
+    }
+    STORE.dispatch({
+      type: AlertsControls.reducers.receiveReportNames.name,
+      statePath, infos, error,
+    });
+  }
+
+  static async loadSheriffs(statePath) {
+    let sheriffs;
+    let error;
+    try {
+      sheriffs = await new SheriffsRequest().response;
+    } catch (err) {
+      error = err;
+    }
+    STORE.dispatch({
+      type: AlertsControls.reducers.receiveSheriffs.name,
+      statePath, sheriffs, error,
+    });
+
+    const state = get(STORE.getState(), statePath);
+    if (state.sheriff.selectedOptions.length === 0) {
+      MenuInput.focus(statePath + '.sheriff');
     }
   }
 
   async onFilter_() {
-    await this.dispatch(TOGGLE(this.statePath + '.showEmptyInputs'));
+    await STORE.dispatch(TOGGLE(this.statePath + '.showEmptyInputs'));
   }
 
   showMenuInput_(showEmptyInputs, thisInput, thatInput, otherInput,
@@ -424,7 +469,7 @@ export default class AlertsControls extends ElementBase {
   }
 
   async onSheriffClear_(event) {
-    this.dispatch(MenuInput.actions.focus(this.statePath + '.sheriff'));
+    MenuInput.focus(this.statePath + '.sheriff');
     this.dispatchSources_();
   }
 
@@ -433,16 +478,20 @@ export default class AlertsControls extends ElementBase {
   }
 
   async onBugClear_(event) {
-    this.dispatch(MenuInput.actions.focus(this.statePath + '.bug'));
+    MenuInput.focus(this.statePath + '.bug');
     this.dispatchSources_();
   }
 
   async onBugKeyup_(event) {
-    await this.dispatch('onBugKeyup', this.statePath, event.detail.value);
+    STORE.dispatch({
+      type: AlertsControls.reducers.onBugKeyup.name,
+      statePath: this.statePath,
+      bugId: event.detail.value,
+    });
   }
 
   async onBugSelect_(event) {
-    await this.dispatch(UPDATE(this.statePath, {
+    await STORE.dispatch(UPDATE(this.statePath, {
       showingTriaged: true,
       showingImprovements: true,
     }));
@@ -450,7 +499,7 @@ export default class AlertsControls extends ElementBase {
   }
 
   async onReportClear_(event) {
-    this.dispatch(MenuInput.actions.focus(this.statePath + '.report'));
+    MenuInput.focus(this.statePath + '.report');
     this.dispatchSources_();
   }
 
@@ -459,7 +508,7 @@ export default class AlertsControls extends ElementBase {
   }
 
   async onMinRevisionKeyup_(event) {
-    await this.dispatch(UPDATE(this.statePath, {
+    await STORE.dispatch(UPDATE(this.statePath, {
       minRevision: event.target.value,
     }));
     this.debounce('dispatchSources', () => {
@@ -468,7 +517,7 @@ export default class AlertsControls extends ElementBase {
   }
 
   async onMaxRevisionKeyup_(event) {
-    await this.dispatch(UPDATE(this.statePath, {
+    await STORE.dispatch(UPDATE(this.statePath, {
       maxRevision: event.target.value,
     }));
     this.debounce('dispatchSources', () => {
@@ -495,20 +544,20 @@ export default class AlertsControls extends ElementBase {
   }
 
   async onToggleImprovements_(event) {
-    this.dispatch(TOGGLE(this.statePath + '.showingImprovements'));
+    STORE.dispatch(TOGGLE(this.statePath + '.showingImprovements'));
     this.dispatchSources_();
   }
 
   async onToggleTriaged_(event) {
-    this.dispatch(TOGGLE(this.statePath + '.showingTriaged'));
+    STORE.dispatch(TOGGLE(this.statePath + '.showingTriaged'));
   }
 
   async onClickRecentlyModifiedBugs_(event) {
-    await this.dispatch('toggleRecentlyModifiedBugs', this.statePath);
+    STORE.dispatch(TOGGLE(this.statePath + '.showingRecentlyModifiedBugs'));
   }
 
   async onRecentlyModifiedBugsBlur_(event) {
-    await this.dispatch('toggleRecentlyModifiedBugs', this.statePath);
+    STORE.dispatch(TOGGLE(this.statePath + '.showingRecentlyModifiedBugs'));
   }
 
   async onClose_(event) {
@@ -521,70 +570,6 @@ export default class AlertsControls extends ElementBase {
 }
 
 AlertsControls.TYPING_DEBOUNCE_MS = 300;
-
-AlertsControls.actions = {
-  toggleRecentlyModifiedBugs: statePath => async(dispatch, getState) => {
-    dispatch(TOGGLE(`${statePath}.showingRecentlyModifiedBugs`));
-  },
-
-  onBugKeyup: (statePath, bugId) => async(dispatch, getState) => {
-    dispatch({
-      type: AlertsControls.reducers.onBugKeyup.name,
-      statePath,
-      bugId,
-    });
-  },
-
-  loadReportNames: statePath => async(dispatch, getState) => {
-    let infos;
-    let error;
-    try {
-      infos = await new ReportNamesRequest().response;
-    } catch (err) {
-      error = err;
-    }
-    dispatch({
-      type: AlertsControls.reducers.receiveReportNames.name,
-      statePath, infos, error,
-    });
-  },
-
-  loadSheriffs: statePath => async(dispatch, getState) => {
-    let sheriffs;
-    let error;
-    try {
-      sheriffs = await new SheriffsRequest().response;
-    } catch (err) {
-      error = err;
-    }
-    dispatch({
-      type: AlertsControls.reducers.receiveSheriffs.name,
-      statePath, sheriffs, error,
-    });
-
-    const state = get(getState(), statePath);
-    if (state.sheriff.selectedOptions.length === 0) {
-      dispatch(MenuInput.actions.focus(statePath + '.sheriff'));
-    }
-  },
-
-  connected: statePath => async(dispatch, getState) => {
-    AlertsControls.actions.loadReportNames(statePath)(dispatch, getState);
-    AlertsControls.actions.loadSheriffs(statePath)(dispatch, getState);
-    dispatch({
-      type: AlertsControls.reducers.receiveRecentlyModifiedBugs.name,
-      statePath,
-      json: localStorage.getItem('recentlyModifiedBugs'),
-    });
-  },
-
-  observeRecentPerformanceBugs: statePath => async(dispatch, getState) => {
-    dispatch({
-      type: AlertsControls.reducers.receiveRecentPerformanceBugs.name,
-      statePath,
-    });
-  },
-};
 
 AlertsControls.reducers = {
   receiveReportNames: (state, {infos, error}, rootState) => {

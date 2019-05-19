@@ -4,11 +4,12 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import MemoryComponents from './memory-components.js';
 import findElements from './find-elements.js';
+import {STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
+import {assert} from 'chai';
 
 suite('memory-components', function() {
   const OPTIONS = {
@@ -63,12 +64,12 @@ suite('memory-components', function() {
   test('select', async function() {
     const memoryComponents = document.createElement('memory-components');
     memoryComponents.statePath = 'test';
-    await memoryComponents.dispatch(UPDATE('', {
+    await STORE.dispatch(UPDATE('', {
       test: MemoryComponents.buildState(OPTIONS),
     }));
     document.body.appendChild(memoryComponents);
     await afterRender();
-    let state = memoryComponents.getState().test;
+    let state = STORE.getState().test;
     assert.lengthOf(state.columns, 5);
     assert.strictEqual('chrome', state.columns[0].options[0].value);
     assert.strictEqual('aaa', state.columns[1].options[0].value);
@@ -90,7 +91,7 @@ suite('memory-components', function() {
       e.matches('cp-checkbox') && /ggg/.test(e.textContent))[0];
     ggg.click();
     await afterRender();
-    state = memoryComponents.getState().test;
+    state = STORE.getState().test;
     assert.include(state.selectedOptions,
         'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size');
     assert.include(state.selectedOptions,
@@ -104,7 +105,7 @@ suite('memory-components', function() {
       e.matches('cp-checkbox') && /eee/.test(e.textContent))[0];
     eee.click();
     await afterRender();
-    state = memoryComponents.getState().test;
+    state = STORE.getState().test;
     assert.include(state.selectedOptions,
         'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size');
     assert.include(state.selectedOptions,
@@ -118,7 +119,7 @@ suite('memory-components', function() {
       e.matches('cp-checkbox') && /ddd/.test(e.textContent))[0];
     ddd.click();
     await afterRender();
-    state = memoryComponents.getState().test;
+    state = STORE.getState().test;
     assert.notInclude(state.selectedOptions,
         'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size');
     assert.notInclude(state.selectedOptions,
@@ -132,7 +133,7 @@ suite('memory-components', function() {
       e.matches('cp-checkbox') && /bbb/.test(e.textContent))[0];
     bbb.click();
     await afterRender();
-    state = memoryComponents.getState().test;
+    state = STORE.getState().test;
     assert.notInclude(state.selectedOptions,
         'memory:chrome:aaa_process:reported_bbb:ccc:ddd_size');
     assert.notInclude(state.selectedOptions,

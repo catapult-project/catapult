@@ -12,13 +12,13 @@ import AlertsRequest from './alerts-request.js';
 import AlertsTable from './alerts-table.js';
 import ChartCompound from './chart-compound.js';
 import ChartTimeseries from './chart-timeseries.js';
-import ElementBase from './element-base.js';
 import ExistingBugRequest from './existing-bug-request.js';
 import MenuInput from './menu-input.js';
 import NewBugRequest from './new-bug-request.js';
 import TriageExisting from './triage-existing.js';
 import TriageNew from './triage-new.js';
 import groupAlerts from './group-alerts.js';
+import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
@@ -226,11 +226,11 @@ export default class AlertsSection extends ElementBase {
   }
 
   async onSources_(event) {
-    await this.dispatch('loadAlerts', this.statePath, event.detail.sources);
+    await AlertsSection.loadAlerts(this.statePath, event.detail.sources);
   }
 
   async onUnassign_(event) {
-    await this.dispatch('changeBugId', this.statePath, 0);
+    await AlertsSection.changeBugId(this.statePath, 0);
   }
 
   onTriageNew_(event) {
@@ -242,7 +242,7 @@ export default class AlertsSection extends ElementBase {
       bubbles: true,
       composed: true,
     }));
-    this.dispatch('openNewBugDialog', this.statePath);
+    AlertsSection.openNewBugDialog(this.statePath);
   }
 
   onTriageExisting_(event) {
@@ -254,32 +254,304 @@ export default class AlertsSection extends ElementBase {
       bubbles: true,
       composed: true,
     }));
-    this.dispatch('openExistingBugDialog', this.statePath);
+    AlertsSection.openExistingBugDialog(this.statePath);
   }
 
   onTriageNewSubmit_(event) {
-    this.dispatch('submitNewBug', this.statePath);
+    AlertsSection.submitNewBug(this.statePath);
   }
 
   onTriageExistingSubmit_(event) {
-    this.dispatch('submitExistingBug', this.statePath);
+    AlertsSection.submitExistingBug(this.statePath);
   }
 
   onIgnore_(event) {
-    this.dispatch('ignore', this.statePath);
+    AlertsSection.ignore(this.statePath);
   }
 
   onSelected_(event) {
-    this.dispatch('maybeLayoutPreview', this.statePath);
+    AlertsSection.maybeLayoutPreview(this.statePath);
   }
 
   onAlertClick_(event) {
-    this.dispatch('selectAlert', this.statePath,
-        event.detail.alertGroupIndex, event.detail.alertIndex);
+    STORE.dispatch({
+      type: AlertsSection.reducers.selectAlert.name,
+      statePath: this.statePath,
+      alertGroupIndex: event.detail.alertGroupIndex,
+      alertIndex: event.detail.alertIndex,
+    });
   }
 
   onPreviewLineCountChange_() {
-    this.dispatch('updateAlertColors', this.statePath);
+    STORE.dispatch({
+      type: AlertsSection.reducers.updateAlertColors.name,
+      statePath: this.statePath,
+    });
+  }
+
+  static storeRecentlyModifiedBugs(statePath) {
+    const state = get(STORE.getState(), statePath);
+    localStorage.setItem('recentlyModifiedBugs', JSON.stringify(
+        state.recentlyModifiedBugs));
+  }
+
+  static async submitExistingBug(statePath) {
+    METRICS.endTriage();
+    METRICS.startTriage();
+    let state = get(STORE.getState(), statePath);
+    const triagedBugId = state.existingBug.bugId;
+    STORE.dispatch(UPDATE(`${statePath}.existingBug`, {isOpen: false}));
+    await AlertsSection.changeBugId(statePath, triagedBugId);
+    STORE.dispatch({
+      type: AlertsSection.reducers.showTriagedExisting.name,
+      statePath,
+      triagedBugId,
+    });
+    await AlertsSection.storeRecentlyModifiedBugs(statePath);
+
+    // showTriagedExisting sets hasTriagedNew and triagedBugId, causing
+    // alerts-controls to display a notification. Wait a few seconds for the
+    // user to notice the notification, then automatically hide it. The user
+    // will still be able to access the bug by clicking Recent Bugs in
+    // alerts-controls.
+    await timeout(NOTIFICATION_MS);
+    state = get(STORE.getState(), statePath);
+    if (!state || (state.triagedBugId !== triagedBugId)) return;
+    STORE.dispatch(UPDATE(statePath, {
+      hasTriagedExisting: false,
+      triagedBugId: 0,
+    }));
+  }
+
+  static async changeBugId(statePath, bugId) {
+    STORE.dispatch(UPDATE(statePath, {isLoading: true}));
+    const rootState = STORE.getState();
+    let state = get(rootState, statePath);
+    const selectedAlerts = AlertsTable.getSelectedAlerts(
+        state.alertGroups);
+    const alertKeys = new Set(selectedAlerts.map(a => a.key));
+    try {
+      const request = new ExistingBugRequest({alertKeys, bugId});
+      await request.response;
+      STORE.dispatch({
+        type: AlertsSection.reducers.removeOrUpdateAlerts.name,
+        statePath,
+        alertKeys,
+        bugId,
+      });
+
+      state = get(STORE.getState(), statePath);
+      if (bugId !== 0) {
+        STORE.dispatch(UPDATE(`${statePath}.preview`, {lineDescriptors: []}));
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+    }
+    STORE.dispatch(UPDATE(statePath, {isLoading: false}));
+  }
+
+  static async ignore(statePath) {
+    let state = get(STORE.getState(), statePath);
+    const alerts = AlertsTable.getSelectedAlerts(state.alertGroups);
+    const ignoredCount = alerts.length;
+    await AlertsSection.changeBugId(statePath, -2);
+
+    STORE.dispatch(UPDATE(statePath, {
+      hasTriagedExisting: false,
+      hasTriagedNew: false,
+      hasIgnored: true,
+      ignoredCount,
+    }));
+
+    // Setting hasIgnored and ignoredCount causes alerts-controls to display a
+    // notification. Wait a few seconds for the user to notice the
+    // notification, then automatically hide it. The user can still access
+    // ignored alerts by toggling New Only to New and Triaged in
+    // alerts-controls.
+    await timeout(NOTIFICATION_MS);
+    state = get(STORE.getState(), statePath);
+    if (!state || (state.ignoredCount !== ignoredCount)) return;
+    STORE.dispatch(UPDATE(statePath, {
+      hasIgnored: false,
+      ignoredCount: 0,
+    }));
+  }
+
+  static async openNewBugDialog(statePath) {
+    let userEmail = STORE.getState().userEmail;
+    if (window.IS_DEBUG) {
+      userEmail = 'you@chromium.org';
+    }
+    if (!userEmail) return;
+    STORE.dispatch({
+      type: AlertsSection.reducers.openNewBugDialog.name,
+      statePath,
+      userEmail,
+    });
+  }
+
+  static async openExistingBugDialog(statePath) {
+    let userEmail = STORE.getState().userEmail;
+    if (window.IS_DEBUG) {
+      userEmail = 'you@chromium.org';
+    }
+    if (!userEmail) return;
+    STORE.dispatch({
+      type: AlertsSection.reducers.openExistingBugDialog.name,
+      statePath,
+    });
+  }
+
+  static async submitNewBug(statePath) {
+    METRICS.endTriage();
+    METRICS.startTriage();
+    STORE.dispatch(UPDATE(statePath, {isLoading: true}));
+    const rootState = STORE.getState();
+    let state = get(rootState, statePath);
+    const selectedAlerts = AlertsTable.getSelectedAlerts(
+        state.alertGroups);
+    const alertKeys = new Set(selectedAlerts.map(a => a.key));
+    STORE.dispatch({
+      type: AlertsSection.reducers.removeOrUpdateAlerts.name,
+      statePath,
+      alertKeys,
+      bugId: '[creating]',
+    });
+
+    let bugId;
+    try {
+      const request = new NewBugRequest({
+        alertKeys,
+        ...state.newBug,
+        labels: state.newBug.labels.filter(
+            x => x.isEnabled).map(x => x.name),
+        components: state.newBug.components.filter(
+            x => x.isEnabled).map(x => x.name),
+      });
+      const summary = state.newBug.summary;
+      bugId = await request.response;
+      STORE.dispatch({
+        type: AlertsSection.reducers.showTriagedNew.name,
+        statePath,
+        bugId,
+        summary,
+      });
+      await AlertsSection.storeRecentlyModifiedBugs(statePath);
+
+      STORE.dispatch({
+        type: AlertsSection.reducers.removeOrUpdateAlerts.name,
+        statePath,
+        alertKeys,
+        bugId,
+      });
+      state = get(STORE.getState(), statePath);
+      STORE.dispatch(UPDATE(`${statePath}.preview`, {lineDescriptors: []}));
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+    }
+    STORE.dispatch(UPDATE(statePath, {isLoading: false}));
+
+    if (bugId === undefined) return;
+
+    // showTriagedNew sets hasTriagedNew and triagedBugId, causing
+    // alerts-controls to display a notification. Wait a few seconds for the
+    // user to notice the notification, then automatically hide it. The user
+    // will still be able to access the new bug by clicking Recent Bugs in
+    // alerts-controls.
+    await timeout(NOTIFICATION_MS);
+    state = get(STORE.getState(), statePath);
+    if (!state || state.triagedBugId !== bugId) return;
+    STORE.dispatch(UPDATE(statePath, {
+      hasTriagedNew: false,
+      triagedBugId: 0,
+    }));
+  }
+
+  static async loadAlerts(statePath, sources) {
+    const started = performance.now();
+    STORE.dispatch({
+      type: AlertsSection.reducers.startLoadingAlerts.name,
+      statePath,
+      started,
+    });
+    if (sources.length) {
+      MenuInput.blurAll();
+    } else {
+      AlertsSection.maybeLayoutPreview(statePath);
+    }
+
+    // When a request for untriaged alerts finishes, a request is started for
+    // overlapping triaged alerts. This is used to avoid fetching the same
+    // triaged alerts multiple times.
+    let triagedMaxStartRevision;
+
+    METRICS.startLoadAlerts();
+
+    // Use a BatchIterator to batch AlertsRequest.response.
+    // Each batch of results is handled in handleBatch(), then displayed by
+    // dispatching reducers.receiveAlerts.
+    // loadMore() may add more AlertsRequests to the BatchIterator to chase
+    // datastore query cursors.
+    const batches = new BatchIterator(sources.map(wrapRequest));
+    for await (const {results, errors} of batches) {
+      let state = get(STORE.getState(), statePath);
+      if (!state || state.started !== started) {
+        // Abandon this loadAlerts if the section was closed or if
+        // loadAlerts() was called again before this one finished.
+        return;
+      }
+
+      const {alerts, nextRequests, triagedRequests, totalCount} = handleBatch(
+          results, state.showingTriaged);
+      if (alerts.length || errors.length) {
+        STORE.dispatch({
+          type: AlertsSection.reducers.receiveAlerts.name,
+          statePath,
+          alerts,
+          errors,
+          totalCount,
+        });
+        METRICS.endLoadAlerts();
+      }
+      state = get(STORE.getState(), statePath);
+      if (!state || state.started !== started) return;
+
+      triagedMaxStartRevision = loadMore(
+          batches, state.alertGroups, nextRequests, triagedRequests,
+          triagedMaxStartRevision, started);
+      await animationFrame();
+      AlertsSection.maybeLayoutPreview(statePath);
+    }
+
+    STORE.dispatch({
+      type: AlertsSection.reducers.finalizeAlerts.name,
+      statePath,
+    });
+  }
+
+  static async layoutPreview(statePath) {
+    const state = get(STORE.getState(), statePath);
+    const alerts = AlertsTable.getSelectedAlerts(state.alertGroups);
+    const lineDescriptors = alerts.map(AlertsSection.computeLineDescriptor);
+    if (lineDescriptors.length === 1) {
+      lineDescriptors.push({
+        ...lineDescriptors[0],
+        buildType: 'ref',
+      });
+    }
+    STORE.dispatch(UPDATE(`${statePath}.preview`, {lineDescriptors}));
+  }
+
+  static async maybeLayoutPreview(statePath) {
+    const state = get(STORE.getState(), statePath);
+    if (!state || !state.selectedAlertsCount) {
+      STORE.dispatch(UPDATE(`${statePath}.preview`, {lineDescriptors: []}));
+      return;
+    }
+
+    AlertsSection.layoutPreview(statePath);
   }
 }
 
@@ -289,7 +561,7 @@ async function wrapRequest(body) {
   return {body, response};
 }
 
-// The BatchIterator in actions.loadAlerts yielded a batch of results.
+// The BatchIterator in loadAlerts() yielded a batch of results.
 // Collect all alerts from all batches into `alerts`.
 // Chase cursors in `nextRequests`.
 // Fetch triaged alerts when a request for untriaged alerts returns.
@@ -356,298 +628,6 @@ function loadMore(batches, alertGroups, nextRequests, triagedRequests,
 
   return minStartRevision;
 }
-
-AlertsSection.actions = {
-  selectAlert: (statePath, alertGroupIndex, alertIndex) =>
-    async(dispatch, getState) => {
-      dispatch({
-        type: AlertsSection.reducers.selectAlert.name,
-        statePath,
-        alertGroupIndex,
-        alertIndex,
-      });
-    },
-
-  cancelTriagedExisting: statePath => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {
-      hasTriagedExisting: false,
-      triagedBugId: 0,
-    }));
-  },
-
-  storeRecentlyModifiedBugs: statePath => async(dispatch, getState) => {
-    const state = get(getState(), statePath);
-    localStorage.setItem('recentlyModifiedBugs', JSON.stringify(
-        state.recentlyModifiedBugs));
-  },
-
-  updateAlertColors: statePath => async(dispatch, getState) => {
-    dispatch({
-      type: AlertsSection.reducers.updateAlertColors.name,
-      statePath,
-    });
-  },
-
-  submitExistingBug: statePath => async(dispatch, getState) => {
-    METRICS.endTriage();
-    METRICS.startTriage();
-    let state = get(getState(), statePath);
-    const triagedBugId = state.existingBug.bugId;
-    dispatch(UPDATE(`${statePath}.existingBug`, {isOpen: false}));
-    await dispatch(AlertsSection.actions.changeBugId(
-        statePath, triagedBugId));
-    dispatch({
-      type: AlertsSection.reducers.showTriagedExisting.name,
-      statePath,
-      triagedBugId,
-    });
-    await AlertsSection.actions.storeRecentlyModifiedBugs(statePath)(
-        dispatch, getState);
-
-    // showTriagedExisting sets hasTriagedNew and triagedBugId, causing
-    // alerts-controls to display a notification. Wait a few seconds for the
-    // user to notice the notification, then automatically hide it. The user
-    // will still be able to access the bug by clicking Recent Bugs in
-    // alerts-controls.
-    await timeout(NOTIFICATION_MS);
-    state = get(getState(), statePath);
-    if (!state || (state.triagedBugId !== triagedBugId)) return;
-    dispatch(AlertsSection.actions.cancelTriagedExisting(statePath));
-  },
-
-  changeBugId: (statePath, bugId) => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {isLoading: true}));
-    const rootState = getState();
-    let state = get(rootState, statePath);
-    const selectedAlerts = AlertsTable.getSelectedAlerts(
-        state.alertGroups);
-    const alertKeys = new Set(selectedAlerts.map(a => a.key));
-    try {
-      const request = new ExistingBugRequest({alertKeys, bugId});
-      await request.response;
-      dispatch({
-        type: AlertsSection.reducers.removeOrUpdateAlerts.name,
-        statePath,
-        alertKeys,
-        bugId,
-      });
-
-      state = get(getState(), statePath);
-      if (bugId !== 0) {
-        dispatch(UPDATE(`${statePath}.preview`, {lineDescriptors: []}));
-      }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error(err);
-    }
-    dispatch(UPDATE(statePath, {isLoading: false}));
-  },
-
-  ignore: statePath => async(dispatch, getState) => {
-    let state = get(getState(), statePath);
-    const alerts = AlertsTable.getSelectedAlerts(state.alertGroups);
-    const ignoredCount = alerts.length;
-    await dispatch(AlertsSection.actions.changeBugId(statePath, -2));
-
-    dispatch(UPDATE(statePath, {
-      hasTriagedExisting: false,
-      hasTriagedNew: false,
-      hasIgnored: true,
-      ignoredCount,
-    }));
-
-    // Setting hasIgnored and ignoredCount causes alerts-controls to display a
-    // notification. Wait a few seconds for the user to notice the
-    // notification, then automatically hide it. The user can still access
-    // ignored alerts by toggling New Only to New and Triaged in
-    // alerts-controls.
-    await timeout(NOTIFICATION_MS);
-    state = get(getState(), statePath);
-    if (!state || (state.ignoredCount !== ignoredCount)) return;
-    dispatch(UPDATE(statePath, {
-      hasIgnored: false,
-      ignoredCount: 0,
-    }));
-  },
-
-  openNewBugDialog: statePath => async(dispatch, getState) => {
-    let userEmail = getState().userEmail;
-    if (window.IS_DEBUG) {
-      userEmail = 'you@chromium.org';
-    }
-    if (!userEmail) return;
-    dispatch({
-      type: AlertsSection.reducers.openNewBugDialog.name,
-      statePath,
-      userEmail,
-    });
-  },
-
-  openExistingBugDialog: statePath => async(dispatch, getState) => {
-    let userEmail = getState().userEmail;
-    if (window.IS_DEBUG) {
-      userEmail = 'you@chromium.org';
-    }
-    if (!userEmail) return;
-    dispatch({
-      type: AlertsSection.reducers.openExistingBugDialog.name,
-      statePath,
-    });
-  },
-
-  submitNewBug: statePath => async(dispatch, getState) => {
-    METRICS.endTriage();
-    METRICS.startTriage();
-    dispatch(UPDATE(statePath, {isLoading: true}));
-    const rootState = getState();
-    let state = get(rootState, statePath);
-    const selectedAlerts = AlertsTable.getSelectedAlerts(
-        state.alertGroups);
-    const alertKeys = new Set(selectedAlerts.map(a => a.key));
-    dispatch({
-      type: AlertsSection.reducers.removeOrUpdateAlerts.name,
-      statePath,
-      alertKeys,
-      bugId: '[creating]',
-    });
-
-    let bugId;
-    try {
-      const request = new NewBugRequest({
-        alertKeys,
-        ...state.newBug,
-        labels: state.newBug.labels.filter(
-            x => x.isEnabled).map(x => x.name),
-        components: state.newBug.components.filter(
-            x => x.isEnabled).map(x => x.name),
-      });
-      const summary = state.newBug.summary;
-      bugId = await request.response;
-      dispatch({
-        type: AlertsSection.reducers.showTriagedNew.name,
-        statePath,
-        bugId,
-        summary,
-      });
-      await AlertsSection.actions.storeRecentlyModifiedBugs(statePath)(
-          dispatch, getState);
-
-      dispatch({
-        type: AlertsSection.reducers.removeOrUpdateAlerts.name,
-        statePath,
-        alertKeys,
-        bugId,
-      });
-      state = get(getState(), statePath);
-      dispatch(UPDATE(`${statePath}.preview`, {lineDescriptors: []}));
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error(err);
-    }
-    dispatch(UPDATE(statePath, {isLoading: false}));
-
-    if (bugId === undefined) return;
-
-    // showTriagedNew sets hasTriagedNew and triagedBugId, causing
-    // alerts-controls to display a notification. Wait a few seconds for the
-    // user to notice the notification, then automatically hide it. The user
-    // will still be able to access the new bug by clicking Recent Bugs in
-    // alerts-controls.
-    await timeout(NOTIFICATION_MS);
-    state = get(getState(), statePath);
-    if (!state || state.triagedBugId !== bugId) return;
-    dispatch(UPDATE(statePath, {
-      hasTriagedNew: false,
-      triagedBugId: 0,
-    }));
-  },
-
-  loadAlerts: (statePath, sources) => async(dispatch, getState) => {
-    const started = performance.now();
-    dispatch({
-      type: AlertsSection.reducers.startLoadingAlerts.name,
-      statePath,
-      started,
-    });
-    if (sources.length) {
-      dispatch(MenuInput.actions.blurAll());
-    } else {
-      AlertsSection.actions.maybeLayoutPreview(statePath)(dispatch, getState);
-    }
-
-    // When a request for untriaged alerts finishes, a request is started for
-    // overlapping triaged alerts. This is used to avoid fetching the same
-    // triaged alerts multiple times.
-    let triagedMaxStartRevision;
-
-    METRICS.startLoadAlerts();
-
-    // Use a BatchIterator to batch AlertsRequest.response.
-    // Each batch of results is handled in handleBatch(), then displayed by
-    // dispatching reducers.receiveAlerts.
-    // loadMore() may add more AlertsRequests to the BatchIterator to chase
-    // datastore query cursors.
-    const batches = new BatchIterator(sources.map(wrapRequest));
-    for await (const {results, errors} of batches) {
-      let state = get(getState(), statePath);
-      if (!state || state.started !== started) {
-        // Abandon this loadAlerts if the section was closed or if
-        // loadAlerts() was called again before this one finished.
-        return;
-      }
-
-      const {alerts, nextRequests, triagedRequests, totalCount} = handleBatch(
-          results, state.showingTriaged);
-      if (alerts.length || errors.length) {
-        dispatch({
-          type: AlertsSection.reducers.receiveAlerts.name,
-          statePath,
-          alerts,
-          errors,
-          totalCount,
-        });
-        METRICS.endLoadAlerts();
-      }
-      state = get(getState(), statePath);
-      if (!state) return;
-
-      triagedMaxStartRevision = loadMore(
-          batches, state.alertGroups, nextRequests, triagedRequests,
-          triagedMaxStartRevision, started);
-      await animationFrame();
-      AlertsSection.actions.maybeLayoutPreview(statePath)(dispatch, getState);
-    }
-
-    dispatch({
-      type: AlertsSection.reducers.finalizeAlerts.name,
-      statePath,
-    });
-  },
-
-  layoutPreview: statePath => async(dispatch, getState) => {
-    const state = get(getState(), statePath);
-    const alerts = AlertsTable.getSelectedAlerts(state.alertGroups);
-    const lineDescriptors = alerts.map(AlertsSection.computeLineDescriptor);
-    if (lineDescriptors.length === 1) {
-      lineDescriptors.push({
-        ...lineDescriptors[0],
-        buildType: 'ref',
-      });
-    }
-    const previewPath = `${statePath}.preview`;
-    dispatch(UPDATE(previewPath, {lineDescriptors}));
-  },
-
-  maybeLayoutPreview: statePath => async(dispatch, getState) => {
-    const state = get(getState(), statePath);
-    if (!state || !state.selectedAlertsCount) {
-      dispatch(UPDATE(`${statePath}.preview`, {lineDescriptors: []}));
-      return;
-    }
-
-    dispatch(AlertsSection.actions.layoutPreview(statePath));
-  },
-};
 
 AlertsSection.computeLineDescriptor = alert => {
   return {

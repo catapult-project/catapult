@@ -8,9 +8,9 @@ import './cp-input.js';
 import './raised-button.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
-import ElementBase from './element-base.js';
 import ReportTemplateRequest from './report-template-request.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
+import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
@@ -212,72 +212,60 @@ export default class ReportTemplate extends ElementBase {
   }
 
   async onCancel_(event) {
-    await this.dispatch(TOGGLE(this.statePath + '.isEditing'));
+    await STORE.dispatch(TOGGLE(this.statePath + '.isEditing'));
   }
 
   async onTemplateNameKeyUp_(event) {
-    await this.dispatch(UPDATE(this.statePath, {
+    await STORE.dispatch(UPDATE(this.statePath, {
       name: event.target.value,
     }));
   }
 
   async onTemplateOwnersKeyUp_(event) {
-    await this.dispatch(UPDATE(this.statePath, {
+    await STORE.dispatch(UPDATE(this.statePath, {
       owners: event.target.value,
     }));
   }
 
   async onTemplateUrlKeyUp_(event) {
-    await this.dispatch(UPDATE(this.statePath, {
+    await STORE.dispatch(UPDATE(this.statePath, {
       url: event.target.value,
     }));
   }
 
   async onTemplateRowLabelKeyUp_(event) {
-    await this.dispatch(UPDATE(
+    await STORE.dispatch(UPDATE(
         this.statePath + '.rows.' + event.model.rowIndex,
         {label: event.target.value}));
   }
 
   async onTemplateRemoveRow_(event) {
-    await this.dispatch('removeRow', this.statePath, event.model.rowIndex);
+    await STORE.dispatch({
+      type: ReportTemplate.reducers.removeRow.name,
+      statePath: this.statePath,
+      rowIndex: event.model.rowIndex,
+    });
   }
 
   async onTemplateAddRow_(event) {
-    await this.dispatch('addRow', this.statePath, event.model.rowIndex);
+    await STORE.dispatch({
+      type: ReportTemplate.reducers.addRow.name,
+      statePath: this.statePath,
+      rowIndex: event.model.rowIndex,
+    });
   }
 
   async onTemplateSave_(event) {
-    await this.dispatch('save', this.statePath);
+    await ReportTemplate.save(this.statePath);
     this.dispatchEvent(new CustomEvent('save', {
       bubbles: true,
       composed: true,
     }));
   }
-}
 
-ReportTemplate.actions = {
-  removeRow: (statePath, rowIndex) =>
-    async(dispatch, getState) => {
-      dispatch({
-        type: ReportTemplate.reducers.removeRow.name,
-        statePath,
-        rowIndex,
-      });
-    },
-
-  addRow: (statePath, rowIndex) =>
-    async(dispatch, getState) => {
-      dispatch({
-        type: ReportTemplate.reducers.addRow.name,
-        statePath,
-        rowIndex,
-      });
-    },
-
-  save: statePath => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {isLoading: true, isEditing: false}));
-    const table = get(getState(), statePath);
+  static async save(statePath) {
+    STORE.dispatch(UPDATE(statePath, {isLoading: true, isEditing: false}));
+    const table = get(STORE.getState(), statePath);
     const request = new ReportTemplateRequest({
       id: table.id,
       name: table.name,
@@ -295,9 +283,9 @@ ReportTemplate.actions = {
       }),
     });
     const reportTemplateInfos = await request.response;
-    dispatch(UPDATE('', {reportTemplateInfos}));
-  },
-};
+    STORE.dispatch(UPDATE('', {reportTemplateInfos}));
+  }
+}
 
 ReportTemplate.reducers = {
   removeRow: (state, {rowIndex}, rootState) => {

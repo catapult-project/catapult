@@ -11,10 +11,10 @@ import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import AlertDetail from './alert-detail.js';
 import BisectDialog from './bisect-dialog.js';
 import ChartTimeseries from './chart-timeseries.js';
-import ElementBase from './element-base.js';
 import NudgeAlert from './nudge-alert.js';
 import TimeseriesMerger from './timeseries-merger.js';
 import {DetailsFetcher} from './details-fetcher.js';
+import {ElementBase, STORE} from './element-base.js';
 import {breakWords, enumerate} from './utils.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
@@ -239,7 +239,7 @@ export default class DetailsTable extends ElementBase {
     if (this.lineDescriptors !== oldLineDescriptors ||
         this.revisionRanges !== oldRevisionRanges) {
       this.debounce('load', () => {
-        this.dispatch('load', this.statePath);
+        DetailsTable.load(this.statePath);
       }, PolymerAsync.microTask);
     }
   }
@@ -257,15 +257,13 @@ export default class DetailsTable extends ElementBase {
   hideEmpty_(isLoading, bodies) {
     return !isLoading || !this.isEmpty_(bodies);
   }
-}
 
-DetailsTable.actions = {
-  load: statePath => async(dispatch, getState) => {
-    let state = get(getState(), statePath);
+  static async load(statePath) {
+    let state = get(STORE.getState(), statePath);
     if (!state) return;
 
     const started = performance.now();
-    dispatch({
+    STORE.dispatch({
       type: DetailsTable.reducers.startLoading.name,
       statePath,
       started,
@@ -276,19 +274,19 @@ DetailsTable.actions = {
         state.minRevision, state.maxRevision,
         state.revisionRanges);
     for await (const {timeseriesesByLine, errors} of fetcher) {
-      state = get(getState(), statePath);
+      state = get(STORE.getState(), statePath);
       if (!state || state.started !== started) return;
 
-      dispatch({
+      STORE.dispatch({
         type: DetailsTable.reducers.receiveData.name,
         statePath,
         timeseriesesByLine,
       });
     }
 
-    dispatch({type: DetailsTable.reducers.doneLoading.name, statePath});
-  },
-};
+    STORE.dispatch({type: DetailsTable.reducers.doneLoading.name, statePath});
+  }
+}
 
 // Build a table map.
 function setCell(map, key, columnCount, columnIndex, value) {

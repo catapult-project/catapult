@@ -4,13 +4,14 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import ReportControls from './report-controls.js';
 import ReportNamesRequest from './report-names-request.js';
 import ReportRequest from './report-request.js';
 import ReportSection from './report-section.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {STORE} from './element-base.js';
 import {afterRender} from './utils.js';
+import {assert} from 'chai';
 
 suite('report-section', function() {
   let originalFetch;
@@ -90,7 +91,7 @@ suite('report-section', function() {
   test('loadReports', async function() {
     const section = document.createElement('report-section');
     section.statePath = 'test';
-    await section.dispatch(CHAIN(
+    await STORE.dispatch(CHAIN(
         ENSURE('test'),
         ENSURE('test.source'),
         UPDATE('test', ReportSection.buildState({}))));

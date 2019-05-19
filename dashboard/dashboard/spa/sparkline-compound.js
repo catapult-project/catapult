@@ -10,9 +10,9 @@ import './cp-tab.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
 import ChartTimeseries from './chart-timeseries.js';
-import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
+import {ElementBase, STORE} from './element-base.js';
 import {MODE} from './layout-timeseries.js';
 import {UPDATE} from './simple-redux.js';
 import {breakWords} from './utils.js';
@@ -140,7 +140,7 @@ export default class SparklineCompound extends ElementBase {
 
     if (this.minRevision !== oldMinRevision ||
         this.maxRevision !== oldMaxRevision) {
-      this.dispatch({
+      STORE.dispatch({
         type: SparklineCompound.reducers.updateSparklineRevisions.name,
         statePath: this.statePath,
       });
@@ -148,7 +148,7 @@ export default class SparklineCompound extends ElementBase {
 
     if (this.cursorRevision !== oldCursorRevision ||
         this.cursorScalar !== oldCursorScalar) {
-      this.dispatch({
+      STORE.dispatch({
         type: SparklineCompound.reducers.setCursors.name,
         statePath: this.statePath,
       });
@@ -156,7 +156,8 @@ export default class SparklineCompound extends ElementBase {
   }
 
   async onRelatedTabClick_(event) {
-    this.dispatch('selectRelatedTab', this.statePath, event.model.tab.name);
+    await SparklineCompound.selectRelatedTab(
+        this.statePath, event.model.tab.name);
   }
 
   hideTile_(sparkline) {
@@ -170,31 +171,28 @@ export default class SparklineCompound extends ElementBase {
       detail: {options: event.model.sparkline.chartOptions},
     }));
   }
+
+  static async selectRelatedTab(statePath, selectedRelatedTabName) {
+    const state = get(STORE.getState(), statePath);
+    if (selectedRelatedTabName === state.selectedRelatedTabName) {
+      selectedRelatedTabName = '';
+    }
+
+    const selectedRelatedTabIndex = state.relatedTabs.findIndex(tab =>
+      tab.name === selectedRelatedTabName);
+    if (selectedRelatedTabIndex >= 0 &&
+        state.relatedTabs[selectedRelatedTabIndex].renderedSparklines ===
+        undefined) {
+      const path = `${statePath}.relatedTabs.${selectedRelatedTabIndex}`;
+      const relatedTab = state.relatedTabs[selectedRelatedTabIndex];
+      STORE.dispatch(UPDATE(path, {
+        renderedSparklines: relatedTab.sparklines,
+      }));
+    }
+
+    STORE.dispatch(UPDATE(statePath, {selectedRelatedTabName}));
+  }
 }
-
-SparklineCompound.actions = {
-  selectRelatedTab: (statePath, selectedRelatedTabName) =>
-    async(dispatch, getState) => {
-      const state = get(getState(), statePath);
-      if (selectedRelatedTabName === state.selectedRelatedTabName) {
-        selectedRelatedTabName = '';
-      }
-
-      const selectedRelatedTabIndex = state.relatedTabs.findIndex(tab =>
-        tab.name === selectedRelatedTabName);
-      if (selectedRelatedTabIndex >= 0 &&
-          state.relatedTabs[selectedRelatedTabIndex].renderedSparklines ===
-          undefined) {
-        const path = `${statePath}.relatedTabs.${selectedRelatedTabIndex}`;
-        const relatedTab = state.relatedTabs[selectedRelatedTabIndex];
-        dispatch(UPDATE(path, {
-          renderedSparklines: relatedTab.sparklines,
-        }));
-      }
-
-      dispatch(UPDATE(statePath, {selectedRelatedTabName}));
-    },
-};
 
 function createSparkline(name, sparkLayout, revisions, matrix) {
   const lineDescriptors = TimeseriesDescriptor.createLineDescriptors(

@@ -9,7 +9,7 @@ import './cp-switch.js';
 import './raised-button.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
-import ElementBase from './element-base.js';
+import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
@@ -197,7 +197,7 @@ export default class TriageExisting extends ElementBase {
 
   async onKeyup_(event) {
     if (event.key === 'Escape') {
-      await this.dispatch('close', this.statePath);
+      await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
     }
   }
 
@@ -211,7 +211,7 @@ export default class TriageExisting extends ElementBase {
   }
 
   async onSubmit_(event) {
-    await this.dispatch('close', this.statePath);
+    await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
     this.dispatchEvent(new CustomEvent('submit', {
       bubbles: true,
       composed: true,
@@ -224,16 +224,15 @@ export default class TriageExisting extends ElementBase {
       this.$.bug_input.focus();
       return;
     }
-    await this.dispatch('close', this.statePath);
+    await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
   }
 
   async onToggleOnlyIntersectingBugs_(event) {
-    await this.dispatch('toggleOnlyIntersectingBugs', this.statePath);
+    await STORE.dispatch(TOGGLE(this.statePath + '.onlyIntersectingBugs'));
   }
 
   async onRecentPerformanceBugClick_(event) {
-    await this.dispatch('recentPerformanceBug', this.statePath,
-        event.model.bug.id);
+    await STORE.dispatch(UPDATE(this.statePath, {bugId: event.model.bug.id}));
     this.$.bug_input.focus();
   }
 
@@ -242,24 +241,9 @@ export default class TriageExisting extends ElementBase {
       this.onSubmit_(event);
       return;
     }
-    await this.dispatch('recentPerformanceBug', this.statePath,
-        event.target.value);
+    await STORE.dispatch(UPDATE(this.statePath, {bugId: event.target.value}));
   }
 }
-
-TriageExisting.actions = {
-  toggleOnlyIntersectingBugs: statePath => async(dispatch, getState) => {
-    dispatch(TOGGLE(`${statePath}.onlyIntersectingBugs`));
-  },
-
-  recentPerformanceBug: (statePath, bugId) => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {bugId}));
-  },
-
-  close: statePath => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {isOpen: false}));
-  },
-};
 
 TriageExisting.filterBugs =
   (recentPerformanceBugs, onlyIntersectingBugs, selectedRange) => {

@@ -11,8 +11,8 @@ import './error-set.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import ChartTimeseries from './chart-timeseries.js';
 import DetailsTable from './details-table.js';
-import ElementBase from './element-base.js';
 import {CHAIN, TOGGLE, UPDATE} from './simple-redux.js';
+import {ElementBase, STORE} from './element-base.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {MODE} from './layout-timeseries.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
@@ -318,7 +318,7 @@ export default class ChartCompound extends ElementBase {
     });
 
     if (oldChartLoading && !this.chartLayout.isLoading) {
-      this.dispatch({
+      STORE.dispatch({
         type: ChartCompound.reducers.updateStale.name,
         statePath: this.statePath,
       });
@@ -330,7 +330,7 @@ export default class ChartCompound extends ElementBase {
         this.mode !== oldMode ||
         this.fixedXAxis !== oldFixedXAxis ||
         this.zeroYAxis !== oldZeroYAxis) {
-      this.dispatch('load', this.statePath);
+      ChartCompound.load(this.statePath);
     }
 
     if (this.cursorRevision !== oldCursorRevision ||
@@ -339,7 +339,7 @@ export default class ChartCompound extends ElementBase {
       // onGetTooltip_ as the user mouses around this main chart, or from
       // linkedCursor as the user mouses around the main chart in a different
       // chart-compound.
-      this.dispatch({
+      STORE.dispatch({
         type: ChartCompound.reducers.setCursors.name,
         statePath: this.statePath,
       });
@@ -369,7 +369,7 @@ export default class ChartCompound extends ElementBase {
         delta.fixedXAxis = this.linkedFixedXAxis;
       }
       if (Object.keys(delta).length > 0) {
-        this.dispatch(UPDATE(this.statePath, delta));
+        STORE.dispatch(UPDATE(this.statePath, delta));
       }
 
       delta = {};
@@ -393,138 +393,10 @@ export default class ChartCompound extends ElementBase {
         delta.linkedFixedXAxis = this.fixedXAxis;
       }
       if (Object.keys(delta).length > 0) {
-        this.dispatch(UPDATE(this.linkedStatePath, delta));
+        STORE.dispatch(UPDATE(this.linkedStatePath, delta));
       }
     }
   }
-
-  hideOptions_(minimapLayout) {
-    return this.$.minimap.showPlaceholder(
-        (minimapLayout && minimapLayout.isLoading),
-        (minimapLayout ? minimapLayout.lines : []));
-  }
-
-  fewEnoughLines_(lineDescriptors) {
-    return lineDescriptors &&
-        lineDescriptors.length < ChartTimeseries.MAX_LINES;
-  }
-
-  async onGetTooltip_(event) {
-    const p = event.detail.nearestPoint;
-    this.dispatch(UPDATE(this.statePath, {
-      cursorRevision: p.x,
-      cursorScalar: new tr.b.Scalar(p.datum.unit, p.y),
-    }));
-    // Don't reset cursor on mouseLeave. Allow users to scroll through
-    // sparklines.
-  }
-
-  async onLineCountChange_() {
-    await this.dispatch('detailsColorByLine', this.statePath);
-  }
-
-  async onChartBrush_(event) {
-    if (event.detail.sourceEvent.detail.state !== 'end') return;
-    await this.dispatch({
-      type: ChartCompound.reducers.updateChartBrush.name,
-      statePath: this.statePath,
-    });
-  }
-
-  async onChartClick_(event) {
-    this.dispatch('brushChart', this.statePath,
-        event.detail.nearestLine,
-        event.detail.nearestPoint,
-        event.detail.ctrlKey);
-  }
-
-  async onMenuKeyup_(event) {
-    if (event.key === 'Escape') {
-      await this.dispatch(UPDATE(this.statePath, {
-        isShowingOptions: false,
-      }));
-    }
-  }
-
-  async onMenuBlur_(event) {
-    if (isElementChildOf(event.relatedTarget, this.$.options_container)) {
-      return;
-    }
-    await this.dispatch(UPDATE(this.statePath, {
-      isShowingOptions: false,
-    }));
-  }
-
-  async onOptionsToggle_(event) {
-    await this.dispatch(TOGGLE(this.statePath + '.isShowingOptions'));
-  }
-
-  async onMinimapBrush_(event) {
-    if (event.detail.sourceEvent.detail.state !== 'end') return;
-    await this.dispatch({
-      type: ChartCompound.reducers.brushMinimap.name,
-      statePath: this.statePath,
-    });
-    if (this.isLinked) {
-      await this.dispatch('updateLinkedRevisions', this.linkedStatePath,
-          this.minRevision, this.maxRevision);
-    }
-  }
-
-  async onToggleLinked_(event) {
-    await this.dispatch('toggleLinked', this.statePath, this.linkedStatePath);
-  }
-
-  async onToggleZeroYAxis_(event) {
-    await this.dispatch(TOGGLE(this.statePath + '.zeroYAxis'));
-  }
-
-  async onToggleFixedXAxis_(event) {
-    await this.dispatch(TOGGLE(this.statePath + '.fixedXAxis'));
-  }
-
-  async onModeChange_(event) {
-    await this.dispatch(UPDATE(this.statePath, {mode: event.detail.value}));
-  }
-
-  async onReload_(event) {
-    await this.dispatch('load', this.statePath);
-  }
-}
-
-ChartCompound.actions = {
-  brushChart: (statePath, nearestLine, nearestPoint, addBrush) =>
-    async(dispatch, getState) => {
-      dispatch({
-        type: ChartCompound.reducers.brushChart.name,
-        statePath,
-        nearestLine,
-        nearestPoint,
-        addBrush,
-      });
-    },
-
-  updateLinkedRevisions: (
-      linkedStatePath, linkedMinRevision, linkedMaxRevision) =>
-    async(dispatch, getState) => {
-      const state = get(getState(), linkedStatePath);
-      if (linkedMinRevision === state.linkedMinRevision &&
-          linkedMaxRevision === state.linkedMaxRevision) {
-        return;
-      }
-      dispatch(UPDATE(linkedStatePath, {
-        linkedMinRevision, linkedMaxRevision,
-      }));
-    },
-
-  toggleLinked: (statePath, linkedStatePath) => async(dispatch, getState) => {
-    dispatch({
-      type: ChartCompound.reducers.toggleLinked.name,
-      statePath,
-      linkedStatePath,
-    });
-    ChartCompound.actions.load(statePath)(dispatch, getState);
-  },
 
   // This doesn't really load any data for display, that's handled by the
   // chart-timeseries components, whose states are in minimapLayout and
@@ -543,11 +415,11 @@ ChartCompound.actions = {
   //    computed from the data for the first non-empty lineDescriptor
   //  * A lineDescriptor for the ref build is added to chartLayout if there's
   //    only one lineDescriptor.
-  load: statePath => async(dispatch, getState) => {
-    const state = get(getState(), statePath);
+  static async load(statePath) {
+    const state = get(STORE.getState(), statePath);
     if (!state || !state.lineDescriptors ||
         state.lineDescriptors.length === 0) {
-      dispatch(CHAIN(
+      STORE.dispatch(CHAIN(
           UPDATE(`${statePath}.minimapLayout`, {lineDescriptors: []}),
           UPDATE(`${statePath}.chartLayout`, {lineDescriptors: []}),
       ));
@@ -556,8 +428,8 @@ ChartCompound.actions = {
 
     const {firstNonEmptyLineDescriptor, timeserieses} =
       await ChartCompound.findFirstNonEmptyLineDescriptor(
-          state.lineDescriptors, `${statePath}.minimapLayout`, dispatch,
-          getState);
+          state.lineDescriptors, `${statePath}.minimapLayout`, STORE.dispatch,
+          STORE.getState);
 
     const firstRevision = ChartCompound.findFirstRevision(timeserieses);
     const lastRevision = ChartCompound.findLastRevision(timeserieses);
@@ -572,7 +444,7 @@ ChartCompound.actions = {
     }
 
     // Never set zeroYAxis on the minimap. It's too short to waste space.
-    dispatch(UPDATE(`${statePath}.minimapLayout`, {
+    STORE.dispatch(UPDATE(`${statePath}.minimapLayout`, {
       lineDescriptors: minimapLineDescriptors,
       brushRevisions: [minRevision, maxRevision],
       fixedXAxis: state.fixedXAxis,
@@ -586,7 +458,7 @@ ChartCompound.actions = {
       ];
     }
 
-    dispatch(UPDATE(`${statePath}.chartLayout`, {
+    STORE.dispatch(UPDATE(`${statePath}.chartLayout`, {
       lineDescriptors,
       minRevision,
       maxRevision,
@@ -594,22 +466,115 @@ ChartCompound.actions = {
       mode: state.mode,
       zeroYAxis: state.zeroYAxis,
     }));
-    dispatch(UPDATE(`${statePath}.details`, {
+    STORE.dispatch(UPDATE(`${statePath}.details`, {
       lineDescriptors,
       minRevision,
       maxRevision,
       revisionRanges: ChartTimeseries.revisionRanges(
           state.chartLayout.brushRevisions),
     }));
-  },
+  }
 
-  detailsColorByLine: statePath => async(dispatch, getState) => {
-    dispatch({
+  hideOptions_(minimapLayout) {
+    return this.$.minimap.showPlaceholder(
+        (minimapLayout && minimapLayout.isLoading),
+        (minimapLayout ? minimapLayout.lines : []));
+  }
+
+  fewEnoughLines_(lineDescriptors) {
+    return lineDescriptors &&
+        lineDescriptors.length < ChartTimeseries.MAX_LINES;
+  }
+
+  async onGetTooltip_(event) {
+    const p = event.detail.nearestPoint;
+    STORE.dispatch(UPDATE(this.statePath, {
+      cursorRevision: p.x,
+      cursorScalar: new tr.b.Scalar(p.datum.unit, p.y),
+    }));
+    // Don't reset cursor on mouseLeave. Allow users to scroll through
+    // sparklines.
+  }
+
+  async onLineCountChange_() {
+    STORE.dispatch({
       type: ChartCompound.reducers.detailsColorByLine.name,
-      statePath,
+      statePath: this.statePath,
     });
-  },
-};
+  }
+
+  async onChartBrush_(event) {
+    if (event.detail.sourceEvent.detail.state !== 'end') return;
+    await STORE.dispatch({
+      type: ChartCompound.reducers.updateChartBrush.name,
+      statePath: this.statePath,
+    });
+  }
+
+  async onChartClick_(event) {
+    STORE.dispatch({
+      type: ChartCompound.reducers.brushChart.name,
+      statePath: this.statePath,
+      nearestLine: event.detail.nearestLine,
+      nearestPoint: event.detail.nearestPoint,
+      addBrush: event.detail.ctrlKey,
+    });
+  }
+
+  async onMenuKeyup_(event) {
+    if (event.key === 'Escape') {
+      await STORE.dispatch(UPDATE(this.statePath, {
+        isShowingOptions: false,
+      }));
+    }
+  }
+
+  async onMenuBlur_(event) {
+    if (isElementChildOf(event.relatedTarget, this.$.options_container)) {
+      return;
+    }
+    await STORE.dispatch(UPDATE(this.statePath, {
+      isShowingOptions: false,
+    }));
+  }
+
+  async onOptionsToggle_(event) {
+    await STORE.dispatch(TOGGLE(this.statePath + '.isShowingOptions'));
+  }
+
+  async onMinimapBrush_(event) {
+    if (event.detail.sourceEvent.detail.state !== 'end') return;
+    await STORE.dispatch({
+      type: ChartCompound.reducers.brushMinimap.name,
+      statePath: this.statePath,
+    });
+  }
+
+  async onToggleLinked_(event) {
+    await STORE.dispatch({
+      type: ChartCompound.reducers.toggleLinked.name,
+      statePath: this.statePath,
+      linkedStatePath: this.linkedStatePath,
+    });
+    ChartCompound.load(statePath);
+  }
+
+  async onToggleZeroYAxis_(event) {
+    await STORE.dispatch(TOGGLE(this.statePath + '.zeroYAxis'));
+  }
+
+  async onToggleFixedXAxis_(event) {
+    await STORE.dispatch(TOGGLE(this.statePath + '.fixedXAxis'));
+  }
+
+  async onModeChange_(event) {
+    await STORE.dispatch(UPDATE(this.statePath, {mode: event.detail.value}));
+  }
+
+  async onReload_(event) {
+    await ChartCompound.load(this.statePath);
+  }
+}
 
 ChartCompound.reducers = {
   detailsColorByLine: (state, action, rootState) => {

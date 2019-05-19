@@ -72,11 +72,7 @@ properties that point to Model components. This flexibility allows for a
 many-to-many relationship between View components and Model components.
 
 ```
-<dom-module id="some-parent">
-  <template>
-    <foo-view state-path="[[statePath]].foo"></foo-view>
-  </template>
-</dom-module>
+<foo-view state-path="[[statePath]].foo"></foo-view>
 
 class FooView extends ElementBase {
   static get properties() {
@@ -90,7 +86,7 @@ class FooView extends ElementBase {
     };
   }
   onToggleIsEnabled_(event) {
-    this.dispatch('toggleIsEnabled', this.statePath);
+    STORE.dispatch('toggleIsEnabled', this.statePath);
   }
 }
 const TOGGLE_IS_ENABLED = 'FooView.TOGGLE_IS_ENABLED';
@@ -131,23 +127,16 @@ There’s a lot of boilerplate there, so V2SPA uses some helpers to reduce it.
 Here is the above example rewritten using these helpers.
 ```
 class FooView extends ElementBase {
+  static get properties() {
+    return {
+      statePath: String,
+      isEnabled: Boolean,
+    };
+  }
   onToggleIsEnabled_(event) {
-    this.dispatch('toggleIsEnabled', this.statePath);
+    STORE.dispatch(TOGGLE(this.statePath + '.isEnabled'));
   }
 }
-FooView.properties = statePathProperties('statePath', {
-  isEnabled: {type: Boolean},
-});
-FooView.actions = {
-  toggleIsEnabled: statePath => {
-    return {type: FooView.reducers.toggleIsEnabled.name, statePath};
-  },
-};
-FooView.reducers = {
-  toggleIsEnabled(localState, unusedAction, unusedRootState) {
-    return {...localState, isEnabled: !localState.isEnabled};
-  },
-};
 ElementBase.register(FooView);
 ```
 

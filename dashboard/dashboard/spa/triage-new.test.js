@@ -7,6 +7,7 @@
 import TriageNew from './triage-new.js';
 import findElements from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {STORE} from './element-base.js';
 import {afterRender, timeout} from './utils.js';
 import {assert} from 'chai';
 
@@ -14,7 +15,7 @@ suite('triage-new', function() {
   async function fixture(options) {
     const tn = document.createElement('triage-new');
     tn.statePath = 'test';
-    await tn.dispatch(CHAIN(
+    await STORE.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', TriageNew.buildState(options))));
     document.body.appendChild(tn);
@@ -120,13 +121,13 @@ suite('triage-new', function() {
     assert.isDefined(submitEvent);
     assert.isFalse(tn.isOpen);
 
-    tn.dispatch(UPDATE(tn.statePath, {isOpen: true}));
+    STORE.dispatch(UPDATE(tn.statePath, {isOpen: true}));
     await afterRender();
     tn.dispatchEvent(new CustomEvent('blur'));
     await afterRender();
     assert.isFalse(tn.isOpen);
 
-    tn.dispatch(UPDATE(tn.statePath, {isOpen: true}));
+    STORE.dispatch(UPDATE(tn.statePath, {isOpen: true}));
     await afterRender();
     tn.onKeyup_({key: 'Escape'});
     await afterRender();

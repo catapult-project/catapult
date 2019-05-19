@@ -4,18 +4,19 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import ChartTimeseries from './chart-timeseries.js';
 import ResultChannelSender from './result-channel-sender.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
+import {STORE} from './element-base.js';
 import {afterRender, measureElement} from './utils.js';
+import {assert} from 'chai';
 
 suite('chart-timeseries', function() {
   async function fixture() {
     const ct = document.createElement('chart-timeseries');
     ct.statePath = 'test';
-    await ct.dispatch(CHAIN(
+    await STORE.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', ChartTimeseries.buildState({
           yAxis: {
@@ -64,7 +65,7 @@ suite('chart-timeseries', function() {
 
   test('load', async function() {
     const ct = await fixture();
-    await ct.dispatch(UPDATE('test', {lineDescriptors: [{
+    await STORE.dispatch(UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
       bots: ['master:bot'],
       measurement: 'ms',
@@ -92,7 +93,7 @@ suite('chart-timeseries', function() {
       ++lineCountChanges;
     });
 
-    ct.dispatch(UPDATE('test', {lineDescriptors: [{
+    STORE.dispatch(UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
       bots: ['master:bot'],
       measurement: 'ms',
@@ -122,7 +123,7 @@ suite('chart-timeseries', function() {
       };
     };
 
-    ct.dispatch(UPDATE('test', {
+    STORE.dispatch(UPDATE('test', {
       lineDescriptors: [
         {
           suites: ['suite'],
@@ -264,7 +265,7 @@ suite('chart-timeseries', function() {
     const ct = await fixture();
     ct.style.position = 'absolute';
     ct.style.top = 0;
-    await ct.dispatch(UPDATE('test', {lineDescriptors: [{
+    await STORE.dispatch(UPDATE('test', {lineDescriptors: [{
       suites: ['suite'],
       bots: ['master:bot'],
       measurement: 'ms',
@@ -317,7 +318,7 @@ suite('chart-timeseries', function() {
     // the user is hovering over a line.
 
     const ct = await fixture();
-    await ct.dispatch(UPDATE('test', {
+    await STORE.dispatch(UPDATE('test', {
       lineDescriptors: [
         {
           suites: ['suite'],

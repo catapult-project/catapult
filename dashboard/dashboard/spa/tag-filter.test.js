@@ -4,13 +4,14 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import MenuInput from './menu-input.js';
 import OptionGroup from './option-group.js';
 import TagFilter from './tag-filter.js';
 import findElements from './find-elements.js';
+import {STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
+import {assert} from 'chai';
 
 suite('tag-filter', function() {
   teardown(() => {
@@ -23,7 +24,7 @@ suite('tag-filter', function() {
   test('filter', async function() {
     const tagFilter = document.createElement('tag-filter');
     tagFilter.statePath = 'test';
-    await tagFilter.dispatch(UPDATE('', {
+    STORE.dispatch(UPDATE('', {
       test: {
         ...MenuInput.buildState({
           label: 'Test',
@@ -56,14 +57,14 @@ suite('tag-filter', function() {
       e.matches('cp-checkbox') && /xxx/.test(e.textContent))[0];
     xxx.$.native.click();
     await afterRender();
-    let state = tagFilter.getState().test;
+    let state = STORE.getState().test;
     assert.deepEqual(['aaa', 'ccc'],
         state.options[0].options.map(o => o.value));
     assert.deepEqual(['aaa', 'ccc'], state.selectedOptions);
 
     xxx.$.native.click();
     await afterRender();
-    state = tagFilter.getState().test;
+    state = STORE.getState().test;
     assert.deepEqual(['aaa', 'bbb', 'ccc', 'ddd', 'eee'],
         state.options[0].options.map(o => o.value));
     assert.deepEqual([], state.selectedOptions);
@@ -72,14 +73,14 @@ suite('tag-filter', function() {
       e.matches('cp-checkbox') && /yyy/.test(e.textContent))[0];
     yyy.$.native.click();
     await afterRender();
-    state = tagFilter.getState().test;
+    state = STORE.getState().test;
     assert.deepEqual(['bbb', 'ddd'],
         state.options[0].options.map(o => o.value));
     assert.deepEqual(['bbb', 'ddd'], state.selectedOptions);
 
     xxx.$.native.click();
     await afterRender();
-    state = tagFilter.getState().test;
+    state = STORE.getState().test;
     assert.deepEqual(['aaa', 'bbb', 'ccc', 'ddd'],
         state.options[0].options.map(o => o.value));
     assert.deepEqual(['aaa', 'bbb', 'ccc', 'ddd'], state.selectedOptions);

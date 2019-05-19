@@ -8,12 +8,12 @@ import './cp-loading.js';
 import './error-set.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
-import ElementBase from './element-base.js';
 import ExistingBugRequest from './existing-bug-request.js';
 import NewBugRequest from './new-bug-request.js';
 import NudgeAlert from './nudge-alert.js';
 import TriageExisting from './triage-existing.js';
 import TriageNew from './triage-new.js';
+import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
@@ -270,7 +270,7 @@ export default class AlertDetail extends ElementBase {
       bubbles: true,
       composed: true,
     }));
-    this.dispatch({
+    STORE.dispatch({
       type: AlertDetail.reducers.triageNew.name,
       statePath: this.statePath,
     });
@@ -281,67 +281,23 @@ export default class AlertDetail extends ElementBase {
       bubbles: true,
       composed: true,
     }));
-    this.dispatch({
+    STORE.dispatch({
       type: AlertDetail.reducers.triageExisting.name,
       statePath: this.statePath,
     });
   }
 
   async onTriageNewSubmit_() {
-    await this.dispatch('submitNewBug', this.statePath);
+    await AlertDetail.submitNewBug(this.statePath);
   }
 
-  async onNudge_() {
-    this.dispatchEvent(new CustomEvent('require-sign-in', {
-      bubbles: true,
-      composed: true,
-    }));
-    await this.dispatch(UPDATE(this.statePath + '.nudge', {isOpen: true}));
-  }
-
-  async onUnassign_() {
-    this.dispatchEvent(new CustomEvent('require-sign-in', {
-      bubbles: true,
-      composed: true,
-    }));
-    await this.dispatch('changeBugId', this.statePath, 0);
-  }
-
-  async onTriageExistingSubmit_() {
-    this.dispatch(UPDATE(this.statePath + '.existingBug', {isOpen: false}));
-    await this.dispatch('changeBugId', this.statePath, this.existingBug.bugId);
-  }
-
-  async onIgnore_() {
-    this.dispatchEvent(new CustomEvent('require-sign-in', {
-      bubbles: true,
-      composed: true,
-    }));
-    await this.dispatch('changeBugId', this.statePath, -2);
-  }
-}
-
-AlertDetail.actions = {
-  changeBugId: (statePath, bugId) => async(dispatch, getState) => {
-    // Assume success.
-    dispatch(UPDATE(statePath, {bugId, isLoading: true}));
-    const alertKeys = [get(getState(), statePath).key];
-    try {
-      const request = new ExistingBugRequest({alertKeys, bugId});
-      await request.response;
-    } catch (err) {
-      dispatch(UPDATE(statePath, {errors: [err.message]}));
-    }
-    dispatch(UPDATE(statePath, {isLoading: false}));
-  },
-
-  submitNewBug: statePath => async(dispatch, getState) => {
-    dispatch(UPDATE(statePath, {
+  static async submitNewBug(statePath) {
+    STORE.dispatch(UPDATE(statePath, {
       bugId: '[creating]',
       newBug: TriageNew.buildState({}),
     }));
 
-    const state = get(getState(), statePath);
+    const state = get(STORE.getState(), statePath);
     try {
       const request = new NewBugRequest({
         alertKeys: [state.key],
@@ -352,14 +308,56 @@ AlertDetail.actions = {
             x => x.isEnabled).map(x => x.name),
       });
       const bugId = await request.response;
-      dispatch(UPDATE(statePath, {bugId}));
+      STORE.dispatch(UPDATE(statePath, {bugId}));
       // TODO storeRecentlyModifiedBugs
     } catch (err) {
-      dispatch(UPDATE(statePath, {errors: [err.message]}));
+      STORE.dispatch(UPDATE(statePath, {errors: [err.message]}));
     }
-    dispatch(UPDATE(statePath, {isLoading: false}));
-  },
-};
+    STORE.dispatch(UPDATE(statePath, {isLoading: false}));
+  }
+
+  async onNudge_() {
+    this.dispatchEvent(new CustomEvent('require-sign-in', {
+      bubbles: true,
+      composed: true,
+    }));
+    await STORE.dispatch(UPDATE(this.statePath + '.nudge', {isOpen: true}));
+  }
+
+  async onUnassign_() {
+    this.dispatchEvent(new CustomEvent('require-sign-in', {
+      bubbles: true,
+      composed: true,
+    }));
+    await AlertDetail.changeBugId(this.statePath, 0);
+  }
+
+  async onTriageExistingSubmit_() {
+    STORE.dispatch(UPDATE(this.statePath + '.existingBug', {isOpen: false}));
+    await AlertDetail.changeBugId(this.statePath, this.existingBug.bugId);
+  }
+
+  async onIgnore_() {
+    this.dispatchEvent(new CustomEvent('require-sign-in', {
+      bubbles: true,
+      composed: true,
+    }));
+    await AlertDetail.changeBugId(this.statePath, -2);
+  }
+
+  static async changeBugId(statePath, bugId) {
+    // Assume success.
+    STORE.dispatch(UPDATE(statePath, {bugId, isLoading: true}));
+    const alertKeys = [get(STORE.getState(), statePath).key];
+    try {
+      const request = new ExistingBugRequest({alertKeys, bugId});
+      await request.response;
+    } catch (err) {
+      STORE.dispatch(UPDATE(statePath, {errors: [err.message]}));
+    }
+    STORE.dispatch(UPDATE(statePath, {isLoading: false}));
+  }
+}
 
 AlertDetail.reducers = {
   triageNew: (state, action, rootState) => {

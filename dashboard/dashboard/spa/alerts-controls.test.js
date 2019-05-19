@@ -9,6 +9,7 @@ import ReportNamesRequest from './report-names-request.js';
 import SheriffsRequest from './sheriffs-request.js';
 import findElements from './find-elements.js';
 import {CHAIN, ENSURE, TOGGLE, UPDATE} from './simple-redux.js';
+import {STORE} from './element-base.js';
 import {afterRender, timeout} from './utils.js';
 import {assert} from 'chai';
 
@@ -46,7 +47,7 @@ suite('alerts-controls', function() {
   test('connected', async function() {
     const controls = document.createElement('alerts-controls');
     controls.statePath = 'test';
-    controls.dispatch(CHAIN(
+    STORE.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', AlertsControls.buildState({}))));
     document.body.appendChild(controls);
@@ -64,7 +65,7 @@ suite('alerts-controls', function() {
   test('change', async function() {
     const controls = document.createElement('alerts-controls');
     controls.statePath = 'test';
-    controls.dispatch(CHAIN(
+    STORE.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', AlertsControls.buildState({}))));
     document.body.appendChild(controls);

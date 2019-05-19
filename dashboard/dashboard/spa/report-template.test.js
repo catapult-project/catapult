@@ -4,20 +4,21 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import DescribeRequest from './describe-request.js';
 import MenuInput from './menu-input.js';
 import ReportTemplate from './report-template.js';
 import ReportTemplateRequest from './report-template-request.js';
 import TestSuitesRequest from './test-suites-request.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {STORE} from './element-base.js';
 import {afterRender} from './utils.js';
+import {assert} from 'chai';
 
 suite('report-template', function() {
   async function fixture() {
     const template = document.createElement('report-template');
     template.statePath = 'test';
-    await template.dispatch(CHAIN(
+    await STORE.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', ReportTemplate.buildState({
           id: 42,

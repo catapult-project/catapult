@@ -7,13 +7,13 @@
 import './cp-loading.js';
 import './error-set.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
-import ElementBase from './element-base.js';
+import NudgeAlertRequest from './nudge-alert-request.js';
+import {ElementBase, STORE} from './element-base.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 import {isElementChildOf, afterRender} from './utils.js';
-import NudgeAlertRequest from './nudge-alert-request.js';
 
 export default class NudgeAlert extends ElementBase {
   static get is() { return 'nudge-alert'; }
@@ -141,7 +141,7 @@ export default class NudgeAlert extends ElementBase {
       this.maxRevision,
     ].join('/');
     if (newDescriptor !== oldDescriptor) {
-      NudgeAlert.load(this.statePath, this.store);
+      NudgeAlert.load(this.statePath);
     }
 
     if (this.isOpen && (!oldIsOpen || (this.isLoading && !oldIsLoading))) {
@@ -152,12 +152,12 @@ export default class NudgeAlert extends ElementBase {
     }
   }
 
-  static async load(statePath, store) {
-    let state = get(store.getState(), statePath);
+  static async load(statePath) {
+    let state = get(STORE.getState(), statePath);
     if (!state) return;
 
     const started = performance.now();
-    store.dispatch({
+    STORE.dispatch({
       type: NudgeAlert.reducers.startLoading.name,
       statePath,
       started,
@@ -175,25 +175,25 @@ export default class NudgeAlert extends ElementBase {
         maxRevision: state.maxRevision,
       });
       for await (const timeseries of request.reader()) {
-        state = get(store.getState(), statePath);
+        state = get(STORE.getState(), statePath);
         if (!state || state.started !== started) return;
 
-        store.dispatch({
+        STORE.dispatch({
           type: NudgeAlert.reducers.receiveData.name,
           statePath,
           timeseries,
         });
       }
     } catch (err) {
-      store.dispatch(UPDATE(statePath, {errors: [err.message]}));
+      STORE.dispatch(UPDATE(statePath, {errors: [err.message]}));
     }
 
-    store.dispatch({type: NudgeAlert.reducers.doneLoading.name, statePath});
+    STORE.dispatch({type: NudgeAlert.reducers.doneLoading.name, statePath});
   }
 
   async onKeyup_(event) {
     if (event.key === 'Escape') {
-      await this.dispatch(UPDATE(this.statePath, {isOpen: false}));
+      await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
     }
   }
 
@@ -202,20 +202,20 @@ export default class NudgeAlert extends ElementBase {
         isElementChildOf(event.relatedTarget, this)) {
       return;
     }
-    if (!get(this.getState(), this.statePath)) return;
-    await this.dispatch(UPDATE(this.statePath, {isOpen: false}));
+    if (!get(STORE.getState(), this.statePath)) return;
+    await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
   }
 
   async onNudge_(event) {
-    await NudgeAlert.nudge(this.statePath, event.model.option, this.store);
+    await NudgeAlert.nudge(this.statePath, event.model.option);
     this.dispatchEvent(new CustomEvent('reload-chart', {
       bubbles: true,
       composed: true,
     }));
   }
 
-  static async nudge(statePath, {startRevision, endRevision}, store) {
-    const state = get(store.getState(), statePath);
+  static async nudge(statePath, {startRevision, endRevision}) {
+    const state = get(STORE.getState(), statePath);
     if (!state) return;
 
     try {
@@ -223,9 +223,9 @@ export default class NudgeAlert extends ElementBase {
         alertKeys: [state.key], startRevision, endRevision,
       });
       await request.response;
-      store.dispatch(UPDATE(statePath, {endRevision}));
+      STORE.dispatch(UPDATE(statePath, {endRevision}));
     } catch (err) {
-      store.dispatch(UPDATE(statePath, {errors: [err.message]}));
+      STORE.dispatch(UPDATE(statePath, {errors: [err.message]}));
     }
   }
 }

@@ -6,10 +6,10 @@
 
 import './cp-input.js';
 import './raised-button.js';
-import ElementBase from './element-base.js';
 import MenuInput from './menu-input.js';
 import OptionGroup from './option-group.js';
 import ReportNamesRequest from './report-names-request.js';
+import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
@@ -150,7 +150,40 @@ export default class ReportControls extends ElementBase {
 
   connectedCallback() {
     super.connectedCallback();
-    this.dispatch('connected', this.statePath);
+    ReportControls.connected(this.statePath);
+  }
+
+  static async connected(statePath) {
+    await ReportControls.loadSources(statePath);
+
+    let state = get(STORE.getState(), statePath);
+    if (state.minRevision === undefined ||
+        state.maxRevision === undefined) {
+      STORE.dispatch({
+        type: ReportControls.reducers.selectMilestone.name,
+        statePath,
+        milestone: state.milestone,
+      });
+      state = get(STORE.getState(), statePath);
+    }
+
+    if (state.source.selectedOptions.length === 0) {
+      MenuInput.focus(statePath + '.source');
+    }
+  }
+
+  static async loadSources(statePath) {
+    try {
+      const reportTemplateInfos = await new ReportNamesRequest().response;
+      const reportNames = reportTemplateInfos.map(t => t.name);
+      STORE.dispatch({
+        type: ReportControls.reducers.receiveSourceOptions.name,
+        statePath,
+        reportNames,
+      });
+    } catch (err) {
+      STORE.dispatch(UPDATE(statePath, {errors: [err.message]}));
+    }
   }
 
   stateChanged(rootState) {
@@ -175,14 +208,20 @@ export default class ReportControls extends ElementBase {
     return `M${milestone - 1}`;
   }
 
-  async onPreviousMilestone_() {
-    await this.dispatch('selectMilestone', this.statePath,
-        this.milestone - 1);
+  onPreviousMilestone_() {
+    STORE.dispatch({
+      type: ReportControls.reducers.selectMilestone.name,
+      statePath: this.statePath,
+      milestone: this.milestone - 1,
+    });
   }
 
   async onNextMilestone_() {
-    await this.dispatch('selectMilestone', this.statePath,
-        this.milestone + 1);
+    STORE.dispatch({
+      type: ReportControls.reducers.selectMilestone.name,
+      statePath: this.statePath,
+      milestone: this.milestone + 1,
+    });
   }
 
   async onAlerts_(event) {
@@ -201,11 +240,23 @@ export default class ReportControls extends ElementBase {
   }
 
   async onMinRevisionKeyup_(event) {
-    await this.dispatch('setMinRevision', this.statePath, event.target.value);
+    await ReportControls.setMinRevision(this.statePath, event.target.value);
   }
 
   async onMaxRevisionKeyup_(event) {
-    await this.dispatch('setMaxRevision', this.statePath, event.target.value);
+    await ReportControls.setMaxRevision(this.statePath, event.target.value);
+  }
+
+  static async setMinRevision(statePath, minRevisionInput) {
+    STORE.dispatch(UPDATE(statePath, {minRevisionInput}));
+    if (!minRevisionInput.match(/^\d{6}$/)) return;
+    STORE.dispatch(UPDATE(statePath, {minRevision: minRevisionInput}));
+  }
+
+  static async setMaxRevision(statePath, maxRevisionInput) {
+    STORE.dispatch(UPDATE(statePath, {maxRevisionInput}));
+    if (!maxRevisionInput.match(/^\d{6}$/)) return;
+    STORE.dispatch(UPDATE(statePath, {maxRevision: maxRevisionInput}));
   }
 
   isPreviousMilestone_(milestone) {
@@ -242,57 +293,6 @@ const MIN_MILESTONE = Object.keys(ReportControls.CHROMIUM_MILESTONES).reduce(
 
 ReportControls.DEFAULT_NAME = 'Chromium Performance Overview';
 ReportControls.CREATE = '[Create new report]';
-
-ReportControls.actions = {
-  connected: statePath => async(dispatch, getState) => {
-    await ReportControls.actions.loadSources(statePath)(dispatch, getState);
-
-    let state = get(getState(), statePath);
-    if (state.minRevision === undefined ||
-        state.maxRevision === undefined) {
-      ReportControls.actions.selectMilestone(
-          statePath, state.milestone)(dispatch, getState);
-      state = get(getState(), statePath);
-    }
-
-    if (state.source.selectedOptions.length === 0) {
-      MenuInput.actions.focus(
-          statePath + '.source')(dispatch, getState);
-    }
-  },
-
-  selectMilestone: (statePath, milestone) => async(dispatch, getState) => {
-    dispatch({
-      type: ReportControls.reducers.selectMilestone.name,
-      statePath,
-      milestone,
-    });
-  },
-
-  loadSources: statePath => async(dispatch, getState) => {
-    const reportTemplateInfos = await new ReportNamesRequest().response;
-    const reportNames = reportTemplateInfos.map(t => t.name);
-    dispatch({
-      type: ReportControls.reducers.receiveSourceOptions.name,
-      statePath,
-      reportNames,
-    });
-  },
-
-  setMinRevision: (statePath, minRevisionInput) =>
-    async(dispatch, getState) => {
-      dispatch(UPDATE(statePath, {minRevisionInput}));
-      if (!minRevisionInput.match(/^\d{6}$/)) return;
-      dispatch(UPDATE(statePath, {minRevision: minRevisionInput}));
-    },
-
-  setMaxRevision: (statePath, maxRevisionInput) =>
-    async(dispatch, getState) => {
-      dispatch(UPDATE(statePath, {maxRevisionInput}));
-      if (!maxRevisionInput.match(/^\d{6}$/)) return;
-      dispatch(UPDATE(statePath, {maxRevision: maxRevisionInput}));
-    },
-};
 
 ReportControls.reducers = {
   selectMilestone: (state, {milestone}, rootState) => {

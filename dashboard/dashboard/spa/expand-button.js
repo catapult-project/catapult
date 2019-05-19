@@ -4,7 +4,7 @@
 */
 'use strict';
 
-import ElementBase from './element-base.js';
+import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
@@ -53,26 +53,20 @@ export default class ExpandButton extends ElementBase {
   }
 
   async onClick_(event) {
-    await this.dispatch('toggle', this.statePath);
+    STORE.dispatch(TOGGLE(this.statePath + '.isExpanded'));
   }
 
   getIcon_(isExpanded) {
     return ExpandButton.getIcon(isExpanded, this.horizontal, this.after);
   }
-}
 
-ExpandButton.getIcon = (isExpanded, horizontal, after) => {
-  if (after) isExpanded = !isExpanded;
-  if (horizontal) {
-    return (isExpanded ? 'cp:left' : 'cp:right');
+  static getIcon(isExpanded, horizontal, after) {
+    if (after) isExpanded = !isExpanded;
+    if (horizontal) {
+      return (isExpanded ? 'cp:left' : 'cp:right');
+    }
+    return (isExpanded ? 'cp:less' : 'cp:more');
   }
-  return (isExpanded ? 'cp:less' : 'cp:more');
-};
-
-ExpandButton.actions = {
-  toggle: statePath => async(dispatch, getState) => {
-    dispatch(TOGGLE(statePath + '.isExpanded'));
-  },
-};
+}
 
 ElementBase.register(ExpandButton);

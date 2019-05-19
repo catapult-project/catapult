@@ -8,9 +8,9 @@ import './place-holder.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import ChartBase from './chart-base.js';
-import ElementBase from './element-base.js';
 import TimeseriesMerger from './timeseries-merger.js';
 import {CHAIN, UPDATE} from './simple-redux.js';
+import {ElementBase, STORE} from './element-base.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {MODE, layoutTimeseries} from './layout-timeseries.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
@@ -126,7 +126,7 @@ export default class ChartTimeseries extends ElementBase {
       // Changing all at once causes Polymer to call it many times within the
       // same task, so use debounce to only call load() once.
       this.debounce('load', () => {
-        this.dispatch('load', this.statePath);
+        ChartTimeseries.load(this.statePath);
       }, PolymerAsync.microTask);
     }
   }
@@ -135,16 +135,106 @@ export default class ChartTimeseries extends ElementBase {
     return !isLoading && this.isEmpty_(lines);
   }
 
-  async onGetTooltip_(event) {
-    await this.dispatch('getTooltip', this.statePath,
-        event.detail.mainRect,
-        event.detail.nearestLine,
-        this.lines.indexOf(event.detail.nearestLine),
-        event.detail.nearestPoint);
+  onGetTooltip_(event) {
+    // Warning: If this does not dispatch synchronously, then it is
+    // possible for the tooltip to get stuck if hideTooltip is dispatched
+    // while awaiting here.
+    const mainRect = event.detail.mainRect;
+    const line = event.detail.nearestLine;
+    const lineIndex = this.lines.indexOf(event.detail.nearestLine);
+    const datum = event.detail.nearestPoint;
+    STORE.dispatch(CHAIN(
+        {
+          type: ChartTimeseries.reducers.getTooltip.name,
+          statePath: this.statePath,
+          mainRect,
+          line,
+          datum,
+        },
+        {
+          type: ChartTimeseries.reducers.mouseYTicks.name,
+          statePath: this.statePath,
+          line,
+        },
+        {
+          type: ChartBase.reducers.boldLine.name,
+          statePath: this.statePath,
+          lineIndex,
+        }));
   }
 
   async onMouseLeaveMain_(event) {
-    await this.dispatch('hideTooltip', this.statePath);
+    STORE.dispatch(CHAIN(
+        UPDATE(this.statePath, {tooltip: undefined}),
+        {
+          type: ChartTimeseries.reducers.mouseYTicks.name,
+          statePath: this.statePath,
+        },
+        {
+          type: ChartBase.reducers.boldLine.name,
+          statePath: this.statePath,
+        }));
+  }
+
+  static async load(statePath) {
+    let state = get(STORE.getState(), statePath);
+    if (!state) return;
+
+    STORE.dispatch(UPDATE(statePath, {
+      isLoading: true,
+      lines: [],
+      errors: new Set(),
+    }));
+
+    await ChartTimeseries.loadLines(statePath);
+
+    state = get(STORE.getState(), statePath);
+    if (!state) {
+      // User closed the chart before it could finish loading
+      return;
+    }
+
+    STORE.dispatch(UPDATE(statePath, {isLoading: false}));
+  }
+
+  static async loadLines(statePath) {
+    METRICS.startLoadChart();
+    const state = get(STORE.getState(), statePath);
+    const generator = generateTimeseries(
+        state.lineDescriptors.slice(0, ChartTimeseries.MAX_LINES),
+        {minRevision: state.minRevision, maxRevision: state.maxRevision},
+        state.levelOfDetail);
+    for await (const {timeseriesesByLine, errors} of generator) {
+      if (!layoutTimeseries.isReady) await layoutTimeseries.readyPromise;
+
+      const state = get(STORE.getState(), statePath);
+      if (!state) {
+        // This chart is no longer in the redux store.
+        return;
+      }
+
+      STORE.dispatch({
+        type: ChartTimeseries.reducers.layout.name,
+        timeseriesesByLine,
+        errors,
+        statePath,
+      });
+      ChartTimeseries.measureYTicks(statePath);
+      if (timeseriesesByLine.length) METRICS.endLoadChart();
+    }
+  }
+
+  // Measure the yAxis tick labels on the screen and size the yAxis region
+  // appropriately. Measuring elements is asynchronous, so this logic needs to
+  // be an action creator.
+  static async measureYTicks(statePath) {
+    const ticks = collectYAxisTicks(get(STORE.getState(), statePath));
+    if (ticks.length === 0) return;
+    STORE.dispatch({
+      type: ChartTimeseries.reducers.yAxisWidth.name,
+      statePath,
+      rects: await Promise.all(ticks.map(tick => measureText(tick))),
+    });
   }
 }
 
@@ -169,82 +259,6 @@ ChartTimeseries.lineDescriptorEqual = (a, b) => {
   if (a.minRevision !== b.minRevision) return false;
   if (a.maxRevision !== b.maxRevision) return false;
   return true;
-};
-
-ChartTimeseries.actions = {
-  load: statePath => async(dispatch, getState) => {
-    let state = get(getState(), statePath);
-    if (!state) return;
-
-    dispatch(UPDATE(statePath, {
-      isLoading: true,
-      lines: [],
-      errors: new Set(),
-    }));
-
-    await ChartTimeseries.loadLines(statePath)(dispatch, getState);
-
-    state = get(getState(), statePath);
-    if (!state) {
-      // User closed the chart before it could finish loading
-      return;
-    }
-
-    dispatch(UPDATE(statePath, {isLoading: false}));
-  },
-
-  getTooltip: (statePath, mainRect, line, lineIndex, datum) =>
-    async(dispatch, getState) => {
-      // Warning: If this action does not dispatch synchronously, then it is
-      // possible for the tooltip to get stuck if hideTooltip is dispatched
-      // while awaiting here.
-      dispatch(CHAIN(
-          {
-            type: ChartTimeseries.reducers.getTooltip.name,
-            statePath,
-            mainRect,
-            line,
-            datum,
-          },
-          {
-            type: ChartTimeseries.reducers.mouseYTicks.name,
-            statePath,
-            line,
-          },
-          {
-            type: ChartBase.reducers.boldLine.name,
-            statePath,
-            lineIndex,
-          },
-      ));
-    },
-
-  hideTooltip: statePath => async(dispatch, getState) => {
-    dispatch(CHAIN(
-        UPDATE(statePath, {tooltip: undefined}),
-        {
-          type: ChartTimeseries.reducers.mouseYTicks.name,
-          statePath,
-        },
-        {
-          type: ChartBase.reducers.boldLine.name,
-          statePath,
-        },
-    ));
-  },
-
-  // Measure the yAxis tick labels on the screen and size the yAxis region
-  // appropriately. Measuring elements is asynchronous, so this logic needs to
-  // be an action creator.
-  measureYTicks: statePath => async(dispatch, getState) => {
-    const ticks = collectYAxisTicks(get(getState(), statePath));
-    if (ticks.length === 0) return;
-    dispatch({
-      type: ChartTimeseries.reducers.yAxisWidth.name,
-      statePath,
-      rects: await Promise.all(ticks.map(tick => measureText(tick))),
-    });
-  },
 };
 
 function collectYAxisTicks(state) {
@@ -600,33 +614,6 @@ async function* generateTimeseries(
     yield {timeseriesesByLine: filtered, errors};
   }
 }
-
-ChartTimeseries.loadLines = statePath => async(dispatch, getState) => {
-  METRICS.startLoadChart();
-  const state = get(getState(), statePath);
-  const generator = generateTimeseries(
-      state.lineDescriptors.slice(0, ChartTimeseries.MAX_LINES),
-      {minRevision: state.minRevision, maxRevision: state.maxRevision},
-      state.levelOfDetail);
-  for await (const {timeseriesesByLine, errors} of generator) {
-    if (!layoutTimeseries.isReady) await layoutTimeseries.readyPromise;
-
-    const state = get(getState(), statePath);
-    if (!state) {
-      // This chart is no longer in the redux store.
-      return;
-    }
-
-    dispatch({
-      type: ChartTimeseries.reducers.layout.name,
-      timeseriesesByLine,
-      errors,
-      statePath,
-    });
-    ChartTimeseries.actions.measureYTicks(statePath)(dispatch, getState);
-    if (timeseriesesByLine.length) METRICS.endLoadChart();
-  }
-};
 
 // A lineDescriptor may require data from multiple timeseries.
 // A lineDescriptor may specify multiple suites, bots, and cases.

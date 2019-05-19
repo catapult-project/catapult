@@ -5,7 +5,8 @@
 'use strict';
 
 import 'bower_components/webcomponentsjs/webcomponents-loader.js';
-import ElementBase from './element-base.js';
+import {ElementBase, STORE} from './element-base.js';
+import {RESET} from './simple-redux.js';
 import {animationFrame, afterRender} from './utils.js';
 
 Mocha.before(async function() {
@@ -22,7 +23,7 @@ Mocha.before(async function() {
 Mocha.beforeEach(async function() {
   window.AUTH_CLIENT_ID = '';
   window.location.hash = '';
-  ElementBase.resetStoreForTest();
+  STORE.dispatch(RESET);
   await afterRender();
 });
 

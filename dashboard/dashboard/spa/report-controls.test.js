@@ -4,18 +4,19 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import ReportControls from './report-controls.js';
+import ReportNamesRequest from './report-names-request.js';
 import findElements from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {STORE} from './element-base.js';
 import {afterRender} from './utils.js';
-import ReportNamesRequest from './report-names-request.js';
+import {assert} from 'chai';
 
 suite('report-controls', function() {
   async function fixture() {
     const controls = document.createElement('report-controls');
     controls.statePath = 'test';
-    await controls.dispatch(CHAIN(
+    await STORE.dispatch(CHAIN(
         ENSURE('test'),
         UPDATE('test', ReportControls.buildState({}))));
     document.body.appendChild(controls);

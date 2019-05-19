@@ -10,7 +10,7 @@ import './expand-button.js';
 import './scalar-span.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
-import ElementBase from './element-base.js';
+import {ElementBase, STORE} from './element-base.js';
 import {breakWords, crbug, setImmutable} from './utils.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
@@ -514,7 +514,10 @@ export default class AlertsTable extends ElementBase {
 
   async onSelectAll_(event) {
     event.target.checked = !event.target.checked;
-    await this.dispatch('selectAllAlerts', this.statePath);
+    await STORE.dispatch({
+      type: AlertsTable.reducers.selectAllAlerts.name,
+      statePath: this.statePath,
+    });
     this.dispatchEvent(new CustomEvent('selected', {
       bubbles: true,
       composed: true,
@@ -528,10 +531,13 @@ export default class AlertsTable extends ElementBase {
           (event.detail.event.detail && event.detail.event.detail.shiftKey))) {
       shiftKey = true;
     }
-    await this.dispatch('selectAlert', this.statePath,
-        event.model.parentModel.alertGroupIndex,
-        event.model.alertIndex,
-        shiftKey);
+    await STORE.dispatch({
+      type: AlertsTable.reducers.selectAlert.name,
+      statePath: this.statePath,
+      alertGroupIndex: event.model.parentModel.alertGroupIndex,
+      alertIndex: event.model.alertIndex,
+      shiftKey,
+    });
     this.dispatchEvent(new CustomEvent('selected', {
       bubbles: true,
       composed: true,
@@ -539,7 +545,11 @@ export default class AlertsTable extends ElementBase {
   }
 
   async onSort_(event) {
-    await this.dispatch('sort', this.statePath, event.target.name);
+    await STORE.dispatch({
+      type: AlertsTable.reducers.sort.name,
+      statePath: this.statePath,
+      sortColumn: event.target.name,
+    });
     this.dispatchEvent(new CustomEvent('sort', {
       bubbles: true,
       composed: true,
@@ -557,19 +567,19 @@ export default class AlertsTable extends ElementBase {
       },
     }));
   }
-}
 
-AlertsTable.getSelectedAlerts = alertGroups => {
-  const selectedAlerts = [];
-  for (const alertGroup of alertGroups) {
-    for (const alert of alertGroup.alerts) {
-      if (alert.isSelected) {
-        selectedAlerts.push(alert);
+  static getSelectedAlerts(alertGroups) {
+    const selectedAlerts = [];
+    for (const alertGroup of alertGroups) {
+      for (const alert of alertGroup.alerts) {
+        if (alert.isSelected) {
+          selectedAlerts.push(alert);
+        }
       }
     }
+    return selectedAlerts;
   }
-  return selectedAlerts;
-};
+}
 
 AlertsTable.shouldDisplayAlert = (
     areAlertGroupsPlaceholders, showingTriaged, alertGroup, alertIndex,
@@ -679,34 +689,6 @@ AlertsTable.placeholderAlertGroups = () => {
     });
   }
   return PLACEHOLDER_ALERT_GROUPS;
-};
-
-AlertsTable.actions = {
-  selectAllAlerts: statePath => async(dispatch, getState) => {
-    dispatch({
-      type: AlertsTable.reducers.selectAllAlerts.name,
-      statePath,
-    });
-  },
-
-  selectAlert: (statePath, alertGroupIndex, alertIndex, shiftKey) =>
-    async(dispatch, getState) => {
-      dispatch({
-        type: AlertsTable.reducers.selectAlert.name,
-        statePath,
-        alertGroupIndex,
-        alertIndex,
-        shiftKey,
-      });
-    },
-
-  sort: (statePath, sortColumn) => async(dispatch, getState) => {
-    dispatch({
-      type: AlertsTable.reducers.sort.name,
-      statePath,
-      sortColumn,
-    });
-  },
 };
 
 AlertsTable.reducers = {

@@ -5,8 +5,8 @@
 'use strict';
 
 import '@polymer/polymer/lib/elements/dom-repeat.js';
-import ElementBase from './element-base.js';
 import OptionGroup from './option-group.js';
+import {ElementBase, STORE} from './element-base.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
@@ -62,37 +62,27 @@ export default class MemoryComponents extends ElementBase {
     const oldOptions = this.options;
     const oldSelectedOptions = this.selectedOptions;
     this.setProperties(get(rootState, this.statePath));
-    if (this.options !== oldOptions ||
-        this.selectedOptions !== oldSelectedOptions) {
-      this.dispatch('buildColumns', this.statePath);
+    if (this.options && this.selectedOptions &&
+        (this.options !== oldOptions ||
+         this.selectedOptions !== oldSelectedOptions)) {
+      STORE.dispatch({
+        type: MemoryComponents.reducers.buildColumns.name,
+        statePath: this.statePath,
+      });
     }
   }
 
   async onColumnSelect_(event) {
-    await this.dispatch('onColumnSelect', this.statePath);
+    STORE.dispatch({
+      type: MemoryComponents.reducers.onColumnSelect.name,
+      statePath: this.statePath,
+    });
     this.dispatchEvent(new CustomEvent('option-select', {
       bubbles: true,
       composed: true,
     }));
   }
 }
-
-MemoryComponents.actions = {
-  buildColumns: statePath => async(dispatch, getState) => {
-    if (!get(getState(), statePath)) return;
-    dispatch({
-      type: MemoryComponents.reducers.buildColumns.name,
-      statePath,
-    });
-  },
-
-  onColumnSelect: statePath => async(dispatch, getState) => {
-    dispatch({
-      type: MemoryComponents.reducers.onColumnSelect.name,
-      statePath,
-    });
-  },
-};
 
 MemoryComponents.buildColumns = (options, selectedOptions) => {
   if (!options || !options.length ||

@@ -4,11 +4,12 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import DetailsTable from './details-table.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {afterRender, denormalize} from './utils.js';
+import {assert} from 'chai';
 
 suite('details-table', function() {
   let MS_PER_YEAR;  // tr might not be loaded yet.
@@ -71,7 +72,7 @@ suite('details-table', function() {
   async function fixture() {
     const dt = document.createElement('details-table');
     dt.statePath = 'test';
-    dt.dispatch(CHAIN(
+    STORE.dispatch(CHAIN(
         UPDATE('', {
           revisionInfo: {},
           bisectMasterWhitelist: ['whitelistedMaster'],
@@ -86,7 +87,7 @@ suite('details-table', function() {
 
   test('load', async function() {
     const dt = await fixture();
-    await dt.dispatch(UPDATE('test', {
+    await STORE.dispatch(UPDATE('test', {
       lineDescriptors: [{
         suites: ['suite'],
         bots: ['master:bot'],

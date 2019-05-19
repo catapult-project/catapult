@@ -7,6 +7,7 @@
 import NudgeAlert from './nudge-alert.js';
 import NudgeAlertRequest from './nudge-alert-request.js';
 import findElements from './find-elements.js';
+import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
@@ -16,7 +17,7 @@ suite('nudge-alert', function() {
   async function fixture() {
     const na = document.createElement('nudge-alert');
     na.statePath = 'test';
-    await na.dispatch(UPDATE('test', NudgeAlert.buildState({
+    await STORE.dispatch(UPDATE('test', NudgeAlert.buildState({
       isOpen: true,
       key: 'key',
       suite: 'suite',

@@ -4,10 +4,11 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import RecommendedOptions from './recommended-options.js';
+import {STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
+import {assert} from 'chai';
 
 suite('recommended-options', function() {
   async function fixture() {
@@ -46,27 +47,27 @@ suite('recommended-options', function() {
     }));
     const rec = await fixture();
     rec.ready();
-    rec.dispatch(UPDATE('', {
+    STORE.dispatch(UPDATE('', {
       test: RecommendedOptions.buildState({
         options: ['aaa', 'bbb', 'ccc'],
       }),
     }));
     await afterRender();
-    const state = rec.getState().test;
+    const state = STORE.getState().test;
     assert.deepEqual(['ccc', 'bbb'], state.recommended.optionValues);
   });
 
   test('select', async function() {
     // localStorage is updated when the user selects an option.
     const rec = await fixture();
-    rec.dispatch(UPDATE('', {
+    STORE.dispatch(UPDATE('', {
       test: RecommendedOptions.buildState({
         options: ['aaa', 'bbb', 'ccc'],
         selectedOptions: [],
       }),
     }));
     await afterRender();
-    rec.dispatch(UPDATE('test', {selectedOptions: ['aaa']}));
+    STORE.dispatch(UPDATE('test', {selectedOptions: ['aaa']}));
     await afterRender();
     let optionRecommendations = JSON.parse(localStorage.getItem(
         RecommendedOptions.STORAGE_KEY));
@@ -74,7 +75,7 @@ suite('recommended-options', function() {
 
     // localStorage is not updated when the user selects a whole group of
     // options.
-    rec.dispatch(UPDATE('test', {selectedOptions: ['bbb', 'ccc']}));
+    STORE.dispatch(UPDATE('test', {selectedOptions: ['bbb', 'ccc']}));
     await afterRender();
     optionRecommendations = JSON.parse(localStorage.getItem(
         RecommendedOptions.STORAGE_KEY));
@@ -98,22 +99,22 @@ suite('recommended-options', function() {
       ],
     }));
     const rec = await fixture();
-    rec.dispatch(UPDATE('', {
+    STORE.dispatch(UPDATE('', {
       optionRecommendations: undefined,
     }));
     await afterRender();
     rec.ready();
-    rec.dispatch(UPDATE('', {
+    STORE.dispatch(UPDATE('', {
       test: RecommendedOptions.buildState({
         options: ['aaa', 'bbb', 'ccc'],
       }),
     }));
-    let state = rec.getState().test;
+    let state = STORE.getState().test;
     assert.deepEqual(['ccc', 'bbb'], state.recommended.optionValues);
 
-    rec.dispatch(UPDATE('test', {optionValues: ['ddd', 'ccc']}));
+    STORE.dispatch(UPDATE('test', {optionValues: ['ddd', 'ccc']}));
     await afterRender();
-    state = rec.getState().test;
+    state = STORE.getState().test;
     assert.deepEqual(['ccc'], state.recommended.optionValues);
   });
 });

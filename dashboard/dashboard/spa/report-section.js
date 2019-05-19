@@ -9,7 +9,6 @@ import './cp-loading.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
 import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
-import ElementBase from './element-base.js';
 import ReportControls from './report-controls.js';
 import ReportNamesRequest from './report-names-request.js';
 import ReportRequest from './report-request.js';
@@ -17,6 +16,7 @@ import ReportTable from './report-table.js';
 import ReportTemplate from './report-template.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
 import {BatchIterator} from './utils.js';
+import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
@@ -89,7 +89,7 @@ export default class ReportSection extends ElementBase {
   }
 
   async onSave_(event) {
-    await this.dispatch('loadReports', this.statePath);
+    await ReportSection.loadReports(this.statePath);
   }
 
   stateChanged(rootState) {
@@ -108,32 +108,33 @@ export default class ReportSection extends ElementBase {
 
     if (sourcesChanged) {
       this.debounce('loadReports', () => {
-        this.dispatch('loadReports', this.statePath);
+        ReportSection.loadReports(this.statePath);
       }, PolymerAsync.timeOut.after(DEBOUNCE_LOAD_MS));
     }
   }
-}
 
-ReportSection.actions = {
-  restoreState: (statePath, options) => async(dispatch, getState) => {
-    dispatch({
+  static async restoreState(statePath, options) {
+    STORE.dispatch({
       type: ReportSection.reducers.restoreState.name,
       statePath,
       options,
     });
-    const state = get(getState(), statePath);
+    const state = get(STORE.getState(), statePath);
     if (state.minRevision === undefined ||
         state.maxRevision === undefined) {
-      ReportControls.actions.selectMilestone(
-          statePath, state.milestone)(dispatch, getState);
+      STORE.dispatch({
+        type: ReportControls.reducers.selectMilestone.name,
+        statePath,
+        milestone: state.milestone,
+      });
     }
-  },
+  }
 
-  loadReports: statePath => async(dispatch, getState) => {
-    let state = get(getState(), statePath);
+  static async loadReports(statePath) {
+    let state = get(STORE.getState(), statePath);
     if (!state || !state.minRevision || !state.maxRevision) return;
 
-    dispatch({
+    STORE.dispatch({
       type: ReportSection.reducers.requestReports.name,
       statePath,
     });
@@ -155,23 +156,23 @@ ReportSection.actions = {
     }
 
     for await (const {results, errors} of new BatchIterator(readers)) {
-      state = get(getState(), statePath);
+      state = get(STORE.getState(), statePath);
       if (!tr.b.setsEqual(requestedReports, new Set(
           state.source.selectedOptions)) ||
           (state.minRevision !== revisions[0]) ||
           (state.maxRevision !== revisions[1])) {
         return;
       }
-      dispatch({
+      STORE.dispatch({
         type: ReportSection.reducers.receiveReports.name,
         statePath,
         reports: results,
       });
     }
 
-    dispatch(UPDATE(statePath, {isLoading: false}));
-  },
-};
+    STORE.dispatch(UPDATE(statePath, {isLoading: false}));
+  }
+}
 
 ReportSection.reducers = {
   restoreState: (state, action, rootState) => {

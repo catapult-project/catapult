@@ -22,13 +22,13 @@ import AlertsSection from './alerts-section.js';
 import ChartCompound from './chart-compound.js';
 import ChartSection from './chart-section.js';
 import ConfigRequest from './config-request.js';
-import ElementBase from './element-base.js';
 import RecentBugsRequest from './recent-bugs-request.js';
 import ReportControls from './report-controls.js';
 import ReportSection from './report-section.js';
 import SessionIdRequest from './session-id-request.js';
 import SessionStateRequest from './session-state-request.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {ElementBase, STORE} from './element-base.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
@@ -407,7 +407,7 @@ export default class ChromeperfApp extends ElementBase {
   async ready() {
     super.ready();
     const routeParams = new URLSearchParams(this.route && this.route.path);
-    this.dispatch('ready', this.statePath, routeParams);
+    ChromeperfApp.ready(this.statePath, routeParams);
   }
 
   stateChanged(rootState) {
@@ -432,7 +432,7 @@ export default class ChromeperfApp extends ElementBase {
       (this.alertsSectionsById !== oldAlertsSections) ||
       (this.chartSectionsById !== oldChartSections))) {
       this.debounce('updateLocation', () => {
-        this.dispatch('updateLocation', this.statePath);
+        ChromeperfApp.updateLocation(this.statePath);
       }, PolymerAsync.animationFrame);
     }
   }
@@ -444,21 +444,21 @@ export default class ChromeperfApp extends ElementBase {
   observeAppRoute_() {
     if (!this.readied) return;
     if (this.route.path === '') {
-      this.dispatch('reset', this.statePath);
+      ChromeperfApp.reset(this.statePath);
       return;
     }
   }
 
   async onUserUpdate_() {
-    await this.dispatch('userUpdate', this.statePath);
+    await ChromeperfApp.userUpdate(this.statePath);
   }
 
   async onReopenClosedAlerts_(event) {
-    await this.dispatch('reopenClosedAlerts', this.statePath);
+    await ChromeperfApp.reopenClosedAlerts(this.statePath);
   }
 
   async onReopenClosedChart_() {
-    await this.dispatch({
+    await STORE.dispatch({
       type: ChromeperfApp.reducers.reopenClosedChart.name,
       statePath: this.statePath,
     });
@@ -471,38 +471,38 @@ export default class ChromeperfApp extends ElementBase {
   }
 
   hideReportSection_(event) {
-    this.dispatch(UPDATE(this.statePath, {
+    STORE.dispatch(UPDATE(this.statePath, {
       showingReportSection: false,
     }));
   }
 
   async onShowReportSection_(event) {
-    await this.dispatch(UPDATE(this.statePath, {
+    await STORE.dispatch(UPDATE(this.statePath, {
       showingReportSection: true,
     }));
   }
 
   async onNewAlertsSection_(event) {
-    await this.dispatch({
+    await STORE.dispatch({
       type: ChromeperfApp.reducers.newAlerts.name,
       statePath: this.statePath,
     });
   }
 
   async onNewChart_(event) {
-    await this.dispatch('newChart', this.statePath, event.detail.options);
+    await ChromeperfApp.newChart(this.statePath, event.detail.options);
   }
 
   async onCloseChart_(event) {
-    await this.dispatch('closeChart', this.statePath, event.model.id);
+    await ChromeperfApp.closeChart(this.statePath, event.model.id);
   }
 
   async onCloseAlerts_(event) {
-    await this.dispatch('closeAlerts', this.statePath, event.model.id);
+    await ChromeperfApp.closeAlerts(this.statePath, event.model.id);
   }
 
   async onReportAlerts_(event) {
-    await this.dispatch({
+    await STORE.dispatch({
       type: ChromeperfApp.reducers.newAlerts.name,
       statePath: this.statePath,
       options: event.detail.options,
@@ -510,7 +510,7 @@ export default class ChromeperfApp extends ElementBase {
   }
 
   async onCloseAllCharts_(event) {
-    await this.dispatch('closeAllCharts', this.statePath);
+    await ChromeperfApp.closeAllCharts(this.statePath);
   }
 
   isInternal_(userEmail) {
@@ -520,147 +520,137 @@ export default class ChromeperfApp extends ElementBase {
   get isProduction() {
     return window.IS_PRODUCTION;
   }
-}
 
-ChromeperfApp.actions = {
-  ready: (statePath, routeParams) =>
-    async(dispatch, getState) => {
-      ChromeperfApp.actions.getConfigs()(dispatch, getState);
+  static async ready(statePath, routeParams) {
+    ChromeperfApp.getConfigs();
 
-      dispatch(CHAIN(
-          ENSURE(statePath),
-          ENSURE('userEmail', ''),
-          ENSURE('largeDom', false),
-      ));
+    STORE.dispatch(CHAIN(
+        ENSURE(statePath),
+        ENSURE('userEmail', ''),
+        ENSURE('largeDom', false),
+    ));
 
-      // Wait for ChromeperfApp and its reducers to be registered.
-      await afterRender();
+    // Wait for ChromeperfApp and its reducers to be registered.
+    await afterRender();
 
-      dispatch({
-        type: ChromeperfApp.reducers.ready.name,
-        statePath,
-      });
+    STORE.dispatch({
+      type: ChromeperfApp.reducers.ready.name,
+      statePath,
+    });
 
-      if (window.IS_PRODUCTION) {
-        // Wait for gapi.auth2 to load and get an Authorization token.
-        await window.getAuthInstanceAsync();
-      }
+    if (window.IS_PRODUCTION) {
+      // Wait for gapi.auth2 to load and get an Authorization token.
+      await window.getAuthInstanceAsync();
+    }
 
-      // Now, if the user is signed in, we can get auth headers. Try to
-      // restore session state, which might include internal data.
-      await ChromeperfApp.actions.restoreFromRoute(
-          statePath, routeParams)(dispatch, getState);
+    // Now, if the user is signed in, we can get auth headers. Try to
+    // restore session state, which might include internal data.
+    await ChromeperfApp.restoreFromRoute(statePath, routeParams);
 
-      // The app is done loading.
-      dispatch(UPDATE(statePath, {
-        isLoading: false,
-        readied: true,
-      }));
-    },
+    // The app is done loading.
+    STORE.dispatch(UPDATE(statePath, {
+      isLoading: false,
+      readied: true,
+    }));
+  }
 
-  closeAlerts: (statePath, sectionId) => async(dispatch, getState) => {
-    dispatch({
+  static async closeAlerts(statePath, sectionId) {
+    STORE.dispatch({
       type: ChromeperfApp.reducers.closeAlerts.name,
       statePath,
       sectionId,
     });
-    ChromeperfApp.actions.updateLocation(statePath)(dispatch, getState);
+    ChromeperfApp.updateLocation(statePath);
 
     await timeout(NOTIFICATION_MS);
-    const state = get(getState(), statePath);
+    const state = get(STORE.getState(), statePath);
     if (!state || !state.closedAlertsIds ||
         !state.closedAlertsIds.includes(sectionId)) {
       // This alerts section was reopened.
       return;
     }
-    dispatch({
+    STORE.dispatch({
       type: ChromeperfApp.reducers.forgetClosedAlerts.name,
       statePath,
     });
-  },
+  }
 
-  reopenClosedAlerts: statePath => async(dispatch, getState) => {
-    const state = get(getState(), statePath);
-    dispatch(UPDATE(statePath, {
+  static async reopenClosedAlerts(statePath) {
+    const state = get(STORE.getState(), statePath);
+    STORE.dispatch(UPDATE(statePath, {
       alertsSectionIds: [
         ...state.alertsSectionIds,
         ...state.closedAlertsIds,
       ],
       closedAlertsIds: [],
     }));
-  },
+  }
 
-  userUpdate: statePath => async(dispatch, getState) => {
+  static async userUpdate(statePath) {
     const profile = await window.getUserProfileAsync();
     METRICS.signedIn = Boolean(profile);
-    dispatch(UPDATE('', {
+    STORE.dispatch(UPDATE('', {
       userEmail: profile ? profile.getEmail() : '',
     }));
-    ChromeperfApp.actions.getConfigs()(dispatch, getState);
+    ChromeperfApp.getConfigs();
     if (profile) {
-      await ChromeperfApp.actions.getRecentBugs()(dispatch, getState);
+      await ChromeperfApp.getRecentBugs();
     }
-  },
+  }
 
-  getConfig: (reduxKey, backendKey) => async(dispatch, getState) => {
+  static async getConfig(reduxKey, backendKey) {
     const request = new ConfigRequest({key: backendKey});
-    dispatch(UPDATE('', {[reduxKey]: await request.response}));
-  },
+    STORE.dispatch(UPDATE('', {[reduxKey]: await request.response}));
+  }
 
-  getConfigs: () => async(dispatch, getState) => {
+  static async getConfigs() {
     const promises = [];
     for (const [reduxKey, backendKey] of Object.entries(CONFIG_KEYS)) {
-      promises.push(ChromeperfApp.actions.getConfig(
-          reduxKey, backendKey)(dispatch, getState));
+      promises.push(ChromeperfApp.getConfig(reduxKey, backendKey));
     }
     await Promise.all(promises);
-  },
+  }
 
-  restoreSessionState: (statePath, sessionId) =>
-    async(dispatch, getState) => {
-      const request = new SessionStateRequest({sessionId});
-      let sessionState;
-      try {
-        sessionState = await request.response;
-      } catch (err) {
-        dispatch(UPDATE(statePath, {errors: [err.message]}));
-        return;
-      }
+  static async restoreSessionState(statePath, sessionId) {
+    const request = new SessionStateRequest({sessionId});
+    let sessionState;
+    try {
+      sessionState = await request.response;
+    } catch (err) {
+      STORE.dispatch(UPDATE(statePath, {errors: [err.message]}));
+      return;
+    }
 
-      await dispatch(CHAIN(
-          {
-            type: ChromeperfApp.reducers.receiveSessionState.name,
-            statePath,
-            sessionState,
-          },
-          {
-            type: ChromeperfApp.reducers.updateLargeDom.name,
-            appStatePath: statePath,
-          }));
-      await ReportSection.actions.restoreState(
-          `${statePath}.reportSection`, sessionState.reportSection
-      )(dispatch, getState);
-      await ChromeperfApp.actions.updateLocation(statePath)(
-          dispatch, getState);
-    },
+    await STORE.dispatch(CHAIN(
+        {
+          type: ChromeperfApp.reducers.receiveSessionState.name,
+          statePath,
+          sessionState,
+        },
+        {
+          type: ChromeperfApp.reducers.updateLargeDom.name,
+          appStatePath: statePath,
+        }));
+    await ReportSection.restoreState(
+        `${statePath}.reportSection`, sessionState.reportSection);
+    await ChromeperfApp.updateLocation(statePath);
+  }
 
-  restoreFromRoute: (statePath, routeParams) => async(dispatch, getState) => {
+  static async restoreFromRoute(statePath, routeParams) {
     if (routeParams.has('nonav')) {
-      dispatch(UPDATE(statePath, {enableNav: false}));
+      STORE.dispatch(UPDATE(statePath, {enableNav: false}));
     }
 
     const sessionId = routeParams.get('session');
     if (sessionId) {
-      await ChromeperfApp.actions.restoreSessionState(
-          statePath, sessionId)(dispatch, getState);
+      await ChromeperfApp.restoreSessionState(statePath, sessionId);
       return;
     }
 
     if (routeParams.get('report') !== null) {
       const options = ReportSection.newStateOptionsFromQueryParams(
           routeParams);
-      ReportSection.actions.restoreState(
-          `${statePath}.reportSection`, options)(dispatch, getState);
+      ReportSection.restoreState(`${statePath}.reportSection`, options);
       return;
     }
 
@@ -671,7 +661,7 @@ ChromeperfApp.actions = {
       const options = AlertsSection.newStateOptionsFromQueryParams(
           routeParams);
       // Hide the report section and create a single alerts-section.
-      dispatch(CHAIN(
+      STORE.dispatch(CHAIN(
           UPDATE(statePath, {showingReportSection: false}),
           {
             type: ChromeperfApp.reducers.newAlerts.name,
@@ -688,25 +678,25 @@ ChromeperfApp.actions = {
       // Hide the report section and create a single chart.
       const options = ChartSection.newStateOptionsFromQueryParams(
           routeParams);
-      dispatch(UPDATE(statePath, {showingReportSection: false}));
-      ChromeperfApp.actions.newChart(statePath, options)(dispatch, getState);
+      STORE.dispatch(UPDATE(statePath, {showingReportSection: false}));
+      ChromeperfApp.newChart(statePath, options);
       return;
     }
-  },
+  }
 
-  saveSession: statePath => async(dispatch, getState) => {
-    const state = get(getState(), statePath);
+  static async saveSession(statePath) {
+    const state = get(STORE.getState(), statePath);
     const sessionState = ChromeperfApp.getSessionState(state);
     const request = new SessionIdRequest({sessionState});
     try {
       for await (const session of request.reader()) {
         const reduxRoutePath = new URLSearchParams({session});
-        dispatch(UPDATE(statePath, {reduxRoutePath}));
+        STORE.dispatch(UPDATE(statePath, {reduxRoutePath}));
       }
     } catch (err) {
-      dispatch(UPDATE(statePath, {errors: [err.message]}));
+      STORE.dispatch(UPDATE(statePath, {errors: [err.message]}));
     }
-  },
+  }
 
   // Compute one of 5 styles of route path (the part of the URL after the
   // origin):
@@ -721,8 +711,8 @@ ChromeperfApp.actions = {
   //     the server, addressed by its sha2. SessionIdCacheRequest in the
   //     service worker computes and returns the sha2 so this doesn't need to
   //     wait for a round-trip.
-  updateLocation: statePath => async(dispatch, getState) => {
-    const rootState = getState();
+  static async updateLocation(statePath) {
+    const rootState = STORE.getState();
     const state = get(rootState, statePath);
     if (!state || !state.readied) return;
     const nonEmptyAlerts = state.alertsSectionIds.filter(id =>
@@ -759,7 +749,7 @@ ChromeperfApp.actions = {
     }
 
     if (routeParams === undefined) {
-      await ChromeperfApp.actions.saveSession(statePath)(dispatch, getState);
+      await ChromeperfApp.saveSession(statePath);
       return;
     }
 
@@ -769,21 +759,21 @@ ChromeperfApp.actions = {
 
     // The extra '#' prevents observeAppRoute_ from dispatching reset.
     const reduxRoutePath = routeParams.toString() || '#';
-    dispatch(UPDATE(statePath, {reduxRoutePath}));
-  },
+    STORE.dispatch(UPDATE(statePath, {reduxRoutePath}));
+  }
 
-  reset: statePath => async(dispatch, getState) => {
-    ReportSection.actions.restoreState(`${statePath}.reportSection`, {
+  static async reset(statePath) {
+    ReportSection.restoreState(`${statePath}.reportSection`, {
       sources: [ReportControls.DEFAULT_NAME]
-    })(dispatch, getState);
-    dispatch(CHAIN(
+    });
+    STORE.dispatch(CHAIN(
         UPDATE(statePath, {showingReportSection: true}),
         {type: ChromeperfApp.reducers.closeAllAlerts.name, statePath}));
-    ChromeperfApp.actions.closeAllCharts(statePath)(dispatch, getState);
-  },
+    ChromeperfApp.closeAllCharts(statePath);
+  }
 
-  newChart: (statePath, options) => async(dispatch, getState) => {
-    dispatch(CHAIN(
+  static async newChart(statePath, options) {
+    STORE.dispatch(CHAIN(
         {
           type: ChromeperfApp.reducers.newChart.name,
           statePath,
@@ -794,45 +784,45 @@ ChromeperfApp.actions = {
           appStatePath: statePath,
         },
     ));
-  },
+  }
 
-  closeChart: (statePath, sectionId) => async(dispatch, getState) => {
-    dispatch({
+  static async closeChart(statePath, sectionId) {
+    STORE.dispatch({
       type: ChromeperfApp.reducers.closeChart.name,
       statePath,
       sectionId,
     });
-    ChromeperfApp.actions.updateLocation(statePath)(dispatch, getState);
+    ChromeperfApp.updateLocation(statePath);
 
     await timeout(NOTIFICATION_MS);
-    const state = get(getState(), statePath);
+    const state = get(STORE.getState(), statePath);
     if (!state || !state.closedChartIds ||
         !state.closedChartIds.includes(sectionId)) {
       // This chart was reopened.
       return;
     }
-    dispatch({
+    STORE.dispatch({
       type: ChromeperfApp.reducers.forgetClosedChart.name,
       statePath,
     });
-  },
+  }
 
-  closeAllCharts: statePath => async(dispatch, getState) => {
-    dispatch({
+  static async closeAllCharts(statePath) {
+    STORE.dispatch({
       type: ChromeperfApp.reducers.closeAllCharts.name,
       statePath,
     });
-    ChromeperfApp.actions.updateLocation(statePath)(dispatch, getState);
-  },
+    ChromeperfApp.updateLocation(statePath);
+  }
 
-  getRecentBugs: () => async(dispatch, getState) => {
+  static async getRecentBugs() {
     const bugs = await new RecentBugsRequest().response;
-    dispatch({
+    STORE.dispatch({
       type: ChromeperfApp.reducers.receiveRecentBugs.name,
       bugs,
     });
-  },
-};
+  }
+}
 
 ChromeperfApp.reducers = {
   ready: (state, action, rootState) => {

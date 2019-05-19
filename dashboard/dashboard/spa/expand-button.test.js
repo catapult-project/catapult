@@ -4,10 +4,11 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import ExpandButton from './expand-button.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
+import {STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
+import {assert} from 'chai';
+import {get} from '@polymer/polymer/lib/utils/path.js';
 
 suite('expand-button', function() {
   teardown(() => {
@@ -21,19 +22,19 @@ suite('expand-button', function() {
     const expandButton = document.createElement('expand-button');
     expandButton.statePath = 'clickToggles';
     document.body.appendChild(expandButton);
-    expandButton.dispatch(UPDATE(
+    STORE.dispatch(UPDATE(
         expandButton.statePath, ExpandButton.buildState({})));
     assert.isFalse(expandButton.isExpanded);
     assert.isFalse(get(
-        expandButton.getState(), `${expandButton.statePath}.isExpanded`));
+        STORE.getState(), `${expandButton.statePath}.isExpanded`));
     expandButton.click();
     assert.isTrue(expandButton.isExpanded);
     assert.isTrue(get(
-        expandButton.getState(), `${expandButton.statePath}.isExpanded`));
+        STORE.getState(), `${expandButton.statePath}.isExpanded`));
     expandButton.click();
     assert.isFalse(expandButton.isExpanded);
     assert.isFalse(get(
-        expandButton.getState(), `${expandButton.statePath}.isExpanded`));
+        STORE.getState(), `${expandButton.statePath}.isExpanded`));
   });
 
   test('getIcon', async function() {
