@@ -28,15 +28,3 @@ class AndroidApp(app.App):
 
   def Close(self):
     self._app_backend.Close()
-
-  def GetProcesses(self):
-    """Returns the current set of processes belonging to this app."""
-    return self._app_backend.GetProcesses()
-
-  def GetProcess(self, subprocess_name):
-    """Returns the process with the specified subprocess name."""
-    return self._app_backend.GetProcess(subprocess_name)
-
-  def GetWebViews(self):
-    """Returns the set of all WebViews belonging to all processes of the app."""
-    return self._app_backend.GetWebViews()

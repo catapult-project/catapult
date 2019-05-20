@@ -2,14 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import re
-
-from telemetry.internal.app import android_process
-from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends import app_backend
 
 from devil.android import app_ui
-from devil.android import flag_changer
 from devil.android.sdk import intent
 
 import py_utils
@@ -18,16 +13,14 @@ import py_utils
 class AndroidAppBackend(app_backend.AppBackend):
 
   def __init__(self, android_platform_backend, start_intent,
-               is_app_ready_predicate=None, app_has_webviews=True):
+               is_app_ready_predicate=None, app_has_webviews=False):
     super(AndroidAppBackend, self).__init__(
         start_intent.package, android_platform_backend)
-    self._default_process_name = start_intent.package
     self._start_intent = start_intent
     self._is_app_ready_predicate = is_app_ready_predicate
     self._is_running = False
-    self._app_has_webviews = app_has_webviews
-    self._existing_processes_by_pid = {}
     self._app_ui = None
+    assert not app_has_webviews
 
   @property
   def device(self):
@@ -38,8 +31,8 @@ class AndroidAppBackend(app_backend.AppBackend):
       self._app_ui = app_ui.AppUi(self.device, self._start_intent.package)
     return self._app_ui
 
-  def _LaunchAndWaitForApplication(self):
-    """Launch the app and wait for it to be ready."""
+  def Start(self):
+    """Start an Android app and wait for it to finish launching."""
     def IsAppReady():
       return self._is_app_ready_predicate(self.app)
 
@@ -56,24 +49,6 @@ class AndroidAppBackend(app_backend.AppBackend):
     if has_ready_predicate:
       py_utils.WaitFor(IsAppReady, timeout=60)
 
-  def Start(self):
-    """Start an Android app and wait for it to finish launching.
-
-    If the app has webviews, the app is launched with the suitable
-    command line arguments.
-
-    AppStory derivations can customize the wait-for-ready-state to wait
-    for a more specific event if needed.
-    """
-    if self._app_has_webviews:
-      webview_startup_args = self.GetWebviewStartupArgs()
-      command_line_name = (
-          android_browser_backend_settings.ANDROID_WEBVIEW.command_line_name)
-      with flag_changer.CustomCommandLineFlags(
-          self.device, command_line_name, webview_startup_args):
-        self._LaunchAndWaitForApplication()
-    else:
-      self._LaunchAndWaitForApplication()
     self._is_running = True
 
   def Foreground(self):
@@ -101,52 +76,3 @@ class AndroidAppBackend(app_backend.AppBackend):
 
   def IsAppRunning(self):
     return self._is_running
-
-  def GetStandardOutput(self):
-    raise NotImplementedError
-
-  def GetStackTrace(self):
-    raise NotImplementedError
-
-  def GetProcesses(self, process_filter=None):
-    if process_filter is None:
-      # Match process names of the form: 'process_name[:subprocess]'.
-      process_filter = re.compile(
-          '^%s(:|$)' % re.escape(self._default_process_name)).match
-
-    processes = set()
-    ps_output = self.platform_backend.GetPsOutput(['pid', 'name'])
-    for pid, name in ps_output:
-      if not process_filter(name):
-        continue
-
-      if pid not in self._existing_processes_by_pid:
-        self._existing_processes_by_pid[pid] = android_process.AndroidProcess(
-            self, pid, name)
-      processes.add(self._existing_processes_by_pid[pid])
-    return processes
-
-  def GetProcess(self, subprocess_name):
-    assert subprocess_name.startswith(':')
-    process_name = self._default_process_name + subprocess_name
-    return self.GetProcesses(lambda n: n == process_name).pop()
-
-  def GetWebViews(self):
-    assert self._app_has_webviews
-    webviews = set()
-    for process in self.GetProcesses():
-      webviews.update(process.GetWebViews())
-    return webviews
-
-  def GetWebviewStartupArgs(self):
-    assert self._app_has_webviews
-    args = []
-
-    # Turn on GPU benchmarking extension for all runs. The only side effect of
-    # the extension being on is that render stats are tracked. This is believed
-    # to be effectively free. And, by doing so here, it avoids us having to
-    # programmatically inspect a pageset's actions in order to determine if it
-    # might eventually scroll.
-    args.append('--enable-gpu-benchmarking')
-
-    return args

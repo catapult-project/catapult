@@ -60,7 +60,7 @@ class AndroidPlatform(platform.Platform):
   def LaunchAndroidApplication(self,
                                start_intent,
                                is_app_ready_predicate=None,
-                               app_has_webviews=True):
+                               app_has_webviews=False):
     """Launches an Android application given the intent.
 
     Args:

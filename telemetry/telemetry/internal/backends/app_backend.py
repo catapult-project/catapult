@@ -29,9 +29,6 @@ class AppBackend(object):
   def app_type(self):
     return self._app_type
 
-  def GetPid(self):
-    raise NotImplementedError
-
   @property
   def platform_backend(self):
     return self._platform_backend
@@ -49,13 +46,4 @@ class AppBackend(object):
     raise NotImplementedError
 
   def IsAppRunning(self):
-    raise NotImplementedError
-
-  def GetStandardOutput(self):
-    raise NotImplementedError
-
-  def GetStackTrace(self):
-    raise NotImplementedError
-
-  def GetMostRecentMinidumpPath(self):
     raise NotImplementedError
