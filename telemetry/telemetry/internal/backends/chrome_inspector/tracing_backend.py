@@ -9,33 +9,35 @@ import socket
 import time
 import traceback
 
+from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import websocket
 from tracing.trace_data import trace_data as trace_data_module
 
 
-class TracingUnsupportedException(Exception):
+class TracingUnsupportedException(exceptions.Error):
   pass
 
 
-class TracingTimeoutException(Exception):
+class TracingTimeoutException(exceptions.Error):
   pass
 
 
-class TracingUnrecoverableException(Exception):
+class TracingUnrecoverableException(exceptions.AppCrashException):
+  # An unrecoverable exception is a possible sign of an app crash.
   pass
 
 
-class TracingHasNotRunException(Exception):
+class TracingHasNotRunException(exceptions.Error):
   pass
 
 
-class TracingUnexpectedResponseException(Exception):
+class TracingUnexpectedResponseException(exceptions.Error):
   pass
 
 
-class ClockSyncResponseException(Exception):
+class ClockSyncResponseException(exceptions.Error):
   pass
 
 
