@@ -111,6 +111,15 @@ indexes:
   - name: timestamp
     direction: desc
 
+# This composite index supports QueryAsync(sheriff=..., min_start_revision=...),
+# which spa uses to load triaged alerts after loading untriaged alerts.
+- kind: Anomaly
+  properties:
+  - name: sheriff
+  - name: start_revision
+  - name: timestamp
+    direction: desc
+
 # GetAlertsAroundRevision orders by end_revision instead of timestamp, so it
 # can't use the above indexes.
 - kind: Anomaly

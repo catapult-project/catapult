@@ -211,22 +211,33 @@ class Anomaly(internal_only_model.InternalOnlyModel):
     deadline = time.time() + deadline_seconds
     while not results and time.time() < deadline:
       query = cls.query()
+      equality_properties = []
       if sheriff is not None:
         sheriff_key = ndb.Key('Sheriff', sheriff)
         sheriff_entity = yield sheriff_key.get_async()
         if sheriff_entity:
           query = query.filter(cls.sheriff == sheriff_key)
+          equality_properties.append('sheriff')
+          inequality_property = 'key'
       if is_improvement is not None:
         query = query.filter(cls.is_improvement == is_improvement)
+        equality_properties.append('is_improvement')
+        inequality_property = 'key'
       if bug_id is not None:
         if bug_id == '':
           query = query.filter(cls.bug_id == None)
+          equality_properties.append('bug_id')
+          inequality_property = 'key'
         elif bug_id != '*':
           query = query.filter(cls.bug_id == int(bug_id))
+          equality_properties.append('bug_id')
+          inequality_property = 'key'
         # bug_id='*' translates to bug_id != None, which is handled with the
         # other inequality filters.
       if recovered is not None:
         query = query.filter(cls.recovered == recovered)
+        equality_properties.append('recovered')
+        inequality_property = 'key'
       if test or test_keys:
         if not test_keys:
           test_keys = []
@@ -235,16 +246,23 @@ class Anomaly(internal_only_model.InternalOnlyModel):
                         utils.TestMetadataKey(test)]
         query = query.filter(cls.test.IN(test_keys))
         query = query.order(cls.key)
+        equality_properties.append('test')
         inequality_property = 'key'
       if master_name:
         query = query.filter(cls.master_name == master_name)
+        equality_properties.append('master_name')
+        inequality_property = 'key'
       if bot_name:
         query = query.filter(cls.bot_name == bot_name)
+        equality_properties.append('bot_name')
+        inequality_property = 'key'
       if test_suite_name:
         query = query.filter(cls.benchmark_name == test_suite_name)
+        equality_properties.append('benchmark_name')
+        inequality_property = 'key'
 
       query, post_filters = cls._InequalityFilters(
-          query, inequality_property, bug_id,
+          query, equality_properties, inequality_property, bug_id,
           min_end_revision, max_end_revision,
           min_start_revision, max_start_revision,
           min_timestamp, max_timestamp)
@@ -283,7 +301,7 @@ class Anomaly(internal_only_model.InternalOnlyModel):
 
   @classmethod
   def _InequalityFilters(
-      cls, query, inequality_property, bug_id,
+      cls, query, equality_properties, inequality_property, bug_id,
       min_end_revision, max_end_revision,
       min_start_revision, max_start_revision,
       min_timestamp, max_timestamp):
@@ -307,7 +325,12 @@ class Anomaly(internal_only_model.InternalOnlyModel):
     elif inequality_property == 'bug_id':
       if bug_id != '*':
         inequality_property = None
-    elif inequality_property != 'key':
+    elif inequality_property == 'key':
+      if equality_properties == ['sheriff'] and min_start_revision:
+        # Use the composite index (sheriff, start_revision, -timestamp). See
+        # index.yaml.
+        inequality_property = 'start_revision'
+    else:
       inequality_property = None
 
     if inequality_property is None:
@@ -333,8 +356,10 @@ class Anomaly(internal_only_model.InternalOnlyModel):
 
     if bug_id == '*':
       if inequality_property == 'bug_id':
+        logging.info('filter:bug_id!=None')
         query = query.filter(cls.bug_id != None).order(cls.bug_id)
       else:
+        logging.info('post_filter:bug_id!=None')
         post_filters.append(lambda a: a.bug_id != None)
 
     if min_start_revision:
@@ -344,6 +369,7 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         query = query.filter(cls.start_revision >= min_start_revision)
         query = query.order(cls.start_revision)
       else:
+        logging.info('post_filter:min_start_revision=%d', min_start_revision)
         post_filters.append(lambda a: a.start_revision >= min_start_revision)
 
     if max_start_revision:
@@ -353,6 +379,7 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         query = query.filter(cls.start_revision <= max_start_revision)
         query = query.order(-cls.start_revision)
       else:
+        logging.info('post_filter:max_start_revision=%d', max_start_revision)
         post_filters.append(lambda a: a.start_revision <= max_start_revision)
 
     if min_end_revision:
@@ -362,6 +389,7 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         query = query.filter(cls.end_revision >= min_end_revision)
         query = query.order(cls.end_revision)
       else:
+        logging.info('post_filter:min_end_revision=%d', min_end_revision)
         post_filters.append(lambda a: a.end_revision >= min_end_revision)
 
     if max_end_revision:
@@ -371,6 +399,7 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         query = query.filter(cls.end_revision <= max_end_revision)
         query = query.order(-cls.end_revision)
       else:
+        logging.info('post_filter:max_end_revision=%d', max_end_revision)
         post_filters.append(lambda a: a.end_revision <= max_end_revision)
 
     if min_timestamp:
@@ -379,6 +408,8 @@ class Anomaly(internal_only_model.InternalOnlyModel):
                      time.mktime(min_timestamp.utctimetuple()))
         query = query.filter(cls.timestamp >= min_timestamp)
       else:
+        logging.info('post_filter:min_timestamp=%d',
+                     time.mktime(min_timestamp.utctimetuple()))
         post_filters.append(lambda a: a.timestamp >= min_timestamp)
 
     if max_timestamp:
@@ -387,6 +418,8 @@ class Anomaly(internal_only_model.InternalOnlyModel):
                      time.mktime(max_timestamp.utctimetuple()))
         query = query.filter(cls.timestamp <= max_timestamp)
       else:
+        logging.info('post_filter:max_timestamp=%d',
+                     time.mktime(max_timestamp.utctimetuple()))
         post_filters.append(lambda a: a.timestamp <= max_timestamp)
 
     return query, post_filters
