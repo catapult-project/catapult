@@ -619,7 +619,7 @@ class AndroidPlatformBackend(
     ret += Decorate('Logcat', logcat)
 
     # Determine the build directory.
-    build_path = None
+    build_path = '.'
     for b in util.GetBuildDirectories():
       if os.path.exists(b):
         build_path = b
