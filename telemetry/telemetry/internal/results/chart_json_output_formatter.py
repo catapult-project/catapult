@@ -71,12 +71,10 @@ def ResultsAsChartDict(benchmark_metadata, results):
   result_dict = {
       'format_version': '0.1',
       'next_version': '0.2',
-      # TODO(sullivan): benchmark_name, benchmark_description, and
-      # trace_rerun_options should be removed when incrementing format_version
-      # to 0.1.
+      # TODO(sullivan): benchmark_name and benchmark_description should be
+      # removed when incrementing format_version to 0.1.
       'benchmark_name': benchmark_metadata.name,
       'benchmark_description': benchmark_metadata.description,
-      'trace_rerun_options': benchmark_metadata.rerun_options,
       'benchmark_metadata': benchmark_metadata.AsDict(),
       'charts': charts,
       # Need to add this in for compatibility with disabled chartjson results.
