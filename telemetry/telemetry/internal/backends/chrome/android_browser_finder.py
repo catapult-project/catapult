@@ -9,7 +9,6 @@ import logging
 import os
 import shutil
 import subprocess
-import sys
 
 from devil import base_error
 from devil.android import apk_helper
@@ -241,16 +240,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
           browser_backend, self._platform_backend, startup_args=(),
           find_existing=existing)
     except Exception:
-      exc_info = sys.exc_info()
-      logging.error(
-          'Failed with %s while creating Android browser.',
-          exc_info[0].__name__)
-      try:
-        browser_backend.Close()
-      except Exception:  # pylint: disable=broad-except
-        logging.exception('Secondary failure while closing browser backend.')
-
-      raise exc_info[0], exc_info[1], exc_info[2]
+      browser_backend.Close()
+      raise
 
   def GetBrowserStartupArgs(self, browser_options):
     startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)

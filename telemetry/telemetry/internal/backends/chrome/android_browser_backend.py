@@ -4,6 +4,8 @@
 
 import logging
 
+from py_utils import exc_util
+
 from telemetry.core import exceptions
 from telemetry.internal.platform import android_platform_backend as \
   android_platform_backend_module
@@ -171,6 +173,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __del__(self):
     self.Close()
 
+  @exc_util.BestEffort
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
     self._StopBrowser()

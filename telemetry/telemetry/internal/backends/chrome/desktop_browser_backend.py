@@ -18,7 +18,8 @@ import tempfile
 import time
 
 import py_utils
-from py_utils import cloud_storage  # pylint: disable=import-error
+from py_utils import cloud_storage
+from py_utils import exc_util
 import dependency_manager  # pylint: disable=import-error
 
 from telemetry.internal.util import binary_manager
@@ -577,6 +578,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Background(self):
     raise NotImplementedError
 
+  @exc_util.BestEffort
   def Close(self):
     super(DesktopBrowserBackend, self).Close()
 

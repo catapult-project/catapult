@@ -3,9 +3,9 @@
 # found in the LICENSE file.
 
 import logging
-import sys
 
-from py_utils import cloud_storage  # pylint: disable=import-error
+from py_utils import cloud_storage
+from py_utils import exc_util
 
 from telemetry.core import exceptions
 from telemetry import decorators
@@ -14,7 +14,6 @@ from telemetry.internal.backends import browser_backend
 from telemetry.internal.browser import extension_dict
 from telemetry.internal.browser import tab_list
 from telemetry.internal.browser import web_contents
-from telemetry.internal.util import exception_formatter
 
 
 class Browser(app.App):
@@ -45,17 +44,9 @@ class Browser(app.App):
         self._browser_backend.Start(startup_args)
       self._LogBrowserInfo()
     except Exception:
-      exc_info = sys.exc_info()
-      logging.error(
-          'Failed with %s while starting the browser backend.',
-          exc_info[0].__name__)  # Show the exception name only.
-      try:
-        self.DumpStateUponFailure()
-        self.Close()
-      except Exception: # pylint: disable=broad-except
-        exception_formatter.PrintFormattedException(
-            msg='Exception raised while closing platform backend')
-      raise exc_info[0], exc_info[1], exc_info[2]
+      self.DumpStateUponFailure()
+      self.Close()
+      raise
 
   @property
   def browser_type(self):
@@ -203,6 +194,7 @@ class Browser(app.App):
       result[process_type].update(cpu_timestamp)
     return result
 
+  @exc_util.BestEffort
   def Close(self):
     """Closes this browser."""
     try:
@@ -349,6 +341,7 @@ class Browser(app.App):
       else:
         logging.log(log_level, 'Minidump symbolization failed:%s\n', sym[1])
 
+  @exc_util.BestEffort
   def DumpStateUponFailure(self):
     logging.info('*************** BROWSER STANDARD OUTPUT ***************')
     try:

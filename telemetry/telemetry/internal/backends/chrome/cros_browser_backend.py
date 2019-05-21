@@ -5,13 +5,14 @@
 import logging
 import time
 
+import py_utils
+from py_utils import exc_util
+
 from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.backends.chrome import misc_web_contents_backend
 from telemetry.internal.util import format_for_logging
-
-import py_utils
 
 
 class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
@@ -120,6 +121,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Background(self):
     raise NotImplementedError
 
+  @exc_util.BestEffort
   def Close(self):
     super(CrOSBrowserBackend, self).Close()
 
