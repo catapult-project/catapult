@@ -176,6 +176,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner.args.metadata = args.metadata
     runner.args.passthrough = args.passthrough
     runner.args.path = args.path
+    runner.args.quiet = args.quiet
     runner.args.retry_limit = args.retry_limit
     runner.args.test_results_server = args.test_results_server
     runner.args.test_type = args.test_type

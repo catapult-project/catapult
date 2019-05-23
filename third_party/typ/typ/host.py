@@ -250,37 +250,58 @@ class Host(object):
         return out, err
 
 
-class _TeedStream(io.StringIO):
+class _TeedStream(object):
 
     def __init__(self, stream):
-        super(_TeedStream, self).__init__()
         self.stream = stream
         self.capturing = False
         self.diverting = False
+        self._capture_file = tempfile.NamedTemporaryFile(delete=True)
+        self.original_stream = os.fdopen(os.dup(self.stream.fileno()), 'a')
 
     def write(self, msg, *args, **kwargs):
+        if (sys.version_info.major == 2 and
+                isinstance(msg, str)):  # pragma: python2
+            msg = unicode(msg)
         if self.capturing:
-            if (sys.version_info.major == 2 and
-                    isinstance(msg, str)):  # pragma: python2
-                msg = unicode(msg)
-            super(_TeedStream, self).write(msg, *args, **kwargs)
+            self._capture_file.write(msg, *args, **kwargs)
         if not self.diverting:
-            self.stream.write(msg, *args, **kwargs)
+            self.original_stream.write(msg, *args, **kwargs)
 
     def flush(self):
         if self.capturing:
-            super(_TeedStream, self).flush()
+            self._capture_file.flush()
         if not self.diverting:
-            self.stream.flush()
+            self.original_stream.flush()
 
     def capture(self, divert=True):
-        self.truncate(0)
         self.capturing = True
         self.diverting = divert
+        self.stream.flush()
+        os.dup2(self._capture_file.fileno(), self.stream.fileno())
 
     def restore(self):
-        msg = self.getvalue()
-        self.truncate(0)
+        output = self.getvalue()
         self.capturing = False
         self.diverting = False
-        return msg
+        os.dup2(self.original_stream.fileno(), self.stream.fileno())
+        self.original_stream.close()
+        self._capture_file.close()
+        return output
+
+    def fileno(self):
+        return self._capture_file.fileno()
+
+    def getvalue(self):
+        assert self.capturing
+        self.flush()
+        os.lseek(self._capture_file.fileno(), 0, 0)
+        # on mac python stream object does not account for captured bytes
+        # added when another host object captures the output and turns on
+        # passthrough
+        return os.read(
+            self._capture_file.fileno(),
+            os.path.getsize(self._capture_file.name))
+
+    def isatty(self):
+        return self.stream.isatty()

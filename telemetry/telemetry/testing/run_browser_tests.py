@@ -288,30 +288,32 @@ def RunTests(args):
       test_times = abbr_results.get('times')
 
   # Setup typ.Runner instance.
-  typ_runner.setup_fn = _SetUpProcess
-  typ_runner.teardown_fn = _TearDownProcess
+  typ_runner.args.all = options.all
   typ_runner.args.expectations_files = options.expectations_files
-  typ_runner.args.tags = options.tags
   typ_runner.args.jobs = options.jobs
+  typ_runner.args.list_only = options.list_only
   typ_runner.args.metadata = options.metadata
   typ_runner.args.passthrough = options.passthrough
   typ_runner.args.path = options.path
+  typ_runner.args.quiet = options.quiet
   typ_runner.args.repeat = options.repeat
   typ_runner.args.retry_limit = options.retry_limit
+  typ_runner.args.retry_only_retry_on_failure_tests = (
+      options.retry_only_retry_on_failure_tests)
+  typ_runner.args.skip = options.skip
+  typ_runner.args.suffixes = TEST_SUFFIXES
+  typ_runner.args.tags = options.tags
+  typ_runner.args.test_name_prefix = options.test_name_prefix
+  typ_runner.args.test_filter = options.test_filter
   typ_runner.args.test_results_server = options.test_results_server
   typ_runner.args.test_type = options.test_type
   typ_runner.args.top_level_dir = options.top_level_dir
   typ_runner.args.write_full_results_to = options.write_full_results_to
   typ_runner.args.write_trace_to = options.write_trace_to
-  typ_runner.args.list_only = options.list_only
-  typ_runner.args.skip = options.skip
-  typ_runner.args.all = options.all
+
+  typ_runner.setup_fn = _SetUpProcess
+  typ_runner.teardown_fn = _TearDownProcess
   typ_runner.classifier = _GetClassifier(typ_runner)
-  typ_runner.args.retry_only_retry_on_failure_tests = (
-      options.retry_only_retry_on_failure_tests)
-  typ_runner.args.test_name_prefix = options.test_name_prefix
-  typ_runner.args.test_filter = options.test_filter
-  typ_runner.args.suffixes = TEST_SUFFIXES
   typ_runner.path_delimiter = test_class.GetJSONResultsDelimiter()
 
   tests_to_run = LoadTestCasesToBeRun(
