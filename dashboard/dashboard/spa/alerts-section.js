@@ -495,6 +495,13 @@ export default class AlertsSection extends ElementBase {
     // loadMore() may add more AlertsRequests to the BatchIterator to chase
     // datastore query cursors.
     const batches = new BatchIterator(sources.map(wrapRequest));
+
+    // Wait one tick to let the browser start the first AlertsRequests, then,
+    // while waiting for the server to respond, initialize the memory
+    // relationships.
+    await Promise.resolve();
+    d.getMemoryRelatedNames();
+
     for await (const {results, errors} of batches) {
       let state = get(STORE.getState(), statePath);
       if (!state || state.started !== started) {

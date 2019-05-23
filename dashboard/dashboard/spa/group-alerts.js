@@ -59,15 +59,16 @@ function rangeIntersects(aMin, aMax, bMin, bMax) {
   */
 export default function groupAlerts(alerts, groupBugs) {
   const groups = [];
+  const memoryRelatedNames = d.getMemoryRelatedNames();
   for (const alert of alerts) {
     alert.measurementAvg = alert.measurement + '_avg';
-    if (d.MEMORY_PROCESS_RELATED_NAMES.has(alert.measurementAvg)) {
-      alert.relatedNames = d.MEMORY_PROCESS_RELATED_NAMES.get(
+    if (memoryRelatedNames.process.has(alert.measurementAvg)) {
+      alert.relatedNames = memoryRelatedNames.process.get(
           alert.measurementAvg);
     }
-    if (d.MEMORY_COMPONENT_RELATED_NAMES.has(alert.measurementAvg)) {
+    if (memoryRelatedNames.component.has(alert.measurementAvg)) {
       alert.relatedNames = new Set(alert.relatedNames);
-      for (const name of d.MEMORY_COMPONENT_RELATED_NAMES.get(
+      for (const name of memoryRelatedNames.component.get(
           alert.measurementAvg)) {
         alert.relatedNames.add(name);
       }

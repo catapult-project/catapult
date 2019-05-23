@@ -369,11 +369,12 @@ function maybeAddMemoryTabs(
     parameterMatrix, revisions, sparkLayout, relatedTabs, descriptor) {
   const processSparklines = [];
   const componentSparklines = [];
+  const memoryRelatedNames = d.getMemoryRelatedNames();
 
   for (const measurement of descriptor.measurement.selectedOptions) {
     const measurementAvg = measurement + '_avg';
-    if (d.MEMORY_PROCESS_RELATED_NAMES.has(measurementAvg)) {
-      for (let relatedMeasurement of d.MEMORY_PROCESS_RELATED_NAMES.get(
+    if (memoryRelatedNames.process.has(measurementAvg)) {
+      for (let relatedMeasurement of memoryRelatedNames.process.get(
           measurementAvg)) {
         if (relatedMeasurement.endsWith('_avg')) {
           relatedMeasurement = relatedMeasurement.slice(0, -4);
@@ -387,8 +388,8 @@ function maybeAddMemoryTabs(
             }));
       }
     }
-    if (d.MEMORY_COMPONENT_RELATED_NAMES.has(measurementAvg)) {
-      for (let relatedMeasurement of d.MEMORY_COMPONENT_RELATED_NAMES.get(
+    if (memoryRelatedNames.component.has(measurementAvg)) {
+      for (let relatedMeasurement of memoryRelatedNames.component.get(
           measurementAvg)) {
         if (relatedMeasurement.endsWith('_avg')) {
           relatedMeasurement = relatedMeasurement.slice(0, -4);

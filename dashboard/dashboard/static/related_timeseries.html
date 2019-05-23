@@ -22,6 +22,7 @@ tr.exportTo('d', function() {
    */
   function buildRelatedTimeseries(sources) {
     const tabs = new Map();
+    const memoryRelatedNames = d.getMemoryRelatedNames();
     for (const source of sources) {
       const parts = source.testpath.split('/');
       const measurementName = parts[3];
@@ -29,9 +30,9 @@ tr.exportTo('d', function() {
       let suffix = parts.slice(4).join('/');
       if (suffix) suffix = '/' + suffix;
 
-      if (d.MEMORY_PROCESS_RELATED_NAMES.has(measurementName)) {
+      if (memoryRelatedNames.process.has(measurementName)) {
         const sparklines = tabs.get('Process') || [];
-        for (const relatedName of d.MEMORY_PROCESS_RELATED_NAMES.get(
+        for (const relatedName of memoryRelatedNames.process.get(
             measurementName)) {
           if (relatedName === measurementName) continue;
           const relatedParts = relatedName.split(':');
@@ -59,9 +60,9 @@ tr.exportTo('d', function() {
         }
       }
 
-      if (d.MEMORY_COMPONENT_RELATED_NAMES.has(measurementName)) {
+      if (memoryRelatedNames.component.has(measurementName)) {
         const sparklines = tabs.get('Component') || [];
-        for (const relatedName of d.MEMORY_COMPONENT_RELATED_NAMES.get(
+        for (const relatedName of memoryRelatedNames.component.get(
             measurementName)) {
           if (relatedName === measurementName) continue;
           const relatedParts = relatedName.split(':');
