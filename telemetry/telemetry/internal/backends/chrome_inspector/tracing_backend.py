@@ -101,8 +101,7 @@ class TracingBackend(object):
 
   _TRACING_DOMAIN = 'Tracing'
 
-  def __init__(self, inspector_socket, is_tracing_running=False,
-               support_modern_devtools_tracing_start_api=False):
+  def __init__(self, inspector_socket, is_tracing_running=False):
     self._inspector_websocket = inspector_socket
     self._inspector_websocket.RegisterDomain(
         self._TRACING_DOMAIN, self._NotificationHandler)
@@ -110,9 +109,6 @@ class TracingBackend(object):
     self._start_issued = False
     self._can_collect_data = False
     self._has_received_all_tracing_data = False
-    # pylint: disable=invalid-name
-    self._support_modern_devtools_tracing_start_api = (
-        support_modern_devtools_tracing_start_api)
     self._trace_data_builder = None
 
   @property
@@ -137,19 +133,9 @@ class TracingBackend(object):
     # websocket. This reduces the time waiting for all data to be received,
     # especially when the test is running on an android device. Using
     # compression can save upto 10 seconds (or more) for each story.
-    params = {'transferMode': 'ReturnAsStream', 'streamCompression': 'gzip'}
-    if self._support_modern_devtools_tracing_start_api:
-      params['traceConfig'] = (
-          chrome_trace_config.GetChromeTraceConfigForDevTools())
-    else:
-      if chrome_trace_config.requires_modern_devtools_tracing_start_api:
-        raise TracingUnsupportedException(
-            'Trace options require modern Tracing.start DevTools API, '
-            'which is NOT supported by the browser')
-      params['categories'], params['options'] = (
-          chrome_trace_config.GetChromeTraceCategoriesAndOptionsForDevTools())
-
-    req = {'method': 'Tracing.start', 'params': params}
+    req = {'method': 'Tracing.start', 'params': {
+        'transferMode': 'ReturnAsStream', 'streamCompression': 'gzip',
+        'traceConfig': chrome_trace_config.GetChromeTraceConfigForDevTools()}}
     logging.info('Start Tracing Request: %r', req)
     response = self._inspector_websocket.SyncRequest(req, timeout)
 

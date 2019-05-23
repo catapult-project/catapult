@@ -180,10 +180,6 @@ class TracingControllerBackend(object):
             agent.RecordClockSyncMarker(
                 sync_id, telemetry_tracing_agent.RecordIssuerClockSyncMarker)
 
-  def IsChromeTracingSupported(self):
-    return chrome_tracing_agent.ChromeTracingAgent.IsSupported(
-        self._platform_backend)
-
   @property
   def is_tracing_running(self):
     return self._current_state is not None

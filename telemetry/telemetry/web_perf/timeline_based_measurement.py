@@ -243,8 +243,6 @@ class TimelineBasedMeasurement(story_test.StoryTest):
 
   def WillRunStory(self, platform):
     """Configure and start tracing."""
-    if not platform.tracing_controller.IsChromeTracingSupported():
-      raise Exception('Not supported')
     if self._tbm_options.config.enable_chrome_trace:
       # Always enable 'blink.console' and 'v8.console' categories for:
       # 1) Backward compat of chrome clock sync (https://crbug.com/646925).
