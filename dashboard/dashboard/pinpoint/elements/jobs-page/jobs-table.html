@@ -20,6 +20,7 @@ found in the LICENSE file.
         background-size: 0.8em;
         border-bottom: solid 1px var(--paper-grey-400);
         cursor: pointer;
+        text-align: left;
       }
 
       th:hover {
@@ -46,13 +47,13 @@ found in the LICENSE file.
     <table id="jobs">
       <thead>
         <tr>
-          <th id="name" on-click="columnHeaderClicked">Job name
-          <th id="user" on-click="columnHeaderClicked">User
-          <th id="bug_id" on-click="columnHeaderClicked">Bug
-          <th id="created" on-click="columnHeaderClicked">Created
-          <th id="comparison_mode" on-click="columnHeaderClicked">Type
-          <th id="status" on-click="columnHeaderClicked">Status
-          <th id="difference_count" on-click="columnHeaderClicked">Differences
+          <th id="name" on-click="columnHeaderClicked">Job name</th>
+          <th id="user" on-click="columnHeaderClicked">User</th>
+          <th id="bug_id" on-click="columnHeaderClicked">Bug</th>
+          <th id="created" on-click="columnHeaderClicked">Created</th>
+          <th id="comparison_mode" on-click="columnHeaderClicked">Type</th>
+          <th id="status" on-click="columnHeaderClicked">Status</th>
+          <th id="difference_count" on-click="columnHeaderClicked">Differences</th>
       <tbody>
         <template is="dom-repeat" items="[[jobs]]" sort="[[jobSorter(sortBy, sortDescending)]]">
           <tr>
