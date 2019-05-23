@@ -184,6 +184,8 @@ class JobState(object):
     """
     differences = []
     def Comparison(a, b):
+      if not a:
+        return b
       if self._Compare(a, b) == compare.DIFFERENT:
         differences.append((a, b))
       return b

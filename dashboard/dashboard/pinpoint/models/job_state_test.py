@@ -18,10 +18,12 @@ from dashboard.pinpoint.models.quest import quest_test
 class ExploreTest(test.TestCase):
 
   def testDifferentWithMidpoint(self):
-    quests = [quest_test.QuestByChange({
-        change_test.Change(1): quest_test.QuestPass(),
-        change_test.Change(9): quest_test.QuestFail(),
-    })]
+    quests = [
+        quest_test.QuestByChange({
+            change_test.Change(1): quest_test.QuestPass(),
+            change_test.Change(9): quest_test.QuestFail(),
+        })
+    ]
     state = job_state.JobState(quests, comparison_mode=job_state.PERFORMANCE)
     state.AddChange(change_test.Change(1))
     state.AddChange(change_test.Change(9))
@@ -30,20 +32,26 @@ class ExploreTest(test.TestCase):
     state.Explore()
 
     # The Changes are different. Add the midpoint.
-    expected = [change_test.Change(1), change_test.Change(5),
-                change_test.Change(9)]
+    expected = [
+        change_test.Change(1),
+        change_test.Change(5),
+        change_test.Change(9)
+    ]
     self.assertEqual(state._changes, expected)
     attempt_count_1 = len(state._attempts[change_test.Change(1)])
     attempt_count_2 = len(state._attempts[change_test.Change(5)])
     attempt_count_3 = len(state._attempts[change_test.Change(9)])
     self.assertEqual(attempt_count_1, attempt_count_2)
     self.assertEqual(attempt_count_2, attempt_count_3)
+    self.assertEqual([], state.Differences())
 
   def testDifferentNoMidpoint(self):
-    quests = [quest_test.QuestByChange({
-        change_test.Change(1): quest_test.QuestPass(),
-        change_test.Change(2): quest_test.QuestFail(),
-    })]
+    quests = [
+        quest_test.QuestByChange({
+            change_test.Change(1): quest_test.QuestPass(),
+            change_test.Change(2): quest_test.QuestFail(),
+        })
+    ]
     state = job_state.JobState(quests, comparison_mode=job_state.PERFORMANCE)
     state.AddChange(change_test.Change(1))
     state.AddChange(change_test.Change(2))
@@ -56,6 +64,8 @@ class ExploreTest(test.TestCase):
     attempt_count_1 = len(state._attempts[change_test.Change(1)])
     attempt_count_2 = len(state._attempts[change_test.Change(2)])
     self.assertEqual(attempt_count_1, attempt_count_2)
+    self.assertEqual([(change_test.Change(1), change_test.Change(2))],
+                     state.Differences())
 
   def testPending(self):
     quests = [quest_test.QuestSpin()]
@@ -70,6 +80,7 @@ class ExploreTest(test.TestCase):
     attempt_count_1 = len(state._attempts[change_test.Change(1)])
     attempt_count_2 = len(state._attempts[change_test.Change(9)])
     self.assertEqual(attempt_count_1, attempt_count_2)
+    self.assertEqual([], state.Differences())
 
   def testSame(self):
     quests = [quest_test.QuestPass()]
@@ -89,11 +100,12 @@ class ExploreTest(test.TestCase):
     attempt_count_1 = len(state._attempts[change_test.Change(1)])
     attempt_count_2 = len(state._attempts[change_test.Change(9)])
     self.assertEqual(attempt_count_1, attempt_count_2)
+    self.assertEqual([], state.Differences())
 
   def testUnknown(self):
     quests = [quest_test.QuestPass()]
-    state = job_state.JobState(quests, comparison_mode=job_state.FUNCTIONAL,
-                               comparison_magnitude=0.2)
+    state = job_state.JobState(
+        quests, comparison_mode=job_state.FUNCTIONAL, comparison_magnitude=0.2)
     state.AddChange(change_test.Change(1))
     state.AddChange(change_test.Change(9))
 
@@ -115,6 +127,16 @@ class ExploreTest(test.TestCase):
     attempt_count_2 = len(state._attempts[change_test.Change(9)])
     self.assertEqual(attempt_count_1, attempt_count_2)
 
+  def testDifferences(self):
+    quests = [quest_test.QuestPass()]
+    state = job_state.JobState(
+        quests, comparison_mode=job_state.FUNCTIONAL, comparison_magnitude=0.2)
+    change_a = change_test.Change(1)
+    change_b = change_test.Change(9)
+    state.AddChange(change_a)
+    state.AddChange(change_b)
+    self.assertEqual([], state.Differences())
+
 
 class ScheduleWorkTest(unittest.TestCase):
 
@@ -123,8 +145,9 @@ class ScheduleWorkTest(unittest.TestCase):
     self.assertFalse(state.ScheduleWork())
 
   def testWorkLeft(self):
-    quests = [quest_test.QuestCycle(
-        quest_test.QuestPass(), quest_test.QuestSpin())]
+    quests = [
+        quest_test.QuestCycle(quest_test.QuestPass(), quest_test.QuestSpin())
+    ]
     state = job_state.JobState(quests)
     state.AddChange(change_test.Change(123))
     self.assertTrue(state.ScheduleWork())
@@ -137,9 +160,10 @@ class ScheduleWorkTest(unittest.TestCase):
     self.assertFalse(state.ScheduleWork())
 
   def testAllAttemptsFail(self):
-    quests = [quest_test.QuestCycle(
-        quest_test.QuestFail(), quest_test.QuestFail(),
-        quest_test.QuestFail2())]
+    quests = [
+        quest_test.QuestCycle(quest_test.QuestFail(), quest_test.QuestFail(),
+                              quest_test.QuestFail2())
+    ]
     state = job_state.JobState(quests)
     state.AddChange(change_test.Change(123))
     expected_regexp = ('.*7/10.*\nInformationalError: Expected error for '
