@@ -27,8 +27,25 @@ found in the LICENSE file.
 </head>
 <body>
   <nav-bar></nav-bar>
+  <div style="background-color: yellow; padding: 8px;">
+    <a id="v2" href="https://v2spa-dot-chromeperf.appspot.com">
+      Try the new frontend!
+    </a>
+  </div>
   <toplevel-toast></toplevel-toast>
   <group-report-page></group-report-page>
   <load-analytics></load-analytics>
+  <script>
+    'use strict';
+    window.addEventListener('load', function() {
+      const params = new URLSearchParams(location.search.substr(1));
+      const bug = params.get('bug_id');
+      const anchor = document.querySelector('#v2');
+      const url = new URL(anchor.href);
+      url.hash = bug ? ('bug=' + bug) : '';
+      anchor.href = url;
+      // TODO Translate `?keys` into `#alerts&minRev&maxRev`.
+    });
+  </script>
 </body>
 </html>

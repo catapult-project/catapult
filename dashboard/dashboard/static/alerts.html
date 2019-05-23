@@ -34,8 +34,6 @@ found in the LICENSE file.
 
     <script>
       'use strict';
-      // The Google analytics code assumes there will be a script element to
-      // inject into in the page. This empty element is used for that.
       document.querySelector('#v2').href += encodeURI(
           new URLSearchParams(location.search.substr(1)).get('sheriff') ||
           'Chromium Perf Sheriff');
