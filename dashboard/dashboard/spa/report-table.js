@@ -68,8 +68,12 @@ export default class ReportTable extends ElementBase {
           border-collapse: collapse;
         }
 
+        #table tbody tr {
+          border-bottom: 1px solid var(--neutral-color-medium, grey);
+        }
+
         table[placeholder] {
-          color: var(--neutral-color-dark);
+          color: var(--neutral-color-dark, grey);
         }
 
         h2 {
@@ -89,7 +93,7 @@ export default class ReportTable extends ElementBase {
         #edit,
         #copy,
         #documentation {
-          color: var(--primary-color-dark);
+          color: var(--primary-color-dark, blue);
           cursor: pointer;
           flex-shrink: 0;
           margin: 0 0 0 8px;
@@ -107,7 +111,7 @@ export default class ReportTable extends ElementBase {
         #tooltip {
           display: none;
           position: absolute;
-          z-index: var(--layer-menu);
+          z-index: var(--layer-menu, 100);
         }
 
         :host(:hover) #tooltip {
@@ -135,7 +139,7 @@ export default class ReportTable extends ElementBase {
         #scratch {
           opacity: 0;
           position: absolute;
-          z-index: var(--layer-hidden);
+          z-index: var(--layer-hidden, -100);
         }
 
         iron-icon[hidden] {

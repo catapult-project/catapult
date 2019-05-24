@@ -17,6 +17,7 @@
   --primary-color-medium: hsl(231, 45%, 84%);
   --primary-color-light: hsl(231, 44%, 94%);
   --neutral-color-dark: hsl(0, 0%, 50%);
+  --neutral-color-medium: hsl(0, 0%, 80%);
   --neutral-color-light: hsl(0, 0%, 93%);
   --error-color: hsl(4, 90%, 60%);
   --improvement-color: hsl(122, 40%, 50%);
