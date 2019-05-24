@@ -185,11 +185,11 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
     test.put()
 
     self.Post('/update_test_suite_descriptors')
-    with self.assertRaises(ValueError):
-      self.ExecuteDeferredTasks('default')
+    self.ExecuteDeferredTasks('default')
     actual = update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
         'unparsed')
-    self.assertEqual(None, actual)
+    expected = {'parseError': 'master/bot/unparsed/a/b/c'}
+    self.assertEqual(expected, actual)
 
 
 if __name__ == '__main__':

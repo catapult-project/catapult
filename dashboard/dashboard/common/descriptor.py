@@ -33,7 +33,7 @@ TEST_BUILD_TYPE = 'test'
 REFERENCE_BUILD_TYPE = 'ref'
 STATISTICS = ['avg', 'count', 'max', 'min', 'std', 'sum']
 NO_MITIGATIONS_CASE = 'no-mitigations'
-STATISTICS_REGEX = '(.*)_(%s)' % '|'.join(STATISTICS + [
+STATISTICS_REGEX = '(.*)_(%s)$' % '|'.join(STATISTICS + [
     r'pct_[\d_]+',
     r'ipr_[\d_]+',
     r'ci_[\d]{3}(?:_lower|_upper)?',
@@ -62,6 +62,10 @@ POLY_MEASUREMENT_TEST_SUITES_KEY = 'poly_measurement_test_suites'
 # This stored object contains a list of test suites whose measurements and test
 # cases are each composed of two test path components.
 TWO_TWO_TEST_SUITES_KEY = 'two_two_test_suites'
+
+# This stored object contains a list of test suites whose test cases are
+# composed of two test path components.
+ONE_TWO_TEST_SUITES_KEY = 'one_two_test_suites'
 
 # This stored object contains a list of test suites whose test cases are
 # partially duplicated to two test path components like 'prefix/prefix_suffix'.
@@ -138,13 +142,21 @@ class Descriptor(object):
     if (test_suite.startswith('system_health') or
         (test_suite in complex_cases_test_suites)):
       measurement = path.pop(0)
-      path.pop(0)
+      prefix = path.pop(0)
       if len(path) == 0:
-        raise ndb.Return((measurement, None))
+        raise ndb.Return((measurement, prefix.replace('_', ':')))
       raise ndb.Return((measurement, path.pop(0).replace('_', ':').replace(
           'long:running:tools', 'long_running_tools')))
 
-    if test_suite in (yield cls._GetConfiguration(TWO_TWO_TEST_SUITES_KEY, [])):
+    one_two_test_suites = yield cls._GetConfiguration(
+        ONE_TWO_TEST_SUITES_KEY, [])
+    if test_suite in one_two_test_suites:
+      parts, path[:] = path[:], []
+      raise ndb.Return(parts[0], ':'.join(parts[1:]))
+
+    two_two_test_suites = yield cls._GetConfiguration(
+        TWO_TWO_TEST_SUITES_KEY, [])
+    if test_suite in two_two_test_suites:
       parts, path[:] = path[:], []
       raise ndb.Return(':'.join(parts[:2]), ':'.join(parts[2:]))
 
@@ -230,7 +242,7 @@ class Descriptor(object):
       if stat_match:
         measurement, statistic = stat_match.groups()
 
-    if path:
+    if test_suite != 'graphics:GLBench' and path:
       raise ValueError('Unable to parse %r' % test_path)
 
     raise ndb.Return(cls(
@@ -332,6 +344,8 @@ class Descriptor(object):
         'memory.top_10_mobile',
         'v8:runtime_stats.top_25',
     ]
+    poly_case_test_suites += yield self._GetConfiguration(
+        ONE_TWO_TEST_SUITES_KEY, [])
     poly_case_test_suites += yield self._GetConfiguration(
         TWO_TWO_TEST_SUITES_KEY, [])
     if self.test_suite in poly_case_test_suites:

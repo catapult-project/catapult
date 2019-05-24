@@ -35,6 +35,9 @@ class DescriptorTest(testing_common.TestCase):
         'sizes',
         'polymeasurement',
     ])
+    stored_object.Set(descriptor.ONE_TWO_TEST_SUITES_KEY, [
+        'one_two',
+    ])
     stored_object.Set(descriptor.TWO_TWO_TEST_SUITES_KEY, [
         'TEST_PARTIAL_TEST_SUITE:two_two',
     ])
@@ -205,6 +208,12 @@ class DescriptorTest(testing_common.TestCase):
     self.assertEqual('a:b:c:d:e:f', desc.measurement)
     self.assertEqual('g:h:i', desc.test_case)
 
+  def testFromTestPath_OneTwo(self):
+    desc = descriptor.Descriptor.FromTestPathSync(
+        'master/bot/one_two/measure/case_part_a/case_part_b')
+    self.assertEqual('measure', desc.measurement)
+    self.assertEqual('case_part_a:case_part_b', desc.test_case)
+
   def testFromTestPath_TwoTwo(self):
     desc = descriptor.Descriptor.FromTestPathSync(
         'master/bot/TEST_PARTIAL_TEST_SUITE/two_two/a/b/c/d')
@@ -247,6 +256,16 @@ class DescriptorTest(testing_common.TestCase):
     self.assertEqual('loading.foo', desc.test_suite)
     self.assertEqual('measure', desc.measurement)
     self.assertEqual('cold:24h', desc.test_case)
+
+  def testFromTestPath_InternalStatistic(self):
+    desc = descriptor.Descriptor.FromTestPathSync(
+        'master/bot/suite/some_avg_fps')
+    self.assertEqual('suite', desc.test_suite)
+    self.assertEqual('some_avg_fps', desc.measurement)
+    self.assertEqual('master:bot', desc.bot)
+    self.assertEqual(None, desc.test_case)
+    self.assertEqual(None, desc.statistic)
+    self.assertEqual(descriptor.TEST_BUILD_TYPE, desc.build_type)
 
   def testFromTestPath_Jank_Count(self):
     desc = descriptor.Descriptor.FromTestPathSync(
@@ -434,6 +453,14 @@ class DescriptorTest(testing_common.TestCase):
         test_suite='sizes',
         measurement='a:b:c:d:e:f',
         test_case='g:h:i').ToTestPathsSync())
+
+  def testToTestPath_OneTwo(self):
+    expected = 'master/bot/one_two/measure/case_part_a/case_part_b'
+    self.assertEqual({expected}, descriptor.Descriptor(
+        bot='master:bot',
+        test_suite='one_two',
+        measurement='measure',
+        test_case='case_part_a:case_part_b').ToTestPathsSync())
 
   def testToTestPath_TwoTwo(self):
     expected = 'master/bot/TEST_PARTIAL_TEST_SUITE/two_two/a/b/c/d'
