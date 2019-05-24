@@ -1402,5 +1402,37 @@ tr.b.unittest.testSuite(function() {
         [netEvent1, netEvent2],
         partialNetworkEvents);
   });
+
+  test('mainFrameCumulativeLayoutShift', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+      const mainFrame = {id: '0xdeadbeef', is_main: true};
+      const subframe = {id: '0xdeadb33f', is_main: false};
+      const emitEvent = (time, cumulativeScore, frame) => {
+        const data = {
+          is_main_frame: frame.is_main,
+          cumulative_score: cumulativeScore
+        };
+        mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'loading',
+          title: 'LayoutShift',
+          start: time,
+          duration: 0.0,
+          args: {frame: frame.id, data}
+        }));
+      };
+      emitEvent(1000, 1.5, mainFrame);
+      emitEvent(3000, 3.5, mainFrame);
+      emitEvent(2000, 3.0, mainFrame);
+      emitEvent(4000, 4.0, subframe);
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('mainFrameCumulativeLayoutShift');
+    assert.strictEqual(1, hist.sampleValues.length);
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(3.5, hist.running.mean);
+  });
 });
 </script>

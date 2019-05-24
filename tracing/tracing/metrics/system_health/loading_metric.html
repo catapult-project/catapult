@@ -25,6 +25,8 @@ tr.exportTo('tr.metrics.sh', function() {
   const LONG_TASK_THRESHOLD_MS = 50;
   const timeDurationInMs_smallerIsBetter =
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
+  const unitlessNumber_smallerIsBetter =
+      tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
   const RelatedEventSet = tr.v.d.RelatedEventSet;
   const hasCategoryAndName = tr.metrics.sh.hasCategoryAndName;
   const EventFinderUtils = tr.e.chrome.EventFinderUtils;
@@ -55,6 +57,9 @@ tr.exportTo('tr.metrics.sh', function() {
   // loads. Data obtained through Cluster Telemetry analysis.
       .createExponential(1, 40e3, 35)
       .addExponentialBins(80e3, 15);
+
+  const LAYOUT_SHIFT_SCORE_BOUNDARIES = tr.v.HistogramBinBoundaries
+      .createLinear(0, 50, 25);
 
   const SUMMARY_OPTIONS = {
     avg: true,
@@ -254,6 +259,19 @@ tr.exportTo('tr.metrics.sh', function() {
     return samples;
   }
 
+  function findLayoutShiftSamples(rendererHelper) {
+    let sample;
+    EventFinderUtils.getSortedMainThreadEventsByFrame(rendererHelper,
+        'LayoutShift', 'loading').forEach((events) => {
+      // We want the final cumulative score, so look at the last event.
+      const evData = events.pop().args.data;
+      if (evData.is_main_frame) {
+        sample = {value: evData.cumulative_score};
+      }
+    });
+    return sample ? [sample] : [];
+  }
+
   function addFirstMeaningfulPaintSample(samples, rendererHelper,
       navigationStart, fmpMarkerEvent, url) {
     const navStartToFMPRange = tr.b.math.Range.fromExplicitRange(
@@ -446,6 +464,7 @@ tr.exportTo('tr.metrics.sh', function() {
     const largestTextPaintSamples = findLargestTextPaintSamples(
         rendererHelper, frameToNavStartEvents,
         navIdToNavStartEvents);
+    const layoutShiftSamples = findLayoutShiftSamples(rendererHelper);
 
     return {
       frameToNavStartEvents,
@@ -457,6 +476,7 @@ tr.exportTo('tr.metrics.sh', function() {
       firstViewportReadySamples,
       largestImagePaintSamples,
       largestTextPaintSamples,
+      layoutShiftSamples
     };
   }
 
@@ -619,6 +639,12 @@ tr.exportTo('tr.metrics.sh', function() {
           description: 'Time to Largest Text Paint',
           summaryOptions: SUMMARY_OPTIONS,
         });
+    const layoutShiftHistogram = histograms.createHistogram(
+        'mainFrameCumulativeLayoutShift', unitlessNumber_smallerIsBetter, [], {
+          binBoundaries: LAYOUT_SHIFT_SCORE_BOUNDARIES,
+          description: 'Main Frame Document Cumulative Layout Shift Score',
+          summaryOptions: SUMMARY_OPTIONS,
+        });
 
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
@@ -657,6 +683,8 @@ tr.exportTo('tr.metrics.sh', function() {
           samplesSet.largestTextPaintSamples,
           largestTextPaintHistogram,
           histograms);
+      addSamplesToHistogram(
+          samplesSet.layoutShiftSamples, layoutShiftHistogram, histograms);
     }
 
     const samplesSet = collectMetricsFromLoadExpectations(model, chromeHelper);
