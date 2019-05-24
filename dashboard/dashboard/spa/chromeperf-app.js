@@ -17,7 +17,6 @@ import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-iconset-svg/iron-iconset-svg.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
-import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import AlertsSection from './alerts-section.js';
 import ChartCompound from './chart-compound.js';
 import ChartSection from './chart-section.js';
@@ -433,7 +432,7 @@ export default class ChromeperfApp extends ElementBase {
       (this.chartSectionsById !== oldChartSections))) {
       this.debounce('updateLocation', () => {
         ChromeperfApp.updateLocation(this.statePath);
-      }, PolymerAsync.animationFrame);
+      });
     }
   }
 
@@ -514,7 +513,7 @@ export default class ChromeperfApp extends ElementBase {
   }
 
   isInternal_(userEmail) {
-    return userEmail.endsWith('@google.com');
+    return userEmail && userEmail.endsWith('@google.com');
   }
 
   get isProduction() {
@@ -644,13 +643,15 @@ export default class ChromeperfApp extends ElementBase {
     const sessionId = routeParams.get('session');
     if (sessionId) {
       await ChromeperfApp.restoreSessionState(statePath, sessionId);
+      await ChromeperfApp.updateLocation(statePath);
       return;
     }
 
     if (routeParams.get('report') !== null) {
       const options = ReportSection.newStateOptionsFromQueryParams(
           routeParams);
-      ReportSection.restoreState(`${statePath}.reportSection`, options);
+      await ReportSection.restoreState(`${statePath}.reportSection`, options);
+      await ChromeperfApp.updateLocation(statePath);
       return;
     }
 
@@ -669,6 +670,7 @@ export default class ChromeperfApp extends ElementBase {
             options,
           },
       ));
+      await ChromeperfApp.updateLocation(statePath);
       return;
     }
 
@@ -679,7 +681,8 @@ export default class ChromeperfApp extends ElementBase {
       const options = ChartSection.newStateOptionsFromQueryParams(
           routeParams);
       STORE.dispatch(UPDATE(statePath, {showingReportSection: false}));
-      ChromeperfApp.newChart(statePath, options);
+      await ChromeperfApp.newChart(statePath, options);
+      await ChromeperfApp.updateLocation(statePath);
       return;
     }
   }
@@ -958,7 +961,7 @@ ChromeperfApp.reducers = {
     return {
       ...state,
       chartSectionIds: [],
-      closedChartIds: Array.from(state.chartSectionIds),
+      closedChartIds: Array.from(state.chartSectionIds || []),
     };
   },
 

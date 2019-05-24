@@ -251,7 +251,7 @@ async function* asGenerator(promise) {
   *   }
   */
 export class BatchIterator {
-  constructor(tasks, getDelay = timeout) {
+  constructor(tasks = [], getDelay = timeout) {
     // `tasks` may include either simple Promises or async generators.
     this.results_ = [];
     this.errors_ = [];

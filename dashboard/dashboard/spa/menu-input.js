@@ -149,6 +149,7 @@ export default class MenuInput extends ElementBase {
   }
 
   async onFocus_(event) {
+    if (this.isFocused) return;
     MenuInput.focus(this.statePath);
   }
 

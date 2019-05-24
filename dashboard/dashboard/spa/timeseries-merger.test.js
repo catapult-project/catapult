@@ -5,7 +5,7 @@
 'use strict';
 
 import {assert} from 'chai';
-import TimeseriesMerger from './timeseries-merger.js';
+import {TimeseriesMerger} from './timeseries-merger.js';
 
 suite('TimeseriesMerger', function() {
   test('minRevision', async function() {

@@ -6,7 +6,6 @@
 
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
-import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {animationFrame, hasCtrlKey, measureElement} from './utils.js';
@@ -449,7 +448,7 @@ export default class ChartBase extends GestureEventListeners(ElementBase) {
         detail: {mainRect, nearestPoint, nearestLine},
       }));
       this.maybePollMouseLeaveMain_();
-    }, PolymerAsync.animationFrame);
+    });
   }
 }
 

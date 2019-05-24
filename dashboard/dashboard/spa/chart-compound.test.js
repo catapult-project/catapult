@@ -100,8 +100,8 @@ suite('chart-compound', function() {
     assert.isUndefined(cc.chartLayout.lineDescriptors[0].buildType);
     assert.strictEqual('ref', cc.chartLayout.lineDescriptors[1].buildType);
     assert.lengthOf(cc.chartLayout.lines, 2);
-    assert.lengthOf(cc.chartLayout.lines[0].data, 9);
-    assert.lengthOf(cc.chartLayout.lines[1].data, 9);
+    assert.lengthOf(cc.chartLayout.lines[0].data, 100);
+    assert.lengthOf(cc.chartLayout.lines[1].data, 100);
   });
 
   test('brushMinimap', async function() {
@@ -131,7 +131,7 @@ suite('chart-compound', function() {
 
     assert.strictEqual('94.9%', cc.minimapLayout.xAxis.cursor.pct);
     assert.isUndefined(cc.minimapLayout.yAxis.cursor);
-    assert.strictEqual('37.8%', cc.chartLayout.xAxis.cursor.pct);
+    assert.strictEqual('93.9%', cc.chartLayout.xAxis.cursor.pct);
     assert.strictEqual('26.8%', cc.chartLayout.yAxis.cursor.pct);
   });
 
@@ -158,6 +158,7 @@ suite('chart-compound', function() {
       linkedMode: MODE.DELTA,
     }));
     await afterRender();
+    await afterRender();
 
     assert.strictEqual(cc.mode, MODE.DELTA);
     assert.strictEqual(cc.chartLayout.mode, MODE.DELTA);
@@ -174,6 +175,7 @@ suite('chart-compound', function() {
     await STORE.dispatch(UPDATE('linked', {
       linkedZeroYAxis: true,
     }));
+    await afterRender();
     await afterRender();
 
     assert.isTrue(cc.zeroYAxis);

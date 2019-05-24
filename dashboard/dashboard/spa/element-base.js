@@ -118,8 +118,7 @@ export class ElementBase extends PolymerElement {
     * @param {Function()} callback
     * @param {Object=} asyncModule See PolymerAsync.
     */
-  debounce(jobName, callback, opt_asyncModule) {
-    const asyncModule = opt_asyncModule || PolymerAsync.microTask;
+  debounce(jobName, callback, asyncModule = PolymerAsync.animationFrame) {
     this.debounceJobs_.set(jobName, Debouncer.debounce(
         this.debounceJobs_.get(jobName), asyncModule, callback));
   }

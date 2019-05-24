@@ -6,13 +6,12 @@
 
 import './place-holder.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
-import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import ChartBase from './chart-base.js';
-import TimeseriesMerger from './timeseries-merger.js';
 import {CHAIN, UPDATE} from './simple-redux.js';
 import {ElementBase, STORE} from './element-base.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {MODE, layoutTimeseries} from './layout-timeseries.js';
+import {TimeseriesMerger} from './timeseries-merger.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
 
@@ -122,12 +121,9 @@ export default class ChartTimeseries extends ElementBase {
         this.zeroYAxis !== oldZeroYAxis ||
         this.minRevision !== oldMinRevision ||
         this.maxRevision !== oldMaxRevision) {
-      // Changing any of these properties causes Polymer to call this method.
-      // Changing all at once causes Polymer to call it many times within the
-      // same task, so use debounce to only call load() once.
       this.debounce('load', () => {
         ChartTimeseries.load(this.statePath);
-      }, PolymerAsync.microTask);
+      });
     }
   }
 
@@ -199,6 +195,8 @@ export default class ChartTimeseries extends ElementBase {
 
   static async loadLines(statePath) {
     METRICS.startLoadChart();
+    const started = performance.now();
+    STORE.dispatch(UPDATE(statePath, {started}));
     const state = get(STORE.getState(), statePath);
     const generator = generateTimeseries(
         state.lineDescriptors.slice(0, ChartTimeseries.MAX_LINES),
@@ -208,8 +206,9 @@ export default class ChartTimeseries extends ElementBase {
       if (!layoutTimeseries.isReady) await layoutTimeseries.readyPromise;
 
       const state = get(STORE.getState(), statePath);
-      if (!state) {
-        // This chart is no longer in the redux store.
+      if (!state || state.started !== started) {
+        // This chart is no longer in the redux store, or another load has
+        // superseded this load.
         return;
       }
 
@@ -467,10 +466,12 @@ ChartTimeseries.reducers = {
       rows.push({name: 'revision', value: datum.datum.revision});
     }
 
-    rows.push({
-      name: 'Upload timestamp',
-      value: tr.b.formatDate(datum.datum.timestamp),
-    });
+    if (datum.datum.timestamp) {
+      rows.push({
+        name: 'Upload timestamp',
+        value: tr.b.formatDate(datum.datum.timestamp),
+      });
+    }
 
     rows.push({name: 'build type', value: line.descriptor.buildType});
 

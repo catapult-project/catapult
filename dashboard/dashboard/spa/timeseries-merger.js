@@ -6,7 +6,7 @@
 
 // Maximum number of data points to take from source timeseries.
 // http://crbug.com/936305
-const MAX_POINTS = 1000;
+export const MAX_POINTS = 1000;
 
 // Get the x-coordinate for a datum. http://crbug.com/936307
 function getX(datum) {
@@ -70,7 +70,7 @@ class TimeseriesIterator {
   }
 }
 
-export default class TimeseriesMerger {
+export class TimeseriesMerger {
   constructor(timeserieses, range) {
     this.iterators_ = timeserieses.map(timeseries => new TimeseriesIterator(
         timeseries, range));

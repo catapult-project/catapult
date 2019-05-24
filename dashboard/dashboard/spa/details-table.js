@@ -7,14 +7,13 @@
 import './scalar-span.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 import '@polymer/polymer/lib/elements/dom-repeat.js';
-import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import AlertDetail from './alert-detail.js';
 import BisectDialog from './bisect-dialog.js';
 import ChartTimeseries from './chart-timeseries.js';
 import NudgeAlert from './nudge-alert.js';
-import TimeseriesMerger from './timeseries-merger.js';
 import {DetailsFetcher} from './details-fetcher.js';
 import {ElementBase, STORE} from './element-base.js';
+import {TimeseriesMerger} from './timeseries-merger.js';
 import {breakWords, enumerate} from './utils.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
@@ -240,7 +239,7 @@ export default class DetailsTable extends ElementBase {
         this.revisionRanges !== oldRevisionRanges) {
       this.debounce('load', () => {
         DetailsTable.load(this.statePath);
-      }, PolymerAsync.microTask);
+      });
     }
   }
 

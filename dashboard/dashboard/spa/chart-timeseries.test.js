@@ -9,7 +9,7 @@ import ResultChannelSender from './result-channel-sender.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {STORE} from './element-base.js';
-import {afterRender, measureElement} from './utils.js';
+import {afterRender, denormalize, measureElement} from './utils.js';
 import {assert} from 'chai';
 
 suite('chart-timeseries', function() {
@@ -42,12 +42,14 @@ suite('chart-timeseries', function() {
         async json() {
           if (url === TimeseriesRequest.URL) {
             timeseriesBody = new Map(options.body);
+            const data = [
+              {revision: 10, timestamp: 1000, avg: 1, count: 1},
+              {revision: 20, timestamp: 2000, avg: 2, count: 1},
+            ];
             return {
               units: options.body.get('measurement'),
-              data: [
-                [10, 1000, 1, 1],
-                [20, 2000, 2, 1],
-              ],
+              data: denormalize(
+                  data, options.body.get('columns').split(',')),
             };
           }
         },
@@ -79,7 +81,7 @@ suite('chart-timeseries', function() {
     assert.strictEqual('master:bot', timeseriesBody.get('bot'));
     assert.strictEqual('avg', timeseriesBody.get('statistic'));
     assert.strictEqual('test', timeseriesBody.get('build_type'));
-    assert.strictEqual('revision,timestamp,avg,count',
+    assert.strictEqual('revision,avg',
         timeseriesBody.get('columns'));
     assert.isUndefined(timeseriesBody.get('min_revision'));
     assert.isUndefined(timeseriesBody.get('max_revision'));
@@ -157,15 +159,15 @@ suite('chart-timeseries', function() {
       test_case: 'aaa',
       statistic: 'avg',
       build_type: 'test',
-      columns: 'revision,timestamp,avg,count',
+      columns: 'revision,avg',
     });
     let sender = new ResultChannelSender(url + aMsParams);
     await sender.send((async function* () {
       yield {
         units: 'ms',
         data: [
-          {revision: 10, timestamp: 1000, avg: 1, count: 1},
-          {revision: 20, timestamp: 2000, avg: 2, count: 1},
+          {revision: 10, avg: 1},
+          {revision: 20, avg: 2},
         ],
       };
     })());
@@ -183,15 +185,15 @@ suite('chart-timeseries', function() {
       test_case: 'aaa',
       statistic: 'avg',
       build_type: 'test',
-      columns: 'revision,timestamp,avg,count',
+      columns: 'revision,avg',
     });
     sender = new ResultChannelSender(url + aBytesParams);
     await sender.send((async function* () {
       yield {
         units: 'sizeInBytes',
         data: [
-          {revision: 10, timestamp: 1000, avg: 1, count: 1},
-          {revision: 20, timestamp: 2000, avg: 2, count: 1},
+          {revision: 10, avg: 1},
+          {revision: 20, avg: 2},
         ],
       };
     })());
@@ -211,15 +213,15 @@ suite('chart-timeseries', function() {
       test_case: 'bbb',
       statistic: 'avg',
       build_type: 'test',
-      columns: 'revision,timestamp,avg,count',
+      columns: 'revision,avg',
     });
     sender = new ResultChannelSender(url + bMsParams);
     await sender.send((async function* () {
       yield {
         units: 'ms',
         data: [
-          {revision: 10, timestamp: 1000, avg: 10, count: 1},
-          {revision: 20, timestamp: 2000, avg: 20, count: 1},
+          {revision: 10, avg: 10},
+          {revision: 20, avg: 20},
         ],
       };
     })());
@@ -239,15 +241,15 @@ suite('chart-timeseries', function() {
       test_case: 'bbb',
       statistic: 'avg',
       build_type: 'test',
-      columns: 'revision,timestamp,avg,count',
+      columns: 'revision,avg',
     });
     sender = new ResultChannelSender(url + bBytesParams);
     await sender.send((async function* () {
       yield {
         units: 'sizeInBytes',
         data: [
-          {revision: 10, timestamp: 1000, avg: 10, count: 1},
-          {revision: 20, timestamp: 2000, avg: 20, count: 1},
+          {revision: 10, avg: 10},
+          {revision: 20, avg: 20},
         ],
       };
     })());
@@ -290,22 +292,21 @@ suite('chart-timeseries', function() {
     assert.strictEqual(ct.lines[0].color, ct.tooltip.color);
     assert.strictEqual('1.2%', ct.tooltip.left);
     assert.strictEqual('100%', ct.tooltip.top);
-    assert.lengthOf(ct.tooltip.rows, 8);
+    assert.lengthOf(ct.tooltip.rows, 7);
     assert.strictEqual('Click for details', ct.tooltip.rows[0].name);
     assert.strictEqual(2, ct.tooltip.rows[0].colspan);
     assert.strictEqual('value', ct.tooltip.rows[1].name);
     assert.strictEqual('1.000 ms', ct.tooltip.rows[1].value);
     assert.strictEqual('revision', ct.tooltip.rows[2].name);
     assert.strictEqual(10, ct.tooltip.rows[2].value);
-    assert.strictEqual('Upload timestamp', ct.tooltip.rows[3].name);
-    assert.strictEqual('build type', ct.tooltip.rows[4].name);
-    assert.strictEqual('test', ct.tooltip.rows[4].value);
-    assert.strictEqual('test suite', ct.tooltip.rows[5].name);
-    assert.strictEqual('suite', ct.tooltip.rows[5].value);
-    assert.strictEqual('measurement', ct.tooltip.rows[6].name);
-    assert.strictEqual('ms', ct.tooltip.rows[6].value);
-    assert.strictEqual('bot', ct.tooltip.rows[7].name);
-    assert.strictEqual('master:bot', ct.tooltip.rows[7].value);
+    assert.strictEqual('build type', ct.tooltip.rows[3].name);
+    assert.strictEqual('test', ct.tooltip.rows[3].value);
+    assert.strictEqual('test suite', ct.tooltip.rows[4].name);
+    assert.strictEqual('suite', ct.tooltip.rows[4].value);
+    assert.strictEqual('measurement', ct.tooltip.rows[5].name);
+    assert.strictEqual('ms', ct.tooltip.rows[5].value);
+    assert.strictEqual('bot', ct.tooltip.rows[6].name);
+    assert.strictEqual('master:bot', ct.tooltip.rows[6].value);
 
     cb.dispatchEvent(new CustomEvent('mouse-leave-main'));
     await afterRender();

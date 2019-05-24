@@ -143,7 +143,7 @@ suite('utils', function() {
 
   test('BatchIterator empty', async function() {
     const batches = [];
-    for await (const batch of new utils.BatchIterator([])) {
+    for await (const batch of new utils.BatchIterator()) {
       batches.push(batch);
     }
     assert.lengthOf(batches, 0);

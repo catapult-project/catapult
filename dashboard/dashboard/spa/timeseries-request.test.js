@@ -4,12 +4,10 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import ResultChannelSender from './result-channel-sender.js';
-import {
-  TimeseriesRequest,
-  LEVEL_OF_DETAIL,
-} from './timeseries-request.js';
+import {TimeseriesRequest, LEVEL_OF_DETAIL} from './timeseries-request.js';
+import {assert} from 'chai';
+import {denormalize, timeout} from './utils.js';
 
 suite('TimeseriesRequest', function() {
   let originalFetch;
@@ -28,7 +26,7 @@ suite('TimeseriesRequest', function() {
         async json() {
           return {
             units: 'ms',
-            data: [[1, 2, 3, 4]],
+            data: [[1, 3]],
           };
         }
       };
@@ -61,9 +59,8 @@ suite('TimeseriesRequest', function() {
         {
           unit: tr.b.Unit.byName.timeDurationInMs,
           revision: 1,
-          timestamp: new Date(2),
           avg: 3,
-          count: 4,
+          count: 1,
         },
       ],
       [
@@ -82,7 +79,7 @@ suite('TimeseriesRequest', function() {
     const request = new TimeseriesRequest({
       levelOfDetail: LEVEL_OF_DETAIL.XY,
     });
-    const expectedColumns = 'revision,timestamp,avg,count';
+    const expectedColumns = 'revision,avg';
     assert.strictEqual(request.body_.get('columns'), expectedColumns);
   });
 
@@ -99,7 +96,7 @@ suite('TimeseriesRequest', function() {
       levelOfDetail: LEVEL_OF_DETAIL.ANNOTATIONS,
     });
     const expectedColumns =
-      'revision,timestamp,avg,count,alert,diagnostics,revisions';
+      'alert,avg,count,diagnostics,revision,revisions,timestamp';
     assert.strictEqual(request.body_.get('columns'), expectedColumns);
   });
 
@@ -125,9 +122,20 @@ suite('TimeseriesRequest', function() {
           const revisions = {
             r_v8: 12345,
           };
+          const data = [
+            {
+              revision: 1,
+              timestamp: 1000,
+              avg: 10,
+              count: 1,
+              diagnostics,
+              revisions,
+            },
+          ];
           return {
             units: unit.jsonName,
-            data: [[1, 1000, 10, 1, null, diagnostics, revisions]],
+            data: denormalize(
+                data, options.body.get('columns').split(',')),
           };
         }
       };
@@ -153,9 +161,13 @@ suite('TimeseriesRequest', function() {
       return {
         ok: true,
         async json() {
+          const data = [
+            {revision: 1, avg: 10, count: 1},
+          ];
           return {
             units: 'kb',
-            data: [[1, 1000, 10, 1]],
+            data: denormalize(
+                data, options.body.get('columns').split(',')),
           };
         }
       };
@@ -167,7 +179,6 @@ suite('TimeseriesRequest', function() {
     assert.lengthOf(response, 1);
     assert.strictEqual(tr.b.Unit.byName.sizeInBytes, response[0].unit);
     assert.strictEqual(1, response[0].revision);
-    assert.strictEqual(1000, response[0].timestamp.getTime());
     assert.strictEqual(10240, response[0].avg);
     assert.strictEqual(1, response[0].count);
   });

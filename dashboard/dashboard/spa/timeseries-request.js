@@ -29,15 +29,16 @@ const DETAILS_COLUMNS = new Set([
 export function getColumnsByLevelOfDetail(levelOfDetail, statistic) {
   switch (levelOfDetail) {
     case LEVEL_OF_DETAIL.XY:
-      return new Set(['revision', 'timestamp', statistic, 'count']);
+      return new Set(['revision', statistic]);
     case LEVEL_OF_DETAIL.ALERTS:
       return new Set(['revision', 'alert']);
     case LEVEL_OF_DETAIL.ANNOTATIONS:
       return new Set([
         ...getColumnsByLevelOfDetail(LEVEL_OF_DETAIL.XY, statistic),
+        'timestamp', 'count',
         ...getColumnsByLevelOfDetail(LEVEL_OF_DETAIL.ALERTS, statistic),
         'diagnostics', 'revisions',
-      ]);
+      ].sort());
     case LEVEL_OF_DETAIL.DETAILS:
       return DETAILS_COLUMNS;
     default:
@@ -46,7 +47,7 @@ export function getColumnsByLevelOfDetail(levelOfDetail, statistic) {
 }
 
 function transformDatum(datum, unit, conversionFactor) {
-  datum.timestamp = new Date(datum.timestamp);
+  if (datum.timestamp) datum.timestamp = new Date(datum.timestamp);
 
   datum.unit = unit;
   if (!datum.count) datum.count = 1;

@@ -60,7 +60,7 @@ export class DetailsFetcher {
     // This batches the stream of results to reduce unnecessary rendering.
     // This does not batch the results themselves, they need to be collated by
     // this.timeseriesesByLine_.
-    this.batches_ = new BatchIterator([]);
+    this.batches_ = new BatchIterator();
   }
 
   [Symbol.asyncIterator]() {

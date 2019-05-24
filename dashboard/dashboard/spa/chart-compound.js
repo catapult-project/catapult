@@ -9,15 +9,17 @@ import './cp-radio.js';
 import './cp-switch.js';
 import './error-set.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
+import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import ChartTimeseries from './chart-timeseries.js';
 import DetailsTable from './details-table.js';
 import {CHAIN, TOGGLE, UPDATE} from './simple-redux.js';
 import {ElementBase, STORE} from './element-base.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
+import {MAX_POINTS} from './timeseries-merger.js';
 import {MODE} from './layout-timeseries.js';
 import {get} from '@polymer/polymer/lib/utils/path.js';
 import {html} from '@polymer/polymer/polymer-element.js';
-import {isElementChildOf, setImmutable} from './utils.js';
+import {isElementChildOf, setImmutable, BatchIterator} from './utils.js';
 
 /**
   * ChartCompound synchronizes revision ranges and axis properties between a
@@ -330,7 +332,9 @@ export default class ChartCompound extends ElementBase {
         this.mode !== oldMode ||
         this.fixedXAxis !== oldFixedXAxis ||
         this.zeroYAxis !== oldZeroYAxis) {
-      ChartCompound.load(this.statePath);
+      this.debounce('load', () => {
+        ChartCompound.load(this.statePath);
+      }, PolymerAsync.animationFrame);
     }
 
     if (this.cursorRevision !== oldCursorRevision ||
@@ -428,15 +432,15 @@ export default class ChartCompound extends ElementBase {
 
     const {firstNonEmptyLineDescriptor, timeserieses} =
       await ChartCompound.findFirstNonEmptyLineDescriptor(
-          state.lineDescriptors, `${statePath}.minimapLayout`, STORE.dispatch,
-          STORE.getState);
+          state.lineDescriptors);
 
     const firstRevision = ChartCompound.findFirstRevision(timeserieses);
     const lastRevision = ChartCompound.findLastRevision(timeserieses);
-    const minRevision = ChartCompound.computeMinRevision(
-        state.minRevision, timeserieses, firstRevision, lastRevision);
     const maxRevision = ChartCompound.computeMaxRevision(
         state.maxRevision, firstRevision, lastRevision);
+    const minRevision = ChartCompound.computeMinRevision(
+        firstNonEmptyLineDescriptor, state.minRevision, timeserieses,
+        firstRevision, maxRevision);
 
     const minimapLineDescriptors = [];
     if (firstNonEmptyLineDescriptor) {
@@ -573,6 +577,105 @@ export default class ChartCompound extends ElementBase {
 
   async onReload_(event) {
     await ChartCompound.load(this.statePath);
+  }
+
+  // Fetch data for lineDescriptors in order until the first non-empty line is
+  // found.
+  static async findFirstNonEmptyLineDescriptor(lineDescriptors) {
+    for (const lineDescriptor of lineDescriptors) {
+      const fetchDescriptors = ChartTimeseries.createFetchDescriptors(
+          lineDescriptor, LEVEL_OF_DETAIL.XY);
+      const batches = new BatchIterator();
+      for (const fetchDescriptor of fetchDescriptors) {
+        batches.add(new TimeseriesRequest(fetchDescriptor).reader());
+      }
+
+      for await (const {results, errors} of batches) {
+        for (const timeseries of results) {
+          if (!timeseries || !timeseries.length) continue;
+          return {
+            firstNonEmptyLineDescriptor: lineDescriptor,
+            timeserieses: [timeseries],
+          };
+        }
+      }
+    }
+    return {timeserieses: []};
+  }
+
+  static findFirstRevision(timeserieses) {
+    const firstRevision = tr.b.math.Statistics.min(timeserieses.map(ts => {
+      if (!ts) return Infinity;
+      const datum = ts[0];
+      if (datum === undefined) return Infinity;
+      return datum.revision;
+    }));
+    if (firstRevision === Infinity) return undefined;
+    return firstRevision;
+  }
+
+  static findLastRevision(timeserieses) {
+    const lastRevision = tr.b.math.Statistics.max(timeserieses.map(ts => {
+      if (!ts) return -Infinity;
+      const datum = ts[ts.length - 1];
+      if (datum === undefined) return -Infinity;
+      return datum.revision;
+    }));
+    if (lastRevision === -Infinity) return undefined;
+    return lastRevision;
+  }
+
+  static computeMinRevision(
+      lineDescriptor, minRevision, timeserieses, firstRevision, lastRevision) {
+    if (minRevision &&
+        minRevision >= firstRevision &&
+        minRevision < lastRevision) {
+      return minRevision;
+    }
+
+    timeserieses = timeserieses.filter(ts => ts && ts.length);
+    if (timeserieses.length === 0) return minRevision;
+
+    if (lineDescriptor.bots.length === 1) {
+      // Display the last MAX_POINTS points in the main chart.
+      const timeseries = timeserieses[0];
+      const lastIndex = tr.b.findLowIndexInSortedArray(
+          timeseries, d => d.revision, lastRevision);
+      const i = Math.max(0, lastIndex - MAX_POINTS);
+      return timeseries[i].revision;
+    }
+
+    // There are timeseries from multiple bots, so their revisions don't line
+    // up. Find minRevision such that TimeseriesMerger will produce
+    // MAX_POINTS points in the main chart.
+
+    const iters = timeserieses.map(timeseries => {
+      return {
+        timeseries,
+        index: tr.b.findLowIndexInSortedArray(
+            timeseries, d => d.revision, lastRevision),
+        get currentRevision() {
+          return this.timeseries[this.index].revision;
+        }
+      };
+    });
+    for (let p = 0; p < MAX_POINTS; ++p) {
+      // Decrement all of the indexes whose revisions are equal to the max
+      // currentRevision. See TimeseriesMerger for more about this algorithm.
+      const maxCurrent = tr.b.math.Statistics.max(
+          iters, iter => iter.currentRevision);
+      for (const iter of iters) {
+        if (iter.currentRevision === maxCurrent && iter.index > 0) --iter.index;
+      }
+    }
+    return tr.b.math.Statistics.max(iters, iter => iter.currentRevision);
+  }
+
+  static computeMaxRevision(maxRevision, firstRevision, lastRevision) {
+    if (!maxRevision || maxRevision <= firstRevision) {
+      return lastRevision;
+    }
+    return maxRevision;
   }
 }
 
@@ -833,6 +936,7 @@ ChartCompound.reducers = {
     let anyStale = false;
     const lines = state.chartLayout.lines.map(line => {
       const minDate = line.data[line.data.length - 1].datum.timestamp;
+      if (!minDate) return line;
       if (minDate >= staleTimestamp) return line;
       anyStale = true;
       let hue;
@@ -851,98 +955,6 @@ ChartCompound.reducers = {
     if (!anyStale) return state;
     return {...state, chartLayout: {...state.chartLayout, lines}};
   },
-};
-
-// Fetch data for lineDescriptors in order until the first non-empty line is
-// found.
-ChartCompound.findFirstNonEmptyLineDescriptor = async(
-  lineDescriptors, refStatePath, dispatch, getState) => {
-  for (const lineDescriptor of lineDescriptors) {
-    const fetchDescriptors = ChartTimeseries.createFetchDescriptors(
-        lineDescriptor, LEVEL_OF_DETAIL.XY);
-
-    const results = await Promise.all(fetchDescriptors.map(
-        async fetchDescriptor => {
-          const reader = new TimeseriesRequest(fetchDescriptor).reader();
-          try {
-            for await (const timeseries of reader) {
-              return timeseries;
-            }
-          } catch (err) {
-            // Ignore errors here.
-          }
-        }));
-
-    for (const timeseries of results) {
-      if (!timeseries || !timeseries.length) continue;
-      return {
-        firstNonEmptyLineDescriptor: lineDescriptor,
-        timeserieses: results,
-      };
-    }
-  }
-
-  return {
-    timeserieses: [],
-  };
-};
-
-ChartCompound.findFirstRevision = timeserieses => {
-  const firstRevision = tr.b.math.Statistics.min(timeserieses.map(ts => {
-    if (!ts) return Infinity;
-    const datum = ts[0];
-    if (datum === undefined) return Infinity;
-    return datum.revision;
-  }));
-  if (firstRevision === Infinity) return undefined;
-  return firstRevision;
-};
-
-ChartCompound.findLastRevision = timeserieses => {
-  const lastRevision = tr.b.math.Statistics.max(timeserieses.map(ts => {
-    if (!ts) return -Infinity;
-    const datum = ts[ts.length - 1];
-    if (datum === undefined) return -Infinity;
-    return datum.revision;
-  }));
-  if (lastRevision === -Infinity) return undefined;
-  return lastRevision;
-};
-
-ChartCompound.computeMinRevision = (
-    minRevision, timeserieses, firstRevision, lastRevision) => {
-  if (minRevision &&
-      minRevision >= firstRevision &&
-      minRevision < lastRevision) {
-    return minRevision;
-  }
-
-  const MS_PER_MONTH = tr.b.convertUnit(
-      1, tr.b.UnitScale.TIME.MONTH, tr.b.UnitScale.TIME.MILLI_SEC);
-
-  let closestTimestamp = Infinity;
-  const minTimestampMs = new Date() - MS_PER_MONTH;
-  for (const timeseries of timeserieses) {
-    if (!timeseries || !timeseries.length) continue;
-    const datum = tr.b.findClosestElementInSortedArray(
-        timeseries, d => d.timestamp, minTimestampMs);
-    if (!datum) continue;
-    const timestamp = datum.timestamp;
-    if (Math.abs(timestamp - minTimestampMs) <
-        Math.abs(closestTimestamp - minTimestampMs)) {
-      minRevision = datum.revision;
-      closestTimestamp = timestamp;
-    }
-  }
-  return minRevision;
-};
-
-ChartCompound.computeMaxRevision = (
-    maxRevision, firstRevision, lastRevision) => {
-  if (!maxRevision || maxRevision <= firstRevision) {
-    return lastRevision;
-  }
-  return maxRevision;
 };
 
 ElementBase.register(ChartCompound);

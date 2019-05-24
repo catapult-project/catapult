@@ -176,7 +176,7 @@ export default class ReportSection extends ElementBase {
 
 ReportSection.reducers = {
   restoreState: (state, action, rootState) => {
-    if (!action.options) return state;
+    if (!action.options || !state) return state;
     const source = {
       ...state.source,
       selectedOptions: action.options.sources,
