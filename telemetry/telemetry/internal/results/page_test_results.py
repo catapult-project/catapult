@@ -530,6 +530,7 @@ class PageTestResults(object):
       page: The current page under test.
     """
     assert self._current_page_run, 'Did not call WillRunPage.'
+    self._current_page_run.Finish()
     self._progress_reporter.DidRunPage(self)
     self._all_page_runs.append(self._current_page_run)
     story = self._current_page_run.story

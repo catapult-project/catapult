@@ -2,7 +2,19 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
+import time
+
 from telemetry.value import skip
+
+
+PASS = 'PASS'
+FAIL = 'FAIL'
+SKIP = 'SKIP'
+
+
+def _FormatTimeStamp(epoch):
+  return datetime.datetime.utcfromtimestamp(epoch).isoformat() + 'Z'
 
 
 class StoryRun(object):
@@ -11,7 +23,8 @@ class StoryRun(object):
     self._values = []
     self._failed = False
     self._failure_str = None
-    self._duration = None
+    self._start_time = time.time()
+    self._end_time = None
 
   def AddValue(self, value):
     self._values.append(value)
@@ -23,17 +36,47 @@ class StoryRun(object):
   def Skip(self, reason, is_expected=True):
     self.AddValue(skip.SkipValue(self.story, reason, is_expected))
 
-  def SetDuration(self, duration_in_seconds):
-    self._duration = duration_in_seconds
+  def Finish(self):
+    assert not self.finished, 'story run had already finished'
+    self._end_time = time.time()
+
+  def AsDict(self):
+    """Encode as TestResultEntry dict in LUCI Test Results format.
+
+    See: go/luci-test-results-design
+    """
+    assert self.finished, 'story must be finished first'
+    return {
+        'testRun': {
+            'testName': self.test_name,
+            'status': self.status,
+            'startTime': _FormatTimeStamp(self._start_time),
+            'endTime': _FormatTimeStamp(self._end_time)
+        }
+    }
 
   @property
   def story(self):
     return self._story
 
   @property
+  def test_name(self):
+    # TODO(crbug.com/966835): This should be prefixed with the benchmark name.
+    return self.story.name
+
+  @property
   def values(self):
     """The values that correspond to this story run."""
     return self._values
+
+  @property
+  def status(self):
+    if self.failed:
+      return FAIL
+    elif self.skipped:
+      return SKIP
+    else:
+      return PASS
 
   @property
   def ok(self):
@@ -53,10 +96,10 @@ class StoryRun(object):
     for v in self.values:
       if isinstance(v, skip.SkipValue):
         if v.expected:
-          return 'SKIP'
+          return SKIP
         else:
-          return 'PASS'
-    return 'PASS'
+          return PASS
+    return PASS
 
   @property
   def failed(self):
@@ -68,4 +111,8 @@ class StoryRun(object):
 
   @property
   def duration(self):
-    return self._duration
+    return self._end_time - self._start_time
+
+  @property
+  def finished(self):
+    return self._end_time is not None

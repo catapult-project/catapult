@@ -9,6 +9,8 @@ import tempfile
 import time
 import unittest
 
+import mock
+
 from telemetry import benchmark
 from telemetry import page as page_module
 from telemetry import story
@@ -255,7 +257,10 @@ class Json3OutputFormatterTest(unittest.TestCase):
     self.assertEquals(json_test_results['tests'], {})
     self.assertEquals(json_test_results['version'], 3)
 
-  def testIntegrationCreateJsonTestResults(self):
+  @mock.patch('telemetry.internal.results.story_run.time')
+  def testIntegrationCreateJsonTestResults(self, time_module):
+    time_module.time.side_effect = [1.0, 6.0123]
+
     benchmark_metadata = benchmark.BenchmarkMetadata('test_benchmark')
     options = options_for_unittests.GetCopy()
     options.output_formats = ['json-test-results']
@@ -279,7 +284,6 @@ class Json3OutputFormatterTest(unittest.TestCase):
           3,
           improvement_direction=improvement_direction.DOWN)
       results.AddValue(v0)
-      results.current_page_run.SetDuration(5.0123)
       results.DidRunPage(test_page)
       results.PrintSummary()
       results.CloseOutputFormatters()
