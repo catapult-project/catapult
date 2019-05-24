@@ -211,26 +211,3 @@ class GTestProgressReporterTest(
                 '[       OK ] bench/http://www.foo.com/ (7 ms)\n'
                 '[ RUN      ] bench/http://www.bar.com/\n'
                 '[  FAILED  ] bench/http://www.bar.com/ (2 ms)\n')
-
-  def testOutputSkipInformation(self):
-    test_story_set = _MakeStorySet()
-    self._reporter = gtest_progress_reporter.GTestProgressReporter(
-        self._output_stream, output_skipped_tests_summary=True)
-    results = _MakePageTestResults(self._reporter)
-    results.WillRunPage(test_story_set.stories[0])
-    self._fake_timer.SetTime(0.007)
-    results.Skip('Page skipped for testing reason')
-    results.DidRunPage(test_story_set.stories[0])
-
-    results.PrintSummary()
-    expected = ('[ RUN      ] bench/http://www.foo.com/\n'
-                '===== SKIPPING TEST http://www.foo.com/:'
-                ' Page skipped for testing reason =====\n'
-                '[  SKIPPED ] bench/http://www.foo.com/ (7 ms)\n'
-                '[  PASSED  ] 0 tests.\n'
-                '[  SKIPPED ] 1 test.\n'
-                '\n'
-                'Skipped pages:\n'
-                'bench/http://www.foo.com/\n'
-               )
-    self.assertEquals(expected, ''.join(self._output_stream.getvalue()))

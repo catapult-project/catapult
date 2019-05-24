@@ -19,11 +19,10 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
       print >> self._output_stream, "[ OK ] %s" % testname
   """
 
-  def __init__(self, output_stream, output_skipped_tests_summary=False):
+  def __init__(self, output_stream):
     super(GTestProgressReporter, self).__init__()
     self._output_stream = output_stream
     self._timestamp = None
-    self._output_skipped_tests_summary = output_skipped_tests_summary
 
   def _GetMs(self):
     assert self._timestamp is not None, 'Did not call WillRunPage.'
@@ -105,12 +104,5 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
       unit = 'TEST' if count == 1 else 'TESTS'
       print >> self._output_stream, '%d FAILED %s' % (count, unit)
     print >> self._output_stream
-
-    if self._output_skipped_tests_summary:
-      if len(page_test_results.skipped_values) > 0:
-        print >> self._output_stream, 'Skipped pages:'
-        for v in page_test_results.skipped_values:
-          print >> self._output_stream, '%s/%s' % (
-              page_test_results.telemetry_info.benchmark_name, v.page.name)
 
     self._output_stream.flush()

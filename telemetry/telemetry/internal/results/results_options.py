@@ -112,12 +112,11 @@ def _GetOutputStream(output_format, output_dir):
     return open(output_file, mode='w+')
 
 
-def _GetProgressReporter(output_skipped_tests_summary, suppress_gtest_report):
+def _GetProgressReporter(suppress_gtest_report):
   if suppress_gtest_report:
     return progress_reporter.ProgressReporter()
-
-  return gtest_progress_reporter.GTestProgressReporter(
-      sys.stdout, output_skipped_tests_summary=output_skipped_tests_summary)
+  else:
+    return gtest_progress_reporter.GTestProgressReporter(sys.stdout)
 
 
 def CreateResults(benchmark_metadata, options,
@@ -173,14 +172,7 @@ def CreateResults(benchmark_metadata, options,
       raise Exception('Invalid --output-format "%s". Valid choices are: %s'
                       % (output_format, ', '.join(_OUTPUT_FORMAT_CHOICES)))
 
-  # TODO(chrishenry): This is here to not change the output of
-  # gtest. Let's try enabling skipped tests summary for gtest test
-  # results too (in a separate patch), and see if we break anything.
-  output_skipped_tests_summary = 'gtest' in options.output_formats
-
-  reporter = _GetProgressReporter(output_skipped_tests_summary,
-                                  options.suppress_gtest_report)
-
+  reporter = _GetProgressReporter(options.suppress_gtest_report)
   results = page_test_results.PageTestResults(
       output_formatters=output_formatters, progress_reporter=reporter,
       output_dir=options.output_dir,
