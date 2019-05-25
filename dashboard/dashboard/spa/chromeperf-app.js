@@ -321,23 +321,14 @@ export default class ChromeperfApp extends ElementBase {
           </button>
 
           <a class="drawerbutton"
-              href="https://github.com/catapult-project/catapult/tree/master/dashboard"
+              href="https://chromium.googlesource.com/catapult.git/+/HEAD/dashboard/docs/user-guide.md"
               target="_blank">
             <iron-icon icon="cp:help"></iron-icon>
             <span class="nav_button_label">Documentation</span>
           </a>
 
-          <template is="dom-if" if="[[isInternal_(userEmail)]]">
-            <a class="drawerbutton"
-                href="http://go/chromeperf-v2-status"
-                target="_blank">
-              <iron-icon icon="cp:update"></iron-icon>
-              <span class="nav_button_label">Status of this prototype</span>
-            </a>
-          </template>
-
           <a class="drawerbutton"
-              href$="https://bugs.chromium.org/p/chromium/issues/entry?description=Describe+the+problem:+%0A%0A%0AURL:+[[escapedUrl_(route.path)]]&components=Speed%3EDashboard&summary=[chromeperf2]+"
+              href$="https://bugs.chromium.org/p/chromium/issues/entry?description=Describe+the+problem:+%0A%0ACopy+any+errors+from+the+devtools+console:%A0%0AURL:+[[escapedUrl_(route.path)]]&components=Speed%3EDashboard&labels=chromeperf2"
               target="_blank">
             <iron-icon icon="cp:feedback"></iron-icon>
             <span class="nav_button_label">File a bug</span>
@@ -510,10 +501,6 @@ export default class ChromeperfApp extends ElementBase {
 
   async onCloseAllCharts_(event) {
     await ChromeperfApp.closeAllCharts(this.statePath);
-  }
-
-  isInternal_(userEmail) {
-    return userEmail && userEmail.endsWith('@google.com');
   }
 
   get isProduction() {
