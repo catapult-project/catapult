@@ -131,7 +131,7 @@ CreateSystemHealthReport(
     template_id=434658613,
     name='Health:Chrome:Pixel 2',
     builder='android-pixel2-perf',
-    is_fyi=True,
+    is_fyi=False,
     modified=datetime.datetime(2019, 3, 22))
 
 CreateSystemHealthReport(
@@ -145,5 +145,5 @@ CreateSystemHealthReport(
     template_id=191176182,
     name='Health:WebView:Pixel 2',
     builder='android-pixel2_webview-perf',
-    is_fyi=True,
+    is_fyi=False,
     modified=datetime.datetime(2019, 3, 22))
