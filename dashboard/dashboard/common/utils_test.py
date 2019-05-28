@@ -121,6 +121,15 @@ class UtilsTest(testing_common.TestCase):
         [('*/*/S/*', 1), ('*/*/*/To*al', 2), ('*/*/*/Foo', 3)])
     self.assertEqual(2, result)
 
+  def testMostSpecificMatchingPattern_Duplicate(self):
+    test_key = utils.TestKey('Does/Not/Match/Something')
+
+    result = utils.MostSpecificMatchingPattern(
+        test_key,
+        [('Does/Not/Match/*', 1), ('Does/Not/Match/*', 2)]
+    )
+    self.assertEqual(1, result)
+
   def _PutEntitiesAllExternal(self):
     """Puts entities (none internal-only) and returns the keys."""
     master = graph_data.Master(id='M').put()

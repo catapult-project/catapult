@@ -279,6 +279,10 @@ def MostSpecificMatchingPattern(test, pattern_data_tuples):
         return 1
       return 0
 
+    # In the case when we find that the patterns are the same, we should return
+    # 0 to indicate that we've found an equality.
+    return 0
+
   matching_patterns.sort(cmp=CmpPatterns)  # pylint: disable=using-cmp-argument
 
   return matching_patterns[0][1]
