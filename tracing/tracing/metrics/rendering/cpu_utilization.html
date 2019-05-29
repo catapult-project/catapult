@@ -70,15 +70,17 @@ tr.exportTo('tr.metrics.rendering', function() {
   CATEGORY_THREAD_MAP.set(
       'browser', [/^Browser Compositor$/, /^CrBrowserMain$/]);
   CATEGORY_THREAD_MAP.set('display_compositor', [/^VizCompositorThread$/]);
-  CATEGORY_THREAD_MAP.set(
-      'total_fast_path', [
-        /^Browser Compositor$/, /^Chrome_InProcGpuThread$/, /^Compositor$/,
-        /^CrBrowserMain$/, /^CrGpuMain$/, /IOThread/, /^VizCompositorThread$/]);
   CATEGORY_THREAD_MAP.set('GPU', [/^Chrome_InProcGpuThread$/, /^CrGpuMain$/]);
   CATEGORY_THREAD_MAP.set('IO', [/IOThread/]);
   CATEGORY_THREAD_MAP.set('raster', [/CompositorTileWorker/]);
   CATEGORY_THREAD_MAP.set('renderer_compositor', [/^Compositor$/]);
   CATEGORY_THREAD_MAP.set('renderer_main', [/^CrRendererMain$/]);
+  CATEGORY_THREAD_MAP.set(
+      'total_rendering', [
+        /^Browser Compositor$/, /^Chrome_InProcGpuThread$/, /^Compositor$/,
+        /CompositorTileWorker/, /^CrBrowserMain$/, /^CrGpuMain$/,
+        /^CrRendererMain$/, /IOThread/, /^VizCompositorThread$/]);
+
 
   const ALL_CATEGORIES = [...CATEGORY_THREAD_MAP.keys(), 'other'];
 
@@ -88,7 +90,7 @@ tr.exportTo('tr.metrics.rendering', function() {
   }
 
   function categoryShouldHaveBreakdown(category) {
-    return category === 'total_all' || category === 'total_fast_path';
+    return category === 'total_all' || category === 'total_rendering';
   }
 
   function* getCategories_(threadName) {

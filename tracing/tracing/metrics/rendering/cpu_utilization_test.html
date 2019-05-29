@@ -61,14 +61,6 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(0.1, hist.max, 1e-6);
     assert.closeTo(0.1, hist.average, 1e-6);
 
-    // Also, verify fast_path threads, that includs IO threads and the browser
-    // main thread, but not the renderer main thread.
-    hist = histograms.getHistogramNamed(
-        'thread_total_fast_path_cpu_time_per_second');
-    assert.closeTo(0.3, hist.min, 1e-6);
-    assert.closeTo(0.3, hist.max, 1e-6);
-    assert.closeTo(0.3, hist.average, 1e-6);
-
     // Verify sum of all threads.
     hist = histograms.getHistogramNamed('thread_total_all_cpu_time_per_second');
     assert.closeTo(0.7, hist.min, 1e-6);
@@ -126,13 +118,11 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(1, hist.average, 1e-6);
     assert.strictEqual(hist.diagnostics.size, 0);
 
-    // Also, verify fast_path threads, that includs IO threads and the browser
-    // main thread, but not the renderer main thread.
     hist = histograms.getHistogramNamed(
-        'thread_total_fast_path_cpu_time_per_frame');
-    assert.closeTo(3, hist.min, 1e-6);
-    assert.closeTo(3, hist.max, 1e-6);
-    assert.closeTo(3, hist.average, 1e-6);
+        'thread_total_rendering_cpu_time_per_frame');
+    assert.closeTo(7, hist.min, 1e-6);
+    assert.closeTo(7, hist.max, 1e-6);
+    assert.closeTo(7, hist.average, 1e-6);
     assert.strictEqual(hist.diagnostics.size, 1);
 
     // Verify sum of all threads.
@@ -266,13 +256,6 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(1, hist.min, 1e-6);
     assert.closeTo(1, hist.max, 1e-6);
     assert.closeTo(1, hist.average, 1e-6);
-
-    // Also, verify fast_path threads, that includs IO threads and the browser
-    // main thread, but not the renderer main thread.
-    hist = histograms.getHistogramNamed('tasks_per_frame_total_fast_path');
-    assert.closeTo(2, hist.min, 1e-6);
-    assert.closeTo(2, hist.max, 1e-6);
-    assert.closeTo(2, hist.average, 1e-6);
 
     // Verify sum of all threads.
     hist = histograms.getHistogramNamed('tasks_per_frame_total_all');
