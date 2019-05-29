@@ -58,6 +58,8 @@ OAUTH_CLIENT_ID_WHITELIST = [
     '446450136466-2hr92jrq8e6i4tnsa56b52vacp7t3936.apps.googleusercontent.com',
     # This oauth client id is used to upload ChromeOS performance metrics.
     'chromeperf-uploader@chromeos-bot.iam.gserviceaccount.com',
+    # This oauth client is is used to upload GPU metrics.
+    'chromium-ci-gpu-builder@chops-service-accounts.iam.gserviceaccount.com',
 ]
 
 
@@ -90,6 +92,8 @@ def Authorize():
     raise NotLoggedInError
 
   try:
+    # TODO(dberris): Migrate to using Cloud IAM and checking roles instead, to
+    # allow for dynamic management of the accounts.
     if not email.endswith('.gserviceaccount.com'):
       # For non-service account, need to verify that the OAuth client ID
       # is in our whitelist.
