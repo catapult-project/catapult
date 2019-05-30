@@ -1049,7 +1049,7 @@ def _run_under_debugger(host, test_case, suite,
     test_func = getattr(test_case, test_case._testMethodName)
     fname = inspect.getsourcefile(test_func)
     lineno = inspect.getsourcelines(test_func)[1] + 1
-    dbg = pdb.Pdb(stdout=host.stdout.original_stream)
+    dbg = pdb.Pdb(stdout=host.stdout.stream)
     dbg.set_break(fname, lineno)
     dbg.runcall(suite.run, test_result)
 
