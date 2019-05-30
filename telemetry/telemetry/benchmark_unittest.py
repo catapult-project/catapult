@@ -38,6 +38,18 @@ class TestBenchmark(benchmark.Benchmark):
 
 
 class BenchmarkTest(unittest.TestCase):
+  @classmethod
+  def setUpClass(cls):
+    # Augment options with story runner specific options.
+    cls._options = options_for_unittests.GetCopy()
+    parser = cls._options.CreateParser()
+    story_runner.AddCommandLineArgs(parser)
+    cls._options.MergeDefaultValues(parser.get_default_values())
+    story_runner.ProcessCommandLineArgs(parser, cls._options)
+
+  @classmethod
+  def GetOptions(cls):
+    return cls._options.Copy()
 
   def testPageTestWithIncompatibleStory(self):
     b = TestBenchmark(story_module.Story(
@@ -45,7 +57,7 @@ class BenchmarkTest(unittest.TestCase):
         shared_state_class=shared_page_state.SharedPageState))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
-      b.Run(options_for_unittests.GetCopy())
+      b.Run(self.GetOptions())
 
     state_class = story_module.SharedState
     b = TestBenchmark(story_module.Story(
@@ -53,13 +65,13 @@ class BenchmarkTest(unittest.TestCase):
         shared_state_class=state_class))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
-      b.Run(options_for_unittests.GetCopy())
+      b.Run(self.GetOptions())
 
     b = TestBenchmark(android.AndroidStory(
         name='test benchmark', start_intent=None))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
-      b.Run(options_for_unittests.GetCopy())
+      b.Run(self.GetOptions())
 
   def testPageTestWithCompatibleStory(self):
     original_run_fn = story_runner.Run
@@ -70,7 +82,7 @@ class BenchmarkTest(unittest.TestCase):
     story_runner.Run = RunStub
 
     try:
-      options = options_for_unittests.GetCopy()
+      options = self.GetOptions()
       options.output_formats = ['none']
       options.suppress_gtest_report = True
       parser = optparse.OptionParser()
@@ -122,7 +134,7 @@ class BenchmarkTest(unittest.TestCase):
     story_runner.Run = RunStub
 
     try:
-      options = options_for_unittests.GetCopy()
+      options = self.GetOptions()
       options.output_formats = ['none']
       options.suppress_gtest_report = True
       parser = optparse.OptionParser()
@@ -239,7 +251,7 @@ class BenchmarkTest(unittest.TestCase):
         tbm_options.config.enable_chrome_trace = True
         return tbm_options
 
-    options = options_for_unittests.GetCopy()
+    options = self.GetOptions()
     options.extra_chrome_categories = 'toplevel,net'
     parser = optparse.OptionParser()
     benchmark.AddCommandLineArgs(parser)
@@ -258,7 +270,7 @@ class BenchmarkTest(unittest.TestCase):
         tbm_options.config.atrace_config.categories = []
         return tbm_options
 
-    options = options_for_unittests.GetCopy()
+    options = self.GetOptions()
     options.extra_atrace_categories = 'foo,bar'
     parser = optparse.OptionParser()
     benchmark.AddCommandLineArgs(parser)
@@ -279,7 +291,7 @@ class BenchmarkTest(unittest.TestCase):
         tbm_options.config.atrace_config.categories = 'string,foo,stuff'
         return tbm_options
 
-    options = options_for_unittests.GetCopy()
+    options = self.GetOptions()
     options.extra_atrace_categories = 'foo,bar'
     parser = optparse.OptionParser()
     benchmark.AddCommandLineArgs(parser)
@@ -297,7 +309,7 @@ class BenchmarkTest(unittest.TestCase):
       def CreateCoreTimelineBasedMeasurementOptions(self):
         return timeline_based_measurement.Options()
 
-    options = options_for_unittests.GetCopy()
+    options = self.GetOptions()
     options.enable_systrace = True
     parser = optparse.OptionParser()
     benchmark.AddCommandLineArgs(parser)
