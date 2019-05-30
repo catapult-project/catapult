@@ -99,8 +99,8 @@ if trace_event_impl:
     trace_event_impl.add_trace_event("M", trace_time.Now(), "__metadata",
                                      "thread_name", {"name": thread_name})
 
-  def trace_add_metadata(metadata):
-    trace_event_impl.trace_add_metadata(metadata)
+  def trace_add_benchmark_metadata(*args, **kwargs):
+    trace_event_impl.trace_add_benchmark_metadata(*args, **kwargs)
 
   def trace(name, **kwargs):
     return trace_event_impl.trace(name, **kwargs)

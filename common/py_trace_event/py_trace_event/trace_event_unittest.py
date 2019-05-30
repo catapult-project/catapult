@@ -461,17 +461,41 @@ class TraceEventTests(unittest.TestCase):
 
   def testAddMetadata(self):
     with self._test_trace(format=trace_event.JSON_WITH_METADATA):
-      trace_event.trace_add_metadata({'version': 1})
+      trace_event.trace_add_benchmark_metadata(
+          benchmark_start_time_us=1000,
+          story_run_time_us=2000,
+          benchmark_name='benchmark',
+          benchmark_description='desc',
+          story_name='story',
+          story_tags=['tag1', 'tag2'],
+          story_run_index=0,
+      )
       trace_event.trace_disable()
       with open(self._log_path, 'r') as f:
         log_output = json.load(f)
     self.assertEquals(len(log_output), 2)
-    self.assertEquals(log_output['metadata']['version'], 1)
+    telemetry_metadata = log_output['metadata']['telemetry']
+    self.assertEquals(len(telemetry_metadata), 7)
+    self.assertEquals(telemetry_metadata['benchmarkStart'], 1)
+    self.assertEquals(telemetry_metadata['traceStart'], 2)
+    self.assertEquals(telemetry_metadata['benchmarks'], ['benchmark'])
+    self.assertEquals(telemetry_metadata['benchmarkDescriptions'], ['desc'])
+    self.assertEquals(telemetry_metadata['stories'], ['story'])
+    self.assertEquals(telemetry_metadata['storyTags'], ['tag1', 'tag2'])
+    self.assertEquals(telemetry_metadata['storysetRepeats'], [0])
 
   def testAddMetadataInJsonFormatRaises(self):
     with self._test_trace(format=trace_event.JSON):
       with self.assertRaises(log.TraceException):
-        trace_event.trace_add_metadata({'version': 1})
+        trace_event.trace_add_benchmark_metadata(
+            benchmark_start_time_us=1000,
+            story_run_time_us=2000,
+            benchmark_name='benchmark',
+            benchmark_description='description',
+            story_name='story',
+            story_tags=['tag1', 'tag2'],
+            story_run_index=0,
+        )
 
 
 if __name__ == '__main__':

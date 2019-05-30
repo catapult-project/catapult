@@ -19,22 +19,19 @@ def IsAgentEnabled():
 def SetTelemetryInfo(telemetry_info):
   """Record Telemetry metadata if tracing is enabled."""
   if IsAgentEnabled():
-    trace_event.trace_add_metadata({
-        # TODO(crbug.com/948633): For right now, we use "TELEMETRY" as the
-        # clock domain to guarantee that Telemetry is given its own clock
-        # domain. Telemetry isn't really a clock domain, though: it's a
-        # system that USES a clock domain like LINUX_CLOCK_MONOTONIC or
-        # WIN_QPC. However, there's a chance that a Telemetry controller
-        # running on Linux (using LINUX_CLOCK_MONOTONIC) is interacting
-        # with an Android phone (also using LINUX_CLOCK_MONOTONIC, but
-        # on a different machine). The current logic collapses clock
-        # domains based solely on the clock domain string, but we really
-        # should to collapse based on some (device ID, clock domain ID)
-        # tuple. Giving Telemetry its own clock domain is a work-around
-        # for this.
-        'clock-domain': 'TELEMETRY',
-        'telemetry': telemetry_info.AsDict(),
-    })
+    story_tags = list(telemetry_info.story_tags) + [
+        '%s:%s' % kv for kv in telemetry_info.story_grouping_keys.iteritems()]
+    trace_event.trace_add_benchmark_metadata(
+        benchmark_start_time_us=telemetry_info.benchmark_start_epoch * 1e6,
+        story_run_time_us=telemetry_info.trace_start_ms * 1e3,
+        benchmark_name=telemetry_info.benchmark_name,
+        benchmark_description=telemetry_info.benchmark_descriptions,
+        story_name=telemetry_info.story_display_name,
+        story_tags=story_tags,
+        story_run_index=telemetry_info.storyset_repeat_counter,
+        label=telemetry_info.label,
+        had_failures=telemetry_info.had_failures,
+    )
   else:
     logging.warning(
         'Telemetry tracing agent is not enabled. Discarding Telemetry info.')

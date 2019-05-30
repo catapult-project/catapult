@@ -47,8 +47,13 @@ class TelemetryTracingAgentTest(unittest.TestCase):
 
   def testWriteTelemetryInfo(self):
     info = page_test_results.TelemetryInfo()
-    info.benchmark_name = 'example'
-    info.benchmark_start_epoch = 0
+    info.benchmark_start_epoch = 1
+    info._trace_start_ms = 2000
+    info.benchmark_name = 'benchmark'
+    info.benchmark_descriptions = 'desc'
+    info._story_name = 'story'
+    info._story_tags = ['tag1', 'tag2']
+    info._storyset_repeat_counter = 0
 
     self.agent.StartAgentTracing(self.config, timeout=10)
     telemetry_tracing_agent.SetTelemetryInfo(info)
@@ -58,4 +63,4 @@ class TelemetryTracingAgentTest(unittest.TestCase):
       trace = builder.AsData().GetTraceFor(trace_data.TELEMETRY_PART)
     benchmarks = trace['metadata']['telemetry']['benchmarks']
     self.assertEqual(len(benchmarks), 1)
-    self.assertEqual(benchmarks[0], 'example')
+    self.assertEqual(benchmarks[0], 'benchmark')
