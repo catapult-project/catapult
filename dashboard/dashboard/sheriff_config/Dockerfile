@@ -1,11 +1,11 @@
-FROM python:3.7-alpine
-FROM grpc/python:latest
+FROM gcr.io/google-appengine/python
 
 WORKDIR /sheriff-config
 ADD ./ /sheriff-config
 
+RUN virtualenv /env -p python3.7
 
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 EXPOSE 80
 

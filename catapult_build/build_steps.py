@@ -214,10 +214,13 @@ def main(args=None):
   args = parser.parse_args(args)
 
   proto_output_path = os.path.join(args.api_path_checkout, 'dashboard',
-                                   'dashboard', 'sheriff_config', 'proto')
+                                   'dashboard', 'sheriff_config')
   proto_input_path = os.path.join(args.api_path_checkout, 'dashboard',
                                   'dashboard', 'proto')
-  proto_files = [os.path.join(proto_input_path, p) for p in ['sheriff.proto']]
+  proto_files = [
+      os.path.join(proto_input_path, p)
+      for p in ['sheriff.proto', 'sheriff_config.proto']
+  ]
 
   steps = [
       {

@@ -1,7 +1,6 @@
 # Copyright 2019 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Validates sheriff configuration protobufs.
 
 This module defines functions for validating protocol buffers for defining
@@ -11,16 +10,16 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-from google.protobuf import json_format
-from proto import sheriff_pb2
+from google.protobuf import text_format
+import sheriff_pb2
 
 
 class Error(Exception):
   """Top-level module error for validator."""
 
 
-class InvalidJSON(Error):
-  """Raised when the provided JSON is not valid."""
+class InvalidConfig(Error):
+  """Raised when the provided proto config is not valid."""
 
 
 class MissingFields(Error):
@@ -89,15 +88,15 @@ def Validate(content):
   and semantically valid sheriff configuration.
 
   Args:
-    content: Bytes representing a JSON encoded Message.
+    content: Bytes representing a text format protocol buffer.
 
   Returns:
     A valid SherifConfig object.
   """
   try:
-    result = json_format.Parse(content, sheriff_pb2.SheriffConfig())
-  except json_format.ParseError as e:
-    raise InvalidJSON('JSON Validation Error: %s' % e)
+    result = text_format.Parse(content, sheriff_pb2.SheriffConfig())
+  except text_format.ParseError as error:
+    raise InvalidConfig('SheriffConfig Validation Error: %s' % (error))
 
   # Go through each of the subscriptions, and ensure we find the semantically
   # required fields.

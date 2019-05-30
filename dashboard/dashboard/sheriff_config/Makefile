@@ -1,13 +1,12 @@
 PROTOC=protoc
 
-proto/sheriff_pb2.py: ../proto/sheriff.proto
-	mkdir -p proto && \
-		touch proto/__init__.py && \
-		$(PROTOC) -I../proto --python_out=proto ../proto/sheriff.proto
+PROTOS=sheriff_pb2.py sheriff_config_pb2.py
+all: $(PROTOS)
+
+%_pb2.py: ../proto/%.proto
+	$(PROTOC) -I../proto -I. --python_out=. $<
 
 .PHONY: clean
 
-all: proto/sheriff_pb2.py
-
 clean:
-	rm -f proto/*
+	rm -f $(PROTOS)

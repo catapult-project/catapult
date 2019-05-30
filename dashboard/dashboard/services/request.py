@@ -17,7 +17,6 @@ from google.appengine.api import urlfetch_errors
 
 from dashboard.common import utils
 
-
 _CACHE_DURATION = 60 * 60 * 24 * 7  # 1 week.
 _VULNERABILITY_PREFIX = ")]}'\n"
 
@@ -38,8 +37,12 @@ def RequestJson(*args, **kwargs):
   return json.loads(content)
 
 
-def Request(url, method='GET', body=None,
-            use_cache=False, use_auth=True, scope=utils.EMAIL_SCOPE,
+def Request(url,
+            method='GET',
+            body=None,
+            use_cache=False,
+            use_auth=True,
+            scope=utils.EMAIL_SCOPE,
             **parameters):
   """Fetch a URL while authenticated as the service account.
 
@@ -109,10 +112,10 @@ def _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs):
   response, content = http.request(url, **kwargs)
 
   if response['status'] == '404':
-    raise NotFoundError(
-        'HTTP status code %s: %s' % (response['status'], content))
+    raise NotFoundError('HTTP status code %s: %s' %
+                        (response['status'], content))
   if not response['status'].startswith('2'):
-    raise httplib.HTTPException(
-        'HTTP status code %s: %s' % (response['status'], content))
+    raise httplib.HTTPException('HTTP status code %s: %s' %
+                                (response['status'], content))
 
   return content
