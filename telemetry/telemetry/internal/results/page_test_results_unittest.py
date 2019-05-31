@@ -32,23 +32,6 @@ from tracing.value.diagnostics import reserved_infos
 
 
 class TelemetryInfoTest(unittest.TestCase):
-  def testBenchmarkDescriptionNotPopulatedIfNotSet(self):
-    ti = page_test_results.TelemetryInfo()
-    ti.benchmark_name = 'benchmark'
-    ti.benchmark_start_epoch = 123
-    ti_dict = ti.AsDict()
-    self.assertNotIn(reserved_infos.BENCHMARK_DESCRIPTIONS.name, ti_dict)
-
-  def testBenchmarkDescriptionPopulatedIfSet(self):
-    ti = page_test_results.TelemetryInfo()
-    ti.benchmark_name = 'benchmark'
-    ti.benchmark_start_epoch = 123
-    ti.benchmark_descriptions = 'foo'
-    ti_dict = ti.AsDict()
-    self.assertIn(reserved_infos.BENCHMARK_DESCRIPTIONS.name, ti_dict)
-    self.assertEqual(ti_dict[reserved_infos.BENCHMARK_DESCRIPTIONS.name],
-                     ['foo'])
-
   def testTraceLocalPathWithoutLabel(self):
     ti = page_test_results.TelemetryInfo(output_dir='/tmp')
     ti.benchmark_name = 'benchmark'

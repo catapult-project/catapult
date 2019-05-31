@@ -48,7 +48,7 @@ class TelemetryTracingAgentTest(unittest.TestCase):
   def testWriteTelemetryInfo(self):
     info = page_test_results.TelemetryInfo()
     info.benchmark_start_epoch = 1
-    info._trace_start_ms = 2000
+    info._trace_start_us = 2000
     info.benchmark_name = 'benchmark'
     info.benchmark_descriptions = 'desc'
     info._story_name = 'story'

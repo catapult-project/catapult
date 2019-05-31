@@ -103,7 +103,7 @@ def _ComputeMetricsInPool((run, trace_value)):
 class TelemetryInfo(object):
   def __init__(self, upload_bucket=None, output_dir=None):
     self._benchmark_name = None
-    self._benchmark_start_epoch = None
+    self._benchmark_start_us = None
     self._benchmark_interrupted = False
     self._benchmark_descriptions = None
     self._label = None
@@ -111,7 +111,7 @@ class TelemetryInfo(object):
     self._story_tags = set()
     self._story_grouping_keys = {}
     self._storyset_repeat_counter = 0
-    self._trace_start_ms = None
+    self._trace_start_us = None
     self._upload_bucket = upload_bucket
     self._trace_remote_path = None
     self._output_dir = output_dir
@@ -135,13 +135,27 @@ class TelemetryInfo(object):
 
   @property
   def benchmark_start_epoch(self):
-    return self._benchmark_start_epoch
+    """ This field is DEPRECATED. Please use benchmark_start_us instead.
+    """
+    return self._benchmark_start_us / 1e6
 
   @benchmark_start_epoch.setter
   def benchmark_start_epoch(self, benchmark_start_epoch):
-    assert self.benchmark_start_epoch is None, (
-        'benchmark_start_epoch must be set exactly once')
-    self._benchmark_start_epoch = benchmark_start_epoch
+    """ This field is DEPRECATED. Please use benchmark_start_us instead.
+    """
+    assert self._benchmark_start_us is None, (
+        'benchmark_start must be set exactly once')
+    self._benchmark_start_us = benchmark_start_epoch * 1e6
+
+  @property
+  def benchmark_start_us(self):
+    return self._benchmark_start_us
+
+  @benchmark_start_us.setter
+  def benchmark_start_us(self, benchmark_start_us):
+    assert self._benchmark_start_us is None, (
+        'benchmark_start must be set exactly once')
+    self._benchmark_start_us = benchmark_start_us
 
   @property
   def benchmark_descriptions(self):
@@ -154,8 +168,8 @@ class TelemetryInfo(object):
     self._benchmark_descriptions = benchmark_descriptions
 
   @property
-  def trace_start_ms(self):
-    return self._trace_start_ms
+  def trace_start_us(self):
+    return self._trace_start_us
 
   @property
   def benchmark_interrupted(self):
@@ -200,11 +214,15 @@ class TelemetryInfo(object):
         'had_failures cannot be set more than once')
     self._had_failures = had_failures
 
+  def GetStoryTagsList(self):
+    return list(self._story_tags) + [
+        '%s:%s' % kv for kv in self._story_grouping_keys.iteritems()]
+
   def InterruptBenchmark(self):
     self._benchmark_interrupted = True
 
   def WillRunStory(self, story, storyset_repeat_counter):
-    self._trace_start_ms = 1000 * time.time()
+    self._trace_start_us = time.time() * 1e6
     self._story_name = story.name
     self._story_grouping_keys = story.grouping_keys
     self._story_tags = story.tags
@@ -257,59 +275,35 @@ class TelemetryInfo(object):
       return self.trace_local_url
     return self.trace_remote_url
 
-  def AsDict(self):
-    assert self.benchmark_name is not None, (
-        'benchmark_name must be set exactly once')
-    assert self.benchmark_start_epoch is not None, (
-        'benchmark_start_epoch must be set exactly once')
-    d = {}
-    d[reserved_infos.BENCHMARKS.name] = [self.benchmark_name]
-    d[reserved_infos.BENCHMARK_START.name] = self.benchmark_start_epoch * 1000
-    if self.benchmark_descriptions:
-      d[reserved_infos.BENCHMARK_DESCRIPTIONS.name] = [
-          self.benchmark_descriptions]
-    if self.label:
-      d[reserved_infos.LABELS.name] = [self.label]
-    d[reserved_infos.STORIES.name] = [self._story_name]
-    d[reserved_infos.STORY_TAGS.name] = list(self.story_tags) + [
-        '%s:%s' % kv for kv in self.story_grouping_keys.iteritems()]
-    d[reserved_infos.STORYSET_REPEATS.name] = [self.storyset_repeat_counter]
-    d[reserved_infos.TRACE_START.name] = self.trace_start_ms
-    d[reserved_infos.TRACE_URLS.name] = [self.trace_url]
-    if self.had_failures:
-      d[reserved_infos.HAD_FAILURES.name] = [self.had_failures]
-    return d
-
   def _UpdateDiagnostics(self):
     """ Benchmarks that add histograms but don't use
     timeline_base_measurement need to add shared diagnostics separately.
     Make them available on the telemetry info."""
-    for name, value in self.AsDict().items():
-      if name in self.diagnostics:
-        # If it is of type name, description or start time don't create new
-        if name in [reserved_infos.BENCHMARKS.name,
-                    reserved_infos.BENCHMARK_START.name,
-                    reserved_infos.BENCHMARK_DESCRIPTIONS.name]:
-          continue
-        else:
-          # this a stale value from the last run, remove it.
-          del self.diagnostics[name]
+    def SetDiagnosticsValue(info, value):
+      # TODO(crbug.com/968959): check for None only, do not ignore zeroes
+      if not value:
+        return
 
-      if isinstance(value, list):
-        keep = False
-        for val in value:
-          if val:
-            keep = True
-        if not keep:
-          continue
-      else:
-        if value is None:
-          continue
+      if info.type == 'GenericSet' and not isinstance(value, list):
+        value = [value]
+      elif info.type == 'DateRange':
+        # We store timestamps in microseconds, DateRange expects milliseconds.
+        value = value / 1e3
+      diag_class = all_diagnostics.GetDiagnosticClassForName(info.type)
+      self.diagnostics[info.name] = diag_class(value)
 
-      name_type = reserved_infos.GetTypeForName(name)
-      diag_class = all_diagnostics.GetDiagnosticClassForName(name_type)
-      diag = diag_class(value)
-      self.diagnostics[name] = diag
+    SetDiagnosticsValue(reserved_infos.BENCHMARKS, self.benchmark_name)
+    SetDiagnosticsValue(reserved_infos.BENCHMARK_START, self.benchmark_start_us)
+    SetDiagnosticsValue(reserved_infos.BENCHMARK_DESCRIPTIONS,
+                        self.benchmark_descriptions)
+    SetDiagnosticsValue(reserved_infos.LABELS, self.label)
+    SetDiagnosticsValue(reserved_infos.HAD_FAILURES, self.had_failures)
+    SetDiagnosticsValue(reserved_infos.STORIES, self._story_name)
+    SetDiagnosticsValue(reserved_infos.STORY_TAGS, self.GetStoryTagsList())
+    SetDiagnosticsValue(reserved_infos.STORYSET_REPEATS,
+                        self.storyset_repeat_counter)
+    SetDiagnosticsValue(reserved_infos.TRACE_START, self.trace_start_us)
+    SetDiagnosticsValue(reserved_infos.TRACE_URLS, self.trace_url)
 
 
 class PageTestResults(object):
@@ -387,7 +381,7 @@ class PageTestResults(object):
         self._benchmark_metadata, self)
     info = self.telemetry_info
     chart_json['label'] = info.label
-    chart_json['benchmarkStartMs'] = info.benchmark_start_epoch * 1000.0
+    chart_json['benchmarkStartMs'] = info.benchmark_start_us / 1000.0
 
     file_descriptor, chart_json_path = tempfile.mkstemp()
     os.close(file_descriptor)

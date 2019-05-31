@@ -19,15 +19,13 @@ def IsAgentEnabled():
 def SetTelemetryInfo(telemetry_info):
   """Record Telemetry metadata if tracing is enabled."""
   if IsAgentEnabled():
-    story_tags = list(telemetry_info.story_tags) + [
-        '%s:%s' % kv for kv in telemetry_info.story_grouping_keys.iteritems()]
     trace_event.trace_add_benchmark_metadata(
-        benchmark_start_time_us=telemetry_info.benchmark_start_epoch * 1e6,
-        story_run_time_us=telemetry_info.trace_start_ms * 1e3,
+        benchmark_start_time_us=telemetry_info.benchmark_start_us,
+        story_run_time_us=telemetry_info.trace_start_us,
         benchmark_name=telemetry_info.benchmark_name,
         benchmark_description=telemetry_info.benchmark_descriptions,
         story_name=telemetry_info.story_display_name,
-        story_tags=story_tags,
+        story_tags=telemetry_info.GetStoryTagsList(),
         story_run_index=telemetry_info.storyset_repeat_counter,
         label=telemetry_info.label,
         had_failures=telemetry_info.had_failures,
