@@ -10,6 +10,7 @@ from __future__ import absolute_import
 from flask import Flask, request, jsonify
 from google.cloud import datastore
 from google.protobuf import json_format
+from flask_talisman import Talisman
 import base64
 import google.auth
 import httplib2
@@ -51,6 +52,7 @@ def CreateApp(test_config=None):
     A Flask application configured with the appropriate URL handlers.
   """
   app = Flask(__name__, instance_relative_config=True)
+  _ = Talisman(app)
 
   environ = os.environ if test_config is None else test_config.get(
       'environ', {})
@@ -88,7 +90,20 @@ def CreateApp(test_config=None):
   else:
     datastore_client = datastore.Client()
 
-  @app.route('/validate', methods=['POST'])
+  @app.route('/service-metadata')
+  def ServiceMetadata():  # pylint: disable=unused-variable
+    return jsonify({
+        'version': '1.0',
+        'validation': {
+            'patterns': [{
+                'config_set': 'regex:projects/.+',
+                'path': 'regex:chromeperf-sheriff.cfg'
+            }],
+            'url': 'https://%s/configs/validate' % (domain)
+        }
+    })
+
+  @app.route('/configs/validate', methods=['POST'])
   def Validate():  # pylint: disable=unused-variable
     validation_request = request.get_json()
     if validation_request is None:
@@ -109,19 +124,6 @@ def CreateApp(test_config=None):
       })
     return jsonify({})
 
-  @app.route('/service-metadata')
-  def ServiceMetadata():  # pylint: disable=unused-variable
-    return jsonify({
-        'version': '1.0',
-        'validation': {
-            'patterns': [{
-                'config_set': 'regex:projects/.+',
-                'path': 'regex:chromeperf-sheriff.cfg'
-            }],
-            'url': 'https://%s/validate' % (domain)
-        }
-    })
-
   @app.route('/configs/update')
   def UpdateConfigs():  # pylint: disable=unused-variable
     """Poll the luci-config service."""
@@ -136,7 +138,14 @@ def CreateApp(test_config=None):
 
   @app.route('/subscriptions/match', methods=['POST'])
   def MatchSubscriptions():  # pylint: disable=unused-variable
-    """Match the subscriptions given the request."""
+    """Match the subscriptions given the request.
+
+    This is an API handler, which requires that we have an authenticated user
+    making the request. We'll require that the user either be a service account
+    (from the main dashboard service) or an authenticated user. We'll enforce
+    that we're only serving "public" Subscriptions to non-privileged users.
+    """
+
     match_request = json_format.Parse(request.get_data(),
                                       sheriff_config_pb2.MatchRequest())
     match_response = sheriff_config_pb2.MatchResponse()

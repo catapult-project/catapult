@@ -1,20 +1,33 @@
 service: sheriff-config
-runtime: python37
-
-# Picking instance class F2 means we have a recommended 2 workers (from
-# 'entrypoint best practices' doc in
-# https://cloud.google.com/appengine/docs/standard/python3/runtime#entrypoint_best_practices).
-instance_class: F2
+runtime: python
+env: flex
 entrypoint: gunicorn -b :$PORT main:APP --workers 2
 
-handlers:
-- url: /.*
-  secure: always
-  redirect_http_response_code: 301
-  script: auto
+runtime_config:
+  python_version: 3
 
 automatic_scaling:
   target_cpu_utilization: 0.8
   min_instances: 1
   max_instances: 10
   max_concurrent_requests: 50
+
+skip_files:
+  - ^(.*/)\.pyc$
+  - ^(.*/)__pycache__(.*/)$
+  - ^(.*/)_test.py$
+  - ^(.*/)test_(.*).py$
+
+resources:
+  cpu: 2
+  memory_gb: 2.4
+
+liveness_check:
+  path: /service-metadata
+
+readiness_check:
+  path: /service-metadata
+
+endpoints_api_service:
+  name: sheriff-config-dot-chromeperf.appspot.com
+  rollout_strategy: managed

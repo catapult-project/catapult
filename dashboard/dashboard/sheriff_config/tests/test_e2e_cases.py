@@ -50,7 +50,8 @@ class LuciPollingTest(unittest.TestCase):
 
   def testPollAndMatch(self):
     client = self.app.test_client()
-    response = client.get('/configs/update')
+    response = client.get(
+        '/configs/update', headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 200)
     response = client.post(
         '/subscriptions/match',
@@ -64,7 +65,8 @@ class LuciPollingTest(unittest.TestCase):
                 'benchmark': 'Test',
                 'metric_parts': ['Metric', 'Something'],
             }
-        })
+        },
+        headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 200)
     response_proto = response.get_json()
     self.assertDictEqual(
@@ -86,7 +88,8 @@ class LuciPollingTest(unittest.TestCase):
 
   def testPollAndMatchMultiple(self):
     client = self.app.test_client()
-    response = client.get('/configs/update')
+    response = client.get(
+        '/configs/update', headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 200)
     response = client.post(
         '/subscriptions/match',
@@ -100,7 +103,8 @@ class LuciPollingTest(unittest.TestCase):
                 'benchmark': 'Test',
                 'metric_parts': ['Metric', 'Something'],
             }
-        })
+        },
+        headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 200)
     response_proto = response.get_json()
     self.assertDictEqual(
