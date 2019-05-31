@@ -57,6 +57,8 @@ class InspectorBackend(object):
     self._websocket = inspector_websocket.InspectorWebsocket()
     self._websocket.RegisterDomain(
         'Inspector', self._HandleInspectorDomainNotification)
+    self._cast_issue_message, self._cast_sink_list = None, []
+    self._websocket.RegisterDomain('Cast', self._HandleCastDomainNotification)
 
     self._devtools_client = devtools_client
     # Be careful when using the context object, since the data may be
@@ -471,6 +473,106 @@ class InspectorBackend(object):
     }
     return self._runtime.RunInspectorCommand(key_command, timeout)
 
+  @_HandleInspectorWebSocketExceptions
+  def EnableCast(self, presentation_url, timeout=60):
+    """Starts observing Cast-enabled sinks.
+
+    Args:
+      presentation_url: string, the URL for making a presentation request.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    params = {'presentationUrl': presentation_url} if presentation_url else {}
+    enable_command = {
+        'method': 'Cast.enable',
+        'params': params
+    }
+    return self._runtime.RunInspectorCommand(enable_command, timeout)
+
+  @_HandleInspectorWebSocketExceptions
+  def GetCastSinks(self):
+    """Returns a list of available Cast-enabled sinks.
+
+    Returns:
+      The list of sinks that supports Casting.
+      Returns an empty list if there is no available sink.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    return self._cast_sink_list
+
+  @_HandleInspectorWebSocketExceptions
+  def GetCastIssue(self):
+    """Returns the error message when there is an issue while casting.
+
+    Returns:
+      The same error message as in extension dialog.
+      Returns an empty string if there is no error.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    return self._cast_issue_message
+
+  @_HandleInspectorWebSocketExceptions
+  def SetCastSinkToUse(self, sink_name, timeout=60):
+    """Sets the sink to be used for a Cast session.
+
+    Args:
+      sink_name: string, name of the sink to start a casting session.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    params = {'sinkName': sink_name}
+    set_sink_command = {
+        'method': 'Cast.setSinkToUse',
+        'params': params
+    }
+    return self._runtime.RunInspectorCommand(set_sink_command, timeout)
+
+  @_HandleInspectorWebSocketExceptions
+  def StartTabMirroring(self, sink_name, timeout=60):
+    """Starts a tab mirroring session.
+
+    Args:
+      sink_name: string, name of the sink to start a mirroring session.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    params = {'sinkName': sink_name}
+    start_mirroring_command = {
+        'method': 'Cast.startTabMirroring',
+        'params': params
+    }
+    return self._runtime.RunInspectorCommand(start_mirroring_command, timeout)
+
+  @_HandleInspectorWebSocketExceptions
+  def StopCasting(self, sink_name, timeout=60):
+    """Stops all session on a specific Cast enabled sink.
+
+    Args:
+      sink_name: string, name of the sink to stop a session.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    params = {'sinkName': sink_name}
+    stop_casting_command = {
+        'method': 'Cast.stopCasting',
+        'params': params
+    }
+    return self._runtime.RunInspectorCommand(stop_casting_command, timeout)
+
   # Methods used internally by other backends.
 
   def _HandleInspectorDomainNotification(self, res):
@@ -491,6 +593,18 @@ class InspectorBackend(object):
     raise exceptions.DevtoolsTargetCrashException(
         self.app, 'Devtool connection with the browser was interrupted due to '
         'the opening of an inspector.')
+
+  def _HandleCastDomainNotification(self, msg):
+    """Runs an inspector command that starts observing Cast-enabled sinks.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    if msg['method'] == 'Cast.sinksUpdated':
+      self._cast_sink_list = msg['params'].get('sinkNames', [])
+    elif msg['method'] == 'Cast.issueUpdated':
+      self._cast_issue_message = msg['params']
 
   def _ConvertExceptionFromInspectorWebsocket(self, error):
     """Converts an Exception from inspector_websocket.

@@ -404,3 +404,77 @@ class WebContents(object):
         native_virtual_key_code=native_virtual_key_code,
         auto_repeat=auto_repeat, is_keypad=is_keypad,
         is_system_key=is_system_key, timeout=timeout)
+
+  def EnableCast(self, presentation_url=None, timeout=60):
+    """Starts observing Cast-enabled sinks.
+
+    Args:
+      presentation_url: string, the URL for making a presentation request.
+
+    Raises:
+      py_utils.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    return self._inspector_backend.EnableCast(presentation_url, timeout=timeout)
+
+  def GetCastSinks(self):
+    """Returns a list of available Cast-enabled sinks.
+
+    Returns:
+      The list of sinks that supports Casting.
+      Returns an empty list if there is no available sink.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    return self._inspector_backend.GetCastSinks()
+
+  def GetCastIssue(self):
+    """Returns the error message when there is an issue while casting.
+
+    Returns:
+      The same error message as in extension dialog.
+      Returns an empty string if there is no error.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    return self._inspector_backend.GetCastIssue()
+
+  def SetCastSinkToUse(self, sink_name, timeout=60):
+    """Sets the sink to be used for a Cast session.
+
+    Args:
+      sink_name: string, name of the sink to start a casting session.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    return self._inspector_backend.SetCastSinkToUse(sink_name, timeout=timeout)
+
+  def StartTabMirroring(self, sink_name, timeout=60):
+    """Starts a tab mirroring session.
+
+    Args:
+      sink_name: string, name of the sink to start a mirroring session.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    return self._inspector_backend.StartTabMirroring(sink_name, timeout=timeout)
+
+  def StopCasting(self, sink_name, timeout=60):
+    """Stops all session on a specific Cast enabled sink.
+
+    Args:
+      sink_name: string, name of the sink to stop a session.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    return self._inspector_backend.StopCasting(sink_name, timeout=timeout)
