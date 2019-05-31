@@ -54,11 +54,11 @@ class ValidationTest(unittest.TestCase):
     self.assertIn('url', config['validation'])
     self.assertEqual(
         config['validation']['url'],
-        'https://sheriff-config-dot-chromeperf.appspot.com/validate')
+        'https://sheriff-config-dot-chromeperf.appspot.com/configs/validate')
 
   def testValidationPropagatesError(self):
     response = self.client.post(
-        '/validate',
+        '/configs/validate',
         json={
             'config_set':
                 'project:some-project',
@@ -80,7 +80,7 @@ class ValidationTest(unittest.TestCase):
 
   def testValidationSucceedsSilently(self):
     response = self.client.post(
-        '/validate',
+        '/configs/validate',
         json={
             'config_set':
                 'project:some-project',
@@ -110,6 +110,6 @@ class ValidationTest(unittest.TestCase):
                         }]""", 'utf-8')).decode('utf-8')
         },
         headers={'X-Forwarded-Proto': 'https'})
-    self.assertEquals(response.status_code, 200)
+    self.assertEqual(response.status_code, 200)
     response_proto = response.get_json()
     self.assertNotIn('messages', response_proto)

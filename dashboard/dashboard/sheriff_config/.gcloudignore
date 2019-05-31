@@ -17,3 +17,10 @@
 __pycache__/
 # Ignored by the build system
 /setup.cfg
+
+# Ignore all .pyc files:
+*.pyc
+
+# Ignore all test files:
+*_test.py
+test_*.py

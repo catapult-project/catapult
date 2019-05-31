@@ -62,7 +62,11 @@ class InvalidContentError(Error):
     self.error = error
 
 
-def CreateConfigClient(http, api_root=API_ROOT, api='config', version='v1'):
+def CreateConfigClient(http,
+                       api_root=API_ROOT,
+                       api='config',
+                       version='v1',
+                       credentials=None):
   """Factory function for a creating a config client.
 
   This uses the discovery API to generate a service object corresponding to the
@@ -74,10 +78,19 @@ def CreateConfigClient(http, api_root=API_ROOT, api='config', version='v1'):
       API_ROOT)
     api: the service name (default: 'config')
     version: the version of the API (default: 'v1')
+    credentials: a google.auth.Credential, directly supported by the
+      googleapiclient library (default: None)
   """
   discovery_url = '%s/discovery/v1/apis/%s/%s/rest' % (api_root, api, version)
   try:
-    client = build(api, version, discoveryServiceUrl=discovery_url, http=http)
+    if not credentials:
+      client = build(api, version, discoveryServiceUrl=discovery_url, http=http)
+    else:
+      client = build(
+          api,
+          version,
+          discoveryServiceUrl=discovery_url,
+          credentials=credentials)
   except (errors.HttpError, errors.UnknownApiNameOrVersion) as e:
     raise DiscoveryError(e)
   return client

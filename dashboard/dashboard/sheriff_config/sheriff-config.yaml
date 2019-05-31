@@ -7,16 +7,11 @@ runtime_config:
   python_version: 3
 
 automatic_scaling:
-  target_cpu_utilization: 0.8
-  min_instances: 1
-  max_instances: 10
-  max_concurrent_requests: 50
-
-skip_files:
-  - ^(.*/)\.pyc$
-  - ^(.*/)__pycache__(.*/)$
-  - ^(.*/)_test.py$
-  - ^(.*/)test_(.*).py$
+  min_num_instances: 1
+  max_num_instances: 5
+  cool_down_period_sec: 180
+  cpu_utilization:
+    target_utilization: 0.8
 
 resources:
   cpu: 2

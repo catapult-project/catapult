@@ -1,6 +1,0 @@
-steps:
-  - name: 'gcr.io/cloud-community-builders/make'
-    args: 'all'
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args: ['app', 'deploy', 'sheriff-config.yaml']
-    timeout: '300s'

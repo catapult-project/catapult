@@ -13,7 +13,6 @@ from google.protobuf import json_format
 from flask_talisman import Talisman
 import base64
 import google.auth
-import httplib2
 import luci_config
 import os
 import sheriff_config_pb2
@@ -61,10 +60,10 @@ def CreateApp(test_config=None):
   # we'll use the default auth for the production environment.
   if test_config:
     http = test_config.get('http')
+    credentials = None
   else:
-    http = httplib2.Http()
-    credentials = google.auth.default()
-    http = credentials.authorize(http)
+    http = None
+    credentials, _ = google.auth.default()
 
   # In the python37 environment, we need to synthesize the URL from the
   # various parts in the environment variable, because we do not have access
@@ -81,7 +80,7 @@ def CreateApp(test_config=None):
 
   # We create an instance of the luci-config client, which we'll use in all
   # requests handled in this application.
-  config_client = luci_config.CreateConfigClient(http)
+  config_client = luci_config.CreateConfigClient(http, credentials=credentials)
 
   # First we check whether the test_config already has a predefined
   # datastore_client.
