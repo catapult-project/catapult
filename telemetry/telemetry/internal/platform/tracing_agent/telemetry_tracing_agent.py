@@ -29,6 +29,7 @@ def SetTelemetryInfo(telemetry_info):
         story_run_index=telemetry_info.storyset_repeat_counter,
         label=telemetry_info.label,
         had_failures=telemetry_info.had_failures,
+        trace_url=telemetry_info.trace_url,
     )
   else:
     logging.warning(

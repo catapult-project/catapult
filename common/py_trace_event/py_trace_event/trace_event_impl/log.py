@@ -290,7 +290,22 @@ def trace_add_benchmark_metadata(
     story_run_index,
     label=None,
     had_failures=None,
+    trace_url=None,
 ):
+  """ Add benchmark metadata to be written to trace file.
+
+  Args:
+    benchmark_start_time_us: Benchmark start time in microseconds.
+    story_run_time_us: Story start time in microseconds.
+    benchmark_name: Name of the benchmark.
+    benchmark_description: Description of the benchmark.
+    story_name: Name of the story.
+    story_tags: List of story tags.
+    story_run_index: Index of the story run.
+    label: Optional label.
+    had_failures: Whether this story run failed.
+    trace_url: URL of the trace file (written only in JSON format).
+  """
   global _benchmark_metadata
   if _format == PROTOBUF:
     # Write metadata immediately.
@@ -320,6 +335,8 @@ def trace_add_benchmark_metadata(
       telemetry_metadata_for_json["labels"] = [label]
     if had_failures:
       telemetry_metadata_for_json["hadFailures"] = [had_failures]
+    if trace_url:
+      telemetry_metadata_for_json["traceUrls"] = [trace_url]
 
     _benchmark_metadata = {
         # TODO(crbug.com/948633): For right now, we use "TELEMETRY" as the
