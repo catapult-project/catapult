@@ -42,7 +42,8 @@ class RunTestsCommand(command_line.OptparseCommand):
 
   def __init__(self):
     super(RunTestsCommand, self).__init__()
-    self.stream = sys.stdout
+    self.std_out = sys.stdout
+    self.std_err = sys.stderr
 
   @classmethod
   def CreateParser(cls):
@@ -109,7 +110,8 @@ class RunTestsCommand(command_line.OptparseCommand):
                    'available browser types.' % args.browser_type)
 
   @classmethod
-  def main(cls, args=None, stream=None):  # pylint: disable=arguments-differ
+  def main(cls, args=None,               # pylint: disable=arguments-differ
+           std_out=None, std_err=None):
     # We override the superclass so that we can hook in the 'stream' arg.
     parser = cls.CreateParser()
     cls.AddCommandLineArgs(parser, None)
@@ -123,8 +125,10 @@ class RunTestsCommand(command_line.OptparseCommand):
       cls.ProcessCommandLineArgs(parser, options, None)
 
       obj = cls()
-      if stream is not None:
-        obj.stream = stream
+      if std_out is not None:
+        obj.std_out = std_out
+      if std_err is not None:
+        obj.std_err = std_err
       return obj.Run(options)
     finally:
       if cls.xvfb_process:
@@ -132,9 +136,10 @@ class RunTestsCommand(command_line.OptparseCommand):
 
   def Run(self, args):
     runner = typ.Runner()
-    if self.stream:
-      runner.host.stdout = self.stream
-
+    if self.std_out:
+      runner.host.stdout = self.std_out
+    if self.std_err:
+      runner.host.stderr = self.std_err
     if args.no_browser:
       possible_browser = None
       platform = platform_module.GetHostPlatform()
@@ -176,6 +181,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner.args.metadata = args.metadata
     runner.args.passthrough = args.passthrough
     runner.args.path = args.path
+    runner.args.quiet = args.quiet
     runner.args.retry_limit = args.retry_limit
     runner.args.test_results_server = args.test_results_server
     runner.args.test_type = args.test_type

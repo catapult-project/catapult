@@ -37,9 +37,9 @@ class FakeHost(object):
 
     def __init__(self):
         self.logger = logging.getLogger()
-        self.stdin = io.StringIO()
-        self.stdout = io.StringIO()
-        self.stderr = io.StringIO()
+        self.stdin = sys.stdin
+        self.stdout = sys.stdout
+        self.stderr = sys.stderr
         self.platform = 'linux2'
         self.env = {}
         self.sep = '/'
