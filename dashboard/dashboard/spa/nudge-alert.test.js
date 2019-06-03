@@ -10,7 +10,7 @@ import findElements from './find-elements.js';
 import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {UPDATE} from './simple-redux.js';
-import {afterRender} from './utils.js';
+import {afterRender, setDebugForTesting} from './utils.js';
 import {assert} from 'chai';
 
 suite('nudge-alert', function() {
@@ -36,7 +36,7 @@ suite('nudge-alert', function() {
   let nudgeBody;
   let originalFetch;
   setup(() => {
-    window.IS_DEBUG = true;
+    setDebugForTesting(true);
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {

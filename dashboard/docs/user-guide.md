@@ -184,3 +184,15 @@ chart.
 Click a tile in order to open a new Chart section to explore that data.
 
 Sparklines are not yet available for the chart-compound in Alerts sections.
+
+## How to Start a Bisect
+
+1. If not already signed in, click the red account icon in the top right corner
+   to sign in with Google.
+2. If not already looking at a chart, click the New Chart button in the drawer
+   on the left and select the Suite, Measurement, Bot, and optionally Case and
+   Statistic.
+3. If the Details Table is not already displayed below the chart, click in the
+   chart to select a data point at the desired revision range.
+4. Click the BISECT button at the bottom of the Details Table below the chart.
+5. Review the options in the Bisect dialog and click START.

@@ -148,18 +148,18 @@ suite('report-template', function() {
     const template = await fixture();
     assert.lengthOf(template.rows, 1);
 
-    template.shadowRoot.querySelector('iron-icon').click();
+    template.shadowRoot.querySelector('cp-icon').click();
     await afterRender();
     assert.lengthOf(template.rows, 2);
 
-    template.shadowRoot.querySelectorAll('iron-icon')[3].click();
+    template.shadowRoot.querySelectorAll('cp-icon')[3].click();
     await afterRender();
     assert.lengthOf(template.rows, 1);
   });
 
   test('save', async function() {
     const template = await fixture();
-    template.$.save.click();
+    template.shadowRoot.querySelector('#save').click();
     await afterRender();
     assert.strictEqual('42', templateBody.get('id'));
     assert.strictEqual('test name', templateBody.get('name'));

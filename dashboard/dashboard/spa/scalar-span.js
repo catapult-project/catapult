@@ -4,65 +4,69 @@
 */
 'use strict';
 
-import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
+import {LitElement, html, css} from 'lit-element';
 
-export default class ScalarSpan extends PolymerElement {
+export default class ScalarSpan extends LitElement {
   static get is() { return 'scalar-span'; }
 
-  static get template() {
-    return html`
-      <style>
-        :host {
-          display: flex;
-          flex-direction: row;
-          justify-content: flex-end;
-          white-space: nowrap;
-        }
-        span[change="improvement"] {
-          color: var(--improvement-color, green)
-        }
-        span[change="regression"] {
-          color: var(--error-color, red);
-        }
-      </style>
+  static get properties() {
+    return {
+      maximumFractionDigits: {type: Number},
+      unit: {type: Object},
+      unitPrefix: {type: Object},
+      value: {type: Number},
+    };
+  }
 
+  static get styles() {
+    return css`
+      :host {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        white-space: nowrap;
+      }
+      span[change="improvement"] {
+        color: var(--improvement-color, green)
+      }
+      span[change="regression"] {
+        color: var(--error-color, red);
+      }
+    `;
+  }
+
+  static getChange(unit, value) {
+    if (!unit) return '';
+    if (!unit.isDelta) return '';
+    if (unit.improvementDirection === tr.b.ImprovementDirection.DONT_CARE) {
+      return '';
+    }
+    if (value === 0) return '';
+    if (unit.improvementDirection ===
+        tr.b.ImprovementDirection.BIGGER_IS_BETTER) {
+      return value > 0 ? 'improvement' : 'regression';
+    }
+    return value < 0 ? 'improvement' : 'regression';
+  }
+
+  render() {
+    const change = ScalarSpan.getChange(this.unit, this.value);
+    const formatted = !this.unit ? this.value : this.unit.format(this.value, {
+      maximumFractionDigits: this.maximumFractionDigits,
+      unitPrefix: this.unitPrefix,
+    });
+    return html`
       <span id="span"
-          change$="[[change_(unit, value)]]"
-          title$="[[change_(unit, value)]]">
-        [[format_(unit, value, maximumFractionDigits, unitPrefix)]]
+          change="${change}"
+          title="${change}">
+        ${formatted}
       </span>
     `;
   }
 
-  change_(unit, value) {
-    return ScalarSpan.getChange(unit, value);
-  }
-
-  format_(unit, value, maximumFractionDigits, unitPrefix) {
-    return !unit ? value : unit.format(
-        value, {maximumFractionDigits, unitPrefix});
+  firstUpdated() {
+    this.span = this.shadowRoot.querySelector('#span');
   }
 }
-
-ScalarSpan.getChange = (unit, value) => {
-  if (!unit) return '';
-  if (!unit.isDelta) return '';
-  if (unit.improvementDirection === tr.b.ImprovementDirection.DONT_CARE) {
-    return '';
-  }
-  if (value === 0) return '';
-  if (unit.improvementDirection ===
-      tr.b.ImprovementDirection.BIGGER_IS_BETTER) {
-    return value > 0 ? 'improvement' : 'regression';
-  }
-  return value < 0 ? 'improvement' : 'regression';
-};
-
-ScalarSpan.properties = {
-  maximumFractionDigits: {type: Number},
-  unit: {type: Object},
-  unitPrefix: {type: Object},
-  value: {type: Number},
-};
 
 customElements.define(ScalarSpan.is, ScalarSpan);

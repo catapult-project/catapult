@@ -4,19 +4,12 @@
 */
 'use strict';
 
-import './chops-header.js';
-import './chops-signin-aware.js';
+import './cp-icon.js';
 import './cp-loading.js';
 import './cp-toast.js';
 import './error-set.js';
 import './raised-button.js';
-import '@polymer/app-route/app-location.js';
-import '@polymer/app-route/app-route.js';
-import '@polymer/iron-collapse/iron-collapse.js';
-import '@polymer/iron-icon/iron-icon.js';
-import '@polymer/iron-iconset-svg/iron-iconset-svg.js';
-import '@polymer/polymer/lib/elements/dom-if.js';
-import '@polymer/polymer/lib/elements/dom-repeat.js';
+import '@chopsui/chops-header/chops-header.js';
 import AlertsSection from './alerts-section.js';
 import ChartCompound from './chart-compound.js';
 import ChartSection from './chart-section.js';
@@ -28,15 +21,24 @@ import SessionIdRequest from './session-id-request.js';
 import SessionStateRequest from './session-state-request.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {ElementBase, STORE} from './element-base.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
+import {html, css} from 'lit-element';
 
 import {
   afterRender,
   breakWords,
+  get,
+  isProduction,
   simpleGUID,
   timeout,
 } from './utils.js';
+
+import {
+  getAuthInstanceAsync,
+  getUserProfileAsync,
+} from '@chopsui/chops-signin/index.js';
+
+const CLIENT_ID =
+  '62121018386-rhk28ad5lbqheinh05fgau3shotl2t6c.apps.googleusercontent.com';
 
 const NOTIFICATION_MS = 5000;
 
@@ -52,17 +54,10 @@ export default class ChromeperfApp extends ElementBase {
 
   static get properties() {
     return {
-      route: {
-        type: Object,
-        observer: 'observeAppRoute_',
-      },
       userEmail: String,
 
       statePath: String,
 
-      // App-route sets |route|, and redux sets |reduxRoutePath|.
-      // ChromeperfApp translates between them.
-      // https://stackoverflow.com/questions/41440316
       reduxRoutePath: String,
       vulcanizedDate: String,
       enableNav: Boolean,
@@ -111,293 +106,320 @@ export default class ChromeperfApp extends ElementBase {
     };
   }
 
-  static get template() {
+  static get styles() {
+    return css`
+      chops-header {
+        background: var(--background-color, white);
+        border-bottom: 1px solid var(--primary-color-medium, blue);
+        --chops-header-text-color: var(--primary-color-dark, blue);
+      }
+
+      chops-header a {
+        color: var(--primary-color-dark, blue);
+      }
+
+      cp-icon {
+        margin: 0 4px;
+      }
+
+      chops-signin {
+        margin-left: 16px;
+      }
+
+      #body {
+        display: flex;
+      }
+      #drawer {
+        background: white;
+        border-right: 1px solid var(--primary-color-medium, blue);
+        margin-top: 50px;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        user-select: none;
+        z-index: var(--layer-drawer, 200);
+      }
+      #drawer:hover {
+        box-shadow: 5px 0 5px 0 rgba(0, 0, 0, 0.2);
+      }
+      #main {
+        overflow: auto;
+        position: absolute;
+        flex-grow: 1;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+
+      #main[enableNav] {
+        left: 32px;
+        margin-top: 50px;
+      }
+
+      report-section,
+      alerts-section,
+      chart-section {
+        /* Use full-bleed dividers between sections.
+          https://material.io/guidelines/components/dividers.html
+        */
+        border-bottom: 1px solid var(--primary-color-medium);
+        display: block;
+        margin: 0;
+        padding: 16px;
+      }
+
+      report-section[hidden] {
+        display: none;
+      }
+
+      .nav_button_label {
+        display: none;
+        margin-right: 8px;
+      }
+      #drawer:hover .nav_button_label {
+        display: inline;
+      }
+      .drawerbutton {
+        align-items: center;
+        background-color: var(--background-color, white);
+        border: 0;
+        cursor: pointer;
+        display: flex;
+        padding: 8px 0;
+        white-space: nowrap;
+        width: 100%;
+      }
+      .drawerbutton:hover {
+        background-color: var(--neutral-color-light, lightgrey);
+      }
+      .drawerbutton[disabled] {
+        color: var(--neutral-color-dark, grey);
+      }
+      .drawerbutton cp-icon {
+        color: var(--primary-color-dark, blue);
+      }
+      .drawerbutton[disabled] cp-icon {
+        color: var(--neutral-color-dark, grey);
+      }
+      a.drawerbutton {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      cp-toast {
+        background-color: var(--background-color, white);
+        display: flex;
+        justify-content: center;
+        margin-bottom: 8px;
+        padding: 8px 0;
+        white-space: nowrap;
+        width: 100%;
+      }
+
+      cp-toast raised-button {
+        background-color: var(--primary-color-dark, blue);
+        border-radius: 24px;
+        color: var(--background-color, white);
+        cursor: pointer;
+        padding: 8px;
+        text-transform: uppercase;
+        user-select: none;
+      }
+
+      #old_pages {
+        color: var(--foreground-color, black);
+        position: relative;
+      }
+      #old_pages cp-icon {
+        margin: 0;
+      }
+      #old_pages_menu {
+        background-color: var(--background-color, white);
+        border: 1px solid var(--primary-color-medium, blue);
+        display: none;
+        flex-direction: column;
+        padding: 8px;
+        position: absolute;
+        width: calc(100% - 16px);
+        z-index: var(--layer-menu, 100);
+      }
+      #old_pages:hover #old_pages_menu {
+        display: flex;
+      }
+
+      #vulcanized {
+        color: grey;
+        margin: 16px;
+        text-align: right;
+      }
+
+      #error-container {
+        box-shadow: var(--elevation-2);
+      }
+    `;
+  }
+
+  render() {
+    const bugPath = 'https://bugs.chromium.org/p/chromium/issues/entry';
+    const bugHref = bugPath + '?' + new URLSearchParams({
+      description: 'Describe the problem: \n\n' +
+        'Copy any errors from the devtools console:\n\nURL: ' +
+        window.location.href,
+      components: 'Speed>Dashboard',
+      labels: 'chromeperf2',
+    });
+
     return html`
-      <style>
-        chops-header {
-          background: var(--background-color, white);
-          border-bottom: 1px solid var(--primary-color-medium, blue);
-          --chops-header-text-color: var(--primary-color-dark, blue);
-        }
-
-        chops-header a {
-          color: var(--primary-color-dark, blue);
-        }
-
-        iron-icon {
-          margin: 0 4px;
-        }
-
-        chops-signin {
-          margin-left: 16px;
-        }
-
-        #body {
-          display: flex;
-        }
-        #drawer {
-          background: white;
-          border-right: 1px solid var(--primary-color-medium, blue);
-          margin-top: 50px;
-          position: fixed;
-          top: 0;
-          bottom: 0;
-          user-select: none;
-          z-index: var(--layer-drawer, 200);
-        }
-        #drawer:hover {
-          box-shadow: 5px 0 5px 0 rgba(0, 0, 0, 0.2);
-        }
-        #main {
-          overflow: auto;
-          position: absolute;
-          flex-grow: 1;
-          top: 0;
-          bottom: 0;
-          left: 0;
-          right: 0;
-        }
-
-        #main[enableNav] {
-          left: 32px;
-          margin-top: 50px;
-        }
-
-        report-section,
-        alerts-section,
-        chart-section {
-          /* Use full-bleed dividers between sections.
-            https://material.io/guidelines/components/dividers.html
-          */
-          border-bottom: 1px solid var(--primary-color-medium);
-          display: block;
-          margin: 0;
-          padding: 16px;
-        }
-
-        .nav_button_label {
-          display: none;
-          margin-right: 8px;
-        }
-        #drawer:hover .nav_button_label {
-          display: inline;
-        }
-        .drawerbutton {
-          align-items: center;
-          background-color: var(--background-color, white);
-          border: 0;
-          cursor: pointer;
-          display: flex;
-          padding: 8px 0;
-          white-space: nowrap;
-          width: 100%;
-        }
-        .drawerbutton:hover {
-          background-color: var(--neutral-color-light, lightgrey);
-        }
-        .drawerbutton[disabled] {
-          color: var(--neutral-color-dark, grey);
-        }
-        .drawerbutton iron-icon {
-          color: var(--primary-color-dark, blue);
-        }
-        .drawerbutton[disabled] iron-icon {
-          color: var(--neutral-color-dark, grey);
-        }
-        a.drawerbutton {
-          color: inherit;
-          text-decoration: none;
-        }
-
-        cp-toast {
-          background-color: var(--background-color, white);
-          display: flex;
-          justify-content: center;
-          margin-bottom: 8px;
-          padding: 8px 0;
-          white-space: nowrap;
-          width: 100%;
-        }
-
-        cp-toast raised-button {
-          background-color: var(--primary-color-dark, blue);
-          border-radius: 24px;
-          color: var(--background-color, white);
-          cursor: pointer;
-          padding: 8px;
-          text-transform: uppercase;
-          user-select: none;
-        }
-
-        #old_pages {
-          color: var(--foreground-color, black);
-          position: relative;
-        }
-        #old_pages iron-icon {
-          margin: 0;
-        }
-        #old_pages_menu {
-          background-color: var(--background-color, white);
-          border: 1px solid var(--primary-color-medium, blue);
-          display: none;
-          flex-direction: column;
-          padding: 8px;
-          position: absolute;
-          width: calc(100% - 16px);
-          z-index: var(--layer-menu, 100);
-        }
-        #old_pages:hover #old_pages_menu {
-          display: flex;
-        }
-
-        #vulcanized {
-          color: grey;
-          margin: 16px;
-          text-align: right;
-        }
-
-        #error-container {
-          box-shadow: var(--elevation-2);
-        }
-      </style>
-
-      <app-route route="{{route}}"></app-route>
-      <app-location route="{{route}}" use-hash-as-path></app-location>
-
-      <template is="dom-if" if="[[enableNav]]">
-        <chops-header app-title="Chromium Performance">
+      ${this.enableNav ? html`
+        <chops-header appTitle="Chromium Performance">
           <div id="old_pages">
-            OLD PAGES <iron-icon icon="cp:more"></iron-icon>
+            OLD PAGES <cp-icon icon="more"></cp-icon>
             <div id="old_pages_menu">
               <a target="_blank" href="/alerts">Alerts</a>
               <a target="_blank" href="/report">Charts</a>
             </div>
           </div>
 
-          <template is="dom-if" if="[[isProduction]]">
-            <chops-signin></chops-signin>
-            <chops-signin-aware on-user-update="onUserUpdate_">
-            </chops-signin-aware>
-          </template>
+          ${!isProduction() ? '' : html`
+            <chops-signin client-id="${CLIENT_ID}">
+            </chops-signin>
+          `}
         </chops-header>
-      </template>
+      ` : html``}
 
-      <cp-loading loading$="[[isLoading]]"></cp-loading>
+      <cp-loading ?loading="${this.isLoading}"></cp-loading>
 
       <div id="body">
-        <div id="drawer" hidden$="[[!enableNav]]">
+        <div id="drawer" ?hidden="${!this.enableNav}">
           <button
               class="drawerbutton"
               id="show_report"
-              disabled$="[[showingReportSection]]"
-              on-click="onShowReportSection_">
-            <iron-icon icon="cp:report"></iron-icon>
+              ?disabled="${this.showingReportSection}"
+              @click="${this.onShowReportSection_}">
+            <cp-icon icon="report"></cp-icon>
             <span class="nav_button_label">Open report</span>
           </button>
 
           <button
               class="drawerbutton"
               id="new_alerts"
-              on-click="onNewAlertsSection_">
-            <iron-icon icon="cp:alert"></iron-icon>
+              @click="${this.onNewAlertsSection_}">
+            <cp-icon icon="alert"></cp-icon>
             <span class="nav_button_label">New alerts section</span>
           </button>
 
           <button
               class="drawerbutton"
               id="new_chart"
-              on-click="onNewChart_">
-            <iron-icon icon="cp:chart"></iron-icon>
+              @click="${this.onNewChart_}">
+            <cp-icon icon="chart"></cp-icon>
             <span class="nav_button_label">New Chart</span>
           </button>
 
           <button
               class="drawerbutton"
               id="close_charts"
-              disabled$="[[isEmpty_(chartSectionIds)]]"
-              on-click="onCloseAllCharts_">
-            <iron-icon icon="cp:close"></iron-icon>
+              ?disabled="${(this.chartSectionIds || []).length === 0}"
+              @click="${this.onCloseAllCharts_}">
+            <cp-icon icon="close"></cp-icon>
             <span class="nav_button_label">Close all charts</span>
           </button>
 
           <a class="drawerbutton"
               href="https://chromium.googlesource.com/catapult.git/+/HEAD/dashboard/docs/user-guide.md"
               target="_blank">
-            <iron-icon icon="cp:help"></iron-icon>
+            <cp-icon icon="help"></cp-icon>
             <span class="nav_button_label">Documentation</span>
           </a>
 
           <a class="drawerbutton"
-              href$="https://bugs.chromium.org/p/chromium/issues/entry?description=Describe+the+problem:+%0A%0ACopy+any+errors+from+the+devtools+console:%A0%0AURL:+[[escapedUrl_(route.path)]]&components=Speed%3EDashboard&labels=chromeperf2"
+              href="${bugHref}"
               target="_blank">
-            <iron-icon icon="cp:feedback"></iron-icon>
+            <cp-icon icon="feedback"></cp-icon>
             <span class="nav_button_label">File a bug</span>
           </a>
         </div>
 
-        <div id="main" enableNav$="[[enableNav]]">
-          <template is="dom-if" if="[[reportSection]]">
-            <iron-collapse opened="[[showingReportSection]]">
-              <report-section
-                  state-path="[[statePath]].reportSection"
-                  on-require-sign-in="requireSignIn_"
-                  on-close-section="hideReportSection_"
-                  on-alerts="onReportAlerts_"
-                  on-new-chart="onNewChart_">
-              </report-section>
-            </iron-collapse>
-          </template>
+        <div id="main" enableNav="${this.enableNav}">
+            <report-section
+                ?hidden="${!this.reportSection || !this.showingReportSection}"
+                .statePath="${this.statePath}.reportSection"
+                @require-sign-in="${this.requireSignIn_}"
+                @close-section="${this.hideReportSection_}"
+                @alerts="${this.onReportAlerts_}"
+                @new-chart="${this.onNewChart_}">
+            </report-section>
 
-          <template is="dom-repeat" items="[[alertsSectionIds]]" as="id">
+          ${(this.alertsSectionIds || []).map(id => html`
             <alerts-section
-                state-path="[[statePath]].alertsSectionsById.[[id]]"
-                linked-state-path="[[statePath]].linkedChartState"
-                on-require-sign-in="requireSignIn_"
-                on-new-chart="onNewChart_"
-                on-close-section="onCloseAlerts_">
+                .statePath="${this.statePath}.alertsSectionsById.${id}"
+                .linkedStatePath="${this.statePath}.linkedChartState"
+                @require-sign-in="${this.requireSignIn_}"
+                @new-chart="${this.onNewChart_}"
+                @close-section="${event => this.onCloseAlerts_(id)}">
             </alerts-section>
-          </template>
+          `)}
 
-          <template is="dom-repeat" items="[[chartSectionIds]]" as="id">
+          ${(this.chartSectionIds || []).map(id => html`
             <chart-section
-                state-path="[[statePath]].chartSectionsById.[[id]]"
-                linked-state-path="[[statePath]].linkedChartState"
-                on-require-sign-in="requireSignIn_"
-                on-new-chart="onNewChart_"
-                on-close-section="onCloseChart_">
+                .statePath="${this.statePath}.chartSectionsById.${id}"
+                .linkedStatePath="${this.statePath}.linkedChartState"
+                @require-sign-in="${this.requireSignIn_}"
+                @new-chart="${this.onNewChart_}"
+                @close-section="${event => this.onCloseChart_(id)}">
             </chart-section>
-          </template>
+          `)}
 
           <div id="vulcanized">
-            [[vulcanizedDate]]
+            ${this.vulcanizedDate}
           </div>
         </div>
       </div>
 
-      <cp-toast opened="[[!isEmpty_(closedAlertsIds)]]">
-        <raised-button id="reopen_alerts" on-click="onReopenClosedAlerts_">
-          <iron-icon icon="cp:alert"></iron-icon>
+      <cp-toast ?opened="${
+  this.closedAlertsIds && this.closedAlertsIds.length}">
+        <raised-button
+            id="reopen_alerts"
+            @click="${this.onReopenClosedAlerts_}">
+          <cp-icon icon="alert"></cp-icon>
           Reopen alerts
         </raised-button>
       </cp-toast>
 
-      <cp-toast opened="[[!isEmpty_(closedChartIds)]]">
-        <raised-button id="reopen_chart" on-click="onReopenClosedChart_">
-          <iron-icon icon="cp:chart"></iron-icon>
+      <cp-toast ?opened="${this.closedChartIds && this.closedChartIds.length}">
+        <raised-button id="reopen_chart" @click="${this.onReopenClosedChart_}">
+          <cp-icon icon="chart"></cp-icon>
           Reopen chart
         </raised-button>
       </cp-toast>
 
-      <cp-toast id="error-container" opened="[[!isEmpty_(errors)]]">
-        <error-set errors="[[errors]]"></error-set>
+      <cp-toast
+          id="error-container"
+          ?opened="${this.errors && this.errors.length}">
+        <error-set .errors="${this.errors}"></error-set>
       </cp-toast>
     `;
   }
 
-  async ready() {
-    super.ready();
-    const routeParams = new URLSearchParams(this.route && this.route.path);
+  constructor() {
+    super();
+    this.onUserUpdate_ = this.onUserUpdate_.bind(this);
+    this.onHashChange_ = this.onHashChange_.bind(this);
+  }
+
+  async connectedCallback() {
+    super.connectedCallback();
+    window.addEventListener('user-update', this.onUserUpdate_);
+    window.addEventListener('hashchange', this.onHashChange_);
+    const routeParams = new URLSearchParams(window.location.hash.substr(1));
     ChromeperfApp.ready(this.statePath, routeParams);
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener('user-update', this.onUserUpdate_);
+    window.removeEventListener('hashchange', this.onHashChange_);
+    super.disconnectedCallback();
   }
 
   stateChanged(rootState) {
@@ -409,11 +431,11 @@ export default class ChromeperfApp extends ElementBase {
     const oldAlertsSections = this.alertsSectionsById;
     const oldChartSections = this.chartSectionsById;
 
-    this.set('userEmail', rootState.userEmail);
-    this.setProperties(get(rootState, this.statePath));
+    this.userEmail = rootState.userEmail;
+    Object.assign(this, get(rootState, this.statePath));
 
-    if (this.reduxRoutePath !== oldReduxRoutePath) {
-      this.route = {prefix: '', path: this.reduxRoutePath};
+    if (this.readied && this.reduxRoutePath !== oldReduxRoutePath) {
+      window.location.hash = this.reduxRoutePath;
     }
 
     if (this.readied && (
@@ -427,13 +449,10 @@ export default class ChromeperfApp extends ElementBase {
     }
   }
 
-  escapedUrl_(path) {
-    return encodeURIComponent(window.location.origin + '#' + path);
-  }
-
-  observeAppRoute_() {
+  onHashChange_() {
     if (!this.readied) return;
-    if (this.route.path === '') {
+    if (window.location.hash === '') {
+      // This happens when the user clicks the app title in chops-header.
       ChromeperfApp.reset(this.statePath);
       return;
     }
@@ -455,8 +474,8 @@ export default class ChromeperfApp extends ElementBase {
   }
 
   async requireSignIn_(event) {
-    if (this.userEmail || !this.isProduction) return;
-    const auth = await window.getAuthInstanceAsync();
+    if (this.userEmail || !isProduction()) return;
+    const auth = await ChromeperfApp.getAuthInstanceAsync();
     await auth.signIn();
   }
 
@@ -483,12 +502,12 @@ export default class ChromeperfApp extends ElementBase {
     await ChromeperfApp.newChart(this.statePath, event.detail.options);
   }
 
-  async onCloseChart_(event) {
-    await ChromeperfApp.closeChart(this.statePath, event.model.id);
+  async onCloseChart_(id) {
+    await ChromeperfApp.closeChart(this.statePath, id);
   }
 
-  async onCloseAlerts_(event) {
-    await ChromeperfApp.closeAlerts(this.statePath, event.model.id);
+  async onCloseAlerts_(id) {
+    await ChromeperfApp.closeAlerts(this.statePath, id);
   }
 
   async onReportAlerts_(event) {
@@ -503,10 +522,6 @@ export default class ChromeperfApp extends ElementBase {
     await ChromeperfApp.closeAllCharts(this.statePath);
   }
 
-  get isProduction() {
-    return window.IS_PRODUCTION;
-  }
-
   static async ready(statePath, routeParams) {
     ChromeperfApp.getConfigs();
 
@@ -514,19 +529,11 @@ export default class ChromeperfApp extends ElementBase {
         ENSURE(statePath),
         ENSURE('userEmail', ''),
         ENSURE('largeDom', false),
-    ));
+        {type: ChromeperfApp.reducers.ready.name, statePath}));
 
-    // Wait for ChromeperfApp and its reducers to be registered.
-    await afterRender();
-
-    STORE.dispatch({
-      type: ChromeperfApp.reducers.ready.name,
-      statePath,
-    });
-
-    if (window.IS_PRODUCTION) {
+    if (isProduction()) {
       // Wait for gapi.auth2 to load and get an Authorization token.
-      await window.getAuthInstanceAsync();
+      await ChromeperfApp.getAuthInstanceAsync();
     }
 
     // Now, if the user is signed in, we can get auth headers. Try to
@@ -572,8 +579,17 @@ export default class ChromeperfApp extends ElementBase {
     }));
   }
 
+  // Wrap imported functions to allow tests to fake them.
+  static async getUserProfileAsync() {
+    return await getUserProfileAsync();
+  }
+
+  static async getAuthInstanceAsync() {
+    return await getAuthInstanceAsync();
+  }
+
   static async userUpdate(statePath) {
-    const profile = await window.getUserProfileAsync();
+    const profile = await ChromeperfApp.getUserProfileAsync();
     METRICS.signedIn = Boolean(profile);
     STORE.dispatch(UPDATE('', {
       userEmail: profile ? profile.getEmail() : '',
@@ -688,8 +704,7 @@ export default class ChromeperfApp extends ElementBase {
     }
   }
 
-  // Compute one of 5 styles of route path (the part of the URL after the
-  // origin):
+  // Compute one of 5 styles of hash params:
   //  1. /#report=... is used when the report-section is showing and there are
   //     no alerts-sections or chart-sections.
   //  2. /#sheriff=... is used when there is a single alerts-section, zero
@@ -747,8 +762,8 @@ export default class ChromeperfApp extends ElementBase {
       routeParams.set('nonav', '');
     }
 
-    // The extra '#' prevents observeAppRoute_ from dispatching reset.
-    const reduxRoutePath = routeParams.toString() || '#';
+    // The extra '#' prevents onHashChange_ from dispatching reset.
+    const reduxRoutePath = routeParams.toString() || '##';
     STORE.dispatch(UPDATE(statePath, {reduxRoutePath}));
   }
 

@@ -82,16 +82,20 @@ suite('alerts-controls', function() {
     assert.strictEqual('ccc', sources[0].sheriff);
     sources = [];
 
-    controls.$['min-revision'].value = '10';
-    controls.$['min-revision'].dispatchEvent(new CustomEvent('keyup'));
+    const minRevision = findElements(controls, e =>
+      e.id === 'min-revision')[0];
+    minRevision.value = '10';
+    minRevision.dispatchEvent(new CustomEvent('keyup'));
     await timeout(AlertsControls.TYPING_DEBOUNCE_MS + 10);
     assert.lengthOf(sources, 1);
     assert.strictEqual('ccc', sources[0].sheriff);
     assert.strictEqual(10, sources[0].min_end_revision);
     sources = [];
 
-    controls.$['max-revision'].value = '20';
-    controls.$['max-revision'].dispatchEvent(new CustomEvent('keyup'));
+    const maxRevision = findElements(controls, e =>
+      e.id === 'max-revision')[0];
+    maxRevision.value = '20';
+    maxRevision.dispatchEvent(new CustomEvent('keyup'));
     await timeout(AlertsControls.TYPING_DEBOUNCE_MS + 10);
     assert.lengthOf(sources, 1);
     assert.strictEqual('ccc', sources[0].sheriff);
@@ -100,7 +104,7 @@ suite('alerts-controls', function() {
     assert.isFalse(sources[0].is_improvement);
     sources = [];
 
-    controls.$.improvements.click();
+    findElements(controls, e => e.matches('#improvements'))[0].click();
     await timeout(AlertsControls.TYPING_DEBOUNCE_MS + 10);
     assert.strictEqual('ccc', sources[0].sheriff);
     assert.isTrue(sources[0].is_improvement);
@@ -132,9 +136,8 @@ suite('alerts-controls', function() {
 
     findElements(controls, e =>
       e.matches('cp-checkbox') && /aaa/.test(e.textContent))[0].click();
-    controls.$.bug.dispatchEvent(new CustomEvent('input-keyup', {
-      detail: {value: '123'},
-    }));
+    findElements(controls, e => e.matches('#bug'))[0].dispatchEvent(
+        new CustomEvent('input-keyup', {detail: {value: '123'}}));
     await afterRender();
     findElements(controls, e =>
       e.matches('cp-checkbox') && /123/.test(e.textContent))[0].click();

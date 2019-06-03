@@ -4,10 +4,11 @@
 */
 'use strict';
 
+import './cp-icon.js';
 import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE} from './simple-redux.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
+import {get} from './utils.js';
+import {html, css} from 'lit-element';
 
 export default class ExpandButton extends ElementBase {
   static get is() { return 'expand-button'; }
@@ -28,27 +29,26 @@ export default class ExpandButton extends ElementBase {
     };
   }
 
-  static get template() {
-    return html`
-      <style>
-        :host {
-          display: flex;
-          cursor: pointer;
-        }
-        iron-icon {
-          height: 20px;
-          width: 20px;
-        }
-      </style>
+  static get styles() {
+    return css`
+      :host {
+        display: flex;
+        cursor: pointer;
+      }
+    `;
+  }
 
-      <iron-icon icon="[[getIcon_(isExpanded)]]">
-      </iron-icon>
+  render() {
+    const icon = ExpandButton.getIcon(
+        this.isExpanded, this.horizontal, this.after);
+    return html`
+      <cp-icon .icon="${icon}"></cp-icon>
       <slot></slot>
     `;
   }
 
-  ready() {
-    super.ready();
+  constructor() {
+    super();
     this.addEventListener('click', this.onClick_.bind(this));
   }
 
@@ -56,16 +56,12 @@ export default class ExpandButton extends ElementBase {
     STORE.dispatch(TOGGLE(this.statePath + '.isExpanded'));
   }
 
-  getIcon_(isExpanded) {
-    return ExpandButton.getIcon(isExpanded, this.horizontal, this.after);
-  }
-
   static getIcon(isExpanded, horizontal, after) {
     if (after) isExpanded = !isExpanded;
     if (horizontal) {
-      return (isExpanded ? 'cp:left' : 'cp:right');
+      return (isExpanded ? 'left' : 'right');
     }
-    return (isExpanded ? 'cp:less' : 'cp:more');
+    return (isExpanded ? 'less' : 'more');
   }
 }
 

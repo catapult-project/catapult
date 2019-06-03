@@ -6,7 +6,6 @@
 
 import './cp-loading.js';
 import './error-set.js';
-import '@polymer/polymer/lib/elements/dom-if.js';
 import AlertsControls from './alerts-controls.js';
 import AlertsRequest from './alerts-request.js';
 import AlertsTable from './alerts-table.js';
@@ -20,17 +19,19 @@ import TriageNew from './triage-new.js';
 import groupAlerts from './group-alerts.js';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
+import {html, css} from 'lit-element';
 
 import {
   BatchIterator,
   animationFrame,
+  get,
+  isDebug,
+  isProduction,
   plural,
   setImmutable,
   simpleGUID,
-  transformAlert,
   timeout,
+  transformAlert,
 } from './utils.js';
 
 const NOTIFICATION_MS = 5000;
@@ -73,156 +74,145 @@ export default class AlertsSection extends ElementBase {
     };
   }
 
-  static get template() {
-    return html`
-      <style>
-        #triage_controls {
-          align-items: center;
-          display: flex;
-          padding-left: 24px;
-          transition: background-color var(--transition-short, 0.2s),
-                      color var(--transition-short, 0.2s);
-        }
+  static get styles() {
+    return css`
+      #triage_controls {
+        align-items: center;
+        display: flex;
+        padding-left: 24px;
+        transition: background-color var(--transition-short, 0.2s),
+                    color var(--transition-short, 0.2s);
+      }
 
-        #triage_controls[anySelected] {
-          background-color: var(--primary-color-light, lightblue);
-          color: var(--primary-color-dark, blue);
-        }
+      #triage_controls[anySelected] {
+        background-color: var(--primary-color-light, lightblue);
+        color: var(--primary-color-dark, blue);
+      }
 
-        #triage_controls .button {
-          background: unset;
-          cursor: pointer;
-          font-weight: bold;
-          padding: 8px;
-          text-transform: uppercase;
-        }
+      #triage_controls .button {
+        background: unset;
+        cursor: pointer;
+        font-weight: bold;
+        padding: 8px;
+        text-transform: uppercase;
+      }
 
-        #triage_controls .button[disabled] {
-          color: var(--neutral-color-dark, grey);
-          font-weight: normal;
-        }
+      #triage_controls .button[disabled] {
+        color: var(--neutral-color-dark, grey);
+        font-weight: normal;
+      }
 
-        #count {
-          flex-grow: 1;
-        }
-      </style>
-
-      <alerts-controls
-          id="controls"
-          state-path="[[statePath]]"
-          on-sources="onSources_">
-      </alerts-controls>
-
-      <error-set errors="[[errors]]"></error-set>
-      <cp-loading loading$="[[isLoading_(isLoading, preview.isLoading)]]">
-      </cp-loading>
-
-      <template is="dom-if" if="[[!isEmpty_(alertGroups)]]">
-        <div id="triage_controls"
-            anySelected$="[[!isEqual_(0, selectedAlertsCount)]]">
-          <div id="count">
-            [[selectedAlertsCount]] selected of
-            [[summary_(showingTriaged, alertGroups)]]
-          </div>
-
-          <span style="position: relative;">
-            <div class="button"
-                disabled$="[[!canTriage_(alertGroups)]]"
-                on-click="onTriageNew_">
-              New Bug
-            </div>
-
-            <triage-new
-                tabindex="0"
-                state-path="[[statePath]].newBug"
-                on-submit="onTriageNewSubmit_">
-            </triage-new>
-          </span>
-
-          <span style="position: relative;">
-            <div class="button"
-                disabled$="[[!canTriage_(alertGroups)]]"
-                on-click="onTriageExisting_">
-              Existing Bug
-            </div>
-
-            <triage-existing
-                tabindex="0"
-                state-path="[[statePath]].existingBug"
-                on-submit="onTriageExistingSubmit_">
-            </triage-existing>
-          </span>
-
-          <div class="button"
-              disabled$="[[!canTriage_(alertGroups)]]"
-              on-click="onIgnore_">
-            Ignore
-          </div>
-
-          <div class="button"
-              disabled$="[[!canUnassignAlerts_(alertGroups)]]"
-              on-click="onUnassign_">
-            Unassign
-          </div>
-        </div>
-      </template>
-
-      <alerts-table
-          state-path="[[statePath]]"
-          on-selected="onSelected_"
-          on-alert-click="onAlertClick_">
-      </alerts-table>
-
-      <iron-collapse opened="[[!allTriaged_(alertGroups, showingTriaged)]]">
-        <chart-compound
-            id="preview"
-            state-path="[[statePath]].preview"
-            linked-state-path="[[linkedStatePath]]"
-            on-line-count-change="onPreviewLineCountChange_">
-          Select alerts using the checkboxes in the table above to preview
-          their timeseries.
-        </chart-compound>
-      </iron-collapse>
+      #count {
+        padding: 8px;
+        flex-grow: 1;
+      }
     `;
   }
 
-  ready() {
-    super.ready();
+  render() {
+    const selectedAlerts = AlertsTable.getSelectedAlerts(this.alertGroups);
+    let anyTriaged = false;
+    for (const alert of selectedAlerts) {
+      if (alert.bugId) {
+        anyTriaged = true;
+        break;
+      }
+    }
+
+    const canTriage = (selectedAlerts.length > 0) && !anyTriaged;
+    const allTriaged = this.allTriaged_();
+    const summary = AlertsSection.summary(
+        this.showingTriaged, this.alertGroups, this.totalCount);
+
+    return html`
+      <alerts-controls
+          id="controls"
+          .statePath="${this.statePath}"
+          @sources="${this.onSources_}">
+      </alerts-controls>
+
+      <error-set .errors="${this.errors}"></error-set>
+      <cp-loading ?loading="${this.isLoading || this.preview.isLoading}">
+      </cp-loading>
+
+      ${(this.alertGroups && this.alertGroups.length) ? html`
+        <div id="triage_controls"
+            ?anySelected="${this.selectedAlertsCount !== 0}">
+          <div id="count">
+            ${this.selectedAlertsCount} selected of ${summary}
+          </div>
+
+          ${!isProduction() ? '' : html`
+            <span style="position: relative;">
+              <div class="button"
+                  ?disabled="${!canTriage}"
+                  @click="${this.onTriageNew_}">
+                New Bug
+              </div>
+
+              <triage-new
+                  tabindex="0"
+                  .statePath="${this.statePath}.newBug"
+                  @submit="${this.onTriageNewSubmit_}">
+              </triage-new>
+            </span>
+
+            <span style="position: relative;">
+              <div class="button"
+                  ?disabled="${!canTriage}"
+                  @click="${this.onTriageExisting_}">
+                Existing Bug
+              </div>
+
+              <triage-existing
+                  tabindex="0"
+                  .statePath="${this.statePath}.existingBug"
+                  @submit="${this.onTriageExistingSubmit_}">
+              </triage-existing>
+            </span>
+
+            <div class="button"
+                ?disabled="${!canTriage}"
+                @click="${this.onIgnore_}">
+              Ignore
+            </div>
+
+            <div class="button"
+                ?disabled="${!anyTriaged}"
+                @click="${this.onUnassign_}">
+              Unassign
+            </div>
+          `}
+        </div>
+      ` : html``}
+
+      <alerts-table
+          .statePath="${this.statePath}"
+          @selected="${this.onSelected_}"
+          @alert-click="${this.onAlertClick_}">
+      </alerts-table>
+
+      <chart-compound
+          id="preview"
+          ?hidden="${allTriaged}"
+          .statePath="${this.statePath}.preview"
+          .linkedStatePath="${this.linkedStatePath}"
+          @line-count-change="${this.onPreviewLineCountChange_}">
+        Select alerts using the checkboxes in the table above to preview
+        their timeseries.
+      </chart-compound>
+    `;
+  }
+
+  firstUpdated() {
     this.scrollIntoView(true);
   }
 
-  isLoading_(isLoading, isPreviewLoading) {
-    return isLoading || isPreviewLoading;
-  }
-
-  summary_(showingTriaged, alertGroups) {
-    return AlertsSection.summary(
-        showingTriaged, alertGroups, this.totalCount);
-  }
-
-  allTriaged_(alertGroups, showingTriaged) {
-    if (!alertGroups) return true;
-    if (showingTriaged) return alertGroups.length === 0;
-    return alertGroups.filter(group =>
+  allTriaged_() {
+    if (!this.alertGroups) return true;
+    if (this.showingTriaged) return this.alertGroups.length === 0;
+    return this.alertGroups.filter(group =>
       group.alerts.length > group.triaged.count).length === 0;
-  }
-
-  canTriage_(alertGroups) {
-    if (!window.IS_PRODUCTION) return false;
-    const selectedAlerts = AlertsTable.getSelectedAlerts(alertGroups);
-    if (selectedAlerts.length === 0) return false;
-    for (const alert of selectedAlerts) {
-      if (alert.bugId) return false;
-    }
-    return true;
-  }
-
-  canUnassignAlerts_(alertGroups) {
-    const selectedAlerts = AlertsTable.getSelectedAlerts(alertGroups);
-    for (const alert of selectedAlerts) {
-      if (alert.bugId) return true;
-    }
-    return false;
   }
 
   async onSources_(event) {
@@ -380,7 +370,7 @@ export default class AlertsSection extends ElementBase {
 
   static async openNewBugDialog(statePath) {
     let userEmail = STORE.getState().userEmail;
-    if (window.IS_DEBUG) {
+    if (isDebug()) {
       userEmail = 'you@chromium.org';
     }
     if (!userEmail) return;
@@ -393,7 +383,7 @@ export default class AlertsSection extends ElementBase {
 
   static async openExistingBugDialog(statePath) {
     let userEmail = STORE.getState().userEmail;
-    if (window.IS_DEBUG) {
+    if (isDebug()) {
       userEmail = 'you@chromium.org';
     }
     if (!userEmail) return;
@@ -529,13 +519,21 @@ export default class AlertsSection extends ElementBase {
           batches, state.alertGroups, nextRequests, triagedRequests,
           triagedMaxStartRevision, started);
       await animationFrame();
-      AlertsSection.maybeLayoutPreview(statePath);
     }
 
     STORE.dispatch({
       type: AlertsSection.reducers.finalizeAlerts.name,
       statePath,
     });
+
+    const state = get(STORE.getState(), statePath);
+    if (!state) return;
+    if (state.preview && state.preview.lineDescriptors &&
+        state.preview.lineDescriptors.length) {
+      return;
+    }
+
+    AlertsSection.maybeLayoutPreview(statePath);
   }
 
   static async layoutPreview(statePath) {
@@ -559,6 +557,156 @@ export default class AlertsSection extends ElementBase {
     }
 
     AlertsSection.layoutPreview(statePath);
+  }
+
+  static summary(showingTriaged, alertGroups, totalCount) {
+    if (!alertGroups ||
+        (alertGroups === AlertsTable.placeholderAlertGroups())) {
+      return '0 alerts';
+    }
+    let groupCount = 0;
+    let displayedCount = 0;
+    for (const group of alertGroups) {
+      if (showingTriaged) {
+        ++groupCount;
+        displayedCount += group.alerts.length;
+      } else if (group.alerts.length > group.triaged.count) {
+        ++groupCount;
+        displayedCount += group.alerts.length - group.triaged.count;
+      }
+    }
+    totalCount = Math.max(totalCount, displayedCount);
+    return (
+      `${displayedCount} displayed in ` +
+      `${groupCount} group${plural(groupCount)} of ` +
+      `${totalCount} alert${plural(totalCount)}`);
+  }
+
+  static matchesOptions(state, options) {
+    if (!options || !state || !state.report || !state.sheriff || !state.bug) {
+      return false;
+    }
+    if (!tr.b.setsEqual(new Set(options.reports),
+        new Set(state.report.selectedOptions))) {
+      return false;
+    }
+    if (!tr.b.setsEqual(new Set(options.sheriffs),
+        new Set(state.sheriff.selectedOptions))) {
+      return false;
+    }
+    if (!tr.b.setsEqual(new Set(options.bugs),
+        new Set(state.bug.selectedOptions))) {
+      return false;
+    }
+    return true;
+  }
+
+  static newStateOptionsFromQueryParams(queryParams) {
+    return {
+      sheriffs: queryParams.getAll('sheriff').map(
+          sheriffName => sheriffName.replace(/_/g, ' ')),
+      bugs: queryParams.getAll('bug'),
+      reports: queryParams.getAll('ar'),
+      minRevision: queryParams.get('minRev') || queryParams.get('rev'),
+      maxRevision: queryParams.get('maxRev') || queryParams.get('rev'),
+      sortColumn: queryParams.get('sort') || 'startRevision',
+      showingImprovements: ((queryParams.get('improvements') !== null) ||
+        (queryParams.get('bug') !== null)),
+      showingTriaged: ((queryParams.get('triaged') !== null) ||
+        (queryParams.get('bug') !== null)),
+      sortDescending: queryParams.get('descending') !== null,
+    };
+  }
+
+  static isEmpty(state) {
+    if (!state) return true;
+    if (state.sheriff && state.sheriff.selectedOptions &&
+        state.sheriff.selectedOptions.length) {
+      return false;
+    }
+    if (state.bug && state.bug.selectedOptions &&
+        state.bug.selectedOptions.length) {
+      return false;
+    }
+    if (state.report && state.report.selectedOptions &&
+        state.report.selectedOptions.length) {
+      return false;
+    }
+    if (state.minRevision && state.minRevision.match(/^\d+$/)) {
+      return false;
+    }
+    if (state.maxRevision && state.maxRevision.match(/^\d+$/)) {
+      return false;
+    }
+    return true;
+  }
+
+  static getSessionState(state) {
+    return {
+      sheriffs: state.sheriff.selectedOptions,
+      bugs: state.bug.selectedOptions,
+      showingImprovements: state.showingImprovements,
+      showingTriaged: state.showingTriaged,
+      sortColumn: state.sortColumn,
+      sortDescending: state.sortDescending,
+    };
+  }
+
+  static getRouteParams(state) {
+    const queryParams = new URLSearchParams();
+    for (const sheriff of state.sheriff.selectedOptions) {
+      queryParams.append('sheriff', sheriff.replace(/ /g, '_'));
+    }
+    for (const bug of state.bug.selectedOptions) {
+      queryParams.append('bug', bug);
+    }
+    for (const name of state.report.selectedOptions) {
+      queryParams.append('ar', name);
+    }
+
+    const minRev = state.minRevision && state.minRevision.match(/^\d+$/);
+    const maxRev = state.maxRevision && state.maxRevision.match(/^\d+$/);
+    if ((minRev || maxRev) &&
+        !queryParams.get('sheriff') &&
+        !queryParams.get('bug') &&
+        !queryParams.get('ar')) {
+      queryParams.set('alerts', '');
+    }
+    if (minRev && maxRev && state.minRevision === state.maxRevision) {
+      queryParams.set('rev', state.minRevision);
+    } else {
+      if (minRev) {
+        queryParams.set('minRev', state.minRevision);
+      }
+      if (maxRev) {
+        queryParams.set('maxRev', state.maxRevision);
+      }
+    }
+
+    // #bug implies #improvements and #triaged
+    if (state.showingImprovements && !queryParams.get('bug')) {
+      queryParams.set('improvements', '');
+    }
+    if (state.showingTriaged && !queryParams.get('bug')) {
+      queryParams.set('triaged', '');
+    }
+    if (state.sortColumn !== 'startRevision') {
+      queryParams.set('sort', state.sortColumn);
+    }
+    if (state.sortDescending) queryParams.set('descending', '');
+    return queryParams;
+  }
+
+  static computeLineDescriptor(alert) {
+    return {
+      baseUnit: alert.baseUnit,
+      suites: [alert.suite],
+      measurement: alert.measurement,
+      bots: [alert.master + ':' + alert.bot],
+      cases: [alert.case],
+      statistic: alert.statistic,
+      buildType: 'test',
+    };
   }
 }
 
@@ -635,18 +783,6 @@ function loadMore(batches, alertGroups, nextRequests, triagedRequests,
 
   return minStartRevision;
 }
-
-AlertsSection.computeLineDescriptor = alert => {
-  return {
-    baseUnit: alert.baseUnit,
-    suites: [alert.suite],
-    measurement: alert.measurement,
-    bots: [alert.master + ':' + alert.bot],
-    cases: [alert.case],
-    statistic: alert.statistic,
-    buildType: 'test',
-  };
-};
 
 AlertsSection.reducers = {
   selectAlert: (state, action, rootState) => {
@@ -940,144 +1076,6 @@ AlertsSection.reducers = {
       totalCount: 0,
     };
   },
-};
-
-AlertsSection.newStateOptionsFromQueryParams = queryParams => {
-  return {
-    sheriffs: queryParams.getAll('sheriff').map(
-        sheriffName => sheriffName.replace(/_/g, ' ')),
-    bugs: queryParams.getAll('bug'),
-    reports: queryParams.getAll('ar'),
-    minRevision: queryParams.get('minRev') || queryParams.get('rev'),
-    maxRevision: queryParams.get('maxRev') || queryParams.get('rev'),
-    sortColumn: queryParams.get('sort') || 'startRevision',
-    showingImprovements: ((queryParams.get('improvements') !== null) ||
-      (queryParams.get('bug') !== null)),
-    showingTriaged: ((queryParams.get('triaged') !== null) ||
-      (queryParams.get('bug') !== null)),
-    sortDescending: queryParams.get('descending') !== null,
-  };
-};
-
-AlertsSection.isEmpty = state => {
-  if (!state) return true;
-  if (state.sheriff && state.sheriff.selectedOptions &&
-      state.sheriff.selectedOptions.length) {
-    return false;
-  }
-  if (state.bug && state.bug.selectedOptions &&
-      state.bug.selectedOptions.length) {
-    return false;
-  }
-  if (state.report && state.report.selectedOptions &&
-      state.report.selectedOptions.length) {
-    return false;
-  }
-  if (state.minRevision && state.minRevision.match(/^\d+$/)) {
-    return false;
-  }
-  if (state.maxRevision && state.maxRevision.match(/^\d+$/)) {
-    return false;
-  }
-  return true;
-};
-
-AlertsSection.getSessionState = state => {
-  return {
-    sheriffs: state.sheriff.selectedOptions,
-    bugs: state.bug.selectedOptions,
-    showingImprovements: state.showingImprovements,
-    showingTriaged: state.showingTriaged,
-    sortColumn: state.sortColumn,
-    sortDescending: state.sortDescending,
-  };
-};
-
-AlertsSection.getRouteParams = state => {
-  const queryParams = new URLSearchParams();
-  for (const sheriff of state.sheriff.selectedOptions) {
-    queryParams.append('sheriff', sheriff.replace(/ /g, '_'));
-  }
-  for (const bug of state.bug.selectedOptions) {
-    queryParams.append('bug', bug);
-  }
-  for (const name of state.report.selectedOptions) {
-    queryParams.append('ar', name);
-  }
-
-  const minRev = state.minRevision && state.minRevision.match(/^\d+$/);
-  const maxRev = state.maxRevision && state.maxRevision.match(/^\d+$/);
-  if ((minRev || maxRev) &&
-      !queryParams.get('sheriff') &&
-      !queryParams.get('bug') &&
-      !queryParams.get('ar')) {
-    queryParams.set('alerts', '');
-  }
-  if (minRev && maxRev && state.minRevision === state.maxRevision) {
-    queryParams.set('rev', state.minRevision);
-  } else {
-    if (minRev) {
-      queryParams.set('minRev', state.minRevision);
-    }
-    if (maxRev) {
-      queryParams.set('maxRev', state.maxRevision);
-    }
-  }
-
-  // #bug implies #improvements and #triaged
-  if (state.showingImprovements && !queryParams.get('bug')) {
-    queryParams.set('improvements', '');
-  }
-  if (state.showingTriaged && !queryParams.get('bug')) {
-    queryParams.set('triaged', '');
-  }
-  if (state.sortColumn !== 'startRevision') {
-    queryParams.set('sort', state.sortColumn);
-  }
-  if (state.sortDescending) queryParams.set('descending', '');
-  return queryParams;
-};
-
-AlertsSection.matchesOptions = (state, options) => {
-  if (!options || !state || !state.report || !state.sheriff || !state.bug) {
-    return false;
-  }
-  if (!tr.b.setsEqual(new Set(options.reports),
-      new Set(state.report.selectedOptions))) {
-    return false;
-  }
-  if (!tr.b.setsEqual(new Set(options.sheriffs),
-      new Set(state.sheriff.selectedOptions))) {
-    return false;
-  }
-  if (!tr.b.setsEqual(new Set(options.bugs),
-      new Set(state.bug.selectedOptions))) {
-    return false;
-  }
-  return true;
-};
-
-AlertsSection.summary = (showingTriaged, alertGroups, totalCount) => {
-  if (!alertGroups ||
-      (alertGroups === AlertsTable.placeholderAlertGroups())) {
-    return '0 alerts';
-  }
-  let groupCount = 0;
-  let displayedCount = 0;
-  for (const group of alertGroups) {
-    if (showingTriaged) {
-      ++groupCount;
-      displayedCount += group.alerts.length;
-    } else if (group.alerts.length > group.triaged.count) {
-      ++groupCount;
-      displayedCount += group.alerts.length - group.triaged.count;
-    }
-  }
-  totalCount = Math.max(totalCount, displayedCount);
-  return (
-    `${displayedCount} displayed in ` +
-    `${groupCount} group${plural(groupCount)} of ` +
-    `${totalCount} alert${plural(totalCount)}`);
 };
 
 ElementBase.register(AlertsSection);

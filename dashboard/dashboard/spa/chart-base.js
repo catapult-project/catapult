@@ -4,18 +4,13 @@
 */
 'use strict';
 
-import '@polymer/polymer/lib/elements/dom-if.js';
-import '@polymer/polymer/lib/elements/dom-repeat.js';
+import './cp-icon.js';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
-import {animationFrame, hasCtrlKey, measureElement} from './utils.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
+import {animationFrame, get, hasCtrlKey, measureElement} from './utils.js';
+import {html, css, svg} from 'lit-element';
 
-import {GestureEventListeners} from
-  '@polymer/polymer/lib/mixins/gesture-event-listeners.js';
-
-export default class ChartBase extends GestureEventListeners(ElementBase) {
+export default class ChartBase extends ElementBase {
   static get is() { return 'chart-base'; }
 
   static get properties() {
@@ -66,250 +61,212 @@ export default class ChartBase extends GestureEventListeners(ElementBase) {
     };
   }
 
-  static get template() {
-    const template = html`
-      <style>
-        :host {
-          display: flex;
-        }
+  static get styles() {
+    return css`
+      :host {
+        display: flex;
+      }
 
-        #right {
-          display: flex;
-          flex-direction: column;
-          flex-grow: 1;
-        }
+      #right {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+      }
 
-        #brush_handles {
-          position: relative;
-          height: 15px;
-        }
+      #brush_handles {
+        position: relative;
+        height: 15px;
+      }
 
-        .brush_handle {
-          cursor: ew-resize;
-          position: absolute;
-          top: 0;
-        }
+      .brush_handle {
+        cursor: ew-resize;
+        position: absolute;
+        top: 0;
+      }
 
-        .brush_handle path {
-          fill: rgba(0, 0, 0, 0.3);
-        }
+      .brush_handle path {
+        fill: rgba(0, 0, 0, 0.3);
+      }
 
-        path {
-          vector-effect: non-scaling-stroke;
-        }
+      path {
+        vector-effect: non-scaling-stroke;
+      }
 
-        rect {
-          opacity: 0.05;
-        }
+      rect {
+        opacity: 0.05;
+      }
 
-        #yaxis {
-          margin-right: 3px;
-        }
+      #yaxis {
+        margin-right: 3px;
+      }
 
-        #xaxis {
-          margin-top: 3px;
-        }
+      #xaxis {
+        margin-top: 3px;
+      }
 
-        #xaxis, #yaxis {
-          user-select: none;
-        }
+      #xaxis, #yaxis {
+        user-select: none;
+      }
 
-        line {
-          stroke-width: 1;
-          stroke: #ccc;
-        }
+      line {
+        stroke-width: 1;
+        stroke: #ccc;
+      }
 
-        #main {
-          --mouse: outside;
-          position: relative;
-        }
+      #main {
+        --mouse: outside;
+        position: relative;
+      }
 
-        #main:hover {
-          --mouse: inside;
-        }
+      #main:hover {
+        --mouse: inside;
+      }
 
-        #tooltip {
-          display: flex;
-          position: absolute;
-          white-space: pre;
-          z-index: var(--layer-menu, 100);
-        }
+      #tooltip {
+        display: flex;
+        position: absolute;
+        white-space: pre;
+        z-index: var(--layer-menu, 100);
+      }
 
-        #tooltip[hidden] {
-          display: none;
-        }
+      #tooltip[hidden] {
+        display: none;
+      }
 
-        #tooltip table {
-          background-color: var(--background-color, white);
-          border-style: solid;
-          border-width: 2px;
-        }
+      #tooltip table {
+        background-color: var(--background-color, white);
+        border-style: solid;
+        border-width: 2px;
+      }
 
-        #tooltip td {
-          vertical-align: text-top;
-        }
+      #tooltip td {
+        vertical-align: text-top;
+      }
 
-        .icon {
-          /* UA stylesheet sets overflow:hidden for foreignObject, so prevent
-            overflow.
-          */
-          height: 100%;
-          transform: translate(-12px, -12px);
-          width: 100%;
-        }
+      .icon {
+        /* UA stylesheet sets overflow:hidden for foreignObject, so prevent
+          overflow.
+        */
+        height: 100%;
+        transform: translate(-12px, -12px);
+        width: 100%;
+      }
 
-        .icon iron-icon {
-          position: static;
-        }
-      </style>
+      .icon cp-icon {
+        position: static;
+      }
+    `;
+  }
 
+  render() {
+    const brushPointSize = Number.isNaN(this.brushSize) ? 0 :
+      (this.brushSize * 1.5);
+    const showTooltip = (this.tooltip && this.tooltip.isVisible &&
+      this.tooltip.rows && this.tooltip.rows.length);
+
+    return html`
       <svg
           id="yaxis"
-          width$="[[yAxis.width]]"
-          height$="[[graphHeight]]"
-          style$="margin-top: [[brushPointSize_(brushSize)]]px;
-                  margin-bottom: [[xAxis.height]]px;">
-        <template is="dom-repeat" items="[[yAxis.ticks]]" as="tick">
+          width="${this.yAxis.width}"
+          height="${this.graphHeight}"
+          style="margin-top: ${brushPointSize}px;
+                 margin-bottom: ${this.xAxis.height}px;">
+        ${(this.yAxis.ticks || []).map(tick => svg`
           <text
-              x$="[[yAxis.width]]"
-              y$="[[tick.yPct]]"
+              x="${this.yAxis.width}"
+              y="${tick.yPct}"
               text-anchor="end"
-              alignment-baseline$="[[tickAnchor_(tick)]]">
-            [[tick.text]]
+              alignment-baseline="${tick.anchor || 'middle'}">
+            ${tick.text}
           </text>
-        </template>
+        `)}
       </svg>
 
       <div id="right">
         <div id="brush_handles">
-          <template is="dom-repeat" items="[[xAxis.brushes]]" as="brush"
-              index-as="brushIndex">
+          ${(this.xAxis.brushes || []).map((brush, brushIndex) => html`
             <div class="brush_handle"
-                on-track="onTrackBrushHandle_"
-                style$="left: calc([[brush.xPct]] - 5px);">
+                @mousedown="${event => this.onDownBrushHandle_(brushIndex)}"
+                style="left: calc(${brush.xPct} - 5px);">
               <svg
-                  height$="[[brushPointSize_(brushSize)]]"
-                  width$="[[brushSize]]"
+                  height="${brushPointSize}"
+                  width="${this.brushSize}"
                   viewBox="0 0 2 3">
                 <path d="M0,0 L2,0 L2,2 L1,3 L0,2">
                 </path>
               </svg>
             </div>
-          </template>
+          `)}
         </div>
 
-        <div id="main"
-            on-mousemove="onMouseMoveMain_">
+        <div id="main" @mousemove="${this.onMouseMoveMain_}">
           <svg
               width="100%"
-              height$="[[graphHeight]]"
+              height="${this.graphHeight}"
               preserveAspectRatio="none"
-              on-click="onMainClick_">
-            <template is="dom-if" if="[[yAxis.showTickLines]]">
-              <template is="dom-repeat" items="[[yAxis.ticks]]" as="tick">
+              @click="${this.onMainClick_}">
+            ${!this.yAxis.showTickLines ? '' : this.yAxis.ticks.map(
+      tick => svg`
+        <line x1="0" x2="100%" y1="${tick.yPct}" y2="${tick.yPct}">
+        </line>
+      `)}
+
+            ${(!this.yAxis || !this.yAxis.cursor ||
+               !this.yAxis.cursor.pct) ? '' : svg`
                 <line
                     x1="0"
                     x2="100%"
-                    y1$="[[tick.yPct]]"
-                    y2$="[[tick.yPct]]">
+                    y1="${this.yAxis.cursor.pct}"
+                    y2="${this.yAxis.cursor.pct}"
+                    style="stroke: ${this.yAxis.cursor.color};">
                 </line>
-              </template>
-            </template>
+              `}
 
-            <template is="dom-if" if="[[hasCursor_(yAxis)]]">
-              <line
-                  x1="0"
-                  x2="100%"
-                  y1$="[[yAxis.cursor.pct]]"
-                  y2$="[[yAxis.cursor.pct]]"
-                  style$="stroke: [[yAxis.cursor.color]];">
-              </line>
-            </template>
+            ${!this.xAxis.showTickLines ? '' : this.xAxis.ticks.map(
+      tick => svg`
+        <line x1="${tick.xPct}" x2="${tick.xPct}" y1="0" y2="100%">
+        </line>
+      `)}
 
-            <template is="dom-if" if="[[xAxis.showTickLines]]">
-              <template is="dom-repeat" items="[[xAxis.ticks]]" as="tick">
+            ${(!this.xAxis || !this.xAxis.cursor ||
+               !this.xAxis.cursor.pct) ? '' : svg`
                 <line
-                    x1$="[[tick.xPct]]"
-                    x2$="[[tick.xPct]]"
+                    x1="${this.xAxis.cursor.pct}"
+                    x2="${this.xAxis.cursor.pct}"
                     y1="0"
-                    y2="100%">
+                    y2="100%"
+                    style="stroke: ${this.xAxis.cursor.color};">
                 </line>
-              </template>
-            </template>
+              `}
 
-            <template is="dom-if" if="[[hasCursor_(xAxis)]]">
-              <line
-                  x1$="[[xAxis.cursor.pct]]"
-                  x2$="[[xAxis.cursor.pct]]"
-                  y1="0"
-                  y2="100%"
-                  style$="stroke: [[xAxis.cursor.color]];">
-              </line>
-            </template>
-
-            <template is="dom-repeat" items="[[antiBrushes_(xAxis.brushes)]]"
-                as="antiBrush">
+            ${ChartBase.antiBrushes(this.xAxis.brushes).map(antiBrush => svg`
               <rect
-                  x$="[[antiBrush.start]]"
+                  x="${antiBrush.start}"
                   y="0"
-                  width$="[[antiBrush.length]]"
+                  width="${antiBrush.length}"
                   height="100%">
               </rect>
-            </template>
+            `)}
 
-            <template is="dom-repeat" items="[[lines]]" as="line">
-              <svg
-                  viewBox="0 0 100 100"
-                  x="0"
-                  y="0"
-                  width="100%"
-                  height="100%"
-                  preserveAspectRatio="none">
-                <path
-                    d$="[[line.path]]"
-                    stroke$="[[line.color]]"
-                    stroke-width$="[[line.strokeWidth]]"
-                    fill="none">
-                </path>
-                <template is="dom-if" if="[[line.shadePoints]]">
-                  <polygon
-                      points$="[[line.shadePoints]]"
-                      fill$="[[line.shadeFill]]"
-                      stroke="0">
-                  </polygon>
-                </template>
-              </svg>
-
-              <template is="dom-repeat" items="[[collectIcons_(line)]]"
-                  as="datum">
-                <foreignObject
-                    x$="[[pct_(datum.xPct)]]"
-                    y$="[[pct_(datum.yPct)]]"
-                    class="icon">
-                  <body xmlns="http://www.w3.org/1999/xhtml">
-                    <iron-icon
-                        icon="[[datum.icon]]"
-                        style$="color: [[datum.iconColor]]">
-                    </iron-icon>
-                  </body>
-                </foreignObject>
-              </template>
-            </template>
+            ${this.lines.map(line => this.renderLine(line))}
           </svg>
 
           <div id="tooltip"
-              hidden$="[[tooltipHidden_(tooltip)]]"
-              style$="left: [[tooltip.left]]; right: [[tooltip.right]];
-                      top: [[tooltip.top]]; bottom: [[tooltip.bottom]];">
-            <table style$="border-color: [[tooltip.color]];">
-              <template is="dom-repeat" items="[[tooltip.rows]]" as="row">
-                <tr style$="color: [[row.color]]">
-                  <td colspan$="[[row.colspan]]">[[row.name]]</td>
-                  <template is="dom-if" if="[[!isEqual_(row.colspan, 2)]]">
-                    <td>[[row.value]]</td>
-                  </template>
+              ?hidden="${!showTooltip}"
+              style="left: ${this.tooltip ? this.tooltip.left : 0};
+                     right: ${this.tooltip ? this.tooltip.right : 0};
+                     top: ${this.tooltip ? this.tooltip.top : 0};
+                     bottom: ${this.tooltip ? this.tooltip.bottom : 0};">
+            <table style="border-color: ${
+  this.tooltip ? this.tooltip.color : ''};">
+              ${(this.tooltip && this.tooltip.rows || []).map(row => html`
+                <tr style="color: ${row.color}">
+                  <td colspan="${row.colspan}">${row.name}</td>
+                  ${(row.colspan === 2) ? '' : html`
+                    <td>${row.value}</td>
+                  `}
                 </tr>
-              </template>
+              `)}
             </table>
           </div>
         </div>
@@ -317,47 +274,66 @@ export default class ChartBase extends GestureEventListeners(ElementBase) {
         <svg
             id="xaxis"
             width="100%"
-            height$="[[xAxis.height]]">
-          <template is="dom-repeat" items="[[xAxis.ticks]]" as="tick">
+            height="${this.xAxis.height}">
+          ${this.xAxis.ticks.map(tick => svg`
             <text
-                x$="[[tick.xPct]]"
+                x="${tick.xPct}"
                 y="100%"
-                text-anchor$="[[tickAnchor_(tick)]]"
+                text-anchor="${tick.anchor || 'middle'}"
                 alignment-baseline="after-edge">
-              [[tick.text]]
+              ${tick.text}
             </text>
-          </template>
+          `)}
         </svg>
       </div>
     `;
-    PolymerSvgTemplate(template.content, document);
-    return template;
   }
 
-  collectIcons_(line) {
-    if (!line || !line.data) return [];
-    return line.data.filter(datum => datum.icon);
+  renderLine(line) {
+    const icons = (!line || !line.data) ? [] : line.data.filter(datum =>
+      datum.icon);
+    return html`
+      <svg
+          viewBox="0 0 100 100"
+          x="0"
+          y="0"
+          width="100%"
+          height="100%"
+          preserveAspectRatio="none">
+        <path
+            d="${line.path}"
+            stroke="${line.color}"
+            stroke-width="${line.strokeWidth}"
+            fill="none">
+        </path>
+        ${!line.shadePoints ? '' : svg`
+          <polygon
+              points="${line.shadePoints}"
+              fill="${line.shadeFill}"
+              stroke="0">
+          </polygon>
+        `}
+      </svg>
+
+      ${icons.map(datum => svg`
+        <foreignObject
+            x="${datum.xPct + '%'}"
+            y="${datum.yPct + '%'}"
+            class="icon">
+          <body xmlns="http://www.w3.org/1999/xhtml">
+            <cp-icon
+                .icon="${datum.icon}"
+                style="color: ${datum.iconColor}">
+            </cp-icon>
+          </body>
+        </foreignObject>
+      `)}
+    `;
   }
 
-  hasCursor_(axis) {
-    return axis && axis.cursor && axis.cursor.pct;
-  }
-
-  antiBrushes_(brushes) {
-    return ChartBase.antiBrushes(brushes);
-  }
-
-  pct_(x) {
-    return x + '%';
-  }
-
-  brushPointSize_(brushSize) {
-    if (Number.isNaN(brushSize)) return 0;
-    return brushSize * 1.5;
-  }
-
-  tickAnchor_(tick) {
-    return tick.anchor || 'middle';
+  firstUpdated() {
+    this.mainDiv = this.shadowRoot.querySelector('#main');
+    this.tooltipDiv = this.shadowRoot.querySelector('#tooltip');
   }
 
   onMainClick_(event) {
@@ -372,13 +348,9 @@ export default class ChartBase extends GestureEventListeners(ElementBase) {
     }));
   }
 
-  tooltipHidden_(tooltip) {
-    return !tooltip || !tooltip.isVisible || this.isEmpty_(tooltip.rows);
-  }
-
   get isMouseOverMain() {
-    return getComputedStyle(this.$.main).getPropertyValue(
-        '--mouse').includes('inside');
+    const mainStyle = getComputedStyle(this.mainDiv);
+    return mainStyle.getPropertyValue('--mouse').includes('inside');
   }
 
   async maybePollMouseLeaveMain_() {
@@ -396,7 +368,7 @@ export default class ChartBase extends GestureEventListeners(ElementBase) {
   }
 
   async pollMouseLeaveMain_() {
-    // Ideally, an on-mouseleave listener would dispatchEvent so that callers
+    // Ideally, an @mouseleave listener would dispatchEvent so that callers
     // could hide the tooltip and whatever else when the mouse leaves the main
     // area. However, mouseleave and mouseout are flaky in obnoxious ways. CSS
     // :hover seems to be robust, so a :hover selector sets the property
@@ -406,19 +378,48 @@ export default class ChartBase extends GestureEventListeners(ElementBase) {
     }
   }
 
-  async onTrackBrushHandle_(event) {
+  constructor() {
+    super();
+    this.onMouseMove_ = this.onMouseMove_.bind(this);
+    this.onMouseUp_ = this.onMouseUp_.bind(this);
+  }
+
+  onDownBrushHandle_(brushIndex) {
+    this.draggingBrushHandle_ = brushIndex;
+    this.addEventListener('mousemove', this.onMouseMove_);
+    this.addEventListener('mouseup', this.onMouseUp_);
+  }
+
+  async onMouseMove_(event) {
+    if (event.which !== 1) {
+      this.onEndDragBrushHandle_();
+      return;
+    }
+
     const xPct = ChartBase.computeBrush(
-        event.detail.x, await measureElement(this.$.main));
-    STORE.dispatch(UPDATE(
-        `${this.statePath}.xAxis.brushes.${event.model.brushIndex}`, {xPct}));
-    this.dispatchEvent(new CustomEvent('brush', {
+        event.x, await measureElement(this.mainDiv));
+    const brushPath = `${this.statePath}.xAxis.brushes.${
+      this.draggingBrushHandle_}`;
+    STORE.dispatch(UPDATE(brushPath, {xPct}));
+  }
+
+  onEndDragBrushHandle_() {
+    this.dispatchEvent(new CustomEvent('brush-end', {
       bubbles: true,
       composed: true,
       detail: {
-        brushIndex: event.model.brushIndex,
-        sourceEvent: event,
+        brushIndex: this.draggingBrushHandle_,
       },
     }));
+    this.draggingBrushHandle_ = undefined;
+    this.removeEventListener('mousemove', this.onMouseMove_);
+    this.removeEventListener('mouseup', this.onMouseUp_);
+  }
+
+  onMouseUp_(event) {
+    if (this.draggingBrushHandle_ !== undefined) {
+      this.onEndDragBrushHandle_();
+    }
   }
 
   async onMouseMoveMain_(event) {
@@ -427,7 +428,7 @@ export default class ChartBase extends GestureEventListeners(ElementBase) {
     // It might be expensive to measure $.main and getNearestPoint, so
     // debounce to save CPU.
     this.debounce('mousemove-main', async() => {
-      const mainRect = await measureElement(this.$.main);
+      const mainRect = await measureElement(this.mainDiv);
       const {nearestPoint, nearestLine} = ChartBase.getNearestPoint(
           event, mainRect, this.lines);
       if (!nearestPoint) return;

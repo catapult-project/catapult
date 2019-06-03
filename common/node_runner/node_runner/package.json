@@ -16,6 +16,8 @@
   "private": true,
   "dependencies": {
     "@chopsui/tsmon-client": "0.0.1",
+    "@chopsui/chops-header": "0.1.5",
+    "@chopsui/chops-signin": "0.1.5",
     "@polymer/app-route": "^3.0.0",
     "@polymer/iron-collapse": "^3.0.0",
     "@polymer/iron-icon": "^3.0.0",

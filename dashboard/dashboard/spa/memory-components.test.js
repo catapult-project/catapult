@@ -69,6 +69,7 @@ suite('memory-components', function() {
     }));
     document.body.appendChild(memoryComponents);
     await afterRender();
+    await afterRender();
     let state = STORE.getState().test;
     assert.lengthOf(state.columns, 5);
     assert.strictEqual('chrome', state.columns[0].options[0].value);

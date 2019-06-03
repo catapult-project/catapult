@@ -4,11 +4,10 @@
 */
 'use strict';
 
-import '@polymer/polymer/lib/elements/dom-repeat.js';
 import OptionGroup from './option-group.js';
 import {ElementBase, STORE} from './element-base.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
+import {get} from './utils.js';
+import {html, css} from 'lit-element';
 
 export default class MemoryComponents extends ElementBase {
   static get is() { return 'memory-components'; }
@@ -28,32 +27,31 @@ export default class MemoryComponents extends ElementBase {
     };
   }
 
-  static get template() {
-    return html`
-      <style>
-        :host {
-          display: flex;
-        }
+  static get styles() {
+    return css`
+      :host {
+        display: flex;
+      }
 
-        .column {
-          border-bottom: 1px solid var(--primary-color-dark, blue);
-          margin-bottom: 4px;
-          max-height: 143px;
-          overflow-y: auto;
-        }
-      </style>
-
-      <template is="dom-repeat" items="[[columns]]" as="column"
-                                index-as="columnIndex">
-        <div class="column">
-          <option-group
-              state-path="[[statePath]].columns.[[columnIndex]]"
-              root-state-path="[[statePath]].columns.[[columnIndex]]"
-              on-option-select="onColumnSelect_">
-          </option-group>
-        </div>
-      </template>
+      .column {
+        border-bottom: 1px solid var(--primary-color-dark, blue);
+        margin-bottom: 4px;
+        max-height: 143px;
+        overflow-y: auto;
+      }
     `;
+  }
+
+  render() {
+    return html`${this.columns.map((column, columnIndex) => html`
+      <div class="column">
+        <option-group
+            .statePath="${this.statePath}.columns.${columnIndex}"
+            .rootStatePath="${this.statePath}.columns.${columnIndex}"
+            @option-select="${this.onColumnSelect_}">
+        </option-group>
+      </div>
+    `)}`;
   }
 
   stateChanged(rootState) {
@@ -61,7 +59,7 @@ export default class MemoryComponents extends ElementBase {
 
     const oldOptions = this.options;
     const oldSelectedOptions = this.selectedOptions;
-    this.setProperties(get(rootState, this.statePath));
+    Object.assign(this, get(rootState, this.statePath));
     if (this.options && this.selectedOptions &&
         (this.options !== oldOptions ||
          this.selectedOptions !== oldSelectedOptions)) {

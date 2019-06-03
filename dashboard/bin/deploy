@@ -116,13 +116,6 @@ def PackSPA(catapult_path, temp_dir, deployment_paths):
     print vulcanize_err
     raise RuntimeError('Vulcanize failed with exit code', proc.returncode)
 
-  # V2SPA displays its version as this timestamp in this format to make it easy
-  # to check whether a change is visible.
-  now = time.time()
-  print 'vulcanized', time.strftime(
-      '%Y-%m-%d %H:%M:%S', time.gmtime(now - (60 * 60 * 7)))
-  html += '<script>VULCANIZED_TIMESTAMP = new Date(%d);</script>' % (now * 1000)
-
   # Write the html to a temp file.
   vulcanized_index = os.path.join(temp_dir, 'index.vulcanized.html')
   open(vulcanized_index, 'w').write(html)
@@ -130,14 +123,28 @@ def PackSPA(catapult_path, temp_dir, deployment_paths):
   minify = os.path.join(node_modules, '..', 'minify')
   subprocess.check_output([minify, vulcanized_index])
 
-  packed_index_js = os.path.join(webpack_dir, 'index.js')
+  packed_index_js_filename = os.path.join(webpack_dir, 'index.js')
+  AddTimestamp(packed_index_js_filename)
   minifyjs = os.path.join(node_modules, '..', 'minifyjs')
-  subprocess.check_output([minifyjs, packed_index_js])
+  subprocess.check_output([minifyjs, packed_index_js_filename])
   sw_js = os.path.join(webpack_dir, 'service-worker.js')
   subprocess.check_output([minifyjs, sw_js])
 
   deployment_paths.append(webpack_dir)
   deployment_paths.append(vulcanized_index)
+
+
+def AddTimestamp(js_name):
+  # V2SPA displays its version as this timestamp in this format to make it easy
+  # to check whether a change is visible.
+  now = time.time()
+  print 'vulcanized', time.strftime(
+      '%Y-%m-%d %H:%M:%S', time.gmtime(now - (60 * 60 * 7)))
+
+  js = file(js_name).read()
+  with file(js_name, 'w') as fp:
+    fp.write('window.VULCANIZED_TIMESTAMP=new Date(%d);\n' % (now * 1000))
+    fp.write(js)
 
 
 if __name__ == '__main__':

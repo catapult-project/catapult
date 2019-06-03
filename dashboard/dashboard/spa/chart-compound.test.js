@@ -109,9 +109,7 @@ suite('chart-compound', function() {
     STORE.dispatch(UPDATE('test.minimapLayout.xAxis', {brushes: [
       {xPct: '10%'}, {xPct: '90%'},
     ]}));
-    cc.$.minimap.dispatchEvent(new CustomEvent('brush', {
-      detail: {sourceEvent: {detail: {state: 'end'}}},
-    }));
+    cc.minimap.dispatchEvent(new CustomEvent('brush-end'));
     await afterRender();
 
     assert.closeTo(cc.chartLayout.minRevision,

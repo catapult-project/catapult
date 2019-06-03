@@ -8,12 +8,10 @@ import './cp-checkbox.js';
 import './cp-input.js';
 import './cp-textarea.js';
 import './raised-button.js';
-import '@polymer/polymer/lib/elements/dom-repeat.js';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
-import {isElementChildOf, setImmutable} from './utils.js';
+import {html, css} from 'lit-element';
+import {isElementChildOf, get, setImmutable} from './utils.js';
 
 export default class TriageNew extends ElementBase {
   static get is() { return 'triage-new'; }
@@ -24,7 +22,7 @@ export default class TriageNew extends ElementBase {
       cc: String,
       components: Array,
       description: String,
-      isOpen: {type: Boolean, reflectToAttribute: true},
+      isOpen: {type: Boolean, reflect: true},
       labels: Array,
       owner: String,
       summary: String,
@@ -45,51 +43,53 @@ export default class TriageNew extends ElementBase {
     };
   }
 
-  static get template() {
-    return html`
-      <style>
-        :host {
-          background: var(--background-color, white);
-          box-shadow: var(--elevation-2);
-          display: none;
-          flex-direction: column;
-          min-width: 500px;
-          outline: none;
-          padding: 16px;
-          position: absolute;
-          right: 0;
-          z-index: var(--layer-menu, 100);
-        }
-        :host([is-open]) {
-          display: flex;
-        }
-        *:not(:nth-child(2)) {
-          margin-top: 12px;
-        }
-      </style>
+  static get styles() {
+    return css`
+      :host {
+        background: var(--background-color, white);
+        box-shadow: var(--elevation-2);
+        display: none;
+        flex-direction: column;
+        min-width: 500px;
+        outline: none;
+        padding: 16px;
+        position: absolute;
+        right: 0;
+        z-index: var(--layer-menu, 100);
+      }
+      :host([isopen]) {
+        display: flex;
+      }
+      *:not(:nth-child(1)) {
+        margin-top: 12px;
+      }
+    `;
+  }
 
+  render() {
+    return html`
       <cp-input
           id="summary"
           label="Summary"
           tabindex="0"
-          value="[[summary]]"
-          on-change="onSummary_">
+          value="${this.summary}"
+          @change="${this.onSummary_}">
       </cp-input>
 
       <cp-input
           id="owner"
           label="Owner"
           tabindex="0"
-          value="[[owner]]"
-          on-change="onOwner_">
+          value="${this.owner}"
+          @change="${this.onOwner_}">
       </cp-input>
 
       <cp-input
           id="cc"
           label="CC"
           tabindex="0"
-          value="[[cc]]"
-          on-change="onCC_">
+          value="${this.cc}"
+          @change="${this.onCC_}">
       </cp-input>
 
       <cp-textarea
@@ -97,31 +97,31 @@ export default class TriageNew extends ElementBase {
           id="description"
           label="Description"
           tabindex="0"
-          value="[[description]]"
-          on-keyup="onDescription_">
+          value="${this.description}"
+          @keyup="${this.onDescription_}">
       </cp-textarea>
 
-      <template is="dom-repeat" items="[[labels]]" as="label">
+      ${(this.labels || []).map(label => html`
         <cp-checkbox
-            checked="[[label.isEnabled]]"
+            ?checked="${label.isEnabled}"
             tabindex="0"
-            on-change="onLabel_">
-          [[label.name]]
+            @change="${event => this.onLabel_(label.name)}">
+          ${label.name}
         </cp-checkbox>
-      </template>
+      `)}
 
-      <template is="dom-repeat" items="[[components]]" as="component">
+      ${(this.components || []).map(component => html`
         <cp-checkbox
-            checked="[[component.isEnabled]]"
+            ?checked="${component.isEnabled}"
             tabindex="0"
-            on-change="onComponent_">
-          [[component.name]]
+            @change="${event => this.onComponent_(component.name)}">
+          ${component.name}
         </cp-checkbox>
-      </template>
+      `)}
 
       <raised-button
           id="submit"
-          on-click="onSubmit_"
+          @click="${this.onSubmit_}"
           tabindex="0">
         Submit
       </raised-button>
@@ -132,13 +132,17 @@ export default class TriageNew extends ElementBase {
     const oldIsOpen = this.isOpen;
     super.stateChanged(rootState);
 
-    if (this.isOpen && !oldIsOpen) {
-      this.$.description.focus();
+    if (this.isOpen && !oldIsOpen && this.descriptionInput) {
+      this.descriptionInput.focus();
     }
   }
 
-  ready() {
-    super.ready();
+  get descriptionInput() {
+    return this.shadowRoot.querySelector('#description');
+  }
+
+  constructor() {
+    super();
     this.addEventListener('blur', this.onBlur_.bind(this));
     this.addEventListener('keyup', this.onKeyup_.bind(this));
   }
@@ -171,19 +175,19 @@ export default class TriageNew extends ElementBase {
     }));
   }
 
-  async onLabel_(event) {
+  async onLabel_(name) {
     await STORE.dispatch({
       type: TriageNew.reducers.toggleLabel.name,
       statePath: this.statePath,
-      name: event.model.label.name,
+      name,
     });
   }
 
-  async onComponent_(event) {
+  async onComponent_(name) {
     await STORE.dispatch({
       type: TriageNew.reducers.toggleComponent.name,
       statePath: this.statePath,
-      name: event.model.component.name,
+      name,
     });
   }
 

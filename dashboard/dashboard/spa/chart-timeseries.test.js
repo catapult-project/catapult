@@ -9,8 +9,15 @@ import ResultChannelSender from './result-channel-sender.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {STORE} from './element-base.js';
-import {afterRender, denormalize, measureElement} from './utils.js';
 import {assert} from 'chai';
+
+import {
+  afterRender,
+  denormalize,
+  isDebug,
+  measureElement,
+  setDebugForTesting,
+} from './utils.js';
 
 suite('chart-timeseries', function() {
   async function fixture() {
@@ -115,7 +122,7 @@ suite('chart-timeseries', function() {
 
     const ct = await fixture();
 
-    window.IS_DEBUG = false;
+    setDebugForTesting(false);
     window.fetch = async(url, options) => {
       return {
         ok: true,

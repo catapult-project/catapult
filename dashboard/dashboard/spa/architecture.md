@@ -72,7 +72,7 @@ properties that point to Model components. This flexibility allows for a
 many-to-many relationship between View components and Model components.
 
 ```
-<foo-view state-path="[[statePath]].foo"></foo-view>
+<foo-view .statePath="${statePath}.foo"></foo-view>
 
 class FooView extends ElementBase {
   static get properties() {

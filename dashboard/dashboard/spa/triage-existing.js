@@ -7,13 +7,10 @@
 import './cp-input.js';
 import './cp-switch.js';
 import './raised-button.js';
-import '@polymer/polymer/lib/elements/dom-if.js';
-import '@polymer/polymer/lib/elements/dom-repeat.js';
 import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
-import {measureElement, isElementChildOf} from './utils.js';
+import {html, css} from 'lit-element';
+import {get, measureElement, isElementChildOf} from './utils.js';
 
 export default class TriageExisting extends ElementBase {
   static get is() { return 'triage-existing'; }
@@ -22,7 +19,7 @@ export default class TriageExisting extends ElementBase {
     return {
       statePath: String,
       bugId: String,
-      isOpen: {type: Boolean, reflectToAttribute: true},
+      isOpen: {type: Boolean, reflect: true},
       onlyIntersectingBugs: Boolean,
       selectedRange: Object,
       recentPerformanceBugs: Array,
@@ -45,100 +42,106 @@ export default class TriageExisting extends ElementBase {
     };
   }
 
-  static get template() {
+  static get styles() {
+    return css`
+      :host {
+        background: var(--background-color);
+        box-shadow: var(--elevation-2);
+        color: initial;
+        display: none;
+        flex-direction: column;
+        outline: none;
+        padding: 16px;
+        position: absolute;
+        right: 0;
+        z-index: var(--layer-menu);
+      }
+      :host([isopen]) {
+        display: flex;
+      }
+
+      #controls {
+        align-items: center;
+        display: flex;
+        margin: 0;
+        min-width: 400px;
+        padding: 0;
+      }
+
+      .spacer {
+        flex-grow: 1;
+      }
+
+      cp-switch {
+        margin-right: 16px;
+      }
+
+      #table-container {
+        max-height: 500px;
+        overflow: auto;
+        margin: 0;
+        padding: 0;
+      }
+
+      table {
+        border-collapse: collapse;
+        line-height: 24px;
+        margin: 16px 0;
+        width: 100%;
+      }
+
+      tbody {
+        border-width: 0;
+      }
+
+      tbody tr:hover {
+        background: #eee;
+      }
+
+      .bug_id {
+        cursor: pointer;
+        outline: none;
+        font-weight: bold;
+      }
+
+      td:nth-of-type(4) {
+        min-width: 400px;
+      }
+    `;
+  }
+
+  render() {
+    const switchTitle = this.onlyIntersectingBugs ? `Now only showing
+    intersecting bugs. Click to switch to show all bugs.` : `Now showing all
+    bugs. Click to switch to only show intersecting bugs.`;
+    const filteredBugs = TriageExisting.filterBugs(
+        this.recentPerformanceBugs,
+        this.onlyIntersectingBugs,
+        this.selectedRange);
+
     return html`
-      <style>
-        :host {
-          background: var(--background-color);
-          box-shadow: var(--elevation-2);
-          color: initial;
-          display: none;
-          flex-direction: column;
-          outline: none;
-          padding: 16px;
-          position: absolute;
-          right: 0;
-          z-index: var(--layer-menu);
-        }
-        :host([is-open]) {
-          display: flex;
-        }
-
-        #controls {
-          align-items: center;
-          display: flex;
-          margin: 0;
-          min-width: 400px;
-          padding: 0;
-        }
-
-        .spacer {
-          flex-grow: 1;
-        }
-
-        cp-switch {
-          margin-right: 16px;
-        }
-
-        #table-container {
-          max-height: 500px;
-          overflow: auto;
-          margin: 0;
-          padding: 0;
-        }
-
-        table {
-          border-collapse: collapse;
-          line-height: 24px;
-          margin: 16px 0;
-          width: 100%;
-        }
-
-        tbody {
-          border-width: 0;
-        }
-
-        tbody tr:hover {
-          background: #eee;
-        }
-
-        .bug_id {
-          cursor: pointer;
-          outline: none;
-          font-weight: bold;
-        }
-
-        td:nth-of-type(4) {
-          min-width: 400px;
-        }
-      </style>
-
       <div id="controls">
         <cp-input
             id="bug_input"
             autofocus
             label="Bug Number"
-            value="[[bugId]]"
-            on-keyup="onIdKeyup_">
+            .value="${this.bugId}"
+            @keyup="${this.onIdKeyup_}">
         </cp-input>
 
         <raised-button
-            disabled$="[[!isIdValid_(bugId)]]"
-            on-click="onSubmit_">
+            ?disabled="${!this.isIdValid_(this.bugId)}"
+            @click="${this.onSubmit_}">
           Submit
         </raised-button>
 
         <span class="spacer">&nbsp;</span>
 
         <cp-switch
-            checked="[[onlyIntersectingBugs]]"
-            on-change="onToggleOnlyIntersectingBugs_">
-          <template is="dom-if" if="[[onlyIntersectingBugs]]">
-            Intersecting Bugs Only
-          </template>
-          <template is="dom-if" if="[[!onlyIntersectingBugs]]">
-            All Bugs
-          </template>
+            ?checked="${this.onlyIntersectingBugs}"
+            title="${switchTitle}"
+            @change="${this.onToggleOnlyIntersectingBugs_}">
+          Intersecting Bugs Only
         </cp-switch>
       </div>
 
@@ -154,36 +157,35 @@ export default class TriageExisting extends ElementBase {
           </thead>
 
           <tbody>
-            <template is="dom-repeat" items="[[filterBugs_(
-                recentPerformanceBugs, onlyIntersectingBugs, selectedRange)]]"
-                as="bug">
+            ${filteredBugs.map(bug => html`
               <tr>
                 <td class="bug_id"
-                    on-click="onRecentPerformanceBugClick_"
+                    @click="${event =>
+    this.onRecentPerformanceBugClick_(bug.id)}"
                     tabindex="0">
-                  [[bug.id]]
+                  ${bug.id}
                 </td>
 
-                <td>[[bug.status]]</td>
-                <td>[[bug.owner]]</td>
-                <td>[[bug.summary]]</td>
+                <td>${bug.status}</td>
+                <td>${bug.owner}</td>
+                <td>${bug.summary}</td>
               </tr>
-            </template>
+            `)}
           </tbody>
         </table>
       </div>
     `;
   }
 
-  ready() {
-    super.ready();
+  constructor() {
+    super();
     this.addEventListener('blur', this.onBlur_.bind(this));
     this.addEventListener('keyup', this.onKeyup_.bind(this));
   }
 
   async stateChanged(rootState) {
     const oldIsOpen = this.isOpen;
-    this.set('recentPerformanceBugs', rootState.recentPerformanceBugs);
+    this.recentPerformanceBugs = rootState.recentPerformanceBugs;
     super.stateChanged(rootState);
 
     if (this.isOpen && !oldIsOpen) {
@@ -191,7 +193,7 @@ export default class TriageExisting extends ElementBase {
       // The drawer is about 33px. There's 32px of padding in this dialog.
       this.style.maxWidth = (rect.right - 33 - 32) + 'px';
 
-      this.$.bug_input.focus();
+      this.shadowRoot.querySelector('#bug_input').focus();
     }
   }
 
@@ -199,11 +201,6 @@ export default class TriageExisting extends ElementBase {
     if (event.key === 'Escape') {
       await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
     }
-  }
-
-  filterBugs_(recentPerformanceBugs, onlyIntersectingBugs, selectedRange) {
-    return TriageExisting.filterBugs(
-        recentPerformanceBugs, onlyIntersectingBugs, selectedRange);
   }
 
   isIdValid_(bugId) {
@@ -221,7 +218,7 @@ export default class TriageExisting extends ElementBase {
   async onBlur_(event) {
     if (event.relatedTarget === this ||
         isElementChildOf(event.relatedTarget, this)) {
-      this.$.bug_input.focus();
+      this.shadowRoot.querySelector('#bug_input').focus();
       return;
     }
     await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
@@ -231,9 +228,9 @@ export default class TriageExisting extends ElementBase {
     await STORE.dispatch(TOGGLE(this.statePath + '.onlyIntersectingBugs'));
   }
 
-  async onRecentPerformanceBugClick_(event) {
-    await STORE.dispatch(UPDATE(this.statePath, {bugId: event.model.bug.id}));
-    this.$.bug_input.focus();
+  async onRecentPerformanceBugClick_(bugId) {
+    await STORE.dispatch(UPDATE(this.statePath, {bugId}));
+    this.shadowRoot.querySelector('#bug_input').focus();
   }
 
   async onIdKeyup_(event) {
@@ -243,14 +240,14 @@ export default class TriageExisting extends ElementBase {
     }
     await STORE.dispatch(UPDATE(this.statePath, {bugId: event.target.value}));
   }
-}
 
-TriageExisting.filterBugs =
-  (recentPerformanceBugs, onlyIntersectingBugs, selectedRange) => {
+  static filterBugs(
+      recentPerformanceBugs, onlyIntersectingBugs, selectedRange) {
     if (!recentPerformanceBugs || !selectedRange) return [];
     if (!onlyIntersectingBugs) return recentPerformanceBugs;
     return recentPerformanceBugs.filter(bug =>
       bug.revisionRange.intersectsRangeInclusive(selectedRange));
-  };
+  }
+}
 
 ElementBase.register(TriageExisting);

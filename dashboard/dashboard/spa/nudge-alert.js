@@ -6,14 +6,12 @@
 
 import './cp-loading.js';
 import './error-set.js';
-import '@polymer/polymer/lib/elements/dom-repeat.js';
 import NudgeAlertRequest from './nudge-alert-request.js';
 import {ElementBase, STORE} from './element-base.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {UPDATE} from './simple-redux.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
-import {isElementChildOf, afterRender} from './utils.js';
+import {html, css} from 'lit-element';
+import {isElementChildOf, get, afterRender} from './utils.js';
 
 export default class NudgeAlert extends ElementBase {
   static get is() { return 'nudge-alert'; }
@@ -21,7 +19,7 @@ export default class NudgeAlert extends ElementBase {
   static get properties() {
     return {
       statePath: String,
-      isOpen: {type: Boolean, reflectToAttribute: true},
+      isOpen: {type: Boolean, reflect: true},
       errors: Array,
       isLoading: Boolean,
       options: Array,
@@ -34,6 +32,7 @@ export default class NudgeAlert extends ElementBase {
       isOpen: options.isOpen || false,
       isLoading: false,
       errors: [],
+      options: [],
 
       // The alert to be nudged:
       key: options.key || '',
@@ -54,69 +53,71 @@ export default class NudgeAlert extends ElementBase {
     };
   }
 
-  static get template() {
-    return html`
-      <style>
-        :host {
-          background: var(--background-color, white);
-          bottom: 0;
-          box-shadow: var(--elevation-2);
-          display: none;
-          flex-direction: column;
-          padding: 16px;
-          position: absolute;
-          right: 0;
-          white-space: nowrap;
-          z-index: var(--layer-menu, 100);
-        }
-        :host([is-open]) {
-          display: flex;
-        }
-        #scroller {
-          max-height: 200px;
-          overflow: auto;
-        }
-        table {
-          border-collapse: collapse;
-        }
-        tr[selected] {
-          background-color: var(--neutral-color-dark, grey);
-        }
-        tr:not([selected]) {
-          cursor: pointer;
-        }
-        tr:not([selected]):hover {
-          background-color: var(--neutral-color-light, lightgrey);
-        }
-        td {
-          padding: 4px;
-        }
-      </style>
+  static get styles() {
+    return css`
+      :host {
+        background: var(--background-color, white);
+        bottom: 0;
+        box-shadow: var(--elevation-2);
+        display: none;
+        flex-direction: column;
+        padding: 16px;
+        position: absolute;
+        right: 0;
+        white-space: nowrap;
+        z-index: var(--layer-menu, 100);
+      }
+      :host([isopen]) {
+        display: flex;
+      }
+      #scroller {
+        max-height: 200px;
+        overflow: auto;
+      }
+      table {
+        border-collapse: collapse;
+      }
+      tr[selected] {
+        background-color: var(--neutral-color-dark, grey);
+      }
+      tr:not([selected]) {
+        cursor: pointer;
+      }
+      tr:not([selected]):hover {
+        background-color: var(--neutral-color-light, lightgrey);
+      }
+      td {
+        padding: 4px;
+      }
+    `;
+  }
 
-      <error-set errors="[[errors]]"></error-set>
-      <cp-loading loading$="[[isLoading]]"></cp-loading>
+  render() {
+    return html`
+      <error-set .errors="${this.errors}"></error-set>
+      <cp-loading ?loading="${this.isLoading}"></cp-loading>
 
       <div id="scroller">
         <table>
-          <template is="dom-repeat" items="[[options]]" as="option">
-            <tr selected$="[[isEqual_(option.endRevision, endRevision)]]"
-                on-click="onNudge_">
-              <td>[[option.revisions]]</td>
-              <td>[[option.scalar]]</td>
+          ${(this.options || []).map(option => html`
+            <tr ?selected="${option.endRevision === this.endRevision}"
+                @click="${event => this.onNudge_(option)}">
+              <td>${option.revisions}</td>
+              <td>${option.scalar}</td>
             </tr>
-          </template>
+          `)}
         </table>
       </div>
     `;
   }
 
-  ready() {
-    super.ready();
+  constructor() {
+    super();
     this.addEventListener('blur', this.onBlur_.bind(this));
     this.addEventListener('keyup', this.onKeyup_.bind(this));
   }
 
-  stateChanged(rootState) {
+  async stateChanged(rootState) {
     const oldDescriptor = [
       this.suite,
       this.measurement,
@@ -140,14 +141,23 @@ export default class NudgeAlert extends ElementBase {
       this.minRevision,
       this.maxRevision,
     ].join('/');
-    if (newDescriptor !== oldDescriptor) {
-      NudgeAlert.load(this.statePath);
+    if ((newDescriptor !== oldDescriptor) ||
+        (this.suite && !this.isLoading &&
+         (!this.options || !this.options.length))) {
+      this.debounce('load', () => {
+        NudgeAlert.load(this.statePath);
+      });
     }
 
-    if (this.isOpen && (!oldIsOpen || (this.isLoading && !oldIsLoading))) {
+    await this.updateComplete;
+
+    if (this.isOpen && (!oldIsOpen || (!this.isLoading && oldIsLoading))) {
       // Either this was just opened or this just finished loading while open.
-      const row = this.$.scroller.querySelector('tr[selected]');
+      const row = this.shadowRoot.querySelector('tr[selected]');
       if (row) row.scrollIntoView({block: 'center', inline: 'center'});
+    }
+
+    if (this.isOpen && !oldIsOpen) {
       this.focus();
     }
   }
@@ -206,8 +216,8 @@ export default class NudgeAlert extends ElementBase {
     await STORE.dispatch(UPDATE(this.statePath, {isOpen: false}));
   }
 
-  async onNudge_(event) {
-    await NudgeAlert.nudge(this.statePath, event.model.option);
+  async onNudge_(option) {
+    await NudgeAlert.nudge(this.statePath, option);
     this.dispatchEvent(new CustomEvent('reload-chart', {
       bubbles: true,
       composed: true,

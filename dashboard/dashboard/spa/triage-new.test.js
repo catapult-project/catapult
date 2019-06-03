@@ -80,13 +80,15 @@ suite('triage-new', function() {
       ],
     });
 
-    tn.$.summary.value = 'summary';
-    tn.$.summary.dispatchEvent(new CustomEvent('change'));
+    tn.shadowRoot.querySelector('#summary').value = 'summary';
+    tn.shadowRoot.querySelector('#summary').dispatchEvent(
+        new CustomEvent('change'));
     await afterRender();
     assert.strictEqual('summary', tn.summary);
 
-    tn.$.description.value = 'description';
-    tn.$.description.dispatchEvent(new CustomEvent('keyup'));
+    tn.shadowRoot.querySelector('#description').value = 'description';
+    tn.shadowRoot.querySelector('#description').dispatchEvent(
+        new CustomEvent('keyup'));
     await afterRender();
     assert.strictEqual('description', tn.description);
 
@@ -102,13 +104,14 @@ suite('triage-new', function() {
     await afterRender();
     assert.isFalse(tn.components[0].isEnabled);
 
-    tn.$.owner.value = 'owner';
-    tn.$.owner.dispatchEvent(new CustomEvent('change'));
+    tn.shadowRoot.querySelector('#owner').value = 'owner';
+    tn.shadowRoot.querySelector('#owner').dispatchEvent(
+        new CustomEvent('change'));
     await afterRender();
     assert.strictEqual('owner', tn.owner);
 
-    tn.$.cc.value = 'cc';
-    tn.$.cc.dispatchEvent(new CustomEvent('change'));
+    tn.shadowRoot.querySelector('#cc').value = 'cc';
+    tn.shadowRoot.querySelector('#cc').dispatchEvent(new CustomEvent('change'));
     await afterRender();
     assert.strictEqual('cc', tn.cc);
 
@@ -116,7 +119,7 @@ suite('triage-new', function() {
     tn.addEventListener('submit', e => {
       submitEvent = e;
     });
-    tn.$.submit.click();
+    tn.shadowRoot.querySelector('#submit').click();
     await afterRender();
     assert.isDefined(submitEvent);
     assert.isFalse(tn.isOpen);

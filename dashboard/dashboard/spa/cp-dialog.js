@@ -4,29 +4,30 @@
 */
 'use strict';
 
-import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
+import {LitElement, html, css} from 'lit-element';
 
-export default class CpDialog extends PolymerElement {
+export default class CpDialog extends LitElement {
   static get is() { return 'cp-dialog'; }
 
-  static get template() {
-    return html`
-      <style>
-        :host {
-          background: rgba(0, 0, 0, 0.8);
-          display: flex;
-          height: 100%;
-          justify-content: center;
-          align-items: center;
-          left: 0;
-          position: fixed;
-          top: 0;
-          width: 100%;
-          z-index: var(--layer-drawer, 200);
-        }
-      </style>
-      <slot></slot>
+  static get styles() {
+    return css`
+      :host {
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        left: 0;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: var(--layer-drawer, 200);
+      }
     `;
+  }
+
+  render() {
+    return html`<slot></slot>`;
   }
 }
 customElements.define(CpDialog.is, CpDialog);

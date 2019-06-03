@@ -4,7 +4,9 @@
 */
 'use strict';
 
+import {getAuthorizationHeaders} from '@chopsui/chops-signin/index.js';
 import ResultChannelReceiver from './result-channel-receiver.js';
+import {isDebug, isProduction} from './utils.js';
 
 export default class RequestBase {
   constructor(options = {}) {
@@ -34,7 +36,7 @@ export default class RequestBase {
       if (response) yield response;
 
       // The service worker doesn't actually run on localhost.
-      if (window.IS_DEBUG) return;
+      if (isDebug()) return;
       try {
         for await (const update of receiver) {
           yield this.postProcess_(update, true);
@@ -50,9 +52,14 @@ export default class RequestBase {
             new URLSearchParams(this.body_));
   }
 
+  // Wrap imported function to allow tests to fake it.
+  static async getAuthorizationHeaders() {
+    return await getAuthorizationHeaders();
+  }
+
   async addAuthorizationHeaders_() {
-    if (!window.AUTH_CLIENT_ID) return;
-    const headers = await window.getAuthorizationHeaders();
+    if (!isProduction()) return;
+    const headers = await RequestBase.getAuthorizationHeaders();
     for (const [name, value] of Object.entries(headers)) {
       this.headers_.set(name, value);
     }

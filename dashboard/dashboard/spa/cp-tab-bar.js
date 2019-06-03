@@ -4,44 +4,38 @@
 */
 'use strict';
 
-import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
+import {LitElement, html, css} from 'lit-element';
 import {afterRender} from './utils.js';
 
-export default class CpTabBar extends PolymerElement {
+export default class CpTabBar extends LitElement {
   static get is() { return 'cp-tab-bar'; }
 
-  static get template() {
-    return html`
-      <style>
-        :host {
-          align-items: center;
-          color: var(--primary-color-dark, blue);
-          display: flex;
-          margin-top: 8px;
-        }
-      </style>
-      <slot></slot>
+  static get properties() {
+    return {
+      selected: String,
+    };
+  }
+
+  static get styles() {
+    return css`
+      :host {
+        align-items: center;
+        color: var(--primary-color-dark, blue);
+        display: flex;
+        margin-top: 8px;
+      }
     `;
   }
 
-  async ready() {
-    super.ready();
-    await afterRender();
-    this.observeSelected_();
+  render() {
+    return html`<slot></slot>`;
   }
 
-  async observeSelected_() {
+  updated() {
     for (const item of this.querySelectorAll('cp-tab')) {
       item.checked = (item.name === this.selected);
     }
   }
 }
-
-CpTabBar.properties = {
-  selected: {
-    type: String,
-    observer: 'observeSelected_',
-  },
-};
 
 customElements.define(CpTabBar.is, CpTabBar);

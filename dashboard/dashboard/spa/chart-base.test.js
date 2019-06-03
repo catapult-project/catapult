@@ -8,7 +8,7 @@ import ChartBase from './chart-base.js';
 import findElements from './find-elements.js';
 import {ENSURE, UPDATE} from './simple-redux.js';
 import {STORE} from './element-base.js';
-import {afterRender, animationFrame} from './utils.js';
+import {afterRender, animationFrame, timeout} from './utils.js';
 import {assert} from 'chai';
 
 suite('chart-base', function() {
@@ -50,7 +50,7 @@ suite('chart-base', function() {
         },
       ],
     })));
-    chart.$.main.style.setProperty('--mouse', 'inside');
+    chart.mainDiv.style.setProperty('--mouse', 'inside');
     let mouseLeftEvents = 0;
     chart.addEventListener('mouse-leave-main', e => {
       ++mouseLeftEvents;
@@ -66,7 +66,7 @@ suite('chart-base', function() {
     const mouseEvent = new CustomEvent('mousemove');
     mouseEvent.x = 0;
     mouseEvent.y = 0;
-    chart.$.main.dispatchEvent(mouseEvent);
+    chart.mainDiv.dispatchEvent(mouseEvent);
     assert.strictEqual(0, mouseLeftEvents);
     assert.strictEqual(0, getTooltipEvents);
     await animationFrame();
@@ -76,9 +76,9 @@ suite('chart-base', function() {
 
     mouseEvent.x = 500;
     mouseEvent.y = 500;
-    chart.$.main.dispatchEvent(mouseEvent);
-    chart.$.main.dispatchEvent(mouseEvent);
-    chart.$.main.dispatchEvent(mouseEvent);
+    chart.mainDiv.dispatchEvent(mouseEvent);
+    chart.mainDiv.dispatchEvent(mouseEvent);
+    chart.mainDiv.dispatchEvent(mouseEvent);
     assert.strictEqual(0, mouseLeftEvents);
     assert.strictEqual(1, getTooltipEvents);
     await animationFrame();
@@ -86,7 +86,7 @@ suite('chart-base', function() {
     assert.strictEqual(0, mouseLeftEvents);
     assert.strictEqual(2, getTooltipEvents);
 
-    chart.$.main.style.setProperty('--mouse', 'outside');
+    chart.mainDiv.style.setProperty('--mouse', 'outside');
     await animationFrame();
     await animationFrame();
     assert.strictEqual(1, mouseLeftEvents);
@@ -107,7 +107,7 @@ suite('chart-base', function() {
           shadePoints: '0,50 50,100 100,50',
           shadeFill: 'hsla(0, 50%, 50%, 0.5)',
           data: [
-            {xPct: 50, yPct: 50, icon: 'cp:error', iconColor: 'blue'},
+            {xPct: 50, yPct: 50, icon: 'error', iconColor: 'blue'},
           ],
         },
         {
@@ -198,7 +198,7 @@ suite('chart-base', function() {
           shadePoints: '0,50 50,100 100,50',
           shadeFill: 'hsla(0, 50%, 50%, 0.5)',
           data: [
-            {xPct: 50, yPct: 50, icon: 'cp:error', iconColor: 'blue'},
+            {xPct: 50, yPct: 50, icon: 'error', iconColor: 'blue'},
           ],
         },
         {
@@ -242,11 +242,11 @@ suite('chart-base', function() {
     })));
     await afterRender();
 
-    assert.strictEqual('50%', chart.$.tooltip.style.left);
-    assert.strictEqual('50%', chart.$.tooltip.style.top);
+    assert.strictEqual('50%', chart.tooltipDiv.style.left);
+    assert.strictEqual('50%', chart.tooltipDiv.style.top);
     assert.strictEqual('purple',
-        chart.$.tooltip.querySelector('table').style.borderColor);
-    assert.strictEqual('flex', getComputedStyle(chart.$.tooltip).display);
+        chart.tooltipDiv.querySelector('table').style.borderColor);
+    assert.strictEqual('flex', getComputedStyle(chart.tooltipDiv).display);
 
     assert.isDefined(findElements(chart, e =>
       e.tagName === 'foreignObject' &&
@@ -255,8 +255,8 @@ suite('chart-base', function() {
       e.getAttribute('y') === '50%')[0]);
 
     assert.isDefined(findElements(chart, e =>
-      e.tagName === 'IRON-ICON' &&
-      e.icon === 'cp:error' &&
+      e.tagName === 'CP-ICON' &&
+      e.icon === 'error' &&
       e.style.color === 'blue')[0]);
 
     assert.isDefined(findElements(chart, e =>

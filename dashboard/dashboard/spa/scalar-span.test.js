@@ -15,12 +15,12 @@ suite('scalar-span', function() {
     scalarSpan.unit = tr.b.Unit.byName.timeDurationInMsDelta_smallerIsBetter;
     scalarSpan.value = 1.111111;
     await afterRender();
-    assert.strictEqual('+1.111 ms', scalarSpan.$.span.textContent.trim());
-    assert.strictEqual('regression', scalarSpan.$.span.getAttribute('change'));
+    assert.strictEqual('+1.111 ms', scalarSpan.span.textContent.trim());
+    assert.strictEqual('regression', scalarSpan.span.getAttribute('change'));
 
     scalarSpan.unit = tr.b.Unit.byName.timeDurationInMsDelta_biggerIsBetter;
     await afterRender();
-    assert.strictEqual('improvement', scalarSpan.$.span.getAttribute('change'));
+    assert.strictEqual('improvement', scalarSpan.span.getAttribute('change'));
     document.body.removeChild(scalarSpan);
   });
 

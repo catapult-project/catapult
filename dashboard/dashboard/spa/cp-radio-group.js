@@ -4,37 +4,42 @@
 */
 'use strict';
 
-import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
+import {LitElement, html, css} from 'lit-element';
 import './cp-radio.js';
 
-export default class CpRadioGroup extends PolymerElement {
+export default class CpRadioGroup extends LitElement {
   static get is() { return 'cp-radio-group'; }
 
-  static get template() {
-    return html`
-      <style>
-        :host {
-          display: flex;
-          flex-direction: column;
-        }
-        ::slotted(cp-radio) {
-          margin: 4px 0;
-        }
-      </style>
-      <slot></slot>
+  static get properties() {
+    return {selected: {type: String}};
+  }
+
+  static get styles() {
+    return css`
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+      ::slotted(cp-radio) {
+        margin: 4px 0;
+      }
     `;
   }
 
-  ready() {
-    super.ready();
+  constructor() {
+    super();
     this.addEventListener('change', this.onItemChange_.bind(this));
+  }
+
+  render() {
+    return html`<slot></slot>`;
   }
 
   onItemChange_(event) {
     this.selected = event.target.name;
   }
 
-  observeSelected_(newValue, oldValue) {
+  updated() {
     for (const item of this.querySelectorAll('cp-radio')) {
       item.checked = (item.name === this.selected);
     }
@@ -45,8 +50,5 @@ export default class CpRadioGroup extends PolymerElement {
     }));
   }
 }
-
-CpRadioGroup.properties = {selected: {type: String}};
-CpRadioGroup.observers = ['observeSelected_(selected)'];
 
 customElements.define(CpRadioGroup.is, CpRadioGroup);

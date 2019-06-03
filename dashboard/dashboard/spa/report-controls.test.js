@@ -69,14 +69,14 @@ suite('report-controls', function() {
         ReportControls.CURRENT_MILESTONE], controls.minRevision);
     assert.strictEqual('latest', controls.maxRevision);
 
-    controls.$.prev_mstone.click();
+    controls.shadowRoot.querySelector('#prev-mstone').click();
     await afterRender();
     assert.strictEqual(ReportControls.CHROMIUM_MILESTONES[
         ReportControls.CURRENT_MILESTONE - 1], controls.minRevision);
     assert.strictEqual(ReportControls.CHROMIUM_MILESTONES[
         ReportControls.CURRENT_MILESTONE], controls.maxRevision);
 
-    controls.$.next_mstone.click();
+    controls.shadowRoot.querySelector('#next-mstone').click();
     await afterRender();
     assert.strictEqual(ReportControls.CHROMIUM_MILESTONES[
         ReportControls.CURRENT_MILESTONE], controls.minRevision);
@@ -89,7 +89,7 @@ suite('report-controls', function() {
     controls.addEventListener('alerts', e => {
       options = e.detail.options;
     });
-    controls.$.alerts.click();
+    controls.shadowRoot.querySelector('#alerts').click();
     assert.strictEqual(ReportControls.CHROMIUM_MILESTONES[
         ReportControls.CURRENT_MILESTONE], controls.minRevision);
     assert.strictEqual('latest', options.maxRevision);

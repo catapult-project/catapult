@@ -6,6 +6,7 @@
 
 import {assert} from 'chai';
 import ColumnHead from './column-head.js';
+import {afterRender} from './utils.js';
 
 suite('column-head', function() {
   test('icon', async function() {
@@ -15,14 +16,17 @@ suite('column-head', function() {
     columnHead.name = 'A';
     columnHead.sortColumn = 'B';
     columnHead.sortDescending = false;
-    assert.isTrue(columnHead.$.icon.hasAttribute('empty'));
+    await afterRender();
+    assert.isTrue(columnHead.icon.hasAttribute('empty'));
 
     columnHead.sortColumn = 'A';
-    assert.isFalse(columnHead.$.icon.hasAttribute('empty'));
-    assert.strictEqual('cp:arrow-upward', columnHead.$.icon.icon);
+    await afterRender();
+    assert.isFalse(columnHead.icon.hasAttribute('empty'));
+    assert.strictEqual('up', columnHead.icon.icon);
 
     columnHead.sortDescending = true;
-    assert.strictEqual('cp:arrow-downward', columnHead.$.icon.icon);
+    await afterRender();
+    assert.strictEqual('down', columnHead.icon.icon);
     document.body.removeChild(columnHead);
   });
 });

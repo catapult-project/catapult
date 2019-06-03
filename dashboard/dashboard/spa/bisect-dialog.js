@@ -10,11 +10,10 @@ import './cp-radio-group.js';
 import './cp-radio.js';
 import './error-set.js';
 import './raised-button.js';
-import '@polymer/polymer/lib/elements/dom-if.js';
 import NewPinpointRequest from './new-pinpoint-request.js';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
-import {html} from '@polymer/polymer/polymer-element.js';
+import {html, css} from 'lit-element';
 import {isElementChildOf, pinpointJob} from './utils.js';
 
 // Display a warning when bisecting large revision ranges.
@@ -69,88 +68,90 @@ export default class BisectDialog extends ElementBase {
     };
   }
 
-  static get template() {
+  static get styles() {
+    return css`
+      :host {
+        position: relative;
+      }
+
+      #dialog {
+        background: var(--background-color, white);
+        box-shadow: var(--elevation-2);
+        flex-direction: column;
+        outline: none;
+        padding: 16px;
+        position: absolute;
+        bottom: 0;
+        z-index: var(--layer-menu, 100);
+      }
+      cp-input {
+        margin: 12px 4px 4px 4px;
+        width: 100px;
+      }
+      cp-radio-group {
+        margin-left: 8px;
+        flex-direction: row;
+      }
+      .row raised-button {
+        flex-grow: 1;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+      }
+      .warning {
+        color: var(--error-color, red);
+      }
+      #cancel {
+        background: var(--background-color, white);
+        box-shadow: none;
+      }
+    `;
+  }
+
+  render() {
     return html`
-      <style>
-        :host {
-          position: relative;
-        }
-
-        #dialog {
-          background: var(--background-color, white);
-          box-shadow: var(--elevation-2);
-          flex-direction: column;
-          outline: none;
-          padding: 16px;
-          position: absolute;
-          bottom: 0;
-          z-index: var(--layer-menu, 100);
-        }
-        cp-input {
-          margin: 12px 4px 4px 4px;
-          width: 100px;
-        }
-        cp-radio-group {
-          margin-left: 8px;
-          flex-direction: row;
-        }
-        .row raised-button {
-          flex-grow: 1;
-        }
-        .row {
-          display: flex;
-          align-items: center;
-        }
-        .warning {
-          color: var(--error-color, red);
-        }
-        #cancel {
-          background: var(--background-color, white);
-          box-shadow: none;
-        }
-      </style>
-
       <raised-button
           id="open"
-          disabled$="[[!able]]"
-          title$="[[tooltip]]"
-          on-click="onOpen_">
-        Bisect [[startRevision]] - [[endRevision]]
+          ?disabled="${!this.able}"
+          title="${this.tooltip}"
+          @click="${this.onOpen_}">
+        Bisect ${this.startRevision} - ${this.endRevision}
       </raised-button>
 
-      <error-set errors="[[errors]]"></error-set>
-      <cp-loading loading$="[[isLoading]]">
+      <error-set .errors="${this.errors}"></error-set>
+      <cp-loading ?loading="${this.isLoading}">
       </cp-loading>
-      <template is="dom-if" if="[[jobId]]">
-        <a target="_blank" href="[[pinpoint_(jobId)]]">[[jobId]]</a>
-      </template>
+      ${!this.jobId ? '' : html`
+        <a target="_blank" href="${pinpointJob(this.jobId)}">${this.jobId}</a>
+      `}
 
-      <div id="dialog" hidden$="[[!isOpen]]">
+      <div id="dialog" ?hidden="${!this.isOpen}">
         <table>
           <tr>
             <td>Suite</td>
-            <td>[[suite]]</td>
+            <td>${this.suite}</td
           </tr>
           <tr>
             <td>Bot</td>
-            <td>[[bot]]</td>
+            <td>${this.bot}</td>
           </tr>
           <tr>
             <td>Measurement</td>
-            <td>[[measurement]]</td>
+            <td>${this.measurement}</td>
           </tr>
-          <template is="dom-if" if="[[case]]">
+          ${!this.case ? '' : html`
             <tr>
               <td>Case</td>
-              <td>[[case]]</td>
+              <td>${this.case}</td>
             </tr>
-          </template>
-          <template is="dom-if" if="[[statistic]]">
+          `}
+          ${!this.statistic ? '' : html`
             <tr>
               <td>Statistic</td>
-              <td>[[statistic]]</td>
+              <td>${this.statistic}</td>
             </tr>
-          </template>
+          `}
         </table>
 
         <div class="row">
@@ -158,16 +159,16 @@ export default class BisectDialog extends ElementBase {
               id="start_revision"
               label="Start Revision"
               tabindex="0"
-              value="[[startRevision]]"
-              on-change="onStartRevision_">
+              .value="${this.startRevision}"
+              @change="${this.onStartRevision_}">
           </cp-input>
 
           <cp-input
               id="end_revision"
               label="End Revision"
               tabindex="0"
-              value="[[endRevision]]"
-              on-change="onEndRevision_">
+              .value="${this.endRevision}"
+              @change="${this.onEndRevision_}">
           </cp-input>
         </div>
 
@@ -176,8 +177,8 @@ export default class BisectDialog extends ElementBase {
               id="bug_id"
               label="Bug ID"
               tabindex="0"
-              value="[[bugId]]"
-              on-change="onBugId_">
+              .value="${this.bugId}"
+              @change="${this.onBugId_}">
           </cp-input>
 
           <cp-input
@@ -185,8 +186,8 @@ export default class BisectDialog extends ElementBase {
               label="Patch"
               title="optional patch to apply to the entire job"
               tabindex="0"
-              value="[[patch]]"
-              on-change="onPatch_">
+              .value="${this.patch}"
+              @change="${this.onPatch_}">
           </cp-input>
         </div>
 
@@ -194,8 +195,8 @@ export default class BisectDialog extends ElementBase {
           Mode:
           <cp-radio-group
               id="mode"
-              selected="[[mode]]"
-              on-selected-changed="onModeChange_">
+              selected="${this.mode}"
+              @selected-changed="${this.onModeChange_}">
             <cp-radio name="performance">
               Performance
             </cp-radio>
@@ -205,23 +206,23 @@ export default class BisectDialog extends ElementBase {
           </cp-radio-group>
         </div>
 
-        <template is="dom-if"
-            if="[[isRangeLarge_(startRevision, endRevision)]]">
+        ${((this.endRevision - this.startRevision) < MANY_REVISIONS) ? '' :
+    html`
           <div class="row warning">
             Warning: bisect large revision ranges is slow and expensive.
           </div>
-        </template>
+        `}
 
         <div class="row">
           <raised-button
               id="cancel"
-              on-click="onCancel_"
+              @click="${this.onCancel_}"
               tabindex="0">
             Cancel
           </raised-button>
           <raised-button
               id="start"
-              on-click="onSubmit_"
+              @click="${this.onSubmit_}"
               tabindex="0">
             Start
           </raised-button>
@@ -230,8 +231,7 @@ export default class BisectDialog extends ElementBase {
     `;
   }
 
-  ready() {
-    super.ready();
+  firstUpdated() {
     this.addEventListener('blur', this.onBlur_.bind(this));
     this.addEventListener('keyup', this.onKeyup_.bind(this));
   }
@@ -240,16 +240,8 @@ export default class BisectDialog extends ElementBase {
     super.stateChanged(rootState);
 
     if (this.isOpen) {
-      this.$.cancel.focus();
+      this.shadowRoot.querySelector('#cancel').focus();
     }
-  }
-
-  isRangeLarge_(startRevision, endRevision) {
-    return (endRevision - startRevision) > MANY_REVISIONS;
-  }
-
-  pinpoint_(jobId) {
-    return pinpointJob(jobId);
   }
 
   async onKeyup_(event) {

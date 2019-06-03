@@ -8,11 +8,11 @@ import MenuInput from './menu-input.js';
 import {STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {assert} from 'chai';
+import {afterRender} from './utils.js';
 
 suite('menu-input', function() {
   teardown(() => {
-    for (const child of document.body.children) {
-      if (!child.matches('menu-input')) continue;
+    for (const child of document.body.querySelectorAll('menu-input')) {
       document.body.removeChild(child);
     }
   });
@@ -46,11 +46,12 @@ suite('menu-input', function() {
     }));
     document.body.appendChild(xxxInput);
     document.body.appendChild(yyyInput);
-    xxxInput.$.input.click();
+    await afterRender();
+    xxxInput.nativeInput.click();
     assert.isTrue(xxxInput.isFocused);
     assert.isFalse(yyyInput.isFocused);
 
-    yyyInput.$.input.click();
+    yyyInput.nativeInput.click();
     assert.isFalse(xxxInput.isFocused);
     assert.isTrue(yyyInput.isFocused);
   });

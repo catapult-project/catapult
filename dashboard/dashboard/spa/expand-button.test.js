@@ -8,7 +8,7 @@ import ExpandButton from './expand-button.js';
 import {STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {assert} from 'chai';
-import {get} from '@polymer/polymer/lib/utils/path.js';
+import {get} from './utils.js';
 
 suite('expand-button', function() {
   teardown(() => {
@@ -38,13 +38,13 @@ suite('expand-button', function() {
   });
 
   test('getIcon', async function() {
-    assert.strictEqual('cp:more', ExpandButton.getIcon(false, false, false));
-    assert.strictEqual('cp:less', ExpandButton.getIcon(false, false, true));
-    assert.strictEqual('cp:right', ExpandButton.getIcon(false, true, false));
-    assert.strictEqual('cp:left', ExpandButton.getIcon(false, true, true));
-    assert.strictEqual('cp:less', ExpandButton.getIcon(true, false, false));
-    assert.strictEqual('cp:more', ExpandButton.getIcon(true, false, true));
-    assert.strictEqual('cp:left', ExpandButton.getIcon(true, true, false));
-    assert.strictEqual('cp:right', ExpandButton.getIcon(true, true, true));
+    assert.strictEqual('more', ExpandButton.getIcon(false, false, false));
+    assert.strictEqual('less', ExpandButton.getIcon(false, false, true));
+    assert.strictEqual('right', ExpandButton.getIcon(false, true, false));
+    assert.strictEqual('left', ExpandButton.getIcon(false, true, true));
+    assert.strictEqual('less', ExpandButton.getIcon(true, false, false));
+    assert.strictEqual('more', ExpandButton.getIcon(true, false, true));
+    assert.strictEqual('left', ExpandButton.getIcon(true, true, false));
+    assert.strictEqual('right', ExpandButton.getIcon(true, true, true));
   });
 });

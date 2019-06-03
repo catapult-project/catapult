@@ -5,8 +5,6 @@
 'use strict';
 
 import './scalar-span.js';
-import '@polymer/polymer/lib/elements/dom-if.js';
-import '@polymer/polymer/lib/elements/dom-repeat.js';
 import AlertDetail from './alert-detail.js';
 import BisectDialog from './bisect-dialog.js';
 import ChartTimeseries from './chart-timeseries.js';
@@ -14,9 +12,14 @@ import NudgeAlert from './nudge-alert.js';
 import {DetailsFetcher} from './details-fetcher.js';
 import {ElementBase, STORE} from './element-base.js';
 import {TimeseriesMerger} from './timeseries-merger.js';
-import {breakWords, enumerate} from './utils.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
+import {html, css} from 'lit-element';
+
+import {
+  breakWords,
+  enumerate,
+  get,
+  isProduction,
+} from './utils.js';
 
 // Sort hidden rows after rows with visible labels.
 const HIDE_ROW_PREFIX = String.fromCharCode('z'.charCodeAt(0) + 1).repeat(3);
@@ -55,174 +58,139 @@ export default class DetailsTable extends ElementBase {
     };
   }
 
-  static get template() {
-    const alertDetailPath = html([
-      '[[statePath]].bodies.[[bodyIndex]].alertCells.' +
-      '[[cellIndex]].alerts.[[alertIndex]]',
-    ]);
-    const bisectDialogPath = html([
-      '[[statePath]].bodies.[[bodyIndex]].bisectCells.[[bisectIndex]]',
-    ]);
+  static get styles() {
+    return css`
+      :host {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+      }
+      #empty {
+        min-width: 300px;
+        min-height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #empty[hidden], table[hidden] {
+        display: none;
+      }
+      table {
+        box-shadow: var(--elevation-1);
+        padding: 4px;
+      }
+      th {
+        /* --color is computed by getColor_ and set in the HTML below. */
+        color: var(--color);
+        border-bottom: 2px solid var(--color);
+        padding-top: 4px;
+      }
+      td {
+        vertical-align: top;
+      }
+    `;
+  }
 
+  renderLinkRow(row) {
     return html`
-      <style>
-        :host {
-          align-items: center;
-          display: flex;
-          flex-direction: column;
-          width: 100%;
-        }
-        #empty {
-          min-width: 300px;
-          min-height: 50px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        #empty[hidden], table[hidden] {
-          display: none;
-        }
-        table {
-          box-shadow: var(--elevation-1);
-          padding: 4px;
-        }
-        th {
-          /* --color is computed by getColor_ and set in the HTML below. */
-          color: var(--color);
-          border-bottom: 2px solid var(--color);
-          padding-top: 4px;
-        }
-        td {
-          vertical-align: top;
-        }
-      </style>
+      <tr>
+        <td>
+          ${(row.label && !row.label.startsWith(HIDE_ROW_PREFIX)) ? html`
+            ${row.label}
+          ` : html`
+            &nbsp;
+          `}
+        </td>
+        ${row.cells.map(cell => html`
+          <td>
+            ${cell.href ? html`
+              <a href="${cell.href}" target="_blank">${cell.label}</a>
+            ` : html`
+              ${cell.label}
+            `}
+          </td>
+        `)}
+      </tr>
+    `;
+  }
 
-      <cp-loading loading$="[[isLoading]]">
-      </cp-loading>
+  render() {
+    return html`
+      <cp-loading ?loading="${this.isLoading}"></cp-loading>
 
-      <div id="empty" hidden$="[[hideEmpty_(isLoading, bodies)]]">
+      <div id="empty" ?hidden="${!this.isLoading || this.bodies.length}">
         Loading details
       </div>
 
-      <table hidden$="[[isEmpty_(bodies)]]">
+      <table ?hidden="${!this.bodies || (this.bodies.length === 0)}">
         <thead>
-          <template is="dom-repeat" items="[[commonLinkRows]]" as="row">
-            <tr>
-              <td>
-                <template is="dom-if" if="[[showRowLabel_(row.label)]]">
-                  [[row.label]]
-                </template>
-                <template is="dom-if" if="[[!showRowLabel_(row.label)]]">
-                  &nbsp;
-                </template>
-              </td>
-              <template is="dom-repeat" items="[[row.cells]]" as="cell">
-                <td>
-                  <template is="dom-if" if="[[cell.href]]">
-                    <a href="[[cell.href]]" target="_blank">[[cell.label]]</a>
-                  </template>
-                  <template is="dom-if" if="[[!cell.href]]">
-                    [[cell.label]]
-                  </template>
-                </td>
-              </template>
-            </tr>
-          </template>
+          ${(this.commonLinkRows || []).map(row => this.renderLinkRow(row))}
         </thead>
 
-        <template is="dom-repeat" items="[[bodies]]" as="body"
-                                  index-as="bodyIndex">
+        ${(this.bodies || []).map((body, bodyIndex) => html`
           <tbody>
-            <template is="dom-if" if="[[isMultiple_(lineDescriptors)]]">
+            ${(this.lineDescriptors.length < 2) ? '' : html`
               <tr>
                 <th colspan="99"
-                    style$="--color: [[getColor_(colorByLine, body)]];">
-                  <template is="dom-repeat" items="[[body.descriptorParts]]"
-                                            as="part">
-                    <span>[[part]]</span>
-                  </template>
+                    style="--color: ${this.getColor_(body)};">
+                  ${body.descriptorParts.map(part => html`
+                    <span>${part}</span>
+                  `)}
                 </th>
               </tr>
-            </template>
+            `}
 
-            <template is="dom-repeat" items="[[body.scalarRows]]" as="row">
+            ${body.scalarRows.map(row => html`
               <tr>
-                <td>
-                  [[row.label]]
-                </td>
-                <template is="dom-repeat" items="[[row.cells]]" as="cell">
+                <td>${row.label}</td>
+                ${row.cells.map(cell => html`
                   <td>
                     <scalar-span
-                        value="[[cell.value]]"
-                        unit="[[cell.unit]]">
+                        .value="${cell.value}"
+                        .unit="${cell.unit}">
                     </scalar-span>
                   </td>
-                </template>
+                `)}
               </tr>
-            </template>
+            `)}
 
-            <template is="dom-repeat" items="[[body.linkRows]]" as="row">
-              <tr>
-                <td>
-                  <template is="dom-if" if="[[showRowLabel_(row.label)]]">
-                    [[row.label]]
-                  </template>
-                  <template is="dom-if" if="[[!showRowLabel_(row.label)]]">
-                    &nbsp;
-                  </template>
-                </td>
-                <template is="dom-repeat" items="[[row.cells]]" as="cell">
-                  <td>
-                    <template is="dom-if" if="[[cell.href]]">
-                      <a href="[[cell.href]]" target="_blank">
-                        [[cell.label]]
-                      </a>
-                    </template>
-                    <template is="dom-if" if="[[!cell.href]]">
-                      [[cell.label]]
-                    </template>
-                  </td>
-                </template>
-              </tr>
-            </template>
+            ${body.linkRows.map(row => this.renderLinkRow(row))}
 
-            <template is="dom-if" if="[[!isEmpty_(body.alertCells)]]">
+            ${!body.alertCells.length ? '' : html`
               <tr>
                 <td>Alerts</td>
-                <template is="dom-repeat" items="[[body.alertCells]]"
-                                          as="cell" index-as="cellIndex">
+                ${body.alertCells.map((cell, cellIndex) => html`
                   <td>
-                    <template is="dom-repeat" items="[[cell.alerts]]"
-                                              index-as="alertIndex">
-                      <alert-detail state-path="${alertDetailPath}">
+                    ${cell.alerts.map((alert, alertIndex) => html`
+                      <alert-detail .statePath="${
+  this.statePath}.bodies.${bodyIndex}.alertCells.${cellIndex}.alerts.${
+  alertIndex}">
                       </alert-detail>
-                    </template>
+                    `)}
                   </td>
-                </template>
+                `)}
               </tr>
-            </template>
+            `}
 
-            <template is="dom-if" if="[[!isEmpty_(body.bisectCells)]]">
+            ${!body.bisectCells.length ? '' : html`
               <tr>
                 <td>Bisect</td>
-                <template is="dom-if" if="[[body.bisectMessage]]">
+                ${body.bisectMessage ? html`
                   <td colspan="99">
-                    [[body.bisectMessage]]
+                    ${body.bisectMessage}
                   </td>
-                </template>
-                <template is="dom-if" if="[[!body.bisectMessage]]">
-                  <template is="dom-repeat" items="[[body.bisectCells]]"
-                      as="bisect" index-as="bisectIndex">
-                    <td>
-                      <bisect-dialog state-path="${bisectDialogPath}">
-                      </bisect-dialog>
-                    </td>
-                  </template>
-                </template>
+                ` : body.bisectCells.map((bisect, bisectIndex) => html`
+                  <td>
+                    <bisect-dialog .statePath="${
+  this.statePath}.bodies.${bodyIndex}.bisectCells.${bisectIndex}">
+                    </bisect-dialog>
+                  </td>
+                `)}
               </tr>
-            </template>
+            `}
           </tbody>
-        </template>
+        `)}
       </table>
     `;
   }
@@ -233,7 +201,7 @@ export default class DetailsTable extends ElementBase {
     const oldLineDescriptors = this.lineDescriptors;
     const oldRevisionRanges = this.revisionRanges;
 
-    this.setProperties(get(rootState, this.statePath));
+    Object.assign(this, get(rootState, this.statePath));
 
     if (this.lineDescriptors !== oldLineDescriptors ||
         this.revisionRanges !== oldRevisionRanges) {
@@ -243,18 +211,10 @@ export default class DetailsTable extends ElementBase {
     }
   }
 
-  getColor_(colorByLine, body) {
-    for (const {descriptor, color} of (colorByLine || [])) {
+  getColor_(body) {
+    for (const {descriptor, color} of (this.colorByLine || [])) {
       if (body.descriptor === descriptor) return color;
     }
-  }
-
-  showRowLabel_(label) {
-    return label && !label.startsWith(HIDE_ROW_PREFIX);
-  }
-
-  hideEmpty_(isLoading, bodies) {
-    return !isLoading || !this.isEmpty_(bodies);
   }
 
   static async load(statePath) {
@@ -512,6 +472,9 @@ function collectRowsByLabel(rowsByLabel) {
 
 function buildBisectMessage(
     lineDescriptor, userEmail, masterWhitelist, suiteBlacklist) {
+  if (!isProduction()) {
+    return 'Bisect is not available in dev versions.';
+  }
   if (!userEmail) {
     return 'Please sign in to start bisect jobs';
   }

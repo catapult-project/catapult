@@ -5,7 +5,46 @@
 'use strict';
 
 import {afterNextRender} from '@polymer/polymer/lib/utils/render-status.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
+
+let isDebugForTesting;
+export function isDebug() {
+  if (isDebugForTesting !== undefined) return isDebugForTesting;
+  return window.location.hostname === 'localhost';
+}
+export function setDebugForTesting(d) {
+  isDebugForTesting = d;
+}
+
+export const PRODUCTION_HOSTNAME = 'v2spa-dot-chromeperf.appspot.com';
+let isProductionForTesting;
+export function isProduction() {
+  if (isProductionForTesting !== undefined) return isProductionForTesting;
+  return window.location.hostname === PRODUCTION_HOSTNAME;
+}
+export function setProductionForTesting(d) {
+  isProductionForTesting = d;
+}
+
+/**
+ * Reads a value from a path.  If any sub-property in the path is `undefined`,
+ * this method returns `undefined` (will never throw.
+ *
+ * @param {Object} root Object from which to dereference path from
+ * @param {string | !Array<string|number>} path Path to read
+ * @return {*} Value at path, or `undefined` if the path could not be
+ *  fully dereferenced.
+ */
+export function get(root, path) {
+  // Adapted from @polymer/polymer/lib/utils/path.js
+  let prop = root;
+  const parts = path.split('.');
+  for (let i = 0; i < parts.length; i++) {
+    if (!prop) return;
+    const part = parts[i];
+    prop = prop[part];
+  }
+  return prop;
+}
 
 /**
   * Like Polymer.Path.set(), but returns a modified clone of root instead of

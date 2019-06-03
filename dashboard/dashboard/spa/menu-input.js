@@ -4,13 +4,13 @@
 */
 'use strict';
 
+import './cp-icon.js';
 import './cp-input.js';
 import OptionGroup from './option-group.js';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
-import {isElementChildOf, setImmutable} from './utils.js';
+import {html, css} from 'lit-element';
+import {isElementChildOf, get, setImmutable} from './utils.js';
 
 export default class MenuInput extends ElementBase {
   static get is() { return 'menu-input'; }
@@ -40,83 +40,78 @@ export default class MenuInput extends ElementBase {
     };
   }
 
-  static get template() {
-    return html`
-      <style>
-        :host {
-          display: block;
-          padding-top: 12px;
-        }
+  static get styles() {
+    return css`
+      :host {
+        display: block;
+        padding-top: 12px;
+      }
 
-        #clear {
-          color: var(--neutral-color-dark, grey);
-          cursor: pointer;
-          flex-shrink: 0;
-          height: var(--icon-size, 1em);
-          width: var(--icon-size, 1em);
-        }
+      #clear {
+        color: var(--neutral-color-dark, grey);
+        cursor: pointer;
+        flex-shrink: 0;
+      }
 
-        #menu {
-          background-color: var(--background-color, white);
-          box-shadow: var(--elevation-2);
-          max-height: 600px;
-          outline: none;
-          overflow: auto;
-          padding-right: 8px;
-          position: absolute;
-          z-index: var(--layer-menu, 100);
-        }
+      #menu {
+        background-color: var(--background-color, white);
+        box-shadow: var(--elevation-2);
+        max-height: 600px;
+        outline: none;
+        overflow: auto;
+        padding-right: 8px;
+        position: absolute;
+        z-index: var(--layer-menu, 100);
+      }
 
-        #bottom {
-          display: flex;
-        }
-      </style>
-
-      <cp-input
-          id="input"
-          autofocus="[[isFocused]]"
-          error$="[[!isValid_(selectedOptions, alwaysEnabled, options)]]"
-          disabled="[[isDisabled_(alwaysEnabled, options)]]"
-          label="[[label]]"
-          value="[[getInputValue_(isFocused, query, selectedOptions)]]"
-          on-blur="onBlur_"
-          on-focus="onFocus_"
-          on-keyup="onKeyup_">
-        <iron-icon
-            id="clear"
-            hidden$="[[isEmpty_(selectedOptions)]]"
-            icon="cp:cancel"
-            title="clear"
-            alt="clear"
-            on-click="onClear_">
-        </iron-icon>
-      </cp-input>
-
-      <div id="menu" tabindex="0">
-        <iron-collapse opened="[[isFocused]]">
-          <slot name="top"></slot>
-          <div id="bottom">
-            <slot name="left"></slot>
-            <option-group
-                state-path="[[statePath]]"
-                root-state-path="[[statePath]]">
-            </option-group>
-          </div>
-        </iron-collapse>
-      </div>
+      #bottom {
+        display: flex;
+      }
     `;
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-    this.observeIsFocused_();
+  render() {
+    return html`
+      <cp-input
+          id="input"
+          ?autofocus="${this.isFocused}"
+          .error="${!this.isValid_()}"
+          ?disabled="${this.isDisabled_()}"
+          .label="${this.label}"
+          value="${MenuInput.inputValue(
+      this.isFocused, this.query, this.selectedOptions)}"
+          @blur="${this.onBlur_}"
+          @focus="${this.onFocus_}"
+          @keyup="${this.onKeyup_}">
+        <cp-icon
+            id="clear"
+            ?hidden="${!this.selectedOptions || !this.selectedOptions.length}"
+            icon="cancel"
+            title="clear"
+            alt="clear"
+            @click="${this.onClear_}">
+        </cp-icon>
+      </cp-input>
+
+      <div id="menu" tabindex="0" ?hidden="${!this.isFocused}">
+        <slot name="top"></slot>
+        <div id="bottom">
+          <slot name="left"></slot>
+          <option-group
+              .statePath="${this.statePath}"
+              .rootStatePath="${this.statePath}">
+          </option-group>
+        </div>
+      </div>
+    `;
   }
 
   stateChanged(rootState) {
     if (!this.statePath) return;
     this.largeDom = rootState.largeDom;
     this.rootFocusTimestamp = rootState.focusTimestamp;
-    this.setProperties(get(rootState, this.statePath));
+    Object.assign(this, get(rootState, this.statePath));
+
     const isFocused = (this.focusTimestamp || false) &&
       (rootState.focusTimestamp === this.focusTimestamp);
     const focusChanged = (isFocused !== this.isFocused);
@@ -124,28 +119,32 @@ export default class MenuInput extends ElementBase {
     if (focusChanged) this.observeIsFocused_();
   }
 
+  firstUpdated() {
+    this.nativeInput = this.shadowRoot.querySelector('cp-input');
+    this.observeIsFocused_();
+  }
+
   async observeIsFocused_() {
+    if (!this.nativeInput) return;
     if (this.isFocused) {
-      this.$.input.focus();
+      this.nativeInput.focus();
     } else {
-      this.$.input.blur();
+      this.nativeInput.blur();
     }
   }
 
-  isDisabled_(alwaysEnabled, options) {
-    return !alwaysEnabled && options && (options.length === 0);
+  isDisabled_() {
+    return !this.alwaysEnabled && this.options && (this.options.length === 0);
   }
 
-  isValid_(selectedOptions, alwaysEnabled, options) {
-    if (this.isDisabled_(alwaysEnabled, options)) return true;
+  isValid_() {
+    if (this.isDisabled_(this.alwaysEnabled, this.options)) return true;
     if (!this.required) return true;
-    if (!this.requireSingle && !this.isEmpty_(selectedOptions)) return true;
-    if (this.requireSingle && (selectedOptions.length === 1)) return true;
+    if (!this.requireSingle && this.selectedOptions.length) {
+      return true;
+    }
+    if (this.requireSingle && (this.selectedOptions.length === 1)) return true;
     return false;
-  }
-
-  getInputValue_(isFocused, query, selectedOptions) {
-    return MenuInput.inputValue(isFocused, query, selectedOptions);
   }
 
   async onFocus_(event) {
@@ -155,7 +154,7 @@ export default class MenuInput extends ElementBase {
 
   async onBlur_(event) {
     if (isElementChildOf(event.relatedTarget, this)) {
-      this.$.input.focus();
+      this.nativeInput.focus();
       return;
     }
     STORE.dispatch(UPDATE(this.statePath, {
@@ -166,7 +165,7 @@ export default class MenuInput extends ElementBase {
 
   async onKeyup_(event) {
     if (event.key === 'Escape') {
-      this.$.input.blur();
+      this.nativeInput.blur();
       return;
     }
     STORE.dispatch(UPDATE(this.statePath, {query: event.target.value}));

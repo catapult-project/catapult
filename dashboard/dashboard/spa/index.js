@@ -6,14 +6,9 @@
 
 METRICS.frontendVersion = 2;
 
-window.IS_DEBUG = location.hostname === 'localhost';
-const PRODUCTION = 'v2spa-dot-chromeperf.appspot.com';
-window.IS_PRODUCTION = location.hostname === PRODUCTION;
+import {isDebug} from './utils.js';
 
-window.AUTH_CLIENT_ID = !IS_PRODUCTION ? '' :
-  '62121018386-rhk28ad5lbqheinh05fgau3shotl2t6c.apps.googleusercontent.com';
-
-if ('serviceWorker' in navigator && !IS_DEBUG) {
+if ('serviceWorker' in navigator && !isDebug()) {
   document.addEventListener('DOMContentLoaded', async() => {
     await navigator.serviceWorker.register(
         'service-worker.js?' + VULCANIZED_TIMESTAMP.getTime());

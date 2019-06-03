@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-icon.js';
 import './cp-input.js';
 import './raised-button.js';
 import MenuInput from './menu-input.js';
@@ -11,9 +12,8 @@ import OptionGroup from './option-group.js';
 import ReportNamesRequest from './report-names-request.js';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
-import {simpleGUID} from './utils.js';
+import {html, css} from 'lit-element';
+import {get, isDebug, simpleGUID} from './utils.js';
 
 export default class ReportControls extends ElementBase {
   static get is() { return 'report-controls'; }
@@ -53,57 +53,57 @@ export default class ReportControls extends ElementBase {
     };
   }
 
-  static get template() {
+  static get styles() {
+    return css`
+      :host {
+        display: flex;
+        align-items: center;
+      }
+
+      #source {
+        width: 250px;
+      }
+
+      #prev-mstone,
+      #next-mstone {
+        font-size: larger;
+      }
+
+      #alerts {
+        color: var(--primary-color-dark);
+      }
+
+      #min-revision {
+        margin-right: 8px;
+      }
+
+      #min-revision,
+      #max-revision {
+        width: 84px;
+      }
+
+      #close {
+        align-self: flex-start;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      .spacer {
+        flex-grow: 1;
+      }
+    `;
+  }
+
+  render() {
     return html`
-      <style>
-        :host {
-          display: flex;
-          align-items: center;
-        }
-
-        #source {
-          width: 250px;
-        }
-
-        #prev_mstone,
-        #next_mstone {
-          font-size: larger;
-        }
-
-        #alerts {
-          color: var(--primary-color-dark);
-        }
-
-        #min_revision {
-          margin-right: 8px;
-        }
-
-        #min_revision,
-        #max_revision {
-          width: 84px;
-        }
-
-        #close {
-          align-self: flex-start;
-          cursor: pointer;
-          flex-shrink: 0;
-          height: var(--icon-size, 1em);
-          width: var(--icon-size, 1em);
-        }
-
-        .spacer {
-          flex-grow: 1;
-        }
-      </style>
-
-      <menu-input id="source" state-path="[[statePath]].source"></menu-input>
+      <menu-input id="source" .statePath="${this.statePath}.source">
+      </menu-input>
 
       <raised-button
           id="alerts"
           title="Alerts"
-          on-click="onAlerts_">
-        <iron-icon icon="cp:alert">
-        </iron-icon>
+          @click="${this.onAlerts_}">
+        <cp-icon icon="alert"></cp-icon>
         <span class="nav_button_label">
           Alerts
         </span>
@@ -112,44 +112,43 @@ export default class ReportControls extends ElementBase {
       <span class="spacer">&nbsp;</span>
 
       <raised-button
-          id="prev_mstone"
-          disabled$="[[!isPreviousMilestone_(milestone)]]"
-          on-click="onPreviousMilestone_">
-        [[prevMstoneButtonLabel_(milestone, maxRevision)]]
-        <iron-icon icon="cp:left"></iron-icon>
+          id="prev-mstone"
+          ?disabled="${this.milestone <= (MIN_MILESTONE + 1)}"
+          @click="${this.onPreviousMilestone_}">
+        M${this.milestone - ((this.maxRevision === 'latest') ? 1 : 2)}
+        <cp-icon icon="left"></cp-icon>
       </raised-button>
 
       <cp-input
-          id="min_revision"
-          value="[[minRevisionInput]]"
+          id="min-revision"
+          .value="${this.minRevisionInput}"
           label="Min Revision"
-          on-keyup="onMinRevisionKeyup_">
+          @keyup="${this.onMinRevisionKeyup_}">
       </cp-input>
 
       <cp-input
-          id="max_revision"
-          value="[[maxRevisionInput]]"
+          id="max-revision"
+          .value="${this.maxRevisionInput}"
           label="Max Revision"
-          on-keyup="onMaxRevisionKeyup_">
+          @keyup="${this.onMaxRevisionKeyup_}">
       </cp-input>
 
       <raised-button
-          id="next_mstone"
-          disabled$="[[!isNextMilestone_(milestone)]]"
-          on-click="onNextMilestone_">
-        <iron-icon icon="cp:right"></iron-icon>
-        M[[add_(milestone, 1)]]
+          id="next-mstone"
+          ?disabled="${this.milestone >= ReportControls.CURRENT_MILESTONE}"
+          @click="${this.onNextMilestone_}">
+        <cp-icon icon="right"></cp-icon>
+        M${this.milestone + 1}
       </raised-button>
 
       <span class="spacer">&nbsp;</span>
 
-      <iron-icon id="close" icon="cp:close" on-click="onCloseSection_">
-      </iron-icon>
+      <cp-icon id="close" icon="close" @click="${this.onCloseSection_}">
+      </cp-icon>
     `;
   }
 
-  connectedCallback() {
-    super.connectedCallback();
+  firstUpdated() {
     ReportControls.connected(this.statePath);
   }
 
@@ -187,7 +186,7 @@ export default class ReportControls extends ElementBase {
   }
 
   stateChanged(rootState) {
-    this.set('userEmail', rootState.userEmail);
+    this.userEmail = rootState.userEmail;
     super.stateChanged(rootState);
   }
 
@@ -197,15 +196,6 @@ export default class ReportControls extends ElementBase {
       composed: true,
       detail: {sectionId: this.sectionId},
     }));
-  }
-
-  prevMstoneButtonLabel_(milestone, maxRevision) {
-    return this.prevMstoneLabel_(milestone - 1, maxRevision);
-  }
-
-  prevMstoneLabel_(milestone, maxRevision) {
-    if (maxRevision === 'latest') milestone += 1;
-    return `M${milestone - 1}`;
   }
 
   onPreviousMilestone_() {
@@ -258,14 +248,6 @@ export default class ReportControls extends ElementBase {
     if (!maxRevisionInput.match(/^\d{6}$/)) return;
     STORE.dispatch(UPDATE(statePath, {maxRevision: maxRevisionInput}));
   }
-
-  isPreviousMilestone_(milestone) {
-    return milestone > (MIN_MILESTONE + 1);
-  }
-
-  isNextMilestone_(milestone) {
-    return milestone < ReportControls.CURRENT_MILESTONE;
-  }
 }
 
 // http://crbug/936507
@@ -311,7 +293,7 @@ ReportControls.reducers = {
 
   receiveSourceOptions: (state, {reportNames}, rootState) => {
     const options = OptionGroup.groupValues(reportNames);
-    if (window.IS_DEBUG || rootState.userEmail) {
+    if (isDebug() || rootState.userEmail) {
       options.push(ReportControls.CREATE);
     }
     const label = `Reports (${reportNames.length})`;

@@ -11,8 +11,14 @@ import findElements from './find-elements.js';
 import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {UPDATE} from './simple-redux.js';
-import {afterRender, animationFrame, timeout} from './utils.js';
 import {assert} from 'chai';
+
+import {
+  afterRender,
+  animationFrame,
+  timeout,
+  setDebugForTesting,
+} from './utils.js';
 
 suite('alert-detail', function() {
   async function fixture(options) {
@@ -30,7 +36,7 @@ suite('alert-detail', function() {
   let existingBugBody;
   let newBugBody;
   setup(() => {
-    window.IS_DEBUG = true;
+    setDebugForTesting(true);
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {

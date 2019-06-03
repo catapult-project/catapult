@@ -11,7 +11,7 @@ import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {MODE} from './layout-timeseries.js';
 import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
-import {afterRender, denormalize} from './utils.js';
+import {afterRender, denormalize, setDebugForTesting} from './utils.js';
 import {assert} from 'chai';
 
 suite('sparkline-compound', function() {
@@ -21,7 +21,7 @@ suite('sparkline-compound', function() {
   setup(() => {
     MS_PER_YEAR = tr.b.convertUnit(
         1, tr.b.UnitScale.TIME.YEAR, tr.b.UnitScale.TIME.MILLI_SEC);
-    window.IS_DEBUG = true;
+    setDebugForTesting(true);
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
       return {

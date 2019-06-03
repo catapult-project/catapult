@@ -4,11 +4,10 @@
 */
 'use strict';
 
-import '@polymer/polymer/lib/elements/dom-if.js';
 import OptionGroup from './option-group.js';
 import {ElementBase, STORE} from './element-base.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
+import {get} from './utils.js';
+import {html, css} from 'lit-element';
 
 export default class TagFilter extends ElementBase {
   static get is() { return 'tag-filter'; }
@@ -26,34 +25,37 @@ export default class TagFilter extends ElementBase {
     return {tags};
   }
 
-  static get template() {
-    return html`
-      <style>
-        #container {
-          align-items: center;
-          border-right: 1px solid black;
-          display: flex;
-          flex-direction: column;
-          height: 100%;
-          padding-right: 8px;
-        }
-        #head {
-          padding: 4px;
-          color: var(--neutral-color-dark, grey);
-          font-weight: bold;
-        }
-      </style>
+  static get styles() {
+    return css`
+      #container {
+        align-items: center;
+        border-right: 1px solid black;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding-right: 8px;
+      }
+      #head {
+        padding: 4px;
+        color: var(--neutral-color-dark, grey);
+        font-weight: bold;
+      }
+    `;
+  }
 
-      <template is="dom-if" if="[[!isEmpty_(tags.options)]]">
-        <div id="container">
-          <span id="tag_head">Tags</span>
-          <option-group
-              state-path="[[statePath]].tags"
-              root-state-path="[[statePath]].tags"
-              on-option-select="onTagSelect_">
-          </option-group>
-        </div>
-      </template>
+  render() {
+    if (!this.tags || !this.tags.options || (this.tags.options.length === 0)) {
+      return html``;
+    }
+    return html`
+      <div id="container">
+        <span id="tag_head">Tags</span>
+        <option-group
+            .statePath="${this.statePath}.tags"
+            .rootStatePath="${this.statePath}.tags"
+            @option-select="${this.onTagSelect_}">
+        </option-group>
+      </div>
     `;
   }
 

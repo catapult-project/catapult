@@ -6,11 +6,9 @@
 
 import './cp-checkbox.js';
 import './expand-button.js';
-import '@polymer/polymer/lib/elements/dom-if.js';
-import '@polymer/polymer/lib/elements/dom-repeat.js';
 import {ElementBase, STORE} from './element-base.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
+import {get} from './utils.js';
+import {html, css} from 'lit-element';
 
 export default class OptionGroup extends ElementBase {
   static get is() { return 'option-group'; }
@@ -44,93 +42,88 @@ export default class OptionGroup extends ElementBase {
     };
   }
 
-  static get template() {
-    return html`
-      <style>
-        :host {
-          display: flex;
-          flex-direction: column;
-        }
+  static get styles() {
+    return css`
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+      :host([hidden]) {
+        display: none;
+      }
 
-        .row {
-          align-items: center;
-          display: flex;
-          margin: 1px 0 1px 8px;
-        }
+      .row {
+        align-items: center;
+        display: flex;
+        margin: 1px 0 1px 8px;
+      }
 
-        .row[indent] {
-          margin-left: 60px;
-        }
+      .row[indent] {
+        margin-left: 60px;
+      }
 
-        option-group {
-          margin-left: 28px;
-        }
+      option-group {
+        margin-left: 28px;
+      }
 
-        expand-button {
-          align-items: center;
-          border-radius: 0;
-          height: 100%;
-          justify-content: space-between;
-          margin: 0;
-          min-width: 0;
-          padding: 0 8px 0 0;
-          width: 44px;
-          flex-shrink: 0;
-        }
+      expand-button {
+        align-items: center;
+        border-radius: 0;
+        height: 100%;
+        justify-content: space-between;
+        margin: 0;
+        min-width: 0;
+        padding: 0 8px 0 0;
+        width: 44px;
+        flex-shrink: 0;
+      }
 
-        cp-checkbox {
-          flex-shrink: 0;
-        }
-      </style>
-
-      <dom-repeat items="[[options]]" as="option"
-                                index-as="optionIndex">
-        <template>
-          <dom-if if="[[matches_(option, query)]]">
-            <template>
-              <div class="row" indent$="[[indentRow_(option)]]">
-                <dom-if if="[[option.options]]">
-                  <template>
-                    <expand-button
-                        state-path="[[statePath]].options.[[optionIndex]]"
-                        tabindex="0">
-                      [[countDescendents_(option.options)]]
-                    </expand-button>
-                  </template>
-                </dom-if>
-
-                <cp-checkbox
-                    checked="[[isSelected_(option, selectedOptions)]]"
-                    disabled="[[option.disabled]]"
-                    tabindex="0"
-                    on-change="onSelect_">
-                  [[label_(option)]]
-                </cp-checkbox>
-              </div>
-
-              <dom-if if="[[shouldStampSubOptions_(option, query)]]">
-                <template>
-                  <iron-collapse opened="[[isExpanded_(option, query)]]">
-                    <option-group
-                        state-path="[[statePath]].options.[[optionIndex]]"
-                        root-state-path="[[rootStatePath]]">
-                    </option-group>
-                  </iron-collapse>
-                </template>
-              </dom-if>
-            </template>
-          </dom-if>
-        </template>
-      </dom-repeat>
+      cp-checkbox {
+        flex-shrink: 0;
+      }
     `;
+  }
+
+  renderOption(option, optionIndex) {
+    if (!this.matches_(option, this.query)) return '';
+    return html`
+      <div class="row" ?indent="${this.indentRow_(option)}">
+        ${!option.options ? '' : html`
+          <expand-button
+              .statePath="${this.statePath}.options.${optionIndex}"
+              tabindex="0">
+            ${this.countDescendents_(option.options)}
+          </expand-button>
+        `}
+
+        <cp-checkbox
+            ?checked="${this.isSelected_(option, this.selectedOptions)}"
+            ?disabled="${option.disabled}"
+            tabindex="0"
+            @change="${event => this.onSelect_(option)}">
+          ${this.label_(option)}
+        </cp-checkbox>
+      </div>
+
+      ${!this.shouldStampSubOptions_(option, this.query) ? '' : html`
+        <option-group
+            ?hidden="${!this.isExpanded_(option, this.query)}"
+            .statePath="${this.statePath}.options.${optionIndex}"
+            .rootStatePath="${this.rootStatePath}">
+        </option-group>
+      `}
+    `;
+  }
+
+  render() {
+    return html`${(this.options || []).map((option, optionIndex) =>
+      this.renderOption(option, optionIndex))}`;
   }
 
   stateChanged(rootState) {
     if (!this.statePath || !this.rootStatePath) return;
-    this.setProperties({
-      ...get(rootState, this.rootStatePath),
-      ...get(rootState, this.statePath),
-    });
+    Object.assign(this, get(rootState, this.rootStatePath));
+    Object.assign(this, get(rootState, this.statePath));
   }
 
   // There may be thousands of options in an option-group. It could cost a lot
@@ -184,11 +177,11 @@ export default class OptionGroup extends ElementBase {
     return this.statePath === this.rootStatePath;
   }
 
-  async onSelect_(event) {
+  async onSelect_(option) {
     await STORE.dispatch({
       type: OptionGroup.reducers.select.name,
       statePath: this.rootStatePath,
-      option: event.model.option,
+      option,
     });
     this.dispatchEvent(new CustomEvent('option-select', {
       bubbles: true,

@@ -69,16 +69,18 @@ suite('report-table', function() {
 
   test('tooltip', async function() {
     const report = await fixture();
-    const tr = report.$.table.querySelector('tbody').children[0];
+    const tr = report.table.querySelector('tbody').children[0];
+    const td = tr.children[1];
     tr.dispatchEvent(new CustomEvent('mouseenter', {}));
+    await afterRender();
+    await afterRender();
     await afterRender();
     await afterRender();
     assert.deepEqual(report.tooltip.rows, [['suite', 'bot', 'case']]);
     const reportRect = report.getBoundingClientRect();
-    assert.strictEqual(report.tooltip.top,
-        tr.children[0].getBoundingClientRect().bottom - reportRect.top);
-    assert.strictEqual(report.tooltip.left,
-        tr.children[3].getBoundingClientRect().left - reportRect.left);
+    const tdRect = td.getBoundingClientRect();
+    assert.strictEqual(report.tooltip.top, tdRect.bottom - reportRect.top);
+    assert.strictEqual(report.tooltip.left, tdRect.left - reportRect.left);
 
     const a = tr.children[0].children[0];
     let chartOptions;
@@ -100,7 +102,7 @@ suite('report-table', function() {
 
   test('copy', async function() {
     const report = await fixture();
-    report.$.copy.click();
-    assert.isTrue(report.$.copied.opened);
+    report.shadowRoot.querySelector('#copy').click();
+    assert.isTrue(report.copiedToast.opened);
   });
 });

@@ -4,40 +4,42 @@
 */
 'use strict';
 
-import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
+import {LitElement, html, css} from 'lit-element';
 
-export default class CpTab extends PolymerElement {
+export default class CpTab extends LitElement {
   static get is() { return 'cp-tab'; }
 
-  static get template() {
-    return html`
-      <style>
-        :host {
-          background-color: var(--primary-color-light, lightblue);
-          border-left: 1px solid var(--primary-color-dark, blue);
-          border-right: 1px solid var(--primary-color-dark, blue);
-          cursor: pointer;
-          padding: 8px;
-        }
-        :host([checked]) {
-          background-color: var(--primary-color-dark, blue);
-          color: var(--background-color, white);
-          text-shadow: 1px 0 0 currentColor;
-        }
-      </style>
+  static get properties() {
+    return {
+      checked: {
+        type: Boolean,
+        reflect: true,
+      },
+      disabled: {type: Boolean},
+      name: {type: String},
+    };
+  }
 
-      <slot></slot>
+  static get styles() {
+    return css`
+      :host {
+        background-color: var(--primary-color-light, lightblue);
+        border-left: 1px solid var(--primary-color-dark, blue);
+        border-right: 1px solid var(--primary-color-dark, blue);
+        cursor: pointer;
+        padding: 8px;
+      }
+      :host([checked]) {
+        background-color: var(--primary-color-dark, blue);
+        color: var(--background-color, white);
+        text-shadow: 1px 0 0 currentColor;
+      }
     `;
   }
-}
 
-CpTab.properties = {
-  checked: {
-    type: Boolean,
-    reflectToAttribute: true,
-  },
-  disabled: {type: Boolean},
-  name: {type: String},
-};
+  render() {
+    return html`<slot></slot>`;
+  }
+}
 
 customElements.define(CpTab.is, CpTab);

@@ -4,14 +4,20 @@
 */
 'use strict';
 
-import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
+import {LitElement, html, css} from 'lit-element';
 
-export default class CpSwitch extends PolymerElement {
+export default class CpSwitch extends LitElement {
   static get is() { return 'cp-switch'; }
 
-  static get template() {
-    return html`
-      <style>
+  static get properties() {
+    return {
+      checked: {type: Boolean},
+      disabled: {type: Boolean},
+    };
+  }
+
+  static get styles() {
+    return css`
         :host {
           padding: 8px;
         }
@@ -54,20 +60,27 @@ export default class CpSwitch extends PolymerElement {
           background-color: var(--primary-color-dark, blue);
           transform: translate(80%, -50%);
         }
-      </style>
+    `;
+  }
 
+  render() {
+    return html`
       <input
           type="checkbox"
           id="native"
-          checked="{{checked}}"
-          disabled$="[[disabled]]"
-          on-change="onChange_">
+          ?checked="${this.checked}"
+          ?disabled="${this.disabled}"
+          @change="${this.onChange_}">
       <label for="native"><slot></slot></label>
     `;
   }
 
+  firstUpdated() {
+    this.nativeInput = this.shadowRoot.querySelector('#native');
+  }
+
   click() {
-    this.$.native.click();
+    this.nativeInput.click();
   }
 
   onChange_(event) {
@@ -77,10 +90,5 @@ export default class CpSwitch extends PolymerElement {
     }));
   }
 }
-
-CpSwitch.properties = {
-  checked: {type: Boolean},
-  disabled: {type: Boolean},
-};
 
 customElements.define(CpSwitch.is, CpSwitch);

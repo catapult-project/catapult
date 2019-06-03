@@ -8,7 +8,7 @@ import AlertsTable from './alerts-table.js';
 import findElements from './find-elements.js';
 import {ENSURE, UPDATE} from './simple-redux.js';
 import {STORE} from './element-base.js';
-import {afterRender} from './utils.js';
+import {afterRender, timeout} from './utils.js';
 import {assert} from 'chai';
 
 suite('alerts-table', function() {
@@ -81,8 +81,7 @@ suite('alerts-table', function() {
         },
       ],
     });
-    assert.isDefined(findElements(table, e =>
-      e.matches('iron-icon[icon="cp-big:cat"]'))[0]);
+    assert.isDefined(findElements(table, e => e.matches('svg#cat'))[0]);
   });
 
   test('allTriaged showingTriaged', async function() {
@@ -90,8 +89,7 @@ suite('alerts-table', function() {
       showingTriaged: true,
       alertGroups: [],
     });
-    assert.isDefined(findElements(table,
-        e => e.matches('iron-icon[icon="cp-big:cat"]'))[0]);
+    assert.isDefined(findElements(table, e => e.matches('svg#cat'))[0]);
   });
 
   test('sort', async function() {
@@ -170,7 +168,7 @@ suite('alerts-table', function() {
     });
 
     const measurementColumn = findElements(table, e =>
-      e.matches('column-head[name="measurement"]'))[0];
+      e.matches('column-head') && e.name === 'measurement')[0];
     measurementColumn.click();
     await afterRender();
     let state = STORE.getState().test;
@@ -310,7 +308,7 @@ suite('alerts-table', function() {
     assert.lengthOf(selectedCounts, 1);
     const row = selectedCounts[0].parentElement.parentElement;
     const tbody = row.parentElement;
-    assert.strictEqual(row, tbody.children[1]);
+    assert.strictEqual(row, tbody.children[0]);
   });
 
   test('shouldDisplaySelectedCount showingTriaged', async function() {
@@ -396,7 +394,7 @@ suite('alerts-table', function() {
       ],
     });
     assert.isDefined(findElements(table, e =>
-      e.tagName === 'TD' && e.textContent.trim() === 'ignored')[0]);
+      e.tagName === 'TD' && e.textContent.trim() === 'Ignored')[0]);
   });
 
   test('selectAlert single', async function() {
@@ -571,7 +569,7 @@ suite('alerts-table', function() {
         findElements(table, e => e.matches('tbody'))[0],
         e => e.matches('cp-checkbox'));
     checkboxes[1].click();
-    checkboxes[3].$.native.dispatchEvent(new CustomEvent('change', {
+    checkboxes[3].native.dispatchEvent(new CustomEvent('change', {
       detail: {shiftKey: true},
     }));
     await afterRender();

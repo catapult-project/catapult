@@ -182,7 +182,7 @@ suite('ReportCacheRequest', function() {
 
   // After receiving results from the network, the cache will start yielding
   // results in addition to the network.
-  test('yields cache and network', async() => {
+  test('yields cache and network', async function() {
     const parameters = {
       id: 12,
       name: 'name',

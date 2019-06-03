@@ -7,18 +7,23 @@
 import {assert} from 'chai';
 import RequestBase from './request-base.js';
 import ResultChannelSender from './result-channel-sender.js';
-import {simpleGUID} from './utils.js';
+
+import {
+  simpleGUID,
+  setDebugForTesting,
+  setProductionForTesting,
+} from './utils.js';
 
 suite('RequestBase', function() {
   let originalFetch;
   let originalAuthorizationHeaders;
   setup(() => {
     originalFetch = window.fetch;
-    originalAuthorizationHeaders = window.getAuthorizationHeaders;
+    originalAuthorizationHeaders = RequestBase.getAuthorizationHeaders;
   });
   teardown(() => {
     window.fetch = originalFetch;
-    window.getAuthorizationHeaders = originalAuthorizationHeaders;
+    RequestBase.getAuthorizationHeaders = originalAuthorizationHeaders;
   });
 
   // HTML imports may not have loaded when suite() is called, but are loaded
@@ -42,7 +47,7 @@ suite('RequestBase', function() {
   }
 
   test('getAuthorizationHeaders', async() => {
-    window.getAuthorizationHeaders = async() => {
+    RequestBase.getAuthorizationHeaders = async() => {
       return {Authorization: 'test Authorization'};
     };
     window.fetch = async(url, options) => {
@@ -55,7 +60,7 @@ suite('RequestBase', function() {
         }
       };
     };
-    window.AUTH_CLIENT_ID = 'test';
+    setProductionForTesting(true);
 
     const request = new TestRequest({});
     const response = await request.response;
@@ -96,7 +101,7 @@ suite('RequestBase', function() {
   });
 
   test('reader', async function() {
-    window.IS_DEBUG = false;
+    setDebugForTesting(false);
     window.fetch = async(url, options) => {
       return {
         ok: true,

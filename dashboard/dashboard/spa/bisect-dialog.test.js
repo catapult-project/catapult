@@ -8,7 +8,7 @@ import BisectDialog from './bisect-dialog.js';
 import NewPinpointRequest from './new-pinpoint-request.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {STORE} from './element-base.js';
-import {afterRender, timeout} from './utils.js';
+import {afterRender, timeout, setDebugForTesting} from './utils.js';
 import {assert} from 'chai';
 
 suite('bisect-dialog', function() {
@@ -36,7 +36,7 @@ suite('bisect-dialog', function() {
   let newPinpointBody;
   let originalFetch;
   setup(() => {
-    window.IS_DEBUG = true;
+    setDebugForTesting(true);
 
     originalFetch = window.fetch;
     window.fetch = async(url, options) => {
@@ -62,26 +62,21 @@ suite('bisect-dialog', function() {
 
   test('submit', async function() {
     const bd = await fixture();
-    bd.$.open.click();
+    bd.shadowRoot.querySelector('#open').click();
     await afterRender();
 
-    bd.$.patch.dispatchEvent(new CustomEvent('change', {
-      detail: {value: 'patch'},
-    }));
-    bd.$.start_revision.dispatchEvent(new CustomEvent('change', {
-      detail: {value: '5'},
-    }));
-    bd.$.end_revision.dispatchEvent(new CustomEvent('change', {
-      detail: {value: '25'},
-    }));
-    bd.$.bug_id.dispatchEvent(new CustomEvent('change', {
-      detail: {value: '321'},
-    }));
-    bd.$.mode.dispatchEvent(new CustomEvent('selected-changed', {
-      detail: {value: 'functional'},
-    }));
+    bd.shadowRoot.querySelector('#patch').dispatchEvent(
+        new CustomEvent('change', {detail: {value: 'patch'}}));
+    bd.shadowRoot.querySelector('#start_revision').dispatchEvent(
+        new CustomEvent('change', {detail: {value: '5'}}));
+    bd.shadowRoot.querySelector('#end_revision').dispatchEvent(
+        new CustomEvent('change', {detail: {value: '25'}}));
+    bd.shadowRoot.querySelector('#bug_id').dispatchEvent(
+        new CustomEvent('change', {detail: {value: '321'}}));
+    bd.shadowRoot.querySelector('#mode').dispatchEvent(
+        new CustomEvent('selected-changed', {detail: {value: 'functional'}}));
 
-    bd.$.start.click();
+    bd.shadowRoot.querySelector('#start').click();
     await afterRender();
 
     assert.strictEqual('5', newPinpointBody.get('start_commit'));

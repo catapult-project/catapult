@@ -236,8 +236,7 @@ class Descriptor(object):
     measurement, test_case = yield cls._MeasurementCase(test_suite, path)
 
     statistic = None
-    if measurement != 'jank_count':
-      # TODO: Handle other measurements ending with statistics?
+    if measurement not in ['jank_count', 'exp_jank_count']:
       stat_match = re.match(STATISTICS_REGEX, measurement)
       if stat_match:
         measurement, statistic = stat_match.groups()

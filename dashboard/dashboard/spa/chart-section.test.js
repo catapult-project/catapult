@@ -6,6 +6,7 @@
 
 import ChartSection from './chart-section.js';
 import DescribeRequest from './describe-request.js';
+import RequestBase from './request-base.js';
 import TestSuitesRequest from './test-suites-request.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
 import findElements from './find-elements.js';
@@ -33,8 +34,8 @@ suite('chart-section', function() {
   let originalAuthorizationHeaders;
   let timeseriesBody;
   setup(() => {
-    originalAuthorizationHeaders = window.getAuthorizationHeaders;
-    window.getAuthorizationHeaders = async() => {
+    originalAuthorizationHeaders = RequestBase.getAuthorizationHeaders;
+    RequestBase.getAuthorizationHeaders = async() => {
       return {};
     };
 
@@ -72,7 +73,7 @@ suite('chart-section', function() {
       document.body.removeChild(child);
     }
     window.fetch = originalFetch;
-    window.getAuthorizationHeaders = originalAuthorizationHeaders;
+    RequestBase.getAuthorizationHeaders = originalAuthorizationHeaders;
   });
 
   test('descriptor', async function() {
@@ -94,7 +95,8 @@ suite('chart-section', function() {
       }),
     }));
     await afterRender();
-    chart.$.descriptor.dispatchEvent(new CustomEvent('matrix-change'));
+    chart.shadowRoot.querySelector('#descriptor').dispatchEvent(
+        new CustomEvent('matrix-change'));
     await afterRender();
     assert.deepEqual(chart.lineDescriptors, [{
       bots: ['master:bot'],
@@ -124,7 +126,8 @@ suite('chart-section', function() {
         },
       }),
     }));
-    chart.$.statistic.dispatchEvent(new CustomEvent('option-select'));
+    chart.shadowRoot.querySelector('#statistic').dispatchEvent(
+        new CustomEvent('option-select'));
     await afterRender();
     assert.deepEqual(chart.lineDescriptors, [{
       bots: ['master:bot'],
@@ -138,8 +141,9 @@ suite('chart-section', function() {
 
   test('title', async function() {
     const chart = await fixture();
-    chart.$.title.value = 'test';
-    chart.$.title.dispatchEvent(new CustomEvent('keyup'));
+    const title = chart.shadowRoot.querySelector('#title');
+    title.value = 'test';
+    title.dispatchEvent(new CustomEvent('keyup'));
     await afterRender();
     assert.strictEqual('test', chart.title_);
     assert.isTrue(chart.isTitleCustom);

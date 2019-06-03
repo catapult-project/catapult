@@ -4,11 +4,10 @@
 */
 'use strict';
 
-import '@polymer/polymer/lib/elements/dom-if.js';
 import OptionGroup from './option-group.js';
 import {ElementBase, STORE} from './element-base.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
+import {get} from './utils.js';
+import {html, css} from 'lit-element';
 
 const DEFAULT_RECOMMENDATIONS = [
   'Chromium Perf Sheriff',
@@ -33,26 +32,30 @@ export default class RecommendedOptions extends ElementBase {
     };
   }
 
-  static get template() {
-    return html`
-      <style>
-        option-group {
-          border-bottom: 1px solid var(--primary-color-dark, blue);
-        }
-      </style>
-
-      <template is="dom-if" if="[[!isEmpty_(recommended.options)]]">
-        <b style="margin: 4px;">Recommended</b>
-        <option-group
-            state-path="[[statePath]].recommended"
-            root-state-path="[[statePath]]">
-        </option-group>
-      </template>
+  static get styles() {
+    return css`
+      option-group {
+        border-bottom: 1px solid var(--primary-color-dark, blue);
+      }
     `;
   }
 
-  ready() {
-    super.ready();
+  render() {
+    if (!this.recommended || !this.recommended.options ||
+        !this.recommended.options.length) {
+      return html``;
+    }
+
+    return html`
+      <b style="margin: 4px;">Recommended</b>
+      <option-group
+          .statePath="${this.statePath}.recommended"
+          .rootStatePath="${this.statePath}">
+      </option-group>
+    `;
+  }
+
+  firstUpdated() {
     if (!this.optionRecommendations) {
       STORE.dispatch({
         type: RecommendedOptions.reducers.getRecommendations.name,
@@ -63,11 +66,11 @@ export default class RecommendedOptions extends ElementBase {
   stateChanged(rootState) {
     if (!this.statePath) return;
 
-    this.set('optionRecommendations', rootState.optionRecommendations);
+    this.optionRecommendations = rootState.optionRecommendations;
     const oldSelectedOptions = this.selectedOptions;
     const oldOptionValues = this.optionValues;
-    const state = get(rootState, this.statePath);
-    this.setProperties(state);
+    Object.assign(this, get(rootState, this.statePath));
+
     if (this.optionValues && this.optionValues !== oldOptionValues) {
       STORE.dispatch({
         type: RecommendedOptions.reducers.recommendOptions.name,

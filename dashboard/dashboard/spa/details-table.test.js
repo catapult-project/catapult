@@ -8,7 +8,7 @@ import DetailsTable from './details-table.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
-import {afterRender, denormalize} from './utils.js';
+import {afterRender, denormalize, setDebugForTesting} from './utils.js';
 import {assert} from 'chai';
 
 suite('details-table', function() {
@@ -17,7 +17,7 @@ suite('details-table', function() {
 
   let originalFetch;
   setup(() => {
-    window.IS_DEBUG = true;
+    setDebugForTesting(true);
     MS_PER_YEAR = tr.b.convertUnit(
         1, tr.b.UnitScale.TIME.YEAR, tr.b.UnitScale.TIME.MILLI_SEC);
 

@@ -10,6 +10,7 @@ import DescribeRequest from './describe-request.js';
 import RecentBugsRequest from './recent-bugs-request.js';
 import ReportControls from './report-controls.js';
 import ReportNamesRequest from './report-names-request.js';
+import RequestBase from './request-base.js';
 import SessionIdRequest from './session-id-request.js';
 import SessionStateRequest from './session-state-request.js';
 import SheriffsRequest from './sheriffs-request.js';
@@ -33,12 +34,12 @@ suite('chromeperf-app', function() {
   let originalAuthorizationHeaders;
   let originalUserProfile;
   setup(() => {
-    originalUserProfile = window.getUserProfileAsync;
-    window.getUserProfileAsync = async() => {
+    originalUserProfile = ChromeperfApp.getUserProfileAsync;
+    ChromeperfApp.getUserProfileAsync = async() => {
       return {getEmail() { return 'you@there.com'; }};
     };
-    originalAuthorizationHeaders = window.getAuthorizationHeaders;
-    window.getAuthorizationHeaders = async() => {
+    originalAuthorizationHeaders = RequestBase.getAuthorizationHeaders;
+    RequestBase.getAuthorizationHeaders = async() => {
       return {};
     };
     originalFetch = window.fetch;
@@ -101,22 +102,22 @@ suite('chromeperf-app', function() {
       if (!child.matches('chromeperf-app')) continue;
       document.body.removeChild(child);
     }
-    window.getUserProfileAsync = originalUserProfile;
+    ChromeperfApp.getUserProfileAsync = originalUserProfile;
     window.fetch = originalFetch;
-    window.getAuthorizationHeaders = originalAuthorizationHeaders;
+    RequestBase.getAuthorizationHeaders = originalAuthorizationHeaders;
   });
 
   test('newAlerts', async function() {
     const app = await fixture();
     assert.lengthOf(app.alertsSectionIds, 0);
-    app.$.new_alerts.click();
+    app.shadowRoot.querySelector('#new_alerts').click();
     await afterRender();
     assert.lengthOf(app.alertsSectionIds, 1);
   });
 
   test('closeAlerts', async function() {
     const app = await fixture();
-    app.$.new_alerts.click();
+    app.shadowRoot.querySelector('#new_alerts').click();
     await afterRender();
     const alerts = app.shadowRoot.querySelector('alerts-section');
     alerts.dispatchEvent(new CustomEvent('close-section'));
@@ -128,16 +129,15 @@ suite('chromeperf-app', function() {
 
   test('reopenAlerts', async function() {
     const app = await fixture();
-    app.$.new_alerts.click();
+    app.shadowRoot.querySelector('#new_alerts').click();
     await afterRender();
     const alerts = app.shadowRoot.querySelector('alerts-section');
     // Make the alerts-section not empty so that it can be reopened.
     STORE.dispatch(UPDATE(alerts.statePath + '.bug', {
       selectedOptions: [42],
     }));
-    alerts.$.controls.dispatchEvent(new CustomEvent('sources', {
-      detail: {sources: [{bug: 42}]},
-    }));
+    alerts.shadowRoot.querySelector('#controls').dispatchEvent(
+        new CustomEvent('sources', {detail: {sources: [{bug: 42}]}}));
     await afterRender();
 
     alerts.dispatchEvent(new CustomEvent('close-section'));
@@ -145,7 +145,7 @@ suite('chromeperf-app', function() {
     assert.lengthOf(app.alertsSectionIds, 0);
     assert.lengthOf(app.closedAlertsIds, 1);
 
-    app.$.reopen_alerts.click();
+    app.shadowRoot.querySelector('#reopen_alerts').click();
     await afterRender();
     assert.lengthOf(app.alertsSectionIds, 1);
   });
@@ -154,14 +154,14 @@ suite('chromeperf-app', function() {
     const app = await fixture();
     assert.lengthOf(app.chartSectionIds, 0);
 
-    app.$.new_chart.click();
+    app.shadowRoot.querySelector('#new_chart').click();
     await afterRender();
     assert.lengthOf(app.chartSectionIds, 1);
   });
 
   test('closeChart', async function() {
     const app = await fixture();
-    app.$.new_chart.click();
+    app.shadowRoot.querySelector('#new_chart').click();
     await afterRender();
     await afterRender();
     const chart = app.shadowRoot.querySelector('chart-section');
@@ -174,16 +174,16 @@ suite('chromeperf-app', function() {
 
   test('closeAllCharts', async function() {
     const app = await fixture();
-    app.$.new_chart.click();
+    app.shadowRoot.querySelector('#new_chart').click();
     await afterRender();
-    app.$.close_charts.click();
+    app.shadowRoot.querySelector('#close_charts').click();
     await afterRender();
     assert.lengthOf(app.chartSectionIds, 0);
   });
 
   test('reopenCharts', async function() {
     const app = await fixture();
-    app.$.new_chart.click();
+    app.shadowRoot.querySelector('#new_chart').click();
     await afterRender();
     const chart = app.shadowRoot.querySelector('chart-section');
     // Make the chart-section not empty so that it can be reopened.
@@ -201,7 +201,8 @@ suite('chromeperf-app', function() {
         selectedOptions: ['master:bot'],
       },
     }));
-    chart.$.controls.dispatchEvent(new CustomEvent('matrix-change'));
+    chart.shadowRoot.querySelector('#controls').dispatchEvent(
+        new CustomEvent('matrix-change'));
     await afterRender();
 
     chart.dispatchEvent(new CustomEvent('close-section'));
@@ -209,7 +210,7 @@ suite('chromeperf-app', function() {
     assert.lengthOf(app.chartSectionIds, 0);
     assert.lengthOf(app.closedChartIds, 1);
 
-    app.$.reopen_chart.click();
+    app.shadowRoot.querySelector('#reopen_chart').click();
     await afterRender();
     assert.lengthOf(app.chartSectionIds, 1);
   });
@@ -309,7 +310,7 @@ suite('chromeperf-app', function() {
     const app = await fixture();
 
     // Make two non-empty chart-sections so app tries to save session state.
-    app.$.new_chart.click();
+    app.shadowRoot.querySelector('#new_chart').click();
     await afterRender();
     let chart = app.shadowRoot.querySelector('chart-section');
     await STORE.dispatch(UPDATE(chart.statePath + '.descriptor', {
@@ -326,10 +327,11 @@ suite('chromeperf-app', function() {
         selectedOptions: ['master:bot'],
       },
     }));
-    chart.$.controls.dispatchEvent(new CustomEvent('matrix-change'));
+    chart.shadowRoot.querySelector('#controls').dispatchEvent(
+        new CustomEvent('matrix-change'));
     await afterRender();
 
-    app.$.new_chart.click();
+    app.shadowRoot.querySelector('#new_chart').click();
     await afterRender();
     chart = findElements(app, e => e.matches('chart-section'))[1];
     await STORE.dispatch(UPDATE(chart.statePath + '.descriptor', {
@@ -346,7 +348,9 @@ suite('chromeperf-app', function() {
         selectedOptions: ['master:bot'],
       },
     }));
-    chart.$.controls.dispatchEvent(new CustomEvent('matrix-change'));
+    chart.shadowRoot.querySelector('#controls').dispatchEvent(
+        new CustomEvent('matrix-change'));
+    await afterRender();
     await afterRender();
 
     const divs = findElements(app, e => e.matches('div.error') &&

@@ -7,9 +7,9 @@
 function iterateElementDeeply(element, cb) {
   cb(element);
 
-  if (element.root &&
-      element.root !== element &&
-      iterateElementDeeply(element.root, cb)) {
+  if (element.shadowRoot &&
+      element.shadowRoot !== element &&
+      iterateElementDeeply(element.shadowRoot, cb)) {
     // Some elements, most notably Polymer template dom-repeat='...'
     // elements, are their own shadow root. Make sure that we avoid infinite
     // recursion by avoiding these elements.

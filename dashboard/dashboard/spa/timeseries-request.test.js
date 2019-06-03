@@ -7,7 +7,7 @@
 import ResultChannelSender from './result-channel-sender.js';
 import {TimeseriesRequest, LEVEL_OF_DETAIL} from './timeseries-request.js';
 import {assert} from 'chai';
-import {denormalize, timeout} from './utils.js';
+import {denormalize, timeout, setDebugForTesting} from './utils.js';
 
 suite('TimeseriesRequest', function() {
   let originalFetch;
@@ -19,7 +19,7 @@ suite('TimeseriesRequest', function() {
   });
 
   test('reader', async function() {
-    window.IS_DEBUG = false;
+    setDebugForTesting(false);
     window.fetch = async(url, options) => {
       return {
         ok: true,

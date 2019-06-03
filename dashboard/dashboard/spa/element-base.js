@@ -8,9 +8,8 @@ import '@chopsui/tsmon-client';
 import 'dashboard-metrics';
 import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import {Debouncer} from '@polymer/polymer/lib/utils/debounce.js';
-import {PolymerElement} from '@polymer/polymer/polymer-element.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {plural} from './utils.js';
+import {LitElement} from 'lit-element';
+import {get, isProduction} from './utils.js';
 
 import {
   DEFAULT_REDUCER_WRAPPERS,
@@ -23,7 +22,7 @@ import {
 export const STORE = createSimpleStore({
   devtools: {
     // Do not record changes automatically when in a production environment.
-    shouldRecordChanges: !window.IS_PRODUCTION,
+    shouldRecordChanges: !isProduction(),
 
     // Increase the maximum number of actions stored in the history tree.
     // The oldest actions are removed once maxAge is reached.
@@ -32,11 +31,11 @@ export const STORE = createSimpleStore({
 });
 
 /*
- * This base class mixes PolymerElement with Polymer-Redux and provides
+ * This base class mixes LitElement with Polymer-Redux and provides
  * utility functions to help data-bindings in elements perform minimal
  * computation without computed properties.
  */
-export class ElementBase extends PolymerElement {
+export class ElementBase extends LitElement {
   constructor() {
     super();
     this.debounceJobs_ = new Map();
@@ -51,64 +50,12 @@ export class ElementBase extends PolymerElement {
 
   stateChanged(rootState) {
     if (!this.statePath) return;
-    this.setProperties(get(rootState, this.statePath));
+    Object.assign(this, get(rootState, this.statePath));
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this.unsubscribeRedux_();
-  }
-
-  add_() {
-    let sum = arguments[0];
-    for (const arg of Array.from(arguments).slice(1)) {
-      sum += arg;
-    }
-    return sum;
-  }
-
-  union_() {
-    const results = new Set();
-    for (const arg of Array.from(arguments)) {
-      if (!arg) continue;
-      for (const elem of arg) {
-        results.add(elem);
-      }
-    }
-    return [...results];
-  }
-
-  isEqual_() {
-    const test = arguments[0];
-    for (const arg of Array.from(arguments).slice(1)) {
-      if (arg !== test) return false;
-    }
-    return true;
-  }
-
-  default_(test, ifFalsy) {
-    return test || ifFalsy;
-  }
-
-  plural_(count, pluralSuffix = 's', singularSuffix = '') {
-    return plural(count, pluralSuffix, singularSuffix);
-  }
-
-  lengthOf_(seq) {
-    if (seq === undefined) return 0;
-    if (seq === null) return 0;
-    if (seq instanceof Array || typeof(seq) === 'string') return seq.length;
-    if (seq instanceof Map || seq instanceof Set) return seq.size;
-    if (seq instanceof tr.v.HistogramSet) return seq.length;
-    return Object.keys(seq).length;
-  }
-
-  isMultiple_(seq) {
-    return this.lengthOf_(seq) > 1;
-  }
-
-  isEmpty_(seq) {
-    return this.lengthOf_(seq) === 0;
   }
 
   /**

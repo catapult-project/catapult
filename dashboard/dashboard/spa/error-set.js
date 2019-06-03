@@ -4,32 +4,24 @@
 */
 'use strict';
 
-import '@polymer/polymer/lib/elements/dom-repeat.js';
-import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
+import {LitElement, html, css} from 'lit-element';
 
-export default class ErrorSet extends PolymerElement {
-  static get is() { return 'error-set'; }
-
+export default class ErrorSet extends LitElement {
   static get properties() {
     return {errors: Array};
   }
 
-  static get template() {
-    return html`
-      <style>
-        .error {
-          color: var(--error-color, red);
-        }
-      </style>
-
-      <dom-repeat items="[[errors]]" as="error">
-        <template>
-          <div class="error">
-            [[error]]
-          </div>
-        </template>
-      </dom-repeat>
+  static get styles() {
+    return css`
+      .error {
+        color: var(--error-color, red);
+      }
     `;
   }
+
+  render() {
+    return html`${(this.errors || []).map(error =>
+      html`<div class="error">${error}</div>`)}`;
+  }
 }
-customElements.define(ErrorSet.is, ErrorSet);
+customElements.define('error-set', ErrorSet);

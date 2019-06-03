@@ -4,10 +4,9 @@
 */
 'use strict';
 
+import './cp-icon.js';
 import './cp-loading.js';
 import './error-set.js';
-import '@polymer/polymer/lib/elements/dom-if.js';
-import '@polymer/polymer/lib/elements/dom-repeat.js';
 import ExistingBugRequest from './existing-bug-request.js';
 import NewBugRequest from './new-bug-request.js';
 import NudgeAlert from './nudge-alert.js';
@@ -15,13 +14,14 @@ import TriageExisting from './triage-existing.js';
 import TriageNew from './triage-new.js';
 import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
+import {html, css} from 'lit-element';
 
 import {
   buildProperties,
   buildState,
   crbug,
+  get,
+  isProduction,
   pinpointJob,
 } from './utils.js';
 
@@ -85,138 +85,140 @@ export default class AlertDetail extends ElementBase {
     };
   }
 
-  static get template() {
-    return html`
-      <style>
-        :host {
-          border-width: 1px;
-          border-style: solid;
-          display: block;
-          padding: 4px;
-          margin: 4px;
-        }
-        #chart-button {
-          cursor: pointer;
-          color: var(--primary-color-dark, blue);
-        }
-        table {
-          width: 100%;
-        }
-        flex {
-          display: flex;
-        }
-        flex * {
-          flex-grow: 1;
-        }
-        #start-revision {
-          margin-right: 8px;
-        }
-        td:first-child {
-          border-right: 8px solid var(--background-color, white);
-        }
-      </style>
+  static get styles() {
+    return css`
+      :host {
+        border-width: 1px;
+        border-style: solid;
+        display: block;
+        padding: 4px;
+        margin: 4px;
+      }
+      #chart-button {
+        cursor: pointer;
+        color: var(--primary-color-dark, blue);
+      }
+      table {
+        width: 100%;
+      }
+      flex {
+        display: flex;
+      }
+      flex * {
+        flex-grow: 1;
+      }
+      flex[hidden] {
+        display: none;
+      }
+      #start-revision {
+        margin-right: 8px;
+      }
+      td:first-child {
+        border-right: 8px solid var(--background-color, white);
+      }
+    `;
+  }
 
+  render() {
+    let bugLink = '';
+    if (this.bugId < 0) {
+      bugLink = 'Ignored';
+    } else if (this.bugId > 0) {
+      bugLink = html`
+        <a href="${crbug(this.bugId)}" target="_blank">${this.bugId}</a>
+      `;
+    }
+
+    return html`
       <div id="chart-button"
-          hidden$="[[isEmpty_(descriptorParts)]]"
-          on-click="onNewChart_">
-        <iron-icon icon="cp:chart"></iron-icon>
-        <template is="dom-repeat" items="[[descriptorParts]]" as="part">
-          <span>[[part]]</span>
-        </template>
+          ?hidden="${!this.descriptorParts.length}"
+          @click="${this.onNewChart_}">
+        <cp-icon icon="chart"></cp-icon>
+        ${(this.descriptorParts || []).map(part => html`<span>${part}</span>`)}
       </div>
 
       <table>
         <tr>
           <td>
-            [[startRevision]]-[[endRevision]]
+            ${this.startRevision}-${this.endRevision}
           </td>
-          <td>&#916;[[default_(statistic, 'avg')]]</td>
+          <td>&#916;${this.statistic || 'avg'}</td>
           <td>
             <scalar-span
-                value="[[deltaValue]]"
-                unit="[[deltaUnit]]">
+                .value="${this.deltaValue}"
+                .unit="${this.deltaUnit}">
             </scalar-span>
           </td>
         </tr>
 
         <tr>
           <td>
-            <template is="dom-if" if="[[bugId]]">
-              <template is="dom-if" if="[[isValidBugId_(bugId)]]">
-                <a href="[[crbug_(bugId)]]" target="_blank">[[bugId]]</a>
-              </template>
-
-              <template is="dom-if" if="[[isInvalidBugId_(bugId)]]">
-                Ignored
-              </template>
-            </template>
+            ${bugLink}
           </td>
-          <td>%&#916;[[default_(statistic, 'avg')]]</td>
+          <td>%&#916;${this.statistic || 'avg'}</td>
           <td>
             <scalar-span
-                value="[[percentDeltaValue]]"
-                unit="[[percentDeltaUnit]]"
-                maximum-fraction-digits="1">
+                .value="${this.percentDeltaValue}"
+                .unit="${this.percentDeltaUnit}"
+                .maximumFractionDigits="1">
             </scalar-span>
           </td>
         </tr>
       </table>
 
-      <error-set errors="[[errors]]"></error-set>
-      <cp-loading loading$="[[isLoading]]"></cp-loading>
+      <error-set .errors="${this.errors}"></error-set>
+      <cp-loading ?loading="${this.isLoading}"></cp-loading>
 
-      <template is="dom-if" if="[[!isEmpty_(pinpointJobs)]]">
+      ${(!this.pinpointJobs || !this.pinpointJobs.length) ? '' : html`
         Pinpoint jobs:
-      </template>
-      <template is="dom-repeat" items="[[pinpointJobs]]" as="jobId">
-        <a target="_blank" href="[[pinpoint_(jobId)]]">[[jobId]]</a>
-      </template>
+      `}
+      ${(this.pinpointJobs || []).map(jobId => html`
+        <a target="_blank" href="${pinpointJob(this.jobId)}">${jobId}</a>
+      `)}
 
-      <flex>
+      <flex ?hidden="${!isProduction()}">
         <span style="position: relative;">
-          <raised-button on-click="onNudge_">
+          <raised-button @click="${this.onNudge_}">
             Nudge
           </raised-button>
           <nudge-alert
-              state-path="[[statePath]].nudge"
+              .statePath="${this.statePath}.nudge"
               tabindex="0">
           </nudge-alert>
         </span>
 
-        <template is="dom-if" if="[[bugId]]">
-          <raised-button on-click="onUnassign_">
+        ${this.bugId ? html`
+          <raised-button @click="${this.onUnassign_}">
             Unassign
           </raised-button>
-        </template>
-
-        <template is="dom-if" if="[[!bugId]]">
+        ` : html`
           <span style="position: relative;">
-            <raised-button id="new" on-click="onTriageNew_">
+            <raised-button id="new" @click="${this.onTriageNew_}">
               New Bug
             </raised-button>
             <triage-new
                 tabindex="0"
-                state-path="[[statePath]].newBug"
-                on-submit="onTriageNewSubmit_">
+                .statePath="${this.statePath}.newBug"
+                @submit="${this.onTriageNewSubmit_}">
             </triage-new>
           </span>
 
           <span style="position: relative;">
-            <raised-button id="existing" on-click="onTriageExisting_">
+            <raised-button id="existing" @click="${this.onTriageExisting_}">
               Existing Bug
             </raised-button>
 
             <triage-existing
                 tabindex="0"
-                state-path="[[statePath]].existingBug"
-                on-submit="onTriageExistingSubmit_">
+                .statePath="${this.statePath}.existingBug"
+                @submit="${this.onTriageExistingSubmit_}">
             </triage-existing>
           </span>
 
-          <raised-button id="ignore" on-click="onIgnore_">
+          <raised-button id="ignore" @click="${this.onIgnore_}">
             Ignore
           </raised-button>
-        </template>
+        `}
       </flex>
     `;
   }
@@ -230,22 +232,6 @@ export default class AlertDetail extends ElementBase {
     } else {
       this.style.borderColor = 'var(--error-color, red)';
     }
-  }
-
-  pinpoint_(jobId) {
-    return pinpointJob(jobId);
-  }
-
-  isValidBugId_(bugId) {
-    return bugId > 0;
-  }
-
-  isInvalidBugId_(bugId) {
-    return bugId < 0;
-  }
-
-  crbug_(bugId) {
-    return crbug(bugId);
   }
 
   async onNewChart_(event) {
@@ -309,7 +295,6 @@ export default class AlertDetail extends ElementBase {
       });
       const bugId = await request.response;
       STORE.dispatch(UPDATE(statePath, {bugId}));
-      // TODO storeRecentlyModifiedBugs
     } catch (err) {
       STORE.dispatch(UPDATE(statePath, {errors: [err.message]}));
     }

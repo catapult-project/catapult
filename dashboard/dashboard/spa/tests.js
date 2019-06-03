@@ -7,7 +7,13 @@
 import 'bower_components/webcomponentsjs/webcomponents-loader.js';
 import {ElementBase, STORE} from './element-base.js';
 import {RESET} from './simple-redux.js';
-import {animationFrame, afterRender} from './utils.js';
+
+import {
+  afterRender,
+  animationFrame,
+  setDebugForTesting,
+  setProductionForTesting,
+} from './utils.js';
 
 Mocha.before(async function() {
   const deps = document.createElement('link');
@@ -21,7 +27,8 @@ Mocha.before(async function() {
 });
 
 Mocha.beforeEach(async function() {
-  window.AUTH_CLIENT_ID = '';
+  setDebugForTesting(undefined);
+  setProductionForTesting(undefined);
   window.location.hash = '';
   STORE.dispatch(RESET);
   await afterRender();

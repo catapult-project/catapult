@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-icon.js';
 import './chart-legend.js';
 import './cp-input.js';
 import './cp-loading.js';
@@ -19,9 +20,8 @@ import sha from './sha.js';
 import {CHAIN, UPDATE} from './simple-redux.js';
 import {ElementBase, STORE} from './element-base.js';
 import {MODE} from './layout-timeseries.js';
-import {get} from '@polymer/polymer/lib/utils/path.js';
-import {html} from '@polymer/polymer/polymer-element.js';
-import {simpleGUID} from './utils.js';
+import {html, css} from 'lit-element';
+import {get, simpleGUID} from './utils.js';
 
 export default class ChartSection extends ElementBase {
   static get is() { return 'chart-section'; }
@@ -98,151 +98,150 @@ export default class ChartSection extends ElementBase {
     };
   }
 
-  static get template() {
+  static get styles() {
+    return css`
+      #controls {
+        align-items: center;
+        display: flex;
+        margin-bottom: 8px;
+      }
+
+      #controls_inner {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+      }
+
+      #parameters {
+        display: flex;
+      }
+      #parameters[hidden] {
+        display: none;
+      }
+
+      #spacer {
+        flex-grow: 1;
+      }
+
+      #toggle_chart_only,
+      #copy,
+      #close {
+        align-self: flex-start;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      #chart_container {
+        display: flex;
+      }
+
+      chart-legend {
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      #legend_container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        max-height: 311px;
+      }
+
+      #legend_container[hidden] {
+        display: none;
+      }
+    `;
+  }
+
+  render() {
+    const isLoading = (
+      this.isLoading ||
+      (this.minimapLayout && this.minimapLayout.isLoading) ||
+      (this.chartLayout && this.chartLayout.isLoading));
+    const hideLegend = (
+      !this.isExpanded || !this.legend || (this.legend.length === 0));
+
     return html`
-      <style>
-        #controls {
-          align-items: center;
-          display: flex;
-          margin-bottom: 8px;
-        }
-
-        #controls_inner {
-          display: flex;
-          flex-direction: column;
-        }
-
-        #parameters {
-          display: flex;
-        }
-
-        #spacer {
-          flex-grow: 1;
-        }
-
-        #toggle_chart_only,
-        #copy,
-        #close {
-          align-self: flex-start;
-          cursor: pointer;
-          flex-shrink: 0;
-          height: var(--icon-size, 1em);
-          width: var(--icon-size, 1em);
-        }
-
-        #chart_container {
-          display: flex;
-        }
-
-        chart-legend {
-          overflow-y: auto;
-          overflow-x: hidden;
-        }
-
-        #legend_container {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          max-height: 311px;
-        }
-      </style>
-
       <div id="controls">
         <div id="controls_inner">
-          <iron-collapse id="parameters"
-                        opened="[[isExpanded]]">
+          <div id="parameters" ?hidden="${!this.isExpanded}">
             <timeseries-descriptor
                 id="descriptor"
-                state-path="[[statePath]].descriptor"
-                on-matrix-change="onMatrixChange_">
+                .statePath="${this.statePath}.descriptor"
+                @matrix-change="${this.onMatrixChange_}">
             </timeseries-descriptor>
 
             <menu-input
                 id="statistic"
-                state-path="[[statePath]].statistic"
-                on-option-select="onStatisticSelect_">
+                .statePath="${this.statePath}.statistic"
+                @option-select="${this.onStatisticSelect_}">
             </menu-input>
-          </iron-collapse>
+          </div>
 
-          <iron-collapse opened="[[!isExpanded]]">
+          <div ?hidden="${this.isExpanded}">
             <cp-input
                 id="title"
-                value="[[title_]]"
+                value="${this.title_}"
                 label="Title"
-                on-keyup="onTitleKeyup_">
+                @keyup="${this.onTitleKeyup_}">
             </cp-input>
-          </iron-collapse>
+          </div>
         </div>
 
         <span id="spacer">&nbsp;</span>
 
         <expand-button
             id="toggle_chart_only"
-            state-path="[[statePath]]">
+            .statePath="${this.statePath}">
         </expand-button>
 
-        <iron-icon
+        <cp-icon
             id="copy"
-            icon="cp:copy"
+            icon="copy"
             title="Clone"
-            on-click="onCopy_">
-        </iron-icon>
+            @click="${this.onCopy_}">
+        </cp-icon>
 
-        <iron-icon
+        <cp-icon
             id="close"
-            icon="cp:close"
+            icon="close"
             title="Close"
-            on-click="onClose_">
-        </iron-icon>
+            @click="${this.onClose_}">
+        </cp-icon>
       </div>
 
-      <cp-loading loading$="[[isLoading_(
-          isLoading, minimapLayout, chartLayout)]]">
-      </cp-loading>
+      <cp-loading ?loading="${isLoading}"></cp-loading>
 
       <div id="chart_container">
         <chart-compound
-            state-path="[[statePath]]"
-            linked-state-path="[[linkedStatePath]]"
-            on-line-count-change="onLineCountChange_">
+            .statePath="${this.statePath}"
+            .linkedStatePath="${this.linkedStatePath}"
+            @line-count-change="${this.onLineCountChange_}">
           Select at least one Test suite and Measurement above.
         </chart-compound>
 
-        <iron-collapse
+        <div
             id="legend_container"
-            horizontal
-            opened="[[isLegendOpen_(isExpanded, legend)]]"
-            on-click="onLegendClick_">
+            ?hidden="${hideLegend}"
+            @click="${this.onLegendClick_}">
           <chart-legend
-              items="[[legend]]"
-              on-leaf-mouseover="onLegendMouseOver_"
-              on-leaf-mouseout="onLegendMouseOut_"
-              on-leaf-click="onLegendLeafClick_">
+              .items="${this.legend}"
+              @leaf-mouseover="${this.onLegendMouseOver_}"
+              @leaf-mouseout="${this.onLegendMouseOut_}"
+              @leaf-click="${this.onLegendLeafClick_}">
           </chart-legend>
-        </iron-collapse>
+        </div>
       </div>
 
-      <iron-collapse opened="[[isExpanded]]">
-        <sparkline-compound state-path="[[statePath]]">
+      <div ?hidden="${!this.isExpanded}">
+        <sparkline-compound .statePath="${this.statePath}">
         </sparkline-compound>
-      </iron-collapse>
+      </div>
     `;
   }
 
-  ready() {
-    super.ready();
+  firstUpdated() {
     this.scrollIntoView(true);
-  }
-
-  isLoading_(isLoading, minimapLayout, chartLayout) {
-    if (isLoading) return true;
-    if (minimapLayout && minimapLayout.isLoading) return true;
-    if (chartLayout && chartLayout.isLoading) return true;
-    return false;
-  }
-
-  isLegendOpen_(isExpanded, legend) {
-    return isExpanded && !this.isEmpty_(legend);
   }
 
   async onMatrixChange_(event) {
@@ -303,11 +302,11 @@ export default class ChartSection extends ElementBase {
     STORE.dispatch(CHAIN(
         {
           type: ChartTimeseries.reducers.mouseYTicks.name,
-          statePath: statePath + '.chartLayout',
+          statePath: this.statePath + '.chartLayout',
         },
         {
           type: ChartBase.reducers.boldLine.name,
-          statePath: statePath + '.chartLayout',
+          statePath: this.statePath + '.chartLayout',
         },
     ));
   }
