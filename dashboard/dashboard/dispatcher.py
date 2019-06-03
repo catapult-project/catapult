@@ -50,6 +50,7 @@ from dashboard import oauth2_decorator
 from dashboard import pinpoint_request
 from dashboard import put_entities_task
 from dashboard import report
+from dashboard import sheriff_config_poller
 from dashboard import short_uri
 from dashboard import speed_releasing
 from dashboard import update_dashboard_stats
@@ -102,6 +103,7 @@ _URL_MAPPING = [
     (r'/buildbucket_job_status/(\d+)',
      buildbucket_job_status.BuildbucketJobStatusHandler),
     ('/create_health_report', create_health_report.CreateHealthReportHandler),
+    ('/configs/update', sheriff_config_poller.ConfigsUpdateHandler),
     ('/debug_alert', debug_alert.DebugAlertHandler),
     ('/delete_expired_entities',
      layered_cache_delete_expired.LayeredCacheDeleteExpiredHandler),

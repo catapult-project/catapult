@@ -46,6 +46,17 @@ paths:
           chromeperf_service_account: []
         - api_key: []
           google_id_token: []
+  "/configs/update":
+    get:
+      description: "Polls the luci-config service and persists the most up-to-date configuration."
+      operationId: configs_update
+      responses:
+        200:
+          description: "A successful response means the poll succeeded."
+        500:
+          description: "There was an error polling the service."
+      security:
+        - chromeperf_service_account: []
   "/subscriptions/match":
     post:
       description: "Provide a list of Subscriptions that match for a given timeseries path."
