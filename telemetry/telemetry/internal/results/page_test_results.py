@@ -280,8 +280,7 @@ class TelemetryInfo(object):
     timeline_base_measurement need to add shared diagnostics separately.
     Make them available on the telemetry info."""
     def SetDiagnosticsValue(info, value):
-      # TODO(crbug.com/968959): check for None only, do not ignore zeroes
-      if not value:
+      if value is None or value == []:
         return
 
       if info.type == 'GenericSet' and not isinstance(value, list):
