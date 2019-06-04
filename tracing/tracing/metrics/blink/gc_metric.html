@@ -15,15 +15,19 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.blink', function() {
-  // Maps the Blink GC events in timeline to telemetry friendly names.
-  const BLINK_TOP_GC_EVENTS = {
-    'BlinkGC.AtomicPhase': 'blink-gc-atomic-phase',
+  // Maps Blink GC sweeping events in timeline to telemetry friendly names.
+  const BLINK_TOP_GC_SWEEPING_EVENTS = {
     'BlinkGC.CompleteSweep': 'blink-gc-complete-sweep',
-    'BlinkGC.IncrementalMarkingStartMarking': 'blink-gc-incremental-start',
-    'BlinkGC.IncrementalMarkingStep': 'blink-gc-incremental-step',
-    'BlinkGC.LazySweepInIdle': 'blink-gc-lazy-sweep-idle',
-    'BlinkGC.LazySweepOnAllocation': 'blink-gc-lazy-sweep-allocation'
+    'BlinkGC.LazySweepInIdle': 'blink-gc-sweep-task-foreground',
+    'BlinkGC.LazySweepOnAllocation': 'blink-gc-sweep-allocation'
   };
+
+  // Maps the all Blink GC events in timeline to telemetry friendly names.
+  const BLINK_TOP_GC_EVENTS = Object.assign({
+    'BlinkGC.AtomicPhase': 'blink-gc-atomic-phase',
+    'BlinkGC.IncrementalMarkingStartMarking': 'blink-gc-incremental-start',
+    'BlinkGC.IncrementalMarkingStep': 'blink-gc-incremental-step'
+  }, BLINK_TOP_GC_SWEEPING_EVENTS);
 
   function blinkGarbageCollectionEventName(event) {
     return BLINK_TOP_GC_EVENTS[event.title];
@@ -31,6 +35,12 @@ tr.exportTo('tr.metrics.blink', function() {
 
   function isNonForcedBlinkGarbageCollectionEvent(event) {
     return event.title in BLINK_TOP_GC_EVENTS &&
+           (!event.args || !event.args.forced) &&
+           !tr.metrics.v8.utils.isForcedGarbageCollectionEvent(event);
+  }
+
+  function isNonForcedBlinkGarbageCollectionSweepingEvent(event) {
+    return event.title in BLINK_TOP_GC_SWEEPING_EVENTS &&
            (!event.args || !event.args.forced) &&
            !tr.metrics.v8.utils.isForcedGarbageCollectionEvent(event);
   }
@@ -44,17 +54,14 @@ tr.exportTo('tr.metrics.blink', function() {
   function blinkGcMetric(histograms, model) {
     addDurationOfTopEvents(histograms, model);
     addTotalDurationOfTopEvents(histograms, model);
-    addIdleTimesOfTopEvents(histograms, model);
-    addTotalIdleTimesOfTopEvents(histograms, model);
     addTotalDurationOfBlinkAndV8TopEvents(histograms, model);
+    addTotalDurationOfForegroundSweeping(histograms, model);
   }
 
   tr.metrics.MetricRegistry.register(blinkGcMetric);
 
   const timeDurationInMs_smallerIsBetter =
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
-  const percentage_biggerIsBetter =
-      tr.b.Unit.byName.normalizedPercentage_biggerIsBetter;
 
   // 0.1 steps from 0 to 20 since it is the most common range.
   // Exponentially increasing steps from 20 to 200.
@@ -103,31 +110,6 @@ tr.exportTo('tr.metrics.blink', function() {
     return n;
   }
 
-  function createNumericForIdleTime(name) {
-    const n = new tr.v.Histogram(name,
-        timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
-    n.customizeSummaryOptions({
-      avg: true,
-      count: false,
-      max: true,
-      min: false,
-      std: false,
-      sum: true,
-      percentile: []
-    });
-    return n;
-  }
-
-  function createPercentage(name, numerator, denominator) {
-    const histogram = new tr.v.Histogram(name, percentage_biggerIsBetter);
-    if (denominator === 0) {
-      histogram.addSample(0);
-    } else {
-      histogram.addSample(numerator / denominator);
-    }
-    return histogram;
-  }
-
   /**
    * Example output:
    * - blink-gc-atomic-phase
@@ -166,71 +148,20 @@ tr.exportTo('tr.metrics.blink', function() {
 
   /**
    * Example output:
-   * - blink-gc-atomic-phase_idle_deadline_overrun,
-   * - blink-gc-atomic-phase_outside_idle,
-   * - blink-gc-atomic-phase_percentage_idle.
+   * - blink-gc-sweep-foreground
    */
-  function addIdleTimesOfTopEvents(histograms, model) {
+  function addTotalDurationOfForegroundSweeping(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-        isNonForcedBlinkGarbageCollectionEvent,
-        blinkGarbageCollectionEventName,
+        isNonForcedBlinkGarbageCollectionSweepingEvent,
+        event => 'blink-gc-sweep-foreground',
         function(name, events) {
-          addIdleTimes(histograms, model, name, events);
+          const cpuDuration = createNumericForTotalEventTime(name);
+          for (const event of events) {
+            cpuDuration.addSample(event.cpuDuration);
+          }
+          histograms.addHistogram(cpuDuration);
         }
     );
-  }
-
-  /**
-   * Example output:
-   * - blink-gc-total_idle_deadline_overrun,
-   * - blink-gc-total_outside_idle,
-   * - blink-gc-total_percentage_idle.
-   */
-  function addTotalIdleTimesOfTopEvents(histograms, model) {
-    tr.metrics.v8.utils.groupAndProcessEvents(model,
-        isNonForcedBlinkGarbageCollectionEvent,
-        event => 'blink-gc-total',
-        function(name, events) {
-          addIdleTimes(histograms, model, name, events);
-        }
-    );
-  }
-
-  function addIdleTimes(histograms, model, name, events) {
-    const cpuDuration = createNumericForIdleTime(name + '_cpu');
-    const insideIdle = createNumericForIdleTime(name + '_inside_idle');
-    const outsideIdle = createNumericForIdleTime(name + '_outside_idle');
-    const idleDeadlineOverrun = createNumericForIdleTime(
-        name + '_idle_deadline_overrun');
-    for (const event of events) {
-      const idleTask = tr.metrics.v8.utils.findParent(
-          event, tr.metrics.v8.utils.isIdleTask);
-      let inside = 0;
-      let overrun = 0;
-      if (idleTask) {
-        const allottedTime = idleTask.args.allotted_time_ms;
-        if (event.duration > allottedTime) {
-          overrun = event.duration - allottedTime;
-          // Don't count time over the deadline as being inside idle time.
-          // Since the deadline should be relative to wall clock we
-          // compare allotted_time_ms with wall duration instead of thread
-          // duration, and then assume the thread duration was inside idle
-          // for the same percentage of time.
-          inside = event.cpuDuration * allottedTime / event.duration;
-        } else {
-          inside = event.cpuDuration;
-        }
-      }
-      cpuDuration.addSample(event.cpuDuration);
-      insideIdle.addSample(inside);
-      outsideIdle.addSample(event.cpuDuration - inside);
-      idleDeadlineOverrun.addSample(overrun);
-    }
-    histograms.addHistogram(idleDeadlineOverrun);
-    histograms.addHistogram(outsideIdle);
-    const percentage = createPercentage(
-        name + '_percentage_idle', insideIdle.sum, cpuDuration.sum);
-    histograms.addHistogram(percentage);
   }
 
   function isV8OrBlinkTopLevelGarbageCollectionEvent(event) {
