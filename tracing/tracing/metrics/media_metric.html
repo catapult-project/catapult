@@ -41,19 +41,27 @@ tr.exportTo('tr.metrics', function() {
       const mainThread = rendererHelper.mainThread;
       if (mainThread === undefined) continue;
 
+      const videoThreads = rendererHelper.process.findAllThreadsMatching(
+          thread => thread.name.startsWith(
+              'ThreadPoolSingleThreadSharedForegroundBlocking'));
+
       const compositorThread = rendererHelper.compositorThread;
+      if (compositorThread !== undefined) {
+        videoThreads.push(compositorThread);
+      }
       const audioThreads =
         rendererHelper.process.findAllThreadsNamed('AudioOutputDevice');
-      if (compositorThread === undefined && audioThreads.length === 0) continue;
+
+      if (audioThreads.length === 0 && videoThreads.length === 0) continue;
 
       const processData = new PerProcessData();
 
       processData.recordPlayStarts(mainThread);
       if (!processData.hasPlaybacks) continue;
 
-      if (compositorThread !== undefined) {
-        processData.calculateTimeToVideoPlays(compositorThread);
-        processData.calculateDroppedFrameCounts(compositorThread);
+      if (videoThreads.length !== 0) {
+        processData.calculateTimeToVideoPlays(videoThreads);
+        processData.calculateDroppedFrameCounts(videoThreads);
       }
 
       if (audioThreads.length !== 0) {
@@ -95,11 +103,13 @@ tr.exportTo('tr.metrics', function() {
       return this.playbackIdToDataMap_.size > 0;
     }
 
-    calculateTimeToVideoPlays(compositorThread) {
-      for (const event of compositorThread.sliceGroup.getDescendantEvents()) {
-        if (event.title === 'VideoRendererImpl::Render') {
-          this.getPerPlaybackObject_(event.args.id)
-              .processVideoRenderTime(event.start);
+    calculateTimeToVideoPlays(videoThreads) {
+      for (const thread of videoThreads) {
+        for (const event of thread.sliceGroup.getDescendantEvents()) {
+          if (event.title === 'VideoRendererImpl::Render') {
+            this.getPerPlaybackObject_(event.args.id)
+                .processVideoRenderTime(event.start);
+          }
         }
       }
     }
@@ -139,11 +149,13 @@ tr.exportTo('tr.metrics', function() {
       }
     }
 
-    calculateDroppedFrameCounts(compositorThread) {
-      for (const event of compositorThread.sliceGroup.getDescendantEvents()) {
-        if (event.title === 'VideoFramesDropped') {
-          this.getPerPlaybackObject_(event.args.id)
-              .processVideoFramesDropped(event.args.count);
+    calculateDroppedFrameCounts(videoThreads) {
+      for (const thread of videoThreads) {
+        for (const event of thread.sliceGroup.getDescendantEvents()) {
+          if (event.title === 'VideoFramesDropped') {
+            this.getPerPlaybackObject_(event.args.id)
+                .processVideoFramesDropped(event.args.count);
+          }
         }
       }
     }
