@@ -24,8 +24,7 @@ class TracingTimeoutException(exceptions.Error):
   pass
 
 
-class TracingUnrecoverableException(exceptions.AppCrashException):
-  # An unrecoverable exception is a possible sign of an app crash.
+class TracingUnrecoverableException(exceptions.Error):
   pass
 
 

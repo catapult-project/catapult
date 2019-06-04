@@ -11,6 +11,7 @@ from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal import app
 from telemetry.internal.backends import browser_backend
+from telemetry.internal.backends.chrome_inspector import tracing_backend
 from telemetry.internal.browser import extension_dict
 from telemetry.internal.browser import tab_list
 from telemetry.internal.browser import web_contents
@@ -276,7 +277,14 @@ class Browser(app.App):
     return self._browser_backend.supports_memory_dumping
 
   def DumpMemory(self, timeout=None):
-    return self._browser_backend.DumpMemory(timeout=timeout)
+    try:
+      return self._browser_backend.DumpMemory(timeout=timeout)
+    except tracing_backend.TracingUnrecoverableException:
+      logging.exception('Failed to record memory dump due to exception:')
+      # Re-raise as an AppCrashException to obtain further debug information
+      # about the browser state.
+      raise exceptions.AppCrashException(
+          app=self, msg='Browser failed to record memory dump.')
 
   @property
   def supports_java_heap_garbage_collection( # pylint: disable=invalid-name
