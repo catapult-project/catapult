@@ -484,6 +484,21 @@ class TraceEventTests(unittest.TestCase):
     self.assertEquals(telemetry_metadata['storyTags'], ['tag1', 'tag2'])
     self.assertEquals(telemetry_metadata['storysetRepeats'], [0])
 
+  def testAddMetadataProtobuf(self):
+    with self._test_trace(format=trace_event.PROTOBUF):
+      trace_event.trace_add_benchmark_metadata(
+          benchmark_start_time_us=1000,
+          story_run_time_us=2000,
+          benchmark_name='benchmark',
+          benchmark_description='desc',
+          story_name='story',
+          story_tags=['tag1', 'tag2'],
+          story_run_index=0,
+      )
+      trace_event.trace_disable()
+      with open(self._log_path, 'r') as f:
+        self.assertGreater(len(f.read()), 0)
+
   def testAddMetadataInJsonFormatRaises(self):
     with self._test_trace(format=trace_event.JSON):
       with self.assertRaises(log.TraceException):

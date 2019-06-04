@@ -310,6 +310,7 @@ def trace_add_benchmark_metadata(
   if _format == PROTOBUF:
     # Write metadata immediately.
     perfetto_trace_writer.write_metadata(
+        output=_log_file,
         benchmark_start_time_us=benchmark_start_time_us,
         story_run_time_us=story_run_time_us,
         benchmark_name=benchmark_name,
