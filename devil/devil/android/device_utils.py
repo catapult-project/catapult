@@ -554,7 +554,7 @@ class DeviceUtils(object):
     def device_online_with_root():
       try:
         self.adb.WaitForDevice()
-        return self.GetProp('service.adb.root', cache=False) == '1'
+        return self.HasRoot()
       except (device_errors.AdbCommandFailedError,
               device_errors.DeviceUnreachableError):
         return False

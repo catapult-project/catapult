@@ -360,7 +360,7 @@ class DeviceUtilsEnableRootTest(DeviceUtilsTest):
     with self.assertCalls(
         self.call.adb.Root(),
         self.call.adb.WaitForDevice(),
-        (self.call.device.GetProp('service.adb.root', cache=False), '1')):
+        (self.call.device.HasRoot(), True)):
       self.device.EnableRoot()
 
   def testEnableRoot_userBuild(self):
