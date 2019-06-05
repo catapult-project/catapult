@@ -1,0 +1,9 @@
+Name: pyasn1
+URL: https://github.com/etingof/pyasn1
+Version: 0.4.5
+License: BSD-2
+
+Description:
+This is a free and open source implementation of ASN.1 types and codecs as a Python package. It has been first written to support particular protocol (SNMP) but then generalized to be suitable for a wide range of protocols based on ASN.1 specification.
+
+This was installed as a dependency of google-auth via pip.
