@@ -76,3 +76,6 @@ class _LoggingOutputStream(object):
     """
     return 'r'
 
+  def isatty(self):
+    return self._stream.isatty()
+
