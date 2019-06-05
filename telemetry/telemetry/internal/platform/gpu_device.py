@@ -16,11 +16,14 @@ class GPUDevice(object):
       0x10de: 'Nvidia',
   }
 
-  def __init__(self, vendor_id, device_id, vendor_string, device_string):
+  def __init__(self, vendor_id, device_id, vendor_string, device_string,
+               driver_vendor, driver_version):
     self._vendor_id = vendor_id
     self._device_id = device_id
     self._vendor_string = vendor_string
     self._device_string = device_string
+    self._driver_vendor = driver_vendor
+    self._driver_version = driver_version
 
   def __str__(self):
     vendor = 'VENDOR = 0x%x' % self._vendor_id
@@ -32,7 +35,8 @@ class GPUDevice(object):
     device = 'DEVICE = 0x%x' % self._device_id
     if self._device_string:
       device += ' (%s)' % self._device_string
-    return '%s, %s' % (vendor, device)
+    return '%s, %s, DRIVER_VENDOR = %s, DRIVER_VERSION = %s' % (
+        vendor, device, self._driver_vendor, self._driver_version)
 
   @classmethod
   def FromDict(cls, attrs):
@@ -43,11 +47,18 @@ class GPUDevice(object):
          device_id
          vendor_string
          device_string
+         driver_vendor
+         driver_version
 
        Raises an exception if any attributes are missing.
     """
     return cls(attrs['vendor_id'], attrs['device_id'],
-               attrs['vendor_string'], attrs['device_string'])
+               attrs['vendor_string'], attrs['device_string'],
+               # --browser=reference will use a very old build of Chrome
+               # where driver_vendor and driver_version aren't part of
+               # the dict.
+               attrs.get('driver_vendor', ''),
+               attrs.get('driver_version', ''))
 
   @property
   def vendor_id(self):
@@ -82,3 +93,15 @@ class GPUDevice(object):
        Most mobile devices supply this information rather than the PCI
        IDs."""
     return self._device_string
+
+  @property
+  def driver_vendor(self):
+    """The GPU driver vendor as a string, or the empty string if not
+       available."""
+    return self._driver_vendor
+
+  @property
+  def driver_version(self):
+    """The GPU driver version as a string, or the empty string if not
+       available."""
+    return self._driver_version
