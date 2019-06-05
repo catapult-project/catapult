@@ -318,7 +318,8 @@ class _ChromeOSController(_PlatformController):
       return False
     # Kill the profiling process directly. Terminating the SSH process doesn't
     # kill the profiling process.
-    self._platform_backend.RunCommand(['killall', self.PERF_BINARY_PATH])
+    self._platform_backend.RunCommand(['killall', '-s', 'INT',
+                                       self.PERF_BINARY_PATH])
     ssh_process.wait()
     return True
 
