@@ -120,17 +120,23 @@ def StoreConfigs(client, configs):
   Returns:
     None
   """
-  if not configs:
-    raise ValueError('Configs must not be empty nor None.')
-
-  required_fields = {'config_set', 'content', 'revision', 'url', 'content_hash'}
-
   # We group the Subscription instances along a SubscriptionIndex entity. A
   # SubscriptionIndex will always have the latest version of the subscription
   # configurations, for easy lookup, as a list. We will only update the
   # SubscriptionIndex if there were any new revisions in the configuration sets
   # that we've gotten.
   subscription_index_key = client.key('SubscriptionIndex', 'global')
+
+  if not configs:
+    # We should clear the existing set of configs, if there are any.
+    with client.transaction():
+      subscription_index = datastore.Entity(
+          key=subscription_index_key, exclude_from_indexes=['config_sets'])
+      subscription_index.update({'config_sets': []})
+      client.put(subscription_index)
+      return
+
+  required_fields = {'config_set', 'content', 'revision', 'url', 'content_hash'}
 
   def Transform(config):
     missing_fields = required_fields.difference(config)

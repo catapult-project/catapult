@@ -153,7 +153,8 @@ class LuciPollingTest(unittest.TestCase):
                 'benchmark': 'Test',
                 'metric_parts': ['Metric', 'Something'],
             }
-        }, headers={'X-Forwarded-Proto': 'https'})
+        },
+        headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 404)
 
 
@@ -249,6 +250,28 @@ class LuciContentChangesTest(unittest.TestCase):
                 }
             }]
         })
+
+  def testPollAndEmptyConfigs(self):
+    app = service.CreateApp({
+        'environ': {
+            'GOOGLE_CLOUD_PROJECT': 'chromeperf',
+            'GAE_SERVICE': 'sheriff-config',
+        },
+        'datastore_client':
+            datastore.Client(
+                credentials=credentials.AnonymousCredentials(),
+                project='chromeperf'),
+        'http':
+            HttpMockSequence([({
+                'status': '200'
+            }, self.discovery_file), ({
+                'status': '200'
+            }, '{}')])
+    })
+    client = app.test_client()
+    response = client.get(
+        '/configs/update', headers={'X-Forwarded-Proto': 'https'})
+    self.assertEqual(response.status_code, 200)
 
   def testPollConfigAddsAndRemoves(self):
     with open('tests/sample-configs-get_project_configs_reduced.json'
