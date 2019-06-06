@@ -19,6 +19,11 @@ libraries:
   version: "2.6"
 - name: webapp2
   version: "2.5.2"
+- name: ssl
+  version: latest
+
+env_variables:
+  GAE_USE_SOCKETS_HTTPLIB: 'true'
 
 builtins:
 - remote_api: on
