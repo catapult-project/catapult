@@ -163,13 +163,6 @@ tr.exportTo('tr.metrics', function() {
     for (const metadata of model.metadata) {
       if (!metadata.value || !metadata.value.telemetry) continue;
 
-      const traceUrls = metadata.value.telemetry[
-          tr.v.d.RESERVED_NAMES.TRACE_URLS];
-      if (traceUrls && model.canonicalUrl !== traceUrls[0]) {
-        throw new Error(`canonicalUrl "${model.canonicalUrl}" != ` +
-            `traceUrl "${traceUrls[0]}"`);
-      }
-
       for (const [name, value] of Object.entries(metadata.value.telemetry)) {
         const type = tr.v.d.RESERVED_NAMES_TO_TYPES.get(name);
         if (type === undefined) {
@@ -190,6 +183,12 @@ tr.exportTo('tr.metrics', function() {
     const histograms = runMetrics(
         model, options, result.addFailure.bind(result));
     addTelemetryInfo(histograms, model);
+
+    if (model.canonicalUrl !== undefined) {
+      const info = tr.v.d.RESERVED_INFOS.TRACE_URLS;
+      histograms.addSharedDiagnosticToAllHistograms(
+          info.name, new info.type([model.canonicalUrl]));
+    }
 
     result.addPair('histograms', histograms.asDicts());
 
