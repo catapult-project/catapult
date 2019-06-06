@@ -104,8 +104,8 @@ def ProcessCommandLineArgs(parser, args):
 
 
 @contextlib.contextmanager
-def CaptureLogsAsArtifacts(results, test_name):
-  with results.CreateArtifact(test_name, 'logs') as log_file:
+def CaptureLogsAsArtifacts(results):
+  with results.CreateArtifact('logs') as log_file:
     with logging_util.CaptureLogs(log_file):
       yield
 
@@ -120,13 +120,13 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
       if isinstance(exc, exceptions.AppCrashException):
         minidump_path = exc.minidump_path
         if minidump_path:
-          results.AddArtifact(story.name, 'minidump', minidump_path)
+          results.AddArtifact('minidump', minidump_path)
 
     # Note: calling Fail on the results object also normally causes the
     # progress_reporter to log it in the output.
     results.Fail('Exception raised running %s' % story.name)
 
-  with CaptureLogsAsArtifacts(results, story.name):
+  with CaptureLogsAsArtifacts(results):
     try:
       if isinstance(test, story_test.StoryTest):
         test.WillRunStory(state.platform)

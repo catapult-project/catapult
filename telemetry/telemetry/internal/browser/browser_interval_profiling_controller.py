@@ -62,17 +62,16 @@ class BrowserIntervalProfilingController(object):
         frequency=self._frequency):
       yield
 
-  def GetResults(self, page_name, file_safe_name, results):
+  def GetResults(self, file_safe_name, results):
     if self._platform_controller:
-      self._platform_controller.GetResults(
-          page_name, file_safe_name, results)
+      self._platform_controller.GetResults(file_safe_name, results)
 
 
 class _PlatformController(object):
   def SamplePeriod(self, period, action_runner):
     raise NotImplementedError()
 
-  def GetResults(self, page_name, file_safe_name, results):
+  def GetResults(self, file_safe_name, results):
     raise NotImplementedError()
 
 
@@ -106,11 +105,11 @@ class _LinuxController(_PlatformController):
         }"""))
     self._temp_results.append((period, out_file))
 
-  def GetResults(self, page_name, file_safe_name, results):
+  def GetResults(self, file_safe_name, results):
     for period, temp_file in self._temp_results:
       prefix = '%s-%s-' % (file_safe_name, period)
       with results.CreateArtifact(
-          page_name, 'pprof', prefix=prefix, suffix='.profile.pb') as dest_fh:
+          'pprof', prefix=prefix, suffix='.profile.pb') as dest_fh:
         with open(temp_file, 'rb') as src_fh:
           shutil.copyfileobj(src_fh, dest_fh.file)
         os.remove(temp_file)
@@ -222,11 +221,11 @@ class _AndroidController(_PlatformController):
     profiling_process.wait()
     self._device_results.append((period, out_file))
 
-  def GetResults(self, page_name, file_safe_name, results):
+  def GetResults(self, file_safe_name, results):
     for period, device_file in self._device_results:
       prefix = '%s-%s-' % (file_safe_name, period)
       with results.CreateArtifact(
-          page_name, 'simpleperf', prefix=prefix, suffix='.perf.data') as fh:
+          'simpleperf', prefix=prefix, suffix='.perf.data') as fh:
         local_file = fh.name
         fh.close()
         self._device.PullFile(device_file, local_file)
@@ -338,25 +337,25 @@ class _ChromeOSController(_PlatformController):
       success = self._StopProfiling(ssh_process) and success
       self._device_results.append((period, out_file, success))
 
-  def _CreateArtifacts(self, page_name, file_safe_name, results):
+  def _CreateArtifacts(self, file_safe_name, results):
     for period, device_file, ok in self._device_results:
       if not ok:
         continue
       prefix = '%s-%s-' % (file_safe_name, period)
       with results.CreateArtifact(
-          page_name, 'perf', prefix=prefix, suffix='.perf.data') as fh:
+          'perf', prefix=prefix, suffix='.perf.data') as fh:
         local_file = fh.name
       self._platform_backend.GetFile(device_file, local_file)
 
-  def GetResults(self, page_name, _, results):
+  def GetResults(self, _, results):
     """Creates perf.data file artifacts from a successful story run."""
     if results.current_page_run.ok:
       # Benchmark and story names are delimited by "@@" and ends with "@@".
       # These can derived from the .perf.data filename.
       file_safe_name = (
           urllib.quote(results.telemetry_info.benchmark_name, safe='')
-          + "@@" + urllib.quote(page_name, safe='') + "@@")
-      self._CreateArtifacts(page_name, file_safe_name, results)
+          + "@@" + urllib.quote(results.current_page.name, safe='') + "@@")
+      self._CreateArtifacts(file_safe_name, results)
 
     self._platform_backend.RunCommand(
         ['rm', '-f'] + [df for _, df, _ in self._device_results])

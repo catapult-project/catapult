@@ -83,6 +83,11 @@ class SharedPageState(story_module.SharedState):
     return self._browser
 
   def DumpStateUponFailure(self, page, results):
+    # TODO(crbug.com/971624): This method does not actually need the "page"
+    # object since "results" already tracks the currently running story.
+    # The unused argument can be removed everywhere.
+    del page  # Unused.
+
     # Dump browser standard output and log.
     if self._browser:
       self._browser.DumpStateUponFailure()
@@ -93,7 +98,7 @@ class SharedPageState(story_module.SharedState):
     if self._finder_options.browser_options.take_screenshot_for_failed_page:
       fh = screenshot.TryCaptureScreenShot(self.platform, self._current_tab)
       if fh is not None:
-        results.AddArtifact(page.name, 'screenshot', fh)
+        results.AddArtifact('screenshot', fh)
     else:
       logging.warning('Taking screenshots upon failures disabled.')
 
@@ -117,7 +122,7 @@ class SharedPageState(story_module.SharedState):
               type(exc).__name__)
           self._current_tab.Close()
       self._interval_profiling_controller.GetResults(
-          self._current_page.name, self._current_page.file_safe_name, results)
+          self._current_page.file_safe_name, results)
     finally:
       self._current_page = None
       self._current_tab = None

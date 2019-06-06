@@ -775,12 +775,15 @@ class PageTestResultsFilterTest(unittest.TestCase):
       results = self.getPageTestResults(
           upload_bucket='abc', artifact_results=ar)
 
-
-      with results.CreateArtifact('story1', 'screenshot') as screenshot1:
+      results.WillRunPage(self.pages[0])
+      with results.CreateArtifact('screenshot') as screenshot1:
         pass
+      results.DidRunPage(self.pages[0])
 
-      with results.CreateArtifact('story2', 'log') as log2:
+      results.WillRunPage(self.pages[1])
+      with results.CreateArtifact('log') as log2:
         pass
+      results.DidRunPage(self.pages[1])
 
       results.UploadArtifactsToCloud()
       cloud_storage_insert_patch.assert_has_calls(
@@ -806,11 +809,15 @@ class PageTestResultsFilterTest(unittest.TestCase):
           upload_bucket='abc', artifact_results=ar)
 
 
-      with results.CreateArtifact('story1', 'screenshot'):
+      results.WillRunPage(self.pages[0])
+      with results.CreateArtifact('screenshot'):
         pass
+      results.DidRunPage(self.pages[0])
 
-      with results.CreateArtifact('story2', 'log'):
+      results.WillRunPage(self.pages[1])
+      with results.CreateArtifact('log'):
         pass
+      results.DidRunPage(self.pages[1])
 
       # Just make sure that this does not crash
       results.UploadArtifactsToCloud()
