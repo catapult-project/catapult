@@ -6,28 +6,26 @@ import re
 
 from telemetry.timeline import chrome_trace_category_filter
 
-
-RECORD_MODE_PARAM = 'record_mode'
-
-ECHO_TO_CONSOLE = 'trace-to-console'
-RECORD_AS_MUCH_AS_POSSIBLE = 'record-as-much-as-possible'
-RECORD_CONTINUOUSLY = 'record-continuously'
-RECORD_UNTIL_FULL = 'record-until-full'
 TRACE_BUFFER_SIZE_IN_KB = 'trace_buffer_size_in_kb'
 
-# Map telemetry's tracing record_mode to the DevTools API string.
-# (The keys happen to be the same as the values.)
-RECORD_MODE_MAP = {
-    RECORD_UNTIL_FULL: 'record-until-full',
-    RECORD_CONTINUOUSLY: 'record-continuously',
-    RECORD_AS_MUCH_AS_POSSIBLE: 'record-as-much-as-possible',
-    ECHO_TO_CONSOLE: 'trace-to-console'
+RECORD_MODE = 'record_mode'
+
+RECORD_CONTINUOUSLY = 'record-continuously'
+RECORD_UNTIL_FULL = 'record-until-full'
+RECORD_AS_MUCH_AS_POSSIBLE = 'record-as-much-as-possible'
+ECHO_TO_CONSOLE = 'trace-to-console'
+
+RECORD_MODES = {
+    RECORD_UNTIL_FULL,
+    RECORD_CONTINUOUSLY,
+    RECORD_AS_MUCH_AS_POSSIBLE,
+    ECHO_TO_CONSOLE,
 }
 
 ENABLE_SYSTRACE_PARAM = 'enable_systrace'
 UMA_HISTOGRAM_NAMES_PARAM = 'histogram_names'
 
-def ConvertStringToCamelCase(string):
+def _ConvertStringToCamelCase(string):
   """Convert an underscore/hyphen-case string to its camel-case counterpart.
 
   This function is the inverse of Chromium's ConvertFromCamelCase function
@@ -36,19 +34,19 @@ def ConvertStringToCamelCase(string):
   parts = re.split(r'[-_]', string)
   return parts[0] + ''.join([p.title() for p in parts[1:]])
 
-
-def ConvertDictKeysToCamelCaseRecursively(data):
+# TODO(crbug.com/971471): Don't do this anymore.
+def _ConvertDictKeysToCamelCaseRecursively(data):
   """Recursively convert dictionary keys from underscore/hyphen- to camel-case.
 
   This function is the inverse of Chromium's ConvertDictKeyStyle function
   in src/content/browser/devtools/protocol/tracing_handler.cc.
   """
   if isinstance(data, dict):
-    return {ConvertStringToCamelCase(k):
-            ConvertDictKeysToCamelCaseRecursively(v)
+    return {_ConvertStringToCamelCase(k):
+            _ConvertDictKeysToCamelCaseRecursively(v)
             for k, v in data.iteritems()}
   elif isinstance(data, list):
-    return map(ConvertDictKeysToCamelCaseRecursively, data)
+    return map(_ConvertDictKeysToCamelCaseRecursively, data)
   else:
     return data
 
@@ -56,12 +54,12 @@ def ConvertDictKeysToCamelCaseRecursively(data):
 class ChromeTraceConfig(object):
   """Stores configuration options specific to the Chrome tracing agent.
 
-    This produces the trace config JSON string for tracing in Chrome.
+  This produces the trace config JSON string for tracing in Chrome.
 
-    record_mode: can be any mode in RECORD_MODE_MAP. This corresponds to
+  Attributes:
+    record_mode: can be any mode in RECORD_MODES. This corresponds to
         record modes in chrome.
     category_filter: Object that specifies which tracing categories to trace.
-    memory_dump_config: Stores the triggers for memory dumps.
   """
 
   def __init__(self):
@@ -101,6 +99,7 @@ class ChromeTraceConfig(object):
           'Must pass SetCategoryFilter a ChromeTraceCategoryFilter instance')
 
   def SetMemoryDumpConfig(self, dump_config):
+    """Memory dump config stores the triggers for memory dumps."""
     if isinstance(dump_config, MemoryDumpConfig):
       self._memory_dump_config = dump_config
     else:
@@ -126,7 +125,7 @@ class ChromeTraceConfig(object):
 
   @record_mode.setter
   def record_mode(self, value):
-    assert value in RECORD_MODE_MAP
+    assert value in RECORD_MODES
     self._record_mode = value
 
   def GetChromeTraceConfigForStartupTracing(self):
@@ -137,7 +136,7 @@ class ChromeTraceConfig(object):
     (e.g. 'record-until-full').
     """
     result = {
-        RECORD_MODE_PARAM: RECORD_MODE_MAP[self._record_mode]
+        RECORD_MODE: self._record_mode
     }
     result.update(self._category_filter.GetDictForChromeTracing())
     if self._memory_dump_config:
@@ -148,7 +147,6 @@ class ChromeTraceConfig(object):
       result[UMA_HISTOGRAM_NAMES_PARAM] = self._uma_histogram_names
     if self._trace_buffer_size_in_kb:
       result[TRACE_BUFFER_SIZE_IN_KB] = self._trace_buffer_size_in_kb
-
     return result
 
   def GetChromeTraceConfigForDevTools(self):
@@ -160,12 +158,12 @@ class ChromeTraceConfig(object):
     underscore/hyphen-delimited mapping performed in Chromium devtools.
     """
     result = self.GetChromeTraceConfigForStartupTracing()
-    if result[RECORD_MODE_PARAM]:
-      result[RECORD_MODE_PARAM] = ConvertStringToCamelCase(
-          result[RECORD_MODE_PARAM])
+    if result[RECORD_MODE]:
+      result[RECORD_MODE] = _ConvertStringToCamelCase(
+          result[RECORD_MODE])
     if self._enable_systrace:
       result.update({ENABLE_SYSTRACE_PARAM: True})
-    return ConvertDictKeysToCamelCaseRecursively(result)
+    return _ConvertDictKeysToCamelCaseRecursively(result)
 
 
 class MemoryDumpConfig(object):
