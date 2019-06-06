@@ -23,7 +23,7 @@ paths:
           schema:
             $ref: "#/definitions/ServiceMetadata"
       security:
-        - api_key: []
+        - luci_config_service_account: []
   "/configs/validate":
     post:
       description: "Validate a text-formatted protobuf message."
@@ -42,10 +42,8 @@ paths:
           schema:
             $ref: "#/definitions/ValidationRequest"
       security:
-        - api_key: []
-          chromeperf_service_account: []
-        - api_key: []
-          google_id_token: []
+        - chromeperf_service_account: []
+        - luci_config_service_account: []
   "/configs/update":
     get:
       description: "Polls the luci-config service and persists the most up-to-date configuration."
@@ -152,6 +150,12 @@ securityDefinitions:
     type: "oauth2"
     x-google-issuer: "chromeperf@appspot.gserviceaccount.com"
     x-google-jwks_uri: "https://www.googleapis.com/robot/v1/metadata/x509/chromeperf@appspot.gserviceaccount.com"
+  luci_config_service_account:
+    authorizationUrl: ""
+    flow: "implicit"
+    type: "oauth2"
+    x-google-issuer: "luci-config@appspot.gserviceaccount.com"
+    x-google-jwks_uri: "https://www.googleapis.com/robot/v1/metadata/x509/luci-config@appspot.gserviceaccount.com"
   google_id_token:
     authorizationUrl: ""
     flow: "implicit"
