@@ -1,0 +1,9 @@
+Name: requests_toolbelt
+URL: https://github.com/requests/toolbelt
+Version: 0.9.1
+License: Apache 2.0
+
+Description:
+requests_toolbelt is a collection of utilities for python-requests, but don’t really belong in requests proper.
+
+This was installed for vendoring using `pip install --no-cache -t third_party/requests_toolbelt requests-toolbelt`, and then having all pip-related artifacts removed.

@@ -89,6 +89,7 @@ group("telemetry_chrome_test_support") {
     "third_party/python_gflags/",
     "third_party/redux/",
     "third_party/requests/",
+    "third_party/requests_toolbelt/",
     "third_party/rsa/",
     "third_party/six/",
     "third_party/snap-it/",
