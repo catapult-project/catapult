@@ -15,7 +15,6 @@ from telemetry import page as page_module
 from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
-from telemetry.value import trace
 from tracing.trace_data import trace_data
 
 
@@ -205,14 +204,11 @@ class ChartJsonTest(unittest.TestCase):
     self.assertTrue('summary' in d['charts']['foo'])
     self.assertTrue(d['enabled'])
 
-  def testAsChartDictWithTraceValuesThatHasTirLabel(self):
+  def testAsChartDictWithTraceValues(self):
     results = _MakePageTestResults()
     try:
       results.WillRunPage(self._story_set[0])
-      v = trace.TraceValue(self._story_set[0], trace_data.CreateTestTrace())
-      v.SerializeTraceData()
-      v.tir_label = 'background'
-      results.AddValue(v)
+      results.AddTraces(trace_data.CreateTestTrace())
       results.DidRunPage(self._story_set[0])
 
       d = chart_json_output_formatter.ResultsAsChartDict(

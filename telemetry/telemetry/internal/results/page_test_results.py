@@ -694,6 +694,32 @@ class PageTestResults(object):
     return self._artifact_results.CreateArtifact(
         story, name, prefix=prefix, suffix=suffix)
 
+  def AddTraces(self, traces, tbm_metrics=None):
+    """Associate some recorded traces with the current story run.
+
+    Args:
+      traces: A TraceDataBuilder object with traces recorded from all
+        tracing agents.
+      tbm_metrics: Optional list of TBMv2 metrics to be computed from the
+        input traces.
+    """
+    assert self._current_page_run, 'Not currently running test.'
+    trace_value = trace.TraceValue(
+        self.current_page, traces,
+        file_path=self.telemetry_info.trace_local_path,
+        remote_path=self.telemetry_info.trace_remote_path,
+        upload_bucket=self.telemetry_info.upload_bucket,
+        cloud_url=self.telemetry_info.trace_remote_url,
+        trace_url=self.telemetry_info.trace_url)
+    self.AddValue(trace_value)
+    if tbm_metrics:
+      # Both trace serialization and metric computation will happen later
+      # asynchronously during ComputeTimelineBasedMetrics.
+      trace_value.SetTimelineBasedMetrics(tbm_metrics)
+    else:
+      # Otherwise we immediately serialize the trace data.
+      trace_value.SerializeTraceData()
+
   def AddArtifact(self, story, name, path):
     self._artifact_results.AddArtifact(story, name, path)
 

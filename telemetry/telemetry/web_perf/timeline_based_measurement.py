@@ -7,7 +7,6 @@ import logging
 from telemetry.timeline import chrome_trace_category_filter
 from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_config
-from telemetry.value import trace
 from telemetry.web_perf.metrics import timeline_based_metric
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_interaction_record as tir_module
@@ -258,44 +257,26 @@ class TimelineBasedMeasurement(story_test.StoryTest):
   def Measure(self, platform, results):
     """Collect all possible metrics and added them to results."""
     platform.tracing_controller.SetTelemetryInfo(results.telemetry_info)
-    trace_result = platform.tracing_controller.StopTracing()
-    trace_value = trace.TraceValue(
-        results.current_page, trace_result,
-        file_path=results.telemetry_info.trace_local_path,
-        remote_path=results.telemetry_info.trace_remote_path,
-        upload_bucket=results.telemetry_info.upload_bucket,
-        cloud_url=results.telemetry_info.trace_remote_url,
-        trace_url=results.telemetry_info.trace_url)
-    results.AddValue(trace_value)
-    if self._tbm_options.GetTimelineBasedMetrics():
-      assert not self._tbm_options.GetLegacyTimelineBasedMetrics(), (
-          'Specifying both TBMv1 and TBMv2 metrics is not allowed.')
-      # The metrics computation happens later asynchronously in
-      # results.ComputeTimelineBasedMetrics().
-      trace_value.SetTimelineBasedMetrics(
-          self._tbm_options.GetTimelineBasedMetrics())
-    else:
-      # Run all TBMv1 metrics if no other metric is specified
-      # (legacy behavior)
-      if not self._tbm_options.GetLegacyTimelineBasedMetrics():
-        raise Exception(
-            'Please specify the TBMv1 metrics you are interested in '
-            'explicitly.')
-      trace_value.SerializeTraceData()
-      self._ComputeLegacyTimelineBasedMetrics(results, trace_result.AsData())
+    traces = platform.tracing_controller.StopTracing()
+
+    tbm_metrics = self._tbm_options.GetTimelineBasedMetrics()
+    legacy_tbm_metrics = self._tbm_options.GetLegacyTimelineBasedMetrics()
+    results.AddTraces(traces, tbm_metrics=tbm_metrics)
+    assert not tbm_metrics or not legacy_tbm_metrics, (
+        'Specifying both TBMv1 and TBMv2 metrics is not allowed.')
+    assert tbm_metrics or legacy_tbm_metrics, (
+        'Please specify required metrics using SetTimelineBasedMetrics')
+
+    if legacy_tbm_metrics:
+      # Legacy TBMv1 metrics are computed immediately; TBMv2 metrics are
+      # computed by the PageTestResults object.
+      self._ComputeLegacyTimelineBasedMetrics(results, traces.AsData())
 
   def DidRunStory(self, platform, results):
     """Clean up after running the story."""
     if platform.tracing_controller.is_tracing_running:
-      trace_result = platform.tracing_controller.StopTracing()
-      trace_value = trace.TraceValue(
-          results.current_page, trace_result,
-          file_path=results.telemetry_info.trace_local_path,
-          remote_path=results.telemetry_info.trace_remote_path,
-          upload_bucket=results.telemetry_info.upload_bucket,
-          cloud_url=results.telemetry_info.trace_remote_url)
-      trace_value.SerializeTraceData()
-      results.AddValue(trace_value)
+      traces = platform.tracing_controller.StopTracing()
+      results.AddTraces(traces)
 
   def _ComputeLegacyTimelineBasedMetrics(self, results, trace_data):
     model = model_module.TimelineModel(trace_data)

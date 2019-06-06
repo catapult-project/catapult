@@ -21,7 +21,6 @@ from telemetry.value import histogram
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
 from telemetry.value import skip
-from telemetry.value import trace
 from tracing.trace_data import trace_data
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
@@ -453,11 +452,11 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results = self.getPageTestResults()
     try:
       results.WillRunPage(self.pages[0])
-      results.AddValue(trace.TraceValue(None, trace_data.CreateTestTrace(1)))
+      results.AddTraces(trace_data.CreateTestTrace(1))
       results.DidRunPage(self.pages[0])
 
       results.WillRunPage(self.pages[1])
-      results.AddValue(trace.TraceValue(None, trace_data.CreateTestTrace(2)))
+      results.AddTraces(trace_data.CreateTestTrace(2))
       results.DidRunPage(self.pages[1])
 
       results.PrintSummary()
@@ -467,37 +466,15 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     finally:
       results.CleanUp()
 
-  def testCleanUpCleansUpTraceValues(self):
-    results = self.getPageTestResults()
-    try:
-      v0 = trace.TraceValue(None, trace_data.CreateTestTrace(1))
-      v1 = trace.TraceValue(None, trace_data.CreateTestTrace(2))
-
-      results.WillRunPage(self.pages[0])
-      results.AddValue(v0)
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      results.AddValue(v1)
-      results.DidRunPage(self.pages[1])
-    finally:
-      results.CleanUp()
-
-    self.assertTrue(v0.cleaned_up)
-    self.assertTrue(v1.cleaned_up)
-
   def testNoTracesLeftAfterCleanUp(self):
     results = self.getPageTestResults()
     try:
-      v0 = trace.TraceValue(None, trace_data.CreateTestTrace(1))
-      v1 = trace.TraceValue(None, trace_data.CreateTestTrace(2))
-
       results.WillRunPage(self.pages[0])
-      results.AddValue(v0)
+      results.AddTraces(trace_data.CreateTestTrace(1))
       results.DidRunPage(self.pages[0])
 
       results.WillRunPage(self.pages[1])
-      results.AddValue(v1)
+      results.AddTraces(trace_data.CreateTestTrace(2))
       results.DidRunPage(self.pages[1])
     finally:
       results.CleanUp()

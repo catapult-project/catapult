@@ -6,8 +6,6 @@ import os
 import StringIO
 import unittest
 
-import mock
-
 from telemetry import story
 from telemetry import benchmark
 from telemetry.internal.results import csv_output_formatter
@@ -15,7 +13,6 @@ from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
-from telemetry.value import trace
 from tracing.trace_data import trace_data
 
 
@@ -36,7 +33,8 @@ class CsvOutputFormatterTest(unittest.TestCase):
     self._output = StringIO.StringIO()
     self._story_set = _MakeStorySet()
     self._results = page_test_results.PageTestResults(
-        benchmark_metadata=benchmark.BenchmarkMetadata('benchmark'))
+        benchmark_metadata=benchmark.BenchmarkMetadata('benchmark'),
+        upload_bucket='fake_bucket')
     self._results.telemetry_info.benchmark_name = 'benchmark'
     self._results.telemetry_info.benchmark_start_epoch = 15e8
     self._results.telemetry_info.benchmark_descriptions = 'foo'
@@ -57,9 +55,13 @@ class CsvOutputFormatterTest(unittest.TestCase):
     """
     for page, values in list_of_page_and_values:
       self._results.WillRunPage(page)
-      for v in values:
-        v.page = page
-        self._results.AddValue(v)
+      for value in values:
+        if isinstance(value, trace_data.TraceDataBuilder):
+          self._results.AddTraces(value)
+        else:
+          value.page = page
+          self._results.AddValue(value)
+
       self._results.DidRunPage(page)
 
   def Format(self):
@@ -84,14 +86,7 @@ class CsvOutputFormatterTest(unittest.TestCase):
 
     self.assertEqual(expected, self.Format())
 
-  @mock.patch('py_utils.cloud_storage.Insert')
-  def testMultiplePagesAndValues(self, cs_insert_mock):
-    cs_insert_mock.return_value = 'https://cloud_storage_url/foo'
-    trace_value = trace.TraceValue(
-        None, trace_data.CreateTestTrace(),
-        remote_path='rp', upload_bucket='foo', cloud_url='http://google.com')
-    trace_value.SerializeTraceData()
-    trace_value.UploadToCloud()
+  def testMultiplePagesAndValues(self):
     self.SimulateBenchmarkRun([
         (self._story_set[0], [
             scalar.ScalarValue(
@@ -101,7 +96,7 @@ class CsvOutputFormatterTest(unittest.TestCase):
             scalar.ScalarValue(
                 None, 'foo', 'seconds', 3.4,
                 improvement_direction=improvement_direction.DOWN),
-            trace_value,
+            trace_data.CreateTestTrace(),
             scalar.ScalarValue(
                 None, 'bar', 'km', 10,
                 improvement_direction=improvement_direction.DOWN),
@@ -118,7 +113,10 @@ class CsvOutputFormatterTest(unittest.TestCase):
     self.assertEquals(len(values), 4)
     self.assertEquals(len(set((v[1] for v in values))), 2)  # 2 pages.
     self.assertEquals(len(set((v[2] for v in values))), 4)  # 4 value names.
-    self.assertEquals(values[2], [
+    sample_row = values[2]
+    trace_url = sample_row.pop()
+    self.assertEquals(sample_row, [
         'foo', 'ms', '3400', '1', '3400', '3400', '0', '3400', '', 'benchmark',
         '2017-07-14 02:40:00', '', '', '', 'benchmark 2017-07-14 02:40:00', '',
-        '', '', '', '', 'http://www.bar.com/', '', '', 'http://google.com'])
+        '', '', '', '', 'http://www.bar.com/', '', ''])
+    self.assertRegexpMatches(trace_url, r'^https://.*fake_bucket')
