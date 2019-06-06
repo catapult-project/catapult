@@ -51,10 +51,6 @@ _MONORAIL_BUG_ID_RE = re.compile(r'[1-9]\d*')
 _MONORAIL_PROJECT_NAMES = frozenset({'chromium', 'v8', 'angleproject', 'skia'})
 
 def CheckChangeLogBug(input_api, output_api):
-  if not input_api.change.issue:
-    # If there is no change issue, there won't be a bug yet. Skip the check.
-    return []
-
   # Show a presubmit message if there is no Bug line or an empty Bug line.
   if not input_api.change.BugsFromDescription():
     return [output_api.PresubmitNotifyResult(
