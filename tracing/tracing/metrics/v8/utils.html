@@ -218,6 +218,23 @@ tr.exportTo('tr.metrics.v8.utils', function() {
   }
 
   /**
+   * Finds all threads in renderer processes of the given model that
+   * can execute JavaScript code (the main thread and web worker threads).
+   * These threads are relevant for computing GC metrics.
+   */
+  function jsExecutionThreads(model) {
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    let threads = [];
+    for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
+      if (rendererHelper.isChromeTracingUI) continue;
+      threads.push(rendererHelper.mainThread);
+      threads = threads.concat(rendererHelper.dedicatedWorkerThreads);
+    }
+    return threads;
+  }
+
+  /**
    * Filters events using the |filterCallback|, then groups events by the user
    * the name computed using the |nameCallback|, and then invokes
    * the |processCallback| with the grouped events.
@@ -229,12 +246,16 @@ tr.exportTo('tr.metrics.v8.utils', function() {
       nameCallback, processCallback) {
     // Map: name -> [events].
     const nameToEvents = {};
-    for (const event of model.getDescendantEvents()) {
-      if (!filterCallback(event)) continue;
-      const name = nameCallback(event);
-      nameToEvents[name] = nameToEvents[name] || [];
-      nameToEvents[name].push(event);
+    const threads = jsExecutionThreads(model);
+    for (const thread of threads) {
+      for (const event of thread.sliceGroup.childEvents()) {
+        if (!filterCallback(event)) continue;
+        const name = nameCallback(event);
+        nameToEvents[name] = nameToEvents[name] || [];
+        nameToEvents[name].push(event);
+      }
     }
+
     for (const [name, events] of Object.entries(nameToEvents)) {
       processCallback(name, events);
     }

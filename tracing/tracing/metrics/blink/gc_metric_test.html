@@ -17,19 +17,16 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createModel(start, end, slices) {
-    const opts = {
-      customizeModelCallback(model) {
-        const process = model.getOrCreateProcess(1);
-        const thread = process.getOrCreateThread(2);
-        const group = thread.sliceGroup;
-        slices.forEach(function(slice) {
-          group.pushSlice(tr.c.TestUtils.newSliceEx(slice));
-        });
-        group.createSubSlices();
+    return tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+      const group = mainThread.sliceGroup;
+      for (const slice of slices) {
+        group.pushSlice(tr.c.TestUtils.newSliceEx(slice));
       }
-    };
-    const model = tr.c.TestUtils.newModelWithEvents([], opts);
-    return model;
+      group.createSubSlices();
+      mainThread.updateBounds();
+    });
   }
 
   function constructName(name, suffix) {

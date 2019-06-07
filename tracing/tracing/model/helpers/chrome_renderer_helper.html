@@ -21,9 +21,12 @@ tr.exportTo('tr.model.helpers', function() {
     this.compositorThread_ = process.findAtMostOneThreadNamed('Compositor');
     this.rasterWorkerThreads_ = process.findAllThreadsMatching(function(t) {
       if (t.name === undefined) return false;
-      if (t.name.indexOf('CompositorTileWorker') === 0) return true;
-      if (t.name.indexOf('CompositorRasterWorker') === 0) return true;
+      if (t.name.startsWith('CompositorTileWorker')) return true;
+      if (t.name.startsWith('CompositorRasterWorker')) return true;
       return false;
+    });
+    this.dedicatedWorkerThreads_ = process.findAllThreadsMatching(function(t) {
+      return t.name && t.name.startsWith('DedicatedWorker');
     });
 
     if (!process.name) {
@@ -62,6 +65,10 @@ tr.exportTo('tr.model.helpers', function() {
     // May be empty.
     get rasterWorkerThreads() {
       return this.rasterWorkerThreads_;
+    },
+
+    get dedicatedWorkerThreads() {
+      return this.dedicatedWorkerThreads_;
     },
 
     get isChromeTracingUI() {
