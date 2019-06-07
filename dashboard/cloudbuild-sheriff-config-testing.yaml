@@ -32,7 +32,7 @@ steps:
   - name: 'gcr.io/cloud-builders/gcloud'
     args: [
       'app', 'deploy', 'dashboard/dashboard/sheriff_config/sheriff-config.yaml',
-      # Provide the git commit to the version of the deployment.
-      '--version', 'cloud-build-${REVISION_ID}'
+      # Provide the short git commit to the version of the deployment.
+      '--version', 'cloud-build-${SHORT_SHA}'
     ]
     timeout: 900s  # Wait for 15 minutes for the deploy to finish.
