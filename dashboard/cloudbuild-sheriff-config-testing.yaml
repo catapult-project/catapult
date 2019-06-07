@@ -1,0 +1,36 @@
+# These are the testing and deploy steps for the sheriff-config service. This
+# works from the dashboard root and uses a combination of docker-compose and
+# other steps specific to the sheriff config build.
+timeout: 1800s  # Wait for 30 minutes for the whole build to finish.
+steps:
+  - name: 'gcr.io/chromeperf/protoc'
+    args: [
+      '-I', 'dashboard/proto',
+      '--python_out', 'dashboard/sheriff_config',
+      'dashboard/proto/sheriff_config.proto'
+    ]
+  - name: 'docker/compose:1.19.0'
+    args: [
+      '-f', 'dashboard/sheriff_config/tests/docker-compose.yml', 'build'
+    ]
+  - name: 'docker/compose:1.19.0'
+    args: [
+      '-f', 'dashboard/sheriff_config/tests/docker-compose.yml',
+      'up', '-d', 'datastore-emulator'
+    ]
+  - name: 'docker/compose:1.19.0'
+    args: [
+      '-f', 'dashboard/sheriff_config/tests/docker-compose.yml',
+      'run', 'sheriff-config-test'
+    ]
+  - name: 'docker/compose:1.19.0'
+    args: [
+      '-f', 'dashboard/sheriff_config/tests/docker-compose.yml', 'down'
+    ]
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+      'app', 'deploy', 'dashboard/sheriff_config/sheriff-config.yaml',
+      # Provide the git commit to the version of the deployment.
+      '--version', 'cloud-build-${REVISION_ID}'
+    ]
+    timeout: 900s  # Wait for 15 minutes for the deploy to finish.
