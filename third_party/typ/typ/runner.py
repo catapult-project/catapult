@@ -687,7 +687,7 @@ class Runner(object):
         suffix = '%s%s' % (result_str, timing_str)
         out = result.out
         err = result.err
-        if result.code:
+        if result.is_regression:
             if out or err:
                 suffix += ':\n'
             self.update(stats.format() + result.name + suffix, elide=False)

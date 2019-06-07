@@ -978,7 +978,7 @@ class TestCli(test_case.MainTestCase):
                                        '-x', 'foo',
                                        '-x', 'bar',
                                        '--retry-limit', '3',
-                                       '--retry-only-retry-on-failure-tests'],
+                                       '--retry-only-retry-on-failure-tests', '-vv'],
                                       files=files, ret=0, err='')
         self.assertIn('[1/1] fail_test.FailingTest.test_fail failed as expected:\n',
                       out)
@@ -1095,7 +1095,7 @@ class TestCli(test_case.MainTestCase):
         _, out, _, files = self.check(
             ['--write-full-results-to', 'full_results.json',
              '--test-name-prefix', 'fail_test.FailingTest.',
-             '-X', 'expectations.txt', '-x', 'foo'],
+             '-X', 'expectations.txt', '-x', 'foo', '-vv'],
             files=files, ret=0, err='')
         self.assertIn('[1/1] test_fail failed as expected:\n', out)
 
