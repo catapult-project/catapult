@@ -62,5 +62,5 @@ jiffies  a1111
       backend = linux_based_platform_backend.LinuxBasedPlatformBackend()
       result = backend.GetCpuTimestamp()
       self.assertEquals(result, {'TotalTime': 105054633.0})
-    mock_method.assert_call_once_with(
+    mock_method.assert_called_once_with(
         ['grep', '-m', '1', 'jiffies:', '/proc/timer_list'])
