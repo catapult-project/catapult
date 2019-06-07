@@ -20,7 +20,6 @@ from telemetry import page as page_module
 from telemetry.value import histogram
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
-from telemetry.value import skip
 from tracing.trace_data import trace_data
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
@@ -711,24 +710,6 @@ class PageTestResultsFilterTest(unittest.TestCase):
     actual_values = [(v.name, v.page.url, v.value)
                      for v in results.all_page_specific_values]
     self.assertEquals(expected_values, actual_values)
-
-  def testSkipValueCannotBeFiltered(self):
-    def AcceptValueNamed_a(name, _):
-      return name == 'a'
-    results = self.getPageTestResults(
-        should_add_value=AcceptValueNamed_a)
-    results.WillRunPage(self.pages[0])
-    results.AddValue(scalar.ScalarValue(
-        self.pages[0], 'b', 'seconds', 8,
-        improvement_direction=improvement_direction.UP))
-    results.Skip('skip for testing')
-    results.DidRunPage(self.pages[0])
-    results.PrintSummary()
-
-    # Although predicate says only accept value with named 'a', skip value is
-    # added anyway.
-    self.assertEquals(len(results.all_page_specific_values), 1)
-    self.assertIsInstance(results.all_page_specific_values[0], skip.SkipValue)
 
   def testFilterHistogram(self):
     def AcceptValueNamed_a(name, _):

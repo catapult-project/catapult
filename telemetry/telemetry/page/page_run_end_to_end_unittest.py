@@ -383,7 +383,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_runner.Run(test, story_set, options, results)
     self.assertFalse(test.will_navigate_to_page_called)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
-    self.assertEquals(1, len(results.skipped_values))
+    self.assertTrue(results.had_skips)
     self.assertFalse(results.had_failures)
 
   # Verifies that if the browser is not closed between tests (as happens on

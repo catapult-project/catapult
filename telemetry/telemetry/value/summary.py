@@ -5,7 +5,6 @@
 from collections import defaultdict
 
 from telemetry.value import merge_values
-from telemetry.value import skip
 
 
 class Summary(object):
@@ -61,15 +60,11 @@ class Summary(object):
     return self._interleaved_computed_per_page_values_and_summaries
 
   def _ComputePerPageValues(self, all_page_specific_values):
-    all_successful_page_values = [
-        v for v in all_page_specific_values if not (isinstance(
-            v, skip.SkipValue))]
-
     # We will later need to determine how many values were originally created
     # for each value name, to apply a workaround meant to clean up the printf
     # output.
     num_successful_pages_for_key = defaultdict(int)
-    for v in all_successful_page_values:
+    for v in all_page_specific_values:
       num_successful_pages_for_key[self._key_func(v)] += 1
 
     # By here, due to page repeat options, all_values_from_successful_pages
@@ -79,7 +74,7 @@ class Summary(object):
     #
     # So, get rid of the repeated pages by merging.
     merged_page_values = merge_values.MergeLikeValuesFromSamePage(
-        all_successful_page_values, self._key_func)
+        all_page_specific_values, self._key_func)
 
     # Now we have a bunch of values, but there is only one value_name per page.
     # Suppose page1 and page2 ran, producing values x and y. We want to print

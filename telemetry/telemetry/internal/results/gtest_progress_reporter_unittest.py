@@ -133,8 +133,7 @@ class GTestProgressReporterTest(
 
     results.PrintSummary()
     expected = ('[ RUN      ] bench/http://www.foo.com/\n'
-                '===== SKIPPING TEST http://www.foo.com/:'
-                ' Page skipped for testing reason =====\n'
+                '== Skipping story: Page skipped for testing reason ==\n'
                 '[  SKIPPED ] bench/http://www.foo.com/ (7 ms)\n'
                 '[  PASSED  ] 0 tests.\n'
                 '[  SKIPPED ] 1 test.\n\n')

@@ -5,7 +5,6 @@
 import time
 
 from telemetry.internal.results import progress_reporter
-from telemetry.value import skip
 
 
 class GTestProgressReporter(progress_reporter.ProgressReporter):
@@ -31,12 +30,6 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
   def _GenerateGroupingKeyString(self, page):
     return '' if not page.grouping_keys else '@%s' % str(page.grouping_keys)
 
-  def DidAddValue(self, value):
-    super(GTestProgressReporter, self).DidAddValue(value)
-    if isinstance(value, skip.SkipValue):
-      print >> self._output_stream, '===== SKIPPING TEST %s: %s =====' % (
-          value.page.name, value.reason)
-
   def WillRunPage(self, page_test_results):
     super(GTestProgressReporter, self).WillRunPage(page_test_results)
     print >> self._output_stream, '[ RUN      ] %s/%s%s' % (
@@ -57,6 +50,8 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
           self._GenerateGroupingKeyString(page_test_results.current_page),
           self._GetMs())
     elif page_test_results.current_page_run.skipped:
+      print >> self._output_stream, '== Skipping story: %s ==' % (
+          page_test_results.current_page_run.skip_reason)
       print >> self._output_stream, '[  SKIPPED ] %s/%s%s (%0.f ms)' % (
           page_test_results.telemetry_info.benchmark_name,
           page.name,

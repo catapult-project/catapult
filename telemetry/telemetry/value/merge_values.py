@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.value import skip
-
 
 # TODO(eakuefner): Get rid of this as part of crbug.com/525688
 def DefaultKeyFunc(value):
@@ -126,9 +124,6 @@ def GroupStably(all_values, key_func):
   merge_groups = {}
   merge_groups_in_creation_order = []
   for value in all_values:
-    if isinstance(value, skip.SkipValue):
-      continue
-
     key = key_func(value)
     if key not in merge_groups:
       merge_groups[key] = []

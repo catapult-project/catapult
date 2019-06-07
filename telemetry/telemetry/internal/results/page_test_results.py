@@ -26,7 +26,6 @@ from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import progress_reporter as reporter_module
 from telemetry.internal.results import story_run
 from telemetry.value import common_value_helpers
-from telemetry.value import skip
 from telemetry.value import trace
 
 from tracing.metrics import metric_runner
@@ -413,10 +412,8 @@ class PageTestResults(object):
   @property
   def all_page_specific_values(self):
     values = []
-    for run in self._all_page_runs:
+    for run in self._IterAllStoryRuns():
       values += run.values
-    if self._current_page_run:
-      values += self._current_page_run.values
     return values
 
   @property
@@ -450,10 +447,11 @@ class PageTestResults(object):
   @property
   def pages_that_succeeded_and_not_skipped(self):
     """Returns the set of pages that succeeded and werent skipped."""
-    skipped_stories = [x.page.name for x in self.skipped_values]
+    skipped_story_names = set(
+        run.story.name for run in self._IterAllStoryRuns() if run.skipped)
     pages = self.pages_that_succeeded
     for page in self.pages_that_succeeded:
-      if page.name in skipped_stories:
+      if page.name in skipped_story_names:
         pages.remove(page)
     return pages
 
@@ -484,13 +482,18 @@ class PageTestResults(object):
     return [None] * self.num_failed
 
   @property
-  def skipped_values(self):
-    values = self.all_page_specific_values
-    return [v for v in values if isinstance(v, skip.SkipValue)]
+  def had_skips(self):
+    return any(run.skipped for run in self._IterAllStoryRuns())
 
   @property
   def artifact_results(self):
     return self._artifact_results
+
+  def _IterAllStoryRuns(self):
+    for run in self._all_page_runs:
+      yield run
+    if self._current_page_run:
+      yield self._current_page_run
 
   def _GetStringFromExcInfo(self, err):
     return ''.join(traceback.format_exception(*err))
@@ -656,11 +659,9 @@ class PageTestResults(object):
       else:
         value.tir_label = story_keys_label
 
-    if not (isinstance(value, skip.SkipValue) or
-            isinstance(value, trace.TraceValue) or
+    if not (isinstance(value, trace.TraceValue) or
             self._should_add_value(value.name, is_first_result)):
       return
-    # TODO(eakuefner/chrishenry): Add only one skip per pagerun assert here
     self._current_page_run.AddValue(value)
     self._progress_reporter.DidAddValue(value)
 
@@ -688,7 +689,7 @@ class PageTestResults(object):
 
   def Skip(self, reason, is_expected=True):
     assert self._current_page_run, 'Not currently running test.'
-    self.AddValue(skip.SkipValue(self.current_page, reason, is_expected))
+    self._current_page_run.Skip(reason, is_expected)
 
   def CreateArtifact(self, story, name, prefix='', suffix=''):
     return self._artifact_results.CreateArtifact(

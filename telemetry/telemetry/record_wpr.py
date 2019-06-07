@@ -241,7 +241,7 @@ class WprRecorder(object):
         results)
 
   def HandleResults(self, results, upload_to_cloud_storage):
-    if results.failures or results.skipped_values:
+    if results.had_failures or results.had_skips:
       logging.warning('Some pages failed and/or were skipped. The recording '
                       'has not been updated for these pages.')
     results.PrintSummary()
