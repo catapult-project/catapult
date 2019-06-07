@@ -602,7 +602,7 @@ class InspectorBackend(object):
       exceptions.DevtoolsTargetCrashException
     """
     if msg['method'] == 'Cast.sinksUpdated':
-      self._cast_sink_list = msg['params'].get('sinkNames', [])
+      self._cast_sink_list = msg['params'].get('sinks', [])
     elif msg['method'] == 'Cast.issueUpdated':
       self._cast_issue_message = msg['params']
 
