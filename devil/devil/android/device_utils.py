@@ -1005,8 +1005,10 @@ class DeviceUtils(object):
         logger.warning('Error calculating md5: %s', e)
         apks_to_install, host_checksums = all_apks, None
       if apks_to_install and not reinstall:
-        self.Uninstall(package_name)
         apks_to_install = all_apks
+
+    if device_apk_paths and apks_to_install and not reinstall:
+      self.Uninstall(package_name)
 
     if apks_to_install:
       # Assume that we won't know the resulting device state.
