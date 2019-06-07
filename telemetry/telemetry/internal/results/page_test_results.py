@@ -663,7 +663,6 @@ class PageTestResults(object):
             self._should_add_value(value.name, is_first_result)):
       return
     self._current_page_run.AddValue(value)
-    self._progress_reporter.DidAddValue(value)
 
   def AddSharedDiagnosticToAllHistograms(self, name, diagnostic):
     self._histograms.AddSharedDiagnosticToAllHistograms(name, diagnostic)

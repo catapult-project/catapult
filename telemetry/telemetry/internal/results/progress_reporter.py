@@ -14,9 +14,6 @@ class ProgressReporter(object):
   The default implementation outputs nothing.
   """
 
-  def DidAddValue(self, value):
-    pass
-
   def WillRunPage(self, page_test_results):
     pass
 
