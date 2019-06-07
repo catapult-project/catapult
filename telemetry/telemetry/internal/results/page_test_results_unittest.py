@@ -11,7 +11,6 @@ import mock
 
 from telemetry import benchmark
 from telemetry import story
-from telemetry.internal.results import artifact_results as ar_module
 from telemetry.internal.results import base_test_results_unittest
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import html_output_formatter
@@ -604,10 +603,10 @@ class PageTestResultsFilterTest(unittest.TestCase):
     self.story_set = story_set
 
   def getPageTestResults(self, should_add_value=None, upload_bucket=None,
-                         artifact_results=None):
+                         output_dir=None):
     results = page_test_results.PageTestResults(
         should_add_value=should_add_value,
-        upload_bucket=upload_bucket, artifact_results=artifact_results)
+        upload_bucket=upload_bucket, output_dir=output_dir)
     results.telemetry_info.benchmark_name = 'benchmark'
     results.telemetry_info.benchmark_start_epoch = 123
     results.telemetry_info.benchmark_descriptions = 'foo'
@@ -771,9 +770,8 @@ class PageTestResultsFilterTest(unittest.TestCase):
     with tempfile_ext.NamedTemporaryDirectory(
         prefix='artifact_tests') as tempdir:
 
-      ar = ar_module.ArtifactResults(tempdir)
       results = self.getPageTestResults(
-          upload_bucket='abc', artifact_results=ar)
+          upload_bucket='abc', output_dir=tempdir)
 
       results.WillRunPage(self.pages[0])
       with results.CreateArtifact('screenshot') as screenshot1:
@@ -792,7 +790,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
           any_order=True)
 
       # Assert that the path is now the cloud storage path
-      for _, artifacts in ar.IterTestAndArtifacts():
+      for _, artifacts in results._artifact_results.IterTestAndArtifacts():
         for artifact_type in artifacts:
           for i, _ in enumerate(artifacts[artifact_type]):
             self.assertEquals(cs_path_name, artifacts[artifact_type][i])
@@ -801,23 +799,20 @@ class PageTestResultsFilterTest(unittest.TestCase):
   def testUploadArtifactsToCloud_withNoOpArtifact(
       self, cloud_storage_insert_patch):
     del cloud_storage_insert_patch  # unused
-    with tempfile_ext.NamedTemporaryDirectory(
-        prefix='artifact_tests') as tempdir:
 
-      ar = ar_module.NoopArtifactResults(tempdir)
-      results = self.getPageTestResults(
-          upload_bucket='abc', artifact_results=ar)
+    results = self.getPageTestResults(
+        upload_bucket='abc', output_dir=None)
 
 
-      results.WillRunPage(self.pages[0])
-      with results.CreateArtifact('screenshot'):
-        pass
-      results.DidRunPage(self.pages[0])
+    results.WillRunPage(self.pages[0])
+    with results.CreateArtifact('screenshot'):
+      pass
+    results.DidRunPage(self.pages[0])
 
-      results.WillRunPage(self.pages[1])
-      with results.CreateArtifact('log'):
-        pass
-      results.DidRunPage(self.pages[1])
+    results.WillRunPage(self.pages[1])
+    with results.CreateArtifact('log'):
+      pass
+    results.DidRunPage(self.pages[1])
 
-      # Just make sure that this does not crash
-      results.UploadArtifactsToCloud()
+    # Just make sure that this does not crash
+    results.UploadArtifactsToCloud()

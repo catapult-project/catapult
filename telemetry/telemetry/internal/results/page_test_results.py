@@ -21,6 +21,7 @@ from multiprocessing.dummy import Pool as ThreadPool
 from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry import value as value_module
+from telemetry.internal.results import artifact_results
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import progress_reporter as reporter_module
@@ -309,7 +310,7 @@ class PageTestResults(object):
                progress_reporter=None, output_dir=None,
                should_add_value=None,
                benchmark_enabled=True, upload_bucket=None,
-               artifact_results=None, benchmark_metadata=None):
+               benchmark_metadata=None):
     """
     Args:
       output_formatters: A list of output formatters. The output
@@ -323,8 +324,6 @@ class PageTestResults(object):
           a boolean (True when the value belongs to the first run of the
           corresponding story). It returns True if the value should be added
           to the test results and False otherwise.
-      artifact_results: An artifact results object. This is used to contain
-          any artifacts from tests. Stored so that clients can call AddArtifact.
       benchmark_metadata: A benchmark.BenchmarkMetadata object. This is used in
           the chart JSON output formatter.
     """
@@ -355,7 +354,8 @@ class PageTestResults(object):
     # State of the benchmark this set of results represents.
     self._benchmark_enabled = benchmark_enabled
 
-    self._artifact_results = artifact_results
+    self._artifact_results = artifact_results.CreateArtifactResults(
+        self._output_dir)
     self._benchmark_metadata = benchmark_metadata
 
     self._histogram_dicts_to_add = []
@@ -484,10 +484,6 @@ class PageTestResults(object):
   @property
   def had_skips(self):
     return any(run.skipped for run in self._IterAllStoryRuns())
-
-  @property
-  def artifact_results(self):
-    return self._artifact_results
 
   def _IterAllStoryRuns(self):
     for run in self._all_page_runs:
@@ -695,6 +691,14 @@ class PageTestResults(object):
     return self._artifact_results.CreateArtifact(
         self._current_page_run.story.name, name, prefix=prefix, suffix=suffix)
 
+  def AddArtifact(self, name, path):
+    assert self._current_page_run, 'Not currently running test.'
+    self._artifact_results.AddArtifact(
+        self._current_page_run.story.name, name, path)
+
+  def GetTestArtifacts(self, test_name):
+    return self._artifact_results.GetTestArtifacts(test_name)
+
   def AddTraces(self, traces, tbm_metrics=None):
     """Associate some recorded traces with the current story run.
 
@@ -720,11 +724,6 @@ class PageTestResults(object):
     else:
       # Otherwise we immediately serialize the trace data.
       trace_value.SerializeTraceData()
-
-  def AddArtifact(self, name, path):
-    assert self._current_page_run, 'Not currently running test.'
-    self._artifact_results.AddArtifact(
-        self._current_page_run.story.name, name, path)
 
   def AddSummaryValue(self, value):
     assert value.page is None

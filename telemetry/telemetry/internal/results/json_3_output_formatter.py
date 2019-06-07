@@ -23,7 +23,7 @@ def _mk_dict(d, *args):
   return d
 
 
-def ResultsAsDict(page_test_results, artifacts=None):
+def ResultsAsDict(page_test_results):
   """Takes PageTestResults to a dict in the JSON test results format.
 
   To serialize results as JSON we first convert them to a dict that can be
@@ -31,7 +31,6 @@ def ResultsAsDict(page_test_results, artifacts=None):
 
   Args:
     page_test_results: a PageTestResults object
-    artifacts: an ArtifactResults object.
   """
   telemetry_info = page_test_results.telemetry_info
   result_dict = {
@@ -77,7 +76,7 @@ def ResultsAsDict(page_test_results, artifacts=None):
     else:
       test['times'].append(run.duration)
 
-    story_artifacts = artifacts and artifacts.GetTestArtifacts(run.story.name)
+    story_artifacts = page_test_results.GetTestArtifacts(run.story.name)
     if story_artifacts:
       test['artifacts'] = dict(story_artifacts)
 
@@ -105,14 +104,10 @@ def ResultsAsDict(page_test_results, artifacts=None):
 
 
 class JsonOutputFormatter(output_formatter.OutputFormatter):
-  def __init__(self, output_stream, artifacts=None):
-    super(JsonOutputFormatter, self).__init__(output_stream)
-    self.artifacts = artifacts
-
   def Format(self, page_test_results):
     """Serialize page test results in JSON Test Results format."""
     json.dump(
-        ResultsAsDict(page_test_results, self.artifacts),
+        ResultsAsDict(page_test_results),
         self.output_stream, indent=2, sort_keys=True, separators=(',', ': '))
     self.output_stream.write('\n')
 

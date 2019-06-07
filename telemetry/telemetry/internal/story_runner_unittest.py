@@ -280,6 +280,9 @@ def _GenerateBaseBrowserFinderOptions(options_callback=None):
   story_runner.AddCommandLineArgs(parser)
   options.MergeDefaultValues(parser.get_default_values())
   story_runner.ProcessCommandLineArgs(parser, options)
+
+  # No output dir, even if arg parsing specifies a default.
+  options.output_dir = None
   return options
 
 
@@ -1491,7 +1494,6 @@ class StoryRunnerTest(unittest.TestCase):
 
     sucessful_benchmark = TestBenchmark()
     options = _GenerateBaseBrowserFinderOptions()
-    options.output_dir = '/does/not/exist'
     options.output_formats = ['none']
     return_code = story_runner.RunBenchmark(sucessful_benchmark, options)
     self.assertEquals(0, return_code)
@@ -1516,7 +1518,6 @@ class StoryRunnerTest(unittest.TestCase):
 
     story_failure_benchmark = TestBenchmark()
     options = _GenerateBaseBrowserFinderOptions()
-    options.output_dir = '/does/not/exist'
     options.output_formats = ['none']
     return_code = story_runner.RunBenchmark(story_failure_benchmark, options)
     self.assertEquals(1, return_code)
@@ -1540,7 +1541,6 @@ class StoryRunnerTest(unittest.TestCase):
 
     unhandled_failure_benchmark = TestBenchmark()
     options = _GenerateBaseBrowserFinderOptions()
-    options.output_dir = '/does/not/exist'
     options.output_formats = ['none']
     return_code = story_runner.RunBenchmark(
         unhandled_failure_benchmark, options)
@@ -1568,7 +1568,6 @@ class StoryRunnerTest(unittest.TestCase):
 
     test_benchmark = TestBenchmark()
     options = _GenerateBaseBrowserFinderOptions(options_callback)
-    options.output_dir = '/does/not/exist'
     options.output_formats = ['none']
     patch_method = 'py_utils.cloud_storage.GetFilesInDirectoryIfChanged'
     with mock.patch(patch_method) as cloud_patch:

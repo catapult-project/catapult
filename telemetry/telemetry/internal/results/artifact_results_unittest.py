@@ -161,5 +161,3 @@ class ArtifactResultsUnittest(unittest.TestCase):
         'foo': {'log': ['artifacts/foo.log']},
         'bar': {'screenshot': ['artifacts/bar.jpg']}
     }, test_artifacts)
-
-

@@ -11,7 +11,6 @@ import time
 from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import util
-from telemetry.internal.results import artifact_results
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import csv_output_formatter
 from telemetry.internal.results import gtest_progress_reporter
@@ -129,8 +128,6 @@ def CreateResults(benchmark_metadata, options,
   if not options.output_formats:
     options.output_formats = [_DEFAULT_OUTPUT_FORMAT]
 
-  artifacts = artifact_results.NoopArtifactResults(options.output_dir)
-
   upload_bucket = None
   if options.upload_results:
     upload_bucket = options.upload_bucket
@@ -141,20 +138,14 @@ def CreateResults(benchmark_metadata, options,
   for output_format in options.output_formats:
     if output_format == 'none' or output_format == "gtest":
       continue
-    # pylint: disable=redefined-variable-type
-    if isinstance(artifacts, artifact_results.NoopArtifactResults):
-      artifacts = artifact_results.ArtifactResults(options.output_dir)
     output_stream = _GetOutputStream(output_format, options.output_dir)
     if output_format == 'html':
       output_formatters.append(html_output_formatter.HtmlOutputFormatter(
           output_stream, benchmark_metadata, options.reset_results,
           upload_bucket))
     elif output_format == 'json-test-results':
-      # Only create artifact results if we're going to actually output them
-      # through an output format.
-      artifacts = artifact_results.ArtifactResults(options.output_dir)
       output_formatters.append(json_3_output_formatter.JsonOutputFormatter(
-          output_stream, artifacts))
+          output_stream))
     elif output_format == 'chartjson':
       output_formatters.append(
           chart_json_output_formatter.ChartJsonOutputFormatter(
@@ -179,7 +170,6 @@ def CreateResults(benchmark_metadata, options,
       should_add_value=should_add_value,
       benchmark_enabled=benchmark_enabled,
       upload_bucket=upload_bucket,
-      artifact_results=artifacts,
       benchmark_metadata=benchmark_metadata)
 
   results.telemetry_info.benchmark_name = benchmark_metadata.name

@@ -12,15 +12,15 @@ import tempfile
 from telemetry.internal.util import file_handle
 
 
+def CreateArtifactResults(output_dir):
+  if output_dir:
+    return ArtifactResults(output_dir)
+  else:
+    return NoopArtifactResults()
+
+
 class NoopArtifactResults(object):
   """A no-op artifact results object."""
-  def __init__(self, output_dir):
-    self._artifact_dir = os.path.join(os.path.realpath(output_dir), 'artifacts')
-
-  @property
-  def artifact_dir(self):
-    return self._artifact_dir
-
   def GetTestArtifacts(self, test_name):
     del test_name
     return {}
