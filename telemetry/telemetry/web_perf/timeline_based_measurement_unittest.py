@@ -332,9 +332,9 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(v_foo[0].value, 50)
     self.assertIsNotNone(v_foo[0].page)
 
-  # Disabled flags: crbug.com/765114.
   @decorators.Disabled('reference')
-  @decorators.Disabled('win', 'chromeos')
+  @decorators.Disabled('win', 'chromeos')  # https://crbug.com/765114
+  @decorators.Disabled('mac', 'linux')  # https://crbug.com/956812
   @decorators.Isolated
   def testHeapProfilerForSmoke(self):
     ps = self.CreateEmptyPageSet()
