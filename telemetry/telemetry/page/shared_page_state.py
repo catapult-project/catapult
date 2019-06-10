@@ -82,12 +82,7 @@ class SharedPageState(story_module.SharedState):
   def browser(self):
     return self._browser
 
-  def DumpStateUponFailure(self, page, results):
-    # TODO(crbug.com/971624): This method does not actually need the "page"
-    # object since "results" already tracks the currently running story.
-    # The unused argument can be removed everywhere.
-    del page  # Unused.
-
+  def DumpStateUponStoryRunFailure(self, results):
     # Dump browser standard output and log.
     if self._browser:
       self._browser.DumpStateUponFailure()

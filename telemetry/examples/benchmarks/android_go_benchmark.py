@@ -93,8 +93,7 @@ class SharedAndroidStoryState(story_module.SharedState):
     self._current_story = None
     self._possible_browser.CleanUpEnvironment()
 
-  def DumpStateUponFailure(self, story, results):
-    del story
+  def DumpStateUponStoryRunFailure(self, results):
     del results
     # Note: Dumping state of objects upon errors, e.g. of the browser, is
     # handled individually by the context managers that handle their lifetime.

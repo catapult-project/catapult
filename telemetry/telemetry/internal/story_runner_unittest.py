@@ -110,7 +110,7 @@ class TestSharedState(story_module.SharedState):
   def TearDownState(self):
     pass
 
-  def DumpStateUponFailure(self, story, results):
+  def DumpStateUponStoryRunFailure(self, results):
     pass
 
 
@@ -550,7 +550,7 @@ class StoryRunnerTest(unittest.TestCase):
         unit_test_events.append('tear-down-state')
         raise DidRunTestError
 
-      def DumpStateUponFailure(self, story, results):
+      def DumpStateUponStoryRunFailure(self, results):
         unit_test_events.append('dump-state')
 
 
@@ -918,7 +918,7 @@ class StoryRunnerTest(unittest.TestCase):
       def TearDownState(self):
         pass
 
-      def DumpStateUponFailure(self, story, results):
+      def DumpStateUponStoryRunFailure(self, results):
         pass
 
     class FailingStory(story_module.Story):
@@ -1044,8 +1044,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.results.CreateArtifact('logs'),
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.WillRunStory(root_mock.story),
-        mock.call.state.DumpStateUponFailure(
-            root_mock.story, root_mock.results),
+        mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
         mock.call.results.Fail(
             'Exception raised running %s' % root_mock.story.name),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
@@ -1072,8 +1071,7 @@ class StoryRunnerTest(unittest.TestCase):
           mock.call.results.CreateArtifact('logs'),
           mock.call.test.WillRunStory(root_mock.state.platform),
           mock.call.state.WillRunStory(root_mock.story),
-          mock.call.state.DumpStateUponFailure(
-              root_mock.story, root_mock.results),
+          mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
           mock.call.results.AddArtifact('minidump', temp_file_path),
           mock.call.results.Fail(
               'Exception raised running %s' % root_mock.story.name),
@@ -1098,8 +1096,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.CanRunStory(root_mock.story),
-        mock.call.state.DumpStateUponFailure(
-            root_mock.story, root_mock.results),
+        mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
         mock.call.results.Fail(
             'Exception raised running %s' % root_mock.story.name),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
@@ -1136,8 +1133,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEquals(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs'),
         mock.call.test.WillRunStory(root_mock.state.platform),
-        mock.call.state.DumpStateUponFailure(
-            root_mock.story, root_mock.results),
+        mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
         mock.call.results.Fail(
             'Exception raised running %s' % root_mock.story.name),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
@@ -1163,8 +1159,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.test.Measure(root_mock.state.platform, root_mock.results),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
-        mock.call.state.DumpStateUponFailure(
-            root_mock.story, root_mock.results),
+        mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryTimeout_finallyException(self):
@@ -1182,8 +1177,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.CanRunStory(root_mock.story),
         mock.call.state.RunStory(root_mock.results),
-        mock.call.state.DumpStateUponFailure(
-            root_mock.story, root_mock.results),
+        mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
         mock.call.results.Fail(
             'Exception raised running %s' % root_mock.story.name),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
@@ -1204,8 +1198,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.results.CreateArtifact('logs'),
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.WillRunStory(root_mock.story),
-        mock.call.state.DumpStateUponFailure(
-            root_mock.story, root_mock.results),
+        mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
         mock.call.results.Fail(
             'Exception raised running %s' % root_mock.story.name),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
@@ -1247,8 +1240,7 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.CanRunStory(root_mock.story),
         mock.call.state.RunStory(root_mock.results),
         mock.call.test.Measure(root_mock.state.platform, root_mock.results),
-        mock.call.state.DumpStateUponFailure(
-            root_mock.story, root_mock.results),
+        mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
         mock.call.results.Fail(
             'Exception raised running %s' % root_mock.story.name),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),

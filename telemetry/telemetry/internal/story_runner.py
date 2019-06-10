@@ -113,7 +113,7 @@ def CaptureLogsAsArtifacts(results):
 def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
   def ProcessError(exc, log_message):
     logging.exception(log_message)
-    state.DumpStateUponFailure(story, results)
+    state.DumpStateUponStoryRunFailure(results)
 
     # Dump app crash, if present
     if exc:
@@ -172,7 +172,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
         state.DidRunStory(results)
       except Exception:  # pylint: disable=broad-except
         if not has_existing_exception:
-          state.DumpStateUponFailure(story, results)
+          state.DumpStateUponStoryRunFailure(results)
           raise
         # Print current exception and propagate existing exception.
         exception_formatter.PrintFormattedException(
