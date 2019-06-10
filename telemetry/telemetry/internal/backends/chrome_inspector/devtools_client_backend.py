@@ -240,26 +240,27 @@ class _DevToolsClientBackend(object):
   def _ListInspectableContexts(self):
     return self._devtools_http.RequestJson('')
 
-  def RequestNewTab(self, timeout):
-    """Creates a new tab.
+  def RequestNewTab(self, timeout, in_new_window=False):
+    """Creates a new tab, either in new window or current window.
 
     Returns:
-      A JSON string as returned by DevTools. Example:
+      A dict of a parsed JSON object as returned by DevTools. Example:
+      If an error is present, the dict will contain an 'error' key.
+      If no error is present, the result is present in the 'result' key:
       {
-        "description": "",
-        "devtoolsFrontendUrl":
-            "/devtools/inspector.html?ws=host:port/devtools/page/id-string",
-        "id": "id-string",
-        "title": "Page Title",
-        "type": "page",
-        "url": "url",
-        "webSocketDebuggerUrl": "ws://host:port/devtools/page/id-string"
+        "result": {
+          "targetId": "id-string"  # This is the ID for the tab.
+        }
       }
-
-    Raises:
-      devtools_http.DevToolsClientConnectionError
     """
-    return self._devtools_http.Request('new', timeout=timeout)
+    request = {
+        'method': 'Target.createTarget',
+        'params': {
+            'url': 'about:blank',
+            'newWindow': in_new_window
+        }
+    }
+    return self._browser_websocket.SyncRequest(request, timeout)
 
   def CloseTab(self, tab_id, timeout):
     """Closes the tab with the given id.
