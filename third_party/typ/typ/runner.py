@@ -219,7 +219,12 @@ class Runner(object):
                 self.metadata['tags'] = self.args.tags
             if self.args.expectations_files:
                 self.metadata['expectations_files'] = [
-                    os.path.basename(p) for p in self.args.expectations_files]
+                        os.path.basename(exp)
+                        if not self.args.repository_absolute_path
+                        else ('//' + os.path.relpath(
+                              exp, self.args.repository_absolute_path).replace(
+                                  os.path.sep, '/'))
+                        for exp in self.args.expectations_files]
             if self.args.list_only:
                 self.print_('\n'.join(all_tests))
             else:

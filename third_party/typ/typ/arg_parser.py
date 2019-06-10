@@ -98,6 +98,8 @@ class ArgumentParser(argparse.ArgumentParser):
             self.add_argument('--metadata', action='append', default=[],
                               help=('Optional key=value metadata that will '
                                     'be included in the results.'))
+            self.add_argument('--repository-absolute-path', default='', action='store',
+                              help=('Specifies the absolute path of the repository.'))
             self.add_argument('--test-results-server',
                               help=('If specified, uploads the full results '
                                     'to this server.'))

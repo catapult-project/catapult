@@ -987,10 +987,11 @@ class TestCli(test_case.MainTestCase):
         test_results = results['tests']['fail_test']['FailingTest']['test_fail']
         self.assertEqual(test_results['actual'],'FAIL FAIL FAIL FAIL')
         self.assertEqual(test_results['expected'],'FAIL')
+        self.assertEqual(results['metadata']['expectations_files'],
+                         ['expectations.txt'])
         self.assertNotIn('is_unexpected', results)
         self.assertNotIn('is_regression', results)
         self.assertEqual(results['metadata']['tags'], ['foo', 'bar'])
-        self.assertEqual(results['metadata']['expectations_files'], ['expectations.txt'])
 
     def test_skip_test_with_expectations_file_skip_expectation(self):
         files = {'fail_test.py': FAIL_TEST_PY,
@@ -1066,6 +1067,28 @@ class TestCli(test_case.MainTestCase):
         self.assertEqual(results['expected'],'SKIP')
         self.assertNotIn('is_unexpected', results)
         self.assertNotIn('is_regression', results)
+
+    def test_relative_paths_used_for_expectations_files_in_metadata(self):
+        test_expectations = (
+        '# tags: [ foo bar ]\n'
+        'crbug.com/12345 [ foo ] test_dir.failing_test.FailingTest.test_fail '
+        '[ Failure ]\n')
+        _, out, _, files = self.check(
+            ['--write-full-results-to', 'full_results.json', 'src/test_dir',
+            '-X', 'src/test_dir/test_expectations/test_expectations.txt',
+            '-x', 'foo', '--repository-absolute-path', 'src/'],
+            ret=0, err='', files={
+                'src/test_dir/failing_test.py': FAIL_TEST_PY,
+                ('src/test_dir/test_expectations'
+                 '/test_expectations.txt'): test_expectations,
+                'src/test_dir/__init__.py': ''
+            })
+        self.assertIn(
+            ' test_dir.failing_test.FailingTest.test_fail failed', out)
+        results = json.loads(files['full_results.json'])
+        self.assertEqual(
+            ['/'.join(['', '', 'test_dir', 'test_expectations', 'test_expectations.txt'])],
+            results['metadata']['expectations_files'])
 
     def test_implement_test_name_prefix_exclusion_in_finished_test_output(self):
         files = PASS_TEST_FILES
