@@ -19,40 +19,27 @@ tr.b.unittest.testSuite(function() {
       rendererMain.name = 'CrRendererMain';
       rendererMain.asyncSliceGroup.push(
           tr.c.TestUtils.newAsyncSliceNamed(
-              'Interaction.Gesture_LoadAction', 10, 10));
+              'Interaction.Gesture_LoadAction', 10, 20));
 
       const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
       browserMain.name = 'CrBrowserMain';
       browserMain.asyncSliceGroup.push(
           tr.c.TestUtils.newAsyncSliceNamed(
-              'SyntheticGestureController::running', 0, 5));
-      browserMain.asyncSliceGroup.push(
-          tr.c.TestUtils.newAsyncSliceNamed(
-              'SyntheticGestureController::running', 10, 5));
-      // Add four swap buffer events, at times 1, 2, 11, 13, 16
-      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          { title: 'BenchmarkInstrumentation::DisplayRenderingStats',
-            start: 1, end: 1 }));
-      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          { title: 'BenchmarkInstrumentation::DisplayRenderingStats',
-            start: 2, end: 2 }));
-      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          { title: 'BenchmarkInstrumentation::DisplayRenderingStats',
-            start: 11, end: 11 }));
-      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          { title: 'BenchmarkInstrumentation::DisplayRenderingStats',
-            start: 13, end: 13 }));
-      browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          { title: 'BenchmarkInstrumentation::DisplayRenderingStats',
-            start: 16, end: 16 }));
+              'SyntheticGestureController::running', 5, 30));
+      // Add 23 swap buffer events, at times 7, 9, 11, 13, 15 ..., 29, 31
+      for (let i = 7; i <= 31; i += 2) {
+        browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+            { title: 'BenchmarkInstrumentation::DisplayRenderingStats',
+              start: i, end: i }));
+      }
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.renderingMetric(histograms, model);
 
-    // The gesture interaction record should be adjusted to [10, 15]. So, the
-    // first two frames and the fifth frame are outside the interaction record
-    // and should be discarded. The remaining frames are 11 and 13 which result
-    // in a single frame time of 2 = 13 - 11.
+    // The gesture interaction record should be adjusted to [10, 30]. So, the
+    // first two frames and the last frame are outside the interaction record
+    // and should be discarded. The remaining frames are 11 to 29 which result
+    // in 9 frame times of 2.
     const hist = histograms.getHistogramNamed('frame_times');
     assert.closeTo(2, hist.min, 1e-6);
     assert.closeTo(2, hist.max, 2e-6);

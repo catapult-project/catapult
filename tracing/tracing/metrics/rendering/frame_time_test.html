@@ -34,10 +34,11 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addFrameTimeHistograms(
-        histograms, model, [new tr.model.um.Segment(0, 20)]);
+        histograms, model, [new tr.model.um.Segment(0, 20)], 1);
 
-    // The fourth frame is outside the interaction perdiod and should be
-    // discarded. The durations between the remaining three frames are 1 and 17.
+    // The last frame is outside the interaction period and should be
+    // discarded. The durations between the remaining three frames are
+    // 1 and 17.
     let hist = histograms.getHistogramNamed('frame_times');
     assert.closeTo(1, hist.min, 1e-6);
     assert.closeTo(17, hist.max, 1e-6);
@@ -66,7 +67,7 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addFrameTimeHistograms(
-        histograms, model, [new tr.model.um.Segment(0, 6)]);
+        histograms, model, [new tr.model.um.Segment(0, 6)], 1);
 
     // When computing frame times from DRM events, VBlank times should be used.
     const hist = histograms.getHistogramNamed('frame_times');
@@ -96,7 +97,7 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addFrameTimeHistograms(
-        histograms, model, [new tr.model.um.Segment(0, 6)]);
+        histograms, model, [new tr.model.um.Segment(0, 6)], 1);
 
     // Data from the Surface Flinger process should be used if it exists.
     const hist = histograms.getHistogramNamed('frame_times');
@@ -135,7 +136,7 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addFrameTimeHistograms(
-        histograms, model, [new tr.model.um.Segment(0, 20)]);
+        histograms, model, [new tr.model.um.Segment(0, 20)], 5);
 
     // Frame lengths are 3/3, 6/3, 3/3, and 1/3. The last one is too small and
     // should be filtered out. So, the final result is [1, 2, 1].
@@ -176,7 +177,7 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addFrameTimeHistograms(
-        histograms, model, [new tr.model.um.Segment(0, 20)]);
+        histograms, model, [new tr.model.um.Segment(0, 20)], 5);
 
     // We have 3 frames (ignoring the very short ones) in 13 milliseconds.
     const hist = histograms.getHistogramNamed('avg_surface_fps');
@@ -216,7 +217,7 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addFrameTimeHistograms(
-        histograms, model, [new tr.model.um.Segment(0, 500)]);
+        histograms, model, [new tr.model.um.Segment(0, 500)], 5);
 
     // There is 1 jank in [1, 1, 2, 1, 10]. The last long frame is a pause.
     const hist = histograms.getHistogramNamed('jank_count');
@@ -261,7 +262,7 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addFrameTimeHistograms(
-        histograms, model, [new tr.model.um.Segment(0, 300)]);
+        histograms, model, [new tr.model.um.Segment(0, 300)], 5);
 
     // There is 1 jank in [1, 1, 2, 1, 10]. The last long frame is a pause.
     const hist = histograms.getHistogramNamed('jank_count');
@@ -285,9 +286,9 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addUIFrameTimeHistograms(
-        histograms, model, [new tr.model.um.Segment(0, 20)]);
+        histograms, model, [new tr.model.um.Segment(0, 20)], 1);
 
-    // The fourth frame is outside the interaction perdiod and should be
+    // The fourth frame is outside the interaction period and should be
     // discarded. The durations between the remaining three frames are 1 and 17.
     let hist = histograms.getHistogramNamed('ui_frame_times');
     assert.closeTo(1, hist.min, 1e-6);
@@ -333,7 +334,7 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.rendering.addUIFrameTimeHistograms(
-        histograms, model, [new tr.model.um.Segment(0, 20)]);
+        histograms, model, [new tr.model.um.Segment(0, 20)], 1);
 
     // The 3rd frame is from 'browser' and should be discarded. Remaining
     // timestamps are 1, 2, and 19 which indicate frame times of 1 and 17.
@@ -341,6 +342,50 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(1, hist.min, 1e-6);
     assert.closeTo(17, hist.max, 1e-6);
     assert.closeTo(2, hist.numValues, 1e-6);
+  });
+
+  test('frameTimesCountLessThanMinFrameCount', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
+      browserMain.name = 'CrBrowserMain';
+      for (let i = 1; i < 10; i++) {
+        browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+            { title: 'BenchmarkInstrumentation::DisplayRenderingStats',
+              start: i, end: i }));
+      }
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.addFrameTimeHistograms(
+        histograms, model, [new tr.model.um.Segment(0, 20)]);
+
+    // There is 9 frames but the min_frame_count is 10. So the frame_times
+    // should be empty as a result of not having enough data points.
+    const hist = histograms.getHistogramNamed('frame_times');
+    assert.strictEqual(hist.min, 0);
+    assert.strictEqual(hist.max, 0);
+    assert.strictEqual(hist.average, 0);
+  });
+
+  test('frameTimesCountEqualToMinFrameCount', function() {
+    const model = tr.c.TestUtils.newModel((model) => {
+      const browserMain = model.getOrCreateProcess(0).getOrCreateThread(0);
+      browserMain.name = 'CrBrowserMain';
+      for (let i = 1; i <= 10; i++) {
+        browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+            { title: 'BenchmarkInstrumentation::DisplayRenderingStats',
+              start: i, end: i }));
+      }
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.rendering.addFrameTimeHistograms(
+        histograms, model, [new tr.model.um.Segment(0, 20)]);
+
+    // There is 10 frames and the min_frame_count is 10. So the 10 frames each
+    // having duration of 1 will be reported.
+    const hist = histograms.getHistogramNamed('frame_times');
+    assert.closeTo(1, hist.min, 1e-6);
+    assert.closeTo(1, hist.max, 1e-6);
+    assert.closeTo(1, hist.average, 1e-6);
   });
 });
 </script>

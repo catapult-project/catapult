@@ -81,6 +81,11 @@ tr.exportTo('tr.metrics.rendering', function() {
   // are shorter than half a vsync are ignored.
   const MIN_FRAME_LENGTH = 0.5;
 
+  // The least number of frames needed to report frame_times.
+  // Measurements done with very few frames tend to be unstable.
+  // See crbug.com/954984 for example.
+  const MIN_FRAME_COUNT = 10;
+
   // In computing the number of janks, frame length differences that are at
   // least PAUSE_THRESHOLD vsyncs are considered pauses, not janks.
   const PAUSE_THRESHOLD = 20;
@@ -156,14 +161,16 @@ tr.exportTo('tr.metrics.rendering', function() {
     return legacyEvents;
   }
 
-  function computeFrameSegments_(timestamps, segments) {
+  function computeFrameSegments_(timestamps, segments, opt_minFrameCount) {
     // We use filterArray for the sake of a cleaner code. The time complexity
     // will be O(m + n log m), where m is |timestamps| and n is |segments|.
     // Alternatively, we could directly loop through the timestamps and segments
     // here for a slightly better time complexity of O(m + n).
+    const minFrameCount = opt_minFrameCount || MIN_FRAME_COUNT;
     const frameSegments = [];
     for (const segment of segments) {
       const filtered = segment.boundsRange.filterArray(timestamps, x => x[0]);
+      if (filtered.length < minFrameCount) continue;
       for (let i = 1; i < filtered.length; i++) {
         const duration = filtered[i][1] - filtered[i - 1][1];
         frameSegments.push(
@@ -176,7 +183,8 @@ tr.exportTo('tr.metrics.rendering', function() {
   function addBasicFrameTimeHistograms_(histograms, frameSegments, prefix) {
     // TODO(chiniforooshan): Figure out what kind of break down makes sense
     // here. Perhaps break down by tasks in the Viz/Browser process?
-    const frameTimes = frameSegments.map(x => x.duration);
+    const frameTimes = (frameSegments.length === 0) ?
+      [0] : frameSegments.map(x => x.duration);
     histograms.createHistogram(
         `${prefix}frame_times`,
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
@@ -195,21 +203,25 @@ tr.exportTo('tr.metrics.rendering', function() {
         });
   }
 
-  function addFrameTimeHistograms(histograms, model, segments) {
+  function addFrameTimeHistograms(histograms, model, segments,
+      opt_minFrameCount) {
+    const minFrameCount = opt_minFrameCount || MIN_FRAME_COUNT;
     const modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     const events = getDisplayCompositorPresentationEvents_(modelHelper);
     if (!events) return;
-    addFrameTimeHistogramsHelper(histograms, model, segments, events, '', true);
+    addFrameTimeHistogramsHelper(histograms, model, segments, events, '', true,
+        minFrameCount);
     const eventsExp = getDisplayCompositorPresentationEventsExp_(modelHelper);
     if (eventsExp && eventsExp.length > 0) {
       addFrameTimeHistogramsHelper(histograms, model, segments, eventsExp,
-          'exp_');
+          'exp_', minFrameCount);
     }
   }
 
   function addFrameTimeHistogramsHelper(
-      histograms, model, segments, events, prefix, addCpuMetrics) {
+      histograms, model, segments, events, prefix, addCpuMetrics,
+      minFrameCount) {
     // Presentation Timestamps should be sorted.
     const timestamps = events.map(
         event => [event.start,
@@ -221,7 +233,8 @@ tr.exportTo('tr.metrics.rendering', function() {
                 event.args.data['vblank.tv_usec'],
                 tr.b.UnitScale.TIME.MICRO_SEC, tr.b.UnitScale.TIME.MILLI_SEC))]
     );
-    const frameSegments = computeFrameSegments_(timestamps, segments);
+    const frameSegments = computeFrameSegments_(timestamps, segments,
+        minFrameCount);
     addBasicFrameTimeHistograms_(histograms, frameSegments, prefix + '');
 
     if (addCpuMetrics) {
@@ -266,15 +279,18 @@ tr.exportTo('tr.metrics.rendering', function() {
         });
   }
 
-  function addUIFrameTimeHistograms(histograms, model, segments) {
+  function addUIFrameTimeHistograms(histograms, model, segments,
+      opt_minFrameCount) {
+    const minFrameCount = opt_minFrameCount || MIN_FRAME_COUNT;
     const events = getUIPresentationEvents_(
         model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper));
     if (events.length === 0) return;
 
     // Presentation Timestamps should be sorted.
     const timestamps = events.map(event => [event.start, event.start]);
-    const frameSements = computeFrameSegments_(timestamps, segments);
-    addBasicFrameTimeHistograms_(histograms, frameSements, 'ui_');
+    const frameSegments = computeFrameSegments_(timestamps, segments,
+        minFrameCount);
+    addBasicFrameTimeHistograms_(histograms, frameSegments, 'ui_');
   }
 
   function addJankCountHistograms(histograms, frameLengths, prefix) {
