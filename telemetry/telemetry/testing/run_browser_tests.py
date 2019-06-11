@@ -297,6 +297,7 @@ def RunTests(args):
   typ_runner.args.path = options.path
   typ_runner.args.quiet = options.quiet
   typ_runner.args.repeat = options.repeat
+  typ_runner.args.repository_absolute_path = options.repository_absolute_path
   typ_runner.args.retry_limit = options.retry_limit
   typ_runner.args.retry_only_retry_on_failure_tests = (
       options.retry_only_retry_on_failure_tests)
