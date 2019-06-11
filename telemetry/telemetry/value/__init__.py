@@ -126,14 +126,6 @@ class Value(object):
     """
     raise NotImplementedError()
 
-  @property
-  def name_suffix(self):
-    """Returns the string after a . in the name, or the full name otherwise."""
-    if '.' in self.name:
-      return self.name.split('.', 1)[1]
-    else:
-      return self.name
-
   @staticmethod
   def GetJSONTypeName():
     """Gets the typename for serialization to JSON using AsDict."""
