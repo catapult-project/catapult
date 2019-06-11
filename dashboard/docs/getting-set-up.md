@@ -13,6 +13,9 @@
    ```
    Replace `[PROJECT-ID]` with your project ID. For chromeperf.appspot.com,
    it's `chromeperf`.
+4. Make sure that gcloud is in your PATH.
+5. Make sure that you have installed
+[protoc](https://github.com/protocolbuffers/protobuf).
 
 ## Running the tests
 
