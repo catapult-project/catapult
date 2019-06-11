@@ -59,26 +59,6 @@ class ScalarValue(summarizable.SummarizableValue):
 
     return d
 
-  @staticmethod
-  def FromDict(value_dict, page_dict):
-    kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
-
-    # Infinity and NaN are left out of JSON for security reasons that do not
-    # apply to our use cases, so TBMv2 serializes them as strings,
-    # but TBMv1 doesn't support them.
-    if value_dict['value'] in ['Infinity', '-Infinity', 'NaN']:
-      kwargs['value'] = None
-      kwargs['none_value_reason'] = 'value was ' + value_dict['value']
-    else:
-      kwargs['value'] = value_dict['value']
-
-    if 'improvement_direction' in value_dict:
-      kwargs['improvement_direction'] = value_dict['improvement_direction']
-    if 'none_value_reason' in value_dict:
-      kwargs['none_value_reason'] = value_dict['none_value_reason']
-
-    return ScalarValue(**kwargs)
-
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):
     assert len(values) > 0

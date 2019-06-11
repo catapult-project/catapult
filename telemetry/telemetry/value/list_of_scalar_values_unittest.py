@@ -6,7 +6,6 @@ import unittest
 
 from telemetry import story
 from telemetry import page as page_module
-from telemetry import value
 from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import none_values
@@ -198,7 +197,6 @@ class ValueTest(TestBase):
     # Values from the same page use regular standard deviation.
     self.assertAlmostEqual(d['std'], 156.88849, places=4)
 
-
   def testNoneValueAsDict(self):
     v = list_of_scalar_values.ListOfScalarValues(
         None, 'x', 'unit', None,
@@ -209,65 +207,3 @@ class ValueTest(TestBase):
     self.assertIsNone(d['values'])
     self.assertEquals(d['none_value_reason'], 'n')
     self.assertIsNone(d['std'])
-
-  def testFromDictInts(self):
-    d = {
-        'type': 'list_of_scalar_values',
-        'name': 'x',
-        'units': 'unit',
-        'values': [1, 2],
-        'std': 0.7071,
-        'improvement_direction': improvement_direction.DOWN
-    }
-    v = value.Value.FromDict(d, {})
-
-    self.assertTrue(isinstance(v, list_of_scalar_values.ListOfScalarValues))
-    self.assertEquals(v.values, [1, 2])
-    self.assertEquals(v.mean, 1.5)
-    self.assertEquals(v.std, 0.7071)
-    self.assertEquals(improvement_direction.DOWN, v.improvement_direction)
-
-  def testFromDictFloats(self):
-    d = {
-        'type': 'list_of_scalar_values',
-        'name': 'x',
-        'units': 'unit',
-        'values': [1.3, 2.7, 4.5, 2.1, 3.4],
-        'std': 0.901,
-        'improvement_direction': improvement_direction.UP
-    }
-    v = value.Value.FromDict(d, {})
-
-    self.assertTrue(isinstance(v, list_of_scalar_values.ListOfScalarValues))
-    self.assertEquals(v.values, [1.3, 2.7, 4.5, 2.1, 3.4])
-    self.assertEquals(v.mean, 2.8)
-    self.assertEquals(v.std, 0.901)
-
-  def testFromDictWithoutImprovementDirection(self):
-    d = {
-        'type': 'list_of_scalar_values',
-        'name': 'x',
-        'units': 'unit',
-        'values': [1, 2],
-        'std': 0.7071,
-    }
-    v = value.Value.FromDict(d, {})
-
-    self.assertTrue(isinstance(v, list_of_scalar_values.ListOfScalarValues))
-    self.assertIsNone(v.improvement_direction)
-
-  def testFromDictNoneValue(self):
-    d = {
-        'type': 'list_of_scalar_values',
-        'name': 'x',
-        'units': 'unit',
-        'values': None,
-        'std': None,
-        'none_value_reason': 'n',
-        'improvement_direction': improvement_direction.DOWN
-    }
-    v = value.Value.FromDict(d, {})
-
-    self.assertTrue(isinstance(v, list_of_scalar_values.ListOfScalarValues))
-    self.assertEquals(v.values, None)
-    self.assertEquals(v.none_value_reason, 'n')

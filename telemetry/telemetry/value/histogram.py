@@ -87,16 +87,6 @@ class HistogramValue(summarizable.SummarizableValue):
     d['buckets'] = [b.AsDict() for b in self.buckets]
     return d
 
-  @staticmethod
-  def FromDict(value_dict, page_dict):
-    kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
-    kwargs['raw_value'] = value_dict
-
-    if 'improvement_direction' in value_dict:
-      kwargs['improvement_direction'] = value_dict['improvement_direction']
-
-    return HistogramValue(**kwargs)
-
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):
     assert len(values) > 0

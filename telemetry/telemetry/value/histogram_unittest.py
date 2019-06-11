@@ -6,7 +6,6 @@ import unittest
 
 from telemetry import story
 from telemetry import page as page_module
-from telemetry import value
 from telemetry.value import histogram as histogram_module
 from telemetry.value import improvement_direction
 
@@ -65,49 +64,15 @@ class ValueTest(TestBase):
     self.assertTrue(isinstance(d['buckets'], list))
     self.assertEquals(len(d['buckets']), 1)
 
-  def testFromDict(self):
-    d = {
-        'type': 'histogram',
-        'name': 'x',
-        'units': 'counts',
-        'buckets': [{'low': 1, 'high': 2, 'count': 1}],
-        'improvement_direction': 'down',
-    }
-    v = value.Value.FromDict(d, {})
-
-    self.assertTrue(isinstance(v, histogram_module.HistogramValue))
-    self.assertEquals(improvement_direction.DOWN, v.improvement_direction)
-
-  def testFromDictWithoutImprovementDirection(self):
-    d = {
-        'type': 'histogram',
-        'name': 'x',
-        'units': 'counts',
-        'buckets': [{'low': 1, 'high': 2, 'count': 1}],
-    }
-    v = value.Value.FromDict(d, {})
-
-    self.assertTrue(isinstance(v, histogram_module.HistogramValue))
-    self.assertIsNone(v.improvement_direction)
-
   def testMergeLikeValuesFromSamePage(self):
-    d1 = {
-        'type': 'histogram',
-        'name': 'x',
-        'units': 'counts',
-        'description': 'histogram-based metric',
-        'buckets': [{'low': 1, 'high': 3, 'count': 1}],
-    }
-
-    d2 = {
-        'type': 'histogram',
-        'name': 'x',
-        'units': 'counts',
-        'description': 'histogram-based metric',
-        'buckets': [{'low': 2, 'high': 4, 'count': 1}],
-    }
-
-    v0, v1 = value.Value.FromDict(d1, {}), value.Value.FromDict(d2, {})
+    v0 = histogram_module.HistogramValue(
+        None, 'x', 'counts',
+        raw_value_json='{"buckets": [{"low": 1, "high": 3, "count": 1}]}',
+        description='histogram-based metric')
+    v1 = histogram_module.HistogramValue(
+        None, 'x', 'counts',
+        raw_value_json='{"buckets": [{"low": 2, "high": 4, "count": 1}]}',
+        description='histogram-based metric')
 
     vM = histogram_module.HistogramValue.MergeLikeValuesFromSamePage([v0, v1])
     self.assertTrue(isinstance(vM, histogram_module.HistogramValue))

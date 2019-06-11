@@ -3,9 +3,6 @@
 # found in the LICENSE file.
 
 import unittest
-import os
-
-from tracing.mre import function_handle
 
 from telemetry import page
 from telemetry import story
@@ -14,17 +11,11 @@ from telemetry.value import scalar
 from telemetry.value import common_value_helpers
 
 
-def _SingleFileFunctionHandle(filename, function_name, guid):
-  return function_handle.FunctionHandle(
-      modules_to_load=[function_handle.ModuleToLoad(filename=filename)],
-      function_name=function_name, guid=guid)
-
-
 class TranslateCommonValuesTest(unittest.TestCase):
 
   def testTranslateScalarValue(self):
-    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
-    p = page.Page('http://www.foo.com/', story_set, story_set.base_dir, name='foo')
+    story_set = story.StorySet()
+    p = page.Page('http://www.foo.com/', story_set, name='foo')
 
     scalar_value = {
         'type': 'numeric',
@@ -48,8 +39,8 @@ class TranslateCommonValuesTest(unittest.TestCase):
     self.assertEquals('desc', v.description)
 
   def testTranslateScalarNoneValue(self):
-    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
-    p = page.Page('http://www.foo.com/', story_set, story_set.base_dir, name='foo')
+    story_set = story.StorySet()
+    p = page.Page('http://www.foo.com/', story_set, name='foo')
 
     scalar_value = {
         'type': 'numeric',
@@ -58,7 +49,8 @@ class TranslateCommonValuesTest(unittest.TestCase):
             'unit': 'timeInMs_smallerIsBetter',
             'value': None
         },
-        'name': 'foo'
+        'name': 'foo',
+        'description': 'desc'
     }
 
     v = common_value_helpers.TranslateScalarValue(scalar_value, p)

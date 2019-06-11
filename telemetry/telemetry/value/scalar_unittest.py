@@ -6,7 +6,6 @@ import unittest
 
 from telemetry import story
 from telemetry import page as page_module
-from telemetry import value
 from telemetry.value import improvement_direction
 from telemetry.value import none_values
 from telemetry.value import scalar
@@ -141,61 +140,3 @@ class ValueTest(TestBase):
         'type': 'scalar',
         'units': 'unit'
     })
-
-  def testFromDictInt(self):
-    d = {
-        'type': 'scalar',
-        'name': 'x',
-        'units': 'unit',
-        'value': 42,
-        'improvement_direction': improvement_direction.DOWN,
-    }
-
-    v = value.Value.FromDict(d, {})
-
-    self.assertTrue(isinstance(v, scalar.ScalarValue))
-    self.assertEquals(v.value, 42)
-    self.assertEquals(v.improvement_direction, improvement_direction.DOWN)
-
-  def testFromDictFloat(self):
-    d = {
-        'type': 'scalar',
-        'name': 'x',
-        'units': 'unit',
-        'value': 42.4,
-        'improvement_direction': improvement_direction.UP,
-    }
-
-    v = value.Value.FromDict(d, {})
-
-    self.assertTrue(isinstance(v, scalar.ScalarValue))
-    self.assertEquals(v.value, 42.4)
-
-  def testFromDictWithoutImprovementDirection(self):
-    d = {
-        'type': 'scalar',
-        'name': 'x',
-        'units': 'unit',
-        'value': 42,
-    }
-
-    v = value.Value.FromDict(d, {})
-
-    self.assertTrue(isinstance(v, scalar.ScalarValue))
-    self.assertIsNone(v.improvement_direction)
-
-  def testFromDictNoneValue(self):
-    d = {
-        'type': 'scalar',
-        'name': 'x',
-        'units': 'unit',
-        'value': None,
-        'none_value_reason': 'n',
-        'improvement_direction': improvement_direction.UP,
-    }
-
-    v = value.Value.FromDict(d, {})
-
-    self.assertTrue(isinstance(v, scalar.ScalarValue))
-    self.assertEquals(v.value, None)
-    self.assertEquals(v.none_value_reason, 'n')

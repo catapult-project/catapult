@@ -139,19 +139,6 @@ class ListOfScalarValues(summarizable.SummarizableValue):
 
     return d
 
-  @staticmethod
-  def FromDict(value_dict, page_dict):
-    kwargs = value_module.Value.GetConstructorKwArgs(value_dict, page_dict)
-    kwargs['values'] = value_dict['values']
-    kwargs['std'] = value_dict['std']
-
-    if 'improvement_direction' in value_dict:
-      kwargs['improvement_direction'] = value_dict['improvement_direction']
-    if 'none_value_reason' in value_dict:
-      kwargs['none_value_reason'] = value_dict['none_value_reason']
-
-    return ListOfScalarValues(**kwargs)
-
   @classmethod
   def MergeLikeValuesFromSamePage(cls, values):
     assert len(values) > 0
