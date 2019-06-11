@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import json
 import urlparse
 
+from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.quest import execution
 from dashboard.pinpoint.models.quest import quest
@@ -200,7 +201,9 @@ def _RequestBuild(builder_name, change, bucket):
   base_review_url = urlparse.urlunsplit(
       (url_parts.scheme, url_parts.netloc, '', '', ''))
 
-  change_info = gerrit_service.GetChange(base_review_url, change_id)
+  patch = change_module.GerritPatch.FromUrl(review_url)
+
+  change_info = gerrit_service.GetChange(base_review_url, patch.change)
 
   commit_url_parts = urlparse.urlparse(base_as_dict['url'])
 
