@@ -36,6 +36,7 @@ _TASK_INTERVAL = 60
 
 
 _CRYING_CAT_FACE = u'\U0001f63f'
+_INFINITY = u'\u221e'
 _RIGHT_ARROW = u'\u2192'
 _ROUND_PUSHPIN = u'\U0001f4cd'
 
@@ -538,6 +539,10 @@ def _FormatDifferenceForBug(commit_info, values_a, values_b, metric):
   difference = '%s%s %s %s' % (metric, formatted_a, _RIGHT_ARROW, formatted_b)
   if values_a and values_b:
     difference += ' (%+.4g)' % (mean_b - mean_a)
+    if mean_a:
+      difference += ' (%+.4g%%)' % ((mean_b - mean_a) / mean_a * 100)
+    else:
+      difference += ' (+%s%%)' % _INFINITY
 
   return '\n'.join((subject, commit_info['url'], difference))
 

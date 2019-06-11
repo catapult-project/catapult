@@ -45,7 +45,7 @@ https://testbed.example.com/job/1
 
 <b>Subject.</b> by author@chromium.org
 https://example.com/repository/+/git_hash
-0 \u2192 1.235 (+1.235)
+0 \u2192 1.235 (+1.235) (+\u221e%)
 
 Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions""")
@@ -56,7 +56,7 @@ https://testbed.example.com/job/1
 
 <b>Subject.</b> by author@chromium.org
 https://example.com/repository/+/git_hash
-0 \u2192 1.235 (+1.235)
+1.235 \u2192 0 (-1.235) (-100%)
 
 Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions
@@ -70,7 +70,7 @@ https://testbed.example.com/job/1
 
 <b>Subject.</b> by chromium-autoroll@skia-public.iam.gserviceaccount.com
 https://example.com/repository/+/git_hash
-0 \u2192 1.235 (+1.235)
+20 \u2192 30 (+10) (+50%)
 
 Assigning to sheriff sheriff@bar.com because "Subject." is a roll.
 
@@ -84,7 +84,7 @@ https://testbed.example.com/job/1
 
 <b>Subject.</b> by author@chromium.org
 https://codereview.com/c/672011/2f0d5c7
-0 \u2192 1.235 (+1.235)
+40 \u2192 20 (-20) (-50%)
 
 Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions""")
@@ -351,7 +351,7 @@ class BugCommentTest(test.TestCase):
       self, differences, result_values, commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
     differences.return_value = [(None, c)]
-    result_values.side_effect = [0], [1.23456]
+    result_values.side_effect = [1.23456], [0]
     commit_as_dict.return_value = {
         'repository': 'chromium',
         'git_hash': 'git_hash',
@@ -391,7 +391,7 @@ class BugCommentTest(test.TestCase):
     patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
     c = change.Change(commits, patch)
     differences.return_value = [(None, c)]
-    result_values.side_effect = [0], [1.23456]
+    result_values.side_effect = [40], [20]
     patch_as_dict.return_value = {
         'url': 'https://codereview.com/c/672011/2f0d5c7',
         'author': 'author@chromium.org',
@@ -422,7 +422,7 @@ class BugCommentTest(test.TestCase):
     c = change.Change(commits, patch)
     c = change.Change(commits, patch)
     differences.return_value = [(None, c)]
-    result_values.side_effect = [0], [1.23456]
+    result_values.side_effect = [40], [20]
     patch_as_dict.return_value = {
         'url': 'https://codereview.com/c/672011/2f0d5c7',
         'author': 'author@chromium.org',
@@ -451,7 +451,7 @@ class BugCommentTest(test.TestCase):
     patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
     c = change.Change(commits, patch)
     differences.return_value = [(None, c)]
-    result_values.side_effect = [0], [1.23456]
+    result_values.side_effect = [40], [20]
     patch_as_dict.return_value = {
         'url': 'https://codereview.com/c/672011/2f0d5c7',
         'author': 'author@chromium.org',
@@ -519,7 +519,7 @@ class BugCommentTest(test.TestCase):
       self, differences, result_values, commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
     differences.return_value = [(None, c)]
-    result_values.side_effect = [0], [1.23456]
+    result_values.side_effect = [20], [30]
     commit_as_dict.return_value = {
         'repository': 'chromium',
         'git_hash': 'git_hash',
