@@ -43,9 +43,10 @@ CHROME_GS_BUCKET = 'chrome-unsigned'
 # Add one to enable updating it. (Must also update _PLATFORM_MAP.)
 _PLATFORMS_TO_UPDATE = ['mac_x86_64', 'win_x86', 'win_AMD64', 'linux_x86_64',
                         'android_k_armeabi-v7a', 'android_l_arm64-v8a',
-                        'android_l_armeabi-v7a', 'android_n_armeabi-v7a']
+                        'android_l_armeabi-v7a', 'android_n_armeabi-v7a',
+                        'android_n_arm64-v8a']
 
-# Remove a channal name from this list to disable updating it.
+# Remove a channel name from this list to disable updating it.
 # Add one to enable updating it.
 _CHANNELS_TO_UPDATE = ['stable', 'canary', 'dev']
 
@@ -57,7 +58,7 @@ _OMAHA_PLATFORMS = { 'stable':  ['mac', 'linux', 'win', 'android'],
 
 
 # All of the information we need to update each platform.
-#   omaha: name omaha uses for the plaftorms.
+#   omaha: name omaha uses for the platforms.
 #   zip_name: name of the zip file to be retrieved from cloud storage.
 #   gs_build: name of the Chrome build platform used in cloud storage.
 #   destination: Name of the folder to download the reference build to.
@@ -95,6 +96,10 @@ _PLATFORM_MAP = {'mac_x86_64': UpdateInfo(omaha='mac',
                                                      gs_folder='android-*',
                                                      gs_build='arm',
                                                      zip_name='Monochrome.apk'),
+                 'android_n_arm64-v8a': UpdateInfo(omaha='android',
+                                                   gs_folder='android-*',
+                                                   gs_build='arm_64',
+                                                   zip_name='Monochrome.apk'),
 
 }
 
@@ -186,16 +191,11 @@ def _RemoveKeystoneFromBuild(location):
   temp_folder = tempfile.mkdtemp(prefix='RemoveKeystoneFromBuild')
   try:
     subprocess.check_call(['unzip', '-q', location, '-d', temp_folder])
-    versions_folder = os.path.join(temp_folder, 'chrome-mac', 'Google Chrome.app',
-                                   'Contents', 'Versions')
-    versions = os.listdir(versions_folder)
-    if len(versions) != 1:
-      raise ValueError('Should have one version in the Versions folder '
-                       'for Chrome, but actually have %s' % versions)
-    version = versions[0]
-    shutil.rmtree(os.path.join(
-        versions_folder, version, 'Google Chrome Framework.framework',
-        'Frameworks', 'KeystoneRegistration.framework'))
+    keystone_folder = os.path.join(
+        temp_folder, 'chrome-mac', 'Google Chrome.app', 'Contents',
+        'Frameworks', 'Google Chrome Framework.framework', 'Frameworks',
+        'KeystoneRegistration.framework')
+    shutil.rmtree(keystone_folder)
     os.remove(location)
     subprocess.check_call(['zip', '--quiet', '--recurse-paths', '--symlinks',
                            location, 'chrome-mac'],
