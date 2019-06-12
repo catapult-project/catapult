@@ -174,14 +174,13 @@ class RunTestsUnitTest(unittest.TestCase):
     expected_failure = test_prefix % 'test_fail'
     expected_success = test_prefix % 'test_pass'
     expected_skip = test_prefix % 'test_skip'
-    args = MockArgs()
-    args.test_filter = _MakeTestFilter(
-        [expected_failure, test_prefix % 'test_sk*', expected_success])
     runner = run_tests.typ.Runner()
+    runner.args.test_filter = _MakeTestFilter(
+        [expected_failure, test_prefix % 'test_sk*', expected_success])
     runner.top_level_dirs = [os.path.join(util.GetTelemetryDir(), 'examples')]
     possible_browser = MockPossibleBrowser(
         'system', 'mac', 'mavericks', True)
-    runner.classifier = run_tests.GetClassifier(args, possible_browser)
+    runner.classifier = run_tests.GetClassifier(runner, possible_browser)
     _, test_set = runner.find_tests(runner.args)
     self.assertEqual(len(test_set.parallel_tests), 3)
     test_names_found = [test.name for test in test_set.parallel_tests]
@@ -192,14 +191,13 @@ class RunTestsUnitTest(unittest.TestCase):
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testSkipOnlyWhenTestMatchesTestFilterWithBrowser(self):
     test_name = 'unit_tests_test.ExampleTests.test_also_fail'
-    args = MockArgs()
-    args.skip.append('*fail')
-    args.test_filter = test_name
     runner = run_tests.typ.Runner()
+    runner.args.test_filter = test_name
+    runner.args.skip.append('*fail')
     runner.top_level_dirs = [os.path.join(util.GetTelemetryDir(), 'examples')]
     possible_browser = MockPossibleBrowser(
         'system', 'mac', 'mavericks', True)
-    runner.classifier = run_tests.GetClassifier(args, possible_browser)
+    runner.classifier = run_tests.GetClassifier(runner, possible_browser)
     _, test_set = runner.find_tests(runner.args)
     self.assertEqual(len(test_set.tests_to_skip), 1)
     self.assertEqual(test_set.tests_to_skip[0].name, test_name)
@@ -283,7 +281,7 @@ class RunTestsUnitTest(unittest.TestCase):
     test_result = (self._test_result['tests']['unit_tests_test']['ExampleTests']
                    ['test_pass'])
     self.assertEqual(test_result['actual'], 'SKIP')
-    self.assertEqual(test_result['expected'], 'CRASH FAIL SKIP')
+    self.assertEqual(test_result['expected'], 'SKIP')
     self.assertNotIn('is_unexpected', test_result)
     self.assertNotIn('is_regression', test_result)
 
@@ -300,10 +298,9 @@ class RunTestsUnitTest(unittest.TestCase):
     self.assertNotIn('is_regression', test_result)
 
   def _GetEnabledTests(self, browser_type, os_name, os_version_name,
-                       supports_tab_control, args=None):
-    if not args:
-      args = MockArgs()
-    runner = run_tests.typ.Runner()
+                       supports_tab_control, runner=None):
+    if not runner:
+      runner = run_tests.typ.Runner()
     host = runner.host
     runner.top_level_dirs = [util.GetTelemetryDir()]
     runner.args.tests = [
@@ -312,7 +309,7 @@ class RunTestsUnitTest(unittest.TestCase):
     ]
     possible_browser = MockPossibleBrowser(
         browser_type, os_name, os_version_name, supports_tab_control)
-    runner.classifier = run_tests.GetClassifier(args, possible_browser)
+    runner.classifier = run_tests.GetClassifier(runner, possible_browser)
     _, test_set = runner.find_tests(runner.args)
     return set(test.name.split('.')[-1] for test in test_set.parallel_tests)
 
@@ -376,32 +373,31 @@ class RunTestsUnitTest(unittest.TestCase):
         self._GetEnabledTests('canary', 'win', 'win7', False))
 
   def testSkip(self):
-    args = MockArgs()
-    args.skip = ['telemetry.*testNoMac', '*NoMavericks',
-                 'telemetry.testing.disabled_cases.DisabledCases.testNoSystem']
+    runner = run_tests.typ.Runner()
+    runner.args.skip = [
+        'telemetry.*testNoMac', '*NoMavericks',
+        'telemetry.testing.disabled_cases.DisabledCases.testNoSystem']
     self.assertEquals(
         set(['testAllEnabled',
              'testAllEnabledVersion2',
              'testNoChromeOS',
              'testWinOrLinuxOnly',
              'testHasTabs']),
-        self._GetEnabledTests('canary', 'win', 'win7', True, args))
+        self._GetEnabledTests('canary', 'win', 'win7', True, runner))
 
   def testtPostionalArgsTestFiltering(self):
-    args = MockArgs()
-    args.positional_args = ['testAllEnabled']
-    args.exact_test_filter = False
+    runner = run_tests.typ.Runner()
+    runner.args.partial_match_filter = ['testAllEnabled']
     self.assertEquals(
         set(['testAllEnabled', 'testAllEnabledVersion2']),
-        self._GetEnabledTests('system', 'win', 'win7', True, args))
+        self._GetEnabledTests('system', 'win', 'win7', True, runner))
 
   def testPostionalArgsTestFiltering(self):
-    args = MockArgs()
-    args.test_filter = (
+    runner = run_tests.typ.Runner()
+    runner.args.test_filter = (
         'telemetry.testing.disabled_cases.DisabledCases.testAllEnabled::'
         'telemetry.testing.disabled_cases.DisabledCases.testNoMavericks::'
         'testAllEnabledVersion2')  # Partial test name won't match
-    args.exact_test_filter = False
     self.assertEquals(
         set(['testAllEnabled', 'testNoMavericks']),
-        self._GetEnabledTests('system', 'win', 'win7', True, args))
+        self._GetEnabledTests('system', 'win', 'win7', True, runner))

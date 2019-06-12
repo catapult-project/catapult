@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import fnmatch
 import logging
 import os
 import sys
@@ -184,13 +183,17 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner.args.quiet = args.quiet
     runner.args.retry_limit = args.retry_limit
     runner.args.test_results_server = args.test_results_server
+    runner.args.partial_match_filter = args.positional_args
+    runner.args.test_filter = args.test_filter
     runner.args.test_type = args.test_type
     runner.args.top_level_dirs = args.top_level_dirs
     runner.args.write_full_results_to = args.write_full_results_to
     runner.args.write_trace_to = args.write_trace_to
+    runner.args.all = args.run_disabled_tests
     runner.args.repeat = args.repeat
     runner.args.list_only = args.list_only
     runner.args.shard_index = args.shard_index
+    runner.args.test_name_prefix = args.test_name_prefix
     runner.args.total_shards = args.total_shards
     runner.args.repository_absolute_path = args.repository_absolute_path
     runner.args.retry_only_retry_on_failure_tests = (
@@ -203,7 +206,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner.args.timing = True
     runner.args.verbose = 1
 
-    runner.classifier = GetClassifier(args, possible_browser)
+    runner.classifier = GetClassifier(runner, possible_browser)
     runner.context = args
     runner.setup_fn = _SetUpProcess
     runner.teardown_fn = _TearDownProcess
@@ -216,70 +219,44 @@ class RunTestsCommand(command_line.OptparseCommand):
     return ret
 
 
-def _SkipMatch(name, skipGlobs):
-  return any(fnmatch.fnmatch(name, glob) for glob in skipGlobs)
-
-
-def GetClassifier(args, possible_browser):
-  if args.test_filter:
-    selected_tests = args.test_filter.split('::')
-    selected_tests_match_pattern = True
-  else:
-    selected_tests = args.positional_args
-    selected_tests_match_pattern = False
+def GetClassifier(typ_runner, possible_browser):
 
   def ClassifyTestWithoutBrowser(test_set, test):
-    name = test.id()
-    if (not selected_tests or
-        _MatchesSelectedTest(
-            name, selected_tests, selected_tests_match_pattern)):
-      if _SkipMatch(name, args.skip):
-        test_set.tests_to_skip.append(
-            typ.TestInput(name, 'skipped because matched --skip'))
+    if typ_runner.matches_filter(test):
+      if typ_runner.should_skip(test):
+        test_set.add_test_to_skip(
+            test, 'skipped because matched --skip')
         return
       # TODO(telemetry-team): Make sure that all telemetry unittest that invokes
       # actual browser are subclasses of browser_test_case.BrowserTestCase
       # (crbug.com/537428)
       if issubclass(test.__class__, browser_test_case.BrowserTestCase):
-        test_set.tests_to_skip.append(typ.TestInput(
-            name, msg='Skip the test because it requires a browser.'))
+        test_set.add_test_to_skip(
+            test, 'Skip the test because it requires a browser.')
       else:
-        test_set.parallel_tests.append(typ.TestInput(name))
+        test_set.add_test_to_run_in_parallel(test)
 
   def ClassifyTestWithBrowser(test_set, test):
-    name = test.id()
-    if (not selected_tests or
-        _MatchesSelectedTest(
-            name, selected_tests, selected_tests_match_pattern)):
-      if _SkipMatch(name, args.skip):
-        test_set.tests_to_skip.append(
-            typ.TestInput(name, 'skipped because matched --skip'))
+    if typ_runner.matches_filter(test):
+      if typ_runner.should_skip(test):
+        test_set.add_test_to_skip(
+            test, 'skipped because matched --skip')
         return
       assert hasattr(test, '_testMethodName')
       method = getattr(
           test, test._testMethodName)  # pylint: disable=protected-access
       should_skip, reason = decorators.ShouldSkip(method, possible_browser)
-      if should_skip and not args.run_disabled_tests:
-        test_set.tests_to_skip.append(typ.TestInput(name, msg=reason))
+      if should_skip and not typ_runner.args.all:
+        test_set.add_test_to_skip(test, reason)
       elif decorators.ShouldBeIsolated(method, possible_browser):
-        test_set.isolated_tests.append(typ.TestInput(name))
+        test_set.add_test_to_run_isolated(test)
       else:
-        test_set.parallel_tests.append(typ.TestInput(name))
+        test_set.add_test_to_run_in_parallel(test)
 
   if possible_browser:
     return ClassifyTestWithBrowser
   else:
     return ClassifyTestWithoutBrowser
-
-
-def _MatchesSelectedTest(name, selected_tests, selected_tests_match_pattern):
-  if not selected_tests:
-    return False
-  if selected_tests_match_pattern:
-    return any(fnmatch.fnmatch(name, pattern) if pattern.endswith('*')
-               else pattern == name for pattern in selected_tests)
-  else:
-    return any(test in name for test in selected_tests)
 
 
 def _SetUpProcess(child, context): # pylint: disable=unused-argument

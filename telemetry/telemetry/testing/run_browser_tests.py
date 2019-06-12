@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import fnmatch
 import os
 import sys
 import json
@@ -218,10 +217,6 @@ def _CreateTestArgParsers():
   parser.add_argument(
       '--start-dir', dest='start_dirs', action='append', default=[])
   return parser
-
-
-def _SkipMatch(name, skipGlobs):
-  return any(fnmatch.fnmatch(name, glob) for glob in skipGlobs)
 
 
 def _GetClassifier(typ_runner):
