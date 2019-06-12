@@ -790,10 +790,9 @@ class PageTestResultsFilterTest(unittest.TestCase):
           any_order=True)
 
       # Assert that the path is now the cloud storage path
-      for _, artifacts in results._artifact_results.IterTestAndArtifacts():
-        for artifact_type in artifacts:
-          for i, _ in enumerate(artifacts[artifact_type]):
-            self.assertEquals(cs_path_name, artifacts[artifact_type][i])
+      for run in results._all_page_runs:
+        for _, artifact_path in run.IterArtifacts():
+          self.assertEquals(cs_path_name, artifact_path)
 
   @mock.patch('py_utils.cloud_storage.Insert')
   def testUploadArtifactsToCloud_withNoOpArtifact(

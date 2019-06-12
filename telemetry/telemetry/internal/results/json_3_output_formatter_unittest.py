@@ -11,6 +11,7 @@ import unittest
 
 import mock
 
+from py_utils import tempfile_ext
 from telemetry import benchmark
 from telemetry import page as page_module
 from telemetry import story
@@ -167,6 +168,28 @@ class Json3OutputFormatterTest(unittest.TestCase):
 
     self.assertEquals(d['num_failures_by_type'], {'SKIP': 2, 'PASS': 2})
 
+  def testArtifactsWithRepeatedRuns(self):
+    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
+      results = page_test_results.PageTestResults(output_dir=tempdir)
+      results.telemetry_info.benchmark_start_epoch = 1501773200
+      results.telemetry_info.benchmark_name = 'benchmark_name'
+
+      results.WillRunPage(self._story_set[0])
+      with results.CreateArtifact('log'):
+        pass
+      results.DidRunPage(self._story_set[0])
+
+      results.WillRunPage(self._story_set[0])
+      with results.CreateArtifact('log'):
+        pass
+      with results.CreateArtifact('trace'):
+        pass
+      results.DidRunPage(self._story_set[0])
+
+    d = json_3_output_formatter.ResultsAsDict(results)
+    foo_story_artifacts = d['tests']['benchmark_name']['Foo']['artifacts']
+    self.assertEquals(len(foo_story_artifacts['log']), 2)
+    self.assertEquals(len(foo_story_artifacts['trace']), 1)
 
   def testAsDictWithSkippedAndFailedTests_AlsoShardIndex(self):
     # Set up shard index. If already running on a shard or fake it

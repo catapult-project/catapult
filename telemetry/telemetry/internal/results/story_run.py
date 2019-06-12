@@ -2,9 +2,18 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import contextlib
 import datetime
 import logging
+import os
+import shutil
+import tempfile
 import time
+import uuid
+
+from py_utils import cloud_storage  # pylint: disable=import-error
+
+from telemetry.internal.util import file_handle
 
 
 PASS = 'PASS'
@@ -17,7 +26,7 @@ def _FormatTimeStamp(epoch):
 
 
 class StoryRun(object):
-  def __init__(self, story):
+  def __init__(self, story, output_dir=None):
     self._story = story
     self._values = []
     self._skip_reason = None
@@ -26,6 +35,16 @@ class StoryRun(object):
     self._failure_str = None
     self._start_time = time.time()
     self._end_time = None
+    self._artifacts = {}
+    self._output_dir = output_dir
+
+    if self._output_dir is None:
+      self._artifact_dir = None
+    else:
+      self._artifact_dir = os.path.join(self._output_dir, 'artifacts')
+      if not os.path.exists(self._artifact_dir):
+        os.makedirs(self._artifact_dir)
+
 
   def AddValue(self, value):
     self._values.append(value)
@@ -119,3 +138,89 @@ class StoryRun(object):
   @property
   def finished(self):
     return self._end_time is not None
+
+  @contextlib.contextmanager
+  def CreateArtifact(self, name, prefix, suffix):
+    """Create an artifact.
+
+    Args:
+      * name: The name of this artifact; 'logs', 'screenshot'.  Note that this
+          isn't used as part of the file name.
+      * prefix: A string to appear at the beginning of the file name.
+      * suffix: A string to appear at the end of the file name.
+    Returns:
+      A generator yielding a file object.
+    """
+    if self._output_dir is None:  # for tests
+      yield open(os.devnull, 'w')
+      return
+
+    assert name not in self._artifacts, (
+        'Story already has an artifact: %s' % name)
+
+    with tempfile.NamedTemporaryFile(
+        prefix=prefix, suffix=suffix, dir=self._artifact_dir,
+        delete=False) as file_obj:
+      self.AddArtifact(name, file_obj.name)
+      yield file_obj
+
+  def AddArtifact(self, name, artifact_path):
+    """Adds an artifact.
+
+    Args:
+      * name: The name of the artifact.
+      * artifact_path: The path to the artifact on disk. If it is not in the
+          proper artifact directory, it will be moved there.
+    """
+    if self._output_dir is None:  # for tests
+      return
+
+    assert name not in self._artifacts, (
+        'Story already has an artifact: %s' % name)
+
+    if isinstance(artifact_path, file_handle.FileHandle):
+      artifact_path = artifact_path.GetAbsPath()
+
+    artifact_path = os.path.realpath(artifact_path)
+
+    # If the artifact isn't in the artifact directory, move it.
+    if not artifact_path.startswith(self._artifact_dir + os.sep):
+      logging.warning("Moving artifact file %r to %r" % (
+          artifact_path, self._artifact_dir))
+      shutil.move(artifact_path, self._artifact_dir)
+      artifact_path = os.path.join(self._artifact_dir,
+                                   os.path.basename(artifact_path))
+
+    # Make path relative to output directory.
+    artifact_path = artifact_path[len(self._output_dir + os.sep):]
+
+    self._artifacts[name] = artifact_path
+
+
+  def IterArtifacts(self):
+    """Iterates over all artifacts for this test.
+
+    Returns an iterator over (name, path) tuples.
+    """
+    return self._artifacts.iteritems()
+
+  def GetArtifact(self, name):
+    """Gets artifact by name.
+
+    Returns a filepath or None, if there's no artifact with this name.
+    """
+    return self._artifacts.get(name)
+
+  def UploadArtifactsToCloud(self, bucket):
+    """Uploads all artifacts of the test to cloud storage.
+
+    Local artifact paths are changed to their respective cloud URLs.
+    """
+    for name, local_path in self.IterArtifacts():
+      abs_artifact_path = os.path.abspath(os.path.join(
+          self._output_dir, local_path))
+      remote_path = str(uuid.uuid1())
+      cloud_url = cloud_storage.Insert(bucket, remote_path, abs_artifact_path)
+      self._artifacts[name] = cloud_url
+      logging.warning('Uploading %s of page %s to %s\n' % (
+          name, self._story.name, cloud_url))

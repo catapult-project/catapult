@@ -547,12 +547,10 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
                        max_failures=2)
       self.assertTrue(results.had_failures)
       if not platform_screenshot_supported[0] and tab_screenshot_supported[0]:
-        artifacts = results._artifact_results.GetTestArtifacts(
-            failing_page.name)
-        self.assertIsNotNone(artifacts)
-        self.assertIn('screenshot', artifacts)
-
-        screenshot_file_path = os.path.join(tempdir, artifacts['screenshot'][0])
+        failed_run = next(run for run in results._all_page_runs
+                          if run.story.name == failing_page.name)
+        screenshot_file_path = os.path.join(
+            tempdir, failed_run.GetArtifact('screenshot'))
 
         actual_screenshot = image_util.FromPngFile(screenshot_file_path)
         self.assertEquals(image_util.Pixels(chrome_version_screen_shot[0]),
@@ -621,12 +619,10 @@ class FakePageRunEndToEndTests(unittest.TestCase):
         story_runner.Run(DummyTest(), story_set, self.options, results,
                          max_failures=2)
         self.assertTrue(results.had_failures)
-        artifacts = results._artifact_results.GetTestArtifacts(
-            failing_page.name)
-        self.assertIsNotNone(artifacts)
-        self.assertIn('screenshot', artifacts)
-
-        screenshot_file_path = os.path.join(tempdir, artifacts['screenshot'][0])
+        failed_run = next(run for run in results._all_page_runs
+                          if run.story.name == failing_page.name)
+        screenshot_file_path = os.path.join(
+            tempdir, failed_run.GetArtifact('screenshot'))
 
         actual_screenshot_img = image_util.FromPngFile(screenshot_file_path)
         self.assertTrue(

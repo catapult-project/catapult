@@ -2,15 +2,26 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 import unittest
 
 import mock
 
 from telemetry.internal.results import story_run
+from telemetry.internal.util import file_handle
 from telemetry.story import shared_state
 from telemetry import story as story_module
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
+
+from py_utils import tempfile_ext
+
+
+# splitdrive returns '' on systems which don't have drives, like linux.
+ROOT_CHAR = os.path.splitdrive(__file__)[0] + os.sep
+def _abs_join(*args):
+  """Helper to do a path join that's an absolute path."""
+  return ROOT_CHAR + os.path.join(*args)
 
 
 class StoryRunTest(unittest.TestCase):
@@ -93,3 +104,72 @@ class StoryRunTest(unittest.TestCase):
             }
         }
     )
+
+  def testCreateArtifact(self):
+    with tempfile_ext.NamedTemporaryDirectory(
+        prefix='artifact_tests') as tempdir:
+      run = story_run.StoryRun(self.story, tempdir)
+      with run.CreateArtifact('logs', '', '') as log_file:
+        filename = log_file.name
+        log_file.write('hi\n')
+
+      with open(filename) as f:
+        self.assertEqual(f.read(), 'hi\n')
+
+  @mock.patch('telemetry.internal.results.story_run.shutil.move')
+  @mock.patch('telemetry.internal.results.story_run.os.makedirs')
+  def testAddArtifactBasic(self, make_patch, move_patch):
+    run = story_run.StoryRun(self.story, _abs_join('foo'))
+
+    run.AddArtifact('artifact_name', _abs_join('foo', 'artifacts', 'bar.log'))
+    move_patch.assert_not_called()
+    make_patch.assert_called_with(_abs_join('foo', 'artifacts'))
+
+    self.assertEqual(run._artifacts, {
+        'artifact_name': os.path.join('artifacts', 'bar.log'),
+    })
+
+  @mock.patch('telemetry.internal.results.story_run.shutil.move')
+  @mock.patch('telemetry.internal.results.story_run.os.makedirs')
+  def testAddArtifactNested(self, make_patch, move_patch):
+    run = story_run.StoryRun(self.story, _abs_join('foo'))
+
+    run.AddArtifact('artifact_name',
+                    _abs_join('foo', 'artifacts', 'baz', 'bar.log'))
+    move_patch.assert_not_called()
+    make_patch.assert_called_with(_abs_join('foo', 'artifacts'))
+
+    self.assertEqual(run._artifacts, {
+        'artifact_name': os.path.join('artifacts', 'baz', 'bar.log'),
+    })
+
+  @mock.patch('telemetry.internal.results.story_run.shutil.move')
+  @mock.patch('telemetry.internal.results.story_run.os.makedirs')
+  def testAddArtifactFileHandle(self, make_patch, move_patch):
+    run = story_run.StoryRun(self.story, _abs_join('foo'))
+
+    run.AddArtifact('artifact_name', file_handle.FromFilePath(
+        _abs_join('', 'foo', 'artifacts', 'bar.log')))
+    move_patch.assert_not_called()
+    make_patch.assert_called_with(_abs_join('foo', 'artifacts'))
+
+    self.assertEqual(run._artifacts, {
+        'artifact_name': os.path.join('artifacts', 'bar.log'),
+    })
+
+  @mock.patch('telemetry.internal.results.story_run.shutil.move')
+  @mock.patch('telemetry.internal.results.story_run.os.makedirs')
+  def testAddAndMove(self, make_patch, move_patch):
+    run = story_run.StoryRun(self.story, _abs_join('foo'))
+
+    run.AddArtifact('artifact_name', _abs_join(
+        'another', 'directory', 'bar.log'))
+    move_patch.assert_called_with(
+        _abs_join('another', 'directory', 'bar.log'),
+        _abs_join('foo', 'artifacts'))
+    make_patch.assert_called_with(_abs_join('foo', 'artifacts'))
+
+    self.assertEqual(run._artifacts, {
+        'artifact_name': os.path.join('artifacts', 'bar.log'),
+    })
+

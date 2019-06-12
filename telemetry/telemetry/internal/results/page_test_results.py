@@ -9,19 +9,14 @@ import json
 import logging
 import os
 import random
-import sys
 import tempfile
 import time
 import traceback
-import uuid
 
 import multiprocessing
 from multiprocessing.dummy import Pool as ThreadPool
 
-from py_utils import cloud_storage  # pylint: disable=import-error
-
 from telemetry import value as value_module
-from telemetry.internal.results import artifact_results
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import progress_reporter as reporter_module
@@ -354,8 +349,6 @@ class PageTestResults(object):
     # State of the benchmark this set of results represents.
     self._benchmark_enabled = benchmark_enabled
 
-    self._artifact_results = artifact_results.CreateArtifactResults(
-        self._output_dir)
     self._benchmark_metadata = benchmark_metadata
 
     self._histogram_dicts_to_add = []
@@ -518,7 +511,7 @@ class PageTestResults(object):
 
   def WillRunPage(self, page, storyset_repeat_counter=0):
     assert not self._current_page_run, 'Did not call DidRunPage.'
-    self._current_page_run = story_run.StoryRun(page)
+    self._current_page_run = story_run.StoryRun(page, self._output_dir)
     self._progress_reporter.WillRunPage(self)
     self.telemetry_info.WillRunStory(
         page, storyset_repeat_counter)
@@ -688,16 +681,11 @@ class PageTestResults(object):
 
   def CreateArtifact(self, name, prefix='', suffix=''):
     assert self._current_page_run, 'Not currently running test.'
-    return self._artifact_results.CreateArtifact(
-        self._current_page_run.story.name, name, prefix=prefix, suffix=suffix)
+    return self._current_page_run.CreateArtifact(name, prefix, suffix)
 
   def AddArtifact(self, name, path):
     assert self._current_page_run, 'Not currently running test.'
-    self._artifact_results.AddArtifact(
-        self._current_page_run.story.name, name, path)
-
-  def GetTestArtifacts(self, test_name):
-    return self._artifact_results.GetTestArtifacts(test_name)
+    self._current_page_run.AddArtifact(name, path)
 
   def AddTraces(self, traces, tbm_metrics=None):
     """Associate some recorded traces with the current story run.
@@ -805,18 +793,5 @@ class PageTestResults(object):
   # test recipe.
   def UploadArtifactsToCloud(self):
     bucket = self.telemetry_info.upload_bucket
-    for test_name, artifacts in self._artifact_results.IterTestAndArtifacts():
-      for artifact_type in artifacts:
-        total_num_artifacts = len(artifacts[artifact_type])
-        for i, artifact_path in enumerate(artifacts[artifact_type]):
-          artifact_path = artifacts[artifact_type][i]
-          abs_artifact_path = os.path.abspath(os.path.join(
-              self._artifact_results.artifact_dir, '..', artifact_path))
-          remote_path = str(uuid.uuid1())
-          cloud_url = cloud_storage.Insert(
-              bucket, remote_path, abs_artifact_path)
-          artifacts[artifact_type][i] = cloud_url
-          sys.stderr.write(
-              'Uploading %s of page %s to %s (%d out of %d)\n' %
-              (artifact_type, test_name, cloud_url, i + 1,
-               total_num_artifacts))
+    for run in self._all_page_runs:
+      run.UploadArtifactsToCloud(bucket)
