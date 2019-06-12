@@ -90,3 +90,11 @@ class AndroidPlatform(platform.Platform):
       start_intent: The intent to use to start the service
     """
     self._platform_backend.device.StartService(start_intent)
+
+  def RemoveSystemPackages(self, packages):
+    """Removes the given packages if installed as system apps.
+
+    Args:
+      packages: A list of package names to remove.
+    """
+    self._platform_backend.RemoveSystemPackages(packages)

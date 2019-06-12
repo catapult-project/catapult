@@ -35,6 +35,7 @@ from devil.android.perf import perf_control
 from devil.android.perf import thermal_throttle
 from devil.android.sdk import shared_prefs
 from devil.android.tools import provision_devices
+from devil.android.tools import system_app
 
 try:
   # devil.android.forwarder uses fcntl, which doesn't exist on Windows.
@@ -379,6 +380,9 @@ class AndroidPlatformBackend(
   # pylint: disable=arguments-differ
   def InstallApplication(self, application, modules=None):
     self._device.Install(application, modules=modules)
+
+  def RemoveSystemPackages(self, packages):
+    system_app.RemoveSystemApps(self._device, packages)
 
   def CanMonitorPower(self):
     return self._power_monitor.CanMonitorPower()
