@@ -991,14 +991,6 @@ def _run_one_test(child, test_input):
         if child.all:
             unittest.skip = lambda reason: lambda x: x
             unittest.skipIf = lambda condition, reason: lambda x: x
-        elif ResultType.Skip in expected_results:
-            # TODO: Should these have been added to tests_to_skip up
-            # in find_tests() and run() instead, so that we'd never actually
-            # get here with a test we wanted to skip?
-            h.restore_output()
-            return (Result(test_name, ResultType.Skip, started, 0,
-                           child.worker_num, expected=expected_results,
-                           unexpected=False, pid=pid), False)
 
         test_name_to_load = child.test_name_prefix + test_name
         try:
