@@ -1180,6 +1180,19 @@ class TestCli(test_case.MainTestCase):
             files=files, ret=1, err='')
         self.assertIn('0 tests passed, 0 skipped, 1 failure.', out)
 
+    def test_matches_partial_filter(self):
+        _, out, _, files = self.check(
+            ['--test-name-prefix', 'output_test.',
+             '--partial-match-filter', 'PassTest'],
+            files=OUTPUT_TEST_FILES, ret=0, err='')
+        self.assertIn('2 tests passed, 0 skipped, 0 failures.',out)
+
+    def test_test_prefix_exclusion_in_partial_filter_match(self):
+        _, out, _, files = self.check(
+            ['--test-name-prefix', 'output_test.',
+             '--partial-match-filter', 'output_test.'],
+            files=OUTPUT_TEST_FILES, ret=0, err='')
+        self.assertIn('0 tests passed, 0 skipped, 0 failures.',out)
 
     def test_implement_test_name_prefix_exclusion_in_test_started_output(self):
         files = {'fail_test.py': FAIL_TEST_PY}

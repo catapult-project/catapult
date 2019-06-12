@@ -847,9 +847,15 @@ class Runner(object):
         _validate_test_starts_with_prefix(
             self.args.test_name_prefix, test_case.id())
         test_name = test_case.id()[len(self.args.test_name_prefix):]
-        return (not self.args.test_filter or any(
-            fnmatch.fnmatch(test_name, glob)
-            for glob in self.args.test_filter.split('::')))
+        if self.args.test_filter:
+            return any(
+                fnmatch.fnmatch(test_name, glob)
+                for glob in self.args.test_filter.split('::'))
+        if self.args.partial_match_filter:
+            return any(
+                substr in test_name
+                for substr in self.args.partial_match_filter)
+        return True
 
     def should_isolate(self, test_case):
         _validate_test_starts_with_prefix(

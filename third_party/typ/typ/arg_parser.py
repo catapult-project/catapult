@@ -206,6 +206,10 @@ class ArgumentParser(argparse.ArgumentParser):
                 help='Pass a double-colon-separated ("::") list of exact test '
                 'names or globs, to run just that subset of tests. fnmatch will '
                 'be used to match globs to test names')
+            self.add_argument(
+                '--partial-match-filter', type=str, default=[], action='append',
+                help='Pass a string and Typ will run tests whose names '
+                     'partially match the passed string')
 
 
     def parse_args(self, args=None, namespace=None):
