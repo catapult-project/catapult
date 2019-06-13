@@ -42,13 +42,8 @@ def ResultsAsDict(page_test_results):
   }
   status_counter = collections.Counter()
   for run in page_test_results.all_page_runs:
-    expected = run.expected
-    if run.skipped:
-      status = 'SKIP'
-    elif run.failed:
-      status = 'FAIL'
-    else:
-      status = 'PASS'
+    status = run.status
+    expected = status if run.is_expected else 'PASS'
     status_counter[status] += 1
 
     test = _mk_dict(

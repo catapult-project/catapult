@@ -53,7 +53,7 @@ class StoryRunTest(unittest.TestCase):
     self.assertFalse(run.ok)
     self.assertFalse(run.failed)
     self.assertTrue(run.skipped)
-    self.assertEquals(run.expected, 'SKIP')
+    self.assertTrue(run.is_expected)
     self.assertEquals(run.failure_str, 'oops')
 
     run = story_run.StoryRun(self.story)
@@ -64,7 +64,7 @@ class StoryRunTest(unittest.TestCase):
     self.assertFalse(run.ok)
     self.assertFalse(run.failed)
     self.assertTrue(run.skipped)
-    self.assertEquals(run.expected, 'PASS')
+    self.assertFalse(run.is_expected)
     self.assertEquals(run.failure_str, None)
 
   def testStoryRunSucceeded(self):
@@ -96,11 +96,12 @@ class StoryRunTest(unittest.TestCase):
     self.assertEquals(
         run.AsDict(),
         {
-            'testRun': {
+            'testResult': {
                 'testName': 'foo',
                 'status': 'PASS',
+                'isExpected': True,
                 'startTime': '2009-02-13T23:31:30.987000Z',
-                'endTime': '2009-02-13T23:31:40.987000Z'
+                'runDuration': '10.00s'
             }
         }
     )
