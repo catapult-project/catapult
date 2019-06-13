@@ -58,6 +58,7 @@
         },
         "android_n_arm64-v8a": {
           "cloud_storage_hash": "84152ba8f7a25cacc79d588ed827ea75f0e4ab94",
+          "download_path": "bin/reference_build/android_n_arm64-v8a/Monochrome.apk",
           "version_in_cs": "75.0.3770.67"
         },
         "android_n_armeabi-v7a": {
