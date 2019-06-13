@@ -89,7 +89,10 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     exec(deps_file_contents, deps_data)  # pylint: disable=exec-used
 
     # Pull out deps dict, including OS-specific deps.
-    deps_dict = deps_data['deps']
+    deps_dict = deps_data.get('deps', {})
+    if not deps_dict:
+      return frozenset()
+
     for deps_os in deps_data.get('deps_os', {}).values():
       deps_dict.update(deps_os)
 

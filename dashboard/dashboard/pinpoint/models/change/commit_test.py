@@ -72,6 +72,21 @@ deps_os = {
     ))
     self.assertEqual(Commit(0).Deps(), expected)
 
+  def testDepsNoVars(self):
+    self.file_contents.return_value = """
+hooks = [
+  {
+    'name': 'do_stuff',
+    'pattern': '.',
+    'action': [
+        'python',
+        'src/tools/do_stuff.py',
+    ],
+  }]
+    """
+
+    self.assertEqual(Commit(0).Deps(), frozenset([]))
+
   def testAsDict(self):
     self.commit_info.side_effect = None
     self.commit_info.return_value = {
