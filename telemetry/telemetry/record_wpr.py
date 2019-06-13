@@ -299,4 +299,4 @@ def Main(environment, **log_config_kwargs):
   results = wpr_recorder.CreateResults()
   wpr_recorder.Record(results)
   wpr_recorder.HandleResults(results, args.upload)
-  return min(255, len(results.failures))
+  return min(255, results.num_failed)

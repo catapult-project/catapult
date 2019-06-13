@@ -339,7 +339,6 @@ class PageTestResults(object):
     self._all_stories = set()
     self._representative_value_for_each_value_name = {}
     self._all_summary_values = []
-    self._serialized_trace_file_ids_to_paths = {}
 
     self._histograms = histogram_set.HistogramSet()
 
@@ -397,10 +396,6 @@ class PageTestResults(object):
         v = copy.copy(v)
       setattr(result, k, v)
     return result
-
-  @property
-  def serialized_trace_file_ids_to_paths(self):
-    return self._serialized_trace_file_ids_to_paths
 
   @property
   def all_page_specific_values(self):
@@ -469,11 +464,6 @@ class PageTestResults(object):
   def num_failed(self):
     return sum(1 for run in self.all_page_runs if run.failed)
 
-  # TODO(#4229): Remove this once tools/perf is migrated.
-  @property
-  def failures(self):
-    return [None] * self.num_failed
-
   @property
   def had_skips(self):
     return any(run.skipped for run in self._IterAllStoryRuns())
@@ -483,9 +473,6 @@ class PageTestResults(object):
       yield run
     if self._current_page_run:
       yield self._current_page_run
-
-  def _GetStringFromExcInfo(self, err):
-    return ''.join(traceback.format_exception(*err))
 
   def CleanUp(self):
     """Clean up any TraceValues contained within this results object."""
@@ -716,7 +703,8 @@ class PageTestResults(object):
       if (self._output_dir and
           any(isinstance(o, html_output_formatter.HtmlOutputFormatter)
               for o in self._output_formatters)):
-        self._SerializeTracesToDirPath()
+        for value in self.FindAllTraceValues():
+          value.Serialize()
 
       for output_formatter in self._output_formatters:
         output_formatter.Format(self)
@@ -756,13 +744,6 @@ class PageTestResults(object):
           if isinstance(v, trace.TraceValue):
             values.append((run, v))
     return values
-
-  def _SerializeTracesToDirPath(self):
-    """ Serialize all trace values to files in dir_path and return a list of
-    file handles to those files. """
-    for value in self.FindAllTraceValues():
-      fh = value.Serialize()
-      self._serialized_trace_file_ids_to_paths[fh.id] = fh.GetAbsPath()
 
   def UploadTraceFilesToCloud(self):
     for value in self.FindAllTraceValues():
