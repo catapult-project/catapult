@@ -376,9 +376,11 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
     test = Test()
     options = options_for_unittests.GetCopy()
+    SetUpStoryRunnerArguments(options)
+    # Override defaults from parser creation and arg processing.
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpStoryRunnerArguments(options)
+    options.output_dir = None
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(test, story_set, options, results)
     self.assertFalse(test.will_navigate_to_page_called)
@@ -438,9 +440,11 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_set.AddStory(test_page)
     test = Test()
     options = options_for_unittests.GetCopy()
+    SetUpStoryRunnerArguments(options)
+    # Override defaults from parser creation and arg processing.
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpStoryRunnerArguments(options)
+    options.output_dir = None
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(test, story_set, options, results)
     self.assertTrue(test_page.was_page_at_top_on_start)
@@ -457,9 +461,11 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
           TestPage('file://blank.html', story_set,
                    base_dir=util.GetUnittestDataDir(), name='foo%d' % i))
     options = options_for_unittests.GetCopy()
+    SetUpStoryRunnerArguments(options)
+    # Override defaults from parser creation and arg processing.
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpStoryRunnerArguments(options)
+    options.output_dir = None
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(test, story_set, options, results,
                      max_failures=max_failures)
@@ -496,9 +502,11 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
     test = TestWpr()
     options = options_for_unittests.GetCopy()
+    SetUpStoryRunnerArguments(options)
+    # Override defaults from parser creation and arg processing.
     options.output_formats = ['none']
     options.suppress_gtest_report = True
-    SetUpStoryRunnerArguments(options)
+    options.output_dir = None
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
 
     story_runner.Run(test, story_set, options, results)
@@ -561,9 +569,11 @@ class FakePageRunEndToEndTests(unittest.TestCase):
 
   def setUp(self):
     self.options = fakes.CreateBrowserFinderOptions()
+    SetUpStoryRunnerArguments(self.options)
+    # Override defaults from parser creation and arg processing.
     self.options.output_formats = ['none']
     self.options.suppress_gtest_report = True
-    SetUpStoryRunnerArguments(self.options)
+    self.options.output_dir = None
 
   def testNoScreenShotTakenForFailedPageDueToNoSupport(self):
     self.options.browser_options.take_screenshot_for_failed_page = True

@@ -143,6 +143,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     mock_story_set = MockStorySet(url=self._url)
     wpr_recorder = record_wpr.WprRecorder(self._test_data_dir,
                                           mock_story_set, flags)
+    wpr_recorder._options.output_dir = None
     results = wpr_recorder.CreateResults()
     wpr_recorder.Record(results)
     self.assertEqual(set(mock_story_set.stories), results.pages_that_succeeded)
@@ -153,6 +154,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     mock_benchmark = MockBenchmark()
     wpr_recorder = record_wpr.WprRecorder(self._test_data_dir, mock_benchmark,
                                           flags)
+    wpr_recorder._options.output_dir = None
     results = wpr_recorder.CreateResults()
     wpr_recorder.Record(results)
     self.assertEqual(set(mock_benchmark.mock_story_set.stories),
@@ -164,6 +166,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     mock_benchmark = MockTimelineBasedMeasurementBenchmark()
     wpr_recorder = record_wpr.WprRecorder(self._test_data_dir, mock_benchmark,
                                           flags)
+    wpr_recorder._options.output_dir = None
     results = wpr_recorder.CreateResults()
     wpr_recorder.Record(results)
     self.assertEqual(set(mock_benchmark.mock_story_set.stories),
@@ -176,6 +179,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     mock_benchmark = MockBenchmark()
     wpr_recorder = record_wpr.WprRecorder(
         'non-existent-dummy-dir', mock_benchmark, flags)
+    wpr_recorder._options.output_dir = None
     results = wpr_recorder.CreateResults()
     wpr_recorder.Record(results)
     self.assertEqual(set(mock_benchmark.mock_story_set.stories),

@@ -80,12 +80,6 @@ class BenchmarkRunTest(unittest.TestCase):
 
   def setupBenchmark(self): # pylint: disable=invalid-name
     finder_options = fakes.CreateBrowserFinderOptions()
-    finder_options.browser_options.platform = fakes.FakeLinuxPlatform()
-    finder_options.output_formats = ['none']
-    finder_options.suppress_gtest_report = True
-    finder_options.output_dir = None
-    finder_options.upload_bucket = 'public'
-    finder_options.upload_results = False
     benchmarkclass = FakeBenchmark
     parser = finder_options.CreateParser()
     benchmark_module.AddCommandLineArgs(parser)
@@ -94,6 +88,14 @@ class BenchmarkRunTest(unittest.TestCase):
     benchmark_module.ProcessCommandLineArgs(parser, options)
     benchmarkclass.ProcessCommandLineArgs(parser, options)
     benchmark = benchmarkclass()
+
+    #  Override defaults from parser creation and arg processing.
+    finder_options.browser_options.platform = fakes.FakeLinuxPlatform()
+    finder_options.output_formats = ['none']
+    finder_options.suppress_gtest_report = True
+    finder_options.output_dir = None
+    finder_options.upload_bucket = 'public'
+    finder_options.upload_results = False
     return benchmark, finder_options
 
   def testPassingPage(self):
