@@ -20,8 +20,9 @@ tr.exportTo('tr.model.helpers', function() {
       this.modelHelper = modelHelper;
 
       this.renderersWithIR_ = undefined;
-      this.segments_ = undefined;
+      this.irSegments_ = undefined;
       this.uiSegments_ = undefined;
+      this.animationSegments_ = undefined;
     }
 
     get renderersWithIR() {
@@ -29,14 +30,25 @@ tr.exportTo('tr.model.helpers', function() {
       return this.renderersWithIR_;
     }
 
-    get segments() {
+    get irSegments() {
       this.findIRs_();
-      return this.segments_;
+      return this.irSegments_;
     }
 
     get uiSegments() {
       this.findIRs_();
       return this.uiSegments_;
+    }
+
+    get animationSegments() {
+      if (this.animationSegments_ === undefined) {
+        const model = this.modelHelper.model;
+        this.animationSegments_ = model.userModel.segments.filter(
+            segment => segment.expectations.find(
+                ue => ue instanceof tr.model.um.AnimationExpectation));
+        this.animationSegments_.sort((x, y) => x.start - y.start);
+      }
+      return this.animationSegments_;
     }
 
     /**
@@ -58,7 +70,7 @@ tr.exportTo('tr.model.helpers', function() {
      * Also, some of the metrics we compute here are not animations specific.
      */
     findIRs_() {
-      if (this.segments_ !== undefined) return;
+      if (this.irSegments_ !== undefined) return;
 
       this.renderersWithIR_ = [];
       const gestureEvents = [];
@@ -93,7 +105,7 @@ tr.exportTo('tr.model.helpers', function() {
       // demarcate when the gesture was running. We check for overlap, not
       // inclusion, because gesture actions can start/end slightly outside the
       // telemetry markers on Windows.
-      this.segments_ = [];
+      this.irSegments_ = [];
       this.uiSegments_ = [];
       for (const ir of interactionRecords) {
         const parts = IR_REG_EXP.exec(ir.title);
@@ -102,7 +114,7 @@ tr.exportTo('tr.model.helpers', function() {
           for (const gestureEvent of gestureEvents) {
             if (ir.boundsRange.intersectsRangeInclusive(
                 gestureEvent.boundsRange)) {
-              this.segments_.push(new tr.model.um.Segment(
+              this.irSegments_.push(new tr.model.um.Segment(
                   gestureEvent.start, gestureEvent.duration));
               gestureEventFound = true;
               break;
@@ -112,11 +124,11 @@ tr.exportTo('tr.model.helpers', function() {
           this.uiSegments_.push(new tr.model.um.Segment(ir.start, ir.duration));
         }
         if (!gestureEventFound) {
-          this.segments_.push(new tr.model.um.Segment(ir.start, ir.duration));
+          this.irSegments_.push(new tr.model.um.Segment(ir.start, ir.duration));
         }
       }
 
-      this.segments_.sort((x, y) => x.start - y.start);
+      this.irSegments_.sort((x, y) => x.start - y.start);
       this.uiSegments_.sort((x, y) => x.start - y.start);
     }
   }

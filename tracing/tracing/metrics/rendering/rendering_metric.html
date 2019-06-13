@@ -25,7 +25,10 @@ tr.exportTo('tr.metrics.rendering', function() {
         tr.model.helpers.ChromeModelHelper);
     if (!chromeHelper) return;
 
-    const segments = chromeHelper.telemetryHelper.segments;
+    let segments = chromeHelper.telemetryHelper.irSegments;
+    if (segments.length === 0) {
+      segments = chromeHelper.telemetryHelper.animationSegments;
+    }
     if (segments.length > 0) {
       tr.metrics.rendering.addFrameTimeHistograms(histograms, model, segments);
       tr.metrics.rendering.addImageDecodeTimeHistograms(histograms, model,
