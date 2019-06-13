@@ -96,15 +96,4 @@ class SharedState(object):
       results: A PageTestResults object which implementations can use to record
           artifacts.
     """
-    # TODO(crbug.com/971624): For now we call the legacy method name. Make
-    # this raise a NotImplementedError when all subclasses provide an
-    # implemtation under this new name.
-    self.DumpStateUponFailure(None, results)
-
-  def DumpStateUponFailure(self, story, results):
-    """ Dump the state upon failure.
-    This method tries to dump as much information about the application under
-    test as possible (output, log, screenshot, etc.) to simplify triaging the
-    failure.
-    """
-    pass
+    raise NotImplementedError()
