@@ -82,7 +82,8 @@ export default class MenuInput extends ElementBase {
       this.isFocused, this.query, this.selectedOptions)}"
           @blur="${this.onBlur_}"
           @focus="${this.onFocus_}"
-          @keyup="${this.onKeyup_}">
+          @keydown="${this.onKeyDown_}"
+          @keyup="${this.onKeyUp_}">
         <cp-icon
             id="clear"
             ?hidden="${!this.selectedOptions || !this.selectedOptions.length}"
@@ -163,9 +164,38 @@ export default class MenuInput extends ElementBase {
     }));
   }
 
-  async onKeyup_(event) {
+  async onKeyDown_(event) {
     if (event.key === 'Escape') {
       this.nativeInput.blur();
+      return;
+    }
+
+    if (event.key.startsWith('Arrow')) {
+      STORE.dispatch({
+        type: MenuInput.reducers.arrowCursor.name,
+        statePath: this.statePath,
+        key: event.key,
+      });
+      return;
+    }
+
+    if (event.key === 'Enter' && this.cursor) {
+      STORE.dispatch({
+        type: MenuInput.reducers.select.name,
+        statePath: this.statePath,
+      });
+      this.dispatchEvent(new CustomEvent('option-select', {
+        bubbles: true,
+        composed: true,
+      }));
+    }
+  }
+
+  async onKeyUp_(event) {
+    if (event.key.startsWith('Arrow') ||
+        event.key === 'Escape' ||
+        event.key === 'Enter') {
+      // These are handled by onKeyDown_.
       return;
     }
     STORE.dispatch(UPDATE(this.statePath, {query: event.target.value}));
@@ -208,6 +238,117 @@ MenuInput.inputValue = (isFocused, query, selectedOptions) => {
   return `[${selectedOptions.length} selected]`;
 };
 
+function optionStatePath(indices) {
+  return indices.join('.options.');
+}
+
+const ARROW_HANDLERS = {
+  // These four methods handle arrow key presses.
+  // They may modify `indices` in place. They may NOT modify options in place.
+  // They may return options modified via setImmutable().
+  // `indices` is an array of integer indexes, denoting a path through the
+  // option tree. This path is stored in the Redux STORE as a statePath string.
+  // MenuInput.reducers.arrowCursor transforms the cursor statePath to `indices`
+  // to make it easier for these handlers to modify, then transformed back to a
+  // statePath string.
+  // `options` is an array of objects that was produced by
+  // OptionGroup.groupValues().
+
+  ArrowUp(indices, options, query) {
+    if (!indices.length) {
+      indices.push(options.length - 1);
+      return options;
+    }
+
+    const lastIndex = indices[indices.length - 1];
+    if (lastIndex === 0) {
+      if (indices.length === 1) {
+        indices.splice(0, 1, options.length - 1);
+      } else {
+        indices.pop();
+      }
+      return options;
+    }
+
+    indices[indices.length - 1] -= 1;
+
+    let prevOption = get(options, optionStatePath(indices));
+    let isExpanded = prevOption && prevOption.options &&
+        prevOption.options.length && (query || prevOption.isExpanded);
+    while (isExpanded) {
+      indices.push(prevOption.options.length - 1);
+      prevOption = prevOption.options[prevOption.options.length - 1];
+      isExpanded = prevOption && prevOption.options &&
+          prevOption.options.length && (query || prevOption.isExpanded);
+    }
+    return options;
+  },
+
+  ArrowDown(indices, options, query) {
+    if (!indices.length) {
+      indices.push(0);
+      return options;
+    }
+
+    const cursorOption = get(options, optionStatePath(indices));
+    if (cursorOption && cursorOption.options && cursorOption.options.length &&
+        (query || cursorOption.isExpanded)) {
+      indices.push(0);
+      return options;
+    }
+
+    if (indices.length === 1) {
+      if (indices[0] === options.length - 1) {
+        indices.splice(0, 1, 0);
+        return options;
+      }
+      indices[0] += 1;
+      return options;
+    }
+
+    let parentPath = optionStatePath(indices.slice(0, indices.length - 1));
+    let parentOption = get(options, parentPath);
+    while ((indices.length > 1) &&
+        (indices[indices.length - 1] === (parentOption.options.length - 1))) {
+      indices.pop();
+      parentPath = optionStatePath(indices.slice(0, indices.length - 1));
+      parentOption = get(options, parentPath);
+    }
+
+    indices[indices.length - 1] += 1;
+    return options;
+  },
+
+  ArrowLeft(indices, options, query) {
+    if (!indices.length) return options;
+
+    let cursorRelPath = optionStatePath(indices);
+    let cursorOption = get(options, cursorRelPath);
+    if (!cursorOption) return options;
+
+    if ((indices.length > 1) && !cursorOption.isExpanded) {
+      indices.pop();
+      cursorRelPath = optionStatePath(indices);
+      cursorOption = get(options, cursorRelPath);
+    }
+
+    options = setImmutable(options, cursorRelPath + '.isExpanded', false);
+
+    return options;
+  },
+
+  ArrowRight(indices, options, query) {
+    const cursorRelPath = optionStatePath(indices);
+    const cursorOption = get(options, cursorRelPath);
+    // If the option at cursor has children, expand it.
+    if (cursorOption && cursorOption.options && cursorOption.options.length &&
+        !cursorOption.isExpanded) {
+      options = setImmutable(options, cursorRelPath + '.isExpanded', true);
+    }
+    return options;
+  },
+};
+
 MenuInput.reducers = {
   focus: (rootState, {inputStatePath}, rootStateAgain) => {
     const focusTimestamp = window.performance.now();
@@ -216,6 +357,41 @@ MenuInput.reducers = {
     return setImmutable(rootState, inputStatePath, inputState => {
       return {...inputState, focusTimestamp, hasBeenOpened: true};
     });
+  },
+
+  arrowCursor: (state, {key, statePath}, rootState) => {
+    if (!ARROW_HANDLERS[key]) return state;
+
+    const indices = [];
+    if (state.cursor) {
+      const cursorRelPath = state.cursor.substr(
+          (statePath + '.options.').length);
+      indices.push(...cursorRelPath.split('.options.').map(i => parseInt(i)));
+    }
+
+    let options = ARROW_HANDLERS[key](indices, state.options, state.query);
+
+    if (state.query && (key === 'ArrowUp' || key === 'ArrowDown')) {
+      let cursorOption = get(state.options, optionStatePath(indices));
+      const queryParts = state.query.toLocaleLowerCase().split(' ');
+      while (!OptionGroup.matches(cursorOption, queryParts)) {
+        options = ARROW_HANDLERS[key](indices, state.options, state.query);
+        cursorOption = get(state.options, optionStatePath(indices));
+      }
+    }
+
+    // Translate indices back to a statePath string.
+    indices.unshift(statePath);
+    const cursor = optionStatePath(indices);
+
+    return {...state, options, cursor};
+  },
+
+  select: (state, {statePath}, rootState) => {
+    if (!state.cursor) return state;
+    const option = get(rootState, state.cursor);
+    if (!option) return state;
+    return OptionGroup.reducers.select(state, {option}, rootState);
   },
 };
 

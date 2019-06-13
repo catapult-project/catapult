@@ -111,6 +111,7 @@ export default class TimeseriesDescriptor extends ElementBase {
         <div>
           <menu-input
               .statePath="${this.statePath}.suite"
+              @keydown="${this.onSuiteKeyDown_}"
               @option-select="${this.onSuiteSelect_}">
             <recommended-options
                 slot="top"
@@ -137,6 +138,7 @@ export default class TimeseriesDescriptor extends ElementBase {
         <div>
           <menu-input
               .statePath="${this.statePath}.measurement"
+              @keydown="${this.onMeasurementKeyDown_}"
               @option-select="${this.onMeasurementSelect_}">
             <div slot="top">
               <recommended-options .statePath="${this.statePath}.measurement">
@@ -162,6 +164,7 @@ export default class TimeseriesDescriptor extends ElementBase {
         <div>
           <menu-input
               .statePath="${this.statePath}.bot"
+              @keydown="${this.onBotKeyDown_}"
               @option-select="${this.onBotSelect_}">
             <recommended-options slot="top" .statePath="${this.statePath}.bot">
             </recommended-options>
@@ -186,6 +189,7 @@ export default class TimeseriesDescriptor extends ElementBase {
         <div>
           <menu-input
               .statePath="${this.statePath}.case"
+              @keydown="${this.onCaseKeyDown_}"
               @option-select="${this.onCaseSelect_}">
             <recommended-options slot="top" .statePath="${this.statePath}.case">
             </recommended-options>
@@ -309,6 +313,30 @@ export default class TimeseriesDescriptor extends ElementBase {
       detail: TimeseriesDescriptor.getParameterMatrix(
           this.suite, this.measurement, this.bot, this.case),
     }));
+  }
+
+  async onSuiteKeyDown_(event) {
+    if (event.key === 'Tab') {
+      MenuInput.focus(`${this.statePath}.measurement`);
+    }
+  }
+
+  async onMeasurementKeyDown_(event) {
+    if (event.key === 'Tab') {
+      MenuInput.focus(`${this.statePath}.bot`);
+    }
+  }
+
+  async onBotKeyDown_(event) {
+    if (event.key === 'Tab') {
+      MenuInput.focus(`${this.statePath}.case`);
+    }
+  }
+
+  async onCaseKeyDown_(event) {
+    if (event.key === 'Tab') {
+      MenuInput.focus(`${this.statePath}.statistic`);
+    }
   }
 
   async onSuiteSelect_(event) {

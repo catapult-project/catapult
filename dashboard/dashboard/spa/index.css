@@ -20,6 +20,7 @@
   --neutral-color-medium: hsl(0, 0%, 80%);
   --neutral-color-light: hsl(0, 0%, 93%);
   --error-color: hsl(4, 90%, 60%);
+  --focus-color: hsl(54, 100%, 80%);
   --improvement-color: hsl(122, 40%, 50%);
   --background-color: white;
   --foreground-color: black;

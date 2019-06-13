@@ -46,6 +46,14 @@ export default class RecommendedOptions extends ElementBase {
       return html``;
     }
 
+    if (this.query) {
+      const queryParts = this.query.toLocaleLowerCase().split(' ');
+      if (!this.recommended.options.filter(o => OptionGroup.matches(
+          o, queryParts)).length) {
+        return html``;
+      }
+    }
+
     return html`
       <b style="margin: 4px;">Recommended</b>
       <option-group

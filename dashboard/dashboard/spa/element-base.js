@@ -30,6 +30,9 @@ export const STORE = createSimpleStore({
   },
 });
 
+// Export the state store directly to window in order to facilitate debugging.
+window.STORE = STORE;
+
 /*
  * This base class mixes LitElement with Polymer-Redux and provides
  * utility functions to help data-bindings in elements perform minimal
