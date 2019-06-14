@@ -32,23 +32,12 @@ _CATAPULT_TESTS = [
         'path': 'common/bin/run_tests',
     },
     {
-        'name': 'Dashboard Dev Server Tests Canary',
+        'name': 'Dashboard Dev Server Tests m72',
         'path': 'dashboard/bin/run_dev_server_tests',
         'additional_args': [
             '--no-install-hooks',
             '--no-use-local-chrome',
-            '--channel=canary'
-        ],
-        'outputs_presentation_json': True,
-        'disabled': ['android'],
-    },
-    {
-        'name': 'Dashboard Dev Server Tests Stable',
-        'path': 'dashboard/bin/run_dev_server_tests',
-        'additional_args': [
-            '--no-install-hooks',
-            '--no-use-local-chrome',
-            '--channel=stable',
+            '--channel=m72'
         ],
         'outputs_presentation_json': True,
         'disabled': ['android'],
@@ -138,7 +127,18 @@ _CATAPULT_TESTS = [
         'uses_sandbox_env': True,
         'disabled': ['android', 'linux'],  # TODO(nedn): enable this on linux
     },
-    # TODO(crbug.com/973847): Urgent! Reenable tracing dev server tests somehow.
+    {
+        # TODO(crbug.com/973847): Run against a more recent Chrome.
+        'name': 'Tracing Dev Server Tests M72',
+        'path': 'tracing/bin/run_dev_server_tests',
+        'additional_args': [
+            '--no-install-hooks',
+            '--no-use-local-chrome',
+            '--channel=m72',
+        ],
+        'outputs_presentation_json': True,
+        'disabled': ['android'],
+    },
     {
         'name': 'Tracing D8 Tests',
         'path': 'tracing/bin/run_vinn_tests',
