@@ -90,17 +90,21 @@ Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions""")
 
 
-_COMMENT_COMPLETED_TWO_DIFFERENCES = (
-    u"""<b>\U0001f4cd Found significant differences after each of 2 commits.</b>
+_COMMENT_COMPLETED_THREE_DIFFERENCES = (
+    u"""<b>\U0001f4cd Found significant differences after each of 3 commits.</b>
 https://testbed.example.com/job/1
 
 <b>Subject.</b> by author1@chromium.org
 https://example.com/repository/+/git_hash_1
-0 \u2192 No values
+50 \u2192 0 (-50) (-100%)
 
 <b>Subject.</b> by author2@chromium.org
 https://example.com/repository/+/git_hash_2
-No values \u2192 2
+0 \u2192 40 (+40) (+\u221e%)
+
+<b>Subject.</b> by author3@chromium.org
+https://example.com/repository/+/git_hash_3
+0 \u2192 No values
 
 Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions""")
@@ -478,8 +482,9 @@ class BugCommentTest(test.TestCase):
       self, differences, result_values, commit_as_dict):
     c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
     c2 = change.Change((change.Commit('chromium', 'git_hash_2'),))
-    differences.return_value = [(None, c1), (None, c2)]
-    result_values.side_effect = [0], [], [], [2]
+    c3 = change.Change((change.Commit('chromium', 'git_hash_3'),))
+    differences.return_value = [(None, c1), (None, c2), (None, c3)]
+    result_values.side_effect = [50], [0], [0], [40], [0], []
     commit_as_dict.side_effect = (
         {
             'repository': 'chromium',
@@ -497,6 +502,14 @@ class BugCommentTest(test.TestCase):
             'subject': 'Subject.',
             'message': 'Subject.\n\nCommit message.',
         },
+        {
+            'repository': 'chromium',
+            'git_hash': 'git_hash_3',
+            'url': 'https://example.com/repository/+/git_hash_3',
+            'author': 'author3@chromium.org',
+            'subject': 'Subject.',
+            'message': 'Subject.\n\nCommit message.',
+        },
     )
 
     self.get_issue.return_value = {'status': 'Untriaged'}
@@ -507,9 +520,10 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
 
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_TWO_DIFFERENCES,
-        status='Assigned', owner='author2@chromium.org',
-        cc_list=['author1@chromium.org', 'author2@chromium.org'],
+        123456, _COMMENT_COMPLETED_THREE_DIFFERENCES,
+        status='Assigned', owner='author1@chromium.org',
+        cc_list=['author1@chromium.org', 'author2@chromium.org',
+                 'author3@chromium.org'],
         merge_issue=None)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
