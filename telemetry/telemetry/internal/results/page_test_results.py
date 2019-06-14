@@ -630,24 +630,6 @@ class PageTestResults(object):
     is_first_result = (
         self._current_page_run.story not in self._all_stories)
 
-    story_keys = self._current_page_run.story.grouping_keys
-
-    if story_keys:
-      for k, v in story_keys.iteritems():
-        assert k not in value.grouping_keys, (
-            'Tried to add story grouping key ' + k + ' already defined by ' +
-            'value')
-        value.grouping_keys[k] = v
-
-      # We sort by key name to make building the tir_label deterministic.
-      story_keys_label = '_'.join(v for _, v in sorted(story_keys.iteritems()))
-      if value.tir_label:
-        assert value.tir_label == story_keys_label, (
-            'Value has an explicit tir_label (%s) that does not match the '
-            'one computed from story_keys (%s)' % (value.tir_label, story_keys))
-      else:
-        value.tir_label = story_keys_label
-
     if not (isinstance(value, trace.TraceValue) or
             self._should_add_value(value.name, is_first_result)):
       return
@@ -762,10 +744,6 @@ class PageTestResults(object):
 
   def FindAllPageSpecificValuesNamed(self, value_name):
     return self.FindValues(lambda v: v.name == value_name)
-
-  def FindAllPageSpecificValuesFromIRNamed(self, tir_label, value_name):
-    return self.FindValues(lambda v: v.name == value_name
-                           and v.tir_label == tir_label)
 
   def FindAllTraceValues(self):
     return self.FindValues(lambda v: isinstance(v, trace.TraceValue))

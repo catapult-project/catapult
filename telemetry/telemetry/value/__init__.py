@@ -27,6 +27,19 @@ from telemetry.core import util
 from py_utils import discover
 
 
+def _GetGroupingLabel(story):
+  """Computes the label used to group values when summarizing.
+
+  This used to be the 'tir_label' of the value, but that is now an obsolete
+  concept after the deprecation of TBMv1 metrics.
+  """
+  if story is not None and story.grouping_keys:
+    # We sort by key name to make building the grouping_label deterministic.
+    return '_'.join(v for _, v in sorted(story.grouping_keys.iteritems()))
+  else:
+    return None
+
+
 class Value(object):
   """An abstract value produced by a telemetry page test.
   """
@@ -75,12 +88,17 @@ class Value(object):
     self.description = description
     self.tir_label = tir_label
     self.grouping_keys = grouping_keys
+    self._grouping_label = _GetGroupingLabel(self.page)
 
   def __eq__(self, other):
     return hash(self) == hash(other)
 
   def __hash__(self):
     return hash(str(self))
+
+  @property
+  def grouping_label(self):
+    return self._grouping_label
 
   def IsMergableWith(self, that):
     # pylint: disable=unidiomatic-typecheck
@@ -146,8 +164,11 @@ class Value(object):
     if self.description:
       d['description'] = self.description
 
-    if self.tir_label:
-      d['tir_label'] = self.tir_label
+    if self.grouping_label:
+      # TODO(crbug.com/974237): Clients still expect to find this
+      # grouping_label under the legacy name of 'tir_label'. Switch to the
+      # new name when all clients support it.
+      d['tir_label'] = self.grouping_label
 
     if self.page:
       d['page_id'] = self.page.id

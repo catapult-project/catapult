@@ -25,11 +25,11 @@ def _GetChartAndTraceName(value):
 
   # Dashboard handles the chart_name of trace values specially: it
   # strips out the field with chart_name 'trace'. Hence in case trace
-  # value has tir_label, we preserve the chart_name.
+  # value has grouping_label, we preserve the chart_name.
   # For relevant section code of dashboard code that handles this, see:
   # https://github.com/catapult-project/catapult/blob/25e660b/dashboard/dashboard/add_point.py#L199#L216
-  if value.tir_label and not isinstance(value, trace.TraceValue):
-    chart_name = value.tir_label + '@@' + chart_name
+  if value.grouping_label and not isinstance(value, trace.TraceValue):
+    chart_name = value.grouping_label + '@@' + chart_name
 
   return chart_name, trace_name
 

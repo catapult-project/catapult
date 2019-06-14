@@ -54,19 +54,15 @@ def SummarizePageSpecificValues(results):
   """Summarize results appropriately for TBM and legacy benchmarks.
 
   For benchmarks that are timeline-based, we need to summarize not once, but
-  twice, once by name and tir_label (default) and again by name only. But for
-  benchmarks that are not timeline-based, since no tir_labels are set, we will
-  end up duplicating values.
-
-  Thus, we only want to summarize once if the benchmark is not timeline-based,
-  but twice, using the two different key functions, otherwise.
+  twice, once by name and grouping_label (default) and again by name only. But
+  for benchmarks that are not timeline-based, we only summarize once by name.
   """
   # Default summary uses merge_values.DefaultKeyFunc to summarize both by name
-  # and tir_label.
+  # and grouping_label.
   summary = summary_module.Summary(results)
   values = summary.interleaved_computed_per_page_values_and_summaries
 
-  if any(v.tir_label for v in results.all_page_specific_values):
+  if any(v.grouping_label for v in results.all_page_specific_values):
     summary_by_name_only = summary_module.Summary(
         results, key_func=lambda v: v.name)
     values.extend(
