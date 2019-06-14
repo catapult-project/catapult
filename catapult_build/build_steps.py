@@ -138,28 +138,7 @@ _CATAPULT_TESTS = [
         'uses_sandbox_env': True,
         'disabled': ['android', 'linux'],  # TODO(nedn): enable this on linux
     },
-    {
-        'name': 'Tracing Dev Server Tests Canary',
-        'path': 'tracing/bin/run_dev_server_tests',
-        'additional_args': [
-            '--no-install-hooks',
-            '--no-use-local-chrome',
-            '--channel=canary'
-        ],
-        'outputs_presentation_json': True,
-        'disabled': ['android'],
-    },
-    {
-        'name': 'Tracing Dev Server Tests Stable',
-        'path': 'tracing/bin/run_dev_server_tests',
-        'additional_args': [
-            '--no-install-hooks',
-            '--no-use-local-chrome',
-            '--channel=stable',
-        ],
-        'outputs_presentation_json': True,
-        'disabled': ['android'],
-    },
+    # TODO(crbug.com/973847): Urgent! Reenable tracing dev server tests somehow.
     {
         'name': 'Tracing D8 Tests',
         'path': 'tracing/bin/run_vinn_tests',
