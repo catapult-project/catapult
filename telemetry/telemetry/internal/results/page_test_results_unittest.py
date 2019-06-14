@@ -16,7 +16,6 @@ from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
-from telemetry.value import histogram
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
 from tracing.trace_data import trace_data
@@ -300,22 +299,6 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
         AssertionError,
         lambda: results.AddValue(scalar.ScalarValue(
             self.pages[1], 'a', 'foobgrobbers', 3,
-            improvement_direction=improvement_direction.UP)))
-
-  def testTypeChange(self):
-    results = self.getPageTestResults()
-    results.WillRunPage(self.pages[0])
-    results.AddValue(scalar.ScalarValue(
-        self.pages[0], 'a', 'seconds', 3,
-        improvement_direction=improvement_direction.UP))
-    results.DidRunPage(self.pages[0])
-
-    results.WillRunPage(self.pages[1])
-    self.assertRaises(
-        AssertionError,
-        lambda: results.AddValue(histogram.HistogramValue(
-            self.pages[1], 'a', 'seconds',
-            raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
             improvement_direction=improvement_direction.UP)))
 
   def testGetPagesThatSucceededAllPagesFail(self):

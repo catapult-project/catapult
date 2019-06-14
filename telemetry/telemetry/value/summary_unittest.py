@@ -9,7 +9,6 @@ import unittest
 from telemetry import story
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
-from telemetry.value import histogram
 from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
@@ -358,34 +357,6 @@ class SummaryTest(TestBase):
     self.assertIn(v0, values)
     self.assertIn(v1, values)
     self.assertIn(b_summary, values)
-
-  def testHistogram(self):
-    page0 = self.pages[0]
-    page1 = self.pages[1]
-
-    results = self.getPageTestResults()
-    results.WillRunPage(page0)
-    v0 = histogram.HistogramValue(
-        page0, 'a', 'units',
-        raw_value_json='{"buckets": [{"low": 1, "high": 2, "count": 1}]}',
-        important=False, improvement_direction=improvement_direction.UP)
-    results.AddValue(v0)
-    results.DidRunPage(page0)
-
-    results.WillRunPage(page1)
-    v1 = histogram.HistogramValue(
-        page1, 'a', 'units',
-        raw_value_json='{"buckets": [{"low": 2, "high": 3, "count": 1}]}',
-        important=False, improvement_direction=improvement_direction.UP)
-    results.AddValue(v1)
-    results.DidRunPage(page1)
-
-    summary = summary_module.Summary(results)
-    values = summary.interleaved_computed_per_page_values_and_summaries
-
-    self.assertEquals(2, len(values))
-    self.assertIn(v0, values)
-    self.assertIn(v1, values)
 
   def testSummaryUsesKeyFunc(self):
     page0 = self.pages[0]
