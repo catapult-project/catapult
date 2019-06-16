@@ -219,6 +219,7 @@ import bisect
 import collections
 import gzip
 import json
+import ntpath
 import os
 import re
 import shutil
@@ -1064,8 +1065,12 @@ class SymbolizableFile(object):
   what to symbolize (addresses) and what to update with the symbolization
   result (frames).
   """
-  def __init__(self, file_path, code_id):
+  def __init__(self, file_path, code_id, trace_from_win):
     self.path = file_path
+    if trace_from_win:
+      self.module_name = ntpath.basename(file_path)
+    else:
+      self.module_name = os.path.basename(file_path)
     self.symbolizable_path = file_path # path to use for symbolization
     self.code_id = code_id
     self.frames_by_address = collections.defaultdict(list)
@@ -1073,7 +1078,7 @@ class SymbolizableFile(object):
     self.has_breakpad_symbols = False
 
 
-def ResolveSymbolizableFiles(processes):
+def ResolveSymbolizableFiles(processes, trace_from_win):
   """Resolves and groups PCs into list of SymbolizableFiles.
 
   As part of the grouping process, this function resolves PC from each stack
@@ -1095,7 +1100,7 @@ def ResolveSymbolizableFiles(processes):
       symfile = symfile_by_path.get(region.file_path)
       if symfile is None:
         file_path = region.file_path
-        symfile = SymbolizableFile(file_path, region.code_id)
+        symfile = SymbolizableFile(file_path, region.code_id, trace_from_win)
         symfile_by_path[symfile.path] = symfile
 
       relative_pc = frame.pc - region.start_address + region.file_offset
@@ -1292,8 +1297,7 @@ class Symbolizer(object):
   def SymbolizeSymfile(self, symfile):
     if symfile.skip_symbolization:
       for address, frames in symfile.frames_by_address.items():
-        unsymbolized_name = ('<' + os.path.basename(symfile.symbolizable_path)
-                             + '>')
+        unsymbolized_name = ('<' + symfile.module_name + '>')
         # Only append the address if there's a library.
         if symfile.symbolizable_path != _UNNAMED_FILE:
           unsymbolized_name += ' + ' + str(hex(address))
@@ -1368,7 +1372,7 @@ ANDROID_UNSTRIPPED_SUBPATH = 'lib.unstripped'
 
 def RemapAndroidFiles(symfiles, output_path, chrome_soname):
   for symfile in symfiles:
-    filename = os.path.basename(symfile.path)
+    filename = symfile.module_name
     if os.path.splitext(filename)[1] == '.so':
       symfile.symbolizable_path = os.path.join(
           output_path, ANDROID_UNSTRIPPED_SUBPATH, filename)
@@ -1415,7 +1419,7 @@ def RemapWinFiles(symfiles, symbol_base_directory, version, is64bit,
   symbol_sub_dir = os.path.join(symbol_base_directory,
                                 "chrome-" + folder + "-" + version)
   for symfile in symfiles:
-    image = os.path.join(symbol_sub_dir, os.path.basename(symfile.path))
+    image = os.path.join(symbol_sub_dir, symfile.module_name)
     symbols = image + ".pdb"
     if os.path.isfile(image) and os.path.isfile(symbols):
       symfile.symbolizable_path = image
@@ -1425,7 +1429,7 @@ def RemapWinFiles(symfiles, symbol_base_directory, version, is64bit,
 
 def RemapBreakpadModules(symfiles, symbolizer, only_symbolize_chrome_symbols):
   for symfile in symfiles:
-    image = os.path.basename(symfile.path).lower()
+    image = symfile.module_name.lower()
     # Looked if the image has Breakpad symbols. Breakpad symbols are generated
     # for Chrome modules for official builds.
     if image in symbolizer.breakpad_modules:
@@ -1436,7 +1440,7 @@ def RemapBreakpadModules(symfiles, symbolizer, only_symbolize_chrome_symbols):
 
 
 def SymbolizeTrace(options, trace, symbolizer):
-  symfiles = ResolveSymbolizableFiles(trace.processes)
+  symfiles = ResolveSymbolizableFiles(trace.processes, trace.is_win)
 
   if options.use_breakpad_symbols:
     RemapBreakpadModules(symfiles, symbolizer,
