@@ -12,9 +12,8 @@ found in the LICENSE file.
 tr.exportTo('tr.v', function() {
   // This information is used to convert results from chart-json format to
   // Histograms.
-  // Improvement directions are copied from
-  // telemetry/telemetry/value/unit-info.json
-  // but can be overridden by 'improvement_direction' in chart-json.
+  // Default improvement directions are given here, but can be overridden by
+  // specifying an 'improvement_direction' in chart-json.
   const LEGACY_UNIT_INFO = new Map();
   LEGACY_UNIT_INFO.set('%', {
     name: 'normalizedPercentage',

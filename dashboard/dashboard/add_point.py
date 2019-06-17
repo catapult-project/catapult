@@ -537,8 +537,8 @@ def _ImprovementDirectionToHigherIsBetter(improvement_direction_str):
   Raises:
     BadRequestError: if improvement_direction_str is invalid.
   """
-  # If improvement_direction is provided, we want to use it. Otherwise, by not
-  # providing it we'll fall back to unit-info.json
+  # We use improvement_direction if given. Otherwise, by not providing it here
+  # we'll fall back to a default from dashboard.units_to_direction module.
   # TODO(eakuefner): Fail instead of falling back after fixing crbug.com/459450.
   if improvement_direction_str == 'up':
     return True
