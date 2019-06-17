@@ -33,6 +33,7 @@ class StoryRun(object):
   def __init__(self, story, output_dir=None):
     self._story = story
     self._values = []
+    self._tbm_metrics = []
     self._skip_reason = None
     self._skip_expected = False
     self._failed = False
@@ -52,6 +53,11 @@ class StoryRun(object):
 
   def AddValue(self, value):
     self._values.append(value)
+
+  def SetTbmMetrics(self, metrics):
+    assert not self._tbm_metrics, 'Metrics have already been set'
+    assert len(metrics) > 0, 'Metrics should not be empty'
+    self._tbm_metrics = metrics
 
   def SetFailed(self, failure_str):
     self._failed = True
@@ -100,6 +106,11 @@ class StoryRun(object):
   def values(self):
     """The values that correspond to this story run."""
     return self._values
+
+  @property
+  def tbm_metrics(self):
+    """The TBMv2 metrics that will computed on this story run."""
+    return self._tbm_metrics
 
   @property
   def status(self):

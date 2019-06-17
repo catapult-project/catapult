@@ -67,7 +67,7 @@ def _ComputeMetricsInPool((run, trace_value)):
     # outputing logs while waiting for metrics to be calculated.
     timeout = _TEN_MINUTES
     mre_result = metric_runner.RunMetricOnSingleTrace(
-        trace_value.filename, trace_value.timeline_based_metric,
+        trace_value.filename, run.tbm_metrics,
         extra_import_options, canonical_url=trace_value.trace_url,
         timeout=timeout)
     logging.info('%s: Computing metrics took %.3f seconds.' % (
@@ -690,7 +690,7 @@ class PageTestResults(object):
     if tbm_metrics:
       # Both trace serialization and metric computation will happen later
       # asynchronously during ComputeTimelineBasedMetrics.
-      trace_value.SetTimelineBasedMetrics(tbm_metrics)
+      self._current_page_run.SetTbmMetrics(tbm_metrics)
     else:
       # Otherwise we immediately serialize the trace data.
       trace_value.SerializeTraceData()
@@ -751,9 +751,10 @@ class PageTestResults(object):
   def _FindRunsAndValuesWithTimelineBasedMetrics(self):
     values = []
     for run in self._all_page_runs:
-      for v in run.values:
-        if isinstance(v, trace.TraceValue) and v.timeline_based_metric:
-          values.append((run, v))
+      if run.tbm_metrics:
+        for v in run.values:
+          if isinstance(v, trace.TraceValue):
+            values.append((run, v))
     return values
 
   def _SerializeTracesToDirPath(self):
