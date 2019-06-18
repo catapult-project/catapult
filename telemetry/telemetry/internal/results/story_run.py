@@ -41,11 +41,12 @@ class StoryRun(object):
     self._start_time = time.time()
     self._end_time = None
     self._artifacts = {}
-    self._output_dir = output_dir
 
-    if self._output_dir is None:
+    if output_dir is None:
+      self._output_dir = None
       self._artifact_dir = None
     else:
+      self._output_dir = os.path.realpath(output_dir)
       self._artifact_dir = os.path.join(self._output_dir, 'artifacts')
       if not os.path.exists(self._artifact_dir):
         os.makedirs(self._artifact_dir)
