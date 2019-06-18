@@ -239,9 +239,8 @@ _PARCEL_RESULT_RE = re.compile(
 _EBUSY_RE = re.compile(
     r'mkdir failed for ([^,]*), Device or resource busy')
 
-# https://android.googlesource.com/platform/system/core/+/3c99b0f94f9812419ae146bacbcf9a8f111021b9
-# added a timeout to adb wait-for-device. We sometimes want to wait longer
-# than the implicit call within adb root allows.
+# http://bit.ly/2WLZhUF added a timeout to adb wait-for-device. We sometimes
+# want to wait longer than the implicit call within adb root allows.
 _WAIT_FOR_DEVICE_TIMEOUT_STR = 'timeout expired while waiting for device'
 
 _WEBVIEW_SYSUPDATE_CURRENT_PKG_RE = re.compile(
