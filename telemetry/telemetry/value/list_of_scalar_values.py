@@ -5,7 +5,6 @@
 import numbers
 import math
 
-from telemetry import value as value_module
 from telemetry.value import none_values
 from telemetry.value import summarizable
 
@@ -72,12 +71,10 @@ class ListOfScalarValues(summarizable.SummarizableValue):
   """
   def __init__(self, page, name, units, values,
                important=True, description=None,
-               tir_label=None, none_value_reason=None,
-               std=None, improvement_direction=None, grouping_keys=None):
+               none_value_reason=None,
+               std=None, improvement_direction=None):
     super(ListOfScalarValues, self).__init__(page, name, units, important,
-                                             description, tir_label,
-                                             improvement_direction,
-                                             grouping_keys)
+                                             description, improvement_direction)
     if values is not None:
       assert isinstance(values, list)
       assert len(values) > 0
@@ -112,18 +109,16 @@ class ListOfScalarValues(summarizable.SummarizableValue):
     else:
       page_name = 'None'
     return ('ListOfScalarValues(%s, %s, %s, %s, '
-            'important=%s, description=%s, tir_label=%s, std=%s, '
-            'improvement_direction=%s, grouping_keys=%s)') % (
+            'important=%s, description=%s, std=%s, '
+            'improvement_direction=%s)') % (
                 page_name,
                 self.name,
                 self.units,
                 repr(self.values),
                 self.important,
                 self.description,
-                self.tir_label,
                 self.std,
-                self.improvement_direction,
-                self.grouping_keys)
+                self.improvement_direction)
 
   @staticmethod
   def GetJSONTypeName():
@@ -144,16 +139,16 @@ class ListOfScalarValues(summarizable.SummarizableValue):
     assert len(values) > 0
     v0 = values[0]
 
-    return cls._MergeLikeValues(values, v0.page, v0.name, v0.grouping_keys)
+    return cls._MergeLikeValues(values, v0.page, v0.name)
 
   @classmethod
   def MergeLikeValuesFromDifferentPages(cls, values):
     assert len(values) > 0
     v0 = values[0]
-    return cls._MergeLikeValues(values, None, v0.name, v0.grouping_keys)
+    return cls._MergeLikeValues(values, None, v0.name)
 
   @classmethod
-  def _MergeLikeValues(cls, values, page, name, grouping_keys):
+  def _MergeLikeValues(cls, values, page, name):
     v0 = values[0]
     merged_values = []
     list_of_samples = []
@@ -180,8 +175,6 @@ class ListOfScalarValues(summarizable.SummarizableValue):
         merged_values,
         important=v0.important,
         description=v0.description,
-        tir_label=value_module.MergedTirLabel(values),
         std=pooled_std,
         none_value_reason=none_value_reason,
-        improvement_direction=v0.improvement_direction,
-        grouping_keys=grouping_keys)
+        improvement_direction=v0.improvement_direction)

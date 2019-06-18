@@ -4,7 +4,6 @@
 
 import numbers
 
-from telemetry import value as value_module
 from telemetry.value import list_of_scalar_values
 from telemetry.value import none_values
 from telemetry.value import summarizable
@@ -12,9 +11,8 @@ from telemetry.value import summarizable
 
 class ScalarValue(summarizable.SummarizableValue):
   def __init__(self, page, name, units, value, important=True,
-               description=None, tir_label=None,
-               none_value_reason=None, improvement_direction=None,
-               grouping_keys=None):
+               description=None,
+               none_value_reason=None, improvement_direction=None):
     """A single value (float or integer) result from a test.
 
     A test that counts the number of DOM elements in a page might produce a
@@ -22,8 +20,7 @@ class ScalarValue(summarizable.SummarizableValue):
        ScalarValue(page, 'num_dom_elements', 'count', num_elements)
     """
     super(ScalarValue, self).__init__(page, name, units, important, description,
-                                      tir_label, improvement_direction,
-                                      grouping_keys)
+                                      improvement_direction)
     assert value is None or isinstance(value, numbers.Number)
     none_values.ValidateNoneValueReason(value, none_value_reason)
     self.value = value
@@ -35,16 +32,14 @@ class ScalarValue(summarizable.SummarizableValue):
     else:
       page_name = 'None'
     return ('ScalarValue(%s, %s, %s, %s, important=%s, description=%s, '
-            'tir_label=%s, improvement_direction=%s, grouping_keys=%s') % (
+            'improvement_direction=%s)') % (
                 page_name,
                 self.name,
                 self.units,
                 self.value,
                 self.important,
                 self.description,
-                self.tir_label,
-                self.improvement_direction,
-                self.grouping_keys)
+                self.improvement_direction)
 
   @staticmethod
   def GetJSONTypeName():
@@ -63,16 +58,16 @@ class ScalarValue(summarizable.SummarizableValue):
   def MergeLikeValuesFromSamePage(cls, values):
     assert len(values) > 0
     v0 = values[0]
-    return cls._MergeLikeValues(values, v0.page, v0.name, v0.grouping_keys)
+    return cls._MergeLikeValues(values, v0.page, v0.name)
 
   @classmethod
   def MergeLikeValuesFromDifferentPages(cls, values):
     assert len(values) > 0
     v0 = values[0]
-    return cls._MergeLikeValues(values, None, v0.name, v0.grouping_keys)
+    return cls._MergeLikeValues(values, None, v0.name)
 
   @classmethod
-  def _MergeLikeValues(cls, values, page, name, grouping_keys):
+  def _MergeLikeValues(cls, values, page, name):
     v0 = values[0]
 
     merged_value = [v.value for v in values]
@@ -86,7 +81,5 @@ class ScalarValue(summarizable.SummarizableValue):
     return list_of_scalar_values.ListOfScalarValues(
         page, name, v0.units, merged_value, important=v0.important,
         description=v0.description,
-        tir_label=value_module.MergedTirLabel(values),
         none_value_reason=none_value_reason,
-        improvement_direction=v0.improvement_direction,
-        grouping_keys=grouping_keys)
+        improvement_direction=v0.improvement_direction)

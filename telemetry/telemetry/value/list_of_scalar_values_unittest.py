@@ -77,13 +77,11 @@ class ValueTest(TestBase):
     page = self.pages[0]
     v = list_of_scalar_values.ListOfScalarValues(
         page, 'x', 'unit', [10, 9, 9, 7], important=True, description='desc',
-        tir_label='my_ir', std=42,
-        improvement_direction=improvement_direction.DOWN)
+        std=42, improvement_direction=improvement_direction.DOWN)
 
     expected = ('ListOfScalarValues(http://www.bar.com/, x, unit, '
                 '[10, 9, 9, 7], important=True, description=desc, '
-                'tir_label=my_ir, std=42, '
-                'improvement_direction=down, grouping_keys={})')
+                'std=42, improvement_direction=down)')
 
     self.assertEquals(expected, str(v))
 
@@ -151,8 +149,8 @@ class ValueTest(TestBase):
     expected_none_value_reason = (
         'Merging values containing a None value results in a None value. '
         'None values: [ListOfScalarValues(http://www.bar.com/, x, unit, None, '
-        'important=True, description=None, tir_label=None, std=None,'
-        ' improvement_direction=up, grouping_keys={})]')
+        'important=True, description=None, std=None,'
+        ' improvement_direction=up)]')
     self.assertEquals(expected_none_value_reason, vM.none_value_reason)
     self.assertEquals(improvement_direction.UP, vM.improvement_direction)
 

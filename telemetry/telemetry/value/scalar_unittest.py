@@ -33,12 +33,11 @@ class ValueTest(TestBase):
   def testRepr(self):
     page0 = self.pages[0]
     v = scalar.ScalarValue(page0, 'x', 'unit', 3, important=True,
-                           description='desc', tir_label='my_ir',
+                           description='desc',
                            improvement_direction=improvement_direction.DOWN)
 
     expected = ('ScalarValue(http://www.bar.com/, x, unit, 3, important=True, '
-                'description=desc, tir_label=my_ir, '
-                'improvement_direction=down, grouping_keys={}')
+                'description=desc, improvement_direction=down)')
 
     self.assertEquals(expected, str(v))
 
@@ -93,8 +92,7 @@ class ValueTest(TestBase):
     expected_none_value_reason = (
         'Merging values containing a None value results in a None value. '
         'None values: [ScalarValue(http://www.bar.com/, x, unit, None, '
-        'important=True, description=None, tir_label=None, '
-        'improvement_direction=down, grouping_keys={}]')
+        'important=True, description=None, improvement_direction=down)]')
     self.assertEquals(expected_none_value_reason, vM.none_value_reason)
 
   def testScalarWithNoneValueMustHaveNoneReason(self):
