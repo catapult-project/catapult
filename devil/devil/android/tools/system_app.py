@@ -127,6 +127,12 @@ def EnableSystemAppModification(device):
     yield
     return
 
+  # All calls that could potentially need root should run with as_root=True, but
+  # it looks like some parts of Telemetry work as-is by implicitly assuming that
+  # root is already granted if it's necessary. The reboot can mess with this, so
+  # as a workaround, check whether we're starting with root already, and if so,
+  # restore the device to that state at the end.
+  should_restore_root = device.HasRoot()
   device.EnableRoot()
   if not device.HasRoot():
     raise device_errors.CommandFailedError(
@@ -150,6 +156,8 @@ def EnableSystemAppModification(device):
     device.SetProp(_ENABLE_MODIFICATION_PROP, '0')
     device.Reboot()
     device.WaitUntilFullyBooted()
+    if should_restore_root:
+      device.EnableRoot()
 
 
 @contextlib.contextmanager
