@@ -394,6 +394,16 @@ class DeviceUtilsEnableRootTest(DeviceUtilsTest):
       with self.assertRaises(device_errors.AdbCommandFailedError):
         self.device.EnableRoot()
 
+  def testEnableRoot_timeoutInWaitForDevice(self):
+    with self.assertCalls(
+        (self.call.adb.Root(),
+         self.AdbCommandError(
+             output='timeout expired while waiting for device')),
+        (self.call.device.IsUserBuild(), False),
+        self.call.adb.WaitForDevice(),
+        (self.call.device.HasRoot(), True)):
+      self.device.EnableRoot()
+
 
 class DeviceUtilsIsUserBuildTest(DeviceUtilsTest):
 
