@@ -43,7 +43,8 @@ def _GetGroupingLabel(story):
 class Value(object):
   """An abstract value produced by a telemetry page test.
   """
-  def __init__(self, page, name, units, important, description):
+  def __init__(self, page, name, units, important, description,
+               grouping_label=None):
     """A generic Value object.
 
     Args:
@@ -57,6 +58,9 @@ class Value(object):
           by default in downstream UIs.
       description: A string explaining in human-understandable terms what this
           value represents.
+      grouping_label: An optional label used for grouping. Can only be used
+          for summary values (i.e. when page is None); otherwise the label
+          is computed from the page.grouping_keys.
     """
     # TODO(eakuefner): Check story here after migration (crbug.com/442036)
     if not isinstance(name, basestring):
@@ -73,7 +77,11 @@ class Value(object):
     self.units = units
     self.important = important
     self.description = description
-    self._grouping_label = _GetGroupingLabel(self.page)
+    self._grouping_label = grouping_label
+    if self.page is not None:
+      assert grouping_label is None, (
+          'grouping_label should not be provided for page values')
+      self._grouping_label = _GetGroupingLabel(self.page)
 
   def __eq__(self, other):
     return hash(self) == hash(other)

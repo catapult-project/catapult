@@ -163,6 +163,24 @@ class MergeValueTest(TestBase):
                       (merged_values[1].page, merged_values[1].name))
     self.assertEquals([10, 20], merged_values[1].values)
 
+  def testDifferentPagesMergeWithGroupingLabel(self):
+    page0 = self.pages[0]
+    page1 = self.pages[1]
+    page0.grouping_keys['label'] = 'foo'
+    page1.grouping_keys['label'] = 'foo'
+
+    all_values = [
+        scalar.ScalarValue(
+            page0, 'foo-x', 'units', 1,
+            improvement_direction=improvement_direction.UP),
+        scalar.ScalarValue(
+            page1, 'foo-x', 'units', 4,
+            improvement_direction=improvement_direction.UP)]
+
+    merged_values = merge_values.MergeLikeValuesFromDifferentPages(all_values)
+    self.assertEquals(1, len(merged_values))
+    self.assertEquals('foo', merged_values[0].grouping_label)
+
   def testDifferentPageMergeNonstandardKeyFunc(self):
     page0 = self.pages[0]
     page1 = self.pages[1]

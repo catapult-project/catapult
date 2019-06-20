@@ -69,12 +69,12 @@ class ListOfScalarValues(summarizable.SummarizableValue):
   also be specified in the constructor if the numbers are not from the same
   population.
   """
-  def __init__(self, page, name, units, values,
-               important=True, description=None,
-               none_value_reason=None,
-               std=None, improvement_direction=None):
+  def __init__(self, page, name, units, values, important=True,
+               description=None, none_value_reason=None, std=None,
+               improvement_direction=None, grouping_label=None):
     super(ListOfScalarValues, self).__init__(page, name, units, important,
-                                             description, improvement_direction)
+                                             description, improvement_direction,
+                                             grouping_label)
     if values is not None:
       assert isinstance(values, list)
       assert len(values) > 0
@@ -170,6 +170,10 @@ class ListOfScalarValues(summarizable.SummarizableValue):
       # in the cosntructor of ListOfScalarValues.
       pooled_std = PooledStandardDeviation(
           list_of_samples, list_of_variances=[v.variance for v in values])
+    grouping_label = v0.grouping_label
+    if page is not None or any(
+        v.grouping_label != grouping_label for v in values):
+      grouping_label = None
     return ListOfScalarValues(
         page, name, v0.units,
         merged_values,
@@ -177,4 +181,5 @@ class ListOfScalarValues(summarizable.SummarizableValue):
         description=v0.description,
         std=pooled_std,
         none_value_reason=none_value_reason,
-        improvement_direction=v0.improvement_direction)
+        improvement_direction=v0.improvement_direction,
+        grouping_label=grouping_label)

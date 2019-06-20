@@ -9,10 +9,10 @@ from telemetry.value import (improvement_direction
 
 class SummarizableValue(value_module.Value):
   def __init__(self, page, name, units, important, description,
-               improvement_direction):
+               improvement_direction, grouping_label=None):
     """A summarizable value result from a test."""
     super(SummarizableValue, self).__init__(
-        page, name, units, important, description)
+        page, name, units, important, description, grouping_label)
 # TODO(eakuefner): uncomment this assert after Telemetry clients are fixed.
 # Note: Telemetry unittests satisfy this assert.
 #    assert improvement_direction_module.IsValid(improvement_direction)

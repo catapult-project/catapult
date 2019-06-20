@@ -78,8 +78,13 @@ class ScalarValue(summarizable.SummarizableValue):
       none_value_reason = (
           none_values.MERGE_FAILURE_REASON +
           ' None values: %s' % repr(merged_none_values))
+    grouping_label = v0.grouping_label
+    if page is not None or any(
+        v.grouping_label != grouping_label for v in values):
+      grouping_label = None
     return list_of_scalar_values.ListOfScalarValues(
         page, name, v0.units, merged_value, important=v0.important,
         description=v0.description,
         none_value_reason=none_value_reason,
-        improvement_direction=v0.improvement_direction)
+        improvement_direction=v0.improvement_direction,
+        grouping_label=grouping_label)
