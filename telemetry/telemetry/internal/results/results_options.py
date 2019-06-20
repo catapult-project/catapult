@@ -6,7 +6,6 @@ import codecs
 import optparse
 import os
 import sys
-import time
 
 from py_utils import cloud_storage  # pylint: disable=import-error
 
@@ -164,18 +163,11 @@ def CreateResults(benchmark_metadata, options,
                       % (output_format, ', '.join(_OUTPUT_FORMAT_CHOICES)))
 
   reporter = _GetProgressReporter(options.suppress_gtest_report)
-  results = page_test_results.PageTestResults(
+  return page_test_results.PageTestResults(
       output_formatters=output_formatters, progress_reporter=reporter,
       output_dir=options.output_dir,
       should_add_value=should_add_value,
       benchmark_enabled=benchmark_enabled,
       upload_bucket=upload_bucket,
-      benchmark_metadata=benchmark_metadata)
-
-  results.telemetry_info.benchmark_name = benchmark_metadata.name
-  results.telemetry_info.benchmark_descriptions = benchmark_metadata.description
-  results.telemetry_info.benchmark_start_us = time.time() * 1e6
-  if options.results_label:
-    results.telemetry_info.label = options.results_label
-
-  return results
+      benchmark_metadata=benchmark_metadata,
+      results_label=options.results_label)

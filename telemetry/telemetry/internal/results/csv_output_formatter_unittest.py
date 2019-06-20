@@ -6,6 +6,8 @@ import os
 import StringIO
 import unittest
 
+import mock
+
 from telemetry import story
 from telemetry import benchmark
 from telemetry.internal.results import csv_output_formatter
@@ -32,12 +34,11 @@ class CsvOutputFormatterTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
     self._story_set = _MakeStorySet()
-    self._results = page_test_results.PageTestResults(
-        benchmark_metadata=benchmark.BenchmarkMetadata('benchmark'),
-        upload_bucket='fake_bucket')
-    self._results.telemetry_info.benchmark_name = 'benchmark'
-    self._results.telemetry_info.benchmark_start_epoch = 15e8
-    self._results.telemetry_info.benchmark_descriptions = 'foo'
+    with mock.patch('time.time', return_value=15e8):
+      self._results = page_test_results.PageTestResults(
+          benchmark_metadata=benchmark.BenchmarkMetadata(
+              name='benchmark', description='foo'),
+          upload_bucket='fake_bucket')
     self._formatter = None
     self.MakeFormatter()
 

@@ -96,13 +96,14 @@ def _ComputeMetricsInPool((run, trace_value)):
 
 
 class TelemetryInfo(object):
-  def __init__(self, upload_bucket=None, output_dir=None):
-    self._benchmark_name = None
-    self._benchmark_start_us = None
+  def __init__(self, benchmark_name, benchmark_description, results_label=None,
+               upload_bucket=None, output_dir=None):
+    self._benchmark_name = benchmark_name
+    self._benchmark_start_us = time.time() * 1e6
     self._benchmark_interrupted = False
-    self._benchmark_descriptions = None
-    self._label = None
-    self._story_name = ''
+    self._benchmark_descriptions = benchmark_description
+    self._label = results_label
+    self._story_name = None
     self._story_tags = set()
     self._story_grouping_keys = {}
     self._storyset_repeat_counter = 0
@@ -124,9 +125,8 @@ class TelemetryInfo(object):
 
   @benchmark_name.setter
   def benchmark_name(self, benchmark_name):
-    assert self.benchmark_name is None, (
-        'benchmark_name must be set exactly once')
-    self._benchmark_name = benchmark_name
+    """ This field is DEPRECATED. Clients should no longer set benchmark name.
+    """
 
   @property
   def benchmark_start_epoch(self):
@@ -136,21 +136,12 @@ class TelemetryInfo(object):
 
   @benchmark_start_epoch.setter
   def benchmark_start_epoch(self, benchmark_start_epoch):
-    """ This field is DEPRECATED. Please use benchmark_start_us instead.
+    """ This field is DEPRECATED. Clients should no longer set benchmark start.
     """
-    assert self._benchmark_start_us is None, (
-        'benchmark_start must be set exactly once')
-    self._benchmark_start_us = benchmark_start_epoch * 1e6
 
   @property
   def benchmark_start_us(self):
     return self._benchmark_start_us
-
-  @benchmark_start_us.setter
-  def benchmark_start_us(self, benchmark_start_us):
-    assert self._benchmark_start_us is None, (
-        'benchmark_start must be set exactly once')
-    self._benchmark_start_us = benchmark_start_us
 
   @property
   def benchmark_descriptions(self):
@@ -158,9 +149,8 @@ class TelemetryInfo(object):
 
   @benchmark_descriptions.setter
   def benchmark_descriptions(self, benchmark_descriptions):
-    assert self._benchmark_descriptions is None, (
-        'benchmark_descriptions must be set exactly once')
-    self._benchmark_descriptions = benchmark_descriptions
+    """ This field is DEPRECATED. Clients should no longer set benchmark desc.
+    """
 
   @property
   def trace_start_us(self):
@@ -173,11 +163,6 @@ class TelemetryInfo(object):
   @property
   def label(self):
     return self._label
-
-  @label.setter
-  def label(self, label):
-    assert self.label is None, 'label cannot be set more than once'
-    self._label = label
 
   @property
   def story_display_name(self):
@@ -202,12 +187,6 @@ class TelemetryInfo(object):
   @property
   def diagnostics(self):
     return self._diagnostics
-
-  @had_failures.setter
-  def had_failures(self, had_failures):
-    assert self.had_failures is None, (
-        'had_failures cannot be set more than once')
-    self._had_failures = had_failures
 
   def GetStoryTagsList(self):
     return list(self._story_tags) + [
@@ -305,7 +284,7 @@ class PageTestResults(object):
                progress_reporter=None, output_dir=None,
                should_add_value=None,
                benchmark_enabled=True, upload_bucket=None,
-               benchmark_metadata=None):
+               benchmark_metadata=None, results_label=None):
     """
     Args:
       output_formatters: A list of output formatters. The output
@@ -342,7 +321,17 @@ class PageTestResults(object):
 
     self._histograms = histogram_set.HistogramSet()
 
+    if benchmark_metadata is None:
+      benchmark_name = '(unknown benchmark)'
+      benchmark_description = None
+    else:
+      benchmark_name = benchmark_metadata.name
+      benchmark_description = benchmark_metadata.description
+
     self._telemetry_info = TelemetryInfo(
+        benchmark_name=benchmark_name,
+        benchmark_description=benchmark_description,
+        results_label=results_label,
         upload_bucket=upload_bucket, output_dir=output_dir)
 
     # State of the benchmark this set of results represents.

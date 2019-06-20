@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import StringIO
-import os
 import unittest
 
 from py_utils import tempfile_ext
@@ -29,13 +28,12 @@ from tracing.value.diagnostics import reserved_infos
 
 class TelemetryInfoTest(unittest.TestCase):
   def testTraceLocalPathWithoutLabel(self):
-    ti = page_test_results.TelemetryInfo(output_dir='/tmp')
-    ti.benchmark_name = 'benchmark'
-    ti.benchmark_start_epoch = 123
-    ti.benchmark_descriptions = 'foo'
-    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    ti = page_test_results.TelemetryInfo(
+        benchmark_name='benchmark',
+        benchmark_description='foo',
+        output_dir='/tmp')
+    story_set = story.StorySet()
     bar_story = page_module.Page("http://www.bar.com/", story_set,
-                                 story_set.base_dir,
                                  name='http://www.bar.com/')
     story_set.AddStory(bar_story)
     ti.WillRunStory(bar_story, None)
@@ -43,14 +41,13 @@ class TelemetryInfoTest(unittest.TestCase):
     self.assertNotIn('custom_label', ti.trace_local_path)
 
   def testTraceLocalPathWithLabel(self):
-    ti = page_test_results.TelemetryInfo(output_dir='/tmp')
-    ti.benchmark_name = 'benchmark'
-    ti.benchmark_start_epoch = 123
-    ti.benchmark_descriptions = 'foo'
-    ti.label = 'custom_label'
-    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    ti = page_test_results.TelemetryInfo(
+        benchmark_name='benchmark',
+        benchmark_description='foo',
+        results_label='custom_label',
+        output_dir='/tmp')
+    story_set = story.StorySet()
     bar_story = page_module.Page("http://www.bar.com/", story_set,
-                                 story_set.base_dir,
                                  name='http://www.bar.com/')
     story_set.AddStory(bar_story)
     ti.WillRunStory(bar_story, None)
@@ -58,13 +55,11 @@ class TelemetryInfoTest(unittest.TestCase):
     self.assertIn('custom_label', ti.trace_local_path)
 
   def testGetDiagnostics(self):
-    ti = page_test_results.TelemetryInfo()
-    ti.benchmark_name = 'benchmark'
-    ti.benchmark_start_epoch = 123
-    ti.benchmark_descriptions = 'foo'
-    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    ti = page_test_results.TelemetryInfo(
+        benchmark_name='benchmark',
+        benchmark_description='foo')
+    story_set = story.StorySet()
     foo_story = page_module.Page("http://www.foo.com/", story_set,
-                                 story_set.base_dir,
                                  name='story1')
     story_set.AddStory(foo_story)
     ti.WillRunStory(foo_story, None)
@@ -88,9 +83,8 @@ class TelemetryInfoTest(unittest.TestCase):
 
 
     # Now reset the story and assert that we update the diagnostics.
-    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    story_set = story.StorySet()
     bar_story = page_module.Page("http://www.bar.com/", story_set,
-                                 story_set.base_dir,
                                  name='story2')
     story_set.AddStory(bar_story)
     ti.WillRunStory(bar_story, None)
@@ -113,15 +107,12 @@ class TelemetryInfoTest(unittest.TestCase):
 
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def setUp(self):
-    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    story_set = story.StorySet()
     story_set.AddStory(page_module.Page("http://www.bar.com/", story_set,
-                                        story_set.base_dir,
                                         name='http://www.bar.com/'))
     story_set.AddStory(page_module.Page("http://www.baz.com/", story_set,
-                                        story_set.base_dir,
                                         name='http://www.baz.com/'))
     story_set.AddStory(page_module.Page("http://www.foo.com/", story_set,
-                                        story_set.base_dir,
                                         name='http://www.foo.com/'))
     self.story_set = story_set
 
@@ -129,19 +120,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def pages(self):
     return self.story_set.stories
 
-  def getPageTestResults(self, output_formatters=None, benchmark_metadata=None,
-                         start=123, benchmark_enabled=True):
-    results = page_test_results.PageTestResults(
-        benchmark_metadata=benchmark_metadata,
-        output_formatters=output_formatters,
-        benchmark_enabled=benchmark_enabled)
-    results.telemetry_info.benchmark_name = 'benchmark'
-    results.telemetry_info.benchmark_start_epoch = start
-    results.telemetry_info.benchmark_descriptions = 'foo'
-    return results
-
   def testFailures(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     results.Fail(self.CreateException())
     results.DidRunPage(self.pages[0])
@@ -158,7 +138,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertTrue(results.all_page_runs[1].ok)
 
   def testSkips(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     results.Skip('testing reason')
     results.DidRunPage(self.pages[0])
@@ -176,7 +156,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertTrue(results.all_page_runs[1].ok)
 
   def testInterruptMiddleRun(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[1])
     results.DidRunPage(self.pages[1])
     results.InterruptBenchmark(self.pages, 2)
@@ -190,7 +170,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertTrue(results.all_page_runs[5].skipped)
 
   def testInterruptBeginningRun(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     results.InterruptBenchmark(self.pages, 1)
 
     self.assertTrue(results.all_page_runs[0].skipped)
@@ -204,7 +184,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertTrue(results.all_page_runs[2].skipped)
 
   def testPassesNoSkips(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     results.Fail(self.CreateException())
     results.DidRunPage(self.pages[0])
@@ -228,7 +208,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertTrue(results.all_page_runs[2].skipped)
 
   def testBasic(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     results.AddValue(scalar.ScalarValue(
         self.pages[0], 'a', 'seconds', 3,
@@ -253,7 +233,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     assert len(values) == 2
 
   def testAddValueWithStoryGroupingKeys(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     self.pages[0].grouping_keys['foo'] = 'bar'
     self.pages[0].grouping_keys['answer'] = '42'
     results.WillRunPage(self.pages[0])
@@ -269,7 +249,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertEquals(v.grouping_label, '42_bar')
 
   def testUrlIsInvalidValue(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     self.assertRaises(
         AssertionError,
@@ -278,7 +258,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
             improvement_direction=improvement_direction.UP)))
 
   def testAddSummaryValueWithPageSpecified(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     self.assertRaises(
         AssertionError,
@@ -287,7 +267,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
             improvement_direction=improvement_direction.UP)))
 
   def testUnitChange(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     results.AddValue(scalar.ScalarValue(
         self.pages[0], 'a', 'seconds', 3,
@@ -302,7 +282,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
             improvement_direction=improvement_direction.UP)))
 
   def testGetPagesThatSucceededAllPagesFail(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     results.AddValue(scalar.ScalarValue(
         self.pages[0], 'a', 'seconds', 3,
@@ -321,7 +301,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertEquals(0, len(results.pages_that_succeeded))
 
   def testGetSuccessfulPageValuesMergedNoFailures(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     results.AddValue(scalar.ScalarValue(
         self.pages[0], 'a', 'seconds', 3,
@@ -330,7 +310,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[0])
 
   def testGetAllValuesForSuccessfulPages(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     value1 = scalar.ScalarValue(
         self.pages[0], 'a', 'seconds', 3,
@@ -356,7 +336,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
         [value1, value2, value3], results.all_page_specific_values)
 
   def testFindValues(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     v0 = scalar.ScalarValue(
         self.pages[0], 'a', 'seconds', 3,
@@ -372,7 +352,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertEquals([v0], values)
 
   def testTraceValue(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     try:
       results.WillRunPage(self.pages[0])
       results.AddTraces(trace_data.CreateTestTrace(1))
@@ -390,7 +370,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
       results.CleanUp()
 
   def testNoTracesLeftAfterCleanUp(self):
-    results = self.getPageTestResults()
+    results = page_test_results.PageTestResults()
     try:
       results.WillRunPage(self.pages[0])
       results.AddTraces(trace_data.CreateTestTrace(1))
@@ -414,7 +394,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
             output_stream, benchmark_metadata))
     output_formatters.append(html_output_formatter.HtmlOutputFormatter(
         output_stream, benchmark_metadata, True))
-    results = self.getPageTestResults(
+    results = page_test_results.PageTestResults(
         output_formatters=output_formatters, benchmark_enabled=False)
     results.PrintSummary()
     self.assertEquals(
@@ -428,7 +408,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     hs.AddSharedDiagnosticToAllHistograms(
         'bar', generic_set.GenericSet(['baz']))
     histogram_dicts = hs.AsDicts()
-    results = self.getPageTestResults(start=1501773200)
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     results.ImportHistogramDicts(histogram_dicts)
     results.DidRunPage(self.pages[0])
@@ -442,8 +422,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     histogram_dicts = hs.AsDicts()
     benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
-    results = self.getPageTestResults(
-        benchmark_metadata=benchmark_metadata, start=1501773200)
+    results = page_test_results.PageTestResults(
+        benchmark_metadata=benchmark_metadata)
     results.WillRunPage(self.pages[0])
     results.ImportHistogramDicts(histogram_dicts, import_immediately=False)
     results.DidRunPage(self.pages[0])
@@ -454,8 +434,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def testAddSharedDiagnosticToAllHistograms(self):
     benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
-    results = self.getPageTestResults(
-        benchmark_metadata=benchmark_metadata, start=1501773200)
+    results = page_test_results.PageTestResults(
+        benchmark_metadata=benchmark_metadata)
     results.WillRunPage(self.pages[0])
     results.DidRunPage(self.pages[0])
     results.CleanUp()
@@ -474,8 +454,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def testPopulateHistogramSet_UsesScalarValueData(self):
     benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
-    results = self.getPageTestResults(
-        benchmark_metadata=benchmark_metadata, start=1501773200)
+    results = page_test_results.PageTestResults(
+        benchmark_metadata=benchmark_metadata)
     results.WillRunPage(self.pages[0])
     results.AddValue(scalar.ScalarValue(
         self.pages[0], 'a', 'seconds', 3,
@@ -495,7 +475,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
     benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
-    results = self.getPageTestResults(
+    results = page_test_results.PageTestResults(
         benchmark_metadata=benchmark_metadata)
     results.WillRunPage(self.pages[0])
     results.AddHistogram(histogram_module.Histogram('foo', 'count'))
@@ -518,24 +498,14 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
 class PageTestResultsFilterTest(unittest.TestCase):
   def setUp(self):
-    story_set = story.StorySet(base_dir=os.path.dirname(__file__))
+    story_set = story.StorySet()
     story_set.AddStory(
-        page_module.Page('http://www.foo.com/', story_set, story_set.base_dir,
+        page_module.Page('http://www.foo.com/', story_set,
                          name='http://www.foo.com'))
     story_set.AddStory(
-        page_module.Page('http://www.bar.com/', story_set, story_set.base_dir,
+        page_module.Page('http://www.bar.com/', story_set,
                          name='http://www.bar.com/'))
     self.story_set = story_set
-
-  def getPageTestResults(self, should_add_value=None, upload_bucket=None,
-                         output_dir=None):
-    results = page_test_results.PageTestResults(
-        should_add_value=should_add_value,
-        upload_bucket=upload_bucket, output_dir=output_dir)
-    results.telemetry_info.benchmark_name = 'benchmark'
-    results.telemetry_info.benchmark_start_epoch = 123
-    results.telemetry_info.benchmark_descriptions = 'foo'
-    return results
 
   @property
   def pages(self):
@@ -544,7 +514,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
   def testFilterValue(self):
     def AcceptValueNamed_a(name, _):
       return name == 'a'
-    results = self.getPageTestResults(
+    results = page_test_results.PageTestResults(
         should_add_value=AcceptValueNamed_a)
     results.WillRunPage(self.pages[0])
     results.AddValue(scalar.ScalarValue(
@@ -574,7 +544,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
     hs = histogram_set.HistogramSet()
     hs.AddHistogram(histogram_module.Histogram('a', 'count'))
     hs.AddHistogram(histogram_module.Histogram('b', 'count'))
-    results = self.getPageTestResults(
+    results = page_test_results.PageTestResults(
         should_add_value=AcceptValueStartsWith_a)
     results.WillRunPage(self.pages[0])
     results.ImportHistogramDicts(hs.AsDicts())
@@ -587,7 +557,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
   def testFilterIsFirstResult(self):
     def AcceptSecondValues(_, is_first_result):
       return not is_first_result
-    results = self.getPageTestResults(
+    results = page_test_results.PageTestResults(
         should_add_value=AcceptSecondValues)
 
     # First results (filtered out)
@@ -638,7 +608,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
   def testFilterHistogram(self):
     def AcceptValueNamed_a(name, _):
       return name.startswith('a')
-    results = self.getPageTestResults(
+    results = page_test_results.PageTestResults(
         should_add_value=AcceptValueNamed_a)
     results.WillRunPage(self.pages[0])
     hist0 = histogram_module.Histogram('a', 'count')
@@ -662,7 +632,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
   def testFilterHistogram_AllStatsNotFiltered(self):
     def AcceptNonAverage(name, _):
       return not name.endswith('avg')
-    results = self.getPageTestResults(
+    results = page_test_results.PageTestResults(
         should_add_value=AcceptNonAverage)
     results.WillRunPage(self.pages[0])
     hist0 = histogram_module.Histogram('a', 'count')
@@ -695,7 +665,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
     with tempfile_ext.NamedTemporaryDirectory(
         prefix='artifact_tests') as tempdir:
 
-      results = self.getPageTestResults(
+      results = page_test_results.PageTestResults(
           upload_bucket='abc', output_dir=tempdir)
 
       results.WillRunPage(self.pages[0])
@@ -724,7 +694,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
       self, cloud_storage_insert_patch):
     del cloud_storage_insert_patch  # unused
 
-    results = self.getPageTestResults(
+    results = page_test_results.PageTestResults(
         upload_bucket='abc', output_dir=None)
 
 

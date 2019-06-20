@@ -46,6 +46,12 @@ def _HasStory(benchmark_dict, story_name):
   return benchmark_dict.get(story_name) != None
 
 
+def _MakePageTestResults(**kwargs):
+  kwargs['benchmark_metadata'] = benchmark.BenchmarkMetadata('benchmark_name')
+  with mock.patch('time.time', return_value=1501773200):
+    return page_test_results.PageTestResults(**kwargs)
+
+
 class Json3OutputFormatterTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
@@ -54,9 +60,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
         self._output)
 
   def testOutputAndParse(self):
-    results = page_test_results.PageTestResults()
-    results.telemetry_info.benchmark_name = 'benchmark_name'
-    results.telemetry_info.benchmark_start_epoch = 1501773200
+    results = _MakePageTestResults()
     self._output.truncate(0)
 
     results.WillRunPage(self._story_set[0])
@@ -69,9 +73,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     json.loads(self._output.getvalue())
 
   def testAsDictBaseKeys(self):
-    results = page_test_results.PageTestResults()
-    results.telemetry_info.benchmark_name = 'benchmark_name'
-    results.telemetry_info.benchmark_start_epoch = 1501773200
+    results = _MakePageTestResults()
     d = json_3_output_formatter.ResultsAsDict(results)
 
     self.assertEquals(d['interrupted'], False)
@@ -82,9 +84,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     self.assertEquals(d['version'], 3)
 
   def testAsDictWithOnePage(self):
-    results = page_test_results.PageTestResults()
-    results.telemetry_info.benchmark_start_epoch = 1501773200
-    results.telemetry_info.benchmark_name = 'benchmark_name'
+    results = _MakePageTestResults()
     results.WillRunPage(self._story_set[0])
     v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3,
                             improvement_direction=improvement_direction.DOWN)
@@ -101,9 +101,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     self.assertEquals(d['num_failures_by_type'], {'PASS': 1})
 
   def testAsDictWithTwoPages(self):
-    results = page_test_results.PageTestResults()
-    results.telemetry_info.benchmark_start_epoch = 1501773200
-    results.telemetry_info.benchmark_name = 'benchmark_name'
+    results = _MakePageTestResults()
     results.WillRunPage(self._story_set[0])
     v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3,
                             improvement_direction=improvement_direction.DOWN)
@@ -133,9 +131,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     self.assertEquals(d['num_failures_by_type'], {'PASS': 2})
 
   def testAsDictWithRepeatedTests(self):
-    results = page_test_results.PageTestResults()
-    results.telemetry_info.benchmark_start_epoch = 1501773200
-    results.telemetry_info.benchmark_name = 'benchmark_name'
+    results = _MakePageTestResults()
 
     results.WillRunPage(self._story_set[0])
     v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3,
@@ -170,9 +166,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
 
   def testArtifactsWithRepeatedRuns(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      results = page_test_results.PageTestResults(output_dir=tempdir)
-      results.telemetry_info.benchmark_start_epoch = 1501773200
-      results.telemetry_info.benchmark_name = 'benchmark_name'
+      results = _MakePageTestResults(output_dir=tempdir)
 
       results.WillRunPage(self._story_set[0])
       with results.CreateArtifact('log'):
@@ -202,9 +196,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
       os.environ['GTEST_SHARD_INDEX'] = str(expected_shard_index)
       delete_env_var_after = True
     try:
-      results = page_test_results.PageTestResults()
-      results.telemetry_info.benchmark_start_epoch = 1501773200
-      results.telemetry_info.benchmark_name = 'benchmark_name'
+      results = _MakePageTestResults()
 
       results.WillRunPage(self._story_set[0])
       v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3,

@@ -26,12 +26,12 @@ def _MakeStorySet():
       'http://www.bar.com/', ps, ps.base_dir, name='http://www.bar.com/'))
   return ps
 
+
 def _MakePageTestResults():
-  results = page_test_results.PageTestResults()
-  results.telemetry_info.benchmark_name = 'benchmark'
-  results.telemetry_info.benchmark_start_epoch = 123
-  results.telemetry_info.benchmark_descriptions = 'foo'
-  return results
+  return page_test_results.PageTestResults(
+      benchmark_metadata=benchmark.BenchmarkMetadata(
+          name='benchmark', description='foo'))
+
 
 class ChartJsonTest(unittest.TestCase):
   def setUp(self):
