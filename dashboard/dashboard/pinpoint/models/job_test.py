@@ -146,8 +146,7 @@ class RetryTest(test.TestCase):
                      mock.call(countdown=job._TASK_INTERVAL * 8))
     self.assertFalse(j.Fail.called)
 
-    with self.assertRaises(errors.RecoverableError):
-      j.Run()
+    j.Run()
     self.assertTrue(j.Fail.called)
 
   def testStarted_RecoverableError_Resets(self):

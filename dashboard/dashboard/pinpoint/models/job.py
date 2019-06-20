@@ -296,6 +296,9 @@ class Job(ndb.Model):
   def Fail(self, exception=None):
     if exception:
       self.exception = exception
+      tb = traceback.format_exc()
+      if tb:
+        self.exception += '\n%s' % tb
     else:
       self.exception = traceback.format_exc()
 
@@ -368,9 +371,11 @@ class Job(ndb.Model):
 
       self.retry_count = 0
     except errors.RecoverableError:
-      if not self._MaybeScheduleRetry():
-        self.Fail()
-        raise
+      try:
+        if not self._MaybeScheduleRetry():
+          self.Fail(errors.RETRY_LIMIT)
+      except errors.RecoverableError:
+        self.Fail(errors.RETRY_FAILED)
     except BaseException:
       self.Fail()
       raise
@@ -416,6 +421,7 @@ class Job(ndb.Model):
         'exception': self.exception,
         'status': self.status,
     }
+
     if not options:
       return d
 

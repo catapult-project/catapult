@@ -27,7 +27,7 @@ class ExecutionException(_ExecutionStub):
   """This Execution always fails with a fatal exception on first Poll()."""
 
   def _Poll(self):
-    raise execution.FatalError('An unhandled, unexpected exception.')
+    raise errors.FatalError('An unhandled, unexpected exception.')
 
 
 class ExecutionException2(_ExecutionStub):
@@ -41,14 +41,14 @@ class ExecutionFail(_ExecutionStub):
   """This Execution always fails on first Poll()."""
 
   def _Poll(self):
-    raise execution.InformationalError('Expected error for testing.')
+    raise errors.InformationalError('Expected error for testing.')
 
 
 class ExecutionFail2(_ExecutionStub):
   """This Execution always fails on first Poll()."""
 
   def _Poll(self):
-    raise execution.InformationalError(
+    raise errors.InformationalError(
         'A different expected error for testing.')
 
 
@@ -115,7 +115,7 @@ class ExecutionTest(unittest.TestCase):
 
   def testExecutionException(self):
     e = ExecutionException()
-    with self.assertRaises(execution.FatalError):
+    with self.assertRaises(errors.FatalError):
       e.Poll()
 
   def testExecutionRecoverableException(self):

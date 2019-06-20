@@ -11,6 +11,7 @@ import unittest
 
 import mock
 
+from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models.quest import run_test
 
 
@@ -314,7 +315,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
     last_exception_line = execution.exception.splitlines()[-1]
-    self.assertTrue(last_exception_line.startswith('SwarmingTestError'))
+    self.assertTrue(last_exception_line.startswith('SwarmingTaskFailed'))
 
   @mock.patch('dashboard.services.swarming.Task.Stdout')
   def testTestErrorWithPythonException(
@@ -360,7 +361,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS)
     execution = quest.Start('change_1', 'isolate server', 'input isolate hash')
     execution.Poll()
-    with self.assertRaises(run_test.SwarmingExpiredError):
+    with self.assertRaises(errors.SwarmingExpired):
       execution.Poll()
 
   def testFirstExecutionFailedWithNoBotId(
@@ -393,7 +394,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
     last_exception_line = execution.exception.splitlines()[-1]
-    self.assertTrue(last_exception_line.startswith('RunTestError'))
+    self.assertTrue(last_exception_line.startswith('SwarmingNoBots'))
 
   def testSimultaneousExecutions(self, swarming_task_result,
                                  swarming_tasks_new):

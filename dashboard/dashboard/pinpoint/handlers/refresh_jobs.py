@@ -13,14 +13,13 @@ from google.appengine.api.taskqueue import TaskRetryOptions
 from google.appengine.ext import deferred
 
 from dashboard.common import layered_cache
+from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import job as job_module
 
 
 _JOB_CACHE_KEY = 'pinpoint_refresh_jobs_%s'
 _JOB_MAX_RETRIES = 3
 _JOB_FROZEN_THRESHOLD = datetime.timedelta(hours=6)
-_FAILURE_MESSAGE = ('An unknown failure occurred during the run.\n'\
-    'Please file a bug under Speed>Bisection with this job.')
 
 
 class RefreshJobs(webapp2.RequestHandler):
@@ -62,7 +61,7 @@ def _ProcessFrozenJob(job_id):
   if info.get('retries') == _JOB_MAX_RETRIES:
     info['retries'] += 1
     layered_cache.Set(key, info, days_to_keep=30)
-    job.Fail(_FAILURE_MESSAGE)
+    job.Fail(errors.REFRESH_FAILURE)
     job.put()
     return
   elif info.get('retries') > _JOB_MAX_RETRIES:

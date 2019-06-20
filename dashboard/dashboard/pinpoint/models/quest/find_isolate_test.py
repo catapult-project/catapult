@@ -10,6 +10,7 @@ import unittest
 
 import mock
 
+from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.change import change_test
 from dashboard.pinpoint.models.quest import find_isolate
@@ -136,7 +137,7 @@ class BuildTest(_FindIsolateExecutionTest):
     put.return_value = {'build': {'id': 'build_id'}}
     execution.Poll()
 
-    self.assertExecutionFailure(execution, find_isolate.BuildError)
+    self.assertExecutionFailure(execution, errors.BuildGerritURLInvalid)
 
   def testBuildNoBucket(self, put, _):
     change = change_test.Change(123, 456, patch=True)
@@ -333,7 +334,7 @@ class BuildTest(_FindIsolateExecutionTest):
     }
     execution.Poll()
 
-    self.assertExecutionFailure(execution, find_isolate.BuildError)
+    self.assertExecutionFailure(execution, errors.BuildFailed)
 
   def testBuildCanceled(self, put, get_job_status):
     quest = find_isolate.FindIsolate(
@@ -354,7 +355,7 @@ class BuildTest(_FindIsolateExecutionTest):
     }
     execution.Poll()
 
-    self.assertExecutionFailure(execution, find_isolate.BuildError)
+    self.assertExecutionFailure(execution, errors.BuildCancelled)
 
   def testBuildSucceededButIsolateIsMissing(self, put, get_job_status):
     quest = find_isolate.FindIsolate(
@@ -379,5 +380,5 @@ class BuildTest(_FindIsolateExecutionTest):
             }""",
         }
     }
-    with self.assertRaises(find_isolate.IsolateNotFoundError):
+    with self.assertRaises(errors.BuildIsolateNotFound):
       execution.Poll()

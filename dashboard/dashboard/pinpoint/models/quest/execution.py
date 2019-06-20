@@ -13,17 +13,6 @@ from oauth2client import client
 from dashboard.pinpoint.models import errors
 
 
-class FatalError(Exception):
-  """Base class for all execution errors.
-
-  These errors propagate further for debugging.
-  """
-
-
-class InformationalError(Exception):
-  """Errors that are non-fatal and logged."""
-
-
 class Execution(object):
   """Object tracking the execution of a Quest.
 
@@ -93,6 +82,7 @@ class Execution(object):
         'exception': self._exception,
         'details': self._AsDict(),
     }
+
     return d
 
   def _AsDict(self):
@@ -114,7 +104,7 @@ class Execution(object):
       self._Poll()
     except client.AccessTokenRefreshError:
       raise errors.RecoverableError()
-    except (FatalError, RuntimeError):
+    except (errors.FatalError, RuntimeError):
       # Some built-in exceptions are derived from RuntimeError which we'd like
       # to treat as errors.
       raise

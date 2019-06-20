@@ -16,6 +16,7 @@ import json
 import re
 import shlex
 
+from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models.quest import execution as execution_module
 from dashboard.pinpoint.models.quest import quest
 from dashboard.services import swarming
@@ -72,30 +73,6 @@ _VPYTHON_PARAMS = {
         },
     ],
 }
-
-
-class RunTestError(execution_module.InformationalError):
-  pass
-
-
-class SwarmingExpiredError(execution_module.FatalError):
-  """Raised when the Swarming task expires before running.
-
-  This error is fatal, and stops the entire Job. If this error happens, the
-  results will be incorrect, and we should stop the Job quickly to avoid
-  overloading the bots even further."""
-
-
-class SwarmingTaskError(RunTestError):
-  """Raised when the Swarming task failed and didn't complete.
-
-  If the test completes but fails, that is a SwarmingTestError, not a
-  SwarmingTaskError. This error could be something like the bot died, the test
-  timed out, or the task was manually canceled."""
-
-
-class SwarmingTestError(RunTestError):
-  """Raised when the test fails."""
 
 
 class RunTest(quest.Quest):
@@ -258,21 +235,17 @@ class _RunTestExecution(execution_module.Execution):
       return
 
     if result['state'] == 'EXPIRED':
-      raise SwarmingExpiredError('The swarming task expired. The bots are '
-                                 'likely overloaded, dead, or misconfigured.')
+      raise errors.SwarmingExpired()
 
     if result['state'] != 'COMPLETED':
-      raise SwarmingTaskError('The swarming task failed with '
-                              'state "%s".' % result['state'])
+      raise errors.SwarmingTaskError(result['state'])
 
     if result['failure']:
       exception_string = _ParseException(swarming_task.Stdout()['output'])
       if exception_string:
-        raise SwarmingTestError("The test failed. The test's error "
-                                'message was:\n%s' % exception_string)
+        raise errors.SwarmingTaskFailed(exception_string)
       else:
-        raise SwarmingTestError('The test failed. No Python '
-                                'exception was found in the log.')
+        raise errors.SwarmingTaskFailedNoException()
 
     result_arguments = {
         'isolate_server': result['outputs_ref']['isolatedserver'],
@@ -289,7 +262,7 @@ class _RunTestExecution(execution_module.Execution):
         # it couldn't find any device to run on. Subsequent Executions probably
         # wouldn't have any better luck, and failing fast is less complex than
         # handling retries.
-        raise RunTestError('There are no bots available to run the test.')
+        raise errors.SwarmingNoBots()
       else:
         return
 

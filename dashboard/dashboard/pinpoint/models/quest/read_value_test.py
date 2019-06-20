@@ -97,12 +97,12 @@ class _ReadValueExecutionTest(unittest.TestCase):
         json.dumps(contents),
     )
 
-  def assertReadValueError(self, execution):
+  def assertReadValueError(self, execution, exception):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
     self.assertIsInstance(execution.exception, basestring)
     last_exception_line = execution.exception.splitlines()[-1]
-    self.assertTrue(last_exception_line.startswith('ReadValueError'))
+    self.assertTrue(last_exception_line.startswith(exception))
 
   def assertReadValueSuccess(self, execution):
     self.assertTrue(execution.completed)
@@ -206,7 +206,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
-    self.assertReadValueError(execution)
+    self.assertReadValueError(execution, 'ReadValueNoValues')
 
   def testReadHistogramsJsonValueMultipleHistograms(self):
     hist = histogram_module.Histogram('hist', 'count')
@@ -476,7 +476,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
-    self.assertReadValueError(execution)
+    self.assertReadValueError(execution, 'ReadValueNoFile')
 
   def testReadHistogramsJsonValueEmptyHistogramSet(self):
     self.SetOutputFileContents([])
@@ -486,7 +486,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
-    self.assertReadValueError(execution)
+    self.assertReadValueError(execution, 'ReadValueNotFound')
 
   def testReadHistogramsJsonValueWithMissingHistogram(self):
     hist = histogram_module.Histogram('hist', 'count')
@@ -498,7 +498,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
-    self.assertReadValueError(execution)
+    self.assertReadValueError(execution, 'ReadValueNotFound')
 
   def testReadHistogramsJsonValueWithNoValues(self):
     hist = histogram_module.Histogram('hist', 'count')
@@ -510,7 +510,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
-    self.assertReadValueError(execution)
+    self.assertReadValueError(execution, 'ReadValueNotFound')
 
   def testReadHistogramsJsonValueTirLabelWithNoValues(self):
     hist = histogram_module.Histogram('hist', 'count')
@@ -522,7 +522,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
-    self.assertReadValueError(execution)
+    self.assertReadValueError(execution, 'ReadValueNotFound')
 
   def testReadHistogramsJsonValueStoryWithNoValues(self):
     hist = histogram_module.Histogram('hist', 'count')
@@ -534,7 +534,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
-    self.assertReadValueError(execution)
+    self.assertReadValueError(execution, 'ReadValueNotFound')
 
 
 class ReadGraphJsonValueTest(_ReadValueExecutionTest):
@@ -580,24 +580,24 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
-    self.assertReadValueError(execution)
+    self.assertReadValueError(execution, 'ReadValueNoFile')
 
   def testReadGraphJsonValueWithMissingChart(self):
     self.SetOutputFileContents({})
 
     quest = read_value.ReadGraphJsonValue(
-        'base_perftests/perf_results.json', 'metric', 'test')
+        'chartjson-output.json', 'metric', 'test')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
-    self.assertReadValueError(execution)
+    self.assertReadValueError(execution, 'ReadValueChartNotFound')
 
   def testReadGraphJsonValueWithMissingTrace(self):
     self.SetOutputFileContents({'chart': {'traces': {}}})
 
     quest = read_value.ReadGraphJsonValue(
-        'base_perftests/perf_results.json', 'metric', 'test')
+        'chartjson-output.json', 'chart', 'test')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
-    self.assertReadValueError(execution)
+    self.assertReadValueError(execution, 'ReadValueTraceNotFound')

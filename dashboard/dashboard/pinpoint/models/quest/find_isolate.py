@@ -10,6 +10,7 @@ import json
 import urlparse
 
 from dashboard.pinpoint.models import change as change_module
+from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.quest import execution
 from dashboard.pinpoint.models.quest import quest
@@ -18,17 +19,6 @@ from dashboard.services import gerrit_service
 
 
 BUCKET = 'master.tryserver.chromium.perf'
-
-
-class IsolateNotFoundError(execution.FatalError):
-  """Raised when the build succeeds, but Pinpoint can't find the isolate.
-
-  This error is fatal to the Job.
-  """
-
-
-class BuildError(execution.InformationalError):
-  """Raised when the build fails."""
 
 
 class FindIsolate(quest.Quest):
@@ -139,9 +129,9 @@ class _FindIsolateExecution(execution.Execution):
       return
 
     if build['result'] == 'FAILURE':
-      raise BuildError('Build failed: ' + build['failure_reason'])
+      raise errors.BuildFailed(build['failure_reason'])
     if build['result'] == 'CANCELED':
-      raise BuildError('Build was canceled: ' + build['cancelation_reason'])
+      raise errors.BuildCancelled(build['cancelation_reason'])
 
     # The build succeeded. Parse the result and complete this Quest.
     properties = json.loads(build['result_details_json'])['properties']
@@ -151,9 +141,7 @@ class _FindIsolateExecution(execution.Execution):
     key = '_'.join(('swarm_hashes', commit_position, suffix))
 
     if self._target not in properties[key]:
-      raise IsolateNotFoundError(
-          'Buildbucket says the build completed successfully, '
-          "but Pinpoint can't find the isolate hash.")
+      raise errors.BuildIsolateNotFound()
 
     result_arguments = {
         'isolate_server': properties['isolate_server'],
@@ -189,13 +177,11 @@ def _RequestBuild(builder_name, change, bucket):
   base_as_dict = change.base_commit.AsDict()
   review_url = base_as_dict.get('review_url')
   if not review_url:
-    raise BuildError(
-        'Could not find gerrit review url for commit: ' + str(base_as_dict))
+    raise errors.BuildGerritURLInvalid(str(base_as_dict))
 
   change_id = base_as_dict.get('change_id')
   if not change_id:
-    raise BuildError(
-        'Could not find gerrit change id for commit: ' + str(base_as_dict))
+    raise errors.BuildGerritURLInvalid(str(base_as_dict))
 
   url_parts = urlparse.urlparse(review_url)
   base_review_url = urlparse.urlunsplit(

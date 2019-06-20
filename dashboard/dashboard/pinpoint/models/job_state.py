@@ -168,9 +168,8 @@ class JobState(object):
 
     exception, exception_count = most_common_exceptions[0]
     attempt_count = sum(counter.values())
-    raise Exception(
-        'All of the runs failed. The most common error (%d/%d runs) '
-        'was:\n%s' % (exception_count, attempt_count, exception))
+    raise errors.AllRunsFailed(
+        exception_count, attempt_count, exception)
 
   def Differences(self):
     """Compares every pair of Changes and yields ones with different results.
