@@ -115,7 +115,8 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     benchmarks = hist.diagnostics.get(reserved_infos.BENCHMARKS.name)
     self.assertIsInstance(benchmarks, generic_set.GenericSet)
     self.assertEquals(1, len(benchmarks))
-    self.assertEquals('', list(benchmarks)[0])
+    self.assertEquals(page_test_test_case.BENCHMARK_NAME,
+                      list(benchmarks)[0])
     stories = hist.diagnostics.get(reserved_infos.STORIES.name)
     self.assertIsInstance(stories, generic_set.GenericSet)
     self.assertEquals(1, len(stories))

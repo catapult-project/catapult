@@ -28,28 +28,6 @@ class InvalidOptionsError(Exception):
   pass
 
 
-class BenchmarkMetadata(object):
-
-  def __init__(self, name, description=''):
-    self._name = name
-    self._description = description
-
-  @property
-  def name(self):
-    return self._name
-
-  @property
-  def description(self):
-    return self._description
-
-  def AsDict(self):
-    return {
-        'type': 'telemetry_benchmark',
-        'name': self.name,
-        'description': self.description,
-    }
-
-
 class Benchmark(command_line.Command):
   """Base class for a Telemetry benchmark.
 
@@ -165,9 +143,6 @@ class Benchmark(command_line.Command):
 
   def CustomizeOptions(self, finder_options):
     """Add options that are required by this benchmark."""
-
-  def GetMetadata(self):
-    return BenchmarkMetadata(self.Name(), self.__doc__)
 
   def GetBugComponents(self):
     """Returns a GenericSet Diagnostic containing the benchmark's Monorail

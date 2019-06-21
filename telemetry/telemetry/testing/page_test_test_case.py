@@ -6,7 +6,6 @@
 
 import unittest
 
-from telemetry import benchmark
 from telemetry import story
 from telemetry.core import util
 from telemetry.internal.results import results_options
@@ -14,6 +13,9 @@ from telemetry.internal import story_runner
 from telemetry.page import page as page_module
 from telemetry.page import legacy_page_test
 from telemetry.testing import options_for_unittests
+
+
+BENCHMARK_NAME = 'page_test_test_case.RunMeasurement'
 
 
 class BasicTestPage(page_module.Page):
@@ -27,11 +29,6 @@ class BasicTestPage(page_module.Page):
     # to, without closing the browser. Otherwise, tests may see unexpected
     # behaviour on Chrome OS; see crbug.com/851523 for an example.
     action_runner.ScrollPage(direction='up')
-
-
-class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
-  def __init__(self):
-    super(EmptyMetadataForTest, self).__init__('')
 
 
 class PageTestTestCase(unittest.TestCase):
@@ -68,6 +65,7 @@ class PageTestTestCase(unittest.TestCase):
     options.output_formats = ['none']
     options.suppress_gtest_report = True
     story_runner.ProcessCommandLineArgs(temp_parser, options)
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    results = results_options.CreateResults(
+        options, benchmark_name=BENCHMARK_NAME)
     story_runner.Run(measurement, ps, options, results)
     return results
