@@ -20,6 +20,7 @@ from telemetry.internal.platform import system_info
 from telemetry.page import shared_page_state
 from telemetry.util import image_util
 from telemetry.util import wpr_modes
+from telemetry.testing import test_utils
 from telemetry.testing.internal import fake_gpu_info
 
 
@@ -135,6 +136,10 @@ class FakePlatform(object):
 
   def GetOSVersionDetailString(self):
     return self._get_os_version_detail_string
+
+  def GetTypExpectationsTags(self):
+    return test_utils.sanitizeTypExpectationsTags(
+        [self.GetOSName(), self.GetOSVersionName()])
 
 
 class FakeLinuxPlatform(FakePlatform):
@@ -394,6 +399,10 @@ class FakeBrowser(FakeApp):
 
   def LogSymbolizedUnsymbolizedMinidumps(self, log_level):
     del log_level  # unused
+
+  def GetTypExpectationsTags(self):
+    tags = self.platform.GetTypExpectationsTags()
+    return tags + test_utils.sanitizeTypExpectationsTags([self.browser_type])
 
   def __enter__(self):
     return self

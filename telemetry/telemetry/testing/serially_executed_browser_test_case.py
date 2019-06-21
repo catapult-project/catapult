@@ -230,10 +230,7 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
     Returns:
     A list of tags derived from the Browser instance's platform member variable.
     """
-    platform = browser.platform
-    tags = [
-        platform.GetOSVersionName(), platform.GetOSName(), browser.browser_type]
-    return [tag.lower() for tag in tags if tag]
+    return browser.GetTypExpectationsTags()
 
   @staticmethod
   def GetJSONResultsDelimiter():

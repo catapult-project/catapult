@@ -24,6 +24,7 @@ from telemetry.internal.platform.power_monitor import (
 from telemetry.internal.platform.power_monitor import sysfs_power_monitor
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import external_modules
+from telemetry.testing import test_utils
 
 from devil.android import app_ui
 from devil.android import battery_utils
@@ -294,6 +295,16 @@ class AndroidPlatformBackend(
 
   def GetDeviceTypeName(self):
     return self._device.product_model
+
+  def GetTypExpectationsTags(self):
+    # telemetry benchmark's expectations need to know the model name
+    # and if it is a svelte (low memory) build
+    tags = super(AndroidPlatformBackend, self).GetTypExpectationsTags()
+    tags += test_utils.sanitizeTypExpectationsTags(
+        ['android-' + self.GetDeviceTypeName()])
+    if self.IsSvelte():
+      tags.append('android-svelte')
+    return tags
 
   @decorators.Cache
   def GetOSVersionName(self):

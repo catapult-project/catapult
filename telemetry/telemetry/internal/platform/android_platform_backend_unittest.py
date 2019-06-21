@@ -50,6 +50,31 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         android_device.AndroidDevice('12345'), True)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
+  def testTypExpectationsTagsIncludesSvelteTag(self):
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    return_value='svelte'):
+      backend = self.CreatePlatformBackendForTest()
+      self.assertIn(
+          'android-svelte', backend.GetTypExpectationsTags())
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
+  def testTypExpectationsDoesNotIncludeSvelteTag(self):
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    return_value='foo'):
+      backend = self.CreatePlatformBackendForTest()
+      self.assertNotIn(
+          'android-svelte', backend.GetTypExpectationsTags())
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
+  def testTypExpectationsTagsIncludesAndroidModel(self):
+    backend = self.CreatePlatformBackendForTest()
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    return_value='foo'):
+      with mock.patch.object(backend, 'GetDeviceTypeName',
+                             return_value='AOSP on Shamu'):
+        self.assertIn('android-AOSP-on-Shamu', backend.GetTypExpectationsTags())
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsSvelte(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='svelte'):

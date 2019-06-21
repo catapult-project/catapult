@@ -430,3 +430,6 @@ class Platform(object):
       in degrees c.
     """
     return self._platform_backend.WaitForCpuTemperature(temp)
+
+  def GetTypExpectationsTags(self):
+    return self._platform_backend.GetTypExpectationsTags()

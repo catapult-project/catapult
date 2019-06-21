@@ -4,8 +4,10 @@
 
 import os
 import unittest
+import mock
 
 from telemetry.core import platform as platform_module
+from telemetry.internal.platform import mac_platform_backend
 from telemetry.core import os_version
 from telemetry import decorators
 
@@ -38,3 +40,19 @@ class MacPlatformBackendTest(unittest.TestCase):
   def testGetSystemLogSmoke(self):
     platform = platform_module.GetHostPlatform()
     self.assertTrue(platform.GetSystemLog())
+
+  def testTypExpectationsTagsIncludesSnowLeopard11Tag(self):
+    backend = mac_platform_backend.MacPlatformBackend()
+    with mock.patch.object(
+        backend, 'GetOSVersionName', return_value='snowleopard'):
+      with mock.patch.object(
+          backend, 'GetOSVersionDetailString', return_value='10.11'):
+        self.assertIn('snowleopard-10.11', backend.GetTypExpectationsTags())
+
+  def testTypExpectationsTagsIncludesSnowLeopard12Tag(self):
+    backend = mac_platform_backend.MacPlatformBackend()
+    with mock.patch.object(
+        backend, 'GetOSVersionName', return_value='snowleopard'):
+      with mock.patch.object(
+          backend, 'GetOSVersionDetailString', return_value='10.12'):
+        self.assertIn('snowleopard-10.12', backend.GetTypExpectationsTags())

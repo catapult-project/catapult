@@ -5,6 +5,7 @@
 from telemetry.internal.forwarders import do_nothing_forwarder
 from telemetry.internal.platform import network_controller_backend
 from telemetry.internal.platform import tracing_controller_backend
+from telemetry.testing import test_utils
 
 
 # pylint: disable=unused-argument
@@ -243,3 +244,7 @@ class PlatformBackend(object):
 
   def WaitForCpuTemperature(self, temp):
     pass
+
+  def GetTypExpectationsTags(self):
+    return test_utils.sanitizeTypExpectationsTags(
+        [self.GetOSName(), self.GetOSVersionName()])

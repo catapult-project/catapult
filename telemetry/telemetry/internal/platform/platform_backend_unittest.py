@@ -5,8 +5,11 @@
 import logging
 import time
 import unittest
+import mock
 
 from telemetry.core import platform as platform_module
+from telemetry.internal.platform import platform_backend
+from telemetry.internal.browser import possible_browser
 from telemetry import decorators
 
 
@@ -37,3 +40,16 @@ class PlatformBackendTest(unittest.TestCase):
     output = platform.StopMonitoringPower()
     self.assertTrue(output.has_key('energy_consumption_mwh'))
     self.assertTrue(output.has_key('identifier'))
+
+  def testGetTypExpectationsTags(self):
+    pbe = platform_backend.PlatformBackend()
+    pb = possible_browser.PossibleBrowser('reference_debug', 'win', False)
+    with mock.patch.object(
+        pbe.__class__, 'GetOSName', return_value='win'):
+      with mock.patch.object(
+          pbe.__class__, 'GetOSVersionName', return_value='win 10'):
+        with mock.patch.object(
+            pb.__class__, '_InitPlatformIfNeeded', return_value=None):
+          pb._platform = platform_module.Platform(pbe)
+          self.assertEqual(set(pb.GetTypExpectationsTags()),
+                           set(['win', 'win-10', 'reference-debug']))

@@ -34,6 +34,11 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     # Different browsers boot up to different things.
     assert self._browser.tabs[0].url
 
+  def testTypExpectationsTagsIncludesBrowserTypeTag(self):
+    with mock.patch.object(
+        self._browser.__class__, 'browser_type', 'reference_debug'):
+      self.assertIn('reference-debug', self._browser.GetTypExpectationsTags())
+
   @decorators.Enabled('has tabs')
   def testNewCloseTab(self):
     existing_tab = self._browser.tabs[0]
