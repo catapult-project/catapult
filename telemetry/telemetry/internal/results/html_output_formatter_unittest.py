@@ -7,7 +7,6 @@ import StringIO
 import unittest
 
 from telemetry import story
-from telemetry import benchmark
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
@@ -37,7 +36,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
     self._story_set = _MakeStorySet()
-    self._benchmark_metadata = benchmark.BenchmarkMetadata(
+    self._benchmark_metadata = page_test_results.BenchmarkInfo(
         'benchmark_name', 'benchmark_description')
 
   def testBasic(self):

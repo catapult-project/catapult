@@ -117,9 +117,8 @@ def _GetProgressReporter(suppress_gtest_report):
     return gtest_progress_reporter.GTestProgressReporter(sys.stdout)
 
 
-def CreateResults(benchmark_metadata, options,
-                  should_add_value=None,
-                  benchmark_enabled=True):
+def CreateResults(options, benchmark_name=None, benchmark_description=None,
+                  benchmark_enabled=True, should_add_value=None):
   """
   Args:
     options: Contains the options specified in AddResultsOptions.
@@ -133,6 +132,9 @@ def CreateResults(benchmark_metadata, options,
     if upload_bucket in cloud_storage.BUCKET_ALIASES:
       upload_bucket = cloud_storage.BUCKET_ALIASES[upload_bucket]
 
+  benchmark_info = page_test_results.BenchmarkInfo(
+      name=benchmark_name, description=benchmark_description)
+
   output_formatters = []
   for output_format in options.output_formats:
     if output_format == 'none' or output_format == "gtest":
@@ -140,7 +142,7 @@ def CreateResults(benchmark_metadata, options,
     output_stream = _GetOutputStream(output_format, options.output_dir)
     if output_format == 'html':
       output_formatters.append(html_output_formatter.HtmlOutputFormatter(
-          output_stream, benchmark_metadata, options.reset_results,
+          output_stream, benchmark_info, options.reset_results,
           upload_bucket))
     elif output_format == 'json-test-results':
       output_formatters.append(json_3_output_formatter.JsonOutputFormatter(
@@ -148,7 +150,7 @@ def CreateResults(benchmark_metadata, options,
     elif output_format == 'chartjson':
       output_formatters.append(
           chart_json_output_formatter.ChartJsonOutputFormatter(
-              output_stream, benchmark_metadata))
+              output_stream, benchmark_info))
     elif output_format == 'csv':
       output_formatters.append(
           csv_output_formatter.CsvOutputFormatter(
@@ -156,7 +158,7 @@ def CreateResults(benchmark_metadata, options,
     elif output_format == 'histograms':
       output_formatters.append(
           histogram_set_json_output_formatter.HistogramSetJsonOutputFormatter(
-              output_stream, benchmark_metadata, options.reset_results))
+              output_stream, benchmark_info, options.reset_results))
     else:
       # Should never be reached. The parser enforces the choices.
       raise Exception('Invalid --output-format "%s". Valid choices are: %s'
@@ -169,5 +171,5 @@ def CreateResults(benchmark_metadata, options,
       should_add_value=should_add_value,
       benchmark_enabled=benchmark_enabled,
       upload_bucket=upload_bucket,
-      benchmark_metadata=benchmark_metadata,
+      benchmark_metadata=benchmark_info,
       results_label=options.results_label)

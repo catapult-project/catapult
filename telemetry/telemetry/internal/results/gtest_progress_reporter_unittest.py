@@ -5,7 +5,6 @@
 import os
 import StringIO
 
-from telemetry import benchmark
 from telemetry import story
 from telemetry.internal.results import base_test_results_unittest
 from telemetry.internal.results import gtest_progress_reporter
@@ -44,7 +43,7 @@ def _MakeStorySet():
 def _MakePageTestResults(reporter):
   return page_test_results.PageTestResults(
       progress_reporter=reporter,
-      benchmark_metadata=benchmark.BenchmarkMetadata(
+      benchmark_metadata=page_test_results.BenchmarkInfo(
           name='bench', description='foo'))
 
 class GTestProgressReporterTest(

@@ -9,7 +9,6 @@ import StringIO
 import time
 import unittest
 
-from telemetry import benchmark
 from telemetry import story
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -42,12 +41,6 @@ def SetUpStoryRunnerArguments(options):
   story_runner.AddCommandLineArgs(parser)
   options.MergeDefaultValues(parser.get_default_values())
   story_runner.ProcessCommandLineArgs(parser, options)
-
-
-class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
-
-  def __init__(self):
-    super(EmptyMetadataForTest, self).__init__('')
 
 
 def GetSuccessfulPageRuns(results):
@@ -144,7 +137,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.output_dir = tempdir
       test = Test()
       SetUpStoryRunnerArguments(options)
-      results = results_options.CreateResults(EmptyMetadataForTest(), options)
+      results = results_options.CreateResults(options)
       story_runner.Run(test, story_set, options, results)
       self.assertEquals(len(story_set), len(GetSuccessfulPageRuns(results)))
       # Browser is started once per story run, except in ChromeOS where a single
@@ -185,7 +178,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     with tempfile_ext.NamedTemporaryDirectory('page_E2E_tests') as tempdir:
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
-      results = results_options.CreateResults(EmptyMetadataForTest(), options)
+      results = results_options.CreateResults(options)
       story_runner.Run(test, story_set, options, results)
 
       self.assertTrue(hasattr(test, 'hasRun') and test.hasRun)
@@ -216,7 +209,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     with tempfile_ext.NamedTemporaryDirectory('page_E2E_tests') as tempdir:
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
-      results = results_options.CreateResults(EmptyMetadataForTest(), options)
+      results = results_options.CreateResults(options)
       story_runner.Run(test, story_set, options, results)
 
   def testTrafficSettings(self):
@@ -256,7 +249,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     with tempfile_ext.NamedTemporaryDirectory('page_E2E_tests') as tempdir:
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
-      results = results_options.CreateResults(EmptyMetadataForTest(), options)
+      results = results_options.CreateResults(options)
       story_runner.Run(test, story_set, options, results)
       failure_messages = []
       for r in results.all_page_runs:
@@ -306,7 +299,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     with tempfile_ext.NamedTemporaryDirectory('page_E2E_tests') as tempdir:
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
-      results = results_options.CreateResults(EmptyMetadataForTest(), options)
+      results = results_options.CreateResults(options)
       story_runner.Run(test, story_set, options, results)
 
   # Ensure that story_runner calls cleanUp when a page run fails.
@@ -338,7 +331,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     with tempfile_ext.NamedTemporaryDirectory('page_E2E_tests') as tempdir:
       options.output_dir = tempdir
       SetUpStoryRunnerArguments(options)
-      results = results_options.CreateResults(EmptyMetadataForTest(), options)
+      results = results_options.CreateResults(options)
       story_runner.Run(test, story_set, options, results)
       assert test.did_call_clean_up
 
@@ -381,7 +374,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.output_formats = ['none']
     options.suppress_gtest_report = True
     options.output_dir = None
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    results = results_options.CreateResults(options)
     story_runner.Run(test, story_set, options, results)
     self.assertFalse(test.will_navigate_to_page_called)
     self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
@@ -445,7 +438,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.output_formats = ['none']
     options.suppress_gtest_report = True
     options.output_dir = None
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    results = results_options.CreateResults(options)
     story_runner.Run(test, story_set, options, results)
     self.assertTrue(test_page.was_page_at_top_on_start)
 
@@ -466,7 +459,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.output_formats = ['none']
     options.suppress_gtest_report = True
     options.output_dir = None
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    results = results_options.CreateResults(options)
     story_runner.Run(test, story_set, options, results,
                      max_failures=max_failures)
     return results
@@ -507,7 +500,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     options.output_formats = ['none']
     options.suppress_gtest_report = True
     options.output_dir = None
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    results = results_options.CreateResults(options)
 
     story_runner.Run(test, story_set, options, results)
 
@@ -550,7 +543,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.browser_options.take_screenshot_for_failed_page = True
       options.suppress_gtest_report = True
       SetUpStoryRunnerArguments(options)
-      results = results_options.CreateResults(EmptyMetadataForTest(), options)
+      results = results_options.CreateResults(options)
       story_runner.Run(DummyTest(), story_set, options, results,
                        max_failures=2)
       self.assertTrue(results.had_failures)
@@ -589,8 +582,7 @@ class FakePageRunEndToEndTests(unittest.TestCase):
     failing_page = FailingTestPage('chrome://version', story_set,
                                    name='failing')
     story_set.AddStory(failing_page)
-    results = results_options.CreateResults(
-        EmptyMetadataForTest(), self.options)
+    results = results_options.CreateResults(self.options)
     story_runner.Run(DummyTest(), story_set, self.options, results,
                      max_failures=2)
     self.assertTrue(results.had_failures)
@@ -619,8 +611,7 @@ class FakePageRunEndToEndTests(unittest.TestCase):
     self.options.output_formats = ['json-test-results']
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
       self.options.output_dir = tempdir
-      results = results_options.CreateResults(
-          EmptyMetadataForTest(), self.options)
+      results = results_options.CreateResults(self.options)
 
       # This ensures the output stream used by the json test results object is
       # closed. On windows, we can't delete the temp directory if a file in that

@@ -258,6 +258,22 @@ class TelemetryInfo(object):
     SetDiagnosticsValue(reserved_infos.TRACE_URLS, self.trace_url)
 
 
+class BenchmarkInfo(object):
+  def __init__(self, name=None, description=None):
+    # TODO(crbug.com/973837): Move other benchmark related info from
+    # TelemetryInfo into here.
+    self._name = name or '(unknown benchmark)'
+    self._description = description or ''
+
+  @property
+  def name(self):
+    return self._name
+
+  @property
+  def description(self):
+    return self._description
+
+
 class PageTestResults(object):
   def __init__(self, output_formatters=None,
                progress_reporter=None, output_dir=None,
@@ -277,8 +293,10 @@ class PageTestResults(object):
           a boolean (True when the value belongs to the first run of the
           corresponding story). It returns True if the value should be added
           to the test results and False otherwise.
-      benchmark_metadata: A benchmark.BenchmarkMetadata object. This is used in
-          the chart JSON output formatter.
+      benchmark_metadata: A page_test_results.BenchmarkInfo object.
+          TODO(crbug.com/973837): Replace this argument with separate
+          benchmark_name, benchmark_description (providing a simpler API to
+          callers) and have this object build the BenchmarkInfo from them.
     """
     super(PageTestResults, self).__init__()
     self._progress_reporter = (
@@ -301,22 +319,18 @@ class PageTestResults(object):
     self._histograms = histogram_set.HistogramSet()
 
     if benchmark_metadata is None:
-      benchmark_name = '(unknown benchmark)'
-      benchmark_description = None
+      self._benchmark_info = BenchmarkInfo()
     else:
-      benchmark_name = benchmark_metadata.name
-      benchmark_description = benchmark_metadata.description
+      self._benchmark_info = benchmark_metadata
 
     self._telemetry_info = TelemetryInfo(
-        benchmark_name=benchmark_name,
-        benchmark_description=benchmark_description,
+        benchmark_name=self._benchmark_info.name,
+        benchmark_description=self._benchmark_info.description,
         results_label=results_label,
         upload_bucket=upload_bucket, output_dir=output_dir)
 
     # State of the benchmark this set of results represents.
     self._benchmark_enabled = benchmark_enabled
-
-    self._benchmark_metadata = benchmark_metadata
 
     self._histogram_dicts_to_add = []
 
@@ -336,7 +350,7 @@ class PageTestResults(object):
       return
 
     chart_json = chart_json_output_formatter.ResultsAsChartDict(
-        self._benchmark_metadata, self)
+        self._benchmark_info, self)
     info = self.telemetry_info
     chart_json['label'] = info.label
     chart_json['benchmarkStartMs'] = info.benchmark_start_us / 1000.0

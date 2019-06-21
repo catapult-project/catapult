@@ -75,7 +75,11 @@ def ResultsAsChartDict(benchmark_metadata, results):
       # removed when incrementing format_version to 0.1.
       'benchmark_name': benchmark_metadata.name,
       'benchmark_description': benchmark_metadata.description,
-      'benchmark_metadata': benchmark_metadata.AsDict(),
+      'benchmark_metadata': {
+          'type': 'telemetry_benchmark',
+          'name': benchmark_metadata.name,
+          'description': benchmark_metadata.description,
+      },
       'charts': charts,
       # Need to add this in for compatibility with disabled chartjson results.
       'enabled': True

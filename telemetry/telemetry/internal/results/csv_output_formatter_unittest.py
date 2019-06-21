@@ -9,7 +9,6 @@ import unittest
 import mock
 
 from telemetry import story
-from telemetry import benchmark
 from telemetry.internal.results import csv_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
@@ -36,7 +35,7 @@ class CsvOutputFormatterTest(unittest.TestCase):
     self._story_set = _MakeStorySet()
     with mock.patch('time.time', return_value=15e8):
       self._results = page_test_results.PageTestResults(
-          benchmark_metadata=benchmark.BenchmarkMetadata(
+          benchmark_metadata=page_test_results.BenchmarkInfo(
               name='benchmark', description='foo'),
           upload_bucket='fake_bucket')
     self._formatter = None
