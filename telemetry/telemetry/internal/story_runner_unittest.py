@@ -131,6 +131,11 @@ class DummyTest(legacy_page_test.LegacyPageTest):
     pass
 
 
+class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
+  def __init__(self):
+    super(EmptyMetadataForTest, self).__init__('')
+
+
 class DummyLocalStory(story_module.Story):
   def __init__(self, shared_state_class, name='', tags=None):
     if name == '':
@@ -288,7 +293,8 @@ class StoryRunnerTest(unittest.TestCase):
     self.actual_stdout = sys.stdout
     sys.stdout = self.fake_stdout
     self.options = _GetOptionForUnittest()
-    self.results = results_options.CreateResults(self.options)
+    self.results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
     self._story_runner_logging_stub = None
 
   def StubOutExceptionFormatting(self):
@@ -585,7 +591,8 @@ class StoryRunnerTest(unittest.TestCase):
 
     self.options.pageset_repeat = 2
     self.options.output_formats = []
-    results = results_options.CreateResults(self.options)
+    results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
     story_runner.Run(_Measurement(), story_set, self.options, results)
     summary = summary_module.Summary(results)
     values = summary.interleaved_computed_per_page_values_and_summaries
@@ -617,7 +624,8 @@ class StoryRunnerTest(unittest.TestCase):
     story_set.AddStory(green_story)
 
     self.options.pageset_repeat = 1
-    results = results_options.CreateResults(self.options)
+    results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
     story_runner.Run(_Measurement(), story_set, self.options, results)
     summary = summary_module.Summary(results)
     values = summary.interleaved_computed_per_page_values_and_summaries
@@ -631,7 +639,8 @@ class StoryRunnerTest(unittest.TestCase):
     story_set = story_module.StorySet()
     story_one = DummyLocalStory(TestSharedPageState, name='one')
     story_set.AddStory(story_one)
-    results = results_options.CreateResults(self.options)
+    results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
 
     story_runner.Run(_Measurement(), story_set, self.options, results,
                      expectations=_DisableStoryExpectations())
@@ -649,7 +658,8 @@ class StoryRunnerTest(unittest.TestCase):
     story_two = DummyLocalStory(TestSharedPageState, name='two')
     story_set.AddStory(story_one)
     story_set.AddStory(story_two)
-    results = results_options.CreateResults(self.options)
+    results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
 
     story_runner.Run(_Measurement(), story_set, self.options, results,
                      expectations=_DisableStoryExpectations())
@@ -666,7 +676,8 @@ class StoryRunnerTest(unittest.TestCase):
     story_one = DummyLocalStory(TestSharedPageState, name='one')
     story_set.AddStory(story_one)
     self.options.run_disabled_tests = True
-    results = results_options.CreateResults(self.options)
+    results = results_options.CreateResults(
+        EmptyMetadataForTest(), self.options)
 
     story_runner.Run(_Measurement(), story_set, self.options, results,
                      expectations=_DisableStoryExpectations())
@@ -937,7 +948,7 @@ class StoryRunnerTest(unittest.TestCase):
     if options_max_failures:
       options.max_failures = options_max_failures
 
-    results = results_options.CreateResults(options)
+    results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(
         DummyTest(), story_set, options,
         results, max_failures=runner_max_failures)

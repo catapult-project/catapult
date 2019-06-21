@@ -6,15 +6,15 @@ import json
 import StringIO
 import unittest
 
+from telemetry import benchmark
 from telemetry.internal.results import histogram_set_json_output_formatter
-from telemetry.internal.results import page_test_results
 
 
 class HistogramSetJsonTest(unittest.TestCase):
 
   def setUp(self):
     self._output = StringIO.StringIO()
-    self._benchmark_metadata = page_test_results.BenchmarkInfo(
+    self._benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
     self._formatter = (
         histogram_set_json_output_formatter.HistogramSetJsonOutputFormatter(

@@ -388,11 +388,9 @@ def _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
   # If we reach this point the benchmark should not be run; but we still need
   # to report the disabled state of the benchmark with an empty set of results.
   with results_options.CreateResults(
-      finder_options,
-      benchmark_name=benchmark.Name(),
-      benchmark_description=benchmark.Description(),
-      benchmark_enabled=False,
-      should_add_value=benchmark.ShouldAddValue) as results:
+      benchmark.GetMetadata(), finder_options,
+      should_add_value=benchmark.ShouldAddValue,
+      benchmark_enabled=False) as results:
     results.PrintSummary()
   return False
 
@@ -423,11 +421,9 @@ def RunBenchmark(benchmark, finder_options):
           'telemetry.page.Page stories.')
 
   with results_options.CreateResults(
-      finder_options,
-      benchmark_name=benchmark.Name(),
-      benchmark_description=benchmark.Description(),
-      benchmark_enabled=True,
-      should_add_value=benchmark.ShouldAddValue) as results:
+      benchmark.GetMetadata(), finder_options,
+      should_add_value=benchmark.ShouldAddValue,
+      benchmark_enabled=True) as results:
     try:
       Run(pt, stories, finder_options, results, benchmark.max_failures,
           expectations=benchmark.expectations,

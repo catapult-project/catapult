@@ -8,6 +8,7 @@ import unittest
 from py_utils import tempfile_ext
 import mock
 
+from telemetry import benchmark
 from telemetry import story
 from telemetry.internal.results import base_test_results_unittest
 from telemetry.internal.results import chart_json_output_formatter
@@ -386,7 +387,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def testPrintSummaryDisabledResults(self):
     output_stream = StringIO.StringIO()
     output_formatters = []
-    benchmark_metadata = page_test_results.BenchmarkInfo(
+    benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
     output_formatters.append(
         chart_json_output_formatter.ChartJsonOutputFormatter(
@@ -419,7 +420,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     hs.AddSharedDiagnosticToAllHistograms(
         'bar', generic_set.GenericSet(['baz']))
     histogram_dicts = hs.AsDicts()
-    benchmark_metadata = page_test_results.BenchmarkInfo(
+    benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
     results = page_test_results.PageTestResults(
         benchmark_metadata=benchmark_metadata)
@@ -431,7 +432,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertEqual(results.AsHistogramDicts(), histogram_dicts)
 
   def testAddSharedDiagnosticToAllHistograms(self):
-    benchmark_metadata = page_test_results.BenchmarkInfo(
+    benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
     results = page_test_results.PageTestResults(
         benchmark_metadata=benchmark_metadata)
@@ -451,7 +452,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertIsInstance(diag, generic_set.GenericSet)
 
   def testPopulateHistogramSet_UsesScalarValueData(self):
-    benchmark_metadata = page_test_results.BenchmarkInfo(
+    benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
     results = page_test_results.PageTestResults(
         benchmark_metadata=benchmark_metadata)
@@ -472,7 +473,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def testPopulateHistogramSet_UsesHistogramSetData(self):
     original_diagnostic = generic_set.GenericSet(['benchmark_name'])
 
-    benchmark_metadata = page_test_results.BenchmarkInfo(
+    benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
     results = page_test_results.PageTestResults(
         benchmark_metadata=benchmark_metadata)

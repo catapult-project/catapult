@@ -155,18 +155,17 @@ class WprRecorder(object):
     options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
     return options
 
-  def CreateResults(self):
+  def _CreateBenchmarkMetadata(self):
     if self._benchmark is not None:
-      benchmark_name = self._benchmark.Name()
-      benchmark_description = self._benchmark.Description()
+      benchmark_metadata = self._benchmark.GetMetadata()
     else:
-      benchmark_name = 'record_wpr'
-      benchmark_description = None
+      benchmark_metadata = benchmark.BenchmarkMetadata('record_wpr')
+    return benchmark_metadata
 
-    return results_options.CreateResults(
-        self._options,
-        benchmark_name=benchmark_name,
-        benchmark_description=benchmark_description)
+  def CreateResults(self):
+    benchmark_metadata = self._CreateBenchmarkMetadata()
+
+    return results_options.CreateResults(benchmark_metadata, self._options)
 
   def _AddCommandLineArgs(self):
     self._parser.add_option('--page-set-base-dir', action='store',

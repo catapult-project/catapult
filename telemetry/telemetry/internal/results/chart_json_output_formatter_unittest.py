@@ -7,6 +7,7 @@ import os
 import StringIO
 import unittest
 
+from telemetry import benchmark
 from telemetry import story
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import page_test_results
@@ -28,7 +29,7 @@ def _MakeStorySet():
 
 def _MakePageTestResults():
   return page_test_results.PageTestResults(
-      benchmark_metadata=page_test_results.BenchmarkInfo(
+      benchmark_metadata=benchmark.BenchmarkMetadata(
           name='benchmark', description='foo'))
 
 
@@ -36,7 +37,7 @@ class ChartJsonTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
     self._story_set = _MakeStorySet()
-    self._benchmark_metadata = page_test_results.BenchmarkInfo(
+    self._benchmark_metadata = benchmark.BenchmarkMetadata(
         'benchmark_name', 'benchmark_description')
     self._formatter = chart_json_output_formatter.ChartJsonOutputFormatter(
         self._output, self._benchmark_metadata)
@@ -89,7 +90,7 @@ class ChartJsonTest(unittest.TestCase):
 
   def testAsChartDictNoDescription(self):
     d = chart_json_output_formatter.ResultsAsChartDict(
-        page_test_results.BenchmarkInfo('benchmark_name', ''),
+        benchmark.BenchmarkMetadata('benchmark_name', ''),
         _MakePageTestResults())
 
     self.assertEquals('', d['benchmark_metadata']['description'])
