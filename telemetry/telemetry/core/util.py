@@ -9,8 +9,6 @@ import os
 import socket
 import sys
 
-from telemetry import decorators
-
 import py_utils as catapult_util  # pylint: disable=import-error
 
 
@@ -58,14 +56,6 @@ def _GetUniqueModuleName():
 
 def GetPythonPageSetModule(file_path):
   return imp.load_source(_GetUniqueModuleName(), file_path)
-
-
-@decorators.Deprecated(
-    2017, 6, 1,
-    'telemetry.core.utils.WaitFor() is being deprecated. Please use '
-    'catapult.common.py_utils.WaitFor() instead.')
-def WaitFor(condition, timeout):
-  return catapult_util.WaitFor(condition, timeout)
 
 
 def GetUnreservedAvailableLocalPort():
