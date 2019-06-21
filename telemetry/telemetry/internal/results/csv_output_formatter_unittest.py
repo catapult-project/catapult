@@ -35,8 +35,8 @@ class CsvOutputFormatterTest(unittest.TestCase):
     self._story_set = _MakeStorySet()
     with mock.patch('time.time', return_value=15e8):
       self._results = page_test_results.PageTestResults(
-          benchmark_metadata=page_test_results.BenchmarkInfo(
-              name='benchmark', description='foo'),
+          benchmark_name='benchmark',
+          benchmark_description='foo',
           upload_bucket='fake_bucket')
     self._formatter = None
     self.MakeFormatter()

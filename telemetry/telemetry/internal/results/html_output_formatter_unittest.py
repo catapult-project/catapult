@@ -36,14 +36,11 @@ class HtmlOutputFormatterTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
     self._story_set = _MakeStorySet()
-    self._benchmark_metadata = page_test_results.BenchmarkInfo(
-        'benchmark_name', 'benchmark_description')
 
   def testBasic(self):
     formatter = html_output_formatter.HtmlOutputFormatter(
-        self._output, self._benchmark_metadata, False)
-    results = page_test_results.PageTestResults(
-        benchmark_metadata=self._benchmark_metadata)
+        self._output, reset_results=False)
+    results = page_test_results.PageTestResults()
 
     results.WillRunPage(self._story_set[0])
     v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3,

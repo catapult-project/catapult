@@ -34,20 +34,18 @@ def _GetChartAndTraceName(value):
   return chart_name, trace_name
 
 
-def ResultsAsChartDict(benchmark_metadata, results):
+def ResultsAsChartDict(results):
   """Produces a dict for serialization to Chart JSON format from raw values.
 
   Chart JSON is a transformation of the basic Telemetry JSON format that
   removes the page map, summarizes the raw values, and organizes the results
   by chart and trace name. This function takes the key pieces of data needed to
-  perform this transformation (namely, lists of values and a benchmark metadata
-  object) and processes them into a dict which can be serialized using the json
-  module.
+  perform this transformation and processes them into a dict which can be
+  serialized using the json module.
 
   Design doc for schema: http://goo.gl/kOtf1Y
 
   Args:
-    benchmark_metadata: a benchmark.BenchmarkMetadata object
     results: an instance of PageTestResults
 
   Returns:
@@ -73,12 +71,12 @@ def ResultsAsChartDict(benchmark_metadata, results):
       'next_version': '0.2',
       # TODO(sullivan): benchmark_name and benchmark_description should be
       # removed when incrementing format_version to 0.1.
-      'benchmark_name': benchmark_metadata.name,
-      'benchmark_description': benchmark_metadata.description,
+      'benchmark_name': results.benchmark_name,
+      'benchmark_description': results.benchmark_description,
       'benchmark_metadata': {
           'type': 'telemetry_benchmark',
-          'name': benchmark_metadata.name,
-          'description': benchmark_metadata.description,
+          'name': results.benchmark_name,
+          'description': results.benchmark_description,
       },
       'charts': charts,
       # Need to add this in for compatibility with disabled chartjson results.
@@ -108,17 +106,15 @@ def DisabledResultsDict(benchmark_name):
 
 # TODO(eakuefner): Transition this to translate Telemetry JSON.
 class ChartJsonOutputFormatter(output_formatter.OutputFormatter):
-  def __init__(self, output_stream, benchmark_metadata):
+  def __init__(self, output_stream):
     super(ChartJsonOutputFormatter, self).__init__(output_stream)
-    self._benchmark_metadata = benchmark_metadata
 
-  def FormatDisabled(self, page_test_results):
-    self._Dump(DisabledResultsDict(self._benchmark_metadata.name))
+  def FormatDisabled(self, results):
+    self._Dump(DisabledResultsDict(results.benchmark_name))
 
-  def Format(self, page_test_results):
-    self._Dump(ResultsAsChartDict(self._benchmark_metadata, page_test_results))
+  def Format(self, results):
+    self._Dump(ResultsAsChartDict(results))
 
   def _Dump(self, results):
-    json.dump(results, self.output_stream, indent=2,
-              separators=(',', ': '))
+    json.dump(results, self.output_stream, indent=2, separators=(',', ': '))
     self.output_stream.write('\n')

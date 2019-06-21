@@ -9,9 +9,8 @@ from telemetry.internal.results import output_formatter
 
 
 class HistogramSetJsonOutputFormatter(output_formatter.OutputFormatter):
-  def __init__(self, output_stream, metadata, reset_results):
+  def __init__(self, output_stream, reset_results):
     super(HistogramSetJsonOutputFormatter, self).__init__(output_stream)
-    self._metadata = metadata
     self._reset_results = reset_results
 
   def Format(self, page_test_results):

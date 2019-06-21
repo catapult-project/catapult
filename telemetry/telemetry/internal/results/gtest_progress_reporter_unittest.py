@@ -43,8 +43,8 @@ def _MakeStorySet():
 def _MakePageTestResults(reporter):
   return page_test_results.PageTestResults(
       progress_reporter=reporter,
-      benchmark_metadata=page_test_results.BenchmarkInfo(
-          name='bench', description='foo'))
+      benchmark_name='bench',
+      benchmark_description='foo')
 
 class GTestProgressReporterTest(
     base_test_results_unittest.BaseTestResultsUnittest):

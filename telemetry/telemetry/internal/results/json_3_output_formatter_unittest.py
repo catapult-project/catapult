@@ -46,8 +46,7 @@ def _HasStory(benchmark_dict, story_name):
 
 
 def _MakePageTestResults(**kwargs):
-  kwargs['benchmark_metadata'] = page_test_results.BenchmarkInfo(
-      'benchmark_name')
+  kwargs.setdefault('benchmark_name', 'benchmark_name')
   with mock.patch('time.time', return_value=1501773200):
     return page_test_results.PageTestResults(**kwargs)
 

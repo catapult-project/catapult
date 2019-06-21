@@ -7,18 +7,15 @@ import StringIO
 import unittest
 
 from telemetry.internal.results import histogram_set_json_output_formatter
-from telemetry.internal.results import page_test_results
 
 
 class HistogramSetJsonTest(unittest.TestCase):
 
   def setUp(self):
     self._output = StringIO.StringIO()
-    self._benchmark_metadata = page_test_results.BenchmarkInfo(
-        'benchmark_name', 'benchmark_description')
     self._formatter = (
         histogram_set_json_output_formatter.HistogramSetJsonOutputFormatter(
-            self._output, self._benchmark_metadata, False))
+            self._output, reset_results=False))
 
   def testOutputAndParseDisabled(self):
     self._formatter.FormatDisabled(None)

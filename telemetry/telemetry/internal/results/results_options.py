@@ -132,9 +132,6 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
     if upload_bucket in cloud_storage.BUCKET_ALIASES:
       upload_bucket = cloud_storage.BUCKET_ALIASES[upload_bucket]
 
-  benchmark_info = page_test_results.BenchmarkInfo(
-      name=benchmark_name, description=benchmark_description)
-
   output_formatters = []
   for output_format in options.output_formats:
     if output_format == 'none' or output_format == "gtest":
@@ -142,15 +139,13 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
     output_stream = _GetOutputStream(output_format, options.output_dir)
     if output_format == 'html':
       output_formatters.append(html_output_formatter.HtmlOutputFormatter(
-          output_stream, benchmark_info, options.reset_results,
-          upload_bucket))
+          output_stream, options.reset_results, upload_bucket))
     elif output_format == 'json-test-results':
       output_formatters.append(json_3_output_formatter.JsonOutputFormatter(
           output_stream))
     elif output_format == 'chartjson':
       output_formatters.append(
-          chart_json_output_formatter.ChartJsonOutputFormatter(
-              output_stream, benchmark_info))
+          chart_json_output_formatter.ChartJsonOutputFormatter(output_stream))
     elif output_format == 'csv':
       output_formatters.append(
           csv_output_formatter.CsvOutputFormatter(
@@ -158,7 +153,7 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
     elif output_format == 'histograms':
       output_formatters.append(
           histogram_set_json_output_formatter.HistogramSetJsonOutputFormatter(
-              output_stream, benchmark_info, options.reset_results))
+              output_stream, options.reset_results))
     else:
       # Should never be reached. The parser enforces the choices.
       raise Exception('Invalid --output-format "%s". Valid choices are: %s'
@@ -169,7 +164,8 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
       output_formatters=output_formatters, progress_reporter=reporter,
       output_dir=options.output_dir,
       should_add_value=should_add_value,
+      benchmark_name=benchmark_name,
+      benchmark_description=benchmark_description,
       benchmark_enabled=benchmark_enabled,
       upload_bucket=upload_bucket,
-      benchmark_metadata=benchmark_info,
       results_label=options.results_label)

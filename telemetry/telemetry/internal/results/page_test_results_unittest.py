@@ -386,15 +386,15 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def testPrintSummaryDisabledResults(self):
     output_stream = StringIO.StringIO()
     output_formatters = []
-    benchmark_metadata = page_test_results.BenchmarkInfo(
-        'benchmark_name', 'benchmark_description')
     output_formatters.append(
-        chart_json_output_formatter.ChartJsonOutputFormatter(
-            output_stream, benchmark_metadata))
+        chart_json_output_formatter.ChartJsonOutputFormatter(output_stream))
     output_formatters.append(html_output_formatter.HtmlOutputFormatter(
-        output_stream, benchmark_metadata, True))
+        output_stream, reset_results=True))
     results = page_test_results.PageTestResults(
-        output_formatters=output_formatters, benchmark_enabled=False)
+        output_formatters=output_formatters,
+        benchmark_name='benchmark_name',
+        benchmark_description='benchmark_description',
+        benchmark_enabled=False)
     results.PrintSummary()
     self.assertEquals(
         output_stream.getvalue(),
@@ -419,10 +419,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     hs.AddSharedDiagnosticToAllHistograms(
         'bar', generic_set.GenericSet(['baz']))
     histogram_dicts = hs.AsDicts()
-    benchmark_metadata = page_test_results.BenchmarkInfo(
-        'benchmark_name', 'benchmark_description')
-    results = page_test_results.PageTestResults(
-        benchmark_metadata=benchmark_metadata)
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     results.ImportHistogramDicts(histogram_dicts, import_immediately=False)
     results.DidRunPage(self.pages[0])
@@ -431,10 +428,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertEqual(results.AsHistogramDicts(), histogram_dicts)
 
   def testAddSharedDiagnosticToAllHistograms(self):
-    benchmark_metadata = page_test_results.BenchmarkInfo(
-        'benchmark_name', 'benchmark_description')
     results = page_test_results.PageTestResults(
-        benchmark_metadata=benchmark_metadata)
+        benchmark_name='benchmark_name')
     results.WillRunPage(self.pages[0])
     results.DidRunPage(self.pages[0])
     results.CleanUp()
@@ -451,10 +446,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertIsInstance(diag, generic_set.GenericSet)
 
   def testPopulateHistogramSet_UsesScalarValueData(self):
-    benchmark_metadata = page_test_results.BenchmarkInfo(
-        'benchmark_name', 'benchmark_description')
-    results = page_test_results.PageTestResults(
-        benchmark_metadata=benchmark_metadata)
+    results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     results.AddValue(scalar.ScalarValue(
         self.pages[0], 'a', 'seconds', 3,
@@ -471,11 +463,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
   def testPopulateHistogramSet_UsesHistogramSetData(self):
     original_diagnostic = generic_set.GenericSet(['benchmark_name'])
-
-    benchmark_metadata = page_test_results.BenchmarkInfo(
-        'benchmark_name', 'benchmark_description')
     results = page_test_results.PageTestResults(
-        benchmark_metadata=benchmark_metadata)
+        benchmark_name='benchmark_name')
     results.WillRunPage(self.pages[0])
     results.AddHistogram(histogram_module.Histogram('foo', 'count'))
     results.AddSharedDiagnosticToAllHistograms(
