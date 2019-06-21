@@ -123,22 +123,6 @@ class TelemetryInfo(object):
   def benchmark_name(self):
     return self._benchmark_name
 
-  @benchmark_name.setter
-  def benchmark_name(self, benchmark_name):
-    """ This field is DEPRECATED. Clients should no longer set benchmark name.
-    """
-
-  @property
-  def benchmark_start_epoch(self):
-    """ This field is DEPRECATED. Please use benchmark_start_us instead.
-    """
-    return self._benchmark_start_us / 1e6
-
-  @benchmark_start_epoch.setter
-  def benchmark_start_epoch(self, benchmark_start_epoch):
-    """ This field is DEPRECATED. Clients should no longer set benchmark start.
-    """
-
   @property
   def benchmark_start_us(self):
     return self._benchmark_start_us
@@ -146,11 +130,6 @@ class TelemetryInfo(object):
   @property
   def benchmark_descriptions(self):
     return self._benchmark_descriptions
-
-  @benchmark_descriptions.setter
-  def benchmark_descriptions(self, benchmark_descriptions):
-    """ This field is DEPRECATED. Clients should no longer set benchmark desc.
-    """
 
   @property
   def trace_start_us(self):
