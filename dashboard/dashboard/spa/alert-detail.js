@@ -327,7 +327,8 @@ export default class AlertDetail extends ElementBase {
       bubbles: true,
       composed: true,
     }));
-    await AlertDetail.changeBugId(this.statePath, -2);
+    await AlertDetail.changeBugId(this.statePath,
+        ExistingBugRequest.IGNORE_BUG_ID);
   }
 
   static async changeBugId(statePath, bugId) {

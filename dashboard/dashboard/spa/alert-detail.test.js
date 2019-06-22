@@ -131,8 +131,9 @@ suite('alert-detail', function() {
       e.matches('raised-button') && /Ignore/.test(e.textContent))[0];
     ignore.click();
     await afterRender();
-    assert.strictEqual(-2, ad.bugId);
-    assert.strictEqual('-2', existingBugBody.get('bug'));
+    assert.strictEqual(ExistingBugRequest.IGNORE_BUG_ID, ad.bugId);
+    assert.strictEqual('' + ExistingBugRequest.IGNORE_BUG_ID,
+        existingBugBody.get('bug'));
   });
 
   test('new bug', async function() {

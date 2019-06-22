@@ -5,6 +5,7 @@
 'use strict';
 
 import './cp-loading.js';
+import './cp-switch.js';
 import './error-set.js';
 import AlertsControls from './alerts-controls.js';
 import AlertsRequest from './alerts-request.js';
@@ -18,7 +19,8 @@ import TriageExisting from './triage-existing.js';
 import TriageNew from './triage-new.js';
 import groupAlerts from './group-alerts.js';
 import {ElementBase, STORE} from './element-base.js';
-import {UPDATE} from './simple-redux.js';
+import {CHAIN, TOGGLE, UPDATE} from './simple-redux.js';
+import {autotriage} from './autotriage.js';
 import {html, css} from 'lit-element';
 
 import {
@@ -35,6 +37,7 @@ import {
 } from './utils.js';
 
 const NOTIFICATION_MS = 5000;
+const FULLAUTOTRIAGE_DELAY_MS = 3000;
 
 // loadMore() below chases cursors when loading untriaged alerts until it's
 // loaded enough alert groups and spent enough time waiting for the backend.
@@ -57,6 +60,7 @@ export default class AlertsSection extends ElementBase {
       sectionId: Number,
       selectedAlertPath: String,
       totalCount: Number,
+      autotriage: Object,
     };
   }
 
@@ -71,12 +75,18 @@ export default class AlertsSection extends ElementBase {
       sectionId: options.sectionId || simpleGUID(),
       selectedAlertPath: undefined,
       totalCount: 0,
+      autotriage: {
+        fullAuto: options.fullAuto || false,
+        running: false,
+        bugId: 0,
+        explanation: '',
+      },
     };
   }
 
   static get styles() {
     return css`
-      #triage_controls {
+      #triage-controls {
         align-items: center;
         display: flex;
         padding-left: 24px;
@@ -84,12 +94,12 @@ export default class AlertsSection extends ElementBase {
                     color var(--transition-short, 0.2s);
       }
 
-      #triage_controls[anySelected] {
+      #triage-controls[anySelected] {
         background-color: var(--primary-color-light, lightblue);
         color: var(--primary-color-dark, blue);
       }
 
-      #triage_controls .button {
+      #triage-controls .button {
         background: unset;
         cursor: pointer;
         font-weight: bold;
@@ -97,7 +107,7 @@ export default class AlertsSection extends ElementBase {
         text-transform: uppercase;
       }
 
-      #triage_controls .button[disabled] {
+      #triage-controls .button[disabled] {
         color: var(--neutral-color-dark, grey);
         font-weight: normal;
       }
@@ -105,6 +115,18 @@ export default class AlertsSection extends ElementBase {
       #count {
         padding: 8px;
         flex-grow: 1;
+      }
+
+      #autotriage {
+        display: flex;
+        align-items: center;
+        border: 2px solid var(--primary-color-light, lightblue);
+        padding: 4px;
+      }
+
+      #explanation {
+        flex-grow: 1;
+        text-align: center;
       }
     `;
   }
@@ -124,6 +146,32 @@ export default class AlertsSection extends ElementBase {
     const summary = AlertsSection.summary(
         this.showingTriaged, this.alertGroups, this.totalCount);
 
+    const canAutotriage = isProduction() && this.sheriff &&
+      this.sheriff.selectedOptions && this.sheriff.selectedOptions.length;
+
+    let fullAutoTooltip = this.autotriage.fullAuto ?
+      'Now triaging alerts completely automatically. Click to switch to ' +
+      'semi-automatic, where you need to click a button to accept autotriage ' +
+      'suggestions.' :
+      'Now semi-automatic, where you can click a button to accept autotriage ' +
+      'suggestions. Click to switch to full automatic.';
+    fullAutoTooltip += '\n\nDISABLED until sheriffs approve the ' +
+      'heuristics in autotriage.js';
+    let autotriageLabel = 'Autotriage';
+    if (this.autotriage.explanation) {
+      if (this.autotriage.fullAuto) {
+        autotriageLabel = this.autotriage.running ? 'Stop' : 'Start';
+      } else {
+        if (this.autotriage.bugId < 0) {
+          autotriageLabel = 'Ignore';
+        } else if (this.autotriage.bugId > 0) {
+          autotriageLabel = 'Assign to ' + this.autotriage.bugId;
+        } else {
+          autotriageLabel = 'New Bug';
+        }
+      }
+    }
+
     return html`
       <alerts-controls
           id="controls"
@@ -136,7 +184,34 @@ export default class AlertsSection extends ElementBase {
       </cp-loading>
 
       ${(this.alertGroups && this.alertGroups.length) ? html`
-        <div id="triage_controls"
+        ${!canAutotriage ? '' : html`
+          <div id="autotriage">
+            <cp-switch
+                title="${fullAutoTooltip}"
+                disabled="true"
+                ?checked="${this.autotriage.fullAuto}"
+                @change="${this.onToggleFullAuto_}">
+              Full automatic
+            </cp-switch>
+
+            <span id="explanation">
+              ${!this.isLoading ? '' : html`
+                Please wait for triaged alerts to finish loading.
+              `}
+              <br>
+              ${this.autotriage.explanation ||
+                'Select alerts in the table below to autotriage.'}
+            </span>
+
+            <raised-button
+                ?disabled="${!this.autotriage.explanation}"
+                @click="${this.onAutotriage_}">
+              ${autotriageLabel}
+            </raised-button>
+          </div>
+        `}
+
+        <div id="triage-controls"
             ?anySelected="${this.selectedAlertsCount !== 0}">
           <div id="count">
             ${this.selectedAlertsCount} selected of ${summary}
@@ -219,6 +294,46 @@ export default class AlertsSection extends ElementBase {
     await AlertsSection.loadAlerts(this.statePath, event.detail.sources);
   }
 
+  async onToggleFullAuto_(event) {
+    STORE.dispatch(CHAIN(TOGGLE(this.statePath + '.autotriage.fullAuto'), {
+      type: AlertsSection.reducers.autotriage.name,
+      statePath: this.statePath,
+    }));
+  }
+
+  async onAutotriage_(event) {
+    if (!this.autotriage.fullAuto) {
+      await AlertsSection.autotriage(this.statePath);
+      return;
+    }
+
+    STORE.dispatch(TOGGLE(this.statePath + '.autotriage.running'));
+    if (this.autotriage.running) {
+      AlertsSection.fullAutotriage(this.statePath);
+    }
+  }
+
+  static async fullAutotriage(statePath) {
+    await timeout(FULLAUTOTRIAGE_DELAY_MS);
+    let state = get(STORE.getState(), statePath);
+    while (state.autotriage.running) {
+      await AlertsSection.autotriage(this.statePath);
+      await timeout(FULLAUTOTRIAGE_DELAY_MS);
+      state = get(STORE.getState(), statePath);
+    }
+  }
+
+  static async autotriage(statePath) {
+    const state = get(STORE.getState(), statePath);
+    if (state.autotriage.bugId) {
+      await AlertsSection.changeBugId(statePath, state.autotriage.bugId);
+    } else {
+      await AlertsSection.openNewBugDialog(statePath);
+      STORE.dispatch(UPDATE(statePath + '.newBug', {isOpen: false}));
+      await AlertsSection.submitNewBug(statePath);
+    }
+  }
+
   async onUnassign_(event) {
     await AlertsSection.changeBugId(this.statePath, 0);
   }
@@ -261,6 +376,10 @@ export default class AlertsSection extends ElementBase {
 
   onSelected_(event) {
     AlertsSection.maybeLayoutPreview(this.statePath);
+    STORE.dispatch({
+      type: AlertsSection.reducers.autotriage.name,
+      statePath: this.statePath,
+    });
   }
 
   onAlertClick_(event) {
@@ -288,10 +407,13 @@ export default class AlertsSection extends ElementBase {
   static async submitExistingBug(statePath) {
     METRICS.endTriage();
     METRICS.startTriage();
+
     let state = get(STORE.getState(), statePath);
     const triagedBugId = state.existingBug.bugId;
     STORE.dispatch(UPDATE(`${statePath}.existingBug`, {isOpen: false}));
+
     await AlertsSection.changeBugId(statePath, triagedBugId);
+
     STORE.dispatch({
       type: AlertsSection.reducers.showTriagedExisting.name,
       statePath,
@@ -315,25 +437,23 @@ export default class AlertsSection extends ElementBase {
 
   static async changeBugId(statePath, bugId) {
     STORE.dispatch(UPDATE(statePath, {isLoading: true}));
-    const rootState = STORE.getState();
-    let state = get(rootState, statePath);
+    const state = get(STORE.getState(), statePath);
     const selectedAlerts = AlertsTable.getSelectedAlerts(
         state.alertGroups);
     const alertKeys = new Set(selectedAlerts.map(a => a.key));
+
+    STORE.dispatch({
+      type: AlertsSection.reducers.removeOrUpdateAlerts.name,
+      statePath,
+      alertKeys,
+      bugId,
+    });
+
+    AlertsSection.selectFirstGroup(statePath);
+
     try {
       const request = new ExistingBugRequest({alertKeys, bugId});
       await request.response;
-      STORE.dispatch({
-        type: AlertsSection.reducers.removeOrUpdateAlerts.name,
-        statePath,
-        alertKeys,
-        bugId,
-      });
-
-      state = get(STORE.getState(), statePath);
-      if (bugId !== 0) {
-        STORE.dispatch(UPDATE(`${statePath}.preview`, {lineDescriptors: []}));
-      }
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
@@ -345,7 +465,8 @@ export default class AlertsSection extends ElementBase {
     let state = get(STORE.getState(), statePath);
     const alerts = AlertsTable.getSelectedAlerts(state.alertGroups);
     const ignoredCount = alerts.length;
-    await AlertsSection.changeBugId(statePath, -2);
+    await AlertsSection.changeBugId(statePath,
+        ExistingBugRequest.IGNORE_BUG_ID);
 
     STORE.dispatch(UPDATE(statePath, {
       hasTriagedExisting: false,
@@ -393,21 +514,40 @@ export default class AlertsSection extends ElementBase {
     });
   }
 
+  static async selectFirstGroup(statePath) {
+    const state = get(STORE.getState(), statePath);
+    STORE.dispatch(CHAIN({
+      type: AlertsTable.reducers.selectAlert.name,
+      statePath,
+      alertGroupIndex: 0,
+      alertIndex: state.alertGroups[0].alerts.findIndex(a => !a.bugId),
+    }, {
+      type: AlertsSection.reducers.autotriage.name,
+      statePath,
+    }));
+    AlertsSection.maybeLayoutPreview(statePath);
+  }
+
   static async submitNewBug(statePath) {
     METRICS.endTriage();
     METRICS.startTriage();
+
     STORE.dispatch(UPDATE(statePath, {isLoading: true}));
-    const rootState = STORE.getState();
-    let state = get(rootState, statePath);
+
+    let state = get(STORE.getState(), statePath);
     const selectedAlerts = AlertsTable.getSelectedAlerts(
         state.alertGroups);
     const alertKeys = new Set(selectedAlerts.map(a => a.key));
+
+    // Remove selected alerts.
     STORE.dispatch({
       type: AlertsSection.reducers.removeOrUpdateAlerts.name,
       statePath,
       alertKeys,
       bugId: '[creating]',
     });
+
+    AlertsSection.selectFirstGroup(statePath);
 
     let bugId;
     try {
@@ -435,8 +575,6 @@ export default class AlertsSection extends ElementBase {
         alertKeys,
         bugId,
       });
-      state = get(STORE.getState(), statePath);
-      STORE.dispatch(UPDATE(`${statePath}.preview`, {lineDescriptors: []}));
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
@@ -615,6 +753,7 @@ export default class AlertsSection extends ElementBase {
       showingTriaged: ((queryParams.get('triaged') !== null) ||
         (queryParams.get('bug') !== null)),
       sortDescending: queryParams.get('descending') !== null,
+      fullAuto: queryParams.get('fa') !== null,
     };
   }
 
@@ -649,6 +788,7 @@ export default class AlertsSection extends ElementBase {
       showingTriaged: state.showingTriaged,
       sortColumn: state.sortColumn,
       sortDescending: state.sortDescending,
+      fullAuto: state.autotriage.fullAuto,
     };
   }
 
@@ -692,6 +832,9 @@ export default class AlertsSection extends ElementBase {
     }
     if (state.sortColumn !== 'startRevision') {
       queryParams.set('sort', state.sortColumn);
+    }
+    if (state.autotriage.fullAuto) {
+      queryParams.set('fa', '');
     }
     if (state.sortDescending) queryParams.set('descending', '');
     return queryParams;
@@ -1023,7 +1166,53 @@ AlertsSection.reducers = {
     state = {...state, alertGroups};
     state = AlertsSection.reducers.updateColumns(state);
     state = AlertsSection.reducers.updateSelectedAlertsCount(state);
+    state = AlertsSection.reducers.autotriage(state);
     return state;
+  },
+
+  autotriage: (state, action, rootState) => {
+    if (state.bug.selectedOptions.length ||
+        state.report.selectedOptions.length ||
+        !state.sheriff.selectedOptions.length ||
+        state.showingTriaged) {
+      return state;
+    }
+
+    const untriagedAlerts = [];
+    const triagedAlerts = [];
+    for (const alertGroup of state.alertGroups) {
+      let anyInGroup = false;
+      for (const alert of alertGroup.alerts) {
+        if (!alert.isSelected || alert.bugId) continue;
+        untriagedAlerts.push(alert);
+        anyInGroup = true;
+      }
+      if (anyInGroup) {
+        for (const alert of alertGroup.alerts) {
+          if (!alert.bugId) continue;
+          triagedAlerts.push(alert);
+        }
+      }
+    }
+
+    if (!untriagedAlerts.length) {
+      return {
+        ...state,
+        autotriage: {
+          ...state.autotriage,
+          bugId: 0,
+          explanation: '',
+        },
+      };
+    }
+
+    return {
+      ...state,
+      autotriage: {
+        ...state.autotriage,
+        ...autotriage(untriagedAlerts, triagedAlerts),
+      },
+    };
   },
 
   finalizeAlerts: (state, action, rootState) => {

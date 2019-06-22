@@ -53,6 +53,21 @@ alerts within groups, you can expand the group by clicking the expand button
 relevant triaged alerts, you can expand them by clicking the expand button (down
 arrow with number) in the 'Triaged' column.
 
+### Autotriage
+
+The box below the sources and above the triage controls uses
+[heuristics](https://cs.chromium.org/chromium/src/third_party/catapult/dashboard/dashboard/spa/autotriage.js)
+to automatically suggest triage actions for selected alerts, and explains its
+suggestions.
+
+Full automatic mode is currently disabled until sheriffs are comfortable with
+the heuristics.  After full automatic mode is deemed safe and enabled, when
+activated, then the autotriage button would change to a START/STOP button.
+The START button automatically takes the suggested action, then waits a few
+seconds between displaying a suggestion for the next group and taking the action
+in order to allow you to click STOP to review the suggested action, dig into the
+timeseries, and possibly take a different action.
+
 ### Triaging
 
 The four buttons at the top of the alerts table allow triaging alerts.

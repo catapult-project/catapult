@@ -82,7 +82,7 @@ suite('alerts-section', function() {
             return {};
           }
           if (url === SheriffsRequest.URL) {
-            return [];
+            return ['test'];
           }
           if (url === AlertsRequest.URL) {
             const improvements = Boolean(options.body.get('improvements'));
@@ -259,7 +259,8 @@ suite('alerts-section', function() {
     ignore.click();
     await afterRender();
 
-    assert.strictEqual('-2', existingBugBody.get('bug'));
+    assert.strictEqual('' + ExistingBugRequest.IGNORE_BUG_ID,
+        existingBugBody.get('bug'));
     assert.lengthOf(existingBugBody.getAll('key'), 10);
     for (let i = 0; i < 10; ++i) {
       assert.include(existingBugBody.getAll('key'), 'key' + i);
@@ -356,5 +357,30 @@ suite('alerts-section', function() {
     const divs = findElements(section, e => e.matches('div.error') &&
       /Error loading alerts: 500 test/.test(e.textContent));
     assert.lengthOf(divs, 1);
+  });
+
+  test('autotriage', async function() {
+    setProductionForTesting(true);
+    const section = await fixture();
+    STORE.dispatch(UPDATE('test.sheriff', {selectedOptions: ['test']}));
+    section.shadowRoot.querySelector('#controls').dispatchEvent(
+        new CustomEvent('sources', {detail: {sources: [{bug: 42}]}}));
+    await afterRender();
+    const groupCount = section.alertGroups.length;
+    const selectAll = findElements(section, e =>
+      e.matches('td cp-checkbox'))[0];
+    selectAll.click();
+    await afterRender();
+    const autotriage = section.shadowRoot.querySelector('#autotriage');
+    const explanation = autotriage.querySelector('#explanation');
+    const button = autotriage.querySelector('raised-button');
+    button.click();
+    await afterRender();
+
+    // There should be one fewer alertGroup.
+    assert.strictEqual(section.alertGroups.length, groupCount - 1);
+
+    // The next group should be selected.
+    assert.isTrue(section.alertGroups[0].alerts[0].isSelected);
   });
 });

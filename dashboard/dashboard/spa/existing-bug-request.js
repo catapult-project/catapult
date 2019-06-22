@@ -24,4 +24,5 @@ export default class ExistingBugRequest extends RequestBase {
       ${this.body_.get('bug')}`;
   }
 }
+ExistingBugRequest.IGNORE_BUG_ID = -2;
 ExistingBugRequest.URL = '/api/existing_bug';

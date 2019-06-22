@@ -11,7 +11,7 @@ import './expand-button.js';
 import './scalar-span.js';
 import {ElementBase, STORE} from './element-base.js';
 import {breakWords, crbug, get, setImmutable} from './utils.js';
-import {html, css, svg} from 'lit-element';
+import {html, css, unsafeCSS, svg} from 'lit-element';
 
 export default class AlertsTable extends ElementBase {
   static get is() { return 'alerts-table'; }
@@ -51,6 +51,17 @@ export default class AlertsTable extends ElementBase {
   }
 
   static get styles() {
+    // Depending on the screen size and alert data, this should be enough for a
+    // few rows:
+    const minTableHeight = 120;
+
+    // The height of everything in alerts-section except alerts-table:
+    const nonTableHeight = 620;
+
+    const maxScreenHeight = minTableHeight + nonTableHeight;
+
+    // TODO Use flex column in alerts-section instead of computing heights.
+
     return css`
       #cat {
         display: block;
@@ -59,22 +70,17 @@ export default class AlertsTable extends ElementBase {
         width: 300px;
       }
 
-      :host {
-        --min-table-height: 122px;
-        --non-table-height: 483px;
-      }
-
       #scroll {
-        max-height: calc(100vh - var(--non-table-height));
+        max-height: calc(100vh - ${unsafeCSS(nonTableHeight)}px);
         margin: 0;
         overflow-y: auto;
         overflow-x: hidden;
       }
 
-      @media screen and (max-height: calc(var(--min-table-height) +
-                                          var(--non-table-height))) {
+      @media screen and (max-height: ${unsafeCSS(maxScreenHeight)}px) {
         #scroll {
-          max-height: var(--min-table-height);
+          height: ${unsafeCSS(minTableHeight)}px;
+          max-height: ${unsafeCSS(minTableHeight)}px;
         }
       }
 
@@ -788,14 +794,14 @@ AlertsTable.reducers = {
     };
   },
 
-  selectAlert: (state, action, rootState) => {
+  selectAlert: (state, {shiftKey, alertIndex, alertGroupIndex}, rootState) => {
     let alertGroups = state.alertGroups;
-    const alertGroup = alertGroups[action.alertGroupIndex];
+    const alertGroup = alertGroups[alertGroupIndex];
     let alerts = alertGroup.alerts;
-    const alert = alerts[action.alertIndex];
+    const alert = alerts[alertIndex];
     const isSelected = !alert.isSelected;
 
-    if (action.shiftKey) {
+    if (shiftKey) {
       // [De]select all alerts between previous selected alert and |alert|.
       // Deep-copy alerts so that we can freely modify them.
       // Copy references to individual alerts out of their groups to reflect
@@ -828,9 +834,9 @@ AlertsTable.reducers = {
       let toggleAll = false;
       if (!alertGroup.isExpanded) {
         if (state.showingTriaged) {
-          toggleAll = action.alertIndex === 0;
+          toggleAll = alertIndex === 0;
         } else {
-          toggleAll = action.alertIndex === alertGroup.alerts.findIndex(
+          toggleAll = alertIndex === alertGroup.alerts.findIndex(
               a => !a.bugId);
         }
       }
@@ -845,11 +851,11 @@ AlertsTable.reducers = {
       } else {
         // Only toggle this alert.
         alerts = setImmutable(
-            alerts, `${action.alertIndex}.isSelected`, isSelected);
+            alerts, `${alertIndex}.isSelected`, isSelected);
       }
 
       alertGroups = setImmutable(
-          state.alertGroups, `${action.alertGroupIndex}.alerts`, alerts);
+          state.alertGroups, `${alertGroupIndex}.alerts`, alerts);
     }
 
     const selectedAlertsCount = AlertsTable.getSelectedAlerts(
