@@ -340,9 +340,7 @@ export default class ChartCompound extends ElementBase {
         this.mode !== oldMode ||
         this.fixedXAxis !== oldFixedXAxis ||
         this.zeroYAxis !== oldZeroYAxis) {
-      this.debounce('load', () => {
-        ChartCompound.load(this.statePath);
-      }, PolymerAsync.animationFrame);
+      this.debounce('load', () => ChartCompound.load(this.statePath));
     }
 
     if (this.cursorRevision !== oldCursorRevision ||

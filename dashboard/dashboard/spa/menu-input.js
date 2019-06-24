@@ -372,11 +372,17 @@ MenuInput.reducers = {
     let options = ARROW_HANDLERS[key](indices, state.options, state.query);
 
     if (state.query && (key === 'ArrowUp' || key === 'ArrowDown')) {
+      const originalIndices = [...indices].join();
       let cursorOption = get(state.options, optionStatePath(indices));
       const queryParts = state.query.toLocaleLowerCase().split(' ');
       while (!OptionGroup.matches(cursorOption, queryParts)) {
         options = ARROW_HANDLERS[key](indices, state.options, state.query);
         cursorOption = get(state.options, optionStatePath(indices));
+
+        if (indices.join() === originalIndices) {
+          // No options match the query.
+          return {...state, cursor: undefined};
+        }
       }
     }
 

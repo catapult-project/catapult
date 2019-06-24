@@ -31,6 +31,8 @@ export default class AlertsTable extends ElementBase {
       showingTriaged: Boolean,
       sortColumn: String,
       sortDescending: Boolean,
+      cursor: Array,
+      isHotkeySorting: Boolean,
     };
   }
 
@@ -47,6 +49,8 @@ export default class AlertsTable extends ElementBase {
       showingTriaged: options.showingTriaged || false,
       sortColumn: options.sortColumn || 'startRevision',
       sortDescending: options.sortDescending || false,
+      cursor: undefined,
+      isHotkeySorting: false,
     };
   }
 
@@ -98,6 +102,23 @@ export default class AlertsTable extends ElementBase {
         white-space: nowrap;
       }
 
+      th:first-child,
+      td:first-child {
+        padding: 0;
+      }
+
+      tr[iscursor] td:first-child {
+        background: var(--primary-color-dark, blue);
+      }
+
+      tr {
+        border: 1px solid var(--background-color, white);
+      }
+
+      tr[iscursor] {
+        border-bottom-color: var(--primary-color-dark, blue);
+      }
+
       th.checkbox {
         padding-left: 4px;
         text-align: left;
@@ -135,6 +156,11 @@ export default class AlertsTable extends ElementBase {
 
       tr[untriaged] {
         font-weight: bold;
+      }
+
+      span[ishotkeysorting] {
+        color: var(--primary-color-dark, blue);
+        text-decoration: underline;
       }
     `;
   }
@@ -282,6 +308,8 @@ export default class AlertsTable extends ElementBase {
         <table ?placeholder="${this.areAlertGroupsPlaceholders}">
           <thead>
             <tr>
+              <th>&nbsp;</th>
+
               <th>
                 <column-head
                      name="count"
@@ -289,7 +317,7 @@ export default class AlertsTable extends ElementBase {
                     .sortDescending="${this.sortDescending}"
                     ?disabled="${this.areAlertGroupsPlaceholders}"
                     @click="${this.onSort_}">
-                  Count
+                  <span ?ishotkeysorting="${this.isHotkeySorting}">C</span>ount
                 </column-head>
               </th>
 
@@ -301,7 +329,7 @@ export default class AlertsTable extends ElementBase {
                       .sortDescending="${this.sortDescending}"
                       ?disabled="${this.areAlertGroupsPlaceholders}"
                       @click="${this.onSort_}">
-                    Triaged
+            <span ?ishotkeysorting="${this.isHotkeySorting}">T</span>riaged
                   </column-head>
                 </th>
               ` : ''}
@@ -322,7 +350,7 @@ export default class AlertsTable extends ElementBase {
                       .sortDescending="${this.sortDescending}"
                       ?disabled="${this.areAlertGroupsPlaceholders}"
                       @click="${this.onSort_}">
-                    Bug
+                    B<span ?ishotkeysorting="${this.isHotkeySorting}">u</span>g
                   </column-head>
                 </th>
               ` : ''}
@@ -334,7 +362,7 @@ export default class AlertsTable extends ElementBase {
                     .sortDescending="${this.sortDescending}"
                     ?disabled="${this.areAlertGroupsPlaceholders}"
                     @click="${this.onSort_}">
-                  Revisions
+            <span ?ishotkeysorting="${this.isHotkeySorting}">R</span>evisions
                 </column-head>
               </th>
 
@@ -345,7 +373,7 @@ export default class AlertsTable extends ElementBase {
                     .sortDescending="${this.sortDescending}"
                     ?disabled="${this.areAlertGroupsPlaceholders}"
                     @click="${this.onSort_}">
-                  Suite
+                  <span ?ishotkeysorting="${this.isHotkeySorting}">S</span>uite
                 </column-head>
               </th>
 
@@ -356,7 +384,7 @@ export default class AlertsTable extends ElementBase {
                     .sortDescending="${this.sortDescending}"
                     ?disabled="${this.areAlertGroupsPlaceholders}"
                     @click="${this.onSort_}">
-                  Measurement
+            <span ?ishotkeysorting="${this.isHotkeySorting}">M</span>easurement
                 </column-head>
               </th>
 
@@ -368,7 +396,7 @@ export default class AlertsTable extends ElementBase {
                       .sortDescending="${this.sortDescending}"
                       ?disabled="${this.areAlertGroupsPlaceholders}"
                       @click="${this.onSort_}">
-                    Master
+            M<span ?ishotkeysorting="${this.isHotkeySorting}">a</span>ster
                   </column-head>
                 </th>
               ` : ''}
@@ -380,7 +408,7 @@ export default class AlertsTable extends ElementBase {
                     .sortDescending="${this.sortDescending}"
                     ?disabled="${this.areAlertGroupsPlaceholders}"
                     @click="${this.onSort_}">
-                  Bot
+                  <span ?ishotkeysorting="${this.isHotkeySorting}">B</span>ot
                 </column-head>
               </th>
 
@@ -392,7 +420,7 @@ export default class AlertsTable extends ElementBase {
                       .sortDescending="${this.sortDescending}"
                       ?disabled="${this.areAlertGroupsPlaceholders}"
                       @click="${this.onSort_}">
-                    Case
+                    Cas<span ?ishotkeysorting="${this.isHotkeySorting}">e</span>
                   </column-head>
                 </th>
               ` : ''}
@@ -404,7 +432,7 @@ export default class AlertsTable extends ElementBase {
                     .sortDescending="${this.sortDescending}"
                     ?disabled="${this.areAlertGroupsPlaceholders}"
                     @click="${this.onSort_}">
-                  Delta
+                  <span ?ishotkeysorting="${this.isHotkeySorting}">D</span>elta
                 </column-head>
               </th>
 
@@ -415,7 +443,7 @@ export default class AlertsTable extends ElementBase {
                     .sortDescending="${this.sortDescending}"
                     ?disabled="${this.areAlertGroupsPlaceholders}"
                     @click="${this.onSort_}">
-                  Delta %
+          <span ?ishotkeysorting="${this.isHotkeySorting}">P</span>ercent Delta
                 </column-head>
               </th>
             </tr>
@@ -442,7 +470,7 @@ export default class AlertsTable extends ElementBase {
   renderAlert(alertGroup, alertGroupIndex, alert, alertIndex) {
     if (!AlertsTable.shouldDisplayAlert(
         this.areAlertGroupsPlaceholders, this.showingTriaged, alertGroup,
-        alertIndex, alertGroup.triaged.isExpanded)) {
+        alertIndex)) {
       return '';
     }
 
@@ -490,8 +518,17 @@ export default class AlertsTable extends ElementBase {
       }
     }
 
+    const isCursor = !this.areAlertGroupsPlaceholders && this.cursor &&
+      (this.cursor[0] === alertGroupIndex) && (this.cursor[1] === alertIndex);
+
     return html`
-      <tr ?untriaged="${!alert.bugId}" @click="${onRowClick}">
+      <tr ?untriaged="${!alert.bugId}"
+          ?iscursor="${isCursor}"
+          @click="${onRowClick}">
+        <td>
+          &nbsp;
+        </td>
+
         <td>
           ${shouldDisplayExpandGroupButton ? html`
             <expand-button
@@ -667,8 +704,7 @@ export default class AlertsTable extends ElementBase {
 }
 
 AlertsTable.shouldDisplayAlert = (
-    areAlertGroupsPlaceholders, showingTriaged, alertGroup, alertIndex,
-    triagedExpanded) => {
+    areAlertGroupsPlaceholders, showingTriaged, alertGroup, alertIndex) => {
   if (areAlertGroupsPlaceholders) return true;
   if (showingTriaged) return alertGroup.isExpanded || (alertIndex === 0);
 
@@ -676,10 +712,10 @@ AlertsTable.shouldDisplayAlert = (
   const isTriaged = alertGroup.alerts[alertIndex].bugId;
   const firstUntriagedIndex = alertGroup.alerts.findIndex(a => !a.bugId);
   if (alertGroup.isExpanded) {
-    return !isTriaged || triagedExpanded || (
+    return !isTriaged || alertGroup.triaged.isExpanded || (
       alertIndex === firstUntriagedIndex);
   }
-  if (isTriaged) return triagedExpanded;
+  if (isTriaged) return alertGroup.triaged.isExpanded;
   return alertIndex === firstUntriagedIndex;
 };
 
@@ -782,8 +818,8 @@ AlertsTable.reducers = {
         (state.alertGroups === AlertsTable.placeholderAlertGroups())) {
       return state;
     }
-    const sortDescending = state.sortDescending ^ (state.sortColumn ===
-        action.sortColumn);
+    const sortDescending = !!(
+      state.sortDescending ^ (state.sortColumn === action.sortColumn));
     const alertGroups = AlertsTable.sortGroups(
         state.alertGroups, action.sortColumn, sortDescending);
     return {

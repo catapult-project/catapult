@@ -213,6 +213,7 @@ export default class OptionGroup extends ElementBase {
   }
 
   static matches(option, queryParts) {
+    if (!option) return false;
     if (option.options) {
       for (const suboption of option.options) {
         if (OptionGroup.matches(suboption, queryParts)) return true;

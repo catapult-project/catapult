@@ -88,6 +88,35 @@ The four buttons at the top of the alerts table allow triaging alerts.
    a dialog. It immediately unassigns selected alerts so that they may be
    assigned to a different bug.
 
+### Hotkeys
+
+When an alerts-section is in the middle of the screen, it responds to the
+following hotkeys.
+
+| ? | Toggle the hotkey help dialog |
+| j | Move the cursor down through the alerts table |
+| k | Move the cursor up through the alerts table|
+| x | Toggle selection of the alert at the cursor|
+| g | Toggle expansion of the alert group at the cursor|
+| t | Toggle expansion of the triaged alerts at the cursor|
+| a | Accept autotriage suggestion for selected alerts|
+| e | Assign selected alerts to an existing bug|
+| n | File a new bug for selected alerts|
+| i | Ignore selected alerts|
+| u | Unassign selected alerts|
+| / | Focus the Sheriff menu|
+| sc | Sort the alerts table by Count|
+| st | Sort the alerts table by Triaged|
+| su | Sort the alerts table by Bug|
+| sr | Sort the alerts table by Revision|
+| ss | Sort the alerts table by Suite|
+| sm | Sort the alerts table by Measurement|
+| sa | Sort the alerts table by Master|
+| sb | Sort the alerts table by Bot|
+| se | Sort the alerts table by Case|
+| sd | Sort the alerts table by Delta|
+| sp | Sort the alerts table by Percent Delta|
+
 ### Timeseries Charts
 
 When alerts are selected, their timeseries are displayed in the chart below the

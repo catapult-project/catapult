@@ -383,4 +383,234 @@ suite('alerts-section', function() {
     // The next group should be selected.
     assert.isTrue(section.alertGroups[0].alerts[0].isSelected);
   });
+
+  function press(key) {
+    const event = new CustomEvent('keyup');
+    event.key = key;
+    window.dispatchEvent(event);
+  }
+
+  test('hotkey help', async function() {
+    const section = await fixture();
+    STORE.dispatch(UPDATE(section.statePath, {hotkeyable: true}));
+    await afterRender();
+    press('?');
+    await afterRender();
+    assert.isTrue(section.isHelping);
+
+    press('?');
+    await afterRender();
+    assert.isFalse(section.isHelping);
+  });
+
+  test('hotkey down', async function() {
+    const setupFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      if (url === AlertsRequest.URL) {
+        return {
+          ok: true,
+          async json() {
+            return {anomalies: [
+              {
+                bot: 'bot',
+                bug_components: [],
+                bug_labels: [],
+                descriptor: {
+                  bot: 'master:bot',
+                  measurement: 'measure',
+                  statistic: 'avg',
+                  testCase: 'case',
+                  testSuite: 'suite',
+                },
+                end_revision: 200,
+                improvement: false,
+                key: 'key0',
+                master: 'master',
+                median_after_anomaly: 100 * Math.random(),
+                median_before_anomaly: 100 * Math.random(),
+                start_revision: 100,
+                units: 'ms',
+              },
+              {
+                bot: 'bot',
+                bug_components: [],
+                bug_labels: [],
+                descriptor: {
+                  bot: 'master:bot',
+                  measurement: 'measure',
+                  statistic: 'avg',
+                  testCase: 'case',
+                  testSuite: 'suite',
+                },
+                end_revision: 400,
+                improvement: false,
+                key: 'key0',
+                master: 'master',
+                median_after_anomaly: 100 * Math.random(),
+                median_before_anomaly: 100 * Math.random(),
+                start_revision: 300,
+                units: 'ms',
+              },
+            ]};
+          },
+        };
+      }
+      return await setupFetch(url, options);
+    };
+
+    const section = await fixture();
+    section.shadowRoot.querySelector('#controls').dispatchEvent(
+        new CustomEvent('sources', {detail: {sources: [{bug: 42}]}}));
+    STORE.dispatch(UPDATE(section.statePath, {hotkeyable: true}));
+    await afterRender();
+    press('j');
+    await afterRender();
+    assert.strictEqual('0,0', section.cursor.join());
+
+    press('j');
+    await afterRender();
+    assert.strictEqual('1,0', section.cursor.join());
+  });
+
+  test('hotkey up', async function() {
+    const setupFetch = window.fetch;
+    window.fetch = async(url, options) => {
+      if (url === AlertsRequest.URL) {
+        return {
+          ok: true,
+          async json() {
+            return {anomalies: [
+              {
+                bot: 'bot',
+                bug_components: [],
+                bug_labels: [],
+                descriptor: {
+                  bot: 'master:bot',
+                  measurement: 'measure',
+                  statistic: 'avg',
+                  testCase: 'case',
+                  testSuite: 'suite',
+                },
+                end_revision: 200,
+                improvement: false,
+                key: 'key0',
+                master: 'master',
+                median_after_anomaly: 100 * Math.random(),
+                median_before_anomaly: 100 * Math.random(),
+                start_revision: 100,
+                units: 'ms',
+              },
+              {
+                bot: 'bot',
+                bug_components: [],
+                bug_labels: [],
+                descriptor: {
+                  bot: 'master:bot',
+                  measurement: 'measure',
+                  statistic: 'avg',
+                  testCase: 'case',
+                  testSuite: 'suite',
+                },
+                end_revision: 400,
+                improvement: false,
+                key: 'key0',
+                master: 'master',
+                median_after_anomaly: 100 * Math.random(),
+                median_before_anomaly: 100 * Math.random(),
+                start_revision: 300,
+                units: 'ms',
+              },
+            ]};
+          },
+        };
+      }
+      return await setupFetch(url, options);
+    };
+
+    const section = await fixture();
+    section.shadowRoot.querySelector('#controls').dispatchEvent(
+        new CustomEvent('sources', {detail: {sources: [{bug: 42}]}}));
+    STORE.dispatch(UPDATE(section.statePath, {hotkeyable: true}));
+    await afterRender();
+    press('k');
+    await afterRender();
+    assert.strictEqual('1,0', section.cursor.join());
+
+    press('k');
+    await afterRender();
+    assert.isFalse(section.isHelping);
+    assert.strictEqual('0,0', section.cursor.join());
+  });
+
+  test('hotkey select', async function() {
+    const section = await fixture();
+    section.shadowRoot.querySelector('#controls').dispatchEvent(
+        new CustomEvent('sources', {detail: {sources: [{bug: 42}]}}));
+    STORE.dispatch(UPDATE(section.statePath, {hotkeyable: true}));
+    await afterRender();
+    press('j');
+    press('x');
+    await afterRender();
+    assert.isTrue(section.alertGroups[0].alerts[0].isSelected);
+
+    press('x');
+    await afterRender();
+    assert.isFalse(section.alertGroups[0].alerts[0].isSelected);
+  });
+
+  test('hotkey expand group', async function() {
+    const section = await fixture();
+    section.shadowRoot.querySelector('#controls').dispatchEvent(
+        new CustomEvent('sources', {detail: {sources: [{bug: 42}]}}));
+    STORE.dispatch(UPDATE(section.statePath, {hotkeyable: true}));
+    await afterRender();
+    press('j');
+    press('g');
+    await afterRender();
+    assert.isTrue(section.alertGroups[0].isExpanded);
+
+    press('g');
+    await afterRender();
+    assert.isFalse(section.alertGroups[0].isExpanded);
+  });
+
+  test('hotkey expand triaged', async function() {
+    const section = await fixture();
+    section.shadowRoot.querySelector('#controls').dispatchEvent(
+        new CustomEvent('sources', {detail: {sources: [{bug: 42}]}}));
+    STORE.dispatch(UPDATE(section.statePath, {hotkeyable: true}));
+    await afterRender();
+    press('j');
+    press('t');
+    await afterRender();
+    assert.isTrue(section.alertGroups[0].triaged.isExpanded);
+
+    press('t');
+    await afterRender();
+    assert.isFalse(section.alertGroups[0].triaged.isExpanded);
+  });
+
+  test('hotkey sort', async function() {
+    const section = await fixture();
+    section.shadowRoot.querySelector('#controls').dispatchEvent(
+        new CustomEvent('sources', {detail: {sources: [{bug: 42}]}}));
+    await afterRender();
+    STORE.dispatch(UPDATE(section.statePath, {hotkeyable: true}));
+    await afterRender();
+    press('s');
+    await afterRender();
+    press('s');
+    await afterRender();
+    assert.strictEqual(section.sortColumn, 'suite');
+    assert.isFalse(section.sortDescending);
+
+    STORE.dispatch(UPDATE(section.statePath, {hotkeyable: true}));
+    await afterRender();
+    press('s');
+    await afterRender();
+    press('s');
+    await afterRender();
+    assert.strictEqual(section.sortColumn, 'suite');
+    assert.isTrue(section.sortDescending);
+  });
 });

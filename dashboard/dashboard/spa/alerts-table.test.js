@@ -186,45 +186,54 @@ suite('alerts-table', function() {
 
   test('shouldDisplayAlert', async function() {
     assert.isTrue(AlertsTable.shouldDisplayAlert(
-        true, false, {}, -1, false));
+        true, false, {triaged: {isExpanded: false}}, -1));
     assert.isTrue(AlertsTable.shouldDisplayAlert(
-        false, true, {isExpanded: true}, -1, false));
+        false, true, {isExpanded: true, triaged: {isExpanded: false}}, -1));
     assert.isTrue(AlertsTable.shouldDisplayAlert(
-        false, true, {isExpanded: false}, 0, false));
+        false, true, {isExpanded: false, triaged: {isExpanded: false}}, 0));
     assert.isFalse(AlertsTable.shouldDisplayAlert(
-        false, false, {alerts: []}, 0, false));
-    assert.isTrue(AlertsTable.shouldDisplayAlert(
-        false, false, {isExpanded: true, alerts: [{}]}, 0, false));
+        false, false, {alerts: [], triaged: {isExpanded: false}}, 0));
+    assert.isTrue(AlertsTable.shouldDisplayAlert(false, false, {
+      isExpanded: true,
+      alerts: [{}],
+      triaged: {isExpanded: false},
+    }, 0));
     assert.isFalse(AlertsTable.shouldDisplayAlert(false, false, {
       isExpanded: true,
       alerts: [
         {bugId: 42},
         {},
       ],
-    }, 0, false));
+      triaged: {isExpanded: false},
+    }, 0));
     assert.isTrue(AlertsTable.shouldDisplayAlert(false, false, {
       isExpanded: true,
       alerts: [
         {bugId: 42},
         {},
       ],
-    }, 1, false));
-    assert.isFalse(AlertsTable.shouldDisplayAlert(
-        false, false, {alerts: [{bugId: 42}]}, 0, false));
+      triaged: {isExpanded: false},
+    }, 1));
+    assert.isFalse(AlertsTable.shouldDisplayAlert(false, false, {
+      alerts: [{bugId: 42}],
+      triaged: {isExpanded: false},
+    }, 0));
     assert.isTrue(AlertsTable.shouldDisplayAlert(
-        false, false, {alerts: [{bugId: 42}]}, 0, true));
+        false, false, {alerts: [{bugId: 42}], triaged: {isExpanded: true}}, 0));
     assert.isFalse(AlertsTable.shouldDisplayAlert(false, false, {
       alerts: [
         {bugId: 42},
         {},
       ],
-    }, 0, false));
+      triaged: {isExpanded: false},
+    }, 0));
     assert.isTrue(AlertsTable.shouldDisplayAlert(false, false, {
       alerts: [
         {bugId: 42},
         {},
       ],
-    }, 1, false));
+      triaged: {isExpanded: false},
+    }, 1));
   });
 
   test('shouldDisplayExpandGroupButton', async function() {

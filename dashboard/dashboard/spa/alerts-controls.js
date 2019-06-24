@@ -48,6 +48,7 @@ export default class AlertsControls extends ElementBase {
       showingRecentlyModifiedBugs: Boolean,
       triagedBugId: Number,
       alertGroups: Array,
+      isHelping: Boolean,
     };
   }
 
@@ -83,6 +84,7 @@ export default class AlertsControls extends ElementBase {
       triagedBugId: 0,
       alertGroups: options.alertGroups ||
         AlertsTable.placeholderAlertGroups(),
+      isHelping: false,
     };
   }
 
@@ -153,13 +155,29 @@ export default class AlertsControls extends ElementBase {
         flex-shrink: 0;
       }
 
-      #close {
+      #help-container {
         align-self: flex-start;
+        position: relative;
+      }
+      #help {
+        color: var(--primary-color-dark, blue);
+      }
+      #help-dialog {
+        background: var(--background-color, white);
+        box-shadow: var(--elevation-2);
+        display: none;
+        padding: 16px;
+        position: absolute;
+        right: 0;
+        width: 25em;
+        z-index: var(--layer-menu, 100);
+      }
+      #help-dialog[isopen] {
+        display: block;
       }
 
-      #edit, #documentation {
-        color: var(--primary-color-dark, blue);
-        padding: 8px;
+      #close {
+        align-self: flex-start;
       }
     `;
   }
@@ -342,6 +360,122 @@ export default class AlertsControls extends ElementBase {
         </div>
       </span>
 
+      <span id="help-container">
+        <cp-icon
+            id="help"
+            tabindex="0"
+            icon="help"
+            @click="${this.onHelp_}">
+        </cp-icon>
+        <div
+            id="help-dialog"
+            tabindex="0"
+            ?isopen="${this.isHelping}"
+            @keydown="${this.onHelpKeydown_}"
+            @blur="${this.onBlurHelp_}">
+          When this section is in the middle of the screen, it responds to the
+          following hotkeys.
+          <table>
+            <tr>
+              <td>?</td>
+              <td>Toggle this dialog</td>
+            </tr>
+            <tr>
+              <td>j</td>
+              <td>Move the cursor down through the alerts table</td>
+            </tr>
+            <tr>
+              <td>k</td>
+              <td>Move the cursor up through the alerts table</td>
+            </tr>
+            <tr>
+              <td>x</td>
+              <td>Toggle selection of the alert at the cursor</td>
+            </tr>
+            <tr>
+              <td>g</td>
+              <td>Toggle expansion of the alert group at the cursor</td>
+            </tr>
+            <tr>
+              <td>t</td>
+              <td>Toggle expansion of the triaged alerts at the cursor</td>
+            </tr>
+            <tr>
+              <td>a</td>
+              <td>Accept autotriage suggestion for selected alerts</td>
+            </tr>
+            <tr>
+              <td>e</td>
+              <td>Assign selected alerts to an existing bug</td>
+            </tr>
+            <tr>
+              <td>n</td>
+              <td>File a new bug for selected alerts</td>
+            </tr>
+            <tr>
+              <td>i</td>
+              <td>Ignore selected alerts</td>
+            </tr>
+            <tr>
+              <td>u</td>
+              <td>Unassign selected alerts</td>
+            </tr>
+            <tr>
+              <td>/</td>
+              <td>Focus the Sheriff menu</td>
+            </tr>
+            <tr>
+              <td>sc</td>
+              <td>Sort the alerts table by Count</td>
+            </tr>
+            <tr>
+              <td>st</td>
+              <td>Sort the alerts table by Triaged</td>
+            </tr>
+            <tr>
+              <td>su</td>
+              <td>Sort the alerts table by Bug</td>
+            </tr>
+            <tr>
+              <td>sr</td>
+              <td>Sort the alertstable by Revision</td>
+            </tr>
+            <tr>
+              <td>ss</td>
+              <td>Sort the alerts table by Suite</td>
+            </tr>
+            <tr>
+              <td>sm</td>
+              <td>Sort the alerts table by Measurement</td>
+            </tr>
+            <tr>
+              <td>sa</td>
+              <td>Sort the alerts table by Master</td>
+            </tr>
+            <tr>
+              <td>sb</td>
+              <td>Sort the alerts table by Bot</td>
+            </tr>
+            <tr>
+              <td>se</td>
+              <td>Sort the alerts table by Case</td>
+            </tr>
+            <tr>
+              <td>sd</td>
+              <td>Sort the alerts table by Delta</td>
+            </tr>
+            <tr>
+              <td>sp</td>
+              <td>Sort the alerts table by Percent Delta</td>
+            </tr>
+          </table>
+          For more information, see the
+          <a href="https://chromium.googlesource.com/catapult.git/+/HEAD/dashboard/docs/user-guide.md" target="_blank">
+            user guide
+          </a>.
+        </div>
+      </span>
+
       <cp-icon id="close" icon="close" @click="${this.onClose_}"></cp-icon>
     `;
   }
@@ -362,28 +496,51 @@ export default class AlertsControls extends ElementBase {
     });
   }
 
-  stateChanged(rootState) {
+  async stateChanged(rootState) {
     if (!this.statePath) return;
+
     const oldUserEmail = this.userEmail;
-    this.userEmail = rootState.userEmail;
+    const oldIsHelping = this.isHelping;
     const oldRecentPerformanceBugs = this.recentPerformanceBugs;
-    this.recentPerformanceBugs = rootState.recentPerformanceBugs;
+
     Object.assign(this, get(rootState, this.statePath));
+    this.userEmail = rootState.userEmail;
+    this.recentPerformanceBugs = rootState.recentPerformanceBugs;
     this.areAlertGroupsPlaceholders = (this.alertGroups ===
       AlertsTable.placeholderAlertGroups());
+
     if (this.hasTriagedNew || this.hasTriagedExisting || this.hasIgnored) {
       this.shadowRoot.querySelector('#recent-bugs').scrollIntoView(true);
     }
+
     if (this.recentPerformanceBugs !== oldRecentPerformanceBugs) {
       STORE.dispatch({
         type: AlertsControls.reducers.receiveRecentPerformanceBugs.name,
         statePath: this.statePath,
       });
     }
+
     if (this.userEmail !== oldUserEmail) {
       AlertsControls.loadReportNames(this.statePath);
       AlertsControls.loadSheriffs(this.statePath);
     }
+
+    if (this.isHelping && !oldIsHelping) {
+      await this.updateComplete;
+      this.shadowRoot.querySelector('#help-dialog').focus();
+    }
+  }
+
+  onHelp_(event) {
+    STORE.dispatch(TOGGLE(this.statePath + '.isHelping'));
+  }
+
+  onBlurHelp_(event) {
+    STORE.dispatch(UPDATE(this.statePath, {isHelping: false}));
+  }
+
+  onHelpKeydown_(event) {
+    if (event.key === 'Escape') this.onBlurHelp_(event);
   }
 
   static async loadReportNames(statePath) {

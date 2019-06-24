@@ -384,8 +384,10 @@ DetailsTable.buildCell = (
   }
 
   if (cell.timestampRange.min === cell.timestampRange.max) {
-    const label = tr.b.formatDate(cell.timestamp);
-    links.set('Upload timestamp', {href: '', label});
+    if (cell.timestamp) {
+      const label = tr.b.formatDate(cell.timestamp);
+      links.set('Upload timestamp', {href: '', label});
+    }
   } else {
     let label = tr.b.formatDate(new Date(cell.timestampRange.min));
     label += ' - ';

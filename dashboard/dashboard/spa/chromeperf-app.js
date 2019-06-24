@@ -10,6 +10,7 @@ import './cp-toast.js';
 import './error-set.js';
 import './raised-button.js';
 import '@chopsui/chops-header/chops-header.js';
+import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import AlertsSection from './alerts-section.js';
 import ChartCompound from './chart-compound.js';
 import ChartSection from './chart-section.js';
@@ -41,6 +42,8 @@ const CLIENT_ID =
   '62121018386-rhk28ad5lbqheinh05fgau3shotl2t6c.apps.googleusercontent.com';
 
 const NOTIFICATION_MS = 5000;
+
+const SCROLL_DEBOUNCE_MS = 100;
 
 // Map from redux store keys to ConfigRequest keys.
 const CONFIG_KEYS = {
@@ -167,6 +170,10 @@ export default class ChromeperfApp extends ElementBase {
         display: block;
         margin: 0;
         padding: 16px;
+      }
+
+      alerts-section {
+        padding: 8px;
       }
 
       report-section[hidden] {
@@ -341,15 +348,17 @@ export default class ChromeperfApp extends ElementBase {
           </a>
         </div>
 
-        <div id="main" enableNav="${this.enableNav}">
-            <report-section
-                ?hidden="${!this.reportSection || !this.showingReportSection}"
-                .statePath="${this.statePath}.reportSection"
-                @require-sign-in="${this.requireSignIn_}"
-                @close-section="${this.hideReportSection_}"
-                @alerts="${this.onReportAlerts_}"
-                @new-chart="${this.onNewChart_}">
-            </report-section>
+        <div id="main"
+            enableNav="${this.enableNav}"
+            @scroll="${this.onScroll_}">
+          <report-section
+              ?hidden="${!this.reportSection || !this.showingReportSection}"
+              .statePath="${this.statePath}.reportSection"
+              @require-sign-in="${this.requireSignIn_}"
+              @close-section="${this.hideReportSection_}"
+              @alerts="${this.onReportAlerts_}"
+              @new-chart="${this.onNewChart_}">
+          </report-section>
 
           ${(this.alertsSectionIds || []).map(id => html`
             <alerts-section
@@ -456,6 +465,15 @@ export default class ChromeperfApp extends ElementBase {
       ChromeperfApp.reset(this.statePath);
       return;
     }
+  }
+
+  onScroll_(event) {
+    this.debounce('scroll', () => {
+      const sections = this.shadowRoot.querySelectorAll('alerts-section');
+      for (const section of sections) {
+        section.onScroll();
+      }
+    }, PolymerAsync.timeOut.after(SCROLL_DEBOUNCE_MS));
   }
 
   async onUserUpdate_() {
