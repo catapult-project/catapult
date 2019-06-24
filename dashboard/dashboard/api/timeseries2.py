@@ -72,6 +72,7 @@ class TimeseriesQuery(object):
     self._statistic_columns = []
     self._unsuffixed_test_metadata_keys = []
     self._test_keys = []
+    self._test_metadata_keys = []
     self._units = None
     self._improvement_direction = None
     self._data = {}
@@ -151,17 +152,20 @@ class TimeseriesQuery(object):
       desc.statistic = statistic
       test_paths.extend(desc.ToTestPathsSync())
 
-    test_metadata_keys = [utils.TestMetadataKey(path) for path in test_paths]
-    test_metadata_keys.extend(self._unsuffixed_test_metadata_keys)
+    self._test_metadata_keys = [
+        utils.TestMetadataKey(path) for path in test_paths]
+    self._test_metadata_keys.extend(self._unsuffixed_test_metadata_keys)
     test_paths.extend(unsuffixed_test_paths)
 
     test_old_keys = [utils.OldStyleTestKey(path) for path in test_paths]
-    self._test_keys = test_old_keys + test_metadata_keys
+    self._test_keys = test_old_keys + self._test_metadata_keys
 
   @ndb.tasklet
   def _FetchTests(self):
+    # Don't fetch OldStyleTestKeys. The Test model has been removed. Only fetch
+    # TestMetadata entities.
     with timing.WallTimeLogger('fetch_tests'):
-      tests = yield [key.get_async() for key in self._test_keys]
+      tests = yield [key.get_async() for key in self._test_metadata_keys]
     tests = [test for test in tests if test]
     if not tests:
       raise api_request_handler.NotFoundError
