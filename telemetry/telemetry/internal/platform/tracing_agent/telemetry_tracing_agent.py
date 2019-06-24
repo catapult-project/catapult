@@ -16,9 +16,12 @@ def IsAgentEnabled():
   return trace_event.trace_is_enabled()
 
 
-def SetTelemetryInfo(telemetry_info):
-  """Record Telemetry metadata if tracing is enabled."""
+def RecordBenchmarkMetadata(results):
+  """Record benchmark metadata if tracing is enabled."""
   if IsAgentEnabled():
+    # TODO(crbug.com/973837): Get the data we need directly from the results
+    # object, rather than having to go through the telemetry_info attr.
+    telemetry_info = results.telemetry_info
     trace_event.trace_add_benchmark_metadata(
         benchmark_start_time_us=telemetry_info.benchmark_start_us,
         story_run_time_us=telemetry_info.trace_start_us,

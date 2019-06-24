@@ -88,8 +88,9 @@ class TracingControllerBackend(object):
     self._active_agents_instances = []
     self._is_tracing_controllable = True
 
-  def SetTelemetryInfo(self, telemetry_info):
-    telemetry_tracing_agent.SetTelemetryInfo(telemetry_info)
+  def RecordBenchmarkMetadata(self, results):
+    """Write benchmark metadata into the trace being currently recorded."""
+    telemetry_tracing_agent.RecordBenchmarkMetadata(results)
 
   def StartTracing(self, config, timeout):
     if self.is_tracing_running:

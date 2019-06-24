@@ -47,8 +47,8 @@ class TelemetryTracingAgentTest(unittest.TestCase):
       trace = builder.AsData().GetTraceFor(trace_data.TELEMETRY_PART)
     self.assertIn('clock_sync', GetEventNames(trace))
 
-  def testWriteTelemetryInfo(self):
-    info = page_test_results.TelemetryInfo(
+  def testWriteBenchmarkMetadata(self):
+    results = page_test_results.PageTestResults(
         benchmark_name='benchmark',
         benchmark_description='desc')
 
@@ -56,11 +56,12 @@ class TelemetryTracingAgentTest(unittest.TestCase):
     story.name = 'story'
     story.tags = ['tag1', 'tag2']
     story.grouping_keys = {}
-    info.WillRunStory(story, storyset_repeat_counter=0)
-
+    results.WillRunPage(story)
     self.agent.StartAgentTracing(self.config, timeout=10)
-    telemetry_tracing_agent.SetTelemetryInfo(info)
+    telemetry_tracing_agent.RecordBenchmarkMetadata(results)
     self.agent.StopAgentTracing()
+    results.DidRunPage(story)
+
     with trace_data.TraceDataBuilder() as builder:
       self.agent.CollectAgentTraceData(builder)
       trace = builder.AsData().GetTraceFor(trace_data.TELEMETRY_PART)
