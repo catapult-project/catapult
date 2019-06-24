@@ -24,6 +24,7 @@ from dashboard.models import histogram
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models import results2
+from dashboard.pinpoint.models import scheduler
 from dashboard.services import gerrit_service
 from dashboard.services import issue_tracker_service
 
@@ -102,8 +103,10 @@ class Job(ndb.Model):
   # to be able to modify the Job without changing the Job's completion time.
   updated = ndb.DateTimeProperty(required=True, auto_now_add=True)
 
-  completed = ndb.ComputedProperty(lambda self: not self.task)
+  started = ndb.BooleanProperty(default=True)
+  completed = ndb.ComputedProperty(lambda self: self.started and not self.task)
   failed = ndb.ComputedProperty(lambda self: bool(self.exception))
+  running = ndb.ComputedProperty(lambda self: self.task and len(self.task))
 
   # The name of the Task Queue task this job is running on. If it's present, the
   # job is running. The task is also None for Task Queue retries.
@@ -152,7 +155,7 @@ class Job(ndb.Model):
     job = cls(state=state, arguments=arguments or {}, bug_id=bug_id,
               comparison_mode=comparison_mode, gerrit_server=gerrit_server,
               gerrit_change_id=gerrit_change_id,
-              name=name, tags=tags, user=user)
+              name=name, tags=tags, user=user, started=False)
 
     for c in changes:
       job.AddChange(c)
@@ -166,13 +169,17 @@ class Job(ndb.Model):
 
   @property
   def status(self):
-    if not self.completed:
-      return 'Running'
-
     if self.failed:
       return 'Failed'
 
-    return 'Completed'
+    if self.completed:
+      return 'Completed'
+
+    if self.running:
+      return 'Running'
+
+    # By default, we assume that the Job is queued.
+    return 'Queued'
 
   @property
   def url(self):
@@ -221,6 +228,7 @@ class Job(ndb.Model):
     anything. It also posts a bug comment, and updates the Datastore.
     """
     self._Schedule()
+    self.started = True
     self.put()
 
     title = _ROUND_PUSHPIN + ' Pinpoint job started.'
@@ -240,6 +248,7 @@ class Job(ndb.Model):
 
     self._FormatAndPostBugCommentOnComplete()
     self._UpdateGerritIfNeeded()
+    scheduler.Complete(self)
 
   def _FormatAndPostBugCommentOnComplete(self):
     if not self.comparison_mode:
@@ -316,6 +325,7 @@ class Job(ndb.Model):
     deferred.defer(
         _PostBugCommentDeferred, self.bug_id, comment,
         _retry_options=RETRY_OPTIONS)
+    scheduler.Complete(self)
 
   def _Schedule(self, countdown=_TASK_INTERVAL):
     # Set a task name to deduplicate retries. This adds some latency, but we're

@@ -18,3 +18,4 @@ from dashboard.pinpoint.handlers.results2 import Results2
 from dashboard.pinpoint.handlers.results2 import Results2Generator
 from dashboard.pinpoint.handlers.run import Run
 from dashboard.pinpoint.handlers.stats import Stats
+from dashboard.pinpoint.handlers.fifo_scheduler import FifoScheduler

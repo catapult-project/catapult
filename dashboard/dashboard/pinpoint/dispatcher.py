@@ -32,6 +32,7 @@ _URL_MAPPING = [
 
     webapp2.Route(r'/cron/isolate-cleanup', handlers.IsolateCleanup),
     webapp2.Route(r'/cron/refresh-jobs', handlers.RefreshJobs),
+    webapp2.Route(r'/cron/fifo-scheduler', handlers.FifoScheduler),
 ]
 
 APP = webapp2.WSGIApplication(_URL_MAPPING, debug=False)

@@ -22,7 +22,7 @@ class StatsTest(test.TestCase):
 
     expected = [{
         'comparison_mode': None,
-        'completed': True,
+        'completed': False,
         'created': job.created.isoformat(),
         'difference_count': None,
         'failed': False,

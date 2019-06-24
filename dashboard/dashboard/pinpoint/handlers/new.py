@@ -14,6 +14,7 @@ from dashboard.common import utils
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import quest as quest_module
+from dashboard.pinpoint.models import scheduler
 
 
 _ERROR_BUG_ID = 'Bug ID must be an integer.'
@@ -33,7 +34,8 @@ class New(api_request_handler.ApiRequestHandler):
 
   def Post(self):
     job = _CreateJob(self.request)
-    job.Start()
+
+    scheduler.Schedule(job)
 
     return {
         'jobId': job.job_id,
