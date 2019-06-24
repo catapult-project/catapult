@@ -23,6 +23,7 @@ _TRACING_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                             os.path.pardir, os.path.pardir)
 _TRACE2HTML_PATH = os.path.join(_TRACING_DIR, 'bin', 'trace2html')
 
+MIB = 1024 * 1024
 
 class TraceDataPart(object):
   """Trace data can come from a variety of tracing agents.
@@ -200,23 +201,8 @@ class TraceDataBuilder(object):
     self.Freeze()
     assert self._traces, 'trace data has already been cleaned up'
 
-    trace_size_data = collections.defaultdict(int)
-    trace_files = []
-    for trace in self._traces:
-      trace_size_data[trace.part_name] += os.path.getsize(trace.handle.name)
-      trace_files.append(trace.handle.name)
-    logging.info('Trace sizes in bytes: %s', dict(trace_size_data))
-
-    cmd = ['python', _TRACE2HTML_PATH]
-    cmd.extend(trace_files)
-    cmd.extend(['--output', file_path])
-    if trace_title is not None:
-      cmd.extend(['--title', trace_title])
-
-    start_time = time.time()
-    subprocess.check_output(cmd)
-    elapsed_time = time.time() - start_time
-    logging.info('trace2html finished in %.02f seconds.', elapsed_time)
+    trace_files = [trace.handle.name for trace in self._traces]
+    SerializeAsHtml(trace_files, file_path, trace_title)
 
   def AsData(self):
     """Allow in-memory access to read the collected JSON trace data.
@@ -269,3 +255,30 @@ def CreateFromRawChromeEvents(events):
   assert isinstance(events, list)
   return _TraceData({
       CHROME_TRACE_PART.raw_field_name: [{'traceEvents': events}]})
+
+
+def SerializeAsHtml(trace_files, html_file, trace_title=None):
+  """Serialize a set of traces to a single file in HTML format.
+
+  Args:
+    trace_files: a list of file names, each containing a trace from
+        one of the tracing agents.
+    html_file: a name of the output file.
+    trace_title: optional. A title for the resulting trace.
+  """
+  if not trace_files:
+    raise ValueError('trace files list is empty')
+
+  input_size = sum(os.path.getsize(trace_file) for trace_file in trace_files)
+
+  cmd = ['python', _TRACE2HTML_PATH]
+  cmd.extend(trace_files)
+  cmd.extend(['--output', html_file])
+  if trace_title is not None:
+    cmd.extend(['--title', trace_title])
+
+  start_time = time.time()
+  subprocess.check_output(cmd)
+  elapsed_time = time.time() - start_time
+  logging.info('trace2html processed %.01f MiB of trace data in %.02f seconds.',
+               1.0 * input_size / MIB, elapsed_time)
