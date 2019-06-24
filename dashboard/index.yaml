@@ -238,3 +238,9 @@ indexes:
   - name: parent_test
   - name: deprecated
   - name: description
+
+# Used in Pinpoint to pick ConfigurationQueue instances.
+- kind: ConfigurationQueue
+  ancestor: yes
+  properties:
+    - name: configuration
