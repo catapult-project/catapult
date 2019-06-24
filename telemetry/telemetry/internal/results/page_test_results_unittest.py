@@ -19,7 +19,6 @@ from telemetry.value import scalar
 from tracing.trace_data import trace_data
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
-from tracing.value.diagnostics import date_range
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
@@ -52,56 +51,6 @@ class TelemetryInfoTest(unittest.TestCase):
     ti.WillRunStory(bar_story, None)
     self.assertIn('www_bar_com', ti.trace_local_path)
     self.assertIn('custom_label', ti.trace_local_path)
-
-  def testGetDiagnostics(self):
-    ti = page_test_results.TelemetryInfo(
-        benchmark_name='benchmark',
-        benchmark_description='foo')
-    story_set = story.StorySet()
-    foo_story = page_module.Page("http://www.foo.com/", story_set,
-                                 name='story1')
-    story_set.AddStory(foo_story)
-    ti.WillRunStory(foo_story, None)
-    ti_diags = ti.diagnostics
-
-
-    self.assertEqual(len(ti_diags), 5)
-    self.assertIn(reserved_infos.BENCHMARKS.name, ti_diags)
-    name_diag = ti_diags[reserved_infos.BENCHMARKS.name]
-    self.assertIsInstance(name_diag, generic_set.GenericSet)
-    self.assertIn(reserved_infos.BENCHMARK_START.name, ti_diags)
-    start_diag = ti_diags[reserved_infos.BENCHMARK_START.name]
-    self.assertIsInstance(start_diag, date_range.DateRange)
-    self.assertIn(reserved_infos.BENCHMARK_DESCRIPTIONS.name, ti_diags)
-    desc_diag = ti_diags[reserved_infos.BENCHMARK_DESCRIPTIONS.name]
-    self.assertIsInstance(desc_diag, generic_set.GenericSet)
-    self.assertIn(reserved_infos.STORIES.name, ti_diags)
-    story_diag = ti_diags[reserved_infos.STORIES.name]
-    self.assertIsInstance(story_diag, generic_set.GenericSet)
-    self.assertEquals(story_diag.AsDict()['values'], ['story1'])
-
-
-    # Now reset the story and assert that we update the diagnostics.
-    story_set = story.StorySet()
-    bar_story = page_module.Page("http://www.bar.com/", story_set,
-                                 name='story2')
-    story_set.AddStory(bar_story)
-    ti.WillRunStory(bar_story, None)
-
-    # Assert everything is the same except for the story
-    ti_diags = ti.diagnostics
-    self.assertEqual(len(ti_diags), 5)
-    self.assertIn(reserved_infos.BENCHMARKS.name, ti_diags)
-    self.assertEqual(name_diag, ti_diags[reserved_infos.BENCHMARKS.name])
-    self.assertIn(reserved_infos.BENCHMARK_START.name, ti_diags)
-    self.assertEqual(start_diag, ti_diags[reserved_infos.BENCHMARK_START.name])
-    self.assertIn(reserved_infos.BENCHMARK_DESCRIPTIONS.name, ti_diags)
-    self.assertEqual(
-        desc_diag, ti_diags[reserved_infos.BENCHMARK_DESCRIPTIONS.name])
-    self.assertIn(reserved_infos.STORIES.name, ti_diags)
-    story_diag = ti_diags[reserved_infos.STORIES.name]
-    self.assertIsInstance(story_diag, generic_set.GenericSet)
-    self.assertEquals(story_diag.AsDict()['values'], ['story2'])
 
 
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
@@ -462,26 +411,23 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertEquals('a', hs.GetFirstHistogram().name)
 
   def testPopulateHistogramSet_UsesHistogramSetData(self):
-    original_diagnostic = generic_set.GenericSet(['benchmark_name'])
     results = page_test_results.PageTestResults(
         benchmark_name='benchmark_name')
     results.WillRunPage(self.pages[0])
     results.AddHistogram(histogram_module.Histogram('foo', 'count'))
-    results.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.BENCHMARKS.name, original_diagnostic)
     results.DidRunPage(self.pages[0])
     results.CleanUp()
-
     results.PopulateHistogramSet()
 
     histogram_dicts = results.AsHistogramDicts()
-    self.assertEquals(8, len(histogram_dicts))
+    self.assertEquals(7, len(histogram_dicts))
 
     hs = histogram_set.HistogramSet()
     hs.ImportDicts(histogram_dicts)
 
-    diag = hs.LookupDiagnostic(original_diagnostic.guid)
-    self.assertIsInstance(diag, generic_set.GenericSet)
+    hist = hs.GetHistogramNamed('foo')
+    self.assertItemsEqual(hist.diagnostics[reserved_infos.BENCHMARKS.name],
+                          ['benchmark_name'])
 
 
 class PageTestResultsFilterTest(unittest.TestCase):

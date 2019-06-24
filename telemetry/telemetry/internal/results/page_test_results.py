@@ -113,7 +113,6 @@ class TelemetryInfo(object):
     self._output_dir = output_dir
     self._trace_local_path = None
     self._had_failures = None
-    self._diagnostics = {}
 
   @property
   def upload_bucket(self):
@@ -163,10 +162,6 @@ class TelemetryInfo(object):
   def had_failures(self):
     return self._had_failures
 
-  @property
-  def diagnostics(self):
-    return self._diagnostics
-
   def GetStoryTagsList(self):
     return list(self._story_tags) + [
         '%s:%s' % kv for kv in self._story_grouping_keys.iteritems()]
@@ -198,8 +193,6 @@ class TelemetryInfo(object):
       self._trace_local_path = os.path.abspath(os.path.join(
           self._output_dir, trace_name))
 
-    self._UpdateDiagnostics()
-
   @property
   def trace_local_path(self):
     return self._trace_local_path
@@ -227,35 +220,6 @@ class TelemetryInfo(object):
     if self._upload_bucket is None:
       return self.trace_local_url
     return self.trace_remote_url
-
-  def _UpdateDiagnostics(self):
-    """ Benchmarks that add histograms but don't use
-    timeline_base_measurement need to add shared diagnostics separately.
-    Make them available on the telemetry info."""
-    def SetDiagnosticsValue(info, value):
-      if value is None or value == []:
-        return
-
-      if info.type == 'GenericSet' and not isinstance(value, list):
-        value = [value]
-      elif info.type == 'DateRange':
-        # We store timestamps in microseconds, DateRange expects milliseconds.
-        value = value / 1e3
-      diag_class = all_diagnostics.GetDiagnosticClassForName(info.type)
-      self.diagnostics[info.name] = diag_class(value)
-
-    SetDiagnosticsValue(reserved_infos.BENCHMARKS, self.benchmark_name)
-    SetDiagnosticsValue(reserved_infos.BENCHMARK_START, self.benchmark_start_us)
-    SetDiagnosticsValue(reserved_infos.BENCHMARK_DESCRIPTIONS,
-                        self.benchmark_descriptions)
-    SetDiagnosticsValue(reserved_infos.LABELS, self.label)
-    SetDiagnosticsValue(reserved_infos.HAD_FAILURES, self.had_failures)
-    SetDiagnosticsValue(reserved_infos.STORIES, self._story_name)
-    SetDiagnosticsValue(reserved_infos.STORY_TAGS, self.GetStoryTagsList())
-    SetDiagnosticsValue(reserved_infos.STORYSET_REPEATS,
-                        self.storyset_repeat_counter)
-    SetDiagnosticsValue(reserved_infos.TRACE_START, self.trace_start_us)
-    SetDiagnosticsValue(reserved_infos.TRACE_URLS, self.trace_url)
 
 
 class PageTestResults(object):
@@ -550,10 +514,39 @@ class PageTestResults(object):
 
   def AddHistogram(self, hist):
     if self._ShouldAddHistogram(hist):
-      diags = self._telemetry_info.diagnostics
-      for _, diag in diags.items():
+      diags = self._GetDiagnostics()
+      for diag in diags.itervalues():
         self._histograms.AddSharedDiagnostic(diag)
       self._histograms.AddHistogram(hist, diags)
+
+  def _GetDiagnostics(self):
+    """Get benchmark metadata as histogram diagnostics."""
+    info = self._telemetry_info
+    diag_values = [
+        (reserved_infos.BENCHMARKS, info.benchmark_name),
+        (reserved_infos.BENCHMARK_START, info.benchmark_start_us),
+        (reserved_infos.BENCHMARK_DESCRIPTIONS, info.benchmark_descriptions),
+        (reserved_infos.LABELS, info.label),
+        (reserved_infos.HAD_FAILURES, info.had_failures),
+        (reserved_infos.STORIES, info._story_name),
+        (reserved_infos.STORY_TAGS, info.GetStoryTagsList()),
+        (reserved_infos.STORYSET_REPEATS, info.storyset_repeat_counter),
+        (reserved_infos.TRACE_START, info.trace_start_us),
+        (reserved_infos.TRACE_URLS, info.trace_url)
+    ]
+
+    diags = {}
+    for diag, value in diag_values:
+      if value is None or value == []:
+        continue
+      if diag.type == 'GenericSet' and not isinstance(value, list):
+        value = [value]
+      elif diag.type == 'DateRange':
+        # We store timestamps in microseconds, DateRange expects milliseconds.
+        value = value / 1e3  # pylint: disable=redefined-variable-type
+      diag_class = all_diagnostics.GetDiagnosticClassForName(diag.type)
+      diags[diag.name] = diag_class(value)
+    return diags
 
   def ImportHistogramDicts(self, histogram_dicts, import_immediately=True):
     histograms = histogram_set.HistogramSet()
