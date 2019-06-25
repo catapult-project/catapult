@@ -99,6 +99,11 @@ function mergeObjectArrays(key, merged, ...arrays) {
   }
 }
 
+const MAX_RETRIES = 3;
+const HTTP_NOT_FOUND = 404;
+const SERVER_ERROR = 500;
+const MISSING_TIMESERIES_RETRY_MS = 1000 * 60 * 60 * 24 * 2.8;
+
 // A single Timeseries[Cache]Request spans two dimensions: range of numerical
 // revisions, and columns (e.g. avg, stddev, annotations, alert, histogram,
 // etc.). The database may already contain any sections of this 2D data frame.
@@ -123,6 +128,8 @@ class TimeseriesSlice {
     this.testCase = options.testCase;
     this.testSuite = options.testSuite;
     this.url = options.url;
+
+    this.retry_ = 0;
 
     this.responsePromise_ = undefined;
   }
@@ -163,7 +170,15 @@ class TimeseriesSlice {
       body,
     });
     if (!response.ok) {
-      return {};
+      if ((response.status === SERVER_ERROR) && (this.retry_ < MAX_RETRIES)) {
+        ++this.retry_;
+        return await this.fetch_();
+      }
+
+      return {
+        error: response.status + ' ' + response.statusText,
+        status: response.status,
+      };
     }
     const responseJson = await response.json();
     if (responseJson.data) {
@@ -327,14 +342,24 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
   generateResults() {
     return (async function* () {
       const cacheResult = {...await this.cacheResultPromise};
+
       let finalResult = cacheResult;
       let availableRangeByCol = new Map();
       let mergedData = [];
-      if (cacheResult && cacheResult.data) {
+      if (cacheResult.data) {
         mergedData = [...cacheResult.data];
         availableRangeByCol = cacheResult.availableRangeByCol;
         delete cacheResult.availableRangeByCol;
         yield cacheResult;
+      }
+
+      if (cacheResult.missingTimestamp &&
+          (new Date(cacheResult.missingTimestamp) >
+            (new Date() - MISSING_TIMESERIES_RETRY_MS))) {
+        // This timeseries was recently missing from the datastore.
+        // This is not necessarily an error that needs to be displayed to the
+        // user.
+        return;
       }
 
       const slices = await this.slicesPromise;
@@ -378,7 +403,17 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
       finalResult.columns = [];
 
       for await (const result of raceAllPromises(sliceResponses)) {
-        if (!result || result.error || !result.data || !result.data.length) {
+        if (!result) continue;
+
+        if (!result.data && result.status === HTTP_NOT_FOUND) {
+          // This timeseries does not exist.
+          // This condition is not necessarily an error; descriptors are
+          // computed as cross products for efficiency. Generally, timeseries
+          // exist for most but not all cross products of a suite descriptor.
+          // Avoid requesting this timeseries for a while so that the system can
+          // focus on timeseries that do exist. Try again after a while in case
+          // it is added.
+          this.scheduleWrite({missingTimestamp: new Date().toISOString()});
           continue;
         }
 
@@ -417,21 +452,27 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
     const [
       improvementDirection,
       units,
+      missingTimestamp,
       rangesByCol,
     ] = await Promise.all([
       this.getMetadata_(transaction, 'improvement_direction'),
       this.getMetadata_(transaction, 'units'),
+      this.getMetadata_(transaction, 'missingTimestamp'),
       this.getRanges_(transaction),
     ]);
 
     const availableRangeByCol = this.getAvailableRangeByCol_(rangesByCol);
-    if (availableRangeByCol.size === 0) return;
-    return {
+
+    const result = {
+      missingTimestamp,
       availableRangeByCol,
-      data: await dataPointsPromise,
       improvement_direction: improvementDirection,
       units,
     };
+
+    if (availableRangeByCol.size === 0) return result;
+
+    return {...result, data: await dataPointsPromise};
   }
 
   getAvailableRangeByCol_(rangesByCol) {
@@ -499,6 +540,7 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
   }
 
   async writeRanges_(transaction, data) {
+    if (!data) return;
     const revisionRange = Range.fromExplicitRange(
         this.revisionRange_.min,
         data[data.length - 1].revision);
@@ -519,6 +561,8 @@ export default class TimeseriesCacheRequest extends CacheRequestBase {
   }
 
   async writeData_(transaction, data) {
+    if (!data) return;
+
     const dataStore = transaction.objectStore(STORE_DATA);
     await Promise.all(data.map(async datum => {
       // Merge with existing data
