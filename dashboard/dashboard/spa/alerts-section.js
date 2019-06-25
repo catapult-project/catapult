@@ -1491,15 +1491,17 @@ AlertsSection.reducers = {
   },
 
   selectCursor: (state) => {
-    if (state.alertGroups === AlertsTable.placeholderAlertGroups()) {
+    if (state.alertGroups === AlertsTable.placeholderAlertGroups() ||
+        !state.cursor) {
       return state;
     }
 
-    if (!state.cursor) return state;
-    return AlertsTable.reducers.selectAlert(state, {
+    state = AlertsTable.reducers.selectAlert(state, {
       alertGroupIndex: state.cursor[0],
       alertIndex: state.cursor[1],
     });
+    state = AlertsSection.reducers.autotriage(state);
+    return state;
   },
 
   expandCursor: (state) => {
