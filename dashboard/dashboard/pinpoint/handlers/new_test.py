@@ -260,7 +260,7 @@ class NewTest(_NewTest):
     request = dict(_BASE_REQUEST)
     request['target'] = 'vr_perf_tests'
     configuration = dict(_CONFIGURATION_ARGUMENTS)
-    configuration['browser'] = 'android-chromium'
+    configuration['browser'] = 'android-chromium-bundle'
     request.update(configuration)
     del request['configuration']
     response = self.Post('/api/new', request, status=200)

@@ -44,6 +44,11 @@ class RunVrTelemetryTest(run_telemetry_test.RunTelemetryTest):
 
     if 'android' not in browser:
       raise TypeError('VR tests are currently only supported on Android.')
+    if 'bundle' not in browser:
+      raise TypeError('VR tests no longer supported on non-bundle builds.')
+
+    extra_test_args.extend(['--install-bundle-module', 'vr'])
+    extra_test_args.append('--remove-system-vrcore')
 
     benchmark = arguments.get('benchmark')
     if not benchmark:
