@@ -887,7 +887,7 @@ class DeviceUtils(object):
     if block:
       self.WaitUntilFullyBooted(wifi=wifi)
 
-  INSTALL_DEFAULT_TIMEOUT = 4 * _DEFAULT_TIMEOUT
+  INSTALL_DEFAULT_TIMEOUT = 8 * _DEFAULT_TIMEOUT
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
