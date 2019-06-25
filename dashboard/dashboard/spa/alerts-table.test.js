@@ -313,7 +313,7 @@ suite('alerts-table', function() {
     });
 
     const selectedCounts = findElements(table, e =>
-      e.tagName === 'CP-CHECKBOX' && e.textContent.trim() === '1/2');
+      e.matches('chops-checkbox') && e.textContent.trim() === '1/2');
     assert.lengthOf(selectedCounts, 1);
     const row = selectedCounts[0].parentElement.parentElement;
     const tbody = row.parentElement;
@@ -366,7 +366,7 @@ suite('alerts-table', function() {
     });
 
     const selectedCounts = findElements(table, e =>
-      e.tagName === 'CP-CHECKBOX' && e.textContent.trim() === '1/2');
+      e.matches('chops-checkbox') && e.textContent.trim() === '1/2');
     assert.lengthOf(selectedCounts, 1);
     const row = selectedCounts[0].parentElement.parentElement;
     const tbody = row.parentElement;
@@ -403,7 +403,7 @@ suite('alerts-table', function() {
       ],
     });
     assert.isDefined(findElements(table, e =>
-      e.tagName === 'TD' && e.textContent.trim() === 'Ignored')[0]);
+      e.matches('td') && e.textContent.trim() === 'Ignored')[0]);
   });
 
   test('selectAlert single', async function() {
@@ -431,7 +431,7 @@ suite('alerts-table', function() {
       ],
     });
     const tbody = findElements(table, e => e.matches('tbody'))[0];
-    const checkbox = findElements(tbody, e => e.matches('cp-checkbox'))[0];
+    const checkbox = findElements(tbody, e => e.matches('chops-checkbox'))[0];
     checkbox.click();
     await afterRender();
     assert.isTrue(STORE.getState().test.alertGroups[0].alerts[0].isSelected);
@@ -476,7 +476,7 @@ suite('alerts-table', function() {
       ],
     });
     const tbody = findElements(table, e => e.matches('tbody'))[0];
-    const checkbox = findElements(tbody, e => e.matches('cp-checkbox'))[0];
+    const checkbox = findElements(tbody, e => e.matches('chops-checkbox'))[0];
     checkbox.click();
     await afterRender();
     assert.isTrue(STORE.getState().test.alertGroups[0].alerts[0].isSelected);
@@ -576,7 +576,7 @@ suite('alerts-table', function() {
     });
     const checkboxes = findElements(
         findElements(table, e => e.matches('tbody'))[0],
-        e => e.matches('cp-checkbox'));
+        e => e.matches('chops-checkbox'));
     checkboxes[1].click();
     checkboxes[3].native.dispatchEvent(new CustomEvent('change', {
       detail: {shiftKey: true},

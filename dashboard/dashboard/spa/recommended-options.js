@@ -6,7 +6,7 @@
 
 import OptionGroup from './option-group.js';
 import {ElementBase, STORE} from './element-base.js';
-import {get} from './utils.js';
+import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
 const DEFAULT_RECOMMENDATIONS = [

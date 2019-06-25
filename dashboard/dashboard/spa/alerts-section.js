@@ -4,9 +4,10 @@
 */
 'use strict';
 
-import './cp-loading.js';
-import './cp-switch.js';
 import './error-set.js';
+import '@chopsui/chops-button';
+import '@chopsui/chops-loading';
+import '@chopsui/chops-switch';
 import AlertsControls from './alerts-controls.js';
 import AlertsRequest from './alerts-request.js';
 import AlertsTable from './alerts-table.js';
@@ -18,20 +19,19 @@ import NewBugRequest from './new-bug-request.js';
 import TriageExisting from './triage-existing.js';
 import TriageNew from './triage-new.js';
 import groupAlerts from './group-alerts.js';
-import {ElementBase, STORE} from './element-base.js';
+import {BatchIterator} from '@chopsui/batch-iterator';
 import {CHAIN, TOGGLE, UPDATE} from './simple-redux.js';
+import {ElementBase, STORE} from './element-base.js';
 import {autotriage} from './autotriage.js';
+import {get, set} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
 import {
-  BatchIterator,
   animationFrame,
-  get,
   isDebug,
   isProduction,
   measureElement,
   plural,
-  setImmutable,
   simpleGUID,
   timeout,
   transformAlert,
@@ -228,19 +228,19 @@ export default class AlertsSection extends ElementBase {
         </alerts-controls>
 
         <error-set .errors="${this.errors}"></error-set>
-        <cp-loading ?loading="${this.isLoading || this.preview.isLoading}">
-        </cp-loading>
+        <chops-loading ?loading="${this.isLoading || this.preview.isLoading}">
+        </chops-loading>
 
         ${(this.alertGroups && this.alertGroups.length) ? html`
           ${!canAutotriage ? '' : html`
             <div id="autotriage">
-              <cp-switch
+              <chops-switch
                   title="${fullAutoTooltip}"
                   disabled="true"
                   ?checked="${this.autotriage.fullAuto}"
                   @change="${this.onToggleFullAuto_}">
                 Full automatic
-              </cp-switch>
+              </chops-switch>
 
               <span id="explanation">
                 ${!this.isLoading ? '' : html`
@@ -251,11 +251,11 @@ export default class AlertsSection extends ElementBase {
                   'Select alerts in the table below to autotriage.'}
               </span>
 
-              <raised-button
+              <chops-button
                   ?disabled="${!this.autotriage.explanation}"
                   @click="${this.onAutotriage_}">
                 ${autotriageLabel}
-              </raised-button>
+              </chops-button>
             </div>
           `}
 
@@ -655,6 +655,7 @@ export default class AlertsSection extends ElementBase {
 
   static async selectFirstGroup(statePath) {
     const state = get(STORE.getState(), statePath);
+    if (state.alertGroups.length === 0) return;
     STORE.dispatch(CHAIN({
       type: AlertsTable.reducers.selectAlert.name,
       statePath,
@@ -1077,8 +1078,7 @@ AlertsSection.reducers = {
       `alertGroups.${action.alertGroupIndex}.alerts.${action.alertIndex}`;
     const alert = get(state, alertPath);
     if (!alert.isSelected) {
-      state = setImmutable(
-          state, `${alertPath}.isSelected`, true);
+      state = set(state, `${alertPath}.isSelected`, true);
     }
     if (state.selectedAlertPath === alertPath) {
       return {
@@ -1511,7 +1511,7 @@ AlertsSection.reducers = {
 
     if (!state.cursor) return state;
     const path = `alertGroups.${state.cursor[0]}.isExpanded`;
-    return setImmutable(state, path, e => !e);
+    return set(state, path, e => !e);
   },
 
   expandTriagedCursor: (state) => {
@@ -1521,7 +1521,7 @@ AlertsSection.reducers = {
 
     if (!state.cursor) return state;
     const path = `alertGroups.${state.cursor[0]}.triaged.isExpanded`;
-    return setImmutable(state, path, e => !e);
+    return set(state, path, e => !e);
   },
 
   startSort: (state) => {

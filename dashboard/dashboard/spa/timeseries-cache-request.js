@@ -8,7 +8,7 @@ import {
   CacheRequestBase, READONLY, READWRITE, jsonResponse,
 } from './cache-request-base.js';
 import Range from './range.js';
-import ResultChannelSender from './result-channel-sender.js';
+import {ResultChannelSender} from '@chopsui/result-channel';
 
 async function* raceAllPromises(promises) {
   promises = promises.map((p, id) => {

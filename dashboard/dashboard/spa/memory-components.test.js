@@ -89,7 +89,7 @@ suite('memory-components', function() {
     assert.deepEqual(['ddd'], state.columns[4].selectedOptions);
 
     const ggg = findElements(memoryComponents, e =>
-      e.matches('cp-checkbox') && /ggg/.test(e.textContent))[0];
+      e.matches('chops-checkbox') && /ggg/.test(e.textContent))[0];
     ggg.click();
     await afterRender();
     state = STORE.getState().test;
@@ -103,7 +103,7 @@ suite('memory-components', function() {
         'memory:chrome:aaa_process:reported_ggg:ccc:eee_size');
 
     const eee = findElements(memoryComponents, e =>
-      e.matches('cp-checkbox') && /eee/.test(e.textContent))[0];
+      e.matches('chops-checkbox') && /eee/.test(e.textContent))[0];
     eee.click();
     await afterRender();
     state = STORE.getState().test;
@@ -117,7 +117,7 @@ suite('memory-components', function() {
         'memory:chrome:aaa_process:reported_ggg:ccc:eee_size');
 
     const ddd = findElements(memoryComponents, e =>
-      e.matches('cp-checkbox') && /ddd/.test(e.textContent))[0];
+      e.matches('chops-checkbox') && /ddd/.test(e.textContent))[0];
     ddd.click();
     await afterRender();
     state = STORE.getState().test;
@@ -131,7 +131,7 @@ suite('memory-components', function() {
         'memory:chrome:aaa_process:reported_ggg:ccc:eee_size');
 
     const bbb = findElements(memoryComponents, e =>
-      e.matches('cp-checkbox') && /bbb/.test(e.textContent))[0];
+      e.matches('chops-checkbox') && /bbb/.test(e.textContent))[0];
     bbb.click();
     await afterRender();
     state = STORE.getState().test;

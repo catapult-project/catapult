@@ -5,11 +5,11 @@
 'use strict';
 
 import './cp-icon.js';
-import './cp-loading.js';
 import './cp-toast.js';
 import './error-set.js';
-import './raised-button.js';
+import '@chopsui/chops-button';
 import '@chopsui/chops-header/chops-header.js';
+import '@chopsui/chops-loading';
 import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import AlertsSection from './alerts-section.js';
 import ChartCompound from './chart-compound.js';
@@ -22,12 +22,12 @@ import SessionIdRequest from './session-id-request.js';
 import SessionStateRequest from './session-state-request.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {ElementBase, STORE} from './element-base.js';
+import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
 import {
   afterRender,
   breakWords,
-  get,
   isProduction,
   simpleGUID,
   timeout,
@@ -224,7 +224,7 @@ export default class ChromeperfApp extends ElementBase {
         width: 100%;
       }
 
-      cp-toast raised-button {
+      cp-toast chops-button {
         background-color: var(--primary-color-dark, blue);
         border-radius: 24px;
         color: var(--background-color, white);
@@ -295,7 +295,7 @@ export default class ChromeperfApp extends ElementBase {
         </chops-header>
       ` : html``}
 
-      <cp-loading ?loading="${this.isLoading}"></cp-loading>
+      <chops-loading ?loading="${this.isLoading}"></chops-loading>
 
       <div id="body">
         <div id="drawer" ?hidden="${!this.enableNav}">
@@ -388,19 +388,19 @@ export default class ChromeperfApp extends ElementBase {
 
       <cp-toast ?opened="${
   this.closedAlertsIds && this.closedAlertsIds.length}">
-        <raised-button
+        <chops-button
             id="reopen_alerts"
             @click="${this.onReopenClosedAlerts_}">
           <cp-icon icon="alert"></cp-icon>
           Reopen alerts
-        </raised-button>
+        </chops-button>
       </cp-toast>
 
       <cp-toast ?opened="${this.closedChartIds && this.closedChartIds.length}">
-        <raised-button id="reopen_chart" @click="${this.onReopenClosedChart_}">
+        <chops-button id="reopen_chart" @click="${this.onReopenClosedChart_}">
           <cp-icon icon="chart"></cp-icon>
           Reopen chart
-        </raised-button>
+        </chops-button>
       </cp-toast>
 
       <cp-toast

@@ -9,7 +9,8 @@ import 'dashboard-metrics';
 import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import {Debouncer} from '@polymer/polymer/lib/utils/debounce.js';
 import {LitElement} from 'lit-element';
-import {get, isProduction} from './utils.js';
+import {get} from 'dot-prop-immutable';
+import {isProduction} from './utils.js';
 
 import {
   DEFAULT_REDUCER_WRAPPERS,

@@ -5,7 +5,8 @@
 'use strict';
 
 import * as Redux from 'redux';
-import {deepFreeze, setImmutable} from './utils.js';
+import {deepFreeze} from './utils.js';
+import {set} from 'dot-prop-immutable';
 
 // See architecture.md for background and explanations.
 
@@ -61,7 +62,7 @@ export function createSimpleStore({
 export const registerReducer = reducer => REDUCERS.set(reducer.name, reducer);
 
 /*
-  * Wrap a case function in setImmutable so that it can update a node in the
+  * Wrap a case function in set so that it can update a node in the
   * state tree denoted by action.statePath.
   *
   * Usage: registerReducer(statePathReducer(
@@ -71,7 +72,7 @@ export const registerReducer = reducer => REDUCERS.set(reducer.name, reducer);
 export const statePathReducer = reducer => {
   const replacement = (rootState, action) => {
     if (!action.statePath) return reducer(rootState, action, rootState);
-    return setImmutable(rootState, action.statePath, state =>
+    return set(rootState, action.statePath, state =>
       reducer(state, action, rootState));
   };
   Object.defineProperty(replacement, 'name', {value: reducer.name});

@@ -255,7 +255,7 @@ suite('chart-base', function() {
       e.getAttribute('y') === '50%')[0]);
 
     assert.isDefined(findElements(chart, e =>
-      e.tagName === 'CP-ICON' &&
+      e.matches('cp-icon') &&
       e.icon === 'error' &&
       e.style.color === 'blue')[0]);
 

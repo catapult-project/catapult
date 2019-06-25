@@ -5,12 +5,13 @@
 'use strict';
 
 import './cp-icon.js';
-import './cp-input.js';
+import '@chopsui/chops-input';
 import OptionGroup from './option-group.js';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {html, css} from 'lit-element';
-import {isElementChildOf, get, setImmutable} from './utils.js';
+import {isElementChildOf} from './utils.js';
+import {get, set} from 'dot-prop-immutable';
 
 export default class MenuInput extends ElementBase {
   static get is() { return 'menu-input'; }
@@ -72,7 +73,7 @@ export default class MenuInput extends ElementBase {
 
   render() {
     return html`
-      <cp-input
+      <chops-input
           id="input"
           ?autofocus="${this.isFocused}"
           .error="${!this.isValid_()}"
@@ -92,7 +93,7 @@ export default class MenuInput extends ElementBase {
             alt="clear"
             @click="${this.onClear_}">
         </cp-icon>
-      </cp-input>
+      </chops-input>
 
       <div id="menu" tabindex="0" ?hidden="${!this.isFocused}">
         <slot name="top"></slot>
@@ -121,7 +122,7 @@ export default class MenuInput extends ElementBase {
   }
 
   firstUpdated() {
-    this.nativeInput = this.shadowRoot.querySelector('cp-input');
+    this.nativeInput = this.shadowRoot.querySelector('chops-input');
     this.observeIsFocused_();
   }
 
@@ -245,7 +246,7 @@ function optionStatePath(indices) {
 const ARROW_HANDLERS = {
   // These four methods handle arrow key presses.
   // They may modify `indices` in place. They may NOT modify options in place.
-  // They may return options modified via setImmutable().
+  // They may return options modified via set().
   // `indices` is an array of integer indexes, denoting a path through the
   // option tree. This path is stored in the Redux STORE as a statePath string.
   // MenuInput.reducers.arrowCursor transforms the cursor statePath to `indices`
@@ -332,7 +333,7 @@ const ARROW_HANDLERS = {
       cursorOption = get(options, cursorRelPath);
     }
 
-    options = setImmutable(options, cursorRelPath + '.isExpanded', false);
+    options = set(options, cursorRelPath + '.isExpanded', false);
 
     return options;
   },
@@ -343,7 +344,7 @@ const ARROW_HANDLERS = {
     // If the option at cursor has children, expand it.
     if (cursorOption && cursorOption.options && cursorOption.options.length &&
         !cursorOption.isExpanded) {
-      options = setImmutable(options, cursorRelPath + '.isExpanded', true);
+      options = set(options, cursorRelPath + '.isExpanded', true);
     }
     return options;
   },
@@ -354,7 +355,7 @@ MenuInput.reducers = {
     const focusTimestamp = window.performance.now();
     rootState = {...rootState, focusTimestamp};
     if (!inputStatePath) return rootState; // Blur all menu-inputs
-    return setImmutable(rootState, inputStatePath, inputState => {
+    return set(rootState, inputStatePath, inputState => {
       return {...inputState, focusTimestamp, hasBeenOpened: true};
     });
   },

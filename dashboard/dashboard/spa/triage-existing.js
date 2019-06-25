@@ -4,13 +4,14 @@
 */
 'use strict';
 
-import './cp-input.js';
-import './cp-switch.js';
-import './raised-button.js';
+import '@chopsui/chops-button';
+import '@chopsui/chops-input';
+import '@chopsui/chops-switch';
 import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
+import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
-import {get, measureElement, isElementChildOf} from './utils.js';
+import {measureElement, isElementChildOf} from './utils.js';
 
 export default class TriageExisting extends ElementBase {
   static get is() { return 'triage-existing'; }
@@ -72,7 +73,7 @@ export default class TriageExisting extends ElementBase {
         flex-grow: 1;
       }
 
-      cp-switch {
+      chops-switch {
         margin-right: 16px;
       }
 
@@ -121,28 +122,28 @@ export default class TriageExisting extends ElementBase {
 
     return html`
       <div id="controls">
-        <cp-input
+        <chops-input
             id="bug_input"
             autofocus
             label="Bug Number"
             .value="${this.bugId}"
             @keyup="${this.onIdKeyup_}">
-        </cp-input>
+        </chops-input>
 
-        <raised-button
+        <chops-button
             ?disabled="${!this.isIdValid_(this.bugId)}"
             @click="${this.onSubmit_}">
           Submit
-        </raised-button>
+        </chops-button>
 
         <span class="spacer">&nbsp;</span>
 
-        <cp-switch
+        <chops-switch
             ?checked="${this.onlyIntersectingBugs}"
             title="${switchTitle}"
             @change="${this.onToggleOnlyIntersectingBugs_}">
           Intersecting Bugs Only
-        </cp-switch>
+        </chops-switch>
       </div>
 
       <div id="table-container">

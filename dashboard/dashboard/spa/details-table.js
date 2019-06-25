@@ -12,14 +12,9 @@ import NudgeAlert from './nudge-alert.js';
 import {DetailsFetcher} from './details-fetcher.js';
 import {ElementBase, STORE} from './element-base.js';
 import {TimeseriesMerger} from './timeseries-merger.js';
+import {breakWords, enumerate, isProduction} from './utils.js';
+import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
-
-import {
-  breakWords,
-  enumerate,
-  get,
-  isProduction,
-} from './utils.js';
 
 // Sort hidden rows after rows with visible labels.
 const HIDE_ROW_PREFIX = String.fromCharCode('z'.charCodeAt(0) + 1).repeat(3);
@@ -117,7 +112,7 @@ export default class DetailsTable extends ElementBase {
 
   render() {
     return html`
-      <cp-loading ?loading="${this.isLoading}"></cp-loading>
+      <chops-loading ?loading="${this.isLoading}"></chops-loading>
 
       <div id="empty" ?hidden="${!this.isLoading || this.bodies.length}">
         Loading details

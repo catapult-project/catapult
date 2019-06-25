@@ -8,7 +8,7 @@ import ExpandButton from './expand-button.js';
 import {STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {assert} from 'chai';
-import {get} from './utils.js';
+import {get} from 'dot-prop-immutable';
 
 suite('expand-button', function() {
   teardown(() => {

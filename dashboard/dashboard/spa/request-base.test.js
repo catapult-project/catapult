@@ -6,7 +6,7 @@
 
 import {assert} from 'chai';
 import RequestBase from './request-base.js';
-import ResultChannelSender from './result-channel-sender.js';
+import {ResultChannelSender} from '@chopsui/result-channel';
 
 import {
   simpleGUID,

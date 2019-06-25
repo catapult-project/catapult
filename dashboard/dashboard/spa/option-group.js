@@ -4,10 +4,10 @@
 */
 'use strict';
 
-import './cp-checkbox.js';
 import './expand-button.js';
+import '@chopsui/chops-checkbox';
 import {ElementBase, STORE} from './element-base.js';
-import {get} from './utils.js';
+import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
 export default class OptionGroup extends ElementBase {
@@ -85,7 +85,7 @@ export default class OptionGroup extends ElementBase {
         flex-shrink: 0;
       }
 
-      cp-checkbox {
+      chops-checkbox {
         flex-grow: 1;
         flex-shrink: 0;
         width: unset;
@@ -108,13 +108,13 @@ export default class OptionGroup extends ElementBase {
           </expand-button>
         `}
 
-        <cp-checkbox
+        <chops-checkbox
             ?checked="${this.isSelected_(option, this.selectedOptions)}"
             ?disabled="${option.disabled}"
             tabindex="0"
             @change="${event => this.onSelect_(option)}">
           ${this.label_(option)}
-        </cp-checkbox>
+        </chops-checkbox>
       </div>
 
       ${!this.shouldStampSubOptions_(option, this.query) ? '' : html`

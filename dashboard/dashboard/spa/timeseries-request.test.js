@@ -4,7 +4,7 @@
 */
 'use strict';
 
-import ResultChannelSender from './result-channel-sender.js';
+import {ResultChannelSender} from '@chopsui/result-channel';
 import {TimeseriesRequest, LEVEL_OF_DETAIL} from './timeseries-request.js';
 import {assert} from 'chai';
 import {denormalize, timeout, setDebugForTesting} from './utils.js';

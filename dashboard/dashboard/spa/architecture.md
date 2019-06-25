@@ -96,7 +96,7 @@ FooView.actions = {
   },
 };
 function toggleIsEnabledReducer(rootState, {statePath}) {
-  return setImmutable(rootState, statePath, localState => {
+  return set(rootState, statePath, localState => {
     return {...localState, isEnabled: !localState.isEnabled};
   });
 }
@@ -120,7 +120,7 @@ There’s a lot of boilerplate there, so V2SPA uses some helpers to reduce it.
    are reducer names) to case functions, as per the [example in the Redux
    docs](https://redux.js.org/recipes/reducingboilerplate#generating-reducers).
  * statePathReducer(reducer) wraps a case function in
-   setImmutable().
+   set() from dot-prop-immutable.
  * ElementBase.register(FooView) wraps customElements.define(), renames the
    reducers, wraps them with statePathReducer, and registers them.
 

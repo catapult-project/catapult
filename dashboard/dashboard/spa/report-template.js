@@ -5,13 +5,13 @@
 'use strict';
 
 import './cp-icon.js';
-import './cp-input.js';
-import './raised-button.js';
+import '@chopsui/chops-button';
+import '@chopsui/chops-input';
 import ReportTemplateRequest from './report-template-request.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
 import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
-import {get} from './utils.js';
+import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
 export default class ReportTemplate extends ElementBase {
@@ -73,16 +73,16 @@ export default class ReportTemplate extends ElementBase {
         justify-content: space-evenly;
       }
 
-      .edit_form_controls cp-input {
+      .edit_form_controls chops-input {
         width: 250px;
       }
 
       .edit_form_controls menu-input:not(:last-child),
-      .edit_form_controls cp-input:not(:last-child) {
+      .edit_form_controls chops-input:not(:last-child) {
         margin-right: 8px;
       }
 
-      cp-input {
+      chops-input {
         margin-top: 12px;
       }
 
@@ -109,25 +109,25 @@ export default class ReportTemplate extends ElementBase {
     return html`
       <div class="edit_form_controls">
         <div>
-          <cp-input
+          <chops-input
               id="name"
               error="${!this.name}"
               label="Report Name"
               value="${this.name}"
               @keyup="${this.onTemplateNameKeyUp_}">
-          </cp-input>
+          </chops-input>
           <span class="error" ?hidden="${!!this.name}">
             required
           </span>
         </div>
 
         <div>
-          <cp-input
+          <chops-input
               error="${!this.owners}"
               label="Owners"
               value="${this.owners}"
               @keyup="${this.onTemplateOwnersKeyUp_}">
-          </cp-input>
+          </chops-input>
           <span class="error" ?hidden="${!!this.owners}">
               comma-separate list of complete email addresses
           </span>
@@ -137,11 +137,11 @@ export default class ReportTemplate extends ElementBase {
         </menu-input>
 
         <div>
-          <cp-input
+          <chops-input
               label="Documentation"
               value="${this.url}"
               @keyup="${this.onTemplateUrlKeyUp_}">
-          </cp-input>
+          </chops-input>
         </div>
       </div>
 
@@ -150,13 +150,13 @@ export default class ReportTemplate extends ElementBase {
           ${this.rows.map((row, rowIndex) => html`
             <tr>
               <td>
-                <cp-input
+                <chops-input
                     label="Label"
                     error="${!row.label}"
                     value="${row.label}"
                     @keyup="${event =>
     this.onTemplateRowLabelKeyUp_(event, rowIndex)}">
-                </cp-input>
+                </chops-input>
                 <span class="error" ?hidden="${!!row.label}">
                   required
                 </span>
@@ -186,21 +186,21 @@ export default class ReportTemplate extends ElementBase {
       </table>
 
       <div class="edit_form_controls">
-        <raised-button
+        <chops-button
             id="cancel"
             @click="${this.onCancel_}">
           <cp-icon icon="cancel"></cp-icon>
           Cancel
-        </raised-button>
+        </chops-button>
 
-        <raised-button
+        <chops-button
             id="save"
             ?disabled="${!ReportTemplate.canSave(
       this.name, this.owners, this.statistic, this.rows)}"
             @click="${this.onTemplateSave_}">
           <cp-icon icon="save"></cp-icon>
           Save
-        </raised-button>
+        </chops-button>
       </div>
     `;
   }

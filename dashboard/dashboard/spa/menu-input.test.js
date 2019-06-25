@@ -48,10 +48,12 @@ suite('menu-input', function() {
     document.body.appendChild(yyyInput);
     await afterRender();
     xxxInput.nativeInput.click();
+    await afterRender();
     assert.isTrue(xxxInput.isFocused);
     assert.isFalse(yyyInput.isFocused);
 
     yyyInput.nativeInput.click();
+    await afterRender();
     assert.isFalse(xxxInput.isFocused);
     assert.isTrue(yyyInput.isFocused);
   });

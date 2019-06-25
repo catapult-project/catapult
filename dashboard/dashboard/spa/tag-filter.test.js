@@ -54,7 +54,7 @@ suite('tag-filter', function() {
     await afterRender();
 
     const xxx = findElements(tagFilter, e =>
-      e.matches('cp-checkbox') && /xxx/.test(e.textContent))[0];
+      e.matches('chops-checkbox') && /xxx/.test(e.textContent))[0];
     xxx.click();
     await afterRender();
     let state = STORE.getState().test;
@@ -70,7 +70,7 @@ suite('tag-filter', function() {
     assert.deepEqual([], state.selectedOptions);
 
     const yyy = findElements(tagFilter, e =>
-      e.matches('cp-checkbox') && /yyy/.test(e.textContent))[0];
+      e.matches('chops-checkbox') && /yyy/.test(e.textContent))[0];
     yyy.click();
     await afterRender();
     state = STORE.getState().test;

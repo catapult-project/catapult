@@ -4,11 +4,11 @@
 */
 'use strict';
 
-import './cp-icon.js';
 import './chart-legend.js';
-import './cp-input.js';
-import './cp-loading.js';
+import './cp-icon.js';
 import './expand-button.js';
+import '@chopsui/chops-input';
+import '@chopsui/chops-loading';
 import ChartBase from './chart-base.js';
 import ChartCompound from './chart-compound.js';
 import ChartTimeseries from './chart-timeseries.js';
@@ -20,8 +20,9 @@ import sha from './sha.js';
 import {CHAIN, UPDATE} from './simple-redux.js';
 import {ElementBase, STORE} from './element-base.js';
 import {MODE} from './layout-timeseries.js';
+import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
-import {get, simpleGUID} from './utils.js';
+import {simpleGUID} from './utils.js';
 
 export default class ChartSection extends ElementBase {
   static get is() { return 'chart-section'; }
@@ -179,12 +180,12 @@ export default class ChartSection extends ElementBase {
           </div>
 
           <div ?hidden="${this.isExpanded}">
-            <cp-input
+            <chops-input
                 id="title"
                 value="${this.title_}"
                 label="Title"
                 @keyup="${this.onTitleKeyup_}">
-            </cp-input>
+            </chops-input>
           </div>
         </div>
 
@@ -210,7 +211,7 @@ export default class ChartSection extends ElementBase {
         </cp-icon>
       </div>
 
-      <cp-loading ?loading="${isLoading}"></cp-loading>
+      <chops-loading ?loading="${isLoading}"></chops-loading>
 
       <div id="chart_container">
         <chart-compound

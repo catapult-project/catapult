@@ -5,9 +5,9 @@
 'use strict';
 
 import ChartTimeseries from './chart-timeseries.js';
-import ResultChannelSender from './result-channel-sender.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
+import {ResultChannelSender} from '@chopsui/result-channel';
 import {STORE} from './element-base.js';
 import {assert} from 'chai';
 

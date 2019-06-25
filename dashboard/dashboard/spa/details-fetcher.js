@@ -5,8 +5,9 @@
 'use strict';
 
 import ChartTimeseries from './chart-timeseries.js';
-import {BatchIterator, enumerate} from './utils.js';
+import {BatchIterator} from '@chopsui/batch-iterator';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
+import {enumerate} from './utils.js';
 
 // DetailsTable contains one table body per line in the main chart, and one
 // column per revisionRange.

@@ -4,13 +4,13 @@
 */
 'use strict';
 
-import './cp-icon.js';
 import './column-head.js';
-import './cp-checkbox.js';
 import './expand-button.js';
 import './scalar-span.js';
+import '@chopsui/chops-checkbox';
 import {ElementBase, STORE} from './element-base.js';
-import {breakWords, crbug, get, setImmutable} from './utils.js';
+import {breakWords, crbug} from './utils.js';
+import {get, set} from 'dot-prop-immutable';
 import {html, css, unsafeCSS, svg} from 'lit-element';
 
 export default class AlertsTable extends ElementBase {
@@ -335,11 +335,11 @@ export default class AlertsTable extends ElementBase {
               ` : ''}
 
               <th class="checkbox">
-                <cp-checkbox
+                <chops-checkbox
                     ?checked="${this.selectedAlertsCount > 0}"
                     ?disabled="${this.areAlertGroupsPlaceholders}"
                     @change="${this.onSelectAll_}">
-                </cp-checkbox>
+                </chops-checkbox>
               </th>
 
               ${this.showBugColumn ? html`
@@ -549,13 +549,13 @@ export default class AlertsTable extends ElementBase {
         ` : ''}
 
         <td>
-          <cp-checkbox
+          <chops-checkbox
               ?checked="${alert.isSelected}"
               ?disabled="${this.areAlertGroupsPlaceholders}"
               @change="${event =>
     this.onSelect_(event, alertGroupIndex, alertIndex)}">
             ${shouldDisplaySelectedCount ? this.selectedCount_(alertGroup) : ''}
-          </cp-checkbox>
+          </chops-checkbox>
         </td>
 
         ${this.showBugColumn ? html`
@@ -679,7 +679,7 @@ export default class AlertsTable extends ElementBase {
   }
 
   async onRowClick_(event, alertGroupIndex, alertIndex) {
-    if (event.target.tagName !== 'TD') return;
+    if (event.target.matches('td')) return;
     this.dispatchEvent(new CustomEvent('alert-click', {
       bubbles: true,
       composed: true,
@@ -886,11 +886,10 @@ AlertsTable.reducers = {
         });
       } else {
         // Only toggle this alert.
-        alerts = setImmutable(
-            alerts, `${alertIndex}.isSelected`, isSelected);
+        alerts = set(alerts, `${alertIndex}.isSelected`, isSelected);
       }
 
-      alertGroups = setImmutable(
+      alertGroups = set(
           state.alertGroups, `${alertGroupIndex}.alerts`, alerts);
     }
 

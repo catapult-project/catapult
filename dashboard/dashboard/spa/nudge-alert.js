@@ -4,14 +4,15 @@
 */
 'use strict';
 
-import './cp-loading.js';
 import './error-set.js';
+import '@chopsui/chops-loading';
 import NudgeAlertRequest from './nudge-alert-request.js';
 import {ElementBase, STORE} from './element-base.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {UPDATE} from './simple-redux.js';
+import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
-import {isElementChildOf, get, afterRender} from './utils.js';
+import {isElementChildOf, afterRender} from './utils.js';
 
 export default class NudgeAlert extends ElementBase {
   static get is() { return 'nudge-alert'; }
@@ -95,7 +96,7 @@ export default class NudgeAlert extends ElementBase {
   render() {
     return html`
       <error-set .errors="${this.errors}"></error-set>
-      <cp-loading ?loading="${this.isLoading}"></cp-loading>
+      <chops-loading ?loading="${this.isLoading}"></chops-loading>
 
       <div id="scroller">
         <table>

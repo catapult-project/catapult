@@ -5,15 +5,16 @@
 'use strict';
 
 import './cp-icon.js';
-import './cp-input.js';
-import './raised-button.js';
+import '@chopsui/chops-button';
+import '@chopsui/chops-input';
 import MenuInput from './menu-input.js';
 import OptionGroup from './option-group.js';
 import ReportNamesRequest from './report-names-request.js';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
+import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
-import {get, isDebug, simpleGUID} from './utils.js';
+import {isDebug, simpleGUID} from './utils.js';
 
 export default class ReportControls extends ElementBase {
   static get is() { return 'report-controls'; }
@@ -99,7 +100,7 @@ export default class ReportControls extends ElementBase {
       <menu-input id="source" .statePath="${this.statePath}.source">
       </menu-input>
 
-      <raised-button
+      <chops-button
           id="alerts"
           title="Alerts"
           @click="${this.onAlerts_}">
@@ -107,39 +108,39 @@ export default class ReportControls extends ElementBase {
         <span class="nav_button_label">
           Alerts
         </span>
-      </raised-button>
+      </chops-button>
 
       <span class="spacer">&nbsp;</span>
 
-      <raised-button
+      <chops-button
           id="prev-mstone"
           ?disabled="${this.milestone <= (MIN_MILESTONE + 1)}"
           @click="${this.onPreviousMilestone_}">
         M${this.milestone - ((this.maxRevision === 'latest') ? 1 : 2)}
         <cp-icon icon="left"></cp-icon>
-      </raised-button>
+      </chops-button>
 
-      <cp-input
+      <chops-input
           id="min-revision"
           .value="${this.minRevisionInput}"
           label="Min Revision"
           @keyup="${this.onMinRevisionKeyup_}">
-      </cp-input>
+      </chops-input>
 
-      <cp-input
+      <chops-input
           id="max-revision"
           .value="${this.maxRevisionInput}"
           label="Max Revision"
           @keyup="${this.onMaxRevisionKeyup_}">
-      </cp-input>
+      </chops-input>
 
-      <raised-button
+      <chops-button
           id="next-mstone"
           ?disabled="${this.milestone >= ReportControls.CURRENT_MILESTONE}"
           @click="${this.onNextMilestone_}">
         <cp-icon icon="right"></cp-icon>
         M${this.milestone + 1}
-      </raised-button>
+      </chops-button>
 
       <span class="spacer">&nbsp;</span>
 

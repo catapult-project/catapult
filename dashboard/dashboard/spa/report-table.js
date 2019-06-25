@@ -9,8 +9,9 @@ import './cp-toast.js';
 import './scalar-span.js';
 import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
+import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
-import {get, isDebug, measureElement} from './utils.js';
+import {isDebug, measureElement} from './utils.js';
 
 export default class ReportTable extends ElementBase {
   static get is() { return 'report-table'; }
@@ -369,7 +370,7 @@ export default class ReportTable extends ElementBase {
     if (!row.actualDescriptors) return;
     let tr;
     for (const elem of event.path) {
-      if (elem.tagName === 'TR') {
+      if (elem.matches('tr')) {
         tr = elem;
         break;
       }

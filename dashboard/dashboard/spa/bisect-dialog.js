@@ -4,12 +4,12 @@
 */
 'use strict';
 
-import './cp-input.js';
-import './cp-loading.js';
-import './cp-radio-group.js';
-import './cp-radio.js';
+import '@chopsui/chops-input';
+import '@chopsui/chops-loading';
+import '@chopsui/chops-radio-group';
+import '@chopsui/chops-radio';
 import './error-set.js';
-import './raised-button.js';
+import '@chopsui/chops-button';
 import NewPinpointRequest from './new-pinpoint-request.js';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
@@ -84,15 +84,15 @@ export default class BisectDialog extends ElementBase {
         bottom: 0;
         z-index: var(--layer-menu, 100);
       }
-      cp-input {
+      chops-input {
         margin: 12px 4px 4px 4px;
         width: 100px;
       }
-      cp-radio-group {
+      chops-radio-group {
         margin-left: 8px;
         flex-direction: row;
       }
-      .row raised-button {
+      .row chops-button {
         flex-grow: 1;
       }
       .row {
@@ -111,17 +111,17 @@ export default class BisectDialog extends ElementBase {
 
   render() {
     return html`
-      <raised-button
+      <chops-button
           id="open"
           ?disabled="${!this.able}"
           title="${this.tooltip}"
           @click="${this.onOpen_}">
         Bisect ${this.startRevision} - ${this.endRevision}
-      </raised-button>
+      </chops-button>
 
       <error-set .errors="${this.errors}"></error-set>
-      <cp-loading ?loading="${this.isLoading}">
-      </cp-loading>
+      <chops-loading ?loading="${this.isLoading}">
+      </chops-loading>
       ${!this.jobId ? '' : html`
         <a target="_blank" href="${pinpointJob(this.jobId)}">${this.jobId}</a>
       `}
@@ -155,55 +155,55 @@ export default class BisectDialog extends ElementBase {
         </table>
 
         <div class="row">
-          <cp-input
+          <chops-input
               id="start_revision"
               label="Start Revision"
               tabindex="0"
               .value="${this.startRevision}"
               @change="${this.onStartRevision_}">
-          </cp-input>
+          </chops-input>
 
-          <cp-input
+          <chops-input
               id="end_revision"
               label="End Revision"
               tabindex="0"
               .value="${this.endRevision}"
               @change="${this.onEndRevision_}">
-          </cp-input>
+          </chops-input>
         </div>
 
         <div class="row">
-          <cp-input
+          <chops-input
               id="bug_id"
               label="Bug ID"
               tabindex="0"
               .value="${this.bugId}"
               @change="${this.onBugId_}">
-          </cp-input>
+          </chops-input>
 
-          <cp-input
+          <chops-input
               id="patch"
               label="Patch"
               title="optional patch to apply to the entire job"
               tabindex="0"
               .value="${this.patch}"
               @change="${this.onPatch_}">
-          </cp-input>
+          </chops-input>
         </div>
 
         <div class="row">
           Mode:
-          <cp-radio-group
+          <chops-radio-group
               id="mode"
               selected="${this.mode}"
               @selected-changed="${this.onModeChange_}">
-            <cp-radio name="performance">
+            <chops-radio name="performance">
               Performance
-            </cp-radio>
-            <cp-radio name="functional">
+            </chops-radio>
+            <chops-radio name="functional">
               Functional
-            </cp-radio>
-          </cp-radio-group>
+            </chops-radio>
+          </chops-radio-group>
         </div>
 
         ${((this.endRevision - this.startRevision) < MANY_REVISIONS) ? '' :
@@ -214,18 +214,18 @@ export default class BisectDialog extends ElementBase {
         `}
 
         <div class="row">
-          <raised-button
+          <chops-button
               id="cancel"
               @click="${this.onCancel_}"
               tabindex="0">
             Cancel
-          </raised-button>
-          <raised-button
+          </chops-button>
+          <chops-button
               id="start"
               @click="${this.onSubmit_}"
               tabindex="0">
             Start
-          </raised-button>
+          </chops-button>
         </div>
       </div>
     `;

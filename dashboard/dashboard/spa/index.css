@@ -32,6 +32,46 @@
   --elevation-2: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
                  0 1px 10px 0 rgba(0, 0, 0, 0.12),
                  0 2px 4px -1px rgba(0, 0, 0, 0.4);
+
+  --chops-button-background-color: var(--primary-color-light);
+  --chops-button-shadow: var(--elevation-1);
+  --chops-button-color: var(--primary-color-dark);
+  --chops-button-disabled-background-color: var(--neutral-color-light);
+  --chops-button-disabled-color: var(--neutral-color-dark);
+  --chops-button-active-color: var(--primary-color-medium);
+
+  --chops-checkbox-background-color: var(--background-color);
+  --chops-checkbox-border-color: var(--foreground-color);
+  --chops-checkbox-checked-color: var(--primary-color-dark);
+  --chops-checkbox-disabled-color: var(--neutral-color-dark);
+
+  --chops-input-label-color: var(--neutral-color-dark);
+  --chops-input-background-color: var(--background-color);
+  --chops-input-disabled-color: var(--neutral-color-light);
+  --chops-input-focused-color: var(--primary-color-dark);
+  --chops-input-error-color: var(--error-color);
+
+  --chops-loading-color: var(--primary-color-dark);
+
+  --chops-radio-color: var(--primary-color-dark);
+  --chops-radio-disabled-color: var(--neutral-color-dark);
+
+  --chops-switch-off-dark-color: var(--neutral-color-dark);
+  --chops-switch-off-light-color: var(--neutral-color-light);
+  --chops-switch-shadow: var(--elevation-1);
+  --chops-switch-on-light-color: var(--primary-color-light);
+  --chops-switch-on-dark-color: var(--primary-color-dark);
+
+  --chops-tab-background-color: var(--primary-color-light);
+  --chops-tab-color: var(--primary-color-dark);
+  --chops-tab-checked-color: var(--background-color);
+
+  --chops-tab-bar-color: var(--primary-color-dark);
+
+  --chops-textarea-label-color: var(--neutral-color-dark);
+  --chops-textarea-background-color: var(--background-color);
+  --chops-textarea-focused-color: var(--primary-color-dark);
+  --chops-textarea-error-color: var(--error-color);
 }
 
 :root, body, chromeperf-app {

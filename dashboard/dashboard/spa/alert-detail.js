@@ -5,8 +5,8 @@
 'use strict';
 
 import './cp-icon.js';
-import './cp-loading.js';
 import './error-set.js';
+import '@chopsui/chops-loading';
 import ExistingBugRequest from './existing-bug-request.js';
 import NewBugRequest from './new-bug-request.js';
 import NudgeAlert from './nudge-alert.js';
@@ -14,16 +14,9 @@ import TriageExisting from './triage-existing.js';
 import TriageNew from './triage-new.js';
 import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
+import {crbug, isProduction, pinpointJob} from './utils.js';
+import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
-
-import {
-  buildProperties,
-  buildState,
-  crbug,
-  get,
-  isProduction,
-  pinpointJob,
-} from './utils.js';
 
 export default class AlertDetail extends ElementBase {
   static get is() { return 'alert-detail'; }
@@ -167,7 +160,7 @@ export default class AlertDetail extends ElementBase {
       </table>
 
       <error-set .errors="${this.errors}"></error-set>
-      <cp-loading ?loading="${this.isLoading}"></cp-loading>
+      <chops-loading ?loading="${this.isLoading}"></chops-loading>
 
       ${(!this.pinpointJobs || !this.pinpointJobs.length) ? '' : html`
         Pinpoint jobs:
@@ -178,9 +171,9 @@ export default class AlertDetail extends ElementBase {
 
       <flex ?hidden="${!isProduction()}">
         <span style="position: relative;">
-          <raised-button @click="${this.onNudge_}">
+          <chops-button @click="${this.onNudge_}">
             Nudge
-          </raised-button>
+          </chops-button>
           <nudge-alert
               .statePath="${this.statePath}.nudge"
               tabindex="0">
@@ -188,14 +181,14 @@ export default class AlertDetail extends ElementBase {
         </span>
 
         ${this.bugId ? html`
-          <raised-button @click="${this.onUnassign_}">
+          <chops-button @click="${this.onUnassign_}">
             Unassign
-          </raised-button>
+          </chops-button>
         ` : html`
           <span style="position: relative;">
-            <raised-button id="new" @click="${this.onTriageNew_}">
+            <chops-button id="new" @click="${this.onTriageNew_}">
               New Bug
-            </raised-button>
+            </chops-button>
             <triage-new
                 tabindex="0"
                 .statePath="${this.statePath}.newBug"
@@ -204,9 +197,9 @@ export default class AlertDetail extends ElementBase {
           </span>
 
           <span style="position: relative;">
-            <raised-button id="existing" @click="${this.onTriageExisting_}">
+            <chops-button id="existing" @click="${this.onTriageExisting_}">
               Existing Bug
-            </raised-button>
+            </chops-button>
 
             <triage-existing
                 tabindex="0"
@@ -215,9 +208,9 @@ export default class AlertDetail extends ElementBase {
             </triage-existing>
           </span>
 
-          <raised-button id="ignore" @click="${this.onIgnore_}">
+          <chops-button id="ignore" @click="${this.onIgnore_}">
             Ignore
-          </raised-button>
+          </chops-button>
         `}
       </flex>
     `;

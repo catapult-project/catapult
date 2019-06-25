@@ -6,20 +6,15 @@
 
 import './place-holder.js';
 import ChartBase from './chart-base.js';
+import {BatchIterator} from '@chopsui/batch-iterator';
 import {CHAIN, UPDATE} from './simple-redux.js';
+import {CTRL_KEY_NAME, generateColors, measureText} from './utils.js';
 import {ElementBase, STORE} from './element-base.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {MODE, layoutTimeseries} from './layout-timeseries.js';
 import {TimeseriesMerger} from './timeseries-merger.js';
+import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
-
-import {
-  BatchIterator,
-  CTRL_KEY_NAME,
-  generateColors,
-  get,
-  measureText,
-} from './utils.js';
 
 export default class ChartTimeseries extends ElementBase {
   static get is() { return 'chart-timeseries'; }

@@ -7,7 +7,8 @@
 import './cp-icon.js';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
-import {animationFrame, get, hasCtrlKey, measureElement} from './utils.js';
+import {animationFrame, hasCtrlKey, measureElement} from './utils.js';
+import {get} from 'dot-prop-immutable';
 import {html, css, svg} from 'lit-element';
 
 export default class ChartBase extends ElementBase {

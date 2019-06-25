@@ -4,14 +4,15 @@
 */
 'use strict';
 
-import './cp-checkbox.js';
-import './cp-input.js';
-import './cp-textarea.js';
-import './raised-button.js';
+import '@chopsui/chops-button';
+import '@chopsui/chops-checkbox';
+import '@chopsui/chops-input';
+import '@chopsui/chops-textarea';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
+import {get, set} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
-import {isElementChildOf, get, setImmutable} from './utils.js';
+import {isElementChildOf} from './utils.js';
 
 export default class TriageNew extends ElementBase {
   static get is() { return 'triage-new'; }
@@ -68,63 +69,63 @@ export default class TriageNew extends ElementBase {
 
   render() {
     return html`
-      <cp-input
+      <chops-input
           id="summary"
           label="Summary"
           tabindex="0"
           value="${this.summary}"
           @change="${this.onSummary_}">
-      </cp-input>
+      </chops-input>
 
-      <cp-input
+      <chops-input
           id="owner"
           label="Owner"
           tabindex="0"
           value="${this.owner}"
           @change="${this.onOwner_}">
-      </cp-input>
+      </chops-input>
 
-      <cp-input
+      <chops-input
           id="cc"
           label="CC"
           tabindex="0"
           value="${this.cc}"
           @change="${this.onCC_}">
-      </cp-input>
+      </chops-input>
 
-      <cp-textarea
+      <chops-textarea
           autofocus
           id="description"
           label="Description"
           tabindex="0"
           value="${this.description}"
           @keyup="${this.onDescription_}">
-      </cp-textarea>
+      </chops-textarea>
 
       ${(this.labels || []).map(label => html`
-        <cp-checkbox
+        <chops-checkbox
             ?checked="${label.isEnabled}"
             tabindex="0"
             @change="${event => this.onLabel_(label.name)}">
           ${label.name}
-        </cp-checkbox>
+        </chops-checkbox>
       `)}
 
       ${(this.components || []).map(component => html`
-        <cp-checkbox
+        <chops-checkbox
             ?checked="${component.isEnabled}"
             tabindex="0"
             @change="${event => this.onComponent_(component.name)}">
           ${component.name}
-        </cp-checkbox>
+        </chops-checkbox>
       `)}
 
-      <raised-button
+      <chops-button
           id="submit"
           @click="${this.onSubmit_}"
           tabindex="0">
         Submit
-      </raised-button>
+      </chops-button>
     `;
   }
 
@@ -212,8 +213,7 @@ TriageNew.reducers = {
   toggleLabel: (state, action, rootState) => {
     for (let i = 0; i < state.labels.length; ++i) {
       if (state.labels[i].name === action.name) {
-        return setImmutable(
-            state, `labels.${i}.isEnabled`, e => !e);
+        return set(state, `labels.${i}.isEnabled`, e => !e);
       }
     }
     return state;
@@ -222,8 +222,7 @@ TriageNew.reducers = {
   toggleComponent: (state, action, rootState) => {
     for (let i = 0; i < state.components.length; ++i) {
       if (state.components[i].name === action.name) {
-        return setImmutable(
-            state, `components.${i}.isEnabled`, e => !e);
+        return set(state, `components.${i}.isEnabled`, e => !e);
       }
     }
     return state;

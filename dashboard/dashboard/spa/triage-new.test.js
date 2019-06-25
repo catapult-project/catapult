@@ -94,13 +94,14 @@ suite('triage-new', function() {
 
     assert.isTrue(tn.labels[0].isEnabled);
     findElements(tn, e =>
-      e.matches('cp-checkbox') && /label/.test(e.textContent))[0].click();
+      e.matches('chops-checkbox') && /label/.test(e.textContent))[0].click();
     await afterRender();
     assert.isFalse(tn.labels[0].isEnabled);
 
     assert.isTrue(tn.components[0].isEnabled);
     findElements(tn, e =>
-      e.matches('cp-checkbox') && /component/.test(e.textContent))[0].click();
+      e.matches('chops-checkbox') &&
+      /component/.test(e.textContent))[0].click();
     await afterRender();
     assert.isFalse(tn.components[0].isEnabled);
 

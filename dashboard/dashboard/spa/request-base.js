@@ -5,7 +5,7 @@
 'use strict';
 
 import {getAuthorizationHeaders} from '@chopsui/chops-signin/index.js';
-import ResultChannelReceiver from './result-channel-receiver.js';
+import {ResultChannelReceiver} from '@chopsui/result-channel';
 import {isDebug, isProduction} from './utils.js';
 
 export default class RequestBase {
