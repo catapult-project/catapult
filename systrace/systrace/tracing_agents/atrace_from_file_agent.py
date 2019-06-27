@@ -24,8 +24,8 @@ ADB_IGNORE_REGEXP = r'^capturing trace\.\.\. done|^capturing trace\.\.\.'
 
 # Constants required for converting perfetto traces.
 # Keep this in sync with the SHAs in third_party/perfetto/tools/traceconv.
-LINUX_SHA1 = 'ec020c3424ea32d8a79372b40567b528df3cd902'
-MAC_SHA1 = '66df2dc8c52c2c93569aa34d7997cdcd7bd09e3b'
+LINUX_SHA1 = 'd67f9f3e3beb93664578c8b0300ab98e828ecb29'
+MAC_SHA1 = '62b27f343640d0778f1324fa90940381561bef99'
 T2T_OUTPUT = 'trace.systrace'
 
 def try_create_agent(options):
