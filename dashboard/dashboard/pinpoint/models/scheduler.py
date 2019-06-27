@@ -66,6 +66,12 @@ class ConfigurationQueue(ndb.Model):
     return cls.query(
         projection=[cls.configuration], ancestor=ndb.Key('Queues', 'root'))
 
+  def put(self):
+    # We clean up the queue of any 'Done' and 'Cancelled' elements before we
+    # persist the data.
+    self.jobs = [j for j in self.jobs if j.status not in {'Done', 'Cancelled'}]
+    super(ConfigurationQueue, self).put()
+
 
 class Error(Exception):
   pass
@@ -138,8 +144,6 @@ def PickJob(configuration):
   if queue.jobs[0].status == 'Running':
     return (queue.jobs[0].job_id, queue.jobs[0].status)
 
-  # Remove all 'Done' and 'Cancelled' jobs.
-  queue.jobs = [j for j in queue.jobs if j.status not in {'Done', 'Cancelled'}]
   for job in queue.jobs:
     # Pick the first job that's queued, and mark it 'Running'.
     if job.status == 'Queued':
@@ -188,8 +192,8 @@ def Cancel(job):
     if queued_job.job_id == job.job_id:
       if queued_job.status in {'Running', 'Queued'}:
         queued_job.status = 'Cancelled'
-        queue.put()
-      return
+      break
+  queue.put()
 
 
 @ndb.transactional
@@ -212,16 +216,13 @@ def Complete(job):
 
   queue = ConfigurationQueue.GetOrCreateQueue(configuration)
 
-  # Remove all 'Done' and 'Cancelled' jobs.
-  queue.jobs = [j for j in queue.jobs if j.status not in {'Done', 'Cancelled'}]
-
   # We can only complete 'Running' jobs.
   for queued_job in queue.jobs:
     if queued_job.job_id == job.job_id:
       if queued_job.status == 'Running':
         queued_job.status = 'Done'
-        queue.put()
-      return
+      break
+  queue.put()
 
 
 @ndb.transactional
