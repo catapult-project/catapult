@@ -108,11 +108,13 @@ class Execution(object):
       # Some built-in exceptions are derived from RuntimeError which we'd like
       # to treat as errors.
       raise
-    except Exception:  # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except
       # We allow broad exception handling here, because we log the exception and
       # display it in the UI.
       self._completed = True
       self._exception = traceback.format_exc()
+      if hasattr(e, 'task_output'):
+        self._exception += '\n%s' % getattr(e, 'task_output')
     except:
       # All other exceptions must be propagated.
       raise

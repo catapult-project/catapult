@@ -137,7 +137,7 @@ class BuildTest(_FindIsolateExecutionTest):
     put.return_value = {'build': {'id': 'build_id'}}
     execution.Poll()
 
-    self.assertExecutionFailure(execution, errors.BuildGerritURLInvalid)
+    self.assertExecutionFailure(execution, errors.BuildGerritUrlNotFound)
 
   def testBuildNoBucket(self, put, _):
     change = change_test.Change(123, 456, patch=True)

@@ -177,11 +177,7 @@ def _RequestBuild(builder_name, change, bucket):
   base_as_dict = change.base_commit.AsDict()
   review_url = base_as_dict.get('review_url')
   if not review_url:
-    raise errors.BuildGerritURLInvalid(str(base_as_dict))
-
-  change_id = base_as_dict.get('change_id')
-  if not change_id:
-    raise errors.BuildGerritURLInvalid(str(base_as_dict))
+    raise errors.BuildGerritUrlNotFound(str(change.base_commit))
 
   url_parts = urlparse.urlparse(review_url)
   base_review_url = urlparse.urlunsplit(

@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from dashboard.pinpoint.models.change import patch
+from dashboard.pinpoint.models import errors
 from dashboard.pinpoint import test
 
 
@@ -115,7 +116,7 @@ class GerritPatchTest(test.TestCase):
     self.assertEqual(p, Patch('current revision'))
 
   def testFromUrlBadUrl(self):
-    with self.assertRaises(ValueError):
+    with self.assertRaises(errors.BuildGerritURLInvalid):
       patch.GerritPatch.FromUrl('https://example.com/not/a/gerrit/url')
 
   def testFromDict(self):

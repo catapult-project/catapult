@@ -133,7 +133,8 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
           conditions['tir_label'] = self._tir_label
         if self._story:
           conditions['story'] = self._story
-        raise errors.ReadValueNotFound(conditions)
+        reason = ', '.join(list(':'.join(i) for i in conditions.items()))
+        raise errors.ReadValueNotFound(reason)
 
     self._Complete(result_values=tuple(result_values))
 

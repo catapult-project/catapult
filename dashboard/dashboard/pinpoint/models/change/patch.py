@@ -11,6 +11,7 @@ import datetime
 import re
 import urlparse
 
+from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models.change import commit_cache
 from dashboard.services import gerrit_service
 
@@ -147,7 +148,7 @@ class GerritPatch(collections.namedtuple(
       change = change_match.group(1)
       revision = None
     else:
-      raise ValueError('Unknown patch URL format: ' + url)
+      raise errors.BuildGerritURLInvalid(url)
 
     return cls.FromDict({
         'server': server,
