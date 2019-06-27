@@ -830,7 +830,7 @@ class Runner(object):
     def expectations_for(self, test_case):
       if self.has_expectations:
           return self.expectations.expectations_for(
-              test_case.id()[len(self.args.test_name_prefix):])
+              test_case.id()[len(self.args.test_name_prefix):])[:-1]
       else:
           return (set([ResultType.Pass]), False)
 
@@ -871,7 +871,7 @@ class Runner(object):
           return False
         test_name = test_case.id()[len(self.args.test_name_prefix):]
         if self.has_expectations:
-            expected_results, _ = self.expectations.expectations_for(test_name)
+            expected_results, _, _ = self.expectations.expectations_for(test_name)
         else:
             expected_results = set([ResultType.Pass])
         return (
@@ -979,7 +979,7 @@ def _run_one_test(child, test_input):
     # but could come up when testing non-typ code as well.
     h.capture_output(divert=not child.passthrough)
     if child.has_expectations:
-      expected_results, should_retry_on_failure = (child.expectations
+      expected_results, should_retry_on_failure, _ = (child.expectations
                                                    .expectations_for(test_name))
     else:
       expected_results, should_retry_on_failure = {ResultType.Pass}, False

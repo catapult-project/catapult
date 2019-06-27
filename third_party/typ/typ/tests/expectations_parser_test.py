@@ -338,13 +338,13 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         self.assertEqual(test_expectations.parse_tagged_list(raw_data),
                          (0,None))
         self.assertEqual(test_expectations.expectations_for('b1/s1'),
-                         (set([ResultType.Failure]), True))
+                         (set([ResultType.Failure]), True, set(['crbug.com/23456'])))
         self.assertEqual(test_expectations.expectations_for('b1/s2'),
-                         (set([ResultType.Pass]), True))
+                         (set([ResultType.Pass]), True, set(['crbug.com/24341'])))
         self.assertEqual(test_expectations.expectations_for('b1/s3'),
-                         (set([ResultType.Failure]), False))
+                         (set([ResultType.Failure]), False, set(['crbug.com/24341'])))
         self.assertEqual(test_expectations.expectations_for('b1/s4'),
-                         (set([ResultType.Pass]), False))
+                         (set([ResultType.Pass]), False, set()))
 
     def testIsTestRetryOnFailureUsingGlob(self):
         raw_data = (
@@ -354,7 +354,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         self.assertEqual(test_expectations.parse_tagged_list(raw_data),
                          (0, None))
         self.assertEqual(test_expectations.expectations_for('b1/s1'),
-                         (set([ResultType.Pass]), True))
+                         (set([ResultType.Pass]), True, set(['crbug.com/23456'])))
 
     def testGlobsCanOnlyHaveStarInEnd(self):
         raw_data = (

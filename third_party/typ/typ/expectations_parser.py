@@ -300,14 +300,16 @@ class TestExpectations(object):
         #
         # The longest matching test string (name or glob) has priority.
         results = set()
+        reasons = set()
         should_retry_on_failure = False
         # First, check for an exact match on the test name.
         for exp in self.individual_exps.get(test, []):
             if exp.tags.issubset(self.tags):
                 results.update(exp.results)
+                reasons.update([exp.reason])
                 should_retry_on_failure |= exp.should_retry_on_failure
         if results or should_retry_on_failure:
-            return (results or {ResultType.Pass}), should_retry_on_failure
+            return (results or {ResultType.Pass}), should_retry_on_failure, reasons
 
         # If we didn't find an exact match, check for matching globs. Match by
         # the most specific (i.e., longest) glob first. Because self.globs is
@@ -317,13 +319,14 @@ class TestExpectations(object):
                 for exp in exps:
                     if exp.tags.issubset(self.tags):
                         results.update(exp.results)
+                        reasons.update([exp.reason])
                         should_retry_on_failure |= exp.should_retry_on_failure
                 # if *any* of the exps matched, results will be non-empty,
                 # and we're done. If not, keep looking through ever-shorter
                 # globs.
                 if results or should_retry_on_failure:
                     return ((results or {ResultType.Pass}),
-                            should_retry_on_failure)
+                            should_retry_on_failure, reasons)
 
         # Nothing matched, so by default, the test is expected to pass.
-        return {ResultType.Pass}, False
+        return {ResultType.Pass}, False, set()
