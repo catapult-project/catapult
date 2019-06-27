@@ -8,7 +8,6 @@ import unittest
 import mock
 
 from telemetry.internal.results import story_run
-from telemetry.internal.util import file_handle
 from telemetry.story import shared_state
 from telemetry import story as story_module
 from telemetry.value import improvement_direction
@@ -107,70 +106,42 @@ class StoryRunTest(unittest.TestCase):
     )
 
   def testCreateArtifact(self):
-    with tempfile_ext.NamedTemporaryDirectory(
-        prefix='artifact_tests') as tempdir:
+    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
       run = story_run.StoryRun(self.story, tempdir)
-      with run.CreateArtifact('logs', '', '') as log_file:
-        filename = log_file.name
+      with run.CreateArtifact('logs') as log_file:
         log_file.write('hi\n')
 
+      filename = run.GetArtifact('logs').local_path
       with open(filename) as f:
         self.assertEqual(f.read(), 'hi\n')
 
-  @mock.patch('telemetry.internal.results.story_run.shutil.move')
-  @mock.patch('telemetry.internal.results.story_run.os.makedirs')
-  def testAddArtifactBasic(self, make_patch, move_patch):
-    run = story_run.StoryRun(self.story, _abs_join('foo'))
+  def testCaptureArtifact(self):
+    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
+      run = story_run.StoryRun(self.story, tempdir)
+      with run.CaptureArtifact('logs') as log_file_name:
+        with open(log_file_name, 'w') as log_file:
+          log_file.write('hi\n')
 
-    run.AddArtifact('artifact_name', _abs_join('foo', 'artifacts', 'bar.log'))
-    move_patch.assert_not_called()
-    make_patch.assert_called_with(_abs_join('foo', 'artifacts'))
+      filename = run.GetArtifact('logs').local_path
+      with open(filename) as f:
+        self.assertEqual(f.read(), 'hi\n')
 
-    self.assertEqual(run._artifacts, {
-        'artifact_name': os.path.join('artifacts', 'bar.log'),
-    })
+  def testIterArtifacts(self):
+    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
+      run = story_run.StoryRun(self.story, tempdir)
 
-  @mock.patch('telemetry.internal.results.story_run.shutil.move')
-  @mock.patch('telemetry.internal.results.story_run.os.makedirs')
-  def testAddArtifactNested(self, make_patch, move_patch):
-    run = story_run.StoryRun(self.story, _abs_join('foo'))
+      with run.CreateArtifact('log/log1'):
+        pass
+      with run.CreateArtifact('trace/trace1'):
+        pass
+      with run.CreateArtifact('trace/trace2'):
+        pass
 
-    run.AddArtifact('artifact_name',
-                    _abs_join('foo', 'artifacts', 'baz', 'bar.log'))
-    move_patch.assert_not_called()
-    make_patch.assert_called_with(_abs_join('foo', 'artifacts'))
+      all_artifacts = list(run.IterArtifacts())
+      self.assertEqual(3, len(all_artifacts))
 
-    self.assertEqual(run._artifacts, {
-        'artifact_name': os.path.join('artifacts', 'baz', 'bar.log'),
-    })
+      logs = list(run.IterArtifacts('log'))
+      self.assertEqual(1, len(logs))
 
-  @mock.patch('telemetry.internal.results.story_run.shutil.move')
-  @mock.patch('telemetry.internal.results.story_run.os.makedirs')
-  def testAddArtifactFileHandle(self, make_patch, move_patch):
-    run = story_run.StoryRun(self.story, _abs_join('foo'))
-
-    run.AddArtifact('artifact_name', file_handle.FromFilePath(
-        _abs_join('', 'foo', 'artifacts', 'bar.log')))
-    move_patch.assert_not_called()
-    make_patch.assert_called_with(_abs_join('foo', 'artifacts'))
-
-    self.assertEqual(run._artifacts, {
-        'artifact_name': os.path.join('artifacts', 'bar.log'),
-    })
-
-  @mock.patch('telemetry.internal.results.story_run.shutil.move')
-  @mock.patch('telemetry.internal.results.story_run.os.makedirs')
-  def testAddAndMove(self, make_patch, move_patch):
-    run = story_run.StoryRun(self.story, _abs_join('foo'))
-
-    run.AddArtifact('artifact_name', _abs_join(
-        'another', 'directory', 'bar.log'))
-    move_patch.assert_called_with(
-        _abs_join('another', 'directory', 'bar.log'),
-        _abs_join('foo', 'artifacts'))
-    make_patch.assert_called_with(_abs_join('foo', 'artifacts'))
-
-    self.assertEqual(run._artifacts, {
-        'artifact_name': os.path.join('artifacts', 'bar.log'),
-    })
-
+      traces = list(run.IterArtifacts('trace'))
+      self.assertEqual(2, len(traces))

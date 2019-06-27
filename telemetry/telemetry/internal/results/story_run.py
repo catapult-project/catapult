@@ -6,27 +6,54 @@ import contextlib
 import datetime
 import logging
 import os
-import shutil
-import tempfile
+import posixpath
+import random
 import time
 import uuid
 
 from py_utils import cloud_storage  # pylint: disable=import-error
-
-from telemetry.internal.util import file_handle
-
 
 PASS = 'PASS'
 FAIL = 'FAIL'
 SKIP = 'SKIP'
 
 
-def _FormatTimeStamp(epoch):
-  return datetime.datetime.utcfromtimestamp(epoch).isoformat() + 'Z'
-
-
 def _FormatDuration(seconds):
   return '{:.2f}s'.format(seconds)
+
+
+class Artifact(object):
+  def __init__(self, name, local_path, content_type=None):
+    """
+    Args:
+      name: name of the artifact.
+      local_path: an absolute local path to an artifact file.
+      content_type: optional. A string representing the MIME type of a file.
+    """
+    self._name = name
+    self._local_path = local_path
+    self._content_type = content_type
+    self._url = None
+
+  @property
+  def name(self):
+    return self._name
+
+  @property
+  def local_path(self):
+    return self._local_path
+
+  @property
+  def content_type(self):
+    return self._content_type
+
+  @property
+  def url(self):
+    return self._url
+
+  def SetUrl(self, url):
+    assert not self._url, 'Artifact URL has been already set'
+    self._url = url
 
 
 class StoryRun(object):
@@ -43,14 +70,17 @@ class StoryRun(object):
     self._artifacts = {}
 
     if output_dir is None:
-      self._output_dir = None
-      self._artifact_dir = None
+      self._artifacts_dir = None
     else:
-      self._output_dir = os.path.realpath(output_dir)
-      self._artifact_dir = os.path.join(self._output_dir, 'artifacts')
-      if not os.path.exists(self._artifact_dir):
-        os.makedirs(self._artifact_dir)
-
+      output_dir = os.path.realpath(output_dir)
+      run_dir = '%s_%s_%s' % (
+          self._story.file_safe_name,
+          self.start_datetime.strftime('%Y%m%dT%H%M%SZ'),
+          random.randint(1, 1e5),
+      )
+      self._artifacts_dir = os.path.join(output_dir, 'artifacts', run_dir)
+      if not os.path.exists(self._artifacts_dir):
+        os.makedirs(self._artifacts_dir)
 
   def AddValue(self, value):
     self._values.append(value)
@@ -89,7 +119,7 @@ class StoryRun(object):
             'testName': self.test_name,
             'status': self.status,
             'isExpected': self.is_expected,
-            'startTime': _FormatTimeStamp(self._start_time),
+            'startTime': self.start_datetime.isoformat() + 'Z',
             'runDuration': _FormatDuration(self.duration)
         }
     }
@@ -150,6 +180,10 @@ class StoryRun(object):
     return self._failure_str
 
   @property
+  def start_datetime(self):
+    return datetime.datetime.utcfromtimestamp(self._start_time)
+
+  @property
   def duration(self):
     return self._end_time - self._start_time
 
@@ -157,88 +191,89 @@ class StoryRun(object):
   def finished(self):
     return self._end_time is not None
 
+  def _PrepareLocalPath(self, name):
+    """Ensure that the artifact with the given name can be created.
+
+    Returns: absolute path to the artifact (file may not exist yet).
+    """
+    local_path = os.path.join(self._artifacts_dir, *name.split('/'))
+    if not os.path.exists(os.path.dirname(local_path)):
+      os.makedirs(os.path.dirname(local_path))
+    return local_path
+
   @contextlib.contextmanager
-  def CreateArtifact(self, name, prefix, suffix):
+  def CreateArtifact(self, name):
     """Create an artifact.
 
     Args:
-      * name: The name of this artifact; 'logs', 'screenshot'.  Note that this
-          isn't used as part of the file name.
-      * prefix: A string to appear at the beginning of the file name.
-      * suffix: A string to appear at the end of the file name.
+      name: File path that this artifact will have inside the artifacts dir.
+          The name can contain sub-directories with '/' as a separator.
     Returns:
       A generator yielding a file object.
     """
-    if self._output_dir is None:  # for tests
+    # This is necessary for some tests.
+    # TODO(crbug.com/979194): Make _artifact_dir mandatory.
+    if self._artifacts_dir is None:
       yield open(os.devnull, 'w')
       return
 
     assert name not in self._artifacts, (
         'Story already has an artifact: %s' % name)
 
-    with tempfile.NamedTemporaryFile(
-        prefix=prefix, suffix=suffix, dir=self._artifact_dir,
-        delete=False) as file_obj:
-      self.AddArtifact(name, file_obj.name)
+    local_path = self._PrepareLocalPath(name)
+
+    with open(local_path, 'w+b') as file_obj:
+      # We want to keep track of all artifacts (e.g. logs) even in the case
+      # of an exception in the client code, so we create a record for
+      # this artifact before yielding the file handle.
+      self._artifacts[name] = Artifact(name, local_path)
       yield file_obj
 
-  def AddArtifact(self, name, artifact_path):
-    """Adds an artifact.
+  @contextlib.contextmanager
+  def CaptureArtifact(self, name):
+    """Generate an absolute file path for an artifact, but do not
+    create a file. File creation is a responsibility of the caller of this
+    method. It is assumed that the file exists at the exit of the context.
 
     Args:
-      * name: The name of the artifact.
-      * artifact_path: The path to the artifact on disk. If it is not in the
-          proper artifact directory, it will be moved there.
+      name: File path that this artifact will have inside the artifacts dir.
+        The name can contain sub-directories with '/' as a separator.
+    Returns:
+      A generator yielding a file name.
     """
-    if self._output_dir is None:  # for tests
-      return
-
+    assert self._artifacts_dir is not None
     assert name not in self._artifacts, (
         'Story already has an artifact: %s' % name)
 
-    if isinstance(artifact_path, file_handle.FileHandle):
-      artifact_path = artifact_path.GetAbsPath()
+    local_path = self._PrepareLocalPath(name)
+    yield local_path
+    assert os.path.isfile(local_path), (
+        'Failed to capture an artifact: %s' % local_path)
+    self._artifacts[name] = Artifact(name, local_path)
 
-    artifact_path = os.path.realpath(artifact_path)
+  def IterArtifacts(self, subdir=None):
+    """Iterate over all artifacts in a given sub-directory.
 
-    # If the artifact isn't in the artifact directory, move it.
-    if not artifact_path.startswith(self._artifact_dir + os.sep):
-      logging.warning("Moving artifact file %r to %r" % (
-          artifact_path, self._artifact_dir))
-      shutil.move(artifact_path, self._artifact_dir)
-      artifact_path = os.path.join(self._artifact_dir,
-                                   os.path.basename(artifact_path))
-
-    # Make path relative to output directory.
-    artifact_path = artifact_path[len(self._output_dir + os.sep):]
-
-    self._artifacts[name] = artifact_path
-
-
-  def IterArtifacts(self):
-    """Iterates over all artifacts for this test.
-
-    Returns an iterator over (name, path) tuples.
+    Returns an iterator over (name, artifact) tuples.
     """
-    return self._artifacts.iteritems()
+    for name, artifact in self._artifacts.iteritems():
+      if subdir is None or name.startswith(posixpath.join(subdir, '')):
+        yield artifact
 
   def GetArtifact(self, name):
-    """Gets artifact by name.
+    """Get artifact by name.
 
-    Returns a filepath or None, if there's no artifact with this name.
+    Returns an Artifact object or None, if there's no artifact with this name.
     """
     return self._artifacts.get(name)
 
   def UploadArtifactsToCloud(self, bucket):
-    """Uploads all artifacts of the test to cloud storage.
+    """Upload all artifacts of the test to cloud storage.
 
-    Local artifact paths are changed to their respective cloud URLs.
+    Sets 'url' attribute of each artifact to its cloud URL.
     """
-    for name, local_path in self.IterArtifacts():
-      abs_artifact_path = os.path.abspath(os.path.join(
-          self._output_dir, local_path))
-      remote_path = str(uuid.uuid1())
-      cloud_url = cloud_storage.Insert(bucket, remote_path, abs_artifact_path)
-      self._artifacts[name] = cloud_url
-      logging.warning('Uploading %s of page %s to %s\n' % (
-          name, self._story.name, cloud_url))
+    for artifact in self.IterArtifacts():
+      artifact.SetUrl(cloud_storage.Insert(
+          bucket, str(uuid.uuid1()), artifact.local_path))
+      logging.info('Uploading %s of page %s to %s\n' % (
+          artifact.name, self._story.name, artifact.url))

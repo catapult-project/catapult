@@ -300,6 +300,10 @@ class PageTestResults(object):
   def benchmark_description(self):
     return self._benchmark_description
 
+  @property
+  def output_dir(self):
+    return self._output_dir
+
   def AsHistogramDicts(self):
     return self._histograms.AsDicts()
 
@@ -616,13 +620,13 @@ class PageTestResults(object):
     assert self._current_page_run, 'Not currently running test.'
     self._current_page_run.Skip(reason, is_expected)
 
-  def CreateArtifact(self, name, prefix='', suffix=''):
+  def CreateArtifact(self, name):
     assert self._current_page_run, 'Not currently running test.'
-    return self._current_page_run.CreateArtifact(name, prefix, suffix)
+    return self._current_page_run.CreateArtifact(name)
 
-  def AddArtifact(self, name, path):
+  def CaptureArtifact(self, name):
     assert self._current_page_run, 'Not currently running test.'
-    self._current_page_run.AddArtifact(name, path)
+    return self._current_page_run.CaptureArtifact(name)
 
   def AddTraces(self, traces, tbm_metrics=None):
     """Associate some recorded traces with the current story run.

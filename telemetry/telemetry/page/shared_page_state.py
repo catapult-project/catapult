@@ -4,6 +4,7 @@
 
 import logging
 import os
+import shutil
 
 from telemetry.core import exceptions
 from telemetry.core import platform as platform_module
@@ -93,7 +94,8 @@ class SharedPageState(story_module.SharedState):
     if self._finder_options.browser_options.take_screenshot_for_failed_page:
       fh = screenshot.TryCaptureScreenShot(self.platform, self._current_tab)
       if fh is not None:
-        results.AddArtifact('screenshot', fh)
+        with results.CaptureArtifact('screenshot') as path:
+          shutil.move(fh.GetAbsPath(), path)
     else:
       logging.warning('Taking screenshots upon failures disabled.')
 

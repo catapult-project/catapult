@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
 import re
 import sys
 import StringIO
@@ -550,8 +549,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       if not platform_screenshot_supported[0] and tab_screenshot_supported[0]:
         failed_run = next(run for run in results._all_page_runs
                           if run.story.name == failing_page.name)
-        screenshot_file_path = os.path.join(
-            tempdir, failed_run.GetArtifact('screenshot'))
+        screenshot_file_path = failed_run.GetArtifact('screenshot').local_path
 
         actual_screenshot = image_util.FromPngFile(screenshot_file_path)
         self.assertEquals(image_util.Pixels(chrome_version_screen_shot[0]),
@@ -622,8 +620,7 @@ class FakePageRunEndToEndTests(unittest.TestCase):
         self.assertTrue(results.had_failures)
         failed_run = next(run for run in results._all_page_runs
                           if run.story.name == failing_page.name)
-        screenshot_file_path = os.path.join(
-            tempdir, failed_run.GetArtifact('screenshot'))
+        screenshot_file_path = failed_run.GetArtifact('screenshot').local_path
 
         actual_screenshot_img = image_util.FromPngFile(screenshot_file_path)
         self.assertTrue(

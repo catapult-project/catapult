@@ -620,8 +620,8 @@ class PageTestResultsFilterTest(unittest.TestCase):
 
       # Assert that the path is now the cloud storage path
       for run in results._all_page_runs:
-        for _, artifact_path in run.IterArtifacts():
-          self.assertEquals(cs_path_name, artifact_path)
+        for artifact in run.IterArtifacts():
+          self.assertEquals(cs_path_name, artifact.url)
 
   @mock.patch('py_utils.cloud_storage.Insert')
   def testUploadArtifactsToCloud_withNoOpArtifact(
@@ -644,3 +644,25 @@ class PageTestResultsFilterTest(unittest.TestCase):
 
     # Just make sure that this does not crash
     results.UploadArtifactsToCloud()
+
+  def testCreateArtifactsForDifferentPages(self):
+    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
+      results = page_test_results.PageTestResults(output_dir=tempdir)
+
+      results.WillRunPage(self.pages[0])
+      with results.CreateArtifact('log') as log_file:
+        log_file.write('page0\n')
+      results.DidRunPage(self.pages[0])
+
+      results.WillRunPage(self.pages[1])
+      with results.CreateArtifact('log') as log_file:
+        log_file.write('page1\n')
+      results.DidRunPage(self.pages[1])
+
+      log0_path = results._all_page_runs[0].GetArtifact('log').local_path
+      with open(log0_path) as f:
+        self.assertEqual(f.read(), 'page0\n')
+
+      log1_path = results._all_page_runs[1].GetArtifact('log').local_path
+      with open(log1_path) as f:
+        self.assertEqual(f.read(), 'page1\n')

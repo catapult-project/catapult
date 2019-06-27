@@ -7,6 +7,7 @@ import itertools
 import logging
 import optparse
 import os
+import shutil
 import sys
 import time
 
@@ -120,7 +121,8 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
       if isinstance(exc, exceptions.AppCrashException):
         minidump_path = exc.minidump_path
         if minidump_path:
-          results.AddArtifact('minidump', minidump_path)
+          with results.CaptureArtifact('minidump') as path:
+            shutil.move(minidump_path, path)
 
     # Note: calling Fail on the results object also normally causes the
     # progress_reporter to log it in the output.

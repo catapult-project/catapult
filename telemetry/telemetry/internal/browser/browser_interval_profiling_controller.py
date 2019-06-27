@@ -107,12 +107,9 @@ class _LinuxController(_PlatformController):
 
   def GetResults(self, file_safe_name, results):
     for period, temp_file in self._temp_results:
-      prefix = '%s-%s-' % (file_safe_name, period)
-      with results.CreateArtifact(
-          'pprof', prefix=prefix, suffix='.profile.pb') as dest_fh:
-        with open(temp_file, 'rb') as src_fh:
-          shutil.copyfileobj(src_fh, dest_fh.file)
-        os.remove(temp_file)
+      with results.CaptureArtifact(
+          'pprof-%s-%s.profile.pb' % (file_safe_name, period)) as dest_file:
+        shutil.move(temp_file, dest_file)
     self._temp_results = []
 
 
@@ -223,12 +220,9 @@ class _AndroidController(_PlatformController):
 
   def GetResults(self, file_safe_name, results):
     for period, device_file in self._device_results:
-      prefix = '%s-%s-' % (file_safe_name, period)
-      with results.CreateArtifact(
-          'simpleperf', prefix=prefix, suffix='.perf.data') as fh:
-        local_file = fh.name
-        fh.close()
-        self._device.PullFile(device_file, local_file)
+      with results.CaptureArtifact(
+          'simpleperf-%s-%s.perf.data' % (file_safe_name, period)) as dest_file:
+        self._device.PullFile(device_file, dest_file)
     self._device_results = []
 
 
@@ -341,11 +335,9 @@ class _ChromeOSController(_PlatformController):
     for period, device_file, ok in self._device_results:
       if not ok:
         continue
-      prefix = '%s-%s-' % (file_safe_name, period)
-      with results.CreateArtifact(
-          'perf', prefix=prefix, suffix='.perf.data') as fh:
-        local_file = fh.name
-      self._platform_backend.GetFile(device_file, local_file)
+      with results.CaptureArtifact(
+          'perf-%s-%s.perf.data' % (file_safe_name, period)) as dest_file:
+        self._platform_backend.GetFile(device_file, dest_file)
 
   def GetResults(self, _, results):
     """Creates perf.data file artifacts from a successful story run."""

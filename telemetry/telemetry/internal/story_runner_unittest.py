@@ -1040,7 +1040,9 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.state.DidRunStory(root_mock.results),
     ])
 
-  def testRunStoryAndProcessErrorIfNeeded_tryAppCrash(self):
+  @mock.patch('telemetry.internal.story_runner.shutil.move')
+  def testRunStoryAndProcessErrorIfNeeded_tryAppCrash(self, move_patch):
+    del move_patch  # unused
     tmp = tempfile.NamedTemporaryFile(delete=False)
     tmp.close()
     temp_file_path = tmp.name
@@ -1061,7 +1063,7 @@ class StoryRunnerTest(unittest.TestCase):
           mock.call.test.WillRunStory(root_mock.state.platform),
           mock.call.state.WillRunStory(root_mock.story),
           mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
-          mock.call.results.AddArtifact('minidump', temp_file_path),
+          mock.call.results.CaptureArtifact('minidump'),
           mock.call.results.Fail(
               'Exception raised running %s' % root_mock.story.name),
           mock.call.test.DidRunStory(
