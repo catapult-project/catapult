@@ -85,7 +85,7 @@ export default class ChartCompound extends ElementBase {
       minimapLayout,
       chartLayout,
       details: DetailsTable.buildState(),
-      isShowingOptions: false,
+      isShowingOptions: true,
       isLinked: options.isLinked !== false,
       cursorRevision: 0,
       cursorScalar: undefined,
@@ -129,29 +129,43 @@ export default class ChartCompound extends ElementBase {
       #options {
         color: var(--primary-color-dark, blue);
         cursor: pointer;
-        outline: none;
-        padding: 0;
-      }
-
-      #options-container {
-        position: absolute;
-        margin-top: 20px;
       }
 
       #options-menu {
-        background-color: var(--background-color, white);
-        box-shadow: var(--elevation-2);
-        max-height: 600px;
-        overflow: hidden;
-        padding-right: 8px;
-        position: absolute;
-        z-index: var(--layer-menu, 100);
+        border: 1px solid var(--primary-color-dark, blue);
+        padding: 8px;
+        margin: 4px 0;
       }
 
-      #options-menu-inner {
+      #options-menu::after {
+        background: var(--background-color, white);
+        border-bottom: 1px solid var(--primary-color-dark, blue);
+        border-left: 1px solid var(--primary-color-dark, blue);
+        content: '';
+        display: block;
+        height: 16px;
+        margin-left: -4px;
+        position: absolute;
+        transform: rotate(-45deg);
+        width: 16px;
+      }
+
+      #options-menu div {
         display: flex;
-        padding: 16px;
-        overflow: hidden;
+        align-items: center;
+      }
+
+      #options-menu div b {
+        margin-right: 8px;
+      }
+
+      chops-radio-group {
+        flex-direction: row;
+      }
+
+      #options {
+        position: absolute;
+        margin-top: 20px;
       }
 
       .column {
@@ -207,68 +221,60 @@ export default class ChartCompound extends ElementBase {
 
         <error-set .errors="${[...errors]}"></error-set>
 
-        <span
-            id="options-container"
-            ?hidden="${hideOptions}">
-          <cp-icon
-              id="options"
-              icon="settings"
-              style="width: calc(${
-  this.chartLayout ? this.chartLayout.yAxisWidth : 8}px - 8px);"
-              tabindex="0"
-              @click="${this.onOptionsToggle_}">
-          </cp-icon>
-
-          <div
-              id="options-menu"
-              ?hidden="${!this.isShowingOptions}"
-              tabindex="0"
-              @blur="${this.onMenuBlur_}"
-              @keyup="${this.onMenuKeyup_}">
-            <div id="options-menu-inner">
-              <div id="toggles" class="column">
-                <b>Options</b>
-                <chops-switch
-                    ?checked="${this.isLinked}"
-                    title="${linkedTitle}"
-                    @change="${this.onToggleLinked_}">
-                  Linked to other charts
-                </chops-switch>
-                <chops-switch
-                    ?checked="${this.zeroYAxis}"
-                    title="${zeroYTitle}"
-                    @change="${this.onToggleZeroYAxis_}">
-                  Zero Y-Axis
-                </chops-switch>
-                <chops-switch
-                    ?checked="${this.fixedXAxis}"
-                    title="${fixedXTitle}"
-                    @change="${this.onToggleFixedXAxis_}">
-                  Fixed X-Axis
-                </chops-switch>
-              </div>
-              <div class="column">
-                <b>Mode</b>
-                <chops-radio-group
-                    selected="${this.mode}"
-                    @selected-changed="${this.onModeChange_}">
-                  <chops-radio name="NORMALIZE_UNIT">
-                    Normalize per unit
-                  </chops-radio>
-                  <chops-radio name="NORMALIZE_LINE">
-                    Normalize per line
-                  </chops-radio>
-                  <chops-radio name="CENTER">
-                    Center
-                  </chops-radio>
-                  <chops-radio name="DELTA">
-                    Delta
-                  </chops-radio>
-                </chops-radio-group>
-              </div>
-            </div>
+        <div
+            id="options-menu"
+            ?hidden="${hideOptions || !this.isShowingOptions}">
+          <div>
+            <b>Options</b>
+            <chops-switch
+                ?checked="${this.isLinked}"
+                title="${linkedTitle}"
+                @change="${this.onToggleLinked_}">
+              Linked to other charts
+            </chops-switch>
+            <chops-switch
+                ?checked="${this.zeroYAxis}"
+                title="${zeroYTitle}"
+                @change="${this.onToggleZeroYAxis_}">
+              Zero Y-Axis
+            </chops-switch>
+            <chops-switch
+                ?checked="${this.fixedXAxis}"
+                title="${fixedXTitle}"
+                @change="${this.onToggleFixedXAxis_}">
+              Fixed X-Axis
+            </chops-switch>
           </div>
-        </span>
+          <div>
+            <b>Mode</b>
+            <chops-radio-group
+                selected="${this.mode}"
+                @selected-changed="${this.onModeChange_}">
+              <chops-radio name="NORMALIZE_UNIT">
+                Normalize per unit
+              </chops-radio>
+              <chops-radio name="NORMALIZE_LINE">
+                Normalize per line
+              </chops-radio>
+              <chops-radio name="CENTER">
+                Center
+              </chops-radio>
+              <chops-radio name="DELTA">
+                Delta
+              </chops-radio>
+            </chops-radio-group>
+          </div>
+        </div>
+
+        <cp-icon
+            id="options"
+            icon="settings"
+            ?hidden="${hideOptions}"
+            style="width: calc(${
+  this.chartLayout ? this.chartLayout.yAxisWidth : 8}px - 8px);"
+            tabindex="0"
+            @click="${this.onOptionsToggle_}">
+        </cp-icon>
 
         <chart-timeseries
             id="minimap"
@@ -517,32 +523,8 @@ export default class ChartCompound extends ElementBase {
     });
   }
 
-  async onMenuKeyup_(event) {
-    if (event.key === 'Escape') {
-      await STORE.dispatch(UPDATE(this.statePath, {
-        isShowingOptions: false,
-      }));
-    }
-  }
-
   firstUpdated() {
     this.minimap = this.shadowRoot.querySelector('#minimap');
-    this.optionsContainer = this.shadowRoot.querySelector('#options-container');
-  }
-
-  updated() {
-    if (this.isShowingOptions) {
-      this.shadowRoot.querySelector('#options-menu').focus();
-    }
-  }
-
-  async onMenuBlur_(event) {
-    if (isElementChildOf(event.relatedTarget, this.optionsContainer)) {
-      return;
-    }
-    await STORE.dispatch(UPDATE(this.statePath, {
-      isShowingOptions: false,
-    }));
   }
 
   async onOptionsToggle_(event) {
