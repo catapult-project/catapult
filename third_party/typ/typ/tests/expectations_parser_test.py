@@ -332,7 +332,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
             '# tags: [ linux ]\n'
             'crbug.com/23456 [ Linux ] b1/s1 [ Failure ]\n'
             'crbug.com/23456 [ Linux ] b1/s1 [ RetryOnFailure ]\n'
-            'crbug.com/24341 [ linux ] b1/s2 [ RetryOnFailure ]\n'
+            '[ linux ] b1/s2 [ RetryOnFailure ]\n'
             'crbug.com/24341 [ Linux ] b1/s3 [ Failure ]\n')
         test_expectations = expectations_parser.TestExpectations(['Linux'])
         self.assertEqual(test_expectations.parse_tagged_list(raw_data),
@@ -340,7 +340,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         self.assertEqual(test_expectations.expectations_for('b1/s1'),
                          (set([ResultType.Failure]), True, set(['crbug.com/23456'])))
         self.assertEqual(test_expectations.expectations_for('b1/s2'),
-                         (set([ResultType.Pass]), True, set(['crbug.com/24341'])))
+                         (set([ResultType.Pass]), True, set()))
         self.assertEqual(test_expectations.expectations_for('b1/s3'),
                          (set([ResultType.Failure]), False, set(['crbug.com/24341'])))
         self.assertEqual(test_expectations.expectations_for('b1/s4'),

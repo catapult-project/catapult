@@ -306,8 +306,9 @@ class TestExpectations(object):
         for exp in self.individual_exps.get(test, []):
             if exp.tags.issubset(self.tags):
                 results.update(exp.results)
-                reasons.update([exp.reason])
                 should_retry_on_failure |= exp.should_retry_on_failure
+                if exp.reason:
+                    reasons.update([exp.reason])
         if results or should_retry_on_failure:
             return (results or {ResultType.Pass}), should_retry_on_failure, reasons
 
@@ -319,8 +320,9 @@ class TestExpectations(object):
                 for exp in exps:
                     if exp.tags.issubset(self.tags):
                         results.update(exp.results)
-                        reasons.update([exp.reason])
                         should_retry_on_failure |= exp.should_retry_on_failure
+                        if exp.reason:
+                            reasons.update([exp.reason])
                 # if *any* of the exps matched, results will be non-empty,
                 # and we're done. If not, keep looking through ever-shorter
                 # globs.
