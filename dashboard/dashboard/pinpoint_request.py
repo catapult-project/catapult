@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import logging
 
 from google.appengine.ext import ndb
 
@@ -52,12 +53,16 @@ class PinpointNewBisectRequestHandler(request_handler.RequestHandler):
 
 
 def NewPinpointBisect(job_params):
+  logging.info('Job Params: %s', job_params)
+
   try:
     pinpoint_params = PinpointParamsFromBisectParams(job_params)
+    logging.info('Pinpoint Params: %s', pinpoint_params)
   except InvalidParamsError as e:
     return {'error': e.message}
 
   results = pinpoint_service.NewJob(pinpoint_params)
+  logging.info('Pinpoint Service Response: %s', results)
 
   alert_keys = job_params.get('alerts')
   if 'jobId' in results and alert_keys:

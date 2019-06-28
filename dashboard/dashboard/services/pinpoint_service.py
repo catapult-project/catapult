@@ -7,29 +7,20 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import json
-import urllib
-
 from dashboard.common import datastore_hooks
-from dashboard.common import utils
+from dashboard.services import request
 
 _PINPOINT_URL = 'https://pinpoint-dot-chromeperf.appspot.com'
 
 
 def NewJob(params):
   """Submits a new job request to Pinpoint."""
-  return _Request('/api/new', params)
+  return _Request(_PINPOINT_URL + '/api/new', params)
 
 
 def _Request(endpoint, params):
   """Sends a request to an endpoint and returns JSON data."""
   assert datastore_hooks.IsUnalteredQueryPermitted()
 
-  http_auth = utils.ServiceAccountHttp(timeout=30)
-  _, content = http_auth.request(
-      _PINPOINT_URL + endpoint,
-      method='POST',
-      body=urllib.urlencode(params),
-      headers={'Content-length': 0})
-
-  return json.loads(content)
+  return request.RequestJson(
+      endpoint, method='POST', use_cache=False, use_auth=True, **params)
