@@ -40,6 +40,10 @@ class ClockSyncResponseException(exceptions.Error):
   pass
 
 
+class TraceBufferDataLossException(exceptions.Error):
+  pass
+
+
 class _DevToolsStreamReader(object):
   def __init__(self, inspector_socket, stream_handle, trace_handle):
     """Constructor for the stream reader that reads trace data over a stream.
@@ -109,6 +113,7 @@ class TracingBackend(object):
     self._can_collect_data = False
     self._has_received_all_tracing_data = False
     self._trace_data_builder = None
+    self._data_loss_occurred = False
 
   @property
   def is_tracing_running(self):
@@ -125,6 +130,7 @@ class TracingBackend(object):
     # Reset collected tracing data from previous tracing calls.
 
     self._has_received_all_tracing_data = False
+    self._data_loss_occurred = False
 
     if not self.IsTracingSupported():
       raise TracingUnsupportedException(
@@ -275,6 +281,22 @@ class TracingBackend(object):
               'Exception raised while collecting tracing data:\n' +
               traceback.format_exc())
 
+        if self._data_loss_occurred:
+          raise TraceBufferDataLossException(
+              'The trace buffer has been overrun and data loss has occurred. '
+              'Chrome\'s tracing is stored in a ring buffer. When it runs out '
+              'of space, it will start deleting trace information from the '
+              'start. Data loss can cause some unexpected problems in the '
+              'metrics calculation implementation. For example, metrics depend '
+              'on the clock sync marker existing. For that reason, it is '
+              'better to hard fail here than to let metrics calculations fail '
+              'in a more cryptic way.\n'
+              'There are several ways to prevent this error:\n'
+              '1. Shorten your story so that it does not run long enough to '
+              'overflow the trace buffer.\n'
+              '2. Enable fewer trace categories to generate less data.\n'
+              '3. Increase the trace buffer size.')
+
         if self._has_received_all_tracing_data:
           break
 
@@ -293,11 +315,16 @@ class TracingBackend(object):
       self._trace_data_builder.AddTraceFor(trace_data_module.CHROME_TRACE_PART,
                                            value)
     elif res.get('method') == 'Tracing.tracingComplete':
-      stream_handle = res.get('params', {}).get('stream')
+      params = res.get('params', {})
+      # TODO(crbug.com/948412): Start requiring a value for dataLossOccurred
+      # once we stop supporting Chrome M76 (which was the last version that
+      # did not return this as a required parameter).
+      self._data_loss_occurred = params.get('dataLossOccurred', False)
+      stream_handle = params.get('stream')
       if not stream_handle:
         self._has_received_all_tracing_data = True
         return
-      compressed = res.get('params', {}).get('streamCompression') == 'gzip'
+      compressed = params.get('streamCompression') == 'gzip'
       trace_handle = self._trace_data_builder.OpenTraceHandleFor(
           trace_data_module.CHROME_TRACE_PART, compressed=compressed)
       reader = _DevToolsStreamReader(
