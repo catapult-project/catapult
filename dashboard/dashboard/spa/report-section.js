@@ -14,7 +14,7 @@ import ReportTable from './report-table.js';
 import ReportTemplate from './report-template.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
 import {BatchIterator} from '@chopsui/batch-iterator';
-import {ElementBase, STORE} from './element-base.js';
+import {ElementBase, STORE, maybeScheduleAutoReload} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
@@ -128,9 +128,22 @@ export default class ReportSection extends ElementBase {
     }
   }
 
+  static maybeAutoReload(statePath) {
+    const state = get(STORE.getState(), statePath);
+    if (!state || !state.minRevision ||
+        (state.maxRevision !== 'latest')) {
+      return;
+    }
+    ReportSection.loadReports(statePath);
+  }
+
   static async loadReports(statePath) {
     let state = get(STORE.getState(), statePath);
     if (!state || !state.minRevision || !state.maxRevision) return;
+
+    maybeScheduleAutoReload(statePath,
+        state => (state.maxRevision === 'latest'),
+        () => ReportSection.maybeAutoReload(statePath));
 
     STORE.dispatch({
       type: ReportSection.reducers.requestReports.name,

@@ -18,7 +18,7 @@ import SparklineCompound from './sparkline-compound.js';
 import TimeseriesDescriptor from './timeseries-descriptor.js';
 import sha from './sha.js';
 import {CHAIN, UPDATE} from './simple-redux.js';
-import {ElementBase, STORE} from './element-base.js';
+import {ElementBase, STORE, maybeScheduleAutoReload} from './element-base.js';
 import {MODE} from './layout-timeseries.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
@@ -354,7 +354,17 @@ export default class ChartSection extends ElementBase {
     }
   }
 
+  static maybeAutoReload(statePath) {
+    const state = get(STORE.getState(), statePath);
+    if (!state || state.maxRevision) return;
+    ChartSection.maybeLoadTimeseries(statePath);
+  }
+
   static async loadTimeseries(statePath) {
+    maybeScheduleAutoReload(statePath,
+        state => !state.maxRevision,
+        () => ChartSection.maybeAutoReload(statePath));
+
     STORE.dispatch(CHAIN(
         {type: ChartSection.reducers.loadTimeseries.name, statePath},
         {

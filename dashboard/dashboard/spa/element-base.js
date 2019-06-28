@@ -14,6 +14,7 @@ import {isProduction} from './utils.js';
 
 import {
   DEFAULT_REDUCER_WRAPPERS,
+  UPDATE,
   createSimpleStore,
   freezingReducer,
   registerReducers,
@@ -91,3 +92,16 @@ ElementBase.register = subclass => {
     ]);
   }
 };
+
+export function maybeScheduleAutoReload(
+    statePath, pred, callback, ms = (1000 * 60 * 60)) {
+  const state = get(STORE.getState(), statePath);
+  if (!state) return;
+  if (state.reloadTimer) window.clearTimeout(state.reloadTimer);
+  let reloadTimer;
+  if (pred(state)) {
+    // Automatically reload after some time.
+    reloadTimer = window.setTimeout(callback, ms);
+  }
+  STORE.dispatch(UPDATE(statePath, {reloadTimer}));
+}
