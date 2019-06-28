@@ -36,7 +36,7 @@ dir_above_typ = os.path.dirname(os.path.dirname(path_to_file))
 if dir_above_typ not in sys.path:  # pragma: no cover
     sys.path.append(dir_above_typ)
 
-
+from typ import artifacts
 from typ import json_results
 from typ.arg_parser import ArgumentParser
 from typ.expectations_parser import TestExpectations
@@ -63,20 +63,26 @@ def main(argv=None, host=None, win_multiprocessing=None, **defaults):
 
 class TestInput(object):
 
-    def __init__(self, name, msg='', timeout=None, expected=None):
+    def __init__(self, name, msg='', timeout=None, expected=None, iteration=0):
         self.name = name
         self.msg = msg
         self.timeout = timeout
         self.expected = expected
+        # Iteration makes more sense as part of the test run, not the test
+        # input, but since the pool used to run tests persists across
+        # iterations, we need to store the iteration number in something that
+        # gets updated each test run, such as TestInput.
+        self.iteration = iteration
 
 
 class TestSet(object):
 
-    def __init__(self, test_name_prefix=''):
+    def __init__(self, test_name_prefix='', iteration=0):
         self.test_name_prefix = test_name_prefix
         self.parallel_tests = []
         self.isolated_tests = []
         self.tests_to_skip = []
+        self.iteration = iteration
 
     def copy(self):
         test_set = TestSet(self.test_name_prefix)
@@ -92,13 +98,16 @@ class TestSet(object):
 
     def add_test_to_skip(self, test_case, reason=''):
         self.tests_to_skip.append(
-            TestInput(self._get_test_name(test_case), reason))
+            TestInput(self._get_test_name(
+                test_case), reason, iteration=self.iteration))
 
     def add_test_to_run_isolated(self, test_case):
-        self.isolated_tests.append(TestInput(self._get_test_name(test_case)))
+        self.isolated_tests.append(
+            TestInput(self._get_test_name(test_case), iteration=self.iteration))
 
     def add_test_to_run_in_parallel(self, test_case):
-        self.parallel_tests.append(TestInput(self._get_test_name(test_case)))
+        self.parallel_tests.append(
+            TestInput(self._get_test_name(test_case), iteration=self.iteration))
 
 
 def _validate_test_starts_with_prefix(prefix, test_name):
@@ -141,6 +150,7 @@ class Runner(object):
         self.expectations = None
         self.metadata = {}
         self.path_delimiter = json_results.DEFAULT_TEST_SEPARATOR
+        self.artifact_output_dir = None
 
         # initialize self.args to the defaults.
         parser = ArgumentParser(self.host)
@@ -181,6 +191,11 @@ class Runner(object):
         if self.args.version:
             self.print_(VERSION)
             return ret, None, None
+
+        if self.args.write_full_results_to:
+            self.artifact_output_dir = os.path.join(
+                    os.path.dirname(
+                            self.args.write_full_results_to), 'artifacts')
 
         should_spawn = self._check_win_multiprocessing()
         if should_spawn:
@@ -568,7 +583,10 @@ class Runner(object):
         tests_to_retry = sorted(get_tests_to_retry(result_set))
         retry_limit = self.args.retry_limit
         try:
-            while retry_limit and tests_to_retry:
+            # Start at 1 since we already did iteration 0 above.
+            for iteration in range(1, self.args.retry_limit + 1):
+                if not tests_to_retry:
+                    break
                 if retry_limit == self.args.retry_limit:
                     self.flush()
                     self.args.overwrite = False
@@ -577,15 +595,15 @@ class Runner(object):
 
                 self.print_('')
                 self.print_('Retrying failed tests (attempt #%d of %d)...' %
-                            (self.args.retry_limit - retry_limit + 1,
-                             self.args.retry_limit))
+                            (iteration, self.args.retry_limit))
                 self.print_('')
 
                 stats = Stats(self.args.status_format, h.time, 1)
                 stats.total = len(tests_to_retry)
                 test_set = TestSet(self.args.test_name_prefix)
                 test_set.isolated_tests = [
-                    TestInput(name) for name in tests_to_retry]
+                    TestInput(name,
+                        iteration=iteration) for name in tests_to_retry]
                 tests_to_retry = test_set
                 retry_set = ResultSet()
                 self._run_one_set(stats, retry_set, tests_to_retry, 1, pool)
@@ -926,6 +944,7 @@ class _Child(object):
         self.has_expectations = parent.has_expectations
         self.expectations = parent.expectations
         self.test_name_prefix = parent.args.test_name_prefix
+        self.artifact_output_dir = parent.artifact_output_dir
 
 
 def _setup_process(host, worker_num, child):
@@ -1021,10 +1040,14 @@ def _run_one_test(child, test_input):
                        worker=child.worker_num, unexpected=True, code=1,
                        err=err, pid=pid), False)
 
+    art = artifacts.Artifacts(child.artifact_output_dir,
+            test_name, child.test_name_prefix, test_input.iteration)
+
     test_case = tests[0]
     if isinstance(test_case, TypTestCase):
         test_case.child = child
         test_case.context = child.context_after_setup
+        test_case.artifacts = art
 
     test_result = unittest.TestResult()
     out = ''
@@ -1042,7 +1065,8 @@ def _run_one_test(child, test_input):
     took = h.time() - started
     return (_result_from_test_result(test_result, test_name, started, took, out,
                                     err, child.worker_num, pid,
-                                    expected_results, child.has_expectations),
+                                    expected_results, child.has_expectations,
+                                    art),
             should_retry_on_failure)
 
 
@@ -1059,7 +1083,7 @@ def _run_under_debugger(host, test_case, suite,
 
 def _result_from_test_result(test_result, test_name, started, took, out, err,
                              worker_num, pid, expected_results,
-                             has_expectations):
+                             has_expectations, artifacts):
     if test_result.failures:
         actual = ResultType.Failure
         code = 1
@@ -1095,7 +1119,8 @@ def _result_from_test_result(test_result, test_name, started, took, out, err,
 
     flaky = False
     return Result(test_name, actual, started, took, worker_num,
-                  expected_results, unexpected, flaky, code, out, err, pid)
+                  expected_results, unexpected, flaky, code, out, err, pid,
+                  artifacts)
 
 
 def _load_via_load_tests(child, test_name):

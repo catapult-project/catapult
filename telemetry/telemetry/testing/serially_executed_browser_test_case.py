@@ -12,13 +12,14 @@ from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.testing import browser_test_context
 from typ import json_results
+from typ import test_case
 
 DEFAULT_LOG_FORMAT = (
     '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
     '%(message)s')
 
 
-class SeriallyExecutedBrowserTestCase(unittest.TestCase):
+class SeriallyExecutedBrowserTestCase(test_case.TestCase):
 
   # Below is a reference to the typ.Runner instance. It will be used in
   # member functions like GetExpectationsForTest() to get test information

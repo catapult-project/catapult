@@ -26,6 +26,7 @@ class TestCase(unittest.TestCase):
     child = None
     context = None
     maxDiff = 80 * 66
+    artifacts = None
 
 
 class MainTestCase(TestCase):

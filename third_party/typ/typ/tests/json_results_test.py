@@ -17,6 +17,11 @@ import unittest
 from typ import json_results
 
 
+class FakeArtifacts(object):
+    def __init__(self):
+        self.files = {}
+
+
 class TestMakeUploadRequest(unittest.TestCase):
     maxDiff = 4096
 
@@ -118,3 +123,51 @@ class TestMakeFullResults(unittest.TestCase):
                         }}}},
             'version': 3}
         self.assertEqual(full_results, expected_full_results)
+
+    def test_artifacts_and_types_added(self):
+        ar = FakeArtifacts()
+        ar.files = {'artifact_name': 'a/b/c.txt'}
+
+        test_names = [ 'foo_test.FooTest.foobar' ]
+
+        result_set = json_results.ResultSet()
+        result_set.add(json_results.Result(
+                'foo_test.FooTest.foobar', json_results.ResultType.Pass,
+                0, 0.2, 0, artifacts=ar))
+
+        full_results = json_results.make_full_results(
+                {'foo': 'bar'}, 0, test_names, result_set)
+
+        tests = full_results['tests']['foo_test']['FooTest']
+        self.assertIn('artifacts', tests['foobar'])
+        self.assertEqual(tests['foobar']['artifacts'],
+                         {'artifact_name': ['a/b/c.txt']})
+
+    def test_artifacts_merged(self):
+        test_names = [ 'foo_test.FooTest.foobar' ]
+        result_set = json_results.ResultSet()
+
+        ar = FakeArtifacts()
+        ar.files = {'artifact_name': 'a/b/c.txt'}
+        result_set.add(json_results.Result(
+                'foo_test.FooTest.foobar', json_results.ResultType.Failure,
+                0, 0.2, 0, artifacts=ar))
+
+        ar2 = FakeArtifacts()
+        ar2.files = {'artifact_name': 'd/e/f.txt'}
+        result_set.add(json_results.Result(
+                'foo_test.FooTest.foobar', json_results.ResultType.Failure,
+                0, 0.2, 0, artifacts=ar2))
+
+        full_results = json_results.make_full_results(
+                {'foo': 'bar'}, 0, test_names, result_set)
+
+        tests = full_results['tests']['foo_test']['FooTest']
+        self.assertIn('artifacts', tests['foobar'])
+        # Order is not guaranteed for the list of paths, so don't use
+        # assertEqual if there are multiple entries
+        artifacts = tests['foobar']['artifacts']
+        self.assertIn('artifact_name', artifacts)
+        self.assertEqual(len(artifacts['artifact_name']), 2)
+        self.assertIn('a/b/c.txt', artifacts['artifact_name'])
+        self.assertIn('d/e/f.txt', artifacts['artifact_name'])

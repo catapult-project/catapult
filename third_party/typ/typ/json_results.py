@@ -34,7 +34,8 @@ class Result(object):
 
     def __init__(self, name, actual, started, took, worker,
                  expected=None, unexpected=False,
-                 flaky=False, code=0, out='', err='', pid=0):
+                 flaky=False, code=0, out='', err='', pid=0,
+                 artifacts=None):
         self.name = name
         self.actual = actual
         self.started = started
@@ -48,6 +49,7 @@ class Result(object):
         self.err = err
         self.pid = pid
         self.is_regression = actual != ResultType.Pass and unexpected
+        self.artifacts = artifacts
 
 
 class ResultSet(object):
@@ -192,6 +194,14 @@ def _results_for_test(test_name, results):
             # This assumes that the expected values are the same for every
             # invocation of the test.
             value['expected'] = ' '.join(sorted(r.expected))
+
+            # Handle artifacts
+            if not r.artifacts or not r.artifacts.files:
+                continue
+            if 'artifacts' not in value:
+                value['artifacts'] = {}
+            for artifact_name, file in r.artifacts.files.items():
+                value['artifacts'].setdefault(artifact_name, []).append(file)
 
     if not actuals:  # pragma: untested
         actuals.append('SKIP')
