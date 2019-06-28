@@ -124,6 +124,8 @@ class TracingBackend(object):
     assert not self._can_collect_data, 'Data not collected from last trace.'
     # Reset collected tracing data from previous tracing calls.
 
+    self._has_received_all_tracing_data = False
+
     if not self.IsTracingSupported():
       raise TracingUnsupportedException(
           'Chrome tracing not supported for this app.')
@@ -255,7 +257,6 @@ class TracingBackend(object):
       since the last time any data is received.
       TracingUnrecoverableException: If there is a websocket error.
     """
-    self._has_received_all_tracing_data = False
     start_time = time.time()
     self._trace_data_builder = trace_data_builder
     try:
