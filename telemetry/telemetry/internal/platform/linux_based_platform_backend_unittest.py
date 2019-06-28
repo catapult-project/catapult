@@ -7,7 +7,6 @@ import unittest
 
 from telemetry.core import util
 from telemetry.internal.platform import linux_based_platform_backend
-import mock
 
 
 class TestLinuxBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):
@@ -24,9 +23,6 @@ class TestLinuxBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):
   def GetFileContents(self, filename):
     return self._mock_files[filename]
 
-  def GetClockTicks(self):
-    return 41
-
 
 class LinuxBasedPlatformBackendTest(unittest.TestCase):
 
@@ -40,27 +36,3 @@ class LinuxBasedPlatformBackendTest(unittest.TestCase):
     result = backend.GetSystemTotalPhysicalMemory()
     # 67479191552 == MemTotal * 1024
     self.assertEquals(result, 67479191552)
-
-  def testGetCpuStatsBasic(self):
-    backend = TestLinuxBackend()
-    self.SetMockFileInBackend(backend, 'stat', '/proc/1/stat')
-    result = backend.GetCpuStats(1)
-    self.assertEquals(result, {'CpuProcessTime': 22.0})
-
-  def testGetCpuTimestampBasic(self):
-    jiffies_grep_string = """
-    jiffies
-jiffies  a1111
-    .last_jiffies   : 4307239958
-    .next_jiffies   : 4307239968
-    jiffies: 10505463300
-    jiffies: 10505463333
-    """
-    with mock.patch.object(
-        linux_based_platform_backend.LinuxBasedPlatformBackend,
-        'RunCommand', return_value=jiffies_grep_string) as mock_method:
-      backend = linux_based_platform_backend.LinuxBasedPlatformBackend()
-      result = backend.GetCpuTimestamp()
-      self.assertEquals(result, {'TotalTime': 105054633.0})
-    mock_method.assert_call_once_with(
-        ['grep', '-m', '1', 'jiffies:', '/proc/timer_list'])

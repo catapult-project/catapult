@@ -10,7 +10,6 @@ import platform
 import re
 import subprocess
 import sys
-import time
 
 from telemetry.core import exceptions
 from telemetry.core import os_version as os_version_module
@@ -64,17 +63,6 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   def GetSystemTotalPhysicalMemory(self):
     performance_info = self._GetPerformanceInfo()
     return performance_info.PhysicalTotal * performance_info.PageSize / 1024
-
-  def GetCpuStats(self, pid):
-    cpu_info = self._GetWin32ProcessInfo(win32process.GetProcessTimes, pid)
-    # Convert 100 nanosecond units to seconds
-    cpu_time = (cpu_info['UserTime'] / 1e7 +
-                cpu_info['KernelTime'] / 1e7)
-    return {'CpuProcessTime': cpu_time}
-
-  def GetCpuTimestamp(self):
-    """Return current timestamp in seconds."""
-    return {'TotalTime': time.time()}
 
   def KillProcess(self, pid, kill_process_tree=False):
     # os.kill for Windows is Python 2.7.

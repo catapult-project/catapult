@@ -241,18 +241,6 @@ class AndroidPlatformBackend(
   def HasBeenThermallyThrottled(self):
     return self._thermal_throttle.HasBeenThrottled()
 
-  def GetCpuStats(self, pid):
-    if not self._can_elevate_privilege:
-      logging.warning('CPU stats cannot be retrieved on non-rooted device.')
-      return {}
-    return super(AndroidPlatformBackend, self).GetCpuStats(pid)
-
-  def GetCpuTimestamp(self):
-    if not self._can_elevate_privilege:
-      logging.warning('CPU timestamp cannot be retrieved on non-rooted device.')
-      return {}
-    return super(AndroidPlatformBackend, self).GetCpuTimestamp()
-
   def SetGraphicsMemoryTrackingEnabled(self, enabled):
     if not enabled:
       self.KillApplication('memtrack_helper')
