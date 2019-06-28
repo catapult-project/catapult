@@ -5,6 +5,7 @@
 import collections
 import itertools
 import json
+import os
 
 from telemetry.internal.results import output_formatter
 from telemetry.value import trace
@@ -65,6 +66,23 @@ def ResultsAsChartDict(results):
     charts[chart_name][trace_name] = value.AsDict()
     if value.page:
       charts[chart_name][trace_name]['story_tags'] = list(value.page.tags)
+
+  for run in results.all_page_runs:
+    artifact = run.GetArtifact(results.HTML_TRACE_NAME)
+    if artifact is not None:
+      # This intentionally overwrites the trace if it already exists because
+      # this is expected of output from the buildbots currently.
+      # See: crbug.com/413393
+      charts['trace'][run.story.name] = {
+          'name': 'trace',
+          'type': 'trace',
+          'units': '',
+          'important': False,
+          'page_id': run.story.id,
+          'file_path': os.path.relpath(artifact.local_path, results.output_dir),
+      }
+      if artifact.url is not None:
+        charts['trace'][run.story.name]['cloud_url'] = artifact.url
 
   result_dict = {
       'format_version': '0.1',

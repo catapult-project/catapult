@@ -223,6 +223,8 @@ class TelemetryInfo(object):
 
 
 class PageTestResults(object):
+  HTML_TRACE_NAME = 'trace.html'
+
   def __init__(self, output_formatters=None, progress_reporter=None,
                output_dir=None, should_add_value=None, benchmark_name=None,
                benchmark_description=None, benchmark_enabled=True,

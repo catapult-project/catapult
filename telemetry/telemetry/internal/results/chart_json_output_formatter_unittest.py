@@ -7,6 +7,8 @@ import os
 import StringIO
 import unittest
 
+from py_utils import tempfile_ext
+
 from telemetry import story
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import page_test_results
@@ -26,11 +28,13 @@ def _MakeStorySet():
   return ps
 
 
-def _MakePageTestResults(description='benchmark_description', enabled=True):
+def _MakePageTestResults(
+    description='benchmark_description', enabled=True, output_dir=None):
   return page_test_results.PageTestResults(
       benchmark_name='benchmark_name',
       benchmark_description=description,
-      benchmark_enabled=enabled)
+      benchmark_enabled=enabled,
+      output_dir=output_dir)
 
 
 class ChartJsonTest(unittest.TestCase):
@@ -104,8 +108,8 @@ class ChartJsonTest(unittest.TestCase):
 
     d = chart_json_output_formatter.ResultsAsChartDict(results)
 
-    self.assertTrue('cold@@foo' in d['charts'])
-    self.assertTrue('http://www.foo.com/' in d['charts']['cold@@foo'])
+    self.assertIn('cold@@foo', d['charts'])
+    self.assertIn('http://www.foo.com/', d['charts']['cold@@foo'])
     self.assertTrue(d['enabled'])
 
   def testAsChartDictPageSpecificValuesSamePageWithoutGroupingLabel(self):
@@ -122,8 +126,8 @@ class ChartJsonTest(unittest.TestCase):
 
     d = chart_json_output_formatter.ResultsAsChartDict(results)
 
-    self.assertTrue('foo' in d['charts'])
-    self.assertTrue('http://www.foo.com/' in d['charts']['foo'])
+    self.assertIn('foo', d['charts'])
+    self.assertIn('http://www.foo.com/', d['charts']['foo'])
     self.assertTrue(d['enabled'])
 
   def testAsChartDictPageSpecificValuesAndComputedSummaryWithTraceName(self):
@@ -141,10 +145,10 @@ class ChartJsonTest(unittest.TestCase):
 
     d = chart_json_output_formatter.ResultsAsChartDict(results)
 
-    self.assertTrue('foo' in d['charts'])
-    self.assertTrue('http://www.foo.com/' in d['charts']['foo'])
-    self.assertTrue('http://www.bar.com/' in d['charts']['foo'])
-    self.assertTrue('bar' in d['charts']['foo'])
+    self.assertIn('foo', d['charts'])
+    self.assertIn('http://www.foo.com/', d['charts']['foo'])
+    self.assertIn('http://www.bar.com/', d['charts']['foo'])
+    self.assertIn('bar', d['charts']['foo'])
     self.assertTrue(d['enabled'])
 
   def testAsChartDictPageSpecificValuesAndComputedSummaryWithoutTraceName(self):
@@ -162,10 +166,10 @@ class ChartJsonTest(unittest.TestCase):
 
     d = chart_json_output_formatter.ResultsAsChartDict(results)
 
-    self.assertTrue('foo' in d['charts'])
-    self.assertTrue('http://www.foo.com/' in d['charts']['foo'])
-    self.assertTrue('http://www.bar.com/' in d['charts']['foo'])
-    self.assertTrue('summary' in d['charts']['foo'])
+    self.assertIn('foo', d['charts'])
+    self.assertIn('http://www.foo.com/', d['charts']['foo'])
+    self.assertIn('http://www.bar.com/', d['charts']['foo'])
+    self.assertIn('summary', d['charts']['foo'])
     self.assertTrue(d['enabled'])
 
   def testAsChartDictSummaryValueWithTraceName(self):
@@ -177,7 +181,7 @@ class ChartJsonTest(unittest.TestCase):
 
     d = chart_json_output_formatter.ResultsAsChartDict(results)
 
-    self.assertTrue('bar' in d['charts']['foo'])
+    self.assertIn('bar', d['charts']['foo'])
     self.assertTrue(d['enabled'])
 
   def testAsChartDictSummaryValueWithoutTraceName(self):
@@ -189,24 +193,34 @@ class ChartJsonTest(unittest.TestCase):
 
     d = chart_json_output_formatter.ResultsAsChartDict(results)
 
-    self.assertTrue('summary' in d['charts']['foo'])
+    self.assertIn('summary', d['charts']['foo'])
     self.assertTrue(d['enabled'])
 
   def testAsChartDictWithTraceValues(self):
-    results = _MakePageTestResults()
-    try:
+    with _MakePageTestResults() as results:
       results.WillRunPage(self._story_set[0])
       results.AddTraces(trace_data.CreateTestTrace())
       results.DidRunPage(self._story_set[0])
 
       d = chart_json_output_formatter.ResultsAsChartDict(results)
 
-      self.assertTrue('trace' in d['charts'])
-      self.assertTrue('http://www.foo.com/' in d['charts']['trace'],
-                      msg=d['charts']['trace'])
+      self.assertIn('trace', d['charts'])
+      self.assertIn('http://www.foo.com/', d['charts']['trace'])
       self.assertTrue(d['enabled'])
-    finally:
-      results.CleanUp()
+
+  def testAsChartDictWithTracesInArtifacts(self):
+    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
+      with _MakePageTestResults(output_dir=tempdir) as results:
+        results.WillRunPage(self._story_set[0])
+        with results.CreateArtifact(results.HTML_TRACE_NAME):
+          pass
+        results.DidRunPage(self._story_set[0])
+
+        d = chart_json_output_formatter.ResultsAsChartDict(results)
+
+        self.assertIn('trace', d['charts'])
+        self.assertIn('http://www.foo.com/', d['charts']['trace'])
+        self.assertTrue(d['enabled'])
 
   def testAsChartDictValueSmokeTest(self):
     v0 = list_of_scalar_values.ListOfScalarValues(
