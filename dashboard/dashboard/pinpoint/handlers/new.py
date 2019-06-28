@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import logging
 
 from dashboard.api import api_request_handler
 from dashboard.common import bot_configurations
@@ -46,7 +47,10 @@ class New(api_request_handler.ApiRequestHandler):
 def _CreateJob(request):
   """Creates a new Pinpoint job from WebOb request arguments."""
   original_arguments = request.params.mixed()
+  logging.info('Received Params: %s', original_arguments)
+
   arguments = _ArgumentsWithConfiguration(original_arguments)
+  logging.info('Updated Params: %s', arguments)
 
   # Validate arguments and convert them to canonical internal representation.
   quests = _GenerateQuests(arguments)
@@ -79,6 +83,8 @@ def _ArgumentsWithConfiguration(original_arguments):
   configuration = original_arguments.get('configuration')
   if configuration:
     default_arguments = bot_configurations.Get(configuration)
+    logging.info('Bot Config: %s', default_arguments)
+
     if default_arguments:
       for k, v in list(default_arguments.items()):
         new_arguments.setdefault(k, v)
