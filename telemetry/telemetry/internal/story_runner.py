@@ -316,6 +316,8 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           finally:
             # Later finally-blocks use state, so ensure it is cleared.
             state = None
+          logging.exception('Exception raised during story run.')
+          results.Fail(sys.exc_info())
         finally:
           has_existing_exception = sys.exc_info() != (None, None, None)
           try:

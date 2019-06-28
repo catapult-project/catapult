@@ -1281,6 +1281,38 @@ class StoryRunnerTest(unittest.TestCase):
     finally:
       shutil.rmtree(temp_path)
 
+  def testRunBenchmarkWithRelativeOutputDir(self):
+    class FakeBenchmarkWithAStory(FakeBenchmark):
+      def __init__(self):
+        super(FakeBenchmarkWithAStory, self).__init__()
+
+      @classmethod
+      def Name(cls):
+        return 'fake_with_a_story'
+
+      def page_set(self):
+        story_set = story_module.StorySet()
+        story_set.AddStory(DummyPage(story_set, name='story'))
+        return story_set
+
+    fake_benchmark = FakeBenchmarkWithAStory()
+    options = _GenerateBaseBrowserFinderOptions()
+    temp_path = tempfile.mkdtemp()
+    cur_dir = os.getcwd()
+    try:
+      os.chdir(temp_path)
+      options.output_dir = 'output'
+      options.output_formats = ['json-test-results']
+      results_options.ProcessCommandLineArgs(options)
+      story_runner.RunBenchmark(fake_benchmark, options)
+      with open(os.path.join(temp_path, 'output', 'test-results.json')) as f:
+        json_results = json.load(f)
+        story_run = json_results['tests']['fake_with_a_story']['story']
+        self.assertEqual(story_run['actual'], 'PASS')
+    finally:
+      os.chdir(cur_dir)
+      shutil.rmtree(temp_path)
+
   def testRunBenchmark_AddsOwners_NoComponent(self):
     @benchmark.Owner(emails=['alice@chromium.org'])
     class FakeBenchmarkWithOwner(FakeBenchmark):
