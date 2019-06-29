@@ -76,12 +76,30 @@ class Execution(object):
     """
     return self._result_arguments
 
+  # TODO(simonhatch): After migrating all Pinpoint entities, this can be
+  # removed.
+  # crbug.com/971370
+  def __setstate__(self, state):
+    self.__dict__ = state  # pylint: disable=attribute-defined-outside-init
+    if isinstance(self._exception, basestring):
+      self._exception = {
+          'message': self._exception.splitlines()[-1],
+          'traceback': self._exception
+      }
+
+
   def AsDict(self):
     d = {
         'completed': self._completed,
         'exception': self._exception,
         'details': self._AsDict(),
     }
+
+    if isinstance(self._exception, basestring):
+      d['exception'] = {
+          'message': self._exception.splitlines()[-1],
+          'traceback': self._exception
+      }
 
     return d
 
@@ -112,9 +130,13 @@ class Execution(object):
       # We allow broad exception handling here, because we log the exception and
       # display it in the UI.
       self._completed = True
-      self._exception = traceback.format_exc()
+      tb = traceback.format_exc()
       if hasattr(e, 'task_output'):
-        self._exception += '\n%s' % getattr(e, 'task_output')
+        tb += '\n%s' % getattr(e, 'task_output')
+      self._exception = {
+          'message': e.message,
+          'traceback': tb
+      }
     except:
       # All other exceptions must be propagated.
       raise

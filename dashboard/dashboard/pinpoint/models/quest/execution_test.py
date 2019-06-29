@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import pickle
 import unittest
 
 from oauth2client import client
@@ -109,9 +110,23 @@ class ExecutionTest(unittest.TestCase):
     self.assertTrue(e.completed)
     self.assertTrue(e.failed)
     expected = 'InformationalError: Expected error for testing.'
-    self.assertEqual(e.exception.splitlines()[-1], expected)
+    self.assertEqual(e.exception['traceback'].splitlines()[-1], expected)
     self.assertEqual(e.result_values, ())
     self.assertEqual(e.result_arguments, {})
+
+  def testExecutionFailed_FormatUpdated(self):
+    e = ExecutionFail()
+    e.Poll()
+
+    e._exception = 'line\nAssert'
+
+    self.assertTrue(e.completed)
+    self.assertTrue(e.failed)
+    self.assertTrue(isinstance(e.exception, basestring))
+
+    e = pickle.loads(pickle.dumps(e))
+
+    self.assertTrue(isinstance(e.exception, dict))
 
   def testExecutionException(self):
     e = ExecutionException()

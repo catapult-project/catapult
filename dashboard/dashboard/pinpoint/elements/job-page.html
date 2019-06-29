@@ -10,6 +10,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/elements/base-style.html">
 <link rel="import" href="/elements/job-page/change-details.html">
+<link rel="import" href="/elements/job-page/exception-details.html">
 <link rel="import" href="/elements/job-page/job-chart.html">
 <link rel="import" href="/elements/job-page/job-details.html">
 <link rel="import" href="/elements/job-page/job-menu-fab.html">
@@ -113,7 +114,8 @@ found in the LICENSE file.
         <div id="results">
           <template is="dom-if" if="[[failed(job)]]">
             <h2>Job failed</h2>
-            <p id="exception">[[job.exception]]</p>
+
+            <exception-details exception="[[job.exception]]"></exception-details>
           </template>
           <template is="dom-if" if="[[shouldShowChart(job)]]">
             <job-chart job="[[job]]" change-index="{{changeIndex}}"></job-chart>

@@ -292,7 +292,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
 
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    last_exception_line = execution.exception.splitlines()[-1]
+    last_exception_line = execution.exception['traceback'].splitlines()[-1]
     self.assertTrue(last_exception_line.startswith('SwarmingTaskError'))
 
   @mock.patch('dashboard.services.swarming.Task.Stdout')
@@ -314,7 +314,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
 
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    last_exception_line = execution.exception.splitlines()[-1]
+    last_exception_line = execution.exception['traceback'].splitlines()[-1]
     self.assertTrue(last_exception_line.startswith('SwarmingTaskFailed'))
 
   @mock.patch('dashboard.services.swarming.Task.Stdout')
@@ -343,7 +343,7 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
 
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    last_exception_line = execution.exception.splitlines()[-1]
+    last_exception_line = execution.exception['traceback'].splitlines()[-1]
     self.assertRegexpMatches(last_exception_line, '^AttributeError.*')
 
 
@@ -393,7 +393,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
 
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    last_exception_line = execution.exception.splitlines()[-1]
+    last_exception_line = execution.exception['traceback'].splitlines()[-1]
     self.assertTrue(last_exception_line.startswith('SwarmingNoBots'))
 
   def testSimultaneousExecutions(self, swarming_task_result,

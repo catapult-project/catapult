@@ -74,8 +74,8 @@ class _FindIsolateExecutionTest(test.TestCase):
   def assertExecutionFailure(self, execution, exception_class):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    self.assertIsInstance(execution.exception, basestring)
-    last_exception_line = execution.exception.splitlines()[-1]
+    self.assertIsInstance(execution.exception['traceback'], basestring)
+    last_exception_line = execution.exception['traceback'].splitlines()[-1]
     self.assertTrue(last_exception_line.startswith(exception_class.__name__))
     self.assertEqual(execution.result_arguments, {})
 

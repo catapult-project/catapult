@@ -205,6 +205,7 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_STARTED, send_email=False)
 
@@ -214,6 +215,7 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_NO_COMPARISON)
 
@@ -223,6 +225,7 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_NO_DIFFERENCES)
 
@@ -249,6 +252,7 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_COMMIT,
         status='Assigned', owner='author@chromium.org',
@@ -279,6 +283,7 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_COMMIT,
         status='Assigned', owner='author@chromium.org',
@@ -316,6 +321,7 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_COMMIT,
         status='Assigned', owner='author@chromium.org',
@@ -345,6 +351,7 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertFalse(j.failed)
     self.assertFalse(self.add_bug_comment.called)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
@@ -381,6 +388,7 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_COMMIT_AND_DOCS,
         status='Assigned', owner='author@chromium.org',
@@ -410,6 +418,7 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_PATCH,
         status='Assigned', owner='author@chromium.org',
@@ -441,6 +450,7 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_PATCH, owner=None, status=None,
         cc_list=['author@chromium.org'], merge_issue=None)
@@ -470,6 +480,7 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_PATCH, owner=None, status=None,
         cc_list=['author@chromium.org'], merge_issue=None)
@@ -518,6 +529,7 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_THREE_DIFFERENCES,
         status='Assigned', owner='author1@chromium.org',
@@ -550,6 +562,7 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT,
         status='Assigned', owner='sheriff@bar.com',
@@ -565,7 +578,35 @@ class BugCommentTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
+    self.assertTrue(j.failed)
     self.add_bug_comment.assert_called_once_with(123456, _COMMENT_FAILED)
+
+  @mock.patch.object(job.job_state.JobState, 'ScheduleWork',
+                     mock.MagicMock(side_effect=AssertionError('Error string')))
+  def testFailed_ExceptionDetailsFieldAdded(self):
+    j = job.Job.New((), (), bug_id=123456)
+    with self.assertRaises(AssertionError):
+      j.Run()
+
+    j.exception = j.exception_details['traceback']
+
+    exception_details = job.Job.exception_details
+    delattr(job.Job, 'exception_details')
+
+    j.put()
+
+    self.assertTrue(j.failed)
+    self.assertFalse(hasattr(j, 'exception_details'))
+
+    job.Job.exception_details = exception_details
+
+    j = j.key.get(use_cache=False)
+
+    self.assertTrue(j.failed)
+    self.assertTrue(hasattr(j, 'exception_details'))
+    self.assertEqual(j.exception, j.exception_details['traceback'])
+    self.assertTrue(
+        j.exception_details['message'] in j.exception.splitlines()[-1])
 
   @mock.patch('dashboard.services.gerrit_service.PostChangeComment')
   def testCompletedUpdatesGerrit(self, post_change_comment):

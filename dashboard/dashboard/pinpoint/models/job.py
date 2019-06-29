@@ -106,21 +106,49 @@ class Job(ndb.Model):
 
   started = ndb.BooleanProperty(default=True)
   completed = ndb.ComputedProperty(lambda self: self.started and not self.task)
-  failed = ndb.ComputedProperty(lambda self: bool(self.exception))
+  failed = ndb.ComputedProperty(lambda self: bool(self.exception_details_dict))
   running = ndb.ComputedProperty(lambda self: self.task and len(self.task))
 
   # The name of the Task Queue task this job is running on. If it's present, the
   # job is running. The task is also None for Task Queue retries.
   task = ndb.StringProperty()
 
-  # The string contents of any Exception that was thrown to the top level.
+  # The contents of any Exception that was thrown to the top level.
   # If it's present, the job failed.
   exception = ndb.TextProperty()
+  exception_details = ndb.JsonProperty()
 
   difference_count = ndb.IntegerProperty()
 
   retry_count = ndb.IntegerProperty(default=0)
 
+  # TODO(simonhatch): After migrating all Pinpoint entities, this can be
+  # removed.
+  # crbug.com/971370
+  @classmethod
+  def _post_get_hook(cls, key, future):  # pylint: disable=unused-argument
+    e = future.get_result()
+    if not e:
+      return
+
+    if not getattr(e, 'exception_details'):
+      e.exception_details = e.exception_details_dict
+
+  # TODO(simonhatch): After migrating all Pinpoint entities, this can be
+  # removed.
+  # crbug.com/971370
+  @property
+  def exception_details_dict(self):
+    if hasattr(self, 'exception_details'):
+      if self.exception_details:
+        return self.exception_details
+
+    if hasattr(self, 'exception'):
+      exc = self.exception
+      if exc:
+        return {'message': exc.splitlines()[-1], 'traceback': exc}
+
+    return None
 
   @classmethod
   def New(cls, quests, changes, arguments=None, bug_id=None,
@@ -305,22 +333,19 @@ class Job(ndb.Model):
           _retry_options=RETRY_OPTIONS)
 
   def Fail(self, exception=None):
-    if exception:
-      self.exception = exception
-      tb = traceback.format_exc()
-      if tb:
-        self.exception += '\n%s' % tb
-    else:
-      self.exception = traceback.format_exc()
-
+    tb = traceback.format_exc() or ''
     title = _CRYING_CAT_FACE + ' Pinpoint job stopped with an error.'
     exc_info = sys.exc_info()
     exc_message = ''
-    if exc_info[1]:
+    if exception:
+      exc_message = exception
+    elif exc_info[1]:
       exc_message = sys.exc_info()[1].message
-    elif self.exception:
-      exc_message = self.exception.splitlines()[-1]
 
+    self.exception_details = {
+        'message': exc_message,
+        'traceback': tb,
+    }
     self.task = None
 
     comment = '\n'.join((title, self.url, '', exc_message))
@@ -367,7 +392,7 @@ class Job(ndb.Model):
     Changes as needed. If there are any incomplete tasks, schedules another
     Run() call on the task queue.
     """
-    self.exception = None  # In case the Job succeeds on retry.
+    self.exception_details = None # In case the Job succeeds on retry.
     self.task = None  # In case an exception is thrown.
 
     try:
@@ -430,7 +455,7 @@ class Job(ndb.Model):
         'created': self.created.isoformat(),
         'updated': self.updated.isoformat(),
         'difference_count': self.difference_count,
-        'exception': self.exception,
+        'exception': self.exception_details_dict,
         'status': self.status,
     }
 
