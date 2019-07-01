@@ -4,11 +4,9 @@
 
 import collections
 import copy
-import datetime
 import json
 import logging
 import os
-import random
 import shutil
 import tempfile
 import time
@@ -44,7 +42,6 @@ class TelemetryInfo(object):
     self._upload_bucket = upload_bucket
     self._trace_remote_path = None
     self._output_dir = output_dir
-    self._trace_local_path = None
     self._had_failures = None
 
   @property
@@ -108,51 +105,6 @@ class TelemetryInfo(object):
     self._story_grouping_keys = story.grouping_keys
     self._story_tags = story.tags
     self._storyset_repeat_counter = storyset_repeat_counter
-
-    trace_name_suffix = '%s_%s.html' % (
-        datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'),
-        random.randint(1, 1e5))
-    if self.label:
-      trace_name = '%s_%s_%s' % (
-          story.file_safe_name, self.label, trace_name_suffix)
-    else:
-      trace_name = '%s_%s' % (
-          story.file_safe_name, trace_name_suffix)
-
-    if self._upload_bucket:
-      self._trace_remote_path = trace_name
-
-    if self._output_dir:
-      self._trace_local_path = os.path.abspath(os.path.join(
-          self._output_dir, trace_name))
-
-  @property
-  def trace_local_path(self):
-    return self._trace_local_path
-
-  @property
-  def trace_local_url(self):
-    if self._trace_local_path:
-      return 'file://' + self._trace_local_path
-    return None
-
-  @property
-  def trace_remote_path(self):
-    return self._trace_remote_path
-
-  @property
-  def trace_remote_url(self):
-    if self._trace_remote_path:
-      return 'https://console.developers.google.com/m/cloudstorage/b/%s/o/%s' % (
-          self._upload_bucket, self._trace_remote_path)
-    return None
-
-  @property
-  def trace_url(self):
-    # This is MRE's canonicalUrl.
-    if self._upload_bucket is None:
-      return self.trace_local_url
-    return self.trace_remote_url
 
 
 class PageTestResults(object):
@@ -450,7 +402,6 @@ class PageTestResults(object):
         (reserved_infos.STORY_TAGS, info.GetStoryTagsList()),
         (reserved_infos.STORYSET_REPEATS, info.storyset_repeat_counter),
         (reserved_infos.TRACE_START, info.trace_start_us),
-        (reserved_infos.TRACE_URLS, info.trace_url)
     ]
 
     diags = {}

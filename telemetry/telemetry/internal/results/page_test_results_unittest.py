@@ -25,35 +25,6 @@ from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 
-class TelemetryInfoTest(unittest.TestCase):
-  def testTraceLocalPathWithoutLabel(self):
-    ti = page_test_results.TelemetryInfo(
-        benchmark_name='benchmark',
-        benchmark_description='foo',
-        output_dir='/tmp')
-    story_set = story.StorySet()
-    bar_story = page_module.Page("http://www.bar.com/", story_set,
-                                 name='http://www.bar.com/')
-    story_set.AddStory(bar_story)
-    ti.WillRunStory(bar_story, None)
-    self.assertIn('www_bar_com', ti.trace_local_path)
-    self.assertNotIn('custom_label', ti.trace_local_path)
-
-  def testTraceLocalPathWithLabel(self):
-    ti = page_test_results.TelemetryInfo(
-        benchmark_name='benchmark',
-        benchmark_description='foo',
-        results_label='custom_label',
-        output_dir='/tmp')
-    story_set = story.StorySet()
-    bar_story = page_module.Page("http://www.bar.com/", story_set,
-                                 name='http://www.bar.com/')
-    story_set.AddStory(bar_story)
-    ti.WillRunStory(bar_story, None)
-    self.assertIn('www_bar_com', ti.trace_local_path)
-    self.assertIn('custom_label', ti.trace_local_path)
-
-
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def setUp(self):
     story_set = story.StorySet()
