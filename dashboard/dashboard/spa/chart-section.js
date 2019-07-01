@@ -504,6 +504,7 @@ ChartSection.newStateOptionsFromQueryParams = routeParams => {
     fixedXAxis: !routeParams.has('natural'),
     zeroYAxis: routeParams.has('zeroY'),
     selectedLineDescriptorHash: routeParams.get('select'),
+    isShowingOptions: routeParams.has('opts'),
   };
 };
 
@@ -623,6 +624,7 @@ ChartSection.getSessionState = state => {
     mode: state.mode,
     selectedRelatedTabName: state.selectedRelatedTabName,
     selectedLineDescriptorHash: state.selectedLineDescriptorHash,
+    isShowingOptions: state.isShowingOptions,
   };
 };
 
@@ -701,6 +703,9 @@ ChartSection.getRouteParams = state => {
       state.chartLayout.brushRevisions &&
       state.chartLayout.brushRevisions.length) {
     routeParams.set('brush', state.chartLayout.brushRevisions.join('-'));
+  }
+  if (state.isShowingOptions) {
+    routeParams.set('opts', '');
   }
   return routeParams;
 };

@@ -85,7 +85,7 @@ export default class ChartCompound extends ElementBase {
       minimapLayout,
       chartLayout,
       details: DetailsTable.buildState(),
-      isShowingOptions: true,
+      isShowingOptions: options.isShowingOptions !== false,
       isLinked: options.isLinked !== false,
       cursorRevision: 0,
       cursorScalar: undefined,
