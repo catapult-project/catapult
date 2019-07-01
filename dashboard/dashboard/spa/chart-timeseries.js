@@ -632,21 +632,38 @@ ChartTimeseries.createFetchDescriptors = (lineDescriptor, levelOfDetail) => {
   return fetchDescriptors;
 };
 
-// Improvement alerts display thumbup icons. Regression alerts display error
-// icons.
+// If an icon should be displayed in a main chart for this datum, return {icon,
+// iconColor}.
 function getIcon(datum) {
-  if (!datum.alert) return {};
-  if (datum.alert.improvement) {
+  // See ./cp-icon.js for available icons.
+
+  if (datum.alert) {
+    if (datum.alert.improvement) {
+      // Improvement alerts display thumbup icons.
+      return {
+        icon: 'thumbup',
+        iconColor: 'var(--improvement-color, green)',
+      };
+    }
+
+    // Regression alerts display error icons.
     return {
-      icon: 'thumbup',
-      iconColor: 'var(--improvement-color, green)',
+      icon: 'error',
+      iconColor: datum.alert.bugId ?
+        'var(--neutral-color-dark, grey)' : 'var(--error-color, red)',
     };
   }
-  return {
-    icon: 'error',
-    iconColor: datum.alert.bugId ?
-      'var(--neutral-color-dark, grey)' : 'var(--error-color, red)',
-  };
+
+  if (datum.diagnostics &&
+      datum.diagnostics.has(tr.v.d.RESERVED_NAMES.OS_VERSIONS)) {
+    // Whitelisted diagnostics display feedback icons.
+    return {
+      icon: 'feedback',
+      iconColor: 'var(--primary-color-dark, blue)',
+    };
+  }
+
+  return {};
 }
 
 ChartTimeseries.aggregateTimeserieses = (
