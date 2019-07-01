@@ -401,7 +401,7 @@ class DeviceUtils(object):
     assert hasattr(self, decorators.DEFAULT_TIMEOUT_ATTR)
     assert hasattr(self, decorators.DEFAULT_RETRIES_ATTR)
 
-    self._ClearCache()
+    self.ClearCache()
 
   @property
   def serial(self):
@@ -882,7 +882,7 @@ class DeviceUtils(object):
       return not self.IsOnline()
 
     self.adb.Reboot()
-    self._ClearCache()
+    self.ClearCache()
     timeout_retry.WaitFor(device_offline, wait_period=1)
     if block:
       self.WaitUntilFullyBooted(wifi=wifi)
@@ -2981,7 +2981,7 @@ class DeviceUtils(object):
       self._client_caches[client_name] = {}
     return self._client_caches[client_name]
 
-  def _ClearCache(self):
+  def ClearCache(self):
     """Clears all caches."""
     for client in self._client_caches:
       self._client_caches[client].clear()

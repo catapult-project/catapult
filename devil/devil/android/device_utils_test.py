@@ -3025,7 +3025,7 @@ class DeviceUtilsClientCache(DeviceUtilsTest):
     self.assertEqual(self.device._cache['test'], 0)
     self.assertEqual(client_cache_one, {'test': 1})
     self.assertEqual(client_cache_two, {'test': 2})
-    self.device._ClearCache()
+    self.device.ClearCache()
     self.assertTrue('test' not in self.device._cache)
     self.assertEqual(client_cache_one, {})
     self.assertEqual(client_cache_two, {})
@@ -3036,7 +3036,7 @@ class DeviceUtilsClientCache(DeviceUtilsTest):
     client_cache_two = self.device.GetClientCache('ClientOne')
     self.assertEqual(client_cache_one, {'test': 1})
     self.assertEqual(client_cache_two, {'test': 1})
-    self.device._ClearCache()
+    self.device.ClearCache()
     self.assertEqual(client_cache_one, {})
     self.assertEqual(client_cache_two, {})
 

@@ -37,6 +37,9 @@ def RetryOnSystemCrash(f, device, retries=3):
         raise
       try:
         logger.warning('Device is unreachable. Waiting for recovery...')
+        # Treat the device being unreachable as an unexpected reboot and clear
+        # any cached state.
+        device.ClearCache()
         device.WaitUntilFullyBooted()
       except base_error.BaseError:
         logger.exception('Device never recovered. X(')
