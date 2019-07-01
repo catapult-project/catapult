@@ -21,13 +21,14 @@ from telemetry.testing import fakes
 
 _expectations_template = (
     '# tags: [ %s ]\n'
+    '# results: [ %s ]\n'
     'crbug.com/123 [ %s ] %s [ %s ]')
 
 
 def _MakeTestExpectations(test_name, tag_list, expectations):
   tags = ' '.join(tag_list)
   return _expectations_template % (
-      tags, tags, test_name, expectations)
+      tags, expectations, tags, test_name, expectations)
 
 
 def _MakeTestFilter(tests):

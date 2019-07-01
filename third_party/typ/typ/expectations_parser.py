@@ -17,11 +17,11 @@ from collections import defaultdict
 from typ.json_results import ResultType
 
 _EXPECTATION_MAP = {
-    'Crash': ResultType.Crash,
-    'Failure': ResultType.Failure,
-    'Pass': ResultType.Pass,
-    'Timeout': ResultType.Timeout,
-    'Skip': ResultType.Skip
+    'crash': ResultType.Crash,
+    'failure': ResultType.Failure,
+    'pass': ResultType.Pass,
+    'timeout': ResultType.Timeout,
+    'skip': ResultType.Skip
 }
 
 def _group_to_string(group):
@@ -104,7 +104,7 @@ class TaggedTestListParser(object):
       crbug.com/123 [ Win ] benchmark/story [ Skip ]
       ...
     """
-
+    RESULT_TOKEN = '# results: ['
     TAG_TOKEN = '# tags: ['
     # The bug field (optional), including optional subproject.
     _MATCH_STRING = r'^(?:(crbug.com/(?:[^/]*/)?\d+) )?'
@@ -117,6 +117,7 @@ class TaggedTestListParser(object):
     def __init__(self, raw_data):
         self.tag_sets = []
         self.expectations = []
+        self._allowed_results = set()
         self._tag_to_tag_set = {}
         self._parse_raw_expectation_data(raw_data)
 
@@ -128,7 +129,12 @@ class TaggedTestListParser(object):
         first_tag_line = None
         while lineno <= num_lines:
             line = lines[lineno - 1].strip()
-            if line.startswith(self.TAG_TOKEN):
+            if (line.startswith(self.TAG_TOKEN) or
+                line.startswith(self.RESULT_TOKEN)):
+                if line.startswith(self.TAG_TOKEN):
+                    token = self.TAG_TOKEN
+                else:
+                    token = self.RESULT_TOKEN
                 # Handle tags.
                 if self.expectations:
                     raise ParseError(lineno,
@@ -138,7 +144,7 @@ class TaggedTestListParser(object):
                 right_bracket = line.find(']')
                 if right_bracket == -1:
                     # multi-line tag set
-                    tag_set = set(line[len(self.TAG_TOKEN):].split())
+                    tag_set = set(line[len(token):].split())
                     lineno += 1
                     while lineno <= num_lines and right_bracket == -1:
                         line = lines[lineno - 1].strip()
@@ -164,12 +170,15 @@ class TaggedTestListParser(object):
                             'Nothing is allowed after a closing tag '
                             'bracket')
                     tag_set = set(
-                        line[len(self.TAG_TOKEN):right_bracket].split())
-                tag_sets_intersection.update(
-                    (t for t in tag_set if t.lower() in self._tag_to_tag_set))
-                self.tag_sets.append(tag_set)
-                self._tag_to_tag_set.update(
-                    {tg.lower(): id(tag_set) for tg in tag_set})
+                        line[len(token):right_bracket].split())
+                if token == self.TAG_TOKEN:
+                    tag_sets_intersection.update(
+                        (t for t in tag_set if t.lower() in self._tag_to_tag_set))
+                    self.tag_sets.append(tag_set)
+                    self._tag_to_tag_set.update(
+                        {tg.lower(): id(tag_set) for tg in tag_set})
+                else:
+                    self._allowed_results.update({t.lower() for t in tag_set})
             elif line.startswith('#') or not line:
                 # Ignore, it is just a comment or empty.
                 lineno += 1
@@ -223,12 +232,15 @@ class TaggedTestListParser(object):
         results = []
         retry_on_failure = False
         for r in raw_results.split():
+            r = r.lower()
+            if r not in self._allowed_results:
+                raise ParseError(lineno, 'Unknown result type "%s"' % r)
             try:
                 # The test expectations may contain expected results and
                 # the RetryOnFailure tag
                 if r in  _EXPECTATION_MAP:
                     results.append(_EXPECTATION_MAP[r])
-                elif r == 'RetryOnFailure':
+                elif r == 'retryonfailure':
                     retry_on_failure = True
                 else:
                     raise KeyError

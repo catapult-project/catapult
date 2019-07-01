@@ -124,14 +124,16 @@ class RunTestsUnitTest(unittest.TestCase):
     return actual_failures, actual_successes, actual_skips
 
   def _RunTestsWithExpectationsFile(
-      self, full_test_name, expectation, test_tags='foo', extra_args=None,
+      self, full_test_name, expectations, test_tags='foo', extra_args=None,
       expected_exit_code=0):
     extra_args = extra_args or []
-    expectations = ('# tags: [ foo bar mac ]\n'
-                    'crbug.com/123 [ %s ] %s [ %s ]')
-    expectations = expectations % (test_tags, full_test_name, expectation)
+    test_expectations = (('# tags: [ foo bar mac ]\n'
+                          '# results: [ {expectations} ]\n'
+                          'crbug.com/123 [ {tags} ] {test} [ {expectations} ]')
+                         .format(expectations=expectations, tags=test_tags,
+                                 test=full_test_name))
     expectations_file = tempfile.NamedTemporaryFile(delete=False)
-    expectations_file.write(expectations)
+    expectations_file.write(test_expectations)
     results = tempfile.NamedTemporaryFile(delete=False)
     results.close()
     expectations_file.close()

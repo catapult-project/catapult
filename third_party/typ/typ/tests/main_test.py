@@ -290,6 +290,7 @@ class TestCli(test_case.MainTestCase):
         files = {
             'expectations.txt': d('''\
                 # tags: [ foo bar ]
+                # results: [ Failure ]
                 crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Failure ]
                 '''),
             'fail_test.py': FAIL_TEST_PY,
@@ -312,6 +313,7 @@ class TestCli(test_case.MainTestCase):
     def test_expectations_with_globs(self):
         files = {
             'expectations.txt': d('''\
+                # results: [ Failure ]
                 crbug.com/12345 fail_test.FailingTest.* [ Failure ]
                 '''),
             'fail_test.py': FAIL_TEST_PY,
@@ -322,10 +324,12 @@ class TestCli(test_case.MainTestCase):
         files = {
             'expectations_1.txt': d('''\
                 # tags: [ foo bar ]
+                # results: [ Failure ]
                 crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Failure ]
                 '''),
             'expectations_2.txt': d('''\
                 # tags: [ foo bar ]
+                # results: [ Skip ]
                 crbug.com/12345 [ foo ] fail_test.FailingTest.test_skip [ Skip ]
                 '''),
             'fail_test.py': FAIL_TEST_PY,
@@ -710,7 +714,7 @@ class TestCli(test_case.MainTestCase):
 
     def test_skip_via_expectations(self):
         files = {'expectations.txt':
-                 'crbug.com/23456 fail_test.FailingTest.test_fail [ Skip ]\n',
+                 '# results: [ Skip ]\ncrbug.com/23456 fail_test.FailingTest.test_fail [ Skip ]\n',
                  'fail_test.py': FAIL_TEST_PY,
                  'pass_test.py': PASS_TEST_PY}
         self.check(['-X', 'expectations.txt'], files=files, ret=0)
@@ -886,7 +890,7 @@ class TestCli(test_case.MainTestCase):
     def test_unexpected_skip(self):
         files = {
             'expectations.txt':
-                'crbug.com/23456 skip_test.SkipSetup.test_notrun [ Pass ]\n',
+                '# results: [ Pass ]\ncrbug.com/23456 skip_test.SkipSetup.test_notrun [ Pass ]\n',
             'skip_test.py': SF_TEST_PY
         }
         _, out, _, _ = self.check(['-X', 'expectations.txt',
@@ -919,7 +923,8 @@ class TestCli(test_case.MainTestCase):
                  'expectations.txt': d("""\
                   # tags: [ Foo ]
                   # tags: [ Bar ]
-                  crbug.com/12345 [ foo bar ] test_fail [ RetryOnFailure ]
+                  # results: [ RetryOnFailure ]
+                  crbug.com/12345 [ foo bar ] test_fail [ retryonfailure ]
                 """)}
         _, out, _, files = self.check(['--write-full-results-to',
                                        'full_results.json',
@@ -945,6 +950,7 @@ class TestCli(test_case.MainTestCase):
         files = {'flaky_test.py': FLAKY_TEST_PY,
                  'expectations.txt': d("""\
                   # tags: [ foo bar ]
+                  # results: [ RetryOnFailure ]
                   crbug.com/12345 [ foo ] flaky_test.FlakyTest.test_flaky [ RetryOnFailure ]
                 """)}
         _, out, _, files = self.check(['--write-full-results-to',
@@ -970,6 +976,7 @@ class TestCli(test_case.MainTestCase):
         files = {'fail_test.py': FAIL_TEST_PY,
                  'expectations.txt': d("""\
                   # tags: [ foo bar ]
+                  # results: [ RetryOnFailure Failure ]
                   crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ RetryOnFailure Failure ]
                 """)}
         _, out, _, files = self.check(['--write-full-results-to',
@@ -999,6 +1006,7 @@ class TestCli(test_case.MainTestCase):
                   # tags: [ foo bar
                   #         bat
                   # ]
+                  # results: [ skip ]
                   crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Skip ]
                 """)}
         _, out, _, files = self.check(['--write-full-results-to',
@@ -1020,6 +1028,7 @@ class TestCli(test_case.MainTestCase):
         files = {'pass_test.py': PASS_TEST_PY,
                  'expectations.txt': d("""\
                   # tags: [ foo bar ]
+                  # results: [ Pass ]
                   crbug.com/12345 [ foo ] pass_test.PassingTest.test_pass [ Pass ]
                 """)}
         _, out, _, files = self.check(['--write-full-results-to',
@@ -1071,6 +1080,7 @@ class TestCli(test_case.MainTestCase):
     def test_relative_paths_used_for_expectations_files_in_metadata(self):
         test_expectations = (
         '# tags: [ foo bar ]\n'
+        '# results: [ Failure ]\n'
         'crbug.com/12345 [ foo ] test_dir.failing_test.FailingTest.test_fail '
         '[ Failure ]\n')
         _, out, _, files = self.check(
@@ -1113,6 +1123,7 @@ class TestCli(test_case.MainTestCase):
         files = {'fail_test.py': FAIL_TEST_PY,
                  'expectations.txt': d("""\
                   # tags: [ foo bar ]
+                  # results: [ Failure ]
                   crbug.com/12345 [ foo ] test_fail [ Failure ]
                  """)}
         _, out, _, files = self.check(
@@ -1283,6 +1294,7 @@ class TestCli(test_case.MainTestCase):
                   # tags: [ foo bar
                   #         bat
                   # ]
+                  # results: [ Failure ]
                   crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Failure ]
                 """)}
         _, out, _, files = self.check(['--write-full-results-to',

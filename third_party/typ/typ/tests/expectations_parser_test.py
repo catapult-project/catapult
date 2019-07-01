@@ -18,6 +18,7 @@ class TaggedTestListParserTest(unittest.TestCase):
 # tags: [ Linux
 #   Mac Mac10.1 Mac10.2
 #   Win ]
+# results: [ Skip ]
 
 crbug.com/12345 [ Mac ] b1/s1 [ Skip ]
 crbug.com/23456 [ Mac Debug ] b1/s2 [ Skip ]
@@ -28,9 +29,9 @@ crbug.com/23456 [ Mac Debug ] b1/s2 [ Skip ]
         self.assertEqual(tag_sets, parser.tag_sets)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/12345', 'b1/s1',
-                                            ['mac'], ['SKIP'], 9),
+                                            ['mac'], ['SKIP'], 10),
             expectations_parser.Expectation('crbug.com/23456', 'b1/s2',
-                                            ['mac', 'debug'], ['SKIP'], 10)
+                                            ['mac', 'debug'], ['SKIP'], 11)
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
@@ -41,6 +42,7 @@ crbug.com/23456 [ Mac Debug ] b1/s2 [ Skip ]
 #
 # tags: [ tag1 tag2 tag3 ]
 # tags: [ tag4 ]
+# results: [ skip ]
 
 crbug.com/12345 [ Mac b1/s1 [ Skip ]
 """
@@ -61,129 +63,130 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
             expectations_parser.TaggedTestListParser(bad_data)
 
     def testParseExpectationLineEverythingThere(self):
-        raw_data = '# tags: [ Mac ]\ncrbug.com/23456 [ Mac ] b1/s2 [ Skip ]'
+        raw_data = '# tags: [ Mac ]\n# results: [ Skip ]\ncrbug.com/23456 [ Mac ] b1/s2 [ Skip ]'
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/23456', 'b1/s2',
-                                            ['mac'], ['SKIP'], 2)
+                                            ['mac'], ['SKIP'], 3)
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
 
     def testParseExpectationLineAngleProjectNoTags(self):
-        raw_data = '# tags: [ ]\ncrbug.com/angleproject/23456 b1/s2 [ Skip ]'
+        raw_data = '# tags: [ ]\n# results: [ Skip ]\ncrbug.com/angleproject/23456 b1/s2 [ skip ]'
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/angleproject/23456',
-                                            'b1/s2', [], ['SKIP'], 2)
+                                            'b1/s2', [], ['SKIP'], 3)
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
 
     def testParseExpectationLineBadProject(self):
-        raw_data = '# tags: [ ]\ncrbug.com/bad/project/23456 b1/s2 [ Skip ]'
+        raw_data = '# tags: [ ]\n# results: [ Skip ]\ncrbug.com/bad/project/23456 b1/s2 [ Skip ]'
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(raw_data)
 
     def testParseExpectationLineBadTag(self):
-        raw_data = '# tags: None\ncrbug.com/23456 [ Mac ] b1/s2 [ Skip ]'
+        raw_data = '# tags: None\n# results: [ Skip ]\ncrbug.com/23456 [ Mac ] b1/s2 [ Skip ]'
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(raw_data)
 
     def testParseExpectationLineNoTags(self):
-        raw_data = '# tags: [ All ]\ncrbug.com/12345 b1/s1 [ Skip ]'
+        raw_data = '# tags: [ All ]\n# results: [ Skip ]\ncrbug.com/12345 b1/s1 [ Skip ]'
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/12345', 'b1/s1', [],
-                                            ['SKIP'], 2),
+                                            ['SKIP'], 3),
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
 
     def testParseExpectationLineNoBug(self):
-        raw_data = '# tags: [ All ]\n[ All ] b1/s1 [ Skip ]'
+        raw_data = '# tags: [ All ]\n# results: [ Skip ]\n[ All ] b1/s1 [ Skip ]'
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
-            expectations_parser.Expectation(None, 'b1/s1', ['all'], ['SKIP'], 2),
+            expectations_parser.Expectation(None, 'b1/s1', ['all'], ['SKIP'], 3),
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
 
     def testParseExpectationLineNoBugNoTags(self):
-        raw_data = '# tags: [ All ]\nb1/s1 [ Skip ]'
+        raw_data = '# tags: [ All ]\n# results: [ Skip ]\nb1/s1 [ Skip ]'
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
-            expectations_parser.Expectation(None, 'b1/s1', [], ['SKIP'], 2),
+            expectations_parser.Expectation(None, 'b1/s1', [], ['SKIP'], 3),
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
 
     def testParseExpectationLineMultipleTags(self):
         raw_data = ('# tags: [ All None batman ]\n'
+                    '# results: [ Skip Pass Failure ]\n'
                     'crbug.com/123 [ all ] b1/s1 [ Skip ]\n'
                     'crbug.com/124 [ None ] b1/s2 [ Pass ]\n'
-                    'crbug.com/125 [ Batman ] b1/s3 [ Failure ]')
+                    'crbug.com/125 [ Batman ] b1/s3 [ failure ]')
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
             expectations_parser.Expectation(
-                'crbug.com/123', 'b1/s1', ['all'], ['SKIP'], 2),
+                'crbug.com/123', 'b1/s1', ['all'], ['SKIP'], 3),
             expectations_parser.Expectation(
-                'crbug.com/124', 'b1/s2', ['none'], ['PASS'], 3),
+                'crbug.com/124', 'b1/s2', ['none'], ['PASS'], 4),
             expectations_parser.Expectation(
-                'crbug.com/125', 'b1/s3', ['batman'], ['FAIL'], 4)
+                'crbug.com/125', 'b1/s3', ['batman'], ['FAIL'], 5)
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
 
     def testParseExpectationLineBadTagBracket(self):
-        raw_data = '# tags: [ Mac ]\ncrbug.com/23456 ] Mac ] b1/s2 [ Skip ]'
+        raw_data = '# tags: [ Mac ]\n# results: [ Skip ]\ncrbug.com/23456 ] Mac ] b1/s2 [ Skip ]'
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(raw_data)
 
     def testParseExpectationLineBadResultBracket(self):
-        raw_data = '# tags: [ Mac ]\ncrbug.com/23456 ] Mac ] b1/s2 ] Skip ]'
+        raw_data = '# tags: [ Mac ]\n# results: [ Skip ]\ncrbug.com/23456 ] Mac ] b1/s2 ] Skip ]'
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(raw_data)
 
     def testParseExpectationLineBadTagBracketSpacing(self):
-        raw_data = '# tags: [ Mac ]\ncrbug.com/2345 [Mac] b1/s1 [ Skip ]'
+        raw_data = '# tags: [ Mac ]\n# results: [ Skip ]\ncrbug.com/2345 [Mac] b1/s1 [ Skip ]'
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(raw_data)
 
     def testParseExpectationLineBadResultBracketSpacing(self):
-        raw_data = '# tags: [ Mac ]\ncrbug.com/2345 [ Mac ] b1/s1 [Skip]'
+        raw_data = '# tags: [ Mac ]\n# results: [ Skip ]\ncrbug.com/2345 [ Mac ] b1/s1 [Skip]'
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(raw_data)
 
     def testParseExpectationLineNoClosingTagBracket(self):
-        raw_data = '# tags: [ Mac ]\ncrbug.com/2345 [ Mac b1/s1 [ Skip ]'
+        raw_data = '# tags: [ Mac ]\n# results: [ Skip ]\ncrbug.com/2345 [ Mac b1/s1 [ Skip ]'
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(raw_data)
 
     def testParseExpectationLineNoClosingResultBracket(self):
-        raw_data = '# tags: [ Mac ]\ncrbug.com/2345 [ Mac ] b1/s1 [ Skip'
+        raw_data = '# tags: [ Mac ]\n# results: [ Skip ]\ncrbug.com/2345 [ Mac ] b1/s1 [ Skip'
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(raw_data)
 
     def testParseExpectationLineUrlInTestName(self):
         raw_data = (
-            '# tags: [ Mac ]\ncrbug.com/123 [ Mac ] b.1/http://google.com [ Skip ]'
+            '# tags: [ Mac ]\n# results: [ Skip ]\ncrbug.com/123 [ Mac ] b.1/http://google.com [ Skip ]'
         )
         expected_outcomes = [
             expectations_parser.Expectation(
-                'crbug.com/123', 'b.1/http://google.com', ['mac'], ['SKIP'], 2)
+                'crbug.com/123', 'b.1/http://google.com', ['mac'], ['SKIP'], 3)
         ]
         parser = expectations_parser.TaggedTestListParser(raw_data)
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcomes[i])
 
     def testParseExpectationLineEndingComment(self):
-        raw_data = ('# tags: [ Mac ]\n'
+        raw_data = ('# tags: [ Mac ]\n# results: [ Skip ]\n'
                     'crbug.com/23456 [ Mac ] b1/s2 [ Skip ] # abc 123')
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/23456', 'b1/s2',
-                                            ['mac'], ['SKIP'], 2)
+                                            ['mac'], ['SKIP'], 3)
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
@@ -197,6 +200,7 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
 #         tag6
 # ]
 # tags: [ tag4 ]
+# results: [ Skip ]
 
 crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
 """
@@ -205,8 +209,8 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
     def testParseBadMultiline_1(self):
         raw_data = ('# tags: [ Mac\n'
                     '          Win\n'
-                    '# ]\n'
-                    'crbug.com/23456 [ Mac ] b1/s2 [ Skip ]')
+                    '# ]\n# results: [ skip ]\n'
+                    'crbug.com/23456 [ Mac ] b1/s2 [ SKip ]')
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(raw_data)
 
@@ -245,7 +249,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
 
     def testTwoTagsinMultipleTagsets(self):
         raw_data = ('\n# tags: [ Mac Linux ]\n# tags: [ Mac BMW Win ]\n'
-                    '# tags: [ Win Android ]\n# tags: [ IOS ]')
+                    '# tags: [ Win Android ]\n# tags: [ iOS ]')
         with self.assertRaises(expectations_parser.ParseError) as context:
             expectations_parser.TaggedTestListParser(raw_data)
         self.assertEqual(
@@ -281,11 +285,12 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         raw_data = (
             '# tags: [ Mac Win Amd Intel]\n'
             '# tags: [Linux Batman Robin Superman]\n'
+            '# results: [ Pass ]\n'
             'crbug.com/23456 [ mac Win Amd robin Linux ] b1/s1 [ Pass ]\n')
         with self.assertRaises(expectations_parser.ParseError) as context:
             expectations_parser.TaggedTestListParser(raw_data)
         self.assertIn(
-            '3: The tag group contains tags '
+            '4: The tag group contains tags '
             'that are part of the same tag set\n',
             str(context.exception))
         self.assertIn('  - Tags linux and robin are part of the same tag set',
@@ -300,6 +305,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
             '# tags: [ Mac Win Linux ]\n'
             '# tags: [ Batman Robin Superman ]\n'
             '# tags: [ Android Iphone ]\n'
+            '# results: [ Failure Pass Skip ]\n'
             'crbug.com/23456 [ android Mac Superman ] b1/s1 [ Failure ]\n'
             'crbug.com/23457 [ Iphone win Robin ] b1/s2 [ Pass ]\n'
             'crbug.com/23458 [ Android linux  ] b1/s3 [ Pass ]\n'
@@ -310,10 +316,11 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         raw_data = (
             '# tags: [ Mac Win Linux ]\n'
             '# tags: [ Batman Robin Superman ]\n'
+            '# results: [ Failure ]\n'
             'crbug.com/23456 [ Batman Batman Batman ] b1/s1 [ Failure ]\n')
         with self.assertRaises(expectations_parser.ParseError) as context:
             expectations_parser.TaggedTestListParser(raw_data)
-        self.assertIn('3: The tag group contains '
+        self.assertIn('4: The tag group contains '
                       'tags that are part of the same tag set\n',
                       str(context.exception))
         self.assertIn('  - Tags batman, batman and batman are'
@@ -322,6 +329,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
     def testRetryOnFailureExpectation(self):
         raw_data = (
             '# tags: [ Linux ]\n'
+            '# results: [ RetryOnFailure ]\n'
             'crbug.com/23456 [ linux ] b1/s1 [ RetryOnFailure ]\n')
         parser = expectations_parser.TaggedTestListParser(raw_data)
         exp = parser.expectations[0]
@@ -330,8 +338,9 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
     def testIsTestRetryOnFailure(self):
         raw_data = (
             '# tags: [ linux ]\n'
+            '# results: [ Failure RetryOnFailure ]\n'
             'crbug.com/23456 [ Linux ] b1/s1 [ Failure ]\n'
-            'crbug.com/23456 [ Linux ] b1/s1 [ RetryOnFailure ]\n'
+            'crbug.com/23456 [ Linux ] b1/s1 [ retryOnFailure ]\n'
             '[ linux ] b1/s2 [ RetryOnFailure ]\n'
             'crbug.com/24341 [ Linux ] b1/s3 [ Failure ]\n')
         test_expectations = expectations_parser.TestExpectations(['Linux'])
@@ -349,6 +358,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
     def testIsTestRetryOnFailureUsingGlob(self):
         raw_data = (
             '# tags: [ Linux ]\n'
+            '# results: [ RetryOnFailure ]\n'
             'crbug.com/23456 [ Linux ] b1/* [ RetryOnFailure ]\n')
         test_expectations = expectations_parser.TestExpectations(['Linux'])
         self.assertEqual(test_expectations.parse_tagged_list(raw_data),
@@ -359,6 +369,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
     def testGlobsCanOnlyHaveStarInEnd(self):
         raw_data = (
             '# tags: [ Linux ]\n'
+            '# results: [ RetryOnFailure ]\n'
             'crbug.com/23456 [ Linux ] b1/*/c [ RetryOnFailure ]\n')
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(raw_data)
