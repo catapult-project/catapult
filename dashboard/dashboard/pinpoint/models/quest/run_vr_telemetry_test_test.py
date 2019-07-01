@@ -46,17 +46,11 @@ _CARDBOARD_EXTRA_ARGS = [
 _BASE_SWARMING_TAGS = {}
 
 
-class FromDictTest(unittest.TestCase):
+class AndroidFromDictTest(unittest.TestCase):
 
   def testMinimumArgs(self):
     with self.assertRaises(TypeError):
       run_vr_telemetry_test.RunVrTelemetryTest.FromDict(_BASE_ARGUMENTS)
-
-  def testNonAndroid(self):
-    with self.assertRaises(TypeError):
-      arguments = dict(_CARDBOARD_ARGUMENTS)
-      arguments['browser'] = 'release'
-      run_vr_telemetry_test.RunVrTelemetryTest.FromDict(arguments)
 
   def testNonBundle(self):
     with self.assertRaises(TypeError):
@@ -79,3 +73,32 @@ class FromDictTest(unittest.TestCase):
         'server', run_test_test.DIMENSIONS, _BROWSING_EXTRA_ARGS,
         _BASE_SWARMING_TAGS)
     self.assertEqual(quest, expected)
+
+
+_BASE_WINDOWS_ARGUMENTS = {
+    'swarming_server': 'server',
+    'dimensions': run_test_test.DIMENSIONS,
+    'browser': 'release',
+    'benchmark': 'xr.webxr.static',
+}
+_WINDOWS_EXTRA_ARGS = [
+    '--benchmarks', 'xr.webxr.static',
+    '--pageset-repeat', '1',
+    '--browser', 'release',
+] + _COMBINED_DEFAULT_EXTRA_ARGS
+
+class WindowsFromDictTest(unittest.TestCase):
+
+  def testMinimumArgs(self):
+    quest = run_vr_telemetry_test.RunVrTelemetryTest.FromDict(
+        _BASE_WINDOWS_ARGUMENTS)
+    expected = run_vr_telemetry_test.RunVrTelemetryTest(
+        'server', run_test_test.DIMENSIONS, _WINDOWS_EXTRA_ARGS,
+        _BASE_SWARMING_TAGS)
+    self.assertEqual(quest, expected)
+
+  def testContentShell(self):
+    with self.assertRaises(TypeError):
+      arguments = dict(_BASE_WINDOWS_ARGUMENTS)
+      arguments['browser'] = 'content-shell-release'
+      run_vr_telemetry_test.RunVrTelemetryTest.FromDict(arguments)

@@ -42,18 +42,29 @@ class RunVrTelemetryTest(run_telemetry_test.RunTelemetryTest):
     if not browser:
       raise TypeError('Missing "browser" argument.')
 
-    if 'android' not in browser:
-      raise TypeError('VR tests are currently only supported on Android.')
-    if 'bundle' not in browser:
+    benchmark = arguments.get('benchmark')
+    if not benchmark:
+      raise TypeError('Missing "benchmark" argument.')
+
+    if 'android' in browser:
+      extra_test_args.extend(cls._HandleAndroidArgs(arguments))
+    else:
+      extra_test_args.extend(cls._HandleWindowsArgs(arguments))
+
+    extra_test_args += super(RunVrTelemetryTest, cls)._ExtraTestArgs(arguments)
+    return extra_test_args
+
+  @classmethod
+  def _HandleAndroidArgs(cls, arguments):
+    extra_test_args = []
+    if 'bundle' not in arguments.get('browser'):
       raise TypeError('VR tests no longer supported on non-bundle builds.')
 
     extra_test_args.extend(['--install-bundle-module', 'vr'])
     extra_test_args.append('--remove-system-vrcore')
 
-    benchmark = arguments.get('benchmark')
-    if not benchmark:
-      raise TypeError('Missing "benchmark" argument.')
     extra_test_args.append('--shared-prefs-file')
+    benchmark = arguments.get('benchmark')
     if benchmark in DAYDREAM_BENCHMARKS:
       extra_test_args.append(DAYDREAM_PREFS)
     else:
@@ -62,5 +73,11 @@ class RunVrTelemetryTest(run_telemetry_test.RunTelemetryTest):
     if benchmark in BROWSING_BENCHMARKS:
       extra_test_args += ('--profile-dir', ASSET_PROFILE_PATH)
 
-    extra_test_args += super(RunVrTelemetryTest, cls)._ExtraTestArgs(arguments)
     return extra_test_args
+
+  @classmethod
+  def _HandleWindowsArgs(cls, arguments):
+    if 'content-shell' in arguments.get('browser'):
+      raise TypeError('VR tests are not supported in Content Shell.')
+
+    return []
