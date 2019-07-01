@@ -87,7 +87,8 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
       results = self.RunMeasurement(tbm, ps, self._options)
 
     self.assertTrue(results.had_failures)
-    self.assertEquals(1, len(results.FindAllTraceValues()))
+    runs = list(results.IterRunsWithTraces())
+    self.assertEquals(1, len(runs))
 
   # Fails on chromeos: crbug.com/483212
   @decorators.Disabled('chromeos')

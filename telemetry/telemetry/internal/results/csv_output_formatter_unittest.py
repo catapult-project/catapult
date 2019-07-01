@@ -3,7 +3,9 @@
 # found in the LICENSE file.
 
 import os
+import shutil
 import StringIO
+import tempfile
 import unittest
 
 import mock
@@ -33,16 +35,19 @@ class CsvOutputFormatterTest(unittest.TestCase):
   def setUp(self):
     self._output = StringIO.StringIO()
     self._story_set = _MakeStorySet()
+    self._temp_dir = tempfile.mkdtemp()
     with mock.patch('time.time', return_value=15e8):
       self._results = page_test_results.PageTestResults(
           benchmark_name='benchmark',
           benchmark_description='foo',
+          output_dir=self._temp_dir,
           upload_bucket='fake_bucket')
     self._formatter = None
     self.MakeFormatter()
 
   def tearDown(self):
     self._results.CleanUp()
+    shutil.rmtree(self._temp_dir)
 
   def MakeFormatter(self):
     self._formatter = csv_output_formatter.CsvOutputFormatter(self._output)
@@ -86,7 +91,9 @@ class CsvOutputFormatterTest(unittest.TestCase):
 
     self.assertEqual(expected, self.Format())
 
-  def testMultiplePagesAndValues(self):
+  @mock.patch('py_utils.cloud_storage.Insert')
+  def testMultiplePagesAndValues(self, cloud_storage_insert_patch):
+    cloud_storage_insert_patch.return_value = 'fake_url'
     self.SimulateBenchmarkRun([
         (self._story_set[0], [
             scalar.ScalarValue(
@@ -119,4 +126,4 @@ class CsvOutputFormatterTest(unittest.TestCase):
         'foo', 'ms', '3400', '1', '3400', '3400', '0', '3400', '', 'benchmark',
         '2017-07-14 02:40:00', '', '', '', 'benchmark 2017-07-14 02:40:00', '',
         '', '', '', '', 'http://www.bar.com/', '', ''])
-    self.assertRegexpMatches(trace_url, r'^https://.*fake_bucket')
+    self.assertEquals(trace_url, 'fake_url')

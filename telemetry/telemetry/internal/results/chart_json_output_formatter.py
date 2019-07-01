@@ -8,6 +8,7 @@ import json
 import os
 
 from telemetry.internal.results import output_formatter
+from telemetry.internal.results import results_processor
 from telemetry.value import trace
 
 
@@ -68,7 +69,7 @@ def ResultsAsChartDict(results):
       charts[chart_name][trace_name]['story_tags'] = list(value.page.tags)
 
   for run in results.all_page_runs:
-    artifact = run.GetArtifact(results.HTML_TRACE_NAME)
+    artifact = run.GetArtifact(results_processor.HTML_TRACE_NAME)
     if artifact is not None:
       # This intentionally overwrites the trace if it already exists because
       # this is expected of output from the buildbots currently.

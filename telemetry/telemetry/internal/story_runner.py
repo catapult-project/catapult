@@ -21,6 +21,7 @@ from telemetry.internal.actions import page_action
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.results import results_options
+from telemetry.internal.results import results_processor
 from telemetry.internal.util import exception_formatter
 from telemetry import page
 from telemetry.page import legacy_page_test
@@ -335,7 +336,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           logging.error('Too many failures. Aborting.')
           return
   finally:
-    results.ComputeTimelineBasedMetrics()
+    results_processor.ComputeTimelineBasedMetrics(results)
     results.PopulateHistogramSet()
 
     for name, diag in device_info_diags.iteritems():
@@ -475,8 +476,7 @@ def RunBenchmark(benchmark, finder_options):
 
     try:
       if finder_options.upload_results:
-        results.UploadTraceFilesToCloud()
-        results.UploadArtifactsToCloud()
+        results_processor.UploadArtifactsToCloud(results)
     finally:
       memory_debug.LogHostMemoryUsage()
       results.PrintSummary()

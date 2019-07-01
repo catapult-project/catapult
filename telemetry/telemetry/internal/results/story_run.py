@@ -9,9 +9,6 @@ import os
 import posixpath
 import random
 import time
-import uuid
-
-from py_utils import cloud_storage  # pylint: disable=import-error
 
 PASS = 'PASS'
 FAIL = 'FAIL'
@@ -254,11 +251,16 @@ class StoryRun(object):
   def IterArtifacts(self, subdir=None):
     """Iterate over all artifacts in a given sub-directory.
 
-    Returns an iterator over (name, artifact) tuples.
+    Returns an iterator over artifacts.
     """
     for name, artifact in self._artifacts.iteritems():
       if subdir is None or name.startswith(posixpath.join(subdir, '')):
         yield artifact
+
+  def HasArtifactsInDir(self, subdir):
+    """Returns true if there are artifacts inside given subdirectory.
+    """
+    return next(self.IterArtifacts(subdir), None) is not None
 
   def GetArtifact(self, name):
     """Get artifact by name.
@@ -266,14 +268,3 @@ class StoryRun(object):
     Returns an Artifact object or None, if there's no artifact with this name.
     """
     return self._artifacts.get(name)
-
-  def UploadArtifactsToCloud(self, bucket):
-    """Upload all artifacts of the test to cloud storage.
-
-    Sets 'url' attribute of each artifact to its cloud URL.
-    """
-    for artifact in self.IterArtifacts():
-      artifact.SetUrl(cloud_storage.Insert(
-          bucket, str(uuid.uuid1()), artifact.local_path))
-      logging.info('Uploading %s of page %s to %s\n' % (
-          artifact.name, self._story.name, artifact.url))

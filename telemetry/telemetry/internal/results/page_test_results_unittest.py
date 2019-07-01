@@ -13,6 +13,7 @@ from telemetry.internal.results import base_test_results_unittest
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import page_test_results
+from telemetry.internal.results import results_processor
 from telemetry import page as page_module
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
@@ -299,38 +300,22 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     values = results.FindValues(lambda v: v.value == 3)
     self.assertEquals([v0], values)
 
-  def testTraceValue(self):
-    results = page_test_results.PageTestResults()
-    try:
-      results.WillRunPage(self.pages[0])
-      results.AddTraces(trace_data.CreateTestTrace(1))
-      results.DidRunPage(self.pages[0])
+  def testAddTraces(self):
+    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
+      results = page_test_results.PageTestResults(output_dir=tempdir)
+      try:
+        results.WillRunPage(self.pages[0])
+        results.AddTraces(trace_data.CreateTestTrace(1))
+        results.DidRunPage(self.pages[0])
 
-      results.WillRunPage(self.pages[1])
-      results.AddTraces(trace_data.CreateTestTrace(2))
-      results.DidRunPage(self.pages[1])
+        results.WillRunPage(self.pages[1])
+        results.AddTraces(trace_data.CreateTestTrace(2))
+        results.DidRunPage(self.pages[1])
 
-      results.PrintSummary()
-
-      values = results.FindAllTraceValues()
-      self.assertEquals(2, len(values))
-    finally:
-      results.CleanUp()
-
-  def testNoTracesLeftAfterCleanUp(self):
-    results = page_test_results.PageTestResults()
-    try:
-      results.WillRunPage(self.pages[0])
-      results.AddTraces(trace_data.CreateTestTrace(1))
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      results.AddTraces(trace_data.CreateTestTrace(2))
-      results.DidRunPage(self.pages[1])
-    finally:
-      results.CleanUp()
-
-    self.assertFalse(results.FindAllTraceValues())
+        runs = list(results.IterRunsWithTraces())
+        self.assertEquals(2, len(runs))
+      finally:
+        results.CleanUp()
 
   def testPrintSummaryDisabledResults(self):
     output_stream = StringIO.StringIO()
@@ -612,7 +597,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
         pass
       results.DidRunPage(self.pages[1])
 
-      results.UploadArtifactsToCloud()
+      results_processor.UploadArtifactsToCloud(results)
       cloud_storage_insert_patch.assert_has_calls(
           [mock.call('abc', mock.ANY, screenshot1.name),
            mock.call('abc', mock.ANY, log2.name)],
@@ -643,7 +628,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
     results.DidRunPage(self.pages[1])
 
     # Just make sure that this does not crash
-    results.UploadArtifactsToCloud()
+    results_processor.UploadArtifactsToCloud(results)
 
   def testCreateArtifactsForDifferentPages(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:

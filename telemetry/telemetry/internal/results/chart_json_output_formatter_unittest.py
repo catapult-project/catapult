@@ -12,11 +12,11 @@ from py_utils import tempfile_ext
 from telemetry import story
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import page_test_results
+from telemetry.internal.results import results_processor
 from telemetry import page as page_module
 from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
-from tracing.trace_data import trace_data
 
 
 def _MakeStorySet():
@@ -196,23 +196,11 @@ class ChartJsonTest(unittest.TestCase):
     self.assertIn('summary', d['charts']['foo'])
     self.assertTrue(d['enabled'])
 
-  def testAsChartDictWithTraceValues(self):
-    with _MakePageTestResults() as results:
-      results.WillRunPage(self._story_set[0])
-      results.AddTraces(trace_data.CreateTestTrace())
-      results.DidRunPage(self._story_set[0])
-
-      d = chart_json_output_formatter.ResultsAsChartDict(results)
-
-      self.assertIn('trace', d['charts'])
-      self.assertIn('http://www.foo.com/', d['charts']['trace'])
-      self.assertTrue(d['enabled'])
-
   def testAsChartDictWithTracesInArtifacts(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
       with _MakePageTestResults(output_dir=tempdir) as results:
         results.WillRunPage(self._story_set[0])
-        with results.CreateArtifact(results.HTML_TRACE_NAME):
+        with results.CreateArtifact(results_processor.HTML_TRACE_NAME):
           pass
         results.DidRunPage(self._story_set[0])
 

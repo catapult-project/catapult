@@ -229,6 +229,14 @@ class TraceDataBuilder(object):
         traces_for_part.append(json.load(f))
     return _TraceData(raw_data)
 
+  def IterTraceParts(self):
+    """Iterates over trace parts.
+
+    Return value: iterator over pairs (part_name, file_path).
+    """
+    for trace in self._traces:
+      yield trace.part_name, trace.handle.name
+
 
 def CreateTestTrace(number=1):
   """Convenient helper method to create trace data objects for testing.
