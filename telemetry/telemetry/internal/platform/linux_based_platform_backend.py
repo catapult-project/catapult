@@ -12,8 +12,7 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
 
   This includes Android and ChromeOS.
 
-  Subclasses must implement RunCommand, GetFileContents, GetPsOutput, and
-  ParseCStateSample."""
+  Subclasses must implement RunCommand, GetFileContents, GetPsOutput."""
 
   @decorators.Cache
   def GetSystemTotalPhysicalMemory(self):
@@ -36,22 +35,6 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
         cmd: A list of program arguments or the path string of the program.
     Returns:
         A string whose content is the output of the command.
-    """
-    raise NotImplementedError()
-
-  @staticmethod
-  def ParseCStateSample(sample):
-    """Parse a single c-state residency sample.
-
-    Args:
-        sample: A sample of c-state residency times to be parsed. Organized as
-            a dictionary mapping CPU name to a string containing all c-state
-            names, the times in each state, the latency of each state, and the
-            time at which the sample was taken all separated by newlines.
-            Ex: {'cpu0': 'C0\nC1\n5000\n2000\n20\n30\n1406673171'}
-
-    Returns:
-        Dictionary associating a c-state with a time.
     """
     raise NotImplementedError()
 

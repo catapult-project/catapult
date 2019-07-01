@@ -88,7 +88,6 @@ class Platform(object):
         self._platform_backend.tracing_controller_backend)
     self._local_server_controller = local_server.LocalServerController(
         self._platform_backend)
-    self._is_monitoring_power = False
     self._forwarder = None
 
   @property
@@ -242,79 +241,6 @@ class Platform(object):
   def InstallApplication(self, application, **kwargs):
     """Installs the given application."""
     return self._platform_backend.InstallApplication(application, **kwargs)
-
-  def CanMonitorPower(self):
-    """Returns True iff power can be monitored asynchronously via
-    StartMonitoringPower() and StopMonitoringPower().
-    """
-    return self._platform_backend.CanMonitorPower()
-
-  def CanMeasurePerApplicationPower(self):
-    """Returns True if the power monitor can measure power for the target
-    application in isolation. False if power measurement is for full system
-    energy consumption."""
-    return self._platform_backend.CanMeasurePerApplicationPower()
-
-  def StartMonitoringPower(self, browser):
-    """Starts monitoring power utilization statistics.
-
-    Args:
-      browser: The browser to monitor.
-    """
-    assert self._platform_backend.CanMonitorPower()
-    self._platform_backend.StartMonitoringPower(browser)
-    self._is_monitoring_power = True
-
-  def StopMonitoringPower(self):
-    """Stops monitoring power utilization and returns stats
-
-    Returns:
-      None if power measurement failed for some reason, otherwise a dict of
-      power utilization statistics containing: {
-        # An identifier for the data provider. Allows to evaluate the precision
-        # of the data. Example values: monsoon, powermetrics, ds2784
-        'identifier': identifier,
-
-        # The instantaneous power (voltage * current) reading in milliwatts at
-        # each sample.
-        'power_samples_mw':  [mw0, mw1, ..., mwN],
-
-        # The full system energy consumption during the sampling period in
-        # milliwatt hours. May be estimated by integrating power samples or may
-        # be exact on supported hardware.
-        'energy_consumption_mwh': mwh,
-
-        # The target application's energy consumption during the sampling period
-        # in milliwatt hours. Should be returned iff
-        # CanMeasurePerApplicationPower() return true.
-        'application_energy_consumption_mwh': mwh,
-
-        # A platform-specific dictionary of additional details about the
-        # utilization of individual hardware components.
-        component_utilization: {
-          ...
-        }
-        # Platform-specific data not attributed to any particular hardware
-        # component.
-        platform_info: {
-
-          # Device-specific onboard temperature sensor.
-          'average_temperature_c': c,
-
-           ...
-        }
-
-      }
-    """
-    ret_val = self._platform_backend.StopMonitoringPower()
-    self._is_monitoring_power = False
-    return ret_val
-
-  def IsMonitoringPower(self):
-    """Returns true if power is currently being monitored, false otherwise."""
-    # TODO(rnephew): Remove when crbug.com/553601 is solved.
-    real_logging.info('IsMonitoringPower: %s', self._is_monitoring_power)
-    return self._is_monitoring_power
 
   def IsCooperativeShutdownSupported(self):
     """Indicates whether CooperativelyShutdown, below, is supported.

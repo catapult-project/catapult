@@ -249,12 +249,6 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
           win32process.CREATE_NO_WINDOW, None, None, win32process.STARTUPINFO())
       return handle
 
-  def CanMonitorPower(self):
-    return False
-
-  def CanMeasurePerApplicationPower(self):
-    return False
-
   def IsCooperativeShutdownSupported(self):
     return True
 

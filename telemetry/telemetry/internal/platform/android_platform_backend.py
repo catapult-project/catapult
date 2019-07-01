@@ -16,12 +16,6 @@ from telemetry import decorators
 from telemetry.internal.forwarders import android_forwarder
 from telemetry.internal.platform import android_device
 from telemetry.internal.platform import linux_based_platform_backend
-from telemetry.internal.platform.power_monitor import android_dumpsys_power_monitor
-from telemetry.internal.platform.power_monitor import android_fuelgauge_power_monitor
-from telemetry.internal.platform.power_monitor import android_temperature_monitor
-from telemetry.internal.platform.power_monitor import (
-    android_power_monitor_controller)
-from telemetry.internal.platform.power_monitor import sysfs_power_monitor
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import external_modules
 from telemetry.testing import test_utils
@@ -91,15 +85,6 @@ class AndroidPlatformBackend(
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._device)
     self._raw_display_frame_rate_measurements = []
     self._device_copy_script = None
-    self._power_monitor = (
-        android_power_monitor_controller.AndroidPowerMonitorController([
-            android_temperature_monitor.AndroidTemperatureMonitor(self._device),
-            android_dumpsys_power_monitor.DumpsysPowerMonitor(
-                self._battery, self),
-            sysfs_power_monitor.SysfsPowerMonitor(self, standalone=True),
-            android_fuelgauge_power_monitor.FuelGaugePowerMonitor(
-                self._battery),
-        ], self._battery))
     self._system_ui = None
 
     _FixPossibleAdbInstability()
@@ -383,15 +368,6 @@ class AndroidPlatformBackend(
   def RemoveSystemPackages(self, packages):
     system_app.RemoveSystemApps(self._device, packages)
 
-  def CanMonitorPower(self):
-    return self._power_monitor.CanMonitorPower()
-
-  def StartMonitoringPower(self, browser):
-    self._power_monitor.StartMonitoringPower(browser)
-
-  def StopMonitoringPower(self):
-    return self._power_monitor.StopMonitoringPower()
-
   def PathExists(self, device_path, **kwargs):
     """ Return whether the given path exists on the device.
     This method is the same as
@@ -430,29 +406,6 @@ class AndroidPlatformBackend(
   def RunCommand(self, command):
     return '\n'.join(self._device.RunShellCommand(
         command, shell=isinstance(command, basestring), check_return=True))
-
-  @staticmethod
-  def ParseCStateSample(sample):
-    sample_stats = {}
-    for cpu in sample:
-      values = sample[cpu].splitlines()
-      # Each state has three values after excluding the time value.
-      num_states = (len(values) - 1) / 3
-      names = values[:num_states]
-      times = values[num_states:2 * num_states]
-      cstates = {'C0': int(values[-1]) * 10 ** 6}
-      for i, state in enumerate(names):
-        if state == 'C0':
-          # The Exynos cpuidle driver for the Nexus 10 uses the name 'C0' for
-          # its WFI state.
-          # TODO(tmandel): We should verify that no other Android device
-          # actually reports time in C0 causing this to report active time as
-          # idle time.
-          state = 'WFI'
-        cstates[state] = int(times[i])
-        cstates['C0'] -= int(times[i])
-      sample_stats[cpu] = cstates
-    return sample_stats
 
   def SetRelaxSslCheck(self, value):
     old_flag = self._device.GetProp('socket.relaxsslcheck')

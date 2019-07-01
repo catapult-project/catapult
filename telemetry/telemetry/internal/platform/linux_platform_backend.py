@@ -123,12 +123,6 @@ class LinuxPlatformBackend(
       raise NotImplementedError(
           'Please teach Telemetry how to install ' + application)
 
-  def CanMonitorPower(self):
-    return False
-
-  def CanMeasurePerApplicationPower(self):
-    return False
-
   def _IsIpfwKernelModuleInstalled(self):
     return 'ipfw_mod' in subprocess.Popen(
         ['lsmod'], stdout=subprocess.PIPE).communicate()[0]

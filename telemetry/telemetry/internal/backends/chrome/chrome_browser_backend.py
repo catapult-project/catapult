@@ -274,7 +274,3 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   @property
   def supports_memory_metrics(self):
     return True
-
-  @property
-  def supports_power_metrics(self):
-    return True

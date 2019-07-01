@@ -146,10 +146,6 @@ class BrowserBackend(app_backend.AppBackend):
     raise NotImplementedError()
 
   @property
-  def supports_power_metrics(self):
-    raise NotImplementedError()
-
-  @property
   def supports_overview_mode(self): # pylint: disable=invalid-name
     return False
 

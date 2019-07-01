@@ -266,10 +266,6 @@ class Browser(app.App):
   def supports_memory_metrics(self):
     return self._browser_backend.supports_memory_metrics
 
-  @property
-  def supports_power_metrics(self):
-    return self._browser_backend.supports_power_metrics
-
   def LogSymbolizedUnsymbolizedMinidumps(self, log_level):
     paths = self.GetAllUnsymbolizedMinidumpPaths()
     if not paths:

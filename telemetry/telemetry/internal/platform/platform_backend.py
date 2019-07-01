@@ -183,18 +183,6 @@ class PlatformBackend(object):
   def InstallApplication(self, application):
     raise NotImplementedError()
 
-  def CanMonitorPower(self):
-    return False
-
-  def CanMeasurePerApplicationPower(self):
-    return False
-
-  def StartMonitoringPower(self, browser):
-    raise NotImplementedError()
-
-  def StopMonitoringPower(self):
-    raise NotImplementedError()
-
   def CanTakeScreenshot(self):
     return False
 

@@ -103,9 +103,3 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     p = self.LaunchApplication('purge', elevate_privilege=mavericks_or_later)
     p.communicate()
     assert p.returncode == 0, 'Failed to flush system cache'
-
-  def CanMonitorPower(self):
-    return False
-
-  def CanMeasurePerApplicationPower(self):
-    return False
