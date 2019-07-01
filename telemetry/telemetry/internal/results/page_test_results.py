@@ -610,7 +610,10 @@ class PageTestResults(object):
     return self.FindValues(lambda v: v.name == value_name)
 
   def FindAllTraceValues(self):
-    return self.FindValues(lambda v: isinstance(v, trace.TraceValue))
+    # This is a quick fix for blink_perf_unittest, that expects
+    # the number of TraceValues to be equal to the number of added traces.
+    # TODO(khokhlov): remove this method.
+    return list(self.IterRunsWithTraces())
 
   def IterRunsWithTraces(self):
     for run in self._IterAllStoryRuns():
