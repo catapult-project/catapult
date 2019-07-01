@@ -198,17 +198,17 @@ class ChartJsonTest(unittest.TestCase):
 
   def testAsChartDictWithTracesInArtifacts(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      with _MakePageTestResults(output_dir=tempdir) as results:
-        results.WillRunPage(self._story_set[0])
-        with results.CreateArtifact(results_processor.HTML_TRACE_NAME):
-          pass
-        results.DidRunPage(self._story_set[0])
+      results = _MakePageTestResults(output_dir=tempdir)
+      results.WillRunPage(self._story_set[0])
+      with results.CreateArtifact(results_processor.HTML_TRACE_NAME):
+        pass
+      results.DidRunPage(self._story_set[0])
 
-        d = chart_json_output_formatter.ResultsAsChartDict(results)
+      d = chart_json_output_formatter.ResultsAsChartDict(results)
 
-        self.assertIn('trace', d['charts'])
-        self.assertIn('http://www.foo.com/', d['charts']['trace'])
-        self.assertTrue(d['enabled'])
+      self.assertIn('trace', d['charts'])
+      self.assertIn('http://www.foo.com/', d['charts']['trace'])
+      self.assertTrue(d['enabled'])
 
   def testAsChartDictValueSmokeTest(self):
     v0 = list_of_scalar_values.ListOfScalarValues(

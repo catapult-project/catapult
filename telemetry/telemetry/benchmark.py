@@ -129,7 +129,7 @@ class Benchmark(command_line.Command):
     """Returns whether the named value should be added to PageTestResults.
 
     Override this method to customize the logic of adding values to test
-    results. TraceValues will be added regardless of logic here.
+    results.
 
     Args:
       name: The string name of a value being added.

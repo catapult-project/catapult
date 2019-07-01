@@ -34,12 +34,7 @@ class TracingController(object):
     self._tracing_controller_backend.StartTracing(tracing_config, timeout)
 
   def StopTracing(self):
-    """Stops tracing and returns a tuple of (trace_value,
-    nonfatal_exceptions_list).
-
-    Where:
-      trace_value: an instance of trace_value.TraceValue
-      nonfatal_exceptions_list: a list of exceptions (type Exception)
+    """Stops tracing and returns a TraceDataBuilder object
     """
     return self._tracing_controller_backend.StopTracing()
 

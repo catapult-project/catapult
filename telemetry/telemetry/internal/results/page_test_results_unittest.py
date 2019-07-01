@@ -274,19 +274,16 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def testAddTraces(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
       results = page_test_results.PageTestResults(output_dir=tempdir)
-      try:
-        results.WillRunPage(self.pages[0])
-        results.AddTraces(trace_data.CreateTestTrace(1))
-        results.DidRunPage(self.pages[0])
+      results.WillRunPage(self.pages[0])
+      results.AddTraces(trace_data.CreateTestTrace(1))
+      results.DidRunPage(self.pages[0])
 
-        results.WillRunPage(self.pages[1])
-        results.AddTraces(trace_data.CreateTestTrace(2))
-        results.DidRunPage(self.pages[1])
+      results.WillRunPage(self.pages[1])
+      results.AddTraces(trace_data.CreateTestTrace(2))
+      results.DidRunPage(self.pages[1])
 
-        runs = list(results.IterRunsWithTraces())
-        self.assertEquals(2, len(runs))
-      finally:
-        results.CleanUp()
+      runs = list(results.IterRunsWithTraces())
+      self.assertEquals(2, len(runs))
 
   def testPrintSummaryDisabledResults(self):
     output_stream = StringIO.StringIO()
@@ -337,7 +334,6 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
         benchmark_name='benchmark_name')
     results.WillRunPage(self.pages[0])
     results.DidRunPage(self.pages[0])
-    results.CleanUp()
     results.AddSharedDiagnosticToAllHistograms(
         reserved_infos.BENCHMARKS.name,
         generic_set.GenericSet(['benchmark_name']))
@@ -357,7 +353,6 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
         self.pages[0], 'a', 'seconds', 3,
         improvement_direction=improvement_direction.UP))
     results.DidRunPage(self.pages[0])
-    results.CleanUp()
 
     results.PopulateHistogramSet()
 
@@ -372,7 +367,6 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.WillRunPage(self.pages[0])
     results.AddHistogram(histogram_module.Histogram('foo', 'count'))
     results.DidRunPage(self.pages[0])
-    results.CleanUp()
     results.PopulateHistogramSet()
 
     histogram_dicts = results.AsHistogramDicts()

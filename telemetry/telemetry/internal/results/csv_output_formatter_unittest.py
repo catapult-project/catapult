@@ -46,7 +46,6 @@ class CsvOutputFormatterTest(unittest.TestCase):
     self.MakeFormatter()
 
   def tearDown(self):
-    self._results.CleanUp()
     shutil.rmtree(self._temp_dir)
 
   def MakeFormatter(self):
