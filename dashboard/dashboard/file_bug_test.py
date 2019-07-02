@@ -147,6 +147,28 @@ class FileBugTest(testing_common.TestCase):
         median_before_anomaly=100, median_after_anomaly=200,
         sheriff=sheriff_key).put()
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch(
+      'google.appengine.api.app_identity.get_default_version_hostname',
+      mock.MagicMock(return_value='chromeperf.appspot.com'))
+  def testBisectDisabled(self):
+    http = utils.ServiceAccountHttp()
+    owner = ''
+    cc = 'you@chromium.org'
+    summary = 'test'
+    description = 'Test test.'
+    labels = []
+    components = []
+    test_path = 'ChromiumPerf/linux/scrolling/first_paint'
+    test_key = utils.TestKey(test_path)
+    sheriff_key = sheriff.Sheriff(id='Sheriff', labels=[]).put()
+    keys = [self._AddAnomaly(10, 20, test_key, sheriff_key).urlsafe()]
+    bisect = False
+    result = file_bug.FileBug(
+        http, owner, cc, summary, description, labels, components, keys, bisect)
+    self.assertNotIn('bisect_error', result)
+    self.assertNotIn('jobId', result)
+
   def testGet_WithNoKeys_ShowsError(self):
     # When a request is made and no keys parameter is given,
     # an error message is shown in the reply.

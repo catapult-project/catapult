@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 from dashboard import file_bug
 from dashboard.api import api_request_handler
+from dashboard.api import utils as api_utils
 from dashboard.common import utils
 
 
@@ -24,6 +25,7 @@ class NewBugHandler(api_request_handler.ApiRequestHandler):
     labels = self.request.get_all('label')
     components = self.request.get_all('component')
     keys = self.request.get_all('key')
+    bisect = api_utils.ParseBool(self.request.get('bisect', 'true'))
 
     # TODO(924228): After v2spa launches, change its client id to something
     # that is whitelisted by the issue tracker service (or have its client id
@@ -33,4 +35,5 @@ class NewBugHandler(api_request_handler.ApiRequestHandler):
     http = utils.ServiceAccountHttp()
 
     return file_bug.FileBug(
-        http, owner, cc, summary, description, labels, components, keys)
+        http, owner, cc, summary, description, labels, components, keys,
+        bisect)

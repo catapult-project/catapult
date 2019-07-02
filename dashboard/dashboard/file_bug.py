@@ -384,7 +384,7 @@ def _AssignBugToCLAuthor(bug_id, commit_info, service):
       owner=author)
 
 def FileBug(http, owner, cc, summary, description, labels, components,
-            urlsafe_keys):
+            urlsafe_keys, needs_bisect=True):
   alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys]
   alerts = ndb.get_multi(alert_keys)
 
@@ -423,7 +423,6 @@ def FileBug(http, owner, cc, summary, description, labels, components,
     logging.info('Kicking bisect for bug ' + str(bug_id))
     culprit_rev = _GetSingleCLForAnomalies(alerts)
 
-    needs_bisect = True
     if culprit_rev is not None:
       commit_info = _GetCommitInfoForAlert(alerts[0])
       if commit_info:
@@ -431,6 +430,8 @@ def FileBug(http, owner, cc, summary, description, labels, components,
         message = commit_info['message']
         if not utils.GetSheriffForAutorollCommit(author, message):
           needs_bisect = False
+          _AssignBugToCLAuthor(
+              bug_id, commit_info, dashboard_issue_tracker_service)
 
     if needs_bisect:
       bisect_result = auto_bisect.StartNewBisectForBug(bug_id)
@@ -440,9 +441,6 @@ def FileBug(http, owner, cc, summary, description, labels, components,
       else:
         logging.info('Successfully kicked bisect for ' + str(bug_id))
         template_params.update(bisect_result)
-    else:
-      _AssignBugToCLAuthor(
-          bug_id, commit_info, dashboard_issue_tracker_service)
 
   else:
     kinds = set()

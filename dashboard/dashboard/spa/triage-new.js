@@ -7,9 +7,10 @@
 import '@chopsui/chops-button';
 import '@chopsui/chops-checkbox';
 import '@chopsui/chops-input';
+import '@chopsui/chops-switch';
 import '@chopsui/chops-textarea';
 import {ElementBase, STORE} from './element-base.js';
-import {UPDATE} from './simple-redux.js';
+import {TOGGLE, UPDATE} from './simple-redux.js';
 import {get, set} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 import {isElementChildOf} from './utils.js';
@@ -27,6 +28,7 @@ export default class TriageNew extends ElementBase {
       labels: Array,
       owner: String,
       summary: String,
+      startBisect: Boolean,
     };
   }
 
@@ -41,6 +43,7 @@ export default class TriageNew extends ElementBase {
           options.alerts, 'bugLabels'),
       owner: options.owner || '',
       summary: TriageNew.summarize(options.alerts),
+      startBisect: options.startBisect !== false,
     };
   }
 
@@ -120,6 +123,14 @@ export default class TriageNew extends ElementBase {
         </chops-checkbox>
       `)}
 
+      <chops-switch
+          id="pinpoint"
+          ?checked="${this.startBisect}"
+          @click="${this.onTogglePinpoint_}"
+          tabindex="0">
+        Start Pinpoint Bisect
+      </chops-switch>
+
       <chops-button
           id="submit"
           @click="${this.onSubmit_}"
@@ -146,6 +157,10 @@ export default class TriageNew extends ElementBase {
     super();
     this.addEventListener('blur', this.onBlur_.bind(this));
     this.addEventListener('keyup', this.onKeyup_.bind(this));
+  }
+
+  onTogglePinpoint_(event) {
+    STORE.dispatch(TOGGLE(this.statePath + '.startBisect'));
   }
 
   async onKeyup_(event) {
