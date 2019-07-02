@@ -105,7 +105,7 @@ suite('TimeseriesRequest', function() {
       levelOfDetail: LEVEL_OF_DETAIL.DETAILS,
     });
     const expectedColumns = 'revision,timestamp,avg,std,count,' +
-      'revisions,annotations,alert';
+      'revisions,annotations,alert,diagnostics';
     assert.strictEqual(request.body_.get('columns'), expectedColumns);
   });
 

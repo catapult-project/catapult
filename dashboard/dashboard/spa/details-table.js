@@ -110,6 +110,21 @@ export class DetailsTable extends ElementBase {
     `;
   }
 
+  renderDiagnosticsRow_(body) {
+    if (!body.diagnosticsCells.filter(x => x).length) return '';
+
+    return html`
+      <tr>
+        <td>Changed Diagnostics</td>
+        ${body.diagnosticsCells.map(diagnostics => html`
+          <td>
+            ${!diagnostics ? '' : [...diagnostics.keys()].join(', ')}
+          </td>
+        `)}
+      </tr>
+    `;
+  }
+
   render() {
     return html`
       <chops-loading ?loading="${this.isLoading}"></chops-loading>
@@ -151,6 +166,8 @@ export class DetailsTable extends ElementBase {
             `)}
 
             ${body.linkRows.map(row => this.renderLinkRow(row))}
+
+            ${this.renderDiagnosticsRow_(body)}
 
             ${!body.alertCells.length ? '' : html`
               <tr>
@@ -421,7 +438,9 @@ DetailsTable.buildCell = (
     }
   }
 
-  return {scalars, links, alerts, bisectCell};
+  const diagnostics = cell.diagnostics;
+
+  return {scalars, links, alerts, bisectCell, diagnostics};
 };
 
 const MISSING_CASE_LABEL = '[no case]';
@@ -521,20 +540,23 @@ function buildBody(
   const linkRowsByLabel = new Map();
   const alertCells = new Array(columnCount);
   const bisectCells = new Array(columnCount);
+  const diagnosticsCells = new Array(columnCount);
+
   for (const [columnIndex, {range, timeserieses}] of enumerate(
       timeseriesesByRange)) {
-    const {scalars, links, alerts, bisectCell} = DetailsTable.buildCell(
+    const cell = DetailsTable.buildCell(
         lineDescriptor, timeserieses, range, revisionInfo,
         minRevision, maxRevision,
         masterWhitelist, suiteBlacklist);
-    for (const [rowLabel, scalar] of scalars || []) {
+    for (const [rowLabel, scalar] of cell.scalars || []) {
       setCell(scalarRowsByLabel, rowLabel, columnCount, columnIndex, scalar);
     }
-    for (const [rowLabel, link] of links || []) {
+    for (const [rowLabel, link] of cell.links || []) {
       setCell(linkRowsByLabel, rowLabel, columnCount, columnIndex, link);
     }
-    if (alerts) alertCells[columnIndex] = {alerts};
-    bisectCells[columnIndex] = bisectCell;
+    if (cell.alerts) alertCells[columnIndex] = {alerts: cell.alerts};
+    bisectCells[columnIndex] = cell.bisectCell;
+    diagnosticsCells[columnIndex] = cell.diagnostics;
   }
 
   const scalarRows = collectRowsByLabel(scalarRowsByLabel);
@@ -551,6 +573,7 @@ function buildBody(
     descriptorParts,
     linkRows,
     scalarRows,
+    diagnosticsCells,
   };
 }
 

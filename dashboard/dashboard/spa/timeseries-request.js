@@ -21,8 +21,7 @@ const DETAILS_COLUMNS = new Set([
   'revisions',
   'annotations',
   'alert',
-  // TODO Uncomment when ready to display these:
-  // 'diagnostics',
+  'diagnostics',
   // 'histogram',
 ]);
 
