@@ -13,7 +13,7 @@ import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 import {measureElement, isElementChildOf} from './utils.js';
 
-export default class TriageExisting extends ElementBase {
+export class TriageExisting extends ElementBase {
   static get is() { return 'triage-existing'; }
 
   static get properties() {

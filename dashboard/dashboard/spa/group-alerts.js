@@ -57,7 +57,7 @@ function rangeIntersects(aMin, aMax, bMin, bMax) {
   * @param {!Array.<!Alert>} alerts
   * @return {!Array.<!Array.<!Alert>>}
   */
-export default function groupAlerts(alerts, groupBugs) {
+export function groupAlerts(alerts, groupBugs) {
   const groups = [];
   const memoryRelatedNames = d.getMemoryRelatedNames();
   for (const alert of alerts) {

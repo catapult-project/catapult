@@ -13,7 +13,7 @@ import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 import {isDebug, measureElement} from './utils.js';
 
-export default class ReportTable extends ElementBase {
+export class ReportTable extends ElementBase {
   static get is() { return 'report-table'; }
 
   static get properties() {

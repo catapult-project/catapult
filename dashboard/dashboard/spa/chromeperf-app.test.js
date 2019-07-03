@@ -4,21 +4,21 @@
 */
 'use strict';
 
-import AlertsRequest from './alerts-request.js';
-import ChromeperfApp from './chromeperf-app.js';
-import DescribeRequest from './describe-request.js';
-import RecentBugsRequest from './recent-bugs-request.js';
-import ReportControls from './report-controls.js';
-import ReportNamesRequest from './report-names-request.js';
-import RequestBase from './request-base.js';
-import SessionIdRequest from './session-id-request.js';
-import SessionStateRequest from './session-state-request.js';
-import SheriffsRequest from './sheriffs-request.js';
-import findElements from './find-elements.js';
+import {AlertsRequest} from './alerts-request.js';
+import {ChromeperfApp} from './chromeperf-app.js';
+import {DescribeRequest} from './describe-request.js';
+import {RecentBugsRequest} from './recent-bugs-request.js';
+import {ReportControls} from './report-controls.js';
+import {ReportNamesRequest} from './report-names-request.js';
+import {RequestBase} from './request-base.js';
 import {STORE} from './element-base.js';
+import {SessionIdRequest} from './session-id-request.js';
+import {SessionStateRequest} from './session-state-request.js';
+import {SheriffsRequest} from './sheriffs-request.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender, animationFrame} from './utils.js';
 import {assert} from 'chai';
+import {findElements} from './find-elements.js';
 
 suite('chromeperf-app', function() {
   async function fixture() {

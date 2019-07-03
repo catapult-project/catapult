@@ -8,19 +8,19 @@ import './error-set.js';
 import './recommended-options.js';
 import '@chopsui/chops-checkbox';
 import '@chopsui/chops-loading';
-import DescribeRequest from './describe-request.js';
-import MemoryComponents from './memory-components.js';
-import MenuInput from './menu-input.js';
-import OptionGroup from './option-group.js';
-import TagFilter from './tag-filter.js';
-import TestSuitesRequest from './test-suites-request.js';
 import {BatchIterator} from '@chopsui/batch-iterator';
+import {DescribeRequest} from './describe-request.js';
 import {ElementBase, STORE} from './element-base.js';
+import {MemoryComponents} from './memory-components.js';
+import {MenuInput} from './menu-input.js';
+import {OptionGroup} from './option-group.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
+import {TagFilter} from './tag-filter.js';
+import {TestSuitesRequest} from './test-suites-request.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
-export default class TimeseriesDescriptor extends ElementBase {
+export class TimeseriesDescriptor extends ElementBase {
   static get is() { return 'timeseries-descriptor'; }
 
   static get properties() {

@@ -4,9 +4,9 @@
 */
 'use strict';
 
-import RequestBase from './request-base.js';
+import {RequestBase} from './request-base.js';
 
-export default class TestSuitesRequest extends RequestBase {
+export class TestSuitesRequest extends RequestBase {
   constructor(options) {
     super(options);
     this.method_ = 'POST';

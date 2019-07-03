@@ -4,14 +4,14 @@
 */
 'use strict';
 
-import DescribeRequest from './describe-request.js';
-import TestSuitesRequest from './test-suites-request.js';
-import TimeseriesDescriptor from './timeseries-descriptor.js';
-import findElements from './find-elements.js';
+import {DescribeRequest} from './describe-request.js';
 import {ENSURE, TOGGLE, UPDATE} from './simple-redux.js';
 import {STORE} from './element-base.js';
+import {TestSuitesRequest} from './test-suites-request.js';
+import {TimeseriesDescriptor} from './timeseries-descriptor.js';
 import {afterRender} from './utils.js';
 import {assert} from 'chai';
+import {findElements} from './find-elements.js';
 
 suite('timeseries-descriptor', function() {
   let originalFetch;

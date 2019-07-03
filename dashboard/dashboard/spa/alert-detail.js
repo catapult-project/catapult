@@ -7,18 +7,18 @@
 import './cp-icon.js';
 import './error-set.js';
 import '@chopsui/chops-loading';
-import ExistingBugRequest from './existing-bug-request.js';
-import NewBugRequest from './new-bug-request.js';
-import NudgeAlert from './nudge-alert.js';
-import TriageExisting from './triage-existing.js';
-import TriageNew from './triage-new.js';
 import {ElementBase, STORE} from './element-base.js';
+import {ExistingBugRequest} from './existing-bug-request.js';
+import {NewBugRequest} from './new-bug-request.js';
+import {NudgeAlert} from './nudge-alert.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
+import {TriageExisting} from './triage-existing.js';
+import {TriageNew} from './triage-new.js';
 import {crbug, isProduction, pinpointJob} from './utils.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
-export default class AlertDetail extends ElementBase {
+export class AlertDetail extends ElementBase {
   static get is() { return 'alert-detail'; }
 
   static get properties() {

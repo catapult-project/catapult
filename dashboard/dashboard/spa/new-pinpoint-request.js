@@ -4,9 +4,9 @@
 */
 'use strict';
 
-import RequestBase from './request-base.js';
+import {RequestBase} from './request-base.js';
 
-export default class NewPinpointRequest extends RequestBase {
+export class NewPinpointRequest extends RequestBase {
   constructor(options) {
     super(options);
     this.method_ = 'POST';

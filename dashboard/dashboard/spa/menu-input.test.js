@@ -4,11 +4,11 @@
 */
 'use strict';
 
-import MenuInput from './menu-input.js';
-import {STORE} from './element-base.js';
 import {CHAIN, UPDATE} from './simple-redux.js';
-import {assert} from 'chai';
+import {MenuInput} from './menu-input.js';
+import {STORE} from './element-base.js';
 import {afterRender} from './utils.js';
+import {assert} from 'chai';
 
 suite('menu-input', function() {
   teardown(() => {

@@ -7,17 +7,17 @@
 import '@chopsui/chops-loading';
 import '@chopsui/chops-tab';
 import '@chopsui/chops-tab-bar';
-import ChartTimeseries from './chart-timeseries.js';
-import OptionGroup from './option-group.js';
-import TimeseriesDescriptor from './timeseries-descriptor.js';
+import {ChartTimeseries} from './chart-timeseries.js';
 import {ElementBase, STORE} from './element-base.js';
 import {MODE} from './layout-timeseries.js';
+import {OptionGroup} from './option-group.js';
+import {TimeseriesDescriptor} from './timeseries-descriptor.js';
 import {UPDATE} from './simple-redux.js';
 import {breakWords} from './utils.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
-export default class SparklineCompound extends ElementBase {
+export class SparklineCompound extends ElementBase {
   static get is() { return 'sparkline-compound'; }
 
   static get properties() {

@@ -4,8 +4,8 @@
 */
 'use strict';
 
-import OptionGroup from './option-group.js';
 import {ElementBase, STORE} from './element-base.js';
+import {OptionGroup} from './option-group.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
@@ -14,7 +14,7 @@ const DEFAULT_RECOMMENDATIONS = [
   'memory:chrome:all_processes:reported_by_chrome:effective_size',
 ];
 
-export default class RecommendedOptions extends ElementBase {
+export class RecommendedOptions extends ElementBase {
   static get is() { return 'recommended-options'; }
 
   static get properties() {

@@ -10,7 +10,7 @@ import {ElementBase, STORE} from './element-base.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
-export default class OptionGroup extends ElementBase {
+export class OptionGroup extends ElementBase {
   static get is() { return 'option-group'; }
 
   static get properties() {

@@ -11,17 +11,17 @@ import '@chopsui/chops-button';
 import '@chopsui/chops-header/chops-header.js';
 import '@chopsui/chops-loading';
 import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
-import AlertsSection from './alerts-section.js';
-import ChartCompound from './chart-compound.js';
-import ChartSection from './chart-section.js';
-import ConfigRequest from './config-request.js';
-import RecentBugsRequest from './recent-bugs-request.js';
-import ReportControls from './report-controls.js';
-import ReportSection from './report-section.js';
-import SessionIdRequest from './session-id-request.js';
-import SessionStateRequest from './session-state-request.js';
+import {AlertsSection} from './alerts-section.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {ChartCompound} from './chart-compound.js';
+import {ChartSection} from './chart-section.js';
+import {ConfigRequest} from './config-request.js';
 import {ElementBase, STORE} from './element-base.js';
+import {RecentBugsRequest} from './recent-bugs-request.js';
+import {ReportControls} from './report-controls.js';
+import {ReportSection} from './report-section.js';
+import {SessionIdRequest} from './session-id-request.js';
+import {SessionStateRequest} from './session-state-request.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
@@ -52,7 +52,7 @@ const CONFIG_KEYS = {
   bisectSuiteBlacklist: 'bisect_suite_blacklist',
 };
 
-export default class ChromeperfApp extends ElementBase {
+export class ChromeperfApp extends ElementBase {
   static get is() { return 'chromeperf-app'; }
 
   static get properties() {

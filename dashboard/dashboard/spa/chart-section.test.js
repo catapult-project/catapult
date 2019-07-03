@@ -4,18 +4,18 @@
 */
 'use strict';
 
-import ChartSection from './chart-section.js';
-import DescribeRequest from './describe-request.js';
-import RequestBase from './request-base.js';
-import TestSuitesRequest from './test-suites-request.js';
-import TimeseriesDescriptor from './timeseries-descriptor.js';
-import findElements from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {ChartSection} from './chart-section.js';
+import {DescribeRequest} from './describe-request.js';
 import {MODE} from './layout-timeseries.js';
+import {RequestBase} from './request-base.js';
 import {STORE} from './element-base.js';
+import {TestSuitesRequest} from './test-suites-request.js';
+import {TimeseriesDescriptor} from './timeseries-descriptor.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {afterRender} from './utils.js';
 import {assert} from 'chai';
+import {findElements} from './find-elements.js';
 
 suite('chart-section', function() {
   async function fixture() {

@@ -10,10 +10,10 @@ import '@chopsui/chops-radio';
 import '@chopsui/chops-radio-group';
 import '@chopsui/chops-switch';
 import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
-import ChartTimeseries from './chart-timeseries.js';
-import DetailsTable from './details-table.js';
 import {BatchIterator} from '@chopsui/batch-iterator';
 import {CHAIN, TOGGLE, UPDATE} from './simple-redux.js';
+import {ChartTimeseries} from './chart-timeseries.js';
+import {DetailsTable} from './details-table.js';
 import {ElementBase, STORE} from './element-base.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {MAX_POINTS} from './timeseries-merger.js';
@@ -26,7 +26,7 @@ import {isElementChildOf, isDebug} from './utils.js';
   * ChartCompound synchronizes revision ranges and axis properties between a
   * minimap and a main chart, and among any number of other linked charts.
   */
-export default class ChartCompound extends ElementBase {
+export class ChartCompound extends ElementBase {
   static get is() { return 'chart-compound'; }
 
   static get properties() {

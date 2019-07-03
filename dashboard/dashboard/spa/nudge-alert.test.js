@@ -4,14 +4,14 @@
 */
 'use strict';
 
-import NudgeAlert from './nudge-alert.js';
-import NudgeAlertRequest from './nudge-alert-request.js';
-import findElements from './find-elements.js';
+import {NudgeAlertRequest} from './nudge-alert-request.js';
+import {NudgeAlert} from './nudge-alert.js';
 import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender, setDebugForTesting} from './utils.js';
 import {assert} from 'chai';
+import {findElements} from './find-elements.js';
 
 suite('nudge-alert', function() {
   async function fixture() {

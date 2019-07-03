@@ -4,9 +4,9 @@
 */
 'use strict';
 
-import BisectDialog from './bisect-dialog.js';
-import NewPinpointRequest from './new-pinpoint-request.js';
+import {BisectDialog} from './bisect-dialog.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {NewPinpointRequest} from './new-pinpoint-request.js';
 import {STORE} from './element-base.js';
 import {afterRender, timeout, setDebugForTesting} from './utils.js';
 import {assert} from 'chai';

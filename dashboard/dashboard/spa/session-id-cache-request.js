@@ -5,15 +5,15 @@
 'use strict';
 
 import {ResultChannelSender} from '@chopsui/result-channel';
+import {sha} from './sha.js';
+
 import {
   CacheRequestBase, READONLY, READWRITE, jsonResponse,
 } from './cache-request-base.js';
 
-import sha from './sha.js';
-
 const STORE_SIDS = 'sids';
 
-export default class SessionIdCacheRequest extends CacheRequestBase {
+export class SessionIdCacheRequest extends CacheRequestBase {
   get timingCategory() {
     return 'short_uri';
   }

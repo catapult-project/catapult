@@ -5,7 +5,7 @@
 'use strict';
 
 import idb from 'idb';
-import TASK_QUEUE from './task-queue.js';
+import * as TASK_QUEUE from './task-queue.js';
 
 // Transaction modes
 export const READONLY = 'readonly';
@@ -172,13 +172,3 @@ export async function deleteDatabaseForTest(databaseName) {
 
   await idb.delete(databaseName);
 }
-
-export default {
-  CacheRequestBase,
-  READONLY,
-  READWRITE,
-  clearInProgressForTest,
-  deleteDatabaseForTest,
-  flushWriterForTest,
-  jsonResponse,
-};

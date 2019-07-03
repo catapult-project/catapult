@@ -11,18 +11,18 @@ import '@chopsui/chops-checkbox';
 import '@chopsui/chops-input';
 import '@chopsui/chops-switch';
 import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
-import AlertsTable from './alerts-table.js';
-import MenuInput from './menu-input.js';
-import OptionGroup from './option-group.js';
-import ReportNamesRequest from './report-names-request.js';
-import SheriffsRequest from './sheriffs-request.js';
+import {AlertsTable} from './alerts-table.js';
 import {ElementBase, STORE} from './element-base.js';
+import {MenuInput} from './menu-input.js';
+import {OptionGroup} from './option-group.js';
+import {ReportNamesRequest} from './report-names-request.js';
+import {SheriffsRequest} from './sheriffs-request.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
 import {crbug, plural} from './utils.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
-export default class AlertsControls extends ElementBase {
+export class AlertsControls extends ElementBase {
   static get is() { return 'alerts-controls'; }
 
   static get properties() {

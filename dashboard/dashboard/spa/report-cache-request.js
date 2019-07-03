@@ -13,7 +13,7 @@ const STORE_REPORTS = 'reports';
 const STORE_METADATA = 'metadata';
 const STORES = [STORE_REPORTS, STORE_METADATA];
 
-export default class ReportCacheRequest extends CacheRequestBase {
+export class ReportCacheRequest extends CacheRequestBase {
   constructor(fetchEvent) {
     super(fetchEvent);
     this.parseRequestPromise = this.parseRequest();

@@ -5,12 +5,12 @@
 'use strict';
 
 import './scalar-span.js';
-import AlertDetail from './alert-detail.js';
-import BisectDialog from './bisect-dialog.js';
-import ChartTimeseries from './chart-timeseries.js';
-import NudgeAlert from './nudge-alert.js';
+import {AlertDetail} from './alert-detail.js';
+import {BisectDialog} from './bisect-dialog.js';
+import {ChartTimeseries} from './chart-timeseries.js';
 import {DetailsFetcher} from './details-fetcher.js';
 import {ElementBase, STORE} from './element-base.js';
+import {NudgeAlert} from './nudge-alert.js';
 import {TimeseriesMerger} from './timeseries-merger.js';
 import {breakWords, enumerate, isProduction} from './utils.js';
 import {get} from 'dot-prop-immutable';
@@ -23,7 +23,7 @@ const MARKDOWN_LINK_REGEX = /^\[([^\]]+)\]\(([^\)]+)\)/;
 
 const MAX_REVISION_LENGTH = 30;
 
-export default class DetailsTable extends ElementBase {
+export class DetailsTable extends ElementBase {
   static get is() { return 'details-table'; }
 
   static get properties() {

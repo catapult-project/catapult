@@ -6,7 +6,7 @@
 
 import {LitElement, html, css} from 'lit-element';
 
-export default class CpDialog extends LitElement {
+export class CpDialog extends LitElement {
   static get is() { return 'cp-dialog'; }
 
   static get styles() {

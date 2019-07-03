@@ -6,7 +6,7 @@
 
 import {LitElement, html, css} from 'lit-element';
 
-export default class ScalarSpan extends LitElement {
+export class ScalarSpan extends LitElement {
   static get is() { return 'scalar-span'; }
 
   static get properties() {

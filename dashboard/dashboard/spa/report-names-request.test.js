@@ -4,8 +4,8 @@
 */
 'use strict';
 
+import {ReportNamesRequest} from './report-names-request.js';
 import {assert} from 'chai';
-import ReportNamesRequest from './report-names-request.js';
 
 suite('ReportNamesRequest', function() {
   let originalFetch;

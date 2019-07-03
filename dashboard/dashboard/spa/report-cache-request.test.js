@@ -4,9 +4,9 @@
 */
 'use strict';
 
+import * as testUtils from './cache-request-base.js';
+import {ReportCacheRequest} from './report-cache-request.js';
 import {assert} from 'chai';
-import testUtils from './cache-request-base.js';
-import ReportCacheRequest from './report-cache-request.js';
 import {timeout} from './utils.js';
 
 suite('ReportCacheRequest', function() {

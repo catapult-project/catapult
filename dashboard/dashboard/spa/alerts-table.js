@@ -13,7 +13,7 @@ import {breakWords, crbug} from './utils.js';
 import {get, set} from 'dot-prop-immutable';
 import {html, css, unsafeCSS, svg} from 'lit-element';
 
-export default class AlertsTable extends ElementBase {
+export class AlertsTable extends ElementBase {
   static get is() { return 'alerts-table'; }
 
   static get properties() {

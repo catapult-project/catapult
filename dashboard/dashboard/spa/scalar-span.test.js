@@ -4,9 +4,9 @@
 */
 'use strict';
 
-import {assert} from 'chai';
-import ScalarSpan from './scalar-span.js';
+import {ScalarSpan} from './scalar-span.js';
 import {afterRender} from './utils.js';
+import {assert} from 'chai';
 
 suite('scalar-span', function() {
   test('format', async function() {

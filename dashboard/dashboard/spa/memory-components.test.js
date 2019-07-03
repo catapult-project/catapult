@@ -4,12 +4,12 @@
 */
 'use strict';
 
-import MemoryComponents from './memory-components.js';
-import findElements from './find-elements.js';
+import {MemoryComponents} from './memory-components.js';
 import {STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
 import {assert} from 'chai';
+import {findElements} from './find-elements.js';
 
 suite('memory-components', function() {
   const OPTIONS = {

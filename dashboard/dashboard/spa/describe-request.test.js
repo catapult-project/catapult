@@ -4,8 +4,8 @@
 */
 'use strict';
 
+import {DescribeRequest} from './describe-request.js';
 import {assert} from 'chai';
-import DescribeRequest from './describe-request.js';
 
 suite('DescribeRequest', function() {
   test('mergeDescriptor', async function() {

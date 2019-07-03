@@ -4,17 +4,15 @@
 */
 'use strict';
 
+import * as testUtils from './cache-request-base.js';
+import {TimeseriesCacheRequest} from './timeseries-cache-request.js';
 import {assert} from 'chai';
-window.assert = assert;
-import testUtils from './cache-request-base.js';
-import TimeseriesCacheRequest from './timeseries-cache-request.js';
+import {normalize} from './utils.js';
+
 import {
   getColumnsByLevelOfDetail,
   LEVEL_OF_DETAIL,
 } from './timeseries-request.js';
-import {
-  normalize,
-} from './utils.js';
 
 suite('TimeseriesCacheRequest', function() {
   class MockFetchEvent {

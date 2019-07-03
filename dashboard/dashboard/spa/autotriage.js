@@ -6,7 +6,7 @@
 
 import {html} from 'lit-element';
 import {crbug, plural} from './utils.js';
-import ExistingBugRequest from './existing-bug-request.js';
+import {ExistingBugRequest} from './existing-bug-request.js';
 
 function analyzeTriaged(triagedAlerts) {
   const alertCountByBugId = new Map();

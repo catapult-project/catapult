@@ -11,7 +11,7 @@ import {animationFrame, hasCtrlKey, measureElement} from './utils.js';
 import {get} from 'dot-prop-immutable';
 import {html, css, svg} from 'lit-element';
 
-export default class ChartBase extends ElementBase {
+export class ChartBase extends ElementBase {
   static get is() { return 'chart-base'; }
 
   static get properties() {

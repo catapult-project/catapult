@@ -5,7 +5,7 @@
 'use strict';
 
 import {assert} from 'chai';
-import DescribeCacheRequest from './describe-cache-request.js';
+import {DescribeCacheRequest} from './describe-cache-request.js';
 
 class MockFetchEvent {
   constructor(internal) {

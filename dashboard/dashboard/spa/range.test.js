@@ -5,7 +5,7 @@
 'use strict';
 
 import {assert} from 'chai';
-import Range from './range.js';
+import {Range} from './range.js';
 
 suite('Range', function() {
   test('addValue', function() {

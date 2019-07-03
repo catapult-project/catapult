@@ -4,9 +4,9 @@
 */
 'use strict';
 
-import RequestBase from './request-base.js';
+import {RequestBase} from './request-base.js';
 
-export default class RecentBugsRequest extends RequestBase {
+export class RecentBugsRequest extends RequestBase {
   constructor() {
     super({});
     this.method_ = 'POST';

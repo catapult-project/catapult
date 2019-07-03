@@ -4,7 +4,7 @@
 */
 'use strict';
 
-export default class Range {
+export class Range {
   constructor() {
     this.min_ = undefined;
     this.max_ = undefined;

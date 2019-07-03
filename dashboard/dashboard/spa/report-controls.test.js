@@ -4,13 +4,13 @@
 */
 'use strict';
 
-import ReportControls from './report-controls.js';
-import ReportNamesRequest from './report-names-request.js';
-import findElements from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {ReportControls} from './report-controls.js';
+import {ReportNamesRequest} from './report-names-request.js';
 import {STORE} from './element-base.js';
 import {afterRender} from './utils.js';
 import {assert} from 'chai';
+import {findElements} from './find-elements.js';
 
 suite('report-controls', function() {
   async function fixture() {

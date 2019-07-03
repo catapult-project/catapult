@@ -5,7 +5,7 @@
 'use strict';
 
 import {assert} from 'chai';
-import sha from './sha.js';
+import {sha} from './sha.js';
 
 suite('sha', function() {
   test('sha', async function() {

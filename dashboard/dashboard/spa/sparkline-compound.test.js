@@ -4,12 +4,12 @@
 */
 'use strict';
 
-import DescribeRequest from './describe-request.js';
-import SparklineCompound from './sparkline-compound.js';
-import TimeseriesDescriptor from './timeseries-descriptor.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {DescribeRequest} from './describe-request.js';
 import {MODE} from './layout-timeseries.js';
 import {STORE} from './element-base.js';
+import {SparklineCompound} from './sparkline-compound.js';
+import {TimeseriesDescriptor} from './timeseries-descriptor.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {afterRender, denormalize, setDebugForTesting} from './utils.js';
 import {assert} from 'chai';

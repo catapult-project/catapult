@@ -4,8 +4,8 @@
 */
 'use strict';
 
-import ChartTimeseries from './chart-timeseries.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {ChartTimeseries} from './chart-timeseries.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {ResultChannelSender} from '@chopsui/result-channel';
 import {STORE} from './element-base.js';

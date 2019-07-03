@@ -9,7 +9,7 @@ import {CacheRequestBase, READONLY, READWRITE} from './cache-request-base.js';
 const STORE_DATA = 'data';
 const EXPIRATION_MS = 20 * 60 * 60 * 1000;
 
-export default class KeyValueCacheRequest extends CacheRequestBase {
+export class KeyValueCacheRequest extends CacheRequestBase {
   get isAuthorized() {
     return this.fetchEvent.request.headers.has('Authorization');
   }

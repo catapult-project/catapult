@@ -4,8 +4,8 @@
 */
 'use strict';
 
+import * as TASK_QUEUE from './task-queue.js';
 import {assert} from 'chai';
-import TASK_QUEUE from './task-queue.js';
 import {timeout} from './utils.js';
 
 suite('TASK_QUEUE', function() {

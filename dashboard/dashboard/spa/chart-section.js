@@ -9,22 +9,22 @@ import './cp-icon.js';
 import './expand-button.js';
 import '@chopsui/chops-input';
 import '@chopsui/chops-loading';
-import ChartBase from './chart-base.js';
-import ChartCompound from './chart-compound.js';
-import ChartTimeseries from './chart-timeseries.js';
-import MenuInput from './menu-input.js';
-import OptionGroup from './option-group.js';
-import SparklineCompound from './sparkline-compound.js';
-import TimeseriesDescriptor from './timeseries-descriptor.js';
-import sha from './sha.js';
 import {CHAIN, UPDATE} from './simple-redux.js';
+import {ChartBase} from './chart-base.js';
+import {ChartCompound} from './chart-compound.js';
+import {ChartTimeseries} from './chart-timeseries.js';
 import {ElementBase, STORE, maybeScheduleAutoReload} from './element-base.js';
 import {MODE} from './layout-timeseries.js';
+import {MenuInput} from './menu-input.js';
+import {OptionGroup} from './option-group.js';
+import {SparklineCompound} from './sparkline-compound.js';
+import {TimeseriesDescriptor} from './timeseries-descriptor.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
+import {sha} from './sha.js';
 import {simpleGUID} from './utils.js';
 
-export default class ChartSection extends ElementBase {
+export class ChartSection extends ElementBase {
   static get is() { return 'chart-section'; }
 
   static get properties() {

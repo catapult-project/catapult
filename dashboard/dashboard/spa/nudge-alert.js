@@ -6,7 +6,7 @@
 
 import './error-set.js';
 import '@chopsui/chops-loading';
-import NudgeAlertRequest from './nudge-alert-request.js';
+import {NudgeAlertRequest} from './nudge-alert-request.js';
 import {ElementBase, STORE} from './element-base.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {UPDATE} from './simple-redux.js';
@@ -14,7 +14,7 @@ import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 import {isElementChildOf, afterRender} from './utils.js';
 
-export default class NudgeAlert extends ElementBase {
+export class NudgeAlert extends ElementBase {
   static get is() { return 'nudge-alert'; }
 
   static get properties() {

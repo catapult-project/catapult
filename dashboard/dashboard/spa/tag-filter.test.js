@@ -4,14 +4,14 @@
 */
 'use strict';
 
-import MenuInput from './menu-input.js';
-import OptionGroup from './option-group.js';
-import TagFilter from './tag-filter.js';
-import findElements from './find-elements.js';
+import {MenuInput} from './menu-input.js';
+import {OptionGroup} from './option-group.js';
 import {STORE} from './element-base.js';
+import {TagFilter} from './tag-filter.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';
 import {assert} from 'chai';
+import {findElements} from './find-elements.js';
 
 suite('tag-filter', function() {
   teardown(() => {

@@ -7,7 +7,7 @@
 import {
   CacheRequestBase, READONLY, READWRITE, jsonResponse,
 } from './cache-request-base.js';
-import Range from './range.js';
+import {Range} from './range.js';
 import {ResultChannelSender} from '@chopsui/result-channel';
 
 async function* raceAllPromises(promises) {
@@ -196,7 +196,7 @@ const STORES = [STORE_DATA, STORE_METADATA, STORE_RANGES];
 
 const ACCESS_TIME_KEY = '_accessTime';
 
-export default class TimeseriesCacheRequest extends CacheRequestBase {
+export class TimeseriesCacheRequest extends CacheRequestBase {
   constructor(fetchEvent) {
     super(fetchEvent);
     this.parseRequestPromise = this.parseRequest_();

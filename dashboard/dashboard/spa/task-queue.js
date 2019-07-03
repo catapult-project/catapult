@@ -12,20 +12,20 @@ let STATE = PAUSED;
 let TIMEOUT_ID;
 const QUEUE = [];
 
-function schedule(task) {
+export function schedule(task) {
   QUEUE.push(task);
 }
 
-function scheduleFlush(delayMs = 1000) {
+export function scheduleFlush(delayMs = 1000) {
   TIMEOUT_ID = setTimeout(flush, delayMs);
 }
 
-function cancelFlush() {
+export function cancelFlush() {
   if (TIMEOUT_ID) clearTimeout(TIMEOUT_ID);
   if (STATE === RUNNING) STATE = PAUSING;
 }
 
-async function flush() {
+export async function flush() {
   // This async method could potentially take several seconds, during which
   // time the caller could schedule another task. In order to prevent
   // deadlocks, there should only be a single flush() running at once.
@@ -45,10 +45,3 @@ async function flush() {
 
   STATE = PAUSED;
 }
-
-export default {
-  schedule,
-  scheduleFlush,
-  cancelFlush,
-  flush,
-};

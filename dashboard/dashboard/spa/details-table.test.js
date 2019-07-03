@@ -4,8 +4,8 @@
 */
 'use strict';
 
-import DetailsTable from './details-table.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {DetailsTable} from './details-table.js';
 import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {afterRender, denormalize, setDebugForTesting} from './utils.js';

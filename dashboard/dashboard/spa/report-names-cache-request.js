@@ -4,9 +4,9 @@
 */
 'use strict';
 
-import KeyValueCacheRequest from './key-value-cache-request.js';
+import {KeyValueCacheRequest} from './key-value-cache-request.js';
 
-export default class ReportNamesCacheRequest extends KeyValueCacheRequest {
+export class ReportNamesCacheRequest extends KeyValueCacheRequest {
   async getDatabaseKey() {
     return `report_names${this.isAuthorized ? '_internal' : ''}`;
   }

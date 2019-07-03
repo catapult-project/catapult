@@ -6,7 +6,7 @@
 
 import {LitElement, html, css} from 'lit-element';
 
-export default class ErrorSet extends LitElement {
+export class ErrorSet extends LitElement {
   static get properties() {
     return {errors: Array};
   }

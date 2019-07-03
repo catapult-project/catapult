@@ -4,10 +4,10 @@
 */
 'use strict';
 
-import {assert} from 'chai';
 import './chart-legend.js';
-import findElements from './find-elements.js';
 import {afterRender} from './utils.js';
+import {assert} from 'chai';
+import {findElements} from './find-elements.js';
 
 suite('chart-legend', function() {
   teardown(() => {

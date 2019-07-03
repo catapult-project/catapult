@@ -4,8 +4,8 @@
 */
 'use strict';
 
+import {ReportNamesCacheRequest} from './report-names-cache-request.js';
 import {assert} from 'chai';
-import TestSuitesCacheRequest from './report-names-cache-request.js';
 
 class MockFetchEvent {
   constructor(internal) {
@@ -21,14 +21,14 @@ class MockFetchEvent {
   }
 }
 
-suite('TestSuitesCacheRequest', function() {
+suite('ReportNamesCacheRequest', function() {
   test('external', async() => {
-    const cacheRequest = new TestSuitesCacheRequest(new MockFetchEvent());
+    const cacheRequest = new ReportNamesCacheRequest(new MockFetchEvent());
     assert.strictEqual('report_names', await cacheRequest.databaseKeyPromise);
   });
 
   test('internal', async() => {
-    const cacheRequest = new TestSuitesCacheRequest(new MockFetchEvent(true));
+    const cacheRequest = new ReportNamesCacheRequest(new MockFetchEvent(true));
     const actual = await cacheRequest.databaseKeyPromise;
     assert.strictEqual('report_names_internal', actual);
   });

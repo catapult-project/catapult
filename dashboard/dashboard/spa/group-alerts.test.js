@@ -5,7 +5,7 @@
 'use strict';
 
 import {assert} from 'chai';
-import groupAlerts from './group-alerts.js';
+import {groupAlerts} from './group-alerts.js';
 
 suite('group-alerts', function() {
   test('group_overlapping', function() {

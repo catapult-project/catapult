@@ -6,14 +6,14 @@
 
 import './cp-icon.js';
 import '@chopsui/chops-input';
-import OptionGroup from './option-group.js';
+import {OptionGroup} from './option-group.js';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {html, css} from 'lit-element';
 import {isElementChildOf} from './utils.js';
 import {get, set} from 'dot-prop-immutable';
 
-export default class MenuInput extends ElementBase {
+export class MenuInput extends ElementBase {
   static get is() { return 'menu-input'; }
 
   static get properties() {

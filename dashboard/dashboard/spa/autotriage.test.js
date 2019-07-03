@@ -4,9 +4,9 @@
 */
 'use strict';
 
-import {assert} from 'chai';
+import {ExistingBugRequest} from './existing-bug-request.js';
 import {MIN_PCT_DELTA, autotriage} from './autotriage.js';
-import ExistingBugRequest from './existing-bug-request.js';
+import {assert} from 'chai';
 
 suite('autotriage', function() {
   test('ignore', function() {

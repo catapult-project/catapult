@@ -15,7 +15,7 @@ import {get, set} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 import {isElementChildOf} from './utils.js';
 
-export default class TriageNew extends ElementBase {
+export class TriageNew extends ElementBase {
   static get is() { return 'triage-new'; }
 
   static get properties() {

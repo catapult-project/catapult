@@ -6,7 +6,7 @@
 
 import {LitElement, html, css} from 'lit-element';
 
-export default class ChartLegend extends LitElement {
+export class ChartLegend extends LitElement {
   static get properties() {
     return {
       items: {type: Array},

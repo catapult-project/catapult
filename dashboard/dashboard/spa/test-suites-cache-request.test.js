@@ -4,8 +4,8 @@
 */
 'use strict';
 
+import {TestSuitesCacheRequest} from './test-suites-cache-request.js';
 import {assert} from 'chai';
-import TestSuitesCacheRequest from './test-suites-cache-request.js';
 
 class MockFetchEvent {
   constructor(internal) {

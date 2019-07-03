@@ -7,7 +7,7 @@
 import './cp-icon.js';
 import {LitElement, html, css} from 'lit-element';
 
-export default class ColumnHead extends LitElement {
+export class ColumnHead extends LitElement {
   static get is() { return 'column-head'; }
 
   static get properties() {

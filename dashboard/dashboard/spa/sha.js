@@ -4,7 +4,7 @@
 */
 'use strict';
 
-export default async function sha(s) {
+export async function sha(s) {
   s = new TextEncoder('utf-8').encode(s);
   const hash = await crypto.subtle.digest('SHA-256', s);
   const view = new DataView(hash);

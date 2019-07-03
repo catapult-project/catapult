@@ -4,10 +4,10 @@
 */
 'use strict';
 
-import {assert} from 'chai';
-import KeyValueCacheRequest from './key-value-cache-request.js';
-import testUtils from './cache-request-base.js';
+import * as testUtils from './cache-request-base.js';
 import idb from 'idb';
+import {KeyValueCacheRequest} from './key-value-cache-request.js';
+import {assert} from 'chai';
 
 class MockFetchEvent {
   constructor(url = 'http://example.com/path') {

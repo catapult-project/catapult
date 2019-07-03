@@ -5,7 +5,7 @@
 'use strict';
 
 import {assert} from 'chai';
-import TriageExisting from './triage-existing.js';
+import {TriageExisting} from './triage-existing.js';
 
 suite('triage-existing', function() {
   test('filterBugs', async function() {

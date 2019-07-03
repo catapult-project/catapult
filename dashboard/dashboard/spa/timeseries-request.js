@@ -4,7 +4,7 @@
 */
 'use strict';
 
-import RequestBase from './request-base.js';
+import {RequestBase} from './request-base.js';
 import {normalize, transformAlert} from './utils.js';
 
 export const LEVEL_OF_DETAIL = Object.freeze({

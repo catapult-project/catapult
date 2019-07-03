@@ -4,9 +4,9 @@
 */
 'use strict';
 
-import KeyValueCacheRequest from './key-value-cache-request.js';
+import {KeyValueCacheRequest} from './key-value-cache-request.js';
 
-export default class SheriffsCacheRequest extends KeyValueCacheRequest {
+export class SheriffsCacheRequest extends KeyValueCacheRequest {
   async getDatabaseKey() {
     return `sheriffs${this.isAuthorized ? '_internal' : ''}`;
   }

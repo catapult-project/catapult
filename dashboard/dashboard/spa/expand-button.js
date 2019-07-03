@@ -10,7 +10,7 @@ import {TOGGLE} from './simple-redux.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
-export default class ExpandButton extends ElementBase {
+export class ExpandButton extends ElementBase {
   static get is() { return 'expand-button'; }
 
   static get properties() {

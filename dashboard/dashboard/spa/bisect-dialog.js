@@ -4,14 +4,14 @@
 */
 'use strict';
 
-import '@chopsui/chops-input';
-import '@chopsui/chops-loading';
-import '@chopsui/chops-radio-group';
-import '@chopsui/chops-radio';
 import './error-set.js';
 import '@chopsui/chops-button';
-import NewPinpointRequest from './new-pinpoint-request.js';
+import '@chopsui/chops-input';
+import '@chopsui/chops-loading';
+import '@chopsui/chops-radio';
+import '@chopsui/chops-radio-group';
 import {ElementBase, STORE} from './element-base.js';
+import {NewPinpointRequest} from './new-pinpoint-request.js';
 import {UPDATE} from './simple-redux.js';
 import {html, css} from 'lit-element';
 import {isElementChildOf, pinpointJob} from './utils.js';
@@ -19,7 +19,7 @@ import {isElementChildOf, pinpointJob} from './utils.js';
 // Display a warning when bisecting large revision ranges.
 const MANY_REVISIONS = 100;
 
-export default class BisectDialog extends ElementBase {
+export class BisectDialog extends ElementBase {
   static get is() { return 'bisect-dialog'; }
 
   static get properties() {

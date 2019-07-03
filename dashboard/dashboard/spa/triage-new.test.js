@@ -4,12 +4,12 @@
 */
 'use strict';
 
-import TriageNew from './triage-new.js';
-import findElements from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {STORE} from './element-base.js';
+import {TriageNew} from './triage-new.js';
 import {afterRender, timeout} from './utils.js';
 import {assert} from 'chai';
+import {findElements} from './find-elements.js';
 
 suite('triage-new', function() {
   async function fixture(options) {

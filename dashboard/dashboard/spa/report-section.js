@@ -7,21 +7,21 @@
 import './cp-dialog.js';
 import '@chopsui/chops-loading';
 import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
-import ReportControls from './report-controls.js';
-import ReportNamesRequest from './report-names-request.js';
-import ReportRequest from './report-request.js';
-import ReportTable from './report-table.js';
-import ReportTemplate from './report-template.js';
-import TimeseriesDescriptor from './timeseries-descriptor.js';
 import {BatchIterator} from '@chopsui/batch-iterator';
 import {ElementBase, STORE, maybeScheduleAutoReload} from './element-base.js';
+import {ReportControls} from './report-controls.js';
+import {ReportNamesRequest} from './report-names-request.js';
+import {ReportRequest} from './report-request.js';
+import {ReportTable} from './report-table.js';
+import {ReportTemplate} from './report-template.js';
+import {TimeseriesDescriptor} from './timeseries-descriptor.js';
 import {UPDATE} from './simple-redux.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
 const DEBOUNCE_LOAD_MS = 200;
 
-export default class ReportSection extends ElementBase {
+export class ReportSection extends ElementBase {
   static get is() { return 'report-section'; }
 
   static get properties() {

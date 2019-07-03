@@ -4,9 +4,9 @@
 */
 'use strict';
 
-import {assert} from 'chai';
-import ColumnHead from './column-head.js';
+import {ColumnHead} from './column-head.js';
 import {afterRender} from './utils.js';
+import {assert} from 'chai';
 
 suite('column-head', function() {
   test('icon', async function() {

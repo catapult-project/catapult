@@ -4,9 +4,9 @@
 */
 'use strict';
 
-import {assert} from 'chai';
-import RequestBase from './request-base.js';
+import {RequestBase} from './request-base.js';
 import {ResultChannelSender} from '@chopsui/result-channel';
+import {assert} from 'chai';
 
 import {
   simpleGUID,

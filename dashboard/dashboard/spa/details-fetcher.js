@@ -4,8 +4,8 @@
 */
 'use strict';
 
-import ChartTimeseries from './chart-timeseries.js';
 import {BatchIterator} from '@chopsui/batch-iterator';
+import {ChartTimeseries} from './chart-timeseries.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {enumerate} from './utils.js';
 

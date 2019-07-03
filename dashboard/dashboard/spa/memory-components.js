@@ -4,12 +4,12 @@
 */
 'use strict';
 
-import OptionGroup from './option-group.js';
+import {OptionGroup} from './option-group.js';
 import {ElementBase, STORE} from './element-base.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
-export default class MemoryComponents extends ElementBase {
+export class MemoryComponents extends ElementBase {
   static get is() { return 'memory-components'; }
 
   static get properties() {

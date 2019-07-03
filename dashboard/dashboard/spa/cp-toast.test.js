@@ -5,7 +5,7 @@
 'use strict';
 
 import {assert} from 'chai';
-import CpToast from './cp-toast.js';
+import {CpToast} from './cp-toast.js';
 
 suite('cp-toast', function() {
   teardown(() => {

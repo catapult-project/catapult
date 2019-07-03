@@ -7,14 +7,14 @@
 import './cp-icon.js';
 import '@chopsui/chops-button';
 import '@chopsui/chops-input';
-import ReportTemplateRequest from './report-template-request.js';
-import TimeseriesDescriptor from './timeseries-descriptor.js';
+import {ReportTemplateRequest} from './report-template-request.js';
+import {TimeseriesDescriptor} from './timeseries-descriptor.js';
 import {ElementBase, STORE} from './element-base.js';
 import {TOGGLE, UPDATE} from './simple-redux.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
-export default class ReportTemplate extends ElementBase {
+export class ReportTemplate extends ElementBase {
   static get is() { return 'report-template'; }
 
   static get properties() {

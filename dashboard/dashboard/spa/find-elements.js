@@ -24,7 +24,7 @@ function iterateElementDeeply(element, cb) {
   return false;
 }
 
-export default function findElements(root, predicate) {
+export function findElements(root, predicate) {
   const foundElements = [];
   iterateElementDeeply(root, element => {
     if (element.matches && predicate(element)) foundElements.push(element);

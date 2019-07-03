@@ -7,16 +7,16 @@
 import './cp-icon.js';
 import '@chopsui/chops-button';
 import '@chopsui/chops-input';
-import MenuInput from './menu-input.js';
-import OptionGroup from './option-group.js';
-import ReportNamesRequest from './report-names-request.js';
 import {ElementBase, STORE} from './element-base.js';
+import {MenuInput} from './menu-input.js';
+import {OptionGroup} from './option-group.js';
+import {ReportNamesRequest} from './report-names-request.js';
 import {UPDATE} from './simple-redux.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 import {isDebug, simpleGUID} from './utils.js';
 
-export default class ReportControls extends ElementBase {
+export class ReportControls extends ElementBase {
   static get is() { return 'report-controls'; }
 
   static get properties() {

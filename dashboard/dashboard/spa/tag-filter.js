@@ -4,12 +4,12 @@
 */
 'use strict';
 
-import OptionGroup from './option-group.js';
 import {ElementBase, STORE} from './element-base.js';
+import {OptionGroup} from './option-group.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 
-export default class TagFilter extends ElementBase {
+export class TagFilter extends ElementBase {
   static get is() { return 'tag-filter'; }
 
   static get properties() {

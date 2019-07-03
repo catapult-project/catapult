@@ -7,7 +7,7 @@
 import {LitElement, html, css} from 'lit-element';
 import {simpleGUID, timeout} from './utils.js';
 
-export default class CpToast extends LitElement {
+export class CpToast extends LitElement {
   static get is() { return 'cp-toast'; }
 
   static get properties() {

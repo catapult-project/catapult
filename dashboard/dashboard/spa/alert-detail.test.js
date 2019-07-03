@@ -4,14 +4,14 @@
 */
 'use strict';
 
-import AlertDetail from './alert-detail.js';
-import ExistingBugRequest from './existing-bug-request.js';
-import NewBugRequest from './new-bug-request.js';
-import findElements from './find-elements.js';
+import {AlertDetail} from './alert-detail.js';
+import {ExistingBugRequest} from './existing-bug-request.js';
+import {NewBugRequest} from './new-bug-request.js';
 import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
 import {UPDATE} from './simple-redux.js';
 import {assert} from 'chai';
+import {findElements} from './find-elements.js';
 
 import {
   afterRender,

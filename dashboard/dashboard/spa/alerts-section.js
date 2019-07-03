@@ -8,22 +8,22 @@ import './error-set.js';
 import '@chopsui/chops-button';
 import '@chopsui/chops-loading';
 import '@chopsui/chops-switch';
-import AlertsControls from './alerts-controls.js';
-import AlertsRequest from './alerts-request.js';
-import AlertsTable from './alerts-table.js';
-import ChartCompound from './chart-compound.js';
-import ChartTimeseries from './chart-timeseries.js';
-import ExistingBugRequest from './existing-bug-request.js';
-import MenuInput from './menu-input.js';
-import NewBugRequest from './new-bug-request.js';
-import TriageExisting from './triage-existing.js';
-import TriageNew from './triage-new.js';
-import groupAlerts from './group-alerts.js';
+import {AlertsControls} from './alerts-controls.js';
+import {AlertsRequest} from './alerts-request.js';
+import {AlertsTable} from './alerts-table.js';
 import {BatchIterator} from '@chopsui/batch-iterator';
 import {CHAIN, TOGGLE, UPDATE} from './simple-redux.js';
+import {ChartCompound} from './chart-compound.js';
+import {ChartTimeseries} from './chart-timeseries.js';
 import {ElementBase, STORE} from './element-base.js';
+import {ExistingBugRequest} from './existing-bug-request.js';
+import {MenuInput} from './menu-input.js';
+import {NewBugRequest} from './new-bug-request.js';
+import {TriageExisting} from './triage-existing.js';
+import {TriageNew} from './triage-new.js';
 import {autotriage} from './autotriage.js';
 import {get, set} from 'dot-prop-immutable';
+import {groupAlerts} from './group-alerts.js';
 import {html, css} from 'lit-element';
 
 import {
@@ -80,7 +80,7 @@ if (new Set(Object.values(HOTKEYS)).size !== Object.keys(HOTKEYS).length) {
   throw new Error('Duplicate hotkey');
 }
 
-export default class AlertsSection extends ElementBase {
+export class AlertsSection extends ElementBase {
   static get is() { return 'alerts-section'; }
 
   static get properties() {

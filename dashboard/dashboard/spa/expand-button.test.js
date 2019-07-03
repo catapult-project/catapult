@@ -4,7 +4,7 @@
 */
 'use strict';
 
-import ExpandButton from './expand-button.js';
+import {ExpandButton} from './expand-button.js';
 import {STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {assert} from 'chai';

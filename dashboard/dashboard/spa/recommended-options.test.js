@@ -4,7 +4,7 @@
 */
 'use strict';
 
-import RecommendedOptions from './recommended-options.js';
+import {RecommendedOptions} from './recommended-options.js';
 import {STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
 import {afterRender} from './utils.js';

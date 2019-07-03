@@ -4,12 +4,12 @@
 */
 'use strict';
 
-import AlertsTable from './alerts-table.js';
-import findElements from './find-elements.js';
+import {AlertsTable} from './alerts-table.js';
 import {ENSURE, UPDATE} from './simple-redux.js';
 import {STORE} from './element-base.js';
 import {afterRender, timeout} from './utils.js';
 import {assert} from 'chai';
+import {findElements} from './find-elements.js';
 
 suite('alerts-table', function() {
   async function fixture(options = {}) {

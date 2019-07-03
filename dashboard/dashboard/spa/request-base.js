@@ -8,7 +8,7 @@ import {getAuthorizationHeaders} from '@chopsui/chops-signin/index.js';
 import {ResultChannelReceiver} from '@chopsui/result-channel';
 import {isDebug, isProduction} from './utils.js';
 
-export default class RequestBase {
+export class RequestBase {
   constructor(options = {}) {
     this.responsePromise_ = undefined;
     this.method_ = 'GET';

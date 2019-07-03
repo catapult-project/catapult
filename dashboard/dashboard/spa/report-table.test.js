@@ -4,8 +4,8 @@
 */
 'use strict';
 
-import ReportTable from './report-table.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
+import {ReportTable} from './report-table.js';
 import {STORE} from './element-base.js';
 import {afterRender} from './utils.js';
 import {assert} from 'chai';

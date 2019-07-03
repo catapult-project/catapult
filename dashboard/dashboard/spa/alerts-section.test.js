@@ -4,15 +4,15 @@
 */
 'use strict';
 
-import AlertsRequest from './alerts-request.js';
-import AlertsSection from './alerts-section.js';
-import DescribeRequest from './describe-request.js';
-import ExistingBugRequest from './existing-bug-request.js';
-import NewBugRequest from './new-bug-request.js';
-import ReportNamesRequest from './report-names-request.js';
-import RequestBase from './request-base.js';
-import SheriffsRequest from './sheriffs-request.js';
-import findElements from './find-elements.js';
+import {AlertsRequest} from './alerts-request.js';
+import {AlertsSection} from './alerts-section.js';
+import {DescribeRequest} from './describe-request.js';
+import {ExistingBugRequest} from './existing-bug-request.js';
+import {NewBugRequest} from './new-bug-request.js';
+import {ReportNamesRequest} from './report-names-request.js';
+import {RequestBase} from './request-base.js';
+import {SheriffsRequest} from './sheriffs-request.js';
+import {findElements} from './find-elements.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {STORE} from './element-base.js';
 import {assert} from 'chai';

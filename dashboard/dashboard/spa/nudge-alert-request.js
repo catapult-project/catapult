@@ -4,10 +4,10 @@
 */
 'use strict';
 
-import RequestBase from './request-base.js';
+import {RequestBase} from './request-base.js';
 import {plural} from './utils.js';
 
-export default class NudgeAlertRequest extends RequestBase {
+export class NudgeAlertRequest extends RequestBase {
   constructor(options) {
     super(options);
     this.method_ = 'POST';

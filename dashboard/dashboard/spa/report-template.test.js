@@ -4,11 +4,11 @@
 */
 'use strict';
 
-import DescribeRequest from './describe-request.js';
-import MenuInput from './menu-input.js';
-import ReportTemplate from './report-template.js';
-import ReportTemplateRequest from './report-template-request.js';
-import TestSuitesRequest from './test-suites-request.js';
+import {DescribeRequest} from './describe-request.js';
+import {MenuInput} from './menu-input.js';
+import {ReportTemplate} from './report-template.js';
+import {ReportTemplateRequest} from './report-template-request.js';
+import {TestSuitesRequest} from './test-suites-request.js';
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {STORE} from './element-base.js';
 import {afterRender} from './utils.js';

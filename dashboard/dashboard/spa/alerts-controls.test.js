@@ -4,14 +4,14 @@
 */
 'use strict';
 
-import AlertsControls from './alerts-controls.js';
-import ReportNamesRequest from './report-names-request.js';
-import SheriffsRequest from './sheriffs-request.js';
-import findElements from './find-elements.js';
+import {AlertsControls} from './alerts-controls.js';
 import {CHAIN, ENSURE, TOGGLE, UPDATE} from './simple-redux.js';
+import {ReportNamesRequest} from './report-names-request.js';
 import {STORE} from './element-base.js';
+import {SheriffsRequest} from './sheriffs-request.js';
 import {afterRender, timeout} from './utils.js';
 import {assert} from 'chai';
+import {findElements} from './find-elements.js';
 
 suite('alerts-controls', function() {
   let originalFetch;

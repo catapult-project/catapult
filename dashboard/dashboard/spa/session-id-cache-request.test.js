@@ -4,10 +4,10 @@
 */
 'use strict';
 
-import SessionIdCacheRequest from './session-id-cache-request.js';
+import * as testUtils from './cache-request-base.js';
 import idb from 'idb';
-import testUtils from './cache-request-base.js';
 import {ResultChannelReceiver} from '@chopsui/result-channel';
+import {SessionIdCacheRequest} from './session-id-cache-request.js';
 import {assert} from 'chai';
 
 class MockFetchEvent {
