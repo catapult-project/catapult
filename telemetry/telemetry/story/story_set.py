@@ -116,6 +116,10 @@ class StorySet(object):
   def RemoveStory(self, story):
     """Removes a Story.
 
+    TODO(crbug.com/980758): Remove this functionality after migrating
+    system_health_smoke_test.py and benchmark_smoke_unittest.py off of
+    it.
+
     Allows the stories to be filtered.
     """
     self._stories.remove(story)
