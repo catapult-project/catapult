@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import cloudstorage
+import logging
 import os
 
 from google.appengine.api import taskqueue
@@ -67,6 +68,7 @@ def GetCachedResults2(job):
 
 
 def ScheduleResults2Generation(job):
+  logging.debug('Job [%s]: ScheduleResults2Generation', job.job_id)
   try:
     # Don't want several tasks creating results2, so create task with specific
     # name to deduplicate.
@@ -82,6 +84,8 @@ def ScheduleResults2Generation(job):
 
 
 def GenerateResults2(job):
+  logging.debug('Job [%s]: GenerateResults2', job.job_id)
+
   histogram_dicts = _FetchHistograms(job)
   vulcanized_html = _ReadVulcanizedHistogramsViewer()
 

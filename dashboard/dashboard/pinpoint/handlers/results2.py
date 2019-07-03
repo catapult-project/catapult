@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import logging
 import webapp2
 
 from dashboard.pinpoint.models import job as job_module
@@ -50,6 +51,7 @@ class Results2Generator(webapp2.RequestHandler):
     try:
       job = job_module.JobFromId(job_id)
       if not job:
+        logging.debug('No job [%s]', job_id)
         raise results2.Results2Error('Error: Unknown job %s' % job_id)
       results2.GenerateResults2(job)
     except results2.Results2Error as e:
