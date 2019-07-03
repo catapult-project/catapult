@@ -53,6 +53,7 @@ EXCLUDED_PATHS = {
   'generate_telemetry_build.py',
   'third_party/Paste/',
   'third_party/google-endpoints/',
+  'third_party/pngjs/',
   'third_party/polymer2/',
   'tracing/test_data/',
 }
