@@ -285,6 +285,17 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
       runs = list(results.IterRunsWithTraces())
       self.assertEquals(2, len(runs))
 
+  def testAddTracesForSamePage(self):
+    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
+      results = page_test_results.PageTestResults(output_dir=tempdir)
+      results.WillRunPage(self.pages[0])
+      results.AddTraces(trace_data.CreateTestTrace(1))
+      results.AddTraces(trace_data.CreateTestTrace(2))
+      results.DidRunPage(self.pages[0])
+
+      runs = list(results.IterRunsWithTraces())
+      self.assertEquals(1, len(runs))
+
   def testPrintSummaryDisabledResults(self):
     output_stream = StringIO.StringIO()
     output_formatters = []

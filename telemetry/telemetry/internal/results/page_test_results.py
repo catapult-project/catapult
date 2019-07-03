@@ -7,6 +7,7 @@ import copy
 import json
 import logging
 import os
+import posixpath
 import shutil
 import tempfile
 import time
@@ -493,7 +494,8 @@ class PageTestResults(object):
     """
     assert self._current_page_run, 'Not currently running test.'
     for part, filename in traces.IterTraceParts():
-      with self.CaptureArtifact('trace/' + part) as artifact_path:
+      artifact_name = posixpath.join('trace', part, os.path.basename(filename))
+      with self.CaptureArtifact(artifact_name) as artifact_path:
         shutil.copy(filename, artifact_path)
     if tbm_metrics:
       self._current_page_run.SetTbmMetrics(tbm_metrics)
