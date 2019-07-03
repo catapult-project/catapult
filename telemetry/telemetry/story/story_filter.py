@@ -97,20 +97,26 @@ class StoryFilter(command_line.ArgumentHandlerMixIn):
       raise parser.error('--story-filter-exclude: Invalid regex.')
 
   @classmethod
-  def FilterStorySet(cls, story_set):
-    """Filters the given story set, using filters provided in the command line.
+  def FilterStories(cls, stories):
+    """Filters the given stories, using filters provided in the command line.
 
     Story sharding is done before exclusion and inclusion is done.
+
+    Args:
+      stories: A list of stories.
+
+    Returns:
+      A list of remaining stories.
     """
     if cls._begin_index < 0:
       cls._begin_index = 0
     if cls._end_index is None:
-      cls._end_index = len(story_set)
+      cls._end_index = len(stories)
 
-    story_set = story_set[cls._begin_index:cls._end_index]
+    stories = stories[cls._begin_index:cls._end_index]
 
-    final_story_set = []
-    for story in story_set:
+    final_stories = []
+    for story in stories:
       # Exclude filters take priority.
       if cls._exclude_tags.HasLabelIn(story):
         continue
@@ -122,6 +128,6 @@ class StoryFilter(command_line.ArgumentHandlerMixIn):
       if cls._include_regex and not cls._include_regex.HasMatch(story):
         continue
 
-      final_story_set.append(story)
+      final_stories.append(story)
 
-    return final_story_set
+    return final_stories
