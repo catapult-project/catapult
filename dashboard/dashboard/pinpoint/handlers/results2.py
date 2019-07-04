@@ -24,7 +24,7 @@ class Results2(webapp2.RequestHandler):
       if not job:
         raise results2.Results2Error('Error: Unknown job %s' % job_id)
 
-      if job.task:
+      if not job.completed:
         self.response.out.write(json.dumps({'status': 'job-incomplete'}))
         return
 

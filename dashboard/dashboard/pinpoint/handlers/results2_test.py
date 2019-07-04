@@ -38,8 +38,18 @@ class Results2GetTest(_Results2Test):
     self.assertIn('Error', response.body)
 
   @mock.patch.object(results2.results2, 'GetCachedResults2',
+                     mock.MagicMock(return_value=None))
+  @mock.patch.object(results2.results2, 'ScheduleResults2Generation',
+                     mock.MagicMock(return_value=False))
+  def testGet_NotStarted_Incomplete(self):
+    self._SetJob(_JobStub('456', started=False))
+
+    result = json.loads(self.testapp.get('/api/results2/456').body)
+    self.assertEqual('job-incomplete', result['status'])
+
+  @mock.patch.object(results2.results2, 'GetCachedResults2',
                      mock.MagicMock(return_value='foo'))
-  def testGet_UsesCached(self):
+  def testGet_AlreadyRunning_UsesCached(self):
     self._SetJob(_JobStub('456'))
 
     result = json.loads(self.testapp.get('/api/results2/456').body)
@@ -89,8 +99,12 @@ class _TaskStub(object):
 
 class _JobStub(object):
 
-  def __init__(self, job_id, task=None):
+  def __init__(self, job_id, started=True, task=None):
     self.job_id = job_id
     self.task = task
+    self.started = started
 
+  @property
+  def completed(self):
+    return self.started and not self.task
 
