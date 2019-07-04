@@ -345,7 +345,7 @@ class _ChromeOSController(_PlatformController):
       # Benchmark and story names are delimited by "@@" and ends with "@@".
       # These can derived from the .perf.data filename.
       file_safe_name = (
-          urllib.quote(results.telemetry_info.benchmark_name, safe='')
+          urllib.quote(results.benchmark_name, safe='')
           + "@@" + urllib.quote(results.current_page.name, safe='') + "@@")
       self._CreateArtifacts(file_safe_name, results)
 

@@ -23,32 +23,30 @@ def _mk_dict(d, *args):
   return d
 
 
-def ResultsAsDict(page_test_results):
+def ResultsAsDict(results):
   """Takes PageTestResults to a dict in the JSON test results format.
 
   To serialize results as JSON we first convert them to a dict that can be
   serialized by the json module.
 
   Args:
-    page_test_results: a PageTestResults object
+    results: a PageTestResults object
   """
-  telemetry_info = page_test_results.telemetry_info
   result_dict = {
-      'interrupted': telemetry_info.benchmark_interrupted,
+      'interrupted': results.benchmark_interrupted,
       'path_delimiter': '/',
       'version': 3,
-      'seconds_since_epoch': telemetry_info.benchmark_start_us / 1e6,
+      'seconds_since_epoch': results.benchmark_start_us / 1e6,
       'tests': {},
   }
   status_counter = collections.Counter()
-  for run in page_test_results.all_page_runs:
+  for run in results.all_page_runs:
     status = run.status
     expected = status if run.is_expected else 'PASS'
     status_counter[status] += 1
 
     test = _mk_dict(
-        result_dict, 'tests', telemetry_info.benchmark_name,
-        run.story.name)
+        result_dict, 'tests', results.benchmark_name, run.story.name)
     if 'actual' not in test:
       test['actual'] = status
     else:
@@ -78,7 +76,7 @@ def ResultsAsDict(page_test_results):
         # Paths in json format should be relative to the output directory and
         # '/'-delimited on all platforms according to the spec.
         relative_path = os.path.relpath(artifact.local_path,
-                                        page_test_results.output_dir)
+                                        results.output_dir)
         artifact_path = relative_path.replace(os.sep, '/')
 
       test.setdefault('artifacts', {}).setdefault(artifact.name, []).append(
@@ -108,13 +106,13 @@ def ResultsAsDict(page_test_results):
 
 
 class JsonOutputFormatter(output_formatter.OutputFormatter):
-  def Format(self, page_test_results):
+  def Format(self, results):
     """Serialize page test results in JSON Test Results format."""
     json.dump(
-        ResultsAsDict(page_test_results),
+        ResultsAsDict(results),
         self.output_stream, indent=2, sort_keys=True, separators=(',', ': '))
     self.output_stream.write('\n')
 
-  def FormatDisabled(self, page_test_results):
+  def FormatDisabled(self, results):
     """Serialize disabled benchmark in JSON Test Results format."""
-    self.Format(page_test_results)
+    self.Format(results)

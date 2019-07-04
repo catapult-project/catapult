@@ -30,13 +30,12 @@ def UploadArtifactsToCloud(results):
 
   Sets 'url' attribute of each artifact to its cloud URL.
   """
-  bucket = results.telemetry_info.upload_bucket
   for run in results.all_page_runs:
     for artifact in run.IterArtifacts():
       if artifact.url is None:
         remote_name = str(uuid.uuid1())
         cloud_url = cloud_storage.Insert(
-            bucket, remote_name, artifact.local_path)
+            results.upload_bucket, remote_name, artifact.local_path)
         logging.info('Uploading %s of page %s to %s\n' % (
             artifact.name, run.story.name, cloud_url))
         artifact.SetUrl(cloud_url)
@@ -50,10 +49,8 @@ def SerializeAndUploadHtmlTraces(results):
   This is done only once, subsequent calls to this function will not
   do anything.
   """
-  label = results.telemetry_info.label,
-  bucket = results.telemetry_info.upload_bucket
   for run in results.IterRunsWithTraces():
-    _SerializeAndUploadHtmlTrace(run, label, bucket)
+    _SerializeAndUploadHtmlTrace(run, results.label, results.upload_bucket)
 
 
 def ComputeTimelineBasedMetrics(results):
@@ -76,9 +73,7 @@ def ComputeTimelineBasedMetrics(results):
   threads_count = min(_GetCpuCount()/2 or 1, len(runs_with_traces))
   pool = ThreadPool(threads_count)
   metrics_runner = lambda run: _ComputeMetricsInPool(
-      run,
-      results.telemetry_info.label,
-      results.telemetry_info.upload_bucket)
+      run, results.label, results.upload_bucket)
 
   try:
     for result in pool.imap_unordered(metrics_runner, runs_with_traces):

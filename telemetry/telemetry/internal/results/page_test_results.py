@@ -27,50 +27,18 @@ from tracing.value.diagnostics import reserved_infos
 
 
 class TelemetryInfo(object):
-  def __init__(self, benchmark_name, benchmark_description, results_label=None,
-               upload_bucket=None, output_dir=None):
-    self._benchmark_name = benchmark_name
-    self._benchmark_start_us = time.time() * 1e6
-    self._benchmark_interrupted = False
-    self._benchmark_descriptions = benchmark_description
-    self._label = results_label
+  def __init__(self):
     self._story_name = None
     self._story_tags = set()
     self._story_grouping_keys = {}
     self._storyset_repeat_counter = 0
     self._trace_start_us = None
-    self._upload_bucket = upload_bucket
     self._trace_remote_path = None
-    self._output_dir = output_dir
     self._had_failures = None
-
-  @property
-  def upload_bucket(self):
-    return self._upload_bucket
-
-  @property
-  def benchmark_name(self):
-    return self._benchmark_name
-
-  @property
-  def benchmark_start_us(self):
-    return self._benchmark_start_us
-
-  @property
-  def benchmark_descriptions(self):
-    return self._benchmark_descriptions
 
   @property
   def trace_start_us(self):
     return self._trace_start_us
-
-  @property
-  def benchmark_interrupted(self):
-    return self._benchmark_interrupted
-
-  @property
-  def label(self):
-    return self._label
 
   @property
   def story_display_name(self):
@@ -95,9 +63,6 @@ class TelemetryInfo(object):
   def GetStoryTagsList(self):
     return list(self._story_tags) + [
         '%s:%s' % kv for kv in self._story_grouping_keys.iteritems()]
-
-  def InterruptBenchmark(self):
-    self._benchmark_interrupted = True
 
   def WillRunStory(self, story, storyset_repeat_counter):
     self._trace_start_us = time.time() * 1e6
@@ -143,6 +108,7 @@ class PageTestResults(object):
     self._output_formatters = (
         output_formatters if output_formatters is not None else [])
     self._output_dir = output_dir
+    self._upload_bucket = upload_bucket
     if should_add_value is not None:
       self._should_add_value = should_add_value
     else:
@@ -158,11 +124,10 @@ class PageTestResults(object):
 
     self._benchmark_name = benchmark_name or '(unknown benchmark)'
     self._benchmark_description = benchmark_description or ''
-    self._telemetry_info = TelemetryInfo(
-        benchmark_name=self._benchmark_name,
-        benchmark_description=self._benchmark_description,
-        results_label=results_label,
-        upload_bucket=upload_bucket, output_dir=output_dir)
+    self._benchmark_start_us = time.time() * 1e6
+    self._benchmark_interrupted = False
+    self._results_label = results_label
+    self._telemetry_info = TelemetryInfo()
 
     # State of the benchmark this set of results represents.
     self._benchmark_enabled = benchmark_enabled
@@ -174,10 +139,6 @@ class PageTestResults(object):
     self._story_run_count = {}
 
   @property
-  def telemetry_info(self):
-    return self._telemetry_info
-
-  @property
   def benchmark_name(self):
     return self._benchmark_name
 
@@ -186,8 +147,24 @@ class PageTestResults(object):
     return self._benchmark_description
 
   @property
+  def benchmark_start_us(self):
+    return self._benchmark_start_us
+
+  @property
+  def benchmark_interrupted(self):
+    return self._benchmark_interrupted
+
+  @property
+  def label(self):
+    return self._results_label
+
+  @property
   def output_dir(self):
     return self._output_dir
+
+  @property
+  def upload_bucket(self):
+    return self._upload_bucket
 
   def AsHistogramDicts(self):
     return self._histograms.AsDicts()
@@ -200,9 +177,8 @@ class PageTestResults(object):
     results_processor.SerializeAndUploadHtmlTraces(self)
 
     chart_json = chart_json_output_formatter.ResultsAsChartDict(self)
-    info = self.telemetry_info
-    chart_json['label'] = info.label
-    chart_json['benchmarkStartMs'] = info.benchmark_start_us / 1000.0
+    chart_json['label'] = self.label
+    chart_json['benchmarkStartMs'] = self.benchmark_start_us / 1000.0
 
     file_descriptor, chart_json_path = tempfile.mkstemp()
     os.close(file_descriptor)
@@ -321,8 +297,7 @@ class PageTestResults(object):
     assert not self._current_page_run, 'Did not call DidRunPage.'
     self._current_page_run = story_run.StoryRun(page, self._output_dir)
     self._progress_reporter.WillRunPage(self)
-    self.telemetry_info.WillRunStory(
-        page, storyset_repeat_counter)
+    self._telemetry_info.WillRunStory(page, storyset_repeat_counter)
 
   def DidRunPage(self, page):  # pylint: disable=unused-argument
     """
@@ -359,7 +334,7 @@ class PageTestResults(object):
       self._current_page_run = None
 
   def InterruptBenchmark(self, stories, repeat_count):
-    self.telemetry_info.InterruptBenchmark()
+    self._benchmark_interrupted = True
     # If we are in the middle of running a page it didn't finish
     # so reset the current page run
     self._current_page_run = None
@@ -384,10 +359,10 @@ class PageTestResults(object):
     """Get benchmark metadata as histogram diagnostics."""
     info = self._telemetry_info
     diag_values = [
-        (reserved_infos.BENCHMARKS, info.benchmark_name),
-        (reserved_infos.BENCHMARK_START, info.benchmark_start_us),
-        (reserved_infos.BENCHMARK_DESCRIPTIONS, info.benchmark_descriptions),
-        (reserved_infos.LABELS, info.label),
+        (reserved_infos.BENCHMARKS, self.benchmark_name),
+        (reserved_infos.BENCHMARK_START, self.benchmark_start_us),
+        (reserved_infos.BENCHMARK_DESCRIPTIONS, self.benchmark_description),
+        (reserved_infos.LABELS, self.label),
         (reserved_infos.HAD_FAILURES, info.had_failures),
         (reserved_infos.STORIES, info._story_name),
         (reserved_infos.STORY_TAGS, info.GetStoryTagsList()),

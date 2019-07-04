@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import csv
 import os
 import shutil
 import StringIO
@@ -42,14 +43,10 @@ class CsvOutputFormatterTest(unittest.TestCase):
           benchmark_description='foo',
           output_dir=self._temp_dir,
           upload_bucket='fake_bucket')
-    self._formatter = None
-    self.MakeFormatter()
+    self._formatter = csv_output_formatter.CsvOutputFormatter(self._output)
 
   def tearDown(self):
     shutil.rmtree(self._temp_dir)
-
-  def MakeFormatter(self):
-    self._formatter = csv_output_formatter.CsvOutputFormatter(self._output)
 
   def SimulateBenchmarkRun(self, list_of_page_and_values):
     """Simulate one run of a benchmark, using the supplied values.
@@ -79,16 +76,20 @@ class CsvOutputFormatterTest(unittest.TestCase):
         (self._story_set[0], [scalar.ScalarValue(
             None, 'foo', 'seconds', 3,
             improvement_direction=improvement_direction.DOWN)])])
-    expected = '\r\n'.join([
-        'name,unit,avg,count,max,min,std,sum,architectures,benchmarks,' +
-        'benchmarkStart,bots,builds,deviceIds,displayLabel,masters,' +
-        'memoryAmounts,osNames,osVersions,productVersions,stories,' +
-        'storysetRepeats,traceStart,traceUrls',
-        'foo,ms,3000,1,3000,3000,0,3000,,benchmark,2017-07-14 02:40:00,,,,' +
-        'benchmark 2017-07-14 02:40:00,,,,,,http://www.foo.com/,,,',
-        ''])
 
-    self.assertEqual(expected, self.Format())
+    actual = list(zip(*csv.reader(self.Format().splitlines())))
+    expected = [
+        ('name', 'foo'), ('unit', 'ms'), ('avg', '3000'), ('count', '1'),
+        ('max', '3000'), ('min', '3000'), ('std', '0'), ('sum', '3000'),
+        ('architectures', ''), ('benchmarks', 'benchmark'),
+        ('benchmarkStart', '2017-07-14 02:40:00'), ('bots', ''), ('builds', ''),
+        ('deviceIds', ''), ('displayLabel', 'benchmark 2017-07-14 02:40:00'),
+        ('masters', ''), ('memoryAmounts', ''), ('osNames', ''),
+        ('osVersions', ''), ('productVersions', ''),
+        ('stories', 'http://www.foo.com/'), ('storysetRepeats', ''),
+        ('traceStart', ''), ('traceUrls', '')
+    ]
+    self.assertEqual(actual, expected)
 
   @mock.patch('py_utils.cloud_storage.Insert')
   def testMultiplePagesAndValues(self, cloud_storage_insert_patch):
@@ -111,18 +112,14 @@ class CsvOutputFormatterTest(unittest.TestCase):
                 improvement_direction=improvement_direction.DOWN)])])
 
     # Parse CSV output into list of lists.
-    csv_string = self.Format()
-    lines = csv_string.split('\r\n')
-    values = [s.split(',') for s in lines[1:-1]]
+    values = list(csv.reader(self.Format().splitlines()))[1:]
     values.sort()
 
     self.assertEquals(len(values), 4)
     self.assertEquals(len(set((v[1] for v in values))), 2)  # 2 pages.
     self.assertEquals(len(set((v[2] for v in values))), 4)  # 4 value names.
     sample_row = values[2]
-    trace_url = sample_row.pop()
     self.assertEquals(sample_row, [
         'foo', 'ms', '3400', '1', '3400', '3400', '0', '3400', '', 'benchmark',
         '2017-07-14 02:40:00', '', '', '', 'benchmark 2017-07-14 02:40:00', '',
-        '', '', '', '', 'http://www.bar.com/', '', ''])
-    self.assertEquals(trace_url, 'fake_url')
+        '', '', '', '', 'http://www.bar.com/', '', '', 'fake_url'])

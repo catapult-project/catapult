@@ -33,7 +33,7 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
   def WillRunPage(self, page_test_results):
     super(GTestProgressReporter, self).WillRunPage(page_test_results)
     print >> self._output_stream, '[ RUN      ] %s/%s%s' % (
-        page_test_results.telemetry_info.benchmark_name,
+        page_test_results.benchmark_name,
         page_test_results.current_page.name,
         self._GenerateGroupingKeyString(page_test_results.current_page))
 
@@ -45,7 +45,7 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
     page = page_test_results.current_page
     if page_test_results.current_page_run.failed:
       print >> self._output_stream, '[  FAILED  ] %s/%s%s (%0.f ms)' % (
-          page_test_results.telemetry_info.benchmark_name,
+          page_test_results.benchmark_name,
           page.name,
           self._GenerateGroupingKeyString(page_test_results.current_page),
           self._GetMs())
@@ -53,13 +53,13 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
       print >> self._output_stream, '== Skipping story: %s ==' % (
           page_test_results.current_page_run.skip_reason)
       print >> self._output_stream, '[  SKIPPED ] %s/%s%s (%0.f ms)' % (
-          page_test_results.telemetry_info.benchmark_name,
+          page_test_results.benchmark_name,
           page.name,
           self._GenerateGroupingKeyString(page_test_results.current_page),
           self._GetMs())
     else:
       print >> self._output_stream, '[       OK ] %s/%s%s (%0.f ms)' % (
-          page_test_results.telemetry_info.benchmark_name,
+          page_test_results.benchmark_name,
           page.name,
           self._GenerateGroupingKeyString(page_test_results.current_page),
           self._GetMs())
@@ -91,7 +91,7 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
           (len(failed_runs), unit))
       for failed_run in failed_runs:
         print >> self._output_stream, '[  FAILED  ]  %s/%s%s' % (
-            page_test_results.telemetry_info.benchmark_name,
+            page_test_results.benchmark_name,
             failed_run.story.name,
             self._GenerateGroupingKeyString(failed_run.story))
       print >> self._output_stream
