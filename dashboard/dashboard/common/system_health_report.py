@@ -14,11 +14,6 @@ from dashboard.models import report_template
 from dashboard import update_test_suite_descriptors
 
 
-MEMORY_PHASES = [
-    ('Foreground', ['load:', 'browse:']),
-    ('Background', ['background:'])
-]
-
 MEMORY_METRICS = [
     ('Java Heap', 'system_memory:java_heap'),
     ('Native Heap', 'system_memory:native_heap'),
@@ -62,37 +57,37 @@ def GetSystemHealthDescriptors():
       'system_health.memory_mobile')
 
 
-def IterPhasesAndTestCases():
-  descriptors = GetSystemHealthDescriptors()
-
-  for phase, prefixes in MEMORY_PHASES:
-    # Select test cases that start with any of the given prefixes.
-    test_cases = [
-        test_case for test_case in descriptors['cases']
-        if any(test_case.startswith(prefix) for prefix in prefixes)]
-    yield phase, test_cases
-
-
 def IterTemplateRows(browser, bot):
-  for phase, test_cases in IterPhasesAndTestCases():
-    for label, component in MEMORY_METRICS:
-      yield {
-          'label': ':'.join([phase, label]),
-          'testSuites': ['system_health.memory_mobile'],
-          'bots': [bot],
-          'measurement': ':'.join([
-              'memory', browser, 'all_processes:reported_by_os', component,
-              'proportional_resident_size']),
-          'testCases': test_cases
-      }
-  yield {
-      'label': 'Battery:Energy Consumption',
-      'testSuites': ['power.typical_10_mobile'],
-      'bots': [bot],
-      'measurement': 'application_energy_consumption_mwh',
-      'testCases': []
-  }
+  descriptors = GetSystemHealthDescriptors()
+  test_cases = descriptors['caseTags']['health_check']
+
+  # Startup.
   yield dict(STARTUP_BY_BROWSER[browser], label='Startup:Time', bots=[bot])
+
+  # Memory.
+  if bot == 'ChromiumPerf:android-pixel2_webview-perf':
+    # The pixel2 webview bot incorrectly reports memory as if coming from
+    # chrome. TODO(crbug.com/972620): Remove this when bug is fixed.
+    browser = 'chrome'
+  for label, component in MEMORY_METRICS:
+    yield {
+        'label': ':'.join(['Memory', label]),
+        'testSuites': ['system_health.memory_mobile'],
+        'bots': [bot],
+        'measurement': ':'.join([
+            'memory', browser, 'all_processes:reported_by_os', component,
+            'proportional_resident_size']),
+        'testCases': test_cases
+    }
+
+  # CPU.
+  yield {
+      'label': 'CPU:Time Percentage',
+      'testSuites': ['system_health.common_mobile'],
+      'bots': [bot],
+      'measurement': 'cpu_time_percentage',
+      'testCases': test_cases
+  }
 
 
 def CreateSystemHealthReport(template_id, name, builder, is_fyi, modified):
