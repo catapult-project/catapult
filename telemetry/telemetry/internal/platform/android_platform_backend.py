@@ -246,16 +246,6 @@ class AndroidPlatformBackend(
       raise Exception('Error installing PushAppsToBackground.apk.')
     self.InstallApplication(host_path)
 
-  def GetChildPids(self, pid):
-    return [p.pid for p in self._device.ListProcesses() if p.ppid == pid]
-
-  @decorators.Cache
-  def GetCommandLine(self, pid):
-    try:
-      return next(p.name for p in self._device.ListProcesses() if p.pid == pid)
-    except StopIteration:
-      raise exceptions.ProcessGoneException()
-
   @decorators.Cache
   def GetArchName(self):
     return self._device.GetABI()
@@ -353,11 +343,6 @@ class AndroidPlatformBackend(
     """Starts an activity for the given intent on the device."""
     self._device.StartActivity(intent, blocking=blocking)
 
-  def IsApplicationRunning(self, application):
-    # For Android apps |application| is usually the package name of the app.
-    # Note that the string provided must match the process name exactly.
-    return bool(self._device.GetApplicationPids(application))
-
   def CanLaunchApplication(self, application):
     return bool(self._device.GetApplicationPaths(application))
 
@@ -380,28 +365,6 @@ class AndroidPlatformBackend(
       logging.warning('%s cannot be retrieved on non-rooted device.', fname)
       return ''
     return self._device.ReadFile(fname, as_root=True)
-
-  def GetPsOutput(self, columns, pid=None):
-    """Get information about processes provided via the ps command.
-
-    Args:
-      columns: a list of strings with the ps columns to return; supports those
-        defined in device_utils.PS_COLUMNS, currently: 'name', 'pid', 'ppid'.
-      pid: if given only return rows for processes matching the given pid.
-
-    Returns:
-      A list of rows, one for each process found. Each row is in turn a list
-      with the values corresponding to each of the requested columns.
-    """
-    unknown = [c for c in columns if c not in device_utils.PS_COLUMNS]
-    assert not unknown, 'Requested unknown columns: %s. Supported: %s.' % (
-        ', '.join(unknown), ', '.join(device_utils.PS_COLUMNS))
-
-    processes = self._device.ListProcesses()
-    if pid is not None:
-      processes = [p for p in processes if p.pid == pid]
-
-    return [[getattr(p, c) for c in columns] for p in processes]
 
   def RunCommand(self, command):
     return '\n'.join(self._device.RunShellCommand(

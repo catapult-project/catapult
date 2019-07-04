@@ -128,12 +128,6 @@ class PlatformBackend(object):
   def GetSystemTotalPhysicalMemory(self):
     raise NotImplementedError()
 
-  def GetChildPids(self, pid):
-    raise NotImplementedError()
-
-  def GetCommandLine(self, pid):
-    raise NotImplementedError()
-
   def GetDeviceTypeName(self):
     raise NotImplementedError()
 
@@ -172,9 +166,6 @@ class PlatformBackend(object):
     raise NotImplementedError()
 
   def StartActivity(self, intent, blocking):
-    raise NotImplementedError()
-
-  def IsApplicationRunning(self, application):
     raise NotImplementedError()
 
   def CanLaunchApplication(self, application):

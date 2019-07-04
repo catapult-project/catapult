@@ -12,7 +12,7 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
 
   This includes Android and ChromeOS.
 
-  Subclasses must implement RunCommand, GetFileContents, GetPsOutput."""
+  Subclasses must implement RunCommand, GetFileContents."""
 
   @decorators.Cache
   def GetSystemTotalPhysicalMemory(self):
@@ -23,9 +23,6 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
     return self._ConvertToBytes(meminfo['MemTotal'])
 
   def GetFileContents(self, filename):
-    raise NotImplementedError()
-
-  def GetPsOutput(self, columns, pid=None):
     raise NotImplementedError()
 
   def RunCommand(self, cmd):

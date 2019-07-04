@@ -11,7 +11,6 @@ from telemetry.core import util
 from telemetry.internal.forwarders import cros_forwarder
 from telemetry.internal.platform import cros_device
 from telemetry.internal.platform import linux_based_platform_backend
-from telemetry.internal.util import ps_util
 
 
 class CrosPlatformBackend(
@@ -89,9 +88,6 @@ class CrosPlatformBackend(
   def PushContents(self, text, remote_filename):
     return self._cri.PushContents(text, remote_filename)
 
-  def GetPsOutput(self, columns, pid=None):
-    return ps_util.GetPsOutputWithPlatformBackend(self, columns, pid)
-
   def GetDeviceTypeName(self):
     return self._cri.GetDeviceTypeName()
 
@@ -107,17 +103,6 @@ class CrosPlatformBackend(
 
   def GetOSVersionDetailString(self):
     return ''  # TODO(kbr): Implement this.
-
-  def GetChildPids(self, pid):
-    """Returns a list of child pids of |pid|."""
-    all_process_info = self._cri.ListProcesses()
-    processes = [(curr_pid, curr_ppid, curr_state)
-                 for curr_pid, _, curr_ppid, curr_state in all_process_info]
-    return ps_util.GetChildPids(processes, pid)
-
-  def GetCommandLine(self, pid):
-    procs = self._cri.ListProcesses()
-    return next((proc[1] for proc in procs if proc[0] == pid), None)
 
   def CanFlushIndividualFilesFromSystemCache(self):
     return True

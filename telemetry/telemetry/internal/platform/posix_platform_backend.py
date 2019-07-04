@@ -13,7 +13,6 @@ import subprocess
 import sys
 
 from telemetry.internal.platform import desktop_platform_backend
-from telemetry.internal.util import ps_util
 
 
 def _BinaryExistsInSudoersFiles(path, sudoers_file_contents):
@@ -49,53 +48,8 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     with open(path, 'r') as f:
       return f.read()
 
-  def GetPsOutput(self, columns, pid=None):
-    """Returns output of the 'ps' command as a list of lines.
-    Subclass should override this function.
-
-    Args:
-      columns: A list of require columns, e.g., ['pid', 'pss'].
-      pid: If not None, returns only the information of the process
-         with the pid.
-    """
-    return ps_util.GetPsOutputWithPlatformBackend(self, columns, pid)
-
-  def _GetTopOutput(self, pid, columns):
-    """Returns output of the 'top' command as a list of lines.
-
-    Args:
-      pid: pid of process to examine.
-      columns: A list of require columns, e.g., ['idlew', 'vsize'].
-    """
-    args = ['top']
-    args.extend(['-pid', str(pid), '-l', '1', '-s', '0', '-stats',
-                 ','.join(columns)])
-    return self.RunCommand(args).splitlines()
-
-  def GetChildPids(self, pid):
-    """Returns a list of child pids of |pid|."""
-    ps_output = self.GetPsOutput(['pid', 'ppid', 'state'])
-    ps_line_re = re.compile(
-        r'\s*(?P<pid>\d+)\s*(?P<ppid>\d+)\s*(?P<state>\S*)\s*')
-    processes = []
-    for pid_ppid_state in ps_output:
-      m = ps_line_re.match(pid_ppid_state)
-      assert m, 'Did not understand ps output: %s' % pid_ppid_state
-      processes.append((m.group('pid'), m.group('ppid'), m.group('state')))
-    return ps_util.GetChildPids(processes, pid)
-
-  def GetCommandLine(self, pid):
-    command = self.GetPsOutput(['command'], pid)
-    return command[0] if command else None
-
   def CanLaunchApplication(self, application):
     return bool(spawn.find_executable(application))
-
-  def IsApplicationRunning(self, application):
-    ps_output = self.GetPsOutput(['command'])
-    application_re = re.compile(
-        r'(.*%s|^)%s(\s|$)' % (os.path.sep, application))
-    return any(application_re.match(cmd) for cmd in ps_output)
 
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):

@@ -230,10 +230,6 @@ class Platform(object):
     """Starts an activity for the given intent on the device."""
     return self._platform_backend.StartActivity(intent, blocking)
 
-  def IsApplicationRunning(self, application):
-    """Returns whether an application is currently running."""
-    return self._platform_backend.IsApplicationRunning(application)
-
   def CanLaunchApplication(self, application):
     """Returns whether the platform can launch the given application."""
     return self._platform_backend.CanLaunchApplication(application)
