@@ -141,11 +141,15 @@ class GerritPatch(collections.namedtuple(
 
     change_rev_match = re.match(r'^.*\/\+\/(\d+)(?:\/(\d+))?\/?$', url)
     change_match = re.match(r'^\/(\d+)\/?$', url_parts.path)
+    redirector_match = re.match(r'^/c/(\d+)\/?$', url_parts.path)
     if change_rev_match:
       change = change_rev_match.group(1)
       revision = change_rev_match.group(2)
     elif change_match:  # support URLs returned by the 'git cl issue' command
       change = change_match.group(1)
+      revision = None
+    elif redirector_match: # Supprt non-fully-resolved URLs
+      change = redirector_match.group(1)
       revision = None
     else:
       raise errors.BuildGerritURLInvalid(url)
