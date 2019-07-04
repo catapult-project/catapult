@@ -73,20 +73,6 @@
         }
       }
     },
-    "file_poller": {
-      "cloud_storage_base_folder": "binary_dependencies",
-      "cloud_storage_bucket": "chromium-telemetry",
-      "file_info": {
-        "android_arm64-v8a": {
-          "cloud_storage_hash": "fd5b417f78c7f7d9192a98967058709ded1d399d",
-          "download_path": "bin/android/arm64-v8a/file_poller"
-        },
-        "android_armeabi-v7a": {
-          "cloud_storage_hash": "cf5c8fe920378ce30d057e76591d57f63fd31c1a",
-          "download_path": "bin/android/armeabi-v7a/file_poller"
-        }
-      }
-    },
     "gdb": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
