@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import collections
-import copy
 import json
 import logging
 import os
@@ -194,15 +192,6 @@ class PageTestResults(object):
       return []
     self._histograms.ImportDicts(json.loads(vinn_result.stdout))
     self._histograms.ImportDicts(self._histogram_dicts_to_add)
-
-  def __copy__(self):
-    cls = self.__class__
-    result = cls.__new__(cls)
-    for k, v in self.__dict__.items():
-      if isinstance(v, collections.Container):
-        v = copy.copy(v)
-      setattr(result, k, v)
-    return result
 
   @property
   def all_page_specific_values(self):
