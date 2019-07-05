@@ -63,7 +63,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     self._output.truncate(0)
 
     results.WillRunPage(self._story_set[0])
-    v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3,
+    v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
                             improvement_direction=improvement_direction.DOWN)
     results.AddValue(v0)
     results.DidRunPage(self._story_set[0])
@@ -85,7 +85,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
   def testAsDictWithOnePage(self):
     results = _MakePageTestResults()
     results.WillRunPage(self._story_set[0])
-    v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3,
+    v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
                             improvement_direction=improvement_direction.DOWN)
     results.AddValue(v0)
     results.DidRunPage(self._story_set[0])
@@ -102,13 +102,13 @@ class Json3OutputFormatterTest(unittest.TestCase):
   def testAsDictWithTwoPages(self):
     results = _MakePageTestResults()
     results.WillRunPage(self._story_set[0])
-    v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3,
+    v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
                             improvement_direction=improvement_direction.DOWN)
     results.AddValue(v0)
     results.DidRunPage(self._story_set[0])
 
     results.WillRunPage(self._story_set[1])
-    v1 = scalar.ScalarValue(results.current_page, 'bar', 'seconds', 4,
+    v1 = scalar.ScalarValue(results.current_story, 'bar', 'seconds', 4,
                             improvement_direction=improvement_direction.DOWN)
     results.AddValue(v1)
     results.DidRunPage(self._story_set[1])
@@ -133,7 +133,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     results = _MakePageTestResults()
 
     results.WillRunPage(self._story_set[0])
-    v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3,
+    v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
                             improvement_direction=improvement_direction.DOWN)
     results.AddValue(v0)
     results.DidRunPage(self._story_set[0])
@@ -143,7 +143,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
     results.DidRunPage(self._story_set[1])
 
     results.WillRunPage(self._story_set[0])
-    v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3,
+    v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
                             improvement_direction=improvement_direction.DOWN)
     results.AddValue(v0)
     results.DidRunPage(self._story_set[0])
@@ -198,13 +198,13 @@ class Json3OutputFormatterTest(unittest.TestCase):
       results = _MakePageTestResults()
 
       results.WillRunPage(self._story_set[0])
-      v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3,
+      v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
                               improvement_direction=improvement_direction.DOWN)
       results.AddValue(v0)
       results.DidRunPage(self._story_set[0])
 
       results.WillRunPage(self._story_set[1])
-      v1 = scalar.ScalarValue(results.current_page, 'bar', 'seconds', 4,
+      v1 = scalar.ScalarValue(results.current_story, 'bar', 'seconds', 4,
                               improvement_direction=improvement_direction.DOWN)
       results.AddValue(v1)
       results.DidRunPage(self._story_set[1])
@@ -290,7 +290,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
           'http://www.foo.com/', story_set, story_set.base_dir, name='Foo')
       results.WillRunPage(test_page)
       v0 = scalar.ScalarValue(
-          results.current_page,
+          results.current_story,
           'foo',
           'seconds',
           3,

@@ -114,7 +114,7 @@ class PageTestResults(object):
     else:
       self._should_add_value = lambda v, is_first: True
 
-    self._current_page_run = None
+    self._current_story_run = None
     self._all_page_runs = []
     self._all_stories = set()
     self._representative_value_for_each_value_name = {}
@@ -217,12 +217,17 @@ class PageTestResults(object):
 
   @property
   def current_page(self):
-    assert self._current_page_run, 'Not currently running test.'
-    return self._current_page_run.story
+    """DEPRECATED: Use current_story instead."""
+    return self.current_story
 
   @property
-  def current_page_run(self):
-    return self._current_page_run
+  def current_story(self):
+    assert self._current_story_run, 'Not currently running test.'
+    return self._current_story_run.story
+
+  @property
+  def current_story_run(self):
+    return self._current_story_run
 
   @property
   def all_page_runs(self):
@@ -277,8 +282,8 @@ class PageTestResults(object):
   def _IterAllStoryRuns(self):
     for run in self._all_page_runs:
       yield run
-    if self._current_page_run:
-      yield self._current_page_run
+    if self._current_story_run:
+      yield self._current_story_run
 
   def CloseOutputFormatters(self):
     """
@@ -294,8 +299,8 @@ class PageTestResults(object):
     self.CloseOutputFormatters()
 
   def WillRunPage(self, page, storyset_repeat_counter=0):
-    assert not self._current_page_run, 'Did not call DidRunPage.'
-    self._current_page_run = story_run.StoryRun(page, self._output_dir)
+    assert not self._current_story_run, 'Did not call DidRunPage.'
+    self._current_story_run = story_run.StoryRun(page, self._output_dir)
     self._progress_reporter.WillRunPage(self)
     self._telemetry_info.WillRunStory(page, storyset_repeat_counter)
 
@@ -304,17 +309,17 @@ class PageTestResults(object):
     Args:
       page: The current page under test.
     """
-    assert self._current_page_run, 'Did not call WillRunPage.'
-    self._current_page_run.Finish()
+    assert self._current_story_run, 'Did not call WillRunPage.'
+    self._current_story_run.Finish()
     self._progress_reporter.DidRunPage(self)
-    self._all_page_runs.append(self._current_page_run)
-    story = self._current_page_run.story
+    self._all_page_runs.append(self._current_story_run)
+    story = self._current_story_run.story
     self._all_stories.add(story)
     if bool(self._story_run_count.get(story)):
       self._story_run_count[story] += 1
     else:
       self._story_run_count[story] = 1
-    self._current_page_run = None
+    self._current_story_run = None
 
   def AddMetricPageResults(self, result):
     """Add results from metric computation.
@@ -322,7 +327,7 @@ class PageTestResults(object):
     Args:
       result: A dict produced by results_processor._ComputeMetricsInPool.
     """
-    self._current_page_run = result['run']
+    self._current_story_run = result['run']
     try:
       for fail in result['fail']:
         self.Fail(fail)
@@ -331,13 +336,13 @@ class PageTestResults(object):
       for scalar in result['scalars']:
         self.AddValue(scalar)
     finally:
-      self._current_page_run = None
+      self._current_story_run = None
 
   def InterruptBenchmark(self, stories, repeat_count):
     self._benchmark_interrupted = True
     # If we are in the middle of running a page it didn't finish
     # so reset the current page run
-    self._current_page_run = None
+    self._current_story_run = None
     for story in stories:
       num_runs = repeat_count - self._story_run_count.get(story, 0)
       for i in xrange(num_runs):
@@ -404,25 +409,25 @@ class PageTestResults(object):
       self._histogram_dicts_to_add.extend(dicts_to_add)
 
   def _ShouldAddHistogram(self, hist):
-    assert self._current_page_run, 'Not currently running test.'
+    assert self._current_story_run, 'Not currently running test.'
     is_first_result = (
-        self._current_page_run.story not in self._all_stories)
+        self._current_story_run.story not in self._all_stories)
     # TODO(eakuefner): Stop doing this once AddValue doesn't exist
     stat_names = [
         '%s_%s' % (hist.name, s) for  s in hist.statistics_scalars.iterkeys()]
     return any(self._should_add_value(s, is_first_result) for s in stat_names)
 
   def AddValue(self, value):
-    assert self._current_page_run, 'Not currently running test.'
+    assert self._current_story_run, 'Not currently running test.'
     assert self._benchmark_enabled, 'Cannot add value to disabled results'
 
     self._ValidateValue(value)
     is_first_result = (
-        self._current_page_run.story not in self._all_stories)
+        self._current_story_run.story not in self._all_stories)
 
     if not self._should_add_value(value.name, is_first_result):
       return
-    self._current_page_run.AddValue(value)
+    self._current_story_run.AddValue(value)
 
   def AddSharedDiagnosticToAllHistograms(self, name, diagnostic):
     self._histograms.AddSharedDiagnosticToAllHistograms(name, diagnostic)
@@ -437,26 +442,26 @@ class PageTestResults(object):
       failure: A string or exc_info describing the reason for failure.
     """
     # TODO(#4258): Relax this assertion.
-    assert self._current_page_run, 'Not currently running test.'
+    assert self._current_story_run, 'Not currently running test.'
     if isinstance(failure, basestring):
       failure_str = 'Failure recorded for page %s: %s' % (
-          self._current_page_run.story.name, failure)
+          self._current_story_run.story.name, failure)
     else:
       failure_str = ''.join(traceback.format_exception(*failure))
     logging.error(failure_str)
-    self._current_page_run.SetFailed(failure_str)
+    self._current_story_run.SetFailed(failure_str)
 
   def Skip(self, reason, is_expected=True):
-    assert self._current_page_run, 'Not currently running test.'
-    self._current_page_run.Skip(reason, is_expected)
+    assert self._current_story_run, 'Not currently running test.'
+    self._current_story_run.Skip(reason, is_expected)
 
   def CreateArtifact(self, name):
-    assert self._current_page_run, 'Not currently running test.'
-    return self._current_page_run.CreateArtifact(name)
+    assert self._current_story_run, 'Not currently running test.'
+    return self._current_story_run.CreateArtifact(name)
 
   def CaptureArtifact(self, name):
-    assert self._current_page_run, 'Not currently running test.'
-    return self._current_page_run.CaptureArtifact(name)
+    assert self._current_story_run, 'Not currently running test.'
+    return self._current_story_run.CaptureArtifact(name)
 
   def AddTraces(self, traces, tbm_metrics=None):
     """Associate some recorded traces with the current story run.
@@ -467,13 +472,13 @@ class PageTestResults(object):
       tbm_metrics: Optional list of TBMv2 metrics to be computed from the
         input traces.
     """
-    assert self._current_page_run, 'Not currently running test.'
+    assert self._current_story_run, 'Not currently running test.'
     for part, filename in traces.IterTraceParts():
       artifact_name = posixpath.join('trace', part, os.path.basename(filename))
       with self.CaptureArtifact(artifact_name) as artifact_path:
         shutil.copy(filename, artifact_path)
     if tbm_metrics:
-      self._current_page_run.SetTbmMetrics(tbm_metrics)
+      self._current_story_run.SetTbmMetrics(tbm_metrics)
 
   def AddSummaryValue(self, value):
     assert value.page is None

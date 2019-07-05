@@ -27,50 +27,43 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
     assert self._timestamp is not None, 'Did not call WillRunPage.'
     return (time.time() - self._timestamp) * 1000
 
-  def _GenerateGroupingKeyString(self, page):
-    return '' if not page.grouping_keys else '@%s' % str(page.grouping_keys)
+  def _GenerateGroupingKeyString(self, story):
+    return '' if not story.grouping_keys else '@%s' % str(story.grouping_keys)
 
-  def WillRunPage(self, page_test_results):
-    super(GTestProgressReporter, self).WillRunPage(page_test_results)
+  def WillRunPage(self, results):
+    super(GTestProgressReporter, self).WillRunPage(results)
     print >> self._output_stream, '[ RUN      ] %s/%s%s' % (
-        page_test_results.benchmark_name,
-        page_test_results.current_page.name,
-        self._GenerateGroupingKeyString(page_test_results.current_page))
+        results.benchmark_name,
+        results.current_story.name,
+        self._GenerateGroupingKeyString(results.current_story))
 
     self._output_stream.flush()
     self._timestamp = time.time()
 
-  def DidRunPage(self, page_test_results):
-    super(GTestProgressReporter, self).DidRunPage(page_test_results)
-    page = page_test_results.current_page
-    if page_test_results.current_page_run.failed:
-      print >> self._output_stream, '[  FAILED  ] %s/%s%s (%0.f ms)' % (
-          page_test_results.benchmark_name,
-          page.name,
-          self._GenerateGroupingKeyString(page_test_results.current_page),
-          self._GetMs())
-    elif page_test_results.current_page_run.skipped:
+  def DidRunPage(self, results):
+    super(GTestProgressReporter, self).DidRunPage(results)
+    if results.current_story_run.failed:
+      status = '[  FAILED  ]'
+    elif results.current_story_run.skipped:
       print >> self._output_stream, '== Skipping story: %s ==' % (
-          page_test_results.current_page_run.skip_reason)
-      print >> self._output_stream, '[  SKIPPED ] %s/%s%s (%0.f ms)' % (
-          page_test_results.benchmark_name,
-          page.name,
-          self._GenerateGroupingKeyString(page_test_results.current_page),
-          self._GetMs())
+          results.current_story_run.skip_reason)
+      status = '[  SKIPPED ]'
     else:
-      print >> self._output_stream, '[       OK ] %s/%s%s (%0.f ms)' % (
-          page_test_results.benchmark_name,
-          page.name,
-          self._GenerateGroupingKeyString(page_test_results.current_page),
-          self._GetMs())
+      status = '[       OK ]'
+    print >> self._output_stream, '%s %s/%s%s (%0.f ms)' % (
+        status,
+        results.benchmark_name,
+        results.current_story.name,
+        self._GenerateGroupingKeyString(results.current_story),
+        self._GetMs())
     self._output_stream.flush()
 
-  def DidFinishAllTests(self, page_test_results):
-    super(GTestProgressReporter, self).DidFinishAllTests(page_test_results)
+  def DidFinishAllTests(self, results):
+    super(GTestProgressReporter, self).DidFinishAllTests(results)
     successful_runs = []
     failed_runs = []
     skipped_runs = []
-    for run in page_test_results.all_page_runs:
+    for run in results.all_page_runs:
       if run.failed:
         failed_runs.append(run)
       elif run.skipped:
@@ -91,7 +84,7 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
           (len(failed_runs), unit))
       for failed_run in failed_runs:
         print >> self._output_stream, '[  FAILED  ]  %s/%s%s' % (
-            page_test_results.benchmark_name,
+            results.benchmark_name,
             failed_run.story.name,
             self._GenerateGroupingKeyString(failed_run.story))
       print >> self._output_stream

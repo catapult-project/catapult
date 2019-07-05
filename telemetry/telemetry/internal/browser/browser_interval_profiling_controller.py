@@ -341,12 +341,12 @@ class _ChromeOSController(_PlatformController):
 
   def GetResults(self, _, results):
     """Creates perf.data file artifacts from a successful story run."""
-    if results.current_page_run.ok:
+    if results.current_story_run.ok:
       # Benchmark and story names are delimited by "@@" and ends with "@@".
       # These can derived from the .perf.data filename.
       file_safe_name = (
           urllib.quote(results.benchmark_name, safe='')
-          + "@@" + urllib.quote(results.current_page.name, safe='') + "@@")
+          + "@@" + urllib.quote(results.current_story.name, safe='') + "@@")
       self._CreateArtifacts(file_safe_name, results)
 
     self._platform_backend.RunCommand(

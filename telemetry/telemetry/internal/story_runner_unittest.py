@@ -1709,7 +1709,7 @@ class BenchmarkJsonResultsTest(unittest.TestCase):
   def testUnexpectedSkipsWithFiltering(self):
     class UnhandledFailureSharedState(TestSharedState):
       def RunStory(self, results):
-        if results.current_page.name in stories_to_crash:
+        if results.current_story.name in stories_to_crash:
           raise MemoryError('this is an unexpected exception')
 
     class TestBenchmark(benchmark.Benchmark):

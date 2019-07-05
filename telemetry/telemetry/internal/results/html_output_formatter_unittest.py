@@ -43,7 +43,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results = page_test_results.PageTestResults()
 
     results.WillRunPage(self._story_set[0])
-    v0 = scalar.ScalarValue(results.current_page, 'foo', 'seconds', 3,
+    v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
                             improvement_direction=improvement_direction.DOWN)
     results.AddValue(v0)
     results.DidRunPage(self._story_set[0])

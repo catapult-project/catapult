@@ -55,7 +55,7 @@ def SerializeAndUploadHtmlTraces(results):
 
 def ComputeTimelineBasedMetrics(results):
   """Compute TBMv2 metrics on all story runs in parallel."""
-  assert not results.current_page_run, 'Cannot compute metrics while running.'
+  assert not results.current_story_run, 'Cannot compute metrics while running.'
   def _GetCpuCount():
     try:
       return multiprocessing.cpu_count()
