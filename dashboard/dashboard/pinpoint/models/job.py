@@ -122,6 +122,10 @@ class Job(ndb.Model):
 
   retry_count = ndb.IntegerProperty(default=0)
 
+  # We expose the configuration as a first-class property of the Job.
+  configuration = ndb.ComputedProperty(
+      lambda self: self.arguments.get('configuration'))
+
   # TODO(simonhatch): After migrating all Pinpoint entities, this can be
   # removed.
   # crbug.com/971370
@@ -239,8 +243,8 @@ class Job(ndb.Model):
     else:
       name = 'Try job'
 
-    if 'configuration' in self.arguments:
-      name += ' on ' + self.arguments['configuration']
+    if self.configuration:
+      name += ' on ' + self.configuration
       if 'benchmark' in self.arguments:
         name += '/' + self.arguments['benchmark']
 
@@ -444,6 +448,7 @@ class Job(ndb.Model):
   def AsDict(self, options=None):
     d = {
         'job_id': self.job_id,
+        'configuration': self.configuration,
         'results_url': self.results_url,
 
         'arguments': self.arguments,

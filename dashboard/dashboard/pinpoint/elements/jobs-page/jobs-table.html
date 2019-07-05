@@ -48,22 +48,27 @@ found in the LICENSE file.
       <thead>
         <tr>
           <th id="name" on-click="columnHeaderClicked">Job name</th>
+          <th id="configuration" on-click="columnHeaderClicked">Configuration</th>
           <th id="user" on-click="columnHeaderClicked">User</th>
           <th id="bug_id" on-click="columnHeaderClicked">Bug</th>
           <th id="created" on-click="columnHeaderClicked">Created</th>
           <th id="comparison_mode" on-click="columnHeaderClicked">Type</th>
           <th id="status" on-click="columnHeaderClicked">Status</th>
           <th id="difference_count" on-click="columnHeaderClicked">Differences</th>
+        </tr>
+      </thead>
       <tbody>
         <template is="dom-repeat" items="[[jobs]]" sort="[[jobSorter(sortBy, sortDescending)]]">
           <tr>
-            <td><a href='/job/[[item.job_id]]'>[[item.name]]</a>
-            <td>[[item.user]]
-            <td><a href="https://crbug.com/[[item.bug_id]]">[[item.bug_id]]</a>
-            <td>[[formatDate(item.created)]]
-            <td>[[formatComparisonMode(item.comparison_mode)]]
-            <td>[[item.status]]
-            <td>[[item.difference_count]]
+            <td><a href='/job/[[item.job_id]]'>[[item.name]]</a></td>
+            <td>[[formatConfiguration(item.configuration)]]</td>
+            <td>[[item.user]]</td>
+            <td><a href="https://crbug.com/[[item.bug_id]]">[[item.bug_id]]</a></td>
+            <td>[[formatDate(item.created)]]</td>
+            <td>[[formatComparisonMode(item.comparison_mode)]]</td>
+            <td>[[item.status]]</td>
+            <td>[[item.difference_count]]</td>
+          </tr>
         </template>
     </table>
   </template>
@@ -159,7 +164,14 @@ found in the LICENSE file.
           return 'try';
         }
         return comparisonMode;
-      }
+      },
+
+      formatConfiguration(configuration) {
+        if (!configuration) {
+          return '(None)';
+        }
+        return configuration;
+      },
     });
   </script>
 </dom-module>
