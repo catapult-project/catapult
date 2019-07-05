@@ -67,7 +67,7 @@ def ResultsAsChartDict(results):
     if value.page:
       charts[chart_name][trace_name]['story_tags'] = list(value.page.tags)
 
-  for run in results.all_page_runs:
+  for run in results.IterStoryRuns():
     artifact = run.GetArtifact(results_processor.HTML_TRACE_NAME)
     if artifact is not None:
       # This intentionally overwrites the trace if it already exists because

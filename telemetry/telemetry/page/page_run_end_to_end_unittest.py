@@ -43,7 +43,7 @@ def SetUpStoryRunnerArguments(options):
 
 
 def GetSuccessfulPageRuns(results):
-  return [run for run in results.all_page_runs if run.ok or run.skipped]
+  return [run for run in results.IterStoryRuns() if run.ok or run.skipped]
 
 
 def CaptureStderr(func, output_buffer):
@@ -251,7 +251,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       results = results_options.CreateResults(options)
       story_runner.Run(test, story_set, options, results)
       failure_messages = []
-      for r in results.all_page_runs:
+      for r in results.IterStoryRuns():
         if r.failure_str:
           failure_messages.append(
               'Failure message of story %s:\n%s' % (r.story, r.failure_str))
@@ -547,7 +547,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
                        max_failures=2)
       self.assertTrue(results.had_failures)
       if not platform_screenshot_supported[0] and tab_screenshot_supported[0]:
-        failed_run = next(run for run in results._all_page_runs
+        failed_run = next(run for run in results.IterStoryRuns()
                           if run.story.name == failing_page.name)
         screenshot_file_path = failed_run.GetArtifact('screenshot').local_path
 
@@ -618,7 +618,7 @@ class FakePageRunEndToEndTests(unittest.TestCase):
         story_runner.Run(DummyTest(), story_set, self.options, results,
                          max_failures=2)
         self.assertTrue(results.had_failures)
-        failed_run = next(run for run in results._all_page_runs
+        failed_run = next(run for run in results.IterStoryRuns()
                           if run.story.name == failing_page.name)
         screenshot_file_path = failed_run.GetArtifact('screenshot').local_path
 

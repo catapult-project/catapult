@@ -63,7 +63,7 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
     successful_runs = []
     failed_runs = []
     skipped_runs = []
-    for run in results.all_page_runs:
+    for run in results.IterStoryRuns():
       if run.failed:
         failed_runs.append(run)
       elif run.skipped:

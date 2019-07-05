@@ -113,7 +113,7 @@ class PageTestResults(object):
       self._should_add_value = lambda v, is_first: True
 
     self._current_story_run = None
-    self._all_page_runs = []
+    self._all_story_runs = []
     self._all_stories = set()
     self._representative_value_for_each_value_name = {}
     self._all_summary_values = []
@@ -219,16 +219,12 @@ class PageTestResults(object):
     return self._current_story_run
 
   @property
-  def all_page_runs(self):
-    return self._all_page_runs
-
-  @property
   def pages_that_succeeded(self):
     """Returns the set of pages that succeeded.
 
     Note: This also includes skipped pages.
     """
-    pages = set(run.story for run in self.all_page_runs)
+    pages = set(run.story for run in self._all_story_runs)
     pages.difference_update(self.pages_that_failed)
     return pages
 
@@ -247,7 +243,7 @@ class PageTestResults(object):
   def pages_that_failed(self):
     """Returns the set of failed pages."""
     failed_pages = set()
-    for run in self.all_page_runs:
+    for run in self._all_story_runs:
       if run.failed:
         failed_pages.add(run.story)
     return failed_pages
@@ -258,21 +254,24 @@ class PageTestResults(object):
 
   @property
   def had_failures(self):
-    return any(run.failed for run in self.all_page_runs)
+    return any(run.failed for run in self._all_story_runs)
 
   @property
   def num_failed(self):
-    return sum(1 for run in self.all_page_runs if run.failed)
+    return sum(1 for run in self._all_story_runs if run.failed)
 
   @property
   def had_skips(self):
     return any(run.skipped for run in self._IterAllStoryRuns())
 
   def _IterAllStoryRuns(self):
-    for run in self._all_page_runs:
+    for run in self._all_story_runs:
       yield run
     if self._current_story_run:
       yield self._current_story_run
+
+  def IterStoryRuns(self):
+    return iter(self._all_story_runs)
 
   def CloseOutputFormatters(self):
     """
@@ -301,7 +300,7 @@ class PageTestResults(object):
     assert self._current_story_run, 'Did not call WillRunPage.'
     self._current_story_run.Finish()
     self._progress_reporter.DidRunPage(self)
-    self._all_page_runs.append(self._current_story_run)
+    self._all_story_runs.append(self._current_story_run)
     story = self._current_story_run.story
     self._all_stories.add(story)
     if bool(self._story_run_count.get(story)):

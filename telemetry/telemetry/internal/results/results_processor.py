@@ -30,7 +30,7 @@ def UploadArtifactsToCloud(results):
 
   Sets 'url' attribute of each artifact to its cloud URL.
   """
-  for run in results.all_page_runs:
+  for run in results.IterStoryRuns():
     for artifact in run.IterArtifacts():
       if artifact.url is None:
         remote_name = str(uuid.uuid1())

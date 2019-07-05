@@ -40,7 +40,7 @@ def ResultsAsDict(results):
       'tests': {},
   }
   status_counter = collections.Counter()
-  for run in results.all_page_runs:
+  for run in results.IterStoryRuns():
     status = run.status
     expected = status if run.is_expected else 'PASS'
     status_counter[status] += 1

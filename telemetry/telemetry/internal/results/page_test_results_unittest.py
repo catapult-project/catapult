@@ -52,10 +52,11 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertEqual(set([self.pages[0]]), results.pages_that_failed)
     self.assertEqual(set([self.pages[1]]), results.pages_that_succeeded)
 
-    self.assertEqual(len(results.all_page_runs), 2)
+    all_story_runs = list(results.IterStoryRuns())
+    self.assertEqual(len(all_story_runs), 2)
     self.assertTrue(results.had_failures)
-    self.assertTrue(results.all_page_runs[0].failed)
-    self.assertTrue(results.all_page_runs[1].ok)
+    self.assertTrue(all_story_runs[0].failed)
+    self.assertTrue(all_story_runs[1].ok)
 
   def testSkips(self):
     results = page_test_results.PageTestResults()
@@ -66,14 +67,15 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.WillRunPage(self.pages[1])
     results.DidRunPage(self.pages[1])
 
-    self.assertTrue(results.all_page_runs[0].skipped)
-    self.assertEqual(self.pages[0], results.all_page_runs[0].story)
+    all_story_runs = list(results.IterStoryRuns())
+    self.assertTrue(all_story_runs[0].skipped)
+    self.assertEqual(self.pages[0], all_story_runs[0].story)
     self.assertEqual(set([self.pages[0], self.pages[1]]),
                      results.pages_that_succeeded)
 
-    self.assertEqual(2, len(results.all_page_runs))
-    self.assertTrue(results.all_page_runs[0].skipped)
-    self.assertTrue(results.all_page_runs[1].ok)
+    self.assertEqual(2, len(all_story_runs))
+    self.assertTrue(all_story_runs[0].skipped)
+    self.assertTrue(all_story_runs[1].ok)
 
   def testInterruptMiddleRun(self):
     results = page_test_results.PageTestResults()
@@ -81,27 +83,29 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[1])
     results.InterruptBenchmark(self.pages, 2)
 
-    self.assertEqual(6, len(results.all_page_runs))
-    self.assertTrue(results.all_page_runs[0].ok)
-    self.assertTrue(results.all_page_runs[1].skipped)
-    self.assertTrue(results.all_page_runs[2].skipped)
-    self.assertTrue(results.all_page_runs[3].skipped)
-    self.assertTrue(results.all_page_runs[4].skipped)
-    self.assertTrue(results.all_page_runs[5].skipped)
+    all_story_runs = list(results.IterStoryRuns())
+    self.assertEqual(6, len(all_story_runs))
+    self.assertTrue(all_story_runs[0].ok)
+    self.assertTrue(all_story_runs[1].skipped)
+    self.assertTrue(all_story_runs[2].skipped)
+    self.assertTrue(all_story_runs[3].skipped)
+    self.assertTrue(all_story_runs[4].skipped)
+    self.assertTrue(all_story_runs[5].skipped)
 
   def testInterruptBeginningRun(self):
     results = page_test_results.PageTestResults()
     results.InterruptBenchmark(self.pages, 1)
 
-    self.assertTrue(results.all_page_runs[0].skipped)
-    self.assertEqual(self.pages[0], results.all_page_runs[0].story)
+    all_story_runs = list(results.IterStoryRuns())
+    self.assertTrue(all_story_runs[0].skipped)
+    self.assertEqual(self.pages[0], all_story_runs[0].story)
     self.assertEqual(set([]),
                      results.pages_that_succeeded_and_not_skipped)
 
-    self.assertEqual(3, len(results.all_page_runs))
-    self.assertTrue(results.all_page_runs[0].skipped)
-    self.assertTrue(results.all_page_runs[1].skipped)
-    self.assertTrue(results.all_page_runs[2].skipped)
+    self.assertEqual(3, len(all_story_runs))
+    self.assertTrue(all_story_runs[0].skipped)
+    self.assertTrue(all_story_runs[1].skipped)
+    self.assertTrue(all_story_runs[2].skipped)
 
   def testPassesNoSkips(self):
     results = page_test_results.PageTestResults()
@@ -122,10 +126,11 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertEqual(set([self.pages[1]]),
                      results.pages_that_succeeded_and_not_skipped)
 
-    self.assertEqual(3, len(results.all_page_runs))
-    self.assertTrue(results.all_page_runs[0].failed)
-    self.assertTrue(results.all_page_runs[1].ok)
-    self.assertTrue(results.all_page_runs[2].skipped)
+    all_story_runs = list(results.IterStoryRuns())
+    self.assertEqual(3, len(all_story_runs))
+    self.assertTrue(all_story_runs[0].failed)
+    self.assertTrue(all_story_runs[1].ok)
+    self.assertTrue(all_story_runs[2].skipped)
 
   def testBasic(self):
     results = page_test_results.PageTestResults()
@@ -580,7 +585,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
           any_order=True)
 
       # Assert that the path is now the cloud storage path
-      for run in results._all_page_runs:
+      for run in results.IterStoryRuns():
         for artifact in run.IterArtifacts():
           self.assertEquals(cs_path_name, artifact.url)
 
@@ -620,10 +625,11 @@ class PageTestResultsFilterTest(unittest.TestCase):
         log_file.write('page1\n')
       results.DidRunPage(self.pages[1])
 
-      log0_path = results._all_page_runs[0].GetArtifact('log').local_path
+      all_story_runs = list(results.IterStoryRuns())
+      log0_path = all_story_runs[0].GetArtifact('log').local_path
       with open(log0_path) as f:
         self.assertEqual(f.read(), 'page0\n')
 
-      log1_path = results._all_page_runs[1].GetArtifact('log').local_path
+      log1_path = all_story_runs[1].GetArtifact('log').local_path
       with open(log1_path) as f:
         self.assertEqual(f.read(), 'page1\n')

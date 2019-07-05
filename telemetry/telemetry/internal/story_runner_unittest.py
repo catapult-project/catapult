@@ -233,11 +233,11 @@ class FakeExceptionFormatterModule(object):
 
 
 def GetNumberOfSuccessfulPageRuns(results):
-  return len([run for run in results.all_page_runs if run.ok or run.skipped])
+  return len([run for run in results.IterStoryRuns() if run.ok or run.skipped])
 
 
 def GetNumberOfSkippedPageRuns(results):
-  return len([run for run in results.all_page_runs if run.skipped])
+  return len([run for run in results.IterStoryRuns() if run.skipped])
 
 
 class TestOnlyException(Exception):
