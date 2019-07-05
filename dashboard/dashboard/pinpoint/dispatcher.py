@@ -26,6 +26,7 @@ _URL_MAPPING = [
     webapp2.Route(r'/api/new', handlers.New),
     webapp2.Route(r'/api/results2/<job_id>', handlers.Results2),
     webapp2.Route(r'/api/stats', handlers.Stats),
+    webapp2.Route(r'/api/queue-stats/<configuration>', handlers.QueueStats),
 
     # Used internally by Pinpoint. Not accessible from the public API.
     webapp2.Route(r'/api/run/<job_id>', handlers.Run),

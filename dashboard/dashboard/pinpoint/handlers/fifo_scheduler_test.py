@@ -114,6 +114,35 @@ class FifoSchedulerTest(test.TestCase):
       self.assertTrue(j.Start.Called,
                       'job at index {} was not run!'.format(index))
 
+  def testQueueStatsUpdates(self):
+    j = job.Job.New((), (),
+                    arguments={'configuration': 'mock'},
+                    comparison_mode='performance')
+    scheduler.Schedule(j)
+    j.Start = mock.MagicMock(
+        side_effect=j._Complete)  # pylint: disable=invalid-name
+
+    # Check that we can find the queued job.
+    stats = scheduler.QueueStats('mock')
+    self.assertEquals(stats['queued_jobs'], 1)
+    self.assertNotIn('running_jobs', stats)
+    self.assertEquals(len(stats['queue_time_samples']), 0)
+
+    response = self.testapp.get('/cron/fifo-scheduler')
+    self.assertEqual(response.status_code, 200)
+
+    self.ExecuteDeferredTasks('default')
+
+    self.assertTrue(j.Start.called)
+    job_id, _ = scheduler.PickJob('mock')
+    self.assertIsNone(job_id)
+
+    # Check that point-in-time stats are zero, and that we have one sample.
+    stats = scheduler.QueueStats('mock')
+    self.assertNotIn('queued_jobs', stats)
+    self.assertNotIn('running_jobs', stats)
+    self.assertNotEquals(len(stats['queue_time_samples']), 0)
+
   def testJobStuckInRunning(self):
     self.skipTest('Not implemented yet.')
 

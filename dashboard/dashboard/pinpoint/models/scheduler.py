@@ -17,8 +17,12 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import datetime
+import functools
 import logging
 from google.appengine.ext import ndb
+
+SECS_PER_HOUR = datetime.timedelta(hours=1).total_seconds()
 
 
 # TODO(dberris): These models are temporary, when we move to using the service
@@ -32,6 +36,14 @@ class QueueElement(ndb.Model):
       required=True, default='Queued', choices=['Running', 'Done', 'Cancelled'])
 
 
+class SampleElementTiming(ndb.Model):
+  """Represents a measurement of queue time delay."""
+  _default_indexed = False
+  job_id = ndb.StringProperty(required=True)
+  enqueue_timestamp = ndb.DateTimeProperty(required=True)
+  picked_timestamp = ndb.DateTimeProperty(required=True, auto_now_add=True)
+
+
 class Queues(ndb.Model):
   """A root element for all queues."""
   pass
@@ -43,6 +55,7 @@ class ConfigurationQueue(ndb.Model):
   _default_memcache = True
   jobs = ndb.StructuredProperty(QueueElement, repeated=True)
   configuration = ndb.StringProperty(required=True, indexed=True)
+  samples = ndb.StructuredProperty(SampleElementTiming, repeated=True)
 
   @classmethod
   def GetOrCreateQueue(cls, configuration):
@@ -70,6 +83,12 @@ class ConfigurationQueue(ndb.Model):
     # We clean up the queue of any 'Done' and 'Cancelled' elements before we
     # persist the data.
     self.jobs = [j for j in self.jobs if j.status not in {'Done', 'Cancelled'}]
+
+    # We also only persist samples that are < 7 days old.
+    self.samples = [
+        s for s in self.samples if s.enqueue_timestamp -
+        datetime.datetime.utcnow() < datetime.timedelta(days=7)
+    ]
     super(ConfigurationQueue, self).put()
 
 
@@ -149,6 +168,11 @@ def PickJob(configuration):
     if job.status == 'Queued':
       result = (job.job_id, job.status)
       job.status = 'Running'
+
+      # Add this to the samples.
+      queue.samples.append(
+          SampleElementTiming(
+              job_id=job.job_id, enqueue_timestamp=job.timestamp))
       break
 
   # Persist the changes transactionally.
@@ -159,10 +183,36 @@ def PickJob(configuration):
 
 
 @ndb.transactional
-def QueueStats(_):
-  # Compute statistics for a FIFO queue given the configuration.
-  # TODO(dberris): Implement this, when we expose this in the UI.
-  pass
+def QueueStats(configuration):
+  """Computes and returns statistics for a queue.
+
+  Returns a dictionary with the following keys:
+  - queued_jobs: A point-in-time count of the number of queued jobs for the
+    configuration.
+  - cancelled_jobs: A point-in-time count of cancelled jobs.
+  - running_jobs: A point-in-time count of jobs that are "running".
+  - queue_time_samples: A list of floats, representing the number of hours the
+    most recent jobs from the past 7 days have been in the queue.
+  """
+  queue = ConfigurationQueue.get_by_id(
+      configuration, parent=ndb.Key('Queues', 'root'))
+  if not queue:
+    raise QueueNotFound()
+
+  def StatCombiner(status_map, job):
+    key = '{}_jobs'.format(job.status.lower())
+    status_map.setdefault(key, 0)
+    status_map[key] += 1
+    return status_map
+
+  result = functools.reduce(StatCombiner, queue.jobs, {})
+  result.update({
+      'queue_time_samples': [
+          (s.picked_timestamp - s.enqueue_timestamp).total_seconds() /
+          SECS_PER_HOUR for s in queue.samples
+      ]
+  })
+  return result
 
 
 @ndb.transactional
