@@ -453,7 +453,7 @@ def RunBenchmark(benchmark, finder_options):
           max_num_values=benchmark.MAX_NUM_VALUES)
       if results.had_failures:
         return_code = 1
-      elif results.had_successes_not_skipped:
+      elif results.had_successes:
         return_code = 0
       else:
         return_code = -1  # All stories were skipped.

@@ -31,6 +31,7 @@ class MockPage(page_module.Page):
   def RunSmoothness(self, _):
     self.func_calls.append('RunSmoothness')
 
+
 class MockStorySet(story.StorySet):
   def __init__(self, url=''):
     super(MockStorySet, self).__init__(
@@ -61,6 +62,7 @@ class MockPageTest(legacy_page_test.LegacyPageTest):
 
   def DidStartBrowser(self, browser):
     self.func_calls.append('DidStartBrowser')
+
 
 class MockBenchmark(benchmark.Benchmark):
   test = MockPageTest
@@ -97,6 +99,10 @@ class MockTimelineBasedMeasurementBenchmark(benchmark.Benchmark):
       kwargs['url'] = options.mock_benchmark_url
     self.mock_story_set = MockStorySet(**kwargs)
     return self.mock_story_set
+
+
+def _SuccessfulStories(results):
+  return set(run.story for run in results.IterStoryRuns() if run.ok)
 
 
 class RecordWprUnitTests(tab_test_case.TabTestCase):
@@ -146,7 +152,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     wpr_recorder._options.output_dir = None
     results = wpr_recorder.CreateResults()
     wpr_recorder.Record(results)
-    self.assertEqual(set(mock_story_set.stories), results.pages_that_succeeded)
+    self.assertItemsEqual(mock_story_set.stories, _SuccessfulStories(results))
 
   def testWprRecorderWithBenchmark(self):
     flags = self.GetBrowserDeviceFlags()
@@ -157,8 +163,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     wpr_recorder._options.output_dir = None
     results = wpr_recorder.CreateResults()
     wpr_recorder.Record(results)
-    self.assertEqual(set(mock_benchmark.mock_story_set.stories),
-                     results.pages_that_succeeded)
+    self.assertItemsEqual(mock_benchmark.mock_story_set.stories,
+                          _SuccessfulStories(results))
 
   def testWprRecorderWithTimelineBasedMeasurementBenchmark(self):
     flags = self.GetBrowserDeviceFlags()
@@ -169,8 +175,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     wpr_recorder._options.output_dir = None
     results = wpr_recorder.CreateResults()
     wpr_recorder.Record(results)
-    self.assertEqual(set(mock_benchmark.mock_story_set.stories),
-                     results.pages_that_succeeded)
+    self.assertItemsEqual(mock_benchmark.mock_story_set.stories,
+                          _SuccessfulStories(results))
 
   def testPageSetBaseDirFlag(self):
     flags = self.GetBrowserDeviceFlags()
@@ -182,8 +188,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     wpr_recorder._options.output_dir = None
     results = wpr_recorder.CreateResults()
     wpr_recorder.Record(results)
-    self.assertEqual(set(mock_benchmark.mock_story_set.stories),
-                     results.pages_that_succeeded)
+    self.assertItemsEqual(mock_benchmark.mock_story_set.stories,
+                          _SuccessfulStories(results))
 
   def testCommandLineFlags(self):
     flags = [

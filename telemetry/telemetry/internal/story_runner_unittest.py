@@ -503,8 +503,10 @@ class StoryRunnerTest(unittest.TestCase):
     story_set.AddStory(s2)
     test = Test()
     story_runner.Run(test, story_set, self.options, self.results)
-    self.assertEqual(set([s1]), self.results.pages_that_failed)
-    self.assertEqual(set([s2]), self.results.pages_that_succeeded)
+    all_story_runs = list(self.results.IterStoryRuns())
+    self.assertEqual(2, len(all_story_runs))
+    self.assertTrue(all_story_runs[0].failed)
+    self.assertTrue(all_story_runs[1].ok)
     self.assertIn('FooBarzException', self.fake_stdout.getvalue())
 
   def testRaiseBrowserGoneExceptionFromRunPage(self):

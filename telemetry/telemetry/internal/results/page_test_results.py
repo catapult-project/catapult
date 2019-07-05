@@ -172,52 +172,28 @@ class PageTestResults(object):
     return self._current_story_run
 
   @property
-  def pages_that_succeeded(self):
-    """Returns the set of pages that succeeded.
-
-    Note: This also includes skipped pages.
-    """
-    pages = set(run.story for run in self._all_story_runs)
-    pages.difference_update(self.pages_that_failed)
-    return pages
-
-  @property
-  def pages_that_succeeded_and_not_skipped(self):
-    """Returns the set of pages that succeeded and werent skipped."""
-    skipped_story_names = set(
-        run.story.name for run in self._IterAllStoryRuns() if run.skipped)
-    pages = self.pages_that_succeeded
-    for page in self.pages_that_succeeded:
-      if page.name in skipped_story_names:
-        pages.remove(page)
-    return pages
-
-  @property
-  def pages_that_failed(self):
-    """Returns the set of failed pages."""
-    failed_pages = set()
-    for run in self._all_story_runs:
-      if run.failed:
-        failed_pages.add(run.story)
-    return failed_pages
-
-  @property
-  def had_successes_not_skipped(self):
-    return bool(self.pages_that_succeeded_and_not_skipped)
+  def had_successes(self):
+    """If there were any actual successes, not including skipped stories."""
+    return any(run.ok for run in self._all_story_runs)
 
   @property
   def had_failures(self):
+    """If there where any failed stories."""
     return any(run.failed for run in self._all_story_runs)
 
   @property
   def num_failed(self):
+    """Number of failed stories."""
     return sum(1 for run in self._all_story_runs if run.failed)
 
   @property
   def had_skips(self):
+    """If there where any skipped stories."""
     return any(run.skipped for run in self._IterAllStoryRuns())
 
   def _IterAllStoryRuns(self):
+    # TODO(crbug.com/973837): Check whether all clients can just be switched
+    # to iterate over _all_story_runs directly.
     for run in self._all_story_runs:
       yield run
     if self._current_story_run:

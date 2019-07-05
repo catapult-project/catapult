@@ -49,9 +49,6 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.WillRunPage(self.pages[1])
     results.DidRunPage(self.pages[1])
 
-    self.assertEqual(set([self.pages[0]]), results.pages_that_failed)
-    self.assertEqual(set([self.pages[1]]), results.pages_that_succeeded)
-
     all_story_runs = list(results.IterStoryRuns())
     self.assertEqual(len(all_story_runs), 2)
     self.assertTrue(results.had_failures)
@@ -70,10 +67,9 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     all_story_runs = list(results.IterStoryRuns())
     self.assertTrue(all_story_runs[0].skipped)
     self.assertEqual(self.pages[0], all_story_runs[0].story)
-    self.assertEqual(set([self.pages[0], self.pages[1]]),
-                     results.pages_that_succeeded)
 
     self.assertEqual(2, len(all_story_runs))
+    self.assertTrue(results.had_skips)
     self.assertTrue(all_story_runs[0].skipped)
     self.assertTrue(all_story_runs[1].ok)
 
@@ -85,6 +81,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
     all_story_runs = list(results.IterStoryRuns())
     self.assertEqual(6, len(all_story_runs))
+    self.assertTrue(results.had_successes)
     self.assertTrue(all_story_runs[0].ok)
     self.assertTrue(all_story_runs[1].skipped)
     self.assertTrue(all_story_runs[2].skipped)
@@ -97,12 +94,10 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.InterruptBenchmark(self.pages, 1)
 
     all_story_runs = list(results.IterStoryRuns())
-    self.assertTrue(all_story_runs[0].skipped)
     self.assertEqual(self.pages[0], all_story_runs[0].story)
-    self.assertEqual(set([]),
-                     results.pages_that_succeeded_and_not_skipped)
 
     self.assertEqual(3, len(all_story_runs))
+    self.assertFalse(results.had_successes)
     self.assertTrue(all_story_runs[0].skipped)
     self.assertTrue(all_story_runs[1].skipped)
     self.assertTrue(all_story_runs[2].skipped)
@@ -119,12 +114,6 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.WillRunPage(self.pages[2])
     results.Skip('testing reason')
     results.DidRunPage(self.pages[2])
-
-    self.assertEqual(set([self.pages[0]]), results.pages_that_failed)
-    self.assertEqual(set([self.pages[1], self.pages[2]]),
-                     results.pages_that_succeeded)
-    self.assertEqual(set([self.pages[1]]),
-                     results.pages_that_succeeded_and_not_skipped)
 
     all_story_runs = list(results.IterStoryRuns())
     self.assertEqual(3, len(all_story_runs))
@@ -206,7 +195,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
             self.pages[1], 'a', 'foobgrobbers', 3,
             improvement_direction=improvement_direction.UP)))
 
-  def testGetPagesThatSucceededAllPagesFail(self):
+  def testNoSuccessesWhenAllPagesFailOrSkip(self):
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     results.AddValue(scalar.ScalarValue(
@@ -216,14 +205,11 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[0])
 
     results.WillRunPage(self.pages[1])
-    results.AddValue(scalar.ScalarValue(
-        self.pages[1], 'a', 'seconds', 7,
-        improvement_direction=improvement_direction.UP))
-    results.Fail('message')
+    results.Skip('message')
     results.DidRunPage(self.pages[1])
 
     results.PrintSummary()
-    self.assertEquals(0, len(results.pages_that_succeeded))
+    self.assertFalse(results.had_successes)
 
   def testGetSuccessfulPageValuesMergedNoFailures(self):
     results = page_test_results.PageTestResults()

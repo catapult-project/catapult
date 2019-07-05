@@ -247,7 +247,7 @@ class WprRecorder(object):
                       'has not been updated for these pages.')
     results.PrintSummary()
     self._story_set.wpr_archive_info.AddRecordedStories(
-        results.pages_that_succeeded_and_not_skipped,
+        [run.story for run in results.IterStoryRuns() if run.ok],
         upload_to_cloud_storage,
         target_platform=self._record_page_test.platform)
 
