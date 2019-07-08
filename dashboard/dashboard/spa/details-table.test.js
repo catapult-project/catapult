@@ -6,10 +6,19 @@
 
 import {CHAIN, ENSURE, UPDATE} from './simple-redux.js';
 import {DetailsTable} from './details-table.js';
+import {RequestBase} from './request-base.js';
 import {STORE} from './element-base.js';
 import {TimeseriesRequest} from './timeseries-request.js';
-import {afterRender, denormalize, setDebugForTesting} from './utils.js';
 import {assert} from 'chai';
+import {findElements} from './find-elements.js';
+
+import {
+  afterRender,
+  denormalize,
+  setDebugForTesting,
+  setProductionForTesting,
+  timeout,
+} from './utils.js';
 
 suite('details-table', function() {
   let MS_PER_YEAR;  // tr might not be loaded yet.
@@ -48,6 +57,9 @@ suite('details-table', function() {
                 avg: 1 + (i % 3),
                 count: 1,
                 std: (i % 4) / 2,
+                histogram: tr.v.Histogram.create('', tr.b.Unit.byName.count, [
+                  1, 10, 100,
+                ]).asDict(),
               });
             }
             return {
@@ -305,27 +317,193 @@ suite('details-table', function() {
     assert.strictEqual(tr.b.Unit.byName.count, scalars.get('count').unit);
   });
 
-  test('single revision cannot bisect', async function() {
+  test('anonymous cannot bisect', async function() {
+    setProductionForTesting(true);
+    RequestBase.getAuthorizationHeaders = () => {return {};};
     const dt = await fixture();
+    STORE.dispatch(UPDATE('test', {
+      lineDescriptors: [{
+        suites: ['suite'],
+        bots: ['master:bot'],
+        measurement: 'ms',
+        statistic: 'avg',
+        cases: [],
+      }],
+      revisionRanges: [
+        tr.b.math.Range.fromExplicitRange(2.5, 3.5),
+      ],
+    }));
+    await afterRender();
+    assert.isDefined(findElements(dt, e =>
+      /Please sign in to start bisect jobs/.test(e.textContent))[0]);
+  });
+
+  test('single revision cannot bisect', async function() {
+    setProductionForTesting(true);
+    RequestBase.getAuthorizationHeaders = () => {return {};};
+    const dt = await fixture();
+    STORE.dispatch(UPDATE('', {
+      userEmail: 'you@here.com',
+      bisectMasterWhitelist: ['master'],
+    }));
+    STORE.dispatch(UPDATE('test', {
+      lineDescriptors: [{
+        suites: ['suite'],
+        bots: ['master:bot'],
+        measurement: 'ms',
+        statistic: 'avg',
+        cases: [],
+      }],
+      revisionRanges: [
+        tr.b.math.Range.fromExplicitRange(2.5, 3.5),
+      ],
+    }));
+    await afterRender();
+    assert.isDefined(findElements(dt, e =>
+      /Unable to bisect single revision/.test(e.tooltip))[0]);
   });
 
   test('multiple timeseries cannot bisect', async function() {
+    setProductionForTesting(true);
+    RequestBase.getAuthorizationHeaders = () => {return {};};
     const dt = await fixture();
+    STORE.dispatch(UPDATE('', {
+      userEmail: 'you@here.com',
+      bisectMasterWhitelist: ['master'],
+    }));
+    STORE.dispatch(UPDATE('test', {
+      lineDescriptors: [{
+        suites: ['suiteA', 'suiteB'],
+        bots: ['master:botA', 'master:botB'],
+        measurement: 'ms',
+        statistic: 'avg',
+        cases: ['caseA', 'caseB'],
+      }],
+      revisionRanges: [
+        tr.b.math.Range.fromExplicitRange(2.5, 3.5),
+      ],
+    }));
+    await afterRender();
+    const expected = /Unable to bisect with multiple suites, bots, cases/;
+    assert.isDefined(findElements(dt, e =>
+      expected.test(e.textContent))[0]);
   });
 
   test('ref build cannot bisect', async function() {
+    setProductionForTesting(true);
+    RequestBase.getAuthorizationHeaders = () => {return {};};
     const dt = await fixture();
+    STORE.dispatch(UPDATE('', {userEmail: 'you@here.com'}));
+    STORE.dispatch(UPDATE('test', {
+      lineDescriptors: [{
+        suites: ['suite'],
+        bots: ['master:bot'],
+        measurement: 'ms',
+        statistic: 'avg',
+        cases: [],
+        buildType: 'ref',
+      }],
+      revisionRanges: [
+        tr.b.math.Range.fromExplicitRange(2.5, 3.5),
+      ],
+    }));
+    await afterRender();
+    assert.isDefined(findElements(dt, e =>
+      /Unable to bisect ref build/.test(e.textContent))[0]);
   });
 
   test('blacklisted suite cannot bisect', async function() {
+    setProductionForTesting(true);
+    RequestBase.getAuthorizationHeaders = () => {return {};};
     const dt = await fixture();
+    STORE.dispatch(UPDATE('', {
+      userEmail: 'you@here.com',
+      bisectMasterWhitelist: ['master'],
+      bisectSuiteBlacklist: ['suite'],
+    }));
+    STORE.dispatch(UPDATE('test', {
+      lineDescriptors: [{
+        suites: ['suite'],
+        bots: ['master:bot'],
+        measurement: 'ms',
+        statistic: 'avg',
+        cases: [],
+      }],
+      revisionRanges: [
+        tr.b.math.Range.fromExplicitRange(2.5, 3.5),
+      ],
+    }));
+    await afterRender();
+    assert.isDefined(findElements(dt, e =>
+      /Unable to bisect suite "suite"/.test(e.textContent))[0]);
   });
 
   test('blacklisted master cannot bisect', async function() {
+    setProductionForTesting(true);
+    RequestBase.getAuthorizationHeaders = () => {return {};};
     const dt = await fixture();
+    STORE.dispatch(UPDATE('', {userEmail: 'you@here.com'}));
+    STORE.dispatch(UPDATE('test', {
+      lineDescriptors: [{
+        suites: ['suite'],
+        bots: ['master:bot'],
+        measurement: 'ms',
+        statistic: 'avg',
+        cases: [],
+      }],
+      revisionRanges: [
+        tr.b.math.Range.fromExplicitRange(2.5, 3.5),
+      ],
+    }));
+    await afterRender();
+    assert.isDefined(findElements(dt, e =>
+      /Unable to bisect on master bots/.test(e.textContent))[0]);
   });
 
   test('bisect', async function() {
+    setProductionForTesting(true);
+    RequestBase.getAuthorizationHeaders = () => {return {};};
     const dt = await fixture();
+    STORE.dispatch(UPDATE('', {
+      userEmail: 'you@here.com',
+      bisectMasterWhitelist: ['master'],
+    }));
+    STORE.dispatch(UPDATE('test', {
+      lineDescriptors: [{
+        suites: ['suite'],
+        bots: ['master:bot'],
+        measurement: 'ms',
+        statistic: 'avg',
+        cases: [],
+      }],
+      revisionRanges: [
+        tr.b.math.Range.fromExplicitRange(2.5, 4.5),
+      ],
+    }));
+    await afterRender();
+    assert.isDefined(findElements(dt, e =>
+      e.matches('bisect-dialog') && e.able)[0]);
+  });
+
+  test('histogram', async function() {
+    const dt = await fixture();
+    STORE.dispatch(UPDATE('test', {
+      lineDescriptors: [{
+        suites: ['suite'],
+        bots: ['master:bot'],
+        measurement: 'ms',
+        statistic: 'avg',
+        cases: [],
+      }],
+      revisionRanges: [
+        tr.b.math.Range.fromExplicitRange(2.5, 4.5),
+      ],
+    }));
+    await afterRender();
+    const bars = findElements(dt, e =>
+      e.matches('rect') &&
+      e.getAttribute('x') === '0%' &&
+      e.getAttribute('width') === '100%');
+    assert.lengthOf(bars, 3);
   });
 });

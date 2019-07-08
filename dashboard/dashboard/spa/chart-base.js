@@ -32,6 +32,7 @@ export class ChartBase extends ElementBase {
       brushSize: options.brushSize || 10,
       graphHeight: options.graphHeight || 200,
       lines: options.lines || [],
+      bars: options.bars || [],
       showTooltip: options.showTooltip || false,
       tooltip: {
         isVisible: false,
@@ -93,7 +94,7 @@ export class ChartBase extends ElementBase {
         vector-effect: non-scaling-stroke;
       }
 
-      rect {
+      rect.antiBrush {
         opacity: 0.05;
       }
 
@@ -206,11 +207,10 @@ export class ChartBase extends ElementBase {
               height="${this.graphHeight}"
               preserveAspectRatio="none"
               @click="${this.onMainClick_}">
-            ${!this.yAxis.showTickLines ? '' : this.yAxis.ticks.map(
-      tick => svg`
-        <line x1="0" x2="100%" y1="${tick.yPct}" y2="${tick.yPct}">
-        </line>
-      `)}
+            ${!this.yAxis.showTickLines ? '' : this.yAxis.ticks.map(tick => svg`
+              <line x1="0" x2="100%" y1="${tick.yPct}" y2="${tick.yPct}">
+              </line>
+            `)}
 
             ${(!this.yAxis || !this.yAxis.cursor ||
                !this.yAxis.cursor.pct) ? '' : svg`
@@ -223,11 +223,10 @@ export class ChartBase extends ElementBase {
                 </line>
               `}
 
-            ${!this.xAxis.showTickLines ? '' : this.xAxis.ticks.map(
-      tick => svg`
-        <line x1="${tick.xPct}" x2="${tick.xPct}" y1="0" y2="100%">
-        </line>
-      `)}
+            ${!this.xAxis.showTickLines ? '' : this.xAxis.ticks.map(tick => svg`
+              <line x1="${tick.xPct}" x2="${tick.xPct}" y1="0" y2="100%">
+              </line>
+            `)}
 
             ${(!this.xAxis || !this.xAxis.cursor ||
                !this.xAxis.cursor.pct) ? '' : svg`
@@ -242,6 +241,7 @@ export class ChartBase extends ElementBase {
 
             ${ChartBase.antiBrushes(this.xAxis.brushes).map(antiBrush => svg`
               <rect
+                  class="antiBrush"
                   x="${antiBrush.start}"
                   y="0"
                   width="${antiBrush.length}"
@@ -249,7 +249,8 @@ export class ChartBase extends ElementBase {
               </rect>
             `)}
 
-            ${this.lines.map(line => this.renderLine(line))}
+            ${this.lines.map(line => this.renderLine_(line))}
+            ${this.bars.map(bar => this.renderBar_(bar))}
           </svg>
 
           <div id="tooltip"
@@ -290,7 +291,19 @@ export class ChartBase extends ElementBase {
     `;
   }
 
-  renderLine(line) {
+  renderBar_(bar) {
+    return svg`
+      <rect
+          fill="${bar.fill}"
+          x="${bar.x}"
+          y="${bar.y}"
+          width="${bar.width}"
+          height="${bar.height}">
+      </rect>
+    `;
+  }
+
+  renderLine_(line) {
     const icons = (!line || !line.data) ? [] : line.data.filter(datum =>
       datum.icon);
     return html`
@@ -345,6 +358,7 @@ export class ChartBase extends ElementBase {
         ctrlKey: hasCtrlKey(event),
         nearestLine: this.previousNearestLine,
         nearestPoint: this.previousNearestPoint,
+        nearestBar: this.previousNearestBar,
       },
     }));
   }
@@ -362,6 +376,7 @@ export class ChartBase extends ElementBase {
     this.mouseLeaveMainPoller_ = undefined;
     this.previousNearestPoint = undefined;
     this.previousNearestLine = undefined;
+    this.previousNearestBar = undefined;
     this.dispatchEvent(new CustomEvent('mouse-leave-main', {
       bubbles: true,
       composed: true,
@@ -430,27 +445,109 @@ export class ChartBase extends ElementBase {
     // debounce to save CPU.
     this.debounce('mousemove-main', async() => {
       const mainRect = await measureElement(this.mainDiv);
-      const {nearestPoint, nearestLine} = ChartBase.getNearestPoint(
-          event, mainRect, this.lines);
-      if (!nearestPoint) return;
+      const detail = {mainRect};
+      if (this.lines && this.lines.length) {
+        const {nearestPoint, nearestLine} = ChartBase.getNearestPoint(
+            event, mainRect, this.lines);
+        if (!nearestPoint) return;
 
-      // If the mouse left main in between onMouseMoveMain_() and now, don't
-      // re-display tooltip.
-      if (!this.isMouseOverMain) return;
+        // If the mouse left main in between onMouseMoveMain_() and now, don't
+        // re-display tooltip.
+        if (!this.isMouseOverMain) return;
 
-      // It might be expensive to build and render the tooltip, so only
-      // dispatch get-tooltip when the nearestPoint changes.
-      if (nearestPoint === this.previousNearestPoint) return;
-      this.previousNearestPoint = nearestPoint;
-      this.previousNearestLine = nearestLine;
+        // It might be expensive to build and render the tooltip, so only
+        // dispatch get-tooltip when the nearestPoint changes.
+        if (nearestPoint === this.previousNearestPoint) return;
+        this.previousNearestPoint = nearestPoint;
+        this.previousNearestLine = nearestLine;
+        detail.nearestPoint = nearestPoint;
+        detail.nearestLine = nearestLine;
+      } else if (this.bars && this.bars.length) {
+        const {nearestBar} = ChartBase.getNearestBar(
+            event, mainRect, this.bars);
+        if (!nearestBar) return;
+        if (!this.isMouseOverMain) return;
 
+        if (nearestBar === this.previousNearestBar) return;
+        this.previousNearestBar = nearestBar;
+        detail.nearestBar = nearestBar;
+      }
       this.dispatchEvent(new CustomEvent('get-tooltip', {
         bubbles: true,
         composed: true,
-        detail: {mainRect, nearestPoint, nearestLine},
+        detail,
       }));
       this.maybePollMouseLeaveMain_();
     });
+  }
+
+  // `brushes` is an array of brush positions as percentages. The ranges between
+  // successive pairs of brushes are positively selected. I.e. brushes=[10,20]
+  // selects the range between 10% and 20%.
+  // ChartBase draws grey rectangles to slightly obscure *un*selected ranges.
+  // This function computes those unselected ranges as objects {start, length}
+  // of strings containing percentages, to be rendered as <rect>s.
+  static antiBrushes(brushes) {
+    if (!brushes || brushes.length === 0) return [];
+    if (brushes.length % 2 === 1) throw new Error('Odd number of brushes');
+    brushes = brushes.map(brush =>
+      Number.parseFloat(brush.xPct)).sort((a, b) => a - b);
+    let previous = {start: 0, length: undefined};
+    const antiBrushes = [previous];
+    for (let i = 0; i < brushes.length; i += 2) {
+      if (previous.start === 0 && brushes[i] === 0) {
+        antiBrushes.splice(0, 1);
+      } else {
+        previous.length = (brushes[i] - previous.start) + '%';
+        previous.start += '%';
+      }
+      if (brushes[i + 1] === 100) return antiBrushes;
+      previous = {start: brushes[i + 1], length: undefined};
+      antiBrushes.push(previous);
+    }
+    previous.length = (100 - previous.start) + '%';
+    previous.start += '%';
+    return antiBrushes;
+  }
+
+  static computeBrush(x, containerRect) {
+    const value = tr.b.math.normalize(
+        x, containerRect.left, containerRect.right);
+    return tr.b.math.clamp(100 * value, 0, 100) + '%';
+  }
+
+  static getNearestPoint(pt, rect, lines) {
+    if (!lines) return {};
+    const xPct = tr.b.math.normalize(pt.x, rect.left, rect.right) * 100;
+    const yPct = tr.b.math.normalize(pt.y, rect.top, rect.bottom) * 100;
+    let nearestPoint;
+    let nearestDelta;
+    let nearestLine;
+    for (const line of lines) {
+      const datum = tr.b.findClosestElementInSortedArray(
+          line.data, d => d.xPct, xPct, 10);
+      if (datum === null) continue;
+      const dx = xPct - datum.xPct;
+      const dy = yPct - datum.yPct;
+      const delta = Math.sqrt(dx * dx + dy * dy);
+      if (nearestPoint && (nearestDelta < delta)) {
+        continue;
+      }
+      nearestPoint = datum;
+      nearestDelta = delta;
+      nearestLine = line;
+    }
+    return {nearestPoint, nearestLine};
+  }
+
+  static getNearestBar(pt, rect, bars) {
+    if (!bars) return {};
+    bars = [...bars];
+    bars.sort((a, b) => parseInt(a.y) - parseInt(b.y));
+    const yPct = tr.b.math.normalize(pt.y, rect.top, rect.bottom) * 100;
+    const nearestBar = tr.b.findClosestElementInSortedArray(
+        bars, bar => parseInt(bar.y), yPct, 100);
+    return {nearestBar};
   }
 }
 
@@ -468,59 +565,6 @@ ChartBase.reducers = {
     }
     return {...state, lines};
   },
-};
-
-ChartBase.antiBrushes = brushes => {
-  if (!brushes || brushes.length === 0) return [];
-  if (brushes.length % 2 === 1) throw new Error('Odd number of brushes');
-  brushes = brushes.map(brush =>
-    Number.parseFloat(brush.xPct)).sort((a, b) => a - b);
-  let previous = {start: 0, length: undefined};
-  const antiBrushes = [previous];
-  for (let i = 0; i < brushes.length; i += 2) {
-    if (previous.start === 0 && brushes[i] === 0) {
-      antiBrushes.splice(0, 1);
-    } else {
-      previous.length = (brushes[i] - previous.start) + '%';
-      previous.start += '%';
-    }
-    if (brushes[i + 1] === 100) return antiBrushes;
-    previous = {start: brushes[i + 1], length: undefined};
-    antiBrushes.push(previous);
-  }
-  previous.length = (100 - previous.start) + '%';
-  previous.start += '%';
-  return antiBrushes;
-};
-
-ChartBase.computeBrush = (x, containerRect) => {
-  const value = tr.b.math.normalize(
-      x, containerRect.left, containerRect.right);
-  return tr.b.math.clamp(100 * value, 0, 100) + '%';
-};
-
-ChartBase.getNearestPoint = (pt, rect, lines) => {
-  if (!lines) return {};
-  const xPct = tr.b.math.normalize(pt.x, rect.left, rect.right) * 100;
-  const yPct = tr.b.math.normalize(pt.y, rect.top, rect.bottom) * 100;
-  let nearestPoint;
-  let nearestDelta;
-  let nearestLine;
-  for (const line of lines) {
-    const datum = tr.b.findClosestElementInSortedArray(
-        line.data, d => d.xPct, xPct, 10);
-    if (datum === null) continue;
-    const dx = xPct - datum.xPct;
-    const dy = yPct - datum.yPct;
-    const delta = Math.sqrt(dx * dx + dy * dy);
-    if (nearestPoint && (nearestDelta < delta)) {
-      continue;
-    }
-    nearestPoint = datum;
-    nearestDelta = delta;
-    nearestLine = line;
-  }
-  return {nearestPoint, nearestLine};
 };
 
 ElementBase.register(ChartBase);

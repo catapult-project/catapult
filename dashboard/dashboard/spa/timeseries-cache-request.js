@@ -282,15 +282,47 @@ export class TimeseriesCacheRequest extends CacheRequestBase {
     return await this.readDatabase_();
   }
 
+  createSlice_(revisionRange, columns) {
+    return new TimeseriesSlice({
+      bot: this.bot_,
+      buildType: this.buildType_,
+      columns,
+      headers: this.fetchEvent.request.headers,
+      measurement: this.measurement_,
+      method: this.fetchEvent.request.method,
+      revisionRange,
+      statistic: this.statistic_,
+      testCase: this.testCase_,
+      testSuite: this.testSuite_,
+      url: this.fetchEvent.request.url,
+    });
+  }
+
   async getSlices_() {
+    const slices = [];
+
     const cacheResult = await this.cacheResultPromise;
     let availableRangeByCol = new Map();
     if (cacheResult && cacheResult.data) {
       availableRangeByCol = cacheResult.availableRangeByCol;
     }
+    const columns = new Set(this.columns_);
+
+    // Fetch histograms in separate requests so they don't block other data.
+    if (columns.has('histogram')) {
+      columns.delete('histogram');
+      const available = availableRangeByCol.get('histogram');
+      const missingRanges = available ?
+        Range.findDifference(this.revisionRange_, available) :
+        [this.revisionRange_];
+      for (const revisionRange of missingRanges) {
+        slices.push(this.createSlice_(revisionRange, [
+          'revision', 'histogram',
+        ]));
+      }
+    }
 
     // If a col is available for revisionRange_, then don't fetch it.
-    const columns = new Set(this.columns_);
     for (const col of columns) {
       if (col === 'revision') continue;
 
@@ -324,19 +356,11 @@ export class TimeseriesCacheRequest extends CacheRequestBase {
     const missingRanges = Range.findDifference(
         this.revisionRange_, availableRange);
 
-    return new Set(missingRanges.map(revisionRange => new TimeseriesSlice({
-      bot: this.bot_,
-      buildType: this.buildType_,
-      columns,
-      headers: this.fetchEvent.request.headers,
-      measurement: this.measurement_,
-      method: this.fetchEvent.request.method,
-      revisionRange,
-      statistic: this.statistic_,
-      testCase: this.testCase_,
-      testSuite: this.testSuite_,
-      url: this.fetchEvent.request.url,
-    })));
+    for (const revisionRange of missingRanges) {
+      slices.push(this.createSlice_(revisionRange, columns));
+    }
+
+    return new Set(slices);
   }
 
   generateResults() {
