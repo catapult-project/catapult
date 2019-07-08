@@ -1,0 +1,37 @@
+service: api
+runtime: python27
+api_version: 1
+instance_class: F2
+
+# Individual api requests usually consume well under F2's 256MB memory limit,
+# and the spa can fetch several api requests in parallel, so threadsafe:true
+# allows this service to handle multiple requests in parallel to manage latency.
+threadsafe: true
+
+automatic_scaling:
+  max_concurrent_requests: 50
+  max_instances: 50
+  max_pending_latency: automatic
+  min_instances: 1
+  target_cpu_utilization: 0.8
+
+libraries:
+- name: webapp2
+  version: "2.5.2"
+- name: ssl
+  version: latest
+
+env_variables:
+  GAE_USE_SOCKETS_HTTPLIB: 'true'
+
+builtins:
+- appstats: on
+- deferred: on
+
+inbound_services:
+- warmup
+
+handlers:
+- url: /api/.+
+  script: dashboard.dispatcher.APP
+  secure: always

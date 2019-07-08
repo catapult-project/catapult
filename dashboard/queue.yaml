@@ -3,18 +3,39 @@
 
 queue:
 
- - name: auto-triage-queue
+ - name: default
    rate: 5/s
    retry_parameters:
      task_retry_limit: 1
 
- - name: find-anomalies-bench-queue
-   rate: 5/s
-   max_concurrent_requests: 20
+
+ # Upload:
+ - name: histograms-queue
+   target: upload
+   rate: 50/s
+   max_concurrent_requests: 100
+   retry_parameters:
+     task_retry_limit: 8
+     min_backoff_seconds: 2
+
+ - name: new-points-queue
+   target: upload
+   rate: 100/s
+   max_concurrent_requests: 100
+   retry_parameters:
+     task_retry_limit: 8
+     min_backoff_seconds: 2
+
+
+ # Pinpoint
+ - name: job-queue
+   rate: 10/s
    retry_parameters:
      task_retry_limit: 0
 
- - name: default
+
+ # Miscellaneous:
+ - name: auto-triage-queue
    rate: 5/s
    retry_parameters:
      task_retry_limit: 1
@@ -35,18 +56,6 @@ queue:
    retry_parameters:
      task_retry_limit: 1
 
- - name: histograms-queue
-   rate: 50/s
-   max_concurrent_requests: 100
-   retry_parameters:
-     task_retry_limit: 8
-     min_backoff_seconds: 2
-
- - name: job-queue
-   rate: 10/s
-   retry_parameters:
-     task_retry_limit: 0
-
  - name: migrate-queue
    rate: 5/s
    retry_parameters:
@@ -58,9 +67,4 @@ queue:
    retry_parameters:
      task_retry_limit: 1
 
- - name: new-points-queue
-   rate: 100/s
-   max_concurrent_requests: 100
-   retry_parameters:
-     task_retry_limit: 8
-     min_backoff_seconds: 2
+
