@@ -91,6 +91,7 @@ tracing_js_html_files = [
   "tracing/extras/chrome/event_finder_utils.html",
   "tracing/extras/chrome/gpu/gpu_async_slice.html",
   "tracing/extras/chrome/gpu/state.html",
+  "tracing/extras/chrome/largest_contentful_paint.html",
   "tracing/extras/chrome/layout_object.html",
   "tracing/extras/chrome/layout_tree.html",
   "tracing/extras/chrome/time_to_interactive.html",

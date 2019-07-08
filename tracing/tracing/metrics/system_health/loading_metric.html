@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/extras/chrome/cc/display_item_list.html">
 <link rel="import" href="/tracing/extras/chrome/event_finder_utils.html">
+<link rel="import" href="/tracing/extras/chrome/largest_contentful_paint.html">
 <link rel="import" href="/tracing/extras/chrome/time_to_interactive.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/breakdown_tree_helpers.html">
@@ -566,6 +567,24 @@ tr.exportTo('tr.metrics.sh', function() {
     return collectTimeToEvent(rendererHelper, lastCandidateEvents);
   }
 
+  function findLargestContentfulPaintHistogramSamples(allBrowserEvents) {
+    const lcp = new tr.e.chrome.LargestContentfulPaint(allBrowserEvents);
+    const lcpSamples = lcp.findCandidates().map(candidate => {
+      const { durationInMilliseconds, size, type, inMainFrame,
+        mainFrameTreeNodeId } = candidate;
+      return {
+        value: durationInMilliseconds,
+        diagnostics: {
+          size: new tr.v.d.GenericSet([size]),
+          type: new tr.v.d.GenericSet([type]),
+          inMainFrame: new tr.v.d.GenericSet([inMainFrame]),
+          mainFrameTreeNodeId: new tr.v.d.GenericSet([mainFrameTreeNodeId]),
+        },
+      };
+    });
+    return lcpSamples;
+  }
+
   function collectLoadingMetricsForRenderer(rendererHelper) {
     const frameToNavStartEvents =
         EventFinderUtils.getSortedMainThreadEventsByFrame(
@@ -776,6 +795,12 @@ tr.exportTo('tr.metrics.sh', function() {
           description: 'Time to Largest Text Paint',
           summaryOptions: SUMMARY_OPTIONS,
         });
+    const largestContentfulPaintHistogram = histograms.createHistogram(
+        'largestContentfulPaint', timeDurationInMs_smallerIsBetter, [], {
+          binBoundaries: LOADING_METRIC_BOUNDARIES,
+          description: 'Time to Largest Contentful Paint',
+          summaryOptions: SUMMARY_OPTIONS,
+        });
     const layoutShiftHistogram = histograms.createHistogram(
         'mainFrameCumulativeLayoutShift', unitlessNumber_smallerIsBetter, [], {
           binBoundaries: LAYOUT_SHIFT_SCORE_BOUNDARIES,
@@ -799,6 +824,12 @@ tr.exportTo('tr.metrics.sh', function() {
 
       const samplesSet =
           collectLoadingMetricsForRenderer(rendererHelper);
+
+      const lcpSamples = findLargestContentfulPaintHistogramSamples(
+          chromeHelper.browserHelper.mainThread.sliceGroup.slices);
+      addSamplesToHistogram(
+          lcpSamples, largestContentfulPaintHistogram, histograms);
+
       addSamplesToHistogram(
           samplesSet.firstPaintSamples, firstPaintHistogram, histograms);
       addSamplesToHistogram(

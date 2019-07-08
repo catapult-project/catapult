@@ -253,7 +253,160 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(800, hist.running.mean);
   });
 
-  test('FCPPlusPlus_lastIsCandidateIsFinal', function() {
+  test('timeToLargestContentfulPaint', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const browerMain = model.browserMain;
+      browerMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: tr.e.chrome.LCP_CANDIDATE_EVENT_TITLE,
+        start: 200,
+        duration: 0.0,
+        args: {
+          data: { durationInMilliseconds: 100, type: 'text', size: 1000,
+            inMainFrame: true },
+          main_frame_tree_node_id: 12345,
+        }
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('largestContentfulPaint');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(100, hist.running.mean);
+  });
+
+  test('timeToLargestContentfulPaint_LastCandidate', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const browerMain = model.browserMain;
+      browerMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: tr.e.chrome.LCP_CANDIDATE_EVENT_TITLE,
+        start: 200,
+        duration: 0.0,
+        args: {
+          data: { durationInMilliseconds: 100, type: 'text', size: 1000,
+            inMainFrame: true },
+          main_frame_tree_node_id: 12345,
+        }
+      }));
+      browerMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: tr.e.chrome.LCP_CANDIDATE_EVENT_TITLE,
+        start: 300,
+        duration: 0.0,
+        args: {
+          data: { durationInMilliseconds: 200, type: 'image', size: 2000,
+            inMainFrame: true },
+          main_frame_tree_node_id: 12345,
+        }
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('largestContentfulPaint');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(200, hist.running.mean);
+  });
+
+  test('timeToLargestContentfulPaint_AggregateSubframe', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const browerMain = model.browserMain;
+      browerMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: tr.e.chrome.LCP_CANDIDATE_EVENT_TITLE,
+        start: 200,
+        duration: 0.0,
+        args: {
+          data: { durationInMilliseconds: 100, type: 'text', size: 1000,
+            inMainFrame: true },
+          main_frame_tree_node_id: 12345,
+        }
+      }));
+      browerMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: tr.e.chrome.LCP_CANDIDATE_EVENT_TITLE,
+        start: 300,
+        duration: 0.0,
+        args: {
+          data: { durationInMilliseconds: 200, type: 'image', size: 2000,
+            inMainFrame: false },
+          main_frame_tree_node_id: 12345,
+        }
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('largestContentfulPaint');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(200, hist.running.mean);
+  });
+
+  test('timeToLargestContentfulPaint_GroupByNavigation', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const browerMain = model.browserMain;
+      browerMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: tr.e.chrome.LCP_CANDIDATE_EVENT_TITLE,
+        start: 200,
+        duration: 0.0,
+        args: {
+          data: { durationInMilliseconds: 100, type: 'text', size: 1000,
+            inMainFrame: true },
+          main_frame_tree_node_id: 1,
+        }
+      }));
+      browerMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: tr.e.chrome.LCP_CANDIDATE_EVENT_TITLE,
+        start: 300,
+        duration: 0.0,
+        args: {
+          data: { durationInMilliseconds: 200, type: 'image', size: 2000,
+            inMainFrame: true },
+          main_frame_tree_node_id: 2,
+        }
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('largestContentfulPaint');
+    assert.strictEqual(2, hist.running.count);
+    assert.strictEqual(150, hist.running.mean);
+  });
+
+  test('timeToLargestContentfulPaint_Invalidate', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const browerMain = model.browserMain;
+      browerMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: tr.e.chrome.LCP_CANDIDATE_EVENT_TITLE,
+        start: 200,
+        duration: 0.0,
+        args: {
+          data: { durationInMilliseconds: 100, type: 'text', size: 1000,
+            inMainFrame: true },
+          main_frame_tree_node_id: 12345,
+        }
+      }));
+      browerMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: tr.e.chrome.LCP_INVALIDATE_EVENT_TITLE,
+        start: 300,
+        duration: 0.0,
+        args: {
+          data: { durationInMilliseconds: 100, type: 'text', size: 1000,
+            inMainFrame: true },
+          main_frame_tree_node_id: 12345,
+        }
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('largestContentfulPaint');
+    assert.strictEqual(0, hist.numValues);
+  });
+
+  test('FCPPlusPlus_lastCandidateIsFinal', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcess = model.rendererProcess;
       const mainThread = model.rendererMain;
