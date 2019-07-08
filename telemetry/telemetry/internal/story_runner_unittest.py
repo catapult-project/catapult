@@ -1595,6 +1595,47 @@ class StoryRunnerTest(unittest.TestCase):
       cloud_patch.assert_called_once_with(foo_page.serving_dir, bucket)
 
 
+class AbridgeableStorySet(story_module.StorySet):
+  def GetAbridgedStorySetTagFilter(self):
+    return 'foo'
+
+
+class BenchmarkWithAbridgeableStorySet(benchmark.Benchmark):
+  test = DummyTest
+  def CreateStorySet(self, options):
+    story_set = AbridgeableStorySet()
+    story_set.AddStory(page_module.Page(
+        'file://foo/foo', name='foo', tags=['foo'],
+        shared_page_state_class=FooStoryState))
+    story_set.AddStory(page_module.Page(
+        'file://bar/bar', name='bar', tags=['bar'],
+        shared_page_state_class=FooStoryState))
+    return story_set
+
+
+class AbridgeableStorySetTest(unittest.TestCase):
+
+  def setUp(self):
+    self.benchmark = BenchmarkWithAbridgeableStorySet()
+    self.options = _GenerateBaseBrowserFinderOptions()
+    self.options.output_formats = ['none']
+
+  def testAbridged(self):
+    patch_method = (
+        'telemetry.internal.story_runner._RunStoryAndProcessErrorIfNeeded')
+    with mock.patch(patch_method) as run_story_patch:
+      story_runner.RunBenchmark(self.benchmark, self.options)
+      self.assertEqual(run_story_patch.call_count, 1)
+
+  def testFullRun(self):
+    self.options.run_full_story_set = True
+    patch_method = (
+        'telemetry.internal.story_runner._RunStoryAndProcessErrorIfNeeded')
+    with mock.patch(patch_method) as run_story_patch:
+      story_runner.RunBenchmark(self.benchmark, self.options)
+      self.assertEqual(run_story_patch.call_count, 2)
+
+
 class BenchmarkJsonResultsTest(unittest.TestCase):
 
   def setUp(self):

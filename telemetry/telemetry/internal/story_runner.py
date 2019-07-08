@@ -95,6 +95,11 @@ def AddCommandLineArgs(parser):
                     'until the device CPU has cooled down. If '
                     'not specified, this wait is disabled. '
                     'Device must be supported. ')
+  parser.add_option('--run-full-story-set', action='store_true', default=False,
+                    help='Whether to run the complete set of stories instead '
+                    'of an abridged version. Note that if the story set '
+                    'does not provide the information required to abridge it, '
+                    'then this argument will have no impact.')
 
 
 def ProcessCommandLineArgs(parser, args):
@@ -257,6 +262,14 @@ def Run(test, story_set, finder_options, results, max_failures=None,
     effective_max_failures = max_failures
 
   possible_browser = _GetPossibleBrowser(finder_options)
+
+  if not finder_options.run_full_story_set:
+    tag_filter = story_set.GetAbridgedStorySetTagFilter()
+    if tag_filter:
+      logging.warn('Running an abridged set of stories (tagged {%s}), '
+                   'use --run-full-story-set if you need to run all stories' %
+                   tag_filter)
+      stories = [story for story in stories if tag_filter in story.tags]
 
   state = None
   device_info_diags = {}
