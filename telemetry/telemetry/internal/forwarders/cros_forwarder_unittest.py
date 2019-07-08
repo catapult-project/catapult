@@ -30,7 +30,8 @@ class CrOsSshForwarderTests(unittest.TestCase):
     f = cros_forwarder.CrOsSshForwarder(
         self.cri, local_port=111, remote_port=222, port_forward=True)
     self.cri.FormSSHCommandLine.assert_called_once_with(
-        ['-NT'], ['-R222:127.0.0.1:111'], port_forward=True)
+        ['-NT'], ['-o', 'LogLevel=INFO', '-R222:127.0.0.1:111'],
+        port_forward=True)
     self.assertEqual(f.local_port, 111)
     self.assertEqual(f.remote_port, 222)
 
@@ -38,7 +39,8 @@ class CrOsSshForwarderTests(unittest.TestCase):
     f = cros_forwarder.CrOsSshForwarder(
         self.cri, local_port=111, remote_port=222, port_forward=False)
     self.cri.FormSSHCommandLine.assert_called_once_with(
-        ['-NT'], ['-L111:127.0.0.1:222'], port_forward=False)
+        ['-NT'], ['-o', 'LogLevel=INFO', '-L111:127.0.0.1:222'],
+        port_forward=False)
     self.assertEqual(f.local_port, 111)
     self.assertEqual(f.remote_port, 222)
 
@@ -47,7 +49,8 @@ class CrOsSshForwarderTests(unittest.TestCase):
     f = cros_forwarder.CrOsSshForwarder(
         self.cri, local_port=111, remote_port=None, port_forward=True)
     self.cri.FormSSHCommandLine.assert_called_once_with(
-        ['-NT'], ['-R0:127.0.0.1:111'], port_forward=True)
+        ['-NT'], ['-o', 'LogLevel=INFO', '-R0:127.0.0.1:111'],
+        port_forward=True)
     self.assertEqual(f.local_port, 111)
     self.assertEqual(f.remote_port, 444)
 
@@ -56,7 +59,8 @@ class CrOsSshForwarderTests(unittest.TestCase):
     f = cros_forwarder.CrOsSshForwarder(
         self.cri, local_port=None, remote_port=222, port_forward=False)
     self.cri.FormSSHCommandLine.assert_called_once_with(
-        ['-NT'], ['-L777:127.0.0.1:222'], port_forward=False)
+        ['-NT'], ['-o', 'LogLevel=INFO', '-L777:127.0.0.1:222'],
+        port_forward=False)
     self.assertEqual(f.local_port, 777)
     self.assertEqual(f.remote_port, 222)
 
