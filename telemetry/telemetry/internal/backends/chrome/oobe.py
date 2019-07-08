@@ -111,7 +111,7 @@ class Oobe(web_contents.WebContents):
 
     if enterprise_enroll:
       self.WaitForJavaScriptCondition(
-          'Oobe.isEnrollmentSuccessfulForTest()', timeout=30)
+          'Oobe.isEnrollmentSuccessfulForTest()', timeout=120)
       self._ExecuteOobeApi('Oobe.enterpriseEnrollmentDone')
 
   def _UnicornObfuscated(self, text):
