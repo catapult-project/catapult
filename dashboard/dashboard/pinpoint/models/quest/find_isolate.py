@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import logging
 import urlparse
 
 from dashboard.pinpoint.models import change as change_module
@@ -87,6 +88,8 @@ class _FindIsolateExecution(execution.Execution):
     return details
 
   def _Poll(self):
+    logging.debug('_FindIsolateExecution Polling: %s', self._AsDict())
+
     if self._CheckIsolateCache():
       return
 
@@ -106,12 +109,14 @@ class _FindIsolateExecution(execution.Execution):
       isolate_server, isolate_hash = isolate.Get(
           self._builder_name, self._change, self._target)
     except KeyError:
+      logging.debug('NOT found in isolate cache')
       return False
 
     result_arguments = {
         'isolate_server': isolate_server,
         'isolate_hash': isolate_hash,
     }
+    logging.debug('Found in isolate cache: %s', result_arguments)
     self._Complete(result_arguments=result_arguments)
     return True
 
@@ -122,6 +127,7 @@ class _FindIsolateExecution(execution.Execution):
       BuildError: The build failed, was canceled, or didn't produce an isolate.
     """
     build = buildbucket_service.GetJobStatus(self._build)['build']
+    logging.debug('buildbucket response: %s', build)
 
     self._build_url = build.get('url')
 
@@ -161,10 +167,14 @@ class _FindIsolateExecution(execution.Execution):
     If a previous Execution already requested a build for this Change, returns
     that build instead of requesting a new one.
     """
+    logging.debug('_FindIsolateExecution _RequestBuild')
+
     if self._change in self._previous_builds:
+      logging.debug('%s in list of previous_builds', self._change)
       # If another Execution already requested a build, reuse that one.
       self._build = self._previous_builds[self._change]
     else:
+      logging.debug('Requesting a build')
       # Request a build!
       buildbucket_info = _RequestBuild(
           self._builder_name, self._change, self.bucket)
@@ -213,6 +223,10 @@ def _RequestBuild(builder_name, change, bucket):
 
   if change.patch:
     parameters['properties'].update(change.patch.BuildParameters())
+
+  logging.debug('bucket: %s', bucket)
+  logging.debug('builder_tags: %s', builder_tags)
+  logging.debug('parameters: %s', parameters)
 
   # TODO: Look up Buildbucket bucket from builder_name.
   return buildbucket_service.Put(bucket, builder_tags, parameters)

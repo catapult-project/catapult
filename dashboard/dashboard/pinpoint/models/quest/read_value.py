@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import collections
 import json
+import logging
 import ntpath
 import posixpath
 
@@ -104,12 +105,15 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
 
     test_path_to_match = histogram_helpers.ComputeTestPathFromComponents(
         self._hist_name, tir_label=self._tir_label, story_name=self._story)
+    logging.debug('Test path to match: %s', test_path_to_match)
 
     # Have to pull out either the raw sample values, or the statistic
     result_values = []
     matching_histograms = []
     if test_path_to_match in histograms_by_path:
       matching_histograms = histograms_by_path.get(test_path_to_match, [])
+
+      logging.debug('Found %s matching histograms', len(matching_histograms))
 
       for h in matching_histograms:
         result_values.extend(self._GetValuesOrStatistic(h))
@@ -121,8 +125,14 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
           for h in histograms_for_test_path:
             summary_value.extend(self._GetValuesOrStatistic(h))
             matching_histograms.append(h)
+
+      logging.debug(
+          'Found %s matching summary histograms', len(matching_histograms))
       if summary_value:
         result_values.append(sum(summary_value))
+
+      logging.debug(
+          'result values: %s', result_values)
 
     if not result_values and self._hist_name:
       if matching_histograms:
@@ -273,8 +283,13 @@ def _IsWindows(arguments):
 
 
 def _RetrieveOutputJson(isolate_server, isolate_hash, filename):
+  logging.debug(
+      'Retrieving json output (%s, %s, %s)',
+      isolate_server, isolate_hash, filename)
+
   output_files = json.loads(isolate.Retrieve(
       isolate_server, isolate_hash))['files']
+  logging.debug('response: %s', output_files)
 
   if filename not in output_files:
     if 'performance_browser_tests' not in filename:
@@ -285,5 +300,12 @@ def _RetrieveOutputJson(isolate_server, isolate_hash, filename):
         'performance_browser_tests', 'browser_tests')
     if filename not in output_files:
       raise errors.ReadValueNoFile(filename)
+
   output_json_isolate_hash = output_files[filename]['h']
-  return json.loads(isolate.Retrieve(isolate_server, output_json_isolate_hash))
+  logging.debug('Retrieving %s', output_json_isolate_hash)
+
+  response = json.loads(
+      isolate.Retrieve(isolate_server, output_json_isolate_hash))
+  logging.debug('response: %s', response)
+
+  return response

@@ -13,6 +13,7 @@ from __future__ import absolute_import
 
 import collections
 import json
+import logging
 import re
 import shlex
 
@@ -223,9 +224,11 @@ class _RunTestExecution(execution_module.Execution):
       self._StartTask()
       return
 
+    logging.debug('_RunTestExecution Polling swarming: %s', self._task_id)
     swarming_task = swarming.Swarming(self._swarming_server).Task(self._task_id)
 
     result = swarming_task.Result()
+    logging.debug('swarming response: %s', result)
 
     if 'bot_id' in result:
       # Set bot_id to pass the info back to the Quest.
@@ -300,7 +303,12 @@ class _RunTestExecution(execution_module.Execution):
     if self._swarming_tags:
       body['tags'] = [
           '%s:%s' % (k, self._swarming_tags[k]) for k in self._swarming_tags]
+
+    logging.debug('Requesting swarming task with parameters: %s', body)
+
     response = swarming.Swarming(self._swarming_server).Tasks().New(body)
+
+    logging.debug('Response: %s', response)
 
     self._task_id = response['task_id']
 

@@ -47,10 +47,10 @@ class New(api_request_handler.ApiRequestHandler):
 def _CreateJob(request):
   """Creates a new Pinpoint job from WebOb request arguments."""
   original_arguments = request.params.mixed()
-  logging.info('Received Params: %s', original_arguments)
+  logging.debug('Received Params: %s', original_arguments)
 
   arguments = _ArgumentsWithConfiguration(original_arguments)
-  logging.info('Updated Params: %s', arguments)
+  logging.debug('Updated Params: %s', arguments)
 
   # Validate arguments and convert them to canonical internal representation.
   quests = _GenerateQuests(arguments)
@@ -177,6 +177,8 @@ def _GenerateQuests(arguments):
   else:
     # TODO: Require users to specify a list of quests. Do not imply defaults.
     target = arguments.get('target')
+    logging.debug('Target: %s', target)
+
     if target in ('performance_test_suite', 'performance_webview_test_suite',
                   'telemetry_perf_tests', 'telemetry_perf_webview_tests'):
       quest_classes = (quest_module.FindIsolate, quest_module.RunTelemetryTest,
