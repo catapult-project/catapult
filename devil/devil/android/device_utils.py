@@ -2878,7 +2878,29 @@ class DeviceUtils(object):
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def SetWebViewFallbackLogic(self, enabled, timeout=None, retries=None):
-    """Select the WebView implementation to the specified package.
+    """Set whether WebViewUpdateService's "fallback logic" should be enabled.
+
+    WebViewUpdateService has nonintuitive "fallback logic" for devices where
+    Monochrome (Chrome Stable) is preinstalled as the WebView provider, with a
+    "stub" (little-to-no code) implementation of standalone WebView.
+
+    "Fallback logic" (enabled by default) is designed, in the case where the
+    user has disabled Chrome, to fall back to the stub standalone WebView by
+    enabling the package. The implementation plumbs through the Chrome APK until
+    Play Store installs an update with the full implementation.
+
+    A surprising side-effect of "fallback logic" is that, immediately after
+    sideloading WebView, WebViewUpdateService re-disables the package and
+    uninstalls the update. This can prevent successfully using standalone
+    WebView for development, although "fallback logic" can be disabled on
+    userdebug/eng devices.
+
+    Because this is only relevant for devices with the standalone WebView stub,
+    this command is only relevant on N-P (inclusive).
+
+    You can determine if "fallback logic" is currently enabled by checking
+    FallbackLogicEnabled in the dictionary returned by
+    GetWebViewUpdateServiceDump.
 
     Args:
       enabled: bool - True for enabled, False for disabled
@@ -2891,8 +2913,8 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
     """
 
-    # command is not available pre-monochrome, treat as no-op
-    if self.build_version_sdk < version_codes.NOUGAT:
+    # Command is only available on devices which preinstall stub WebView.
+    if not version_codes.NOUGAT <= self.build_version_sdk <= version_codes.PIE:
       return
 
     # redundant-packages is the opposite of fallback logic
