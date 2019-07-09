@@ -386,7 +386,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.PopulateHistogramSet()
 
     histogram_dicts = results.AsHistogramDicts()
-    self.assertEquals(7, len(histogram_dicts))
+    self.assertEquals(8, len(histogram_dicts))
 
     hs = histogram_set.HistogramSet()
     hs.ImportDicts(histogram_dicts)

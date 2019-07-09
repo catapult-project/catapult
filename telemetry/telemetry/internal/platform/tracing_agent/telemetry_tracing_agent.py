@@ -19,19 +19,16 @@ def IsAgentEnabled():
 def RecordBenchmarkMetadata(results):
   """Record benchmark metadata if tracing is enabled."""
   if IsAgentEnabled():
-    # TODO(crbug.com/973837): Get the data we need directly from the results
-    # object, rather than having to go through the private _telemetry_info attr.
-    telemetry_info = results._telemetry_info
     trace_event.trace_add_benchmark_metadata(
         benchmark_name=results.benchmark_name,
         benchmark_description=results.benchmark_description,
         benchmark_start_time_us=results.benchmark_start_us,
         label=results.label,
-        story_run_time_us=telemetry_info.trace_start_us,
-        story_name=telemetry_info.story_display_name,
-        story_tags=telemetry_info.GetStoryTagsList(),
-        story_run_index=telemetry_info.storyset_repeat_counter,
-        had_failures=telemetry_info.had_failures,
+        story_run_time_us=results.current_story_run.start_us,
+        story_name=results.current_story.name,
+        story_tags=results.current_story.GetStoryTagsList(),
+        story_run_index=results.current_story_run.index,
+        had_failures=results.current_story_run.failed,
     )
   else:
     logging.warning(

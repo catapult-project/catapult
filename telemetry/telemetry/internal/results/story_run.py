@@ -54,8 +54,9 @@ class Artifact(object):
 
 
 class StoryRun(object):
-  def __init__(self, story, output_dir=None):
+  def __init__(self, story, output_dir=None, index=0):
     self._story = story
+    self._index = index
     self._values = []
     self._tbm_metrics = []
     self._skip_reason = None
@@ -126,6 +127,10 @@ class StoryRun(object):
     return self._story
 
   @property
+  def index(self):
+    return self._index
+
+  @property
   def test_name(self):
     # TODO(crbug.com/966835): This should be prefixed with the benchmark name.
     return self.story.name
@@ -179,6 +184,10 @@ class StoryRun(object):
   @property
   def start_datetime(self):
     return datetime.datetime.utcfromtimestamp(self._start_time)
+
+  @property
+  def start_us(self):
+    return self._start_time * 1e6
 
   @property
   def duration(self):

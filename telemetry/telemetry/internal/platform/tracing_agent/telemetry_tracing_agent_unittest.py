@@ -54,8 +54,7 @@ class TelemetryTracingAgentTest(unittest.TestCase):
 
     story = mock.Mock()
     story.name = 'story'
-    story.tags = ['tag1', 'tag2']
-    story.grouping_keys = {}
+    story.GetStoryTagsList.return_value = ['tag1', 'tag2']
     results.WillRunPage(story)
     self.agent.StartAgentTracing(self.config, timeout=10)
     telemetry_tracing_agent.RecordBenchmarkMetadata(results)

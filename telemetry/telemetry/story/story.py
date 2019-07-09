@@ -147,3 +147,8 @@ class Story(object):
   @property
   def platform_specific(self):
     return self._platform_specific
+
+  def GetStoryTagsList(self):
+    """Return a list of strings with story tags and grouping keys."""
+    return list(self.tags) + [
+        '%s:%s' % kv for kv in self.grouping_keys.iteritems()]

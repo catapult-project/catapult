@@ -24,52 +24,6 @@ from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import reserved_infos
 
 
-class TelemetryInfo(object):
-  def __init__(self):
-    self._story_name = None
-    self._story_tags = set()
-    self._story_grouping_keys = {}
-    self._storyset_repeat_counter = 0
-    self._trace_start_us = None
-    self._trace_remote_path = None
-    self._had_failures = None
-
-  @property
-  def trace_start_us(self):
-    return self._trace_start_us
-
-  @property
-  def story_display_name(self):
-    return self._story_name
-
-  @property
-  def story_grouping_keys(self):
-    return self._story_grouping_keys
-
-  @property
-  def story_tags(self):
-    return self._story_tags
-
-  @property
-  def storyset_repeat_counter(self):
-    return self._storyset_repeat_counter
-
-  @property
-  def had_failures(self):
-    return self._had_failures
-
-  def GetStoryTagsList(self):
-    return list(self._story_tags) + [
-        '%s:%s' % kv for kv in self._story_grouping_keys.iteritems()]
-
-  def WillRunStory(self, story, storyset_repeat_counter):
-    self._trace_start_us = time.time() * 1e6
-    self._story_name = story.name
-    self._story_grouping_keys = story.grouping_keys
-    self._story_tags = story.tags
-    self._storyset_repeat_counter = storyset_repeat_counter
-
-
 class PageTestResults(object):
   def __init__(self, output_formatters=None, progress_reporter=None,
                output_dir=None, should_add_value=None, benchmark_name=None,
@@ -125,7 +79,6 @@ class PageTestResults(object):
     self._benchmark_start_us = time.time() * 1e6
     self._benchmark_interrupted = False
     self._results_label = results_label
-    self._telemetry_info = TelemetryInfo()
 
     # State of the benchmark this set of results represents.
     self._benchmark_enabled = benchmark_enabled
@@ -286,11 +239,11 @@ class PageTestResults(object):
   def __exit__(self, _, __, ___):
     self.CloseOutputFormatters()
 
-  def WillRunPage(self, page, storyset_repeat_counter=0):
+  def WillRunPage(self, page, story_run_index=0):
     assert not self._current_story_run, 'Did not call DidRunPage.'
-    self._current_story_run = story_run.StoryRun(page, self._output_dir)
+    self._current_story_run = story_run.StoryRun(
+        page, self._output_dir, story_run_index)
     self._progress_reporter.WillRunPage(self)
-    self._telemetry_info.WillRunStory(page, storyset_repeat_counter)
 
   def DidRunPage(self, page):  # pylint: disable=unused-argument
     """
@@ -336,8 +289,8 @@ class PageTestResults(object):
       for i in xrange(num_runs):
         self._GenerateSkippedStoryRun(story, i)
 
-  def _GenerateSkippedStoryRun(self, story, storyset_repeat_counter):
-    self.WillRunPage(story, storyset_repeat_counter)
+  def _GenerateSkippedStoryRun(self, story, story_run_index):
+    self.WillRunPage(story, story_run_index)
     self.Skip('Telemetry interrupted', is_expected=False)
     self.DidRunPage(story)
 
@@ -349,18 +302,17 @@ class PageTestResults(object):
       self._histograms.AddHistogram(hist, diags)
 
   def _GetDiagnostics(self):
-    """Get benchmark metadata as histogram diagnostics."""
-    info = self._telemetry_info
+    """Get benchmark and current story details as histogram diagnostics."""
     diag_values = [
         (reserved_infos.BENCHMARKS, self.benchmark_name),
         (reserved_infos.BENCHMARK_START, self.benchmark_start_us),
         (reserved_infos.BENCHMARK_DESCRIPTIONS, self.benchmark_description),
         (reserved_infos.LABELS, self.label),
-        (reserved_infos.HAD_FAILURES, info.had_failures),
-        (reserved_infos.STORIES, info._story_name),
-        (reserved_infos.STORY_TAGS, info.GetStoryTagsList()),
-        (reserved_infos.STORYSET_REPEATS, info.storyset_repeat_counter),
-        (reserved_infos.TRACE_START, info.trace_start_us),
+        (reserved_infos.HAD_FAILURES, self.current_story_run.failed),
+        (reserved_infos.STORIES, self.current_story.name),
+        (reserved_infos.STORY_TAGS, self.current_story.GetStoryTagsList()),
+        (reserved_infos.STORYSET_REPEATS, self.current_story_run.index),
+        (reserved_infos.TRACE_START, self.current_story_run.start_us),
     ]
 
     diags = {}
