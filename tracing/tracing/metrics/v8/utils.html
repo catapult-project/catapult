@@ -230,6 +230,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
       if (rendererHelper.isChromeTracingUI) continue;
       threads.push(rendererHelper.mainThread);
       threads = threads.concat(rendererHelper.dedicatedWorkerThreads);
+      threads = threads.concat(rendererHelper.foregroundWorkerThreads);
     }
     return threads;
   }
