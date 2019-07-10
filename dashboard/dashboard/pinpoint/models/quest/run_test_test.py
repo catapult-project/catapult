@@ -157,31 +157,6 @@ class _RunTestExecutionTest(unittest.TestCase):
     }
     swarming_tasks_new.assert_called_with(body)
 
-  def assertNewTaskHasBotId(self, swarming_tasks_new):
-    body = {
-        'name': 'Pinpoint job',
-        'user': 'Pinpoint',
-        'priority': '100',
-        'expiration_secs': '86400',
-        'properties': {
-            'inputs_ref': {
-                'isolatedserver': 'isolate server',
-                'isolated': 'input isolate hash',
-            },
-            'extra_args': ['arg'],
-            'dimensions': [
-                {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
-                {'key': 'id', 'value': 'bot id'},
-            ],
-            'execution_timeout_secs': '21600',
-            'io_timeout_secs': '14400',
-            'caches': mock.ANY,
-            'cipd_input': mock.ANY,
-            'env_prefixes': mock.ANY,
-        },
-    }
-    swarming_tasks_new.assert_called_with(body)
-
 
 @mock.patch('dashboard.services.swarming.Tasks.New')
 @mock.patch('dashboard.services.swarming.Task.Result')
@@ -261,7 +236,7 @@ class RunTestFullTest(_RunTestExecutionTest):
     execution = quest.Start('change_2', 'isolate server', 'input isolate hash')
     execution.Poll()
 
-    self.assertNewTaskHasBotId(swarming_tasks_new)
+    self.assertNewTaskHasDimensions(swarming_tasks_new)
 
     # Start an Execution on the same Change. It should use a new bot_id.
     execution = quest.Start('change_2', 'isolate server', 'input isolate hash')
@@ -398,8 +373,6 @@ class BotIdHandlingTest(_RunTestExecutionTest):
 
   def testSimultaneousExecutions(self, swarming_task_result,
                                  swarming_tasks_new):
-    # Executions after the first must wait for the first execution to get a bot
-    # ID. To preserve device affinity, they must use the same bot.
     quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS)
     execution_1 = quest.Start('change_1', 'input isolate server',
                               'input isolate hash')
@@ -411,7 +384,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     execution_1.Poll()
     execution_2.Poll()
 
-    self.assertEqual(swarming_tasks_new.call_count, 1)
+    self.assertEqual(swarming_tasks_new.call_count, 2)
 
     swarming_task_result.return_value = {
         'bot_id': 'bot id',

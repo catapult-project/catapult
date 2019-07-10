@@ -259,28 +259,13 @@ class _RunTestExecution(execution_module.Execution):
 
   def _StartTask(self):
     """Kick off a Swarming task to run a test."""
-    if self._previous_execution and not self._previous_execution.bot_id:
-      if self._previous_execution.failed:
-        # If the previous Execution fails before it gets a bot ID, it's likely
-        # it couldn't find any device to run on. Subsequent Executions probably
-        # wouldn't have any better luck, and failing fast is less complex than
-        # handling retries.
-        raise errors.SwarmingNoBots()
-      else:
-        return
-
-    pool_dimension = None
-    for dimension in self._dimensions:
-      if dimension['key'] == 'pool':
-        pool_dimension = dimension
-
-    if self._previous_execution:
-      dimensions = [
-          pool_dimension,
-          {'key': 'id', 'value': self._previous_execution.bot_id}
-      ]
-    else:
-      dimensions = self._dimensions
+    if (self._previous_execution and not self._previous_execution.bot_id
+        and self._previous_execution.failed):
+      # If the previous Execution fails before it gets a bot ID, it's likely
+      # it couldn't find any device to run on. Subsequent Executions probably
+      # wouldn't have any better luck, and failing fast is less complex than
+      # handling retries.
+      raise errors.SwarmingNoBots()
 
     properties = {
         'inputs_ref': {
@@ -288,7 +273,7 @@ class _RunTestExecution(execution_module.Execution):
             'isolated': self._isolate_hash,
         },
         'extra_args': self._extra_args,
-        'dimensions': dimensions,
+        'dimensions': self._dimensions,
         'execution_timeout_secs': '21600',  # 6 hours, for rendering.mobile.
         'io_timeout_secs': '14400',  # 4 hours, to match the perf bots.
     }
