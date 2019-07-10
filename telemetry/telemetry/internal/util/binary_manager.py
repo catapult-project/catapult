@@ -80,13 +80,14 @@ def InitDependencyManager(client_configs):
   devil_env.config.Initialize()
 
 
-# Use linux binaries for chromeos.
-def _GetOSName(os_name):
-  return 'linux' if os_name == 'chromeos' else os_name
+def _IsChromeOSLocalMode(os_name):
+  """Determines if we're running telemetry on a Chrome OS device.
 
-
-def _GetOSForPlatform(platform):
-  return _GetOSName(platform.GetOSName())
+  Used to differentiate local mode (telemetry running on the CrOS DUT) from
+  remote mode (running telemetry on another platform that communicates with
+  the CrOS DUT over SSH).
+  """
+  return os_name == 'chromeos' and py_utils.GetHostOsName() == 'chromeos'
 
 
 def FetchPath(binary_name, arch, os_name, os_version=None):
@@ -97,7 +98,8 @@ def FetchPath(binary_name, arch, os_name, os_version=None):
     raise exceptions.InitializationError(
         'Called FetchPath with uninitialized binary manager.')
   return _binary_manager.FetchPath(
-      binary_name, _GetOSName(os_name), arch, os_version)
+      binary_name, 'linux' if _IsChromeOSLocalMode(os_name) else os_name,
+      arch, os_version)
 
 
 def LocalPath(binary_name, arch, os_name, os_version=None):
@@ -128,22 +130,28 @@ def FetchBinaryDependencies(
       dependency_manager.BaseConfig(TELEMETRY_PROJECT_CONFIG),
   ]
   dep_manager = dependency_manager.DependencyManager(configs)
-  os_name = _GetOSForPlatform(platform)
+  os_name = platform.GetOSName()
+  # If we're running directly on a Chrome OS device, fetch the binaries for
+  # linux instead, which should be compatible with CrOS. Otherwise, if we're
+  # running remotely on CrOS, fetch the binaries for the host platform like
+  # we do with android below.
+  if _IsChromeOSLocalMode(os_name):
+    os_name = 'linux'
   target_platform = '%s_%s' % (os_name, platform.GetArchName())
   dep_manager.PrefetchPaths(target_platform)
 
   host_platform = None
   fetch_devil_deps = False
-  if os_name == 'android':
+  if os_name in ('android', 'chromeos'):
     host_platform = '%s_%s' % (
         py_utils.GetHostOsName(), py_utils.GetHostArchName())
     dep_manager.PrefetchPaths(host_platform)
-    # TODO(aiolos): this is a hack to prefetch the devil deps.
-    if host_platform == 'linux_x86_64':
-      fetch_devil_deps = True
-    else:
-      logging.error('Devil only supports 64 bit linux as a host platform. '
-                    'Android tests may fail.')
+    if os_name == 'android':
+      if host_platform == 'linux_x86_64':
+        fetch_devil_deps = True
+      else:
+        logging.error('Devil only supports 64 bit linux as a host platform. '
+                      'Android tests may fail.')
 
   if fetch_reference_chrome_binary:
     _FetchReferenceBrowserBinary(platform)
@@ -197,7 +205,9 @@ def ReinstallAndroidHelperIfNeeded(binary_name, install_path, device):
 
 
 def _FetchReferenceBrowserBinary(platform):
-  os_name = _GetOSForPlatform(platform)
+  os_name = platform.GetOSName()
+  if _IsChromeOSLocalMode(os_name):
+    os_name = 'linux'
   arch_name = platform.GetArchName()
   manager = binary_manager.BinaryManager(
       [CHROME_BINARY_CONFIG])
