@@ -1,0 +1,20 @@
+Name: jpeg-js
+Short Name: jpeg-js
+URL: https://github.com/eugeneware/jpeg-js
+Version: 0.3.5
+Revision: 82e8ef27e3f2754e5bc9707b691617a8715fe4f1
+Date: Tue Apr 30 08:43:28 2019 -0500
+License: Apache-2.0
+License File: LICENSE
+Security Critical: no
+
+Description:
+Pure JS jpeg decoder.
+
+Local Modifications:
+Only included the decoder from lib/decoder.js, renamed as jpeg-js-decoder.js.
+Did not incldue encoder as we do not need it yet. Replaced
+`module.exports = decode`
+with
+`global.jpegDecode = decode`
+since we do not use node-styled modules in catapult and that throws an error.
