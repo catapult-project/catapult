@@ -15,11 +15,18 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.blink', function() {
-  // Maps Blink GC sweeping events in timeline to telemetry friendly names.
-  const BLINK_TOP_GC_SWEEPING_EVENTS = {
+  // Maps Blink GC foreground sweeping events in timeline to telemetry friendly
+  // names.
+  const BLINK_TOP_GC_FOREGROUND_SWEEPING_EVENTS = {
     'BlinkGC.CompleteSweep': 'blink-gc-complete-sweep',
     'BlinkGC.LazySweepInIdle': 'blink-gc-sweep-task-foreground',
     'BlinkGC.LazySweepOnAllocation': 'blink-gc-sweep-allocation'
+  };
+
+  // Maps Blink GC background sweeping events in timeline to telemetry friendly
+  // names.
+  const BLINK_TOP_GC_BACKGROUND_SWEEPING_EVENTS = {
+    'BlinkGC.ConcurrentSweep': 'blink-gc-sweep-task-background'
   };
 
   // Maps the all Blink GC events in timeline to telemetry friendly names.
@@ -27,22 +34,29 @@ tr.exportTo('tr.metrics.blink', function() {
     'BlinkGC.AtomicPhase': 'blink-gc-atomic-phase',
     'BlinkGC.IncrementalMarkingStartMarking': 'blink-gc-incremental-start',
     'BlinkGC.IncrementalMarkingStep': 'blink-gc-incremental-step'
-  }, BLINK_TOP_GC_SWEEPING_EVENTS);
+  }, BLINK_TOP_GC_FOREGROUND_SWEEPING_EVENTS);
 
   function blinkGarbageCollectionEventName(event) {
     return BLINK_TOP_GC_EVENTS[event.title];
   }
 
-  function isNonForcedBlinkGarbageCollectionEvent(event) {
-    return event.title in BLINK_TOP_GC_EVENTS &&
-           (!event.args || !event.args.forced) &&
+  function isNonForcedEvent(event) {
+    return (!event.args || !event.args.forced) &&
            !tr.metrics.v8.utils.isForcedGarbageCollectionEvent(event);
   }
 
-  function isNonForcedBlinkGarbageCollectionSweepingEvent(event) {
-    return event.title in BLINK_TOP_GC_SWEEPING_EVENTS &&
-           (!event.args || !event.args.forced) &&
-           !tr.metrics.v8.utils.isForcedGarbageCollectionEvent(event);
+  function isNonForcedBlinkGarbageCollectionEvent(event) {
+    return event.title in BLINK_TOP_GC_EVENTS && isNonForcedEvent(event);
+  }
+
+  function isNonForcedBlinkGarbageCollectionForegroundSweepingEvent(event) {
+    return event.title in BLINK_TOP_GC_FOREGROUND_SWEEPING_EVENTS &&
+           isNonForcedEvent(event);
+  }
+
+  function isNonForcedBlinkGarbageCollectionBackgroundSweepingEvent(event) {
+    return event.title in BLINK_TOP_GC_BACKGROUND_SWEEPING_EVENTS &&
+           isNonForcedEvent(event);
   }
 
   function isNonNestedNonForcedBlinkGarbageCollectionEvent(event) {
@@ -56,6 +70,7 @@ tr.exportTo('tr.metrics.blink', function() {
     addTotalDurationOfTopEvents(histograms, model);
     addTotalDurationOfBlinkAndV8TopEvents(histograms, model);
     addTotalDurationOfForegroundSweeping(histograms, model);
+    addTotalDurationOfBackgroundSweeping(histograms, model);
   }
 
   tr.metrics.MetricRegistry.register(blinkGcMetric);
@@ -152,8 +167,26 @@ tr.exportTo('tr.metrics.blink', function() {
    */
   function addTotalDurationOfForegroundSweeping(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-        isNonForcedBlinkGarbageCollectionSweepingEvent,
+        isNonForcedBlinkGarbageCollectionForegroundSweepingEvent,
         event => 'blink-gc-sweep-foreground',
+        function(name, events) {
+          const cpuDuration = createNumericForTotalEventTime(name);
+          for (const event of events) {
+            cpuDuration.addSample(event.cpuDuration);
+          }
+          histograms.addHistogram(cpuDuration);
+        }
+    );
+  }
+
+  /**
+   * Example output:
+   * - blink-gc-sweep-background
+   */
+  function addTotalDurationOfBackgroundSweeping(histograms, model) {
+    tr.metrics.v8.utils.groupAndProcessEvents(model,
+        isNonForcedBlinkGarbageCollectionBackgroundSweepingEvent,
+        event => 'blink-gc-sweep-background',
         function(name, events) {
           const cpuDuration = createNumericForTotalEventTime(name);
           for (const event of events) {

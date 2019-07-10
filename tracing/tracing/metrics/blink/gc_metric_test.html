@@ -77,6 +77,11 @@ tr.b.unittest.testSuite(function() {
       {
         title: 'BlinkGC.LazySweepInIdle', args: {}, start: 210,
         end: 290, cpuStart: 210, cpuEnd: 290
+      },
+      // Background events shouldn't contribute to total time.
+      {
+        title: 'BlinkGC.ConcurrentSweep', args: {}, start: 300,
+        end: 390, cpuStart: 300, cpuEnd: 390
       }
     ];
     const actual = run(slices);
@@ -117,6 +122,35 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(value.running.max, 90);
   });
 
+  test('totalBackgroundSweepingTimeForBlinkGC', function() {
+    const histograms = new tr.v.HistogramSet();
+    const slices = [
+      {
+        title: 'BlinkGC.ConcurrentSweep', args: {},
+        start: 100, end: 200, cpuStart: 100, cpuEnd: 200
+      },
+      {
+        title: 'BlinkGC.LazySweepInIdle', args: {},
+        start: 210, end: 300, cpuStart: 210, cpuEnd: 300
+      },
+      {
+        title: 'BlinkGC.ConcurrentSweep', args: {},
+        start: 250, end: 300, cpuStart: 250, cpuEnd: 300
+      },
+      {
+        title: 'BlinkGC.CompleteSweep', args: {},
+        start: 300, end: 400, cpuStart: 310, cpuEnd: 400
+      }
+    ];
+    const actual = run(slices);
+
+    const value = actual.getHistogramNamed('blink-gc-sweep-background');
+    assert.strictEqual(value.running.sum, 150);
+    assert.strictEqual(value.numValues, 2);
+    assert.strictEqual(value.average, 75);
+    assert.strictEqual(value.running.max, 100);
+  });
+
   test('totalTimeForUnifiedGC', function() {
     const histograms = new tr.v.HistogramSet();
     const slices = [
@@ -127,6 +161,11 @@ tr.b.unittest.testSuite(function() {
       {
         title: 'BlinkGC.AtomicPhase', args: {},
         start: 310, end: 410, cpuStart: 310, cpuEnd: 410
+      },
+      // Background events shouldn't contribute to total time.
+      {
+        title: 'BlinkGC.ConcurrentSweep', args: {},
+        start: 420, end: 520, cpuStart: 420, cpuEnd: 520
       }
     ];
     const actual = run(slices);
