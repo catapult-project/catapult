@@ -62,7 +62,7 @@ def SummarizePageSpecificValues(results):
   summary = summary_module.Summary(results)
   values = summary.interleaved_computed_per_page_values_and_summaries
 
-  if any(v.grouping_label for v in results.all_page_specific_values):
+  if any(v.grouping_label for v in results.IterAllLegacyValues()):
     summary_by_name_only = summary_module.Summary(
         results, key_func=lambda v: v.name)
     values.extend(

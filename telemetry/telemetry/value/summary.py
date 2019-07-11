@@ -39,7 +39,7 @@ class Summary(object):
     self._computed_summary_values = []
     self._interleaved_computed_per_page_values_and_summaries = []
     self._key_func = key_func
-    self._ComputePerPageValues(results.all_page_specific_values)
+    self._ComputePerPageValues(list(results.IterAllLegacyValues()))
 
   @property
   def computed_per_page_values(self):
@@ -59,12 +59,12 @@ class Summary(object):
     """
     return self._interleaved_computed_per_page_values_and_summaries
 
-  def _ComputePerPageValues(self, all_page_specific_values):
+  def _ComputePerPageValues(self, all_values):
     # We will later need to determine how many values were originally created
     # for each value name, to apply a workaround meant to clean up the printf
     # output.
     num_successful_pages_for_key = defaultdict(int)
-    for v in all_page_specific_values:
+    for v in all_values:
       num_successful_pages_for_key[self._key_func(v)] += 1
 
     # By here, due to page repeat options, all_values_from_successful_pages
@@ -74,7 +74,7 @@ class Summary(object):
     #
     # So, get rid of the repeated pages by merging.
     merged_page_values = merge_values.MergeLikeValuesFromSamePage(
-        all_page_specific_values, self._key_func)
+        all_values, self._key_func)
 
     # Now we have a bunch of values, but there is only one value_name per page.
     # Suppose page1 and page2 ran, producing values x and y. We want to print

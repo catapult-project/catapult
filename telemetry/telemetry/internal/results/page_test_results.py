@@ -147,13 +147,6 @@ class PageTestResults(object):
     self._histograms.ImportDicts(self._histogram_dicts_to_add)
 
   @property
-  def all_page_specific_values(self):
-    values = []
-    for run in self._IterAllStoryRuns():
-      values += run.values
-    return values
-
-  @property
   def all_summary_values(self):
     return self._all_summary_values
 
@@ -201,6 +194,11 @@ class PageTestResults(object):
 
   def IterStoryRuns(self):
     return iter(self._all_story_runs)
+
+  def IterAllLegacyValues(self):
+    for run in self._IterAllStoryRuns():
+      for value in run.values:
+        yield value
 
   def CloseOutputFormatters(self):
     """
@@ -334,7 +332,12 @@ class PageTestResults(object):
     return any(self._should_add_value(s, is_first_result) for s in stat_names)
 
   def AddValue(self, value):
-    assert self._current_story_run, 'Not currently running test.'
+    """Associate a legacy Telemetry value with the current story run.
+
+    This should not be used in new benchmarks. All values/measurements should
+    be recorded in traces.
+    """
+    assert self._current_story_run, 'Not currently running a story.'
     assert self._benchmark_enabled, 'Cannot add value to disabled results'
 
     self._ValidateValue(value)
@@ -427,25 +430,9 @@ class PageTestResults(object):
       for output_formatter in self._output_formatters:
         output_formatter.FormatDisabled(self)
 
-  def FindValues(self, predicate):
-    """Finds all values matching the specified predicate.
-
-    Args:
-      predicate: A function that takes a Value and returns a bool.
-    Returns:
-      A list of values matching |predicate|.
-    """
-    values = []
-    for value in self.all_page_specific_values:
-      if predicate(value):
-        values.append(value)
-    return values
-
-  def FindPageSpecificValuesForPage(self, page, value_name):
-    return self.FindValues(lambda v: v.page == page and v.name == value_name)
-
   def FindAllPageSpecificValuesNamed(self, value_name):
-    return self.FindValues(lambda v: v.name == value_name)
+    """DEPRECATED: New benchmarks should not use legacy values."""
+    return [v for v in self.IterAllLegacyValues() if v.name == value_name]
 
   def IterRunsWithTraces(self):
     for run in self._IterAllStoryRuns():

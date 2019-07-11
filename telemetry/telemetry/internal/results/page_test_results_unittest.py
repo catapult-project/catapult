@@ -121,31 +121,6 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertTrue(all_story_runs[1].ok)
     self.assertTrue(all_story_runs[2].skipped)
 
-  def testBasic(self):
-    results = page_test_results.PageTestResults()
-    results.WillRunPage(self.pages[0])
-    results.AddValue(scalar.ScalarValue(
-        self.pages[0], 'a', 'seconds', 3,
-        improvement_direction=improvement_direction.UP))
-    results.DidRunPage(self.pages[0])
-
-    results.WillRunPage(self.pages[1])
-    results.AddValue(scalar.ScalarValue(
-        self.pages[1], 'a', 'seconds', 3,
-        improvement_direction=improvement_direction.UP))
-    results.DidRunPage(self.pages[1])
-
-    results.PrintSummary()
-
-    values = results.FindPageSpecificValuesForPage(self.pages[0], 'a')
-    self.assertEquals(1, len(values))
-    v = values[0]
-    self.assertEquals(v.name, 'a')
-    self.assertEquals(v.page, self.pages[0])
-
-    values = results.FindAllPageSpecificValuesNamed('a')
-    assert len(values) == 2
-
   def testAddValueWithStoryGroupingKeys(self):
     results = page_test_results.PageTestResults()
     self.pages[0].grouping_keys['foo'] = 'bar'
@@ -158,9 +133,9 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
     results.PrintSummary()
 
-    values = results.FindPageSpecificValuesForPage(self.pages[0], 'a')
-    v = values[0]
-    self.assertEquals(v.grouping_label, '42_bar')
+    values = list(results.IterAllLegacyValues())
+    self.assertEquals(1, len(values))
+    self.assertEquals(values[0].grouping_label, '42_bar')
 
   def testUrlIsInvalidValue(self):
     results = page_test_results.PageTestResults()
@@ -211,16 +186,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.PrintSummary()
     self.assertFalse(results.had_successes)
 
-  def testGetSuccessfulPageValuesMergedNoFailures(self):
-    results = page_test_results.PageTestResults()
-    results.WillRunPage(self.pages[0])
-    results.AddValue(scalar.ScalarValue(
-        self.pages[0], 'a', 'seconds', 3,
-        improvement_direction=improvement_direction.UP))
-    self.assertEquals(1, len(results.all_page_specific_values))
-    results.DidRunPage(self.pages[0])
-
-  def testGetAllValuesForSuccessfulPages(self):
+  def testIterAllLegacyValuesForSuccessfulPages(self):
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
     value1 = scalar.ScalarValue(
@@ -244,23 +210,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.DidRunPage(self.pages[2])
 
     self.assertEquals(
-        [value1, value2, value3], results.all_page_specific_values)
-
-  def testFindValues(self):
-    results = page_test_results.PageTestResults()
-    results.WillRunPage(self.pages[0])
-    v0 = scalar.ScalarValue(
-        self.pages[0], 'a', 'seconds', 3,
-        improvement_direction=improvement_direction.UP)
-    results.AddValue(v0)
-    v1 = scalar.ScalarValue(
-        self.pages[0], 'a', 'seconds', 4,
-        improvement_direction=improvement_direction.UP)
-    results.AddValue(v1)
-    results.DidRunPage(self.pages[1])
-
-    values = results.FindValues(lambda v: v.value == 3)
-    self.assertEquals([v0], values)
+        [value1, value2, value3], list(results.IterAllLegacyValues()))
 
   def testAddTraces(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
@@ -422,7 +372,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
     results.PrintSummary()
     self.assertEquals(
         [('a', 'http://www.foo.com/'), ('a', 'http://www.bar.com/')],
-        [(v.name, v.page.url) for v in results.all_page_specific_values])
+        [(v.name, v.page.url) for v in results.IterAllLegacyValues()])
 
   def testFilterValueWithImportHistogramDicts(self):
     def AcceptValueStartsWith_a(name, _):
@@ -488,7 +438,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
         ('a', 'http://www.bar.com/', 1),
         ('d', 'http://www.bar.com/', 2)]
     actual_values = [(v.name, v.page.url, v.value)
-                     for v in results.all_page_specific_values]
+                     for v in results.IterAllLegacyValues()]
     self.assertEquals(expected_values, actual_values)
 
   def testFilterHistogram(self):

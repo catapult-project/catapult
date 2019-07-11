@@ -309,7 +309,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
             _WaitForThermalThrottlingIfNeeded(state.platform)
           _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
 
-          num_values = len(results.all_page_specific_values)
+          num_values = sum(1 for _ in results.IterAllLegacyValues())
           # TODO(#4259): Convert this to an exception-based failure
           if num_values > max_num_values:
             msg = 'Too many values: %d > %d' % (num_values, max_num_values)
