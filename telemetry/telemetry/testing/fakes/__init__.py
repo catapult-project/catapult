@@ -257,6 +257,10 @@ class FakePossibleBrowser(object):
     del options
     return self.returned_browser
 
+  def GetTypExpectationsTags(self):
+    tags = self.platform.GetTypExpectationsTags()
+    return tags + test_utils.sanitizeTypExpectationsTags([self.browser_type])
+
 
 class FakeSharedPageState(shared_page_state.SharedPageState):
   def __init__(self, test, finder_options, story_set, possible_browser):
