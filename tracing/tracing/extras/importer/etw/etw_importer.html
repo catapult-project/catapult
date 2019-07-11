@@ -355,7 +355,10 @@ tr.exportTo('tr.e.importer.etw', function() {
       }
 
       if (this.is64bit_ === undefined) {
-        throw Error('Cannot determine pointer size of the system trace.');
+        /* crbug.com/604301 explains this message. */
+        throw Error('Cannot determine pointer size of the system trace.' +
+            'Consider deselecting "System tracing" or disabling the "Paging ' +
+            'Executive" feature of Windows');
       }
 
       this.events_.content.forEach(this.parseEvent.bind(this));
