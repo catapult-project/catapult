@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import './chart-legend.js';
 import './cp-icon.js';
 import './expand-button.js';
@@ -103,21 +104,11 @@ export class ChartSection extends ElementBase {
     return css`
       #controls {
         align-items: center;
-        display: flex;
         margin-bottom: 8px;
       }
 
-      #controls_inner {
-        display: flex;
-        flex-direction: column;
+      #controls-inner {
         flex-grow: 1;
-      }
-
-      #parameters {
-        display: flex;
-      }
-      #parameters[hidden] {
-        display: none;
       }
 
       #spacer {
@@ -132,24 +123,14 @@ export class ChartSection extends ElementBase {
         flex-shrink: 0;
       }
 
-      #chart_container {
-        display: flex;
-      }
-
       chart-legend {
         overflow-y: auto;
         overflow-x: hidden;
       }
 
-      #legend_container {
-        display: flex;
-        flex-direction: column;
+      #legend-container {
         justify-content: center;
         max-height: 311px;
-      }
-
-      #legend_container[hidden] {
-        display: none;
       }
     `;
   }
@@ -163,9 +144,9 @@ export class ChartSection extends ElementBase {
       !this.isExpanded || !this.legend || (this.legend.length === 0));
 
     return html`
-      <div id="controls">
-        <div id="controls_inner">
-          <div id="parameters" ?hidden="${!this.isExpanded}">
+      <cp-flex id="controls">
+        <cp-flex column id="controls-inner">
+          <cp-flex id="parameters" ?hidden="${!this.isExpanded}">
             <timeseries-descriptor
                 id="descriptor"
                 .statePath="${this.statePath}.descriptor"
@@ -177,7 +158,7 @@ export class ChartSection extends ElementBase {
                 .statePath="${this.statePath}.statistic"
                 @option-select="${this.onStatisticSelect_}">
             </menu-input>
-          </div>
+          </cp-flex>
 
           <div ?hidden="${this.isExpanded}">
             <chops-input
@@ -187,7 +168,7 @@ export class ChartSection extends ElementBase {
                 @keyup="${this.onTitleKeyup_}">
             </chops-input>
           </div>
-        </div>
+        </cp-flex>
 
         <span id="spacer">&nbsp;</span>
 
@@ -209,11 +190,11 @@ export class ChartSection extends ElementBase {
             title="Close"
             @click="${this.onClose_}">
         </cp-icon>
-      </div>
+      </cp-flex>
 
       <chops-loading ?loading="${isLoading}"></chops-loading>
 
-      <div id="chart_container">
+      <cp-flex id="chart-container">
         <chart-compound
             .statePath="${this.statePath}"
             .linkedStatePath="${this.linkedStatePath}"
@@ -221,8 +202,8 @@ export class ChartSection extends ElementBase {
           Select at least one Test suite and Measurement above.
         </chart-compound>
 
-        <div
-            id="legend_container"
+        <cp-flex column
+            id="legend-container"
             ?hidden="${hideLegend}"
             @click="${this.onLegendClick_}">
           <chart-legend
@@ -231,8 +212,8 @@ export class ChartSection extends ElementBase {
               @leaf-mouseout="${this.onLegendMouseOut_}"
               @leaf-click="${this.onLegendLeafClick_}">
           </chart-legend>
-        </div>
-      </div>
+        </cp-flex>
+      </cp-flex>
 
       <div ?hidden="${!this.isExpanded}">
         <sparkline-compound .statePath="${this.statePath}">

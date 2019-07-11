@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import './cp-icon.js';
 import './recommended-options.js';
 import '@chopsui/chops-button';
@@ -106,13 +107,6 @@ export class AlertsControls extends ElementBase {
       chops-input {
         margin-right: 8px;
         margin-top: 12px;
-      }
-
-      #report-container {
-        display: flex;
-      }
-      #report-container[hidden] {
-        display: none;
       }
 
       #triaged {
@@ -240,8 +234,7 @@ export class AlertsControls extends ElementBase {
         </menu-input>
       </div>
 
-      <div id="report-container"
-          ?hidden="${!showReport}">
+      <cp-flex id="report-container" ?hidden="${!showReport}">
         <menu-input
             id="report"
             .statePath="${this.statePath}.report"
@@ -252,7 +245,7 @@ export class AlertsControls extends ElementBase {
               .statePath="${this.statePath}.report">
           </recommended-options>
         </menu-input>
-      </div>
+      </cp-flex>
 
       <div id="min-container"
           ?hidden="${!showMin}">

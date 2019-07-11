@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import './cp-icon.js';
 import {ElementBase, STORE} from './element-base.js';
 import {UPDATE} from './simple-redux.js';
@@ -70,8 +71,6 @@ export class ChartBase extends ElementBase {
       }
 
       #right {
-        display: flex;
-        flex-direction: column;
         flex-grow: 1;
       }
 
@@ -125,14 +124,9 @@ export class ChartBase extends ElementBase {
       }
 
       #tooltip {
-        display: flex;
         position: absolute;
         white-space: pre;
         z-index: var(--layer-menu, 100);
-      }
-
-      #tooltip[hidden] {
-        display: none;
       }
 
       #tooltip table {
@@ -184,7 +178,7 @@ export class ChartBase extends ElementBase {
         `)}
       </svg>
 
-      <div id="right">
+      <cp-flex column id="right">
         <div id="brush_handles">
           ${(this.xAxis.brushes || []).map((brush, brushIndex) => html`
             <div class="brush_handle"
@@ -253,7 +247,7 @@ export class ChartBase extends ElementBase {
             ${this.bars.map(bar => this.renderBar_(bar))}
           </svg>
 
-          <div id="tooltip"
+          <cp-flex id="tooltip"
               ?hidden="${!showTooltip}"
               style="left: ${this.tooltip ? this.tooltip.left : 0};
                      right: ${this.tooltip ? this.tooltip.right : 0};
@@ -270,7 +264,7 @@ export class ChartBase extends ElementBase {
                 </tr>
               `)}
             </table>
-          </div>
+          </cp-flex>
         </div>
 
         <svg
@@ -287,7 +281,7 @@ export class ChartBase extends ElementBase {
             </text>
           `)}
         </svg>
-      </div>
+      </cp-flex>
     `;
   }
 

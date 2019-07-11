@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import './scalar-span.js';
 import {AlertDetail} from './alert-detail.js';
 import {BisectDialog} from './bisect-dialog.js';
@@ -74,11 +75,10 @@ export class DetailsTable extends ElementBase {
       #empty {
         min-width: 300px;
         min-height: 50px;
-        display: flex;
         align-items: center;
         justify-content: center;
       }
-      #empty[hidden], table[hidden] {
+      table[hidden] {
         display: none;
       }
       table {
@@ -240,9 +240,9 @@ export class DetailsTable extends ElementBase {
     return html`
       <chops-loading ?loading="${this.isLoading}"></chops-loading>
 
-      <div id="empty" ?hidden="${!this.isLoading || this.bodies.length}">
+      <cp-flex id="empty" ?hidden="${!this.isLoading || this.bodies.length}">
         Loading details
-      </div>
+      </cp-flex>
 
       <table ?hidden="${!this.bodies || (this.bodies.length === 0)}">
         <thead>
@@ -474,7 +474,7 @@ export class DetailsTable extends ElementBase {
     return scalars;
   }
 
-  static buildCellAlerts(alerts) {
+  static buildCellAlerts(lineDescriptor, alerts, minRevision, maxRevision) {
     for (const alert of alerts) {
       alert.nudge = NudgeAlert.buildState({minRevision, maxRevision, ...alert});
 
@@ -522,7 +522,8 @@ export class DetailsTable extends ElementBase {
     const alerts = cell.alerts.map(alert => AlertDetail.buildState(alert));
     const bisectCell = DetailsTable.buildCellBisect(
         cell, reference, alerts, lineDescriptor);
-    DetailsTable.buildCellAlerts(alerts);
+    DetailsTable.buildCellAlerts(
+        lineDescriptor, alerts, minRevision, maxRevision);
     const histogram = cell.histogram;
     const diagnostics = cell.diagnostics;
 

@@ -362,7 +362,7 @@ ChartTimeseries.reducers = {
     if (!state || !state.yAxis || !state.yAxis.generateTicks) return state;
     const isNormalizeLine = (
       state.mode === MODE.NORMALIZE_LINE || state.mode === MODE.CENTER);
-    if (!isNormalizeLine &&
+    if (!isNormalizeLine && state.yAxis && state.yAxis.ticksForUnitName &&
         (state.yAxis.ticksForUnitName.size === 1)) {
       return state;
     }

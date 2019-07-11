@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import {LitElement, html, css} from 'lit-element';
 
 class PlaceHolder extends LitElement {
@@ -18,7 +19,6 @@ class PlaceHolder extends LitElement {
 
       #container {
         position: absolute;
-        display: flex;
         align-items: center;
         justify-content: center;
       }
@@ -41,11 +41,11 @@ class PlaceHolder extends LitElement {
 
   render() {
     return html`
-      <div id="container">
+      <cp-flex id="container">
         <div id="content">
           <slot></slot>
         </div>
-      </div>
+      </cp-flex>
 
       <svg>
         <pattern id="pattern"

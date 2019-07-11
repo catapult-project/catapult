@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import './cp-icon.js';
 import './cp-toast.js';
 import './error-set.js';
@@ -129,9 +130,6 @@ export class ChromeperfApp extends ElementBase {
         margin-left: 16px;
       }
 
-      #body {
-        display: flex;
-      }
       #drawer {
         background: white;
         border-right: 1px solid var(--primary-color-medium, blue);
@@ -297,7 +295,7 @@ export class ChromeperfApp extends ElementBase {
 
       <chops-loading ?loading="${this.isLoading}"></chops-loading>
 
-      <div id="body">
+      <cp-flex>
         <div id="drawer" ?hidden="${!this.enableNav}">
           <button
               class="drawerbutton"
@@ -384,7 +382,7 @@ export class ChromeperfApp extends ElementBase {
             ${this.vulcanizedDate}
           </div>
         </div>
-      </div>
+      </cp-flex>
 
       <cp-toast ?opened="${
   this.closedAlertsIds && this.closedAlertsIds.length}">

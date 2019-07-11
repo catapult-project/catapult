@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import '@chopsui/chops-loading';
 import '@chopsui/chops-tab';
 import '@chopsui/chops-tab-bar';
@@ -47,9 +48,8 @@ export class SparklineCompound extends ElementBase {
 
   static get styles() {
     return css`
-      .related_tab {
+      .related-tab {
         background-color: var(--primary-color-light, lightblue);
-        display: flex;
         flex-wrap: wrap;
         max-height: 380px;
         overflow: auto;
@@ -57,26 +57,23 @@ export class SparklineCompound extends ElementBase {
         border-top: none;
       }
 
-      .sparkline_tile {
+      .sparkline-tile {
         background: var(--background-color);
         cursor: pointer;
         margin: 4px;
         width: 300px;
       }
 
-      .sparkline_name {
-        display: flex;
+      .sparkline-name {
         justify-content: center;
         padding: 4px;
       }
 
-      .related_tab[hidden],
-      .sparkline_tile[hidden] {
+      .sparkline-tile[hidden] {
         display: none;
       }
 
-      .sparkline_container {
-        display: flex;
+      .sparkline-container {
         flex-wrap: wrap;
         justify-content: center;
         width: 100%;
@@ -103,15 +100,15 @@ export class SparklineCompound extends ElementBase {
       </chops-tab-bar>
 
       ${this.relatedTabs.map((tab, tabIndex) => html`
-        <div class="related_tab"
+        <cp-flex class="related-tab"
             ?hidden="${tab.name !== this.selectedRelatedTabName}">
-          <div class="sparkline_container">
+          <cp-flex class="sparkline-container">
             ${(tab.renderedSparklines || []).map((sparkline, index) => html`
               <div
-                  class="sparkline_tile"
+                  class="sparkline-tile"
                   ?hidden="${this.hideTile_(sparkline)}"
                   @click="${event => this.onSparklineClick_(sparkline)}">
-                <div class="sparkline_name">${sparkline.name}</div>
+                <cp-flex class="sparkline-name">${sparkline.name}</cp-flex>
                 <chops-loading ?loading="${sparkline.layout.isLoading}">
                 </chops-loading>
                 <chart-timeseries .statePath="${
@@ -120,8 +117,8 @@ export class SparklineCompound extends ElementBase {
                 </chart-timeseries>
               </div>
             `)}
-          </div>
-        </div>
+          </cp-flex>
+        </cp-flex>
       `)}
     `;
   }

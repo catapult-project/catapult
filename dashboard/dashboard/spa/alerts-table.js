@@ -336,7 +336,7 @@ export class AlertsTable extends ElementBase {
 
               <th class="checkbox">
                 <chops-checkbox
-                    ?checked="${this.selectedAlertsCount > 0}"
+                    .checked="${this.selectedAlertsCount > 0}"
                     ?disabled="${this.areAlertGroupsPlaceholders}"
                     @change="${this.onSelectAll_}">
                 </chops-checkbox>
@@ -550,7 +550,7 @@ export class AlertsTable extends ElementBase {
 
         <td>
           <chops-checkbox
-              ?checked="${alert.isSelected}"
+              .checked="${alert.isSelected}"
               ?disabled="${this.areAlertGroupsPlaceholders}"
               @change="${event =>
     this.onSelect_(event, alertGroupIndex, alertIndex)}">
@@ -679,7 +679,9 @@ export class AlertsTable extends ElementBase {
   }
 
   async onRowClick_(event, alertGroupIndex, alertIndex) {
-    if (event.target.matches('td')) return;
+    if (!event.target.matches('td') && !event.target.matches('scalar-span')) {
+      return;
+    }
     this.dispatchEvent(new CustomEvent('alert-click', {
       bubbles: true,
       composed: true,

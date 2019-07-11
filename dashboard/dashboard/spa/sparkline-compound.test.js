@@ -238,7 +238,7 @@ suite('sparkline-compound', function() {
     sc.addEventListener('new-chart', e => {
       ++newChartEvents;
     });
-    sc.shadowRoot.querySelector('.sparkline_tile').click();
+    sc.shadowRoot.querySelector('.sparkline-tile').click();
 
     assert.strictEqual(1, newChartEvents);
   });

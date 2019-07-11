@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import './cp-icon.js';
 import './error-set.js';
 import '@chopsui/chops-loading';
@@ -94,15 +95,6 @@ export class AlertDetail extends ElementBase {
       table {
         width: 100%;
       }
-      flex {
-        display: flex;
-      }
-      flex * {
-        flex-grow: 1;
-      }
-      flex[hidden] {
-        display: none;
-      }
       #start-revision {
         margin-right: 8px;
       }
@@ -169,7 +161,7 @@ export class AlertDetail extends ElementBase {
         <a target="_blank" href="${pinpointJob(this.jobId)}">${jobId}</a>
       `)}
 
-      <flex ?hidden="${!isProduction()}">
+      <cp-flex grows ?hidden="${!isProduction()}">
         <span style="position: relative;">
           <chops-button @click="${this.onNudge_}">
             Nudge
@@ -212,7 +204,7 @@ export class AlertDetail extends ElementBase {
             Ignore
           </chops-button>
         `}
-      </flex>
+      </cp-flex>
     `;
   }
 

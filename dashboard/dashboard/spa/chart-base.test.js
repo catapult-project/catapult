@@ -7,7 +7,7 @@
 import {ChartBase} from './chart-base.js';
 import {ENSURE, UPDATE} from './simple-redux.js';
 import {STORE} from './element-base.js';
-import {afterRender, animationFrame, timeout} from './utils.js';
+import {afterRender, animationFrame} from './utils.js';
 import {assert} from 'chai';
 import {findElements} from './find-elements.js';
 

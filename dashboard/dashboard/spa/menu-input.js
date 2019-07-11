@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import './cp-icon.js';
 import '@chopsui/chops-input';
 import {OptionGroup} from './option-group.js';
@@ -64,10 +65,6 @@ export class MenuInput extends ElementBase {
         position: absolute;
         z-index: var(--layer-menu, 100);
       }
-
-      #bottom {
-        display: flex;
-      }
     `;
   }
 
@@ -97,13 +94,13 @@ export class MenuInput extends ElementBase {
 
       <div id="menu" tabindex="0" ?hidden="${!this.isFocused}">
         <slot name="top"></slot>
-        <div id="bottom">
+        <cp-flex>
           <slot name="left"></slot>
           <option-group
               .statePath="${this.statePath}"
               .rootStatePath="${this.statePath}">
           </option-group>
-        </div>
+        </cp-flex>
       </div>
     `;
   }

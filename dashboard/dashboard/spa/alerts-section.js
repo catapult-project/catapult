@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import './error-set.js';
 import '@chopsui/chops-button';
 import '@chopsui/chops-loading';
@@ -135,7 +136,6 @@ export class AlertsSection extends ElementBase {
 
       #triage-controls {
         align-items: center;
-        display: flex;
         padding-left: 24px;
         transition: background-color var(--transition-short, 0.2s),
                     color var(--transition-short, 0.2s);
@@ -165,7 +165,6 @@ export class AlertsSection extends ElementBase {
       }
 
       #autotriage {
-        display: flex;
         align-items: center;
         border: 2px solid var(--primary-color-light, lightblue);
         padding: 4px;
@@ -233,7 +232,7 @@ export class AlertsSection extends ElementBase {
 
         ${(this.alertGroups && this.alertGroups.length) ? html`
           ${!canAutotriage ? '' : html`
-            <div id="autotriage">
+            <cp-flex id="autotriage">
               <chops-switch
                   title="${fullAutoTooltip}"
                   disabled="true"
@@ -256,10 +255,10 @@ export class AlertsSection extends ElementBase {
                   @click="${this.onAutotriage_}">
                 ${autotriageLabel}
               </chops-button>
-            </div>
+            </cp-flex>
           `}
 
-          <div id="triage-controls"
+          <cp-flex id="triage-controls"
               ?anySelected="${this.selectedAlertsCount !== 0}">
             <div id="count">
               ${this.selectedAlertsCount} selected of ${summary}
@@ -306,7 +305,7 @@ export class AlertsSection extends ElementBase {
                 Unassign
               </div>
             `}
-          </div>
+          </cp-flex>
         ` : html``}
 
         <alerts-table

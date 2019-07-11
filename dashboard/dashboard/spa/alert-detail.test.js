@@ -16,7 +16,6 @@ import {findElements} from './find-elements.js';
 import {
   afterRender,
   animationFrame,
-  timeout,
   setDebugForTesting,
 } from './utils.js';
 

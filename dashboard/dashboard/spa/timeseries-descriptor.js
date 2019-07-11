@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import './error-set.js';
 import './recommended-options.js';
 import '@chopsui/chops-checkbox';
@@ -86,9 +87,6 @@ export class TimeseriesDescriptor extends ElementBase {
 
   static get styles() {
     return css`
-      #row {
-        display: flex;
-      }
       menu-input {
         margin-right: 8px;
       }
@@ -108,7 +106,7 @@ export class TimeseriesDescriptor extends ElementBase {
 
   render() {
     return html`
-      <div id="row">
+      <cp-flex>
         <div>
           <menu-input
               .statePath="${this.statePath}.suite"
@@ -209,7 +207,7 @@ export class TimeseriesDescriptor extends ElementBase {
             </chops-checkbox>
           `}
         </div>
-      </div>
+      </cp-flex>
 
       <chops-loading ?loading="${this.isLoading}"></chops-loading>
       <error-set .errors="${this.errors}"></error-set>

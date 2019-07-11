@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import '@chopsui/chops-button';
 import '@chopsui/chops-input';
 import '@chopsui/chops-switch';
@@ -63,7 +64,6 @@ export class TriageExisting extends ElementBase {
 
       #controls {
         align-items: center;
-        display: flex;
         margin: 0;
         min-width: 400px;
         padding: 0;
@@ -121,7 +121,7 @@ export class TriageExisting extends ElementBase {
         this.selectedRange);
 
     return html`
-      <div id="controls">
+      <cp-flex id="controls">
         <chops-input
             id="bug_input"
             autofocus
@@ -144,7 +144,7 @@ export class TriageExisting extends ElementBase {
             @change="${this.onToggleOnlyIntersectingBugs_}">
           Intersecting Bugs Only
         </chops-switch>
-      </div>
+      </cp-flex>
 
       <div id="table-container">
         <table>

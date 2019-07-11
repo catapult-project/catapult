@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import './cp-icon.js';
 import './cp-toast.js';
 import './scalar-span.js';
@@ -57,7 +58,6 @@ export class ReportTable extends ElementBase {
         position: relative;
       }
       .report_name {
-        display: flex;
         justify-content: center;
         margin: 24px 0 0 0;
       }
@@ -96,12 +96,6 @@ export class ReportTable extends ElementBase {
         flex-shrink: 0;
         margin: 0 0 0 8px;
         padding: 0;
-      }
-
-      .report_name span {
-        position: relative;
-        display: flex;
-        align-items: center;
       }
 
       #tooltip {
@@ -146,7 +140,7 @@ export class ReportTable extends ElementBase {
 
   render() {
     return html`
-      <div class="report_name">
+      <cp-flex class="report_name">
         <h2>${this.name}</h2>
 
         ${!this.url ? '' : html`
@@ -172,7 +166,7 @@ export class ReportTable extends ElementBase {
             title="Edit template"
             @click="${this.onToggleEditing_}">
         </cp-icon>
-      </div>
+      </cp-flex>
 
       <table id="table" ?placeholder="${this.isPlaceholder}">
         <thead>

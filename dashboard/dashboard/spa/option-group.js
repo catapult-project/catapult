@@ -4,6 +4,7 @@
 */
 'use strict';
 
+import './cp-flex.js';
 import './expand-button.js';
 import '@chopsui/chops-checkbox';
 import {ElementBase, STORE} from './element-base.js';
@@ -61,7 +62,6 @@ export class OptionGroup extends ElementBase {
 
       .row {
         align-items: center;
-        display: flex;
         margin: 1px 0 1px 8px;
       }
 
@@ -97,7 +97,7 @@ export class OptionGroup extends ElementBase {
     if (!this.matches_(option, this.query)) return '';
     const statePath = `${this.statePath}.options.${optionIndex}`;
     return html`
-      <div class="row"
+      <cp-flex class="row"
           ?cursor="${this.cursor === statePath}"
           ?indent="${this.indentRow_(option)}">
         ${!option.options ? '' : html`
@@ -115,7 +115,7 @@ export class OptionGroup extends ElementBase {
             @change="${event => this.onSelect_(option)}">
           ${this.label_(option)}
         </chops-checkbox>
-      </div>
+      </cp-flex>
 
       ${!this.shouldStampSubOptions_(option, this.query) ? '' : html`
         <option-group

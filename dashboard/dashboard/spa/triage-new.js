@@ -107,7 +107,7 @@ export class TriageNew extends ElementBase {
 
       ${(this.labels || []).map(label => html`
         <chops-checkbox
-            ?checked="${label.isEnabled}"
+            .checked="${label.isEnabled}"
             tabindex="0"
             @change="${event => this.onLabel_(label.name)}">
           ${label.name}
@@ -116,7 +116,7 @@ export class TriageNew extends ElementBase {
 
       ${(this.components || []).map(component => html`
         <chops-checkbox
-            ?checked="${component.isEnabled}"
+            .checked="${component.isEnabled}"
             tabindex="0"
             @change="${event => this.onComponent_(component.name)}">
           ${component.name}
@@ -125,7 +125,7 @@ export class TriageNew extends ElementBase {
 
       <chops-switch
           id="pinpoint"
-          ?checked="${this.startBisect}"
+          .checked="${this.startBisect}"
           @click="${this.onTogglePinpoint_}"
           tabindex="0">
         Start Pinpoint Bisect
