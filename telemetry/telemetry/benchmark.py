@@ -12,9 +12,11 @@ from telemetry.internal import story_runner
 from telemetry.internal.util import command_line
 from telemetry.page import legacy_page_test
 from telemetry.story import expectations as expectations_module
+from telemetry.story import typ_expectations
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
 from tracing.value.diagnostics import generic_set
+from typ import expectations_parser as typ_expectations_parser
 
 Info = decorators.Info
 
@@ -41,7 +43,6 @@ class Benchmark(command_line.Command):
   page_set = None
   test = timeline_based_measurement.TimelineBasedMeasurement
   SUPPORTED_PLATFORMS = [expectations_module.ALL]
-
   MAX_NUM_VALUES = sys.maxint
 
   def __init__(self, max_failures=None):
@@ -60,7 +61,6 @@ class Benchmark(command_line.Command):
     # * It's a legacy benchmark, with either CreatePageTest defined or
     #   Benchmark.test set.
     # See https://github.com/catapult-project/catapult/issues/3708
-
 
   def _CanRunOnPlatform(self, platform, finder_options):
     for p in self.SUPPORTED_PLATFORMS:
@@ -251,7 +251,6 @@ class Benchmark(command_line.Command):
       tbm_options.config.chrome_trace_config.SetEnableSystrace()
     return tbm_options
 
-
   def CreatePageTest(self, options):  # pylint: disable=unused-argument
     """Return the PageTest for this Benchmark.
 
@@ -296,10 +295,26 @@ class Benchmark(command_line.Command):
       return self._expectations.GetBrokenExpectations(story_set)
     return []
 
-  def AugmentExpectationsWithParser(self, data):
-    parser = expectations_parser.TestExpectationParser(data)
-    self._expectations.GetBenchmarkExpectationsFromParser(
-        parser.expectations, self.Name())
+  def AugmentExpectationsWithFile(self, raw_data):
+    typ_parser = typ_expectations_parser.TestExpectations()
+    error, _ = typ_parser.parse_tagged_list(raw_data)
+    if not error:
+      self._expectations = typ_expectations.StoryExpectations(self.Name())
+      self._expectations.GetBenchmarkExpectationsFromParser(raw_data)
+    else:
+      # If we can't parse the file using typ's expectation parser
+      # then we fall back to using py_util's expectation parser
+      # TODO(crbug.com/973936): When all expectations files have
+      # been migrated, we will remove this if else statement and
+      # only use typ's expectations parser.
+      self._expectations.GetBenchmarkExpectationsFromParser(
+          expectations_parser.TestExpectationParser(
+              raw_data).expectations, self.Name())
+
+  def AugmentExpectationsWithParser(self, raw_data):
+    # TODO(crbug.com/973936): Remove this function after removing all
+    # invocations of this function in src/tools/perf
+    self.AugmentExpectationsWithFile(raw_data)
 
   @property
   def expectations(self):
