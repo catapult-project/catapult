@@ -16,12 +16,17 @@ import {CHAIN, TOGGLE, UPDATE} from './simple-redux.js';
 import {ChartTimeseries} from './chart-timeseries.js';
 import {DetailsTable} from './details-table.js';
 import {ElementBase, STORE} from './element-base.js';
-import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {MAX_POINTS} from './timeseries-merger.js';
 import {MODE} from './layout-timeseries.js';
 import {get, set} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
 import {isElementChildOf, isDebug} from './utils.js';
+
+import {
+  LEVEL_OF_DETAIL,
+  TimeseriesRequest,
+  createFetchDescriptors,
+} from './timeseries-request.js';
 
 /**
   * ChartCompound synchronizes revision ranges and axis properties between a
@@ -555,7 +560,7 @@ export class ChartCompound extends ElementBase {
   // found.
   static async findFirstNonEmptyLineDescriptor(lineDescriptors) {
     for (const lineDescriptor of lineDescriptors) {
-      const fetchDescriptors = ChartTimeseries.createFetchDescriptors(
+      const fetchDescriptors = createFetchDescriptors(
           lineDescriptor, LEVEL_OF_DETAIL.XY);
       const batches = new BatchIterator();
       for (const fetchDescriptor of fetchDescriptors) {

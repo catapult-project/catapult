@@ -9,12 +9,15 @@ import {BatchIterator} from '@chopsui/batch-iterator';
 import {CHAIN, UPDATE} from './simple-redux.js';
 import {CTRL_KEY_NAME, generateColors, measureText} from './utils.js';
 import {ChartBase} from './chart-base.js';
+import {ChartFetcher} from './chart-fetcher.js';
 import {ElementBase, STORE} from './element-base.js';
 import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {MODE, layoutTimeseries} from './layout-timeseries.js';
 import {TimeseriesMerger} from './timeseries-merger.js';
 import {get} from 'dot-prop-immutable';
 import {html, css} from 'lit-element';
+
+const SHADE_FILL_ALPHA = 0.2;
 
 export class ChartTimeseries extends ElementBase {
   static get is() { return 'chart-timeseries'; }
@@ -188,11 +191,11 @@ export class ChartTimeseries extends ElementBase {
     const started = performance.now();
     STORE.dispatch(UPDATE(statePath, {started}));
     const state = get(STORE.getState(), statePath);
-    const generator = generateTimeseries(
+    const fetcher = new ChartFetcher(
         state.lineDescriptors.slice(0, ChartTimeseries.MAX_LINES),
         {minRevision: state.minRevision, maxRevision: state.maxRevision},
         state.levelOfDetail);
-    for await (const {timeseriesesByLine, errors} of generator) {
+    for await (const {timeseriesesByLine, errors} of fetcher) {
       if (!layoutTimeseries.isReady) await layoutTimeseries.readyPromise;
 
       const state = get(STORE.getState(), statePath);
@@ -217,7 +220,8 @@ export class ChartTimeseries extends ElementBase {
   // appropriately. Measuring elements is asynchronous, so this logic needs to
   // be an action creator.
   static async measureYTicks(statePath) {
-    const ticks = collectYAxisTicks(get(STORE.getState(), statePath));
+    const ticks = ChartTimeseries.collectYAxisTicks(
+        get(STORE.getState(), statePath));
     if (ticks.length === 0) return;
     STORE.dispatch({
       type: ChartTimeseries.reducers.yAxisWidth.name,
@@ -225,91 +229,170 @@ export class ChartTimeseries extends ElementBase {
       rects: await Promise.all(ticks.map(tick => measureText(tick))),
     });
   }
-}
 
-ChartTimeseries.MAX_LINES = 10;
-
-function arraySetEqual(a, b) {
-  if (a.length !== b.length) return false;
-  for (const e of a) {
-    if (!b.includes(e)) return false;
-  }
-  return true;
-}
-
-ChartTimeseries.lineDescriptorEqual = (a, b) => {
-  if (a === b) return true;
-  if (!arraySetEqual(a.suites, b.suites)) return false;
-  if (!arraySetEqual(a.bots, b.bots)) return false;
-  if (!arraySetEqual(a.cases, b.cases)) return false;
-  if (a.measurement !== b.measurement) return false;
-  if (a.statistic !== b.statistic) return false;
-  if (a.buildType !== b.buildType) return false;
-  if (a.minRevision !== b.minRevision) return false;
-  if (a.maxRevision !== b.maxRevision) return false;
-  return true;
-};
-
-function collectYAxisTicks(state) {
-  const ticks = new Set();
-  if (state.yAxis.ticksForUnitName) {
-    for (const unitTicks of state.yAxis.ticksForUnitName.values()) {
-      for (const tick of unitTicks) {
-        ticks.add(tick.text);
+  // Set line.color.
+  static assignColors(lines) {
+    const isTestLine = line => line.descriptor.buildType !== 'ref';
+    const testLines = lines.filter(isTestLine);
+    const colors = generateColors(testLines.length, {hueOffset: 0.64});
+    const colorByDescriptor = new Map();
+    for (const line of testLines) {
+      const color = colors.shift();
+      colorByDescriptor.set(ChartTimeseries.stringifyDescriptor(
+          {...line.descriptor, buildType: undefined}), color);
+      line.color = color.toString();
+      line.shadeFill = color.withAlpha(SHADE_FILL_ALPHA).toString();
+    }
+    for (const line of lines) {
+      if (isTestLine(line)) continue;
+      if (lines.length === (1 + testLines.length)) {
+        // There's only a single ref build line, so make it black for visual
+        // simplicity. Chart-legend entries that aren't selected are grey, and
+        // x-axis lines are grey, so disambiguate by avoiding grey here.
+        line.color = 'rgba(0, 0, 0, 1)';
+        line.shadeFill = `rgba(0, 0, 0, ${SHADE_FILL_ALPHA})`;
+        break;
+      }
+      const color = colorByDescriptor.get(ChartTimeseries.stringifyDescriptor(
+          {...line.descriptor, buildType: undefined}));
+      if (color) {
+        const hsl = color.toHSL();
+        const adjusted = tr.b.Color.fromHSL({
+          h: hsl.h,
+          s: 1,
+          l: 0.9,
+        });
+        line.color = adjusted.toString();
+        line.shadeFill = adjusted.withAlpha(SHADE_FILL_ALPHA).toString();
+      } else {
+        line.color = 'white';
+        line.shadeFill = 'white';
       }
     }
   }
-  for (const line of state.lines) {
-    if (!line.ticks) continue;
-    for (const tick of line.ticks) {
-      ticks.add(tick.text);
+
+  static aggregateTimeserieses(
+      lineDescriptor, timeserieses, levelOfDetail, range) {
+    const isXY = (levelOfDetail === LEVEL_OF_DETAIL.XY);
+    const lineData = [];
+    const iter = new TimeseriesMerger(timeserieses, range);
+    for (const [x, datum] of iter) {
+      const icon = isXY ? {} : ChartTimeseries.getIcon(datum);
+      lineData.push({
+        datum, x, y: datum[lineDescriptor.statistic || 'avg'], ...icon,
+      });
     }
+
+    lineData.sort((a, b) => a.x - b.x);
+    return lineData;
   }
-  return [...ticks];
+
+  static revisionRanges(brushRevisions) {
+    const revisionRanges = [];
+    for (let i = 0; i < brushRevisions.length; i += 2) {
+      revisionRanges.push(tr.b.math.Range.fromExplicitRange(
+          brushRevisions[i], brushRevisions[i + 1]));
+    }
+    return revisionRanges;
+  }
+
+  static revisionLink(revisionInfo, rName, r1, r2) {
+    if (!revisionInfo) return {name: rName};
+    const info = revisionInfo[rName];
+    if (!info) return {name: rName};
+    const url = info.url.replace('{{R1}}', r1 || r2).replace('{{R2}}', r2);
+    return {name: info.name, url};
+  }
+
+  static brushRevisions(state) {
+    const brushes = state.brushRevisions.map(x => {
+      const xPctRange = tr.b.math.Range.fromExplicitRange(0, 100);
+      for (const line of state.lines) {
+        const index = tr.b.findLowIndexInSortedArray(
+            line.data, d => d.x, x);
+        if (!line.data[index]) continue;
+        // Now, line.data[index].x >= x
+
+        const thisMax = line.data[index].xPct;
+        const thisMin = (index > 0) ? line.data[index - 1].xPct : thisMax;
+
+        if (thisMax === x) return {x, xPct: line.data[index].xPct + '%'};
+
+        xPctRange.min = Math.max(xPctRange.min, thisMin);
+        xPctRange.max = Math.min(xPctRange.max, thisMax);
+      }
+      if (xPctRange.isEmpty) return {x: 0, xPct: '0%'};
+      return {x, xPct: xPctRange.center + '%'};
+    });
+    return {...state, xAxis: {...state.xAxis, brushes}};
+  }
+
+  // Strip out min/maxRevision/Timestamp and ensure a consistent key order.
+  static stringifyDescriptor(lineDescriptor) {
+    return JSON.stringify([
+      lineDescriptor.suites,
+      lineDescriptor.measurement,
+      lineDescriptor.bots,
+      lineDescriptor.cases,
+      lineDescriptor.statistic,
+      lineDescriptor.buildType,
+    ]);
+  }
+
+  // If an icon should be displayed in a main chart for this datum, return
+  // {icon, iconColor}.
+  static getIcon(datum) {
+    // See ./cp-icon.js for available icons.
+
+    if (datum.alert) {
+      if (datum.alert.improvement) {
+        // Improvement alerts display thumbup icons.
+        return {
+          icon: 'thumbup',
+          iconColor: 'var(--improvement-color, green)',
+        };
+      }
+
+      // Regression alerts display error icons.
+      return {
+        icon: 'error',
+        iconColor: datum.alert.bugId ?
+          'var(--neutral-color-dark, grey)' : 'var(--error-color, red)',
+      };
+    }
+
+    if (datum.diagnostics &&
+        datum.diagnostics.has(tr.v.d.RESERVED_NAMES.OS_VERSIONS)) {
+      // Whitelisted diagnostics display feedback icons.
+      return {
+        icon: 'feedback',
+        iconColor: 'var(--primary-color-dark, blue)',
+      };
+    }
+
+    return {};
+  }
+
+  static collectYAxisTicks(state) {
+    const ticks = new Set();
+    if (state.yAxis.ticksForUnitName) {
+      for (const unitTicks of state.yAxis.ticksForUnitName.values()) {
+        for (const tick of unitTicks) {
+          ticks.add(tick.text);
+        }
+      }
+    }
+    for (const line of state.lines) {
+      if (!line.ticks) continue;
+      for (const tick of line.ticks) {
+        ticks.add(tick.text);
+      }
+    }
+    return [...ticks];
+  }
 }
 
-const SHADE_FILL_ALPHA = 0.2;
-
-// Set line.color.
-ChartTimeseries.assignColors = lines => {
-  const isTestLine = line => line.descriptor.buildType !== 'ref';
-  const testLines = lines.filter(isTestLine);
-  const colors = generateColors(testLines.length, {hueOffset: 0.64});
-  const colorByDescriptor = new Map();
-  for (const line of testLines) {
-    const color = colors.shift();
-    colorByDescriptor.set(ChartTimeseries.stringifyDescriptor(
-        {...line.descriptor, buildType: undefined}), color);
-    line.color = color.toString();
-    line.shadeFill = color.withAlpha(SHADE_FILL_ALPHA).toString();
-  }
-  for (const line of lines) {
-    if (isTestLine(line)) continue;
-    if (lines.length === (1 + testLines.length)) {
-      // There's only a single ref build line, so make it black for visual
-      // simplicity. Chart-legend entries that aren't selected are grey, and
-      // x-axis lines are grey, so disambiguate by avoiding grey here.
-      line.color = 'rgba(0, 0, 0, 1)';
-      line.shadeFill = `rgba(0, 0, 0, ${SHADE_FILL_ALPHA})`;
-      break;
-    }
-    const color = colorByDescriptor.get(ChartTimeseries.stringifyDescriptor(
-        {...line.descriptor, buildType: undefined}));
-    if (color) {
-      const hsl = color.toHSL();
-      const adjusted = tr.b.Color.fromHSL({
-        h: hsl.h,
-        s: 1,
-        l: 0.9,
-      });
-      line.color = adjusted.toString();
-      line.shadeFill = adjusted.withAlpha(SHADE_FILL_ALPHA).toString();
-    } else {
-      line.color = 'white';
-      line.shadeFill = 'white';
-    }
-  }
-};
+ChartTimeseries.MAX_LINES = 10;
 
 ChartTimeseries.reducers = {
   // Aggregate timeserieses, assign colors, layout chart data, snap revisions.
@@ -517,186 +600,6 @@ ChartTimeseries.reducers = {
 
     return state;
   },
-};
-
-ChartTimeseries.brushRevisions = state => {
-  const brushes = state.brushRevisions.map(x => {
-    const xPctRange = tr.b.math.Range.fromExplicitRange(0, 100);
-    for (const line of state.lines) {
-      const index = tr.b.findLowIndexInSortedArray(
-          line.data, d => d.x, x);
-      if (!line.data[index]) continue;
-      // Now, line.data[index].x >= x
-
-      const thisMax = line.data[index].xPct;
-      const thisMin = (index > 0) ? line.data[index - 1].xPct : thisMax;
-
-      if (thisMax === x) return {x, xPct: line.data[index].xPct + '%'};
-
-      xPctRange.min = Math.max(xPctRange.min, thisMin);
-      xPctRange.max = Math.min(xPctRange.max, thisMax);
-    }
-    if (xPctRange.isEmpty) return {x: 0, xPct: '0%'};
-    return {x, xPct: xPctRange.center + '%'};
-  });
-  return {...state, xAxis: {...state.xAxis, brushes}};
-};
-
-// Strip out min/maxRevision/Timestamp and ensure a consistent key order.
-ChartTimeseries.stringifyDescriptor = lineDescriptor => JSON.stringify([
-  lineDescriptor.suites,
-  lineDescriptor.measurement,
-  lineDescriptor.bots,
-  lineDescriptor.cases,
-  lineDescriptor.statistic,
-  lineDescriptor.buildType,
-]);
-
-// Remove empty elements.
-function filterTimeseriesesByLine(timeseriesesByLine) {
-  const result = [];
-  for (const {lineDescriptor, timeserieses} of timeseriesesByLine) {
-    const filteredTimeserieses = timeserieses.filter(ts => ts);
-    if (filteredTimeserieses.length === 0) continue;
-    result.push({lineDescriptor, timeserieses: filteredTimeserieses});
-  }
-  return result;
-}
-
-// Each lineDescriptor may require data from one or more fetchDescriptors.
-// Fetch one or more fetchDescriptors per line, batch the readers, collate the
-// data.
-// Yields {timeseriesesByLine: [{lineDescriptor, timeserieses}], errors}.
-async function* generateTimeseries(
-    lineDescriptors, revisions, levelOfDetail) {
-  const readers = [];
-  const timeseriesesByLine = [];
-
-  for (const lineDescriptor of lineDescriptors) {
-    const fetchDescriptors = ChartTimeseries.createFetchDescriptors(
-        lineDescriptor, levelOfDetail);
-    const timeserieses = new Array(fetchDescriptors.length);
-    timeseriesesByLine.push({lineDescriptor, timeserieses});
-
-    for (let fetchIndex = 0; fetchIndex < fetchDescriptors.length;
-      ++fetchIndex) {
-      readers.push((async function* () {
-        const request = new TimeseriesRequest({
-          ...fetchDescriptors[fetchIndex],
-          ...revisions,
-        });
-
-        for await (const timeseries of request.reader()) {
-          // Replace any previous timeseries from this reader.
-          // TimeseriesCacheRequest merges results progressively.
-          timeserieses[fetchIndex] = timeseries;
-          yield {/* Pump BatchIterator. See timeseriesesByLine. */};
-        }
-      })());
-    }
-  }
-
-  // Use BatchIterator only to batch result *events*, not the results
-  // themselves. Manually collate results above to keep track of which line
-  // and request go with each timeseries.
-
-  for await (const {results, errors} of new BatchIterator(readers)) {
-    const filtered = filterTimeseriesesByLine(timeseriesesByLine);
-    yield {timeseriesesByLine: filtered, errors};
-  }
-}
-
-// A lineDescriptor may require data from multiple timeseries.
-// A lineDescriptor may specify multiple suites, bots, and cases.
-// A fetchDescriptor may specify exactly one suite, one bot, and zero or one
-// case.
-ChartTimeseries.createFetchDescriptors = (lineDescriptor, levelOfDetail) => {
-  let cases = lineDescriptor.cases;
-  if (cases.length === 0) cases = [undefined];
-  const fetchDescriptors = [];
-  for (const suite of lineDescriptor.suites) {
-    for (const bot of lineDescriptor.bots) {
-      for (const cas of cases) {
-        fetchDescriptors.push({
-          suite,
-          bot,
-          measurement: lineDescriptor.measurement,
-          case: cas,
-          statistic: lineDescriptor.statistic,
-          buildType: lineDescriptor.buildType,
-          levelOfDetail,
-        });
-      }
-    }
-  }
-  return fetchDescriptors;
-};
-
-// If an icon should be displayed in a main chart for this datum, return {icon,
-// iconColor}.
-function getIcon(datum) {
-  // See ./cp-icon.js for available icons.
-
-  if (datum.alert) {
-    if (datum.alert.improvement) {
-      // Improvement alerts display thumbup icons.
-      return {
-        icon: 'thumbup',
-        iconColor: 'var(--improvement-color, green)',
-      };
-    }
-
-    // Regression alerts display error icons.
-    return {
-      icon: 'error',
-      iconColor: datum.alert.bugId ?
-        'var(--neutral-color-dark, grey)' : 'var(--error-color, red)',
-    };
-  }
-
-  if (datum.diagnostics &&
-      datum.diagnostics.has(tr.v.d.RESERVED_NAMES.OS_VERSIONS)) {
-    // Whitelisted diagnostics display feedback icons.
-    return {
-      icon: 'feedback',
-      iconColor: 'var(--primary-color-dark, blue)',
-    };
-  }
-
-  return {};
-}
-
-ChartTimeseries.aggregateTimeserieses = (
-    lineDescriptor, timeserieses, levelOfDetail, range) => {
-  const isXY = (levelOfDetail === LEVEL_OF_DETAIL.XY);
-  const lineData = [];
-  const iter = new TimeseriesMerger(timeserieses, range);
-  for (const [x, datum] of iter) {
-    const icon = isXY ? {} : getIcon(datum);
-    lineData.push({
-      datum, x, y: datum[lineDescriptor.statistic || 'avg'], ...icon,
-    });
-  }
-
-  lineData.sort((a, b) => a.x - b.x);
-  return lineData;
-};
-
-ChartTimeseries.revisionRanges = brushRevisions => {
-  const revisionRanges = [];
-  for (let i = 0; i < brushRevisions.length; i += 2) {
-    revisionRanges.push(tr.b.math.Range.fromExplicitRange(
-        brushRevisions[i], brushRevisions[i + 1]));
-  }
-  return revisionRanges;
-};
-
-ChartTimeseries.revisionLink = (revisionInfo, rName, r1, r2) => {
-  if (!revisionInfo) return {name: rName};
-  const info = revisionInfo[rName];
-  if (!info) return {name: rName};
-  const url = info.url.replace('{{R1}}', r1 || r2).replace('{{R2}}', r2);
-  return {name: info.name, url};
 };
 
 ElementBase.register(ChartTimeseries);

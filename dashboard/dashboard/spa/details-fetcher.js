@@ -5,9 +5,14 @@
 'use strict';
 
 import {BatchIterator} from '@chopsui/batch-iterator';
-import {ChartTimeseries} from './chart-timeseries.js';
-import {LEVEL_OF_DETAIL, TimeseriesRequest} from './timeseries-request.js';
 import {enumerate} from './utils.js';
+
+import {
+  LEVEL_OF_DETAIL,
+  TimeseriesRequest,
+  createFetchDescriptors,
+} from './timeseries-request.js';
+
 
 // DetailsTable contains one table body per line in the main chart, and one
 // column per revisionRange.
@@ -45,7 +50,7 @@ export class DetailsFetcher {
     // These describe the timeseries that will be fetched.
     this.fetchDescriptorsByLine_ = [];
     for (const lineDescriptor of lineDescriptors) {
-      const fetchDescriptors = ChartTimeseries.createFetchDescriptors(
+      const fetchDescriptors = createFetchDescriptors(
           lineDescriptor, LEVEL_OF_DETAIL.XY);
       for (const fetchDescriptor of fetchDescriptors) {
         fetchDescriptor.minRevision = minRevision;
@@ -114,7 +119,7 @@ export class DetailsFetcher {
 
 // This is a 3-dimensional matrix of timeserieses. The dimensions are
 // [line in the main chart, brushed revision range, fetchDescriptor]
-class TimeseriesesByLine {
+export class TimeseriesesByLine {
   constructor(fetchDescriptorsByLine, revisionRanges) {
     this.timeseriesesByLine_ = [];
 

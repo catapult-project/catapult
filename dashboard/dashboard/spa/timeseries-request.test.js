@@ -5,9 +5,14 @@
 'use strict';
 
 import {ResultChannelSender} from '@chopsui/result-channel';
-import {TimeseriesRequest, LEVEL_OF_DETAIL} from './timeseries-request.js';
 import {assert} from 'chai';
 import {denormalize, timeout, setDebugForTesting} from './utils.js';
+
+import {
+  TimeseriesRequest,
+  LEVEL_OF_DETAIL,
+  createFetchDescriptors,
+} from './timeseries-request.js';
 
 suite('TimeseriesRequest', function() {
   let originalFetch;
@@ -181,5 +186,81 @@ suite('TimeseriesRequest', function() {
     assert.strictEqual(1, response[0].revision);
     assert.strictEqual(10240, response[0].avg);
     assert.strictEqual(1, response[0].count);
+  });
+
+  test('createFetchDescriptors', async function() {
+    assert.deepEqual(createFetchDescriptors({
+      suites: ['aaa', 'bbb'],
+      bots: ['ccc', 'ddd'],
+      measurement: 'mmm',
+      cases: [],
+      buildType: 'test',
+      statistic: 'avg',
+    }, LEVEL_OF_DETAIL.ALERTS), [
+      {
+        suite: 'aaa',
+        bot: 'ccc',
+        case: undefined,
+        measurement: 'mmm',
+        statistic: 'avg',
+        buildType: 'test',
+        levelOfDetail: LEVEL_OF_DETAIL.ALERTS,
+      },
+      {
+        suite: 'aaa',
+        bot: 'ddd',
+        case: undefined,
+        measurement: 'mmm',
+        statistic: 'avg',
+        buildType: 'test',
+        levelOfDetail: LEVEL_OF_DETAIL.ALERTS,
+      },
+      {
+        suite: 'bbb',
+        bot: 'ccc',
+        case: undefined,
+        measurement: 'mmm',
+        statistic: 'avg',
+        buildType: 'test',
+        levelOfDetail: LEVEL_OF_DETAIL.ALERTS,
+      },
+      {
+        suite: 'bbb',
+        bot: 'ddd',
+        case: undefined,
+        measurement: 'mmm',
+        statistic: 'avg',
+        buildType: 'test',
+        levelOfDetail: LEVEL_OF_DETAIL.ALERTS,
+      },
+    ]);
+
+    assert.deepEqual(createFetchDescriptors({
+      suites: ['aaa'],
+      bots: ['ccc'],
+      measurement: 'mmm',
+      cases: ['bbb', 'ddd'],
+      buildType: 'test',
+      statistic: 'avg',
+    }, LEVEL_OF_DETAIL.ALERTS), [
+      {
+        suite: 'aaa',
+        bot: 'ccc',
+        measurement: 'mmm',
+        case: 'bbb',
+        statistic: 'avg',
+        buildType: 'test',
+        levelOfDetail: LEVEL_OF_DETAIL.ALERTS,
+      },
+      {
+        suite: 'aaa',
+        bot: 'ccc',
+        case: 'ddd',
+        measurement: 'mmm',
+        statistic: 'avg',
+        buildType: 'test',
+        levelOfDetail: LEVEL_OF_DETAIL.ALERTS,
+      },
+    ]);
   });
 });
