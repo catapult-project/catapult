@@ -279,9 +279,6 @@ class SharedPageState(story_module.SharedState):
           self._current_page.story_set.serving_dirs |
           set([self._current_page.serving_dir]))
 
-    if self._page_test and self._page_test.clear_cache_before_each_run:
-      self._current_tab.ClearCache(force=True)
-
   @property
   def current_page(self):
     return self._current_page

@@ -45,17 +45,8 @@ class LegacyPageTest(object):
 
   __metaclass__ = trace_event.TracedMetaClass
 
-  def __init__(self, clear_cache_before_each_run=False):
-    super(LegacyPageTest, self).__init__()
-
+  def __init__(self):
     self.options = None
-    self._clear_cache_before_each_run = clear_cache_before_each_run
-
-  @property
-  def clear_cache_before_each_run(self):
-    """When set to True, the browser's disk and memory cache will be cleared
-    before each run."""
-    return self._clear_cache_before_each_run
 
   def CustomizeBrowserOptions(self, options):
     """Override to add test-specific options to the BrowserOptions object"""

@@ -115,8 +115,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
     class Test(legacy_page_test.LegacyPageTest):
 
-      def __init__(self, *args, **kwargs):
-        super(Test, self).__init__(*args, **kwargs)
+      def __init__(self):
+        super(Test, self).__init__()
         self.browser_starts = 0
         self.platform_name = None
 

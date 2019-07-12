@@ -119,7 +119,7 @@ class TestSharedState(story_module.SharedState):
 
 class TestSharedPageState(TestSharedState):
   def RunStory(self, results):
-    self._test.RunPage(self._current_story, None, results)
+    self._test.RunPage(self._current_story, results)
 
 
 class FooStoryState(TestSharedPageState):
@@ -246,7 +246,7 @@ class TestOnlyException(Exception):
 
 class _Measurement(legacy_page_test.LegacyPageTest):
   i = 0
-  def RunPage(self, page, _, results):
+  def RunPage(self, page, results):
     self.i += 1
     results.AddValue(scalar.ScalarValue(
         page, 'metric', 'unit', self.i,
@@ -484,8 +484,8 @@ class StoryRunnerTest(unittest.TestCase):
     # This erroneous test is set up to raise exception for the 1st story
     # run.
     class Test(legacy_page_test.LegacyPageTest):
-      def __init__(self, *args):
-        super(Test, self).__init__(*args)
+      def __init__(self):
+        super(Test, self).__init__()
         self.run_count = 0
 
       def RunPage(self, *_):
@@ -514,8 +514,8 @@ class StoryRunnerTest(unittest.TestCase):
     story_set = story_module.StorySet()
 
     class Test(legacy_page_test.LegacyPageTest):
-      def __init__(self, *args):
-        super(Test, self).__init__(*args)
+      def __init__(self):
+        super(Test, self).__init__()
         self.run_count = 0
 
       def RunPage(self, *_):
@@ -554,8 +554,8 @@ class StoryRunnerTest(unittest.TestCase):
 
 
     class Test(legacy_page_test.LegacyPageTest):
-      def __init__(self, *args):
-        super(Test, self).__init__(*args)
+      def __init__(self):
+        super(Test, self).__init__()
         self.run_count = 0
 
       def RunPage(self, *_):
@@ -705,11 +705,7 @@ class StoryRunnerTest(unittest.TestCase):
     story_set = story_module.StorySet()
 
     class Test(legacy_page_test.LegacyPageTest):
-      def __init__(self, *args):
-        super(Test, self).__init__(*args)
-
-      # pylint: disable=unused-argument
-      def RunPage(self, _, _2, results):
+      def RunPage(self, _, results):
         results.AddHistogram(
             histogram_module.Histogram('hist', 'count'))
 
@@ -787,11 +783,7 @@ class StoryRunnerTest(unittest.TestCase):
 
   def testRunStoryAddsDeviceInfo_OnePerStorySet(self):
     class Test(legacy_page_test.LegacyPageTest):
-      def __init__(self, *args):
-        super(Test, self).__init__(*args)
-
-      # pylint: disable=unused-argument
-      def RunPage(self, _, _2, results):
+      def RunPage(self, _, results):
         results.AddHistogram(
             histogram_module.Histogram('hist', 'count'))
 
