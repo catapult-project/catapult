@@ -52,7 +52,8 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
 
   # Failing on Android: https://github.com/catapult-project/catapult/issues/3099
   # Flaky on chromeos: https://crbug.com/932104.
-  @decorators.Disabled('android', 'chromeos')
+  # Flaky on mac: https://crbug.com/972169
+  @decorators.Disabled('android', 'chromeos', 'mac')
   def testRepeatableScrollActionTwoRepeats(self):
     expected_scroll = ((self._window_height / 2) - 1) * 3
 
