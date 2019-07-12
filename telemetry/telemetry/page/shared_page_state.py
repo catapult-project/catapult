@@ -184,12 +184,12 @@ class SharedPageState(story_module.SharedState):
       # benchmarks.
       self.platform.tracing_controller.ClearStateIfNeeded()
 
-    page_set = page.page_set
     self._current_page = page
 
     started_browser = not self.browser
 
-    archive_path = page_set.WprFilePathForStory(page, self.platform.GetOSName())
+    archive_path = page.story_set.WprFilePathForStory(
+        page, self.platform.GetOSName())
     # TODO(nednguyen, perezju): Ideally we should just let the network
     # controller raise an exception when the archive_path is not found.
     if archive_path is not None and not os.path.isfile(archive_path):
@@ -276,7 +276,7 @@ class SharedPageState(story_module.SharedState):
     self._current_tab = self._GetCurrentTab()
     if self._current_page.is_file:
       self.platform.SetHTTPServerDirectories(
-          self._current_page.page_set.serving_dirs |
+          self._current_page.story_set.serving_dirs |
           set([self._current_page.serving_dir]))
 
     if self._page_test and self._page_test.clear_cache_before_each_run:

@@ -112,11 +112,6 @@ class Page(story.Story):
   def story_set(self):
     return self._page_set
 
-  # TODO(nednguyen, aiolos): deprecate this property.
-  @property
-  def page_set(self):
-    return self._page_set
-
   @property
   def url(self):
     return self._url
