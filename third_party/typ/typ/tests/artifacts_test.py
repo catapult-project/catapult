@@ -36,7 +36,7 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
     try:
       ar = artifacts.Artifacts(tempdir, 'test_name', 'test_basename', 0)
       with ar.CreateArtifact('artifact_name') as f:
-        f.write('contents')
+        f.write(b'contents')
 
       self._VerifyPathAndContents(tempdir, 'test_name', 'test_basename', '0',
           'artifact_name', 'contents')
@@ -56,7 +56,7 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
     try:
       ar = artifacts.Artifacts(tempdir, 'test_name', 'test_basename', 0)
       with ar.CreateArtifact('artifact_name') as f:
-        f.write('contents')
+        f.write(b'contents')
       with self.assertRaises(ValueError):
         with ar.CreateArtifact('artifact_name') as f:
           pass
@@ -69,11 +69,11 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
     try:
       ar = artifacts.Artifacts(tempdir, 'test_name', 'test_basename', 0)
       with ar.CreateArtifact('artifact_name') as f:
-        f.write('contents')
+        f.write(b'contents')
 
       another_ar = artifacts.Artifacts(tempdir, 'test_name', 'test_basename', 1)
       with another_ar.CreateArtifact('artifact_name') as f:
-        f.write('other contents')
+        f.write(b'other contents')
 
       self._VerifyPathAndContents(tempdir, 'test_name', 'test_basename', '0',
           'artifact_name', 'contents')
