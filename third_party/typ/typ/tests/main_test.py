@@ -626,7 +626,6 @@ class TestCli(test_case.MainTestCase):
         _, out, _, _ = self.check([
             '-j', '1', '-v', '--test-name-prefix',
             'load_test.BaseTest.'], files=files, ret=1, err='')
-        print out
         self.assertIn('[1/2] a/b/fail.html failed', out)
         self.assertIn('[2/2] a/b/pass.html passed', out)
         self.assertIn('1 test passed, 0 skipped, 1 failure.\n', out)
