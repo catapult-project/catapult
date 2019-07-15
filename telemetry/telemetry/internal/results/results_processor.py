@@ -64,19 +64,20 @@ def ComputeTimelineBasedMetrics(results):
       logging.warn('cpu_count() not implemented.')
       return 8
 
-  runs_with_traces = list(results.IterRunsWithTraces())
-  if not runs_with_traces:
+  available_runs = list(run for run in results.IterRunsWithTraces()
+                        if run.tbm_metrics)
+  if not available_runs:
     return
 
   # Note that this is speculatively halved as an attempt to fix
   # crbug.com/953365.
-  threads_count = min(_GetCpuCount()/2 or 1, len(runs_with_traces))
+  threads_count = min(_GetCpuCount()/2 or 1, len(available_runs))
   pool = ThreadPool(threads_count)
   metrics_runner = lambda run: _ComputeMetricsInPool(
       run, results.label, results.upload_bucket)
 
   try:
-    for result in pool.imap_unordered(metrics_runner, runs_with_traces):
+    for result in pool.imap_unordered(metrics_runner, available_runs):
       results.AddMetricPageResults(result)
   finally:
     pool.terminate()
