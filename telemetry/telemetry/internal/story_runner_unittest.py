@@ -683,6 +683,23 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertFalse(results.had_failures)
     self.assertEquals(2, len(values))
 
+  def testRunStoryDisabledStoryWithNewFormat(self):
+    expectations = (
+        '# tags: [ all ]\n'
+        '# results: [ Skip ]\n'
+        '[ all ] fake/one [ Skip ]\n')
+    story_set = story_module.StorySet()
+    story_one = DummyLocalStory(TestSharedPageState, name='one')
+    story_set.AddStory(story_one)
+    results = results_options.CreateResults(self.options)
+    fake = FakeBenchmark()
+    fake.AugmentExpectationsWithFile(expectations)
+    fake._expectations.SetTags(['all'])
+    story_runner.Run(_Measurement(), story_set, self.options, results,
+                     expectations=fake._expectations)
+    self.assertEquals(1, GetNumberOfSuccessfulPageRuns(results))
+    self.assertEquals(1, GetNumberOfSkippedPageRuns(results))
+
   def testRunStoryPopulatesHistograms(self):
     self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()

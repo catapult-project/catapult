@@ -26,6 +26,9 @@ class StoryExpectations(object):
     self.SetExpectations()
     self._Freeze()
 
+  def SetTags(self, tags):
+    pass
+
   # TODO(rnephew): Transform parsed expectation file into StoryExpectations.
   # When working on this it's important to note that StoryExpectations uses
   # logical OR to combine multiple conditions in a single expectation. The

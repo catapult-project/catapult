@@ -31,13 +31,14 @@ DEFAULT_LOG_FORMAT = (
 def _SetExpectations(bench, path):
   if path and os.path.exists(path):
     with open(path) as fp:
-      bench.AugmentExpectationsWithParser(fp.read())
+      bench.AugmentExpectationsWithFile(fp.read())
   return bench.expectations
 
 
 def _IsBenchmarkEnabled(bench, possible_browser, expectations_file):
   b = bench()
   expectations = _SetExpectations(b, expectations_file)
+  expectations.SetTags(possible_browser.GetTypExpectationsTags())
   return (
       # Test that the current platform is supported.
       any(t.ShouldDisable(possible_browser.platform, possible_browser)
