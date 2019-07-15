@@ -196,6 +196,7 @@ class ScrollActionTest(tab_test_case.TabTestCase):
 
   # https://github.com/catapult-project/catapult/issues/3099
   @decorators.Disabled('android')
+  @decorators.Disabled('chromeos')  # crbug.com/984016
   def testDiagonalScrollAction(self):
     self._MakePageVerticallyScrollable()
     self.assertEquals(
