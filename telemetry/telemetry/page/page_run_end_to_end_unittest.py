@@ -380,17 +380,14 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.assertTrue(results.had_skips)
     self.assertFalse(results.had_failures)
 
-  # Verifies that if the browser is not closed between tests (as happens on
-  # ChromeOS), the page state is reset. The first page scrolls to the end, and
-  # the second page loads the same url and checks the scroll position to ensure
-  # it is at the top.
-  @decorators.Disabled('android')  # Tests behavior not applicable to android.
+  # Verifies that if the browser is not closed between story runs (as happens
+  # e.g. on ChromeOS), the page state is reset. The first page scrolls to the
+  # end, and the second page loads the same url and checks the scroll position
+  # to ensure it is at the top.
   def testPageResetWhenBrowserReusedBetweenStories(self):
     class NoClosingBrowserSharedState(shared_page_state.SharedPageState):
-      # Simulate what ChromeOS does.
-      def ShouldStopBrowserAfterStoryRun(self, s):
-        del s  # unused
-        return False
+      def ShouldReuseBrowserForAllStoryRuns(self):
+        return True
 
     # Loads a page and scrolls it to the end.
     class ScrollingPage(page_module.Page):
