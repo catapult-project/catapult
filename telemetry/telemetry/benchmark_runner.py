@@ -13,15 +13,12 @@ import os
 import sys
 
 from telemetry import benchmark
-from telemetry import decorators
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_options
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import command_line
 from telemetry.internal.util import ps_util
 from telemetry.util import matching
-
-from py_utils import discover
 
 
 DEFAULT_LOG_FORMAT = (
@@ -213,10 +210,10 @@ class List(command_line.OptparseCommand):
     else:
       expectations_file = None
     if not options.positional_args:
-      options.benchmarks = _Benchmarks(environment)
+      options.benchmarks = environment.GetBenchmarks()
     elif len(options.positional_args) == 1:
-      options.benchmarks = _MatchBenchmarkName(
-          options.positional_args[0], environment, exact_matches=False)
+      options.benchmarks = _FuzzyMatchBenchmarkNames(
+          options.positional_args[0], environment.GetBenchmarks())
     else:
       parser.error('Must provide at most one benchmark name.')
     cls._expectations_file = expectations_file
@@ -256,7 +253,9 @@ class Run(command_line.OptparseCommand):
     # Allow benchmarks to add their own command line options.
     matching_benchmarks = []
     for arg in sys.argv[1:]:
-      matching_benchmarks += _MatchBenchmarkName(arg, environment)
+      matching_benchmark = environment.GetBenchmarkByName(arg)
+      if matching_benchmark is not None:
+        matching_benchmarks.append(matching_benchmark)
 
     if matching_benchmarks:
       # TODO(dtu): After move to argparse, add command-line args for all
@@ -269,7 +268,7 @@ class Run(command_line.OptparseCommand):
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, options, environment):
-    all_benchmarks = _Benchmarks(environment)
+    all_benchmarks = environment.GetBenchmarks()
     if environment.expectations_files:
       assert len(environment.expectations_files) == 1
       expectations_file = environment.expectations_files[0]
@@ -282,29 +281,19 @@ class Run(command_line.OptparseCommand):
           all_benchmarks, possible_browser, expectations_file)
       sys.exit(-1)
 
-    input_benchmark_name = options.positional_args[0]
-    matching_benchmarks = _MatchBenchmarkName(input_benchmark_name, environment)
-    if not matching_benchmarks:
-      print >> sys.stderr, 'No benchmark named "%s".' % input_benchmark_name
+    benchmark_name = options.positional_args[0]
+    benchmark_class = environment.GetBenchmarkByName(benchmark_name)
+    if benchmark_class is None:
+      print >> sys.stderr, 'No benchmark named "%s".' % benchmark_name
       print >> sys.stderr
       most_likely_matched_benchmarks = matching.GetMostLikelyMatchedObject(
-          all_benchmarks, input_benchmark_name, lambda x: x.Name())
+          all_benchmarks, benchmark_name, lambda x: x.Name())
       if most_likely_matched_benchmarks:
         print >> sys.stderr, 'Do you mean any of those benchmarks below?'
         PrintBenchmarkList(most_likely_matched_benchmarks, None,
                            expectations_file, sys.stderr)
       sys.exit(-1)
 
-    if len(matching_benchmarks) > 1:
-      print >> sys.stderr, (
-          'Multiple benchmarks named "%s".' % input_benchmark_name)
-      print >> sys.stderr, 'Did you mean one of these?'
-      print >> sys.stderr
-      PrintBenchmarkList(matching_benchmarks, None,
-                         expectations_file, sys.stderr)
-      sys.exit(-1)
-
-    benchmark_class = matching_benchmarks.pop()
     if len(options.positional_args) > 1:
       parser.error('Too many arguments.')
 
@@ -332,20 +321,7 @@ def _MatchingCommands(string):
           if command.Name().startswith(string)]
 
 
-@decorators.Cache
-def _Benchmarks(environment):
-  benchmarks = []
-  for search_dir in environment.benchmark_dirs:
-    benchmarks += discover.DiscoverClasses(
-        search_dir,
-        environment.top_level_dir,
-        benchmark.Benchmark,
-        index_by_class_name=True).values()
-  return benchmarks
-
-
-def _MatchBenchmarkName(input_benchmark_name, environment, exact_matches=True):
-
+def _FuzzyMatchBenchmarkNames(benchmark_name, benchmark_classes):
   def _Matches(input_string, search_string):
     if search_string.startswith(input_string):
       return True
@@ -354,32 +330,15 @@ def _MatchBenchmarkName(input_benchmark_name, environment, exact_matches=True):
         return True
     return False
 
-  # Exact matching.
-  if exact_matches:
-    # Don't add aliases to search dict, only allow exact matching for them.
-    if input_benchmark_name in environment.benchmark_aliases:
-      exact_match = environment.benchmark_aliases[input_benchmark_name]
-    else:
-      exact_match = input_benchmark_name
-
-    for benchmark_class in _Benchmarks(environment):
-      if exact_match == benchmark_class.Name():
-        return [benchmark_class]
-    return []
-
-  # Fuzzy matching.
   return [
-      benchmark_class for benchmark_class in _Benchmarks(environment)
-      if _Matches(input_benchmark_name, benchmark_class.Name())
-  ]
+      cls for cls in benchmark_classes if _Matches(benchmark_name, cls.Name())]
 
 
 def GetBenchmarkByName(name, environment):
-  matched = _MatchBenchmarkName(name, environment, exact_matches=True)
-  # With exact_matches, len(matched) is either 0 or 1.
-  if len(matched) == 0:
-    return None
-  return matched[0]
+  """DEPRECATED: Clients should directly call the method on the environment.
+
+  TODO(crbug.com/981349): remove when no longer used."""
+  return environment.GetBenchmarkByName(name)
 
 
 ALL_COMMANDS = [Help, List, Run]

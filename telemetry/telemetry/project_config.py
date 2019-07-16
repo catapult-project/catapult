@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import benchmark
+
+from py_utils import discover
+
 
 class ProjectConfig(object):
   """Contains information about the benchmark runtime environment.
@@ -27,6 +31,7 @@ class ProjectConfig(object):
     self._client_configs = client_configs or []
     self._default_chrome_root = default_chrome_root
     self._expectations_files = expectations_files or []
+    self._benchmarks = None
 
   @property
   def top_level_dir(self):
@@ -55,3 +60,33 @@ class ProjectConfig(object):
   @property
   def expectations_files(self):
     return self._expectations_files
+
+  def GetBenchmarks(self):
+    """Return a list of all benchmark classes found in this configuration."""
+    if self._benchmarks is None:
+      benchmarks = []
+      for search_dir in self.benchmark_dirs:
+        benchmarks.extend(discover.DiscoverClasses(
+            search_dir,
+            self.top_level_dir,
+            benchmark.Benchmark,
+            index_by_class_name=True).values())
+      self._benchmarks = benchmarks
+    return list(self._benchmarks)
+
+  def GetBenchmarkByName(self, benchmark_name):
+    """Find a benchmark by an exact name match.
+
+    Args:
+      benchmark_name: The name or a alias of a benchmark.
+
+    Returns:
+      The benchmark class if an exact match for the name is found, or None
+      otherwise.
+    """
+    # Allow using aliases to find benchmarks.
+    benchmark_name = self.benchmark_aliases.get(benchmark_name, benchmark_name)
+    for benchmark_class in self.GetBenchmarks():
+      if benchmark_name == benchmark_class.Name():
+        return benchmark_class
+    return None
