@@ -31,10 +31,26 @@ tr.exportTo('tr.metrics.blink', function() {
 
   // Maps the all Blink GC events in timeline to telemetry friendly names.
   const BLINK_TOP_GC_EVENTS = Object.assign({
-    'BlinkGC.AtomicPhase': 'blink-gc-atomic-phase',
+    'BlinkGC.AtomicPauseMarkEpilogue': 'blink-gc-atomic-pause-mark-epilogue',
+    'BlinkGC.AtomicPauseMarkPrologue': 'blink-gc-atomic-pause-mark-prologue',
+    'BlinkGC.AtomicPauseMarkRoots': 'blink-gc-atomic-pause-mark-roots',
+    'BlinkGC.AtomicPauseMarkTransitiveClosure':
+        'blink-gc-atomic-pause-mark-transitive-closure',
+    'BlinkGC.AtomicPauseSweepAndCompact':
+        'blink-gc-atomic-pause-sweep-and-compact',
     'BlinkGC.IncrementalMarkingStartMarking': 'blink-gc-incremental-start',
     'BlinkGC.IncrementalMarkingStep': 'blink-gc-incremental-step'
   }, BLINK_TOP_GC_FOREGROUND_SWEEPING_EVENTS);
+
+  // All events that should be summed up to 'blink-gc-atomic-pause'. Note that
+  // this events need to have an epoch counter in args.epoch.
+  const ATOMIC_PAUSE_EVENTS = [
+    'BlinkGC.AtomicPauseMarkEpilogue',
+    'BlinkGC.AtomicPauseMarkPrologue',
+    'BlinkGC.AtomicPauseMarkRoots',
+    'BlinkGC.AtomicPauseMarkTransitiveClosure',
+    'BlinkGC.AtomicPauseSweepAndCompact'
+  ];
 
   function blinkGarbageCollectionEventName(event) {
     return BLINK_TOP_GC_EVENTS[event.title];
@@ -47,6 +63,10 @@ tr.exportTo('tr.metrics.blink', function() {
 
   function isNonForcedBlinkGarbageCollectionEvent(event) {
     return event.title in BLINK_TOP_GC_EVENTS && isNonForcedEvent(event);
+  }
+
+  function isNonForcedBlinkGarbageCollectionAtomicPauseEvent(event) {
+    return ATOMIC_PAUSE_EVENTS.includes(event.title) && isNonForcedEvent(event);
   }
 
   function isNonForcedBlinkGarbageCollectionForegroundSweepingEvent(event) {
@@ -67,6 +87,7 @@ tr.exportTo('tr.metrics.blink', function() {
 
   function blinkGcMetric(histograms, model) {
     addDurationOfTopEvents(histograms, model);
+    addDurationOfAtomicPause(histograms, model);
     addTotalDurationOfTopEvents(histograms, model);
     addTotalDurationOfBlinkAndV8TopEvents(histograms, model);
     addTotalDurationOfForegroundSweeping(histograms, model);
@@ -127,7 +148,7 @@ tr.exportTo('tr.metrics.blink', function() {
 
   /**
    * Example output:
-   * - blink-gc-atomic-phase
+   * - blink-gc-incremental-start
    */
   function addDurationOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
@@ -138,6 +159,24 @@ tr.exportTo('tr.metrics.blink', function() {
           for (const event of events) {
             cpuDuration.addSample(event.cpuDuration);
           }
+          histograms.addHistogram(cpuDuration);
+        }
+    );
+  }
+
+  /**
+   * Example output:
+   * - blink-gc-atomic-pause
+   */
+  function addDurationOfAtomicPause(histograms, model) {
+    tr.metrics.v8.utils.groupAndProcessEvents(model,
+        isNonForcedBlinkGarbageCollectionAtomicPauseEvent,
+        event => event.args.epoch,
+        function(group, events) {
+          const cpuDuration = createNumericForTopEventTime(
+              'blink-gc-atomic-pause');
+          cpuDuration.addSample(
+              events.reduce((acc, current) => acc + current.cpuDuration, 0));
           histograms.addHistogram(cpuDuration);
         }
     );

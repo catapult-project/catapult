@@ -237,28 +237,29 @@ tr.exportTo('tr.metrics.v8.utils', function() {
 
   /**
    * Filters events using the |filterCallback|, then groups events by the user
-   * the name computed using the |nameCallback|, and then invokes
+   * provided group using the |groupCallback|, and then invokes
    * the |processCallback| with the grouped events.
    * @param {Function} filterCallback Takes an event and returns a boolean.
-   * @param {Function} nameCallback Takes event and returns a string.
-   * @param {Function} processCallback Takes a name, and an array of events.
+   * @param {Function} groupCallback Takes event and a group object which can
+   * be a string or number.
+   * @param {Function} processCallback Takes a group, and an array of events.
    */
   function groupAndProcessEvents(model, filterCallback,
-      nameCallback, processCallback) {
-    // Map: name -> [events].
-    const nameToEvents = {};
+      groupCallback, processCallback) {
+    // Map: group -> [events].
+    const groupToEvents = {};
     const threads = jsExecutionThreads(model);
     for (const thread of threads) {
       for (const event of thread.sliceGroup.childEvents()) {
         if (!filterCallback(event)) continue;
-        const name = nameCallback(event);
-        nameToEvents[name] = nameToEvents[name] || [];
-        nameToEvents[name].push(event);
+        const group = groupCallback(event);
+        groupToEvents[group] = groupToEvents[group] || [];
+        groupToEvents[group].push(event);
       }
     }
 
-    for (const [name, events] of Object.entries(nameToEvents)) {
-      processCallback(name, events);
+    for (const [group, events] of Object.entries(groupToEvents)) {
+      processCallback(group, events);
     }
   }
 

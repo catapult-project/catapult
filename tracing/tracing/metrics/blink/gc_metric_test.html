@@ -45,9 +45,18 @@ tr.b.unittest.testSuite(function() {
 
   test('topEvents', function() {
     const events = {
-      'BlinkGC.AtomicPhase': 'blink-gc-atomic-phase',
+      'BlinkGC.AtomicPauseMarkEpilogue': 'blink-gc-atomic-pause-mark-epilogue',
+      'BlinkGC.AtomicPauseMarkPrologue': 'blink-gc-atomic-pause-mark-prologue',
+      'BlinkGC.AtomicPauseMarkRoots': 'blink-gc-atomic-pause-mark-roots',
+      'BlinkGC.AtomicPauseMarkTransitiveClosure':
+          'blink-gc-atomic-pause-mark-transitive-closure',
+      'BlinkGC.AtomicPauseSweepAndCompact':
+          'blink-gc-atomic-pause-sweep-and-compact',
+      'BlinkGC.IncrementalMarkingStartMarking': 'blink-gc-incremental-start',
+      'BlinkGC.IncrementalMarkingStep': 'blink-gc-incremental-step',
       'BlinkGC.CompleteSweep': 'blink-gc-complete-sweep',
-      'BlinkGC.LazySweepInIdle': 'blink-gc-sweep-task-foreground'
+      'BlinkGC.LazySweepInIdle': 'blink-gc-sweep-task-foreground',
+      'BlinkGC.LazySweepOnAllocation': 'blink-gc-sweep-allocation'
     };
     for (const [timelineName, telemetryName] of Object.entries(events)) {
       const slices = [
@@ -71,8 +80,24 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     const slices = [
       {
-        title: 'BlinkGC.AtomicPhase', args: {}, start: 100, end: 200,
-        cpuStart: 100, cpuEnd: 200
+        title: 'BlinkGC.AtomicPauseMarkPrologue', args: {},
+        start: 100, end: 110, cpuStart: 100, cpuEnd: 110
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkRoots', args: {},
+        start: 110, end: 120, cpuStart: 110, cpuEnd: 120
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkTransitiveClosure', args: {},
+        start: 120, end: 130, cpuStart: 120, cpuEnd: 130
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkEpilogue', args: {},
+        start: 130, end: 140, cpuStart: 130, cpuEnd: 140
+      },
+      {
+        title: 'BlinkGC.AtomicPauseSweepAndCompact', args: {},
+        start: 140, end: 200, cpuStart: 140, cpuEnd: 200
       },
       {
         title: 'BlinkGC.LazySweepInIdle', args: {}, start: 210,
@@ -88,17 +113,32 @@ tr.b.unittest.testSuite(function() {
 
     const value = actual.getHistogramNamed('blink-gc-total');
     assert.strictEqual(value.running.sum, 180);
-    assert.strictEqual(value.numValues, 2);
-    assert.strictEqual(value.average, 90);
-    assert.strictEqual(value.running.max, 100);
+    assert.strictEqual(value.numValues, 6);
+    assert.strictEqual(value.running.max, 80);
   });
 
   test('totalForegroundSweepingTimeForBlinkGC', function() {
     const histograms = new tr.v.HistogramSet();
     const slices = [
       {
-        title: 'BlinkGC.AtomicPhase', args: {},
-        start: 100, end: 200, cpuStart: 100, cpuEnd: 200
+        title: 'BlinkGC.AtomicPauseMarkPrologue', args: {},
+        start: 100, end: 110, cpuStart: 100, cpuEnd: 110
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkRoots', args: {},
+        start: 110, end: 120, cpuStart: 110, cpuEnd: 120
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkTransitiveClosure', args: {},
+        start: 120, end: 130, cpuStart: 120, cpuEnd: 130
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkEpilogue', args: {},
+        start: 130, end: 140, cpuStart: 130, cpuEnd: 140
+      },
+      {
+        title: 'BlinkGC.AtomicPauseSweepAndCompact', args: {},
+        start: 140, end: 200, cpuStart: 140, cpuEnd: 200
       },
       {
         title: 'BlinkGC.LazySweepInIdle', args: {},
@@ -155,12 +195,28 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     const slices = [
       {
-        title: 'V8.GCFinalizeMC', args: {},
-        start: 100, end: 300, cpuStart: 100, cpuEnd: 300
+        title: 'BlinkGC.AtomicPauseMarkPrologue', args: {},
+        start: 100, end: 110, cpuStart: 100, cpuEnd: 110
       },
       {
-        title: 'BlinkGC.AtomicPhase', args: {},
-        start: 310, end: 410, cpuStart: 310, cpuEnd: 410
+        title: 'BlinkGC.AtomicPauseMarkRoots', args: {},
+        start: 110, end: 120, cpuStart: 110, cpuEnd: 120
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkTransitiveClosure', args: {},
+        start: 120, end: 130, cpuStart: 120, cpuEnd: 130
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkEpilogue', args: {},
+        start: 130, end: 140, cpuStart: 130, cpuEnd: 140
+      },
+      {
+        title: 'BlinkGC.AtomicPauseSweepAndCompact', args: {},
+        start: 140, end: 200, cpuStart: 140, cpuEnd: 200
+      },
+      {
+        title: 'V8.GCFinalizeMC', args: {},
+        start: 200, end: 300, cpuStart: 200, cpuEnd: 300
       },
       // Background events shouldn't contribute to total time.
       {
@@ -171,10 +227,9 @@ tr.b.unittest.testSuite(function() {
     const actual = run(slices);
 
     const value = actual.getHistogramNamed('unified-gc-total');
-    assert.strictEqual(value.running.sum, 300);
-    assert.strictEqual(value.numValues, 2);
-    assert.strictEqual(value.average, 150);
-    assert.strictEqual(value.running.max, 200);
+    assert.strictEqual(value.running.sum, 200);
+    assert.strictEqual(value.numValues, 6);
+    assert.strictEqual(value.running.max, 100);
   });
 
   test('totalTimeForUnifiedGCBlinkNestedInV8', function() {
@@ -236,8 +291,24 @@ tr.b.unittest.testSuite(function() {
         start: 310, end: 320, cpuStart: 310, cpuEnd: 320
       },
       {
-        title: 'BlinkGC.AtomicPhase', args: {'forced': false},
+        title: 'BlinkGC.AtomicPauseMarkPrologue', args: {},
         start: 320, end: 330, cpuStart: 320, cpuEnd: 330
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkRoots', args: {},
+        start: 330, end: 340, cpuStart: 330, cpuEnd: 340
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkTransitiveClosure', args: {},
+        start: 340, end: 350, cpuStart: 340, cpuEnd: 350
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkEpilogue', args: {},
+        start: 350, end: 360, cpuStart: 350, cpuEnd: 360
+      },
+      {
+        title: 'BlinkGC.AtomicPauseSweepAndCompact', args: {},
+        start: 360, end: 370, cpuStart: 360, cpuEnd: 370
       },
     ];
   }
@@ -247,9 +318,8 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     const actual = run(getSlicesWithForcedV8GCs());
     const value = actual.getHistogramNamed('unified-gc-total');
-    assert.strictEqual(value.running.sum, 20);
-    assert.strictEqual(value.numValues, 2);
-    assert.strictEqual(value.average, 10);
+    assert.strictEqual(value.running.sum, 60);
+    assert.strictEqual(value.numValues, 6);
     assert.strictEqual(value.running.max, 10);
   });
 
@@ -258,31 +328,59 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     const actual = run(getSlicesWithForcedV8GCs());
     const value = actual.getHistogramNamed('blink-gc-total');
-    assert.strictEqual(value.running.sum, 20);
-    assert.strictEqual(value.numValues, 2);
-    assert.strictEqual(value.average, 10);
+    assert.strictEqual(value.running.sum, 60);
+    assert.strictEqual(value.numValues, 6);
     assert.strictEqual(value.running.max, 10);
   });
 
   function getSlicesWithForcedBlinkGCs() {
     return [
-      // Following nested events should be ignored.
+      // Following forced events should be ignored.
       {
         title: 'BlinkGC.CompleteSweep', args: {'forced': true},
         start: 200, end: 270, cpuStart: 200, cpuEnd: 270
       },
       {
-        title: 'BlinkGC.AtomicPhase', args: {'forced': true},
-        start: 280, end: 290, cpuStart: 280, cpuEnd: 290
+        title: 'BlinkGC.AtomicPauseMarkPrologue', args: {'forced': true},
+        start: 320, end: 330, cpuStart: 320, cpuEnd: 330
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkRoots', args: {'forced': true},
+        start: 330, end: 340, cpuStart: 330, cpuEnd: 340
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkTransitiveClosure',
+        args: {'forced': true},
+        start: 340, end: 350, cpuStart: 340, cpuEnd: 350
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkEpilogue', args: {'forced': true},
+        start: 350, end: 360, cpuStart: 350, cpuEnd: 360
+      },
+      {
+        title: 'BlinkGC.AtomicPauseSweepAndCompact', args: {'forced': true},
+        start: 360, end: 370, cpuStart: 360, cpuEnd: 370
       },
       // Next events are not forced and should be accounted for.
       {
-        title: 'BlinkGC.AtomicPhase', args: {},
-        start: 310, end: 320, cpuStart: 310, cpuEnd: 320
+        title: 'BlinkGC.AtomicPauseMarkPrologue', args: {},
+        start: 410, end: 420, cpuStart: 410, cpuEnd: 420
       },
       {
-        title: 'BlinkGC.AtomicPhase', args: {'forced': false},
-        start: 320, end: 330, cpuStart: 320, cpuEnd: 330
+        title: 'BlinkGC.AtomicPauseMarkRoots', args: {},
+        start: 420, end: 430, cpuStart: 420, cpuEnd: 430
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkTransitiveClosure', args: {},
+        start: 430, end: 440, cpuStart: 430, cpuEnd: 440
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkEpilogue', args: {},
+        start: 440, end: 450, cpuStart: 440, cpuEnd: 450
+      },
+      {
+        title: 'BlinkGC.AtomicPauseSweepAndCompact', args: {},
+        start: 450, end: 460, cpuStart: 450, cpuEnd: 460
       },
     ];
   }
@@ -292,9 +390,8 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     const actual = run(getSlicesWithForcedBlinkGCs());
     const value = actual.getHistogramNamed('unified-gc-total');
-    assert.strictEqual(value.running.sum, 20);
-    assert.strictEqual(value.numValues, 2);
-    assert.strictEqual(value.average, 10);
+    assert.strictEqual(value.running.sum, 50);
+    assert.strictEqual(value.numValues, 5);
     assert.strictEqual(value.running.max, 10);
   });
 
@@ -303,9 +400,8 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     const actual = run(getSlicesWithForcedBlinkGCs());
     const value = actual.getHistogramNamed('blink-gc-total');
-    assert.strictEqual(value.running.sum, 20);
-    assert.strictEqual(value.numValues, 2);
-    assert.strictEqual(value.average, 10);
+    assert.strictEqual(value.running.sum, 50);
+    assert.strictEqual(value.numValues, 5);
     assert.strictEqual(value.running.max, 10);
   });
 });
