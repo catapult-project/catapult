@@ -14,7 +14,7 @@ import traceback
 from telemetry import value as value_module
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import html_output_formatter
-from telemetry.internal.results import progress_reporter as reporter_module
+from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import results_processor
 from telemetry.internal.results import story_run
 
@@ -25,7 +25,7 @@ from tracing.value.diagnostics import reserved_infos
 
 
 class PageTestResults(object):
-  def __init__(self, output_formatters=None, progress_reporter=None,
+  def __init__(self, output_formatters=None, progress_stream=None,
                output_dir=None, should_add_value=None, benchmark_name=None,
                benchmark_description=None, benchmark_enabled=True,
                upload_bucket=None, results_label=None):
@@ -34,8 +34,8 @@ class PageTestResults(object):
       output_formatters: A list of output formatters. The output
           formatters are typically used to format the test results, such
           as CsvOutputFormatter, which output the test results as CSV.
-      progress_reporter: An instance of progress_reporter.ProgressReporter,
-          to be used to output test status/results progressively.
+      progress_stream: A file-like object where to write progress reports as
+          stories are being run. Can be None to suppress progress reporting.
       output_dir: A string specifying the directory where to store the test
           artifacts, e.g: trace, videos, etc.
       should_add_value: A function that takes two arguments: a value name and
@@ -54,9 +54,8 @@ class PageTestResults(object):
           benchmark run.
     """
     super(PageTestResults, self).__init__()
-    self._progress_reporter = (
-        progress_reporter if progress_reporter is not None
-        else reporter_module.ProgressReporter())
+    self._progress_reporter = gtest_progress_reporter.GTestProgressReporter(
+        progress_stream)
     self._output_formatters = (
         output_formatters if output_formatters is not None else [])
     self._output_dir = output_dir
@@ -174,6 +173,11 @@ class PageTestResults(object):
     return any(run.ok for run in self._all_story_runs)
 
   @property
+  def num_successful(self):
+    """Number of successful stories."""
+    return sum(1 for run in self._all_story_runs if run.ok)
+
+  @property
   def had_failures(self):
     """If there where any failed stories."""
     return any(run.failed for run in self._all_story_runs)
@@ -187,6 +191,11 @@ class PageTestResults(object):
   def had_skips(self):
     """If there where any skipped stories."""
     return any(run.skipped for run in self._IterAllStoryRuns())
+
+  @property
+  def num_skipped(self):
+    """Number of skipped stories."""
+    return sum(1 for run in self._all_story_runs if run.skipped)
 
   def _IterAllStoryRuns(self):
     # TODO(crbug.com/973837): Check whether all clients can just be switched
@@ -221,7 +230,7 @@ class PageTestResults(object):
     assert not self._current_story_run, 'Did not call DidRunPage.'
     self._current_story_run = story_run.StoryRun(
         page, self._output_dir, story_run_index)
-    self._progress_reporter.WillRunPage(self)
+    self._progress_reporter.WillRunStory(self)
 
   def DidRunPage(self, page):  # pylint: disable=unused-argument
     """
@@ -230,7 +239,7 @@ class PageTestResults(object):
     """
     assert self._current_story_run, 'Did not call WillRunPage.'
     self._current_story_run.Finish()
-    self._progress_reporter.DidRunPage(self)
+    self._progress_reporter.DidRunStory(self)
     self._all_story_runs.append(self._current_story_run)
     story = self._current_story_run.story
     self._all_stories.add(story)
@@ -413,7 +422,7 @@ class PageTestResults(object):
 
   def PrintSummary(self):
     if self._benchmark_enabled:
-      self._progress_reporter.DidFinishAllTests(self)
+      self._progress_reporter.DidFinishAllStories(self)
 
       # Only serialize the trace if output_format is json or html.
       if (self._output_dir and

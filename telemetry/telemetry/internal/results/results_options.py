@@ -12,12 +12,10 @@ from py_utils import cloud_storage  # pylint: disable=import-error
 from telemetry.core import util
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import csv_output_formatter
-from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import histogram_set_json_output_formatter
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import json_3_output_formatter
 from telemetry.internal.results import page_test_results
-from telemetry.internal.results import progress_reporter
 
 # Allowed output formats. The default is the first item in the list.
 
@@ -110,13 +108,6 @@ def _GetOutputStream(output_format, output_dir):
     return open(output_file, mode='w+')
 
 
-def _GetProgressReporter(suppress_gtest_report):
-  if suppress_gtest_report:
-    return progress_reporter.ProgressReporter()
-  else:
-    return gtest_progress_reporter.GTestProgressReporter(sys.stdout)
-
-
 def CreateResults(options, benchmark_name=None, benchmark_description=None,
                   benchmark_enabled=True, should_add_value=None):
   """
@@ -159,9 +150,9 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
       raise Exception('Invalid --output-format "%s". Valid choices are: %s'
                       % (output_format, ', '.join(_OUTPUT_FORMAT_CHOICES)))
 
-  reporter = _GetProgressReporter(options.suppress_gtest_report)
   return page_test_results.PageTestResults(
-      output_formatters=output_formatters, progress_reporter=reporter,
+      output_formatters=output_formatters,
+      progress_stream=None if options.suppress_gtest_report else sys.stdout,
       output_dir=options.output_dir,
       should_add_value=should_add_value,
       benchmark_name=benchmark_name,
