@@ -42,6 +42,12 @@ last_activity = None
 REMOVE_TCP_OVERHEAD = 1460.0 / 1500.0
 lock = threading.Lock()
 background_activity_count = 0
+current_time = time.clock if sys.platform == "win32" else time.time
+try:
+  import monotonic
+  current_time = monotonic.monotonic
+except Exception:
+  pass
 
 
 def PrintMessage(msg):
@@ -62,7 +68,7 @@ class TSPipe():
     self.latency = latency
     self.kbps = kbps
     self.queue = Queue.Queue()
-    self.last_tick = time.clock()
+    self.last_tick = current_time()
     self.next_message = None
     self.available_bytes = .0
     self.peer = 'server'
@@ -72,11 +78,11 @@ class TSPipe():
   def SendMessage(self, message, main_thread = True):
     global connections, in_pipe, out_pipe
     message_sent = False
-    now = time.clock()
+    now = current_time()
     if message['message'] == 'closed':
       message['time'] = now
     else:
-      message['time'] = time.clock() + self.latency
+      message['time'] = current_time() + self.latency
     message['size'] = .0
     if 'data' in message:
       message['size'] = float(len(message['data']))
@@ -95,7 +101,7 @@ class TSPipe():
 
   def SendPeerMessage(self, message):
     global last_activity
-    last_activity = time.clock()
+    last_activity = current_time()
     message_sent = False
     connection_id = message['connection']
     if connection_id in connections:
@@ -120,7 +126,7 @@ class TSPipe():
     global connections
     global flush_pipes
     processed_messages = False
-    now = time.clock()
+    now = current_time()
     try:
       if self.next_message is None:
         self.next_message = self.queue.get_nowait()
@@ -716,8 +722,8 @@ def run_loop():
     except:
       pass
 
-  last_activity = time.clock()
-  last_check = time.clock()
+  last_activity = current_time()
+  last_check = current_time()
   # disable gc to avoid pauses during traffic shaping/proxying
   gc.disable()
   while not must_exit:
@@ -740,7 +746,7 @@ def run_loop():
       PrintMessage('OK')
       flush_pipes = False
     # Every 500 ms check to see if it is a good time to do a gc
-    now = time.clock()
+    now = current_time()
     if now - last_check > 0.5:
       last_check = now
       # manually gc after 5 seconds of idle
