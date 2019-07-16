@@ -73,34 +73,14 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     self.assertTrue(all_story_runs[0].skipped)
     self.assertTrue(all_story_runs[1].ok)
 
-  def testInterruptMiddleRun(self):
+  def testBenchmarkInterruption(self):
     results = page_test_results.PageTestResults()
-    results.WillRunPage(self.pages[1])
-    results.DidRunPage(self.pages[1])
-    results.InterruptBenchmark(self.pages, 2)
-
-    all_story_runs = list(results.IterStoryRuns())
-    self.assertEqual(6, len(all_story_runs))
-    self.assertTrue(results.had_successes)
-    self.assertTrue(all_story_runs[0].ok)
-    self.assertTrue(all_story_runs[1].skipped)
-    self.assertTrue(all_story_runs[2].skipped)
-    self.assertTrue(all_story_runs[3].skipped)
-    self.assertTrue(all_story_runs[4].skipped)
-    self.assertTrue(all_story_runs[5].skipped)
-
-  def testInterruptBeginningRun(self):
-    results = page_test_results.PageTestResults()
-    results.InterruptBenchmark(self.pages, 1)
-
-    all_story_runs = list(results.IterStoryRuns())
-    self.assertEqual(self.pages[0], all_story_runs[0].story)
-
-    self.assertEqual(3, len(all_story_runs))
-    self.assertFalse(results.had_successes)
-    self.assertTrue(all_story_runs[0].skipped)
-    self.assertTrue(all_story_runs[1].skipped)
-    self.assertTrue(all_story_runs[2].skipped)
+    reason = 'This is a reason'
+    self.assertIsNone(results.benchmark_interruption)
+    self.assertFalse(results.benchmark_interrupted)
+    results.InterruptBenchmark('This is a reason')
+    self.assertEqual(results.benchmark_interruption, reason)
+    self.assertTrue(results.benchmark_interrupted)
 
   def testPassesNoSkips(self):
     results = page_test_results.PageTestResults()

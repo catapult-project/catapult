@@ -46,6 +46,10 @@ def GetSuccessfulPageRuns(results):
   return [run for run in results.IterStoryRuns() if run.ok or run.skipped]
 
 
+def GetSkippedPageRuns(results):
+  return [run for run in results.IterStoryRuns() if run.skipped]
+
+
 def CaptureStderr(func, output_buffer):
   def wrapper(*args, **kwargs):
     original_stderr, sys.stderr = sys.stderr, output_buffer
@@ -471,7 +475,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     test = SingleTabTest()
     results = self._RunPageTestThatRaisesAppCrashException(
         test, max_failures=1)
-    self.assertEquals([], GetSuccessfulPageRuns(results))
+    self.assertEquals(3, len(GetSkippedPageRuns(results)))
     self.assertEquals(2, results.num_failed)  # max_failures + 1
     self.assertFormattedExceptionIsEmpty()
 

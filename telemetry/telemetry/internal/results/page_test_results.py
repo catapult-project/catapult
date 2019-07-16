@@ -77,17 +77,16 @@ class PageTestResults(object):
     self._benchmark_name = benchmark_name or '(unknown benchmark)'
     self._benchmark_description = benchmark_description or ''
     self._benchmark_start_us = time.time() * 1e6
-    self._benchmark_interrupted = False
+    # |_interruption| is None if the benchmark has not been interrupted.
+    # Otherwise it is a string explaining the reason for the interruption.
+    # Interruptions occur for unrecoverable exceptions.
+    self._interruption = None
     self._results_label = results_label
 
     # State of the benchmark this set of results represents.
     self._benchmark_enabled = benchmark_enabled
 
     self._histogram_dicts_to_add = []
-
-    # Mapping of the stories that have run to the number of times they have run
-    # This is necessary on interrupt if some of the stories did not run.
-    self._story_run_count = {}
 
   @property
   def benchmark_name(self):
@@ -103,7 +102,12 @@ class PageTestResults(object):
 
   @property
   def benchmark_interrupted(self):
-    return self._benchmark_interrupted
+    return bool(self._interruption)
+
+  @property
+  def benchmark_interruption(self):
+    """Returns a string explaining why the benchmark was interrupted."""
+    return self._interruption
 
   @property
   def label(self):
@@ -230,10 +234,6 @@ class PageTestResults(object):
     self._all_story_runs.append(self._current_story_run)
     story = self._current_story_run.story
     self._all_stories.add(story)
-    if bool(self._story_run_count.get(story)):
-      self._story_run_count[story] += 1
-    else:
-      self._story_run_count[story] = 1
     self._current_story_run = None
 
   def AddMetricPageResults(self, result):
@@ -253,20 +253,19 @@ class PageTestResults(object):
     finally:
       self._current_story_run = None
 
-  def InterruptBenchmark(self, stories, repeat_count):
-    self._benchmark_interrupted = True
-    # If we are in the middle of running a page it didn't finish
-    # so reset the current page run
-    self._current_story_run = None
-    for story in stories:
-      num_runs = repeat_count - self._story_run_count.get(story, 0)
-      for i in xrange(num_runs):
-        self._GenerateSkippedStoryRun(story, i)
+  def InterruptBenchmark(self, reason):
+    """Mark the benchmark as interrupted.
 
-  def _GenerateSkippedStoryRun(self, story, story_run_index):
-    self.WillRunPage(story, story_run_index)
-    self.Skip('Telemetry interrupted', is_expected=False)
-    self.DidRunPage(story)
+    Interrupted benchmarks are assumed to be stuck in some irrecoverably
+    broken state.
+
+    Note that the interruption_reason will always be the first interruption.
+    This is because later interruptions may be simply additional fallout from
+    the first interruption.
+    """
+    assert reason, 'A reason string to interrupt must be provided.'
+    logging.fatal(reason)
+    self._interruption = self._interruption or reason
 
   def AddHistogram(self, hist):
     if self._ShouldAddHistogram(hist):
