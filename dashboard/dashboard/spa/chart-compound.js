@@ -484,9 +484,15 @@ export class ChartCompound extends ElementBase {
 
   async onGetTooltip_(event) {
     const p = event.detail.nearestPoint;
+    let cursorScalar;
+    if (p.datum &&
+        (p.datum.unit instanceof tr.b.Unit) &&
+        (typeof(p.y) === 'number')) {
+      cursorScalar = new tr.b.Scalar(p.datum.unit, p.y);
+    }
     STORE.dispatch(UPDATE(this.statePath, {
       cursorRevision: p.x,
-      cursorScalar: new tr.b.Scalar(p.datum.unit, p.y),
+      cursorScalar,
     }));
     // Don't reset cursor on mouseLeave. Allow users to scroll through
     // sparklines.
