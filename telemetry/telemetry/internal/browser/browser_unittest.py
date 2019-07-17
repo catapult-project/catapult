@@ -150,6 +150,7 @@ class CommandLineBrowserTest(browser_test_case.BrowserTestCase):
   def CustomizeBrowserOptions(cls, options):
     options.AppendExtraBrowserArgs('--user-agent=telemetry')
 
+  @decorators.Disabled('system-guest', 'cros-chrome-guest')  # crbug.com/985125
   def testCommandLineOverriding(self):
     # This test starts the browser with --user-agent=telemetry. This tests
     # whether the user agent is then set.
