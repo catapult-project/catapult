@@ -16,6 +16,12 @@ from catapult_build import run_with_typ
 
 
 def main():
+  # Tests mock out internal details of methods, and the ANDROID_SERIAL can
+  # change which internal methods are called. Since tests don't actually use
+  # devices, it should be fine to delete the variable.
+  if 'ANDROID_SERIAL' in os.environ:
+    del os.environ['ANDROID_SERIAL']
+
   return run_with_typ.Run(top_level_dir=_DEVIL_PATH)
 
 if __name__ == '__main__':
