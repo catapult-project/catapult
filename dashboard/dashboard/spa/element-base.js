@@ -10,7 +10,7 @@ import * as PolymerAsync from '@polymer/polymer/lib/utils/async.js';
 import {Debouncer} from '@polymer/polymer/lib/utils/debounce.js';
 import {LitElement} from 'lit-element';
 import {get} from 'dot-prop-immutable';
-import {isProduction} from './utils.js';
+import {isDebug, isProduction} from './utils.js';
 
 import {
   DEFAULT_REDUCER_WRAPPERS,
@@ -76,7 +76,7 @@ export class ElementBase extends LitElement {
   }
 }
 
-if (window.location.hostname === 'localhost') {
+if (isDebug()) {
   // timeReducer should appear before freezingReducer so that the timing
   // doesn't include the overhead from freezingReducer. statePathReducer must
   // be last because it changes the function signature.
