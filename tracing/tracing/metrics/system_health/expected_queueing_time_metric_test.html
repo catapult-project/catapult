@@ -16,47 +16,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  function addInteractiveTimestamp(rendererProcess, mainThread, timestamp) {
-    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-      cat: 'blink.user_timing',
-      title: 'navigationStart',
-      start: timestamp,
-      duration: 0.0,
-      args: {frame: '0xdeadbeef'}
-    }));
-    mainThread.asyncSliceGroup.push(tr.c.TestUtils.newSliceEx({
-      cat: 'disabled-by-default-network',
-      title: 'ResourceLoad',
-      start: timestamp,
-      duration: 5.0,
-    }));
-    rendererProcess.objects.addSnapshot(
-        'ptr', 'loading', 'FrameLoader', timestamp, {
-          isLoadingMainFrame: true,
-          frame: {id_ref: '0xdeadbeef'},
-          documentLoaderURL: 'http://example.com'
-        });
-    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-      cat: 'loading',
-      title: 'firstMeaningfulPaintCandidate',
-      start: timestamp + 1,
-      duration: 0.0,
-      args: {frame: '0xdeadbeef'}
-    }));
-    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-      cat: 'blink.user_timing',
-      title: 'domContentLoadedEventEnd',
-      start: timestamp + 1,
-      duration: 0.0,
-      args: {frame: '0xdeadbeef'}
-    }));
-  }
-
   test('expectedQueueingTime', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcess = model.rendererProcess;
       const mainThread = model.rendererMain;
-      addInteractiveTimestamp(rendererProcess, mainThread, 200);
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
         title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
@@ -84,109 +47,15 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
-    const interactiveEqt = histograms.getHistogramNamed(
-        'interactive:500ms_window:renderer_eqt');
-    assert.strictEqual(0.1, interactiveEqt.average);
     const totalEqt = histograms.getHistogramNamed(
         'total:500ms_window:renderer_eqt');
     assert.strictEqual(10, totalEqt.average);
-    const interactiveEqtCpu = histograms.getHistogramNamed(
-        'interactive:500ms_window:renderer_eqt_cpu');
-    assert.strictEqual(0.025, interactiveEqtCpu.average);
-    const totalEqtCpu = histograms.getHistogramNamed(
-        'total:500ms_window:renderer_eqt_cpu');
-    assert.strictEqual(2.5, totalEqtCpu.average);
-  });
-
-  test('expectedQueueingTime_noInteractive', function() {
-    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
-      const rendererProcess = model.rendererProcess;
-      const mainThread = model.rendererMain;
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
-        start: 0,
-        duration: 100,
-        cpuStart: 0,
-        cpuDuration: 100,
-      }));
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
-        start: 3000,
-        duration: 10,
-        cpuStart: 3000,
-        cpuDuration: 10,
-      }));
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
-        start: 9000,
-        duration: 10,
-        cpuStart: 9000,
-        cpuDuration: 10,
-      }));
-    });
-    const histograms = new tr.v.HistogramSet();
-    tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
-    const interactiveEQT = histograms.getHistogramNamed(
-        'interactive:500ms_window:renderer_eqt');
-    assert.strictEqual(0, interactiveEQT.numValues);
-  });
-
-  test('expectedQueueingTime_multipleInteractive', function() {
-    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
-      const rendererProcess = model.rendererProcess;
-      const mainThread = model.rendererMain;
-      addInteractiveTimestamp(rendererProcess, mainThread, 200);
-      addInteractiveTimestamp(rendererProcess, mainThread, 6000);
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
-        start: 0,
-        duration: 100,
-        cpuStart: 0,
-        cpuDuration: 100,
-      }));
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
-        start: 3000,
-        duration: 10,
-        cpuStart: 3000,
-        cpuDuration: 10,
-      }));
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
-        start: 12000,
-        duration: 10,
-        cpuStart: 9000,
-        cpuDuration: 10,
-      }));
-    });
-    const histograms = new tr.v.HistogramSet();
-    tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
-    const interactiveEQT = histograms.getHistogramNamed(
-        'interactive:500ms_window:renderer_eqt');
-    // TODO(ulan): Support multiple interactive time windows when
-    // https://crbug.com/692112 is fixed.
-    assert.strictEqual(0, interactiveEQT.numValues);
   });
 
   test('expectedQueueingTime_multipleRenderersAggregates', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcess = model.rendererProcess;
       const mainThread = model.rendererMain;
-      addInteractiveTimestamp(rendererProcess, mainThread, 200);
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
-        start: 0,
-        duration: 100,
-        cpuStart: 0,
-        cpuDuration: 100,
-      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
         title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
@@ -206,7 +75,14 @@ tr.b.unittest.testSuite(function() {
       const rendererProcess2 = model.getOrCreateProcess(1985);
       const mainThread2 = rendererProcess2.getOrCreateThread(2);
       mainThread2.name = 'CrRendererMain';
-      addInteractiveTimestamp(rendererProcess2, mainThread2, 200);
+      mainThread2.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
+        start: 3000,
+        duration: 0,
+        cpuStart: 3000,
+        cpuDuration: 0,
+      }));
       mainThread2.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
         title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
@@ -219,7 +95,7 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
     const eqt = histograms.getHistogramNamed(
-        'interactive:500ms_window:renderer_eqt');
+        'total:500ms_window:renderer_eqt');
     assert.strictEqual(0.05, eqt.average);
   });
 
@@ -227,23 +103,6 @@ tr.b.unittest.testSuite(function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcess = model.rendererProcess;
       const mainThread = model.rendererMain;
-      addInteractiveTimestamp(rendererProcess, mainThread, 200);
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
-        start: 0,
-        duration: 100,
-        cpuStart: 0,
-        cpuDuration: 100,
-      }));
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'v8',
-        title: 'V8.GCFinalizeMC',
-        start: 50,
-        duration: 50,
-        cpuStart: 50,
-        cpuDuration: 50,
-      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
         title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
@@ -280,35 +139,18 @@ tr.b.unittest.testSuite(function() {
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
-
     const eqt = histograms.getHistogramNamed(
-        'interactive:500ms_window:renderer_eqt');
-    assert.strictEqual('interactive:500ms_window:renderer_eqt:v8',
+        'total:500ms_window:renderer_eqt');
+    assert.strictEqual('total:500ms_window:renderer_eqt:v8',
         eqt.diagnostics.get('v8').get('v8'));
     assert.strictEqual(0.025,
         eqt.getBinForValue(0.1).diagnosticMaps[0].get('v8').get('v8'));
-
-    const eqtCpu = histograms.getHistogramNamed(
-        'interactive:500ms_window:renderer_eqt_cpu');
-    assert.strictEqual('interactive:500ms_window:renderer_eqt_cpu:v8',
-        eqtCpu.diagnostics.get('v8').get('v8'));
-    assert.strictEqual(0.025,
-        eqtCpu.getBinForValue(0.1).diagnosticMaps[0].get('v8').get('v8'));
   });
 
   test('expectedQueueingTimeRCS', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcess = model.rendererProcess;
       const mainThread = model.rendererMain;
-      addInteractiveTimestamp(rendererProcess, mainThread, 200);
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'toplevel',
-        title: tr.e.chrome.SCHEDULER_TOP_LEVEL_TASK_TITLE,
-        start: 0,
-        duration: 100,
-        cpuStart: 0,
-        cpuDuration: 100,
-      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'v8',
         title: 'V8.newInstance',
@@ -393,17 +235,6 @@ tr.b.unittest.testSuite(function() {
         eqt.diagnostics.get('v8').get('v8:compile:optimize_rcs'));
     assert.strictEqual(1.6, eqt.getBinForValue(10).diagnosticMaps[0].get(
         'v8').get('v8:compile:optimize_rcs'));
-
-    assert.strictEqual('total:500ms_window:renderer_eqt:v8:compile:parse_rcs',
-        eqt.diagnostics.get('v8').get('v8:compile:parse_rcs'));
-    assert.strictEqual(0.1, eqt.getBinForValue(10).diagnosticMaps[0].get(
-        'v8').get('v8:compile:parse_rcs'));
-
-    assert.strictEqual(
-        'total:500ms_window:renderer_eqt:v8:compile:compile-unoptimize_rcs',
-        eqt.diagnostics.get('v8').get('v8:compile:compile-unoptimize_rcs'));
-    assert.strictEqual(0.4, eqt.getBinForValue(10).diagnosticMaps[0].get(
-        'v8').get('v8:compile:compile-unoptimize_rcs'));
   });
 });
 </script>

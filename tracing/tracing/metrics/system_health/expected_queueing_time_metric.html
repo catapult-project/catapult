@@ -71,10 +71,6 @@ tr.exportTo('tr.metrics.sh', function() {
    * of size 500ms (WINDOW_SIZE_MS). The function produces four Histograms:
    * - total:500ms_window:renderer_eqt,
    * - total:500ms_window:renderer_eqt_cpu,
-   * - interactive:500ms_window:renderer_eqt.
-   * - interactive:500ms_window:renderer_eqt_cpu.
-   * The 'total' histograms are computed for the whole trace. The 'interactive'
-   * histograms are computed for the time while the page is interactive.
    * The 'cpu' histograms use the CPU time of the events instead of the wall-
    * clock times. Each renderer process adds one sample to the histograms.
    */
@@ -82,17 +78,10 @@ tr.exportTo('tr.metrics.sh', function() {
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     const rendererHelpers = Object.values(chromeHelper.rendererHelpers);
-    const rendererToInteractiveTimestamps =
-        tr.e.chrome.getInteractiveTimestamps(model);
     addExpectedQueueingTimeMetric_(
         'renderer_eqt',
         event => {return {start: event.start, duration: event.duration};},
-        false, rendererHelpers, rendererToInteractiveTimestamps, histograms,
-        model);
-    addExpectedQueueingTimeMetric_(
-        'renderer_eqt_cpu',
-        event => {return {start: event.cpuStart, duration: event.cpuDuration};},
-        true, rendererHelpers, rendererToInteractiveTimestamps, histograms,
+        false, rendererHelpers, histograms,
         model);
   }
 
@@ -111,7 +100,7 @@ tr.exportTo('tr.metrics.sh', function() {
    *     a map from renderer pid to an array of interactive timestamps.
    */
   function addExpectedQueueingTimeMetric_(eqtName, getEventTimes, isCpuTime,
-      rendererHelpers, rendererToInteractiveTimestamps, histograms, model) {
+      rendererHelpers, histograms, model) {
     /**
      * Extracts tasks for EQT computation from the given renderer.
      * A task is a pair of {start, end} times.
@@ -133,11 +122,6 @@ tr.exportTo('tr.metrics.sh', function() {
         `total:${WINDOW_SIZE_MS}ms_window:${eqtName}`,
         `The maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window` +
         ' for a given renderer');
-    const interactiveHistogram = getOrCreateHistogram_(
-        histograms,
-        `interactive:${WINDOW_SIZE_MS}ms_window:${eqtName}`,
-        `The maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window` +
-        ' for a given renderer while the page is interactive');
     for (const rendererHelper of rendererHelpers) {
       if (rendererHelper.isChromeTracingUI) continue;
       // Renderers with lifetime smaller than WINDOW_SIZE_MS do not have
@@ -145,13 +129,11 @@ tr.exportTo('tr.metrics.sh', function() {
       if (rendererHelper.mainThread.bounds.duration < WINDOW_SIZE_MS) continue;
 
       const tasks = getTasks(rendererHelper);
-      const {totalBreakdown, interactiveBreakdown} = getV8Contribution_(
+      const totalBreakdown = getV8Contribution_(
           eqtName,
           getEventTimes,
           isCpuTime,
           totalHistogram,
-          interactiveHistogram,
-          rendererToInteractiveTimestamps,
           histograms,
           rendererHelper,
           model);
@@ -160,21 +142,6 @@ tr.exportTo('tr.metrics.sh', function() {
               rendererHelper.mainThread.bounds.min,
               rendererHelper.mainThread.bounds.max,
               WINDOW_SIZE_MS, tasks), {v8: totalBreakdown});
-      const interactiveTimestamps =
-        rendererToInteractiveTimestamps.get(rendererHelper.pid);
-      if (interactiveTimestamps.length === 0) continue;
-      if (interactiveTimestamps.length > 1) {
-        // TODO(ulan): Support multiple interactive time windows when
-        // https://crbug.com/692112 is fixed.
-        continue;
-      }
-      const interactiveWindow =
-          tr.b.math.Range.fromExplicitRange(interactiveTimestamps[0], Infinity)
-              .findIntersection(rendererHelper.mainThread.bounds);
-      interactiveHistogram.addSample(
-          tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
-              interactiveWindow.min, interactiveWindow.max,
-              WINDOW_SIZE_MS, tasks), {v8: interactiveBreakdown});
     }
   }
 
@@ -187,34 +154,25 @@ tr.exportTo('tr.metrics.sh', function() {
    * - removing subevents shrinks a task by shifting its end time closer to
    *   the start time. The start time does not change.
    *
-   * Similar to the expectedQueueingTime this function computes two histograms:
-   * total and interactive. For example:
-   * - total:500ms_window:renderer_eqt:v8,
-   * - interactive:500ms_window:renderer_eqt:v8.
-   * Each renderer process adds one sample to the histograms.
-   * Both histograms are added to the given histogram set.
+   * Example of an added histogram:
+   * - total:500ms_window:renderer_eqt:v8
+   * Each renderer process adds one sample to the histogram.
    *
    * @param {!string} eqtName the metric name part of the histogram name.
    * @param {!EventTimesCallback} getEventTimes.
    * @param {boolean} isCpuTime
    * @param {!tr.v.Histogram} totalEqtHistogram
-   * @param {!tr.v.Histogram} interactiveEqtHistogram
-   * @param {!Map.<number, Array.<number>>} rendererToInteractiveTimestamps
-   *     a map from renderer pid to an array of interactive timestamps.
    * @param {!tr.v.HistogramSet} histograms
    * @param {!tr.model.helpers.ChromeRendererHelper} rendererHelper
    * @param {!tr.model.Model} model
-   * @return {{totalBreakdown: !tr.v.d.Breakdown,
-   *           interactiveBreakdown: !tr.v.d.Breakdown}}
+   * @return {!tr.v.d.Breakdown}
    */
   function getV8Contribution_(
-      eqtName, getEventTimes, isCpuTime, totalEqtHistogram,
-      interactiveEqtHistogram, rendererToInteractiveTimestamps, histograms,
+      eqtName, getEventTimes, isCpuTime, totalEqtHistogram, histograms,
       rendererHelper, model) {
-    if (!model.categories.includes('v8')) return {};
+    if (!model.categories.includes('v8')) return null;
 
     const totalBreakdown = new tr.v.d.Breakdown();
-    const interactiveBreakdown = new tr.v.d.Breakdown();
     // Include task extractors that use tracing.
     const eventNamesWithTaskExtractors =
         getV8EventNamesWithTaskExtractors_(getEventTimes);
@@ -233,12 +191,6 @@ tr.exportTo('tr.metrics.sh', function() {
       totalNames = new tr.v.d.RelatedNameMap();
       totalEqtHistogram.diagnostics.set('v8', totalNames);
     }
-    let interactiveNames = interactiveEqtHistogram.diagnostics.get('v8');
-    if (!interactiveNames) {
-      interactiveNames = new tr.v.d.RelatedNameMap();
-      interactiveEqtHistogram.diagnostics.set('v8', interactiveNames);
-    }
-
     for (const [eventName, getTasks] of eventNamesWithTaskExtractors) {
       const totalHistogram = getOrCreateHistogram_(histograms,
           `total:${WINDOW_SIZE_MS}ms_window:${eqtName}:${eventName}`,
@@ -246,14 +198,6 @@ tr.exportTo('tr.metrics.sh', function() {
           ' for a given renderer. It is computed as the maximum EQT in' +
           ` a ${WINDOW_SIZE_MS}ms sliding window after shrinking top-level` +
           ` tasks to contain only ${eventName} subevents`);
-      const interactiveHistogram = getOrCreateHistogram_(histograms,
-          `interactive:${WINDOW_SIZE_MS}ms_window:${eqtName}:${eventName}`,
-          `Contribution to the expected queueing time by ${eventName}` +
-          ' for a given renderer while the page is interactive. It is' +
-          ` computed as the maximum EQT in a ${WINDOW_SIZE_MS}ms sliding` +
-          ' window after shrinking top-level tasks to contain only' +
-          ` ${eventName} subevents`);
-
       const tasks = getTasks(rendererHelper);
       const totalSample = tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
           rendererHelper.mainThread.bounds.min,
@@ -262,27 +206,8 @@ tr.exportTo('tr.metrics.sh', function() {
       totalHistogram.addSample(totalSample);
       totalBreakdown.set(eventName, totalSample);
       totalNames.set(eventName, totalHistogram.name);
-
-      const interactiveTimestamps =
-          rendererToInteractiveTimestamps.get(rendererHelper.pid);
-      if (interactiveTimestamps.length === 0) continue;
-      if (interactiveTimestamps.length > 1) {
-        // TODO(ulan): Support multiple interactive time windows when
-        // https://crbug.com/692112 is fixed.
-        continue;
-      }
-      const interactiveWindow =
-          tr.b.math.Range.fromExplicitRange(interactiveTimestamps[0], Infinity)
-              .findIntersection(rendererHelper.mainThread.bounds);
-      const interactiveSample =
-        tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
-            interactiveWindow.min, interactiveWindow.max,
-            WINDOW_SIZE_MS, tasks);
-      interactiveHistogram.addSample(interactiveSample);
-      interactiveBreakdown.set(eventName, interactiveSample);
-      interactiveNames.set(eventName, interactiveHistogram.name);
     }
-    return {totalBreakdown, interactiveBreakdown};
+    return totalBreakdown;
   }
 
   /**
@@ -355,26 +280,6 @@ tr.exportTo('tr.metrics.sh', function() {
       [
         'v8:gc',
         taskExtractor(tr.metrics.v8.utils.isGarbageCollectionEvent)
-      ],
-      [
-        'v8:gc:full-mark-compactor',
-        taskExtractor(tr.metrics.v8.utils.isFullMarkCompactorEvent)
-      ],
-      [
-        'v8:gc:incremental-marking',
-        taskExtractor(tr.metrics.v8.utils.isIncrementalMarkingEvent)
-      ],
-      [
-        'v8:gc:latency-mark-compactor',
-        taskExtractor(tr.metrics.v8.utils.isLatencyMarkCompactorEvent)
-      ],
-      [
-        'v8:gc:memory-mark-compactor',
-        taskExtractor(tr.metrics.v8.utils.isMemoryMarkCompactorEvent)
-      ],
-      [
-        'v8:gc:scavenger',
-        taskExtractor(tr.metrics.v8.utils.isScavengerEvent)
       ]
     ]);
   }
@@ -439,16 +344,6 @@ tr.exportTo('tr.metrics.sh', function() {
         rendererHelper => extractTaskRCS(
             getEventTimes,
             tr.metrics.v8.utils.isCompileOptimizeRCSCategory,
-            rendererHelper));
-    extractors.set('v8:compile:parse_rcs',
-        rendererHelper => extractTaskRCS(
-            getEventTimes,
-            tr.metrics.v8.utils.isCompileParseRCSCategory,
-            rendererHelper));
-    extractors.set('v8:compile:compile-unoptimize_rcs',
-        rendererHelper => extractTaskRCS(
-            getEventTimes,
-            tr.metrics.v8.utils.isCompileUnoptimizeRCSCategory,
             rendererHelper));
     return extractors;
   }
