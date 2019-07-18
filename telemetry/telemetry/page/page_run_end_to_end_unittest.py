@@ -134,7 +134,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
-    options.suppress_gtest_report = True
 
     with tempfile_ext.NamedTemporaryDirectory('page_E2E_tests') as tempdir:
       options.output_dir = tempdir
@@ -176,7 +175,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     test = TestUserAgent()
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
-    options.suppress_gtest_report = True
 
     with tempfile_ext.NamedTemporaryDirectory('page_E2E_tests') as tempdir:
       options.output_dir = tempdir
@@ -207,7 +205,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     test = TestOneTab()
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
-    options.suppress_gtest_report = True
 
     with tempfile_ext.NamedTemporaryDirectory('page_E2E_tests') as tempdir:
       options.output_dir = tempdir
@@ -247,7 +244,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     test = MeasureLatency()
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
-    options.suppress_gtest_report = True
 
     with tempfile_ext.NamedTemporaryDirectory('page_E2E_tests') as tempdir:
       options.output_dir = tempdir
@@ -297,7 +293,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     test = TestBeforeLaunch()
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
-    options.suppress_gtest_report = True
 
     with tempfile_ext.NamedTemporaryDirectory('page_E2E_tests') as tempdir:
       options.output_dir = tempdir
@@ -329,7 +324,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     test = Test()
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
-    options.suppress_gtest_report = True
 
     with tempfile_ext.NamedTemporaryDirectory('page_E2E_tests') as tempdir:
       options.output_dir = tempdir
@@ -375,7 +369,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     SetUpStoryRunnerArguments(options)
     # Override defaults from parser creation and arg processing.
     options.output_formats = ['none']
-    options.suppress_gtest_report = True
     options.output_dir = None
     results = results_options.CreateResults(options)
     story_runner.Run(test, story_set, options, results)
@@ -436,7 +429,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     SetUpStoryRunnerArguments(options)
     # Override defaults from parser creation and arg processing.
     options.output_formats = ['none']
-    options.suppress_gtest_report = True
     options.output_dir = None
     results = results_options.CreateResults(options)
     story_runner.Run(test, story_set, options, results)
@@ -457,7 +449,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     SetUpStoryRunnerArguments(options)
     # Override defaults from parser creation and arg processing.
     options.output_formats = ['none']
-    options.suppress_gtest_report = True
     options.output_dir = None
     results = results_options.CreateResults(options)
     story_runner.Run(test, story_set, options, results,
@@ -498,7 +489,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     SetUpStoryRunnerArguments(options)
     # Override defaults from parser creation and arg processing.
     options.output_formats = ['none']
-    options.suppress_gtest_report = True
     options.output_dir = None
     results = results_options.CreateResults(options)
 
@@ -541,7 +531,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       options.output_dir = tempdir
       options.output_formats = ['none']
       options.browser_options.take_screenshot_for_failed_page = True
-      options.suppress_gtest_report = True
       SetUpStoryRunnerArguments(options)
       results = results_options.CreateResults(options)
       story_runner.Run(DummyTest(), story_set, options, results,
@@ -564,7 +553,6 @@ class FakePageRunEndToEndTests(unittest.TestCase):
     SetUpStoryRunnerArguments(self.options)
     # Override defaults from parser creation and arg processing.
     self.options.output_formats = ['none']
-    self.options.suppress_gtest_report = True
     self.options.output_dir = None
 
   def testNoScreenShotTakenForFailedPageDueToNoSupport(self):

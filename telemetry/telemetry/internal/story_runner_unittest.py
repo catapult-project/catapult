@@ -217,7 +217,6 @@ def _GetOptionForUnittest():
   options = options_for_unittests.GetCopy()
   options.output_formats = ['none']
   options.output_dir = tempfile.mkdtemp(prefix='story_runner_test')
-  options.suppress_gtest_report = False
   parser = options.CreateParser()
   story_runner.AddCommandLineArgs(parser)
   options.MergeDefaultValues(parser.get_default_values())
@@ -261,7 +260,6 @@ class _Measurement(legacy_page_test.LegacyPageTest):
 def _GenerateBaseBrowserFinderOptions(options_callback=None):
   options = fakes.CreateBrowserFinderOptions()
   options.upload_results = None
-  options.suppress_gtest_report = False
   options.results_label = None
   options.reset_results = False
   options.use_live_sites = False
@@ -965,7 +963,6 @@ class StoryRunnerTest(unittest.TestCase):
 
     options = _GetOptionForUnittest()
     options.output_formats = ['none']
-    options.suppress_gtest_report = True
     if options_max_failures:
       options.max_failures = options_max_failures
 
@@ -1673,7 +1670,6 @@ class BenchmarkJsonResultsTest(unittest.TestCase):
   def setUp(self):
     self._temp_dir = tempfile.mkdtemp()
     self._options = _GenerateBaseBrowserFinderOptions()
-    self._options.suppress_gtest_report = True
     self._options.output_formats = ['json-test-results']
     self._options.output_dir = self._temp_dir
 
@@ -1815,7 +1811,6 @@ class BenchmarkJsonResultsTest(unittest.TestCase):
       options.story_shard_end_index = 41
 
     options = _GenerateBaseBrowserFinderOptions(options_callback)
-    options.suppress_gtest_report = True
     options.output_formats = ['json-test-results']
     options.output_dir = self._temp_dir
 

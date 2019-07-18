@@ -47,6 +47,8 @@ class BenchmarkTest(unittest.TestCase):
     story_runner.AddCommandLineArgs(parser)
     cls._options.MergeDefaultValues(parser.get_default_values())
     story_runner.ProcessCommandLineArgs(parser, cls._options)
+    cls._options.output_formats = ['none']
+    cls._options.suppress_gtest_report = True
 
   @classmethod
   def GetOptions(cls):
@@ -93,8 +95,6 @@ class BenchmarkTest(unittest.TestCase):
 
     try:
       options = self.GetOptions()
-      options.output_formats = ['none']
-      options.suppress_gtest_report = True
       parser = optparse.OptionParser()
       benchmark.AddCommandLineArgs(parser)
       options.MergeDefaultValues(parser.get_default_values())
@@ -145,8 +145,6 @@ class BenchmarkTest(unittest.TestCase):
 
     try:
       options = self.GetOptions()
-      options.output_formats = ['none']
-      options.suppress_gtest_report = True
       parser = optparse.OptionParser()
       benchmark.AddCommandLineArgs(parser)
       options.MergeDefaultValues(parser.get_default_values())

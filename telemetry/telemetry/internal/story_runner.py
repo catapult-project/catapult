@@ -51,8 +51,7 @@ def AddCommandLineArgs(parser):
   story_module.StoryFilter.AddCommandLineArgs(parser)
   results_options.AddResultsOptions(parser)
 
-  # Page set options
-  group = optparse.OptionGroup(parser, 'Page set repeat options')
+  group = optparse.OptionGroup(parser, 'Story runner options')
   # Note that the default for pageset-repeat is 1 unless the benchmark
   # specifies a different default by adding
   # `options = {'pageset_repeat': X}` in their benchmark. Defaults are always
@@ -72,9 +71,11 @@ def AddCommandLineArgs(parser):
                    choices=_PAUSE_STAGES,
                    help='Pause for interaction at the specified stage. '
                    'Valid stages are %s.' % ', '.join(_PAUSE_STAGES))
+  group.add_option('--suppress-gtest-report', action='store_true',
+                   help='Suppress gtest style report of progress as stories '
+                   'are being run.')
   parser.add_option_group(group)
 
-  # WPR options
   group = optparse.OptionGroup(parser, 'Web Page Replay options')
   group.add_option(
       '--use-live-sites',
@@ -420,6 +421,7 @@ def _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
       benchmark_name=benchmark.Name(),
       benchmark_description=benchmark.Description(),
       benchmark_enabled=False,
+      report_progress=not finder_options.suppress_gtest_report,
       should_add_value=benchmark.ShouldAddValue) as results:
     results.PrintSummary()
   return False
@@ -455,6 +457,7 @@ def RunBenchmark(benchmark, finder_options):
       benchmark_name=benchmark.Name(),
       benchmark_description=benchmark.Description(),
       benchmark_enabled=True,
+      report_progress=not finder_options.suppress_gtest_report,
       should_add_value=benchmark.ShouldAddValue) as results:
     try:
       Run(pt, story_set, finder_options, results, benchmark.max_failures,

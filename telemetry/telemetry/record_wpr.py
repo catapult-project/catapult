@@ -166,7 +166,8 @@ class WprRecorder(object):
     return results_options.CreateResults(
         self._options,
         benchmark_name=benchmark_name,
-        benchmark_description=benchmark_description)
+        benchmark_description=benchmark_description,
+        report_progress=True)
 
   def _AddCommandLineArgs(self):
     self._parser.add_option('--page-set-base-dir', action='store',

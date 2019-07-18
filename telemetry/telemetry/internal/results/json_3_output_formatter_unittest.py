@@ -248,7 +248,6 @@ class Json3OutputFormatterTest(unittest.TestCase):
     tempfile_dir = tempfile.mkdtemp(prefix='unittest_results')
     try:
       options.output_dir = tempfile_dir
-      options.suppress_gtest_report = False
       options.results_label = None
       results_options.ProcessCommandLineArgs(options)
       results = results_options.CreateResults(options, benchmark_enabled=False)
@@ -279,7 +278,6 @@ class Json3OutputFormatterTest(unittest.TestCase):
     tempfile_dir = tempfile.mkdtemp(prefix='unittest_results')
     try:
       options.output_dir = tempfile_dir
-      options.suppress_gtest_report = False
       options.results_label = None
       results_options.ProcessCommandLineArgs(options)
       results = results_options.CreateResults(

@@ -63,7 +63,6 @@ class PageTestTestCase(unittest.TestCase):
       measurement.CustomizeBrowserOptions(options.browser_options)
     options.output_file = None
     options.output_formats = ['none']
-    options.suppress_gtest_report = True
     story_runner.ProcessCommandLineArgs(temp_parser, options)
     results = results_options.CreateResults(
         options, benchmark_name=BENCHMARK_NAME)
