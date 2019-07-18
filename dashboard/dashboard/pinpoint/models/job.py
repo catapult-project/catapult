@@ -107,7 +107,8 @@ class Job(ndb.Model):
   started = ndb.BooleanProperty(default=True)
   completed = ndb.ComputedProperty(lambda self: self.started and not self.task)
   failed = ndb.ComputedProperty(lambda self: bool(self.exception_details_dict))
-  running = ndb.ComputedProperty(lambda self: self.task and len(self.task))
+  running = ndb.ComputedProperty(
+      lambda self: self.started and self.task and len(self.task) > 0)
 
   # The name of the Task Queue task this job is running on. If it's present, the
   # job is running. The task is also None for Task Queue retries.
