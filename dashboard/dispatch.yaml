@@ -1,9 +1,19 @@
 dispatch:
-  - url: "*/add_histograms*"
+  # Pinpoint routing rules
+  - url: "pinpoint-dot-chromeperf.appspot.com/*"
+    service: pinpoint
+
+  # Sheriff config routing rules
+  - url: "sheriff-config-dot-chromeperf.appspot.com/*"
+    service: sheriff-config
+
+  # Upload routing rules
+  - url: "chromeperf.appspot.com/add_histograms*"
+    service: upload
+  - url: "chromeperf.appspot.com/add_point*"
     service: upload
 
-  - url: "*/add_point*"
-    service: upload
-
-  - url: "*/api/*"
+  # API routing rules
+  - url: "chromeperf.appspot.com/api/*"
     service: api
+
