@@ -178,6 +178,11 @@ class PageTestResults(object):
     return sum(1 for run in self._all_story_runs if run.ok)
 
   @property
+  def num_expected(self):
+    """Number of stories that succeeded or were expected skips."""
+    return sum(1 for run in self._all_story_runs if run.is_expected)
+
+  @property
   def had_failures(self):
     """If there where any failed stories."""
     return any(run.failed for run in self._all_story_runs)
