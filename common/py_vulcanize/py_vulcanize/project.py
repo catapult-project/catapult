@@ -2,15 +2,19 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 import collections
 import os
 
 try:
-  from cStringIO import StringIO
+  from six import StringIO
 except ImportError:
   from io import StringIO
 
 from py_vulcanize import resource_loader
+import six
 
 
 def _FindAllFilesRecursive(source_paths):
@@ -222,7 +226,7 @@ class _Graph(object):
 
     f.close()
 
-    attr_items = ['%s="%s"' % (x, y) for x, y in attrs.iteritems()]
+    attr_items = ['%s="%s"' % (x, y) for x, y in six.iteritems(attrs)]
     node = 'M%i [%s];' % (m.id, ','.join(attr_items))
     self.nodes.append(node)
 

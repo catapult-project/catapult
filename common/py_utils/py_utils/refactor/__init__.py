@@ -12,7 +12,7 @@ import functools
 import multiprocessing
 
 # pylint: disable=wildcard-import
-from py_utils.refactor.annotated_symbol import *
+from py_utils.refactor.annotated_symbol import *  # pylint: disable=redefined-builtin
 from py_utils.refactor.module import Module
 
 

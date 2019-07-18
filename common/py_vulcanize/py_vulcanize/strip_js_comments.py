@@ -51,14 +51,14 @@ def StripJSComments(text):
   token_stream = _TokenizeJS(text).__iter__()
   while True:
     try:
-      t = token_stream.next()
+      t = next(token_stream)
     except StopIteration:
       break
 
     if t == '//':
       while True:
         try:
-          t2 = token_stream.next()
+          t2 = next(token_stream)
           if t2 == '\n':
             break
         except StopIteration:
@@ -67,7 +67,7 @@ def StripJSComments(text):
       nesting = 1
       while True:
         try:
-          t2 = token_stream.next()
+          t2 = next(token_stream)
           if t2 == '/*':
             nesting += 1
           elif t2 == '*/':

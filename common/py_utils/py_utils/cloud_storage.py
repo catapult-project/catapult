@@ -9,21 +9,21 @@ import contextlib
 import hashlib
 import logging
 import os
+import re
 import shutil
 import stat
 import subprocess
-import re
 import sys
 import tempfile
 import time
 
 import py_utils
+from py_utils import cloud_storage_global_lock  # pylint: disable=unused-import
 from py_utils import lock
 
 # Do a no-op import here so that cloud_storage_global_lock dep is picked up
 # by https://cs.chromium.org/chromium/src/build/android/test_runner.pydeps.
 # TODO(nedn, jbudorick): figure out a way to get rid of this ugly hack.
-from py_utils import cloud_storage_global_lock  # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -42,7 +42,7 @@ BUCKET_ALIASES = collections.OrderedDict((
     ('output', TELEMETRY_OUTPUT),
 ))
 
-BUCKET_ALIAS_NAMES = BUCKET_ALIASES.keys()
+BUCKET_ALIAS_NAMES = list(BUCKET_ALIASES.keys())
 
 
 _GSUTIL_PATH = os.path.join(py_utils.GetCatapultDir(), 'third_party', 'gsutil',

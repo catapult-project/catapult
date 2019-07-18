@@ -2,13 +2,18 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import os
 import sys
 
+from py_vulcanize import html_generation_controller
 from py_vulcanize import js_utils
 from py_vulcanize import module
 from py_vulcanize import strip_js_comments
-from py_vulcanize import html_generation_controller
+import six
 
 
 def _AddToPathIfNeeded(path):
@@ -53,7 +58,7 @@ class InlineScript(Script):
 
   @property
   def contents(self):
-    return unicode(self._soup.string)
+    return six.text_type(self._soup.string)
 
   @property
   def stripped_contents(self):
@@ -187,13 +192,13 @@ class HTMLModuleParserResults(object):
   @property
   def inline_stylesheets(self):
     tags = self._soup.findAll('style')
-    return [unicode(t.string) for t in tags]
+    return [six.text_type(t.string) for t in tags]
 
   def YieldHTMLInPieces(self, controller, minify=False):
     yield self.GenerateHTML(controller, minify)
 
   def GenerateHTML(self, controller, minify=False, prettify=False):
-    soup = _CreateSoupWithoutHeadOrBody(unicode(self._soup))
+    soup = _CreateSoupWithoutHeadOrBody(six.text_type(self._soup))
 
     # Remove declaration.
     for x in soup.contents:
@@ -223,7 +228,7 @@ class HTMLModuleParserResults(object):
     # Process all in-line styles.
     inline_styles = soup.findAll('style')
     for style in inline_styles:
-      html = controller.GetHTMLForInlineStylesheet(unicode(style.string))
+      html = controller.GetHTMLForInlineStylesheet(six.text_type(style.string))
       if html:
         ns = soup.new_tag('style')
         ns.append(bs4.NavigableString(html))
@@ -252,7 +257,7 @@ class HTMLModuleParserResults(object):
       return soup.prettify('utf-8').strip()
 
     # We are done.
-    return unicode(soup).strip()
+    return six.text_type(soup).strip()
 
   @property
   def html_contents_without_links_and_script(self):

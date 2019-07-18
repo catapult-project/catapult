@@ -2,12 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import itertools
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import symbol
 import token
 
-from py_utils.refactor.annotated_symbol import base_symbol
 from py_utils.refactor import snippet
+from py_utils.refactor.annotated_symbol import base_symbol
+from six.moves import range # pylint: disable=redefined-builtin
+from six.moves import zip_longest # pylint: disable=redefined-builtin
 
 
 __all__ = [
@@ -25,7 +30,7 @@ class Reference(base_symbol.AnnotatedSymbol):
     if not nodes[0].children or nodes[0].children[0].type != token.NAME:
       return None
 
-    for i in xrange(1, len(nodes)):
+    for i in range(1, len(nodes)):
       if not nodes:
         break
       if nodes[i].type != symbol.trailer:
@@ -62,8 +67,7 @@ class Reference(base_symbol.AnnotatedSymbol):
     self._children = self._children[:len(value_parts)]
 
     # Update child nodes.
-    for child, value_part in itertools.izip_longest(
-        self._children, value_parts):
+    for child, value_part in zip_longest(self._children, value_parts):
       if child:
         # Modify existing children. This helps preserve comments and spaces.
         child.children[-1].value = value_part

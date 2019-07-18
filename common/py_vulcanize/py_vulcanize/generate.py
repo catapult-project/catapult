@@ -2,17 +2,22 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import os
-import sys
 import subprocess
+import sys
 import tempfile
 
+from py_vulcanize import html_generation_controller
+
 try:
-  from StringIO import StringIO
+  from six import StringIO
 except ImportError:
   from io import StringIO
 
-from py_vulcanize import html_generation_controller
 
 
 html_warning_message = """
@@ -144,8 +149,8 @@ def GenerateJSToFile(f,
       sln = '.'.join(parts[:2])
 
       # Output
-      print('%i\t%s\t%s\t%s\t%s' % (
-          len(js), min_js_size, module.name, tln, sln))
+      print(('%i\t%s\t%s\t%s\t%s' %
+             (len(js), min_js_size, module.name, tln, sln)))
       sys.stdout.flush()
 
 

@@ -2,15 +2,21 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import unittest
 
 from py_utils import slots_metaclass
+import six
+
 
 class SlotsMetaclassUnittest(unittest.TestCase):
 
   def testSlotsMetaclass(self):
-    class NiceClass(object):
-      __metaclass__ = slots_metaclass.SlotsMetaclass
+
+    class NiceClass(six.with_metaclass(slots_metaclass.SlotsMetaclass, object)):
       __slots__ = '_nice',
 
       def __init__(self, nice):

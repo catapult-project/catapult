@@ -34,19 +34,19 @@ class FakeFSUnittest(unittest.TestCase):
     fs.AddFile('/a.txt', 'foobar')
     with fs:
       gen = os.walk(os.path.normpath('/'))
-      r = gen.next()
+      r = next(gen)
       self.assertEquals((os.path.normpath('/'), ['x'], ['a.txt']), r)
 
-      r = gen.next()
+      r = next(gen)
       self.assertEquals((os.path.normpath('/x'), ['w', 'w2'], ['y.txt']), r)
 
-      r = gen.next()
+      r = next(gen)
       self.assertEquals((os.path.normpath('/x/w'), [], ['z.txt']), r)
 
-      r = gen.next()
+      r = next(gen)
       self.assertEquals((os.path.normpath('/x/w2'), ['w3'], []), r)
 
-      r = gen.next()
+      r = next(gen)
       self.assertEquals((os.path.normpath('/x/w2/w3'), [], ['z3.txt']), r)
 
       self.assertRaises(StopIteration, gen.next)

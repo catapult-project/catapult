@@ -25,7 +25,7 @@ class ModulesUitlTest(unittest.TestCase):
     with self.assertRaises(ImportError) as error:
       modules_util.RequireVersion(numpy, '2.5')
     self.assertEqual(
-        error.exception.message,
+        str(error.exception),
         'numpy has version 2.3, but version 2.5 or higher is required')
 
   def testRequireVersion_versionTooHigh(self):
@@ -33,8 +33,7 @@ class ModulesUitlTest(unittest.TestCase):
     with self.assertRaises(ImportError) as error:
       modules_util.RequireVersion(numpy, '1.0', '2.0')
     self.assertEqual(
-        error.exception.message,
-        'numpy has version 2.3, but version'
+        str(error.exception), 'numpy has version 2.3, but version'
         ' at or above 1.0 and below 2.0 is required')
 
 

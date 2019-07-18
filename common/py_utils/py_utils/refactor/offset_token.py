@@ -1,18 +1,23 @@
+# Lint as: python2, python3
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 import collections
 import itertools
 import token
 import tokenize
+from six.moves import zip # pylint: disable=redefined-builtin
 
 
 def _Pairwise(iterable):
   """s -> (None, s0), (s0, s1), (s1, s2), (s2, s3), ..."""
   a, b = itertools.tee(iterable)
   a = itertools.chain((None,), a)
-  return itertools.izip(a, b)
+  return zip(a, b)
 
 
 class OffsetToken(object):

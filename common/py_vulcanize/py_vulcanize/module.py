@@ -11,11 +11,16 @@ template objects, raw JavaScript, or other modules.
 Other resources include HTML templates, raw JavaScript files, and stylesheets.
 """
 
-import os
-import inspect
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import codecs
+import inspect
+import os
 
 from py_vulcanize import js_utils
+import six
 
 
 class DepsException(Exception):
@@ -92,7 +97,7 @@ class Module(object):
   """
 
   def __init__(self, loader, name, resource, load_resource=True):
-    assert isinstance(name, basestring), 'Got %s instead' % repr(name)
+    assert isinstance(name, six.string_types), 'Got %s instead' % repr(name)
 
     global _next_module_id
     self._id = _next_module_id

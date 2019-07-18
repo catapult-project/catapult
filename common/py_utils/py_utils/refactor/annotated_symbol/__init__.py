@@ -6,7 +6,7 @@
 from py_utils.refactor.annotated_symbol.class_definition import *
 from py_utils.refactor.annotated_symbol.function_definition import *
 from py_utils.refactor.annotated_symbol.import_statement import *
-from py_utils.refactor.annotated_symbol.reference import *
+from py_utils.refactor.annotated_symbol.reference import *  # pylint: disable=redefined-builtin
 from py_utils.refactor import snippet
 
 

@@ -2,13 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import itertools
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import keyword
 import symbol
 import token
 
-from py_utils.refactor.annotated_symbol import base_symbol
 from py_utils.refactor import snippet
+from py_utils.refactor.annotated_symbol import base_symbol
+from six.moves import zip_longest # pylint: disable=redefined-builtin
 
 
 __all__ = [
@@ -43,8 +47,7 @@ class DottedName(base_symbol.AnnotatedSymbol):
     self._children = self._children[:len(value_parts)*2-1]
 
     # Update child nodes.
-    for child, value_part in itertools.izip_longest(
-        self._children[::2], value_parts):
+    for child, value_part in zip_longest(self._children[::2], value_parts):
       if child:
         # Modify existing children. This helps preserve comments and spaces.
         child.value = value_part
@@ -83,13 +86,13 @@ class AsName(base_symbol.AnnotatedSymbol):
       raise ValueError('%s is a reserved keyword.' % value)
 
     if value:
-       # pylint: disable=access-member-before-definition
+      # pylint: disable=access-member-before-definition
       if len(self.children) < 3:
         # If we currently have no alias, add one.
-         # pylint: disable=access-member-before-definition
+        # pylint: disable=access-member-before-definition
         self.children.append(
             snippet.TokenSnippet.Create(token.NAME, 'as', (0, 1)))
-         # pylint: disable=access-member-before-definition
+        # pylint: disable=access-member-before-definition
         self.children.append(
             snippet.TokenSnippet.Create(token.NAME, value, (0, 1)))
       else:

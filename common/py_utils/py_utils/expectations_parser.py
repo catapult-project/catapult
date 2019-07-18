@@ -2,7 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 import re
+import six
 
 
 class ParseError(Exception):
@@ -20,9 +24,9 @@ class Expectation(object):
           Conditions are combined using logical and. Example: ['Mac', 'Debug']
       results: List of outcomes for test. Example: ['Skip', 'Pass']
     """
-    assert isinstance(reason, basestring) or reason is None
+    assert isinstance(reason, six.string_types) or reason is None
     self._reason = reason
-    assert isinstance(test, basestring)
+    assert isinstance(test, six.string_types)
     self._test = test
     assert isinstance(conditions, list)
     self._conditions = conditions

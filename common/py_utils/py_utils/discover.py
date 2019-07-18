@@ -107,7 +107,7 @@ def DiscoverClasses(start_dir,
     # crbug.com/548652
     if index_by_class_name:
       AssertNoKeyConflicts(classes, new_classes)
-    classes = dict(classes.items() + new_classes.items())
+    classes = dict(list(classes.items()) + list(new_classes.items()))
   return classes
 
 

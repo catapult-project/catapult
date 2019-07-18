@@ -73,7 +73,9 @@ def LogHostMemoryUsage(top_n=10, level=logging.INFO):
     pinfos_by_names[pname]['pids'].append(str(pinfo['pid']))
 
   sorted_pinfo_groups = heapq.nlargest(
-      top_n, pinfos_by_names.values(), key=lambda item: item['total_mem_rss'])
+      top_n,
+      list(pinfos_by_names.values()),
+      key=lambda item: item['total_mem_rss'])
   for group in sorted_pinfo_groups:
     group['total_mem_rss_fmt'] = FormatBytes(group['total_mem_rss'])
     group['pids_fmt'] = ', '.join(group['pids'])
