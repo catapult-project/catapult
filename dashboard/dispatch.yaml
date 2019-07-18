@@ -1,9 +1,9 @@
 dispatch:
-  - url: */add_histograms*
+  - url: "*/add_histograms*"
     service: upload
 
-  - url: */add_point*
+  - url: "*/add_point*"
     service: upload
 
-  - url: */api/*
+  - url: "*/api/*"
     service: api
