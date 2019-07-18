@@ -44,13 +44,13 @@ class Trace2HTMLTests(unittest.TestCase):
     # trace2html-ify SIMPLE_TRACE, but from a controlled input filename so
     # that when ViewerDataScript gzips it, it uses the same filename for both
     # the unzipped SIMPLE_TRACE here and the gzipped SIMPLE_TRACE below.
-    file(input_filename, 'w').write(file(self.SIMPLE_TRACE_PATH).read())
+    open(input_filename, 'w').write(open(self.SIMPLE_TRACE_PATH).read())
     with codecs.open(output_filename, 'w', encoding='utf-8') as output_file:
       trace2html.WriteHTMLForTracesToFile([input_filename], output_file)
 
     # Hash the contents of the output file that was generated from an unzipped
     # json input file.
-    unzipped_hash = hash(file(output_filename).read())
+    unzipped_hash = hash(open(output_filename).read())
 
     os.unlink(output_filename)
 
@@ -58,7 +58,7 @@ class Trace2HTMLTests(unittest.TestCase):
     # trace2html should automatically gunzip it and start building the html from
     # the same input as if the input weren't gzipped.
     with gzip.GzipFile(input_filename, mode='w') as input_gzipfile:
-      input_gzipfile.write(file(self.SIMPLE_TRACE_PATH).read())
+      input_gzipfile.write(open(self.SIMPLE_TRACE_PATH).read())
 
     # trace2html-ify the zipped version of SIMPLE_TRACE from the same input
     # filename as the unzipped version so that the gzipping process is stable.
@@ -67,7 +67,7 @@ class Trace2HTMLTests(unittest.TestCase):
 
     # Hash the contents of the output file that was generated from the zipped
     # json input file.
-    zipped_hash = hash(file(output_filename).read())
+    zipped_hash = hash(open(output_filename).read())
 
     # Compare the hashes, not the file contents directly so that, if they are
     # different, python shouldn't try to print megabytes of html.

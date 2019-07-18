@@ -2,16 +2,20 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 
 import argparse
 import cProfile
-import pstats
 import inspect
+import pstats
 import sys
 
+from six.moves import range  # pylint: disable=redefined-builtin
+
 try:
-  from StringIO import StringIO
+  from six import StringIO
 except ImportError:
   from io import StringIO
 

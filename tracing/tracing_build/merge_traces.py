@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 
 import argparse
@@ -16,11 +18,12 @@ import sys
 
 # Add tracing/ to the path.
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import six
 from tracing_build import html2trace, trace2html
 
 
 try:
-  StringTypes = basestring
+  StringTypes = six.string_types # pylint: disable=invalid-name
 except NameError:
   StringTypes = str
 
@@ -219,7 +222,7 @@ class IdMap(object):
     while matches:
       # Pop the maximum match from the dictionary.
       max_match_set, max_match = max(
-          matches.items(), key=lambda pair: [len(v) for v in pair[1]])
+          list(matches.items()), key=lambda pair: [len(v) for v in pair[1]])
       del matches[max_match_set]
       canonical_full_id, merged_full_id = max_match_set
 
@@ -252,7 +255,7 @@ class IdMap(object):
             # unmergeable.
             del matches[match_set]
 
-    return canonical_entries.values()
+    return list(canonical_entries.values())
 
   def _AssignIdsToCanonicalEntries(self, canonical_entries):
     assigned_ids = set()
@@ -441,7 +444,8 @@ def _AdjustTimestampRanges(events_by_filename):
   previous_trace_max_timestamp = 0
   timestamp_range_by_filename = collections.OrderedDict()
 
-  for index, (filename, events) in enumerate(events_by_filename.items(), 1):
+  for index, (filename,
+              events) in enumerate(list(events_by_filename.items()), 1):
     # Skip metadata events, the timestamps of which are always zero.
     non_metadata_events = [e for e in events if e['ph'] != METADATA_PHASE]
     if not non_metadata_events:
@@ -506,7 +510,8 @@ def _CombineTraceEvents(events_by_filename, process_map):
   type_name_event_by_pid = {}
   combined_events = []
 
-  for index, (filename, events) in enumerate(events_by_filename.items(), 1):
+  for index, (filename,
+              events) in enumerate(list(events_by_filename.items()), 1):
     for event in events:
       if _UpdateTraceEventForMerge(event, process_map, filename, index,
                                    type_name_event_by_pid):
@@ -601,7 +606,7 @@ def _BuildInjectedTraceMarkerEvents(timestamp_range_by_filename, process_map):
 
   # Inject slices for each sub-trace denoting its beginning and end.
   for index, (filename, timestamp_range) in enumerate(
-      timestamp_range_by_filename.items(), 1):
+      list(timestamp_range_by_filename.items()), 1):
     if timestamp_range is None:
       continue
     min_timestamp, max_timestamp = timestamp_range
@@ -639,7 +644,7 @@ def MergeGenericTraceComponents(component_name, components_by_filename):
   merging function (see MergeTraceEvents). It just returns the component's first
   provided value (in some trace).
   """
-  components = components_by_filename.values()
+  components = list(components_by_filename.values())
   first_component = next(components)
   if not all(c == first_component for c in components):
     logging.warning(

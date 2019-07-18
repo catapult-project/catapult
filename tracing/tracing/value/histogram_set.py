@@ -25,7 +25,7 @@ class HistogramSet(object):
 
   @property
   def shared_diagnostics(self):
-    return self._shared_diagnostics_by_guid.values()
+    return list(self._shared_diagnostics_by_guid.values())
 
   def RemoveOrphanedDiagnostics(self):
     orphans = set(self._shared_diagnostics_by_guid.keys())

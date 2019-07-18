@@ -91,7 +91,7 @@ def Main(argv):
 
   print('\nEvents histogram for the original trace (count by phase)')
   print('--------------------------------------------------------')
-  for phase, count in sorted(phase_count.items(), key=lambda x: x[1]):
+  for phase, count in sorted(list(phase_count.items()), key=lambda x: x[1]):
     print('%s %d' % (phase, count))
 
   out_path = in_path.split('.json')[0] + '-filtered.json'

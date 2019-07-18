@@ -2,12 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import codecs
 import csv
 import gzip
 import json
 import logging
 
+from six.moves import map  # pylint: disable=redefined-builtin
 from tracing_build import html2trace, trace2html
 
 GZIP_FILENAME_SUFFIX = '.gz'
@@ -43,7 +48,7 @@ def LoadTraces(chrome_trace_filename):
       traces.append(json.load(f))
   else:
     raise Exception('Unknown trace file suffix: %s', chrome_trace_filename)
-  return map(_ConvertToDictIfNecessary, traces)
+  return list(map(_ConvertToDictIfNecessary, traces))
 
 
 def WriteTraces(output_filename, traces):

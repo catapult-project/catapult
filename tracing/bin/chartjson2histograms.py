@@ -4,16 +4,17 @@
 # found in the LICENSE file.
 
 import argparse
-import sys
 import os
+import sys
+
+from tracing.value import convert_chart_json  # pylint: disable=wrong-import-position
+import tracing_project  # pylint: disable=wrong-import-position
 
 TRACING_PATH = os.path.abspath(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 sys.path.append(TRACING_PATH)
-import tracing_project  # pylint: disable=wrong-import-position
 tracing_project.UpdateSysPathIfNeeded()
 
-from tracing.value import convert_chart_json  # pylint: disable=wrong-import-position
 
 
 def main():
@@ -31,7 +32,7 @@ def main():
   if result.returncode != 0:
     sys.stderr.write(result.stdout)
   else:
-    file(args.histograms_path, 'w').write(result.stdout)
+    open(args.histograms_path, 'w').write(result.stdout)
   return result.returncode
 
 if __name__ == '__main__':

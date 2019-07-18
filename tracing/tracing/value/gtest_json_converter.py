@@ -2,8 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import json
 
+import six
 from tracing.value import histogram
 from tracing.value import histogram_set
 from tracing.value import legacy_unit_info
@@ -49,12 +54,12 @@ def ConvertGtestJson(gtest_json):
 
   hs = histogram_set.HistogramSet()
 
-  for metric, metric_data in gtest_json.iteritems():
+  for metric, metric_data in six.iteritems(gtest_json):
     # Maintain the same unit if we're able to find an exact match, converting
     # time units if possible. Otherwise use 'unitless'.
     unit, multiplier = _ConvertUnit(metric_data.get('units'))
 
-    for story, story_data in metric_data['traces'].iteritems():
+    for story, story_data in six.iteritems(metric_data['traces']):
       # We should only ever have the mean and standard deviation here.
       assert len(story_data) == 2
       h = histogram.Histogram(metric, unit)

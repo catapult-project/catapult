@@ -2,15 +2,20 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import json
 import os
 import unittest
 
-from tracing.mre import function_handle
-from tracing.mre import map_single_trace
-from tracing.mre import file_handle
+from six.moves import range  # pylint: disable=redefined-builtin
 from tracing.mre import failure
+from tracing.mre import file_handle
+from tracing.mre import function_handle
 from tracing.mre import job as job_module
+from tracing.mre import map_single_trace
 
 
 def _Handle(filename):

@@ -2,13 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import argparse
 import codecs
 import json
-import os
 import logging
+import os
 
-
+from six.moves import map  # pylint: disable=redefined-builtin
 from tracing_build import html2trace
 from tracing_build import trace2html
 
@@ -33,10 +37,11 @@ def Main(argv):
   with codecs.open(trace_path, mode='r', encoding='utf-8') as f:
     SlimTrace(f, slimmed_trace_path)
 
-  print('Original trace %s (%s Mb)' % (
-      trace_path, GetFileSizeInMb(trace_path)))
-  print('Slimmed trace file://%s (%s Mb)' % (
-      slimmed_trace_path, GetFileSizeInMb(slimmed_trace_path)))
+  print(
+      ('Original trace %s (%s Mb)' % (trace_path, GetFileSizeInMb(trace_path))))
+  print(('Slimmed trace file://%s (%s Mb)' %
+         (slimmed_trace_path, GetFileSizeInMb(slimmed_trace_path))))
+
 
 def SlimTraceEventsList(events_list):
   filtered_events = []
@@ -105,7 +110,7 @@ def SlimTrace(trace_file_handle, slimmed_trace_path):
   if traces is None:
     raise Exception('Cannot extrac trace from %s' % trace_file_handle.name)
 
-  slimmed_traces = map(SlimSingleTrace, traces)
+  slimmed_traces = list(map(SlimSingleTrace, traces))
 
   with codecs.open(slimmed_trace_path, mode='w', encoding='utf-8') as f:
     trace2html.WriteHTMLForTraceDataToFile(

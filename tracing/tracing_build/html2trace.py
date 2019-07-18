@@ -2,11 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 import base64
 import gzip
 import io
 import json
 import re
+from six.moves import map  # pylint: disable=redefined-builtin
+from six.moves import range  # pylint: disable=redefined-builtin
 
 
 GZIP_HEADER_BYTES = b'\x1f\x8b'
@@ -77,9 +82,9 @@ def _ExtractTraceDataFromHTMLFile(html_file_handle, unzip_data=True):
     decoded_data_list.append(io.BytesIO(base64.b64decode(encoded_data)))
 
   if unzip_data:
-    return map(_UnzipFileIfNecessary, decoded_data_list)
+    return list(map(_UnzipFileIfNecessary, decoded_data_list))
   else:
-    return map(_ZipFileIfNecessary, decoded_data_list)
+    return list(map(_ZipFileIfNecessary, decoded_data_list))
 
 
 def _UnzipFileIfNecessary(original_file):

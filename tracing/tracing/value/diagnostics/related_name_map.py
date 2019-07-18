@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from six.moves import zip  # pylint: disable=redefined-builtin
 from tracing.value.diagnostics import diagnostic
 
 
@@ -51,10 +55,10 @@ class RelatedNameMap(diagnostic.Diagnostic):
       yield key, name
 
   def Values(self):
-    return self._map.values()
+    return list(self._map.values())
 
   def Serialize(self, serializer):
-    keys = self._map.keys()
+    keys = list(self._map.keys())
     keys.sort()
     names = [serializer.GetOrAllocateId(self.Get(k)) for k in keys]
     keys_id = serializer.GetOrAllocateId([

@@ -2,8 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import unittest
 
+import six
 from tracing.value import gtest_json_converter
 from tracing.value import histogram
 from tracing.value import legacy_unit_info
@@ -156,5 +161,5 @@ class GtestJsonConverterUnittest(unittest.TestCase):
 
   def testLegacyUnitNamesValid(self):
     # Test that all the legacy unit names are recognized by histograms.
-    for legacy_unit in legacy_unit_info.LEGACY_UNIT_INFO.itervalues():
+    for legacy_unit in six.itervalues(legacy_unit_info.LEGACY_UNIT_INFO):
       self.assertTrue(legacy_unit.name in histogram.UNIT_NAMES)

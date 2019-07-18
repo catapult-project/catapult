@@ -2,11 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+import six
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
 
 try:
-  StringTypes = basestring
+  StringTypes = six.string_types # pylint: disable=invalid-name
 except NameError:
   StringTypes = str
 
@@ -43,8 +47,8 @@ class UnmergeableDiagnosticSet(diagnostic.Diagnostic):
 
   @staticmethod
   def Deserialize(data, deserializer):
-    return UnmergeableDiagnosticSet([
-        deserializer.GetDiagnostic(i).values()[0] for i in data])
+    return UnmergeableDiagnosticSet(
+        [list(deserializer.GetDiagnostic(i).values())[0] for i in data])
 
   @staticmethod
   def FromDict(dct):

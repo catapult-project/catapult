@@ -212,6 +212,8 @@ main differences relevant to this script are:
 See crbug.com/708930 for more information about the modern format.
 """
 
+from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
 
 import argparse
@@ -226,15 +228,15 @@ import shutil
 import subprocess
 import sys
 import tarfile
-import zipfile
 import tempfile
-
-import symbols.elf_symbolizer as elf_symbolizer
-
-from tracing.extras.symbolizer import symbolize_trace_atos_regex
-from tracing.extras.symbolizer import symbolize_trace_macho_reader
+import zipfile
 
 import py_utils.cloud_storage as cloud_storage
+import six
+from six.moves import range  # pylint: disable=redefined-builtin
+import symbols.elf_symbolizer as elf_symbolizer
+from tracing.extras.symbolizer import symbolize_trace_atos_regex
+from tracing.extras.symbolizer import symbolize_trace_macho_reader
 
 _UNNAMED_FILE = 'unnamed'
 
@@ -342,7 +344,7 @@ class MemoryMap(NodeWrapper):
     def __cmp__(self, other):
       if isinstance(other, type(self)):
         other_start_address = other._start_address
-      elif isinstance(other, (long, int)):
+      elif isinstance(other, six.integer_types):
         other_start_address = other
       else:
         raise Exception('Cannot compare with %s' % type(other))
@@ -360,15 +362,14 @@ class MemoryMap(NodeWrapper):
   def __init__(self, process_mmaps_node, process):
     regions = []
     for region_node in process_mmaps_node['vm_regions']:
-      file_offset = long(region_node['fo'], 16) if 'fo' in region_node else 0
+      file_offset = int(region_node['fo'], 16) if 'fo' in region_node else 0
       file_path = region_node['mf'].replace(" (deleted)", "")
-      region = self.Region(long(region_node['sa'], 16),
-                           long(region_node['sz'], 16),
-                           file_path,
-                           file_offset)
+      region = self.Region(
+          int(region_node['sa'], 16), int(region_node['sz'], 16), file_path,
+          file_offset)
       # Keep track of code-identifier when present.
       if 'ts' in region_node and 'sz' in region_node:
-        region._code_id = "%08X%X" % (long(region_node['ts'], 16), region.size)
+        region._code_id = '%08X%X' % (int(region_node['ts'], 16), region.size)
       regions.append(region)
 
     regions.sort()
@@ -691,7 +692,7 @@ class StackFrameMap(NodeWrapper):
     def _ParsePC(self, name):
       if not name.startswith(self._PC_TAG):
         return None
-      return long(name[len(self._PC_TAG):], 16)
+      return int(name[len(self._PC_TAG):], 16)
 
     def _ClearModified(self):
       self._modified = False
@@ -934,7 +935,7 @@ class Trace(NodeWrapper):
           version = self._UseHeapDumpVersion(heaps['version'])
           maps = heaps.get('maps')
           if maps:
-            process_ext.mapped_entry_names.update(maps.keys())
+            process_ext.mapped_entry_names.update(list(maps.keys()))
             types = maps.get('types')
             stack_frames = maps.get('nodes')
             strings = maps.get('strings')
@@ -1106,7 +1107,7 @@ def ResolveSymbolizableFiles(processes, trace_from_win):
       relative_pc = frame.pc - region.start_address + region.file_offset
       symfile.frames_by_address[relative_pc].append(frame)
 
-  return symfile_by_path.values()
+  return list(symfile_by_path.values())
 
 
 def FindInSystemPath(binary_name):
@@ -1269,10 +1270,10 @@ class Symbolizer(object):
       print("  from debug file: %s" % module.code_id)
       return
 
-    addresses = symfile.frames_by_address.keys()
+    addresses = list(symfile.frames_by_address.keys())
     addresses.sort()
 
-    symbols_addresses = module.symbols.keys()
+    symbols_addresses = list(module.symbols.keys())
     symbols_addresses.sort()
     symbols_addresses.append(float('inf'))
 
@@ -1491,7 +1492,8 @@ def FetchAndExtractBreakpadSymbols(symbol_base_directory,
     gcs_file = gsc_folder + '/breakpad-info'
 
     symbol_sub_dir = os.path.join(symbol_base_directory,
-                                  'breakpad-info_' + trace.version + '_' + folder)
+                                  'breakpad-info_' + trace.version +
+                                  '_' + folder)
     zip_path = symbol_sub_dir + '/breakpad-info.zip'
 
     # Check whether symbols are already downloaded and extracted.
@@ -1581,7 +1583,7 @@ def FetchAndExtractSymbolsWin(symbol_base_directory, version, is64bit,
           continue
         # Extract archived files.
         source = zip_file.open(member)
-        target = file(os.path.join(destination, filename), "wb")
+        target = open(os.path.join(destination, filename), 'wb')
         with source, target:
           shutil.copyfileobj(source, target)
 

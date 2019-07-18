@@ -3,6 +3,10 @@
 # found in the LICENSE file.
 
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from six.moves import zip  # pylint: disable=redefined-builtin
 from tracing.value.diagnostics import diagnostic
 
 
@@ -38,7 +42,8 @@ class RelatedEventSet(diagnostic.Diagnostic):
     events = RelatedEventSet()
     for event in data:
       event[1] = deserializer.GetObject(event[1])
-      events.Add(dict(zip(['stableId', 'title', 'start', 'duration'], event)))
+      events.Add(
+          dict(list(zip(['stableId', 'title', 'start', 'duration'], event))))
     return events
 
   @staticmethod

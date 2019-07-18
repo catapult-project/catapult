@@ -2,11 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import json
 import math
 import numbers
 import random
 
+import six
+from six.moves import range  # pylint: disable=redefined-builtin
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
 from tracing.value.diagnostics import generic_set
@@ -15,7 +21,7 @@ from tracing.value.diagnostics import unmergeable_diagnostic_set
 
 
 try:
-  StringTypes = basestring
+  StringTypes = six.string_types # pylint: disable=invalid-name
 except NameError:
   StringTypes = str
 
@@ -103,7 +109,7 @@ def UniformlySampleStream(samples, stream_length, new_element, num_samples):
     return
 
   # replace a random element
-  samples[math.floor(random.random() * num_samples)] = new_element
+  samples[int(math.floor(random.random() * num_samples))] = new_element
 
 
 # Merge two sets of samples that were assembled using UniformlySampleStream().

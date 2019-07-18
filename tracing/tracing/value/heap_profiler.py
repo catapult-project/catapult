@@ -2,11 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import codecs
 import collections
 import sys
 import time
 
+import six
 from tracing.value import histogram
 from tracing.value import histogram_set
 from tracing.value.diagnostics import breakdown
@@ -82,7 +87,7 @@ class _HeapProfiler(object):
       types_breakdown = breakdown.Breakdown()
 
     if isinstance(obj, dict):
-      for objkey, objvalue in obj.iteritems():
+      for objkey, objvalue in six.iteritems(obj):
         size += self._Recurse(objkey, related_names, types_breakdown)
         size += self._Recurse(objvalue, related_names, types_breakdown)
     elif isinstance(obj, (tuple, list, set, frozenset, collections.deque)):
@@ -98,7 +103,7 @@ class _HeapProfiler(object):
     properties_breakdown = breakdown.Breakdown()
     if hasattr(obj, '__dict__'):
       size += sys.getsizeof(obj.__dict__)
-      for dkey, dvalue in obj.__dict__.iteritems():
+      for dkey, dvalue in six.iteritems(obj.__dict__):
         size += self._Recurse(dkey, related_names, types_breakdown)
         dsize = self._Recurse(dvalue, related_names, types_breakdown)
         properties_breakdown.Set(dkey, dsize)
