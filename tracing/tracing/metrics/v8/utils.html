@@ -264,22 +264,6 @@ tr.exportTo('tr.metrics.v8.utils', function() {
   }
 
   /**
-   * Returns the set of events that pass the |filterCallback| filter.
-   * @param {Function} filterCallback Takes an event and returns a boolean.
-   */
-  function filterEvents(model, filterCallback) {
-    const threads = jsExecutionThreads(model);
-    const events = [];
-    for (const thread of threads) {
-      for (const event of thread.sliceGroup.childEvents()) {
-        if (!filterCallback(event)) continue;
-        events.push(event);
-      }
-    }
-    return events;
-  }
-
-  /**
    * Given a list of intervals, returns a new list with all overalapping
    * intervals merged into a single interval.
    */
@@ -494,7 +478,6 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     addMutatorUtilization,
     findParent,
     forcedGCEventName,
-    filterEvents,
     groupAndProcessEvents,
     isForcedGarbageCollectionEvent,
     isFullMarkCompactorEvent,

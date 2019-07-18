@@ -33,14 +33,6 @@ tr.exportTo('tr.e.v8', function() {
       return this.time_;
     }
 
-    get isBackground() {
-      return this.name_.includes('Background');
-    }
-
-    get isBlink() {
-      return this.name_ === 'Blink C++';
-    }
-
     addSample(count, time) {
       this.count_ += count;
       this.time_ += time;
