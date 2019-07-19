@@ -445,5 +445,38 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         [ intel ] a/b/c/d [ Failure ]
         '''
         expectations = expectations_parser.TestExpectations()
-        _, errors = expectations.parse_tagged_list(test_expectations, 'test.txt')
+        _, errors = expectations.parse_tagged_list(
+            test_expectations, 'test.txt')
         self.assertFalse(errors)
+
+    def testExpectationPatternIsBroken(self):
+        test_expectations = '# results: [ Failure ]\na/b [ Failure ]'
+        expectations = expectations_parser.TestExpectations()
+        expectations.parse_tagged_list(test_expectations, 'test.txt')
+        broken_expectations = expectations.check_for_broken_expectations(
+            ['a/b/c'])
+        self.assertEqual(broken_expectations[0].test, 'a/b')
+
+    def testExpectationPatternIsNotBroken(self):
+        test_expectations = '# results: [ Failure ]\na/b/d [ Failure ]'
+        expectations = expectations_parser.TestExpectations()
+        expectations.parse_tagged_list(test_expectations, 'test.txt')
+        broken_expectations = expectations.check_for_broken_expectations(
+            ['a/b/c'])
+        self.assertEqual(broken_expectations[0].test, 'a/b/d')
+
+    def testExpectationWithGlobIsBroken(self):
+        test_expectations = '# results: [ Failure ]\na/b/d* [ Failure ]'
+        expectations = expectations_parser.TestExpectations()
+        expectations.parse_tagged_list(test_expectations, 'test.txt')
+        broken_expectations = expectations.check_for_broken_expectations(
+            ['a/b/c/d', 'a/b', 'a/b/c'])
+        self.assertEqual(broken_expectations[0].test, 'a/b/d*')
+
+    def testExpectationWithGlobIsNotBroken(self):
+        test_expectations = '# results: [ Failure ]\na/b* [ Failure ]'
+        expectations = expectations_parser.TestExpectations()
+        expectations.parse_tagged_list(test_expectations, 'test.txt')
+        broken_expectations = expectations.check_for_broken_expectations(
+            ['a/b/c'])
+        self.assertFalse(broken_expectations)

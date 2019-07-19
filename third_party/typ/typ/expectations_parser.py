@@ -406,3 +406,43 @@ class TestExpectations(object):
                     error_msg += ('  line %d conflicts with line %d\n' %
                                   (e1.lineno, e2.lineno))
         return error_msg
+
+    def check_for_broken_expectations(self, test_names):
+        # It returns a list expectations that do not apply to any test names in
+        # the test_names list.
+        #
+        # args:
+        # test_names: list of test names that are used to find test expectations
+        # that do not apply to any of test names in the list.
+        trie = {}
+        for test in test_names:
+            _trie = trie.setdefault(test[0], {})
+            for l in test[1:]:
+                _trie = _trie.setdefault(l, {})
+            _trie.setdefault('$', {})
+
+        broken_expectations = []
+
+        def _get_broken_expectations(patterns_to_exps):
+            exps_dont_apply = []
+            for pattern, exps in patterns_to_exps.items():
+                _trie = trie
+                is_glob = False
+                broken_exp = False
+                for l in pattern:
+                    if l == '*':
+                        is_glob = True
+                        break
+                    if l not in _trie:
+                        exps_dont_apply.extend(exps)
+                        broken_exp = True
+                        break
+                    _trie = _trie[l]
+                if not broken_exp and not is_glob and '$' not in _trie:
+                    exps_dont_apply.extend(exps)
+            return exps_dont_apply
+
+        broken_expectations.extend(_get_broken_expectations(self.glob_exps))
+        broken_expectations.extend(
+            _get_broken_expectations(self.individual_exps))
+        return broken_expectations
