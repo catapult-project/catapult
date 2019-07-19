@@ -18,6 +18,7 @@ from dashboard.common import utils
 
 _ALLOWED_ORIGINS = [
     'chromeperf.appspot.com',
+    'pinpoint-dot-chromeperf.appspot.com',
     'chromiumdash.appspot.com',
     'chromiumdash-staging.googleplex.com',
 ]
@@ -110,7 +111,7 @@ class ApiRequestHandler(webapp2.RequestHandler):
     origin = self.request.headers.get('Origin', '')
     for allowed in _ALLOWED_ORIGINS:
       dev_pattern = re.compile(
-          r'https://[A-Za-z0-9]+-dot-' + re.escape(allowed))
+          r'https://[A-Za-z0-9-]+-dot-' + re.escape(allowed))
       prod_pattern = re.compile(r'https://' + re.escape(allowed))
       if dev_pattern.match(origin) or prod_pattern.match(origin):
         set_cors_headers = True

@@ -124,13 +124,13 @@ class ApiRequestHandlerTest(testing_common.TestCase):
     api_request_handler._ALLOWED_ORIGINS = ['foo.appspot.com']
     response = self.testapp.options(
         '/api/test',
-        headers={'origin': 'https://123jkjasdf-dot-foo.appspot.com'})
+        headers={'origin': 'https://dev-simon-123jkjasdf-dot-foo.appspot.com'})
     self.assertListEqual(
         [('Content-Length', '0'),
          ('Cache-Control', 'no-cache'),
          ('Content-Type', 'application/json; charset=utf-8'),
          ('Access-Control-Allow-Origin',
-          'https://123jkjasdf-dot-foo.appspot.com'),
+          'https://dev-simon-123jkjasdf-dot-foo.appspot.com'),
          ('Access-Control-Allow-Credentials', 'true'),
          ('Access-Control-Allow-Methods', 'GET,OPTIONS,POST'),
          ('Access-Control-Allow-Headers', 'Accept,Authorization,Content-Type'),
