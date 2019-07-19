@@ -19,9 +19,14 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
     utils.InjectJavaScript(self._tab, 'gesture_common.js')
 
     # Make page taller than window so it's scrollable.
+    self._original_height = int(
+        self._tab.EvaluateJavaScript('__GestureCommon_GetScrollableHeight()'))
     self._tab.ExecuteJavaScript(
         'document.body.style.height ='
         '(3 * __GestureCommon_GetWindowHeight() + 1) + "px";')
+    self._new_height = int(
+        self._tab.EvaluateJavaScript('__GestureCommon_GetScrollableHeight()'))
+    self._available_scroll = self._new_height - self._original_height
 
     self.assertEquals(
         self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
@@ -30,12 +35,17 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
     self._window_height = int(
         self._tab.EvaluateJavaScript('__GestureCommon_GetWindowHeight()'))
 
-  @decorators.Disabled('mac')  # crbug.com/934649
-  # https://github.com/catapult-project/catapult/issues/3099
   # Test flaky on chromeos: https://crbug.com/826527.
-  @decorators.Disabled('android', 'chromeos')
+  # Test flaky on mac: https://crbug.com/934649
+  @decorators.Disabled('mac', 'chromeos')
   def testRepeatableScrollActionNoRepeats(self):
     expected_scroll = (self._window_height / 2) - 1
+    self.assertLess(
+        expected_scroll,
+        self._available_scroll,
+        msg='cannot run test because available scroll is too low.'
+        ' Available:%d; Expected:%d' % (self._available_scroll,
+                                        expected_scroll))
 
     i = repeatable_scroll.RepeatableScrollAction(y_scroll_distance_ratio=0.5)
     i.WillRunAction(self._tab)
@@ -50,11 +60,16 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
         msg='scroll_position=%d;expected %d' % (scroll_position,
                                                 expected_scroll))
 
-  # Failing on Android: https://github.com/catapult-project/catapult/issues/3099
   # Flaky on chromeos: https://crbug.com/932104.
-  @decorators.Disabled('android', 'chromeos')
+  @decorators.Disabled('chromeos')
   def testRepeatableScrollActionTwoRepeats(self):
     expected_scroll = ((self._window_height / 2) - 1) * 3
+    self.assertLess(
+        expected_scroll,
+        self._available_scroll,
+        msg='cannot run test because available scroll is too low.'
+        ' Available:%d; Expected:%d' % (self._available_scroll,
+                                        expected_scroll))
 
     i = repeatable_scroll.RepeatableScrollAction(
         y_scroll_distance_ratio=0.5, repeat_count=2, repeat_delay_ms=1)

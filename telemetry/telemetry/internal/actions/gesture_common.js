@@ -41,6 +41,15 @@
     return pageScaleFactor ? pageScaleFactor.apply(chrome.gpuBenchmarking) : 1;
   }
 
+  // Get scrollable document height.
+  function getScrollableHeight() {
+    const body = document.body;
+    const doc = document.documentElement;
+
+    return Math.max(body.scrollHeight, body.offsetHeight,
+        doc.clientHeight, doc.scrollHeight, doc.offsetHeight);
+  }
+
   // Zoom-independent window height. See crbug.com/627123 for more details.
   function getWindowHeight() {
     return getPageScaleFactor() * chrome.gpuBenchmarking.visualViewportHeight();
@@ -89,4 +98,5 @@
   window.__GestureCommon_GetWindowHeight = getWindowHeight;
   window.__GestureCommon_GetWindowWidth = getWindowWidth;
   window.__GestureCommon_GetPageScaleFactor = getPageScaleFactor;
+  window.__GestureCommon_GetScrollableHeight = getScrollableHeight;
 })();

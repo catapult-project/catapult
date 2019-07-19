@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import decorators
 from telemetry.internal.actions import scroll_to_element
 from telemetry.internal.actions import utils
 from telemetry.testing import tab_test_case
@@ -50,8 +49,6 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
     self.Navigate('blank.html')
     utils.InjectJavaScript(self._tab, 'gesture_common.js')
 
-  # https://github.com/catapult-project/catapult/issues/3099
-  @decorators.Disabled('android')
   def testScrollToElement(self):
     self._MakePageVerticallyScrollable()
     self._InsertElement()
@@ -68,8 +65,6 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
     # After we scroll down at least some of the element should be visible.
     self.assertGreater(self._VisibleAreaOfElement(selector='#element'), 0)
 
-  # https://github.com/catapult-project/catapult/issues/3099
-  @decorators.Disabled('android')
   def testScrollContainerToElement(self):
     self._MakePageVerticallyScrollable()
     self._InsertContainer()
