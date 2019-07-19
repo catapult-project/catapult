@@ -16,6 +16,8 @@ automatic_scaling:
   target_cpu_utilization: 0.8
 
 libraries:
+- name: jinja2
+  version: "2.6"
 - name: pycrypto
   version: "2.6"
 - name: webapp2
