@@ -130,15 +130,7 @@ class SharedPageState(story_module.SharedState):
     The default implementation only allows reusing the browser in ChromeOs,
     where bringing up the browser for each story is expensive.
     """
-    return not self.ShouldStopBrowserAfterStoryRun(None)
-
-  def ShouldStopBrowserAfterStoryRun(self, story):
-    """DEPRECATED: Clients should override ShouldReuseBrowserForAllStories.
-
-    TODO(crbug.com/983172): Remove when no longer used by clients.
-    """
-    del story
-    return self.platform.GetOSName() != 'chromeos'
+    return self.platform.GetOSName() == 'chromeos'
 
   @property
   def platform(self):
