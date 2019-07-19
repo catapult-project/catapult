@@ -42,6 +42,7 @@ property 'group' sets to the header item name.
 -->
 
 <link rel="import" href="/components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/components/iron-validatable-behavior/iron-validatable-behavior.html">
 <link rel="import" href="/components/paper-input/paper-input.html">
 <link rel="import" href="/components/paper-item/paper-item.html">
 <link rel="import" href="/components/paper-material/paper-material.html">
@@ -155,6 +156,7 @@ property 'group' sets to the header item name.
                      on-keydown="onInputKeydown"
                      disabled$="{{disabled}}"
                      id="textbox"
+                     required$="[[required]]"
                      value="{{query::input}}">
           <paper-icon-button suffix on-tap="onClearInput_"
             id="clear" icon="clear" alt="clear" title="clear">
@@ -250,6 +252,8 @@ const AutocompleteBoxBehavior = {
       */
     selectedName: {
       type: String,
+      notify: true,
+      readOnly: true,
       computed: 'computeSelectedName(selectedItem)'
     },
   },
@@ -302,6 +306,11 @@ const AutocompleteBoxBehavior = {
     return this.hasSuggestions && this.dropdownOpen;
   },
 
+  clearItem() {
+    this.set('selectedItem', null);
+    this.set('query', '');
+  },
+
   selectItem(item) {
     if (item.head) return;
     this.set('dropdownOpen', false);
@@ -349,7 +358,10 @@ const AutocompleteBoxBehavior = {
 
 Polymer({
   is: 'autocomplete-box',
-  behaviors: [AutocompleteBoxBehavior],
+  behaviors: [
+    AutocompleteBoxBehavior,
+    Polymer.IronValidatableBehavior
+  ],
 
   properties: {
     disabled: {
@@ -358,12 +370,20 @@ Polymer({
       value: false
     },
     placeholder: { notify: true },
+    required: {
+      type: Boolean,
+      value: false
+    },
   },
 
   observers: [
     'updateSelected(selectedItem)',
     'updateSelected(locusItem)',
   ],
+
+  _getValidity(values) {
+    return this.$.textbox.validate(values);
+  },
 
   shouldIgnoreSelectionEvents() {
     if (this.muffleSelection === undefined) this.muffleSelection = false;

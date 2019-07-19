@@ -88,6 +88,17 @@ tr.b.unittest.testSuite(function() {
     ]);
   }, testOptions);
 
+  test('simple_clear_item', function() {
+    const fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    assert.deepEqual(fixture.get('selectedItem'), null);
+    fixture.selectItem(this.foo);
+    assert.deepEqual(fixture.get('selectedItem'), this.foo);
+    fixture.clearItem();
+    assert.deepEqual(fixture.get('selectedItem'), null);
+    assert.deepEqual(fixture.get('query'), '');
+  }, testOptions);
+
   test('simple_selecting_an_item', function() {
     const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
@@ -251,6 +262,21 @@ tr.b.unittest.testSuite(function() {
       {'name': 'galaxy s6', 'group': 'Android'},
     ];
     this.addHTMLOutput(box);
+  });
+
+  test('required_passed_through', function() {
+    const box = document.createElement('autocomplete-box');
+    box.required = true;
+    this.addHTMLOutput(box);
+
+    assert.strictEqual(box.$.textbox.required, true);
+  });
+
+  test('validatable', function() {
+    const box = document.createElement('autocomplete-box');
+    this.addHTMLOutput(box);
+
+    assert.isDefined(box.validate);
   });
 });
 </script>
