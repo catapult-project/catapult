@@ -9,6 +9,7 @@
 # that might not be possible.
 
 import fnmatch
+import itertools
 import re
 
 from collections import OrderedDict
@@ -24,10 +25,12 @@ _EXPECTATION_MAP = {
     'skip': ResultType.Skip
 }
 
+
 def _group_to_string(group):
     msg = ', '.join(group)
     k = msg.rfind(', ')
     return msg[:k] + ' and ' + msg[k+2:] if k != -1 else msg
+
 
 class ParseError(Exception):
 
@@ -104,6 +107,7 @@ class TaggedTestListParser(object):
       crbug.com/123 [ Win ] benchmark/story [ Skip ]
       ...
     """
+    CONFLICTS_ALLOWED = '# conflicts_allowed: '
     RESULT_TOKEN = '# results: ['
     TAG_TOKEN = '# tags: ['
     # The bug field (optional), including optional subproject.
@@ -116,6 +120,7 @@ class TaggedTestListParser(object):
 
     def __init__(self, raw_data):
         self.tag_sets = []
+        self.conflicts_allowed = False
         self.expectations = []
         self._allowed_results = set()
         self._tag_to_tag_set = {}
@@ -179,6 +184,15 @@ class TaggedTestListParser(object):
                         {tg.lower(): id(tag_set) for tg in tag_set})
                 else:
                     self._allowed_results.update({t.lower() for t in tag_set})
+            elif line.startswith(self.CONFLICTS_ALLOWED):
+                bool_value = line[len(self.CONFLICTS_ALLOWED):].lower()
+                if bool_value not in ('true', 'false'):
+                    raise ParseError(
+                        lineno,
+                        ("Unrecognized value '%s' given for conflicts_allowed "
+                         "descriptor" %
+                         bool_value))
+                self.conflicts_allowed = bool_value == 'true'
             elif line.startswith('#') or not line:
                 # Ignore, it is just a comment or empty.
                 lineno += 1
@@ -269,12 +283,19 @@ class TestExpectations(object):
     def set_tags(self, tags):
         self.tags = [tag.lower() for tag in tags]
 
-    def parse_tagged_list(self, raw_data):
+    def parse_tagged_list(self, raw_data, file_name=''):
+        # TODO(rmhasan): If we decide to support multiple test expectations in
+        # one TestExpectations instance, then we should make the file_name field
+        # mandatory.
+        assert not self.individual_exps and not self.glob_exps, (
+            'Currently there is no support for multiple test expectations'
+            ' files in a TestExpectations instance')
+        self.file_name = file_name
         try:
             parser = TaggedTestListParser(raw_data)
         except ParseError as e:
             return 1, e.message
-
+        self.tag_sets = parser.tag_sets
         # TODO(crbug.com/83560) - Add support for multiple policies
         # for supporting multiple matching lines, e.g., allow/union,
         # reject, etc. Right now, you effectively just get a union.
@@ -292,7 +313,10 @@ class TestExpectations(object):
         for exp in glob_exps:
             self.glob_exps.setdefault(exp.test, []).append(exp)
 
-        return 0, None
+        errors = ''
+        if not parser.conflicts_allowed:
+            errors = self.check_test_expectations_patterns_for_conflicts()
+        return 0, errors
 
     def expectations_for(self, test):
         # Returns a tuple of (expectations, should_retry_on_failure)
@@ -346,3 +370,39 @@ class TestExpectations(object):
 
         # Nothing matched, so by default, the test is expected to pass.
         return {ResultType.Pass}, False, set()
+
+    def tag_sets_conflict(self, s1, s2):
+        # Tag sets s1 and s2 have no conflict when there exists a tag in s1
+        # and tag in s2 that are from the same tag declaration set and are not
+        # equal to each other.
+        # TODO(rmhasan): Add a way to catch conflicts between tag sets that have
+        # a generic tag like 'win' and a more specific tag like 'win7'.
+        for tag_set in self.tag_sets:
+            for t1, t2 in itertools.product(s1, s2):
+                if t1 in tag_set and t2 in tag_set and t1 != t2:
+                    return False
+        return True
+
+    def check_test_expectations_patterns_for_conflicts(self):
+        # This function makes sure that any test expectations that have the same
+        # pattern do not conflict with each other. Test expectations conflict
+        # if their tag sets do not have conflicting tags. Tags conflict when
+        # they belong to the same tag declaration set. For example an
+        # expectations file may have a tag declaration set for operating systems
+        # which might look like [ win linux]. A test expectation that has the
+        # linux tag will not conflict with an expectation that has the win tag.
+        error_msg = ''
+        for pattern, exps in self.individual_exps.items():
+            conflicts_exist = False
+            for e1, e2 in itertools.combinations(exps, 2):
+                if self.tag_sets_conflict(e1.tags, e2.tags):
+                    if not conflicts_exist:
+                        error_msg += (
+                            '\nFound conflicts for test %s%s:\n' %
+                            (pattern,
+                             (' in %s' %
+                              self.file_name if self.file_name else '')))
+                    conflicts_exist = True
+                    error_msg += ('  line %d conflicts with line %d\n' %
+                                  (e1.lineno, e2.lineno))
+        return error_msg
