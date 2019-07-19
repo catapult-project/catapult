@@ -12,10 +12,3 @@ from telemetry import command_line
 # DEPRECATED: Clients should directly import from telemetry.command_line
 # TODO(crbug.com/981349): remove when no longer used.
 main = command_line.main
-
-
-def GetBenchmarkByName(name, environment):
-  """DEPRECATED: Clients should directly call the method on the environment.
-
-  TODO(crbug.com/981349): remove when no longer used."""
-  return environment.GetBenchmarkByName(name)
