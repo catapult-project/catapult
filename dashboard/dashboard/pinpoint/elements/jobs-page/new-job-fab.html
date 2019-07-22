@@ -15,13 +15,20 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-input/paper-input.html">
 <link rel="import" href="/components/paper-item/paper-item.html">
 <link rel="import" href="/components/paper-listbox/paper-listbox.html">
+<link rel="import" href="/components/paper-progress/paper-progress.html">
 <link rel="import" href="/components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="/dashboard/elements/autocomplete-box.html">
 
 <link rel="import" href="/elements/base-style.html">
 
 <dom-module id="new-job-fab">
   <template>
     <style include="base-style">
+      paper-progress {
+        display: block;
+        width: 100%;
+      }
+
       paper-dropdown-menu {
         width: 100%;
       }
@@ -48,7 +55,11 @@ found in the LICENSE file.
         <template is="dom-if" if="[[error]]">
           <p class="error">[[error]]
         </template>
-        <iron-ajax method="post" headers="[[authHeaders]]" auto url="/api/config" last-response="{{config}}"></iron-ajax>
+        <iron-ajax method="post" headers="[[authHeaders]]" auto url="/api/config" loading="{{configLoading}}" last-response="{{config}}"></iron-ajax>
+        <iron-ajax method="post" headers="[[authHeaders]]" auto url="https://chromeperf.appspot.com/api/test_suites" loading="{{suitesLoading}}" last-response="{{testSuites}}"></iron-ajax>
+        <template is="dom-if" if="{{validBenchmark(benchmark)}}">
+          <iron-ajax method="post" headers="[[authHeaders]]" auto url="https://chromeperf.appspot.com/api/describe" params="{{describeParams(benchmark)}}" loading="{{benchmarkConfigLoading}}" last-response="{{benchmarkConfig}}"></iron-ajax>
+        </template>
         <iron-form id="try_form" headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
             <input type="hidden" name="start_git_hash" value="HEAD">
@@ -56,17 +67,43 @@ found in the LICENSE file.
             <input type="hidden" name="target" value="[[telemetryIsolate(configuration, benchmark)]]">
             <paper-input name="bug_id" label="Bug ID"></paper-input>
             <paper-input name="patch" label="Gerrit URL" required></paper-input>
-            <paper-dropdown-menu name="configuration" label="Bot" horizontal-align="left" selected-item-label="{{configuration}}" required>
-              <!-- TODO: remove "class" after Polymer 2.0 migration -->
-              <paper-listbox class="dropdown-content" slot="dropdown-content">
-                <template is="dom-repeat" items="[[config.configurations]]">
-                  <paper-item>[[item]]</paper-item>
-                </template>
-              </paper-listbox>
-            </paper-dropdown-menu>
-            <paper-input name="benchmark" label="Benchmark" value="{{benchmark::input}}" required></paper-input>
-            <paper-input name="story" label="Story (optional)"></paper-input>
-            <paper-input name="story_tags" label="Story Tags (optional, comma-separated)"></paper-input>
+
+            <autocomplete-box id="botDropdown"
+                              items="{{arrayToAutocompleteList(config.configurations)}}"
+                              disabled="[[configLoading]]"
+                              placeholder="Bot"
+                              selected-name="{{configuration}}"
+                              required></autocomplete-box>
+            <template is="dom-if" if="[[configLoading]]">
+              <paper-progress indeterminate></paper-progress>
+            </template>
+
+            <autocomplete-box id="benchmarkDropdown"
+                              items="{{arrayToAutocompleteList(testSuites)}}"
+                              disabled="[[suitesLoading]]"
+                              placeholder="Benchmark"
+                              selected-name="{{benchmark}}"
+                              required></autocomplete-box>
+            <template is="dom-if" if="[[suitesLoading]]">
+              <paper-progress indeterminate></paper-progress>
+            </template>
+
+            <autocomplete-box id="storyCasesDropdown"
+                              items="{{storyCases(benchmarkConfig)}}"
+                              disabled="{{!validCases(benchmark, benchmarkConfig)}}"
+                              placeholder="Story (optional)"></autocomplete-box>
+            <template is="dom-if" if="[[benchmarkConfigLoading]]">
+              <paper-progress indeterminate></paper-progress>
+            </template>
+
+            <autocomplete-box id="storyTagsDropdown"
+                              items="{{storyTags(benchmarkConfig)}}"
+                              disabled="{{!validTags(benchmark, benchmarkConfig)}}"
+                              placeholder="Story Tags (optional, comma-separated)"></autocomplete-box>
+            <template is="dom-if" if="[[benchmarkConfigLoading]]">
+              <paper-progress indeterminate></paper-progress>
+            </template>
+
             <paper-input name="extra_test_args" label="Extra Test Arguments (optional)"></paper-input>
           </form>
         </iron-form>
@@ -90,9 +127,26 @@ found in the LICENSE file.
 
       properties: {
         benchmark: String,
+        benchmarkConfig: Object,
+        benchmarkConfigLoading: {
+          type: Boolean,
+          value: false
+        },
         configuration: String,
+        configLoading: {
+          type: Boolean,
+          value: false
+        },
         error: Object,
+        suitesLoading: {
+          type: Boolean,
+          value: false
+        }
       },
+
+      observers: [
+        'benchmarkChanged(benchmark)',
+      ],
 
       openDialog() {
         this.$.try_dialog.open();
@@ -109,6 +163,64 @@ found in the LICENSE file.
       handleResponse(event) {
         this.set('route.path', '/job/' + event.detail.response.jobId);
         this.$.try_dialog.close();
+      },
+
+      benchmarkChanged(benchmark) {
+        this.benchmarkConfig = null;
+        this.$.storyCasesDropdown.clearItem();
+        this.$.storyTagsDropdown.clearItem();
+      },
+
+      describeParams(benchmark) {
+        return {test_suite: benchmark};
+      },
+
+      validBenchmark(benchmark) {
+        if (!benchmark) {
+          return false;
+        }
+        return benchmark != '';
+      },
+
+      arrayToAutocompleteList(arr) {
+        if (!arr) {
+          return [];
+        }
+
+        const vals = [];
+        for (const cur of arr) {
+          vals.push({name: cur});
+        }
+        return vals;
+      },
+
+      storyCases(benchmarkConfig) {
+        if (!benchmarkConfig) {
+          return [];
+        }
+
+        return this.arrayToAutocompleteList(benchmarkConfig.cases);
+      },
+
+      validCases(benchmark, benchmarkConfig) {
+        return (
+          this.validBenchmark(benchmark) &&
+          this.storyCases(benchmarkConfig).length > 0);
+      },
+
+      storyTags(benchmarkConfig) {
+        if (!benchmarkConfig) {
+          return [];
+        }
+
+        return this.arrayToAutocompleteList(
+            Object.keys(benchmarkConfig.caseTags));
+      },
+
+      validTags(benchmark, benchmarkConfig) {
+        return (
+          this.validBenchmark(benchmark) &&
+          this.storyTags(benchmarkConfig).length > 0);
       },
 
       telemetryIsolate(configuration, benchmark) {
