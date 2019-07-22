@@ -109,6 +109,8 @@ class Job(ndb.Model):
   failed = ndb.ComputedProperty(lambda self: bool(self.exception_details_dict))
   running = ndb.ComputedProperty(
       lambda self: self.started and self.task and len(self.task) > 0)
+  cancelled = ndb.BooleanProperty(default=False)
+  cancel_reason = ndb.TextProperty()
 
   # The name of the Task Queue task this job is running on. If it's present, the
   # job is running. The task is also None for Task Queue retries.
@@ -189,7 +191,7 @@ class Job(ndb.Model):
     job = cls(state=state, arguments=arguments or {}, bug_id=bug_id,
               comparison_mode=comparison_mode, gerrit_server=gerrit_server,
               gerrit_change_id=gerrit_change_id,
-              name=name, tags=tags, user=user, started=False)
+              name=name, tags=tags, user=user, started=False, cancelled=False)
 
     for c in changes:
       job.AddChange(c)
@@ -205,6 +207,9 @@ class Job(ndb.Model):
   def status(self):
     if self.failed:
       return 'Failed'
+
+    if self.cancelled:
+      return 'Cancelled'
 
     if self.completed:
       return 'Completed'
@@ -473,6 +478,19 @@ class Job(ndb.Model):
     if OPTION_TAGS in options:
       d['tags'] = {'tags': self.tags}
     return d
+
+  def Cancel(self, user, reason):
+    # We cannot cancel an already cancelled job.
+    if self.cancelled:
+      logging.warning(
+          'Attempted to cancel a cancelled job "%s"; user = %s, reason = %s',
+          self.job_id, user, reason)
+      return
+
+    scheduler.Cancel(self)
+    self.cancelled = True
+    self.cancel_reason = '{}: {}'.format(user, reason)
+    self.put()
 
 
 def _GetBugStatus(issue_tracker, bug_id):

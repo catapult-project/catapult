@@ -98,6 +98,8 @@ class ApiRequestHandler(webapp2.RequestHandler):
       self.WriteErrorMessage(e.message, 404)
     except (BadRequestError, KeyError, TypeError, ValueError) as e:
       self.WriteErrorMessage(e.message, 400)
+    except ForbiddenError as e:
+      self.WriteErrorMessage(e.message, 403)
 
   def options(self, *_):  # pylint: disable=invalid-name
     self._SetCorsHeadersIfAppropriate()

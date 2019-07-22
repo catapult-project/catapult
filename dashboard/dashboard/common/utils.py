@@ -423,16 +423,44 @@ def IsInternalUser():
   return is_internal_user
 
 
+def IsAdministrator():
+  """Checks whether the user is an administrator of the Dashboard."""
+  if IsDevAppserver():
+    return True
+  email = GetEmail()
+  if not email:
+    return False
+  cached = GetCachedIsAdministrator(email)
+  if cached is not None:
+    return cached
+  is_administrator = IsGroupMember(
+      identity=email, group='project-chromeperf-admins')
+  SetCachedIsAdministrator(email, is_administrator)
+  return is_administrator
+
+
 def GetCachedIsInternalUser(email):
   return memcache.get(_IsInternalUserCacheKey(email))
 
 
 def SetCachedIsInternalUser(email, value):
-  memcache.add(_IsInternalUserCacheKey(email), value, time=60*60*24)
+  memcache.add(_IsInternalUserCacheKey(email), value, time=60 * 60 * 24)
+
+
+def GetCachedIsAdministrator(email):
+  return memcache.get(_IsAdministratorUserCacheKey(email))
+
+
+def SetCachedIsAdministrator(email, value):
+  memcache.add(_IsAdministratorUserCacheKey(email), value, time=60 * 60 * 24)
 
 
 def _IsInternalUserCacheKey(email):
-  return 'is_internal_user_%s' % email
+  return 'is_internal_user_{}'.format(email)
+
+
+def _IsAdministratorUserCacheKey(email):
+  return 'is_administrator_{}'.format(email)
 
 
 def IsGroupMember(identity, group):
