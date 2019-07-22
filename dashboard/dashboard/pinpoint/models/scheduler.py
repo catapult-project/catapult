@@ -210,7 +210,11 @@ def QueueStats(configuration):
       'queue_time_samples': [
           (s.picked_timestamp - s.enqueue_timestamp).total_seconds() /
           SECS_PER_HOUR for s in queue.samples
-      ]
+      ],
+      'job_id_with_status': [{
+          'job_id': j.job_id,
+          'status': j.status
+      } for j in queue.jobs],
   })
   return result
 

@@ -11,6 +11,16 @@ found in the LICENSE file.
 <dom-module id="queue-stats-page">
     <template>
         <style include="base-style">
+          td {
+            text-align: center;
+          }
+
+          svg {
+            fill: var(--paper-indigo-500);
+            height: 56px;
+            overflow: visible;
+            width: 505px;
+          }
         </style>
         <app-route route="{{route}}" pattern="/:configuration" data="{{routeData}}"></app-route>
         <h1>Queue Stats for [[routeData.configuration]]</h1>
@@ -34,6 +44,15 @@ found in the LICENSE file.
                 elements from the queue have been waiting to get scheduled. We
                 store the last 7 days worth of time measurements.</p>
             <svg id="queueTimeDistribution"></svg>
+            <h2>Queue Contents</h2>
+            <ul>
+              <template is="dom-repeat"
+                items="{{stats.job_id_with_status}}" as="job">
+                <li>
+                  <a href="/job/{{job.job_id}}">{{job.job_id}}</a> ({{job.status}})
+                </li>
+              </template>
+            </ul>
         </loading-wrapper>
     </template>
     <script>
@@ -59,12 +78,13 @@ found in the LICENSE file.
           jobs(stats, key) {
             return ((key in stats) ? stats[key] : 0);
           },
-
         });
 
         function drawHistogram(svg, values) {
           // The values we get are in hours, computed on the service side.
           // Here we create a histogram showing the distribution.
+          svg.selectAll('*').remove();
+
           const x = d3.scaleLinear().domain([0, 50]).rangeRound([0, 500]);
           svg.append('g')
               .attr('transform', 'translate(0, 40)')
