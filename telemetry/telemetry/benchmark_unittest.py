@@ -220,36 +220,6 @@ class BenchmarkTest(unittest.TestCase):
     self.assertEqual(list(foo_bug_components_diagnostic), [])
     self.assertEqual(list(bar_bug_components_diagnostic), ['xyzzyx'])
 
-  def testGetTBMOptionsSupportsLegacyName(self):
-    class TbmBenchmark(benchmark.Benchmark):
-      def CreateTimelineBasedMeasurementOptions(self):
-        return 'Legacy'
-
-    options = TbmBenchmark(None)._GetTimelineBasedMeasurementOptions(None)
-    self.assertEqual(options, 'Legacy')
-
-  def testGetTBMOptionsSupportsNewName(self):
-    class TbmBenchmark(benchmark.Benchmark):
-      def CreateCoreTimelineBasedMeasurementOptions(self):
-        return 'New'
-
-    options = TbmBenchmark(None)._GetTimelineBasedMeasurementOptions(None)
-    self.assertEqual(options, 'New')
-
-  def testGetTBMOptionsBothAsserts(self):
-    # TODO(sullivan): remove this test after fully removing
-    # CreateCoreTimelineBasedMeasurementOptions.
-    class TbmBenchmark(benchmark.Benchmark):
-      def CreateTimelineBasedMeasurementOptions(self):
-        return 'Legacy'
-      def CreateCoreTimelineBasedMeasurementOptions(self):
-        return 'New'
-
-
-    with self.assertRaisesRegexp(
-        AssertionError, 'Benchmarks should override'):
-      TbmBenchmark(None)._GetTimelineBasedMeasurementOptions(None)
-
   def testChromeTraceOptionsUpdateFilterString(self):
     class TbmBenchmark(benchmark.Benchmark):
       def CreateCoreTimelineBasedMeasurementOptions(self):

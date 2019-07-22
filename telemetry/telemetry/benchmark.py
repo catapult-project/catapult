@@ -5,7 +5,6 @@
 import optparse
 import sys
 
-from py_utils import class_util
 from py_utils import expectations_parser
 from telemetry import decorators
 from telemetry.internal import story_runner
@@ -176,12 +175,6 @@ class Benchmark(command_line.Command):
             decorators.GetDocumentationLink(self)]
     return generic_set.GenericSet([pair])
 
-  @decorators.Deprecated(
-      2017, 7, 29, 'Use CreateCoreTimelineBasedMeasurementOptions instead.')
-  def CreateTimelineBasedMeasurementOptions(self):
-    """See CreateCoreTimelineBasedMeasurementOptions."""
-    return self.CreateCoreTimelineBasedMeasurementOptions()
-
   def CreateCoreTimelineBasedMeasurementOptions(self):
     """Return the base TimelineBasedMeasurementOptions for this Benchmark.
 
@@ -203,27 +196,7 @@ class Benchmark(command_line.Command):
     configured options from --extra-chrome-categories and
     --extra-atrace-categories.
     """
-    # TODO(sullivan): the benchmark options should all be configured in
-    # CreateCoreTimelineBasedMeasurementOptions. Remove references to
-    # CreateCoreTimelineBasedMeasurementOptions when it is fully deprecated.
-    # In the short term, if the benchmark overrides
-    # CreateCoreTimelineBasedMeasurementOptions use the overridden version,
-    # otherwise call CreateCoreTimelineBasedMeasurementOptions.
-    # https://github.com/catapult-project/catapult/issues/3450
-    tbm_options = None
-    assert not (
-        class_util.IsMethodOverridden(Benchmark, self.__class__,
-                                      'CreateTimelineBasedMeasurementOptions')
-        and class_util.IsMethodOverridden(
-            Benchmark, self.__class__,
-            'CreateCoreTimelineBasedMeasurementOptions')
-    ), ('Benchmarks should override CreateCoreTimelineBasedMeasurementOptions '
-        'and NOT also CreateTimelineBasedMeasurementOptions.')
-    if class_util.IsMethodOverridden(
-        Benchmark, self.__class__, 'CreateCoreTimelineBasedMeasurementOptions'):
-      tbm_options = self.CreateCoreTimelineBasedMeasurementOptions()
-    else:
-      tbm_options = self.CreateTimelineBasedMeasurementOptions()
+    tbm_options = self.CreateCoreTimelineBasedMeasurementOptions()
     if options and options.extra_chrome_categories:
       # If Chrome tracing categories for this benchmark are not already
       # enabled, there is probably a good reason why. Don't change whether
