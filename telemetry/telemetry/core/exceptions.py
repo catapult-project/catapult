@@ -71,7 +71,7 @@ class AppCrashException(Error):
       try:
         self._is_valid_dump, trace_output = app.GetStackTrace()
         self._stack_trace = trace_output.splitlines()
-        self._minidump_path = app.GetMostRecentMinidumpPath()
+        self._minidump_path = app.GetRecentMinidumpPathWithTimeout()
       except Exception:  # pylint: disable=broad-except
         logging.exception('Problem when trying to gather stack trace:')
       try:

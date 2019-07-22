@@ -342,6 +342,10 @@ class FakeApp(object):
   def GetMostRecentMinidumpPath(self):
     return self.recent_minidump_path
 
+  def GetRecentMinidumpPathWithTimeout(self, timeout_s=15, oldest_ts=None):
+    del timeout_s, oldest_ts
+    return self.recent_minidump_path
+
 # Internal classes. Note that end users may still need to both call
 # and mock out methods of these classes, but they should not be
 # subclassed.

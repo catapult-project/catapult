@@ -190,6 +190,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def GetMostRecentMinidumpPath(self):
     return None
 
+  def GetRecentMinidumpPathWithTimeout(self, timeout_s, oldest_ts):
+    del timeout_s, oldest_ts
+    return None
+
   def GetAllMinidumpPaths(self):
     return None
 

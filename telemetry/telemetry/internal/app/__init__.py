@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import time
+
 
 class App(object):
   """ A running application instance that can be controlled in a limited way.
@@ -42,3 +44,25 @@ class App(object):
 
   def GetMostRecentMinidumpPath(self):
     return self._app_backend.GetMostRecentMinidumpPath()
+
+  def GetRecentMinidumpPathWithTimeout(self, timeout_s=15, oldest_ts=None):
+    """Get a path to a recent minidump, blocking until one is available.
+
+    Similar to GetMostRecentMinidumpPath, but does not assume that any pending
+    dumps have been written to disk yet. Instead, waits until a suitably fresh
+    minidump is found or the timeout is reached.
+
+    Args:
+      timeout_s: The timeout in seconds.
+      oldest_ts: The oldest allowable timestamp (in seconds since epoch) that a
+          minidump was created at for it to be considered fresh enough to
+          return. Defaults to a minute from the current time if not set.
+
+    Return:
+      None if the timeout is hit or a str containing the path to the found
+      minidump if a suitable one is found.
+    """
+    if oldest_ts is None:
+      oldest_ts = time.time() - 60
+    return self._app_backend.GetRecentMinidumpPathWithTimeout(
+        timeout_s, oldest_ts)
