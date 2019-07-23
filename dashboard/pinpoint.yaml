@@ -57,6 +57,11 @@ handlers:
   upload: dashboard/elements/.*\.html$
   secure: always
 
+- url: /dashboard/static/
+  static_dir: dashboard/static/
+  secure: always
+  application_readable: true
+
 - url: /static
   static_dir: dashboard/pinpoint/static
   secure: always
