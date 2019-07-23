@@ -146,5 +146,41 @@ class FifoSchedulerTest(test.TestCase):
   def testJobStuckInRunning(self):
     self.skipTest('Not implemented yet.')
 
-  def testJobCancellation(self):
-    self.skipTest('Not implemented yet.')
+  def testJobCancellationFailsOnRunningJob(self):
+    j = job.Job.New((), (),
+                    arguments={'configuration': 'mock'},
+                    comparison_mode='performance')
+    scheduler.Schedule(j)
+    j.Start = mock.MagicMock()  # pylint: disable=invalid-name
+
+    response = self.testapp.get('/cron/fifo-scheduler')
+    self.assertEqual(response.status_code, 200)
+    self.ExecuteDeferredTasks('default')
+
+    self.assertTrue(j.Start.called)
+
+    # Ensure that the job is still running.
+    job_id, queue_status = scheduler.PickJob('mock')
+    self.assertEqual(job_id, j.job_id)
+    self.assertEqual(queue_status, 'Running')
+
+    # We cannot cancel a running job.
+    self.assertFalse(scheduler.Cancel(j))
+
+    # Ensure that the job is still running.
+    job_id, queue_status = scheduler.PickJob('mock')
+    self.assertEqual(job_id, j.job_id)
+    self.assertEqual(queue_status, 'Running')
+
+  def testJobCancellationSucceedsOnQueuedJob(self):
+    j = job.Job.New((), (),
+                    arguments={'configuration': 'mock'},
+                    comparison_mode='performance')
+    scheduler.Schedule(j)
+    j.Start = mock.MagicMock()  # pylint: disable=invalid-name
+    self.assertTrue(scheduler.Cancel(j))
+
+    response = self.testapp.get('/cron/fifo-scheduler')
+    self.assertEqual(response.status_code, 200)
+    self.ExecuteDeferredTasks('default')
+    self.assertFalse(j.Start.called)

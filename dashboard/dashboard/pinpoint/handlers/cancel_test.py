@@ -103,7 +103,7 @@ class CancelJobTest(test.TestCase):
             'job_id': job.job_id,
             'reason': 'cancelling again!'
         },
-        status=200)
+        status=400)
     job = job_module.JobFromId(job.job_id)
     self.assertTrue(job.cancelled)
     self.assertIn('lovely.user@example.com: testing!', job.cancel_reason)
@@ -124,3 +124,29 @@ class CancelJobTest(test.TestCase):
             'reason': 'testing!'
         },
         status=403)
+
+  @mock.patch.object(cancel.utils, 'GetEmail',
+                     mock.MagicMock(return_value='lovely.user@example.com'))
+  @mock.patch.object(cancel.utils, 'IsAdministrator',
+                     mock.MagicMock(return_value=False))
+  @mock.patch.object(cancel.utils, 'IsTryjobUser',
+                     mock.MagicMock(return_value=True))
+  def testCancelAlreadyRunningJob(self):
+    job = job_module.Job.New((), (),
+                             arguments={'configuration': 'mock'},
+                             user='lovely.user@example.com')
+    scheduler.Schedule(job)
+    _, status = scheduler.PickJob(job.configuration)
+    self.assertEqual(status, 'Queued')
+    job.task = '123'
+    job.started = True
+    job.put()
+    self.assertTrue(job.running)
+    self.addCleanup(scheduler.Cancel, job)
+    response = self.Post(
+        '/api/job/cancel', {
+            'job_id': job.job_id,
+            'reason': 'testing!'
+        },
+        status=400)
+    self.assertIn('already running', response.body)

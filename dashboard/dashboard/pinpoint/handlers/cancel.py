@@ -1,4 +1,4 @@
-# Copyright 2016 The Chromium Authors. All rights reserved.
+# Copyright 2019 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from dashboard.api import api_request_handler
 from dashboard.common import utils
 from dashboard.pinpoint.models import job as job_module
+from dashboard.pinpoint.models import errors
 
 
 class Cancel(api_request_handler.ApiRequestHandler):
@@ -39,5 +40,9 @@ class Cancel(api_request_handler.ApiRequestHandler):
       raise api_request_handler.ForbiddenError()
 
     # Truncate the reason down to 255 caracters including ellipses.
-    job.Cancel(email, reason[:252] + '...' if len(reason) > 255 else reason)
-    return {'job_id': job.job_id, 'state': 'Cancelled'}
+    try:
+      job.Cancel(email, reason[:252] + '...' if len(reason) > 255 else reason)
+      return {'job_id': job.job_id, 'state': 'Cancelled'}
+    except errors.CancelError as e:
+      self.response.set_status(400)
+      return {'job_id': job.job_id, 'message': e.message}

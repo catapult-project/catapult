@@ -107,8 +107,8 @@ class Job(ndb.Model):
   started = ndb.BooleanProperty(default=True)
   completed = ndb.ComputedProperty(lambda self: self.started and not self.task)
   failed = ndb.ComputedProperty(lambda self: bool(self.exception_details_dict))
-  running = ndb.ComputedProperty(
-      lambda self: self.started and self.task and len(self.task) > 0)
+  running = ndb.ComputedProperty(lambda self: self.started and not self.
+                                 cancelled and self.task and len(self.task) > 0)
   cancelled = ndb.BooleanProperty(default=False)
   cancel_reason = ndb.TextProperty()
 
@@ -480,14 +480,24 @@ class Job(ndb.Model):
     return d
 
   def Cancel(self, user, reason):
+    # TODO(dberris): Support cancelling running jobs in the future.
+    # We can only cancel queued jobs for now.
+    if self.running:
+      logging.warning(
+          'Attempted to cancel a running job "%s"; user = %s, reason = %s',
+          self.job_id, user, reason)
+      raise errors.CancelError('Job already running.')
+
     # We cannot cancel an already cancelled job.
     if self.cancelled:
       logging.warning(
           'Attempted to cancel a cancelled job "%s"; user = %s, reason = %s',
           self.job_id, user, reason)
-      return
+      raise errors.CancelError('Job already cancelled.')
 
-    scheduler.Cancel(self)
+    if not scheduler.Cancel(self):
+      raise errors.CancelError('Scheduler failed to cancel job.')
+
     self.cancelled = True
     self.cancel_reason = '{}: {}'.format(user, reason)
     self.put()

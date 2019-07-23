@@ -25,6 +25,7 @@ class UtilsTest(testing_common.TestCase):
     super(UtilsTest, self).setUp()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
+    testing_common.SetIsAdministrator('admin@chromium.org', True)
 
   def _AssertMatches(self, test_path, pattern):
     """Asserts that a test path matches a pattern with MatchesPattern."""
@@ -413,6 +414,16 @@ class UtilsTest(testing_common.TestCase):
             'v8-ci-autoroll-builder@'
             'chops-service-accounts.iam.gserviceaccount.com',
             'TBR=sheriff@v8.com'))
+
+  @mock.patch.object(utils, 'GetEmail',
+                     mock.MagicMock(return_value='admin@chromium.org'))
+  def testIsAdministrator(self):
+    self.assertTrue(utils.IsAdministrator())
+
+  @mock.patch.object(utils, 'GetEmail',
+                     mock.MagicMock(return_value='internal@chromium.org'))
+  def testIsNotAdministrator(self):
+    self.assertFalse(utils.IsAdministrator())
 
 
 def _MakeMockFetch(base64_encoded=True, status=200):

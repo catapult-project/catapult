@@ -294,6 +294,11 @@ def SetIsInternalUser(user, is_internal_user):
   utils.SetCachedIsInternalUser(user, is_internal_user)
 
 
+def SetIsAdministrator(user, is_administrator):
+  """Marks the user an an administrator."""
+  utils.SetCachedIsAdministrator(user, is_administrator)
+
+
 def SetSheriffDomains(domains):
   """Sets the domain that users who can access internal data belong to."""
   stored_object.Set(utils.SHERIFF_DOMAINS_KEY, domains)

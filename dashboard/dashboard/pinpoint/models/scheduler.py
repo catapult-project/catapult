@@ -232,7 +232,7 @@ def Cancel(job):
   Raises:
   - ndb.TransactionFailedError on failure to transactionally update the queue.
 
-  Returns None.
+  Returns a boolean indicating whether the job was found and cancelled.
   """
   # Take a job and determine the FIFO Queue it's associated to.
   configuration = job.arguments.get('configuration', '(none)')
@@ -241,13 +241,17 @@ def Cancel(job):
   # TODO(dberris): Figure out whether a missing configuration is even valid.
   queue = ConfigurationQueue.GetOrCreateQueue(configuration)
 
-  # We can only cancel 'Running' and 'Queued' jobs.
+  # TODO(dberris): Support cancellation of running jobs in the future.
+  # We can only cancel 'Queued' jobs.
+  found = False
   for queued_job in queue.jobs:
     if queued_job.job_id == job.job_id:
-      if queued_job.status in {'Running', 'Queued'}:
+      if queued_job.status in {'Queued'}:
         queued_job.status = 'Cancelled'
+        found = True
       break
   queue.put()
+  return found
 
 
 @ndb.transactional

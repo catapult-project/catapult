@@ -42,7 +42,7 @@ class BuildCancelled(InformationalError):
     super(BuildCancelled, self).__init__(
         'The build was cancelled with reason: %s. "\
         "Pinpoint will be unable to run any tests against this "\
-        "revision.' % reason)
+        "revision.'                    % reason)
 
 
 class BuildGerritUrlNotFound(InformationalError):
@@ -58,6 +58,13 @@ class BuildGerritURLInvalid(InformationalError):
         'Invalid url: %s. Pinpoint currently only supports the fully '\
         'redirected patch URL, ie. https://chromium-review.googlesource.com/'\
         'c/chromium/src/+/12345' % reason)
+
+
+class CancelError(InformationalError):
+
+  def __init__(self, reason):
+    super(CancelError,
+          self).__init__('Cancellation request failed: {}'.format(reason))
 
 
 class SwarmingExpired(FatalError):
