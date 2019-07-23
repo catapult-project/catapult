@@ -68,7 +68,7 @@ property 'group' sets to the header item name.
         z-index: var(--layer-menus);
       }
 
-      .dropdown-scroller {
+      paper-menu {
         overflow-y: auto;
         overflow-x: hidden;
         max-height: 300px;
@@ -149,41 +149,38 @@ property 'group' sets to the header item name.
     </style>
 
     <div id="container">
-      <div id="textbox-container" class="layout vertical">
-        <paper-input label="{{placeholder}}"
-                     on-click="onClickInput"
-                     on-focus="onFocusInput"
-                     on-blur="onBlurInput"
-                     on-keydown="onInputKeydown"
-                     disabled$="{{disabled}}"
-                     id="textbox"
-                     required$="[[required]]"
-                     value="{{query::input}}">
-          <paper-icon-button suffix on-tap="onClearInput_"
-            id="clear" icon="clear" alt="clear" title="clear">
-        </paper-input>
-      </div>
+      <paper-input label="{{placeholder}}"
+                   on-click="onClickInput"
+                   on-focus="onFocusInput"
+                   on-blur="onBlurInput"
+                   on-keydown="onInputKeydown"
+                   disabled$="{{disabled}}"
+                   id="textbox"
+                   required$="[[required]]"
+                   value="{{query::input}}">
+        <paper-icon-button suffix on-tap="onClearInput_"
+          id="clear" icon="clear" alt="clear" title="clear">
+        </paper-icon-button>
+      </paper-input>
       <paper-material
           id="dropdown-container"
           hidden$="[[!showDropdown]]">
-        <div class="dropdown-scroller" layered>
-          <paper-menu id="dropdown"
-                      tabindex="-1"
-                      on-mousedown="onDropdownMouseDown"
-                      on-iron-select="onDropdownSelect"
-                      on-iron-items-changed="onItemsChanged">
-            <template is="dom-repeat" items="[[suggestedItems]]">
-                <paper-item
-                    item="[[item]]"
-                    head$="[[item.head]]"
-                    hidden$="[[!showDropdown]]"
-                    class$="layout horizontal [[locusClassIfLocus(locusItem, item)]]">
-                <div class="flex">[[item.name]]</div>
-                <div class="tag">[[item.tag]]</div>
-              </paper-item>
-            </template>
-          </paper-menu>
-        </div>
+        <paper-menu id="dropdown"
+                    tabindex="-1"
+                    on-mousedown="onDropdownMouseDown"
+                    on-iron-select="onDropdownSelect"
+                    on-iron-items-changed="onItemsChanged">
+          <template is="dom-repeat" items="[[suggestedItems]]">
+              <paper-item
+                  item="[[item]]"
+                  head$="[[item.head]]"
+                  hidden$="[[!showDropdown]]"
+                  class$="layout horizontal [[locusClassIfLocus(locusItem, item)]]">
+              <div class="flex">[[item.name]]</div>
+              <div class="tag">[[item.tag]]</div>
+            </paper-item>
+          </template>
+        </paper-menu>
       </paper-material>
     </div>
     <span id="size-check">{{value}}</span>
