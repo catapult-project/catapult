@@ -76,13 +76,6 @@ def AddResultsOptions(parser):
 
 
 def ProcessCommandLineArgs(args):
-  try:
-    os.makedirs(args.output_dir)
-  except OSError:
-    # Do nothing if the output directory already exists. Existing files will
-    # get overwritten.
-    pass
-
   args.output_dir = os.path.expanduser(args.output_dir)
 
 
@@ -117,6 +110,12 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
   Returns:
     A PageTestResults object.
   """
+  assert options.output_dir, 'An output_dir must be provided to create results'
+
+  # Make sure the directory exists.
+  if not os.path.exists(options.output_dir):
+    os.makedirs(options.output_dir)
+
   if not options.output_formats:
     options.output_formats = [_DEFAULT_OUTPUT_FORMAT]
 

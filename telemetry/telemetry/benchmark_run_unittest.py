@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import shutil
+import tempfile
 import unittest
 
 from telemetry import benchmark as benchmark_module
@@ -77,38 +79,38 @@ class FailingPage(FakePage):
 
 
 class BenchmarkRunTest(unittest.TestCase):
-
-  def setupBenchmark(self): # pylint: disable=invalid-name
-    finder_options = fakes.CreateBrowserFinderOptions()
+  def setUp(self):
+    self.options = fakes.CreateBrowserFinderOptions()
     benchmarkclass = FakeBenchmark
-    parser = finder_options.CreateParser()
+    parser = self.options.CreateParser()
     benchmark_module.AddCommandLineArgs(parser)
     benchmarkclass.AddCommandLineArgs(parser)
     options, _ = parser.parse_args([])
     benchmark_module.ProcessCommandLineArgs(parser, options)
     benchmarkclass.ProcessCommandLineArgs(parser, options)
-    benchmark = benchmarkclass()
+    self.benchmark = benchmarkclass()
 
     #  Override defaults from parser creation and arg processing.
-    finder_options.browser_options.platform = fakes.FakeLinuxPlatform()
-    finder_options.output_formats = ['none']
-    finder_options.suppress_gtest_report = True
-    finder_options.output_dir = None
-    finder_options.upload_bucket = 'public'
-    finder_options.upload_results = False
-    return benchmark, finder_options
+    self.options.browser_options.platform = fakes.FakeLinuxPlatform()
+    self.options.output_formats = ['none']
+    self.options.suppress_gtest_report = True
+    self.options.output_dir = tempfile.mkdtemp()
+    self.options.upload_bucket = 'public'
+    self.options.upload_results = False
+
+  def tearDown(self):
+    shutil.rmtree(self.options.output_dir)
 
   def testPassingPage(self):
-    benchmark, finder_options = self.setupBenchmark()
     manager = mock.Mock()
-    page = FakePage(benchmark.GetFakeStorySet())
+    page = FakePage(self.benchmark.GetFakeStorySet())
     page.RunNavigateSteps = manager.page.RunNavigateSteps
     page.RunPageInteractions = manager.page.RunPageInteractions
-    benchmark.validator.ValidateAndMeasurePage = (
+    self.benchmark.validator.ValidateAndMeasurePage = (
         manager.validator.ValidateAndMeasurePage)
-    benchmark.AddFakePage(page)
+    self.benchmark.AddFakePage(page)
     self.assertEqual(
-        benchmark.Run(finder_options), 0, 'Test should run with no errors')
+        self.benchmark.Run(self.options), 0, 'Test should run with no errors')
     expected = [
         mock.call.page.RunNavigateSteps(mock.ANY),
         mock.call.page.RunPageInteractions(mock.ANY),
@@ -117,8 +119,8 @@ class BenchmarkRunTest(unittest.TestCase):
     self.assertTrue(manager.mock_calls == expected)
 
   def testFailingPage(self):
-    benchmark, finder_options = self.setupBenchmark()
-    page = FailingPage(benchmark.GetFakeStorySet())
-    benchmark.AddFakePage(page)
-    self.assertNotEqual(benchmark.Run(finder_options), 0, 'Test should fail')
+    page = FailingPage(self.benchmark.GetFakeStorySet())
+    self.benchmark.AddFakePage(page)
+    self.assertNotEqual(
+        self.benchmark.Run(self.options), 0, 'Test should fail')
     self.assertFalse(page.RunPageInteractions.called)

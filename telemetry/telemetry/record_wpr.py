@@ -4,7 +4,9 @@
 
 import argparse
 import logging
+import shutil
 import sys
+import tempfile
 
 from telemetry import benchmark
 from telemetry import story
@@ -125,26 +127,36 @@ class WprRecorder(object):
 
   def __init__(self, base_dir, target, args=None):
     self._base_dir = base_dir
-    self._options = self._CreateOptions()
+    self._output_dir = tempfile.mkdtemp()
+    try:
+      self._options = self._CreateOptions()
+      self._benchmark = _MaybeGetInstanceOfClass(target, base_dir,
+                                                 benchmark.Benchmark)
+      self._parser = self._options.CreateParser(usage='See %prog --help')
+      self._AddCommandLineArgs()
+      self._ParseArgs(args)
+      self._ProcessCommandLineArgs()
+      page_test = None
+      if self._benchmark is not None:
+        test = self._benchmark.CreatePageTest(self.options)
+        # Object only needed for legacy pages; newer benchmarks don't need this.
+        if isinstance(test, legacy_page_test.LegacyPageTest):
+          page_test = test
 
-    self._benchmark = _MaybeGetInstanceOfClass(target, base_dir,
-                                               benchmark.Benchmark)
-    self._parser = self._options.CreateParser(usage='See %prog --help')
-    self._AddCommandLineArgs()
-    self._ParseArgs(args)
-    self._ProcessCommandLineArgs()
-    page_test = None
-    if self._benchmark is not None:
-      test = self._benchmark.CreatePageTest(self.options)
-      # Object only needed for legacy pages; newer TBM stories don't need this.
-      if isinstance(test, legacy_page_test.LegacyPageTest):
-        page_test = test
+      self._record_page_test = RecorderPageTest(page_test)
+      self._page_set_base_dir = (
+          self._options.page_set_base_dir if self._options.page_set_base_dir
+          else self._base_dir)
+      self._story_set = self._GetStorySet(target)
+    except:
+      self._CleanUp()
+      raise
 
-    self._record_page_test = RecorderPageTest(page_test)
-    self._page_set_base_dir = (
-        self._options.page_set_base_dir if self._options.page_set_base_dir
-        else self._base_dir)
-    self._story_set = self._GetStorySet(target)
+  def __enter__(self):
+    return self
+
+  def __exit__(self, *args):
+    self._CleanUp()
 
   @property
   def options(self):
@@ -153,7 +165,11 @@ class WprRecorder(object):
   def _CreateOptions(self):
     options = browser_options.BrowserFinderOptions()
     options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
+    options.output_dir = self._output_dir
     return options
+
+  def _CleanUp(self):
+    shutil.rmtree(self._output_dir)
 
   def CreateResults(self):
     if self._benchmark is not None:
@@ -180,7 +196,7 @@ class WprRecorder(object):
     self._SetArgumentDefaults()
 
   def _SetArgumentDefaults(self):
-    self._parser.set_defaults(**{'output_formats': ['none']})
+    self._parser.set_defaults(output_formats=['none'])
 
   def _ParseArgs(self, args=None):
     args_to_parse = sys.argv[1:] if args is None else args
@@ -297,8 +313,9 @@ def Main(environment, **log_config_kwargs):
   # TODO(nednguyen): update WprRecorder so that it handles the difference
   # between recording a benchmark vs recording a story better based on
   # the distinction between args.benchmark & args.story
-  wpr_recorder = WprRecorder(environment.top_level_dir, target, extra_args)
-  results = wpr_recorder.CreateResults()
-  wpr_recorder.Record(results)
-  wpr_recorder.HandleResults(results, args.upload)
-  return min(255, results.num_failed)
+  with WprRecorder(environment.top_level_dir,
+                   target, extra_args) as wpr_recorder:
+    results = wpr_recorder.CreateResults()
+    wpr_recorder.Record(results)
+    wpr_recorder.HandleResults(results, args.upload)
+    return min(255, results.num_failed)
