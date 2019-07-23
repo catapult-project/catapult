@@ -42,6 +42,7 @@ property 'group' sets to the header item name.
 -->
 
 <link rel="import" href="/components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/components/iron-form-element-behavior/iron-form-element-behavior.html">
 <link rel="import" href="/components/iron-validatable-behavior/iron-validatable-behavior.html">
 <link rel="import" href="/components/paper-input/paper-input.html">
 <link rel="import" href="/components/paper-item/paper-item.html">
@@ -256,6 +257,13 @@ const AutocompleteBoxBehavior = {
       readOnly: true,
       computed: 'computeSelectedName(selectedItem)'
     },
+
+    value: {
+      type: String,
+      notify: true,
+      readOnly: true,
+      computed: 'computeSelectedName(selectedItem)'
+    },
   },
 
   observers: [
@@ -360,7 +368,8 @@ Polymer({
   is: 'autocomplete-box',
   behaviors: [
     AutocompleteBoxBehavior,
-    Polymer.IronValidatableBehavior
+    Polymer.IronFormElementBehavior,
+    Polymer.IronValidatableBehavior,
   ],
 
   properties: {

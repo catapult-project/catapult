@@ -69,6 +69,7 @@ found in the LICENSE file.
             <paper-input name="patch" label="Gerrit URL" required></paper-input>
 
             <autocomplete-box id="botDropdown"
+                              name="configuration"
                               items="{{arrayToAutocompleteList(config.configurations)}}"
                               disabled="[[configLoading]]"
                               placeholder="Bot"
@@ -79,6 +80,7 @@ found in the LICENSE file.
             </template>
 
             <autocomplete-box id="benchmarkDropdown"
+                              name="benchmark"
                               items="{{arrayToAutocompleteList(testSuites)}}"
                               disabled="[[suitesLoading]]"
                               placeholder="Benchmark"
@@ -89,6 +91,7 @@ found in the LICENSE file.
             </template>
 
             <autocomplete-box id="storyCasesDropdown"
+                              name="story"
                               items="{{storyCases(benchmarkConfig)}}"
                               disabled="{{!validCases(benchmark, benchmarkConfig)}}"
                               placeholder="Story (optional)"></autocomplete-box>
@@ -97,6 +100,7 @@ found in the LICENSE file.
             </template>
 
             <autocomplete-box id="storyTagsDropdown"
+                              name="story_tags"
                               items="{{storyTags(benchmarkConfig)}}"
                               disabled="{{!validTags(benchmark, benchmarkConfig)}}"
                               placeholder="Story Tags (optional, comma-separated)"></autocomplete-box>
