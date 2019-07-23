@@ -39,7 +39,8 @@ found in the LICENSE file.
       <jobs-table id="jobs-table"
           jobs="[[jobs.jobs]]"
           sort-by="[[queryParams.sortBy]]"
-          sort-descending="[[queryParams.sortDescending]]">
+          sort-descending="[[queryParams.sortDescending]]"
+          auth-headers="[[authHeaders]]">
       </jobs-table>
     </loading-wrapper>
     <new-job-fab auth-headers="[[authHeaders]]"></new-job-fab>

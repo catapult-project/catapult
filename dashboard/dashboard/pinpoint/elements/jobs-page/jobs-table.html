@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/elements/base-style.html">
+<link rel="import" href="/elements/cancel-job-dialog.html">
 
 <dom-module id="jobs-table">
   <template>
@@ -42,6 +43,10 @@ found in the LICENSE file.
         white-space: nowrap;
         width: 40%;
       }
+
+      .status {
+        white-space: nowrap;
+      }
     </style>
 
     <table id="jobs">
@@ -66,7 +71,15 @@ found in the LICENSE file.
             <td><a href="https://crbug.com/[[item.bug_id]]">[[item.bug_id]]</a></td>
             <td>[[formatDate(item.created)]]</td>
             <td>[[formatComparisonMode(item.comparison_mode)]]</td>
-            <td>[[item.status]]</td>
+            <td>
+              <div class="status">
+                [[item.status]]
+                <template is="dom-if" if="[[isQueued(item)]]">
+                  <cancel-job-dialog job="[[item]]"
+                    auth-headers="[[authHeaders]]"></cancel-job-dialog>
+                </template>
+              </div>
+            </td>
             <td>[[item.difference_count]]</td>
           </tr>
         </template>
@@ -178,6 +191,10 @@ found in the LICENSE file.
           return '#';
         }
         return '/queue-stats/' + configuration;
+      },
+
+      isQueued(job) {
+        return job.status == 'Queued';
       },
     });
   </script>
