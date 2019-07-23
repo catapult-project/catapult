@@ -15,12 +15,22 @@ from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import scheduler
 
 
+@mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
 class CancelJobTest(test.TestCase):
 
   def setUp(self):
     super(CancelJobTest, self).setUp()
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+
+    self.add_bug_comment = mock.MagicMock()
+    self.get_issue = mock.MagicMock()
+    patcher = mock.patch(
+        'dashboard.services.issue_tracker_service.IssueTrackerService')
+    issue_tracker_service = patcher.start()
+    issue_tracker_service.return_value = mock.MagicMock(
+        AddBugComment=self.add_bug_comment, GetIssue=self.get_issue)
+    self.addCleanup(patcher.stop)
 
   @mock.patch.object(cancel.utils, 'GetEmail',
                      mock.MagicMock(return_value='lovely.user@example.com'))
@@ -29,7 +39,7 @@ class CancelJobTest(test.TestCase):
   @mock.patch.object(cancel.utils, 'IsTryjobUser',
                      mock.MagicMock(return_value=True))
   def testCancelKnownJobByOwner(self):
-    job = job_module.Job.New((), (), user='lovely.user@example.com')
+    job = job_module.Job.New((), (), user='lovely.user@example.com', bug_id=123)
     scheduler.Schedule(job)
     self.Post(
         '/api/job/cancel', {
@@ -40,6 +50,8 @@ class CancelJobTest(test.TestCase):
     job = job_module.JobFromId(job.job_id)
     self.assertTrue(job.cancelled)
     self.assertIn('lovely.user@example.com: testing!', job.cancel_reason)
+    self.ExecuteDeferredTasks('default')
+    self.assertTrue(self.add_bug_comment.called)
 
   @mock.patch.object(cancel.utils, 'GetEmail',
                      mock.MagicMock(return_value='an.administrator@example.com')
@@ -49,7 +61,7 @@ class CancelJobTest(test.TestCase):
   @mock.patch.object(cancel.utils, 'IsTryjobUser',
                      mock.MagicMock(return_value=True))
   def testCancelKnownJobByAdmin(self):
-    job = job_module.Job.New((), (), user='lovely.user@example.com')
+    job = job_module.Job.New((), (), user='lovely.user@example.com', bug_id=123)
     scheduler.Schedule(job)
     self.Post(
         '/api/job/cancel', {
@@ -60,6 +72,8 @@ class CancelJobTest(test.TestCase):
     job = job_module.JobFromId(job.job_id)
     self.assertTrue(job.cancelled)
     self.assertIn('an.administrator@example.com: testing!', job.cancel_reason)
+    self.ExecuteDeferredTasks('default')
+    self.assertTrue(self.add_bug_comment.called)
 
   @mock.patch.object(cancel.utils, 'GetEmail',
                      mock.MagicMock(return_value='lovely.user@example.com'))

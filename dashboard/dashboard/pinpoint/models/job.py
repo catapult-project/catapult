@@ -502,6 +502,12 @@ class Job(ndb.Model):
     self.cancel_reason = '{}: {}'.format(user, reason)
     self.put()
 
+    title = _ROUND_PUSHPIN + ' Pinpoint job cancelled.'
+    comment = u'{}\n{}\n\nCancelled by {}, reason given: {}'.format(
+        title, self.url, user, reason)
+    deferred.defer(_PostBugCommentDeferred, self.bug_id, comment,
+                   send_email=False, _retry_options=RETRY_OPTIONS)
+
 
 def _GetBugStatus(issue_tracker, bug_id):
   if not bug_id:
