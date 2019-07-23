@@ -8,6 +8,19 @@ found in the LICENSE file.
 <dom-module id="base-style">
   <template>
     <style>
+      :root {
+        /* Dropdown menus should always be on top of dialogs. */
+        --layer-menus: 300;
+
+        /* Dialogs like chart-tooltip and triage-dialog */
+        --layer-dialogs: 200;
+
+        /* Misc information that might be positioned over inline DOM, but shouldn't
+           overshadow dialogs. E.g. alert-icons.
+         */
+        --layer-highlights: 100;
+      }
+
       a {
         color: var(--paper-indigo-500);
         text-decoration: none;
