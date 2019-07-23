@@ -603,11 +603,7 @@ def _MakeDeviceInfoDiagnostics(state):
       # reserved_infos.MEMORY_AMOUNTS.name:
       #    state.platform.GetSystemTotalPhysicalMemory(),
       reserved_infos.OS_NAMES.name: state.platform.GetOSName(),
-      # Some platforms don't support GetOSVersionDetailString, so
-      # fall back to GetOSVersionName for those.
-      reserved_infos.OS_VERSIONS.name: (
-          state.platform.GetOSVersionDetailString() or
-          state.platform.GetOSVersionName()),
+      reserved_infos.OS_VERSIONS.name: state.platform.GetOSVersionName(),
   }
 
   device_info_diangostics = {}
