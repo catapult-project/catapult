@@ -146,7 +146,7 @@ class FifoSchedulerTest(test.TestCase):
   def testJobStuckInRunning(self):
     self.skipTest('Not implemented yet.')
 
-  def testJobCancellationFailsOnRunningJob(self):
+  def testJobCancellationSucceedsOnRunningJob(self):
     j = job.Job.New((), (),
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
@@ -164,13 +164,13 @@ class FifoSchedulerTest(test.TestCase):
     self.assertEqual(job_id, j.job_id)
     self.assertEqual(queue_status, 'Running')
 
-    # We cannot cancel a running job.
-    self.assertFalse(scheduler.Cancel(j))
+    # We can cancel a running job.
+    self.assertTrue(scheduler.Cancel(j))
 
     # Ensure that the job is still running.
     job_id, queue_status = scheduler.PickJob('mock')
-    self.assertEqual(job_id, j.job_id)
-    self.assertEqual(queue_status, 'Running')
+    self.assertNotEqual(job_id, j.job_id)
+    self.assertNotEqual(queue_status, 'Running')
 
   def testJobCancellationSucceedsOnQueuedJob(self):
     j = job.Job.New((), (),

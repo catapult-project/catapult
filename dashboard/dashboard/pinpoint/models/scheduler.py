@@ -241,12 +241,10 @@ def Cancel(job):
   # TODO(dberris): Figure out whether a missing configuration is even valid.
   queue = ConfigurationQueue.GetOrCreateQueue(configuration)
 
-  # TODO(dberris): Support cancellation of running jobs in the future.
-  # We can only cancel 'Queued' jobs.
   found = False
   for queued_job in queue.jobs:
     if queued_job.job_id == job.job_id:
-      if queued_job.status in {'Queued'}:
+      if queued_job.status in {'Running', 'Queued'}:
         queued_job.status = 'Cancelled'
         found = True
       break

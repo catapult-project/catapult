@@ -480,14 +480,6 @@ class Job(ndb.Model):
     return d
 
   def Cancel(self, user, reason):
-    # TODO(dberris): Support cancelling running jobs in the future.
-    # We can only cancel queued jobs for now.
-    if self.running:
-      logging.warning(
-          'Attempted to cancel a running job "%s"; user = %s, reason = %s',
-          self.job_id, user, reason)
-      raise errors.CancelError('Job already running.')
-
     # We cannot cancel an already cancelled job.
     if self.cancelled:
       logging.warning(
@@ -500,6 +492,9 @@ class Job(ndb.Model):
 
     self.cancelled = True
     self.cancel_reason = '{}: {}'.format(user, reason)
+
+    # Remove any "task" identifiers.
+    self.task = None
     self.put()
 
     title = _ROUND_PUSHPIN + ' Pinpoint job cancelled.'

@@ -62,6 +62,22 @@ class RefreshJobsTest(test.TestCase):
     self.assertFalse(queued_job._Schedule.called)
     self.assertTrue(running_job._Schedule.called)
 
+  def testGetWithCancelledJobs(self):
+    cancelled_job = job_module.Job.New((), ())
+    cancelled_job._Schedule = mock.MagicMock()  # pylint: disable=invalid-name
+    cancelled_job.Fail = mock.MagicMock()  # pylint: disable=invalid-name
+    cancelled_job.started = True
+    cancelled_job.updated = datetime.datetime.utcnow() - datetime.timedelta(
+        hours=24)
+    cancelled_job.cancelled = True
+    cancelled_job.cancel_reason = 'Testing cancellation!'
+    cancelled_job.put()
+    self.assertFalse(cancelled_job.running)
+    self.testapp.get('/cron/refresh-jobs')
+    self.ExecuteDeferredTasks('default')
+    self.assertFalse(cancelled_job._Schedule.called)
+    self.assertFalse(cancelled_job.Fail.called)
+
   def testGet_RetryLimit(self):
     j1 = job_module.Job.New((), ())
     j1.task = '123'

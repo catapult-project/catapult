@@ -157,10 +157,9 @@ class CancelJobTest(test.TestCase):
     job.put()
     self.assertTrue(job.running)
     self.addCleanup(scheduler.Cancel, job)
-    response = self.Post(
+    self.Post(
         '/api/job/cancel', {
             'job_id': job.job_id,
             'reason': 'testing!'
         },
-        status=400)
-    self.assertIn('already running', response.body)
+        status=200)
