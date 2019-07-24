@@ -107,9 +107,6 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
     benchmark_name: A string with the name of the currently running benchmark.
     benchmark_description: A string with a description of the currently
         running benchmark.
-    benchmark_enabled: A boolean indicating whether the benchmark to run
-        is enabled. (Some output formats need to produce special output for
-        disabled benchmarks).
     report_progress: A boolean indicating whether to emit gtest style
         report of progress as story runs are being recorded.
     should_add_value: A function that takes two arguments: a value name and
