@@ -97,38 +97,16 @@ def ResultsAsChartDict(results):
           'description': results.benchmark_description,
       },
       'charts': charts,
-      # Need to add this in for compatibility with disabled chartjson results.
-      'enabled': True
+      # Conveys whether the whole benchmark was disabled.
+      'enabled': not results.empty,
   }
 
   return result_dict
 
 
-def DisabledResultsDict(benchmark_name):
-  """Produces a dict for serialization to Chart JSON when a benchmark is
-    disabled.
-
-  Args:
-    benchmark_name: name of the disabled benchmark
-
-  Returns:
-    A Chart JSON dict corresponding to a disabled benchmark.
-  """
-  result_dict = {
-      'benchmark_name': benchmark_name,
-      'enabled': False
-  }
-
-  return result_dict
-
-
-# TODO(eakuefner): Transition this to translate Telemetry JSON.
 class ChartJsonOutputFormatter(output_formatter.OutputFormatter):
   def __init__(self, output_stream):
     super(ChartJsonOutputFormatter, self).__init__(output_stream)
-
-  def FormatDisabled(self, results):
-    self._Dump(DisabledResultsDict(results.benchmark_name))
 
   def Format(self, results):
     self._Dump(ResultsAsChartDict(results))

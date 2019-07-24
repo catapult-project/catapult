@@ -420,7 +420,6 @@ def _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
       finder_options,
       benchmark_name=benchmark.Name(),
       benchmark_description=benchmark.Description(),
-      benchmark_enabled=False,
       report_progress=not finder_options.suppress_gtest_report,
       should_add_value=benchmark.ShouldAddValue) as results:
     results.PrintSummary()
@@ -456,7 +455,6 @@ def RunBenchmark(benchmark, finder_options):
       finder_options,
       benchmark_name=benchmark.Name(),
       benchmark_description=benchmark.Description(),
-      benchmark_enabled=True,
       report_progress=not finder_options.suppress_gtest_report,
       should_add_value=benchmark.ShouldAddValue) as results:
     try:

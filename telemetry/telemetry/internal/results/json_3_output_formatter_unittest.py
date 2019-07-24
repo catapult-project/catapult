@@ -241,7 +241,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
         del os.environ['GTEST_SHARD_INDEX']
 
 
-  def testIntegrationCreateJsonTestResultsWithDisabledBenchmark(self):
+  def testIntegrationCreateJsonTestResultsWithNoResults(self):
     options = options_for_unittests.GetCopy()
     options.output_formats = ['json-test-results']
     options.upload_results = False
@@ -250,7 +250,7 @@ class Json3OutputFormatterTest(unittest.TestCase):
       options.output_dir = tempfile_dir
       options.results_label = None
       results_options.ProcessCommandLineArgs(options)
-      results = results_options.CreateResults(options, benchmark_enabled=False)
+      results = results_options.CreateResults(options)
       results.PrintSummary()
       results.CloseOutputFormatters()
 

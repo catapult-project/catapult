@@ -25,8 +25,3 @@ class HistogramSetJsonOutputFormatter(output_formatter.OutputFormatter):
         except ValueError:
           logging.warn('Found existing histograms json but failed to parse it.')
     json.dump(histograms, self._output_stream)
-
-  def FormatDisabled(self, page_test_results):
-    # In the case of a disabled benchmark, we need to output an empty histogram
-    # set and valid json
-    json.dump([], self._output_stream)

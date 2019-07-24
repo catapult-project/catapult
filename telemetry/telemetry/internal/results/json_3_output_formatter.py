@@ -112,7 +112,3 @@ class JsonOutputFormatter(output_formatter.OutputFormatter):
         ResultsAsDict(results),
         self.output_stream, indent=2, sort_keys=True, separators=(',', ': '))
     self.output_stream.write('\n')
-
-  def FormatDisabled(self, results):
-    """Serialize disabled benchmark in JSON Test Results format."""
-    self.Format(results)

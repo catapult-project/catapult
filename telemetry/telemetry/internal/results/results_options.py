@@ -100,8 +100,7 @@ def _GetOutputStream(output_format, output_dir):
 
 
 def CreateResults(options, benchmark_name=None, benchmark_description=None,
-                  benchmark_enabled=True, report_progress=False,
-                  should_add_value=None):
+                  report_progress=False, should_add_value=None):
   """
   Args:
     options: Contains the options specified in AddResultsOptions.
@@ -164,6 +163,5 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
       should_add_value=should_add_value,
       benchmark_name=benchmark_name,
       benchmark_description=benchmark_description,
-      benchmark_enabled=benchmark_enabled,
       upload_bucket=upload_bucket,
       results_label=options.results_label)

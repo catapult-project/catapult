@@ -38,13 +38,6 @@ class OutputFormatter(object):
   def PrintViewResults(self):
     print 'View result at file://' + os.path.abspath(self.output_stream.name)
 
-  def FormatDisabled(self, page_test_results):
-    """Formats disabled results into the output stream.
-
-    This will be called once when a benchmark is run but disabled.
-    """
-    pass
-
   @property
   def output_stream(self):
     return self._output_stream

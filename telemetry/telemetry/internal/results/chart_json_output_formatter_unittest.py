@@ -29,11 +29,10 @@ def _MakeStorySet():
 
 
 def _MakePageTestResults(
-    description='benchmark_description', enabled=True, output_dir=None):
+    description='benchmark_description', output_dir=None):
   return page_test_results.PageTestResults(
       benchmark_name='benchmark_name',
       benchmark_description=description,
-      benchmark_enabled=enabled,
       output_dir=output_dir)
 
 
@@ -59,8 +58,8 @@ class ChartJsonTest(unittest.TestCase):
     d = json.loads(self._output.getvalue())
     self.assertIn('foo', d['charts'])
 
-  def testOutputAndParseDisabled(self):
-    self._formatter.FormatDisabled(_MakePageTestResults(enabled=False))
+  def testOutputAndParseNoResults(self):
+    self._formatter.Format(_MakePageTestResults())
     d = json.loads(self._output.getvalue())
     self.assertEquals(d['benchmark_name'], 'benchmark_name')
     self.assertFalse(d['enabled'])
@@ -85,7 +84,7 @@ class ChartJsonTest(unittest.TestCase):
     self.assertEquals(d['benchmark_metadata']['description'],
                       'benchmark_description')
     self.assertEquals(d['benchmark_metadata']['type'], 'telemetry_benchmark')
-    self.assertTrue(d['enabled'])
+    self.assertFalse(d['enabled'])
 
   def testAsChartDictNoDescription(self):
     d = chart_json_output_formatter.ResultsAsChartDict(

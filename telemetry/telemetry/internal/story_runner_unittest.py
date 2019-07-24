@@ -210,6 +210,20 @@ class FakeBenchmark(benchmark.Benchmark):
     return story_module.expectations.StoryExpectations()
 
 
+class FakeBenchmarkWithAStory(FakeBenchmark):
+  def __init__(self):
+    super(FakeBenchmarkWithAStory, self).__init__()
+
+  @classmethod
+  def Name(cls):
+    return 'fake_with_a_story'
+
+  def page_set(self):
+    story_set = story_module.StorySet()
+    story_set.AddStory(DummyPage(story_set, name='story'))
+    return story_set
+
+
 def _GetOptionForUnittest():
   options = options_for_unittests.GetCopy()
   options.output_formats = ['none']
@@ -1282,7 +1296,7 @@ class StoryRunnerTest(unittest.TestCase):
       shutil.rmtree(tmp_path)
 
   def testRunBenchmarkDisabledBenchmark(self):
-    fake_benchmark = FakeBenchmark()
+    fake_benchmark = FakeBenchmarkWithAStory()
     fake_benchmark.disabled = True
     options = _GenerateBaseBrowserFinderOptions()
     tmp_path = tempfile.mkdtemp()
@@ -1296,7 +1310,7 @@ class StoryRunnerTest(unittest.TestCase):
       shutil.rmtree(tmp_path)
 
   def testRunBenchmarkDisabledBenchmarkCanOverriddenByCommandLine(self):
-    fake_benchmark = FakeBenchmark()
+    fake_benchmark = FakeBenchmarkWithAStory()
     fake_benchmark.disabled = True
     options = _GenerateBaseBrowserFinderOptions()
     options.run_disabled_tests = True
@@ -1311,19 +1325,6 @@ class StoryRunnerTest(unittest.TestCase):
       shutil.rmtree(temp_path)
 
   def testRunBenchmarkWithRelativeOutputDir(self):
-    class FakeBenchmarkWithAStory(FakeBenchmark):
-      def __init__(self):
-        super(FakeBenchmarkWithAStory, self).__init__()
-
-      @classmethod
-      def Name(cls):
-        return 'fake_with_a_story'
-
-      def page_set(self):
-        story_set = story_module.StorySet()
-        story_set.AddStory(DummyPage(story_set, name='story'))
-        return story_set
-
     fake_benchmark = FakeBenchmarkWithAStory()
     options = _GenerateBaseBrowserFinderOptions()
     temp_path = tempfile.mkdtemp()
