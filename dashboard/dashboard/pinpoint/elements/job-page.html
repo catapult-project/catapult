@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-tooltip/paper-tooltip.html">
 
 <link rel="import" href="/elements/base-style.html">
+<link rel="import" href="/elements/cancel-job-dialog.html">
 <link rel="import" href="/elements/job-page/change-details.html">
 <link rel="import" href="/elements/job-page/exception-details.html">
 <link rel="import" href="/elements/job-page/job-chart.html">
@@ -34,6 +35,16 @@ found in the LICENSE file.
       #running {
         background: var(--paper-indigo-50);
         color: var(--paper-indigo-500);
+      }
+
+      #queued {
+        background: var(--paper-grey-50);
+        color: var(--paper-grey-500);
+      }
+
+      #cancelled {
+        background: var(--paper-orange-50);
+        color: var(--paper-orange-500);
       }
 
       h1 {
@@ -97,6 +108,19 @@ found in the LICENSE file.
         </template>
         <template is="dom-if" if="[[running(job)]]">
           <span id="running" class="badge">Running</span>
+          <cancel-job-dialog job="[[job]]"
+            auth-headers="[[authHeaders]]"></cancel-job-dialog>
+        </template>
+        <template is="dom-if" if="[[cancelled(job)]]">
+          <span id="cancelled" class="badge">Cancelled</span>
+          <paper-tooltip for="cancelled" animation-delay="0">
+            <div id="cancelled-tooltip">[[job.cancel_reason]]</div>
+          </paper-tooltip>
+        </template>
+        <template is="dom-if" if="[[queued(job)]]">
+          <span id="queued" class="badge">Queued</span>
+          <cancel-job-dialog job="[[job]]"
+            auth-headers="[[authHeaders]]"></cancel-job-dialog>
         </template>
         [[job.name]]
       </h1>
@@ -177,6 +201,14 @@ found in the LICENSE file.
 
       running(job) {
         return job.status.toLowerCase() === 'running';
+      },
+
+      cancelled(job) {
+        return job.status.toLowerCase() === 'cancelled';
+      },
+
+      queued(job) {
+        return job.status.toLowerCase() === 'queued';
       },
 
       start(job) {

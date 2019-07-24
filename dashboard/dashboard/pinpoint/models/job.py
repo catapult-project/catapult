@@ -468,6 +468,7 @@ class Job(ndb.Model):
         'difference_count': self.difference_count,
         'exception': self.exception_details_dict,
         'status': self.status,
+        'cancel_reason': self.cancel_reason,
     }
 
     if not options:
