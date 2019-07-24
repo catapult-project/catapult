@@ -109,13 +109,18 @@ tr.exportTo('tr.metrics', function() {
   }
 
   function getHistogramBoundaries_(name) {
-    // Customize histogram boundaries here.
-    switch (name) {
-      case 'Event.Latency.ScrollUpdate.Touch.TimeToScrollUpdateSwapBegin4':
-        return tr.v.HistogramBinBoundaries.createExponential(1e3, 1e5, 50);
-      default:
-        return tr.v.HistogramBinBoundaries.createExponential(1e-3, 1e3, 50);
+    // Customize histogram boundaries here. Ideally, this would not be
+    // necessary.
+    // crbug.com/987273
+    if (name.startsWith('Event.Latency.Scroll')) {
+      return tr.v.HistogramBinBoundaries.createExponential(1e3, 1e5, 50);
     }
+
+    if (name.startsWith('Graphics.Smoothness.Throughput')) {
+      return tr.v.HistogramBinBoundaries.createLinear(0, 100, 101);
+    }
+
+    return tr.v.HistogramBinBoundaries.createExponential(1e-3, 1e3, 50);
   }
 
   function umaMetric(histograms, model) {
