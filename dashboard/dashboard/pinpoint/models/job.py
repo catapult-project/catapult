@@ -100,6 +100,11 @@ class Job(ndb.Model):
   #####
 
   created = ndb.DateTimeProperty(required=True, auto_now_add=True)
+
+  # This differs from "created" since there may be a lag between the time it
+  # was queued and when the scheduler actually starts the job.
+  started_time = ndb.DateTimeProperty(required=False)
+
   # Don't use `auto_now` for `updated`. When we do data migration, we need
   # to be able to modify the Job without changing the Job's completion time.
   updated = ndb.DateTimeProperty(required=True, auto_now_add=True)
@@ -268,6 +273,7 @@ class Job(ndb.Model):
     """
     self._Schedule()
     self.started = True
+    self.started_time = datetime.datetime.now()
     self.put()
 
     title = _ROUND_PUSHPIN + ' Pinpoint job started.'
