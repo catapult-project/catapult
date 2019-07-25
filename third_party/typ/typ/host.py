@@ -22,6 +22,8 @@ import sys
 import tempfile
 import time
 
+from typ import python_2_3_compat
+
 
 if sys.version_info.major == 2:  # pragma: python2
     from urllib2 import urlopen, Request
@@ -245,6 +247,8 @@ class Host(object):
     def restore_output(self):
         assert isinstance(self.stdout, _TeedStream)
         out, err = (self.stdout.restore(), self.stderr.restore())
+        out = python_2_3_compat.bytes_to_str(out)
+        err = python_2_3_compat.bytes_to_str(err)
         self.logger.handlers = self._orig_logging_handlers
         self._untap_output()
         return out, err
@@ -261,13 +265,12 @@ class _TeedStream(object):
             os.dup(self.stream.fileno()), self.mode)
 
     def write(self, msg, *args, **kwargs):
-        if (sys.version_info.major == 2 and
-                isinstance(msg, str)):  # pragma: python2
-            msg = unicode(msg)
         if self.capturing:
-            self._capture_file.write(msg, *args, **kwargs)
+            self._capture_file.write(
+                    python_2_3_compat.str_to_bytes(msg), *args, **kwargs)
         if not self.diverting:
-            self.original_stream.write(msg, *args, **kwargs)
+            self.original_stream.write(
+                    python_2_3_compat.bytes_to_str(msg), *args, **kwargs)
 
     def flush(self):
         if self.capturing:
@@ -304,9 +307,9 @@ class _TeedStream(object):
         # on mac python stream object does not account for captured bytes
         # added when another host object captures the output and turns on
         # passthrough
-        return os.read(
+        return python_2_3_compat.bytes_to_str(os.read(
             self._capture_file.fileno(),
-            os.path.getsize(self._capture_file.name))
+            os.path.getsize(self._capture_file.name)))
 
     def isatty(self):
         return self.stream.isatty()

@@ -17,6 +17,7 @@ import io
 import logging
 import sys
 
+from typ import python_2_3_compat
 from typ.host import _TeedStream
 
 
@@ -273,6 +274,8 @@ class FakeHost(object):
     def restore_output(self):
         assert isinstance(self.stdout, _TeedStream)
         out, err = (self.stdout.restore(), self.stderr.restore())
+        out = python_2_3_compat.bytes_to_str(out)
+        err = python_2_3_compat.bytes_to_str(err)
         self.logger.handlers = self._orig_logging_handlers
         self._untap_output()
         return out, err

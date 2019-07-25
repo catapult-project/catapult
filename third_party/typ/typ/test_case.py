@@ -16,6 +16,8 @@ import fnmatch
 import shlex
 import unittest
 
+from typ import python_2_3_compat
+
 
 def convert_newlines(msg):
     """A routine that mimics Python's universal_newlines conversion."""
@@ -101,6 +103,8 @@ class MainTestCase(TestCase):
             result = self.call(host, prog + argv, stdin=stdin, env=env)
 
             actual_ret, actual_out, actual_err = result
+            actual_out = python_2_3_compat.bytes_to_str(actual_out)
+            actual_err = python_2_3_compat.bytes_to_str(actual_err)
             actual_files = self._read_files(host, tmpdir)
         finally:
             host.chdir(orig_wd)
@@ -109,7 +113,6 @@ class MainTestCase(TestCase):
 
         if universal_newlines:
             actual_out = convert_newlines(actual_out)
-        if universal_newlines:
             actual_err = convert_newlines(actual_err)
 
         if ret is not None:

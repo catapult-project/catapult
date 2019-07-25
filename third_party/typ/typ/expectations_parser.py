@@ -15,6 +15,7 @@ import re
 from collections import OrderedDict
 from collections import defaultdict
 
+from typ import python_2_3_compat
 from typ.json_results import ResultType
 
 _EXPECTATION_MAP = {
@@ -57,8 +58,8 @@ class Expectation(object):
               set; just 'Mac', or 'Mac' and 'Release', would not qualify.
           results: List of outcomes for test. Example: ['Skip', 'Pass']
         """
-        assert isinstance(reason, basestring) or reason is None
-        assert isinstance(test, basestring)
+        assert python_2_3_compat.is_str(reason) or reason is None
+        assert python_2_3_compat.is_str(test)
         self._reason = reason
         self._test = test
         self._tags = frozenset(tags)
@@ -299,7 +300,7 @@ class TestExpectations(object):
         try:
             parser = TaggedTestListParser(raw_data)
         except ParseError as e:
-            return 1, e.message
+            return 1, str(e)
         self.tag_sets = parser.tag_sets
         self._tags_conflict = tags_conflict
         # TODO(crbug.com/83560) - Add support for multiple policies
