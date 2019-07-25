@@ -397,13 +397,15 @@ class TestExpectations(object):
         # which might look like [ win linux]. A test expectation that has the
         # linux tag will not conflict with an expectation that has the win tag.
         error_msg = ''
-        for pattern, exps in self.individual_exps.items():
+        patterns_to_exps = dict(self.individual_exps)
+        patterns_to_exps.update(self.glob_exps)
+        for pattern, exps in patterns_to_exps.items():
             conflicts_exist = False
             for e1, e2 in itertools.combinations(exps, 2):
                 if self.tag_sets_conflict(e1.tags, e2.tags):
                     if not conflicts_exist:
                         error_msg += (
-                            '\nFound conflicts for test %s%s:\n' %
+                            '\nFound conflicts for pattern %s%s:\n' %
                             (pattern,
                              (' in %s' %
                               self.file_name if self.file_name else '')))

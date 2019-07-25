@@ -388,7 +388,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         self.assertEqual("5: Unrecognized value 'unknown' "
                          "given for conflicts_allowed descriptor", msg)
 
-    def testCollisionInTestExpectation(self):
+    def testConflictsInTestExpectation(self):
         expectations = expectations_parser.TestExpectations()
         _, errors = expectations.parse_tagged_list(
             '# tags: [ mac win linux ]\n'
@@ -396,20 +396,22 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
             '# tags: [ debug release ]\n'
             '# conflicts_allowed: False\n'
             '# results: [ Failure Skip RetryOnFailure ]\n'
-            '[ intel win ] a/b/c/d [ Failure ]\n'
-            '[ intel win debug ] a/b/c/d [ Skip ]\n'
-            '[ intel  ] a/b/c/d [ Failure ]\n'
+            '[ intel win ] a/b/c/* [ Failure ]\n'
+            '[ intel win debug ] a/b/c/* [ Skip ]\n'
+            '[ intel  ] a/b/c/* [ Failure ]\n'
             '[ amd mac ] a/b [ RetryOnFailure ]\n'
             '[ mac ] a/b [ Skip ]\n'
             '[ amd mac ] a/b/c [ Failure ]\n'
             '[ intel mac ] a/b/c [ Failure ]\n', 'test.txt')
-        self.assertIn("Found conflicts for test a/b/c/d in test.txt:", errors)
+        self.assertIn("Found conflicts for pattern a/b/c/* in test.txt:",
+                      errors)
         self.assertIn('line 6 conflicts with line 7', errors)
         self.assertIn('line 6 conflicts with line 8', errors)
         self.assertIn('line 7 conflicts with line 8', errors)
-        self.assertIn("Found conflicts for test a/b in test.txt:", errors)
+        self.assertIn("Found conflicts for pattern a/b in test.txt:", errors)
         self.assertIn('line 9 conflicts with line 10', errors)
-        self.assertNotIn("Found conflicts for test a/b/c in test.txt:", errors)
+        self.assertNotIn("Found conflicts for pattern a/b/c in test.txt:",
+                         errors)
 
     def testFileNameExcludedFromErrorMessageForExpectationConflicts(self):
         test_expectations = '''# tags: [ mac ]
@@ -420,7 +422,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         '''
         expectations = expectations_parser.TestExpectations()
         _, errors = expectations.parse_tagged_list(test_expectations)
-        self.assertIn("Found conflicts for test a/b/c/d:", errors)
+        self.assertIn("Found conflicts for pattern a/b/c/d:", errors)
 
     def testConflictsUsingUserDefinedTagsConflictFunction(self):
         test_expectations = '''# tags: [ win win7  ]
@@ -435,7 +437,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         expectations = expectations_parser.TestExpectations()
         _, errors = expectations.parse_tagged_list(
             test_expectations, tags_conflict=tags_conflict)
-        self.assertIn("Found conflicts for test a/b/c/d:", errors)
+        self.assertIn("Found conflicts for pattern a/b/c/d:", errors)
 
     def testNoCollisionInTestExpectations(self):
         test_expectations = '''# tags: [ mac win linux ]
