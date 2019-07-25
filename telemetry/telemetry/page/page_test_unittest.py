@@ -2,13 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from py_utils import tempfile_ext
+import shutil
+import tempfile
 
 from telemetry.page import page as page_module
 from telemetry.page import legacy_page_test
 from telemetry.testing import options_for_unittests
 from telemetry.testing import page_test_test_case
-from telemetry.util import wpr_modes
 
 
 class PageTestThatFails(legacy_page_test.LegacyPageTest):
@@ -56,43 +56,38 @@ class PageWithAction(page_module.Page):
 class PageTestUnitTest(page_test_test_case.PageTestTestCase):
 
   def setUp(self):
-    self._options = options_for_unittests.GetCopy()
-    self._options.browser_options.wpr_mode = wpr_modes.WPR_OFF
+    self.options = options_for_unittests.GetRunOptions(
+        output_dir=tempfile.mkdtemp())
+
+  def tearDown(self):
+    shutil.rmtree(self.options.output_dir)
 
   def testGotToBlank(self):
-    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      self._options.output_dir = tempdir
-      story_set = self.CreateStorySetFromFileInUnittestDataDir('blank.html')
-      measurement = PageTestForBlank()
-      all_results = self.RunMeasurement(
-          measurement, story_set, options=self._options)
-      self.assertFalse(all_results.had_failures)
+    story_set = self.CreateStorySetFromFileInUnittestDataDir('blank.html')
+    measurement = PageTestForBlank()
+    all_results = self.RunMeasurement(
+        measurement, story_set, run_options=self.options)
+    self.assertFalse(all_results.had_failures)
 
   def testGotQueryParams(self):
-    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      self._options.output_dir = tempdir
-      story_set = self.CreateStorySetFromFileInUnittestDataDir(
-          'blank.html?foo=1')
-      measurement = PageTestQueryParams()
-      all_results = self.RunMeasurement(
-          measurement, story_set, options=self._options)
-      self.assertFalse(all_results.had_failures)
+    story_set = self.CreateStorySetFromFileInUnittestDataDir(
+        'blank.html?foo=1')
+    measurement = PageTestQueryParams()
+    all_results = self.RunMeasurement(
+        measurement, story_set, run_options=self.options)
+    self.assertFalse(all_results.had_failures)
 
   def testFailure(self):
-    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      self._options.output_dir = tempdir
-      story_set = self.CreateStorySetFromFileInUnittestDataDir('blank.html')
-      measurement = PageTestThatFails()
-      all_results = self.RunMeasurement(
-          measurement, story_set, options=self._options)
-      self.assertTrue(all_results.had_failures)
+    story_set = self.CreateStorySetFromFileInUnittestDataDir('blank.html')
+    measurement = PageTestThatFails()
+    all_results = self.RunMeasurement(
+        measurement, story_set, run_options=self.options)
+    self.assertTrue(all_results.had_failures)
 
   def testRunActions(self):
-    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      self._options.output_dir = tempdir
-      story_set = self.CreateEmptyPageSet()
-      page = PageWithAction('file://blank.html', story_set)
-      story_set.AddStory(page)
-      measurement = PageTestWithAction()
-      self.RunMeasurement(measurement, story_set, options=self._options)
-      self.assertTrue(page.run_test_action_called)
+    story_set = self.CreateEmptyPageSet()
+    page = PageWithAction('file://blank.html', story_set)
+    story_set.AddStory(page)
+    measurement = PageTestWithAction()
+    self.RunMeasurement(measurement, story_set, run_options=self.options)
+    self.assertTrue(page.run_test_action_called)

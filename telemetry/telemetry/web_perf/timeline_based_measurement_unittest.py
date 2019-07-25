@@ -2,14 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from py_utils import tempfile_ext
+import shutil
+import tempfile
 
 from telemetry import decorators
 from telemetry.page import page as page_module
 from telemetry.testing import options_for_unittests
 from telemetry.testing import page_test_test_case
 from telemetry.timeline import chrome_trace_category_filter
-from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement as tbm_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import date_range
@@ -20,11 +20,11 @@ from tracing.value.diagnostics import reserved_infos
 class TestTimelinebasedMeasurementPage(page_module.Page):
   """A page used to test TBMv2 measurements."""
 
-  def __init__(self, ps, base_dir, trigger_animation=False,
+  def __init__(self, story_set, base_dir, trigger_animation=False,
                trigger_jank=False, trigger_slow=False,
                trigger_scroll_gesture=False, measure_memory=False):
     super(TestTimelinebasedMeasurementPage, self).__init__(
-        'file://interaction_enabled_page.html', ps, base_dir,
+        'file://interaction_enabled_page.html', story_set, base_dir,
         name='interaction_enabled_page.html')
     self._trigger_animation = trigger_animation
     self._trigger_jank = trigger_jank
@@ -50,9 +50,9 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
 
 class FailedTimelinebasedMeasurementPage(page_module.Page):
 
-  def __init__(self, ps, base_dir):
+  def __init__(self, story_set, base_dir):
     super(FailedTimelinebasedMeasurementPage, self).__init__(
-        'file://interaction_enabled_page.html', ps, base_dir,
+        'file://interaction_enabled_page.html', story_set, base_dir,
         name='interaction_enabled_page.html')
 
   def RunPageInteractions(self, action_runner):
@@ -63,28 +63,26 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
   """Tests for TimelineBasedMetrics (TBMv2), i.e. //tracing/tracing/metrics."""
 
   def setUp(self):
-    self._options = self.createDefaultRunnerOptions()
+    self._options = options_for_unittests.GetRunOptions(
+        output_dir=tempfile.mkdtemp())
 
-  def createDefaultRunnerOptions(self):
-    runner_options = options_for_unittests.GetCopy()
-    runner_options.browser_options.wpr_mode = wpr_modes.WPR_OFF
-    return runner_options
+  def tearDown(self):
+    shutil.rmtree(self._options.output_dir)
 
   @decorators.Disabled('chromeos')
   @decorators.Disabled('win')  # crbug.com/956812
   @decorators.Isolated
   def testTraceCaptureUponFailure(self):
-    ps = self.CreateEmptyPageSet()
-    ps.AddStory(FailedTimelinebasedMeasurementPage(ps, ps.base_dir))
+    story_set = self.CreateEmptyPageSet()
+    story_set.AddStory(
+        FailedTimelinebasedMeasurementPage(story_set, story_set.base_dir))
 
     options = tbm_module.Options()
     options.config.enable_chrome_trace = True
     options.SetTimelineBasedMetrics(['sampleMetric'])
     tbm = tbm_module.TimelineBasedMeasurement(options)
 
-    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      self._options.output_dir = tempdir
-      results = self.RunMeasurement(tbm, ps, self._options)
+    results = self.RunMeasurement(tbm, story_set, run_options=self._options)
 
     self.assertTrue(results.had_failures)
     runs = list(results.IterRunsWithTraces())
@@ -94,17 +92,16 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
   @decorators.Disabled('chromeos')
   @decorators.Isolated
   def testTBM2ForSmoke(self):
-    ps = self.CreateEmptyPageSet()
-    ps.AddStory(TestTimelinebasedMeasurementPage(ps, ps.base_dir))
+    story_set = self.CreateEmptyPageSet()
+    story_set.AddStory(
+        TestTimelinebasedMeasurementPage(story_set, story_set.base_dir))
 
     options = tbm_module.Options()
     options.config.enable_chrome_trace = True
     options.SetTimelineBasedMetrics(['sampleMetric'])
     tbm = tbm_module.TimelineBasedMeasurement(options)
 
-    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      self._options.output_dir = tempdir
-      results = self.RunMeasurement(tbm, ps, self._options)
+    results = self.RunMeasurement(tbm, story_set, run_options=self._options)
 
     self.assertFalse(results.had_failures)
 
@@ -140,21 +137,20 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
   @decorators.Disabled('mac', 'linux')  # https://crbug.com/956812
   @decorators.Isolated
   def testHeapProfilerForSmoke(self):
-    ps = self.CreateEmptyPageSet()
-    ps.AddStory(TestTimelinebasedMeasurementPage(
-        ps, ps.base_dir, measure_memory=True, trigger_slow=True))
+    story_set = self.CreateEmptyPageSet()
+    story_set.AddStory(TestTimelinebasedMeasurementPage(
+        story_set, story_set.base_dir, measure_memory=True, trigger_slow=True))
 
     cat_filter = chrome_trace_category_filter.ChromeTraceCategoryFilter(
         filter_string='-*,disabled-by-default-memory-infra')
     options = tbm_module.Options(overhead_level=cat_filter)
     options.config.enable_chrome_trace = True
     options.SetTimelineBasedMetrics(['memoryMetric'])
-
-    runner_options = self.createDefaultRunnerOptions()
-    runner_options.browser_options.AppendExtraBrowserArgs(
-        ['--memlog=all', '--memlog-sampling', '--memlog-stack-mode=pseudo'])
     tbm = tbm_module.TimelineBasedMeasurement(options)
-    results = self.RunMeasurement(tbm, ps, runner_options)
+
+    self._options.browser_options.AppendExtraBrowserArgs(
+        ['--memlog=all', '--memlog-sampling', '--memlog-stack-mode=pseudo'])
+    results = self.RunMeasurement(tbm, story_set, run_options=self._options)
 
     self.assertFalse(results.had_failures)
 
@@ -174,8 +170,9 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
   @decorators.Disabled('reference')
   @decorators.Disabled('all')
   def testFirstPaintMetricSmoke(self):
-    ps = self.CreateEmptyPageSet()
-    ps.AddStory(TestTimelinebasedMeasurementPage(ps, ps.base_dir))
+    story_set = self.CreateEmptyPageSet()
+    story_set.AddStory(
+        TestTimelinebasedMeasurementPage(story_set, story_set.base_dir))
 
     cat_filter = chrome_trace_category_filter.ChromeTraceCategoryFilter(
         filter_string='*,blink.console,navigation,blink.user_timing,loading,' +
@@ -185,7 +182,7 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
     options.SetTimelineBasedMetrics(['loadingMetric'])
 
     tbm = tbm_module.TimelineBasedMeasurement(options)
-    results = self.RunMeasurement(tbm, ps, self._options)
+    results = self.RunMeasurement(tbm, story_set, run_options=self._options)
 
     self.assertFalse(results.had_failures)
     v_ttfcp_max = results.FindAllPageSpecificValuesNamed(

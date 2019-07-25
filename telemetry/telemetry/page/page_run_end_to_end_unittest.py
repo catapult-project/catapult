@@ -24,7 +24,6 @@ from telemetry.page import legacy_page_test
 from telemetry.page import shared_page_state
 from telemetry.page import traffic_setting as traffic_setting_module
 from telemetry.util import image_util
-from telemetry.testing import fakes
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
 
@@ -33,20 +32,6 @@ class DummyTest(legacy_page_test.LegacyPageTest):
 
   def ValidateAndMeasurePage(self, *_):
     pass
-
-
-def GetStoryRunOptions(output_dir, fake_browser=False):
-  if fake_browser:
-    options = fakes.CreateBrowserFinderOptions()
-  else:
-    options = options_for_unittests.GetCopy()
-  parser = options.CreateParser()
-  story_runner.AddCommandLineArgs(parser)
-  options.MergeDefaultValues(parser.get_default_values())
-  options.output_formats = ['none']
-  options.output_dir = output_dir
-  story_runner.ProcessCommandLineArgs(parser, options)
-  return options
 
 
 def RunStorySet(test, story_set, options, **kwargs):
@@ -75,12 +60,12 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self._story_runner_logging_stub = None
     self._formatted_exception_buffer = StringIO.StringIO()
     self._original_formatter = exception_formatter.PrintFormattedException
-    self._output_dir = tempfile.mkdtemp()
-    self.options = GetStoryRunOptions(self._output_dir)
+    self.options = options_for_unittests.GetRunOptions(
+        output_dir=tempfile.mkdtemp())
 
   def tearDown(self):
     self.RestoreExceptionFormatter()
-    shutil.rmtree(self._output_dir)
+    shutil.rmtree(self.options.output_dir)
 
   def CaptureFormattedException(self):
     exception_formatter.PrintFormattedException = CaptureStderr(
@@ -480,11 +465,11 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 class FakePageRunEndToEndTests(unittest.TestCase):
 
   def setUp(self):
-    self._output_dir = tempfile.mkdtemp()
-    self.options = GetStoryRunOptions(self._output_dir, fake_browser=True)
+    self.options = options_for_unittests.GetRunOptions(
+        output_dir=tempfile.mkdtemp(), fake_browser=True)
 
   def tearDown(self):
-    shutil.rmtree(self._output_dir)
+    shutil.rmtree(self.options.output_dir)
 
   def testNoScreenShotTakenForFailedPageDueToNoSupport(self):
 

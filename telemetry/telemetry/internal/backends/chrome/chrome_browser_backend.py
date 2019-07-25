@@ -6,7 +6,6 @@ import logging
 import pprint
 import shlex
 import socket
-import sys
 
 from telemetry.core import exceptions
 from telemetry import decorators
@@ -16,7 +15,6 @@ from telemetry.internal.backends.chrome import tab_list_backend
 from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.browser import web_contents
-from telemetry.testing import options_for_unittests
 
 import py_utils
 
@@ -45,12 +43,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       raise browser_backend.ExtensionsNotSupportedException(
           'Extensions are not supported on the selected browser')
 
-    if (self.browser_options.dont_override_profile and
-        not options_for_unittests.AreSet()):
-      sys.stderr.write('Warning: Not overriding profile. This can cause '
-                       'unexpected effects due to profile-specific settings, '
-                       'such as about:flags settings, cookies, and '
-                       'extensions.\n')
+    if self.browser_options.dont_override_profile:
+      logging.warning('Not overriding profile. This can cause unexpected '
+                      'effects due to profile-specific settings, such as '
+                      'about:flags settings, cookies, and extensions.')
 
   @property
   def devtools_client(self):

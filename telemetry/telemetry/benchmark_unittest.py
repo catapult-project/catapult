@@ -41,14 +41,7 @@ class TestBenchmark(benchmark.Benchmark):
 class BenchmarkTest(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
-    # Augment options with story runner specific options.
-    cls._options = options_for_unittests.GetCopy()
-    parser = cls._options.CreateParser()
-    story_runner.AddCommandLineArgs(parser)
-    cls._options.MergeDefaultValues(parser.get_default_values())
-    story_runner.ProcessCommandLineArgs(parser, cls._options)
-    cls._options.output_formats = ['none']
-    cls._options.suppress_gtest_report = True
+    cls._options = options_for_unittests.GetRunOptions()
 
   @classmethod
   def GetOptions(cls):

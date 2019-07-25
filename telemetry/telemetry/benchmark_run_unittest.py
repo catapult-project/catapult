@@ -11,6 +11,7 @@ from telemetry import page as page_module
 from telemetry.page import legacy_page_test
 from telemetry import story as story_module
 from telemetry.testing import fakes
+from telemetry.testing import options_for_unittests
 import mock
 
 
@@ -80,23 +81,12 @@ class FailingPage(FakePage):
 
 class BenchmarkRunTest(unittest.TestCase):
   def setUp(self):
-    self.options = fakes.CreateBrowserFinderOptions()
-    benchmarkclass = FakeBenchmark
-    parser = self.options.CreateParser()
-    benchmark_module.AddCommandLineArgs(parser)
-    benchmarkclass.AddCommandLineArgs(parser)
-    options, _ = parser.parse_args([])
-    benchmark_module.ProcessCommandLineArgs(parser, options)
-    benchmarkclass.ProcessCommandLineArgs(parser, options)
-    self.benchmark = benchmarkclass()
-
-    #  Override defaults from parser creation and arg processing.
+    self.options = options_for_unittests.GetRunOptions(
+        output_dir=tempfile.mkdtemp(),
+        benchmark_cls=FakeBenchmark,
+        fake_browser=True)
     self.options.browser_options.platform = fakes.FakeLinuxPlatform()
-    self.options.output_formats = ['none']
-    self.options.suppress_gtest_report = True
-    self.options.output_dir = tempfile.mkdtemp()
-    self.options.upload_bucket = 'public'
-    self.options.upload_results = False
+    self.benchmark = FakeBenchmark()
 
   def tearDown(self):
     shutil.rmtree(self.options.output_dir)
