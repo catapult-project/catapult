@@ -422,6 +422,21 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         _, errors = expectations.parse_tagged_list(test_expectations)
         self.assertIn("Found conflicts for test a/b/c/d:", errors)
 
+    def testConflictsUsingUserDefinedTagsConflictFunction(self):
+        test_expectations = '''# tags: [ win win7  ]
+        # results: [ Failure ]
+        [ win ] a/b/c/d [ Failure ]
+        [ win7 ] a/b/c/d [ Failure ]
+        '''
+        map_child_tag_to_parent_tag = {'win7': 'win'}
+        tags_conflict = lambda t1, t2: (
+            t1 != t2 and t1 != map_child_tag_to_parent_tag.get(t2,t2) and
+            t2 != map_child_tag_to_parent_tag.get(t1,t1))
+        expectations = expectations_parser.TestExpectations()
+        _, errors = expectations.parse_tagged_list(
+            test_expectations, tags_conflict=tags_conflict)
+        self.assertIn("Found conflicts for test a/b/c/d:", errors)
+
     def testNoCollisionInTestExpectations(self):
         test_expectations = '''# tags: [ mac win linux ]
         # tags: [ intel amd nvidia ]
@@ -432,7 +447,8 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         [ nvidia debug ] a/b/c/d [ Failure ]
         '''
         expectations = expectations_parser.TestExpectations()
-        _, errors = expectations.parse_tagged_list(test_expectations, 'test.txt')
+        _, errors = expectations.parse_tagged_list(
+            test_expectations, 'test.txt')
         self.assertFalse(errors)
 
     def testConflictsAllowedIsSetToTrue(self):
