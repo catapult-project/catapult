@@ -8,6 +8,7 @@ import logging
 import sys
 
 from telemetry.command_line import commands
+from telemetry.command_line import utils
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import ps_util
 
@@ -23,7 +24,7 @@ _COMMANDS = {
 }
 
 
-def ArgumentParser(results_arg_parser=None):
+def _ArgumentParsers(environment, results_arg_parser):
   """Build the top level argument parser.
 
   Currently this only defines two (mostly) empty parsers for 'run' and 'list'
@@ -35,32 +36,48 @@ def ArgumentParser(results_arg_parser=None):
   and registered here instead using the corresponding argparse methods.
 
   Args:
+    environment: A ProjectConfig object with information about the benchmark
+      runtime environment.
     results_arg_parser: An optional parser defining extra command line options
       for an external results_processor. These are appended to the options of
       the 'run' command.
+
   Returns:
-    An argparse.ArgumentParser object.
+    A tuple with:
+    - An argparse.ArgumentParser object, the top level arg_parser.
+    - A dictionary mapping command names to their respective legacy opt_parsers.
   """
+  # Build the legacy parser for each available Telemetry command.
+  legacy_parsers = {}
+  for name, command in _COMMANDS.items():
+    opt_parser = command.CreateParser()
+    command.AddCommandLineArgs(opt_parser, environment)
+    legacy_parsers[name] = opt_parser
+
+  # Build the top level argument parser.
   parser = argparse.ArgumentParser(
       description='Command line tool to run performance benchmarks.',
       epilog='To get help about a command use e.g.: %(prog)s run --help')
   subparsers = parser.add_subparsers(dest='command', title='commands')
   subparsers.required = True
 
-  subparsers.add_parser(
-      'run',
-      help='run a benchmark (default)',
-      description='Run a benchmark.',
-      parents=[results_arg_parser] if results_arg_parser else [],
-      add_help=False)
+  def add_subparser(name, **kwargs):
+    kwargs.update(usage=argparse.SUPPRESS,
+                  description=argparse.SUPPRESS,
+                  add_help=False)
+    subparser = subparsers.add_parser(name, **kwargs)
+    subparser.add_argument('-h', '--help', action=utils.MixedHelpAction,
+                           legacy_parser=legacy_parsers[name])
+    return subparser
 
-  subparsers.add_parser(
-      'list',
-      help='list benchmarks or stories',
-      description='List available benchmarks or stories.',
-      add_help=False)
+  add_subparser(
+      'run', help='run a benchmark (default)',
+      parents=[results_arg_parser] if results_arg_parser else [])
 
-  return parser
+  add_subparser(
+      'list', help='list benchmarks or stories')
+
+  return parser, legacy_parsers
 
 
 def ParseArgs(environment, args=None, results_arg_parser=None):
@@ -88,11 +105,10 @@ def ParseArgs(environment, args=None, results_arg_parser=None):
       args.insert(0, 'run')  # Default command.
 
   # TODO(crbug.com/981349): When optparse is gone, this should just call
-  # parse_args on the fully formed parser as returned by.ArgumentParser.
-  # For now we still need allow unknown args, which are then passed below to
-  # the legacy parsers.
-  parser = ArgumentParser(results_arg_parser)
-  parsed_args, unknown = parser.parse_known_args(args)
+  # parse_args on the fully formed top level parser. For now we still need
+  # to allow unknown args, which are then passed below to the legacy parsers.
+  parser, legacy_parsers = _ArgumentParsers(environment, results_arg_parser)
+  parsed_args, unknown_args = parser.parse_known_args(args)
 
   # TODO(crbug.com/981349): Ideally, most of the following should be moved
   # to after argument parsing is completed and before (or at the time) when
@@ -106,13 +122,12 @@ def ParseArgs(environment, args=None, results_arg_parser=None):
   binary_manager.InitDependencyManager(environment.client_configs)
 
   command = _COMMANDS[parsed_args.command]
-  opt_parser = command.CreateParser()
-  command.AddCommandLineArgs(opt_parser, environment)
+  opt_parser = legacy_parsers[parsed_args.command]
 
   # Set the default chrome root variable.
   opt_parser.set_defaults(chrome_root=environment.default_chrome_root)
 
-  options, positional_args = opt_parser.parse_args(unknown)
+  options, positional_args = opt_parser.parse_args(unknown_args)
   options.positional_args = positional_args
   command.ProcessCommandLineArgs(opt_parser, options, environment)
 

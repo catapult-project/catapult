@@ -130,7 +130,7 @@ class ParseArgsTests(unittest.TestCase):
         'no such option: --non-existent-option')
 
   def testRunBenchmark_ExternalOption(self):
-    my_parser = argparse.ArgumentParser()
+    my_parser = argparse.ArgumentParser(add_help=False)
     my_parser.add_argument('--extra-special-option', action='store_true')
 
     args = parser.ParseArgs(
@@ -142,7 +142,7 @@ class ParseArgsTests(unittest.TestCase):
     self.assertTrue(args.extra_special_option)
 
   def testListBenchmarks_NoExternalOptions(self):
-    my_parser = argparse.ArgumentParser()
+    my_parser = argparse.ArgumentParser(add_help=False)
     my_parser.add_argument('--extra-special-option', action='store_true')
 
     with self.assertRaises(ParserError):
@@ -152,3 +152,25 @@ class ParseArgsTests(unittest.TestCase):
           results_arg_parser=my_parser)
     self._optparse_error.assert_called_with(
         'no such option: --extra-special-option')
+
+  def testRunBenchmark_WithExternalHelp(self):
+    """Test `run --help` message includes both our and external options."""
+    my_parser = argparse.ArgumentParser(add_help=False)
+    my_parser.add_argument('--extra-special-option', action='store_true')
+
+    with self.assertRaises(ParserExit):
+      parser.ParseArgs(
+          self.config, ['run', '--help'], results_arg_parser=my_parser)
+    self.assertIn('--browser=BROWSER_TYPE', sys.stdout.getvalue())
+    self.assertIn('--extra-special-option', sys.stdout.getvalue())
+
+  def testListBenchmarks_WithExternalHelp(self):
+    """Test `list --help` message does not include external options."""
+    my_parser = argparse.ArgumentParser(add_help=False)
+    my_parser.add_argument('--extra-special-option', action='store_true')
+
+    with self.assertRaises(ParserExit):
+      parser.ParseArgs(
+          self.config, ['list', '--help'], results_arg_parser=my_parser)
+    self.assertIn('--browser=BROWSER_TYPE', sys.stdout.getvalue())
+    self.assertNotIn('--extra-special-option', sys.stdout.getvalue())
