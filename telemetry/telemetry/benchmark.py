@@ -114,8 +114,8 @@ class Benchmark(command_line.Command):
     default_values = parser.get_default_values()
     invalid_options = [o for o in cls.options if not hasattr(default_values, o)]
     if invalid_options:
-      raise InvalidOptionsError('Invalid benchmark options: %s',
-                                ', '.join(invalid_options))
+      raise InvalidOptionsError(
+          'Invalid benchmark options: %s' % ', '.join(invalid_options))
     parser.set_defaults(**cls.options)
 
   @classmethod
