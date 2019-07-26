@@ -5,3 +5,6 @@
 from telemetry.command_line.parser import ParseArgs
 from telemetry.command_line.parser import RunCommand
 from telemetry.command_line.parser import main
+
+# Expose the list of output formats still supported by Telemetry.
+from telemetry.internal.results.results_options import LEGACY_OUTPUT_FORMATS

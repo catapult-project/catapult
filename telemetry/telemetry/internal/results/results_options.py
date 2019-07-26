@@ -17,16 +17,17 @@ from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import json_3_output_formatter
 from telemetry.internal.results import page_test_results
 
-# Allowed output formats. The default is the first item in the list.
 
-_OUTPUT_FORMAT_CHOICES = (
+# List of formats supported by our legacy output formatters.
+# TODO(crbug.com/981349): Should be eventually replaced entirely by the results
+# processor in tools/perf.
+LEGACY_OUTPUT_FORMATS = (
     'chartjson',
     'csv',
     'histograms',
     'html',
     'json-test-results',
-    'none',
-    )
+    'none')
 
 _DEFAULT_OUTPUT_FORMAT = 'html'
 
@@ -42,15 +43,18 @@ _OUTPUT_FILENAME_LOOKUP = {
 
 
 def AddResultsOptions(parser):
+  if parser.defaults.get('external_results_processor'):
+    return
+
   group = optparse.OptionGroup(parser, 'Results options')
   group.add_option(
       '--output-format',
       action='append',
       dest='output_formats',
-      choices=_OUTPUT_FORMAT_CHOICES,
+      choices=LEGACY_OUTPUT_FORMATS,
       default=[],
       help='Output format. Defaults to "%%default". '
-      'Can be %s.' % ', '.join(_OUTPUT_FORMAT_CHOICES))
+      'Can be %s.' % ', '.join(LEGACY_OUTPUT_FORMATS))
   group.add_option(
       '--output-dir',
       default=util.GetBaseDir(),
@@ -75,8 +79,20 @@ def AddResultsOptions(parser):
   parser.add_option_group(group)
 
 
-def ProcessCommandLineArgs(args):
-  args.output_dir = os.path.expanduser(args.output_dir)
+def ProcessCommandLineArgs(options):
+  if options.external_results_processor:
+    return
+
+  options.output_dir = os.path.expanduser(options.output_dir)
+
+  if options.upload_results:
+    options.upload_bucket = cloud_storage.BUCKET_ALIASES.get(
+        options.upload_bucket, options.upload_bucket)
+  else:
+    options.upload_bucket = None
+
+  if not options.output_formats:
+    options.output_formats = [_DEFAULT_OUTPUT_FORMAT]
 
 
 def _GetOutputStream(output_format, output_dir):
@@ -116,23 +132,19 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
   if not os.path.exists(options.output_dir):
     os.makedirs(options.output_dir)
 
-  if not options.output_formats:
-    options.output_formats = [_DEFAULT_OUTPUT_FORMAT]
-
-  upload_bucket = None
-  if options.upload_results:
-    upload_bucket = options.upload_bucket
-    if upload_bucket in cloud_storage.BUCKET_ALIASES:
-      upload_bucket = cloud_storage.BUCKET_ALIASES[upload_bucket]
+  if options.external_results_processor:
+    output_formats = options.legacy_output_formats
+  else:
+    output_formats = options.output_formats
 
   output_formatters = []
-  for output_format in options.output_formats:
+  for output_format in output_formats:
     if output_format == 'none':
       continue
     output_stream = _GetOutputStream(output_format, options.output_dir)
     if output_format == 'html':
       output_formatters.append(html_output_formatter.HtmlOutputFormatter(
-          output_stream, options.reset_results, upload_bucket))
+          output_stream, options.reset_results, options.upload_bucket))
     elif output_format == 'json-test-results':
       output_formatters.append(json_3_output_formatter.JsonOutputFormatter(
           output_stream))
@@ -149,8 +161,7 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
               output_stream, options.reset_results))
     else:
       # Should never be reached. The parser enforces the choices.
-      raise Exception('Invalid --output-format "%s". Valid choices are: %s'
-                      % (output_format, ', '.join(_OUTPUT_FORMAT_CHOICES)))
+      raise NotImplementedError(output_format)
 
   return page_test_results.PageTestResults(
       output_formatters=output_formatters,
@@ -159,5 +170,5 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
       should_add_value=should_add_value,
       benchmark_name=benchmark_name,
       benchmark_description=benchmark_description,
-      upload_bucket=upload_bucket,
+      upload_bucket=options.upload_bucket,
       results_label=options.results_label)

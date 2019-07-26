@@ -68,6 +68,12 @@ class BrowserFinderOptions(optparse.Values):
   def CreateParser(self, *args, **kwargs):
     parser = optparse.OptionParser(*args, **kwargs)
 
+    # Options to interact with a potential external results processor.
+    parser.set_defaults(
+        external_results_processor=False,
+        output_formats=[],
+        legacy_output_formats=[])
+
     # Selection group
     group = optparse.OptionGroup(parser, 'Which browser to use')
     group.add_option(

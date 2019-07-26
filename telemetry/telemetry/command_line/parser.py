@@ -51,6 +51,8 @@ def _ArgumentParsers(environment, results_arg_parser):
   legacy_parsers = {}
   for name, command in _COMMANDS.items():
     opt_parser = command.CreateParser()
+    opt_parser.set_defaults(
+        external_results_processor=results_arg_parser is not None)
     command.AddCommandLineArgs(opt_parser, environment)
     legacy_parsers[name] = opt_parser
 
