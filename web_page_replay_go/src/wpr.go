@@ -80,6 +80,7 @@ type ReplayCommand struct {
 	// Custom flags for replay.
 	rulesFile                            string
 	serveResponseInChronologicalSequence bool
+	quietMode                            bool
 }
 
 type RootCACommand struct {
@@ -203,6 +204,12 @@ func (r *ReplayCommand) Flags() []cli.Flag {
 				"recorded response, and the second request with the " +
 				"second recorded response.",
 			Destination: &r.serveResponseInChronologicalSequence,
+		},
+		cli.BoolFlag{
+			Name:        "quiet_mode",
+			Usage:       "quiets the logging output by not logging the "+
+			  "ServeHTTP url call and responses",
+			Destination: &r.quietMode,
 		})
 }
 
@@ -417,8 +424,8 @@ func (r *ReplayCommand) Run(c *cli.Context) {
 		log.Printf("Loaded replay rules from %s", r.rulesFile)
 	}
 
-	httpHandler := webpagereplay.NewReplayingProxy(archive, "http", r.common.transformers)
-	httpsHandler := webpagereplay.NewReplayingProxy(archive, "https", r.common.transformers)
+	httpHandler := webpagereplay.NewReplayingProxy(archive, "http", r.common.transformers, r.quietMode)
+	httpsHandler := webpagereplay.NewReplayingProxy(archive, "https", r.common.transformers, r.quietMode)
 	tlsconfig, err := webpagereplay.ReplayTLSConfig(r.common.root_cert, archive)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating TLSConfig: %v", err)
