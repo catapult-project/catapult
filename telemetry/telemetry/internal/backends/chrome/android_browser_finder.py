@@ -292,6 +292,14 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       self._platform_backend.device.SetWebViewImplementation(
           android_browser_backend_settings.ANDROID_CHROME.package)
 
+  def GetTypExpectationsTags(self):
+    tags = super(PossibleAndroidBrowser, self).GetTypExpectationsTags()
+    if 'webview' in self.browser_type:
+      tags.append('android-webview')
+    else:
+      tags.append('android-not-webview')
+    return tags
+
 
 def SelectDefaultBrowser(possible_browsers):
   """Return the newest possible browser."""

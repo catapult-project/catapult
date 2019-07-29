@@ -25,3 +25,8 @@ class DesktopPlatformBackend(platform_backend.PlatformBackend):
 
   def GetDeviceTypeName(self):
     return 'Desktop'
+
+  def GetTypExpectationsTags(self):
+    tags = super(DesktopPlatformBackend, self).GetTypExpectationsTags()
+    tags.append('desktop')
+    return tags

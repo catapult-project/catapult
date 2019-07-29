@@ -262,11 +262,16 @@ class AndroidPlatformBackend(
   def GetTypExpectationsTags(self):
     # telemetry benchmark's expectations need to know the model name
     # and if it is a svelte (low memory) build
+    device_type_name = self.GetDeviceTypeName()
+    is_svelte = self.IsSvelte()
     tags = super(AndroidPlatformBackend, self).GetTypExpectationsTags()
     tags += test_utils.sanitizeTypExpectationsTags(
-        ['android-' + self.GetDeviceTypeName()])
-    if self.IsSvelte():
+        ['android-' + device_type_name])
+    if is_svelte:
       tags.append('android-svelte')
+    if device_type_name in ['gobo', 'W6210'] or is_svelte:
+      tags.append('android-low-end')
+    tags.append('mobile')
     return tags
 
   @decorators.Cache

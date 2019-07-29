@@ -128,3 +128,8 @@ class CrosPlatformBackend(
 
   def TakeScreenshot(self, file_path):
     return self._cri.TakeScreenshot(file_path)
+
+  def GetTypExpectationsTags(self):
+    tags = super(CrosPlatformBackend, self).GetTypExpectationsTags()
+    tags.append('desktop')
+    return tags

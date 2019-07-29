@@ -50,12 +50,33 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         android_device.AndroidDevice('12345'), True)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
-  def testTypExpectationsTagsIncludesSvelteTag(self):
+  def testTypExpectationsTagsIncludesSvelteTagAndLowEndTag(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='svelte'):
       backend = self.CreatePlatformBackendForTest()
-      self.assertIn(
-          'android-svelte', backend.GetTypExpectationsTags())
+      tags = backend.GetTypExpectationsTags()
+      self.assertIn('android-svelte', tags)
+      self.assertIn('android-low-end', tags)
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
+  def testTypExpectationsTagsIncludesAndroidLowEndTagForGobo(self):
+    backend = self.CreatePlatformBackendForTest()
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    return_value='foo'):
+      with mock.patch.object(backend, 'GetDeviceTypeName',
+                             return_value='gobo'):
+        self.assertIn(
+            'android-low-end', backend.GetTypExpectationsTags())
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
+  def testTypExpectationsTagsIncludesAndroidLowEndTagForW6210(self):
+    backend = self.CreatePlatformBackendForTest()
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    return_value='foo'):
+      with mock.patch.object(backend, 'GetDeviceTypeName',
+                             return_value='W6210'):
+        self.assertIn(
+            'android-low-end', backend.GetTypExpectationsTags())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testTypExpectationsDoesNotIncludeSvelteTag(self):
@@ -73,6 +94,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
       with mock.patch.object(backend, 'GetDeviceTypeName',
                              return_value='AOSP on Shamu'):
         self.assertIn('android-AOSP-on-Shamu', backend.GetTypExpectationsTags())
+        self.assertIn('mobile', backend.GetTypExpectationsTags())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsSvelte(self):

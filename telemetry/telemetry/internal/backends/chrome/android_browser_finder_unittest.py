@@ -173,6 +173,34 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
       possible_browser.UpdateExecutableIfNeeded()
       m.assert_called_with('foo_bundle', modules=set(['base']))
 
+  def testAndroid_Not_WebviewTagInTypExpectationsTags(self):
+    self.finder_options.modules_to_install = ['base']
+    self.fs.CreateFile('foo_bundle')
+    with mock.patch.object(self.fake_platform,
+                           'GetTypExpectationsTags', return_value=['android']):
+      possible_browser = android_browser_finder.PossibleAndroidBrowser(
+          'android-chromium-bundle', self.finder_options, self.fake_platform,
+          android_browser_backend_settings.ANDROID_CHROMIUM_BUNDLE,
+          'foo_bundle')
+      self.assertIn('android-not-webview',
+                    possible_browser.GetTypExpectationsTags())
+      self.assertIn('android',
+                    possible_browser.GetTypExpectationsTags())
+
+  def testAndroidWebviewTagInTypExpectationsTags(self):
+    self.finder_options.modules_to_install = ['base']
+    self.fs.CreateFile('foo_bundle')
+    with mock.patch.object(self.fake_platform,
+                           'GetTypExpectationsTags', return_value=['android']):
+      possible_browser = android_browser_finder.PossibleAndroidBrowser(
+          'android-webview-google', self.finder_options, self.fake_platform,
+          android_browser_backend_settings.ANDROID_WEBVIEW_GOOGLE,
+          'foo_bundle')
+      self.assertIn('android-webview',
+                    possible_browser.GetTypExpectationsTags())
+      self.assertIn('android',
+                    possible_browser.GetTypExpectationsTags())
+
   def testModulesNotPassedToInstallApplicationForApk(self):
     self.finder_options.modules_to_install = ['base']
     self.fs.CreateFile('foo.apk')
