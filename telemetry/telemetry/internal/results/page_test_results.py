@@ -79,6 +79,9 @@ class PageTestResults(object):
     self._interruption = None
     self._results_label = results_label
     self._histogram_dicts_to_add = []
+    # Tracks whether results have already been outputted to prevent them from
+    # being outputted again.
+    self._results_outputted = False
 
   @property
   def benchmark_name(self):
@@ -227,6 +230,7 @@ class PageTestResults(object):
     return self
 
   def __exit__(self, _, __, ___):
+    self.PrintSummary()
     self.CloseOutputFormatters()
 
   def WillRunPage(self, page, story_run_index=0):
@@ -423,6 +427,10 @@ class PageTestResults(object):
     assert value.IsMergableWith(representative_value)
 
   def PrintSummary(self):
+    if self._results_outputted:
+      raise RuntimeError('Test results should only be outputted once.')
+    self._results_outputted = True
+
     self._progress_reporter.DidFinishAllStories(self)
 
     # Only serialize the trace if output_format is json or html.

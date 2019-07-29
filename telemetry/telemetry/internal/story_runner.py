@@ -13,7 +13,6 @@ import time
 
 import py_utils
 from py_utils import cloud_storage  # pylint: disable=import-error
-from py_utils import memory_debug  # pylint: disable=import-error
 from py_utils import logging_util  # pylint: disable=import-error
 
 from telemetry.core import exceptions
@@ -421,8 +420,8 @@ def _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
       benchmark_name=benchmark.Name(),
       benchmark_description=benchmark.Description(),
       report_progress=not finder_options.suppress_gtest_report,
-      should_add_value=benchmark.ShouldAddValue) as results:
-    results.PrintSummary()
+      should_add_value=benchmark.ShouldAddValue):
+    pass
   return False
 
 
@@ -494,12 +493,8 @@ def RunBenchmark(benchmark, finder_options):
       results.AddSharedDiagnosticToAllHistograms(
           reserved_infos.DOCUMENTATION_URLS.name, benchmark_documentation_url)
 
-    try:
-      if finder_options.upload_results:
-        results_processor.UploadArtifactsToCloud(results)
-    finally:
-      memory_debug.LogHostMemoryUsage()
-      results.PrintSummary()
+    if finder_options.upload_results:
+      results_processor.UploadArtifactsToCloud(results)
   return return_code
 
 def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
