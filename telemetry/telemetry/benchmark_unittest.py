@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 import optparse
+import shutil
+import tempfile
 import unittest
 
 from telemetry import android
@@ -42,6 +44,11 @@ class BenchmarkTest(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
     cls._options = options_for_unittests.GetRunOptions()
+    cls._options.output_dir = tempfile.mkdtemp()
+
+  @classmethod
+  def tearDownClass(cls):
+    shutil.rmtree(cls._options.output_dir)
 
   @classmethod
   def GetOptions(cls):
