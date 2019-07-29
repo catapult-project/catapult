@@ -142,10 +142,16 @@ class AndroidPlatformBackend(
         self._device, package, filename, use_encrypted_path=use_encrypted_path)
 
   def IsSvelte(self):
+    # TODO (crbug.com/973936) This function is used to find out if expectations
+    # with the Android_Svelte tag should apply to a certain build in the old
+    # expectations format. Instead of eliminating the Android_Svelte tag in the
+    # old format, we should wait until we change the expectations into the new
+    # format. And then we can get rid of this function.
     description = self._device.GetProp('ro.build.description', cache=True)
-    if description is not None:
-      return 'svelte' in description
-    return False
+    return description and 'svelte' in description
+
+  def IsLowEnd(self):
+    return self.IsSvelte() or self.GetDeviceTypeName() in ('gobo', 'W6210')
 
   def IsAosp(self):
     description = self._device.GetProp('ro.build.description', cache=True)
@@ -261,15 +267,12 @@ class AndroidPlatformBackend(
 
   def GetTypExpectationsTags(self):
     # telemetry benchmark's expectations need to know the model name
-    # and if it is a svelte (low memory) build
-    device_type_name = self.GetDeviceTypeName()
-    is_svelte = self.IsSvelte()
+    # and if it is a low end device
     tags = super(AndroidPlatformBackend, self).GetTypExpectationsTags()
+    device_type_name = self.GetDeviceTypeName()
     tags += test_utils.sanitizeTypExpectationsTags(
         ['android-' + device_type_name])
-    if is_svelte:
-      tags.append('android-svelte')
-    if device_type_name in ['gobo', 'W6210'] or is_svelte:
+    if self.IsLowEnd():
       tags.append('android-low-end')
     tags.append('mobile')
     return tags

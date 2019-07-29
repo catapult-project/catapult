@@ -51,8 +51,8 @@ class AndroidPlatform(platform.Platform):
     return self._platform_backend.GetSharedPrefs(
         package, filename, use_encrypted_path=use_encrypted_path)
 
-  def IsSvelte(self):
-    return self._platform_backend.IsSvelte()
+  def IsLowEnd(self):
+    return self._platform_backend.IsLowEnd()
 
   def IsAosp(self):
     return self._platform_backend.IsAosp()

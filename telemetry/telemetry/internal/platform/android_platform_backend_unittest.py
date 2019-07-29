@@ -50,12 +50,11 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         android_device.AndroidDevice('12345'), True)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
-  def testTypExpectationsTagsIncludesSvelteTagAndLowEndTag(self):
+  def testTypExpectationsTagsContainsLowEndTagForSvelteBuild(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='svelte'):
       backend = self.CreatePlatformBackendForTest()
       tags = backend.GetTypExpectationsTags()
-      self.assertIn('android-svelte', tags)
       self.assertIn('android-low-end', tags)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
@@ -79,12 +78,12 @@ class AndroidPlatformBackendTest(unittest.TestCase):
             'android-low-end', backend.GetTypExpectationsTags())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
-  def testTypExpectationsDoesNotIncludeSvelteTag(self):
+  def testTypExpectationsDoesNotIncludeLowEndTagForNonSvelteBuild(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='foo'):
       backend = self.CreatePlatformBackendForTest()
       self.assertNotIn(
-          'android-svelte', backend.GetTypExpectationsTags())
+          'android-low-end', backend.GetTypExpectationsTags())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testTypExpectationsTagsIncludesAndroidModel(self):
