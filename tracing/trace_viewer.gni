@@ -95,7 +95,7 @@ tracing_js_html_files = [
   "tracing/extras/chrome/largest_contentful_paint.html",
   "tracing/extras/chrome/layout_object.html",
   "tracing/extras/chrome/layout_tree.html",
-  "tracing/extras/chrome/screenshots_based_speed_index.html",
+  "tracing/extras/chrome/speed_index_utils.html",
   "tracing/extras/chrome/time_to_interactive.html",
   "tracing/extras/chrome_config.html",
   "tracing/extras/cpu/cpu_usage_auditor.html",
