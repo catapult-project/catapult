@@ -34,31 +34,36 @@ found in the LICENSE file.
             <th>Repro
             <th>No repro
             <th>Failed
+            <th>Cancelled
         <tbody>
           <tr>
             <th>Bisects last 7 days
-            <td>[[completedCount(jobs, 1, 7)]]
+            <td>[[completedCount(jobs, 'performance', 7)]]
             <td>[[reproJobs(jobs, 7)]]
             <td>[[noReproJobs(jobs, 7)]]
-            <td>[[failedJobs(jobs, 1, 7)]]
+            <td>[[failedJobs(jobs, 'performance', 7)]]
+            <td>[[cancelledJobs(jobs, 'performance', 7)]]
           <tr>
             <th>Bisects last 28 days
-            <td>[[completedCount(jobs, 1, 28)]]
+            <td>[[completedCount(jobs, 'performance', 28)]]
             <td>[[reproJobs(jobs, 28)]]
             <td>[[noReproJobs(jobs, 28)]]
-            <td>[[failedJobs(jobs, 1, 28)]]
+            <td>[[failedJobs(jobs, 'performance', 28)]]
+            <td>[[cancelledJobs(jobs, 'performance', 28)]]
           <tr>
             <th>Try jobs last 7 days
-            <td>[[completedCount(jobs, 0, 7)]]
+            <td>[[completedCount(jobs, 'try', 7)]]
             <td>
             <td>
-            <td>[[failedJobs(jobs, 0, 7)]]
+            <td>[[failedJobs(jobs, 'try', 7)]]
+            <td>[[cancelledJobs(jobs, 'try', 1)]]
           <tr>
             <th>Try jobs last 28 days
-            <td>[[completedCount(jobs, 0, 28)]]
+            <td>[[completedCount(jobs, 'try', 28)]]
             <td>
             <td>
-            <td>[[failedJobs(jobs, 0, 28)]]
+            <td>[[failedJobs(jobs, 'try', 28)]]
+            <td>[[cancelledJobs(jobs, 'try', 28)]]
       </table>
 
       <h2>Latency</h2>
@@ -75,35 +80,35 @@ found in the LICENSE file.
         <tbody>
           <tr>
             <th>Bisects last 7 days
-            <td>[[completedCount(jobs, 1, 7)]]
-            <td>[[completedDuration(jobs, 1, 7, 0.50)]]
-            <td>[[completedDuration(jobs, 1, 7, 0.75)]]
-            <td>[[completedDuration(jobs, 1, 7, 0.90)]]
-            <td>[[completedDuration(jobs, 1, 7, 0.99)]]
+            <td>[[completedCount(jobs, 'performance', 7)]]
+            <td>[[completedDuration(jobs, 'performance', 7, 0.50)]]
+            <td>[[completedDuration(jobs, 'performance', 7, 0.75)]]
+            <td>[[completedDuration(jobs, 'performance', 7, 0.90)]]
+            <td>[[completedDuration(jobs, 'performance', 7, 0.99)]]
             <td><svg id="bisectDurations7"></svg>
           <tr>
             <th>Bisects last 28 days
-            <td>[[completedCount(jobs, 1, 28)]]
-            <td>[[completedDuration(jobs, 1, 28, 0.50)]]
-            <td>[[completedDuration(jobs, 1, 28, 0.75)]]
-            <td>[[completedDuration(jobs, 1, 28, 0.90)]]
-            <td>[[completedDuration(jobs, 1, 28, 0.99)]]
+            <td>[[completedCount(jobs, 'performance', 28)]]
+            <td>[[completedDuration(jobs, 'performance', 28, 0.50)]]
+            <td>[[completedDuration(jobs, 'performance', 28, 0.75)]]
+            <td>[[completedDuration(jobs, 'performance', 28, 0.90)]]
+            <td>[[completedDuration(jobs, 'performance', 28, 0.99)]]
             <td><svg id="bisectDurations28"></svg>
           <tr>
             <th>Try jobs last 7 days
-            <td>[[completedCount(jobs, 0, 7)]]
-            <td>[[completedDuration(jobs, 0, 7, 0.50)]]
-            <td>[[completedDuration(jobs, 0, 7, 0.75)]]
-            <td>[[completedDuration(jobs, 0, 7, 0.90)]]
-            <td>[[completedDuration(jobs, 0, 7, 0.99)]]
+            <td>[[completedCount(jobs, 'try', 7)]]
+            <td>[[completedDuration(jobs, 'try', 7, 0.50)]]
+            <td>[[completedDuration(jobs, 'try', 7, 0.75)]]
+            <td>[[completedDuration(jobs, 'try', 7, 0.90)]]
+            <td>[[completedDuration(jobs, 'try', 7, 0.99)]]
             <td><svg id="tryDurations7"></svg>
           <tr>
             <th>Try jobs last 28 days
-            <td>[[completedCount(jobs, 0, 28)]]
-            <td>[[completedDuration(jobs, 0, 28, 0.50)]]
-            <td>[[completedDuration(jobs, 0, 28, 0.75)]]
-            <td>[[completedDuration(jobs, 0, 28, 0.90)]]
-            <td>[[completedDuration(jobs, 0, 28, 0.99)]]
+            <td>[[completedCount(jobs, 'try', 28)]]
+            <td>[[completedDuration(jobs, 'try', 28, 0.50)]]
+            <td>[[completedDuration(jobs, 'try', 28, 0.75)]]
+            <td>[[completedDuration(jobs, 'try', 28, 0.90)]]
+            <td>[[completedDuration(jobs, 'try', 28, 0.99)]]
             <td><svg id="tryDurations28"></svg>
       </table>
     </loading-wrapper>
@@ -111,6 +116,8 @@ found in the LICENSE file.
 
   <script>
     'use strict';
+    // This is a list of status messages we'll consider "completed" for a job.
+    const completedStatusList = ['failed', 'cancelled', 'completed'];
     Polymer({
       is: 'stats-page',
 
@@ -126,12 +133,18 @@ found in the LICENSE file.
       },
 
       drawDurationHistograms() {
-        const bisectDurations7Days = this.completedDurations(this.jobs, true, 7);
-        const bisectDurations28Days = this.completedDurations(this.jobs, true, 28);
-        const tryDurations7Days = this.completedDurations(this.jobs, false, 7);
-        const tryDurations28Days = this.completedDurations(this.jobs, false, 28);
-        drawHistogram(d3.select(this.$.bisectDurations7), bisectDurations7Days);
-        drawHistogram(d3.select(this.$.bisectDurations28), bisectDurations28Days);
+        const bisectDurations7Days =
+            this.completedDurations(this.jobs, 'performance', 7);
+        const bisectDurations28Days =
+            this.completedDurations(this.jobs, 'performance', 28);
+        const tryDurations7Days =
+            this.completedDurations(this.jobs, 'try', 7);
+        const tryDurations28Days =
+            this.completedDurations(this.jobs, 'try', 28);
+        drawHistogram(
+            d3.select(this.$.bisectDurations7), bisectDurations7Days);
+        drawHistogram(
+            d3.select(this.$.bisectDurations28), bisectDurations28Days);
         drawHistogram(d3.select(this.$.tryDurations7), tryDurations7Days);
         drawHistogram(d3.select(this.$.tryDurations28), tryDurations28Days);
       },
@@ -142,20 +155,30 @@ found in the LICENSE file.
 
       failedJobs(jobs, comparisonMode, days) {
         const completedJobs = this.completedJobs(jobs, comparisonMode, days);
-        const failedJobs = completedJobs.filter(job => job.failed);
+        const failedJobs = completedJobs.filter(
+            job => job.status.toLowerCase() === 'failed');
         return formatPercent(failedJobs.length, completedJobs.length);
       },
 
+      cancelledJobs(jobs, comparisonMode, days) {
+        const completedJobs = this.completedJobs(jobs, comparisonMode, days);
+        const cancelledJobs = completedJobs.filter(
+            job => job.status.toLowerCase() === 'cancelled');
+        return formatPercent(cancelledJobs.length, completedJobs.length);
+      },
+
       noReproJobs(jobs, days) {
-        const completedJobs = this.completedJobs(jobs, true, days);
-        const passedJobs = completedJobs.filter(job => !job.failed);
+        const completedJobs = this.completedJobs(jobs, 'performance', days);
+        const passedJobs = completedJobs.filter(
+            job => job.status.toLowerCase() === 'completed');
         const noReproJobs = passedJobs.filter(job => job.difference_count == 0);
         return formatPercent(noReproJobs.length, completedJobs.length);
       },
 
       reproJobs(jobs, days) {
-        const completedJobs = this.completedJobs(jobs, true, days);
-        const passedJobs = completedJobs.filter(job => !job.failed);
+        const completedJobs = this.completedJobs(jobs, 'performance', days);
+        const passedJobs = completedJobs.filter(
+            job => job.status.toLowerCase() === 'completed');
         const reproJobs = passedJobs.filter(job => job.difference_count > 0);
         return formatPercent(reproJobs.length, completedJobs.length);
       },
@@ -168,8 +191,11 @@ found in the LICENSE file.
       },
 
       completedDurations(jobs, comparisonMode, days) {
-        jobs = this.completedJobs(jobs, comparisonMode, days);
-        const durations = jobs.map(function(job) {
+        const completedJobs = this.completedJobs(jobs, comparisonMode, days);
+        // Filter out the cancelled jobs.
+        const finishedJobs = completedJobs.filter(
+            job => job.status.toLowerCase() !== 'cancelled');
+        const durations = finishedJobs.map(function(job) {
           const durationMs =
               new Date(job.updated + 'Z') - new Date(job.created + 'Z');
           return durationMs / 1000 / 60 / 60;
@@ -180,12 +206,10 @@ found in the LICENSE file.
       completedJobs(jobs, comparisonMode, days) {
         const now = Date.now();
         const daysInMs = days * 24 * 60 * 60 * 1000;
-        jobs = jobs.filter(function(job) {
-          return now - new Date(job.created + 'Z') < daysInMs;
-        });
-
-        jobs = jobs.filter(job => job.completed);
-        return jobs.filter(job => !!job.comparison_mode == !!comparisonMode);
+        return jobs.filter(job =>
+          (now - new Date(job.created + 'Z')) < daysInMs &&
+          completedStatusList.indexOf(job.status.toLowerCase()) !== -1 &&
+          job.comparison_mode === comparisonMode);
       },
     });
 
