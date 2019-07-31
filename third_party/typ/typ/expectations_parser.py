@@ -415,6 +415,26 @@ class TestExpectations(object):
                                   (e1.lineno, e2.lineno))
         return error_msg
 
+    @staticmethod
+    def get_broken_expectations(patterns_to_exps, trie):
+        exps_dont_apply = []
+        for pattern, exps in patterns_to_exps.items():
+            _trie = trie
+            is_glob = False
+            broken_exp = False
+            for l in pattern:
+                if l == '*':
+                    is_glob = True
+                    break
+                if l not in _trie:
+                    exps_dont_apply.extend(exps)
+                    broken_exp = True
+                    break
+                _trie = _trie[l]
+            if not broken_exp and not is_glob and '$' not in _trie:
+                exps_dont_apply.extend(exps)
+        return exps_dont_apply
+
     def check_for_broken_expectations(self, test_names):
         # It returns a list expectations that do not apply to any test names in
         # the test_names list.
@@ -430,27 +450,8 @@ class TestExpectations(object):
             _trie.setdefault('$', {})
 
         broken_expectations = []
-
-        def _get_broken_expectations(patterns_to_exps):
-            exps_dont_apply = []
-            for pattern, exps in patterns_to_exps.items():
-                _trie = trie
-                is_glob = False
-                broken_exp = False
-                for l in pattern:
-                    if l == '*':
-                        is_glob = True
-                        break
-                    if l not in _trie:
-                        exps_dont_apply.extend(exps)
-                        broken_exp = True
-                        break
-                    _trie = _trie[l]
-                if not broken_exp and not is_glob and '$' not in _trie:
-                    exps_dont_apply.extend(exps)
-            return exps_dont_apply
-
-        broken_expectations.extend(_get_broken_expectations(self.glob_exps))
         broken_expectations.extend(
-            _get_broken_expectations(self.individual_exps))
+            self.get_broken_expectations(self.glob_exps, trie))
+        broken_expectations.extend(
+            self.get_broken_expectations(self.individual_exps, trie))
         return broken_expectations
