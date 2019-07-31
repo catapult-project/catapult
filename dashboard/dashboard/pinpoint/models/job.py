@@ -26,6 +26,7 @@ from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models import results2
 from dashboard.pinpoint.models import scheduler
+from dashboard.pinpoint.models import timing_record
 from dashboard.services import gerrit_service
 from dashboard.services import issue_tracker_service
 
@@ -436,6 +437,10 @@ class Job(ndb.Model):
       # Don't use `auto_now` for `updated`. When we do data migration, we need
       # to be able to modify the Job without changing the Job's completion time.
       self.updated = datetime.datetime.now()
+
+      if self.completed:
+        timing_record.RecordJobTiming(self)
+
       try:
         self.put()
       except (datastore_errors.Timeout,

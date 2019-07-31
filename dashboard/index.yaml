@@ -244,3 +244,10 @@ indexes:
   ancestor: yes
   properties:
     - name: configuration
+
+# Used in Pinpoint to query for timing stats.
+- kind: TimingRecord
+  properties:
+  - name: tags
+  - name: completed
+    direction: desc
