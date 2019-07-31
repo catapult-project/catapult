@@ -122,6 +122,145 @@ tr.exportTo('tr.e.chrome', function() {
       SpeedIndex.getSnapshotsProgress_(timestampedColorHistograms);
       return SpeedIndex.speedIndexFromSnapshotsProgress_(snapshotsProgress);
     }
+
+    /**
+    * @param lineSweepRects - an array of rectangles, where each rect has the
+    * form: {left, right, top, bottom}
+    * @param viewport - a viewport object. In the form: {x, y, width, height}
+    * @return {number} - the area of the visible part of the union of the
+    * rectangles given.
+    */
+    static lineSweep(lineSweepRects, viewport) {
+      // Stores left and right edges of the rects.
+      const verticalSweepEdges = [];
+      // Stores top and bottom edges of the rects.
+      const horizontalSweepEdges = [];
+      for (let i = 0; i < lineSweepRects.length; i++) {
+        const rect = lineSweepRects[i];
+        let left = rect.left;
+        let right = rect.right;
+        let top = rect.top;
+        let bottom = rect.bottom;
+        if (left > viewport.x + viewport.width) continue;
+        if (right < viewport.x) continue;
+        if (top > viewport.y + viewport.height) continue;
+        if (bottom < viewport.y) continue;
+
+        left = Math.max(left, viewport.y);
+        right = Math.min(right, viewport.y + viewport.width);
+        top = Math.max(top, viewport.y);
+        // y coordinate increases towards the bottom.
+        bottom = Math.min(bottom, viewport.y + viewport.height);
+
+        verticalSweepEdges.push({id: i, value: left, type: 'left'},
+            {id: i, value: right, type: 'right'});
+        horizontalSweepEdges.push({id: i, value: top, type: 'top'},
+            {id: i, value: bottom, type: 'bottom'});
+      }
+
+      verticalSweepEdges.sort((a, b) => a.value - b.value);
+      horizontalSweepEdges.sort((a, b) => a.value - b.value);
+
+      // A rectangle becomes active once we enter it (encounter its left edge).
+      // And goes back to being inactive once we leave it (encounter its right
+      // edge).
+      const active = new Array(lineSweepRects.length).fill(false);
+      let area = 0;
+      // Begin vertical sweep from left to right.
+      active[verticalSweepEdges[0].id] = true;
+      for (let i = 1; i < verticalSweepEdges.length; i++) {
+        const currentLine = verticalSweepEdges[i];
+        const previousLine = verticalSweepEdges[i - 1];
+        const deltaX = currentLine.value - previousLine.value;
+        // We could encounter this case if two rectangles start at the same x
+        // value.
+        if (deltaX === 0) continue;
+        let count = 0;
+        let firstRect;
+        // Begin horizontal sweep from top to bottom.
+        for (let j = 0; j < horizontalSweepEdges.length; j++) {
+          // Check whether the current rectangle is active.
+          if (active[horizontalSweepEdges[j].id] === true) {
+            if (horizontalSweepEdges[j].type === 'top') {
+              // If we just entered a new rectangle that is not overlapping
+              // with any other rectangle between current and previous vertical
+              // line then record its position in the list.
+              if (count === 0) {
+                firstRect = j;
+              }
+              count++;
+            } else {
+              // If we are leaving a rectangle and it happens to be the last
+              // rectangle at this point (i.e: there's a gap before we get to
+              // the next recatngle) then calculate length (deltaY) and use it
+              // to calucate area so far.
+              if (count === 1) {
+                const deltaY = horizontalSweepEdges[j].value -
+                horizontalSweepEdges[firstRect].value;
+                area += deltaX * deltaY;
+              }
+              count--;
+            }
+          }
+        }
+        active[currentLine.id] = (currentLine.type === 'left');
+      }
+      return area;
+    }
+
+    /**
+    * A quad is an array containing 4 coordinate points, so something like this
+    * [x1 y1 x2 y2 x3 y3 x4 y4].
+    * Therefore, we can use a quad to reperesnt a rectangle.
+    * To turn a quad back into a rectangle we only need 3 coordinate points
+    * (assuming we don't know the order of the points, otherwise, two opposite
+    * points would be enough).
+    *
+    * @param {number[]} quad
+    */
+    static quadToRect(quad) {
+      const left = Math.min(quad[0], quad[2], quad[4]);
+      const right = Math.max(quad[0], quad[2], quad[4]);
+      const top = Math.min(quad[1], quad[3], quad[5]);
+      const bottom = Math.max(quad[1], quad[3], quad[5]);
+      return {left, right, top, bottom};
+    }
+
+    static calculateRectsBasedSpeedIndex(timestampedPaintRects, viewport) {
+      const numberOfRects = timestampedPaintRects.length;
+      if (numberOfRects === 0) {
+        throw new Error('Can\'t calculate speed index without any paint ' +
+        'rectangles.');
+      }
+      const areaAddedAtTimestamp = new Array(numberOfRects);
+      const rects = [];
+      let previousAreaOfUnion = 0;
+      let totalAreaOfUnion = 0;
+      for (let i = numberOfRects - 1; i >= 0; i--) {
+        rects.push(timestampedPaintRects[i].rect);
+        const currentAreaOfUnion = SpeedIndex.lineSweep(rects, viewport);
+        areaAddedAtTimestamp[numberOfRects - i - 1] =
+            {value: currentAreaOfUnion - previousAreaOfUnion,
+              ts: timestampedPaintRects[i].ts};
+        totalAreaOfUnion +=
+            areaAddedAtTimestamp[numberOfRects - i - 1].value;
+        previousAreaOfUnion = currentAreaOfUnion;
+      }
+      // Paint progress at a timestamp is: the total area of the viewport that
+      // has reached its final state by that timestamp divided by the total area
+      // painted by the end of loading.
+      const paintProgressAtTimestamp = new Array(numberOfRects);
+      let lastProgressRecorded = 0;
+      for (let i = 0; i < numberOfRects; i++) {
+        paintProgressAtTimestamp[i] = {
+          value: areaAddedAtTimestamp[i].value / totalAreaOfUnion +
+              lastProgressRecorded,
+          ts: areaAddedAtTimestamp[i].ts};
+        lastProgressRecorded = paintProgressAtTimestamp[i].value;
+      }
+      return SpeedIndex.speedIndexFromSnapshotsProgress_(
+          paintProgressAtTimestamp);
+    }
   }
   return {
     SpeedIndex,

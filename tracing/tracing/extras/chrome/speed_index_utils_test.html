@@ -119,5 +119,70 @@ tr.b.unittest.testSuite(function() {
 
     assert.deepEqual(histogram, colorHistogram);
   });
+
+  test('lineSweepDuplicateRect', function() {
+    const lineSweepRects = [{left: 50, right: 60, top: 70, bottom: 100},
+      {left: 50, right: 60, top: 70, bottom: 100}];
+    const viewport = {x: 0, y: 0, width: 150, height: 150};
+    assert.strictEqual(300,
+        tr.e.chrome.SpeedIndex.lineSweep(lineSweepRects, viewport));
+  });
+
+  test('lineSweepNonOverlappingRects', function() {
+    const lineSweepRects = [{left: 50, right: 60, top: 70, bottom: 100},
+      {left: 10, right: 20, top: 30, bottom: 50}];
+    const viewport = {x: 0, y: 0, width: 150, height: 150};
+    assert.strictEqual(500,
+        tr.e.chrome.SpeedIndex.lineSweep(lineSweepRects, viewport));
+  });
+
+  test('lineSweepOverlappingRects', function() {
+    const lineSweepRects = [{left: 30, right: 60, top: 70, bottom: 100},
+      {left: 20, right: 50, top: 30, bottom: 80},
+      {left: 40, right: 70, top: 10, bottom: 40}];
+    const viewport = {x: 0, y: 0, width: 150, height: 150};
+    assert.strictEqual(3000,
+        tr.e.chrome.SpeedIndex.lineSweep(lineSweepRects, viewport));
+  });
+
+  test('lineSweepOverlappingAndNonOverlappingRects', function() {
+    const lineSweepRects = [{left: 30, right: 60, top: 70, bottom: 100},
+      {left: 20, right: 50, top: 30, bottom: 80},
+      {left: 40, right: 70, top: 10, bottom: 40},
+      {left: 110, right: 120, top: 30, bottom: 40}];
+    const viewport = {x: 0, y: 0, width: 150, height: 150};
+    assert.strictEqual(3100,
+        tr.e.chrome.SpeedIndex.lineSweep(lineSweepRects, viewport));
+  });
+
+  test('lineSweepOutsideViewport', function() {
+    const lineSweepRects = [{left: 150, right: 160, top: 70, bottom: 100}];
+    const viewport = {x: 0, y: 0, width: 150, height: 150};
+    assert.strictEqual(0,
+        tr.e.chrome.SpeedIndex.lineSweep(lineSweepRects, viewport));
+  });
+
+  test('lineSweepOverlapWithViewport', function() {
+    const lineSweepRects = [{left: 140, right: 160, top: 70, bottom: 100}];
+    const viewport = {x: 0, y: 0, width: 150, height: 150};
+    assert.strictEqual(300,
+        tr.e.chrome.SpeedIndex.lineSweep(lineSweepRects, viewport));
+  });
+
+  test('quadToRect', function() {
+    const quad = [10, 30, 20, 30, 20, 50, 10, 50];
+    const rect = {left: 10, right: 20, top: 30, bottom: 50};
+    assert.deepEqual(rect, tr.e.chrome.SpeedIndex.quadToRect(quad));
+  });
+
+  test('calculateRectsBasedSpeedIndex', function() {
+    const timestampedPaintRects =
+    [{rect: {left: 50, right: 60, top: 70, bottom: 100}, ts: 500},
+      {rect: {left: 10, right: 20, top: 30, bottom: 50}, ts: 700}];
+    const viewport = {x: 0, y: 0, width: 150, height: 150};
+    assert.strictEqual(580,
+        tr.e.chrome.SpeedIndex.calculateRectsBasedSpeedIndex(
+            timestampedPaintRects, viewport));
+  });
 });
 </script>
