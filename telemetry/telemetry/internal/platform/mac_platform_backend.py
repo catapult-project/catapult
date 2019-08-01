@@ -75,9 +75,9 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     tags = super(MacPlatformBackend, self).GetTypExpectationsTags()
     detail_string = self.GetOSVersionDetailString()
     if detail_string.startswith('10.11'):
-      tags.append('snowleopard-10.11')
+      tags.append('mac-10.11')
     elif detail_string.startswith('10.12'):
-      tags.append('snowleopard-10.12')
+      tags.append('mac-10.12')
     return tags
 
   @decorators.Cache

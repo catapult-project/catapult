@@ -58,24 +58,25 @@ class AndroidPlatformBackendTest(unittest.TestCase):
       self.assertIn('android-low-end', tags)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
-  def testTypExpectationsTagsIncludesAndroidLowEndTagForGobo(self):
+  def testTypExpectationsTagsIncludesTagsForAndroidGo(self):
     backend = self.CreatePlatformBackendForTest()
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='foo'):
-      with mock.patch.object(backend, 'GetDeviceTypeName',
-                             return_value='gobo'):
-        self.assertIn(
-            'android-low-end', backend.GetTypExpectationsTags())
+      with mock.patch.object(backend, 'GetDeviceTypeName', return_value='gobo'):
+        tags = backend.GetTypExpectationsTags()
+        self.assertIn('android-low-end', tags)
+        self.assertIn('android-go', tags)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
-  def testTypExpectationsTagsIncludesAndroidLowEndTagForW6210(self):
+  def testTypExpectationsTagsIncludesTagsForAndroidOne(self):
     backend = self.CreatePlatformBackendForTest()
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='foo'):
       with mock.patch.object(backend, 'GetDeviceTypeName',
                              return_value='W6210'):
-        self.assertIn(
-            'android-low-end', backend.GetTypExpectationsTags())
+        tags = backend.GetTypExpectationsTags()
+        self.assertIn('android-low-end', tags)
+        self.assertIn('android-one', tags)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testTypExpectationsDoesNotIncludeLowEndTagForNonSvelteBuild(self):

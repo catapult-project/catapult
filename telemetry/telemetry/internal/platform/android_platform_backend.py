@@ -270,8 +270,10 @@ class AndroidPlatformBackend(
     # and if it is a low end device
     tags = super(AndroidPlatformBackend, self).GetTypExpectationsTags()
     device_type_name = self.GetDeviceTypeName()
+    user_friendly_names = {'gobo': 'go', 'W6210': 'one'}
     tags += test_utils.sanitizeTypExpectationsTags(
-        ['android-' + device_type_name])
+        ['android-' + user_friendly_names.get(
+            device_type_name, device_type_name)])
     if self.IsLowEnd():
       tags.append('android-low-end')
     tags.append('mobile')
