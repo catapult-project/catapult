@@ -191,23 +191,20 @@ class PageTestResults(object):
   @property
   def had_skips(self):
     """If there where any skipped stories."""
-    return any(run.skipped for run in self._all_story_runs)
+    return any(run.skipped for run in self._IterAllStoryRuns())
 
   @property
   def num_skipped(self):
     """Number of skipped stories."""
     return sum(1 for run in self._all_story_runs if run.skipped)
 
-  @property
-  def num_legacy_values(self):
-    """Total number of legacy values recorded so far.
-
-    This also includes values of the currently running story, if any.
-    """
-    num_values = sum(len(run.values) for run in self._all_story_runs)
+  def _IterAllStoryRuns(self):
+    # TODO(crbug.com/973837): Check whether all clients can just be switched
+    # to iterate over _all_story_runs directly.
+    for run in self._all_story_runs:
+      yield run
     if self._current_story_run:
-      num_values += len(self._current_story_run.values)
-    return num_values
+      yield self._current_story_run
 
   @property
   def empty(self):
@@ -215,12 +212,10 @@ class PageTestResults(object):
     return not self._all_story_runs and not self._all_summary_values
 
   def IterStoryRuns(self):
-    assert not self._current_story_run, (
-        'Should not iterate over results while running stories')
     return iter(self._all_story_runs)
 
   def IterAllLegacyValues(self):
-    for run in self.IterStoryRuns():
+    for run in self._IterAllStoryRuns():
       for value in run.values:
         yield value
 
@@ -454,6 +449,6 @@ class PageTestResults(object):
     return [v for v in self.IterAllLegacyValues() if v.name == value_name]
 
   def IterRunsWithTraces(self):
-    for run in self.IterStoryRuns():
+    for run in self._IterAllStoryRuns():
       if run.HasArtifactsInDir('trace/'):
         yield run
