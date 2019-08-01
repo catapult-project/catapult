@@ -12,6 +12,7 @@ import sys
 from telemetry import benchmark
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_options
+from telemetry.internal import story_runner
 from telemetry.internal.util import command_line
 from telemetry.util import matching
 
@@ -217,7 +218,7 @@ class Run(command_line.OptparseCommand):
 
   @classmethod
   def AddCommandLineArgs(cls, parser, environment):
-    benchmark.AddCommandLineArgs(parser)
+    story_runner.AddCommandLineArgs(parser)
 
     # Allow benchmarks to add their own command line options.
     matching_benchmarks = []
@@ -268,7 +269,7 @@ class Run(command_line.OptparseCommand):
     assert issubclass(benchmark_class,
                       benchmark.Benchmark), ('Trying to run a non-Benchmark?!')
 
-    benchmark.ProcessCommandLineArgs(parser, options)
+    story_runner.ProcessCommandLineArgs(parser, options)
     benchmark_class.ProcessCommandLineArgs(parser, options)
 
     cls._benchmark = benchmark_class

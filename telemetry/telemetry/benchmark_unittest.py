@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import optparse
 import shutil
 import tempfile
 import unittest
@@ -41,18 +40,12 @@ class TestBenchmark(benchmark.Benchmark):
 
 
 class BenchmarkTest(unittest.TestCase):
-  @classmethod
-  def setUpClass(cls):
-    cls._options = options_for_unittests.GetRunOptions()
-    cls._options.output_dir = tempfile.mkdtemp()
+  def setUp(self):
+    self.options = options_for_unittests.GetRunOptions(
+        output_dir=tempfile.mkdtemp())
 
-  @classmethod
-  def tearDownClass(cls):
-    shutil.rmtree(cls._options.output_dir)
-
-  @classmethod
-  def GetOptions(cls):
-    return cls._options.Copy()
+  def tearDown(self):
+    shutil.rmtree(self.options.output_dir)
 
   def testNewTestExpectationsFormatIsUsed(self):
     b = TestBenchmark(
@@ -69,7 +62,7 @@ class BenchmarkTest(unittest.TestCase):
         shared_state_class=shared_page_state.SharedPageState))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
-      b.Run(self.GetOptions())
+      b.Run(self.options)
 
     state_class = story_module.SharedState
     b = TestBenchmark(story_module.Story(
@@ -77,13 +70,13 @@ class BenchmarkTest(unittest.TestCase):
         shared_state_class=state_class))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
-      b.Run(self.GetOptions())
+      b.Run(self.options)
 
     b = TestBenchmark(android.AndroidStory(
         name='test benchmark', start_intent=None))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
-      b.Run(self.GetOptions())
+      b.Run(self.options)
 
   def testPageTestWithCompatibleStory(self):
     original_run_fn = story_runner.Run
@@ -94,13 +87,8 @@ class BenchmarkTest(unittest.TestCase):
     story_runner.Run = RunStub
 
     try:
-      options = self.GetOptions()
-      parser = optparse.OptionParser()
-      benchmark.AddCommandLineArgs(parser)
-      options.MergeDefaultValues(parser.get_default_values())
-
       b = TestBenchmark(page.Page(url='about:blank', name='about:blank'))
-      b.Run(options)
+      b.Run(self.options)
     finally:
       story_runner.Run = original_run_fn
 
@@ -144,14 +132,9 @@ class BenchmarkTest(unittest.TestCase):
     story_runner.Run = RunStub
 
     try:
-      options = self.GetOptions()
-      parser = optparse.OptionParser()
-      benchmark.AddCommandLineArgs(parser)
-      options.MergeDefaultValues(parser.get_default_values())
-
       b = ShouldNotAddValueBenchmark(
           page.Page(url='about:blank', name='about:blank'))
-      b.Run(options)
+      b.Run(self.options)
     finally:
       story_runner.Run = original_run_fn
 
@@ -229,14 +212,10 @@ class BenchmarkTest(unittest.TestCase):
         tbm_options.config.enable_chrome_trace = True
         return tbm_options
 
-    options = self.GetOptions()
-    options.extra_chrome_categories = 'toplevel,net'
-    parser = optparse.OptionParser()
-    benchmark.AddCommandLineArgs(parser)
-    options.MergeDefaultValues(parser.get_default_values())
+    self.options.extra_chrome_categories = 'toplevel,net'
 
     b = TbmBenchmark(None)
-    tbm = b.CreatePageTest(options)
+    tbm = b.CreatePageTest(self.options)
     self.assertEqual(
         'net,rail,toplevel',
         tbm.tbm_options.category_filter.stable_filter_string)
@@ -248,14 +227,10 @@ class BenchmarkTest(unittest.TestCase):
         tbm_options.config.atrace_config.categories = []
         return tbm_options
 
-    options = self.GetOptions()
-    options.extra_atrace_categories = 'foo,bar'
-    parser = optparse.OptionParser()
-    benchmark.AddCommandLineArgs(parser)
-    options.MergeDefaultValues(parser.get_default_values())
+    self.options.extra_atrace_categories = 'foo,bar'
 
     b = TbmBenchmark(None)
-    tbm = b.CreatePageTest(options)
+    tbm = b.CreatePageTest(self.options)
     self.assertTrue(tbm.tbm_options.config.enable_atrace_trace)
     self.assertEqual(
         ['foo', 'bar'],
@@ -269,14 +244,10 @@ class BenchmarkTest(unittest.TestCase):
         tbm_options.config.atrace_config.categories = 'string,foo,stuff'
         return tbm_options
 
-    options = self.GetOptions()
-    options.extra_atrace_categories = 'foo,bar'
-    parser = optparse.OptionParser()
-    benchmark.AddCommandLineArgs(parser)
-    options.MergeDefaultValues(parser.get_default_values())
+    self.options.extra_atrace_categories = 'foo,bar'
 
     b = TbmBenchmark(None)
-    tbm = b.CreatePageTest(options)
+    tbm = b.CreatePageTest(self.options)
     self.assertTrue(tbm.tbm_options.config.enable_atrace_trace)
     self.assertEqual(
         ['string', 'foo', 'stuff', 'bar'],
@@ -287,14 +258,10 @@ class BenchmarkTest(unittest.TestCase):
       def CreateCoreTimelineBasedMeasurementOptions(self):
         return timeline_based_measurement.Options()
 
-    options = self.GetOptions()
-    options.enable_systrace = True
-    parser = optparse.OptionParser()
-    benchmark.AddCommandLineArgs(parser)
-    options.MergeDefaultValues(parser.get_default_values())
+    self.options.enable_systrace = True
 
     b = TbmBenchmark(None)
-    tbm = b.CreatePageTest(options)
+    tbm = b.CreatePageTest(self.options)
     self.assertTrue(
         tbm.tbm_options.config.chrome_trace_config.enable_systrace)
 

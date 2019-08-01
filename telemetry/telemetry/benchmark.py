@@ -292,11 +292,3 @@ class Benchmark(command_line.Command):
   @property
   def expectations(self):
     return self._expectations
-
-
-def AddCommandLineArgs(parser):
-  story_runner.AddCommandLineArgs(parser)
-
-
-def ProcessCommandLineArgs(parser, args):
-  story_runner.ProcessCommandLineArgs(parser, args)
