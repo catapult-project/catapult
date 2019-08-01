@@ -24,8 +24,8 @@ crbug.com/12345 [ Mac ] b1/s1 [ Skip ]
 crbug.com/23456 [ Mac Debug ] b1/s2 [ Skip ]
 """
         parser = expectations_parser.TaggedTestListParser(good_data)
-        tag_sets = [{'Debug', 'Release'},
-                    {'Linux', 'Mac', 'Mac10.1', 'Mac10.2', 'Win'}]
+        tag_sets = [{'debug', 'release'},
+                    {'linux', 'mac', 'mac10.1', 'mac10.2', 'win'}]
         self.assertEqual(tag_sets, parser.tag_sets)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/12345', 'b1/s1',
@@ -244,7 +244,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         with self.assertRaises(expectations_parser.ParseError) as context:
             expectations_parser.TaggedTestListParser(raw_data)
         self.assertEqual(
-            '1: The tag Mac was found in multiple tag sets',
+            '1: The tag mac was found in multiple tag sets',
             str(context.exception))
 
     def testTwoTagsinMultipleTagsets(self):
@@ -253,7 +253,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         with self.assertRaises(expectations_parser.ParseError) as context:
             expectations_parser.TaggedTestListParser(raw_data)
         self.assertEqual(
-            '2: The tags Mac and Win were found in multiple tag sets',
+            '2: The tags mac and win were found in multiple tag sets',
             str(context.exception))
 
     def testTwoPlusTagsinMultipleTagsets(self):
@@ -262,7 +262,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         with self.assertRaises(expectations_parser.ParseError) as context:
             expectations_parser.TaggedTestListParser(raw_data)
         self.assertEqual(
-            '3: The tags Mac, Win and bmw'
+            '3: The tags bmw, mac and win'
             ' were found in multiple tag sets',
             str(context.exception))
 
@@ -272,7 +272,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         with self.assertRaises(expectations_parser.ParseError) as context:
             expectations_parser.TaggedTestListParser(raw_data)
         self.assertEqual(
-            '4: The tags Android, Win and mac'
+            '4: The tags android, mac and win'
             ' were found in multiple tag sets',
             str(context.exception))
 
@@ -463,9 +463,32 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         [ intel ] a/b/c/d [ Failure ]
         '''
         expectations = expectations_parser.TestExpectations()
-        _, errors = expectations.parse_tagged_list(
+        _, msg = expectations.parse_tagged_list(
             test_expectations, 'test.txt')
-        self.assertFalse(errors)
+        self.assertFalse(msg)
+
+    def testConflictFoundRegardlessOfTagCase(self):
+        test_expectations = '''# tags: [ InTel AMD nvidia ]
+        # results: [ Failure ]
+        [ intel ] a/b/c/d [ Failure ]
+        [ Intel ] a/b/c/d [ Failure ]
+        '''
+        expectations = expectations_parser.TestExpectations()
+        ret, msg = expectations.parse_tagged_list(
+            test_expectations, 'test.txt')
+        self.assertTrue(ret)
+        self.assertIn('Found conflicts for pattern a/b/c/d', msg)
+
+    def testConflictNotFoundRegardlessOfTagCase(self):
+        test_expectations = '''# tags: [ InTel AMD nvidia ]
+        # results: [ Failure ]
+        [ intel ] a/b/c/d [ Failure ]
+        [ amd ] a/b/c/d [ Failure ]
+        '''
+        expectations = expectations_parser.TestExpectations()
+        _, msg = expectations.parse_tagged_list(
+            test_expectations, 'test.txt')
+        self.assertFalse(msg)
 
     def testExpectationPatternIsBroken(self):
         test_expectations = '# results: [ Failure ]\na/b [ Failure ]'

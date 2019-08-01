@@ -154,7 +154,8 @@ class TaggedTestListParser(object):
                 right_bracket = line.find(']')
                 if right_bracket == -1:
                     # multi-line tag set
-                    tag_set = set(line[len(token):].split())
+                    tag_set = set(
+                        [t.lower() for t in line[len(token):].split()])
                     lineno += 1
                     while lineno <= num_lines and right_bracket == -1:
                         line = lines[lineno - 1].strip()
@@ -164,10 +165,13 @@ class TaggedTestListParser(object):
                                 'Multi-line tag set missing leading "#"')
                         right_bracket = line.find(']')
                         if right_bracket == -1:
-                            tag_set.update(line[1:].split())
+                            tag_set.update(
+                                [t.lower() for t in line[1:].split()])
                             lineno += 1
                         else:
-                            tag_set.update(line[1:right_bracket].split())
+                            tag_set.update(
+                                [t.lower()
+                                 for t in line[1:right_bracket].split()])
                             if line[right_bracket+1:]:
                                 raise ParseError(
                                     lineno,
@@ -180,15 +184,16 @@ class TaggedTestListParser(object):
                             'Nothing is allowed after a closing tag '
                             'bracket')
                     tag_set = set(
-                        line[len(token):right_bracket].split())
+                        [t.lower()
+                         for t in line[len(token):right_bracket].split()])
                 if token == self.TAG_TOKEN:
                     tag_sets_intersection.update(
-                        (t for t in tag_set if t.lower() in self._tag_to_tag_set))
+                        (t for t in tag_set if t in self._tag_to_tag_set))
                     self.tag_sets.append(tag_set)
                     self._tag_to_tag_set.update(
-                        {tg.lower(): id(tag_set) for tg in tag_set})
+                        {tg: id(tag_set) for tg in tag_set})
                 else:
-                    self._allowed_results.update({t.lower() for t in tag_set})
+                    self._allowed_results.update(tag_set)
             elif line.startswith(self.CONFLICTS_ALLOWED):
                 bool_value = line[len(self.CONFLICTS_ALLOWED):].lower()
                 if bool_value not in ('true', 'false'):
@@ -290,6 +295,7 @@ class TestExpectations(object):
 
     def parse_tagged_list(self, raw_data, file_name='',
                           tags_conflict=_default_tags_conflict):
+        ret = 0
         # TODO(rmhasan): If we decide to support multiple test expectations in
         # one TestExpectations instance, then we should make the file_name field
         # mandatory.
@@ -323,7 +329,8 @@ class TestExpectations(object):
         errors = ''
         if not parser.conflicts_allowed:
             errors = self.check_test_expectations_patterns_for_conflicts()
-        return 0, errors
+            ret = 1 if errors else 0
+        return ret, errors
 
     def expectations_for(self, test):
         # Returns a tuple of (expectations, should_retry_on_failure)
