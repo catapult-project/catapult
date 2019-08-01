@@ -9,6 +9,8 @@ import os
 import posixpath
 import random
 import time
+import urllib
+
 
 PASS = 'PASS'
 FAIL = 'FAIL'
@@ -54,8 +56,19 @@ class Artifact(object):
 
 
 class StoryRun(object):
-  def __init__(self, story, output_dir=None, index=0):
+  def __init__(self, story, test_prefix=None, index=0, output_dir=None):
+    """StoryRun objects track results for a single run of a story.
+
+    Args:
+      story: The story.Story being currently run.
+      test_prefix: A string prefix to use for the test path identifying the
+        test being run.
+      index: If the same story is run multiple times, the index of this run.
+      output_dir: The path to a directory where outputs are stored. Test
+        artifacts, in particluar, are stored at '{output_dir}/artifacts'.
+    """
     self._story = story
+    self._test_prefix = test_prefix
     self._index = index
     self._values = []
     self._tbm_metrics = []
@@ -114,7 +127,7 @@ class StoryRun(object):
     assert self.finished, 'story must be finished first'
     return {
         'testResult': {
-            'testName': self.test_name,
+            'testPath': self.test_path,
             'status': self.status,
             'isExpected': self.is_expected,
             'startTime': self.start_datetime.isoformat() + 'Z',
@@ -131,9 +144,16 @@ class StoryRun(object):
     return self._index
 
   @property
-  def test_name(self):
-    # TODO(crbug.com/966835): This should be prefixed with the benchmark name.
-    return self.story.name
+  def test_path(self):
+    # Some stories use URLs as names, often containing special characters.
+    # To avoid potential issues, and to make it easy to identify the components
+    # on a test_path, we percent encode those special chars.
+    # TODO(crbug.com/983993): Remove this when all stories have good names.
+    story_name = urllib.quote(self.story.name, safe='')
+    if self._test_prefix is not None:
+      return '/'.join([self._test_prefix, story_name])
+    else:
+      return story_name
 
   @property
   def values(self):

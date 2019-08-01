@@ -23,9 +23,13 @@ def _abs_join(*args):
   return ROOT_CHAR + os.path.join(*args)
 
 
+def TestStory(name):
+  return story_module.Story(shared_state.SharedState, name=name)
+
+
 class StoryRunTest(unittest.TestCase):
   def setUp(self):
-    self.story = story_module.Story(shared_state.SharedState, name='foo')
+    self.story = TestStory('foo')
 
   def testStoryRunFailed(self):
     run = story_run.StoryRun(self.story)
@@ -87,7 +91,8 @@ class StoryRunTest(unittest.TestCase):
   def testAsDict(self, time_module):
     time_module.time.side_effect = [1234567890.987,
                                     1234567900.987]
-    run = story_run.StoryRun(self.story)
+    run = story_run.StoryRun(
+        story=TestStory(name='http://example.com'), test_prefix='benchmark')
     run.AddValue(scalar.ScalarValue(
         self.story, 'a', 's', 1,
         improvement_direction=improvement_direction.UP))
@@ -96,7 +101,7 @@ class StoryRunTest(unittest.TestCase):
         run.AsDict(),
         {
             'testResult': {
-                'testName': 'foo',
+                'testPath': 'benchmark/http%3A%2F%2Fexample.com',
                 'status': 'PASS',
                 'isExpected': True,
                 'startTime': '2009-02-13T23:31:30.987000Z',
@@ -107,7 +112,7 @@ class StoryRunTest(unittest.TestCase):
 
   def testCreateArtifact(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      run = story_run.StoryRun(self.story, tempdir)
+      run = story_run.StoryRun(self.story, output_dir=tempdir)
       with run.CreateArtifact('logs') as log_file:
         log_file.write('hi\n')
 
@@ -117,7 +122,7 @@ class StoryRunTest(unittest.TestCase):
 
   def testCaptureArtifact(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      run = story_run.StoryRun(self.story, tempdir)
+      run = story_run.StoryRun(self.story, output_dir=tempdir)
       with run.CaptureArtifact('logs') as log_file_name:
         with open(log_file_name, 'w') as log_file:
           log_file.write('hi\n')
@@ -128,7 +133,7 @@ class StoryRunTest(unittest.TestCase):
 
   def testIterArtifacts(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      run = story_run.StoryRun(self.story, tempdir)
+      run = story_run.StoryRun(self.story, output_dir=tempdir)
 
       with run.CreateArtifact('log/log1'):
         pass

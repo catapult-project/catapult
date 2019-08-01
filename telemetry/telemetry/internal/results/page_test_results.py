@@ -236,7 +236,8 @@ class PageTestResults(object):
   def WillRunPage(self, page, story_run_index=0):
     assert not self._current_story_run, 'Did not call DidRunPage.'
     self._current_story_run = story_run.StoryRun(
-        page, self._output_dir, story_run_index)
+        page, test_prefix=self.benchmark_name, index=story_run_index,
+        output_dir=self._output_dir)
     self._progress_reporter.WillRunStory(self)
 
   def DidRunPage(self, page):  # pylint: disable=unused-argument
