@@ -2,13 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import hashlib
 import os
 import re
 import stat
 import subprocess
 import sys
-import urllib
+import urllib2
 
 import py_utils
 
@@ -22,10 +21,6 @@ TRACE_START_REGEXP = r'TRACE\:'
 # Text that ADB sends, but does not need to be displayed to the user.
 ADB_IGNORE_REGEXP = r'^capturing trace\.\.\. done|^capturing trace\.\.\.'
 
-# Constants required for converting perfetto traces.
-# Keep this in sync with the SHAs in third_party/perfetto/tools/traceconv.
-LINUX_SHA1 = 'd67f9f3e3beb93664578c8b0300ab98e828ecb29'
-MAC_SHA1 = '62b27f343640d0778f1324fa90940381561bef99'
 T2T_OUTPUT = 'trace.systrace'
 
 def try_create_agent(options):
@@ -43,33 +38,17 @@ def try_create_agent(options):
     return False
 
 def convert_perfetto_trace(in_file):
-  t2t_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                          '../trace_to_text'))
-  loaded_t2t = False
-  if sys.platform.startswith('linux'):
-    t2t_path += '-linux-' + LINUX_SHA1
-    loaded_t2t = load_trace_to_text(t2t_path, 'linux', LINUX_SHA1)
-  elif sys.platform.startswith('darwin'):
-    t2t_path += '-mac-' + MAC_SHA1
-    loaded_t2t = load_trace_to_text(t2t_path, 'mac', MAC_SHA1)
-  if loaded_t2t:
-    os.chmod(t2t_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
-    return subprocess.call([t2t_path, 'systrace', in_file, T2T_OUTPUT]) == 0
-  return False
-
-def load_trace_to_text(t2t_path, platform, sha_value):
-  if not os.path.exists(t2t_path):
-    with open(t2t_path, 'w') as t2t:
-      url = ('https://storage.googleapis.com/chromium-telemetry/binary_dependencies/trace_to_text-'
-             + platform + '-' + sha_value)
-      return urllib.urlretrieve(url, t2t_path)
-  with open(t2t_path, 'rb') as t2t:
-    existing_file_hash = hashlib.sha1(t2t.read()).hexdigest()
-    if existing_file_hash != sha_value:
-      print 'Hash of trace_to_text binary does not match.'
-      os.remove(t2t_path)
-      return False
-    return True
+  traceconv_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                          '../traceconv'))
+  try:
+    traceconv = urllib2.urlopen('https://get.perfetto.dev/traceconv')
+    with open(traceconv_path, 'w') as out:
+      out.write(traceconv.read())
+  except urllib2.URLError:
+    print 'Could not download traceconv to convert the Perfetto trace.'
+    sys.exit(1)
+  os.chmod(traceconv_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
+  return subprocess.call([traceconv_path, 'systrace', in_file, T2T_OUTPUT]) == 0
 
 def is_perfetto(from_file):
   # Starts with a preamble for field ID=1 (TracePacket)
