@@ -3,8 +3,6 @@
 # found in the LICENSE file.
 
 import datetime
-import glob
-import heapq
 import logging
 import os
 import os.path
@@ -20,24 +18,16 @@ import time
 import py_utils
 from py_utils import cloud_storage
 from py_utils import exc_util
-import dependency_manager  # pylint: disable=import-error
 
 from telemetry.internal.util import binary_manager
 from telemetry.core import exceptions
 from telemetry.internal.backends.chrome import chrome_browser_backend
+from telemetry.internal.backends.chrome import desktop_minidump_finder
 from telemetry.internal.util import format_for_logging
 from telemetry.internal.util import path
 
 
 DEVTOOLS_ACTIVE_PORT_FILE = 'DevToolsActivePort'
-
-
-def ParseCrashpadDateTime(date_time_str):
-  # Python strptime does not support time zone parsing, strip it.
-  date_time_parts = date_time_str.split()
-  if len(date_time_parts) >= 3:
-    date_time_str = ' '.join(date_time_parts[:2])
-  return datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
 
 
 def GetSymbolBinaries(minidump, arch_name, os_name):
@@ -124,6 +114,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._proc = None
     self._tmp_output_file = None
+    self._dump_finder = None
     # pylint: disable=invalid-name
     self._most_recent_symbolized_minidump_paths = set([])
     self._minidump_path_crashpad_retrieval = {}
@@ -208,6 +199,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Start(self, startup_args):
     assert not self._proc, 'Must call Close() before Start()'
+
+    self._dump_finder = desktop_minidump_finder.DesktopMinidumpFinder(
+        self.browser.platform.GetOSName(), self.browser.platform.GetArchName())
 
     # macOS displays a blocking crash resume dialog that we need to suppress.
     if self.browser.platform.GetOSName() == 'mac':
@@ -312,114 +306,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     except IOError:
       return ''
 
-  def _MinidumpObtainedFromCrashpad(self, minidump):
-    if minidump in self._minidump_path_crashpad_retrieval:
-      return self._minidump_path_crashpad_retrieval[minidump]
-    # Default to crashpad where we hope to be eventually
-    return True
-
-  def _GetAllCrashpadMinidumps(self):
-    if not self._tmp_minidump_dir:
-      logging.warning('No _tmp_minidump_dir; browser already closed?')
-      return None
-    os_name = self.browser.platform.GetOSName()
-    arch_name = self.browser.platform.GetArchName()
-    try:
-      crashpad_database_util = binary_manager.FetchPath(
-          'crashpad_database_util', arch_name, os_name)
-      if not crashpad_database_util:
-        logging.warning('No crashpad_database_util found')
-        return None
-    except dependency_manager.NoPathFoundError:
-      logging.warning('No path to crashpad_database_util found')
-      return None
-
-    logging.info('Found crashpad_database_util')
-
-    report_output = subprocess.check_output([
-        crashpad_database_util, '--database=' + self._tmp_minidump_dir,
-        '--show-pending-reports', '--show-completed-reports',
-        '--show-all-report-info'])
-
-    last_indentation = -1
-    reports_list = []
-    report_dict = {}
-    for report_line in report_output.splitlines():
-      # Report values are grouped together by the same indentation level.
-      current_indentation = 0
-      for report_char in report_line:
-        if not report_char.isspace():
-          break
-        current_indentation += 1
-
-      # Decrease in indentation level indicates a new report is being printed.
-      if current_indentation >= last_indentation:
-        report_key, report_value = report_line.split(':', 1)
-        if report_value:
-          report_dict[report_key.strip()] = report_value.strip()
-      elif report_dict:
-        try:
-          report_time = ParseCrashpadDateTime(report_dict['Creation time'])
-          report_path = report_dict['Path'].strip()
-          reports_list.append((report_time, report_path))
-        except (ValueError, KeyError) as e:
-          logging.warning('Crashpad report expected valid keys'
-                          ' "Path" and "Creation time": %s', e)
-        finally:
-          report_dict = {}
-
-      last_indentation = current_indentation
-
-    # Include the last report.
-    if report_dict:
-      try:
-        report_time = ParseCrashpadDateTime(report_dict['Creation time'])
-        report_path = report_dict['Path'].strip()
-        reports_list.append((report_time, report_path))
-      except (ValueError, KeyError) as e:
-        logging.warning(
-            'Crashpad report expected valid keys'
-            ' "Path" and "Creation time": %s', e)
-
-    return reports_list
-
-  def _GetMostRecentCrashpadMinidump(self):
-    reports_list = self._GetAllCrashpadMinidumps()
-    if reports_list:
-      _, most_recent_report_path = max(reports_list)
-      return most_recent_report_path
-
-    return None
-
-  def _GetBreakPadMinidumpPaths(self):
-    if not self._tmp_minidump_dir:
-      logging.warning('No _tmp_minidump_dir; browser already closed?')
-      return None
-    return glob.glob(os.path.join(self._tmp_minidump_dir, '*.dmp'))
-
-  def _GetMostRecentMinidump(self):
-    # Crashpad dump layout will be the standard eventually, check it first.
-    crashpad_dump = True
-    most_recent_dump = self._GetMostRecentCrashpadMinidump()
-
-    # Typical breakpad format is simply dump files in a folder.
-    if not most_recent_dump:
-      crashpad_dump = False
-      logging.info('No minidump found via crashpad_database_util')
-      dumps = self._GetBreakPadMinidumpPaths()
-      if dumps:
-        most_recent_dump = heapq.nlargest(1, dumps, os.path.getmtime)[0]
-        if most_recent_dump:
-          logging.info('Found minidump via globbing in minidump dir')
-
-    # As a sanity check, make sure the crash dump is recent.
-    if (most_recent_dump and
-        os.path.getmtime(most_recent_dump) < (time.time() - (5 * 60))):
-      logging.warning('Crash dump is older than 5 minutes. May not be correct.')
-
-    self._minidump_path_crashpad_retrieval[most_recent_dump] = crashpad_dump
-    return most_recent_dump
-
   def _IsExecutableStripped(self):
     if self.browser.platform.GetOSName() == 'mac':
       try:
@@ -474,7 +360,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return None
     # We only want this logic on linux platforms that are still using breakpad.
     # See crbug.com/667475
-    if not self._MinidumpObtainedFromCrashpad(minidump):
+    if not self._dump_finder.MinidumpObtainedFromCrashpad(minidump):
       with open(minidump, 'rb') as infile:
         minidump += '.stripped'
         with open(minidump, 'wb') as outfile:
@@ -507,43 +393,41 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
        and output will contain either an error message or the attempt to
        symbolize the minidump if one was found.
     """
-    most_recent_dump = self._GetMostRecentMinidump()
+    most_recent_dump = self.GetMostRecentMinidumpPath()
     if not most_recent_dump:
       return (False, 'No crash dump found.')
     logging.info('Minidump found: %s', most_recent_dump)
     return self._InternalSymbolizeMinidump(most_recent_dump)
 
   def GetMostRecentMinidumpPath(self):
-    return self._GetMostRecentMinidump()
+    dump_path, explanation = self._dump_finder.GetMostRecentMinidump(
+        self._tmp_minidump_dir)
+    logging.info('\n'.join(explanation))
+    return dump_path
 
   def GetRecentMinidumpPathWithTimeout(self, timeout_s, oldest_ts):
     assert timeout_s > 0
     assert oldest_ts >= 0
+    explanation = ['No explanation returned.']
     start_time = time.time()
-    while time.time() - start_time < timeout_s:
-      dump_path = self.GetMostRecentMinidumpPath()
-      if not dump_path:
-        continue
-      if os.path.getmtime(dump_path) < oldest_ts:
-        continue
-      return dump_path
-    return None
+    try:
+      while time.time() - start_time < timeout_s:
+        dump_path, explanation = self._dump_finder.GetMostRecentMinidump(
+            self._tmp_minidump_dir)
+        if not dump_path:
+          continue
+        if os.path.getmtime(dump_path) < oldest_ts:
+          continue
+        return dump_path
+      return None
+    finally:
+      logging.info('\n'.join(explanation))
 
   def GetAllMinidumpPaths(self):
-    reports_list = self._GetAllCrashpadMinidumps()
-    if reports_list:
-      for report in reports_list:
-        self._minidump_path_crashpad_retrieval[report[1]] = True
-      return [report[1] for report in reports_list]
-    else:
-      logging.info('No minidump found via crashpad_database_util')
-      dumps = self._GetBreakPadMinidumpPaths()
-      if dumps:
-        logging.info('Found minidump via globbing in minidump dir')
-        for dump in dumps:
-          self._minidump_path_crashpad_retrieval[dump] = False
-        return dumps
-      return []
+    paths, explanation = self._dump_finder.GetAllMinidumpPaths(
+        self._tmp_minidump_dir)
+    logging.info('\n'.join(explanation))
+    return paths
 
   def GetAllUnsymbolizedMinidumpPaths(self):
     minidump_paths = set(self.GetAllMinidumpPaths())
