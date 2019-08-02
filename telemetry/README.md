@@ -125,7 +125,6 @@ sets.
 *   [Feature guidelines](https://sites.google.com/a/chromium.org/dev/developers/telemetry/telemetry-feature-guidelines)
 *   [Profile generation](https://sites.google.com/a/chromium.org/dev/developers/telemetry/telemetry-profile-generation)
 *   [Telemetry unittests](/telemetry/docs/run_telemetry_tests.md)
-*   [Telemetry binary dependencies](/telemetry/docs/binary_dependencies.md)
 
 ## Contact Us or Follow Along
 
