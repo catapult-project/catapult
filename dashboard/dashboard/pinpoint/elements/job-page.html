@@ -154,7 +154,7 @@ found in the LICENSE file.
             <job-chart job="[[job]]" change-index="{{changeIndex}}"></job-chart>
           </template>
           <template is="dom-if" if="[[!failed(job)]]">
-            <template is="dom-if" if="[[!job.comparison_mode]]">
+            <template is="dom-if" if="[[isTryJob(job)]]">
               <results2-frame job-id="[[job.job_id]]"></results2-frame>
             </template>
           </template>
@@ -202,6 +202,10 @@ found in the LICENSE file.
         }
         // TODO: If no statistical difference, choose the largest delta.
         this.set('changeIndex', this.job.state.length - 1);
+      },
+
+      isTryJob(job) {
+        return !job.comparison_mode || job.comparison_mode === 'try';
       },
 
       failed(job) {
@@ -288,8 +292,10 @@ found in the LICENSE file.
       },
 
       shouldShowChart(job) {
-        return job.comparison_mode &&
-          job.state.some(state => state.result_values.length);
+        if (!job.comparison_mode || job.comparison_mode === 'try') {
+          return false;
+        }
+        return job.state.some(state => state.result_values.length);
       },
 
       previousChangeState(jobState, changeIndex) {

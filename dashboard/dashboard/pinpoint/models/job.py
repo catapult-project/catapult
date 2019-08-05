@@ -284,9 +284,12 @@ class Job(ndb.Model):
         _PostBugCommentDeferred, self.bug_id, comment, send_email=False,
         _retry_options=RETRY_OPTIONS)
 
+  def _IsTryJob(self):
+    return not self.comparison_mode or self.comparison_mode == job_state.TRY
+
   def _Complete(self):
     logging.debug('Job [%s]: Completed', self.job_id)
-    if self.comparison_mode:
+    if not self._IsTryJob():
       self.difference_count = len(self.state.Differences())
 
     try:
@@ -299,7 +302,7 @@ class Job(ndb.Model):
     scheduler.Complete(self)
 
   def _FormatAndPostBugCommentOnComplete(self):
-    if not self.comparison_mode:
+    if self._IsTryJob():
       # There is no comparison metric.
       title = "<b>%s Job complete. See results below.</b>" % _ROUND_PUSHPIN
       deferred.defer(
@@ -414,7 +417,7 @@ class Job(ndb.Model):
     self.task = None  # In case an exception is thrown.
 
     try:
-      if self.comparison_mode:
+      if not self._IsTryJob():
         self.state.Explore()
       work_left = self.state.ScheduleWork()
 

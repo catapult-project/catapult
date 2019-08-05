@@ -14,6 +14,7 @@ from dashboard.common import bot_configurations
 from dashboard.common import utils
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
+from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models import quest as quest_module
 from dashboard.pinpoint.models import scheduler
 
@@ -140,6 +141,8 @@ def _ValidatePatch(patch_data):
 
 
 def _ValidateComparisonMode(comparison_mode):
+  if not comparison_mode:
+    comparison_mode = job_state.TRY
   if comparison_mode and comparison_mode not in job_module.COMPARISON_MODES:
     raise ValueError('`comparison_mode` should be one of %s. Got "%s".' %
                      (job_module.COMPARISON_MODES + (None,), comparison_mode))

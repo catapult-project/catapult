@@ -263,6 +263,7 @@ def PinpointParamsFromPerfTryParams(params):
   job_name = 'Try job on %s/%s' % (bot_name, suite)
 
   pinpoint_params = {
+      'comparison_mode': 'try',
       'configuration': bot_name,
       'benchmark': suite,
       'start_git_hash': start_git_hash,

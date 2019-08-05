@@ -99,6 +99,20 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('story', results['story'])
 
   @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  def testPinpointParams_ComparisonMode_Try(self):
+    params = {
+        'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
+        'start_commit': 'abcd1234',
+        'end_commit': 'efgh5678',
+        'extra_test_args': '',
+        'story_filter': '',
+    }
+    results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+    self.assertEqual('try', results['comparison_mode'])
+
+  @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=False))
   def testPinpointParams_InvalidSheriff_RaisesError(self):
     params = {
