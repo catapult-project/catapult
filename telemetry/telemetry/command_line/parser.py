@@ -47,13 +47,28 @@ def _ArgumentParsers(environment, results_arg_parser):
     - An argparse.ArgumentParser object, the top level arg_parser.
     - A dictionary mapping command names to their respective legacy opt_parsers.
   """
+  if results_arg_parser is not None:
+    ext_defaults = vars(results_arg_parser.parse_args([]))
+    ext_defaults['external_results_processor'] = True
+  else:
+    ext_defaults = {'external_results_processor': False}
+
   # Build the legacy parser for each available Telemetry command.
   legacy_parsers = {}
   for name, command in _COMMANDS.items():
     opt_parser = command.CreateParser()
-    opt_parser.set_defaults(
-        external_results_processor=results_arg_parser is not None)
+    # The Run.AddCommandLineArgs method can also let benchmarks adjust the
+    # default values of options coming from the external results_arg_arser.
+    # So here we need first to let the opt_parser know about these options and
+    # then, after any adjusments were done, copy the defaults back so we can
+    # feed them into the top level parser, as that is the one actually doing
+    # the parsing of those args.
+    # TODO(crbug.com/985712): Figure out a way to simplify this logic.
+    if name == 'run':
+      opt_parser.set_defaults(**ext_defaults)
     command.AddCommandLineArgs(opt_parser, environment)
+    if name == 'run':
+      ext_defaults.update((k, opt_parser.defaults[k]) for k in ext_defaults)
     legacy_parsers[name] = opt_parser
 
   # Build the top level argument parser.
@@ -72,9 +87,10 @@ def _ArgumentParsers(environment, results_arg_parser):
                            legacy_parser=legacy_parsers[name])
     return subparser
 
-  add_subparser(
+  subparser = add_subparser(
       'run', help='run a benchmark (default)',
       parents=[results_arg_parser] if results_arg_parser else [])
+  subparser.set_defaults(**ext_defaults)
 
   add_subparser(
       'list', help='list benchmarks or stories')
