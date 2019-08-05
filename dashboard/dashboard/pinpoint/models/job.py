@@ -47,6 +47,7 @@ _MAX_RECOVERABLE_RETRIES = 3
 
 OPTION_STATE = 'STATE'
 OPTION_TAGS = 'TAGS'
+OPTION_ESTIMATE = 'ESTIMATE'
 
 
 COMPARISON_MODES = job_state.COMPARISON_MODES
@@ -487,9 +488,23 @@ class Job(ndb.Model):
 
     if OPTION_STATE in options:
       d.update(self.state.AsDict())
+    if OPTION_ESTIMATE in options and not self.started:
+      d.update(self._GetRunTimeEstimate())
     if OPTION_TAGS in options:
       d['tags'] = {'tags': self.tags}
     return d
+
+  def _GetRunTimeEstimate(self):
+    result = timing_record.GetSimilarHistoricalTimings(self)
+    if not result:
+      return {}
+
+    timings, tags = result
+    timings = [t.total_seconds() for t in timings]
+    return {
+        'estimate': {'timings': timings, 'tags': tags},
+        'queue_stats': scheduler.QueueStats(self.configuration)
+    }
 
   def Cancel(self, user, reason):
     # We cannot cancel an already cancelled job.

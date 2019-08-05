@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import datetime
 import mock
 import sys
 
@@ -120,6 +121,44 @@ _COMMENT_CODE_REVIEW = (
     u"""\U0001f4cd Job complete.
 
 See results at: https://testbed.example.com/job/1""")
+
+
+@mock.patch.object(
+    job.results2, 'GetCachedResults2',
+    mock.MagicMock(return_value='http://foo'))
+class JobTest(test.TestCase):
+
+  @mock.patch.object(
+      job.timing_record, 'GetSimilarHistoricalTimings',
+      mock.MagicMock(
+          return_value=((
+              datetime.timedelta(seconds=10),
+              datetime.timedelta(seconds=5),
+              datetime.timedelta(seconds=100)), ['try', 'linux'])))
+  @mock.patch.object(
+      job.scheduler, 'QueueStats',
+      mock.MagicMock(return_value=[]))
+  def testAsDictOptions_Estimate(self):
+    j = job.Job.New((), (), bug_id=123456)
+
+    d = j.AsDict([job.OPTION_ESTIMATE])
+    self.assertTrue('estimate' in d)
+    self.assertEqual(d['estimate']['timings'][0], 10)
+    self.assertEqual(d['estimate']['timings'][1], 5)
+    self.assertEqual(d['estimate']['timings'][2], 100)
+    self.assertEqual(d['estimate']['tags'], ['try', 'linux'])
+
+  @mock.patch.object(
+      job.timing_record, 'GetSimilarHistoricalTimings',
+      mock.MagicMock(return_value=None))
+  @mock.patch.object(
+      job.scheduler, 'QueueStats',
+      mock.MagicMock(return_value=[]))
+  def testAsDictOptions_EstimateFails(self):
+    j = job.Job.New((), (), bug_id=123456)
+
+    d = j.AsDict([job.OPTION_ESTIMATE])
+    self.assertFalse('estimate' in d)
 
 
 class RetryTest(test.TestCase):
