@@ -91,24 +91,39 @@ class StoryRunTest(unittest.TestCase):
   def testAsDict(self, time_module):
     time_module.time.side_effect = [1234567890.987,
                                     1234567900.987]
-    run = story_run.StoryRun(
-        story=TestStory(name='http://example.com'), test_prefix='benchmark')
-    run.AddValue(scalar.ScalarValue(
-        self.story, 'a', 's', 1,
-        improvement_direction=improvement_direction.UP))
-    run.Finish()
-    self.assertEquals(
-        run.AsDict(),
-        {
-            'testResult': {
-                'testPath': 'benchmark/http%3A%2F%2Fexample.com',
-                'status': 'PASS',
-                'isExpected': True,
-                'startTime': '2009-02-13T23:31:30.987000Z',
-                'runDuration': '10.00s'
-            }
-        }
-    )
+    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
+      run = story_run.StoryRun(
+          story=TestStory(name='http://example.com'), test_prefix='benchmark',
+          output_dir=tempdir)
+      with run.CreateArtifact('logs.txt') as log_file:
+        log_file.write('hello\n')
+      run.Finish()
+      entry = run.AsDict()
+      self.assertEquals(
+          entry,
+          {
+              'testResult': {
+                  'testPath': 'benchmark/http%3A%2F%2Fexample.com',
+                  'status': 'PASS',
+                  'isExpected': True,
+                  'startTime': '2009-02-13T23:31:30.987000Z',
+                  'runDuration': '10.00s',
+                  'artifacts': {
+                      'logs.txt' : {
+                          'filePath': mock.ANY,
+                          'contentType': 'text/plain'
+                      }
+                  }
+              }
+          }
+      )
+      # Log file is in the {output_dir}/artifacts/ directory, and file name
+      # extension is preserved.
+      logs_file = entry['testResult']['artifacts']['logs.txt']['filePath']
+      artifacts_dir = os.path.join(tempdir, 'artifacts', '')
+      self.assertTrue(logs_file.startswith(artifacts_dir))
+      self.assertTrue(logs_file.endswith('.txt'))
+
 
   def testCreateArtifact(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:

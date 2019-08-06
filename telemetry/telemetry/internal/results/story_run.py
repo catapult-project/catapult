@@ -77,6 +77,17 @@ class Artifact(object):
     assert not self._url, 'Artifact URL has been already set'
     self._url = url
 
+  def AsDict(self):
+    d = {
+        'filePath': self.local_path,
+        'contentType': self.content_type
+    }
+    # TODO(crbug.com/981349): Remove this when artifact uploading is
+    # switched over to the results processor.
+    if self.url:
+      d['remoteUrl'] = self.url
+    return d
+
 
 class StoryRun(object):
   def __init__(self, story, test_prefix=None, index=0, output_dir=None):
@@ -154,7 +165,10 @@ class StoryRun(object):
             'status': self.status,
             'isExpected': self.is_expected,
             'startTime': self.start_datetime.isoformat() + 'Z',
-            'runDuration': _FormatDuration(self.duration)
+            'runDuration': _FormatDuration(self.duration),
+            'artifacts': {
+                name: artifact.AsDict()
+                for name, artifact in self._artifacts.items()}
         }
     }
 
