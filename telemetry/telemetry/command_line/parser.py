@@ -58,7 +58,7 @@ def _ArgumentParsers(environment, results_arg_parser):
   for name, command in _COMMANDS.items():
     opt_parser = command.CreateParser()
     # The Run.AddCommandLineArgs method can also let benchmarks adjust the
-    # default values of options coming from the external results_arg_arser.
+    # default values of options coming from the external results_arg_parser.
     # So here we need first to let the opt_parser know about these options and
     # then, after any adjusments were done, copy the defaults back so we can
     # feed them into the top level parser, as that is the one actually doing
