@@ -423,8 +423,17 @@ class TestExpectations(object):
         return error_msg
 
     @staticmethod
-    def get_broken_expectations(patterns_to_exps, trie):
+    def get_broken_expectations(patterns_to_exps, test_names):
+        trie = {}
         exps_dont_apply = []
+        # create trie of test names
+        for test in test_names:
+            _trie = trie.setdefault(test[0], {})
+            for l in test[1:]:
+                _trie = _trie.setdefault(l, {})
+            _trie.setdefault('$', {})
+        # look for patterns that do not match any test names and append their
+        # expectations to exps_dont_apply
         for pattern, exps in patterns_to_exps.items():
             _trie = trie
             is_glob = False
@@ -449,16 +458,6 @@ class TestExpectations(object):
         # args:
         # test_names: list of test names that are used to find test expectations
         # that do not apply to any of test names in the list.
-        trie = {}
-        for test in test_names:
-            _trie = trie.setdefault(test[0], {})
-            for l in test[1:]:
-                _trie = _trie.setdefault(l, {})
-            _trie.setdefault('$', {})
-
-        broken_expectations = []
-        broken_expectations.extend(
-            self.get_broken_expectations(self.glob_exps, trie))
-        broken_expectations.extend(
-            self.get_broken_expectations(self.individual_exps, trie))
-        return broken_expectations
+        patterns_to_exps = self.individual_exps.copy()
+        patterns_to_exps.update(self.glob_exps)
+        return self.get_broken_expectations(patterns_to_exps, test_names)
