@@ -13,7 +13,6 @@ from telemetry import benchmark
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_options
 from telemetry.internal import story_runner
-from telemetry.internal.util import command_line
 from telemetry.util import matching
 
 
@@ -156,20 +155,19 @@ def PrintBenchmarkList(
                                    sort_keys=True, separators=(',', ': ')),
 
 
-class List(command_line.OptparseCommand):
+class List(object):
   """Lists the available benchmarks"""
 
-  usage = '[benchmark_name] [<options>]'
-
   @classmethod
-  def AddCommandLineArgs(cls, parser, _):
+  def AddCommandLineArgs(cls, parser, args, environment):
+    del args, environment  # Unused.
     parser.add_option('--json', action='store', dest='json_filename',
                       help='Output the list in JSON')
 
   @classmethod
   def CreateParser(cls):
     options = browser_options.BrowserFinderOptions()
-    parser = options.CreateParser('%%prog %s %s' % (cls.Name(), cls.usage))
+    parser = options.CreateParser('%prog run [benchmark_name] [<options>]')
     return parser
 
   @classmethod
@@ -205,24 +203,22 @@ class List(command_line.OptparseCommand):
     return 0
 
 
-class Run(command_line.OptparseCommand):
+class Run(object):
   """Run one or more benchmarks (default)"""
-
-  usage = 'benchmark_name [<options>]'
 
   @classmethod
   def CreateParser(cls):
     options = browser_options.BrowserFinderOptions()
-    parser = options.CreateParser('%%prog %s %s' % (cls.Name(), cls.usage))
+    parser = options.CreateParser('%prog run benchmark_name [<options>]')
     return parser
 
   @classmethod
-  def AddCommandLineArgs(cls, parser, environment):
+  def AddCommandLineArgs(cls, parser, args, environment):
     story_runner.AddCommandLineArgs(parser)
 
     # Allow benchmarks to add their own command line options.
     matching_benchmarks = []
-    for arg in sys.argv[1:]:
+    for arg in args:
       matching_benchmark = environment.GetBenchmarkByName(arg)
       if matching_benchmark is not None:
         matching_benchmarks.append(matching_benchmark)
