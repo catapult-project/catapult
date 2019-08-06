@@ -513,12 +513,12 @@ class PageTestResultsFilterTest(unittest.TestCase):
           upload_bucket='abc', output_dir=tempdir)
 
       results.WillRunPage(self.pages[0])
-      with results.CreateArtifact('screenshot') as screenshot1:
+      with results.CreateArtifact('screenshot.png') as screenshot1:
         pass
       results.DidRunPage(self.pages[0])
 
       results.WillRunPage(self.pages[1])
-      with results.CreateArtifact('log') as log2:
+      with results.CreateArtifact('log.txt') as log2:
         pass
       results.DidRunPage(self.pages[1])
 
@@ -543,12 +543,12 @@ class PageTestResultsFilterTest(unittest.TestCase):
 
 
     results.WillRunPage(self.pages[0])
-    with results.CreateArtifact('screenshot'):
+    with results.CreateArtifact('screenshot.png'):
       pass
     results.DidRunPage(self.pages[0])
 
     results.WillRunPage(self.pages[1])
-    with results.CreateArtifact('log'):
+    with results.CreateArtifact('log.txt'):
       pass
     results.DidRunPage(self.pages[1])
 
@@ -560,20 +560,20 @@ class PageTestResultsFilterTest(unittest.TestCase):
       results = page_test_results.PageTestResults(output_dir=tempdir)
 
       results.WillRunPage(self.pages[0])
-      with results.CreateArtifact('log') as log_file:
+      with results.CreateArtifact('log.txt') as log_file:
         log_file.write('page0\n')
       results.DidRunPage(self.pages[0])
 
       results.WillRunPage(self.pages[1])
-      with results.CreateArtifact('log') as log_file:
+      with results.CreateArtifact('log.txt') as log_file:
         log_file.write('page1\n')
       results.DidRunPage(self.pages[1])
 
       all_story_runs = list(results.IterStoryRuns())
-      log0_path = all_story_runs[0].GetArtifact('log').local_path
+      log0_path = all_story_runs[0].GetArtifact('log.txt').local_path
       with open(log0_path) as f:
         self.assertEqual(f.read(), 'page0\n')
 
-      log1_path = all_story_runs[1].GetArtifact('log').local_path
+      log1_path = all_story_runs[1].GetArtifact('log.txt').local_path
       with open(log1_path) as f:
         self.assertEqual(f.read(), 'page1\n')

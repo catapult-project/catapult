@@ -999,7 +999,7 @@ class StoryRunnerTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
-        mock.call.results.CreateArtifact('logs'),
+        mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.CanRunStory(root_mock.story),
@@ -1016,7 +1016,7 @@ class StoryRunnerTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
-        mock.call.results.CreateArtifact('logs'),
+        mock.call.results.CreateArtifact('logs.txt'),
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.CanRunStory(root_mock.story),
         mock.call.state.RunStory(root_mock.results),
@@ -1033,7 +1033,7 @@ class StoryRunnerTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
-        mock.call.results.CreateArtifact('logs'),
+        mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
@@ -1062,11 +1062,11 @@ class StoryRunnerTest(unittest.TestCase):
             root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
       self.assertListEqual(root_mock.method_calls, [
-          mock.call.results.CreateArtifact('logs'),
+          mock.call.results.CreateArtifact('logs.txt'),
           mock.call.test.WillRunStory(root_mock.state.platform),
           mock.call.state.WillRunStory(root_mock.story),
           mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
-          mock.call.results.CaptureArtifact('minidump'),
+          mock.call.results.CaptureArtifact('minidump.dmp'),
           mock.call.results.Fail(
               'Exception raised running %s' % root_mock.story.name),
           mock.call.test.DidRunStory(
@@ -1086,7 +1086,7 @@ class StoryRunnerTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
-        mock.call.results.CreateArtifact('logs'),
+        mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.CanRunStory(root_mock.story),
@@ -1105,7 +1105,7 @@ class StoryRunnerTest(unittest.TestCase):
     story_runner._RunStoryAndProcessErrorIfNeeded(
         root_mock.story, root_mock.results, root_mock.state, root_mock.test)
     self.assertEquals(root_mock.method_calls, [
-        mock.call.results.CreateArtifact('logs'),
+        mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.CanRunStory(root_mock.story),
@@ -1125,7 +1125,7 @@ class StoryRunnerTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
-        mock.call.results.CreateArtifact('logs'),
+        mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
         mock.call.results.Fail(
@@ -1145,7 +1145,7 @@ class StoryRunnerTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
-        mock.call.results.CreateArtifact('logs'),
+        mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.CanRunStory(root_mock.story),
@@ -1166,7 +1166,7 @@ class StoryRunnerTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
-        mock.call.results.CreateArtifact('logs'),
+        mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.CanRunStory(root_mock.story),
@@ -1189,7 +1189,7 @@ class StoryRunnerTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
-        mock.call.results.CreateArtifact('logs'),
+        mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
@@ -1209,7 +1209,7 @@ class StoryRunnerTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
-        mock.call.results.CreateArtifact('logs'),
+        mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.results.Skip('Unsupported page action: foo'),
         mock.call.test.DidRunStory(
@@ -1228,7 +1228,7 @@ class StoryRunnerTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
-        mock.call.results.CreateArtifact('logs'),
+        mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform),
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.CanRunStory(root_mock.story),
@@ -1625,7 +1625,7 @@ class BenchmarkJsonResultsTest(unittest.TestCase):
       json_data = json.load(f)
     foo_artifacts = json_data['tests']['TestBenchmark']['foo']['artifacts']
     foo_artifact_log_path = os.path.join(
-        self.options.output_dir, foo_artifacts['logs'][0])
+        self.options.output_dir, foo_artifacts['logs.txt'][0])
     with open(foo_artifact_log_path) as f:
       foo_log = f.read()
 
@@ -1671,7 +1671,7 @@ class BenchmarkJsonResultsTest(unittest.TestCase):
 
     foo_artifacts = json_data['tests']['TestBenchmark']['foo']['artifacts']
     foo_artifact_log_path = os.path.join(
-        self.options.output_dir, foo_artifacts['logs'][0])
+        self.options.output_dir, foo_artifacts['logs.txt'][0])
     with open(foo_artifact_log_path) as f:
       foo_log = f.read()
 

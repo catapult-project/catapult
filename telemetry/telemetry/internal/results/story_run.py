@@ -17,17 +17,40 @@ FAIL = 'FAIL'
 SKIP = 'SKIP'
 
 
+_CONTENT_TYPES = {
+    '.dat': 'application/octet-stream',  # Generic data blob.
+    '.dmp': 'application/x-dmp',  # A minidump file.
+    '.gz': 'application/gzip',
+    '.json': 'application/json',
+    '.pb': 'application/x-protobuf',
+    '.png': 'image/png',
+    '.txt': 'text/plain',
+}
+_DEFAULT_CONTENT_TYPE = _CONTENT_TYPES['.dat']
+
+
 def _FormatDuration(seconds):
   return '{:.2f}s'.format(seconds)
 
 
+def ContentTypeFromExt(name):
+  """Infer a suitable content_type from the extension in a file name."""
+  _, ext = posixpath.splitext(name)
+  if ext in _CONTENT_TYPES:
+    return _CONTENT_TYPES[ext]
+  else:
+    logging.info('Unable to infer content type for artifact: %s', name)
+    logging.info('Falling back to: %s', _DEFAULT_CONTENT_TYPE)
+    return _DEFAULT_CONTENT_TYPE
+
+
 class Artifact(object):
-  def __init__(self, name, local_path, content_type=None):
+  def __init__(self, name, local_path, content_type):
     """
     Args:
       name: name of the artifact.
       local_path: an absolute local path to an artifact file.
-      content_type: optional. A string representing the MIME type of a file.
+      content_type: A string representing the MIME type of a file.
     """
     self._name = name
     self._local_path = local_path
@@ -228,12 +251,15 @@ class StoryRun(object):
     return local_path
 
   @contextlib.contextmanager
-  def CreateArtifact(self, name):
+  def CreateArtifact(self, name, content_type=None):
     """Create an artifact.
 
     Args:
       name: File path that this artifact will have inside the artifacts dir.
           The name can contain sub-directories with '/' as a separator.
+      content_type: A string representing the MIME type of the artifact.
+          If omitted a content type is inferred from a file extension in name.
+
     Returns:
       A generator yielding a file object.
     """
@@ -247,16 +273,18 @@ class StoryRun(object):
         'Story already has an artifact: %s' % name)
 
     local_path = self._PrepareLocalPath(name)
+    if content_type is None:
+      content_type = ContentTypeFromExt(name)
 
     with open(local_path, 'w+b') as file_obj:
       # We want to keep track of all artifacts (e.g. logs) even in the case
       # of an exception in the client code, so we create a record for
       # this artifact before yielding the file handle.
-      self._artifacts[name] = Artifact(name, local_path)
+      self._artifacts[name] = Artifact(name, local_path, content_type)
       yield file_obj
 
   @contextlib.contextmanager
-  def CaptureArtifact(self, name):
+  def CaptureArtifact(self, name, content_type=None):
     """Generate an absolute file path for an artifact, but do not
     create a file. File creation is a responsibility of the caller of this
     method. It is assumed that the file exists at the exit of the context.
@@ -264,6 +292,9 @@ class StoryRun(object):
     Args:
       name: File path that this artifact will have inside the artifacts dir.
         The name can contain sub-directories with '/' as a separator.
+      content_type: A string representing the MIME type of the artifact.
+          If omitted a content type is inferred from a file extension in name.
+
     Returns:
       A generator yielding a file name.
     """
@@ -272,10 +303,13 @@ class StoryRun(object):
         'Story already has an artifact: %s' % name)
 
     local_path = self._PrepareLocalPath(name)
+    if content_type is None:
+      content_type = ContentTypeFromExt(name)
+
     yield local_path
     assert os.path.isfile(local_path), (
         'Failed to capture an artifact: %s' % local_path)
-    self._artifacts[name] = Artifact(name, local_path)
+    self._artifacts[name] = Artifact(name, local_path, content_type)
 
   def IterArtifacts(self, subdir=None):
     """Iterate over all artifacts in a given sub-directory.

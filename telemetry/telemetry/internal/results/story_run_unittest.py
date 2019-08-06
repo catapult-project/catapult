@@ -113,33 +113,35 @@ class StoryRunTest(unittest.TestCase):
   def testCreateArtifact(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
       run = story_run.StoryRun(self.story, output_dir=tempdir)
-      with run.CreateArtifact('logs') as log_file:
+      with run.CreateArtifact('logs.txt') as log_file:
         log_file.write('hi\n')
 
-      filename = run.GetArtifact('logs').local_path
-      with open(filename) as f:
+      artifact = run.GetArtifact('logs.txt')
+      with open(artifact.local_path) as f:
         self.assertEqual(f.read(), 'hi\n')
+      self.assertEqual(artifact.content_type, 'text/plain')
 
   def testCaptureArtifact(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
       run = story_run.StoryRun(self.story, output_dir=tempdir)
-      with run.CaptureArtifact('logs') as log_file_name:
+      with run.CaptureArtifact('logs.txt') as log_file_name:
         with open(log_file_name, 'w') as log_file:
           log_file.write('hi\n')
 
-      filename = run.GetArtifact('logs').local_path
-      with open(filename) as f:
+      artifact = run.GetArtifact('logs.txt')
+      with open(artifact.local_path) as f:
         self.assertEqual(f.read(), 'hi\n')
+      self.assertEqual(artifact.content_type, 'text/plain')
 
   def testIterArtifacts(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
       run = story_run.StoryRun(self.story, output_dir=tempdir)
 
-      with run.CreateArtifact('log/log1'):
+      with run.CreateArtifact('log/log1.foo'):
         pass
-      with run.CreateArtifact('trace/trace1'):
+      with run.CreateArtifact('trace/trace1.json'):
         pass
-      with run.CreateArtifact('trace/trace2'):
+      with run.CreateArtifact('trace/trace2.json'):
         pass
 
       all_artifacts = list(run.IterArtifacts())
@@ -147,6 +149,9 @@ class StoryRunTest(unittest.TestCase):
 
       logs = list(run.IterArtifacts('log'))
       self.assertEqual(1, len(logs))
+      # Falls back to 'application/octet-stream' due to unknown extension.
+      self.assertEqual('application/octet-stream', logs[0].content_type)
 
       traces = list(run.IterArtifacts('trace'))
       self.assertEqual(2, len(traces))
+      self.assertTrue(all(t.content_type == 'application/json' for t in traces))

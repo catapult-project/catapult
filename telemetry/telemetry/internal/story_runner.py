@@ -112,7 +112,7 @@ def ProcessCommandLineArgs(parser, args):
 
 @contextlib.contextmanager
 def CaptureLogsAsArtifacts(results):
-  with results.CreateArtifact('logs') as log_file:
+  with results.CreateArtifact('logs.txt') as log_file:
     with logging_util.CaptureLogs(log_file):
       yield
 
@@ -127,7 +127,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
       if isinstance(exc, exceptions.AppCrashException):
         minidump_path = exc.minidump_path
         if minidump_path:
-          with results.CaptureArtifact('minidump') as path:
+          with results.CaptureArtifact('minidump.dmp') as path:
             shutil.move(minidump_path, path)
 
     # Note: calling Fail on the results object also normally causes the

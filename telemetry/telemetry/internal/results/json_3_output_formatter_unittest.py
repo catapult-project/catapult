@@ -168,21 +168,21 @@ class Json3OutputFormatterTest(unittest.TestCase):
       results = _MakePageTestResults(output_dir=tempdir)
 
       results.WillRunPage(self._story_set[0])
-      with results.CreateArtifact('log'):
+      with results.CreateArtifact('log.txt'):
         pass
       results.DidRunPage(self._story_set[0])
 
       results.WillRunPage(self._story_set[0])
-      with results.CreateArtifact('log'):
+      with results.CreateArtifact('log.txt'):
         pass
-      with results.CreateArtifact('trace'):
+      with results.CreateArtifact('trace.json'):
         pass
       results.DidRunPage(self._story_set[0])
 
     d = json_3_output_formatter.ResultsAsDict(results)
     foo_story_artifacts = d['tests']['benchmark_name']['Foo']['artifacts']
-    self.assertEquals(len(foo_story_artifacts['log']), 2)
-    self.assertEquals(len(foo_story_artifacts['trace']), 1)
+    self.assertEquals(len(foo_story_artifacts['log.txt']), 2)
+    self.assertEquals(len(foo_story_artifacts['trace.json']), 1)
 
   def testAsDictWithSkippedAndFailedTests_AlsoShardIndex(self):
     # Set up shard index. If already running on a shard or fake it

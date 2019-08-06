@@ -518,7 +518,7 @@ class FakePageRunEndToEndTests(unittest.TestCase):
     self.assertTrue(results.had_failures)
     failed_run = next(run for run in results.IterStoryRuns()
                       if run.story.name == failing_page.name)
-    screenshot_file_path = failed_run.GetArtifact('screenshot').local_path
+    screenshot_file_path = failed_run.GetArtifact('screenshot.png').local_path
 
     actual_screenshot_img = image_util.FromPngFile(screenshot_file_path)
     self.assertTrue(
