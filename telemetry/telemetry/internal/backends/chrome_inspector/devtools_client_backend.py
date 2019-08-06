@@ -163,12 +163,13 @@ class _DevToolsClientBackend(object):
 
     chrome_tracing_devtools_manager.RegisterDevToolsClient(self)
 
-    # Telemetry has started Chrome tracing if there is a trace config, we use
-    # this info to create the TracingBackend in the correct state.
-    is_tracing_running = bool(
+    # If there is a trace_config it means that Telemetry has already started
+    # Chrome tracing via a startup config. The TracingBackend also needs needs
+    # this config to initialize itself correctly.
+    trace_config = (
         self.platform_backend.tracing_controller_backend.GetChromeTraceConfig())
     self._tracing_backend = tracing_backend.TracingBackend(
-        self._browser_websocket, is_tracing_running)
+        self._browser_websocket, trace_config)
 
   @exc_util.BestEffort
   def Close(self):

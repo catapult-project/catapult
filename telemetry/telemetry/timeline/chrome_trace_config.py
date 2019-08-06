@@ -70,6 +70,14 @@ class ChromeTraceConfig(object):
     self._enable_systrace = False
     self._uma_histogram_names = []
     self._trace_buffer_size_in_kb = None
+    self._trace_format = None
+
+  @property
+  def trace_format(self):
+    return self._trace_format
+
+  def SetProtoTraceFormat(self):
+    self._trace_format = 'proto'
 
   def SetLowOverheadFilter(self):
     self._category_filter = (

@@ -220,6 +220,8 @@ class Benchmark(command_line.Command):
       tbm_options.config.atrace_config.categories = categories
     if options and options.enable_systrace:
       tbm_options.config.chrome_trace_config.SetEnableSystrace()
+    if options and options.experimental_proto_trace_format:
+      tbm_options.config.chrome_trace_config.SetProtoTraceFormat()
     return tbm_options
 
   def CreatePageTest(self, options):  # pylint: disable=unused-argument

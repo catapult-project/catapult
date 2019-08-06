@@ -131,6 +131,10 @@ class BrowserFinderOptions(optparse.Values):
         help='Select the compatibility change that you want to enforce when '
              'running benchmarks. The options are: %s' % ', '.join(
                  compat_mode_options_list))
+    parser.add_option(
+        '--experimental-proto-trace-format',
+        action='store_true',
+        help='Request traces from Chrome in protobuf file format.')
     identity = None
     testing_rsa = os.path.join(
         util.GetTelemetryThirdPartyDir(), 'chromite', 'ssh_keys', 'testing_rsa')
