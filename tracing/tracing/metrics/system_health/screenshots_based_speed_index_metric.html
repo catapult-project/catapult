@@ -41,7 +41,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * @param {tr.model.ThreadSlice} navigationStart
    */
   function addSpeedIndexScreenshotsBasedSample(samples, navigationStart,
-      browserHelper) {
+      loadDuration, browserHelper) {
     const screenshotObjects = browserHelper.process.objects
         .getAllInstancesNamed('Screenshot');
     if (!screenshotObjects) return;
@@ -49,7 +49,8 @@ tr.exportTo('tr.metrics.sh', function() {
       const snapshots = screenshotObjects[i].snapshots;
       const timestampedColorHistograms = [];
       snapshots.map(snapshot => {
-        if (snapshot.ts >= navigationStart.start) {
+        if (snapshot.ts >= navigationStart.start &&
+        snapshot.ts < navigationStart.start + loadDuration) {
           timestampedColorHistograms.push({colorHistogram:
               SpeedIndex.createColorHistogram(getPixelData(snapshot.args)),
           ts: snapshot.ts});
@@ -85,7 +86,8 @@ tr.exportTo('tr.metrics.sh', function() {
       const rendererHelper = chromeHelper.rendererHelpers[
           expectation.renderProcess.pid];
       addSpeedIndexScreenshotsBasedSample(speedIndexScreenshotsBasedSamples,
-          expectation.navigationStart, chromeHelper.browserHelper);
+          expectation.navigationStart, expectation.duration,
+          chromeHelper.browserHelper);
     }
     return speedIndexScreenshotsBasedSamples;
   }
