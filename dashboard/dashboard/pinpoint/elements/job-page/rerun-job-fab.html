@@ -70,12 +70,6 @@ found in the LICENSE file.
         delete args.name;
         delete args.user;
 
-        // TODO(dtu): Remove after there are no jobs we care about with
-        // comparison_magnitude == 'None' (a string containing 'None').
-        if (args.comparison_magnitude == 'None') {
-          delete args.comparison_magnitude;
-        }
-
         const tuples = [];
         for (const key in args) {
           tuples.push({key, value: args[key]});
