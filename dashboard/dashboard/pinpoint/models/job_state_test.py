@@ -6,8 +6,10 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import logging
 import math
 import unittest
+import sys
 
 from dashboard.pinpoint import test
 from dashboard.pinpoint.models import job_state
@@ -16,6 +18,16 @@ from dashboard.pinpoint.models.quest import quest_test
 
 
 class ExploreTest(test.TestCase):
+
+  def setUp(self):
+    # Intercept the logging messages, so that we can see them when we have test
+    # output in failures.
+    self.logger = logging.getLogger()
+    self.logger.level = logging.DEBUG
+    self.stream_handler = logging.StreamHandler(sys.stdout)
+    self.logger.addHandler(self.stream_handler)
+    self.addCleanup(self.logger.removeHandler, self.stream_handler)
+    super(ExploreTest, self).setUp()
 
   def testDifferentWithMidpoint(self):
     quests = [
@@ -31,18 +43,29 @@ class ExploreTest(test.TestCase):
     state.ScheduleWork()
     state.Explore()
 
-    # The Changes are different. Add the midpoint.
+    # The Changes are different. Add the speculated modpoints in a two-level
+    # deep bisection tree, which include 3, 5 (the midpoint between 0 and 9),
+    # and 7.
     expected = [
         change_test.Change(1),
+        change_test.Change(3),
         change_test.Change(5),
-        change_test.Change(9)
+        change_test.Change(7),
+        change_test.Change(9),
     ]
+
+    # View the whole diff in case of failure.
+    self.maxDiff = None  # pylint: disable=invalid-name
     self.assertEqual(state._changes, expected)
     attempt_count_1 = len(state._attempts[change_test.Change(1)])
-    attempt_count_2 = len(state._attempts[change_test.Change(5)])
-    attempt_count_3 = len(state._attempts[change_test.Change(9)])
+    attempt_count_2 = len(state._attempts[change_test.Change(3)])
+    attempt_count_3 = len(state._attempts[change_test.Change(5)])
+    attempt_count_4 = len(state._attempts[change_test.Change(7)])
+    attempt_count_5 = len(state._attempts[change_test.Change(9)])
     self.assertEqual(attempt_count_1, attempt_count_2)
     self.assertEqual(attempt_count_2, attempt_count_3)
+    self.assertEqual(attempt_count_3, attempt_count_4)
+    self.assertEqual(attempt_count_4, attempt_count_5)
     self.assertEqual([], state.Differences())
 
   def testDifferentNoMidpoint(self):

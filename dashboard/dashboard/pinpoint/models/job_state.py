@@ -5,7 +5,6 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from future_builtins import map # pylint: disable=redefined-builtin
 
 import collections
 import functools
@@ -19,10 +18,11 @@ from dashboard.pinpoint.models import attempt as attempt_module
 from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import compare
 from dashboard.pinpoint.models import errors
+from dashboard.pinpoint.models import exploration
 
 
 _REPEAT_COUNT_INCREASE = 10
-
+_DEFAULT_SPECULATION_LEVELS = 2
 
 FUNCTIONAL = 'functional'
 PERFORMANCE = 'performance'
@@ -102,43 +102,54 @@ class JobState(object):
     """Compare Changes and bisect by adding additional Changes as needed.
 
     For every pair of adjacent Changes, compare their results as probability
-    distributions. If the results are different, find the midpoint of the
-    Changes and add it to the Job. If the results are the same, do nothing.
-    If the results are inconclusive, add more Attempts to the Change with fewer
-    Attempts until we decide they are the same or different.
+    distributions. If the results are different, find surrounding Changes and
+    add it to the Job. If the results are the same, do nothing.  If the results
+    are inconclusive, add more Attempts to the Change with fewer Attempts until
+    we decide they are the same or different.
 
-    The midpoint can only be added if the second Change represents a commit that
-    comes after the first Change. Otherwise, this method won't explore further.
-    For example, if Change A is repo@abc, and Change B is repo@abc + patch,
-    there's no way to pick additional Changes to try.
+    Intermediate points can only be added if the end Change represents a
+    commit that comes after the start Change. Otherwise, this method won't
+    explore further. For example, if Change A is repo@abc, and Change B is
+    repo@abc + patch, there's no way to pick additional Changes to try.
     """
-    # This loop adds Changes to the _changes list while looping through it.
-    # The Change insertion simultaneously uses and modifies the list indices.
-    # However, the loop index goes in reverse order and Changes are only added
-    # after the loop index, so the loop never encounters the modified items.
-    # TODO: consider using `reduce(...)` here to implement a fold?
-    for index in range(len(self._changes) - 1, 0, -1):
-      change_a = self._changes[index - 1]
-      change_b = self._changes[index]
+    if not self._changes:
+      return
+
+    def DetectChange(change_a, change_b):
       comparison = self._Compare(change_a, change_b)
+      # We return None if the comparison determines that the result is
+      # inconclusive.
+      if comparison == compare.UNKNOWN:
+        return None
+      return comparison == compare.DIFFERENT
 
-      if comparison == compare.DIFFERENT:
-        try:
-          midpoint = change_module.Change.Midpoint(change_a, change_b)
-        except change_module.NonLinearError:
-          continue
-        except (httplib.HTTPException,
-                urlfetch_errors.DeadlineExceededError):
-          raise errors.RecoverableError()
+    changes_to_refine = []
+    def CollectChangesToRefine(change_a, change_b):
+      changes_to_refine.append(
+          change_a if len(self._attempts[change_a]
+                         ) <= len(self._attempts[change_b]) else change_b)
 
-        logging.info('Adding Change %s.', midpoint)
-        self.AddChange(midpoint, index)
+    def FindMidpoint(change_a, change_b):
+      try:
+        return change_module.Change.Midpoint(change_a, change_b)
+      except change_module.NonLinearError:
+        return None
 
-      elif comparison == compare.UNKNOWN:
-        if len(self._attempts[change_a]) <= len(self._attempts[change_b]):
-          self.AddAttempts(change_a)
-        else:
-          self.AddAttempts(change_b)
+    try:
+      additional_changes = exploration.Speculate(
+          self._changes,
+          change_detected=DetectChange,
+          on_unknown=CollectChangesToRefine,
+          midpoint=FindMidpoint,
+          levels=_DEFAULT_SPECULATION_LEVELS)
+      logging.debug('Refinement list: %s', changes_to_refine)
+      for change in changes_to_refine:
+        self.AddAttempts(change)
+      logging.debug('Edit list: %s', additional_changes)
+      for index, change in additional_changes:
+        self.AddChange(change, index)
+    except (httplib.HTTPException, urlfetch_errors.DeadlineExceededError):
+      raise errors.RecoverableError()
 
   def ScheduleWork(self):
     work_left = False
