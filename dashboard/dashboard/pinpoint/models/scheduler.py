@@ -31,6 +31,7 @@ class QueueElement(ndb.Model):
   """Models an element in a queues."""
   _default_indexed = False
   timestamp = ndb.DateTimeProperty(required=True, auto_now_add=True)
+  queue_length = ndb.IntegerProperty(required=True)
   job_id = ndb.StringProperty(required=True)
   status = ndb.StringProperty(
       required=True, default='Queued', choices=['Running', 'Done', 'Cancelled'])
@@ -42,6 +43,7 @@ class SampleElementTiming(ndb.Model):
   job_id = ndb.StringProperty(required=True)
   enqueue_timestamp = ndb.DateTimeProperty(required=True)
   picked_timestamp = ndb.DateTimeProperty(required=True, auto_now_add=True)
+  queue_length = ndb.IntegerProperty(required=True)
 
 
 class Queues(ndb.Model):
@@ -130,7 +132,8 @@ def Schedule(job):
   # and reject the attempt?
 
   # 3. Enqueue job according to insertion time.
-  queue.jobs.append(QueueElement(job_id=job.job_id))
+  queue.jobs.append(
+      QueueElement(job_id=job.job_id, queue_length=len(queue.jobs)))
   queue.put()
   logging.debug('Scheduled: %r', queue)
 
@@ -172,7 +175,8 @@ def PickJob(configuration):
       # Add this to the samples.
       queue.samples.append(
           SampleElementTiming(
-              job_id=job.job_id, enqueue_timestamp=job.timestamp))
+              job_id=job.job_id, enqueue_timestamp=job.timestamp,
+              queue_length=job.queue_length))
       break
 
   # Persist the changes transactionally.
@@ -205,11 +209,14 @@ def QueueStats(configuration):
     status_map[key] += 1
     return status_map
 
+  def _FormatSample(s):
+    t = s.picked_timestamp - s.enqueue_timestamp
+    return (t.total_seconds() / SECS_PER_HOUR, s.queue_length)
+
   result = functools.reduce(StatCombiner, queue.jobs, {})
   result.update({
       'queue_time_samples': [
-          (s.picked_timestamp - s.enqueue_timestamp).total_seconds() /
-          SECS_PER_HOUR for s in queue.samples
+          _FormatSample(s) for s in queue.samples
       ],
       'job_id_with_status': [{
           'job_id': j.job_id,

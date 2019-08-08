@@ -142,6 +142,7 @@ class FifoSchedulerTest(test.TestCase):
     self.assertNotIn('queued_jobs', stats)
     self.assertNotIn('running_jobs', stats)
     self.assertNotEquals(len(stats['queue_time_samples']), 0)
+    self.assertEquals(len(stats['queue_time_samples'][0]), 2)
 
   def testJobStuckInRunning(self):
     self.skipTest('Not implemented yet.')

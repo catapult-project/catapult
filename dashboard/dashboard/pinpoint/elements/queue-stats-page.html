@@ -72,7 +72,7 @@ found in the LICENSE file.
 
           drawDurationHistograms() {
             drawHistogram(d3.select(this.$.queueTimeDistribution),
-                this.stats.queue_time_samples);
+                this.stats.queue_time_samples.map(v => v[0]));
           },
 
           jobs(stats, key) {
