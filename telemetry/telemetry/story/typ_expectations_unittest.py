@@ -9,7 +9,24 @@ from telemetry import benchmark
 from telemetry import story as story_module
 
 
-class NewStoryExpectationsTest(unittest.TestCase):
+class TypStoryExpectationsTest(unittest.TestCase):
+  def testGetBrokenExpectations(self):
+    expectations = (
+        '# tags: [ all ]\n'
+        '# results: [ Skip ]\n'
+        'crbug.com/123 [ all ] fake/tw* [ Skip ]\n'
+        'crbug.com/123 [ all ] fake/one [ Skip ]\n'
+        'crbug.com/123 [ all ] fake/three [ Skip ]\n'
+        'crbug.com/123 [ all ] fake1/* [ Skip ]\n')
+    with mock.patch.object(benchmark.Benchmark, 'Name', return_value='fake'):
+      story = mock.MagicMock()
+      story.name = 'three'
+      story_set = story_module.StorySet()
+      story_set._stories.append(story)
+      b = benchmark.Benchmark()
+      b.AugmentExpectationsWithFile(expectations)
+      broken_expectations = b.GetBrokenExpectations(story_set)
+      self.assertEqual(set(['fake/tw*', 'fake/one']), broken_expectations)
 
   def testDisableBenchmark(self):
     expectations = (
@@ -17,8 +34,8 @@ class NewStoryExpectationsTest(unittest.TestCase):
         '# results: [ Skip ]\n'
         'crbug.com/123 [ all ] fake/* [ Skip ]\n')
     with mock.patch.object(benchmark.Benchmark, 'Name', return_value='fake'):
-      b = benchmark.Benchmark('fake')
-      b.AugmentExpectationsWithParser(expectations)
+      b = benchmark.Benchmark()
+      b.AugmentExpectationsWithFile(expectations)
       b.expectations.SetTags(['All'])
       reason = b._expectations.IsBenchmarkDisabled(None, None)
       self.assertTrue(reason)
@@ -37,7 +54,7 @@ class NewStoryExpectationsTest(unittest.TestCase):
         story.name = 'one'
         story_set = story_module.StorySet()
         story_set._stories.append(story)
-        b = benchmark.Benchmark('fake')
+        b = benchmark.Benchmark()
         b.AugmentExpectationsWithFile(expectations)
         b.expectations.SetTags([os])
         reason = b._expectations.IsStoryDisabled(story, None, None)
