@@ -193,6 +193,15 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     if trace_config_file:
       startup_args.append('--trace-config-file=%s' % trace_config_file)
 
+    if sys.platform.startswith('linux'):
+      # All linux tests should use the --password-store=basic
+      # flag, which stops Chrome from reaching the system's Keyring or
+      # KWallet. These are stateful system libraries, which can hurt tests
+      # by reducing isolation, reducing speed and introducing flakiness due
+      # to their own bugs.
+      # See crbug.com/991424.
+      startup_args.append('--password-store=basic')
+
     startup_args.extend(
         [a for a in self.extra_browser_args if a not in startup_args])
 
