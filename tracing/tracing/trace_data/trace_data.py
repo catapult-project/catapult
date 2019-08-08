@@ -92,7 +92,7 @@ class _TraceData(object):
 
 
 _TraceItem = collections.namedtuple(
-    '_TraceItem', ['part_name', 'handle', 'compressed'])
+    '_TraceItem', ['part_name', 'handle'])
 
 
 class TraceDataBuilder(object):
@@ -118,14 +118,14 @@ class TraceDataBuilder(object):
   def __exit__(self, *args):
     self.CleanUpTraceData()
 
-  def OpenTraceHandleFor(self, part, compressed=False):
+  def OpenTraceHandleFor(self, part, suffix):
     """Open a file handle for writing trace data into it.
 
     Args:
       part: A TraceDataPart instance.
-      compressed: An optional Boolean, indicates whether the written data is
-        gzipped. Note, this information is currently only used by the AsData()
-        method in order to be able to open and read the written data.
+      suffix: A string used as file extension and identifier for the format
+        of the trace contents, e.g. '.json'. Can also append '.gz' to
+        indicate gzipped content, e.g. '.json.gz'.
     """
     if not isinstance(part, TraceDataPart):
       raise TypeError('part must be a TraceDataPart instance')
@@ -133,8 +133,8 @@ class TraceDataBuilder(object):
       raise RuntimeError('trace data builder is no longer open for writing')
     trace = _TraceItem(
         part_name=part.raw_field_name,
-        handle=tempfile.NamedTemporaryFile(delete=False, dir=self._temp_dir),
-        compressed=compressed)
+        handle=tempfile.NamedTemporaryFile(
+            delete=False, dir=self._temp_dir, suffix=suffix))
     self._traces.append(trace)
     return trace.handle
 
@@ -151,7 +151,8 @@ class TraceDataBuilder(object):
         source file will no longer exist after calling this method; and the
         lifetime of the trace data will thereafter be managed by this builder.
     """
-    with self.OpenTraceHandleFor(part) as handle:
+    _, suffix = os.path.splitext(trace_file)
+    with self.OpenTraceHandleFor(part, suffix) as handle:
       pass
     if os.name == 'nt':
       # On windows os.rename won't overwrite, so the destination path needs to
@@ -175,11 +176,13 @@ class TraceDataBuilder(object):
       if not allow_unstructured:
         raise ValueError('must pass allow_unstructured=True for text data')
       do_write = lambda d, f: f.write(d)
+      suffix = '.txt'  # Used for atrace and systrace data.
     elif isinstance(data, dict):
       do_write = json.dump
+      suffix = '.json'
     else:
       raise TypeError('invalid trace data type')
-    with self.OpenTraceHandleFor(part) as handle:
+    with self.OpenTraceHandleFor(part, suffix) as handle:
       do_write(data, handle)
 
   def Freeze(self):
@@ -227,10 +230,15 @@ class TraceDataBuilder(object):
 
     raw_data = {}
     for trace in self._traces:
-      traces_for_part = raw_data.setdefault(trace.part_name, [])
-      opener = gzip.open if trace.compressed else open
-      with opener(trace.handle.name, 'rb') as f:
-        traces_for_part.append(json.load(f))
+      is_compressed_json = trace.handle.name.endswith('.json.gz')
+      is_json = trace.handle.name.endswith('.json') or is_compressed_json
+      if is_json:
+        traces_for_part = raw_data.setdefault(trace.part_name, [])
+        opener = gzip.open if is_compressed_json else open
+        with opener(trace.handle.name, 'rb') as f:
+          traces_for_part.append(json.load(f))
+      else:
+        logging.info('Skipping over non-json trace: %s', trace.handle.name)
     return _TraceData(raw_data)
 
   def IterTraceParts(self):

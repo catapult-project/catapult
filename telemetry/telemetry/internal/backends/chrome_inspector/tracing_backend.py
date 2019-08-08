@@ -136,13 +136,8 @@ class TracingBackend(object):
       raise TracingUnsupportedException(
           'Chrome tracing not supported for this app.')
 
-    # Using 'gzip' compression reduces the amount of data transferred over
-    # websocket. This reduces the time waiting for all data to be received,
-    # especially when the test is running on an android device. Using
-    # compression can save upto 10 seconds (or more) for each story.
-    req = {'method': 'Tracing.start', 'params': {
-        'transferMode': 'ReturnAsStream', 'streamCompression': 'gzip',
-        'traceConfig': chrome_trace_config.GetChromeTraceConfigForDevTools()}}
+    req = _MakeTracingStartRequest(
+        trace_config=chrome_trace_config.GetChromeTraceConfigForDevTools())
     logging.info('Start Tracing Request: %r', req)
     response = self._inspector_websocket.SyncRequest(req, timeout)
 
@@ -179,10 +174,7 @@ class TracingBackend(object):
       if not self._start_issued:
         # Tracing is running but start was not issued so, startup tracing must
         # be in effect. Issue another Tracing.start to update the transfer mode.
-        # TODO(caseq): get rid of it when streaming is the default.
-        params = {'transferMode': 'ReturnAsStream', 'streamCompression': 'gzip',
-                  'traceConfig': {}}
-        req = {'method': 'Tracing.start', 'params': params}
+        req = _MakeTracingStartRequest()
         self._inspector_websocket.SendAndIgnoreResponse(req)
 
       req = {'method': 'Tracing.end'}
@@ -324,9 +316,9 @@ class TracingBackend(object):
       if not stream_handle:
         self._has_received_all_tracing_data = True
         return
-      compressed = params.get('streamCompression') == 'gzip'
       trace_handle = self._trace_data_builder.OpenTraceHandleFor(
-          trace_data_module.CHROME_TRACE_PART, compressed=compressed)
+          trace_data_module.CHROME_TRACE_PART,
+          suffix=_GetTraceFileSuffix(params))
       reader = _DevToolsStreamReader(
           self._inspector_websocket, stream_handle, trace_handle)
       reader.Read(self._ReceivedAllTraceDataFromStream)
@@ -343,3 +335,22 @@ class TracingBackend(object):
     req = {'method': 'Tracing.hasCompleted'}
     res = self._inspector_websocket.SyncRequest(req, timeout=10)
     return not res.get('response')
+
+
+def _MakeTracingStartRequest(trace_config=None):
+  # Using 'gzip' compression reduces the amount of data transferred over
+  # websocket. This reduces the time waiting for all data to be received,
+  # especially when the test is running on an android device. Using
+  # compression can save upto 10 seconds (or more) for each story.
+  params = {
+      'transferMode': 'ReturnAsStream',
+      'streamCompression': 'gzip',
+      'traceConfig': trace_config or {}}
+  return  {'method': 'Tracing.start', 'params': params}
+
+
+def _GetTraceFileSuffix(params):
+  suffix = '.' + params.get('traceFormat', 'json')
+  if params.get('streamCompression') == 'gzip':
+    suffix += '.gz'
+  return suffix

@@ -77,7 +77,7 @@ class TelemetryTracingAgent(tracing_agent.TracingAgent):
     # Create a temporary file and pass the opened file-like object to
     # trace_event.trace_enable(); the file will be closed on trace_disable(),
     # and later passed to a trace data builder in CollectAgentTraceData().
-    self._trace_file = tempfile.NamedTemporaryFile(delete=False)
+    self._trace_file = tempfile.NamedTemporaryFile(delete=False, suffix='.json')
     trace_event.trace_enable(
         self._trace_file, format=trace_event.JSON_WITH_METADATA)
     assert self.is_tracing, 'Failed to start Telemetry tracing'
