@@ -27,10 +27,6 @@ class InspectorConsole(object):
       self._message_output_stream.write(
           '%s\n' % self._last_message)
 
-    elif msg['method'] == 'Console.messageRepeatCountUpdated':
-      if self._message_output_stream:
-        self._message_output_stream.write('%s\n' % self._last_message)
-
   def GetCurrentConsoleOutputBuffer(self, timeout=10):
     self._message_output_stream = StringIO.StringIO()
     self._EnableConsoleOutputStream(timeout)
