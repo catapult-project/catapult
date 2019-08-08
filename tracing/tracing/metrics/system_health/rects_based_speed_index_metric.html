@@ -42,12 +42,12 @@ tr.exportTo('tr.metrics.sh', function() {
   function addRectsBasedSpeedIndexSample(samples, rendererHelper,
       navigationStart, loadDuration, frameID) {
     let viewport;
+    // We're looking for the last viewport recorded before end of loading.
     for (const event of EventFinderUtils.getMainThreadEvents(rendererHelper,
         'viewport', 'loading')) {
       if (event.args.data.frameID === frameID &&
         event.start < (navigationStart + loadDuration)) {
         viewport = event.args.data;
-        break;
       }
     }
     if (!viewport) return;
