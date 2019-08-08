@@ -57,7 +57,7 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
       raise TypeError('Missing "browser" argument.')
     extra_test_args += ('--browser', browser)
 
-    if browser == 'android-webview':
+    if browser.startswith('android-webview'):
       # TODO: Share code with the perf waterfall configs. crbug.com/771680
       extra_test_args += ('--webview-embedder-apk',
                           '../../out/Release/apks/SystemWebViewShell.apk')
