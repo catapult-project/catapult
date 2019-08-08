@@ -42,11 +42,9 @@ class StartNewBisectForBugTest(testing_common.TestCase):
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   @mock.patch.object(
       auto_bisect.pinpoint_service, 'NewJob')
-  @mock.patch.object(
-      auto_bisect.start_try_job, 'GuessStoryFilter')
   @mock.patch.object(auto_bisect.pinpoint_request, 'ResolveToGitHash',
                      mock.MagicMock(return_value='abc123'))
-  def testStartNewBisectForBug_Pinpoint_Succeeds(self, mock_guess, mock_new):
+  def testStartNewBisectForBug_Pinpoint_Succeeds(self, mock_new):
     namespaced_stored_object.Set('bot_configurations', {
         'linux-pinpoint': {
             'dimensions': [{'key': 'foo', 'value': 'bar'}]
@@ -74,6 +72,10 @@ class StartNewBisectForBugTest(testing_common.TestCase):
                 'r_chromium': 'fc34e5346446854637311ad7793a95d56e314042'
             }
         })
+    t = test_key.get()
+    t.unescaped_story_name = 'score:foo'
+    t.put()
+
     a = anomaly.Anomaly(
         bug_id=333, test=test_key,
         start_revision=12000, end_revision=12500,
@@ -81,12 +83,11 @@ class StartNewBisectForBugTest(testing_common.TestCase):
     result = auto_bisect.StartNewBisectForBug(333)
     self.assertEqual(
         {'issue_id': 123, 'issue_url': 'http://pinpoint/123'}, result)
-    mock_guess.assert_called_once_with(
-        'ChromiumPerf/linux-pinpoint/sunspider/score')
     self.assertEqual('123', a.get().pinpoint_bisects[0])
     self.assertEqual(
         {'alert': a.urlsafe(), 'test_path': test_key.id()},
         json.loads(mock_new.call_args[0][0]['tags']))
+    self.assertEqual('score:foo', mock_new.call_args[0][0]['story'])
     anomaly_entity = a.get()
     anomaly_magnitude = (anomaly_entity.median_after_anomaly -
                          anomaly_entity.median_before_anomaly)
@@ -165,12 +166,10 @@ class StartNewBisectForBugTest(testing_common.TestCase):
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   @mock.patch.object(
       auto_bisect.pinpoint_service, 'NewJob')
-  @mock.patch.object(
-      auto_bisect.start_try_job, 'GuessStoryFilter')
   @mock.patch.object(auto_bisect.pinpoint_request, 'ResolveToGitHash',
                      mock.MagicMock(return_value='abc123'))
   def testStartNewBisectForBut_BlacklistedMaster_SucceedsIfAlternative(
-      self, _, mock_new):
+      self, mock_new):
     # Even if there are blacklisted masters, the bisect request should still
     # succeed if there's a non-blacklisted master.
     namespaced_stored_object.Set(

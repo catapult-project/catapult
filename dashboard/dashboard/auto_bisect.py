@@ -12,7 +12,6 @@ import logging
 
 from dashboard import can_bisect
 from dashboard import pinpoint_request
-from dashboard import start_try_job
 from dashboard.common import namespaced_stored_object
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -72,7 +71,7 @@ def _StartPinpointBisect(bug_id, test_anomaly, test):
       'end_commit': test_anomaly.end_revision,
       'bug_id': bug_id,
       'bisect_mode': 'performance',
-      'story_filter': start_try_job.GuessStoryFilter(test.test_path),
+      'story_filter': test.unescaped_story_name,
       'alerts': json.dumps([test_anomaly.key.urlsafe()])
   }
 

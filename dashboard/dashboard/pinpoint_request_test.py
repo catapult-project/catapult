@@ -33,14 +33,13 @@ class PinpointNewPrefillRequestHandlerTest(testing_common.TestCase):
           pinpoint_request.PinpointNewPrefillRequestHandler)])
     self.testapp = webtest.TestApp(app)
 
-  @mock.patch.object(
-      pinpoint_request.start_try_job, 'GuessStoryFilter')
-  def testPost_CallsGuessStoryFilter(self, mock_story_filter):
-    mock_story_filter.return_value = 'bar'
-    response = self.testapp.post('/pinpoint/new/prefill', {'test_path': 'foo'})
+  def testPost_UsesUnescapedStoryName(self):
+    t = graph_data.TestMetadata(id='M/B/S/foo', unescaped_story_name='foo:bar')
+    t.put()
+    response = self.testapp.post(
+        '/pinpoint/new/prefill', {'test_path': 'M/B/S/foo'})
     self.assertEqual(
-        {'story_filter': 'bar'}, json.loads(response.body))
-    mock_story_filter.assert_called_with('foo')
+        {'story_filter': 'foo:bar'}, json.loads(response.body))
 
 
 class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):

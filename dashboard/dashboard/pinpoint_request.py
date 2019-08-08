@@ -13,7 +13,6 @@ import logging
 from google.appengine.ext import ndb
 
 from dashboard import find_change_points
-from dashboard import start_try_job
 from dashboard.common import descriptor
 from dashboard.common import math_utils
 from dashboard.common import request_handler
@@ -41,8 +40,8 @@ class InvalidParamsError(Exception):
 
 class PinpointNewPrefillRequestHandler(request_handler.RequestHandler):
   def post(self):
-    story_filter = start_try_job.GuessStoryFilter(self.request.get('test_path'))
-    self.response.write(json.dumps({'story_filter': story_filter}))
+    t = utils.TestKey(self.request.get('test_path')).get()
+    self.response.write(json.dumps({'story_filter': t.unescaped_story_name}))
 
 
 class PinpointNewBisectRequestHandler(request_handler.RequestHandler):
