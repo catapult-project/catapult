@@ -5,7 +5,6 @@
 import optparse
 import sys
 
-from py_utils import expectations_parser
 from telemetry import decorators
 from telemetry.internal import story_runner
 from telemetry.internal.util import command_line
@@ -15,7 +14,6 @@ from telemetry.story import typ_expectations
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
 from tracing.value.diagnostics import generic_set
-from typ import expectations_parser as typ_expectations_parser
 
 Info = decorators.Info
 
@@ -51,7 +49,7 @@ class Benchmark(command_line.Command):
       max_failures: The number of story run's failures before bailing
           from executing subsequent page runs. If None, we never bail.
     """
-    self._expectations = expectations_module.StoryExpectations()
+    self._expectations = typ_expectations.StoryExpectations(self.Name())
     self._max_failures = max_failures
     # TODO: There should be an assertion here that checks that only one of
     # the following is true:
@@ -269,25 +267,7 @@ class Benchmark(command_line.Command):
     return []
 
   def AugmentExpectationsWithFile(self, raw_data):
-    typ_parser = typ_expectations_parser.TestExpectations()
-    error, _ = typ_parser.parse_tagged_list(raw_data)
-    if not error:
-      self._expectations = typ_expectations.StoryExpectations(self.Name())
-      self._expectations.GetBenchmarkExpectationsFromParser(raw_data)
-    else:
-      # If we can't parse the file using typ's expectation parser
-      # then we fall back to using py_util's expectation parser
-      # TODO(crbug.com/973936): When all expectations files have
-      # been migrated, we will remove this if else statement and
-      # only use typ's expectations parser.
-      self._expectations.GetBenchmarkExpectationsFromParser(
-          expectations_parser.TestExpectationParser(
-              raw_data).expectations, self.Name())
-
-  def AugmentExpectationsWithParser(self, raw_data):
-    # TODO(crbug.com/973936): Remove this function after removing all
-    # invocations of this function in src/tools/perf
-    self.AugmentExpectationsWithFile(raw_data)
+    self._expectations.GetBenchmarkExpectationsFromParser(raw_data)
 
   @property
   def expectations(self):

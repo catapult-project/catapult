@@ -290,8 +290,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
         results.WillRunPage(story, storyset_repeat_counter)
 
         if expectations:
-          disabled = expectations.IsStoryDisabled(
-              story, state.platform, finder_options)
+          disabled = expectations.IsStoryDisabled(story)
           if disabled:
             if finder_options.run_disabled_tests:
               logging.warning('Force running a disabled story: %s' %
@@ -386,8 +385,7 @@ def _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
     return True  # Should always run on print-only mode.
 
   if benchmark._CanRunOnPlatform(possible_browser.platform, finder_options):
-    disabled_reason = benchmark.expectations.IsBenchmarkDisabled(
-        possible_browser.platform, finder_options)
+    disabled_reason = benchmark.expectations.IsBenchmarkDisabled()
     if not disabled_reason:
       return True  # Can run on this platform and is not disabled.
     print 'Benchmark "%s" is disabled on the chosen browser due to: %s.' % (
