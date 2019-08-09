@@ -239,11 +239,11 @@ tr.exportTo('tr.e.chrome', function() {
       for (let i = numberOfRects - 1; i >= 0; i--) {
         rects.push(timestampedPaintRects[i].rect);
         const currentAreaOfUnion = SpeedIndex.lineSweep(rects, viewport);
-        areaAddedAtTimestamp[numberOfRects - i - 1] =
+        areaAddedAtTimestamp[i] =
             {value: currentAreaOfUnion - previousAreaOfUnion,
               ts: timestampedPaintRects[i].ts};
         totalAreaOfUnion +=
-            areaAddedAtTimestamp[numberOfRects - i - 1].value;
+            areaAddedAtTimestamp[i].value;
         previousAreaOfUnion = currentAreaOfUnion;
       }
       // Paint progress at a timestamp is: the total area of the viewport that
