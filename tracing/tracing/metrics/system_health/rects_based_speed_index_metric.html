@@ -54,10 +54,10 @@ tr.exportTo('tr.metrics.sh', function() {
 
     const timestampedPaintRects = [];
     for (const event of EventFinderUtils.getMainThreadEvents(rendererHelper,
-        'PaintTracker::LayoutObjectPainted', 'loading')) {
+        'PaintTimingVisualizer::LayoutObjectPainted', 'loading')) {
       if (event.start >= navigationStart &&
         event.start < navigationStart + loadDuration) {
-        const paintRect = event.args.data.visible_new_visual_rect;
+        const paintRect = event.args.data.rect;
         if (!paintRect) continue;
         timestampedPaintRects.push({
           rect: SpeedIndex.quadToRect(paintRect),

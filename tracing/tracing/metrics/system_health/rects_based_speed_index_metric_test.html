@@ -30,24 +30,24 @@ tr.b.unittest.testSuite(function() {
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
-        title: 'PaintTracker::LayoutObjectPainted',
+        title: 'PaintTimingVisualizer::LayoutObjectPainted',
         start: 500,
         duration: 0.0,
         args: {
           data: {
-            visible_new_visual_rect: [50, 70, 60, 70, 60, 100, 50, 100]
+            rect: [50, 70, 60, 70, 60, 100, 50, 100]
           }
         }
       }));
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
-        title: 'PaintTracker::LayoutObjectPainted',
+        title: 'PaintTimingVisualizer::LayoutObjectPainted',
         start: 700,
         duration: 0.0,
         args: {
           data: {
-            visible_new_visual_rect: [10, 30, 20, 30, 20, 50, 10, 50]
+            rect: [10, 30, 20, 30, 20, 50, 10, 50]
           }
         }
       }));
