@@ -51,13 +51,12 @@ var QuicView = (function() {
       'quic-view-retry-without-alt-svc-on-quic-errors';
   QuicView.STATUS_DO_NOT_FRAGMENT = 'quic-view-do-not-fragment';
   QuicView.STATUS_ALLOW_SERVER_MIGRATION = 'quic-view-allow-server-migration';
-  QuicView.STATUS_MIGRATE_SESSIONS_EARLY = 'quic-view-migrate-sessions-early';
-  QuicView.STATUS_MIGRATE_SESSION_ON_NETWORK_CHANGE =
-      'quic-view-migrate-sessions-on-network-change';
   QuicView.STATUS_MIGRATE_SESSIONS_EARLY_V2 =
       'quic-view-migrate-sessions-early-v2';
   QuicView.STATUS_MIGRATE_SESSION_ON_NETWORK_CHANGE_V2 =
       'quic-view-migrate-sessions-on-network-change-v2';
+  QuicView.STATUS_RETRANSMITTABLE_ON_WIRE_TIMEOUT =
+      'quic-view-retransmittable-on-wire-timeout-milliseconds';
   QuicView.STATUS_DISABLE_BIDIRECTIONAL_STREAMS =
       'quic-view-disable-bidirectional-streams';
   QuicView.STATUS_RACE_CERT_VERIFICATION = 'quic-view-race-cert-verification';
@@ -122,14 +121,12 @@ var QuicView = (function() {
           !!quicInfo.do_not_fragment;
       $(QuicView.STATUS_ALLOW_SERVER_MIGRATION).textContent =
           !!quicInfo.allow_server_migration;
-      $(QuicView.STATUS_MIGRATE_SESSIONS_EARLY).textContent =
-          !!quicInfo.migrate_sessions_early;
-      $(QuicView.STATUS_MIGRATE_SESSION_ON_NETWORK_CHANGE).textContent =
-          !!quicInfo.migrate_sessions_on_network_change;
       $(QuicView.STATUS_MIGRATE_SESSIONS_EARLY_V2).textContent =
           !!quicInfo.migrate_sessions_early_v2;
       $(QuicView.STATUS_MIGRATE_SESSION_ON_NETWORK_CHANGE_V2).textContent =
           !!quicInfo.migrate_sessions_on_network_change_v2;
+      $(QuicView.STATUS_RETRANSMITTABLE_ON_WIRE_TIMEOUT).textContent =
+          !!quicInfo.retransmittable_on_wire_timeout_milliseconds;
       $(QuicView.STATUS_DISABLE_BIDIRECTIONAL_STREAMS).textContent =
           !!quicInfo.disable_bidirectional_streams;
       $(QuicView.STATUS_RACE_CERT_VERIFICATION).textContent =
