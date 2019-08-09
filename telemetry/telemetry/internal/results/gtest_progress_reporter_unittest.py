@@ -42,7 +42,6 @@ def _MakeStorySet():
 
 class GTestProgressReporterTest(unittest.TestCase):
   def setUp(self):
-    super(GTestProgressReporterTest, self).setUp()
     self._output_stream = StringIO.StringIO()
     self._mock_time = mock.patch('time.time').start()
     self._mock_time.return_value = 0.0
@@ -62,12 +61,11 @@ class GTestProgressReporterTest(unittest.TestCase):
   def testSingleSuccessPage(self):
     test_story_set = _MakeStorySet()
 
-    results = self._MakePageTestResults()
-    results.WillRunPage(test_story_set.stories[0])
-    self._mock_time.return_value = 0.007
-    results.DidRunPage(test_story_set.stories[0])
+    with self._MakePageTestResults() as results:
+      results.WillRunPage(test_story_set.stories[0])
+      self._mock_time.return_value = 0.007
+      results.DidRunPage(test_story_set.stories[0])
 
-    results.PrintSummary()
     expected = ('[ RUN      ] bench/http://www.foo.com/\n'
                 '[       OK ] bench/http://www.foo.com/ (7 ms)\n'
                 '[  PASSED  ] 1 test.\n\n')
@@ -76,12 +74,11 @@ class GTestProgressReporterTest(unittest.TestCase):
   def testSingleSuccessPageWithGroupingKeys(self):
     test_story_set = _MakeStorySet()
 
-    results = self._MakePageTestResults()
-    results.WillRunPage(test_story_set.stories[4])
-    self._mock_time.return_value = 0.007
-    results.DidRunPage(test_story_set.stories[4])
+    with self._MakePageTestResults() as results:
+      results.WillRunPage(test_story_set.stories[4])
+      self._mock_time.return_value = 0.007
+      results.DidRunPage(test_story_set.stories[4])
 
-    results.PrintSummary()
     expected = ("[ RUN      ] bench/http://www.fus.com/@{'1': '2'}\n"
                 "[       OK ] bench/http://www.fus.com/@{'1': '2'} (7 ms)\n"
                 "[  PASSED  ] 1 test.\n\n")
@@ -90,12 +87,11 @@ class GTestProgressReporterTest(unittest.TestCase):
   def testSingleFailedPage(self):
     test_story_set = _MakeStorySet()
 
-    results = self._MakePageTestResults()
-    results.WillRunPage(test_story_set.stories[0])
-    results.Fail('test fails')
-    results.DidRunPage(test_story_set.stories[0])
+    with self._MakePageTestResults() as results:
+      results.WillRunPage(test_story_set.stories[0])
+      results.Fail('test fails')
+      results.DidRunPage(test_story_set.stories[0])
 
-    results.PrintSummary()
     expected = ('[ RUN      ] bench/http://www.foo.com/\n'
                 '[  FAILED  ] bench/http://www.foo.com/ (0 ms)\n'
                 '[  PASSED  ] 0 tests.\n'
@@ -107,12 +103,11 @@ class GTestProgressReporterTest(unittest.TestCase):
   def testSingleFailedPageWithGroupingKeys(self):
     test_story_set = _MakeStorySet()
 
-    results = self._MakePageTestResults()
-    results.WillRunPage(test_story_set.stories[4])
-    results.Fail('test fails')
-    results.DidRunPage(test_story_set.stories[4])
+    with self._MakePageTestResults() as results:
+      results.WillRunPage(test_story_set.stories[4])
+      results.Fail('test fails')
+      results.DidRunPage(test_story_set.stories[4])
 
-    results.PrintSummary()
     expected = ("[ RUN      ] bench/http://www.fus.com/@{'1': '2'}\n"
                 "[  FAILED  ] bench/http://www.fus.com/@{'1': '2'} (0 ms)\n"
                 "[  PASSED  ] 0 tests.\n"
@@ -123,13 +118,12 @@ class GTestProgressReporterTest(unittest.TestCase):
 
   def testSingleSkippedPage(self):
     test_story_set = _MakeStorySet()
-    results = self._MakePageTestResults()
-    results.WillRunPage(test_story_set.stories[0])
-    self._mock_time.return_value = 0.007
-    results.Skip('Page skipped for testing reason')
-    results.DidRunPage(test_story_set.stories[0])
+    with self._MakePageTestResults() as results:
+      results.WillRunPage(test_story_set.stories[0])
+      self._mock_time.return_value = 0.007
+      results.Skip('Page skipped for testing reason')
+      results.DidRunPage(test_story_set.stories[0])
 
-    results.PrintSummary()
     expected = ('[ RUN      ] bench/http://www.foo.com/\n'
                 '== Skipping story: Page skipped for testing reason ==\n'
                 '[  SKIPPED ] bench/http://www.foo.com/ (7 ms)\n'
@@ -139,36 +133,34 @@ class GTestProgressReporterTest(unittest.TestCase):
 
   def testPassAndFailedPages(self):
     test_story_set = _MakeStorySet()
-    results = self._MakePageTestResults()
+    with self._MakePageTestResults() as results:
+      results.WillRunPage(test_story_set.stories[0])
+      self._mock_time.return_value = 0.007
+      results.DidRunPage(test_story_set.stories[0])
 
-    results.WillRunPage(test_story_set.stories[0])
-    self._mock_time.return_value = 0.007
-    results.DidRunPage(test_story_set.stories[0])
+      results.WillRunPage(test_story_set.stories[1])
+      self._mock_time.return_value = 0.009
+      results.Fail('test fails')
+      results.DidRunPage(test_story_set.stories[1])
 
-    results.WillRunPage(test_story_set.stories[1])
-    self._mock_time.return_value = 0.009
-    results.Fail('test fails')
-    results.DidRunPage(test_story_set.stories[1])
+      results.WillRunPage(test_story_set.stories[2])
+      self._mock_time.return_value = 0.015
+      results.Fail('test fails')
+      results.DidRunPage(test_story_set.stories[2])
 
-    results.WillRunPage(test_story_set.stories[2])
-    self._mock_time.return_value = 0.015
-    results.Fail('test fails')
-    results.DidRunPage(test_story_set.stories[2])
+      results.WillRunPage(test_story_set.stories[3])
+      self._mock_time.return_value = 0.020
+      results.DidRunPage(test_story_set.stories[3])
 
-    results.WillRunPage(test_story_set.stories[3])
-    self._mock_time.return_value = 0.020
-    results.DidRunPage(test_story_set.stories[3])
+      results.WillRunPage(test_story_set.stories[4])
+      self._mock_time.return_value = 0.025
+      results.DidRunPage(test_story_set.stories[4])
 
-    results.WillRunPage(test_story_set.stories[4])
-    self._mock_time.return_value = 0.025
-    results.DidRunPage(test_story_set.stories[4])
+      results.WillRunPage(test_story_set.stories[5])
+      self._mock_time.return_value = 0.030
+      results.Fail('test fails')
+      results.DidRunPage(test_story_set.stories[5])
 
-    results.WillRunPage(test_story_set.stories[5])
-    self._mock_time.return_value = 0.030
-    results.Fail('test fails')
-    results.DidRunPage(test_story_set.stories[5])
-
-    results.PrintSummary()
     expected = ("[ RUN      ] bench/http://www.foo.com/\n"
                 "[       OK ] bench/http://www.foo.com/ (7 ms)\n"
                 "[ RUN      ] bench/http://www.bar.com/\n"
@@ -191,21 +183,22 @@ class GTestProgressReporterTest(unittest.TestCase):
 
   def testStreamingResults(self):
     test_story_set = _MakeStorySet()
-    results = self._MakePageTestResults()
+    with self._MakePageTestResults() as results:
+      results.WillRunPage(test_story_set.stories[0])
+      self._mock_time.return_value = 0.007
+      results.DidRunPage(test_story_set.stories[0])
 
-    results.WillRunPage(test_story_set.stories[0])
-    self._mock_time.return_value = 0.007
-    results.DidRunPage(test_story_set.stories[0])
-    expected = ('[ RUN      ] bench/http://www.foo.com/\n'
-                '[       OK ] bench/http://www.foo.com/ (7 ms)\n')
-    self.assertOutputEquals(expected)
+      expected = ('[ RUN      ] bench/http://www.foo.com/\n'
+                  '[       OK ] bench/http://www.foo.com/ (7 ms)\n')
+      self.assertOutputEquals(expected)
 
-    results.WillRunPage(test_story_set.stories[1])
-    self._mock_time.return_value = 0.009
-    results.Fail('test fails')
-    results.DidRunPage(test_story_set.stories[1])
-    expected = ('[ RUN      ] bench/http://www.foo.com/\n'
-                '[       OK ] bench/http://www.foo.com/ (7 ms)\n'
-                '[ RUN      ] bench/http://www.bar.com/\n'
-                '[  FAILED  ] bench/http://www.bar.com/ (2 ms)\n')
-    self.assertOutputEquals(expected)
+      results.WillRunPage(test_story_set.stories[1])
+      self._mock_time.return_value = 0.009
+      results.Fail('test fails')
+      results.DidRunPage(test_story_set.stories[1])
+
+      expected = ('[ RUN      ] bench/http://www.foo.com/\n'
+                  '[       OK ] bench/http://www.foo.com/ (7 ms)\n'
+                  '[ RUN      ] bench/http://www.bar.com/\n'
+                  '[  FAILED  ] bench/http://www.bar.com/ (2 ms)\n')
+      self.assertOutputEquals(expected)
