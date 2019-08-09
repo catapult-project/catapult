@@ -271,22 +271,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     histogram_dicts = hs.AsDicts()
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
-    results.ImportHistogramDicts(histogram_dicts)
+    results._ImportHistogramDicts(histogram_dicts)
     results.DidRunPage(self.pages[0])
-    self.assertEqual(results.AsHistogramDicts(), histogram_dicts)
-
-  def testImportHistogramDicts_DelayedImport(self):
-    hs = histogram_set.HistogramSet()
-    hs.AddHistogram(histogram_module.Histogram('foo', 'count'))
-    hs.AddSharedDiagnosticToAllHistograms(
-        'bar', generic_set.GenericSet(['baz']))
-    histogram_dicts = hs.AsDicts()
-    results = page_test_results.PageTestResults()
-    results.WillRunPage(self.pages[0])
-    results.ImportHistogramDicts(histogram_dicts, import_immediately=False)
-    results.DidRunPage(self.pages[0])
-    self.assertEqual(len(results.AsHistogramDicts()), 0)
-    results.PopulateHistogramSet()
     self.assertEqual(results.AsHistogramDicts(), histogram_dicts)
 
   def testAddSharedDiagnosticToAllHistograms(self):
@@ -391,7 +377,7 @@ class PageTestResultsFilterTest(unittest.TestCase):
     results = page_test_results.PageTestResults(
         should_add_value=AcceptValueStartsWith_a)
     results.WillRunPage(self.pages[0])
-    results.ImportHistogramDicts(hs.AsDicts())
+    results._ImportHistogramDicts(hs.AsDicts())
     results.DidRunPage(self.pages[0])
 
     new_hs = histogram_set.HistogramSet()

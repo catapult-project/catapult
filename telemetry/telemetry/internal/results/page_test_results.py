@@ -78,7 +78,6 @@ class PageTestResults(object):
     # Interruptions occur for unrecoverable exceptions.
     self._interruption = None
     self._results_label = results_label
-    self._histogram_dicts_to_add = []
     # Tracks whether results have already been outputted to prevent them from
     # being outputted again.
     self._results_outputted = False
@@ -143,7 +142,6 @@ class PageTestResults(object):
                     vinn_result.stdout)
       return []
     self._histograms.ImportDicts(json.loads(vinn_result.stdout))
-    self._histograms.ImportDicts(self._histogram_dicts_to_add)
 
   @property
   def all_summary_values(self):
@@ -264,7 +262,7 @@ class PageTestResults(object):
       for fail in result['fail']:
         self.Fail(fail)
       if result['histogram_dicts']:
-        self.ImportHistogramDicts(result['histogram_dicts'])
+        self._ImportHistogramDicts(result['histogram_dicts'])
       for scalar in result['scalars']:
         self.AddValue(scalar)
     finally:
@@ -318,25 +316,12 @@ class PageTestResults(object):
       diags[diag.name] = diag_class(value)
     return diags
 
-  def ImportHistogramDicts(self, histogram_dicts, import_immediately=True):
+  def _ImportHistogramDicts(self, histogram_dicts):
     histograms = histogram_set.HistogramSet()
     histograms.ImportDicts(histogram_dicts)
     histograms.FilterHistograms(lambda hist: not self._ShouldAddHistogram(hist))
     dicts_to_add = histograms.AsDicts()
-
-    # For measurements that add both TBMv2 and legacy metrics to results, we
-    # want TBMv2 histograms be imported at the end, when PopulateHistogramSet is
-    # called so that legacy histograms can be built, too, from scalar value
-    # data.
-    #
-    # Measurements that add only TBMv2 metrics and also add scalar value data
-    # should set import_immediately to True (i.e. the default behaviour) to
-    # prevent PopulateHistogramSet from trying to build more histograms from the
-    # scalar value data.
-    if import_immediately:
-      self._histograms.ImportDicts(dicts_to_add)
-    else:
-      self._histogram_dicts_to_add.extend(dicts_to_add)
+    self._histograms.ImportDicts(dicts_to_add)
 
   def _ShouldAddHistogram(self, hist):
     assert self._current_story_run, 'Not currently running test.'
