@@ -14,7 +14,7 @@ from tracing_build import vulcanize_histograms_viewer
 
 
 class HtmlOutputFormatter(output_formatter.OutputFormatter):
-  def __init__(self, output_stream, reset_results, upload_bucket=None):
+  def __init__(self, output_stream, reset_results=True, upload_bucket=None):
     super(HtmlOutputFormatter, self).__init__(output_stream)
     self._upload_bucket = upload_bucket
     self._reset_results = reset_results
