@@ -37,7 +37,7 @@ class TypStoryExpectationsTest(unittest.TestCase):
       b = benchmark.Benchmark()
       b.AugmentExpectationsWithFile(expectations)
       b.expectations.SetTags(['All'])
-      reason = b._expectations.IsBenchmarkDisabled(None, None)
+      reason = b._expectations.IsBenchmarkDisabled()
       self.assertTrue(reason)
       self.assertEqual(reason, 'crbug.com/123')
 
@@ -57,7 +57,7 @@ class TypStoryExpectationsTest(unittest.TestCase):
         b = benchmark.Benchmark()
         b.AugmentExpectationsWithFile(expectations)
         b.expectations.SetTags([os])
-        reason = b._expectations.IsStoryDisabled(story, None, None)
+        reason = b._expectations.IsStoryDisabled(story)
         self.assertTrue(reason)
         if os == 'linux':
           self.assertEqual(reason, 'No reason given')

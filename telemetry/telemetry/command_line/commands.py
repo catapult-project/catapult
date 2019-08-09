@@ -32,8 +32,7 @@ def _IsBenchmarkEnabled(bench, possible_browser, expectations_file):
       any(t.ShouldDisable(possible_browser.platform, possible_browser)
           for t in b.SUPPORTED_PLATFORMS) and
       # Test that expectations say it is enabled.
-      not expectations.IsBenchmarkDisabled(possible_browser.platform,
-                                           possible_browser))
+      not expectations.IsBenchmarkDisabled())
 
 
 def _GetStoriesWithTags(b):
