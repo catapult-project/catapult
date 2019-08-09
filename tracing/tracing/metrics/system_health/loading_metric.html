@@ -274,136 +274,6 @@ tr.exportTo('tr.metrics.sh', function() {
     return sample ? [sample] : [];
   }
 
-
-  function lineSweep(lineSweepRects, viewport) {
-    const verticalSweepRects = [];
-    const horizontalSweepRects = [];
-    for (let i = 0; i < lineSweepRects.length; i++) {
-      const rect = lineSweepRects[i];
-      let left = rect.left;
-      let right = rect.right;
-      let top = rect.top;
-      let bottom = rect.bottom;
-      if (left > viewport.x + viewport.width) continue;
-      if (right < viewport.x) continue;
-      if (top > viewport.y + viewport.height) continue;
-      if (bottom < viewport.y) continue;
-
-      left = Math.max(left, viewport.y);
-      right = Math.min(right, viewport.y + viewport.width);
-      top = Math.max(top, viewport.y);
-      bottom = Math.min(bottom, viewport.y + viewport.height);
-
-      verticalSweepRects.push({id: i, value: left, type: 'left'},
-          {id: i, value: right, type: 'right'});
-      horizontalSweepRects.push({id: i, value: top, type: 'top'},
-          {id: i, value: bottom, type: 'bottom'});
-    }
-
-    verticalSweepRects.sort((a, b) => a.value - b.value);
-    horizontalSweepRects.sort((a, b) => a.value - b.value);
-
-    // A rectangle becomes active once we enter
-    // it (encounter its left edge). And goes back to being
-    // inactive once we leave it (encounter its right edge).
-    const active = new Array(lineSweepRects.length).fill(0);
-    let area = 0;
-    // Begin vertical sweep from left to right.
-    active[verticalSweepRects[0].id] = 1;
-    for (let i = 1; i < verticalSweepRects.length; i++) {
-      const currentLine = verticalSweepRects[i];
-      const previousLine = verticalSweepRects[i - 1];
-      const deltaX = currentLine.value - previousLine.value;
-      // We could encounter this case if two rectangles start at
-      // the same x value.
-      if (deltaX === 0) continue;
-      let count = 0;
-      let firstRect;
-      // Begin horizontal sweep from top to bottom.
-      for (let j = 0; j < horizontalSweepRects.length; j++) {
-        // Check whether the current rectangle is active.
-        if (active[horizontalSweepRects[j].id] === 1) {
-          if (horizontalSweepRects[j].type === 'top') {
-            // If we just entered the rectangle and it's the first
-            // rectangle we enter then record its index.
-            if (count === 0) {
-              firstRect = j;
-              count++;
-            }
-          } else {
-            // If we are leaving a rectangle and it happens to
-            // be the last rectangle at this point (i.e: there's
-            // a gap before we get to the next recatngle)
-            // then calculate length (deltaY) and use it to
-            // calucate area so far.
-            if (count === 1) {
-              const deltaY = horizontalSweepRects[j].value -
-                horizontalSweepRects[firstRect].value;
-              area += deltaX * deltaY;
-              count--;
-            }
-          }
-        }
-      }
-      active[currentLine.id] = (currentLine.type === 'left');
-    }
-    return area;
-  }
-
-  /**
-   * Returns the percentage of pixels that reached their end state before a
-   * specific time after navigation start.
-   *
-   * We're considering a pixel to be updated if a layerRect
-   * in cc:DisplayItemList object snapshot contains that pixel.
-   * The pixel reaches its end state whenever it was last updated within a
-   * single navigation window.
-   *
-   */
-  function addVisuallyCompleteBeforeSomeTimeSample(samples, rendererHelper,
-      navigationStart, loadDuration, frameID) {
-    const someTime = 2000;
-    if (loadDuration < someTime) return;
-
-    let viewport;
-    for (const event of EventFinderUtils.getMainThreadEvents(rendererHelper,
-        'viewport', 'loading')) {
-      if (event.args.data.frameID === frameID &&
-        event.start > navigationStart &&
-        event.start < navigationStart + loadDuration) {
-        viewport = event.args.data;
-        break;
-      }
-    }
-    if (!viewport) return;
-
-    const ccDisplayItemListObjects = rendererHelper.process.objects
-        .getAllInstancesNamed('cc::DisplayItemList');
-    if (!ccDisplayItemListObjects || !ccDisplayItemListObjects.length) return;
-    const RectsUpdatedAfterSomeTime = [];
-    for (let i = 0; i < ccDisplayItemListObjects.length; i++) {
-      const displayItemListSnapshots =
-        ccDisplayItemListObjects[i].snapshots;
-      for (let j = 0; j < displayItemListSnapshots.length; j++) {
-        const snapshot = displayItemListSnapshots[j];
-        const timestamp = snapshot.ts;
-
-        if (timestamp < navigationStart ||
-        timestamp > navigationStart + loadDuration) {
-          continue;
-        }
-        if (timestamp - navigationStart > someTime) {
-          RectsUpdatedAfterSomeTime.push(snapshot.args.params.layerRect);
-        }
-      }
-    }
-    const areaUpdatedAfterSomeTime = RectsUpdatedAfterSomeTime.length ?
-      lineSweep(RectsUpdatedAfterSomeTime, viewport) : 0;
-    const pixelsLastUpdatedBeforeSomeTime = 1 -
-      areaUpdatedAfterSomeTime / (viewport.width * viewport.height);
-    samples.push({value: pixelsLastUpdatedBeforeSomeTime});
-  }
-
   function addFirstMeaningfulPaintSample(samples, rendererHelper,
       navigationStart, fmpMarkerEvent, url) {
     const navStartToFMPRange = tr.b.math.Range.fromExplicitRange(
@@ -636,7 +506,6 @@ tr.exportTo('tr.metrics.sh', function() {
     const firstCpuIdleSamples = [];
     const firstMeaningfulPaintSamples = [];
     const firstMeaningfulPaintCpuTimeSamples = [];
-    const visuallyCompleteBeforeSomeTimeSamples = [];
     for (const expectation of model.userModel.expectations) {
       if (!(expectation instanceof tr.model.um.LoadExpectation)) continue;
       if (tr.e.chrome.CHROME_INTERNAL_URLS.includes(expectation.url)) {
@@ -644,10 +513,6 @@ tr.exportTo('tr.metrics.sh', function() {
       }
       const rendererHelper = chromeHelper.rendererHelpers[
           expectation.renderProcess.pid];
-      addVisuallyCompleteBeforeSomeTimeSample(
-          visuallyCompleteBeforeSomeTimeSamples,
-          rendererHelper, expectation.navigationStart.start,
-          expectation.duration, expectation.navigationStart.args.frame);
       if (expectation.fmpEvent !== undefined) {
         addFirstMeaningfulPaintSample(firstMeaningfulPaintSamples,
             rendererHelper, expectation.navigationStart, expectation.fmpEvent,
@@ -677,7 +542,6 @@ tr.exportTo('tr.metrics.sh', function() {
       firstMeaningfulPaintCpuTimeSamples,
       firstCpuIdleSamples,
       interactiveSamples,
-      visuallyCompleteBeforeSomeTimeSamples,
     };
   }
 
@@ -808,14 +672,6 @@ tr.exportTo('tr.metrics.sh', function() {
           summaryOptions: SUMMARY_OPTIONS,
         });
 
-    const visuallyCompleteBeforeSomeTimeHistogram = histograms.createHistogram(
-        'visuallyCompleteBeforeSomeTime', unitlessNumber_smallerIsBetter, [], {
-          binBoundaries: LOADING_METRIC_BOUNDARIES,
-          description: 'Fraction of pixels in the initial viewport reaching ' +
-          'final value within some time interval after navigation start.',
-          summaryOptions: SUMMARY_OPTIONS,
-        });
-
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     for (const pid in chromeHelper.rendererHelpers) {
@@ -878,10 +734,6 @@ tr.exportTo('tr.metrics.sh', function() {
     addSamplesToHistogram(
         samplesSet.firstCpuIdleSamples,
         timeToFirstCpuIdleHistogram,
-        histograms);
-    addSamplesToHistogram(
-        samplesSet.visuallyCompleteBeforeSomeTimeSamples,
-        visuallyCompleteBeforeSomeTimeHistogram,
         histograms);
   }
 

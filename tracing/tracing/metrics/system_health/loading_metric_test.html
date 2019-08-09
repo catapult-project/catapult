@@ -1587,46 +1587,5 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(1, hist.running.count);
     assert.strictEqual(3.5, hist.running.mean);
   });
-
-  test('visuallyCompleteBeforeSomeTime', function() {
-    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
-      const rendererProcess = model.rendererProcess;
-      const mainThread = model.rendererMain;
-
-      model.userModel.expectations.push(new tr.model.um.LoadExpectation(
-          model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 300, 2100,
-          rendererProcess, {
-            cat: 'blink.user_timing',
-            title: 'navigationStart',
-            start: 200,
-            duration: 0.0,
-            args: {frame: '0xdeadbeef', data: {navigationId: '0xfirstnav'}}},
-          {}, {}, {}, {}, ' ', 0xdeadbeef));
-
-      rendererProcess.objects.addSnapshot('ptr',
-          'disabled-by-default-cc.debug.display_items',
-          'cc::DisplayItemList', 400, {params: {layer_rect: [0, 0, 10, 10]}},
-          'cc::DisplayItemList');
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'loading',
-        title: 'viewport',
-        start: 500,
-        duration: 0.0,
-        args: {
-          data: {
-            x: 0,
-            y: 0,
-            width: 20,
-            height: 20,
-            frameID: '0xdeadbeef'}}
-      }));
-    });
-    const histograms = new tr.v.HistogramSet();
-    tr.metrics.sh.loadingMetric(histograms, model);
-    const hist = histograms.getHistogramNamed('visuallyCompleteBeforeSomeTime');
-    assert.strictEqual(1, hist.running.count);
-    assert.strictEqual(1, hist.running.mean);
-  });
 });
 </script>
