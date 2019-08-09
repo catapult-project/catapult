@@ -404,52 +404,6 @@ tr.exportTo('tr.metrics.sh', function() {
     samples.push({value: pixelsLastUpdatedBeforeSomeTime});
   }
 
-  function addSpeedIndexSample(rendererHelper) {
-    const rects = [];
-    let totalArea = 0;
-    for (const event of EventFinderUtils.getMainThreadEvents(rendererHelper,
-        'PaintTracker::LayoutObjectPainted', 'loading')) {
-      const rect = event.args.data.visible_new_visual_rect;
-      if (!rect) continue;
-      const area = areaOfQuad(rect);
-      if (!area) continue;
-      rects.push({rect, ts: event.start});
-      totalArea += area;
-    }
-    const sample = [];
-    if (!totalArea) return sample;
-    let areaSoFar = 0;
-    const progress = new Array(rects.length);
-    for (let i = 0; i < rects.length; i++) {
-      const area = areaOfQuad(rects[i].rect);
-      areaSoFar += (area / totalArea);
-      progress[i] = {value: areaSoFar, ts: rects[i].ts};
-    }
-    sample.push({value: calculateSpeedIndex(progress)});
-    return sample;
-  }
-
-  function areaOfQuad(quad) {
-    const width = Math.max(Math.abs(quad[0] - quad[2]),
-        Math.abs(quad[2] - quad[4]));
-    const height = Math.max(Math.abs(quad[1] - quad[3]),
-        Math.abs(quad[3] - quad[5]));
-    return width * height;
-  }
-
-  function calculateSpeedIndex(progress) {
-    let lastMs = 0;
-    let lastProgress = 0;
-    let speedIndex = 0;
-    for (let i = 0; i < progress.length; i++) {
-      const elapsed = progress[i].ts - lastMs;
-      speedIndex += elapsed * (1.0 - lastProgress);
-      lastMs = progress[i].ts;
-      lastProgress = progress[i].value;
-    }
-    return speedIndex;
-  }
-
   function addFirstMeaningfulPaintSample(samples, rendererHelper,
       navigationStart, fmpMarkerEvent, url) {
     const navStartToFMPRange = tr.b.math.Range.fromExplicitRange(
@@ -661,7 +615,6 @@ tr.exportTo('tr.metrics.sh', function() {
         rendererHelper, frameToNavStartEvents,
         navIdToNavStartEvents);
     const layoutShiftSamples = findLayoutShiftSamples(rendererHelper);
-    const speedIndexSamples = addSpeedIndexSample(rendererHelper);
 
     return {
       frameToNavStartEvents,
@@ -674,7 +627,6 @@ tr.exportTo('tr.metrics.sh', function() {
       largestImagePaintSamples,
       largestTextPaintSamples,
       layoutShiftSamples,
-      speedIndexSamples
     };
   }
 
@@ -864,14 +816,6 @@ tr.exportTo('tr.metrics.sh', function() {
           summaryOptions: SUMMARY_OPTIONS,
         });
 
-    const speedIndexHistogram = histograms.createHistogram(
-        'speedIndex', timeDurationInMs_smallerIsBetter, [], {
-          binBoundaries: LOADING_METRIC_BOUNDARIES,
-          description: ' the average time at which visible parts of the' +
-          ' page are displayed (in ms).',
-          summaryOptions: SUMMARY_OPTIONS,
-        });
-
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     for (const pid in chromeHelper.rendererHelpers) {
@@ -916,8 +860,6 @@ tr.exportTo('tr.metrics.sh', function() {
           histograms);
       addSamplesToHistogram(
           samplesSet.layoutShiftSamples, layoutShiftHistogram, histograms);
-      addSamplesToHistogram(
-          samplesSet.speedIndexSamples, speedIndexHistogram, histograms);
     }
 
     const samplesSet = collectMetricsFromLoadExpectations(model, chromeHelper);

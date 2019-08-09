@@ -1628,48 +1628,5 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(1, hist.running.count);
     assert.strictEqual(1, hist.running.mean);
   });
-
-  test('speedIndex', function() {
-    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
-      const rendererProcess = model.rendererProcess;
-      const mainThread = model.rendererMain;
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'loading',
-        title: 'PaintTracker::LayoutObjectPainted',
-        start: 500,
-        duration: 0.0,
-        args: {
-          data: {
-            visible_new_visual_rect: [50, 70, 60, 70, 60, 100, 50, 100]
-          }
-        }
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'loading',
-        title: 'PaintTracker::LayoutObjectPainted',
-        start: 700,
-        duration: 0.0,
-        args: {
-          data: {
-            visible_new_visual_rect: [10, 30, 20, 30, 20, 50, 10, 50]
-          }
-        }
-      }));
-    });
-
-    const histograms = new tr.v.HistogramSet();
-    tr.metrics.sh.loadingMetric(histograms, model);
-    const hist = histograms.getHistogramNamed('speedIndex');
-    assert.strictEqual(1, hist.running.count);
-    // First rectangle area is: 300
-    // Second rectangle area is: 200
-    // Total area is: 500
-    // visual completeness:   time: 500 progress: 0.6
-    //                        time: 700 progress: 1.0
-    // => speedIndex = 500 * (1 - 0.0) + 200 * (1 - 0.6) = 580
-    assert.strictEqual(580, hist.running.mean);
-  });
 });
 </script>
