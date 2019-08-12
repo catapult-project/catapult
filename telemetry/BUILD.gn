@@ -15,7 +15,6 @@ group("telemetry") {
     "telemetry/android/",
     "telemetry/benchmark.py",
     "telemetry/benchmark_run_unittest.py",
-    "telemetry/benchmark_runner.py",
     "telemetry/benchmark_unittest.py",
     "telemetry/binary_dependencies.json",
     "telemetry/command_line/",
