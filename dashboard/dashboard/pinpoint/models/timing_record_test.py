@@ -20,12 +20,17 @@ class RecordTimingTest(test.TestCase):
   def assertClose(self, a, b):
     self.assertTrue(abs(a - b) < 0.0001)
 
-  def _RecordTiming(self, args, started, completed, comparison_mode=None):
+  def _Job(self, args, started, completed, comparison_mode=None):
     j = job.Job.New((), ())
     j.comparison_mode = comparison_mode
     j.arguments = args
     j.started_time = started
     j.updated = completed
+
+    return j
+
+  def _RecordTiming(self, args, started, completed, comparison_mode=None):
+    j = self._Job(args, started, completed, comparison_mode)
 
     timing_record.RecordJobTiming(j)
 
@@ -166,3 +171,30 @@ class RecordTimingTest(test.TestCase):
 
     self.assertEqual(['try'], tags)
     self.assertEqual(12, timings[0].total_seconds())
+
+  def testRecord_Estimate_Recorded(self):
+    now = datetime.datetime.now()
+    j1 = self._Job(
+        {'configuration': 'linux', 'benchmark': 'foo', 'story': 'bar'},
+        now - datetime.timedelta(minutes=5),
+        now - datetime.timedelta(minutes=4))
+    e1 = timing_record.GetSimilarHistoricalTimings(j1)
+    timing_record.RecordJobTiming(j1)
+
+    t1 = timing_record.TimingRecord.get_by_id(j1.job_id)
+
+    self.assertIsNone(e1)
+    self.assertIsNone(t1.estimate)
+
+    j2 = self._RecordTiming(
+        {'configuration': 'linux', 'benchmark': 'foo', 'story': 'bar'},
+        now - datetime.timedelta(minutes=3),
+        now - datetime.timedelta(minutes=2))
+    e2 = timing_record.GetSimilarHistoricalTimings(j2)
+    timing_record.RecordJobTiming(j2)
+
+    t2 = timing_record.TimingRecord.get_by_id(j2.job_id)
+
+    self.assertEqual(
+        int(e2[0][0].total_seconds()),
+        int((t2.estimate - j2.started_time).total_seconds()))

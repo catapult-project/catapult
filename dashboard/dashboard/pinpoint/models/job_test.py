@@ -131,10 +131,11 @@ class JobTest(test.TestCase):
   @mock.patch.object(
       job.timing_record, 'GetSimilarHistoricalTimings',
       mock.MagicMock(
-          return_value=((
-              datetime.timedelta(seconds=10),
-              datetime.timedelta(seconds=5),
-              datetime.timedelta(seconds=100)), ['try', 'linux'])))
+          return_value=job.timing_record.EstimateResult(
+              job.timing_record.Timings(
+                  datetime.timedelta(seconds=10),
+                  datetime.timedelta(seconds=5),
+                  datetime.timedelta(seconds=100)), ['try', 'linux'])))
   @mock.patch.object(
       job.scheduler, 'QueueStats',
       mock.MagicMock(return_value=[]))
