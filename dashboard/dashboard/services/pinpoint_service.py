@@ -7,6 +7,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import json
+
 from dashboard.common import datastore_hooks
 from dashboard.services import request
 
@@ -22,5 +24,8 @@ def _Request(endpoint, params):
   """Sends a request to an endpoint and returns JSON data."""
   assert datastore_hooks.IsUnalteredQueryPermitted()
 
-  return request.RequestJson(
-      endpoint, method='POST', use_cache=False, use_auth=True, **params)
+  try:
+    return request.RequestJson(
+        endpoint, method='POST', use_cache=False, use_auth=True, **params)
+  except request.RequestError as e:
+    return json.loads(e.content)

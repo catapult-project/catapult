@@ -282,6 +282,22 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(
       pinpoint_request, 'PinpointParamsFromBisectParams',
       mock.MagicMock(return_value={'test': 'result'}))
+  def testPost_NewJob_Fails(self, mock_pinpoint):
+    mock_pinpoint.return_value = {'error': 'something'}
+    self.SetCurrentUser('foo@chromium.org')
+    params = {'a': 'b', 'c': 'd'}
+    response = self.testapp.post('/pinpoint/new', params)
+
+    expected_args = mock.call({'test': 'result'})
+    self.assertEqual([expected_args], mock_pinpoint.call_args_list)
+    self.assertEqual({'error': 'something'}, json.loads(response.body))
+
+  @mock.patch.object(
+      utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
+  @mock.patch.object(pinpoint_service, 'NewJob')
+  @mock.patch.object(
+      pinpoint_request, 'PinpointParamsFromBisectParams',
+      mock.MagicMock(return_value={'test': 'result'}))
   def testPost_Succeeds(self, mock_pinpoint):
     mock_pinpoint.return_value = {'foo': 'bar'}
     self.SetCurrentUser('foo@chromium.org')

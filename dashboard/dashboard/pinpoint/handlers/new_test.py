@@ -107,6 +107,14 @@ class NewTest(_NewTest):
         result['jobUrl'],
         'https://testbed.example.com/job/%s' % result['jobId'])
 
+  def testBadConfiguration(self):
+    request = dict(_BASE_REQUEST)
+    request.update(_CONFIGURATION_ARGUMENTS)
+    request['configuration'] = 'lalala'
+    response = self.Post('/api/new', request, status=400)
+    result = json.loads(response.body)
+    self.assertIn('error', result)
+
   def testBrowserOverride(self):
     request = dict(_BASE_REQUEST)
     request['browser'] = 'debug'
