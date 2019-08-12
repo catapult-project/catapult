@@ -3,13 +3,9 @@
 # found in the LICENSE file.
 
 import codecs
-import optparse
 import os
 import sys
 
-from py_utils import cloud_storage  # pylint: disable=import-error
-
-from telemetry.core import util
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import csv_output_formatter
 from telemetry.internal.results import histogram_set_json_output_formatter
@@ -29,8 +25,6 @@ LEGACY_OUTPUT_FORMATS = (
     'json-test-results',
     'none')
 
-_DEFAULT_OUTPUT_FORMAT = 'html'
-
 
 # Filenames to use for given output formats.
 _OUTPUT_FILENAME_LOOKUP = {
@@ -40,59 +34,6 @@ _OUTPUT_FILENAME_LOOKUP = {
     'html': 'results.html',
     'json-test-results': 'test-results.json',
 }
-
-
-def AddResultsOptions(parser):
-  if parser.defaults.get('external_results_processor'):
-    return
-
-  group = optparse.OptionGroup(parser, 'Results options')
-  group.add_option(
-      '--output-format',
-      action='append',
-      dest='output_formats',
-      choices=LEGACY_OUTPUT_FORMATS,
-      default=[],
-      help='Output format. Defaults to "%%default". '
-      'Can be %s.' % ', '.join(LEGACY_OUTPUT_FORMATS))
-  group.add_option(
-      '--output-dir',
-      default=util.GetBaseDir(),
-      help='Where to save output data after the run.')
-  group.add_option(
-      '--reset-results', action='store_true', help='Delete all stored results.')
-  group.add_option(
-      '--upload-results',
-      action='store_true',
-      help='Upload the results to cloud storage.')
-  group.add_option(
-      '--upload-bucket',
-      default='output',
-      help='Storage bucket to use for the uploaded results. ' +
-      'Defaults to output bucket. Supported values are: ' +
-      ', '.join(cloud_storage.BUCKET_ALIAS_NAMES) +
-      '; or a valid cloud storage bucket name.')
-  group.add_option(
-      '--results-label',
-      default=None,
-      help='Optional label to use for the results of a run .')
-  parser.add_option_group(group)
-
-
-def ProcessCommandLineArgs(options):
-  if options.external_results_processor:
-    return
-
-  options.output_dir = os.path.expanduser(options.output_dir)
-
-  if options.upload_results:
-    options.upload_bucket = cloud_storage.BUCKET_ALIASES.get(
-        options.upload_bucket, options.upload_bucket)
-  else:
-    options.upload_bucket = None
-
-  if not options.output_formats:
-    options.output_formats = [_DEFAULT_OUTPUT_FORMAT]
 
 
 def _GetOutputStream(output_format, output_dir):

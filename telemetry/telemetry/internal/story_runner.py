@@ -48,7 +48,6 @@ class ArchiveError(Exception):
 
 def AddCommandLineArgs(parser):
   story_module.StoryFilter.AddCommandLineArgs(parser)
-  results_options.AddResultsOptions(parser)
 
   group = optparse.OptionGroup(parser, 'Story runner options')
   # Note that the default for pageset-repeat is 1 unless the benchmark
@@ -104,7 +103,6 @@ def AddCommandLineArgs(parser):
 
 def ProcessCommandLineArgs(parser, args):
   story_module.StoryFilter.ProcessCommandLineArgs(parser, args)
-  results_options.ProcessCommandLineArgs(args)
 
   if args.pageset_repeat < 1:
     parser.error('--pageset-repeat must be a positive integer.')

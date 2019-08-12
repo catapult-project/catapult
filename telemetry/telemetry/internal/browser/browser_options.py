@@ -71,8 +71,15 @@ class BrowserFinderOptions(optparse.Values):
     # Options to interact with a potential external results processor.
     parser.set_defaults(
         external_results_processor=False,
+        output_dir=None,
+        # TODO(crbug.com/928275): Remove these when Telemetry is no longer
+        # involved in any results processing.
         output_formats=[],
-        legacy_output_formats=[])
+        legacy_output_formats=[],
+        reset_results=True,
+        results_label='telemetry_run',
+        upload_results=False,
+        upload_bucket=None)
 
     # Selection group
     group = optparse.OptionGroup(parser, 'Which browser to use')
