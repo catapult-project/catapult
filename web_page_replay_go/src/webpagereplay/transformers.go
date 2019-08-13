@@ -178,15 +178,18 @@ func getCSPScriptSrcDirectiveFromHeaders(header http.Header) string {
 	}
 
 	directives := strings.Split(csp, ";")
+	default_directive := ""
 	for _, directive := range directives {
 		directive = strings.TrimSpace(directive)
-		if strings.HasPrefix(directive, "script-src ") ||
-			strings.HasPrefix(directive, "default-src ") {
+		if strings.HasPrefix(directive, "script-src") {
 			return directive
+		}
+		if strings.HasPrefix(directive, "default-src") {
+			default_directive = directive
 		}
 	}
 
-	return ""
+	return default_directive
 }
 
 // getScriptSrcNonceTokenFromCSPHeader returns the nonce token from a
@@ -225,55 +228,69 @@ func transformCSPHeader(header http.Header, injectedScriptSha256 string) {
 	if csp == "" {
 		return
 	}
-
+	// We prefer the 'script-src', but if it doesn't exist, we want to update a
+	// 'default-src' directive if it exists.
 	directives := strings.Split(csp, ";")
+	updateIndex := -1
 	for index, directive := range directives {
 		directive = strings.TrimSpace(directive)
-		if strings.HasPrefix(directive, "script-src ") ||
-			strings.HasPrefix(directive, "default-src ") {
-			if getNonceTokenFromCSPHeaderScriptSrc(directive) != "" {
-				// If the CSP header's script-src contains a nonce, then
-				// transformCSPHeader does nothing.
-				// WPR will add the nonce token to any injected script to open the
-				// permission.
-				return
+		if strings.HasPrefix(directive, "script-src") ||
+		   strings.HasPrefix(directive, "default-src") {
+			updateIndex = index
+			if strings.HasPrefix(directive, "script-src") {
+			  break
 			}
-
-			// Break the 'script-src' directive into more tokens, and examine each
-			// token.
-			tokens := strings.Split(directive, " ")
-			newDirective := ""
-			needsUnsafeInline := true
-
-			for _, token := range tokens {
-				token = strings.TrimSpace(token)
-				if token == "'unsafe-inline'" {
-					needsUnsafeInline = false
-				}
-				// If the CSP header contains a hash, append the hash of the injected
-				// script.
-				// If a CSP specifies a hash, only inline scripts matching the hash
-				// may execute.
-				if strings.HasPrefix(token, "'sha256-") ||
-					strings.HasPrefix(token, "'sha384-") ||
-					strings.HasPrefix(token, "'sha512-") {
-					newDirective += "'sha256-" + injectedScriptSha256 + "' "
-					needsUnsafeInline = false
-				}
-
-				newDirective += token + " "
-			}
-
-			if needsUnsafeInline {
-				newDirective += "'unsafe-inline'"
-			}
-
-			directives[index] = newDirective
-			break
 		}
 	}
+	// No CSP policy to worry about updating.
+	if updateIndex < 0 {
+		return
+	}
+	updateDirective := directives[updateIndex]
+	if getNonceTokenFromCSPHeaderScriptSrc(updateDirective) != "" {
+		// If the CSP header's script-src contains a nonce, then
+		// transformCSPHeader does nothing.
+		// WPR will add the nonce token to any injected script to open the
+		// permission.
+		return
+	}
+	// Break the 'script-src' or 'default-src' directive into more tokens,
+	// and examine each token.
+	tokens := strings.Split(updateDirective, " ")
+	newDirective := ""
+	needsUnsafeInline := true
 
-	newCsp := strings.Join(directives, "; ")
+	for _, token := range tokens {
+		token = strings.TrimSpace(token)
+		// All keyword tokens ['unsafe-inline', 'none', 'nonce-...', 'sha...'']
+		// are single-quote wrapped in the CSP headers.
+		if token == "'unsafe-inline'" {
+			needsUnsafeInline = false
+		}
+		// If the CSP header contains a hash, append the hash of the injected
+		// script.
+		// If a CSP specifies a hash, only inline scripts matching the hash
+		// may execute.
+		if strings.HasPrefix(token, "'sha256-") ||
+			strings.HasPrefix(token, "'sha384-") ||
+			strings.HasPrefix(token, "'sha512-") {
+			newDirective += "'sha256-" + injectedScriptSha256 + "' "
+			needsUnsafeInline = false
+		}
+		// Don't add back 'none' to our set, as if it is the only item it
+		// follows we will be adding 'unsafe-inline' below.
+		if token == "'none'" {
+			continue
+		}
+		newDirective += token + " "
+	}
+
+	if needsUnsafeInline {
+		newDirective += "'unsafe-inline'"
+	}
+
+	directives[updateIndex] = newDirective
+	newCsp := strings.Join(directives, ";")
 	header.Set("Content-Security-Policy", newCsp)
 }
 

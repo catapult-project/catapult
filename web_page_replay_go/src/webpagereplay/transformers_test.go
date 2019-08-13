@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/kylelemons/godebug/pretty"
 )
 
 func TestReplaceTimeStamp(t *testing.T) {
@@ -134,31 +136,61 @@ func TestInjectScriptToGzipResponse(t *testing.T) {
 	}
 }
 
-func TestInjectScriptToResponseWithCspNonce(t *testing.T) {
-	script := []byte("var foo = 1;")
-	transformer := NewScriptInjector(script, nil)
-	req := http.Request{}
-	responseHeader := http.Header{
-		"Content-Type": []string{"text/html"},
-		"Content-Security-Policy": []string{
-			"script-src 'strict-dynamic' 'nonce-2726c7f26c'"}}
-	resp := http.Response{
-		StatusCode: 200,
-		Header:     responseHeader,
-		Body: ioutil.NopCloser(bytes.NewReader([]byte("<html><head><script>" +
-			"document.write('<head></head>');</script></head></html>")))}
-	transformer.Transform(&req, &resp)
-	body, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
-	if err != nil {
-		t.Fatal(err)
+func TestInjectScriptToResponse(t *testing.T) {
+	tests := []struct {
+		desc string
+		input string
+		want string
+	}{
+		{
+			desc:	"With CSP Nonce script-src",
+			input: "script-src 'strict-dynamic' 'nonce-2726c7f26c'",
+			want:	"<html><head><script nonce=\"2726c7f26c\">var foo = 1;</script>" +
+							"<script>document.write('<head></head>');</script></head></html>",
+		},
+		{
+			desc:	"With CSP Nonce default-src",
+			input: "default-src 'strict-dynamic' 'nonce-2726c7f26c'",
+			want:	"<html><head><script nonce=\"2726c7f26c\">var foo = 1;</script>" +
+							"<script>document.write('<head></head>');</script></head></html>",
+		},
+		{
+			desc:	"With CSP Nonce and both Default and Script",
+			input: "default-src 'self' https://foo.com;script-src 'strict-dynamic' 'nonce-2726cf26c'",
+			want:	"<html><head><script nonce=\"2726cf26c\">var foo = 1;</script>" +
+							"<script>document.write('<head></head>');</script></head></html>",
+		},
+		{
+			desc:	"With CSP Nonce and both Default and Script override",
+			input: "default-src 'self' 'nonce-99999cf26c';script-src 'strict-dynamic' 'nonce-2726cf26c'",
+			want:	"<html><head><script nonce=\"2726cf26c\">var foo = 1;</script>" +
+							"<script>document.write('<head></head>');</script></head></html>",
+		},
 	}
-	expectedContent := []byte(fmt.Sprintf(
-		"<html><head><script nonce=\"2726c7f26c\">var foo = 1;</script>" +
-			"<script>document.write('<head></head>');</script></head></html>"))
-	if !bytes.Equal(expectedContent, body) {
-		t.Fatal(
-			fmt.Errorf("expected : %s \n actual: %s \n", expectedContent, body))
+
+	for _, tc := range tests {
+		script := []byte("var foo = 1;")
+		transformer := NewScriptInjector(script, nil)
+		req := http.Request{}
+		responseHeader := http.Header{
+			"Content-Type": []string{"text/html"},
+			"Content-Security-Policy": []string{
+				tc.input}}
+		resp := http.Response{
+			StatusCode: 200,
+			Header:		 responseHeader,
+			Body: ioutil.NopCloser(bytes.NewReader([]byte("<html><head><script>" +
+				"document.write('<head></head>');</script></head></html>")))}
+		transformer.Transform(&req, &resp)
+		body, err := ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if diff := pretty.Compare(tc.want, string(body)); diff != "" {
+			t.Errorf("TestInjectScript scenario `%s`\nreturned diff (-want +got):\n%s",
+				tc.desc, diff)
+		}
 	}
 }
 
@@ -185,31 +217,40 @@ func TestInjectScriptToResponseWithCspHash(t *testing.T) {
 }
 
 func TestTransformCsp(t *testing.T) {
-	responseHeader := http.Header{"Content-Security-Policy": {
-		"script-src 'self' https://foo.com;"}}
-	transformCSPHeader(responseHeader, "")
+	tests := []struct {
+		desc string
+		input string
+		want string
+	}{
+		{
+			desc:  "Just Script",
+			input: "script-src 'self' https://foo.com;",
+			want:  "script-src 'self' https://foo.com 'unsafe-inline';",
+		},
+		{
+			desc:  "Just Default",
+			input: "default-src 'self' https://foo.com;",
+			want:  "default-src 'self' https://foo.com 'unsafe-inline';",
+		},
+		{
+			desc:  "Both Script and Default Src",
+			input: "default-src 'self' https://foo.com ; script-src 'self' 'nonce-2726c7f26c'",
+			want:  "default-src 'self' https://foo.com ; script-src 'self' 'nonce-2726c7f26c'",
+		},
+		{
+			desc:  "Both Script and Default Src No Nonce",
+			input: "default-src 'self' https://foo.com ; script-src 'self'",
+			want:  "default-src 'self' https://foo.com ; script-src 'self' 'unsafe-inline'",
+		},
+	}
 
-	assertEquals(t,
-		responseHeader.Get("Content-Security-Policy"),
-		"script-src 'self' https://foo.com 'unsafe-inline'; ")
-}
-
-func TestTransformCspDefaultSrc(t *testing.T) {
-	responseHeader := http.Header{"Content-Security-Policy": {
-		"default-src 'self' https://foo.com;"}}
-	transformCSPHeader(responseHeader, "")
-
-	assertEquals(t,
-		responseHeader.Get("Content-Security-Policy"),
-		"default-src 'self' https://foo.com 'unsafe-inline'; ")
-}
-
-func TestTransformCspBothScriptAndDefaultSrc(t *testing.T) {
-	responseHeader := http.Header{"Content-Security-Policy": {
-		"default-src 'self' https://foo.com;script-src 'self' 'nonce-2726c7f26c'"}}
-	transformCSPHeader(responseHeader, "")
-
-	assertEquals(t,
-		responseHeader.Get("Content-Security-Policy"),
-		"default-src 'self' https://foo.com 'unsafe-inline'; script-src 'self' 'nonce-2726c7f26c'")
+	for _, tc := range tests {
+		responseHeader := http.Header{"Content-Security-Policy": { tc.input } }
+		transformCSPHeader(responseHeader, "")
+		got := responseHeader.Get("Content-Security-Policy")
+		if diff := pretty.Compare(tc.want, got); diff != "" {
+			t.Errorf("TransformCsp scenario `%s`\n[input(%s)]\n returned diff (-want +got):\n%s",
+				tc.desc, tc.input, diff)
+		}
+	}
 }
