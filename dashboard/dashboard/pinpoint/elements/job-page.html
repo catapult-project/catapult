@@ -147,7 +147,7 @@ found in the LICENSE file.
               Similar jobs in the past have taken approximately [[historicMedian(job)]] &#177; [[historicStdDev(job)]] and [[historicP90(job)]] at the 90th percentile.
             </h3>
             <h3>
-              Currently there are [[queueAhead(job)]] jobs ahead of this one in the <a href="[[formatQueueUrl(job.configuration)]]">[[job.configuration]]</a> queue.
+              Currently there are [[queueAhead(job)]] jobs ahead of this one in the <a href="[[formatQueueUrl(job.configuration)]]">[[job.configuration]]</a> queue. Expected waiting time is [[queueWaitingTime(job)]].
             </h3>
           </template>
           <template is="dom-if" if="[[shouldShowChart(job)]]">
@@ -241,6 +241,30 @@ found in the LICENSE file.
           ahead += 1;
         }
         return ahead;
+      },
+
+      queueWaitingTime(job) {
+        let normalizedWait = 0.0;
+        let count = 0;
+        for (const s of job.queue_stats.queue_time_samples) {
+          const seconds = s[0] * 3600.0;
+          const position = s[1];
+          if (!position) {
+            continue;
+          }
+
+          normalizedWait += seconds / position;
+          count += 1;
+        }
+        if (count === 0) {
+          return 'unknown';
+        }
+
+        normalizedWait /= count;
+
+        const currentPosition = this.queueAhead(job);
+
+        return this.formatTimedelta(normalizedWait * currentPosition);
       },
 
       formatTimedelta(seconds) {
