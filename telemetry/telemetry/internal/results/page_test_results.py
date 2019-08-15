@@ -26,7 +26,8 @@ from tracing.value.diagnostics import reserved_infos
 
 class PageTestResults(object):
   def __init__(self, output_formatters=None, progress_stream=None,
-               output_dir=None, should_add_value=None, benchmark_name=None,
+               output_dir=None, intermediate_dir=None,
+               should_add_value=None, benchmark_name=None,
                benchmark_description=None,
                upload_bucket=None, results_label=None):
     """
@@ -56,6 +57,10 @@ class PageTestResults(object):
     self._output_formatters = (
         output_formatters if output_formatters is not None else [])
     self._output_dir = output_dir
+    self._intermediate_dir = intermediate_dir
+    if intermediate_dir is None and output_dir is not None:
+      self._intermediate_dir = os.path.join(output_dir, 'artifacts')
+
     self._upload_bucket = upload_bucket
     if should_add_value is not None:
       self._should_add_value = should_add_value
@@ -235,7 +240,7 @@ class PageTestResults(object):
     assert not self._current_story_run, 'Did not call DidRunPage.'
     self._current_story_run = story_run.StoryRun(
         page, test_prefix=self.benchmark_name, index=story_run_index,
-        output_dir=self._output_dir)
+        intermediate_dir=self._intermediate_dir)
     self._progress_reporter.WillRunStory(self)
 
   def DidRunPage(self, page):  # pylint: disable=unused-argument

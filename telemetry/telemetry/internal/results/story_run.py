@@ -90,7 +90,7 @@ class Artifact(object):
 
 
 class StoryRun(object):
-  def __init__(self, story, test_prefix=None, index=0, output_dir=None):
+  def __init__(self, story, test_prefix=None, index=0, intermediate_dir=None):
     """StoryRun objects track results for a single run of a story.
 
     Args:
@@ -114,16 +114,16 @@ class StoryRun(object):
     self._end_time = None
     self._artifacts = {}
 
-    if output_dir is None:
+    if intermediate_dir is None:
       self._artifacts_dir = None
     else:
-      output_dir = os.path.realpath(output_dir)
+      intermediate_dir = os.path.realpath(intermediate_dir)
       run_dir = '%s_%s_%s' % (
           self._story.file_safe_name,
           self.start_datetime.strftime('%Y%m%dT%H%M%SZ'),
           random.randint(1, 1e5),
       )
-      self._artifacts_dir = os.path.join(output_dir, 'artifacts', run_dir)
+      self._artifacts_dir = os.path.join(intermediate_dir, run_dir)
       if not os.path.exists(self._artifacts_dir):
         os.makedirs(self._artifacts_dir)
 

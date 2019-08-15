@@ -94,7 +94,7 @@ class StoryRunTest(unittest.TestCase):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
       run = story_run.StoryRun(
           story=TestStory(name='http://example.com'), test_prefix='benchmark',
-          output_dir=tempdir)
+          intermediate_dir=tempdir)
       with run.CreateArtifact('logs.txt') as log_file:
         log_file.write('hello\n')
       run.Finish()
@@ -117,17 +117,17 @@ class StoryRunTest(unittest.TestCase):
               }
           }
       )
-      # Log file is in the {output_dir}/artifacts/ directory, and file name
+      # Log file is in the {intermediate_dir}/ directory, and file name
       # extension is preserved.
       logs_file = entry['testResult']['artifacts']['logs.txt']['filePath']
-      artifacts_dir = os.path.join(tempdir, 'artifacts', '')
-      self.assertTrue(logs_file.startswith(artifacts_dir))
+      intermediate_dir = os.path.join(tempdir, '')
+      self.assertTrue(logs_file.startswith(intermediate_dir))
       self.assertTrue(logs_file.endswith('.txt'))
 
 
   def testCreateArtifact(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      run = story_run.StoryRun(self.story, output_dir=tempdir)
+      run = story_run.StoryRun(self.story, intermediate_dir=tempdir)
       with run.CreateArtifact('logs.txt') as log_file:
         log_file.write('hi\n')
 
@@ -138,7 +138,7 @@ class StoryRunTest(unittest.TestCase):
 
   def testCaptureArtifact(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      run = story_run.StoryRun(self.story, output_dir=tempdir)
+      run = story_run.StoryRun(self.story, intermediate_dir=tempdir)
       with run.CaptureArtifact('logs.txt') as log_file_name:
         with open(log_file_name, 'w') as log_file:
           log_file.write('hi\n')
@@ -150,7 +150,7 @@ class StoryRunTest(unittest.TestCase):
 
   def testIterArtifacts(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      run = story_run.StoryRun(self.story, output_dir=tempdir)
+      run = story_run.StoryRun(self.story, intermediate_dir=tempdir)
 
       with run.CreateArtifact('log/log1.foo'):
         pass
