@@ -7,7 +7,6 @@ import datetime
 import logging
 import os
 import posixpath
-import random
 import time
 import urllib
 
@@ -118,11 +117,7 @@ class StoryRun(object):
       self._artifacts_dir = None
     else:
       intermediate_dir = os.path.realpath(intermediate_dir)
-      run_dir = '%s_%s_%s' % (
-          self._story.file_safe_name,
-          self.start_datetime.strftime('%Y%m%dT%H%M%SZ'),
-          random.randint(1, 1e5),
-      )
+      run_dir = '%s_%s' % (self._story.file_safe_name, self._index + 1)
       self._artifacts_dir = os.path.join(intermediate_dir, run_dir)
       if not os.path.exists(self._artifacts_dir):
         os.makedirs(self._artifacts_dir)
