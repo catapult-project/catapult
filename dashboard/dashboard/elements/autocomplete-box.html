@@ -322,6 +322,30 @@ const AutocompleteBoxBehavior = {
     this.set('selectedItem', item);
   },
 
+  tryReselectQuery() {
+    if (this.disabled) {
+      return;
+    }
+    if (this.selectedItem && this.selectedItem.name === this.query) {
+      return;
+    }
+    const i = this.findItemByName(this.query);
+    if (!!i) {
+      this.selectItem(i);
+      return;
+    }
+    this.clearItem();
+  },
+
+  findItemByName(name) {
+    for (const i of this.items) {
+      if (i.name === name) {
+        return i;
+      }
+    }
+    return null;
+  },
+
   maybeBackspaceSelection() {
     if (this.get('query') === '') {
       this.set('selectedItem', null);

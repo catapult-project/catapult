@@ -24,6 +24,11 @@ found in the LICENSE file.
 <dom-module id="new-job-fab">
   <template>
     <style include="base-style">
+      .submenu {
+        color: var(--paper-grey-700);
+        --paper-fab-background: white;
+      }
+
       paper-progress {
         display: block;
         width: 100%;
@@ -43,7 +48,12 @@ found in the LICENSE file.
     </style>
 
     <app-location route="{{route}}"></app-location>
-    <paper-fab id="try-fab" icon="add" on-tap="openDialog"></paper-fab>
+    <template is="dom-if" if="[[submenu]]">
+      <paper-fab class="submenu" mini id="job-fab" icon="refresh" on-tap="openDialog"></paper-fab>
+    </template>
+    <template is="dom-if" if="[[!submenu]]">
+      <paper-fab id="try-fab" icon="add" on-tap="openDialog"></paper-fab>
+    </template>
     <paper-tooltip for="try-fab" position="left">Try job</paper-tooltip>
     <paper-dialog id="try_dialog" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
       <h2>Run a try job</h2>
@@ -62,11 +72,12 @@ found in the LICENSE file.
         </template>
         <iron-form id="try_form" headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
-            <input type="hidden" name="start_git_hash" value="HEAD">
-            <input type="hidden" name="end_git_hash" value="HEAD">
+            <input type="hidden" id="start_git_hash" name="start_git_hash" value="HEAD">
+            <!-- TODO(simonhatch): Expose these all in the UI. crbug.com/992492 -->
+            <input type="hidden" id="end_git_hash" name="end_git_hash" value="HEAD">
             <input type="hidden" name="target" value="[[telemetryIsolate(configuration, benchmark)]]">
-            <paper-input name="bug_id" label="Bug ID"></paper-input>
-            <paper-input name="patch" label="Gerrit URL" required></paper-input>
+            <paper-input value="{{bug_id}}" label="Bug ID"></paper-input>
+            <paper-input value="{{patch}}" label="Gerrit URL" required></paper-input>
 
             <autocomplete-box id="botDropdown"
                               name="configuration"
@@ -108,7 +119,7 @@ found in the LICENSE file.
               <paper-progress indeterminate></paper-progress>
             </template>
 
-            <paper-input name="extra_test_args" label="Extra Test Arguments (optional)"></paper-input>
+            <paper-input value="{{extra_test_args}}" label="Extra Test Arguments (optional)"></paper-input>
           </form>
         </iron-form>
       </div>
@@ -136,12 +147,30 @@ found in the LICENSE file.
           type: Boolean,
           value: false
         },
+        config: Object,
         configuration: String,
         configLoading: {
           type: Boolean,
           value: false
         },
+        extra_test_args: String,
+        bug_id: String,
+        patch: String,
+        start_git_hash: {
+          type: String,
+          value: 'HEAD'
+        },
+        end_git_hash: {
+          type: String,
+          value: 'HEAD'
+        },
+        submenu: {
+          type: Boolean,
+          value: false
+        },
+        job: Object,
         error: Object,
+        testSuites: Object,
         suitesLoading: {
           type: Boolean,
           value: false
@@ -149,7 +178,11 @@ found in the LICENSE file.
       },
 
       observers: [
+        'configChanged(config)',
+        'testSuitesChanged(testSuites)',
+        'benchmarkConfigChanged(benchmarkConfig)',
         'benchmarkChanged(benchmark)',
+        'jobChanged(job)',
       ],
 
       openDialog() {
@@ -169,10 +202,47 @@ found in the LICENSE file.
         this.$.try_dialog.close();
       },
 
+      configChanged(config) {
+        this.$.botDropdown.tryReselectQuery();
+      },
+
+      testSuitesChanged(testSuites) {
+        this.$.benchmarkDropdown.tryReselectQuery();
+      },
+
+      benchmarkConfigChanged(benchmarkConfig) {
+        if (!this.$.storyCasesDropdown.disabled) {
+          this.$.storyCasesDropdown.tryReselectQuery();
+        }
+        if (!this.$.storyTagsDropdown.disabled) {
+          this.$.storyTagsDropdown.tryReselectQuery();
+        }
+      },
+
+      jobChanged(job) {
+        this.bug_id = job.bug_id;
+        this.patch = job.arguments.patch;
+        this.start_git_hash = job.arguments.start_git_hash;
+        this.end_git_hash = job.arguments.end_git_hash;
+        this.extra_test_args = job.arguments.extra_test_args;
+        this.$.botDropdown.query = job.arguments.configuration;
+        this.$.benchmarkDropdown.query = job.arguments.benchmark;
+        this.$.storyCasesDropdown.query = job.arguments.story;
+        this.$.storyTagsDropdown.query = job.arguments.story_tags;
+        if (this.config) {
+          this.$.botDropdown.tryReselectQuery();
+        }
+        if (this.testSuites) {
+          this.$.benchmarkDropdown.tryReselectQuery();
+        }
+        if (this.benchmarkConfig) {
+          this.$.storyCasesDropdown.tryReselectQuery();
+          this.$.storyTagsDropdown.tryReselectQuery();
+        }
+      },
+
       benchmarkChanged(benchmark) {
         this.benchmarkConfig = null;
-        this.$.storyCasesDropdown.clearItem();
-        this.$.storyTagsDropdown.clearItem();
       },
 
       describeParams(benchmark) {
