@@ -123,6 +123,7 @@ def _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs):
                         (response['status'], content), content)
   if not response['status'].startswith('2'):
     raise RequestError(
-        'HTTP status code %s: %s' % (response['status'], content), content)
+        'Failure in request for `%s`; HTTP status code %s: %s' %
+        (url, response['status'], content), content)
 
   return content
