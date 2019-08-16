@@ -20,6 +20,7 @@ _CONTENT_TYPES = {
     '.dat': 'application/octet-stream',  # Generic data blob.
     '.dmp': 'application/x-dmp',  # A minidump file.
     '.gz': 'application/gzip',
+    '.html': 'text/html',
     '.json': 'application/json',
     '.pb': 'application/x-protobuf',
     '.png': 'image/png',
