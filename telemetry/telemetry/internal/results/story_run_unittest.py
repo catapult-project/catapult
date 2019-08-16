@@ -97,6 +97,7 @@ class StoryRunTest(unittest.TestCase):
           intermediate_dir=tempdir)
       with run.CreateArtifact('logs.txt') as log_file:
         log_file.write('hello\n')
+      run.SetTbmMetrics(['metric1', 'metric2'])
       run.Finish()
       entry = run.AsDict()
       self.assertEquals(
@@ -113,7 +114,8 @@ class StoryRunTest(unittest.TestCase):
                           'filePath': mock.ANY,
                           'contentType': 'text/plain'
                       }
-                  }
+                  },
+                  'tags': ['tbmv2:metric1', 'tbmv2:metric2'],
               }
           }
       )

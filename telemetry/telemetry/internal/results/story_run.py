@@ -164,7 +164,8 @@ class StoryRun(object):
             'runDuration': _FormatDuration(self.duration),
             'artifacts': {
                 name: artifact.AsDict()
-                for name, artifact in self._artifacts.items()}
+                for name, artifact in self._artifacts.items()},
+            'tags': ['tbmv2:' + m for m in self._tbm_metrics],
         }
     }
 
