@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
 import json
 import logging
 import os
@@ -22,6 +23,9 @@ from tracing.value import convert_chart_json
 from tracing.value import histogram_set
 from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import reserved_infos
+
+
+TELEMETRY_RESULTS = '_telemetry_results.jsonl'
 
 
 class PageTestResults(object):
@@ -77,7 +81,6 @@ class PageTestResults(object):
 
     self._benchmark_name = benchmark_name or '(unknown benchmark)'
     self._benchmark_description = benchmark_description or ''
-    self._benchmark_start_us = time.time() * 1e6
 
     # |_interruption| is None if the benchmark has not been interrupted.
     # Otherwise it is a string explaining the reason for the interruption.
@@ -87,6 +90,14 @@ class PageTestResults(object):
 
     # If the object has been finalized, no more results can be added to it.
     self._finalized = False
+    self._start_time = time.time()
+    self._results_stream = None
+    if self._intermediate_dir is not None:
+      if not os.path.exists(self._intermediate_dir):
+        os.makedirs(self._intermediate_dir)
+      self._results_stream = open(
+          os.path.join(self._intermediate_dir, TELEMETRY_RESULTS), 'w')
+      self._RecordBenchmarkStart()
 
   @property
   def benchmark_name(self):
@@ -98,7 +109,7 @@ class PageTestResults(object):
 
   @property
   def benchmark_start_us(self):
-    return self._benchmark_start_us
+    return self._start_time * 1e6
 
   @property
   def benchmark_interrupted(self):
@@ -108,6 +119,10 @@ class PageTestResults(object):
   def benchmark_interruption(self):
     """Returns a string explaining why the benchmark was interrupted."""
     return self._interruption
+
+  @property
+  def start_datetime(self):
+    return datetime.datetime.utcfromtimestamp(self._start_time)
 
   @property
   def label(self):
@@ -219,6 +234,34 @@ class PageTestResults(object):
     """Whether there were any story runs or results."""
     return not self._all_story_runs and not self._all_summary_values
 
+  def _WriteJsonLine(self, data, close=False):
+    if self._results_stream is not None:
+      # Use a compact encoding and sort keys to get deterministic outputs.
+      self._results_stream.write(
+          json.dumps(data, sort_keys=True, separators=(',', ':')) + '\n')
+      if close:
+        self._results_stream.close()
+      else:
+        self._results_stream.flush()
+
+  def _RecordBenchmarkStart(self):
+    self._WriteJsonLine({
+        'benchmarkRun': {
+            'startTime': self.start_datetime.isoformat() + 'Z',
+            # TODO(crbug.com/981349): Fill this in with benchmark and platform
+            # diagnostics info.
+            'diagnostics': {}
+        }
+    })
+
+  def _RecordBenchmarkFinish(self):
+    self._WriteJsonLine({
+        'benchmarkRun': {
+            'finalized': self.finalized,
+            'interrupted': self.benchmark_interrupted,
+        }
+    }, close=True)
+
   def IterStoryRuns(self):
     return iter(self._all_story_runs)
 
@@ -250,6 +293,7 @@ class PageTestResults(object):
     self._current_story_run.Finish()
     self._progress_reporter.DidRunStory(self)
     self._all_story_runs.append(self._current_story_run)
+    self._WriteJsonLine(self._current_story_run.AsDict())
     story = self._current_story_run.story
     self._all_stories.add(story)
     self._current_story_run = None
@@ -431,6 +475,7 @@ class PageTestResults(object):
     assert self._current_story_run is None, (
         'Cannot finalize while stories are still running.')
     self._finalized = True
+    self._RecordBenchmarkFinish()
     self._progress_reporter.DidFinishAllStories(self)
 
     # Only serialize the trace if output_format is json or html.
