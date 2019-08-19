@@ -80,3 +80,8 @@ handlers:
   static_files: dashboard/pinpoint/index/index.html
   upload: dashboard/pinpoint/index/index.html
   secure: always
+
+# Require auth for receiving push messages from Cloud Pub/Sub.
+- url: /_ah/push-handlers/task-updates
+  secure: always
+  login: admin

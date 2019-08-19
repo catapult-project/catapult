@@ -204,6 +204,12 @@ class Job(ndb.Model):
       job.AddChange(c)
 
     job.put()
+
+    # At this point we already have an ID, so we should go through each of the
+    # quests associated with the state, and provide the Job ID through a common
+    # API.
+    job.state.PropagateJob(job)
+    job.put()
     return job
 
   @property

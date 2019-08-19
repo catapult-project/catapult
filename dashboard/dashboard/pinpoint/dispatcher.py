@@ -35,6 +35,10 @@ _URL_MAPPING = [
     webapp2.Route(r'/cron/isolate-cleanup', handlers.IsolateCleanup),
     webapp2.Route(r'/cron/refresh-jobs', handlers.RefreshJobs),
     webapp2.Route(r'/cron/fifo-scheduler', handlers.FifoScheduler),
+
+    # The /_ah/push-handlers/* paths have a special meaning for PubSub
+    # notifications, and is treated especially by the AppEngine environment.
+    webapp2.Route(r'/_ah/push-handlers/task-updates', handlers.TaskUpdates),
 ]
 
 APP = webapp2.WSGIApplication(_URL_MAPPING, debug=False)

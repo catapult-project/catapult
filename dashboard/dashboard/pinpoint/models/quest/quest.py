@@ -28,6 +28,14 @@ class Quest(object):
   def metric(self):
     return 'Failure rate'
 
+  def PropagateJob(self, job):
+    """Allows a quest to know about the Job to which a quest is associated.
+
+    Arguments:
+      job: A dashboard.pinpoint.models.job.Job instance.
+    """
+    pass
+
   @classmethod
   def FromDict(cls, arguments):
     """Returns a Quest, configured from a dict of arguments.

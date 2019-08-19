@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import collections
 import unittest
 
 import mock
@@ -15,6 +16,10 @@ from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.change import change_test
 from dashboard.pinpoint.models.quest import find_isolate
 from dashboard.pinpoint import test
+
+
+FakeJob = collections.namedtuple('Job',
+                                 ['job_id', 'url', 'comparison_mode', 'user'])
 
 
 class FindIsolateQuestTest(unittest.TestCase):
@@ -90,6 +95,12 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
   def testIsolateLookupSuccess(self):
     quest = find_isolate.FindIsolate(
         'Mac Builder', 'telemetry_perf_tests', 'luci.bucket')
+
+    # Propagate a thing that looks like a job.
+    quest.PropagateJob(
+        FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
+                'user@example.com'))
+
     execution = quest.Start(change_test.Change(123))
     execution.Poll()
 
@@ -172,13 +183,18 @@ class BuildTest(_FindIsolateExecutionTest):
                 'patch_set': 5,
                 'patch_storage': 'gerrit',
             }
-        }
+        },
+        None
     )
 
   def testBuildLifecycle(self, put, get_job_status):
     change = change_test.Change(123, 456, patch=True)
     quest = find_isolate.FindIsolate(
         'Mac Builder', 'telemetry_perf_tests', 'luci.bucket')
+    # Propagate a thing that looks like a job.
+    quest.PropagateJob(
+        FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
+                'user@example.com'))
     execution = quest.Start(change)
 
     # Request a build.
@@ -192,6 +208,9 @@ class BuildTest(_FindIsolateExecutionTest):
             'buildset:patch/gerrit/codereview.com/567890/5',
             'buildset:commit/gitiles/chromium.googlesource.com/'
             'project/name/+/commit_123',
+            'pinpoint_job_id:cafef00d',
+            'pinpoint_user:user@example.com',
+            'pinpoint_url:https://pinpoint/cafef00d',
         ],
         {
             'builder_name': 'Mac Builder',
@@ -206,7 +225,12 @@ class BuildTest(_FindIsolateExecutionTest):
                 'patch_repository_url': test.CHROMIUM_URL,
                 'patch_set': 5,
                 'patch_storage': 'gerrit',
-            }
+            },
+        },
+        {
+            'topic': 'projects/chromeperf/topics/pinpoint-swarming-updates',
+            'auth_token': 'UNUSED',
+            'user_data': mock.ANY,
         }
     )
 

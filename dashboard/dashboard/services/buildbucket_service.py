@@ -18,12 +18,14 @@ API_BASE_URL = 'https://cr-buildbucket.appspot.com/api/buildbucket/v1/'
 _BUCKET_NAME = 'master.tryserver.chromium.perf'
 
 
-def Put(bucket, tags, parameters):
+def Put(bucket, tags, parameters, pubsub_callback=None):
   body = {
       'bucket': bucket,
       'tags': tags,
       'parameters_json': json.dumps(parameters, separators=(',', ':')),
   }
+  if pubsub_callback:
+    body['pubsub_callback'] = pubsub_callback
   return request.RequestJson(API_BASE_URL + 'builds', method='PUT', body=body)
 
 # TODO: Deprecated. Use Put() instead.

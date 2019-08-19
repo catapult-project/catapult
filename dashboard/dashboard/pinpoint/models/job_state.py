@@ -69,6 +69,15 @@ class JobState(object):
     # A mapping from a Change to a list of Attempts on that Change.
     self._attempts = {}
 
+  def PropagateJob(self, job):
+    """Propagate a Job to every Quest.
+
+    Args:
+      job: A fully formed dashboard.pinpoint.models.job.Job instance.
+    """
+    for quest in self._quests:
+      quest.PropagateJob(job)
+
   @property
   def metric(self):
     if self._comparison_mode == 'functional':

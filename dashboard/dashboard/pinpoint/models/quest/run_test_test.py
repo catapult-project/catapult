@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import collections
 import json
 import unittest
 
@@ -26,6 +27,10 @@ _BASE_ARGUMENTS = {
 
 
 _BASE_SWARMING_TAGS = {}
+
+
+FakeJob = collections.namedtuple('Job',
+                                 ['job_id', 'url', 'comparison_mode', 'user'])
 
 
 class StartTest(unittest.TestCase):
@@ -95,8 +100,14 @@ class _RunTestExecutionTest(unittest.TestCase):
     body = {
         'name': 'Pinpoint job',
         'user': 'Pinpoint',
+        'tags': mock.ANY,
         'priority': '100',
         'expiration_secs': '86400',
+        'pubsub_notification': {
+            'topic': 'projects/chromeperf/topics/pinpoint-swarming-updates',
+            'auth_token': 'UNUSED',
+            'userdata': mock.ANY,
+        },
         'properties': {
             'inputs_ref': {
                 'isolatedserver': 'isolate server',
@@ -167,6 +178,12 @@ class RunTestFullTest(_RunTestExecutionTest):
 
     # Call RunTest.Start() to create an Execution.
     quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS)
+
+    # Propagate a thing that looks like a job.
+    quest.PropagateJob(
+        FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
+                'user@example.com'))
+
     execution = quest.Start('change_1', 'isolate server', 'input isolate hash')
 
     swarming_task_result.assert_not_called()

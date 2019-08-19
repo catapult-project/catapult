@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import collections
 import json
 import logging
 import urlparse
@@ -30,6 +31,7 @@ class FindIsolate(quest.Quest):
     self._bucket = bucket
 
     self._previous_builds = {}
+    self._build_tags = collections.OrderedDict()
 
   def __eq__(self, other):
     return (isinstance(other, type(self)) and
@@ -41,7 +43,15 @@ class FindIsolate(quest.Quest):
 
   def Start(self, change):
     return _FindIsolateExecution(self._builder_name, self._target, self._bucket,
-                                 change, self._previous_builds)
+                                 change, self._previous_builds,
+                                 self._build_tags)
+
+  def PropagateJob(self, job):
+    self._build_tags = collections.OrderedDict([
+        ('pinpoint_job_id', job.job_id),
+        ('pinpoint_user', job.user),
+        ('pinpoint_url', job.url),
+    ])
 
   @classmethod
   def FromDict(cls, arguments):
@@ -54,7 +64,8 @@ class FindIsolate(quest.Quest):
 
 class _FindIsolateExecution(execution.Execution):
 
-  def __init__(self, builder_name, target, bucket, change, previous_builds):
+  def __init__(self, builder_name, target, bucket, change, previous_builds,
+               build_tags):
     super(_FindIsolateExecution, self).__init__()
     self._builder_name = builder_name
     self._target = target
@@ -65,6 +76,9 @@ class _FindIsolateExecution(execution.Execution):
 
     self._build = None
     self._build_url = None
+
+    # an ordered dict of tags.
+    self._build_tags = build_tags
 
   def _AsDict(self):
     details = []
@@ -133,7 +147,6 @@ class _FindIsolateExecution(execution.Execution):
 
     if build['status'] != 'COMPLETED':
       return
-
     if build['result'] == 'FAILURE':
       raise errors.BuildFailed(build['failure_reason'])
     if build['result'] == 'CANCELED':
@@ -177,13 +190,13 @@ class _FindIsolateExecution(execution.Execution):
       logging.debug('Requesting a build')
       # Request a build!
       buildbucket_info = _RequestBuild(
-          self._builder_name, self._change, self.bucket)
+          self._builder_name, self._change, self.bucket, self._build_tags)
 
       self._build = buildbucket_info['build']['id']
       self._previous_builds[self._change] = self._build
 
 
-def _RequestBuild(builder_name, change, bucket):
+def _RequestBuild(builder_name, change, bucket, build_tags):
   base_as_dict = change.base_commit.AsDict()
   review_url = base_as_dict.get('review_url')
   if not review_url:
@@ -204,12 +217,10 @@ def _RequestBuild(builder_name, change, bucket):
   builder_tags = []
   if change.patch:
     builder_tags.append(change.patch.BuildsetTags())
-  builder_tags.append(
-      'buildset:commit/gitiles/%s/%s/+/%s' % (
-          commit_url_parts.netloc,
-          change_info['project'],
-          change.base_commit.git_hash)
-  )
+  builder_tags.append('buildset:commit/gitiles/%s/%s/+/%s' %
+                      (commit_url_parts.netloc, change_info['project'],
+                       change.base_commit.git_hash))
+  builder_tags.extend(['%s:%s' % (k, v) for k, v in build_tags.items()])
 
   deps_overrides = {dep.repository_url: dep.git_hash for dep in change.deps}
   parameters = {
@@ -228,5 +239,24 @@ def _RequestBuild(builder_name, change, bucket):
   logging.debug('builder_tags: %s', builder_tags)
   logging.debug('parameters: %s', parameters)
 
+  pubsub_callback = None
+  if build_tags:
+    # This means we have access to Pinpoint job details, we should provide this
+    # information to the attempts to build.
+    pubsub_callback = {
+        # TODO(dberris): Consolidate constants in environment vars?
+        'topic': 'projects/chromeperf/topics/pinpoint-swarming-updates',
+        'auth_token': 'UNUSED',
+        'user_data': json.dumps({
+            'job_id': build_tags.get('pinpoint_job_id'),
+            'task': {
+                'type': 'build',
+                'id': build_tags.get('pinpoint_task_id'),
+            }
+        })
+    }
+    logging.debug('pubsub_callback: %s', pubsub_callback)
+
   # TODO: Look up Buildbucket bucket from builder_name.
-  return buildbucket_service.Put(bucket, builder_tags, parameters)
+  return buildbucket_service.Put(bucket, builder_tags, parameters,
+                                 pubsub_callback)

@@ -105,6 +105,15 @@ class RunTest(quest.Quest):
     if not hasattr(self, '_swarming_tags'):
       self._swarming_tags = {}
 
+  def PropagateJob(self, job):
+    self._swarming_tags.update({
+        'pinpoint_job_id': job.job_id,
+        'url': job.url,
+        'comparison_mode': job.comparison_mode,
+        'pinpoint_task_kind': 'test',
+        'pinpoint_user': job.user,
+    })
+
   def Start(self, change, isolate_server, isolate_hash):
     return self._Start(change, isolate_server, isolate_hash, self._extra_args,
                        {})
@@ -286,8 +295,24 @@ class _RunTestExecution(execution_module.Execution):
         'properties': properties,
     }
     if self._swarming_tags:
-      body['tags'] = [
-          '%s:%s' % (k, self._swarming_tags[k]) for k in self._swarming_tags]
+      # This means we have additional information available about the Pinpoint
+      # tags, and we should add those to the Swarming Pub/Sub updates.
+      body['tags'] = ['%s:%s' % (k, v) for k, v in self._swarming_tags.items()]
+      body['pubsub_notification'] = {
+          # TODO(dberris): Consolidate constants in environment vars?
+          'topic':
+              'projects/chromeperf/topics/pinpoint-swarming-updates',
+          'auth_token':
+              'UNUSED',
+          'userdata':
+              json.dumps({
+                  'job_id': self._swarming_tags.get('pinpoint_job_id'),
+                  'task': {
+                      'type': 'test',
+                      'id': self._swarming_tags.get('pinpoint_task_id'),
+                  },
+              }),
+      }
 
     logging.debug('Requesting swarming task with parameters: %s', body)
 
