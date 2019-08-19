@@ -41,10 +41,21 @@ class FindIsolate(quest.Quest):
   def __str__(self):
     return 'Build'
 
+  @property
+  def build_tags(self):
+    if hasattr(self, '_build_tags'):
+      return self._build_tags
+    return collections.OrderedDict()
+
+  def __setstate__(self, state):
+    self.__dict__ = state  # pylint: disable=attribute-defined-outside-init
+    # TODO(dberris): Remove this when we migrate all the instances.
+    if not hasattr(self, '_build_tags'):
+      self._build_tags = collections.OrderedDict()
+
   def Start(self, change):
     return _FindIsolateExecution(self._builder_name, self._target, self._bucket,
-                                 change, self._previous_builds,
-                                 self._build_tags)
+                                 change, self._previous_builds, self.build_tags)
 
   def PropagateJob(self, job):
     self._build_tags = collections.OrderedDict([
@@ -174,6 +185,18 @@ class _FindIsolateExecution(execution.Execution):
       return self._bucket
     return BUCKET
 
+  @property
+  def build_tags(self):
+    if hasattr(self, '_build_tags'):
+      return self._build_tags
+    return collections.OrderedDict()
+
+  def __setstate__(self, state):
+    self.__dict__ = state  # pylint: disable=attribute-defined-outside-init
+    # TODO(dberris): Remove this when we migrate all the instances.
+    if not hasattr(self, '_build_tags'):
+      self._build_tags = collections.OrderedDict()
+
   def _RequestBuild(self):
     """Requests a build.
 
@@ -189,9 +212,8 @@ class _FindIsolateExecution(execution.Execution):
     else:
       logging.debug('Requesting a build')
       # Request a build!
-      buildbucket_info = _RequestBuild(
-          self._builder_name, self._change, self.bucket, self._build_tags)
-
+      buildbucket_info = _RequestBuild(self._builder_name, self._change,
+                                       self.bucket, self.build_tags)
       self._build = buildbucket_info['build']['id']
       self._previous_builds[self._change] = self._build
 
