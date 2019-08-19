@@ -271,6 +271,7 @@ class StoryRunnerTest(unittest.TestCase):
   def tearDown(self):
     sys.stdout = self.actual_stdout
     self.RestoreExceptionFormatter()
+    self.results.Finalize()
     shutil.rmtree(self.options.output_dir)
 
   def GetFakeBrowserOptions(self, overrides=None):

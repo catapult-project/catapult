@@ -44,22 +44,24 @@ class ChartJsonTest(unittest.TestCase):
         self._output)
 
   def testOutputAndParse(self):
-    results = _MakePageTestResults()
+    with _MakePageTestResults() as results:
+      self._output.truncate(0)
 
-    self._output.truncate(0)
+      results.WillRunPage(self._story_set[0])
+      v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
+                              improvement_direction=improvement_direction.DOWN)
+      results.AddValue(v0)
+      results.DidRunPage(self._story_set[0])
 
-    results.WillRunPage(self._story_set[0])
-    v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
-                            improvement_direction=improvement_direction.DOWN)
-    results.AddValue(v0)
-    results.DidRunPage(self._story_set[0])
+      self._formatter.Format(results)
 
-    self._formatter.Format(results)
     d = json.loads(self._output.getvalue())
     self.assertIn('foo', d['charts'])
 
   def testOutputAndParseNoResults(self):
-    self._formatter.Format(_MakePageTestResults())
+    with _MakePageTestResults() as results:
+      self._formatter.Format(results)
+
     d = json.loads(self._output.getvalue())
     self.assertEquals(d['benchmark_name'], 'benchmark_name')
     self.assertFalse(d['enabled'])
@@ -67,16 +69,17 @@ class ChartJsonTest(unittest.TestCase):
   def testAsChartDictSerializable(self):
     v0 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 3,
                             improvement_direction=improvement_direction.DOWN)
-    results = _MakePageTestResults()
-    results.WillRunPage(self._story_set[0])
-    results.AddValue(v0)
-    results.DidRunPage(self._story_set[0])
+    with _MakePageTestResults() as results:
+      results.WillRunPage(self._story_set[0])
+      results.AddValue(v0)
+      results.DidRunPage(self._story_set[0])
 
-    d = chart_json_output_formatter.ResultsAsChartDict(results)
+      d = chart_json_output_formatter.ResultsAsChartDict(results)
     json.dumps(d)
 
   def testAsChartDictBaseKeys(self):
-    d = chart_json_output_formatter.ResultsAsChartDict(_MakePageTestResults())
+    with _MakePageTestResults() as results:
+      d = chart_json_output_formatter.ResultsAsChartDict(results)
 
     self.assertEquals(d['format_version'], '0.1')
     self.assertEquals(d['next_version'], '0.2')
@@ -87,8 +90,8 @@ class ChartJsonTest(unittest.TestCase):
     self.assertFalse(d['enabled'])
 
   def testAsChartDictNoDescription(self):
-    d = chart_json_output_formatter.ResultsAsChartDict(
-        _MakePageTestResults(description=None))
+    with _MakePageTestResults(description=None) as results:
+      d = chart_json_output_formatter.ResultsAsChartDict(results)
 
     self.assertEquals('', d['benchmark_metadata']['description'])
 
@@ -99,13 +102,12 @@ class ChartJsonTest(unittest.TestCase):
                             improvement_direction=improvement_direction.DOWN)
     v1 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 4,
                             improvement_direction=improvement_direction.DOWN)
-    results = _MakePageTestResults()
-    results.WillRunPage(self._story_set[0])
-    results.AddValue(v0)
-    results.AddValue(v1)
-    results.DidRunPage(self._story_set[0])
-
-    d = chart_json_output_formatter.ResultsAsChartDict(results)
+    with _MakePageTestResults() as results:
+      results.WillRunPage(self._story_set[0])
+      results.AddValue(v0)
+      results.AddValue(v1)
+      results.DidRunPage(self._story_set[0])
+      d = chart_json_output_formatter.ResultsAsChartDict(results)
 
     self.assertIn('cold@@foo', d['charts'])
     self.assertIn('http://www.foo.com/', d['charts']['cold@@foo'])
@@ -116,14 +118,12 @@ class ChartJsonTest(unittest.TestCase):
                             improvement_direction=improvement_direction.DOWN)
     v1 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 4,
                             improvement_direction=improvement_direction.DOWN)
-    results = _MakePageTestResults()
-    results.WillRunPage(self._story_set[0])
-    results.AddValue(v0)
-    results.AddValue(v1)
-    results.DidRunPage(self._story_set[0])
-
-
-    d = chart_json_output_formatter.ResultsAsChartDict(results)
+    with _MakePageTestResults() as results:
+      results.WillRunPage(self._story_set[0])
+      results.AddValue(v0)
+      results.AddValue(v1)
+      results.DidRunPage(self._story_set[0])
+      d = chart_json_output_formatter.ResultsAsChartDict(results)
 
     self.assertIn('foo', d['charts'])
     self.assertIn('http://www.foo.com/', d['charts']['foo'])
@@ -134,15 +134,14 @@ class ChartJsonTest(unittest.TestCase):
                             improvement_direction=improvement_direction.DOWN)
     v1 = scalar.ScalarValue(self._story_set[1], 'foo.bar', 'seconds', 4,
                             improvement_direction=improvement_direction.DOWN)
-    results = _MakePageTestResults()
-    results.WillRunPage(self._story_set[0])
-    results.AddValue(v0)
-    results.DidRunPage(self._story_set[0])
-    results.WillRunPage(self._story_set[1])
-    results.AddValue(v1)
-    results.DidRunPage(self._story_set[1])
-
-    d = chart_json_output_formatter.ResultsAsChartDict(results)
+    with _MakePageTestResults() as results:
+      results.WillRunPage(self._story_set[0])
+      results.AddValue(v0)
+      results.DidRunPage(self._story_set[0])
+      results.WillRunPage(self._story_set[1])
+      results.AddValue(v1)
+      results.DidRunPage(self._story_set[1])
+      d = chart_json_output_formatter.ResultsAsChartDict(results)
 
     self.assertIn('foo', d['charts'])
     self.assertIn('http://www.foo.com/', d['charts']['foo'])
@@ -155,15 +154,14 @@ class ChartJsonTest(unittest.TestCase):
                             improvement_direction=improvement_direction.DOWN)
     v1 = scalar.ScalarValue(self._story_set[1], 'foo', 'seconds', 4,
                             improvement_direction=improvement_direction.DOWN)
-    results = _MakePageTestResults()
-    results.WillRunPage(self._story_set[0])
-    results.AddValue(v0)
-    results.DidRunPage(self._story_set[0])
-    results.WillRunPage(self._story_set[1])
-    results.AddValue(v1)
-    results.DidRunPage(self._story_set[1])
-
-    d = chart_json_output_formatter.ResultsAsChartDict(results)
+    with _MakePageTestResults() as results:
+      results.WillRunPage(self._story_set[0])
+      results.AddValue(v0)
+      results.DidRunPage(self._story_set[0])
+      results.WillRunPage(self._story_set[1])
+      results.AddValue(v1)
+      results.DidRunPage(self._story_set[1])
+      d = chart_json_output_formatter.ResultsAsChartDict(results)
 
     self.assertIn('foo', d['charts'])
     self.assertIn('http://www.foo.com/', d['charts']['foo'])
@@ -175,10 +173,9 @@ class ChartJsonTest(unittest.TestCase):
     v0 = list_of_scalar_values.ListOfScalarValues(
         None, 'foo.bar', 'seconds', [3, 4],
         improvement_direction=improvement_direction.DOWN)
-    results = _MakePageTestResults()
-    results.AddSummaryValue(v0)
-
-    d = chart_json_output_formatter.ResultsAsChartDict(results)
+    with _MakePageTestResults() as results:
+      results.AddSummaryValue(v0)
+      d = chart_json_output_formatter.ResultsAsChartDict(results)
 
     self.assertIn('bar', d['charts']['foo'])
     self.assertTrue(d['enabled'])
@@ -187,23 +184,22 @@ class ChartJsonTest(unittest.TestCase):
     v0 = list_of_scalar_values.ListOfScalarValues(
         None, 'foo', 'seconds', [3, 4],
         improvement_direction=improvement_direction.DOWN)
-    results = _MakePageTestResults()
-    results.AddSummaryValue(v0)
-
-    d = chart_json_output_formatter.ResultsAsChartDict(results)
+    with _MakePageTestResults() as results:
+      results.AddSummaryValue(v0)
+      d = chart_json_output_formatter.ResultsAsChartDict(results)
 
     self.assertIn('summary', d['charts']['foo'])
     self.assertTrue(d['enabled'])
 
   def testAsChartDictWithTracesInArtifacts(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
-      results = _MakePageTestResults(output_dir=tempdir)
-      results.WillRunPage(self._story_set[0])
-      with results.CreateArtifact(results_processor.HTML_TRACE_NAME):
-        pass
-      results.DidRunPage(self._story_set[0])
+      with _MakePageTestResults(output_dir=tempdir) as results:
+        results.WillRunPage(self._story_set[0])
+        with results.CreateArtifact(results_processor.HTML_TRACE_NAME):
+          pass
+        results.DidRunPage(self._story_set[0])
 
-      d = chart_json_output_formatter.ResultsAsChartDict(results)
+        d = chart_json_output_formatter.ResultsAsChartDict(results)
 
       self.assertIn('trace', d['charts'])
       self.assertIn('http://www.foo.com/', d['charts']['trace'])
@@ -213,9 +209,8 @@ class ChartJsonTest(unittest.TestCase):
     v0 = list_of_scalar_values.ListOfScalarValues(
         None, 'foo.bar', 'seconds', [3, 4],
         improvement_direction=improvement_direction.DOWN)
-    results = _MakePageTestResults()
-    results.AddSummaryValue(v0)
-
-    d = chart_json_output_formatter.ResultsAsChartDict(results)
+    with _MakePageTestResults() as results:
+      results.AddSummaryValue(v0)
+      d = chart_json_output_formatter.ResultsAsChartDict(results)
 
     self.assertEquals(d['charts']['foo']['bar']['values'], [3, 4])

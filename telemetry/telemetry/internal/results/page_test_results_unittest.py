@@ -146,6 +146,7 @@ class PageTestResultsTest(_PageTestResultsTestBase):
         results.AddValue(scalar.ScalarValue(
             self.pages[0], name='url', units='string', value='foo',
             improvement_direction=improvement_direction.UP))
+      results.DidRunPage(self.pages[0])
 
   def testAddSummaryValueWithPageSpecified(self):
     with self.CreateResults() as results:
@@ -155,6 +156,7 @@ class PageTestResultsTest(_PageTestResultsTestBase):
         results.AddSummaryValue(scalar.ScalarValue(
             self.pages[0], 'a', 'units', 3,
             improvement_direction=improvement_direction.UP))
+      results.DidRunPage(self.pages[0])
 
   def testUnitChange(self):
     with self.CreateResults() as results:
@@ -169,6 +171,7 @@ class PageTestResultsTest(_PageTestResultsTestBase):
         results.AddValue(scalar.ScalarValue(
             self.pages[1], 'a', 'foobgrobbers', 3,
             improvement_direction=improvement_direction.UP))
+      results.DidRunPage(self.pages[1])
 
   def testNoSuccessesWhenAllPagesFailOrSkip(self):
     with self.CreateResults() as results:
@@ -439,6 +442,7 @@ class PageTestResultsFilterTest(_PageTestResultsTestBase):
       hist1 = histogram_module.Histogram('b', 'count')
       hist1.AddSample(0)
       results.AddHistogram(hist1)
+      results.DidRunPage(self.pages[0])
 
     # Filter out the diagnostics
     dicts = results.AsHistogramDicts()
@@ -464,6 +468,7 @@ class PageTestResultsFilterTest(_PageTestResultsTestBase):
       # Necessary to make sure avg is added
       hist1.AddSample(0)
       results.AddHistogram(hist1)
+      results.DidRunPage(self.pages[0])
 
     # Filter out the diagnostics
     dicts = results.AsHistogramDicts()

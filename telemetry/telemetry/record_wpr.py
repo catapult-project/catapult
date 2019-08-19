@@ -262,7 +262,7 @@ class WprRecorder(object):
     if results.had_failures or results.had_skips:
       logging.warning('Some pages failed and/or were skipped. The recording '
                       'has not been updated for these pages.')
-    results.PrintSummary()
+    results.Finalize()
     self._story_set.wpr_archive_info.AddRecordedStories(
         [run.story for run in results.IterStoryRuns() if run.ok],
         upload_to_cloud_storage,

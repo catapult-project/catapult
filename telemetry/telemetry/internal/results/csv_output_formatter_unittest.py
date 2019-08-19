@@ -46,6 +46,7 @@ class CsvOutputFormatterTest(unittest.TestCase):
     self._formatter = csv_output_formatter.CsvOutputFormatter(self._output)
 
   def tearDown(self):
+    self._results.Finalize()
     shutil.rmtree(self._temp_dir)
 
   def SimulateBenchmarkRun(self, list_of_page_and_values):
