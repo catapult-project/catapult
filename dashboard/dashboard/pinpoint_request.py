@@ -88,24 +88,6 @@ class PinpointNewPerfTryRequestHandler(request_handler.RequestHandler):
     self.response.write(json.dumps(pinpoint_service.NewJob(pinpoint_params)))
 
 
-def ParseMetricParts(test_path_parts):
-  metric_parts = test_path_parts[3:]
-
-  # Normal test path structure, ie. M/B/S/foo/bar.html
-  if len(metric_parts) == 2:
-    return '', metric_parts[0], metric_parts[1]
-
-  # 3 part structure, so there's a TIR label in there.
-  # ie. M/B/S/timeToFirstMeaningfulPaint_avg/load_tools/load_tools_weather
-  if len(metric_parts) == 3:
-    return metric_parts[1], metric_parts[0], metric_parts[2]
-
-  # Should be something like M/B/S/EventsDispatching where the trace_name is
-  # left empty and implied to be summary.
-  assert len(metric_parts) == 1
-  return '', metric_parts[0], ''
-
-
 def _GitHashToCommitPosition(commit_position):
   try:
     commit_position = int(commit_position)
@@ -195,14 +177,16 @@ def _GetIsolateTarget(bot_name, suite, start_commit,
   return 'performance_test_suite'
 
 
-def ParseTIRLabelChartNameAndTraceName(test_path_parts):
+def ParseTIRLabelChartNameAndTraceName(test_path):
   """Returns tir_label, chart_name, trace_name from a test path."""
+  test_path_parts = test_path.split('/')
   suite = test_path_parts[2]
   if suite in _NON_CHROME_TARGETS:
     return '', '', ''
 
   test = ndb.Key('TestMetadata', '/'.join(test_path_parts)).get()
-  tir_label, chart_name, trace_name = ParseMetricParts(test_path_parts)
+  tir_label, chart_name, trace_name = utils.ParseTelemetryMetricParts(
+      test_path)
   if trace_name and test.unescaped_story_name:
     trace_name = test.unescaped_story_name
   return tir_label, chart_name, trace_name
@@ -318,7 +302,7 @@ def PinpointParamsFromBisectParams(params):
   trace_name = ''
   if bisect_mode == 'performance':
     tir_label, chart_name, trace_name = ParseTIRLabelChartNameAndTraceName(
-        test_path_parts)
+        test_path)
 
   start_commit = params['start_commit']
   end_commit = params['end_commit']

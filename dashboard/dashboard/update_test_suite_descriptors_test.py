@@ -57,6 +57,7 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
             },
         })
     test = utils.TestKey('master/bot/internal/measurement/test_case').get()
+    test.unescaped_story_name = 'test_case'
     test.has_rows = True
     test.internal_only = True
     test.put()
@@ -75,7 +76,7 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
 
     expected = {
         'measurements': ['measurement'],
-        'bots': ['master:bot'],
+        'bots': ['bot'],
         'cases': ['test_case'],
         'caseTags': {},
     }
@@ -123,72 +124,12 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
 
     expected = {
         'measurements': ['measurement'],
-        'bots': ['master:a', 'master:b'],
+        'bots': ['a', 'b'],
         'cases': ['x', 'y', 'z'],
         'caseTags': {'j': ['x', 'y'], 'k': ['y']},
     }
     actual = update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
         'suite')
-    self.assertEqual(expected, actual)
-
-  def testComposite(self):
-    external_key = namespaced_stored_object.NamespaceKey(
-        update_test_suites.TEST_SUITES_2_CACHE_KEY, datastore_hooks.EXTERNAL)
-    stored_object.Set(external_key, ['TEST_PARTIAL_TEST_SUITE:COMPOSITE'])
-    testing_common.AddTests(
-        ['master'],
-        ['bot'],
-        {
-            'TEST_PARTIAL_TEST_SUITE': {
-                'COMPOSITE': {
-                    'measurement': {
-                        'test_case': {},
-                    },
-                },
-            },
-        })
-    test = utils.TestKey('master/bot/TEST_PARTIAL_TEST_SUITE/COMPOSITE/' +
-                         'measurement/test_case').get()
-    test.has_rows = True
-    test.put()
-
-    self.Post('/update_test_suite_descriptors')
-    self.ExecuteDeferredTasks('default')
-    expected = {
-        'measurements': ['measurement'],
-        'bots': ['master:bot'],
-        'cases': ['test_case'],
-        'caseTags': {},
-    }
-    actual = update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
-        'TEST_PARTIAL_TEST_SUITE:COMPOSITE')
-    self.assertEqual(expected, actual)
-
-  def testUnparsed(self):
-    external_key = namespaced_stored_object.NamespaceKey(
-        update_test_suites.TEST_SUITES_2_CACHE_KEY, datastore_hooks.EXTERNAL)
-    stored_object.Set(external_key, ['unparsed'])
-    testing_common.AddTests(
-        ['master'],
-        ['bot'],
-        {
-            'unparsed': {
-                'a': {
-                    'b': {
-                        'c': {},
-                    },
-                },
-            },
-        })
-    test = utils.TestKey('master/bot/unparsed/a/b/c').get()
-    test.has_rows = True
-    test.put()
-
-    self.Post('/update_test_suite_descriptors')
-    self.ExecuteDeferredTasks('default')
-    actual = update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
-        'unparsed')
-    expected = {'parseError': 'master/bot/unparsed/a/b/c'}
     self.assertEqual(expected, actual)
 
 

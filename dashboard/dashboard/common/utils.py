@@ -288,6 +288,41 @@ def MostSpecificMatchingPattern(test, pattern_data_tuples):
   return matching_patterns[0][1]
 
 
+class ParseTelemetryMetricFailed(Exception):
+  pass
+
+
+def ParseTelemetryMetricParts(test_path):
+  """Parses a test path and returns the tir_label, measurement, and story.
+
+  Args:
+    test_path_parts: A test path.
+
+  Returns:
+    A tuple of (tir_label, measurement, story), or None if this doesn't appear
+    to be a telemetry test.
+  """
+  test_path_parts = test_path.split('/')
+  metric_parts = test_path_parts[3:]
+
+  if len(metric_parts) > 3 or len(metric_parts) == 0:
+    raise ParseTelemetryMetricFailed(test_path)
+
+  # Normal test path structure, ie. M/B/S/foo/bar.html
+  if len(metric_parts) == 2:
+    return '', metric_parts[0], metric_parts[1]
+
+  # 3 part structure, so there's a TIR label in there.
+  # ie. M/B/S/timeToFirstMeaningfulPaint_avg/load_tools/load_tools_weather
+  if len(metric_parts) == 3:
+    return metric_parts[1], metric_parts[0], metric_parts[2]
+
+  # Should be something like M/B/S/EventsDispatching where the trace_name is
+  # left empty and implied to be summary.
+  assert len(metric_parts) == 1
+  return '', metric_parts[0], ''
+
+
 def TestMatchesPattern(test, pattern):
   """Checks whether a test matches a test path pattern.
 

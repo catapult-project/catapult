@@ -131,6 +131,29 @@ class UtilsTest(testing_common.TestCase):
     )
     self.assertEqual(1, result)
 
+  def testParseTelemetryMetricParts_TooShort(self):
+    with self.assertRaises(utils.ParseTelemetryMetricFailed):
+      utils.ParseTelemetryMetricParts('M/B/S')
+
+  def testParseTelemetryMetricParts_TooLong(self):
+    with self.assertRaises(utils.ParseTelemetryMetricFailed):
+      utils.ParseTelemetryMetricParts('M/B/S/1/2/3/4')
+
+  def testParseTelemetryMetricParts_1Part(self):
+    self.assertEqual(
+        ('', 'Measurement', ''),
+        utils.ParseTelemetryMetricParts('M/B/Suite/Measurement'))
+
+  def testParseTelemetryMetricParts_2Part(self):
+    self.assertEqual(
+        ('', 'Measurement', 'Story'),
+        utils.ParseTelemetryMetricParts('M/B/Suite/Measurement/Story'))
+
+  def testParseTelemetryMetricParts_3Part(self):
+    self.assertEqual(
+        ('TIRLabel', 'Measurement', 'Story'),
+        utils.ParseTelemetryMetricParts('M/B/Suite/Measurement/TIRLabel/Story'))
+
   def _PutEntitiesAllExternal(self):
     """Puts entities (none internal-only) and returns the keys."""
     master = graph_data.Master(id='M').put()
