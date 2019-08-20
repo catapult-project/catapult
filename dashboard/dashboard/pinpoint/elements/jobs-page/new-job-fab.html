@@ -72,12 +72,12 @@ found in the LICENSE file.
         </template>
         <iron-form id="try_form" headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
-            <input type="hidden" id="start_git_hash" name="start_git_hash" value="HEAD">
             <!-- TODO(simonhatch): Expose these all in the UI. crbug.com/992492 -->
+            <input type="hidden" id="start_git_hash" name="start_git_hash" value="HEAD">
             <input type="hidden" id="end_git_hash" name="end_git_hash" value="HEAD">
             <input type="hidden" name="target" value="[[telemetryIsolate(configuration, benchmark)]]">
-            <paper-input value="{{bug_id}}" label="Bug ID"></paper-input>
-            <paper-input value="{{patch}}" label="Gerrit URL" required></paper-input>
+            <paper-input name="bug_id" value="{{bug_id}}" label="Bug ID"></paper-input>
+            <paper-input name="patch" value="{{patch}}" label="Gerrit URL" required></paper-input>
 
             <autocomplete-box id="botDropdown"
                               name="configuration"
@@ -119,7 +119,7 @@ found in the LICENSE file.
               <paper-progress indeterminate></paper-progress>
             </template>
 
-            <paper-input value="{{extra_test_args}}" label="Extra Test Arguments (optional)"></paper-input>
+            <paper-input name="extra_test_args" value="{{extra_test_args}}" label="Extra Test Arguments (optional)"></paper-input>
           </form>
         </iron-form>
       </div>
