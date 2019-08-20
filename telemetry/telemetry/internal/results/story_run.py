@@ -167,11 +167,17 @@ class StoryRun(object):
                 for name, artifact in self._artifacts.items()
             },
             'tags': [
-                {'key': 'tbmv2', 'value': metric}
-                for metric in self._tbm_metrics
+                {'key': key, 'value': value}
+                for key, value in self._IterTags()
             ],
         }
     }
+
+  def _IterTags(self):
+    for metric in self._tbm_metrics:
+      yield 'tbmv2', metric
+    if 'GTEST_SHARD_INDEX' in os.environ:
+      yield 'shard', os.environ['GTEST_SHARD_INDEX']
 
   @property
   def story(self):

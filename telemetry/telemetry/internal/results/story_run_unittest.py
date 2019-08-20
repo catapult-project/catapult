@@ -87,6 +87,7 @@ class StoryRunTest(unittest.TestCase):
     self.assertEquals(run.failure_str, None)
 
 
+  @mock.patch.dict('os.environ', {'GTEST_SHARD_INDEX': '7'})
   @mock.patch('telemetry.internal.results.story_run.time')
   def testAsDict(self, time_module):
     time_module.time.side_effect = [1234567890.987,
@@ -118,6 +119,7 @@ class StoryRunTest(unittest.TestCase):
                   'tags': [
                       {'key': 'tbmv2', 'value': 'metric1'},
                       {'key': 'tbmv2', 'value': 'metric2'},
+                      {'key': 'shard', 'value': '7'}
                   ],
               }
           }
