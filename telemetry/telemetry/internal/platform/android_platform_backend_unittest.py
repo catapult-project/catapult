@@ -87,13 +87,23 @@ class AndroidPlatformBackendTest(unittest.TestCase):
           'android-low-end', backend.GetTypExpectationsTags())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
-  def testTypExpectationsTagsIncludesAndroidModel(self):
+  def testTypExpectationsTagsIncludesForNexus6(self):
     backend = self.CreatePlatformBackendForTest()
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='foo'):
       with mock.patch.object(backend, 'GetDeviceTypeName',
                              return_value='AOSP on Shamu'):
-        self.assertIn('android-AOSP-on-Shamu', backend.GetTypExpectationsTags())
+        self.assertIn('android-nexus-6', backend.GetTypExpectationsTags())
+        self.assertIn('mobile', backend.GetTypExpectationsTags())
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
+  def testTypExpectationsTagsIncludesForNexus5x(self):
+    backend = self.CreatePlatformBackendForTest()
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    return_value='foo'):
+      with mock.patch.object(backend, 'GetDeviceTypeName',
+                             return_value='AOSP on BullHead'):
+        self.assertIn('android-nexus-5x', backend.GetTypExpectationsTags())
         self.assertIn('mobile', backend.GetTypExpectationsTags())
 
   @decorators.Disabled('chromeos', 'mac', 'win')

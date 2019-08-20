@@ -422,8 +422,10 @@ def RunBenchmark(benchmark, finder_options):
       print ('No browser of type "%s" found for running benchmark "%s".' % (
           finder_options.browser_options.browser_type, benchmark.Name()))
       return -1
-    benchmark.expectations.SetTags(
-        possible_browser.GetTypExpectationsTags())
+    typ_expectation_tags = possible_browser.GetTypExpectationsTags()
+    logging.info('The following expectations condition tags were generated %s',
+                 str(typ_expectation_tags))
+    benchmark.expectations.SetTags(typ_expectation_tags)
     if not _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
       return -1
 

@@ -49,6 +49,12 @@ _ARCH_TO_STACK_TOOL_ARCH = {
     'armeabi-v7a': 'arm',
     'arm64-v8a': 'arm64',
 }
+_MAP_TO_USER_FRIENDLY_NAMES = {
+    'gobo': 'go',
+    'W6210': 'one',
+    'AOSP on Shamu': 'nexus 6',
+    'AOSP on BullHead': 'nexus 5x'
+}
 _DEVICE_COPY_SCRIPT_FILE = os.path.abspath(os.path.join(
     os.path.dirname(__file__), 'efficient_android_directory_copy.sh'))
 _DEVICE_COPY_SCRIPT_LOCATION = (
@@ -270,9 +276,8 @@ class AndroidPlatformBackend(
     # and if it is a low end device
     tags = super(AndroidPlatformBackend, self).GetTypExpectationsTags()
     device_type_name = self.GetDeviceTypeName()
-    user_friendly_names = {'gobo': 'go', 'W6210': 'one'}
     tags += test_utils.sanitizeTypExpectationsTags(
-        ['android-' + user_friendly_names.get(
+        ['android-' + _MAP_TO_USER_FRIENDLY_NAMES.get(
             device_type_name, device_type_name)])
     if self.IsLowEnd():
       tags.append('android-low-end')
