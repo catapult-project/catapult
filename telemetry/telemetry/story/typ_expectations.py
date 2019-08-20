@@ -8,8 +8,8 @@ around typ's expectations_parser module.
 Example:
   expectations = typ_expectations.StoryExpectations(benchmark1)
   expectations.GetBenchmarkExpectationsFromParser(file_content)
-  disabled_benchmark = expectations.IsBenchmarkDisabled()
-  disabled_story = expectations.IsStoryDisabled('story1')
+  disabled_benchmark = expectations.IsBenchmarkDisabled(None, None)
+  disabled_story = expectations.IsStoryDisabled('story1', None, None)
 '''
 
 import logging
@@ -37,6 +37,14 @@ class StoryExpectations(object):
   def SetTags(self, tags):
     self._typ_expectations.set_tags(tags)
 
+  def AsDict(self):
+    # TODO(crbug.com/973936): Implement function in
+    # typ.expectations_parser.TestExpectations to serialize its data
+    # then transform that information into a dictionary of disabled
+    # platforms for the benchmark and disabled stories with in the
+    # benchmark.
+    raise NotImplementedError
+
   def GetExpectationsThatApplyToBenchmark(self):
     if self._benchmark_expectations:
       return self._benchmark_expectations
@@ -60,6 +68,22 @@ class StoryExpectations(object):
                     (pattern, self._benchmark_name))
     return unused_patterns
 
+  def SetExpectations(self):
+    raise NotImplementedError
+
+  def _Freeze(self):
+    raise NotImplementedError
+
+  @property
+  def disabled_platforms(self):
+    raise NotImplementedError
+
+  def DisableBenchmark(self, conditions, reason):
+    raise NotImplementedError
+
+  def DisableStory(self, story_name, conditions, reason):
+    raise NotImplementedError
+
   def _IsStoryOrBenchmarkDisabled(self, pattern):
     expected_results, _, reasons = self._typ_expectations.expectations_for(
         pattern)
@@ -67,9 +91,15 @@ class StoryExpectations(object):
       return reasons.pop() if reasons else 'No reason given'
     return ''
 
-  def IsBenchmarkDisabled(self):
+  def IsBenchmarkDisabled(self, platform, finder_options):
+    # TODO(crbug.com/973936): Remove platform and finder_options arguments
+    # after removing the expectations module.
+    del platform, finder_options
     return self._IsStoryOrBenchmarkDisabled(self._benchmark_name + '/')
 
-  def IsStoryDisabled(self, story):
+  def IsStoryDisabled(self, story, platform, finder_options):
+    # TODO(crbug.com/973936): Remove platform and finder_options arguments
+    # after removing the expectations module.
+    del platform, finder_options
     return self._IsStoryOrBenchmarkDisabled(
         self._benchmark_name + '/' + story.name)

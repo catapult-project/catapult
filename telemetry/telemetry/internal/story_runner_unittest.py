@@ -29,7 +29,6 @@ from telemetry.internal.util import exception_formatter as ex_formatter_module
 from telemetry.page import page as page_module
 from telemetry.page import legacy_page_test
 from telemetry import story as story_module
-from telemetry.story import typ_expectations
 from telemetry.testing import fakes
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
@@ -159,20 +158,14 @@ class DummyPage(page_module.Page):
         page_set=page_set)
 
 
-class _DisableBenchmarkExpectations(typ_expectations.StoryExpectations):
-  def __init__(self, benchmark_name):
-    expectations = '# results: [ Skip ]\n%s/* [ Skip ]\n' % (
-        benchmark_name)
-    super(_DisableBenchmarkExpectations, self).__init__(benchmark_name)
-    self.GetBenchmarkExpectationsFromParser(expectations)
+class _DisableBenchmarkExpectations(
+    story_module.expectations.StoryExpectations):
+  def SetExpectations(self):
+    self.DisableBenchmark([story_module.expectations.ALL], 'crbug.com/123')
 
-
-class _DisableStoryExpectations(typ_expectations.StoryExpectations):
-  def __init__(self, benchmark_name, story_name):
-    expectations = '# results: [ Skip ]\n%s/%s [ Skip ]\n' % (
-        benchmark_name, story_name)
-    super(_DisableStoryExpectations, self).__init__(benchmark_name)
-    self.GetBenchmarkExpectationsFromParser(expectations)
+class _DisableStoryExpectations(story_module.expectations.StoryExpectations):
+  def SetExpectations(self):
+    self.DisableStory('one', [story_module.expectations.ALL], 'crbug.com/123')
 
 
 class FakeBenchmark(benchmark.Benchmark):
@@ -211,10 +204,10 @@ class FakeBenchmark(benchmark.Benchmark):
   @property
   def expectations(self):
     if self.story_disabled:
-      return _DisableStoryExpectations('fake', 'one')
+      return _DisableStoryExpectations()
     if self.disabled:
-      return _DisableBenchmarkExpectations('fake')
-    return typ_expectations.StoryExpectations('fake')
+      return _DisableBenchmarkExpectations()
+    return story_module.expectations.StoryExpectations()
 
 
 class FakeBenchmarkWithAStory(FakeBenchmark):
@@ -229,14 +222,6 @@ class FakeBenchmarkWithAStory(FakeBenchmark):
     story_set = story_module.StorySet()
     story_set.AddStory(DummyPage(story_set, name='story'))
     return story_set
-
-  @property
-  def expectations(self):
-    if self.story_disabled:
-      return _DisableStoryExpectations('fake_with_a_story', 'story')
-    if self.disabled:
-      return _DisableBenchmarkExpectations('fake_with_a_story')
-    return typ_expectations.StoryExpectations('fake_with_a_story')
 
 
 class FakeExceptionFormatterModule(object):
@@ -645,7 +630,7 @@ class StoryRunnerTest(unittest.TestCase):
     story_set.AddStory(story_one)
 
     story_runner.Run(_Measurement(), story_set, self.options, self.results,
-                     expectations=_DisableStoryExpectations('fake', 'one'))
+                     expectations=_DisableStoryExpectations())
     summary = summary_module.Summary(self.results)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
@@ -662,7 +647,7 @@ class StoryRunnerTest(unittest.TestCase):
     story_set.AddStory(story_two)
 
     story_runner.Run(_Measurement(), story_set, self.options, self.results,
-                     expectations=_DisableStoryExpectations('fake', 'one'))
+                     expectations=_DisableStoryExpectations())
     summary = summary_module.Summary(self.results)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
@@ -678,7 +663,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.options.run_disabled_tests = True
 
     story_runner.Run(_Measurement(), story_set, self.options, self.results,
-                     expectations=_DisableStoryExpectations('fake', 'one'))
+                     expectations=_DisableStoryExpectations())
     summary = summary_module.Summary(self.results)
     values = summary.interleaved_computed_per_page_values_and_summaries
 

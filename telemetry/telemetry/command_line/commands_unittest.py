@@ -60,8 +60,33 @@ class PrintBenchmarkListTests(unittest.TestCase):
                                 self._stream)
     self.assertEquals(expected_printed_stream, self._stream.getvalue())
 
-
   def testPrintBenchmarkListWithOneDisabledBenchmark(self):
+    expected_printed_stream = (
+        'Available benchmarks for TestBrowser are:\n'
+        '  BenchmarkFoo Benchmark foo for testing.\n'
+        '\n'
+        'Disabled benchmarks for TestBrowser are (force run with -d):\n'
+        '  BenchmarkBar Benchmark bar for testing.\n'
+        'Pass --browser to list benchmarks for another browser.\n\n')
+
+    expectations_file_contents = (
+        '# tags: All\n'
+        'crbug.com/123 [ All ] BenchmarkBar/* [ Skip ]\n'
+    )
+
+    expectations_file = tempfile.NamedTemporaryFile(bufsize=0, delete=False)
+    try:
+      expectations_file.write(expectations_file_contents)
+      expectations_file.close()
+      commands.PrintBenchmarkList([BenchmarkFoo, BenchmarkBar],
+                                  self._mock_possible_browser,
+                                  expectations_file.name,
+                                  self._stream)
+      self.assertEquals(expected_printed_stream, self._stream.getvalue())
+    finally:
+      os.remove(expectations_file.name)
+
+  def testPrintBenchmarkListWithOneDisabledBenchmarkUsingNewFormat(self):
     expected_printed_stream = (
         'Available benchmarks for TestBrowser are:\n'
         '  BenchmarkFoo Benchmark foo for testing.\n'
@@ -114,8 +139,8 @@ class PrintBenchmarkListTests(unittest.TestCase):
         indent=4, sort_keys=True, separators=(',', ': '))
 
     expectations_file_contents = (
-        '# results: [ Skip ]\n'
-        'crbug.com/123 BenchmarkBar/* [ Skip ]\n'
+        '# tags: All\n'
+        'crbug.com/123 [ All ] BenchmarkBar/* [ Skip ]\n'
     )
 
     expectations_file = tempfile.NamedTemporaryFile(bufsize=0, delete=False)
@@ -126,6 +151,7 @@ class PrintBenchmarkListTests(unittest.TestCase):
                                   self._mock_possible_browser,
                                   expectations_file.name,
                                   self._stream, self._json_stream)
+
       self.assertEquals(expected_json_stream, self._json_stream.getvalue())
 
     finally:

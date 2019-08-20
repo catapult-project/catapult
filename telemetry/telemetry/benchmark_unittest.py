@@ -5,7 +5,6 @@
 import shutil
 import tempfile
 import unittest
-import mock
 
 from telemetry import android
 from telemetry import benchmark
@@ -140,6 +139,13 @@ class BenchmarkTest(unittest.TestCase):
       story_runner.Run = original_run_fn
 
     self.assertTrue(valid_should_add_value[0])
+
+  def testBenchmarkExpectationsEmpty(self):
+    b = TestBenchmark(story_module.Story(
+        name='test name',
+        shared_state_class=shared_page_state.SharedPageState))
+    self.assertIsInstance(
+        b.expectations, story_module.expectations.StoryExpectations)
 
   def testGetOwners(self):
     @benchmark.Owner(emails=['alice@chromium.org'])
@@ -276,13 +282,22 @@ class BenchmarkTest(unittest.TestCase):
     # supported, which always returns false.
     self.assertFalse(b._CanRunOnPlatform(None, None))
 
+  # TODO(crbug.com/973936): Implement AsDict in the new StoryExpectations
+  # class and then reenable this test.
+  @unittest.skip("Need to implement AsDict for new expectations module")
+  def testAugmentExpectationsWithFileNoData(self):
+    b = TestBenchmark(story_module.Story(
+        name='test_name',
+        shared_state_class=shared_page_state.SharedPageState))
+    b.AugmentExpectationsWithFile('')
+    expectations = b.expectations.AsDict()
+    self.assertFalse(expectations.get('test_name'))
+
   def testAugmentExpectationsWithFileData(self):
     b = TestBenchmark(story_module.Story(
         name='test_name',
         shared_state_class=shared_page_state.SharedPageState))
-    data = ('# results: [ skip ]\n'
-            'crbug.com/123 benchmark_unittest.TestBenchmark/test_name [ Skip ]')
+    data = 'crbug.com/123 benchmark_unittest.TestBenchmark/test_name [ Skip ]'
     b.AugmentExpectationsWithFile(data)
-    story = mock.MagicMock()
-    story.name = 'test_name'
-    self.assertTrue(b.expectations.IsStoryDisabled(story))
+    expectations = b.expectations.AsDict()
+    self.assertTrue(expectations['stories'].get('test_name'))
