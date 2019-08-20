@@ -100,7 +100,7 @@ class StoryRunTest(unittest.TestCase):
       run.SetTbmMetrics(['metric1', 'metric2'])
       run.Finish()
       entry = run.AsDict()
-      self.assertEquals(
+      self.assertEqual(
           entry,
           {
               'testResult': {
@@ -115,7 +115,10 @@ class StoryRunTest(unittest.TestCase):
                           'contentType': 'text/plain'
                       }
                   },
-                  'tags': ['tbmv2:metric1', 'tbmv2:metric2'],
+                  'tags': [
+                      {'key': 'tbmv2', 'value': 'metric1'},
+                      {'key': 'tbmv2', 'value': 'metric2'},
+                  ],
               }
           }
       )
