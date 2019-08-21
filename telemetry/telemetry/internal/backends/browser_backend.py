@@ -100,21 +100,70 @@ class BrowserBackend(app_backend.AppBackend):
     raise NotImplementedError()
 
   def GetStackTrace(self):
+    """Gets a stack trace if a valid minidump is found.
+
+    Returns:
+      A tuple (valid, output). |valid| is True if a valid minidump was found or
+      False otherwise. |output| contains an error message if |valid| is False,
+      otherwise it contains the output of the minidump symbolization process.
+    """
     raise NotImplementedError()
 
   def GetMostRecentMinidumpPath(self):
+    """Gets the most recent minidump that has been written to disk.
+
+    Returns:
+      The path to the most recent minidump on disk, or None if no minidumps are
+      found.
+    """
     raise NotImplementedError()
 
   def GetRecentMinidumpPathWithTimeout(self, timeout_s, oldest_ts):
+    """Get a path to a recent minidump, blocking until one is available.
+
+    Similar to GetMostRecentMinidumpPath, but does not assume that any pending
+    dumps have been written to disk yet. Instead, waits until a suitably fresh
+    minidump is found or the timeout is reached.
+
+    Args:
+      timeout_s: The timeout in seconds.
+      oldest_ts: The oldest allowable timestamp (in seconds since epoch) that a
+          minidump was created at for it to be considered fresh enough to
+          return. Defaults to a minute from the current time if not set.
+
+    Returns:
+      None if the timeout is hit or a str containing the path to the found
+      minidump if a suitable one is found.
+    """
     raise NotImplementedError()
 
   def GetAllMinidumpPaths(self):
+    """Get all paths to minidumps currently written to disk.
+
+    Returns:
+      A list of paths to all found minidumps.
+    """
     raise NotImplementedError()
 
   def GetAllUnsymbolizedMinidumpPaths(self):
+    """Get all paths to minidumps have have not yet been symbolized.
+
+    Returns:
+      A list of paths to all found minidumps that have not been symbolized yet.
+    """
     raise NotImplementedError()
 
   def SymbolizeMinidump(self, minidump_path):
+    """Symbolizes the given minidump.
+
+    Args:
+      minidump_path: The path to the minidump to symbolize.
+
+    Returns:
+      A tuple (valid, output). |valid| is True if the minidump was symbolized,
+      otherwise False. |output| contains an error message if |valid| is False,
+      otherwise it contains the symbolized minidump.
+    """
     raise NotImplementedError()
 
   def GetSystemInfo(self):

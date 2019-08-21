@@ -4,11 +4,15 @@
 """A wrapper around ssh for common operations on a CrOS-based device"""
 import logging
 import os
+import posixpath
 import re
 import shutil
 import stat
 import subprocess
 import tempfile
+import time
+
+from devil.utils import cmd_helper
 
 # Some developers' workflow includes running the Chrome process from
 # /usr/local/... instead of the default location. We have to check for both
@@ -112,6 +116,8 @@ class DNSFailureException(LoginException):
 
 
 class CrOSInterface(object):
+
+  CROS_MINIDUMP_DIR = '/var/log/chrome/Crash Reports/'
 
   _DEFAULT_SSH_CONNECTION_TIMEOUT = 5
 
@@ -293,9 +299,6 @@ class CrOSInterface(object):
                            (self._hostname, stdout))
 
   def FileExistsOnDevice(self, file_name):
-    if self.local:
-      return os.path.exists(file_name)
-
     stdout, stderr = self.RunCmdOnDevice(
         [
             'if', 'test', '-e', file_name, ';', 'then', 'echo', '1', ';', 'fi'
@@ -375,6 +378,47 @@ class CrOSInterface(object):
         res = f2.read()
         logging.debug("GetFileContents(%s)->%s" % (filename, res))
         return res
+
+  def PullDumps(self, host_dir):
+    """Pulls any minidumps from the device/emulator to the host.
+
+    Skips pulling any dumps that have already been pulled. The modification time
+    of any pulled dumps will be set to the modification time of the dump on the
+    device/emulator, offset by any difference in clocks between the device and
+    host.
+
+    Args:
+      host_dir: The directory on the host where the dumps will be copied to.
+    """
+    # The device/emulator's clock might be off from the host, so calculate an
+    # offset that can be added to the host time to get the corresponding device
+    # time.
+    time_offset = self.GetDeviceHostClockOffset()
+
+    stdout, _ = self.RunCmdOnDevice(
+        ['ls', '-1', cmd_helper.SingleQuote(self.CROS_MINIDUMP_DIR)])
+    device_dumps = stdout.splitlines()
+    for dump_filename in device_dumps:
+      host_path = os.path.join(host_dir, dump_filename)
+      if not os.path.exists(host_path):
+        device_path = cmd_helper.SingleQuote(
+            posixpath.join(self.CROS_MINIDUMP_DIR, dump_filename))
+        self.GetFile(device_path, host_path)
+        # Set the local version's modification time to the device's.
+        stdout, _ = self.RunCmdOnDevice(
+            ['ls', '--time-style', '+%s', '-l', device_path])
+        stdout = stdout.strip()
+        # We expect whitespace-separated fields in this order:
+        # mode, links, owner, group, size, mtime, filename.
+        # Offset by the difference of the device and host clocks.
+        mtime = int(stdout.split()[5]) + time_offset
+        os.utime(host_path, (mtime, mtime))
+
+  def GetDeviceHostClockOffset(self):
+    """Returns the difference between the device and host clocks."""
+    device_time, _ = self.RunCmdOnDevice(['date', '+%s'])
+    host_time = time.time()
+    return int(int(device_time.strip()) - host_time)
 
   def HasSystemd(self):
     """Return True or False to indicate if systemd is used.

@@ -3,13 +3,19 @@
 # found in the LICENSE file.
 
 import itertools
+import posixpath
 import unittest
 
 import mock
 
+from telemetry import decorators
 from telemetry.testing import options_for_unittests
 from telemetry.internal.browser import browser_options as browser_options_module
 from telemetry.internal.backends.chrome import cros_browser_finder
+from telemetry.internal.platform import cros_device
+from telemetry.internal.platform import cros_platform_backend
+
+from devil.utils import cmd_helper
 
 
 class CrOSBrowserMockCreationTest(unittest.TestCase):
@@ -89,3 +95,68 @@ class CrOSBrowserMockCreationTest(unittest.TestCase):
   def testCreateCrOSBrowserWithOOBE(self):
     with self._CreateBrowser('cros-chrome', with_oobe=True) as browser:
       self.assertIsNotNone(browser)
+
+
+def IsRemote():
+  return bool(options_for_unittests.GetCopy().cros_remote)
+
+
+class CrOSBrowserEnvironmentTest(unittest.TestCase):
+  """Tests that proper actions are performed during environment setup/teardown.
+
+  Not mocked out, so requires an actual CrOS device/emulator.
+  """
+  def _CreateBrowser(self):
+    device = cros_device.CrOSDevice(
+        options_for_unittests.GetCopy().cros_remote,
+        options_for_unittests.GetCopy().cros_remote_ssh_port,
+        options_for_unittests.GetCopy().cros_ssh_identity,
+        not IsRemote())
+    plat = cros_platform_backend.CrosPlatformBackend.CreatePlatformForDevice(
+        device, options_for_unittests.GetCopy())
+    return cros_browser_finder.PossibleCrOSBrowser(
+        'cros-chrome', options_for_unittests.GetCopy(), plat, False)
+
+  @decorators.Enabled('chromeos')
+  def testExistingMinidumpsMoved(self):
+    """Tests that existing minidumps are moved while testing, but put back."""
+    browser = self._CreateBrowser()
+    cri = browser._platform_backend.cri
+    remote_path = cmd_helper.SingleQuote(
+        posixpath.join(cri.CROS_MINIDUMP_DIR, 'test_dump'))
+    cri.RunCmdOnDevice(['touch', remote_path])
+    self.assertTrue(cri.FileExistsOnDevice(remote_path))
+    browser.SetUpEnvironment(options_for_unittests.GetCopy().browser_options)
+    self.assertFalse(cri.FileExistsOnDevice(remote_path))
+    browser._TearDownEnvironment()
+    self.assertTrue(cri.FileExistsOnDevice(remote_path))
+
+  @decorators.Enabled('chromeos')
+  def testMinidumpsFromTestRemoved(self):
+    """Tests that any minidumps generated during a test are removed."""
+    browser = self._CreateBrowser()
+    cri = browser._platform_backend.cri
+    remote_path = cmd_helper.SingleQuote(
+        posixpath.join(cri.CROS_MINIDUMP_DIR, 'test_dump'))
+    if cri.FileExistsOnDevice(remote_path):
+      cri.RmRF(remote_path)
+    browser.SetUpEnvironment(options_for_unittests.GetCopy().browser_options)
+    cri.RunCmdOnDevice(['touch', remote_path])
+    self.assertTrue(cri.FileExistsOnDevice(remote_path))
+    browser._TearDownEnvironment()
+    self.assertFalse(cri.FileExistsOnDevice(remote_path))
+
+  @decorators.Enabled('chromeos')
+  def testChromeEnvironmentSet(self):
+    """Tests that browset setup sets the Chrome environment file."""
+    browser = self._CreateBrowser()
+    cri = browser._platform_backend.cri
+    browser._DEFAULT_CHROME_ENV = ['FOO=BAR']
+    existing_contents = cri.GetFileContents(browser._CHROME_ENV_FILEPATH)
+    browser.SetUpEnvironment(options_for_unittests.GetCopy().browser_options)
+    new_contents = cri.GetFileContents(browser._CHROME_ENV_FILEPATH)
+    self.assertNotEqual(new_contents, existing_contents)
+    self.assertIn('FOO=BAR', new_contents)
+    browser._TearDownEnvironment()
+    new_contents = cri.GetFileContents(browser._CHROME_ENV_FILEPATH)
+    self.assertEqual(new_contents, existing_contents)
