@@ -25,7 +25,7 @@ found in the LICENSE file.
       }
     </style>
 
-    <iron-ajax auto url="[[url]]" params="[[params]]" headers="[[headers]]"
+    <iron-ajax id="request" auto="[[auto]]" url="[[url]]" params="[[params]]" headers="[[headers]]"
                loading="{{loading}}" last-error="{{error}}"
                last-response="{{response}}"></iron-ajax>
     <template is="dom-if" if="[[loading]]">
@@ -56,6 +56,11 @@ found in the LICENSE file.
       is: 'loading-wrapper',
 
       properties: {
+        auto: {
+          type: Boolean,
+          value: true
+        },
+
         url: {
           type: String,
         },
