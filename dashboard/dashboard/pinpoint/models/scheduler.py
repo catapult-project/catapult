@@ -20,6 +20,8 @@ from __future__ import absolute_import
 import datetime
 import functools
 import logging
+import random
+
 from google.appengine.ext import ndb
 
 SECS_PER_HOUR = datetime.timedelta(hours=1).total_seconds()
@@ -86,11 +88,16 @@ class ConfigurationQueue(ndb.Model):
     # persist the data.
     self.jobs = [j for j in self.jobs if j.status not in {'Done', 'Cancelled'}]
 
-    # We also only persist samples that are < 7 days old.
+    # We also only persist samples that are < 7 days old, and capping the number
+    # of samples. This prevents us from growing the entries too large dominated
+    # by the samples.
+    now = datetime.datetime.utcnow()
     self.samples = [
-        s for s in self.samples if s.enqueue_timestamp -
-        datetime.datetime.utcnow() < datetime.timedelta(days=7)
+        s for s in self.samples
+        if s.enqueue_timestamp - now < datetime.timedelta(days=7)
     ]
+    if len(self.samples) > 50:
+      self.samples = random.sample(self.samples, 50)
     super(ConfigurationQueue, self).put()
 
 
@@ -175,7 +182,8 @@ def PickJob(configuration):
       # Add this to the samples.
       queue.samples.append(
           SampleElementTiming(
-              job_id=job.job_id, enqueue_timestamp=job.timestamp,
+              job_id=job.job_id,
+              enqueue_timestamp=job.timestamp,
               queue_length=job.queue_length))
       break
 
@@ -215,9 +223,7 @@ def QueueStats(configuration):
 
   result = functools.reduce(StatCombiner, queue.jobs, {})
   result.update({
-      'queue_time_samples': [
-          _FormatSample(s) for s in queue.samples
-      ],
+      'queue_time_samples': [_FormatSample(s) for s in queue.samples],
       'job_id_with_status': [{
           'job_id': j.job_id,
           'status': j.status
