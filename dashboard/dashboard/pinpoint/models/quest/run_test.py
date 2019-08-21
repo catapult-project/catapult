@@ -293,9 +293,9 @@ class _RunTestExecution(execution_module.Execution):
         'name': 'Pinpoint job',
         'user': 'Pinpoint',
         'priority': '100',
-        'expiration_secs': '86400',  # 1 day.
         'task_slices': [{
             'properties': properties,
+            'expiration_secs': '86400',  # 1 day.
         }],
     }
     if self._swarming_tags:
