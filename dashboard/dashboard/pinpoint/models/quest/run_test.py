@@ -297,14 +297,14 @@ class _RunTestExecution(execution_module.Execution):
     if self._swarming_tags:
       # This means we have additional information available about the Pinpoint
       # tags, and we should add those to the Swarming Pub/Sub updates.
-      body['tags'] = ['%s:%s' % (k, v) for k, v in self._swarming_tags.items()]
-      body['pubsub_notification'] = {
+      body.update({
+          'tags': ['%s:%s' % (k, v) for k, v in self._swarming_tags.items()],
           # TODO(dberris): Consolidate constants in environment vars?
-          'topic':
+          'pubsub_topic':
               'projects/chromeperf/topics/pinpoint-swarming-updates',
-          'auth_token':
+          'pubsub_auth_token':
               'UNUSED',
-          'userdata':
+          'pubsub_userdata':
               json.dumps({
                   'job_id': self._swarming_tags.get('pinpoint_job_id'),
                   'task': {
@@ -312,7 +312,7 @@ class _RunTestExecution(execution_module.Execution):
                       'id': self._swarming_tags.get('pinpoint_task_id'),
                   },
               }),
-      }
+      })
 
     logging.debug('Requesting swarming task with parameters: %s', body)
 

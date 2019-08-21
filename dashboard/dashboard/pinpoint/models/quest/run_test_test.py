@@ -103,11 +103,9 @@ class _RunTestExecutionTest(unittest.TestCase):
         'tags': mock.ANY,
         'priority': '100',
         'expiration_secs': '86400',
-        'pubsub_notification': {
-            'topic': 'projects/chromeperf/topics/pinpoint-swarming-updates',
-            'auth_token': 'UNUSED',
-            'userdata': mock.ANY,
-        },
+        'pubsub_topic': 'projects/chromeperf/topics/pinpoint-swarming-updates',
+        'pubsub_auth_token': 'UNUSED',
+        'pubsub_userdata': mock.ANY,
         'properties': {
             'inputs_ref': {
                 'isolatedserver': 'isolate server',
