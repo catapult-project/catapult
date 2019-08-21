@@ -292,7 +292,9 @@ class _RunTestExecution(execution_module.Execution):
         'user': 'Pinpoint',
         'priority': '100',
         'expiration_secs': '86400',  # 1 day.
-        'properties': properties,
+        'task_slices': [{
+            'properties': properties,
+        }],
     }
     if self._swarming_tags:
       # This means we have additional information available about the Pinpoint

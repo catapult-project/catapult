@@ -98,71 +98,89 @@ class _RunTestExecutionTest(unittest.TestCase):
 
   def assertNewTaskHasDimensions(self, swarming_tasks_new):
     body = {
-        'name': 'Pinpoint job',
-        'user': 'Pinpoint',
-        'tags': mock.ANY,
-        'priority': '100',
-        'expiration_secs': '86400',
-        'pubsub_topic': 'projects/chromeperf/topics/pinpoint-swarming-updates',
-        'pubsub_auth_token': 'UNUSED',
-        'pubsub_userdata': mock.ANY,
-        'properties': {
-            'inputs_ref': {
-                'isolatedserver': 'isolate server',
-                'isolated': 'input isolate hash',
-            },
-            'extra_args': ['arg'],
-            'dimensions': DIMENSIONS,
-            'execution_timeout_secs': '21600',
-            'io_timeout_secs': '14400',
-            'caches': [
-                {
+        'name':
+            'Pinpoint job',
+        'user':
+            'Pinpoint',
+        'tags':
+            mock.ANY,
+        'priority':
+            '100',
+        'expiration_secs':
+            '86400',
+        'pubsub_topic':
+            'projects/chromeperf/topics/pinpoint-swarming-updates',
+        'pubsub_auth_token':
+            'UNUSED',
+        'pubsub_userdata':
+            mock.ANY,
+        'task_slices': [{
+            'properties': {
+                'inputs_ref': {
+                    'isolatedserver': 'isolate server',
+                    'isolated': 'input isolate hash',
+                },
+                'extra_args': ['arg'],
+                'dimensions':
+                    DIMENSIONS,
+                'execution_timeout_secs':
+                    '21600',
+                'io_timeout_secs':
+                    '14400',
+                'caches': [{
                     'name': 'swarming_module_cache_vpython',
                     'path': '.swarming_module_cache/vpython',
+                },],
+                'cipd_input': {
+                    'client_package': {
+                        'version': mock.ANY,
+                        'package_name': 'infra/tools/cipd/${platform}',
+                    },
+                    'packages': [
+                        {
+                            'package_name': 'infra/python/cpython/${platform}',
+                            'path': '.swarming_module',
+                            'version': mock.ANY,
+                        },
+                        {
+                            'package_name':
+                                'infra/tools/luci/logdog/butler/${platform}',
+                            'path':
+                                '.swarming_module',
+                            'version':
+                                mock.ANY,
+                        },
+                        {
+                            'package_name':
+                                'infra/tools/luci/vpython/${platform}',
+                            'path':
+                                '.swarming_module',
+                            'version':
+                                mock.ANY,
+                        },
+                        {
+                            'package_name':
+                                'infra/tools/luci/vpython-native/${platform}',
+                            'path':
+                                '.swarming_module',
+                            'version':
+                                mock.ANY,
+                        },
+                    ],
+                    'server': 'https://chrome-infra-packages.appspot.com',
                 },
-            ],
-            'cipd_input': {
-                'client_package': {
-                    'version': mock.ANY,
-                    'package_name': 'infra/tools/cipd/${platform}',
-                },
-                'packages': [
+                'env_prefixes': [
                     {
-                        'package_name': 'infra/python/cpython/${platform}',
-                        'path': '.swarming_module',
-                        'version': mock.ANY,
+                        'key': 'PATH',
+                        'value': ['.swarming_module', '.swarming_module/bin'],
                     },
                     {
-                        'package_name':
-                            'infra/tools/luci/logdog/butler/${platform}',
-                        'path': '.swarming_module',
-                        'version': mock.ANY,
-                    },
-                    {
-                        'package_name': 'infra/tools/luci/vpython/${platform}',
-                        'path': '.swarming_module',
-                        'version': mock.ANY,
-                    },
-                    {
-                        'package_name':
-                            'infra/tools/luci/vpython-native/${platform}',
-                        'path': '.swarming_module',
-                        'version': mock.ANY,
+                        'key': 'VPYTHON_VIRTUALENV_ROOT',
+                        'value': ['.swarming_module_cache/vpython'],
                     },
                 ],
-                'server': 'https://chrome-infra-packages.appspot.com',
-            },
-            'env_prefixes': [
-                {
-                    'key': 'PATH',
-                    'value': ['.swarming_module', '.swarming_module/bin'],
-                },
-                {
-                    'key': 'VPYTHON_VIRTUALENV_ROOT',
-                    'value': ['.swarming_module_cache/vpython'],
-                },
-            ],
-        },
+            }
+        },],
     }
     swarming_tasks_new.assert_called_with(body)
 
