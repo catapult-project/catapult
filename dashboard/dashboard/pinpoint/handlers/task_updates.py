@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import base64
+import binascii
 import json
 import logging
 import webapp2
@@ -17,21 +18,25 @@ class TaskUpdates(webapp2.RequestHandler):
 
   def post(self):
     """Handle push messages including information about the swarming task."""
-    # Read the JSON body of the message, as how Pub/Sub will use.
-    message = json.load(self.request.body_file)
+    logging.debug('POST data: %s', self.request)
+    try:
+      # Read the JSON body of the message, as how Pub/Sub will use.
+      message = json.loads(self.request.body)
 
-    # Load the base64-encoded data in the message, which should include the
-    # following information:
-    #   - job id
-    #   - task id
-    #   - additional task-specific details
-    pinpoint_data = json.loads(
-        base64.standard_b64decode(message.get('data', '')))
-    logging.debug('Received: %s', pinpoint_data)
+      # Load the base64-encoded data in the message, which should include the
+      # following information:
+      #   - job id
+      #   - task id
+      #   - additional task-specific details
+      pinpoint_data = json.loads(
+          base64.standard_b64decode(message.get('data', '')))
+      logging.debug('Received: %s', pinpoint_data)
+    except (ValueError, binascii.Error) as error:
+      logging.debug('Failed: %s', error)
 
     # TODO(dberris): Implement the following in the future version of this
     # handler:
     #  - Load the job given the ID
     #  - Load the task given the ID
     #  - Evaluate the state of the job (maybe deferred)
-    return webapp2.Response(status='204 No Content')
+    self.response.status = 204

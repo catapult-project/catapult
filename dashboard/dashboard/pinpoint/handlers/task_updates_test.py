@@ -46,3 +46,27 @@ class TaskUpdatesTest(test.TestCase):
                     })),
         }),
         status=204)
+
+  def testPostInvalidData(self):
+    self.Post(
+        '/_ah/push-handlers/task-updates',
+        json.dumps({
+            'message': {
+                'attributes': {
+                    'nothing': 'important'
+                }
+            },
+            'data': '{"not": "base64-encoded"}',
+        }),
+        status=204)
+    self.Post(
+        '/_ah/push-handlers/task-updates',
+        json.dumps({
+            'message': {
+                'attributes': {
+                    'nothing': 'important'
+                }
+            },
+            'data': base64.standard_b64encode('not json formatted'),
+        }),
+        status=204)
