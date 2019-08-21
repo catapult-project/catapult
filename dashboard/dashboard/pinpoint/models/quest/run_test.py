@@ -82,7 +82,7 @@ class RunTest(quest.Quest):
     self._swarming_server = swarming_server
     self._dimensions = dimensions
     self._extra_args = extra_args
-    self._swarming_tags = swarming_tags
+    self._swarming_tags = {} if not swarming_tags else swarming_tags
 
     # We want subsequent executions use the same bot as the first one.
     self._canonical_executions = []
@@ -106,6 +106,8 @@ class RunTest(quest.Quest):
       self._swarming_tags = {}
 
   def PropagateJob(self, job):
+    if not hasattr(self, '_swarming_tags'):
+      self._swarming_tags = {}
     self._swarming_tags.update({
         'pinpoint_job_id': job.job_id,
         'url': job.url,
