@@ -196,11 +196,12 @@ class BrowserFinderOptions(optparse.Values):
         'If specified as "android", all available Android devices are '
         'used.')
     group.add_option(
-        '--install-bundle-module', dest='modules_to_install', action='append',
-        default=['base'],
+        '--install-bundle-module',
+        dest='modules_to_install',
+        action='append',
+        default=[],
         help='Specify Android App Bundle modules to install in addition to the '
-             'base module. Ignored on Non-Android platforms or if using a '
-             'standard APK instead of bundles.')
+        'base module. Ignored on Non-Android platforms.')
     parser.add_option_group(group)
 
     # CPU profiling on Android/Linux/ChromeOS.

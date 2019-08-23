@@ -93,8 +93,9 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     # At this point the local_apk, if any, must exist.
     assert self._local_apk is None or os.path.exists(self._local_apk)
 
-    if self._local_apk and apk_helper.ToHelper(self._local_apk).is_bundle:
-      self._modules_to_install = set(finder_options.modules_to_install)
+    if finder_options.modules_to_install:
+      self._modules_to_install = set(['base'] +
+                                     finder_options.modules_to_install)
 
     self._embedder_apk = None
     if self._backend_settings.requires_embedder:
@@ -315,10 +316,11 @@ def CanFindAvailableBrowsers():
 def _CanPossiblyHandlePath(apk_path):
   if not apk_path:
     return False
-  _, ext = os.path.splitext(apk_path)
-  if ext.lower() == '.apk':
+  try:
+    apk_helper.ToHelper(apk_path)
     return True
-  return apk_helper.ToHelper(apk_path).is_bundle
+  except apk_helper.ApkHelperError:
+    return False
 
 
 def FindAllBrowserTypes():

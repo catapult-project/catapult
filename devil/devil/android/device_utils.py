@@ -42,7 +42,6 @@ from devil.android import md5sum
 from devil.android.sdk import adb_wrapper
 from devil.android.sdk import intent
 from devil.android.sdk import keyevent
-from devil.android.sdk import split_select
 from devil.android.sdk import version_codes
 from devil.utils import host_utils
 from devil.utils import parallelizer
@@ -917,9 +916,14 @@ class DeviceUtils(object):
       CommandTimeoutError if the installation times out.
       DeviceUnreachableError on missing device.
     """
-    self._InstallInternal(apk, None, allow_downgrade=allow_downgrade,
-                          reinstall=reinstall, permissions=permissions,
-                          modules=modules)
+    apk = apk_helper.ToHelper(apk)
+    with apk.GetApkPaths(self, modules=modules) as apk_paths:
+      self._InstallInternal(
+          apk,
+          apk_paths,
+          allow_downgrade=allow_downgrade,
+          reinstall=reinstall,
+          permissions=permissions)
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
@@ -948,73 +952,58 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
       DeviceVersionError if device SDK is less than Android L.
     """
-    self._InstallInternal(base_apk, split_apks, reinstall=reinstall,
-                          allow_cached_props=allow_cached_props,
-                          permissions=permissions,
-                          allow_downgrade=allow_downgrade)
+    apk = apk_helper.ToSplitHelper(base_apk, split_apks)
+    with apk.GetApkPaths(
+        self, allow_cached_props=allow_cached_props) as apk_paths:
+      self._InstallInternal(
+          apk,
+          apk_paths,
+          reinstall=reinstall,
+          permissions=permissions,
+          allow_downgrade=allow_downgrade)
 
-  def _InstallInternal(self, base_apk, split_apks, allow_downgrade=False,
-                       reinstall=False, allow_cached_props=False,
-                       permissions=None, modules=None):
-    base_apk = apk_helper.ToHelper(base_apk)
-    if base_apk.is_bundle:
-      if split_apks:
-        raise device_errors.CommandFailedError(
-            'Attempted to install a bundle {} while specifying split apks'
-            .format(base_apk))
-      if allow_downgrade:
-        logging.warning('Installation of a bundle requested with '
-                        'allow_downgrade=False. This is not possible with '
-                        'bundletools, no downgrading is possible. This '
-                        'flag will be ignored and installation will proceed.')
-      # |allow_cached_props| is unused and ignored for bundles.
-      self._InstallBundleInternal(base_apk, permissions, modules)
-      return
+  def _InstallInternal(self,
+                       apk,
+                       apk_paths,
+                       allow_downgrade=False,
+                       reinstall=False,
+                       permissions=None):
+    if not apk_paths:
+      raise device_errors.CommandFailedError('Did not get any APKs to install')
 
-    if modules:
-      raise device_errors.CommandFailedError(
-          'Attempted to specify modules to install when providing an APK')
-
-    if split_apks:
+    if len(apk_paths) > 1:
       self._CheckSdkLevel(version_codes.LOLLIPOP)
 
-    all_apks = [base_apk.path]
-    if split_apks:
-      all_apks += split_select.SelectSplits(
-        self, base_apk.path, split_apks, allow_cached_props=allow_cached_props)
-      if len(all_apks) == 1:
-        logger.warning('split-select did not select any from %s', split_apks)
-
-    missing_apks = [apk for apk in all_apks if not os.path.exists(apk)]
+    missing_apks = [a for a in apk_paths if not os.path.exists(a)]
     if missing_apks:
       raise device_errors.CommandFailedError(
           'Attempted to install non-existent apks: %s'
               % pprint.pformat(missing_apks))
 
-    package_name = base_apk.GetPackageName()
+    package_name = apk.GetPackageName()
     device_apk_paths = self._GetApplicationPathsInternal(package_name)
 
     apks_to_install = None
     host_checksums = None
     if not device_apk_paths:
-      apks_to_install = all_apks
-    elif len(device_apk_paths) > 1 and not split_apks:
+      apks_to_install = apk_paths
+    elif len(device_apk_paths) > 1 and len(apk_paths) == 1:
       logger.warning(
           'Installing non-split APK when split APK was previously installed')
-      apks_to_install = all_apks
-    elif len(device_apk_paths) == 1 and split_apks:
+      apks_to_install = apk_paths
+    elif len(device_apk_paths) == 1 and len(apk_paths) > 1:
       logger.warning(
           'Installing split APK when non-split APK was previously installed')
-      apks_to_install = all_apks
+      apks_to_install = apk_paths
     else:
       try:
         apks_to_install, host_checksums = (
-            self._ComputeStaleApks(package_name, all_apks))
+            self._ComputeStaleApks(package_name, apk_paths))
       except EnvironmentError as e:
         logger.warning('Error calculating md5: %s', e)
-        apks_to_install, host_checksums = all_apks, None
+        apks_to_install, host_checksums = apk_paths, None
       if apks_to_install and not reinstall:
-        apks_to_install = all_apks
+        apks_to_install = apk_paths
 
     if device_apk_paths and apks_to_install and not reinstall:
       self.Uninstall(package_name)
@@ -1023,14 +1012,16 @@ class DeviceUtils(object):
       # Assume that we won't know the resulting device state.
       self._cache['package_apk_paths'].pop(package_name, 0)
       self._cache['package_apk_checksums'].pop(package_name, 0)
-      if split_apks:
-        partial = package_name if len(apks_to_install) < len(all_apks) else None
+      partial = package_name if len(apks_to_install) < len(apk_paths) else None
+      if len(apks_to_install) > 1 or partial:
         self.adb.InstallMultiple(
             apks_to_install, partial=partial, reinstall=reinstall,
             allow_downgrade=allow_downgrade)
       else:
         self.adb.Install(
-            base_apk.path, reinstall=reinstall, allow_downgrade=allow_downgrade)
+            apks_to_install[0],
+            reinstall=reinstall,
+            allow_downgrade=allow_downgrade)
     else:
       # Running adb install terminates running instances of the app, so to be
       # consistent, we explicitly terminate it when skipping the install.
@@ -1038,25 +1029,12 @@ class DeviceUtils(object):
 
     if (permissions is None
         and self.build_version_sdk >= version_codes.MARSHMALLOW):
-      permissions = base_apk.GetPermissions()
+      permissions = apk.GetPermissions()
     self.GrantPermissions(package_name, permissions)
     # Upon success, we know the device checksums, but not their paths.
     if host_checksums is not None:
       self._cache['package_apk_checksums'][package_name] = host_checksums
 
-  def _InstallBundleInternal(self, bundle, permissions, modules):
-    cmd = [bundle.path, 'install', '--device', self.serial]
-    if modules:
-      for m in modules:
-        cmd.extend(['-m', m])
-    status = cmd_helper.RunCmd(cmd)
-    if status != 0:
-      raise device_errors.CommandFailedError('Cound not install {}'.format(
-          bundle.path))
-    if (permissions is None
-        and self.build_version_sdk >= version_codes.MARSHMALLOW):
-      permissions = bundle.GetPermissions()
-    self.GrantPermissions(bundle.GetPackageName(), permissions)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def Uninstall(self, package_name, keep_data=False, timeout=None,
@@ -2435,6 +2413,11 @@ class DeviceUtils(object):
     return self.GetProp('ro.product.cpu.abi', cache=True)
 
   @property
+  def product_cpu_abis(self):
+    """Returns all product cpu abi of the device."""
+    return self.GetProp('ro.product.cpu.abilist', cache=True).split(',')
+
+  @property
   def product_model(self):
     """Returns the name of the product model (e.g. 'Nexus 7')."""
     return self.GetProp('ro.product.model', cache=True)
@@ -2564,6 +2547,12 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
     """
     return self.GetProp('ro.product.cpu.abi', cache=True)
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetFeatures(self, timeout=None, retries=None):
+    """Returns the features supported on the device."""
+    lines = self.RunShellCommand(['pm', 'list', 'features'], check_return=True)
+    return [f[8:] for f in lines if f.startswith('feature:')]
 
   def _GetPsOutput(self, pattern):
     """Runs |ps| command on the device and returns its output,

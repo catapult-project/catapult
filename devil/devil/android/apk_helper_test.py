@@ -7,7 +7,6 @@ import collections
 import os
 import unittest
 
-from devil import base_error
 from devil import devil_env
 from devil.android import apk_helper
 from devil.android.ndk import abis
@@ -148,12 +147,54 @@ def _MockListApkPaths(files):
       'devil.android.apk_helper.ApkHelper._ListApkPaths',
       mock.Mock(side_effect=None, return_value=files))
 
+
+class _MockDeviceUtils(object):
+
+  def __init__(self):
+    self.product_cpu_abi = abis.ARM_64
+    self.product_cpu_abis = [abis.ARM_64, abis.ARM]
+    self.pixel_density = 500
+    self.build_version_sdk = 28
+
+  def GetLocale(self):
+    # pylint: disable=no-self-use
+    return ('en', 'US')
+
+  def GetFeatures(self):
+    # pylint: disable=no-self-use
+    return [
+        'android.hardware.wifi',
+        'android.hardware.nfc',
+    ]
+
+
 class ApkHelperTest(mock_calls.TestCase):
+
+  def testToHelperApk(self):
+    apk = apk_helper.ToHelper('abc.apk')
+    self.assertTrue(isinstance(apk, apk_helper.ApkHelper))
+
+  def testToHelperApks(self):
+    apk = apk_helper.ToHelper('abc.apks')
+    self.assertTrue(isinstance(apk, apk_helper.ApksHelper))
+
+  def testToHelperBundleScript(self):
+    apk = apk_helper.ToHelper('abc_bundle')
+    self.assertTrue(isinstance(apk, apk_helper.BundleScriptHelper))
+
+  def testToHelperSplitApk(self):
+    apk = apk_helper.ToSplitHelper('abc.apk', ['a.apk', 'b.apk'])
+    self.assertTrue(isinstance(apk, apk_helper.SplitApkHelper))
+
+  def testToHelperSplitException(self):
+    with self.assertRaises(apk_helper.ApkHelperError):
+      apk_helper.ToSplitHelper(
+          apk_helper.ToHelper('abc.apk'), ['a.apk', 'b.apk'])
 
   def testGetInstrumentationName(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      with self.assertRaises(base_error.BaseError):
+      with self.assertRaises(apk_helper.ApkHelperError):
         helper.GetInstrumentationName()
 
   def testGetActivityName(self):
@@ -292,90 +333,86 @@ class ApkHelperTest(mock_calls.TestCase):
         self.assertEquals(set([os.path.basename(abi_pair.abi64bit)]),
                           set(helper.GetAbis()))
 
-  def testParseXmlManifest(self):
-    self.assertEquals({
-        'manifest': [
-            {'android:compileSdkVersion': '28',
-             'android:versionCode': '2',
-             'uses-sdk': [
-                 {'android:minSdkVersion': '24',
-                  'android:targetSdkVersion': '28'}],
-             'uses-permission': [
-                 {'android:name':
-                  'android.permission.ACCESS_COARSE_LOCATION'},
-                 {'android:name':
-                  'android.permission.ACCESS_NETWORK_STATE'}],
-             'application': [
-                 {'android:allowBackup': 'true',
-                  'android:extractNativeLibs': 'false',
-                  'android:fullBackupOnly': 'false',
-                  'meta-data': [
-                      {'android:name': 'android.allow_multiple',
-                       'android:value': 'true'},
-                      {'android:name': 'multiwindow',
-                       'android:value': 'true'}],
-                  'activity': [
-                      {'android:configChanges': '0x00001fb3',
-                       'android:excludeFromRecents': 'true',
-                       'android:name': 'ChromeLauncherActivity',
-                       'intent-filter': [
-                           {'action': [
-                               {'android:name': 'dummy.action'}],
-                            'category': [
-                                {'android:name': 'DAYDREAM'},
-                                {'android:name': 'CARDBOARD'}]}]},
-                      {'android:enabled': 'false',
-                       'android:name': 'MediaLauncherActivity',
-                       'intent-filter': [
-                           {'tools:ignore': 'AppLinkUrlError',
-                            'action': [{'android:name': 'VIEW'}],
-                            'category': [{'android:name': 'DEFAULT'}],
-                            'data': [
-                                {'android:mimeType': 'audio/*'},
-                                {'android:mimeType': 'image/*'},
-                                {'android:mimeType': 'video/*'},
-                                {'android:scheme': 'file'},
-                                {'android:scheme': 'content'}]}]}]}]}]},
-        apk_helper.ParseManifestFromXml("""
-    <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:compileSdkVersion="28" android:versionCode="2">
-      <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="28"/>
-      <uses-permission
-         android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-      <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-      <application android:allowBackup="true"
-                   android:extractNativeLibs="false"
-                   android:fullBackupOnly="false">
-        <meta-data android:name="android.allow_multiple"
-                   android:value="true"/>
-        <meta-data android:name="multiwindow"
-                   android:value="true"/>
-        <activity android:configChanges="0x00001fb3"
-                  android:excludeFromRecents="true"
-                  android:name="ChromeLauncherActivity">
-            <intent-filter>
-                <action android:name="dummy.action"/>
-                <category android:name="DAYDREAM"/>
-                <category android:name="CARDBOARD"/>
-            </intent-filter>
-        </activity>
-        <activity android:enabled="false"
-                  android:name="MediaLauncherActivity">
-            <intent-filter tools:ignore="AppLinkUrlError">
-                <action android:name="VIEW"/>
+  def testGetSplitsApk(self):
+    apk = apk_helper.ToHelper('abc.apk')
+    with apk.GetApkPaths(_MockDeviceUtils()) as apk_paths:
+      self.assertEquals(apk_paths, ['abc.apk'])
 
-                <category android:name="DEFAULT"/>
+  def testGetSplitsApkModulesException(self):
+    apk = apk_helper.ToHelper('abc.apk')
+    with self.assertRaises(apk_helper.ApkHelperError):
+      apk.GetApkPaths(None, modules=['a'])
 
-                <data android:mimeType="audio/*"/>
-                <data android:mimeType="image/*"/>
-                <data android:mimeType="video/*"/>
-                <data android:scheme="file"/>
-                <data android:scheme="content"/>
-            </intent-filter>
-        </activity>
-      </application>
-    </manifest>"""))
+  def testGetSplitsApks(self):
+    apk = apk_helper.ToHelper('abc.apks')
+    with self.assertCalls(
+        (mock.call.tempfile.mkdtemp(),
+         '/tmp'),
+        (mock.call.devil.android.sdk.bundletool.ExtractApks(
+            '/tmp', 'abc.apks', ['arm64-v8a', 'armeabi-v7a'], [('en', 'US')],
+            ['android.hardware.wifi', 'android.hardware.nfc'], 500, 28, None)),
+        (mock.call.os.listdir('/tmp'), ['base-master.apk', 'foo-master.apk']),
+        (mock.call.shutil.rmtree('/tmp')),
+    ),\
+    apk.GetApkPaths(_MockDeviceUtils()) as apk_paths:
+      self.assertEquals(apk_paths,
+                        ['/tmp/base-master.apk', '/tmp/foo-master.apk'])
+
+  def testGetSplitsApksWithModules(self):
+    apk = apk_helper.ToHelper('abc.apks')
+    with self.assertCalls(
+        (mock.call.tempfile.mkdtemp(),
+         '/tmp'),
+        (mock.call.devil.android.sdk.bundletool.ExtractApks(
+            '/tmp', 'abc.apks', ['arm64-v8a', 'armeabi-v7a'], [('en', 'US')],
+            ['android.hardware.wifi', 'android.hardware.nfc'], 500, 28,
+            ['bar'])),
+        (mock.call.os.listdir('/tmp'),
+         ['base-master.apk', 'foo-master.apk', 'bar-master.apk']),
+        (mock.call.shutil.rmtree('/tmp')),
+    ),\
+    apk.GetApkPaths(_MockDeviceUtils(), ['bar']) as apk_paths:
+      self.assertEquals(apk_paths, [
+          '/tmp/base-master.apk', '/tmp/foo-master.apk', '/tmp/bar-master.apk'
+      ])
+
+  def testGetSplitsSplitApk(self):
+    apk = apk_helper.ToSplitHelper('base.apk',
+                                   ['split1.apk', 'split2.apk', 'split3.apk'])
+    device = _MockDeviceUtils()
+    with self.assertCalls(
+        (mock.call.devil.android.sdk.split_select.SelectSplits(
+            device,
+            'base.apk', ['split1.apk', 'split2.apk', 'split3.apk'],
+            allow_cached_props=False), ['split2.apk'])),\
+      apk.GetApkPaths(device) as apk_paths:
+      self.assertEquals(apk_paths, ['base.apk', 'split2.apk'])
+
+  def testGetSplitsBundleScript(self):
+    apk = apk_helper.ToHelper('abc_bundle')
+    device = _MockDeviceUtils()
+    with self.assertCalls(
+        (mock.call.tempfile.mkstemp(), '/tmp/abc.apks'),
+        (mock.call.devil.utils.cmd_helper.GetCmdStatusOutputAndError([
+            'abc_bundle', 'build-bundle-apks', '--output-apks', '/tmp/abc.apks'
+        ]), (0, '', '')),
+        (mock.call.tempfile.mkdtemp(), '/tmp2'),
+        (mock.call.devil.android.sdk.bundletool.ExtractApks(
+            '/tmp2', '/tmp/abc.apks', ['arm64-v8a', 'armeabi-v7a'],
+            [('en', 'US')], ['android.hardware.wifi', 'android.hardware.nfc'],
+            500, 28, ['bar'])),
+        (mock.call.os.listdir('/tmp2'), ['base-master.apk', 'bar-master.apk']),
+        (mock.call.os.path.isfile('/tmp/abc.apks'), True),
+        (mock.call.os.remove('/tmp/abc.apks')),
+        (mock.call.os.path.isfile('/tmp2'), False),
+        (mock.call.os.path.isdir('/tmp2'), True),
+        (mock.call.shutil.rmtree('/tmp2')),
+    ),\
+    apk.GetApkPaths(device, modules=['bar']) as apk_paths:
+      self.assertEquals(apk_paths,
+                        ['/tmp2/base-master.apk', '/tmp2/bar-master.apk'])
+
+
 
 
 if __name__ == '__main__':

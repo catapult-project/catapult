@@ -201,17 +201,6 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
       self.assertIn('android',
                     possible_browser.GetTypExpectationsTags())
 
-  def testModulesNotPassedToInstallApplicationForApk(self):
-    self.finder_options.modules_to_install = ['base']
-    self.fs.CreateFile('foo.apk')
-    possible_browser = android_browser_finder.PossibleAndroidBrowser(
-        'android-chromium-bundle', self.finder_options, self.fake_platform,
-        android_browser_backend_settings.ANDROID_CHROMIUM_BUNDLE, 'foo.apk')
-    with mock.patch.object(
-        self.fake_platform, 'InstallApplication') as m:
-      possible_browser.UpdateExecutableIfNeeded()
-      m.assert_called_with('foo.apk', modules=None)
-
 
 def _MockPossibleBrowser(modified_at):
   m = mock.Mock(spec=android_browser_finder.PossibleAndroidBrowser)
