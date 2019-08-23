@@ -6,6 +6,8 @@
 # actually talking to the device. This would improve our coverage quite
 # a bit.
 
+import os
+import shutil
 import socket
 import tempfile
 import unittest
@@ -48,6 +50,65 @@ class CrOSInterfaceTest(unittest.TestCase):
     with self._GetCRI() as cri:
       hosts = cri.GetFileContents('/etc/lsb-release')
       self.assertTrue('CHROMEOS' in hosts)
+
+  @decorators.Enabled('chromeos')
+  def testPullDumps(self):
+    """Test that minidumps can be pulled off the device and their mtimes set."""
+    tempdir = tempfile.mkdtemp()
+    try:
+      with self._GetCRI() as cri:
+        time_offset = cri.GetDeviceHostClockOffset()
+        # Make sure we don't end up getting a negative timestamp when we pull
+        # the dump.
+        ts = abs(time_offset) + 1
+        remote_path = '/tmp/dumps/'
+        cri.CROS_MINIDUMP_DIR = remote_path
+        cri.RunCmdOnDevice(['mkdir', '-p', remote_path])
+        # Set the mtime to one second after the epoch
+        cri.RunCmdOnDevice(
+            ['touch', '-d', '@%d' % ts, remote_path + 'test_dump'])
+        try:
+          cri.PullDumps(tempdir)
+        finally:
+          cri.RmRF(remote_path)
+        local_path = os.path.join(tempdir, 'test_dump')
+        self.assertTrue(os.path.exists(local_path))
+        self.assertEqual(os.path.getmtime(local_path), ts + time_offset)
+    finally:
+      shutil.rmtree(tempdir)
+
+  @decorators.Enabled('chromeos')
+  def testPullDumpsOnlyNew(self):
+    """Tests that a minidump is not pulled to the host if it already exists."""
+    tempdir = tempfile.mkdtemp()
+    with open(os.path.join(tempdir, 'old_dump'), 'w'):
+      pass
+    try:
+      with self._GetCRI() as cri:
+        time_offset = cri.GetDeviceHostClockOffset()
+        # Make sure we don't end up getting a negative timestamp when we pull
+        # the dump.
+        ts = abs(time_offset) + 1
+        remote_path = '/tmp/dumps/'
+        cri.CROS_MINIDUMP_DIR = remote_path
+        cri.RunCmdOnDevice(['mkdir', '-p', remote_path])
+        # Set the mtime to one second after the epoch
+        cri.RunCmdOnDevice(
+            ['touch', '-d', '@%d' % ts, remote_path + 'old_dump'])
+        cri.RunCmdOnDevice(
+            ['touch', '-d', '@%d' % ts, remote_path + 'new_dump'])
+        cri.PullDumps(tempdir)
+        cri.RmRF(remote_path)
+        # Only the file that didn't already exist locally should have been
+        # pulled.
+        local_path = os.path.join(tempdir, 'old_dump')
+        self.assertTrue(os.path.exists(local_path))
+        self.assertNotEqual(os.path.getmtime(local_path), ts + time_offset)
+        local_path = os.path.join(tempdir, 'new_dump')
+        self.assertTrue(os.path.exists(local_path))
+        self.assertEqual(os.path.getmtime(local_path), ts + time_offset)
+    finally:
+      shutil.rmtree(tempdir)
 
   @decorators.Enabled('chromeos')
   def testGetFile(self):  # pylint: disable=no-self-use

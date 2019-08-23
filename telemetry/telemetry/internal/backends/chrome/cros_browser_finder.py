@@ -17,15 +17,29 @@ from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import cros_device
 
+from devil.utils import cmd_helper
+
 import py_utils
 
 
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   """A launchable CrOS browser instance."""
 
+  _CHROME_ENV_FILEPATH = '/etc/chrome_dev.conf'
+  # The path contains spaces, so we need to quote it. We don't join it with
+  # anything in this file, so we can quote it here instead of everywhere it's
+  # used.
+  _CROS_MINIDUMP_DIR = cmd_helper.SingleQuote(
+      cros_interface.CrOSInterface.CROS_MINIDUMP_DIR)
+  _EXISTING_ENV_FILEPATH = '/tmp/existing_chrome_env.conf'
+  _EXISTING_MINIDUMP_DIR = '/tmp/existing_minidumps/'
+
+  _DEFAULT_CHROME_ENV = [
+      'CHROME_HEADLESS=1',
+  ]
+
   def __init__(self, browser_type, finder_options, cros_platform, is_guest):
     super(PossibleCrOSBrowser, self).__init__(browser_type, 'cros', True)
-    del finder_options
     assert browser_type in FindAllBrowserTypes(), (
         'Please add %s to cros_browser_finder.FindAllBrowserTypes()' %
         browser_type)
@@ -33,6 +47,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     self._platform_backend = (
         cros_platform._platform_backend)  # pylint: disable=protected-access
     self._is_guest = is_guest
+
+    self._build_dir = finder_options.chromium_output_dir
 
   def __repr__(self):
     return 'PossibleCrOSBrowser(browser_type=%s)' % self.browser_type
@@ -71,6 +87,14 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
       cri.PushFile(extension.path, extension_dir)
       cri.Chown(extension_dir)
 
+    # Move any existing crash dumps temporarily so that they don't get deleted.
+    if cri.FileExistsOnDevice(self._EXISTING_MINIDUMP_DIR):
+      cri.RmRF(self._EXISTING_MINIDUMP_DIR)
+    cri.RunCmdOnDevice(
+        ['mv', self._CROS_MINIDUMP_DIR, self._EXISTING_MINIDUMP_DIR])
+
+    self._SetChromeEnvironment()
+
     def browser_ready():
       return cri.GetChromePid() is not None
 
@@ -83,8 +107,16 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
                           '--user=%s' % self._browser_options.username])
 
   def _TearDownEnvironment(self):
+    cri = self._platform_backend.cri
     for extension in self._browser_options.extensions_to_load:
-      self._platform_backend.cri.RmRF(posixpath.dirname(extension.local_path))
+      cri.RmRF(posixpath.dirname(extension.local_path))
+
+    # Move back any dumps that existed before we started the test.
+    cri.RmRF(self._CROS_MINIDUMP_DIR)
+    cri.RunCmdOnDevice(
+        ['mv', self._EXISTING_MINIDUMP_DIR, self._CROS_MINIDUMP_DIR])
+
+    self._RestoreChromeEnvironment()
 
   def Create(self):
     startup_args = self.GetBrowserStartupArgs(self._browser_options)
@@ -92,7 +124,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     browser_backend = cros_browser_backend.CrOSBrowserBackend(
         self._platform_backend, self._browser_options,
         self.browser_directory, self.profile_directory,
-        self._is_guest)
+        self._is_guest, self._build_dir)
 
     if self._browser_options.create_browser_with_oobe:
       return cros_browser_with_oobe.CrOSBrowserWithOOBE(
@@ -124,6 +156,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         '--oobe-skip-postlogin',
         # Debug logging.
         '--vmodule=%s' % vmodule,
+        # Enable crash dumping.
+        '--enable-crash-reporter-for-testing',
     ])
 
     if browser_options.mute_audio:
@@ -151,6 +185,29 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
 
   def UpdateExecutableIfNeeded(self):
     pass
+
+  def _SetChromeEnvironment(self, env=None):
+    """Sets environment variables, command line flags, etc. for Chrome.
+
+    RestartUI() must be called sometime afterwards for the changes to actually
+    take effect.
+    """
+    if env is None:
+      env = self._DEFAULT_CHROME_ENV
+    assert isinstance(env, list)
+
+    cri = self._platform_backend.cri
+    cri.MakeRootReadWriteIfNecessary()
+    cri.RunCmdOnDevice(
+        ['mv', self._CHROME_ENV_FILEPATH, self._EXISTING_ENV_FILEPATH])
+
+    env_string = '\n'.join(env)
+    cri.PushContents(env_string, self._CHROME_ENV_FILEPATH)
+
+  def _RestoreChromeEnvironment(self):
+    """Restores the Chrome environment to state before the test started."""
+    self._platform_backend.cri.RunCmdOnDevice(
+        ['mv', self._EXISTING_ENV_FILEPATH, self._CHROME_ENV_FILEPATH])
 
 
 def SelectDefaultBrowser(possible_browsers):
