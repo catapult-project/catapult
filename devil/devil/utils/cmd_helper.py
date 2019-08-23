@@ -167,7 +167,8 @@ def _ValidateAndLogCommand(args, cwd, shell):
   return args
 
 
-def GetCmdStatusAndOutput(args, cwd=None, shell=False, env=None):
+def GetCmdStatusAndOutput(args, cwd=None, shell=False, env=None,
+                          merge_stderr=False):
   """Executes a subprocess and returns its exit code and output.
 
   Args:
@@ -179,12 +180,13 @@ def GetCmdStatusAndOutput(args, cwd=None, shell=False, env=None):
       is a string and False if args is a sequence.
     env: If not None, a mapping that defines environment variables for the
       subprocess.
+    merge_stderr: If True, captures stderr as part of stdout.
 
   Returns:
     The 2-tuple (exit code, stdout).
   """
   status, stdout, stderr = GetCmdStatusOutputAndError(
-      args, cwd=cwd, shell=shell, env=env)
+      args, cwd=cwd, shell=shell, env=env, merge_stderr=merge_stderr)
 
   if stderr:
     logger.critical('STDERR: %s', stderr)
@@ -214,7 +216,8 @@ def StartCmd(args, cwd=None, shell=False, env=None):
                shell=shell, cwd=cwd, env=env)
 
 
-def GetCmdStatusOutputAndError(args, cwd=None, shell=False, env=None):
+def GetCmdStatusOutputAndError(args, cwd=None, shell=False, env=None,
+                               merge_stderr=False):
   """Executes a subprocess and returns its exit code, output, and errors.
 
   Args:
@@ -226,13 +229,15 @@ def GetCmdStatusOutputAndError(args, cwd=None, shell=False, env=None):
       is a string and False if args is a sequence.
     env: If not None, a mapping that defines environment variables for the
       subprocess.
+    merge_stderr: If True, captures stderr as part of stdout.
 
   Returns:
     The 3-tuple (exit code, stdout, stderr).
   """
   _ValidateAndLogCommand(args, cwd, shell)
-  pipe = Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-               shell=shell, cwd=cwd, env=env)
+  stderr = subprocess.STDOUT if merge_stderr else subprocess.PIPE
+  pipe = Popen(args, stdout=subprocess.PIPE, stderr=stderr, shell=shell,
+               cwd=cwd, env=env)
   stdout, stderr = pipe.communicate()
   return (pipe.returncode, stdout, stderr)
 

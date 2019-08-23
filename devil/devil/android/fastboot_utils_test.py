@@ -79,7 +79,7 @@ class FastbootUtilsTest(mock_calls.TestCase):
     self.device_utils_mock = _DeviceUtilsMock(_SERIAL)
     self.fastboot_wrapper = _FastbootWrapperMock(_SERIAL)
     self.fastboot = fastboot_utils.FastbootUtils(
-        self.device_utils_mock, fastbooter=self.fastboot_wrapper,
+        device=self.device_utils_mock, fastbooter=self.fastboot_wrapper,
         default_timeout=2, default_retries=0)
     self.fastboot._board = _BOARD
 
@@ -91,10 +91,10 @@ class FastbootUtilsInitTest(FastbootUtilsTest):
     self.assertEqual(str(self.device_utils_mock), str(f._device))
 
   def testInitWithMissing_fails(self):
+    with self.assertRaises(ValueError):
+      fastboot_utils.FastbootUtils(device=None, fastbooter=None)
     with self.assertRaises(AttributeError):
-      fastboot_utils.FastbootUtils(None)
-    with self.assertRaises(AttributeError):
-      fastboot_utils.FastbootUtils('')
+      fastboot_utils.FastbootUtils('abc')
 
   def testPartitionOrdering(self):
     parts = ['bootloader', 'radio', 'boot', 'recovery', 'system', 'userdata',

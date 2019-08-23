@@ -59,7 +59,9 @@ class Fastboot(object):
     else:
       raise TypeError(
           'Command for _RunDeviceFastbootCommand must be a list.')
-    status, output = cmd_helper.GetCmdStatusAndOutput(cmd)
+    # fastboot can't be trusted to keep non-error output out of stderr, so
+    # capture stderr as part of stdout.
+    status, output = cmd_helper.GetCmdStatusAndOutput(cmd, merge_stderr=True)
     if int(status) != 0:
       raise device_errors.FastbootCommandFailedError(cmd, output, status)
     return output
@@ -79,6 +81,19 @@ class Fastboot(object):
     if isinstance(cmd, list):
       cmd = ['-s', self._device_serial] + cmd
     return self._RunFastbootCommand(cmd)
+
+  @decorators.WithTimeoutAndRetriesDefaults(_DEFAULT_TIMEOUT, _DEFAULT_RETRIES)
+  def GetVar(self, variable, timeout=None, retries=None):
+    args = ['getvar', variable]
+    output = self._RunDeviceFastbootCommand(args)
+    # getvar returns timing information on the last line of output, so only
+    # parse the first line.
+    output = output.splitlines()[0]
+    # And the first line should match the format '$(var): $(value)'.
+    if variable + ': ' not in output:
+      raise device_errors.FastbootCommandFailedError(
+          args, output, message="Unknown 'getvar' output format.")
+    return output.split('%s: ' % variable)[1].strip()
 
   @decorators.WithTimeoutAndRetriesDefaults(_FLASH_TIMEOUT, 0)
   def Flash(self, partition, image, timeout=None, retries=None):
