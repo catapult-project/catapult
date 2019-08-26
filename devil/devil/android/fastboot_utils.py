@@ -23,20 +23,33 @@ logger = logging.getLogger(__name__)
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3
 _FASTBOOT_REBOOT_TIMEOUT = 10 * _DEFAULT_TIMEOUT
+# It appears that boards which support A/B updates have different partition
+# requirements when flashing.
+_A_B_BOARDS = {'walleye'}
 _KNOWN_PARTITIONS = collections.OrderedDict([
-      ('bootloader', {'image': 'bootloader*.img', 'restart': True}),
-      ('radio', {'image': 'radio*.img', 'restart': True}),
-      ('boot', {'image': 'boot.img'}),
-      ('recovery', {'image': 'recovery.img'}),
-      ('system', {'image': 'system.img'}),
-      ('userdata', {'image': 'userdata.img', 'wipe_only': True}),
-      ('cache', {'image': 'cache.img', 'wipe_only': True}),
-      ('vendor', {'image': 'vendor*.img', 'optional': True}),
-  ])
+    ('bootloader', {'image': 'bootloader*.img', 'restart': True}),
+    ('radio', {'image': 'radio*.img', 'restart': True}),
+    ('boot', {'image': 'boot.img'}),
+    # recovery.img moved into boot.img for A/B devices. See:
+    # https://source.android.com/devices/tech/ota/ab/ab_implement#recovery
+    ('recovery', {
+        'image': 'recovery.img',
+        'optional': lambda b: b in _A_B_BOARDS}),
+    ('system', {'image': 'system.img'}),
+    ('userdata', {'image': 'userdata.img', 'wipe_only': True}),
+    ('cache', {'image': 'cache.img', 'wipe_only': True}),
+    ('vendor', {'image': 'vendor*.img', 'optional': lambda _: True}),
+    ('dtbo', {
+        'image': 'dtbo.img',
+        'optional': lambda b: b not in _A_B_BOARDS}),
+    ('vbmeta', {
+        'image': 'vbmeta.img',
+        'optional': lambda b: b not in _A_B_BOARDS}),
+])
 ALL_PARTITIONS = _KNOWN_PARTITIONS.keys()
 
 
-def _FindAndVerifyPartitionsAndImages(partitions, directory):
+def _FindAndVerifyPartitionsAndImages(partitions, directory, board):
   """Validate partitions and images.
 
   Validate all partition names and partition directories. Cannot stop mid
@@ -45,6 +58,7 @@ def _FindAndVerifyPartitionsAndImages(partitions, directory):
   Args:
     Partitions: partitions to be tested.
     directory: directory containing the images.
+    board: board name of the device to flash.
 
   Returns:
     Dictionary with exact partition, image name mapping.
@@ -63,7 +77,8 @@ def _FindAndVerifyPartitionsAndImages(partitions, directory):
     image_file = find_file(partition_info['image'])
     if image_file:
       return_dict[partition] = image_file
-    elif not partition_info.get('optional'):
+    elif ('optional' not in partition_info or
+          not partition_info['optional'](board)):
       raise device_errors.FastbootCommandFailedError(
           'Failed to flash device. Could not find image for %s.',
           partition_info['image'])
@@ -168,20 +183,16 @@ class FastbootUtils(object):
       directory: directory where build files are located.
     """
     files = os.listdir(directory)
-    board_regex = re.compile(r'require board=(\w+)')
+    board_regex = re.compile(r'require board=([\w|]+)')
     if self._BOARD_VERIFICATION_FILE in files:
       with open(os.path.join(directory, self._BOARD_VERIFICATION_FILE)) as f:
         for line in f:
           m = board_regex.match(line)
-          if m:
-            board_name = m.group(1)
-            if board_name == self._board:
-              return True
-            elif board_name:
-              return False
-            else:
-              logger.warning('No board type found in %s.',
-                             self._BOARD_VERIFICATION_FILE)
+          if m and m.group(1):
+            return self._board in m.group(1).split('|')
+          else:
+            logger.warning('No board type found in %s.',
+                           self._BOARD_VERIFICATION_FILE)
     else:
       logger.warning('%s not found. Unable to use it to verify device.',
                      self._BOARD_VERIFICATION_FILE)
@@ -218,7 +229,8 @@ class FastbootUtils(object):
             'device type. Run again with force=True to force flashing with an '
             'unverified board.')
 
-    flash_image_files = _FindAndVerifyPartitionsAndImages(partitions, directory)
+    flash_image_files = _FindAndVerifyPartitionsAndImages(
+        partitions, directory, self._board)
     partitions = flash_image_files.keys()
     for partition in partitions:
       if _KNOWN_PARTITIONS[partition].get('wipe_only') and not wipe:
@@ -242,11 +254,12 @@ class FastbootUtils(object):
     """
     self.EnableFastbootMode()
     self.fastboot.SetOemOffModeCharge(False)
-    try:
-      yield self
-    finally:
-      self.fastboot.SetOemOffModeCharge(True)
-      self.Reboot(wait_for_reboot=wait_for_reboot)
+    yield self
+    # If something went wrong while it was in fastboot mode (eg: a failed
+    # flash) rebooting may be harmful or cause boot loops. So only reboot if
+    # no exception was thrown.
+    self.fastboot.SetOemOffModeCharge(True)
+    self.Reboot(wait_for_reboot=wait_for_reboot)
 
   def FlashDevice(self, directory, partitions=None, wipe=False):
     """Flash device with build in |directory|.
