@@ -37,7 +37,12 @@ _KNOWN_PARTITIONS = collections.OrderedDict([
         'optional': lambda b: b in _A_B_BOARDS}),
     ('system', {'image': 'system.img'}),
     ('userdata', {'image': 'userdata.img', 'wipe_only': True}),
-    ('cache', {'image': 'cache.img', 'wipe_only': True}),
+    # cache.img deprecated for A/B devices. See:
+    # https://source.android.com/devices/tech/ota/ab/ab_implement#cache
+    ('cache', {
+        'image': 'cache.img',
+        'wipe_only': True,
+        'optional': lambda b: b in _A_B_BOARDS}),
     ('vendor', {'image': 'vendor*.img', 'optional': lambda _: True}),
     ('dtbo', {
         'image': 'dtbo.img',
