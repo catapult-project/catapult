@@ -1,11 +1,11 @@
-# For more information about telemetry development, please see:
-# http://dev.chromium.org/developers/telemetry/telemetry-feature-guidelines
+crouleau@chromium.org
+perezju@chromium.org
+
+# expectations.config format
+rmhasan@google.com
 
 # For CrOS-related changes.
 achuith@chromium.org
-
-perezju@chromium.org
-crouleau@chromium.org
 
 # TEAM: telemetry@chromium.org
 # COMPONENT: Speed>Telemetry
