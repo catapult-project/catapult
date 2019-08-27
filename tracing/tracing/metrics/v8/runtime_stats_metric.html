@@ -29,135 +29,9 @@ tr.exportTo('tr.metrics.v8', function() {
     max: false,
   };
 
-  function computeDomContentLoadedTime_(model) {
-    const chromeHelper = model.getOrCreateHelper(
-        tr.model.helpers.ChromeModelHelper);
-    let domContentLoadedTime = 0;
-
-    for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
-      for (const ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
-        if (ev.title === 'domContentLoadedEventEnd' &&
-            ev.start > domContentLoadedTime) {
-          domContentLoadedTime = ev.start;
-        }
-      }
-    }
-    return domContentLoadedTime;
-  }
-
-  function computeInteractiveTime_(model) {
-    const chromeHelper = model.getOrCreateHelper(
-        tr.model.helpers.ChromeModelHelper);
-    let interactiveTime = 0;
-    for (const expectation of model.userModel.expectations) {
-      if (tr.e.chrome.CHROME_INTERNAL_URLS.includes(
-          expectation.url)) {
-        continue;
-      }
-      if (!(expectation instanceof tr.model.um.LoadExpectation)) continue;
-      if (expectation.timeToInteractive === undefined) continue;
-      // TODO(fmeawad): Support multiple navigations.
-      if (interactiveTime !== 0) throw new Error('Too many navigations');
-      interactiveTime = expectation.timeToInteractive;
-    }
-    return interactiveTime;
-  }
-
   function convertMicroToMilli_(time) {
     return tr.b.convertUnit(time,
         tr.b.UnitPrefixScale.METRIC.MICRO, tr.b.UnitPrefixScale.METRIC.MILLI);
-  }
-
-  // TODO(crbug.com/688342): Remove this function when runtimeStatsMetric is
-  // removed.
-  function computeRuntimeStats(histograms, slices) {
-    const runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
-    runtimeGroupCollection.addSlices(slices);
-
-    function addHistogramsForRuntimeGroup(runtimeGroup, optRelatedNameMaps) {
-      histograms.createHistogram(
-          `${runtimeGroup.name}:duration`,
-          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, {
-            value: convertMicroToMilli_(runtimeGroup.time),
-            diagnostics: optRelatedNameMaps ?
-              {samples: optRelatedNameMaps.durationBreakdown} : {}
-          }, {
-            binBoundaries: DURATION_CUSTOM_BOUNDARIES,
-            summaryOptions: SUMMARY_OPTIONS,
-            diagnostics: optRelatedNameMaps ?
-              {samples: optRelatedNameMaps.durationNames} : {}
-          });
-
-      histograms.createHistogram(
-          `${runtimeGroup.name}:count`,
-          tr.b.Unit.byName.count_smallerIsBetter, {
-            value: runtimeGroup.count,
-            diagnostics: optRelatedNameMaps ?
-              {samples: optRelatedNameMaps.countBreakdown} : {}
-          }, {
-            binBoundaries: COUNT_CUSTOM_BOUNDARIES,
-            summaryOptions: SUMMARY_OPTIONS,
-            diagnostics: optRelatedNameMaps ?
-              {samples: optRelatedNameMaps.countNames} : {}
-          });
-    }
-
-    function addDetailedHistogramsForRuntimeGroup(runtimeGroup) {
-      const durationNames = new tr.v.d.RelatedNameMap();
-      const durationBreakdown = new tr.v.d.Breakdown();
-      const countNames = new tr.v.d.RelatedNameMap();
-      const countBreakdown = new tr.v.d.Breakdown();
-
-      for (const entry of runtimeGroup.values) {
-        const durationSampleHistogram = histograms.createHistogram(
-            `${entry.name}:duration`,
-            tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-            convertMicroToMilli_(entry.time), {
-              binBoundaries: DURATION_CUSTOM_BOUNDARIES,
-              summaryOptions: SUMMARY_OPTIONS,
-            });
-        durationNames.set(entry.name, durationSampleHistogram.name);
-        durationBreakdown.set(entry.name, convertMicroToMilli_(entry.time));
-
-        const countSampleHistogram = histograms.createHistogram(
-            `${entry.name}:count`,
-            tr.b.Unit.byName.count_smallerIsBetter,
-            entry.count, {
-              binBoundaries: COUNT_CUSTOM_BOUNDARIES,
-              summaryOptions: SUMMARY_OPTIONS,
-            });
-        countNames.set(entry.name, countSampleHistogram.name);
-        countBreakdown.set(entry.name, entry.count);
-      }
-
-      addHistogramsForRuntimeGroup(runtimeGroup, {
-        durationNames,
-        durationBreakdown,
-        countNames,
-        countBreakdown
-      });
-    }
-
-    for (const runtimeGroup of runtimeGroupCollection.runtimeGroups) {
-      addHistogramsForRuntimeGroup(runtimeGroup);
-    }
-
-    const blinkGroupCollection = runtimeGroupCollection.blinkRCSGroupCollection;
-    if (blinkGroupCollection.totalTime > 0) {
-      blinkGroupCollection.runtimeGroups.forEach(
-          addDetailedHistogramsForRuntimeGroup);
-    }
-  }
-
-  // TODO(crbug.com/688342): Remove this metric and use runtimeStatsTotalMetric
-  // instead when the runtimeStatsTotalMetric is stable.
-  function runtimeStatsMetric(histograms, model) {
-    const interactiveTime = computeInteractiveTime_(model);
-    const domContentLoadedTime = computeDomContentLoadedTime_(model);
-    const endTime = Math.max(interactiveTime, domContentLoadedTime);
-    const slices = [...model.getDescendantEvents()].filter(event =>
-      event instanceof tr.e.v8.V8ThreadSlice && event.start <= endTime);
-    computeRuntimeStats(histograms, slices);
   }
 
   function addDurationHistogram(railStageName, runtimeGroupName, sampleValue,
@@ -364,10 +238,8 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   tr.metrics.MetricRegistry.register(runtimeStatsTotalMetric);
-  tr.metrics.MetricRegistry.register(runtimeStatsMetric);
 
   return {
-    runtimeStatsMetric,
     runtimeStatsTotalMetric,
   };
 });
