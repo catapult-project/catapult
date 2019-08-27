@@ -1749,3 +1749,55 @@ class BenchmarkJsonResultsTest(unittest.TestCase):
 
     for i in range(31, 41):
       self.assertEquals(stories['story_%s' % i]['actual'], 'SKIP')
+
+
+class BenchmarkArtifactPathsTest(unittest.TestCase):
+
+  def setUp(self):
+    self._temp_dir = tempfile.mkdtemp()
+
+    self._real_output_dir = os.path.join(self._temp_dir, 'real', 'output')
+    os.makedirs(self._real_output_dir)
+
+    self._symlinked_output_dir = os.path.join(self._temp_dir, 'output')
+    os.symlink(self._real_output_dir, self._symlinked_output_dir)
+
+    self._options = options_for_unittests.GetRunOptions(
+        output_dir=self._symlinked_output_dir)
+    self._options.suppress_gtest_report = True
+    self._options.output_formats = ['json-test-results']
+    self._options.output_dir = self._symlinked_output_dir
+
+  def tearDown(self):
+    shutil.rmtree(self._temp_dir)
+
+  @decorators.Enabled('linux', 'mac')
+  def testArtifactLogsHaveProperPathWithSymlinkedTmp(self):
+    class TestBenchmark(benchmark.Benchmark):
+      test = DummyTest
+
+      @classmethod
+      def Name(cls):
+        return 'TestBenchmark'
+
+      def CreateStorySet(self, options):
+        story_set = story_module.StorySet()
+        story_set.AddStory(page_module.Page(
+            'http://foo', name='foo', shared_page_state_class=TestSharedState))
+        return story_set
+
+    self.assertTrue(os.path.exists(self._symlinked_output_dir))
+
+    test_benchmark = TestBenchmark()
+    return_code = story_runner.RunBenchmark(test_benchmark, self._options)
+    self.assertEquals(0, return_code)
+
+    json_data = {}
+    with open(os.path.join(self._options.output_dir,
+                           'test-results.json')) as f:
+      json_data = json.load(f)
+
+    foo_artifacts = json_data['tests']['TestBenchmark']['foo']['artifacts']
+    foo_artifact_log_path = os.path.join(
+        self._options.output_dir, foo_artifacts['logs.txt'][0])
+    assert os.path.isfile(foo_artifact_log_path)

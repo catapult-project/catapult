@@ -75,8 +75,8 @@ def ResultsAsDict(results):
       else:
         # Paths in json format should be relative to the output directory and
         # '/'-delimited on all platforms according to the spec.
-        relative_path = os.path.relpath(artifact.local_path,
-                                        results.output_dir)
+        relative_path = os.path.relpath(os.path.realpath(artifact.local_path),
+                                        os.path.realpath(results.output_dir))
         artifact_path = relative_path.replace(os.sep, '/')
 
       test.setdefault('artifacts', {}).setdefault(artifact.name, []).append(
