@@ -121,17 +121,29 @@ tr.exportTo('tr.metrics.v8', function() {
 
       let overallV8Time = runtimeGroupCollection.totalTime;
       let overallV8Count = runtimeGroupCollection.totalCount;
+      let mainThreadTime = runtimeGroupCollection.totalTime;
+      let mainThreadCount = runtimeGroupCollection.totalCount;
+      let mainThreadV8Time = runtimeGroupCollection.totalTime;
+      let mainThreadV8Count = runtimeGroupCollection.totalCount;
       for (const runtimeGroup of runtimeGroupCollection.runtimeGroups) {
         addDurationHistogram(name, runtimeGroup.name, runtimeGroup.time,
             histograms, durationNamesByGroupName);
         if (runtimeGroup.name === 'Blink C++') {
           overallV8Time -= runtimeGroup.time;
+          mainThreadV8Time -= runtimeGroup.time;
+        } else if (runtimeGroup.name.includes('Background')) {
+          mainThreadTime -= runtimeGroup.time;
+          mainThreadV8Time -= runtimeGroup.time;
         }
 
         addCountHistogram(name, runtimeGroup.name, runtimeGroup.count,
             histograms, countNamesByGroupName);
         if (runtimeGroup.name === 'Blink C++') {
           overallV8Count -= runtimeGroup.count;
+          mainThreadV8Count -= runtimeGroup.count;
+        } else if (runtimeGroup.name.includes('Background')) {
+          mainThreadCount -= runtimeGroup.count;
+          mainThreadV8Count -= runtimeGroup.count;
         }
       }
 
@@ -151,6 +163,18 @@ tr.exportTo('tr.metrics.v8', function() {
           durationNamesByGroupName);
       addCountHistogram(name, 'V8-Only', overallV8Count, histograms,
           countNamesByGroupName);
+
+      // Add main thread time that is Total - Background-* duration.
+      addDurationHistogram(name, 'Total-Main-Thread', mainThreadTime,
+          histograms, durationNamesByGroupName);
+      addCountHistogram(name, 'Total-Main-Thread', mainThreadCount, histograms,
+          countNamesByGroupName);
+
+      // Add V8 only main thread time that is V8-Only - Background-* duration.
+      addDurationHistogram(name, 'V8-Only-Main-Thread', mainThreadV8Time,
+          histograms, durationNamesByGroupName);
+      addCountHistogram(name, 'V8-Only-Main-Thread', mainThreadV8Count,
+          histograms, countNamesByGroupName);
     }
 
     // Add the runtimeStats for all the samples. Please note, the values in
@@ -161,17 +185,29 @@ tr.exportTo('tr.metrics.v8', function() {
 
     let overallV8Time = runtimeGroupCollection.totalTime;
     let overallV8Count = runtimeGroupCollection.totalCount;
+    let mainThreadTime = runtimeGroupCollection.totalTime;
+    let mainThreadCount = runtimeGroupCollection.totalCount;
+    let mainThreadV8Time = runtimeGroupCollection.totalTime;
+    let mainThreadV8Count = runtimeGroupCollection.totalCount;
     for (const runtimeGroup of runtimeGroupCollection.runtimeGroups) {
       addTotalDurationHistogram(runtimeGroup.name, runtimeGroup.time,
           histograms, durationNamesByGroupName.get(runtimeGroup.name));
       if (runtimeGroup.name === 'Blink C++') {
         overallV8Time -= runtimeGroup.time;
+        mainThreadV8Time -= runtimeGroup.time;
+      } else if (runtimeGroup.name.includes('Background')) {
+        mainThreadTime -= runtimeGroup.time;
+        mainThreadV8Time -= runtimeGroup.time;
       }
 
       addTotalCountHistogram(runtimeGroup.name, runtimeGroup.count, histograms,
           countNamesByGroupName.get(runtimeGroup.name));
       if (runtimeGroup.name === 'Blink C++') {
         overallV8Count -= runtimeGroup.count;
+        mainThreadV8Count -= runtimeGroup.count;
+      } else if (runtimeGroup.name.includes('Background')) {
+        mainThreadCount -= runtimeGroup.count;
+        mainThreadV8Count -= runtimeGroup.count;
       }
     }
 
@@ -191,6 +227,18 @@ tr.exportTo('tr.metrics.v8', function() {
         durationNamesByGroupName.get('V8-Only'));
     addTotalCountHistogram('V8-Only', overallV8Count, histograms,
         countNamesByGroupName.get('V8-Only'));
+
+    // Add main thread time that is Total - Background-* duration.
+    addTotalDurationHistogram('Total-Main-Thread', mainThreadTime,
+        histograms, durationNamesByGroupName.get('Total-Main-Thread'));
+    addTotalCountHistogram('Total-Main-Thread', mainThreadCount, histograms,
+        countNamesByGroupName.get('Total-Main-Thread'));
+
+    // Add V8 only main thread time that is V8-Only - Background-* duration.
+    addTotalDurationHistogram('V8-Only-Main-Thread', mainThreadV8Time,
+        histograms, durationNamesByGroupName.get('V8-Only-Main-Thread'));
+    addTotalCountHistogram('V8-Only-Main-Thread', mainThreadV8Count,
+        histograms, countNamesByGroupName.get('V8-Only-Main-Thread'));
   }
 
   function runtimeStatsTotalMetric(histograms, model) {

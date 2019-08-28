@@ -93,7 +93,8 @@ tr.b.unittest.testSuite(function() {
             OptimizeCode: [6, 15],
             FunctionCallback: [7, 16],
             AllocateInTargetSpace: [8, 17],
-            API_Object_Get: [9, 18]
+            API_Object_Get: [9, 18],
+            RecompileConcurrent: [10, 19]
           }
         }
       }));
@@ -128,7 +129,8 @@ tr.b.unittest.testSuite(function() {
             OptimizeCode: [6, 66],
             FunctionCallback: [7, 77],
             AllocateInTargetSpace: [8, 88],
-            API_Object_Get: [9, 99]
+            API_Object_Get: [9, 99],
+            CompileBackgroundIgnition: [10, 10]
           }
         }
       }));
@@ -254,22 +256,25 @@ tr.b.unittest.testSuite(function() {
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsTotalMetric(histograms, model);
-    assert.strictEqual(histograms.length, 270);
+    assert.strictEqual(histograms.length, 290);
 
     // Check total:
     checkRuntimeHistogram_(histograms, 'IC', 20, 0.109);
     checkRuntimeHistogram_(histograms, 'API', 45, 0.234);
-    checkRuntimeHistogram_(histograms, 'Total', 225, 1.21);
+    checkRuntimeHistogram_(histograms, 'Total', 245, 1.239);
     checkRuntimeHistogram_(histograms, 'Blink C++', 35, 0.184);
-    checkRuntimeHistogram_(histograms, 'V8-Only', 190, 1.026);
+    checkRuntimeHistogram_(histograms, 'V8-Only', 210, 1.055);
     checkRuntimeHistogram_(histograms, 'Blink_Layout', 62, 0.67);
+    checkRuntimeHistogram_(histograms, 'Total-Main-Thread', 225, 1.21);
+    checkRuntimeHistogram_(histograms, 'V8-Only-Main-Thread', 190, 1.026);
 
     // Check Load bucket:
     checkRuntimeHistogram_(histograms, 'Load_Parse', 5, 0.014);
     checkRuntimeHistogram_(histograms, 'Load_JavaScript', 1, 0.01);
     checkRuntimeHistogram_(histograms, 'Load_Blink C++', 7, 0.016);
-    checkRuntimeHistogram_(histograms, 'Load_V8-Only', 38, 0.11);
+    checkRuntimeHistogram_(histograms, 'Load_V8-Only', 48, 0.129);
     checkRuntimeHistogram_(histograms, 'Load_Blink_Style', 20, 0.1);
+    checkRuntimeHistogram_(histograms, 'Load_V8-Only-Main-Thread', 38, 0.11);
 
     // Check Response bucket:
     checkRuntimeHistogram_(histograms, 'Response_Parse', 10, 0.06);
@@ -358,7 +363,8 @@ tr.b.unittest.testSuite(function() {
             OptimizeCode: [6, 66],
             FunctionCallback: [7, 77],
             AllocateInTargetSpace: [8, 88],
-            API_Context_New: [9, 99]
+            API_Context_New: [9, 99],
+            ParseBackgroundProgram: [10, 111]
           }
         }
       }));
@@ -380,17 +386,20 @@ tr.b.unittest.testSuite(function() {
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsTotalMetric(histograms, model);
-    assert.strictEqual(histograms.length, 54);
+    assert.strictEqual(histograms.length, 58);
 
     // Check total:
     checkRuntimeHistogram_(histograms, 'IC', 8, 0.057);
     checkRuntimeHistogram_(histograms, 'API', 18, 0.117);
     checkRuntimeHistogram_(histograms, 'Parse', 10, 0.069);
-    checkRuntimeHistogram_(histograms, 'Total', 90, 0.621);
+    checkRuntimeHistogram_(histograms, 'Parse-Background', 10, 0.111);
+    checkRuntimeHistogram_(histograms, 'Total', 100, 0.732);
     checkRuntimeHistogram_(histograms, 'Blink C++', 14, 0.093);
-    checkRuntimeHistogram_(histograms, 'V8-Only', 76, 0.528);
+    checkRuntimeHistogram_(histograms, 'V8-Only', 86, 0.639);
     checkRuntimeHistogram_(histograms, 'Blink_Layout', 15, 0.3);
     checkRuntimeHistogram_(histograms, 'Blink_Style', 12, 0.15);
+    checkRuntimeHistogram_(histograms, 'V8-Only-Main-Thread', 76, 0.528);
+    checkRuntimeHistogram_(histograms, 'Total-Main-Thread', 90, 0.621);
   });
 });
 </script>
