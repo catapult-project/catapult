@@ -81,6 +81,9 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
               browser_options.browser_options.browser_type,
               '\n'.join(browser_finder.GetAllAvailableBrowserTypes(
                   browser_options))))
+    if cls._typ_runner.has_expectations:
+      cls._typ_runner.expectations.add_tags(
+          cls._browser_to_create.GetTypExpectationsTags())
     if not cls.platform:
       cls.platform = cls._browser_to_create.platform
       cls.platform.SetFullPerformanceModeEnabled(
@@ -127,6 +130,8 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
       cls._browser_to_create.SetUpEnvironment(
           cls._browser_options.browser_options)
       cls.browser = cls._browser_to_create.Create()
+      if cls._typ_runner.has_expectations:
+        cls._typ_runner.expectations.add_tags(cls.GetPlatformTags(cls.browser))
     except Exception:
       cls._browser_to_create.CleanUpEnvironment()
       raise
@@ -162,32 +167,6 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
   @classmethod
   def UrlOfStaticFilePath(cls, file_path):
     return cls.platform.http_server.UrlOf(file_path)
-
-  @classmethod
-  def GenerateTags(cls, finder_options, possible_browser):
-    """This class method is part of the API for all test suites
-    that inherit this class. All test suites that override this function
-    can use the finder_options and possible_browser parameters to generate
-    test expectations file tags.
-
-    Args:
-    finder_options are command line arguments parsed using the parser returned
-    from telemetry.internal.browser.possible_browser.BrowserFinderOptions's
-    CreateParser class method
-
-    possible_browser is an instance of
-    telemetry.internal.browser.possible_browser.PossibleBrowser.
-    It can be used to create an actual browser. For example the code below
-    shows how to create a browser from the possible_browser object
-
-    with possible_browser.BrowserSession(finder_options) as browser:
-      # Do something with the browser.
-
-    Returns:
-    A list of test expectations file tags
-    """
-    del finder_options, possible_browser
-    return []
 
   @classmethod
   def ExpectationsFiles(cls):

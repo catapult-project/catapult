@@ -293,6 +293,10 @@ class TestExpectations(object):
     def set_tags(self, tags):
         self.tags = [tag.lower() for tag in tags]
 
+    def add_tags(self, new_tags):
+        self.tags = list(
+            set(self.tags) | set([tag.lower() for tag in new_tags]))
+
     def parse_tagged_list(self, raw_data, file_name='',
                           tags_conflict=_default_tags_conflict):
         ret = 0

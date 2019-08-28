@@ -7,6 +7,7 @@ import os
 
 from telemetry.testing import serially_executed_browser_test_case
 from telemetry.core import util
+from telemetry.testing import fakes
 from typ import json_results
 
 def ConvertPathToTestName(url):
@@ -70,13 +71,27 @@ class BrowserTest(
         1997, self.action_runner.EvaluateJavaScript('valueToTest'))
 
 
-class ImplementsGenerateTagsFunction(
+class ImplementsGetPlatformTags(
     serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
 
   @classmethod
-  def GenerateTags(cls, finder_options, possible_browser):
-    del finder_options, possible_browser
-    return ['foo', 'bar']
+  def SetUpProcess(cls):
+    finder_options = fakes.CreateBrowserFinderOptions()
+    finder_options.browser_options.platform = fakes.FakeLinuxPlatform()
+    finder_options.output_formats = ['none']
+    finder_options.suppress_gtest_report = True
+    finder_options.output_dir = None
+    finder_options.upload_bucket = 'public'
+    finder_options.upload_results = False
+    cls._finder_options = finder_options
+    cls.platform = None
+    cls.browser = None
+    cls.SetBrowserOptions(cls._finder_options)
+    cls.StartBrowser()
+
+  @classmethod
+  def GetPlatformTags(cls, browser):
+    return cls.browser.GetTypExpectationsTags()
 
   @classmethod
   def GenerateTestCases__RunsFailingTest(cls, options):
@@ -87,7 +102,7 @@ class ImplementsGenerateTagsFunction(
     assert False
 
 
-class ImplementsExpectationsFilesFunction(
+class ImplementsExpectationsFiles(
     serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
 
   @classmethod

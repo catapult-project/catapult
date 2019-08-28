@@ -1003,7 +1003,6 @@ def _run_one_test(child, test_input):
                                                    .expectations_for(test_name))
     else:
       expected_results, should_retry_on_failure = {ResultType.Pass}, False
-
     ex_str = ''
     try:
         orig_skip = unittest.skip
@@ -1011,6 +1010,11 @@ def _run_one_test(child, test_input):
         if child.all:
             unittest.skip = lambda reason: lambda x: x
             unittest.skipIf = lambda condition, reason: lambda x: x
+        elif ResultType.Skip in expected_results:
+            h.restore_output()
+            return (Result(test_name, ResultType.Skip, started, 0,
+                           child.worker_num, expected=expected_results,
+                           unexpected=False, pid=pid), False)
 
         test_name_to_load = child.test_name_prefix + test_name
         try:

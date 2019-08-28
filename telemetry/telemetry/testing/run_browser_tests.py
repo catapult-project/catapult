@@ -11,7 +11,6 @@ from telemetry.internal.platform import android_device
 from telemetry.internal.util import binary_manager
 from telemetry.testing import browser_test_context
 from telemetry.testing import serially_executed_browser_test_case
-from telemetry.internal.browser import browser_finder
 
 from py_utils import discover
 import typ
@@ -345,16 +344,13 @@ def RunTests(args):
   typ_runner.args.verbose = options.verbose
   typ_runner.win_multiprocessing = typ.WinMultiprocessing.importable
 
-  possible_browser = browser_finder.FindBrowser(
-      typ_runner.context.finder_options)
-  typ_runner.args.tags.extend(test_class.GenerateTags(
-      typ_runner.context.finder_options, possible_browser))
   try:
     ret, _, _ = typ_runner.run()
   except KeyboardInterrupt:
     print >> sys.stderr, "interrupted, exiting"
     ret = 130
   return ret
+
 
 def _SetUpProcess(child, context):
   args = context.finder_options
@@ -371,6 +367,9 @@ def _SetUpProcess(child, context):
         android_devices[child.worker_num-1].guid)
   browser_test_context._global_test_context = context
   context.test_class.SetUpProcess()
+  if child.has_expectations:
+    child.expectations.set_tags(
+        context.test_class._typ_runner.expectations.tags)
 
 
 def _TearDownProcess(child, context):
