@@ -39,6 +39,8 @@ class New(api_request_handler.ApiRequestHandler):
 
     scheduler.Schedule(job)
 
+    job.PostCreationUpdate()
+
     return {
         'jobId': job.job_id,
         'jobUrl': job.url,
