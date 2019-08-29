@@ -16,10 +16,13 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-item/paper-item.html">
 <link rel="import" href="/components/paper-listbox/paper-listbox.html">
 <link rel="import" href="/components/paper-progress/paper-progress.html">
+<link rel="import" href="/components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="/components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="/components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="/dashboard/elements/autocomplete-box.html">
 
 <link rel="import" href="/elements/base-style.html">
+<link rel="import" href="/elements/jobs-page/commit-details.html">
 
 <dom-module id="new-job-fab">
   <template>
@@ -70,14 +73,32 @@ found in the LICENSE file.
         <template is="dom-if" if="{{validBenchmark(benchmark)}}">
           <iron-ajax method="post" headers="[[authHeaders]]" auto url="https://chromeperf.appspot.com/api/describe" params="{{describeParams(benchmark)}}" loading="{{benchmarkConfigLoading}}" last-response="{{benchmarkConfig}}"></iron-ajax>
         </template>
+        <template is="dom-if" if="[[hasJob(job)]]">
+          <iron-ajax method="post" headers="[[authHeaders]]" auto url="/api/commits" params="{{commitsParams(job)}}" loading="{{commitRangeLoading}}" last-response="{{commitsList}}"></iron-ajax>
+        </template>
+
         <iron-form id="try_form" headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
-            <!-- TODO(simonhatch): Expose these all in the UI. crbug.com/992492 -->
-            <input type="hidden" id="start_git_hash" name="start_git_hash" value="HEAD">
-            <input type="hidden" id="end_git_hash" name="end_git_hash" value="HEAD">
+
+            <template is="dom-if" if="[[!hasJob(job)]]">
+              <input type="hidden" name="comparison_mode" value="[[comparisonMode]]">
+              <paper-radio-group id="comparison_mode" selected="{{comparisonMode}}">
+                <paper-radio-button name="try">Try Job</paper-radio-button>
+                <paper-radio-button name="performance">Bisect</paper-radio-button>
+              </paper-radio-group>
+            </template>
+
             <input type="hidden" name="target" value="[[telemetryIsolate(configuration, benchmark)]]">
             <paper-input name="bug_id" value="{{bug_id}}" label="Bug ID"></paper-input>
-            <paper-input name="patch" value="{{patch}}" label="Gerrit URL" required></paper-input>
+
+            <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
+              <commit-details name="start_git_hash" value="{{start_git_hash}}" label="Start Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
+              <commit-details name="end_git_hash" value="{{end_git_hash}}" label="End Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
+            </template>
+
+            <template is="dom-if" if="[[!isBisectJob(comparisonMode)]]">
+              <paper-input name="patch" value="{{patch}}" label="Gerrit URL" required disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
+            </template>
 
             <autocomplete-box id="botDropdown"
                               name="configuration"
@@ -93,7 +114,7 @@ found in the LICENSE file.
             <autocomplete-box id="benchmarkDropdown"
                               name="benchmark"
                               items="{{arrayToAutocompleteList(testSuites)}}"
-                              disabled="[[suitesLoading]]"
+                              disabled="[[!validTestSuites(testSuites)]]"
                               placeholder="Benchmark"
                               selected-name="{{benchmark}}"
                               required></autocomplete-box>
@@ -147,6 +168,16 @@ found in the LICENSE file.
           type: Boolean,
           value: false
         },
+        bug_id: String,
+        commitsList: Object,
+        commitRangeLoading: {
+          type: Boolean,
+          value: false
+        },
+        comparisonMode: {
+          type: String,
+          value: 'try'
+        },
         config: Object,
         configuration: String,
         configLoading: {
@@ -154,7 +185,6 @@ found in the LICENSE file.
           value: false
         },
         extra_test_args: String,
-        bug_id: String,
         patch: String,
         start_git_hash: {
           type: String,
@@ -168,13 +198,16 @@ found in the LICENSE file.
           type: Boolean,
           value: false
         },
-        job: Object,
+        job: {
+          type: Object,
+          value: null
+        },
         error: Object,
         testSuites: Object,
         suitesLoading: {
           type: Boolean,
           value: false
-        }
+        },
       },
 
       observers: [
@@ -202,6 +235,31 @@ found in the LICENSE file.
         this.$.try_dialog.close();
       },
 
+      isBisectJob(comparisonMode) {
+        return comparisonMode == 'performance';
+      },
+
+      hasJob(job) {
+        return job !== null;
+      },
+
+      commitsListItems(commitsList) {
+        if (!commitsList) {
+          return [];
+        }
+
+        const vals = [];
+        for (const cur of commitsList) {
+          vals.push({
+            message: cur.message.split('\n')[0],
+            name: cur.commit,
+            author: cur.author.email,
+            date: cur.author.time,
+          });
+        }
+        return vals;
+      },
+
       configChanged(config) {
         this.$.botDropdown.tryReselectQuery();
       },
@@ -220,10 +278,14 @@ found in the LICENSE file.
       },
 
       jobChanged(job) {
+        if (job === null) {
+          return;
+        }
         this.bug_id = job.bug_id;
         this.patch = job.arguments.patch;
         this.start_git_hash = job.arguments.start_git_hash;
         this.end_git_hash = job.arguments.end_git_hash;
+        this.comparisonMode = job.arguments.comparison_mode;
         this.extra_test_args = job.arguments.extra_test_args;
         this.$.botDropdown.query = job.arguments.configuration;
         this.$.benchmarkDropdown.query = job.arguments.benchmark;
@@ -245,8 +307,19 @@ found in the LICENSE file.
         this.benchmarkConfig = null;
       },
 
+      commitsParams(job) {
+        return {
+          start_git_hash: job.arguments.start_git_hash,
+          end_git_hash: job.arguments.end_git_hash
+        };
+      },
+
       describeParams(benchmark) {
         return {test_suite: benchmark};
+      },
+
+      validTestSuites(testSuites) {
+        return testSuites !== null && testSuites.length > 0;
       },
 
       validBenchmark(benchmark) {

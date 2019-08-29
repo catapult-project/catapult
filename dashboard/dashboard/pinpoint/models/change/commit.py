@@ -252,6 +252,30 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     return commit
 
   @classmethod
+  def CommitRange(cls, commit_a, commit_b):
+    # We need to get the full list of commits in between two git hashes, and
+    # only look into the chain formed by following the first parents of each
+    # commit. This gives us a linear view of the log even in the presence of
+    # merge commits.
+    commits = []
+
+    # The commit_range by default is in reverse-chronological (latest commit
+    # first) order. This means we should keep following the first parent to get
+    # the linear history for a branch that we're exploring.
+    expected_parent = commit_b.git_hash
+    commit_range = gitiles_service.CommitRange(commit_a.repository_url,
+                                               commit_a.git_hash,
+                                               commit_b.git_hash)
+    for commit in commit_range:
+      # Skip commits until we find the parent we're looking for.
+      if commit['commit'] == expected_parent:
+        commits.append(commit)
+        if 'parents' in commit and len(commit['parents']):
+          expected_parent = commit['parents'][0]
+
+    return commits
+
+  @classmethod
   def Midpoint(cls, commit_a, commit_b):
     """Return a Commit halfway between the two given Commits.
 
@@ -277,25 +301,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
       raise NonLinearError('Repositories differ between Commits: %s vs %s' %
                            (commit_a.repository, commit_b.repository))
 
-    # We need to get the full list of commits in between two git hashes, and
-    # only look into the chain formed by following the first parents of each
-    # commit. This gives us a linear view of the log even in the presence of
-    # merge commits.
-    commits = []
-
-    # The commit_range by default is in reverse-chronological (latest commit
-    # first) order. This means we should keep following the first parent to get
-    # the linear history for a branch that we're exploring.
-    expected_parent = commit_b.git_hash
-    commit_range = gitiles_service.CommitRange(commit_a.repository_url,
-                                               commit_a.git_hash,
-                                               commit_b.git_hash)
-    for commit in commit_range:
-      # Skip commits until we find the parent we're looking for.
-      if commit['commit'] == expected_parent:
-        commits.append(commit)
-        if 'parents' in commit and len(commit['parents']):
-          expected_parent = commit['parents'][0]
+    commits = cls.CommitRange(commit_a, commit_b)
 
     # We don't handle NotFoundErrors because we assume that all Commits either
     # came from this method or were already validated elsewhere.

@@ -15,6 +15,8 @@ from dashboard.pinpoint import handlers
 _URL_MAPPING = [
     # Public API.
     webapp2.Route(r'/api/config', handlers.Config),
+    webapp2.Route(r'/api/commit', handlers.Commit),
+    webapp2.Route(r'/api/commits', handlers.Commits),
     webapp2.Route(r'/api/generate-results2/<job_id>',
                   handlers.Results2Generator),
     webapp2.Route(r'/api/isolate', handlers.Isolate),

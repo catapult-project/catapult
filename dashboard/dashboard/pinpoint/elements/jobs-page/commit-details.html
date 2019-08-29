@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+Copyright 2019 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/components/iron-ajax/iron-ajax.html">
+
+<link rel="import" href="/elements/base-style.html">
+<link rel="import" href="/elements/jobs-page/commit-input.html">
+
+<dom-module id="commit-details">
+  <template>
+    <style include="base-style">
+      p {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      paper-progress {
+        display: block;
+        width: 100%;
+      }
+
+      .details {
+        margin: 0.25em 0 0.5em 0;
+      }
+
+      .commit {
+        padding: 4px;
+        border-radius: 3px;
+        background-color: background-color: var(--paper-grey-100);
+      }
+
+      .error {
+        color: var(--paper-red-500);
+      }
+    </style>
+
+    <div>
+      <commit-input class="hash"
+                    name="[[name]]"
+                    items="[[items]]"
+                    placeholder="[[label]]"
+                    query="{{value}}"
+                    required disabled$="[[disabled]]"></commit-input>
+    </div>
+    <div class="details">
+      <template is="dom-if" if="[[hasGitHash(value)]]">
+        <iron-ajax method="post" headers="[[headers]]" auto url="/api/commit" params="[[commitParams(value)]]" loading="{{loading}}" last-error="{{error}}" last-response="{{commitDetails}}"></iron-ajax>
+      </template>
+      <template is="dom-if" if="[[loading]]">
+        <paper-progress indeterminate></paper-progress>
+      </template>
+      <template is="dom-if" if="[[hasCommitDetails(commitDetails)]]">
+        <p><span class="commit">[[commitDetails.commit_position]]</span> By [[commitDetails.author]]</p>
+        <p class="byline"><a href="[[url(change)]]" target="_blank">[[commitDetails.subject]]</a></p>
+      </template>
+      <template is="dom-if" if="[[error]]">
+        <p class="error">[[error.error]]</p>
+      </template>
+    </div>
+    </paper-dialog>
+  </template>
+
+  <script>
+    'use strict';
+
+    Polymer({
+      is: 'commit-details',
+
+      properties: {
+        disabled: {
+          notify: true,
+          type: Boolean,
+          value: false
+        },
+        value: {
+          type: String,
+          value: ''
+        },
+        loading: {
+          type: Boolean,
+          value: false
+        },
+        commitDetails: {
+          type: Object,
+          value: null
+        }
+      },
+
+      observers: [
+        'valueChanged(value)',
+      ],
+
+      commitParams(value) {
+        return {git_hash: value};
+      },
+
+      hasGitHash(value) {
+        return value.length > 3;
+      },
+
+      hasCommitDetails(commitDetails) {
+        return commitDetails !== null;
+      },
+
+      valueChanged(value) {
+        this.commitDetails = null;
+      }
+    });
+  </script>
+</dom-module>
