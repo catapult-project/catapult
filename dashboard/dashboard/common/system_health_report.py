@@ -54,7 +54,7 @@ def MemoizeWithTimeout(**kwargs):
 @MemoizeWithTimeout(hours=12)
 def GetSystemHealthDescriptors():
   return update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
-      'system_health.memory_mobile')
+      None, 'system_health.memory_mobile')
 
 
 def IterTemplateRows(browser, bot):

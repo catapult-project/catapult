@@ -82,7 +82,7 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
     }
     self.SetCurrentUser('internal@chromium.org')
     actual = update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
-        'internal')
+        'master', 'internal')
     self.assertEqual(expected, actual)
 
   def testCaseTags(self):
@@ -129,7 +129,7 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
         'caseTags': {'j': ['x', 'y'], 'k': ['y']},
     }
     actual = update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
-        'suite')
+        'master', 'suite')
     self.assertEqual(expected, actual)
 
 

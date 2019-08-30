@@ -17,5 +17,7 @@ class DescribeHandler(api_request_handler.ApiRequestHandler):
     pass
 
   def Post(self):
+    master = self.request.get('master')
+    suite = self.request.get('test_suite')
     return update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
-        self.request.get('test_suite'))
+        master, suite)
