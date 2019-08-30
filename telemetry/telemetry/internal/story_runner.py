@@ -440,9 +440,6 @@ def RunBenchmark(benchmark, finder_options):
         return_code = 0
       else:
         return_code = -1  # All stories were skipped.
-      # We want to make sure that all expectations are linked to real stories,
-      # this will log error messages if names do not match what is in the set.
-      benchmark.GetBrokenExpectations(story_set)
     except Exception as exc: # pylint: disable=broad-except
       interruption = 'Benchmark execution interrupted: %r' % exc
       results.InterruptBenchmark(interruption)

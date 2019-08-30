@@ -263,11 +263,6 @@ class Benchmark(command_line.Command):
       raise NotImplementedError('This test has no "page_set" attribute.')
     return self.page_set()  # pylint: disable=not-callable
 
-  def GetBrokenExpectations(self, story_set):
-    if self._expectations:
-      return self._expectations.GetBrokenExpectations(story_set)
-    return []
-
   def AugmentExpectationsWithFile(self, raw_data):
     self._expectations.GetBenchmarkExpectationsFromParser(raw_data)
 
