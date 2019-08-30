@@ -381,22 +381,11 @@ def ValidateStory(story):
 def _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
   if finder_options.print_only:
     return True  # Should always run on print-only mode.
-
   if benchmark._CanRunOnPlatform(possible_browser.platform, finder_options):
-    disabled_reason = benchmark.expectations.IsBenchmarkDisabled()
-    if not disabled_reason:
-      return True  # Can run on this platform and is not disabled.
-    print 'Benchmark "%s" is disabled on the chosen browser due to: %s.' % (
-        benchmark.Name(), disabled_reason)
-    if finder_options.run_disabled_tests:
-      print 'Running benchmark anyway due to: --also-run-disabled-tests'
-      return True
-    else:
-      print 'Try --also-run-disabled-tests to force the benchmark to run.'
-  else:
-    print ('Benchmark "%s" is not supported on the current platform. If this '
-           "is in error please add it to the benchmark's SUPPORTED_PLATFORMS."
-           % benchmark.Name())
+    return True
+  print ('Benchmark "%s" is not supported on the current platform. If this '
+         "is in error please add it to the benchmark's SUPPORTED_PLATFORMS."
+         % benchmark.Name())
   return False
 
 

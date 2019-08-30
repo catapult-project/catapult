@@ -1265,14 +1265,17 @@ class StoryRunnerTest(unittest.TestCase):
       data = json.load(f)
     self.assertFalse(data['enabled'])
 
-  def testRunBenchmarkDisabledBenchmark(self):
+  def testRunBenchmark_DisabledWithExpectations(self):
     fake_benchmark = FakeBenchmarkWithAStory()
     fake_benchmark.disabled = True
     options = self.GetFakeBrowserOptions()
+    options.output_formats = ['json-test-results']
     story_runner.RunBenchmark(fake_benchmark, options)
-    with open(os.path.join(options.output_dir, 'results-chart.json')) as f:
+    with open(os.path.join(options.output_dir, 'test-results.json')) as f:
       data = json.load(f)
-    self.assertFalse(data['enabled'])
+    self.assertEqual(len(data['tests']['fake_with_a_story']), 1)
+    self.assertEqual(data['tests']['fake_with_a_story']['story']['actual'],
+                     'SKIP')
 
   def testRunBenchmarkDisabledBenchmarkCanOverriddenByCommandLine(self):
     fake_benchmark = FakeBenchmarkWithAStory()
