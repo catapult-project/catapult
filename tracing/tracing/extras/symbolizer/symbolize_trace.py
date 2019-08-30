@@ -544,22 +544,75 @@ class TypeNameMap(NodeWrapper):
   For simplicity string ids are translated into strings during parsing,
   and then translated back to ids in ApplyModifications().
   """
+
+  class Type(object):
+    """Holds information used to populate the "object type" field.
+
+    We store type id and type name. If "--frame-as-object-type" is enabled,
+    we use PCs as type names, which can be resolved later.
+    """
+
+    def __init__(self, type_id, name):
+      self._modified = False
+      self._id = type_id
+      self._pc = self._ParsePC(name)
+      self._name = name
+
+    @property
+    def modified(self):
+      """Returns True if the type was modified."""
+      return self._modified
+
+    @property
+    def id(self):
+      """Type id (integer)."""
+      return self._id
+
+    @property
+    def name(self):
+      """Name of the type."""
+      return self._name
+
+    @name.setter
+    def name(self, value):
+      """Changes the name."""
+      self._modified = True
+      self._name = value
+
+    @property
+    def pc(self):
+      """Parsed (integer) PC of the type node if frame_as_object_type is
+         enabled, or None."""
+      return self._pc
+
+    _PC_TAG = 'pc:'
+
+    def _ParsePC(self, name):
+      if not name.startswith(self._PC_TAG):
+        return None
+      return int(name[len(self._PC_TAG):], 16)
+
+    def _ClearModified(self):
+      self._modified = False
+
   def __init__(self):
     self._modified = False
     self._type_name_nodes = []
-    self._name_by_id = {}
+    self._type_by_id = {}
     self._id_by_name = {}
     self._max_type_id = 0
 
   @property
   def modified(self):
-    """Returns True if the wrapper was modified (see NodeWrapper)."""
-    return self._modified
+    """Returns True if the wrapper was modified (see NodeWrapper) or if the
+       object type was overwritten."""
+    return (self._modified or
+            any(t.modified for t in self._type_by_id.values()))
 
   @property
-  def name_by_id(self):
-    """Returns {id -> name} dict (must not be changed directly)."""
-    return self._name_by_id
+  def type_by_id(self):
+    """Returns {id -> Type} dict (must not be changed directly)."""
+    return self._type_by_id
 
   def ParseNext(self, heap_dump_version, type_name_node, string_map):
     """Parses and interns next node (see NodeWrapper).
@@ -574,6 +627,38 @@ class TypeNameMap(NodeWrapper):
     for type_node in type_name_node:
       self._Insert(type_node['id'],
                    string_map.string_by_id[type_node['name_sid']])
+
+  def ParseNextWithPCAsTypeName(self, heap_dump_version, type_name_node,
+                                frame_by_id, alloc_types, alloc_nodes):
+    """Set the corresponding PCs from frame as object type.
+
+    This should be used while "--frame-as-object-type" is raised. Current this
+    is only supported when is_cast is raised.
+
+    Args:
+      alloc_types: A list of type_id which is one-to-one corresponding
+          to alloc_nodes.
+      alloc_nodes: A list of frame_id which is the last frame of backtrace.
+    """
+    if heap_dump_version != Trace.HEAP_DUMP_VERSION_1:
+      raise UnsupportedHeapDumpVersionError(heap_dump_version)
+
+    self._type_name_nodes.append(type_name_node)
+    if not alloc_types:
+      return
+    self._modified = True
+    type_size = len(alloc_types)
+    get_frame_parent = (
+        lambda frame_id: frame_id if frame_by_id[frame_id].parent_id is None
+        else frame_by_id[frame_id].parent_id
+    )
+
+    for count in range(type_size):
+      # Note that according to the AllocatorShim layer, there are two frames
+      # which are used to record the allocations in Linux.
+      parent = get_frame_parent(get_frame_parent(alloc_nodes[count]))
+      type_id = self.AddType(frame_by_id[parent].name)
+      alloc_types[count] = type_id
 
   def AddType(self, type_name):
     """Adds a type name (if it doesn't exist) and returns its id."""
@@ -600,16 +685,19 @@ class TypeNameMap(NodeWrapper):
     for types_node in self._type_name_nodes:
       del types_node[:]
     types_node = self._type_name_nodes[0]
-    for type_id, type_name in self._name_by_id.items():
+    for type_node in self._type_by_id.values():
       types_node.append({
-          'id': type_id,
-          'name_sid': string_map.AddString(type_name)})
+          'id': type_node.id,
+          'name_sid': string_map.AddString(type_node.name)
+      })
+      type_node._ClearModified()
 
     self._modified = False
 
   def _Insert(self, type_id, type_name):
+    type_node = self.Type(type_id, type_name)
     self._id_by_name[type_name] = type_id
-    self._name_by_id[type_id] = type_name
+    self._type_by_id[type_id] = type_node
     self._max_type_id = max(self._max_type_id, type_id)
 
 
@@ -852,7 +940,7 @@ class Trace(NodeWrapper):
           self._type_name_map.ApplyModifications(self._string_map, force=True)
           self._string_map.ApplyModifications()
 
-  def __init__(self, trace_node):
+  def __init__(self, trace_node, frame_as_object_type=False):
     self._trace_node = trace_node
     self._processes = []
     self._heap_dump_version = None
@@ -866,6 +954,7 @@ class Trace(NodeWrapper):
     self._is_cros = False
     self._is_android = False
     self._is_cast = False
+    self._frame_as_object_type = frame_as_object_type
 
     # Misc per-process information needed only during parsing.
     class ProcessExt(object):
@@ -899,7 +988,7 @@ class Trace(NodeWrapper):
     # just list of events.
     events = trace_node if isinstance(trace_node, list) \
              else trace_node['traceEvents']
-    for event in events:
+    for event in events: # pylint: disable=too-many-nested-blocks
       name = event.get('name')
       if not name:
         continue
@@ -934,7 +1023,8 @@ class Trace(NodeWrapper):
         if heaps:
           version = self._UseHeapDumpVersion(heaps['version'])
           maps = heaps.get('maps')
-          if maps:
+          allocators = heaps.get('allocators')
+          if maps and allocators:
             process_ext.mapped_entry_names.update(list(maps.keys()))
             types = maps.get('types')
             stack_frames = maps.get('nodes')
@@ -950,12 +1040,18 @@ class Trace(NodeWrapper):
             if strings is not None:
               process_ext.seen_strings_node = True
               process._string_map.ParseNext(version, strings)
-            if types:
-              process._type_name_map.ParseNext(
-                  version, types, process._string_map)
             if stack_frames:
               process._stack_frame_map.ParseNext(
                   version, stack_frames, process._string_map)
+            if types:
+              if self._frame_as_object_type:
+                for alloc in allocators.values():
+                  process._type_name_map.ParseNextWithPCAsTypeName(
+                      version, types, process._stack_frame_map._frame_by_id,
+                      alloc['types'], alloc['nodes'])
+              else:
+                process._type_name_map.ParseNext(version, types,
+                                                 process._string_map)
 
     self._processes = []
     for pe in process_ext_by_pid.values():
@@ -1029,6 +1125,10 @@ class Trace(NodeWrapper):
     self._is_cast = new_value
 
   @property
+  def frame_as_object_type(self):
+    return self._frame_as_object_type
+
+  @property
   def is_64bit(self):
     return self._is_64bit
 
@@ -1079,33 +1179,51 @@ class SymbolizableFile(object):
     self.has_breakpad_symbols = False
 
 
-def ResolveSymbolizableFiles(processes, trace_from_win):
+def ResolveSymbolizableFilesByNodes(symfile_by_path, memory_map, nodes,
+                                    trace_from_win):
   """Resolves and groups PCs into list of SymbolizableFiles.
 
-  As part of the grouping process, this function resolves PC from each stack
-  frame to the corresponding mmap region. Stack frames that failed to resolve
-  are symbolized with '<unresolved>'.
+  As part of the grouping process, this function resolves PC from each nodes
+  (stack frame or object type) to the corresponding memory map region. Nodes
+  that failed to resolve are symbolized with '<unresolved>'.
+  """
+  for node in nodes:
+    if node.pc is None:
+      continue
+    region = memory_map.FindRegion(node.pc)
+    if region is None:
+      node.name = '<unresolved>'
+      continue
+
+    symfile = symfile_by_path.get(region.file_path)
+    if symfile is None:
+      file_path = region.file_path
+      symfile = SymbolizableFile(file_path, region.code_id, trace_from_win)
+      symfile_by_path[symfile.path] = symfile
+
+    relative_pc = node.pc - region.start_address + region.file_offset
+    symfile.frames_by_address[relative_pc].append(node)
+
+
+def ResolveSymbolizableFiles(processes, trace_from_win, frame_as_object_type):
+  """Resolves and groups PCs from frame or type into list of SymbolizableFiles.
+
+  In default mode, we always resolve PCs from stack frame. If "--frame-as-
+  object-type" is enabled, the type name will be PCs, so that we need to
+  resolve and symbolize it.
   """
   symfile_by_path = {}
   for process in processes:
     if not process.memory_map:
       continue
-    for frame in process.stack_frame_map.frame_by_id.values():
-      if frame.pc is None:
-        continue
-      region = process.memory_map.FindRegion(frame.pc)
-      if region is None:
-        frame.name = '<unresolved>'
-        continue
+    ResolveSymbolizableFilesByNodes(
+        symfile_by_path, process.memory_map,
+        process.stack_frame_map.frame_by_id.values(), trace_from_win)
 
-      symfile = symfile_by_path.get(region.file_path)
-      if symfile is None:
-        file_path = region.file_path
-        symfile = SymbolizableFile(file_path, region.code_id, trace_from_win)
-        symfile_by_path[symfile.path] = symfile
-
-      relative_pc = frame.pc - region.start_address + region.file_offset
-      symfile.frames_by_address[relative_pc].append(frame)
+    if frame_as_object_type:
+      ResolveSymbolizableFilesByNodes(symfile_by_path, process.memory_map,
+                                      process.type_name_map.type_by_id.values(),
+                                      trace_from_win)
 
   return list(symfile_by_path.values())
 
@@ -1441,7 +1559,8 @@ def RemapBreakpadModules(symfiles, symbolizer, only_symbolize_chrome_symbols):
 
 
 def SymbolizeTrace(options, trace, symbolizer):
-  symfiles = ResolveSymbolizableFiles(trace.processes, trace.is_win)
+  symfiles = ResolveSymbolizableFiles(trace.processes, trace.is_win,
+                                      trace.frame_as_object_type)
 
   if options.use_breakpad_symbols:
     RemapBreakpadModules(symfiles, symbolizer,
@@ -1637,6 +1756,12 @@ def main(args):
       help="Indicate that the memlog trace is from cast devices.")
 
   parser.add_argument(
+      '--frame-as-object-type',
+      action='store_true',
+      help="Indicate that output of object types should use frame name. This "
+      "option is specifically used for cast, running Linux.")
+
+  parser.add_argument(
       '--output-directory',
       help='The path to the build output directory, such as out/Debug.')
 
@@ -1674,6 +1799,9 @@ def main(args):
 
   options = parser.parse_args(args)
 
+  if options.frame_as_object_type and not options.is_cast:
+    sys.exit("Frame-as-object-type is only supported for cast.")
+
   symbolizer = Symbolizer(options.addr2line_executable)
   if (symbolizer.symbolizer_path is None and
       not options.use_breakpad_symbols):
@@ -1683,7 +1811,7 @@ def main(args):
 
   print('Reading trace file...')
   with OpenTraceFile(trace_file_path, 'r') as trace_file:
-    trace = Trace(json.load(trace_file))
+    trace = Trace(json.load(trace_file), options.frame_as_object_type)
   print('Trace loaded for %s/%s' % (trace.os, trace.version))
 
   trace.is_chromium = options.is_local_build
