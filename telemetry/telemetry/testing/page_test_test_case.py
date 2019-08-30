@@ -57,7 +57,7 @@ class PageTestTestCase(unittest.TestCase):
     """
     if isinstance(measurement, legacy_page_test.LegacyPageTest):
       measurement.CustomizeBrowserOptions(run_options.browser_options)
-    results = results_options.CreateResults(
-        run_options, benchmark_name=BENCHMARK_NAME)
-    story_runner.Run(measurement, story_set, run_options, results)
+    with results_options.CreateResults(
+        run_options, benchmark_name=BENCHMARK_NAME) as results:
+      story_runner.Run(measurement, story_set, run_options, results)
     return results
