@@ -59,12 +59,24 @@ found in the LICENSE file.
     </template>
     <paper-tooltip for="try-fab" position="left">Try job</paper-tooltip>
     <paper-dialog id="try_dialog" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
-      <h2>Run a try job</h2>
+      <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
+        <h2>Run a bisect job</h2>
+      </template>
+      <template is="dom-if" if="[[!isBisectJob(comparisonMode)]]">
+        <h2>Run a try job</h2>
+      </template>
       <div>
-        <p>
-          See the performance impact of a patch on a benchmark. A try job runs
-          HEAD and HEAD + patch, and compares all the metrics between the two.
-        </p>
+        <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
+          <p>
+            Narrow down a regression to a cl or set of cl's. A bisect job bisects the commit range, and looks for changes in the specified metric.
+          </p>
+        </template>
+        <template is="dom-if" if="[[!isBisectJob(comparisonMode)]]">
+          <p>
+            See the performance impact of a patch on a benchmark. A try job runs
+            HEAD and HEAD + patch, and compares all the metrics between the two.
+          </p>
+        </template>
         <template is="dom-if" if="[[error]]">
           <p class="error">[[error]]
         </template>
@@ -251,10 +263,11 @@ found in the LICENSE file.
         const vals = [];
         for (const cur of commitsList) {
           vals.push({
-            message: cur.message.split('\n')[0],
-            name: cur.commit,
-            author: cur.author.email,
-            date: cur.author.time,
+            message: cur.subject,
+            name: cur.git_hash,
+            author: cur.author,
+            date: cur.created,
+            commit_position: cur.commit_position,
           });
         }
         return vals;

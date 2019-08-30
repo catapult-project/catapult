@@ -48,17 +48,15 @@ found in the LICENSE file.
                     required disabled$="[[disabled]]"></commit-input>
     </div>
     <div class="details">
-      <template is="dom-if" if="[[hasGitHash(value)]]">
-        <iron-ajax method="post" headers="[[headers]]" auto url="/api/commit" params="[[commitParams(value)]]" loading="{{loading}}" last-error="{{error}}" last-response="{{commitDetails}}"></iron-ajax>
-      </template>
+      <iron-ajax id="loading" method="post" headers="[[headers]]" url="/api/commit" params="[[commitParams(value)]]" loading="{{loading}}" last-error="{{error}}" last-response="{{commitDetails}}"></iron-ajax>
       <template is="dom-if" if="[[loading]]">
         <paper-progress indeterminate></paper-progress>
       </template>
       <template is="dom-if" if="[[hasCommitDetails(commitDetails)]]">
-        <p><span class="commit">[[commitDetails.commit_position]]</span> By [[commitDetails.author]]</p>
-        <p class="byline"><a href="[[url(change)]]" target="_blank">[[commitDetails.subject]]</a></p>
+        <p><span class="commit-hash">[[_FormatHash(commitDetails.git_hash)]]</span><span class="conmit-message">[[commitDetails.message]]</span></p>
+        <p><span class="commit-position">[[commitDetails.commit_position]]</span><span class="commit-author">[[commitDetails.author]]</span></p>
       </template>
-      <template is="dom-if" if="[[error]]">
+      <template is="dom-if" if="[[hasError(error, value)]]">
         <p class="error">[[error.error]]</p>
       </template>
     </div>
@@ -92,11 +90,24 @@ found in the LICENSE file.
       },
 
       observers: [
+        'loadingChanged(loading)',
         'valueChanged(value)',
       ],
 
+      _FormatHash(hash) {
+        // Using == for both null/undefined
+        if (hash == null) {
+          return '';
+        }
+        return hash.slice(0, 8);
+      },
+
       commitParams(value) {
         return {git_hash: value};
+      },
+
+      hasError(error, value) {
+        return this.hasGitHash(value) && !!error;
       },
 
       hasGitHash(value) {
@@ -107,8 +118,18 @@ found in the LICENSE file.
         return commitDetails !== null;
       },
 
+      loadingChanged(loading) {
+        if (loading) {
+          this.error = null;
+        }
+      },
+
       valueChanged(value) {
-        this.commitDetails = null;
+        this.set('commitDetails', null);
+
+        if (this.hasGitHash(value)) {
+          this.$.loading.generateRequest();
+        }
       }
     });
   </script>

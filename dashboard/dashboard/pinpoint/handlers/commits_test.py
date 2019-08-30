@@ -14,14 +14,32 @@ from dashboard.pinpoint import test
 from dashboard.services import request
 
 
+class MockCommit(object):
+  def __init__(self, url, msg):
+    self.url = url
+    self.msg = msg
+
+  def AsDict(self):
+    return {self.url: self.msg}
+
+
 class CommitsHandlerTest(test.TestCase):
 
-  @mock.patch.object(commit.Commit, 'CommitRange', return_value=['abc'])
-  @mock.patch.object(commit.Commit, 'FromDict', mock.MagicMock())
-  def testPost(self, _):
-    data = json.loads(self.testapp.post('/api/commits').body)
+  @mock.patch(
+      'dashboard.pinpoint.models.change.commit.Commit.CommitRange',
+      mock.MagicMock(return_value=[{'commit': 'abc'}]))
+  def testPost(self):
+    params = {'start_git_hash': 'foo', 'end_git_hash': 'bar'}
+    data = json.loads(
+        self.testapp.post('/api/commits', params).body)
 
-    self.assertEqual(['abc'], data)
+    c1 = commit.Commit('chromium', 'foo')
+    c2 = commit.Commit('chromium', 'abc')
+
+    self.assertEqual(2, len(data))
+    self.assertEqual(c1.AsDict(), data[0])
+    self.assertEqual(c2.AsDict(), data[1])
+    self.assertEqual('abc', data[1]['git_hash'])
 
   @mock.patch.object(
       commit.Commit, 'CommitRange', side_effect=request.RequestError('abc', ''))

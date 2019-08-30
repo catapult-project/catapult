@@ -125,37 +125,13 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
 
     return frozenset(commits)
 
-  def CacheCommitInfo(self):
-    try:
-      return commit_cache.Get(self.id_string)
-    except KeyError:
-      commit_info = gitiles_service.CommitInfo(
-          self.repository_url, self.git_hash)
-      url = self.repository_url + '/+/' + commit_info['commit']
-      author = commit_info['author']['email']
-
-      created = ParseDateWithUTCOffset(commit_info['committer']['time'])
-
-      subject = commit_info['message'].split('\n', 1)[0]
-      message = commit_info['message']
-
-      commit_cache.Put(self.id_string, url, author, created, subject, message)
-
-      return {
-          'url': url,
-          'author': author,
-          'created': created,
-          'subject': subject,
-          'message': message,
-      }
-
   def AsDict(self):
     d = {
         'repository': self.repository,
         'git_hash': self.git_hash,
     }
 
-    d.update(self.CacheCommitInfo())
+    d.update(self.GetOrCacheCommitInfo())
     d['created'] = d['created'].isoformat()
 
     commit_position = _ParseCommitPosition(d['message'])
@@ -275,6 +251,33 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
 
     return commits
 
+  def GetOrCacheCommitInfo(self):
+    try:
+      return commit_cache.Get(self.id_string)
+    except KeyError:
+      commit_info = gitiles_service.CommitInfo(
+          self.repository_url, self.git_hash)
+      return self.CacheCommitInfo(commit_info)
+
+  def CacheCommitInfo(self, commit_info):
+    url = self.repository_url + '/+/' + commit_info['commit']
+    author = commit_info['author']['email']
+
+    created = ParseDateWithUTCOffset(commit_info['committer']['time'])
+
+    subject = commit_info['message'].split('\n', 1)[0]
+    message = commit_info['message']
+
+    commit_cache.Put(self.id_string, url, author, created, subject, message)
+
+    return {
+        'url': url,
+        'author': author,
+        'created': created,
+        'subject': subject,
+        'message': message,
+    }
+
   @classmethod
   def Midpoint(cls, commit_a, commit_b):
     """Return a Commit halfway between the two given Commits.
@@ -316,14 +319,15 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
 
     deferred.defer(
         _CacheCommitDetails,
-        commit_a.repository, commits[len(commits) // 2]['commit'])
+        commit_a.repository, commits)
 
     return cls(commit_a.repository, commits[len(commits) // 2]['commit'])
 
 
-def _CacheCommitDetails(repository, git_url):
-  c = Commit(repository, git_url)
-  c.CacheCommitInfo()
+def _CacheCommitDetails(repository, commits):
+  for cur in commits:
+    c = Commit(repository, cur['commit'])
+    c.CacheCommitInfo(cur)
 
 
 def _ParseCommitPosition(commit_message):

@@ -268,12 +268,15 @@ class MidpointTest(test.TestCase):
   @mock.patch.object(
       commit.deferred, 'defer')
   def testMidpointCachesData(self, mock_defer):
-    midpoint = commit.Commit.Midpoint(
-        commit.Commit(repository='chromium', git_hash='commit_0'),
-        commit.Commit(repository='chromium', git_hash='mc_4'))
+    c1 = commit.Commit(repository='chromium', git_hash='commit_0')
+    c2 = commit.Commit(repository='chromium', git_hash='mc_4')
+    midpoint = commit.Commit.Midpoint(c1, c2)
+
+    commits = commit.Commit.CommitRange(c1, c2)
+    commits.pop(0)
 
     mock_defer.assert_called_once_with(
-        commit._CacheCommitDetails, midpoint.repository, midpoint.git_hash)
+        commit._CacheCommitDetails, midpoint.repository, commits)
 
   def testContinuousMidpointWithMergeCommits(self):
 
