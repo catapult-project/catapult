@@ -295,7 +295,6 @@ class PageTestResults(object):
     self._current_story_run.Finish()
     self._progress_reporter.DidRunStory(self)
     self._all_story_runs.append(self._current_story_run)
-    self._WriteJsonLine(self._current_story_run.AsDict())
     story = self._current_story_run.story
     self._all_stories.add(story)
     self._current_story_run = None
@@ -499,7 +498,6 @@ class PageTestResults(object):
     assert self._current_story_run is None, (
         'Cannot finalize while stories are still running.')
     self._finalized = True
-    self._RecordBenchmarkFinish()
     self._progress_reporter.DidFinishAllStories(self)
 
     # Only serialize the trace if output_format is json or html.
@@ -508,6 +506,17 @@ class PageTestResults(object):
             for o in self._output_formatters)):
       # Just to make sure that html trace is there in artifacts dir
       results_processor.SerializeAndUploadHtmlTraces(self)
+
+    # TODO(crbug.com/981349): Ideally we want to write results for each story
+    # run individually at DidRunPage when the story finished executing. For
+    # now, however, we need to wait until this point after html traces have
+    # been serialized, uploaded, and recorded as artifacts for them to show up
+    # in intermediate results. When both trace serialization and artifact
+    # upload are handled by results_processor, remove the for-loop from here
+    # and write results instead at the end of each story run.
+    for run in self._all_story_runs:
+      self._WriteJsonLine(run.AsDict())
+    self._RecordBenchmarkFinish()
 
     for output_formatter in self._output_formatters:
       output_formatter.Format(self)

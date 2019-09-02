@@ -569,7 +569,8 @@ class PageTestResultsFilterTest(_PageTestResultsTestBase):
 
   @mock.patch('py_utils.cloud_storage.Insert')
   def testUploadArtifactsToCloud_withNoOpArtifact(self, _):
-    with self.CreateResults(upload_bucket='abc', output_dir=None) as results:
+    with self.CreateResults(
+        upload_bucket='abc', output_dir=None, intermediate_dir=None) as results:
       results.WillRunPage(self.pages[0])
       with results.CreateArtifact('screenshot.png'):
         pass
