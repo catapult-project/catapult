@@ -18,6 +18,8 @@ from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import results_processor
 from telemetry.internal.results import story_run
+from telemetry.value import list_of_scalar_values
+from telemetry.value import scalar
 
 from tracing.value import convert_chart_json
 from tracing.value import histogram_set
@@ -310,8 +312,8 @@ class PageTestResults(object):
         self.Fail(fail)
       if result['histogram_dicts']:
         self._ImportHistogramDicts(result['histogram_dicts'])
-      for scalar in result['scalars']:
-        self.AddValue(scalar)
+      for value in result['scalars']:
+        self.AddValue(value)
     finally:
       self._current_story_run = None
 
@@ -380,12 +382,34 @@ class PageTestResults(object):
         '%s_%s' % (hist.name, s) for  s in hist.statistics_scalars.iterkeys()]
     return any(self._should_add_value(s, is_first_result) for s in stat_names)
 
-  def AddValue(self, value):
-    """Associate a legacy Telemetry value with the current story run.
+  def AddMeasurement(self, name, unit, samples):
+    """Record a measurement of the currently running story.
 
-    This should not be used in new benchmarks. All values/measurements should
-    be recorded in traces.
+    Measurements are numeric values obtained directly by a benchmark while
+    a story is running (e.g. by evaluating some JavaScript on the page or
+    calling some platform methods). These are appended together with
+    measurements obtained by running metrics on collected traces (if any)
+    after the benchmark run has finished.
+
+    TODO(crbug.com/999484): Currently measurements are stored as legacy
+    Telemetry values. This will allow clients to switch to this new API while
+    preserving the existing behavior. When no more clients create legacy
+    values on their own, the implementation details below can be changed.
+
+    Args:
+      name: A string with the name of the measurement (e.g. 'score', 'runtime',
+        etc).
+      unit: A string specifying the unit used for measurements (e.g. 'ms',
+        'count', etc).
+      samples: Either a single numeric value or a list of numeric values to
+        record as part of this measurement.
     """
+    assert self._current_story_run, 'Not currently running a story.'
+    value = _MeasurementToValue(self.current_story, name, unit, samples)
+    self.AddValue(value)
+
+  def AddValue(self, value):
+    """DEPRECATED: Use AddMeasurement instead."""
     assert self._current_story_run, 'Not currently running a story.'
 
     self._ValidateValue(value)
@@ -394,7 +418,7 @@ class PageTestResults(object):
 
     if not self._should_add_value(value.name, is_first_result):
       return
-    self._current_story_run.AddValue(value)
+    self._current_story_run.AddLegacyValue(value)
 
   def AddSharedDiagnosticToAllHistograms(self, name, diagnostic):
     self._histograms.AddSharedDiagnosticToAllHistograms(name, diagnostic)
@@ -498,3 +522,11 @@ class PageTestResults(object):
     for run in self._IterAllStoryRuns():
       if run.HasArtifactsInDir('trace/'):
         yield run
+
+
+def _MeasurementToValue(story, name, unit, samples):
+  if isinstance(samples, list):
+    return list_of_scalar_values.ListOfScalarValues(
+        story, name=name, units=unit, values=samples)
+  else:
+    return scalar.ScalarValue(story, name=name, units=unit, value=samples)

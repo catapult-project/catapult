@@ -123,7 +123,7 @@ class StoryRun(object):
       if not os.path.exists(self._artifacts_dir):
         os.makedirs(self._artifacts_dir)
 
-  def AddValue(self, value):
+  def AddLegacyValue(self, value):
     self._values.append(value)
 
   def SetTbmMetrics(self, metrics):

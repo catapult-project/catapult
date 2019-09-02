@@ -10,8 +10,6 @@ from telemetry import story
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
-from telemetry.value import improvement_direction
-from telemetry.value import scalar
 from tracing.value import histogram_set
 from tracing_build import render_histograms_viewer
 
@@ -43,9 +41,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results = page_test_results.PageTestResults()
 
     results.WillRunPage(self._story_set[0])
-    v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
-                            improvement_direction=improvement_direction.DOWN)
-    results.AddValue(v0)
+    results.AddMeasurement('foo', 'seconds', 3)
     results.DidRunPage(self._story_set[0])
     results.PopulateHistogramSet()
 

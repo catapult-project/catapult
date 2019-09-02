@@ -34,9 +34,7 @@ from telemetry.testing import fakes
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
 from telemetry.util import wpr_modes
-from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
-from telemetry.value import scalar
 from telemetry.value import summary as summary_module
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
@@ -261,16 +259,14 @@ class TestOnlyException(Exception):
 class _Measurement(legacy_page_test.LegacyPageTest):
   i = 0
   def RunPage(self, page, results):
+    del page  # Unused.
     self.i += 1
-    results.AddValue(scalar.ScalarValue(
-        page, 'metric', 'unit', self.i,
-        improvement_direction=improvement_direction.UP))
+    results.AddMeasurement('metric', 'unit', self.i)
 
   def ValidateAndMeasurePage(self, page, tab, results):
+    del page, tab  # Unused.
     self.i += 1
-    results.AddValue(scalar.ScalarValue(
-        page, 'metric', 'unit', self.i,
-        improvement_direction=improvement_direction.UP))
+    results.AddMeasurement('metric', 'unit', self.i)
 
 
 class StoryRunnerTest(unittest.TestCase):
@@ -605,15 +601,12 @@ class StoryRunnerTest(unittest.TestCase):
     values = summary.interleaved_computed_per_page_values_and_summaries
 
     blank_value = list_of_scalar_values.ListOfScalarValues(
-        blank_story, 'metric', 'unit', [1, 3],
-        improvement_direction=improvement_direction.UP)
+        blank_story, 'metric', 'unit', [1, 3])
     green_value = list_of_scalar_values.ListOfScalarValues(
-        green_story, 'metric', 'unit', [2, 4],
-        improvement_direction=improvement_direction.UP)
+        green_story, 'metric', 'unit', [2, 4])
     merged_value = list_of_scalar_values.ListOfScalarValues(
         None, 'metric', 'unit',
-        [1, 3, 2, 4], std=math.sqrt(2),  # Pooled standard deviation.
-        improvement_direction=improvement_direction.UP)
+        [1, 3, 2, 4], std=math.sqrt(2))  # Pooled standard deviation.
 
     self.assertEquals(4, GetNumberOfSuccessfulPageRuns(self.results))
     self.assertFalse(self.results.had_failures)

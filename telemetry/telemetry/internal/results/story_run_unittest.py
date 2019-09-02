@@ -10,8 +10,6 @@ import mock
 from telemetry.internal.results import story_run
 from telemetry.story import shared_state
 from telemetry import story as story_module
-from telemetry.value import improvement_direction
-from telemetry.value import scalar
 
 from py_utils import tempfile_ext
 
@@ -40,9 +38,6 @@ class StoryRunTest(unittest.TestCase):
     self.assertEquals(run.failure_str, 'abc')
 
     run = story_run.StoryRun(self.story)
-    run.AddValue(scalar.ScalarValue(
-        self.story, 'a', 's', 1,
-        improvement_direction=improvement_direction.UP))
     run.SetFailed('something is wrong')
     self.assertFalse(run.ok)
     self.assertTrue(run.failed)
@@ -60,9 +55,6 @@ class StoryRunTest(unittest.TestCase):
     self.assertEquals(run.failure_str, 'oops')
 
     run = story_run.StoryRun(self.story)
-    run.AddValue(scalar.ScalarValue(
-        self.story, 'a', 's', 1,
-        improvement_direction=improvement_direction.UP))
     run.Skip('test', is_expected=False)
     self.assertFalse(run.ok)
     self.assertFalse(run.failed)
@@ -78,9 +70,6 @@ class StoryRunTest(unittest.TestCase):
     self.assertEquals(run.failure_str, None)
 
     run = story_run.StoryRun(self.story)
-    run.AddValue(scalar.ScalarValue(
-        self.story, 'a', 's', 1,
-        improvement_direction=improvement_direction.UP))
     self.assertTrue(run.ok)
     self.assertFalse(run.failed)
     self.assertFalse(run.skipped)

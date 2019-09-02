@@ -15,8 +15,6 @@ from telemetry import story
 from telemetry.internal.results import csv_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
-from telemetry.value import improvement_direction
-from telemetry.value import scalar
 from tracing.trace_data import trace_data
 
 
@@ -49,23 +47,6 @@ class CsvOutputFormatterTest(unittest.TestCase):
     self._results.Finalize()
     shutil.rmtree(self._temp_dir)
 
-  def SimulateBenchmarkRun(self, list_of_page_and_values):
-    """Simulate one run of a benchmark, using the supplied values.
-
-    Args:
-      list_of_pages_and_values: a list of tuple (page, list of values)
-    """
-    for page, values in list_of_page_and_values:
-      self._results.WillRunPage(page)
-      for value in values:
-        if isinstance(value, trace_data.TraceDataBuilder):
-          self._results.AddTraces(value)
-        else:
-          value.page = page
-          self._results.AddValue(value)
-
-      self._results.DidRunPage(page)
-
   def Format(self):
     self._results.PopulateHistogramSet()
     self._formatter.Format(self._results)
@@ -73,10 +54,9 @@ class CsvOutputFormatterTest(unittest.TestCase):
 
   def testSimple(self):
     # Test a simple benchmark with only one value:
-    self.SimulateBenchmarkRun([
-        (self._story_set[0], [scalar.ScalarValue(
-            None, 'foo', 'seconds', 3,
-            improvement_direction=improvement_direction.DOWN)])])
+    self._results.WillRunPage(self._story_set[0])
+    self._results.AddMeasurement('foo', 'seconds', 3)
+    self._results.DidRunPage(self._story_set[0])
 
     actual = list(zip(*csv.reader(self.Format().splitlines())))
     expected = [
@@ -95,22 +75,17 @@ class CsvOutputFormatterTest(unittest.TestCase):
   @mock.patch('py_utils.cloud_storage.Insert')
   def testMultiplePagesAndValues(self, cloud_storage_insert_patch):
     cloud_storage_insert_patch.return_value = 'fake_url'
-    self.SimulateBenchmarkRun([
-        (self._story_set[0], [
-            scalar.ScalarValue(
-                None, 'foo', 'seconds', 4,
-                improvement_direction=improvement_direction.DOWN)]),
-        (self._story_set[1], [
-            scalar.ScalarValue(
-                None, 'foo', 'seconds', 3.4,
-                improvement_direction=improvement_direction.DOWN),
-            trace_data.CreateTestTrace(),
-            scalar.ScalarValue(
-                None, 'bar', 'km', 10,
-                improvement_direction=improvement_direction.DOWN),
-            scalar.ScalarValue(
-                None, 'baz', 'count', 5,
-                improvement_direction=improvement_direction.DOWN)])])
+
+    self._results.WillRunPage(self._story_set[0])
+    self._results.AddMeasurement('foo', 'seconds', 4)
+    self._results.DidRunPage(self._story_set[0])
+
+    self._results.WillRunPage(self._story_set[1])
+    self._results.AddMeasurement('foo', 'seconds', 3.4)
+    self._results.AddTraces(trace_data.CreateTestTrace())
+    self._results.AddMeasurement('bar', 'km', 10)
+    self._results.AddMeasurement('baz', 'count', 5)
+    self._results.DidRunPage(self._story_set[1])
 
     # Parse CSV output into list of lists.
     values = list(csv.reader(self.Format().splitlines()))[1:]

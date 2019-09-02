@@ -21,6 +21,7 @@ from telemetry.internal.results import page_test_results
 from telemetry.internal.results import results_processor
 from telemetry import page as page_module
 from telemetry.value import improvement_direction
+from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 from tracing.trace_data import trace_data
 from tracing.value import histogram as histogram_module
@@ -143,28 +144,50 @@ class PageTestResultsTest(_PageTestResultsTestBase):
     self.assertTrue(all_story_runs[1].ok)
     self.assertTrue(all_story_runs[2].skipped)
 
-  def testAddValueWithStoryGroupingKeys(self):
+  def testAddScalarValueSameAsMeasurement(self):
+    # Test that AddValue for legacy scalar values still works, and is
+    # equivalent to adding measurements.
+    with self.CreateResults() as results:
+      results.WillRunPage(self.pages[0])
+      results.AddValue(scalar.ScalarValue(self.pages[0], 'a', 'seconds', 3))
+      results.AddMeasurement('a', 'seconds', 3)
+      results.DidRunPage(self.pages[0])
+
+    values = list(results.IterAllLegacyValues())
+    self.assertEqual(len(values), 2)
+    self.assertEqual(values[0], values[1])
+
+  def testAddListOfScalarValuesSameAsMeasurement(self):
+    # Test that AddValue for legacy lists of scalar values still works, and is
+    # equivalent to adding measurements.
+    with self.CreateResults() as results:
+      results.WillRunPage(self.pages[0])
+      results.AddValue(list_of_scalar_values.ListOfScalarValues(
+          self.pages[0], 'a', 'seconds', [1, 2, 3]))
+      results.AddMeasurement('a', 'seconds', [1, 2, 3])
+      results.DidRunPage(self.pages[0])
+
+    values = list(results.IterAllLegacyValues())
+    self.assertEqual(len(values), 2)
+    self.assertEqual(values[0], values[1])
+
+  def testAddMeasurementWithStoryGroupingKeys(self):
     with self.CreateResults() as results:
       self.pages[0].grouping_keys['foo'] = 'bar'
       self.pages[0].grouping_keys['answer'] = '42'
       results.WillRunPage(self.pages[0])
-      results.AddValue(scalar.ScalarValue(
-          self.pages[0], 'a', 'seconds', 3,
-          improvement_direction=improvement_direction.UP))
+      results.AddMeasurement('a', 'seconds', 3)
       results.DidRunPage(self.pages[0])
 
     values = list(results.IterAllLegacyValues())
     self.assertEqual(1, len(values))
     self.assertEqual(values[0].grouping_label, '42_bar')
 
-  def testUrlIsInvalidValue(self):
+  def testNonNumericMeasurementIsInvalid(self):
     with self.CreateResults() as results:
       results.WillRunPage(self.pages[0])
       with self.assertRaises(AssertionError):
-        # Invalid because of non-numeric value.
-        results.AddValue(scalar.ScalarValue(
-            self.pages[0], name='url', units='string', value='foo',
-            improvement_direction=improvement_direction.UP))
+        results.AddMeasurement('url', 'string', 'foo')
       results.DidRunPage(self.pages[0])
 
   def testAddSummaryValueWithPageSpecified(self):
@@ -177,27 +200,20 @@ class PageTestResultsTest(_PageTestResultsTestBase):
             improvement_direction=improvement_direction.UP))
       results.DidRunPage(self.pages[0])
 
-  def testUnitChange(self):
+  def testMeasurementUnitChangeRaises(self):
     with self.CreateResults() as results:
       results.WillRunPage(self.pages[0])
-      results.AddValue(scalar.ScalarValue(
-          self.pages[0], 'a', 'seconds', 3,
-          improvement_direction=improvement_direction.UP))
+      results.AddMeasurement('a', 'seconds', 3)
       results.DidRunPage(self.pages[0])
 
       results.WillRunPage(self.pages[1])
       with self.assertRaises(AssertionError):
-        results.AddValue(scalar.ScalarValue(
-            self.pages[1], 'a', 'foobgrobbers', 3,
-            improvement_direction=improvement_direction.UP))
+        results.AddMeasurement('a', 'foobgrobbers', 3)
       results.DidRunPage(self.pages[1])
 
   def testNoSuccessesWhenAllPagesFailOrSkip(self):
     with self.CreateResults() as results:
       results.WillRunPage(self.pages[0])
-      results.AddValue(scalar.ScalarValue(
-          self.pages[0], 'a', 'seconds', 3,
-          improvement_direction=improvement_direction.UP))
       results.Fail('message')
       results.DidRunPage(self.pages[0])
 
@@ -210,28 +226,24 @@ class PageTestResultsTest(_PageTestResultsTestBase):
   def testIterAllLegacyValuesForSuccessfulPages(self):
     with self.CreateResults() as results:
       results.WillRunPage(self.pages[0])
-      value1 = scalar.ScalarValue(
-          self.pages[0], 'a', 'seconds', 3,
-          improvement_direction=improvement_direction.UP)
-      results.AddValue(value1)
+      results.AddMeasurement('a', 'seconds', 3)
       results.DidRunPage(self.pages[0])
 
       results.WillRunPage(self.pages[1])
-      value2 = scalar.ScalarValue(
-          self.pages[1], 'a', 'seconds', 3,
-          improvement_direction=improvement_direction.UP)
-      results.AddValue(value2)
+      results.AddMeasurement('a', 'seconds', 3)
       results.DidRunPage(self.pages[1])
 
       results.WillRunPage(self.pages[2])
-      value3 = scalar.ScalarValue(
-          self.pages[2], 'a', 'seconds', 3,
-          improvement_direction=improvement_direction.UP)
-      results.AddValue(value3)
+      results.AddMeasurement('a', 'seconds', 3)
       results.DidRunPage(self.pages[2])
 
-    self.assertEqual(
-        [value1, value2, value3], list(results.IterAllLegacyValues()))
+    expected = [
+        (v.page, v.name, v.units, v.value)
+        for v in results.IterAllLegacyValues()]
+    self.assertEqual([
+        (self.pages[0], 'a', 'seconds', 3),
+        (self.pages[1], 'a', 'seconds', 3),
+        (self.pages[2], 'a', 'seconds', 3)], expected)
 
   def testAddTraces(self):
     with self.CreateResults() as results:
@@ -323,9 +335,7 @@ class PageTestResultsTest(_PageTestResultsTestBase):
   def testPopulateHistogramSet_UsesScalarValueData(self):
     with self.CreateResults() as results:
       results.WillRunPage(self.pages[0])
-      results.AddValue(scalar.ScalarValue(
-          self.pages[0], 'a', 'seconds', 3,
-          improvement_direction=improvement_direction.UP))
+      results.AddMeasurement('a', 'seconds', 3)
       results.DidRunPage(self.pages[0])
       results.PopulateHistogramSet()
 
@@ -408,21 +418,13 @@ class PageTestResultsFilterTest(_PageTestResultsTestBase):
 
     with self.CreateResults(should_add_value=AcceptValueNamed_a) as results:
       results.WillRunPage(self.pages[0])
-      results.AddValue(scalar.ScalarValue(
-          self.pages[0], 'a', 'seconds', 3,
-          improvement_direction=improvement_direction.UP))
-      results.AddValue(scalar.ScalarValue(
-          self.pages[0], 'b', 'seconds', 3,
-          improvement_direction=improvement_direction.UP))
+      results.AddMeasurement('a', 'seconds', 3)
+      results.AddMeasurement('b', 'seconds', 3)
       results.DidRunPage(self.pages[0])
 
       results.WillRunPage(self.pages[1])
-      results.AddValue(scalar.ScalarValue(
-          self.pages[1], 'a', 'seconds', 3,
-          improvement_direction=improvement_direction.UP))
-      results.AddValue(scalar.ScalarValue(
-          self.pages[1], 'd', 'seconds', 3,
-          improvement_direction=improvement_direction.UP))
+      results.AddMeasurement('a', 'seconds', 3)
+      results.AddMeasurement('d', 'seconds', 3)
       results.DidRunPage(self.pages[1])
 
     self.assertEqual(
@@ -454,38 +456,24 @@ class PageTestResultsFilterTest(_PageTestResultsTestBase):
     with self.CreateResults(should_add_value=AcceptSecondValues) as results:
       # First results (filtered out)
       results.WillRunPage(self.pages[0])
-      results.AddValue(scalar.ScalarValue(
-          self.pages[0], 'a', 'seconds', 7,
-          improvement_direction=improvement_direction.UP))
-      results.AddValue(scalar.ScalarValue(
-          self.pages[0], 'b', 'seconds', 8,
-          improvement_direction=improvement_direction.UP))
+      results.AddMeasurement('a', 'seconds', 7)
+      results.AddMeasurement('b', 'seconds', 8)
       results.DidRunPage(self.pages[0])
+
       results.WillRunPage(self.pages[1])
-      results.AddValue(scalar.ScalarValue(
-          self.pages[1], 'a', 'seconds', 5,
-          improvement_direction=improvement_direction.UP))
-      results.AddValue(scalar.ScalarValue(
-          self.pages[1], 'd', 'seconds', 6,
-          improvement_direction=improvement_direction.UP))
+      results.AddMeasurement('a', 'seconds', 5)
+      results.AddMeasurement('d', 'seconds', 6)
       results.DidRunPage(self.pages[1])
 
       # Second results
       results.WillRunPage(self.pages[0])
-      results.AddValue(scalar.ScalarValue(
-          self.pages[0], 'a', 'seconds', 3,
-          improvement_direction=improvement_direction.UP))
-      results.AddValue(scalar.ScalarValue(
-          self.pages[0], 'b', 'seconds', 4,
-          improvement_direction=improvement_direction.UP))
+      results.AddMeasurement('a', 'seconds', 3)
+      results.AddMeasurement('b', 'seconds', 4)
       results.DidRunPage(self.pages[0])
+
       results.WillRunPage(self.pages[1])
-      results.AddValue(scalar.ScalarValue(
-          self.pages[1], 'a', 'seconds', 1,
-          improvement_direction=improvement_direction.UP))
-      results.AddValue(scalar.ScalarValue(
-          self.pages[1], 'd', 'seconds', 2,
-          improvement_direction=improvement_direction.UP))
+      results.AddMeasurement('a', 'seconds', 1)
+      results.AddMeasurement('d', 'seconds', 2)
       results.DidRunPage(self.pages[1])
 
     expected_values = [

@@ -14,9 +14,7 @@ from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import results_processor
 from telemetry import page as page_module
-from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
-from telemetry.value import scalar
 
 
 def _MakeStorySet():
@@ -48,9 +46,7 @@ class ChartJsonTest(unittest.TestCase):
       self._output.truncate(0)
 
       results.WillRunPage(self._story_set[0])
-      v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
-                              improvement_direction=improvement_direction.DOWN)
-      results.AddValue(v0)
+      results.AddMeasurement('foo', 'seconds', 3)
       results.DidRunPage(self._story_set[0])
 
       self._formatter.Format(results)
@@ -67,11 +63,9 @@ class ChartJsonTest(unittest.TestCase):
     self.assertFalse(d['enabled'])
 
   def testAsChartDictSerializable(self):
-    v0 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 3,
-                            improvement_direction=improvement_direction.DOWN)
     with _MakePageTestResults() as results:
       results.WillRunPage(self._story_set[0])
-      results.AddValue(v0)
+      results.AddMeasurement('foo', 'seconds', 3)
       results.DidRunPage(self._story_set[0])
 
       d = chart_json_output_formatter.ResultsAsChartDict(results)
@@ -96,16 +90,11 @@ class ChartJsonTest(unittest.TestCase):
     self.assertEquals('', d['benchmark_metadata']['description'])
 
   def testAsChartDictPageSpecificValuesSamePageWithGroupingLabel(self):
-    page = self._story_set[0]
-    page.grouping_keys['temperature'] = 'cold'
-    v0 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 3,
-                            improvement_direction=improvement_direction.DOWN)
-    v1 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 4,
-                            improvement_direction=improvement_direction.DOWN)
+    self._story_set[0].grouping_keys['temperature'] = 'cold'
     with _MakePageTestResults() as results:
       results.WillRunPage(self._story_set[0])
-      results.AddValue(v0)
-      results.AddValue(v1)
+      results.AddMeasurement('foo', 'seconds', 3)
+      results.AddMeasurement('foo', 'seconds', 4)
       results.DidRunPage(self._story_set[0])
       d = chart_json_output_formatter.ResultsAsChartDict(results)
 
@@ -114,14 +103,10 @@ class ChartJsonTest(unittest.TestCase):
     self.assertTrue(d['enabled'])
 
   def testAsChartDictPageSpecificValuesSamePageWithoutGroupingLabel(self):
-    v0 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 3,
-                            improvement_direction=improvement_direction.DOWN)
-    v1 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 4,
-                            improvement_direction=improvement_direction.DOWN)
     with _MakePageTestResults() as results:
       results.WillRunPage(self._story_set[0])
-      results.AddValue(v0)
-      results.AddValue(v1)
+      results.AddMeasurement('foo', 'seconds', 3)
+      results.AddMeasurement('foo', 'seconds', 4)
       results.DidRunPage(self._story_set[0])
       d = chart_json_output_formatter.ResultsAsChartDict(results)
 
@@ -130,16 +115,12 @@ class ChartJsonTest(unittest.TestCase):
     self.assertTrue(d['enabled'])
 
   def testAsChartDictPageSpecificValuesAndComputedSummaryWithTraceName(self):
-    v0 = scalar.ScalarValue(self._story_set[0], 'foo.bar', 'seconds', 3,
-                            improvement_direction=improvement_direction.DOWN)
-    v1 = scalar.ScalarValue(self._story_set[1], 'foo.bar', 'seconds', 4,
-                            improvement_direction=improvement_direction.DOWN)
     with _MakePageTestResults() as results:
       results.WillRunPage(self._story_set[0])
-      results.AddValue(v0)
+      results.AddMeasurement('foo.bar', 'seconds', 3)
       results.DidRunPage(self._story_set[0])
       results.WillRunPage(self._story_set[1])
-      results.AddValue(v1)
+      results.AddMeasurement('foo.bar', 'seconds', 4)
       results.DidRunPage(self._story_set[1])
       d = chart_json_output_formatter.ResultsAsChartDict(results)
 
@@ -150,16 +131,12 @@ class ChartJsonTest(unittest.TestCase):
     self.assertTrue(d['enabled'])
 
   def testAsChartDictPageSpecificValuesAndComputedSummaryWithoutTraceName(self):
-    v0 = scalar.ScalarValue(self._story_set[0], 'foo', 'seconds', 3,
-                            improvement_direction=improvement_direction.DOWN)
-    v1 = scalar.ScalarValue(self._story_set[1], 'foo', 'seconds', 4,
-                            improvement_direction=improvement_direction.DOWN)
     with _MakePageTestResults() as results:
       results.WillRunPage(self._story_set[0])
-      results.AddValue(v0)
+      results.AddMeasurement('foo', 'seconds', 3)
       results.DidRunPage(self._story_set[0])
       results.WillRunPage(self._story_set[1])
-      results.AddValue(v1)
+      results.AddMeasurement('foo', 'seconds', 4)
       results.DidRunPage(self._story_set[1])
       d = chart_json_output_formatter.ResultsAsChartDict(results)
 
@@ -171,8 +148,7 @@ class ChartJsonTest(unittest.TestCase):
 
   def testAsChartDictSummaryValueWithTraceName(self):
     v0 = list_of_scalar_values.ListOfScalarValues(
-        None, 'foo.bar', 'seconds', [3, 4],
-        improvement_direction=improvement_direction.DOWN)
+        None, 'foo.bar', 'seconds', [3, 4])
     with _MakePageTestResults() as results:
       results.AddSummaryValue(v0)
       d = chart_json_output_formatter.ResultsAsChartDict(results)
@@ -182,8 +158,7 @@ class ChartJsonTest(unittest.TestCase):
 
   def testAsChartDictSummaryValueWithoutTraceName(self):
     v0 = list_of_scalar_values.ListOfScalarValues(
-        None, 'foo', 'seconds', [3, 4],
-        improvement_direction=improvement_direction.DOWN)
+        None, 'foo', 'seconds', [3, 4])
     with _MakePageTestResults() as results:
       results.AddSummaryValue(v0)
       d = chart_json_output_formatter.ResultsAsChartDict(results)
@@ -207,8 +182,7 @@ class ChartJsonTest(unittest.TestCase):
 
   def testAsChartDictValueSmokeTest(self):
     v0 = list_of_scalar_values.ListOfScalarValues(
-        None, 'foo.bar', 'seconds', [3, 4],
-        improvement_direction=improvement_direction.DOWN)
+        None, 'foo.bar', 'seconds', [3, 4])
     with _MakePageTestResults() as results:
       results.AddSummaryValue(v0)
       d = chart_json_output_formatter.ResultsAsChartDict(results)

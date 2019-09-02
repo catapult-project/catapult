@@ -16,8 +16,6 @@ from telemetry.internal.results import json_3_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import results_options
 from telemetry.testing import options_for_unittests
-from telemetry.value import improvement_direction
-from telemetry.value import scalar
 
 
 def _MakeStorySet():
@@ -69,9 +67,6 @@ class Json3OutputFormatterTest(unittest.TestCase):
   def testAsDictWithOnePage(self):
     with self._MakeResults() as results:
       results.WillRunPage(self._story_set[0])
-      v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
-                              improvement_direction=improvement_direction.DOWN)
-      results.AddValue(v0)
       results.DidRunPage(self._story_set[0])
 
     d = json_3_output_formatter.ResultsAsDict(results)
@@ -86,15 +81,9 @@ class Json3OutputFormatterTest(unittest.TestCase):
   def testAsDictWithTwoPages(self):
     with self._MakeResults() as results:
       results.WillRunPage(self._story_set[0])
-      v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
-                              improvement_direction=improvement_direction.DOWN)
-      results.AddValue(v0)
       results.DidRunPage(self._story_set[0])
 
       results.WillRunPage(self._story_set[1])
-      v1 = scalar.ScalarValue(results.current_story, 'bar', 'seconds', 4,
-                              improvement_direction=improvement_direction.DOWN)
-      results.AddValue(v1)
       results.DidRunPage(self._story_set[1])
 
     d = json_3_output_formatter.ResultsAsDict(results)
@@ -116,9 +105,6 @@ class Json3OutputFormatterTest(unittest.TestCase):
   def testAsDictWithRepeatedTests(self):
     with self._MakeResults() as results:
       results.WillRunPage(self._story_set[0])
-      v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
-                              improvement_direction=improvement_direction.DOWN)
-      results.AddValue(v0)
       results.DidRunPage(self._story_set[0])
 
       results.WillRunPage(self._story_set[1])
@@ -126,9 +112,6 @@ class Json3OutputFormatterTest(unittest.TestCase):
       results.DidRunPage(self._story_set[1])
 
       results.WillRunPage(self._story_set[0])
-      v0 = scalar.ScalarValue(results.current_story, 'foo', 'seconds', 3,
-                              improvement_direction=improvement_direction.DOWN)
-      results.AddValue(v0)
       results.DidRunPage(self._story_set[0])
 
       results.WillRunPage(self._story_set[1])
@@ -170,17 +153,9 @@ class Json3OutputFormatterTest(unittest.TestCase):
     with mock.patch.dict(os.environ, {'GTEST_SHARD_INDEX': str(shard_index)}):
       with self._MakeResults() as results:
         results.WillRunPage(self._story_set[0])
-        v0 = scalar.ScalarValue(
-            results.current_story, 'foo', 'seconds', 3,
-            improvement_direction=improvement_direction.DOWN)
-        results.AddValue(v0)
         results.DidRunPage(self._story_set[0])
 
         results.WillRunPage(self._story_set[1])
-        v1 = scalar.ScalarValue(
-            results.current_story, 'bar', 'seconds', 4,
-            improvement_direction=improvement_direction.DOWN)
-        results.AddValue(v1)
         results.DidRunPage(self._story_set[1])
 
         results.WillRunPage(self._story_set[0])
@@ -238,10 +213,6 @@ class Json3OutputFormatterTest(unittest.TestCase):
     with results_options.CreateResults(
         options, benchmark_name='test_benchmark') as results:
       results.WillRunPage(self._story_set[0])
-      v0 = scalar.ScalarValue(
-          results.current_story, 'foo', 'seconds', 3,
-          improvement_direction=improvement_direction.DOWN)
-      results.AddValue(v0)
       results.DidRunPage(self._story_set[0])
 
     output_file = os.path.join(self._output_dir, 'test-results.json')

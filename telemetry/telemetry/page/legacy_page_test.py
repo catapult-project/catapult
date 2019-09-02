@@ -39,8 +39,7 @@ class LegacyPageTest(object):
        def ValidateAndMeasurePage(self, page, tab, results):
          body_child_count = tab.EvaluateJavaScript(
              'document.body.children.length')
-         results.AddValue(scalar.ScalarValue(
-             page, 'body_children', 'count', body_child_count))
+         results.AddMeasurement('body_children', 'count', body_child_count)
   """
 
   __metaclass__ = trace_event.TracedMetaClass
@@ -78,21 +77,17 @@ class LegacyPageTest(object):
   def ValidateAndMeasurePage(self, page, tab, results):
     """Override to check test assertions and perform measurement.
 
-    When adding measurement results, call results.AddValue(...) for
-    each result. Raise an exception or call results.Fail upon
-    failure. legacy_page_test.py also provides several base exception classes
-    to use.
-
-    Prefer metric value names that are in accordance with python
-    variable style. e.g., metric_name. The name 'url' must not be used.
+    Implementations should call results.AddMeasurement(...) to record
+    measurements associated with the current page run. Raise an exception or
+    call results.Fail upon failure. legacy_page_test.py also provides several
+    base exception classes to use.
 
     Put together:
       def ValidateAndMeasurePage(self, page, tab, results):
-        res = tab.EvaluateJavaScript('2+2')
+        res = tab.EvaluateJavaScript('2 + 2')
         if res != 4:
           raise Exception('Oh, wow.')
-        results.AddValue(scalar.ScalarValue(
-            page, 'two_plus_two', 'count', res))
+        results.AddMeasurement('two_plus_two', 'count', res)
 
     Args:
       page: A telemetry.page.Page instance.
