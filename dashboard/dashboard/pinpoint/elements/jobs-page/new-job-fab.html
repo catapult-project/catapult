@@ -109,6 +109,8 @@ found in the LICENSE file.
             </template>
 
             <template is="dom-if" if="[[!isBisectJob(comparisonMode)]]">
+              <input type="hidden" name="start_git_hash" value="[[start_git_hash]]">
+              <input type="hidden" name="end_git_hash" value="[[end_git_hash]]">
               <paper-input name="patch" value="{{patch}}" label="Gerrit URL" required disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
             </template>
 
