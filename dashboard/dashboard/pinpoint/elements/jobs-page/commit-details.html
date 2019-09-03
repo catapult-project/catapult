@@ -56,8 +56,8 @@ found in the LICENSE file.
         <p><span class="commit-hash">[[_FormatHash(commitDetails.git_hash)]]</span><span class="conmit-message">[[commitDetails.message]]</span></p>
         <p><span class="commit-position">[[commitDetails.commit_position]]</span><span class="commit-author">[[commitDetails.author]]</span></p>
       </template>
-      <template is="dom-if" if="[[hasError(error, value)]]">
-        <p class="error">[[error.error]]</p>
+      <template is="dom-if" if="[[hasError(error.response.error, value)]]">
+        <p class="error">[[error.response.error]]</p>
       </template>
     </div>
     </paper-dialog>
