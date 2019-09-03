@@ -28,6 +28,7 @@ from tracing.value.diagnostics import reserved_infos
 
 
 TELEMETRY_RESULTS = '_telemetry_results.jsonl'
+HISTOGRAM_DICTS_NAME = 'histogram_dicts.json'
 
 
 class PageTestResults(object):
@@ -311,6 +312,13 @@ class PageTestResults(object):
         self.Fail(fail)
       if result['histogram_dicts']:
         self._ImportHistogramDicts(result['histogram_dicts'])
+        # Saving histograms as an artifact is a temporary hack to keep
+        # things working while we gradually move code from Telemetry to
+        # Results Processor.
+        # TODO(crbug.com/981349): Remove this after metrics running is
+        # implemented in Results Processor.
+        with self.CreateArtifact(HISTOGRAM_DICTS_NAME) as f:
+          json.dump(result['histogram_dicts'], f)
       for value in result['scalars']:
         self.AddValue(value)
     finally:
