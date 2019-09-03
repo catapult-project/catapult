@@ -26,7 +26,7 @@ def _StoryToRegex(story_name):
   # and argument quoting are not interpreted correctly, e.g. by bisect
   # scripts (crbug.com/662472). We thus keep only a small set of "safe chars"
   # and replace all others with match-any-character regex dots.
-  return _STORY_REGEX.sub('.', story_name)
+  return '^%s$' % _STORY_REGEX.sub('.', story_name)
 
 
 class RunTelemetryTest(run_performance_test.RunPerformanceTest):
