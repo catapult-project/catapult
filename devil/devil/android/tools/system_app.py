@@ -152,6 +152,15 @@ def EnableSystemAppModification(device):
     device.RunShellCommand(['stop'], check_return=True)
     device.SetProp(_ENABLE_MODIFICATION_PROP, '1')
     yield
+  except device_errors.CommandFailedError as e:
+    if device.adb.is_emulator:
+      # Point the user to documentation, since there's a good chance they can
+      # workaround this on an emulator.
+      docs_url = ('https://chromium.googlesource.com/chromium/src/+/'
+                  'master/docs/android_emulator.md#writable-system-partition')
+      logger.error('Did you start the emulator with "-writable-system?"\n'
+                   'See %s\n', docs_url)
+    raise e
   finally:
     device.SetProp(_ENABLE_MODIFICATION_PROP, '0')
     device.Reboot()
