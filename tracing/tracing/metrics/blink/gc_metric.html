@@ -56,6 +56,10 @@ tr.exportTo('tr.metrics.blink', function() {
     return BLINK_TOP_GC_EVENTS[event.title];
   }
 
+  function blinkGarbageCollectionEventNames() {
+    return Object.values(BLINK_TOP_GC_EVENTS);
+  }
+
   function isNonForcedEvent(event) {
     return (!event.args || !event.args.forced) &&
            !tr.metrics.v8.utils.isForcedGarbageCollectionEvent(event);
@@ -160,7 +164,8 @@ tr.exportTo('tr.metrics.blink', function() {
             cpuDuration.addSample(event.cpuDuration);
           }
           histograms.addHistogram(cpuDuration);
-        }
+        },
+        blinkGarbageCollectionEventNames()
     );
   }
 
@@ -196,7 +201,8 @@ tr.exportTo('tr.metrics.blink', function() {
             cpuDuration.addSample(event.cpuDuration);
           }
           histograms.addHistogram(cpuDuration);
-        }
+        },
+        ['blink-gc-total']
     );
   }
 
@@ -214,7 +220,8 @@ tr.exportTo('tr.metrics.blink', function() {
             cpuDuration.addSample(event.cpuDuration);
           }
           histograms.addHistogram(cpuDuration);
-        }
+        },
+        ['blink-gc-sweep-foreground']
     );
   }
 
@@ -232,7 +239,8 @@ tr.exportTo('tr.metrics.blink', function() {
             cpuDuration.addSample(event.cpuDuration);
           }
           histograms.addHistogram(cpuDuration);
-        }
+        },
+        ['blink-gc-sweep-background']
     );
   }
 
@@ -257,7 +265,8 @@ tr.exportTo('tr.metrics.blink', function() {
             cpuDuration.addSample(event.cpuDuration);
           }
           histograms.addHistogram(cpuDuration);
-        }
+        },
+        ['unified-gc-total']
     );
   }
 

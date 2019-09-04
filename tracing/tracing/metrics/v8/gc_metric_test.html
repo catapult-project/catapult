@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
         (acc, slice) => (Math.min(acc, slice.start)));
     const endTime = slices.reduce((acc, slice) => (Math.max(acc, slice.end)));
     const model = createModel(startTime - 1, endTime + 1, slices);
-    tr.metrics.v8.gcMetric(histograms, model);
+    tr.metrics.v8.gcMetric(histograms, model, {include_sub_events: true});
     return histograms;
   }
 

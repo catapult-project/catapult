@@ -23,10 +23,13 @@ tr.exportTo('tr.metrics.v8', function() {
   const MS_PER_SECOND = 1000;
   const WINDOW_SIZE_MS = MS_PER_SECOND / TARGET_FPS;
 
-  function gcMetric(histograms, model) {
+  function gcMetric(histograms, model, options) {
+    options = options || {};
     addDurationOfTopEvents(histograms, model);
     addTotalDurationOfTopEvents(histograms, model);
-    addDurationOfSubEvents(histograms, model);
+    if (options.include_sub_events) {
+      addDurationOfSubEvents(histograms, model);
+    }
     addPercentageInV8ExecuteOfTopEvents(histograms, model);
     addTotalPercentageInV8Execute(histograms, model);
     addMarkCompactorMutatorUtilization(histograms, model);
@@ -125,7 +128,8 @@ tr.exportTo('tr.metrics.v8', function() {
             cpuDuration.addSample(event.cpuDuration);
           });
           histograms.addHistogram(cpuDuration);
-        }
+        },
+        tr.metrics.v8.utils.topGarbageCollectionEventNames()
     );
   }
 
@@ -143,7 +147,8 @@ tr.exportTo('tr.metrics.v8', function() {
             cpuDuration.addSample(event.cpuDuration);
           });
           histograms.addHistogram(cpuDuration);
-        }
+        },
+        ['v8-gc-total']
     );
   }
 
@@ -192,7 +197,8 @@ tr.exportTo('tr.metrics.v8', function() {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         isV8MarkCompactorSummary,
         event => 'v8-gc-mark-compactor',
-        (name, events) => createHistogramFromSummary(histograms, name, events)
+        (name, events) => createHistogramFromSummary(histograms, name, events),
+        ['v8-gc-mark-compactor']
     );
   }
 
@@ -206,7 +212,8 @@ tr.exportTo('tr.metrics.v8', function() {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         isV8MarkCompactorMarkingSummary,
         event => 'v8-gc-mark-compactor-marking',
-        (name, events) => createHistogramFromSummary(histograms, name, events)
+        (name, events) => createHistogramFromSummary(histograms, name, events),
+        ['v8-gc-mark-compactor-marking']
     );
   }
 
@@ -238,7 +245,8 @@ tr.exportTo('tr.metrics.v8', function() {
         tr.metrics.v8.utils.topGarbageCollectionEventName,
         function(name, events) {
           addPercentageInV8Execute(histograms, model, name, events);
-        }
+        },
+        tr.metrics.v8.utils.topGarbageCollectionEventNames()
     );
   }
 
@@ -252,7 +260,8 @@ tr.exportTo('tr.metrics.v8', function() {
         event => 'v8-gc-total',
         function(name, events) {
           addPercentageInV8Execute(histograms, model, name, events);
-        }
+        },
+        ['v8-gc-total']
     );
   }
 
