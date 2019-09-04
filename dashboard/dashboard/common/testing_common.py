@@ -9,9 +9,11 @@ from __future__ import absolute_import
 
 import base64
 import json
+import logging
 import mock
 import os
 import re
+import sys
 import unittest
 import urllib
 import webapp2
@@ -77,6 +79,11 @@ class TestCase(unittest.TestCase):
     SetIsInternalUser(INTERNAL_USER, True)
     SetIsInternalUser(EXTERNAL_USER, False)
     self.testapp = None
+    self.logger = logging.getLogger()
+    self.logger.level = logging.DEBUG
+    self.stream_handler = logging.StreamHandler(sys.stdout)
+    self.logger.addHandler(self.stream_handler)
+    self.addCleanup(self.logger.removeHandler, self.stream_handler)
 
   def SetUpApp(self, handlers):
     self.testapp = webtest.TestApp(webapp2.WSGIApplication(handlers))
