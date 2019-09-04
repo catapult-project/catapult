@@ -247,6 +247,8 @@ class InspectorBackend(object):
       user_gesture: Whether execution should be treated as initiated by user
           in the UI. Code that plays media or requests fullscreen may not take
           effects without user_gesture set to True.
+      promise: Whether the execution is a javascript promise, and should
+          wait for the promise to resolve prior to returning.
       Additional keyword arguments provide values to be interpolated within
           the expression. See telemetry.util.js_template for details.
 
@@ -260,9 +262,11 @@ class InspectorBackend(object):
     timeout = kwargs.pop('timeout', None) or 60
     context_id = kwargs.pop('context_id', None)
     user_gesture = kwargs.pop('user_gesture', None) or False
+    promise = kwargs.pop('promise', None) or False
     expression = js_template.Render(expression, **kwargs)
     return self._EvaluateJavaScript(expression, context_id, timeout,
-                                    user_gesture=user_gesture)
+                                    user_gesture=user_gesture,
+                                    promise=promise)
 
   def WaitForJavaScriptCondition(self, condition, **kwargs):
     """Wait for a JavaScript condition to become truthy.
@@ -655,10 +659,10 @@ class InspectorBackend(object):
 
   @_HandleInspectorWebSocketExceptions
   def _EvaluateJavaScript(self, expression, context_id, timeout,
-                          user_gesture=False):
+                          user_gesture=False, promise=False):
     try:
       return self._runtime.Evaluate(expression, context_id, timeout,
-                                    user_gesture)
+                                    user_gesture, promise)
     except inspector_websocket.WebSocketException as e:
       logging.error('Renderer process hung; forcibly crashing it and '
                     'GPU process. Note that GPU process minidumps '

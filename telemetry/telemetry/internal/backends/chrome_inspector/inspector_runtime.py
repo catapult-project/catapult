@@ -19,7 +19,8 @@ class InspectorRuntime(object):
   def Execute(self, expr, context_id, timeout, user_gesture=False):
     self.Evaluate(expr + '; 0;', context_id, timeout, user_gesture)
 
-  def Evaluate(self, expr, context_id, timeout, user_gesture=False):
+  def Evaluate(self, expr, context_id, timeout, user_gesture=False,
+               promise=False):
     """Evaluates a javascript expression and returns the result.
 
     |context_id| can refer to an iframe. The main page has context_id=1, the
@@ -37,6 +38,7 @@ class InspectorRuntime(object):
             'expression': expr,
             'returnByValue': True,
             'userGesture': user_gesture,
+            'awaitPromise': promise,
         }
     }
     if context_id is not None:
