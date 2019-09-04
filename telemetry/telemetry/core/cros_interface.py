@@ -4,11 +4,15 @@
 """A wrapper around ssh for common operations on a CrOS-based device"""
 import logging
 import os
+import posixpath
 import re
 import shutil
 import stat
 import subprocess
 import tempfile
+import time
+
+from devil.utils import cmd_helper
 
 # Some developers' workflow includes running the Chrome process from
 # /usr/local/... instead of the default location. We have to check for both
@@ -113,6 +117,8 @@ class DNSFailureException(LoginException):
 
 class CrOSInterface(object):
 
+  CROS_MINIDUMP_DIR = '/var/log/chrome/Crash Reports/'
+
   _DEFAULT_SSH_CONNECTION_TIMEOUT = 5
 
   def __init__(self, hostname=None, ssh_port=None, ssh_identity=None):
@@ -121,6 +127,10 @@ class CrOSInterface(object):
 
     # List of ports generated from GetRemotePort() that may not be in use yet.
     self._reserved_ports = []
+
+    self._device_host_clock_offset = None
+    self._root_is_writable = False
+    self._master_connection_open = False
 
     if self.local:
       return
@@ -135,16 +145,10 @@ class CrOSInterface(object):
       self._ssh_identity = os.path.abspath(os.path.expanduser(ssh_identity))
       os.chmod(self._ssh_identity, stat.S_IREAD)
 
-    # Establish master SSH connection using ControlPersist.
     # Since only one test will be run on a remote host at a time,
     # the control socket filename can be telemetry@hostname.
-    self._ssh_control_file = '/tmp/' + 'telemetry' + '@' + hostname
-    with open(os.devnull, 'w') as devnull:
-      subprocess.call(
-          self.FormSSHCommandLine(['-M', '-o ControlPersist=yes']),
-          stdin=devnull,
-          stdout=devnull,
-          stderr=devnull)
+    self._ssh_control_file = '/tmp/' + 'telemetry' + '@' + self._hostname
+    self.OpenConnection()
 
   def __enter__(self):
     return self
@@ -163,6 +167,23 @@ class CrOSInterface(object):
   @property
   def ssh_port(self):
     return self._ssh_port
+
+  @property
+  def root_is_writable(self):
+    return self._root_is_writable
+
+  def OpenConnection(self):
+    """Opens a master connection to the device."""
+    if self._master_connection_open or self.local:
+      return
+    # Establish master SSH connection using ControlPersist.
+    with open(os.devnull, 'w') as devnull:
+      subprocess.call(
+          self.FormSSHCommandLine(['-M', '-o ControlPersist=yes']),
+          stdin=devnull,
+          stdout=devnull,
+          stderr=devnull)
+    self._master_connection_open = True
 
   def FormSSHCommandLine(self, args, extra_ssh_args=None, port_forward=False,
                          connect_timeout=None):
@@ -246,9 +267,11 @@ class CrOSInterface(object):
         r'Warning: Permanently added [^\n]* to the list of known hosts.\s\n',
         '', to_clean)
 
-  def RunCmdOnDevice(self, args, cwd=None, quiet=False, connect_timeout=None):
+  def RunCmdOnDevice(self, args, cwd=None, quiet=False, connect_timeout=None,
+                     port_forward=False):
     stdout, stderr = GetAllCmdOutput(
-        self.FormSSHCommandLine(args, connect_timeout=connect_timeout),
+        self.FormSSHCommandLine(
+            args, connect_timeout=connect_timeout, port_forward=port_forward),
         cwd=cwd,
         quiet=quiet)
     # The initial login will add the host to the hosts file but will also print
@@ -293,9 +316,6 @@ class CrOSInterface(object):
                            (self._hostname, stdout))
 
   def FileExistsOnDevice(self, file_name):
-    if self.local:
-      return os.path.exists(file_name)
-
     stdout, stderr = self.RunCmdOnDevice(
         [
             'if', 'test', '-e', file_name, ';', 'then', 'echo', '1', ';', 'fi'
@@ -375,6 +395,49 @@ class CrOSInterface(object):
         res = f2.read()
         logging.debug("GetFileContents(%s)->%s" % (filename, res))
         return res
+
+  def PullDumps(self, host_dir):
+    """Pulls any minidumps from the device/emulator to the host.
+
+    Skips pulling any dumps that have already been pulled. The modification time
+    of any pulled dumps will be set to the modification time of the dump on the
+    device/emulator, offset by any difference in clocks between the device and
+    host.
+
+    Args:
+      host_dir: The directory on the host where the dumps will be copied to.
+    """
+    # The device/emulator's clock might be off from the host, so calculate an
+    # offset that can be added to the host time to get the corresponding device
+    # time.
+    time_offset = self.GetDeviceHostClockOffset()
+
+    stdout, _ = self.RunCmdOnDevice(
+        ['ls', '-1', cmd_helper.SingleQuote(self.CROS_MINIDUMP_DIR)])
+    device_dumps = stdout.splitlines()
+    for dump_filename in device_dumps:
+      host_path = os.path.join(host_dir, dump_filename)
+      if not os.path.exists(host_path):
+        device_path = cmd_helper.SingleQuote(
+            posixpath.join(self.CROS_MINIDUMP_DIR, dump_filename))
+        self.GetFile(device_path, host_path)
+        # Set the local version's modification time to the device's.
+        stdout, _ = self.RunCmdOnDevice(
+            ['ls', '--time-style', '+%s', '-l', device_path])
+        stdout = stdout.strip()
+        # We expect whitespace-separated fields in this order:
+        # mode, links, owner, group, size, mtime, filename.
+        # Offset by the difference of the device and host clocks.
+        mtime = int(stdout.split()[5]) + time_offset
+        os.utime(host_path, (mtime, mtime))
+
+  def GetDeviceHostClockOffset(self):
+    """Returns the difference between the device and host clocks."""
+    if self._device_host_clock_offset is None:
+      device_time, _ = self.RunCmdOnDevice(['date', '+%s'])
+      host_time = time.time()
+      self._device_host_clock_offset = int(int(device_time.strip()) - host_time)
+    return self._device_host_clock_offset
 
   def HasSystemd(self):
     """Return True or False to indicate if systemd is used.
@@ -616,9 +679,58 @@ class CrOSInterface(object):
       self.RunCmdOnDevice(start_cmd)
 
   def CloseConnection(self):
-    if not self.local:
+    if not self.local and self._master_connection_open:
       with open(os.devnull, 'w') as devnull:
         subprocess.call(
             self.FormSSHCommandLine(['-O', 'exit', self._hostname]),
             stdout=devnull,
             stderr=devnull)
+      self._master_connection_open = False
+
+  def MakeRootReadWriteIfNecessary(self):
+    """Remounts / as read-write if it is currently read-only."""
+    if self._root_is_writable:
+      return
+    write_check_cmd = ['touch', '/testfile', '&&', 'rm', '/testfile']
+    _, stderr = self.RunCmdOnDevice(write_check_cmd)
+    if stderr == '':
+      self._root_is_writable = True
+      return
+    if self.local:
+      logging.error('Root is read-only, and running in local mode, so cannot '
+                    'remount as read-write. Functionality such as stack '
+                    'symbolization will be broken.')
+      return
+    logging.warning('Root is currently read-only. Attempting to remount as '
+                    'read-write, which will disable rootfs verification and '
+                    'require a reboot.')
+    self._DisableRootFsVerification()
+    self._RemountRootAsReadWrite()
+
+    _, stderr = self.RunCmdOnDevice(write_check_cmd)
+    if stderr != '':
+      logging.error('Failed to set root to read-write. Functionality such as '
+                    'stack symbolization will be broken.')
+      return
+    self._root_is_writable = True
+
+  def _DisableRootFsVerification(self):
+    """Disables rootfs verification on the device, requiring a reboot."""
+    # 2 and 4 are the kernel partitions.
+    for partition in [2, 4]:
+      self.RunCmdOnDevice(['/usr/share/vboot/bin/make_dev_ssd.sh',
+                           '--partitions', str(partition),
+                           '--remove_rootfs_verification', '--force'])
+
+    # Restart, wait a bit, and re-establish the SSH master connection.
+    # We need to close the connection gracefully, then run the shutdown command
+    # without using a master connection. port_forward=True bypasses the master
+    # connection.
+    self.CloseConnection()
+    self.RunCmdOnDevice(['reboot'], port_forward=True)
+    time.sleep(30)
+    self.OpenConnection()
+
+  def _RemountRootAsReadWrite(self):
+    """Remounts / as a read-write partition."""
+    self.RunCmdOnDevice(['mount', '-o', 'remount,rw', '/'])
