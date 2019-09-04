@@ -2951,11 +2951,8 @@ class DeviceUtilsSetWebViewFallbackLogicTest(DeviceUtilsTest):
         self.device.SetWebViewFallbackLogic(False)
 
   def testSetWebViewFallbackLogic_afterPie(self):
-    # TODO(ntfschr): replace this with the Q constant when the SDK is public and
-    # the codename is finalized.
-    q_version_code = version_codes.PIE + 1
     with self.patch_call(self.call.device.build_version_sdk,
-                         return_value=q_version_code):
+                         return_value=version_codes.Q):
       with self.assertCalls():
         self.device.SetWebViewFallbackLogic(False)
 
