@@ -521,3 +521,50 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         broken_expectations = expectations.check_for_broken_expectations(
             ['a/b/c'])
         self.assertFalse(broken_expectations)
+
+    def testNonDeclaredSystemConditionTagRaisesException(self):
+        test_expectations = '''# tags: [ InTel AMD nvidia ]
+        # tags: [ win ]
+        # results: [ Failure ]
+        '''
+        expectations = expectations_parser.TestExpectations()
+        _, msg = expectations.parse_tagged_list(
+            test_expectations, 'test.txt')
+        self.assertFalse(msg)
+        with self.assertRaises(Exception) as context:
+            expectations.set_tags(['Unknown'], validate_tags=True)
+        self.assertEqual(str(context.exception),
+            'Tag unknown is not declared in the expectations file. '
+            'There may have been a typo in the expectations file. '
+            'Please make sure the aforementioned tag is declared at '
+            'the top of the expectations file.')
+
+    def testNonDeclaredSystemConditionTagsRaisesException_PluralCase(self):
+        test_expectations = '''# tags: [ InTel AMD nvidia ]
+        # tags: [ win ]
+        # results: [ Failure ]
+        '''
+        expectations = expectations_parser.TestExpectations()
+        _, msg = expectations.parse_tagged_list(
+            test_expectations, 'test.txt')
+        self.assertFalse(msg)
+        with self.assertRaises(Exception) as context:
+            expectations.set_tags(['Unknown', 'linux', 'nVidia', 'nvidia-0x1010'],
+                                  validate_tags=True)
+        self.assertEqual(str(context.exception),
+            'Tags linux, nvidia-0x1010 and unknown are not declared '
+            'in the expectations file. There may have been a typo in '
+            'the expectations file. Please make sure the aforementioned '
+            'tags are declared at the top of the expectations file.')
+
+    def testDeclaredSystemConditionTagsDontRaiseAnException(self):
+        test_expectations = '''# tags: [ InTel AMD nvidia nvidia-0x1010 ]
+        # tags: [ win ]
+        # results: [ Failure ]
+        '''
+        expectations = expectations_parser.TestExpectations()
+        _, msg = expectations.parse_tagged_list(
+            test_expectations, 'test.txt')
+        self.assertFalse(msg)
+        expectations.set_tags(['win', 'nVidia', 'nvidia-0x1010'],
+                              validate_tags=True)
