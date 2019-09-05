@@ -265,8 +265,8 @@ class PageTestResults(object):
   def __enter__(self):
     return self
 
-  def __exit__(self, _, __, ___):
-    self.Finalize()
+  def __exit__(self, _, exc_value, __):
+    self.Finalize(exc_value)
 
   def WillRunPage(self, page, story_run_index=0):
     assert not self.finalized, 'Results are finalized, cannot run more stories.'
@@ -458,7 +458,7 @@ class PageTestResults(object):
         value.name]
     assert value.IsMergableWith(representative_value)
 
-  def Finalize(self):
+  def Finalize(self, exc_value=None):
     """Finalize this object to prevent more results from being recorded.
 
     When progress reporting is enabled, also prints a final summary with the
@@ -469,8 +469,13 @@ class PageTestResults(object):
     if self.finalized:
       return
 
-    assert self._current_story_run is None, (
-        'Cannot finalize while stories are still running.')
+    if exc_value is not None:
+      self.InterruptBenchmark(repr(exc_value))
+      self._current_story_run = None
+    else:
+      assert self._current_story_run is None, (
+          'Cannot finalize while stories are still running.')
+
     self._finalized = True
     self._progress_reporter.DidFinishAllStories(self)
 
