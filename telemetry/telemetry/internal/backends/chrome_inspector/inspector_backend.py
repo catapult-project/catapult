@@ -300,7 +300,11 @@ class InspectorBackend(object):
     condition = js_template.Render(condition, **kwargs)
 
     def IsJavaScriptExpressionTrue():
-      return self._EvaluateJavaScript(condition, context_id, timeout)
+      try:
+        return self._EvaluateJavaScript(condition, context_id, timeout)
+      except exceptions.EvaluationException:
+        # Eval may throw due to e.g. navigation.
+        return False
 
     try:
       return py_utils.WaitFor(IsJavaScriptExpressionTrue, timeout)
