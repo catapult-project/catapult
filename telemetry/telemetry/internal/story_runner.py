@@ -403,8 +403,7 @@ def RunBenchmark(benchmark, finder_options):
       finder_options,
       benchmark_name=benchmark.Name(),
       benchmark_description=benchmark.Description(),
-      report_progress=not finder_options.suppress_gtest_report,
-      should_add_value=benchmark.ShouldAddValue) as results:
+      report_progress=not finder_options.suppress_gtest_report) as results:
 
     possible_browser = browser_finder.FindBrowser(finder_options)
     if not possible_browser:

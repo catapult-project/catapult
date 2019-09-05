@@ -38,7 +38,7 @@ def _CreateException():
     return sys.exc_info()
 
 
-class _PageTestResultsTestBase(unittest.TestCase):
+class PageTestResultsTest(unittest.TestCase):
   def setUp(self):
     story_set = story.StorySet()
     story_set.AddStory(page_module.Page("http://www.foo.com/", story_set,
@@ -80,8 +80,6 @@ class _PageTestResultsTestBase(unittest.TestCase):
     with open(results_file) as f:
       return [json.loads(line) for line in f]
 
-
-class PageTestResultsTest(_PageTestResultsTestBase):
   def testFailures(self):
     with self.CreateResults() as results:
       results.WillRunPage(self.pages[0])
@@ -303,7 +301,7 @@ class PageTestResultsTest(_PageTestResultsTestBase):
     with open(output_file) as f:
       self.assertEqual(f.read(), '[]')
 
-  def testImportHistogramDicts(self):
+  def testAddMetricPageResults(self):
     hs = histogram_set.HistogramSet()
     hs.AddHistogram(histogram_module.Histogram('foo', 'count'))
     hs.AddSharedDiagnosticToAllHistograms(
@@ -312,8 +310,16 @@ class PageTestResultsTest(_PageTestResultsTestBase):
 
     with self.CreateResults() as results:
       results.WillRunPage(self.pages[0])
-      results._ImportHistogramDicts(histogram_dicts)
+      run = results.current_story_run
       results.DidRunPage(self.pages[0])
+
+      # Pretend we got some results by running metrics.
+      results.AddMetricPageResults({
+          'run': run,
+          'fail': [],
+          'histogram_dicts': histogram_dicts,
+          'scalars': []
+      })
 
     self.assertEqual(results.AsHistogramDicts(), histogram_dicts)
 
@@ -409,136 +415,6 @@ class PageTestResultsTest(_PageTestResultsTestBase):
             'interrupted': True
         }
     })
-
-
-class PageTestResultsFilterTest(_PageTestResultsTestBase):
-  def testFilterValue(self):
-    def AcceptValueNamed_a(name, _):
-      return name == 'a'
-
-    with self.CreateResults(should_add_value=AcceptValueNamed_a) as results:
-      results.WillRunPage(self.pages[0])
-      results.AddMeasurement('a', 'seconds', 3)
-      results.AddMeasurement('b', 'seconds', 3)
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      results.AddMeasurement('a', 'seconds', 3)
-      results.AddMeasurement('d', 'seconds', 3)
-      results.DidRunPage(self.pages[1])
-
-    self.assertEqual(
-        [('a', 'http://www.foo.com/'), ('a', 'http://www.bar.com/')],
-        [(v.name, v.page.url) for v in results.IterAllLegacyValues()])
-
-  def testFilterValueWithImportHistogramDicts(self):
-    def AcceptValueStartsWith_a(name, _):
-      return name.startswith('a')
-
-    hs = histogram_set.HistogramSet()
-    hs.AddHistogram(histogram_module.Histogram('a', 'count'))
-    hs.AddHistogram(histogram_module.Histogram('b', 'count'))
-
-    with self.CreateResults(
-        should_add_value=AcceptValueStartsWith_a) as results:
-      results.WillRunPage(self.pages[0])
-      results._ImportHistogramDicts(hs.AsDicts())
-      results.DidRunPage(self.pages[0])
-
-    new_hs = histogram_set.HistogramSet()
-    new_hs.ImportDicts(results.AsHistogramDicts())
-    self.assertEqual(len(new_hs), 1)
-
-  def testFilterIsFirstResult(self):
-    def AcceptSecondValues(_, is_first_result):
-      return not is_first_result
-
-    with self.CreateResults(should_add_value=AcceptSecondValues) as results:
-      # First results (filtered out)
-      results.WillRunPage(self.pages[0])
-      results.AddMeasurement('a', 'seconds', 7)
-      results.AddMeasurement('b', 'seconds', 8)
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      results.AddMeasurement('a', 'seconds', 5)
-      results.AddMeasurement('d', 'seconds', 6)
-      results.DidRunPage(self.pages[1])
-
-      # Second results
-      results.WillRunPage(self.pages[0])
-      results.AddMeasurement('a', 'seconds', 3)
-      results.AddMeasurement('b', 'seconds', 4)
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      results.AddMeasurement('a', 'seconds', 1)
-      results.AddMeasurement('d', 'seconds', 2)
-      results.DidRunPage(self.pages[1])
-
-    expected_values = [
-        ('a', 'http://www.foo.com/', 3),
-        ('b', 'http://www.foo.com/', 4),
-        ('a', 'http://www.bar.com/', 1),
-        ('d', 'http://www.bar.com/', 2)]
-    actual_values = [(v.name, v.page.url, v.value)
-                     for v in results.IterAllLegacyValues()]
-    self.assertEqual(expected_values, actual_values)
-
-  def testFilterHistogram(self):
-    def AcceptValueNamed_a(name, _):
-      return name.startswith('a')
-
-    with self.CreateResults(should_add_value=AcceptValueNamed_a) as results:
-      results.WillRunPage(self.pages[0])
-      hist0 = histogram_module.Histogram('a', 'count')
-      # Necessary to make sure avg is added
-      hist0.AddSample(0)
-      results.AddHistogram(hist0)
-      hist1 = histogram_module.Histogram('b', 'count')
-      hist1.AddSample(0)
-      results.AddHistogram(hist1)
-      results.DidRunPage(self.pages[0])
-
-    # Filter out the diagnostics
-    dicts = results.AsHistogramDicts()
-    histogram_dicts = []
-    for d in dicts:
-      if 'name' in d:
-        histogram_dicts.append(d)
-
-    self.assertEqual(len(histogram_dicts), 1)
-    self.assertEqual(histogram_dicts[0]['name'], 'a')
-
-  def testFilterHistogram_AllStatsNotFiltered(self):
-    def AcceptNonAverage(name, _):
-      return not name.endswith('avg')
-
-    with self.CreateResults(should_add_value=AcceptNonAverage) as results:
-      results.WillRunPage(self.pages[0])
-      hist0 = histogram_module.Histogram('a', 'count')
-      # Necessary to make sure avg is added
-      hist0.AddSample(0)
-      results.AddHistogram(hist0)
-      hist1 = histogram_module.Histogram('a_avg', 'count')
-      # Necessary to make sure avg is added
-      hist1.AddSample(0)
-      results.AddHistogram(hist1)
-      results.DidRunPage(self.pages[0])
-
-    # Filter out the diagnostics
-    dicts = results.AsHistogramDicts()
-    histogram_dicts = []
-    for d in dicts:
-      if 'name' in d:
-        histogram_dicts.append(d)
-
-    self.assertEqual(len(histogram_dicts), 2)
-    histogram_dicts.sort(key=lambda h: h['name'])
-
-    self.assertEqual(len(histogram_dicts), 2)
-    self.assertEqual(histogram_dicts[0]['name'], 'a')
-    self.assertEqual(histogram_dicts[1]['name'], 'a_avg')
 
   @mock.patch('py_utils.cloud_storage.Insert')
   def testUploadArtifactsToCloud(self, cs_insert_mock):

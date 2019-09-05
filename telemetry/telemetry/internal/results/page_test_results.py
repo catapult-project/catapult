@@ -34,8 +34,7 @@ HISTOGRAM_DICTS_NAME = 'histogram_dicts.json'
 class PageTestResults(object):
   def __init__(self, output_formatters=None, progress_stream=None,
                output_dir=None, intermediate_dir=None,
-               should_add_value=None, benchmark_name=None,
-               benchmark_description=None,
+               benchmark_name=None, benchmark_description=None,
                upload_bucket=None, results_label=None):
     """
     Args:
@@ -46,10 +45,6 @@ class PageTestResults(object):
           stories are being run. Can be None to suppress progress reporting.
       output_dir: A string specifying the directory where to store the test
           artifacts, e.g: trace, videos, etc.
-      should_add_value: A function that takes two arguments: a value name and
-          a boolean (True when the value belongs to the first run of the
-          corresponding story). It returns True if the value should be added
-          to the test results and False otherwise.
       benchmark_name: A string with the name of the currently running benchmark.
       benchmark_description: A string with a description of the currently
           running benchmark.
@@ -67,12 +62,7 @@ class PageTestResults(object):
     self._intermediate_dir = intermediate_dir
     if intermediate_dir is None and output_dir is not None:
       self._intermediate_dir = os.path.join(output_dir, 'artifacts')
-
     self._upload_bucket = upload_bucket
-    if should_add_value is not None:
-      self._should_add_value = should_add_value
-    else:
-      self._should_add_value = lambda v, is_first: True
 
     self._current_story_run = None
     self._all_story_runs = []
@@ -311,7 +301,7 @@ class PageTestResults(object):
       for fail in result['fail']:
         self.Fail(fail)
       if result['histogram_dicts']:
-        self._ImportHistogramDicts(result['histogram_dicts'])
+        self._histograms.ImportDicts(result['histogram_dicts'])
         # Saving histograms as an artifact is a temporary hack to keep
         # things working while we gradually move code from Telemetry to
         # Results Processor.
@@ -340,11 +330,10 @@ class PageTestResults(object):
     self._interruption = self._interruption or reason
 
   def AddHistogram(self, hist):
-    if self._ShouldAddHistogram(hist):
-      diags = self._GetDiagnostics()
-      for diag in diags.itervalues():
-        self._histograms.AddSharedDiagnostic(diag)
-      self._histograms.AddHistogram(hist, diags)
+    diags = self._GetDiagnostics()
+    for diag in diags.itervalues():
+      self._histograms.AddSharedDiagnostic(diag)
+    self._histograms.AddHistogram(hist, diags)
 
   def _GetDiagnostics(self):
     """Get benchmark and current story details as histogram diagnostics."""
@@ -372,22 +361,6 @@ class PageTestResults(object):
       diag_class = all_diagnostics.GetDiagnosticClassForName(diag.type)
       diags[diag.name] = diag_class(value)
     return diags
-
-  def _ImportHistogramDicts(self, histogram_dicts):
-    histograms = histogram_set.HistogramSet()
-    histograms.ImportDicts(histogram_dicts)
-    histograms.FilterHistograms(lambda hist: not self._ShouldAddHistogram(hist))
-    dicts_to_add = histograms.AsDicts()
-    self._histograms.ImportDicts(dicts_to_add)
-
-  def _ShouldAddHistogram(self, hist):
-    assert self._current_story_run, 'Not currently running test.'
-    is_first_result = (
-        self._current_story_run.story not in self._all_stories)
-    # TODO(eakuefner): Stop doing this once AddValue doesn't exist
-    stat_names = [
-        '%s_%s' % (hist.name, s) for  s in hist.statistics_scalars.iterkeys()]
-    return any(self._should_add_value(s, is_first_result) for s in stat_names)
 
   def AddMeasurement(self, name, unit, samples):
     """Record a measurement of the currently running story.
@@ -418,13 +391,7 @@ class PageTestResults(object):
   def AddValue(self, value):
     """DEPRECATED: Use AddMeasurement instead."""
     assert self._current_story_run, 'Not currently running a story.'
-
     self._ValidateValue(value)
-    is_first_result = (
-        self._current_story_run.story not in self._all_stories)
-
-    if not self._should_add_value(value.name, is_first_result):
-      return
     self._current_story_run.AddLegacyValue(value)
 
   def AddSharedDiagnosticToAllHistograms(self, name, diagnostic):

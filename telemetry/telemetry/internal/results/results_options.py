@@ -50,7 +50,7 @@ def _GetOutputStream(output_format, output_dir):
 
 
 def CreateResults(options, benchmark_name=None, benchmark_description=None,
-                  report_progress=False, should_add_value=None):
+                  report_progress=False):
   """
   Args:
     options: Contains the options specified in AddResultsOptions.
@@ -59,10 +59,6 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
         running benchmark.
     report_progress: A boolean indicating whether to emit gtest style
         report of progress as story runs are being recorded.
-    should_add_value: A function that takes two arguments: a value name and
-        a boolean (True when the value belongs to the first run of the
-        corresponding story). It returns True if the value should be added
-        to the test results and False otherwise.
 
   Returns:
     A PageTestResults object.
@@ -109,7 +105,6 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
       progress_stream=sys.stdout if report_progress else None,
       output_dir=options.output_dir,
       intermediate_dir=options.intermediate_dir,
-      should_add_value=should_add_value,
       benchmark_name=benchmark_name,
       benchmark_description=benchmark_description,
       upload_bucket=options.upload_bucket,

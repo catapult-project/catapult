@@ -120,24 +120,6 @@ class Benchmark(command_line.Command):
   def ProcessCommandLineArgs(cls, parser, args):
     pass
 
-  # pylint: disable=unused-argument
-  @classmethod
-  def ShouldAddValue(cls, name, from_first_story_run):
-    """Returns whether the named value should be added to PageTestResults.
-
-    Override this method to customize the logic of adding values to test
-    results.
-
-    Args:
-      name: The string name of a value being added.
-      from_first_story_run: True if the named value was produced during the
-          first run of the corresponding story.
-
-    Returns:
-      True if the value should be added to the test results, False otherwise.
-    """
-    return True
-
   def CustomizeOptions(self, finder_options):
     """Add options that are required by this benchmark."""
 

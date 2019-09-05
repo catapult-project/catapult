@@ -114,33 +114,6 @@ class BenchmarkTest(unittest.TestCase):
     with self.assertRaisesRegexp(TypeError, type_error_regex):
       UnknownTestTypeBenchmark().CreatePageTest(options=None)
 
-  def testBenchmarkWithOverridenShouldAddValue(self):
-    class ShouldNotAddValueBenchmark(TestBenchmark):
-
-      @classmethod
-      def ShouldAddValue(cls, unused_value, unused_is_first_result):
-        return False
-
-    original_run_fn = story_runner.Run
-    valid_should_add_value = [False]
-
-    def RunStub(test, story_set_module, finder_options, results,
-                *args, **kwargs): # pylint: disable=unused-argument
-      should_add_value = results._should_add_value
-      valid = should_add_value == ShouldNotAddValueBenchmark.ShouldAddValue
-      valid_should_add_value[0] = valid
-
-    story_runner.Run = RunStub
-
-    try:
-      b = ShouldNotAddValueBenchmark(
-          page.Page(url='about:blank', name='about:blank'))
-      b.Run(self.options)
-    finally:
-      story_runner.Run = original_run_fn
-
-    self.assertTrue(valid_should_add_value[0])
-
   def testGetOwners(self):
     @benchmark.Owner(emails=['alice@chromium.org'])
     class FooBenchmark(benchmark.Benchmark):
