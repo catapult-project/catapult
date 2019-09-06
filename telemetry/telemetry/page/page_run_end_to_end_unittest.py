@@ -36,7 +36,7 @@ class DummyTest(legacy_page_test.LegacyPageTest):
 
 def RunStorySet(test, story_set, options, **kwargs):
   with results_options.CreateResults(options) as results:
-    story_runner.Run(test, story_set, options, results, **kwargs)
+    story_runner.RunStorySet(test, story_set, options, results, **kwargs)
   return results
 
 

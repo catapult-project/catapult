@@ -59,5 +59,5 @@ class PageTestTestCase(unittest.TestCase):
       measurement.CustomizeBrowserOptions(run_options.browser_options)
     with results_options.CreateResults(
         run_options, benchmark_name=BENCHMARK_NAME) as results:
-      story_runner.Run(measurement, story_set, run_options, results)
+      story_runner.RunStorySet(measurement, story_set, run_options, results)
     return results

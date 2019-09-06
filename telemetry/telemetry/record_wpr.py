@@ -252,7 +252,7 @@ class WprRecorder(object):
     self._options.pageset_repeat = 1
     self._story_set.wpr_archive_info.AddNewTemporaryRecording()
     self._record_page_test.CustomizeBrowserOptions(self._options)
-    story_runner.Run(
+    story_runner.RunStorySet(
         self._record_page_test,
         self._story_set,
         self._options,

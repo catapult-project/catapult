@@ -159,7 +159,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
     except Exception as exc:  # pylint: disable=broad-except
       ProcessError(exc, log_message=('Possibly handleable error. '
                                      'Will try to restart shared state'))
-      # The caller (|Run| function) will catch this exception, destory and
+      # The caller, RunStorySet, will catch this exception, destory and
       # create a new shared state.
       raise
     finally:
@@ -200,13 +200,25 @@ def _GetPossibleBrowser(finder_options):
   return possible_browser
 
 
-def Run(test, story_set, finder_options, results, max_failures=None,
-        expectations=None, max_num_values=sys.maxint):
-  """Runs a given test against a given page_set with the given options.
+def RunStorySet(test, story_set, finder_options, results, max_failures=None,
+                expectations=None, max_num_values=sys.maxint):
+  """Runs a test against a story_set with the given options.
 
-  Stop execution for unexpected exceptions such as KeyboardInterrupt.
-  We "white list" certain exceptions for which the story runner
-  can continue running the remaining stories.
+  Stop execution for unexpected exceptions such as KeyboardInterrupt. Some
+  other exceptions are handled and recorded before allowing the remaining
+  stories to run.
+
+  Args:
+    test: Either a StoryTest or a LegacyPageTest instance.
+    story_set: A StorySet instance with the set of stories to run.
+    finder_options: The parsed command line options to customize the run.
+    results: A PageTestResults object used to collect results and artifacts.
+    max_failures: Max number of story run failures allowed before aborting
+      the entire story run. It's overriden by finder_options.max_failures
+      if given.
+    expectations: Benchmark expectations used to determine disabled stories.
+    max_num_values: Max number of legacy values allowed before aborting the
+      story run.
   """
   stories = story_set.stories
   for s in stories:
@@ -417,18 +429,19 @@ def RunBenchmark(benchmark, finder_options):
     if not _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
       return -1
 
-    pt = benchmark.CreatePageTest(finder_options)
-    pt.__name__ = benchmark.__class__.__name__
+    test = benchmark.CreatePageTest(finder_options)
+    test.__name__ = benchmark.__class__.__name__
 
     story_set = benchmark.CreateStorySet(finder_options)
 
-    if isinstance(pt, legacy_page_test.LegacyPageTest):
+    if isinstance(test, legacy_page_test.LegacyPageTest):
       if any(not isinstance(p, page.Page) for p in story_set.stories):
         raise Exception(
             'PageTest must be used with StorySet containing only '
             'telemetry.page.Page stories.')
     try:
-      Run(pt, story_set, finder_options, results, benchmark.max_failures,
+      RunStorySet(
+          test, story_set, finder_options, results, benchmark.max_failures,
           expectations=benchmark.expectations,
           max_num_values=benchmark.MAX_NUM_VALUES)
       if results.benchmark_interrupted:
