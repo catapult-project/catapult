@@ -49,7 +49,15 @@ _ARCH_TO_STACK_TOOL_ARCH = {
     'armeabi-v7a': 'arm',
     'arm64-v8a': 'arm64',
 }
-_MAP_TO_USER_FRIENDLY_NAMES = {
+_MAP_TO_USER_FRIENDLY_OS_NAMES = {
+    'l': 'lollipop',
+    'm': 'marshmallow',
+    'n': 'nougat',
+    'o': 'oreo',
+    'p': 'pie',
+    'q': '10'
+}
+_MAP_TO_USER_FRIENDLY_DEVICE_NAMES = {
     'gobo': 'go',
     'W6210': 'one',
     'AOSP on Shamu': 'nexus 6',
@@ -274,10 +282,13 @@ class AndroidPlatformBackend(
   def GetTypExpectationsTags(self):
     # telemetry benchmark's expectations need to know the model name
     # and if it is a low end device
-    tags = super(AndroidPlatformBackend, self).GetTypExpectationsTags()
+    os_version = self.GetOSVersionName()
+    os_version = _MAP_TO_USER_FRIENDLY_OS_NAMES.get(os_version, os_version)
+    tags = test_utils.sanitizeTypExpectationsTags(
+        [self.GetOSName(), 'android-' + os_version])
     device_type_name = self.GetDeviceTypeName()
     tags += test_utils.sanitizeTypExpectationsTags(
-        ['android-' + _MAP_TO_USER_FRIENDLY_NAMES.get(
+        ['android-' + _MAP_TO_USER_FRIENDLY_DEVICE_NAMES.get(
             device_type_name, device_type_name)])
     if self.IsLowEnd():
       tags.append('android-low-end')

@@ -50,6 +50,22 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         android_device.AndroidDevice('12345'), True)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
+  def testGetFriendlyOsVersionNameInPlatformTags(self):
+    backend = self.CreatePlatformBackendForTest()
+    android_os_versions = {
+        'l': 'lollipop', 'm': 'marshmallow', 'n': 'nougat',
+        'o': 'oreo', 'p': 'pie', 'q': '10'}
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    return_value='foo'):
+      with mock.patch.object(
+          backend, 'GetDeviceTypeName', return_value='gobo'):
+        for version in android_os_versions:
+          with mock.patch.object(
+              backend, 'GetOSVersionName', return_value=version):
+            self.assertIn('android-' + android_os_versions[version],
+                          backend.GetTypExpectationsTags())
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testTypExpectationsTagsContainsLowEndTagForSvelteBuild(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='svelte'):
