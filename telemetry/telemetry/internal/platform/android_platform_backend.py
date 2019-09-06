@@ -55,7 +55,8 @@ _MAP_TO_USER_FRIENDLY_OS_NAMES = {
     'n': 'nougat',
     'o': 'oreo',
     'p': 'pie',
-    'q': '10'
+    'q': '10',
+    'k': 'kitkat'
 }
 _MAP_TO_USER_FRIENDLY_DEVICE_NAMES = {
     'gobo': 'go',
@@ -282,7 +283,7 @@ class AndroidPlatformBackend(
   def GetTypExpectationsTags(self):
     # telemetry benchmark's expectations need to know the model name
     # and if it is a low end device
-    os_version = self.GetOSVersionName()
+    os_version = self.GetOSVersionName().lower()
     os_version = _MAP_TO_USER_FRIENDLY_OS_NAMES.get(os_version, os_version)
     tags = test_utils.sanitizeTypExpectationsTags(
         [self.GetOSName(), 'android-' + os_version])

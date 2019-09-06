@@ -54,7 +54,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     backend = self.CreatePlatformBackendForTest()
     android_os_versions = {
         'l': 'lollipop', 'm': 'marshmallow', 'n': 'nougat',
-        'o': 'oreo', 'p': 'pie', 'q': '10'}
+        'o': 'oreo', 'p': 'pie', 'q': '10', 'k': 'kitkat'}
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='foo'):
       with mock.patch.object(

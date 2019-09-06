@@ -18,6 +18,20 @@ from typ import json_results
 
 ResultType = json_results.ResultType
 
+# TODO(crbug.com/999335): This set includes all the legal tags that can be
+# used in expectations.config. We will add a presubmit check which will make
+# sure that the set of tags below and set of all the tags used in
+# expectations.config stay in sync.
+SYSTEM_CONDITION_TAGS = frozenset([
+    'android', 'android-go', 'android-low-end', 'android-nexus-5',
+    'android-nexus-5x', 'android-nexus-6', 'android-pixel-2',
+    'chromeos', 'desktop', 'linux', 'mac', 'mac-10.12', 'win',
+    'win10', 'win7', 'android-not-webview', 'android-webview',
+    'mobile', 'android-marshmallow', 'android-lollipop', 'android-nougat',
+    'android-oreo', 'android-pie', 'android-10', 'android-webview-google',
+    'reference', 'android-chromium', 'ubuntu', 'android-kitkat'
+])
+
 
 class StoryExpectations(object):
 
