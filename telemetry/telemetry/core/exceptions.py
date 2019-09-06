@@ -118,6 +118,9 @@ class DevtoolsTargetCrashException(AppCrashException):
   def __init__(self, app, msg='Devtools target crashed'):
     super(DevtoolsTargetCrashException, self).__init__(app, msg)
 
+class DevtoolsTargetClosedException(Error):
+  """Represents an error when Devtools target navigated or closed.
+  """
 
 class BrowserGoneException(AppCrashException):
   """Represents a crash of the entire browser.

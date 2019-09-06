@@ -3,6 +3,11 @@
 # found in the LICENSE file.
 from telemetry.core import exceptions
 
+# Keep this in sync with kTargetClosedMessage in
+# content/browser/devtools/devtools_session.cc
+# The hardcoding of the message is unfortunate, but we need it to distinguish
+# real evaluation errors (syntax error) from this recoverable DevTool error.
+TARGET_CLOSED_MESSAGE = "Inspected target navigated or closed"
 
 class InspectorRuntime(object):
   def __init__(self, inspector_websocket):
@@ -46,7 +51,10 @@ class InspectorRuntime(object):
       request['params']['contextId'] = context_id
     res = self._inspector_websocket.SyncRequest(request, timeout)
     if 'error' in res:
-      raise exceptions.EvaluateException(res['error']['message'])
+      msg = res['error']['message']
+      if msg == TARGET_CLOSED_MESSAGE:
+        raise exceptions.DevtoolsTargetClosedException(msg)
+      raise exceptions.EvaluateException(msg)
 
     if 'exceptionDetails' in res['result']:
       details = res['result']['exceptionDetails']
