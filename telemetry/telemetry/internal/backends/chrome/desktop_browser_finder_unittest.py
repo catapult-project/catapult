@@ -196,13 +196,21 @@ class LinuxFindTest(fake_filesystem_unittest.TestCase):
 
   @decorators.Disabled('android')  # http://crbug.com/905359
   def testFindAllWithCheckout(self):
-    for target in ['Release', 'Debug']:
-      for browser in ['chrome', 'content_shell']:
-        self.CreateBrowser('/src/out/%s/%s' % (target, browser))
+    # CHROMIUM_OUTPUT_DIR affects the outcome of the tests, so temporarily
+    # remove it from the environment.
+    output_dir_env = os.environ.pop('CHROMIUM_OUTPUT_DIR', None)
 
-    self.assertEquals(
-        set(self.DoFindAllTypes()),
-        {'debug', 'release', 'content-shell-debug', 'content-shell-release'})
+    try:
+      for target in ['Release', 'Debug']:
+        for browser in ['chrome', 'content_shell']:
+          self.CreateBrowser('/src/out/%s/%s' % (target, browser))
+
+      self.assertEquals(
+          set(self.DoFindAllTypes()),
+          {'debug', 'release', 'content-shell-debug', 'content-shell-release'})
+    finally:
+      if output_dir_env is not None:
+        os.environ['CHROMIUM_OUTPUT_DIR'] = output_dir_env
 
   def testFindAllFailsIfNotExecutable(self):
     self.fs.CreateFile('/src/out/Release/chrome')
