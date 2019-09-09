@@ -92,25 +92,36 @@ found in the LICENSE file.
         <iron-form id="try_form" headers="[[authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
 
+            <input type="hidden" name="comparison_mode" value="[[comparisonMode]]">
+            <input type="hidden" name="target" value="[[telemetryIsolate(configuration, benchmark)]]">
+            <input type="hidden" name="start_git_hash" value="[[start_git_hash]]">
+            <input type="hidden" name="end_git_hash" value="[[end_git_hash]]">
+
+            <template is="dom-if" if="[[hasJob(job)]]">
+              <input type="hidden" name="comparison_magnitude" disabled$="[[!job.arguments.comparison_magnitude]]" value="[[job.arguments.comparison_magnitude]]">
+              <input type="hidden" name="tir_label" disabled$="[[!job.arguments.tir_label]]" value="[[job.arguments.tir_label]]">
+              <input type="hidden" name="chart" disabled$="[[!job.arguments.chart]]" value="[[job.arguments.chart]]">
+              <input type="hidden" name="trace" disabled$="[[!job.arguments.trace]]" value="[[job.arguments.trace]]">
+              <input type="hidden" name="statistic" disabled$="[[!job.arguments.statistic]]" value="[[job.arguments.statistic]]">
+              <input type="hidden" name="tags" disabled$="[[!job.arguments.tags]]" value="[[job.arguments.tags]]">
+              <input type="hidden" name="pin" disabled$="[[!job.arguments.pin]]" value="[[job.arguments.pin]]">
+            </template>
+
             <template is="dom-if" if="[[!hasJob(job)]]">
-              <input type="hidden" name="comparison_mode" value="[[comparisonMode]]">
               <paper-radio-group id="comparison_mode" selected="{{comparisonMode}}">
                 <paper-radio-button name="try">Try Job</paper-radio-button>
                 <paper-radio-button name="performance">Bisect</paper-radio-button>
               </paper-radio-group>
             </template>
 
-            <input type="hidden" name="target" value="[[telemetryIsolate(configuration, benchmark)]]">
             <paper-input name="bug_id" value="{{bug_id}}" label="Bug ID"></paper-input>
 
             <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
-              <commit-details name="start_git_hash" value="{{start_git_hash}}" label="Start Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
-              <commit-details name="end_git_hash" value="{{end_git_hash}}" label="End Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
+              <commit-details value="{{start_git_hash}}" label="Start Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
+              <commit-details value="{{end_git_hash}}" label="End Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
             </template>
 
             <template is="dom-if" if="[[!isBisectJob(comparisonMode)]]">
-              <input type="hidden" name="start_git_hash" value="[[start_git_hash]]">
-              <input type="hidden" name="end_git_hash" value="[[end_git_hash]]">
               <paper-input name="patch" value="{{patch}}" label="Gerrit URL" required disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
             </template>
 
