@@ -29,7 +29,8 @@ SYSTEM_CONDITION_TAGS = frozenset([
     'win10', 'win7', 'android-not-webview', 'android-webview',
     'mobile', 'android-marshmallow', 'android-lollipop', 'android-nougat',
     'android-oreo', 'android-pie', 'android-10', 'android-webview-google',
-    'reference', 'android-chromium', 'ubuntu', 'android-kitkat'
+    'reference', 'android-chromium', 'ubuntu', 'android-kitkat', 'highsierra',
+    'sierra', 'mac-10.11'
 ])
 
 
