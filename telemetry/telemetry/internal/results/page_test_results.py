@@ -14,7 +14,6 @@ import traceback
 
 from telemetry import value as value_module
 from telemetry.internal.results import chart_json_output_formatter
-from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import results_processor
 from telemetry.internal.results import story_run
@@ -475,12 +474,10 @@ class PageTestResults(object):
     self._finalized = True
     self._progress_reporter.DidFinishAllStories(self)
 
-    # Only serialize the trace if output_format is json or html.
-    if (self._output_dir and
-        any(isinstance(o, html_output_formatter.HtmlOutputFormatter)
-            for o in self._output_formatters)):
-      # Just to make sure that html trace is there in artifacts dir
-      results_processor.SerializeAndUploadHtmlTraces(self)
+    # Make sure that html traces are recorded as artifacts.
+    # TODO(crbug.com/981349): Remove this after trace serialization is
+    # implemented in Results Processor.
+    results_processor.SerializeAndUploadHtmlTraces(self)
 
     # TODO(crbug.com/981349): Ideally we want to write results for each story
     # run individually at DidRunPage when the story finished executing. For
