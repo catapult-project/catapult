@@ -94,17 +94,18 @@ def ShrinkToSnippet(cmd_parts, var_name, var_value):
   return ' '.join(shrink(part) for part in cmd_parts)
 
 
-def Popen(args, stdout=None, stderr=None, shell=None, cwd=None, env=None):
+def Popen(args, stdin=None, stdout=None, stderr=None, shell=None, cwd=None,
+          env=None):
   # preexec_fn isn't supported on windows.
   if sys.platform == 'win32':
-    close_fds = (stdout is None and stderr is None)
+    close_fds = (stdin is None and stdout is None and stderr is None)
     preexec_fn = None
   else:
     close_fds = True
     preexec_fn = lambda: signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
   return subprocess.Popen(
-      args=args, cwd=cwd, stdout=stdout, stderr=stderr,
+      args=args, cwd=cwd, stdin=stdin, stdout=stdout, stderr=stderr,
       shell=shell, close_fds=close_fds, env=env, preexec_fn=preexec_fn)
 
 
