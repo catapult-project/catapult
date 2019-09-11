@@ -152,3 +152,21 @@ class Story(object):
     """Return a list of strings with story tags and grouping keys."""
     return list(self.tags) + [
         '%s:%s' % kv for kv in self.grouping_keys.iteritems()]
+
+  def GetExtraTracingMetrics(self):
+    """Override this to add more TBMv2 metrics to be computed.
+
+    These metrics were originally set up by the benchmark in
+    CreateCoreTimelineBasedMeasurementOptions. This method provides the page
+    with a way to add more metrics in the case that certain pages need more
+    metrics than others. This is reasonable to do if certain pages within
+    your benchmark do not provide the
+    information needed to calculate various metrics, or if those metrics
+    are not important for that page.
+
+    This option only works for TBMv2 metrics.
+
+    You should return a list of the names of the metrics. For example,
+    return ['exampleMetric']
+    """
+    return []

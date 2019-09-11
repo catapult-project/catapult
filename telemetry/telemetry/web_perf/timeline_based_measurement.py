@@ -101,7 +101,7 @@ class Options(object):
     self._timeline_based_metrics = metrics
 
   def GetTimelineBasedMetrics(self):
-    return self._timeline_based_metrics
+    return self._timeline_based_metrics or []
 
 
 class TimelineBasedMeasurement(story_test.StoryTest):
@@ -147,6 +147,9 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     platform.tracing_controller.RecordBenchmarkMetadata(results)
     traces = platform.tracing_controller.StopTracing()
     tbm_metrics = self._tbm_options.GetTimelineBasedMetrics()
+    tbm_metrics = (
+        self._tbm_options.GetTimelineBasedMetrics() +
+        results.current_story.GetExtraTracingMetrics())
     assert tbm_metrics, (
         'Please specify required metrics using SetTimelineBasedMetrics')
     results.AddTraces(traces, tbm_metrics=tbm_metrics)

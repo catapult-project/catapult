@@ -22,7 +22,8 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
 
   def __init__(self, story_set, base_dir, trigger_animation=False,
                trigger_jank=False, trigger_slow=False,
-               trigger_scroll_gesture=False, measure_memory=False):
+               trigger_scroll_gesture=False, measure_memory=False,
+               additional_metrics=None):
     super(TestTimelinebasedMeasurementPage, self).__init__(
         'file://interaction_enabled_page.html', story_set, base_dir,
         name='interaction_enabled_page.html')
@@ -31,6 +32,7 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
     self._trigger_slow = trigger_slow
     self._trigger_scroll_gesture = trigger_scroll_gesture
     self._measure_memory = measure_memory
+    self._additional_metrics = additional_metrics
 
   def RunPageInteractions(self, action_runner):
     if self._measure_memory:
@@ -47,6 +49,9 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
     if self._trigger_scroll_gesture:
       with action_runner.CreateGestureInteraction('Scroll'):
         action_runner.ScrollPage()
+
+  def GetExtraTracingMetrics(self):
+    return self._additional_metrics or []
 
 class FailedTimelinebasedMeasurementPage(page_module.Page):
 
@@ -92,19 +97,21 @@ class TimelineBasedMeasurementTest(page_test_test_case.PageTestTestCase):
   @decorators.Disabled('chromeos')
   @decorators.Isolated
   def testTBM2ForSmoke(self):
-    story_set = self.CreateEmptyPageSet()
-    story_set.AddStory(
-        TestTimelinebasedMeasurementPage(story_set, story_set.base_dir))
+    ps = self.CreateEmptyPageSet()
+    ps.AddStory(TestTimelinebasedMeasurementPage(
+        ps, ps.base_dir,
+        additional_metrics=['sampleMetric']))
 
     options = tbm_module.Options()
     options.config.enable_chrome_trace = True
-    options.SetTimelineBasedMetrics(['sampleMetric'])
+
     tbm = tbm_module.TimelineBasedMeasurement(options)
-
-    results = self.RunMeasurement(tbm, story_set, run_options=self._options)
-
+    results = self.RunMeasurement(tbm, ps, self._options)
     self.assertFalse(results.had_failures)
-
+    tbm_metrics = []
+    for story_run in results.IterStoryRuns():
+      tbm_metrics += story_run.tbm_metrics
+    self.assertEqual(tbm_metrics, ['sampleMetric'])
     histogram_dicts = results.AsHistogramDicts()
     hs = histogram_set.HistogramSet()
     hs.ImportDicts(histogram_dicts)
