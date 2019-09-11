@@ -94,7 +94,7 @@ class IssueTrackerService(object):
     request = self._service.issues().get(projectId='chromium', issueId=issue_id)
     return self._ExecuteRequest(request)
 
-  def _MakeCommentRequest(self, bug_id, body, retry=True, send_email=False):
+  def _MakeCommentRequest(self, bug_id, body, retry=True, send_email=True):
     """Makes a request to the issue tracker to update a bug.
 
     Args:

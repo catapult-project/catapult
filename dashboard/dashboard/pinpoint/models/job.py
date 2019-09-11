@@ -316,7 +316,7 @@ class Job(ndb.Model):
     title = _ROUND_PUSHPIN + ' Pinpoint job started.'
     comment = '\n'.join((title, self.url))
     deferred.defer(
-        _PostBugCommentDeferred, self.bug_id, comment, send_email=False,
+        _PostBugCommentDeferred, self.bug_id, comment, send_email=True,
         _retry_options=RETRY_OPTIONS)
 
   def _IsTryJob(self):
@@ -565,7 +565,7 @@ class Job(ndb.Model):
     comment = u'{}\n{}\n\nCancelled by {}, reason given: {}'.format(
         title, self.url, user, reason)
     deferred.defer(_PostBugCommentDeferred, self.bug_id, comment,
-                   send_email=False, _retry_options=RETRY_OPTIONS)
+                   send_email=True, _retry_options=RETRY_OPTIONS)
 
 
 def _GetBugStatus(issue_tracker, bug_id):

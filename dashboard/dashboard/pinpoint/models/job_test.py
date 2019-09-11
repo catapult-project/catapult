@@ -247,7 +247,7 @@ class BugCommentTest(test.TestCase):
 
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_STARTED, send_email=False)
+        123456, _COMMENT_STARTED, send_email=True)
 
   def testCompletedNoComparison(self):
     j = job.Job.New((), (), bug_id=123456)
