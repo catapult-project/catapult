@@ -449,6 +449,36 @@ class DeviceUtilsGetExternalStoragePathTest(DeviceUtilsTest):
         self.device.GetExternalStoragePath()
 
 
+class DeviceUtilsIsApplicationInstalledTest(DeviceUtilsTest):
+
+  def testIsApplicationInstalled_installed(self):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(
+            ['pm', 'list', 'packages', 'some.installed.app'],
+            check_return=True),
+         ['package:some.installed.app'])):
+      self.assertTrue(
+          self.device.IsApplicationInstalled('some.installed.app'))
+
+  def testIsApplicationInstalled_notInstalled(self):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(
+            ['pm', 'list', 'packages', 'not.installed.app'], check_return=True),
+         '')):
+      self.assertFalse(
+          self.device.IsApplicationInstalled('not.installed.app'))
+
+  def testIsApplicationInstalled_substringMatch(self):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(
+            ['pm', 'list', 'packages', 'substring.of.package'],
+            check_return=True),
+         ['package:first.substring.of.package',
+          'package:second.substring.of.package',])):
+      self.assertFalse(
+          self.device.IsApplicationInstalled('substring.of.package'))
+
+
 class DeviceUtilsGetApplicationPathsInternalTest(DeviceUtilsTest):
 
   def testGetApplicationPathsInternal_exists(self):
@@ -2827,7 +2857,7 @@ class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
 
   def testSetWebViewImplementation_success(self):
     with self.patch_call(
-        self.call.device.GetApplicationPaths, return_value=['/any/path']):
+        self.call.device.IsApplicationInstalled, return_value=True):
       with self.assertCall(
           self.call.adb.Shell(
               'cmd webviewupdate set-webview-implementation foo.org'),
@@ -2835,7 +2865,8 @@ class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
         self.device.SetWebViewImplementation('foo.org')
 
   def testSetWebViewImplementation_uninstalled(self):
-    with self.patch_call(self.call.device.GetApplicationPaths, return_value=[]):
+    with self.patch_call(self.call.device.IsApplicationInstalled,
+                         return_value=False):
       with self.assertRaises(device_errors.CommandFailedError) as cfe:
         self.device.SetWebViewImplementation('foo.org')
       self.assertIn('is not installed', cfe.exception.message)
@@ -2843,7 +2874,7 @@ class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
   def _testSetWebViewImplementationHelper(self, mock_dump_sys,
                                           exception_message_substr):
     with self.patch_call(
-        self.call.device.GetApplicationPaths, return_value=['/any/path']):
+        self.call.device.IsApplicationInstalled, return_value=True):
       with self.assertCall(
           self.call.adb.Shell(
               'cmd webviewupdate set-webview-implementation foo.org'), 'Oops!'):

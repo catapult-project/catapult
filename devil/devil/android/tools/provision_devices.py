@@ -190,8 +190,8 @@ def Wipe(device, adb_key_files=None):
     WipeChromeData(device)
 
     package = 'com.google.android.gms'
-    if device.GetApplicationPaths(package):
-      version_name = device.GetApplicationVersion(package)
+    version_name = device.GetApplicationVersion(package)
+    if version_name:
       logger.info('Version name for %s is %s', package, version_name)
     else:
       logger.info('Package %s is not installed', package)

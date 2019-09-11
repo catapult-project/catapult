@@ -655,6 +655,23 @@ class DeviceUtils(object):
     raise device_errors.CommandFailedError('Unable to fetch IMEI.')
 
   @decorators.WithTimeoutAndRetriesFromInstance()
+  def IsApplicationInstalled(self, package, timeout=None, retries=None):
+    """Determines whether a particular package is installed on the device.
+
+    Args:
+      package: Name of the package.
+
+    Returns:
+      True if the application is installed, False otherwise.
+    """
+    # `pm list packages` allows matching substrings, but we want exact matches
+    # only.
+    matching_packages = self.RunShellCommand(
+        ['pm', 'list', 'packages', package], check_return=True)
+    desired_line = 'package:' + package
+    return desired_line in matching_packages
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
   def GetApplicationPaths(self, package, timeout=None, retries=None):
     """Get the paths of the installed apks on the device for the given package.
 
@@ -2821,8 +2838,7 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    installed = self.GetApplicationPaths(package_name)
-    if not installed:
+    if not self.IsApplicationInstalled(package_name):
       raise device_errors.CommandFailedError(
           '%s is not installed' % package_name, str(self))
     output = self.RunShellCommand(
