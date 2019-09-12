@@ -59,7 +59,7 @@ def AddDeviceArguments(parser):
     parser: an instance of argparse.ArgumentParser
   """
   parser.add_argument(
-      '-d', '--device', dest='devices', action='append',
+      '-d', '--device', dest='devices', action='append', default=[],
       help='Serial number of the Android device to use. (default: use all)')
   parser.add_argument('--blacklist-file', help='Device blacklist JSON file.')
 
