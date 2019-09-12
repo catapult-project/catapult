@@ -13,7 +13,6 @@ from telemetry.story import expectations as expectations_module
 from telemetry.story import typ_expectations
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
-from tracing.value.diagnostics import generic_set
 
 Info = decorators.Info
 
@@ -124,36 +123,22 @@ class Benchmark(command_line.Command):
     """Add options that are required by this benchmark."""
 
   def GetBugComponents(self):
-    """Returns a GenericSet Diagnostic containing the benchmark's Monorail
-       component.
-
-    Returns:
-      GenericSet Diagnostic with the benchmark's bug component name
-    """
-    benchmark_component = decorators.GetComponent(self)
-    component_diagnostic_value = (
-        [benchmark_component] if benchmark_component else [])
-    return generic_set.GenericSet(component_diagnostic_value)
+    """Return the benchmark's Monorail component as a string."""
+    return decorators.GetComponent(self)
 
   def GetOwners(self):
-    """Returns a Generic Diagnostic containing the benchmark's owners' emails
-       in a list.
+    """Return the benchmark's owners' emails in a list."""
+    return decorators.GetEmails(self)
+
+  def GetDocumentationLinks(self):
+    """Return the benchmark's documentation links.
 
     Returns:
-      Diagnostic with a list of the benchmark's owners' emails
+      A list of [title, url] pairs. This is the form that allows Dashboard
+      to display links properly.
     """
-    return generic_set.GenericSet(decorators.GetEmails(self) or [])
-
-  def GetDocumentationLink(self):
-    """Returns a Generic Diagnostic containing the benchmark's documentation
-       link in a string.
-
-    Returns:
-      Diagnostic with the link (string) to the benchmark documentation.
-    """
-    pair = ['Benchmark documentation link',
-            decorators.GetDocumentationLink(self)]
-    return generic_set.GenericSet([pair])
+    return [['Benchmark documentation link',
+             decorators.GetDocumentationLink(self)]]
 
   def CreateCoreTimelineBasedMeasurementOptions(self):
     """Return the base TimelineBasedMeasurementOptions for this Benchmark.

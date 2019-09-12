@@ -335,31 +335,21 @@ class PageTestResults(object):
     self._histograms.AddHistogram(hist, diags)
 
   def _GetDiagnostics(self):
-    """Get benchmark and current story details as histogram diagnostics."""
-    diag_values = [
+    """Get benchmark and current story details as histogram diagnostics.
+
+    Diagnostics of the DateRange type are converted to milliseconds.
+    """
+    return dict(_WrapDiagnostics([
         (reserved_infos.BENCHMARKS, self.benchmark_name),
-        (reserved_infos.BENCHMARK_START, self.benchmark_start_us),
+        (reserved_infos.BENCHMARK_START, self.benchmark_start_us / 1e3),
         (reserved_infos.BENCHMARK_DESCRIPTIONS, self.benchmark_description),
         (reserved_infos.LABELS, self.label),
         (reserved_infos.HAD_FAILURES, self.current_story_run.failed),
         (reserved_infos.STORIES, self.current_story.name),
         (reserved_infos.STORY_TAGS, self.current_story.GetStoryTagsList()),
         (reserved_infos.STORYSET_REPEATS, self.current_story_run.index),
-        (reserved_infos.TRACE_START, self.current_story_run.start_us),
-    ]
-
-    diags = {}
-    for diag, value in diag_values:
-      if value is None or value == []:
-        continue
-      if diag.type == 'GenericSet' and not isinstance(value, list):
-        value = [value]
-      elif diag.type == 'DateRange':
-        # We store timestamps in microseconds, DateRange expects milliseconds.
-        value = value / 1e3  # pylint: disable=redefined-variable-type
-      diag_class = all_diagnostics.GetDiagnosticClassForName(diag.type)
-      diags[diag.name] = diag_class(value)
-    return diags
+        (reserved_infos.TRACE_START, self.current_story_run.start_us / 1e3),
+    ]))
 
   def AddMeasurement(self, name, unit, samples):
     """Record a measurement of the currently running story.
@@ -393,8 +383,27 @@ class PageTestResults(object):
     self._ValidateValue(value)
     self._current_story_run.AddLegacyValue(value)
 
-  def AddSharedDiagnosticToAllHistograms(self, name, diagnostic):
-    self._histograms.AddSharedDiagnosticToAllHistograms(name, diagnostic)
+  def AddSharedDiagnostics(self,
+                           owners=None,
+                           bug_components=None,
+                           documentation_urls=None,
+                           architecture=None,
+                           device_id=None,
+                           os_name=None,
+                           os_version=None):
+    """Add diagnostics to all histograms."""
+    diag_values = [
+        (reserved_infos.OWNERS, owners),
+        (reserved_infos.BUG_COMPONENTS, bug_components),
+        (reserved_infos.DOCUMENTATION_URLS, documentation_urls),
+        (reserved_infos.ARCHITECTURES, architecture),
+        (reserved_infos.DEVICE_IDS, device_id),
+        (reserved_infos.OS_NAMES, os_name),
+        (reserved_infos.OS_VERSIONS, os_version),
+    ]
+
+    for name, value in _WrapDiagnostics(diag_values):
+      self._histograms.AddSharedDiagnosticToAllHistograms(name, value)
 
   def Fail(self, failure):
     """Mark the current story run as failed.
@@ -516,3 +525,23 @@ def _MeasurementToValue(story, name, unit, samples):
         story, name=name, units=unit, values=samples)
   else:
     return scalar.ScalarValue(story, name=name, units=unit, value=samples)
+
+
+def _WrapDiagnostics(info_value_pairs):
+  """Wrap diagnostic values in corresponding Diagnostics classes.
+
+  Args:
+    info_value_pairs: any iterable of pairs (info, value), where info is one
+        of reserved infos defined in tracing.value.diagnostics.reserved_infos,
+        and value can be any json-serializable object.
+
+  Returns:
+    An iterator over pairs (diagnostic name, diagnostic value).
+  """
+  for info, value in info_value_pairs:
+    if value is None or value == []:
+      continue
+    if info.type == 'GenericSet' and not isinstance(value, list):
+      value = [value]
+    diag_class = all_diagnostics.GetDiagnosticClassForName(info.type)
+    yield info.name, diag_class(value)

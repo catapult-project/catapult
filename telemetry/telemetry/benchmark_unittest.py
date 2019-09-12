@@ -19,8 +19,6 @@ from telemetry import story as story_module
 from telemetry.web_perf import timeline_based_measurement
 from telemetry.story import typ_expectations
 
-from tracing.value.diagnostics import generic_set
-
 
 class DummyPageTest(legacy_page_test.LegacyPageTest):
   def ValidateAndMeasurePage(self, *_):
@@ -129,15 +127,10 @@ class BenchmarkTest(unittest.TestCase):
     bar_owners_diagnostic = BarBenchmark(None).GetOwners()
     baz_owners_diagnostic = BazBenchmark(None).GetOwners()
 
-    self.assertIsInstance(foo_owners_diagnostic, generic_set.GenericSet)
-    self.assertIsInstance(bar_owners_diagnostic, generic_set.GenericSet)
-    self.assertIsInstance(baz_owners_diagnostic, generic_set.GenericSet)
-
-    self.assertEqual(foo_owners_diagnostic.AsDict()['values'],
-                     ['alice@chromium.org'])
-    self.assertEqual(bar_owners_diagnostic.AsDict()['values'],
+    self.assertEqual(foo_owners_diagnostic, ['alice@chromium.org'])
+    self.assertEqual(bar_owners_diagnostic,
                      ['bob@chromium.org', 'ben@chromium.org'])
-    self.assertEqual(baz_owners_diagnostic.AsDict()['values'], [])
+    self.assertIsNone(baz_owners_diagnostic)
 
   def testGetBugComponents(self):
     @benchmark.Owner(emails=['alice@chromium.org'])
@@ -155,11 +148,8 @@ class BenchmarkTest(unittest.TestCase):
     foo_bug_components_diagnostic = FooBenchmark(None).GetBugComponents()
     bar_bug_components_diagnostic = BarBenchmark(None).GetBugComponents()
 
-    self.assertIsInstance(foo_bug_components_diagnostic, generic_set.GenericSet)
-    self.assertIsInstance(bar_bug_components_diagnostic, generic_set.GenericSet)
-
-    self.assertEqual(list(foo_bug_components_diagnostic), [])
-    self.assertEqual(list(bar_bug_components_diagnostic), ['xyzzyx'])
+    self.assertIsNone(foo_bug_components_diagnostic)
+    self.assertEqual(bar_bug_components_diagnostic, 'xyzzyx')
 
   def testChromeTraceOptionsUpdateFilterString(self):
     class TbmBenchmark(benchmark.Benchmark):
