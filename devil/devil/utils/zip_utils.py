@@ -9,12 +9,14 @@ import os
 import sys
 import zipfile
 
+_DEVIL_ROOT_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..'))
 if __name__ == '__main__':
-  _DEVIL_ROOT_DIR = os.path.abspath(
-      os.path.join(os.path.dirname(__file__), '..', '..'))
-  _PY_UTILS_ROOT_DIR = os.path.abspath(
-      os.path.join(_DEVIL_ROOT_DIR, '..', 'common', 'py_utils'))
-  sys.path.extend((_DEVIL_ROOT_DIR, _PY_UTILS_ROOT_DIR))
+  sys.path.append(_DEVIL_ROOT_DIR)
+
+_PY_UTILS_ROOT_DIR = os.path.abspath(
+    os.path.join(_DEVIL_ROOT_DIR, '..', 'common', 'py_utils'))
+sys.path.append(_PY_UTILS_ROOT_DIR)
 
 from devil import base_error
 from devil.utils import cmd_helper
