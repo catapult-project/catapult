@@ -392,7 +392,7 @@ class ApkHelperTest(mock_calls.TestCase):
     apk = apk_helper.ToHelper('abc_bundle')
     device = _MockDeviceUtils()
     with self.assertCalls(
-        (mock.call.tempfile.mkstemp(), '/tmp/abc.apks'),
+        (mock.call.tempfile.mkstemp(suffix='.apks'), (0, '/tmp/abc.apks')),
         (mock.call.devil.utils.cmd_helper.GetCmdStatusOutputAndError([
             'abc_bundle', 'build-bundle-apks', '--output-apks', '/tmp/abc.apks'
         ]), (0, '', '')),

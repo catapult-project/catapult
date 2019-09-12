@@ -61,14 +61,14 @@ def _NoopFileHelper(files):
 
 def GetPackageName(apk_path):
   """Returns the package name of the apk."""
-  return ApkHelper(apk_path).GetPackageName()
+  return ToHelper(apk_path).GetPackageName()
 
 
 # TODO(jbudorick): Deprecate and remove this function once callers have been
 # converted to ApkHelper.GetInstrumentationName
 def GetInstrumentationName(apk_path):
   """Returns the name of the Instrumentation in the apk."""
-  return ApkHelper(apk_path).GetInstrumentationName()
+  return ToHelper(apk_path).GetInstrumentationName()
 
 
 def ToHelper(path_or_helper):
@@ -538,8 +538,10 @@ class BundleScriptHelper(BaseBundleHelper):
     return self._bundle_script_path
 
   def _GetApksPath(self):
+    apks_path = None
     try:
-      apks_path = tempfile.mkstemp()
+      fd, apks_path = tempfile.mkstemp(suffix='.apks')
+      os.close(fd)
       cmd = [
           self._bundle_script_path,
           'build-bundle-apks',
@@ -552,5 +554,6 @@ class BundleScriptHelper(BaseBundleHelper):
             ' '.join(cmd), stdout, stderr))
       return _DeleteHelper(apks_path, apks_path)
     except:
-      os.remove(apks_path)
+      if apks_path:
+        os.remove(apks_path)
       raise
