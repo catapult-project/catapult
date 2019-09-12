@@ -2,10 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# TODO(qyearsley): Add a step to vulcanize each template HTML file.
-# TODO(qyearsley): Add a step to put static files in a versioned
-# directory and modify app.yaml and request_handler as needed.
-
 import os
 import subprocess
 import sys

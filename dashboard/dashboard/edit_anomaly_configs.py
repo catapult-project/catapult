@@ -29,8 +29,8 @@ class EditAnomalyConfigsHandler(edit_config_handler.EditConfigHandler):
 
   def get(self):
     """Renders the UI with the form."""
-    # TODO(qyearsley): Refactor any common logic in the get handler from
-    # edit_sheriffs and edit_anomaly_configs to the superclass.
+    # Note, this is similar to edit_sheriffs, and there may be some common
+    # logic that oculd be extracted to EditConfigHandler.
     def ConfigData(config):
       return {
           'config': json.dumps(config.config, indent=2, sort_keys=True),

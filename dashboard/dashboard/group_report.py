@@ -72,8 +72,6 @@ class GroupReportHandler(chart_handler.ChartHandler):
       elif rev:
         alert_list = GetAlertsAroundRevision(rev)
       else:
-        # TODO(qyearsley): Instead of just showing an error here, show a form
-        # where the user can input a bug ID or revision.
         raise request_handler.InvalidInputError('No anomalies specified.')
 
       alert_dicts = alerts.AnomalyDicts(

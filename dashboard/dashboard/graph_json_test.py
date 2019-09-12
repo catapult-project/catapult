@@ -32,10 +32,6 @@ class GraphJsonTest(testing_common.TestCase):
     self.testapp = webtest.TestApp(app)
     self.PatchDatastoreHooksRequest()
 
-  # TODO(qyearsley): graph_json_test is very slow (it takes 60+ seconds
-  # to run sometimes), and I have a hypothesis that most of the time is
-  # spent in _AddTestColumns. Investigate this hypothesis and make changes
-  # accordingly.
   def _AddTestColumns(self, start_rev=15000, end_rev=16500, step=3):
     """Adds a bunch of test data to the mock datastore.
 

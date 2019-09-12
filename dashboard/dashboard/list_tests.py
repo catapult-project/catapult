@@ -32,6 +32,9 @@ class ListTestsHandler(request_handler.RequestHandler):
   def post(self):
     """Outputs a JSON string of the requested list.
 
+    This handler handles 3 different type of requests for historical reasons.
+    These could potentially be separated into 3 separate handlers.
+
     Request parameters:
       type: Type of list to make, one of "suite", "sub_tests" or "pattern".
       suite: Test suite name (applies only if type is "sub_tests").
@@ -51,7 +54,6 @@ class ListTestsHandler(request_handler.RequestHandler):
     """
     self.response.headers.add_header('Access-Control-Allow-Origin', '*')
     list_type = self.request.get('type')
-    # TODO(qyearsley): Separate these into two different handlers.
 
     if list_type == 'sub_tests':
       suite_name = self.request.get('suite')

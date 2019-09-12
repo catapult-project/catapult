@@ -3,13 +3,10 @@
 # found in the LICENSE file.
 
 """Provides the web interface for adding and editing stored configs."""
+
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-
-# TODO(qyearsley): If a namespaced config is set, don't show/edit
-# the non-namespaced configs. If a non-namespaced config is set,
-# don't show or edit the namespaced configs.
 
 import difflib
 import json
@@ -39,15 +36,21 @@ Internal-only value diff:
 %(internal_value_diff)s
 """
 
-# TODO(qyearsley): Make this customizable by storing the value in datastore.
-# Make sure to send a notification to both old and new address if this value
-# gets changed.
+# The mailing list to which config change notifications are sent,
+# so that the team can keep an audit record of these changes.
+# The "gasper-alerts" address is a historic legacy and not important.
 _NOTIFICATION_ADDRESS = 'chrome-performance-monitoring-alerts@google.com'
 _SENDER_ADDRESS = 'gasper-alerts@google.com'
 
 
 class EditSiteConfigHandler(request_handler.RequestHandler):
-  """Handles editing of site config values stored with stored_entity."""
+  """Handles editing of site config values stored with stored_entity.
+
+  FIXME: One confusing aspect of this page is: If a namespaced config is set,
+  the non-namespaced configs are probably irrelevant bu tthe field is still
+  shown. Similarly, if a non-namespaced config is set, the namespaced config
+  fields are likely not needed, but they're shown.
+  """
 
   def get(self):
     """Renders the UI with the form."""

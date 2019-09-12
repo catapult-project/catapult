@@ -49,9 +49,9 @@ Old test path patterns
 %(old_test_path_patterns)s
 """
 
-# TODO(qyearsley): Make this customizable by storing the value in datastore.
-# Make sure to send a notification to both old and new address if this value
-# gets changed.
+# The mailing list to which config change notifications are sent,
+# so that the team can keep an audit record of these changes.
+# The "gasper-alerts" address is a historic legacy and not important.
 _NOTIFICATION_ADDRESS = 'chrome-performance-monitoring-alerts@google.com'
 _SENDER_ADDRESS = 'gasper-alerts@google.com'
 
