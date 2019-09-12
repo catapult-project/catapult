@@ -37,8 +37,8 @@ const simple_xhr = (function() {
       errorCallback(LOGIN_ERROR_MESSAGE);
       return;
     }
-    if (!response || response.error) {
-      errorCallback(response ? response.error : null);
+    if (response.error) {
+      errorCallback(response.error);
       return;
     }
     loadCallback(response);
