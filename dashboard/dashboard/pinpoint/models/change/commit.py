@@ -317,9 +317,11 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
 
     commits.pop(0)  # Remove commit_b from the range.
 
-    deferred.defer(
-        _CacheCommitDetails,
-        commit_a.repository, commits)
+    # Batch up the commits into chunks of 100 to avoid exceeding the size limit
+    # for the bound data in calls to `deferred.defer(...)`.
+    for offset in range(0, len(commits), 100):
+      deferred.defer(_CacheCommitDetails, commit_a.repository,
+                     commits[offset:offset + 100])
 
     return cls(commit_a.repository, commits[len(commits) // 2]['commit'])
 
