@@ -204,7 +204,6 @@ tracing_js_html_files = [
   "tracing/metrics/rendering/cpu_utilization.html",
   "tracing/metrics/rendering/frame_time.html",
   "tracing/metrics/rendering/image_decode_time.html",
-  "tracing/metrics/rendering/latency.html",
   "tracing/metrics/rendering/pipeline.html",
   "tracing/metrics/rendering/pixels.html",
   "tracing/metrics/rendering/queueing_duration.html",

@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/rendering/frame_time.html">
 <link rel="import" href="/tracing/metrics/rendering/image_decode_time.html">
-<link rel="import" href="/tracing/metrics/rendering/latency.html">
 <link rel="import" href="/tracing/metrics/rendering/pipeline.html">
 <link rel="import" href="/tracing/metrics/rendering/pixels.html">
 <link rel="import" href="/tracing/metrics/rendering/queueing_duration.html">
@@ -33,7 +32,6 @@ tr.exportTo('tr.metrics.rendering', function() {
       tr.metrics.rendering.addFrameTimeHistograms(histograms, model, segments);
       tr.metrics.rendering.addImageDecodeTimeHistograms(histograms, model,
           segments);
-      tr.metrics.rendering.addLatencyHistograms(histograms, model, segments);
       tr.metrics.rendering.addPipelineHistograms(histograms, model, segments);
       tr.metrics.rendering.addPixelsHistograms(histograms, model, segments);
       tr.metrics.rendering.addQueueingDurationHistograms(
