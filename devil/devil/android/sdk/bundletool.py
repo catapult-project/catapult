@@ -6,12 +6,13 @@
 import json
 
 from devil import base_error
-from devil.android.sdk import build_tools
+from devil import devil_env
 from devil.utils import cmd_helper
 from devil.utils import lazy
 from py_utils import tempfile_ext
 
-_bundletool_path = lazy.WeakConstant(lambda: build_tools.GetPath('bundletool'))
+_bundletool_path = lazy.WeakConstant(
+    lambda: devil_env.config.FetchPath('bundletool'))
 
 
 def ExtractApks(output_dir,

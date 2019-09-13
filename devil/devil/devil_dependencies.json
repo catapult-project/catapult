@@ -31,6 +31,16 @@
         }
       }
     },
+    "bundletool": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "default": {
+          "cloud_storage_hash": "721525531f3c3ec66b39afd74c2a05e6d3973eef",
+          "download_path": "../bin/deps/default/lib.java/bundletool-all-0.10.3.jar"
+        }
+      }
+    },
     "chromium_commands": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
