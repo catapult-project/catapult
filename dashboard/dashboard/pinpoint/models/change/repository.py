@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from google.appengine.ext import ndb
 
 
+@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT)
 def RepositoryUrl(name):
   """Returns the URL of a repository, given its short name.
 

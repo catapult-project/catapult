@@ -10,6 +10,7 @@ import collections
 import logging
 import mock
 import functools
+import unittest
 
 from dashboard.pinpoint.models import task as task_module
 from dashboard.pinpoint.models import job as job_module
@@ -368,3 +369,26 @@ class EvaluateTest(test.TestCase):
 
   def testEvaluateConverges(self):
     self.skipTest('Not implemented yet')
+
+
+class DecoratorTest(unittest.TestCase):
+
+  @classmethod
+  @task_module.LogStateTransitionFailures
+  def ThrowsInvalidTransition(cls, *_):
+    raise task_module.InvalidTransition('This must not escape. %s' % (cls,))
+
+  @classmethod
+  @task_module.LogStateTransitionFailures
+  def ThrowsSomethingElse(cls, *_):
+    raise ValueError('This is expected. %s' % (cls,))
+
+  def testHandlesLogTransitionFailures(self):
+    try:
+      DecoratorTest.ThrowsInvalidTransition(None)
+    except task_module.InvalidTransition:
+      self.fail('Invalid transition failure not captured by decorator!')
+
+  def testLeavesNonTransitionFailuresAlone(self):
+    with self.assertRaises(ValueError):
+      DecoratorTest.ThrowsSomethingElse(None)

@@ -223,14 +223,32 @@ def UpdateTask(job, task_id, new_state=None, payload=None):
     valid_transitions = VALID_TRANSITIONS.get(task.status)
     if new_state not in valid_transitions:
       raise InvalidTransition(
-          'Attempting transition from "%s" to "%s" not in {%s}.' %
-          (task.status, new_state, valid_transitions))
+          'Attempting transition from "%s" to "%s" not in %s; task = %s' %
+          (task.status, new_state, valid_transitions, task))
     task.status = new_state
 
   if payload:
     task.payload = payload
 
   task.put()
+
+
+def LogStateTransitionFailures(wrapped_action):
+  """Decorator to log state transition failures.
+
+  This is a convenience decorator to handle state transition failures, and
+  suppress further exception propagation of the transition failure.
+  """
+
+  @functools.wraps(wrapped_action)
+  def ActionWrapper(*args, **kwargs):
+    try:
+      return wrapped_action(*args, **kwargs)
+    except InvalidTransition as e:
+      logging.error('State transition failed: %s', e)
+      return None
+
+  return ActionWrapper
 
 
 @ndb.transactional

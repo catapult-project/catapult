@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from google.appengine.ext import ndb
 
 
+@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT)
 def Get(id_string):
   """Retrieve cached commit or patch details from the Datastore.
 
@@ -31,6 +32,7 @@ def Get(id_string):
   }
 
 
+@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT)
 def Put(id_string, url, author, created, subject, message):
   """Add commit or patch details to the Datastore cache.
 
