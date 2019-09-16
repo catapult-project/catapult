@@ -10,7 +10,6 @@ import os
 import shutil
 import sys
 import time
-import traceback
 
 import py_utils
 from py_utils import cloud_storage  # pylint: disable=import-error
@@ -71,9 +70,6 @@ def AddCommandLineArgs(parser):
   group.add_option('--suppress-gtest-report', action='store_true',
                    help='Suppress gtest style report of progress as stories '
                    'are being run.')
-  group.add_option('--skip-typ-expectations-tags-validation',
-                   action='store_true',
-                   help='Suppress typ expectation tags validation errors.')
   parser.add_option_group(group)
 
   group = optparse.OptionGroup(parser, 'Web Page Replay options')
@@ -425,17 +421,7 @@ def RunBenchmark(benchmark, finder_options):
     typ_expectation_tags = possible_browser.GetTypExpectationsTags()
     logging.info('The following expectations condition tags were generated %s',
                  str(typ_expectation_tags))
-    try:
-      benchmark.expectations.SetTags(
-          typ_expectation_tags,
-          not finder_options.skip_typ_expectations_tags_validation)
-    except Exception as e: # pylint: disable=broad-except
-      traceback.print_exc(file=sys.stdout)
-      logging.error(
-          str(e) + '\nYou can use the --skip-typ-expectations-tags-validation '
-          'argument to suppress this exception.')
-      return -1
-
+    benchmark.expectations.SetTags(typ_expectation_tags)
     if not _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
       return -1
 
