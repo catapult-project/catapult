@@ -70,6 +70,9 @@ def AddCommandLineArgs(parser):
   group.add_option('--suppress-gtest-report', action='store_true',
                    help='Suppress gtest style report of progress as stories '
                    'are being run.')
+  group.add_option('--skip-typ-expectations-tags-validation',
+                   action='store_true',
+                   help='Suppress typ expectation tags validation errors.')
   parser.add_option_group(group)
 
   group = optparse.OptionGroup(parser, 'Web Page Replay options')
