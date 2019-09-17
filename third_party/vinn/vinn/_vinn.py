@@ -313,7 +313,7 @@ def _RunFileWithD8(js_file_path, js_args, v8_args, timeout, stdout, stdin):
   if js_args:
     full_js_args += js_args
 
-  args += ['--js_arguments'] + full_js_args
+  args += ['--'] + full_js_args
 
   # Set stderr=None since d8 doesn't write into stderr anyway.
   sp = subprocess.Popen(args, stdout=stdout, stderr=None, stdin=stdin)

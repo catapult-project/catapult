@@ -38,21 +38,21 @@ V8_CHECKOUT_BINARY_PATH = os.path.join(
     '{v8_root}', 'v8', '{out}', 'Default', 'd8')
 V8_GN_GEN_CMD = ('gn gen ' +
     os.path.join('out', 'Default') +
-    ' --args="is_debug=false v8_use_snapshot=false icu_use_data_file=false' +
+    ' --args="is_debug=false icu_use_data_file=false' +
     ' v8_use_external_startup_data=false v8_static_library=true"')
 V8_GN_GEN_ARM_CMD = ('gn gen ' +
     os.path.join('out_arm', 'Default') +
-    r' --args="target_cpu=\"arm\" is_debug=false v8_use_snapshot=false' +
+    r' --args="target_cpu=\"arm\" is_debug=false' +
     ' v8_use_external_startup_data=false v8_static_library=true' +
     ' icu_use_data_file=false"')
 V8_GN_GEN_MIPS_CMD = ('gn gen ' +
     os.path.join('out_mips', 'Default') +
-    r' --args="target_cpu=\"mipsel\" is_debug=false v8_use_snapshot=false' +
+    r' --args="target_cpu=\"mipsel\" is_debug=false' +
     ' v8_use_external_startup_data=false v8_static_library=true' +
     ' icu_use_data_file=false"')
 V8_GN_GEN_MIPS64_CMD = ('gn gen ' +
     os.path.join('out_mips64', 'Default') +
-    r' --args="target_cpu=\"mips64el\" is_debug=false v8_use_snapshot=false' +
+    r' --args="target_cpu=\"mips64el\" is_debug=false' +
     ' v8_use_external_startup_data=false v8_static_library=true' +
     ' icu_use_data_file=false"')
 V8_COMPILE_CMD = 'ninja -C {out} d8'
