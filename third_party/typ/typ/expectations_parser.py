@@ -327,7 +327,7 @@ class TestExpectations(object):
                 'Please make sure the aforementioned tag%s declared at '
                 'the top of the expectations file.' % _pluralize_unknown(unknown_tags))
             if validate_tags:
-                raise Exception(msg)
+                raise ValueError(msg)
             else:
                 logging.warning(msg)
 

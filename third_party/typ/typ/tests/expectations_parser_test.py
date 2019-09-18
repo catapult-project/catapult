@@ -531,7 +531,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         _, msg = expectations.parse_tagged_list(
             test_expectations, 'test.txt')
         self.assertFalse(msg)
-        with self.assertRaises(Exception) as context:
+        with self.assertRaises(ValueError) as context:
             expectations.set_tags(['Unknown'], validate_tags=True)
         self.assertEqual(str(context.exception),
             'Tag unknown is not declared in the expectations file. '
@@ -548,7 +548,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         _, msg = expectations.parse_tagged_list(
             test_expectations, 'test.txt')
         self.assertFalse(msg)
-        with self.assertRaises(Exception) as context:
+        with self.assertRaises(ValueError) as context:
             expectations.set_tags(['Unknown', 'linux', 'nVidia', 'nvidia-0x1010'],
                                   validate_tags=True)
         self.assertEqual(str(context.exception),
