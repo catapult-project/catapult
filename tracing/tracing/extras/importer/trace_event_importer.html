@@ -631,9 +631,18 @@ tr.exportTo('tr.e.importer', function() {
         process.name = event.args.name;
       } else if (event.name === 'process_labels') {
         const process = this.model_.getOrCreateProcess(event.pid);
-        const labels = event.args.labels.split(',');
-        for (let i = 0; i < labels.length; i++) {
-          process.addLabelIfNeeded(labels[i]);
+        const stackFrames = event.args.stackFrames;
+        if (event.args.labels === undefined) {
+          this.model_.importWarning({
+            type: 'metadata_parse_error',
+            message: 'No labels found in a \'' + event.name +
+                '\' metadata event'
+          });
+        } else {
+          const labels = event.args.labels.split(',');
+          for (let i = 0; i < labels.length; i++) {
+            process.addLabelIfNeeded(labels[i]);
+          }
         }
       } else if (event.name === 'process_uptime_seconds') {
         const process = this.model_.getOrCreateProcess(event.pid);
