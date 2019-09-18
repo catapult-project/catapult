@@ -30,7 +30,7 @@ SYSTEM_CONDITION_TAGS = frozenset([
     'mobile', 'android-marshmallow', 'android-lollipop', 'android-nougat',
     'android-oreo', 'android-pie', 'android-10', 'android-webview-google',
     'reference', 'android-chromium', 'ubuntu', 'android-kitkat', 'highsierra',
-    'sierra', 'mac-10.11'
+    'sierra', 'mac-10.11', 'release'
 ])
 
 
