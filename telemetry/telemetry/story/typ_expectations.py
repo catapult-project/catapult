@@ -46,8 +46,8 @@ class StoryExpectations(object):
     error, message = self._typ_expectations.parse_tagged_list(raw_data)
     assert not error, 'Expectations parser error: %s' % message
 
-  def SetTags(self, tags):
-    self._typ_expectations.set_tags(tags)
+  def SetTags(self, tags, validate_tags=False):
+    self._typ_expectations.set_tags(tags, validate_tags)
 
   def _IsStoryOrBenchmarkDisabled(self, pattern):
     expected_results, _, reasons = self._typ_expectations.expectations_for(

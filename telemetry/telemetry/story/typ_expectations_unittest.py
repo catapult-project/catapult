@@ -6,10 +6,18 @@ import unittest
 import mock
 
 from telemetry import benchmark
+from telemetry.story import typ_expectations
 from telemetry import story as story_module
 
 
 class TypStoryExpectationsTest(unittest.TestCase):
+
+  def testValidateTags(self):
+    story_expectations = typ_expectations.StoryExpectations('fake')
+    story_expectations.GetBenchmarkExpectationsFromParser('# tags: [ all ]')
+    with self.assertRaises(ValueError) as context:
+      story_expectations.SetTags(['abc'], True)
+    self.assertIn('not declared in the expectations', str(context.exception))
 
   def testDisableBenchmark(self):
     expectations = (
