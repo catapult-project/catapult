@@ -532,7 +532,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
             test_expectations, 'test.txt')
         self.assertFalse(msg)
         with self.assertRaises(ValueError) as context:
-            expectations.set_tags(['Unknown'], validate_tags=True)
+            expectations.set_tags(['Unknown'], raise_ex_for_bad_tags=True)
         self.assertEqual(str(context.exception),
             'Tag unknown is not declared in the expectations file. '
             'There may have been a typo in the expectations file. '
@@ -550,7 +550,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         self.assertFalse(msg)
         with self.assertRaises(ValueError) as context:
             expectations.set_tags(['Unknown', 'linux', 'nVidia', 'nvidia-0x1010'],
-                                  validate_tags=True)
+                                  raise_ex_for_bad_tags=True)
         self.assertEqual(str(context.exception),
             'Tags linux, nvidia-0x1010 and unknown are not declared '
             'in the expectations file. There may have been a typo in '
@@ -567,4 +567,4 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
             test_expectations, 'test.txt')
         self.assertFalse(msg)
         expectations.set_tags(['win', 'nVidia', 'nvidia-0x1010'],
-                              validate_tags=True)
+                              raise_ex_for_bad_tags=True)
