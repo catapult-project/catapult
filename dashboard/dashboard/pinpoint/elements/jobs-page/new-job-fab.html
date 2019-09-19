@@ -128,7 +128,7 @@ found in the LICENSE file.
             <autocomplete-box id="botDropdown"
                               name="configuration"
                               items="{{arrayToAutocompleteList(config.configurations)}}"
-                              disabled="[[configLoading]]"
+                              disabled="[[!validConfig(config)]]"
                               placeholder="Bot"
                               selected-name="{{configuration}}"
                               required></autocomplete-box>
@@ -353,6 +353,10 @@ found in the LICENSE file.
           return false;
         }
         return benchmark != '';
+      },
+
+      validConfig(config) {
+        return config !== null && config.configurations.length > 0;
       },
 
       arrayToAutocompleteList(arr) {
