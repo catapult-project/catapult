@@ -15,6 +15,8 @@ from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models import task as task_module
+from dashboard.pinpoint.models import evaluators
+from dashboard.pinpoint.models.change import commit as commit_module
 from dashboard.pinpoint.models.quest import execution
 from dashboard.pinpoint.models.quest import quest
 from dashboard.services import buildbucket_service
@@ -293,11 +295,9 @@ def _BuildTagsFromJob(job):
       ('pinpoint_url', job.url),
   ])
 
+
 # Everything beyond this point aims to define an evaluator for 'find_isolate'
 # tasks.
-BuildEvent = collections.namedtuple('BuildEvent',
-                                    ('type', 'target_task', 'payload'))
-
 FAILURE_MAPPING = {'FAILURE': 'failed', 'CANCELLED': 'cancelled'}
 
 
@@ -501,7 +501,7 @@ class UpdateBuildStatusAction(object):
                                                           self.task)
 
 
-class HandleInitiate(object):
+class InitiateEvaluator(object):
 
   def __init__(self, job):
     self.job = job
@@ -520,6 +520,12 @@ class HandleInitiate(object):
     #     - If not found, schedule a build for this revision, update the task
     #       payload with the build details, wait for updates.
     try:
+      change = change_module.Change(
+          commits=[
+              commit_module.Commit(c['repository'], c['git_hash'])
+              for c in task.payload.get('change', {}).get('commits', [])
+          ],
+          patch=task.payload.get('patch'))
       logging.debug('Looking up isolate for change = %s', change)
       isolate_server, isolate_hash = isolate.Get(
           task.payload.get('builder'), change, task.payload.get('target'))
@@ -543,12 +549,12 @@ class HandleInitiate(object):
     return None
 
 
-class HandleUpdate(object):
+class UpdateEvaluator(object):
 
   def __init__(self, job):
     self.job = job
 
-  def __call__(self, task, event, change):
+  def __call__(self, task, event, _):
     # Outline:
     #   - Check build status payload.
     #     - If successful, update the task payload with status and relevant
@@ -558,70 +564,32 @@ class HandleUpdate(object):
     #         retry information)
     #       - Fail if failure is non-retryable or we've exceeded retries.
     if event.payload.get('status') == 'build_completed':
+      change = change_module.Change(
+          commits=[
+              commit_module.Commit(c['repository'], c['git_hash'])
+              for c in task.payload.get('change', {}).get('commits', [])
+          ],
+          patch=task.payload.get('patch'))
       return [UpdateBuildStatusAction(self.job, task, change)]
     return None
 
 
-def HandleUnsupported(task, event, _):
-  logging.error('Unsupported event type "%s"; task = %s , event = %s',
-                event.type, task, event)
-  return None
-
-
-class Evaluator(object):
+class Evaluator(evaluators.SequenceEvaluator):
 
   def __init__(self, job):
-    self.job = job
-    self.delegates = {
-        'initiate': HandleInitiate(job),
-        'update': HandleUpdate(job),
-    }
-
-  def __call__(self, task, event, accumulator):
-    # Only apply to 'find_isolate' tasks.
-    if task.task_type != 'find_isolate':
-      return None
-
-    # Only handle BuildEvent messages.
-    if not isinstance(event, BuildEvent):
-      return None
-
-    # If this is a directed update, then only evaluate if we're at the targeted
-    # task.
-    if event.target_task and event.target_task != task.id:
-      return None
-
-    accumulator.update({
-        task.id: {
-            # Always propagate the status of the task up to the accumulator.
-            'status':
-                task.status,
-            'isolate_server':
-                task.payload.get('isolate_server'),
-            'isolate_hash':
-                task.payload.get('isolate_hash'),
-            'buildbucket_result':
-                task.payload.get('buildbucket_result'),
-            'buildbucket_job_status':
-                task.payload.get('buildbucket_job_status'),
-        }
-    })
-    task_errors = task.payload.get('errors')
-    if task_errors:
-      accumulator.get(task.id).update({'errors': task_errors})
-
-    # Dispatch into specific handlers.
-    if task.status in {'completed', 'failed', 'cancelled'}:
-      logging.info('Ignoring event "%s" on a terminal task; task = %s', event,
-                   task)
-      return None
-
-    change = change_module.Change(
-        commits=[
-            change_module.Commit.FromDict(c)
-            for c in task.payload.get('change', {}).get('commits', [])
-        ],
-        patch=task.payload.get('patch'))
-
-    delegate = self.delegates.get(event.type, HandleUnsupported)
-    return delegate(task, event, change)
+    super(Evaluator, self).__init__(
+        evaluators=(
+            evaluators.TaskPayloadLiftingEvaluator(),
+            evaluators.FilteringEvaluator(
+                predicate=evaluators.All(
+                    evaluators.TaskTypeEq('find_isolate'),
+                    evaluators.TaskIsEventTarget(),
+                    evaluators.Not(
+                        evaluators.TaskStatusIn(
+                            {'completed', 'failed', 'cancelled'})),
+                ),
+                delegate=evaluators.DispatchByEventTypeEvaluator({
+                    'initiate': InitiateEvaluator(job),
+                    'update': UpdateEvaluator(job),
+                })),
+        ))

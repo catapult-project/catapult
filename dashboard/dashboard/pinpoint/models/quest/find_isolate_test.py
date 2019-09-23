@@ -17,6 +17,7 @@ from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import task as task_module
+from dashboard.pinpoint.models import event as event_module
 from dashboard.pinpoint.models.change import change_test
 from dashboard.pinpoint.models.quest import find_isolate
 
@@ -458,16 +459,18 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
     self.assertDictEqual(
         {
             'build_7c7e90be': {
-                'isolate_server': 'https://isolate.server',
+                'bucket': 'luci.bucket',
+                'builder': 'Mac Builder',
+                'change': mock.ANY,
                 'isolate_hash': '7c7e90be',
-                'buildbucket_result': None,
-                'buildbucket_job_status': None,
+                'isolate_server': 'https://isolate.server',
                 'status': 'completed',
+                'target': 'telemetry_perf_tests',
             },
         },
         task_module.Evaluate(
             self.job,
-            find_isolate.BuildEvent(
+            event_module.Event(
                 type='initiate', target_task='build_7c7e90be', payload={}),
             find_isolate.Evaluator(self.job)))
 
@@ -479,20 +482,22 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
     self.assertDictEqual(
         {
             'build_7c7e90be': {
-                'isolate_server': None,
-                'isolate_hash': None,
+                'bucket': 'luci.bucket',
                 'buildbucket_result': {
                     'build': {
                         'id': '345982437987234'
                     },
                 },
-                'buildbucket_job_status': None,
+                'builder': 'Mac Builder',
+                'change': mock.ANY,
                 'status': 'ongoing',
+                'target': 'telemetry_perf_tests',
+                'tries': 1,
             },
         },
         task_module.Evaluate(
             self.job,
-            find_isolate.BuildEvent(
+            event_module.Event(
                 type='initiate', target_task='build_7c7e90be', payload={}),
             find_isolate.Evaluator(self.job)))
     self.assertEqual(1, put.call_count)
@@ -503,20 +508,22 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
     self.assertDictEqual(
         {
             'build_7c7e90be': {
-                'isolate_server': None,
-                'isolate_hash': None,
+                'bucket': 'luci.bucket',
                 'buildbucket_result': {
                     'build': {
                         'id': '345982437987234'
-                    }
+                    },
                 },
-                'buildbucket_job_status': None,
+                'builder': 'Mac Builder',
+                'change': mock.ANY,
                 'status': 'ongoing',
+                'target': 'telemetry_perf_tests',
+                'tries': 1,
             },
         },
         task_module.Evaluate(
             self.job,
-            find_isolate.BuildEvent(
+            event_module.Event(
                 type='initiate', target_task='build_7c7e90be', payload={}),
             find_isolate.Evaluator(self.job)))
     self.assertEqual(1, put.call_count)
@@ -542,20 +549,25 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
     self.assertDictEqual(
         {
             'build_7c7e90be': {
-                'isolate_server': 'https://isolate.server',
-                'isolate_hash': '192923affe212adf',
+                'bucket': 'luci.bucket',
+                'buildbucket_job_status': mock.ANY,
                 'buildbucket_result': {
                     'build': {
                         'id': '345982437987234'
                     }
                 },
-                'buildbucket_job_status': mock.ANY,
+                'builder': 'Mac Builder',
+                'change': mock.ANY,
+                'isolate_hash': '192923affe212adf',
+                'isolate_server': 'https://isolate.server',
                 'status': 'completed',
+                'target': 'telemetry_perf_tests',
+                'tries': 1,
             },
         },
         task_module.Evaluate(
             self.job,
-            find_isolate.BuildEvent(
+            event_module.Event(
                 type='update',
                 target_task='build_7c7e90be',
                 payload={'status': 'build_completed'}),
@@ -575,20 +587,22 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
       self.assertDictEqual(
           {
               'build_7c7e90be': {
-                  'isolate_server': None,
-                  'isolate_hash': None,
                   'buildbucket_result': {
                       'build': {
                           'id': '345982437987234'
                       }
                   },
-                  'buildbucket_job_status': None,
                   'status': 'ongoing',
+                  'builder': 'Mac Builder',
+                  'bucket': 'luci.bucket',
+                  'change': mock.ANY,
+                  'target': 'telemetry_perf_tests',
+                  'tries': 1,
               },
           },
           task_module.Evaluate(
               self.job,
-              find_isolate.BuildEvent(
+              event_module.Event(
                   type='initiate', target_task='build_7c7e90be', payload={}),
               find_isolate.Evaluator(self.job)))
       self.assertEqual(1, put.call_count)
@@ -604,24 +618,23 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
     self.assertDictEqual(
         {
             'build_7c7e90be': {
-                'isolate_server': None,
-                'isolate_hash': None,
+                'bucket': 'luci.bucket',
                 'buildbucket_result': {
                     'build': {
                         'id': '345982437987234'
-                    }
+                    },
                 },
-                'buildbucket_job_status': {
-                    'status': 'COMPLETED',
-                    'result': 'FAILURE',
-                    'result_details_json': '{}',
-                },
+                'buildbucket_job_status': mock.ANY,
+                'builder': 'Mac Builder',
+                'change': mock.ANY,
                 'status': 'failed',
+                'target': 'telemetry_perf_tests',
+                'tries': 1,
             },
         },
         task_module.Evaluate(
             self.job,
-            find_isolate.BuildEvent(
+            event_module.Event(
                 type='update',
                 target_task='build_7c7e90be',
                 payload={'status': 'build_completed'}),
@@ -639,8 +652,8 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
     self.assertDictEqual(
         {
             'build_7c7e90be': {
-                'isolate_server': None,
-                'isolate_hash': None,
+                'bucket': 'luci.bucket',
+                'builder': 'Mac Builder',
                 'buildbucket_result': {
                     'build': {
                         'id': '345982437987234'
@@ -651,12 +664,15 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
                     'result': 'CANCELLED',
                     'result_details_json': '{}',
                 },
+                'change': mock.ANY,
                 'status': 'cancelled',
+                'target': 'telemetry_perf_tests',
+                'tries': 1,
             },
         },
         task_module.Evaluate(
             self.job,
-            find_isolate.BuildEvent(
+            event_module.Event(
                 type='update',
                 target_task='build_7c7e90be',
                 payload={'status': 'build_completed'}),
@@ -682,21 +698,24 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
     self.assertDictEqual(
         {
             'build_7c7e90be': {
-                'isolate_server': None,
-                'isolate_hash': None,
+                'bucket': 'luci.bucket',
                 'buildbucket_result': {
                     'build': {
                         'id': '345982437987234'
                     }
                 },
                 'buildbucket_job_status': mock.ANY,
+                'change': mock.ANY,
+                'builder': 'Mac Builder',
                 'status': 'failed',
                 'errors': mock.ANY,
+                'tries': 1,
+                'target': 'telemetry_perf_tests',
             },
         },
         task_module.Evaluate(
             self.job,
-            find_isolate.BuildEvent(
+            event_module.Event(
                 type='update',
                 target_task='build_7c7e90be',
                 payload={'status': 'build_completed'}),
@@ -722,21 +741,24 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
     self.assertDictEqual(
         {
             'build_7c7e90be': {
-                'isolate_server': None,
-                'isolate_hash': None,
+                'bucket': 'luci.bucket',
+                'builder': 'Mac Builder',
                 'buildbucket_result': {
                     'build': {
                         'id': '345982437987234'
                     }
                 },
                 'buildbucket_job_status': mock.ANY,
+                'change': mock.ANY,
                 'status': 'failed',
+                'target': 'telemetry_perf_tests',
+                'tries': 1,
                 'errors': mock.ANY,
             },
         },
         task_module.Evaluate(
             self.job,
-            find_isolate.BuildEvent(
+            event_module.Event(
                 type='update',
                 target_task='build_7c7e90be',
                 payload={'status': 'build_completed'}),
@@ -761,21 +783,24 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
     self.assertDictEqual(
         {
             'build_7c7e90be': {
-                'isolate_server': None,
-                'isolate_hash': None,
+                'bucket': 'luci.bucket',
+                'builder': 'Mac Builder',
                 'buildbucket_result': {
                     'build': {
                         'id': '345982437987234'
                     }
                 },
                 'buildbucket_job_status': mock.ANY,
+                'change': mock.ANY,
                 'status': 'failed',
                 'errors': mock.ANY,
+                'target': 'telemetry_perf_tests',
+                'tries': 1,
             },
         },
         task_module.Evaluate(
             self.job,
-            find_isolate.BuildEvent(
+            event_module.Event(
                 type='update',
                 target_task='build_7c7e90be',
                 payload={'status': 'build_completed'}),
@@ -794,21 +819,24 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
     self.assertDictEqual(
         {
             'build_7c7e90be': {
-                'isolate_server': None,
-                'isolate_hash': None,
+                'bucket': 'luci.bucket',
                 'buildbucket_result': {
                     'build': {
                         'id': '345982437987234'
                     }
                 },
                 'buildbucket_job_status': mock.ANY,
+                'builder': 'Mac Builder',
+                'change': mock.ANY,
                 'status': 'failed',
                 'errors': mock.ANY,
+                'target': 'telemetry_perf_tests',
+                'tries': 1,
             },
         },
         task_module.Evaluate(
             self.job,
-            find_isolate.BuildEvent(
+            event_module.Event(
                 type='update',
                 target_task='build_7c7e90be',
                 payload={'status': 'build_completed'}),
