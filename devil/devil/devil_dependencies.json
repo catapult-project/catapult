@@ -80,7 +80,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "linux2_x86_64": {
-          "cloud_storage_hash": "db9728166f182800eb9d09e9f036d56e105e8235",
+          "cloud_storage_hash": "fe84a6714192f6596bf09215caeea34ed937a42b",
           "download_path": "../bin/deps/linux2/x86_64/bin/fastboot"
         }
       }
