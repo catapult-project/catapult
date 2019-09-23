@@ -24,6 +24,7 @@ from tracing.value import convert_chart_json
 from tracing.value import histogram_set
 from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import reserved_infos
+from tracing.value.diagnostics import generic_set
 
 
 TELEMETRY_RESULTS = '_telemetry_results.jsonl'
@@ -79,6 +80,12 @@ class PageTestResults(object):
     # Interruptions occur for unrecoverable exceptions.
     self._interruption = None
     self._results_label = results_label
+
+    self._diagnostics = {
+        reserved_infos.BENCHMARKS.name: [self.benchmark_name],
+        reserved_infos.BENCHMARK_DESCRIPTIONS.name:
+            [self.benchmark_description],
+    }
 
     # If the object has been finalized, no more results can be added to it.
     self._finalized = False
@@ -240,9 +247,6 @@ class PageTestResults(object):
     self._WriteJsonLine({
         'benchmarkRun': {
             'startTime': self.start_datetime.isoformat() + 'Z',
-            # TODO(crbug.com/981349): Fill this in with benchmark and platform
-            # diagnostics info.
-            'diagnostics': {}
         }
     })
 
@@ -251,6 +255,7 @@ class PageTestResults(object):
         'benchmarkRun': {
             'finalized': self.finalized,
             'interrupted': self.benchmark_interrupted,
+            'diagnostics': self._diagnostics,
         }
     }, close=True)
 
@@ -391,7 +396,7 @@ class PageTestResults(object):
                            device_id=None,
                            os_name=None,
                            os_version=None):
-    """Add diagnostics to all histograms."""
+    """Add diagnostics to all histograms and save it to intermediate results."""
     diag_values = [
         (reserved_infos.OWNERS, owners),
         (reserved_infos.BUG_COMPONENTS, bug_components),
@@ -404,6 +409,9 @@ class PageTestResults(object):
 
     for name, value in _WrapDiagnostics(diag_values):
       self._histograms.AddSharedDiagnosticToAllHistograms(name, value)
+      # Results Processor supports only GenericSet diagnostics for now.
+      assert isinstance(value, generic_set.GenericSet)
+      self._diagnostics[name] = list(value)
 
   def Fail(self, failure):
     """Mark the current story run as failed.

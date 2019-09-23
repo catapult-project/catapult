@@ -377,18 +377,27 @@ class PageTestResultsTest(unittest.TestCase):
 
   def testBeginFinishBenchmarkRecords(self):
     self.mock_time.side_effect = [1234567890.987]
-    with self.CreateResults() as results:
+    with self.CreateResults(benchmark_name='some benchmark',
+                            benchmark_description='a description') as results:
       results.WillRunPage(self.pages[0])
       results.DidRunPage(self.pages[0])
       results.WillRunPage(self.pages[1])
       results.DidRunPage(self.pages[1])
+      results.AddSharedDiagnostics(
+          owners=['test'],
+          bug_components=['1', '2'],
+          documentation_urls=[['documentation', 'url']],
+          architecture='arch',
+          device_id='id',
+          os_name='os',
+          os_version='ver',
+      )
 
     records = self.GetResultRecords()
     self.assertEqual(len(records), 4)  # Start, Result, Result, Finish.
     self.assertEqual(records[0], {
         'benchmarkRun': {
             'startTime': '2009-02-13T23:31:30.987000Z',
-            'diagnostics': {},
         }
     })
     self.assertEqual(records[1]['testResult']['status'], 'PASS')
@@ -396,13 +405,25 @@ class PageTestResultsTest(unittest.TestCase):
     self.assertEqual(records[3], {
         'benchmarkRun': {
             'finalized': True,
-            'interrupted': False
-        }
+            'interrupted': False,
+            'diagnostics': {
+                'benchmarks': ['some benchmark'],
+                'benchmarkDescriptions': ['a description'],
+                'owners': ['test'],
+                'bugComponents': ['1', '2'],
+                'documentationLinks': [['documentation', 'url']],
+                'architectures': ['arch'],
+                'deviceIds': ['id'],
+                'osNames': ['os'],
+                'osVersions': ['ver'],
+            },
+        },
     })
 
   def testBeginFinishBenchmarkRecords_interrupted(self):
     self.mock_time.side_effect = [1234567890.987]
-    with self.CreateResults() as results:
+    with self.CreateResults(benchmark_name='some benchmark',
+                            benchmark_description='a description') as results:
       results.WillRunPage(self.pages[0])
       results.Fail('fatal error')
       results.DidRunPage(self.pages[0])
@@ -413,14 +434,17 @@ class PageTestResultsTest(unittest.TestCase):
     self.assertEqual(records[0], {
         'benchmarkRun': {
             'startTime': '2009-02-13T23:31:30.987000Z',
-            'diagnostics': {},
         }
     })
     self.assertEqual(records[1]['testResult']['status'], 'FAIL')
     self.assertEqual(records[2], {
         'benchmarkRun': {
             'finalized': True,
-            'interrupted': True
+            'interrupted': True,
+            'diagnostics': {
+                'benchmarks': ['some benchmark'],
+                'benchmarkDescriptions': ['a description'],
+            },
         }
     })
 
