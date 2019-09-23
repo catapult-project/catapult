@@ -75,6 +75,7 @@ class TestCase(unittest.TestCase):
     self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
     self.mock_get_request = None
     self._PatchIsInternalUser()
+    self._PatchIsAdministrator()
     datastore_hooks.InstallHooks()
     SetIsInternalUser(INTERNAL_USER, True)
     SetIsInternalUser(EXTERNAL_USER, False)
@@ -220,6 +221,18 @@ class TestCase(unittest.TestCase):
       return bool(utils.GetCachedIsInternalUser(utils.GetEmail()))
 
     self.PatchObject(utils, 'IsInternalUser', IsInternalUser)
+
+  def _PatchIsAdministrator(self):
+    """Sets up a fake version of utils.IsAdministrator to use in tests.
+
+    This version doesn't try to make any requests to check whether the
+    user is internal; it just checks for cached values and returns False
+    if nothing is found.
+    """
+    def IsAdministrator():
+      return bool(utils.GetCachedIsAdministrator(utils.GetEmail()))
+
+    self.PatchObject(utils, 'IsAdministrator', IsAdministrator)
 
 
 def AddTests(masters, bots, tests_dict):

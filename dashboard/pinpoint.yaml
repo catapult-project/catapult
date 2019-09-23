@@ -20,9 +20,7 @@ handlers:
 
 - url: /api/migrate
   script: dashboard.pinpoint.dispatcher.APP
-  login: admin
   secure: always
-  auth_fail_action: unauthorized
 
 - url: /api/generate-results2/.*
   script: dashboard.pinpoint.dispatcher.APP

@@ -479,7 +479,7 @@ def GetCachedIsInternalUser(email):
 
 
 def SetCachedIsInternalUser(email, value):
-  memcache.add(_IsInternalUserCacheKey(email), value, time=60 * 60 * 24)
+  memcache.set(_IsInternalUserCacheKey(email), value, time=60 * 60 * 24)
 
 
 def GetCachedIsAdministrator(email):
@@ -487,7 +487,7 @@ def GetCachedIsAdministrator(email):
 
 
 def SetCachedIsAdministrator(email, value):
-  memcache.add(_IsAdministratorUserCacheKey(email), value, time=60 * 60 * 24)
+  memcache.set(_IsAdministratorUserCacheKey(email), value, time=60 * 60 * 24)
 
 
 def _IsInternalUserCacheKey(email):
@@ -532,7 +532,7 @@ def GetCachedIsGroupMember(identity, group):
 
 
 def SetCachedIsGroupMember(identity, group, value):
-  memcache.add(_IsGroupMemberCacheKey(identity, group), value, time=60*60*24)
+  memcache.set(_IsGroupMemberCacheKey(identity, group), value, time=60*60*24)
 
 
 def _IsGroupMemberCacheKey(identity, group):

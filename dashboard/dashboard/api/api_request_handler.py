@@ -76,6 +76,12 @@ class ApiRequestHandler(webapp2.RequestHandler):
     Outputs:
       JSON results.
     """
+    self._Respond(self.Post, *args)
+
+  def get(self, *args):
+    self._Respond(self.Get, *args)
+
+  def _Respond(self, cb, *args):
     self._SetCorsHeadersIfAppropriate()
 
     try:
@@ -92,7 +98,7 @@ class ApiRequestHandler(webapp2.RequestHandler):
     # Allow oauth.Error to manifest as HTTP 500.
 
     try:
-      results = self.Post(*args)
+      results = cb(*args)
       self.response.out.write(json.dumps(results))
     except NotFoundError as e:
       self.WriteErrorMessage(e.message, 404)
@@ -103,6 +109,9 @@ class ApiRequestHandler(webapp2.RequestHandler):
 
   def options(self, *_):  # pylint: disable=invalid-name
     self._SetCorsHeadersIfAppropriate()
+
+  def Get(self, *_):
+    raise NotImplementedError()
 
   def Post(self, *_):
     raise NotImplementedError()
