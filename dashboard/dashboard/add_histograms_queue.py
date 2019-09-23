@@ -198,6 +198,10 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
   data_dict = params['data']
   test_key = parent_test.key
 
+  all_tests = [parent_test] + legacy_parent_tests.values()
+  yield [a.UpdateSheriffAsync() for a in all_tests]
+  yield ndb.put_multi_async(all_tests)
+
   stat_names_to_test_keys = {k: v.key for k, v in
                              legacy_parent_tests.items()}
   rows = CreateRowEntities(

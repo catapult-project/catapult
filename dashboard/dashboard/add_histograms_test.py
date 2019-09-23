@@ -245,6 +245,41 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
 
   @mock.patch.object(
+      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
+      mock.MagicMock())
+  @mock.patch.object(
+      add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+      mock.MagicMock())
+  def testPost_Succeeds_SheriffUpdated(self):
+    hs = _CreateHistogram(
+        master='master', bot='bot', benchmark='benchmark', commit_position=123,
+        benchmark_description='Benchmark description.', samples=[1, 2, 3])
+    data = json.dumps(hs.AsDicts())
+
+    self.PostAddHistogram({'data': data})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    t = utils.TestKey('master/bot/benchmark/hist').get()
+    self.assertIsNone(t.sheriff)
+
+    sheriff.Sheriff(
+        id='my_sheriff1', email='a@chromium.org', patterns=[
+            '*/*/*/hist', '*/*/*/hist_avg']).put()
+
+    hs = _CreateHistogram(
+        master='master', bot='bot', benchmark='benchmark', commit_position=124,
+        benchmark_description='Benchmark description.', samples=[1, 2, 3])
+    data = json.dumps(hs.AsDicts())
+
+    self.PostAddHistogram({'data': data})
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    t = utils.TestKey('master/bot/benchmark/hist').get()
+    self.assertIsNotNone(t.sheriff)
+
+  @mock.patch.object(
       add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync')
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
   def testPost_ZlibSucceeds(self, mock_process_test, mock_graph_revisions):
