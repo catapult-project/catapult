@@ -245,9 +245,7 @@ tr.b.unittest.testSuite(function() {
         title: 'InputLatency::GestureScrollUpdate',
         cat: 'benchmark,latencyInfo',
         args: {
-          data: {
-            INPUT_EVENT_LATENCY_FORWARD_SCROLL_UPDATE_TO_MAIN_COMPONENT: 100
-          }
+          data: {}
         },
         start: 2,
         end: 10,
@@ -277,9 +275,7 @@ tr.b.unittest.testSuite(function() {
         title: 'Latency::ScrollUpdate',
         cat: 'benchmark,latencyInfo',
         args: {
-          data: {
-            INPUT_EVENT_LATENCY_FORWARD_SCROLL_UPDATE_TO_MAIN_COMPONENT: 100
-          }
+          data: {}
         },
         start: 1.5,
         end: 8,
@@ -293,7 +289,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.isTrue(m.as0.associatedEvents.length === 0);
     assert.isTrue(m.as1.associatedEvents.equals(
-        new EventSet([m.f1, m.s0, m.f2, m.s4, m.s1, m.f3, m.s2])));
+        new EventSet([m.f1, m.s0, m.f2, m.s4, m.s1])));
   });
 
   test('getAssociatedEventsWithoutCommit', function() {

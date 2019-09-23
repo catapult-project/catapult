@@ -227,52 +227,6 @@ tr.exportTo('tr.e.cc', function() {
       return slices;
     },
 
-    // Find the Latency::ScrollUpdate slice that corresponds to the
-    // InputLatency::GestureScrollUpdate slice.
-    // The C++ CL that makes this connection is at:
-    // https://codereview.chromium.org/1178963003
-    addScrollUpdateEvents(rendererHelper) {
-      if (!rendererHelper || !rendererHelper.compositorThread) {
-        return;
-      }
-
-      const compositorThread = rendererHelper.compositorThread;
-      const gestureScrollUpdateStart = this.start;
-      const gestureScrollUpdateEnd = this.end;
-
-      const allCompositorAsyncSlices =
-        compositorThread.asyncSliceGroup.slices;
-
-      for (const i in allCompositorAsyncSlices) {
-        const slice = allCompositorAsyncSlices[i];
-
-        if (slice.title !== 'Latency::ScrollUpdate') continue;
-
-        const parentId = slice.args.data.
-            INPUT_EVENT_LATENCY_FORWARD_SCROLL_UPDATE_TO_MAIN_COMPONENT.
-            sequence_number;
-
-        if (parentId === undefined) {
-          // Old trace, we can only rely on the timestamp to find the slice
-          if (slice.start < gestureScrollUpdateStart ||
-              slice.start >= gestureScrollUpdateEnd) {
-            continue;
-          }
-        } else {
-          // New trace, we can definitively find the latency slice by comparing
-          // its sequence number with gesture id
-          if (parseInt(parentId) !== parseInt(this.id)) {
-            continue;
-          }
-        }
-
-        slice.associatedEvents.forEach(function(event) {
-          this.associatedEvents_.push(event);
-        }, this);
-        break;
-      }
-    },
-
     // Return true if the slice hierarchy is tracked by LatencyInfo of other
     // input latency events. If the slice hierarchy is tracked by both, this
     // function still returns true.
@@ -521,17 +475,6 @@ tr.exportTo('tr.e.cc', function() {
         if (beginImplFrame) {
           this.backtraceFromDraw(beginImplFrame, visitedEvents);
         }
-      }
-
-      // A separate pass on GestureScrollUpdate.
-      // Scroll update doesn't go through the main thread, but the compositor
-      // may go back to the main thread if there is an onscroll event handler.
-      // This is captured by a different flow event, which does not have the
-      // same ID as the Input Latency Event, but it is technically causally
-      // related to the GestureScrollUpdate input. Add them manually for now.
-      const INPUT_GSU = 'InputLatency::GestureScrollUpdate';
-      if (this.title === INPUT_GSU) {
-        this.addScrollUpdateEvents(rendererHelper);
       }
     },
 
