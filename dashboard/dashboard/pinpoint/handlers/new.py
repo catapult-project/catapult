@@ -35,6 +35,7 @@ class New(api_request_handler.ApiRequestHandler):
       raise api_request_handler.ForbiddenError()
 
   def Post(self):
+    # TODO(dberris): Validate the inputs based on the type of job requested.
     job = _CreateJob(self.request)
 
     scheduler.Schedule(job)

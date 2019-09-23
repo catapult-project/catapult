@@ -53,8 +53,7 @@ class Migrate(webapp2.RequestHandler):
   def _Migrate(self, query, status):
     cursor = datastore_query.Cursor(urlsafe=self.request.get('cursor'))
     jobs, next_cursor, more = query.fetch_page(_BATCH_SIZE, start_cursor=cursor)
-    for j in jobs:
-      _MigrateJob(j)
+
     try:
       ndb.put_multi(jobs)
     except datastore_errors.BadRequestError as e:
@@ -68,7 +67,3 @@ class Migrate(webapp2.RequestHandler):
       taskqueue.add(url='/api/migrate', params=params)
     else:
       stored_object.Set(_STATUS_KEY, None)
-
-
-def _MigrateJob(j):
-  del j

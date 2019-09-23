@@ -73,6 +73,31 @@ def JobFromId(job_id):
   return job_key.get()
 
 
+class BenchmarkArguments(ndb.Model):
+  """Structured version of the ad-hoc 'arguments' JSON for a Job.
+
+  This class formalises the structure of the arguments passed into, and
+  supported by the Job model. This is intended to be used as a structured
+  property of Job, not a standalone entity.
+  """
+  benchmark = ndb.StringProperty(indexed=True)
+  story = ndb.StringProperty(indexed=True)
+  story_tags = ndb.StringProperty(indexed=True)
+  chart = ndb.StringProperty(indexed=True)
+  statistic = ndb.StringProperty(indexed=True)
+
+  @classmethod
+  def FromArgs(cls, args):
+    return cls(
+        benchmark=args.get('benchmark'),
+        story=args.get('story'),
+        story_tags=args.get('story_tags'),
+        chart=args.get('chart'),
+        statistic=args.get('statistic'),
+    )
+
+
+
 class Job(ndb.Model):
   """A Pinpoint job."""
 
@@ -143,6 +168,10 @@ class Job(ndb.Model):
   configuration = ndb.ComputedProperty(
       lambda self: self.arguments.get('configuration'))
 
+  # Pull out the benchmark, chart, and statistic as a structured property at the
+  # top-level, so that we can analyse these in a structured manner.
+  benchmark_arguments = ndb.StructuredProperty(BenchmarkArguments)
+
   # TODO(simonhatch): After migrating all Pinpoint entities, this can be
   # removed.
   # crbug.com/971370
@@ -154,6 +183,9 @@ class Job(ndb.Model):
 
     if not getattr(e, 'exception_details'):
       e.exception_details = e.exception_details_dict
+
+    if not getattr(e, 'benchmark_arguments'):
+      e.benchmark_arguments = BenchmarkArguments.FromArgs(e.arguments)
 
   # TODO(simonhatch): After migrating all Pinpoint entities, this can be
   # removed.
@@ -170,6 +202,7 @@ class Job(ndb.Model):
         return {'message': exc.splitlines()[-1], 'traceback': exc}
 
     return None
+
 
   @classmethod
   def New(cls, quests, changes, arguments=None, bug_id=None,
@@ -202,7 +235,8 @@ class Job(ndb.Model):
     state = job_state.JobState(
         quests, comparison_mode=comparison_mode,
         comparison_magnitude=comparison_magnitude, pin=pin)
-    job = cls(state=state, arguments=arguments or {}, bug_id=bug_id,
+    args = arguments or {}
+    job = cls(state=state, arguments=args, bug_id=bug_id,
               comparison_mode=comparison_mode, gerrit_server=gerrit_server,
               gerrit_change_id=gerrit_change_id,
               name=name, tags=tags, user=user, started=False, cancelled=False)
@@ -210,6 +244,8 @@ class Job(ndb.Model):
     for c in changes:
       job.AddChange(c)
 
+    # Pull out the benchmark arguments to the top-level.
+    job.benchmark_arguments = BenchmarkArguments.FromArgs(args)
     job.put()
 
     # At this point we already have an ID, so we should go through each of the
