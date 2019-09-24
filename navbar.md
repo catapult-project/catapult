@@ -13,6 +13,7 @@ https://gerrit.googlesource.com/gitiles/+/master/Documentation/markdown.md#Navig
 
 * [Home](/README.md)
 * [Dashboard](/dashboard/README.md)
+* [Devil](/devil/README.md)
 * [Telemetry](/telemetry/README.md)
 * [Tracing](/tracing/README.md)
 
