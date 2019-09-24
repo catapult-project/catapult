@@ -4,117 +4,6 @@
 
 ## DeviceUtils
 
-### DeviceUtils.\_\_init\_\_
-
-DeviceUtils constructor.
-```
-    Args:
-      device: Either a device serial, an existing AdbWrapper instance, or an
-        an existing AndroidCommands instance.
-      enable_device_files_cache: For PushChangedFiles(), cache checksums of
-        pushed files rather than recomputing them on a subsequent call.
-      default_timeout: An integer containing the default number of seconds to
-        wait for an operation to complete if no explicit value is provided.
-      default_retries: An integer containing the default number or times an
-        operation should be retried on failure if no explicit value is provided.
-```
-
-
-### DeviceUtils.\_\_eq\_\_
-
-Checks whether |other| refers to the same device as |self|.
-```
-    Args:
-      other: The object to compare to. This can be a basestring, an instance
-        of adb_wrapper.AdbWrapper, or an instance of DeviceUtils.
-    Returns:
-      Whether |other| refers to the same device as |self|.
-```
-
-
-### DeviceUtils.\_\_lt\_\_
-
-Compares two instances of DeviceUtils.
-```
-    This merely compares their serial numbers.
-
-    Args:
-      other: The instance of DeviceUtils to compare to.
-    Returns:
-      Whether |self| is less than |other|.
-```
-
-
-### DeviceUtils.\_\_str\_\_
-
-Returns the device serial.
-### DeviceUtils.NeedsSU
-
-Checks whether 'su' is needed to access protected resources.
-```
-    Args:
-      timeout: timeout in seconds
-      retries: number of retries
-
-    Returns:
-      True if 'su' is available on the device and is needed to to access
-        protected resources; False otherwise if either 'su' is not available
-        (e.g. because the device has a user build), or not needed (because adbd
-        already has root privileges).
-
-    Raises:
-      CommandTimeoutError on timeout.
-      DeviceUnreachableError on missing device.
-```
-
-
-### DeviceUtils.IsOnline
-
-Checks whether the device is online.
-```
-    Args:
-      timeout: timeout in seconds
-      retries: number of retries
-
-    Returns:
-      True if the device is online, False otherwise.
-
-    Raises:
-      CommandTimeoutError on timeout.
-```
-
-
-### DeviceUtils.HasRoot
-
-Checks whether or not adbd has root privileges.
-```
-    Args:
-      timeout: timeout in seconds
-      retries: number of retries
-
-    Returns:
-      True if adbd has root privileges, False otherwise.
-
-    Raises:
-      CommandTimeoutError on timeout.
-      DeviceUnreachableError on missing device.
-```
-
-
-### DeviceUtils.EnableRoot
-
-Restarts adbd with root privileges.
-```
-    Args:
-      timeout: timeout in seconds
-      retries: number of retries
-
-    Raises:
-      CommandFailedError if root could not be enabled.
-      CommandTimeoutError on timeout.
-```
-
-
 ### DeviceUtils.IsUserBuild
 
 Checks whether or not the device is running a user build.
@@ -167,6 +56,18 @@ Get the device's IMEI.
 ```
 
 
+### DeviceUtils.IsApplicationInstalled
+
+Determines whether a particular package is installed on the device.
+```
+    Args:
+      package: Name of the package.
+
+    Returns:
+      True if the application is installed, False otherwise.
+```
+
+
 ### DeviceUtils.GetApplicationPaths
 
 Get the paths of the installed apks on the device for the given package.
@@ -208,6 +109,18 @@ Get the version name of a package installed on the device.
 ```
 
 
+### DeviceUtils.GetPackageArchitecture
+
+Get the architecture of a package installed on the device.
+```
+    Args:
+      package: Name of the package.
+
+    Returns:
+      A string with the architecture, or None if the package is missing.
+```
+
+
 ### DeviceUtils.GetApplicationDataDirectory
 
 Get the data directory on the device for the given package.
@@ -220,6 +133,20 @@ Get the data directory on the device for the given package.
     Raises:
       CommandFailedError if the package's data directory can't be found,
         whether because it's not installed or otherwise.
+```
+
+
+### DeviceUtils.GetSecurityContextForPackage
+
+Gets the SELinux security context for the given package.
+```
+    Args:
+      package: Name of the package.
+      encrypted: Whether to check in the encrypted data directory
+          (/data/user_de/0/) or the unencrypted data directory (/data/data/).
+
+    Returns:
+      The package's security context as a string, or None if not found.
 ```
 
 
@@ -262,18 +189,24 @@ Reboot the device.
 
 ### DeviceUtils.Install
 
-Install an APK.
+Install an APK or app bundle.
 ```
-    Noop if an identical APK is already installed.
+    Noop if an identical APK is already installed. If installing a bundle, the
+    bundletools helper script (bin/*_bundle) should be used rather than the .aab
+    file.
 
     Args:
-      apk: An ApkHelper instance or string containing the path to the APK.
+      apk: An ApkHelper instance or string containing the path to the APK or
+        bundle.
       allow_downgrade: A boolean indicating if we should allow downgrades.
       reinstall: A boolean indicating if we should keep any existing app data.
+        Ignored if |apk| is a bundle.
       permissions: Set of permissions to set. If not set, finds permissions with
           apk helper. To set no permissions, pass [].
       timeout: timeout in seconds
       retries: number of retries
+      modules: An iterable containing specific bundle modules to install.
+          Error if set and |apk| points to an APK instead of a bundle.
 
     Raises:
       CommandFailedError if the installation fails.
@@ -442,6 +375,23 @@ Start package's activity on the device.
 ```
 
 
+### DeviceUtils.StartService
+
+Start a service on the device.
+```
+    Args:
+      intent_obj: An Intent object to send describing the service to start.
+      user_id: A specific user to start the service as, defaults to current.
+      timeout: Timeout in seconds.
+      retries: Number of retries
+
+    Raises:
+      CommandFailedError if the service could not be started.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+```
+
+
 ### DeviceUtils.StartInstrumentation
 
 ### DeviceUtils.BroadcastIntent
@@ -605,6 +555,7 @@ Pull a file from the device.
                    from the device.
       host_path: A string containing the absolute path of the destination on
                  the host.
+      as_root: Whether root permissions should be used to pull the file.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -783,12 +734,14 @@ Get the size of a file on the device.
 ```
 
 
-### DeviceUtils.GetLanguage
+### DeviceUtils.GetLocale
 
-Returns the language setting on the device.
+Returns the locale setting on the device.
 ```
     Args:
       cache: Whether to use cached properties when available.
+    Returns:
+      A pair (language, country).
 ```
 
 
@@ -811,37 +764,150 @@ Enables or disables Java asserts.
 ```
 
 
-### DeviceUtils.GetCountry
+### DeviceUtils.GetLanguage
 
-Returns the country setting on the device.
+Returns the language setting on the device.
 ```
+    DEPRECATED: Prefer GetLocale() instead.
+
     Args:
       cache: Whether to use cached properties when available.
 ```
 
 
-### DeviceUtils.GetApplicationPids
+### DeviceUtils.GetCountry
 
-Returns the PID or PIDs of a given process name.
+Returns the country setting on the device.
 ```
-    Note that the |process_name|, often the package name, must match exactly.
+    DEPRECATED: Prefer GetLocale() instead.
 
     Args:
-      process_name: A string containing the process name to get the PIDs for.
-      at_most_one: A boolean indicating that at most one PID is expected to
-                   be found.
+      cache: Whether to use cached properties when available.
+```
+
+
+### DeviceUtils.\_\_init\_\_
+
+DeviceUtils constructor.
+```
+    Args:
+      device: Either a device serial, an existing AdbWrapper instance, or an
+        an existing AndroidCommands instance.
+      enable_device_files_cache: For PushChangedFiles(), cache checksums of
+        pushed files rather than recomputing them on a subsequent call.
+      default_timeout: An integer containing the default number of seconds to
+        wait for an operation to complete if no explicit value is provided.
+      default_retries: An integer containing the default number or times an
+        operation should be retried on failure if no explicit value is provided.
+```
+
+
+### DeviceUtils.\_\_eq\_\_
+
+Checks whether |other| refers to the same device as |self|.
+```
+    Args:
+      other: The object to compare to. This can be a basestring, an instance
+        of adb_wrapper.AdbWrapper, or an instance of DeviceUtils.
+    Returns:
+      Whether |other| refers to the same device as |self|.
+```
+
+
+### DeviceUtils.\_\_lt\_\_
+
+Compares two instances of DeviceUtils.
+```
+    This merely compares their serial numbers.
+
+    Args:
+      other: The instance of DeviceUtils to compare to.
+    Returns:
+      Whether |self| is less than |other|.
+```
+
+
+### DeviceUtils.\_\_str\_\_
+
+Returns the device serial.
+### DeviceUtils.NeedsSU
+
+Checks whether 'su' is needed to access protected resources.
+```
+    Args:
       timeout: timeout in seconds
       retries: number of retries
 
     Returns:
-      A list of the PIDs for the named process. If at_most_one=True returns
-      the single PID found or None otherwise.
+      True if 'su' is available on the device and is needed to to access
+        protected resources; False otherwise if either 'su' is not available
+        (e.g. because the device has a user build), or not needed (because adbd
+        already has root privileges).
 
     Raises:
-      CommandFailedError if at_most_one=True and more than one PID is found
-          for the named process.
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
+```
+
+
+### DeviceUtils.IsOnline
+
+Checks whether the device is online.
+```
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      True if the device is online, False otherwise.
+
+    Raises:
+      CommandTimeoutError on timeout.
+```
+
+
+### DeviceUtils.HasRoot
+
+Checks whether or not adbd has root privileges.
+```
+    A device is considered to have root if all commands are implicitly run
+    with elevated privileges, i.e. without having to use "su" to run them.
+
+    Note that some devices do not allow this implicit privilige elevation,
+    but _can_ run commands as root just fine when done explicitly with "su".
+    To check if your device can run commands with elevated privileges at all
+    use:
+
+      device.HasRoot() or device.NeedsSU()
+
+    Luckily, for the most part you don't need to worry about this and using
+    RunShellCommand(cmd, as_root=True) will figure out for you the right
+    command incantation to run with elevated privileges.
+
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      True if adbd has root privileges, False otherwise.
+
+    Raises:
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+```
+
+
+### DeviceUtils.EnableRoot
+
+Restarts adbd with root privileges.
+```
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Raises:
+      CommandFailedError if root could not be enabled.
+      CommandTimeoutError on timeout.
 ```
 
 
@@ -894,10 +960,42 @@ Gets the device main ABI.
       retries: number of retries
 
     Returns:
-      The device's main ABI name.
+      The device's main ABI name. For supported ABIs, the return value will be
+      one of the values defined in devil.android.ndk.abis.
 
     Raises:
       CommandTimeoutError on timeout.
+```
+
+
+### DeviceUtils.GetFeatures
+
+Returns the features supported on the device.
+### DeviceUtils.ListProcesses
+
+Returns a list of tuples with info about processes on the device.
+```
+    This essentially parses the output of the |ps| command into convenient
+    ProcessInfo tuples.
+
+    Args:
+      process_name: A string used to filter the returned processes. If given,
+                    only processes whose name have this value as a substring
+                    will be returned.
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      A list of ProcessInfo tuples with |name|, |pid|, and |ppid| fields.
+```
+
+
+### DeviceUtils.GetLogcatMonitor
+
+Returns a new LogcatMonitor associated with this device.
+```
+    Parameters passed to this function are passed directly to
+    |logcat_monitor.LogcatMonitor| and are documented there.
 ```
 
 
@@ -905,6 +1003,8 @@ Gets the device main ABI.
 
 Returns the PIDs of processes containing the given name as substring.
 ```
+    DEPRECATED
+
     Note that the |process_name| is often the package name.
 
     Args:
@@ -923,12 +1023,28 @@ Returns the PIDs of processes containing the given name as substring.
 ```
 
 
-### DeviceUtils.GetLogcatMonitor
+### DeviceUtils.GetApplicationPids
 
-Returns a new LogcatMonitor associated with this device.
+Returns the PID or PIDs of a given process name.
 ```
-    Parameters passed to this function are passed directly to
-    |logcat_monitor.LogcatMonitor| and are documented there.
+    Note that the |process_name|, often the package name, must match exactly.
+
+    Args:
+      process_name: A string containing the process name to get the PIDs for.
+      at_most_one: A boolean indicating that at most one PID is expected to
+                   be found.
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      A list of the PIDs for the named process. If at_most_one=True returns
+      the single PID found or None otherwise.
+
+    Raises:
+      CommandFailedError if at_most_one=True and more than one PID is found
+          for the named process.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
 ```
 
 
@@ -957,6 +1073,83 @@ Modify the mode SELinux is running in.
     Args:
       enabled: a boolean indicating whether to put SELinux in encorcing mode
                (if True), or permissive mode (otherwise).
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Raises:
+      CommandFailedError on failure.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+```
+
+
+### DeviceUtils.GetWebViewUpdateServiceDump
+
+Get the WebView update command sysdump on the device.
+```
+    Returns:
+      A dictionary with these possible entries:
+        FallbackLogicEnabled: True|False
+        CurrentWebViewPackage: "package name" or None
+        MinimumWebViewVersionCode: int
+        WebViewPackages: Dict of installed WebView providers, mapping "package
+            name" to "reason it's valid/invalid."
+
+    It may return an empty dictionary if device does not
+    support the "dumpsys webviewupdate" command.
+
+    Raises:
+      CommandFailedError on failure.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+```
+
+
+### DeviceUtils.SetWebViewImplementation
+
+Select the WebView implementation to the specified package.
+```
+    Args:
+      package_name: The package name of a WebView implementation. The package
+        must be already installed on the device.
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Raises:
+      CommandFailedError on failure.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+```
+
+
+### DeviceUtils.SetWebViewFallbackLogic
+
+Set whether WebViewUpdateService's "fallback logic" should be enabled.
+```
+    WebViewUpdateService has nonintuitive "fallback logic" for devices where
+    Monochrome (Chrome Stable) is preinstalled as the WebView provider, with a
+    "stub" (little-to-no code) implementation of standalone WebView.
+
+    "Fallback logic" (enabled by default) is designed, in the case where the
+    user has disabled Chrome, to fall back to the stub standalone WebView by
+    enabling the package. The implementation plumbs through the Chrome APK until
+    Play Store installs an update with the full implementation.
+
+    A surprising side-effect of "fallback logic" is that, immediately after
+    sideloading WebView, WebViewUpdateService re-disables the package and
+    uninstalls the update. This can prevent successfully using standalone
+    WebView for development, although "fallback logic" can be disabled on
+    userdebug/eng devices.
+
+    Because this is only relevant for devices with the standalone WebView stub,
+    this command is only relevant on N-P (inclusive).
+
+    You can determine if "fallback logic" is currently enabled by checking
+    FallbackLogicEnabled in the dictionary returned by
+    GetWebViewUpdateServiceDump.
+
+    Args:
+      enabled: bool - True for enabled, False for disabled
       timeout: timeout in seconds
       retries: number of retries
 
@@ -1000,6 +1193,9 @@ Dismiss the error/ANR dialog if present.
 ### DeviceUtils.GetClientCache
 
 Returns client cache.
+### DeviceUtils.ClearCache
+
+Clears all caches.
 ### DeviceUtils.LoadCacheData
 
 Initializes the cache from data created using DumpCacheData.
@@ -1066,6 +1262,45 @@ Turns screen on and off.
 ```
 
 
+### DeviceUtils.ChangeOwner
+
+Changes file system ownership for permissions.
+```
+    Args:
+      owner_group: New owner and group to assign. Note that this should be a
+        string in the form user[.group] where the group is option.
+      paths: Paths to change ownership of.
+
+      Note that the -R recursive option is not supported by all Android
+      versions.
+```
+
+
+### DeviceUtils.ChangeSecurityContext
+
+Changes the SELinux security context for files.
+```
+    Args:
+      security_context: The new security context as a string
+      paths: Paths to change the security context of.
+
+      Note that the -R recursive option is not supported by all Android
+      versions.
+```
+
+
+## ProcessInfo
+
+ProcessInfo(name, pid, ppid)
+### ProcessInfo.\_\_repr\_\_
+
+Return a nicely formatted representation string
+### ProcessInfo.\_\_getnewargs\_\_
+
+Return self as a plain tuple.  Used by copy and pickle.
+### ProcessInfo.\_\_getstate\_\_
+
+Exclude the OrderedDict from pickling
 ### GetAVDs
 
 Returns a list of Android Virtual Devices.

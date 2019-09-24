@@ -17,6 +17,38 @@ Exclude the OrderedDict from pickling
 ## AdbWrapper
 
 A wrapper around a local Android Debug Bridge executable.
+### AdbWrapper.\_\_init\_\_
+
+Initializes the AdbWrapper.
+```
+    Args:
+      device_serial: The device serial number as a string.
+```
+
+
+### AdbWrapper.\_\_eq\_\_
+
+Consider instances equal if they refer to the same device.
+```
+    Args:
+      other: The instance to compare equality with.
+
+    Returns:
+      True if the instances are considered equal, false otherwise.
+```
+
+
+### AdbWrapper.\_\_str\_\_
+
+The string representation of an instance.
+```
+    Returns:
+      The device serial number as a string.
+```
+
+
+### AdbWrapper.\_\_repr\_\_
+
 ### AdbWrapper.GetDeviceSerial
 
 Gets the device serial number associated with this object.
@@ -47,6 +79,19 @@ Pulls a file from the device to the host.
       local: Path on the host filesystem.
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
+```
+
+
+### AdbWrapper.StartShell
+
+Starts a subprocess on the device and returns a handle to the process.
+```
+    Args:
+      args: A sequence of program arguments. The executable to run is the first
+        item in the sequence.
+
+    Returns:
+      An instance of subprocess.Popen associated with the live process.
 ```
 
 
@@ -120,6 +165,7 @@ Get an iterable over the logcat output.
       iter_timeout: If set and neither clear nor dump is set, the number of
         seconds to wait between iterations. If no line is found before the
         given number of seconds elapses, the iterable will yield None.
+      check_error: Whether to check the exit status of the logcat command.
       timeout: (optional) If set, timeout per try in seconds. If clear or dump
         is set, defaults to DEFAULT_TIMEOUT.
       retries: (optional) If clear or dump is set, the number of retries to
@@ -338,41 +384,21 @@ Runs an emulator console command.
 
 ### AdbWrapper.DisableVerity
 
-Disable Marshmallow's Verity security feature
+Disable Marshmallow's Verity security feature.
+```
+    Returns:
+      The output of the disable-verity command as a string.
+```
+
+
 ### AdbWrapper.EnableVerity
 
-Enable Marshmallow's Verity security feature
-### AdbWrapper.\_\_init\_\_
-
-Initializes the AdbWrapper.
-```
-    Args:
-      device_serial: The device serial number as a string.
-```
-
-
-### AdbWrapper.\_\_eq\_\_
-
-Consider instances equal if they refer to the same device.
-```
-    Args:
-      other: The instance to compare equality with.
-
-    Returns:
-      True if the instances are considered equal, false otherwise.
-```
-
-
-### AdbWrapper.\_\_str\_\_
-
-The string representation of an instance.
+Enable Marshmallow's Verity security feature.
 ```
     Returns:
-      The device serial number as a string.
+      The output of the enable-verity command as a string.
 ```
 
-
-### AdbWrapper.\_\_repr\_\_
 
 ### VerifyLocalFileExists
 
