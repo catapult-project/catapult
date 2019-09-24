@@ -12,7 +12,6 @@ import logging
 from google.appengine.api import datastore_errors
 from google.appengine.datastore import datastore_query
 from google.appengine.ext import deferred
-from google.appengine.ext import ndb
 
 from dashboard.api import api_request_handler
 from dashboard.common import stored_object
@@ -47,6 +46,7 @@ def _Start():
       'count': 0,
       'started': datetime.datetime.now().isoformat(),
       'total': query.count(),
+      'errors': 0,
   }
   stored_object.Set(_STATUS_KEY, status)
   deferred.defer(_Migrate, status, None)
@@ -57,16 +57,21 @@ def _Migrate(status, cursor=None):
   query = job.Job.query(job.Job.task == None)
   jobs, next_cursor, more = query.fetch_page(_BATCH_SIZE, start_cursor=cursor)
 
-  try:
-    ndb.put_multi(jobs)
-  except datastore_errors.BadRequestError as e:
-    logging.critical(e)
-    logging.critical([j.job_id for j in jobs])
+  # Because individual job instances might fail to be persisted for some reason
+  # (e.g. entities exceeding the entity size limit) we'll perform the updates
+  # one at a time. This is not an ideal state, since we'll want to be able to
+  # migrate all jobs to an alternative structure in the future, but we recognise
+  # that partial success is better than total failure.
+  for j in jobs:
+    try:
+      j.put()
+      status['count'] += 1
+    except datastore_errors.BadRequestError as e:
+      logging.error('Failed migrating job %s: %s', j.job_id, e)
+      status['errors'] += 1
 
   if more:
-    status['count'] += len(jobs)
     stored_object.Set(_STATUS_KEY, status)
-
     deferred.defer(_Migrate, status, next_cursor.urlsafe())
   else:
     stored_object.Set(_STATUS_KEY, None)

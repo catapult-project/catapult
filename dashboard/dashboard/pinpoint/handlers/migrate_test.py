@@ -69,6 +69,7 @@ class MigrateTest(MigrateAuthTest):
         'count': 0,
         'started': 'Date Time',
         'total': 20,
+        'errors': 0,
     }
 
     response = self.testapp.post('/api/migrate', status=200)
@@ -82,6 +83,7 @@ class MigrateTest(MigrateAuthTest):
         'count': 0,
         'started': 'Date Time',
         'total': 20,
+        'errors': 0,
     }
 
     job_state.JobState.__setstate__ = _JobStateSetState
@@ -93,6 +95,7 @@ class MigrateTest(MigrateAuthTest):
         'count': 10,
         'started': 'Date Time',
         'total': 20,
+        'errors': 0,
     }
 
     self.ExecuteDeferredTasks('default', recurse=False)
