@@ -12,6 +12,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import collections
+import itertools
 import json
 import logging
 import re
@@ -568,6 +569,7 @@ class UpdateEvaluator(object):
   def __call__(self, task, event, accumulator):
     # Check that the task has the required information to poll Swarming. In this
     # handler we're going to look for the 'swarming_task_id' key in the payload.
+    # TODO(dberris): Move this out, when we incorporate validation properly.
     required_payload_keys = {'swarming_task_id', 'swarming_server'}
     missing_keys = required_payload_keys - set(task.payload)
     if missing_keys:
@@ -601,3 +603,54 @@ class Evaluator(evaluators.SequenceEvaluator):
                             delegate=UpdateEvaluator(job)),
                 })),
         ))
+
+
+def ReportError(task, _, accumulator):
+  # TODO(dberris): Factor this out into smaller pieces?
+  task_errors = []
+  logging.debug('Validating task: %s', task)
+  if len(task.dependencies) != 1:
+    task_errors.append({
+        'cause':
+            'DependencyError',
+        'message':
+            'Task must have exactly 1 dependency; has %s' %
+            (len(task.dependencies),)
+    })
+
+
+  if task.status == 'ongoing':
+    required_payload_keys = {'swarming_task_id', 'swarming_server'}
+    missing_keys = required_payload_keys - (
+        set(task.payload) & required_payload_keys)
+    if missing_keys:
+      task_errors.append({
+          'cause': 'MissingRequirements',
+          'message': 'Missing required keys %s in task payload.' % missing_keys
+      })
+  elif task.status == 'pending' and task.dependencies and all(
+      accumulator.get(dep, {}).get('status') == 'completed'
+      for dep in task.dependencies):
+    required_dependency_keys = {'isolate_server', 'isolate_hash'}
+    dependency_keys = set(
+        itertools.chain(
+            *[accumulator.get(dep, []) for dep in task.dependencies]))
+    missing_keys = required_dependency_keys - (
+        dependency_keys & required_dependency_keys)
+    if missing_keys:
+      task_errors.append({
+          'cause':
+              'MissingDependencyInputs',
+          'message':
+              'Missing keys from dependency payload: %s' % (missing_keys,)
+      })
+
+  if task_errors:
+    accumulator.update({task.id: {'errors': task_errors}})
+
+
+class Validator(evaluators.FilteringEvaluator):
+
+  def __init__(self):
+    super(Validator, self).__init__(
+        predicate=evaluators.TaskTypeEq('run_test'), delegate=ReportError)

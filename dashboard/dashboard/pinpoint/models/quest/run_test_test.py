@@ -463,7 +463,7 @@ class EvaluatorTest(test.TestCase):
 
   def setUp(self):
     super(EvaluatorTest, self).setUp()
-    self.maxDiff = None  # pylint: disable=invalid-name
+    self.maxDiff = None
     self.job = job_module.Job.New((), ())
     task_module.PopulateTaskGraph(
         self.job,
@@ -826,6 +826,124 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
 
   def testEvaluateHandleFailures_Retry(self, *_):
     self.skipTest('Deferring implementation pending design.')
+
+
+class ValidatorTest(test.TestCase):
+
+  def setUp(self):
+    super(ValidatorTest, self).setUp()
+    self.maxDiff = None
+
+  def testMissingDependency(self):
+    job = job_module.Job.New((), ())
+    task_module.PopulateTaskGraph(
+        job,
+        task_module.TaskGraph(
+            vertices=[
+                task_module.TaskVertex(
+                    id='run_test_bbbbbbb_0',
+                    vertex_type='run_test',
+                    payload={
+                        'swarming_server': 'some_server',
+                        'dimensions': DIMENSIONS,
+                        'extra_args': [],
+                    }),
+            ],
+            edges=[]))
+    self.assertEqual(
+        {
+            'run_test_bbbbbbb_0': {
+                'errors': [{
+                    'cause': 'DependencyError',
+                    'message': mock.ANY
+                }]
+            }
+        },
+        task_module.Evaluate(
+            job,
+            event_module.Event(type='validate', target_task=None, payload={}),
+            run_test.Validator()))
+
+  def testMissingDependencyInputs(self):
+    job = job_module.Job.New((), ())
+    task_module.PopulateTaskGraph(
+        job,
+        task_module.TaskGraph(
+            vertices=[
+                task_module.TaskVertex(
+                    id='build_aaaaaaa',
+                    vertex_type='find_isolate',
+                    payload={
+                        'builder': 'Some Builder',
+                        'target': 'telemetry_perf_tests',
+                        'bucket': 'luci.bucket',
+                        'change': {
+                            'commits': [{
+                                'repository': 'chromium',
+                                'git_hash': 'aaaaaaa',
+                            }]
+                        }
+                    }),
+                task_module.TaskVertex(
+                    id='run_test_aaaaaaa_0',
+                    vertex_type='run_test',
+                    payload={
+                        'swarming_server': 'some_server',
+                        'dimensions': DIMENSIONS,
+                        'extra_args': [],
+                    }),
+            ],
+            edges=[
+                task_module.Dependency(
+                    from_='run_test_aaaaaaa_0', to='build_aaaaaaa')
+            ],
+        ))
+
+    # This time we're fine, there should be no errors.
+    self.assertEqual({},
+                     task_module.Evaluate(
+                         job,
+                         event_module.Event(
+                             type='validate', target_task=None, payload={}),
+                         run_test.Validator()))
+
+    # Send an initiate message then catch that we've not provided the required
+    # payload in the task when it's ongoing.
+    self.assertEqual(
+        {
+            'build_aaaaaaa': mock.ANY,
+            'run_test_aaaaaaa_0': {
+                'errors': [{
+                    'cause': 'MissingDependencyInputs',
+                    'message': mock.ANY
+                }]
+            }
+        },
+        task_module.Evaluate(
+            job,
+            event_module.Event(type='initiate', target_task=None, payload={}),
+            evaluators.FilteringEvaluator(
+                predicate=evaluators.TaskTypeEq('find_isolate'),
+                delegate=evaluators.SequenceEvaluator(
+                    evaluators=(
+                        functools.partial(FakeNotFoundIsolate, job),
+                        evaluators.TaskPayloadLiftingEvaluator(),
+                    )),
+                alternative=run_test.Validator()),
+        ))
+
+  def testMissingExecutionOutputs(self):
+    self.skipTest('Not implemented yet.')
+
+
+def FakeNotFoundIsolate(job, task, *_):
+  if task.status == 'completed':
+    return None
+
+  return [
+      lambda _: task_module.UpdateTask(
+          job, task.id, new_state='completed', payload=task.payload)
+  ]
 
 
 def FakeFoundIsolate(job, task, *_):

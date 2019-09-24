@@ -135,6 +135,28 @@ class EvaluatorsTest(unittest.TestCase):
     accumulator = {}
     evaluator(task, event, accumulator)
 
+  def testFilteringEvaluator_DoesNotMatchHasAlternative(self):
+
+    def ThrowingEvaluator(*_):
+      raise ValueError('This must never be raised.')
+
+    def AlternativeEvaluator(*_):
+      return ['Alternative']
+
+    task = task_module.InMemoryTask(
+        id='test_id',
+        task_type='test',
+        payload={},
+        status='pending',
+        dependencies=[])
+    evaluator = evaluators.FilteringEvaluator(
+        predicate=lambda *_: False,
+        delegate=ThrowingEvaluator,
+        alternative=AlternativeEvaluator)
+    event = event_module.Event(type='test', target_task=None, payload={})
+    accumulator = {}
+    self.assertEqual(['Alternative'], evaluator(task, event, accumulator))
+
   def testDispatchEvaluator_Matches(self):
 
     def InitiateEvaluator(*_):

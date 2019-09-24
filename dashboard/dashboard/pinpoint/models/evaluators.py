@@ -142,7 +142,7 @@ class SequenceEvaluator(object):
 
 class FilteringEvaluator(object):
 
-  def __init__(self, predicate, delegate):
+  def __init__(self, predicate, delegate, alternative=None):
     if not predicate:
       raise ValueError('Argument `predicate` must not be empty.')
     if not delegate:
@@ -150,11 +150,12 @@ class FilteringEvaluator(object):
 
     self._predicate = predicate
     self._delegate = delegate
+    self._alternative = alternative or NoopEvaluator()
 
-  def __call__(self, task, event, accumulator):
-    if self._predicate(task, event, accumulator):
-      return self._delegate(task, event, accumulator)
-    return None
+  def __call__(self, *args):
+    if self._predicate(*args):
+      return self._delegate(*args)
+    return self._alternative(*args)
 
 
 class DispatchByEventTypeEvaluator(object):
