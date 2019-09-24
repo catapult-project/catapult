@@ -22,8 +22,7 @@ def RepositoryUrl(name):
   Returns:
     A URL string, not including '.git'.
   """
-  repository = ndb.Key(Repository,
-                       name).get(read_policy=ndb.EVENTUAL_CONSISTENCY)
+  repository = ndb.Key(Repository, name).get()
   if not repository:
     raise KeyError('Unknown repository name: ' + name)
   return repository.urls[0]

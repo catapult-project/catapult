@@ -19,7 +19,7 @@ def Get(id_string):
   Returns:
     A dict with the fields {'url', 'author', created', 'subject', 'message'}.
   """
-  entity = ndb.Key(Commit, id_string).get(read_policy=ndb.EVENTUAL_CONSISTENCY)
+  entity = ndb.Key(Commit, id_string).get()
   if not entity:
     raise KeyError('Commit or Patch not found in the Datastore:\n' + id_string)
 
