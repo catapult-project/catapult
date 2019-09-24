@@ -19,7 +19,7 @@ from dashboard.common import utils
 from dashboard.pinpoint.models import job
 
 
-_BATCH_SIZE = 10
+_BATCH_SIZE = 50
 _STATUS_KEY = 'job_migration_status'
 
 
@@ -66,7 +66,7 @@ def _Migrate(status, cursor=None):
     try:
       j.put()
       status['count'] += 1
-    except datastore_errors.BadRequestError as e:
+    except datastore_errors.Error as e:
       logging.error('Failed migrating job %s: %s', j.job_id, e)
       status['errors'] += 1
 

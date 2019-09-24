@@ -27,7 +27,7 @@ class MigrateAuthTest(test.TestCase):
     self.addCleanup(patcher.stop)
     patcher.start()
 
-    for _ in range(20):
+    for _ in range(100):
       job.Job.New((), ())
 
   def _SetupCredentials(self, user, client_id, is_internal, is_admin):
@@ -68,7 +68,7 @@ class MigrateTest(MigrateAuthTest):
     expected = {
         'count': 0,
         'started': 'Date Time',
-        'total': 20,
+        'total': 100,
         'errors': 0,
     }
 
@@ -82,7 +82,7 @@ class MigrateTest(MigrateAuthTest):
     expected = {
         'count': 0,
         'started': 'Date Time',
-        'total': 20,
+        'total': 100,
         'errors': 0,
     }
 
@@ -92,9 +92,9 @@ class MigrateTest(MigrateAuthTest):
     self.assertEqual(response.normal_body, json.dumps(expected))
 
     expected = {
-        'count': 10,
+        'count': 50,
         'started': 'Date Time',
-        'total': 20,
+        'total': 100,
         'errors': 0,
     }
 
