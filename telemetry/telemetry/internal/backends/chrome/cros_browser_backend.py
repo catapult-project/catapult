@@ -385,14 +385,7 @@ def GenerateBreakpadSymbols(arch, os_name, symbols_dir, build_dir):
       '--binary=%s' % os.path.join(build_dir, 'chrome'),
       '--symbols-dir=%s' % symbols_dir,
       '--build-dir=%s' % build_dir,
-      # TODO(https://crbug.com/978952): Switch this to chromeos once support
-      # has been added to generate_breakpad_symbols. Not passing anything causes
-      # it to use ldd to get shared library dependencies, which has trouble
-      # with running on 32-bit binaries on a 64-bit host, or vice-versa.
-      # Specifying Android makes it use readelf instead, which works fine with
-      # mixed bitness, and still works for x86-based binaries, e.g. when run
-      # against the amd64-generic board.
-      '--platform=android',
+      '--platform=chromeos',
       ]
 
   try:
