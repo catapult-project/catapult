@@ -19,7 +19,7 @@ def Get(id_string):
   Returns:
     A dict with the fields {'url', 'author', created', 'subject', 'message'}.
   """
-  entity = ndb.Key(Commit, id_string).get()
+  entity = ndb.Key(Commit, id_string).get(read_policy=ndb.EVENTUAL_CONSISTENCY)
   if not entity:
     raise KeyError('Commit or Patch not found in the Datastore:\n' + id_string)
 
@@ -49,6 +49,9 @@ def Put(id_string, url, author, created, subject, message):
 
 
 class Commit(ndb.Model):
+  _use_memcache = True
+  _use_cache = True
+  _memcache_timeout = 60 * 60 * 24
   url = ndb.StringProperty(indexed=False, required=True)
   author = ndb.StringProperty(indexed=False, required=True)
   created = ndb.DateTimeProperty(indexed=False, required=True)

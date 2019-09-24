@@ -22,7 +22,8 @@ def RepositoryUrl(name):
   Returns:
     A URL string, not including '.git'.
   """
-  repository = ndb.Key(Repository, name).get()
+  repository = ndb.Key(Repository,
+                       name).get(read_policy=ndb.EVENTUAL_CONSISTENCY)
   if not repository:
     raise KeyError('Unknown repository name: ' + name)
   return repository.urls[0]
@@ -92,4 +93,7 @@ def _AddRepository(url):
 
 
 class Repository(ndb.Model):
+  _use_memcache = True
+  _use_cache = True
+  _memcache_timeout = 60 * 60 * 24
   urls = ndb.StringProperty(repeated=True)
