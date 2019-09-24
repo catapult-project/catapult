@@ -63,7 +63,7 @@ class ChromeTraceConfig(object):
   """
 
   def __init__(self):
-    self._record_mode = RECORD_AS_MUCH_AS_POSSIBLE
+    self._record_mode = RECORD_CONTINUOUSLY
     self._category_filter = (
         chrome_trace_category_filter.ChromeTraceCategoryFilter())
     self._memory_dump_config = None

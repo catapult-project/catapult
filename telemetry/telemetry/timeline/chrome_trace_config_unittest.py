@@ -14,12 +14,12 @@ class ChromeTraceConfigTests(unittest.TestCase):
 
     # Trace config for startup tracing.
     self.assertEquals({
-        'record_mode': 'record-as-much-as-possible'
+        'record_mode': 'record-continuously'
     }, config.GetChromeTraceConfigForStartupTracing())
 
     # Trace config for DevTools (modern API).
     self.assertEquals({
-        'recordMode': 'recordAsMuchAsPossible'
+        'recordMode': 'recordContinuously'
     }, config.GetChromeTraceConfigForDevTools())
 
   def testBasic(self):
@@ -114,14 +114,14 @@ class ChromeTraceConfigTests(unittest.TestCase):
     config.EnableUMAHistograms('Event.Latency.ScrollUpdate.Touch.Metric1')
     self.assertEquals({
         'histogramNames': ['Event.Latency.ScrollUpdate.Touch.Metric1'],
-        'recordMode': 'recordAsMuchAsPossible'
+        'recordMode': 'recordContinuously'
     }, config.GetChromeTraceConfigForDevTools())
 
     config.EnableUMAHistograms('Event.Latency.ScrollUpdate.Touch.Metric2')
     self.assertEquals({
         'histogramNames': ['Event.Latency.ScrollUpdate.Touch.Metric1',
                            'Event.Latency.ScrollUpdate.Touch.Metric2'],
-        'recordMode': 'recordAsMuchAsPossible'
+        'recordMode': 'recordContinuously'
     }, config.GetChromeTraceConfigForDevTools())
 
     config.EnableUMAHistograms('AnotherMetric', 'LastMetric')
@@ -129,13 +129,13 @@ class ChromeTraceConfigTests(unittest.TestCase):
         'histogramNames': ['Event.Latency.ScrollUpdate.Touch.Metric1',
                            'Event.Latency.ScrollUpdate.Touch.Metric2',
                            'AnotherMetric', 'LastMetric'],
-        'recordMode': 'recordAsMuchAsPossible'
+        'recordMode': 'recordContinuously'
     }, config.GetChromeTraceConfigForDevTools())
 
   def testTraceBufferSize(self):
     config = chrome_trace_config.ChromeTraceConfig()
     config.SetTraceBufferSizeInKb(42)
     self.assertEquals({
-        'recordMode': 'recordAsMuchAsPossible',
+        'recordMode': 'recordContinuously',
         'traceBufferSizeInKb': 42
     }, config.GetChromeTraceConfigForDevTools())
