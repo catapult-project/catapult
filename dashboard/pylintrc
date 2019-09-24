@@ -65,7 +65,7 @@ argument-rgx=^[a-z][a-z0-9_]*$
 variable-rgx=^[a-z][a-z0-9_]*$
 
 # Good variable names which should always be accepted, separated by a comma.
-good-names=main,_
+good-names=main,_,maxDiff
 
 # List of builtins function names that should not be used, separated by a comma.
 bad-functions=apply,input,reduce

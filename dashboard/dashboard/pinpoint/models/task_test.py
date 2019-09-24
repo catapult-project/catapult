@@ -35,7 +35,7 @@ class PopulateTests(test.TestCase):
 
   def setUp(self):
     super(PopulateTests, self).setUp()
-    self.maxDiff = None  # pylint: disable=invalid-name
+    self.maxDiff = None
 
   def testPopulateAndEvaluateAdderGraph(self):
     job = job_module.Job.New((), ())
@@ -241,7 +241,7 @@ class EvaluateTest(test.TestCase):
 
   def setUp(self):
     super(EvaluateTest, self).setUp()
-    self.maxDiff = None  # pylint: disable=invalid-name
+    self.maxDiff = None
     self.job = job_module.Job.New((), ())
     task_module.PopulateTaskGraph(
         self.job,

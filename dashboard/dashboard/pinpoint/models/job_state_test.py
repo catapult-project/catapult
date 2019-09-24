@@ -55,7 +55,7 @@ class ExploreTest(test.TestCase):
     ]
 
     # View the whole diff in case of failure.
-    self.maxDiff = None  # pylint: disable=invalid-name
+    self.maxDiff = None
     self.assertEqual(state._changes, expected)
     attempt_count_1 = len(state._attempts[change_test.Change(1)])
     attempt_count_2 = len(state._attempts[change_test.Change(3)])
