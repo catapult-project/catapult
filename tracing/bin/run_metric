@@ -13,6 +13,10 @@ sys.path.insert(1, os.path.join(os.path.dirname(__file__), '..'))
 from tracing_build import vulcanize_histograms_viewer
 from tracing.metrics import metric_runner
 from tracing.metrics import discover
+from tracing.value.diagnostics import generic_set
+from tracing.value.diagnostics import reserved_infos
+from tracing.value import histogram_set
+
 
 def Main(argv):
   all_metrics = discover.DiscoverMetrics(
@@ -24,7 +28,7 @@ def Main(argv):
                       help='A trace file, or a dir containing trace files')
   parser.add_argument('metrics', nargs='+',
                       help=('Function names of registered metrics '
-                            '(not filenames.) '
+                            '(not filenames). '
                             'Available metrics are: %s' %
                             ', '.join(all_metrics)),
                       choices=all_metrics, metavar='metricName')
@@ -32,10 +36,12 @@ def Main(argv):
                       help='Output file name (no extension)')
   parser.add_argument('--reset', action='store_true',
                       help=('Whether to ignore existing results in HTML file '
-                            '(if it exists'))
+                            '(if it exists)'))
+  parser.add_argument('--results-label', type=str,
+                      help=('A custom label for a column in HTML file'))
   parser.add_argument('--also-output-json', action='store_true',
                       help=('Also output json file containing values. Note that'
-                            'this only contains the results of current run'))
+                            ' this only contains the results of current run'))
 
   args = parser.parse_args(argv[1:])
   trace_file_or_dir = os.path.abspath(args.trace_file_or_dir)
@@ -52,6 +58,14 @@ def Main(argv):
       traces, args.metrics).iteritems():
     failures.extend(mre_result.failures)
     histograms.extend(mre_result.pairs.get('histograms', []))
+
+  if args.results_label:
+    hset = histogram_set.HistogramSet()
+    hset.ImportDicts(histograms)
+    hset.AddSharedDiagnosticToAllHistograms(
+        reserved_infos.LABELS.name,
+        generic_set.GenericSet([args.results_label]))
+    histograms = hset.AsDicts()
 
   if failures:
     print 'Running metric failed:'
