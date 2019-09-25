@@ -27,11 +27,9 @@ devil also provides command-line utilities:
 
 ## Constraints and Caveats
 
-devil is used with python 2.7. Its compatibility with python 3 has not been
-tested, and neither achieving nor maintaining said compatibility is currently
-a priority.
+devil supports python 2.7. Python 3 compatibility is currently a work in
+progress (see https://crbug.com/1007101).
 
 ## Contributing
 
-Please see the [contributor's guide](https://github.com/catapult-project/catapult/blob/master/CONTRIBUTING.md).
-
+Please see [our contributor's guide](/CONTRIBUTING.md)
