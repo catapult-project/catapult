@@ -184,8 +184,6 @@ class Job(ndb.Model):
     if not getattr(e, 'exception_details'):
       e.exception_details = e.exception_details_dict
 
-    e.benchmark_arguments = BenchmarkArguments.FromArgs(e.arguments)
-
   # TODO(simonhatch): After migrating all Pinpoint entities, this can be
   # removed.
   # crbug.com/971370
