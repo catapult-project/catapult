@@ -904,11 +904,13 @@ class DeviceUtils(object):
       self.WaitUntilFullyBooted(wifi=wifi)
 
   INSTALL_DEFAULT_TIMEOUT = 8 * _DEFAULT_TIMEOUT
+  MODULES_SRC_DIRECTORY_PATH = '/data/local/tmp/modules'
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
   def Install(self, apk, allow_downgrade=False, reinstall=False,
-              permissions=None, timeout=None, retries=None, modules=None):
+              permissions=None, timeout=None, retries=None, modules=None,
+              fake_modules=None):
     """Install an APK or app bundle.
 
     Noop if an identical APK is already installed. If installing a bundle, the
@@ -927,6 +929,10 @@ class DeviceUtils(object):
       retries: number of retries
       modules: An iterable containing specific bundle modules to install.
           Error if set and |apk| points to an APK instead of a bundle.
+      fake_modules: An iterable containing specific bundle modules that
+          should have their apks copied to |MODULES_SRC_DIRECTORY_PATH| rather
+          than installed. Thus the app can emulate SplitCompat while running.
+          This should not have any overlap with |modules|.
 
     Raises:
       CommandFailedError if the installation fails.
@@ -934,13 +940,60 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
     """
     apk = apk_helper.ToHelper(apk)
-    with apk.GetApkPaths(self, modules=modules) as apk_paths:
+    modules_set = set(modules or [])
+    fake_modules_set = set(fake_modules or [])
+    assert modules_set.isdisjoint(fake_modules_set), (
+        'These modules overlap: %s' % (modules_set & fake_modules_set))
+    all_modules = modules_set | fake_modules_set
+    with apk.GetApkPaths(self, modules=all_modules) as apk_paths:
+      fake_apk_paths = self._GetFakeInstallPaths(apk_paths, fake_modules)
+      apk_paths_to_install = [p for p in apk_paths if p not in fake_apk_paths]
+      self._FakeInstall(fake_apk_paths, fake_modules)
       self._InstallInternal(
           apk,
-          apk_paths,
+          apk_paths_to_install,
           allow_downgrade=allow_downgrade,
           reinstall=reinstall,
           permissions=permissions)
+
+  @staticmethod
+  def _GetFakeInstallPaths(apk_paths, fake_modules):
+    def IsFakeModulePath(path):
+      filename = os.path.basename(path)
+      return any(filename.startswith(f + '-') for f in fake_modules)
+
+    if not fake_modules:
+      return set()
+    return set(p for p in apk_paths if IsFakeModulePath(p))
+
+  def _FakeInstall(self, fake_apk_paths, fake_modules):
+    with tempfile_ext.NamedTemporaryDirectory() as modules_dir:
+      if not fake_modules:
+        # Push empty module dir to clear device dir and update the cache.
+        self.PushChangedFiles([(modules_dir, self.MODULES_SRC_DIRECTORY_PATH)],
+                              delete_device_stale=True)
+        return
+
+      still_need_master = set(fake_modules)
+      for path in fake_apk_paths:
+        filename = os.path.basename(path)
+        # Example names: base-en.apk, test_dummy-master.apk.
+        module_name, suffix = filename.split('-', 1)
+        if 'master' in suffix:
+          assert module_name in still_need_master, (
+              'Duplicate master apk file for %s' % module_name)
+          still_need_master.remove(module_name)
+          new_filename = '%s.apk' % module_name
+        else:
+          # |suffix| includes .apk extension.
+          new_filename = '%s.config.%s' % (module_name, suffix)
+        new_path = os.path.join(modules_dir, new_filename)
+        os.rename(path, new_path)
+
+      assert not still_need_master, (
+          'Missing master apk file for %s' % still_need_master)
+      self.PushChangedFiles([(modules_dir, self.MODULES_SRC_DIRECTORY_PATH)],
+                            delete_device_stale=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
@@ -1000,7 +1053,6 @@ class DeviceUtils(object):
     package_name = apk.GetPackageName()
     device_apk_paths = self._GetApplicationPathsInternal(package_name)
 
-    apks_to_install = None
     host_checksums = None
     if not device_apk_paths:
       apks_to_install = apk_paths
