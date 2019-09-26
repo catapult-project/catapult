@@ -7,6 +7,7 @@
 import contextlib
 import logging
 import os
+import posixpath
 import shutil
 import subprocess
 
@@ -206,6 +207,10 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     self._platform_backend.StopApplication(self._backend_settings.package)
     self._SetupProfile()
 
+    # Remove any old crash dumps
+    self._platform_backend.device.RemovePath(
+        self._platform_backend.GetDumpLocation(), recursive=True, force=True)
+
   def _TearDownEnvironment(self):
     self._RestoreCommandLineFlags()
 
@@ -261,6 +266,13 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     # Need to specify the user profile directory for
     # --ignore-certificate-errors-spki-list to work.
     startup_args.append('--user-data-dir=' + self.profile_directory)
+
+    # Needed so that non-browser-process crashes avoid automatic dump upload
+    # and subsequent deletion. The extra "Crashpad" is necessary because
+    # crashpad_stackwalker.py is hard-coded to look for a "Crashpad" directory
+    # in the dump directory that it is provided.
+    startup_args.append('--breakpad-dump-location=' + posixpath.join(
+        self._platform_backend.GetDumpLocation(), 'Crashpad'))
 
     return startup_args
 
