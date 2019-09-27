@@ -78,6 +78,7 @@ class ScrollActionTest(tab_test_case.TabTestCase):
 
     self.assertAlmostEqual(distance, actual, delta=maxError + urlBarError)
 
+  @decorators.Disabled('chromeos', 'linux')  # crbug.com/1006789
   def testScrollDistanceFastTouch(self):
     # Just pass the test on platforms that don't support touch (i.e. Mac)
     if not page_action.IsGestureSourceTypeSupported(self._tab, 'touch'):
