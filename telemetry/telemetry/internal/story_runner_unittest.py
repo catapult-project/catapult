@@ -7,7 +7,6 @@ import json
 import math
 import os
 import shutil
-import StringIO
 import sys
 import tempfile
 import unittest
@@ -25,7 +24,6 @@ from telemetry.internal.actions import page_action
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
-from telemetry.internal.util import exception_formatter as ex_formatter_module
 from telemetry.page import page as page_module
 from telemetry.page import legacy_page_test
 from telemetry import story as story_module
@@ -237,13 +235,6 @@ class FakeBenchmarkWithAStory(FakeBenchmark):
     return typ_expectations.StoryExpectations('fake_with_a_story')
 
 
-class FakeExceptionFormatterModule(object):
-  @staticmethod
-  def PrintFormattedException(
-      exception_class=None, exception=None, tb=None, msg=None):
-    pass
-
-
 def GetNumberOfSuccessfulPageRuns(results):
   return len([run for run in results.IterStoryRuns() if run.ok or run.skipped])
 
@@ -274,14 +265,8 @@ class StoryRunnerTest(unittest.TestCase):
     self.options = options_for_unittests.GetRunOptions(
         output_dir=tempfile.mkdtemp())
     self.results = results_options.CreateResults(self.options)
-    self.fake_stdout = StringIO.StringIO()
-    self.actual_stdout = sys.stdout
-    sys.stdout = self.fake_stdout
-    self._story_runner_logging_stub = None
 
   def tearDown(self):
-    sys.stdout = self.actual_stdout
-    self.RestoreExceptionFormatter()
     self.results.Finalize()
     shutil.rmtree(self.options.output_dir)
 
@@ -291,19 +276,6 @@ class StoryRunnerTest(unittest.TestCase):
         fake_browser=True, overrides=overrides)
     options.output_formats = ['chartjson']
     return options
-
-  def StubOutExceptionFormatting(self):
-    """Fake out exception formatter to avoid spamming the unittest stdout."""
-    story_runner.exception_formatter = FakeExceptionFormatterModule
-    self._story_runner_logging_stub = system_stub.Override(
-        story_runner, ['logging'])
-    self._story_runner_logging_stub.logging.stdout_stream = sys.stdout
-
-  def RestoreExceptionFormatter(self):
-    story_runner.exception_formatter = ex_formatter_module
-    if self._story_runner_logging_stub:
-      self._story_runner_logging_stub.Restore()
-      self._story_runner_logging_stub = None
 
   def testRunStorySet(self):
     number_stories = 3
@@ -437,7 +409,6 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEquals(EXPECTED_CALLS_IN_ORDER, calls_in_order)
 
   def testAppCrashExceptionCausesFailure(self):
-    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
     class SharedStoryThatCausesAppCrash(TestSharedPageState):
       def WillRunStory(self, story):
@@ -447,10 +418,9 @@ class StoryRunnerTest(unittest.TestCase):
     story_runner.RunStorySet(DummyTest(), story_set, self.options, self.results)
     self.assertTrue(self.results.had_failures)
     self.assertEquals(0, GetNumberOfSuccessfulPageRuns(self.results))
-    self.assertIn('App Foo crashes', self.fake_stdout.getvalue())
+    self.assertIn('App Foo crashes', sys.stderr.getvalue())
 
   def testExceptionRaisedInSharedStateTearDown(self):
-    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
     class SharedStoryThatCausesAppCrash(TestSharedPageState):
       def TearDownState(self):
@@ -463,7 +433,6 @@ class StoryRunnerTest(unittest.TestCase):
           DummyTest(), story_set, self.options, self.results)
 
   def testUnknownExceptionIsNotFatal(self):
-    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
 
     class UnknownException(Exception):
@@ -495,10 +464,9 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEqual(2, len(all_story_runs))
     self.assertTrue(all_story_runs[0].failed)
     self.assertTrue(all_story_runs[1].ok)
-    self.assertIn('FooBarzException', self.fake_stdout.getvalue())
+    self.assertIn('FooBarzException', sys.stderr.getvalue())
 
   def testRaiseBrowserGoneExceptionFromRunPage(self):
-    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
 
     class Test(legacy_page_test.LegacyPageTest):
@@ -525,7 +493,6 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEquals(1, GetNumberOfSuccessfulPageRuns(self.results))
 
   def testAppCrashThenRaiseInTearDown_Interrupted(self):
-    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
 
     unit_test_events = []  # track what was called when
@@ -704,7 +671,6 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEquals(1, GetNumberOfSkippedPageRuns(self.results))
 
   def testRunStoryPopulatesHistograms(self):
-    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
 
     class Test(legacy_page_test.LegacyPageTest):
@@ -941,8 +907,6 @@ class StoryRunnerTest(unittest.TestCase):
       @property
       def url(self):
         return 'data:,'
-
-    self.StubOutExceptionFormatting()
 
     story_set = story_module.StorySet()
     for i in range(num_failing_stories):
@@ -1441,14 +1405,13 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEqual(rc, -1)
 
   def testRunBenchmark_TooManyValues(self):
-    self.StubOutExceptionFormatting()
     story_set = story_module.StorySet()
     story_set.AddStory(DummyLocalStory(TestSharedPageState, name='story'))
     story_runner.RunStorySet(
         _Measurement(), story_set, self.options, self.results, max_num_values=0)
     self.assertTrue(self.results.had_failures)
     self.assertEquals(0, GetNumberOfSuccessfulPageRuns(self.results))
-    self.assertIn('Too many values: 1 > 0', self.fake_stdout.getvalue())
+    self.assertIn('Too many values: 1 > 0', sys.stderr.getvalue())
 
   def testRunBenchmarkReturnCodeSuccessfulRun(self):
 
