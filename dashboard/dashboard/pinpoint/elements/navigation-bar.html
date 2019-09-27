@@ -5,13 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<script>
-'use strict';
-window.AUTH_CLIENT_ID =
-  '62121018386-aqdfougp0ddn93knqj6g79vvn42ajmrg.apps.googleusercontent.com';
-</script>
-<script src="/chopsui/chops-signin.js"></script>
-
+<link rel="import" href="/components/google-signin/google-signin.html">
 <link rel="import" href="/components/iron-icons/iron-icons.html">
 <link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/components/paper-tooltip/paper-tooltip.html">
@@ -20,7 +14,6 @@ window.AUTH_CLIENT_ID =
   <template>
     <style>
       nav {
-        align-items: center;
         background-color: var(--paper-indigo-500);
         display: flex;
         font-weight: bold;
@@ -39,8 +32,9 @@ window.AUTH_CLIENT_ID =
         color: white;
       }
 
-      chops-signin {
-        margin-right: 8px;
+      google-signin {
+        margin: 0;
+        padding: 8px;
       }
     </style>
 
@@ -57,7 +51,12 @@ window.AUTH_CLIENT_ID =
         <paper-icon-button icon="feedback"></paper-icon-button>
         <paper-tooltip>File a bug</paper-tooltip>
       </a>
-      <chops-signin></chops-signin>
+      <google-signin
+          client-id="62121018386-aqdfougp0ddn93knqj6g79vvn42ajmrg.apps.googleusercontent.com"
+          height="short" theme="dark"
+          scopes="email"
+          on-google-signin-success="handleSignIn"
+          on-google-signed-out="handleSignOut"></google-signin>
     </nav>
   </template>
 
@@ -74,18 +73,18 @@ window.AUTH_CLIENT_ID =
         }
       },
 
-      ready() {
-        this.onUserUpdate_ = this.onUserUpdate_.bind(this);
-        window.addEventListener('user-update', this.onUserUpdate_);
+      handleSignIn() {
+        const user = gapi.auth2.getAuthInstance().currentUser.get();
+        const tokenType = user.getAuthResponse().token_type;
+        const accessToken = user.getAuthResponse().access_token;
+
+        this.authHeaders = {
+          Authorization: tokenType + ' ' + accessToken
+        };
       },
 
-      async onUserUpdate_() {
-        this.authHeaders = await window.getAuthorizationHeaders();
-        if (!this.authHeaders.Authorization) return;
-        const auth = await window.getAuthInstanceAsync();
-        const authResponse = auth.currentUser.get().getAuthResponse();
-        const delayMs = authResponse.expires_at + 1 - new Date().getTime();
-        setTimeout(this.onUserUpdate_, delayMs);
+      handleSignOut() {
+        this.authHeaders = null;
       },
     });
   </script>
