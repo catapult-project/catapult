@@ -243,7 +243,13 @@ class _Measurement(legacy_page_test.LegacyPageTest):
     results.AddMeasurement('metric', 'unit', self.i)
 
 
-class StoryRunnerTest(unittest.TestCase):
+class RunStorySetTest(unittest.TestCase):
+  """Tests that run dummy story sets with no real browser involved.
+
+  All these tests:
+  - Use story sets containing DummyLocalStory objects.
+  - Call story_runner.RunStorySet as entry point.
+  """
   def setUp(self):
     self.options = options_for_unittests.GetRunOptions(
         output_dir=tempfile.mkdtemp())
@@ -252,13 +258,6 @@ class StoryRunnerTest(unittest.TestCase):
   def tearDown(self):
     self.results.Finalize()
     shutil.rmtree(self.options.output_dir)
-
-  def GetFakeBrowserOptions(self, overrides=None):
-    options = options_for_unittests.GetRunOptions(
-        output_dir=self.options.output_dir,
-        fake_browser=True, overrides=overrides)
-    options.output_formats = ['chartjson']
-    return options
 
   def testRunStorySet(self):
     number_stories = 3
@@ -271,28 +270,12 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEquals(number_stories, self.results.num_successful)
     self.assertEquals(story_set.stories[0].wpr_mode, wpr_modes.WPR_REPLAY)
 
-  def testRunStoryWithMissingArchiveFile(self):
-    story_set = story_module.StorySet(archive_data_file='data/hi.json')
-    story_set.AddStory(page_module.Page(
-        'http://www.testurl.com', story_set, story_set.base_dir,
-        name='http://www.testurl.com'))
-    test = DummyTest()
-    with self.assertRaises(story_runner.ArchiveError):
-      story_runner.RunStorySet(test, story_set, self.options, self.results)
-
   def testRunStoryWithLongName(self):
     story_set = story_module.StorySet()
     story_set.AddStory(DummyLocalStory(TestSharedState, name='l' * 182))
     test = DummyTest()
     with self.assertRaises(ValueError):
       story_runner.RunStorySet(test, story_set, self.options, self.results)
-
-  def testRunStoryWithLongURLPage(self):
-    story_set = story_module.StorySet()
-    story_set.AddStory(page_module.Page('file://long' + 'g' * 180,
-                                        story_set, name='test'))
-    test = DummyTest()
-    story_runner.RunStorySet(test, story_set, self.options, self.results)
 
   def testSuccessfulTimelineBasedMeasurementTest(self):
     """Check that PageTest is not required for story_runner.RunStorySet.
@@ -768,84 +751,6 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertIn(reserved_infos.OS_NAMES.name, first_histogram_diags)
     self.assertIn(reserved_infos.OS_VERSIONS.name, first_histogram_diags)
 
-  @decorators.Disabled('chromeos')  # crbug.com/483212
-  def testUpdateAndCheckArchives(self):
-    usr_stub = system_stub.Override(story_runner, ['cloud_storage'])
-    wpr_stub = system_stub.Override(archive_info, ['cloud_storage'])
-    archive_data_dir = os.path.join(
-        util.GetTelemetryDir(),
-        'telemetry', 'internal', 'testing', 'archive_files')
-    try:
-      story_set = story_module.StorySet()
-      story_set.AddStory(page_module.Page(
-          'http://www.testurl.com', story_set, story_set.base_dir,
-          name='http://www.testurl.com'))
-      # Page set missing archive_data_file.
-      self.assertRaises(
-          story_runner.ArchiveError,
-          story_runner._UpdateAndCheckArchives,
-          story_set.archive_data_file,
-          story_set.wpr_archive_info,
-          story_set.stories)
-
-      story_set = story_module.StorySet(
-          archive_data_file='missing_archive_data_file.json')
-      story_set.AddStory(page_module.Page(
-          'http://www.testurl.com', story_set, story_set.base_dir,
-          name='http://www.testurl.com'))
-      # Page set missing json file specified in archive_data_file.
-      self.assertRaises(
-          story_runner.ArchiveError,
-          story_runner._UpdateAndCheckArchives,
-          story_set.archive_data_file,
-          story_set.wpr_archive_info,
-          story_set.stories)
-
-      story_set = story_module.StorySet(
-          archive_data_file=os.path.join(archive_data_dir, 'test.json'),
-          cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
-      story_set.AddStory(page_module.Page(
-          'http://www.testurl.com', story_set, story_set.base_dir,
-          name='http://www.testurl.com'))
-      # Page set with valid archive_data_file.
-      self.assertTrue(
-          story_runner._UpdateAndCheckArchives(
-              story_set.archive_data_file, story_set.wpr_archive_info,
-              story_set.stories))
-      story_set.AddStory(page_module.Page(
-          'http://www.google.com', story_set, story_set.base_dir,
-          name='http://www.google.com'))
-      # Page set with an archive_data_file which exists but is missing a page.
-      self.assertRaises(
-          story_runner.ArchiveError,
-          story_runner._UpdateAndCheckArchives,
-          story_set.archive_data_file,
-          story_set.wpr_archive_info,
-          story_set.stories)
-
-      story_set = story_module.StorySet(
-          archive_data_file=os.path.join(
-              archive_data_dir, 'test_missing_wpr_file.json'),
-          cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
-      story_set.AddStory(page_module.Page(
-          'http://www.testurl.com', story_set, story_set.base_dir,
-          name='http://www.testurl.com'))
-      story_set.AddStory(page_module.Page(
-          'http://www.google.com', story_set, story_set.base_dir,
-          name='http://www.google.com'))
-      # Page set with an archive_data_file which exists and contains all pages
-      # but fails to find a wpr file.
-      self.assertRaises(
-          story_runner.ArchiveError,
-          story_runner._UpdateAndCheckArchives,
-          story_set.archive_data_file,
-          story_set.wpr_archive_info,
-          story_set.stories)
-    finally:
-      usr_stub.Restore()
-      wpr_stub.Restore()
-
-
   def _testMaxFailuresOptionIsRespectedAndOverridable(
       self, num_failing_stories, runner_max_failures, options_max_failures,
       expected_num_failures, expected_num_skips):
@@ -930,6 +835,136 @@ class StoryRunnerTest(unittest.TestCase):
         options_max_failures=1, expected_num_failures=2,
         expected_num_skips=3)
 
+  def testRunBenchmark_TooManyValues(self):
+    story_set = story_module.StorySet()
+    story_set.AddStory(DummyLocalStory(TestSharedState, name='story'))
+    story_runner.RunStorySet(
+        _Measurement(), story_set, self.options, self.results, max_num_values=0)
+    self.assertTrue(self.results.had_failures)
+    self.assertEquals(0, self.results.num_successful)
+    self.assertIn('Too many values: 1 > 0', sys.stderr.getvalue())
+
+
+class RunStorySetWithLegacyPagesTest(unittest.TestCase):
+  """These tests run story sets that contain actual page_module.Page objects.
+
+  Since pages use the shared_page_state_class, an actual browser is used for
+  these tests.
+
+  All these tests:
+  - Use story sets with page_module.Page objects.
+  - Call story_runner.RunStorySet as entry point.
+  """
+  def setUp(self):
+    self.options = options_for_unittests.GetRunOptions(
+        output_dir=tempfile.mkdtemp())
+    self.results = results_options.CreateResults(self.options)
+
+  def tearDown(self):
+    self.results.Finalize()
+    shutil.rmtree(self.options.output_dir)
+
+  def testRunStoryWithMissingArchiveFile(self):
+    story_set = story_module.StorySet(archive_data_file='data/hi.json')
+    story_set.AddStory(page_module.Page(
+        'http://www.testurl.com', story_set, story_set.base_dir,
+        name='http://www.testurl.com'))
+    test = DummyTest()
+    with self.assertRaises(story_runner.ArchiveError):
+      story_runner.RunStorySet(test, story_set, self.options, self.results)
+
+  def testRunStoryWithLongURLPage(self):
+    story_set = story_module.StorySet()
+    story_set.AddStory(page_module.Page('file://long' + 'g' * 180,
+                                        story_set, name='test'))
+    test = DummyTest()
+    story_runner.RunStorySet(test, story_set, self.options, self.results)
+
+  @decorators.Disabled('chromeos')  # crbug.com/483212
+  def testUpdateAndCheckArchives(self):
+    usr_stub = system_stub.Override(story_runner, ['cloud_storage'])
+    wpr_stub = system_stub.Override(archive_info, ['cloud_storage'])
+    archive_data_dir = os.path.join(
+        util.GetTelemetryDir(),
+        'telemetry', 'internal', 'testing', 'archive_files')
+    try:
+      story_set = story_module.StorySet()
+      story_set.AddStory(page_module.Page(
+          'http://www.testurl.com', story_set, story_set.base_dir,
+          name='http://www.testurl.com'))
+      # Page set missing archive_data_file.
+      self.assertRaises(
+          story_runner.ArchiveError,
+          story_runner._UpdateAndCheckArchives,
+          story_set.archive_data_file,
+          story_set.wpr_archive_info,
+          story_set.stories)
+
+      story_set = story_module.StorySet(
+          archive_data_file='missing_archive_data_file.json')
+      story_set.AddStory(page_module.Page(
+          'http://www.testurl.com', story_set, story_set.base_dir,
+          name='http://www.testurl.com'))
+      # Page set missing json file specified in archive_data_file.
+      self.assertRaises(
+          story_runner.ArchiveError,
+          story_runner._UpdateAndCheckArchives,
+          story_set.archive_data_file,
+          story_set.wpr_archive_info,
+          story_set.stories)
+
+      story_set = story_module.StorySet(
+          archive_data_file=os.path.join(archive_data_dir, 'test.json'),
+          cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
+      story_set.AddStory(page_module.Page(
+          'http://www.testurl.com', story_set, story_set.base_dir,
+          name='http://www.testurl.com'))
+      # Page set with valid archive_data_file.
+      self.assertTrue(
+          story_runner._UpdateAndCheckArchives(
+              story_set.archive_data_file, story_set.wpr_archive_info,
+              story_set.stories))
+      story_set.AddStory(page_module.Page(
+          'http://www.google.com', story_set, story_set.base_dir,
+          name='http://www.google.com'))
+      # Page set with an archive_data_file which exists but is missing a page.
+      self.assertRaises(
+          story_runner.ArchiveError,
+          story_runner._UpdateAndCheckArchives,
+          story_set.archive_data_file,
+          story_set.wpr_archive_info,
+          story_set.stories)
+
+      story_set = story_module.StorySet(
+          archive_data_file=os.path.join(
+              archive_data_dir, 'test_missing_wpr_file.json'),
+          cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
+      story_set.AddStory(page_module.Page(
+          'http://www.testurl.com', story_set, story_set.base_dir,
+          name='http://www.testurl.com'))
+      story_set.AddStory(page_module.Page(
+          'http://www.google.com', story_set, story_set.base_dir,
+          name='http://www.google.com'))
+      # Page set with an archive_data_file which exists and contains all pages
+      # but fails to find a wpr file.
+      self.assertRaises(
+          story_runner.ArchiveError,
+          story_runner._UpdateAndCheckArchives,
+          story_set.archive_data_file,
+          story_set.wpr_archive_info,
+          story_set.stories)
+    finally:
+      usr_stub.Restore()
+      wpr_stub.Restore()
+
+
+class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
+  """Tests for the private _RunStoryAndProcessErrorIfNeeded.
+
+  All these tests:
+  - Use mocks for all objects, including stories. No real browser is involved.
+  - Call story_runner._RunStoryAndProcessErrorIfNeeded as entry point.
+  """
   def _CreateErrorProcessingMock(self, method_exceptions=None,
                                  legacy_test=False):
     if legacy_test:
@@ -1200,6 +1235,31 @@ class StoryRunnerTest(unittest.TestCase):
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
     ])
 
+
+class RunBenchmarkTest(unittest.TestCase):
+  """Tests that run fake benchmarks, no real browser is involved.
+
+  All these tests:
+  - Use either FakeBenchmark or FakeBenchmarkWithAStoryself.
+  - Call GetFakeBrowserOptions to get options for a fake browser.
+  - Call story_runner.RunBenchmark as entry point.
+  """
+  def setUp(self):
+    self.options = options_for_unittests.GetRunOptions(
+        output_dir=tempfile.mkdtemp())
+    self.results = results_options.CreateResults(self.options)
+
+  def tearDown(self):
+    self.results.Finalize()
+    shutil.rmtree(self.options.output_dir)
+
+  def GetFakeBrowserOptions(self, overrides=None):
+    options = options_for_unittests.GetRunOptions(
+        output_dir=self.options.output_dir,
+        fake_browser=True, overrides=overrides)
+    options.output_formats = ['chartjson']
+    return options
+
   def testRunBenchmarkDisabledBenchmarkViaCanRunonPlatform(self):
     fake_benchmark = FakeBenchmark()
     fake_benchmark.SUPPORTED_PLATFORMS = []
@@ -1385,15 +1445,6 @@ class StoryRunnerTest(unittest.TestCase):
     # Test should return -1 since the test was skipped.
     self.assertEqual(rc, -1)
 
-  def testRunBenchmark_TooManyValues(self):
-    story_set = story_module.StorySet()
-    story_set.AddStory(DummyLocalStory(TestSharedState, name='story'))
-    story_runner.RunStorySet(
-        _Measurement(), story_set, self.options, self.results, max_num_values=0)
-    self.assertTrue(self.results.had_failures)
-    self.assertEquals(0, self.results.num_successful)
-    self.assertIn('Too many values: 1 > 0', sys.stderr.getvalue())
-
   def testRunBenchmarkReturnCodeSuccessfulRun(self):
 
     class DoNothingSharedState(TestSharedState):
@@ -1513,7 +1564,13 @@ class BenchmarkWithAbridgeableStorySet(benchmark.Benchmark):
 
 
 class AbridgeableStorySetTest(unittest.TestCase):
+  """Tests that run a fake benchmark with an abridgeable story set.
 
+  All these tests:
+  - Use an options object with a fake browser.
+  - Use BenchmarkWithAbridgeableStorySet.
+  - Call story_runner.RunBenchmark as entry point.
+  """
   def setUp(self):
     self.benchmark = BenchmarkWithAbridgeableStorySet()
     self.options = options_for_unittests.GetRunOptions(
@@ -1540,7 +1597,13 @@ class AbridgeableStorySetTest(unittest.TestCase):
 
 
 class BenchmarkJsonResultsTest(unittest.TestCase):
+  """Tests that validate json-test-results output.
 
+  All these tests:
+  - Use custom benchmarks and story sets with actual page_module.Page objects.
+  - Use an options object with a fake browser.
+  - Call story_runner.RunBenchmark as entry point.
+  """
   def setUp(self):
     self.options = options_for_unittests.GetRunOptions(
         output_dir=tempfile.mkdtemp(), fake_browser=True)
@@ -1713,7 +1776,10 @@ class BenchmarkJsonResultsTest(unittest.TestCase):
 
 
 class BenchmarkArtifactPathsTest(unittest.TestCase):
+  """Test to validate the use of symlinks in output directory.
 
+  TODO(crbug.com/1008852): Should be merged into BenchmarkJsonResultsTest.
+  """
   def setUp(self):
     self._temp_dir = tempfile.mkdtemp()
 
