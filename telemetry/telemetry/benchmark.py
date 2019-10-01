@@ -137,8 +137,11 @@ class Benchmark(command_line.Command):
       A list of [title, url] pairs. This is the form that allows Dashboard
       to display links properly.
     """
-    return [['Benchmark documentation link',
-             decorators.GetDocumentationLink(self)]]
+    links = []
+    url = decorators.GetDocumentationLink(self)
+    if url is not None:
+      links.append(['Benchmark documentation link', url])
+    return links
 
   def CreateCoreTimelineBasedMeasurementOptions(self):
     """Return the base TimelineBasedMeasurementOptions for this Benchmark.
