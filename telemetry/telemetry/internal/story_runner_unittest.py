@@ -442,7 +442,6 @@ class RunStorySetTest(unittest.TestCase):
     story_set.AddStory(green_story)
 
     self.options.pageset_repeat = 2
-    self.options.output_formats = []
     story_runner.RunStorySet(
         _Measurement(), story_set, self.options, self.results)
     summary = summary_module.Summary(self.results)
@@ -646,7 +645,6 @@ class RunStorySetTest(unittest.TestCase):
     for i in range(num_failing_stories):
       story_set.AddStory(FailingStory(name='failing%d' % i))
 
-    self.options.output_formats = ['none']
     if options_max_failures:
       self.options.max_failures = options_max_failures
 
@@ -1126,23 +1124,38 @@ class DummyStory(story_module.Story):
     return self._serving_dir
 
 
+class DummyStorySet(story_module.StorySet):
+  def __init__(self, cloud_bucket=None, abridging_tag=None):
+    """A customizable dummy story set.
+
+    Args:
+      cloud_bucket: Optional cloud storage bucket where (in a real story set)
+        data for WPR recordings is stored. This is used in some tests, but
+        interactions with cloud storage are mocked out.
+      abridging_tag: Optional story tag used to define a subset of stories
+        to be run in abridged mode.
+    """
+    super(DummyStorySet, self).__init__(cloud_storage_bucket=cloud_bucket)
+    self._abridging_tag = abridging_tag
+
+  def GetAbridgedStorySetTagFilter(self):
+    return self._abridging_tag
+
+
 class FakeBenchmark(benchmark.Benchmark):
   test = DummyStoryTest
 
-  def __init__(self, stories=None, cloud_bucket=None):
+  def __init__(self, stories=None, **kwargs):
     """A customizable fake_benchmark.
 
     Args:
       stories: Optional sequence of either story names or objects. Instances
         of DummyStory are useful here. If omitted the benchmark will contain
         a single DummyStory.
-      cloud_bucket: Optional cloud storage bucket where (in a real benchmark)
-        data for WPR recordings is stored. This is passed to the StorySet
-        constructor and used in some tests; but interactions with cloud storage
-        are mocked out.
+      other kwargs are passed to the DummyStorySet constructor.
     """
     super(FakeBenchmark, self).__init__()
-    self._cloud_bucket = cloud_bucket
+    self._story_set_kwargs = kwargs
     self._stories = ['story'] if stories is None else list(stories)
 
   @classmethod
@@ -1150,7 +1163,7 @@ class FakeBenchmark(benchmark.Benchmark):
     return 'fake_benchmark'
 
   def CreateStorySet(self, _):
-    story_set = story_module.StorySet(cloud_storage_bucket=self._cloud_bucket)
+    story_set = DummyStorySet(**self._story_set_kwargs)
     for story in self._stories:
       if isinstance(story, basestring):
         story = DummyStory(story)
@@ -1307,287 +1320,121 @@ class RunBenchmarkTest(unittest.TestCase):
     self.assertEqual(get_files.call_count, 1)
     get_files.assert_called_once_with('/files/foo', cloud_storage.PUBLIC_BUCKET)
 
-
-class AbridgeableStorySet(story_module.StorySet):
-  def GetAbridgedStorySetTagFilter(self):
-    return 'foo'
-
-
-class BenchmarkWithAbridgeableStorySet(benchmark.Benchmark):
-  test = DummyTest
-  def CreateStorySet(self, options):
-    story_set = AbridgeableStorySet()
-    story_set.AddStory(page_module.Page(
-        'file://foo/foo', name='foo', tags=['foo'],
-        shared_page_state_class=TestSharedState))
-    story_set.AddStory(page_module.Page(
-        'file://bar/bar', name='bar', tags=['bar'],
-        shared_page_state_class=TestSharedState))
-    return story_set
-
-
-class AbridgeableStorySetTest(unittest.TestCase):
-  """Tests that run a fake benchmark with an abridgeable story set.
-
-  All these tests:
-  - Use an options object with a fake browser.
-  - Use BenchmarkWithAbridgeableStorySet.
-  - Call story_runner.RunBenchmark as entry point.
-  """
-  def setUp(self):
-    self.benchmark = BenchmarkWithAbridgeableStorySet()
-    self.options = options_for_unittests.GetRunOptions(
-        output_dir=tempfile.mkdtemp(), fake_browser=True)
-    self.options.output_formats = ['none']
-
-  def tearDown(self):
-    shutil.rmtree(self.options.output_dir)
-
   def testAbridged(self):
-    patch_method = (
-        'telemetry.internal.story_runner._RunStoryAndProcessErrorIfNeeded')
-    with mock.patch(patch_method) as run_story_patch:
-      story_runner.RunBenchmark(self.benchmark, self.options)
-      self.assertEqual(run_story_patch.call_count, 1)
+    fake_benchmark = FakeBenchmark(stories=[
+        DummyStory('story1', tags=['important']),
+        DummyStory('story2', tags=['other']),
+    ], abridging_tag='important')
+    options = self.GetFakeBrowserOptions()
+    story_runner.RunBenchmark(fake_benchmark, options)
+    results = self.ReadIntermediateResults()
+    self.assertEqual(len(results['testResults']), 1)
 
   def testFullRun(self):
-    self.options.run_full_story_set = True
-    patch_method = (
-        'telemetry.internal.story_runner._RunStoryAndProcessErrorIfNeeded')
-    with mock.patch(patch_method) as run_story_patch:
-      story_runner.RunBenchmark(self.benchmark, self.options)
-      self.assertEqual(run_story_patch.call_count, 2)
-
-
-class BenchmarkJsonResultsTest(unittest.TestCase):
-  """Tests that validate json-test-results output.
-
-  All these tests:
-  - Use custom benchmarks and story sets with actual page_module.Page objects.
-  - Use an options object with a fake browser.
-  - Call story_runner.RunBenchmark as entry point.
-  """
-  def setUp(self):
-    self.options = options_for_unittests.GetRunOptions(
-        output_dir=tempfile.mkdtemp(), fake_browser=True)
-    self.options.output_formats = ['json-test-results']
-
-  def tearDown(self):
-    shutil.rmtree(self.options.output_dir)
-
-  def GetFakeBrowserOptions(self, overrides=None):
-    return options_for_unittests.GetRunOptions(
-        output_dir=self.options.output_dir,
-        fake_browser=True, overrides=overrides)
+    fake_benchmark = FakeBenchmark(stories=[
+        DummyStory('story1', tags=['important']),
+        DummyStory('story2', tags=['other']),
+    ], abridging_tag='important')
+    options = self.GetFakeBrowserOptions()
+    options.run_full_story_set = True
+    story_runner.RunBenchmark(fake_benchmark, options)
+    results = self.ReadIntermediateResults()
+    self.assertEqual(len(results['testResults']), 2)
 
   def testArtifactLogsContainHandleableException(self):
+    def failed_run():
+      logging.warning('This will fail gracefully')
+      raise exceptions.TimeoutException('karma!')
 
-    class StoryFailureSharedState(TestSharedState):
-      def RunStory(self, results):
-        logging.warning('This will fail gracefully')
-        raise exceptions.TimeoutException('karma!')
+    fake_benchmark = FakeBenchmark(stories=[
+        DummyStory('story1', run_side_effect=failed_run),
+        DummyStory('story2')
+    ])
 
-    class TestBenchmark(benchmark.Benchmark):
-      test = DummyTest
+    options = self.GetFakeBrowserOptions()
+    return_code = story_runner.RunBenchmark(fake_benchmark, options)
+    self.assertEqual(return_code, 1)
+    results = self.ReadIntermediateResults()['testResults']
+    self.assertEqual(len(results), 2)
 
-      @classmethod
-      def Name(cls):
-        return 'TestBenchmark'
+    # First story failed.
+    self.assertEqual(results[0]['testPath'], 'fake_benchmark/story1')
+    self.assertEqual(results[0]['status'], 'FAIL')
+    self.assertIn('logs.txt', results[0]['artifacts'])
 
-      def CreateStorySet(self, options):
-        story_set = story_module.StorySet()
-        story_set.AddStory(page_module.Page(
-            'http://foo', name='foo',
-            shared_page_state_class=StoryFailureSharedState))
-        story_set.AddStory(page_module.Page(
-            'http://bar', name='bar',
-            shared_page_state_class=StoryFailureSharedState))
-        return story_set
+    with open(results[0]['artifacts']['logs.txt']['filePath']) as f:
+      test_log = f.read()
 
-    story_failure_benchmark = TestBenchmark()
-    return_code = story_runner.RunBenchmark(
-        story_failure_benchmark, self.options)
-    self.assertEquals(1, return_code)
-    json_data = {}
-    with open(os.path.join(self.options.output_dir, 'test-results.json')) as f:
-      json_data = json.load(f)
-    foo_artifacts = json_data['tests']['TestBenchmark']['foo']['artifacts']
-    foo_artifact_log_path = os.path.join(
-        self.options.output_dir, foo_artifacts['logs.txt'][0])
-    with open(foo_artifact_log_path) as f:
-      foo_log = f.read()
+    # Ensure that the log contains warning messages and python stack.
+    self.assertIn('Handleable error', test_log)
+    self.assertIn('This will fail gracefully', test_log)
+    self.assertIn("raise exceptions.TimeoutException('karma!')", test_log)
 
-    self.assertIn('Handleable error', foo_log)
-
-    # Ensure that foo_log contains the warning log message.
-    self.assertIn('This will fail gracefully', foo_log)
-
-    # Also the python crash stack.
-    self.assertIn("raise exceptions.TimeoutException('karma!')", foo_log)
+    # Second story ran fine.
+    self.assertEqual(results[1]['testPath'], 'fake_benchmark/story2')
+    self.assertEqual(results[1]['status'], 'PASS')
 
   def testArtifactLogsContainUnhandleableException(self):
-    class UnhandledFailureSharedState(TestSharedState):
-      def RunStory(self, results):
-        logging.warning('This will fail badly')
-        raise MemoryError('this is a fatal exception')
+    def failed_run():
+      logging.warning('This will fail badly')
+      raise MemoryError('this is a fatal exception')
 
-    class TestBenchmark(benchmark.Benchmark):
-      test = DummyTest
+    fake_benchmark = FakeBenchmark(stories=[
+        DummyStory('story1', run_side_effect=failed_run),
+        DummyStory('story2')
+    ])
 
-      @classmethod
-      def Name(cls):
-        return 'TestBenchmark'
+    options = self.GetFakeBrowserOptions()
+    return_code = story_runner.RunBenchmark(fake_benchmark, options)
+    self.assertEqual(return_code, 2)
+    results = self.ReadIntermediateResults()['testResults']
+    self.assertEqual(len(results), 2)
 
-      def CreateStorySet(self, options):
-        story_set = story_module.StorySet()
-        story_set.AddStory(page_module.Page(
-            'http://foo', name='foo',
-            shared_page_state_class=UnhandledFailureSharedState))
-        story_set.AddStory(page_module.Page(
-            'http://bar', name='bar',
-            shared_page_state_class=UnhandledFailureSharedState))
-        return story_set
+    # First story failed.
+    self.assertEqual(results[0]['testPath'], 'fake_benchmark/story1')
+    self.assertEqual(results[0]['status'], 'FAIL')
+    self.assertIn('logs.txt', results[0]['artifacts'])
 
-    unhandled_failure_benchmark = TestBenchmark()
-    return_code = story_runner.RunBenchmark(
-        unhandled_failure_benchmark, self.options)
-    self.assertEquals(2, return_code)
+    with open(results[0]['artifacts']['logs.txt']['filePath']) as f:
+      test_log = f.read()
 
-    json_data = {}
-    with open(os.path.join(self.options.output_dir, 'test-results.json')) as f:
-      json_data = json.load(f)
+    # Ensure that the log contains warning messages and python stack.
+    self.assertIn('Unhandleable error', test_log)
+    self.assertIn('This will fail badly', test_log)
+    self.assertIn("raise MemoryError('this is a fatal exception')", test_log)
 
-    foo_artifacts = json_data['tests']['TestBenchmark']['foo']['artifacts']
-    foo_artifact_log_path = os.path.join(
-        self.options.output_dir, foo_artifacts['logs.txt'][0])
-    with open(foo_artifact_log_path) as f:
-      foo_log = f.read()
-
-    self.assertIn('Unhandleable error', foo_log)
-
-    # Ensure that foo_log contains the warning log message.
-    self.assertIn('This will fail badly', foo_log)
-
-    # Also the python crash stack.
-    self.assertIn('MemoryError: this is a fatal exception', foo_log)
-    self.assertIn("raise MemoryError('this is a fatal exception')",
-                  foo_log)
-
-    # Assert that the first test got marked as a failure.
-    foo_result = json_data['tests']['TestBenchmark']['foo']
-    self.assertEquals(foo_result['expected'], 'PASS')
-    self.assertEquals(foo_result['actual'], 'FAIL')
-
-    # Assert that the second story got written as a SKIP as it failed
-    # to run because of the exception.
-    bar_result = json_data['tests']['TestBenchmark']['bar']
-    self.assertEquals(bar_result['expected'], 'PASS')
-    self.assertEquals(bar_result['actual'], 'SKIP')
+    # Second story was skipped.
+    self.assertEqual(results[1]['testPath'], 'fake_benchmark/story2')
+    self.assertEqual(results[1]['status'], 'SKIP')
 
   def testUnexpectedSkipsWithFiltering(self):
-    class UnhandledFailureSharedState(TestSharedState):
-      def RunStory(self, results):
-        if results.current_story.name in stories_to_crash:
-          raise MemoryError('this is an unexpected exception')
+    # We prepare side effects for 50 stories, the first 30 run fine, the
+    # remaining 20 fail with a fatal error.
+    fatal_error = MemoryError('this is an unexpected exception')
+    side_effects = [None] * 30 + [fatal_error] * 20
 
-    class TestBenchmark(benchmark.Benchmark):
-      test = DummyTest
+    fake_benchmark = FakeBenchmark(stories=(
+        DummyStory('story_%i' % i, run_side_effect=effect)
+        for i, effect in enumerate(side_effects)))
 
-      @classmethod
-      def Name(cls):
-        return 'TestBenchmark'
-
-      def CreateStorySet(self, options):
-        story_set = story_module.StorySet()
-        for i in range(50):
-          story_set.AddStory(page_module.Page(
-              'http://foo_%s' % i, name='story_%s' % i,
-              shared_page_state_class=UnhandledFailureSharedState))
-        return story_set
-
-    # Set up the test so that it throws unexpected crashes from any story
-    # between story 30 to story 50.
-    # Also set the filtering to only run from story 10 --> story 40
-    stories_to_crash = set('story_%s' % i for i in range(30, 50))
-
+    # Set the filtering to only run from story_10 --> story_40
     options = self.GetFakeBrowserOptions({
         'story_shard_begin_index': 10,
         'story_shard_end_index': 41})
-    options.output_formats = ['json-test-results']
-
-    unhandled_failure_benchmark = TestBenchmark()
-    return_code = story_runner.RunBenchmark(
-        unhandled_failure_benchmark, self.options)
+    return_code = story_runner.RunBenchmark(fake_benchmark, options)
     self.assertEquals(2, return_code)
 
     # The results should contain entries of story 10 --> story 40. Of those
     # entries, story 31's actual result is 'FAIL' and
     # stories from 31 to 40 will shows 'SKIP'.
-    json_data = {}
-    with open(os.path.join(options.output_dir, 'test-results.json')) as f:
-      json_data = json.load(f)
-    stories = json_data['tests']['TestBenchmark']
-    self.assertEquals(len(stories.keys()), 31)
+    results = self.ReadIntermediateResults()['testResults']
+    self.assertEqual(len(results), 31)
 
-    for i in range(10, 30):
-      self.assertEquals(stories['story_%s' % i]['actual'], 'PASS')
+    expected = []
+    expected.extend(('story_%i' % i, 'PASS') for i in xrange(10, 30))
+    expected.append(('story_30', 'FAIL'))
+    expected.extend(('story_%i' % i, 'SKIP') for i in xrange(31, 41))
 
-    self.assertEquals(stories['story_30']['actual'], 'FAIL')
-
-    for i in range(31, 41):
-      self.assertEquals(stories['story_%s' % i]['actual'], 'SKIP')
-
-
-class BenchmarkArtifactPathsTest(unittest.TestCase):
-  """Test to validate the use of symlinks in output directory.
-
-  TODO(crbug.com/1008852): Should be merged into BenchmarkJsonResultsTest.
-  """
-  def setUp(self):
-    self._temp_dir = tempfile.mkdtemp()
-
-    self._real_output_dir = os.path.join(self._temp_dir, 'real', 'output')
-    os.makedirs(self._real_output_dir)
-
-    self._symlinked_output_dir = os.path.join(self._temp_dir, 'output')
-    os.symlink(self._real_output_dir, self._symlinked_output_dir)
-
-    self._options = options_for_unittests.GetRunOptions(
-        output_dir=self._symlinked_output_dir)
-    self._options.suppress_gtest_report = True
-    self._options.output_formats = ['json-test-results']
-    self._options.output_dir = self._symlinked_output_dir
-
-  def tearDown(self):
-    shutil.rmtree(self._temp_dir)
-
-  @decorators.Enabled('linux', 'mac')
-  def testArtifactLogsHaveProperPathWithSymlinkedTmp(self):
-    class TestBenchmark(benchmark.Benchmark):
-      test = DummyTest
-
-      @classmethod
-      def Name(cls):
-        return 'TestBenchmark'
-
-      def CreateStorySet(self, options):
-        story_set = story_module.StorySet()
-        story_set.AddStory(page_module.Page(
-            'http://foo', name='foo', shared_page_state_class=TestSharedState))
-        return story_set
-
-    self.assertTrue(os.path.exists(self._symlinked_output_dir))
-
-    test_benchmark = TestBenchmark()
-    return_code = story_runner.RunBenchmark(test_benchmark, self._options)
-    self.assertEquals(0, return_code)
-
-    json_data = {}
-    with open(os.path.join(self._options.output_dir,
-                           'test-results.json')) as f:
-      json_data = json.load(f)
-
-    foo_artifacts = json_data['tests']['TestBenchmark']['foo']['artifacts']
-    foo_artifact_log_path = os.path.join(
-        self._options.output_dir, foo_artifacts['logs.txt'][0])
-    assert os.path.isfile(foo_artifact_log_path)
+    for (story, status), result in zip(expected, results):
+      self.assertEqual(result['testPath'], 'fake_benchmark/%s' % story)
+      self.assertEqual(result['status'], status)
