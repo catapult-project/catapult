@@ -1045,8 +1045,8 @@ def _run_one_test(child, test_input):
                        worker=child.worker_num, unexpected=True, code=1,
                        err=err, pid=pid), False)
 
-    art = artifacts.Artifacts(child.artifact_output_dir,
-            test_name, child.test_name_prefix, test_input.iteration)
+    art = artifacts.Artifacts(
+        child.artifact_output_dir, test_input.iteration, test_name)
 
     test_case = tests[0]
     if isinstance(test_case, TypTestCase):

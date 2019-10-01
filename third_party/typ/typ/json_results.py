@@ -196,12 +196,12 @@ def _results_for_test(test_name, results):
             value['expected'] = ' '.join(sorted(r.expected))
 
             # Handle artifacts
-            if not r.artifacts or not r.artifacts.files:
+            if not r.artifacts or not r.artifacts.artifacts:
                 continue
             if 'artifacts' not in value:
                 value['artifacts'] = {}
-            for artifact_name, file in r.artifacts.files.items():
-                value['artifacts'].setdefault(artifact_name, []).append(file)
+            for artifact_name, artifacts in r.artifacts.artifacts.items():
+                value['artifacts'].setdefault(artifact_name, []).extend(artifacts)
 
     if not actuals:  # pragma: untested
         actuals.append('SKIP')

@@ -23,7 +23,8 @@ else:
 
 
 class Artifacts(object):
-  def __init__(self, output_dir, test_name, test_basename, iteration):
+  def __init__(self, output_dir, iteration=0, test_name='',
+               intial_results_base_dir=False):
     """Creates an artifact results object.
 
     This provides a way for tests to write arbitrary files to disk, either to
@@ -32,12 +33,17 @@ class Artifacts(object):
 
     Artifacts are saved to disk in the following hierarchy in the output
     directory:
-      * iteration
-      * test basename
-      * test name "-" artifact name
-    For example, an artifact named "screenshot.png" for the first iteration of
+      * retry_x if the test is being retried for the xth time. If x is 0
+            then the files will be saved directly to the output_dir directory,
+            unless the intial_results_base_dir argument is set to True. If it set
+            to true then a "intial" sub directory will be created and that is
+            where the artifacts will be saved.
+      * test_name if the argument is specified. If it is not specified,
+            then the files will be saved to the retry_x, intial or the output_dir directory.
+      * relative file path
+    For example,  an artifact with path "images/screenshot.png" for the first iteration of
     the "TestFoo.test_bar" test will have the path:
-    iteration_0/TestFoo/test_bar-screenshot.png
+    TestFoo.test_bar/retry_1/images/screenshot.png
 
     See https://chromium.googlesource.com/chromium/src/+/master/docs/testing/json_test_results_format.md
     for documentation on the output format for artifacts.
@@ -45,43 +51,44 @@ class Artifacts(object):
     The original design doc for this class can be found at
     https://docs.google.com/document/d/1gChmrnkHT8_MuSCKlGo-hGPmkEzg425E8DASX57ODB0/edit?usp=sharing,
     open to all chromium.org accounts.
-
-    Args:
-      output_dir: The directory that artifacts should be saved to on disk.
-      test_name: The name of the test associated with this Artifacts
-          instance.
-      test_basename: The basename for the test associated with this Artifacts
-          instance, i.e. all the stuff before the specific test name.
-      iteration: Which iteration of the test this is. Used to distinguish
-          artifacts from different runs of the same test.
     """
     self._output_dir = output_dir
-    self._test_name = test_name
-    self._test_basename = test_basename
     self._iteration = iteration
+    self._test_base_dir = test_name
     # A map of artifact names to their filepaths relative to the output
     # directory.
-    self.files = {}
+    self.artifacts = {}
+    self._artifact_set = set()
+    self._intial_results_base_dir = intial_results_base_dir
 
   @contextlib.contextmanager
-  def CreateArtifact(self, artifact_name):
+  def CreateArtifact(self, artifact_name, file_relative_path):
     """Creates an artifact and yields a handle to its File object.
 
     Args:
       artifact_name: A string specifying the name for the artifact, such as
-          "failure_screenshot.png" or "benchmark_log.txt". This should be unique
-          for each artifact within a single test.
+          "reftest_mismatch_actual" or "screenshot".
     """
     self._AssertOutputDir()
-    self._AssertNoDuplicates(artifact_name)
-    artifact_path = self._GenerateRelativeArtifactPath(artifact_name)
+    if self._iteration:
+        file_relative_path = os.path.join(
+            'retry_%d' % self._iteration, file_relative_path)
+    elif self._intial_results_base_dir:
+        file_relative_path = os.path.join('initial', file_relative_path)
+    dir = self._output_dir
+    if self._test_base_dir:
+        dir = os.path.join(dir, self._test_base_dir)
+    abs_artifact_path = os.path.join(dir, file_relative_path)
+    if not os.path.exists(os.path.dirname(abs_artifact_path)):
+      os.makedirs(os.path.dirname(abs_artifact_path))
 
-    full_artifact_path = os.path.join(self._output_dir, artifact_path)
-    if not os.path.exists(os.path.dirname(full_artifact_path)):
-      os.makedirs(os.path.dirname(full_artifact_path))
+    if file_relative_path in self._artifact_set:
+        raise ValueError('Artifact %s was already added' % (file_relative_path))
+    else:
+        self._artifact_set.add(file_relative_path)
 
-    self.files[artifact_name] = artifact_path
-    with open(full_artifact_path, 'wb') as f:
+    self.artifacts.setdefault(artifact_name, []).append(file_relative_path)
+    with open(abs_artifact_path, 'wb') as f:
       yield f
 
   def CreateLink(self, artifact_name, path):
@@ -98,30 +105,18 @@ class Artifacts(object):
     """
     # Don't need to assert that we have an output dir since we aren't writing
     # any files.
-    self._AssertNoDuplicates(artifact_name)
     path = path.strip()
     # Make sure that what we're given is at least vaguely URL-like.
     parse_result = urlparse.urlparse(path)
     if not parse_result.scheme or not parse_result.netloc or len(
         path.splitlines()) > 1:
       raise ValueError('Given path %s does not appear to be a URL' % path)
-
     if parse_result.scheme != 'https':
       raise ValueError('Only HTTPS URLs are supported.')
-
-    self.files[artifact_name] = path
-
-  def _GenerateRelativeArtifactPath(self, artifact_name):
-    return os.path.join('iteration_%d' % self._iteration, self._test_basename,
-        '%s-%s' % (self._test_name, artifact_name))
+    self.artifacts[artifact_name] = [path]
 
   def _AssertOutputDir(self):
     if not self._output_dir:
       raise ValueError(
           'CreateArtifact() called on an Artifacts instance without an output '
           'directory set. To fix, pass --write-full-results-to to the test.')
-
-  def _AssertNoDuplicates(self, artifact_name):
-    if artifact_name in self.files:
-      raise ValueError('Artifact %s already created for test %s' % (
-          artifact_name, self._test_name))

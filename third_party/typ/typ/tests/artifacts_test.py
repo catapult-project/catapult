@@ -21,91 +21,93 @@ from typ import artifacts
 
 
 class ArtifactsArtifactCreationTests(unittest.TestCase):
-  def _VerifyPathAndContents(self, dirname, test_name, test_basename, iteration,
-      artifact_name, contents):
-    path = os.path.join(
-        dirname, 'iteration_%s' % iteration, test_basename, '%s-%s' % (
-            test_name, artifact_name))
+
+  def _VerifyPathAndContents(
+      self, output_dir, file_rel_path, contents, iteration=0, test_base_dir='',
+      intial_results_base_dir=False):
+    path = output_dir
+    if test_base_dir:
+        path = os.path.join(path, test_base_dir)
+    if iteration:
+        path = os.path.join(path, 'retry_%d' % iteration)
+    elif intial_results_base_dir:
+        path = os.path.join(path, 'initial')
+    path = os.path.join(path, file_rel_path)
     self.assertTrue(os.path.exists(path))
     with open(path, 'r') as f:
       self.assertEqual(f.read(), contents)
 
-  def test_create_artifact_writes_to_disk(self):
+  def test_create_artifact_writes_to_disk_iteration_0_no_test_dir(self):
     """Tests CreateArtifact will write to disk at the correct location."""
     tempdir = tempfile.mkdtemp()
     try:
-      ar = artifacts.Artifacts(tempdir, 'test_name', 'test_basename', 0)
-      with ar.CreateArtifact('artifact_name') as f:
+      ar = artifacts.Artifacts(tempdir)
+      file_rel_path = os.path.join('stdout', 'text.txt')
+      with ar.CreateArtifact('artifact_name', file_rel_path) as f:
         f.write(b'contents')
-
-      self._VerifyPathAndContents(tempdir, 'test_name', 'test_basename', '0',
-          'artifact_name', 'contents')
+      self._VerifyPathAndContents(tempdir, file_rel_path, b'contents')
     finally:
       shutil.rmtree(tempdir)
 
-  def test_create_artifact_no_output_dir(self):
-    """Tests that CreateArtifact will fail if used without an output dir."""
-    art = artifacts.Artifacts(None, 'test_name', 'test_basename', 0)
-    with self.assertRaises(ValueError):
-      with art.CreateArtifact('artifact_name') as f:
-        pass
-
-  def test_create_artifact_duplicate(self):
-    """Tests that CreateArtifact with duplicate names fails."""
+  def test_create_artifact_writes_to_disk_iteration_1_no_test_dir(self):
+    """Tests CreateArtifact will write to disk at the correct location."""
     tempdir = tempfile.mkdtemp()
     try:
-      ar = artifacts.Artifacts(tempdir, 'test_name', 'test_basename', 0)
-      with ar.CreateArtifact('artifact_name') as f:
+      ar = artifacts.Artifacts(tempdir, iteration=1)
+      file_rel_path = os.path.join('stdout', 'text.txt')
+      with ar.CreateArtifact('artifact_name', file_rel_path) as f:
         f.write(b'contents')
-      with self.assertRaises(ValueError):
-        with ar.CreateArtifact('artifact_name') as f:
-          pass
+      self._VerifyPathAndContents(tempdir, file_rel_path, b'contents', iteration=1)
     finally:
       shutil.rmtree(tempdir)
 
-  def test_duplicates_allowed_across_iterations(self):
-    """Tests that using Artifacts with different iterations works."""
+  def test_create_artifact_writes_to_disk_iteration_1_test_dir(self):
+    """Tests CreateArtifact will write to disk at the correct location."""
     tempdir = tempfile.mkdtemp()
     try:
-      ar = artifacts.Artifacts(tempdir, 'test_name', 'test_basename', 0)
-      with ar.CreateArtifact('artifact_name') as f:
+      ar = artifacts.Artifacts(tempdir, iteration=1, test_name='a.b.c')
+      file_rel_path = os.path.join('stdout', 'text.txt')
+      with ar.CreateArtifact('artifact_name', file_rel_path) as f:
         f.write(b'contents')
-
-      another_ar = artifacts.Artifacts(tempdir, 'test_name', 'test_basename', 1)
-      with another_ar.CreateArtifact('artifact_name') as f:
-        f.write(b'other contents')
-
-      self._VerifyPathAndContents(tempdir, 'test_name', 'test_basename', '0',
-          'artifact_name', 'contents')
-      self._VerifyPathAndContents(tempdir, 'test_name', 'test_basename', '1',
-          'artifact_name', 'other contents')
+      self._VerifyPathAndContents(
+          tempdir, file_rel_path, b'contents', iteration=1, test_base_dir='a.b.c')
     finally:
       shutil.rmtree(tempdir)
+
+  def test_create_artifact_writes_to_disk_initial_results_dir(self):
+    """Tests CreateArtifact will write to disk at the correct location."""
+    tempdir = tempfile.mkdtemp()
+    try:
+      ar = artifacts.Artifacts(
+        tempdir, iteration=0, test_name='a.b.c', intial_results_base_dir=True)
+      file_rel_path = os.path.join('stdout', 'text.txt')
+      with ar.CreateArtifact('artifact_name', file_rel_path) as f:
+        f.write(b'contents')
+      self._VerifyPathAndContents(
+          tempdir, file_rel_path, b'contents', iteration=0, test_base_dir='a.b.c',
+          intial_results_base_dir=True)
+    finally:
+      shutil.rmtree(tempdir)
+
 
 
 class ArtifactsLinkCreationTests(unittest.TestCase):
   def test_create_link(self):
-    ar = artifacts.Artifacts(None, 'test_name', 'test_basename', 0)
+    ar = artifacts.Artifacts(None)
     ar.CreateLink('link', 'https://testsite.com')
-    self.assertEqual(ar.files, {'link': 'https://testsite.com'})
-
-  def test_create_link_duplicate(self):
-    ar = artifacts.Artifacts(None, 'test_name', 'test_basename', 0)
-    ar.CreateLink('link', 'https://testsite.com')
-    with self.assertRaises(ValueError):
-      ar.CreateLink('link', 'https://testsite.com')
+    self.assertEqual(ar.artifacts, {'link': ['https://testsite.com']})
 
   def test_create_link_invalid_url(self):
-    ar = artifacts.Artifacts(None, 'test_name', 'test_basename', 0)
+    ar = artifacts.Artifacts(None)
     with self.assertRaises(ValueError):
       ar.CreateLink('link', 'https:/malformedurl.com')
 
   def test_create_link_non_https(self):
-    ar = artifacts.Artifacts(None, 'test_name', 'test_basename', 0)
+    ar = artifacts.Artifacts(None)
     with self.assertRaises(ValueError):
       ar.CreateLink('link', 'http://testsite.com')
 
   def test_create_link_newlines(self):
-    ar = artifacts.Artifacts(None, 'test_name', 'test_basename', 0)
+    ar = artifacts.Artifacts(None)
     with self.assertRaises(ValueError):
       ar.CreateLink('link', 'https://some\nbadurl.com')

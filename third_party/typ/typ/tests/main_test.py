@@ -34,7 +34,18 @@ if is_python3:  # pragma: python3
 
 d = textwrap.dedent
 
+ARTIFACTS_TEST_PY = """
+import unittest
+import os
 
+from typ import test_case
+
+class ArtifactTest(test_case.TestCase):
+    def test_produce_artifact_for_retries(self):
+        with self.artifacts.CreateArtifact('artifact_name', 'test.txt') as f:
+            f.write('content')
+        self.fail()
+"""
 
 FLAKY_TEST_PY = """
 import unittest
@@ -1189,6 +1200,23 @@ class TestCli(test_case.MainTestCase):
              '-f', 'test_list.txt'],
             files=files, ret=1, err='')
         self.assertIn('0 tests passed, 0 skipped, 1 failure.', out)
+
+    def test_artifacts_added_for_retries(self):
+        files = {'artifacts_test.py': ARTIFACTS_TEST_PY}
+        _, out, err, files = self.check(
+            ['--test-name-prefix', 'artifacts_test.ArtifactTest.',
+             '--write-full-results-to', 'full_results.json', '--retry-limit=1'],
+            files=files, ret=1, err='')
+        results = json.loads(files['full_results.json'])
+        artifacts = results['tests']['test_produce_artifact_for_retries']['artifacts']
+        self.assertEqual(artifacts['artifact_name'], [
+            'test.txt', os.path.join('retry_1', 'test.txt')])
+        self.assertIn(
+            os.path.join('artifacts', 'test_produce_artifact_for_retries',
+                         'test.txt'), files)
+        self.assertIn(
+            os.path.join('artifacts', 'test_produce_artifact_for_retries',
+                         'retry_1', 'test.txt'), files)
 
     def test_matches_partial_filter(self):
         _, out, _, files = self.check(
