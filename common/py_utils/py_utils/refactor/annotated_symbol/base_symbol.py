@@ -5,8 +5,10 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-from py_utils.refactor import snippet
+
 from six.moves import range # pylint: disable=redefined-builtin
+
+from py_utils.refactor import snippet
 
 
 class AnnotatedSymbol(snippet.Symbol):

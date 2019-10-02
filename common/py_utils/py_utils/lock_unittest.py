@@ -12,8 +12,9 @@ import tempfile
 import time
 import unittest
 
+from six.moves import range  # pylint: disable=redefined-builtin
+
 from py_utils import lock
-from six.moves import range # pylint: disable=redefined-builtin
 
 
 def _AppendTextToFile(file_name):

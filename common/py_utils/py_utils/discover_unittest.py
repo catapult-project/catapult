@@ -8,8 +8,9 @@ from __future__ import print_function
 import os
 import unittest
 
-from py_utils import discover
 import six
+
+from py_utils import discover
 
 
 class DiscoverTest(unittest.TestCase):

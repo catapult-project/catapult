@@ -10,9 +10,10 @@ import keyword
 import symbol
 import token
 
+from six.moves import zip_longest  # pylint: disable=redefined-builtin
+
 from py_utils.refactor import snippet
 from py_utils.refactor.annotated_symbol import base_symbol
-from six.moves import zip_longest # pylint: disable=redefined-builtin
 
 
 __all__ = [

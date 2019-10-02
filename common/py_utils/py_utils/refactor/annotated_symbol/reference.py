@@ -9,10 +9,11 @@ from __future__ import print_function
 import symbol
 import token
 
-from py_utils.refactor import snippet
+from six.moves import range  # pylint: disable=redefined-builtin
+from six.moves import zip_longest  # pylint: disable=redefined-builtin
+
 from py_utils.refactor.annotated_symbol import base_symbol
-from six.moves import range # pylint: disable=redefined-builtin
-from six.moves import zip_longest # pylint: disable=redefined-builtin
+from py_utils.refactor import snippet
 
 
 __all__ = [
