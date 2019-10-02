@@ -13,11 +13,13 @@ import mock
 import unittest
 
 from dashboard.pinpoint import test
+from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import evaluators
 from dashboard.pinpoint.models import event as event_module
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import task as task_module
+from dashboard.pinpoint.models.quest import find_isolate
 from dashboard.pinpoint.models.quest import run_test
 
 
@@ -440,23 +442,6 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     self.assertEqual(swarming_tasks_new.call_count, 2)
 
 
-class Selector(evaluators.FilteringEvaluator):
-
-  def __init__(self, task_type=None, event_type=None, predicate=None):
-    def Predicate(task, event, accumulator):
-      matches = False
-      if task_type is not None:
-        matches |= task_type == task.task_type
-      if event_type is not None:
-        matches |= event_type == event.type
-      if predicate is not None:
-        matches |= predicate(task, event, accumulator)
-      return matches
-
-    super(Selector, self).__init__(
-        predicate=Predicate, delegate=evaluators.TaskPayloadLiftingEvaluator())
-
-
 @mock.patch('dashboard.services.swarming.Tasks.New')
 @mock.patch('dashboard.services.swarming.Task.Result')
 class EvaluatorTest(test.TestCase):
@@ -467,38 +452,22 @@ class EvaluatorTest(test.TestCase):
     self.job = job_module.Job.New((), ())
     task_module.PopulateTaskGraph(
         self.job,
-        task_module.TaskGraph(
-            vertices=[
-                task_module.TaskVertex(
-                    id='build_aaaaaaa',
-                    vertex_type='find_isolate',
-                    payload={
-                        'builder': 'Some Builder',
-                        'target': 'telemetry_perf_tests',
-                        'bucket': 'luci.bucket',
-                        'change': {
-                            'commits': [{
-                                'repository': 'chromium',
-                                'git_hash': 'aaaaaaa',
-                            }]
-                        }
-                    })
-            ] + [
-                task_module.TaskVertex(
-                    id='run_test_aaaaaaa_%s' % (attempt,),
-                    vertex_type='run_test',
-                    payload={
-                        'swarming_server': 'some_server',
-                        'dimensions': DIMENSIONS,
-                        'extra_args': [],
-                    }) for attempt in range(11)
-            ],
-            edges=[
-                task_module.Dependency(
-                    from_='run_test_aaaaaaa_%s' % (attempt,),
-                    to='build_aaaaaaa') for attempt in range(11)
-            ],
-        ))
+        run_test.CreateGraph(
+            run_test.TaskOptions(
+                build_options=find_isolate.TaskOptions(
+                    builder='Some Builder',
+                    target='telemetry_perf_tests',
+                    bucket='luci.bucket',
+                    change=change_module.Change.FromDict({
+                        'commits': [{
+                            'repository': 'chromium',
+                            'git_hash': 'aaaaaaa',
+                        }]
+                    })),
+                swarming_server='some_server',
+                dimensions=DIMENSIONS,
+                extra_args=[],
+                attempts=10)))
 
   def testEvaluateToCompletion(self, swarming_task_result, swarming_tasks_new):
     swarming_tasks_new.return_value = {'task_id': 'task id'}
@@ -521,7 +490,7 @@ class EvaluatorTest(test.TestCase):
     # Ensure that we've found all the 'run_test' tasks.
     self.assertEqual(
         {
-            'run_test_aaaaaaa_%s' % (attempt,): {
+            'run_test_chromium@aaaaaaa_%s' % (attempt,): {
                 'status': 'ongoing',
                 'swarming_server': 'some_server',
                 'dimensions': DIMENSIONS,
@@ -538,12 +507,12 @@ class EvaluatorTest(test.TestCase):
                 },
                 'swarming_task_id': 'task id',
                 'tries': 1,
-            } for attempt in range(11)
+            } for attempt in range(10)
         },
         task_module.Evaluate(
             self.job,
             event_module.Event(type='select', target_task=None, payload={}),
-            Selector(task_type='run_test')))
+            evaluators.Selector(task_type='run_test')))
 
     # Ensure that we've actually made the calls to the Swarming service.
     swarming_tasks_new.assert_called()
@@ -560,22 +529,21 @@ class EvaluatorTest(test.TestCase):
         },
         'state': 'COMPLETED',
     }
-    for attempt in range(11):
+    for attempt in range(10):
       self.assertNotEqual(
           {},
           task_module.Evaluate(
               self.job,
               event_module.Event(
                   type='update',
-                  target_task='run_test_aaaaaaa_%s' % (attempt,),
+                  target_task='run_test_chromium@aaaaaaa_%s' % (attempt,),
                   payload={}), evaluator), 'Attempt #%s' % (attempt,))
-
 
     # Ensure that we've polled the status of each of the tasks, and that we've
     # marked the tasks completed.
     self.assertEqual(
         {
-            'run_test_aaaaaaa_%s' % (attempt,): {
+            'run_test_chromium@aaaaaaa_%s' % (attempt,): {
                 'status': 'completed',
                 'swarming_server': 'some_server',
                 'dimensions': DIMENSIONS,
@@ -599,12 +567,12 @@ class EvaluatorTest(test.TestCase):
                 'isolate_hash': 'output isolate hash',
                 'swarming_task_id': 'task id',
                 'tries': 1,
-            } for attempt in range(11)
+            } for attempt in range(10)
         },
         task_module.Evaluate(
             self.job,
             event_module.Event(type='select', target_task=None, payload={}),
-            Selector(task_type='run_test')))
+            evaluators.Selector(task_type='run_test')))
 
     # Ensure that we've actually made the calls to the Swarming service.
     swarming_task_result.assert_called()
@@ -625,48 +593,43 @@ class EvaluatorTest(test.TestCase):
     # When we initiate the run_test tasks, we should immediately see the tasks
     # failing because the dependency has a hard failure status.
     self.assertEqual(
-        dict([('build_aaaaaaa', mock.ANY)] +
-             [('run_test_aaaaaaa_%s' % (attempt,), {
+        dict([('find_isolate_chromium@aaaaaaa', mock.ANY)] +
+             [('run_test_chromium@aaaaaaa_%s' % (attempt,), {
                  'status': 'failed',
                  'errors': mock.ANY,
                  'dimensions': DIMENSIONS,
                  'extra_args': [],
                  'swarming_server': 'some_server',
-             }) for attempt in range(11)]),
+             }) for attempt in range(10)]),
         task_module.Evaluate(
             self.job,
             event_module.Event(type='initiate', target_task=None, payload={}),
             evaluator))
 
-
   def testEvaluatePendingDependency(self, *_):
     # Ensure that tasks stay pending in the event of an update.
     self.assertEqual(
-        dict([('build_aaaaaaa', {
+        dict([('find_isolate_chromium@aaaaaaa', {
             'builder': 'Some Builder',
             'target': 'telemetry_perf_tests',
             'bucket': 'luci.bucket',
-            'change': {
-                'commits': [{
-                    'repository': 'chromium',
-                    'git_hash': 'aaaaaaa',
-                }]
-            },
+            'change': mock.ANY,
             'status': 'pending',
-        })] + [('run_test_aaaaaaa_%s' % (attempt,), {
+        })] + [('run_test_chromium@aaaaaaa_%s' % (attempt,), {
             'status': 'pending',
             'dimensions': DIMENSIONS,
             'extra_args': [],
             'swarming_server': 'some_server',
-        }) for attempt in range(11)]),
+        }) for attempt in range(10)]),
         task_module.Evaluate(
             self.job,
             event_module.Event(
                 type='update',
                 target_task=None,
-                payload={'kind': 'synthetic', 'action': 'poll'}),
-            run_test.Evaluator(self.job)))
-
+                payload={
+                    'kind': 'synthetic',
+                    'action': 'poll'
+                }), run_test.Evaluator(self.job)))
 
   @mock.patch('dashboard.services.swarming.Task.Stdout')
   def testEvaluateHandleFailures_Hard(self, swarming_task_stdout,
@@ -709,13 +672,13 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
         },
         'state': 'COMPLETED',
     }
-    for attempt in range(11):
+    for attempt in range(10):
       self.assertNotEqual({},
                           task_module.Evaluate(
                               self.job,
                               event_module.Event(
                                   type='update',
-                                  target_task='run_test_aaaaaaa_%s' %
+                                  target_task='run_test_chromium@aaaaaaa_%s' %
                                   (attempt,),
                                   payload={
                                       'kind': 'pubsub_message',
@@ -723,7 +686,7 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
                                   }), evaluator), 'Attempt #%s' % (attempt,))
     self.assertEqual(
         {
-            'run_test_aaaaaaa_%s' % (attempt,): {
+            'run_test_chromium@aaaaaaa_%s' % (attempt,): {
                 'status': 'failed',
                 'swarming_server': 'some_server',
                 'dimensions': DIMENSIONS,
@@ -748,13 +711,12 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
                 'isolate_hash': 'output isolate hash',
                 'swarming_task_id': 'task id',
                 'tries': 1,
-            } for attempt in range(11)
+            } for attempt in range(10)
         },
         task_module.Evaluate(
             self.job,
             event_module.Event(type='select', target_task=None, payload={}),
-            Selector(task_type='run_test')))
-
+            evaluators.Selector(task_type='run_test')))
 
   def testEvaluateHandleFailures_Expired(self, swarming_task_result,
                                          swarming_tasks_new):
@@ -777,13 +739,13 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
     swarming_task_result.return_value = {
         'state': 'EXPIRED',
     }
-    for attempt in range(11):
+    for attempt in range(10):
       self.assertNotEqual({},
                           task_module.Evaluate(
                               self.job,
                               event_module.Event(
                                   type='update',
-                                  target_task='run_test_aaaaaaa_%s' %
+                                  target_task='run_test_chromium@aaaaaaa_%s' %
                                   (attempt,),
                                   payload={
                                       'kind': 'pubsub_message',
@@ -792,14 +754,14 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
 
     self.assertEqual(
         {
-            'run_test_aaaaaaa_%s' % (attempt,): {
+            'run_test_chromium@aaaaaaa_%s' % (attempt,): {
                 'status': 'failed',
                 'swarming_server': 'some_server',
                 'dimensions': DIMENSIONS,
-                'errors': [
-                    {'reason': 'SwarmingExpired',
-                     'message': mock.ANY},
-                ],
+                'errors': [{
+                    'reason': 'SwarmingExpired',
+                    'message': mock.ANY
+                },],
                 'extra_args': [],
                 'swarming_request_body': {
                     'name': mock.ANY,
@@ -816,13 +778,12 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
                 },
                 'swarming_task_id': 'task id',
                 'tries': 1,
-            } for attempt in range(11)
+            } for attempt in range(10)
         },
         task_module.Evaluate(
             self.job,
             event_module.Event(type='select', target_task=None, payload={}),
-            Selector(task_type='run_test')))
-
+            evaluators.Selector(task_type='run_test')))
 
   def testEvaluateHandleFailures_Retry(self, *_):
     self.skipTest('Deferring implementation pending design.')
@@ -871,7 +832,7 @@ class ValidatorTest(test.TestCase):
         task_module.TaskGraph(
             vertices=[
                 task_module.TaskVertex(
-                    id='build_aaaaaaa',
+                    id='find_isolate_chromium@aaaaaaa',
                     vertex_type='find_isolate',
                     payload={
                         'builder': 'Some Builder',
@@ -885,7 +846,7 @@ class ValidatorTest(test.TestCase):
                         }
                     }),
                 task_module.TaskVertex(
-                    id='run_test_aaaaaaa_0',
+                    id='run_test_chromium@aaaaaaa_0',
                     vertex_type='run_test',
                     payload={
                         'swarming_server': 'some_server',
@@ -895,7 +856,8 @@ class ValidatorTest(test.TestCase):
             ],
             edges=[
                 task_module.Dependency(
-                    from_='run_test_aaaaaaa_0', to='build_aaaaaaa')
+                    from_='run_test_chromium@aaaaaaa_0',
+                    to='find_isolate_chromium@aaaaaaa')
             ],
         ))
 
@@ -911,8 +873,8 @@ class ValidatorTest(test.TestCase):
     # payload in the task when it's ongoing.
     self.assertEqual(
         {
-            'build_aaaaaaa': mock.ANY,
-            'run_test_aaaaaaa_0': {
+            'find_isolate_chromium@aaaaaaa': mock.ANY,
+            'run_test_chromium@aaaaaaa_0': {
                 'errors': [{
                     'cause': 'MissingDependencyInputs',
                     'message': mock.ANY

@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import mock
 import unittest
 
 from dashboard.pinpoint.models import evaluators
@@ -215,3 +216,109 @@ class EvaluatorsTest(unittest.TestCase):
                          event_module.Event(
                              type='unrecognised', target_task=None, payload={}),
                          accumulator))
+
+  def testSelector_TaskType(self):
+    task = task_module.InMemoryTask(
+        id='test_id',
+        task_type='test',
+        payload={},
+        status='pending',
+        dependencies=[])
+    accumulator = {}
+    evaluators.Selector(task_type='test')(task,
+                                          event_module.Event(
+                                              type='undefined',
+                                              target_task=None,
+                                              payload={}), accumulator)
+    self.assertEqual({'test_id': mock.ANY}, accumulator)
+
+  def testSelector_EventType(self):
+    task = task_module.InMemoryTask(
+        id='test_id',
+        task_type='test',
+        payload={},
+        status='pending',
+        dependencies=[])
+    accumulator = {}
+    evaluators.Selector(event_type='select')(task,
+                                             event_module.Event(
+                                                 type='unmatched',
+                                                 target_task=None,
+                                                 payload={}), accumulator)
+    self.assertEqual({}, accumulator)
+    evaluators.Selector(event_type='select')(task,
+                                             event_module.Event(
+                                                 type='select',
+                                                 target_task=None,
+                                                 payload={}), accumulator)
+    self.assertEqual({'test_id': mock.ANY}, accumulator)
+
+  def testSelector_Predicate(self):
+    task = task_module.InMemoryTask(
+        id='test_id',
+        task_type='test',
+        payload={},
+        status='pending',
+        dependencies=[])
+    accumulator = {}
+    evaluators.Selector(predicate=lambda *_: True)(task,
+                                                   event_module.Event(
+                                                       type='unimportant',
+                                                       target_task=None,
+                                                       payload={}), accumulator)
+    self.assertEqual({'test_id': mock.ANY}, accumulator)
+
+  def testSelector_Combinations(self):
+    matching_task_types = (None, 'test')
+    matching_event_types = (None, 'select')
+    task = task_module.InMemoryTask(
+        id='test_id',
+        task_type='test',
+        payload={},
+        status='pending',
+        dependencies=[])
+    for task_type in matching_task_types:
+      for event_type in matching_event_types:
+        if not task_type and not event_type:
+          continue
+        accumulator = {}
+        evaluators.Selector(
+            task_type=task_type, event_type=event_type)(task,
+                                                        event_module.Event(
+                                                            type='select',
+                                                            target_task=None,
+                                                            payload={}),
+                                                        accumulator)
+        self.assertEqual({'test_id': mock.ANY}, accumulator,
+                         'task_type = %s, event_type = %s')
+
+    non_matching_task_types = ('unmatched_task',)
+    non_matching_event_types = ('unmatched_event',)
+
+    # Because the Selector's default behaviour is a logical disjunction of
+    # matchers, we ensure that we will always find the tasks and handle events
+    # if either (or both) match.
+    for task_type in [t for t in matching_task_types if t is not None]:
+      for event_type in non_matching_event_types:
+        accumulator = {}
+        evaluators.Selector(
+            task_type=task_type, event_type=event_type)(task,
+                                                        event_module.Event(
+                                                            type='select',
+                                                            target_task=None,
+                                                            payload={}),
+                                                        accumulator)
+        self.assertEqual({'test_id': mock.ANY}, accumulator,
+                         'task_type = %s, event_type = %s')
+    for task_type in non_matching_task_types:
+      for event_type in [t for t in matching_event_types if t is not None]:
+        accumulator = {}
+        evaluators.Selector(
+            task_type=task_type, event_type=event_type)(task,
+                                                        event_module.Event(
+                                                            type='select',
+                                                            target_task=None,
+                                                            payload={}),
+                                                        accumulator)
+        self.assertEqual({'test_id': mock.ANY}, accumulator,
+                         'task_type = %s, event_type = %s')

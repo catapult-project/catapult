@@ -22,6 +22,7 @@ from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import evaluators
 from dashboard.pinpoint.models import task as task_module
 from dashboard.pinpoint.models.quest import execution as execution_module
+from dashboard.pinpoint.models.quest import find_isolate
 from dashboard.pinpoint.models.quest import quest
 from dashboard.services import swarming
 
@@ -654,3 +655,36 @@ class Validator(evaluators.FilteringEvaluator):
   def __init__(self):
     super(Validator, self).__init__(
         predicate=evaluators.TaskTypeEq('run_test'), delegate=ReportError)
+
+
+TaskOptions = collections.namedtuple('TaskOptions',
+                                     ('build_options', 'swarming_server',
+                                      'dimensions', 'extra_args', 'attempts'))
+
+
+def CreateGraph(options):
+  if not isinstance(options, TaskOptions):
+    raise ValueError('options is not an instance of run_test.TaskOptions')
+  subgraph = find_isolate.CreateGraph(options.build_options)
+  find_isolate_tasks = [
+      task for task in subgraph.vertices if task.vertex_type == 'find_isolate'
+  ]
+  assert len(find_isolate_tasks) == 1
+  find_isolate_task = find_isolate_tasks[0]
+  subgraph.vertices.extend([
+      task_module.TaskVertex(
+          id='run_test_%s_%s' %
+          (find_isolate.ChangeId(options.build_options.change), attempt),
+          vertex_type='run_test',
+          payload={
+              'swarming_server': options.swarming_server,
+              'dimensions': options.dimensions,
+              'extra_args': options.extra_args,
+          }) for attempt in range(options.attempts)
+  ])
+  subgraph.edges.extend([
+      task_module.Dependency(from_=task.id, to=find_isolate_task.id)
+      for task in subgraph.vertices
+      if task.vertex_type == 'run_test'
+  ])
+  return subgraph

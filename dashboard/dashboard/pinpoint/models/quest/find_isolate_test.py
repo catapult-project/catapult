@@ -423,24 +423,17 @@ class FindIsolateEvaluatorBase(test.TestCase):
     self.job = job_module.Job.New((), ())
     task_module.PopulateTaskGraph(
         self.job,
-        task_module.TaskGraph(
-            vertices=[
-                task_module.TaskVertex(
-                    id='build_7c7e90be',
-                    vertex_type='find_isolate',
-                    payload={
-                        'builder': 'Mac Builder',
-                        'target': 'telemetry_perf_tests',
-                        'bucket': 'luci.bucket',
-                        'change': {
-                            'commits': [{
-                                'repository': 'chromium',
-                                'git_hash': '7c7e90be',
-                            }],
-                        },
-                    })
-            ],
-            edges=[]))
+        find_isolate.CreateGraph(
+            find_isolate.TaskOptions(
+                builder='Mac Builder',
+                target='telemetry_perf_tests',
+                bucket='luci.bucket',
+                change=change_module.Change.FromDict({
+                    'commits': [{
+                        'repository': 'chromium',
+                        'git_hash': '7c7e90be',
+                    }],
+                }))))
 
 
 @mock.patch('dashboard.services.buildbucket_service.GetJobStatus')
@@ -458,7 +451,7 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
     # revision.
     self.assertDictEqual(
         {
-            'build_7c7e90be': {
+            'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
                 'builder': 'Mac Builder',
                 'change': mock.ANY,
@@ -471,8 +464,9 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
         task_module.Evaluate(
             self.job,
             event_module.Event(
-                type='initiate', target_task='build_7c7e90be', payload={}),
-            find_isolate.Evaluator(self.job)))
+                type='initiate',
+                target_task='find_isolate_chromium@7c7e90be',
+                payload={}), find_isolate.Evaluator(self.job)))
 
   def testInitiate_ScheduleBuild(self, put, _):
     # We then need to make sure that the buildbucket put was called.
@@ -481,7 +475,7 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
     # This time we don't seed the isolate for the change to force the build.
     self.assertDictEqual(
         {
-            'build_7c7e90be': {
+            'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
                 'buildbucket_result': {
                     'build': {
@@ -498,8 +492,9 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
         task_module.Evaluate(
             self.job,
             event_module.Event(
-                type='initiate', target_task='build_7c7e90be', payload={}),
-            find_isolate.Evaluator(self.job)))
+                type='initiate',
+                target_task='find_isolate_chromium@7c7e90be',
+                payload={}), find_isolate.Evaluator(self.job)))
     self.assertEqual(1, put.call_count)
 
   def testUpdate_BuildSuccessful(self, put, get_build_status):
@@ -507,7 +502,7 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
     put.return_value = {'build': {'id': '345982437987234'}}
     self.assertDictEqual(
         {
-            'build_7c7e90be': {
+            'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
                 'buildbucket_result': {
                     'build': {
@@ -524,8 +519,9 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
         task_module.Evaluate(
             self.job,
             event_module.Event(
-                type='initiate', target_task='build_7c7e90be', payload={}),
-            find_isolate.Evaluator(self.job)))
+                type='initiate',
+                target_task='find_isolate_chromium@7c7e90be',
+                payload={}), find_isolate.Evaluator(self.job)))
     self.assertEqual(1, put.call_count)
 
     # Now we send an update event which should cause us to poll the status of
@@ -548,7 +544,7 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
     }
     self.assertDictEqual(
         {
-            'build_7c7e90be': {
+            'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
                 'buildbucket_job_status': mock.ANY,
                 'buildbucket_result': {
@@ -569,10 +565,11 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
             self.job,
             event_module.Event(
                 type='update',
-                target_task='build_7c7e90be',
+                target_task='find_isolate_chromium@7c7e90be',
                 payload={'status': 'build_completed'}),
             find_isolate.Evaluator(self.job)))
     self.assertEqual(1, get_build_status.call_count)
+
 
 @mock.patch('dashboard.services.buildbucket_service.GetJobStatus')
 class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
@@ -586,7 +583,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
       put.return_value = {'build': {'id': '345982437987234'}}
       self.assertDictEqual(
           {
-              'build_7c7e90be': {
+              'find_isolate_chromium@7c7e90be': {
                   'buildbucket_result': {
                       'build': {
                           'id': '345982437987234'
@@ -603,8 +600,9 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
           task_module.Evaluate(
               self.job,
               event_module.Event(
-                  type='initiate', target_task='build_7c7e90be', payload={}),
-              find_isolate.Evaluator(self.job)))
+                  type='initiate',
+                  target_task='find_isolate_chromium@7c7e90be',
+                  payload={}), find_isolate.Evaluator(self.job)))
       self.assertEqual(1, put.call_count)
 
   def testUpdate_BuildFailed_HardFailure(self, get_build_status):
@@ -617,7 +615,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
     }
     self.assertDictEqual(
         {
-            'build_7c7e90be': {
+            'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
                 'buildbucket_result': {
                     'build': {
@@ -636,7 +634,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
             self.job,
             event_module.Event(
                 type='update',
-                target_task='build_7c7e90be',
+                target_task='find_isolate_chromium@7c7e90be',
                 payload={'status': 'build_completed'}),
             find_isolate.Evaluator(self.job)))
     self.assertEqual(1, get_build_status.call_count)
@@ -651,7 +649,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
     }
     self.assertDictEqual(
         {
-            'build_7c7e90be': {
+            'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
                 'builder': 'Mac Builder',
                 'buildbucket_result': {
@@ -674,7 +672,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
             self.job,
             event_module.Event(
                 type='update',
-                target_task='build_7c7e90be',
+                target_task='find_isolate_chromium@7c7e90be',
                 payload={'status': 'build_completed'}),
             find_isolate.Evaluator(self.job)))
     self.assertEqual(1, get_build_status.call_count)
@@ -697,7 +695,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
     }
     self.assertDictEqual(
         {
-            'build_7c7e90be': {
+            'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
                 'buildbucket_result': {
                     'build': {
@@ -717,7 +715,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
             self.job,
             event_module.Event(
                 type='update',
-                target_task='build_7c7e90be',
+                target_task='find_isolate_chromium@7c7e90be',
                 payload={'status': 'build_completed'}),
             find_isolate.Evaluator(self.job)))
     self.assertEqual(1, get_build_status.call_count)
@@ -740,7 +738,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
     }
     self.assertDictEqual(
         {
-            'build_7c7e90be': {
+            'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
                 'builder': 'Mac Builder',
                 'buildbucket_result': {
@@ -760,7 +758,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
             self.job,
             event_module.Event(
                 type='update',
-                target_task='build_7c7e90be',
+                target_task='find_isolate_chromium@7c7e90be',
                 payload={'status': 'build_completed'}),
             find_isolate.Evaluator(self.job)))
     self.assertEqual(1, get_build_status.call_count)
@@ -782,7 +780,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
     }
     self.assertDictEqual(
         {
-            'build_7c7e90be': {
+            'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
                 'builder': 'Mac Builder',
                 'buildbucket_result': {
@@ -802,7 +800,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
             self.job,
             event_module.Event(
                 type='update',
-                target_task='build_7c7e90be',
+                target_task='find_isolate_chromium@7c7e90be',
                 payload={'status': 'build_completed'}),
             find_isolate.Evaluator(self.job)))
     self.assertEqual(1, get_build_status.call_count)
@@ -818,7 +816,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
     }
     self.assertDictEqual(
         {
-            'build_7c7e90be': {
+            'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
                 'buildbucket_result': {
                     'build': {
@@ -838,7 +836,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
             self.job,
             event_module.Event(
                 type='update',
-                target_task='build_7c7e90be',
+                target_task='find_isolate_chromium@7c7e90be',
                 payload={'status': 'build_completed'}),
             find_isolate.Evaluator(self.job)))
     self.assertEqual(1, get_build_status.call_count)

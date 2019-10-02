@@ -566,7 +566,7 @@ class UpdateEvaluator(object):
     if event.payload.get('status') == 'build_completed':
       change = change_module.Change(
           commits=[
-              commit_module.Commit(c['repository'], c['git_hash'])
+              commit_module.Commit.FromDict(c)
               for c in task.payload.get('change', {}).get('commits', [])
           ],
           patch=task.payload.get('patch'))
@@ -593,3 +593,30 @@ class Evaluator(evaluators.SequenceEvaluator):
                     'update': UpdateEvaluator(job),
                 })),
         ))
+
+
+TaskOptions = collections.namedtuple('TaskOptions',
+                                     ('builder', 'target', 'bucket', 'change'))
+
+
+def ChangeId(change):
+  return '_'.join(change.id_string.split(' '))
+
+
+def CreateGraph(options):
+  if not isinstance(options, TaskOptions):
+    raise ValueError('options not an instance of find_isolate.TaskOptions')
+
+  return task_module.TaskGraph(
+      vertices=[
+          task_module.TaskVertex(
+              id='find_isolate_%s' % (ChangeId(options.change),),
+              vertex_type='find_isolate',
+              payload={
+                  'builder': options.builder,
+                  'target': options.target,
+                  'bucket': options.bucket,
+                  'change': options.change.AsDict()
+              })
+      ],
+      edges=[])

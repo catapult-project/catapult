@@ -171,3 +171,21 @@ class DispatchByEventTypeEvaluator(object):
   def __call__(self, task, event, accumulator):
     handler = self._evaluator_map.get(event.type, self._default_evaluator)
     return handler(task, event, accumulator)
+
+
+class Selector(FilteringEvaluator):
+
+  def __init__(self, task_type=None, event_type=None, predicate=None):
+
+    def Predicate(task, event, accumulator):
+      matches = False
+      if task_type is not None:
+        matches |= task_type == task.task_type
+      if event_type is not None:
+        matches |= event_type == event.type
+      if predicate is not None:
+        matches |= predicate(task, event, accumulator)
+      return matches
+
+    super(Selector, self).__init__(
+        predicate=Predicate, delegate=TaskPayloadLiftingEvaluator())
