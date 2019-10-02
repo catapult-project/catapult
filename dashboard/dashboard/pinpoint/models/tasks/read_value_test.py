@@ -18,9 +18,9 @@ from dashboard.pinpoint.models import evaluators
 from dashboard.pinpoint.models import event as event_module
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import task as task_module
-from dashboard.pinpoint.models.quest import find_isolate
-from dashboard.pinpoint.models.quest import read_value
-from dashboard.pinpoint.models.quest import run_test
+from dashboard.pinpoint.models.tasks import find_isolate
+from dashboard.pinpoint.models.tasks import read_value
+from dashboard.pinpoint.models.tasks import run_test
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import generic_set
