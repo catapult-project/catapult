@@ -88,6 +88,10 @@ class Artifacts(object):
         self._artifact_set.add(file_relative_path)
 
     self.artifacts.setdefault(artifact_name, []).append(file_relative_path)
+
+    if os.path.exists(abs_artifact_path):
+        raise ValueError('%s already exists.' % abs_artifact_path)
+
     with open(abs_artifact_path, 'wb') as f:
       yield f
 

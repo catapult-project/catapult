@@ -74,6 +74,23 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
     finally:
       shutil.rmtree(tempdir)
 
+  def test_create_artifact_overwriting_artifact_raises_value_error(self):
+    """Tests CreateArtifact will write to disk at the correct location."""
+    tempdir = tempfile.mkdtemp()
+    try:
+      ar = artifacts.Artifacts(tempdir, iteration=1, test_name='a.b.c')
+      file_rel_path = os.path.join('stdout', 'text.txt')
+      with ar.CreateArtifact('artifact_name', file_rel_path) as f:
+        f.write(b'contents')
+      ar = artifacts.Artifacts(tempdir, iteration=0, test_name='a.b.c')
+      file_rel_path = os.path.join('retry_1', 'stdout', 'text.txt')
+      with self.assertRaises(ValueError) as ve:
+          with ar.CreateArtifact('artifact_name', file_rel_path) as f:
+              f.write(b'contents')
+      self.assertIn('already exists', str(ve.exception))
+    finally:
+      shutil.rmtree(tempdir)
+
   def test_create_artifact_writes_to_disk_initial_results_dir(self):
     """Tests CreateArtifact will write to disk at the correct location."""
     tempdir = tempfile.mkdtemp()
@@ -88,7 +105,6 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
           intial_results_base_dir=True)
     finally:
       shutil.rmtree(tempdir)
-
 
 
 class ArtifactsLinkCreationTests(unittest.TestCase):
