@@ -166,7 +166,7 @@ class List(object):
   @classmethod
   def CreateParser(cls):
     options = browser_options.BrowserFinderOptions()
-    parser = options.CreateParser('%prog run [benchmark_name] [<options>]')
+    parser = options.CreateParser('%prog list [benchmark_name] [<options>]')
     return parser
 
   @classmethod
