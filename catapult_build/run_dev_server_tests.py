@@ -164,16 +164,25 @@ def Main(argv):
       chrome_info = 'with command `%s`' % chrome_path
     else:
       channel = args.channel
-      if sys.platform == 'linux2' and channel == 'canary':
-        channel = 'dev'
-      # TODO(crbug.com/973847): chrome_m72 is needed as a hack here.
-      assert channel in ['stable', 'beta', 'dev', 'canary', 'm72']
+      if sys.platform == 'linux2':
+        print ('Using chromium instead of chrome on linux due to ' +
+               'https://crbug.com/998338.')
+        binary = 'chromium'
+        if channel == 'canary':
+          # Linux does not have canary.
+          channel = 'dev'
+      else:
+        binary = 'chrome'
 
-      print 'Fetching the %s chrome binary via the binary_manager.' % channel
+      assert channel in ['stable', 'beta', 'dev', 'canary']
+
+      print ('Fetching the {0} {1}'.format(channel, binary) +
+             ' binary via the binary_manager.')
+
       chrome_manager = binary_manager.BinaryManager([CHROME_BINARIES_CONFIG])
       arch, os_name = dependency_util.GetOSAndArchForCurrentDesktopPlatform()
       chrome_path, version = chrome_manager.FetchPathWithVersion(
-          'chrome_%s' % channel, arch, os_name)
+          '{0}_{1}'.format(binary, channel), arch, os_name)
       print 'Finished fetching the chrome binary to %s' % chrome_path
       if xvfb.ShouldStartXvfb():
         print 'Starting xvfb...'

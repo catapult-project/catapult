@@ -32,12 +32,23 @@ _CATAPULT_TESTS = [
         'path': 'common/bin/run_tests',
     },
     {
-        'name': 'Dashboard Dev Server Tests m72',
+        'name': 'Dashboard Dev Server Tests Stable',
         'path': 'dashboard/bin/run_dev_server_tests',
         'additional_args': [
             '--no-install-hooks',
             '--no-use-local-chrome',
-            '--channel=m72'
+            '--channel=stable'
+        ],
+        'outputs_presentation_json': True,
+        'disabled': ['android'],
+    },
+    {
+        'name': 'Dashboard Dev Server Tests Canary',
+        'path': 'dashboard/bin/run_dev_server_tests',
+        'additional_args': [
+            '--no-install-hooks',
+            '--no-use-local-chrome',
+            '--channel=canary'
         ],
         'outputs_presentation_json': True,
         'disabled': ['android'],
@@ -128,13 +139,23 @@ _CATAPULT_TESTS = [
         'disabled': ['android', 'linux'],  # TODO(nedn): enable this on linux
     },
     {
-        # TODO(crbug.com/973847): Run against a more recent Chrome.
-        'name': 'Tracing Dev Server Tests M72',
+        'name': 'Tracing Dev Server Tests',
         'path': 'tracing/bin/run_dev_server_tests',
         'additional_args': [
             '--no-install-hooks',
             '--no-use-local-chrome',
-            '--channel=m72',
+            '--channel=stable',
+        ],
+        'outputs_presentation_json': True,
+        'disabled': ['android'],
+    },
+    {
+        'name': 'Tracing Dev Server Tests Canary',
+        'path': 'tracing/bin/run_dev_server_tests',
+        'additional_args': [
+            '--no-install-hooks',
+            '--no-use-local-chrome',
+            '--channel=canary',
         ],
         'outputs_presentation_json': True,
         'disabled': ['android'],
