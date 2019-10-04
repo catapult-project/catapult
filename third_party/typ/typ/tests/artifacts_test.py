@@ -87,7 +87,7 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
       with self.assertRaises(ValueError) as ve:
           with ar.CreateArtifact('artifact_name', file_rel_path) as f:
               f.write(b'contents')
-      self.assertIn('already exists', str(ve.exception))
+      self.assertIn('already exists.', str(ve.exception))
     finally:
       shutil.rmtree(tempdir)
 

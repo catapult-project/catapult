@@ -24,7 +24,7 @@ else:
 
 class Artifacts(object):
   def __init__(self, output_dir, iteration=0, test_name='',
-               intial_results_base_dir=False):
+               intial_results_base_dir=False, repeat_tests=False):
     """Creates an artifact results object.
 
     This provides a way for tests to write arbitrary files to disk, either to
@@ -60,6 +60,15 @@ class Artifacts(object):
     self.artifacts = {}
     self._artifact_set = set()
     self._intial_results_base_dir = intial_results_base_dir
+    self._repeat_tests = repeat_tests
+
+  def artifacts_sub_directory(self):
+    sub_dir = self._test_base_dir
+    if self._iteration:
+        sub_dir = os.path.join(sub_dir, 'retry_%d' % self._iteration)
+    elif self._intial_results_base_dir:
+        sub_dir = os.path.join(sub_dir, 'initial')
+    return sub_dir
 
   @contextlib.contextmanager
   def CreateArtifact(self, artifact_name, file_relative_path):
@@ -70,27 +79,17 @@ class Artifacts(object):
           "reftest_mismatch_actual" or "screenshot".
     """
     self._AssertOutputDir()
-    if self._iteration:
-        file_relative_path = os.path.join(
-            'retry_%d' % self._iteration, file_relative_path)
-    elif self._intial_results_base_dir:
-        file_relative_path = os.path.join('initial', file_relative_path)
-    dir = self._output_dir
-    if self._test_base_dir:
-        dir = os.path.join(dir, self._test_base_dir)
-    abs_artifact_path = os.path.join(dir, file_relative_path)
+    file_relative_path = os.path.join(
+        self.artifacts_sub_directory(), file_relative_path)
+    abs_artifact_path = os.path.join(self._output_dir, file_relative_path)
+
     if not os.path.exists(os.path.dirname(abs_artifact_path)):
       os.makedirs(os.path.dirname(abs_artifact_path))
 
-    if file_relative_path in self._artifact_set:
-        raise ValueError('Artifact %s was already added' % (file_relative_path))
-    else:
-        self._artifact_set.add(file_relative_path)
+    if os.path.exists(abs_artifact_path) and not self._repeat_tests:
+        raise ValueError('%s already exists.' % (abs_artifact_path))
 
     self.artifacts.setdefault(artifact_name, []).append(file_relative_path)
-
-    if os.path.exists(abs_artifact_path):
-        raise ValueError('%s already exists.' % abs_artifact_path)
 
     with open(abs_artifact_path, 'wb') as f:
       yield f

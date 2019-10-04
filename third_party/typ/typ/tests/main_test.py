@@ -1210,7 +1210,9 @@ class TestCli(test_case.MainTestCase):
         results = json.loads(files['full_results.json'])
         artifacts = results['tests']['test_produce_artifact_for_retries']['artifacts']
         self.assertEqual(artifacts['artifact_name'], [
-            'test.txt', os.path.join('retry_1', 'test.txt')])
+            os.path.join('test_produce_artifact_for_retries', 'test.txt'),
+            os.path.join('test_produce_artifact_for_retries',
+                         'retry_1', 'test.txt')])
         self.assertIn(
             os.path.join('artifacts', 'test_produce_artifact_for_retries',
                          'test.txt'), files)
