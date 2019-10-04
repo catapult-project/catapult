@@ -356,7 +356,7 @@ class PageTestResults(object):
         (reserved_infos.TRACE_START, self.current_story_run.start_us / 1e3),
     ]))
 
-  def AddMeasurement(self, name, unit, samples):
+  def AddMeasurement(self, name, unit, samples, description=None):
     """Record a measurement of the currently running story.
 
     Measurements are numeric values obtained directly by a benchmark while
@@ -377,10 +377,14 @@ class PageTestResults(object):
         'count', etc).
       samples: Either a single numeric value or a list of numeric values to
         record as part of this measurement.
+      description: An optional string with a short human readable description
+        of the measurement.
     """
     assert self._current_story_run, 'Not currently running a story.'
-    value = _MeasurementToValue(self.current_story, name, unit, samples)
+    value = _MeasurementToValue(
+        self.current_story, name, unit, samples, description)
     self.AddValue(value)
+    self.current_story_run.AddMeasurement(name, unit, samples, description)
 
   def AddValue(self, value):
     """DEPRECATED: Use AddMeasurement instead."""
@@ -527,12 +531,13 @@ class PageTestResults(object):
         yield run
 
 
-def _MeasurementToValue(story, name, unit, samples):
+def _MeasurementToValue(story, name, unit, samples, description):
   if isinstance(samples, list):
     return list_of_scalar_values.ListOfScalarValues(
-        story, name=name, units=unit, values=samples)
+        story, name=name, units=unit, values=samples, description=description)
   else:
-    return scalar.ScalarValue(story, name=name, units=unit, value=samples)
+    return scalar.ScalarValue(
+        story, name=name, units=unit, value=samples, description=description)
 
 
 def _WrapDiagnostics(info_value_pairs):

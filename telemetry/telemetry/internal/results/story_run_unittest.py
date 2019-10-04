@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import os
 import unittest
 
@@ -120,6 +121,52 @@ class StoryRunTest(unittest.TestCase):
       self.assertTrue(logs_file.startswith(intermediate_dir))
       self.assertTrue(logs_file.endswith('.txt'))
 
+  def testAddMeasurements(self):
+    with tempfile_ext.NamedTemporaryDirectory() as tempdir:
+      run = story_run.StoryRun(self.story, intermediate_dir=tempdir)
+      run.AddMeasurement('run_time', 'ms', [1, 2, 3])
+      run.AddMeasurement('foo_bars', 'count', 4,
+                         description='number of foo_bars found')
+      run.Finish()
+
+      artifact = run.GetArtifact(story_run.MEASUREMENTS_NAME)
+      with open(artifact.local_path) as f:
+        measurements = json.load(f)
+
+      self.assertEqual(measurements, {
+          'measurements': [
+              {
+                  'name': 'run_time',
+                  'unit': 'ms',
+                  'samples': [1, 2, 3],
+              },
+              {
+                  'name': 'foo_bars',
+                  'unit': 'count',
+                  'samples': [4],
+                  'description': 'number of foo_bars found'
+              }
+          ]
+      })
+
+  def testAddMeasurementValidation(self):
+    run = story_run.StoryRun(self.story)
+    with self.assertRaises(TypeError):
+      run.AddMeasurement(name=None, unit='ms', samples=[1, 2, 3])
+    with self.assertRaises(TypeError):
+      run.AddMeasurement(name='run_time', unit=7, samples=[1, 2, 3])
+    with self.assertRaises(TypeError):
+      run.AddMeasurement(name='run_time', unit='ms', samples=[1, None, 3])
+    with self.assertRaises(TypeError):
+      run.AddMeasurement(name='run_time', unit='ms', samples=[1, 2, 3],
+                         description=['not', 'a', 'string'])
+
+  def testAddMeasurementRaisesAfterFinish(self):
+    run = story_run.StoryRun(self.story)
+    run.AddMeasurement('run_time', 'ms', [1, 2, 3])
+    run.Finish()
+    with self.assertRaises(AssertionError):
+      run.AddMeasurement('foo_bars', 'count', 4)
 
   def testCreateArtifact(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
