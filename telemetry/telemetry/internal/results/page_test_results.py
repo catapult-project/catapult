@@ -68,7 +68,6 @@ class PageTestResults(object):
     self._all_story_runs = []
     self._all_stories = set()
     self._representative_value_for_each_value_name = {}
-    self._all_summary_values = []
 
     self._histograms = histogram_set.HistogramSet()
 
@@ -168,10 +167,6 @@ class PageTestResults(object):
     self._histograms.ImportDicts(json.loads(vinn_result.stdout))
 
   @property
-  def all_summary_values(self):
-    return self._all_summary_values
-
-  @property
   def current_page(self):
     """DEPRECATED: Use current_story instead."""
     return self.current_story
@@ -230,8 +225,8 @@ class PageTestResults(object):
 
   @property
   def empty(self):
-    """Whether there were any story runs or results."""
-    return not self._all_story_runs and not self._all_summary_values
+    """Whether there were any story runs."""
+    return not self._all_story_runs
 
   def _WriteJsonLine(self, data, close=False):
     if self._results_stream is not None:
@@ -464,12 +459,6 @@ class PageTestResults(object):
         shutil.copy(filename, artifact_path)
     if tbm_metrics:
       self._current_story_run.SetTbmMetrics(tbm_metrics)
-
-  def AddSummaryValue(self, value):
-    assert not self.finalized, 'Results are finalized, cannot add values.'
-    assert value.page is None
-    self._ValidateValue(value)
-    self._all_summary_values.append(value)
 
   def _ValidateValue(self, value):
     assert isinstance(value, value_module.Value)

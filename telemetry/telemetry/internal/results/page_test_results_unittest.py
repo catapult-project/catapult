@@ -20,7 +20,6 @@ from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import results_processor
 from telemetry import page as page_module
-from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 from tracing.trace_data import trace_data
@@ -196,16 +195,6 @@ class PageTestResultsTest(unittest.TestCase):
       results.WillRunPage(self.pages[0])
       with self.assertRaises(AssertionError):
         results.AddMeasurement('url', 'string', 'foo')
-      results.DidRunPage(self.pages[0])
-
-  def testAddSummaryValueWithPageSpecified(self):
-    with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      with self.assertRaises(AssertionError):
-        # Invalid because should have no page.
-        results.AddSummaryValue(scalar.ScalarValue(
-            self.pages[0], 'a', 'units', 3,
-            improvement_direction=improvement_direction.UP))
       results.DidRunPage(self.pages[0])
 
   def testMeasurementUnitChangeRaises(self):

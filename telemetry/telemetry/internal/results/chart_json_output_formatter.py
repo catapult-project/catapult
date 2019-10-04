@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import collections
-import itertools
 import json
 import os
 
@@ -52,9 +51,7 @@ def ResultsAsChartDict(results):
   Returns:
     A Chart JSON dict corresponding to the given data.
   """
-  values = itertools.chain(
-      output_formatter.SummarizePageSpecificValues(results),
-      results.all_summary_values)
+  values = output_formatter.SummarizePageSpecificValues(results)
   charts = collections.defaultdict(dict)
 
   for value in values:
