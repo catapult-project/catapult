@@ -42,7 +42,44 @@ found in the LICENSE file.
       }
 
       paper-dialog {
-        width: 30em;
+        width: 50em;
+      }
+
+      .divider {
+       width: 100%;
+       border-bottom: 1px dashed black;
+       line-height: 0.1em;
+       margin: 2em 0em;
+       text-align: center;
+       font-size: 1.5em;
+       font-weight: lighter;
+      }
+
+      .divider span {
+        background: white;
+        padding: 0 1em;
+      }
+
+      .horizontal {
+        display: inline-flex;
+        width: 100%;
+      }
+
+      .column {
+        width: 50%;
+      }
+
+      .rightPad {
+        margin-right: 0.25em;
+      }
+
+      #chartDropdown {
+        width: 75%;
+        margin-right: 0.5em;
+      }
+
+      #statisticDropdown {
+        width: 25%;
       }
 
       .error {
@@ -100,29 +137,20 @@ found in the LICENSE file.
             <template is="dom-if" if="[[hasJob(job)]]">
               <input type="hidden" name="comparison_magnitude" disabled$="[[!job.arguments.comparison_magnitude]]" value="[[job.arguments.comparison_magnitude]]">
               <input type="hidden" name="tir_label" disabled$="[[!job.arguments.tir_label]]" value="[[job.arguments.tir_label]]">
-              <input type="hidden" name="chart" disabled$="[[!job.arguments.chart]]" value="[[job.arguments.chart]]">
               <input type="hidden" name="trace" disabled$="[[!job.arguments.trace]]" value="[[job.arguments.trace]]">
-              <input type="hidden" name="statistic" disabled$="[[!job.arguments.statistic]]" value="[[job.arguments.statistic]]">
               <input type="hidden" name="tags" disabled$="[[!job.arguments.tags]]" value="[[job.arguments.tags]]">
               <input type="hidden" name="pin" disabled$="[[!job.arguments.pin]]" value="[[job.arguments.pin]]">
             </template>
+
+            <div class="divider">
+              <span>Benchmark Configuration</span>
+            </div>
 
             <template is="dom-if" if="[[!hasJob(job)]]">
               <paper-radio-group id="comparison_mode" selected="{{comparisonMode}}">
                 <paper-radio-button name="try">Try Job</paper-radio-button>
                 <paper-radio-button name="performance">Bisect</paper-radio-button>
               </paper-radio-group>
-            </template>
-
-            <paper-input name="bug_id" value="{{bug_id}}" label="Bug ID"></paper-input>
-
-            <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
-              <commit-details value="{{start_git_hash}}" label="Start Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
-              <commit-details value="{{end_git_hash}}" label="End Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
-            </template>
-
-            <template is="dom-if" if="[[!isBisectJob(comparisonMode)]]">
-              <paper-input name="patch" value="{{patch}}" label="Gerrit URL" required disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
             </template>
 
             <autocomplete-box id="botDropdown"
@@ -136,36 +164,87 @@ found in the LICENSE file.
               <paper-progress indeterminate></paper-progress>
             </template>
 
-            <autocomplete-box id="benchmarkDropdown"
-                              name="benchmark"
-                              items="{{arrayToAutocompleteList(testSuites)}}"
-                              disabled="[[!validTestSuites(testSuites)]]"
-                              placeholder="Benchmark"
-                              selected-name="{{benchmark}}"
-                              required></autocomplete-box>
-            <template is="dom-if" if="[[suitesLoading]]">
-              <paper-progress indeterminate></paper-progress>
-            </template>
+            <div class="horizontal">
+              <div class="column rightPad">
+                <autocomplete-box id="benchmarkDropdown"
+                                  name="benchmark"
+                                  items="{{arrayToAutocompleteList(testSuites)}}"
+                                  disabled="[[!validTestSuites(testSuites)]]"
+                                  placeholder="Benchmark"
+                                  selected-name="{{benchmark}}"
+                                  required></autocomplete-box>
+                <template is="dom-if" if="[[suitesLoading]]">
+                  <paper-progress indeterminate></paper-progress>
+                </template>
+              </div>
+              <div class="column">
+                <autocomplete-box id="storyCasesDropdown"
+                                  name="story"
+                                  items="{{storyCases(benchmarkConfig)}}"
+                                  disabled="{{!validCases(benchmark, benchmarkConfig)}}"
+                                  placeholder="Story"
+                                  required></autocomplete-box>
+                <template is="dom-if" if="[[benchmarkConfigLoading]]">
+                  <paper-progress indeterminate></paper-progress>
+                </template>
+              </div>
+            </div>
 
-            <autocomplete-box id="storyCasesDropdown"
-                              name="story"
-                              items="{{storyCases(benchmarkConfig)}}"
-                              disabled="{{!validCases(benchmark, benchmarkConfig)}}"
-                              placeholder="Story (optional)"></autocomplete-box>
-            <template is="dom-if" if="[[benchmarkConfigLoading]]">
-              <paper-progress indeterminate></paper-progress>
-            </template>
-
-            <autocomplete-box id="storyTagsDropdown"
-                              name="story_tags"
-                              items="{{storyTags(benchmarkConfig)}}"
-                              disabled="{{!validTags(benchmark, benchmarkConfig)}}"
-                              placeholder="Story Tags (optional, comma-separated)"></autocomplete-box>
-            <template is="dom-if" if="[[benchmarkConfigLoading]]">
-              <paper-progress indeterminate></paper-progress>
-            </template>
+            <div class="horizontal">
+              <div class="column rightPad">
+                <div class="horizontal">
+                  <autocomplete-box id="chartDropdown"
+                                    name="chart"
+                                    items="{{measurements(benchmarkConfig)}}"
+                                    disabled="{{!validCases(benchmark, benchmarkConfig)}}"
+                                    hidden$="[[!isBisectJob(comparisonMode)]]"
+                                    required$="[[isBisectJob(comparisonMode)]]"
+                                    placeholder="Measurement"
+                                    selected-name="{{chart}}"></autocomplete-box>
+                  <autocomplete-box id="statisticDropdown"
+                                    name="statistic"
+                                    items="{{statistics(benchmarkConfig)}}"
+                                    disabled="{{!validCases(benchmark, benchmarkConfig)}}"
+                                    hidden$="[[!isBisectJob(comparisonMode)]]"
+                                    selected-name="{{statistic}}"
+                                    placeholder="Statistic"></autocomplete-box>
+                </div>
+                <template is="dom-if" if="[[benchmarkConfigLoading]]">
+                  <paper-progress indeterminate></paper-progress>
+                </template>
+              </div>
+              <div class="column">
+                <autocomplete-box id="storyTagsDropdown"
+                                  name="story_tags"
+                                  items="{{storyTags(benchmarkConfig)}}"
+                                  disabled="{{!validTags(benchmark, benchmarkConfig)}}"
+                                  placeholder="Story Tags (optional, comma-separated)"></autocomplete-box>
+                <template is="dom-if" if="[[benchmarkConfigLoading]]">
+                  <paper-progress indeterminate></paper-progress>
+                </template>
+              </div>
+            </div>
 
             <paper-input name="extra_test_args" value="{{extra_test_args}}" label="Extra Test Arguments (optional)"></paper-input>
+
+            <div class="divider">
+              <span>Job Configuration</span>
+            </div>
+
+            <template is="dom-if" if="[[!isBisectJob(comparisonMode)]]">
+              <paper-input name="patch" value="{{patch}}" label="Gerrit URL" required disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
+            </template>
+
+            <div class="horizontal">
+              <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
+                <commit-details class="column rightPad" value="{{start_git_hash}}" label="Start Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
+              </template>
+              <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
+                <commit-details class="column" value="{{end_git_hash}}" label="End Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
+              </template>
+            </div>
+
+            <paper-input name="bug_id" value="{{bug_id}}" label="Bug ID"></paper-input>
           </form>
         </iron-form>
       </div>
@@ -183,6 +262,8 @@ found in the LICENSE file.
       'gpu_perftests', 'load_library_perf_tests', 'media_perftests',
       'net_perftests', 'tracing_perftests', 'vr_common_perftests'];
 
+    const _STATISTICS = ['avg', 'count', 'max', 'min', 'std', 'sum'];
+
     Polymer({
       is: 'new-job-fab',
 
@@ -194,6 +275,7 @@ found in the LICENSE file.
           value: false
         },
         bug_id: String,
+        chart: String,
         commitsList: Object,
         commitRangeLoading: {
           type: Boolean,
@@ -211,6 +293,7 @@ found in the LICENSE file.
         },
         extra_test_args: String,
         patch: String,
+        statistic: String,
         start_git_hash: {
           type: String,
           value: 'HEAD'
@@ -301,6 +384,12 @@ found in the LICENSE file.
         if (!this.$.storyTagsDropdown.disabled) {
           this.$.storyTagsDropdown.tryReselectQuery();
         }
+        if (!this.$.chartDropdown.disabled) {
+          this.$.chartDropdown.tryReselectQuery();
+        }
+        if (!this.$.statisticDropdown.disabled) {
+          this.$.statisticDropdown.tryReselectQuery();
+        }
       },
 
       jobChanged(job) {
@@ -317,6 +406,8 @@ found in the LICENSE file.
         this.$.benchmarkDropdown.query = job.arguments.benchmark;
         this.$.storyCasesDropdown.query = job.arguments.story;
         this.$.storyTagsDropdown.query = job.arguments.story_tags;
+        this.$.chartDropdown.query = job.arguments.chart;
+        this.$.statisticDropdown.query = job.arguments.statistic;
         if (this.config) {
           this.$.botDropdown.tryReselectQuery();
         }
@@ -326,6 +417,8 @@ found in the LICENSE file.
         if (this.benchmarkConfig) {
           this.$.storyCasesDropdown.tryReselectQuery();
           this.$.storyTagsDropdown.tryReselectQuery();
+          this.$.chartDropdown.tryReselectQuery();
+          this.$.statisticDropdown.tryReselectQuery();
         }
       },
 
@@ -369,6 +462,29 @@ found in the LICENSE file.
           vals.push({name: cur});
         }
         return vals;
+      },
+
+      measurements(benchmarkConfig) {
+        if (!benchmarkConfig) {
+          return [];
+        }
+
+        const hasStatName = function(m) {
+          for (const s of _STATISTICS) {
+            if (m.endsWith(s)) {
+              return true;
+            }
+          }
+          return false;
+        };
+
+        return this.arrayToAutocompleteList(
+            benchmarkConfig.measurements.filter(m => !hasStatName(m)));
+      },
+
+      statistics(benchmarkConfig) {
+        const s = [''];
+        return this.arrayToAutocompleteList(s.concat(_STATISTICS));
       },
 
       storyCases(benchmarkConfig) {
