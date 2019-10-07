@@ -154,17 +154,6 @@ class CloudStorageFakeFsUnitTest(BaseFakeFsUnitTest):
     finally:
       cloud_storage._RunCommand = orig_run_command
 
-  @mock.patch('py_utils.cloud_storage._RunCommand')
-  def testListDirs(self, mock_run_command):
-    mock_run_command.return_value = '\n'.join(['gs://bucket/foo-file.txt',
-                                               '',
-                                               'gs://bucket/foo1/',
-                                               'gs://bucket/foo2/',
-                                               'gs://bucket/foo1/file.txt'])
-
-    self.assertEqual(cloud_storage.ListDirs('bucket', 'foo*'),
-                     ['/foo1/', '/foo2/'])
-
   @mock.patch('py_utils.cloud_storage.subprocess.Popen')
   def testSwarmingUsesExistingEnv(self, mock_popen):
     os.environ['SWARMING_HEADLESS'] = '1'

@@ -12,9 +12,7 @@ Usage:
   $ git cl upload
 """
 
-import argparse
 import collections
-import csv
 import logging
 import os
 import shutil
@@ -33,11 +31,13 @@ from dependency_manager import base_config
 def BuildNotFoundError(error_string):
   raise ValueError(error_string)
 
+
 _CHROME_BINARIES_CONFIG = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '..', '..', 'common',
     'py_utils', 'py_utils', 'chrome_binaries.json')
 
 CHROME_GS_BUCKET = 'chrome-unsigned'
+
 
 # Remove a platform name from this list to disable updating it.
 # Add one to enable updating it. (Must also update _PLATFORM_MAP.)
@@ -56,18 +56,6 @@ _CHANNELS_TO_UPDATE = ['stable', 'canary', 'dev']
 _OMAHA_PLATFORMS = { 'stable':  ['mac', 'linux', 'win', 'android'],
                     'dev':  ['linux'], 'canary': ['mac', 'win']}
 
-
-# Chromium binaries are only updated for linux builds.
-# See https://crbug.com/973847 for context.
-_CHROMIUM_PLATFORM = 'linux_x86_64'
-_CHROMIUM_CHANNELS_TO_UPDATE = ['stable', 'dev']
-_CHROMIUM_GS_BUCKET = 'chromium-browser-snapshots'
-_CHROMIUM_GS_BUILD_DIR = 'Linux_x64'
-_CHROMIUM_ZIP_NAME = 'chrome-linux.zip'
-# How many commit positions to search below and above omaha branch position to
-# find closest chromium build snapshot. The value 10 is chosen because it looks
-# more than sufficient from manual inspection of the bucket.
-_CHROMIUM_SNAPSHOT_SEARCH_WINDOW = 10
 
 # All of the information we need to update each platform.
 #   omaha: name omaha uses for the platforms.
@@ -216,133 +204,26 @@ def _RemoveKeystoneFromBuild(location):
     shutil.rmtree(temp_folder)
 
 
-def _FindClosestChromiumSnapshot(base_position):
-  """Returns the closest chromium snapshot available in cloud storage.
-
-  Chromium snapshots are pulled from _CHROMIUM_BUILD_DIR in CHROMIUM_GS_BUCKET.
-
-  Continuous chromium snapshots do not always contain the exact release build.
-  This function queries the storage bucket and find the closest snapshot within
-  +/-_CHROMIUM_SNAPSHOT_SEARCH_WINDOW to find the closest build.
-  """
-  min_position = base_position - _CHROMIUM_SNAPSHOT_SEARCH_WINDOW
-  max_position = base_position + _CHROMIUM_SNAPSHOT_SEARCH_WINDOW
-
-  # Getting the full list of objects in cloud storage bucket is prohibitively
-  # slow. It's faster to list objects with a prefix. Assuming we're looking at
-  # +/- 10 commit positions, for commit position 123456, we want to look at
-  # positions between 123446 an 123466. We do this by getting all snapshots
-  # with prefix 12344*, 12345*, and 12346*. This may get a few more snapshots
-  # that we intended, but that's fine since we take the min distance anyways.
-  min_position_prefix = min_position / 10;
-  max_position_prefix = max_position / 10;
-
-  available_positions = []
-  for position_prefix in range(min_position_prefix, max_position_prefix + 1):
-    query = '%s/%d*' % (_CHROMIUM_GS_BUILD_DIR, position_prefix)
-    try:
-      ls_results = cloud_storage.ListDirs(_CHROMIUM_GS_BUCKET, query)
-    except cloud_storage.NotFoundError:
-      # It's fine if there is no chromium snapshot available for one prefix.
-      # We will look at the rest of the prefixes.
-      continue
-
-    for entry in ls_results:
-      # entry looks like "/Linux_x64/${commit_position}/".
-      position = int(entry.split('/')[2])
-      available_positions.append(position)
-
-  if len(available_positions) == 0:
-    raise ValueError("No chromium build found +/-%d commit positions of %d" %
-                     (_CHROMIUM_SNAPSHOT_SEARCH_WINDOW, base_position))
-
-  distance_function = lambda position: abs(position - base_position)
-  min_distance_snapshot = min(available_positions, key=distance_function)
-  return min_distance_snapshot
-
-
-def _GetLinuxOmahaInfo():
-  """Returns a dict of channel -> its omaha info on linux as a csv dict. """
-  url = 'https://omahaproxy.appspot.com/all?os=linux'
-  reader = csv.DictReader(urllib2.urlopen(url))
-  channel_to_info_map = {}
-  for row in reader:
-    channel_to_info_map[row['channel']] = row
-  return channel_to_info_map
-
-
-def _UpdateChromiumLinuxBuilds(config):
-  omaha_info = _GetLinuxOmahaInfo()
-  for channel in _CHROMIUM_CHANNELS_TO_UPDATE:
-    if channel not in omaha_info:
-      raise ValueError(
-          'Omaha report did not contain linux information for channel %s'
-          % channel)
-
-    branch_base_position = int(omaha_info[channel]['branch_base_position'])
-    current_version = config.GetVersion(
-        'chromium_%s' % channel, _CHROMIUM_PLATFORM)
-    omaha_version =  omaha_info[channel]['current_version']
-    if current_version and current_version == omaha_version:
-      print 'Chromium %s channel is already up to date.' % channel
-      continue
-
-    # Look through chromium-browser-snapshots for closest match.
-    closest_snapshot = _FindClosestChromiumSnapshot(branch_base_position)
-    if closest_snapshot != branch_base_position:
-      print ('Channel %s corresponds to commit position ' % channel +
-             '%d on %s, ' % (branch_base_position, _CHROMIUM_PLATFORM) +
-             'but closest chromium snapshot available on ' +
-             '%s is %d' % (_CHROMIUM_GS_BUCKET, closest_snapshot))
-
-    remote_path = '%s/%s/%s' % (_CHROMIUM_GS_BUILD_DIR, closest_snapshot,
-                                _CHROMIUM_ZIP_NAME)
-    reference_builds_folder = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), 'chrome_telemetry_build',
-        'reference_builds', 'chromium_' + channel)
-    if not os.path.exists(reference_builds_folder):
-      os.makedirs(reference_builds_folder)
-    local_path = os.path.join(reference_builds_folder, _CHROMIUM_ZIP_NAME)
-
-    print 'Downloading Chromium at %d on linux_x86_64' % (closest_snapshot)
-    cloud_storage.Get(_CHROMIUM_GS_BUCKET, remote_path, local_path)
-    config.AddCloudStorageDependencyUpdateJob(
-        'chromium_%s' % channel, 'linux_x86_64', local_path,
-        version=omaha_version, execute_job=False)
-
-
-def UpdateBuilds(args):
+def UpdateBuilds():
   config = base_config.BaseConfig(_CHROME_BINARIES_CONFIG, writable=True)
-  if args.update_chrome:
-    logging.info("Preparing updates for chrome builds.")
-    for channel in _CHANNELS_TO_UPDATE:
-      channel_versions_map = _ChannelVersionsMap(channel)
-      for platform in channel_versions_map:
-        print 'Downloading Chrome (%s channel) on %s' % (channel, platform)
-        current_version = config.GetVersion('chrome_%s' % channel, platform)
-        channel_version =  channel_versions_map.get(platform)
-        print 'current: %s, channel: %s' % (current_version, channel_version)
-        if current_version and current_version == channel_version:
-          continue
-        _QueuePlatformUpdate(platform, channel_version, config, channel)
-  if args.update_chromium:
-    logging.info("Preparing updates for chromium builds.")
-    _UpdateChromiumLinuxBuilds(config)
+  for channel in _CHANNELS_TO_UPDATE:
+    channel_versions_map = _ChannelVersionsMap(channel)
+    for platform in channel_versions_map:
+      print 'Downloading Chrome (%s channel) on %s' % (channel, platform)
+      current_version = config.GetVersion('chrome_%s' % channel, platform)
+      channel_version =  channel_versions_map.get(platform)
+      print 'current: %s, channel: %s' % (current_version, channel_version)
+      if current_version and current_version == channel_version:
+        continue
+      _QueuePlatformUpdate(platform, channel_version, config, channel)
+
+  print 'Updating chrome builds with downloaded binaries'
   config.ExecuteUpdateJobs(force=True)
 
 
 def main():
   logging.getLogger().setLevel(logging.DEBUG)
-  parser = argparse.ArgumentParser(
-      description='Update reference binaries used by perf bots.')
-  parser.add_argument('--no-update-chrome', action='store_false',
-                      dest='update_chrome', default=True,
-                      help='do not update chrome binaries')
-  parser.add_argument('--no-update-chromium', action='store_false',
-                      dest='update_chromium', default=True,
-                      help='do not update chromium binaries')
-  args = parser.parse_args()
-  UpdateBuilds(args)
+  UpdateBuilds()
 
 if __name__ == '__main__':
   main()

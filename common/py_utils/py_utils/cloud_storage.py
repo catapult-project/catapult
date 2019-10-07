@@ -198,37 +198,6 @@ def List(bucket):
   return [url[len(query):] for url in stdout.splitlines()]
 
 
-def ListDirs(bucket, path=''):
-  """Returns only directories matching the given path in bucket.
-
-  Args:
-    bucket: Name of cloud storage bucket to look at.
-    path: Path within the bucket to filter to. Path can include wildcards.
-      path = 'foo*' will return ['mybucket/foo1/', 'mybucket/foo2/, ... ] but
-      not mybucket/foo1/file.txt or mybucket/foo-file.txt.
-
-  Returns:
-    A list of directories. All returned path are relative to the bucket root
-    directory. For example, List('my-bucket', path='foo/') will returns results
-    of the form ['/foo/123', '/foo/124', ...], as opposed to ['123', '124',
-    ...].
-  """
-  bucket_prefix = 'gs://%s' % bucket
-  full_path = '%s/%s' % (bucket_prefix, path)
-  # Note that -d only ensures we don't recurse into subdirectories
-  # unnecessarily. It still lists all non directory files matching the path
-  # following by a blank line. Adding -d here is a performance optimization.
-  stdout = _RunCommand(['ls', '-d', full_path])
-  dirs = []
-  for url in stdout.splitlines():
-    if len(url) == 0:
-      continue
-    # The only way to identify directories is by filtering for trailing slash.
-    # See https://github.com/GoogleCloudPlatform/gsutil/issues/466
-    if url[-1] == '/':
-      dirs.append(url[len(bucket_prefix):])
-  return dirs
-
 def Exists(bucket, remote_path):
   try:
     _RunCommand(['ls', 'gs://%s/%s' % (bucket, remote_path)])
