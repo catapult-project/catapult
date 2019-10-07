@@ -20,6 +20,28 @@ import unittest
 from typ import artifacts
 
 
+class _FakeFileManager(object):
+    def __init__(self, disc):
+        self.disc = disc
+
+    def open(self, path, _):
+        self.path = path
+        self.disc[path] = ''
+        return self
+
+    def exists(self, path):
+        return  path in self.disc
+
+    def write(self, content):
+        self.disc[self.path] += content
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        pass
+
+
 class ArtifactsArtifactCreationTests(unittest.TestCase):
 
   def _VerifyPathAndContents(
@@ -105,6 +127,25 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
           intial_results_base_dir=True)
     finally:
       shutil.rmtree(tempdir)
+
+  def test_file_manager_writes_file(self):
+    disc = {}
+    ar = artifacts.Artifacts('tmp', iteration=0, file_manager=_FakeFileManager(disc))
+    file_path = os.path.join('failures', 'stderr.txt')
+    with ar.CreateArtifact('artifact_name', file_path) as f:
+      f.write('hello world')
+    self.assertEqual(disc, {os.path.join('tmp', file_path): 'hello world'})
+
+  def test_finds_duplicates_in_file_manager_(self):
+    disc = {}
+    ar = artifacts.Artifacts('tmp', iteration=0, file_manager=_FakeFileManager(disc))
+    file_path = os.path.join('failures', 'stderr.txt')
+    with ar.CreateArtifact('artifact1', file_path) as f:
+      f.write('hello world')
+    with self.assertRaises(ValueError) as ve:
+      with ar.CreateArtifact('artifact2', file_path) as f:
+        f.write('Goodbye world')
+    self.assertIn('already exists', str(ve.exception))
 
 
 class ArtifactsLinkCreationTests(unittest.TestCase):
