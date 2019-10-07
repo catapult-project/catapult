@@ -101,7 +101,8 @@ _CATAPULT_TESTS = [
         'path': 'catapult_build/fetch_telemetry_deps_and_run_tests',
         'additional_args': [
             '--browser=reference',
-            '--start-xvfb'
+            '--start-xvfb',
+            '-v',
         ],
         'uses_sandbox_env': True,
         'disabled': ['android'],
@@ -112,7 +113,8 @@ _CATAPULT_TESTS = [
         'additional_args': [
             '--browser=reference',
             '--device=android',
-            '--jobs=1'
+            '--jobs=1',
+            '-v',
         ],
         'uses_sandbox_env': True,
         'disabled': ['win', 'mac', 'linux']
@@ -123,6 +125,7 @@ _CATAPULT_TESTS = [
         'additional_args': [
             'BrowserTest',
             '--browser=reference',
+            '-v',
         ],
         'uses_sandbox_env': True,
         'disabled': ['android', 'linux'],  # TODO(nedn): enable this on linux

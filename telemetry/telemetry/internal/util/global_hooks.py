@@ -3,9 +3,7 @@
 # found in the LICENSE file.
 
 """Hooks that apply globally to all scripts that import or use Telemetry."""
-import logging
 import signal
-import subprocess
 import sys
 
 from telemetry.internal.util import exception_formatter
@@ -40,23 +38,3 @@ def InstallTerminationHook():
     exception_formatter.PrintFormattedFrame(stack_frame, exception_string)
     sys.exit(-1)
   signal.signal(signal.SIGTERM, PrintStackAndExit)
-
-
-def InstallSpyOnPopenArgs():
-  subprocess.Popen = _PatchedPopen
-
-
-def _SpyPopenArgs(*args, **kwargs):
-  if 'args' in kwargs:
-    cmd = kwargs['args']
-  elif args:
-    cmd = args[0]
-  else:
-    cmd = None
-  logging.debug(repr(cmd))
-
-
-class _PatchedPopen(subprocess.Popen):
-  def __init__(self, *args, **kwargs):
-    _SpyPopenArgs(*args, **kwargs)
-    super(_PatchedPopen, self).__init__(*args, **kwargs)
