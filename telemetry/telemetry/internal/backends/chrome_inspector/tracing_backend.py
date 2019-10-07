@@ -104,25 +104,33 @@ class TracingBackend(object):
 
   _TRACING_DOMAIN = 'Tracing'
 
-  def __init__(self, inspector_socket, config=None):
+  def __init__(self, inspector_socket, startup_tracing_config=None):
     self._inspector_websocket = inspector_socket
     self._inspector_websocket.RegisterDomain(
         self._TRACING_DOMAIN, self._NotificationHandler)
-    # If we have a config at this point it means that startup tracing has
-    # already started.
-    self._is_tracing_running = config is not None
-    self._trace_format = None
-    if self._is_tracing_running:
-      self._trace_format = config.chrome_trace_config.trace_format
-    self._start_issued = False
+    self._is_tracing_running = False
     self._can_collect_data = False
     self._has_received_all_tracing_data = False
     self._trace_data_builder = None
     self._data_loss_occurred = False
+    if startup_tracing_config is not None:
+      self._TakeOwnershipOfTracingSession(startup_tracing_config)
 
   @property
   def is_tracing_running(self):
     return self._is_tracing_running
+
+  def _TakeOwnershipOfTracingSession(self, config):
+    # Startup tracing should already be running, but we still need to send a
+    # Tracing.start command for DevTools to become owner of the tracing session
+    # and to update the transfer settings.
+    # This also ensures that tracing data from early startup is flushed to the
+    # tracing service before the thread-local buffers for startup tracing are
+    # exhausted (crbug.com/914092).
+    req = _MakeTracingStartRequest(
+        trace_format=config.chrome_trace_config.trace_format)
+    self._inspector_websocket.SendAndIgnoreResponse(req)
+    self._is_tracing_running = True
 
   def StartTracing(self, chrome_trace_config, timeout=20):
     """When first called, starts tracing, and returns True.
@@ -153,7 +161,6 @@ class TracingBackend(object):
           'Tracing.start:\n' + json.dumps(response, indent=2))
 
     self._is_tracing_running = True
-    self._start_issued = True
     return True
 
   def RecordClockSyncMarker(self, sync_id):
@@ -177,12 +184,6 @@ class TracingBackend(object):
     if not self.is_tracing_running:
       raise TracingHasNotRunException()
     else:
-      if not self._start_issued:
-        # Tracing is running but start was not issued so, startup tracing must
-        # be in effect. Issue another Tracing.start to update the transfer mode.
-        req = _MakeTracingStartRequest(trace_format=self._trace_format)
-        self._inspector_websocket.SendAndIgnoreResponse(req)
-
       req = {'method': 'Tracing.end'}
       response = self._inspector_websocket.SyncRequest(req, timeout=2)
       if 'error' in response:
@@ -191,7 +192,6 @@ class TracingBackend(object):
             'Tracing.end:\n' + json.dumps(response, indent=2))
 
     self._is_tracing_running = False
-    self._start_issued = False
     self._can_collect_data = True
 
   def DumpMemory(self, timeout=None):
