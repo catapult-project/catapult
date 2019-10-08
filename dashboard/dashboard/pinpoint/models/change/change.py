@@ -250,7 +250,7 @@ def _FindMidpoints(commits_a, commits_b):
 
     commit_midpoint = commit_module.Commit.Midpoint(commit_a, commit_b)
     commits_midpoint.append(commit_midpoint)
-    if commit_a == commit_midpoint != commit_b:
+    if commit_a == commit_midpoint and commit_midpoint != commit_b:
       # Commits are adjacent.
       # Add any DEPS changes to the commit lists.
       deps_a = commit_a.Deps()

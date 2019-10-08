@@ -54,6 +54,10 @@ def ParseDateWithUTCOffset(date_string):
 class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
   """A git repository pinned to a particular commit."""
 
+  def __init__(self, *args, **kwargs):
+    super(Commit, self).__init__(*args, **kwargs)
+    self._repository_url = None
+
   def __str__(self):
     """Returns an informal short string representation of this Commit."""
     return self.repository + '@' + self.git_hash[:7]
@@ -66,7 +70,10 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
   @property
   def repository_url(self):
     """The HTTPS URL of the repository as passed to `git clone`."""
-    return repository_module.RepositoryUrl(self.repository)
+    cached_url = getattr(self, '_repository_url', None)
+    if not cached_url:
+      self._repository_url = repository_module.RepositoryUrl(self.repository)
+    return self._repository_url
 
   def Deps(self):
     """Return the DEPS of this Commit.
@@ -162,7 +169,9 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     """
     repository = repository_module.RepositoryName(
         dep.repository_url, add_if_missing=True)
-    return cls(repository, dep.git_hash)
+    commit = cls(repository, dep.git_hash)
+    commit._repository_url = dep.repository_url
+    return commit
 
   @classmethod
   def FromData(cls, data):
@@ -218,12 +227,19 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     try:
       # If they send in something like HEAD, resolve to a hash.
       repository_url = repository_module.RepositoryUrl(repository)
-      result = gitiles_service.CommitInfo(repository_url, git_hash)
-      git_hash = result['commit']
+
+      try:
+        # If it's already in the hash, then we've resolved this recently, and we
+        # don't go resolving the data from the gitiles service.
+        result = commit_cache.Get(git_hash)
+      except KeyError:
+        result = gitiles_service.CommitInfo(repository_url, git_hash)
+        git_hash = result['commit']
     except gitiles_service.NotFoundError as e:
       raise KeyError(str(e))
 
     commit = cls(repository, git_hash)
+    commit._repository_url = repository_url
 
     return commit
 
