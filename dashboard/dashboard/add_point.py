@@ -18,6 +18,7 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard import post_data_handler
+from dashboard.api import api_auth
 from dashboard.common import datastore_hooks
 from dashboard.common import histogram_helpers
 from dashboard.common import math_utils
@@ -125,7 +126,14 @@ class AddPointHandler(post_data_handler.PostDataHandler):
     """
     datastore_hooks.SetPrivilegedRequest()
     if not self._CheckIpAgainstWhitelist():
-      return
+      try:
+        api_auth.Authorize()
+      except api_auth.ApiAuthException as error:
+        logging.error('Auth error: %s', error)
+        self.ReportError(
+            'IP address %s not in IP whitelist!' % self.request.remote_addr,
+            403)
+        return
 
     data_str = self.request.get('data')
     if not data_str:
