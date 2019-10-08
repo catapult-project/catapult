@@ -100,7 +100,7 @@ class StoryRunTest(unittest.TestCase):
                   'isExpected': True,
                   'startTime': '2009-02-13T23:31:30.987000Z',
                   'runDuration': '10.00s',
-                  'artifacts': {
+                  'outputArtifacts': {
                       'logs.txt' : {
                           'filePath': mock.ANY,
                           'contentType': 'text/plain'
@@ -116,7 +116,7 @@ class StoryRunTest(unittest.TestCase):
       )
       # Log file is in the {intermediate_dir}/ directory, and file name
       # extension is preserved.
-      logs_file = entry['testResult']['artifacts']['logs.txt']['filePath']
+      logs_file = entry['testResult']['outputArtifacts']['logs.txt']['filePath']
       intermediate_dir = os.path.join(tempdir, '')
       self.assertTrue(logs_file.startswith(intermediate_dir))
       self.assertTrue(logs_file.endswith('.txt'))

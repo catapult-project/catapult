@@ -1358,9 +1358,9 @@ class RunBenchmarkTest(unittest.TestCase):
     # First story failed.
     self.assertEqual(results[0]['testPath'], 'fake_benchmark/story1')
     self.assertEqual(results[0]['status'], 'FAIL')
-    self.assertIn('logs.txt', results[0]['artifacts'])
+    self.assertIn('logs.txt', results[0]['outputArtifacts'])
 
-    with open(results[0]['artifacts']['logs.txt']['filePath']) as f:
+    with open(results[0]['outputArtifacts']['logs.txt']['filePath']) as f:
       test_log = f.read()
 
     # Ensure that the log contains warning messages and python stack.
@@ -1391,9 +1391,9 @@ class RunBenchmarkTest(unittest.TestCase):
     # First story failed.
     self.assertEqual(results[0]['testPath'], 'fake_benchmark/story1')
     self.assertEqual(results[0]['status'], 'FAIL')
-    self.assertIn('logs.txt', results[0]['artifacts'])
+    self.assertIn('logs.txt', results[0]['outputArtifacts'])
 
-    with open(results[0]['artifacts']['logs.txt']['filePath']) as f:
+    with open(results[0]['outputArtifacts']['logs.txt']['filePath']) as f:
       test_log = f.read()
 
     # Ensure that the log contains warning messages and python stack.

@@ -181,7 +181,7 @@ class StoryRun(object):
             'isExpected': self.is_expected,
             'startTime': self.start_datetime.isoformat() + 'Z',
             'runDuration': _FormatDuration(self.duration),
-            'artifacts': {
+            'outputArtifacts': {
                 name: artifact.AsDict()
                 for name, artifact in self._artifacts.items()
             },
