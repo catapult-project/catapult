@@ -10,6 +10,8 @@ if unit tests are not running.
 This allows multiple unit tests to use a specific
 browser, in face of multiple options."""
 
+import os
+
 from telemetry.internal import story_runner
 from telemetry.testing import fakes
 
@@ -80,6 +82,8 @@ def GetRunOptions(output_dir=None, fake_browser=False, benchmark_cls=None,
   story_runner.ProcessCommandLineArgs(parser, options)
   options.suppress_gtest_report = True
   options.output_dir = output_dir
+  if output_dir is not None:
+    options.intermediate_dir = os.path.join(output_dir, 'artifacts')
   # TODO(crbug.com/928275): Remove these when Telemetry tests no longer
   # depend on any result processing options.
   options.output_formats = ['none']

@@ -1190,11 +1190,9 @@ class RunBenchmarkTest(unittest.TestCase):
     shutil.rmtree(self.output_dir)
 
   def GetFakeBrowserOptions(self, overrides=None):
-    options = options_for_unittests.GetRunOptions(
+    return options_for_unittests.GetRunOptions(
         output_dir=self.output_dir,
         fake_browser=True, overrides=overrides)
-    options.intermediate_dir = os.path.join(self.output_dir, 'artifacts')
-    return options
 
   def ReadIntermediateResults(self):
     results = {'benchmarkRun': {}, 'testResults': []}
