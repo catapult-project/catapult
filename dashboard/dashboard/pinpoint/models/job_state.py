@@ -9,7 +9,6 @@ from __future__ import absolute_import
 import collections
 import functools
 import httplib
-import itertools
 import logging
 
 from google.appengine.api import urlfetch_errors
@@ -349,15 +348,16 @@ class JobState(object):
     # NOTE: This is the alternative calculation which doesn't use the means
     # of the underlying result values, and consolidates all the samples
     # instead.
-    all_a_values = tuple(
-        v for results in itertools.chain(e.result_values
-                                         for e in executions_a
-                                         if e.result_values) for v in results)
-    all_b_values = tuple(
-        v for results in itertools.chain(e.result_values
-                                         for e in executions_b
-                                         if e.result_values) for v in results)
-    if hasattr(self, '_comparison_magnitude') and self._comparison_magnitude:
+    def AllValues(execution):
+      for e in execution:
+        if not e.result_values:
+          continue
+        for v in e.result_values:
+          yield v
+
+    all_a_values = tuple(AllValues(executions_a))
+    all_b_values = tuple(AllValues(executions_b))
+    if getattr(self, '_comparison_magnitude', None):
       alternative_max_iqr = max(
           max(math_utils.Iqr(all_a_values), math_utils.Iqr(all_b_values)),
           0.001)
