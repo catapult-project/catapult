@@ -58,7 +58,20 @@ class Benchmark(command_line.Command):
     #   Benchmark.test set.
     # See https://github.com/catapult-project/catapult/issues/3708
 
-  def _CanRunOnPlatform(self, platform, finder_options):
+  def CanRunOnPlatform(self, platform, finder_options):
+    """Figures out if the benchmark is meant to support this platform.
+
+    This is based on the SUPPORTED_PLATFORMS class member of the benchmark.
+
+    This method should not be overriden or called outside of the Telemetry
+    framework.
+
+    Note that finder_options object in practice sometimes is actually not
+    a BrowserFinderOptions object but a PossibleBrowser object.
+    The key is that it can be passed to ShouldDisable, which only uses
+    finder_options.browser_type, which is available on both PossibleBrowser
+    and BrowserFinderOptions.
+    """
     for p in self.SUPPORTED_PLATFORMS:
       # This is reusing StoryExpectation code, so it is a bit unintuitive. We
       # are trying to detect the opposite of the usual case in StoryExpectations

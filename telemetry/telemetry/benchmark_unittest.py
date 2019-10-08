@@ -219,7 +219,7 @@ class BenchmarkTest(unittest.TestCase):
         shared_state_class=shared_page_state.SharedPageState))
     # We can pass None for both arguments because it defaults to ALL for
     # supported platforms, which always returns true.
-    self.assertTrue(b._CanRunOnPlatform(None, None))
+    self.assertTrue(b.CanRunOnPlatform(None, None))
 
   def testCanRunOnPlatformReturnFalse(self):
     b = TestBenchmark(story_module.Story(
@@ -228,7 +228,7 @@ class BenchmarkTest(unittest.TestCase):
     b.SUPPORTED_PLATFORMS = [] # pylint: disable=invalid-name
     # We can pass None for both arguments because we select no platforms as
     # supported, which always returns false.
-    self.assertFalse(b._CanRunOnPlatform(None, None))
+    self.assertFalse(b.CanRunOnPlatform(None, None))
 
   def testAugmentExpectationsWithFileData(self):
     b = TestBenchmark(story_module.Story(
