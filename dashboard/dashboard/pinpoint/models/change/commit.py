@@ -241,6 +241,11 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     commit = cls(repository, git_hash)
     commit._repository_url = repository_url
 
+    # IF this is something like HEAD, cache this for a short time so that we
+    # avoid hammering gitiles.
+    if not gitiles_service.IsHash(data['git_hash']):
+      commit.CacheCommitInfo(result, memcache_timeout=30*60)
+
     return commit
 
   @classmethod
@@ -275,7 +280,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
           self.repository_url, self.git_hash)
       return self.CacheCommitInfo(commit_info)
 
-  def CacheCommitInfo(self, commit_info):
+  def CacheCommitInfo(self, commit_info, memcache_timeout=None):
     url = self.repository_url + '/+/' + commit_info['commit']
     author = commit_info['author']['email']
 
@@ -284,7 +289,9 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     subject = commit_info['message'].split('\n', 1)[0]
     message = commit_info['message']
 
-    commit_cache.Put(self.id_string, url, author, created, subject, message)
+    commit_cache.Put(
+        self.id_string, url, author, created, subject, message,
+        memcache_timeout=memcache_timeout)
 
     return {
         'url': url,

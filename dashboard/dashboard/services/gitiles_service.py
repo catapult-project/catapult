@@ -33,7 +33,7 @@ def CommitInfo(repository_url, git_hash):
   """
   # TODO: Update the docstrings in this file.
   url = '%s/+/%s?format=JSON' % (repository_url, git_hash)
-  return request.RequestJson(url, use_cache=_IsHash(git_hash), use_auth=True,
+  return request.RequestJson(url, use_cache=IsHash(git_hash), use_auth=True,
                              scope=gerrit_service.GERRIT_SCOPE)
 
 
@@ -60,7 +60,7 @@ def CommitRange(repository_url, first_git_hash, last_git_hash):
   while last_git_hash:
     url = '%s/+log/%s..%s?format=JSON' % (
         repository_url, first_git_hash, last_git_hash)
-    use_cache = _IsHash(first_git_hash) and _IsHash(last_git_hash)
+    use_cache = IsHash(first_git_hash) and IsHash(last_git_hash)
     response = request.RequestJson(url, use_cache=use_cache, use_auth=True,
                                    scope=gerrit_service.GERRIT_SCOPE)
     commits += response['log']
@@ -84,12 +84,12 @@ def FileContents(repository_url, git_hash, path):
     httplib.HTTPException: A network or HTTP error occurred.
   """
   url = '%s/+/%s/%s?format=TEXT' % (repository_url, git_hash, path)
-  response = request.Request(url, use_cache=_IsHash(git_hash), use_auth=True,
+  response = request.Request(url, use_cache=IsHash(git_hash), use_auth=True,
                              scope=gerrit_service.GERRIT_SCOPE)
   return base64.b64decode(response)
 
 
-def _IsHash(git_hash):
+def IsHash(git_hash):
   """Returns True iff git_hash is a full SHA-1 hash.
 
   Commits keyed by full git hashes are guaranteed to not change. It's unsafe

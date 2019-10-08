@@ -216,6 +216,31 @@ hooks = [
     expected = commit.Commit('chromium', 'git hash at HEAD')
     self.assertEqual(c, expected)
 
+  @mock.patch.object(commit.commit_cache, 'Put')
+  def testFromDict_SkipsCache(self, mock_put):
+    git_hash = 'ABCDEABCDEABCDEABCDEABCDEABCDEABCDEABCDE'
+    c = commit.Commit.FromDict({
+        'repository': test.CHROMIUM_URL,
+        'git_hash': git_hash,
+    })
+    e = commit.Commit(repository='chromium', git_hash=git_hash)
+    self.assertEqual(c, e)
+    self.assertFalse(mock_put.called)
+
+  @mock.patch.object(commit.commit_cache, 'Put')
+  def testFromDict_Caches(self, mock_put):
+    c = commit.Commit.FromDict({
+        'repository': test.CHROMIUM_URL,
+        'git_hash': 'HEAD',
+    })
+
+    expected = commit.Commit('chromium', 'git hash at HEAD')
+    self.assertEqual(c, expected)
+
+    mock_put.assert_called_once_with(
+        expected.id_string, mock.ANY, mock.ANY, mock.ANY, mock.ANY, mock.ANY,
+        memcache_timeout=1800)
+
   def testFromDictFailureFromUnknownRepo(self):
     with self.assertRaises(KeyError):
       commit.Commit.FromDict({
