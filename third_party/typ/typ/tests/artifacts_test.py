@@ -32,8 +32,14 @@ class _FakeFileManager(object):
     def exists(self, path):
         return  path in self.disc
 
+    def join(self, *parts):
+        return os.path.join(*parts)
+
     def write(self, content):
         self.disc[self.path] += content
+
+    def maybe_make_directory(self, *path):
+      pass
 
     def __enter__(self):
         return self
@@ -96,7 +102,7 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
     finally:
       shutil.rmtree(tempdir)
 
-  def test_create_artifact_overwriting_artifact_raises_value_error(self):
+  def test_overwriting_artifact_raises_value_error(self):
     """Tests CreateArtifact will write to disk at the correct location."""
     tempdir = tempfile.mkdtemp()
     try:
@@ -110,6 +116,23 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
           with ar.CreateArtifact('artifact_name', file_rel_path) as f:
               f.write(b'contents')
       self.assertIn('already exists.', str(ve.exception))
+    finally:
+      shutil.rmtree(tempdir)
+
+  def test_force_overwriting_artifact_does_not_raise_error(self):
+    """Tests CreateArtifact will write to disk at the correct location."""
+    tempdir = tempfile.mkdtemp()
+    try:
+      ar = artifacts.Artifacts(tempdir, iteration=1, test_name='a.b.c')
+      file_rel_path = os.path.join('stdout', 'text.txt')
+      with ar.CreateArtifact('artifact_name', file_rel_path) as f:
+        f.write(b'contents')
+      with ar.CreateArtifact(
+              'artifact_name', file_rel_path, force_overwrite=True) as f:
+        f.write(b'overwritten contents')
+      self._VerifyPathAndContents(
+        tempdir, file_rel_path, b'overwritten contents', iteration=1,
+        test_base_dir='a.b.c')
     finally:
       shutil.rmtree(tempdir)
 
