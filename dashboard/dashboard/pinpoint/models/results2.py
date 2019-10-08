@@ -116,7 +116,7 @@ def _FetchHistograms(job):
     for attempt in job.state._attempts[change]:
       for execution in attempt.executions:
         if isinstance(
-            execution, read_value._ReadHistogramsJsonValueExecution):
+            execution, read_value.ReadHistogramsJsonValueExecution):
           # The histogram sets are very big. Since we have limited
           # memory, delete the histogram sets as we go along.
           histogram_set = _JsonFromExecution(execution)
@@ -124,7 +124,7 @@ def _FetchHistograms(job):
             yield histogram
           del histogram_set
         elif isinstance(
-            execution, read_value._ReadGraphJsonValueExecution):
+            execution, read_value.ReadGraphJsonValueExecution):
           graphjson_results = _JsonFromExecution(execution)
           hs = gtest_json_converter.ConvertGtestJson(graphjson_results)
           hs.AddSharedDiagnosticToAllHistograms(
@@ -163,5 +163,5 @@ def _JsonFromExecution(execution):
   else:
     results_filename = 'chartjson-output.json'
 
-  return read_value._RetrieveOutputJson(
+  return read_value.RetrieveOutputJson(
       isolate_server, isolate_hash, results_filename)
