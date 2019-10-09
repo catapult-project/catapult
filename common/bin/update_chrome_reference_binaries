@@ -28,10 +28,6 @@ from py_utils import cloud_storage
 from dependency_manager import base_config
 
 
-def BuildNotFoundError(error_string):
-  raise ValueError(error_string)
-
-
 _CHROME_BINARIES_CONFIG = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '..', '..', 'common',
     'py_utils', 'py_utils', 'chrome_binaries.json')
@@ -151,9 +147,10 @@ def _QueuePlatformUpdate(platform, version, config, channel):
       platform_info.gs_folder, version, platform_info.gs_build, filename)
   if not cloud_storage.Exists(CHROME_GS_BUCKET, remote_path):
     cloud_storage_path = 'gs://%s/%s' % (CHROME_GS_BUCKET, remote_path)
-    raise BuildNotFoundError(
-        'Failed to find %s build for version %s at path %s.' % (
-            platform, version, cloud_storage_path))
+    logging.warn('Failed to find %s build for version %s at path %s.' % (
+        platform, version, cloud_storage_path))
+    logging.warn('Skipping this update for this platform/channel.')
+    return
   reference_builds_folder = os.path.join(
       os.path.dirname(os.path.abspath(__file__)), 'chrome_telemetry_build',
       'reference_builds', channel)
