@@ -196,11 +196,11 @@ def _results_for_test(test_name, results):
             value['expected'] = ' '.join(sorted(r.expected))
 
             # Handle artifacts
-            if not r.artifacts or not r.artifacts.artifacts:
+            if not r.artifacts:
                 continue
             if 'artifacts' not in value:
                 value['artifacts'] = {}
-            for artifact_name, artifacts in r.artifacts.artifacts.items():
+            for artifact_name, artifacts in r.artifacts.items():
                 value['artifacts'].setdefault(artifact_name, []).extend(artifacts)
 
     if not actuals:  # pragma: untested

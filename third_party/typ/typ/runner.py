@@ -1046,7 +1046,7 @@ def _run_one_test(child, test_input):
                        err=err, pid=pid), False)
 
     art = artifacts.Artifacts(
-        child.artifact_output_dir, test_input.iteration, test_name)
+        child.artifact_output_dir, h, test_input.iteration, test_name)
 
     test_case = tests[0]
     if isinstance(test_case, TypTestCase):
@@ -1071,7 +1071,7 @@ def _run_one_test(child, test_input):
     return (_result_from_test_result(test_result, test_name, started, took, out,
                                     err, child.worker_num, pid,
                                     expected_results, child.has_expectations,
-                                    art),
+                                    art.artifacts),
             should_retry_on_failure)
 
 

@@ -129,7 +129,7 @@ class Host(object):
     def join(self, *comps):
         return os.path.join(*comps)
 
-    def maybe_mkdir(self, *comps):
+    def maybe_make_directory(self, *comps):
         path = self.abspath(self.join(*comps))
         if not self.exists(path):
             os.makedirs(path)

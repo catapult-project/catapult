@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import contextlib
 import os
 import sys
 
@@ -21,28 +20,11 @@ if sys.version_info.major == 2:
 else:
   import urllib.parse as urlparse
 
-class FileManager(object):
-
-  def open(self, abspath, mode):
-    if not os.path.exists(os.path.dirname(abspath)):
-      os.makedirs(os.path.dirname(abspath))
-    return file(abspath, mode)
-
-  def exists(self, abspath):
-    return os.path.exists(abspath)
-
-  def join(self, *parts):
-    return os.path.join(*parts)
-
-  def maybe_make_directory(self, *parts):
-    if not self.exists(self.join(*parts)):
-        os.makedirs(*parts)
-
+from typ.host import Host
 
 class Artifacts(object):
-  def __init__(self, output_dir, iteration=0, test_name='',
-               intial_results_base_dir=False, repeat_tests=False,
-               file_manager=FileManager()):
+  def __init__(self, output_dir, host, iteration=0, test_name='',
+               intial_results_base_dir=False, repeat_tests=False):
     """Creates an artifact results object.
 
     This provides a way for tests to write arbitrary files to disk, either to
@@ -78,7 +60,7 @@ class Artifacts(object):
       repeat_tests: Flag to signal that tests are repeated and therefore the verification to prevent
           overwriting of artifacts should be skipped
       file_manager: File manager object which is supplied by the test runner. The object needs to support
-          the exists, open, maybe_make_directory and join member functions.
+          the exists, open, maybe_make_directory, dirname and join member functions.
     """
     self._output_dir = output_dir
     self._iteration = iteration
@@ -89,21 +71,28 @@ class Artifacts(object):
     self._artifact_set = set()
     self._intial_results_base_dir = intial_results_base_dir
     self._repeat_tests = repeat_tests
-    self._file_manager = file_manager
+    self._host = host
 
-  def artifacts_sub_directory(self):
+  def ArtifactsSubDirectory(self):
     sub_dir = self._test_base_dir
     if self._iteration:
-        sub_dir = self._file_manager.join(sub_dir, 'retry_%d' % self._iteration)
+        sub_dir = self._host.join(sub_dir, 'retry_%d' % self._iteration)
     elif self._intial_results_base_dir:
-        sub_dir = self._file_manager.join(sub_dir, 'initial')
+        sub_dir = self._host.join(sub_dir, 'initial')
     return sub_dir
 
-  def AddArtifact(self, artifact_name, path):
+  def AddArtifact(self, artifact_name, path, raise_exception_for_duplicates=True):
+    if path in self.artifacts.get(artifact_name, []):
+        if not self._repeat_tests and raise_exception_for_duplicates:
+            raise ValueError('%s already exists in artifacts list for %s.' % (
+                path, artifact_name))
+        else:
+            return
     self.artifacts.setdefault(artifact_name, []).append(path)
 
-  @contextlib.contextmanager
-  def CreateArtifact(self, artifact_name, file_relative_path, force_overwrite=False):
+  def CreateArtifact(
+    self, artifact_name, file_relative_path, data, force_overwrite=False,
+    write_as_text=False):
     """Creates an artifact and yields a handle to its File object.
 
     Args:
@@ -111,21 +100,22 @@ class Artifacts(object):
           "reftest_mismatch_actual" or "screenshot".
     """
     self._AssertOutputDir()
-    file_relative_path = self._file_manager.join(
-        self.artifacts_sub_directory(), file_relative_path)
-    abs_artifact_path = self._file_manager.join(self._output_dir, file_relative_path)
+    file_relative_path = self._host.join(
+        self.ArtifactsSubDirectory(), file_relative_path)
+    abs_artifact_path = self._host.join(self._output_dir, file_relative_path)
 
     if (not self._repeat_tests and
-            not force_overwrite and self._file_manager.exists(abs_artifact_path)):
+            not force_overwrite and self._host.exists(abs_artifact_path)):
         raise ValueError('%s already exists.' % abs_artifact_path)
 
-    self._file_manager.maybe_make_directory(os.path.dirname(abs_artifact_path))
+    self._host.maybe_make_directory(self._host.dirname(abs_artifact_path))
 
     if file_relative_path not in self.artifacts.get(artifact_name, []):
         self.AddArtifact(artifact_name, file_relative_path)
-
-    with self._file_manager.open(abs_artifact_path, 'wb') as f:
-        yield f
+    if write_as_text:
+        self._host.write_text_file(abs_artifact_path, data)
+    else:
+        self._host.write_binary_file(abs_artifact_path, data)
 
   def CreateLink(self, artifact_name, path):
     """Creates a special link/URL artifact.
