@@ -80,6 +80,7 @@ LEGACY_UNIT_INFO = {
     'mips': LegacyUnit('unitless', IMPROVEMENT_DIRECTION_BIGGER_IS_BETTER),
     'mpixels_sec': LegacyUnit('unitless',
                               IMPROVEMENT_DIRECTION_BIGGER_IS_BETTER),
+    'ms': LegacyUnit('ms', IMPROVEMENT_DIRECTION_SMALLER_IS_BETTER),
     'mtri_sec': LegacyUnit('unitless', IMPROVEMENT_DIRECTION_BIGGER_IS_BETTER),
     'mvtx_sec': LegacyUnit('unitless', IMPROVEMENT_DIRECTION_BIGGER_IS_BETTER),
     'objects (bigger is better)': LegacyUnit(
