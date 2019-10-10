@@ -109,13 +109,17 @@ def GetLocalChromePath(path_from_command_line):
 
 
 def Main(argv):
+  tmpdir = None
+  xvfb_process = None
   try:
     parser = argparse.ArgumentParser(
         description='Run dev_server tests for a project.')
     parser.add_argument('--chrome_path', type=str,
                         help='Path to Chrome browser binary.')
     parser.add_argument('--no-use-local-chrome',
-                        dest='use_local_chrome', action='store_false')
+                        dest='use_local_chrome', action='store_false',
+                        help='Use chrome binary fetched from cloud storage '
+                        'instead of chrome available on the system.')
     parser.add_argument(
         '--no-install-hooks', dest='install_hooks', action='store_false')
     parser.add_argument('--tests', type=str,
@@ -132,8 +136,6 @@ def Main(argv):
       install.InstallHooks()
 
     user_data_dir = tempfile.mkdtemp()
-    tmpdir = None
-    xvfb_process = None
 
     server_path = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), os.pardir, 'bin', 'run_dev_server')
@@ -166,15 +168,15 @@ def Main(argv):
       channel = args.channel
       if sys.platform == 'linux2' and channel == 'canary':
         channel = 'dev'
-      # TODO(crbug.com/973847): chrome_m72 is needed as a hack here.
-      assert channel in ['stable', 'beta', 'dev', 'canary', 'm72']
+      assert channel in ['stable', 'beta', 'dev', 'canary']
 
-      print 'Fetching the %s chrome binary via the binary_manager.' % channel
+      # Using chromium instead of chrome because of https://crbug.com/973847.
+      print 'Fetching the %s chromium binary via the binary_manager.' % channel
       chrome_manager = binary_manager.BinaryManager([CHROME_BINARIES_CONFIG])
       arch, os_name = dependency_util.GetOSAndArchForCurrentDesktopPlatform()
       chrome_path, version = chrome_manager.FetchPathWithVersion(
-          'chrome_%s' % channel, arch, os_name)
-      print 'Finished fetching the chrome binary to %s' % chrome_path
+          'chromium_%s' % channel, arch, os_name)
+      print 'Finished fetching the chromium binary to %s' % chrome_path
       if xvfb.ShouldStartXvfb():
         print 'Starting xvfb...'
         xvfb_process = xvfb.StartXvfb()
