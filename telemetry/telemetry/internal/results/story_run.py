@@ -197,6 +197,8 @@ class StoryRun(object):
       yield 'tbmv2', metric
     if 'GTEST_SHARD_INDEX' in os.environ:
       yield 'shard', os.environ['GTEST_SHARD_INDEX']
+    for tag in self.story.GetStoryTagsList():
+      yield 'story_tag', tag
 
   @property
   def story(self):

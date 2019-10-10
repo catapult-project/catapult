@@ -22,8 +22,8 @@ def _abs_join(*args):
   return ROOT_CHAR + os.path.join(*args)
 
 
-def TestStory(name):
-  return story_module.Story(shared_state.SharedState, name=name)
+def TestStory(name, **kwargs):
+  return story_module.Story(shared_state.SharedState, name=name, **kwargs)
 
 
 class StoryRunTest(unittest.TestCase):
@@ -84,7 +84,8 @@ class StoryRunTest(unittest.TestCase):
                                     1234567900.987]
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
       run = story_run.StoryRun(
-          story=TestStory(name='http://example.com'), test_prefix='benchmark',
+          story=TestStory(name='http://example.com', tags=['tag1', 'tag2']),
+          test_prefix='benchmark',
           intermediate_dir=tempdir)
       with run.CreateArtifact('logs.txt') as log_file:
         log_file.write('hello\n')
@@ -109,7 +110,9 @@ class StoryRunTest(unittest.TestCase):
                   'tags': [
                       {'key': 'tbmv2', 'value': 'metric1'},
                       {'key': 'tbmv2', 'value': 'metric2'},
-                      {'key': 'shard', 'value': '7'}
+                      {'key': 'shard', 'value': '7'},
+                      {'key': 'story_tag', 'value': 'tag1'},
+                      {'key': 'story_tag', 'value': 'tag2'},
                   ],
               }
           }
