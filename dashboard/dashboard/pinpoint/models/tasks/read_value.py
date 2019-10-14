@@ -23,10 +23,11 @@ from tracing.value import histogram_set
 HistogramOptions = collections.namedtuple('HistogramOptions',
                                           ('tir_label', 'story', 'statistic'))
 
-GraphJsonOptions = collections.namedtuple('GraphJsonOptions', ('trace'))
+GraphJsonOptions = collections.namedtuple('GraphJsonOptions',
+                                          ('chart', 'trace'))
 
 TaskOptions = collections.namedtuple(
-    'TaskOptions', ('test_options', 'benchmark', 'chart', 'histogram_options',
+    'TaskOptions', ('test_options', 'benchmark', 'histogram_options',
                     'graph_json_options', 'mode'))
 
 
@@ -175,7 +176,7 @@ def CreateGraph(options):
       change_id = find_isolate.ChangeId(
           options.test_options.build_options.change)
       read_value_id = 'read_value_%s_%s' % (change_id, attempt)
-      run_test_id = 'run_test_%s_%s' % (change_id, attempt)
+      run_test_id = run_test.TaskId(change_id, attempt)
       yield (task_module.TaskVertex(
           id=read_value_id,
           vertex_type='read_value',
@@ -189,9 +190,10 @@ def CreateGraph(options):
                   'statistic': options.histogram_options.statistic,
               },
               'graph_json_options': {
-                  'chart': options.chart,
+                  'chart': options.graph_json_options.chart,
                   'trace': options.graph_json_options.trace
-              }
+              },
+              'change': options.test_options.build_options.change.AsDict(),
           }), task_module.Dependency(from_=read_value_id, to=run_test_id))
 
   for vertex, edge in GenerateVertexAndDep(options.test_options.attempts):

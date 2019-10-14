@@ -300,6 +300,10 @@ class Validator(evaluators.FilteringEvaluator):
         predicate=evaluators.TaskTypeEq('run_test'), delegate=ReportError)
 
 
+def TaskId(change, attempt):
+  return 'run_test_%s_%s' % (change, attempt)
+
+
 TaskOptions = collections.namedtuple('TaskOptions',
                                      ('build_options', 'swarming_server',
                                       'dimensions', 'extra_args', 'attempts'))
@@ -316,8 +320,8 @@ def CreateGraph(options):
   find_isolate_task = find_isolate_tasks[0]
   subgraph.vertices.extend([
       task_module.TaskVertex(
-          id='run_test_%s_%s' %
-          (find_isolate.ChangeId(options.build_options.change), attempt),
+          id=TaskId(
+              find_isolate.ChangeId(options.build_options.change), attempt),
           vertex_type='run_test',
           payload={
               'swarming_server': options.swarming_server,

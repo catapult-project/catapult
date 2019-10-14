@@ -79,13 +79,13 @@ class EvaluatorTest(test.TestCase):
                     extra_args=[],
                     attempts=10),
                 benchmark=benchmark,
-                chart=chart,
                 histogram_options=read_value.HistogramOptions(
                     tir_label=tir_label,
                     story=story,
                     statistic=statistic,
                 ),
-                graph_json_options=read_value.GraphJsonOptions(trace=trace),
+                graph_json_options=read_value.GraphJsonOptions(
+                    chart=chart, trace=trace),
                 mode=mode,
             )))
 
@@ -125,6 +125,7 @@ class EvaluatorTest(test.TestCase):
         {
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark': 'some_benchmark',
+                'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
@@ -177,6 +178,7 @@ class EvaluatorTest(test.TestCase):
         {
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark': 'some_benchmark',
+                'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
@@ -228,6 +230,7 @@ class EvaluatorTest(test.TestCase):
         {
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark': 'some_benchmark',
+                'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
@@ -286,6 +289,7 @@ class EvaluatorTest(test.TestCase):
         {
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark': 'some_benchmark',
+                'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
@@ -335,6 +339,7 @@ class EvaluatorTest(test.TestCase):
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark':
                     'some_benchmark',
+                'change': mock.ANY,
                 'mode':
                     'histogram_sets',
                 'results_filename':
@@ -399,6 +404,7 @@ class EvaluatorTest(test.TestCase):
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark':
                     'some_benchmark',
+                'change': mock.ANY,
                 'mode':
                     'histogram_sets',
                 'results_filename':
@@ -479,6 +485,7 @@ class EvaluatorTest(test.TestCase):
         {
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark': 'some_benchmark',
+                'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
@@ -527,6 +534,7 @@ class EvaluatorTest(test.TestCase):
         {
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark': 'some_benchmark',
+                'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
@@ -571,6 +579,7 @@ class EvaluatorTest(test.TestCase):
         {
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark': 'some_benchmark',
+                'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
@@ -618,6 +627,7 @@ class EvaluatorTest(test.TestCase):
         {
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark': 'some_benchmark',
+                'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
@@ -666,6 +676,7 @@ class EvaluatorTest(test.TestCase):
         {
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark': 'some_benchmark',
+                'change': mock.ANY,
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
@@ -704,6 +715,7 @@ class EvaluatorTest(test.TestCase):
         {
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark': 'some_benchmark',
+                'change': mock.ANY,
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
@@ -748,6 +760,7 @@ class EvaluatorTest(test.TestCase):
         {
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark': 'some_benchmark',
+                'change': mock.ANY,
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
@@ -796,6 +809,7 @@ class EvaluatorTest(test.TestCase):
         {
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark': 'some_benchmark',
+                'change': mock.ANY,
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
@@ -851,6 +865,7 @@ class EvaluatorTest(test.TestCase):
         {
             'read_value_chromium@aaaaaaa_%s' % (attempt,): {
                 'benchmark': 'some_benchmark',
+                'change': mock.ANY,
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {

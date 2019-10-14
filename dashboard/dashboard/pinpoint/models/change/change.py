@@ -124,7 +124,7 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
   def FromDict(cls, data):
     commits = tuple(commit_module.Commit.FromDict(commit)
                     for commit in data['commits'])
-    if 'patch' in data:
+    if data.get('patch') is not None:
       patch = patch_module.GerritPatch.FromDict(data['patch'])
     else:
       patch = None
