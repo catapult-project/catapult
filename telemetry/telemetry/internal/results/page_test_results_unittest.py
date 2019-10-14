@@ -151,6 +151,57 @@ class PageTestResultsTest(unittest.TestCase):
     self.assertTrue(all_story_runs[1].ok)
     self.assertTrue(all_story_runs[2].skipped)
 
+  def testAddMeasurementAsScalar(self):
+    with self.CreateResults() as results:
+      results.WillRunPage(self.pages[0])
+      results.AddMeasurement('a', 'seconds', 3)
+      results.DidRunPage(self.pages[0])
+
+    records = self.GetResultRecords()
+    # There should have be records: Start benchmark, test result, end benchmark.
+    self.assertTrue(len(records), 3)
+    with open(records[1]['testResult']['outputArtifacts'][
+        'measurements.json']['filePath']) as f:
+      measurements = json.load(f)['measurements']
+    self.assertEqual(measurements, [
+        {'name': 'a', 'unit': 'seconds', 'samples': [3]}
+    ])
+
+  def testAddMeasurementAsList(self):
+    with self.CreateResults() as results:
+      results.WillRunPage(self.pages[0])
+      results.AddMeasurement('a', 'seconds', [1, 2, 3])
+      results.DidRunPage(self.pages[0])
+
+    records = self.GetResultRecords()
+    # There should have be records: Start benchmark, test result, end benchmark.
+    self.assertTrue(len(records), 3)
+    with open(records[1]['testResult']['outputArtifacts'][
+        'measurements.json']['filePath']) as f:
+      measurements = json.load(f)['measurements']
+    self.assertEqual(measurements, [
+        {'name': 'a', 'unit': 'seconds', 'samples': [1, 2, 3]}
+    ])
+
+  def testAddMeasurementAsHistogram(self):
+    # TODO(999484): Temporary test while we migrate benchmarks writing "ad hoc"
+    # histograms to directly use measurements instead.
+    with self.CreateResults() as results:
+      results.WillRunPage(self.pages[0])
+      results.AddHistogram(histogram_module.Histogram.Create(
+          'a', 'ms', [1000, 2000, 3000]))
+      results.DidRunPage(self.pages[0])
+
+    records = self.GetResultRecords()
+    # There should have be records: Start benchmark, test result, end benchmark.
+    self.assertTrue(len(records), 3)
+    with open(records[1]['testResult']['outputArtifacts'][
+        'measurements.json']['filePath']) as f:
+      measurements = json.load(f)['measurements']
+    self.assertEqual(measurements, [
+        {'name': 'a', 'unit': 'ms', 'samples': [1000, 2000, 3000]}
+    ])
+
   def testAddScalarValueSameAsMeasurement(self):
     # Test that AddValue for legacy scalar values still works, and is
     # equivalent to adding measurements.

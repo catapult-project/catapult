@@ -329,10 +329,13 @@ class PageTestResults(object):
     self._interruption = self._interruption or reason
 
   def AddHistogram(self, hist):
+    """DEPRECATED: New clients should use AddMeasurement instead."""
     diags = self._GetDiagnostics()
     for diag in diags.itervalues():
       self._histograms.AddSharedDiagnostic(diag)
     self._histograms.AddHistogram(hist, diags)
+    self.current_story_run.AddMeasurement(
+        hist.name, hist.unit, hist.sample_values, hist.description or None)
 
   def _GetDiagnostics(self):
     """Get benchmark and current story details as histogram diagnostics.
