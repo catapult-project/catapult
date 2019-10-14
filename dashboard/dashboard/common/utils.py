@@ -36,7 +36,7 @@ _DEFAULT_CUSTOM_METRIC_VAL = 1
 OAUTH_SCOPES = (
     'https://www.googleapis.com/auth/userinfo.email',
 )
-OAUTH_ENDPOINTS = ['/api/', '/add_histograms']
+OAUTH_ENDPOINTS = ['/api/', '/add_histograms', '/add_point']
 
 _AUTOROLL_DOMAINS = (
     'chops-service-accounts.iam.gserviceaccount.com',
