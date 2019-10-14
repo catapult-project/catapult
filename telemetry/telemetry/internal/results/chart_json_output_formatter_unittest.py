@@ -92,8 +92,7 @@ class ChartJsonTest(unittest.TestCase):
     self._story_set[0].grouping_keys['temperature'] = 'cold'
     with _MakePageTestResults() as results:
       results.WillRunPage(self._story_set[0])
-      results.AddMeasurement('foo', 'seconds', 3)
-      results.AddMeasurement('foo', 'seconds', 4)
+      results.AddMeasurement('foo', 'seconds', [3, 4])
       results.DidRunPage(self._story_set[0])
       d = chart_json_output_formatter.ResultsAsChartDict(results)
 
@@ -104,8 +103,7 @@ class ChartJsonTest(unittest.TestCase):
   def testAsChartDictPageSpecificValuesSamePageWithoutGroupingLabel(self):
     with _MakePageTestResults() as results:
       results.WillRunPage(self._story_set[0])
-      results.AddMeasurement('foo', 'seconds', 3)
-      results.AddMeasurement('foo', 'seconds', 4)
+      results.AddMeasurement('foo', 'seconds', [3, 4])
       results.DidRunPage(self._story_set[0])
       d = chart_json_output_formatter.ResultsAsChartDict(results)
 

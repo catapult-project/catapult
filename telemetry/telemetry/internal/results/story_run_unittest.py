@@ -137,19 +137,17 @@ class StoryRunTest(unittest.TestCase):
         measurements = json.load(f)
 
       self.assertEqual(measurements, {
-          'measurements': [
-              {
-                  'name': 'run_time',
+          'measurements': {
+              'run_time': {
                   'unit': 'ms',
                   'samples': [1, 2, 3],
               },
-              {
-                  'name': 'foo_bars',
+              'foo_bars' : {
                   'unit': 'count',
                   'samples': [4],
                   'description': 'number of foo_bars found'
               }
-          ]
+          }
       })
 
   def testAddMeasurementValidation(self):
@@ -170,6 +168,12 @@ class StoryRunTest(unittest.TestCase):
     run.Finish()
     with self.assertRaises(AssertionError):
       run.AddMeasurement('foo_bars', 'count', 4)
+
+  def testAddMeasurementTwiceRaises(self):
+    run = story_run.StoryRun(self.story)
+    run.AddMeasurement('foo_bars', 'ms', [1])
+    with self.assertRaises(AssertionError):
+      run.AddMeasurement('foo_bars', 'ms', [2])
 
   def testCreateArtifact(self):
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:

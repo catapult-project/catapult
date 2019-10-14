@@ -116,7 +116,7 @@ class StoryRun(object):
     self._start_time = time.time()
     self._end_time = None
     self._artifacts = {}
-    self._measurements = []
+    self._measurements = {}
 
     if intermediate_dir is None:
       self._artifacts_dir = None
@@ -134,8 +134,11 @@ class StoryRun(object):
     """Record an add hoc measurement associated with this story run."""
     assert self._measurements is not None, (
         'Measurements have already been collected')
-    self._measurements.append(
-        _MeasurementToDict(name, unit, samples, description))
+    if not isinstance(name, basestring):
+      raise TypeError('name must be a string, got %s' % name)
+    assert name not in self._measurements, (
+        'Already have measurement with the name %s' % name)
+    self._measurements[name] = _MeasurementToDict(unit, samples, description)
 
   def _WriteMeasurementsArtifact(self):
     if self._measurements:
@@ -375,10 +378,8 @@ class StoryRun(object):
     return self._artifacts.get(name)
 
 
-def _MeasurementToDict(name, unit, samples, description):
+def _MeasurementToDict(unit, samples, description):
   """Validate a measurement and encode as a JSON serializable dict."""
-  if not isinstance(name, basestring):
-    raise TypeError('name must be a string, got %s' % name)
   if not isinstance(unit, basestring):
     # TODO(crbug.com/999484): Also validate that this is a known unit.
     raise TypeError('unit must be a string, got %s' % unit)
@@ -387,7 +388,7 @@ def _MeasurementToDict(name, unit, samples, description):
   if not all(isinstance(v, numbers.Number) for v in samples):
     raise TypeError(
         'samples must be a list of numeric values, got %s' % samples)
-  measurement = {'name': name, 'unit': unit, 'samples': samples}
+  measurement = {'unit': unit, 'samples': samples}
   if description is not None:
     if not isinstance(description, basestring):
       raise TypeError('description must be a string, got %s' % description)
