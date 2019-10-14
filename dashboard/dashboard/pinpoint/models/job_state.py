@@ -287,8 +287,7 @@ class JobState(object):
       values_b = tuple(bool(execution.exception) for execution in executions_b)
       if values_a and values_b:
         if self._comparison_mode == FUNCTIONAL:
-          if (hasattr(self, '_comparison_magnitude') and
-              self._comparison_magnitude):
+          if getattr(self, '_comparison_magnitude', None):
             comparison_magnitude = self._comparison_magnitude
           else:
             comparison_magnitude = 0.5
@@ -301,39 +300,29 @@ class JobState(object):
         elif comparison == compare.UNKNOWN:
           any_unknowns = True
 
-      # Compare result values.
-      # NOTE: Here we're computing the means of the results from each execution
-      # assuming that the mean will be representative of central tendency for
-      # potentially small sample sizes. We're implementing an alternative
-      # calculation which doesn't use the mean, and counting the number of times
-      # the comparison does not agree with this existing approach.
-      values_a = tuple(
-          Mean(execution.result_values)
-          for execution in executions_a
-          if execution.result_values)
-      values_b = tuple(
-          Mean(execution.result_values)
-          for execution in executions_b
-          if execution.result_values)
-      if values_a and values_b:
-        if (hasattr(self, '_comparison_magnitude') and
-            self._comparison_magnitude):
-          max_iqr = max(math_utils.Iqr(values_a), math_utils.Iqr(values_b))
-          if max_iqr:
-            comparison_magnitude = abs(self._comparison_magnitude / max_iqr)
-          else:
-            comparison_magnitude = 1000.0  # Something very large.
+      # Compare result values by consolidating all measurments by change, and
+      # treating those as a single sample set for comparison.
+      def AllValues(execution):
+        for e in execution:
+          if not e.result_values:
+            continue
+          for v in e.result_values:
+            yield v
 
+      all_a_values = tuple(AllValues(executions_a))
+      all_b_values = tuple(AllValues(executions_b))
+      if all_a_values and all_b_values:
+        if getattr(self, '_comparison_magnitude', None):
+          max_iqr = max(
+              max(math_utils.Iqr(all_a_values), math_utils.Iqr(all_b_values)),
+              0.001)
+          comparison_magnitude = abs(self._comparison_magnitude / max_iqr)
         else:
           comparison_magnitude = 1.0
 
-        # TODO(dberris): Change this if we find that the consolidated result
-        # values comparison yield different / more plausible difference
-        # detection.
-        comparison = compare.Compare(values_a, values_b, attempt_count,
+        sample_count = (len(all_a_values) + len(all_b_values)) // 2
+        comparison = compare.Compare(values_a, values_b, sample_count,
                                      PERFORMANCE, comparison_magnitude)
-
-        self._LogAlternativeComparison(executions_a, executions_b, comparison)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
         elif comparison == compare.UNKNOWN:
@@ -343,39 +332,6 @@ class JobState(object):
       return compare.UNKNOWN
 
     return compare.SAME
-
-  def _LogAlternativeComparison(self, executions_a, executions_b, comparison):
-    # NOTE: This is the alternative calculation which doesn't use the means
-    # of the underlying result values, and consolidates all the samples
-    # instead.
-    def AllValues(execution):
-      for e in execution:
-        if not e.result_values:
-          continue
-        for v in e.result_values:
-          yield v
-
-    all_a_values = tuple(AllValues(executions_a))
-    all_b_values = tuple(AllValues(executions_b))
-    if getattr(self, '_comparison_magnitude', None):
-      alternative_max_iqr = max(
-          max(math_utils.Iqr(all_a_values), math_utils.Iqr(all_b_values)),
-          0.001)
-      alternative_comparison_magnitude = abs(
-          self._comparison_magnitude) / alternative_max_iqr
-    else:
-      alternative_comparison_magnitude = 1.0
-
-    alternative_attempt_count = (len(all_a_values) + len(all_b_values)) // 2
-    alternative_comparison = compare.Compare(all_a_values, all_b_values,
-                                             alternative_attempt_count,
-                                             PERFORMANCE,
-                                             alternative_comparison_magnitude)
-    if comparison != alternative_comparison:
-      logging.error(
-          'Difference Found: alternative says "%s" while current says "%s"',
-          alternative_comparison, comparison)
-
 
   def ResultValues(self, change):
     quest_index = len(self._quests) - 1
