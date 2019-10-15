@@ -6,7 +6,6 @@
 import json
 import logging
 import optparse
-import os
 import sys
 
 from telemetry import benchmark
@@ -14,13 +13,6 @@ from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_options
 from telemetry.internal import story_runner
 from telemetry.util import matching
-
-
-def _SetExpectations(bench, path):
-  if path and os.path.exists(path):
-    with open(path) as fp:
-      bench.AugmentExpectationsWithFile(fp.read())
-  return bench.expectations
 
 
 def _IsBenchmarkSupported(benchmark_, possible_browser):
@@ -226,11 +218,6 @@ class Run(object):
   @classmethod
   def ProcessCommandLineArgs(cls, parser, options, environment):
     all_benchmarks = environment.GetBenchmarks()
-    if environment.expectations_files:
-      assert len(environment.expectations_files) == 1
-      cls._expectations_path = environment.expectations_files[0]
-    else:
-      cls._expectations_path = None
     if not options.positional_args:
       possible_browser = (browser_finder.FindBrowser(options)
                           if options.browser_type else None)
@@ -254,14 +241,13 @@ class Run(object):
     assert issubclass(benchmark_class,
                       benchmark.Benchmark), ('Trying to run a non-Benchmark?!')
 
-    story_runner.ProcessCommandLineArgs(parser, options)
+    story_runner.ProcessCommandLineArgs(parser, options, environment)
     benchmark_class.ProcessCommandLineArgs(parser, options)
 
     cls._benchmark = benchmark_class
 
   def Run(self, options):
     b = self._benchmark()
-    _SetExpectations(b, self._expectations_path)
     return min(255, b.Run(options))
 
 
