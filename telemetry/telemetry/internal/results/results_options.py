@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import codecs
+import json
 import os
 import sys
 
@@ -109,3 +110,20 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
       benchmark_description=benchmark_description,
       upload_bucket=options.upload_bucket,
       results_label=options.results_label)
+
+
+def ReadIntermediateResults(intermediate_dir):
+  """Read results from an intermediate_dir into a single dict.
+
+  Used by some tests.
+  """
+  results = {'benchmarkRun': {}, 'testResults': []}
+  with open(os.path.join(
+      intermediate_dir, page_test_results.TELEMETRY_RESULTS)) as f:
+    for line in f:
+      record = json.loads(line)
+      if 'benchmarkRun' in record:
+        results['benchmarkRun'].update(record['benchmarkRun'])
+      if 'testResult' in record:
+        results['testResults'].append(record['testResult'])
+  return results

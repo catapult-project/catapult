@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
 import math
 import os
 import shutil
@@ -1195,16 +1194,8 @@ class RunBenchmarkTest(unittest.TestCase):
         fake_browser=True, overrides=overrides)
 
   def ReadIntermediateResults(self):
-    results = {'benchmarkRun': {}, 'testResults': []}
-    with open(os.path.join(
-        self.output_dir, 'artifacts', '_telemetry_results.jsonl')) as f:
-      for line in f:
-        record = json.loads(line)
-        if 'benchmarkRun' in record:
-          results['benchmarkRun'].update(record['benchmarkRun'])
-        if 'testResult' in record:
-          results['testResults'].append(record['testResult'])
-    return results
+    return results_options.ReadIntermediateResults(
+        os.path.join(self.output_dir, 'artifacts'))
 
   def testDisabledBenchmarkViaCanRunOnPlatform(self):
     fake_benchmark = FakeBenchmark()
