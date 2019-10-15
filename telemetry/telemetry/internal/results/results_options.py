@@ -11,7 +11,6 @@ from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import csv_output_formatter
 from telemetry.internal.results import histogram_set_json_output_formatter
 from telemetry.internal.results import html_output_formatter
-from telemetry.internal.results import json_3_output_formatter
 from telemetry.internal.results import page_test_results
 
 
@@ -23,7 +22,6 @@ LEGACY_OUTPUT_FORMATS = (
     'csv',
     'histograms',
     'html',
-    'json-test-results',
     'none')
 
 
@@ -33,7 +31,6 @@ _OUTPUT_FILENAME_LOOKUP = {
     'csv': 'results.csv',
     'histograms': 'histograms.json',
     'html': 'results.html',
-    'json-test-results': 'test-results.json',
 }
 
 
@@ -83,9 +80,6 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
     if output_format == 'html':
       output_formatters.append(html_output_formatter.HtmlOutputFormatter(
           output_stream, options.reset_results, options.upload_bucket))
-    elif output_format == 'json-test-results':
-      output_formatters.append(json_3_output_formatter.JsonOutputFormatter(
-          output_stream))
     elif output_format == 'chartjson':
       output_formatters.append(
           chart_json_output_formatter.ChartJsonOutputFormatter(output_stream))
