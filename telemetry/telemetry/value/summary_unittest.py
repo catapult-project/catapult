@@ -44,13 +44,13 @@ class SummaryTest(TestBase):
     results.WillRunPage(page0)
     v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v0)
+    results._AddValue(v0)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
     v1 = scalar.ScalarValue(page1, 'a', 'seconds', 7,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v1)
+    results._AddValue(v1)
     results.DidRunPage(page1)
 
     summary = summary_module.Summary(results)
@@ -80,7 +80,7 @@ class SummaryTest(TestBase):
     results.WillRunPage(page0)
     v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v0)
+    results._AddValue(v0)
     results.DidRunPage(page0)
 
     summary = summary_module.Summary(results)
@@ -106,25 +106,25 @@ class SummaryTest(TestBase):
     results.WillRunPage(page0)
     v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v0)
+    results._AddValue(v0)
     v1 = scalar.ScalarValue(page0, 'b', 'seconds', 10,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v1)
+    results._AddValue(v1)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
     v2 = scalar.ScalarValue(page1, 'a', 'seconds', 3,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v2)
+    results._AddValue(v2)
     v3 = scalar.ScalarValue(page1, 'b', 'seconds', 10,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v3)
+    results._AddValue(v3)
     results.DidRunPage(page1)
 
     results.WillRunPage(page2)
     v4 = scalar.ScalarValue(page2, 'a', 'seconds', 7,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v4)
+    results._AddValue(v4)
     # Note, page[2] does not report a 'b' metric.
     results.DidRunPage(page2)
 
@@ -172,14 +172,14 @@ class SummaryTest(TestBase):
     results.WillRunPage(page0)
     v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v0)
+    results._AddValue(v0)
     results.Fail('message')
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
     v2 = scalar.ScalarValue(page1, 'a', 'seconds', 7,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v2)
+    results._AddValue(v2)
     results.DidRunPage(page1)
 
     summary = summary_module.Summary(results)
@@ -205,26 +205,26 @@ class SummaryTest(TestBase):
     results.WillRunPage(page0)
     v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v0)
+    results._AddValue(v0)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
     v1 = scalar.ScalarValue(page1, 'a', 'seconds', 7,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v1)
+    results._AddValue(v1)
     results.Fail('message')
     results.DidRunPage(page1)
 
     results.WillRunPage(page0)
     v3 = scalar.ScalarValue(page0, 'a', 'seconds', 4,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v3)
+    results._AddValue(v3)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
     v4 = scalar.ScalarValue(page1, 'a', 'seconds', 8,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v4)
+    results._AddValue(v4)
     results.DidRunPage(page1)
 
     summary = summary_module.Summary(results)
@@ -249,25 +249,25 @@ class SummaryTest(TestBase):
     results.WillRunPage(page0)
     v0 = scalar.ScalarValue(page0, 'a', 'seconds', 3,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v0)
+    results._AddValue(v0)
     results.DidRunPage(page0)
 
     results.WillRunPage(page0)
     v2 = scalar.ScalarValue(page0, 'a', 'seconds', 4,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v2)
+    results._AddValue(v2)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
     v1 = scalar.ScalarValue(page1, 'a', 'seconds', 7,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v1)
+    results._AddValue(v1)
     results.DidRunPage(page1)
 
     results.WillRunPage(page1)
     v3 = scalar.ScalarValue(page1, 'a', 'seconds', 8,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v3)
+    results._AddValue(v3)
     results.DidRunPage(page1)
 
     summary = summary_module.Summary(results)
@@ -297,13 +297,13 @@ class SummaryTest(TestBase):
     results.WillRunPage(page0)
     v0 = scalar.ScalarValue(page0, 'b', 'seconds', 2,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v0)
+    results._AddValue(v0)
     results.DidRunPage(page0)
 
     results.WillRunPage(page0)
     v1 = scalar.ScalarValue(page0, 'b', 'seconds', 3,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v1)
+    results._AddValue(v1)
     results.DidRunPage(page0)
 
     summary = summary_module.Summary(results)
@@ -330,14 +330,14 @@ class SummaryTest(TestBase):
     v0 = list_of_scalar_values.ListOfScalarValues(
         page0, 'b', 'seconds', [2, 2],
         improvement_direction=improvement_direction.UP)
-    results.AddValue(v0)
+    results._AddValue(v0)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
     v1 = list_of_scalar_values.ListOfScalarValues(
         page1, 'b', 'seconds', [3, 3],
         improvement_direction=improvement_direction.UP)
-    results.AddValue(v1)
+    results._AddValue(v1)
     results.DidRunPage(page1)
 
     summary = summary_module.Summary(results)
@@ -361,21 +361,21 @@ class SummaryTest(TestBase):
     results.WillRunPage(page0)
     v0 = scalar.ScalarValue(page0, 'a', 'seconds', 20,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v0)
+    results._AddValue(v0)
 
     v1 = scalar.ScalarValue(page0, 'b', 'seconds', 42,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v1)
+    results._AddValue(v1)
     results.DidRunPage(page0)
 
     results.WillRunPage(page1)
     v2 = scalar.ScalarValue(page1, 'a', 'seconds', 20,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v2)
+    results._AddValue(v2)
 
     v3 = scalar.ScalarValue(page1, 'b', 'seconds', 42,
                             improvement_direction=improvement_direction.UP)
-    results.AddValue(v3)
+    results._AddValue(v3)
     results.DidRunPage(page1)
 
     summary = summary_module.Summary(

@@ -309,7 +309,7 @@ class PageTestResults(object):
         with self.CreateArtifact(HISTOGRAM_DICTS_NAME) as f:
           json.dump(result['histogram_dicts'], f)
       for value in result['scalars']:
-        self.AddValue(value)
+        self._AddValue(value)
     finally:
       self._current_story_run = None
 
@@ -381,10 +381,10 @@ class PageTestResults(object):
     assert self._current_story_run, 'Not currently running a story.'
     value = _MeasurementToValue(
         self.current_story, name, unit, samples, description)
-    self.AddValue(value)
+    self._AddValue(value)
     self.current_story_run.AddMeasurement(name, unit, samples, description)
 
-  def AddValue(self, value):
+  def _AddValue(self, value):
     """DEPRECATED: Use AddMeasurement instead."""
     assert self._current_story_run, 'Not currently running a story.'
     self._ValidateValue(value)
