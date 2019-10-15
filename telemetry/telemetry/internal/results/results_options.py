@@ -113,10 +113,7 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
 
 
 def ReadIntermediateResults(intermediate_dir):
-  """Read results from an intermediate_dir into a single dict.
-
-  Used by some tests.
-  """
+  """Read results from an intermediate_dir into a single dict."""
   results = {'benchmarkRun': {}, 'testResults': []}
   with open(os.path.join(
       intermediate_dir, page_test_results.TELEMETRY_RESULTS)) as f:
@@ -127,3 +124,13 @@ def ReadIntermediateResults(intermediate_dir):
       if 'testResult' in record:
         results['testResults'].append(record['testResult'])
   return results
+
+
+def ReadMeasurements(test_result):
+  """Read ad hoc measurements recorded on a test result."""
+  try:
+    artifact = test_result['outputArtifacts']['measurements.json']
+  except KeyError:
+    return {}
+  with open(artifact['filePath']) as f:
+    return json.load(f)['measurements']

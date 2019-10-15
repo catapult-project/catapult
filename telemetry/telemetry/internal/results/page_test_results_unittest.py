@@ -18,6 +18,7 @@ from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import histogram_set_json_output_formatter
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import page_test_results
+from telemetry.internal.results import results_options
 from telemetry.internal.results import results_processor
 from telemetry import page as page_module
 from telemetry.value import list_of_scalar_values
@@ -150,6 +151,47 @@ class PageTestResultsTest(unittest.TestCase):
     self.assertTrue(all_story_runs[0].failed)
     self.assertTrue(all_story_runs[1].ok)
     self.assertTrue(all_story_runs[2].skipped)
+
+  def testAddMeasurementAsScalar(self):
+    with self.CreateResults() as results:
+      results.WillRunPage(self.pages[0])
+      results.AddMeasurement('a', 'seconds', 3)
+      results.DidRunPage(self.pages[0])
+
+    test_results = results_options.ReadIntermediateResults(
+        self.intermediate_dir)['testResults']
+    self.assertTrue(len(test_results), 1)
+    measurements = results_options.ReadMeasurements(test_results[0])
+    self.assertEqual(measurements, {'a': {'unit': 'seconds', 'samples': [3]}})
+
+  def testAddMeasurementAsList(self):
+    with self.CreateResults() as results:
+      results.WillRunPage(self.pages[0])
+      results.AddMeasurement('a', 'seconds', [1, 2, 3])
+      results.DidRunPage(self.pages[0])
+
+    test_results = results_options.ReadIntermediateResults(
+        self.intermediate_dir)['testResults']
+    self.assertTrue(len(test_results), 1)
+    measurements = results_options.ReadMeasurements(test_results[0])
+    self.assertEqual(measurements,
+                     {'a': {'unit': 'seconds', 'samples': [1, 2, 3]}})
+
+  def testAddMeasurementAsHistogram(self):
+    # TODO(999484): Temporary test while we migrate benchmarks writing "ad hoc"
+    # histograms to directly use measurements instead.
+    with self.CreateResults() as results:
+      results.WillRunPage(self.pages[0])
+      results.AddHistogram(histogram_module.Histogram.Create(
+          'a', 'ms', [1000, 2000, 3000]))
+      results.DidRunPage(self.pages[0])
+
+    test_results = results_options.ReadIntermediateResults(
+        self.intermediate_dir)['testResults']
+    self.assertTrue(len(test_results), 1)
+    measurements = results_options.ReadMeasurements(test_results[0])
+    self.assertEqual(measurements,
+                     {'a': {'unit': 'ms', 'samples': [1000, 2000, 3000]}})
 
   def testAddScalarValueSameAsMeasurement(self):
     # Test that AddValue for legacy scalar values still works, and is
