@@ -28,6 +28,7 @@ from telemetry import story as story_module
 from telemetry.testing import fakes
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
+from telemetry.testing import test_stories
 from telemetry.util import wpr_modes
 from telemetry.value import list_of_scalar_values
 from telemetry.value import summary as summary_module
@@ -1080,20 +1081,6 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
     ])
 
 
-class DummyStoryTest(story_test.StoryTest):
-  def __init__(self, options):
-    del options  # Unused.
-
-  def WillRunStory(self, platform):
-    del platform  # Unused.
-
-  def Measure(self, platform, results):
-    del platform, results  # Unused.
-
-  def DidRunStory(self, platform, results):
-    del platform, results  # Unused.
-
-
 class DummyStory(story_module.Story):
   def __init__(self, name, tags=None, serving_dir=None, run_side_effect=None):
     """A customize dummy story.
@@ -1142,7 +1129,7 @@ class DummyStorySet(story_module.StorySet):
 
 
 class FakeBenchmark(benchmark.Benchmark):
-  test = DummyStoryTest
+  test = test_stories.DummyStoryTest
 
   def __init__(self, stories=None, **kwargs):
     """A customizable fake_benchmark.

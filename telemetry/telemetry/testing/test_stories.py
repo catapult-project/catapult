@@ -10,14 +10,36 @@ import urlparse
 from telemetry.core import util
 from telemetry import page
 from telemetry import story
+from telemetry.web_perf import story_test
+
+
+class DummyStoryTest(story_test.StoryTest):
+  """A dummy no-op StoryTest.
+
+  Does nothing in addition to what the shared state, determined by the stories
+  used in the tests, do.
+  """
+  def __init__(self, options=None):
+    del options  # Unused.
+
+  def WillRunStory(self, platform):
+    del platform  # Unused.
+
+  def Measure(self, platform, results):
+    del platform, results  # Unused.
+
+  def DidRunStory(self, platform, results):
+    del platform, results  # Unused.
 
 
 class TestPage(page.Page):
   def __init__(self, story_set, url, name=None, run_side_effect=None):
     """A simple customizable page.
 
-    Note this uses the SharedPageState, as most stories do, involving
-    interactions with a real browser on a real platform.
+    Note that this uses the default shared_page_state.SharedPageState, as most
+    stories do, which includes method calls to interact with a browser and its
+    platform. Whether a real browser is actually used depends on the options
+    object built with the help of options_for_unittests.GetRunOptions().
 
     Args:
       story_set: An instance of the StorySet object this page belongs to.
@@ -25,7 +47,8 @@ class TestPage(page.Page):
       name: A name for the story. If not given a reasonable default is built
         from the url.
       run_side_effect: Side effect of the story's RunPageInteractions method.
-        It should be a callable taking an action_runner.
+        It should be a callable taking an action_runner, or an instance of
+        an exception to be raised.
     """
     if name is None:
       name = _StoryNameFromUrl(url)
@@ -35,7 +58,10 @@ class TestPage(page.Page):
 
   def RunPageInteractions(self, action_runner):
     if self._run_side_effect is not None:
-      self._run_side_effect(action_runner)
+      if isinstance(self._run_side_effect, Exception):
+        raise self._run_side_effect  # pylint: disable=raising-bad-type
+      else:
+        self._run_side_effect(action_runner)
 
 
 def SinglePageStorySet(url=None, name=None, base_dir=None,
