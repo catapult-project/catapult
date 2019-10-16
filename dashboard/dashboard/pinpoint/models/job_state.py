@@ -283,9 +283,11 @@ class JobState(object):
       executions_b = executions_by_quest_b[quest]
 
       # Compare exceptions.
-      values_a = tuple(bool(execution.exception) for execution in executions_a)
-      values_b = tuple(bool(execution.exception) for execution in executions_b)
-      if values_a and values_b:
+      exceptions_a = tuple(
+          bool(execution.exception) for execution in executions_a)
+      exceptions_b = tuple(
+          bool(execution.exception) for execution in executions_b)
+      if exceptions_a and exceptions_b:
         if self._comparison_mode == FUNCTIONAL:
           if getattr(self, '_comparison_magnitude', None):
             comparison_magnitude = self._comparison_magnitude
@@ -293,7 +295,7 @@ class JobState(object):
             comparison_magnitude = 0.5
         else:
           comparison_magnitude = 1.0
-        comparison = compare.Compare(values_a, values_b, attempt_count,
+        comparison = compare.Compare(exceptions_a, exceptions_b, attempt_count,
                                      FUNCTIONAL, comparison_magnitude)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
@@ -321,7 +323,7 @@ class JobState(object):
           comparison_magnitude = 1.0
 
         sample_count = (len(all_a_values) + len(all_b_values)) // 2
-        comparison = compare.Compare(values_a, values_b, sample_count,
+        comparison = compare.Compare(all_a_values, all_b_values, sample_count,
                                      PERFORMANCE, comparison_magnitude)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
