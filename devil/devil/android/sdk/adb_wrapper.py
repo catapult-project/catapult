@@ -447,14 +447,20 @@ class AdbWrapper(object):
     """
     return self._device_serial
 
-  def Push(self, local, remote, timeout=60 * 5, retries=DEFAULT_RETRIES):
+  def Push(self, local, remote, sync=False,
+           timeout=60 * 5, retries=DEFAULT_RETRIES):
     """Pushes a file from the host to the device.
 
     Args:
       local: Path on the host filesystem.
       remote: Path on the device filesystem.
+      sync: (optional) Whether to only push files that are newer on the host.
+        Not supported when using adb prior to 1.0.39.
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
+
+    Raises:
+      AdbVersionError if sync=True with versions of adb prior to 1.0.39.
     """
     VerifyLocalFileExists(local)
 
@@ -495,7 +501,24 @@ class AdbWrapper(object):
         # without modification.
         pass
 
-    self._RunDeviceAdbCmd(['push', local, remote], timeout, retries)
+    push_cmd = ['push']
+
+    if sync:
+      push_cmd += ['--sync']
+      if (du_version.LooseVersion(self.Version()) <
+          du_version.LooseVersion('1.0.39')):
+        # The --sync flag for `adb push` is a relatively recent addition.
+        # We're not sure exactly which release first contained it, but it
+        # exists at least as far back as 1.0.39.
+        raise device_errors.AdbVersionError(
+            push_cmd,
+            desc='--sync not supported',
+            actual_version=self.Version(),
+            min_version='1.0.39')
+
+    push_cmd += [local, remote]
+
+    self._RunDeviceAdbCmd(push_cmd, timeout, retries)
 
   def Pull(self, remote, local, timeout=60 * 5, retries=DEFAULT_RETRIES):
     """Pulls a file from the device to the host.
