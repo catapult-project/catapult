@@ -19,6 +19,7 @@ from dashboard import associate_alerts
 from dashboard import bug_details
 from dashboard import buildbucket_job_status
 from dashboard import create_health_report
+from dashboard import cron_update_sheriff
 from dashboard import debug_alert
 from dashboard import delete_test_data
 from dashboard import deprecate_tests
@@ -104,6 +105,7 @@ _URL_MAPPING = [
      buildbucket_job_status.BuildbucketJobStatusHandler),
     ('/create_health_report', create_health_report.CreateHealthReportHandler),
     ('/configs/update', sheriff_config_poller.ConfigsUpdateHandler),
+    ('/cron/update_sheriff', cron_update_sheriff.CronUpdateSheriffHandler),
     ('/debug_alert', debug_alert.DebugAlertHandler),
     ('/delete_expired_entities',
      layered_cache_delete_expired.LayeredCacheDeleteExpiredHandler),
