@@ -1156,20 +1156,9 @@ class FakeBenchmark(benchmark.Benchmark):
       story_set.AddStory(story)
     return story_set
 
-
-class FakeStoryFilter(object):
-  def __init__(self, stories_to_filter_out=None, stories_to_skip=None):
-    self._stories_to_filter = stories_to_filter_out or []
-    self._stories_to_skip = stories_to_skip or []
-    assert isinstance(self._stories_to_filter, list)
-    assert isinstance(self._stories_to_skip, list)
-
-  def FilterStories(self, story_set):
-    return [story for story in story_set
-            if story.name not in self._stories_to_filter]
-
-  def ShouldSkip(self, story):
-    return 'fake_reason' if story.name in self._stories_to_skip else ''
+  def SetExpectations(self, expectations_line):
+    self.AugmentExpectationsWithFile(
+        '# results: [ Skip ]\n%s\n' % expectations_line)
 
 
 class RunBenchmarkTest(unittest.TestCase):
@@ -1203,45 +1192,35 @@ class RunBenchmarkTest(unittest.TestCase):
     results = self.ReadIntermediateResults()
     self.assertFalse(results['testResults'])  # No tests ran at all.
 
-  def testSkippedWithStoryFilter(self):
-    fake_benchmark = FakeBenchmark(stories=['fake_story'])
+  def testDisabledWithExpectations(self):
+    fake_benchmark = FakeBenchmark()
+    fake_benchmark.SetExpectations('fake_benchmark/* [ Skip ]')
     options = self.GetFakeBrowserOptions()
-    fake_story_filter = FakeStoryFilter(stories_to_skip=['fake_story'])
-    with mock.patch(
-        'telemetry.story.story_filter.StoryFilterFactory.BuildStoryFilter',
-        return_value=fake_story_filter):
-      story_runner.RunBenchmark(fake_benchmark, options)
+    story_runner.RunBenchmark(fake_benchmark, options)
     results = self.ReadIntermediateResults()
     self.assertTrue(results['testResults'])  # Some tests ran, but all skipped.
     self.assertTrue(all(t['status'] == 'SKIP' for t in results['testResults']))
 
-  def testOneStorySkippedOneNot(self):
-    fake_story_filter = FakeStoryFilter(stories_to_skip=['story1'])
-    fake_benchmark = FakeBenchmark(stories=['story1', 'story2'])
+  def testDisabledBenchmarkOverriddenByCommandLine(self):
+    fake_benchmark = FakeBenchmark()
+    fake_benchmark.SetExpectations('fake_benchmark/* [ Skip ]')
     options = self.GetFakeBrowserOptions()
-    with mock.patch(
-        'telemetry.story.story_filter.StoryFilterFactory.BuildStoryFilter',
-        return_value=fake_story_filter):
-      story_runner.RunBenchmark(fake_benchmark, options)
+    options.run_disabled_tests = True
+    story_runner.RunBenchmark(fake_benchmark, options)
+    results = self.ReadIntermediateResults()
+    self.assertTrue(results['testResults'])  # Some tests ran. all OK.
+    self.assertTrue(all(t['status'] == 'PASS' for t in results['testResults']))
+
+  def testOneStoryDisabledOneNot(self):
+    fake_benchmark = FakeBenchmark(stories=['story1', 'story2'])
+    fake_benchmark.SetExpectations('fake_benchmark/story1 [ Skip ]')
+    options = self.GetFakeBrowserOptions()
+    story_runner.RunBenchmark(fake_benchmark, options)
     results = self.ReadIntermediateResults()
     status = [t['status'] for t in results['testResults']]
     self.assertEqual(len(status), 2)
     self.assertIn('SKIP', status)
     self.assertIn('PASS', status)
-
-  def testOneStoryFilteredOneNot(self):
-    fake_story_filter = FakeStoryFilter(stories_to_filter_out=['story1'])
-    fake_benchmark = FakeBenchmark(stories=['story1', 'story2'])
-    options = self.GetFakeBrowserOptions()
-    with mock.patch(
-        'telemetry.story.story_filter.StoryFilterFactory.BuildStoryFilter',
-        return_value=fake_story_filter):
-      story_runner.RunBenchmark(fake_benchmark, options)
-    results = self.ReadIntermediateResults()
-    test_results = results['testResults']
-    self.assertEqual(len(test_results), 1)
-    self.assertEqual(test_results[0]['status'], 'PASS')
-    self.assertTrue(test_results[0]['testPath'].endswith('/story2'))
 
   def testWithOwnerInfo(self):
 
@@ -1277,13 +1256,10 @@ class RunBenchmarkTest(unittest.TestCase):
     self.assertNotIn('documentationLinks', diagnostics)
 
   def testReturnCodeDisabledStory(self):
-    fake_benchmark = FakeBenchmark(stories=['fake_story'])
-    fake_story_filter = FakeStoryFilter(stories_to_skip=['fake_story'])
+    fake_benchmark = FakeBenchmark()
+    fake_benchmark.SetExpectations('fake_benchmark/* [ Skip ]')
     options = self.GetFakeBrowserOptions()
-    with mock.patch(
-        'telemetry.story.story_filter.StoryFilterFactory.BuildStoryFilter',
-        return_value=fake_story_filter):
-      return_code = story_runner.RunBenchmark(fake_benchmark, options)
+    return_code = story_runner.RunBenchmark(fake_benchmark, options)
     self.assertEqual(return_code, -1)
 
   def testReturnCodeSuccessfulRun(self):

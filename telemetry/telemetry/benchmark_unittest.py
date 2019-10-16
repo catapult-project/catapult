@@ -17,6 +17,7 @@ from telemetry.page import legacy_page_test
 from telemetry.page import shared_page_state
 from telemetry import story as story_module
 from telemetry.web_perf import timeline_based_measurement
+from telemetry.story import typ_expectations
 
 
 class DummyPageTest(legacy_page_test.LegacyPageTest):
@@ -44,6 +45,15 @@ class BenchmarkTest(unittest.TestCase):
 
   def tearDown(self):
     shutil.rmtree(self.options.output_dir)
+
+  def testNewTestExpectationsFormatIsUsed(self):
+    b = TestBenchmark(
+        story_module.Story(
+            name='test name',
+            shared_state_class=shared_page_state.SharedPageState))
+    b.AugmentExpectationsWithFile('# results: [ Skip ]\nb1 [ Skip ]\n')
+    self.assertIsInstance(
+        b.expectations, typ_expectations.StoryExpectations)
 
   def testPageTestWithIncompatibleStory(self):
     b = TestBenchmark(story_module.Story(
@@ -219,3 +229,14 @@ class BenchmarkTest(unittest.TestCase):
     # We can pass None for both arguments because we select no platforms as
     # supported, which always returns false.
     self.assertFalse(b.CanRunOnPlatform(None, None))
+
+  def testAugmentExpectationsWithFileData(self):
+    b = TestBenchmark(story_module.Story(
+        name='test_name',
+        shared_state_class=shared_page_state.SharedPageState))
+    data = ('# results: [ skip ]\n'
+            'crbug.com/123 benchmark_unittest.TestBenchmark/test_name [ Skip ]')
+    b.AugmentExpectationsWithFile(data)
+    story = mock.MagicMock()
+    story.name = 'test_name'
+    self.assertTrue(b.expectations.IsStoryDisabled(story))

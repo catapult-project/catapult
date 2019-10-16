@@ -10,6 +10,7 @@ from telemetry.internal import story_runner
 from telemetry.internal.util import command_line
 from telemetry.page import legacy_page_test
 from telemetry.story import expectations as expectations_module
+from telemetry.story import typ_expectations
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
 
@@ -47,6 +48,7 @@ class Benchmark(command_line.Command):
       max_failures: The number of story run's failures before bailing
           from executing subsequent page runs. If None, we never bail.
     """
+    self._expectations = typ_expectations.StoryExpectations(self.Name())
     self._max_failures = max_failures
     # TODO: There should be an assertion here that checks that only one of
     # the following is true:
@@ -243,3 +245,10 @@ class Benchmark(command_line.Command):
     if not self.page_set:
       raise NotImplementedError('This test has no "page_set" attribute.')
     return self.page_set()  # pylint: disable=not-callable
+
+  def AugmentExpectationsWithFile(self, raw_data):
+    self._expectations.GetBenchmarkExpectationsFromParser(raw_data)
+
+  @property
+  def expectations(self):
+    return self._expectations

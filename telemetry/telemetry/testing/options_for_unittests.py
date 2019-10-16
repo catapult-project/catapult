@@ -62,6 +62,13 @@ def GetRunOptions(output_dir=None, fake_browser=False, benchmark_cls=None,
   Returns:
     An options object with default values for all command line arguments.
   """
+  # TODO(crbug.com/985103): |environment| argument is needed to allow
+  # https://chromium-review.googlesource.com/c/chromium/src/+/1854794
+  # to be committed, which will allow
+  # https://chromium-review.googlesource.com/c/catapult/+/1839176
+  # to be committed.
+  del environment
+
   if fake_browser:
     options = fakes.CreateBrowserFinderOptions()
   else:
@@ -80,7 +87,7 @@ def GetRunOptions(output_dir=None, fake_browser=False, benchmark_cls=None,
       setattr(options, name, value)
   if benchmark_cls is not None:
     benchmark_cls.ProcessCommandLineArgs(parser, options)
-  story_runner.ProcessCommandLineArgs(parser, options, environment)
+  story_runner.ProcessCommandLineArgs(parser, options)
   options.suppress_gtest_report = True
   options.output_dir = output_dir
   if output_dir is not None:
