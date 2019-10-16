@@ -3,20 +3,24 @@
 # found in the LICENSE file.
 
 import optparse
+import os
+import logging
 import re
 
-from telemetry.internal.util import command_line
+from telemetry.story import typ_expectations
 
 
 class _StoryMatcher(object):
   def __init__(self, pattern):
     self._regex = None
-    self.has_compile_error = False
     if pattern:
       try:
         self._regex = re.compile(pattern)
-      except re.error:
-        self.has_compile_error = True
+      except:
+        # Provide context since the error that re module provides
+        # is not user friendly.
+        logging.error('We failed to compile the regex "%s"', pattern)
+        raise
 
   def __nonzero__(self):
     return self._regex is not None
@@ -36,8 +40,26 @@ class _StoryTagMatcher(object):
     return self and bool(story.tags.intersection(self._tags))
 
 
-class StoryFilter(command_line.ArgumentHandlerMixIn):
-  """Filters stories in the story set based on command-line flags."""
+class StoryFilterFactory(object):
+  """This factory reads static global configuration for a StoryFilter.
+
+  Static global configuration includes commandline flags and ProjectConfig.
+
+  It then provides a way to create a StoryFilter by only providing
+  the runtime configuration.
+  """
+
+  @classmethod
+  def BuildStoryFilter(cls, benchmark_name, platform_tags):
+    expectations = typ_expectations.StoryExpectations(benchmark_name)
+    expectations.SetTags(platform_tags or [])
+    if cls._expectations_file and os.path.exists(cls._expectations_file):
+      with open(cls._expectations_file) as fh:
+        expectations.GetBenchmarkExpectationsFromParser(fh.read())
+    return StoryFilter(
+        expectations, cls._story_filter, cls._story_filter_exclude,
+        cls._story_tag_filter, cls._story_tag_filter_exclude,
+        cls._shard_begin_index, cls._shard_end_index, cls._run_disabled_stories)
 
   @classmethod
   def AddCommandLineArgs(cls, parser):
@@ -68,37 +90,60 @@ class StoryFilter(command_line.ArgumentHandlerMixIn):
               'rounded down to the number of stories. Negative values not'
               'allowed. If this is ommited, the end index is the final story'
               'of the benchmark. '+ common_story_shard_help))
-
+    # This should be renamed to --also-run-disabled-stories.
+    group.add_option('-d', '--also-run-disabled-tests',
+                     dest='run_disabled_stories',
+                     action='store_true', default=False,
+                     help='Ignore expectations.config disabling.')
     parser.add_option_group(group)
 
   @classmethod
-  def ProcessCommandLineArgs(cls, parser, args):
-    cls._include_regex = _StoryMatcher(args.story_filter)
-    cls._exclude_regex = _StoryMatcher(args.story_filter_exclude)
+  def ProcessCommandLineArgs(cls, parser, args, environment=None):
+    del parser
+    cls._story_filter = args.story_filter
+    cls._story_filter_exclude = args.story_filter_exclude
+    cls._story_tag_filter = args.story_tag_filter
+    cls._story_tag_filter_exclude = args.story_tag_filter_exclude
+    cls._shard_begin_index = args.story_shard_begin_index or 0
+    cls._shard_end_index = args.story_shard_end_index
+    if environment and environment.expectations_files:
+      assert len(environment.expectations_files) == 1
+      cls._expectations_file = environment.expectations_files[0]
+    else:
+      cls._expectations_file = None
+    cls._run_disabled_stories = args.run_disabled_stories
 
-    cls._include_tags = _StoryTagMatcher(args.story_tag_filter)
-    cls._exclude_tags = _StoryTagMatcher(args.story_tag_filter_exclude)
 
-    cls._begin_index = args.story_shard_begin_index or 0
-    cls._end_index = args.story_shard_end_index
+class StoryFilter(object):
+  """Logic to decide whether to run, skip, or ignore stories."""
 
-    if cls._end_index is not None:
-      if cls._end_index < 0:
-        raise parser.error(
-            '--story-shard-end-index cannot be less than 0')
-      if cls._begin_index is not None and cls._end_index <= cls._begin_index:
-        raise parser.error(
-            '--story-shard-end-index cannot be less than'
-            ' or equal to --experimental-story-shard-begin-index')
+  def __init__(
+      self, expectations=None, story_filter=None, story_filter_exclude=None,
+      story_tag_filter=None, story_tag_filter_exclude=None,
+      shard_begin_index=0, shard_end_index=None, run_disabled_stories=False):
+    self._expectations = expectations
+    self._include_regex = _StoryMatcher(story_filter)
+    self._exclude_regex = _StoryMatcher(story_filter_exclude)
+    self._include_tags = _StoryTagMatcher(story_tag_filter)
+    self._exclude_tags = _StoryTagMatcher(story_tag_filter_exclude)
+    self._shard_begin_index = shard_begin_index
+    self._shard_end_index = shard_end_index
+    if self._shard_end_index is not None:
+      if self._shard_end_index < 0:
+        raise ValueError(
+            'shard end index cannot be less than 0, since stories are indexed '
+            'with positive numbers')
+      if (self._shard_begin_index is not None and
+          self._shard_end_index <= self._shard_begin_index):
+        raise ValueError(
+            'shard end index cannot be less than or equal to shard begin index')
+    self._run_disabled_stories = run_disabled_stories
 
-    if cls._include_regex.has_compile_error:
-      raise parser.error('--story-filter: Invalid regex.')
-    if cls._exclude_regex.has_compile_error:
-      raise parser.error('--story-filter-exclude: Invalid regex.')
-
-  @classmethod
-  def FilterStories(cls, stories):
+  def FilterStories(self, stories):
     """Filters the given stories, using filters provided in the command line.
+
+    This filter causes stories to become completely ignored, and therefore
+    they will not show up in test results output.
 
     Story sharding is done before exclusion and inclusion is done.
 
@@ -108,26 +153,52 @@ class StoryFilter(command_line.ArgumentHandlerMixIn):
     Returns:
       A list of remaining stories.
     """
-    if cls._begin_index < 0:
-      cls._begin_index = 0
-    if cls._end_index is None:
-      cls._end_index = len(stories)
+    # TODO(crbug.com/982027): Support for --story=<exact story name>
+    # should be implemented here.
+    if self._shard_begin_index < 0:
+      self._shard_begin_index = 0
+    if self._shard_end_index is None:
+      self._shard_end_index = len(stories)
 
-    stories = stories[cls._begin_index:cls._end_index]
+    stories = stories[self._shard_begin_index:self._shard_end_index]
 
     final_stories = []
     for story in stories:
       # Exclude filters take priority.
-      if cls._exclude_tags.HasLabelIn(story):
+      if self._exclude_tags.HasLabelIn(story):
         continue
-      if cls._exclude_regex.HasMatch(story):
+      if self._exclude_regex.HasMatch(story):
         continue
 
-      if cls._include_tags and not cls._include_tags.HasLabelIn(story):
+      if self._include_tags and not self._include_tags.HasLabelIn(story):
         continue
-      if cls._include_regex and not cls._include_regex.HasMatch(story):
+      if self._include_regex and not self._include_regex.HasMatch(story):
         continue
 
       final_stories.append(story)
 
     return final_stories
+
+  def ShouldSkip(self, story):
+    """Decides whether a story should be marked skipped.
+
+    The difference between marking a story skipped and simply not running
+    it is important for tracking purposes. Officially skipped stories show
+    up in test results outputs.
+
+    Args:
+      story: A story.Story object.
+
+    Returns:
+      A skip reason string if the story should be skipped, otherwise an
+      empty string.
+    """
+    # TODO(crbug.com/982027): Support for --story=<exact story name>
+    # should be implemented here.
+    disabled = self._expectations.IsStoryDisabled(story)
+    if disabled and self._run_disabled_stories:
+      logging.warning(
+          'Force running a disabled story %s even though it was disabled with '
+          'the following reason: %s' % (story.name, disabled))
+      return ''
+    return disabled

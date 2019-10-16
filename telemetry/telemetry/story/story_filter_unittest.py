@@ -1,144 +1,211 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2019 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 import unittest
+import re
 
-from telemetry import story
-from telemetry.page import page
 from telemetry.story import story_filter as story_filter_module
 
 
-class FilterTest(unittest.TestCase):
+class StoryFilterInitUnittest(unittest.TestCase):
 
-  def setUp(self):
-    story_set = story.StorySet()
-    self.p1 = page.Page(
-        url='file://your/smile/widen.html', page_set=story_set,
-        name='MayYour.smile_widen', tags=['tag1', 'tag2'])
-    self.p2 = page.Page(
-        url='file://share_a/smile/too.html', page_set=story_set,
-        name='ShareA.smiles_too', tags=['tag1'])
-    self.p3 = page.Page(
-        url='file://share_a/smile/too.html', page_set=story_set,
-        name='share_a/smile/too.html', tags=['tag2'])
-    self.pages = [self.p1, self.p2, self.p3]
+  def testBadStoryFilterRegexRaises(self):
+    with self.assertRaises(re.error):
+      story_filter_module.StoryFilter(story_filter='+')
 
-  @staticmethod
-  def ProcessCommandLineArgs(parser=None, **kwargs):
-    class Options(object):
-      def __init__(
-          self, story_filter=None, story_filter_exclude=None,
-          story_tag_filter=None, story_tag_filter_exclude=None,
-          story_shard_begin_index=None,
-          story_shard_end_index=None):
-        self.story_filter = story_filter
-        self.story_filter_exclude = story_filter_exclude
-        self.story_tag_filter = story_tag_filter
-        self.story_tag_filter_exclude = story_tag_filter_exclude
-        self.story_shard_begin_index = (
-            story_shard_begin_index)
-        self.story_shard_end_index = (
-            story_shard_end_index)
-    story_filter_module.StoryFilter.ProcessCommandLineArgs(
-        parser, Options(**kwargs))
-
-  def assertPagesSelected(self, expected):
-    result = story_filter_module.StoryFilter.FilterStories(self.pages)
-    self.assertEqual(expected, result)
-
-  def testNoFilterMatchesAll(self):
-    self.ProcessCommandLineArgs()
-    self.assertPagesSelected(self.pages)
-
-  def testBadRegexCallsParserError(self):
-    class MockParserException(Exception):
-      pass
-    class MockParser(object):
-      def error(self, _):
-        raise MockParserException
-    with self.assertRaises(MockParserException):
-      self.ProcessCommandLineArgs(parser=MockParser(), story_filter='+')
+  def testBadStoryFilterExcludeRegexRaises(self):
+    with self.assertRaises(re.error):
+      story_filter_module.StoryFilter(story_filter_exclude='+')
 
   def testBadStoryShardArgEnd(self):
-    class MockParserException(Exception):
-      pass
-    class MockParser(object):
-      def error(self, _):
-        raise MockParserException
-    with self.assertRaises(MockParserException):
-      self.ProcessCommandLineArgs(
-          parser=MockParser(), story_shard_end_index=-1)
+    with self.assertRaises(ValueError):
+      story_filter_module.StoryFilter(shard_end_index=-1)
 
-  def testBadStoryShardArgEndAndBegin(self):
-    class MockParserException(Exception):
-      pass
-    class MockParser(object):
-      def error(self, _):
-        raise MockParserException
-    with self.assertRaises(MockParserException):
-      self.ProcessCommandLineArgs(
-          parser=MockParser(), story_shard_end_index=2,
-          story_shard_begin_index=3)
+  def testMismatchedStoryShardArgEndAndBegin(self):
+    with self.assertRaises(ValueError):
+      story_filter_module.StoryFilter(
+          shard_end_index=2,
+          shard_begin_index=3)
 
-  def testUniqueSubstring(self):
-    self.ProcessCommandLineArgs(story_filter='smile_widen')
-    self.assertPagesSelected([self.p1])
 
-  def testSharedSubstring(self):
-    self.ProcessCommandLineArgs(story_filter='smile')
-    self.assertPagesSelected(self.pages)
+class FakeStory(object):
+  def __init__(self, name='fake_story_name', tags=None):
+    self.name = name
+    self.tags = tags or set()
+
+
+class FilterStoriesUnittest(unittest.TestCase):
+
+  def testNoFilter(self):
+    a = FakeStory('a')
+    b = FakeStory('b')
+    stories = (a, b)
+    story_filter = story_filter_module.StoryFilter()
+    output = story_filter.FilterStories(stories)
+    self.assertEqual(list(stories), output)
+
+  def testSimple(self):
+    a = FakeStory('a')
+    foo = FakeStory('foo')  # pylint: disable=blacklisted-name
+    stories = (a, foo)
+    story_filter = story_filter_module.StoryFilter(
+        story_filter='foo')
+    output = story_filter.FilterStories(stories)
+    self.assertEqual([foo], output)
+
+  def testMultimatch(self):
+    a = FakeStory('a')
+    foo = FakeStory('foo')  # pylint: disable=blacklisted-name
+    foobar = FakeStory('foobar')
+    stories = (a, foo, foobar)
+    story_filter = story_filter_module.StoryFilter(
+        story_filter='foo')
+    output = story_filter.FilterStories(stories)
+    self.assertEqual([foo, foobar], output)
 
   def testNoMatch(self):
-    self.ProcessCommandLineArgs(story_filter='frown')
-    self.assertPagesSelected([])
+    a = FakeStory('a')
+    foo = FakeStory('foo')  # pylint: disable=blacklisted-name
+    foobar = FakeStory('foobar')
+    stories = (a, foo, foobar)
+    story_filter = story_filter_module.StoryFilter(
+        story_filter='1234')
+    output = story_filter.FilterStories(stories)
+    self.assertEqual([], output)
 
   def testExclude(self):
-    self.ProcessCommandLineArgs(story_filter_exclude='ShareA')
-    self.assertPagesSelected([self.p1, self.p3])
+    a = FakeStory('a')
+    foo = FakeStory('foo')  # pylint: disable=blacklisted-name
+    foobar = FakeStory('foobar')
+    stories = (a, foo, foobar)
+    story_filter = story_filter_module.StoryFilter(
+        story_filter_exclude='a')
+    output = story_filter.FilterStories(stories)
+    self.assertEqual([foo], output)
 
   def testExcludeTakesPriority(self):
-    self.ProcessCommandLineArgs(
-        story_filter='smile',
-        story_filter_exclude='wide')
-    self.assertPagesSelected([self.p2, self.p3])
+    a = FakeStory('a')
+    foo = FakeStory('foo')  # pylint: disable=blacklisted-name
+    foobar = FakeStory('foobar')
+    stories = (a, foo, foobar)
+    story_filter = story_filter_module.StoryFilter(
+        story_filter='foo',
+        story_filter_exclude='bar')
+    output = story_filter.FilterStories(stories)
+    self.assertEqual([foo], output)
 
-  def testNoNameMatchesDisplayName(self):
-    self.ProcessCommandLineArgs(story_filter='share_a/smile')
-    self.assertPagesSelected([self.p3])
+  def testNoTagMatch(self):
+    a = FakeStory('a')
+    foo = FakeStory('foo')  # pylint: disable=blacklisted-name
+    stories = (a, foo)
+    story_filter = story_filter_module.StoryFilter(
+        story_tag_filter='x')
+    output = story_filter.FilterStories(stories)
+    self.assertEqual([], output)
 
-  def testNotagMatch(self):
-    self.ProcessCommandLineArgs(story_tag_filter='tagX')
-    self.assertPagesSelected([])
-
-  def testtagsAllMatch(self):
-    self.ProcessCommandLineArgs(story_tag_filter='tag1,tag2')
-    self.assertPagesSelected(self.pages)
+  def testTagsAllMatch(self):
+    a = FakeStory('a', {'1', '2'})
+    b = FakeStory('b', {'1', '2'})
+    stories = (a, b)
+    story_filter = story_filter_module.StoryFilter(
+        story_tag_filter='1,2')
+    output = story_filter.FilterStories(stories)
+    self.assertEqual(list(stories), output)
 
   def testExcludetagTakesPriority(self):
-    self.ProcessCommandLineArgs(
-        story_tag_filter='tag1',
-        story_tag_filter_exclude='tag2')
-    self.assertPagesSelected([self.p2])
+    x = FakeStory('x', {'1'})
+    y = FakeStory('y', {'1', '2'})
+    stories = (x, y)
+    story_filter = story_filter_module.StoryFilter(
+        story_tag_filter='1',
+        story_tag_filter_exclude='2')
+    output = story_filter.FilterStories(stories)
+    self.assertEqual([x], output)
+
+class FilterStoriesShardIndexUnittest(unittest.TestCase):
+  def setUp(self):
+    self.s1 = FakeStory('1')
+    self.s2 = FakeStory('2')
+    self.s3 = FakeStory('3')
+    self.stories = (self.s1, self.s2, self.s3)
 
   def testStoryShardBegin(self):
-    self.ProcessCommandLineArgs(story_shard_begin_index=1)
-    self.assertPagesSelected([self.p2, self.p3])
+    story_filter = story_filter_module.StoryFilter(
+        shard_begin_index=1)
+    output = story_filter.FilterStories(self.stories)
+    self.assertEqual([self.s2, self.s3], output)
 
   def testStoryShardEnd(self):
-    self.ProcessCommandLineArgs(story_shard_end_index=2)
-    self.assertPagesSelected([self.p1, self.p2])
+    story_filter = story_filter_module.StoryFilter(
+        shard_end_index=2)
+    output = story_filter.FilterStories(self.stories)
+    self.assertEqual([self.s1, self.s2], output)
 
   def testStoryShardBoth(self):
-    self.ProcessCommandLineArgs(
-        story_shard_begin_index=1,
-        story_shard_end_index=2)
-    self.assertPagesSelected([self.p2])
+    story_filter = story_filter_module.StoryFilter(
+        shard_begin_index=1,
+        shard_end_index=2)
+    output = story_filter.FilterStories(self.stories)
+    self.assertEqual([self.s2], output)
 
   def testStoryShardBeginWraps(self):
-    self.ProcessCommandLineArgs(story_shard_begin_index=-1)
-    self.assertPagesSelected(self.pages)
+    story_filter = story_filter_module.StoryFilter(
+        shard_begin_index=-1)
+    output = story_filter.FilterStories(self.stories)
+    self.assertEqual(list(self.stories), output)
 
   def testStoryShardEndWraps(self):
-    self.ProcessCommandLineArgs(story_shard_end_index=5)
-    self.assertPagesSelected(self.pages)
+    """This is needed since benchmarks may change size.
+
+    When they change size, we will not immediately write new
+    shard maps for them.
+    """
+    story_filter = story_filter_module.StoryFilter(
+        shard_end_index=5)
+    output = story_filter.FilterStories(self.stories)
+    self.assertEqual(list(self.stories), output)
+
+
+class FakeExpectations(object):
+  def __init__(self, stories_to_disable=None):
+    self._stories_to_disable = stories_to_disable or []
+
+  def IsStoryDisabled(self, story):
+    if story.name in self._stories_to_disable:
+      return 'fake reason'
+    return ''
+
+
+class ShouldSkipUnittest(unittest.TestCase):
+  def testRunDisabledStories_DisabledStory(self):
+    story = FakeStory()
+    expectations = FakeExpectations(stories_to_disable=[story.name])
+    story_filter = story_filter_module.StoryFilter(
+        expectations=expectations,
+        run_disabled_stories=True)
+    self.assertFalse(story_filter.ShouldSkip(story))
+
+  def testRunDisabledStories_EnabledStory(self):
+    story = FakeStory()
+    expectations = FakeExpectations(stories_to_disable=[])
+    story_filter = story_filter_module.StoryFilter(
+        expectations=expectations,
+        run_disabled_stories=True)
+    self.assertFalse(story_filter.ShouldSkip(story))
+
+  def testEnabledStory(self):
+    story = FakeStory()
+    expectations = FakeExpectations(stories_to_disable=[])
+    story_filter = story_filter_module.StoryFilter(
+        expectations=expectations,
+        run_disabled_stories=False)
+    self.assertFalse(story_filter.ShouldSkip(story))
+
+  def testDisabledStory(self):
+    story = FakeStory()
+    expectations = FakeExpectations(stories_to_disable=[story.name])
+    story_filter = story_filter_module.StoryFilter(
+        expectations=expectations,
+        run_disabled_stories=False)
+    self.assertEqual(story_filter.ShouldSkip(story), 'fake reason')

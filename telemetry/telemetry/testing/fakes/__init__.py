@@ -669,3 +669,21 @@ class FakeTimer(object):
       self._module.time = self._actual_time
       self._module = None
       self._actual_time = None
+
+
+class FakeParsedArgsForStoryFilter(object):
+  def __init__(
+      self, story_filter=None, story_filter_exclude=None,
+      story_tag_filter=None, story_tag_filter_exclude=None,
+      story_shard_begin_index=None,
+      story_shard_end_index=None,
+      run_disabled_stories=False):
+    self.story_filter = story_filter
+    self.story_filter_exclude = story_filter_exclude
+    self.story_tag_filter = story_tag_filter
+    self.story_tag_filter_exclude = story_tag_filter_exclude
+    self.story_shard_begin_index = (
+        story_shard_begin_index)
+    self.story_shard_end_index = (
+        story_shard_end_index)
+    self.run_disabled_stories = run_disabled_stories

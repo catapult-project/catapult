@@ -24,7 +24,7 @@ from telemetry.internal.results import results_processor
 from telemetry.internal.util import exception_formatter
 from telemetry import page
 from telemetry.page import legacy_page_test
-from telemetry import story as story_module
+from telemetry.story import story_filter as story_filter_module
 from telemetry.util import wpr_modes
 from telemetry.web_perf import story_test
 
@@ -45,7 +45,7 @@ class ArchiveError(Exception):
 
 
 def AddCommandLineArgs(parser):
-  story_module.StoryFilter.AddCommandLineArgs(parser)
+  story_filter_module.StoryFilterFactory.AddCommandLineArgs(parser)
 
   group = optparse.OptionGroup(parser, 'Story runner options')
   # Note that the default for pageset-repeat is 1 unless the benchmark
@@ -82,10 +82,6 @@ def AddCommandLineArgs(parser):
       help='Run against live sites and ignore the Web Page Replay archives.')
   parser.add_option_group(group)
 
-  parser.add_option('-d', '--also-run-disabled-tests',
-                    dest='run_disabled_tests',
-                    action='store_true', default=False,
-                    help='Ignore expectations.config disabling.')
   parser.add_option('-p', '--print-only', dest='print_only',
                     choices=['stories', 'tags', 'both'], default=None)
   parser.add_option('-w', '--wait-for-cpu-temp',
@@ -95,6 +91,7 @@ def AddCommandLineArgs(parser):
                     'until the device CPU has cooled down. If '
                     'not specified, this wait is disabled. '
                     'Device must be supported. ')
+  # TODO(crbug.com/985103): Move this to story_filter.py.
   parser.add_option('--run-full-story-set', action='store_true', default=False,
                     help='Whether to run the complete set of stories instead '
                     'of an abridged version. Note that if the story set '
@@ -102,8 +99,9 @@ def AddCommandLineArgs(parser):
                     'then this argument will have no impact.')
 
 
-def ProcessCommandLineArgs(parser, args):
-  story_module.StoryFilter.ProcessCommandLineArgs(parser, args)
+def ProcessCommandLineArgs(parser, args, environment=None):
+  story_filter_module.StoryFilterFactory.ProcessCommandLineArgs(
+      parser, args, environment)
 
   if args.pageset_repeat < 1:
     parser.error('--pageset-repeat must be a positive integer.')
@@ -202,7 +200,7 @@ def _GetPossibleBrowser(finder_options):
 
 
 def RunStorySet(test, story_set, finder_options, results, max_failures=None,
-                expectations=None, max_num_values=sys.maxint):
+                max_num_values=sys.maxint):
   """Runs a test against a story_set with the given options.
 
   Stop execution for unexpected exceptions such as KeyboardInterrupt. Some
@@ -225,8 +223,16 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None,
   for s in stories:
     ValidateStory(s)
 
-  # Filter page set based on options.
-  stories = story_module.StoryFilter.FilterStories(stories)
+  # TODO(crbug.com/1013630): A possible_browser object was already created in
+  # Run() method, so instead of creating a new one here we should be
+  # using that one.
+  possible_browser = _GetPossibleBrowser(finder_options)
+  platform_tags = possible_browser.GetTypExpectationsTags()
+  logging.info('The following expectations condition tags were generated %s',
+               str(platform_tags))
+  story_filter = story_filter_module.StoryFilterFactory.BuildStoryFilter(
+      results.benchmark_name, platform_tags)
+  stories = story_filter.FilterStories(stories)
   wpr_archive_info = story_set.wpr_archive_info
   # Sort the stories based on the archive name, to minimize how often the
   # network replay-server needs to be restarted.
@@ -272,8 +278,6 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None,
   if effective_max_failures is None:
     effective_max_failures = max_failures
 
-  possible_browser = _GetPossibleBrowser(finder_options)
-
   if not finder_options.run_full_story_set:
     tag_filter = story_set.GetAbridgedStorySetTagFilter()
     if tag_filter:
@@ -300,16 +304,11 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None,
 
         results.WillRunPage(story, storyset_repeat_counter)
 
-        if expectations:
-          disabled = expectations.IsStoryDisabled(story)
-          if disabled:
-            if finder_options.run_disabled_tests:
-              logging.warning('Force running a disabled story: %s' %
-                              story.name)
-            else:
-              results.Skip(disabled)
-              results.DidRunPage(story)
-              continue
+        skip_reason = story_filter.ShouldSkip(story)
+        if skip_reason:
+          results.Skip(skip_reason)
+          results.DidRunPage(story)
+          continue
 
         if results.benchmark_interrupted:
           results.Skip(results.benchmark_interruption, is_expected=False)
@@ -421,10 +420,6 @@ def RunBenchmark(benchmark, finder_options):
       print ('No browser of type "%s" found for running benchmark "%s".' % (
           finder_options.browser_options.browser_type, benchmark.Name()))
       return -1
-    typ_expectation_tags = possible_browser.GetTypExpectationsTags()
-    logging.info('The following expectations condition tags were generated %s',
-                 str(typ_expectation_tags))
-    benchmark.expectations.SetTags(typ_expectation_tags)
     if not _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
       return -1
 
@@ -441,7 +436,6 @@ def RunBenchmark(benchmark, finder_options):
     try:
       RunStorySet(
           test, story_set, finder_options, results, benchmark.max_failures,
-          expectations=benchmark.expectations,
           max_num_values=benchmark.MAX_NUM_VALUES)
       if results.benchmark_interrupted:
         return_code = 2
