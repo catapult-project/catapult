@@ -234,6 +234,7 @@ class TestBrowserCreation(unittest.TestCase):
       with self.browser_to_create.BrowserSession(self.finder_options):
         pass  # Do nothing.
 
+  @decorators.Disabled('chromeos')  # crbug.com/1014115
   def testCreateBrowserTwice(self):
     try:
       self.browser_to_create.SetUpEnvironment(self.browser_options)
