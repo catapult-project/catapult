@@ -513,10 +513,6 @@ class PageTestResults(object):
       output_formatter.PrintViewResults()
       output_formatter.output_stream.close()
 
-  def FindAllPageSpecificValuesNamed(self, value_name):
-    """DEPRECATED: New benchmarks should not use legacy values."""
-    return [v for v in self.IterAllLegacyValues() if v.name == value_name]
-
   def IterRunsWithTraces(self):
     for run in self._IterAllStoryRuns():
       if run.HasArtifactsInDir('trace/'):
