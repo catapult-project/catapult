@@ -106,12 +106,14 @@ def Disabled(*args):
   """Decorator for disabling tests/benchmarks.
 
   If args are given, the test will be disabled if ANY of the args match the
-  browser type, OS name or OS version:
-    @Disabled('canary')        # Disabled for canary browsers
-    @Disabled('win')           # Disabled on Windows.
-    @Disabled('win', 'linux')  # Disabled on both Windows and Linux.
-    @Disabled('mavericks')     # Disabled on Mac Mavericks (10.9) only.
-    @Disabled('all')  # Unconditionally disabled.
+  browser type, OS name, OS version, or any tags returned by a PossibleBrowser's
+  GetTypExpectationsTags():
+    @Disabled('canary')          # Disabled for canary browsers
+    @Disabled('win')             # Disabled on Windows.
+    @Disabled('win', 'linux')    # Disabled on both Windows and Linux.
+    @Disabled('mavericks')       # Disabled on Mac Mavericks (10.9) only.
+    @Disabled('all')             # Unconditionally disabled.
+    @Disabled('chromeos-local')  # Disabled in ChromeOS local mode.
   """
 
   def _Disabled(func):
@@ -140,12 +142,14 @@ def Disabled(*args):
 def Enabled(*args):
   """Decorator for enabling tests/benchmarks.
 
-  The test will be enabled if ANY of the args match the browser type, OS name
-  or OS version:
-    @Enabled('canary')        # Enabled only for canary browsers
-    @Enabled('win')           # Enabled only on Windows.
-    @Enabled('win', 'linux')  # Enabled only on Windows or Linux.
-    @Enabled('mavericks')     # Enabled only on Mac Mavericks (10.9).
+  The test will be enabled if ANY of the args match the browser type, OS name,
+  OS version, or any tags returned by a PossibleBrowser's
+  GetTypExpectationsTags():
+    @Enabled('canary')          # Enabled only for canary browsers
+    @Enabled('win')             # Enabled only on Windows.
+    @Enabled('win', 'linux')    # Enabled only on Windows or Linux.
+    @Enabled('mavericks')       # Enabled only on Mac Mavericks (10.9).
+    @Enabled('chromeos-local')  # Enabled only in ChromeOS local mode.
   """
 
   def _Enabled(func):
@@ -378,4 +382,5 @@ def _PlatformAttributes(possible_browser):
       if attribute != 'reference':
         ref_attributes.append('%s-reference' % attribute)
     attributes.extend(ref_attributes)
+  attributes.extend(possible_browser.GetTypExpectationsTags())
   return attributes

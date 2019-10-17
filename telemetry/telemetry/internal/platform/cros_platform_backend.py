@@ -132,4 +132,8 @@ class CrosPlatformBackend(
   def GetTypExpectationsTags(self):
     tags = super(CrosPlatformBackend, self).GetTypExpectationsTags()
     tags.append('desktop')
+    if self.cri.local:
+      tags.append('chromeos-local')
+    else:
+      tags.append('chromeos-remote')
     return tags
