@@ -1577,8 +1577,8 @@ class DeviceUtils(object):
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=PUSH_CHANGED_FILES_DEFAULT_TIMEOUT)
-  def PushChangedFiles(self, host_device_tuples, delete_device_stale=False,
-                       timeout=None, retries=None):
+  def PushChangedFiles(self, host_device_tuples, timeout=None,
+                       retries=None, delete_device_stale=False):
     """Push files to the device, skipping files that don't need updating.
 
     When a directory is pushed, it is traversed recursively on the host and
@@ -1591,28 +1591,15 @@ class DeviceUtils(object):
         |host_path| is an absolute path of a file or directory on the host
         that should be minimially pushed to the device, and |device_path| is
         an absolute path of the destination on the device.
-      delete_device_stale: option to delete stale files on device
       timeout: timeout in seconds
       retries: number of retries
+      delete_device_stale: option to delete stale files on device
 
     Raises:
       CommandFailedError on failure.
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    # TODO(crbug.com/1005504): Experiment with this on physical devices after
-    # upgrading devil's default adb beyond 1.0.39.
-    enable_push_sync = self.adb.is_emulator
-
-    if enable_push_sync:
-      try:
-        for h, d in host_device_tuples:
-          self.adb.Push(h, d, sync=True)
-        return
-      except device_errors.AdbVersionError as e:
-        # If we don't meet the adb requirements, fall back to the previous
-        # sync-unaware implementation.
-        logging.warning(str(e))
 
     all_changed_files = []
     all_stale_files = []

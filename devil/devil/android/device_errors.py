@@ -11,7 +11,6 @@ The class hierarchy for device exceptions is:
      +-- CommandFailedError
      |    +-- AdbCommandFailedError
      |    |    +-- AdbShellCommandFailedError
-     |    +-- AdbVersionError
      |    +-- FastbootCommandFailedError
      |    +-- DeviceVersionError
      |    +-- DeviceChargingError
@@ -113,20 +112,6 @@ class DeviceVersionError(CommandFailedError):
 
   def __init__(self, message, device_serial=None):
     super(DeviceVersionError, self).__init__(message, device_serial)
-
-
-class AdbVersionError(CommandFailedError):
-  """Exception for running a command on an incompatible version of adb."""
-
-  def __init__(self, args, desc=None, actual_version=None, min_version=None):
-    adb_cmd = ' '.join(cmd_helper.SingleQuote(arg) for arg in args)
-    desc = desc or 'not supported'
-    if min_version:
-      desc += ' prior to %s' % min_version
-    if actual_version:
-      desc += ' (actual: %s)' % actual_version
-    super(AdbVersionError, self).__init__(
-        message='adb %s: %s' % (adb_cmd, desc))
 
 
 class AdbShellCommandFailedError(AdbCommandFailedError):
