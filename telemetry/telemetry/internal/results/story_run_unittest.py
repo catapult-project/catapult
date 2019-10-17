@@ -15,13 +15,6 @@ from telemetry import story as story_module
 from py_utils import tempfile_ext
 
 
-# splitdrive returns '' on systems which don't have drives, like linux.
-ROOT_CHAR = os.path.splitdrive(__file__)[0] + os.sep
-def _abs_join(*args):
-  """Helper to do a path join that's an absolute path."""
-  return ROOT_CHAR + os.path.join(*args)
-
-
 def TestStory(name, **kwargs):
   return story_module.Story(shared_state.SharedState, name=name, **kwargs)
 
