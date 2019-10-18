@@ -91,12 +91,6 @@ def AddCommandLineArgs(parser):
                     'until the device CPU has cooled down. If '
                     'not specified, this wait is disabled. '
                     'Device must be supported. ')
-  # TODO(crbug.com/985103): Move this to story_filter.py.
-  parser.add_option('--run-full-story-set', action='store_true', default=False,
-                    help='Whether to run the complete set of stories instead '
-                    'of an abridged version. Note that if the story set '
-                    'does not provide the information required to abridge it, '
-                    'then this argument will have no impact.')
 
 
 def ProcessCommandLineArgs(parser, args, environment=None):
@@ -230,8 +224,9 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None,
   platform_tags = possible_browser.GetTypExpectationsTags()
   logging.info('The following expectations condition tags were generated %s',
                str(platform_tags))
+  abridged_story_set_tag = story_set.GetAbridgedStorySetTagFilter()
   story_filter = story_filter_module.StoryFilterFactory.BuildStoryFilter(
-      results.benchmark_name, platform_tags)
+      results.benchmark_name, platform_tags, abridged_story_set_tag)
   stories = story_filter.FilterStories(stories)
   wpr_archive_info = story_set.wpr_archive_info
   # Sort the stories based on the archive name, to minimize how often the
@@ -277,14 +272,6 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None,
   effective_max_failures = finder_options.max_failures
   if effective_max_failures is None:
     effective_max_failures = max_failures
-
-  if not finder_options.run_full_story_set:
-    tag_filter = story_set.GetAbridgedStorySetTagFilter()
-    if tag_filter:
-      logging.warn('Running an abridged set of stories (tagged {%s}), '
-                   'use --run-full-story-set if you need to run all stories' %
-                   tag_filter)
-      stories = [story for story in stories if tag_filter in story.tags]
 
   state = None
   device_info_diags = {}

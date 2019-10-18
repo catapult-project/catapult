@@ -50,14 +50,18 @@ class StoryFilterFactory(object):
   """
 
   @classmethod
-  def BuildStoryFilter(cls, benchmark_name, platform_tags):
+  def BuildStoryFilter(cls, benchmark_name, platform_tags,
+                       abridged_story_set_tag):
     expectations = typ_expectations.StoryExpectations(benchmark_name)
     expectations.SetTags(platform_tags or [])
     if cls._expectations_file and os.path.exists(cls._expectations_file):
       with open(cls._expectations_file) as fh:
         expectations.GetBenchmarkExpectationsFromParser(fh.read())
+    if cls._run_full_story_set:
+      abridged_story_set_tag = None
     return StoryFilter(
-        expectations, cls._story_filter, cls._story_filter_exclude,
+        expectations, abridged_story_set_tag, cls._story_filter,
+        cls._story_filter_exclude,
         cls._story_tag_filter, cls._story_tag_filter_exclude,
         cls._shard_begin_index, cls._shard_end_index, cls._run_disabled_stories)
 
@@ -95,6 +99,12 @@ class StoryFilterFactory(object):
                      dest='run_disabled_stories',
                      action='store_true', default=False,
                      help='Ignore expectations.config disabling.')
+    group.add_option(
+        '--run-full-story-set', action='store_true', default=False,
+        help='Whether to run the complete set of stories instead '
+        'of an abridged version. Note that if the story set '
+        'does not provide the information required to abridge it, '
+        'then this argument will have no impact.')
     parser.add_option_group(group)
 
   @classmethod
@@ -112,13 +122,15 @@ class StoryFilterFactory(object):
     else:
       cls._expectations_file = None
     cls._run_disabled_stories = args.run_disabled_stories
+    cls._run_full_story_set = args.run_full_story_set
 
 
 class StoryFilter(object):
   """Logic to decide whether to run, skip, or ignore stories."""
 
   def __init__(
-      self, expectations=None, story_filter=None, story_filter_exclude=None,
+      self, expectations=None, abridged_story_set_tag=None, story_filter=None,
+      story_filter_exclude=None,
       story_tag_filter=None, story_tag_filter_exclude=None,
       shard_begin_index=0, shard_end_index=None, run_disabled_stories=False):
     self._expectations = expectations
@@ -138,6 +150,7 @@ class StoryFilter(object):
         raise ValueError(
             'shard end index cannot be less than or equal to shard begin index')
     self._run_disabled_stories = run_disabled_stories
+    self._abridged_story_set_tag = abridged_story_set_tag
 
   def FilterStories(self, stories):
     """Filters the given stories, using filters provided in the command line.
@@ -173,6 +186,9 @@ class StoryFilter(object):
       if self._include_tags and not self._include_tags.HasLabelIn(story):
         continue
       if self._include_regex and not self._include_regex.HasMatch(story):
+        continue
+      if (self._abridged_story_set_tag and
+          self._abridged_story_set_tag not in story.tags):
         continue
 
       final_stories.append(story)

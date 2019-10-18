@@ -25,6 +25,7 @@ from telemetry.internal import story_runner
 from telemetry.page import page as page_module
 from telemetry.page import legacy_page_test
 from telemetry import story as story_module
+from telemetry.story import story_filter
 from telemetry.testing import fakes
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
@@ -1321,22 +1322,27 @@ class RunBenchmarkTest(unittest.TestCase):
     get_files.assert_called_once_with('/files/foo', cloud_storage.PUBLIC_BUCKET)
 
   def testAbridged(self):
+    options = self.GetFakeBrowserOptions()
+    story_filter.StoryFilterFactory.ProcessCommandLineArgs(
+        parser=None, args=options)
     fake_benchmark = FakeBenchmark(stories=[
         DummyStory('story1', tags=['important']),
         DummyStory('story2', tags=['other']),
     ], abridging_tag='important')
-    options = self.GetFakeBrowserOptions()
     story_runner.RunBenchmark(fake_benchmark, options)
     results = self.ReadIntermediateResults()
     self.assertEqual(len(results['testResults']), 1)
+    self.assertTrue(results['testResults'][0]['testPath'].endswith('/story1'))
 
   def testFullRun(self):
+    options = self.GetFakeBrowserOptions()
+    options.run_full_story_set = True
+    story_filter.StoryFilterFactory.ProcessCommandLineArgs(
+        parser=None, args=options)
     fake_benchmark = FakeBenchmark(stories=[
         DummyStory('story1', tags=['important']),
         DummyStory('story2', tags=['other']),
     ], abridging_tag='important')
-    options = self.GetFakeBrowserOptions()
-    options.run_full_story_set = True
     story_runner.RunBenchmark(fake_benchmark, options)
     results = self.ReadIntermediateResults()
     self.assertEqual(len(results['testResults']), 2)

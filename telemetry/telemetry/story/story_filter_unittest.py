@@ -123,6 +123,16 @@ class FilterStoriesUnittest(unittest.TestCase):
     output = story_filter.FilterStories(stories)
     self.assertEqual([x], output)
 
+  def testAbridgedStorySetTag(self):
+    x = FakeStory('x', {'1'})
+    y = FakeStory('y', {'1', '2'})
+    stories = (x, y)
+    story_filter = story_filter_module.StoryFilter(
+        abridged_story_set_tag='2')
+    output = story_filter.FilterStories(stories)
+    self.assertEqual([y], output)
+
+
 class FilterStoriesShardIndexUnittest(unittest.TestCase):
   def setUp(self):
     self.s1 = FakeStory('1')
