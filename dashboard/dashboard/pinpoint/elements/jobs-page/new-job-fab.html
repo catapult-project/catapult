@@ -183,7 +183,8 @@ found in the LICENSE file.
                                   items="{{storyCases(benchmarkConfig)}}"
                                   disabled="{{!validCases(benchmark, benchmarkConfig)}}"
                                   placeholder="Story"
-                                  required></autocomplete-box>
+                                  selected-name="{{story}}"
+                                  required$="[[!isStoryOrTagsSet(story, storyTags)]]"></autocomplete-box>
                 <template is="dom-if" if="[[benchmarkConfigLoading]]">
                   <paper-progress indeterminate></paper-progress>
                 </template>
@@ -218,7 +219,9 @@ found in the LICENSE file.
                                   name="story_tags"
                                   items="{{storyTags(benchmarkConfig)}}"
                                   disabled="{{!validTags(benchmark, benchmarkConfig)}}"
-                                  placeholder="Story Tags (optional, comma-separated)"></autocomplete-box>
+                                  placeholder="Story Tags (optional, comma-separated)"
+                                  selected-name="{{storyTags}}"
+                                  required$="[[!isStoryOrTagsSet(story, storyTags)]]"></autocomplete-box>
                 <template is="dom-if" if="[[benchmarkConfigLoading]]">
                   <paper-progress indeterminate></paper-progress>
                 </template>
@@ -341,6 +344,10 @@ found in the LICENSE file.
       handleResponse(event) {
         this.set('route.path', '/job/' + event.detail.response.jobId);
         this.$.try_dialog.close();
+      },
+
+      isStoryOrTagsSet(story, storyTags) {
+        return story !== '' || storyTags !== '';
       },
 
       isBisectJob(comparisonMode) {
