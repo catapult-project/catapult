@@ -7,7 +7,6 @@ import json
 import os
 import sys
 
-from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import csv_output_formatter
 from telemetry.internal.results import histogram_set_json_output_formatter
 from telemetry.internal.results import html_output_formatter
@@ -18,7 +17,6 @@ from telemetry.internal.results import page_test_results
 # TODO(crbug.com/981349): Should be eventually replaced entirely by the results
 # processor in tools/perf.
 LEGACY_OUTPUT_FORMATS = (
-    'chartjson',
     'csv',
     'histograms',
     'html',
@@ -27,7 +25,6 @@ LEGACY_OUTPUT_FORMATS = (
 
 # Filenames to use for given output formats.
 _OUTPUT_FILENAME_LOOKUP = {
-    'chartjson': 'results-chart.json',
     'csv': 'results.csv',
     'histograms': 'histograms.json',
     'html': 'results.html',
@@ -80,9 +77,6 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
     if output_format == 'html':
       output_formatters.append(html_output_formatter.HtmlOutputFormatter(
           output_stream, options.reset_results, options.upload_bucket))
-    elif output_format == 'chartjson':
-      output_formatters.append(
-          chart_json_output_formatter.ChartJsonOutputFormatter(output_stream))
     elif output_format == 'csv':
       output_formatters.append(
           csv_output_formatter.CsvOutputFormatter(

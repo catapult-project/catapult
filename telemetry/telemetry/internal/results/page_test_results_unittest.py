@@ -14,7 +14,6 @@ import mock
 
 from telemetry import story
 from telemetry.core import exceptions
-from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import histogram_set_json_output_formatter
 from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import page_test_results
@@ -277,21 +276,6 @@ class PageTestResultsTest(unittest.TestCase):
 
     runs = list(results.IterRunsWithTraces())
     self.assertEqual(1, len(runs))
-
-  def testOutputEmptyResults_ChartJSON(self):
-    output_file = os.path.join(self._output_dir, 'chart.json')
-    with open(output_file, 'w') as stream:
-      formatter = chart_json_output_formatter.ChartJsonOutputFormatter(stream)
-      with self.CreateResults(
-          output_formatters=[formatter],
-          benchmark_name='fake_benchmark_name'):
-        pass
-
-    with open(output_file) as f:
-      chartjson_output = json.load(f)
-
-    self.assertFalse(chartjson_output['enabled'])
-    self.assertEqual(chartjson_output['benchmark_name'], 'fake_benchmark_name')
 
   def testOutputEmptyResults_HTML(self):
     output_file = os.path.join(self._output_dir, 'results.html')
