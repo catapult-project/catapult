@@ -98,6 +98,23 @@ class HistogramSetUnittest(unittest.TestCase):
         self.assertEqual(val['diagnostics']['da'], da.guid)
         seen_once = True
 
+  def testMerge(self):
+    hs1 = histogram_set.HistogramSet([histogram.Histogram('a', 'unitless')])
+    hs1.AddSharedDiagnosticToAllHistograms('name',
+                                           generic_set.GenericSet(['diag1']))
+
+    hs2 = histogram_set.HistogramSet([histogram.Histogram('b', 'unitless')])
+    hs2.AddSharedDiagnosticToAllHistograms('name',
+                                           generic_set.GenericSet(['diag2']))
+
+    hs1.Merge(hs2)
+
+    self.assertEqual(len(hs1), 2)
+    self.assertEqual(len(hs1.shared_diagnostics), 2)
+    self.assertEqual(hs1.GetHistogramNamed('a').diagnostics['name'],
+                     generic_set.GenericSet(['diag1']))
+    self.assertEqual(hs1.GetHistogramNamed('b').diagnostics['name'],
+                     generic_set.GenericSet(['diag2']))
 
   def testSharedDiagnostic(self):
     hist = histogram.Histogram('', 'unitless')
