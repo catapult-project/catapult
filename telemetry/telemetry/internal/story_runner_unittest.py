@@ -78,6 +78,60 @@ class TestSharedState(story_module.SharedState):
     pass
 
 
+class DummyStory(story_module.Story):
+  def __init__(self, name, tags=None, serving_dir=None, run_side_effect=None):
+    """A customize dummy story.
+
+    Args:
+      name: A string with the name of the story.
+      tags: Optional sequence of tags for the story.
+      serving_dir: Optional path from which (in a real local story) contents
+        are served. Used in some tests but no local servers are actually set up.
+      run_side_effect: Optional side effect of the story's Run method.
+        It can be either an exception instance to raise, or a callable
+        with no arguments.
+    """
+    super(DummyStory, self).__init__(TestSharedState, name=name, tags=tags)
+    self._serving_dir = serving_dir
+    self._run_side_effect = run_side_effect
+
+  def Run(self, _):
+    if self._run_side_effect is not None:
+      if isinstance(self._run_side_effect, BaseException):
+        raise self._run_side_effect  # pylint: disable=raising-bad-type
+      else:
+        self._run_side_effect()
+
+  @property
+  def serving_dir(self):
+    return self._serving_dir
+
+
+class DummyStorySet(story_module.StorySet):
+  def __init__(self, stories, cloud_bucket=None, abridging_tag=None):
+    """A customizable dummy story set.
+
+    Args:
+      stories: A list of either story names or objects to add to the set.
+        Instances of DummyStory are useful here.
+      cloud_bucket: Optional cloud storage bucket where (in a real story set)
+        data for WPR recordings is stored. This is used in some tests, but
+        interactions with cloud storage are mocked out.
+      abridging_tag: Optional story tag used to define a subset of stories
+        to be run in abridged mode.
+    """
+    super(DummyStorySet, self).__init__(cloud_storage_bucket=cloud_bucket)
+    self._abridging_tag = abridging_tag
+    assert stories, 'There should be at least one story.'
+    for story in stories:
+      if isinstance(story, basestring):
+        story = DummyStory(story)
+      self.AddStory(story)
+
+  def GetAbridgedStorySetTagFilter(self):
+    return self._abridging_tag
+
+
 class RunStorySetTest(unittest.TestCase):
   """Tests that run dummy story sets with a mock StoryTest.
 
@@ -707,61 +761,6 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
             'Exception raised running %s' % root_mock.story.name),
         mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
     ])
-
-
-# TODO: Move these classes closer to the top of the file.
-class DummyStory(story_module.Story):
-  def __init__(self, name, tags=None, serving_dir=None, run_side_effect=None):
-    """A customize dummy story.
-
-    Args:
-      name: A string with the name of the story.
-      tags: Optional sequence of tags for the story.
-      serving_dir: Optional path from which (in a real local story) contents
-        are served. Used in some tests but no local servers are actually set up.
-      run_side_effect: Optional side effect of the story's Run method.
-        It can be either an exception instance to raise, or a callable
-        with no arguments.
-    """
-    super(DummyStory, self).__init__(TestSharedState, name=name, tags=tags)
-    self._serving_dir = serving_dir
-    self._run_side_effect = run_side_effect
-
-  def Run(self, _):
-    if self._run_side_effect is not None:
-      if isinstance(self._run_side_effect, BaseException):
-        raise self._run_side_effect  # pylint: disable=raising-bad-type
-      else:
-        self._run_side_effect()
-
-  @property
-  def serving_dir(self):
-    return self._serving_dir
-
-
-class DummyStorySet(story_module.StorySet):
-  def __init__(self, stories, cloud_bucket=None, abridging_tag=None):
-    """A customizable dummy story set.
-
-    Args:
-      stories: A list of either story names or objects to add to the set.
-        Instances of DummyStory are useful here.
-      cloud_bucket: Optional cloud storage bucket where (in a real story set)
-        data for WPR recordings is stored. This is used in some tests, but
-        interactions with cloud storage are mocked out.
-      abridging_tag: Optional story tag used to define a subset of stories
-        to be run in abridged mode.
-    """
-    super(DummyStorySet, self).__init__(cloud_storage_bucket=cloud_bucket)
-    self._abridging_tag = abridging_tag
-    assert stories, 'There should be at least one story.'
-    for story in stories:
-      if isinstance(story, basestring):
-        story = DummyStory(story)
-      self.AddStory(story)
-
-  def GetAbridgedStorySetTagFilter(self):
-    return self._abridging_tag
 
 
 class FakeBenchmark(benchmark.Benchmark):
