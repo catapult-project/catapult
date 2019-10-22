@@ -328,32 +328,6 @@ class PageTestResults(object):
     logging.fatal(reason)
     self._interruption = self._interruption or reason
 
-  def AddHistogram(self, hist):
-    """DEPRECATED: New clients should use AddMeasurement instead."""
-    diags = self._GetDiagnostics()
-    for diag in diags.itervalues():
-      self._histograms.AddSharedDiagnostic(diag)
-    self._histograms.AddHistogram(hist, diags)
-    self.current_story_run.AddMeasurement(
-        hist.name, hist.unit, hist.sample_values, hist.description or None)
-
-  def _GetDiagnostics(self):
-    """Get benchmark and current story details as histogram diagnostics.
-
-    Diagnostics of the DateRange type are converted to milliseconds.
-    """
-    return dict(_WrapDiagnostics([
-        (reserved_infos.BENCHMARKS, self.benchmark_name),
-        (reserved_infos.BENCHMARK_START, self.benchmark_start_us / 1e3),
-        (reserved_infos.BENCHMARK_DESCRIPTIONS, self.benchmark_description),
-        (reserved_infos.LABELS, self.label),
-        (reserved_infos.HAD_FAILURES, self.current_story_run.failed),
-        (reserved_infos.STORIES, self.current_story.name),
-        (reserved_infos.STORY_TAGS, self.current_story.GetStoryTagsList()),
-        (reserved_infos.STORYSET_REPEATS, self.current_story_run.index),
-        (reserved_infos.TRACE_START, self.current_story_run.start_us / 1e3),
-    ]))
-
   def AddMeasurement(self, name, unit, samples, description=None):
     """Record a measurement of the currently running story.
 

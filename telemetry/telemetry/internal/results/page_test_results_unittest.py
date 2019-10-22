@@ -25,7 +25,6 @@ from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import generic_set
-from tracing.value.diagnostics import reserved_infos
 
 
 def _CreateException():
@@ -173,22 +172,6 @@ class PageTestResultsTest(unittest.TestCase):
     measurements = results_options.ReadMeasurements(test_results[0])
     self.assertEqual(measurements,
                      {'a': {'unit': 'seconds', 'samples': [1, 2, 3]}})
-
-  def testAddMeasurementAsHistogram(self):
-    # TODO(999484): Temporary test while we migrate benchmarks writing "ad hoc"
-    # histograms to directly use measurements instead.
-    with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      results.AddHistogram(histogram_module.Histogram.Create(
-          'a', 'ms', [1000, 2000, 3000]))
-      results.DidRunPage(self.pages[0])
-
-    test_results = results_options.ReadIntermediateResults(
-        self.intermediate_dir)['testResults']
-    self.assertTrue(len(test_results), 1)
-    measurements = results_options.ReadMeasurements(test_results[0])
-    self.assertEqual(measurements,
-                     {'a': {'unit': 'ms', 'samples': [1000, 2000, 3000]}})
 
   def testAddMeasurementWithStoryGroupingKeys(self):
     with self.CreateResults() as results:
@@ -343,23 +326,6 @@ class PageTestResultsTest(unittest.TestCase):
     hs.ImportDicts(results.AsHistogramDicts())
     self.assertEqual(1, len(hs))
     self.assertEqual('a', hs.GetFirstHistogram().name)
-
-  def testPopulateHistogramSet_UsesHistogramSetData(self):
-    with self.CreateResults(benchmark_name='benchmark_name') as results:
-      results.WillRunPage(self.pages[0])
-      results.AddHistogram(histogram_module.Histogram('foo', 'count'))
-      results.DidRunPage(self.pages[0])
-      results.PopulateHistogramSet()
-
-    histogram_dicts = results.AsHistogramDicts()
-    self.assertEqual(8, len(histogram_dicts))
-
-    hs = histogram_set.HistogramSet()
-    hs.ImportDicts(histogram_dicts)
-
-    hist = hs.GetHistogramNamed('foo')
-    self.assertItemsEqual(hist.diagnostics[reserved_infos.BENCHMARKS.name],
-                          ['benchmark_name'])
 
   def testBeginFinishBenchmarkRecords(self):
     self.mock_time.side_effect = [1234567890.987]
