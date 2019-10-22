@@ -6,6 +6,7 @@ import unittest
 import re
 
 from telemetry.story import story_filter as story_filter_module
+from telemetry.testing import fakes
 
 
 class StoryFilterInitUnittest(unittest.TestCase):
@@ -29,6 +30,21 @@ class StoryFilterInitUnittest(unittest.TestCase):
           shard_begin_index=3)
 
 
+class ProcessCommandLineUnittest(unittest.TestCase):
+
+  def testStoryFlagExclusivity(self):
+    args = fakes.FakeParsedArgsForStoryFilter(
+        story_filter='blah', stories=['aa', 'bb'])
+    with self.assertRaises(AssertionError):
+      story_filter_module.StoryFilterFactory.ProcessCommandLineArgs(
+          parser=None, args=args)
+
+  def testStoryFlagSmoke(self):
+    args = fakes.FakeParsedArgsForStoryFilter(stories=['aa', 'bb'])
+    story_filter_module.StoryFilterFactory.ProcessCommandLineArgs(
+        parser=None, args=args)
+
+
 class FakeStory(object):
   def __init__(self, name='fake_story_name', tags=None):
     self.name = name
@@ -36,6 +52,23 @@ class FakeStory(object):
 
 
 class FilterStoriesUnittest(unittest.TestCase):
+
+  def testStoryFlag(self):
+    a = FakeStory('a')
+    b = FakeStory('b')
+    c = FakeStory('c')
+    d = FakeStory('d')
+    stories = (a, b, c, d)
+    story_filter = story_filter_module.StoryFilter(stories=['a', 'c'])
+    output = story_filter.FilterStories(stories)
+    self.assertEqual([a, c], output)
+
+  def testStoryFlag_InvalidStory(self):
+    a = FakeStory('a')
+    stories = (a,)
+    story_filter = story_filter_module.StoryFilter(stories=['a', 'c'])
+    with self.assertRaises(ValueError):
+      story_filter.FilterStories(stories)
 
   def testNoFilter(self):
     a = FakeStory('a')
@@ -188,6 +221,7 @@ class FakeExpectations(object):
 
 
 class ShouldSkipUnittest(unittest.TestCase):
+
   def testRunDisabledStories_DisabledStory(self):
     story = FakeStory()
     expectations = FakeExpectations(stories_to_disable=[story.name])
@@ -219,3 +253,12 @@ class ShouldSkipUnittest(unittest.TestCase):
         expectations=expectations,
         run_disabled_stories=False)
     self.assertEqual(story_filter.ShouldSkip(story), 'fake reason')
+
+  def testDisabledStory_StoryFlag(self):
+    story = FakeStory('a_name')
+    expectations = FakeExpectations(stories_to_disable=[story.name])
+    story_filter = story_filter_module.StoryFilter(
+        expectations=expectations,
+        run_disabled_stories=False,
+        stories=['a_name'])
+    self.assertFalse(story_filter.ShouldSkip(story))

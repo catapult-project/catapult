@@ -976,6 +976,21 @@ class RunBenchmarkTest(unittest.TestCase):
     results = self.ReadIntermediateResults()
     self.assertEqual(len(results['testResults']), 2)
 
+  def testStoryFlag(self):
+    options = self.GetFakeBrowserOptions()
+    args = fakes.FakeParsedArgsForStoryFilter(stories=['story1', 'story3'])
+    story_filter.StoryFilterFactory.ProcessCommandLineArgs(
+        parser=None, args=args)
+    fake_benchmark = FakeBenchmark(stories=[
+        DummyStory('story1'),
+        DummyStory('story2'),
+        DummyStory('story3')])
+    story_runner.RunBenchmark(fake_benchmark, options)
+    results = self.ReadIntermediateResults()
+    self.assertEqual(len(results['testResults']), 2)
+    self.assertTrue(results['testResults'][0]['testPath'].endswith('/story1'))
+    self.assertTrue(results['testResults'][1]['testPath'].endswith('/story3'))
+
   def testArtifactLogsContainHandleableException(self):
     def failed_run():
       logging.warning('This will fail gracefully')
