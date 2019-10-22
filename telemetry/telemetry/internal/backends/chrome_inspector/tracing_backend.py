@@ -230,18 +230,17 @@ class TracingBackend(object):
       raise TracingUnrecoverableException(
           'Exception raised while sending a Tracing.requestMemoryDump '
           'request:\n' + traceback.format_exc())
-
-
-    if ('error' in response or
-        'result' not in response or
-        'success' not in response['result'] or
-        'dumpGuid' not in response['result']):
+    dump_id = None
+    try:
+      if response['result']['success'] and 'error' not in response:
+        dump_id = response['result']['dumpGuid']
+    except KeyError:
+      pass  # If any of the keys are missing, there is an error and no dump_id.
+    if not dump_id:
       raise TracingUnexpectedResponseException(
           'Inspector returned unexpected response for '
           'Tracing.requestMemoryDump:\n' + json.dumps(response, indent=2))
-
-    result = response['result']
-    return result['dumpGuid'] if result['success'] else None
+    return dump_id
 
   def CollectTraceData(self, trace_data_builder, timeout=60):
     if not self._can_collect_data:
