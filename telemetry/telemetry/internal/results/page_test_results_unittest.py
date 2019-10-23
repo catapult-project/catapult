@@ -23,7 +23,6 @@ from telemetry import page as page_module
 from tracing.trace_data import trace_data
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
-from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import generic_set
 
 
@@ -301,31 +300,6 @@ class PageTestResultsTest(unittest.TestCase):
       })
 
     self.assertEqual(results.AsHistogramDicts(), histogram_dicts)
-
-  def testAddSharedDiagnostics(self):
-    with self.CreateResults(benchmark_name='benchmark_name') as results:
-      results.WillRunPage(self.pages[0])
-      results.DidRunPage(self.pages[0])
-      results.AddSharedDiagnostics(os_name='linux')
-      results.PopulateHistogramSet()
-
-    histogram_dicts = results.AsHistogramDicts()
-    self.assertEqual(1, len(histogram_dicts))
-
-    diag = diagnostic.Diagnostic.FromDict(histogram_dicts[0])
-    self.assertIsInstance(diag, generic_set.GenericSet)
-
-  def testPopulateHistogramSet_UsesScalarValueData(self):
-    with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      results.AddMeasurement('a', 'seconds', 3)
-      results.DidRunPage(self.pages[0])
-      results.PopulateHistogramSet()
-
-    hs = histogram_set.HistogramSet()
-    hs.ImportDicts(results.AsHistogramDicts())
-    self.assertEqual(1, len(hs))
-    self.assertEqual('a', hs.GetFirstHistogram().name)
 
   def testBeginFinishBenchmarkRecords(self):
     self.mock_time.side_effect = [1234567890.987]

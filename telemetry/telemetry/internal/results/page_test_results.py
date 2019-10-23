@@ -8,19 +8,16 @@ import logging
 import os
 import posixpath
 import shutil
-import tempfile
 import time
 import traceback
 
 from telemetry import value as value_module
-from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import results_processor
 from telemetry.internal.results import story_run
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 
-from tracing.value import convert_chart_json
 from tracing.value import histogram_set
 from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import reserved_infos
@@ -140,36 +137,6 @@ class PageTestResults(object):
 
   def AsHistogramDicts(self):
     return self._histograms.AsDicts()
-
-  def PopulateHistogramSet(self):
-    if len(self._histograms):
-      return
-
-    # We ensure that html traces are serialized and uploaded if necessary
-    results_processor.SerializeAndUploadHtmlTraces(self)
-
-    chart_json = chart_json_output_formatter.ResultsAsChartDict(self)
-    chart_json['label'] = self.label
-    chart_json['benchmarkStartMs'] = self.benchmark_start_us / 1000.0
-
-    file_descriptor, chart_json_path = tempfile.mkstemp()
-    os.close(file_descriptor)
-    json.dump(chart_json, file(chart_json_path, 'w'))
-
-    vinn_result = convert_chart_json.ConvertChartJson(chart_json_path)
-
-    os.remove(chart_json_path)
-
-    if vinn_result.returncode != 0:
-      logging.error('Error converting chart json to Histograms:\n' +
-                    vinn_result.stdout)
-      return []
-    self._histograms.ImportDicts(json.loads(vinn_result.stdout))
-
-  @property
-  def current_page(self):
-    """DEPRECATED: Use current_story instead."""
-    return self.current_story
 
   @property
   def current_story(self):

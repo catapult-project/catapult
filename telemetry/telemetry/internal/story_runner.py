@@ -353,7 +353,6 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None,
           results.InterruptBenchmark(interruption)
   finally:
     results_processor.ComputeTimelineBasedMetrics(results)
-    results.PopulateHistogramSet()
     results.AddSharedDiagnostics(**device_info_diags)
 
     if state:
