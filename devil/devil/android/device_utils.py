@@ -355,6 +355,58 @@ def _FormatPartialOutputError(output):
   return '\n'.join(message)
 
 
+_PushableComponents = collections.namedtuple(
+    '_PushableComponents', ('host', 'device', 'collapse'))
+
+
+def _IterPushableComponents(host_path, device_path):
+  """Yields a sequence of paths that can be pushed directly via adb push.
+
+  `adb push` doesn't currently handle pushing directories that contain
+  symlinks: https://bit.ly/2pMBlW5
+
+  To circumvent this issue, we get the smallest set of files and/or
+  directories that can be pushed without attempting to push a directory
+  that contains a symlink.
+
+  This function does so by recursing through |host_path|. Each call
+  yields 3-tuples that include the smallest set of (host, device) path pairs
+  that can be passed to adb push and a bool indicating whether the parent
+  directory can be pushed -- i.e., if True, the host path is neither a
+  symlink nor a directory that contains a symlink.
+
+  Args:
+    host_path: an absolute path of a file or directory on the host
+    device_path: an absolute path of a file or directory on the device
+  Yields:
+    3-tuples containing
+      host (str): the host path, with symlinks dereferenced
+      device (str): the device path
+      collapse (bool): whether this entity permits its parent to be pushed
+        in its entirety. (Parents need permission from all child entities
+        in order to be pushed in their entirety.)
+  """
+  if os.path.isfile(host_path):
+    yield _PushableComponents(
+        os.path.realpath(host_path), device_path,
+        not os.path.islink(host_path))
+  else:
+    components = []
+    for child in os.listdir(host_path):
+      components.extend(
+          _IterPushableComponents(
+              os.path.join(host_path, child),
+              posixpath.join(device_path, child)))
+
+    if all(c.collapse for c in components):
+      yield _PushableComponents(
+          os.path.realpath(host_path), device_path,
+          not os.path.islink(host_path))
+    else:
+      for c in components:
+        yield c
+
+
 class DeviceUtils(object):
 
   _MAX_ADB_COMMAND_LENGTH = 512
@@ -1577,8 +1629,8 @@ class DeviceUtils(object):
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=PUSH_CHANGED_FILES_DEFAULT_TIMEOUT)
-  def PushChangedFiles(self, host_device_tuples, timeout=None,
-                       retries=None, delete_device_stale=False):
+  def PushChangedFiles(self, host_device_tuples, delete_device_stale=False,
+                       timeout=None, retries=None):
     """Push files to the device, skipping files that don't need updating.
 
     When a directory is pushed, it is traversed recursively on the host and
@@ -1591,15 +1643,27 @@ class DeviceUtils(object):
         |host_path| is an absolute path of a file or directory on the host
         that should be minimially pushed to the device, and |device_path| is
         an absolute path of the destination on the device.
+      delete_device_stale: option to delete stale files on device
       timeout: timeout in seconds
       retries: number of retries
-      delete_device_stale: option to delete stale files on device
 
     Raises:
       CommandFailedError on failure.
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
+    # TODO(crbug.com/1005504): Experiment with this on physical devices after
+    # upgrading devil's default adb beyond 1.0.39.
+    enable_push_sync = self.adb.is_emulator
+
+    if enable_push_sync:
+      try:
+        self._PushChangedFilesSync(host_device_tuples)
+        return
+      except device_errors.AdbVersionError as e:
+        # If we don't meet the adb requirements, fall back to the previous
+        # sync-unaware implementation.
+        logging.warning(str(e))
 
     all_changed_files = []
     all_stale_files = []
@@ -1648,8 +1712,18 @@ class DeviceUtils(object):
     for func in cache_commit_funcs:
       func()
 
+  def _PushChangedFilesSync(self, host_device_tuples):
+    """Push changed files via `adb sync`.
+
+    Args:
+      host_device_tuples: Same as PushChangedFiles.
+    """
+    for h, d in host_device_tuples:
+      for ph, pd, _ in _IterPushableComponents(h, d):
+        self.adb.Push(ph, pd, sync=True)
+
   def _GetChangedAndStaleFiles(self, host_path, device_path, track_stale=False):
-    """Get files to push and delete
+    """Get files to push and delete.
 
     Args:
       host_path: an absolute path of a file or directory on the host
