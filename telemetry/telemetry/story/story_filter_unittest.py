@@ -165,6 +165,23 @@ class FilterStoriesUnittest(unittest.TestCase):
     output = story_filter.FilterStories(stories)
     self.assertEqual([y], output)
 
+  def testAbridgeBeforeShardIndexing(self):
+    """Test that the abridged story set tag gets applied before indexing.
+
+    Shard maps on the chromium side allow us to distribute runtime evenly across
+    shards so that we minimize waterfall cycle time. If we abridge after we
+    select indexes then we cannot control how many stories is on each shard.
+    """
+    x = FakeStory('x', {'t'})
+    y = FakeStory('y')
+    z = FakeStory('z', {'t'})
+    stories = (x, y, z)
+    story_filter = story_filter_module.StoryFilter(
+        abridged_story_set_tag='t',
+        shard_end_index=2)
+    output = story_filter.FilterStories(stories)
+    self.assertEqual([x, z], output)
+
 
 class FilterStoriesShardIndexUnittest(unittest.TestCase):
   def setUp(self):

@@ -207,13 +207,14 @@ class StoryFilter(object):
         raise ValueError('story %s was asked for but does not exist.' % story)
       return output_stories
 
+    if self._abridged_story_set_tag:
+      stories = [story for story in stories
+                 if self._abridged_story_set_tag in story.tags]
     if self._shard_begin_index < 0:
       self._shard_begin_index = 0
     if self._shard_end_index is None:
       self._shard_end_index = len(stories)
-
     stories = stories[self._shard_begin_index:self._shard_end_index]
-
     final_stories = []
     for story in stories:
       # Exclude filters take priority.
@@ -221,17 +222,11 @@ class StoryFilter(object):
         continue
       if self._exclude_regex.HasMatch(story):
         continue
-
       if self._include_tags and not self._include_tags.HasLabelIn(story):
         continue
       if self._include_regex and not self._include_regex.HasMatch(story):
         continue
-      if (self._abridged_story_set_tag and
-          self._abridged_story_set_tag not in story.tags):
-        continue
-
       final_stories.append(story)
-
     return final_stories
 
   def ShouldSkip(self, story):
