@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
 import os
 import shutil
 import sys
@@ -133,12 +132,6 @@ class DummyStorySet(story_module.StorySet):
     return self._abridging_tag
 
 
-def ReadDiagnostics(test_result):
-  artifact = test_result['outputArtifacts'][page_test_results.DIAGNOSTICS_NAME]
-  with open(artifact['filePath']) as f:
-    return json.load(f)['diagnostics']
-
-
 class RunStorySetTest(unittest.TestCase):
   """Tests that run dummy story sets with a mock StoryTest.
 
@@ -162,14 +155,15 @@ class RunStorySetTest(unittest.TestCase):
       story_runner.RunStorySet(
           self.mock_story_test, story_set, self.options, results, **kwargs)
 
-  def ReadTestResults(self):
-    return results_options.ReadTestResults(self.options.intermediate_dir)
+  def ReadIntermediateResults(self):
+    return results_options.ReadIntermediateResults(
+        self.options.intermediate_dir)
 
   def testRunStorySet(self):
     self.RunStories(['story1', 'story2', 'story3'])
-    test_results = self.ReadTestResults()
+    results = self.ReadIntermediateResults()
     self.assertTrue(['PASS', 'PASS', 'PASS'],
-                    [test['status'] for test in test_results])
+                    [test['status'] for test in results['testResults']])
 
   def testRunStoryWithLongName(self):
     with self.assertRaises(ValueError):
@@ -207,9 +201,9 @@ class RunStorySetTest(unittest.TestCase):
     self.RunStories([
         DummyStory('story', run_side_effect=exceptions.AppCrashException(
             msg='App Foo crashes'))])
-    test_results = self.ReadTestResults()
+    results = self.ReadIntermediateResults()
     self.assertEqual(['FAIL'],
-                     [test['status'] for test in test_results])
+                     [test['status'] for test in results['testResults']])
     self.assertIn('App Foo crashes', sys.stderr.getvalue())
 
   @mock.patch.object(TestSharedState, 'TearDownState')
@@ -228,9 +222,9 @@ class RunStorySetTest(unittest.TestCase):
     self.RunStories([
         DummyStory('foo', run_side_effect=UnknownException('FooException')),
         DummyStory('bar')])
-    test_results = self.ReadTestResults()
+    results = self.ReadIntermediateResults()
     self.assertEqual(['FAIL', 'PASS'],
-                     [test['status'] for test in test_results])
+                     [test['status'] for test in results['testResults']])
     self.assertIn('FooException', sys.stderr.getvalue())
 
   def testRaiseBrowserGoneExceptionFromRunPage(self):
@@ -238,9 +232,9 @@ class RunStorySetTest(unittest.TestCase):
         DummyStory('foo', run_side_effect=exceptions.BrowserGoneException(
             None, 'i am a browser crash message')),
         DummyStory('bar')])
-    test_results = self.ReadTestResults()
+    results = self.ReadIntermediateResults()
     self.assertEqual(['FAIL', 'PASS'],
-                     [test['status'] for test in test_results])
+                     [test['status'] for test in results['testResults']])
     self.assertIn('i am a browser crash message', sys.stderr.getvalue())
 
   @mock.patch.object(TestSharedState, 'DumpStateUponStoryRunFailure')
@@ -270,23 +264,53 @@ class RunStorySetTest(unittest.TestCase):
         'state.TearDownState'
     ])
 
-    test_results = self.ReadTestResults()
-    self.assertEqual(len(test_results), 2)
+    results = self.ReadIntermediateResults()
+    self.assertTrue(results['benchmarkRun']['interrupted'])
+    self.assertEqual(len(results['testResults']), 2)
     # First story unexpectedly failed with AppCrashException.
-    self.assertEqual(test_results[0]['status'], 'FAIL')
-    self.assertFalse(test_results[0]['isExpected'])
+    self.assertEqual(results['testResults'][0]['status'], 'FAIL')
+    self.assertFalse(results['testResults'][0]['isExpected'])
     # Second story unexpectedly skipped due to exception during tear down.
-    self.assertEqual(test_results[1]['status'], 'SKIP')
-    self.assertFalse(test_results[1]['isExpected'])
+    self.assertEqual(results['testResults'][1]['status'], 'SKIP')
+    self.assertFalse(results['testResults'][1]['isExpected'])
 
   def testPagesetRepeat(self):
     self.options.pageset_repeat = 2
     self.RunStories(['story1', 'story2'])
-    test_results = self.ReadTestResults()
+    results = self.ReadIntermediateResults()
     self.assertEqual(['benchmark/story1', 'benchmark/story2'] * 2,
-                     [test['testPath'] for test in test_results])
+                     [test['testPath'] for test in results['testResults']])
     self.assertEqual(['PASS', 'PASS', 'PASS', 'PASS'],
-                     [test['status'] for test in test_results])
+                     [test['status'] for test in results['testResults']])
+
+  def testRunStoryAddsDeviceInfo(self):
+    self.mock_platform.GetArchName.return_value = 'amd64'
+    self.mock_platform.GetOSName.return_value = 'win'
+    self.mock_platform.GetOSVersionName.return_value = 'win10'
+    self.RunStories(['story1'])
+    results = self.ReadIntermediateResults()
+    self.assertEqual(['PASS'],
+                     [test['status'] for test in results['testResults']])
+    diagnostics = results['benchmarkRun']['diagnostics']
+    self.assertEqual(diagnostics['architectures'], ['amd64'])
+    self.assertEqual(diagnostics['osNames'], ['win'])
+    self.assertEqual(diagnostics['osVersions'], ['win10'])
+
+  def testRunStoryAddsDeviceInfo_EvenInErrors(self):
+    self.mock_platform.GetArchName.return_value = 'amd64'
+    self.mock_platform.GetOSName.return_value = 'win'
+    self.mock_platform.GetOSVersionName.return_value = 'win10'
+    # TODO: This only works for "handleable" exceptions. Should fix so it works
+    # for *all* kinds of exceptions.
+    self.RunStories([DummyStory(
+        'foo', run_side_effect=exceptions.TimeoutException('boom!'))])
+    results = self.ReadIntermediateResults()
+    self.assertEqual(['FAIL'],
+                     [test['status'] for test in results['testResults']])
+    diagnostics = results['benchmarkRun']['diagnostics']
+    self.assertEqual(diagnostics['architectures'], ['amd64'])
+    self.assertEqual(diagnostics['osNames'], ['win'])
+    self.assertEqual(diagnostics['osVersions'], ['win10'])
 
   def _testMaxFailuresOptionIsRespectedAndOverridable(
       self, num_failing_stories, runner_max_failures, options_max_failures,
@@ -297,10 +321,10 @@ class RunStorySetTest(unittest.TestCase):
         DummyStory('failing_%d' % i, run_side_effect=Exception('boom!'))
         for i in range(num_failing_stories)
     ], max_failures=runner_max_failures)
-    test_results = self.ReadTestResults()
-    self.assertEqual(len(test_results),
+    results = self.ReadIntermediateResults()
+    self.assertEqual(len(results['testResults']),
                      expected_num_failures + expected_num_skips)
-    for i, test in enumerate(test_results):
+    for i, test in enumerate(results['testResults']):
       expected_status = 'FAIL' if i < expected_num_failures else 'SKIP'
       self.assertEqual(test['status'], expected_status)
 
@@ -334,9 +358,9 @@ class RunStorySetTest(unittest.TestCase):
 
     self.mock_story_test.Measure.side_effect = add_measurement
     self.RunStories(['story1'], max_num_values=0)
-    test_results = self.ReadTestResults()
+    results = self.ReadIntermediateResults()
     self.assertEqual(['FAIL'],
-                     [test['status'] for test in test_results])
+                     [test['status'] for test in results['testResults']])
     self.assertIn('Too many values: 1 > 0', sys.stderr.getvalue())
 
 
@@ -797,8 +821,8 @@ class RunBenchmarkTest(unittest.TestCase):
         output_dir=self.output_dir,
         fake_browser=True, overrides=overrides)
 
-  def ReadTestResults(self):
-    return results_options.ReadTestResults(
+  def ReadIntermediateResults(self):
+    return results_options.ReadIntermediateResults(
         os.path.join(self.output_dir, 'artifacts'))
 
   def testDisabledBenchmarkViaCanRunOnPlatform(self):
@@ -806,8 +830,8 @@ class RunBenchmarkTest(unittest.TestCase):
     fake_benchmark.SUPPORTED_PLATFORMS = []
     options = self.GetFakeBrowserOptions()
     story_runner.RunBenchmark(fake_benchmark, options)
-    test_results = self.ReadTestResults()
-    self.assertFalse(test_results)  # No tests ran at all.
+    results = self.ReadIntermediateResults()
+    self.assertFalse(results['testResults'])  # No tests ran at all.
 
   def testSkippedWithStoryFilter(self):
     fake_benchmark = FakeBenchmark(stories=['fake_story'])
@@ -817,9 +841,9 @@ class RunBenchmarkTest(unittest.TestCase):
         'telemetry.story.story_filter.StoryFilterFactory.BuildStoryFilter',
         return_value=fake_story_filter):
       story_runner.RunBenchmark(fake_benchmark, options)
-    test_results = self.ReadTestResults()
-    self.assertTrue(test_results)  # Some tests ran, but all skipped.
-    self.assertTrue(all(t['status'] == 'SKIP' for t in test_results))
+    results = self.ReadIntermediateResults()
+    self.assertTrue(results['testResults'])  # Some tests ran, but all skipped.
+    self.assertTrue(all(t['status'] == 'SKIP' for t in results['testResults']))
 
   def testOneStorySkippedOneNot(self):
     fake_story_filter = FakeStoryFilter(stories_to_skip=['story1'])
@@ -829,8 +853,8 @@ class RunBenchmarkTest(unittest.TestCase):
         'telemetry.story.story_filter.StoryFilterFactory.BuildStoryFilter',
         return_value=fake_story_filter):
       story_runner.RunBenchmark(fake_benchmark, options)
-    test_results = self.ReadTestResults()
-    status = [t['status'] for t in test_results]
+    results = self.ReadIntermediateResults()
+    status = [t['status'] for t in results['testResults']]
     self.assertEqual(len(status), 2)
     self.assertIn('SKIP', status)
     self.assertIn('PASS', status)
@@ -843,7 +867,8 @@ class RunBenchmarkTest(unittest.TestCase):
         'telemetry.story.story_filter.StoryFilterFactory.BuildStoryFilter',
         return_value=fake_story_filter):
       story_runner.RunBenchmark(fake_benchmark, options)
-    test_results = self.ReadTestResults()
+    results = self.ReadIntermediateResults()
+    test_results = results['testResults']
     self.assertEqual(len(test_results), 1)
     self.assertEqual(test_results[0]['status'], 'PASS')
     self.assertTrue(test_results[0]['testPath'].endswith('/story2'))
@@ -859,8 +884,8 @@ class RunBenchmarkTest(unittest.TestCase):
     fake_benchmark = FakeBenchmarkWithOwner()
     options = self.GetFakeBrowserOptions()
     story_runner.RunBenchmark(fake_benchmark, options)
-    test_results = self.ReadTestResults()
-    diagnostics = ReadDiagnostics(test_results[0])
+    results = self.ReadIntermediateResults()
+    diagnostics = results['benchmarkRun']['diagnostics']
     self.assertEqual(diagnostics['owners'],
                      ['alice@chromium.org', 'bob@chromium.org'])
     self.assertEqual(diagnostics['bugComponents'], ['fooBar'])
@@ -876,22 +901,10 @@ class RunBenchmarkTest(unittest.TestCase):
     fake_benchmark = FakeBenchmarkWithOwner()
     options = self.GetFakeBrowserOptions()
     story_runner.RunBenchmark(fake_benchmark, options)
-    test_results = self.ReadTestResults()
-    diagnostics = ReadDiagnostics(test_results[0])
+    results = self.ReadIntermediateResults()
+    diagnostics = results['benchmarkRun']['diagnostics']
     self.assertEqual(diagnostics['owners'], ['alice@chromium.org'])
     self.assertNotIn('documentationLinks', diagnostics)
-
-  def testDeviceInfo(self):
-    fake_benchmark = FakeBenchmark(stories=['fake_story'])
-    options = self.GetFakeBrowserOptions()
-    options.fake_possible_browser = fakes.FakePossibleBrowser(
-        arch_name='abc', os_name='win', os_version_name='win10')
-    story_runner.RunBenchmark(fake_benchmark, options)
-    test_results = self.ReadTestResults()
-    diagnostics = ReadDiagnostics(test_results[0])
-    self.assertEqual(diagnostics['architectures'], ['abc'])
-    self.assertEqual(diagnostics['osNames'], ['win'])
-    self.assertEqual(diagnostics['osVersions'], ['win10'])
 
   def testReturnCodeDisabledStory(self):
     fake_benchmark = FakeBenchmark(stories=['fake_story'])
@@ -946,9 +959,9 @@ class RunBenchmarkTest(unittest.TestCase):
         DummyStory('story2', tags=['other']),
     ], abridging_tag='important')
     story_runner.RunBenchmark(fake_benchmark, options)
-    test_results = self.ReadTestResults()
-    self.assertEqual(len(test_results), 1)
-    self.assertTrue(test_results[0]['testPath'].endswith('/story1'))
+    results = self.ReadIntermediateResults()
+    self.assertEqual(len(results['testResults']), 1)
+    self.assertTrue(results['testResults'][0]['testPath'].endswith('/story1'))
 
   def testFullRun(self):
     options = self.GetFakeBrowserOptions()
@@ -960,8 +973,8 @@ class RunBenchmarkTest(unittest.TestCase):
         DummyStory('story2', tags=['other']),
     ], abridging_tag='important')
     story_runner.RunBenchmark(fake_benchmark, options)
-    test_results = self.ReadTestResults()
-    self.assertEqual(len(test_results), 2)
+    results = self.ReadIntermediateResults()
+    self.assertEqual(len(results['testResults']), 2)
 
   def testStoryFlag(self):
     options = self.GetFakeBrowserOptions()
@@ -973,10 +986,10 @@ class RunBenchmarkTest(unittest.TestCase):
         DummyStory('story2'),
         DummyStory('story3')])
     story_runner.RunBenchmark(fake_benchmark, options)
-    test_results = self.ReadTestResults()
-    self.assertEqual(len(test_results), 2)
-    self.assertTrue(test_results[0]['testPath'].endswith('/story1'))
-    self.assertTrue(test_results[1]['testPath'].endswith('/story3'))
+    results = self.ReadIntermediateResults()
+    self.assertEqual(len(results['testResults']), 2)
+    self.assertTrue(results['testResults'][0]['testPath'].endswith('/story1'))
+    self.assertTrue(results['testResults'][1]['testPath'].endswith('/story3'))
 
   def testArtifactLogsContainHandleableException(self):
     def failed_run():
@@ -991,15 +1004,15 @@ class RunBenchmarkTest(unittest.TestCase):
     options = self.GetFakeBrowserOptions()
     return_code = story_runner.RunBenchmark(fake_benchmark, options)
     self.assertEqual(return_code, 1)
-    test_results = self.ReadTestResults()
-    self.assertEqual(len(test_results), 2)
+    results = self.ReadIntermediateResults()['testResults']
+    self.assertEqual(len(results), 2)
 
     # First story failed.
-    self.assertEqual(test_results[0]['testPath'], 'fake_benchmark/story1')
-    self.assertEqual(test_results[0]['status'], 'FAIL')
-    self.assertIn('logs.txt', test_results[0]['outputArtifacts'])
+    self.assertEqual(results[0]['testPath'], 'fake_benchmark/story1')
+    self.assertEqual(results[0]['status'], 'FAIL')
+    self.assertIn('logs.txt', results[0]['outputArtifacts'])
 
-    with open(test_results[0]['outputArtifacts']['logs.txt']['filePath']) as f:
+    with open(results[0]['outputArtifacts']['logs.txt']['filePath']) as f:
       test_log = f.read()
 
     # Ensure that the log contains warning messages and python stack.
@@ -1008,8 +1021,8 @@ class RunBenchmarkTest(unittest.TestCase):
     self.assertIn("raise exceptions.TimeoutException('karma!')", test_log)
 
     # Second story ran fine.
-    self.assertEqual(test_results[1]['testPath'], 'fake_benchmark/story2')
-    self.assertEqual(test_results[1]['status'], 'PASS')
+    self.assertEqual(results[1]['testPath'], 'fake_benchmark/story2')
+    self.assertEqual(results[1]['status'], 'PASS')
 
   def testArtifactLogsContainUnhandleableException(self):
     def failed_run():
@@ -1024,15 +1037,15 @@ class RunBenchmarkTest(unittest.TestCase):
     options = self.GetFakeBrowserOptions()
     return_code = story_runner.RunBenchmark(fake_benchmark, options)
     self.assertEqual(return_code, 2)
-    test_results = self.ReadTestResults()
-    self.assertEqual(len(test_results), 2)
+    results = self.ReadIntermediateResults()['testResults']
+    self.assertEqual(len(results), 2)
 
     # First story failed.
-    self.assertEqual(test_results[0]['testPath'], 'fake_benchmark/story1')
-    self.assertEqual(test_results[0]['status'], 'FAIL')
-    self.assertIn('logs.txt', test_results[0]['outputArtifacts'])
+    self.assertEqual(results[0]['testPath'], 'fake_benchmark/story1')
+    self.assertEqual(results[0]['status'], 'FAIL')
+    self.assertIn('logs.txt', results[0]['outputArtifacts'])
 
-    with open(test_results[0]['outputArtifacts']['logs.txt']['filePath']) as f:
+    with open(results[0]['outputArtifacts']['logs.txt']['filePath']) as f:
       test_log = f.read()
 
     # Ensure that the log contains warning messages and python stack.
@@ -1041,8 +1054,8 @@ class RunBenchmarkTest(unittest.TestCase):
     self.assertIn("raise MemoryError('this is a fatal exception')", test_log)
 
     # Second story was skipped.
-    self.assertEqual(test_results[1]['testPath'], 'fake_benchmark/story2')
-    self.assertEqual(test_results[1]['status'], 'SKIP')
+    self.assertEqual(results[1]['testPath'], 'fake_benchmark/story2')
+    self.assertEqual(results[1]['status'], 'SKIP')
 
   def testUnexpectedSkipsWithFiltering(self):
     # We prepare side effects for 50 stories, the first 30 run fine, the
@@ -1064,14 +1077,14 @@ class RunBenchmarkTest(unittest.TestCase):
     # The results should contain entries of story 10 --> story 40. Of those
     # entries, story 31's actual result is 'FAIL' and
     # stories from 31 to 40 will shows 'SKIP'.
-    test_results = self.ReadTestResults()
-    self.assertEqual(len(test_results), 31)
+    results = self.ReadIntermediateResults()['testResults']
+    self.assertEqual(len(results), 31)
 
     expected = []
     expected.extend(('story_%i' % i, 'PASS') for i in xrange(10, 30))
     expected.append(('story_30', 'FAIL'))
     expected.extend(('story_%i' % i, 'SKIP') for i in xrange(31, 41))
 
-    for (story, status), result in zip(expected, test_results):
+    for (story, status), result in zip(expected, results):
       self.assertEqual(result['testPath'], 'fake_benchmark/%s' % story)
       self.assertEqual(result['status'], status)

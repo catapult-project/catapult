@@ -50,8 +50,8 @@ class LegacyPageTestCase(unittest.TestCase):
     self.assertEqual(len(story_set), 1)
     with results_options.CreateResults(self.options) as results:
       story_runner.RunStorySet(page_test, story_set, self.options, results)
-    test_results = results_options.ReadTestResults(
-        self.options.intermediate_dir)
+    test_results = results_options.ReadIntermediateResults(
+        self.options.intermediate_dir)['testResults']
     self.assertEqual(len(test_results), 1)
     self.test_result = test_results[0]
     self.assertEqual(self.test_result['status'], expect_status)

@@ -36,10 +36,9 @@ class FakePlatformBackend(object):
 
 
 class FakePlatform(object):
-  def __init__(self, arch_name='', os_name='', os_version_name=''):
+  def __init__(self, os_name='', os_version_name=''):
     self._network_controller = None
     self._tracing_controller = None
-    self._arch_name = arch_name or 'FakeArchitecture'
     self._os_name = os_name or 'FakeOS'
     self._os_version_name = os_version_name or 'FakeVersion'
     self._device_type_name = 'abc'
@@ -83,7 +82,7 @@ class FakePlatform(object):
     return False
 
   def GetArchName(self):
-    return self._arch_name
+    raise NotImplementedError
 
   def SetOSName(self, name):
     self._os_name = name
@@ -214,10 +213,10 @@ class FakeForwarderFactory(object):
 class FakePossibleBrowser(object):
   def __init__(self, execute_on_startup=None,
                execute_after_browser_creation=None,
-               arch_name='', os_name='', os_version_name='', browser_type=''):
+               os_name='', os_version_name='', browser_type=''):
     if os_name:
       self._returned_browser = FakeBrowser(
-          FakePlatform(arch_name, os_name, os_version_name), browser_type)
+          FakePlatform(os_name, os_version_name), browser_type)
     else:
       self._returned_browser = FakeBrowser(
           FakeLinuxPlatform(), browser_type)

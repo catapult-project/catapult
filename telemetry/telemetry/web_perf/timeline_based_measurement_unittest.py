@@ -47,8 +47,8 @@ class TimelineBasedMeasurementTest(unittest.TestCase):
 
   def RunBenchmarkAndReadResults(self, test_benchmark):
     story_runner.RunBenchmark(test_benchmark, self.options)
-    test_results = results_options.ReadTestResults(
-        self.options.intermediate_dir)
+    test_results = results_options.ReadIntermediateResults(
+        self.options.intermediate_dir)['testResults']
     self.assertEqual(len(test_results), 1)
     return test_results[0]
 
