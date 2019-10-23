@@ -100,6 +100,11 @@ def GetReplayArgs(network_backend, supports_spki_list=True):
 
   # Send all browser traffic (including requests to 127.0.0.1 and localhost) to
   # ts_proxy_server.
+  # The proxy should NOT be set to "localhost", otherwise Chrome will first
+  # attempt to use the IPv6 version (::1) before falling back to IPv4. This
+  # causes issues if the IPv4 port we got randomly assigned on the device is
+  # also being used in IPv6 by some other process. See
+  # https://crbug.com/1005971 for more information.
   proxy_port = network_backend.forwarder.remote_port
   args.append('--proxy-server=socks://127.0.0.1:%s' % proxy_port)
   args.append('--proxy-bypass-list=<-loopback>')
