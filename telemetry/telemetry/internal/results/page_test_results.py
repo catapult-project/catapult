@@ -27,8 +27,9 @@ from tracing.value.diagnostics import reserved_infos
 from tracing.value.diagnostics import generic_set
 
 
-TELEMETRY_RESULTS = '_telemetry_results.jsonl'
+TEST_RESULTS = '_test_results.jsonl'
 HISTOGRAM_DICTS_NAME = 'histogram_dicts.json'
+DIAGNOSTICS_NAME = 'diagnostics.json'
 
 
 class PageTestResults(object):
@@ -94,8 +95,7 @@ class PageTestResults(object):
       if not os.path.exists(self._intermediate_dir):
         os.makedirs(self._intermediate_dir)
       self._results_stream = open(
-          os.path.join(self._intermediate_dir, TELEMETRY_RESULTS), 'w')
-      self._RecordBenchmarkStart()
+          os.path.join(self._intermediate_dir, TEST_RESULTS), 'w')
 
   @property
   def benchmark_name(self):
@@ -228,31 +228,12 @@ class PageTestResults(object):
     """Whether there were any story runs."""
     return not self._all_story_runs
 
-  def _WriteJsonLine(self, data, close=False):
+  def _WriteJsonLine(self, data):
     if self._results_stream is not None:
       # Use a compact encoding and sort keys to get deterministic outputs.
       self._results_stream.write(
           json.dumps(data, sort_keys=True, separators=(',', ':')) + '\n')
-      if close:
-        self._results_stream.close()
-      else:
-        self._results_stream.flush()
-
-  def _RecordBenchmarkStart(self):
-    self._WriteJsonLine({
-        'benchmarkRun': {
-            'startTime': self.start_datetime.isoformat() + 'Z',
-        }
-    })
-
-  def _RecordBenchmarkFinish(self):
-    self._WriteJsonLine({
-        'benchmarkRun': {
-            'finalized': self.finalized,
-            'interrupted': self.benchmark_interrupted,
-            'diagnostics': self._diagnostics,
-        }
-    }, close=True)
+      self._results_stream.flush()
 
   def IterStoryRuns(self):
     return iter(self._all_story_runs)
@@ -274,6 +255,8 @@ class PageTestResults(object):
     self._current_story_run = story_run.StoryRun(
         page, test_prefix=self.benchmark_name, index=story_run_index,
         intermediate_dir=self._intermediate_dir)
+    with self.CreateArtifact(DIAGNOSTICS_NAME) as f:
+      json.dump({'diagnostics': self._diagnostics}, f, indent=4)
     self._progress_reporter.WillRunStory(self)
 
   def DidRunPage(self, page):  # pylint: disable=unused-argument
@@ -384,7 +367,6 @@ class PageTestResults(object):
     ]
 
     for name, value in _WrapDiagnostics(diag_values):
-      self._histograms.AddSharedDiagnosticToAllHistograms(name, value)
       # Results Processor supports only GenericSet diagnostics for now.
       assert isinstance(value, generic_set.GenericSet)
       self._diagnostics[name] = list(value)
@@ -480,7 +462,8 @@ class PageTestResults(object):
     # and write results instead at the end of each story run.
     for run in self._all_story_runs:
       self._WriteJsonLine(run.AsDict())
-    self._RecordBenchmarkFinish()
+    if self._results_stream is not None:
+      self._results_stream.close()
 
     for output_formatter in self._output_formatters:
       output_formatter.Format(self)

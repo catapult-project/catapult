@@ -100,17 +100,13 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
       results_label=options.results_label)
 
 
-def ReadIntermediateResults(intermediate_dir):
-  """Read results from an intermediate_dir into a single dict."""
-  results = {'benchmarkRun': {}, 'testResults': []}
+def ReadTestResults(intermediate_dir):
+  """Read results from an intermediate_dir into a single list."""
+  results = []
   with open(os.path.join(
-      intermediate_dir, page_test_results.TELEMETRY_RESULTS)) as f:
+      intermediate_dir, page_test_results.TEST_RESULTS)) as f:
     for line in f:
-      record = json.loads(line)
-      if 'benchmarkRun' in record:
-        results['benchmarkRun'].update(record['benchmarkRun'])
-      if 'testResult' in record:
-        results['testResults'].append(record['testResult'])
+      results.append(json.loads(line)['testResult'])
   return results
 
 
