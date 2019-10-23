@@ -101,7 +101,7 @@ def GetReplayArgs(network_backend, supports_spki_list=True):
   # Send all browser traffic (including requests to 127.0.0.1 and localhost) to
   # ts_proxy_server.
   proxy_port = network_backend.forwarder.remote_port
-  args.append('--proxy-server=socks://localhost:%s' % proxy_port)
+  args.append('--proxy-server=socks://127.0.0.1:%s' % proxy_port)
   args.append('--proxy-bypass-list=<-loopback>')
 
   if not network_backend.use_live_traffic:
