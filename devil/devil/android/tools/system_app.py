@@ -39,7 +39,12 @@ SPECIAL_SYSTEM_APP_LOCATIONS = {
   # will remove either version. This doesn't appear to cause any issues, but
   # will cause a few unnecessary reboots if this is the only package getting
   # removed and it's already not a system app.
-  'com.google.ar.core': '/data/app/',
+  'com.google.ar.core': ['/data/app/'],
+  # On older versions of VrCore, the system app version is installed in /system/
+  # like normal. However, at some point, this moved to /data/. So, we have to
+  # handle both cases. Like ArCore, this means we'll end up removing even
+  # non-system versions due to this, but it doesn't cause any issues.
+  'com.google.vr.core': ['/data/app/', '/system/'],
 }
 
 # Gets app path and package name pm list packages -f output.
@@ -108,8 +113,10 @@ def _GetApplicationPaths(device, package):
 
 def _GetSystemPath(package, paths):
   for p in paths:
-    if p.startswith(SPECIAL_SYSTEM_APP_LOCATIONS.get(package, '/system/')):
-      return p
+    app_locations = SPECIAL_SYSTEM_APP_LOCATIONS.get(package, ['/system/'])
+    for location in app_locations:
+      if p.startswith(location):
+        return p
   return None
 
 
