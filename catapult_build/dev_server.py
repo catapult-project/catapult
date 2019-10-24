@@ -82,6 +82,15 @@ class TestsCompletedHandler(webapp2.RequestHandler):
       self.app.server.please_exit(exit_code)
     return self.response.write('')
 
+class TestsErrorHandler(webapp2.RequestHandler):
+  def post(self, *args, **kwargs):
+    del args, kwargs
+    msg = self.request.body
+    sys.stderr.write(msg + '\n')
+    exit_code = 1
+    if hasattr(self.app.server, 'please_exit'):
+      self.app.server.please_exit(exit_code)
+    return self.response.write('')
 
 class DirectoryListingHandler(webapp2.RequestHandler):
   def get(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -198,7 +207,9 @@ class DevServerApp(webapp2.WSGIApplication):
           Route('/%s/notify_test_result' % pd.GetName(),
                 TestResultHandler),
           Route('/%s/notify_tests_completed' % pd.GetName(),
-                TestsCompletedHandler)
+                TestsCompletedHandler),
+          Route('/%s/notify_test_error' % pd.GetName(),
+                TestsErrorHandler)
       ]
 
     for pd in self.pds:
