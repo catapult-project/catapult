@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import codecs
 import json
 import os
 import shutil
@@ -14,8 +13,6 @@ import mock
 
 from telemetry import story
 from telemetry.core import exceptions
-from telemetry.internal.results import histogram_set_json_output_formatter
-from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import results_options
 from telemetry.internal.results import results_processor
@@ -258,26 +255,6 @@ class PageTestResultsTest(unittest.TestCase):
 
     runs = list(results.IterRunsWithTraces())
     self.assertEqual(1, len(runs))
-
-  def testOutputEmptyResults_HTML(self):
-    output_file = os.path.join(self._output_dir, 'results.html')
-    with codecs.open(output_file, 'w', encoding='utf-8') as stream:
-      formatter = html_output_formatter.HtmlOutputFormatter(stream)
-      with self.CreateResults(output_formatters=[formatter]):
-        pass
-
-    self.assertGreater(os.stat(output_file).st_size, 0)
-
-  def testOutputEmptyResults_Histograms(self):
-    output_file = os.path.join(self._output_dir, 'histograms.json')
-    with open(output_file, 'w') as stream:
-      formatter = histogram_set_json_output_formatter.\
-          HistogramSetJsonOutputFormatter(stream)
-      with self.CreateResults(output_formatters=[formatter]):
-        pass
-
-    with open(output_file) as f:
-      self.assertEqual(f.read(), '[]')
 
   def testAddMetricPageResults(self):
     hs = histogram_set.HistogramSet()
