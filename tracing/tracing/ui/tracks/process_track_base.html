@@ -146,6 +146,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.clearTracks_();
 
       if (!this.processBase_) return;
+      if (!this.visible) return;
 
       Polymer.dom(this.processNameEl_).textContent =
           this.processBase_.userFriendlyName;
