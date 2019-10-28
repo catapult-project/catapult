@@ -18,10 +18,7 @@ from telemetry.internal.results import story_run
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
 
-from tracing.value import histogram_set
-from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import reserved_infos
-from tracing.value.diagnostics import generic_set
 
 
 TEST_RESULTS = '_test_results.jsonl'
@@ -65,8 +62,6 @@ class PageTestResults(object):
     self._all_story_runs = []
     self._all_stories = set()
     self._representative_value_for_each_value_name = {}
-
-    self._histograms = histogram_set.HistogramSet()
 
     self._benchmark_name = benchmark_name or '(unknown benchmark)'
     self._benchmark_description = benchmark_description or ''
@@ -133,9 +128,6 @@ class PageTestResults(object):
   @property
   def finalized(self):
     return self._finalized
-
-  def AsHistogramDicts(self):
-    return self._histograms.AsDicts()
 
   @property
   def current_story(self):
@@ -297,7 +289,7 @@ class PageTestResults(object):
                            device_id=None,
                            os_name=None,
                            os_version=None):
-    """Add diagnostics to all histograms and save it to intermediate results."""
+    """Save diagnostics to intermediate results."""
     diag_values = [
         (reserved_infos.OWNERS, owners),
         (reserved_infos.BUG_COMPONENTS, bug_components),
@@ -307,11 +299,14 @@ class PageTestResults(object):
         (reserved_infos.OS_NAMES, os_name),
         (reserved_infos.OS_VERSIONS, os_version),
     ]
-
-    for name, value in _WrapDiagnostics(diag_values):
+    for info, value in diag_values:
+      if value is None or value == []:
+        continue
       # Results Processor supports only GenericSet diagnostics for now.
-      assert isinstance(value, generic_set.GenericSet)
-      self._diagnostics[name] = list(value)
+      assert info.type == 'GenericSet'
+      if not isinstance(value, list):
+        value = [value]
+      self._diagnostics[info.name] = value
 
   def Fail(self, failure):
     """Mark the current story run as failed.
@@ -425,23 +420,3 @@ def _MeasurementToValue(story, name, unit, samples, description):
   else:
     return scalar.ScalarValue(
         story, name=name, units=unit, value=samples, description=description)
-
-
-def _WrapDiagnostics(info_value_pairs):
-  """Wrap diagnostic values in corresponding Diagnostics classes.
-
-  Args:
-    info_value_pairs: any iterable of pairs (info, value), where info is one
-        of reserved infos defined in tracing.value.diagnostics.reserved_infos,
-        and value can be any json-serializable object.
-
-  Returns:
-    An iterator over pairs (diagnostic name, diagnostic value).
-  """
-  for info, value in info_value_pairs:
-    if value is None or value == []:
-      continue
-    if info.type == 'GenericSet' and not isinstance(value, list):
-      value = [value]
-    diag_class = all_diagnostics.GetDiagnosticClassForName(info.type)
-    yield info.name, diag_class(value)
