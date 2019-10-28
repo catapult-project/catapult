@@ -25,10 +25,10 @@ from tracing.value.diagnostics import reserved_infos
 class ReadHistogramsJsonValue(quest.Quest):
 
   def __init__(self, results_filename, hist_name=None,
-               tir_label=None, story=None, statistic=None):
+               grouping_label=None, story=None, statistic=None):
     self._results_filename = results_filename
     self._hist_name = hist_name
-    self._tir_label = tir_label
+    self._grouping_label = grouping_label
     self._story = story
     self._statistic = statistic
 
@@ -36,7 +36,7 @@ class ReadHistogramsJsonValue(quest.Quest):
     return (isinstance(other, type(self)) and
             self._results_filename == other._results_filename and
             self._hist_name == other._hist_name and
-            self._tir_label == other._tir_label and
+            self._grouping_label == other._grouping_label and
             self._story == other._story and
             self._statistic == other._statistic)
 
@@ -51,7 +51,7 @@ class ReadHistogramsJsonValue(quest.Quest):
     del change
 
     return _ReadHistogramsJsonValueExecution(
-        self._results_filename, self._hist_name, self._tir_label,
+        self._results_filename, self._hist_name, self._grouping_label,
         self._story, self._statistic, isolate_server, isolate_hash)
 
   @classmethod
@@ -65,21 +65,24 @@ class ReadHistogramsJsonValue(quest.Quest):
       results_filename = posixpath.join(benchmark, 'perf_results.json')
 
     chart = arguments.get('chart')
-    tir_label = arguments.get('tir_label')
+    # TODO(crbug.com/974237): Only read from 'grouping_label' when enough time
+    # has passed and clients no longer write the 'tir_label' only.
+    grouping_label = (arguments.get('grouping_label') or
+                      arguments.get('tir_label'))
     trace = arguments.get('trace')
     statistic = arguments.get('statistic')
 
-    return cls(results_filename, chart, tir_label, trace, statistic)
+    return cls(results_filename, chart, grouping_label, trace, statistic)
 
 
 class _ReadHistogramsJsonValueExecution(execution.Execution):
 
-  def __init__(self, results_filename, hist_name, tir_label,
+  def __init__(self, results_filename, hist_name, grouping_label,
                story, statistic, isolate_server, isolate_hash):
     super(_ReadHistogramsJsonValueExecution, self).__init__()
     self._results_filename = results_filename
     self._hist_name = hist_name
-    self._tir_label = tir_label
+    self._grouping_label = grouping_label
     self._story = story
     self._statistic = statistic
     self._isolate_server = isolate_server
@@ -104,21 +107,24 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
     self._trace_urls = FindTraceUrls(histograms)
 
     test_path_to_match = histogram_helpers.ComputeTestPathFromComponents(
-        self._hist_name, tir_label=self._tir_label, story_name=self._story)
+        self._hist_name, grouping_label=self._grouping_label,
+        story_name=self._story)
     logging.debug('Test path to match: %s', test_path_to_match)
 
     # Have to pull out either the raw sample values, or the statistic
     result_values = ExtractValuesFromHistograms(test_path_to_match,
                                                 histograms_by_path,
                                                 self._hist_name,
-                                                self._tir_label, self._story,
+                                                self._grouping_label,
+                                                self._story,
                                                 self._statistic)
 
     self._Complete(result_values=tuple(result_values))
 
 
 def ExtractValuesFromHistograms(test_path_to_match, histograms_by_path,
-                                histogram_name, tir_label, story, statistic):
+                                histogram_name, grouping_label, story,
+                                statistic):
   result_values = []
   matching_histograms = []
   if test_path_to_match in histograms_by_path:
@@ -149,8 +155,8 @@ def ExtractValuesFromHistograms(test_path_to_match, histograms_by_path,
       raise errors.ReadValueNoValues()
     else:
       conditions = {'histogram': histogram_name}
-      if tir_label:
-        conditions['tir_label'] = tir_label
+      if grouping_label:
+        conditions['grouping_label'] = grouping_label
       if story:
         conditions['story'] = story
       reason = ', '.join(list(':'.join(i) for i in conditions.items()))

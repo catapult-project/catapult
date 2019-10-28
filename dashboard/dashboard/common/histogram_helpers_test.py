@@ -19,19 +19,19 @@ class HistogramHelpersTest(testing_common.TestCase):
   def setUp(self):
     super(HistogramHelpersTest, self).setUp()
 
-  def testGetTIRLabelFromHistogram_NoTags_ReturnsEmpty(self):
+  def testGetGroupingLabelFromHistogram_NoTags_ReturnsEmpty(self):
     hist = histogram_module.Histogram('hist', 'count')
-    self.assertEqual('', histogram_helpers.GetTIRLabelFromHistogram(hist))
+    self.assertEqual('', histogram_helpers.GetGroupingLabelFromHistogram(hist))
 
-  def testGetTIRLabelFromHistogram_NoValidTags_ReturnsEmpty(self):
+  def testGetGroupingLabelFromHistogram_NoValidTags_ReturnsEmpty(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
         generic_set.GenericSet(['foo', 'bar']))
-    self.assertEqual('', histogram_helpers.GetTIRLabelFromHistogram(hist))
+    self.assertEqual('', histogram_helpers.GetGroupingLabelFromHistogram(hist))
 
-  def testGetTIRLabelFromHistogram_ValidTags_SortsByKey(self):
+  def testGetGroupingLabelFromHistogram_ValidTags_SortsByKey(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnosticToAllHistograms(
@@ -39,7 +39,8 @@ class HistogramHelpersTest(testing_common.TestCase):
         generic_set.GenericSet(
             ['z:last', 'ignore', 'a:first', 'me', 'm:middle']))
     self.assertEqual(
-        'first_middle_last', histogram_helpers.GetTIRLabelFromHistogram(hist))
+        'first_middle_last',
+        histogram_helpers.GetGroupingLabelFromHistogram(hist))
 
   def testComputeTestPathWithStory(self):
     hist = histogram_module.Histogram('hist', 'count')
@@ -51,7 +52,7 @@ class HistogramHelpersTest(testing_common.TestCase):
     test_path = histogram_helpers.ComputeTestPath(hist)
     self.assertEqual('hist/http___story', test_path)
 
-  def testComputeTestPathWithTIRLabel(self):
+  def testComputeTestPathWithGroupingLabel(self):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnosticToAllHistograms(

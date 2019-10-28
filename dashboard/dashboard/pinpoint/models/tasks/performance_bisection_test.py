@@ -75,7 +75,7 @@ class EvaluatorTest(test.TestCase):
                 read_option_template=performance_bisection.ReadOptionTemplate(
                     benchmark='some_benchmark',
                     histogram_options=read_value.HistogramOptions(
-                        tir_label='some_tir_label',
+                        grouping_label='some_label',
                         story='some_story',
                         statistic='avg',
                     ),

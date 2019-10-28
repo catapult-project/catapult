@@ -177,19 +177,19 @@ def _GetIsolateTarget(bot_name, suite, start_commit,
   return 'performance_test_suite'
 
 
-def ParseTIRLabelChartNameAndTraceName(test_path):
-  """Returns tir_label, chart_name, trace_name from a test path."""
+def ParseGroupingLabelChartNameAndTraceName(test_path):
+  """Returns grouping_label, chart_name, trace_name from a test path."""
   test_path_parts = test_path.split('/')
   suite = test_path_parts[2]
   if suite in _NON_CHROME_TARGETS:
     return '', '', ''
 
   test = ndb.Key('TestMetadata', '/'.join(test_path_parts)).get()
-  tir_label, chart_name, trace_name = utils.ParseTelemetryMetricParts(
+  grouping_label, chart_name, trace_name = utils.ParseTelemetryMetricParts(
       test_path)
   if trace_name and test.unescaped_story_name:
     trace_name = test.unescaped_story_name
-  return tir_label, chart_name, trace_name
+  return grouping_label, chart_name, trace_name
 
 
 def ParseStatisticNameFromChart(chart_name):
@@ -297,12 +297,12 @@ def PinpointParamsFromBisectParams(params):
   if bisect_mode != 'performance' and bisect_mode != 'functional':
     raise InvalidParamsError('Invalid bisect mode %s specified.' % bisect_mode)
 
-  tir_label = ''
+  grouping_label = ''
   chart_name = ''
   trace_name = ''
   if bisect_mode == 'performance':
-    tir_label, chart_name, trace_name = ParseTIRLabelChartNameAndTraceName(
-        test_path)
+    grouping_label, chart_name, trace_name = (
+        ParseGroupingLabelChartNameAndTraceName(test_path))
 
   start_commit = params['start_commit']
   end_commit = params['end_commit']
@@ -360,8 +360,11 @@ def PinpointParamsFromBisectParams(params):
     pinpoint_params['statistic'] = statistic_name
   if story_filter:
     pinpoint_params['story'] = story_filter
-  if tir_label:
-    pinpoint_params['tir_label'] = tir_label
+  if grouping_label:
+    # TODO(crbug.com/974237): Stop filling in the 'tir_label' when pinpoint
+    # jobs have switched to rely on the 'grouping_label' instead.
+    pinpoint_params['tir_label'] = grouping_label
+    pinpoint_params['grouping_label'] = grouping_label
   if trace_name:
     pinpoint_params['trace'] = trace_name
 

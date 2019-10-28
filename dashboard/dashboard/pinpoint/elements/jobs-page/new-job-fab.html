@@ -136,7 +136,9 @@ found in the LICENSE file.
 
             <template is="dom-if" if="[[hasJob(job)]]">
               <input type="hidden" name="comparison_magnitude" disabled$="[[!job.arguments.comparison_magnitude]]" value="[[job.arguments.comparison_magnitude]]">
+              <!-- TODO(crbug.com/974237): Stop filling in 'tir_label' when no longer in use. -->
               <input type="hidden" name="tir_label" disabled$="[[!job.arguments.tir_label]]" value="[[job.arguments.tir_label]]">
+              <input type="hidden" name="grouping_label" disabled$="[[!job.arguments.grouping_label]]" value="[[job.arguments.grouping_label]]">
               <input type="hidden" name="trace" disabled$="[[!job.arguments.trace]]" value="[[job.arguments.trace]]">
               <input type="hidden" name="tags" disabled$="[[!job.arguments.tags]]" value="[[job.arguments.tags]]">
               <input type="hidden" name="pin" disabled$="[[!job.arguments.pin]]" value="[[job.arguments.pin]]">

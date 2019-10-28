@@ -54,7 +54,7 @@ class EvaluatorTest(test.TestCase):
   def PopulateTaskGraph(self,
                         benchmark=None,
                         chart=None,
-                        tir_label=None,
+                        grouping_label=None,
                         story=None,
                         statistic=None,
                         trace='some_trace',
@@ -80,7 +80,7 @@ class EvaluatorTest(test.TestCase):
                     attempts=10),
                 benchmark=benchmark,
                 histogram_options=read_value.HistogramOptions(
-                    tir_label=tir_label,
+                    grouping_label=grouping_label,
                     story=story,
                     statistic=statistic,
                 ),
@@ -98,7 +98,7 @@ class EvaluatorTest(test.TestCase):
     histograms = histogram_set.HistogramSet([histogram])
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
-        generic_set.GenericSet(['group:tir_label']))
+        generic_set.GenericSet(['group:label']))
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name, generic_set.GenericSet(['story']))
     isolate_retrieve.side_effect = itertools.chain(
@@ -110,7 +110,7 @@ class EvaluatorTest(test.TestCase):
     self.PopulateTaskGraph(
         benchmark='some_benchmark',
         chart='some_chart',
-        tir_label='tir_label',
+        grouping_label='label',
         story='story')
     self.assertNotEqual({},
                         task_module.Evaluate(
@@ -129,7 +129,7 @@ class EvaluatorTest(test.TestCase):
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': 'tir_label',
+                    'grouping_label': 'label',
                     'story': 'story',
                     'statistic': None,
                 },
@@ -155,7 +155,7 @@ class EvaluatorTest(test.TestCase):
     histograms = histogram_set.HistogramSet([histogram])
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
-        generic_set.GenericSet(['group:tir_label']))
+        generic_set.GenericSet(['group:label']))
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name, generic_set.GenericSet(['story']))
     isolate_retrieve.side_effect = itertools.chain(
@@ -165,7 +165,7 @@ class EvaluatorTest(test.TestCase):
     self.PopulateTaskGraph(
         benchmark='some_benchmark',
         chart='some_chart',
-        tir_label='tir_label',
+        grouping_label='label',
         story='story',
         statistic='avg')
     self.assertNotEqual({},
@@ -182,7 +182,7 @@ class EvaluatorTest(test.TestCase):
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': 'tir_label',
+                    'grouping_label': 'label',
                     'story': 'story',
                     'statistic': 'avg',
                 },
@@ -208,7 +208,7 @@ class EvaluatorTest(test.TestCase):
     histograms = histogram_set.HistogramSet([histogram])
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
-        generic_set.GenericSet(['group:tir_label']))
+        generic_set.GenericSet(['group:label']))
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name, generic_set.GenericSet(['https://story']))
     isolate_retrieve.side_effect = itertools.chain(
@@ -218,7 +218,7 @@ class EvaluatorTest(test.TestCase):
     self.PopulateTaskGraph(
         benchmark='some_benchmark',
         chart='some_chart',
-        tir_label='tir_label',
+        grouping_label='label',
         story='https://story')
     self.assertNotEqual({},
                         task_module.Evaluate(
@@ -234,7 +234,7 @@ class EvaluatorTest(test.TestCase):
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': 'tir_label',
+                    'grouping_label': 'label',
                     'story': 'https://story',
                     'statistic': None,
                 },
@@ -267,7 +267,7 @@ class EvaluatorTest(test.TestCase):
     ])
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
-        generic_set.GenericSet(['group:tir_label']))
+        generic_set.GenericSet(['group:label']))
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name, generic_set.GenericSet(['story']))
     isolate_retrieve.side_effect = itertools.chain(
@@ -277,7 +277,7 @@ class EvaluatorTest(test.TestCase):
     self.PopulateTaskGraph(
         benchmark='some_benchmark',
         chart='some_chart',
-        tir_label='tir_label',
+        grouping_label='label',
         story='story')
     self.assertNotEqual({},
                         task_module.Evaluate(
@@ -293,7 +293,7 @@ class EvaluatorTest(test.TestCase):
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': 'tir_label',
+                    'grouping_label': 'label',
                     'story': 'story',
                     'statistic': None,
                 },
@@ -345,7 +345,7 @@ class EvaluatorTest(test.TestCase):
                 'results_filename':
                     'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': None,
+                    'grouping_label': None,
                     'story': None,
                     'statistic': None,
                 },
@@ -410,7 +410,7 @@ class EvaluatorTest(test.TestCase):
                 'results_filename':
                     'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': None,
+                    'grouping_label': None,
                     'story': None,
                     'statistic': None,
                 },
@@ -450,7 +450,7 @@ class EvaluatorTest(test.TestCase):
       hist.diagnostics[reserved_infos.STORIES.name] = (
           generic_set.GenericSet(['story%d' % i]))
       hist.diagnostics[reserved_infos.STORY_TAGS.name] = (
-          generic_set.GenericSet(['group:tir_label1']))
+          generic_set.GenericSet(['group:label1']))
       hists.append(hist)
       samples.extend(hist.sample_values)
 
@@ -462,14 +462,14 @@ class EvaluatorTest(test.TestCase):
       hist.diagnostics[reserved_infos.STORIES.name] = (
           generic_set.GenericSet(['another_story%d' % i]))
       hist.diagnostics[reserved_infos.STORY_TAGS.name] = (
-          generic_set.GenericSet(['group:tir_label2']))
+          generic_set.GenericSet(['group:label2']))
       hists.append(hist)
       samples.extend(hist.sample_values)
 
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
-        generic_set.GenericSet(['group:tir_label']))
+        generic_set.GenericSet(['group:label']))
     isolate_retrieve.side_effect = itertools.chain(
         *itertools.repeat([('{"files": {"some_benchmark/perf_results.json": '
                             '{"h": "394890891823812873798734a"}}}'),
@@ -489,7 +489,7 @@ class EvaluatorTest(test.TestCase):
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': None,
+                    'grouping_label': None,
                     'story': None,
                     'statistic': None,
                 },
@@ -512,7 +512,7 @@ class EvaluatorTest(test.TestCase):
     histograms = histogram_set.HistogramSet([histogram])
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name,
-        generic_set.GenericSet(['group:tir_label']))
+        generic_set.GenericSet(['group:label']))
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name, generic_set.GenericSet(['https://story']))
     isolate_retrieve.side_effect = itertools.chain(
@@ -522,7 +522,7 @@ class EvaluatorTest(test.TestCase):
     self.PopulateTaskGraph(
         benchmark='some_benchmark',
         chart='some_chart',
-        tir_label='tir_label',
+        grouping_label='label',
         story='https://story')
     self.assertNotEqual({},
                         task_module.Evaluate(
@@ -538,7 +538,7 @@ class EvaluatorTest(test.TestCase):
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': 'tir_label',
+                    'grouping_label': 'label',
                     'story': 'https://story',
                     'statistic': None,
                 },
@@ -567,7 +567,7 @@ class EvaluatorTest(test.TestCase):
     self.PopulateTaskGraph(
         benchmark='some_benchmark',
         chart='some_chart',
-        tir_label='tir_label',
+        grouping_label='label',
         story='https://story')
     self.assertNotEqual({},
                         task_module.Evaluate(
@@ -583,7 +583,7 @@ class EvaluatorTest(test.TestCase):
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': 'tir_label',
+                    'grouping_label': 'label',
                     'story': 'https://story',
                     'statistic': None,
                 },
@@ -615,7 +615,7 @@ class EvaluatorTest(test.TestCase):
     self.PopulateTaskGraph(
         benchmark='some_benchmark',
         chart='some_chart',
-        tir_label='tir_label',
+        grouping_label='label',
         story='https://story')
     self.assertNotEqual({},
                         task_module.Evaluate(
@@ -631,7 +631,7 @@ class EvaluatorTest(test.TestCase):
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': 'tir_label',
+                    'grouping_label': 'label',
                     'story': 'https://story',
                     'statistic': None,
                 },
@@ -680,7 +680,7 @@ class EvaluatorTest(test.TestCase):
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': None,
+                    'grouping_label': None,
                     'story': None,
                     'statistic': None,
                 },
@@ -719,7 +719,7 @@ class EvaluatorTest(test.TestCase):
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': None,
+                    'grouping_label': None,
                     'story': None,
                     'statistic': None,
                 },
@@ -764,7 +764,7 @@ class EvaluatorTest(test.TestCase):
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': None,
+                    'grouping_label': None,
                     'story': None,
                     'statistic': None,
                 },
@@ -813,7 +813,7 @@ class EvaluatorTest(test.TestCase):
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': None,
+                    'grouping_label': None,
                     'story': None,
                     'statistic': None,
                 },
@@ -869,7 +869,7 @@ class EvaluatorTest(test.TestCase):
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
                 'histogram_options': {
-                    'tir_label': None,
+                    'grouping_label': None,
                     'story': None,
                     'statistic': None,
                 },

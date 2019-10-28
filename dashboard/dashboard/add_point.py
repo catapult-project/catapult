@@ -386,8 +386,8 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
     BadRequestError: The data wasn't valid.
   """
   if '@@' in chart_name:
-    tir_label, chart_name = chart_name.split('@@')
-    chart_name = chart_name + '/' + tir_label
+    grouping_label, chart_name = chart_name.split('@@')
+    chart_name = chart_name + '/' + grouping_label
 
   value, error = _ExtractValueAndError(trace)
 

@@ -20,8 +20,8 @@ from dashboard.pinpoint.models.tasks import find_isolate
 from dashboard.pinpoint.models.tasks import run_test
 from tracing.value import histogram_set
 
-HistogramOptions = collections.namedtuple('HistogramOptions',
-                                          ('tir_label', 'story', 'statistic'))
+HistogramOptions = collections.namedtuple(
+    'HistogramOptions', ('grouping_label', 'story', 'statistic'))
 
 GraphJsonOptions = collections.namedtuple('GraphJsonOptions',
                                           ('chart', 'trace'))
@@ -99,19 +99,20 @@ class ReadValueEvaluator(
 
   def HandleHistogramSets(self, task, histogram_dicts):
     histogram_name = task.payload.get('benchmark')
-    tir_label = task.payload.get('histogram_options', {}).get('tir_label', '')
-    story = task.payload.get('histogram_options', {}).get('story', '')
-    statistic = task.payload.get('histogram_options', {}).get('statistic', '')
+    histogram_options = task.payload.get('histogram_options', {})
+    grouping_label = histogram_options.get('grouping_label', '')
+    story = histogram_options.get('story', '')
+    statistic = histogram_options.get('statistic', '')
     histograms = histogram_set.HistogramSet()
     histograms.ImportDicts(histogram_dicts)
     histograms_by_path = read_value_quest.CreateHistogramSetByTestPathDict(
         histograms)
     trace_urls = read_value_quest.FindTraceUrls(histograms)
     test_path_to_match = histogram_helpers.ComputeTestPathFromComponents(
-        histogram_name, tir_label=tir_label, story_name=story)
+        histogram_name, grouping_label=grouping_label, story_name=story)
     logging.debug('Test path to match: %s', test_path_to_match)
     result_values = read_value_quest.ExtractValuesFromHistograms(
-        test_path_to_match, histograms_by_path, histogram_name, tir_label,
+        test_path_to_match, histograms_by_path, histogram_name, grouping_label,
         story, statistic)
     logging.debug('Results: %s', result_values)
     task.payload.update({
@@ -185,7 +186,7 @@ def CreateGraph(options):
               'mode': options.mode,
               'results_filename': path,
               'histogram_options': {
-                  'tir_label': options.histogram_options.tir_label,
+                  'grouping_label': options.histogram_options.grouping_label,
                   'story': options.histogram_options.story,
                   'statistic': options.histogram_options.statistic,
               },
