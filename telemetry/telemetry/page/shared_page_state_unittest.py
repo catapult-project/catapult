@@ -140,8 +140,8 @@ class FakeBrowserStorySetRunTests(unittest.TestCase):
     with results_options.CreateResults(self.options) as results:
       story_runner.RunStorySet(dummy_test, story_set, self.options, results)
 
-    test_results = results_options.ReadIntermediateResults(
-        self.options.intermediate_dir)['testResults']
+    test_results = results_options.ReadTestResults(
+        self.options.intermediate_dir)
     self.assertEqual(len(test_results), 1)
     return test_results[0]
 
