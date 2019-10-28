@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/category_util.html">
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/ui/base/draw_helpers.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
@@ -340,10 +341,13 @@ tr.exportTo('tr.ui.tracks', function() {
       const events =
           this.model_.flowIntervalTree.findIntersection(viewLWorld, viewRWorld);
 
-      // When not showing flow events, show only highlighted/selected ones.
-      const onlyHighlighted = !this.viewport.showFlowEvents;
       const canvasBounds = ctx.canvas.getBoundingClientRect();
       for (let i = 0; i < events.length; ++i) {
+        // Check whether some category of |events[i]| is in
+        // |selectedFlowEvents|. If not, don't draw the flow arrow unless the
+        // event is selected or highlighted.
+        const onlyHighlighted = !tr.b.getCategoryParts(events[i].category).some(
+            (x) => this.viewport.selectedFlowEvents.has(x));
         if (onlyHighlighted &&
             events[i].selectionState !== SelectionState.SELECTED &&
             events[i].selectionState !== SelectionState.HIGHLIGHTED) {
