@@ -18,9 +18,6 @@ from telemetry.internal.results import results_options
 from telemetry.internal.results import results_processor
 from telemetry import page as page_module
 from tracing.trace_data import trace_data
-from tracing.value import histogram as histogram_module
-from tracing.value import histogram_set
-from tracing.value.diagnostics import generic_set
 
 
 def _CreateException():
@@ -255,28 +252,6 @@ class PageTestResultsTest(unittest.TestCase):
 
     runs = list(results.IterRunsWithTraces())
     self.assertEqual(1, len(runs))
-
-  def testAddMetricPageResults(self):
-    hs = histogram_set.HistogramSet()
-    hs.AddHistogram(histogram_module.Histogram('foo', 'count'))
-    hs.AddSharedDiagnosticToAllHistograms(
-        'bar', generic_set.GenericSet(['baz']))
-    histogram_dicts = hs.AsDicts()
-
-    with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      run = results.current_story_run
-      results.DidRunPage(self.pages[0])
-
-      # Pretend we got some results by running metrics.
-      results.AddMetricPageResults({
-          'run': run,
-          'fail': [],
-          'histogram_dicts': histogram_dicts,
-          'scalars': []
-      })
-
-    self.assertEqual(results.AsHistogramDicts(), histogram_dicts)
 
   def testBeginFinishBenchmarkRecords(self):
     self.mock_time.side_effect = [1234567890.987]
