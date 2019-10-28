@@ -19,78 +19,15 @@ import py_utils
 from py_utils import cloud_storage
 from py_utils import exc_util
 
-from telemetry.internal.util import binary_manager
 from telemetry.core import exceptions
 from telemetry.internal.backends.chrome import chrome_browser_backend
-from telemetry.internal.backends.chrome import desktop_minidump_finder
+from telemetry.internal.backends.chrome import minidump_finder
+from telemetry.internal.backends.chrome import desktop_minidump_symbolizer
 from telemetry.internal.util import format_for_logging
 from telemetry.internal.util import path
 
 
 DEVTOOLS_ACTIVE_PORT_FILE = 'DevToolsActivePort'
-
-
-def GetSymbolBinaries(minidump, arch_name, os_name):
-  # Returns binary file where symbols are located.
-  minidump_dump = binary_manager.FetchPath('minidump_dump', arch_name, os_name)
-  assert minidump_dump
-
-  symbol_binaries = []
-
-  minidump_cmd = [minidump_dump, minidump]
-  try:
-    with open(os.devnull, 'wb') as dev_null:
-      minidump_output = subprocess.check_output(minidump_cmd, stderr=dev_null)
-  except subprocess.CalledProcessError as e:
-    # For some reason minidump_dump always fails despite successful dumping.
-    minidump_output = e.output
-
-  minidump_binary_re = re.compile(r'\W+\(code_file\)\W+=\W\"(.*)\"')
-  for minidump_line in minidump_output.splitlines():
-    line_match = minidump_binary_re.match(minidump_line)
-    if line_match:
-      binary_path = line_match.group(1)
-      if not os.path.isfile(binary_path):
-        continue
-
-      # Filter out system binaries.
-      if (binary_path.startswith('/usr/lib/') or
-          binary_path.startswith('/System/Library/') or
-          binary_path.startswith('/lib/')):
-        continue
-
-      # Filter out other binary file types which have no symbols.
-      if (binary_path.endswith('.pak') or
-          binary_path.endswith('.bin') or
-          binary_path.endswith('.dat') or
-          binary_path.endswith('.ttf')):
-        continue
-
-      symbol_binaries.append(binary_path)
-  return symbol_binaries
-
-
-def GenerateBreakpadSymbols(minidump, arch, os_name, symbols_dir, browser_dir):
-  logging.info('Dumping breakpad symbols.')
-  generate_breakpad_symbols_command = binary_manager.FetchPath(
-      'generate_breakpad_symbols', arch, os_name)
-  if not generate_breakpad_symbols_command:
-    return
-
-  for binary_path in GetSymbolBinaries(minidump, arch, os_name):
-    cmd = [
-        sys.executable,
-        generate_breakpad_symbols_command,
-        '--binary=%s' % binary_path,
-        '--symbols-dir=%s' % symbols_dir,
-        '--build-dir=%s' % browser_dir,
-        ]
-
-    try:
-      subprocess.check_call(cmd)
-    except subprocess.CalledProcessError:
-      logging.warning('Failed to execute "%s"', ' '.join(cmd))
-      return
 
 
 class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
@@ -200,7 +137,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Start(self, startup_args):
     assert not self._proc, 'Must call Close() before Start()'
 
-    self._dump_finder = desktop_minidump_finder.DesktopMinidumpFinder(
+    self._dump_finder = minidump_finder.MinidumpFinder(
         self.browser.platform.GetOSName(), self.browser.platform.GetArchName())
 
     # macOS displays a blocking crash resume dialog that we need to suppress.
@@ -325,53 +262,11 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return False
 
   def _GetStackFromMinidump(self, minidump):
-    os_name = self.browser.platform.GetOSName()
-    if os_name == 'win':
-      cdb = self._GetCdbPath()
-      if not cdb:
-        logging.warning('cdb.exe not found.')
-        return None
-      # Move to the thread which triggered the exception (".ecxr"). Then include
-      # a description of the exception (".lastevent"). Also include all the
-      # threads' stacks ("~*kb30") as well as the ostensibly crashed stack
-      # associated with the exception context record ("kb30"). Note that stack
-      # dumps, including that for the crashed thread, may not be as precise as
-      # the one starting from the exception context record.
-      # Specify kb instead of k in order to get four arguments listed, for
-      # easier diagnosis from stacks.
-      output = subprocess.check_output([cdb, '-y', self.browser_directory,
-                                        '-c', '.ecxr;.lastevent;kb30;~*kb30;q',
-                                        '-z', minidump])
-      # The output we care about starts with "Last event:" or possibly
-      # other things we haven't seen yet. If we can't find the start of the
-      # last event entry, include output from the beginning.
-      info_start = 0
-      info_start_match = re.search("Last event:", output, re.MULTILINE)
-      if info_start_match:
-        info_start = info_start_match.start()
-      info_end = output.find('quit:')
-      return output[info_start:info_end]
-
-    arch_name = self.browser.platform.GetArchName()
-    stackwalk = binary_manager.FetchPath(
-        'minidump_stackwalk', arch_name, os_name)
-    if not stackwalk:
-      logging.warning('minidump_stackwalk binary not found.')
-      return None
-    # We only want this logic on linux platforms that are still using breakpad.
-    # See crbug.com/667475
-    if not self._dump_finder.MinidumpObtainedFromCrashpad(minidump):
-      with open(minidump, 'rb') as infile:
-        minidump += '.stripped'
-        with open(minidump, 'wb') as outfile:
-          outfile.write(''.join(infile.read().partition('MDMP')[1:]))
-
-    symbols_path = os.path.join(self._tmp_minidump_dir, 'symbols')
-    GenerateBreakpadSymbols(minidump, arch_name, os_name,
-                            symbols_path, self.browser_directory)
-
-    return subprocess.check_output([stackwalk, minidump, symbols_path],
-                                   stderr=open(os.devnull, 'w'))
+    dump_symbolizer = desktop_minidump_symbolizer.DesktopMinidumpSymbolizer(
+        self.browser.platform.GetOSName(),
+        self.browser.platform.GetArchName(),
+        self._dump_finder, self.browser_directory)
+    return dump_symbolizer.SymbolizeMinidump(minidump)
 
   def _UploadMinidumpToCloudStorage(self, minidump_path):
     """ Upload minidump_path to cloud storage and return the cloud storage url.
