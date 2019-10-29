@@ -170,7 +170,8 @@ def _OmahaVersionsMap(rows, channel):
   logging.warn('versions map: %s' % versions_map)
   if not all(platform in versions_map for platform in platforms):
     raise ValueError(
-        'Omaha report did not contain all desired platforms for channel %s' % channel)
+        'Omaha report did not contain all desired platforms '
+        'for channel %s' % channel)
   return versions_map
 
 
@@ -277,19 +278,22 @@ def _QueuePlatformUpdate(binary, platform, version_info, config, channel):
                                  platform,
                                  platform_info.zip_name)
   cloud_storage.Get(remote_path.bucket, remote_path.path, local_dest_path)
-  _ModifyBuildIfNeeded(local_dest_path, platform)
+  _ModifyBuildIfNeeded(binary, local_dest_path, platform)
   config.AddCloudStorageDependencyUpdateJob('%s_%s' % (binary, channel),
       platform, local_dest_path, version=version_info.version,
       execute_job=False)
 
 
-def _ModifyBuildIfNeeded(location, platform):
+def _ModifyBuildIfNeeded(binary, location, platform):
   """Hook to modify the build before saving it for Telemetry to use.
 
   This can be used to remove various utilities that cause noise in a
   test environment. Right now, it is just used to remove Keystone,
   which is a tool used to autoupdate Chrome.
   """
+  if binary != 'chrome':
+    return
+
   if platform == 'mac_x86_64':
     _RemoveKeystoneFromBuild(location)
     return
