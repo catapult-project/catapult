@@ -41,19 +41,19 @@ class StoryRunTest(unittest.TestCase):
   def testStoryRunSkipped(self):
     run = story_run.StoryRun(self.story)
     run.SetFailed('oops')
-    run.Skip('test', is_expected=True)
+    run.Skip('test', expected=True)
     self.assertFalse(run.ok)
     self.assertFalse(run.failed)
     self.assertTrue(run.skipped)
-    self.assertTrue(run.is_expected)
+    self.assertTrue(run.expected)
     self.assertEquals(run.failure_str, 'oops')
 
     run = story_run.StoryRun(self.story)
-    run.Skip('test', is_expected=False)
+    run.Skip('test', expected=False)
     self.assertFalse(run.ok)
     self.assertFalse(run.failed)
     self.assertTrue(run.skipped)
-    self.assertFalse(run.is_expected)
+    self.assertFalse(run.expected)
     self.assertEquals(run.failure_str, None)
 
   def testStoryRunSucceeded(self):
@@ -79,6 +79,7 @@ class StoryRunTest(unittest.TestCase):
       run = story_run.StoryRun(
           story=TestStory(name='http://example.com', tags=['tag1', 'tag2']),
           test_prefix='benchmark',
+          index=2,
           intermediate_dir=tempdir)
       with run.CreateArtifact('logs.txt') as log_file:
         log_file.write('hello\n')
@@ -90,8 +91,9 @@ class StoryRunTest(unittest.TestCase):
           {
               'testResult': {
                   'testPath': 'benchmark/http%3A%2F%2Fexample.com',
+                  'resultId': '2',
                   'status': 'PASS',
-                  'isExpected': True,
+                  'expected': True,
                   'startTime': '2009-02-13T23:31:30.987000Z',
                   'runDuration': '10.00s',
                   'outputArtifacts': {

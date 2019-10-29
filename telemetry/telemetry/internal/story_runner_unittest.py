@@ -274,10 +274,10 @@ class RunStorySetTest(unittest.TestCase):
     self.assertEqual(len(test_results), 2)
     # First story unexpectedly failed with AppCrashException.
     self.assertEqual(test_results[0]['status'], 'FAIL')
-    self.assertFalse(test_results[0]['isExpected'])
+    self.assertFalse(test_results[0]['expected'])
     # Second story unexpectedly skipped due to exception during tear down.
     self.assertEqual(test_results[1]['status'], 'SKIP')
-    self.assertFalse(test_results[1]['isExpected'])
+    self.assertFalse(test_results[1]['expected'])
 
   def testPagesetRepeat(self):
     self.options.pageset_repeat = 2

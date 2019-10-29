@@ -294,7 +294,7 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None):
           continue
 
         if results.benchmark_interrupted:
-          results.Skip(results.benchmark_interruption, is_expected=False)
+          results.Skip(results.benchmark_interruption, expected=False)
           results.DidRunPage(story)
           continue
 

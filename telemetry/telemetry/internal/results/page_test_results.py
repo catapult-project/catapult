@@ -151,7 +151,7 @@ class PageTestResults(object):
   @property
   def num_expected(self):
     """Number of stories that succeeded or were expected skips."""
-    return sum(1 for run in self._all_story_runs if run.is_expected)
+    return sum(1 for run in self._all_story_runs if run.expected)
 
   @property
   def had_failures(self):
@@ -327,9 +327,9 @@ class PageTestResults(object):
     logging.error(failure_str)
     self._current_story_run.SetFailed(failure_str)
 
-  def Skip(self, reason, is_expected=True):
+  def Skip(self, reason, expected=True):
     assert self._current_story_run, 'Not currently running test.'
-    self._current_story_run.Skip(reason, is_expected)
+    self._current_story_run.Skip(reason, expected)
 
   def CreateArtifact(self, name):
     assert self._current_story_run, 'Not currently running test.'

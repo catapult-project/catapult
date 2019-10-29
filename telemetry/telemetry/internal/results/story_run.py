@@ -156,7 +156,7 @@ class StoryRun(object):
     self._failed = True
     self._failure_str = failure_str
 
-  def Skip(self, reason, is_expected=True):
+  def Skip(self, reason, expected=True):
     if not reason:
       raise ValueError('A skip reason must be given')
     # TODO(#4254): Turn this into a hard failure.
@@ -164,7 +164,7 @@ class StoryRun(object):
       logging.warning(
           'Story was already skipped with reason: %s', self.skip_reason)
     self._skip_reason = reason
-    self._skip_expected = is_expected
+    self._skip_expected = expected
 
   def Finish(self):
     assert not self.finished, 'story run had already finished'
@@ -180,8 +180,9 @@ class StoryRun(object):
     return {
         'testResult': {
             'testPath': self.test_path,
+            'resultId': str(self.index),
             'status': self.status,
-            'isExpected': self.is_expected,
+            'expected': self.expected,
             'startTime': self.start_datetime.isoformat() + 'Z',
             'runDuration': _FormatDuration(self.duration),
             'outputArtifacts': {
@@ -256,7 +257,7 @@ class StoryRun(object):
     return self._skip_reason
 
   @property
-  def is_expected(self):
+  def expected(self):
     """Whether the test status is expected."""
     return self._skip_expected or self.ok
 
