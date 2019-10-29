@@ -328,17 +328,6 @@ class RunStorySetTest(unittest.TestCase):
         options_max_failures=1, expected_num_failures=2,
         expected_num_skips=3)
 
-  def testRunBenchmark_TooManyValues(self):
-    def add_measurement(_, results):
-      results.AddMeasurement('foobars', 'count', [3])
-
-    self.mock_story_test.Measure.side_effect = add_measurement
-    self.RunStories(['story1'], max_num_values=0)
-    test_results = self.ReadTestResults()
-    self.assertEqual(['FAIL'],
-                     [test['status'] for test in test_results])
-    self.assertIn('Too many values: 1 > 0', sys.stderr.getvalue())
-
 
 class DummyLegacyPageTest(legacy_page_test.LegacyPageTest):
   def RunPage(self, *args, **kwargs):

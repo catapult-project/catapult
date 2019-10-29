@@ -193,8 +193,7 @@ def _GetPossibleBrowser(finder_options):
   return possible_browser
 
 
-def RunStorySet(test, story_set, finder_options, results, max_failures=None,
-                max_num_values=sys.maxint):
+def RunStorySet(test, story_set, finder_options, results, max_failures=None):
   """Runs a test against a story_set with the given options.
 
   Stop execution for unexpected exceptions such as KeyboardInterrupt. Some
@@ -210,8 +209,6 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None,
       the entire story run. It's overriden by finder_options.max_failures
       if given.
     expectations: Benchmark expectations used to determine disabled stories.
-    max_num_values: Max number of legacy values allowed before aborting the
-      story run.
   """
   stories = story_set.stories
   for s in stories:
@@ -308,13 +305,6 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None,
               state.platform.WaitForCpuTemperature(38.0)
             _WaitForThermalThrottlingIfNeeded(state.platform)
           _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
-
-          num_values = sum(1 for _ in results.IterAllLegacyValues())
-          # TODO(#4259): Convert this to an exception-based failure
-          if num_values > max_num_values:
-            msg = 'Too many values: %d > %d' % (num_values, max_num_values)
-            logging.error(msg)
-            results.Fail(msg)
         except _UNHANDLEABLE_ERRORS as exc:
           interruption = (
               'Benchmark execution interrupted by a fatal exception: %r' % exc)
@@ -428,8 +418,7 @@ def RunBenchmark(benchmark, finder_options):
 
     try:
       RunStorySet(
-          test, story_set, finder_options, results, benchmark.max_failures,
-          max_num_values=benchmark.MAX_NUM_VALUES)
+          test, story_set, finder_options, results, benchmark.max_failures)
       if results.benchmark_interrupted:
         return_code = 2
       elif results.had_failures:
