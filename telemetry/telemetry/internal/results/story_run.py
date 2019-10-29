@@ -107,7 +107,6 @@ class StoryRun(object):
     self._story = story
     self._test_prefix = test_prefix
     self._index = index
-    self._values = []
     self._tbm_metrics = []
     self._skip_reason = None
     self._skip_expected = False
@@ -126,9 +125,6 @@ class StoryRun(object):
       self._artifacts_dir = os.path.join(intermediate_dir, run_dir)
       if not os.path.exists(self._artifacts_dir):
         os.makedirs(self._artifacts_dir)
-
-  def AddLegacyValue(self, value):
-    self._values.append(value)
 
   def AddMeasurement(self, name, unit, samples, description=None):
     """Record an add hoc measurement associated with this story run."""
@@ -223,11 +219,6 @@ class StoryRun(object):
       return '/'.join([self._test_prefix, story_name])
     else:
       return story_name
-
-  @property
-  def values(self):
-    """The values that correspond to this story run."""
-    return self._values
 
   @property
   def tbm_metrics(self):

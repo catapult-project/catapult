@@ -11,12 +11,9 @@ import shutil
 import time
 import traceback
 
-from telemetry import value as value_module
 from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import results_processor
 from telemetry.internal.results import story_run
-from telemetry.value import list_of_scalar_values
-from telemetry.value import scalar
 
 from tracing.value.diagnostics import reserved_infos
 
@@ -61,7 +58,10 @@ class PageTestResults(object):
     self._current_story_run = None
     self._all_story_runs = []
     self._all_stories = set()
-    self._representative_value_for_each_value_name = {}
+
+    # This is used to validate that measurements accross story runs use units
+    # consistently.
+    self._measurement_units = {}
 
     self._benchmark_name = benchmark_name or '(unknown benchmark)'
     self._benchmark_description = benchmark_description or ''
@@ -196,11 +196,6 @@ class PageTestResults(object):
   def IterStoryRuns(self):
     return iter(self._all_story_runs)
 
-  def IterAllLegacyValues(self):
-    for run in self._IterAllStoryRuns():
-      for value in run.values:
-        yield value
-
   def __enter__(self):
     return self
 
@@ -254,11 +249,6 @@ class PageTestResults(object):
     measurements obtained by running metrics on collected traces (if any)
     after the benchmark run has finished.
 
-    TODO(crbug.com/999484): Currently measurements are stored as legacy
-    Telemetry values. This will allow clients to switch to this new API while
-    preserving the existing behavior. When no more clients create legacy
-    values on their own, the implementation details below can be changed.
-
     Args:
       name: A string with the name of the measurement (e.g. 'score', 'runtime',
         etc).
@@ -270,16 +260,15 @@ class PageTestResults(object):
         of the measurement.
     """
     assert self._current_story_run, 'Not currently running a story.'
-    value = _MeasurementToValue(
-        self.current_story, name, unit, samples, description)
-    self._AddValue(value)
+    old_unit = self._measurement_units.get(name)
+    if old_unit is not None:
+      if unit != old_unit:
+        raise ValueError('Unit for measurement %r changed from %s to %s.' % (
+            name, old_unit, unit))
+    else:
+      self._measurement_units[name] = unit
     self.current_story_run.AddMeasurement(name, unit, samples, description)
 
-  def _AddValue(self, value):
-    """DEPRECATED: Use AddMeasurement instead."""
-    assert self._current_story_run, 'Not currently running a story.'
-    self._ValidateValue(value)
-    self._current_story_run.AddLegacyValue(value)
 
   def AddSharedDiagnostics(self,
                            owners=None,
@@ -356,14 +345,6 @@ class PageTestResults(object):
     if tbm_metrics:
       self._current_story_run.SetTbmMetrics(tbm_metrics)
 
-  def _ValidateValue(self, value):
-    assert isinstance(value, value_module.Value)
-    if value.name not in self._representative_value_for_each_value_name:
-      self._representative_value_for_each_value_name[value.name] = value
-    representative_value = self._representative_value_for_each_value_name[
-        value.name]
-    assert value.IsMergableWith(representative_value)
-
   def Finalize(self, exc_value=None):
     """Finalize this object to prevent more results from being recorded.
 
@@ -411,12 +392,3 @@ class PageTestResults(object):
     for run in self._IterAllStoryRuns():
       if run.HasArtifactsInDir('trace/'):
         yield run
-
-
-def _MeasurementToValue(story, name, unit, samples, description):
-  if isinstance(samples, list):
-    return list_of_scalar_values.ListOfScalarValues(
-        story, name=name, units=unit, values=samples, description=description)
-  else:
-    return scalar.ScalarValue(
-        story, name=name, units=unit, value=samples, description=description)

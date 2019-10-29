@@ -164,22 +164,10 @@ class PageTestResultsTest(unittest.TestCase):
     self.assertEqual(measurements,
                      {'a': {'unit': 'seconds', 'samples': [1, 2, 3]}})
 
-  def testAddMeasurementWithStoryGroupingKeys(self):
-    with self.CreateResults() as results:
-      self.pages[0].grouping_keys['foo'] = 'bar'
-      self.pages[0].grouping_keys['answer'] = '42'
-      results.WillRunPage(self.pages[0])
-      results.AddMeasurement('a', 'seconds', 3)
-      results.DidRunPage(self.pages[0])
-
-    values = list(results.IterAllLegacyValues())
-    self.assertEqual(1, len(values))
-    self.assertEqual(values[0].grouping_label, '42_bar')
-
   def testNonNumericMeasurementIsInvalid(self):
     with self.CreateResults() as results:
       results.WillRunPage(self.pages[0])
-      with self.assertRaises(AssertionError):
+      with self.assertRaises(TypeError):
         results.AddMeasurement('url', 'string', 'foo')
       results.DidRunPage(self.pages[0])
 
@@ -190,7 +178,7 @@ class PageTestResultsTest(unittest.TestCase):
       results.DidRunPage(self.pages[0])
 
       results.WillRunPage(self.pages[1])
-      with self.assertRaises(AssertionError):
+      with self.assertRaises(ValueError):
         results.AddMeasurement('a', 'foobgrobbers', 3)
       results.DidRunPage(self.pages[1])
 
@@ -205,28 +193,6 @@ class PageTestResultsTest(unittest.TestCase):
       results.DidRunPage(self.pages[1])
 
     self.assertFalse(results.had_successes)
-
-  def testIterAllLegacyValuesForSuccessfulPages(self):
-    with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      results.AddMeasurement('a', 'seconds', 3)
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      results.AddMeasurement('a', 'seconds', 3)
-      results.DidRunPage(self.pages[1])
-
-      results.WillRunPage(self.pages[2])
-      results.AddMeasurement('a', 'seconds', 3)
-      results.DidRunPage(self.pages[2])
-
-    expected = [
-        (v.page, v.name, v.units, v.value)
-        for v in results.IterAllLegacyValues()]
-    self.assertEqual([
-        (self.pages[0], 'a', 'seconds', 3),
-        (self.pages[1], 'a', 'seconds', 3),
-        (self.pages[2], 'a', 'seconds', 3)], expected)
 
   def testAddTraces(self):
     with self.CreateResults() as results:
