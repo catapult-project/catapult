@@ -1,4 +1,4 @@
-# Copyright 2013 The Chromium Authors. All rights reserved.
+# Copyright 2019 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -22,8 +22,8 @@ def _ParseCrashpadDateTime(date_time_str):
   return datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
 
 
-class DesktopMinidumpFinder(object):
-  """Handles finding Crashpad/Breakpad minidumps on desktop platforms.
+class MinidumpFinder(object):
+  """Handles finding Crashpad/Breakpad minidumps.
 
   In addition to whatever data is expected to be returned, most public methods
   also return a list of strings. These strings are what would normally be
@@ -32,7 +32,7 @@ class DesktopMinidumpFinder(object):
   BrowserBackend.GetRecentMinidumpPathWithTimeout().
   """
   def __init__(self, os_name, arch_name):
-    super(DesktopMinidumpFinder, self).__init__()
+    super(MinidumpFinder, self).__init__()
     self._os = os_name
     self._arch = arch_name
     self._minidump_path_crashpad_retrieval = {}
