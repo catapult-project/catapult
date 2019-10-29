@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import datetime
 import json
 import logging
 import os
@@ -24,15 +23,13 @@ HISTOGRAM_DICTS_NAME = 'histogram_dicts.json'
 
 
 class PageTestResults(object):
-  def __init__(self, output_formatters=None, progress_stream=None,
-               output_dir=None, intermediate_dir=None,
-               benchmark_name=None, benchmark_description=None,
-               upload_bucket=None, results_label=None):
-    """
+  def __init__(self, progress_stream=None, output_dir=None,
+               intermediate_dir=None, benchmark_name=None,
+               benchmark_description=None, upload_bucket=None,
+               results_label=None):
+    """Object to hold story run results while a benchmark is executed.
+
     Args:
-      output_formatters: A list of output formatters. The output
-          formatters are typically used to format the test results, such
-          as CsvOutputFormatter, which output the test results as CSV.
       progress_stream: A file-like object where to write progress reports as
           stories are being run. Can be None to suppress progress reporting.
       output_dir: A string specifying the directory where to store the test
@@ -48,8 +45,6 @@ class PageTestResults(object):
     super(PageTestResults, self).__init__()
     self._progress_reporter = gtest_progress_reporter.GTestProgressReporter(
         progress_stream)
-    self._output_formatters = (
-        output_formatters if output_formatters is not None else [])
     self._output_dir = output_dir
     self._intermediate_dir = intermediate_dir
     if intermediate_dir is None and output_dir is not None:
@@ -58,7 +53,6 @@ class PageTestResults(object):
 
     self._current_story_run = None
     self._all_story_runs = []
-    self._all_stories = set()
 
     # This is used to validate that measurements accross story runs use units
     # consistently.
@@ -109,10 +103,6 @@ class PageTestResults(object):
   def benchmark_interruption(self):
     """Returns a string explaining why the benchmark was interrupted."""
     return self._interruption
-
-  @property
-  def start_datetime(self):
-    return datetime.datetime.utcfromtimestamp(self._start_time)
 
   @property
   def label(self):
@@ -167,7 +157,7 @@ class PageTestResults(object):
   @property
   def had_skips(self):
     """If there where any skipped stories."""
-    return any(run.skipped for run in self._IterAllStoryRuns())
+    return any(run.skipped for run in self._all_story_runs)
 
   @property
   def num_skipped(self):
@@ -222,8 +212,6 @@ class PageTestResults(object):
     self._current_story_run.Finish()
     self._progress_reporter.DidRunStory(self)
     self._all_story_runs.append(self._current_story_run)
-    story = self._current_story_run.story
-    self._all_stories.add(story)
     self._current_story_run = None
 
   def AddMetricPageResults(self, result):
@@ -290,7 +278,6 @@ class PageTestResults(object):
     else:
       self._measurement_units[name] = unit
     self.current_story_run.AddMeasurement(name, unit, samples, description)
-
 
   def AddSharedDiagnostics(self,
                            owners=None,
@@ -404,11 +391,6 @@ class PageTestResults(object):
       self._WriteJsonLine(run.AsDict())
     if self._results_stream is not None:
       self._results_stream.close()
-
-    for output_formatter in self._output_formatters:
-      output_formatter.Format(self)
-      output_formatter.PrintViewResults()
-      output_formatter.output_stream.close()
 
   def IterRunsWithTraces(self):
     for run in self._IterAllStoryRuns():
