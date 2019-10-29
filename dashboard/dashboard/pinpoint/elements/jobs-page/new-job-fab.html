@@ -219,7 +219,7 @@ found in the LICENSE file.
               <div class="column">
                 <autocomplete-box id="storyTagsDropdown"
                                   name="story_tags"
-                                  items="{{storyTags(benchmarkConfig)}}"
+                                  items="{{storyTagsFromConfig(benchmarkConfig)}}"
                                   disabled="{{!validTags(benchmark, benchmarkConfig)}}"
                                   placeholder="Story Tags (optional, comma-separated)"
                                   selected-name="{{storyTags}}"
@@ -510,7 +510,7 @@ found in the LICENSE file.
           this.storyCases(benchmarkConfig).length > 0);
       },
 
-      storyTags(benchmarkConfig) {
+      storyTagsFromConfig(benchmarkConfig) {
         if (!benchmarkConfig) {
           return [];
         }
@@ -522,7 +522,7 @@ found in the LICENSE file.
       validTags(benchmark, benchmarkConfig) {
         return (
           this.validBenchmark(benchmark) &&
-          this.storyTags(benchmarkConfig).length > 0);
+          this.storyTagsFromConfig(benchmarkConfig).length > 0);
       },
 
       telemetryIsolate(configuration, benchmark) {
