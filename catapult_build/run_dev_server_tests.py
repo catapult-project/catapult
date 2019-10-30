@@ -49,11 +49,11 @@ PLATFORM_MAPPING = {
         'omaha': 'mac',
         'prefix': 'Mac',
         'zip_prefix': 'mac',
-        'chromepath': ('chrome-mac/Chromium.app/Contents/MacOS/Chromium'),
-        'version_path': 'chrome-mac/Chromium.app/Contents/Versions/',
+        'chromepath': ('chrome-mac/Chrome.app/Contents/MacOS/Chrome'),
+        'version_path': 'chrome-mac/Chrome.app/Contents/Versions/',
         'additional_paths': [
-            ('chrome-mac/Chromium.app/Contents/Versions/%VERSION%/'
-             'Chromium Helper.app/Contents/MacOS/Chromium Helper'),
+            ('chrome-mac/Chrome.app/Contents/Versions/%VERSION%/'
+             'Chrome Helper.app/Contents/MacOS/Chrome Helper'),
         ],
     },
 }
@@ -170,13 +170,14 @@ def Main(argv):
         channel = 'dev'
       assert channel in ['stable', 'beta', 'dev', 'canary']
 
-      # Using chromium instead of chrome because of https://crbug.com/973847.
-      print 'Fetching the %s chromium binary via the binary_manager.' % channel
+      binary = 'chrome'
+      print ('Fetching the %s %s binary via ' % (channel, binary) +
+             'the binary_manager.')
       chrome_manager = binary_manager.BinaryManager([CHROME_BINARIES_CONFIG])
       arch, os_name = dependency_util.GetOSAndArchForCurrentDesktopPlatform()
       chrome_path, version = chrome_manager.FetchPathWithVersion(
-          'chromium_%s' % channel, arch, os_name)
-      print 'Finished fetching the chromium binary to %s' % chrome_path
+          '%s_%s' % (binary, channel), arch, os_name)
+      print 'Finished fetching the %s binary to %s' % (binary, chrome_path)
       if xvfb.ShouldStartXvfb():
         print 'Starting xvfb...'
         xvfb_process = xvfb.StartXvfb()
@@ -190,6 +191,7 @@ def Main(argv):
         '--noerrdialogs',
         '--window-size=1280,1024',
         '--enable-logging', '--v=1',
+        '--enable-features=ForceWebRequestProxyForTest',
         ('http://localhost:%s/%s/tests.html?' % (port, args.tests)) +
         'headless=true&testTypeToRun=all',
     ]
