@@ -109,7 +109,7 @@ def GetLocalChromePath(path_from_command_line):
 
 
 def Main(argv):
-  tmpdir = None
+  user_data_dir = None
   xvfb_process = None
   try:
     parser = argparse.ArgumentParser(
@@ -189,6 +189,7 @@ def Main(argv):
         '--no-first-run',
         '--noerrdialogs',
         '--window-size=1280,1024',
+        '--enable-logging', '--v=1',
         ('http://localhost:%s/%s/tests.html?' % (port, args.tests)) +
         'headless=true&testTypeToRun=all',
     ]
@@ -224,13 +225,18 @@ def Main(argv):
     # this timing issue on Windows.
     if sys.platform == 'win32':
       time.sleep(5)
-    if tmpdir:
+    if user_data_dir:
+      chrome_debug_logs = os.path.join(user_data_dir, 'chrome_debug.log')
+      if os.path.exists(chrome_debug_logs):
+        with open(chrome_debug_logs) as f:
+          print "-------- chrome_debug.log --------"
+          sys.stdout.write(f.read())
+          print "-------- ---------------- --------"
+          print "Chrome debug logs printed from %s" % chrome_debug_logs
       try:
-        shutil.rmtree(tmpdir)
         shutil.rmtree(user_data_dir)
       except OSError as e:
-        logging.error('Error cleaning up temp dirs %s and %s: %s',
-                      tmpdir, user_data_dir, e)
+        logging.error('Error cleaning up temp dirs %s: %s', user_data_dir, e)
     if xvfb_process:
       xvfb_process.kill()
 
