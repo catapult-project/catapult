@@ -47,7 +47,6 @@ group("telemetry") {
     "telemetry/testing/",
     "telemetry/timeline/",
     "telemetry/util/",
-    "telemetry/value/",
     "telemetry/web_perf/",
     "telemetry/wpr/",
     "third_party/",
