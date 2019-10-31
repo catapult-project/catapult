@@ -20,6 +20,7 @@ from tracing.value.diagnostics import reserved_infos
 
 TEST_RESULTS = '_test_results.jsonl'
 DIAGNOSTICS_NAME = 'diagnostics.json'
+HISTOGRAM_DICTS_NAME = 'histogram_dicts.json'
 
 
 class PageTestResults(object):
@@ -224,6 +225,27 @@ class PageTestResults(object):
     story = self._current_story_run.story
     self._all_stories.add(story)
     self._current_story_run = None
+
+  def AddMetricPageResults(self, result):
+    """Add results from metric computation.
+
+    Args:
+      result: A dict produced by results_processor._ComputeMetricsInPool.
+    """
+    self._current_story_run = result['run']
+    try:
+      for fail in result['fail']:
+        self.Fail(fail)
+      if result['histogram_dicts']:
+        # Saving histograms as an artifact is a temporary hack to keep
+        # things working while we gradually move code from Telemetry to
+        # Results Processor.
+        # TODO(crbug.com/981349): Remove this after metrics running is
+        # implemented in Results Processor.
+        with self.CreateArtifact(HISTOGRAM_DICTS_NAME) as f:
+          json.dump(result['histogram_dicts'], f)
+    finally:
+      self._current_story_run = None
 
   def InterruptBenchmark(self, reason):
     """Mark the benchmark as interrupted.
