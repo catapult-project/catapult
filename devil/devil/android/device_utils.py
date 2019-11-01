@@ -1654,7 +1654,8 @@ class DeviceUtils(object):
     """
     # TODO(crbug.com/1005504): Experiment with this on physical devices after
     # upgrading devil's default adb beyond 1.0.39.
-    enable_push_sync = self.adb.is_emulator
+    # TODO(crbug.com/1020716): disabled as can result in extra directory.
+    enable_push_sync = False
 
     if enable_push_sync:
       try:
