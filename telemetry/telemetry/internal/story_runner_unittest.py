@@ -16,7 +16,6 @@ from py_utils import cloud_storage
 
 from telemetry import benchmark
 from telemetry.core import exceptions
-from telemetry.core import platform
 from telemetry.core import util
 from telemetry.internal.actions import page_action
 from telemetry.internal.results import page_test_results
@@ -31,112 +30,6 @@ from telemetry.testing import test_stories
 from telemetry.web_perf import story_test
 from telemetry.wpr import archive_info
 
-# pylint: disable=too-many-lines
-
-
-def MockPlatform():
-  """Create a mock platform to be used by tests."""
-  mock_platform = mock.Mock(spec=platform.Platform)
-  mock_platform.CanMonitorThermalThrottling.return_value = False
-  mock_platform.GetArchName.return_value = None
-  mock_platform.GetOSName.return_value = None
-  mock_platform.GetOSVersionName.return_value = None
-  mock_platform.GetDeviceId.return_value = None
-  return mock_platform
-
-
-class TestSharedState(story_module.SharedState):
-  mock_platform = MockPlatform()
-
-  def __init__(self, test, options, story_set, possible_browser):
-    super(TestSharedState, self).__init__(
-        test, options, story_set, possible_browser)
-    self._current_story = None
-
-  @property
-  def platform(self):
-    return self.mock_platform
-
-  def WillRunStory(self, story):
-    self._current_story = story
-
-  def CanRunStory(self, story):
-    return True
-
-  def RunStory(self, results):
-    self._current_story.Run(self)
-
-  def DidRunStory(self, results):
-    self._current_story = None
-
-  def TearDownState(self):
-    pass
-
-  def DumpStateUponStoryRunFailure(self, results):
-    pass
-
-
-class DummyStory(story_module.Story):
-  def __init__(self, name, tags=None, serving_dir=None, run_side_effect=None):
-    """A customizable dummy story.
-
-    Args:
-      name: A string with the name of the story.
-      tags: Optional sequence of tags for the story.
-      serving_dir: Optional path from which (in a real local story) contents
-        are served. Used in some tests but no local servers are actually set up.
-      run_side_effect: Optional side effect of the story's Run method.
-        It can be either an exception instance to raise, or a callable
-        with no arguments.
-    """
-    super(DummyStory, self).__init__(TestSharedState, name=name, tags=tags)
-    self._serving_dir = serving_dir
-    self._run_side_effect = run_side_effect
-
-  def Run(self, _):
-    if self._run_side_effect is not None:
-      if isinstance(self._run_side_effect, BaseException):
-        raise self._run_side_effect  # pylint: disable=raising-bad-type
-      else:
-        self._run_side_effect()
-
-  @property
-  def serving_dir(self):
-    return self._serving_dir
-
-
-class DummyStorySet(story_module.StorySet):
-  def __init__(self, stories, cloud_bucket=None, abridging_tag=None, **kwargs):
-    """A customizable dummy story set.
-
-    Args:
-      stories: A list of either story names or objects to add to the set.
-        Instances of DummyStory are useful here.
-      cloud_bucket: Optional cloud storage bucket where (in a real story set)
-        data for WPR recordings is stored. This is used in some tests, but
-        interactions with cloud storage are mocked out.
-      abridging_tag: Optional story tag used to define a subset of stories
-        to be run in abridged mode.
-      Additional kwargs are passed to the StorySet base class.
-    """
-    super(DummyStorySet, self).__init__(
-        cloud_storage_bucket=cloud_bucket, **kwargs)
-    self._abridging_tag = abridging_tag
-    assert stories, 'There should be at least one story.'
-    for story in stories:
-      if isinstance(story, basestring):
-        story = DummyStory(story)
-      self.AddStory(story)
-
-  def GetAbridgedStorySetTagFilter(self):
-    return self._abridging_tag
-
-
-def ReadDiagnostics(test_result):
-  artifact = test_result['outputArtifacts'][page_test_results.DIAGNOSTICS_NAME]
-  with open(artifact['filePath']) as f:
-    return json.load(f)['diagnostics']
-
 
 class RunStorySetTest(unittest.TestCase):
   """Tests that run dummy story sets with a mock StoryTest.
@@ -148,14 +41,14 @@ class RunStorySetTest(unittest.TestCase):
         output_dir=tempfile.mkdtemp())
     # We use a mock platform and story set, so tests can inspect which methods
     # were called and easily override their behavior.
-    self.mock_platform = TestSharedState.mock_platform
+    self.mock_platform = test_stories.TestSharedState.mock_platform
     self.mock_story_test = mock.Mock(spec=story_test.StoryTest)
 
   def tearDown(self):
     shutil.rmtree(self.options.output_dir)
 
   def RunStories(self, stories, **kwargs):
-    story_set = DummyStorySet(stories)
+    story_set = test_stories.DummyStorySet(stories)
     with results_options.CreateResults(
         self.options, benchmark_name='benchmark') as results:
       story_runner.RunStorySet(
@@ -180,9 +73,9 @@ class RunStorySetTest(unittest.TestCase):
     self.assertEqual([call[0] for call in self.mock_story_test.mock_calls],
                      ['WillRunStory', 'Measure', 'DidRunStory'] * 3)
 
-  @mock.patch.object(TestSharedState, 'DidRunStory')
-  @mock.patch.object(TestSharedState, 'RunStory')
-  @mock.patch.object(TestSharedState, 'WillRunStory')
+  @mock.patch.object(test_stories.TestSharedState, 'DidRunStory')
+  @mock.patch.object(test_stories.TestSharedState, 'RunStory')
+  @mock.patch.object(test_stories.TestSharedState, 'WillRunStory')
   def testCallOrderBetweenStoryTestAndSharedState(
       self, will_run_story, run_story, did_run_story):
     """Check the call order between StoryTest and SharedState is correct."""
@@ -203,15 +96,15 @@ class RunStorySetTest(unittest.TestCase):
     ])
 
   def testAppCrashExceptionCausesFailure(self):
-    self.RunStories([
-        DummyStory('story', run_side_effect=exceptions.AppCrashException(
-            msg='App Foo crashes'))])
+    self.RunStories([test_stories.DummyStory(
+        'story',
+        run_side_effect=exceptions.AppCrashException(msg='App Foo crashes'))])
     test_results = self.ReadTestResults()
     self.assertEqual(['FAIL'],
                      [test['status'] for test in test_results])
     self.assertIn('App Foo crashes', sys.stderr.getvalue())
 
-  @mock.patch.object(TestSharedState, 'TearDownState')
+  @mock.patch.object(test_stories.TestSharedState, 'TearDownState')
   def testExceptionRaisedInSharedStateTearDown(self, tear_down_state):
     class TestOnlyException(Exception):
       pass
@@ -225,8 +118,9 @@ class RunStorySetTest(unittest.TestCase):
       pass
 
     self.RunStories([
-        DummyStory('foo', run_side_effect=UnknownException('FooException')),
-        DummyStory('bar')])
+        test_stories.DummyStory(
+            'foo', run_side_effect=UnknownException('FooException')),
+        test_stories.DummyStory('bar')])
     test_results = self.ReadTestResults()
     self.assertEqual(['FAIL', 'PASS'],
                      [test['status'] for test in test_results])
@@ -234,16 +128,18 @@ class RunStorySetTest(unittest.TestCase):
 
   def testRaiseBrowserGoneExceptionFromRunPage(self):
     self.RunStories([
-        DummyStory('foo', run_side_effect=exceptions.BrowserGoneException(
-            None, 'i am a browser crash message')),
-        DummyStory('bar')])
+        test_stories.DummyStory(
+            'foo', run_side_effect=exceptions.BrowserGoneException(
+                None, 'i am a browser crash message')),
+        test_stories.DummyStory('bar')])
     test_results = self.ReadTestResults()
     self.assertEqual(['FAIL', 'PASS'],
                      [test['status'] for test in test_results])
     self.assertIn('i am a browser crash message', sys.stderr.getvalue())
 
-  @mock.patch.object(TestSharedState, 'DumpStateUponStoryRunFailure')
-  @mock.patch.object(TestSharedState, 'TearDownState')
+  @mock.patch.object(test_stories.TestSharedState,
+                     'DumpStateUponStoryRunFailure')
+  @mock.patch.object(test_stories.TestSharedState, 'TearDownState')
   def testAppCrashThenRaiseInTearDown_Interrupted(
       self, tear_down_state, dump_state_upon_story_run_failure):
     class TearDownStateException(Exception):
@@ -255,9 +151,9 @@ class RunStorySetTest(unittest.TestCase):
     root_mock.attach_mock(dump_state_upon_story_run_failure,
                           'state.DumpStateUponStoryRunFailure')
     self.RunStories([
-        DummyStory('foo',
-                   run_side_effect=exceptions.AppCrashException(msg='crash!')),
-        DummyStory('bar')])
+        test_stories.DummyStory(
+            'foo', run_side_effect=exceptions.AppCrashException(msg='crash!')),
+        test_stories.DummyStory('bar')])
 
     self.assertEqual([call[0] for call in root_mock.mock_calls], [
         'state.DumpStateUponStoryRunFailure',
@@ -293,7 +189,8 @@ class RunStorySetTest(unittest.TestCase):
     if options_max_failures:
       self.options.max_failures = options_max_failures
     self.RunStories([
-        DummyStory('failing_%d' % i, run_side_effect=Exception('boom!'))
+        test_stories.DummyStory(
+            'failing_%d' % i, run_side_effect=Exception('boom!'))
         for i in range(num_failing_stories)
     ], max_failures=runner_max_failures)
     test_results = self.ReadTestResults()
@@ -338,14 +235,14 @@ class UpdateAndCheckArchivesTest(unittest.TestCase):
     mock.patch.stopall()
 
   def testMissingArchiveDataFile(self):
-    story_set = DummyStorySet(['story'])
+    story_set = test_stories.DummyStorySet(['story'])
     with self.assertRaises(story_runner.ArchiveError):
       story_runner._UpdateAndCheckArchives(
           story_set.archive_data_file, story_set.wpr_archive_info,
           story_set.stories)
 
   def testArchiveDataFileDoesNotExist(self):
-    story_set = DummyStorySet(
+    story_set = test_stories.DummyStorySet(
         ['story'], archive_data_file='does_not_exist.json')
     with self.assertRaises(story_runner.ArchiveError):
       story_runner._UpdateAndCheckArchives(
@@ -356,7 +253,7 @@ class UpdateAndCheckArchivesTest(unittest.TestCase):
     # This test file has a recording for a 'http://www.testurl.com' story only.
     archive_data_file = os.path.join(
         util.GetUnittestDataDir(), 'archive_files', 'test.json')
-    story_set = DummyStorySet(
+    story_set = test_stories.DummyStorySet(
         ['http://www.testurl.com'], archive_data_file=archive_data_file)
     success = story_runner._UpdateAndCheckArchives(
         story_set.archive_data_file, story_set.wpr_archive_info,
@@ -367,7 +264,7 @@ class UpdateAndCheckArchivesTest(unittest.TestCase):
     # This test file has a recording for a 'http://www.testurl.com' story only.
     archive_data_file = os.path.join(
         util.GetUnittestDataDir(), 'archive_files', 'test.json')
-    story_set = DummyStorySet(
+    story_set = test_stories.DummyStorySet(
         ['http://www.testurl.com', 'http://www.google.com'],
         archive_data_file=archive_data_file)
     with self.assertRaises(story_runner.ArchiveError):
@@ -382,7 +279,7 @@ class UpdateAndCheckArchivesTest(unittest.TestCase):
     archive_data_file = os.path.join(
         util.GetUnittestDataDir(), 'archive_files',
         'test_missing_wpr_file.json')
-    story_set = DummyStorySet(
+    story_set = test_stories.DummyStorySet(
         ['http://www.testurl.com', 'http://www.google.com'],
         archive_data_file=archive_data_file)
     with self.assertRaises(story_runner.ArchiveError):
@@ -679,10 +576,10 @@ class FakeBenchmark(benchmark.Benchmark):
       stories: Optional sequence of either story names or objects. Instances
         of DummyStory are useful here. If omitted the benchmark will contain
         a single DummyStory.
-      other kwargs are passed to the DummyStorySet constructor.
+      other kwargs are passed to the test_stories.DummyStorySet constructor.
     """
     super(FakeBenchmark, self).__init__()
-    self._story_set = DummyStorySet(
+    self._story_set = test_stories.DummyStorySet(
         stories if stories is not None else ['story'], **kwargs)
 
   @classmethod
@@ -706,6 +603,12 @@ class FakeStoryFilter(object):
 
   def ShouldSkip(self, story):
     return 'fake_reason' if story.name in self._stories_to_skip else ''
+
+
+def ReadDiagnostics(test_result):
+  artifact = test_result['outputArtifacts'][page_test_results.DIAGNOSTICS_NAME]
+  with open(artifact['filePath']) as f:
+    return json.load(f)['diagnostics']
 
 
 class RunBenchmarkTest(unittest.TestCase):
@@ -841,14 +744,16 @@ class RunBenchmarkTest(unittest.TestCase):
 
   def testReturnCodeCaughtException(self):
     fake_benchmark = FakeBenchmark(stories=[
-        DummyStory('story', run_side_effect=exceptions.AppCrashException())])
+        test_stories.DummyStory(
+            'story', run_side_effect=exceptions.AppCrashException())])
     options = self.GetFakeBrowserOptions()
     return_code = story_runner.RunBenchmark(fake_benchmark, options)
     self.assertEqual(return_code, 1)
 
   def testReturnCodeUnhandleableError(self):
     fake_benchmark = FakeBenchmark(stories=[
-        DummyStory('story', run_side_effect=MemoryError('Unhandleable'))])
+        test_stories.DummyStory(
+            'story', run_side_effect=MemoryError('Unhandleable'))])
     options = self.GetFakeBrowserOptions()
     return_code = story_runner.RunBenchmark(fake_benchmark, options)
     self.assertEqual(return_code, 2)
@@ -862,8 +767,10 @@ class RunBenchmarkTest(unittest.TestCase):
 
   def testDownloadMinimalServingDirs(self):
     fake_benchmark = FakeBenchmark(stories=[
-        DummyStory('story_foo', serving_dir='/files/foo', tags=['foo']),
-        DummyStory('story_bar', serving_dir='/files/bar', tags=['bar']),
+        test_stories.DummyStory(
+            'story_foo', serving_dir='/files/foo', tags=['foo']),
+        test_stories.DummyStory(
+            'story_bar', serving_dir='/files/bar', tags=['bar']),
     ], cloud_bucket=cloud_storage.PUBLIC_BUCKET)
     options = self.GetFakeBrowserOptions(overrides={'story_tag_filter': 'foo'})
     with mock.patch(
@@ -879,8 +786,8 @@ class RunBenchmarkTest(unittest.TestCase):
     story_filter.StoryFilterFactory.ProcessCommandLineArgs(
         parser=None, args=options)
     fake_benchmark = FakeBenchmark(stories=[
-        DummyStory('story1', tags=['important']),
-        DummyStory('story2', tags=['other']),
+        test_stories.DummyStory('story1', tags=['important']),
+        test_stories.DummyStory('story2', tags=['other']),
     ], abridging_tag='important')
     story_runner.RunBenchmark(fake_benchmark, options)
     test_results = self.ReadTestResults()
@@ -893,8 +800,8 @@ class RunBenchmarkTest(unittest.TestCase):
     story_filter.StoryFilterFactory.ProcessCommandLineArgs(
         parser=None, args=options)
     fake_benchmark = FakeBenchmark(stories=[
-        DummyStory('story1', tags=['important']),
-        DummyStory('story2', tags=['other']),
+        test_stories.DummyStory('story1', tags=['important']),
+        test_stories.DummyStory('story2', tags=['other']),
     ], abridging_tag='important')
     story_runner.RunBenchmark(fake_benchmark, options)
     test_results = self.ReadTestResults()
@@ -905,10 +812,7 @@ class RunBenchmarkTest(unittest.TestCase):
     args = fakes.FakeParsedArgsForStoryFilter(stories=['story1', 'story3'])
     story_filter.StoryFilterFactory.ProcessCommandLineArgs(
         parser=None, args=args)
-    fake_benchmark = FakeBenchmark(stories=[
-        DummyStory('story1'),
-        DummyStory('story2'),
-        DummyStory('story3')])
+    fake_benchmark = FakeBenchmark(stories=['story1', 'story2', 'story3'])
     story_runner.RunBenchmark(fake_benchmark, options)
     test_results = self.ReadTestResults()
     self.assertEqual(len(test_results), 2)
@@ -921,8 +825,8 @@ class RunBenchmarkTest(unittest.TestCase):
       raise exceptions.TimeoutException('karma!')
 
     fake_benchmark = FakeBenchmark(stories=[
-        DummyStory('story1', run_side_effect=failed_run),
-        DummyStory('story2')
+        test_stories.DummyStory('story1', run_side_effect=failed_run),
+        test_stories.DummyStory('story2')
     ])
 
     options = self.GetFakeBrowserOptions()
@@ -954,8 +858,8 @@ class RunBenchmarkTest(unittest.TestCase):
       raise MemoryError('this is a fatal exception')
 
     fake_benchmark = FakeBenchmark(stories=[
-        DummyStory('story1', run_side_effect=failed_run),
-        DummyStory('story2')
+        test_stories.DummyStory('story1', run_side_effect=failed_run),
+        test_stories.DummyStory('story2')
     ])
 
     options = self.GetFakeBrowserOptions()
@@ -988,7 +892,7 @@ class RunBenchmarkTest(unittest.TestCase):
     side_effects = [None] * 30 + [fatal_error] * 20
 
     fake_benchmark = FakeBenchmark(stories=(
-        DummyStory('story_%i' % i, run_side_effect=effect)
+        test_stories.DummyStory('story_%i' % i, run_side_effect=effect)
         for i, effect in enumerate(side_effects)))
 
     # Set the filtering to only run from story_10 --> story_40
