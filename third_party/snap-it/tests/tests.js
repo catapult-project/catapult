@@ -211,7 +211,7 @@ QUnit.test('processTree: background-image with complex multiple images and local
                'url("local/targetId.png"),' +
                'url("data:image/gif;base64,R0lGODlhAQABAIAAAA"),' +
                'url("local/targetId.png"),' +
-               'linear-gradient(to right top,red,rgb(240,109,6)),' +
+               'linear-gradient(to right top,rgb(255,0,0),rgb(240,109,6)),' +
                'url("local/targetId.png")');
 });
 

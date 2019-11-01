@@ -192,6 +192,8 @@ def Main(argv):
         '--window-size=1280,1024',
         '--enable-logging', '--v=1',
         '--enable-features=ForceWebRequestProxyForTest',
+        '--enable-blink-features=CustomElementsV0,'
+        'HTMLImportsStyleApplication,ShadowDOMV0',
         ('http://localhost:%s/%s/tests.html?' % (port, args.tests)) +
         'headless=true&testTypeToRun=all',
     ]
