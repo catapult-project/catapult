@@ -568,6 +568,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
 
 class FakeBenchmark(benchmark.Benchmark):
   test = test_stories.DummyStoryTest
+  NAME = 'fake_benchmark'
 
   def __init__(self, stories=None, **kwargs):
     """A customizable fake_benchmark.
@@ -584,7 +585,7 @@ class FakeBenchmark(benchmark.Benchmark):
 
   @classmethod
   def Name(cls):
-    return 'fake_benchmark'
+    return cls.NAME
 
   def CreateStorySet(self, _):
     return self._story_set
@@ -680,6 +681,16 @@ class RunBenchmarkTest(unittest.TestCase):
     self.assertEqual(len(test_results), 1)
     self.assertEqual(test_results[0]['status'], 'PASS')
     self.assertTrue(test_results[0]['testPath'].endswith('/story2'))
+
+  def testValidateBenchmarkName(self):
+    class FakeBenchmarkWithBadName(FakeBenchmark):
+      NAME = 'bad/benchmark (name)'
+
+    fake_benchmark = FakeBenchmarkWithBadName()
+    options = self.GetFakeBrowserOptions()
+    return_code = story_runner.RunBenchmark(fake_benchmark, options)
+    self.assertEqual(return_code, 2)
+    self.assertIn('Invalid benchmark name', sys.stderr.getvalue())
 
   def testWithOwnerInfo(self):
 

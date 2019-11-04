@@ -7,6 +7,7 @@ import itertools
 import logging
 import optparse
 import os
+import re
 import shutil
 import sys
 import time
@@ -37,6 +38,11 @@ _UNHANDLEABLE_ERRORS = (
     KeyboardInterrupt,
     ImportError,
     MemoryError)
+
+
+# Benchmark names must match this regex. Note it has to be kept in sync with
+# the corresponding pattern defined in tools/perf/core/perf_data_generator.py.
+_RE_VALID_TEST_SUITE_NAME = r'^[\w._-]+$'
 
 
 class ArchiveError(Exception):
@@ -377,10 +383,14 @@ def RunBenchmark(benchmark, finder_options):
     1 if there was a failure
     2 if there was an uncaught exception.
   """
+  benchmark_name = benchmark.Name()
+  if not re.match(_RE_VALID_TEST_SUITE_NAME, benchmark_name):
+    logging.fatal('Invalid benchmark name: %s', benchmark_name)
+    return 2  # exit_codes.FATAL_ERROR
   benchmark.CustomizeOptions(finder_options)
   with results_options.CreateResults(
       finder_options,
-      benchmark_name=benchmark.Name(),
+      benchmark_name=benchmark_name,
       benchmark_description=benchmark.Description(),
       report_progress=not finder_options.suppress_gtest_report) as results:
 
