@@ -31,11 +31,9 @@ def TempFile():
     os.unlink(temp.name)
 
 
-def GetTIRLabelFromHistogram(hist):
+def GetGroupingLabelFromHistogram(hist):
   tags = hist.diagnostics.get(reserved_infos.STORY_TAGS.name) or []
-
   tags_to_use = [t.split(':') for t in tags if ':' in t]
-
   return '_'.join(v for _, v in sorted(tags_to_use))
 
 
@@ -49,10 +47,10 @@ def ComputeTestPath(hist):
   is_summary = list(
       hist.diagnostics.get(reserved_infos.SUMMARY_KEYS.name, []))
 
-  tir_label = GetTIRLabelFromHistogram(hist)
-  if tir_label and (
+  grouping_label = GetGroupingLabelFromHistogram(hist)
+  if grouping_label and (
       not is_summary or reserved_infos.STORY_TAGS.name in is_summary):
-    path += '/' + tir_label
+    path += '/' + grouping_label
 
   is_ref = hist.diagnostics.get(reserved_infos.IS_REFERENCE_BUILD.name)
   if is_ref and len(is_ref) == 1:
@@ -180,7 +178,7 @@ def AddReservedDiagnostics(histogram_dicts, names_to_values, max_bytes=0):
     # This call creates summary metrics across each tag set of stories.
     hs = histogram_set.HistogramSet()
     hs.ImportDicts(hs_with_stories.AsDicts())
-    hs.FilterHistograms(lambda h: not GetTIRLabelFromHistogram(h))
+    hs.FilterHistograms(lambda h: not GetGroupingLabelFromHistogram(h))
 
     for h in hs:
       h.diagnostics[reserved_infos.SUMMARY_KEYS.name] = (
