@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+
 import argparse
 import json
 import os
@@ -287,6 +289,7 @@ def _AddPleaseExitMixinToServer(server):
       # allow CTRL+C to shutdown
       return 255
 
+    print("Exiting dev server")
     if len(exit_code_attempt) == 1:
       return exit_code_attempt[0]
     # The serve_forever returned for some reason separate from
