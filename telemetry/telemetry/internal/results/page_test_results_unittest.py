@@ -15,7 +15,6 @@ from telemetry import story
 from telemetry.core import exceptions
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import results_options
-from telemetry.internal.results import results_processor
 from telemetry import page as page_module
 from tracing.trace_data import trace_data
 
@@ -255,50 +254,6 @@ class PageTestResultsTest(unittest.TestCase):
               'osVersions': ['ver'],
           },
       })
-
-  @mock.patch('py_utils.cloud_storage.Insert')
-  def testUploadArtifactsToCloud(self, cs_insert_mock):
-    cs_path_name = 'https://cs_foo'
-    cs_insert_mock.return_value = cs_path_name
-    with self.CreateResults(upload_bucket='abc') as results:
-      results.WillRunPage(self.pages[0])
-      with results.CreateArtifact('screenshot.png') as screenshot1:
-        pass
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      with results.CreateArtifact('log.txt') as log2:
-        pass
-      results.DidRunPage(self.pages[1])
-
-      results_processor.UploadArtifactsToCloud(results)
-
-    cs_insert_mock.assert_has_calls(
-        [mock.call('abc', mock.ANY, screenshot1.name),
-         mock.call('abc', mock.ANY, log2.name)],
-        any_order=True)
-
-    # Assert that the path is now the cloud storage path
-    runs = list(results.IterStoryRuns())
-    self.assertEqual(cs_path_name, runs[0].GetArtifact('screenshot.png').url)
-    self.assertEqual(cs_path_name, runs[1].GetArtifact('log.txt').url)
-
-  @mock.patch('py_utils.cloud_storage.Insert')
-  def testUploadArtifactsToCloud_withNoOpArtifact(self, _):
-    with self.CreateResults(
-        upload_bucket='abc', output_dir=None, intermediate_dir=None) as results:
-      results.WillRunPage(self.pages[0])
-      with results.CreateArtifact('screenshot.png'):
-        pass
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      with results.CreateArtifact('log.txt'):
-        pass
-      results.DidRunPage(self.pages[1])
-
-      # Just make sure that this does not crash
-      results_processor.UploadArtifactsToCloud(results)
 
   def testCreateArtifactsForDifferentPages(self):
     with self.CreateResults() as results:

@@ -339,7 +339,7 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None):
               'Too many stories failed. Aborting the rest of the stories.')
           results.InterruptBenchmark(interruption)
   finally:
-    results_processor.ComputeTimelineBasedMetrics(results)
+    results_processor.SerializeHtmlTraces(results)
 
     if state:
       has_existing_exception = sys.exc_info() != (None, None, None)
@@ -432,9 +432,6 @@ def RunBenchmark(benchmark, finder_options):
       results.InterruptBenchmark(interruption)
       exception_formatter.PrintFormattedException()
       return_code = 2
-
-    if finder_options.upload_results:
-      results_processor.UploadArtifactsToCloud(results)
   return return_code
 
 def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,

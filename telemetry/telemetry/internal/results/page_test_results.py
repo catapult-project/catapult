@@ -11,7 +11,6 @@ import time
 import traceback
 
 from telemetry.internal.results import gtest_progress_reporter
-from telemetry.internal.results import results_processor
 from telemetry.internal.results import story_run
 
 from tracing.value.diagnostics import reserved_infos
@@ -352,11 +351,6 @@ class PageTestResults(object):
 
     self._finalized = True
     self._progress_reporter.DidFinishAllStories(self)
-
-    # Make sure that html traces are recorded as artifacts.
-    # TODO(crbug.com/981349): Remove this after trace serialization is
-    # implemented in Results Processor.
-    results_processor.SerializeAndUploadHtmlTraces(self)
 
     # TODO(crbug.com/981349): Ideally we want to write results for each story
     # run individually at DidRunPage when the story finished executing. For
