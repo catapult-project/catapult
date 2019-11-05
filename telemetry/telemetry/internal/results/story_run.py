@@ -47,22 +47,15 @@ def ContentTypeFromExt(name):
     return _DEFAULT_CONTENT_TYPE
 
 
-class Artifact(object):
-  def __init__(self, name, local_path, content_type):
+class _Artifact(object):
+  def __init__(self, local_path, content_type):
     """
     Args:
-      name: name of the artifact.
       local_path: an absolute local path to an artifact file.
       content_type: A string representing the MIME type of a file.
     """
-    self._name = name
     self._local_path = local_path
     self._content_type = content_type
-    self._url = None
-
-  @property
-  def name(self):
-    return self._name
 
   @property
   def local_path(self):
@@ -72,24 +65,11 @@ class Artifact(object):
   def content_type(self):
     return self._content_type
 
-  @property
-  def url(self):
-    return self._url
-
-  def SetUrl(self, url):
-    assert not self._url, 'Artifact URL has been already set'
-    self._url = url
-
   def AsDict(self):
-    d = {
+    return {
         'filePath': self.local_path,
         'contentType': self.content_type
     }
-    # TODO(crbug.com/981349): Remove this when artifact uploading is
-    # switched over to the results processor.
-    if self.url:
-      d['remoteUrl'] = self.url
-    return d
 
 
 class StoryRun(object):
@@ -317,7 +297,7 @@ class StoryRun(object):
       # We want to keep track of all artifacts (e.g. logs) even in the case
       # of an exception in the client code, so we create a record for
       # this artifact before yielding the file handle.
-      self._artifacts[name] = Artifact(name, local_path, content_type)
+      self._artifacts[name] = _Artifact(local_path, content_type)
       yield file_obj
 
   @contextlib.contextmanager
@@ -346,7 +326,7 @@ class StoryRun(object):
     yield local_path
     assert os.path.isfile(local_path), (
         'Failed to capture an artifact: %s' % local_path)
-    self._artifacts[name] = Artifact(name, local_path, content_type)
+    self._artifacts[name] = _Artifact(local_path, content_type)
 
   def IterArtifacts(self, subdir=None):
     """Iterate over all artifacts in a given sub-directory.
