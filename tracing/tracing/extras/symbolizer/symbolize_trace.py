@@ -1546,9 +1546,13 @@ def RemapWinFiles(symfiles, symbol_base_directory, version, is64bit,
       symfile.skip_symbolization = True
 
 
-def RemapBreakpadModules(symfiles, symbolizer, only_symbolize_chrome_symbols):
+def RemapBreakpadModules(symfiles, symbolizer, only_symbolize_chrome_symbols,
+                         trace):
   for symfile in symfiles:
     image = symfile.module_name.lower()
+    if (trace.is_android and os.path.splitext(image)[1] == '.apk'
+        and trace.library_name):
+      image = trace.library_name
     # Looked if the image has Breakpad symbols. Breakpad symbols are generated
     # for Chrome modules for official builds.
     if image in symbolizer.breakpad_modules:
@@ -1564,7 +1568,8 @@ def SymbolizeTrace(options, trace, symbolizer):
 
   if options.use_breakpad_symbols:
     RemapBreakpadModules(symfiles, symbolizer,
-                         options.only_symbolize_chrome_symbols)
+                         options.only_symbolize_chrome_symbols,
+                         trace)
   else:
     if trace.is_android:
       if not options.output_directory:
