@@ -104,7 +104,7 @@ def SinglePageStorySet(url=None, name=None, base_dir=None,
 
 
 class DummyStory(story_module.Story):
-  def __init__(self, name, tags=None, serving_dir=None, run_side_effect=None):
+  def __init__(self, name, serving_dir=None, run_side_effect=None, **kwargs):
     """A customizable dummy story.
 
     It uses the TestSharedState, defined below with a mock platform, so tests
@@ -112,14 +112,14 @@ class DummyStory(story_module.Story):
 
     Args:
       name: A string with the name of the story.
-      tags: Optional sequence of tags for the story.
       serving_dir: Optional path from which (in a real local story) contents
         are served. Used in some tests but no local servers are actually set up.
       run_side_effect: Optional side effect of the story's Run method.
         It can be either an exception instance to raise, or a callable
         with no arguments.
+      Extra kwargs are passed to the constructor of the base class.
     """
-    super(DummyStory, self).__init__(TestSharedState, name=name, tags=tags)
+    super(DummyStory, self).__init__(TestSharedState, name=name, **kwargs)
     self._serving_dir = serving_dir
     self._run_side_effect = run_side_effect
 

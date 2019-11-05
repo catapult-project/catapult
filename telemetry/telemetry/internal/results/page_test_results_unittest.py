@@ -11,11 +11,10 @@ import unittest
 
 import mock
 
-from telemetry import story
 from telemetry.core import exceptions
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import results_options
-from telemetry import page as page_module
+from telemetry.testing import test_stories
 from tracing.trace_data import trace_data
 
 
@@ -28,14 +27,7 @@ def _CreateException():
 
 class PageTestResultsTest(unittest.TestCase):
   def setUp(self):
-    story_set = story.StorySet()
-    story_set.AddStory(page_module.Page("http://www.foo.com/", story_set,
-                                        name='http://www.foo.com/'))
-    story_set.AddStory(page_module.Page("http://www.bar.com/", story_set,
-                                        name='http://www.bar.com/'))
-    story_set.AddStory(page_module.Page("http://www.baz.com/", story_set,
-                                        name='http://www.baz.com/'))
-    self.story_set = story_set
+    self.stories = test_stories.DummyStorySet(['foo', 'bar', 'baz'])
     self._output_dir = tempfile.mkdtemp()
     self._time_module = mock.patch(
         'telemetry.internal.results.page_test_results.time').start()
@@ -44,10 +36,6 @@ class PageTestResultsTest(unittest.TestCase):
   def tearDown(self):
     shutil.rmtree(self._output_dir)
     mock.patch.stopall()
-
-  @property
-  def pages(self):
-    return self.story_set.stories
 
   @property
   def mock_time(self):
@@ -70,12 +58,10 @@ class PageTestResultsTest(unittest.TestCase):
 
   def testFailures(self):
     with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      results.Fail(_CreateException())
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      results.DidRunPage(self.pages[1])
+      with results.CreateStoryRun(self.stories[0]):
+        results.Fail(_CreateException())
+      with results.CreateStoryRun(self.stories[1]):
+        pass
 
     all_story_runs = list(results.IterStoryRuns())
     self.assertEqual(len(all_story_runs), 2)
@@ -85,16 +71,14 @@ class PageTestResultsTest(unittest.TestCase):
 
   def testSkips(self):
     with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      results.Skip('testing reason')
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      results.DidRunPage(self.pages[1])
+      with results.CreateStoryRun(self.stories[0]):
+        results.Skip('testing reason')
+      with results.CreateStoryRun(self.stories[1]):
+        pass
 
     all_story_runs = list(results.IterStoryRuns())
     self.assertTrue(all_story_runs[0].skipped)
-    self.assertEqual(self.pages[0], all_story_runs[0].story)
+    self.assertEqual(self.stories[0], all_story_runs[0].story)
 
     self.assertEqual(2, len(all_story_runs))
     self.assertTrue(results.had_skips)
@@ -114,8 +98,8 @@ class PageTestResultsTest(unittest.TestCase):
   def testUncaughtExceptionInterruptsBenchmark(self):
     with self.assertRaises(ValueError):
       with self.CreateResults() as results:
-        results.WillRunPage(self.pages[0])
-        raise ValueError('expected error')
+        with results.CreateStoryRun(self.stories[0]):
+          raise ValueError('expected error')
 
     self.assertTrue(results.benchmark_interrupted)
     self.assertEqual(results.benchmark_interruption,
@@ -123,16 +107,12 @@ class PageTestResultsTest(unittest.TestCase):
 
   def testPassesNoSkips(self):
     with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      results.Fail(_CreateException())
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      results.DidRunPage(self.pages[1])
-
-      results.WillRunPage(self.pages[2])
-      results.Skip('testing reason')
-      results.DidRunPage(self.pages[2])
+      with results.CreateStoryRun(self.stories[0]):
+        results.Fail(_CreateException())
+      with results.CreateStoryRun(self.stories[1]):
+        pass
+      with results.CreateStoryRun(self.stories[2]):
+        results.Skip('testing reason')
 
     all_story_runs = list(results.IterStoryRuns())
     self.assertEqual(3, len(all_story_runs))
@@ -142,9 +122,8 @@ class PageTestResultsTest(unittest.TestCase):
 
   def testAddMeasurementAsScalar(self):
     with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      results.AddMeasurement('a', 'seconds', 3)
-      results.DidRunPage(self.pages[0])
+      with results.CreateStoryRun(self.stories[0]):
+        results.AddMeasurement('a', 'seconds', 3)
 
     test_results = results_options.ReadTestResults(self.intermediate_dir)
     self.assertTrue(len(test_results), 1)
@@ -153,9 +132,8 @@ class PageTestResultsTest(unittest.TestCase):
 
   def testAddMeasurementAsList(self):
     with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      results.AddMeasurement('a', 'seconds', [1, 2, 3])
-      results.DidRunPage(self.pages[0])
+      with results.CreateStoryRun(self.stories[0]):
+        results.AddMeasurement('a', 'seconds', [1, 2, 3])
 
     test_results = results_options.ReadTestResults(self.intermediate_dir)
     self.assertTrue(len(test_results), 1)
@@ -165,54 +143,40 @@ class PageTestResultsTest(unittest.TestCase):
 
   def testNonNumericMeasurementIsInvalid(self):
     with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      with self.assertRaises(TypeError):
-        results.AddMeasurement('url', 'string', 'foo')
-      results.DidRunPage(self.pages[0])
+      with results.CreateStoryRun(self.stories[0]):
+        with self.assertRaises(TypeError):
+          results.AddMeasurement('url', 'string', 'foo')
 
   def testMeasurementUnitChangeRaises(self):
     with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      results.AddMeasurement('a', 'seconds', 3)
-      results.DidRunPage(self.pages[0])
+      with results.CreateStoryRun(self.stories[0]):
+        results.AddMeasurement('a', 'seconds', 3)
+      with results.CreateStoryRun(self.stories[1]):
+        with self.assertRaises(ValueError):
+          results.AddMeasurement('a', 'foobgrobbers', 3)
 
-      results.WillRunPage(self.pages[1])
-      with self.assertRaises(ValueError):
-        results.AddMeasurement('a', 'foobgrobbers', 3)
-      results.DidRunPage(self.pages[1])
-
-  def testNoSuccessesWhenAllPagesFailOrSkip(self):
+  def testNoSuccessesWhenAllStoriesFailOrSkip(self):
     with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      results.Fail('message')
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      results.Skip('message')
-      results.DidRunPage(self.pages[1])
-
+      with results.CreateStoryRun(self.stories[0]):
+        results.Fail('message')
+      with results.CreateStoryRun(self.stories[1]):
+        results.Skip('message')
     self.assertFalse(results.had_successes)
 
   def testAddTraces(self):
     with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      results.AddTraces(trace_data.CreateTestTrace(1))
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      results.AddTraces(trace_data.CreateTestTrace(2))
-      results.DidRunPage(self.pages[1])
-
+      with results.CreateStoryRun(self.stories[0]):
+        results.AddTraces(trace_data.CreateTestTrace(1))
+      with results.CreateStoryRun(self.stories[1]):
+        results.AddTraces(trace_data.CreateTestTrace(2))
     runs = list(results.IterRunsWithTraces())
     self.assertEqual(2, len(runs))
 
-  def testAddTracesForSamePage(self):
+  def testAddTracesForSameStory(self):
     with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      results.AddTraces(trace_data.CreateTestTrace(1))
-      results.AddTraces(trace_data.CreateTestTrace(2))
-      results.DidRunPage(self.pages[0])
-
+      with results.CreateStoryRun(self.stories[0]):
+        results.AddTraces(trace_data.CreateTestTrace(1))
+        results.AddTraces(trace_data.CreateTestTrace(2))
     runs = list(results.IterRunsWithTraces())
     self.assertEqual(1, len(runs))
 
@@ -228,10 +192,10 @@ class PageTestResultsTest(unittest.TestCase):
           os_name='os',
           os_version='ver',
       )
-      results.WillRunPage(self.pages[0])
-      results.DidRunPage(self.pages[0])
-      results.WillRunPage(self.pages[1])
-      results.DidRunPage(self.pages[1])
+      with results.CreateStoryRun(self.stories[0]):
+        pass
+      with results.CreateStoryRun(self.stories[1]):
+        pass
 
     records = self.GetResultRecords()
     self.assertEqual(len(records), 2)
@@ -255,23 +219,20 @@ class PageTestResultsTest(unittest.TestCase):
           },
       })
 
-  def testCreateArtifactsForDifferentPages(self):
+  def testCreateArtifactsForDifferentStories(self):
     with self.CreateResults() as results:
-      results.WillRunPage(self.pages[0])
-      with results.CreateArtifact('log.txt') as log_file:
-        log_file.write('page0\n')
-      results.DidRunPage(self.pages[0])
-
-      results.WillRunPage(self.pages[1])
-      with results.CreateArtifact('log.txt') as log_file:
-        log_file.write('page1\n')
-      results.DidRunPage(self.pages[1])
+      with results.CreateStoryRun(self.stories[0]):
+        with results.CreateArtifact('log.txt') as log_file:
+          log_file.write('story0\n')
+      with results.CreateStoryRun(self.stories[1]):
+        with results.CreateArtifact('log.txt') as log_file:
+          log_file.write('story1\n')
 
     all_story_runs = list(results.IterStoryRuns())
     log0_path = all_story_runs[0].GetArtifact('log.txt').local_path
     with open(log0_path) as f:
-      self.assertEqual(f.read(), 'page0\n')
+      self.assertEqual(f.read(), 'story0\n')
 
     log1_path = all_story_runs[1].GetArtifact('log.txt').local_path
     with open(log1_path) as f:
-      self.assertEqual(f.read(), 'page1\n')
+      self.assertEqual(f.read(), 'story1\n')

@@ -290,54 +290,52 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None):
           state = story_set.shared_state_class(
               test, finder_options.Copy(), story_set, possible_browser)
 
-        results.WillRunPage(story, storyset_repeat_counter)
+        with results.CreateStoryRun(story, storyset_repeat_counter):
+          skip_reason = story_filter.ShouldSkip(story)
+          if skip_reason:
+            results.Skip(skip_reason)
+            continue
 
-        skip_reason = story_filter.ShouldSkip(story)
-        if skip_reason:
-          results.Skip(skip_reason)
-          results.DidRunPage(story)
-          continue
+          if results.benchmark_interrupted:
+            results.Skip(results.benchmark_interruption, expected=False)
+            continue
 
-        if results.benchmark_interrupted:
-          results.Skip(results.benchmark_interruption, expected=False)
-          results.DidRunPage(story)
-          continue
-
-        try:
-          if state.platform:
-            state.platform.WaitForBatteryTemperature(35)
-            if finder_options.wait_for_cpu_temp:
-              state.platform.WaitForCpuTemperature(38.0)
-            _WaitForThermalThrottlingIfNeeded(state.platform)
-          _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
-        except _UNHANDLEABLE_ERRORS as exc:
-          interruption = (
-              'Benchmark execution interrupted by a fatal exception: %r' % exc)
-          results.InterruptBenchmark(interruption)
-          exception_formatter.PrintFormattedException()
-        except Exception:  # pylint: disable=broad-except
-          logging.exception('Exception raised during story run.')
-          results.Fail(sys.exc_info())
-          # For all other errors, try to give the rest of stories a chance
-          # to run by tearing down the state and creating a new state instance
-          # in the next iteration.
           try:
-            # If TearDownState raises, do not catch the exception.
-            # (The Error was saved as a failure value.)
-            state.TearDownState()
-          except Exception as exc:  # pylint: disable=broad-except
+            if state.platform:
+              state.platform.WaitForBatteryTemperature(35)
+              if finder_options.wait_for_cpu_temp:
+                state.platform.WaitForCpuTemperature(38.0)
+              _WaitForThermalThrottlingIfNeeded(state.platform)
+            _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
+          except _UNHANDLEABLE_ERRORS as exc:
             interruption = (
                 'Benchmark execution interrupted by a fatal exception: %r' %
                 exc)
             results.InterruptBenchmark(interruption)
             exception_formatter.PrintFormattedException()
+          except Exception:  # pylint: disable=broad-except
+            logging.exception('Exception raised during story run.')
+            results.Fail(sys.exc_info())
+            # For all other errors, try to give the rest of stories a chance
+            # to run by tearing down the state and creating a new state
+            # instance in the next iteration.
+            try:
+              # If TearDownState raises, do not catch the exception.
+              # (The Error was saved as a failure value.)
+              state.TearDownState()
+            except Exception as exc:  # pylint: disable=broad-except
+              interruption = (
+                  'Benchmark execution interrupted by a fatal exception: %r' %
+                  exc)
+              results.InterruptBenchmark(interruption)
+              exception_formatter.PrintFormattedException()
+            finally:
+              # Later finally-blocks use state, so ensure it is cleared.
+              state = None
           finally:
-            # Later finally-blocks use state, so ensure it is cleared.
-            state = None
-        finally:
-          if state and state.platform:
-            _CheckThermalThrottling(state.platform)
-          results.DidRunPage(story)
+            if state and state.platform:
+              _CheckThermalThrottling(state.platform)
+
         if (effective_max_failures is not None and
             results.num_failed > effective_max_failures):
           interruption = (

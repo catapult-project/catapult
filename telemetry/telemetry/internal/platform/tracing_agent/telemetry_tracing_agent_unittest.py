@@ -3,10 +3,9 @@
 # found in the LICENSE file.
 import unittest
 
-import mock
-
 from telemetry.internal.results import page_test_results
 from telemetry.internal.platform.tracing_agent import telemetry_tracing_agent
+from telemetry.testing import test_stories
 from tracing.trace_data import trace_data
 
 from py_trace_event import trace_event
@@ -48,22 +47,16 @@ class TelemetryTracingAgentTest(unittest.TestCase):
     self.assertIn('clock_sync', GetEventNames(trace))
 
   def testWriteBenchmarkMetadata(self):
-    results = page_test_results.PageTestResults(
-        benchmark_name='benchmark',
-        benchmark_description='desc')
-
-    story = mock.Mock()
-    story.name = 'story'
-    story.GetStoryTagsList.return_value = ['tag1', 'tag2']
-    results.WillRunPage(story)
-    self.agent.StartAgentTracing(self.config, timeout=10)
-    telemetry_tracing_agent.RecordBenchmarkMetadata(results)
-    self.agent.StopAgentTracing()
-    results.DidRunPage(story)
-
-    with trace_data.TraceDataBuilder() as builder:
-      self.agent.CollectAgentTraceData(builder)
-      trace = builder.AsData().GetTraceFor(trace_data.TELEMETRY_PART)
+    story = test_stories.DummyStory('story')
+    with page_test_results.PageTestResults(
+        benchmark_name='benchmark_name') as results:
+      with results.CreateStoryRun(story):
+        self.agent.StartAgentTracing(self.config, timeout=10)
+        telemetry_tracing_agent.RecordBenchmarkMetadata(results)
+        self.agent.StopAgentTracing()
+        with trace_data.TraceDataBuilder() as builder:
+          self.agent.CollectAgentTraceData(builder)
+          trace = builder.AsData().GetTraceFor(trace_data.TELEMETRY_PART)
     benchmarks = trace['metadata']['telemetry']['benchmarks']
     self.assertEqual(len(benchmarks), 1)
-    self.assertEqual(benchmarks[0], 'benchmark')
+    self.assertEqual(benchmarks[0], 'benchmark_name')
