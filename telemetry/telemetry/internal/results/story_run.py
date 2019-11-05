@@ -10,7 +10,6 @@ import numbers
 import os
 import posixpath
 import time
-import urllib
 
 
 PASS = 'PASS'
@@ -210,15 +209,10 @@ class StoryRun(object):
 
   @property
   def test_path(self):
-    # Some stories use URLs as names, often containing special characters.
-    # To avoid potential issues, and to make it easy to identify the components
-    # on a test_path, we percent encode those special chars.
-    # TODO(crbug.com/983993): Remove this when all stories have good names.
-    story_name = urllib.quote(self.story.name, safe='')
     if self._test_prefix is not None:
-      return '/'.join([self._test_prefix, story_name])
+      return '/'.join([self._test_prefix, self.story.name])
     else:
-      return story_name
+      return self.story.name
 
   @property
   def tbm_metrics(self):
