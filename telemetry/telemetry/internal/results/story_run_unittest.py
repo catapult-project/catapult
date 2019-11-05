@@ -77,7 +77,7 @@ class StoryRunTest(unittest.TestCase):
                                     1234567900.987]
     with tempfile_ext.NamedTemporaryDirectory() as tempdir:
       run = story_run.StoryRun(
-          story=TestStory(name='http://example.com', tags=['tag1', 'tag2']),
+          story=TestStory(name='story', tags=['tag1', 'tag2']),
           test_prefix='benchmark',
           index=2,
           intermediate_dir=tempdir)
@@ -90,7 +90,7 @@ class StoryRunTest(unittest.TestCase):
           entry,
           {
               'testResult': {
-                  'testPath': 'benchmark/http%3A%2F%2Fexample.com',
+                  'testPath': 'benchmark/story',
                   'resultId': '2',
                   'status': 'PASS',
                   'expected': True,
