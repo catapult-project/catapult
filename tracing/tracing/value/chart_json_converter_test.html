@@ -124,7 +124,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(labels.hasGuid);
     assert.strictEqual(labels, histograms.lookupDiagnostic(labels.guid));
   });
-  test('convertWithoutTIRLabel', function() {
+  test('convertWithoutGroupingLabel', function() {
     const charts = {
       charts: {
         mean_frame_time: {
@@ -221,17 +221,17 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(stories, histograms.lookupDiagnostic(stories.guid));
   });
 
-  test('convertWithTIRLabel', function() {
+  test('convertWithGroupingLabel', function() {
     const charts = {
       charts: {
-        'TIR-A@@value-name': {
+        'GROUP-A@@value-name': {
           'story-name': {
             name: 'value-name',
             page_id: 7,
             improvement_direction: 'down',
             values: [42],
             units: 'ms',
-            tir_label: 'TIR-A',
+            grouping_label: 'GROUP-A',
             type: 'list_of_scalar_values',
           },
           'summary': {
@@ -239,7 +239,7 @@ tr.b.unittest.testSuite(function() {
             improvement_direction: 'down',
             values: [42],
             units: 'ms',
-            tir_label: 'TIR-A',
+            grouping_label: 'GROUP-A',
             type: 'list_of_scalar_values',
           },
         },
@@ -250,7 +250,7 @@ tr.b.unittest.testSuite(function() {
     const hist = tr.b.getOnlyElement(histograms);
     assert.strictEqual('value-name', hist.name);
     assert.strictEqual(tr.b.getOnlyElement(hist.diagnostics.get(
-        tr.v.d.RESERVED_NAMES.STORY_TAGS)), 'tir_label:TIR-A');
+        tr.v.d.RESERVED_NAMES.STORY_TAGS)), 'grouping_label:GROUP-A');
     assert.strictEqual('story-name',
         tr.v.HistogramGrouping.BY_KEY.get(
             tr.v.d.RESERVED_NAMES.STORIES).callback(hist));
@@ -266,7 +266,7 @@ tr.b.unittest.testSuite(function() {
   test('convertWithStoryTags', function() {
     const charts = {
       charts: {
-        'TIR-A@@value-name': {
+        'GROUP-A@@value-name': {
           'story-name': {
             name: 'value-name',
             page_id: 7,

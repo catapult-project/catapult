@@ -187,6 +187,7 @@ class TestShouldSkip(unittest.TestCase):
     self.possible_browser.browser_type = 'browser_type'
     self.possible_browser.platform = fake_platform
     self.possible_browser.supports_tab_control = False
+    self.possible_browser.GetTypExpectationsTags.return_value = []
 
   def testEnabledStrings(self):
     test = FakeTest()
@@ -277,6 +278,10 @@ class TestShouldSkip(unittest.TestCase):
                              'another_os_version_name-reference'])
     self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
 
+    self.possible_browser.GetTypExpectationsTags.return_value = ['typ_value']
+    test.SetDisabledStrings(['typ_value'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
   def testReferenceEnabledStrings(self):
     self.possible_browser.browser_type = 'reference'
     test = FakeTest()
@@ -302,6 +307,11 @@ class TestShouldSkip(unittest.TestCase):
     test.SetEnabledStrings(['another_os_name-reference',
                             'another_os_version_name-reference'])
     self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetEnabledStrings(['typ_value'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+    self.possible_browser.GetTypExpectationsTags.return_value = ['typ_value']
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
 
   def testReferenceDisabledStrings(self):
     self.possible_browser.browser_type = 'reference'

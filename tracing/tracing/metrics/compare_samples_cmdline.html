@@ -47,7 +47,7 @@ function geoMeanFromHistogram(h) {
   return Math.exp(sumOfLogs / count);
 }
 
-function guessFullTIRMetricName(metricName) {
+function guessFullMetricName(metricName) {
   const parts = metricName.split('/');
   if (parts.length === 2) {
     return metricName + '/summary';
@@ -104,9 +104,9 @@ function valuesFromChartsWithFallback(listOfCharts, metricName) {
   const allValues = valuesFromCharts(listOfCharts, metricName);
   if (allValues.length > 0) return allValues;
 
-  // If this had a tir_label, the "summary" part may have been stripped by
+  // If this had a grouping_label, the "summary" part may have been stripped by
   // the dashboard during upload. We can re-add it here.
-  const fullMetricName = guessFullTIRMetricName(metricName);
+  const fullMetricName = guessFullMetricName(metricName);
   if (!fullMetricName) return [];
 
   return valuesFromCharts(listOfCharts, fullMetricName);

@@ -133,7 +133,7 @@ class TestMakeFullResults(unittest.TestCase):
         result_set = json_results.ResultSet()
         result_set.add(json_results.Result(
                 'foo_test.FooTest.foobar', json_results.ResultType.Pass,
-                0, 0.2, 0, artifacts=ar))
+                0, 0.2, 0, artifacts=ar.artifacts))
 
         full_results = json_results.make_full_results(
                 {'foo': 'bar'}, 0, test_names, result_set)
@@ -151,13 +151,13 @@ class TestMakeFullResults(unittest.TestCase):
         ar.artifacts = {'artifact_name': ['a/b/c.txt']}
         result_set.add(json_results.Result(
                 'foo_test.FooTest.foobar', json_results.ResultType.Failure,
-                0, 0.2, 0, artifacts=ar))
+                0, 0.2, 0, artifacts=ar.artifacts))
 
         ar2 = FakeArtifacts()
         ar2.artifacts = {'artifact_name': ['d/e/f.txt']}
         result_set.add(json_results.Result(
                 'foo_test.FooTest.foobar', json_results.ResultType.Failure,
-                0, 0.2, 0, artifacts=ar2))
+                0, 0.2, 0, artifacts=ar2.artifacts))
 
         full_results = json_results.make_full_results(
                 {'foo': 'bar'}, 0, test_names, result_set)

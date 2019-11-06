@@ -21,6 +21,7 @@ from google.appengine.ext import ndb
 from dashboard import add_point
 from dashboard import add_point_queue
 from dashboard import units_to_direction
+from dashboard.api import api_auth
 from dashboard.common import layered_cache
 from dashboard.common import testing_common
 from dashboard.common import utils
@@ -185,6 +186,45 @@ class AddPointTest(testing_common.TestCase):
     # is tested in post_data_handler_test.py.
     testing_common.SetIpWhitelist([_WHITELISTED_IP])
     self.SetCurrentUser('foo@bar.com', is_admin=True)
+
+  @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTestsAsync')
+  def testPost_OauthUser_Authorized(self, mock_process_test):
+    sheriff.Sheriff(
+        id='my_sheriff1', email='a@chromium.org', patterns=['*/*/*/dom']).put()
+    data_param = json.dumps([
+        {
+            'master': 'ChromiumPerf',
+            'bot': 'win7',
+            'test': 'dromaeo/dom',
+            'revision': 12345,
+            'value': 22.4,
+            'error': 1.23,
+            'supplemental_columns': {
+                'r_webkit': 1355,
+                'a_extra': 'hello',
+                'd_median': 22.2,
+            },
+        },
+        {
+            'master': 'ChromiumPerf',
+            'bot': 'win7',
+            'test': 'dromaeo/jslib',
+            'revision': 12345,
+            'value': 44.3,
+        }
+    ])
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.Post('/add_point', {'data': data_param})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+
+    # Verify everything was added to the database correctly
+    rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
+    self.assertEqual(2, len(rows))
+
+    # Verify that an anomaly processing was called.
+    tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
+    mock_process_test.assert_called_once_with([tests[1].key])
 
   @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTestsAsync')
   def testPost(self, mock_process_test):
@@ -1536,13 +1576,13 @@ class FlattenTraceTest(testing_common.TestCase):
         'foo', 'bar', 'http://example.com', trace)
     self.assertEqual(row['test'], 'foo/bar/http___example.com')
 
-  def testFlattenTrace_FlattensInteractionRecordLabelToFivePartName(self):
-    """Tests whether a TIR label will appear between chart and trace name."""
+  def testFlattenTrace_FlattensGroupingLabelToFivePartName(self):
+    """Tests whether a grouping label appears between chart and trace name."""
     trace = self._SampleTrace()
     trace.update({
         'name': 'bar',
         'page': 'https://abc.xyz/',
-        'tir_label': 'baz'
+        'grouping_label': 'baz'
     })
     row = add_point._FlattenTrace('foo', 'baz@@bar', 'https://abc.xyz/', trace)
     self.assertEqual(row['test'], 'foo/bar/baz/https___abc.xyz_')

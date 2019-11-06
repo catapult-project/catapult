@@ -4,7 +4,9 @@
 
 import contextlib
 import datetime
+import json
 import logging
+import numbers
 import os
 import posixpath
 import time
@@ -15,6 +17,7 @@ PASS = 'PASS'
 FAIL = 'FAIL'
 SKIP = 'SKIP'
 
+MEASUREMENTS_NAME = 'measurements.json'
 
 _CONTENT_TYPES = {
     '.dat': 'application/octet-stream',  # Generic data blob.
@@ -104,7 +107,6 @@ class StoryRun(object):
     self._story = story
     self._test_prefix = test_prefix
     self._index = index
-    self._values = []
     self._tbm_metrics = []
     self._skip_reason = None
     self._skip_expected = False
@@ -113,6 +115,7 @@ class StoryRun(object):
     self._start_time = time.time()
     self._end_time = None
     self._artifacts = {}
+    self._measurements = {}
 
     if intermediate_dir is None:
       self._artifacts_dir = None
@@ -123,8 +126,22 @@ class StoryRun(object):
       if not os.path.exists(self._artifacts_dir):
         os.makedirs(self._artifacts_dir)
 
-  def AddLegacyValue(self, value):
-    self._values.append(value)
+  def AddMeasurement(self, name, unit, samples, description=None):
+    """Record an add hoc measurement associated with this story run."""
+    assert self._measurements is not None, (
+        'Measurements have already been collected')
+    if not isinstance(name, basestring):
+      raise TypeError('name must be a string, got %s' % name)
+    assert name not in self._measurements, (
+        'Already have measurement with the name %s' % name)
+    self._measurements[name] = _MeasurementToDict(unit, samples, description)
+
+  def _WriteMeasurementsArtifact(self):
+    if self._measurements:
+      with self.CreateArtifact(MEASUREMENTS_NAME) as f:
+        json.dump({'measurements': self._measurements}, f)
+    # It's an error to record more measurements after this point.
+    self._measurements = None
 
   def SetTbmMetrics(self, metrics):
     assert not self._tbm_metrics, 'Metrics have already been set'
@@ -135,7 +152,7 @@ class StoryRun(object):
     self._failed = True
     self._failure_str = failure_str
 
-  def Skip(self, reason, is_expected=True):
+  def Skip(self, reason, expected=True):
     if not reason:
       raise ValueError('A skip reason must be given')
     # TODO(#4254): Turn this into a hard failure.
@@ -143,11 +160,12 @@ class StoryRun(object):
       logging.warning(
           'Story was already skipped with reason: %s', self.skip_reason)
     self._skip_reason = reason
-    self._skip_expected = is_expected
+    self._skip_expected = expected
 
   def Finish(self):
     assert not self.finished, 'story run had already finished'
     self._end_time = time.time()
+    self._WriteMeasurementsArtifact()
 
   def AsDict(self):
     """Encode as TestResultEntry dict in LUCI Test Results format.
@@ -158,11 +176,12 @@ class StoryRun(object):
     return {
         'testResult': {
             'testPath': self.test_path,
+            'resultId': str(self.index),
             'status': self.status,
-            'isExpected': self.is_expected,
+            'expected': self.expected,
             'startTime': self.start_datetime.isoformat() + 'Z',
             'runDuration': _FormatDuration(self.duration),
-            'artifacts': {
+            'outputArtifacts': {
                 name: artifact.AsDict()
                 for name, artifact in self._artifacts.items()
             },
@@ -178,6 +197,8 @@ class StoryRun(object):
       yield 'tbmv2', metric
     if 'GTEST_SHARD_INDEX' in os.environ:
       yield 'shard', os.environ['GTEST_SHARD_INDEX']
+    for tag in self.story.GetStoryTagsList():
+      yield 'story_tag', tag
 
   @property
   def story(self):
@@ -198,11 +219,6 @@ class StoryRun(object):
       return '/'.join([self._test_prefix, story_name])
     else:
       return story_name
-
-  @property
-  def values(self):
-    """The values that correspond to this story run."""
-    return self._values
 
   @property
   def tbm_metrics(self):
@@ -232,7 +248,7 @@ class StoryRun(object):
     return self._skip_reason
 
   @property
-  def is_expected(self):
+  def expected(self):
     """Whether the test status is expected."""
     return self._skip_expected or self.ok
 
@@ -352,3 +368,21 @@ class StoryRun(object):
     Returns an Artifact object or None, if there's no artifact with this name.
     """
     return self._artifacts.get(name)
+
+
+def _MeasurementToDict(unit, samples, description):
+  """Validate a measurement and encode as a JSON serializable dict."""
+  if not isinstance(unit, basestring):
+    # TODO(crbug.com/999484): Also validate that this is a known unit.
+    raise TypeError('unit must be a string, got %s' % unit)
+  if not isinstance(samples, list):
+    samples = [samples]
+  if not all(isinstance(v, numbers.Number) for v in samples):
+    raise TypeError(
+        'samples must be a list of numeric values, got %s' % samples)
+  measurement = {'unit': unit, 'samples': samples}
+  if description is not None:
+    if not isinstance(description, basestring):
+      raise TypeError('description must be a string, got %s' % description)
+    measurement['description'] = description
+  return measurement

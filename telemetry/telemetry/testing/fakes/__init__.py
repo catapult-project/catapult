@@ -36,9 +36,10 @@ class FakePlatformBackend(object):
 
 
 class FakePlatform(object):
-  def __init__(self, os_name='', os_version_name=''):
+  def __init__(self, os_name='', os_version_name='', arch_name=''):
     self._network_controller = None
     self._tracing_controller = None
+    self._arch_name = arch_name or 'FakeArchitecture'
     self._os_name = os_name or 'FakeOS'
     self._os_version_name = os_version_name or 'FakeVersion'
     self._device_type_name = 'abc'
@@ -82,7 +83,7 @@ class FakePlatform(object):
     return False
 
   def GetArchName(self):
-    raise NotImplementedError
+    return self._arch_name
 
   def SetOSName(self, name):
     self._os_name = name
@@ -213,10 +214,10 @@ class FakeForwarderFactory(object):
 class FakePossibleBrowser(object):
   def __init__(self, execute_on_startup=None,
                execute_after_browser_creation=None,
-               os_name='', os_version_name='', browser_type=''):
+               arch_name='', os_name='', os_version_name='', browser_type=''):
     if os_name:
       self._returned_browser = FakeBrowser(
-          FakePlatform(os_name, os_version_name), browser_type)
+          FakePlatform(os_name, os_version_name, arch_name), browser_type)
     else:
       self._returned_browser = FakeBrowser(
           FakeLinuxPlatform(), browser_type)
@@ -669,3 +670,24 @@ class FakeTimer(object):
       self._module.time = self._actual_time
       self._module = None
       self._actual_time = None
+
+
+class FakeParsedArgsForStoryFilter(object):
+  def __init__(
+      self, story_filter=None, story_filter_exclude=None,
+      story_tag_filter=None, story_tag_filter_exclude=None,
+      story_shard_begin_index=None,
+      story_shard_end_index=None,
+      run_full_story_set=None,
+      run_disabled_stories=False, stories=None):
+    self.story_filter = story_filter
+    self.story_filter_exclude = story_filter_exclude
+    self.story_tag_filter = story_tag_filter
+    self.story_tag_filter_exclude = story_tag_filter_exclude
+    self.story_shard_begin_index = (
+        story_shard_begin_index)
+    self.story_shard_end_index = (
+        story_shard_end_index)
+    self.run_disabled_stories = run_disabled_stories
+    self.run_full_story_set = run_full_story_set
+    self.stories = stories

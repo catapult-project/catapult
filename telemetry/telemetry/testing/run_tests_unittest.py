@@ -30,6 +30,9 @@ class MockPossibleBrowser(object):
     self.platform = MockPlatform(os_name, os_version_name)
     self.supports_tab_control = supports_tab_control
 
+  def GetTypExpectationsTags(self):
+    return []
+
 
 class MockPlatform(object):
   def __init__(self, os_name, os_version_name):

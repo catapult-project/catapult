@@ -12,21 +12,10 @@ in isolation from the rest of the dashboard to let us determine a small scope.
 ## Testing
 
 We recommend using Docker to build an isolated environment for testing the
-sheriff-config service in isolation. The associated `Dockerfile` contains the
-steps required to develop an isolated version of the service, which can be
-tested locally.
-
-1.  Run `make` first to generate the required protobuf images.
-1.  Build a docker image:
-
-    `docker build -t sheriff-config .`
-
-1.  Run the docker image locally:
-
-    ```
-    docker run -e GAE_APPLICATION='chromeperf' -e GAE_SERVICE='sheriff-config' \
-      -P sheriff-config:latest
-    ```
+sheriff-config service in isolation. Follow [steps](/tests/README.md) in tests/
+to run the integration test for the sheriff-config service. The associated
+`Dockerfile` and `docker-compose.yml` in tests/ contains the steps required to
+develop an isolated version of the service, which can be tested locally.
 
 To run the unit tests, we'll need the same requirements as the dashboard
 installed and available in the environment.

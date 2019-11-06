@@ -207,11 +207,13 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(countVisibleTracks(), 51);
     assert.isFalse(trackView.processViews[0].visible);
     assert.isTrue(trackView.processViews[1].visible);
+    assert.isAbove(trackView.processViews[1].tracks_.length, 0);
 
     // Hide a track. Validate that the checkbox updated state correctly.
     trackView.processViews[1].visible = false;
     assert.isFalse(trackView.processViews[1].visible);
     assert.isFalse(checkboxes[1].checked);
+    assert.strictEqual(trackView.processViews[1].tracks_.length, 0);
   });
 });
 </script>

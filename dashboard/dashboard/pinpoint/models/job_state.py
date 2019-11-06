@@ -283,40 +283,47 @@ class JobState(object):
       executions_b = executions_by_quest_b[quest]
 
       # Compare exceptions.
-      values_a = tuple(bool(execution.exception) for execution in executions_a)
-      values_b = tuple(bool(execution.exception) for execution in executions_b)
-      if values_a and values_b:
+      exceptions_a = tuple(
+          bool(execution.exception) for execution in executions_a)
+      exceptions_b = tuple(
+          bool(execution.exception) for execution in executions_b)
+      if exceptions_a and exceptions_b:
         if self._comparison_mode == FUNCTIONAL:
-          if (hasattr(self, '_comparison_magnitude') and
-              self._comparison_magnitude):
+          if getattr(self, '_comparison_magnitude', None):
             comparison_magnitude = self._comparison_magnitude
           else:
             comparison_magnitude = 0.5
         else:
           comparison_magnitude = 1.0
-        comparison = compare.Compare(values_a, values_b, attempt_count,
+        comparison = compare.Compare(exceptions_a, exceptions_b, attempt_count,
                                      FUNCTIONAL, comparison_magnitude)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
         elif comparison == compare.UNKNOWN:
           any_unknowns = True
 
-      # Compare result values.
-      values_a = tuple(Mean(execution.result_values)
-                       for execution in executions_a if execution.result_values)
-      values_b = tuple(Mean(execution.result_values)
-                       for execution in executions_b if execution.result_values)
-      if values_a and values_b:
-        if (hasattr(self, '_comparison_magnitude') and
-            self._comparison_magnitude):
-          max_iqr = max(math_utils.Iqr(values_a), math_utils.Iqr(values_b))
-          if max_iqr:
-            comparison_magnitude = abs(self._comparison_magnitude / max_iqr)
-          else:
-            comparison_magnitude = 1000.0  # Something very large.
+      # Compare result values by consolidating all measurments by change, and
+      # treating those as a single sample set for comparison.
+      def AllValues(execution):
+        for e in execution:
+          if not e.result_values:
+            continue
+          for v in e.result_values:
+            yield v
+
+      all_a_values = tuple(AllValues(executions_a))
+      all_b_values = tuple(AllValues(executions_b))
+      if all_a_values and all_b_values:
+        if getattr(self, '_comparison_magnitude', None):
+          max_iqr = max(
+              max(math_utils.Iqr(all_a_values), math_utils.Iqr(all_b_values)),
+              0.001)
+          comparison_magnitude = abs(self._comparison_magnitude / max_iqr)
         else:
           comparison_magnitude = 1.0
-        comparison = compare.Compare(values_a, values_b, attempt_count,
+
+        sample_count = (len(all_a_values) + len(all_b_values)) // 2
+        comparison = compare.Compare(all_a_values, all_b_values, sample_count,
                                      PERFORMANCE, comparison_magnitude)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT

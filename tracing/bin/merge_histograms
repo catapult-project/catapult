@@ -21,7 +21,7 @@ def Main(argv):
                       help='Path to a HistogramSet JSON file. (output)')
   parser.add_argument('groupby', nargs='+',
                       help='One or more grouping keys (name, benchmark, ' +
-                      'time, storyset_repeat, story_repeat, story, tir, label)')
+                      'time, storyset_repeat, story_repeat, story, label)')
   args = parser.parse_args(argv[1:])
 
   merged = merge_histograms.MergeHistograms(args.input, args.groupby)

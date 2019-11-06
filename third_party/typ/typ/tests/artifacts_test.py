@@ -18,112 +18,134 @@ import tempfile
 import unittest
 
 from typ import artifacts
-
+from typ.fakes.host_fake import FakeHost
 
 class ArtifactsArtifactCreationTests(unittest.TestCase):
 
-  def _VerifyPathAndContents(
-      self, output_dir, file_rel_path, contents, iteration=0, test_base_dir='',
-      intial_results_base_dir=False):
-    path = output_dir
-    if test_base_dir:
-        path = os.path.join(path, test_base_dir)
-    if iteration:
-        path = os.path.join(path, 'retry_%d' % iteration)
-    elif intial_results_base_dir:
-        path = os.path.join(path, 'initial')
-    path = os.path.join(path, file_rel_path)
-    self.assertTrue(os.path.exists(path))
-    with open(path, 'r') as f:
-      self.assertEqual(f.read(), contents)
-
   def test_create_artifact_writes_to_disk_iteration_0_no_test_dir(self):
-    """Tests CreateArtifact will write to disk at the correct location."""
-    tempdir = tempfile.mkdtemp()
-    try:
-      ar = artifacts.Artifacts(tempdir)
-      file_rel_path = os.path.join('stdout', 'text.txt')
-      with ar.CreateArtifact('artifact_name', file_rel_path) as f:
-        f.write(b'contents')
-      self._VerifyPathAndContents(tempdir, file_rel_path, b'contents')
-    finally:
-      shutil.rmtree(tempdir)
+    host = FakeHost()
+    output_dir = '%stmp' % host.sep
+    ar = artifacts.Artifacts(output_dir, host)
+    file_rel_path = host.join('stdout', 'test.jpg')
+    ar.CreateArtifact('artifact_name', file_rel_path, b'contents')
+    self.assertEqual(
+        host.read_binary_file(
+            host.join(output_dir, 'stdout', 'test.jpg')),
+        b'contents')
 
   def test_create_artifact_writes_to_disk_iteration_1_no_test_dir(self):
-    """Tests CreateArtifact will write to disk at the correct location."""
-    tempdir = tempfile.mkdtemp()
-    try:
-      ar = artifacts.Artifacts(tempdir, iteration=1)
-      file_rel_path = os.path.join('stdout', 'text.txt')
-      with ar.CreateArtifact('artifact_name', file_rel_path) as f:
-        f.write(b'contents')
-      self._VerifyPathAndContents(tempdir, file_rel_path, b'contents', iteration=1)
-    finally:
-      shutil.rmtree(tempdir)
+    host = FakeHost()
+    output_dir = '%stmp' % host.sep
+    ar = artifacts.Artifacts(
+      output_dir, host, iteration=1)
+    file_rel_path = host.join('stdout', 'test.jpg')
+    ar.CreateArtifact('artifact_name', file_rel_path, b'contents')
+    self.assertEqual(
+        host.read_binary_file(
+            host.join(output_dir, 'retry_1', 'stdout', 'test.jpg')),
+        b'contents')
 
   def test_create_artifact_writes_to_disk_iteration_1_test_dir(self):
-    """Tests CreateArtifact will write to disk at the correct location."""
-    tempdir = tempfile.mkdtemp()
-    try:
-      ar = artifacts.Artifacts(tempdir, iteration=1, test_name='a.b.c')
-      file_rel_path = os.path.join('stdout', 'text.txt')
-      with ar.CreateArtifact('artifact_name', file_rel_path) as f:
-        f.write(b'contents')
-      self._VerifyPathAndContents(
-          tempdir, file_rel_path, b'contents', iteration=1, test_base_dir='a.b.c')
-    finally:
-      shutil.rmtree(tempdir)
+    host = FakeHost()
+    output_dir = '%stmp' % host.sep
+    ar = artifacts.Artifacts(
+      output_dir, host, iteration=1, test_name='a.b.c')
+    file_rel_path = host.join('stdout', 'test.jpg')
+    ar.CreateArtifact('artifact_name', file_rel_path, b'contents')
+    self.assertEqual(
+        host.read_binary_file(
+            host.join(output_dir, 'a.b.c', 'retry_1', 'stdout', 'test.jpg')),
+        b'contents')
 
-  def test_create_artifact_overwriting_artifact_raises_value_error(self):
-    """Tests CreateArtifact will write to disk at the correct location."""
-    tempdir = tempfile.mkdtemp()
-    try:
-      ar = artifacts.Artifacts(tempdir, iteration=1, test_name='a.b.c')
-      file_rel_path = os.path.join('stdout', 'text.txt')
-      with ar.CreateArtifact('artifact_name', file_rel_path) as f:
-        f.write(b'contents')
-      ar = artifacts.Artifacts(tempdir, iteration=0, test_name='a.b.c')
-      file_rel_path = os.path.join('retry_1', 'stdout', 'text.txt')
-      with self.assertRaises(ValueError) as ve:
-          with ar.CreateArtifact('artifact_name', file_rel_path) as f:
-              f.write(b'contents')
-      self.assertIn('already exists.', str(ve.exception))
-    finally:
-      shutil.rmtree(tempdir)
+  def test_overwriting_artifact_raises_value_error(self):
+    host = FakeHost()
+    output_dir = '%stmp' % host.sep
+    ar = artifacts.Artifacts(
+      output_dir, host, iteration=0, test_name='retry_1')
+    file_rel_path = host.join('stdout', 'test.jpg')
+    ar.CreateArtifact('artifact_name', file_rel_path, b'contents')
+    ar1 = artifacts.Artifacts(
+      output_dir, host, iteration=1)
+    with self.assertRaises(ValueError) as ve:
+        ar1.CreateArtifact('artifact_name', file_rel_path, b'overwritten contents')
+    self.assertIn('already exists', str(ve.exception))
+
+  def test_force_overwriting_artifact_does_not_raise_error(self):
+    host = FakeHost()
+    output_dir = '%stmp' % host.sep
+    ar = artifacts.Artifacts(
+      output_dir, host, iteration=0, test_name='a.b.c', intial_results_base_dir=True)
+    file_rel_path = host.join('stdout', 'test.txt')
+    ar.CreateArtifact('artifact_name', file_rel_path, 'contents',
+                      write_as_text=True)
+    self.assertEqual(
+        host.read_text_file(
+            host.join(output_dir, 'a.b.c', 'initial', 'stdout', 'test.txt')),
+        'contents')
+    ar.CreateArtifact('artifact_name', file_rel_path, 'overwritten contents',
+                      force_overwrite=True, write_as_text=True)
+    self.assertEqual(
+        host.read_text_file(
+            host.join(output_dir, 'a.b.c', 'initial', 'stdout', 'test.txt')),
+        'overwritten contents')
 
   def test_create_artifact_writes_to_disk_initial_results_dir(self):
-    """Tests CreateArtifact will write to disk at the correct location."""
-    tempdir = tempfile.mkdtemp()
-    try:
-      ar = artifacts.Artifacts(
-        tempdir, iteration=0, test_name='a.b.c', intial_results_base_dir=True)
-      file_rel_path = os.path.join('stdout', 'text.txt')
-      with ar.CreateArtifact('artifact_name', file_rel_path) as f:
-        f.write(b'contents')
-      self._VerifyPathAndContents(
-          tempdir, file_rel_path, b'contents', iteration=0, test_base_dir='a.b.c',
-          intial_results_base_dir=True)
-    finally:
-      shutil.rmtree(tempdir)
+    host = FakeHost()
+    output_dir = '%stmp' % host.sep
+    ar = artifacts.Artifacts(
+      output_dir, host, iteration=0, test_name='a.b.c', intial_results_base_dir=True)
+    file_rel_path = host.join('stdout', 'test.jpg')
+    ar.CreateArtifact('artifact_name', file_rel_path, b'contents')
+    self.assertEqual(
+        host.read_binary_file(host.join(output_dir, 'a.b.c', 'initial', 'stdout', 'test.jpg')),
+        b'contents')
+
+  def test_file_manager_writes_file(self):
+    host = FakeHost()
+    output_dir = '%stmp' % host.sep
+    ar = artifacts.Artifacts(output_dir, host, iteration=0)
+    file_path = host.join('failures', 'stderr.txt')
+    ar.CreateArtifact('artifact_name', file_path, 'exception raised',
+                      write_as_text=True)
+    self.assertEqual(
+        host.read_text_file(file_path), 'exception raised')
+
+  def test_duplicate_artifact_raises_error_when_added_to_list(self):
+    host = FakeHost()
+    output_dir = '%stmp' % host.sep
+    ar = artifacts.Artifacts(output_dir, host, iteration=0)
+    ar.AddArtifact('artifact_name', 'foo.txt')
+    with self.assertRaises(ValueError) as ve:
+        ar.AddArtifact('artifact_name', 'foo.txt')
+    self.assertIn('already exists', str(ve.exception))
+
+  def test_dont_raise_value_error_for_dupl_in_add_artifacts(self):
+    host = FakeHost()
+    output_dir = '%stmp' % host.sep
+    ar = artifacts.Artifacts(output_dir, host, iteration=0)
+    ar.AddArtifact('artifact_name', 'foo.txt')
+    ar.AddArtifact('artifact_name', 'foo.txt',
+                    raise_exception_for_duplicates=False)
+    self.assertEqual(ar.artifacts['artifact_name'], ['foo.txt'])
 
 
 class ArtifactsLinkCreationTests(unittest.TestCase):
   def test_create_link(self):
-    ar = artifacts.Artifacts(None)
+    ar = artifacts.Artifacts('', FakeHost())
     ar.CreateLink('link', 'https://testsite.com')
     self.assertEqual(ar.artifacts, {'link': ['https://testsite.com']})
 
   def test_create_link_invalid_url(self):
-    ar = artifacts.Artifacts(None)
+    ar = artifacts.Artifacts('', FakeHost())
     with self.assertRaises(ValueError):
       ar.CreateLink('link', 'https:/malformedurl.com')
 
   def test_create_link_non_https(self):
-    ar = artifacts.Artifacts(None)
+    ar = artifacts.Artifacts('', FakeHost())
     with self.assertRaises(ValueError):
       ar.CreateLink('link', 'http://testsite.com')
 
   def test_create_link_newlines(self):
-    ar = artifacts.Artifacts(None)
+    ar = artifacts.Artifacts('', FakeHost())
     with self.assertRaises(ValueError):
       ar.CreateLink('link', 'https://some\nbadurl.com')

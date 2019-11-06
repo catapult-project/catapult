@@ -120,6 +120,10 @@ tr.exportTo('tr.metrics', function() {
       return tr.v.HistogramBinBoundaries.createLinear(0, 100, 101);
     }
 
+    if (name.startsWith('Memory.Memory.GPU.PeakMemoryUsage')) {
+      return tr.v.HistogramBinBoundaries.createLinear(0, 1e6, 100);
+    }
+
     return tr.v.HistogramBinBoundaries.createExponential(1e-3, 1e3, 50);
   }
 

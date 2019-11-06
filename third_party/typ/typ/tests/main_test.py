@@ -42,8 +42,7 @@ from typ import test_case
 
 class ArtifactTest(test_case.TestCase):
     def test_produce_artifact_for_retries(self):
-        with self.artifacts.CreateArtifact('artifact_name', 'test.txt') as f:
-            f.write('content')
+        self.artifacts.CreateArtifact('artifact_name', 'test.txt', 'content')
         self.fail()
 """
 

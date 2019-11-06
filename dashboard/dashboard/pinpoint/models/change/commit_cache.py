@@ -8,8 +8,9 @@ from __future__ import absolute_import
 
 from google.appengine.ext import ndb
 
+_MEMCACHE_TIMEOUT = 60 * 60 * 24 * 30
 
-@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT)
+
 def Get(id_string):
   """Retrieve cached commit or patch details from the Datastore.
 
@@ -19,7 +20,7 @@ def Get(id_string):
   Returns:
     A dict with the fields {'url', 'author', created', 'subject', 'message'}.
   """
-  entity = ndb.Key(Commit, id_string).get()
+  entity = ndb.Key(Commit, id_string).get(use_datastore=False)
   if not entity:
     raise KeyError('Commit or Patch not found in the Datastore:\n' + id_string)
 
@@ -32,8 +33,9 @@ def Get(id_string):
   }
 
 
-@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT)
-def Put(id_string, url, author, created, subject, message):
+def Put(
+    id_string, url, author, created, subject, message,
+    memcache_timeout=_MEMCACHE_TIMEOUT):
   """Add commit or patch details to the Datastore cache.
 
   Args:
@@ -44,14 +46,29 @@ def Put(id_string, url, author, created, subject, message):
     subject: The title/subject line of the Commit or Patch.
     message: The Commit message.
   """
-  Commit(url=url, author=author, created=created,
-         subject=subject, message=message, id=id_string).put()
+  if not memcache_timeout:
+    memcache_timeout = _MEMCACHE_TIMEOUT
+
+  Commit(
+      url=url,
+      author=author,
+      created=created,
+      subject=subject,
+      message=message,
+      id=id_string).put(use_datastore=False, memcache_timeout=memcache_timeout)
 
 
 class Commit(ndb.Model):
+  # Never write/read from Datastore.
+  _use_datastore = False
+
+  # Rely on this model being cached only in memory or memcache.
   _use_memcache = True
   _use_cache = True
-  _memcache_timeout = 60 * 60 * 24
+
+  # Cache the data in Memcache for up-to 30 days
+  _memcache_timeout = _MEMCACHE_TIMEOUT
+
   url = ndb.StringProperty(indexed=False, required=True)
   author = ndb.StringProperty(indexed=False, required=True)
   created = ndb.DateTimeProperty(indexed=False, required=True)

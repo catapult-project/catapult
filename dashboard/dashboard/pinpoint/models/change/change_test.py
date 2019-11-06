@@ -158,6 +158,23 @@ class ChangeTest(test.TestCase):
     expected = Change(chromium=123, catapult=456, patch=True)
     self.assertEqual(c, expected)
 
+  def testFromDictWithNonePatch(self):
+    self.get_change.return_value = {
+        'id': 'repo~branch~id',
+        'revisions': {'abc123': {}}
+    }
+
+    c = change.Change.FromDict({
+        'commits': (
+            {'repository': 'chromium', 'git_hash': 'commit_123'},
+            {'repository': 'catapult', 'git_hash': 'commit_456'},
+        ),
+        'patch': None,
+    })
+
+    expected = Change(chromium=123, catapult=456, patch=False)
+    self.assertEqual(c, expected)
+
 
 class MidpointTest(test.TestCase):
 

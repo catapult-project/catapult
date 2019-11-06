@@ -19,7 +19,7 @@ def MergeHistograms(json_path, groupby=()):
   Args:
     json_path: Path to a HistogramSet JSON file.
     groupby: Array of grouping keys (name, benchmark, time, storyset_repeat,
-             story_repeat, story, tir, label)
+             story_repeat, story, label)
   Returns:
     HistogramSet dicts of the merged Histograms.
   """

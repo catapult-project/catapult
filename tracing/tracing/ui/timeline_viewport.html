@@ -90,7 +90,7 @@ tr.exportTo('tr.ui', function() {
     this.initAnimationController_();
 
     // Flow events
-    this.showFlowEvents_ = false;
+    this.selectedFlowEvents_ = new Set();
 
     // Highlights.
     this.highlightVSync_ = false;
@@ -232,12 +232,12 @@ tr.exportTo('tr.ui', function() {
           this.onModelTrackControllerScroll_);
     },
 
-    get showFlowEvents() {
-      return this.showFlowEvents_;
+    get selectedFlowEvents() {
+      return this.selectedFlowEvents_;
     },
 
-    set showFlowEvents(showFlowEvents) {
-      this.showFlowEvents_ = showFlowEvents;
+    set selectedFlowEvents(selectedFlowEvents) {
+      this.selectedFlowEvents_ = selectedFlowEvents;
       this.dispatchChangeEvent();
     },
 

@@ -70,7 +70,7 @@ class TestHost(unittest.TestCase):
             h.chdir(dirpath)
             self.assertIn(dirpath, h.getcwd())
 
-            h.maybe_mkdir('bar')
+            h.maybe_make_directory('bar')
             self.assertTrue(h.exists(dirpath, 'bar'))
             self.assertTrue(h.isdir(dirpath, 'bar'))
             self.assertFalse(h.isfile(dirpath, 'bar'))

@@ -106,7 +106,8 @@ class TracingBackendUnittest(unittest.TestCase):
         lambda req: {'result': {'success': False, 'dumpGuid': '42abc'}})
     backend = tracing_backend.TracingBackend(self._inspector_socket)
 
-    self.assertIsNone(backend.DumpMemory())
+    with self.assertRaises(tracing_backend.TracingUnexpectedResponseException):
+      backend.DumpMemory()
 
   def testStartTracingFailure(self):
     self._inspector_socket.AddResponseHandler(

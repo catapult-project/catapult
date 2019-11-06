@@ -7,7 +7,10 @@ from __future__ import division
 from __future__ import absolute_import
 
 import unittest
+import mock
 
+from dashboard.pinpoint.models.change import change as change_module
+from dashboard.pinpoint.models.change import commit
 from dashboard.pinpoint.models.quest import run_performance_test
 from dashboard.pinpoint.models.quest import run_telemetry_test
 from dashboard.pinpoint.models.quest import run_test_test
@@ -52,15 +55,40 @@ class StartTest(unittest.TestCase):
         execution._swarming_tags, {'benchmark': 'speedometer',
                                    'change': 'change', 'hasfilter': '0'})
 
-  def testSwarmingTagsWithStoryFilter(self):
+  def testSwarmingTagsWithStoryFilter_BeforeR675459(self):
     arguments = dict(_BASE_ARGUMENTS)
     arguments['browser'] = 'android-webview'
     arguments['story'] = 'sfilter'
     quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
-    execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
+    change = mock.MagicMock(spec=change_module.Change)
+    change.base_commit = mock.MagicMock(spec=commit.Commit)
+    change.base_commit.AsDict = mock.MagicMock(return_value={
+        'commit_position': 675458})
+    with mock.patch('dashboard.pinpoint.models.quest.run_test.RunTest._Start',
+                    wraps=quest._Start) as internal_start:
+      execution = quest.Start(change, 'https://isolate.server', 'isolate hash')
+      self.assertNotIn('--run-full-story-set', internal_start.call_args[0][3])
     self.assertEqual(
         execution._swarming_tags, {'benchmark': 'speedometer',
-                                   'change': 'change', 'hasfilter': '1',
+                                   'change': str(change), 'hasfilter': '1',
+                                   'storyfilter': 'sfilter'})
+
+  def testSwarmingTagsWithStoryFilter_AfterR675459(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['browser'] = 'android-webview'
+    arguments['story'] = 'sfilter'
+    quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
+    change = mock.MagicMock(spec=change_module.Change)
+    change.base_commit = mock.MagicMock(spec=commit.Commit)
+    change.base_commit.AsDict = mock.MagicMock(return_value={
+        'commit_position': 675460})
+    with mock.patch('dashboard.pinpoint.models.quest.run_test.RunTest._Start',
+                    wraps=quest._Start) as internal_start:
+      execution = quest.Start(change, 'https://isolate.server', 'isolate hash')
+      self.assertIn('--run-full-story-set', internal_start.call_args[0][3])
+    self.assertEqual(
+        execution._swarming_tags, {'benchmark': 'speedometer',
+                                   'change': str(change), 'hasfilter': '1',
                                    'storyfilter': 'sfilter'})
 
   def testSwarmingTagsWithStoryTagFilter(self):

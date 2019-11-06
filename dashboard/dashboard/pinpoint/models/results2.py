@@ -163,5 +163,5 @@ def _JsonFromExecution(execution):
   else:
     results_filename = 'chartjson-output.json'
 
-  return read_value._RetrieveOutputJson(
+  return read_value.RetrieveOutputJson(
       isolate_server, isolate_hash, results_filename)

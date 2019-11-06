@@ -39,7 +39,7 @@ class MainTestCase(TestCase):
         for path, contents in list(files.items()):
             dirname = host.dirname(path)
             if dirname:
-                host.maybe_mkdir(dirname)
+                host.maybe_make_directory(dirname)
             host.write_text_file(path, contents)
 
     def _read_files(self, host, tmpdir):

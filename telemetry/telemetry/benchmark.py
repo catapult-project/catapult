@@ -3,14 +3,12 @@
 # found in the LICENSE file.
 
 import optparse
-import sys
 
 from telemetry import decorators
 from telemetry.internal import story_runner
 from telemetry.internal.util import command_line
 from telemetry.page import legacy_page_test
 from telemetry.story import expectations as expectations_module
-from telemetry.story import typ_expectations
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
 
@@ -39,7 +37,6 @@ class Benchmark(command_line.Command):
   page_set = None
   test = timeline_based_measurement.TimelineBasedMeasurement
   SUPPORTED_PLATFORMS = [expectations_module.ALL]
-  MAX_NUM_VALUES = sys.maxint
 
   def __init__(self, max_failures=None):
     """Creates a new Benchmark.
@@ -48,7 +45,6 @@ class Benchmark(command_line.Command):
       max_failures: The number of story run's failures before bailing
           from executing subsequent page runs. If None, we never bail.
     """
-    self._expectations = typ_expectations.StoryExpectations(self.Name())
     self._max_failures = max_failures
     # TODO: There should be an assertion here that checks that only one of
     # the following is true:
@@ -58,7 +54,20 @@ class Benchmark(command_line.Command):
     #   Benchmark.test set.
     # See https://github.com/catapult-project/catapult/issues/3708
 
-  def _CanRunOnPlatform(self, platform, finder_options):
+  def CanRunOnPlatform(self, platform, finder_options):
+    """Figures out if the benchmark is meant to support this platform.
+
+    This is based on the SUPPORTED_PLATFORMS class member of the benchmark.
+
+    This method should not be overriden or called outside of the Telemetry
+    framework.
+
+    Note that finder_options object in practice sometimes is actually not
+    a BrowserFinderOptions object but a PossibleBrowser object.
+    The key is that it can be passed to ShouldDisable, which only uses
+    finder_options.browser_type, which is available on both PossibleBrowser
+    and BrowserFinderOptions.
+    """
     for p in self.SUPPORTED_PLATFORMS:
       # This is reusing StoryExpectation code, so it is a bit unintuitive. We
       # are trying to detect the opposite of the usual case in StoryExpectations
@@ -232,10 +241,3 @@ class Benchmark(command_line.Command):
     if not self.page_set:
       raise NotImplementedError('This test has no "page_set" attribute.')
     return self.page_set()  # pylint: disable=not-callable
-
-  def AugmentExpectationsWithFile(self, raw_data):
-    self._expectations.GetBenchmarkExpectationsFromParser(raw_data)
-
-  @property
-  def expectations(self):
-    return self._expectations

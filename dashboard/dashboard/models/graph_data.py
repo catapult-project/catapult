@@ -279,10 +279,11 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
 
   @ndb.synctasklet
   def UpdateSheriff(self):
-    yield self.UpdateSheriffAsync()
+    r = yield self.UpdateSheriffAsync()
+    raise ndb.Return(r)
 
   @ndb.tasklet
-  def UpdateSheriffAsync(self):
+  def UpdateSheriffAsync(self, sheriffs=None, anomaly_configs=None):
     """This method is called before a TestMetadata is put into the datastore.
 
     Here, we check the key to make sure it is valid and check the sheriffs and
@@ -297,7 +298,11 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
 
     # Set the sheriff to the first sheriff (alphabetically by sheriff name)
     # that has a test pattern that matches this test.
-    sheriffs = yield sheriff_module.Sheriff.query().fetch_async()
+    old_sheriff = self.sheriff
+    old_anomaly_config = self.overridden_anomaly_config
+
+    if not sheriffs:
+      sheriffs = yield sheriff_module.Sheriff.query().fetch_async()
     self.sheriff = None
     for sheriff_entity in sheriffs:
       for pattern in sheriff_entity.patterns:
@@ -311,7 +316,8 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
     # that more specifically matches the test are given higher priority.
     # ie. */*/*/foo is chosen over */*/*/*
     self.overridden_anomaly_config = None
-    anomaly_configs = yield anomaly_config.AnomalyConfig.query().fetch_async()
+    if not anomaly_configs:
+      anomaly_configs = yield anomaly_config.AnomalyConfig.query().fetch_async()
     anomaly_data_list = []
     for e in anomaly_configs:
       for p in e.patterns:
@@ -320,6 +326,10 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
         self, anomaly_data_list)
     if anomaly_config_to_use:
       self.overridden_anomaly_config = anomaly_config_to_use.key
+
+    raise ndb.Return(
+        self.sheriff != old_sheriff or
+        self.overridden_anomaly_config != old_anomaly_config)
 
   def CreateCallback(self):
     """Called when the entity is first saved."""

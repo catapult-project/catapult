@@ -1245,6 +1245,7 @@ class HistogramBinBoundaries(object):
       else:
         raise ValueError('Unrecognized HistogramBinBoundaries slice type')
 
+    bin_boundaries._BuildBins()
     HistogramBinBoundaries.CACHE[cache_key] = bin_boundaries
     return bin_boundaries
 
@@ -1255,11 +1256,17 @@ class HistogramBinBoundaries(object):
 
   @staticmethod
   def CreateExponential(lower, upper, num_bins):
-    return HistogramBinBoundaries(lower).AddExponentialBins(upper, num_bins)
+    bin_boundaries = HistogramBinBoundaries(lower)
+    bin_boundaries.AddExponentialBins(upper, num_bins)
+    bin_boundaries._BuildBins()
+    return bin_boundaries
 
   @staticmethod
   def CreateLinear(lower, upper, num_bins):
-    return HistogramBinBoundaries(lower).AddLinearBins(upper, num_bins)
+    bin_boundaries = HistogramBinBoundaries(lower)
+    bin_boundaries.AddLinearBins(upper, num_bins)
+    bin_boundaries._BuildBins()
+    return bin_boundaries
 
   def _PushBuilderSlice(self, slic):
     self._builder += [slic]

@@ -124,7 +124,7 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
   def FromDict(cls, data):
     commits = tuple(commit_module.Commit.FromDict(commit)
                     for commit in data['commits'])
-    if 'patch' in data:
+    if data.get('patch') is not None:
       patch = patch_module.GerritPatch.FromDict(data['patch'])
     else:
       patch = None
@@ -250,7 +250,7 @@ def _FindMidpoints(commits_a, commits_b):
 
     commit_midpoint = commit_module.Commit.Midpoint(commit_a, commit_b)
     commits_midpoint.append(commit_midpoint)
-    if commit_a == commit_midpoint != commit_b:
+    if commit_a == commit_midpoint and commit_midpoint != commit_b:
       # Commits are adjacent.
       # Add any DEPS changes to the commit lists.
       deps_a = commit_a.Deps()

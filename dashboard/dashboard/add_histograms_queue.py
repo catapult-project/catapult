@@ -40,6 +40,7 @@ DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES = {
     reserved_infos.CATAPULT_REVISIONS.name: 'r_catapult_git',
     reserved_infos.ANGLE_REVISIONS.name: 'r_angle_git',
     reserved_infos.WEBRTC_REVISIONS.name: 'r_webrtc_git',
+    reserved_infos.WEBRTC_INTERNAL_REVISIONS.name: 'r_webrtc_internal_cl',
     reserved_infos.FUCHSIA_GARNET_REVISIONS.name: 'r_fuchsia_garnet_git',
     reserved_infos.FUCHSIA_PERIDOT_REVISIONS.name: 'r_fuchsia_peridot_git',
     reserved_infos.FUCHSIA_TOPAZ_REVISIONS.name: 'r_fuchsia_topaz_git',
@@ -197,10 +198,6 @@ def _ProcessRowAndHistogram(params):
 def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
   data_dict = params['data']
   test_key = parent_test.key
-
-  all_tests = [parent_test] + legacy_parent_tests.values()
-  yield [a.UpdateSheriffAsync() for a in all_tests]
-  yield ndb.put_multi_async(all_tests)
 
   stat_names_to_test_keys = {k: v.key for k, v in
                              legacy_parent_tests.items()}

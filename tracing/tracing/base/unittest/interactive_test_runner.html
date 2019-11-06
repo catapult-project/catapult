@@ -614,6 +614,9 @@ tr.exportTo('tr.b.unittest', function() {
           // });
           },
           function(err) {
+            if (state.headless) {
+              tr.b.postAsync('/tracing/notify_test_error', err.stack);
+            }
             hideLoadingOverlay();
             tr.showPanic('Module loading failure', err);
             throw err;

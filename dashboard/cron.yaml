@@ -6,6 +6,10 @@ cron:
   url: /internal/cron/ts_mon/send
   schedule: every 1 minutes
 
+- description: Fix sheriff configs that get out of sync from tests
+  url: /cron/update_sheriff
+  schedule: every 48 hours
+
 - description: Mark alerts as recovered.
   url: /mark_recovered_alerts
   schedule: every 6 hours

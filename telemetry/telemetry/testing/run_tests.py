@@ -68,6 +68,8 @@ class RunTestsCommand(command_line.OptparseCommand):
                       action='append', default=[])
     parser.add_option('--disable-logging-config', action='store_true',
                       default=False, help='Configure logging (default on)')
+    parser.add_option('-v', '--verbose', action='count', dest='verbosity',
+                      help='Increase verbosity level (repeat as needed)')
 
     typ.ArgumentParser.add_option_group(parser,
                                         "Options for running the tests",
@@ -79,6 +81,13 @@ class RunTestsCommand(command_line.OptparseCommand):
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args, _):
+    if args.verbosity >= 2:
+      logging.getLogger().setLevel(logging.DEBUG)
+    elif args.verbosity:
+      logging.getLogger().setLevel(logging.INFO)
+    else:
+      logging.getLogger().setLevel(logging.WARNING)
+
     # We retry failures by default unless we're running a list of tests
     # explicitly.
     if not args.retry_limit and not args.positional_args:
