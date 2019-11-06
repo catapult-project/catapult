@@ -40,10 +40,10 @@ type RequestMatch struct {
 }
 
 func (requestMatch *RequestMatch) SetMatch(
-		match *ArchivedRequest,
-		request *http.Request,
-		response *http.Response,
-		ratio float64) {
+	match *ArchivedRequest,
+	request *http.Request,
+	response *http.Response,
+	ratio float64) {
 	requestMatch.Match = match
 	requestMatch.Request = request
 	requestMatch.Response = response
@@ -103,6 +103,8 @@ type Archive struct {
 	// Maps host string to the negotiated protocol. eg. "http/1.1" or "h2"
 	// If absent, will default to "http/1.1".
 	NegotiatedProtocol map[string]string
+	// Maps the remote IPs for the hosts, will be used with transforming the certificate SANS
+	RemoteAddresses map[string]string
 	// The time seed that was used to initialize deterministic.js.
 	DeterministicTimeSeedMs int64
 	// When an incoming request matches multiple recorded responses, whether to
@@ -254,9 +256,9 @@ func (a *Archive) FindRequest(req *http.Request) (*http.Request, *http.Response,
 // Given an incoming request and a set of matches in the archive, identify the best match,
 // based on request headers.
 func (a *Archive) findBestMatchInArchivedRequestSet(
-		incomingReq *http.Request,
-		archivedReqs []*ArchivedRequest) (
-		*http.Request, *http.Response, error) {
+	incomingReq *http.Request,
+	archivedReqs []*ArchivedRequest) (
+	*http.Request, *http.Response, error) {
 	scheme := incomingReq.URL.Scheme
 
 	if len(archivedReqs) == 0 {
@@ -496,6 +498,7 @@ func (a *WritableArchive) RecordTlsConfig(host string, der_bytes []byte, negotia
 		a.NegotiatedProtocol = make(map[string]string)
 	}
 	a.NegotiatedProtocol[host] = negotiatedProtocol
+
 }
 
 // Close flushes the the archive and closes the output file.
