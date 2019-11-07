@@ -20,6 +20,7 @@ from telemetry.internal.actions import page_action
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.results import results_options
+from telemetry.internal.results import results_processor
 from telemetry.internal.util import exception_formatter
 from telemetry import page
 from telemetry.page import legacy_page_test
@@ -338,6 +339,8 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None):
               'Too many stories failed. Aborting the rest of the stories.')
           results.InterruptBenchmark(interruption)
   finally:
+    results_processor.SerializeHtmlTraces(results)
+
     if state:
       has_existing_exception = sys.exc_info() != (None, None, None)
       try:
