@@ -7,6 +7,19 @@ found in the LICENSE file.
 <script>
 'use strict';
 
+if (!document.registerElement ||
+    !('createShadowRoot' in document.createElement('div'))) {
+  tr.showPanic(
+      'WebComponents V0 not enabled',
+      'UI does not work without WebComponents V0. Either add an origin\n' +
+      'trial token, or restart chrome with\n' +
+      '--enable-blink-features=ShadowDOMV0,CustomElementsV0,HTMLImports\n' +
+      'If you\'re doing local development, an origin trial token may\n' +
+      'already be included for http://localhost:8003, but not for other ports.'
+  );
+  throw new Error('Cannot proceed. WebComponentsV0 not enabled.');
+}
+
 // Force Polymer into native shadowDom mode
 if (window.Polymer) {
   throw new Error('Cannot proceed. Polymer already present.');
