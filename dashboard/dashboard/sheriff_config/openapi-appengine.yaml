@@ -73,10 +73,7 @@ paths:
           schema:
             $ref: "#/definitions/MatchRequest"
       security:
-        - api_key: []
-          chromeperf_service_account: []
-        - api_key: []
-          google_id_token: []
+        - chromeperf_service_account: []
 definitions:
   ServiceMetadata:
     type: object
