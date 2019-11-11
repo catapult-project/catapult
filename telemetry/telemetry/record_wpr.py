@@ -165,7 +165,7 @@ class WprRecorder(object):
   def _CreateOptions(self):
     options = browser_options.BrowserFinderOptions()
     options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
-    options.output_dir = self._output_dir
+    options.intermediate_dir = self._output_dir
     return options
 
   def _CleanUp(self):

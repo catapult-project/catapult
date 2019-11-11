@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import json
-import os
 import shutil
 import sys
 import tempfile
@@ -28,33 +27,22 @@ def _CreateException():
 class PageTestResultsTest(unittest.TestCase):
   def setUp(self):
     self.stories = test_stories.DummyStorySet(['foo', 'bar', 'baz'])
-    self._output_dir = tempfile.mkdtemp()
+    self.intermediate_dir = tempfile.mkdtemp()
     self._time_module = mock.patch(
         'telemetry.internal.results.page_test_results.time').start()
     self._time_module.time.return_value = 0
 
   def tearDown(self):
-    shutil.rmtree(self._output_dir)
+    shutil.rmtree(self.intermediate_dir)
     mock.patch.stopall()
 
   @property
   def mock_time(self):
     return self._time_module.time
 
-  @property
-  def intermediate_dir(self):
-    return os.path.join(self._output_dir, 'artifacts', 'test_run')
-
   def CreateResults(self, **kwargs):
-    kwargs.setdefault('output_dir', self._output_dir)
     kwargs.setdefault('intermediate_dir', self.intermediate_dir)
     return page_test_results.PageTestResults(**kwargs)
-
-  def GetResultRecords(self):
-    results_file = os.path.join(
-        self.intermediate_dir, page_test_results.TEST_RESULTS)
-    with open(results_file) as f:
-      return [json.loads(line) for line in f]
 
   def testFailures(self):
     with self.CreateResults() as results:
@@ -197,11 +185,11 @@ class PageTestResultsTest(unittest.TestCase):
       with results.CreateStoryRun(self.stories[1]):
         pass
 
-    records = self.GetResultRecords()
-    self.assertEqual(len(records), 2)
-    for record in records:
-      self.assertEqual(record['testResult']['status'], 'PASS')
-      artifacts = record['testResult']['outputArtifacts']
+    test_results = results_options.ReadTestResults(self.intermediate_dir)
+    self.assertEqual(len(test_results), 2)
+    for test_result in test_results:
+      self.assertEqual(test_result['status'], 'PASS')
+      artifacts = test_result['outputArtifacts']
       self.assertIn(page_test_results.DIAGNOSTICS_NAME, artifacts)
       with open(artifacts[page_test_results.DIAGNOSTICS_NAME]['filePath']) as f:
         diagnostics = json.load(f)

@@ -23,33 +23,29 @@ DIAGNOSTICS_NAME = 'diagnostics.json'
 
 
 class PageTestResults(object):
-  def __init__(self, progress_stream=None, output_dir=None,
-               intermediate_dir=None, benchmark_name=None,
-               benchmark_description=None, upload_bucket=None,
+  def __init__(self, progress_stream=None, intermediate_dir=None,
+               benchmark_name=None, benchmark_description=None,
                results_label=None):
     """Object to hold story run results while a benchmark is executed.
 
     Args:
       progress_stream: A file-like object where to write progress reports as
           stories are being run. Can be None to suppress progress reporting.
-      output_dir: A string specifying the directory where to store the test
-          artifacts, e.g: trace, videos, etc.
+      intermediate_dir: A string specifying the directory where to store the
+          test artifacts, e.g: traces, videos, etc.
       benchmark_name: A string with the name of the currently running benchmark.
       benchmark_description: A string with a description of the currently
           running benchmark.
-      upload_bucket: A string identifting a cloud storage bucket where to
-          upload artifacts.
       results_label: A string that serves as an identifier for the current
           benchmark run.
     """
     super(PageTestResults, self).__init__()
     self._progress_reporter = gtest_progress_reporter.GTestProgressReporter(
         progress_stream)
-    self._output_dir = output_dir
     self._intermediate_dir = intermediate_dir
-    if intermediate_dir is None and output_dir is not None:
-      self._intermediate_dir = os.path.join(output_dir, 'artifacts')
-    self._upload_bucket = upload_bucket
+    self._benchmark_name = benchmark_name or '(unknown benchmark)'
+    self._benchmark_description = benchmark_description or ''
+    self._results_label = results_label
 
     self._current_story_run = None
     self._all_story_runs = []
@@ -58,14 +54,10 @@ class PageTestResults(object):
     # consistently.
     self._measurement_units = {}
 
-    self._benchmark_name = benchmark_name or '(unknown benchmark)'
-    self._benchmark_description = benchmark_description or ''
-
     # |_interruption| is None if the benchmark has not been interrupted.
     # Otherwise it is a string explaining the reason for the interruption.
     # Interruptions occur for unrecoverable exceptions.
     self._interruption = None
-    self._results_label = results_label
 
     self._diagnostics = {
         reserved_infos.BENCHMARKS.name: [self.benchmark_name],
@@ -107,14 +99,6 @@ class PageTestResults(object):
   @property
   def label(self):
     return self._results_label
-
-  @property
-  def output_dir(self):
-    return self._output_dir
-
-  @property
-  def upload_bucket(self):
-    return self._upload_bucket
 
   @property
   def finalized(self):

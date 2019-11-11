@@ -29,19 +29,13 @@ def CreateResults(options, benchmark_name=None, benchmark_description=None,
   Returns:
     A PageTestResults object.
   """
-  assert options.output_dir, 'An output_dir must be provided to create results'
-
-  # Make sure the directory exists.
-  if not os.path.exists(options.output_dir):
-    os.makedirs(options.output_dir)
-
+  assert options.intermediate_dir, (
+      'An intermediate_dir must be provided to create results')
   return page_test_results.PageTestResults(
       progress_stream=sys.stdout if report_progress else None,
-      output_dir=options.output_dir,
       intermediate_dir=options.intermediate_dir,
       benchmark_name=benchmark_name,
       benchmark_description=benchmark_description,
-      upload_bucket=options.upload_bucket,
       results_label=options.results_label)
 
 
