@@ -68,12 +68,11 @@ class PerfettoTraceWriterTest(unittest.TestCase):
         story_tags=["foo", "bar"],
         story_run_index=0,
         label="label",
-        had_failures=False,
     )
     expected_output = (
-        '\nI\x82\x03F\x08\x90\xf6\xc2\x82\xb6\xfa\xe1'
+        '\nG\x82\x03D\x08\x90\xf6\xc2\x82\xb6\xfa\xe1'
         '\x02\x10\xb0\x83\xc9\x82\xb6\xfa\xe1\x02\x1a\tbenchmark"'
-        '\x0bdescription*\x05label2\x05story:\x03foo:\x03bar@\x00H\x00'
+        '\x0bdescription*\x05label2\x05story:\x03foo:\x03bar@\x00'
     )
     self.assertEqual(expected_output, result.getvalue())
 

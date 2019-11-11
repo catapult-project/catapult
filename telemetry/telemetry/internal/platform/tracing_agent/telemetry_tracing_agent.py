@@ -28,7 +28,6 @@ def RecordBenchmarkMetadata(results):
         story_name=results.current_story.name,
         story_tags=results.current_story.GetStoryTagsList(),
         story_run_index=results.current_story_run.index,
-        had_failures=results.current_story_run.failed,
     )
   else:
     logging.warning(

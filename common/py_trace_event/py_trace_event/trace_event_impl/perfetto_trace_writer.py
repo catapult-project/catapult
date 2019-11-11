@@ -145,7 +145,6 @@ def write_metadata(
     story_tags,
     story_run_index,
     label=None,
-    had_failures=None,
 ):
   metadata = proto.ChromeBenchmarkMetadata()
   metadata.benchmark_start_time_us = int(benchmark_start_time_us)
@@ -157,8 +156,6 @@ def write_metadata(
   metadata.story_run_index = int(story_run_index)
   if label is not None:
     metadata.label = label
-  if had_failures is not None:
-    metadata.had_failures = had_failures
 
   packet = proto.TracePacket()
   packet.chrome_benchmark_metadata = metadata

@@ -178,7 +178,6 @@ class ChromeBenchmarkMetadata(object):
     self.story_tags = None
     self.story_run_index = None
     self.label = None
-    self.had_failures = None
 
   def encode(self):
     parts = []
@@ -206,9 +205,6 @@ class ChromeBenchmarkMetadata(object):
     if self.story_run_index is not None:
       writer = encoder.Int32Encoder(8, False, False)
       writer(parts.append, self.story_run_index)
-    if self.had_failures is not None:
-      writer = encoder.BoolEncoder(9, False, False)
-      writer(parts.append, self.had_failures)
 
     return b"".join(parts)
 

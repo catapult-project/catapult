@@ -289,7 +289,6 @@ def trace_add_benchmark_metadata(
     story_tags,
     story_run_index,
     label=None,
-    had_failures=None,
 ):
   """ Add benchmark metadata to be written to trace file.
 
@@ -317,7 +316,6 @@ def trace_add_benchmark_metadata(
         story_tags=story_tags,
         story_run_index=story_run_index,
         label=label,
-        had_failures=had_failures,
     )
   elif _format == JSON_WITH_METADATA:
     # Store metadata to write it in the footer.
@@ -332,8 +330,6 @@ def trace_add_benchmark_metadata(
     }
     if label:
       telemetry_metadata_for_json["labels"] = [label]
-    if had_failures:
-      telemetry_metadata_for_json["hadFailures"] = [had_failures]
 
     _benchmark_metadata = {
         # TODO(crbug.com/948633): For right now, we use "TELEMETRY" as the
