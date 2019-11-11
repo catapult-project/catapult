@@ -52,6 +52,13 @@ css_warning_message = """
  */
 """
 
+origin_trial_tokens = [
+  # WebComponent V0 origin trial token for googleusercontent.com + subdomains.
+  # This is the domain from which traces in cloud storage are served.
+  # Expires Nov 5, 2020. See https://crbug.com/1021137
+  "AnYuQDtUf6OrWCmR9Okd67JhWVTbmnRedvPi1TEvAxac8+1p6o9q08FoDO6oCbLD0xEqev+SkZFiIhFSzlY9HgUAAABxeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXVzZXJjb250ZW50LmNvbTo0NDMiLCJmZWF0dXJlIjoiV2ViQ29tcG9uZW50c1YwIiwiZXhwaXJ5IjoxNjA0NjE0NTM4LCJpc1N1YmRvbWFpbiI6dHJ1ZX0="
+  # Add more tokens here if traces are served from other domains.
+]
 
 def _AssertIsUTF8(f):
   if isinstance(f, StringIO):
@@ -206,6 +213,11 @@ def GenerateStandaloneHTMLAsString(*args, **kwargs):
   GenerateStandaloneHTMLToFile(f, *args, **kwargs)
   return f.getvalue()
 
+def _WriteOriginTrialTokens(output_file):
+  for token in origin_trial_tokens:
+    output_file.write('  <meta http-equiv="origin-trial" content="')
+    output_file.write(token)
+    output_file.write('">\n')
 
 def GenerateStandaloneHTMLToFile(output_file,
                                  load_sequence,
@@ -231,6 +243,7 @@ def GenerateStandaloneHTMLToFile(output_file,
         '  <head i18n-values="dir:textdirection;">\n'
         '  <meta http-equiv="Content-Type" content="text/html;'
         'charset=utf-8">\n')
+    _WriteOriginTrialTokens(output_file)
     if title:
       output_file.write('  <title>%s</title>\n  ' % title)
   else:
