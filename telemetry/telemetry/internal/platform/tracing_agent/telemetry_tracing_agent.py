@@ -69,16 +69,22 @@ class TelemetryTracingAgent(tracing_agent.TracingAgent):
     return IsAgentEnabled()
 
   def StartAgentTracing(self, config, timeout):
-    del config  # Unused.
     del timeout  # Unused.
     assert not self.is_tracing, 'Telemetry tracing already running'
+
+    # Keep Telemetry trace format in accordance with Chrome trace format.
+    if config and config.chrome_trace_config.trace_format == 'proto':
+      trace_format = trace_event.PROTOBUF
+      suffix = '.pb'
+    else:
+      trace_format = trace_event.JSON_WITH_METADATA
+      suffix = '.json'
 
     # Create a temporary file and pass the opened file-like object to
     # trace_event.trace_enable(); the file will be closed on trace_disable(),
     # and later passed to a trace data builder in CollectAgentTraceData().
-    self._trace_file = tempfile.NamedTemporaryFile(delete=False, suffix='.json')
-    trace_event.trace_enable(
-        self._trace_file, format=trace_event.JSON_WITH_METADATA)
+    self._trace_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+    trace_event.trace_enable(self._trace_file, format=trace_format)
     assert self.is_tracing, 'Failed to start Telemetry tracing'
     return True
 
