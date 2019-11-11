@@ -285,6 +285,16 @@ tr.exportTo('tr.metrics.sh', function() {
     const v8Dump = processDump.getMemoryAllocatorDumpByFullName('v8');
     if (v8Dump === undefined) return;
 
+    const sharedDump = v8Dump.getDescendantDumpByFullName('shared');
+    if (sharedDump !== undefined) {
+      addV8ComponentValues(sharedDump, ['v8', 'shared'],
+          addProcessScalar);
+      sharedDump.children.forEach(function(subDump) {
+        addV8ComponentValues(subDump, ['v8', 'shared', subDump.name],
+            addProcessScalar);
+      });
+    }
+
     v8Dump.children.forEach(function(isolateDump) {
       // v8:allocated_by_malloc:...
       const mallocDump = isolateDump.getDescendantDumpByFullName('malloc');
