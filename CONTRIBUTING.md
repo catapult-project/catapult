@@ -63,7 +63,7 @@ Credentials for the following hosts are required:
   github-review.com
   github.com
 ```
-Then you cloned the github url of this repository. That confuses git cl /o\.
+Then you cloned the github url of this repository. That confuses `git cl` /o\.
 To make things work, you'll need to re-clone from
 https://chromium.googlesource.com/catapult for things to work.
 
