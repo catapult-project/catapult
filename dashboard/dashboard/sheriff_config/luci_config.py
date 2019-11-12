@@ -21,7 +21,7 @@ import validator
 API_ROOT = 'https://luci-config.appspot.com/_ah/api'
 
 # The path which we will look for in projects.
-SHERIFF_CONFIG_PATH = 'chromeperf-sheriff.cfg'
+SHERIFF_CONFIG_PATH = 'chromeperf-sheriffs.cfg'
 
 
 class Error(Exception):
