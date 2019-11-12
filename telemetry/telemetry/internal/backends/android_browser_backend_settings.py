@@ -175,6 +175,26 @@ class WebViewGoogleBackendSettings(WebViewBackendSettings):
       return 'SystemWebViewGoogle.apk'
 
 
+class WebLayerBackendSettings(WebViewBackendSettings):
+  def __new__(cls, **kwargs):
+    # Provide some defaults for backends that work via weblayer_shell,
+    # a testing app with source code available at:
+    # https://cs.chromium.org/chromium/src/weblayer/shell
+    kwargs.setdefault('devtools_port',
+                      'localabstract:weblayer_devtools_remote_{pid}')
+    kwargs.setdefault('package', 'org.chromium.weblayer.shell')
+    kwargs.setdefault('activity',
+                      'org.chromium.weblayer.shell.WebLayerShellActivity')
+    kwargs.setdefault('embedder_apk_name', 'WebLayerShell.apk')
+    kwargs.setdefault('command_line_name', 'weblayer-command-line')
+    return super(WebLayerBackendSettings, cls).__new__(cls, **kwargs)
+
+  def GetApkName(self, device):
+    del device # Unused
+    assert self.apk_name is None
+    return 'Monochrome.apk'
+
+
 ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
     browser_type='android-content-shell',
     package='org.chromium.content_shell_apk',
@@ -185,6 +205,9 @@ ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
     embedder_apk_name=None,
     supports_tab_control=False,
     supports_spki_list=True)
+
+ANDROID_WEBLAYER = WebLayerBackendSettings(
+    browser_type='android-weblayer')
 
 ANDROID_WEBVIEW = WebViewBackendSettings(
     browser_type='android-webview')
@@ -232,6 +255,7 @@ ANDROID_SYSTEM_CHROME = GenericChromeBackendSettings(
 
 ANDROID_BACKEND_SETTINGS = (
     ANDROID_CONTENT_SHELL,
+    ANDROID_WEBLAYER,
     ANDROID_WEBVIEW,
     ANDROID_WEBVIEW_GOOGLE,
     ANDROID_WEBVIEW_INSTRUMENTATION,
