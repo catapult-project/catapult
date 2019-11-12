@@ -10,6 +10,7 @@ import unittest
 from py_utils import cloud_storage
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
+from telemetry.internal.results import artifact_logger
 from telemetry.testing import browser_test_context
 from typ import json_results
 from typ import test_case
@@ -33,6 +34,10 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
   def shortName(self):
     """Returns the method name this test runs, without the package prefix."""
     return self._private_methodname
+
+  def set_artifacts(self, artifacts):
+    super(SeriallyExecutedBrowserTestCase, self).set_artifacts(artifacts)
+    artifact_logger.RegisterArtifactImplementation(artifacts)
 
   @classmethod
   def Name(cls):

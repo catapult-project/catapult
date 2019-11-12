@@ -1052,7 +1052,7 @@ def _run_one_test(child, test_input):
     if isinstance(test_case, TypTestCase):
         test_case.child = child
         test_case.context = child.context_after_setup
-        test_case.artifacts = art
+        test_case.set_artifacts(art)
 
     test_result = unittest.TestResult()
     out = ''

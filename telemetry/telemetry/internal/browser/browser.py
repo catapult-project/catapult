@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 import logging
+import os
+import posixpath
 
 from py_utils import cloud_storage
 from py_utils import exc_util
@@ -15,6 +17,7 @@ from telemetry.internal.backends.chrome_inspector import tracing_backend
 from telemetry.internal.browser import extension_dict
 from telemetry.internal.browser import tab_list
 from telemetry.internal.browser import web_contents
+from telemetry.internal.results import artifact_logger
 from telemetry.testing import test_utils
 
 
@@ -267,6 +270,15 @@ class Browser(app.App):
     return self._browser_backend.supports_memory_metrics
 
   def LogSymbolizedUnsymbolizedMinidumps(self, log_level):
+    """Attempts to symbolize all currently unsymbolized minidumps and log them.
+
+    Platforms may override this to provide other crash information in addition
+    to the symbolized minidumps.
+
+    Args:
+      log_level: The logging level to use from the logging module, e.g.
+          logging.ERROR.
+    """
     paths = self.GetAllUnsymbolizedMinidumpPaths()
     if not paths:
       logging.log(log_level, 'No unsymbolized minidump paths')
@@ -274,6 +286,12 @@ class Browser(app.App):
     logging.log(log_level, 'Unsymbolized minidump paths: ' + str(paths))
     for unsymbolized_path in paths:
       sym = self.SymbolizeMinidump(unsymbolized_path)
+      # Store the symbolization attempt as an artifact.
+      minidump_name = os.path.basename(unsymbolized_path)
+      artifact_name = posixpath.join('symbolize_attempts', minidump_name)
+      logging.log(log_level, 'Saving symbolization attempt as artifact %s',
+                  artifact_name)
+      artifact_logger.CreateArtifact(artifact_name, sym[1])
       if sym[0]:
         logging.log(log_level, 'Symbolized minidump:\n%s', sym[1])
       else:

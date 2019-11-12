@@ -11,6 +11,7 @@ import shutil
 import time
 import traceback
 
+from telemetry.internal.results import artifact_logger
 from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import story_run
 
@@ -206,6 +207,7 @@ class PageTestResults(object):
     self._current_story_run = story_run.StoryRun(
         story, test_prefix=self.benchmark_name, index=story_run_index,
         intermediate_dir=self._intermediate_dir)
+    artifact_logger.RegisterArtifactImplementation(self._current_story_run)
     try:
       with self.CreateArtifact(DIAGNOSTICS_NAME) as f:
         json.dump({'diagnostics': self._diagnostics}, f, indent=4)

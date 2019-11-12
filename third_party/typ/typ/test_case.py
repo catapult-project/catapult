@@ -30,6 +30,12 @@ class TestCase(unittest.TestCase):
     maxDiff = 80 * 66
     artifacts = None
 
+    def set_artifacts(self, artifacts):
+        # We need this setter instead of setting artifacts directly so that
+        # subclasses can override it to be notified when the artifacts
+        # implementation is set.
+        self.artifacts = artifacts
+
 
 class MainTestCase(TestCase):
     prog = None
