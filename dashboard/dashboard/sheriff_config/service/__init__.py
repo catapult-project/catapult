@@ -140,13 +140,23 @@ def CreateApp(test_config=None):
     """Match the subscriptions given the request.
 
     This is an API handler, which requires that we have an authenticated user
-    making the request. We'll require that the user either be a service account
-    (from the main dashboard service) or an authenticated user. We'll enforce
+    making the request. We'll require that the user be a service account
+    (from the main dashboard service).
+
+    TODO(fancl): Allow access from an authenticated user. We'll enforce
     that we're only serving "public" Subscriptions to non-privileged users.
     """
 
-    match_request = json_format.Parse(request.get_data(),
-                                      sheriff_config_pb2.MatchRequest())
+    try:
+      match_request = json_format.Parse(request.get_data(),
+                                        sheriff_config_pb2.MatchRequest())
+    except json_format.ParseError as error:
+      return jsonify({
+          'messages': [{
+              'severity': 'ERROR',
+              'text': '%s' % (error)
+          }]
+      }), 400
     match_response = sheriff_config_pb2.MatchResponse()
     for config_set, revision, subscription in luci_config.FindMatchingConfigs(
         datastore_client, match_request):

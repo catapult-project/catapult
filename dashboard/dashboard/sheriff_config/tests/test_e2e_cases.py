@@ -157,6 +157,25 @@ class LuciPollingTest(unittest.TestCase):
         headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 404)
 
+  def testMatchInvalidRequest(self):
+    client = self.app.test_client()
+    response = client.post(
+        '/subscriptions/match',
+        json={
+            'invalid_key': 'foo',
+            'path': 'NoMatch/Nothing/not-important/not-monitored',
+            'stats': ['PCT_99'],
+            'metadata': {
+                'units': 'SomeUnit',
+                'master': 'Master',
+                'bot': 'Bot',
+                'benchmark': 'Test',
+                'metric_parts': ['Metric', 'Something'],
+            }
+        },
+        headers={'X-Forwarded-Proto': 'https'})
+    self.assertEqual(response.status_code, 400)
+
 
 class LuciContentChangesTest(unittest.TestCase):
 
