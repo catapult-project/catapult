@@ -25,11 +25,11 @@ from tracing.value.diagnostics import reserved_infos
 class ReadHistogramsJsonValue(quest.Quest):
 
   def __init__(self, results_filename, hist_name=None,
-               grouping_label=None, story=None, statistic=None):
+               grouping_label=None, trace_or_story=None, statistic=None):
     self._results_filename = results_filename
     self._hist_name = hist_name
     self._grouping_label = grouping_label
-    self._story = story
+    self._trace_or_story = trace_or_story
     self._statistic = statistic
 
   def __eq__(self, other):
@@ -37,7 +37,7 @@ class ReadHistogramsJsonValue(quest.Quest):
             self._results_filename == other._results_filename and
             self._hist_name == other._hist_name and
             self._grouping_label == other._grouping_label and
-            self._story == other._story and
+            self._trace_or_story == other._trace_or_story and
             self._statistic == other._statistic)
 
   def __str__(self):
@@ -52,7 +52,7 @@ class ReadHistogramsJsonValue(quest.Quest):
 
     return _ReadHistogramsJsonValueExecution(
         self._results_filename, self._hist_name, self._grouping_label,
-        self._story, self._statistic, isolate_server, isolate_hash)
+        self._trace_or_story, self._statistic, isolate_server, isolate_hash)
 
   @classmethod
   def FromDict(cls, arguments):
@@ -69,21 +69,27 @@ class ReadHistogramsJsonValue(quest.Quest):
     # has passed and clients no longer write the 'tir_label' only.
     grouping_label = (arguments.get('grouping_label') or
                       arguments.get('tir_label'))
-    trace = arguments.get('trace')
+
+    # Some benchmarks do not have a 'trace' associated with them, but do have a
+    # 'story' which the Dashboard can sometimes provide. Let's support getting
+    # the story in case the 'trace' is not provided. See crbug.com/1023408 for
+    # more details in the investigation.
+    trace_or_story = (arguments.get('trace') or arguments.get('story'))
     statistic = arguments.get('statistic')
 
-    return cls(results_filename, chart, grouping_label, trace, statistic)
+    return cls(results_filename, chart, grouping_label, trace_or_story,
+               statistic)
 
 
 class _ReadHistogramsJsonValueExecution(execution.Execution):
 
   def __init__(self, results_filename, hist_name, grouping_label,
-               story, statistic, isolate_server, isolate_hash):
+               trace_or_story, statistic, isolate_server, isolate_hash):
     super(_ReadHistogramsJsonValueExecution, self).__init__()
     self._results_filename = results_filename
     self._hist_name = hist_name
     self._grouping_label = grouping_label
-    self._story = story
+    self._trace_or_story = trace_or_story
     self._statistic = statistic
     self._isolate_server = isolate_server
     self._isolate_hash = isolate_hash
@@ -108,7 +114,7 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
 
     test_path_to_match = histogram_helpers.ComputeTestPathFromComponents(
         self._hist_name, grouping_label=self._grouping_label,
-        story_name=self._story)
+        story_name=self._trace_or_story)
     logging.debug('Test path to match: %s', test_path_to_match)
 
     # Have to pull out either the raw sample values, or the statistic
@@ -116,7 +122,7 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
                                                 histograms_by_path,
                                                 self._hist_name,
                                                 self._grouping_label,
-                                                self._story,
+                                                self._trace_or_story,
                                                 self._statistic)
 
     self._Complete(result_values=tuple(result_values))

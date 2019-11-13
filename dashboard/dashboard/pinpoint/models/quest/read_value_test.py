@@ -49,6 +49,19 @@ class ReadHistogramsJsonValueQuestTest(unittest.TestCase):
         'pcv1-cold', 'trace_name', 'avg')
     self.assertEqual(quest, expected)
 
+  def testArgumentsWithStoryInsteadOfTrace(self):
+    arguments = dict(_BASE_ARGUMENTS_HISTOGRAMS)
+    arguments['chart'] = 'timeToFirst'
+    arguments['grouping_label'] = 'pcv1-cold'
+    arguments['story'] = 'trace_name'
+    arguments['statistic'] = 'avg'
+    quest = read_value.ReadHistogramsJsonValue.FromDict(arguments)
+
+    expected = read_value.ReadHistogramsJsonValue(
+        'speedometer/perf_results.json', 'timeToFirst',
+        'pcv1-cold', 'trace_name', 'avg')
+    self.assertEqual(quest, expected)
+
   def testWindows(self):
     arguments = dict(_BASE_ARGUMENTS_HISTOGRAMS)
     arguments['dimensions'] = [{'key': 'os', 'value': 'Windows-10'}]
@@ -356,7 +369,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadHistogramsJsonValue(
-        'chartjson-output.json', hist_name=hist.name, story='story')
+        'chartjson-output.json', hist_name=hist.name, trace_or_story='story')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
@@ -529,7 +542,7 @@ class ReadHistogramsJsonValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadHistogramsJsonValue(
-        'chartjson-output.json', hist_name='chart', story='story')
+        'chartjson-output.json', hist_name='chart', trace_or_story='story')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
