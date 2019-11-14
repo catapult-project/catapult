@@ -172,12 +172,16 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(fixture.get('showDropdown'));
   }, testOptions);
 
-  test('maybe_backspace_selection', function() {
-    const fixture = document.createElement('autocomplete-box-test-fixture');
+  test('on_query_change', function() {
+    const fixture = document.createElement('autocomplete-box');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('selectedItem', this.foo);
-    fixture.maybeBackspaceSelection();
+
+    fixture.set('query', this.foo.name);
     assert.deepEqual(fixture.get('selectedItem'), this.foo);
+
+    fixture.set('query', this.bar.name);
+    assert.deepEqual(fixture.get('selectedItem'), undefined);
   }, testOptions);
 
   test('maybe_select_locus', function() {

@@ -346,12 +346,6 @@ const AutocompleteBoxBehavior = {
     return null;
   },
 
-  maybeBackspaceSelection() {
-    if (this.get('query') === '') {
-      this.set('selectedItem', null);
-    }
-  },
-
   maybeSelectLocus() {
     const suggestions = this.suggestedItems || [];
     if (suggestions.includes(this.locusItem)) {
@@ -441,6 +435,8 @@ Polymer({
 
   onBlurInput() {
     this.set('dropdownOpen', false);
+    const item = this.suggestedItems.find(i => i.name == this.query, this);
+    this.set('selectedItem', item || {name: this.query});
     this.$.textbox.readonly = true;
   },
 
@@ -452,9 +448,7 @@ Polymer({
   onInputKeydown(event) {
     this.set('dropdownOpen', true);
     const key = event.keyCode || event.charCode;
-    if (key === 8 || key === 46) {  // Backspace and Delete.
-      this.maybeBackspaceSelection();
-    } else if (key === 40) {
+    if (key === 40) {
       this.moveLocus(true /* down */);
       this.scrollLocusIntoView();
     } else if (key === 38) {
@@ -467,11 +461,12 @@ Polymer({
 
   onQueryChanged_() {
     this.$.clear.style.display = this.query ? 'inline' : '';
-
     // The selectedItem should reflect the query.
-    // When the query is cleared, the selectedItem needs to be manually
+    // When the query is changed, the selectedItem needs to be manually
     // cleared.
-    if (!this.query) this.selectedItem = undefined;
+    if (this.selectedItem && this.selectedItem.name != this.query) {
+      this.selectedItem = undefined;
+    }
   },
 
   scrollLocusIntoView() {

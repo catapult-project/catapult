@@ -183,7 +183,6 @@ found in the LICENSE file.
                 <autocomplete-box id="storyCasesDropdown"
                                   name="story"
                                   items="{{storyCases(benchmarkConfig)}}"
-                                  disabled="{{!validCases(benchmark, benchmarkConfig)}}"
                                   placeholder="Story"
                                   selected-name="{{story}}"
                                   required$="[[!isStoryOrTagsSet(story, storyTags)]]"></autocomplete-box>
@@ -220,7 +219,6 @@ found in the LICENSE file.
                 <autocomplete-box id="storyTagsDropdown"
                                   name="story_tags"
                                   items="{{storyTagsFromConfig(benchmarkConfig)}}"
-                                  disabled="{{!validTags(benchmark, benchmarkConfig)}}"
                                   placeholder="Story Tags (optional, comma-separated)"
                                   selected-name="{{storyTags}}"
                                   required$="[[!isStoryOrTagsSet(story, storyTags)]]"></autocomplete-box>
