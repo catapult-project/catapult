@@ -37,7 +37,7 @@ class ReadHistogramsJsonValue(quest.Quest):
             self._results_filename == other._results_filename and
             self._hist_name == other._hist_name and
             self._grouping_label == other._grouping_label and
-            self._trace_or_story == other._trace_or_story and
+            self.trace_or_story == other.trace_or_story and
             self._statistic == other._statistic)
 
   def __str__(self):
@@ -47,12 +47,18 @@ class ReadHistogramsJsonValue(quest.Quest):
   def metric(self):
     return self._hist_name
 
+  @property
+  def trace_or_story(self):
+    if getattr(self, '_trace_or_story', None) is None:
+      self._trace_or_story = getattr(self, '_trace', None)
+    return self._trace_or_story
+
   def Start(self, change, isolate_server, isolate_hash):
     del change
 
     return _ReadHistogramsJsonValueExecution(
         self._results_filename, self._hist_name, self._grouping_label,
-        self._trace_or_story, self._statistic, isolate_server, isolate_hash)
+        self.trace_or_story, self._statistic, isolate_server, isolate_hash)
 
   @classmethod
   def FromDict(cls, arguments):
@@ -96,6 +102,12 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
 
     self._trace_urls = []
 
+  @property
+  def trace_or_story(self):
+    if getattr(self, '_trace_or_story', None) is None:
+      self._trace_or_story = getattr(self, '_trace', None)
+    return self._trace_or_story
+
   def _AsDict(self):
     return [{
         'key': 'trace',
@@ -114,7 +126,7 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
 
     test_path_to_match = histogram_helpers.ComputeTestPathFromComponents(
         self._hist_name, grouping_label=self._grouping_label,
-        story_name=self._trace_or_story)
+        story_name=self.trace_or_story)
     logging.debug('Test path to match: %s', test_path_to_match)
 
     # Have to pull out either the raw sample values, or the statistic
@@ -122,7 +134,7 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
                                                 histograms_by_path,
                                                 self._hist_name,
                                                 self._grouping_label,
-                                                self._trace_or_story,
+                                                self.trace_or_story,
                                                 self._statistic)
 
     self._Complete(result_values=tuple(result_values))
