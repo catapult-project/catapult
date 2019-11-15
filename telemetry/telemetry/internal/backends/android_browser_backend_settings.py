@@ -154,15 +154,16 @@ class WebViewBackendSettings(WebViewBasedBackendSettings):
     else:
       return 'SystemWebView.apk'
 
-  def FindEmbedderApk(self, apk_path, chrome_root):
-    # Try to find the embedder next to the local APK found.
+  def FindSupportApks(self, apk_path, chrome_root):
+    # Try to find the WebView embedder next to the local APK found.
     if apk_path is not None:
       embedder_apk_path = os.path.join(
           os.path.dirname(apk_path), self.embedder_apk_name)
       if os.path.exists(embedder_apk_path):
-        return embedder_apk_path
+        return [embedder_apk_path]
     # Otherwise fall back to an APK found among possible build directories.
-    return util.FindLatestApkOnHost(chrome_root, self.embedder_apk_name)
+    apk = util.FindLatestApkOnHost(chrome_root, self.embedder_apk_name)
+    return [apk] if apk else []
 
 
 class WebViewGoogleBackendSettings(WebViewBackendSettings):
