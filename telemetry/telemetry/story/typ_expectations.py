@@ -51,7 +51,7 @@ class StoryExpectations(object):
     self._typ_expectations.set_tags(tags)
 
   def _IsStoryOrBenchmarkDisabled(self, pattern):
-    expected_results, _, reasons = self._typ_expectations.expectations_for(
+    expected_results, _, _, reasons = self._typ_expectations.expectations_for(
         pattern)
     if ResultType.Skip in expected_results:
       return reasons.pop() if reasons else 'No reason given'

@@ -51,7 +51,8 @@ class ParseError(Exception):
 
 class Expectation(object):
     def __init__(self, reason, test, tags, results, lineno,
-                 retry_on_failure=False, conflict_resolution=ConflictResolutionTypes.UNION):
+                 retry_on_failure=False, is_slow_test=False,
+                 conflict_resolution=ConflictResolutionTypes.UNION):
         """Constructor for expectations.
 
         Args:
@@ -72,7 +73,8 @@ class Expectation(object):
         self._results = frozenset(results)
         self._lineno = lineno
         self.should_retry_on_failure = retry_on_failure
-        self._conflict_resolution = conflict_resolution
+        self.is_slow_test = is_slow_test
+        self.conflict_resolution = conflict_resolution
 
     def __eq__(self, other):
         return (self.reason == other.reason and self.test == other.test
@@ -96,12 +98,9 @@ class Expectation(object):
         return self._results
 
     @property
-    def conflict_resolution(self):
-        return self._conflict_resolution
-
-    @property
     def lineno(self):
         return self._lineno
+
 
 class TaggedTestListParser(object):
     """Parses lists of tests and expectations for them.
@@ -267,6 +266,7 @@ class TaggedTestListParser(object):
 
         results = []
         retry_on_failure = False
+        is_slow_test = False
         for r in raw_results.split():
             r = r.lower()
             if r not in self._allowed_results:
@@ -278,6 +278,8 @@ class TaggedTestListParser(object):
                     results.append(_EXPECTATION_MAP[r])
                 elif r == 'retryonfailure':
                     retry_on_failure = True
+                elif r == 'slow':
+                    is_slow_test = True
                 else:
                     raise KeyError
             except KeyError:
@@ -287,7 +289,7 @@ class TaggedTestListParser(object):
         # instance. These tags will be compared to the tags passed in to
         # the Runner instance which are also stored in lower case.
         return Expectation(
-            reason, test, tags, results, lineno, retry_on_failure, self._conflict_resolution)
+            reason, test, tags, results, lineno, retry_on_failure, is_slow_test, self._conflict_resolution)
 
 
 class TestExpectations(object):
@@ -414,17 +416,20 @@ class TestExpectations(object):
         self._results = set()
         self._reasons = set()
         self._should_retry_on_failure = False
+        self._is_slow_test = False
 
         def _update_expected_results(exp):
             if exp.tags.issubset(self._tags):
                 if exp.conflict_resolution == ConflictResolutionTypes.UNION:
                     self._results.update(exp.results)
                     self._should_retry_on_failure |= exp.should_retry_on_failure
+                    self._is_slow_test |= exp.is_slow_test
                     if exp.reason:
                         self._reasons.update([exp.reason])
                 else:
                     self._results = set(exp.results)
                     self._should_retry_on_failure = exp.should_retry_on_failure
+                    self._is_slow_test = exp.is_slow_test
                     if exp.reason:
                         self._reasons = {exp.reason}
 
@@ -434,7 +439,7 @@ class TestExpectations(object):
 
         if self._results or self._should_retry_on_failure:
             return ((self._results or {ResultType.Pass}),
-                    self._should_retry_on_failure, self._reasons)
+                    self._should_retry_on_failure, self._is_slow_test, self._reasons)
 
         # If we didn't find an exact match, check for matching globs. Match by
         # the most specific (i.e., longest) glob first. Because self.globs is
@@ -448,10 +453,10 @@ class TestExpectations(object):
                 # globs.
                 if self._results or self._should_retry_on_failure:
                     return ((self._results or {ResultType.Pass}),
-                            self._should_retry_on_failure, self._reasons)
+                            self._should_retry_on_failure, self._is_slow_test, self._reasons)
 
         # Nothing matched, so by default, the test is expected to pass.
-        return {ResultType.Pass}, False, set()
+        return {ResultType.Pass}, False, False, set()
 
     def tag_sets_conflict(self, s1, s2):
         # Tag sets s1 and s2 have no conflict when there exists a tag in s1

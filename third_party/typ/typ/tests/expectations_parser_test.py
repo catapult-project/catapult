@@ -348,21 +348,21 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         self.assertEqual(
             test_expectations.parse_tagged_list(raw_data, 'test.txt'), (0,''))
         self.assertEqual(test_expectations.expectations_for('b1/s1'),
-                         (set([ResultType.Failure]), True, set(['crbug.com/23456'])))
+                         (set([ResultType.Failure]), True, False, set(['crbug.com/23456'])))
         self.assertEqual(test_expectations.expectations_for('b1/s2'),
-                         (set([ResultType.Pass]), True, set()))
+                         (set([ResultType.Pass]), True, False, set()))
         self.assertEqual(test_expectations.expectations_for('b1/s3'),
-                         (set([ResultType.Failure]), False, set(['crbug.com/24341'])))
+                         (set([ResultType.Failure]), False, False, set(['crbug.com/24341'])))
         self.assertEqual(test_expectations.expectations_for('b1/s4'),
-                         (set([ResultType.Pass]), False, set()))
+                         (set([ResultType.Pass]), False, False, set()))
 
     def testMergeExpectationsUsingUnionResolution(self):
         raw_data1 = (
             '# tags: [ linux ]\n'
-            '# results: [ Failure RetryOnFailure ]\n'
+            '# results: [ Failure RetryOnFailure Slow ]\n'
             '[ linux ] b1/s3 [ Failure ]\n'
             'crbug.com/2431 [ linux ] b1/s2 [ Failure RetryOnFailure ]\n'
-            'crbug.com/2432 [ linux ] b1/s* [ Failure ]\n')
+            'crbug.com/2432 [ linux ] b1/s* [ Failure Slow ]\n')
         raw_data2 = (
             '# tags: [ Intel ]\n'
             '# results: [ Pass RetryOnFailure ]\n'
@@ -378,28 +378,28 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         test_exp1.merge_test_expectations(test_exp2)
         self.assertEqual(sorted(test_exp1.tags), ['intel', 'linux'])
         self.assertEqual(test_exp1.expectations_for('b1/s2'),
-                         (set([ResultType.Pass, ResultType.Failure]), True,
+                         (set([ResultType.Pass, ResultType.Failure]), True, False,
                           {'crbug.com/2431', 'crbug.com/2432'}))
         self.assertEqual(test_exp1.expectations_for('b1/s1'),
-                         (set([ResultType.Pass]), True, set()))
+                         (set([ResultType.Pass]), True, False, set()))
         self.assertEqual(test_exp1.expectations_for('b1/s3'),
-                         (set([ResultType.Failure]), False, set()))
+                         (set([ResultType.Failure]), False, False, set()))
         self.assertEqual(test_exp1.expectations_for('b1/s5'),
-                         (set([ResultType.Failure]), True,
+                         (set([ResultType.Failure]), True, True,
                           {'crbug.com/2432', 'crbug.com/2431'}))
 
     def testMergeExpectationsUsingOverrideResolution(self):
         raw_data1 = (
             '# tags: [ linux ]\n'
-            '# results: [ Failure RetryOnFailure ]\n'
+            '# results: [ Failure RetryOnFailure Slow ]\n'
             '[ linux ] b1/s3 [ Failure ]\n'
             'crbug.com/2431 [ linux ] b1/s2 [ Failure RetryOnFailure ]\n'
             'crbug.com/2432 [ linux ] b1/s* [ Failure ]\n')
         raw_data2 = (
             '# tags: [ Intel ]\n'
-            '# results: [ Pass RetryOnFailure ]\n'
+            '# results: [ Pass RetryOnFailure Slow ]\n'
             '[ intel ] b1/s1 [ RetryOnFailure ]\n'
-            'crbug.com/2432 [ intel ] b1/s2 [ Pass ]\n'
+            'crbug.com/2432 [ intel ] b1/s2 [ Pass Slow ]\n'
             'crbug.com/2431 [ intel ] b1/s* [ RetryOnFailure ]\n')
         test_exp1 = expectations_parser.TestExpectations(['Linux'])
         ret, _ = test_exp1.parse_tagged_list(raw_data1)
@@ -411,13 +411,13 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         test_exp1.merge_test_expectations(test_exp2)
         self.assertEqual(sorted(test_exp1.tags), ['intel', 'linux'])
         self.assertEqual(test_exp1.expectations_for('b1/s2'),
-                         (set([ResultType.Pass]), False, {'crbug.com/2432'}))
+                         (set([ResultType.Pass]), False, True, {'crbug.com/2432'}))
         self.assertEqual(test_exp1.expectations_for('b1/s1'),
-                         (set([ResultType.Pass]), True, set()))
+                         (set([ResultType.Pass]), True, False, set()))
         self.assertEqual(test_exp1.expectations_for('b1/s3'),
-                         (set([ResultType.Failure]), False, set()))
+                         (set([ResultType.Failure]), False, False, set()))
         self.assertEqual(test_exp1.expectations_for('b1/s5'),
-                         (set([ResultType.Pass]), True, {'crbug.com/2431'}))
+                         (set([ResultType.Pass]), True, False, {'crbug.com/2431'}))
 
     def testIsTestRetryOnFailureUsingGlob(self):
         raw_data = (
@@ -429,7 +429,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
             test_expectations.parse_tagged_list(raw_data, 'test.txt'),
             (0, ''))
         self.assertEqual(test_expectations.expectations_for('b1/s1'),
-                         (set([ResultType.Pass]), True, set(['crbug.com/23456'])))
+                         (set([ResultType.Pass]), True, False, set(['crbug.com/23456'])))
 
     def testGlobsCanOnlyHaveStarInEnd(self):
         raw_data = (

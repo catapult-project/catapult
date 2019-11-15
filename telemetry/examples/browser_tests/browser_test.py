@@ -178,13 +178,13 @@ class GetsExpectationsFromTyp(
     yield 'HasNoExpectationsFile', ()
 
   def _RunsWithExpectationsFile(self):
-    if (self.GetExpectationsForTest() ==
+    if (self.GetExpectationsForTest()[:2] ==
         (set([json_results.ResultType.Failure]), True)):
       return
     self.fail()
 
   def _RunsWithoutExpectationsFile(self):
-    if (self.GetExpectationsForTest() ==
+    if (self.GetExpectationsForTest()[:2] ==
         (set([json_results.ResultType.Pass]), False)):
       return
     self.fail()
