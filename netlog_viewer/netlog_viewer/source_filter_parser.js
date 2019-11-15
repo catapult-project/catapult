@@ -195,16 +195,18 @@ var SourceFilterParser = (function() {
    * filters in the (possibly empty) list.
    */
   function textFilter_(textFilters, sourceEntry) {
-    var tablePrinter = null;
+    let tablePrinter = null;
     for (var i = 0; i < textFilters.length; ++i) {
-      var text = textFilters[i].text;
-      var negated = textFilters[i].negated;
-      var match = false;
-      // The description is often not contained in one of the log entries.
-      // The source type almost never is, so check for them directly.
-      var description = sourceEntry.getDescription().toLowerCase();
-      var type = sourceEntry.getSourceTypeString().toLowerCase();
-      if (description.indexOf(text) != -1 || type.indexOf(text) != -1) {
+      let text = textFilters[i].text;
+      let negated = textFilters[i].negated;
+      let match = false;
+      // The description, id, and source type are not always contained in the
+      // log entries, so search them directly.
+      let description = sourceEntry.getDescription().toLowerCase();
+      let type = sourceEntry.getSourceTypeString().toLowerCase();
+      let id = sourceEntry.getSourceId() + '';
+      if (description.indexOf(text) != -1 || type.indexOf(text) != -1 ||
+          id.indexOf(text) != -1) {
         match = true;
       } else {
         if (!tablePrinter)
