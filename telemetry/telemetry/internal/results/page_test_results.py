@@ -195,12 +195,12 @@ class PageTestResults(object):
     try:
       with self.CreateArtifact(DIAGNOSTICS_NAME) as f:
         json.dump({'diagnostics': self._diagnostics}, f, indent=4)
-      self._progress_reporter.WillRunStory(self)
+      self._progress_reporter.WillRunStory(self._current_story_run)
       yield self._current_story_run
     finally:
       self._current_story_run.Finish()
-      self._progress_reporter.DidRunStory(self)
       self._WriteJsonLine(self._current_story_run.AsDict())
+      self._progress_reporter.DidRunStory(self._current_story_run)
       self._all_story_runs.append(self._current_story_run)
       self._current_story_run = None
 

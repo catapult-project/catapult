@@ -38,17 +38,6 @@ class GTestProgressReporterTest(unittest.TestCase):
                 '[  PASSED  ] 1 test.\n\n')
     self.assertOutputEquals(expected)
 
-  def testSingleSuccessfulStoryWithGroupingKeys(self):
-    story1 = test_stories.DummyStory('story1', grouping_keys={'foo': '42'})
-    with self.CreateResults() as results:
-      with results.CreateStoryRun(story1):
-        self._mock_time.return_value = 0.007
-
-    expected = ("[ RUN      ] benchmark/story1@{'foo': '42'}\n"
-                "[       OK ] benchmark/story1@{'foo': '42'} (7 ms)\n"
-                "[  PASSED  ] 1 test.\n\n")
-    self.assertOutputEquals(expected)
-
   def testSingleFailedStory(self):
     story1 = test_stories.DummyStory('story1')
     with self.CreateResults() as results:
@@ -61,20 +50,6 @@ class GTestProgressReporterTest(unittest.TestCase):
                 '[  FAILED  ] 1 test, listed below:\n'
                 '[  FAILED  ]  benchmark/story1\n\n'
                 '1 FAILED TEST\n\n')
-    self.assertOutputEquals(expected)
-
-  def testSingleFailedStoryWithGroupingKeys(self):
-    story1 = test_stories.DummyStory('story1', grouping_keys={'foo': '42'})
-    with self.CreateResults() as results:
-      with results.CreateStoryRun(story1):
-        results.Fail('test fails')
-
-    expected = ("[ RUN      ] benchmark/story1@{'foo': '42'}\n"
-                "[  FAILED  ] benchmark/story1@{'foo': '42'} (0 ms)\n"
-                "[  PASSED  ] 0 tests.\n"
-                "[  FAILED  ] 1 test, listed below:\n"
-                "[  FAILED  ]  benchmark/story1@{'foo': '42'}\n\n"
-                "1 FAILED TEST\n\n")
     self.assertOutputEquals(expected)
 
   def testSingleSkippedStory(self):
