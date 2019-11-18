@@ -5,13 +5,30 @@ Deploying to appspot.com
 Code is not automatically deployed to
 [netlog-viewer.appspot.com](https://netlog-viewer.appspot.com/) once committed
 to the repository. Rather, a release needs to be prepared and
-deployed manually by an admin of the netlog-viewer appengine project:
+deployed manually by an admin of the netlog-viewer appengine project.
 
-1. Check out a clean copy of `catapult/netlog_viewer` (`master` branch).
+*Initial setup*
+
+1. Install the Google Cloud SDK and App Engine for python:
+```
+sudo apt-get install google-cloud-sdk google-cloud-sdk-app-engine-python
+```
+
+2. Install `vulcanize`:
+```
+sudo apt-get install npm
+sudo npm install -g vulcanize
+```
+
+*Deploy instructions*
+
+
+1. Check out a clean copy of `catapult/netlog_viewer` (`master` branch). See
+   [CONTRIBUTING.md](CONTRIBUTING.md) for instructions on cloning the repository.
 
 2. Run the automated tests, `netlog_viewer/bin/run_dev_server_tests`, and
    confirm that (a) tests ran (b) were successful. (See caveat on
-   [CONTRIBUTING](CONTRIBUTING.md) - headless tests may fail, in which case
+   [CONTRIBUTING.md](CONTRIBUTING.md) - headless tests may fail, in which case
    need to run them in non-headless mode.)
 
 3. Authenticate with the `gcloud` command line tool. (Only needs to be done
