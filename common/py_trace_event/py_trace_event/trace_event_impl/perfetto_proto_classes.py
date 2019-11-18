@@ -24,12 +24,18 @@ class TracePacket(object):
     self.interned_data = None
     self.thread_descriptor = None
     self.incremental_state_cleared = None
+    self.chrome_event = None
     self.track_event = None
     self.trusted_packet_sequence_id = None
     self.chrome_benchmark_metadata = None
 
   def encode(self):
     parts = []
+    if self.chrome_event is not None:
+      tag = encoder.TagBytes(5, wire_format.WIRETYPE_LENGTH_DELIMITED)
+      data = self.chrome_event.encode()
+      length = encoder._VarintBytes(len(data))
+      parts += [tag, length, data]
     if self.trusted_packet_sequence_id is not None:
       writer = encoder.UInt32Encoder(10, False, False)
       writer(parts.append, self.trusted_packet_sequence_id)
@@ -124,12 +130,28 @@ class ThreadDescriptor(object):
     return b"".join(parts)
 
 
+class ChromeEventBundle(object):
+  def __init__(self):
+    self.metadata = []
+
+  def encode(self):
+    parts = []
+    for item in self.metadata:
+      tag = encoder.TagBytes(2, wire_format.WIRETYPE_LENGTH_DELIMITED)
+      data = item.encode()
+      length = encoder._VarintBytes(len(data))
+      parts += [tag, length, data]
+
+    return b"".join(parts)
+
+
 class TrackEvent(object):
   def __init__(self):
     self.timestamp_absolute_us = None
     self.timestamp_delta_us = None
     self.legacy_event = None
     self.category_iids = None
+    self.debug_annotations = []
 
   def encode(self):
     parts = []
@@ -139,6 +161,11 @@ class TrackEvent(object):
     if self.category_iids is not None:
       writer = encoder.UInt32Encoder(3, is_repeated=True, is_packed=False)
       writer(parts.append, self.category_iids)
+    for annotation in self.debug_annotations:
+      tag = encoder.TagBytes(4, wire_format.WIRETYPE_LENGTH_DELIMITED)
+      data = annotation.encode()
+      length = encoder._VarintBytes(len(data))
+      parts += [tag, length, data]
     if self.legacy_event is not None:
       tag = encoder.TagBytes(6, wire_format.WIRETYPE_LENGTH_DELIMITED)
       data = self.legacy_event.encode()
@@ -216,3 +243,51 @@ def write_trace_packet(output, trace_packet):
   encoder._EncodeVarint(output.write, len(binary_data))
   output.write(binary_data)
 
+
+class DebugAnnotation(object):
+  def __init__(self):
+    self.name = None
+    self.int_value = None
+    self.double_value = None
+    self.string_value = None
+
+  def encode(self):
+    if self.name is None:
+      raise RuntimeError("DebugAnnotation must have a name.")
+    if ((self.string_value is not None) +
+        (self.int_value is not None) +
+        (self.double_value is not None)) != 1:
+      raise RuntimeError("DebugAnnotation must have exactly one value.")
+
+    parts = []
+    writer = encoder.StringEncoder(10, False, False)
+    writer(parts.append, self.name)
+    if self.int_value is not None:
+      writer = encoder.Int64Encoder(4, False, False)
+      writer(parts.append, self.int_value)
+    if self.double_value is not None:
+      writer = encoder.DoubleEncoder(5, False, False)
+      writer(parts.append, self.double_value)
+    if self.string_value is not None:
+      writer = encoder.StringEncoder(6, False, False)
+      writer(parts.append, self.string_value)
+
+    return b"".join(parts)
+
+
+class ChromeMetadata(object):
+  def __init__(self):
+    self.name = None
+    self.string_value = None
+
+  def encode(self):
+    if self.name is None or self.string_value is None:
+      raise RuntimeError("ChromeMetadata must have a name and a value.")
+
+    parts = []
+    writer = encoder.StringEncoder(1, False, False)
+    writer(parts.append, self.name)
+    writer = encoder.StringEncoder(2, False, False)
+    writer(parts.append, self.string_value)
+
+    return b"".join(parts)

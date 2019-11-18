@@ -9,4 +9,4 @@ extensible mechanism for serializing structured data.
 
 Local Modifications:
 Removed pretty much everything except functions necessary to write
-bools, ints, and strings.
+bools, ints, floats and strings.

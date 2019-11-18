@@ -103,7 +103,7 @@ def _write_header():
         category="process_argv",
         name="process_argv",
         ts=trace_time.Now(),
-        args=sys.argv,
+        args={"argv": sys.argv},
         tid=tid,
     )
   else:
@@ -316,6 +316,10 @@ def trace_add_benchmark_metadata(
         story_tags=story_tags,
         story_run_index=story_run_index,
         label=label,
+    )
+    perfetto_trace_writer.write_chrome_metadata(
+        output=_log_file,
+        clock_domain="TELEMETRY",
     )
   elif _format == JSON_WITH_METADATA:
     # Store metadata to write it in the footer.
