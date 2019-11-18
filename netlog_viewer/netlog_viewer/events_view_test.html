@@ -147,6 +147,8 @@ tr.b.unittest.testSuite(function() {
       {text: 'id:31,32', matches: [true, false]},
       {text: '-id:31,32', matches: [false, true]},
       {text: 'id:32,56,', matches: [false, true]},
+      // Searching by text should also match on source ID.
+      {text: '56', matches: [false, true]},
       {text: '-is:active', matches: [true, false]},
       {text: 'is:active', matches: [false, true]},
       {text: '-is:error', matches: [true, true]},
