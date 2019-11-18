@@ -294,7 +294,6 @@ const AutocompleteBoxBehavior = {
     this.fire('dropdownselect');
     if (this.selectedItem) this.set('query', this.selectedItem.name);
     if (!this.$) return;
-    this.$.textbox.readonly = true;
   },
 
   computeSuggestedItems(query, _itemsChange) {
@@ -518,6 +517,7 @@ Polymer({
     const index = this.$.dropdown.indexOf(detail.item);
     const item = this.suggestedItems[index];
     this.selectItem(item);
+    this.$.textbox.readonly = true;
   },
 });
 </script>
