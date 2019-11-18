@@ -2,10 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import re
 import shutil
-import sys
-import StringIO
 import tempfile
 import time
 import unittest
@@ -18,90 +15,35 @@ from telemetry.internal.browser import user_agent
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.internal.testing.test_page_sets import example_domain
-from telemetry.internal.util import exception_formatter
 from telemetry.page import page as page_module
 from telemetry.page import legacy_page_test
 from telemetry.page import shared_page_state
 from telemetry.page import traffic_setting as traffic_setting_module
 from telemetry.util import image_util
 from telemetry.testing import options_for_unittests
-from telemetry.testing import system_stub
 
 
 class DummyTest(legacy_page_test.LegacyPageTest):
-
   def ValidateAndMeasurePage(self, *_):
     pass
 
 
-def RunStorySet(test, story_set, options, **kwargs):
-  with results_options.CreateResults(options) as results:
-    story_runner.RunStorySet(test, story_set, options, results, **kwargs)
-  return results
-
-
-def CaptureStderr(func, output_buffer):
-  def wrapper(*args, **kwargs):
-    original_stderr, sys.stderr = sys.stderr, output_buffer
-    try:
-      return func(*args, **kwargs)
-    finally:
-      sys.stderr = original_stderr
-  return wrapper
-
-
-# TODO: remove test cases that use real browsers and replace with a
-# story_runner or shared_page_state unittest that tests the same logic.
+# TODO(crbug.com/1025765): Remove test cases that use real browsers and replace
+# with a story_runner or shared_page_state unittest that tests the same logic.
 class ActualPageRunEndToEndTests(unittest.TestCase):
-  # TODO(nduca): Move the basic "test failed, test succeeded" tests from
-  # page_test_unittest to here.
-
   def setUp(self):
-    self._story_runner_logging_stub = None
-    self._formatted_exception_buffer = StringIO.StringIO()
-    self._original_formatter = exception_formatter.PrintFormattedException
     self.options = options_for_unittests.GetRunOptions(
         output_dir=tempfile.mkdtemp())
 
   def tearDown(self):
-    self.RestoreExceptionFormatter()
     shutil.rmtree(self.options.output_dir)
 
-  def CaptureFormattedException(self):
-    exception_formatter.PrintFormattedException = CaptureStderr(
-        exception_formatter.PrintFormattedException,
-        self._formatted_exception_buffer)
-    self._story_runner_logging_stub = system_stub.Override(
-        story_runner, ['logging'])
-
-  @property
-  def formatted_exception(self):
-    return self._formatted_exception_buffer.getvalue()
-
-  def RestoreExceptionFormatter(self):
-    exception_formatter.PrintFormattedException = self._original_formatter
-    if self._story_runner_logging_stub:
-      self._story_runner_logging_stub.Restore()
-      self._story_runner_logging_stub = None
-
-  def assertFormattedExceptionIsEmpty(self):
-    self.longMessage = False
-    self.assertEquals(
-        '', self.formatted_exception,
-        msg='Expected empty formatted exception: actual=%s' % '\n   > '.join(
-            self.formatted_exception.split('\n')))
-
-  def assertFormattedExceptionOnlyHas(self, expected_exception_name):
-    self.longMessage = True
-    actual_exception_names = re.findall(r'^Traceback.*?^(\w+)',
-                                        self.formatted_exception,
-                                        re.DOTALL | re.MULTILINE)
-    self.assertEquals([expected_exception_name], actual_exception_names,
-                      msg='Full formatted exception: %s' % '\n   > '.join(
-                          self.formatted_exception.split('\n')))
+  def RunStorySet(self, test, story_set, **kwargs):
+    with results_options.CreateResults(self.options) as results:
+      story_runner.RunStorySet(test, story_set, self.options, results, **kwargs)
+    return results
 
   def testBrowserRestartsAfterEachPage(self):
-    self.CaptureFormattedException()
     story_set = story.StorySet()
     story_set.AddStory(page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
@@ -111,7 +53,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         name='bar'))
 
     class Test(legacy_page_test.LegacyPageTest):
-
       def __init__(self):
         super(Test, self).__init__()
         self.browser_starts = 0
@@ -126,8 +67,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         pass
 
     test = Test()
-    results = RunStorySet(test, story_set, self.options)
-
+    results = self.RunStorySet(test, story_set)
+    self.assertFalse(results.benchmark_interrupted)
     self.assertEquals(len(story_set), results.num_successful)
     # Browser is started once per story run, except in ChromeOS where a single
     # instance is reused for all stories.
@@ -135,7 +76,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       self.assertEquals(1, test.browser_starts)
     else:
       self.assertEquals(len(story_set), test.browser_starts)
-    self.assertFormattedExceptionIsEmpty()
 
   @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUserAgent(self):
@@ -160,8 +100,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         self.hasRun = True  # pylint: disable=attribute-defined-outside-init
 
     test = TestUserAgent()
-    RunStorySet(test, story_set, self.options)
-
+    self.RunStorySet(test, story_set)
     self.assertTrue(hasattr(test, 'hasRun') and test.hasRun)
 
   # Ensure that story_runner forces exactly 1 tab before running a page.
@@ -174,7 +113,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_set.AddStory(page)
 
     class TestOneTab(legacy_page_test.LegacyPageTest):
-
       def DidStartBrowser(self, browser):
         browser.tabs.New()
 
@@ -183,7 +121,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         assert len(tab.browser.tabs) == 1
 
     test = TestOneTab()
-    RunStorySet(test, story_set, self.options)
+    self.RunStorySet(test, story_set)
 
   def testTrafficSettings(self):
     story_set = story.StorySet()
@@ -215,7 +153,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
             time.time() * 1000 - self._will_navigate_time)
 
     test = MeasureLatency()
-    results = RunStorySet(test, story_set, self.options)
+    results = self.RunStorySet(test, story_set)
 
     failure_messages = []
     for r in results.IterStoryRuns():
@@ -240,7 +178,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_set.AddStory(page)
 
     class TestBeforeLaunch(legacy_page_test.LegacyPageTest):
-
       def __init__(self):
         super(TestBeforeLaunch, self).__init__()
         self._did_call_will_start = False
@@ -258,7 +195,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         assert self._did_call_did_start
 
     test = TestBeforeLaunch()
-    RunStorySet(test, story_set, self.options)
+    self.RunStorySet(test, story_set)
 
   # Ensure that story_runner calls cleanUp when a page run fails.
   def testCleanUpPage(self):
@@ -269,7 +206,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_set.AddStory(page)
 
     class Test(legacy_page_test.LegacyPageTest):
-
       def __init__(self):
         super(Test, self).__init__()
         self.did_call_clean_up = False
@@ -282,7 +218,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         self.did_call_clean_up = True
 
     test = Test()
-    RunStorySet(test, story_set, self.options)
+    self.RunStorySet(test, story_set)
     assert test.did_call_clean_up
 
   # Ensure skipping the test if shared state cannot be run on the browser.
@@ -304,7 +240,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         name='blank.html'))
 
     class Test(legacy_page_test.LegacyPageTest):
-
       def __init__(self, *args, **kwargs):
         super(Test, self).__init__(*args, **kwargs)
         self.will_navigate_to_page_called = False
@@ -318,7 +253,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         self.will_navigate_to_page_called = True
 
     test = Test()
-    results = RunStorySet(test, story_set, self.options)
+    results = self.RunStorySet(test, story_set)
 
     self.assertFalse(test.will_navigate_to_page_called)
     self.assertEquals(1, results.num_expected)  # One expected skip.
@@ -360,10 +295,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         scroll_y = action_runner.tab.EvaluateJavaScript('window.scrollY')
         self.was_page_at_top_on_start = scroll_y == 0
 
-    class Test(legacy_page_test.LegacyPageTest):
-      def ValidateAndMeasurePage(self, *_):
-        pass
-
     story_set = story.StorySet()
     story_set.AddStory(ScrollingPage(
         url='file://page_with_swipeables.html', page_set=story_set,
@@ -372,20 +303,13 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         url='file://page_with_swipeables.html', page_set=story_set,
         base_dir=util.GetUnittestDataDir())
     story_set.AddStory(test_page)
-    test = Test()
-    RunStorySet(test, story_set, self.options)
+    self.RunStorySet(DummyTest(), story_set)
     self.assertTrue(test_page.was_page_at_top_on_start)
 
   def testSingleTabMeansCrashWillCauseFailure(self):
-    self.CaptureFormattedException()
-
     class TestPage(page_module.Page):
       def RunNavigateSteps(self, _):
         raise exceptions.AppCrashException
-
-    class SingleTabTest(legacy_page_test.LegacyPageTest):
-      def ValidateAndMeasurePage(self, *_):
-        pass
 
     story_set = story.StorySet()
     for i in range(5):
@@ -393,11 +317,10 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
           TestPage('file://blank.html', story_set,
                    base_dir=util.GetUnittestDataDir(), name='foo%d' % i))
 
-    test = SingleTabTest()
-    results = RunStorySet(test, story_set, self.options, max_failures=1)
+    results = self.RunStorySet(DummyTest(), story_set, max_failures=1)
+    self.assertTrue(results.benchmark_interrupted)
     self.assertEquals(3, results.num_skipped)
     self.assertEquals(2, results.num_failed)  # max_failures + 1
-    self.assertFormattedExceptionIsEmpty()
 
   def testWebPageReplay(self):
     story_set = example_domain.ExampleDomainPageSet()
@@ -414,7 +337,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         platform.network_controller.StopReplay()
 
     test = TestWpr()
-    results = RunStorySet(test, story_set, self.options)
+    results = self.RunStorySet(test, story_set)
 
     self.longMessage = True
     self.assertIn('Example Domain', body[0],
@@ -426,7 +349,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.assertFalse(results.had_failures)
 
   def testScreenShotTakenForFailedPage(self):
-    self.CaptureFormattedException()
     platform_screenshot_supported = [False]
     tab_screenshot_supported = [False]
     chrome_version_screen_shot = [None]
@@ -450,7 +372,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_set.AddStory(failing_page)
 
     self.options.browser_options.take_screenshot_for_failed_page = True
-    results = RunStorySet(DummyTest(), story_set, self.options, max_failures=2)
+    results = self.RunStorySet(DummyTest(), story_set, max_failures=2)
     self.assertTrue(results.had_failures)
     if not platform_screenshot_supported[0] and tab_screenshot_supported[0]:
       failed_run = next(run for run in results.IterStoryRuns()
