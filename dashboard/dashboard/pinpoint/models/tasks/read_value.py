@@ -107,13 +107,28 @@ class ReadValueEvaluator(
     histograms.ImportDicts(histogram_dicts)
     histograms_by_path = read_value_quest.CreateHistogramSetByTestPathDict(
         histograms)
+    histograms_by_path_optional_grouping_label = (
+        read_value_quest.CreateHistogramSetByTestPathDict(
+            histograms, ignore_grouping_label=True))
     trace_urls = read_value_quest.FindTraceUrls(histograms)
-    test_path_to_match = histogram_helpers.ComputeTestPathFromComponents(
-        histogram_name, grouping_label=grouping_label, story_name=story)
-    logging.debug('Test path to match: %s', test_path_to_match)
-    result_values = read_value_quest.ExtractValuesFromHistograms(
-        test_path_to_match, histograms_by_path, histogram_name, grouping_label,
-        story, statistic)
+    test_paths_to_match = set([
+        histogram_helpers.ComputeTestPathFromComponents(
+            histogram_name, grouping_label=grouping_label, story_name=story),
+        histogram_helpers.ComputeTestPathFromComponents(
+            histogram_name,
+            grouping_label=grouping_label,
+            story_name=story,
+            needs_escape=False)
+    ])
+    logging.debug('Test paths to match: %s', test_paths_to_match)
+    try:
+      result_values = read_value_quest.ExtractValuesFromHistograms(
+          test_paths_to_match, histograms_by_path, histogram_name,
+          grouping_label, story, statistic)
+    except errors.ReadValueNotFound:
+      result_values = read_value_quest.ExtractValuesFromHistograms(
+          test_paths_to_match, histograms_by_path_optional_grouping_label,
+          histogram_name, None, story, statistic)
     logging.debug('Results: %s', result_values)
     task.payload.update({
         'result_values': result_values,

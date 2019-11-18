@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import collections
+import itertools
 import json
 import logging
 import ntpath
@@ -122,44 +123,62 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
     histograms.ImportDicts(histogram_dicts)
 
     histograms_by_path = CreateHistogramSetByTestPathDict(histograms)
+    histograms_by_path_optional_grouping_label = (
+        CreateHistogramSetByTestPathDict(
+            histograms, ignore_grouping_label=True))
     self._trace_urls = FindTraceUrls(histograms)
 
-    test_path_to_match = histogram_helpers.ComputeTestPathFromComponents(
-        self._hist_name, grouping_label=self._grouping_label,
-        story_name=self.trace_or_story)
-    logging.debug('Test path to match: %s', test_path_to_match)
+    test_paths_to_match = set([
+        histogram_helpers.ComputeTestPathFromComponents(
+            self._hist_name,
+            grouping_label=self._grouping_label,
+            story_name=self._trace_or_story),
+        histogram_helpers.ComputeTestPathFromComponents(
+            self._hist_name,
+            grouping_label=self._grouping_label,
+            story_name=self._trace_or_story,
+            needs_escape=False)])
+    logging.debug('Test paths to match: %s', test_paths_to_match)
 
     # Have to pull out either the raw sample values, or the statistic
-    result_values = ExtractValuesFromHistograms(test_path_to_match,
-                                                histograms_by_path,
-                                                self._hist_name,
-                                                self._grouping_label,
-                                                self.trace_or_story,
-                                                self._statistic)
+    try:
+      result_values = ExtractValuesFromHistograms(
+          test_paths_to_match, histograms_by_path, self._hist_name,
+          self._grouping_label, self._trace_or_story, self._statistic)
+    except errors.ReadValueNotFound:
+      # In case we didn't find any result_values, we should try finding the
+      # histograms without the grouping label applied.
+      result_values = ExtractValuesFromHistograms(
+          test_paths_to_match, histograms_by_path_optional_grouping_label,
+          self._hist_name, None, self._trace_or_story,
+          self._statistic)
 
     self._Complete(result_values=tuple(result_values))
 
 
-def ExtractValuesFromHistograms(test_path_to_match, histograms_by_path,
+def ExtractValuesFromHistograms(test_paths_to_match, histograms_by_path,
                                 histogram_name, grouping_label, story,
                                 statistic):
   result_values = []
-  matching_histograms = []
-  if test_path_to_match in histograms_by_path:
-    matching_histograms = histograms_by_path.get(test_path_to_match, [])
-
-    logging.debug('Found %s matching histograms', len(matching_histograms))
-
+  matching_histograms = list(itertools.chain.from_iterable(
+      histograms_by_path.get(histogram) for histogram in test_paths_to_match
+      if histogram in histograms_by_path
+  ))
+  logging.debug('Histograms in results: %s', histograms_by_path.keys())
+  if matching_histograms:
+    logging.debug('Found %s matching histograms: %s', len(matching_histograms),
+                  [h.name for h in matching_histograms])
     for h in matching_histograms:
       result_values.extend(_GetValuesOrStatistic(statistic, h))
   elif histogram_name:
     # Histograms don't exist, which means this is summary
     summary_value = []
     for test_path, histograms_for_test_path in histograms_by_path.items():
-      if test_path.startswith(test_path_to_match):
-        for h in histograms_for_test_path:
-          summary_value.extend(_GetValuesOrStatistic(statistic, h))
-          matching_histograms.append(h)
+      for test_path_to_match in test_paths_to_match:
+        if test_path.startswith(test_path_to_match):
+          for h in histograms_for_test_path:
+            summary_value.extend(_GetValuesOrStatistic(statistic, h))
+            matching_histograms.append(h)
 
     logging.debug('Found %s matching summary histograms',
                   len(matching_histograms))
@@ -182,13 +201,13 @@ def ExtractValuesFromHistograms(test_path_to_match, histograms_by_path,
   return result_values
 
 
-def CreateHistogramSetByTestPathDict(histograms):
+def CreateHistogramSetByTestPathDict(histograms, ignore_grouping_label=False):
   histograms_by_path = collections.defaultdict(list)
-
   for h in histograms:
-    histograms_by_path[histogram_helpers.ComputeTestPath(h)].append(h)
-
+    histograms_by_path[histogram_helpers.ComputeTestPath(
+        h, ignore_grouping_label)].append(h)
   return histograms_by_path
+
 
 def FindTraceUrls(histograms):
   # Get and cache any trace URLs.

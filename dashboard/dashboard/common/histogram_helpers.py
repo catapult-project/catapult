@@ -94,7 +94,7 @@ def EscapeName(name):
   return re.sub(r'[\:|=/#&,]', '_', name)
 
 
-def ComputeTestPath(hist):
+def ComputeTestPath(hist, ignore_grouping_label=False):
   # If a Histogram represents a summary across multiple stories, then its
   # 'stories' diagnostic will contain the names of all of the stories.
   # If a Histogram is not a summary, then its 'stories' diagnostic will contain
@@ -102,7 +102,8 @@ def ComputeTestPath(hist):
   is_summary = list(
       hist.diagnostics.get(reserved_infos.SUMMARY_KEYS.name, []))
 
-  grouping_label = GetGroupingLabelFromHistogram(hist)
+  grouping_label = GetGroupingLabelFromHistogram(
+      hist) if not ignore_grouping_label else None
 
   is_ref = hist.diagnostics.get(reserved_infos.IS_REFERENCE_BUILD.name)
   if is_ref and len(is_ref) == 1:
@@ -121,7 +122,7 @@ def ComputeTestPath(hist):
 
 def ComputeTestPathFromComponents(
     hist_name, grouping_label=None, story_name=None, is_summary=None,
-    is_ref=False):
+    is_ref=False, needs_escape=True):
   path = hist_name
 
   if grouping_label and (
@@ -129,8 +130,11 @@ def ComputeTestPathFromComponents(
     path += '/' + grouping_label
 
   if story_name and not is_summary:
-    escaped_story_name = EscapeName(story_name)
-    path += '/' + escaped_story_name
+    if needs_escape:
+      escaped_story_name = EscapeName(story_name)
+      path += '/' + escaped_story_name
+    else:
+      path += '/' + story_name
     if is_ref:
       path += '_ref'
   elif is_ref:
