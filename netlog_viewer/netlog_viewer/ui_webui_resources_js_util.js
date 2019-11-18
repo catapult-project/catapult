@@ -210,35 +210,6 @@ function queryRequiredElement(selectors, opt_context) {
                           'Missing required element: ' + selectors);
 }
 
-// Handle click on a link. If the link points to a chrome: or file: url, then
-// call into the browser to do the navigation.
-document.addEventListener('click', function(e) {
-  if (e.defaultPrevented)
-    return;
-
-  var el = e.target;
-  if (el.nodeType == Node.ELEMENT_NODE &&
-      el.webkitMatchesSelector('A, A *')) {
-    while (el.tagName != 'A') {
-      el = el.parentElement;
-    }
-
-    if ((el.protocol == 'file:' || el.protocol == 'about:') &&
-        (e.button == 0 || e.button == 1)) {
-      chrome.send('navigateToUrl', [
-        el.href,
-        el.target,
-        e.button,
-        e.altKey,
-        e.ctrlKey,
-        e.metaKey,
-        e.shiftKey
-      ]);
-      e.preventDefault();
-    }
-  }
-});
-
 /**
  * Creates a new URL which is the old URL with a GET param of key=value.
  * @param {string} url The base URL. There is not sanity checking on the URL so
