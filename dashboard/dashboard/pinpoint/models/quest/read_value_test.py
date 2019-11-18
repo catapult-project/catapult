@@ -73,6 +73,15 @@ class ReadHistogramsJsonValueQuestTest(unittest.TestCase):
         'pcv1-cold', 'trace_name', 'avg')
     self.assertEqual(quest, expected)
 
+  def testArgumentsWithNoChart(self):
+    arguments = dict(_BASE_ARGUMENTS_HISTOGRAMS)
+    arguments['story'] = 'trace_name'
+    quest = read_value.ReadHistogramsJsonValue.FromDict(arguments)
+    expected = read_value.ReadHistogramsJsonValue(
+        'speedometer/perf_results.json', None,
+        None, 'trace_name', None)
+    self.assertEqual(quest, expected)
+
   def testWindows(self):
     arguments = dict(_BASE_ARGUMENTS_HISTOGRAMS)
     arguments['dimensions'] = [{'key': 'os', 'value': 'Windows-10'}]

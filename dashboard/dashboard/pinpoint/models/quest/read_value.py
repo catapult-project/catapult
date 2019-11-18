@@ -106,7 +106,7 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
   @property
   def trace_or_story(self):
     if getattr(self, '_trace_or_story', None) is None:
-      self._trace_or_story = getattr(self, '_trace', None)
+      self._trace_or_story = getattr(self, '_trace', '')
     return self._trace_or_story
 
   def _AsDict(self):
