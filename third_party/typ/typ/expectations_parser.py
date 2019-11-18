@@ -50,7 +50,7 @@ class ParseError(Exception):
 
 
 class Expectation(object):
-    def __init__(self, reason, test, tags, results, lineno,
+    def __init__(self, reason='', test='*', tags=None, results=None, lineno=0,
                  retry_on_failure=False, is_slow_test=False,
                  conflict_resolution=ConflictResolutionTypes.UNION):
         """Constructor for expectations.
@@ -65,6 +65,8 @@ class Expectation(object):
               set; just 'Mac', or 'Mac' and 'Release', would not qualify.
           results: List of outcomes for test. Example: ['Skip', 'Pass']
         """
+        tags = tags or []
+        results = results or {ResultType.Pass}
         assert python_2_3_compat.is_str(reason) or reason is None
         assert python_2_3_compat.is_str(test)
         self._reason = reason
@@ -78,6 +80,8 @@ class Expectation(object):
 
     def __eq__(self, other):
         return (self.reason == other.reason and self.test == other.test
+                and self.should_retry_on_failure == other.should_retry_on_failure
+                and self.is_slow_test == other.is_slow_test
                 and self.tags == other.tags and self.results == other.results
                 and self.lineno == other.lineno)
 
@@ -438,8 +442,10 @@ class TestExpectations(object):
             _update_expected_results(exp)
 
         if self._results or self._should_retry_on_failure:
-            return ((self._results or {ResultType.Pass}),
-                    self._should_retry_on_failure, self._is_slow_test, self._reasons)
+            return Expectation(
+                    test=test, results=self._results,
+                    retry_on_failure=self._should_retry_on_failure,
+                    is_slow_test=self._is_slow_test, reason=' '.join(self._reasons))
 
         # If we didn't find an exact match, check for matching globs. Match by
         # the most specific (i.e., longest) glob first. Because self.globs is
@@ -452,11 +458,13 @@ class TestExpectations(object):
                 # and we're done. If not, keep looking through ever-shorter
                 # globs.
                 if self._results or self._should_retry_on_failure:
-                    return ((self._results or {ResultType.Pass}),
-                            self._should_retry_on_failure, self._is_slow_test, self._reasons)
+                    return Expectation(
+                            test=test, results=self._results,
+                            retry_on_failure=self._should_retry_on_failure,
+                            is_slow_test=self._is_slow_test, reason=' '.join(self._reasons))
 
         # Nothing matched, so by default, the test is expected to pass.
-        return {ResultType.Pass}, False, False, set()
+        return Expectation(test=test)
 
     def tag_sets_conflict(self, s1, s2):
         # Tag sets s1 and s2 have no conflict when there exists a tag in s1

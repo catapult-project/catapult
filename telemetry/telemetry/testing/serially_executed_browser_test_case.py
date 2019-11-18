@@ -197,7 +197,8 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
     are no expectations files passed to typ, then a tuple of
     (set(['PASS']), False) should be returned from this function.
     """
-    return self.__class__._typ_runner.expectations_for(self)
+    exp = self.__class__._typ_runner.expectations_for(self)
+    return exp.results, exp.should_retry_on_failure
 
   @classmethod
   def GetPlatformTags(cls, browser):
