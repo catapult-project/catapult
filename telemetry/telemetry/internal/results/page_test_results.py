@@ -200,6 +200,7 @@ class PageTestResults(object):
     finally:
       self._current_story_run.Finish()
       self._progress_reporter.DidRunStory(self)
+      self._WriteJsonLine(self._current_story_run.AsDict())
       self._all_story_runs.append(self._current_story_run)
       self._current_story_run = None
 
@@ -342,16 +343,6 @@ class PageTestResults(object):
 
     self._finalized = True
     self._progress_reporter.DidFinishAllStories(self)
-
-    # TODO(crbug.com/981349): Ideally we want to write results for each story
-    # run individually at CreateStoryRun when exiting the context managed code.
-    # For now, however, we need to wait until this point after html traces have
-    # been serialized, uploaded, and recorded as artifacts for them to show up
-    # in intermediate results. When both trace serialization and artifact
-    # upload are handled by results_processor, remove the for-loop from here
-    # and write results instead at the end of each story run.
-    for run in self._all_story_runs:
-      self._WriteJsonLine(run.AsDict())
     if self._results_stream is not None:
       self._results_stream.close()
 
