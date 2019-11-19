@@ -179,3 +179,20 @@ class FromDictTest(unittest.TestCase):
     expected = run_telemetry_test.RunTelemetryTest(
         'server', run_test_test.DIMENSIONS, extra_args, _BASE_SWARMING_TAGS)
     self.assertEqual(quest, expected)
+
+  def testWeblayerFlagNonExact(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['browser'] = 'android-weblayer-google'
+    quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
+
+    extra_args = [
+        '--benchmarks', 'speedometer', '--pageset-repeat', '1',
+        '--browser', 'android-weblayer-google',
+        '--webview-embedder-apk',
+        '../../out/Release/apks/WebLayerShell.apk',
+        '--webview-embedder-apk',
+        '../../out/Release/apks/WebLayerSupport.apk',
+    ] + _COMBINED_DEFAULT_EXTRA_ARGS
+    expected = run_telemetry_test.RunTelemetryTest(
+        'server', run_test_test.DIMENSIONS, extra_args, _BASE_SWARMING_TAGS)
+    self.assertEqual(quest, expected)

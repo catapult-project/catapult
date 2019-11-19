@@ -94,9 +94,15 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
     extra_test_args += ('--browser', browser)
 
     if browser.startswith('android-webview'):
-      # TODO: Share code with the perf waterfall configs. crbug.com/771680
+      # TODO(crbug.com/771680): Share code with the perf waterfall configs.
       extra_test_args += ('--webview-embedder-apk',
                           '../../out/Release/apks/SystemWebViewShell.apk')
+    if browser.startswith('android-weblayer'):
+      # TODO(crbug.com/771680): Share code with the perf waterfall configs.
+      extra_test_args += ('--webview-embedder-apk',
+                          '../../out/Release/apks/WebLayerShell.apk')
+      extra_test_args += ('--webview-embedder-apk',
+                          '../../out/Release/apks/WebLayerSupport.apk')
 
     extra_test_args += _DEFAULT_EXTRA_ARGS
     extra_test_args += super(RunTelemetryTest, cls)._ExtraTestArgs(arguments)
