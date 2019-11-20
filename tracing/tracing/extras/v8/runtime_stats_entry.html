@@ -76,7 +76,7 @@ tr.exportTo('tr.e.v8', function() {
         new RuntimeStatsGroup('Total'),
         new RuntimeStatsGroup('IC', /.*IC_.*/),
         new RuntimeStatsGroup('Optimize-Background',
-            /(.*OptimizeConcurrent.*)|RecompileConcurrent.*/),
+            /(.*OptimizeBackground.*)|RecompileConcurrent.*/),
         new RuntimeStatsGroup('Optimize',
             /StackGuard|.*Optimize.*|.*Deoptimize.*|Recompile.*/),
         new RuntimeStatsGroup('Compile-Background',
