@@ -43,9 +43,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       story_runner.RunStorySet(test, story_set, self.options, results, **kwargs)
     return results
 
-  def ReadTestResults(self):
-    return results_options.ReadTestResults(self.options.intermediate_dir)
-
   def testBrowserRestartsAfterEachPage(self):
     story_set = story.StorySet()
     story_set.AddStory(page_module.Page(
@@ -352,9 +349,19 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.assertFalse(results.had_failures)
 
   def testScreenShotTakenForFailedPage(self):
+    platform_screenshot_supported = [False]
+    tab_screenshot_supported = [False]
+    chrome_version_screen_shot = [None]
+
     class FailingTestPage(page_module.Page):
+
       def RunNavigateSteps(self, action_runner):
         action_runner.Navigate(self._url)
+        platform_screenshot_supported[0] = (
+            action_runner.tab.browser.platform.CanTakeScreenshot)
+        tab_screenshot_supported[0] = action_runner.tab.screenshot_supported
+        if not platform_screenshot_supported[0] and tab_screenshot_supported[0]:
+          chrome_version_screen_shot[0] = action_runner.tab.Screenshot()
         raise exceptions.AppCrashException
 
     story_set = story.StorySet()
@@ -367,10 +374,11 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.options.browser_options.take_screenshot_for_failed_page = True
     results = self.RunStorySet(DummyTest(), story_set, max_failures=2)
     self.assertTrue(results.had_failures)
-    # Check that we can find the artifact with a non-empty PNG screenshot.
-    failing_run = next(run for run in self.ReadTestResults()
-                       if run['testPath'].endswith('/failing'))
-    screenshot = image_util.FromPngFile(
-        failing_run['outputArtifacts']['screenshot.png']['filePath'])
-    self.assertGreater(image_util.Width(screenshot), 0)
-    self.assertGreater(image_util.Height(screenshot), 0)
+    if not platform_screenshot_supported[0] and tab_screenshot_supported[0]:
+      failed_run = next(run for run in results.IterStoryRuns()
+                        if run.story.name == failing_page.name)
+      screenshot_file_path = failed_run.GetArtifact('screenshot').local_path
+
+      actual_screenshot = image_util.FromPngFile(screenshot_file_path)
+      self.assertEquals(image_util.Pixels(chrome_version_screen_shot[0]),
+                        image_util.Pixels(actual_screenshot))
