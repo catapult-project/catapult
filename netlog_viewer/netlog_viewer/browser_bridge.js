@@ -5,17 +5,17 @@
 'use strict';
 
 // Populated by constants from the browser.  Used only by this file.
-var NetInfoSources = null;
+let NetInfoSources = null;
 
 /**
  * This class provides a "bridge" for communicating between the javascript and
  * the browser.
  */
-var BrowserBridge = (function() {
+const BrowserBridge = (function() {
   /**
    * Delay in milliseconds between updates of certain browser information.
    */
-  var POLL_INTERVAL_MS = 5000;
+  const POLL_INTERVAL_MS = 5000;
 
   /**
    * @constructor
@@ -68,48 +68,50 @@ var BrowserBridge = (function() {
 
   BrowserBridge.prototype = {
 
-    //--------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Messages received from the browser.
-    //--------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
-    receivedConstants: function(constants) {
+    receivedConstants(constants) {
       NetInfoSources = constants.netInfoSources;
-      for (var i = 0; i < this.constantsObservers_.length; i++)
+      for (let i = 0; i < this.constantsObservers_.length; i++) {
         this.constantsObservers_[i].onReceivedConstants(constants);
+      }
     },
 
-    receivedLogEntries: function(logEntries) {
+    receivedLogEntries(logEntries) {
       EventsTracker.getInstance().addLogEntries(logEntries);
     },
 
-    receivedNetInfo: function(netInfo) {
+    receivedNetInfo(netInfo) {
       // Dispatch |netInfo| to the various PollableDataHelpers listening to
       // each field it contains.
       //
       // Currently information is only received from one source at a time, but
       // the API does allow for data from more that one to be requested at once.
-      for (var source in netInfo)
+      for (const source in netInfo) {
         this.pollableDataHelpers_[source].update(netInfo[source]);
+      }
     },
 
-    receivedServiceProviders: function(serviceProviders) {
+    receivedServiceProviders(serviceProviders) {
       this.pollableDataHelpers_.serviceProviders.update(serviceProviders);
     },
 
-    receivedPrerenderInfo: function(prerenderInfo) {
+    receivedPrerenderInfo(prerenderInfo) {
       this.pollableDataHelpers_.prerenderInfo.update(prerenderInfo);
     },
 
-    receivedExtensionInfo: function(extensionInfo) {
+    receivedExtensionInfo(extensionInfo) {
       this.pollableDataHelpers_.extensionInfo.update(extensionInfo);
     },
 
-    receivedDataReductionProxyInfo: function(dataReductionProxyInfo) {
+    receivedDataReductionProxyInfo(dataReductionProxyInfo) {
       this.pollableDataHelpers_.dataReductionProxyInfo.update(
           dataReductionProxyInfo);
     },
 
-    //--------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     /**
      * Adds a listener of the proxy settings. |observer| will be called back
@@ -131,7 +133,7 @@ var BrowserBridge = (function() {
      * If |ignoreWhenUnchanged| is true, data is only sent when it changes.
      * If it's false, data is sent whenever it's received from the browser.
      */
-    addProxySettingsObserver: function(observer, ignoreWhenUnchanged) {
+    addProxySettingsObserver(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.proxySettings.addObserver(
           observer, ignoreWhenUnchanged);
     },
@@ -147,7 +149,7 @@ var BrowserBridge = (function() {
      *   badProxies[i].bad_until: The time when the proxy stops being considered
      *                            bad. Note the time is in time ticks.
      */
-    addBadProxiesObserver: function(observer, ignoreWhenUnchanged) {
+    addBadProxiesObserver(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.badProxies.addObserver(
           observer, ignoreWhenUnchanged);
     },
@@ -158,7 +160,7 @@ var BrowserBridge = (function() {
      *
      *   observer.onHostResolverInfoChanged(hostResolverInfo)
      */
-    addHostResolverInfoObserver: function(observer, ignoreWhenUnchanged) {
+    addHostResolverInfoObserver(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.hostResolverInfo.addObserver(
           observer, ignoreWhenUnchanged);
     },
@@ -169,7 +171,7 @@ var BrowserBridge = (function() {
      *
      *   observer.onSocketPoolInfoChanged(socketPoolInfo)
      */
-    addSocketPoolInfoObserver: function(observer, ignoreWhenUnchanged) {
+    addSocketPoolInfoObserver(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.socketPoolInfo.addObserver(
           observer, ignoreWhenUnchanged);
     },
@@ -180,7 +182,7 @@ var BrowserBridge = (function() {
      *
      *   observer.onQuicInfoChanged(quicInfo)
      */
-    addQuicInfoObserver: function(observer, ignoreWhenUnchanged) {
+    addQuicInfoObserver(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.quicInfo.addObserver(
           observer, ignoreWhenUnchanged);
     },
@@ -191,7 +193,7 @@ var BrowserBridge = (function() {
      *
      *   observer.onReportingInfoChanged(reportingInfo)
      */
-    addReportingInfoObserver: function(observer, ignoreWhenUnchanged) {
+    addReportingInfoObserver(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.reportingInfo.addObserver(
           observer, ignoreWhenUnchanged);
     },
@@ -202,7 +204,7 @@ var BrowserBridge = (function() {
      *
      *   observer.onSpdySessionInfoChanged(spdySessionInfo)
      */
-    addSpdySessionInfoObserver: function(observer, ignoreWhenUnchanged) {
+    addSpdySessionInfoObserver(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.spdySessionInfo.addObserver(
           observer, ignoreWhenUnchanged);
     },
@@ -213,7 +215,7 @@ var BrowserBridge = (function() {
      *
      *   observer.onSpdyStatusChanged(spdyStatus)
      */
-    addSpdyStatusObserver: function(observer, ignoreWhenUnchanged) {
+    addSpdyStatusObserver(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.spdyStatus.addObserver(
           observer, ignoreWhenUnchanged);
     },
@@ -224,7 +226,7 @@ var BrowserBridge = (function() {
      *
      *   observer.onAltSvcMappingsChanged(altSvcMappings)
      */
-    addAltSvcMappingsObserver: function(observer, ignoreWhenUnchanged) {
+    addAltSvcMappingsObserver(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.altSvcMappings.addObserver(
           observer, ignoreWhenUnchanged);
     },
@@ -238,7 +240,7 @@ var BrowserBridge = (function() {
      * Will do nothing if on a platform other than Windows, as service providers
      * are only present on Windows.
      */
-    addServiceProvidersObserver: function(observer, ignoreWhenUnchanged) {
+    addServiceProvidersObserver(observer, ignoreWhenUnchanged) {
       if (this.pollableDataHelpers_.serviceProviders) {
         this.pollableDataHelpers_.serviceProviders.addObserver(
             observer, ignoreWhenUnchanged);
@@ -251,7 +253,7 @@ var BrowserBridge = (function() {
      *
      *   observer.onHttpCacheInfoChanged(info);
      */
-    addHttpCacheInfoObserver: function(observer, ignoreWhenUnchanged) {
+    addHttpCacheInfoObserver(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.httpCacheInfo.addObserver(
           observer, ignoreWhenUnchanged);
     },
@@ -262,7 +264,7 @@ var BrowserBridge = (function() {
      *
      *   observer.onReceivedConstants(constants);
      */
-    addConstantsObserver: function(observer) {
+    addConstantsObserver(observer) {
       this.constantsObservers_.push(observer);
     },
 
@@ -272,7 +274,7 @@ var BrowserBridge = (function() {
      *
      *   observer.onPrerenderInfoChanged(prerenderInfo);
      */
-    addPrerenderInfoObserver: function(observer, ignoreWhenUnchanged) {
+    addPrerenderInfoObserver(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.prerenderInfo.addObserver(
           observer, ignoreWhenUnchanged);
     },
@@ -283,7 +285,7 @@ var BrowserBridge = (function() {
      *
      *   observer.onExtensionInfoChanged(extensionInfo)
      */
-    addExtensionInfoObserver: function(observer, ignoreWhenUnchanged) {
+    addExtensionInfoObserver(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.extensionInfo.addObserver(
           observer, ignoreWhenUnchanged);
     },
@@ -291,7 +293,7 @@ var BrowserBridge = (function() {
     /**
      * Adds a PollableDataHelper that listens to the specified NetInfoSource.
      */
-    addNetInfoPollableDataHelper: function(sourceName, observerMethodName) {
+    addNetInfoPollableDataHelper(sourceName, observerMethodName) {
       this.pollableDataHelpers_[sourceName] = new PollableDataHelper(
           observerMethodName);
     },
@@ -311,14 +313,15 @@ var BrowserBridge = (function() {
   }
 
   PollableDataHelper.prototype = {
-    getObserverMethodName: function() {
+    getObserverMethodName() {
       return this.observerMethodName_;
     },
 
-    isObserver: function(object) {
-      for (var i = 0; i < this.observerInfos_.length; i++) {
-        if (this.observerInfos_[i].observer === object)
+    isObserver(object) {
+      for (let i = 0; i < this.observerInfos_.length; i++) {
+        if (this.observerInfos_[i].observer === object) {
           return true;
+        }
       }
       return false;
     },
@@ -327,12 +330,12 @@ var BrowserBridge = (function() {
      * If |ignoreWhenUnchanged| is true, we won't send data again until it
      * changes.
      */
-    addObserver: function(observer, ignoreWhenUnchanged) {
+    addObserver(observer, ignoreWhenUnchanged) {
       this.observerInfos_.push(new ObserverInfo(observer, ignoreWhenUnchanged));
     },
 
-    removeObserver: function(observer) {
-      for (var i = 0; i < this.observerInfos_.length; i++) {
+    removeObserver(observer) {
+      for (let i = 0; i < this.observerInfos_.length; i++) {
         if (this.observerInfos_[i].observer === observer) {
           this.observerInfos_.splice(i, 1);
           return;
@@ -346,20 +349,20 @@ var BrowserBridge = (function() {
      * any data. This is used for data we received from browser on an update
      * loop.
      */
-    update: function(data) {
-      var prevData = this.currentData_;
-      var changed = false;
+    update(data) {
+      const prevData = this.currentData_;
+      let changed = false;
 
       // If the data hasn't changed since last time, will only need to notify
       // observers that have not yet received any data.
-      if (!prevData || JSON.stringify(prevData) != JSON.stringify(data)) {
+      if (!prevData || JSON.stringify(prevData) !== JSON.stringify(data)) {
         changed = true;
         this.currentData_ = data;
       }
 
       // Notify the observers of the change, as needed.
-      for (var i = 0; i < this.observerInfos_.length; i++) {
-        var observerInfo = this.observerInfos_[i];
+      for (let i = 0; i < this.observerInfos_.length; i++) {
+        const observerInfo = this.observerInfos_[i];
         if (changed || !observerInfo.hasReceivedData ||
             !observerInfo.ignoreWhenUnchanged) {
           observerInfo.observer[this.observerMethodName_](this.currentData_);
@@ -372,10 +375,11 @@ var BrowserBridge = (function() {
      * Returns true if one of the observers actively wants the data
      * (i.e. is visible).
      */
-    hasActiveObserver: function() {
-      for (var i = 0; i < this.observerInfos_.length; i++) {
-        if (this.observerInfos_[i].observer.isActive())
+    hasActiveObserver() {
+      for (let i = 0; i < this.observerInfos_.length; i++) {
+        if (this.observerInfos_[i].observer.isActive()) {
           return true;
+        }
       }
       return false;
     }
