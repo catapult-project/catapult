@@ -17,11 +17,17 @@ from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import task as task_module
 from dashboard.pinpoint.models.tasks import find_isolate
 from dashboard.pinpoint.models.tasks import run_test
-
+from dashboard.pinpoint.models.tasks import bisection_test_util
 
 DIMENSIONS = [
-    {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
-    {'key': 'key', 'value': 'value'},
+    {
+        'key': 'pool',
+        'value': 'Chrome-perf-pinpoint'
+    },
+    {
+        'key': 'key',
+        'value': 'value'
+    },
 ]
 
 
@@ -59,7 +65,7 @@ class EvaluatorTest(test.TestCase):
             evaluators.FilteringEvaluator(
                 predicate=evaluators.TaskTypeEq('find_isolate'),
                 delegate=evaluators.SequenceEvaluator(
-                    evaluators=(functools.partial(FakeFoundIsolate, self.job),
+                    evaluators=(bisection_test_util.FakeFoundIsolate(self.job),
                                 evaluators.TaskPayloadLiftingEvaluator()))),
             run_test.Evaluator(self.job),
         ))
@@ -90,6 +96,8 @@ class EvaluatorTest(test.TestCase):
                 },
                 'swarming_task_id': 'task id',
                 'tries': 1,
+                'change': mock.ANY,
+                'index': attempt,
             } for attempt in range(10)
         },
         task_module.Evaluate(
@@ -150,6 +158,8 @@ class EvaluatorTest(test.TestCase):
                 'isolate_hash': 'output isolate hash',
                 'swarming_task_id': 'task id',
                 'tries': 1,
+                'change': mock.ANY,
+                'index': attempt,
             } for attempt in range(10)
         },
         task_module.Evaluate(
@@ -168,7 +178,7 @@ class EvaluatorTest(test.TestCase):
                 predicate=evaluators.TaskTypeEq('find_isolate'),
                 delegate=evaluators.SequenceEvaluator(
                     evaluators=(
-                        functools.partial(FakeFindIsolateFailed, self.job),
+                        bisection_test_util.FakeFindIsolateFailed(self.job),
                         evaluators.TaskPayloadLiftingEvaluator()))),
             run_test.Evaluator(self.job),
         ))
@@ -183,6 +193,8 @@ class EvaluatorTest(test.TestCase):
                  'dimensions': DIMENSIONS,
                  'extra_args': [],
                  'swarming_server': 'some_server',
+                 'change': mock.ANY,
+                 'index': attempt,
              }) for attempt in range(10)]),
         task_module.Evaluate(
             self.job,
@@ -203,6 +215,8 @@ class EvaluatorTest(test.TestCase):
             'dimensions': DIMENSIONS,
             'extra_args': [],
             'swarming_server': 'some_server',
+            'change': mock.ANY,
+            'index': attempt,
         }) for attempt in range(10)]),
         task_module.Evaluate(
             self.job,
@@ -223,7 +237,7 @@ class EvaluatorTest(test.TestCase):
             evaluators.FilteringEvaluator(
                 predicate=evaluators.TaskTypeEq('find_isolate'),
                 delegate=evaluators.SequenceEvaluator(
-                    evaluators=(functools.partial(FakeFoundIsolate, self.job),
+                    evaluators=(bisection_test_util.FakeFoundIsolate(self.job),
                                 evaluators.TaskPayloadLiftingEvaluator()))),
             run_test.Evaluator(self.job),
         ))
@@ -294,6 +308,8 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
                 'isolate_hash': 'output isolate hash',
                 'swarming_task_id': 'task id',
                 'tries': 1,
+                'change': mock.ANY,
+                'index': attempt,
             } for attempt in range(10)
         },
         task_module.Evaluate(
@@ -309,7 +325,7 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
             evaluators.FilteringEvaluator(
                 predicate=evaluators.TaskTypeEq('find_isolate'),
                 delegate=evaluators.SequenceEvaluator(
-                    evaluators=(functools.partial(FakeFoundIsolate, self.job),
+                    evaluators=(bisection_test_util.FakeFoundIsolate(self.job),
                                 evaluators.TaskPayloadLiftingEvaluator()))),
             run_test.Evaluator(self.job),
         ))
@@ -361,6 +377,8 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
                 },
                 'swarming_task_id': 'task id',
                 'tries': 1,
+                'change': mock.ANY,
+                'index': attempt,
             } for attempt in range(10)
         },
         task_module.Evaluate(
@@ -471,7 +489,8 @@ class ValidatorTest(test.TestCase):
                 predicate=evaluators.TaskTypeEq('find_isolate'),
                 delegate=evaluators.SequenceEvaluator(
                     evaluators=(
-                        functools.partial(FakeNotFoundIsolate, job),
+                        functools.partial(
+                            bisection_test_util.FakeNotFoundIsolate, job),
                         evaluators.TaskPayloadLiftingEvaluator(),
                     )),
                 alternative=run_test.Validator()),
@@ -479,45 +498,3 @@ class ValidatorTest(test.TestCase):
 
   def testMissingExecutionOutputs(self):
     self.skipTest('Not implemented yet.')
-
-
-def FakeNotFoundIsolate(job, task, *_):
-  if task.status == 'completed':
-    return None
-
-  return [
-      lambda _: task_module.UpdateTask(
-          job, task.id, new_state='completed', payload=task.payload)
-  ]
-
-
-def FakeFoundIsolate(job, task, *_):
-  if task.status == 'completed':
-    return None
-
-  task.payload.update({
-      'isolate_server': 'https://isolate.server',
-      'isolate_hash': '12049adfa129339482234098',
-  })
-  return [
-      lambda _: task_module.UpdateTask(
-          job, task.id, new_state='completed', payload=task.payload)
-  ]
-
-
-def FakeFindIsolateFailed(job, task, *_):
-  if task.status == 'failed':
-    return None
-
-  task.payload.update({
-      'tries': 1,
-      'buildbucket_job_status': {
-          'status': 'COMPLETED',
-          'result': 'FAILURE',
-          'result_details_json': '{}',
-      }
-  })
-  return [
-      lambda _: task_module.UpdateTask(
-          job, task.id, new_state='failed', payload=task.payload)
-  ]

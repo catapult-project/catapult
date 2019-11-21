@@ -100,11 +100,32 @@ class UpdateBuildStatusAction(object):
     result = build.get('result')
     if not result:
       logging.debug('Missing result field in response, bailing.')
+      self.task.payload.update({
+          'errors':
+              self.task.payload.get('errors', []) + [{
+                  'reason':
+                      'InvalidResponse',
+                  'message':
+                      'Response is missing the "result" field.'
+              }]
+      })
       task_module.UpdateTask(
           self.job, self.task.id, new_state='failed', payload=self.task.payload)
       return None
 
+    self.task.payload.update({'build_url': build.get('url')})
+
     if result in FAILURE_MAPPING:
+      self.task.payload.update({
+          'errors':
+              self.task.payload.get('errors', []) + [{
+                  'reason':
+                      'BuildFailed',
+                  'message':
+                      'Swarming task %s failed with status "%s"' %
+                      (build.get('id'), result)
+              }]
+      })
       task_module.UpdateTask(
           self.job,
           self.task.id,
@@ -123,10 +144,7 @@ class UpdateBuildStatusAction(object):
           }]
       })
       task_module.UpdateTask(
-          self.job,
-          self.task.id,
-          new_state='failed',
-          payload=self.task.payload)
+          self.job, self.task.id, new_state='failed', payload=self.task.payload)
       return None
 
     try:
@@ -139,10 +157,7 @@ class UpdateBuildStatusAction(object):
           }]
       })
       task_module.UpdateTask(
-          self.job,
-          self.task.id,
-          new_state='failed',
-          payload=self.task.payload)
+          self.job, self.task.id, new_state='failed', payload=self.task.payload)
       return None
 
     if 'properties' not in result_details:
@@ -156,10 +171,7 @@ class UpdateBuildStatusAction(object):
           }]
       })
       task_module.UpdateTask(
-          self.job,
-          self.task.id,
-          new_state='failed',
-          payload=self.task.payload)
+          self.job, self.task.id, new_state='failed', payload=self.task.payload)
       return None
 
     properties = result_details['properties']
@@ -178,10 +190,7 @@ class UpdateBuildStatusAction(object):
           }]
       })
       task_module.UpdateTask(
-          self.job,
-          self.task.id,
-          new_state='failed',
-          payload=self.task.payload)
+          self.job, self.task.id, new_state='failed', payload=self.task.payload)
       return None
 
     commit_position = properties['got_revision_cp'].replace('@', '(at)')
@@ -201,10 +210,7 @@ class UpdateBuildStatusAction(object):
           }]
       })
       task_module.UpdateTask(
-          self.job,
-          self.task.id,
-          new_state='failed',
-          payload=self.task.payload)
+          self.job, self.task.id, new_state='failed', payload=self.task.payload)
       return None
 
     self.task.payload.update({
@@ -314,6 +320,59 @@ class Evaluator(evaluators.SequenceEvaluator):
                     'update': UpdateEvaluator(job),
                 })),
         ))
+
+
+def BuildSerializer(task, _, accumulator):
+  results = accumulator.get(task.id, {})
+  results.update({
+      'completed':
+          task.status in {'completed', 'failed', 'cancelled'},
+      'exception':
+          ','.join(e.get('reason') for e in task.payload.get('errors', []))
+          or None,
+      'details': [{
+          'key': 'builder',
+          'value': task.payload.get('builder'),
+          'url': task.payload.get('build_url'),
+      }]
+  })
+
+  buildbucket_result = task.payload.get('buildbucket_result')
+  if not buildbucket_result:
+    return None
+
+  build = buildbucket_result.get('build')
+  if build:
+    results.get('details').append({
+        'key': 'build',
+        'value': build.get('id'),
+        'url': build.get('url'),
+    })
+
+  if {'isolate_server', 'isolate_hash'} & set(task.payload):
+    results.get('details').append({
+        'key':
+            'isolate',
+        'value':
+            task.payload.get('isolate_hash'),
+        'url':
+            '%s/browse?digest=%s' % (task.payload.get('isolate_server'),
+                                     task.payload.get('isolate_hash'))
+    })
+
+  accumulator.update({task.id: results})
+
+
+class Serializer(evaluators.FilteringEvaluator):
+
+  def __init__(self):
+    super(Serializer, self).__init__(
+        predicate=evaluators.All(
+            evaluators.TaskTypeEq('find_isolate'),
+            evaluators.TaskStatusIn(
+                {'ongoing', 'failed', 'completed', 'cancelled'}),
+        ),
+        delegate=BuildSerializer)
 
 
 TaskOptions = collections.namedtuple('TaskOptions',

@@ -113,6 +113,11 @@ def CreateGraph(options):
               'mode':
                   options.read_option_template.mode,
           },
+
+          # Because this is a performance bisection, we'll hard-code the
+          # comparison mode as 'performance'.
+          'comparison_mode':
+              'performance',
       })
   return task_module.TaskGraph(
       vertices=list(
@@ -198,7 +203,8 @@ class PrepareCommits(collections.namedtuple('PrepareCommits', ('job', 'task'))):
           self.job, self.task.id, new_state='failed', payload=self.task.payload)
 
   def __str__(self):
-    return 'PrepareCLs( job = %s, task = %s )' % (self.job.job_id, self.task.id)
+    return 'PrepareCommits( job = %s, task = %s )' % (self.job.job_id,
+                                                      self.task.id)
 
 
 class RefineExplorationAction(
@@ -286,7 +292,7 @@ class CompleteExplorationAction(
 class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
   __slots__ = ()
 
-  def __call__(self, task, event, accumulator):
+  def __call__(self, task, _, accumulator):
     # Outline:
     #  - If the task is still pending, this means this is the first time we're
     #  encountering the task in an evaluation. Set up the payload data to
@@ -410,19 +416,12 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
           return compare.PENDING
 
         # NOTE: Here we're attempting to scale the provided comparison magnitude
-        # threshold by using the central tendencies (means) of the resulting
-        # values from individual test attempt results, and scaling those by the
-        # larger inter-quartile range (a measure of dispersion, simply computed
-        # as the 75th percentile minus the 25th percentile). The reason we're
-        # doing this is so that we can scale the tolerance according to the
-        # noise inherent in the measurements -- i.e. more noisy measurements
-        # will require a larger difference for us to consider statistically
-        # significant.
-        #
-        # NOTE: We've changed this computation to consider the consolidated
-        # measurements for a single change, instead of looking at the means,
-        # since we cannot assume that the means can be relied on as a good
-        # measure of central tendency for small sample sizes.
+        # threshold by the larger inter-quartile range (a measure of dispersion,
+        # simply computed as the 75th percentile minus the 25th percentile). The
+        # reason we're doing this is so that we can scale the tolerance
+        # according to the noise inherent in the measurements -- i.e. more noisy
+        # measurements will require a larger difference for us to consider
+        # statistically significant.
         values_for_a = tuple(itertools.chain(*results_by_change[a]))
         values_for_b = tuple(itertools.chain(*results_by_change[b]))
         max_iqr = max(
@@ -493,7 +492,9 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
         next(b, None)
         return itertools.izip(a, b)
 
+      logging.debug('Updating with changes and culprits: %s', ordered_changes)
       task.payload.update({
+          'changes': [change.AsDict() for change in ordered_changes],
           'culprits': [(a.AsDict(), b.AsDict())
                        for a, b in Pairwise(ordered_changes)
                        if DetectChange(a, b)]
@@ -512,3 +513,36 @@ class Evaluator(evaluators.FilteringEvaluator):
             evaluators.TaskTypeEq('find_culprit'),
             evaluators.Not(evaluators.TaskStatusIn({'completed', 'failed'}))),
         delegate=FindCulprit(job))
+
+
+def AnalysisSerializer(task, _, accumulator):
+  analysis_results = accumulator.setdefault(task.id, {})
+  read_option_template = task.payload.get('read_option_template')
+  graph_json_options = read_option_template.get('graph_json_options', {})
+  metric = None
+  if read_option_template.get('mode') == 'histogram_sets':
+    metric = read_option_template.get('benchmark')
+  if read_option_template.get('mode') == 'graph_json':
+    metric = graph_json_options.get('chart')
+  analysis_results.update({
+      'comparison_mode':
+          task.payload.get('comparison_mode'),
+      'metric':
+          metric,
+      'changes': [
+          change_module.Change.FromDict(change)
+          for change in task.payload.get('changes')
+      ]
+  })
+
+
+class Serializer(evaluators.FilteringEvaluator):
+
+  def __init__(self):
+    super(Serializer, self).__init__(
+        predicate=evaluators.All(
+            evaluators.TaskTypeEq('find_culprit'),
+            evaluators.TaskStatusIn(
+                {'ongoing', 'failed', 'completed', 'cancelled'}),
+        ),
+        delegate=AnalysisSerializer)

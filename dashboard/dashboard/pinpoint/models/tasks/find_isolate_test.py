@@ -104,14 +104,20 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
 
   def testUpdate_BuildSuccessful(self, put, get_build_status):
     # First we're going to initiate so we have a build scheduled.
-    put.return_value = {'build': {'id': '345982437987234'}}
+    put.return_value = {
+        'build': {
+            'id': '345982437987234',
+            'url': 'https://some.buildbucket/url'
+        }
+    }
     self.assertDictEqual(
         {
             'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
                 'buildbucket_result': {
                     'build': {
-                        'id': '345982437987234'
+                        'id': '345982437987234',
+                        'url': 'https://some.buildbucket/url'
                     },
                 },
                 'builder': 'Mac Builder',
@@ -154,10 +160,12 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
                 'buildbucket_job_status': mock.ANY,
                 'buildbucket_result': {
                     'build': {
-                        'id': '345982437987234'
+                        'id': '345982437987234',
+                        'url': 'https://some.buildbucket/url'
                     }
                 },
                 'builder': 'Mac Builder',
+                'build_url': mock.ANY,
                 'change': mock.ANY,
                 'isolate_hash': '192923affe212adf',
                 'isolate_server': 'https://isolate.server',
@@ -174,6 +182,36 @@ class FindIsolateEvaluatorTest(FindIsolateEvaluatorBase):
                 payload={'status': 'build_completed'}),
             find_isolate.Evaluator(self.job)))
     self.assertEqual(1, get_build_status.call_count)
+    self.assertEqual(
+        {
+            'find_isolate_chromium@7c7e90be': {
+                'completed':
+                    True,
+                'exception':
+                    None,
+                'details': [{
+                    'key': 'builder',
+                    'value': 'Mac Builder',
+                    'url': None,
+                }, {
+                    'key': 'build',
+                    'value': '345982437987234',
+                    'url': mock.ANY,
+                }, {
+                    'key':
+                        'isolate',
+                    'value':
+                        '192923affe212adf',
+                    'url':
+                        'https://isolate.server/browse?digest=192923affe212adf',
+                }]
+            }
+        },
+        task_module.Evaluate(
+            self.job,
+            event_module.Event(
+                type='unimportant', target_task=None, payload={}),
+            find_isolate.Serializer()))
 
 
 @mock.patch('dashboard.services.buildbucket_service.GetJobStatus')
@@ -229,9 +267,11 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
                 },
                 'buildbucket_job_status': mock.ANY,
                 'builder': 'Mac Builder',
+                'build_url': mock.ANY,
                 'change': mock.ANY,
                 'status': 'failed',
                 'target': 'telemetry_perf_tests',
+                'errors': [mock.ANY],
                 'tries': 1,
             },
         },
@@ -243,6 +283,29 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
                 payload={'status': 'build_completed'}),
             find_isolate.Evaluator(self.job)))
     self.assertEqual(1, get_build_status.call_count)
+    self.assertEqual(
+        {
+            'find_isolate_chromium@7c7e90be': {
+                'completed':
+                    True,
+                'exception':
+                    mock.ANY,
+                'details': [{
+                    'key': 'builder',
+                    'value': 'Mac Builder',
+                    'url': None,
+                }, {
+                    'key': 'build',
+                    'value': '345982437987234',
+                    'url': mock.ANY,
+                }]
+            }
+        },
+        task_module.Evaluate(
+            self.job,
+            event_module.Event(
+                type='unimportant', target_task=None, payload={}),
+            find_isolate.Serializer()))
 
   def testUpdate_BuildFailed_Cancelled(self, get_build_status):
     get_build_status.return_value = {
@@ -267,7 +330,9 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
                     'result': 'CANCELLED',
                     'result_details_json': '{}',
                 },
+                'build_url': mock.ANY,
                 'change': mock.ANY,
+                'errors': [mock.ANY],
                 'status': 'cancelled',
                 'target': 'telemetry_perf_tests',
                 'tries': 1,
@@ -310,6 +375,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
                 'buildbucket_job_status': mock.ANY,
                 'change': mock.ANY,
                 'builder': 'Mac Builder',
+                'build_url': mock.ANY,
                 'status': 'failed',
                 'errors': mock.ANY,
                 'tries': 1,
@@ -346,6 +412,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
             'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
                 'builder': 'Mac Builder',
+                'build_url': mock.ANY,
                 'buildbucket_result': {
                     'build': {
                         'id': '345982437987234'
@@ -388,6 +455,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
             'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
                 'builder': 'Mac Builder',
+                'build_url': mock.ANY,
                 'buildbucket_result': {
                     'build': {
                         'id': '345982437987234'
@@ -423,6 +491,7 @@ class FindIsolateEvaluatorUpdateTests(FindIsolateEvaluatorBase):
         {
             'find_isolate_chromium@7c7e90be': {
                 'bucket': 'luci.bucket',
+                'build_url': mock.ANY,
                 'buildbucket_result': {
                     'build': {
                         'id': '345982437987234'

@@ -300,6 +300,58 @@ class Validator(evaluators.FilteringEvaluator):
         predicate=evaluators.TaskTypeEq('run_test'), delegate=ReportError)
 
 
+def TestSerializer(task, _, accumulator):
+  results = accumulator.setdefault(task.id, {})
+  results.update({
+      'completed':
+          task.status in {'completed', 'failed', 'cancelled'},
+      'exception':
+          ','.join(e.get('reason') for e in task.payload.get('errors', []))
+          or None,
+      'details': []
+  })
+
+  swarming_task_result = task.payload.get('swarming_task_result')
+  if not swarming_task_result:
+    return None
+
+  swarming_server = task.payload.get('swarming_server')
+  bot_id = swarming_task_result.get('bot_id')
+  if bot_id:
+    results['details'].append({
+        'key': 'bot',
+        'value': bot_id,
+        'url': swarming_server + '/bot?id=' + bot_id
+    })
+  task_id = swarming_task_result.get('task')
+  if task_id:
+    results['details'].append({
+        'key': 'task',
+        'value': task_id,
+        'url': swarming_server + '/task?id=' + task_id
+    })
+  isolate_hash = task.payload.get('isolate_hash')
+  isolate_server = task.payload.get('isolate_server')
+  if isolate_hash and isolate_server:
+    results['details'].append({
+        'key': 'isolate',
+        'value': isolate_hash,
+        'url': '%s/browse?digest=%s' % (isolate_server, isolate_hash)
+    })
+
+
+class Serializer(evaluators.FilteringEvaluator):
+
+  def __init__(self):
+    super(Serializer, self).__init__(
+        predicate=evaluators.All(
+            evaluators.TaskTypeEq('run_test'),
+            evaluators.TaskStatusIn(
+                {'ongoing', 'failed', 'completed', 'cancelled'}),
+        ),
+        delegate=TestSerializer)
+
+
 def TaskId(change, attempt):
   return 'run_test_%s_%s' % (change, attempt)
 
@@ -327,6 +379,8 @@ def CreateGraph(options):
               'swarming_server': options.swarming_server,
               'dimensions': options.dimensions,
               'extra_args': options.extra_args,
+              'change': options.build_options.change.AsDict(),
+              'index': attempt,
           }) for attempt in range(options.attempts)
   ])
   subgraph.edges.extend([

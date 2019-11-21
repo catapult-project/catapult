@@ -175,6 +175,34 @@ class Evaluator(evaluators.FilteringEvaluator):
                         ReadValueEvaluator(job))))
 
 
+def ResultSerializer(task, _, accumulator):
+  results = accumulator.setdefault(task.id, {})
+  results.update({
+      'completed':
+          task.status in {'completed', 'failed', 'cancelled'},
+      'exception':
+          ','.join(e.get('reason') for e in task.payload.get('errors', []))
+          or None,
+      'details': []
+  })
+
+  trace_urls = task.payload.get('trace_urls')
+  if trace_urls:
+    results['details'].extend(trace_urls)
+
+
+class Serializer(evaluators.FilteringEvaluator):
+
+  def __init__(self):
+    super(Serializer, self).__init__(
+        predicate=evaluators.All(
+            evaluators.TaskTypeEq('read_value'),
+            evaluators.TaskStatusIn(
+                {'ongoing', 'failed', 'completed', 'cancelled'}),
+        ),
+        delegate=ResultSerializer)
+
+
 def CreateGraph(options):
   if not isinstance(options, TaskOptions):
     raise ValueError('options must be an instance of read_value.TaskOptions')
@@ -210,6 +238,7 @@ def CreateGraph(options):
                   'trace': options.graph_json_options.trace
               },
               'change': options.test_options.build_options.change.AsDict(),
+              'index': attempt,
           }), task_module.Dependency(from_=read_value_id, to=run_test_id))
 
   for vertex, edge in GenerateVertexAndDep(options.test_options.attempts):

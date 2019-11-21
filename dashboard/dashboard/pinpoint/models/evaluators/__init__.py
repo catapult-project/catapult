@@ -83,6 +83,9 @@ class NoopEvaluator(object):
   def __call__(self, *_):
     return None
 
+  def __str__(self):
+    return 'NoopEvaluator()'
+
 
 class TaskPayloadLiftingEvaluator(object):
   """An evaluator that copies task payload and status to the accumulator.
@@ -158,7 +161,7 @@ class FilteringEvaluator(object):
     return self._alternative(*args)
 
 
-class DispatchByEventTypeEvaluator(object):
+class DispatchEvaluatorBase(object):
 
   def __init__(self, evaluator_map, default_evaluator=None):
     if not evaluator_map and not default_evaluator:
@@ -168,9 +171,34 @@ class DispatchByEventTypeEvaluator(object):
     self._evaluator_map = evaluator_map
     self._default_evaluator = default_evaluator or NoopEvaluator
 
+  def _Key(self, task, event):
+    raise NotImplementedError('Override this in the subclass.')
+
   def __call__(self, task, event, accumulator):
-    handler = self._evaluator_map.get(event.type, self._default_evaluator)
+    handler = self._evaluator_map.get(
+        self._Key(task, event), self._default_evaluator)
     return handler(task, event, accumulator)
+
+
+class DispatchByEventTypeEvaluator(DispatchEvaluatorBase):
+
+  @staticmethod
+  def _Key(_, event):
+    return event.type
+
+
+class DispatchByTaskStatus(DispatchEvaluatorBase):
+
+  @staticmethod
+  def _Key(task, _):
+    return task.status
+
+
+class DispatchByTaskType(DispatchEvaluatorBase):
+
+  @staticmethod
+  def _Key(task, _):
+    return task.task_type
 
 
 class Selector(FilteringEvaluator):
