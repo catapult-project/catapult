@@ -378,7 +378,9 @@ class _DevToolsClientBackend(object):
     """Obtain the inspector backend for the firstly created tab."""
     return next(self._IterInspectorBackends(['page']), None)
 
-  def CollectChromeTracingData(self, trace_data_builder, timeout=120):
+  # TODO(eseckler): Reduce the timeout once we collect traces from Chrome in
+  # proto instead of JSON format.
+  def CollectChromeTracingData(self, trace_data_builder, timeout=300):
     self._tracing_backend.CollectTraceData(trace_data_builder, timeout)
 
   # This call may be made early during browser bringup and may cause the
