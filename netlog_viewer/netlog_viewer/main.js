@@ -132,12 +132,6 @@ const MainView = (function() {
       }
     },
 
-    switchToViewOnlyMode() {
-      // Since this won't be dumped to a file, we don't want to remove
-      // cookies and credentials.
-      log_util.createLogDumpAsync('', log_util.loadLogFile, false);
-    },
-
     initTabs_() {
       this.tabIdToHash_ = {};
       this.hashToTabId_ = {};

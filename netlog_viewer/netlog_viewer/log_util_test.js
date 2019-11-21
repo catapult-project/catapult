@@ -34,7 +34,7 @@ CreateAndLoadLogTask.prototype = {
    * Starts creating the log dump.
    */
   start: function() {
-    log_util.createLogDumpAsync(
+    LogUtil.createLogDumpAsync(
         this.userComments_, this.onLogDumpCreated.bind(this), true);
   },
 
@@ -44,7 +44,7 @@ CreateAndLoadLogTask.prototype = {
    * @param {string} logDumpText Log dump, as a string.
    */
   onLogDumpCreated: function(logDumpText) {
-    expectEquals('Log loaded.', log_util.loadLogFile(logDumpText, 'log.txt'));
+    expectEquals('Log loaded.', LogUtil.loadLogFile(logDumpText, 'log.txt'));
 
     NetInternalsTest.expectStatusViewNodeVisible(LoadedStatusView.MAIN_BOX_ID);
 
@@ -128,7 +128,7 @@ GetNetLogFileContentsAndLoadLogTask.prototype = {
     }
 
     logDumpText = logDumpText.substring(0, logDumpText.length - this.truncate_);
-    expectEquals(expectedResult, log_util.loadLogFile(logDumpText, 'log.txt'));
+    expectEquals(expectedResult, LogUtil.loadLogFile(logDumpText, 'log.txt'));
 
     NetInternalsTest.expectStatusViewNodeVisible(LoadedStatusView.MAIN_BOX_ID);
 

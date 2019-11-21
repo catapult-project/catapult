@@ -55,7 +55,7 @@ GEN_INCLUDE(['net_internals_test.js']);
      * Starts creating a log dump.
      */
     start() {
-      log_util.createLogDumpAsync(
+      LogUtil.createLogDumpAsync(
           'test', this.onLogDumpCreated.bind(this), true);
     },
 
@@ -75,7 +75,7 @@ GEN_INCLUDE(['net_internals_test.js']);
           logDump.events[0], this.endTime_, null));
       logDumpText = JSON.stringify(logDump);
 
-      assertEquals('Log loaded.', log_util.loadLogFile(logDumpText));
+      assertEquals('Log loaded.', LogUtil.loadLogFile(logDumpText));
 
       endTime = this.endTime_;
       startTime = this.startTime_;

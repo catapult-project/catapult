@@ -178,7 +178,7 @@ var ImportView = (function() {
     },
 
     onLoadLogFile: function(logFile, event) {
-      var result = log_util.loadLogFile(event.target.result, logFile.name);
+      var result = LogUtil.loadLogFile(event.target.result, logFile.name);
       this.setLoadFileStatus(result, false);
     },
 

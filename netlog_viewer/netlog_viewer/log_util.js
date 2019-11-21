@@ -2,84 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-log_util = (function() {
-  'use strict';
+'use strict';
 
-  /**
-   * Creates a new log dump.  |events| is a list of all events, |polledData| is
-   * an object containing the results of each poll, |tabData| is an object
-   * containing data for individual tabs, |date| is the time the dump was
-   * created, as a formatted string.
-   *
-   * Returns the new log dump as an object.  Resulting object may have a null
-   * |numericDate|.
-   *
-   * TODO(eroman): Use javadoc notation for these parameters.
-   *
-   * Log dumps are just JSON objects containing five values:
-   *
-   *   |userComments| User-provided notes describing what this dump file is
-   *                  about.
-   *   |constants| needed to interpret the data.  This also includes some
-   *               browser state information.
-   *   |events| from the NetLog.
-   *   |polledData| from each PollableDataHelper available on the source OS.
-   *   |tabData| containing any tab-specific state that's not present in
-   *             |polledData|.
-   *
-   * |polledData| and |tabData| may be empty objects, or may be missing data for
-   * tabs not present on the OS the log is from.
-   */
-  function createLogDump(
-      userComments, constants, events, polledData, tabData, numericDate) {
-    var logDump = {
-      'userComments': userComments,
-      'constants': constants,
-      'events': events,
-      'polledData': polledData,
-      'tabData': tabData
-    };
-
-    // Not technically client info, but it's used at the same point in the code.
-    if (numericDate && constants.clientInfo) {
-      constants.clientInfo.numericDate = numericDate;
-    }
-
-    return logDump;
-  }
-
-  /**
-   * Creates a full log dump using |polledData| and the return value of each
-   * tab's saveState function and passes it to |callback|.
-   */
-  function onUpdateAllCompleted(userComments, callback, polledData) {
-    var logDump = createLogDump(
-        userComments, Constants,
-        EventsTracker.getInstance().getAllCapturedEvents(), polledData,
-        getTabData_(), timeutil.getCurrentTime());
-    callback(JSON.stringify(logDump));
-  }
-
-  /**
-   * Called to create a new log dump.  Must not be called once a dump has been
-   * loaded.  Once a log dump has been created, |callback| is passed the dumped
-   * text as a string.
-   */
-  // TODO(mmenke): Remove this function.
-  function createLogDumpAsync(userComments, callback) {
-  }
-
+const LogUtil = (function() {
   /**
    * Gather any tab-specific state information prior to creating a log dump.
    */
   function getTabData_() {
-    var tabData = {};
-    var tabSwitcher = MainView.getInstance().tabSwitcher();
-    var tabIdToView = tabSwitcher.getAllTabViews();
-    for (var tabId in tabIdToView) {
-      var view = tabIdToView[tabId];
-      if (view.saveState)
+    const tabData = {};
+    const tabSwitcher = MainView.getInstance().tabSwitcher();
+    const tabIdToView = tabSwitcher.getAllTabViews();
+    for (const tabId in tabIdToView) {
+      const view = tabIdToView[tabId];
+      if (view.saveState) {
         tabData[tabId] = view.saveState();
+      }
     }
   }
 
@@ -107,30 +44,37 @@ log_util = (function() {
    */
   function loadLogDump(logDump, opt_fileName) {
     // Perform minimal validity check, and abort if it fails.
-    if (typeof(logDump) != 'object')
+    if (typeof(logDump) !== 'object') {
       return 'Load failed.  Top level JSON data is not an object.';
+    }
 
     // String listing text summary of load errors, if any.
-    var errorString = '';
+    let errorString = '';
 
-    if (!areValidConstants(logDump.constants))
+    if (!areValidConstants(logDump.constants)) {
       errorString += 'Invalid constants object.\n';
-    if (typeof(logDump.events) != 'object')
+    }
+    if (typeof(logDump.events) !== 'object') {
       errorString += 'NetLog events missing.\n';
-    if (typeof(logDump.constants.logFormatVersion) != 'number')
+    }
+    if (typeof(logDump.constants.logFormatVersion) !== 'number') {
       errorString += 'Invalid version number.\n';
+    }
 
-    if (errorString.length > 0)
+    if (errorString.length > 0) {
       return 'Load failed:\n\n' + errorString;
+    }
 
-    if (typeof(logDump.polledData) != 'object')
+    if (typeof(logDump.polledData) !== 'object') {
       logDump.polledData = {};
-    if (typeof(logDump.tabData) != 'object')
+    }
+    if (typeof(logDump.tabData) !== 'object') {
       logDump.tabData = {};
+    }
 
-    var kSupportedLogFormatVersion = 1;
+    const kSupportedLogFormatVersion = 1;
 
-    if (logDump.constants.logFormatVersion != kSupportedLogFormatVersion) {
+    if (logDump.constants.logFormatVersion !== kSupportedLogFormatVersion) {
       return 'Unable to load different log version.' +
           ' Found ' + logDump.constants.logFormatVersion + ', Expected ' +
           Constants.logFormatVersion;
@@ -141,15 +85,15 @@ log_util = (function() {
     // Check for validity of each log entry, and then add the ones that pass.
     // Since the events are kept around, and we can't just hide a single view
     // on a bad event, we have more error checking for them than other data.
-    var validEvents = [];
-    var numDeprecatedPassiveEvents = 0;
-    for (var eventIndex = 0; eventIndex < logDump.events.length; ++eventIndex) {
-      var event = logDump.events[eventIndex];
-      if (typeof event == 'object' && typeof event.source == 'object' &&
-          typeof event.time == 'string' &&
-          typeof EventTypeNames[event.type] == 'string' &&
-          typeof EventSourceTypeNames[event.source.type] == 'string' &&
-          getKeyWithValue(EventPhase, event.phase) != '?') {
+    const validEvents = [];
+    let numDeprecatedPassiveEvents = 0;
+    for (let eventIndex = 0; eventIndex < logDump.events.length; ++eventIndex) {
+      const event = logDump.events[eventIndex];
+      if (typeof event === 'object' && typeof event.source === 'object' &&
+          typeof event.time === 'string' &&
+          typeof EventTypeNames[event.type] === 'string' &&
+          typeof EventSourceTypeNames[event.source.type] === 'string' &&
+          getKeyWithValue(EventPhase, event.phase) !== '?') {
         if (event.wasPassivelyCaptured) {
           // NOTE: Up until Chrome 18, log dumps included "passively captured"
           // events. These are no longer supported, so skip past them
@@ -177,9 +121,9 @@ log_util = (function() {
     // TODO(eroman): Fix the log format / writers to avoid this problem. Dumps
     // *should* contain the time when capturing started, and when capturing
     // ended.
-    if (typeof logDump.constants.clientInfo.numericDate != 'number') {
+    if (typeof logDump.constants.clientInfo.numericDate !== 'number') {
       if (validEvents.length > 0) {
-        var lastEvent = validEvents[validEvents.length - 1];
+        const lastEvent = validEvents[validEvents.length - 1];
         ClientInfo.numericDate =
             timeutil.convertTimeTicksToDate(lastEvent.time).getTime();
       } else {
@@ -198,15 +142,15 @@ log_util = (function() {
 
     // Inform all the views that a log file is being loaded, and pass in
     // view-specific saved state, if any.
-    var tabSwitcher = MainView.getInstance().tabSwitcher();
-    var tabIdToView = tabSwitcher.getAllTabViews();
-    for (var tabId in tabIdToView) {
-      var view = tabIdToView[tabId];
+    const tabSwitcher = MainView.getInstance().tabSwitcher();
+    const tabIdToView = tabSwitcher.getAllTabViews();
+    for (const tabId in tabIdToView) {
+      const view = tabIdToView[tabId];
       view.onLoadLogStart(logDump.polledData, logDump.tabData[tabId]);
     }
     EventsTracker.getInstance().addLogEntries(validEvents);
 
-    var numInvalidEvents = logDump.events.length -
+    const numInvalidEvents = logDump.events.length -
         (validEvents.length + numDeprecatedPassiveEvents);
     if (numInvalidEvents > 0) {
       errorString += 'Unable to load ' + numInvalidEvents +
@@ -221,14 +165,14 @@ log_util = (function() {
 
     // Update all views with data from the file.  Show only those views which
     // successfully load the data.
-    for (var tabId in tabIdToView) {
-      var view = tabIdToView[tabId];
-      var showView = false;
+    for (const tabId in tabIdToView) {
+      const view = tabIdToView[tabId];
+      let showView = false;
       // The try block eliminates the need for checking every single value
       // before trying to access it.
       try {
         if (view.onLoadLogFinish(
-                logDump.polledData, logDump.tabData[tabId], logDump)) {
+            logDump.polledData, logDump.tabData[tabId], logDump)) {
           showView = true;
         }
       } catch (error) {
@@ -250,18 +194,18 @@ log_util = (function() {
     // Try and parse the log dump as a single JSON string.  If this succeeds,
     // it's most likely a full log dump.  Otherwise, it may be a dump created by
     // --log-net-log.
-    var parsedDump = null;
-    var errorString = '';
+    let parsedDump = null;
+    let errorString = '';
     try {
       parsedDump = JSON.parse(logFileContents);
     } catch (error) {
       try {
         // We may have a --log-net-log=blah log dump.  If so, remove the comma
         // after the final good entry, and add the necessary close brackets.
-        var end = Math.max(
+        const end = Math.max(
             logFileContents.lastIndexOf(',\n'),
             logFileContents.lastIndexOf(',\r'));
-        if (end != -1) {
+        if (end !== -1) {
           parsedDump = JSON.parse(logFileContents.substring(0, end) + ']}');
           errorString += 'Log file truncated.  Events may be missing.\n';
         }
@@ -269,12 +213,12 @@ log_util = (function() {
       }
     }
 
-    if (!parsedDump)
+    if (!parsedDump) {
       return 'Unable to parse log dump as JSON file.';
+    }
     return errorString + loadLogDump(parsedDump, fileName);
   }
 
   // Exports.
-  return {createLogDumpAsync: createLogDumpAsync, loadLogFile: loadLogFile};
+  return {loadLogFile};
 })();
-
