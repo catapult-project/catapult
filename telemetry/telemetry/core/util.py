@@ -86,7 +86,10 @@ def GetBuildDirectories(chrome_root=None):
   # CHROMIUM_OUTPUT_DIR can be set by --chromium-output-directory.
   output_dir = os.environ.get('CHROMIUM_OUTPUT_DIR')
   if output_dir:
-    yield os.path.join(chrome_root, output_dir)
+    if os.path.isabs(output_dir):
+      yield output_dir
+    else:
+      yield os.path.join(chrome_root, output_dir)
   elif os.path.exists('build.ninja'):
     yield os.getcwd()
   else:
@@ -103,6 +106,35 @@ def GetBuildDirectories(chrome_root=None):
     for build_dir in build_dirs:
       for build_type in build_types:
         yield os.path.join(chrome_root, build_dir, build_type)
+
+
+def GetUsedBuildDirectory(browser_directory=None, chrome_root=None):
+  """Gets the build directory that's likely being used.
+
+  Args:
+    browser_directory: The path to the directory the browser is stored in, i.e.
+        what is returned by a PossibleBrowser's browser_directory property.
+    chrome_root: A path to the Chromium src root. Defaults to the value returned
+        by GetChromiumSrcDir().
+
+  Returns:
+    A path to the directory that most likely contains the build artifacts for
+    the browser being used.
+  """
+  # This is expected to not exist on platforms that run remotely, e.g. Android
+  # and CrOS. In cases where this exists but doesn't point to a build directory,
+  # such as using stable Chrome, none of the other possible directories will be
+  # valid, either, so this is as good as any.
+  if browser_directory is not None and os.path.exists(browser_directory):
+    return browser_directory
+  # Otherwise, check if any of the other known directories exist, returning the
+  # first one and defaulting to the current directory.
+  build_dir = os.getcwd()
+  for b in GetBuildDirectories(chrome_root=chrome_root):
+    if os.path.exists(b):
+      build_dir = b
+      break
+  return build_dir
 
 
 def FindLatestApkOnHost(chrome_root, apk_name):
