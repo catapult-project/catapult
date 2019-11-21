@@ -17,14 +17,6 @@
 
 var NetInternalsTest = (function() {
   /**
-   * A shorter poll interval is used for tests, since a few tests wait for
-   * polled values to change.
-   * @type {number}
-   * @const
-   */
-  var TESTING_POLL_INTERVAL_MS = 50;
-
-  /**
    * Private pointer to the currently active test framework.  Needed so static
    * functions can access some of the inner workings of the test framework.
    * @type {NetInternalsTest}
@@ -91,8 +83,6 @@ var NetInternalsTest = (function() {
       // functions can be called from observers.
       g_browser.receive = this.continueTest(
           WhenTestDone.EXPECT, BrowserBridge.prototype.receive.bind(g_browser));
-
-      g_browser.setPollInterval(TESTING_POLL_INTERVAL_MS);
 
       var runTest = this.deferRunTest(WhenTestDone.EXPECT);
 

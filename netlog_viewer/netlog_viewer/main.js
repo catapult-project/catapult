@@ -90,11 +90,6 @@ const MainView = (function() {
     // No log file loaded yet so set the status bar to that state.
     this.topBarView_.switchToSubView('loaded').setFileName(
         'No log to display.');
-
-    // TODO(rayraymond): Follow-up is to completely remove all code from
-    // g_browser that interacts with sending/receiving messages from
-    // browser.
-    g_browser.disable();
   }
 
   cr.addSingletonGetter(MainView);
@@ -206,12 +201,6 @@ const MainView = (function() {
      * so the back can be used to return to previous view.
      */
     onTabSwitched_(oldTabId, newTabId) {
-      // Update data needed by newly active tab, as it may be
-      // significantly out of date.
-      if (g_browser) {
-        g_browser.checkForUpdatedInfo();
-      }
-
       // Change the URL to match the new tab.
 
       const newTabHash = this.tabIdToHash_[newTabId];

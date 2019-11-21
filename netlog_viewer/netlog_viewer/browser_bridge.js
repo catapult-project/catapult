@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 // Populated by constants from the browser.  Used only by this file.
 var NetInfoSources = null;
 
@@ -10,8 +12,6 @@ var NetInfoSources = null;
  * the browser.
  */
 var BrowserBridge = (function() {
-  'use strict';
-
   /**
    * Delay in milliseconds between updates of certain browser information.
    */
@@ -59,27 +59,19 @@ var BrowserBridge = (function() {
 
     // Add other PollableDataHelpers.
     this.pollableDataHelpers_.sessionNetworkStats = new PollableDataHelper(
-        'onSessionNetworkStatsChanged',
-        this.sendGetSessionNetworkStats.bind(this));
+        'onSessionNetworkStatsChanged');
     this.pollableDataHelpers_.historicNetworkStats = new PollableDataHelper(
-        'onHistoricNetworkStatsChanged',
-        this.sendGetHistoricNetworkStats.bind(this));
+        'onHistoricNetworkStatsChanged');
     if (cr.isWindows) {
       this.pollableDataHelpers_.serviceProviders = new PollableDataHelper(
-          'onServiceProvidersChanged', this.sendGetServiceProviders.bind(this));
+          'onServiceProvidersChanged');
     }
     this.pollableDataHelpers_.prerenderInfo = new PollableDataHelper(
-        'onPrerenderInfoChanged', this.sendGetPrerenderInfo.bind(this));
+        'onPrerenderInfoChanged');
     this.pollableDataHelpers_.extensionInfo = new PollableDataHelper(
-        'onExtensionInfoChanged', this.sendGetExtensionInfo.bind(this));
+        'onExtensionInfoChanged');
     this.pollableDataHelpers_.dataReductionProxyInfo = new PollableDataHelper(
-        'onDataReductionProxyInfoChanged',
-        this.sendGetDataReductionProxyInfo.bind(this));
-
-    // Setting this to true will cause messages from the browser to be ignored,
-    // and no messages will be sent to the browser, either.  Intended for use
-    // when viewing log files.
-    this.disabled_ = false;
+        'onDataReductionProxyInfoChanged');
 
     // Interval id returned by window.setInterval for polling timer.
     this.pollIntervalId_ = null;
@@ -94,133 +86,13 @@ var BrowserBridge = (function() {
     //--------------------------------------------------------------------------
 
     /**
-     * Wraps |chrome.send|.  Doesn't send anything when disabled.
+     * Wraps |chrome.send|.
      */
     send: function(value1, value2) {
       if (console && console.warn) {
         console.warn('TODO: Called deprecated BrowserBridge.send');
       }
       return;
-
-      /*if (!this.disabled_) {
-        if (arguments.length == 1) {
-          chrome.send(value1);
-        } else if (arguments.length == 2) {
-          chrome.send(value1, value2);
-        } else {
-          throw 'Unsupported number of arguments.';
-        }
-      }*/
-    },
-
-    sendReady: function() {
-      this.send('notifyReady');
-      this.setPollInterval(POLL_INTERVAL_MS);
-    },
-
-    /**
-     * Some of the data we are interested is not currently exposed as a
-     * stream.  This starts polling those with active observers (visible
-     * views) every |intervalMs|.  Subsequent calls override previous calls
-     * to this function.  If |intervalMs| is 0, stops polling.
-     */
-    setPollInterval: function(intervalMs) {
-      if (this.pollIntervalId_ !== null) {
-        window.clearInterval(this.pollIntervalId_);
-        this.pollIntervalId_ = null;
-      }
-
-      if (intervalMs > 0) {
-        this.pollIntervalId_ = window.setInterval(
-            this.checkForUpdatedInfo.bind(this, false), intervalMs);
-      }
-    },
-
-    sendGetNetInfo: function(netInfoSource) {
-      // If don't have constants yet, don't do anything yet.
-      if (NetInfoSources)
-        this.send('getNetInfo', [NetInfoSources[netInfoSource]]);
-    },
-
-    sendReloadProxySettings: function() {
-      this.send('reloadProxySettings');
-    },
-
-    sendClearBadProxies: function() {
-      this.send('clearBadProxies');
-    },
-
-    sendClearHostResolverCache: function() {
-      this.send('clearHostResolverCache');
-    },
-
-    sendClearBrowserCache: function() {
-      this.send('clearBrowserCache');
-    },
-
-    sendClearAllCache: function() {
-      this.sendClearHostResolverCache();
-      this.sendClearBrowserCache();
-    },
-
-    sendHSTSQuery: function(domain) {
-      this.send('hstsQuery', [domain]);
-    },
-
-    sendHSTSAdd: function(domain, sts_include_subdomains) {
-      this.send('hstsAdd', [domain, sts_include_subdomains]);
-    },
-
-    sendDomainSecurityPolicyDelete: function(domain) {
-      this.send('domainSecurityPolicyDelete', [domain]);
-    },
-
-    sendExpectCTQuery: function(domain) {
-      this.send('expectCTQuery', [domain]);
-    },
-
-    sendExpectCTAdd: function(domain, report_uri, enforce) {
-      this.send('expectCTAdd', [domain, report_uri, enforce]);
-    },
-
-    sendExpectCTTestReport: function(report_uri) {
-      this.send('expectCTTestReport', [report_uri]);
-    },
-
-    sendGetSessionNetworkStats: function() {
-      this.send('getSessionNetworkStats');
-    },
-
-    sendGetHistoricNetworkStats: function() {
-      this.send('getHistoricNetworkStats');
-    },
-
-    sendCloseIdleSockets: function() {
-      this.send('closeIdleSockets');
-    },
-
-    sendFlushSocketPools: function() {
-      this.send('flushSocketPools');
-    },
-
-    sendGetServiceProviders: function() {
-      this.send('getServiceProviders');
-    },
-
-    sendGetPrerenderInfo: function() {
-      this.send('getPrerenderInfo');
-    },
-
-    sendGetExtensionInfo: function() {
-      this.send('getExtensionInfo');
-    },
-
-    sendGetDataReductionProxyInfo: function() {
-      this.send('getDataReductionProxyInfo');
-    },
-
-    setCaptureMode: function(captureMode) {
-      this.send('setCaptureMode', ['' + captureMode]);
     },
 
     importONCFile: function(fileContent, passcode) {
@@ -239,38 +111,10 @@ var BrowserBridge = (function() {
     // Messages received from the browser.
     //--------------------------------------------------------------------------
 
-    receive: function(command, params) {
-      // Does nothing if disabled.
-      if (this.disabled_)
-        return;
-
-      // If no constants have been received, and params does not contain the
-      // constants, delay handling the data.
-      if (Constants == null && command != 'receivedConstants') {
-        this.earlyReceivedData_.push({command: command, params: params});
-        return;
-      }
-
-      this[command](params);
-
-      // Handle any data that was received early in the order it was received,
-      // once the constants have been processed.
-      if (this.earlyReceivedData_ != null) {
-        for (var i = 0; i < this.earlyReceivedData_.length; i++) {
-          var command = this.earlyReceivedData_[i];
-          this[command.command](command.params);
-        }
-        this.earlyReceivedData_ = null;
-      }
-    },
-
     receivedConstants: function(constants) {
       NetInfoSources = constants.netInfoSources;
       for (var i = 0; i < this.constantsObservers_.length; i++)
         this.constantsObservers_[i].onReceivedConstants(constants);
-      // May have been waiting for the constants to be received before getting
-      // information for the currently displayed tab.
-      this.checkForUpdatedInfo();
     },
 
     receivedLogEntries: function(logEntries) {
@@ -344,21 +188,6 @@ var BrowserBridge = (function() {
     },
 
     //--------------------------------------------------------------------------
-
-    /**
-     * Prevents receiving/sending events to/from the browser.
-     */
-    disable: function() {
-      this.disabled_ = true;
-      this.setPollInterval(0);
-    },
-
-    /**
-     * Returns true if the BrowserBridge has been disabled.
-     */
-    isDisabled: function() {
-      return this.disabled_;
-    },
 
     /**
      * Adds a listener of the proxy settings. |observer| will be called back
@@ -621,33 +450,11 @@ var BrowserBridge = (function() {
     },
 
     /**
-     * If |force| is true, calls all startUpdate functions.  Otherwise, just
-     * runs updates with active observers.
-     */
-    checkForUpdatedInfo: function(force) {
-      for (var name in this.pollableDataHelpers_) {
-        var helper = this.pollableDataHelpers_[name];
-        if (force || helper.hasActiveObserver())
-          helper.startUpdate();
-      }
-    },
-
-    /**
-     * Calls all startUpdate functions and, if |callback| is non-null,
-     * calls it with the results of all updates.
-     */
-    updateAllInfo: function(callback) {
-      if (callback)
-        new UpdateAllObserver(callback, this.pollableDataHelpers_);
-      this.checkForUpdatedInfo(true);
-    },
-
-    /**
      * Adds a PollableDataHelper that listens to the specified NetInfoSource.
      */
     addNetInfoPollableDataHelper: function(sourceName, observerMethodName) {
       this.pollableDataHelpers_[sourceName] = new PollableDataHelper(
-          observerMethodName, this.sendGetNetInfo.bind(this, sourceName));
+          observerMethodName);
     },
   };
 
@@ -659,9 +466,8 @@ var BrowserBridge = (function() {
    *   - the update function.
    * @constructor
    */
-  function PollableDataHelper(observerMethodName, startUpdateFunction) {
+  function PollableDataHelper(observerMethodName) {
     this.observerMethodName_ = observerMethodName;
-    this.startUpdate = startUpdateFunction;
     this.observerInfos_ = [];
   }
 
@@ -748,43 +554,6 @@ var BrowserBridge = (function() {
     this.hasReceivedData = false;
     this.ignoreWhenUnchanged = ignoreWhenUnchanged;
   }
-
-  /**
-   * This is a helper class used by BrowserBridge to send data to
-   * a callback once data from all polls has been received.
-   *
-   * It works by keeping track of how many polling functions have
-   * yet to receive data, and recording the data as it it received.
-   *
-   * @constructor
-   */
-  function UpdateAllObserver(callback, pollableDataHelpers) {
-    this.callback_ = callback;
-    this.observingCount_ = 0;
-    this.updatedData_ = {};
-
-    for (var name in pollableDataHelpers) {
-      ++this.observingCount_;
-      var helper = pollableDataHelpers[name];
-      helper.addObserver(this);
-      this[helper.getObserverMethodName()] =
-          this.onDataReceived_.bind(this, helper, name);
-    }
-  }
-
-  UpdateAllObserver.prototype = {
-    isActive: function() {
-      return true;
-    },
-
-    onDataReceived_: function(helper, name, data) {
-      helper.removeObserver(this);
-      --this.observingCount_;
-      this.updatedData_[name] = data;
-      if (this.observingCount_ == 0)
-        this.callback_(this.updatedData_);
-    }
-  };
 
   return BrowserBridge;
 })();

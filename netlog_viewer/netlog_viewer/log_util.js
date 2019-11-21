@@ -65,9 +65,8 @@ log_util = (function() {
    * loaded.  Once a log dump has been created, |callback| is passed the dumped
    * text as a string.
    */
+  // TODO(mmenke): Remove this function.
   function createLogDumpAsync(userComments, callback) {
-    g_browser.updateAllInfo(
-        onUpdateAllCompleted.bind(null, userComments, callback));
   }
 
   /**

@@ -96,16 +96,9 @@ var TimelineView = (function() {
 
     show: function(isVisible) {
       superClass.prototype.show.call(this, isVisible);
-      // If we're hidden or not capturing events, we don't want to update the
-      // graph's range.
-      if (!isVisible || g_browser.isDisabled()) {
-        this.setUpdateEndDateInterval_(0);
-        return;
-      }
-
-      // Otherwise, update the visible range on a timer.
-      this.setUpdateEndDateInterval_(UPDATE_INTERVAL_MS);
-      this.updateEndDate_();
+      // Live capture is no longer supported, so don't need to constantly
+      // update the graph's range.
+      this.setUpdateEndDateInterval_(0);
     },
 
     /**

@@ -146,7 +146,6 @@ GetNetLogFileContentsAndLoadLogTask.prototype = {
  * Also checks that the BrowserBridge is disabled.
  */
 function checkViewsAfterLogLoaded() {
-  expectTrue(g_browser.isDisabled());
   var tabVisibilityState = {
     capture: false,
     import: true,
@@ -174,7 +173,6 @@ function checkViewsAfterLogLoaded() {
  * browser. Also checks that the BrowserBridge is disabled.
  */
 function checkViewsAfterNetLogFileLoaded() {
-  expectTrue(g_browser.isDisabled());
   var tabVisibilityState = {
     capture: false,
     import: true,
@@ -212,7 +210,6 @@ function checkActiveView(id) {
  * TODO(mmenke):  Add some checks for the import view.
  */
 TEST_F('NetInternalsTest', 'netInternalsLogUtilExportImport', function() {
-  expectFalse(g_browser.isDisabled());
   NetInternalsTest.expectStatusViewNodeVisible(CaptureStatusView.MAIN_BOX_ID);
 
   var taskQueue = new NetInternalsTest.TaskQueue(true);
