@@ -160,10 +160,8 @@ function checkViewsAfterLogLoaded() {
     'alt-svc': true,
     httpCache: true,
     modules: true,
-    hsts: false,
     prerender: true,
     bandwidth: true,
-    chromeos: false
   };
   NetInternalsTest.checkTabLinkVisibility(tabVisibilityState, false);
 }
@@ -187,10 +185,7 @@ function checkViewsAfterNetLogFileLoaded() {
     'alt-svc': false,
     httpCache: false,
     modules: false,
-    hsts: false,
     prerender: false,
-    bandwidth: false,
-    chromeos: false
   };
   NetInternalsTest.checkTabLinkVisibility(tabVisibilityState, false);
 }

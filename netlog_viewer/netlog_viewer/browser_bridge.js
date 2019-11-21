@@ -24,16 +24,7 @@ var BrowserBridge = (function() {
     assertFirstConstructorCall(BrowserBridge);
 
     // List of observers for various bits of browser state.
-    this.hstsObservers_ = [];
-    this.expectCTObservers_ = [];
     this.constantsObservers_ = [];
-    this.crosONCFileParseObservers_ = [];
-    this.storeDebugLogsObservers_ = [];
-    this.setNetworkDebugModeObservers_ = [];
-    // Unprocessed data received before the constants.  This serves to protect
-    // against passing along data before having information on how to interpret
-    // it.
-    this.earlyReceivedData_ = [];
 
     this.pollableDataHelpers_ = {};
 
@@ -78,32 +69,6 @@ var BrowserBridge = (function() {
   BrowserBridge.prototype = {
 
     //--------------------------------------------------------------------------
-    // Messages sent to the browser
-    //--------------------------------------------------------------------------
-
-    /**
-     * Wraps |chrome.send|.
-     */
-    send: function(value1, value2) {
-      if (console && console.warn) {
-        console.warn('TODO: Called deprecated BrowserBridge.send');
-      }
-      return;
-    },
-
-    importONCFile: function(fileContent, passcode) {
-      this.send('importONCFile', [fileContent, passcode]);
-    },
-
-    storeDebugLogs: function() {
-      this.send('storeDebugLogs');
-    },
-
-    setNetworkDebugMode: function(subsystem) {
-      this.send('setNetworkDebugMode', [subsystem]);
-    },
-
-    //--------------------------------------------------------------------------
     // Messages received from the browser.
     //--------------------------------------------------------------------------
 
@@ -129,36 +94,6 @@ var BrowserBridge = (function() {
 
     receivedServiceProviders: function(serviceProviders) {
       this.pollableDataHelpers_.serviceProviders.update(serviceProviders);
-    },
-
-    receivedHSTSResult: function(info) {
-      for (var i = 0; i < this.hstsObservers_.length; i++)
-        this.hstsObservers_[i].onHSTSQueryResult(info);
-    },
-
-    receivedExpectCTResult: function(info) {
-      for (var i = 0; i < this.expectCTObservers_.length; i++)
-        this.expectCTObservers_[i].onExpectCTQueryResult(info);
-    },
-
-    receivedExpectCTTestReportResult: function(result) {
-      for (var i = 0; i < this.expectCTObservers_.length; i++)
-        this.expectCTObservers_[i].onExpectCTTestReportResult(result);
-    },
-
-    receivedONCFileParse: function(error) {
-      for (var i = 0; i < this.crosONCFileParseObservers_.length; i++)
-        this.crosONCFileParseObservers_[i].onONCFileParse(error);
-    },
-
-    receivedStoreDebugLogs: function(status) {
-      for (var i = 0; i < this.storeDebugLogsObservers_.length; i++)
-        this.storeDebugLogsObservers_[i].onStoreDebugLogs(status);
-    },
-
-    receivedSetNetworkDebugMode: function(status) {
-      for (var i = 0; i < this.setNetworkDebugModeObservers_.length; i++)
-        this.setNetworkDebugModeObservers_[i].onSetNetworkDebugMode(status);
     },
 
     receivedPrerenderInfo: function(prerenderInfo) {
@@ -319,56 +254,6 @@ var BrowserBridge = (function() {
     addHttpCacheInfoObserver: function(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.httpCacheInfo.addObserver(
           observer, ignoreWhenUnchanged);
-    },
-
-    /**
-     * Adds a listener for the results of HSTS (HTTPS Strict Transport Security)
-     * queries. The observer will be called back with:
-     *
-     *   observer.onHSTSQueryResult(result);
-     */
-    addHSTSObserver: function(observer) {
-      this.hstsObservers_.push(observer);
-    },
-
-    /**
-     * Adds a listener for the results of Expect-CT queries. The observer will
-     * be called back with:
-     *
-     *   observer.onExpectCTQueryResult(result);
-     */
-    addExpectCTObserver: function(observer) {
-      this.expectCTObservers_.push(observer);
-    },
-
-    /**
-     * Adds a listener for ONC file parse status. The observer will be called
-     * back with:
-     *
-     *   observer.onONCFileParse(error);
-     */
-    addCrosONCFileParseObserver: function(observer) {
-      this.crosONCFileParseObservers_.push(observer);
-    },
-
-    /**
-     * Adds a listener for storing log file status. The observer will be called
-     * back with:
-     *
-     *   observer.onStoreDebugLogs(status);
-     */
-    addStoreDebugLogsObserver: function(observer) {
-      this.storeDebugLogsObservers_.push(observer);
-    },
-
-    /**
-     * Adds a listener for network debugging mode status. The observer
-     * will be called back with:
-     *
-     *   observer.onSetNetworkDebugMode(status);
-     */
-    addSetNetworkDebugModeObserver: function(observer) {
-      this.setNetworkDebugModeObservers_.push(observer);
     },
 
     /**

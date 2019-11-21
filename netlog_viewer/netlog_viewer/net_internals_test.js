@@ -50,10 +50,6 @@ var NetInternalsTest = (function() {
       // If it was actual text it'd be too low-contrast, but a square is fine.
       this.accessibilityAuditConfig.ignoreSelectors(
           'lowContrastElements', '#timeline-view-selection-ul label');
-      // False positive because the background color highlights and then
-      // fades out with a transition when there's an error.
-      this.accessibilityAuditConfig.ignoreSelectors(
-          'lowContrastElements', '#hsts-view-query-output span');
       // False positives for unknown reason.
       this.accessibilityAuditConfig.ignoreSelectors(
           'focusableElementNotVisibleAndNotAriaHidden',
@@ -63,17 +59,6 @@ var NetInternalsTest = (function() {
       // https://github.com/GoogleChrome/accessibility-developer-tools/issues/69
       this.accessibilityAuditConfig.auditRulesToIgnore.push(
           'focusableElementNotVisibleAndNotAriaHidden');
-
-      var controlsWithoutLabelSelectors = [
-        '#hsts-view-add-input',
-        '#hsts-view-delete-input',
-        '#hsts-view-query-input',
-      ];
-
-      // Enable when failure is resolved.
-      // AX_TEXT_01: http://crbug.com/559203
-      this.accessibilityAuditConfig.ignoreSelectors(
-          'controlsWithoutLabel', controlsWithoutLabelSelectors);
 
       // Enable when warning is resolved.
       // AX_HTML_01: http://crbug.com/559204
@@ -292,8 +277,6 @@ var NetInternalsTest = (function() {
       httpCache: HttpCacheView.TAB_ID,
       modules: ModulesView.TAB_ID,
       prerender: PrerenderView.TAB_ID,
-      bandwidth: BandwidthView.TAB_ID,
-      chromeos: CrosView.TAB_ID
     };
 
     chai.assert.strictEqual(
