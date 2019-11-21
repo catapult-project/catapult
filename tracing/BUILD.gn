@@ -11,7 +11,7 @@ output_resource_dir = "$root_gen_dir/content/browser/tracing"
 action("generate_about_tracing") {
   script = "bin/generate_about_tracing_contents"
 
-  inputs = tracing_files
+  inputs = tracing_files + tracing_python_files
   outputs = [
     "$output_resource_dir/about_tracing.js",
     "$output_resource_dir/about_tracing.html",
