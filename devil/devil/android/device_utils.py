@@ -3375,9 +3375,7 @@ class DeviceUtils(object):
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GrantPermissions(self, package, permissions, timeout=None, retries=None):
-    # Permissions only need to be set on M and above because of the changes to
-    # the permission model.
-    if not permissions or self.build_version_sdk < version_codes.MARSHMALLOW:
+    if not permissions:
       return
 
     permissions = set(

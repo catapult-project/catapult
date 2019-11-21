@@ -3331,11 +3331,6 @@ class DeviceUtilsGrantPermissionsTest(DeviceUtilsTest):
   def testGrantPermissions_none(self):
     self.device.GrantPermissions('package', [])
 
-  def testGrantPermissions_underM(self):
-    with self.patch_call(self.call.device.build_version_sdk,
-                         return_value=version_codes.LOLLIPOP):
-      self.device.GrantPermissions('package', ['p1'])
-
   def testGrantPermissions_one(self):
     with self.patch_call(self.call.device.build_version_sdk,
                          return_value=version_codes.MARSHMALLOW):
