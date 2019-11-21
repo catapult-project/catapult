@@ -58,10 +58,6 @@ var BrowserBridge = (function() {
         'httpCacheInfo', 'onHttpCacheInfoChanged');
 
     // Add other PollableDataHelpers.
-    this.pollableDataHelpers_.sessionNetworkStats = new PollableDataHelper(
-        'onSessionNetworkStatsChanged');
-    this.pollableDataHelpers_.historicNetworkStats = new PollableDataHelper(
-        'onHistoricNetworkStatsChanged');
     if (cr.isWindows) {
       this.pollableDataHelpers_.serviceProviders = new PollableDataHelper(
           'onServiceProvidersChanged');
@@ -129,15 +125,6 @@ var BrowserBridge = (function() {
       // the API does allow for data from more that one to be requested at once.
       for (var source in netInfo)
         this.pollableDataHelpers_[source].update(netInfo[source]);
-    },
-
-    receivedSessionNetworkStats: function(sessionNetworkStats) {
-      this.pollableDataHelpers_.sessionNetworkStats.update(sessionNetworkStats);
-    },
-
-    receivedHistoricNetworkStats: function(historicNetworkStats) {
-      this.pollableDataHelpers_.historicNetworkStats.update(
-          historicNetworkStats);
     },
 
     receivedServiceProviders: function(serviceProviders) {
@@ -249,28 +236,6 @@ var BrowserBridge = (function() {
      */
     addSocketPoolInfoObserver: function(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.socketPoolInfo.addObserver(
-          observer, ignoreWhenUnchanged);
-    },
-
-    /**
-     * Adds a listener of the network session. |observer| will be called back
-     * when data is received, through:
-     *
-     *   observer.onSessionNetworkStatsChanged(sessionNetworkStats)
-     */
-    addSessionNetworkStatsObserver: function(observer, ignoreWhenUnchanged) {
-      this.pollableDataHelpers_.sessionNetworkStats.addObserver(
-          observer, ignoreWhenUnchanged);
-    },
-
-    /**
-     * Adds a listener of persistent network session data. |observer| will be
-     * called back when data is received, through:
-     *
-     *   observer.onHistoricNetworkStatsChanged(historicNetworkStats)
-     */
-    addHistoricNetworkStatsObserver: function(observer, ignoreWhenUnchanged) {
-      this.pollableDataHelpers_.historicNetworkStats.addObserver(
           observer, ignoreWhenUnchanged);
     },
 
@@ -435,17 +400,6 @@ var BrowserBridge = (function() {
      */
     addExtensionInfoObserver: function(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.extensionInfo.addObserver(
-          observer, ignoreWhenUnchanged);
-    },
-
-    /**
-     * Adds a listener of the data reduction proxy info. |observer| will be
-     * called back when data is received, through:
-     *
-     *   observer.onDataReductionProxyInfoChanged(dataReductionProxyInfo)
-     */
-    addDataReductionProxyInfoObserver: function(observer, ignoreWhenUnchanged) {
-      this.pollableDataHelpers_.dataReductionProxyInfo.addObserver(
           observer, ignoreWhenUnchanged);
     },
 

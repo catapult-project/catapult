@@ -179,7 +179,6 @@ const MainView = (function() {
       addTab(ReportingView);
       addTab(HttpCacheView);
       addTab(ModulesView);
-      addTab(BandwidthView);
       addTab(PrerenderView);
       addTab(CrosView);
 
