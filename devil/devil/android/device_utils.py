@@ -221,6 +221,7 @@ _SPECIAL_ROOT_DEVICE_LIST = [
     'walleye', # Pixel 2
     'crosshatch', # Pixel 3 XL
     'blueline', # Pixel 3
+    'sdk_goog3_x86', # Crow emulator
 ]
 _SPECIAL_ROOT_DEVICE_LIST += ['aosp_%s' % _d for _d in
                               _SPECIAL_ROOT_DEVICE_LIST]
