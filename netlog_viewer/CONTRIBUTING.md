@@ -8,6 +8,11 @@ ln -s ../../third_party/polymer/components/
 python -m SimpleHTTPServer 8080
 ```
 
+On Windows, use the following to create a symbolic link instead (requires administrative privileges):
+
+```
+mklink components ..\..\third_party\polymer\components
+```
 
 Note that you can serve the static files using whatever web server you like (doesn't have to be `SimpleHTTPServer`, as there is no server-side dependency beyond static files.)
 
