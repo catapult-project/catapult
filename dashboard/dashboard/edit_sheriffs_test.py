@@ -16,11 +16,13 @@ from google.appengine.api import users
 from dashboard import edit_config_handler
 from dashboard import edit_sheriffs
 from dashboard import put_entities_task
+from dashboard import sheriff_pb2
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.common import xsrf
 from dashboard.models import graph_data
 from dashboard.models import sheriff
+from google.protobuf import text_format
 
 
 class EditSheriffsTest(testing_common.TestCase):
@@ -217,7 +219,8 @@ class EditSheriffsTest(testing_common.TestCase):
   def testGet_SheriffDataIsEmbeddedOnPage(self):
     self._AddSheriff('Foo Sheriff', email='foo@x.org', patterns=['*/*/*/*'])
     self._AddSheriff('Bar Sheriff', summarize=True,
-                     patterns=['x/y/z', 'a/b/c'], labels=['hello', 'world'])
+                     patterns=['x/y/z', 'a/b/c'],
+                     labels=['hello', 'world', "Component-Foo-Bar"])
     response = self.testapp.get('/edit_sheriffs')
     expected = {
         'Foo Sheriff': {
@@ -232,12 +235,45 @@ class EditSheriffsTest(testing_common.TestCase):
             'url': '',
             'email': '',
             'internal_only': False,
-            'labels': 'hello,world',
+            'labels': 'Component-Foo-Bar,hello,world',
             'summarize': True,
             'patterns': 'a/b/c\nx/y/z',
         },
     }
     actual = self.GetEmbeddedVariable(response, 'SHERIFF_DATA')
+
+    expected_subs = [
+        """
+        name: "Foo Sheriff"
+        notification_email: "foo@x.org"
+        visibility: PUBLIC
+        patterns [
+          { glob: "*/*/*/*" }
+        ]
+        """,
+        """
+        name: "Bar Sheriff"
+        bug_labels: ["hello", "world"]
+        bug_components: "Foo>Bar"
+        visibility: PUBLIC
+        patterns [
+          { glob: "a/b/c" },
+          { glob: "x/y/z" }
+        ]
+        """,
+    ]
+    def Parse(text):
+      sub = sheriff_pb2.Subscription()
+      text_format.Merge(text, sub)
+      return sub
+
+    self.assertEqual(
+        [Parse(v) for v in expected_subs],
+        [Parse(v['subscription']) for v in actual.values()]
+    )
+
+    for _, v in actual.items():
+      del v['subscription']
     self.assertEqual(expected, actual)
 
   def testPost_SendsNotificationEmail(self):

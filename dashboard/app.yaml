@@ -21,6 +21,8 @@ libraries:
   version: "2.5.2"
 - name: ssl
   version: latest
+- name: protobuf
+  version: "3.0.0"
 
 env_variables:
   GAE_USE_SOCKETS_HTTPLIB: 'true'

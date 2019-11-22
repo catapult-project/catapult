@@ -224,14 +224,17 @@ def main(args=None):
       '--run_android_tests', default=True, help='Run Android tests')
   args = parser.parse_args(args)
 
-  proto_output_path = os.path.join(args.api_path_checkout, 'dashboard',
-                                   'dashboard', 'sheriff_config')
   proto_input_path = os.path.join(args.api_path_checkout, 'dashboard',
                                   'dashboard', 'proto')
   proto_files = [
       os.path.join(proto_input_path, p)
       for p in ['sheriff.proto', 'sheriff_config.proto']
   ]
+
+  sheriff_proto_output_path = os.path.join(args.api_path_checkout, 'dashboard',
+                                           'dashboard', 'sheriff_config')
+  dashboard_proto_output_path = os.path.join(args.api_path_checkout,
+                                             'dashboard', 'dashboard')
 
   steps = [
       {
@@ -249,18 +252,31 @@ def main(args=None):
       },
 
       # Since we might not have access to 'make', let's run the protobuf
-      # compiler directly.
+      # compiler directly. We want to run the proto compiler to generate the
+      # right data in the right places.
+
+      # sheriff_config does not have code dependencies on other part of the
+      # system. So just generate the proto file twice to keep it independent.
       {
-          # We want to run the proto compiler to generate the right data in
-          # the right places.
           'name':
-              'Generate protocol buffers',
+              'Generate Sheriff Config protocol buffers',
           'cmd': [
               'protoc',
               '--proto_path',
               proto_input_path,
               '--python_out',
-              proto_output_path,
+              sheriff_proto_output_path,
+          ] + proto_files,
+      },
+      {
+          'name':
+              'Generate Dashboard protocol buffers',
+          'cmd': [
+              'protoc',
+              '--proto_path',
+              proto_input_path,
+              '--python_out',
+              dashboard_proto_output_path,
           ] + proto_files,
       },
   ]

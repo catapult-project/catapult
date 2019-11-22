@@ -11,6 +11,8 @@ import json
 
 from dashboard import edit_config_handler
 from dashboard.models import sheriff
+from dashboard import sheriff_pb2
+from google.protobuf import text_format
 
 
 class EditSheriffsHandler(edit_config_handler.EditConfigHandler):
@@ -32,6 +34,26 @@ class EditSheriffsHandler(edit_config_handler.EditConfigHandler):
   def get(self):
     """Renders the UI with the form."""
     def SheriffData(sheriff_entity):
+      subscription = sheriff_pb2.Subscription()
+      subscription.name = sheriff_entity.key.string_id()
+      subscription.rotation_url = sheriff_entity.url or ''
+      subscription.notification_email = sheriff_entity.email or ''
+      if not sheriff_entity.internal_only:
+        subscription.visibility = sheriff_pb2.Subscription.PUBLIC
+
+      # Find the labels, and find the ones that say 'Component-' and turn those
+      # into components, formatting appropriately.
+      for label in sorted(sheriff_entity.labels):
+        if label.startswith('Component-'):
+          subscription.bug_components.append('>'.join(label.split('-')[1:]))
+        else:
+          subscription.bug_labels.append(label)
+
+      # Treat all patterns as globs for now.
+      for pattern in sorted(sheriff_entity.patterns):
+        p = subscription.patterns.add()
+        p.glob = pattern
+
       return {
           'url': sheriff_entity.url or '',
           'email': sheriff_entity.email or '',
@@ -39,6 +61,7 @@ class EditSheriffsHandler(edit_config_handler.EditConfigHandler):
           'labels': ','.join(sorted(sheriff_entity.labels)),
           'internal_only': sheriff_entity.internal_only,
           'summarize': sheriff_entity.summarize,
+          'subscription': text_format.MessageToString(subscription)
       }
 
     sheriff_dicts = {entity.key.string_id(): SheriffData(entity)
