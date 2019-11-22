@@ -49,19 +49,12 @@ const BrowserBridge = (function() {
         'httpCacheInfo', 'onHttpCacheInfoChanged');
 
     // Add other PollableDataHelpers.
-    if (cr.isWindows) {
-      this.pollableDataHelpers_.serviceProviders = new PollableDataHelper(
-          'onServiceProvidersChanged');
-    }
+    this.pollableDataHelpers_.serviceProviders = new PollableDataHelper(
+        'onServiceProvidersChanged');
     this.pollableDataHelpers_.prerenderInfo = new PollableDataHelper(
         'onPrerenderInfoChanged');
     this.pollableDataHelpers_.extensionInfo = new PollableDataHelper(
         'onExtensionInfoChanged');
-    this.pollableDataHelpers_.dataReductionProxyInfo = new PollableDataHelper(
-        'onDataReductionProxyInfoChanged');
-
-    // Interval id returned by window.setInterval for polling timer.
-    this.pollIntervalId_ = null;
   }
 
   cr.addSingletonGetter(BrowserBridge);
