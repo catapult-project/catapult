@@ -7,6 +7,8 @@ import argparse
 import logging
 import sys
 
+from py_utils.constants import exit_codes
+
 from telemetry.command_line import commands
 from telemetry.command_line import utils
 from telemetry.internal.util import binary_manager
@@ -167,9 +169,8 @@ def RunCommand(options):
   """
   ps_util.EnableListingStrayProcessesUponExitHook()
   return_code = _COMMANDS[options.command]().Run(options)
-  if return_code == -1:
+  if return_code == exit_codes.ALL_TESTS_SKIPPED:
     logging.warning('No stories were run.')
-    return 0
   return return_code
 
 

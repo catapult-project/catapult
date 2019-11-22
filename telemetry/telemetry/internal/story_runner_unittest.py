@@ -13,6 +13,7 @@ import logging
 import mock
 
 from py_utils import cloud_storage
+from py_utils.constants import exit_codes
 
 from telemetry import benchmark
 from telemetry.core import exceptions
@@ -745,13 +746,13 @@ class RunBenchmarkTest(unittest.TestCase):
         'telemetry.story.story_filter.StoryFilterFactory.BuildStoryFilter',
         return_value=fake_story_filter):
       return_code = story_runner.RunBenchmark(fake_benchmark, options)
-    self.assertEqual(return_code, -1)
+    self.assertEqual(return_code, exit_codes.ALL_TESTS_SKIPPED)
 
   def testReturnCodeSuccessfulRun(self):
     fake_benchmark = FakeBenchmark()
     options = self.GetFakeBrowserOptions()
     return_code = story_runner.RunBenchmark(fake_benchmark, options)
-    self.assertEqual(return_code, 0)
+    self.assertEqual(return_code, exit_codes.SUCCESS)
 
   def testReturnCodeCaughtException(self):
     fake_benchmark = FakeBenchmark(stories=[
@@ -759,7 +760,7 @@ class RunBenchmarkTest(unittest.TestCase):
             'story', run_side_effect=exceptions.AppCrashException())])
     options = self.GetFakeBrowserOptions()
     return_code = story_runner.RunBenchmark(fake_benchmark, options)
-    self.assertEqual(return_code, 1)
+    self.assertEqual(return_code, exit_codes.TEST_FAILURE)
 
   def testReturnCodeUnhandleableError(self):
     fake_benchmark = FakeBenchmark(stories=[
@@ -767,7 +768,7 @@ class RunBenchmarkTest(unittest.TestCase):
             'story', run_side_effect=MemoryError('Unhandleable'))])
     options = self.GetFakeBrowserOptions()
     return_code = story_runner.RunBenchmark(fake_benchmark, options)
-    self.assertEqual(return_code, 2)
+    self.assertEqual(return_code, exit_codes.FATAL_ERROR)
 
   def testRunStoryWithMissingArchiveFile(self):
     fake_benchmark = FakeBenchmark(archive_data_file='data/does-not-exist.json')
@@ -842,7 +843,7 @@ class RunBenchmarkTest(unittest.TestCase):
 
     options = self.GetFakeBrowserOptions()
     return_code = story_runner.RunBenchmark(fake_benchmark, options)
-    self.assertEqual(return_code, 1)
+    self.assertEqual(return_code, exit_codes.TEST_FAILURE)
     test_results = self.ReadTestResults()
     self.assertEqual(len(test_results), 2)
 
@@ -875,7 +876,7 @@ class RunBenchmarkTest(unittest.TestCase):
 
     options = self.GetFakeBrowserOptions()
     return_code = story_runner.RunBenchmark(fake_benchmark, options)
-    self.assertEqual(return_code, 2)
+    self.assertEqual(return_code, exit_codes.FATAL_ERROR)
     test_results = self.ReadTestResults()
     self.assertEqual(len(test_results), 2)
 
@@ -911,7 +912,7 @@ class RunBenchmarkTest(unittest.TestCase):
         'story_shard_begin_index': 10,
         'story_shard_end_index': 41})
     return_code = story_runner.RunBenchmark(fake_benchmark, options)
-    self.assertEquals(2, return_code)
+    self.assertEquals(exit_codes.FATAL_ERROR, return_code)
 
     # The results should contain entries of story 10 --> story 40. Of those
     # entries, story 31's actual result is 'FAIL' and

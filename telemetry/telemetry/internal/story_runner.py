@@ -15,6 +15,7 @@ import time
 import py_utils
 from py_utils import cloud_storage  # pylint: disable=import-error
 from py_utils import logging_util  # pylint: disable=import-error
+from py_utils.constants import exit_codes
 
 from telemetry.core import exceptions
 from telemetry.internal.actions import page_action
@@ -376,10 +377,7 @@ def RunBenchmark(benchmark, finder_options):
   """Run this test with the given options.
 
   Returns:
-    -1 if the benchmark was skipped,
-    0 for success
-    1 if there was a failure
-    2 if there was an uncaught exception.
+    An exit code from exit_codes module describing what happened.
   """
   benchmark_name = benchmark.Name()
   if not re.match(_RE_VALID_TEST_SUITE_NAME, benchmark_name):
@@ -396,9 +394,9 @@ def RunBenchmark(benchmark, finder_options):
     if not possible_browser:
       print ('No browser of type "%s" found for running benchmark "%s".' % (
           finder_options.browser_options.browser_type, benchmark.Name()))
-      return -1
+      return exit_codes.ALL_TESTS_SKIPPED
     if not _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
-      return -1
+      return exit_codes.ALL_TESTS_SKIPPED
 
     test = benchmark.CreatePageTest(finder_options)
     test.__name__ = benchmark.__class__.__name__
@@ -425,18 +423,18 @@ def RunBenchmark(benchmark, finder_options):
       RunStorySet(
           test, story_set, finder_options, results, benchmark.max_failures)
       if results.benchmark_interrupted:
-        return_code = 2
+        return_code = exit_codes.FATAL_ERROR
       elif results.had_failures:
-        return_code = 1
+        return_code = exit_codes.TEST_FAILURE
       elif results.had_successes:
-        return_code = 0
+        return_code = exit_codes.SUCCESS
       else:
-        return_code = -1  # All stories were skipped.
+        return_code = exit_codes.ALL_TESTS_SKIPPED
     except Exception as exc: # pylint: disable=broad-except
       interruption = 'Benchmark execution interrupted: %r' % exc
       results.InterruptBenchmark(interruption)
       exception_formatter.PrintFormattedException()
-      return_code = 2
+      return_code = exit_codes.FATAL_ERROR
   return return_code
 
 def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
