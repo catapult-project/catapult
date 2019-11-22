@@ -73,7 +73,7 @@ class CrOSInterfaceTest(unittest.TestCase):
           cri.RmRF(remote_path)
         local_path = os.path.join(tempdir, 'test_dump')
         self.assertTrue(os.path.exists(local_path))
-        self.assertEqual(os.path.getmtime(local_path), ts + time_offset)
+        self.assertEqual(os.path.getmtime(local_path), ts - time_offset)
     finally:
       shutil.rmtree(tempdir)
 
@@ -103,10 +103,10 @@ class CrOSInterfaceTest(unittest.TestCase):
         # pulled.
         local_path = os.path.join(tempdir, 'old_dump')
         self.assertTrue(os.path.exists(local_path))
-        self.assertNotEqual(os.path.getmtime(local_path), ts + time_offset)
+        self.assertNotEqual(os.path.getmtime(local_path), ts - time_offset)
         local_path = os.path.join(tempdir, 'new_dump')
         self.assertTrue(os.path.exists(local_path))
-        self.assertEqual(os.path.getmtime(local_path), ts + time_offset)
+        self.assertEqual(os.path.getmtime(local_path), ts - time_offset)
     finally:
       shutil.rmtree(tempdir)
 

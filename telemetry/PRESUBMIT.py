@@ -9,9 +9,11 @@ def _CommonChecks(input_api, output_api):
   results += input_api.RunTests(input_api.canned_checks.GetPylint(
       input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
       pylintrc='pylintrc'))
-  results += _CheckNoMoreUsageOfDeprecatedCode(
-      input_api, output_api, deprecated_code='GetChromiumSrcDir()',
-      crbug_number=511332)
+  # TODO(https://crbug.com/1026296): Re-add this once the extra use from
+  # https://crrev.com/c/1913187 gets landed.
+  # results += _CheckNoMoreUsageOfDeprecatedCode(
+  #     input_api, output_api, deprecated_code='GetChromiumSrcDir()',
+  #     crbug_number=511332)
   return results
 
 

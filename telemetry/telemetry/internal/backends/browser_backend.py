@@ -1,8 +1,14 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+import logging
+import os
+import posixpath
 import uuid
 import sys
+import tempfile
+import time
 
 from py_utils import cloud_storage  # pylint: disable=import-error
 
@@ -10,6 +16,7 @@ from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.internal.backends import app_backend
 from telemetry.internal.browser import web_contents
+from telemetry.internal.results import artifact_logger
 
 
 class ExtensionsNotSupportedException(Exception):
@@ -27,6 +34,9 @@ class BrowserBackend(app_backend.AppBackend):
     self.browser_options = browser_options
     self._supports_extensions = supports_extensions
     self._tab_list_backend_class = tab_list_backend
+    self._dump_finder = None
+    self._tmp_minidump_dir = tempfile.mkdtemp()
+    self._symbolized_minidump_paths = set([])
 
   def SetBrowser(self, browser):
     super(BrowserBackend, self).SetApp(app=browser)
@@ -99,6 +109,41 @@ class BrowserBackend(app_backend.AppBackend):
   def GetStandardOutput(self):
     raise NotImplementedError()
 
+  def PullMinidumps(self):
+    """Pulls any minidumps off a test device if necessary."""
+    pass
+
+  def CollectDebugData(self, log_level):
+    """Attempts to symbolize all currently unsymbolized minidumps and log them.
+
+    Platforms may override this to provide other crash information in addition
+    to the symbolized minidumps.
+
+    Args:
+      log_level: The logging level to use from the logging module, e.g.
+          logging.ERROR.
+    """
+    paths = self.GetAllUnsymbolizedMinidumpPaths()
+    if not paths:
+      logging.log(log_level, 'No unsymbolized minidump paths')
+      return
+    logging.log(log_level, 'Unsymbolized minidump paths: ' + str(paths))
+    for unsymbolized_path in paths:
+      valid, output = self.SymbolizeMinidump(unsymbolized_path)
+      # Store the symbolization attempt as an artifact.
+      minidump_name = os.path.basename(unsymbolized_path)
+      artifact_name = posixpath.join('symbolize_attempts', minidump_name)
+      logging.log(log_level, 'Saving symbolization attempt as artifact %s',
+                  artifact_name)
+      artifact_logger.CreateArtifact(artifact_name, output)
+      if valid:
+        logging.log(log_level, 'Symbolized minidump:\n%s', output)
+      else:
+        logging.log(
+            log_level,
+            'Minidump symbolization failed, check artifact %s for output',
+            artifact_name)
+
   def GetStackTrace(self):
     """Gets a stack trace if a valid minidump is found.
 
@@ -116,7 +161,11 @@ class BrowserBackend(app_backend.AppBackend):
       The path to the most recent minidump on disk, or None if no minidumps are
       found.
     """
-    raise NotImplementedError()
+    self.PullMinidumps()
+    dump_path, explanation = self._dump_finder.GetMostRecentMinidump(
+        self._tmp_minidump_dir)
+    logging.info('\n'.join(explanation))
+    return dump_path
 
   def GetRecentMinidumpPathWithTimeout(self, timeout_s, oldest_ts):
     """Get a path to a recent minidump, blocking until one is available.
@@ -135,7 +184,21 @@ class BrowserBackend(app_backend.AppBackend):
       None if the timeout is hit or a str containing the path to the found
       minidump if a suitable one is found.
     """
-    raise NotImplementedError()
+    assert timeout_s > 0
+    assert oldest_ts >= 0
+    explanation = ['No explanation returned.']
+    start_time = time.time()
+    try:
+      while time.time() - start_time < timeout_s:
+        self.PullMinidumps()
+        dump_path, explanation = self._dump_finder.GetMostRecentMinidump(
+            self._tmp_minidump_dir)
+        if not dump_path or os.path.getmtime(dump_path) < oldest_ts:
+          continue
+        return dump_path
+      return None
+    finally:
+      logging.info('\n'.join(explanation))
 
   def GetAllMinidumpPaths(self):
     """Get all paths to minidumps currently written to disk.
@@ -143,7 +206,11 @@ class BrowserBackend(app_backend.AppBackend):
     Returns:
       A list of paths to all found minidumps.
     """
-    raise NotImplementedError()
+    self.PullMinidumps()
+    paths, explanation = self._dump_finder.GetAllMinidumpPaths(
+        self._tmp_minidump_dir)
+    logging.info('\n'.join(explanation))
+    return paths
 
   def GetAllUnsymbolizedMinidumpPaths(self):
     """Get all paths to minidumps have have not yet been symbolized.
@@ -151,7 +218,11 @@ class BrowserBackend(app_backend.AppBackend):
     Returns:
       A list of paths to all found minidumps that have not been symbolized yet.
     """
-    raise NotImplementedError()
+    minidump_paths = set(self.GetAllMinidumpPaths())
+    # If we have already symbolized paths remove them from the list
+    unsymbolized_paths = (
+        minidump_paths - self._symbolized_minidump_paths)
+    return list(unsymbolized_paths)
 
   def SymbolizeMinidump(self, minidump_path):
     """Symbolizes the given minidump.

@@ -3,9 +3,7 @@
 # found in the LICENSE file.
 
 import logging
-import os
 import shutil
-import tempfile
 import time
 
 import py_utils
@@ -34,9 +32,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._is_guest = is_guest
     self._build_dir = build_dir
     self._cri = cros_platform_backend.cri
-    self._dump_finder = None
-    self._most_recent_symbolized_minidump_paths = set([])
-    self._tmp_minidump_dir = tempfile.mkdtemp()
 
   @property
   def log_file_path(self):
@@ -167,6 +162,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def GetStandardOutput(self):
     return 'Cannot get standard output on CrOS'
 
+  def PullMinidumps(self):
+    self._cri.PullDumps(self._tmp_minidump_dir)
+
   def GetStackTrace(self):
     """Returns a stack trace if a valid minidump is found, will return a tuple
        (valid, output) where valid will be True if a valid minidump was found
@@ -178,44 +176,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return (False, 'No crash dump found.')
     logging.info('Minidump found: %s', most_recent_dump)
     return self._InternalSymbolizeMinidump(most_recent_dump)
-
-  def GetMostRecentMinidumpPath(self):
-    self._cri.PullDumps(self._tmp_minidump_dir)
-    dump_path, explanation = self._dump_finder.GetMostRecentMinidump(
-        self._tmp_minidump_dir)
-    logging.info('\n'.join(explanation))
-    return dump_path
-
-  def GetRecentMinidumpPathWithTimeout(self, timeout_s, oldest_ts):
-    assert timeout_s > 0
-    assert oldest_ts >= 0
-    explanation = ['No explanation returned.']
-    start_time = time.time()
-    try:
-      while time.time() - start_time < timeout_s:
-        self._cri.PullDumps(self._tmp_minidump_dir)
-        dump_path, explanation = self._dump_finder.GetMostRecentMinidump(
-            self._tmp_minidump_dir)
-        if not dump_path or os.path.getmtime(dump_path) < oldest_ts:
-          continue
-        return dump_path
-      return None
-    finally:
-      logging.info('\n'.join(explanation))
-
-  def GetAllMinidumpPaths(self):
-    self._cri.PullDumps(self._tmp_minidump_dir)
-    paths, explanation = self._dump_finder.GetAllMinidumpPaths(
-        self._tmp_minidump_dir)
-    logging.info('\n'.join(explanation))
-    return paths
-
-  def GetAllUnsymbolizedMinidumpPaths(self):
-    minidump_paths = set(self.GetAllMinidumpPaths())
-    # If we have already symbolized paths remove them from the list
-    unsymbolized_paths = (
-        minidump_paths - self._most_recent_symbolized_minidump_paths)
-    return list(unsymbolized_paths)
 
   def SymbolizeMinidump(self, minidump_path):
     return self._SymbolizeMinidump(minidump_path)
@@ -307,7 +267,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       error_message = ('Failed to symbolize minidump.')
       return (False, error_message)
 
-    self._most_recent_symbolized_minidump_paths.add(minidump_path)
+    self._symbolized_minidump_paths.add(minidump_path)
     return (True, stack)
 
   def _GetStackFromMinidump(self, minidump):

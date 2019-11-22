@@ -13,7 +13,6 @@ import signal
 import subprocess as subprocess
 import sys
 import tempfile
-import time
 
 import py_utils
 from py_utils import cloud_storage
@@ -50,9 +49,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._proc = None
     self._tmp_output_file = None
-    self._dump_finder = None
     # pylint: disable=invalid-name
-    self._most_recent_symbolized_minidump_paths = set([])
     self._minidump_path_crashpad_retrieval = {}
     # pylint: enable=invalid-name
 
@@ -62,7 +59,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self._flash_path and not os.path.exists(self._flash_path):
       raise RuntimeError('Flash path does not exist: %s' % self._flash_path)
 
-    self._tmp_minidump_dir = tempfile.mkdtemp()
     if self.is_logging_enabled:
       self._log_file_path = os.path.join(tempfile.mkdtemp(), 'chrome.log')
     else:
@@ -259,43 +255,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     logging.info('Minidump found: %s', most_recent_dump)
     return self._InternalSymbolizeMinidump(most_recent_dump)
 
-  def GetMostRecentMinidumpPath(self):
-    dump_path, explanation = self._dump_finder.GetMostRecentMinidump(
-        self._tmp_minidump_dir)
-    logging.info('\n'.join(explanation))
-    return dump_path
-
-  def GetRecentMinidumpPathWithTimeout(self, timeout_s, oldest_ts):
-    assert timeout_s > 0
-    assert oldest_ts >= 0
-    explanation = ['No explanation returned.']
-    start_time = time.time()
-    try:
-      while time.time() - start_time < timeout_s:
-        dump_path, explanation = self._dump_finder.GetMostRecentMinidump(
-            self._tmp_minidump_dir)
-        if not dump_path:
-          continue
-        if os.path.getmtime(dump_path) < oldest_ts:
-          continue
-        return dump_path
-      return None
-    finally:
-      logging.info('\n'.join(explanation))
-
-  def GetAllMinidumpPaths(self):
-    paths, explanation = self._dump_finder.GetAllMinidumpPaths(
-        self._tmp_minidump_dir)
-    logging.info('\n'.join(explanation))
-    return paths
-
-  def GetAllUnsymbolizedMinidumpPaths(self):
-    minidump_paths = set(self.GetAllMinidumpPaths())
-    # If we have already symbolized paths remove them from the list
-    unsymbolized_paths = (
-        minidump_paths - self._most_recent_symbolized_minidump_paths)
-    return list(unsymbolized_paths)
-
   def SymbolizeMinidump(self, minidump_path):
     return self._InternalSymbolizeMinidump(minidump_path)
 
@@ -308,7 +267,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                        ' cloud storage: %s.' % cloud_storage_link)
       return (False, error_message)
 
-    self._most_recent_symbolized_minidump_paths.add(minidump_path)
+    self._symbolized_minidump_paths.add(minidump_path)
     return (True, stack)
 
   def __del__(self):

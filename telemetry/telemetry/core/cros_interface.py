@@ -428,6 +428,8 @@ class CrOSInterface(object):
     # The device/emulator's clock might be off from the host, so calculate an
     # offset that can be added to the host time to get the corresponding device
     # time.
+    # The offset is (device_time - host_time), so a positive value means that
+    # the device clock is ahead.
     time_offset = self.GetDeviceHostClockOffset()
 
     stdout, _ = self.RunCmdOnDevice(
@@ -446,8 +448,9 @@ class CrOSInterface(object):
         # We expect whitespace-separated fields in this order:
         # mode, links, owner, group, size, mtime, filename.
         # Offset by the difference of the device and host clocks.
-        mtime = int(stdout.split()[5]) + time_offset
-        os.utime(host_path, (mtime, mtime))
+        device_mtime = int(stdout.split()[5])
+        host_mtime = device_mtime - time_offset
+        os.utime(host_path, (host_mtime, host_mtime))
 
   def GetDeviceHostClockOffset(self):
     """Returns the difference between the device and host clocks."""
