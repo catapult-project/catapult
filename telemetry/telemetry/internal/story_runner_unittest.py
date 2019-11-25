@@ -795,6 +795,7 @@ class RunBenchmarkTest(unittest.TestCase):
 
   def testAbridged(self):
     options = self.GetFakeBrowserOptions()
+    options.run_abridged_story_set = True
     story_filter.StoryFilterFactory.ProcessCommandLineArgs(
         parser=None, args=options)
     fake_benchmark = FakeBenchmark(stories=[
@@ -808,7 +809,6 @@ class RunBenchmarkTest(unittest.TestCase):
 
   def testFullRun(self):
     options = self.GetFakeBrowserOptions()
-    options.run_full_story_set = True
     story_filter.StoryFilterFactory.ProcessCommandLineArgs(
         parser=None, args=options)
     fake_benchmark = FakeBenchmark(stories=[

@@ -679,6 +679,7 @@ class FakeParsedArgsForStoryFilter(object):
       story_shard_begin_index=None,
       story_shard_end_index=None,
       run_full_story_set=None,
+      run_abridged_story_set=None,
       run_disabled_stories=False, stories=None):
     self.story_filter = story_filter
     self.story_filter_exclude = story_filter_exclude
@@ -690,4 +691,5 @@ class FakeParsedArgsForStoryFilter(object):
         story_shard_end_index)
     self.run_disabled_stories = run_disabled_stories
     self.run_full_story_set = run_full_story_set
+    self.run_abridged_story_set = run_abridged_story_set
     self.stories = stories

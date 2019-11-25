@@ -57,7 +57,7 @@ class StoryFilterFactory(object):
     if cls._expectations_file and os.path.exists(cls._expectations_file):
       with open(cls._expectations_file) as fh:
         expectations.GetBenchmarkExpectationsFromParser(fh.read())
-    if cls._run_full_story_set:
+    if not cls._run_abridged_story_set:
       abridged_story_set_tag = None
     return StoryFilter(
         expectations, abridged_story_set_tag, cls._story_filter,
@@ -93,19 +93,24 @@ class StoryFilterFactory(object):
         '--story-shard-end-index', type='int', dest='story_shard_end_index',
         help=('End index of set of stories to run. Value will be '
               'rounded down to the number of stories. Negative values not'
-              'allowed. If this is ommited, the end index is the final story'
+              'allowed. If this is omited, the end index is the final story'
               'of the benchmark. '+ common_story_shard_help))
     # This should be renamed to --also-run-disabled-stories.
     group.add_option('-d', '--also-run-disabled-tests',
                      dest='run_disabled_stories',
                      action='store_true', default=False,
                      help='Ignore expectations.config disabling.')
+    # TODO(crbug.com/965158): delete this flag.
     group.add_option(
         '--run-full-story-set', action='store_true', default=False,
-        help='Whether to run the complete set of stories instead '
-        'of an abridged version. Note that if the story set '
-        'does not provide the information required to abridge it, '
-        'then this argument will have no impact.')
+        help='DEPRECATED. Does not do anything. Use --run-abridged-story-set '
+        'instead.')
+    group.add_option(
+        '--run-abridged-story-set', action='store_true', default=False,
+        help='Whether to run the abridged set of stories from the benchmark '
+        'instead of the whole set of stories. Note that many benchmarks do not '
+        'have an abridged version: for those benchmarks this flag will have no '
+        'effect.')
     group.add_option(
         '--story', action='append', dest='stories',
         help='An exact name of a story to run. These strings should be '
@@ -114,7 +119,7 @@ class StoryFilterFactory(object):
         'if it is marked as "Skip" in the expectations config. '
         'This name does not include the benchmark name. This flag can be '
         'provided multiple times to chose to run multiple stories. '
-        'The story flag overrides other story selection flags.')
+        'The story flag is exclusive with other story selection flags.')
     parser.add_option_group(group)
 
   @classmethod
@@ -138,6 +143,8 @@ class StoryFilterFactory(object):
           '--story and --story-tag-filter are mutually exclusive.')
       assert args.story_tag_filter_exclude is None, (
           '--story and --story-tag-filter-exclude are mutually exclusive.')
+      assert args.run_abridged_story_set is None, (
+          '--story and --run-abridged-story-set are mutually exclusive.')
     cls._shard_begin_index = args.story_shard_begin_index or 0
     cls._shard_end_index = args.story_shard_end_index
     if environment and environment.expectations_files:
@@ -146,7 +153,7 @@ class StoryFilterFactory(object):
     else:
       cls._expectations_file = None
     cls._run_disabled_stories = args.run_disabled_stories
-    cls._run_full_story_set = args.run_full_story_set
+    cls._run_abridged_story_set = args.run_abridged_story_set
 
 
 class StoryFilter(object):
