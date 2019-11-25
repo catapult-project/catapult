@@ -1,0 +1,26 @@
+#!/bin/bash
+# Copyright (c) 2019 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# This is a simple script that starts up a localhost HTTP server on 8080 to
+# serve the files under netlog_viewer.
+
+SCRIPT_DIR=$(dirname "$0")
+
+# Set CWD to the static files root where index.html lives.
+cd "$SCRIPT_DIR"
+cd "../netlog_viewer"
+
+# Make sure components/ exists, as it is needed to load Polymer files.
+if [[ ! -d "components" ]]; then
+    echo "Creating symlink to components"
+    ln -s ../../third_party/polymer/components/
+
+    # NOTE: On Windows the equivalent is:
+    #   mklink components ..\..\third_party\polymer\components
+fi
+
+# Start a static HTTP server
+echo "Starting server at http://localhost:8080"
+python -m SimpleHTTPServer 8080

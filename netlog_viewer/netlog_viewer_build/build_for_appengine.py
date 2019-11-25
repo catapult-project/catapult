@@ -30,10 +30,20 @@ os.mkdir(out_dir)
 in_html = os.path.join(src_dir, 'index.html')
 out_html = os.path.join(out_dir, 'vulcanized.html')
 
-subprocess.check_call(['vulcanize', in_html,
-                       '--inline-scripts', '--inline-css', '--strip-comments',
-                       '--redirect', '/components|' + components_dir,
-                       '--out-html', out_html])
+try:
+  subprocess.check_call(['vulcanize', in_html,
+                         '--inline-scripts', '--inline-css', '--strip-comments',
+                         '--redirect', '/components|' + components_dir,
+                         '--out-html', out_html])
+except OSError:
+  sys.stderr.write('''
+ERROR: Could not execute "vulcanize".
+
+To install vulcanize on Linux:
+  sudo apt-get install npm
+  sudo npm install -g vulcanize
+'''[1:])
+  sys.exit(1)
 
 for fn in glob.glob(os.path.join(src_dir, "*.png")):
     shutil.copyfile(fn, os.path.join(out_dir, os.path.split(fn)[1]))

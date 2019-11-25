@@ -1,55 +1,97 @@
-Running locally
---------------
+# Contributing to Net Log Viewer
+
+[TOC]
+
+
+## Check-out the code
 
 ```
 git clone https://chromium.googlesource.com/catapult
 cd catapult/netlog_viewer/netlog_viewer
-ln -s ../../third_party/polymer/components/
-python -m SimpleHTTPServer 8080
 ```
 
-On Windows, use the following to create a symbolic link instead (requires administrative privileges):
+
+## Running locally for development
 
 ```
-mklink components ..\..\third_party\polymer\components
+cd catapult/netlog_viewer
+./bin/serve_static
 ```
 
-Note that you can serve the static files using whatever web server you like (doesn't have to be `SimpleHTTPServer`, as there is no server-side dependency beyond static files.)
+The Net Log viewer has no server-side dependencies, so it can be loaded through
+`index.html` using any static HTTP server (provided `components/` is
+also mapped). See the `serve_static` script above for an example.
+
+This is convenient for development using an edit/reload cycle, however this is
+not quite what is deployed to https://netlog-viewer.appspot.com/.
 
 
-Running tests
---------------
-
-Startup a dev server to serve the HTML:
+## Running tests
 
 ```
-bin/run_dev_server --no-install-hooks --port 8111
+cd catapult
+./bin/run_dev_server --no-install-hooks --port 8111
 ```
 
-Navigate to [http://localhost:8111/netlog_viewer/tests.html](http://localhost:8111/netlog_viewer/tests.html).
+Now navigate to
+[http://localhost:8111/netlog_viewer/tests.html](http://localhost:8111/netlog_viewer/tests.html)
+to run the tests and see their results.
 
-Alternately to run the tests in a headless mode from console can use `netlog_viewer/bin/run_dev_server_tests`, however this currently has some problems due to how things have been polymerized.
-
-
-Reporting bugs
---------------
-
-Please use the [Chromium bug tracker](http://crbug.com/new), and add
-`[NetLogViewer]` in the title. If you have edit access, please also set the
-component to `Internals>Network>Logging`.
+Note that running the tests in headless mode does not currently work (i.e.
+`netlog_viewer/bin/run_dev_server_tests`).
 
 
-Contributing changes
---------------
+## Building a version for deployment
 
-Changes should be sumitted using a Gerrit code review, with the reviewer set to one of the [NetLog OWNERS](OWNERS). For instructions on how to use the code review system, see [catapult/CONTRIBUTING.md](../CONTRIBUTING.md).
+```
+cd catapult/netlog_viewer
+./netlog_viewer_build/build_for_appengine.py
+```
+
+This command will package all the HTML/JavaScript/CSS into a single
+`vulcanized.html` file under `catapult/netlog_viewer/appengine/static/` (the
+build outputs will show up as an untracked files by `git`, and should not be
+committed).
+
+The bundled app can be served by any static server. To test it using a similar
+environment as App Engine, serve it with:
+
+```
+cd catapult/netlog_viewer/appengine
+dev_appserver.py app.yaml
+```
+
+`dev_appserver.py` is part of the Google Cloud SDK, and can be installed using:
+
+```
+sudo apt-get install google-cloud-sdk google-cloud-sdk-app-engine-python
+```
 
 
-Known issues
---------------
+## Deploying to netlog-viewer.appspot.com
 
-The viewer code was extracted from Chromium and has not been modernized yet. In particular:
- * Not properly converted to components/Polymer.
- * Uses ancient layout code that could be replaced by modern CSS.
- * Doesn't use modern class notation (some files have been converted by not all).
- * The test infrastructure has glitches due to how it was (not) componentized.
+Only certain project OWNERS can publish the checked in code to
+[https://netlog-viewer.appspot.com/](https://netlog-viewer.appspot.com/).
+
+For those members, here are the [internal instructions](https://goto.google.com/deploy-cr-netlog-viewer).
+
+
+## Reporting bugs
+
+File a bug using [this chromium bug
+template](https://bugs.chromium.org/p/chromium/issues/entry?components=Internals%3ENetwork%3ELogging)
+which will add the component `Internals>Network>Logging`. Please also prefix
+the title with `[NetLogViewer]`.
+
+
+## Contributing changes
+
+Changes should be proposed using a Gerrit code review, with the reviewer set to
+one of the [NetLog OWNERS](OWNERS). For instructions on how to use the code
+review system, see [catapult/CONTRIBUTING.md](../CONTRIBUTING.md).
+
+
+## Known issues
+
+This viewer code was extracted from Chromium and has [not yet been
+modernized](https://bugs.chromium.org/p/chromium/issues/detail?id=1026294).
