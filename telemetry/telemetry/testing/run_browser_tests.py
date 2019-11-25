@@ -54,37 +54,15 @@ def _ValidateDistinctNames(browser_test_classes):
     names_to_test_classes[name] = cl
 
 
-def _TestRangeForShard(total_shards, shard_index, num_tests):
-  """Returns a 2-tuple containing the start (inclusive) and ending
-  (exclusive) indices of the tests that should be run, given that
-  |num_tests| tests are split across |total_shards| shards, and that
-  |shard_index| is currently being run.
-  """
-  assert num_tests >= 0
-  assert total_shards >= 1
-  assert shard_index >= 0 and shard_index < total_shards, (
-      'shard_index (%d) must be >= 0 and < total_shards (%d)' %
-      (shard_index, total_shards))
-  if num_tests == 0:
-    return (0, 0)
-  floored_tests_per_shard = num_tests // total_shards
-  remaining_tests = num_tests % total_shards
-  if remaining_tests == 0:
-    return (floored_tests_per_shard * shard_index,
-            floored_tests_per_shard * (1 + shard_index))
-  # More complicated. Some shards will run floored_tests_per_shard
-  # tests, and some will run 1 + floored_tests_per_shard.
-  num_earlier_shards_with_one_extra_test = min(remaining_tests, shard_index)
-  num_earlier_shards_with_no_extra_tests = max(
-      0, shard_index - num_earlier_shards_with_one_extra_test)
-  num_earlier_tests = (
-      num_earlier_shards_with_one_extra_test * (floored_tests_per_shard + 1) +
-      num_earlier_shards_with_no_extra_tests * floored_tests_per_shard)
-  tests_for_this_shard = floored_tests_per_shard
-  if shard_index < remaining_tests:
-    tests_for_this_shard += 1
-  return (num_earlier_tests, num_earlier_tests + tests_for_this_shard)
+def _TestIndicesForShard(total_shards, shard_index, num_tests):
+  """Returns indices of tests to run for a given shard.
 
+  This methods returns every Nth index, where N is the number of shards. We
+  intentionally avoid picking sequential runs of N tests, since that will pick
+  groups of related tests, which can skew runtimes. See
+  https://crbug.com/1028298.
+  """
+  return range(shard_index, num_tests, total_shards)
 
 def _MedianTestTime(test_times):
   times = test_times.values()
@@ -176,17 +154,20 @@ def LoadTestCasesToBeRun(
             if post_test_filter_matcher(t)]
   else:
     test_cases.sort(key=lambda t: t.shortName())
-    test_range = _TestRangeForShard(total_shards, shard_index, len(test_cases))
+    test_cases = filter(post_test_filter_matcher, test_cases)
+    test_indices = _TestIndicesForShard(
+        total_shards, shard_index, len(test_cases))
     if debug_shard_distributions:
       tmp_shards = []
       for i in xrange(total_shards):
-        tmp_range = _TestRangeForShard(total_shards, i, len(test_cases))
-        tmp_shards.append(test_cases[tmp_range[0]:tmp_range[1]])
+        tmp_indices = _TestIndicesForShard(
+            total_shards, i, len(test_cases))
+        tmp_tests = [test_cases[index] for index in tmp_indices]
+        tmp_shards.append(tmp_tests)
       # Can edit the code to get 'test_times' passed in here for
       # debugging and comparison purposes.
       _DebugShardDistributions(tmp_shards, None)
-    return [t for t in test_cases[test_range[0]:test_range[1]]
-            if post_test_filter_matcher(t)]
+    return [test_cases[index] for index in test_indices]
 
 
 def _CreateTestArgParsers():

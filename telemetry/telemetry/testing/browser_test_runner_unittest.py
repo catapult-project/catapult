@@ -391,27 +391,29 @@ class BrowserTestRunnerTest(unittest.TestCase):
         prefix + '*', [], alphabetical_tests)
 
   def shardingRangeTestHelper(self, total_shards, num_tests):
-    shard_ranges = []
+    shard_indices = []
     for shard_index in xrange(0, total_shards):
-      shard_ranges.append(run_browser_tests._TestRangeForShard(
+      shard_indices.append(run_browser_tests._TestIndicesForShard(
           total_shards, shard_index, num_tests))
     # Make assertions about ranges
     num_tests_run = 0
-    for i in xrange(0, len(shard_ranges)):
-      cur_range = shard_ranges[i]
+    for i in xrange(0, len(shard_indices)):
+      cur_indices = shard_indices[i]
+      num_tests_in_shard = len(cur_indices)
       if i < num_tests:
-        self.assertGreater(cur_range[1], cur_range[0])
-        num_tests_run += (cur_range[1] - cur_range[0])
+        self.assertGreater(num_tests_in_shard, 0)
+        num_tests_run += num_tests_in_shard
       else:
         # Not enough tests to go around all of the shards.
-        self.assertEquals(cur_range[0], cur_range[1])
-    # Make assertions about non-overlapping ranges
-    for i in xrange(1, len(shard_ranges)):
-      prev_range = shard_ranges[i - 1]
-      cur_range = shard_ranges[i]
-      self.assertEquals(prev_range[1], cur_range[0])
-    # Assert that we run all of the tests (very important)
+        self.assertEquals(num_tests_in_shard, 0)
+
+    # Assert that we run all of the tests exactly once.
+    all_indices = set()
+    for i in xrange(0, len(shard_indices)):
+      cur_indices = shard_indices[i]
+      all_indices.update(cur_indices)
     self.assertEquals(num_tests_run, num_tests)
+    self.assertEquals(num_tests_run, len(all_indices))
 
   def testShardsWithPrimeNumTests(self):
     for total_shards in xrange(1, 20):
@@ -472,22 +474,22 @@ class BrowserTestRunnerTest(unittest.TestCase):
   def testShardedTestRun(self):
     self.BaseShardingTest(3, 0, [], [
         'browser_tests.simple_sharding_test.SimpleShardingTest.Test1',
-        'browser_tests.simple_sharding_test.SimpleShardingTest.Test2',
-        'browser_tests.simple_sharding_test.SimpleShardingTest.Test3',
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_0',
-        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_1',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_3',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_6',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_9',
     ])
     self.BaseShardingTest(3, 1, [], [
-        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_2',
-        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_3',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.Test2',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_1',
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_4',
-        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_5',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_7',
     ])
     self.BaseShardingTest(3, 2, [], [
-        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_6',
-        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_7',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.Test3',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_2',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_5',
         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_8',
-        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_9',
     ])
 
   def writeMockTestResultsFile(self):
@@ -581,7 +583,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testFilterTestShortenedNameAfterShardingWithoutTestTimes(self):
     self.BaseShardingTest(
-        4, 3, [], ['passing_test_8'],
+        4, 0, [], ['passing_test_8'],
         opt_test_name_prefix=('browser_tests.'
                               'simple_sharding_test.SimpleShardingTest.'),
         opt_test_filter='passing_test_8',
