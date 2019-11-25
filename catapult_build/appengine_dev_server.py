@@ -3,7 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import argparse
 import os
+import os.path
 import subprocess
 import sys
 
@@ -26,7 +28,8 @@ def DevAppserver(paths, args):
       print 'This script requires the App Engine SDK to be in PATH.'
       sys.exit(1)
 
-    subprocess.call([sys.executable, script_path] + args + [temp_dir])
+    subprocess.call([sys.executable, script_path] +
+                    _AddTempDirToYamlPathArgs(temp_dir, args))
 
 
 def _FindScriptInPath(script_name):
@@ -36,3 +39,16 @@ def _FindScriptInPath(script_name):
       return script_path
 
   return None
+
+
+def _AddTempDirToYamlPathArgs(temp_dir, args):
+  """Join `temp_dir` to the positional args, preserving the other args."""
+  parser = argparse.ArgumentParser()
+  parser.add_argument('yaml_path', nargs='*')
+  options, remaining_args = parser.parse_known_args(args)
+  yaml_path_args = [
+      os.path.join(temp_dir, yaml_path) for yaml_path in options.yaml_path
+  ]
+  if not yaml_path_args:
+    yaml_path_args = [temp_dir]
+  return yaml_path_args + remaining_args
