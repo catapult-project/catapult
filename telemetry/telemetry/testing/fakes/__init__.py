@@ -406,6 +406,9 @@ class FakeBrowser(FakeApp):
   def DumpStateUponFailure(self):
     pass
 
+  def CollectDebugData(self, log_level):
+    del log_level # unused
+
   def LogSymbolizedUnsymbolizedMinidumps(self, log_level):
     del log_level  # unused
 
