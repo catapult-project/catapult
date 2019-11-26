@@ -2,20 +2,18 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import tempfile
 import unittest
 
 import mock
 
 from telemetry.internal.forwarders import cros_forwarder
-from telemetry import decorators
 
 
 class CrOsSshForwarderTests(unittest.TestCase):
   def setUp(self):
     self._Patch('subprocess')  # Do not actually run subprocesses.
     self._Patch('tempfile')  # Do not actually create tempfiles.
-    self.ReadRemotePort = self._Patch('_ReadRemotePort')
+    self.ReadRemotePort = self._Patch('forwarder_utils.ReadRemotePort')
     self.GetUnreservedAvailableLocalPort = self._Patch(
         'util.GetUnreservedAvailableLocalPort')
     self.cri = mock.Mock()
@@ -64,17 +62,3 @@ class CrOsSshForwarderTests(unittest.TestCase):
     self.assertEqual(f.local_port, 777)
     self.assertEqual(f.remote_port, 222)
 
-
-class ReadRemotePortTests(unittest.TestCase):
-  @decorators.Disabled('win')  # https://crbug.com/793256
-  def testReadRemotePort(self):
-    sample_output = [
-        '', '', 'Allocated port 42360 for remote forward to localhost:12345']
-
-    with tempfile.NamedTemporaryFile() as cros_stderr:
-      for line in sample_output:
-        cros_stderr.write(line + '\n')
-      cros_stderr.flush()
-      remote_port = cros_forwarder._ReadRemotePort(cros_stderr.name)
-
-    self.assertEqual(remote_port, 42360)
