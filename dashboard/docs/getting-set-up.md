@@ -33,6 +33,8 @@ To load sample graph or alert data from production, navigate to
 
 ## Deploying to production
 
+### Current method: `bin/deploy`
+
 To deploy, you can run `bin/deploy`, which prepares the code to be deployed and
 runs `gcloud app deploy`. If you modify any `*.yaml` files, you can pass them as
 parameters to `bin/deploy` to deploy the updated configs.
@@ -51,6 +53,10 @@ WARNING: Some changes to production may not be easily reversible; for
 example `appcfg.py ... vacuum_indexes` will remove datastore indexes that
 are not in your local index.yaml file, which may take more than 24 hours,
 and will disable any queries that depend on those indexes.
+
+### Coming soon: Docker
+
+See [Docker deploy](/dashbaord/docs/dev_dockerfiles/README.md).
 
 ## Where to find documentation
 

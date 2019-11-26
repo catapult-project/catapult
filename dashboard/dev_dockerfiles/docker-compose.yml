@@ -24,7 +24,7 @@ services:
     volumes:
       - ../..:/catapult
       - gcloud-config:/root/.config/gcloud
-    command: [bash, -xc, "gcloud auth login && gcloud config set project chromeper"]
+    command: [bash, -xc, "gcloud auth login && gcloud config set project chromeperf"]
 networks:
   default:
     external:
