@@ -1,28 +1,26 @@
 version: "3"
 services:
-  make:
-    build: .
-    volumes:
-      - ../..:/catapult
-    command: [bash, -xc, "make clean && make"]
-    working_dir: /catapult/dashboard/dashboard
   python-unittest:
     build: .
     volumes:
-      - ../..:/catapult
+      - ../..:/image/catapult:ro
     command:
       [/catapult/dashboard/bin/run_py_tests]
-  deploy:
+  deploy-dashboard:
     build: .
     volumes:
-      - ../..:/catapult
+      - ../..:/image/catapult:ro
       - gcloud-config:/root/.config/gcloud
-    command:
-      [/catapult/dashboard/bin/deploy, app.yaml, --promote]
+    command: [/catapult/dashboard/bin/deploy, --promote, app.yaml]
+  deploy-pinpoint:
+    build: .
+    volumes:
+      - ../..:/image/catapult:ro
+      - gcloud-config:/root/.config/gcloud
+    command: [/catapult/dashboard/bin/deploy, --promote, pinpoint.yaml]
   auth:
     build: .
     volumes:
-      - ../..:/catapult
       - gcloud-config:/root/.config/gcloud
     command: [bash, -xc, "gcloud auth login && gcloud config set project chromeperf"]
 networks:

@@ -10,3 +10,7 @@ RUN apt-get install -y \
   protobuf-compiler=${PROTOBUF_VERSION}
 
 ENV PYTHONPATH=/usr/lib/google-cloud-sdk/platform/google_appengine
+
+COPY docker-entrypoint.sh /usr/local/bin/
+
+ENTRYPOINT ["docker-entrypoint.sh"]
