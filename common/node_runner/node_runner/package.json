@@ -59,6 +59,7 @@
     "sinon": "^7.2.3",
     "vulcanize": "^1.16.0",
     "webpack": "^4.16.1",
-    "webpack-command": "^0.4.1"
+    "webpack-command": "^0.4.1",
+    "polymer-bundler": "^4.0.10"
   }
 }

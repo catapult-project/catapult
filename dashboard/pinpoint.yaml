@@ -40,21 +40,6 @@ handlers:
   script: dashboard.pinpoint.dispatcher.APP
   secure: always
 
-- url: /components/(.*)/(.*\.(html|js|css))$
-  static_files: polymer/components/\1/\2
-  upload: polymer/components/.*/.*\.(html|js|css)$
-  secure: always
-
-- url: /chopsui/(.*\.(html|js|css))$
-  static_files: chopsui/\1
-  upload: chopsui/.*\.(html|js|css)$
-  secure: always
-
-- url: /dashboard/elements/(.*\.html)$
-  static_files: dashboard/elements/\1
-  upload: dashboard/elements/.*\.html$
-  secure: always
-
 - url: /dashboard/static/
   static_dir: dashboard/static/
   secure: always
@@ -64,23 +49,28 @@ handlers:
   static_dir: dashboard/pinpoint/static
   secure: always
 
-- url: /elements/(.*\.html)$
-  static_files: dashboard/pinpoint/elements/\1
-  upload: dashboard/pinpoint/elements/.*\.html$
-  secure: always
-
 - url: /vulcanized_histograms_viewer/
   static_dir: vulcanized_histograms_viewer/
   secure: always
   application_readable: true
-
-- url: /.*
-  static_files: dashboard/pinpoint/index/index.html
-  upload: dashboard/pinpoint/index/index.html
-  secure: always
 
 # Require auth for receiving push messages from Cloud Pub/Sub.
 - url: /_ah/push-handlers/task-updates
   secure: always
   script: dashboard.pinpoint.dispatcher.APP
   login: admin
+
+- url: /dashboard/elements/(.*\.html)$
+  static_files: bundled/dashboard/elements/\1
+  upload: bundled/dashboard/elements/.*
+
+- url: /(.*\.html)$
+  static_files: bundled/\1
+  upload: bundled/.*
+  secure: always
+
+- url: /.*
+  static_files: bundled/dashboard/pinpoint/index/index.html
+  upload: bundled/dashboard/pinpoint/index/index.html
+  secure: always
+

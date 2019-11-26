@@ -5,6 +5,7 @@
 
 import os
 import sys
+import logging
 
 
 def _AddToPathIfNeeded(path):
@@ -13,17 +14,27 @@ def _AddToPathIfNeeded(path):
 
 
 def Main():
-  catapult_path = os.path.abspath(os.path.join(
-      os.path.dirname(__file__), '..', '..'))
+  catapult_path = os.path.abspath(
+      os.path.join(os.path.dirname(__file__), '..', '..'))
 
   _AddToPathIfNeeded(os.path.join(catapult_path, 'dashboard'))
   import dashboard
   paths = dashboard.PathsForDeployment()
 
   _AddToPathIfNeeded(catapult_path)
-  from catapult_build import appengine_dev_server
-  appengine_dev_server.DevAppserver(paths, sys.argv[1:])
+  from catapult_build import appengine_dev_server, temp_deployment_dir
+
+  # Build the necessary files in the directory.
+  from dashboard_build import preprocess
+  with temp_deployment_dir.TempDeploymentDir(paths) as tmp_dir:
+    preprocess.PackSPA(catapult_path, tmp_dir, paths)
+    preprocess.PackPinpoint(catapult_path, tmp_dir, paths)
+    appengine_dev_server.DevAppserver(paths, sys.argv[1:], reuse_path=tmp_dir)
 
 
 if __name__ == '__main__':
+  logging.basicConfig(
+      stream=sys.stdout,
+      level=logging.INFO,
+      format='[%(asctime)s - %(levelname)s]: \t%(message)s')
   Main()
