@@ -34,6 +34,9 @@ def PackPinpoint(catapult_path, temp_dir, deployment_paths):
     from node_runner import node_util
     node_modules = node_util.GetNodeModulesPath()
 
+    def PinpointRelativePath(*components):
+      return os.path.join('dashboard', 'pinpoint', *components)
+
     # When packing Pinpoint, we need some extra symlinks in the temporary
     # directory, so we can find the correct elements at bundle time. This is
     # simulating the paths we would be serving as defined in the pinpoint.yaml
@@ -71,18 +74,14 @@ def PackPinpoint(catapult_path, temp_dir, deployment_paths):
     # Change to the temporary directory, and run the bundler from there.
     with Chdir(temp_dir):
       # Input all the html files we care about from the elements directory.
-      def PinpointRelativePath(*components):
-        return os.path.join('dashboard', 'pinpoint', *components)
-
-      bundler_cmd.extend([
-          '--in-file',
-          PinpointRelativePath('index', 'index.html'),
-      ])
-      for element in os.listdir(PinpointRelativePath('elements')):
-        if not os.path.isdir(element):
-          bundler_cmd.extend(
-              ['--in-file',
-               PinpointRelativePath('elements', element)])
+      component_files = [PinpointRelativePath('index', 'index.html')] + [
+          PinpointRelativePath('elements', element)
+          for element in os.listdir(PinpointRelativePath('elements'))
+          if not os.path.isdir(os.path.join(catapult_path, element)) and
+          '-test' not in element and element.endswith('.html')
+      ]
+      for element in component_files:
+        bundler_cmd.extend(['--in-file', element])
 
       logging.info('Bundler Command:\n%s', ' '.join(bundler_cmd))
 
