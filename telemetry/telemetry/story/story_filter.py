@@ -106,7 +106,7 @@ class StoryFilterFactory(object):
         help='DEPRECATED. Does not do anything. Use --run-abridged-story-set '
         'instead.')
     group.add_option(
-        '--run-abridged-story-set', action='store_true', default=False,
+        '--run-abridged-story-set', action='store_true', default=None,
         help='Whether to run the abridged set of stories from the benchmark '
         'instead of the whole set of stories. Note that many benchmarks do not '
         'have an abridged version: for those benchmarks this flag will have no '
