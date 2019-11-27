@@ -20,7 +20,6 @@ import stat
 import sys
 import unittest
 
-from py_utils import tempfile_ext
 from devil import devil_env
 from devil.android import device_errors
 from devil.android import device_signal
@@ -32,6 +31,10 @@ from devil.android.sdk import keyevent
 from devil.android.sdk import version_codes
 from devil.utils import cmd_helper
 from devil.utils import mock_calls
+
+with devil_env.SysPath(
+    os.path.join(devil_env.CATAPULT_ROOT_PATH, 'common', 'py_utils')):
+  from py_utils import tempfile_ext
 
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
