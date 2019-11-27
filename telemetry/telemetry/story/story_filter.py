@@ -253,9 +253,10 @@ class StoryFilter(object):
     disabled = self._expectations.IsStoryDisabled(story)
     if self._stories:
       if story.name in self._stories:
-        logging.warn('Running story %s even though it is disabled because '
-                     'it was specifically asked for by name in the --story '
-                     'flag.', story.name)
+        if disabled:
+          logging.warn('Running story %s even though it is disabled because '
+                       'it was specifically asked for by name in the --story '
+                       'flag.', story.name)
         return ''
     if disabled and self._run_disabled_stories:
       logging.warning(
