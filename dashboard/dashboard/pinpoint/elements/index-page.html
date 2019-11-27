@@ -4,13 +4,12 @@ Copyright 2019 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="lazy-import" href="/elements/error-page.html">
-<link rel="lazy-import" href="/elements/job-page.html">
-<link rel="lazy-import" href="/elements/jobs-page.html">
-<link rel="lazy-import" href="/elements/migrate-page.html">
-<link rel="lazy-import" href="/elements/queue-stats-page.html">
-<link rel="lazy-import" href="/elements/results2-page.html">
-<link rel="lazy-import" href="/elements/stats-page.html">
+<link rel="import" href="/elements/error-page.html">
+<link rel="import" href="/elements/job-page.html">
+<link rel="import" href="/elements/jobs-page.html">
+<link rel="import" href="/elements/migrate-page.html">
+<link rel="import" href="/elements/queue-stats-page.html">
+<link rel="import" href="/elements/stats-page.html">
 
 <dom-module id="index-page">
   <template>
@@ -47,7 +46,6 @@ found in the LICENSE file.
         <job-page name="job" route="{{subroute}}" auth-headers="[[authHeaders]]"></job-page>
         <jobs-page name="jobs" route="{{subroute}}" auth-headers="[[authHeaders]]"></jobs-page>
         <migrate-page name="migrate" auth-headers="[[authHeaders]]"></migrate-page>
-        <results2-page name="results2" route="{{subroute}}"></results2-page>
         <stats-page name="stats"></stats-page>
         <queue-stats-page name="queue-stats" route="{{subroute}}"></queue-stats-page>
       </iron-pages>
@@ -64,7 +62,6 @@ found in the LICENSE file.
         page: {
           type: String,
           reflectToAttribute: true,
-          observer: '_pageChanged',
         },
       },
 
@@ -92,12 +89,6 @@ found in the LICENSE file.
 
       _routePageChanged(page) {
         this.page = page || 'jobs';
-      },
-
-      _pageChanged(page) {
-        // Load page import on demand. Show 404 page on failure.
-        const url = '/elements/' + page + '-page.html';
-        this.importHref(url, null, this._showPage404, true);
       },
 
       _showPage404() {

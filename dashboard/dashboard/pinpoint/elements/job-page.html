@@ -329,6 +329,10 @@ found in the LICENSE file.
       changeState(jobState, changeIndex) {
         return jobState[changeIndex];
       },
+
+      selected() {
+        this.$$('loading-wrapper').$.request.generateRequest();
+      },
     });
   </script>
 </dom-module>

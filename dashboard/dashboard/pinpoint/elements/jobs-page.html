@@ -62,7 +62,13 @@ found in the LICENSE file.
           return String(jobs.max_count) + '+';
         }
         return String(jobs.count);
-      }
+      },
+
+      selected() {
+        if (this.jobs === undefined) {
+          this.$$('loading-wrapper').$.request.generateRequest();
+        }
+      },
     });
   </script>
 </dom-module>

@@ -211,6 +211,10 @@ found in the LICENSE file.
           completedStatusList.indexOf(job.status.toLowerCase()) !== -1 &&
           job.comparison_mode === comparisonMode);
       },
+
+      selected() {
+        this.$$('loading-wrapper').$.request.generateRequest();
+      },
     });
 
     function formatPercent(num, total) {

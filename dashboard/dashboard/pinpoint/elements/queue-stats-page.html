@@ -93,6 +93,10 @@ found in the LICENSE file.
         jobs(stats, key) {
           return ((key in stats) ? stats[key] : 0);
         },
+
+        selected() {
+          this.$$('loading-wrapper').$.request.generateRequest();
+        },
       });
 
       function drawHistogram(svg, values) {

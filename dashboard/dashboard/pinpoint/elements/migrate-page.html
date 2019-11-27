@@ -125,6 +125,10 @@ found in the LICENSE file.
           this.async(() => this.$.ajax.generateRequest(), 5000);
         }
       },
+
+      selected() {
+        this.$$('loading-wrapper').$.request.generateRequest();
+      },
     });
   </script>
 </dom-module>

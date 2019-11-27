@@ -73,15 +73,7 @@ def PackPinpoint(catapult_path, temp_dir, deployment_paths):
 
     # Change to the temporary directory, and run the bundler from there.
     with Chdir(temp_dir):
-      # Input all the html files we care about from the elements directory.
-      component_files = [PinpointRelativePath('index', 'index.html')] + [
-          PinpointRelativePath('elements', element)
-          for element in os.listdir(PinpointRelativePath('elements'))
-          if not os.path.isdir(os.path.join(catapult_path, element)) and
-          '-test' not in element and element.endswith('.html')
-      ]
-      for element in component_files:
-        bundler_cmd.extend(['--in-file', element])
+      bundler_cmd.extend(['--in-file', PinpointRelativePath('index', 'index.html')])
 
       logging.info('Bundler Command:\n%s', ' '.join(bundler_cmd))
 
