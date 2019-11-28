@@ -64,11 +64,22 @@ found in the LICENSE file.
         }
       },
 
+      // Even the dom-if has checked the exception is not null, it only
+      // prevents the rendering at first time. When switching to a job with
+      // exception and back, it just change the dom to hide, which triggers
+      // the binded function and throw exception. So null check is still needed
+      // in these functions.
       exceptionMessage(exception) {
+        if (!exception) {
+          return '';
+        }
         return exception.message;
       },
 
       exceptionTraceback(exception) {
+        if (!exception) {
+          return '';
+        }
         return exception.traceback;
       },
 
