@@ -4,10 +4,11 @@
 # found in the LICENSE file.
 
 if [[ -e /image/catapult ]]; then
-  cp -r /image/catapult / && \
+  (cp -r /image/catapult / && \
   pushd /catapult/dashboard/dashboard &> /dev/null && \
   make clean && make
-  popd &> /dev/null
+  popd &> /dev/null && \
+  git config --add user.email ${GIT_COMMITTER_EMAIL}) || exit 1
 fi
 
 exec "$@"

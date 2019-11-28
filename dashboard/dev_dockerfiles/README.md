@@ -3,6 +3,10 @@
 This is an attempt to make the testing and deploying process for dashboard
 more consistent and running everything in docker.
 
+There is a `run` script helps you to fetch some information from host and set
+it into docker. It's only a simple wrap of `docker-compose run`. And you
+can always use this script as the entrypoint.
+
 ## One-time Set Up
 
 ### Install Docker and `docker-compose`.
@@ -16,7 +20,7 @@ E.g. `sudo apt install docker-ce docker-compose`.
 
 ```
 cd dev_dockerfiles
-docker-compose run auth
+./run auth
 ```
 
 ## Usage
@@ -24,17 +28,17 @@ docker-compose run auth
 ### Run Python Unit Tests
 
 ```
-docker-compose run python-unittest
+./run python-unittest
 ```
 
 ### Deploy Dashboard
 
 ```
-docker-compose run deploy-dashboard
+./run deploy-dashboard
 ```
 
 ### Deploy Pinpoint
 
 ```
-docker-compose run deploy-pinpoint
+./run deploy-pinpoint
 ```
