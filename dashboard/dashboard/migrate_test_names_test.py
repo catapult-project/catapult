@@ -160,6 +160,29 @@ class MigrateTestNamesTest(testing_common.TestCase):
     ]
     self._CheckTests(expected_tests)
 
+  def testPost_MigrateSkippingIdentityMigrations(self):
+    self._AddMockData()
+    # Matches both t_ref and t_extwr, but only t_extwr gets migrated and
+    # t_ref is left untouched (otherwise t_ref would be deleted!).
+    self.testapp.post('/migrate_test_names', {
+        'old_pattern': '*/*/*/*/t_*',
+        'new_pattern': '*/*/*/*/t_ref',
+    })
+    self.ExecuteTaskQueueTasks(
+        '/migrate_test_names', migrate_test_names._TASK_QUEUE_NAME)
+    expected_tests = [
+        'SunSpider',
+        'SunSpider/3d-cube',
+        'SunSpider/3d-cube/t',
+        'SunSpider/Total',
+        'SunSpider/Total/t',
+        'SunSpider/Total/t_ref',
+        'moz',
+        'moz/read_op_b',
+        'moz/read_op_b/r_op_b',
+    ]
+    self._CheckTests(expected_tests)
+
   def testPost_RenameTraceWithPartialWildCardsInNewPattern_Fails(self):
     # If there's a wildcard in a part of the new pattern, it should
     # just be a single wildcard by itself, and it just means "copy

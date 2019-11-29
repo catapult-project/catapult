@@ -20,6 +20,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import logging
 import re
 
 from google.appengine.api import mail
@@ -184,11 +185,15 @@ def _MigrateTestLookupPatterns(old_pattern, new_pattern):
     old_test_key = utils.TestKey(test)
     new_test_key = utils.TestKey(
         _ValidateAndGetNewTestPath(old_test_key.id(), new_pattern))
-    futures.append(_QueueTask({
+    task = {
         'old_test_key': old_test_key.urlsafe(),
         'new_test_key': new_test_key.urlsafe(),
         'status': _MIGRATE_TEST_CREATE
-    }))
+    }
+    if task['old_test_key'] != task['new_test_key']:
+      futures.append(_QueueTask(task))
+  logging.info('%d test paths matched and %d migration tasks created.',
+               len(tests), len(futures))
   for f in futures:
     f.get_result()
 
