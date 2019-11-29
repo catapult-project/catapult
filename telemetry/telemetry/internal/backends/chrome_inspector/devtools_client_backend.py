@@ -380,7 +380,7 @@ class _DevToolsClientBackend(object):
 
   # TODO(crbug.com/1027667): Reduce the timeout once we collect traces from
   # Chrome in proto instead of JSON format (see also crbug.com/1026822).
-  def CollectChromeTracingData(self, trace_data_builder, timeout=300):
+  def CollectChromeTracingData(self, trace_data_builder, timeout=600):
     self._tracing_backend.CollectTraceData(trace_data_builder, timeout)
 
   # This call may be made early during browser bringup and may cause the
