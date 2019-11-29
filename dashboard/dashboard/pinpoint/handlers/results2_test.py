@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import datetime
 import json
 import mock
 
@@ -103,6 +104,7 @@ class _JobStub(object):
     self.job_id = job_id
     self.task = task
     self.started = started
+    self.updated = datetime.datetime(2019, 1, 1, 11, 22, 33)
 
   @property
   def completed(self):

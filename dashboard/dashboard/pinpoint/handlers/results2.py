@@ -30,7 +30,12 @@ class Results2(webapp2.RequestHandler):
 
       url = results2.GetCachedResults2(job)
       if url:
-        self.response.out.write(json.dumps({'status': 'complete', 'url': url}))
+        self.response.out.write(
+            json.dumps({
+                'status': 'complete',
+                'url': url,
+                'updated': job.updated.isoformat(),
+            }))
         return
 
       if results2.ScheduleResults2Generation(job):
