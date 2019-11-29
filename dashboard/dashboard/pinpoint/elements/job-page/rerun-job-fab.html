@@ -66,6 +66,9 @@ found in the LICENSE file.
       },
 
       getArguments(job) {
+        if (!job) {
+          return [];
+        }
         const args = Object.assign({}, job.arguments);
         delete args.name;
         delete args.user;

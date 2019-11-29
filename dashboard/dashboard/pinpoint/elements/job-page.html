@@ -193,6 +193,9 @@ found in the LICENSE file.
       },
 
       setChangeIndex() {
+        if (!this.job) {
+          return;
+        }
         // TODO: Choose the largest difference, not just any difference.
         for (let i = 0; i < this.job.state.length; ++i) {
           if (this.job.state[i].comparisons.prev === 'different') {
@@ -205,26 +208,44 @@ found in the LICENSE file.
       },
 
       isTryJob(job) {
+        if (!job) {
+          return false;
+        }
         return !job.comparison_mode || job.comparison_mode === 'try';
       },
 
       failed(job) {
+        if (!job) {
+          return false;
+        }
         return job.status.toLowerCase() === 'failed';
       },
 
       running(job) {
+        if (!job) {
+          return false;
+        }
         return job.status.toLowerCase() === 'running';
       },
 
       cancelled(job) {
+        if (!job) {
+          return false;
+        }
         return job.status.toLowerCase() === 'cancelled';
       },
 
       queued(job) {
+        if (!job) {
+          return false;
+        }
         return job.status.toLowerCase() === 'queued';
       },
 
       start(job) {
+        if (!job) {
+          return false;
+        }
         return new Date(job.created + 'Z').toLocaleString();
       },
 
@@ -234,6 +255,9 @@ found in the LICENSE file.
 
       queueAhead(job) {
         let ahead = 0;
+        if (!this.hasEstimate(job)) {
+          return ahead;
+        }
         for (const s of job.queue_stats.job_id_with_status) {
           if (s.job_id == job.job_id) {
             break;
@@ -246,6 +270,9 @@ found in the LICENSE file.
       queueWaitingTime(job) {
         let normalizedWait = 0.0;
         let count = 0;
+        if (!this.hasEstimate(job)) {
+          return 'unknown';
+        }
         for (const s of job.queue_stats.queue_time_samples) {
           const seconds = s[0] * 3600.0;
           const position = s[1];
@@ -281,22 +308,34 @@ found in the LICENSE file.
       },
 
       hasEstimate(job) {
-        return 'estimate' in job;
+        return job && 'estimate' in job;
       },
 
       historicMedian(job) {
+        if (!this.hasEstimate(job)) {
+          return 'unknown';
+        }
         return this.formatTimedelta(job.estimate.timings[0]);
       },
 
       historicStdDev(job) {
+        if (!this.hasEstimate(job)) {
+          return 'unknown';
+        }
         return this.formatTimedelta(job.estimate.timings[1]);
       },
 
       historicP90(job) {
+        if (!this.hasEstimate(job)) {
+          return 'unknown';
+        }
         return this.formatTimedelta(job.estimate.timings[2]);
       },
 
       duration(job) {
+        if (!job) {
+          return 'unknown';
+        }
         const created = new Date(job.created + 'Z');
         const updated = new Date(job.updated + 'Z');
         const durationMs = updated - created;
@@ -316,7 +355,7 @@ found in the LICENSE file.
       },
 
       shouldShowChart(job) {
-        if (!job.comparison_mode || job.comparison_mode === 'try') {
+        if (!job || !job.comparison_mode || job.comparison_mode === 'try') {
           return false;
         }
         return job.state.some(state => state.result_values.length);

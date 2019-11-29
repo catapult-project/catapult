@@ -68,6 +68,9 @@ found in the LICENSE file.
       },
 
       getArguments(job) {
+        if (!job) {
+          return [];
+        }
         const tuples = [];
         for (const key in job.arguments) {
           if (['bug_id', 'name', 'user'].includes(key)) {

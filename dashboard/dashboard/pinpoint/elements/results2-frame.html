@@ -38,7 +38,7 @@ found in the LICENSE file.
         newer.  See
         <a href="https://bugs.chromium.org/p/chromium/issues/detail?id=1021137"
           >crbug.com/1021137</a>.</p>
-        <iframe src="[[status.url]]"></iframe>
+        <iframe src="[[getStatusURL(status)]]"></iframe>
       </template>
     </template>
   </template>
@@ -57,6 +57,13 @@ found in the LICENSE file.
           type: Object,
           observer: '_statusChanged',
         },
+      },
+
+      getStatusURL(status) {
+        if (!status || !status.url) {
+          return 'about:blank';
+        }
+        return status.url;
       },
 
       getStarted(status) {
@@ -83,8 +90,11 @@ found in the LICENSE file.
       },
 
       _statusChanged() {
-        if (!this.getComplete(this.status)) {
-          this.async(() => this.$.ajax.generateRequest(), 1000);
+        const visible = !!(this.offsetWidth ||
+                          this.offsetHeight ||
+                          this.getClientRects().length);
+        if (!this.getComplete(this.status) && visible) {
+          this.async(() => this.$.ajax.generateRequest(), 5000);
         }
       },
     });

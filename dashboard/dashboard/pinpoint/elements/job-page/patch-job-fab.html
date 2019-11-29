@@ -72,6 +72,9 @@ found in the LICENSE file.
       },
 
       getArguments(job) {
+        if (!job) {
+          return [];
+        }
         const args = Object.assign({}, job.arguments);
         args.start_git_hash = 'HEAD';
         args.end_git_hash = 'HEAD';
