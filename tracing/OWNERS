@@ -1,6 +1,6 @@
 oysteine@chromium.org  # Prefers python reviews.
-perezju@chromium.org
 dproy@chromium.org  # Prefers javascript reviews.
+khokhlov@google.com
 dberris@chromium.org
 
 # For changes related to system_health/loading_metric.html and its tests.
