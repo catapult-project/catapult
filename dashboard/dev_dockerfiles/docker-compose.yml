@@ -4,26 +4,19 @@ services:
     build: .
     volumes:
       - ../..:/image/catapult:ro
-    command:
-      [/catapult/dashboard/bin/run_py_tests]
+    command: [/catapult/dashboard/bin/run_py_tests]
   deploy-dashboard:
     build: .
     volumes:
       - ../..:/image/catapult:ro
       - gcloud-config:/root/.config/gcloud
     command: [/catapult/dashboard/bin/deploy, --promote, app.yaml]
-    # `deploy` script using `git` to generate version. It assumes you are
-    # already in the catapult repository before running the script.
-    working_dir: /catapult
   deploy-pinpoint:
     build: .
     volumes:
       - ../..:/image/catapult:ro
       - gcloud-config:/root/.config/gcloud
-    # `deploy` script using `git` to generate version. It assumes you are
-    # already in the catapult repository before running the script.
     command: [/catapult/dashboard/bin/deploy, --promote, pinpoint.yaml]
-    working_dir: /catapult
   auth:
     build: .
     volumes:

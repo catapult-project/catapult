@@ -3,6 +3,4 @@ set -x
 
 cd $(dirname "$0")
 
-docker-compose run \
--e GIT_COMMITTER_EMAIL="$(git config --get user.email)" \
-"$@"
+docker-compose run "$@"
