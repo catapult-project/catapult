@@ -143,9 +143,6 @@ class ActionRunner(object):
 
     Behaves as a no-op if tracing is not enabled.
 
-    TODO(perezju): Also behave as a no-op if tracing is enabled but
-    memory-infra is not.
-
     Args:
       deterministic_mode: A boolean indicating whether to attempt or not to
           control the environment (force GCs, clear caches) before making the

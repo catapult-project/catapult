@@ -184,7 +184,7 @@ class SharedPageState(story_module.SharedState):
 
     archive_path = page.story_set.WprFilePathForStory(
         page, self.platform.GetOSName())
-    # TODO(nednguyen, perezju): Ideally we should just let the network
+    # TODO(crbug.com/1029785): Ideally we should just let the network
     # controller raise an exception when the archive_path is not found.
     if archive_path is not None and not os.path.isfile(archive_path):
       logging.warning('WPR archive missing: %s', archive_path)

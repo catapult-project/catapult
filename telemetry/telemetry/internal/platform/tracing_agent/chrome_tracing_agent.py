@@ -156,9 +156,9 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     # We get all DevTools clients including the stale ones, so that we get an
     # exception if there is a stale client. This is because we will potentially
     # lose data if there is a stale client.
-    # TODO(perezju): Check if this actually works. It looks like the call to
-    # GetActiveDevToolsClients in RecordClockSyncMarker would have wiped out
-    # the stale clients anyway.
+    # TODO(crbug.com/1029812): Check if this actually works. It looks like the
+    # call to GetActiveDevToolsClients in RecordClockSyncMarker would have
+    # wiped out the stale clients anyway.
     devtools_clients = (chrome_tracing_devtools_manager
                         .GetDevToolsClients(self._platform_backend))
     raised_exception_messages = []
