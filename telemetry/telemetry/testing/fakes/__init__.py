@@ -409,9 +409,6 @@ class FakeBrowser(FakeApp):
   def CollectDebugData(self, log_level):
     del log_level # unused
 
-  def LogSymbolizedUnsymbolizedMinidumps(self, log_level):
-    del log_level  # unused
-
   def GetTypExpectationsTags(self):
     tags = self.platform.GetTypExpectationsTags()
     return tags + test_utils.sanitizeTypExpectationsTags([self.browser_type])

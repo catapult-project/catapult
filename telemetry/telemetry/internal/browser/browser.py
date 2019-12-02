@@ -266,12 +266,6 @@ class Browser(app.App):
   def supports_memory_metrics(self):
     return self._browser_backend.supports_memory_metrics
 
-  # TODO(https://crbug.com/1025034): Remove this once all uses have been
-  # switched to CollectDebugData directly.
-  def LogSymbolizedUnsymbolizedMinidumps(self, log_level):
-    """Deprecated. Use CollectDebugData instead."""
-    self.CollectDebugData(log_level)
-
   def CollectDebugData(self, log_level):
     """Attempts to symbolize all currently unsymbolized minidumps and log them.
 
