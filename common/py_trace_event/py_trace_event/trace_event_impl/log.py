@@ -183,6 +183,9 @@ def trace_disable():
     return
   _enabled = False
   _flush(close=True)
+  # Clear the collected interned data so that the next trace session
+  # could start from a clean state.
+  perfetto_trace_writer.reset_global_state()
   multiprocessing.Process = _original_multiprocessing_process
 
 def _write_cur_events():

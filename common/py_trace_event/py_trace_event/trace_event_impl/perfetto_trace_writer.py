@@ -10,7 +10,7 @@ import collections
 import perfetto_proto_classes as proto
 
 
-def _reset_global_state():
+def reset_global_state():
   global _interned_categories_by_tid
   global _interned_event_names_by_tid
   global _next_sequence_id
@@ -35,7 +35,7 @@ def _reset_global_state():
   _last_timestamps = {}
 
 
-_reset_global_state()
+reset_global_state()
 
 
 def _get_sequence_id(tid):

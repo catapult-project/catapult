@@ -16,7 +16,7 @@ class PerfettoTraceWriterTest(unittest.TestCase):
   and implement proper protobuf parsing then.
   """
   def setUp(self):
-    perfetto_trace_writer._reset_global_state()
+    perfetto_trace_writer.reset_global_state()
 
   def testWriteThreadDescriptorEvent(self):
     result = StringIO.StringIO()
