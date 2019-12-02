@@ -55,15 +55,9 @@ class ActionRunnerMeasureMemoryTest(tab_test_case.TabTestCase):
     actual_dump_ids = trace_processor.ExtractMemoryDumpIds(trace_data)
     self.assertEqual(actual_dump_ids, expected_dump_ids)
 
-  # TODO(perezju): Enable when reference browser is >= M53
-  # https://github.com/catapult-project/catapult/issues/2610
-  @decorators.Disabled('reference')
   def testDeterministicMode(self):
     self._TestWithTracing(deterministic_mode=True)
 
-  # TODO(perezju): Enable when reference browser is >= M53
-  # https://github.com/catapult-project/catapult/issues/2610
-  @decorators.Disabled('reference')
   def testRealisticMode(self):
     with mock.patch.object(self.action_runner,
                            'ForceGarbageCollection') as mock_method:
