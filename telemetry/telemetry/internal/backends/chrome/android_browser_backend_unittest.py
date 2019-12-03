@@ -16,7 +16,7 @@ class AndroidBrowserBackendTest(
   def testProfileDir(self):
     self.assertIsNotNone(self._browser_backend.profile_directory)
 
-  @decorators.Enabled('android')
+  @decorators.Disabled('all')  # crbug.com/1030208
   def testPullMinidumps(self):
     """Test that minidumps can be pulled off the device and their mtimes set."""
     def GetDumpLocation():
@@ -49,7 +49,7 @@ class AndroidBrowserBackendTest(
     self.assertTrue(os.path.exists(local_path))
     self.assertEqual(os.path.getmtime(local_path), device_mtime - time_offset)
 
-  @decorators.Enabled('android')
+  @decorators.Disabled('all')  # crbug.com/1030208
   def testPullMinidumpsOnlyNew(self):
     """Tests that a minidump is not pulled to the host if it already exists."""
     def GetDumpLocation():
