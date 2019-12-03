@@ -63,6 +63,7 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
     self.assertEqual([], possible_browsers)
 
   def testCanLaunchAlwaysTrueReturnsAllExceptExactAndReference(self):
+    self.finder_options.browser_type = 'any'
     all_types = set(
         android_browser_finder.FindAllBrowserTypes())
     expected_types = all_types - set(('exact', 'reference'))
@@ -73,6 +74,7 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
         set([b.browser_type for b in possible_browsers]))
 
   def testCanLaunchAlwaysTrueReturnsAllExceptExact(self):
+    self.finder_options.browser_type = 'any'
     self.fs.CreateFile(self.expected_reference_build)
     all_types = set(
         android_browser_finder.FindAllBrowserTypes())
@@ -87,6 +89,7 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
     self.fs.CreateFile(
         '/foo/ContentShell.apk')
     self.fs.CreateFile(self.expected_reference_build)
+    self.finder_options.browser_type = 'any'
     self.finder_options.browser_executable = '/foo/ContentShell.apk'
     self._get_package_name_mock.return_value = 'org.chromium.content_shell_apk'
 

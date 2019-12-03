@@ -341,6 +341,26 @@ def FindAllBrowserTypes():
   return browser_types + ['exact', 'reference']
 
 
+def _GetReferenceAndroidBrowser(android_platform, finder_options):
+  # Add the reference build if found.
+  os_version = dependency_util.GetChromeApkOsVersion(
+      android_platform.GetOSVersionName())
+  arch = android_platform.GetArchName()
+  try:
+    reference_build = binary_manager.FetchPath(
+        'chrome_stable', arch, 'android', os_version)
+  except (binary_manager.NoPathFoundError,
+          binary_manager.CloudStorageError):
+    reference_build = None
+  if reference_build and os.path.exists(reference_build):
+    return PossibleAndroidBrowser(
+        'reference',
+        finder_options,
+        android_platform,
+        android_browser_backend_settings.ANDROID_CHROME,
+        reference_build)
+
+
 def _FindAllPossibleBrowsers(finder_options, android_platform):
   """Testable version of FindAllAvailableBrowsers."""
   if not android_platform:
@@ -375,33 +395,19 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
         backend_settings,
         finder_options.browser_executable))
 
-  # Add the reference build if found.
-  os_version = dependency_util.GetChromeApkOsVersion(
-      android_platform.GetOSVersionName())
-  arch = android_platform.GetArchName()
-  try:
-    reference_build = binary_manager.FetchPath(
-        'chrome_stable', arch, 'android', os_version)
-  except (binary_manager.NoPathFoundError,
-          binary_manager.CloudStorageError):
-    reference_build = None
-
-  if reference_build and os.path.exists(reference_build):
-    # TODO(aiolos): how do we stably map the android chrome_stable apk to the
-    # correct backend settings?
-    possible_browsers.append(PossibleAndroidBrowser(
-        'reference',
-        finder_options,
-        android_platform,
-        android_browser_backend_settings.ANDROID_CHROME,
-        reference_build))
+  if finder_options.IsBrowserTypeRelevant('reference'):
+    reference_browser = _GetReferenceAndroidBrowser(
+        android_platform, finder_options)
+    if reference_browser:
+      possible_browsers.append(reference_browser)
 
   # Add any other known available browsers.
   for settings in ANDROID_BACKEND_SETTINGS:
-    p_browser = PossibleAndroidBrowser(
-        settings.browser_type, finder_options, android_platform, settings)
-    if p_browser.IsAvailable():
-      possible_browsers.append(p_browser)
+    if finder_options.IsBrowserTypeRelevant(settings.browser_type):
+      p_browser = PossibleAndroidBrowser(
+          settings.browser_type, finder_options, android_platform, settings)
+      if p_browser.IsAvailable():
+        possible_browsers.append(p_browser)
   return possible_browsers
 
 
