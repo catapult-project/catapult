@@ -110,6 +110,26 @@ https://example.com/repository/+/git_hash_3
 Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions""")
 
+_COMMENT_COMPLETED_THREE_DIFFERENCES_ABSOLUTE = (
+    u"""<b>\U0001f4cd Found significant differences after each of 3 commits.</b>
+https://testbed.example.com/job/1
+
+<b>Subject.</b> by author1@chromium.org
+https://example.com/repository/+/git_hash_1
+10 \u2192 0 (-10) (-100%)
+
+<b>Subject.</b> by author2@chromium.org
+https://example.com/repository/+/git_hash_2
+0 \u2192 -100 (-100) (+\u221e%)
+
+<b>Subject.</b> by author3@chromium.org
+https://example.com/repository/+/git_hash_3
+0 \u2192 No values
+
+Understanding performance regressions:
+  http://g.co/ChromePerformanceRegressions"""
+)
+
 
 _COMMENT_FAILED = (
     u"""\U0001f63f Pinpoint job stopped with an error.
@@ -570,11 +590,66 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
 
     self.assertFalse(j.failed)
+
+    # We now only CC folks from the top two commits.
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_THREE_DIFFERENCES,
         status='Assigned', owner='author1@chromium.org',
-        cc_list=['author1@chromium.org', 'author2@chromium.org',
-                 'author3@chromium.org'],
+        cc_list=['author1@chromium.org', 'author2@chromium.org'],
+        merge_issue=None)
+
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
+  def testCompletedMultipleDifferences_BlameAbsoluteLargest(
+      self, differences, result_values, commit_as_dict):
+    c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
+    c2 = change.Change((change.Commit('chromium', 'git_hash_2'),))
+    c3 = change.Change((change.Commit('chromium', 'git_hash_3'),))
+    differences.return_value = [(None, c1), (None, c2), (None, c3)]
+    result_values.side_effect = [10], [0], [0], [-100], [0], []
+    commit_as_dict.side_effect = (
+        {
+            'repository': 'chromium',
+            'git_hash': 'git_hash_1',
+            'url': 'https://example.com/repository/+/git_hash_1',
+            'author': 'author1@chromium.org',
+            'subject': 'Subject.',
+            'message': 'Subject.\n\nCommit message.',
+        },
+        {
+            'repository': 'chromium',
+            'git_hash': 'git_hash_2',
+            'url': 'https://example.com/repository/+/git_hash_2',
+            'author': 'author2@chromium.org',
+            'subject': 'Subject.',
+            'message': 'Subject.\n\nCommit message.',
+        },
+        {
+            'repository': 'chromium',
+            'git_hash': 'git_hash_3',
+            'url': 'https://example.com/repository/+/git_hash_3',
+            'author': 'author3@chromium.org',
+            'subject': 'Subject.',
+            'message': 'Subject.\n\nCommit message.',
+        },
+    )
+
+    self.get_issue.return_value = {'status': 'Untriaged'}
+
+    j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
+    j.Run()
+
+    self.ExecuteDeferredTasks('default')
+
+    self.assertFalse(j.failed)
+
+    # We now only CC folks from the top two commits, in absolute descending
+    # order.
+    self.add_bug_comment.assert_called_once_with(
+        123456, _COMMENT_COMPLETED_THREE_DIFFERENCES_ABSOLUTE,
+        status='Assigned', owner='author2@chromium.org',
+        cc_list=['author1@chromium.org', 'author2@chromium.org'],
         merge_issue=None)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')

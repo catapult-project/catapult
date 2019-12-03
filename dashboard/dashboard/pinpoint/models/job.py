@@ -418,8 +418,8 @@ class Job(ndb.Model):
       return
 
     difference_details = []
-    authors_with_deltas = {}
     commit_infos = []
+    commits_with_deltas = {}
     for change_a, change_b in differences:
       if change_b.patch:
         commit_info = change_b.patch.AsDict()
@@ -433,12 +433,12 @@ class Job(ndb.Model):
       difference_details.append(difference)
       commit_infos.append(commit_info)
       if values_a and values_b:
-        authors_with_deltas[commit_info['author']] = job_state.Mean(
-            values_b) - job_state.Mean(values_a)
+        mean_delta = job_state.Mean(values_b) - job_state.Mean(values_a)
+        commits_with_deltas[commit_info['git_hash']] = (mean_delta, commit_info)
 
     deferred.defer(
         _UpdatePostAndMergeDeferred,
-        difference_details, commit_infos, authors_with_deltas, self.bug_id,
+        difference_details, commit_infos, commits_with_deltas, self.bug_id,
         self.tags, self.url, _retry_options=RETRY_OPTIONS)
 
   def _UpdateGerritIfNeeded(self):
@@ -676,34 +676,39 @@ def _GenerateCommitCacheKey(commit_infos):
   return commit_cache_key
 
 
-def _ComputePostOwnerSheriffCCList(commit_infos, authors_with_deltas):
+def _ComputePostOwnerSheriffCCList(commits_with_deltas):
   owner = None
   sheriff = None
   cc_list = set()
 
-  if authors_with_deltas:
-    owner, _ = max(authors_with_deltas.items(), key=lambda i: abs(i[1]))
+  # First, we sort the list of commits by absolute change.
+  ordered_commits_by_delta = [
+      commit for _, commit in sorted(
+          commits_with_deltas.values(), key=lambda i: abs(i[0]), reverse=True)
+  ]
 
-  for cur_commit in commit_infos:
+  # We assign the issue to the author of the CL at the head of the ordered list.
+  # Then we only CC the folks in the top two commits.
+  for commit in ordered_commits_by_delta[:2]:
     if not owner:
-      owner = cur_commit['author']
-    sheriff = utils.GetSheriffForAutorollCommit(owner, cur_commit['message'])
-    cc_list.add(cur_commit['author'])
+      owner = commit['author']
+    sheriff = utils.GetSheriffForAutorollCommit(owner, commit['message'])
+    cc_list.add(commit['author'])
     if sheriff:
       owner = sheriff
+
   return owner, sheriff, cc_list
 
 
 def _UpdatePostAndMergeDeferred(
-    difference_details, commit_infos, authors_deltas, bug_id, tags, url):
+    difference_details, commit_infos, commits_with_deltas, bug_id, tags, url):
   if not bug_id:
     return
 
   commit_cache_key = _GenerateCommitCacheKey(commit_infos)
 
   # Bring it all together.
-  owner, sheriff, cc_list = _ComputePostOwnerSheriffCCList(commit_infos,
-                                                           authors_deltas)
+  owner, sheriff, cc_list = _ComputePostOwnerSheriffCCList(commits_with_deltas)
   comment = _FormatComment(difference_details, commit_infos, sheriff, tags, url)
 
   issue_tracker = issue_tracker_service.IssueTrackerService(
