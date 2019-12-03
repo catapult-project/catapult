@@ -188,7 +188,6 @@ class MockTempFile(object):
 class MockLogger(mock.Mock):
   def __init__(self, *args, **kwargs):
     super(MockLogger, self).__init__(*args, **kwargs)
-    # TODO(perezju): Consider adding traps for error, info, etc.
     self.warnings = []
 
   def warning(self, message, *args):
