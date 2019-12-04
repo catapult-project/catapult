@@ -16,7 +16,7 @@ class AndroidBrowserBackendTest(
   def testProfileDir(self):
     self.assertIsNotNone(self._browser_backend.profile_directory)
 
-  @decorators.Disabled('all')  # crbug.com/1030208
+  @decorators.Enabled('android')
   def testPullMinidumps(self):
     """Test that minidumps can be pulled off the device and their mtimes set."""
     def GetDumpLocation():
@@ -35,7 +35,7 @@ class AndroidBrowserBackendTest(
     # timestamp if the host-device clock offset is negative.
     remote_dump_file = posixpath.join(remote_path, 'test_dump')
     self._browser_backend.device.RunShellCommand(
-        ['touch', '-d', '1970-01-0200:00:00', remote_dump_file])
+        ['touch', '-d', '1970-01-02T00:00:00', remote_dump_file])
     device_mtime = self._browser_backend.device.RunShellCommand(
         ['stat', '-c', '%Y', remote_dump_file], single_line=True)
     device_mtime = int(device_mtime.strip())
@@ -49,7 +49,7 @@ class AndroidBrowserBackendTest(
     self.assertTrue(os.path.exists(local_path))
     self.assertEqual(os.path.getmtime(local_path), device_mtime - time_offset)
 
-  @decorators.Disabled('all')  # crbug.com/1030208
+  @decorators.Enabled('android')
   def testPullMinidumpsOnlyNew(self):
     """Tests that a minidump is not pulled to the host if it already exists."""
     def GetDumpLocation():
@@ -67,10 +67,10 @@ class AndroidBrowserBackendTest(
     self._browser_backend.device.RunShellCommand(['mkdir', '-p', remote_path])
     remote_dump_file = posixpath.join(remote_path, 'new_dump')
     self._browser_backend.device.RunShellCommand(
-        ['touch', '-d', '1970-01-0200:00:00', remote_dump_file])
+        ['touch', '-d', '1970-01-02T00:00:00', remote_dump_file])
     remote_dump_file = posixpath.join(remote_path, 'old_dump')
     self._browser_backend.device.RunShellCommand(
-        ['touch', '-d', '1970-01-0200:00:00', remote_dump_file])
+        ['touch', '-d', '1970-01-02T00:00:00', remote_dump_file])
 
     try:
       self._browser_backend.PullMinidumps()
