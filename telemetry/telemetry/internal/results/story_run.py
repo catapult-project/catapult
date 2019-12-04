@@ -86,7 +86,7 @@ class StoryRun(object):
     self._story = story
     self._test_prefix = test_prefix
     self._index = index
-    self._tbm_metrics = []
+    self._tags = []
     self._skip_reason = None
     self._skip_expected = False
     self._failed = False
@@ -95,6 +95,7 @@ class StoryRun(object):
     self._end_time = None
     self._artifacts = {}
     self._measurements = {}
+    self._InitTags()
 
     if intermediate_dir is None:
       self._artifacts_dir = None
@@ -122,10 +123,26 @@ class StoryRun(object):
     # It's an error to record more measurements after this point.
     self._measurements = None
 
-  def SetTbmMetrics(self, metrics):
-    assert not self._tbm_metrics, 'Metrics have already been set'
-    assert len(metrics) > 0, 'Metrics should not be empty'
-    self._tbm_metrics = metrics
+  def AddTags(self, key, values):
+    """Record values to be associated with a given tag key."""
+    self._tags.extend({'key': key, 'value': value} for value in values)
+
+  def _InitTags(self):
+    if 'GTEST_SHARD_INDEX' in os.environ:
+      self.AddTags('shard', [os.environ['GTEST_SHARD_INDEX']])
+    self.AddTags('story_tag', self.story.GetStoryTagsList())
+
+  def AddTbmMetrics(self, metrics):
+    """Register Timeline Based Metrics to compute on traces for this story.
+
+    Args:
+      metrics: A list of strings, each should be of the form 'v2:metric' or
+        'v3:metric' for respective TBM versioned metrics. If the version number
+        is omitted, a default of 'v2' is assumed.
+    """
+    for metric in metrics:
+      version, name = _ParseTbmMetric(metric)
+      self.AddTags(version, [name])
 
   def SetFailed(self, failure_str):
     self._failed = True
@@ -164,20 +181,9 @@ class StoryRun(object):
                 name: artifact.AsDict()
                 for name, artifact in self._artifacts.items()
             },
-            'tags': [
-                {'key': key, 'value': value}
-                for key, value in self._IterTags()
-            ],
+            'tags': self._tags
         }
     }
-
-  def _IterTags(self):
-    for metric in self._tbm_metrics:
-      yield 'tbmv2', metric
-    if 'GTEST_SHARD_INDEX' in os.environ:
-      yield 'shard', os.environ['GTEST_SHARD_INDEX']
-    for tag in self.story.GetStoryTagsList():
-      yield 'story_tag', tag
 
   @property
   def story(self):
@@ -193,11 +199,6 @@ class StoryRun(object):
       return '/'.join([self._test_prefix, self.story.name])
     else:
       return self.story.name
-
-  @property
-  def tbm_metrics(self):
-    """The TBMv2 metrics that will computed on this story run."""
-    return self._tbm_metrics
 
   @property
   def status(self):
@@ -360,3 +361,13 @@ def _MeasurementToDict(unit, samples, description):
       raise TypeError('description must be a string, got %s' % description)
     measurement['description'] = description
   return measurement
+
+
+def _ParseTbmMetric(metric):
+  if ':' in metric:
+    version, name = metric.split(':')
+    if version not in ('tbmv2', 'tbmv3'):
+      raise ValueError('Invalid metric name: %s' % metric)
+    return (version, name)
+  else:
+    return ('tbmv2', metric)

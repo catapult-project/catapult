@@ -85,15 +85,18 @@ class Options(object):
     self._timeline_based_metrics.append(metric)
 
   def SetTimelineBasedMetrics(self, metrics):
-    """Sets the new-style (TBMv2) metrics to run.
+    """Sets the Timeline Based Metrics (TBM) to run.
 
-    Metrics are assumed to live in //tracing/tracing/metrics, so the path you
-    pass in should be relative to that. For example, to specify
-    sample_metric.html, you should pass in ['sample_metric.html'].
+    TBMv2 metrics are assumed to live in catapult //tracing/tracing/metrics;
+    for a metric defined e.g. in 'sample_metric.html' you should pass
+    'tbmv2:sampleMetric' or just 'sampleMetric' (note camel cased names).
+
+    TBMv3 metrics live in chromium //tools/perf/core/tbmv3/metrics, for a
+    metric defined e.g. in a 'dummy_metric.sql' file you should pass the
+    name 'tbmv3:dummy_metric'.
 
     Args:
-      metrics: A list of strings giving metric paths under
-          //tracing/tracing/metrics.
+      metrics: A list of strings with metric names as described above.
     """
     assert isinstance(metrics, list)
     for metric in metrics:

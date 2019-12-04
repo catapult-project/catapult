@@ -69,7 +69,6 @@ class StoryRunTest(unittest.TestCase):
     self.assertFalse(run.skipped)
     self.assertEquals(run.failure_str, None)
 
-
   @mock.patch.dict('os.environ', {'GTEST_SHARD_INDEX': '7'})
   @mock.patch('telemetry.internal.results.story_run.time')
   def testAsDict(self, time_module):
@@ -83,7 +82,7 @@ class StoryRunTest(unittest.TestCase):
           intermediate_dir=tempdir)
       with run.CreateArtifact('logs.txt') as log_file:
         log_file.write('hello\n')
-      run.SetTbmMetrics(['metric1', 'metric2'])
+      run.AddTbmMetrics(['metric1', 'tbmv2:metric2', 'tbmv3:new_metric'])
       run.Finish()
       entry = run.AsDict()
       self.assertEqual(
@@ -103,11 +102,12 @@ class StoryRunTest(unittest.TestCase):
                       }
                   },
                   'tags': [
-                      {'key': 'tbmv2', 'value': 'metric1'},
-                      {'key': 'tbmv2', 'value': 'metric2'},
                       {'key': 'shard', 'value': '7'},
                       {'key': 'story_tag', 'value': 'tag1'},
                       {'key': 'story_tag', 'value': 'tag2'},
+                      {'key': 'tbmv2', 'value': 'metric1'},
+                      {'key': 'tbmv2', 'value': 'metric2'},
+                      {'key': 'tbmv3', 'value': 'new_metric'},
                   ],
               }
           }

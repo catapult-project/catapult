@@ -321,7 +321,7 @@ class PageTestResults(object):
       with self.CaptureArtifact(artifact_name) as artifact_path:
         shutil.copy(filename, artifact_path)
     if tbm_metrics:
-      self._current_story_run.SetTbmMetrics(tbm_metrics)
+      self._current_story_run.AddTbmMetrics(tbm_metrics)
 
   def Finalize(self, exc_value=None):
     """Finalize this object to prevent more results from being recorded.
