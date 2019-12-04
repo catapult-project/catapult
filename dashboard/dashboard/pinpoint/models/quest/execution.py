@@ -120,8 +120,8 @@ class Execution(object):
 
     try:
       self._Poll()
-    except client.AccessTokenRefreshError:
-      raise errors.RecoverableError()
+    except client.AccessTokenRefreshError as e:
+      raise errors.RecoverableError(e)
     except (errors.FatalError, RuntimeError):
       # Some built-in exceptions are derived from RuntimeError which we'd like
       # to treat as errors.

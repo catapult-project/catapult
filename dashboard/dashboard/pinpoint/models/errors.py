@@ -2,26 +2,84 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+"""Various exceptions used in Pinpoint.
+
+These are typically user-facing, i.e. when these failures happen in a job they
+are reported to the user in the UI in some form.  In general they represent some
+reason why a job/task/step/etc was unable to find a result.
+
+Here's the exception hierarchy:
+
+  JobError
+   +-- FatalError
+   |    +-- BuildIsolateNotFound
+   |    +-- SwarmingExpired
+   |    +-- AllRunsFailed
+   +-- InformationalError
+   |    +-- BuildFailed
+   |    +-- BuildCancelled
+   |    +-- BuildGerritUrlNotFound
+   |    +-- BuildGerritURLInvalid
+   |    +-- CancelError
+   |    +-- SwarmingTaskError
+   |    +-- SwarmingTaskFailed
+   |    +-- SwarmingTaskFailedNoException
+   |    +-- SwarmingNoBots
+   |    +-- ReadValidNoValues
+   |    +-- ReadValueNotFound
+   |    +-- ReadValueUnknownStat
+   |    +-- ReadValueChartNotFound
+   |    +-- ReadValueTraceNotFound
+   |    +-- ReadValueNoFile
+   +-- JobRetryError
+        +-- JobRetryLimitExceededError
+        +-- JobRetryFailed
+  RecoverableError
+
+"""
+
+
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import traceback
 
-class FatalError(Exception):
+
+class JobError(Exception):
+  """Base exception for errors in this module."""
+
+  # Classification of the error for analytics purposes, and potentially a rough
+  # indication of where the fault lies.  One of 'build', 'request', 'pinpoint',
+  # 'test', or None (indicating unknown).
+  category = None
+
+
+class FatalError(JobError):
   def __init__(self, message):
     super(FatalError, self).__init__(message)
 
 
-class InformationalError(Exception):
+class InformationalError(JobError):
   def __init__(self, message):
     super(InformationalError, self).__init__(message)
 
 
+# Not a JobError because this is only used for internal control flow -- this
+# should never be a user-visible exception.
 class RecoverableError(Exception):
-  pass
+  """An error that is usually transient, so the operation should be retried."""
+  def __init__(self, wrapped_exc):
+    super(RecoverableError, self).__init__()
+    self.wrapped_exc = wrapped_exc
+
+  def __str__(self):
+    return ("Retriable operation failed with: "
+            + _FormatException(self.wrapped_exc))
 
 
 class BuildIsolateNotFound(FatalError):
+  category = 'build'
   def __init__(self):
     super(BuildIsolateNotFound, self).__init__(
         "The build was reported to have completed successfully, but Pinpoint "\
@@ -30,6 +88,7 @@ class BuildIsolateNotFound(FatalError):
 
 
 class BuildFailed(InformationalError):
+  category = 'build'
   def __init__(self, reason):
     super(BuildFailed, self).__init__(
         'Encountered an %s error while attempting to build this revision. '\
@@ -53,6 +112,7 @@ class BuildGerritUrlNotFound(InformationalError):
 
 
 class BuildGerritURLInvalid(InformationalError):
+  category = 'request'
   def __init__(self, reason):
     super(BuildGerritURLInvalid, self).__init__(
         'Invalid url: %s. Pinpoint currently only supports the fully '\
@@ -68,6 +128,9 @@ class CancelError(InformationalError):
 
 
 class SwarmingExpired(FatalError):
+
+  category = 'pinpoint'
+
   def __init__(self):
     super(SwarmingExpired, self).__init__(
         'The test was successfully queued in swarming, but expired. This is '\
@@ -77,6 +140,9 @@ class SwarmingExpired(FatalError):
 
 
 class SwarmingTaskError(InformationalError):
+
+  category = 'test'
+
   def __init__(self, reason):
     super(SwarmingTaskError, self).__init__(
         'The swarming task failed with state "%s". This generally indicates '\
@@ -87,6 +153,10 @@ class SwarmingTaskError(InformationalError):
 
 class SwarmingTaskFailed(InformationalError):
   """Raised when the test fails."""
+
+
+  category = 'test'
+
   def __init__(self, taskOutput):
     super(SwarmingTaskFailed, self).__init__(
         'The test ran but failed. This is likely to a problem with the test '\
@@ -96,6 +166,9 @@ class SwarmingTaskFailed(InformationalError):
 
 
 class SwarmingTaskFailedNoException(InformationalError):
+
+  category = 'test'
+
   def __init__(self):
     super(SwarmingTaskFailedNoException, self).__init__(
         'The test was run but failed and Pinpoint was unable to parse the '\
@@ -103,6 +176,9 @@ class SwarmingTaskFailedNoException(InformationalError):
 
 
 class SwarmingNoBots(InformationalError):
+
+  category = 'request'
+
   def __init__(self):
     super(SwarmingNoBots, self).__init__(
         "There doesn't appear to be any bots available to run the "\
@@ -111,6 +187,9 @@ class SwarmingNoBots(InformationalError):
 
 
 class ReadValueNoValues(InformationalError):
+
+  category = 'test'
+
   def __init__(self):
     super(ReadValueNoValues, self).__init__(
         'The test ran successfully, but the output failed to contain any '\
@@ -119,6 +198,9 @@ class ReadValueNoValues(InformationalError):
 
 
 class ReadValueNotFound(InformationalError):
+
+  category = 'request'
+
   def __init__(self, reason):
     super(ReadValueNotFound, self).__init__(
         "The test ran successfully, but the metric specified (%s) wasn't "\
@@ -127,6 +209,9 @@ class ReadValueNotFound(InformationalError):
 
 
 class ReadValueUnknownStat(InformationalError):
+
+  category = 'pinpoint'
+
   def __init__(self, reason):
     super(ReadValueUnknownStat, self).__init__(
         "The test ran successfully, but the statistic specified (%s) wasn't "\
@@ -135,6 +220,9 @@ class ReadValueUnknownStat(InformationalError):
 
 
 class ReadValueChartNotFound(InformationalError):
+
+  category = 'request'
+
   def __init__(self, reason):
     super(ReadValueChartNotFound, self).__init__(
         "The test ran successfully, but the chart specified (%s) wasn't "\
@@ -143,6 +231,9 @@ class ReadValueChartNotFound(InformationalError):
 
 
 class ReadValueTraceNotFound(InformationalError):
+
+  category = 'request'
+
   def __init__(self, reason):
     super(ReadValueTraceNotFound, self).__init__(
         "The test ran successfully, but the trace specified (%s) wasn't "\
@@ -151,6 +242,9 @@ class ReadValueTraceNotFound(InformationalError):
 
 
 class ReadValueNoFile(InformationalError):
+
+  category = 'test'
+
   def __init__(self, reason):
     super(ReadValueNoFile, self).__init__(
         'The test ran successfully but failed to produce an expected '\
@@ -163,11 +257,50 @@ class AllRunsFailed(FatalError):
     super(AllRunsFailed, self).__init__(
         'All of the runs failed. The most common error (%d/%d runs) '\
         'was:\n%s' % (exc_count, att_count, exc))
+    exc_category = getattr(exc, 'category', None)
+    if exc_category is not None:
+      self.category = exc_category
 
 
-RETRY_LIMIT = "Pinpoint has hit its' retry limit and will terminate this job."
+class JobRetryError(JobError):
+  def __init__(self, message, category=None, wrapped_exc=None):
+    super(JobRetryError, self).__init__()
+    self.message = message
+    self.category = category
+    self.wrapped_exc = wrapped_exc
 
-RETRY_FAILED = "Pinpoint wasn't able to reschedule itself to run again."
+
+class JobRetryLimitExceededError(JobRetryError):
+  def __init__(self, wrapped_exc=None):
+    message = ("Pinpoint has hit its retry limit and will terminate this job.\n"
+               "Most recent failure:\n"
+               + _FormatException(wrapped_exc))
+    # wrapped_exc is always a RecoverableError (never JobError), so we don't
+    # have a category.
+    category = None
+    JobRetryError.__init__(self, message, category, wrapped_exc)
+
+
+class JobRetryFailed(JobRetryError):
+  def __init__(self, wrapped_exc=None):
+    message = ("Pinpoint wasn't able to reschedule itself to run again.\n"
+               "Most recent failure:\n"
+               + _FormatException(wrapped_exc))
+    # wrapped_exc is always a RecoverableError (never JobError), so we don't
+    # have a category.
+    category = None
+    JobRetryError.__init__(self, message, category, wrapped_exc)
+
+
+def _FormatException(exc):
+  """Format an Exception the way it would be in a traceback.
+
+  >>> err = ValueError('bad data')
+  >>> _FormatException(err)
+  'ValueError: bad data\n'
+  """
+  return ''.join(traceback.format_exception_only(type(exc), exc))
+
 
 REFRESH_FAILURE = 'An unknown failure occurred during the run.\n'\
     'Please file a bug under Speed>Bisection with this job.'

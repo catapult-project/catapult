@@ -454,15 +454,23 @@ class Job(ndb.Model):
     tb = traceback.format_exc() or ''
     title = _CRYING_CAT_FACE + ' Pinpoint job stopped with an error.'
     exc_info = sys.exc_info()
-    exc_message = ''
-    if exception:
-      exc_message = exception
-    elif exc_info[1]:
-      exc_message = sys.exc_info()[1].message
+    if exception is None:
+      if exc_info[1] is None:
+        # We've been called without a exception in sys.exc_info or in our args.
+        # This should not happen.
+        exception = errors.JobError('Unknown job error')
+        exception.category = 'pinpoint'
+      else:
+        exception = exc_info[1]
+    exc_message = exception.message
+    category = None
+    if isinstance(exception, errors.JobError):
+      category = exception.category
 
     self.exception_details = {
         'message': exc_message,
         'traceback': tb,
+        'category': category,
     }
     self.task = None
 
@@ -482,8 +490,9 @@ class Job(ndb.Model):
       task = taskqueue.add(
           queue_name='job-queue', url='/api/run/' + self.job_id,
           name=task_name, countdown=countdown)
-    except (apiproxy_errors.DeadlineExceededError, taskqueue.TransientError):
-      raise errors.RecoverableError()
+    except (apiproxy_errors.DeadlineExceededError,
+            taskqueue.TransientError) as exc:
+      raise errors.RecoverableError(exc)
 
     self.task = task.name
 
@@ -525,12 +534,12 @@ class Job(ndb.Model):
         self._Complete()
 
       self.retry_count = 0
-    except errors.RecoverableError:
+    except errors.RecoverableError as e:
       try:
         if not self._MaybeScheduleRetry():
-          self.Fail(errors.RETRY_LIMIT)
-      except errors.RecoverableError:
-        self.Fail(errors.RETRY_FAILED)
+          self.Fail(errors.JobRetryLimitExceededError(wrapped_exc=e))
+      except errors.RecoverableError as e:
+        self.Fail(errors.JobRetryFailed(wrapped_exc=e))
     except BaseException:
       self.Fail()
       raise

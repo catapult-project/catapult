@@ -159,7 +159,7 @@ class JobState(object):
         self.AddChange(change, index)
     except (httplib.HTTPException, urlfetch_errors.DeadlineExceededError) as e:
       logging.debug('Encountered error: %s', e)
-      raise errors.RecoverableError()
+      raise errors.RecoverableError(e)
 
   def ScheduleWork(self):
     work_left = False

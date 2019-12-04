@@ -190,7 +190,7 @@ class RetryTest(test.TestCase):
     j = job.Job.New((), (), comparison_mode='performance')
     j.Start()
     j.state.Explore = mock.MagicMock(
-        side_effect=errors.RecoverableError)
+        side_effect=errors.RecoverableError(None))
     j._Schedule = mock.MagicMock()
     j.put = mock.MagicMock()
     j.Fail = mock.MagicMock()
@@ -213,7 +213,7 @@ class RetryTest(test.TestCase):
     j = job.Job.New((), (), comparison_mode='performance')
     j.Start()
     j.state.Explore = mock.MagicMock(
-        side_effect=errors.RecoverableError)
+        side_effect=errors.RecoverableError(None))
     j._Schedule = mock.MagicMock()
     j.put = mock.MagicMock()
     j.Fail = mock.MagicMock()

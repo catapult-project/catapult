@@ -110,8 +110,8 @@ main waterfall either hasn’t built, or revisions with specific requirements
 (such as patches, dependant repo’s at specific revisions, etc.) that the main
 waterfall wouldn’t have built under normal circumstances.
 
-INFRA\_FAILURE occurs when there’s an issue with one of Pinpoint’s builders, ie.
-a broken recipe roll.
+INFRA\_FAILURE occurs when there’s an issue with one of Pinpoint’s builders,
+e.g. a broken recipe roll.
 
 ### Suggested course of action:
 
