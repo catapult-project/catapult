@@ -312,6 +312,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       tags.append('android-webview')
     else:
       tags.append('android-not-webview')
+    if 'weblayer' in self.browser_type:
+      tags.append('android-weblayer')
     return tags
 
 
