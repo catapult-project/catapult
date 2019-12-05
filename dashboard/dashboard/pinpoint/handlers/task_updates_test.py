@@ -33,17 +33,17 @@ class TaskUpdatesTest(test.TestCase):
             'message': {
                 'attributes': {
                     'key': 'value'
-                }
-            },
-            'data':
-                base64.standard_b64encode(
-                    json.dumps({
-                        'job_id': 'cafef00d',
-                        'task': {
-                            'id': 1,
-                            'type': 'build',
-                        },
-                    })),
+                },
+                'data':
+                    base64.standard_b64encode(
+                        json.dumps({
+                            'job_id': 'cafef00d',
+                            'task': {
+                                'id': 1,
+                                'type': 'build',
+                            },
+                        }))
+            }
         }),
         status=204)
 
@@ -54,9 +54,9 @@ class TaskUpdatesTest(test.TestCase):
             'message': {
                 'attributes': {
                     'nothing': 'important'
-                }
+                },
+                'data': '{"not": "base64-encoded"}',
             },
-            'data': '{"not": "base64-encoded"}',
         }),
         status=204)
     self.Post(
@@ -65,8 +65,8 @@ class TaskUpdatesTest(test.TestCase):
             'message': {
                 'attributes': {
                     'nothing': 'important'
-                }
+                },
+                'data': base64.standard_b64encode('not json formatted'),
             },
-            'data': base64.standard_b64encode('not json formatted'),
         }),
         status=204)

@@ -57,5 +57,11 @@ def _ProcessJob(job_id, queue_status, configuration):
 
   if queue_status == 'Queued':
     job.Start()
+    # TODO(dberris): Remove this when the execution engine is the default.
+    if job.use_execution_engine:
+      logging.info(
+          'Skipping Job that uses the experimental execution engine: %s (%s)',
+          job.job_id, job.url)
+      scheduler.Complete(job)
 
   return False

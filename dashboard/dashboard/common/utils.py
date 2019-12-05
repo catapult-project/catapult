@@ -81,6 +81,7 @@ def GetEmail():
   return user.email() if user else None
 
 
+@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)
 def TickMonitoringCustomMetric(metric_name):
   """Increments the stackdriver custom metric with the given name.
 
@@ -539,6 +540,7 @@ def _IsGroupMemberCacheKey(identity, group):
   return 'is_group_member_%s_%s' % (identity, group)
 
 
+@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)
 def ServiceAccountHttp(scope=EMAIL_SCOPE, timeout=None):
   """Returns the Credentials of the service account if available."""
   account_details = stored_object.Get(SERVICE_ACCOUNT_KEY)
@@ -558,6 +560,7 @@ def ServiceAccountHttp(scope=EMAIL_SCOPE, timeout=None):
   return http
 
 
+@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)
 def IsValidSheriffUser():
   """Checks whether the user should be allowed to triage alerts."""
   email = GetEmail()
@@ -576,6 +579,7 @@ def IsTryjobUser():
       identity=email, group='project-chromium-tryjob-access')
 
 
+@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)
 def GetIpWhitelist():
   """Returns a list of IP address strings in the whitelist."""
   return stored_object.Get(IP_WHITELIST_KEY)

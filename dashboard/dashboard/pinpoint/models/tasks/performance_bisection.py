@@ -20,6 +20,9 @@ from dashboard.pinpoint.models import task as task_module
 from dashboard.pinpoint.models.tasks import find_isolate
 from dashboard.pinpoint.models.tasks import read_value
 from dashboard.pinpoint.models.tasks import run_test
+from dashboard.pinpoint.models.quest import run_telemetry_test
+from dashboard.pinpoint.models.quest import run_vr_telemetry_test
+from dashboard.pinpoint.models.quest import run_gtest
 from dashboard.services import gitiles_service
 
 _DEFAULT_SPECULATION_LEVELS = 2
@@ -46,18 +49,31 @@ TaskOptions = collections.namedtuple(
      'analysis_options', 'start_change', 'end_change', 'pinned_change'))
 
 
+def _CreateRunTestTaskTemplate(test_option_template, change, arguments):
+  # Because we're calling "legacy" functions that deal with dictionaries of
+  # options, we reconstitute the ones we know of and re-create the 'arguments'
+  # dictionary that would have been passed to Pinpoint.
+  # TODO(dberris): Fix this up so that when we delete the quests, we end up with
+  # a simpler extra argument generation mechanism.
+  return TestOptionTemplate(test_option_template.swarming_server,
+                            test_option_template.dimensions,
+                            ComputeExtraArgs(arguments, change))._asdict()
+
+
 def _CreateReadTaskOptions(build_option_template, test_option_template,
-                           read_option_template, analysis_options, change):
+                           read_option_template, analysis_options, change,
+                           arguments):
   return read_value.TaskOptions(
       test_options=run_test.TaskOptions(
           build_options=find_isolate.TaskOptions(
               change=change, **build_option_template._asdict()),
           attempts=analysis_options.min_attempts,
-          **test_option_template._asdict()),
+          **_CreateRunTestTaskTemplate(test_option_template, change,
+                                       arguments)),
       **read_option_template._asdict())
 
 
-def CreateGraph(options):
+def CreateGraph(options, arguments=None):
   if not isinstance(options, TaskOptions):
     raise ValueError(
         'options must be an instance of performance_bisection.TaskOptions')
@@ -70,10 +86,12 @@ def CreateGraph(options):
 
   start_change_read_options = _CreateReadTaskOptions(
       options.build_option_template, options.test_option_template,
-      options.read_option_template, options.analysis_options, start_change)
+      options.read_option_template, options.analysis_options, start_change,
+      arguments if arguments else {})
   end_change_read_options = _CreateReadTaskOptions(
       options.build_option_template, options.test_option_template,
-      options.read_option_template, options.analysis_options, end_change)
+      options.read_option_template, options.analysis_options, end_change,
+      arguments if arguments else {})
 
   # Given the start_change and end_change, we create two subgraphs that we
   # depend on from the 'find_culprit' task. This means we'll need to create
@@ -118,6 +136,8 @@ def CreateGraph(options):
           # comparison mode as 'performance'.
           'comparison_mode':
               'performance',
+          'arguments':
+              arguments if arguments else {},
       })
   return task_module.TaskGraph(
       vertices=list(
@@ -253,7 +273,8 @@ class RefineExplorationAction(
     new_subgraph = read_value.CreateGraph(
         _CreateReadTaskOptions(build_option_template, test_option_template,
                                read_option_template, analysis_options,
-                               self.change))
+                               self.change,
+                               self.task.payload.get('arguments', {})))
     try:
       task_module.ExtendTaskGraph(
           self.job,
@@ -546,3 +567,50 @@ class Serializer(evaluators.FilteringEvaluator):
                 {'ongoing', 'failed', 'completed', 'cancelled'}),
         ),
         delegate=AnalysisSerializer)
+
+
+EXPERIMENTAL_TELEMETRY_BENCHMARKS = {
+    'performance_test_suite', 'performance_webview_test_suite',
+    'telemetry_perf_tests', 'telemetry_perf_webview_tests'
+}
+EXPERIMENTAL_VR_BENCHMARKS = {'vr_perf_tests'}
+EXPERIMENTAL_TARGET_SUPPORT = (
+    EXPERIMENTAL_TELEMETRY_BENCHMARKS | EXPERIMENTAL_VR_BENCHMARKS)
+
+
+def ComputeExtraArgs(args, change):
+  """Returns a list of extra arugments based on inputs to a Pinpoint Job.
+
+  This function consolidates all the special arguments required for running
+  tests dependent on the "target" of a Pinpoint job. This allows us to
+  consolidate the supported targets and how we invoke the targets in a
+  performance bisection.
+  """
+  target = args.get('target')
+  if not target:
+    return None
+
+  # All the targets in the experimental target set generate histogram sets and
+  # are Telemetry-driven benchmarks. We'll apply the logic used in the
+  # RunTelemetryTest quest here.
+  if target in EXPERIMENTAL_TELEMETRY_BENCHMARKS:
+    return _ComputeTelemetryArgs(args, change)
+
+  if target in EXPERIMENTAL_VR_BENCHMARKS:
+    return _ComputeVrArgs(args, change)
+
+  return _ComputeGTestArgs(args)
+
+
+def _ComputeTelemetryArgs(args, change):
+  return run_telemetry_test.ChangeDependentArgs(
+      run_telemetry_test.RunTelemetryTest._ExtraTestArgs(args), change)
+
+
+def _ComputeVrArgs(args, change):
+  return run_telemetry_test.ChangeDependentArgs(
+      run_vr_telemetry_test.RunVrTelemetryTest._ExtraTestArgs(args), change)
+
+
+def _ComputeGTestArgs(args):
+  return run_gtest.RunGTest._ExtraTestArgs(args)

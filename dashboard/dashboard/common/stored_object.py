@@ -30,6 +30,7 @@ _CHUNK_SIZE = 1000 * 1000
 
 
 @ndb.synctasklet
+@ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
 def Get(key):
   """Gets the value.
 
@@ -44,6 +45,7 @@ def Get(key):
 
 
 @ndb.tasklet
+@ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
 def GetAsync(key):
   entity = yield ndb.Key(MultipartEntity, key).get_async()
   if not entity:
@@ -53,6 +55,7 @@ def GetAsync(key):
 
 
 @ndb.synctasklet
+@ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
 def Set(key, value):
   """Sets the value in datastore.
 
@@ -64,6 +67,7 @@ def Set(key, value):
 
 
 @ndb.tasklet
+@ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
 def SetAsync(key, value):
   entity = yield ndb.Key(MultipartEntity, key).get_async()
   if not entity:
@@ -73,12 +77,14 @@ def SetAsync(key, value):
 
 
 @ndb.synctasklet
+@ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
 def Delete(key):
   """Deletes the value in datastore."""
   yield DeleteAsync(key)
 
 
 @ndb.tasklet
+@ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
 def DeleteAsync(key):
   multipart_entity_key = ndb.Key(MultipartEntity, key)
   # Check if the entity exists before attempting to delete it in order to avoid
@@ -101,6 +107,7 @@ class MultipartEntity(ndb.Model):
   size = ndb.IntegerProperty(default=0, indexed=False)
 
   @ndb.tasklet
+  @ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
   def GetPartsAsync(self):
     """Deserializes data from multiple PartEntity."""
     if not self.size:
@@ -115,11 +122,13 @@ class MultipartEntity(ndb.Model):
 
   @classmethod
   @ndb.tasklet
+  @ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
   def DeleteAsync(cls, key):
     part_keys = yield PartEntity.query(ancestor=key).fetch_async(keys_only=True)
     yield ndb.delete_multi_async(part_keys)
 
   @ndb.tasklet
+  @ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
   def PutAsync(self):
     """Stores serialized data over multiple PartEntity."""
     part_list = [

@@ -295,6 +295,28 @@ class NewTest(_NewTest):
     self.assertEqual('some_chart', job.benchmark_arguments.chart)
     self.assertEqual(None, job.benchmark_arguments.statistic)
 
+  def testNewUsingExecutionEngine(self):
+    request = dict(_BASE_REQUEST)
+    request.update({
+        'chart': 'some_chart',
+        'story': 'some_story',
+        'story_tags': 'some_tag,some_other_tag',
+        'experimental_execution_engine': 'on',
+        'target': 'performance_test_suite',
+        'comparison_mode': 'performance',
+    })
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertIsNotNone(job.benchmark_arguments)
+    self.assertEqual('speedometer', job.benchmark_arguments.benchmark)
+    self.assertEqual('some_story', job.benchmark_arguments.story)
+    self.assertEqual('some_tag,some_other_tag',
+                     job.benchmark_arguments.story_tags)
+    self.assertEqual('some_chart', job.benchmark_arguments.chart)
+    self.assertEqual(None, job.benchmark_arguments.statistic)
+    self.assertTrue(job.use_execution_engine)
+
+
   def testVrQuest(self):
     request = dict(_BASE_REQUEST)
     request['target'] = 'vr_perf_tests'

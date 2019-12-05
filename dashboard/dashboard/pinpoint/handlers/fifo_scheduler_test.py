@@ -8,25 +8,14 @@ from __future__ import division
 from __future__ import absolute_import
 
 import mock
-import sys
-import logging
 
 from dashboard.pinpoint import test
 from dashboard.pinpoint.models import job
 from dashboard.pinpoint.models import scheduler
+from dashboard.pinpoint.models.tasks import bisection_test_util
 
 
 class FifoSchedulerTest(test.TestCase):
-
-  def setUp(self):
-    # Intercept the logging messages, so that we can see them when we have test
-    # output in failures.
-    self.logger = logging.getLogger()
-    self.logger.level = logging.DEBUG
-    self.stream_handler = logging.StreamHandler(sys.stdout)
-    self.logger.addHandler(self.stream_handler)
-    self.addCleanup(self.logger.removeHandler, self.stream_handler)
-    super(FifoSchedulerTest, self).setUp()
 
   def testSingleQueue(self):
     j = job.Job.New((), (),
@@ -62,8 +51,8 @@ class FifoSchedulerTest(test.TestCase):
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock(
-        side_effect=j._Complete)  # pylint: disable=invalid-name
+    j.Start = mock.MagicMock(  # pylint: disable=invalid-name
+        side_effect=j._Complete)
 
     response = self.testapp.get('/cron/fifo-scheduler')
     self.assertEqual(response.status_code, 200)
@@ -98,8 +87,8 @@ class FifoSchedulerTest(test.TestCase):
             (), (),
             arguments={'configuration': 'queue-{}'.format(configuration_id)},
             comparison_mode='performance')
-        j.Start = mock.MagicMock(
-            side_effect=j._Complete)  # pylint: disable=invalid-name
+        j.Start = mock.MagicMock(  # pylint: disable=invalid-name
+            side_effect=j._Complete)
         scheduler.Schedule(j)
         jobs.append(j)
 
@@ -119,8 +108,8 @@ class FifoSchedulerTest(test.TestCase):
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock(
-        side_effect=j._Complete)  # pylint: disable=invalid-name
+    j.Start = mock.MagicMock(  # pylint: disable=invalid-name
+        side_effect=j._Complete)
 
     # Check that we can find the queued job.
     stats = scheduler.QueueStats('mock')
@@ -192,8 +181,8 @@ class FifoSchedulerTest(test.TestCase):
                       arguments={'configuration': 'mock'},
                       comparison_mode='performance')
       scheduler.Schedule(j)
-      j.Start = mock.MagicMock(
-          side_effect=j._Complete)  # pylint: disable=invalid-name
+      j.Start = mock.MagicMock(  # pylint: disable=invalid-name
+          side_effect=j._Complete)
       response = self.testapp.get('/cron/fifo-scheduler')
       self.assertEqual(response.status_code, 200)
 
@@ -201,3 +190,26 @@ class FifoSchedulerTest(test.TestCase):
 
     stats = scheduler.QueueStats('mock')
     self.assertLessEqual(len(stats.get('queue_time_samples')), 50)
+
+
+# TODO(dberris): Need to mock *all* of the back-end services that the various
+# "live" bisection operations will be looking into.
+class FifoSchedulerExecutionEngineTest(bisection_test_util.BisectionTestBase):
+
+  def testJobRunInExecutionEngine(self):
+    j = job.Job.New((), (),
+                    arguments={'configuration': 'mock'},
+                    comparison_mode='performance',
+                    use_execution_engine=True)
+    self.PopulateSimpleBisectionGraph(j)
+    scheduler.Schedule(j)
+    j.Start = mock.MagicMock(  # pylint: disable=invalid-name
+        side_effect=j._Complete)
+
+    response = self.testapp.get('/cron/fifo-scheduler')
+    self.assertEqual(response.status_code, 200)
+    self.ExecuteDeferredTasks('default')
+
+    self.assertTrue(j.Start.called)
+    job_id, _ = scheduler.PickJob('mock')
+    self.assertIsNone(job_id)

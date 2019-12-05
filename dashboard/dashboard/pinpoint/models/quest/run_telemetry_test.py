@@ -7,7 +7,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import copy
 import re
 
 from dashboard.pinpoint.models.quest import run_performance_test
@@ -28,30 +27,34 @@ def _StoryToRegex(story_name):
   return '^%s$' % _STORY_REGEX.sub('.', story_name)
 
 
+def ChangeDependentArgs(args, change):
+  # For results2 to differentiate between runs, we need to add the
+  # Telemetry parameter `--results-label <change>` to the runs.
+  extra_args = list(args)
+  extra_args += ('--results-label', str(change))
+  if '--story-filter' in extra_args:
+    # TODO(crbug.com/982027): The --run-full-story-set flag was added to
+    # Chromium at revision http://crrev.com/675459, on Jul 9th, 2019. If we
+    # use this flag for changes before then, then Telemetry will fail. We can
+    # move the following code to run without checking commit_position as part
+    # of the _ExtraTestArgs method once we no longer need to be able to run
+    # Pinpoint against changes that old.
+    commit_position = change.base_commit.AsDict()['commit_position']
+    if commit_position and commit_position >= 675459:
+      # Since benchmarks are run in abridged form by default, we need to
+      # add the argument --run-full-story-set to make sure that if someone
+      # chooses to run a specific story we will run it even if it is not
+      # in the abridged version of the story set.
+      extra_args.append('--run-full-story-set')
+  return extra_args
+
+
 class RunTelemetryTest(run_performance_test.RunPerformanceTest):
 
   def Start(self, change, isolate_server, isolate_hash):
-    # For results2 to differentiate between runs, we need to add the
-    # Telemetry parameter `--results-label <change>` to the runs.
-    extra_args = copy.copy(self._extra_args)
-    extra_args += ('--results-label', str(change))
-    if '--story-filter' in extra_args:
-      # TODO(crbug.com/982027): The --run-full-story-set flag was added to
-      # Chromium at revision http://crrev.com/675459, on Jul 9th, 2019. If we
-      # use this flag for changes before then, then Telemetry will fail. We can
-      # move the following code to run without checking commit_position as part
-      # of the _ExtraTestArgs method once we no longer need to be able to run
-      # Pinpoint against changes that old.
-      commit_position = change.base_commit.AsDict()['commit_position']
-      if commit_position and commit_position >= 675459:
-        # Since benchmarks are run in abridged form by default, we need to
-        # add the argument --run-full-story-set to make sure that if someone
-        # chooses to run a specific story we will run it even if it is not
-        # in the abridged version of the story set.
-        extra_args.append('--run-full-story-set')
-
     extra_swarming_tags = {'change': str(change)}
-    return self._Start(change, isolate_server, isolate_hash, extra_args,
+    return self._Start(change, isolate_server, isolate_hash,
+                       ChangeDependentArgs(self._extra_args, change),
                        extra_swarming_tags)
 
   @classmethod
