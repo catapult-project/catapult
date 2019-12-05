@@ -457,6 +457,14 @@ let proxySettingsToString;
   }
 
   /**
+   * Returns the set of CertVerifierFlags that make up the integer
+   * |certVerifierFlags|
+   */
+  function getCertVerifierFlagsSymbolicString(certVerifierFlags) {
+    return getSymbolicString(certVerifierFlags, CertVerifierFlags, '');
+  }
+
+  /**
    * Returns a string representing the flags composing the given bitmask.
    */
   function getSymbolicString(bitmask, valueToName, zeroName) {
@@ -543,6 +551,12 @@ let proxySettingsToString;
     consumedParams.headers = true;
   }
 
+  function writeIndentedMultiLineParam(lines, out, consumedParams, paramName) {
+    out.writeArrowKey(paramName);
+    out.writeSpaceIndentedLines(8, lines);
+    consumedParams[paramName] = true;
+  }
+
   function writeCertificateParam(
       certsContainer, out, consumedParams, paramName) {
     if (certsContainer.certificates instanceof Array) {
@@ -550,9 +564,7 @@ let proxySettingsToString;
           certsContainer.certificates.reduce(function(previous, current) {
             return previous.concat(current.split('\n'));
           }, []);
-      out.writeArrowKey(paramName);
-      out.writeSpaceIndentedLines(8, certs);
-      consumedParams[paramName] = true;
+      writeIndentedMultiLineParam(certs, out, consumedParams, paramName);
     }
   }
 
@@ -567,11 +579,29 @@ let proxySettingsToString;
           entry.params.verified_cert, out, consumedParams, 'verified_cert');
     }
 
+    if (typeof(entry.params.ocsp_response) === 'string') {
+      writeIndentedMultiLineParam(
+          entry.params.ocsp_response.split('\n'), out, consumedParams,
+          'ocsp_response');
+    }
+
+    if (typeof(entry.params.sct_list) === 'string') {
+      writeIndentedMultiLineParam(
+          entry.params.sct_list.split('\n'), out, consumedParams, 'sct_list');
+    }
+
     if (typeof(entry.params.cert_status) === 'number') {
       const valueStr = entry.params.cert_status + ' (' +
           getCertStatusFlagSymbolicString(entry.params.cert_status) + ')';
       out.writeArrowKeyValue('cert_status', valueStr);
       consumedParams.cert_status = true;
+    }
+
+    if (typeof(entry.params.verifier_flags) === 'number') {
+      const valueStr = entry.params.verifier_flags + ' (' +
+          getCertVerifierFlagsSymbolicString(entry.params.verifier_flags) + ')';
+      out.writeArrowKeyValue('verifier_flags', valueStr);
+      consumedParams.verifier_flags = true;
     }
   }
 

@@ -1055,7 +1055,12 @@ QuicError.QUIC_NETWORK_IDLE_TIMEOUT + ' (QUIC_NETWORK_IDLE_TIMEOUT)';
           'certificates': [
             '-----BEGIN CERTIFICATE-----\n1\n-----END CERTIFICATE-----\n',
             '-----BEGIN CERTIFICATE-----\n2\n-----END CERTIFICATE-----\n',
-          ]
+          ],
+          'ocsp_response': '-----BEGIN OCSP RESPONSE-----\n1\n' +
+              '-----END OCSP RESPONSE-----\n',
+          'sct_list': '-----BEGIN SCT LIST-----\n1\n' +
+              '-----END SCT LIST-----\n',
+          'verifier_flags': 1
         },
         'phase': EventPhase.PHASE_BEGIN,
         'source': {'id': 752, 'type': EventSourceType.CERT_VERIFIER_JOB},
@@ -1079,7 +1084,20 @@ QuicError.QUIC_NETWORK_IDLE_TIMEOUT + ' (QUIC_NETWORK_IDLE_TIMEOUT)';
         '                               \n' +
         '                               -----BEGIN CERTIFICATE-----\n' +
         '                               2\n' +
-        '                               -----END CERTIFICATE-----';
+        '                               -----END CERTIFICATE-----\n' +
+        '                               \n' +
+        '                        --> ocsp_response =\n' +
+        '                               -----BEGIN OCSP RESPONSE-----\n' +
+        '                               1\n' +
+        '                               -----END OCSP RESPONSE-----\n' +
+        '                               \n' +
+        '                        --> sct_list =\n' +
+        '                               -----BEGIN SCT LIST-----\n' +
+        '                               1\n' +
+        '                               -----END SCT LIST-----\n' +
+        '                               \n' +
+        '                        --> verifier_flags = 1 (' +
+	'VERIFY_DISABLE_NETWORK_FETCHES)';
     return testCase;
   }
 

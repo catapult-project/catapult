@@ -119,6 +119,11 @@ function setNetLogConstantsForTest() {
     COMMON_NAME_INVALID: 1 << 0
   };
 
+  // See net/cert/cert_verifier.h in Chromium.
+  CertVerifierFlags = {
+    VERIFY_DISABLE_NETWORK_FETCHES: 1 << 0
+  };
+
   // See net/quic/core/quic_protocol.h in Chromium.
   QuicRstStreamError = {
     QUIC_BAD_APPLICATION_PAYLOAD: 0
@@ -151,6 +156,7 @@ function unsetNetLogConstantsForTest() {
   QuicRstStreamError = null;
   LoadFlag = null;
   CertStatusFlag = null;
+  CertVerifierFlags = null;
   LoadState = null;
 }
 

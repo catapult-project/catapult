@@ -20,6 +20,7 @@ let QuicError = null;
 let QuicRstStreamError = null;
 let LoadFlag = null;
 let CertStatusFlag = null;
+let CertVerifierFlags = null;
 let LoadState = null;
 let AddressFamily = null;
 let DataReductionProxyBypassEventType = null;
@@ -296,6 +297,7 @@ ConstantsObserver.prototype.onReceivedConstants = function(receivedConstants) {
   } else {
     CertStatusFlag = {};
   }
+  CertVerifierFlags = Constants.certVerifierFlags;
 
   timeutil.setTimeTickOffset(Constants.timeTickOffset);
 };
