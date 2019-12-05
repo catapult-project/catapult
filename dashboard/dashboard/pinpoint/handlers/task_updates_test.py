@@ -35,13 +35,18 @@ class TaskUpdatesTest(test.TestCase):
                     'key': 'value'
                 },
                 'data':
-                    base64.standard_b64encode(
+                    base64.urlsafe_b64encode(
                         json.dumps({
-                            'job_id': 'cafef00d',
-                            'task': {
-                                'id': 1,
-                                'type': 'build',
-                            },
+                            'task_id':
+                                'some_id',
+                            'userdata':
+                                json.dumps({
+                                    'job_id': 'cafef00d',
+                                    'task': {
+                                        'id': 1,
+                                        'type': 'build',
+                                    }
+                                }),
                         }))
             }
         }),
@@ -66,7 +71,7 @@ class TaskUpdatesTest(test.TestCase):
                 'attributes': {
                     'nothing': 'important'
                 },
-                'data': base64.standard_b64encode('not json formatted'),
+                'data': base64.urlsafe_b64encode('not json formatted'),
             },
         }),
         status=204)

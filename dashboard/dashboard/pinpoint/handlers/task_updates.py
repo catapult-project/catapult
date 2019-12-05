@@ -36,7 +36,7 @@ class TaskUpdates(webapp2.RequestHandler):
       #   - task id
       #   - additional task-specific details
       swarming_data = json.loads(
-          base64.standard_b64decode(message.get('data', '')))
+          base64.urlsafe_b64encode(message.get('data', '')))
       logging.debug('Received: %s', swarming_data)
 
       # From the swarming data, we can determine the job id and task id (if
@@ -54,7 +54,7 @@ class TaskUpdates(webapp2.RequestHandler):
       if not userdata:
         raise ValueError('Ill-formed swarming update: %s' % (swarming_data,))
 
-      pinpoint_data = json.loads(base64.urlsafe_b64decode(userdata))
+      pinpoint_data = json.loads(userdata)
       job_id = pinpoint_data.get('job_id')
       if not job_id:
         raise ValueError('Missing job_id from pinpoint data.')
