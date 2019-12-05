@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 
 from dashboard import sheriff_pb2
+from dashboard import sheriff_config_pb2
 from dashboard.models.sheriff import Sheriff
 from google.appengine.ext import ndb
 import google.auth
@@ -29,18 +30,21 @@ class SheriffConfigClient(object):
 
   @staticmethod
   def _SubscriptionToSheriff(subscription):
-    return Sheriff(
+    sheriff = Sheriff(
         key=ndb.Key('Sheriff', subscription.name),
-        url=subscription.rotation_url,
-        email=subscription.notification_email,
         internal_only=(subscription.visibility !=
                        sheriff_pb2.Subscription.PUBLIC),
         # Sheriff model only support glob patterns
         patterns=[p.glob for p in subscription.patterns if p.glob],
-        lables=(subscription.bug_labels +
+        labels=(list(subscription.bug_labels) +
                 ['Component-' + c.replace('>', '-')
                  for c in subscription.bug_components]),
     )
+    if subscription.rotation_url:
+      sheriff.url = subscription.rotation_url
+    if subscription.notification_email:
+      sheriff.email = subscription.notification_email
+    return sheriff
 
   def Match(self, path):
     response = self._session.post(
@@ -48,10 +52,9 @@ class SheriffConfigClient(object):
         json={'path': path})
     if not response.ok:
       return None, ('%r\n%s' % response, response.text)
-    def Parse(s):
-      subscription = json_format.Parse(s, sheriff_pb2.Subscription())
-      return self._SubscriptionToSheriff(subscription)
-    return [Parse(s) for s in response.json().get('subscriptions', [])], None
+    match = json_format.Parse(response.text, sheriff_config_pb2.MatchResponse())
+    return [self._SubscriptionToSheriff(s.subscription)
+            for s in match.subscriptions], None
 
   def Update(self):
     response = self._session.get(
