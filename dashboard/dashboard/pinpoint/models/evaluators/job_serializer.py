@@ -235,6 +235,9 @@ def TaskTransformer(task, _, context):
     }
   }
   """
+  if not context:
+    return None
+
   input_data = context.get(task.id)
   if not input_data:
     return None
@@ -272,7 +275,11 @@ def AnalysisTransformer(task, _, context):
     ]
   }
   """
+  if not context:
+    return None
   task_data = context.get(task.id)
+  if not task_data:
+    return None
   result = {
       'set_parameters': {
           'comparison_mode': task_data.get('comparison_mode'),

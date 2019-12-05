@@ -26,6 +26,26 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
     self.maxDiff = None
     self.job = job_module.Job.New((), (), use_execution_engine=True)
 
+  def testSerializeEmptyJob(self):
+    self.PopulateSimpleBisectionGraph(self.job)
+    self.assertEqual(
+        {
+            'status': 'Queued',
+            'updated': mock.ANY,
+            'comparison_mode': None,
+            'bug_id': None,
+            'user': None,
+            'results_url': mock.ANY,
+            'cancel_reason': None,
+            'configuration': None,
+            'name': mock.ANY,
+            'exception': None,
+            'job_id': self.job.job_id,
+            'created': mock.ANY,
+            'arguments': {},
+            'difference_count': None
+        }, self.job.AsDict())
+
   def testSerializeJob(self):
     self.PopulateSimpleBisectionGraph(self.job)
     task_module.Evaluate(
