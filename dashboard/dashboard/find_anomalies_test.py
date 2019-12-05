@@ -15,6 +15,7 @@ from google.appengine.ext import ndb
 
 from dashboard import find_anomalies
 from dashboard import find_change_points
+from dashboard.sheriff_config_client import SheriffConfigClient
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -46,7 +47,6 @@ _TEST_ROW_DATA = [
     (241697, 2173.8), (241716, 2172.1), (241735, 2172.5),
     (241757, 2174.7), (241766, 2196.7), (241782, 2184.1),
 ]
-
 
 def _MakeSampleChangePoint(x_value, median_before, median_after):
   """Makes a sample find_change_points.ChangePoint for use in these tests."""
@@ -104,6 +104,10 @@ def _MockTasklet(*_):
   raise ndb.Return(None)
 
 
+@mock.patch.object(SheriffConfigClient, '__init__',
+                   mock.MagicMock(return_value=None))
+@mock.patch.object(SheriffConfigClient, 'Match',
+                   mock.MagicMock(return_value=([], None)))
 class ProcessAlertsTest(testing_common.TestCase):
 
   def setUp(self):

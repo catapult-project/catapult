@@ -24,6 +24,7 @@ from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
 from dashboard.models import histogram
+from dashboard.sheriff_config_client import SheriffConfigClient
 from tracing.value.diagnostics import reserved_infos
 
 # Number of points to fetch and pass to FindChangePoints. A different number
@@ -64,7 +65,11 @@ def _ProcessTest(test_key):
 
   test = yield test_key.get_async()
 
-  sheriff = yield _GetSheriffForTest(test)
+  sheriff, (new_sheriffs, err_msg) = yield _GetSheriffForTest(test)
+  logging.info('Sheriff for %s: old: %s, new: %s', test.test_path,
+               'None' if sheriff is None else sheriff.key.string_id(),
+               err_msg if new_sheriffs is None
+               else [s.key.string_id() for s in new_sheriffs])
   if not sheriff:
     logging.error('No sheriff for %s', test_key)
     raise ndb.Return(None)
@@ -273,10 +278,15 @@ def _IsAnomalyInRef(change_point, ref_change_points):
 @ndb.tasklet
 def _GetSheriffForTest(test):
   """Gets the Sheriff for a test, or None if no sheriff."""
+  # Get all the sheriff from sheriff-config match the path
+  # Currently just used for logging
+  client = SheriffConfigClient()
+  match_res = client.Match(test.test_path)
+  # Old one. Get the sheriff from TestMetadata
+  sheriff = None
   if test.sheriff:
     sheriff = yield test.sheriff.get_async()
-    raise ndb.Return(sheriff)
-  raise ndb.Return(None)
+  raise ndb.Return((sheriff, match_res))
 
 
 def _GetImmediatelyPreviousRevisionNumber(later_revision, rows):
