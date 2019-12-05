@@ -157,13 +157,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
     test = MeasureLatency()
     results = self.RunStorySet(test, story_set)
-
-    failure_messages = []
-    for r in results.IterStoryRuns():
-      if r.failure_str:
-        failure_messages.append(
-            'Failure message of story %s:\n%s' % (r.story, r.failure_str))
-    self.assertFalse(results.had_failures, msg=''.join(failure_messages))
+    self.assertFalse(results.had_failures)
     self.assertIn('slow', latencies_by_page_in_ms)
     self.assertIn('fast', latencies_by_page_in_ms)
     # Slow page should be slower than fast page by at least 40 ms (roundtrip

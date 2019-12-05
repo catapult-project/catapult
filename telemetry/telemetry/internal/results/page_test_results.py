@@ -120,41 +120,33 @@ class PageTestResults(object):
 
   @property
   def num_successful(self):
-    """Number of successful stories."""
+    """Number of successful story runs."""
     return sum(1 for run in self._all_story_runs if run.ok)
 
   @property
   def num_expected(self):
-    """Number of stories that succeeded or were expected skips."""
+    """Number of story runs that succeeded or were expected skips."""
     return sum(1 for run in self._all_story_runs if run.expected)
 
   @property
   def had_failures(self):
-    """If there where any failed stories."""
+    """If there where any failed story runs."""
     return any(run.failed for run in self._all_story_runs)
 
   @property
   def num_failed(self):
-    """Number of failed stories."""
+    """Number of failed story runs."""
     return sum(1 for run in self._all_story_runs if run.failed)
 
   @property
   def had_skips(self):
-    """If there where any skipped stories."""
+    """If there where any skipped story runs."""
     return any(run.skipped for run in self._all_story_runs)
 
   @property
   def num_skipped(self):
-    """Number of skipped stories."""
+    """Number of skipped story runs."""
     return sum(1 for run in self._all_story_runs if run.skipped)
-
-  def _IterAllStoryRuns(self):
-    # TODO(crbug.com/973837): Check whether all clients can just be switched
-    # to iterate over _all_story_runs directly.
-    for run in self._all_story_runs:
-      yield run
-    if self._current_story_run:
-      yield self._current_story_run
 
   @property
   def empty(self):
@@ -345,8 +337,3 @@ class PageTestResults(object):
     self._progress_reporter.DidFinishAllStories(self)
     if self._results_stream is not None:
       self._results_stream.close()
-
-  def IterRunsWithTraces(self):
-    for run in self._IterAllStoryRuns():
-      if run.HasArtifactsInDir('trace/'):
-        yield run

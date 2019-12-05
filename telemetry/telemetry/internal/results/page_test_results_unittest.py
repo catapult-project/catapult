@@ -44,6 +44,9 @@ class PageTestResultsTest(unittest.TestCase):
     kwargs.setdefault('intermediate_dir', self.intermediate_dir)
     return page_test_results.PageTestResults(**kwargs)
 
+  def ReadTestResults(self):
+    return results_options.ReadTestResults(self.intermediate_dir)
+
   def testFailures(self):
     with self.CreateResults() as results:
       with results.CreateStoryRun(self.stories[0]):
@@ -51,11 +54,11 @@ class PageTestResultsTest(unittest.TestCase):
       with results.CreateStoryRun(self.stories[1]):
         pass
 
-    all_story_runs = list(results.IterStoryRuns())
-    self.assertEqual(len(all_story_runs), 2)
     self.assertTrue(results.had_failures)
-    self.assertTrue(all_story_runs[0].failed)
-    self.assertTrue(all_story_runs[1].ok)
+    test_results = self.ReadTestResults()
+    self.assertEqual(len(test_results), 2)
+    self.assertEqual(test_results[0]['status'], 'FAIL')
+    self.assertEqual(test_results[1]['status'], 'PASS')
 
   def testSkips(self):
     with self.CreateResults() as results:
@@ -64,14 +67,11 @@ class PageTestResultsTest(unittest.TestCase):
       with results.CreateStoryRun(self.stories[1]):
         pass
 
-    all_story_runs = list(results.IterStoryRuns())
-    self.assertTrue(all_story_runs[0].skipped)
-    self.assertEqual(self.stories[0], all_story_runs[0].story)
-
-    self.assertEqual(2, len(all_story_runs))
     self.assertTrue(results.had_skips)
-    self.assertTrue(all_story_runs[0].skipped)
-    self.assertTrue(all_story_runs[1].ok)
+    test_results = self.ReadTestResults()
+    self.assertEqual(len(test_results), 2)
+    self.assertEqual(test_results[0]['status'], 'SKIP')
+    self.assertEqual(test_results[1]['status'], 'PASS')
 
   def testBenchmarkInterruption(self):
     reason = 'This is a reason'
@@ -102,18 +102,19 @@ class PageTestResultsTest(unittest.TestCase):
       with results.CreateStoryRun(self.stories[2]):
         results.Skip('testing reason')
 
-    all_story_runs = list(results.IterStoryRuns())
-    self.assertEqual(3, len(all_story_runs))
-    self.assertTrue(all_story_runs[0].failed)
-    self.assertTrue(all_story_runs[1].ok)
-    self.assertTrue(all_story_runs[2].skipped)
+    test_results = self.ReadTestResults()
+    self.assertEqual(len(test_results), 3)
+    self.assertEqual(test_results[0]['status'], 'FAIL')
+    self.assertEqual(test_results[1]['status'], 'PASS')
+    self.assertEqual(test_results[2]['status'], 'SKIP')
+
 
   def testAddMeasurementAsScalar(self):
     with self.CreateResults() as results:
       with results.CreateStoryRun(self.stories[0]):
         results.AddMeasurement('a', 'seconds', 3)
 
-    test_results = results_options.ReadTestResults(self.intermediate_dir)
+    test_results = self.ReadTestResults()
     self.assertTrue(len(test_results), 1)
     measurements = results_options.ReadMeasurements(test_results[0])
     self.assertEqual(measurements, {'a': {'unit': 'seconds', 'samples': [3]}})
@@ -123,7 +124,7 @@ class PageTestResultsTest(unittest.TestCase):
       with results.CreateStoryRun(self.stories[0]):
         results.AddMeasurement('a', 'seconds', [1, 2, 3])
 
-    test_results = results_options.ReadTestResults(self.intermediate_dir)
+    test_results = self.ReadTestResults()
     self.assertTrue(len(test_results), 1)
     measurements = results_options.ReadMeasurements(test_results[0])
     self.assertEqual(measurements,
@@ -157,16 +158,26 @@ class PageTestResultsTest(unittest.TestCase):
         results.AddTraces(trace_data.CreateTestTrace(1))
       with results.CreateStoryRun(self.stories[1]):
         results.AddTraces(trace_data.CreateTestTrace(2))
-    runs = list(results.IterRunsWithTraces())
-    self.assertEqual(2, len(runs))
+
+    test_results = self.ReadTestResults()
+    self.assertEqual(len(test_results), 2)
+    for test_result in test_results:
+      trace_names = [name for name in test_result['outputArtifacts']
+                     if name.startswith('trace/')]
+      self.assertTrue(len(trace_names), 1)
 
   def testAddTracesForSameStory(self):
     with self.CreateResults() as results:
       with results.CreateStoryRun(self.stories[0]):
         results.AddTraces(trace_data.CreateTestTrace(1))
         results.AddTraces(trace_data.CreateTestTrace(2))
-    runs = list(results.IterRunsWithTraces())
-    self.assertEqual(1, len(runs))
+
+    test_results = self.ReadTestResults()
+    self.assertEqual(len(test_results), 1)
+    for test_result in test_results:
+      trace_names = [name for name in test_result['outputArtifacts']
+                     if name.startswith('trace/')]
+      self.assertTrue(len(trace_names), 2)
 
   def testDiagnosticsAsArtifact(self):
     with self.CreateResults(benchmark_name='some benchmark',
@@ -185,7 +196,7 @@ class PageTestResultsTest(unittest.TestCase):
       with results.CreateStoryRun(self.stories[1]):
         pass
 
-    test_results = results_options.ReadTestResults(self.intermediate_dir)
+    test_results = self.ReadTestResults()
     self.assertEqual(len(test_results), 2)
     for test_result in test_results:
       self.assertEqual(test_result['status'], 'PASS')
@@ -216,11 +227,8 @@ class PageTestResultsTest(unittest.TestCase):
         with results.CreateArtifact('log.txt') as log_file:
           log_file.write('story1\n')
 
-    all_story_runs = list(results.IterStoryRuns())
-    log0_path = all_story_runs[0].GetArtifact('log.txt').local_path
-    with open(log0_path) as f:
+    test_results = self.ReadTestResults()
+    with open(test_results[0]['outputArtifacts']['log.txt']['filePath']) as f:
       self.assertEqual(f.read(), 'story0\n')
-
-    log1_path = all_story_runs[1].GetArtifact('log.txt').local_path
-    with open(log1_path) as f:
+    with open(test_results[1]['outputArtifacts']['log.txt']['filePath']) as f:
       self.assertEqual(f.read(), 'story1\n')
