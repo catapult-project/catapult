@@ -191,7 +191,7 @@ class InitiateEvaluator(object):
 
     if dep_value.get('status') == 'completed':
       properties = {
-          'input_ref': {
+          'inputs_ref': {
               'isolatedserver': dep_value.get('isolate_server'),
               'isolated': dep_value.get('isolate_hash'),
           },
