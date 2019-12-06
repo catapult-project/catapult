@@ -137,7 +137,6 @@ found in the LICENSE file.
             <input type="hidden" name="end_git_hash" value="[[end_git_hash]]">
 
             <template is="dom-if" if="[[hasJob(job)]]">
-              <input type="hidden" name="comparison_magnitude" disabled$="[[!job.arguments.comparison_magnitude]]" value="[[job.arguments.comparison_magnitude]]">
               <!-- TODO(crbug.com/974237): Stop filling in 'tir_label' when no longer in use. -->
               <input type="hidden" name="tir_label" disabled$="[[!job.arguments.tir_label]]" value="[[job.arguments.tir_label]]">
               <input type="hidden" name="grouping_label" disabled$="[[!job.arguments.grouping_label]]" value="[[job.arguments.grouping_label]]">
@@ -157,19 +156,20 @@ found in the LICENSE file.
               </paper-radio-group>
             </template>
 
-            <autocomplete-box id="botDropdown"
-                              name="configuration"
-                              items="{{arrayToAutocompleteList(config.configurations)}}"
-                              disabled="[[!validConfig(config)]]"
-                              placeholder="Bot"
-                              selected-name="{{configuration}}"
-                              required></autocomplete-box>
-            <template is="dom-if" if="[[configLoading]]">
-              <paper-progress indeterminate></paper-progress>
-            </template>
-
             <div class="horizontal">
               <div class="column rightPad">
+                <autocomplete-box id="botDropdown"
+                                  name="configuration"
+                                  items="{{arrayToAutocompleteList(config.configurations)}}"
+                                  disabled="[[!validConfig(config)]]"
+                                  placeholder="Bot"
+                                  selected-name="{{configuration}}"
+                                  required></autocomplete-box>
+                <template is="dom-if" if="[[configLoading]]">
+                  <paper-progress indeterminate></paper-progress>
+                </template>
+              </div>
+              <div class="column">
                 <autocomplete-box id="benchmarkDropdown"
                                   name="benchmark"
                                   items="{{arrayToAutocompleteList(testSuites)}}"
@@ -181,38 +181,16 @@ found in the LICENSE file.
                   <paper-progress indeterminate></paper-progress>
                 </template>
               </div>
-              <div class="column">
+            </div>
+
+            <div class="horizontal">
+              <div class="column rightPad">
                 <autocomplete-box id="storyCasesDropdown"
                                   name="story"
                                   items="{{storyCases(benchmarkConfig)}}"
                                   placeholder="Story"
                                   selected-name="{{story}}"
                                   required$="[[!isStoryOrTagsSet(story, storyTags)]]"></autocomplete-box>
-                <template is="dom-if" if="[[benchmarkConfigLoading]]">
-                  <paper-progress indeterminate></paper-progress>
-                </template>
-              </div>
-            </div>
-
-            <div class="horizontal">
-              <div class="column rightPad">
-                <div class="horizontal">
-                  <autocomplete-box id="chartDropdown"
-                                    name="chart"
-                                    items="{{measurements(benchmarkConfig)}}"
-                                    disabled="{{!validCases(benchmark, benchmarkConfig)}}"
-                                    hidden$="[[!isBisectJob(comparisonMode)]]"
-                                    required$="[[isBisectJob(comparisonMode)]]"
-                                    placeholder="Measurement"
-                                    selected-name="{{chart}}"></autocomplete-box>
-                  <autocomplete-box id="statisticDropdown"
-                                    name="statistic"
-                                    items="{{statistics(benchmarkConfig)}}"
-                                    disabled="{{!validCases(benchmark, benchmarkConfig)}}"
-                                    hidden$="[[!isBisectJob(comparisonMode)]]"
-                                    selected-name="{{statistic}}"
-                                    placeholder="Statistic"></autocomplete-box>
-                </div>
                 <template is="dom-if" if="[[benchmarkConfigLoading]]">
                   <paper-progress indeterminate></paper-progress>
                 </template>
@@ -227,6 +205,32 @@ found in the LICENSE file.
                 <template is="dom-if" if="[[benchmarkConfigLoading]]">
                   <paper-progress indeterminate></paper-progress>
                 </template>
+              </div>
+            </div>
+
+            <div class="horizontal" hidden="[[!isBisectJob(comparisonMode)]]">
+              <div class="column rightPad">
+                <div class="horizontal">
+                  <autocomplete-box id="chartDropdown"
+                                    name="chart"
+                                    items="{{measurements(benchmarkConfig)}}"
+                                    required$="[[isBisectJob(comparisonMode)]]"
+                                    placeholder="Measurement"
+                                    selected-name="{{chart}}"></autocomplete-box>
+                  <autocomplete-box id="statisticDropdown"
+                                    name="statistic"
+                                    items="{{statistics(benchmarkConfig)}}"
+                                    selected-name="{{statistic}}"
+                                    placeholder="Statistic"></autocomplete-box>
+                </div>
+                <template is="dom-if" if="[[benchmarkConfigLoading]]">
+                  <paper-progress indeterminate></paper-progress>
+                </template>
+              </div>
+              <div class="column">
+                <paper-input name="comparison_magnitude"
+                             value="{{comparison_magnitude}}"
+                             label="Comparison Magnitude"></paper-input>
               </div>
             </div>
 
@@ -300,6 +304,7 @@ found in the LICENSE file.
           type: Boolean,
           value: false
         },
+        comparison_magnitude: Number,
         extra_test_args: String,
         patch: String,
         statistic: String,
@@ -414,6 +419,7 @@ found in the LICENSE file.
         this.start_git_hash = job.arguments.start_git_hash;
         this.end_git_hash = job.arguments.end_git_hash;
         this.comparisonMode = job.arguments.comparison_mode;
+        this.comparison_magnitude = job.arguments.comparison_magnitude;
         this.extra_test_args = job.arguments.extra_test_args;
         this.$.botDropdown.query = job.arguments.configuration;
         this.$.benchmarkDropdown.query = job.arguments.benchmark;
