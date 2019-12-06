@@ -187,13 +187,12 @@ class Serializer(evaluators.DispatchByTaskType):
     if 'order_changes' in local_context:
       # Here, we'll sort the states according to their order of appearance in
       # the 'order_changes' list.
-      order_changes = local_context.get('order_changes', [])
-      change_index = {
-          change: index for index, change in enumerate(order_changes)
-      }
       states = context.get('state', [])
-      assert len(order_changes) == len(states)
       if states:
+        order_changes = local_context.get('order_changes', [])
+        change_index = {
+            change: index for index, change in enumerate(order_changes)
+        }
         ordered_states = [None] * len(states)
         for state in states:
           ordered_states[change_index[change_module.Change.FromDict(
