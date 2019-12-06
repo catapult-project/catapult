@@ -552,10 +552,9 @@ def AnalysisSerializer(task, _, accumulator):
           metric,
       'changes': [
           change_module.Change.FromDict(change)
-          for change in task.payload.get('changes')
+          for change in task.payload.get('changes', [])
       ]
   })
-
 
 class Serializer(evaluators.FilteringEvaluator):
 
