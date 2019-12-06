@@ -103,9 +103,9 @@ def _CreateJob(request):
     target = arguments.get('target')
     task_options = performance_bisection.TaskOptions(
         build_option_template=performance_bisection.BuildOptionTemplate(
-            builder=arguments.get('configuration'),
-            target=arguments.get('target'),
-            bucket='master.tryserver.chromium.perf',
+            builder=arguments.get('builder'),
+            target=target,
+            bucket=arguments.get('bucket', 'master.tryserver.chromium.perf'),
         ),
         test_option_template=performance_bisection.TestOptionTemplate(
             swarming_server=arguments.get('swarming_server'),
