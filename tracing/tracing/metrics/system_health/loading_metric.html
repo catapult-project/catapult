@@ -485,6 +485,9 @@ tr.exportTo('tr.metrics.sh', function() {
         rendererHelper, frameToNavStartEvents,
         navIdToNavStartEvents);
     const layoutShiftSamples = findLayoutShiftSamples(rendererHelper);
+    const navigationStartSamples = timeToFCPEntries.map(entry => {
+      return { value: entry.navigationStartEvent.start};
+    });
 
     return {
       frameToNavStartEvents,
@@ -497,6 +500,7 @@ tr.exportTo('tr.metrics.sh', function() {
       largestImagePaintSamples,
       largestTextPaintSamples,
       layoutShiftSamples,
+      navigationStartSamples,
     };
   }
 
@@ -671,6 +675,12 @@ tr.exportTo('tr.metrics.sh', function() {
           description: 'Main Frame Document Cumulative Layout Shift Score',
           summaryOptions: SUMMARY_OPTIONS,
         });
+    const navigationStartHistogram = histograms.createHistogram(
+        'navigationStart', timeDurationInMs_smallerIsBetter, [], {
+          binBoundaries: LOADING_METRIC_BOUNDARIES,
+          description: 'navigationStart',
+          summaryOptions: SUMMARY_OPTIONS,
+        });
 
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
@@ -716,6 +726,10 @@ tr.exportTo('tr.metrics.sh', function() {
           histograms);
       addSamplesToHistogram(
           samplesSet.layoutShiftSamples, layoutShiftHistogram, histograms);
+      addSamplesToHistogram(
+          samplesSet.navigationStartSamples,
+          navigationStartHistogram,
+          histograms);
     }
 
     const samplesSet = collectMetricsFromLoadExpectations(model, chromeHelper);
