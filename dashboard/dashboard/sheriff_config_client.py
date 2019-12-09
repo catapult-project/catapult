@@ -51,7 +51,7 @@ class SheriffConfigClient(object):
         'https://sheriff-config-dot-chromeperf.appspot.com/subscriptions/match',
         json={'path': path})
     if not response.ok:
-      return None, ('%r\n%s' % response, response.text)
+      return None, '%r\n%s' % (response, response.text)
     match = json_format.Parse(response.text, sheriff_config_pb2.MatchResponse())
     return [self._SubscriptionToSheriff(s.subscription)
             for s in match.subscriptions], None

@@ -99,3 +99,10 @@ class SheriffConfigClientTest(testing_common.TestCase):
         ),
     ]
     self.assertEqual(clt.Match('Foo2/a/Bar2/b'), (expected, None))
+
+  def testMatchFailed(self):
+    clt = SheriffConfigClient()
+    clt._session = self._Session(self._Response(False, 'some error message'))
+    res, err_msg = clt.Match('Foo2/a/Bar2/b')
+    self.assertIsNone(res)
+    self.assertIn('some error message', err_msg)
