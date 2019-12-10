@@ -31,7 +31,7 @@ steps:
     ]
   - name: 'gcr.io/cloud-builders/gcloud'
     args: [
-      'app', 'deploy', 'dashboard/dashboard/sheriff_config/sheriff-config.yaml',
+      'beta', 'app', 'deploy', 'dashboard/dashboard/sheriff_config/sheriff-config.yaml',
       # Provide the short git commit to the version of the deployment.
       '--version', 'cloud-build-${SHORT_SHA}'
     ]
