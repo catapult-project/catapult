@@ -130,7 +130,8 @@ class TaggedTestListParser(object):
     RESULT_TOKEN = '# results: ['
     TAG_TOKEN = '# tags: ['
     # The bug field (optional), including optional subproject.
-    _MATCH_STRING = r'^(?:(crbug.com/(?:[^/]*/)?\d+) )?'
+    BUG_PREFIX_REGEX = '(?:crbug.com/|skbug.com/|webkit.org/)'
+    _MATCH_STRING = r'^(?:(' + BUG_PREFIX_REGEX + '(?:[^/]*/)?\d+\s)*)'
     _MATCH_STRING += r'(?:\[ (.+) \] )?'  # The label field (optional).
     _MATCH_STRING += r'(\S+) '  # The test path field.
     _MATCH_STRING += r'\[ ([^\[.]+) \]'  # The expectation field.
@@ -244,6 +245,15 @@ class TaggedTestListParser(object):
 
         # Unused group is optional trailing comment.
         reason, raw_tags, test, raw_results, _ = match.groups()
+
+        # TODO(rmhasan): Find a better regex to capture the reasons. The '*' in
+        # the reasons regex only allows us to get the last bug. We need to write
+        # the below code to get the full list of reasons.
+        if reason:
+            reason = reason.strip()
+            index = line.find(reason)
+            reason = line[:index] + reason
+
         tags = [raw_tag.lower() for raw_tag in raw_tags.split()] if raw_tags else []
         tag_set_ids = set()
 

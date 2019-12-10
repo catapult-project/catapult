@@ -657,3 +657,14 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         self.assertFalse(msg)
         expectations.set_tags(['win', 'nVidia', 'nvidia-0x1010'],
                               raise_ex_for_bad_tags=True)
+
+    def testMultipleReasonsForExpectation(self):
+        test_expectations = '''# results: [ Failure ]
+        skbug.com/111 crbug.com/lpz/222 skbug.com/hello/333 crbug.com/444 test [ Failure ]
+        '''
+        expectations = expectations_parser.TestExpectations()
+        _, msg = expectations.parse_tagged_list(
+            test_expectations, 'test.txt')
+        self.assertFalse(msg)
+        exp = expectations.expectations_for('test')
+        self.assertEqual(exp.reason, 'skbug.com/111 crbug.com/lpz/222 skbug.com/hello/333 crbug.com/444')
