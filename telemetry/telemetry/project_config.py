@@ -61,6 +61,13 @@ class ProjectConfig(object):
   def expectations_files(self):
     return self._expectations_files
 
+  def AdjustStartupFlags(self, args):
+    """Returns a new list of adjusted startup flags.
+
+    Subclasses should override this method to change startup flags before use.
+    """
+    return args
+
   def GetBenchmarks(self):
     """Return a list of all benchmark classes found in this configuration."""
     if self._benchmarks is None:

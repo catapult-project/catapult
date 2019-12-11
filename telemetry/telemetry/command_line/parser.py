@@ -151,6 +151,7 @@ def ParseArgs(environment, args=None, results_arg_parser=None):
   options, positional_args = opt_parser.parse_args(unknown_args)
   options.positional_args = positional_args
   command.ProcessCommandLineArgs(opt_parser, options, environment)
+  options.browser_options.environment = environment
 
   # Merge back our argparse args with the optparse options.
   for arg in vars(parsed_args):

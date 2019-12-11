@@ -439,6 +439,10 @@ class BrowserOptions(object):
     # earlier versions of Chrome
     self.compatibility_mode = []
 
+    # If not None, a ProjectConfig object with information about the benchmark
+    # runtime environment.
+    self.environment = None
+
   def __repr__(self):
     return str(sorted(self.__dict__.items()))
 

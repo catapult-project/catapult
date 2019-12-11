@@ -15,26 +15,10 @@ def GetFromBrowserOptions(browser_options):
       '--no-proxy-server flag is disallowed as Chrome needs to be route to '
       'ts_proxy_server')
 
-  # Merge multiple instances of --enable-features and --disable-features since
-  # Chrome ends up using whatever switch it finds last instead of merging
-  # multiple instances.
-  # TODO(crbug.com/799411): Remove this once the smarter ChromeArgsBuilder is
-  # implemented.
-  args = []
-  disable_features = set()
-  enable_features = set()
-  for arg in browser_options.extra_browser_args:
-    if arg.startswith('--disable-features='):
-      disable_features.update(arg.split('=', 1)[1].split(','))
-    elif arg.startswith('--enable-features='):
-      enable_features.update(arg.split('=', 1)[1].split(','))
-    else:
-      args.append(arg)
-
-  if disable_features:
-    args.append('--disable-features=%s' % ','.join(disable_features))
-  if enable_features:
-    args.append('--enable-features=%s' % ','.join(enable_features))
+  # Sort to ensure determanism.
+  args = list(sorted(browser_options.extra_browser_args))
+  if browser_options.environment:
+    args = browser_options.environment.AdjustStartupFlags(args)
 
   args.append('--enable-net-benchmarking')
   args.append('--metrics-recording-only')
