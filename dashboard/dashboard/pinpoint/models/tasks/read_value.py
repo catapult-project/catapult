@@ -70,7 +70,6 @@ class ReadValueEvaluator(
     dep = accumulator.get(task.dependencies[0], {})
     isolate_server = dep.get('isolate_server')
     isolate_hash = dep.get('isolate_hash')
-    logging.debug('Dependency Data: %s', dep)
     dependency_status = dep.get('status', 'failed')
     if dependency_status == 'failed':
       return self.CompleteWithError(
