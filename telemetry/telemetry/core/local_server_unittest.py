@@ -38,7 +38,14 @@ class SimpleLocalServerBackend(BaseHTTPServer.HTTPServer,
                                        SimpleLocalServerBackendRequestHandler)
     local_server.LocalServerBackend.__init__(self)
 
-  def StartAndGetNamedPorts(self, args):
+  def StartAndGetNamedPorts(self, args, handler_class=None):
+    """See base class for details.
+
+    Make sure the arguments are same as those returned from SimpleLocalServer.
+
+    Args:
+      handler_class: None for this test.
+    """
     assert 'hello' in args
     assert args['hello'] == 'world'
     return [local_server.NamedPort('http', self.server_address[1])]

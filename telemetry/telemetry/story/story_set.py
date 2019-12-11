@@ -16,8 +16,12 @@ class StorySet(object):
   AddStory for each Story.
   """
 
-  def __init__(self, archive_data_file='', cloud_storage_bucket=None,
-               base_dir=None, serving_dirs=None):
+  def __init__(self,
+               archive_data_file='',
+               cloud_storage_bucket=None,
+               base_dir=None,
+               serving_dirs=None,
+               request_handler_class=None):
     """Creates a new StorySet.
 
     Args:
@@ -46,6 +50,7 @@ class StorySet(object):
     # Convert any relative serving_dirs to absolute paths.
     self._serving_dirs = set(os.path.realpath(os.path.join(self.base_dir, d))
                              for d in serving_dirs or [])
+    self._request_handler_class = request_handler_class
 
   @property
   def shared_state_class(self):
@@ -93,6 +98,13 @@ class StorySet(object):
   @property
   def stories(self):
     return self._stories
+
+  @property
+  def request_handler_class(self):
+    return self._request_handler_class
+
+  def SetRequestHandlerClass(self, handler_class):
+    self._request_handler_class = handler_class
 
   def AddStory(self, story):
     assert isinstance(story, story_module.Story)

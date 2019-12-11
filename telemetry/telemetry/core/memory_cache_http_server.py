@@ -68,13 +68,20 @@ class MemoryCacheHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     # Don't spam the console unless it is important.
     pass
 
+  def Response(self, path):
+    """Get the response for the path."""
+    if path not in self.server.resource_map:
+      return None
+
+    return self.server.resource_map[path]
+
   def SendHead(self):
     path = os.path.realpath(self.translate_path(self.path))
-    if path not in self.server.resource_map:
+    resource = self.Response(path)
+    if not resource:
       self.send_error(404, 'File not found')
       return None
 
-    resource = self.server.resource_map[path]
     total_num_of_bytes = resource['content-length']
     byte_range = self.GetByteRange(total_num_of_bytes)
     if byte_range:
@@ -234,7 +241,10 @@ class MemoryCacheHTTPServerBackend(local_server.LocalServerBackend):
     super(MemoryCacheHTTPServerBackend, self).__init__()
     self._httpd = None
 
-  def StartAndGetNamedPorts(self, args):
+  def StartAndGetNamedPorts(self, args, handler_class=None):
+    if handler_class:
+      assert issubclass(handler_class, MemoryCacheHTTPRequestHandler)
+
     base_dir = args['base_dir']
     os.chdir(base_dir)
 
@@ -247,7 +257,9 @@ class MemoryCacheHTTPServerBackend(local_server.LocalServerBackend):
     server_address = (args['host'], args['port'])
     MemoryCacheHTTPRequestHandler.protocol_version = 'HTTP/1.1'
     self._httpd = _MemoryCacheHTTPServerImpl(
-        server_address, MemoryCacheHTTPRequestHandler, paths)
+        server_address,
+        handler_class if handler_class else MemoryCacheHTTPRequestHandler,
+        paths)
     return [local_server.NamedPort('http', self._httpd.server_address[1])]
 
   def ServeForever(self):
@@ -298,3 +310,65 @@ class MemoryCacheHTTPServer(local_server.LocalServer):
     if path.endswith(os.sep) or (os.altsep and path.endswith(os.altsep)):
       relative_path += '/'
     return urlparse.urljoin(self.url, relative_path.replace(os.sep, '/'))
+
+
+class MemoryCacheDynamicHTTPRequestHandler(MemoryCacheHTTPRequestHandler):
+  """This class extends MemoryCacheHTTPRequestHandler by adding support for
+  dynamic responses. Inherite this class and register the sub-class to the
+  story set (through StorySet.SetRequestHandlerClass() or the constructor).
+  """
+
+  def ResponseFromHandler(self, path):
+    """Override this method to return dynamic response."""
+    del path  # Unused.
+    return None
+
+  def Response(self, path):
+    """Returns the dynamic response if exists, otherwise, use the resource
+    map.
+    """
+    response = self.ResponseFromHandler(path)
+    if response:
+      return response
+
+    if path not in self.server.resource_map:
+      return None
+
+    return self.server.resource_map[path]
+
+  def MakeResponse(self, content, content_type, zipped):
+    """Helper method to create a response object.
+    """
+    return {
+        'content-type': content_type,
+        'content-length': len(content),
+        'last-modified': None,
+        'response': content,
+        'zipped': zipped
+    }
+
+
+class MemoryCacheDynamicHTTPServer(MemoryCacheHTTPServer):
+  """This class extends MemoryCacheHTTPServer by adding support for returning
+  dynamic responses.
+  """
+
+  def __init__(self, paths, dynamic_request_handler_class):
+    # dynamic_request_handler_class must be a sub-class of
+    # MemoryCacheDynamicHTTPRequestHandler
+    assert issubclass(dynamic_request_handler_class,
+                      MemoryCacheDynamicHTTPRequestHandler)
+    super(MemoryCacheDynamicHTTPServer, self).__init__(paths)
+    self._dynamic_request_handler_class = dynamic_request_handler_class
+
+  @property
+  def dynamic_request_handler_class(self):
+    return self._dynamic_request_handler_class
+
+  def GetBackendStartupArgs(self):
+    args = super(MemoryCacheDynamicHTTPServer, self).GetBackendStartupArgs()
+    args['dynamic_request_handler_module_name'] = \
+        self._dynamic_request_handler_class.__module__
+    args['dynamic_request_handler_class_name'] = \
+        self._dynamic_request_handler_class.__name__
+    return args

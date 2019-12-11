@@ -294,11 +294,17 @@ class Platform(object):
   def http_server(self):
     # TODO(crbug.com/799490): Ownership of the local server should be moved
     # to the network_controller.
+    server = self._local_server_controller.GetRunningServer(
+        memory_cache_http_server.MemoryCacheDynamicHTTPServer, None)
+    if server:
+      return server
+
     return self._local_server_controller.GetRunningServer(
         memory_cache_http_server.MemoryCacheHTTPServer, None)
 
-  def SetHTTPServerDirectories(self, paths):
+  def SetHTTPServerDirectories(self, paths, handler_class=None):
     """Returns True if the HTTP server was started, False otherwise."""
+    # pylint: disable=redefined-variable-type
     if isinstance(paths, basestring):
       paths = set([paths])
     paths = set(os.path.realpath(p) for p in paths)
@@ -314,7 +320,15 @@ class Platform(object):
     paths -= duplicates
 
     if self.http_server:
-      if paths and self.http_server.paths == paths:
+      old_handler_class = getattr(self.http_server,
+                                  "dynamic_request_handler_class", None)
+      if not old_handler_class and not handler_class and \
+          self.http_server.paths == paths:
+        return False
+
+      if old_handler_class and handler_class \
+          and old_handler_class.__name__ == handler_class.__name__ \
+          and self.http_server.paths == paths:
         return False
 
       self.http_server.Close()
@@ -322,7 +336,11 @@ class Platform(object):
     if not paths:
       return False
 
-    server = memory_cache_http_server.MemoryCacheHTTPServer(paths)
+    if handler_class:
+      server = memory_cache_http_server.MemoryCacheDynamicHTTPServer(
+          paths, handler_class)
+    else:
+      server = memory_cache_http_server.MemoryCacheHTTPServer(paths)
     self.StartLocalServer(server)
     return True
 

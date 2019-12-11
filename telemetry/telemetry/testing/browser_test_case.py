@@ -99,7 +99,8 @@ class BrowserTestCase(unittest.TestCase):
     pass
 
   @classmethod
-  def UrlOfUnittestFile(cls, filename):
-    cls._platform.SetHTTPServerDirectories(path.GetUnittestDataDir())
+  def UrlOfUnittestFile(cls, filename, handler_class=None):
+    cls._platform.SetHTTPServerDirectories(path.GetUnittestDataDir(),
+                                           handler_class)
     file_path = os.path.join(path.GetUnittestDataDir(), filename)
     return cls._platform.http_server.UrlOf(file_path)
