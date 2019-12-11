@@ -155,15 +155,14 @@ class WebViewBackendSettings(WebViewBasedBackendSettings):
       return 'SystemWebView.apk'
 
   def FindSupportApks(self, apk_path, chrome_root):
+    del chrome_root
     # Try to find the WebView embedder next to the local APK found.
     if apk_path is not None:
       embedder_apk_path = os.path.join(
           os.path.dirname(apk_path), self.embedder_apk_name)
       if os.path.exists(embedder_apk_path):
         return [embedder_apk_path]
-    # Otherwise fall back to an APK found among possible build directories.
-    apk = util.FindLatestApkOnHost(chrome_root, self.embedder_apk_name)
-    return [apk] if apk else []
+    return []
 
 
 class WebViewGoogleBackendSettings(WebViewBackendSettings):
@@ -186,7 +185,7 @@ class WebLayerBackendSettings(WebViewBackendSettings):
     kwargs.setdefault('package', 'org.chromium.weblayer.shell')
     kwargs.setdefault('activity',
                       'org.chromium.weblayer.shell.WebLayerShellActivity')
-    kwargs.setdefault('embedder_apk_name', 'WebLayerShell.apk')
+    kwargs.setdefault('embedder_apk_name', 'WebLayerShellSystemWebView.apk')
     kwargs.setdefault('command_line_name', 'weblayer-command-line')
     return super(WebLayerBackendSettings, cls).__new__(cls, **kwargs)
 
