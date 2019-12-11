@@ -212,6 +212,9 @@ class UpdateEvaluator(object):
     self.job = job
 
   def __call__(self, task, event, accumulator):
+    if event.target_task is None or event.target_task != task.id:
+      return None
+
     # Check that the task has the required information to poll Swarming. In this
     # handler we're going to look for the 'swarming_task_id' key in the payload.
     # TODO(dberris): Move this out, when we incorporate validation properly.
@@ -220,6 +223,7 @@ class UpdateEvaluator(object):
     if missing_keys:
       logging.error('Failed to find required keys from payload: %s; task = %s',
                     missing_keys, task.payload)
+      return None
 
     return [PollSwarmingTaskAction(job=self.job, task=task)]
 
@@ -229,11 +233,9 @@ class Evaluator(evaluators.SequenceEvaluator):
   def __init__(self, job):
     super(Evaluator, self).__init__(
         evaluators=(
-            evaluators.TaskPayloadLiftingEvaluator(),
             evaluators.FilteringEvaluator(
                 predicate=evaluators.All(
                     evaluators.TaskTypeEq('run_test'),
-                    evaluators.TaskIsEventTarget(),
                 ),
                 delegate=evaluators.DispatchByEventTypeEvaluator({
                     'initiate':
@@ -242,11 +244,21 @@ class Evaluator(evaluators.SequenceEvaluator):
                                 evaluators.TaskStatusIn(
                                     {'ongoing', 'failed', 'completed'})),
                             delegate=InitiateEvaluator(job)),
+                    # For updates, we want to ensure that the initiate evaluator
+                    # has a chance to run on 'pending' tasks.
                     'update':
-                        evaluators.FilteringEvaluator(
-                            predicate=evaluators.TaskStatusIn({'ongoing'}),
-                            delegate=UpdateEvaluator(job)),
+                        evaluators.SequenceEvaluator([
+                            evaluators.FilteringEvaluator(
+                                predicate=evaluators.Not(
+                                    evaluators.TaskStatusIn(
+                                        {'ongoing', 'failed', 'completed'})),
+                                delegate=InitiateEvaluator(job)),
+                            evaluators.FilteringEvaluator(
+                                predicate=evaluators.TaskStatusIn({'ongoing'}),
+                                delegate=UpdateEvaluator(job)),
+                        ])
                 })),
+            evaluators.TaskPayloadLiftingEvaluator(),
         ))
 
 
