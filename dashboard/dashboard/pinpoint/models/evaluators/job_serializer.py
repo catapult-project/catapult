@@ -125,8 +125,10 @@ class Serializer(evaluators.DispatchByTaskType):
     #
     #      # If we see the 'order_changes' key in the local context, then
     #      # that means we can sort the states according to the changes as they
-    #      # appear in this list.
-    #      'order_changes': [...]
+    #      # appear in the embedded 'changes' list.
+    #      'order_changes': {
+    #        'changes': [..]
+    #      }
     #
     #      # If we see the 'set_parameters' key in the local context, then
     #      # we can set the overall parameters we're looking to compare and
@@ -189,14 +191,24 @@ class Serializer(evaluators.DispatchByTaskType):
       # the 'order_changes' list.
       states = context.get('state', [])
       if states:
-        order_changes = local_context.get('order_changes', [])
+        state_changes = {
+            change_module.Change.FromDict(state.get('change'))
+            for state in states
+        }
+        order_changes = local_context.get('order_changes')
+        all_changes = order_changes.get('changes')
         change_index = {
-            change: index for index, change in enumerate(order_changes)
+            change: index for index, change in enumerate(
+                known_change for known_change in all_changes
+                if known_change in state_changes)
         }
         ordered_states = [None] * len(states)
         for state in states:
-          ordered_states[change_index[change_module.Change.FromDict(
-              state.get('change'))]] = state
+          # First, find the change index.
+          index = change_index.get(
+              change_module.Change.FromDict(state.get('change')))
+          if index is not None:
+            ordered_states[index] = state
         context['state'] = ordered_states
 
     if 'set_parameters' in local_context:
@@ -284,7 +296,9 @@ def AnalysisTransformer(task, _, context):
           'comparison_mode': task_data.get('comparison_mode'),
           'metric': task_data.get('metric'),
       },
-      'order_changes': task_data.get('changes')
+      'order_changes': {
+          'changes': task_data.get('changes'),
+      }
   }
   context.clear()
   context.update(result)

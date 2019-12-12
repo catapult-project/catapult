@@ -13,6 +13,7 @@ import mock
 
 from dashboard.pinpoint.handlers import task_updates
 from dashboard.pinpoint.models import job as job_module
+from dashboard.pinpoint.models import results2 as results2_module
 from dashboard.pinpoint.models.tasks import bisection_test_util
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
@@ -83,7 +84,8 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
   @mock.patch('dashboard.services.swarming.Tasks.New')
   @mock.patch('dashboard.services.swarming.Task.Result')
   @mock.patch('dashboard.services.isolate.Retrieve')
-  def testExecutionEngineJobUpdates(self, isolate_retrieve,
+  @mock.patch.object(results2_module, 'GetCachedResults2', return_value='')
+  def testExecutionEngineJobUpdates(self, _, isolate_retrieve,
                                     swarming_task_result, swarming_tasks_new,
                                     isolate_get, buildbucket_getjobstatus,
                                     buildbucket_put):
@@ -158,6 +160,10 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     self.assertFalse(job.completed)
     self.assertFalse(job.done)
 
+    # Check that we can get the dict representation of the job.
+    job_dict = job.AsDict([job_module.OPTION_STATE])
+    self.assertEqual(job_dict.get('quests'), ['Build', 'Test'])
+
     # Then we post an update to complete all the builds.
     task_updates.HandleTaskUpdate(
         json.dumps({
@@ -187,6 +193,10 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     self.assertTrue(job.started)
     self.assertFalse(job.completed)
     self.assertFalse(job.done)
+
+    # Check that we can get the dict representation of the job.
+    job_dict = job.AsDict([job_module.OPTION_STATE])
+    self.assertEqual(job_dict.get('quests'), ['Build', 'Test'])
 
     # Then send an update to all the tests finishing, and retrieving the
     # histograms as output.
