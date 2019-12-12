@@ -308,6 +308,39 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(200, hist.running.mean);
   });
 
+  test('timeToLargestContentfulPaint_CandidatesOutOfOrder', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const browerMain = model.browserMain;
+      browerMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: tr.e.chrome.LCP_CANDIDATE_EVENT_TITLE,
+        start: 300,
+        duration: 0.0,
+        args: {
+          data: { durationInMilliseconds: 100, type: 'text', size: 2000,
+            inMainFrame: true },
+          main_frame_tree_node_id: 12345,
+        }
+      }));
+      browerMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: tr.e.chrome.LCP_CANDIDATE_EVENT_TITLE,
+        start: 200,
+        duration: 0.0,
+        args: {
+          data: { durationInMilliseconds: 200, type: 'image', size: 1000,
+            inMainFrame: true },
+          main_frame_tree_node_id: 12345,
+        }
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('largestContentfulPaint');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(100, hist.running.mean);
+  });
+
   test('timeToLargestContentfulPaint_AggregateSubframe', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const browerMain = model.browserMain;
