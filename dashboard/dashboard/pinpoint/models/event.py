@@ -16,6 +16,8 @@ from __future__ import absolute_import
 
 import collections
 
-__all__ = ('Event',)
-
 Event = collections.namedtuple('Event', ('type', 'target_task', 'payload'))
+
+
+def SelectEvent(target_task=None):
+  return Event(type='select', target_task=target_task, payload={})

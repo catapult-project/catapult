@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import logging
+import pprint
 
 from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import evaluators
@@ -39,7 +40,7 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
         evaluators.Selector(task_type='find_culprit'))
     self.assertIn('performance_bisection', evaluate_result)
     logging.info('Results: %s', evaluate_result['performance_bisection'])
-    self.assertEquals(evaluate_result['performance_bisection']['culprits'], [])
+    self.assertEqual(evaluate_result['performance_bisection']['culprits'], [])
 
   def testEvaluateSuccess_SpeculateBisection(self):
     self.PopulateSimpleBisectionGraph(self.job)
@@ -101,8 +102,8 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
                         }]
                     }): values for commit, values in (
                         ('commit_0', range(10)),
-                        ('commit_1', range(10)),
-                        ('commit_2', range(4, 14)),
+                        ('commit_1', range(1, 11)),
+                        ('commit_2', range(2, 12)),
                         ('commit_3', range(3, 13)),
                         ('commit_4', range(3, 13)),
                         ('commit_5', range(3, 13)),
@@ -138,7 +139,8 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
         self.job, bisection_test_util.SelectEvent(),
         evaluators.Selector(task_type='find_culprit'))
     self.assertIn('performance_bisection', evaluate_result)
-    logging.info('Results: %s', evaluate_result['performance_bisection'])
+    logging.info('Results: %s',
+                 pprint.pformat(evaluate_result['performance_bisection']))
     self.assertEquals(evaluate_result['performance_bisection']['culprits'], [])
 
   def testEvaluateFailure_DependenciesFailed(self):

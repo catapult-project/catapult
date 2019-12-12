@@ -169,7 +169,7 @@ class DispatchEvaluatorBase(object):
           'Either one of evaluator_map or default_evaluator must be provided.')
 
     self._evaluator_map = evaluator_map
-    self._default_evaluator = default_evaluator or NoopEvaluator
+    self._default_evaluator = default_evaluator or NoopEvaluator()
 
   def _Key(self, task, event):
     raise NotImplementedError('Override this in the subclass.')

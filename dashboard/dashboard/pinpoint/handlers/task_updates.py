@@ -16,6 +16,7 @@ from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import task as task_module
 from dashboard.pinpoint.models import event as event_module
 from dashboard.pinpoint.models.tasks import evaluator
+from dashboard.pinpoint.models import errors
 
 
 def HandleTaskUpdate(request_body):
@@ -107,19 +108,19 @@ def HandleTaskUpdate(request_body):
           'Missing "performance_bisection" in task graph for job with ID = %s' %
           (job_id,))
 
-    result_status = accumulator['performance_bisection']['status']
+    result_status = accumulator['performance_bisection'].get('status')
     if result_status in {'failed', 'completed'}:
       # TODO(dberris): Formalise the error collection/propagation mechanism
       # for exposing all errors in the UX, when we need it.
       execution_errors = accumulator['performance_bisection'].get('errors', [])
       if execution_errors:
-        job.exception_details = execution_errors[0]
-      job._Complete()
+        job.Fail(errors.ExecutionEngineErrors(execution_errors))
+      elif job_module.IsDone(job.job_id):
+        job._Complete()
 
   except task_module.Error as error:
     logging.error('Failed: %s', error)
     job.Fail()
-    job.put()
     raise
 
 

@@ -18,6 +18,19 @@ from dashboard.pinpoint.models.tasks import find_isolate
 from dashboard.services import swarming
 
 
+class MarkTaskFailedAction(
+    collections.namedtuple('MarkTaskFailedAction', ('job', 'task'))):
+  __slots__ = ()
+
+  def __str__(self):
+    return 'MarkTaskFailedAction(task = %s)' % (self.task.id,)
+
+  @task_module.LogStateTransitionFailures
+  def __call__(self, _):
+    task_module.UpdateTask(
+        self.job, self.task.id, new_state='failed', payload=self.task.payload)
+
+
 class ScheduleTestAction(
     collections.namedtuple('ScheduleTestAction',
                            ('job', 'task', 'properties'))):
@@ -184,10 +197,7 @@ class InitiateEvaluator(object):
                           'so we cannot proceed to running the tests.')
           }]
       })
-      return [
-          lambda _: task_module.UpdateTask(
-              self.job, task.id, new_state='failed', payload=task.payload)
-      ]
+      return [MarkTaskFailedAction(self.job, task)]
 
     if dep_value.get('status') == 'completed':
       properties = {
@@ -234,9 +244,7 @@ class Evaluator(evaluators.SequenceEvaluator):
     super(Evaluator, self).__init__(
         evaluators=(
             evaluators.FilteringEvaluator(
-                predicate=evaluators.All(
-                    evaluators.TaskTypeEq('run_test'),
-                ),
+                predicate=evaluators.All(evaluators.TaskTypeEq('run_test'),),
                 delegate=evaluators.DispatchByEventTypeEvaluator({
                     'initiate':
                         evaluators.FilteringEvaluator(

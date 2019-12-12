@@ -15,6 +15,7 @@ Here's the exception hierarchy:
    |    +-- BuildIsolateNotFound
    |    +-- SwarmingExpired
    |    +-- AllRunsFailed
+   |    +-- ExecutionEngineErrors
    +-- InformationalError
    |    +-- BuildFailed
    |    +-- BuildCancelled
@@ -44,7 +45,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import traceback
-
+import pprint
 
 class JobError(Exception):
   """Base exception for errors in this module."""
@@ -101,7 +102,7 @@ class BuildCancelled(InformationalError):
     super(BuildCancelled, self).__init__(
         'The build was cancelled with reason: %s. "\
         "Pinpoint will be unable to run any tests against this "\
-        "revision.'                    % reason)
+        "revision.' % reason)
 
 
 class BuildGerritUrlNotFound(InformationalError):
@@ -290,6 +291,17 @@ class JobRetryFailed(JobRetryError):
     # have a category.
     category = None
     JobRetryError.__init__(self, message, category, wrapped_exc)
+
+
+# TODO(dberris): Create more granular error mappings for the execution engine
+# here.
+class ExecutionEngineErrors(FatalError):
+  category = 'pinpoint'
+
+  def __init__(self, errors):
+    super(ExecutionEngineErrors, self).__init__(
+        'Encountered fatal errors executing under the execution engine.\n'
+        'All errors:\n %s' % (pprint.pformat(errors),),)
 
 
 def _FormatException(exc):

@@ -29,6 +29,7 @@ from dashboard.pinpoint.models import results2
 from dashboard.pinpoint.models import scheduler
 from dashboard.pinpoint.models import task as task_module
 from dashboard.pinpoint.models import timing_record
+from dashboard.pinpoint.models import evaluators
 from dashboard.pinpoint.models.evaluators import job_serializer
 from dashboard.pinpoint.models.tasks import evaluator as task_evaluator
 from dashboard.services import gerrit_service
@@ -74,6 +75,59 @@ def JobFromId(job_id):
   """
   job_key = ndb.Key('Job', int(job_id, 16))
   return job_key.get()
+
+
+def IsDone(job_id):
+  """Transactionally check whether a job is done executing.
+
+  Returns True IFF the job is executing under the execution engine and that
+  internal state is consistent with the job being "done".
+
+  Raises any errors encountered in execution engine evaluation.
+  """
+  job = JobFromId(job_id)
+  if not job.use_execution_engine:
+    return False
+
+  # This comes from an eventually consistent read, but we can treat that as a
+  # relaxed load -- if this ever is true, then that means a transaction before
+  # this call had already marked the job "done".
+  if job.done:
+    return True
+
+  try:
+    context = task_module.Evaluate(
+        job, event_module.SelectEvent(),
+        evaluators.DispatchByTaskType({
+            'find_culprit':
+                evaluators.TaskPayloadLiftingEvaluator(exclude_keys=['commits'])
+        }))
+    if not context:
+      return False
+    for payload in context.values():
+      status = payload.get('status')
+      if status in {'pending', 'ongoing'}:
+        return False
+    return True
+  except task_module.Error as error:
+    logging.error('Evaluation error: %s', error)
+    raise
+
+
+@ndb.transactional
+def MarkDone(job_id):
+  """Transactionally update the job as done.
+
+  This only works for jobs executing under the execution engine.
+
+  Returns True on a successful update.
+  """
+  job = JobFromId(job_id)
+  if job.done:
+    return False
+  job.done = True
+  job.put()
+  return True
 
 
 class BenchmarkArguments(ndb.Model):
@@ -146,12 +200,19 @@ class Job(ndb.Model):
   updated = ndb.DateTimeProperty(required=True, auto_now_add=True)
 
   started = ndb.BooleanProperty(default=True)
-  completed = ndb.ComputedProperty(lambda self: self.started and not self.task)
+  completed = ndb.ComputedProperty(lambda self: self.done or (
+      not self.use_execution_engine and self.started and not self.task))
   failed = ndb.ComputedProperty(lambda self: bool(self.exception_details_dict))
   running = ndb.ComputedProperty(lambda self: self.started and not self.
                                  cancelled and self.task and len(self.task) > 0)
   cancelled = ndb.BooleanProperty(default=False)
   cancel_reason = ndb.TextProperty()
+
+  # Because of legacy reasons, `completed` is not exactly representative of
+  # whether a job is "done" from the execution engine's point of view. We're
+  # introducing this top-level property as a definitive flag, transactionally
+  # enforced, to signal whether we are done executing a job.
+  done = ndb.BooleanProperty(default=False)
 
   # The name of the Task Queue task this job is running on. If it's present, the
   # job is running. The task is also None for Task Queue retries.
@@ -413,6 +474,12 @@ class Job(ndb.Model):
     if self.use_execution_engine:
       scheduler.Complete(self)
 
+      # Only proceed if this thread/process is the one that successfully marked
+      # a job done.
+      if not MarkDone(self.job_id):
+        return
+      logging.debug('Job [%s]: Marked done', self.job_id)
+
     if not self._IsTryJob():
       self.difference_count = len(self.state.Differences())
 
@@ -507,6 +574,12 @@ class Job(ndb.Model):
     self.task = None
 
     comment = '\n'.join((title, self.url, '', exc_message))
+
+    # Short-circuit jobs failure updates when we are not the first one to mark a
+    # job done.
+    if self.use_execution_engine and not MarkDone(self.job_id):
+      return
+
     deferred.defer(
         _PostBugCommentDeferred,
         self.bug_id,

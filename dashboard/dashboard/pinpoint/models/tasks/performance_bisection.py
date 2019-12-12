@@ -378,10 +378,10 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
 
         # Check whether all dependencies are completed and if we do
         # not have data in any of the dependencies.
-        if changes_by_status['completed'] == changes_with_data:
+        if changes_by_status.get('completed') == changes_with_data:
           changes_with_empty_results = [
               change for change in changes_with_data
-              if not results_by_change[change]
+              if not results_by_change.get(change)
           ]
           if changes_with_empty_results:
             task.payload.update({
@@ -394,9 +394,8 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
                     }]
             })
             return [CompleteExplorationAction(self.job, task, 'failed')]
-
         # Check whether all the dependencies had the tests fail consistently.
-        if changes_by_status['failed'] == changes_with_data:
+        elif changes_by_status.get('failed') == changes_with_data:
           task.payload.update({
               'errors':
                   task.payload.get('errors', []) + [{
@@ -405,6 +404,9 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
                   }]
           })
           return [CompleteExplorationAction(self.job, task, 'failed')]
+        # If they're all pending or ongoing, then we don't do anything yet.
+        else:
+          return None
 
       # We want to reduce the list of ordered changes to only the ones that have
       # data available.
@@ -520,7 +522,8 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
                        for a, b in Pairwise(ordered_changes)
                        if DetectChange(a, b)]
       })
-      if not actions:
+      can_complete = len({'pending', 'completed'} & set(changes_by_status)) > 0
+      if not actions and can_complete:
         # Mark this operation complete, storing the differences we can compute.
         actions = [CompleteExplorationAction(self.job, task, 'completed')]
       return actions
@@ -555,6 +558,7 @@ def AnalysisSerializer(task, _, accumulator):
           for change in task.payload.get('changes', [])
       ]
   })
+
 
 class Serializer(evaluators.FilteringEvaluator):
 

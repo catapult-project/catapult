@@ -273,6 +273,17 @@ def _LoadTaskGraph(job):
       terminal_tasks=terminal_tasks, tasks={task.key: task for task in tasks})
 
 
+class NoopAction(object):
+
+  @staticmethod
+  def __str__():
+    return 'NoopAction()'
+
+  @staticmethod
+  def __call__(_):
+    pass
+
+
 @ndb.non_transactional
 def Evaluate(job, event, evaluator):
   """Applies an evaluator given a task in the task graph and an event as input.
@@ -308,7 +319,7 @@ def Evaluate(job, event, evaluator):
     raise ValueError('job must not be None.')
 
   accumulator = {}
-  actions = [lambda _: None]
+  actions = [NoopAction()]
   while actions:
     for action in actions:
       logging.debug('Running action: %s', action)
