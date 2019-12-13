@@ -87,6 +87,7 @@ class BisectionTestBase(test.TestCase):
                         grouping_label='some_grouping_label',
                         story='some_story',
                         statistic='avg',
+                        histogram_name='some_chart',
                     ),
                     graph_json_options=read_value.GraphJsonOptions(
                         chart='some_chart',

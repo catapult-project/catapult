@@ -83,6 +83,7 @@ class EvaluatorTest(test.TestCase):
                     grouping_label=grouping_label,
                     story=story,
                     statistic=statistic,
+                    histogram_name=chart,
                 ),
                 graph_json_options=read_value.GraphJsonOptions(
                     chart=chart, trace=trace),
@@ -91,7 +92,7 @@ class EvaluatorTest(test.TestCase):
 
   def testEvaluateSuccess_WithData(self, isolate_retrieve):
     # Seed the response to the call to the isolate service.
-    histogram = histogram_module.Histogram('some_benchmark', 'count')
+    histogram = histogram_module.Histogram('some_chart', 'count')
     histogram.AddSample(0)
     histogram.AddSample(1)
     histogram.AddSample(2)
@@ -131,6 +132,7 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': 'label',
                     'story': 'story',
                     'statistic': None,
+                    'histogram_name': 'some_chart',
                 },
                 'graph_json_options': {
                     'chart': 'some_chart',
@@ -148,7 +150,7 @@ class EvaluatorTest(test.TestCase):
             evaluators.Selector(task_type='read_value')))
 
   def testEvaluateSuccess_HistogramStat(self, isolate_retrieve):
-    histogram = histogram_module.Histogram('some_benchmark', 'count')
+    histogram = histogram_module.Histogram('some_chart', 'count')
     histogram.AddSample(0)
     histogram.AddSample(1)
     histogram.AddSample(2)
@@ -184,6 +186,7 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': 'label',
                     'story': 'story',
                     'statistic': 'avg',
+                    'histogram_name': 'some_chart',
                 },
                 'graph_json_options': {
                     'chart': 'some_chart',
@@ -201,7 +204,7 @@ class EvaluatorTest(test.TestCase):
             evaluators.Selector(task_type='read_value')))
 
   def testEvaluateSuccess_HistogramStoryNeedsEscape(self, isolate_retrieve):
-    histogram = histogram_module.Histogram('some_benchmark', 'count')
+    histogram = histogram_module.Histogram('some_chart', 'count')
     histogram.AddSample(0)
     histogram.AddSample(1)
     histogram.AddSample(2)
@@ -236,6 +239,7 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': 'label',
                     'story': 'https://story',
                     'statistic': None,
+                    'histogram_name': 'some_chart',
                 },
                 'graph_json_options': {
                     'chart': 'some_chart',
@@ -263,7 +267,7 @@ class EvaluatorTest(test.TestCase):
 
     histograms = histogram_set.HistogramSet([
         CreateHistogram(name)
-        for name in ('some_benchmark', 'some_benchmark', 'some_other_benchmark')
+        for name in ('some_chart', 'some_chart', 'some_other_chart')
     ])
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name, generic_set.GenericSet(['group:label']))
@@ -295,6 +299,7 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': 'label',
                     'story': 'story',
                     'statistic': None,
+                    'histogram_name': 'some_chart',
                 },
                 'graph_json_options': {
                     'chart': 'some_chart',
@@ -312,7 +317,7 @@ class EvaluatorTest(test.TestCase):
             evaluators.Selector(task_type='read_value')))
 
   def testEvaluateSuccess_HistogramsTraceUrls(self, isolate_retrieve):
-    hist = histogram_module.Histogram('some_benchmark', 'count')
+    hist = histogram_module.Histogram('some_chart', 'count')
     hist.AddSample(0)
     hist.diagnostics[reserved_infos.TRACE_URLS.name] = (
         generic_set.GenericSet(['trace_url1', 'trace_url2']))
@@ -327,7 +332,7 @@ class EvaluatorTest(test.TestCase):
         *itertools.repeat([('{"files": {"some_benchmark/perf_results.json": '
                             '{"h": "394890891823812873798734a"}}}'),
                            json.dumps(histograms.AsDicts())], 10))
-    self.PopulateTaskGraph(benchmark='some_benchmark')
+    self.PopulateTaskGraph(benchmark='some_benchmark', chart='some_chart')
     self.assertNotEqual({},
                         task_module.Evaluate(
                             self.job,
@@ -345,9 +350,10 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': None,
                     'story': None,
                     'statistic': None,
+                    'histogram_name': 'some_chart',
                 },
                 'graph_json_options': {
-                    'chart': None,
+                    'chart': 'some_chart',
                     'trace': 'some_trace'
                 },
                 'result_values': [0],
@@ -375,7 +381,7 @@ class EvaluatorTest(test.TestCase):
             evaluators.Selector(task_type='read_value')))
 
   def testEvaluateSuccess_HistogramSkipRefTraceUrls(self, isolate_retrieve):
-    hist = histogram_module.Histogram('some_benchmark', 'count')
+    hist = histogram_module.Histogram('some_chart', 'count')
     hist.AddSample(0)
     hist.diagnostics[reserved_infos.TRACE_URLS.name] = (
         generic_set.GenericSet(['trace_url1', 'trace_url2']))
@@ -388,7 +394,7 @@ class EvaluatorTest(test.TestCase):
         *itertools.repeat([('{"files": {"some_benchmark/perf_results.json": '
                             '{"h": "394890891823812873798734a"}}}'),
                            json.dumps(histograms.AsDicts())], 10))
-    self.PopulateTaskGraph(benchmark='some_benchmark')
+    self.PopulateTaskGraph(benchmark='some_benchmark', chart='some_chart')
     self.assertNotEqual({},
                         task_module.Evaluate(
                             self.job,
@@ -406,9 +412,10 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': None,
                     'story': None,
                     'statistic': None,
+                    'histogram_name': 'some_chart',
                 },
                 'graph_json_options': {
-                    'chart': None,
+                    'chart': 'some_chart',
                     'trace': 'some_trace'
                 },
                 'result_values': [0],
@@ -435,7 +442,7 @@ class EvaluatorTest(test.TestCase):
     samples = []
     hists = []
     for i in range(10):
-      hist = histogram_module.Histogram('some_benchmark', 'count')
+      hist = histogram_module.Histogram('some_chart', 'count')
       hist.AddSample(0)
       hist.AddSample(1)
       hist.AddSample(2)
@@ -447,7 +454,7 @@ class EvaluatorTest(test.TestCase):
       samples.extend(hist.sample_values)
 
     for i in range(10):
-      hist = histogram_module.Histogram('some_benchmark', 'count')
+      hist = histogram_module.Histogram('some_chart', 'count')
       hist.AddSample(0)
       hist.AddSample(1)
       hist.AddSample(2)
@@ -465,7 +472,7 @@ class EvaluatorTest(test.TestCase):
         *itertools.repeat([('{"files": {"some_benchmark/perf_results.json": '
                             '{"h": "394890891823812873798734a"}}}'),
                            json.dumps(histograms.AsDicts())], 10))
-    self.PopulateTaskGraph(benchmark='some_benchmark')
+    self.PopulateTaskGraph(benchmark='some_benchmark', chart='some_chart')
     self.assertNotEqual({},
                         task_module.Evaluate(
                             self.job,
@@ -483,9 +490,10 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': None,
                     'story': None,
                     'statistic': None,
+                    'histogram_name': 'some_chart',
                 },
                 'graph_json_options': {
-                    'chart': None,
+                    'chart': 'some_chart',
                     'trace': 'some_trace'
                 },
                 'result_values': [sum(samples)],
@@ -500,7 +508,7 @@ class EvaluatorTest(test.TestCase):
             evaluators.Selector(task_type='read_value')))
 
   def testEvaluateFailure_HistogramNoSamples(self, isolate_retrieve):
-    histogram = histogram_module.Histogram('some_benchmark', 'count')
+    histogram = histogram_module.Histogram('some_chart', 'count')
     histograms = histogram_set.HistogramSet([histogram])
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name, generic_set.GenericSet(['group:label']))
@@ -532,6 +540,7 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': 'label',
                     'story': 'https://story',
                     'statistic': None,
+                    'histogram_name': 'some_chart',
                 },
                 'graph_json_options': {
                     'chart': 'some_chart',
@@ -578,6 +587,7 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': 'label',
                     'story': 'https://story',
                     'statistic': None,
+                    'histogram_name': 'some_chart',
                 },
                 'graph_json_options': {
                     'chart': 'some_chart',
@@ -627,6 +637,7 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': 'label',
                     'story': 'https://story',
                     'statistic': None,
+                    'histogram_name': 'some_chart',
                 },
                 'graph_json_options': {
                     'chart': 'some_chart',
@@ -677,6 +688,7 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': None,
                     'story': None,
                     'statistic': None,
+                    'histogram_name': 'chart',
                 },
                 'graph_json_options': {
                     'chart': 'chart',
@@ -717,6 +729,7 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': None,
                     'story': None,
                     'statistic': None,
+                    'histogram_name': 'chart',
                 },
                 'graph_json_options': {
                     'chart': 'chart',
@@ -763,6 +776,7 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': None,
                     'story': None,
                     'statistic': None,
+                    'histogram_name': 'chart',
                 },
                 'graph_json_options': {
                     'chart': 'chart',
@@ -813,6 +827,7 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': None,
                     'story': None,
                     'statistic': None,
+                    'histogram_name': 'chart',
                 },
                 'graph_json_options': {
                     'chart': 'chart',
@@ -870,6 +885,7 @@ class EvaluatorTest(test.TestCase):
                     'grouping_label': None,
                     'story': None,
                     'statistic': None,
+                    'histogram_name': 'chart',
                 },
                 'graph_json_options': {
                     'chart': 'chart',

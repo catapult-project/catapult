@@ -118,6 +118,7 @@ def _CreateJob(request):
                 grouping_label=arguments.get('grouping_label'),
                 story=arguments.get('story'),
                 statistic=arguments.get('statistic'),
+                histogram_name=arguments.get('chart'),
             ),
             graph_json_options=read_value.GraphJsonOptions(
                 chart=arguments.get('chart'), trace=arguments.get('trace')),
