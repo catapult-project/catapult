@@ -102,6 +102,22 @@ class CloudStorageFakeFsUnitTest(BaseFakeFsUnitTest):
     finally:
       cloud_storage._RunCommand = orig_run_command
 
+  def testUploadCreatesValidCloudUrls(self):
+    orig_run_command = cloud_storage._RunCommand
+    try:
+      cloud_storage._RunCommand = self._FakeRunCommand
+      remote_path = 'test-remote-path.html'
+      local_path = 'test-local-path.html'
+      cloud_filepath = cloud_storage.Upload(
+          cloud_storage.PUBLIC_BUCKET, remote_path, local_path)
+      self.assertEqual('https://console.developers.google.com/m/cloudstorage'
+                       '/b/chromium-telemetry/o/test-remote-path.html',
+                       cloud_filepath.view_url)
+      self.assertEqual('gs://chromium-telemetry/test-remote-path.html',
+                       cloud_filepath.fetch_url)
+    finally:
+      cloud_storage._RunCommand = orig_run_command
+
   @mock.patch('py_utils.cloud_storage.subprocess')
   def testExistsReturnsFalse(self, subprocess_mock):
     p_mock = mock.Mock()

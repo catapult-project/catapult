@@ -393,7 +393,8 @@ def _GetLocked(bucket, remote_path, local_path):
 
 
 def Insert(bucket, remote_path, local_path, publicly_readable=False):
-  """ Upload file in |local_path| to cloud storage.
+  """Upload file in |local_path| to cloud storage.
+
   Args:
     bucket: the google cloud storage bucket name.
     remote_path: the remote file path in |bucket|.
@@ -404,6 +405,43 @@ def Insert(bucket, remote_path, local_path, publicly_readable=False):
   Returns:
     The url where the file is uploaded to.
   """
+  cloud_filepath = Upload(bucket, remote_path, local_path, publicly_readable)
+  return cloud_filepath.view_url
+
+
+class CloudFilepath(object):
+  def __init__(self, bucket, remote_path):
+    self.bucket = bucket
+    self.remote_path = remote_path
+
+  @property
+  def view_url(self):
+    """Get a human viewable url for the cloud file."""
+    return 'https://console.developers.google.com/m/cloudstorage/b/%s/o/%s' % (
+        self.bucket, self.remote_path)
+
+  @property
+  def fetch_url(self):
+    """Get a machine fetchable url for the cloud file."""
+    return 'gs://%s/%s' % (self.bucket, self.remote_path)
+
+
+def Upload(bucket, remote_path, local_path, publicly_readable=False):
+  """Upload file in |local_path| to cloud storage.
+
+  Newer version of 'Insert()' returns an object instead of a string.
+
+  Args:
+    bucket: the google cloud storage bucket name.
+    remote_path: the remote file path in |bucket|.
+    local_path: path of the local file to be uploaded.
+    publicly_readable: whether the uploaded file has publicly readable
+    permission.
+
+  Returns:
+    A CloudFilepath object providing the location of the object in various
+    formats.
+  """
   url = 'gs://%s/%s' % (bucket, remote_path)
   command_and_args = ['cp']
   extra_info = ''
@@ -413,8 +451,7 @@ def Insert(bucket, remote_path, local_path, publicly_readable=False):
   command_and_args += [local_path, url]
   logger.info('Uploading %s to %s%s', local_path, url, extra_info)
   _RunCommand(command_and_args)
-  return 'https://console.developers.google.com/m/cloudstorage/b/%s/o/%s' % (
-      bucket, remote_path)
+  return CloudFilepath(bucket, remote_path)
 
 
 def GetIfHashChanged(cs_path, download_path, bucket, file_hash):
