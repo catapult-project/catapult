@@ -130,6 +130,14 @@ def MarkDone(job_id):
   return True
 
 
+@ndb.transactional
+def UpdateTime(job_id):
+  """Transactionally updates the updated propery of a job."""
+  job = JobFromId(job_id)
+  job.updated = datetime.datetime.utcnow()
+  job.put()
+
+
 class BenchmarkArguments(ndb.Model):
   """Structured version of the ad-hoc 'arguments' JSON for a Job.
 

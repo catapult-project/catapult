@@ -124,6 +124,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     self.assertEqual(0, buildbucket_getjobstatus.call_count)
 
     # We then post an update and expect it to succeed.
+    before_update_timestamp = job.updated
     task_updates.HandleTaskUpdate(
         json.dumps({
             'message': {
@@ -164,7 +165,11 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     job_dict = job.AsDict([job_module.OPTION_STATE])
     self.assertEqual(job_dict.get('quests'), ['Build', 'Test'])
 
+    # Check that we did update the timestamp.
+    self.assertNotEqual(before_update_timestamp, job.updated)
+
     # Then we post an update to complete all the builds.
+    before_update_timestamp = job.updated
     task_updates.HandleTaskUpdate(
         json.dumps({
             'message': {
@@ -197,6 +202,9 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     # Check that we can get the dict representation of the job.
     job_dict = job.AsDict([job_module.OPTION_STATE])
     self.assertEqual(job_dict.get('quests'), ['Build', 'Test'])
+
+    # Check that we did update the timestamp.
+    self.assertNotEqual(before_update_timestamp, job.updated)
 
     # Then send an update to all the tests finishing, and retrieving the
     # histograms as output.
@@ -248,6 +256,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
           },
           'state': 'COMPLETED',
       }
+      before_update_timestamp = job.updated
       task_updates.HandleTaskUpdate(
           json.dumps({
               'message': {
@@ -273,6 +282,13 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
                           }))
               }
           }))
+
+      # Reload the job.
+      job = job_module.JobFromId(job.job_id)
+
+      # Check that we did update the timestamp.
+      self.assertNotEqual(before_update_timestamp, job.updated)
+
 
     # With all the above done, we should see that the task is indeed marked
     # done.

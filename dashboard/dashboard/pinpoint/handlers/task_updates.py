@@ -118,6 +118,8 @@ def HandleTaskUpdate(request_body):
       elif job_module.IsDone(job.job_id):
         job._Complete()
 
+    # At this point, update the job's updated field transactionally.
+    job_module.UpdateTime(job.job_id)
   except task_module.Error as error:
     logging.error('Failed: %s', error)
     job.Fail()
