@@ -30,6 +30,10 @@ def FailsWithKeyError(*_):
 @mock.patch('dashboard.services.buildbucket_service.GetJobStatus')
 class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
 
+  def setUp(self):
+    self.maxDiff = None
+    super(ExecutionEngineTaskUpdatesTest, self).setUp()
+
   def testHandlerGoodCase(self, *_):
     job = job_module.Job.New((), (), use_execution_engine=True)
     self.PopulateSimpleBisectionGraph(job)
@@ -164,6 +168,14 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     # Check that we can get the dict representation of the job.
     job_dict = job.AsDict([job_module.OPTION_STATE])
     self.assertEqual(job_dict.get('quests'), ['Build', 'Test'])
+    self.assertEqual(
+        job_dict.get('state'), [{
+            'attempts': mock.ANY,
+            'change': self.start_change.AsDict(),
+        }, {
+            'attempts': mock.ANY,
+            'change': self.end_change.AsDict(),
+        }])
 
     # Check that we did update the timestamp.
     self.assertNotEqual(before_update_timestamp, job.updated)
@@ -202,6 +214,14 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     # Check that we can get the dict representation of the job.
     job_dict = job.AsDict([job_module.OPTION_STATE])
     self.assertEqual(job_dict.get('quests'), ['Build', 'Test'])
+    self.assertEqual(
+        job_dict.get('state'), [{
+            'attempts': mock.ANY,
+            'change': self.start_change.AsDict(),
+        }, {
+            'attempts': mock.ANY,
+            'change': self.end_change.AsDict(),
+        }])
 
     # Check that we did update the timestamp.
     self.assertNotEqual(before_update_timestamp, job.updated)
@@ -289,7 +309,6 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
       # Check that we did update the timestamp.
       self.assertNotEqual(before_update_timestamp, job.updated)
 
-
     # With all the above done, we should see that the task is indeed marked
     # done.
     job = job_module.JobFromId(job.job_id)
@@ -297,4 +316,14 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     self.assertTrue(job.completed)
     self.assertTrue(job.done)
 
-    self.ExecuteDeferredTasks('default')
+    # Check that we can get the dict representation of the job.
+    job_dict = job.AsDict([job_module.OPTION_STATE])
+    self.assertEqual(job_dict.get('quests'), ['Build', 'Test', 'Get results'])
+    self.assertEqual(
+        job_dict.get('state'), [{
+            'attempts': mock.ANY,
+            'change': self.start_change.AsDict(),
+        }, {
+            'attempts': mock.ANY,
+            'change': self.end_change.AsDict(),
+        }])

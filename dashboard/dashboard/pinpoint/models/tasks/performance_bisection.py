@@ -292,6 +292,19 @@ class RefineExplorationAction(
       logging.error('Failed to amend graph: %s', e)
 
 
+class UpdateTaskPayloadAction(
+    collections.namedtuple('UpdateTaskPayloadAction', ('job', 'task'))):
+  __slots__ = ()
+
+  def __str__(self):
+    return 'UpdateTaskPayloadAction(job = %s, task = %s, payload = %s)' % (
+        self.job.job_id, self.task.id, self.task.payload)
+
+  @task_module.LogStateTransitionFailures
+  def __call__(self, _):
+    task_module.UpdateTask(self.job, self.task.id, payload=self.task.payload)
+
+
 class CompleteExplorationAction(
     collections.namedtuple('CompleteExplorationAction',
                            ('job', 'task', 'state'))):
@@ -337,6 +350,31 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
     #   change point we find in the CL continuum.
     if task.status == 'pending':
       return [PrepareCommits(self.job, task)]
+
+    all_changes = None
+    actions = []
+    if 'changes' not in task.payload:
+      all_changes = [
+          change_module.Change(
+              commits=[
+                  change_module.Commit(
+                      repository=commit.get('repository'),
+                      git_hash=commit.get('git_hash'))
+              ],
+              patch=task.payload.get('pinned_change'))
+          for commit in task.payload.get('commits', [])
+      ]
+      task.payload.update({
+          'changes': [change.AsDict() for change in all_changes],
+      })
+      actions.append(UpdateTaskPayloadAction(self.job, task))
+    else:
+      # We need to reconstitute the Change instances from the dicts we've stored
+      # in the payload.
+      all_changes = [
+          change_module.Change.FromDict(change)
+          for change in task.payload.get('changes')
+      ]
 
     if task.status == 'ongoing':
       # TODO(dberris): Validate and fail gracefully instead of asserting?
@@ -406,27 +444,17 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
           return [CompleteExplorationAction(self.job, task, 'failed')]
         # If they're all pending or ongoing, then we don't do anything yet.
         else:
-          return None
+          return actions
 
       # We want to reduce the list of ordered changes to only the ones that have
       # data available.
-      all_changes = [
-          change_module.Change(
-              commits=[
-                  change_module.Commit(
-                      repository=commit.get('repository'),
-                      git_hash=commit.get('git_hash'))
-              ],
-              patch=task.payload.get('pinned_change'))
-          for commit in task.payload.get('commits', [])
-      ]
       change_index = {change: index for index, change in enumerate(all_changes)}
       ordered_changes = [c for c in all_changes if c in changes_with_data]
 
       if len(ordered_changes) < 2:
         # We do not have enough data yet to determine whether we should do
         # anything.
-        return None
+        return actions
 
       # From here we can then do the analysis on a pairwise basis, as we're
       # going through the list of Change instances we have data for.
@@ -500,7 +528,7 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
 
       # At this point we can collect the actions to extend the task graph based
       # on the results of the speculation.
-      actions = [
+      actions += [
           RefineExplorationAction(self.job, task, change, more_attempts)
           for change, more_attempts in itertools.chain(
               [(c, 0) for _, c in additional_changes],
@@ -517,7 +545,6 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
 
       logging.debug('Updating with changes and culprits: %s', ordered_changes)
       task.payload.update({
-          'changes': [change.AsDict() for change in all_changes],
           'culprits': [(a.AsDict(), b.AsDict())
                        for a, b in Pairwise(ordered_changes)
                        if DetectChange(a, b)],
