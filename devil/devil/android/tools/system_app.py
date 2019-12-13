@@ -35,11 +35,10 @@ logger = logging.getLogger(__name__)
 # Some system apps aren't actually installed in the /system/ directory, so
 # special case them here with the correct install location.
 SPECIAL_SYSTEM_APP_LOCATIONS = {
-  # This also gets installed in /data/app when not a system app, so this script
-  # will remove either version. This doesn't appear to cause any issues, but
-  # will cause a few unnecessary reboots if this is the only package getting
-  # removed and it's already not a system app.
-  'com.google.ar.core': ['/data/app/'],
+  # Older versions of ArCore were installed in /data/app/ regardless of whether
+  # they were system apps or not. Newer versions install in /system/ if they
+  # are system apps, and in /data/app/ if they aren't.
+  'com.google.ar.core': ['/data/app/', '/system/'],
   # On older versions of VrCore, the system app version is installed in /system/
   # like normal. However, at some point, this moved to /data/. So, we have to
   # handle both cases. Like ArCore, this means we'll end up removing even
