@@ -103,10 +103,8 @@ class UpdateBuildStatusAction(object):
       self.task.payload.update({
           'errors':
               self.task.payload.get('errors', []) + [{
-                  'reason':
-                      'InvalidResponse',
-                  'message':
-                      'Response is missing the "result" field.'
+                  'reason': 'InvalidResponse',
+                  'message': 'Response is missing the "result" field.'
               }]
       })
       task_module.UpdateTask(
@@ -367,11 +365,7 @@ class Serializer(evaluators.FilteringEvaluator):
 
   def __init__(self):
     super(Serializer, self).__init__(
-        predicate=evaluators.All(
-            evaluators.TaskTypeEq('find_isolate'),
-            evaluators.TaskStatusIn(
-                {'ongoing', 'failed', 'completed', 'cancelled'}),
-        ),
+        predicate=evaluators.TaskTypeEq('find_isolate'),
         delegate=BuildSerializer)
 
 

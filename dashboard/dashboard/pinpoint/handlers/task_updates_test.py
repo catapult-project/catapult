@@ -127,6 +127,31 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     # We expect no invocations of the job status.
     self.assertEqual(0, buildbucket_getjobstatus.call_count)
 
+    # Expect to see the Build quest in the list of quests here.
+    job = job_module.JobFromId(job.job_id)
+    job_dict = job.AsDict([job_module.OPTION_STATE])
+    self.assertEqual(['Build'], job_dict.get('quests'))
+    self.assertEqual(
+        job_dict.get('state'), [{
+            'attempts': [{
+                'executions': [{
+                    'completed': False,
+                    'details': mock.ANY,
+                    'exception': None,
+                }]
+            }],
+            'change': self.start_change.AsDict(),
+        }, {
+            'attempts': [{
+                'executions': [{
+                    'completed': False,
+                    'details': mock.ANY,
+                    'exception': None,
+                }]
+            }],
+            'change': self.end_change.AsDict(),
+        }])
+
     # We then post an update and expect it to succeed.
     before_update_timestamp = job.updated
     task_updates.HandleTaskUpdate(
@@ -170,11 +195,24 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     self.assertEqual(job_dict.get('quests'), ['Build', 'Test'])
     self.assertEqual(
         job_dict.get('state'), [{
-            'attempts': mock.ANY,
+            'attempts': [{
+                'executions': [{
+                    'completed': False,
+                    'details': mock.ANY,
+                    'exception': None,
+                }]
+            }],
             'change': self.start_change.AsDict(),
         }, {
-            'attempts': mock.ANY,
-            'change': self.end_change.AsDict(),
+            'attempts': [{
+                'executions': [{
+                    'completed': True,
+                    'details': mock.ANY,
+                    'exception': None,
+                }, mock.ANY]
+            }] + ([mock.ANY] * 9),
+            'change':
+                self.end_change.AsDict(),
         }])
 
     # Check that we did update the timestamp.
@@ -216,11 +254,24 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     self.assertEqual(job_dict.get('quests'), ['Build', 'Test'])
     self.assertEqual(
         job_dict.get('state'), [{
-            'attempts': mock.ANY,
+            'attempts': [{
+                'executions': [{
+                    'completed': True,
+                    'details': mock.ANY,
+                    'exception': None,
+                }, mock.ANY]
+            }] + ([mock.ANY] * 9),
             'change': self.start_change.AsDict(),
         }, {
-            'attempts': mock.ANY,
-            'change': self.end_change.AsDict(),
+            'attempts': [{
+                'executions': [{
+                    'completed': True,
+                    'details': mock.ANY,
+                    'exception': None,
+                }, mock.ANY]
+            }] + ([mock.ANY] * 9),
+            'change':
+                self.end_change.AsDict(),
         }])
 
     # Check that we did update the timestamp.
