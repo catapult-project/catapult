@@ -82,7 +82,6 @@ class ScheduleTestAction(
     # TODO(dberris): Figure out error-handling for Swarming request failures?
     response = swarming.Swarming(
         self.task.payload.get('swarming_server')).Tasks().New(body)
-    logging.debug('Swarming response: %s', response)
     self.task.payload.update({
         'swarming_task_id': response.get('task_id'),
         'tries': self.task.payload.get('tries', 0) + 1
@@ -97,9 +96,12 @@ class PollSwarmingTaskAction(
     collections.namedtuple('PollSwarmingTaskAction', ('job', 'task'))):
   __slots__ = ()
 
+  def __str__(self):
+    return 'PollSwarmingTaskAction(job = %s, task = %s)' % (self.job.job_id,
+                                                            self.task.id)
+
   @task_module.LogStateTransitionFailures
   def __call__(self, _):
-    logging.debug('Polling a swarming task; task = %s', self.task)
     swarming_server = self.task.payload.get('swarming_server')
     task_id = self.task.payload.get('swarming_task_id')
     swarming_task = swarming.Swarming(swarming_server).Task(task_id)

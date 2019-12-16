@@ -297,8 +297,8 @@ class UpdateTaskPayloadAction(
   __slots__ = ()
 
   def __str__(self):
-    return 'UpdateTaskPayloadAction(job = %s, task = %s, payload = %s)' % (
-        self.job.job_id, self.task.id, self.task.payload)
+    return 'UpdateTaskPayloadAction(job = %s, task = %s)' % (self.job.job_id,
+                                                             self.task.id)
 
   @task_module.LogStateTransitionFailures
   def __call__(self, _):
@@ -451,11 +451,6 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
       change_index = {change: index for index, change in enumerate(all_changes)}
       ordered_changes = [c for c in all_changes if c in changes_with_data]
 
-      if len(ordered_changes) < 2:
-        # We do not have enough data yet to determine whether we should do
-        # anything.
-        return actions
-
       # From here we can then do the analysis on a pairwise basis, as we're
       # going through the list of Change instances we have data for.
       # NOTE: A lot of this algorithm is already in pinpoint/models/job_state.py
@@ -463,6 +458,9 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
       def Compare(a, b):
         # This is the comparison function which determines whether the samples
         # we have from the two changes (a and b) are statistically significant.
+        if a is None or b is None:
+          return None
+
         if 'pending' in status_by_change[a] or 'pending' in status_by_change[b]:
           return compare.PENDING
 
@@ -475,6 +473,12 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
         # statistically significant.
         values_for_a = tuple(itertools.chain(*results_by_change[a]))
         values_for_b = tuple(itertools.chain(*results_by_change[b]))
+
+        if not values_for_a:
+          return None
+        if not values_for_b:
+          return None
+
         max_iqr = max(
             math_utils.Iqr(values_for_a), math_utils.Iqr(values_for_b), 0.001)
         comparison_magnitude = task.payload.get('comparison_magnitude',
@@ -519,6 +523,32 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
         subrange = all_changes[a_index:b_index + 1]
         return None if len(subrange) <= 2 else subrange[len(subrange) // 2]
 
+      # We have a striding iterable, which will give us the before, current, and
+      # after for a given index in the iterable.
+      def SlidingTriple(iterable):
+        """s -> (None, s0, s1), (s0, s1, s2), (s1, s2, s3), ..."""
+        p, c, n = itertools.tee(iterable, 3)
+        p = itertools.chain([None], p)
+        n = itertools.chain(itertools.islice(n, 1, None), [None])
+        return itertools.izip(p, c, n)
+
+      # This is a comparison between values at a change and the values at
+      # the previous change and the next change.
+      comparisons = [{
+          'prev': Compare(p, c),
+          'next': Compare(c, n),
+      } for (p, c, n) in SlidingTriple(ordered_changes)]
+      if task.payload.get('comparisons') != comparisons:
+        task.payload.update({
+            'comparisons': comparisons,
+        })
+        actions.append(UpdateTaskPayloadAction(self.job, task))
+
+      if len(ordered_changes) < 2:
+        # We do not have enough data yet to determine whether we should do
+        # anything.
+        return actions
+
       additional_changes = exploration.Speculate(
           ordered_changes,
           change_detected=DetectChange,
@@ -549,7 +579,7 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
                        for a, b in Pairwise(ordered_changes)
                        if DetectChange(a, b)],
       })
-      can_complete = len({'pending', 'completed'} & set(changes_by_status)) > 0
+      can_complete = not bool(set(changes_by_status) - {'failed', 'completed'})
       if not actions and can_complete:
         # Mark this operation complete, storing the differences we can compute.
         actions = [CompleteExplorationAction(self.job, task, 'completed')]
@@ -576,14 +606,13 @@ def AnalysisSerializer(task, _, accumulator):
   if read_option_template.get('mode') == 'graph_json':
     metric = graph_json_options.get('chart')
   analysis_results.update({
-      'comparison_mode':
-          task.payload.get('comparison_mode'),
-      'metric':
-          metric,
+      'comparison_mode': task.payload.get('comparison_mode'),
+      'metric': metric,
       'changes': [
           change_module.Change.FromDict(change)
           for change in task.payload.get('changes', [])
-      ]
+      ],
+      'comparisons': task.payload.get('comparisons'),
   })
 
 

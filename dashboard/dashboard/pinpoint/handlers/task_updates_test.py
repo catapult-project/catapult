@@ -229,7 +229,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     # Then send an update to all the tests finishing, and retrieving the
     # histograms as output.
     swarming_test_count = swarming_tasks_new.call_count
-    histogram = histogram_module.Histogram('some_benchmark', 'count')
+    histogram = histogram_module.Histogram('some_chart', 'count')
     histogram.AddSample(0)
     histogram.AddSample(1)
     histogram.AddSample(2)
@@ -323,7 +323,15 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
         job_dict.get('state'), [{
             'attempts': mock.ANY,
             'change': self.start_change.AsDict(),
+            'comparisons': {
+                'prev': None,
+                'next': 'same',
+            }
         }, {
             'attempts': mock.ANY,
             'change': self.end_change.AsDict(),
+            'comparisons': {
+                'prev': 'same',
+                'next': None,
+            }
         }])
