@@ -1,6 +1,7 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 """A module for storing and getting objects from datastore.
 
 App Engine datastore limits entity size to less than 1 MB; this module
@@ -29,6 +30,7 @@ _CHUNK_SIZE = 1000 * 1000
 
 
 @ndb.synctasklet
+@ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
 def Get(key):
   """Gets the value.
 
@@ -42,12 +44,9 @@ def Get(key):
   raise ndb.Return(result)
 
 
-@ndb.transactional_tasklet(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
+@ndb.tasklet
+@ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
 def GetAsync(key):
-  cached_entity = yield ndb.Key(MultipartEntity,
-                                key).get_async(use_datastore=False)
-  if cached_entity:
-    raise ndb.Return(cached_entity.GetData())
   entity = yield ndb.Key(MultipartEntity, key).get_async()
   if not entity:
     raise ndb.Return(None)
@@ -56,6 +55,7 @@ def GetAsync(key):
 
 
 @ndb.synctasklet
+@ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
 def Set(key, value):
   """Sets the value in datastore.
 
@@ -66,7 +66,8 @@ def Set(key, value):
   yield SetAsync(key, value)
 
 
-@ndb.transactional_tasklet(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
+@ndb.tasklet
+@ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
 def SetAsync(key, value):
   entity = yield ndb.Key(MultipartEntity, key).get_async()
   if not entity:
@@ -82,7 +83,8 @@ def Delete(key):
   yield DeleteAsync(key)
 
 
-@ndb.transactional_tasklet(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
+@ndb.tasklet
+@ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
 def DeleteAsync(key):
   multipart_entity_key = ndb.Key(MultipartEntity, key)
   # Check if the entity exists before attempting to delete it in order to avoid
@@ -100,38 +102,33 @@ def DeleteAsync(key):
 
 class MultipartEntity(ndb.Model):
   """Container for PartEntity."""
-  _memcache_timeout = 60 * 60 * 24 * 7  # 7 days worth of seconds
-  _use_memcache = True
-  _use_cache = True
 
   # Number of entities use to store serialized.
   size = ndb.IntegerProperty(default=0, indexed=False)
 
-  @ndb.transactional_tasklet(
-      propagation=ndb.TransactionOptions.ALLOWED, xg=True)
+  @ndb.tasklet
+  @ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
   def GetPartsAsync(self):
     """Deserializes data from multiple PartEntity."""
     if not self.size:
       raise ndb.Return(None)
 
     string_id = self.key.string_id()
-    part_keys = [
-        ndb.Key(MultipartEntity, string_id, PartEntity, i + 1)
-        for i in range(self.size)
-    ]
+    part_keys = [ndb.Key(MultipartEntity, string_id, PartEntity, i + 1)
+                 for i in range(self.size)]
     part_entities = yield ndb.get_multi_async(part_keys)
     serialized = ''.join(p.value for p in part_entities if p is not None)
     self.SetData(pickle.loads(serialized))
 
-  @staticmethod
-  @ndb.transactional_tasklet(
-      propagation=ndb.TransactionOptions.ALLOWED, xg=True)
-  def DeleteAsync(key):
+  @classmethod
+  @ndb.tasklet
+  @ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
+  def DeleteAsync(cls, key):
     part_keys = yield PartEntity.query(ancestor=key).fetch_async(keys_only=True)
     yield ndb.delete_multi_async(part_keys)
 
-  @ndb.transactional_tasklet(
-      propagation=ndb.TransactionOptions.ALLOWED, xg=True)
+  @ndb.tasklet
+  @ndb.transactional(propagation=ndb.TransactionOptions.ALLOWED, xg=True)
   def PutAsync(self):
     """Stores serialized data over multiple PartEntity."""
     part_list = [
@@ -154,9 +151,6 @@ class PartEntity(ndb.Model):
   This entity key has the form:
     ndb.Key('MultipartEntity', multipart_entity_id, 'PartEntity', part_index)
   """
-  _memcache_timeout = 60 * 60 * 24 * 7  # 7 days worth of seconds
-  _use_memcache = True
-  _use_cache = True
   value = ndb.BlobProperty()
 
 
