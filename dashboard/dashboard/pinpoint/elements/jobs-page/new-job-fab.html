@@ -133,9 +133,11 @@ found in the LICENSE file.
 
             <input type="hidden" name="comparison_mode" value="[[comparisonMode]]">
             <input type="hidden" name="target" value="[[telemetryIsolate(configuration, benchmark)]]">
-            <input type="hidden" name="base_git_hash" value="[[base_git_hash]]">
-            <input type="hidden" name="start_git_hash" value="[[start_git_hash]]">
-            <input type="hidden" name="end_git_hash" value="[[end_git_hash]]">
+            <!--Prevent uploading unused git_hash because raw request will be displayed on job page.
+              It won't change the result, but display unused (and wrong) parameters are confusing-->
+            <input type="hidden" disabled="[[isBisectJob(comparisonMode)]]" name="base_git_hash" value="[[base_git_hash]]">
+            <input type="hidden" disabled="[[!isBisectJob(comparisonMode)]]" name="start_git_hash" value="[[start_git_hash]]">
+            <input type="hidden" disabled="[[!isBisectJob(comparisonMode)]]" name="end_git_hash" value="[[end_git_hash]]">
 
             <template is="dom-if" if="[[hasJob(job)]]">
               <!-- TODO(crbug.com/974237): Stop filling in 'tir_label' when no longer in use. -->
@@ -422,7 +424,9 @@ found in the LICENSE file.
         }
         this.bug_id = job.bug_id;
         this.patch = job.arguments.patch;
-        this.base_git_hash = job.arguments.end_git_hash;
+        // Legacy try job doesn't have base_git_hash, use end_git_hash instead
+        this.base_git_hash = job.arguments.base_git_hash ||
+                             job.arguments.end_git_hash;
         this.start_git_hash = job.arguments.start_git_hash;
         this.end_git_hash = job.arguments.end_git_hash;
         this.comparisonMode = job.arguments.comparison_mode;
