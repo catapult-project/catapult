@@ -200,6 +200,7 @@ class Serializer(evaluators.DispatchByTaskType):
         order_changes = local_context.get('order_changes', {})
         all_changes = order_changes.get('changes', [])
         comparisons = order_changes.get('comparisons', [])
+        result_values = order_changes.get('result_values', [])
         change_index = {
             change: index for index, change in enumerate(
                 known_change for known_change in all_changes
@@ -214,10 +215,11 @@ class Serializer(evaluators.DispatchByTaskType):
             ordered_states[index] = state
 
         # Merge in the comparisons as they appear for the ordered_states.
-        for state, comparison in itertools.izip_longest(ordered_states,
-                                                        comparisons or []):
+        for state, comparison, result in itertools.izip_longest(
+            ordered_states, comparisons or [], result_values or []):
           if comparison is not None:
             state['comparisons'] = comparison
+            state['result_values'] = result
         context['state'] = ordered_states
 
     if 'set_parameters' in local_context:
@@ -309,6 +311,7 @@ def AnalysisTransformer(task, _, context):
           'changes': task_data.get('changes', []),
           'comparisons': task_data.get('comparisons', []),
           'culprits': task_data.get('culprits', []),
+          'result_values': task_data.get('result_values', []),
       }
   }
   context.clear()

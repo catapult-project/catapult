@@ -326,12 +326,14 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
             'comparisons': {
                 'prev': None,
                 'next': 'same',
-            }
+            },
+            'result_values': mock.ANY,
         }, {
             'attempts': mock.ANY,
             'change': self.end_change.AsDict(),
             'comparisons': {
                 'prev': 'same',
                 'next': None,
-            }
+            },
+            'result_values': mock.ANY,
         }])

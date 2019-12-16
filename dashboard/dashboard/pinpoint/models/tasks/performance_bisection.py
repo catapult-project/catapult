@@ -538,9 +538,17 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
           'prev': Compare(p, c),
           'next': Compare(c, n),
       } for (p, c, n) in SlidingTriple(ordered_changes)]
-      if task.payload.get('comparisons') != comparisons:
+
+      # Collect the result values for each change with values.
+      result_values = [
+          list(itertools.chain(*results_by_change.get(change, [])))
+          for change in ordered_changes
+      ]
+      if task.payload.get('comparisons') != comparisons or task.payload.get(
+          'result_values') != result_values:
         task.payload.update({
             'comparisons': comparisons,
+            'result_values': result_values,
         })
         actions.append(UpdateTaskPayloadAction(self.job, task))
 
@@ -612,7 +620,8 @@ def AnalysisSerializer(task, _, accumulator):
           change_module.Change.FromDict(change)
           for change in task.payload.get('changes', [])
       ],
-      'comparisons': task.payload.get('comparisons'),
+      'comparisons': task.payload.get('comparisons', []),
+      'result_values': task.payload.get('result_values', [])
   })
 
 

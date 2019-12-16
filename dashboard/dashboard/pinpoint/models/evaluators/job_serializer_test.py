@@ -127,7 +127,8 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
                 'comparisons': {
                     'prev': None,
                     'next': 'same',
-                }
+                },
+                'result_values': [mock.ANY] * 10,
             }, {
                 'attempts': [{
                     'executions': [mock.ANY] * 3
@@ -139,7 +140,8 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
                 'comparisons': {
                     'prev': 'same',
                     'next': None,
-                }
+                },
+                'result_values': [mock.ANY] * 10,
             }]
         },
         job_dict)
