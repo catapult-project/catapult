@@ -34,7 +34,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import functools
-import logging
 
 __all__ = ['Speculate']
 
@@ -85,7 +84,6 @@ def Speculate(changes, change_detected, on_unknown, midpoint, levels=2):
   def Speculator(change_a_index, change_b_index):
     _, change_a = change_a_index
     index_b, change_b = change_b_index
-    logging.debug('change_a = %r ; change_b = %r', change_a, change_b)
     result = change_detected(change_a, change_b)
     if result is None:
       on_unknown(change_a, change_b)

@@ -342,7 +342,6 @@ def RetrieveOutputJson(isolate_server, isolate_hash, filename):
 
   output_files = json.loads(isolate.Retrieve(
       isolate_server, isolate_hash))['files']
-  logging.debug('response: %s', output_files)
 
   if filename not in output_files:
     if 'performance_browser_tests' not in filename:
@@ -362,6 +361,5 @@ def RetrieveOutputJson(isolate_server, isolate_hash, filename):
   # https://crbug.com/998517 for more context.
   response = json.loads(
       isolate.Retrieve(isolate_server, output_json_isolate_hash))
-  logging.debug('response: %s', response)
 
   return response

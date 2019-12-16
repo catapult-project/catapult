@@ -283,6 +283,9 @@ class RefineExplorationAction(
               v for v in new_subgraph.vertices if v.id not in accumulator
           ],
           dependencies=[
+              new_edge for new_edge in new_subgraph.edges
+              if new_edge.from_ not in accumulator
+          ] + [
               # Only add dependencies to the new 'read_value' tasks.
               task_module.Dependency(from_=self.task.id, to=v.id)
               for v in new_subgraph.vertices
@@ -407,8 +410,7 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
             status: status_by_change[change].get(status, 0) + 1,
         })
         changes_by_status[status].add(change)
-        if status not in {'ongoing', 'pending'}:
-          changes_with_data.add(change)
+        changes_with_data.add(change)
 
       # If the dependencies have converged into a single status, we can make
       # decisions on the terminal state of the bisection.
@@ -565,13 +567,15 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
           levels=_DEFAULT_SPECULATION_LEVELS)
 
       # At this point we can collect the actions to extend the task graph based
-      # on the results of the speculation.
+      # on the results of the speculation, only if the changes don't have any
+      # more associated pending/ongoing work.
       actions += [
           RefineExplorationAction(self.job, task, change, more_attempts)
           for change, more_attempts in itertools.chain(
               [(c, 0) for _, c in additional_changes],
               [(c, a) for c, a in changes_to_refine],
           )
+          if not bool({'pending', 'ongoing'} & set(status_by_change[change]))
       ]
 
       # Here we collect the points where we've found the changes.
@@ -581,7 +585,6 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
         next(b, None)
         return itertools.izip(a, b)
 
-      logging.debug('Updating with changes and culprits: %s', ordered_changes)
       task.payload.update({
           'culprits': [(a.AsDict(), b.AsDict())
                        for a, b in Pairwise(ordered_changes)

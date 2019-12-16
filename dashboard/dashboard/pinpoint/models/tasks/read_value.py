@@ -38,8 +38,8 @@ class CompleteReadValueAction(
   __slots__ = ()
 
   def __str__(self):
-    return 'CompleteReadValueAction(job = %s, task = %s, payload = %s)' % (
-        self.job.job_id, self.task.id, self.task.payload)
+    return 'CompleteReadValueAction(job = %s, task = %s)' % (
+        self.job.job_id, self.task.id)
 
   @task_module.LogStateTransitionFailures
   def __call__(self, _):

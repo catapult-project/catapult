@@ -58,7 +58,7 @@ class ScheduleBuildAction(object):
     task_module.UpdateTask(self.job, self.task.id, payload=self.task.payload)
 
   def __str__(self):
-    return 'Build Action <job = %s, task = %s>' % (self.job.job_id, self.task)
+    return 'Build Action(job = %s, task = %s)' % (self.job.job_id, self.task.id)
 
 
 class UpdateBuildStatusAction(object):
@@ -223,7 +223,7 @@ class UpdateBuildStatusAction(object):
 
   def __str__(self):
     return 'Update Build Action <job = %s, task = %s>' % (self.job.job_id,
-                                                          self.task)
+                                                          self.task.id)
 
 
 class InitiateEvaluator(object):
@@ -235,7 +235,7 @@ class InitiateEvaluator(object):
   def __call__(self, task, _, change):
     if task.status == 'ongoing':
       logging.warning(
-          'Ignoring an initiate event on an ongoing task; task = %s', task)
+          'Ignoring an initiate event on an ongoing task; task = %s', task.id)
       return None
 
     # Outline:
@@ -269,7 +269,8 @@ class InitiateEvaluator(object):
 
       return [CompleteWithCachedIsolate]
     except KeyError as e:
-      logging.error('Failed to find isolate for task = %s;\nError: %s', task, e)
+      logging.error('Failed to find isolate for task = %s;\nError: %s', task.id,
+                    e)
       return [ScheduleBuildAction(self.job, task, change)]
     return None
 
@@ -336,16 +337,14 @@ def BuildSerializer(task, _, accumulator):
   })
 
   buildbucket_result = task.payload.get('buildbucket_result')
-  if not buildbucket_result:
-    return None
-
-  build = buildbucket_result.get('build')
-  if build:
-    results.get('details').append({
-        'key': 'build',
-        'value': build.get('id'),
-        'url': build.get('url'),
-    })
+  if buildbucket_result:
+    build = buildbucket_result.get('build')
+    if build:
+      results.get('details').append({
+          'key': 'build',
+          'value': build.get('id'),
+          'url': build.get('url'),
+      })
 
   if {'isolate_server', 'isolate_hash'} & set(task.payload):
     results.get('details').append({

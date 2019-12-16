@@ -36,6 +36,10 @@ class ScheduleTestAction(
                            ('job', 'task', 'properties'))):
   __slots__ = ()
 
+  def __str__(self):
+    return 'ScheduleTestAction(job = %s, task = %s)' % (self.job.job_id,
+                                                        self.task.id)
+
   @task_module.LogStateTransitionFailures
   def __call__(self, _):
     logging.debug('Scheduling a Swarming task to run a test.')

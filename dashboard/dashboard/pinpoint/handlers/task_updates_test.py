@@ -261,7 +261,8 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
                     'exception': None,
                 }, mock.ANY]
             }] + ([mock.ANY] * 9),
-            'change': self.start_change.AsDict(),
+            'change':
+                self.start_change.AsDict(),
         }, {
             'attempts': [{
                 'executions': [{
@@ -280,24 +281,28 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     # Then send an update to all the tests finishing, and retrieving the
     # histograms as output.
     swarming_test_count = swarming_tasks_new.call_count
-    histogram = histogram_module.Histogram('some_chart', 'count')
-    histogram.AddSample(0)
-    histogram.AddSample(1)
-    histogram.AddSample(2)
-    histograms = histogram_set.HistogramSet([histogram])
-    histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.STORY_TAGS.name,
-        generic_set.GenericSet(['group:some_grouping_label']))
-    histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.STORIES.name, generic_set.GenericSet(['some_story']))
-    isolate_retrieve.side_effect = [
-        ('{"files": {"some_benchmark/perf_results.json": '
-         '{"h": "394890891823812873798734a"}}}'),
-        json.dumps(histograms.AsDicts())
-    ] * swarming_test_count
+
+    def CreateHistogram(commit_id):
+      histogram = histogram_module.Histogram('some_chart', 'count')
+      histogram.AddSample(0 * commit_id)
+      histogram.AddSample(1 * commit_id)
+      histogram.AddSample(2 * commit_id)
+      histograms = histogram_set.HistogramSet([histogram])
+      histograms.AddSharedDiagnosticToAllHistograms(
+          reserved_infos.STORY_TAGS.name,
+          generic_set.GenericSet(['group:some_grouping_label']))
+      histograms.AddSharedDiagnosticToAllHistograms(
+          reserved_infos.STORIES.name, generic_set.GenericSet(['some_story']))
+      return histograms
+
     for attempt, commit_id in itertools.chain(
         enumerate([5] * (swarming_test_count // 2)),
         enumerate([0] * (swarming_test_count // 2))):
+      isolate_retrieve.side_effect = [
+          ('{"files": {"some_benchmark/perf_results.json": '
+           '{"h": "394890891823812873798734a"}}}'),
+          json.dumps(CreateHistogram(commit_id).AsDicts())
+      ]
       buildbucket_getjobstatus.return_value = {
           'build': {
               'status':
@@ -360,12 +365,11 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
       # Check that we did update the timestamp.
       self.assertNotEqual(before_update_timestamp, job.updated)
 
-    # With all the above done, we should see that the task is indeed marked
-    # done.
+    # With all the above done, we're not quite done yet.
     job = job_module.JobFromId(job.job_id)
     self.assertTrue(job.started)
-    self.assertTrue(job.completed)
-    self.assertTrue(job.done)
+    self.assertFalse(job.completed)
+    self.assertFalse(job.done)
 
     # Check that we can get the dict representation of the job.
     job_dict = job.AsDict([job_module.OPTION_STATE])
@@ -376,14 +380,14 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
             'change': self.start_change.AsDict(),
             'comparisons': {
                 'prev': None,
-                'next': 'same',
+                'next': 'pending',
             },
             'result_values': mock.ANY,
-        }, {
+        }, mock.ANY, mock.ANY, mock.ANY, {
             'attempts': mock.ANY,
             'change': self.end_change.AsDict(),
             'comparisons': {
-                'prev': 'same',
+                'prev': 'pending',
                 'next': None,
             },
             'result_values': mock.ANY,

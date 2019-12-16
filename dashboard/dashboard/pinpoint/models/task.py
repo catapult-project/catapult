@@ -186,10 +186,6 @@ def ExtendTaskGraph(job, vertices, dependencies):
       handled_dependencies.add(dependency)
       update_filter.add(dependency.from_)
 
-  logging.debug('Adding vertices [%s] and edges [%s]',
-                amendment_task_graph.keys(),
-                [(dep.from_, dep.to) for dep in handled_dependencies])
-
   ndb.put_multi(
       itertools.chain(
           amendment_task_graph.values(),

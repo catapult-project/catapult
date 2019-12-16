@@ -40,20 +40,22 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
     self.PopulateSimpleBisectionGraph(self.job)
     self.assertEqual(
         {
-            'status': 'Queued',
-            'updated': mock.ANY,
-            'comparison_mode': 'performance',
+            'arguments': mock.ANY,
             'bug_id': None,
-            'user': None,
-            'results_url': mock.ANY,
             'cancel_reason': None,
+            'comparison_mode': 'performance',
             'configuration': mock.ANY,
-            'name': mock.ANY,
+            'created': mock.ANY,
+            'difference_count': None,
             'exception': None,
             'job_id': self.job.job_id,
-            'created': mock.ANY,
-            'arguments': mock.ANY,
-            'difference_count': None
+            'name': mock.ANY,
+            'quests': ['Build'],
+            'results_url': mock.ANY,
+            'state': [mock.ANY, mock.ANY],
+            'status': 'Queued',
+            'updated': mock.ANY,
+            'user': None,
         },
         self.job.AsDict(
             options=[job_module.OPTION_STATE, job_module.OPTION_ESTIMATE]))
