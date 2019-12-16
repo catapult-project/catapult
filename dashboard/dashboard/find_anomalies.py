@@ -66,10 +66,12 @@ def _ProcessTest(test_key):
   test = yield test_key.get_async()
 
   sheriff, (new_sheriffs, err_msg) = yield _GetSheriffForTest(test)
+  new_sheriffs_keys = [s.key.string_id() for s in new_sheriffs or []]
   logging.info('Sheriff for %s: old: %s, new: %s', test.test_path,
                'None' if sheriff is None else sheriff.key.string_id(),
-               err_msg if new_sheriffs is None
-               else [s.key.string_id() for s in new_sheriffs])
+               err_msg if new_sheriffs is None else new_sheriffs_keys)
+  if sheriff and sheriff.key.string_id() not in new_sheriffs_keys:
+    logging.warn('Sheriff do not match: %s', test_key.string_id())
   if not sheriff:
     logging.error('No sheriff for %s', test_key)
     raise ndb.Return(None)
