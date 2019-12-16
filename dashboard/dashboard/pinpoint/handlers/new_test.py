@@ -29,6 +29,7 @@ _BASE_REQUEST = {
     'configuration': 'chromium-rel-mac11-pro',
     'benchmark': 'speedometer',
     'bug_id': '12345',
+    'base_git_hash': '3',
     'start_git_hash': '1',
     'end_git_hash': '3',
 }

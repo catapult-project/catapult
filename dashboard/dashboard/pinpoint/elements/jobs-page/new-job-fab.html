@@ -133,6 +133,7 @@ found in the LICENSE file.
 
             <input type="hidden" name="comparison_mode" value="[[comparisonMode]]">
             <input type="hidden" name="target" value="[[telemetryIsolate(configuration, benchmark)]]">
+            <input type="hidden" name="base_git_hash" value="[[base_git_hash]]">
             <input type="hidden" name="start_git_hash" value="[[start_git_hash]]">
             <input type="hidden" name="end_git_hash" value="[[end_git_hash]]">
 
@@ -241,17 +242,18 @@ found in the LICENSE file.
             </div>
 
             <template is="dom-if" if="[[!isBisectJob(comparisonMode)]]">
-              <paper-input name="patch" value="{{patch}}" label="Gerrit URL" required disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
+              <div class="horizontal">
+                <commit-details class="column rightPad" value="{{base_git_hash}}" label="Base Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
+                <paper-input class="column" name="patch" value="{{patch}}" label="Gerrit URL" required disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
+              </div>
             </template>
 
-            <div class="horizontal">
-              <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
-                <commit-details class="column rightPad" value="{{start_git_hash}}" label="Start Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
-              </template>
-              <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
-                <commit-details class="column" value="{{end_git_hash}}" label="End Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
-              </template>
-            </div>
+            <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
+              <div class="horizontal">
+                  <commit-details class="column rightPad" value="{{start_git_hash}}" label="Start Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
+                  <commit-details class="column" value="{{end_git_hash}}" label="End Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
+              </div>
+            </template>
 
             <paper-input name="bug_id" value="{{bug_id}}" label="Bug ID"></paper-input>
 
@@ -308,6 +310,10 @@ found in the LICENSE file.
         extra_test_args: String,
         patch: String,
         statistic: String,
+        base_git_hash: {
+          type: String,
+          value: 'HEAD'
+        },
         start_git_hash: {
           type: String,
           value: 'HEAD'
@@ -416,6 +422,7 @@ found in the LICENSE file.
         }
         this.bug_id = job.bug_id;
         this.patch = job.arguments.patch;
+        this.base_git_hash = job.arguments.end_git_hash;
         this.start_git_hash = job.arguments.start_git_hash;
         this.end_git_hash = job.arguments.end_git_hash;
         this.comparisonMode = job.arguments.comparison_mode;
