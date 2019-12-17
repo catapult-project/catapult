@@ -219,7 +219,7 @@ class Serializer(evaluators.DispatchByTaskType):
             ordered_states, comparisons or [], result_values or []):
           if comparison is not None:
             state['comparisons'] = comparison
-            state['result_values'] = result
+          state['result_values'] = result or []
         context['state'] = ordered_states
 
     if 'set_parameters' in local_context:

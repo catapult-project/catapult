@@ -141,6 +141,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
                 }]
             }],
             'change': self.start_change.AsDict(),
+            'result_values': [],
         }, {
             'attempts': [{
                 'executions': [{
@@ -150,6 +151,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
                 }]
             }],
             'change': self.end_change.AsDict(),
+            'result_values': [],
         }])
 
     # We then post an update and expect it to succeed.
@@ -203,6 +205,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
                 }]
             }],
             'change': self.start_change.AsDict(),
+            'result_values': [],
         }, {
             'attempts': [{
                 'executions': [{
@@ -213,6 +216,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
             }] + ([mock.ANY] * 9),
             'change':
                 self.end_change.AsDict(),
+            'result_values': [],
         }])
 
     # Check that we did update the timestamp.
@@ -263,6 +267,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
             }] + ([mock.ANY] * 9),
             'change':
                 self.start_change.AsDict(),
+            'result_values': [],
         }, {
             'attempts': [{
                 'executions': [{
@@ -273,6 +278,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
             }] + ([mock.ANY] * 9),
             'change':
                 self.end_change.AsDict(),
+            'result_values': [],
         }])
 
     # Check that we did update the timestamp.
