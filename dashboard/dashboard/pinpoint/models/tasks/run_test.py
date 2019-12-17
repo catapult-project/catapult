@@ -337,10 +337,7 @@ def TestSerializer(task, _, accumulator):
       'details': []
   })
 
-  swarming_task_result = task.payload.get('swarming_task_result')
-  if not swarming_task_result:
-    return None
-
+  swarming_task_result = task.payload.get('swarming_task_result', {})
   swarming_server = task.payload.get('swarming_server')
   bot_id = swarming_task_result.get('bot_id')
   if bot_id:
@@ -349,7 +346,7 @@ def TestSerializer(task, _, accumulator):
         'value': bot_id,
         'url': swarming_server + '/bot?id=' + bot_id
     })
-  task_id = swarming_task_result.get('task')
+  task_id = task.payload.get('swarming_task_id')
   if task_id:
     results['details'].append({
         'key': 'task',
