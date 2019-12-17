@@ -94,5 +94,5 @@ def _AddRepository(url):
 class Repository(ndb.Model):
   _use_memcache = True
   _use_cache = True
-  _memcache_timeout = 60 * 60 * 24
+  _memcache_timeout = 60 * 60 * 24 * 7  # 7 days worth of caching.
   urls = ndb.StringProperty(repeated=True)

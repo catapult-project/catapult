@@ -24,6 +24,8 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
   then apply patch 2423293002.
   """
 
+  __slots__ = ()
+
   def __new__(cls, commits, patch=None):
     """Creates a Change.
 
