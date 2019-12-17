@@ -82,6 +82,12 @@ class ScheduleTestAction(
         'swarming_request_body': body,
     })
 
+    # Ensure that this thread/process/handler is the first to mark this task
+    # 'ongoing'. Only proceed in scheduling a Swarming request if we're the
+    # first one to do so.
+    task_module.UpdateTask(
+        self.job, self.task.id, new_state='ongoing', payload=self.task.payload)
+
     # At this point we know we were successful in transitioning to 'ongoing'.
     # TODO(dberris): Figure out error-handling for Swarming request failures?
     response = swarming.Swarming(
@@ -92,8 +98,7 @@ class ScheduleTestAction(
     })
 
     # Update the payload with the task id from the Swarming request.
-    task_module.UpdateTask(
-        self.job, self.task.id, new_state='ongoing', payload=self.task.payload)
+    task_module.UpdateTask(self.job, self.task.id, payload=self.task.payload)
 
 
 class PollSwarmingTaskAction(
