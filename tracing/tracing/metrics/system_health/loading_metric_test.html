@@ -1620,5 +1620,25 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(1, hist.running.count);
     assert.strictEqual(3.5, hist.running.mean);
   });
+
+  test('speedIndexIsAddedToHistograms', function() {
+    // The speed index code is fully tested in
+    // rects_based_speed_index_metric_test.
+    // Here, just verify a histogram is added in the loading metric.
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+
+      addNavigationStart_(mainThread, 200);
+      addFrameLoaderObject_(rendererProcess, 300);
+      addDomContentLoadedEnd_(mainThread, 600);
+      addFirstMeaningfulPaint_(mainThread, 1000);
+      addTopLevelTask_(mainThread, 2000, 400);
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('rectsBasedSpeedIndex');
+    assert.isNotNull(hist);
+  });
 });
 </script>
