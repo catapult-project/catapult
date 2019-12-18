@@ -47,9 +47,6 @@ def GetForwardingArgs(local_port, remote_port, host_ip, port_forward):
   else:
     arg_format = '-L{local_port}:{host_ip}:{remote_port}'
   return [
-      # SSH only prints the allocated port at LogLevel=INFO, so ensure SSH is
-      # at least that verbose.
-      '-o', 'LogLevel=INFO',
       arg_format.format(host_ip=host_ip,
                         local_port=local_port,
                         remote_port=remote_port or 0)

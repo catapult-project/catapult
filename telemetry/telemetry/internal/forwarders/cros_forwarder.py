@@ -42,8 +42,12 @@ class CrOsSshForwarder(forwarders.Forwarder):
         # Choose an available port on the host.
         local_port = util.GetUnreservedAvailableLocalPort()
 
-    forwarding_args = forwarder_utils.GetForwardingArgs(
-        local_port, remote_port, self.host_ip, port_forward)
+    forwarding_args = [
+        # Ensure SSH is at least verbose enough to print the allocated port
+        '-o', 'LogLevel=INFO'
+    ]
+    forwarding_args.extend(forwarder_utils.GetForwardingArgs(
+        local_port, remote_port, self.host_ip, port_forward))
 
     # TODO(crbug.com/793256): Consider avoiding the extra tempfile and
     # read stderr directly from the subprocess instead.

@@ -42,17 +42,18 @@ class FuchsiaSshForwarder(forwarders.Forwarder):
         # Choose an available port on the host.
         local_port = util.GetUnreservedAvailableLocalPort()
 
-    forward_cmd = [
-        '-O', 'forward',  # Send SSH mux control signal.
+    ssh_args = [
         '-N',  # Don't execute command
         '-T'  # Don't allocate terminal.
+        # Ensure SSH is at least verbose enough to print the allocated port
+        '-o', 'LogLevel=VERBOSE'
     ]
-
-    forward_cmd.append(forwarder_utils.GetForwardingArgs(
-        local_port, remote_port, self.host_ip, port_forward))
+    ssh_args.extend(forwarder_utils.GetForwardingArgs(
+        local_port, remote_port, self.host_ip,
+        port_forward))
 
     with tempfile.NamedTemporaryFile() as stderr_file:
-      self._proc = command_runner.RunCommandPiped(forward_cmd,
+      self._proc = command_runner.RunCommandPiped(ssh_args=ssh_args,
                                                   stderr=stderr_file)
       if not remote_port:
         remote_port = forwarder_utils.ReadRemotePort(stderr_file.name)
