@@ -30,7 +30,6 @@ from dashboard import ttest
 from dashboard.common import math_utils
 from dashboard.common import clustering_change_detector
 
-
 # Maximum number of points to consider at one time.
 _MAX_WINDOW_SIZE = 50
 
@@ -121,6 +120,7 @@ def FindChangePoints(series,
   series = series[-max_window_size:]
   _, y_values = zip(*series)
   split_index = _FindSplit(y_values)
+  alternate_split_index = None
   try:
     alternate_split_index = clustering_change_detector.ClusterAndFindSplit(
         y_values, min_segment_size)
@@ -135,16 +135,33 @@ def FindChangePoints(series,
   except clustering_change_detector.Error as e:
     # TODO(dberrs): When this is the default, bail out after logging.
     logging.warning('Pinpoint based comparison failed: %s', e)
-  if _PassesThresholds(
+
+  make_change_point = _PassesThresholds(
       y_values,
       split_index,
       min_segment_size=min_segment_size,
       min_absolute_change=min_absolute_change,
       min_relative_change=min_relative_change,
       min_steppiness=min_steppiness,
-      multiple_of_std_dev=multiple_of_std_dev):
-    return [MakeChangePoint(series, split_index)]
-  return []
+      multiple_of_std_dev=multiple_of_std_dev)
+  alternate_make_change_point = _PassesThresholds(
+      y_values,
+      alternate_split_index,
+      min_segment_size=min_segment_size,
+      min_absolute_change=min_absolute_change,
+      min_relative_change=min_relative_change,
+      min_steppiness=min_steppiness,
+      multiple_of_std_dev=multiple_of_std_dev
+  ) if alternate_split_index is not None else False
+  logging.info(
+      'Anomaly detection study: current=%s alternate=%s diff=%s',
+      'CHANGE_FOUND' if make_change_point else 'NO_CHANGE',
+      'CHANGE_FOUND' if alternate_make_change_point else 'NO_CHANGE',
+      'SAME' if alternate_split_index == split_index else 'DIFFERENT')
+
+  # TODO(dberris): Make this dependent on the alternate when we change the
+  # default algorithm.
+  return [MakeChangePoint(series, split_index)] if make_change_point else []
 
 
 def MakeChangePoint(series, split_index):
