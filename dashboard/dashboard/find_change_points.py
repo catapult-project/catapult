@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """A simplified change-point detection algorithm.
 
 Historically, the performance dashboard has used the GASP service for
@@ -12,16 +11,25 @@ The general goal is to find any increase or decrease which is likely to
 represent a real change in the underlying data source.
 
 See: http://en.wikipedia.org/wiki/Step_detection
+
+In 2019, we also integrate a successive bisection with combined Mann-Whitney
+U-test and Kolmogorov-Smirnov tests to identify potential change points. This is
+not exactly the E-divisive algorithm, but is close enough.
+
+See: https://arxiv.org/abs/1306.4933
 """
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
 import collections
+import logging
 
 from dashboard import find_step
 from dashboard import ttest
 from dashboard.common import math_utils
+from dashboard.common import clustering_change_detector
+
 
 # Maximum number of points to consider at one time.
 _MAX_WINDOW_SIZE = 50
@@ -46,38 +54,44 @@ _MIN_STEPPINESS = 0.5
 _MULTIPLE_OF_STD_DEV = 2.5
 
 
-class ChangePoint(collections.namedtuple(
-    'ChangePoint', (
-        # The x-value of the first point after a step.
-        'x_value',
-        # Median of the segments before and after the change point.
-        'median_before', 'median_after',
-        # Number of points before and after the change point.
-        'size_before', 'size_after',
-        # X-values of the first and last point in the series window used.
-        'window_start', 'window_end',
-        # Relative change from before to after.
-        'relative_change',
-        # Standard deviation of points before.
-        'std_dev_before',
-        # Results of the Welch's t-test for values before and after.
-        't_statistic', 'degrees_of_freedom', 'p_value'
-    ))):
+class ChangePoint(
+    collections.namedtuple(
+        'ChangePoint',
+        (
+            # The x-value of the first point after a step.
+            'x_value',
+            # Median of the segments before and after the change point.
+            'median_before',
+            'median_after',
+            # Number of points before and after the change point.
+            'size_before',
+            'size_after',
+            # X-values of the first and last point in the series window used.
+            'window_start',
+            'window_end',
+            # Relative change from before to after.
+            'relative_change',
+            # Standard deviation of points before.
+            'std_dev_before',
+            # Results of the Welch's t-test for values before and after.
+            't_statistic',
+            'degrees_of_freedom',
+            'p_value'))):
   """A ChangePoint represents a change in a series -- a potential alert."""
+  _slots = None
 
   def AsDict(self):
     """Returns a dictionary mapping attributes to values."""
     return self._asdict()
 
 
-def FindChangePoints(
-    series,
-    max_window_size=_MAX_WINDOW_SIZE,
-    min_segment_size=MIN_SEGMENT_SIZE,
-    min_absolute_change=_MIN_ABSOLUTE_CHANGE,
-    min_relative_change=_MIN_RELATIVE_CHANGE,
-    min_steppiness=_MIN_STEPPINESS,
-    multiple_of_std_dev=_MULTIPLE_OF_STD_DEV):
+def FindChangePoints(series,
+                     max_window_size=_MAX_WINDOW_SIZE,
+                     min_segment_size=MIN_SEGMENT_SIZE,
+                     min_absolute_change=_MIN_ABSOLUTE_CHANGE,
+                     min_relative_change=_MIN_RELATIVE_CHANGE,
+                     min_steppiness=_MIN_STEPPINESS,
+                     multiple_of_std_dev=_MULTIPLE_OF_STD_DEV):
   """Finds at most one change point in the given series.
 
   Only the last |max_window_size| points are examined, regardless of
@@ -107,8 +121,23 @@ def FindChangePoints(
   series = series[-max_window_size:]
   _, y_values = zip(*series)
   split_index = _FindSplit(y_values)
+  try:
+    alternate_split_index = clustering_change_detector.ClusterAndFindSplit(
+        y_values, min_segment_size)
+    logging.warning(
+        'Alternative found an alternate split at index %s compared to %s (%s)',
+        alternate_split_index, split_index,
+        'SAME' if alternate_split_index == split_index else 'DIFFERENT')
+    logging.debug(
+        'Revisions found: alternate = %s (index=%s); current = %s (index=%s)',
+        series[alternate_split_index][0], alternate_split_index,
+        series[split_index][0], split_index)
+  except clustering_change_detector.Error as e:
+    # TODO(dberrs): When this is the default, bail out after logging.
+    logging.warning('Pinpoint based comparison failed: %s', e)
   if _PassesThresholds(
-      y_values, split_index,
+      y_values,
+      split_index,
       min_segment_size=min_segment_size,
       min_absolute_change=min_absolute_change,
       min_relative_change=min_relative_change,
@@ -166,9 +195,11 @@ def _FindSplit(values):
   Returns:
     The index of the "most interesting" point.
   """
+
   def StdDevOfTwoNormalizedSides(index):
     left, right = values[:index], values[index:]
     return math_utils.StandardDeviation(_ZeroMedian(left) + _ZeroMedian(right))
+
   return min(range(1, len(values)), key=StdDevOfTwoNormalizedSides)
 
 
@@ -178,9 +209,9 @@ def _ZeroMedian(values):
   return [val - median for val in values]
 
 
-def _PassesThresholds(
-    values, split_index, min_segment_size, min_absolute_change,
-    min_relative_change, min_steppiness, multiple_of_std_dev):
+def _PassesThresholds(values, split_index, min_segment_size,
+                      min_absolute_change, min_relative_change, min_steppiness,
+                      multiple_of_std_dev):
   """Checks whether a point in a series appears to be an change point.
 
   Args:
@@ -214,8 +245,7 @@ def _PassesThresholds(
 
   # 4. Multiple of standard deviation filter.
   min_std_dev = min(
-      math_utils.StandardDeviation(left),
-      math_utils.StandardDeviation(right))
+      math_utils.StandardDeviation(left), math_utils.StandardDeviation(right))
   if absolute_change < multiple_of_std_dev * min_std_dev:
     return False
 
