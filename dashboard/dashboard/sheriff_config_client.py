@@ -61,4 +61,4 @@ class SheriffConfigClient(object):
         'https://sheriff-config-dot-chromeperf.appspot.com/configs/update')
     if response.ok:
       return True, None
-    return False, ('%r\n%s' % response, response.text)
+    return False, '%r\n%s' % (response, response.text)
