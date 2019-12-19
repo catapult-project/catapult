@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import logging
-import pprint
+import mock
 
 from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import evaluators
@@ -132,16 +132,14 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
                 'git_hash': 'commit_2',
             }]})], 100)
 
-    # We know that we will never get a deterministic answer, so we ensure that
-    # we don't inadvertently blame the wrong changes at the end of the
-    # refinement.
+    # We know that we will refine the graph until we see the progression from
+    # commit_0 -> commit_1 -> commit_2 -> commit_3 and stabilize.
     evaluate_result = task_module.Evaluate(
         self.job, bisection_test_util.SelectEvent(),
         evaluators.Selector(task_type='find_culprit'))
     self.assertIn('performance_bisection', evaluate_result)
-    logging.info('Results: %s',
-                 pprint.pformat(evaluate_result['performance_bisection']))
-    self.assertEquals(evaluate_result['performance_bisection']['culprits'], [])
+    self.assertEquals(evaluate_result['performance_bisection']['culprits'],
+                      [mock.ANY, mock.ANY, mock.ANY])
 
   def testEvaluateFailure_DependenciesFailed(self):
     self.PopulateSimpleBisectionGraph(self.job)

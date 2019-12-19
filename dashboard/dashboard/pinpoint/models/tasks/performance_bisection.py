@@ -9,7 +9,6 @@ from __future__ import absolute_import
 import collections
 import itertools
 import logging
-import math
 
 from dashboard.common import math_utils
 from dashboard.pinpoint.models import change as change_module
@@ -229,13 +228,13 @@ class PrepareCommits(collections.namedtuple('PrepareCommits', ('job', 'task'))):
 
 class RefineExplorationAction(
     collections.namedtuple('RefineExplorationAction',
-                           ('job', 'task', 'change', 'additional_attempts'))):
+                           ('job', 'task', 'change', 'new_size'))):
   __slots__ = ()
 
   def __str__(self):
     return ('RefineExplorationAction(job = %s, task = %s, change = %s, +%s '
             'attempts)') % (self.job.job_id, self.task.id,
-                            self.change.id_string, self.additional_attempts)
+                            self.change.id_string, self.new_size)
 
   def __call__(self, accumulator):
     # Outline:
@@ -263,11 +262,9 @@ class RefineExplorationAction(
         mode=read_option_template_map.get('mode'))
 
     analysis_options_dict = self.task.payload.get('analysis_options')
-    if self.additional_attempts:
+    if self.new_size:
       analysis_options_dict['min_attempts'] = min(
-          analysis_options_dict.get('min_attempts', 0) +
-          self.additional_attempts,
-          analysis_options_dict.get('max_attempts', 100))
+          self.new_size, analysis_options_dict.get('max_attempts', 100))
     analysis_options = AnalysisOptions(**analysis_options_dict)
 
     new_subgraph = read_value.CreateGraph(
@@ -276,21 +273,30 @@ class RefineExplorationAction(
                                self.change,
                                self.task.payload.get('arguments', {})))
     try:
+      # Add all of the new vertices we do not have in the graph yet.
+      additional_vertices = [
+          v for v in new_subgraph.vertices if v.id not in accumulator
+      ]
+
+      # All all of the new edges that aren't in the graph yet, and the
+      # dependencies from the find_culprit task to the new read_value tasks if
+      # there are any.
+      additional_dependencies = [
+          new_edge for new_edge in new_subgraph.edges
+          if new_edge.from_ not in accumulator
+      ] + [
+          task_module.Dependency(from_=self.task.id, to=v.id)
+          for v in new_subgraph.vertices
+          if v.id not in accumulator and v.vertex_type == 'read_value'
+      ]
+
+      logging.debug(
+          'Extending the graph with %s new vertices and %s new edges.',
+          len(additional_vertices), len(additional_dependencies))
       task_module.ExtendTaskGraph(
           self.job,
-          vertices=[
-              # Add all of the new vertices we do not have in the graph yet.
-              v for v in new_subgraph.vertices if v.id not in accumulator
-          ],
-          dependencies=[
-              new_edge for new_edge in new_subgraph.edges
-              if new_edge.from_ not in accumulator
-          ] + [
-              # Only add dependencies to the new 'read_value' tasks.
-              task_module.Dependency(from_=self.task.id, to=v.id)
-              for v in new_subgraph.vertices
-              if v.id not in accumulator and v.vertex_type == 'read_value'
-          ])
+          vertices=additional_vertices,
+          dependencies=additional_dependencies)
     except task_module.InvalidAmendment as e:
       logging.error('Failed to amend graph: %s', e)
 
@@ -511,18 +517,22 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
         # two changes when compared yield the "unknown" result.
         attempts_for_a = sum(status_by_change[a].values())
         attempts_for_b = sum(status_by_change[b].values())
-        if min(attempts_for_a, attempts_for_b) == task.payload.get(
-            'analysis_options').get('max_attempts'):
-          return None
 
-        # Grow the attempts by 50% every time when increasing attempt counts.
-        # This number is arbitrary, and we should probably use something like a
-        # Fibonacci sequence when scaling attempt counts.
-        additional_attempts = int(
-            math.floor(min(attempts_for_a, attempts_for_b) * 0.5))
-        changes_to_refine.append(
-            (a if attempts_for_a <= attempts_for_b else b, additional_attempts))
-        return None
+        # Grow the attempts of both changes by 50% every time when increasing
+        # attempt counts. This number is arbitrary, and we should probably use
+        # something like a Fibonacci sequence when scaling attempt counts.
+        new_attempts_size_a = min(
+            attempts_for_a + (attempts_for_a // 2),
+            task.payload.get('analysis_options', {}).get('max_attempts', 100))
+        new_attempts_size_b = min(
+            attempts_for_b + (attempts_for_b // 2),
+            task.payload.get('analysis_options', {}).get('max_attempts', 100))
+
+        # Only refine if the new attempt sizes are not large enough.
+        if new_attempts_size_a > attempts_for_a:
+          changes_to_refine.append((a, new_attempts_size_a))
+        if new_attempts_size_b > attempts_for_b:
+          changes_to_refine.append((b, new_attempts_size_b))
 
       def FindMidpoint(a, b):
         # Here we use the (very simple) midpoint finding algorithm given that we
@@ -576,10 +586,12 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
       # At this point we can collect the actions to extend the task graph based
       # on the results of the speculation, only if the changes don't have any
       # more associated pending/ongoing work.
+      min_attempts = task.payload.get('analysis_options',
+                                      {}).get('min_attempts', 10)
       actions += [
-          RefineExplorationAction(self.job, task, change, more_attempts)
-          for change, more_attempts in itertools.chain(
-              [(c, 0) for _, c in additional_changes],
+          RefineExplorationAction(self.job, task, change, new_size)
+          for change, new_size in itertools.chain(
+              [(c, min_attempts) for _, c in additional_changes],
               [(c, a) for c, a in changes_to_refine],
           )
           if not bool({'pending', 'ongoing'} & set(status_by_change[change]))
