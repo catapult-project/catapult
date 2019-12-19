@@ -32,6 +32,9 @@ perf_insights/perf_insights/download_traces.py
 # battor's binary dependency download folder.
 /common/battor/bin/battor/
 
+# fuchsia's binary dependency download folder
+/third_party/fuchsia-sdk/
+
 # Downloaded binaries
 catapult_base/catapult_base/bin/
 

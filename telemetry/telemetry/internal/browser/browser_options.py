@@ -204,6 +204,14 @@ class BrowserFinderOptions(optparse.Values):
         'base module. Ignored on Non-Android platforms.')
     parser.add_option_group(group)
 
+    group = optparse.OptionGroup(parser, 'Fuchsia platform options')
+    group.add_option(
+        '--fuchsia-output-dir',
+        default='out/Release',
+        help='Specify the build directory for the Fuchsia OS installed on '
+        'the device.')
+    parser.add_option_group(group)
+
     # CPU profiling on Android/Linux/ChromeOS.
     group = optparse.OptionGroup(parser, (
         'CPU profiling over intervals of interest, '
