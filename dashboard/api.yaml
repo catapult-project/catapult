@@ -9,8 +9,8 @@ instance_class: F2
 threadsafe: true
 
 automatic_scaling:
-  max_concurrent_requests: 50
-  max_instances: 50
+  max_concurrent_requests: 150
+  max_instances: 150
   max_pending_latency: automatic
   min_instances: 1
   target_cpu_utilization: 0.8
@@ -36,6 +36,6 @@ inbound_services:
 - warmup
 
 handlers:
-- url: /api/.+
+- url: /.+
   script: dashboard.dispatcher.APP
   secure: always

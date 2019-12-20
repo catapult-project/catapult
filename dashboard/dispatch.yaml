@@ -16,4 +16,9 @@ dispatch:
   # API routing rules
   - url: "chromeperf.appspot.com/api/*"
     service: api
-
+  - url: "chromeperf.appspot.com/graph_json"
+    service: api
+  - url: "chromeperf.appspot.com/group_report"
+    service: api
+  - url: "chromeperf.appspot.com/list_tests"
+    service: api
