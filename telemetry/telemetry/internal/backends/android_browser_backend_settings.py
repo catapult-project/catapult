@@ -236,6 +236,11 @@ ANDROID_CHROME = ChromeBackendSettings(
     browser_type='android-chrome',
     package='com.google.android.apps.chrome')
 
+ANDROID_CHROME_BUNDLE = GenericChromeBundleBackendSettings(
+    browser_type='android-chrome-bundle',
+    package='com.google.android.apps.chrome',
+    apk_name='monochrome_bundle')
+
 ANDROID_CHROME_BETA = GenericChromeBackendSettings(
     browser_type='android-chrome-beta',
     package='com.chrome.beta')
@@ -262,6 +267,7 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_CHROMIUM,
     ANDROID_CHROMIUM_BUNDLE,
     ANDROID_CHROME,
+    ANDROID_CHROME_BUNDLE,
     ANDROID_CHROME_BETA,
     ANDROID_CHROME_DEV,
     ANDROID_CHROME_CANARY,
