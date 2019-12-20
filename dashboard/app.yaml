@@ -6,7 +6,7 @@ api_version: 1
 threadsafe: false
 instance_class: F2
 automatic_scaling:
-  max_concurrent_requests: 150
+  max_concurrent_requests: 80
   max_instances: 150
   max_pending_latency: automatic
   min_instances: 1
