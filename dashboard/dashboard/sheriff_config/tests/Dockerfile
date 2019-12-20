@@ -3,11 +3,16 @@
 FROM gcr.io/google-appengine/python
 
 WORKDIR /sheriff-config
-ADD . /sheriff-config
 
+# Add requirements.txt first. That makes the caching of `pip install` only
+# being invalid when requirements.txt changed (instead of any file changed).
 RUN virtualenv /env -p python3.7
+ADD ./requirements.txt /sheriff-config/requirements.txt
 RUN . /env/bin/activate && pip3 install -r requirements.txt
+ADD ./tests/requirements.txt /sheriff-config/tests/requirements.txt
 RUN . /env/bin/activate && pip3 install -r tests/requirements.txt
+
+ADD . /sheriff-config
 
 ARG emulator_host=datastore
 ARG emulator_port=8888
