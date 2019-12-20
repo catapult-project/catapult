@@ -3,19 +3,22 @@
 # found in the LICENSE file.
 
 # Support python3
-from __future__ import print_function
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 from flask import Flask, request, jsonify
+from flask_talisman import Talisman
 from google.cloud import datastore
 from google.protobuf import json_format
-from flask_talisman import Talisman
 import base64
 import google.auth
+import logging
 import luci_config
+import match_policy
 import os
 import sheriff_config_pb2
+import sheriff_pb2
 import validator
 
 
@@ -132,7 +135,7 @@ def CreateApp(test_config=None):
       return jsonify({})
     except (luci_config.InvalidConfigError,
             luci_config.InvalidContentError) as error:
-      app.logger.debug(error)
+      logging.warn('loading configs from luci-config failed: %s', error)
       return jsonify({}), 500
 
   @app.route('/subscriptions/match', methods=['POST'])
@@ -158,8 +161,10 @@ def CreateApp(test_config=None):
           }]
       }), 400
     match_response = sheriff_config_pb2.MatchResponse()
-    for config_set, revision, subscription in luci_config.FindMatchingConfigs(
-        datastore_client, match_request):
+    configs = list(luci_config.FindMatchingConfigs(
+        datastore_client, match_request))
+    configs = match_policy.FilterSubscriptionsByPolicy(match_request, configs)
+    for config_set, revision, subscription in configs:
       subscription_metadata = match_response.subscriptions.add()
       subscription_metadata.config_set = config_set
       subscription_metadata.revision = revision

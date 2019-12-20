@@ -16,6 +16,11 @@ try:
 except ImportError:
   pass
 
+import logging
+import google.cloud.logging
+
+google.cloud.logging.Client().setup_logging(log_level=logging.DEBUG)
+
 import service
 
 APP = service.CreateApp()
