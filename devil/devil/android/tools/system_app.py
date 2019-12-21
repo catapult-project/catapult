@@ -112,7 +112,8 @@ def _GetApplicationPaths(device, package):
 
 def _GetSystemPath(package, paths):
   for p in paths:
-    app_locations = SPECIAL_SYSTEM_APP_LOCATIONS.get(package, ['/system/'])
+    app_locations = SPECIAL_SYSTEM_APP_LOCATIONS.get(package,
+                                                     ['/system/', '/product/'])
     for location in app_locations:
       if p.startswith(location):
         return p

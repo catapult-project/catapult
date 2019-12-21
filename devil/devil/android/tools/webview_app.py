@@ -33,7 +33,7 @@ from py_utils import tempfile_ext
 
 logger = logging.getLogger(__name__)
 
-_SYSTEM_PATH_RE = re.compile(r'^\s*\/system\/')
+_SYSTEM_PATH_RE = re.compile(r'^\s*\/(system|product)\/')
 _WEBVIEW_INSTALL_TIMEOUT = 300
 
 @contextlib.contextmanager
