@@ -9,10 +9,14 @@ instance_class: F2
 threadsafe: true
 
 automatic_scaling:
-  max_concurrent_requests: 80
+  # We're setting the max concurrent request to 20, to allow AppEngine to scale
+  # the number of instances to handle API requests better. We're also going to
+  # keep around 10 instances at the ready to handle incoming requests better
+  # from a "cold start".
+  max_concurrent_requests: 20
   max_instances: 150
   max_pending_latency: automatic
-  min_instances: 1
+  min_instances: 10
   target_cpu_utilization: 0.8
 
 libraries:
