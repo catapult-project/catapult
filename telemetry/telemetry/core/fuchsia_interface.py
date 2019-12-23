@@ -6,6 +6,9 @@
 import logging
 import subprocess
 
+FUCHSIA_BROWSERS = ['web-engine-shell']
+
+
 class CommandRunner(object):
   """Helper class used to execute commands on Fuchsia devices on a remote host
   over SSH."""
@@ -42,6 +45,9 @@ class CommandRunner(object):
       command = []
     if not ssh_args:
       ssh_args = []
+
+    # Having control master causes weird behavior in port_forwarding.
+    ssh_args.append('-oControlMaster=no')
     ssh_command = self._GetSshCommandLinePrefix() + ssh_args + ['--'] + command
     logging.debug(' '.join(ssh_command))
     return subprocess.Popen(ssh_command, **kwargs)
