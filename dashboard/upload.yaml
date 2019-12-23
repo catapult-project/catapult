@@ -12,7 +12,7 @@ automatic_scaling:
   max_concurrent_requests: 5
   max_instances: 300
   max_pending_latency: automatic
-  min_instances: 1
+  min_instances: 12
   target_cpu_utilization: 0.8
 
 libraries:

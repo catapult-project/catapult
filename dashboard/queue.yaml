@@ -13,15 +13,15 @@ queue:
  - name: histograms-queue
    target: upload
    rate: 20/s
-   max_concurrent_requests: 100
+   max_concurrent_requests: 50
    retry_parameters:
      task_retry_limit: 8
      min_backoff_seconds: 2
 
  - name: new-points-queue
    target: upload
-   rate: 100/s
-   max_concurrent_requests: 100
+   rate: 20/s
+   max_concurrent_requests: 50
    retry_parameters:
      task_retry_limit: 8
      min_backoff_seconds: 2
