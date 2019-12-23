@@ -9,8 +9,8 @@ instance_class: F2
 threadsafe: false
 
 automatic_scaling:
-  max_concurrent_requests: 50
-  max_instances: 150
+  max_concurrent_requests: 5
+  max_instances: 300
   max_pending_latency: automatic
   min_instances: 1
   target_cpu_utilization: 0.8
