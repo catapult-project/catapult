@@ -244,6 +244,15 @@ class AnomalyTest(testing_common.TestCase):
     self.assertEqual(1, len(anomalies))
     self.assertEqual(200, anomalies[0].end_revision)
 
+  def testMinAndMaxRevisionAreSame(self):
+    self._CreateAnomaly()
+    self._CreateAnomaly(end_revision=200)
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+        min_end_revision=200, max_start_revision=200
+    ).get_result()
+    self.assertGreaterEqual(1, len(anomalies))
+    self.assertEqual(200, anomalies[0].end_revision)
+
   def testMaxTimestamp(self):
     self._CreateAnomaly(timestamp=datetime.datetime.utcfromtimestamp(59))
     self._CreateAnomaly(timestamp=datetime.datetime.utcfromtimestamp(61))

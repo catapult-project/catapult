@@ -362,6 +362,9 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         logging.info('post_filter:bug_id!=None')
         post_filters.append(lambda a: a.bug_id != None)
 
+    # Apply the min filters before the max filters, because that lets us
+    # optimise the query application for more recent data, reducing the amount
+    # of data post-processing.
     if min_start_revision:
       min_start_revision = int(min_start_revision)
       if inequality_property == 'start_revision':
@@ -371,16 +374,6 @@ class Anomaly(internal_only_model.InternalOnlyModel):
       else:
         logging.info('post_filter:min_start_revision=%d', min_start_revision)
         post_filters.append(lambda a: a.start_revision >= min_start_revision)
-
-    if max_start_revision:
-      max_start_revision = int(max_start_revision)
-      if inequality_property == 'start_revision':
-        logging.info('filter:max_start_revision=%d', max_start_revision)
-        query = query.filter(cls.start_revision <= max_start_revision)
-        query = query.order(-cls.start_revision)
-      else:
-        logging.info('post_filter:max_start_revision=%d', max_start_revision)
-        post_filters.append(lambda a: a.start_revision <= max_start_revision)
 
     if min_end_revision:
       min_end_revision = int(min_end_revision)
@@ -392,16 +385,6 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         logging.info('post_filter:min_end_revision=%d', min_end_revision)
         post_filters.append(lambda a: a.end_revision >= min_end_revision)
 
-    if max_end_revision:
-      max_end_revision = int(max_end_revision)
-      if inequality_property == 'end_revision':
-        logging.info('filter:max_end_revision=%d', max_end_revision)
-        query = query.filter(cls.end_revision <= max_end_revision)
-        query = query.order(-cls.end_revision)
-      else:
-        logging.info('post_filter:max_end_revision=%d', max_end_revision)
-        post_filters.append(lambda a: a.end_revision <= max_end_revision)
-
     if min_timestamp:
       if inequality_property == 'timestamp':
         logging.info('filter:min_timestamp=%d',
@@ -411,6 +394,26 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         logging.info('post_filter:min_timestamp=%d',
                      time.mktime(min_timestamp.utctimetuple()))
         post_filters.append(lambda a: a.timestamp >= min_timestamp)
+
+    if max_start_revision:
+      max_start_revision = int(max_start_revision)
+      if inequality_property == 'start_revision':
+        logging.info('filter:max_start_revision=%d', max_start_revision)
+        query = query.filter(cls.start_revision <= max_start_revision)
+        query = query.order(-cls.start_revision)
+      else:
+        logging.info('post_filter:max_start_revision=%d', max_start_revision)
+        post_filters.append(lambda a: a.start_revision <= max_start_revision)
+
+    if max_end_revision:
+      max_end_revision = int(max_end_revision)
+      if inequality_property == 'end_revision':
+        logging.info('filter:max_end_revision=%d', max_end_revision)
+        query = query.filter(cls.end_revision <= max_end_revision)
+        query = query.order(-cls.end_revision)
+      else:
+        logging.info('post_filter:max_end_revision=%d', max_end_revision)
+        post_filters.append(lambda a: a.end_revision <= max_end_revision)
 
     if max_timestamp:
       if inequality_property == 'timestamp':
