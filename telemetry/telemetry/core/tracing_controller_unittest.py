@@ -90,6 +90,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
       self.tracing_controller.StopTracing()
 
   @decorators.Isolated
+  @decorators.Disabled('mac')
   def testFlushTracing(self):
     self.tracing_controller.StartTracing(self.config)
     self.assertTrue(self.tracing_controller.is_tracing_running)
