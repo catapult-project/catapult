@@ -65,13 +65,7 @@ def _ProcessTest(test_key):
 
   test = yield test_key.get_async()
 
-  sheriff, (new_sheriffs, err_msg) = yield _GetSheriffForTest(test)
-  new_sheriffs_keys = [s.key.string_id() for s in new_sheriffs or []]
-  logging.info('Sheriff for %s: old: %s, new: %s', test.test_path,
-               'None' if sheriff is None else sheriff.key.string_id(),
-               err_msg if new_sheriffs is None else new_sheriffs_keys)
-  if sheriff and sheriff.key.string_id() not in new_sheriffs_keys:
-    logging.warn('Sheriff do not match: %s', test_key.string_id())
+  sheriff = yield _GetSheriffForTest(test)
   if not sheriff:
     logging.error('No sheriff for %s', test_key)
     raise ndb.Return(None)
@@ -131,6 +125,17 @@ def _ProcesssTestStat(config, sheriff, test, stat, rows, ref_rows):
   logging.info(' Sheriff: %s', test.sheriff.id())
 
   yield ndb.put_multi_async(anomalies)
+
+  # Get all the sheriff from sheriff-config match the path
+  # Currently just used for logging
+  client = SheriffConfigClient()
+  new_sheriffs, err_msg = client.Match(test.test_path)
+  new_sheriffs_keys = [s.key.string_id() for s in new_sheriffs or []]
+  logging.info('Sheriff for %s: old: %s, new: %s', test.test_path,
+               'None' if sheriff is None else sheriff.key.string_id(),
+               err_msg if new_sheriffs is None else new_sheriffs_keys)
+  if sheriff and sheriff.key.string_id() not in new_sheriffs_keys:
+    logging.warn('Sheriff do not match: %s', test_key.string_id())
 
   # TODO(simonhatch): email_sheriff.EmailSheriff() isn't a tasklet yet, so this
   # code will run serially.
@@ -280,15 +285,11 @@ def _IsAnomalyInRef(change_point, ref_change_points):
 @ndb.tasklet
 def _GetSheriffForTest(test):
   """Gets the Sheriff for a test, or None if no sheriff."""
-  # Get all the sheriff from sheriff-config match the path
-  # Currently just used for logging
-  client = SheriffConfigClient()
-  match_res = client.Match(test.test_path)
   # Old one. Get the sheriff from TestMetadata
   sheriff = None
   if test.sheriff:
     sheriff = yield test.sheriff.get_async()
-  raise ndb.Return((sheriff, match_res))
+  raise ndb.Return(sheriff)
 
 
 def _GetImmediatelyPreviousRevisionNumber(later_revision, rows):
