@@ -260,7 +260,7 @@ class TaggedTestListParser(object):
         tag_set_ids = set()
 
         for i in range(len(test)-1):
-          if test[i] == '*' and ((i > 0 and test[i-1] != '\\') or i == 0):
+            if test[i] == '*' and ((i > 0 and test[i-1] != '\\') or i == 0):
                 raise ParseError(lineno,
                     'Invalid glob, \'*\' can only be at the end of the pattern')
 
@@ -476,7 +476,7 @@ class TestExpectations(object):
             _trie = _trie[c]
         if '\0' in _trie:
             exps = _trie['\0']
-        
+
         for exp in exps:
             _update_expected_results(exp)
 
@@ -535,8 +535,7 @@ class TestExpectations(object):
                 broken_exps.extend(exps)
 
         # look for broken glob expectations
-
-        # create trie of test names
+        # first create a trie of test names
         trie = {}
         broken_glob_exps = []
         for test in test_names:
