@@ -79,9 +79,6 @@ class ChromeTraceConfig(object):
   def SetProtoTraceFormat(self):
     self._trace_format = 'proto'
 
-  def SetJsonTraceFormat(self):
-    self._trace_format = 'json'
-
   def SetLowOverheadFilter(self):
     self._category_filter = (
         chrome_trace_category_filter.CreateLowOverheadFilter())
