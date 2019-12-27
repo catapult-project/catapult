@@ -46,7 +46,8 @@ _CHROMIUM_SNAPSHOT_SEARCH_WINDOW = 10
 _PLATFORMS_TO_UPDATE = ['mac_x86_64', 'win_x86', 'win_AMD64', 'linux_x86_64',
                         'android_k_armeabi-v7a', 'android_l_arm64-v8a',
                         'android_l_armeabi-v7a', 'android_n_armeabi-v7a',
-                        'android_n_arm64-v8a' ]
+                        'android_n_arm64-v8a', 'android_n_bundle_armeabi-v7a',
+                        'android_n_bundle_arm64-v8a']
 
 # Add platforms here if you also want to update chromium binary for it.
 # Must add chromium_info for it in _PLATFORM_MAP.
@@ -74,59 +75,80 @@ UpdateInfo = collections.namedtuple('UpdateInfo',
 # build_dir: name of the build directory in _CHROMIUM_GS_BUCKET.
 # zip_name: name of the zip file to be retrieved from cloud storage.
 ChromiumInfo = collections.namedtuple('ChromiumInfo', 'build_dir, zip_name')
-_PLATFORM_MAP = {'mac_x86_64': UpdateInfo(omaha='mac',
-                                          gs_folder='desktop-*',
-                                          gs_build='mac64',
-                                          chromium_info=ChromiumInfo(
-                                              build_dir='Mac',
-                                              zip_name='chrome-mac.zip'),
-                                          zip_name='chrome-mac.zip'),
-                 'win_x86': UpdateInfo(omaha='win',
-                                       gs_folder='desktop-*',
-                                       gs_build='win-clang',
-                                       chromium_info=ChromiumInfo(
-                                           build_dir='Win',
-                                           zip_name='chrome-win.zip'),
-                                       zip_name='chrome-win-clang.zip'),
-                 'win_AMD64': UpdateInfo(omaha='win',
-                                         gs_folder='desktop-*',
-                                         gs_build='win64-clang',
-                                         chromium_info=ChromiumInfo(
-                                            build_dir='Win_x64',
-                                            zip_name='chrome-win.zip'),
-                                         zip_name='chrome-win64-clang.zip'),
-                 'linux_x86_64': UpdateInfo(omaha='linux',
-                                            gs_folder='desktop-*',
-                                            gs_build='linux64',
-                                            chromium_info=ChromiumInfo(
-                                                build_dir='Linux_x64',
-                                                zip_name='chrome-linux.zip'),
-                                            zip_name='chrome-linux64.zip'),
-                 'android_k_armeabi-v7a': UpdateInfo(omaha='android',
-                                                     gs_folder='android-*',
-                                                     gs_build='arm',
-                                                     chromium_info=None,
-                                                     zip_name='Chrome.apk'),
-                 'android_l_arm64-v8a': UpdateInfo(omaha='android',
-                                                   gs_folder='android-*',
-                                                   gs_build='arm_64',
-                                                   chromium_info=None,
-                                                   zip_name='ChromeModern.apk'),
-                 'android_l_armeabi-v7a': UpdateInfo(omaha='android',
-                                                     gs_folder='android-*',
-                                                     gs_build='arm',
-                                                     chromium_info=None,
-                                                     zip_name='Chrome.apk'),
-                 'android_n_armeabi-v7a': UpdateInfo(omaha='android',
-                                                     gs_folder='android-*',
-                                                     gs_build='arm',
-                                                     chromium_info=None,
-                                                     zip_name='Monochrome.apk'),
-                 'android_n_arm64-v8a': UpdateInfo(omaha='android',
-                                                   gs_folder='android-*',
-                                                   gs_build='arm_64',
-                                                   chromium_info=None,
-                                                   zip_name='Monochrome.apk'),
+_PLATFORM_MAP = {'mac_x86_64': UpdateInfo(
+                     omaha='mac',
+                     gs_folder='desktop-*',
+                     gs_build='mac64',
+                     chromium_info=ChromiumInfo(
+                         build_dir='Mac',
+                         zip_name='chrome-mac.zip'),
+                     zip_name='chrome-mac.zip'),
+                 'win_x86': UpdateInfo(
+                     omaha='win',
+                     gs_folder='desktop-*',
+                     gs_build='win-clang',
+                     chromium_info=ChromiumInfo(
+                         build_dir='Win',
+                         zip_name='chrome-win.zip'),
+                     zip_name='chrome-win-clang.zip'),
+                 'win_AMD64': UpdateInfo(
+                     omaha='win',
+                     gs_folder='desktop-*',
+                     gs_build='win64-clang',
+                     chromium_info=ChromiumInfo(
+                        build_dir='Win_x64',
+                        zip_name='chrome-win.zip'),
+                     zip_name='chrome-win64-clang.zip'),
+                 'linux_x86_64': UpdateInfo(
+                     omaha='linux',
+                     gs_folder='desktop-*',
+                     gs_build='linux64',
+                     chromium_info=ChromiumInfo(
+                         build_dir='Linux_x64',
+                         zip_name='chrome-linux.zip'),
+                     zip_name='chrome-linux64.zip'),
+                 'android_k_armeabi-v7a': UpdateInfo(
+                     omaha='android',
+                     gs_folder='android-*',
+                     gs_build='arm',
+                     chromium_info=None,
+                     zip_name='Chrome.apk'),
+                 'android_l_arm64-v8a': UpdateInfo(
+                     omaha='android',
+                     gs_folder='android-*',
+                     gs_build='arm_64',
+                     chromium_info=None,
+                     zip_name='ChromeModern.apk'),
+                 'android_l_armeabi-v7a': UpdateInfo(
+                     omaha='android',
+                     gs_folder='android-*',
+                     gs_build='arm',
+                     chromium_info=None,
+                     zip_name='Chrome.apk'),
+                 'android_n_armeabi-v7a': UpdateInfo(
+                     omaha='android',
+                     gs_folder='android-*',
+                     gs_build='arm',
+                     chromium_info=None,
+                     zip_name='Monochrome.apk'),
+                 'android_n_arm64-v8a': UpdateInfo(
+                     omaha='android',
+                     gs_folder='android-*',
+                     gs_build='arm_64',
+                     chromium_info=None,
+                     zip_name='Monochrome.apk'),
+                 'android_n_bundle_armeabi-v7a': UpdateInfo(
+                     omaha='android',
+                     gs_folder='android-*',
+                     gs_build='arm',
+                     chromium_info=None,
+                     zip_name='Monochrome.apks'),
+                 'android_n_bundle_arm64-v8a': UpdateInfo(
+                     omaha='android',
+                     gs_folder='android-*',
+                     gs_build='arm_64',
+                     chromium_info=None,
+                     zip_name='Monochrome.apks')
 
 }
 

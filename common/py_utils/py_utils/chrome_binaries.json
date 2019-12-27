@@ -66,6 +66,16 @@
           "download_path": "bin/reference_build/android_n_armeabi-v7a/Monochrome.apk",
           "version_in_cs": "78.0.3904.62"
         },
+        "android_n_bundle_arm64-v8a": {
+          "cloud_storage_hash": "d294dad73aace7aad342b2448454700fa63987bf",
+          "download_path": "bin/reference_build/android_n_bundle_arm64-v8a/Monochrome.apks",
+          "version_in_cs": "79.0.3945.93"
+        },
+        "android_n_bundle_armeabi-v7a": {
+          "cloud_storage_hash": "b36e829a0d9e73f39508b7bf033bd701ae26ed75",
+          "download_path": "bin/reference_build/android_n_bundle_armeabi-v7a/Monochrome.apks",
+          "version_in_cs": "79.0.3945.93"
+        },
         "linux_x86_64": {
           "cloud_storage_hash": "6428da5968a0e69b84ee4525f8886517a45e4c92",
           "download_path": "bin/reference_build/chrome-linux64.zip",
