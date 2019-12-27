@@ -200,21 +200,15 @@ class Benchmark(command_line.Command):
       tbm_options.config.atrace_config.categories = categories
     if options and options.enable_systrace:
       tbm_options.config.chrome_trace_config.SetEnableSystrace()
-    legacy_json_format = options and options.legacy_json_trace_format
-    if legacy_json_format:
-      tbm_options.config.chrome_trace_config.SetJsonTraceFormat()
-    else:
+    enable_proto_format = options and options.experimental_proto_trace_format
+    if enable_proto_format:
       tbm_options.config.chrome_trace_config.SetProtoTraceFormat()
     # TODO(crbug.com/1012687): Remove or adjust the following warnings as the
     # development of TBMv3 progresses.
     tbmv3_metrics = [m[6:] for m in tbm_options.GetTimelineBasedMetrics()
                      if m.startswith('tbmv3:')]
     if tbmv3_metrics:
-      if legacy_json_format:
-        logging.warning(
-            'Selected TBMv3 metrics will not be computed because they are not '
-            "supported in Chrome's JSON trace format.")
-      else:
+      if enable_proto_format:
         logging.warning(
             'The following TBMv3 metrics have been selected to run: %s. '
             'Please note that TBMv3 is an experimental feature in active '
@@ -222,6 +216,12 @@ class Benchmark(command_line.Command):
             'current form. Follow crbug.com/1012687 for updates and to '
             'discuss your use case before deciding to rely on this feature.',
             ', '.join(tbmv3_metrics))
+      else:
+        logging.warning(
+            'Selected TBMv3 metrics will not be computed because they are not '
+            "supported in Chrome's default trace format. "
+            'Use --experimental-proto-trace-format if you want these metrics '
+            'to be computed.')
     return tbm_options
 
   def CreatePageTest(self, options):  # pylint: disable=unused-argument
