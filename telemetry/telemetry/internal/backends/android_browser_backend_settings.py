@@ -206,12 +206,15 @@ ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
     supports_tab_control=False,
     supports_spki_list=True)
 
+# TODO(crbug.com/1038137): Add reference setting for android-weblayer
 ANDROID_WEBLAYER = WebLayerBackendSettings(
     browser_type='android-weblayer')
 
+# TODO(crbug.com/1038137): Add reference setting for android-webview
 ANDROID_WEBVIEW = WebViewBackendSettings(
     browser_type='android-webview')
 
+# TODO(crbug.com/1038137): Add reference setting for android-webview-google
 ANDROID_WEBVIEW_GOOGLE = WebViewGoogleBackendSettings(
     browser_type='android-webview-google')
 
@@ -232,6 +235,7 @@ ANDROID_CHROMIUM_BUNDLE = GenericChromeBundleBackendSettings(
     package='org.chromium.chrome',
     apk_name='chrome_modern_public_bundle')
 
+# TODO(crbug.com/1038137): Add reference setting for android-chrome
 ANDROID_CHROME = ChromeBackendSettings(
     browser_type='android-chrome',
     package='com.google.android.apps.chrome')
@@ -240,6 +244,10 @@ ANDROID_CHROME_BUNDLE = GenericChromeBundleBackendSettings(
     browser_type='android-chrome-bundle',
     package='com.google.android.apps.chrome',
     apk_name='monochrome_bundle')
+
+REFERENCE_ANDROID_CHROME_BUNDLE = GenericChromeBackendSettings(
+    browser_type='reference-android-chrome-bundle',
+    package='com.google.android.apps.chrome')
 
 ANDROID_CHROME_BETA = GenericChromeBackendSettings(
     browser_type='android-chrome-beta',
@@ -266,6 +274,7 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_WEBVIEW_INSTRUMENTATION,
     ANDROID_CHROMIUM,
     ANDROID_CHROMIUM_BUNDLE,
+    REFERENCE_ANDROID_CHROME_BUNDLE,
     ANDROID_CHROME,
     ANDROID_CHROME_BUNDLE,
     ANDROID_CHROME_BETA,

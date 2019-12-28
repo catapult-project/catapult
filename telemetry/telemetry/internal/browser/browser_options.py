@@ -340,6 +340,14 @@ class BrowserFinderOptions(optparse.Values):
     return (browser_type == self.browser_type or
             self.browser_type in ('list', 'any',))
 
+  def IsBrowserTypeReference(self):
+    """Determines if the browser_type is a reference browser_type."""
+    return self.browser_type and self.browser_type.startswith('reference-')
+
+  def IsBrowserTypeBundle(self):
+    """Determines if the browser_type is a bundle browser_type."""
+    return self.browser_type and self.browser_type.endswith('-bundle')
+
   # TODO(eakuefner): Factor this out into OptionBuilder pattern
   def BuildRemotePlatformOptions(self):
     if self.device or self.android_blacklist_file:

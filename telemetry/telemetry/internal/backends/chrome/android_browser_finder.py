@@ -343,18 +343,34 @@ def FindAllBrowserTypes():
   return browser_types + ['exact', 'reference']
 
 
-def _GetReferenceAndroidBrowser(android_platform, finder_options):
-  # Add the reference build if found.
+def _FetchReferenceApk(android_platform, is_bundle=False):
+  """Fetch the apk for reference browser type from gcloud.
+
+  Local path to the apk will be returned upon success.
+  Otherwise, None will be returned.
+  """
   os_version = dependency_util.GetChromeApkOsVersion(
       android_platform.GetOSVersionName())
+  if is_bundle:
+    os_version += '_bundle'
   arch = android_platform.GetArchName()
   try:
     reference_build = binary_manager.FetchPath(
         'chrome_stable', arch, 'android', os_version)
-  except (binary_manager.NoPathFoundError,
-          binary_manager.CloudStorageError):
-    reference_build = None
-  if reference_build and os.path.exists(reference_build):
+    if reference_build and os.path.exists(reference_build):
+      return reference_build
+  except binary_manager.NoPathFoundError:
+    logging.warning('Cannot find path for reference apk for device %s',
+                    android_platform.GetDeviceId())
+  except binary_manager.CloudStorageError:
+    logging.warning('Failed to download reference apk for device %s',
+                    android_platform.GetDeviceId())
+  return None
+
+
+def _GetReferenceAndroidBrowser(android_platform, finder_options):
+  reference_build = _FetchReferenceApk(android_platform)
+  if reference_build:
     return PossibleAndroidBrowser(
         'reference',
         finder_options,
@@ -406,8 +422,13 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
   # Add any other known available browsers.
   for settings in ANDROID_BACKEND_SETTINGS:
     if finder_options.IsBrowserTypeRelevant(settings.browser_type):
+      local_apk = None
+      if finder_options.IsBrowserTypeReference():
+        local_apk = _FetchReferenceApk(
+            android_platform, finder_options.IsBrowserTypeBundle())
       p_browser = PossibleAndroidBrowser(
-          settings.browser_type, finder_options, android_platform, settings)
+          settings.browser_type, finder_options, android_platform, settings,
+          local_apk=local_apk)
       if p_browser.IsAvailable():
         possible_browsers.append(p_browser)
   return possible_browsers
