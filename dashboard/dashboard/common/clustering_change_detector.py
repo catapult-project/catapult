@@ -35,9 +35,9 @@ class InsufficientData(Error):
 
 
 def Cluster(sequence, partition_point):
-  """Return a tuple (left, right) where partition_point is part of left."""
-  cluster_a = sequence[:partition_point + 1]
-  cluster_b = sequence[partition_point + 1:]
+  """Return a tuple (left, right) where partition_point is part of right."""
+  cluster_a = sequence[:partition_point]
+  cluster_b = sequence[partition_point:]
   return (cluster_a, cluster_b)
 
 

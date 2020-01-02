@@ -20,8 +20,8 @@ class ChangeDetectorTest(unittest.TestCase):
 
   def testClusterPartitioning(self):
     a, b = ccd.Cluster([1, 2, 3], 1)
-    self.assertEqual(a, [1, 2])
-    self.assertEqual(b, [3])
+    self.assertEqual(a, [1])
+    self.assertEqual(b, [2, 3])
 
   def testMidpoint_Long(self):
     self.assertEqual(1, ccd.Midpoint([0, 0, 0]))
@@ -37,20 +37,20 @@ class ChangeDetectorTest(unittest.TestCase):
     sequence = ([1] * 10) + ([2] * 10)
     result, a, b = ccd.ClusterAndCompare(sequence, 9)
     self.assertEqual(result, 'different')
-    self.assertEqual(len(a), 10)
-    self.assertEqual(len(b), 10)
+    self.assertEqual(len(a), 9)
+    self.assertEqual(len(b), 11)
 
   def testClusterAndFindSplit_Simple(self):
     # This tests that we can find a change point in a contrived scenario.
     sequence = ([1] * 10) + ([10] * 10)
     split = ccd.ClusterAndFindSplit(sequence, 6, self.rand)
-    self.assertEqual(split, 9)
+    self.assertEqual(split, 10)
 
   def testClusterAndFindSplit_Steps(self):
     # We actually can find the first step very well.
     sequence = ([1] * 10) + ([2] * 10) + ([1] * 10)
     split = ccd.ClusterAndFindSplit(sequence, 6, self.rand)
-    self.assertEqual(split, 9)
+    self.assertEqual(split, 10)
 
   def testClusterAndFindSplit_Spikes(self):
     # We actually can ignore spikes very well.
@@ -79,4 +79,4 @@ class ChangeDetectorTest(unittest.TestCase):
         collected_indices.add(split_index)
       except ccd.InsufficientData:
         continue
-    self.assertEqual(collected_indices, {99, 199})
+    self.assertEqual(collected_indices, {100, 200})
