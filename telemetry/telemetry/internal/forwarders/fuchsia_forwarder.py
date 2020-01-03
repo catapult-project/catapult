@@ -44,7 +44,7 @@ class FuchsiaSshForwarder(forwarders.Forwarder):
 
     ssh_args = [
         '-N',  # Don't execute command
-        '-T'  # Don't allocate terminal.
+        '-T',  # Don't allocate terminal.
         # Ensure SSH is at least verbose enough to print the allocated port
         '-o', 'LogLevel=VERBOSE'
     ]

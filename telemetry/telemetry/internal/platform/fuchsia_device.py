@@ -15,7 +15,7 @@ from telemetry.core import util
 from telemetry.internal.platform import device
 from telemetry.util import cmd_util
 
-_LIST_DEVICES_TIMEOUT_MILLISECS = 5000
+_LIST_DEVICES_TIMEOUT_SECS = 5
 _SDK_SHA1 = '8894838554076535504'
 _SDK_ROOT_IN_CATAPULT = os.path.join(util.GetCatapultDir(), 'third_party',
                                      'fuchsia-sdk', 'sdk')
@@ -87,7 +87,7 @@ def _FindFuchsiaDevice(sdk_root, is_emulator):
     logging.warning('Fuchsia emulators not supported at this time.')
     return None
   finder_cmd = [dev_finder_path, 'list', '-full',
-                '-timeout', str(_LIST_DEVICES_TIMEOUT_MILLISECS)]
+                '-timeout', str(_LIST_DEVICES_TIMEOUT_SECS) + 's']
   device_list, _ = cmd_util.GetAllCmdOutput(finder_cmd)
   if not device_list:
     logging.warning('No Fuchsia device found. Ensure your device is set up '
