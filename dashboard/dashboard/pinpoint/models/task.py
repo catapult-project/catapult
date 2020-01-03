@@ -11,6 +11,8 @@ import functools
 import itertools
 import logging
 
+from dashboard.common import timing
+
 from google.appengine.ext import ndb
 
 __all__ = (
@@ -258,15 +260,16 @@ def AppendTasklog(job, task_id, message, payload):
 
 @ndb.transactional()
 def _LoadTaskGraph(job):
-  tasks = Task.query(ancestor=job.key).fetch()
-  # The way we get the terminal tasks is by looking at tasks where nothing
-  # depends on them.
-  has_dependents = set()
-  for task in tasks:
-    has_dependents |= set(task.dependencies)
-  terminal_tasks = [t.key for t in tasks if t.key not in has_dependents]
-  return ReconstitutedTaskGraph(
-      terminal_tasks=terminal_tasks, tasks={task.key: task for task in tasks})
+  with timing.WallTimeLogger('ExecutionEngine:_LoadTaskGraph'):
+    tasks = Task.query(ancestor=job.key).fetch()
+    # The way we get the terminal tasks is by looking at tasks where nothing
+    # depends on them.
+    has_dependents = set()
+    for task in tasks:
+      has_dependents |= set(task.dependencies)
+    terminal_tasks = [t.key for t in tasks if t.key not in has_dependents]
+    return ReconstitutedTaskGraph(
+        terminal_tasks=terminal_tasks, tasks={task.key: task for task in tasks})
 
 
 class NoopAction(object):
@@ -281,6 +284,7 @@ class NoopAction(object):
 
 
 @ndb.non_transactional
+@timing.TimeWall('ExecutionEngine:Evaluate')
 def Evaluate(job, event, evaluator):
   """Applies an evaluator given a task in the task graph and an event as input.
 
@@ -322,14 +326,16 @@ def Evaluate(job, event, evaluator):
       # Each action should be a callable which takes the accumulator as an
       # input. We want to run each action in their own transaction as well.
       # This must not be called in a transaction.
-      ndb.transaction(
-          functools.partial(action, accumulator),
-          # We want to have all transactions to be independent.
-          propagation=ndb.TransactionOptions.INDEPENDENT)
+      with timing.WallTimeLogger('ExecutionEngine:ActionRunner<%s>' %
+                                 (type(action).__name__,)):
+        ndb.transaction(
+            functools.partial(action, accumulator),
+            # We want to have all transactions to be independent.
+            propagation=ndb.TransactionOptions.INDEPENDENT)
 
     # Clear the actions and accumulator for this traversal.
-    actions = []
-    accumulator = {}
+    del actions[:]
+    accumulator.clear()
 
     # Load the graph transactionally.
     graph = _LoadTaskGraph(job)

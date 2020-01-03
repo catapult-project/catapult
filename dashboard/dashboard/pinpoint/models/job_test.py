@@ -116,15 +116,15 @@ https://testbed.example.com/job/1
 
 <b>Subject.</b> by author1@chromium.org
 https://example.com/repository/+/git_hash_1
-10 \u2192 0 (-10) (-100%)
+No values \u2192 10
 
 <b>Subject.</b> by author2@chromium.org
 https://example.com/repository/+/git_hash_2
-0 \u2192 -100 (-100) (+\u221e%)
+10 \u2192 0 (-10) (-100%)
 
 <b>Subject.</b> by author3@chromium.org
 https://example.com/repository/+/git_hash_3
-0 \u2192 No values
+0 \u2192 -100 (-100) (+\u221e%)
 
 Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions"""
@@ -548,13 +548,16 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedMultipleDifferences(
-      self, differences, result_values, commit_as_dict):
+  def testCompletedMultipleDifferences(self, differences, result_values,
+                                       commit_as_dict):
+    c0 = change.Change((change.Commit('chromium', 'git_hash_0'),))
     c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
     c2 = change.Change((change.Commit('chromium', 'git_hash_2'),))
+    c2_5 = change.Change((change.Commit('chromium', 'git_hash_2_5')))
     c3 = change.Change((change.Commit('chromium', 'git_hash_3'),))
-    differences.return_value = [(None, c1), (None, c2), (None, c3)]
-    result_values.side_effect = [50], [0], [0], [40], [0], []
+    change_map = {c0: [50], c1: [0], c2: [40], c2_5: [0], c3: []}
+    differences.return_value = [(c0, c1), (c1, c2), (c2_5, c3)]
+    result_values.side_effect = lambda c: change_map.get(c, [])
     commit_as_dict.side_effect = (
         {
             'repository': 'chromium',
@@ -606,8 +609,9 @@ class BugCommentTest(test.TestCase):
     c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
     c2 = change.Change((change.Commit('chromium', 'git_hash_2'),))
     c3 = change.Change((change.Commit('chromium', 'git_hash_3'),))
-    differences.return_value = [(None, c1), (None, c2), (None, c3)]
-    result_values.side_effect = [10], [0], [0], [-100], [0], []
+    change_map = {c1: [10], c2: [0], c3: [-100]}
+    differences.return_value = [(None, c1), (c1, c2), (c2, c3)]
+    result_values.side_effect = lambda c: change_map.get(c, [])
     commit_as_dict.side_effect = (
         {
             'repository': 'chromium',
@@ -648,8 +652,8 @@ class BugCommentTest(test.TestCase):
     # order.
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_THREE_DIFFERENCES_ABSOLUTE,
-        status='Assigned', owner='author2@chromium.org',
-        cc_list=['author1@chromium.org', 'author2@chromium.org'],
+        status='Assigned', owner='author3@chromium.org',
+        cc_list=['author2@chromium.org', 'author3@chromium.org'],
         merge_issue=None)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')

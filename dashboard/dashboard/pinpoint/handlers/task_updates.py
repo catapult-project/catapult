@@ -95,6 +95,7 @@ def HandleTaskUpdate(request_body):
     payload = {'status': 'build_completed'}
   event = event_module.Event(
       type='update', target_task=task_id, payload=payload)
+  logging.info('Update Event = %s', event)
 
   # From here, we have enough information to evaluate the task graph.
   try:
@@ -116,10 +117,18 @@ def HandleTaskUpdate(request_body):
       if execution_errors:
         job.Fail(errors.ExecutionEngineErrors(execution_errors))
       elif job_module.IsDone(job.job_id):
+        job.difference_count = accumulator['performance_bisection'].get(
+            'difference_count', 0)
         job._Complete()
 
     # At this point, update the job's updated field transactionally.
     job_module.UpdateTime(job.job_id)
+
+    # Then send an empty initiate event in case there are still any pending
+    # builds/tests/etc.
+    task_module.Evaluate(
+        job, event_module.Event(type='initiate', target_task=None, payload={}),
+        evaluator.ExecutionEngine(job))
   except task_module.Error as error:
     logging.error('Failed: %s', error)
     job.Fail()

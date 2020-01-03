@@ -266,7 +266,7 @@ def RequestBuild(builder_name, change, bucket, build_tags, task=None):
             'projects/chromeperf/topics/pinpoint-swarming-updates',
         'auth_token':
             'UNUSED',
-        'user_data':
+        'userdata':
             json.dumps({
                 'job_id': build_tags.get('pinpoint_job_id'),
                 'task': {

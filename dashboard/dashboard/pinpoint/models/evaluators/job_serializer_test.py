@@ -50,7 +50,7 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
             'exception': None,
             'job_id': self.job.job_id,
             'name': mock.ANY,
-            'quests': ['Build'],
+            'quests': ['Build', 'Test'],
             'results_url': mock.ANY,
             'state': [mock.ANY, mock.ANY],
             'status': 'Queued',
@@ -96,7 +96,7 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
             'created':
                 mock.ANY,
             'difference_count':
-                None,
+                0,
             'exception':
                 None,
             'job_id':

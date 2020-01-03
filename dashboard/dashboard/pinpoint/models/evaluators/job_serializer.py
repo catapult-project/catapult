@@ -221,6 +221,7 @@ class Serializer(evaluators.DispatchByTaskType):
             state['comparisons'] = comparison
           state['result_values'] = result or []
         context['state'] = ordered_states
+        context['difference_count'] = len(order_changes.get('culprits', []))
 
     if 'set_parameters' in local_context:
       modification = local_context.get('set_parameters')

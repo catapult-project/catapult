@@ -22,14 +22,15 @@ from google.appengine.runtime import apiproxy_errors
 from dashboard import update_bug_with_results
 from dashboard.common import utils
 from dashboard.models import histogram
+from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import errors
+from dashboard.pinpoint.models import evaluators
 from dashboard.pinpoint.models import event as event_module
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models import results2
 from dashboard.pinpoint.models import scheduler
 from dashboard.pinpoint.models import task as task_module
 from dashboard.pinpoint.models import timing_record
-from dashboard.pinpoint.models import evaluators
 from dashboard.pinpoint.models.evaluators import job_serializer
 from dashboard.pinpoint.models.tasks import evaluator as task_evaluator
 from dashboard.services import gerrit_service
@@ -173,11 +174,7 @@ class Job(ndb.Model):
 
   # Request parameters.
   arguments = ndb.JsonProperty(required=True)
-
-  # TODO: The bug id is only used for posting bug comments when a job starts and
-  # completes. This probably should not be the responsibility of Pinpoint.
   bug_id = ndb.IntegerProperty()
-
   comparison_mode = ndb.StringProperty()
 
   # The Gerrit server url and change id of the code review to update upon
@@ -187,7 +184,6 @@ class Job(ndb.Model):
 
   # User-provided name of the job.
   name = ndb.StringProperty()
-
   tags = ndb.JsonProperty()
 
   # Email of the job creator.
@@ -206,7 +202,6 @@ class Job(ndb.Model):
   # Don't use `auto_now` for `updated`. When we do data migration, we need
   # to be able to modify the Job without changing the Job's completion time.
   updated = ndb.DateTimeProperty(required=True, auto_now_add=True)
-
   started = ndb.BooleanProperty(default=True)
   completed = ndb.ComputedProperty(lambda self: self.done or (
       not self.use_execution_engine and self.started and not self.task))
@@ -230,9 +225,7 @@ class Job(ndb.Model):
   # If it's present, the job failed.
   exception = ndb.TextProperty()
   exception_details = ndb.JsonProperty()
-
   difference_count = ndb.IntegerProperty()
-
   retry_count = ndb.IntegerProperty(default=0)
 
   # We expose the configuration as a first-class property of the Job.
@@ -488,7 +481,7 @@ class Job(ndb.Model):
         return
       logging.debug('Job [%s]: Marked done', self.job_id)
 
-    if not self._IsTryJob():
+    if not self._IsTryJob() and not self.use_execution_engine:
       self.difference_count = len(self.state.Differences())
 
     try:
@@ -502,6 +495,7 @@ class Job(ndb.Model):
     scheduler.Complete(self)
 
   def _FormatAndPostBugCommentOnComplete(self):
+    logging.debug('Processing outputs.')
     if self._IsTryJob():
       # There is no comparison metric.
       title = '<b>%s Job complete. See results below.</b>' % _ROUND_PUSHPIN
@@ -513,7 +507,30 @@ class Job(ndb.Model):
       return
 
     # There is a comparison metric.
-    differences = self.state.Differences()
+    differences = []
+    result_values = {}
+    if not self.use_execution_engine:
+      differences = self.state.Differences()
+      for change_a, change_b in differences:
+        result_values.setdefault(change_a, self.state.ResultValues(change_a))
+        result_values.setdefault(change_b, self.state.ResultValues(change_b))
+    else:
+      logging.debug('Execution Engine: Finding culprits.')
+      context = task_module.Evaluate(
+          self, event_module.SelectEvent(),
+          evaluators.Selector(
+              event_type='select',
+              include_keys={'culprits', 'change', 'result_values'}))
+      differences = [(change_module.ReconstituteChange(change_a),
+                      change_module.ReconstituteChange(change_b))
+                     for change_a, change_b in context.get(
+                         'performance_bisection', {}).get('culprits', [])]
+      result_values = {
+          change_module.ReconstituteChange(v.get('change')):
+          v.get('result_values')
+          for v in context.values()
+          if 'change' in v and 'result_values' in v
+      }
 
     if not differences:
       title = "<b>%s Couldn't reproduce a difference.</b>" % _ROUND_PUSHPIN
@@ -524,6 +541,7 @@ class Job(ndb.Model):
           _retry_options=RETRY_OPTIONS)
       return
 
+    # Collect the result values for each of the differences
     difference_details = []
     commit_infos = []
     commits_with_deltas = {}
@@ -533,8 +551,8 @@ class Job(ndb.Model):
       else:
         commit_info = change_b.last_commit.AsDict()
 
-      values_a = self.state.ResultValues(change_a)
-      values_b = self.state.ResultValues(change_b)
+      values_a = result_values[change_a]
+      values_b = result_values[change_b]
       difference = _FormatDifferenceForBug(commit_info, values_a, values_b,
                                            self.state.metric)
       difference_details.append(difference)
@@ -545,8 +563,13 @@ class Job(ndb.Model):
 
     deferred.defer(
         _UpdatePostAndMergeDeferred,
-        difference_details, commit_infos, commits_with_deltas, self.bug_id,
-        self.tags, self.url, _retry_options=RETRY_OPTIONS)
+        difference_details,
+        commit_infos,
+        commits_with_deltas,
+        self.bug_id,
+        self.tags,
+        self.url,
+        _retry_options=RETRY_OPTIONS)
 
   def _UpdateGerritIfNeeded(self):
     if self.gerrit_server and self.gerrit_change_id:
@@ -603,8 +626,10 @@ class Job(ndb.Model):
     task_name = str(uuid.uuid4())
     try:
       task = taskqueue.add(
-          queue_name='job-queue', url='/api/run/' + self.job_id,
-          name=task_name, countdown=countdown)
+          queue_name='job-queue',
+          url='/api/run/' + self.job_id,
+          name=task_name,
+          countdown=countdown)
     except (apiproxy_errors.DeadlineExceededError,
             taskqueue.TransientError) as exc:
       raise errors.RecoverableError(exc)
@@ -644,7 +669,7 @@ class Job(ndb.Model):
             self,
             event_module.Event(type='initiate', target_task=None, payload={}),
             task_evaluator.ExecutionEngine(self))
-        result_status = context.get('find_culprit', {}).get('status')
+        result_status = context.get('performance_bisection', {}).get('status')
         if result_status not in {'failed', 'completed'}:
           return
 
@@ -773,7 +798,6 @@ class Job(ndb.Model):
     # Remove any "task" identifiers.
     self.task = None
     self.put()
-
     title = _ROUND_PUSHPIN + ' Pinpoint job cancelled.'
     comment = u'{}\n{}\n\nCancelled by {}, reason given: {}'.format(
         title, self.url, user, reason)
@@ -847,8 +871,8 @@ def _ComputePostOwnerSheriffCCList(commits_with_deltas):
   return owner, sheriff, cc_list
 
 
-def _UpdatePostAndMergeDeferred(
-    difference_details, commit_infos, commits_with_deltas, bug_id, tags, url):
+def _UpdatePostAndMergeDeferred(difference_details, commit_infos,
+                                commits_with_deltas, bug_id, tags, url):
   if not bug_id:
     return
 
@@ -857,13 +881,10 @@ def _UpdatePostAndMergeDeferred(
   # Bring it all together.
   owner, sheriff, cc_list = _ComputePostOwnerSheriffCCList(commits_with_deltas)
   comment = _FormatComment(difference_details, commit_infos, sheriff, tags, url)
-
   issue_tracker = issue_tracker_service.IssueTrackerService(
       utils.ServiceAccountHttp())
-
   merge_details, cc_list = _ComputePostMergeDetails(issue_tracker,
                                                     commit_cache_key, cc_list)
-
   current_bug_status = _GetBugStatus(issue_tracker, bug_id)
   if not current_bug_status:
     return
@@ -882,7 +903,6 @@ def _UpdatePostAndMergeDeferred(
       cc_list=sorted(cc_list),
       owner=bug_owner,
       merge_issue=merge_details.get('id'))
-
   update_bug_with_results.UpdateMergeIssue(commit_cache_key, merge_details,
                                            bug_id)
 
@@ -965,7 +985,6 @@ def _FormatDocumentationUrls(tags):
     return ''
 
   test_suite = utils.TestKey('/'.join(test_path.split('/')[:3]))
-
   docs = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
       test_suite, [reserved_infos.DOCUMENTATION_URLS.name])
 
@@ -973,7 +992,5 @@ def _FormatDocumentationUrls(tags):
     return ''
 
   docs = docs[reserved_infos.DOCUMENTATION_URLS.name].get('values')
-
   footer = '\n\n%s:\n  %s' % (docs[0][0], docs[0][1])
-
   return footer

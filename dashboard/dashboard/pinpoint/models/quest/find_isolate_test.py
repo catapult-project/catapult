@@ -230,7 +230,7 @@ class BuildTest(_FindIsolateExecutionTest):
         {
             'topic': 'projects/chromeperf/topics/pinpoint-swarming-updates',
             'auth_token': 'UNUSED',
-            'user_data': mock.ANY,
+            'userdata': mock.ANY,
         }
     )
 

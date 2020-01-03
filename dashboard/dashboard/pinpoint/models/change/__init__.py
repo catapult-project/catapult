@@ -10,3 +10,14 @@ from dashboard.pinpoint.models.change.change import Change
 from dashboard.pinpoint.models.change.commit import Commit
 from dashboard.pinpoint.models.change.commit import NonLinearError
 from dashboard.pinpoint.models.change.patch import GerritPatch
+
+
+def ReconstituteChange(change_dict):
+  return Change(
+      commits=[
+          Commit(
+              repository=commit.get('repository'),
+              git_hash=commit.get('git_hash'))
+          for commit in change_dict.get('commits')
+      ],
+      patch=change_dict.get('patch'))

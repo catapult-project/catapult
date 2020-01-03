@@ -106,19 +106,27 @@ class TaskPayloadLiftingEvaluator(object):
   Returns None.
   """
 
-  def __init__(self, exclude_keys=None, exclude_event_types=None):
+  def __init__(self,
+               exclude_keys=None,
+               exclude_event_types=None,
+               include_keys=None,
+               include_event_types=None):
     self._exclude_keys = exclude_keys or {}
     self._exclude_event_types = exclude_event_types or {}
+    self._include_keys = include_keys
+    self._include_event_types = include_event_types
 
   def __call__(self, task, event, accumulator):
-    if event.type in self._exclude_event_types:
+    if (self._include_event_types is not None and
+        event.type not in self._include_event_types
+       ) or event.type in self._exclude_event_types:
       return None
 
-    update = {
-        key: val
-        for key, val in task.payload.items()
-        if key not in self._exclude_keys
-    }
+    def IncludeKey(key):
+      return (self._include_keys is not None and
+              key in self._include_keys) or key not in self._exclude_keys
+
+    update = {key: val for key, val in task.payload.items() if IncludeKey(key)}
     update['status'] = task.status
     accumulator.update({task.id: update})
     return None
@@ -203,7 +211,7 @@ class DispatchByTaskType(DispatchEvaluatorBase):
 
 class Selector(FilteringEvaluator):
 
-  def __init__(self, task_type=None, event_type=None, predicate=None):
+  def __init__(self, task_type=None, event_type=None, predicate=None, **kwargs):
 
     def Predicate(task, event, accumulator):
       matches = False
@@ -216,4 +224,4 @@ class Selector(FilteringEvaluator):
       return matches
 
     super(Selector, self).__init__(
-        predicate=Predicate, delegate=TaskPayloadLiftingEvaluator())
+        predicate=Predicate, delegate=TaskPayloadLiftingEvaluator(**kwargs))

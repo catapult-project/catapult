@@ -291,10 +291,7 @@ class UpdateEvaluator(object):
     #       - Fail if failure is non-retryable or we've exceeded retries.
     if event.payload.get('status') == 'build_completed':
       change = change_module.Change(
-          commits=[
-              commit_module.Commit.FromDict(c)
-              for c in task.payload.get('change', {}).get('commits', [])
-          ],
+          commits=task.payload.get('change').get('commits'),
           patch=task.payload.get('patch'))
       return [UpdateBuildStatusAction(self.job, task, change)]
     return None

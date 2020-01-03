@@ -157,9 +157,10 @@ class PrepareCommits(collections.namedtuple('PrepareCommits', ('job', 'task'))):
 
   @task_module.LogStateTransitionFailures
   def __call__(self, _):
-    start_change = change_module.Change.FromDict(
+    start_change = change_module.ReconstituteChange(
         self.task.payload['start_change'])
-    end_change = change_module.Change.FromDict(self.task.payload['end_change'])
+    end_change = change_module.ReconstituteChange(
+        self.task.payload['end_change'])
     try:
       # We're storing this once, so that we don't need to always get this when
       # working with the individual commits. This reduces our reliance on
@@ -332,17 +333,6 @@ class CompleteExplorationAction(
         self.job, self.task.id, new_state=self.state, payload=self.task.payload)
 
 
-def ReconstituteChange(change_dict):
-  return change_module.Change(
-      commits=[
-          change_module.Commit(
-              repository=commit.get('repository'),
-              git_hash=commit.get('git_hash'))
-          for commit in change_dict.get('commits')
-      ],
-      patch=change_dict.get('patch'))
-
-
 class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
   __slots__ = ()
 
@@ -392,7 +382,8 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
       # We need to reconstitute the Change instances from the dicts we've stored
       # in the payload.
       all_changes = [
-          ReconstituteChange(change) for change in task.payload.get('changes')
+          change_module.ReconstituteChange(change)
+          for change in task.payload.get('changes')
       ]
 
     if task.status == 'ongoing':
@@ -410,7 +401,7 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
       changes_with_data = set()
       changes_by_status = collections.defaultdict(set)
 
-      associated_results = [(ReconstituteChange(t.get('change')),
+      associated_results = [(change_module.ReconstituteChange(t.get('change')),
                              t.get('status'), t.get('result_values'))
                             for dep, t in accumulator.items()
                             if dep in deps]
@@ -636,13 +627,14 @@ def AnalysisSerializer(task, _, accumulator):
   if read_option_template.get('mode') == 'graph_json':
     metric = graph_json_options.get('chart')
   analysis_results.update({
-      'comparison_mode': task.payload.get('comparison_mode'),
-      'metric': metric,
       'changes': [
-          ReconstituteChange(change)
+          change_module.ReconstituteChange(change)
           for change in task.payload.get('changes', [])
       ],
+      'comparison_mode': task.payload.get('comparison_mode'),
       'comparisons': task.payload.get('comparisons', []),
+      'culprits': task.payload.get('culprits', []),
+      'metric': metric,
       'result_values': task.payload.get('result_values', [])
   })
 

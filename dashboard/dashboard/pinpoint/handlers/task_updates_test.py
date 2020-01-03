@@ -25,6 +25,60 @@ def FailsWithKeyError(*_):
   raise KeyError('Mock failure')
 
 
+def CreateBuildUpdate(job, commit_id):
+  return json.dumps({
+      'message': {
+          'attributes': {
+              'nothing': 'important',
+          },
+          'data':
+              base64.urlsafe_b64encode(
+                  json.dumps({
+                      'task_id':
+                          'some_task_id',
+                      'userdata':
+                          json.dumps({
+                              'job_id': job.job_id,
+                              'task': {
+                                  'type':
+                                      'build',
+                                  'id':
+                                      'find_isolate_chromium@commit_%s' %
+                                      (commit_id,)
+                              }
+                          })
+                  }))
+      }
+  })
+
+
+def CreateTestUpdate(job, commit_id, attempt):
+  return json.dumps({
+      'message': {
+          'attributes': {
+              'nothing': 'important',
+          },
+          'data':
+              base64.urlsafe_b64encode(
+                  json.dumps({
+                      'task_id':
+                          'some_task_id',
+                      'userdata':
+                          json.dumps({
+                              'job_id': job.job_id,
+                              'task': {
+                                  'type':
+                                      'test',
+                                  'id':
+                                      'run_test_chromium@commit_%s_%s' %
+                                      (commit_id, attempt)
+                              }
+                          })
+                  }))
+      }
+  })
+
+
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
 @mock.patch('dashboard.services.buildbucket_service.Put')
 @mock.patch('dashboard.services.buildbucket_service.GetJobStatus')
@@ -34,8 +88,31 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     self.maxDiff = None
     super(ExecutionEngineTaskUpdatesTest, self).setUp()
 
-  def testHandlerGoodCase(self, *_):
-    job = job_module.Job.New((), (), use_execution_engine=True)
+  def testHandlerGoodCase(self, buildbucket_getjobstatus, buildbucket_put):
+    buildbucket_put.return_value = {'build': {'id': '92384098123'}}
+    buildbucket_getjobstatus.return_value = {
+        'build': {
+            'status':
+                'COMPLETED',
+            'result':
+                'SUCCESS',
+            'result_details_json':
+                """
+            {
+              "properties": {
+                "got_revision_cp": "refs/heads/master@commit_0",
+                "isolate_server": "https://isolate.server",
+                "swarm_hashes_refs/heads/master(at)commit_0_without_patch":
+                  {"performance_telemetry_test": "1283497aaf223e0093"}
+              }
+            }
+            """
+        }
+    }
+    job = job_module.Job.New((), (),
+                             comparison_mode='performance',
+                             use_execution_engine=True,
+                             arguments={'comparison_mode': 'performance'})
     self.PopulateSimpleBisectionGraph(job)
     task_updates.HandleTaskUpdate(
         json.dumps({
@@ -115,7 +192,9 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     }
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
-    job = job_module.Job.New((), (), use_execution_engine=True)
+    job = job_module.Job.New((), (),
+                             use_execution_engine=True,
+                             comparison_mode='performance')
     self.PopulateSimpleBisectionGraph(job)
     self.assertTrue(job.use_execution_engine)
     job.Start()
@@ -130,7 +209,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     # Expect to see the Build quest in the list of quests here.
     job = job_module.JobFromId(job.job_id)
     job_dict = job.AsDict([job_module.OPTION_STATE])
-    self.assertEqual(['Build'], job_dict.get('quests'))
+    self.assertEqual(['Build', 'Test'], job_dict.get('quests'))
     self.assertEqual(
         job_dict.get('state'), [{
             'attempts': [{
@@ -138,9 +217,10 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
                     'completed': False,
                     'details': mock.ANY,
                     'exception': None,
-                }]
-            }],
-            'change': self.start_change.AsDict(),
+                }, mock.ANY]
+            }] + [mock.ANY] * 9,
+            'change':
+                self.start_change.AsDict(),
             'result_values': [],
         }, {
             'attempts': [{
@@ -148,36 +228,17 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
                     'completed': False,
                     'details': mock.ANY,
                     'exception': None,
-                }]
-            }],
-            'change': self.end_change.AsDict(),
+                }, mock.ANY]
+            }] + [mock.ANY] * 9,
+            'change':
+                self.end_change.AsDict(),
             'result_values': [],
         }])
 
     # We then post an update and expect it to succeed.
     before_update_timestamp = job.updated
-    task_updates.HandleTaskUpdate(
-        json.dumps({
-            'message': {
-                'attributes': {
-                    'nothing': 'important',
-                },
-                'data':
-                    base64.urlsafe_b64encode(
-                        json.dumps({
-                            'task_id':
-                                'some_task_id',
-                            'userdata':
-                                json.dumps({
-                                    'job_id': job.job_id,
-                                    'task': {
-                                        'type': 'build',
-                                        'id': 'find_isolate_chromium@commit_5'
-                                    }
-                                })
-                        }))
-            }
-        }))
+
+    task_updates.HandleTaskUpdate(CreateBuildUpdate(job, 5))
 
     # Here we expect one invocation of the getjobstatus call.
     self.assertEqual(1, buildbucket_getjobstatus.call_count)
@@ -202,9 +263,10 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
                     'completed': False,
                     'details': mock.ANY,
                     'exception': None,
-                }]
-            }],
-            'change': self.start_change.AsDict(),
+                }, mock.ANY]
+            }] + [mock.ANY] * 9,
+            'change':
+                self.start_change.AsDict(),
             'result_values': [],
         }, {
             'attempts': [{
@@ -213,7 +275,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
                     'details': mock.ANY,
                     'exception': None,
                 }, mock.ANY]
-            }] + ([mock.ANY] * 9),
+            }] + [mock.ANY] * 9,
             'change':
                 self.end_change.AsDict(),
             'result_values': [],
@@ -224,28 +286,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
 
     # Then we post an update to complete all the builds.
     before_update_timestamp = job.updated
-    task_updates.HandleTaskUpdate(
-        json.dumps({
-            'message': {
-                'attributes': {
-                    'nothing': 'important',
-                },
-                'data':
-                    base64.urlsafe_b64encode(
-                        json.dumps({
-                            'task_id':
-                                'some_task_id',
-                            'userdata':
-                                json.dumps({
-                                    'job_id': job.job_id,
-                                    'task': {
-                                        'type': 'build',
-                                        'id': 'find_isolate_chromium@commit_0'
-                                    }
-                                })
-                        }))
-            }
-        }))
+    task_updates.HandleTaskUpdate(CreateBuildUpdate(job, 0))
 
     # Reload the job.
     job = job_module.JobFromId(job.job_id)
@@ -309,6 +350,97 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
            '{"h": "394890891823812873798734a"}}}'),
           json.dumps(CreateHistogram(commit_id).AsDicts())
       ]
+      swarming_task_result.return_value = {
+          'bot_id': 'bot id',
+          'exit_code': 0,
+          'failure': False,
+          'outputs_ref': {
+              'isolatedserver': 'https://isolate-server/',
+              'isolated': '1298a009e9808f90e09812aad%s' % (attempt,),
+          },
+          'state': 'COMPLETED',
+      }
+      before_update_timestamp = job.updated
+      task_updates.HandleTaskUpdate(CreateTestUpdate(job, commit_id, attempt))
+
+      # Reload the job.
+      job = job_module.JobFromId(job.job_id)
+
+      # Check that we did update the timestamp.
+      self.assertNotEqual(before_update_timestamp, job.updated)
+
+    # With all the above done, we're not quite done yet, because we need to
+    # ensure we're getting more nodes in the graph.
+    job = job_module.JobFromId(job.job_id)
+    self.assertTrue(job.started)
+    self.assertFalse(job.completed)
+    self.assertFalse(job.done)
+
+    # Check that we can get the dict representation of the job.
+    job_dict = job.AsDict([job_module.OPTION_STATE])
+    self.assertEqual(job_dict.get('quests'), ['Build', 'Test', 'Get results'])
+    self.assertEqual(
+        job_dict.get('state'), [{
+            'attempts': [mock.ANY] * 10,
+            'change': self.start_change.AsDict(),
+            'comparisons': {
+                'prev': None,
+                'next': 'pending',
+            },
+            'result_values': mock.ANY,
+        }, {
+            'attempts': [mock.ANY] * 10,
+            'change': mock.ANY,
+            'comparisons': {
+                'prev': 'pending',
+                'next': 'pending',
+            },
+            'result_values': mock.ANY,
+        }, {
+            'attempts': [mock.ANY] * 10,
+            'change': mock.ANY,
+            'comparisons': {
+                'prev': 'pending',
+                'next': 'pending',
+            },
+            'result_values': mock.ANY,
+        }, {
+            'attempts': [mock.ANY] * 10,
+            'change': mock.ANY,
+            'comparisons': {
+                'prev': 'pending',
+                'next': 'pending',
+            },
+            'result_values': mock.ANY,
+        }, {
+            'attempts': [mock.ANY] * 10,
+            'change': self.end_change.AsDict(),
+            'comparisons': {
+                'prev': 'pending',
+                'next': None,
+            },
+            'result_values': mock.ANY,
+        }])
+
+    for attempt, commit_id in itertools.chain(
+        enumerate([2] * (swarming_test_count // 2)),
+        enumerate([3] * (swarming_test_count // 2)),
+        enumerate([4] * (swarming_test_count // 2))):
+      isolate_retrieve.side_effect = [
+          ('{"files": {"some_benchmark/perf_results.json": '
+           '{"h": "394890891823812873798734a"}}}'),
+          json.dumps(CreateHistogram(commit_id).AsDicts())
+      ]
+      swarming_task_result.return_value = {
+          'bot_id': 'bot id',
+          'exit_code': 0,
+          'failure': False,
+          'outputs_ref': {
+              'isolatedserver': 'https://isolate-server/',
+              'isolated': '1298a009e9808f90e09812aad%s' % (attempt,),
+          },
+          'state': 'COMPLETED',
+      }
       buildbucket_getjobstatus.return_value = {
           'build': {
               'status':
@@ -328,6 +460,76 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
               """ % (commit_id, commit_id)
           }
       }
+      task_updates.HandleTaskUpdate(CreateBuildUpdate(job, commit_id))
+      task_updates.HandleTaskUpdate(CreateTestUpdate(job, commit_id, attempt))
+
+    # At this point we'll see that we have commit_1 added to the graph, to build
+    # and to test with.
+    job = job_module.JobFromId(job.job_id)
+    self.assertTrue(job.started)
+    self.assertFalse(job.completed)
+    self.assertFalse(job.done)
+
+    job_dict = job.AsDict([job_module.OPTION_STATE])
+    self.assertEqual(job_dict.get('quests'), ['Build', 'Test', 'Get results'])
+    self.assertEqual(
+        job_dict.get('state'), [{
+            'attempts': [mock.ANY] * 10,
+            'change': self.start_change.AsDict(),
+            'comparisons': {
+                'prev': None,
+                'next': 'pending',
+            },
+            'result_values': mock.ANY,
+        }, {
+            'attempts': [mock.ANY] * 10,
+            'change': mock.ANY,
+            'comparisons': {
+                'prev': 'pending',
+                'next': 'pending',
+            },
+            'result_values': mock.ANY,
+        }, {
+            'attempts': [mock.ANY] * 10,
+            'change': mock.ANY,
+            'comparisons': {
+                'prev': 'pending',
+                'next': 'different',
+            },
+            'result_values': mock.ANY,
+        }, {
+            'attempts': [mock.ANY] * 10,
+            'change': mock.ANY,
+            'comparisons': {
+                'prev': 'different',
+                'next': 'different',
+            },
+            'result_values': mock.ANY,
+        }, {
+            'attempts': [mock.ANY] * 10,
+            'change': mock.ANY,
+            'comparisons': {
+                'prev': 'different',
+                'next': 'different',
+            },
+            'result_values': mock.ANY,
+        }, {
+            'attempts': [mock.ANY] * 10,
+            'change': self.end_change.AsDict(),
+            'comparisons': {
+                'prev': 'different',
+                'next': None,
+            },
+            'result_values': mock.ANY,
+        }])
+
+    # Run and complete all the pending tests.
+    for attempt, commit_id in enumerate([1] * (swarming_test_count // 2)):
+      isolate_retrieve.side_effect = [
+          ('{"files": {"some_benchmark/perf_results.json": '
+           '{"h": "394890891823812873798734a"}}}'),
+          json.dumps(CreateHistogram(commit_id).AsDicts())
+      ]
       swarming_task_result.return_value = {
           'bot_id': 'bot id',
           'exit_code': 0,
@@ -338,63 +540,35 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
           },
           'state': 'COMPLETED',
       }
-      before_update_timestamp = job.updated
-      task_updates.HandleTaskUpdate(
-          json.dumps({
-              'message': {
-                  'attributes': {
-                      'nothing': 'important',
-                  },
-                  'data':
-                      base64.urlsafe_b64encode(
-                          json.dumps({
-                              'task_id':
-                                  'some_task_id',
-                              'userdata':
-                                  json.dumps({
-                                      'job_id': job.job_id,
-                                      'task': {
-                                          'type':
-                                              'test',
-                                          'id':
-                                              'run_test_chromium@commit_%s_%s' %
-                                              (commit_id, attempt)
-                                      }
-                                  })
-                          }))
+
+      buildbucket_getjobstatus.return_value = {
+          'build': {
+              'status':
+                  'COMPLETED',
+              'result':
+                  'SUCCESS',
+              'result_details_json':
+                  """
+              {
+                "properties": {
+                  "got_revision_cp": "refs/heads/master@commit_%s",
+                  "isolate_server": "https://isolate.server",
+                  "swarm_hashes_refs/heads/master(at)commit_%s_without_patch":
+                    {"performance_telemetry_test": "1283497aaf223e0093"}
+                }
               }
-          }))
+              """ % (commit_id, commit_id)
+          }
+      }
+      task_updates.HandleTaskUpdate(CreateBuildUpdate(job, commit_id))
+      task_updates.HandleTaskUpdate(CreateTestUpdate(job, commit_id, attempt))
 
-      # Reload the job.
-      job = job_module.JobFromId(job.job_id)
-
-      # Check that we did update the timestamp.
-      self.assertNotEqual(before_update_timestamp, job.updated)
-
-    # With all the above done, we're not quite done yet.
+    # Then ensure that we can find the culprits and differences.
     job = job_module.JobFromId(job.job_id)
     self.assertTrue(job.started)
-    self.assertFalse(job.completed)
-    self.assertFalse(job.done)
+    self.assertTrue(job.completed)
+    self.assertTrue(job.done)
 
-    # Check that we can get the dict representation of the job.
     job_dict = job.AsDict([job_module.OPTION_STATE])
-    self.assertEqual(job_dict.get('quests'), ['Build', 'Test', 'Get results'])
-    self.assertEqual(
-        job_dict.get('state'), [{
-            'attempts': mock.ANY,
-            'change': self.start_change.AsDict(),
-            'comparisons': {
-                'prev': None,
-                'next': 'pending',
-            },
-            'result_values': mock.ANY,
-        }, mock.ANY, mock.ANY, mock.ANY, {
-            'attempts': mock.ANY,
-            'change': self.end_change.AsDict(),
-            'comparisons': {
-                'prev': 'pending',
-                'next': None,
-            },
-            'result_values': mock.ANY,
-        }])
+    self.assertEqual(job_dict.get('difference_count'), 5)
+    self.ExecuteDeferredTasks('default')
