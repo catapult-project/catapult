@@ -95,6 +95,7 @@ class GenericChromeBackendSettings(AndroidBrowserBackendSettings):
 
 class GenericChromeBundleBackendSettings(GenericChromeBackendSettings):
   def GetApkName(self, device):
+    assert self.apk_name.endswith('_bundle')
     del device  # unused
     # Bundles are created using the generated tool in the output directory's
     # bin directory instead of being output to the apk directory at compile
@@ -175,6 +176,26 @@ class WebViewGoogleBackendSettings(WebViewBackendSettings):
       return 'SystemWebViewGoogle.apk'
 
 
+class WebViewBundleBackendSettings(WebViewBackendSettings):
+  def GetApkName(self, device):
+    assert self.apk_name.endswith('_bundle')
+    del device  # unused
+    # Bundles are created using the generated tool in the output directory's
+    # bin directory instead of being output to the apk directory at compile
+    # time like a normal APK.
+    return os.path.join('..', 'bin', self.apk_name)
+
+  def FindSupportApks(self, apk_path, chrome_root):
+    del chrome_root
+    # Try to find the WebView embedder in apk directory
+    if apk_path is not None:
+      embedder_apk_path = os.path.join(
+          os.path.dirname(apk_path), '..', 'apks', self.embedder_apk_name)
+      if os.path.exists(embedder_apk_path):
+        return [embedder_apk_path]
+    return []
+
+
 class WebLayerBackendSettings(WebViewBackendSettings):
   def __new__(cls, **kwargs):
     # Provide some defaults for backends that work via weblayer_shell,
@@ -214,9 +235,20 @@ ANDROID_WEBLAYER = WebLayerBackendSettings(
 ANDROID_WEBVIEW = WebViewBackendSettings(
     browser_type='android-webview')
 
+# TODO(crbug.com/1038137): Add reference setting for android-webview-bundle
+ANDROID_WEBVIEW_BUNDLE = WebViewBundleBackendSettings(
+    browser_type='android-webview-bundle',
+    apk_name='monochrome_public_bundle')
+
 # TODO(crbug.com/1038137): Add reference setting for android-webview-google
 ANDROID_WEBVIEW_GOOGLE = WebViewGoogleBackendSettings(
     browser_type='android-webview-google')
+
+# TODO(crbug.com/1038137): Add reference setting for
+# android-webview-google-bundle
+ANDROID_WEBVIEW_GOOGLE_BUNDLE = WebViewBundleBackendSettings(
+    browser_type='android-webview-google-bundle',
+    apk_name='monochrome_bundle')
 
 ANDROID_WEBVIEW_INSTRUMENTATION = WebViewBasedBackendSettings(
     browser_type='android-webview-instrumentation',
@@ -270,7 +302,9 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_CONTENT_SHELL,
     ANDROID_WEBLAYER,
     ANDROID_WEBVIEW,
+    ANDROID_WEBVIEW_BUNDLE,
     ANDROID_WEBVIEW_GOOGLE,
+    ANDROID_WEBVIEW_GOOGLE_BUNDLE,
     ANDROID_WEBVIEW_INSTRUMENTATION,
     ANDROID_CHROMIUM,
     ANDROID_CHROMIUM_BUNDLE,
