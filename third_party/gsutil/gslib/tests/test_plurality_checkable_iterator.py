@@ -22,8 +22,14 @@
 """Unit tests for PluralityCheckableIterator."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import sys
+
+import six
+from six.moves import range
 
 from gslib.plurality_checkable_iterator import PluralityCheckableIterator
 import gslib.tests.testcase as testcase
@@ -38,7 +44,7 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
 
   def testPluralityCheckableIteratorWith0Elems(self):
     """Tests empty PluralityCheckableIterator."""
-    input_list = range(0)
+    input_list = list(range(0))
     it = iter(input_list)
     pcit = PluralityCheckableIterator(it)
     self.assertTrue(pcit.IsEmpty())
@@ -48,7 +54,7 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
 
   def testPluralityCheckableIteratorWith1Elem(self):
     """Tests PluralityCheckableIterator with 1 element."""
-    input_list = range(1)
+    input_list = list(range(1))
     it = iter(input_list)
     pcit = PluralityCheckableIterator(it)
     self.assertFalse(pcit.IsEmpty())
@@ -58,7 +64,7 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
 
   def testPluralityCheckableIteratorWith2Elems(self):
     """Tests PluralityCheckableIterator with 2 elements."""
-    input_list = range(2)
+    input_list = list(range(2))
     it = iter(input_list)
     pcit = PluralityCheckableIterator(it)
     self.assertFalse(pcit.IsEmpty())
@@ -68,7 +74,7 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
 
   def testPluralityCheckableIteratorWith3Elems(self):
     """Tests PluralityCheckableIterator with 3 elements."""
-    input_list = range(3)
+    input_list = list(range(3))
     it = iter(input_list)
     pcit = PluralityCheckableIterator(it)
     self.assertFalse(pcit.IsEmpty())
@@ -82,7 +88,7 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
     The second element raises an exception.
     """
 
-    class IterTest(object):
+    class IterTest(six.Iterator):
 
       def __init__(self):
         self.position = 0
@@ -90,7 +96,7 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
       def __iter__(self):
         return self
 
-      def next(self):
+      def __next__(self):
         if self.position == 0:
           self.position += 1
           return 1
@@ -115,7 +121,7 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
   def testPluralityCheckableIteratorWith2Exceptions(self):
     """Tests PluralityCheckableIterator with 2 elements that both raise."""
 
-    class IterTest(object):
+    class IterTest(six.Iterator):
 
       def __init__(self):
         self.position = 0
@@ -123,7 +129,7 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
       def __iter__(self):
         return self
 
-      def next(self):
+      def __next__(self):
         if self.position < 2:
           self.position += 1
           raise CustomTestException('Test exception %s' % self.position)
@@ -134,25 +140,25 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
     try:
       pcit.PeekException()
       self.fail('Expected exception 1 from PeekException')
-    except CustomTestException, e:
-      self.assertIn(e.message, 'Test exception 1')
+    except CustomTestException as e:
+      self.assertIn(str(e), 'Test exception 1')
     try:
       for _ in pcit:
         pass
       self.fail('Expected exception 1 from iterator')
-    except CustomTestException, e:
-      self.assertIn(e.message, 'Test exception 1')
+    except CustomTestException as e:
+      self.assertIn(str(e), 'Test exception 1')
     try:
       pcit.PeekException()
       self.fail('Expected exception 2 from PeekException')
-    except CustomTestException, e:
-      self.assertIn(e.message, 'Test exception 2')
+    except CustomTestException as e:
+      self.assertIn(str(e), 'Test exception 2')
     try:
       for _ in pcit:
         pass
       self.fail('Expected exception 2 from iterator')
-    except CustomTestException, e:
-      self.assertIn(e.message, 'Test exception 2')
+    except CustomTestException as e:
+      self.assertIn(str(e), 'Test exception 2')
     for _ in pcit:
       self.fail('Expected StopIteration')
 
@@ -163,7 +169,7 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
     stack trace.
     """
 
-    class IterTest(object):
+    class IterTest(six.Iterator):
 
       def __init__(self):
         self.position = 0
@@ -171,12 +177,12 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
       def __iter__(self):
         return self
 
-      def next(self):
+      def __next__(self):
         if self.position == 0:
           try:
             self.position += 1
             raise CustomTestException('Test exception 0')
-          except CustomTestException, e:
+          except CustomTestException as e:
             return (e, sys.exc_info()[2])
         elif self.position == 1:
           self.position += 1
@@ -190,8 +196,8 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
       for _ in pcit:
         pass
       self.fail('Expected exception 0 from iterator')
-    except CustomTestException, e:
-      self.assertIn(e.message, 'Test exception 0')
+    except CustomTestException as e:
+      self.assertIn(str(e), 'Test exception 0')
     for value in pcit:
       iterated_value = value
     self.assertEqual(iterated_value, 1)
@@ -199,7 +205,7 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
   def testPluralityCheckableIteratorReadsAheadAsNeeded(self):
     """Tests that the PCI does not unnecessarily read new elements."""
 
-    class IterTest(object):
+    class IterTest(six.Iterator):
 
       def __init__(self):
         self.position = 0
@@ -207,7 +213,7 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
       def __iter__(self):
         return self
 
-      def next(self):
+      def __next__(self):
         if self.position == 3:
           raise StopIteration()
         self.position += 1
@@ -223,15 +229,14 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
     self.assertEquals(pcit.orig_iterator.position, 2)
     # next should yield already-populated elements without advancing the
     # iterator.
-    pcit.next()  # Yields element 1
+    next(pcit)  # Yields element 1
     self.assertEquals(pcit.orig_iterator.position, 2)
-    pcit.next()  # Yields element 2
+    next(pcit)  # Yields element 2
     self.assertEquals(pcit.orig_iterator.position, 2)
-    pcit.next()  # Yields element 3
+    next(pcit)  # Yields element 3
     self.assertEquals(pcit.orig_iterator.position, 3)
     try:
-      pcit.next()  # Underlying iterator is empty
+      next(pcit)  # Underlying iterator is empty
       self.fail('Expected StopIteration')
     except StopIteration:
       pass
-

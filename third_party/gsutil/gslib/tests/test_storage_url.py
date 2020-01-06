@@ -12,14 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.   .
-
 """Unit tests for storage URLs."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
+import os
 
-from gslib.storage_url import IsFileUrlString
-from gslib.storage_url import StorageUrlFromString
+from gslib import storage_url
 import gslib.tests.testcase as testcase
 
 
@@ -30,26 +32,26 @@ class TestStorageUrl(testcase.GsUtilUnitTestCase):
     super(TestStorageUrl, self).setUp()
 
   def test_is_file_url_string(self):
-    self.assertTrue(IsFileUrlString('abc'))
-    self.assertTrue(IsFileUrlString('file://abc'))
-    self.assertFalse(IsFileUrlString('gs://abc'))
-    self.assertFalse(IsFileUrlString('s3://abc'))
+    self.assertTrue(storage_url.IsFileUrlString('abc'))
+    self.assertTrue(storage_url.IsFileUrlString('file://abc'))
+    self.assertFalse(storage_url.IsFileUrlString('gs://abc'))
+    self.assertFalse(storage_url.IsFileUrlString('s3://abc'))
 
   def test_storage_url_from_string(self):
-    storage_url = StorageUrlFromString('abc')
-    self.assertTrue(storage_url.IsFileUrl())
-    self.assertEquals('abc', storage_url.object_name)
+    url = storage_url.StorageUrlFromString('abc')
+    self.assertTrue(url.IsFileUrl())
+    self.assertEquals('abc', url.object_name)
 
-    storage_url = StorageUrlFromString('file://abc/123')
-    self.assertTrue(storage_url.IsFileUrl())
-    self.assertEquals('abc/123', storage_url.object_name)
+    url = storage_url.StorageUrlFromString('file://abc/123')
+    self.assertTrue(url.IsFileUrl())
+    self.assertEquals('abc%s123' % os.sep, url.object_name)
 
-    storage_url = StorageUrlFromString('gs://abc/123')
-    self.assertTrue(storage_url.IsCloudUrl())
-    self.assertEquals('abc', storage_url.bucket_name)
-    self.assertEquals('123', storage_url.object_name)
+    url = storage_url.StorageUrlFromString('gs://abc/123/456')
+    self.assertTrue(url.IsCloudUrl())
+    self.assertEquals('abc', url.bucket_name)
+    self.assertEquals('123/456', url.object_name)
 
-    storage_url = StorageUrlFromString('s3://abc/123')
-    self.assertTrue(storage_url.IsCloudUrl())
-    self.assertEquals('abc', storage_url.bucket_name)
-    self.assertEquals('123', storage_url.object_name)
+    url = storage_url.StorageUrlFromString('s3://abc/123/456')
+    self.assertTrue(url.IsCloudUrl())
+    self.assertEquals('abc', url.bucket_name)
+    self.assertEquals('123/456', url.object_name)

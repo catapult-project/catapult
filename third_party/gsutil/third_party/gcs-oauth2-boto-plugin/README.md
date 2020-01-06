@@ -35,9 +35,10 @@ SetLock(multiprocessing.Manager().Lock())
 ```
 
 
-Before submitting any code, please run the tests (e.g., by running the following
-command from the root of this repository):
+Before submitting any code, please run the tests (e.g., by creating a new
+virtualenv and running the following commands from the root of this repository):
 
+    pip install -r requirements.txt
     PYTHONPATH="." python -m gcs_oauth2_boto_plugin.test_oauth2_client
 
 [boto]: https://github.com/boto/boto

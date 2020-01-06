@@ -12,10 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.   .
-
 """Unit tests for name_expansion.CopyObjectsIterator class."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from gslib.commands.cp import DestinationInfo
 from gslib.name_expansion import CopyObjectsIterator
@@ -28,15 +30,16 @@ import gslib.tests.testcase as testcase
 def _ConstructNameExpansionIterator(src_url_strs):
   for src_url_str in src_url_strs:
     storage_url = StorageUrlFromString(src_url_str)
-    yield NameExpansionResult(storage_url,
-                              False,  # is_multi_source_request
-                              False,  # names_container
-                              storage_url,  # expanded_storage_url
-                              None)  # expanded_result
+    yield NameExpansionResult(
+        storage_url,
+        False,  # is_multi_source_request
+        False,  # names_container
+        storage_url,  # expanded_storage_url
+        None)  # expanded_result
 
 
-def _ConstrcutNameExpansionIteratorDestinationTupleIterator(src_url_strs_array,
-                                                            dst_url_strs):
+def _ConstrcutNameExpansionIteratorDestinationTupleIterator(
+    src_url_strs_array, dst_url_strs):
   for src_url_strs, dst_url_str in zip(src_url_strs_array, dst_url_strs):
     name_expansion_iter_dst_tuple = NameExpansionIteratorDestinationTuple(
         _ConstructNameExpansionIterator(src_url_strs),
@@ -58,61 +61,55 @@ class TestCopyObjectsIterator(testcase.GsUtilUnitTestCase):
 
     copy_objects_iterator = CopyObjectsIterator(
         _ConstrcutNameExpansionIteratorDestinationTupleIterator(
-            src_strings_array, dst_strings),
-        False)
+            src_strings_array, dst_strings), False)
 
     # Flatten the src dst arrays
     src_dst_strings = [
-        (src, dst) for src_strings, dst in zip(src_strings_array, dst_strings)
+        (src, dst)
+        for src_strings, dst in zip(src_strings_array, dst_strings)
         for src in src_strings
     ]
 
     for (src_string, dst_string) in src_dst_strings:
-      copy_object_info = copy_objects_iterator.next()
+      copy_object_info = next(copy_objects_iterator)
       self.assertEquals(src_string,
                         copy_object_info.source_storage_url.object_name)
       self.assertEquals(dst_string, copy_object_info.exp_dst_url.object_name)
 
     iterator_ended = False
     try:
-      copy_objects_iterator.next()
+      next(copy_objects_iterator)
     except StopIteration:
       iterator_ended = True
 
     self.assertTrue(iterator_ended)
 
   def test_iterator_metadata(self):
-    src_strings_array = [
-        ['gs://bucket1'],
-        ['source'],
-        ['s3://bucket1']
-    ]
+    src_strings_array = [['gs://bucket1'], ['source'], ['s3://bucket1']]
     dst_strings = ['gs://bucket2', 'dest', 'gs://bucket2']
 
     copy_objects_iterator = CopyObjectsIterator(
         _ConstrcutNameExpansionIteratorDestinationTupleIterator(
-            src_strings_array, dst_strings),
-        False)
+            src_strings_array, dst_strings), False)
 
     self.assertFalse(copy_objects_iterator.has_cloud_src)
     self.assertFalse(copy_objects_iterator.has_file_src)
     self.assertEquals(len(copy_objects_iterator.provider_types), 0)
 
-    copy_objects_iterator.next()
+    next(copy_objects_iterator)
     self.assertTrue(copy_objects_iterator.has_cloud_src)
     self.assertFalse(copy_objects_iterator.has_file_src)
     self.assertEquals(len(copy_objects_iterator.provider_types), 1)
     self.assertTrue('gs' in copy_objects_iterator.provider_types)
 
-    copy_objects_iterator.next()
+    next(copy_objects_iterator)
     self.assertTrue(copy_objects_iterator.has_cloud_src)
     self.assertTrue(copy_objects_iterator.has_file_src)
     self.assertEquals(len(copy_objects_iterator.provider_types), 2)
     self.assertTrue('file' in copy_objects_iterator.provider_types)
     self.assertFalse(copy_objects_iterator.is_daisy_chain)
 
-    copy_objects_iterator.next()
+    next(copy_objects_iterator)
     self.assertEquals(len(copy_objects_iterator.provider_types), 3)
     self.assertTrue('s3' in copy_objects_iterator.provider_types)
     self.assertTrue(copy_objects_iterator.is_daisy_chain)
-

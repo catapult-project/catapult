@@ -15,6 +15,9 @@
 """Additional help about technical and billing support."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from gslib.help_provider import HelpProvider
 
@@ -87,8 +90,13 @@ class CommandOptions(HelpProvider):
   help_spec = HelpProvider.HelpSpec(
       help_name='support',
       help_name_aliases=[
-          'techsupport', 'tech support', 'technical support', 'billing', 'faq',
-          'questions'],
+          'techsupport',
+          'tech support',
+          'technical support',
+          'billing',
+          'faq',
+          'questions',
+      ],
       help_type='additional_help',
       help_one_line_summary='Google Cloud Storage Support',
       help_text=_DETAILED_HELP_TEXT,

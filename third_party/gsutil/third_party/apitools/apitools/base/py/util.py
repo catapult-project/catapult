@@ -27,7 +27,7 @@ import six.moves.urllib.parse as urllib_parse
 import six.moves.urllib.request as urllib_request
 
 from apitools.base.protorpclite import messages
-from apitools.base.py import encoding
+from apitools.base.py import encoding_helper as encoding
 from apitools.base.py import exceptions
 
 __all__ = [
@@ -76,8 +76,10 @@ def DetectGce():
 def NormalizeScopes(scope_spec):
     """Normalize scope_spec to a set of strings."""
     if isinstance(scope_spec, six.string_types):
+        scope_spec = six.ensure_str(scope_spec)
         return set(scope_spec.split(' '))
     elif isinstance(scope_spec, collections.Iterable):
+        scope_spec = [six.ensure_str(x) for x in scope_spec]
         return set(scope_spec)
     raise exceptions.TypecheckError(
         'NormalizeScopes expected string or iterable, found %s' % (
@@ -224,6 +226,7 @@ def MapRequestParams(params, request_type):
             request_type, python_name=param_name)
         if field_remapping is not None:
             new_params[field_remapping] = new_params.pop(param_name)
+            param_name = field_remapping
         if isinstance(value, messages.Enum):
             new_params[param_name] = encoding.GetCustomJsonEnumMapping(
                 type(value), python_name=str(value)) or str(value)

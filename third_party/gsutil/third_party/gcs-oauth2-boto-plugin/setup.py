@@ -16,7 +16,6 @@
 
 """Setup installation module for gcs-oauth2-boto-plugin."""
 
-import os
 from setuptools import find_packages
 from setuptools import setup
 
@@ -31,23 +30,27 @@ for the machine in a thread- and process-safe fashion.
 
 requires = [
     'boto>=2.29.1',
+    'google-reauth>=0.1.0',
     'httplib2>=0.8',
-    'oauth2client>=1.5.2',
-    'oauth2client!=2.0.0',
-    'oauth2client!=2.0.1',
-    'oauth2client!=2.0.2',
-    'oauth2client!=2.1.0',
+    'oauth2client>=2.2.0',
     'pyOpenSSL>=0.13',
     # Not using 1.02 because of:
     #   https://code.google.com/p/socksipy-branch/issues/detail?id=3
     'SocksiPy-branch==1.01',
     'retry_decorator>=1.0.0',
-    'six>=1.6.1'
+    'six>=1.12.0'
 ]
+
+extras_require = {
+    'dev': [
+        'freezegun',
+        'mock',
+    ],
+}
 
 setup(
     name='gcs-oauth2-boto-plugin',
-    version='1.14',
+    version='2.5',
     url='https://developers.google.com/storage/docs/gspythonlibrary',
     download_url=('https://github.com/GoogleCloudPlatform'
                   '/gcs-oauth2-boto-plugin'),
@@ -62,4 +65,21 @@ setup(
     packages=find_packages(exclude=['third_party']),
     include_package_data=True,
     install_requires=requires,
+    extras_require=extras_require,
+    tests_require=extras_require['dev'],
+    test_suite='gcs_oauth2_boto_plugin.test_oauth2_client',
+    classifiers=[
+        'Development Status :: 7 - Inactive',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+    ],
 )

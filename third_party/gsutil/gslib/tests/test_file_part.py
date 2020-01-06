@@ -15,6 +15,9 @@
 """Unit tests for FilePart class."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import os
 
@@ -28,7 +31,7 @@ class TestFilePart(testcase.GsUtilUnitTestCase):
 
   def test_tell(self):
     filename = 'test_tell'
-    contents = 100 * 'x'
+    contents = 100 * b'x'
     fpath = self.CreateTempFile(file_name=filename, contents=contents)
     part_length = 23
     start_pos = 50
@@ -39,7 +42,7 @@ class TestFilePart(testcase.GsUtilUnitTestCase):
   def test_seek(self):
     """Tests seeking in a FilePart."""
     filename = 'test_seek'
-    contents = 100 * 'x'
+    contents = 100 * b'x'
     part_length = 23
     start_pos = 50
     fpath = self.CreateTempFile(file_name=filename, contents=contents)
@@ -69,9 +72,7 @@ class TestFilePart(testcase.GsUtilUnitTestCase):
   def test_read(self):
     """Tests various reaad operations with FilePart."""
     filename = 'test_read'
-    contents = ''
-    for i in range(1, 256):
-      contents += str(i)
+    contents = bytearray(range(256))
     part_length = 23
     start_pos = 50
     fpath = self.CreateTempFile(file_name=filename, contents=contents)
@@ -85,22 +86,18 @@ class TestFilePart(testcase.GsUtilUnitTestCase):
     fp.seek(0)
     offset = 10
     partial_file = fp.read(offset)
-    self.assertEqual(
-        contents[start_pos:(start_pos + offset)],
-        partial_file)
+    self.assertEqual(contents[start_pos:(start_pos + offset)], partial_file)
 
     # Read in the rest of the file.
     remaining_file = fp.read(part_length - offset)
-    self.assertEqual(
-        contents[(start_pos + offset):(start_pos + part_length)],
-        remaining_file)
-    self.assertEqual(
-        contents[start_pos:(start_pos + part_length)],
-        partial_file + remaining_file)
+    self.assertEqual(contents[(start_pos + offset):(start_pos + part_length)],
+                     remaining_file)
+    self.assertEqual(contents[start_pos:(start_pos + part_length)],
+                     partial_file + remaining_file)
 
     # Try to read after reaching EOF.
     empty_file = fp.read(100)
-    self.assertEqual('', empty_file)
+    self.assertEqual(b'', empty_file)
 
     empty_file = fp.read()
-    self.assertEqual('', empty_file)
+    self.assertEqual(b'', empty_file)

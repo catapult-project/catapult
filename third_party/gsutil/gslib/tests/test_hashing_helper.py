@@ -15,18 +15,20 @@
 """Unit tests for hashing helper functions and classes."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from hashlib import md5
 import os
 import pkgutil
 
 from gslib.exception import CommandException
-from gslib.hashing_helper import CalculateMd5FromContents
-from gslib.hashing_helper import HashingFileUploadWrapper
+from gslib.storage_url import StorageUrlFromString
 import gslib.tests.testcase as testcase
-from gslib.util import StorageUrlFromString
-from gslib.util import TRANSFER_BUFFER_SIZE
-
+from gslib.utils.constants import TRANSFER_BUFFER_SIZE
+from gslib.utils.hashing_helper import CalculateMd5FromContents
+from gslib.utils.hashing_helper import HashingFileUploadWrapper
 
 _TEST_FILE = 'test.txt'
 
@@ -40,13 +42,13 @@ class TestHashingFileUploadWrapper(testcase.GsUtilUnitTestCase):
   def _GetTestFile(self):
     contents = pkgutil.get_data('gslib', 'tests/test_data/%s' % _TEST_FILE)
     if not self._temp_test_file:
-      self._temp_test_file = self.CreateTempFile(
-          file_name=_TEST_FILE, contents=contents)
+      self._temp_test_file = self.CreateTempFile(file_name=_TEST_FILE,
+                                                 contents=contents)
     return self._temp_test_file
 
   def testReadToEOF(self):
     digesters = {'md5': md5()}
-    tmp_file = self.CreateTempFile(contents='a' * TRANSFER_BUFFER_SIZE * 4)
+    tmp_file = self.CreateTempFile(contents=b'a' * TRANSFER_BUFFER_SIZE * 4)
     with open(tmp_file, 'rb') as stream:
       wrapper = HashingFileUploadWrapper(stream, digesters, {'md5': md5},
                                          self._dummy_url, self.logger)
@@ -93,24 +95,19 @@ class TestHashingFileUploadWrapper(testcase.GsUtilUnitTestCase):
         position += len(data)
       wrapper.read(initial_position - position)
       wrapper.seek(initial_position - seek_back_amount)
-      self.assertEqual(wrapper.tell(),
-                       initial_position - seek_back_amount)
+      self.assertEqual(wrapper.tell(), initial_position - seek_back_amount)
       data = wrapper.read()
-      self.assertEqual(
-          len(data), tmp_file_len - (initial_position - seek_back_amount))
+      self.assertEqual(len(data),
+                       tmp_file_len - (initial_position - seek_back_amount))
     with open(tmp_file, 'rb') as stream:
       actual = CalculateMd5FromContents(stream)
     self.assertEqual(actual, digesters['md5'].hexdigest())
 
   def testSeekToBeginning(self):
-    for num_bytes in (TRANSFER_BUFFER_SIZE - 1,
-                      TRANSFER_BUFFER_SIZE,
-                      TRANSFER_BUFFER_SIZE + 1,
-                      TRANSFER_BUFFER_SIZE * 2 - 1,
-                      TRANSFER_BUFFER_SIZE * 2,
-                      TRANSFER_BUFFER_SIZE * 2 + 1,
-                      TRANSFER_BUFFER_SIZE * 3 - 1,
-                      TRANSFER_BUFFER_SIZE * 3,
+    for num_bytes in (TRANSFER_BUFFER_SIZE - 1, TRANSFER_BUFFER_SIZE,
+                      TRANSFER_BUFFER_SIZE + 1, TRANSFER_BUFFER_SIZE * 2 - 1,
+                      TRANSFER_BUFFER_SIZE * 2, TRANSFER_BUFFER_SIZE * 2 + 1,
+                      TRANSFER_BUFFER_SIZE * 3 - 1, TRANSFER_BUFFER_SIZE * 3,
                       TRANSFER_BUFFER_SIZE * 3 + 1):
       self._testSeekBack(num_bytes, num_bytes)
 
@@ -122,8 +119,7 @@ class TestHashingFileUploadWrapper(testcase.GsUtilUnitTestCase):
                              TRANSFER_BUFFER_SIZE * 3 - 1,
                              TRANSFER_BUFFER_SIZE * 3,
                              TRANSFER_BUFFER_SIZE * 3 + 1):
-      for seek_back_amount in (TRANSFER_BUFFER_SIZE - 1,
-                               TRANSFER_BUFFER_SIZE,
+      for seek_back_amount in (TRANSFER_BUFFER_SIZE - 1, TRANSFER_BUFFER_SIZE,
                                TRANSFER_BUFFER_SIZE + 1):
         self._testSeekBack(initial_position, seek_back_amount)
 
@@ -172,11 +168,8 @@ class TestHashingFileUploadWrapper(testcase.GsUtilUnitTestCase):
     self.assertEqual(actual, digesters['md5'].hexdigest())
 
   def testSeekForward(self):
-    for initial_seek in (0,
-                         TRANSFER_BUFFER_SIZE - 1,
-                         TRANSFER_BUFFER_SIZE,
-                         TRANSFER_BUFFER_SIZE + 1,
-                         TRANSFER_BUFFER_SIZE * 2 - 1,
+    for initial_seek in (0, TRANSFER_BUFFER_SIZE - 1, TRANSFER_BUFFER_SIZE,
+                         TRANSFER_BUFFER_SIZE + 1, TRANSFER_BUFFER_SIZE * 2 - 1,
                          TRANSFER_BUFFER_SIZE * 2,
                          TRANSFER_BUFFER_SIZE * 2 + 1):
       self._testSeekForward(initial_seek)
@@ -219,11 +212,8 @@ class TestHashingFileUploadWrapper(testcase.GsUtilUnitTestCase):
     self.assertEqual(actual, digesters['md5'].hexdigest())
 
   def testValidSeekAway(self):
-    for initial_read in (0,
-                         TRANSFER_BUFFER_SIZE - 1,
-                         TRANSFER_BUFFER_SIZE,
-                         TRANSFER_BUFFER_SIZE + 1,
-                         TRANSFER_BUFFER_SIZE * 2 - 1,
+    for initial_read in (0, TRANSFER_BUFFER_SIZE - 1, TRANSFER_BUFFER_SIZE,
+                         TRANSFER_BUFFER_SIZE + 1, TRANSFER_BUFFER_SIZE * 2 - 1,
                          TRANSFER_BUFFER_SIZE * 2,
                          TRANSFER_BUFFER_SIZE * 2 + 1):
       self._testSeekAway(initial_read)
@@ -240,7 +230,7 @@ class TestHashingFileUploadWrapper(testcase.GsUtilUnitTestCase):
       try:
         wrapper.read()
         self.fail('Expected CommandException for invalid seek.')
-      except CommandException, e:
+      except CommandException as e:
         self.assertIn(
             'Read called on hashing file pointer in an unknown position',
             str(e))

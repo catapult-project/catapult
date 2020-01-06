@@ -14,14 +14,19 @@
 # limitations under the License.
 """Unit tests for functions in rsync command."""
 
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+
 import logging
 import os
 
 from gslib.commands.rsync import _ComputeNeededFileChecksums
 from gslib.commands.rsync import _NA
-from gslib.hashing_helper import CalculateB64EncodedCrc32cFromContents
-from gslib.hashing_helper import CalculateB64EncodedMd5FromContents
 from gslib.tests.testcase.unit_testcase import GsUtilUnitTestCase
+from gslib.utils.hashing_helper import CalculateB64EncodedCrc32cFromContents
+from gslib.utils.hashing_helper import CalculateB64EncodedMd5FromContents
 
 
 class TestRsyncFuncs(GsUtilUnitTestCase):
@@ -32,7 +37,7 @@ class TestRsyncFuncs(GsUtilUnitTestCase):
     logger = logging.getLogger()
     tmpdir = self.CreateTempDir()
     file_url_str = 'file://%s' % os.path.join(tmpdir, 'obj1')
-    self.CreateTempFile(tmpdir=tmpdir, file_name='obj1', contents='obj1')
+    self.CreateTempFile(tmpdir=tmpdir, file_name='obj1', contents=b'obj1')
     cloud_url_str = 'gs://whatever'
     with open(os.path.join(tmpdir, 'obj1'), 'rb') as fp:
       crc32c = CalculateB64EncodedCrc32cFromContents(fp)
@@ -40,32 +45,37 @@ class TestRsyncFuncs(GsUtilUnitTestCase):
       md5 = CalculateB64EncodedMd5FromContents(fp)
 
     # Test case where source is a file and dest has CRC32C.
-    (src_crc32c, src_md5, dst_crc32c, dst_md5) = _ComputeNeededFileChecksums(
-        logger, file_url_str, size, _NA, _NA, cloud_url_str, size, crc32c, _NA)
+    (src_crc32c, src_md5, dst_crc32c,
+     dst_md5) = _ComputeNeededFileChecksums(logger, file_url_str, size, _NA,
+                                            _NA, cloud_url_str, size, crc32c,
+                                            _NA)
     self.assertEquals(crc32c, src_crc32c)
     self.assertEquals(_NA, src_md5)
     self.assertEquals(crc32c, dst_crc32c)
     self.assertEquals(_NA, dst_md5)
 
     # Test case where source is a file and dest has MD5 but not CRC32C.
-    (src_crc32c, src_md5, dst_crc32c, dst_md5) = _ComputeNeededFileChecksums(
-        logger, file_url_str, size, _NA, _NA, cloud_url_str, size, _NA, md5)
+    (src_crc32c, src_md5, dst_crc32c,
+     dst_md5) = _ComputeNeededFileChecksums(logger, file_url_str, size, _NA,
+                                            _NA, cloud_url_str, size, _NA, md5)
     self.assertEquals(_NA, src_crc32c)
     self.assertEquals(md5, src_md5)
     self.assertEquals(_NA, dst_crc32c)
     self.assertEquals(md5, dst_md5)
 
     # Test case where dest is a file and src has CRC32C.
-    (src_crc32c, src_md5, dst_crc32c, dst_md5) = _ComputeNeededFileChecksums(
-        logger, cloud_url_str, size, crc32c, _NA, file_url_str, size, _NA, _NA)
+    (src_crc32c, src_md5, dst_crc32c,
+     dst_md5) = _ComputeNeededFileChecksums(logger, cloud_url_str, size, crc32c,
+                                            _NA, file_url_str, size, _NA, _NA)
     self.assertEquals(crc32c, dst_crc32c)
     self.assertEquals(_NA, src_md5)
     self.assertEquals(crc32c, src_crc32c)
     self.assertEquals(_NA, src_md5)
 
     # Test case where dest is a file and src has MD5 but not CRC32C.
-    (src_crc32c, src_md5, dst_crc32c, dst_md5) = _ComputeNeededFileChecksums(
-        logger, cloud_url_str, size, _NA, md5, file_url_str, size, _NA, _NA)
+    (src_crc32c, src_md5, dst_crc32c,
+     dst_md5) = _ComputeNeededFileChecksums(logger, cloud_url_str, size, _NA,
+                                            md5, file_url_str, size, _NA, _NA)
     self.assertEquals(_NA, dst_crc32c)
     self.assertEquals(md5, src_md5)
     self.assertEquals(_NA, src_crc32c)

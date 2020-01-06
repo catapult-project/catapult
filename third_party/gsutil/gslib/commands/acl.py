@@ -15,9 +15,11 @@
 """Implementation of acl command for cloud storage providers."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from apitools.base.py import encoding
-from gslib import aclhelpers
 from gslib import metrics
 from gslib.cloud_api import AccessDeniedException
 from gslib.cloud_api import BadRequestException
@@ -32,10 +34,11 @@ from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
 from gslib.help_provider import CreateHelpText
 from gslib.storage_url import StorageUrlFromString
+from gslib.storage_url import UrlsAreForSingleProvider
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
-from gslib.util import NO_MAX
-from gslib.util import Retry
-from gslib.util import UrlsAreForSingleProvider
+from gslib.utils import acl_helper
+from gslib.utils.constants import NO_MAX
+from gslib.utils.retry_util import Retry
 
 _SET_SYNOPSIS = """
   gsutil acl set [-f] [-r] [-a] file-or-canned_acl_name url...
@@ -46,14 +49,14 @@ _GET_SYNOPSIS = """
 """
 
 _CH_SYNOPSIS = """
-  gsutil acl ch [-f] [-r] -u|-g|-d|-p <grant>... url...
+  gsutil acl ch [-f] [-r] <grant>... url...
 
   where each <grant> is one of the following forms:
 
     -u <id|email>:<perm>
     -g <id|email|domain|All|AllAuth>:<perm>
-    -p <viewers|editors|owners>-<project number>
-    -d <id|email|domain|All|AllAuth|<viewers|editors|owners>-<project number>>
+    -p <viewers|editors|owners>-<project number>:<perm>
+    -d <id|email|domain|All|AllAuth|<viewers|editors|owners>-<project number>>:<perm>
 """
 
 _GET_DESCRIPTION = """
@@ -72,9 +75,11 @@ _SET_DESCRIPTION = """
 
   If you want to make an object or bucket publicly readable or writable, it is
   recommended to use "acl ch", to avoid accidentally removing OWNER permissions.
-  See "gsutil help acl ch" for details.
+  See the "acl ch" section for details.
 
-  See "gsutil help acls" for a list of all canned ACLs.
+  See `Predefined ACLs
+  <https://cloud.google.com/storage/docs/access-control/lists#predefined-acl>`_
+  for a list of canned ACLs.
 
   If you want to define more fine-grained control over your data, you can
   retrieve an ACL using the "acl get" command, save the output to a file, edit
@@ -99,7 +104,7 @@ _SET_DESCRIPTION = """
     gsutil -m acl set acl.txt gs://bucket/*.jpg
 
   Note that multi-threading/multi-processing is only done when the named URLs
-  refer to objects, which happens either if you name specific objects or 
+  refer to objects, which happens either if you name specific objects or
   if you enumerate objects by using an object wildcard or specifying
   the acl -r flag.
 
@@ -107,16 +112,16 @@ _SET_DESCRIPTION = """
 <B>SET OPTIONS</B>
   The "set" sub-command has the following options
 
-    -R, -r      Performs "acl set" request recursively, to all objects under
-                the specified URL.
+  -R, -r      Performs "acl set" request recursively, to all objects under
+              the specified URL.
 
-    -a          Performs "acl set" request on all object versions.
+  -a          Performs "acl set" request on all object versions.
 
-    -f          Normally gsutil stops at the first error. The -f option causes
-                it to continue when it encounters errors. If some of the ACLs
-                couldn't be set, gsutil's exit status will be non-zero even if
-                this flag is set. This option is implicitly set when running
-                "gsutil -m acl...".
+  -f          Normally gsutil stops at the first error. The -f option causes
+              it to continue when it encounters errors. If some of the ACLs
+              couldn't be set, gsutil's exit status will be non-zero even if
+              this flag is set. This option is implicitly set when running
+              "gsutil -m acl...".
 """
 
 _CH_DESCRIPTION = """
@@ -173,9 +178,9 @@ _CH_DESCRIPTION = """
 
     gsutil acl ch -d viewers-12345 gs://example-bucket
 
-  NOTE: You cannot remove the project owners group from ACLs for gs:// buckets.
-  Attempts to do so will appear to succeed, but the service will add the project
-  owners group into the new set of ACLs before applying it.
+  NOTE: You cannot remove the project owners group from ACLs of gs:// buckets in
+  the given project. Attempts to do so will appear to succeed, but the service
+  will add the project owners group into the new set of ACLs before applying it.
 
   Note that removing a project requires you to reference the project by
   its number (which you can see with the acl get command) as opposed to its
@@ -193,7 +198,7 @@ _CH_DESCRIPTION = """
 
     gsutil acl ch -u foo@developer.gserviceaccount.com:W gs://example-bucket
 
-  Grant all users from the `Google Apps
+  Grant all users from the `G Suite
   <https://www.google.com/work/apps/business/>`_ domain my-domain.org READ
   access to the bucket gcs.my-domain.org:
 
@@ -255,21 +260,21 @@ _CH_DESCRIPTION = """
 <B>CH OPTIONS</B>
   The "ch" sub-command has the following options
 
-    -d          Remove all roles associated with the matching entity.
+  -d          Remove all roles associated with the matching entity.
 
-    -f          Normally gsutil stops at the first error. The -f option causes
-                it to continue when it encounters errors. With this option the
-                gsutil exit status will be 0 even if some ACLs couldn't be
-                changed.
+  -f          Normally gsutil stops at the first error. The -f option causes
+              it to continue when it encounters errors. With this option the
+              gsutil exit status will be 0 even if some ACLs couldn't be
+              changed.
 
-    -g          Add or modify a group entity's role.
+  -g          Add or modify a group entity's role.
 
-    -p          Add or modify a project viewers/editors/owners role.
+  -p          Add or modify a project viewers/editors/owners role.
 
-    -R, -r      Performs acl ch request recursively, to all objects under the
-                specified URL.
+  -R, -r      Performs acl ch request recursively, to all objects under the
+              specified URL.
 
-    -u          Add or modify a user entity's role.
+  -u          Add or modify a user entity's role.
 """
 
 _SYNOPSIS = (_SET_SYNOPSIS + _GET_SYNOPSIS.lstrip('\n') +
@@ -316,14 +321,9 @@ class AclCommand(Command):
               CommandArgument.MakeFileURLOrCannedACLArgument(),
               CommandArgument.MakeZeroOrMoreCloudURLsArgument()
           ],
-          'get': [
-              CommandArgument.MakeNCloudURLsArgument(1)
-          ],
-          'ch': [
-              CommandArgument.MakeZeroOrMoreCloudURLsArgument()
-          ],
-      }
-  )
+          'get': [CommandArgument.MakeNCloudURLsArgument(1)],
+          'ch': [CommandArgument.MakeZeroOrMoreCloudURLsArgument()],
+      })
   # Help specification. See help_provider.py for documentation.
   help_spec = Command.HelpSpec(
       help_name='acl',
@@ -332,7 +332,10 @@ class AclCommand(Command):
       help_one_line_summary='Get, set, or change bucket and/or object ACLs',
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={
-          'get': _get_help_text, 'set': _set_help_text, 'ch': _ch_help_text},
+          'get': _get_help_text,
+          'set': _set_help_text,
+          'ch': _ch_help_text
+      },
   )
 
   def _CalculateUrlsStartArg(self):
@@ -358,7 +361,7 @@ class AclCommand(Command):
           self.RaiseInvalidArgumentException()
     try:
       self.SetAclCommandHelper(SetAclFuncWrapper, SetAclExceptionHandler)
-    except AccessDeniedException, unused_e:
+    except AccessDeniedException as unused_e:
       self._WarnServiceAccounts()
       raise
     if not self.everything_set_okay:
@@ -380,24 +383,23 @@ class AclCommand(Command):
                 'Service accounts are considered users, not groups; please use '
                 '"gsutil acl ch -u" instead of "gsutil acl ch -g"')
           self.changes.append(
-              aclhelpers.AclChange(a, scope_type=aclhelpers.ChangeType.GROUP))
+              acl_helper.AclChange(a, scope_type=acl_helper.ChangeType.GROUP))
         elif o == '-p':
           self.changes.append(
-              aclhelpers.AclChange(a, scope_type=aclhelpers.ChangeType.PROJECT))
+              acl_helper.AclChange(a, scope_type=acl_helper.ChangeType.PROJECT))
         elif o == '-u':
           self.changes.append(
-              aclhelpers.AclChange(a, scope_type=aclhelpers.ChangeType.USER))
+              acl_helper.AclChange(a, scope_type=acl_helper.ChangeType.USER))
         elif o == '-d':
-          self.changes.append(aclhelpers.AclDel(a))
+          self.changes.append(acl_helper.AclDel(a))
         elif o == '-r' or o == '-R':
           self.recursion_requested = True
         else:
           self.RaiseInvalidArgumentException()
 
     if not self.changes:
-      raise CommandException(
-          'Please specify at least one access change '
-          'with the -g, -u, or -d flags')
+      raise CommandException('Please specify at least one access change '
+                             'with the -g, -u, or -d flags')
 
     if (not UrlsAreForSingleProvider(self.args) or
         StorageUrlFromString(self.args[0]).scheme != 'gs'):
@@ -406,9 +408,10 @@ class AclCommand(Command):
               self.command_name))
 
     self.everything_set_okay = True
-    self.ApplyAclFunc(
-        _ApplyAclChangesWrapper, _ApplyExceptionHandler,
-        self.args, object_fields=['acl', 'generation', 'metageneration'])
+    self.ApplyAclFunc(_ApplyAclChangesWrapper,
+                      _ApplyExceptionHandler,
+                      self.args,
+                      object_fields=['acl', 'generation', 'metageneration'])
     if not self.everything_set_okay:
       raise CommandException('ACLs for some objects could not be set.')
 
@@ -432,7 +435,8 @@ class AclCommand(Command):
 
     url = name_expansion_result.expanded_storage_url
     if url.IsBucket():
-      bucket = gsutil_api.GetBucket(url.bucket_name, provider=url.scheme,
+      bucket = gsutil_api.GetBucket(url.bucket_name,
+                                    provider=url.scheme,
                                     fields=['acl', 'metageneration'])
       current_acl = bucket.acl
     elif url.IsObject():
@@ -450,18 +454,23 @@ class AclCommand(Command):
       if url.IsBucket():
         preconditions = Preconditions(meta_gen_match=bucket.metageneration)
         bucket_metadata = apitools_messages.Bucket(acl=current_acl)
-        gsutil_api.PatchBucket(url.bucket_name, bucket_metadata,
+        gsutil_api.PatchBucket(url.bucket_name,
+                               bucket_metadata,
                                preconditions=preconditions,
-                               provider=url.scheme, fields=['id'])
+                               provider=url.scheme,
+                               fields=['id'])
       else:  # Object
         preconditions = Preconditions(gen_match=gcs_object.generation,
                                       meta_gen_match=gcs_object.metageneration)
         object_metadata = apitools_messages.Object(acl=current_acl)
         try:
-          gsutil_api.PatchObjectMetadata(
-              url.bucket_name, url.object_name, object_metadata,
-              preconditions=preconditions, provider=url.scheme,
-              generation=url.generation, fields=['id'])
+          gsutil_api.PatchObjectMetadata(url.bucket_name,
+                                         url.object_name,
+                                         object_metadata,
+                                         preconditions=preconditions,
+                                         provider=url.scheme,
+                                         generation=url.generation,
+                                         fields=['id'])
         except PreconditionException as e:
           # Special retry case where we want to do an additional step, the read
           # of the read-modify-write cycle, to fetch the correct object
@@ -485,7 +494,9 @@ class AclCommand(Command):
   def _RefetchObjectMetadataAndApplyAclChanges(self, url, gsutil_api):
     """Reattempts object ACL changes after a PreconditionException."""
     gcs_object = gsutil_api.GetObjectMetadata(
-        url.bucket_name, url.object_name, provider=url.scheme,
+        url.bucket_name,
+        url.object_name,
+        provider=url.scheme,
         fields=['acl', 'generation', 'metageneration'])
     current_acl = gcs_object.acl
 
@@ -496,16 +507,19 @@ class AclCommand(Command):
     object_metadata = apitools_messages.Object(acl=current_acl)
     preconditions = Preconditions(gen_match=gcs_object.generation,
                                   meta_gen_match=gcs_object.metageneration)
-    gsutil_api.PatchObjectMetadata(
-        url.bucket_name, url.object_name, object_metadata,
-        preconditions=preconditions, provider=url.scheme,
-        generation=gcs_object.generation, fields=['id'])
+    gsutil_api.PatchObjectMetadata(url.bucket_name,
+                                   url.object_name,
+                                   object_metadata,
+                                   preconditions=preconditions,
+                                   provider=url.scheme,
+                                   generation=gcs_object.generation,
+                                   fields=['id'])
 
   def _ApplyAclChangesAndReturnChangeCount(self, storage_url, acl_message):
     modification_count = 0
     for change in self.changes:
-      modification_count += change.Execute(
-          storage_url, acl_message, 'acl', self.logger)
+      modification_count += change.Execute(storage_url, acl_message, 'acl',
+                                           self.logger)
     return modification_count
 
   def RunCommand(self):
@@ -527,8 +541,8 @@ class AclCommand(Command):
       metrics.LogCommandParams(subcommands=[action_subcommand])
       self._ChAcl()
     else:
-      raise CommandException(('Invalid subcommand "%s" for the %s command.\n'
-                              'See "gsutil help acl".') %
-                             (action_subcommand, self.command_name))
+      raise CommandException(
+          ('Invalid subcommand "%s" for the %s command.\n'
+           'See "gsutil help acl".') % (action_subcommand, self.command_name))
 
     return 0

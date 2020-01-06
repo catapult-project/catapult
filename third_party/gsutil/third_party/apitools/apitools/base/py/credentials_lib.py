@@ -203,7 +203,7 @@ def ServiceAccountCredentialsFromP12File(
         return credentials
     else:
         # oauth2client < 2.0.0
-        with open(private_key_filename) as key_file:
+        with open(private_key_filename, 'rb') as key_file:
             return oauth2client.client.SignedJwtAssertionCredentials(
                 service_account_name, key_file.read(), scopes,
                 user_agent=user_agent)
@@ -250,7 +250,9 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
         # identified these scopes in the same execution. However, the
         # available scopes don't change once an instance is created,
         # so there is no reason to perform more than one query.
-        self.__service_account_name = service_account_name
+        self.__service_account_name = six.ensure_text(
+            service_account_name,
+            encoding='utf-8',)
         cached_scopes = None
         cache_filename = kwds.get('cache_filename')
         if cache_filename:
@@ -317,7 +319,8 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
           scopes: Scopes for the desired credentials.
         """
         # Credentials metadata dict.
-        creds = {'scopes': sorted(list(scopes)),
+        scopes = sorted([six.ensure_text(scope) for scope in scopes])
+        creds = {'scopes': scopes,
                  'svc_acct_name': self.__service_account_name}
         creds_str = json.dumps(creds)
         cache_file = _MultiProcessCacheFile(cache_filename)
@@ -352,7 +355,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
     def GetServiceAccount(self, account):
         relative_url = 'instance/service-accounts'
         response = _GceMetadataRequest(relative_url)
-        response_lines = [line.rstrip('/\n\r')
+        response_lines = [six.ensure_str(line).rstrip(u'/\n\r')
                           for line in response.readlines()]
         return account in response_lines
 
@@ -360,7 +363,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
         relative_url = 'instance/service-accounts/{0}/scopes'.format(
             self.__service_account_name)
         response = _GceMetadataRequest(relative_url)
-        return util.NormalizeScopes(scope.strip()
+        return util.NormalizeScopes(six.ensure_str(scope).strip()
                                     for scope in response.readlines())
 
     # pylint: disable=arguments-differ
@@ -393,7 +396,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
             if self.store:
                 self.store.locked_put(self)
             raise
-        content = response.read()
+        content = six.ensure_str(response.read())
         try:
             credential_info = json.loads(content)
         except ValueError:
@@ -708,7 +711,7 @@ def GetUserinfo(credentials, http=None):  # pylint: disable=invalid-name
 
 
 def _GetUserinfoUrl(credentials):
-    url_root = 'https://www.googleapis.com/oauth2/v2/tokeninfo'
+    url_root = 'https://oauth2.googleapis.com/tokeninfo'
     query_args = {'access_token': credentials.access_token}
     return '?'.join((url_root, urllib.parse.urlencode(query_args)))
 

@@ -115,6 +115,8 @@ class ApiMethodInfo(messages.Message):
     request_field = messages.StringField(11, default='')
     upload_config = messages.MessageField(ApiUploadInfo, 12)
     supports_download = messages.BooleanField(13, default=False)
+
+
 REQUEST_IS_BODY = '<request>'
 
 
@@ -239,7 +241,8 @@ class BaseApiClient(object):
                  model=None, log_request=False, log_response=False,
                  num_retries=5, max_retry_wait=60, credentials_args=None,
                  default_global_params=None, additional_http_headers=None,
-                 check_response_func=None, retry_func=None):
+                 check_response_func=None, retry_func=None,
+                 response_encoding=None):
         _RequireClassAttrs(self, ('_package', '_scopes', 'messages_module'))
         if default_global_params is not None:
             util.Typecheck(default_global_params, self.params_type)
@@ -267,6 +270,7 @@ class BaseApiClient(object):
         self.additional_http_headers = additional_http_headers or {}
         self.check_response_func = check_response_func
         self.retry_func = retry_func
+        self.response_encoding = response_encoding
 
         # TODO(craigcitro): Finish deprecating these fields.
         _ = model
@@ -594,6 +598,7 @@ class BaseApiService(object):
     def __ProcessHttpResponse(self, method_config, http_response, request):
         """Process the given http response."""
         if http_response.status_code not in (http_client.OK,
+                                             http_client.CREATED,
                                              http_client.NO_CONTENT):
             raise exceptions.HttpError.FromResponse(
                 http_response, method_config=method_config, request=request)
@@ -603,12 +608,16 @@ class BaseApiService(object):
             http_response = http_wrapper.Response(
                 info=http_response.info, content='{}',
                 request_url=http_response.request_url)
+
+        content = http_response.content
+        if self._client.response_encoding and isinstance(content, bytes):
+            content = content.decode(self._client.response_encoding)
+
         if self.__client.response_type_model == 'json':
-            return http_response.content
+            return content
         response_type = _LoadClass(method_config.response_type_name,
                                    self.__client.MESSAGES_MODULE)
-        return self.__client.DeserializeMessage(
-            response_type, http_response.content)
+        return self.__client.DeserializeMessage(response_type, content)
 
     def __SetBaseHeaders(self, http_request, client):
         """Fill in the basic headers on http_request."""

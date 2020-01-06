@@ -14,20 +14,26 @@
 # limitations under the License.
 """Defines a Metric object used for sending information to Google Analytics."""
 
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+
 from collections import namedtuple
 
 # A Metric contains all of the information required to post a GA event. It is
 # not a custom metric, which is a GA term for a specific number to track on the
 # Analytics dashboard. This is not nested within MetricsCollector to allow
 # pickle to dump a list of Metrics.
-Metric = namedtuple('Metric', [
-    # The URL of the request endpoint.
-    'endpoint',
-    # The HTTP method of request.
-    'method',
-    # The URL-encoded body to send with the request.
-    'body',
-    # The user-agent string to send as a header.
-    'user_agent'
-])
-
+Metric = namedtuple(
+    'Metric',
+    [
+        # The URL of the request endpoint.
+        'endpoint',
+        # The HTTP method of request.
+        'method',
+        # The URL-encoded body to send with the request.
+        'body',
+        # The user-agent string to send as a header.
+        'user_agent',
+    ])

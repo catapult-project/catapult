@@ -451,7 +451,7 @@ class UploadTest(unittest2.TestCase):
         # Ensure data is compressed
         self.assertLess(len(self.request.body), len(self.sample_data))
         # Ensure uncompressed data includes the sample data.
-        with gzip.GzipFile(fileobj=self.request.body) as f:
+        with gzip.GzipFile(fileobj=six.BytesIO(self.request.body)) as f:
             original = f.read()
             self.assertTrue(self.sample_data in original)
 
@@ -479,7 +479,7 @@ class UploadTest(unittest2.TestCase):
         # Ensure data is compressed
         self.assertLess(len(self.request.body), len(self.sample_data))
         # Ensure uncompressed data includes the sample data.
-        with gzip.GzipFile(fileobj=self.request.body) as f:
+        with gzip.GzipFile(fileobj=six.BytesIO(self.request.body)) as f:
             original = f.read()
             self.assertTrue(self.sample_data in original)
 

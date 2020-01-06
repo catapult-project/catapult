@@ -14,8 +14,16 @@
 # limitations under the License.
 """Integration tests for kms command."""
 
-from random import randint
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
+from random import randint
+import mock
+import unittest
+
+from gslib.cloud_api import AccessDeniedException
 from gslib.project_id import PopulateProjectId
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForJSON
@@ -23,7 +31,7 @@ from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.testcase.integration_testcase import SkipForXML
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import SetBotoConfigForTest
-from gslib.util import Retry
+from gslib.utils.retry_util import Retry
 
 
 @SkipForS3('gsutil does not support KMS operations for S3 buckets.')
@@ -37,7 +45,8 @@ class TestKmsSuccessCases(testcase.GsUtilIntegrationTestCase):
     # attempts will receive a 409 and be treated as a success). Save the fully
     # qualified name for use with creating keys later.
     self.keyring_fqn = self.kms_api.CreateKeyRing(
-        PopulateProjectId(None), testcase.KmsTestingResources.KEYRING_NAME,
+        PopulateProjectId(None),
+        testcase.KmsTestingResources.KEYRING_NAME,
         location=testcase.KmsTestingResources.KEYRING_LOCATION)
 
   @Retry(AssertionError, tries=3, timeout_secs=1)
@@ -63,13 +72,11 @@ class TestKmsSuccessCases(testcase.GsUtilIntegrationTestCase):
     stdout2 = self.RunGsUtil(authorize_cmd, return_stdout=True)
 
     self.assertIn(
-        'Authorized project %s to encrypt and decrypt with key:\n%s' % (
-            PopulateProjectId(None), key_fqn),
-        stdout1)
+        'Authorized project %s to encrypt and decrypt with key:\n%s' %
+        (PopulateProjectId(None), key_fqn), stdout1)
     self.assertIn(
         ('Project %s was already authorized to encrypt and decrypt with '
-         'key:\n%s.' % (PopulateProjectId(None), key_fqn)),
-        stdout2)
+         'key:\n%s.' % (PopulateProjectId(None), key_fqn)), stdout2)
 
   def DoTestServiceaccount(self, specified_project=None):
     serviceaccount_cmd = ['kms', 'serviceaccount']
@@ -78,9 +85,8 @@ class TestKmsSuccessCases(testcase.GsUtilIntegrationTestCase):
 
     stdout = self.RunGsUtil(serviceaccount_cmd, return_stdout=True)
 
-    self.assertRegexpMatches(
-        stdout,
-        r'[^@]+@gs-project-accounts\.iam\.gserviceaccount\.com')
+    self.assertRegex(stdout,
+                     r'[^@]+@gs-project-accounts\.iam\.gserviceaccount\.com')
 
   def testKmsAuthorizeWithoutProjectOption(self):
     self.DoTestAuthorize()
@@ -113,7 +119,8 @@ class TestKmsSuccessCases(testcase.GsUtilIntegrationTestCase):
     # Test that setting a bucket's default KMS key works and shows up correctly
     # via a follow-up call to display it.
     stdout = self.RunGsUtil(
-        ['kms', 'encryption', '-k', key_fqn, suri(bucket_uri)],
+        ['kms', 'encryption', '-k', key_fqn,
+         suri(bucket_uri)],
         return_stdout=True)
     self.assertIn('Setting default KMS key for bucket %s...' % suri(bucket_uri),
                   stdout)
@@ -125,11 +132,10 @@ class TestKmsSuccessCases(testcase.GsUtilIntegrationTestCase):
 
     # Finally, remove the bucket's default KMS key and make sure a follow-up
     # call to display it shows that no default key is set.
-    stdout = self.RunGsUtil(['kms', 'encryption', '-d', suri(bucket_uri)],
-                            return_stdout=True)
+    stdout = self.RunGsUtil(
+        ['kms', 'encryption', '-d', suri(bucket_uri)], return_stdout=True)
     self.assertIn(
-        'Clearing default encryption key for %s...' % suri(bucket_uri),
-        stdout)
+        'Clearing default encryption key for %s...' % suri(bucket_uri), stdout)
 
     stdout = self.RunGsUtil(encryption_get_cmd, return_stdout=True)
     self.assertIn('Bucket %s has no default encryption key' % suri(bucket_uri),
@@ -179,3 +185,65 @@ class TestKmsSubcommandsFailWhenXmlForced(testcase.GsUtilIntegrationTestCase):
     self.DoTestSubcommandFailsWhenXmlForcedFromHmacInBotoConfig(
         ['kms', 'authorize', '-k', self.dummy_keyname, 'gs://dummybucket'])
 
+
+class TestKmsUnitTests(testcase.GsUtilUnitTestCase):
+  """Unit tests for gsutil kms."""
+
+  dummy_keyname = ('projects/my-project/locations/global/'
+                   'keyRings/my-keyring/cryptoKeys/my-key')
+
+  @mock.patch('gslib.boto_translation.CloudApi.GetProjectServiceAccount')
+  @mock.patch('gslib.boto_translation.CloudApi.PatchBucket')
+  @mock.patch('gslib.kms_api.KmsApi.GetKeyIamPolicy')
+  @mock.patch('gslib.kms_api.KmsApi.SetKeyIamPolicy')
+  def testEncryptionSetKeySucceedsWhenUpdateKeyPolicySucceeds(
+      self, mock_set_key_iam_policy, mock_get_key_iam_policy, mock_patch_bucket,
+      mock_get_project_service_account):
+    bucket_uri = self.CreateBucket()
+    mock_get_key_iam_policy.return_value.bindings = []
+    mock_get_project_service_account.return_value.email_address = 'dummy@google.com'
+
+    stdout = self.RunCommand(
+        'kms', ['encryption', '-k', self.dummy_keyname,
+                suri(bucket_uri)],
+        return_stdout=True)
+    self.assertIn(b'Setting default KMS key for bucket', stdout)
+
+  @mock.patch('gslib.boto_translation.CloudApi.GetProjectServiceAccount')
+  @mock.patch('gslib.boto_translation.CloudApi.PatchBucket')
+  @mock.patch('gslib.kms_api.KmsApi.GetKeyIamPolicy')
+  @mock.patch('gslib.kms_api.KmsApi.SetKeyIamPolicy')
+  def testEncryptionSetKeySucceedsWhenUpdateKeyPolicyFailsWithWarningFlag(
+      self, mock_set_key_iam_policy, mock_get_key_iam_policy, mock_patch_bucket,
+      mock_get_project_service_account):
+    bucket_uri = self.CreateBucket()
+    mock_get_key_iam_policy.side_effect = AccessDeniedException(
+        'Permission denied')
+    mock_get_project_service_account.return_value.email_address = 'dummy@google.com'
+
+    stdout = self.RunCommand(
+        'kms', ['encryption', '-k', self.dummy_keyname, '-w',
+                suri(bucket_uri)],
+        return_stdout=True)
+    self.assertIn(b'Setting default KMS key for bucket', stdout)
+
+  @mock.patch('gslib.boto_translation.CloudApi.GetProjectServiceAccount')
+  @mock.patch('gslib.boto_translation.CloudApi.PatchBucket')
+  @mock.patch('gslib.kms_api.KmsApi.GetKeyIamPolicy')
+  @mock.patch('gslib.kms_api.KmsApi.SetKeyIamPolicy')
+  def testEncryptionSetKeyFailsWhenUpdateKeyPolicyFailsWithoutWarningFlag(
+      self, mock_set_key_iam_policy, mock_get_key_iam_policy, mock_patch_bucket,
+      mock_get_project_service_account):
+    bucket_uri = self.CreateBucket()
+    mock_get_key_iam_policy.side_effect = AccessDeniedException(
+        'Permission denied')
+    mock_get_project_service_account.return_value.email_address = 'dummy@google.com'
+
+    try:
+      stdout = self.RunCommand(
+          'kms', ['encryption', '-k', self.dummy_keyname,
+                  suri(bucket_uri)],
+          return_stdout=True)
+      self.fail('Did not get expected AccessDeniedException')
+    except AccessDeniedException as e:
+      self.assertIn('Permission denied', e.reason)

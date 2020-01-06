@@ -15,6 +15,9 @@
 """Implementation of rb command for deleting cloud storage buckets."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from gslib.cloud_api import NotEmptyException
 from gslib.command import Command
@@ -23,8 +26,7 @@ from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
 from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.storage_url import StorageUrlFromString
-from gslib.util import NO_MAX
-
+from gslib.utils.constants import NO_MAX
 
 _SYNOPSIS = """
   gsutil rb [-f] url...
@@ -59,7 +61,11 @@ class RbCommand(Command):
   command_spec = Command.CreateCommandSpec(
       'rb',
       command_name_aliases=[
-          'deletebucket', 'removebucket', 'removebuckets', 'rmdir'],
+          'deletebucket',
+          'removebucket',
+          'removebuckets',
+          'rmdir',
+      ],
       usage_synopsis=_SYNOPSIS,
       min_args=1,
       max_args=NO_MAX,
@@ -67,17 +73,24 @@ class RbCommand(Command):
       file_url_ok=False,
       provider_url_ok=False,
       urls_start_arg=0,
-      gs_api_support=[ApiSelector.XML, ApiSelector.JSON],
+      gs_api_support=[
+          ApiSelector.XML,
+          ApiSelector.JSON,
+      ],
       gs_default_api=ApiSelector.JSON,
       argparse_arguments=[
-          CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument()
-      ]
+          CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument(),
+      ],
   )
   # Help specification. See help_provider.py for documentation.
   help_spec = Command.HelpSpec(
       help_name='rb',
       help_name_aliases=[
-          'deletebucket', 'removebucket', 'removebuckets', 'rmdir'],
+          'deletebucket',
+          'removebucket',
+          'removebuckets',
+          'rmdir',
+      ],
       help_type='command_help',
       help_one_line_summary='Remove buckets',
       help_text=_DETAILED_HELP_TEXT,
@@ -141,4 +154,3 @@ class RbCommand(Command):
     if not did_some_work:
       raise CommandException(NO_URLS_MATCHED_TARGET % list(self.args))
     return 1 if some_failed else 0
-

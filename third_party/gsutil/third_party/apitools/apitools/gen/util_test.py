@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Copyright 2015 Google Inc.
 #
@@ -14,9 +16,15 @@
 # limitations under the License.
 
 """Tests for util."""
+import codecs
+import gzip
+import os
+import six.moves.urllib.request as urllib_request
+import tempfile
 import unittest2
 
 from apitools.gen import util
+from mock import patch
 
 
 class NormalizeVersionTest(unittest2.TestCase):
@@ -37,3 +45,55 @@ class NamesTest(unittest2.TestCase):
     def testNormalizeEnumName(self):
         names = util.Names([''])
         self.assertEqual('_0', names.NormalizeEnumName('0'))
+
+
+class MockRequestResponse():
+    """Mocks the behavior of urllib.response."""
+
+    class MockRequestEncoding():
+        def __init__(self, encoding):
+            self.encoding = encoding
+
+        def get(self, _):
+            return self.encoding
+
+    def __init__(self, content, encoding):
+        self.content = content
+        self.encoding = MockRequestResponse.MockRequestEncoding(encoding)
+
+    def info(self):
+        return self.encoding
+
+    def read(self):
+        return self.content
+
+
+def _Gzip(raw_content):
+    """Returns gzipped content from any content."""
+    f = tempfile.NamedTemporaryFile(suffix='gz', mode='wb', delete=False)
+    f.close()
+    try:
+        with gzip.open(f.name, 'wb') as h:
+            h.write(raw_content)
+        with open(f.name, 'rb') as h:
+            return h.read()
+    finally:
+        os.unlink(f.name)
+
+
+class GetURLContentTest(unittest2.TestCase):
+
+    def testUnspecifiedContentEncoding(self):
+        data = 'regular non-gzipped content'
+        with patch.object(urllib_request, 'urlopen',
+                          return_value=MockRequestResponse(data, '')):
+            self.assertEqual(data, util._GetURLContent('unused_url_parameter'))
+
+    def testGZippedContent(self):
+        data = u'¿Hola qué tal?'
+        compressed_data = _Gzip(data.encode('utf-8'))
+        with patch.object(urllib_request, 'urlopen',
+                          return_value=MockRequestResponse(
+                              compressed_data, 'gzip')):
+            self.assertEqual(data, util._GetURLContent(
+                'unused_url_parameter').decode('utf-8'))

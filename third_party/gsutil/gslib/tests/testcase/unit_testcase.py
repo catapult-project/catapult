@@ -15,13 +15,19 @@
 """Contains gsutil base unit test case class."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import logging
 import os
 import sys
 import tempfile
 
+import six
+
 import boto
+from boto.utils import get_utf8able_str
 from gslib import project_id
 from gslib import wildcard_iterator
 from gslib.boto_translation import BotoTranslation
@@ -29,12 +35,29 @@ from gslib.cloud_api_delegator import CloudApiDelegator
 from gslib.command_runner import CommandRunner
 from gslib.cs_api_map import ApiMapConstants
 from gslib.cs_api_map import ApiSelector
+from gslib.discard_messages_queue import DiscardMessagesQueue
 from gslib.tests.mock_logging_handler import MockLoggingHandler
 from gslib.tests.testcase import base
 import gslib.tests.util as util
 from gslib.tests.util import unittest
 from gslib.tests.util import WorkingDirectory
-from gslib.util import DiscardMessagesQueue
+from gslib.utils.constants import UTF8
+from gslib.utils.text_util import print_to_fd
+
+
+def _AttemptToCloseSysFd(fd):
+  """Suppress IOError when closing sys.stdout or sys.stderr in tearDown."""
+  # In PY2, if another sibling thread/process tried closing it at the same
+  # time we did, it succeeded either way, so we just continue. This approach
+  # was taken from https://github.com/pytest-dev/pytest/pull/3305.
+  if not six.PY2:  # This doesn't happen in PY3, AFAICT.
+    fd.close()
+    return
+
+  try:
+    fd.close()
+  except IOError:
+    pass
 
 
 class GsutilApiUnitTestClassMapFactory(object):
@@ -51,18 +74,12 @@ class GsutilApiUnitTestClassMapFactory(object):
         ApiSelector.XML: BotoTranslation,
         ApiSelector.JSON: BotoTranslation
     }
-    s3_class_map = {
-        ApiSelector.XML: BotoTranslation
-    }
-    class_map = {
-        'gs': gs_class_map,
-        's3': s3_class_map
-    }
+    s3_class_map = {ApiSelector.XML: BotoTranslation}
+    class_map = {'gs': gs_class_map, 's3': s3_class_map}
     return class_map
 
 
-@unittest.skipUnless(util.RUN_UNIT_TESTS,
-                     'Not running integration tests.')
+@unittest.skipUnless(util.RUN_UNIT_TESTS, 'Not running integration tests.')
 class GsUtilUnitTestCase(base.GsUtilTestCase):
   """Base class for gsutil unit tests."""
 
@@ -85,8 +102,9 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
     self.stdout_save = sys.stdout
     self.stderr_save = sys.stderr
     fd, self.stdout_file = tempfile.mkstemp()
-    sys.stdout = os.fdopen(fd, 'w+')
+    sys.stdout = os.fdopen(fd, 'wb+')
     fd, self.stderr_file = tempfile.mkstemp()
+    # do not set sys.stderr to be 'wb+' - it will blow up the logger
     sys.stderr = os.fdopen(fd, 'w+')
     self.accumulated_stdout = []
     self.accumulated_stderr = []
@@ -112,33 +130,54 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
 
     sys.stdout.seek(0)
     sys.stderr.seek(0)
-    stdout = sys.stdout.read()
-    stderr = sys.stderr.read()
+    if six.PY2:
+      stdout = sys.stdout.read()
+      stderr = sys.stderr.read()
+    else:
+      try:
+        stdout = sys.stdout.read()
+        stderr = sys.stderr.read()
+      except UnicodeDecodeError:
+        sys.stdout.seek(0)
+        sys.stderr.seek(0)
+        stdout = sys.stdout.buffer.read()
+        stderr = sys.stderr.buffer.read()
+    [six.ensure_text(string) for string in self.accumulated_stderr]
+    [six.ensure_text(string) for string in self.accumulated_stdout]
+    stdout = six.ensure_text(get_utf8able_str(stdout))
+    stderr = six.ensure_text(get_utf8able_str(stderr))
     stdout += ''.join(self.accumulated_stdout)
     stderr += ''.join(self.accumulated_stderr)
-    sys.stdout.close()
-    sys.stderr.close()
+    _AttemptToCloseSysFd(sys.stdout)
+    _AttemptToCloseSysFd(sys.stderr)
     sys.stdout = self.stdout_save
     sys.stderr = self.stderr_save
     os.unlink(self.stdout_file)
     os.unlink(self.stderr_file)
 
+    _id = six.ensure_text(self.id())
     if self.is_debugging and stdout:
-      sys.stderr.write('==== stdout %s ====\n' % self.id())
-      sys.stderr.write(stdout)
-      sys.stderr.write('==== end stdout ====\n')
+      print_to_fd('==== stdout {} ====\n'.format(_id), file=sys.stderr)
+      print_to_fd(stdout, file=sys.stderr)
+      print_to_fd('==== end stdout ====\n', file=sys.stderr)
     if self.is_debugging and stderr:
-      sys.stderr.write('==== stderr %s ====\n' % self.id())
-      sys.stderr.write(stderr)
-      sys.stderr.write('==== end stderr ====\n')
+      print_to_fd('==== stderr {} ====\n'.format(_id), file=sys.stderr)
+      print_to_fd(stderr, file=sys.stderr)
+      print_to_fd('==== end stderr ====\n', file=sys.stderr)
     if self.is_debugging and log_output:
-      sys.stderr.write('==== log output %s ====\n' % self.id())
-      sys.stderr.write(log_output)
-      sys.stderr.write('==== end log output ====\n')
+      print_to_fd('==== log output {} ====\n'.format(_id), file=sys.stderr)
+      print_to_fd(log_output, file=sys.stderr)
+      print_to_fd('==== end log output ====\n', file=sys.stderr)
 
-  def RunCommand(self, command_name, args=None, headers=None, debug=0,
-                 return_stdout=False, return_stderr=False,
-                 return_log_handler=False, cwd=None):
+  def RunCommand(self,
+                 command_name,
+                 args=None,
+                 headers=None,
+                 debug=0,
+                 return_stdout=False,
+                 return_stderr=False,
+                 return_log_handler=False,
+                 cwd=None):
     """Method for calling gslib.command_runner.CommandRunner.
 
     Passes parallel_operations=False for all tests, optionally saving/returning
@@ -164,12 +203,17 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
     Returns:
       One or a tuple of requested return values, depending on whether
       return_stdout, return_stderr, and/or return_log_handler were specified.
+      Return Types:
+        stdout - binary
+        stderr - str (binary in Py2, text in Py3)
+        log_handler - MockLoggingHandler
     """
     args = args or []
 
-    command_line = ' '.join([command_name] + args)
+    command_line = six.ensure_text(' '.join([command_name] + args))
     if self.is_debugging:
-      self.stderr_save.write('\nRunCommand of %s\n' % command_line)
+      print_to_fd('\nRunCommand of {}\n'.format(command_line),
+                  file=self.stderr_save)
 
     # Save and truncate stdout and stderr for the lifetime of RunCommand. This
     # way, we can return just the stdout and stderr that was output during the
@@ -189,39 +233,59 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
 
     mock_log_handler = MockLoggingHandler()
     logging.getLogger(command_name).addHandler(mock_log_handler)
+    if debug:
+      logging.getLogger(command_name).setLevel(logging.DEBUG)
 
     try:
       with WorkingDirectory(cwd):
-        self.command_runner.RunNamedCommand(
-            command_name, args=args, headers=headers, debug=debug,
-            parallel_operations=False, do_shutdown=False)
+        self.command_runner.RunNamedCommand(command_name,
+                                            args=args,
+                                            headers=headers,
+                                            debug=debug,
+                                            parallel_operations=False,
+                                            do_shutdown=False)
     finally:
       sys.stdout.seek(0)
-      stdout = sys.stdout.read()
       sys.stderr.seek(0)
-      stderr = sys.stderr.read()
+      if six.PY2:
+        stdout = sys.stdout.read()
+        stderr = sys.stderr.read()
+      else:
+        try:
+          stdout = sys.stdout.read()
+          stderr = sys.stderr.read()
+        except UnicodeDecodeError:
+          sys.stdout.seek(0)
+          sys.stderr.seek(0)
+          stdout = sys.stdout.buffer.read().decode(UTF8)
+          stderr = sys.stderr.buffer.read().decode(UTF8)
       logging.getLogger(command_name).removeHandler(mock_log_handler)
       mock_log_handler.close()
 
       log_output = '\n'.join(
           '%s:\n  ' % level + '\n  '.join(records)
-          for level, records in mock_log_handler.messages.iteritems()
+          for level, records in six.iteritems(mock_log_handler.messages)
           if records)
+
+      _id = six.ensure_text(self.id())
       if self.is_debugging and log_output:
-        self.stderr_save.write(
-            '==== logging RunCommand %s %s ====\n' % (self.id(), command_line))
-        self.stderr_save.write(log_output)
-        self.stderr_save.write('\n==== end logging ====\n')
+        print_to_fd('==== logging RunCommand {} {} ====\n'.format(
+            _id, command_line),
+                    file=self.stderr_save)
+        print_to_fd(log_output, file=self.stderr_save)
+        print_to_fd('\n==== end logging ====\n', file=self.stderr_save)
       if self.is_debugging and stdout:
-        self.stderr_save.write(
-            '==== stdout RunCommand %s %s ====\n' % (self.id(), command_line))
-        self.stderr_save.write(stdout)
-        self.stderr_save.write('==== end stdout ====\n')
+        print_to_fd('==== stdout RunCommand {} {} ====\n'.format(
+            _id, command_line),
+                    file=self.stderr_save)
+        print_to_fd(stdout, file=self.stderr_save)
+        print_to_fd('==== end stdout ====\n', file=self.stderr_save)
       if self.is_debugging and stderr:
-        self.stderr_save.write(
-            '==== stderr RunCommand %s %s ====\n' % (self.id(), command_line))
-        self.stderr_save.write(stderr)
-        self.stderr_save.write('==== end stderr ====\n')
+        print_to_fd('==== stderr RunCommand {} {} ====\n'.format(
+            _id, command_line),
+                    file=self.stderr_save)
+        print_to_fd(stderr, file=self.stderr_save)
+        print_to_fd('==== end stderr ====\n', file=self.stderr_save)
 
       # Reset stdout and stderr files, so that we won't print them out again
       # in tearDown if debugging is enabled.
@@ -244,8 +308,8 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
   @classmethod
   def MakeGsUtilApi(cls, debug=0):
     gsutil_api_map = {
-        ApiMapConstants.API_MAP: (
-            cls.mock_gsutil_api_class_map_factory.GetClassMap()),
+        ApiMapConstants.API_MAP:
+            (cls.mock_gsutil_api_class_map_factory.GetClassMap()),
         ApiMapConstants.SUPPORT_MAP: {
             'gs': [ApiSelector.XML, ApiSelector.JSON],
             's3': [ApiSelector.XML]
@@ -256,9 +320,11 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
         }
     }
 
-    return CloudApiDelegator(
-        cls.mock_bucket_storage_uri, gsutil_api_map, cls.logger,
-        DiscardMessagesQueue(), debug=debug)
+    return CloudApiDelegator(cls.mock_bucket_storage_uri,
+                             gsutil_api_map,
+                             cls.logger,
+                             DiscardMessagesQueue(),
+                             debug=debug)
 
   @classmethod
   def _test_wildcard_iterator(cls, uri_or_str, debug=0):
@@ -284,12 +350,11 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
     if hasattr(uri_or_str, 'uri'):
       uri_string = uri_or_str.uri
 
-    return wildcard_iterator.CreateWildcardIterator(
-        uri_string, cls.MakeGsUtilApi())
+    return wildcard_iterator.CreateWildcardIterator(uri_string,
+                                                    cls.MakeGsUtilApi())
 
   @staticmethod
-  def _test_storage_uri(uri_str, default_scheme='file', debug=0,
-                        validate=True):
+  def _test_storage_uri(uri_str, default_scheme='file', debug=0, validate=True):
     """Convenience method for instantiating a testing instance of StorageUri.
 
     This makes it unnecessary to specify
@@ -312,7 +377,10 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
     return boto.storage_uri(uri_str, default_scheme, debug, validate,
                             util.GSMockBucketStorageUri)
 
-  def CreateBucket(self, bucket_name=None, test_objects=0, storage_class=None,
+  def CreateBucket(self,
+                   bucket_name=None,
+                   test_objects=0,
+                   storage_class=None,
                    provider='gs'):
     """Creates a test bucket.
 
@@ -342,8 +410,9 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
     except TypeError:
       test_objects = [self.MakeTempName('obj') for _ in range(test_objects)]
     for i, name in enumerate(test_objects):
-      self.CreateObject(bucket_uri=bucket_uri, object_name=name,
-                        contents='test %d' % i)
+      self.CreateObject(bucket_uri=bucket_uri,
+                        object_name=name,
+                        contents='test {}'.format(i).encode(UTF8))
     return bucket_uri
 
   def CreateObject(self, bucket_uri=None, object_name=None, contents=None):

@@ -21,10 +21,27 @@
 # IN THE SOFTWARE.
 """Tests for media helper functions and classes for GCS JSON API."""
 
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+
 from gslib.gcs_json_media import BytesTransferredContainer
 from gslib.gcs_json_media import UploadCallbackConnectionClassFactory
 import gslib.tests.testcase as testcase
-import mock
+import six
+
+from six import add_move, MovedModule
+add_move(MovedModule('mock', 'mock', 'unittest.mock'))
+from six.moves import mock
+
+# Assigning string representations of the appropriate package, used for
+# '@mock.patch` methods that take a string in the following format:
+# "package.module.ClassName"
+if six.PY2:
+  https_connection = 'httplib.HTTPSConnection'
+else:
+  https_connection = 'http.client.HTTPSConnection'
 
 
 class TestUploadCallbackConnection(testcase.GsUtilUnitTestCase):
@@ -34,11 +51,13 @@ class TestUploadCallbackConnection(testcase.GsUtilUnitTestCase):
     super(TestUploadCallbackConnection, self).setUp()
     self.bytes_container = BytesTransferredContainer()
     self.class_factory = UploadCallbackConnectionClassFactory(
-        self.bytes_container, buffer_size=50, total_size=100,
+        self.bytes_container,
+        buffer_size=50,
+        total_size=100,
         progress_callback='Sample')
     self.instance = self.class_factory.GetConnectionClass()('host')
 
-  @mock.patch('httplib.HTTPSConnection')
+  @mock.patch(https_connection)
   def testHeaderDefaultBehavior(self, mock_conn):
     """Test the size modifier is correct under expected headers."""
     mock_conn.putheader.return_value = None
@@ -48,7 +67,7 @@ class TestUploadCallbackConnection(testcase.GsUtilUnitTestCase):
     # Ensure the modifier is as expected.
     self.assertAlmostEqual(self.instance.size_modifier, 10.5)
 
-  @mock.patch('httplib.HTTPSConnection')
+  @mock.patch(https_connection)
   def testHeaderIgnoreWithoutGzip(self, mock_conn):
     """Test that the gzip content-encoding is required to modify size."""
     mock_conn.putheader.return_value = None
@@ -57,26 +76,34 @@ class TestUploadCallbackConnection(testcase.GsUtilUnitTestCase):
     # Ensure the modifier is unchanged.
     self.assertAlmostEqual(self.instance.size_modifier, 1.0)
 
-  @mock.patch('httplib.HTTPSConnection')
-  def testHeaderAlternativeRangeFormats(self, mock_conn):
-    """Test alternative content-range header formats."""
-    mock_conn.putheader.return_value = None
-    expected_values = [
-        # Test 'bytes %s-%s/*'
-        ('bytes 0-99/*', 10.0),
-        # Test 'bytes */%s'
-        ('bytes */100', 1.0),
-        # Test 'bytes %s-%s/%s'
-        ('bytes 0-99/100', 10.0),]
-    for (header, expected) in expected_values:
-      self.instance = self.class_factory.GetConnectionClass()('host')
-      self.instance.putheader('content-encoding', 'gzip')
-      self.instance.putheader('content-length', '10')
-      self.instance.putheader('content-range', header)
-      # Ensure the modifier is as expected.
-      self.assertAlmostEqual(self.instance.size_modifier, expected)
+  @mock.patch(https_connection)
+  def testHeaderRangeFormatX_YSlashStar(self, mock_conn):
+    """Test content-range header format X-Y/* """
+    self.instance.putheader('content-encoding', 'gzip')
+    self.instance.putheader('content-length', '10')
+    self.instance.putheader('content-range', 'bytes 0-99/*')
+    # Ensure the modifier is as expected.
+    self.assertAlmostEqual(self.instance.size_modifier, 10.0)
 
-  @mock.patch('httplib.HTTPSConnection')
+  @mock.patch(https_connection)
+  def testHeaderRangeFormatStarSlash100(self, mock_conn):
+    """Test content-range header format */100 """
+    self.instance.putheader('content-encoding', 'gzip')
+    self.instance.putheader('content-length', '10')
+    self.instance.putheader('content-range', 'bytes */100')
+    # Ensure the modifier is as expected.
+    self.assertAlmostEqual(self.instance.size_modifier, 1.0)
+
+  @mock.patch(https_connection)
+  def testHeaderRangeFormat0_99Slash100(self, mock_conn):
+    """Test content-range header format 0-99/100 """
+    self.instance.putheader('content-encoding', 'gzip')
+    self.instance.putheader('content-length', '10')
+    self.instance.putheader('content-range', 'bytes 0-99/100')
+    # Ensure the modifier is as expected.
+    self.assertAlmostEqual(self.instance.size_modifier, 10.0)
+
+  @mock.patch(https_connection)
   def testHeaderParseFailure(self, mock_conn):
     """Test incorrect header values do not raise exceptions."""
     mock_conn.putheader.return_value = None

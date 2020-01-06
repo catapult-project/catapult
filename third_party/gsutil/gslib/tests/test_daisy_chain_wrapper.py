@@ -15,16 +15,19 @@
 """Unit tests for daisy chain wrapper class."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import os
 import pkgutil
 
+import six
 import gslib.cloud_api
 from gslib.daisy_chain_wrapper import DaisyChainWrapper
 from gslib.storage_url import StorageUrlFromString
 import gslib.tests.testcase as testcase
-from gslib.util import TRANSFER_BUFFER_SIZE
-
+from gslib.utils.constants import TRANSFER_BUFFER_SIZE
 
 _TEST_FILE = 'test.txt'
 
@@ -44,8 +47,8 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
     contents = pkgutil.get_data('gslib', 'tests/test_data/%s' % _TEST_FILE)
     if not self._temp_test_file:
       # Write to a temp file because pkgutil doesn't expose a stream interface.
-      self._temp_test_file = self.CreateTempFile(
-          file_name=_TEST_FILE, contents=contents)
+      self._temp_test_file = self.CreateTempFile(file_name=_TEST_FILE,
+                                                 contents=contents)
     return self._temp_test_file
 
   class MockDownloadCloudApi(gslib.cloud_api.CloudApi):
@@ -63,8 +66,12 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
       self._write_values = write_values
       self.get_calls = 0
 
-    def GetObjectMedia(self, unused_bucket_name, unused_object_name,
-                       download_stream, start_byte=0, end_byte=None,
+    def GetObjectMedia(self,
+                       unused_bucket_name,
+                       unused_object_name,
+                       download_stream,
+                       start_byte=0,
+                       end_byte=None,
                        **kwargs):
       """Writes self._write_values to the download_stream."""
       # Writes from start_byte up to, but not including end_byte (if not None).
@@ -105,9 +112,10 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
     # Test for a single call even if the chunk size is larger than the data.
     for chunk_size in (self.test_data_file_len, self.test_data_file_len + 1):
       mock_api = self.MockDownloadCloudApi(write_values)
-      daisy_chain_wrapper = DaisyChainWrapper(
-          self._dummy_url, self.test_data_file_len, mock_api,
-          download_chunk_size=chunk_size)
+      daisy_chain_wrapper = DaisyChainWrapper(self._dummy_url,
+                                              self.test_data_file_len,
+                                              mock_api,
+                                              download_chunk_size=chunk_size)
       self._WriteFromWrapperToFile(daisy_chain_wrapper, upload_file)
       # Since the chunk size is >= the file size, only a single GetObjectMedia
       # call should be made.
@@ -128,10 +136,12 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
         write_values.append(data)
     mock_api = self.MockDownloadCloudApi(write_values)
     daisy_chain_wrapper = DaisyChainWrapper(
-        self._dummy_url, self.test_data_file_len, mock_api,
+        self._dummy_url,
+        self.test_data_file_len,
+        mock_api,
         download_chunk_size=TRANSFER_BUFFER_SIZE)
     self._WriteFromWrapperToFile(daisy_chain_wrapper, upload_file)
-    num_expected_calls = self.test_data_file_len / TRANSFER_BUFFER_SIZE
+    num_expected_calls = self.test_data_file_len // TRANSFER_BUFFER_SIZE
     if self.test_data_file_len % TRANSFER_BUFFER_SIZE:
       num_expected_calls += 1
     # Since the chunk size is < the file size, multiple calls to GetObjectMedia
@@ -155,7 +165,9 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
     upload_file = self.CreateTempFile()
     mock_api = self.MockDownloadCloudApi(write_values)
     daisy_chain_wrapper = DaisyChainWrapper(
-        self._dummy_url, self.test_data_file_len, mock_api,
+        self._dummy_url,
+        self.test_data_file_len,
+        mock_api,
         download_chunk_size=self.test_data_file_len)
     self._WriteFromWrapperToFile(daisy_chain_wrapper, upload_file)
     self.assertEquals(mock_api.get_calls, 1)
@@ -167,15 +179,17 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
     """Tests unaligned writes to the download stream from GetObjectMedia."""
     with open(self.test_data_file, 'rb') as stream:
       chunk = stream.read(TRANSFER_BUFFER_SIZE)
-    one_byte = chunk[0]
+    # Though it may seem equivalent, the `:1` is actually necessary, without
+    # it in python 3, `one_byte` would be int(77) and with it, `one_byte` is
+    # the expected value of b'M' (using case where start of chunk is b'MJoTM...')
+    one_byte = chunk[0:1]
     chunk_minus_one_byte = chunk[1:TRANSFER_BUFFER_SIZE]
-    half_chunk = chunk[0:TRANSFER_BUFFER_SIZE/2]
+    half_chunk = chunk[0:TRANSFER_BUFFER_SIZE // 2]
 
     write_values_dict = {
         'First byte first chunk unaligned':
             (one_byte, chunk_minus_one_byte, chunk, chunk),
-        'Last byte first chunk unaligned':
-            (chunk_minus_one_byte, chunk, chunk),
+        'Last byte first chunk unaligned': (chunk_minus_one_byte, chunk, chunk),
         'First byte second chunk unaligned':
             (chunk, one_byte, chunk_minus_one_byte, chunk),
         'Last byte second chunk unaligned':
@@ -184,26 +198,27 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
             (chunk, chunk, one_byte, chunk_minus_one_byte),
         'Last byte final chunk unaligned':
             (chunk, chunk, chunk_minus_one_byte, one_byte),
-        'Half chunks':
-            (half_chunk, half_chunk, half_chunk),
+        'Half chunks': (half_chunk, half_chunk, half_chunk),
         'Many unaligned':
             (one_byte, half_chunk, one_byte, half_chunk, chunk,
              chunk_minus_one_byte, chunk, one_byte, half_chunk, one_byte)
-        }
+    }
     upload_file = self.CreateTempFile()
-    for case_name, write_values in write_values_dict.iteritems():
+    for case_name, write_values in six.iteritems(write_values_dict):
       expected_contents = b''
       for write_value in write_values:
         expected_contents += write_value
       mock_api = self.MockDownloadCloudApi(write_values)
       daisy_chain_wrapper = DaisyChainWrapper(
-          self._dummy_url, len(expected_contents), mock_api,
+          self._dummy_url,
+          len(expected_contents),
+          mock_api,
           download_chunk_size=self.test_data_file_len)
       self._WriteFromWrapperToFile(daisy_chain_wrapper, upload_file)
       with open(upload_file, 'rb') as upload_stream:
-        self.assertEqual(upload_stream.read(), expected_contents,
-                         'Uploaded file contents for case %s did not match'
-                         % case_name)
+        self.assertEqual(
+            upload_stream.read(), expected_contents,
+            'Uploaded file contents for case %s did not match' % case_name)
 
   def testSeekAndReturn(self):
     """Tests seeking to the end of the wrapper (simulates getting size)."""
@@ -217,7 +232,9 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
     upload_file = self.CreateTempFile()
     mock_api = self.MockDownloadCloudApi(write_values)
     daisy_chain_wrapper = DaisyChainWrapper(
-        self._dummy_url, self.test_data_file_len, mock_api,
+        self._dummy_url,
+        self.test_data_file_len,
+        mock_api,
         download_chunk_size=self.test_data_file_len)
     with open(upload_file, 'wb') as upload_stream:
       current_position = 0
@@ -248,7 +265,9 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
     upload_file = self.CreateTempFile()
     mock_api = self.MockDownloadCloudApi(write_values)
     daisy_chain_wrapper = DaisyChainWrapper(
-        self._dummy_url, self.test_data_file_len, mock_api,
+        self._dummy_url,
+        self.test_data_file_len,
+        mock_api,
         download_chunk_size=self.test_data_file_len)
     daisy_chain_wrapper.read(TRANSFER_BUFFER_SIZE)
     daisy_chain_wrapper.read(TRANSFER_BUFFER_SIZE)
@@ -265,33 +284,38 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
     class DownloadException(Exception):
       pass
 
-    write_values = [b'a', b'b',
-                    DownloadException('Download thread forces failure')]
+    write_values = [
+        b'a', b'b',
+        DownloadException('Download thread forces failure')
+    ]
     upload_file = self.CreateTempFile()
     mock_api = self.MockDownloadCloudApi(write_values)
     daisy_chain_wrapper = DaisyChainWrapper(
-        self._dummy_url, self.test_data_file_len, mock_api,
+        self._dummy_url,
+        self.test_data_file_len,
+        mock_api,
         download_chunk_size=self.test_data_file_len)
     try:
       self._WriteFromWrapperToFile(daisy_chain_wrapper, upload_file)
       self.fail('Expected exception')
-    except DownloadException, e:
+    except DownloadException as e:
       self.assertIn('Download thread forces failure', str(e))
 
   def testInvalidSeek(self):
     """Tests that seeking fails for unsupported seek arguments."""
-    daisy_chain_wrapper = DaisyChainWrapper(
-        self._dummy_url, self.test_data_file_len, self.MockDownloadCloudApi([]))
+    daisy_chain_wrapper = DaisyChainWrapper(self._dummy_url,
+                                            self.test_data_file_len,
+                                            self.MockDownloadCloudApi([]))
     try:
       # SEEK_CUR is invalid.
       daisy_chain_wrapper.seek(0, whence=os.SEEK_CUR)
       self.fail('Expected exception')
-    except IOError, e:
+    except IOError as e:
       self.assertIn('does not support seek mode', str(e))
 
     try:
       # Seeking from the end with an offset is invalid.
       daisy_chain_wrapper.seek(1, whence=os.SEEK_END)
       self.fail('Expected exception')
-    except IOError, e:
+    except IOError as e:
       self.assertIn('Invalid seek during daisy chain', str(e))

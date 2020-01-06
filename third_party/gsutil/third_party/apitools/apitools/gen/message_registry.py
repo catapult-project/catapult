@@ -169,7 +169,7 @@ class MessageRegistry(object):
     def LookupDescriptorOrDie(self, name):
         message_descriptor = self.LookupDescriptor(name)
         if message_descriptor is None:
-            raise ValueError('No message descriptor named "%s"', name)
+            raise ValueError('No message descriptor named "%s"' % name)
         return message_descriptor
 
     def __GetDescriptor(self, name):
@@ -262,7 +262,7 @@ class MessageRegistry(object):
             self.__DeclareMessageAlias(schema, 'extra_types.JsonValue')
             return
         if schema.get('type') != 'object':
-            raise ValueError('Cannot create message descriptors for type %s',
+            raise ValueError('Cannot create message descriptors for type %s' %
                              schema.get('type'))
         message = extended_descriptor.ExtendedMessageDescriptor()
         message.name = self.__names.ClassName(schema['id'])

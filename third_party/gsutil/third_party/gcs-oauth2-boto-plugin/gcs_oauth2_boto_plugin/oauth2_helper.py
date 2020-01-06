@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import
 
+import io
 import json
 import os
 import sys
@@ -23,15 +24,18 @@ import time
 import webbrowser
 
 from gcs_oauth2_boto_plugin import oauth2_client
-from oauth2client.client import OAuth2WebServerFlow
+import oauth2client.client
 
+from six.moves import input  # pylint: disable=redefined-builtin
+
+UTF8 = 'utf-8'
 CLIENT_ID = None
 CLIENT_SECRET = None
 
 GOOGLE_OAUTH2_PROVIDER_AUTHORIZATION_URI = (
     'https://accounts.google.com/o/oauth2/auth')
 GOOGLE_OAUTH2_PROVIDER_TOKEN_URI = (
-    'https://accounts.google.com/o/oauth2/token')
+    'https://oauth2.googleapis.com/token')
 GOOGLE_OAUTH2_DEFAULT_FILE_PASSWORD = 'notasecret'
 
 OOB_REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'
@@ -39,6 +43,7 @@ OOB_REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'
 
 def OAuth2ClientFromBotoConfig(
     config, cred_type=oauth2_client.CredTypes.OAUTH2_USER_ACCOUNT):
+  """Create a client type based on credentials supplied in boto config."""
   token_cache = None
   token_cache_type = config.get('OAuth2', 'token_cache', 'file_system')
   if token_cache_type == 'file_system':
@@ -74,22 +79,29 @@ def OAuth2ClientFromBotoConfig(
   if cred_type == oauth2_client.CredTypes.OAUTH2_SERVICE_ACCOUNT:
     service_client_id = config.get('Credentials', 'gs_service_client_id', '')
     private_key_filename = config.get('Credentials', 'gs_service_key_file', '')
-    with open(private_key_filename, 'rb') as private_key_file:
+    with io.open(private_key_filename, 'rb') as private_key_file:
       private_key = private_key_file.read()
 
-    json_key_dict = None
+    keyfile_is_utf8 = False
     try:
-      json_key_dict = json.loads(private_key)
-    except ValueError:
+      private_key = private_key.decode(UTF8)
+      # P12 keys won't be encoded as UTF8 bytes.
+      keyfile_is_utf8 = True
+    except UnicodeDecodeError:
       pass
-    if json_key_dict:
+
+    if keyfile_is_utf8:
+      try:
+        json_key_dict = json.loads(private_key)
+      except ValueError:
+        raise Exception('Could not parse JSON keyfile "%s" as valid JSON' %
+                        private_key_filename)
       for json_entry in ('client_id', 'client_email', 'private_key_id',
                          'private_key'):
         if json_entry not in json_key_dict:
           raise Exception('The JSON private key file at %s '
                           'did not contain the required entry: %s' %
                           (private_key_filename, json_entry))
-
       return oauth2_client.OAuth2JsonServiceAccountClient(
           json_key_dict, access_token_cache=token_cache,
           auth_uri=provider_authorization_uri, token_uri=provider_token_uri,
@@ -148,7 +160,8 @@ def OAuth2ClientFromBotoConfig(
 
 
 def OAuth2ApprovalFlow(client, scopes, launch_browser=False):
-  flow = OAuth2WebServerFlow(
+  """Run the OAuth2 flow to fetch a refresh token. Returns the refresh token."""
+  flow = oauth2client.client.OAuth2WebServerFlow(
       client.client_id, client.client_secret, scopes, auth_uri=client.auth_uri,
       token_uri=client.token_uri, redirect_uri=OOB_REDIRECT_URI)
   approval_url = flow.step1_get_authorize_url()
@@ -177,7 +190,7 @@ def OAuth2ApprovalFlow(client, scopes, launch_browser=False):
   # Short delay; webbrowser.open on linux insists on printing out a message
   # which we don't want to run into the prompt for the auth code.
   time.sleep(2)
-  code = raw_input('Enter the authorization code: ')
+  code = input('Enter the authorization code: ')
   credentials = flow.step2_exchange(code, http=client.CreateHttpRequest())
   return credentials.refresh_token
 

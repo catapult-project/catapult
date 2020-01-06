@@ -14,15 +14,19 @@
 # limitations under the License.
 """Helper functions for progress callbacks."""
 
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+
 import time
 
-from gslib.parallelism_framework_util import PutToQueueWithTimeout
 from gslib.thread_message import ProgressMessage
-
+from gslib.utils import parallelism_framework_util
 
 # Default upper and lower bounds for progress callback frequency.
-_START_BYTES_PER_CALLBACK = 1024*256
-_MAX_BYTES_PER_CALLBACK = 1024*1024*100
+_START_BYTES_PER_CALLBACK = 1024 * 256
+_MAX_BYTES_PER_CALLBACK = 1024 * 1024 * 100
 _TIMEOUT_SECONDS = 1
 
 # Max width of URL to display in progress indicator. Wide enough to allow
@@ -37,7 +41,9 @@ class ProgressCallbackWithTimeout(object):
   overwhelming.
   """
 
-  def __init__(self, total_size, callback_func,
+  def __init__(self,
+               total_size,
+               callback_func,
                start_bytes_per_callback=_START_BYTES_PER_CALLBACK,
                timeout=_TIMEOUT_SECONDS):
     """Initializes the callback with timeout.
@@ -65,9 +71,9 @@ class ProgressCallbackWithTimeout(object):
     self._bytes_processed_since_callback += bytes_processed
     cur_time = time.time()
     if (self._bytes_processed_since_callback > self._bytes_per_callback or
-        (self._total_bytes_processed + self._bytes_processed_since_callback >=
-         self._total_size and self._total_size is not None) or
-	       (self._last_time - cur_time) > self._timeout):
+        (self._total_size is not None and self._total_bytes_processed +
+         self._bytes_processed_since_callback >= self._total_size) or
+        (self._last_time - cur_time) > self._timeout):
       self._total_bytes_processed += self._bytes_processed_since_callback
       # TODO: We check if >= total_size and truncate because JSON uploads count
       # multipart metadata during their send progress. If the size is unknown,
@@ -89,7 +95,9 @@ class ProgressCallbackWithBackoff(object):
   This prevents excessive log message output.
   """
 
-  def __init__(self, total_size, callback_func,
+  def __init__(self,
+               total_size,
+               callback_func,
                start_bytes_per_callback=_START_BYTES_PER_CALLBACK,
                max_bytes_per_callback=_MAX_BYTES_PER_CALLBACK,
                calls_per_exponent=10):
@@ -146,9 +154,14 @@ class FileProgressCallbackHandler(object):
       UI Thread.
   """
 
-  def __init__(self, status_queue, start_byte=0,
-               override_total_size=None, src_url=None, component_num=None,
-               dst_url=None, operation_name=None):
+  def __init__(self,
+               status_queue,
+               start_byte=0,
+               override_total_size=None,
+               src_url=None,
+               component_num=None,
+               dst_url=None,
+               operation_name=None):
     """Initializes the callback handler.
 
     Args:
@@ -172,9 +185,10 @@ class FileProgressCallbackHandler(object):
     self._last_byte_written = False
 
   # Function signature is in boto callback format, which cannot be changed.
-  def call(self,  # pylint: disable=invalid-name
-           last_byte_processed,
-           total_size):
+  def call(
+      self,  # pylint: disable=invalid-name
+      last_byte_processed,
+      total_size):
     """Gathers information describing the operation progress.
 
     Actual message is printed to stderr by UIThread.
@@ -191,10 +205,12 @@ class FileProgressCallbackHandler(object):
     if self._override_total_size:
       total_size = self._override_total_size
 
-    PutToQueueWithTimeout(
+    parallelism_framework_util.PutToQueueWithTimeout(
         self._status_queue,
-        ProgressMessage(total_size, last_byte_processed - self._start_byte,
-                        self._src_url, time.time(),
+        ProgressMessage(total_size,
+                        last_byte_processed - self._start_byte,
+                        self._src_url,
+                        time.time(),
                         component_num=self._component_num,
                         operation_name=self._operation_name,
                         dst_url=self._dst_url))

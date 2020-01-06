@@ -10,5 +10,10 @@ include setup.py
 recursive-include gslib *
 recursive-include test *
 global-exclude .git*
-global-exclude *.pyc
+global-exclude *.py[co]
+global-exclude __pycache__
+prune test
+prune gslib/vendored/boto/bin
+prune gslib/vendored/boto/docs
+prune gslib/vendored/boto/scripts
 exclude gslib/commands/update.py

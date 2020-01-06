@@ -15,6 +15,9 @@
 """Additional help about CRC32C and installing crcmod."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from gslib.help_provider import HelpProvider
 
@@ -25,7 +28,7 @@ _DETAILED_HELP_TEXT = ("""
   objects Google Cloud Storage also provides an MD5 header to allow clients to
   verify object integrity, but for composite objects only the CRC is available.
   gsutil automatically performs integrity checks on all uploads and downloads.
-  Additionally, you can use the "gsutil hash" command to calculate a CRC for
+  Additionally, you can use the ``gsutil hash`` command to calculate a CRC for
   any local file.
 
   The CRC variant used by Google Cloud Storage is called CRC32C (Castagnoli),
@@ -36,20 +39,20 @@ _DETAILED_HELP_TEXT = ("""
   The crcmod module contains a pure-Python implementation of CRC32C, but using
   it results in very poor performance. A Python C extension is also provided by
   crcmod, which requires compiling into a binary module for use. gsutil ships
-  with a precompiled crcmod C extension for Mac OS X; for other platforms, see
+  with a precompiled crcmod C extension for macOS; for other platforms, see
   the installation instructions below.
 
-  At the end of each copy operation, the gsutil cp and rsync commands validate
-  that the checksum of the source file/object matches the checksum of the
-  destination file/object. If the checksums do not match, gsutil will delete
-  the invalid copy and print a warning message. This very rarely happens, but
-  if it does, please contact gs-team@google.com.
+  At the end of each copy operation, the ``gsutil cp`` and ``gsutil rsync``
+  commands validate that the checksum of the source file/object matches the
+  checksum of the destination file/object. If the checksums do not match,
+  gsutil will delete the invalid copy and print a warning message. This very
+  rarely happens, but if it does, please contact gs-team@google.com.
 
 
 <B>CONFIGURATION</B>
   To determine if the compiled version of crcmod is available in your Python
-  environment, you can inspect the output of the gsutil version command for the
-  "compiled crcmod" entry::
+  environment, you can inspect the output of the ``gsutil version`` command for
+  the "compiled crcmod" entry:
 
     $ gsutil version -l
     ...
@@ -61,21 +64,44 @@ _DETAILED_HELP_TEXT = ("""
 
   To control gsutil's behavior in response to crcmod's status, you can set the
   "check_hashes" configuration variable. For details on this variable, see the
-  surrounding comments in your gsutil configuration file. If check_hashes is not
-  present in your configuration file, rerun gsutil config to regenerate the
-  file.
+  surrounding comments in your boto configuration file. If "check_hashes"
+  is not present in your configuration file, rerun ``gsutil config`` to
+  regenerate the file.
 
 
 <B>INSTALLATION</B>
+  These installation instructions assume that:
+
+  -  You have ``pip`` installed. Consult the `pip installation instructions
+     <https://pip.pypa.io/en/stable/installing/>`_ for details on how
+     to install ``pip``.
+  -  Your installation of ``pip`` can be found in your ``PATH`` environment
+     variable. If it cannot, you may need to replace ``pip`` in the commands
+     below with the full path to the executable.
+  -  You are installing the crcmod package for use with your system installation
+     of Python, and thus use the ``sudo`` command. If installing crcmod for a
+     different Python environment (e.g. in a virtualenv), you should omit
+     ``sudo`` from the commands below.
+
   CentOS, RHEL, and Fedora
   ------------------------
 
-  To compile and install crcmod:
+  Note that CentOS 6 and similar variants use Python 2.6 by default, which will
+  not run gsutil. To enable Python 2.7 and compile/install crcmod on CentOS 6:
+
+    sudo su  # Run as root; need shell session with Python 2.7 enabled
+    yum install gcc python-devel python-setuptools redhat-rpm-config
+    source /opt/rh/python27/enable  # Make default `python` executable use 2.7.X
+    python -m pip install -U pip  # Upgrade old default version of pip
+    python -m pip uninstall crcmod
+    python -m pip install --no-cache-dir -U crcmod
+    exit  # Exit su session
+
+  To compile and install crcmod on OS versions that use Python 2.7 by default:
 
     sudo yum install gcc python-devel python-setuptools redhat-rpm-config
-    sudo easy_install -U pip
     sudo pip uninstall crcmod
-    sudo pip install -U crcmod
+    sudo pip install --no-cache-dir -U crcmod
 
   Debian and Ubuntu
   -----------------
@@ -83,22 +109,29 @@ _DETAILED_HELP_TEXT = ("""
   To compile and install crcmod:
 
     sudo apt-get install gcc python-dev python-setuptools
-    sudo easy_install -U pip
     sudo pip uninstall crcmod
-    sudo pip install -U crcmod
+    sudo pip install --no-cache-dir -U crcmod
 
-  Mac OS X
-  --------
+  Enterprise SUSE
+  -----------------
 
-  gsutil distributes a pre-compiled version of crcmod for OS X, so you shouldn't
+  To compile and install crcmod:
+
+    sudo zypper install gcc python-devel
+    sudo pip uninstall crcmod
+    sudo pip install --no-cache-dir -U crcmod
+
+  macOS
+  -----
+
+  gsutil distributes a pre-compiled version of crcmod for macOS, so you shouldn't
   need to compile and install it yourself. If for some reason the pre-compiled
   version is not being detected, please let the Google Cloud Storage team know
-  (see "gsutil help support").
+  (see ``gsutil help support``).
 
-  To compile manually on OS X, you will first need to install
+  To compile manually on macOS, you will first need to install
   `XCode <https://developer.apple.com/xcode/>`_ and then run:
 
-    sudo easy_install -U pip
     sudo pip install -U crcmod
 
   Windows

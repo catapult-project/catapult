@@ -53,7 +53,8 @@ class HttpError(CommunicationError):
 
     def __init__(self, response, content, url,
                  method_config=None, request=None):
-        super(HttpError, self).__init__()
+        error_message = HttpError._build_message(response, content, url)
+        super(HttpError, self).__init__(error_message)
         self.response = response
         self.content = content
         self.url = url
@@ -61,11 +62,14 @@ class HttpError(CommunicationError):
         self.request = request
 
     def __str__(self):
-        content = self.content
+        return HttpError._build_message(self.response, self.content, self.url)
+
+    @staticmethod
+    def _build_message(response, content, url):
         if isinstance(content, bytes):
-            content = self.content.decode('ascii', 'replace')
+            content = content.decode('ascii', 'replace')
         return 'HttpError accessing <%s>: response: <%s>, content <%s>' % (
-            self.url, self.response, content)
+            url, response, content)
 
     @property
     def status_code(self):

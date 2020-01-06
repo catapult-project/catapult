@@ -15,12 +15,17 @@
 """File and Cloud URL representation classes."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import os
 import re
 import stat
 
 from gslib.exception import InvalidUrlError
+from gslib.utils import system_util
+from gslib.utils import text_util
 
 # Matches provider strings of the form 'gs://'
 PROVIDER_REGEX = re.compile(r'(?P<provider>[^:]*)://$')
@@ -124,16 +129,23 @@ class _FileUrl(StorageUrl):
 
   def __init__(self, url_string, is_stream=False, is_fifo=False):
     self.scheme = 'file'
+    self.delim = os.sep
     self.bucket_name = ''
+    # If given a URI that starts with "<scheme>://", the object name should not
+    # include that prefix.
     match = FILE_OBJECT_REGEX.match(url_string)
     if match and match.lastindex == 2:
       self.object_name = match.group(2)
     else:
       self.object_name = url_string
+    # On Windows, the pathname component separator is "\" instead of "/". If we
+    # find an occurrence of "/", replace it with "\" so that other logic can
+    # rely on being able to split pathname components on `os.sep`.
+    if system_util.IS_WINDOWS:
+      self.object_name = self.object_name.replace('/', '\\')
     self.generation = None
     self.is_stream = is_stream
     self.is_fifo = is_fifo
-    self.delim = os.sep
 
   def Clone(self):
     return _FileUrl(self.url_string)
@@ -151,8 +163,7 @@ class _FileUrl(StorageUrl):
     return self.is_fifo
 
   def IsDirectory(self):
-    return (not self.IsStream() and
-            not self.IsFifo() and
+    return (not self.IsStream() and not self.IsFifo() and
             os.path.isdir(self.object_name))
 
   def CreatePrefixUrl(self, wildcard_suffix=None):
@@ -183,10 +194,10 @@ class _CloudUrl(StorageUrl):
 
   def __init__(self, url_string):
     self.scheme = None
+    self.delim = '/'
     self.bucket_name = None
     self.object_name = None
     self.generation = None
-    self.delim = '/'
     provider_match = PROVIDER_REGEX.match(url_string)
     bucket_match = BUCKET_REGEX.match(url_string)
     if provider_match:
@@ -201,8 +212,8 @@ class _CloudUrl(StorageUrl):
         self.bucket_name = object_match.group('bucket')
         self.object_name = object_match.group('object')
         if self.object_name == '.' or self.object_name == '..':
-          raise InvalidUrlError(
-              '%s is an invalid root-level object name' % self.object_name)
+          raise InvalidUrlError('%s is an invalid root-level object name' %
+                                self.object_name)
         if self.scheme == 'gs':
           generation_match = GS_GENERATION_REGEX.match(self.object_name)
           if generation_match:
@@ -294,6 +305,101 @@ def _GetPathFromUrlString(url_str):
     return url_str[end_scheme_idx + 3:]
 
 
+def ContainsWildcard(url_string):
+  """Checks whether url_string contains a wildcard.
+
+  Args:
+    url_string: URL string to check.
+
+  Returns:
+    bool indicator.
+  """
+  return bool(WILDCARD_REGEX.search(url_string))
+
+
+def GenerationFromUrlAndString(url, generation):
+  """Decodes a generation from a StorageURL and a generation string.
+
+  This is used to represent gs and s3 versioning.
+
+  Args:
+    url: StorageUrl representing the object.
+    generation: Long or string representing the object's generation or
+                version.
+
+  Returns:
+    Valid generation string for use in URLs.
+  """
+  if url.scheme == 's3' and generation:
+    return text_util.DecodeLongAsString(generation)
+  return generation
+
+
+def HaveFileUrls(args_to_check):
+  """Checks whether args_to_check contain any file URLs.
+
+  Args:
+    args_to_check: Command-line argument subset to check.
+
+  Returns:
+    True if args_to_check contains any file URLs.
+  """
+  for url_str in args_to_check:
+    storage_url = StorageUrlFromString(url_str)
+    if storage_url.IsFileUrl():
+      return True
+  return False
+
+
+def HaveProviderUrls(args_to_check):
+  """Checks whether args_to_check contains any provider URLs (like 'gs://').
+
+  Args:
+    args_to_check: Command-line argument subset to check.
+
+  Returns:
+    True if args_to_check contains any provider URLs.
+  """
+  for url_str in args_to_check:
+    storage_url = StorageUrlFromString(url_str)
+    if storage_url.IsCloudUrl() and storage_url.IsProvider():
+      return True
+  return False
+
+
+def IsCloudSubdirPlaceholder(url, blr=None):
+  """Determines if a StorageUrl is a cloud subdir placeholder.
+
+  This function is needed because GUI tools (like the GCS cloud console) allow
+  users to create empty "folders" by creating a placeholder object; and parts
+  of gsutil need to treat those placeholder objects specially. For example,
+  gsutil rsync needs to avoid downloading those objects because they can cause
+  conflicts (see comments in rsync command for details).
+
+  We currently detect two cases:
+    - Cloud objects whose name ends with '_$folder$'
+    - Cloud objects whose name ends with '/'
+
+  Args:
+    url: (gslib.storage_url.StorageUrl) The URL to be checked.
+    blr: (gslib.BucketListingRef or None) The blr to check, or None if not
+        available. If `blr` is None, size won't be checked.
+
+  Returns:
+    (bool) True if the URL is a cloud subdir placeholder, otherwise False.
+  """
+  if not url.IsCloudUrl():
+    return False
+  url_str = url.url_string
+  if url_str.endswith('_$folder$'):
+    return True
+  if blr and blr.IsObject():
+    size = blr.root_object.size
+  else:
+    size = 0
+  return size == 0 and url_str.endswith('/')
+
+
 def IsFileUrlString(url_str):
   """Returns whether a string is a file URL."""
 
@@ -325,13 +431,23 @@ def StripOneSlash(url_str):
   return url_str
 
 
-def ContainsWildcard(url_string):
-  """Checks whether url_string contains a wildcard.
+def UrlsAreForSingleProvider(url_args):
+  """Tests whether the URLs are all for a single provider.
 
   Args:
-    url_string: URL string to check.
+    url_args: (Iterable[str]) Collection of strings to check.
 
   Returns:
-    bool indicator.
+    True if all URLs are for single provider; False if `url_args` was empty (as
+    this would not result in a single unique provider) or URLs targeted multiple
+    unique providers.
   """
-  return bool(WILDCARD_REGEX.search(url_string))
+  provider = None
+  url = None
+  for url_str in url_args:
+    url = StorageUrlFromString(url_str)
+    if not provider:
+      provider = url.scheme
+    elif url.scheme != provider:
+      return False
+  return provider is not None

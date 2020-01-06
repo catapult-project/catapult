@@ -30,7 +30,6 @@ notice.
 
 from __future__ import absolute_import
 
-import cgi
 import datetime
 import errno
 from hashlib import sha1
@@ -40,24 +39,24 @@ import os
 import socket
 import tempfile
 import threading
-import urllib
 
 # pylint: disable=g-import-not-at-top
 if os.environ.get('USER_AGENT'):
   import boto
   boto.UserAgent += os.environ.get('USER_AGENT')
 
-from boto import config
+# pylint: disable=g-bad-import-order
+import boto
 import httplib2
-from oauth2client.client import AccessTokenRefreshError
-from oauth2client.client import HAS_CRYPTO
-from oauth2client.client import OAuth2Credentials
-from retry_decorator.retry_decorator import retry as Retry
+import oauth2client.client
+import oauth2client.service_account
+from google_reauth import reauth_creds
+import retry_decorator.retry_decorator
 import socks
 
-
+import six
 from six import BytesIO
-
+from six.moves import urllib
 
 LOG = logging.getLogger('oauth2_client')
 
@@ -65,7 +64,15 @@ LOG = logging.getLogger('oauth2_client')
 # operation doesn't attempt concurrent refreshes.
 token_exchange_lock = threading.Lock()
 
-DEFAULT_SCOPE = 'https://www.googleapis.com/auth/devstorage.full_control'
+CLOUD_PLATFORM_SCOPE = 'https://www.googleapis.com/auth/cloud-platform'
+FULL_CONTROL_SCOPE = 'https://www.googleapis.com/auth/devstorage.full_control'
+REAUTH_SCOPE = 'https://www.googleapis.com/auth/accounts.reauth'
+DEFAULT_SCOPE = FULL_CONTROL_SCOPE
+# Note that these scopes don't necessarily correspond to the refresh token
+# being used. This list is is used for obtaining the RAPT in the reauth
+# flow, to determine which challenges should be used. We define this at module
+# level to allow us to override it for other applications if needed.
+RAPT_SCOPES = [CLOUD_PLATFORM_SCOPE, REAUTH_SCOPE]
 
 METADATA_SERVER = 'http://metadata.google.internal'
 
@@ -76,57 +83,10 @@ META_HEADERS = {
     'Metadata-Flavor': 'Google'
 }
 
-# The following implements cross-compatibility with versions of oauth2client.
-# oauth2client 2.0.0 introduced major backwards-incompatibility changes,
-# and it's possible that consumers of this library may be pinned to an
-# old version such as 1.5.2. This must be kept in place until/unless
-# we're certain no clients still depend on the older oauth2 client.
-OAUTH2CLIENT_V2 = False
-try:
-  from oauth2client.service_account import ServiceAccountCredentials
-  # oauth2client >= 2.0.0
-  OAUTH2CLIENT_V2 = True
-except ImportError:
-  # oauth2client < 2.0.0
-  if HAS_CRYPTO:
-    from oauth2client.client import SignedJwtAssertionCredentials
-
-  from oauth2client import service_account
-  from oauth2client.client import Credentials
-  from oauth2client.client import EXPIRY_FORMAT
-
-  # pylint: disable=protected-access
-  class ServiceAccountCredentials(service_account._ServiceAccountCredentials):
-
-    def to_json(self):
-      self.service_account_name = self._service_account_email
-      strip = (['_private_key'] +
-               Credentials.NON_SERIALIZED_MEMBERS)
-      return super(ServiceAccountCredentials, self)._to_json(strip)
-
-    @classmethod
-    def from_json(cls, s):
-      try:
-        data = json.loads(s)
-        retval = ServiceAccountCredentials(
-            service_account_id=data['_service_account_id'],
-            service_account_email=data['_service_account_email'],
-            private_key_id=data['_private_key_id'],
-            private_key_pkcs8_text=data['_private_key_pkcs8_text'],
-            scopes=[DEFAULT_SCOPE])
-            # TODO: Need to define user agent here,
-            # but it is not known until runtime.
-        retval.invalid = data['invalid']
-        retval.access_token = data['access_token']
-        if 'token_expiry' in data:
-          retval.token_expiry = datetime.datetime.strptime(
-              data['token_expiry'], EXPIRY_FORMAT)
-        return retval
-      except KeyError, e:
-        raise Exception('Your JSON credentials are invalid; '
-                        'missing required entry %s.' % e[0])
-  # pylint: enable=protected-access
-# pylint: enable=g-import-not-at-top
+# pylint: disable=invalid-name
+_ServiceAccountCredentials = (
+    oauth2client.service_account.ServiceAccountCredentials)
+# pylint: enable=invalid-name
 
 
 # Note: this is copied from gsutil's gslib.cred_types. It should be kept in
@@ -228,7 +188,7 @@ class FileSystemTokenCache(TokenCache):
     try:
       # os.getuid() doesn't seem to work in Windows
       uid = str(os.getuid())
-    except:
+    except:  # pylint: disable=bare-except
       pass
     return self.path_pattern % {'key': key, 'uid': uid}
 
@@ -260,7 +220,7 @@ class FileSystemTokenCache(TokenCache):
               key, cache_file)
     try:
       os.unlink(cache_file)
-    except:
+    except:  # pylint: disable=bare-except
       # Ignore failure to unlink the file; if the file exists and can't be
       # unlinked, the subsequent open with O_CREAT | O_EXCL will fail.
       pass
@@ -274,13 +234,16 @@ class FileSystemTokenCache(TokenCache):
       flags |= os.O_BINARY
 
     try:
-      fd = os.open(cache_file, flags, 0600)
+      fd = os.open(cache_file, flags, 0o600)
     except (OSError, IOError) as e:
       LOG.warning('FileSystemTokenCache.PutToken: '
                   'Failed to create cache file %s: %s', cache_file, e)
       return
     f = os.fdopen(fd, 'w+b')
-    f.write(value.Serialize())
+    serialized = value.Serialize()
+    if isinstance(serialized, six.text_type):
+      serialized = serialized.encode('utf-8')
+    f.write(six.ensure_binary(serialized))
     f.close()
 
   def GetToken(self, key):
@@ -296,7 +259,7 @@ class FileSystemTokenCache(TokenCache):
       if e.errno != errno.ENOENT:
         LOG.warning('FileSystemTokenCache.GetToken: '
                     'Failed to read cache file %s: %s', cache_file, e)
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
       LOG.warning('FileSystemTokenCache.GetToken: '
                   'Failed to read cache file %s (possibly corrupted): %s',
                   cache_file, e)
@@ -350,7 +313,7 @@ class OAuth2Client(object):
     Returns:
       The cached or freshly obtained AccessToken.
     Raises:
-      AccessTokenRefreshError if an error occurs.
+      oauth2client.client.AccessTokenRefreshError if an error occurs.
     """
     # Ensure only one thread at a time attempts to get (and possibly refresh)
     # the access token. This doesn't prevent concurrent refresh attempts across
@@ -363,8 +326,9 @@ class OAuth2Client(object):
       access_token = self.access_token_cache.GetToken(cache_key)
       LOG.debug('GetAccessToken: token from cache: %s', access_token)
       if access_token is None or access_token.ShouldRefresh():
+        rapt = None if access_token is None else access_token.rapt_token
         LOG.debug('GetAccessToken: fetching fresh access token...')
-        access_token = self.FetchAccessToken()
+        access_token = self.FetchAccessToken(rapt_token=rapt)
         LOG.debug('GetAccessToken: fresh access token: %s', access_token)
         self.access_token_cache.PutToken(cache_key, access_token)
       return access_token
@@ -383,7 +347,12 @@ class OAuth2Client(object):
       A hash key.
     """
     h = sha1()
-    h.update(self.cache_key_base)
+    # Unicode objects (i.e. strings in Python 3) must be encoded before hashing
+    if isinstance(self.cache_key_base, six.text_type):
+      val = self.cache_key_base.encode('utf-8')
+    else:
+      val = self.cache_key_base
+    h.update(val)
     return h.hexdigest()
 
   def GetAuthorizationHeader(self):
@@ -434,12 +403,13 @@ class _BaseOAuth2ServiceAccountClient(OAuth2Client):
         proxy_pass=proxy_pass, ca_certs_file=ca_certs_file)
     self._client_id = client_id
 
-  def FetchAccessToken(self):
+  def FetchAccessToken(self, rapt_token=None):
     credentials = self.GetCredentials()
     http = self.CreateHttpRequest()
     credentials.refresh(http)
     return AccessToken(credentials.access_token, credentials.token_expiry,
-                       datetime_strategy=self.datetime_strategy)
+                       datetime_strategy=self.datetime_strategy,
+                       rapt_token=rapt_token)
 
 
 class OAuth2ServiceAccountClient(_BaseOAuth2ServiceAccountClient):
@@ -464,28 +434,30 @@ class OAuth2ServiceAccountClient(_BaseOAuth2ServiceAccountClient):
     """
     # pylint: enable=g-doc-args
     super(OAuth2ServiceAccountClient, self).__init__(
-        client_id, auth_uri=auth_uri, token_uri=token_uri,
+        client_id,
+        auth_uri=auth_uri,
+        token_uri=token_uri,
         access_token_cache=access_token_cache,
         datetime_strategy=datetime_strategy,
         disable_ssl_certificate_validation=disable_ssl_certificate_validation,
-        proxy_host=proxy_host, proxy_port=proxy_port, proxy_user=proxy_user,
-        proxy_pass=proxy_pass, ca_certs_file=ca_certs_file)
+        proxy_host=proxy_host,
+        proxy_port=proxy_port,
+        proxy_user=proxy_user,
+        proxy_pass=proxy_pass,
+        ca_certs_file=ca_certs_file)
     self._private_key = private_key
     self._password = password
 
   def GetCredentials(self):
-    if HAS_CRYPTO:
-      if OAUTH2CLIENT_V2:
-        # pylint: disable=protected-access
-        return ServiceAccountCredentials.from_p12_keyfile_buffer(
-            self._client_id, BytesIO(self._private_key),
-            private_key_password=self._password, scopes=DEFAULT_SCOPE,
-            token_uri=self.token_uri)
-        # pylint: enable=protected-access
-      else:
-        return SignedJwtAssertionCredentials(
-            self._client_id, self._private_key, scope=DEFAULT_SCOPE,
-            private_key_password=self._password, token_uri=self.token_uri)
+    if oauth2client.client.HAS_CRYPTO:
+      # pylint: disable=protected-access
+      return _ServiceAccountCredentials.from_p12_keyfile_buffer(
+          self._client_id,
+          BytesIO(self._private_key),
+          private_key_password=self._password,
+          scopes=DEFAULT_SCOPE,
+          token_uri=self.token_uri)
+      # pylint: enable=protected-access
     else:
       raise MissingDependencyError(
           'Service account authentication requires PyOpenSSL. Please install '
@@ -517,29 +489,25 @@ class OAuth2JsonServiceAccountClient(_BaseOAuth2ServiceAccountClient):
     """
     # pylint: enable=g-doc-args
     super(OAuth2JsonServiceAccountClient, self).__init__(
-        json_key_dict['client_id'], auth_uri=auth_uri, token_uri=token_uri,
+        json_key_dict['client_id'],
+        auth_uri=auth_uri,
+        token_uri=token_uri,
         access_token_cache=access_token_cache,
         datetime_strategy=datetime_strategy,
         disable_ssl_certificate_validation=disable_ssl_certificate_validation,
-        proxy_host=proxy_host, proxy_port=proxy_port, proxy_user=proxy_user,
-        proxy_pass=proxy_pass, ca_certs_file=ca_certs_file)
+        proxy_host=proxy_host,
+        proxy_port=proxy_port,
+        proxy_user=proxy_user,
+        proxy_pass=proxy_pass,
+        ca_certs_file=ca_certs_file)
     self._json_key_dict = json_key_dict
     self._service_account_email = json_key_dict['client_email']
     self._private_key_id = json_key_dict['private_key_id']
     self._private_key_pkcs8_text = json_key_dict['private_key']
 
   def GetCredentials(self):
-    if OAUTH2CLIENT_V2:
-      return ServiceAccountCredentials.from_json_keyfile_dict(
-          self._json_key_dict, scopes=[DEFAULT_SCOPE], token_uri=self.token_uri)
-    else:
-      return ServiceAccountCredentials(
-          service_account_id=self._client_id,
-          service_account_email=self._service_account_email,
-          private_key_id=self._private_key_id,
-          private_key_pkcs8_text=self._private_key_pkcs8_text,
-          scopes=[DEFAULT_SCOPE], token_uri=self.token_uri)
-    # TODO: Need to plumb user agent through here.
+    return _ServiceAccountCredentials.from_json_keyfile_dict(
+        self._json_key_dict, scopes=[DEFAULT_SCOPE], token_uri=self.token_uri)
 
 
 class GsAccessTokenRefreshError(Exception):
@@ -594,12 +562,17 @@ class OAuth2UserAccountClient(OAuth2Client):
       ca_certs_file: The cacerts.txt file to use.
     """
     super(OAuth2UserAccountClient, self).__init__(
-        cache_key_base=refresh_token, auth_uri=auth_uri, token_uri=token_uri,
+        cache_key_base=refresh_token,
+        auth_uri=auth_uri,
+        token_uri=token_uri,
         access_token_cache=access_token_cache,
         datetime_strategy=datetime_strategy,
         disable_ssl_certificate_validation=disable_ssl_certificate_validation,
-        proxy_host=proxy_host, proxy_port=proxy_port, proxy_user=proxy_user,
-        proxy_pass=proxy_pass, ca_certs_file=ca_certs_file)
+        proxy_host=proxy_host,
+        proxy_port=proxy_port,
+        proxy_user=proxy_user,
+        proxy_pass=proxy_pass,
+        ca_certs_file=ca_certs_file)
     self.token_uri = token_uri
     self.client_id = client_id
     self.client_secret = client_secret
@@ -608,32 +581,50 @@ class OAuth2UserAccountClient(OAuth2Client):
   def GetCredentials(self):
     """Fetches a credentials objects from the provider's token endpoint."""
     access_token = self.GetAccessToken()
-    credentials = OAuth2Credentials(
-        access_token.token, self.client_id, self.client_secret,
-        self.refresh_token, access_token.expiry, self.token_uri, None)
+    credentials = reauth_creds.Oauth2WithReauthCredentials(
+        access_token.token,
+        self.client_id,
+        self.client_secret,
+        self.refresh_token,
+        access_token.expiry,
+        self.token_uri,
+        None)  # user_agent
     return credentials
 
-  @Retry(GsAccessTokenRefreshError,
-         tries=config.get('OAuth2', 'oauth2_refresh_retries', 6),
-         timeout_secs=1)
-  def FetchAccessToken(self):
+  @retry_decorator.retry(
+      GsAccessTokenRefreshError,
+      tries=boto.config.get('OAuth2', 'oauth2_refresh_retries', 6),
+      timeout_secs=1)
+  def FetchAccessToken(self, rapt_token=None):
     """Fetches an access token from the provider's token endpoint.
 
     Fetches an access token from this client's OAuth2 provider's token endpoint.
+
+    Args:
+      rapt_token: (str) The RAPT to be passed when refreshing the access token.
 
     Returns:
       The fetched AccessToken.
     """
     try:
       http = self.CreateHttpRequest()
-      credentials = OAuth2Credentials(None, self.client_id, self.client_secret,
-                                      self.refresh_token, None, self.token_uri,
-                                      None)
+      credentials = reauth_creds.Oauth2WithReauthCredentials(
+          None,  # access_token
+          self.client_id,
+          self.client_secret,
+          self.refresh_token,
+          None,  # token_expiry
+          self.token_uri,
+          None,  # user_agent
+          scopes=RAPT_SCOPES,
+          rapt_token=rapt_token)
       credentials.refresh(http)
       return AccessToken(
-          credentials.access_token, credentials.token_expiry,
-          datetime_strategy=self.datetime_strategy)
-    except AccessTokenRefreshError, e:
+          credentials.access_token,
+          credentials.token_expiry,
+          datetime_strategy=self.datetime_strategy,
+          rapt_token=credentials.rapt_token)
+    except oauth2client.client.AccessTokenRefreshError as e:
       if 'Invalid response 403' in e.message:
         # This is the most we can do at the moment to accurately detect rate
         # limiting errors since they come back as 403s with no further
@@ -660,16 +651,30 @@ class OAuth2GCEClient(OAuth2Client):
         # Only InMemoryTokenCache can be used with empty cache_key_base.
         access_token_cache=InMemoryTokenCache())
 
-  @Retry(GsAccessTokenRefreshError,
-         tries=6,
-         timeout_secs=1)
-  def FetchAccessToken(self):
+  @retry_decorator.retry(GsAccessTokenRefreshError, tries=6, timeout_secs=1)
+  def FetchAccessToken(self, rapt_token=None):
+    """Fetches an access token from the provider's token endpoint.
+
+    Fetches an access token from the GCE metadata server.
+
+    Args:
+      rapt_token: (str) Ignored for this class. Service accounts don't use
+          reauth credentials.
+
+    Returns:
+      The fetched AccessToken.
+    """
+
+    del rapt_token  # Unused for service account credentials.
+    # Note that rapt_token is used only for user credentials, and thus should
+    # always be None in the context of GCE (service account) credentials.
     response = None
     try:
       http = httplib2.Http()
       response, content = http.request(META_TOKEN_URI, method='GET',
                                        body=None, headers=META_HEADERS)
-    except Exception, e:
+      content = six.ensure_text(content)
+    except Exception as e:
       raise GsAccessTokenRefreshError(e)
 
     if response.status == 200:
@@ -679,10 +684,12 @@ class OAuth2GCEClient(OAuth2Client):
           d['access_token'],
           datetime.datetime.now() +
           datetime.timedelta(seconds=d.get('expires_in', 0)),
-          datetime_strategy=self.datetime_strategy)
+          datetime_strategy=self.datetime_strategy,
+          rapt_token=None)
 
 
 def _IsGCE():
+  """Returns True if running on a GCE instance, otherwise False."""
   try:
     http = httplib2.Http()
     response, _ = http.request(METADATA_SERVER)
@@ -695,7 +702,7 @@ def _IsGCE():
     # this approach, we'll avoid having to enumerate all possible non-transient
     # socket errors.
     return False
-  except Exception, e:  # pylint: disable=broad-except
+  except Exception as e:  # pylint: disable=broad-except
     LOG.warning("Failed to determine whether we're running on GCE, so we'll"
                 "assume that we aren't: %s", e)
     return False
@@ -710,10 +717,17 @@ def CreateOAuth2GCEClient():
 class AccessToken(object):
   """Encapsulates an OAuth2 access token."""
 
-  def __init__(self, token, expiry, datetime_strategy=datetime.datetime):
+  def __init__(self, token, expiry, datetime_strategy=datetime.datetime,
+               rapt_token=None):
     self.token = token
     self.expiry = expiry
     self.datetime_strategy = datetime_strategy
+    # RAPT isn't technically part of the access token, but we can use the
+    # RAPT from an expired access token when refreshing to get a new access
+    # token. This allows users to only answer reauth challenges when the RAPT
+    # expires (usually ~once a day), as opposed to every time the access token
+    # expires (usually after an hour).
+    self.rapt_token = rapt_token
 
   @staticmethod
   def UnSerialize(query):
@@ -721,8 +735,8 @@ class AccessToken(object):
 
     def GetValue(d, key):
       return (d.get(key, [None]))[0]
-    kv = cgi.parse_qs(query)
-    if not kv['token']:
+    kv = urllib.parse.parse_qs(query)
+    if 'token' not in kv or not kv['token']:
       return None
     expiry = None
     expiry_tuple = GetValue(kv, 'expiry')
@@ -732,7 +746,8 @@ class AccessToken(object):
             *[int(n) for n in expiry_tuple.split(',')])
       except:  # pylint: disable=bare-except
         return None
-    return AccessToken(GetValue(kv, 'token'), expiry)
+    rapt_token = GetValue(kv, 'rapt_token')
+    return AccessToken(GetValue(kv, 'token'), expiry, rapt_token=rapt_token)
 
   def Serialize(self):
     """Serializes this object as URI-encoded key-value pairs."""
@@ -743,7 +758,9 @@ class AccessToken(object):
       t = self.expiry
       tupl = (t.year, t.month, t.day, t.hour, t.minute, t.second, t.microsecond)
       kv['expiry'] = ','.join([str(i) for i in tupl])
-    return urllib.urlencode(kv)
+    if self.rapt_token:
+      kv['rapt_token'] = self.rapt_token
+    return urllib.parse.urlencode(kv)
 
   def ShouldRefresh(self, time_delta=300):
     """Whether the access token needs to be refreshed.

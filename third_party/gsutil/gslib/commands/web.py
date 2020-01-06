@@ -15,6 +15,9 @@
 """Implementation of website configuration command for buckets."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import sys
 
@@ -28,8 +31,7 @@ from gslib.exception import CommandException
 from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.help_provider import CreateHelpText
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
-from gslib.util import NO_MAX
-
+from gslib.utils.constants import NO_MAX
 
 _SET_SYNOPSIS = """
   gsutil web set [-m main_page_suffix] [-e error_page] bucket_url...
@@ -84,7 +86,7 @@ _DESCRIPTION = """
   For example, suppose your company's Domain name is example.com. You could set
   up a website bucket as follows:
 
-  1. Create a bucket called example.com (see the "DOMAIN NAMED BUCKETS"
+  1. Create a bucket called www.example.com (see the "DOMAIN NAMED BUCKETS"
      section of "gsutil help naming" for details about creating such buckets).
 
   2. Create index.html and 404.html files and upload them to the bucket.
@@ -93,8 +95,8 @@ _DESCRIPTION = """
 
        gsutil web set -m index.html -e 404.html gs://www.example.com
 
-  4. Add a DNS CNAME record for example.com pointing to c.storage.googleapis.com
-     (ask your DNS administrator for help with this).
+  4. Add a DNS CNAME record for www.example.com pointing to
+     c.storage.googleapis.com (ask your DNS administrator for help with this).
 
   Now if you open a browser and navigate to http://www.example.com, it will
   display the main page instead of the default bucket listing. Note: It can
@@ -149,13 +151,9 @@ class WebCommand(Command):
       gs_api_support=[ApiSelector.XML, ApiSelector.JSON],
       gs_default_api=ApiSelector.JSON,
       argparse_arguments={
-          'set': [
-              CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument()
-          ],
-          'get': [
-              CommandArgument.MakeNCloudBucketURLsArgument(1)
-          ]
-      }
+          'set': [CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument()],
+          'get': [CommandArgument.MakeNCloudBucketURLsArgument(1)],
+      },
   )
   # Help specification. See help_provider.py for documentation.
   help_spec = Command.HelpSpec(
@@ -165,7 +163,10 @@ class WebCommand(Command):
       help_one_line_summary=(
           'Set a main page and/or error page for one or more buckets'),
       help_text=_DETAILED_HELP_TEXT,
-      subcommand_help_text={'get': _get_help_text, 'set': _set_help_text},
+      subcommand_help_text={
+          'get': _get_help_text,
+          'set': _set_help_text,
+      },
   )
 
   def _GetWeb(self):
@@ -174,13 +175,14 @@ class WebCommand(Command):
         self.args[0], bucket_fields=['website'])
 
     if bucket_url.scheme == 's3':
-      sys.stdout.write(self.gsutil_api.XmlPassThroughGetWebsite(
-          bucket_url, provider=bucket_url.scheme))
+      sys.stdout.write(
+          self.gsutil_api.XmlPassThroughGetWebsite(bucket_url,
+                                                   provider=bucket_url.scheme))
     else:
       if bucket_metadata.website and (bucket_metadata.website.mainPageSuffix or
                                       bucket_metadata.website.notFoundPage):
-        sys.stdout.write(str(encoding.MessageToJson(
-            bucket_metadata.website)) + '\n')
+        sys.stdout.write(
+            str(encoding.MessageToJson(bucket_metadata.website)) + '\n')
       else:
         sys.stdout.write('%s has no website configuration.\n' % bucket_url)
 
@@ -212,8 +214,10 @@ class WebCommand(Command):
         some_matched = True
         self.logger.info('Setting website configuration on %s...', blr)
         bucket_metadata = apitools_messages.Bucket(website=website)
-        self.gsutil_api.PatchBucket(url.bucket_name, bucket_metadata,
-                                    provider=url.scheme, fields=['id'])
+        self.gsutil_api.PatchBucket(url.bucket_name,
+                                    bucket_metadata,
+                                    provider=url.scheme,
+                                    fields=['id'])
     if not some_matched:
       raise CommandException(NO_URLS_MATCHED_TARGET % list(url_args))
     return 0
@@ -227,9 +231,9 @@ class WebCommand(Command):
     elif action_subcommand == 'set':
       func = self._SetWeb
     else:
-      raise CommandException(('Invalid subcommand "%s" for the %s command.\n'
-                              'See "gsutil help web".') %
-                             (action_subcommand, self.command_name))
+      raise CommandException(
+          ('Invalid subcommand "%s" for the %s command.\n'
+           'See "gsutil help web".') % (action_subcommand, self.command_name))
 
     # Commands with both suboptions and subcommands need to reparse for
     # suboptions, so we log again.

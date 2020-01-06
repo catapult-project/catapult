@@ -16,6 +16,9 @@
 """Implementation of Unix-like cp command for cloud storage providers."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import itertools
 import logging
@@ -24,18 +27,9 @@ import time
 import traceback
 
 from apitools.base.py import encoding
-from gslib import copy_helper
-from gslib.cat_helper import CatHelper
 from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.commands.compose import MAX_COMPONENT_COUNT
-from gslib.copy_helper import CreateCopyHelperOpts
-from gslib.copy_helper import GetSourceFieldsNeededForCopy
-from gslib.copy_helper import GZIP_ALL_FILES
-from gslib.copy_helper import ItemExistsError
-from gslib.copy_helper import Manifest
-from gslib.copy_helper import PARALLEL_UPLOAD_TEMP_NAMESPACE
-from gslib.copy_helper import SkipUnsupportedObjectError
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
 from gslib.metrics import LogPerformanceSummaryParams
@@ -44,26 +38,36 @@ from gslib.name_expansion import DestinationInfo
 from gslib.name_expansion import NameExpansionIterator
 from gslib.name_expansion import NameExpansionIteratorDestinationTuple
 from gslib.name_expansion import SeekAheadNameExpansionIterator
-from gslib.posix_util import ConvertModeToBase8
-from gslib.posix_util import DeserializeFileAttributesFromObjectMetadata
-from gslib.posix_util import InitializeUserGroups
-from gslib.posix_util import POSIXAttributes
-from gslib.posix_util import SerializeFileAttributesToObjectMetadata
-from gslib.posix_util import ValidateFilePermissionAccess
 from gslib.storage_url import ContainsWildcard
+from gslib.storage_url import IsCloudSubdirPlaceholder
 from gslib.storage_url import StorageUrlFromString
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
-from gslib.util import CalculateThroughput
-from gslib.util import CreateLock
-from gslib.util import DEBUGLEVEL_DUMP_REQUESTS
-from gslib.util import GetCloudApiInstance
-from gslib.util import GetStreamFromFileUrl
-from gslib.util import IsCloudSubdirPlaceholder
-from gslib.util import MakeHumanReadable
-from gslib.util import NO_MAX
-from gslib.util import NormalizeStorageClass
-from gslib.util import RemoveCRLFFromString
-from gslib.util import StdinIterator
+from gslib.utils import cat_helper
+from gslib.utils import copy_helper
+from gslib.utils import parallelism_framework_util
+from gslib.utils.cloud_api_helper import GetCloudApiInstance
+from gslib.utils.constants import DEBUGLEVEL_DUMP_REQUESTS
+from gslib.utils.constants import NO_MAX
+from gslib.utils.copy_helper import CreateCopyHelperOpts
+from gslib.utils.copy_helper import GetSourceFieldsNeededForCopy
+from gslib.utils.copy_helper import GZIP_ALL_FILES
+from gslib.utils.copy_helper import ItemExistsError
+from gslib.utils.copy_helper import Manifest
+from gslib.utils.copy_helper import PARALLEL_UPLOAD_TEMP_NAMESPACE
+from gslib.utils.copy_helper import SkipUnsupportedObjectError
+from gslib.utils.posix_util import ConvertModeToBase8
+from gslib.utils.posix_util import DeserializeFileAttributesFromObjectMetadata
+from gslib.utils.posix_util import InitializeUserGroups
+from gslib.utils.posix_util import POSIXAttributes
+from gslib.utils.posix_util import SerializeFileAttributesToObjectMetadata
+from gslib.utils.posix_util import ValidateFilePermissionAccess
+from gslib.utils.system_util import GetStreamFromFileUrl
+from gslib.utils.system_util import StdinIterator
+from gslib.utils.system_util import StdinIteratorCls
+from gslib.utils.text_util import NormalizeStorageClass
+from gslib.utils.text_util import RemoveCRLFFromString
+from gslib.utils.unit_util import CalculateThroughput
+from gslib.utils.unit_util import MakeHumanReadable
 
 _SYNOPSIS = """
   gsutil cp [OPTION]... src_url dst_url
@@ -79,7 +83,7 @@ _DESCRIPTION_TEXT = """
 <B>DESCRIPTION</B>
   The gsutil cp command allows you to copy data between your local file
   system and the cloud, copy data within the cloud, and copy data between
-  cloud storage providers. For example, to copy all text files from the
+  cloud storage providers. For example, to upload all text files from the
   local directory to a bucket you could do:
 
     gsutil cp *.txt gs://my-bucket
@@ -88,13 +92,14 @@ _DESCRIPTION_TEXT = """
 
     gsutil cp gs://my-bucket/*.txt .
 
-  If you want to copy an entire directory tree you need to use the -r option:
+  If you want to copy an entire directory tree you need to use the -r option.
+  For example, to upload the directory tree "dir":
 
     gsutil cp -r dir gs://my-bucket
 
   If you have a large number of files to transfer you might want to use the
-  gsutil -m option, to perform a parallel (multi-threaded/multi-processing)
-  copy:
+  top-level gsutil -m option (see "gsutil help options"), to perform a
+  parallel (multi-threaded/multi-processing) copy:
 
     gsutil -m cp -r dir gs://my-bucket
 
@@ -111,6 +116,12 @@ _DESCRIPTION_TEXT = """
 
   The contents of stdin can name files, cloud URLs, and wildcards of files
   and cloud URLs.
+
+  Note: Shells (like bash, zsh) sometimes attempt to expand wildcards in ways
+  that can be surprising. Also, attempting to copy files whose names contain
+  wildcard characters can result in problems. For more details about these
+  issues see the section "POTENTIALLY SURPRISING BEHAVIOR WHEN USING WILDCARDS"
+  under "gsutil help wildcards".
 """
 
 _NAME_CONSTRUCTION_TEXT = """
@@ -161,7 +172,7 @@ _NAME_CONSTRUCTION_TEXT = """
   to create folders, it does so by creating a "placeholder" object that ends
   with a "/" character. gsutil skips these objects when downloading from the
   cloud to the local file system, because attempting to create a file that
-  ends with a "/" is not allowed on Linux and MacOS. Because of this, it is
+  ends with a "/" is not allowed on Linux and macOS. Because of this, it is
   recommended that you not create objects that end with "/" (unless you don't
   need to be able to download such objects using gsutil).
 """
@@ -242,11 +253,13 @@ _COPY_IN_CLOUD_TEXT = """
 
     gsutil cp -A gs://bucket1/obj gs://bucket2
 
-  The gsutil -m flag is disallowed when using the cp -A flag, to ensure that
-  version ordering is preserved.
+  The top-level gsutil -m flag is disallowed when using the cp -A flag, to
+  ensure that version ordering is preserved.
 """
 
 _CHECKSUM_VALIDATION_TEXT = """
+
+
 <B>CHECKSUM VALIDATION</B>
   At the end of every upload or download the gsutil cp command validates that
   the checksum it computes for the source file/object matches the checksum
@@ -279,27 +292,27 @@ _CHECKSUM_VALIDATION_TEXT = """
   checksum mismatches, but specifying the Content-MD5 header has several
   advantages:
 
-      1. It prevents the corrupted object from becoming visible at all, whereas
-      otherwise it would be visible for 1-3 seconds before gsutil deletes it.
+  1. It prevents the corrupted object from becoming visible at all, whereas
+     otherwise it would be visible for 1-3 seconds before gsutil deletes it.
 
-      2. If an object already exists with the given name, specifying the
-      Content-MD5 header will cause the existing object never to be replaced,
-      whereas otherwise it would be replaced by the corrupted object and then
-      deleted a few seconds later.
+  2. If an object already exists with the given name, specifying the
+     Content-MD5 header will cause the existing object never to be replaced,
+     whereas otherwise it would be replaced by the corrupted object and then
+     deleted a few seconds later.
 
-      3. It will definitively prevent the corrupted object from being left in
-      the cloud, whereas the gsutil approach of deleting after the upload
-      completes could fail if (for example) the gsutil process gets ^C'd
-      between upload and deletion request.
+  3. It will definitively prevent the corrupted object from being left in
+     the cloud, whereas the gsutil approach of deleting after the upload
+     completes could fail if (for example) the gsutil process gets ^C'd
+     between upload and deletion request.
 
-      4. It supports a customer-to-service integrity check handoff. For example,
-      if you have a content production pipeline that generates data to be
-      uploaded to the cloud along with checksums of that data, specifying the
-      MD5 computed by your content pipeline when you run gsutil cp will ensure
-      that the checksums match all the way through the process (e.g., detecting
-      if data gets corrupted on your local disk between the time it was written
-      by your content pipeline and the time it was uploaded to Google Cloud
-      Storage).
+  4. It supports a customer-to-service integrity check handoff. For example,
+     if you have a content production pipeline that generates data to be
+     uploaded to the cloud along with checksums of that data, specifying the
+     MD5 computed by your content pipeline when you run gsutil cp will ensure
+     that the checksums match all the way through the process (e.g., detecting
+     if data gets corrupted on your local disk between the time it was written
+     by your content pipeline and the time it was uploaded to Google Cloud
+     Storage).
 
   Note: The Content-MD5 header is ignored for composite objects, because such
   objects only have a CRC32C checksum.
@@ -330,7 +343,7 @@ _RESUMABLE_TRANSFERS_TEXT = """
   you ran to start the upload. Until the upload has completed successfully, it
   will not be visible at the destination object and will not replace any
   existing object the upload is intended to overwrite. However, see the section
-  on PARALLEL COMPOSITE UPLOADS, which may leave temporary component objects in
+  on parallel composite uploads, which may leave temporary component objects in
   place during the upload process.
 
   Similarly, gsutil automatically performs resumable downloads (using standard
@@ -365,10 +378,13 @@ _STREAMING_TRANSFERS_TEXT = """
   then copy that file to the cloud rather than streaming it (and similarly for
   large downloads).
 
-  WARNING: When performing streaming transfers gsutil does not compute a
-  checksum of the uploaded or downloaded data. Therefore, we recommend that
-  users either perform their own validation of the data or use non-streaming
-  transfers (which perform integrity checking automatically).
+  CAUTION: When performing a streaming transfer to or from Cloud Storage,
+  neither Cloud Storage nor gsutil compute a checksum. If you require data
+  validation, use a non-streaming transfer, which performs integrity checking
+  automatically.
+
+  Note: Streaming transfers are not allowed when the top-level gsutil -m flag
+  is used.
 """
 
 _SLICED_OBJECT_DOWNLOADS_TEXT = """
@@ -420,7 +436,7 @@ _PARALLEL_COMPOSITE_UPLOADS_TEXT = """
   downloaded by gsutil or other Python applications. Note that for such uploads,
   crcmod is required for downloading regardless of whether the parallel
   composite upload option is on or not. For some distributions this is easy
-  (e.g., it comes pre-installed on MacOS), but in other cases some users have
+  (e.g., it comes pre-installed on macOS), but in other cases some users have
   found it difficult. Because of this, at present parallel composite uploads are
   disabled by default. Google is actively working with a number of the Linux
   distributions to get crcmod included with the stock distribution. Once that is
@@ -434,14 +450,12 @@ _PARALLEL_COMPOSITE_UPLOADS_TEXT = """
 
     gsutil -o GSUtil:parallel_composite_upload_threshold=150M cp bigfile gs://your-bucket
 
-  where bigfile is larger than 150 MiB. When you do this notice that the upload
-  progress indicator continuously updates for several different uploads at once
-  (corresponding to each of the sections of the file being uploaded in
-  parallel), until the parallel upload completes. If after trying this you want
-  to enable parallel composite uploads for all of your future uploads
-  (notwithstanding the caveats mentioned earlier), you can uncomment and set the
-  "parallel_composite_upload_threshold" config value in your .boto configuration
-  file to this value.
+  where bigfile is larger than 150 MiB. When you do this, notice that the upload
+  progress indicator continuously updates for the file, until all parts of the
+  upload complete. If after trying this you want to enable parallel composite
+  uploads for all of your future uploads (notwithstanding the caveats mentioned
+  earlier), you can uncomment and set the "parallel_composite_upload_threshold"
+  config value in your .boto configuration file to this value.
 
   Note that the crcmod problem only impacts downloads via Python applications
   (such as gsutil). If all users who need to download the data using gsutil or
@@ -478,24 +492,14 @@ _PARALLEL_COMPOSITE_UPLOADS_TEXT = """
       << Code that handles failures >>
     fi
 
-  One important caveat is that files uploaded using parallel composite uploads
-  are subject to a maximum number of components limit. For example, if you
-  upload a large file that gets split into %d components, and try to compose it
-  with another object with %d components, the operation will fail because it
-  exceeds the %d component limit. If you wish to compose an object later and the
-  component limit is a concern, it is recommended that you disable parallel
-  composite uploads for that transfer.
-
-  Also note that an object uploaded using parallel composite uploads will have a
+  Note that an object uploaded using parallel composite uploads will have a
   CRC32C hash, but it will not have an MD5 hash (and because of that, users who
   download the object must have crcmod installed, as noted earlier). For details
   see "gsutil help crc32c".
 
   Parallel composite uploads can be disabled by setting the
   "parallel_composite_upload_threshold" variable in the .boto config file to 0.
-""" % (PARALLEL_UPLOAD_TEMP_NAMESPACE, 10, MAX_COMPONENT_COUNT - 9,
-       MAX_COMPONENT_COUNT)
-
+""" % (PARALLEL_UPLOAD_TEMP_NAMESPACE)
 
 _CHANGING_TEMP_DIRECTORIES_TEXT = """
 <B>CHANGING TEMP DIRECTORIES</B>
@@ -512,7 +516,7 @@ _CHANGING_TEMP_DIRECTORIES_TEXT = """
   space during one of these operations (e.g., raising
   "CommandException: Inadequate temp space available to compress <your file>"
   during a gsutil cp -z operation), you can change where it writes these
-  temp files by setting the TMPDIR environment variable. On Linux and MacOS
+  temp files by setting the TMPDIR environment variable. On Linux and macOS
   you can do this either by running gsutil this way:
 
     TMPDIR=/some/directory gsutil cp ...
@@ -525,16 +529,15 @@ _CHANGING_TEMP_DIRECTORIES_TEXT = """
   On Windows 7 you can change the TMPDIR environment variable from Start ->
   Computer -> System -> Advanced System Settings -> Environment Variables.
   You need to reboot after making this change for it to take effect. (Rebooting
-  is not necessary after running the export command on Linux and MacOS.)
+  is not necessary after running the export command on Linux and macOS.)
 """
 
 _COPYING_SPECIAL_FILES_TEXT = """
-<B>COPYING SPECIAL FILES</B>
-  gsutil cp does not support copying special file types such as sockets, device
-  files, named pipes, or any other non-standard files intended to represent an
-  operating system resource. You should not run gsutil cp with sources that
-  include such files (for example, recursively copying the root directory on
-  Linux that includes /dev ). If you do, gsutil cp may fail or hang.
+<B>SYNCHRONIZING OVER OS-SPECIFIC FILE TYPES (SYMLINKS, DEVICES, ETC.)</B>
+
+  Please see the section about OS-specific file types in "gsutil help rsync".
+  While that section was written specifically about the rsync command, analogous
+  points apply to the cp command.
 """
 
 _OPTIONS_TEXT = """
@@ -589,9 +592,9 @@ _OPTIONS_TEXT = """
 
                  When you specify the -j option, files being uploaded are
                  compressed in-memory and on-the-wire only. Both the local
-                 files and GCS objects remain uncompressed. The uploaded
-                 objects retain the Content-Type and name of the original
-                 files.
+                 files and Cloud Storage objects remain uncompressed. The
+                 uploaded objects retain the Content-Type and name of the
+                 original files.
 
                  Note that if you want to use the top-level -m option to
                  parallelize copies along with the -j/-J options, you should
@@ -603,7 +606,7 @@ _OPTIONS_TEXT = """
 
                    gsutil -o "GSUtil:parallel_process_count=8" \\
                      -o "GSUtil:parallel_thread_count=1" \\
-                     -m cp -r /local/source/dir gs://bucket/path
+                     -m cp -j html -r /local/source/dir gs://bucket/path
 
   -J             Applies gzip transport encoding to file uploads. This option
                  works like the -j option described above, but it applies to
@@ -762,26 +765,29 @@ _OPTIONS_TEXT = """
                  cloud than they would if left uncompressed.
 """
 
-_DETAILED_HELP_TEXT = '\n\n'.join([_SYNOPSIS_TEXT,
-                                   _DESCRIPTION_TEXT,
-                                   _NAME_CONSTRUCTION_TEXT,
-                                   _SUBDIRECTORIES_TEXT,
-                                   _COPY_IN_CLOUD_TEXT,
-                                   _CHECKSUM_VALIDATION_TEXT,
-                                   _RETRY_HANDLING_TEXT,
-                                   _RESUMABLE_TRANSFERS_TEXT,
-                                   _STREAMING_TRANSFERS_TEXT,
-                                   _SLICED_OBJECT_DOWNLOADS_TEXT,
-                                   _PARALLEL_COMPOSITE_UPLOADS_TEXT,
-                                   _CHANGING_TEMP_DIRECTORIES_TEXT,
-                                   _COPYING_SPECIAL_FILES_TEXT,
-                                   _OPTIONS_TEXT])
+_DETAILED_HELP_TEXT = '\n\n'.join([
+    _SYNOPSIS_TEXT,
+    _DESCRIPTION_TEXT,
+    _NAME_CONSTRUCTION_TEXT,
+    _SUBDIRECTORIES_TEXT,
+    _COPY_IN_CLOUD_TEXT,
+    _CHECKSUM_VALIDATION_TEXT,
+    _RETRY_HANDLING_TEXT,
+    _RESUMABLE_TRANSFERS_TEXT,
+    _STREAMING_TRANSFERS_TEXT,
+    _SLICED_OBJECT_DOWNLOADS_TEXT,
+    _PARALLEL_COMPOSITE_UPLOADS_TEXT,
+    _CHANGING_TEMP_DIRECTORIES_TEXT,
+    _COPYING_SPECIAL_FILES_TEXT,
+    _OPTIONS_TEXT,
+])
 
 CP_SUB_ARGS = 'a:AcDeIL:MNnpPrRs:tUvz:Zj:J'
 
 
 def _CopyFuncWrapper(cls, args, thread_state=None):
-  cls.CopyFunc(args, thread_state=thread_state,
+  cls.CopyFunc(args,
+               thread_state=thread_state,
                preserve_posix=cls.preserve_posix_attrs)
 
 
@@ -834,8 +840,8 @@ class CpCommand(Command):
       gs_default_api=ApiSelector.JSON,
       supported_private_args=['testcallbackfile='],
       argparse_arguments=[
-          CommandArgument.MakeZeroOrMoreCloudOrFileURLsArgument()
-      ]
+          CommandArgument.MakeZeroOrMoreCloudOrFileURLsArgument(),
+      ],
   )
   # Help specification. See help_provider.py for documentation.
   help_spec = Command.HelpSpec(
@@ -848,8 +854,7 @@ class CpCommand(Command):
   )
 
   # pylint: disable=too-many-statements
-  def CopyFunc(self, copy_object_info, thread_state=None,
-               preserve_posix=False):
+  def CopyFunc(self, copy_object_info, thread_state=None, preserve_posix=False):
     """Worker function for performing the actual copy (and rm, for mv)."""
     gsutil_api = GetCloudApiInstance(self, thread_state=thread_state)
 
@@ -869,6 +874,9 @@ class CpCommand(Command):
           (cmd_name, src_url))
     if preserve_posix and src_url.IsFileUrl() and src_url.IsStream():
       raise CommandException('Cannot preserve POSIX attributes with a stream.')
+    if self.parallel_operations and src_url.IsFileUrl() and src_url.IsStream():
+      raise CommandException(
+          'Cannot upload from a stream when using gsutil -m option.')
     if have_multiple_srcs:
       copy_helper.InsistDstUrlNamesContainer(
           copy_object_info.exp_dst_url,
@@ -907,16 +915,20 @@ class CpCommand(Command):
           raise CommandException('The mv command disallows naming source '
                                  'directories using wildcards')
 
-    if (copy_object_info.exp_dst_url.IsFileUrl()
-        and not os.path.exists(copy_object_info.exp_dst_url.object_name)
-        and have_multiple_srcs):
+    if (copy_object_info.exp_dst_url.IsFileUrl() and
+        not os.path.exists(copy_object_info.exp_dst_url.object_name) and
+        have_multiple_srcs):
       os.makedirs(copy_object_info.exp_dst_url.object_name)
 
     dst_url = copy_helper.ConstructDstUrl(
-        src_url, exp_src_url, src_url_names_container, have_multiple_srcs,
+        src_url,
+        exp_src_url,
+        src_url_names_container,
+        have_multiple_srcs,
         copy_object_info.exp_dst_url,
         copy_object_info.have_existing_dst_container,
-        self.recursion_requested, preserve_posix=preserve_posix)
+        self.recursion_requested,
+        preserve_posix=preserve_posix)
     dst_url = copy_helper.FixWindowsNaming(src_url, dst_url)
 
     copy_helper.CheckForDirFileConflict(exp_src_url, dst_url)
@@ -926,8 +938,8 @@ class CpCommand(Command):
 
     if dst_url.IsCloudUrl() and dst_url.HasGeneration():
       raise CommandException('%s: a version-specific URL\n(%s)\ncannot be '
-                             'the destination for gsutil cp - abort.'
-                             % (cmd_name, dst_url))
+                             'the destination for gsutil cp - abort.' %
+                             (cmd_name, dst_url))
 
     if not dst_url.IsCloudUrl() and copy_helper_opts.dest_storage_class:
       raise CommandException('Cannot specify storage class for a non-cloud '
@@ -944,11 +956,15 @@ class CpCommand(Command):
       mode, _, _, _, uid, gid, _, atime, mtime, _ = os.stat(
           exp_src_url.object_name)
       mode = ConvertModeToBase8(mode)
-      posix_attrs = POSIXAttributes(atime=atime, mtime=mtime, uid=uid, gid=gid,
+      posix_attrs = POSIXAttributes(atime=atime,
+                                    mtime=mtime,
+                                    uid=uid,
+                                    gid=gid,
                                     mode=mode)
       custom_metadata = apitools_messages.Object.MetadataValue(
           additionalProperties=[])
-      SerializeFileAttributesToObjectMetadata(posix_attrs, custom_metadata,
+      SerializeFileAttributesToObjectMetadata(posix_attrs,
+                                              custom_metadata,
                                               preserve_posix=preserve_posix)
       src_obj_metadata.metadata = custom_metadata
 
@@ -968,20 +984,25 @@ class CpCommand(Command):
     bytes_transferred = 0
     try:
       if copy_helper_opts.use_manifest:
-        self.manifest.Initialize(
-            exp_src_url.url_string, dst_url.url_string)
-      (_, bytes_transferred, result_url, md5) = (
-          copy_helper.PerformCopy(
-              self.logger, exp_src_url, dst_url, gsutil_api,
-              self, _CopyExceptionHandler, src_obj_metadata=src_obj_metadata,
-              allow_splitting=True, headers=self.headers,
-              manifest=self.manifest, gzip_encoded=self.gzip_encoded,
-              gzip_exts=self.gzip_exts, preserve_posix=preserve_posix))
+        self.manifest.Initialize(exp_src_url.url_string, dst_url.url_string)
+      _, bytes_transferred, result_url, md5 = copy_helper.PerformCopy(
+          self.logger,
+          exp_src_url,
+          dst_url,
+          gsutil_api,
+          self,
+          _CopyExceptionHandler,
+          src_obj_metadata=src_obj_metadata,
+          allow_splitting=True,
+          headers=self.headers,
+          manifest=self.manifest,
+          gzip_encoded=self.gzip_encoded,
+          gzip_exts=self.gzip_exts,
+          preserve_posix=preserve_posix)
       if copy_helper_opts.use_manifest:
         if md5:
           self.manifest.Set(exp_src_url.url_string, 'md5', md5)
-        self.manifest.SetResult(
-            exp_src_url.url_string, bytes_transferred, 'OK')
+        self.manifest.SetResult(exp_src_url.url_string, bytes_transferred, 'OK')
       if copy_helper_opts.print_ver:
         # Some cases don't return a version-specific URL (e.g., if destination
         # is a file).
@@ -991,37 +1012,35 @@ class CpCommand(Command):
       self.logger.info(message)
       if copy_helper_opts.use_manifest:
         self.manifest.SetResult(exp_src_url.url_string, 0, 'skip', message)
-    except SkipUnsupportedObjectError, e:
+    except SkipUnsupportedObjectError as e:
       message = ('Skipping item %s with unsupported object type %s' %
                  (exp_src_url.url_string, e.unsupported_type))
       self.logger.info(message)
       if copy_helper_opts.use_manifest:
         self.manifest.SetResult(exp_src_url.url_string, 0, 'skip', message)
-    except copy_helper.FileConcurrencySkipError, e:
-      self.logger.warn('Skipping copy of source URL %s because destination URL '
-                       '%s is already being copied by another gsutil process '
-                       'or thread (did you specify the same source URL twice?) '
-                       % (src_url, dst_url))
-    except Exception, e:  # pylint: disable=broad-except
+    except copy_helper.FileConcurrencySkipError as e:
+      self.logger.warn(
+          'Skipping copy of source URL %s because destination URL '
+          '%s is already being copied by another gsutil process '
+          'or thread (did you specify the same source URL twice?) ' %
+          (src_url, dst_url))
+    except Exception as e:  # pylint: disable=broad-except
       if (copy_helper_opts.no_clobber and
           copy_helper.IsNoClobberServerException(e)):
         message = 'Rejected (noclobber): %s' % dst_url
         self.logger.info(message)
         if copy_helper_opts.use_manifest:
-          self.manifest.SetResult(
-              exp_src_url.url_string, 0, 'skip', message)
+          self.manifest.SetResult(exp_src_url.url_string, 0, 'skip', message)
       elif self.continue_on_error:
         message = 'Error copying %s: %s' % (src_url, str(e))
         self.op_failure_count += 1
         self.logger.error(message)
         if copy_helper_opts.use_manifest:
-          self.manifest.SetResult(
-              exp_src_url.url_string, 0, 'error',
-              RemoveCRLFFromString(message))
+          self.manifest.SetResult(exp_src_url.url_string, 0, 'error',
+                                  RemoveCRLFFromString(message))
       else:
         if copy_helper_opts.use_manifest:
-          self.manifest.SetResult(
-              exp_src_url.url_string, 0, 'error', str(e))
+          self.manifest.SetResult(exp_src_url.url_string, 0, 'error', str(e))
         raise
     else:
       if copy_helper_opts.perform_mv:
@@ -1067,15 +1086,21 @@ class CpCommand(Command):
       # destination directory. In another scenario, all the threads might find
       # that the destination directory does not exist and copy the source
       # directories to the destination directory.
-      (exp_dst_url, have_existing_dst_container) = (
-          copy_helper.ExpandUrlToSingleBlr(dst_url_str, self.gsutil_api,
-                                           self.debug, self.project_id))
+      exp_dst_url, have_existing_dst_container = (
+          copy_helper.ExpandUrlToSingleBlr(dst_url_str,
+                                           self.gsutil_api,
+                                           self.project_id,
+                                           logger=self.logger))
       name_expansion_iterator_dst_tuple = NameExpansionIteratorDestinationTuple(
           NameExpansionIterator(
-              self.command_name, self.debug,
-              self.logger, self.gsutil_api, src_url_str,
+              self.command_name,
+              self.debug,
+              self.logger,
+              self.gsutil_api,
+              src_url_str,
               self.recursion_requested or copy_helper_opts.perform_mv,
-              project_id=self.project_id, all_versions=self.all_versions,
+              project_id=self.project_id,
+              all_versions=self.all_versions,
               ignore_symlinks=self.exclude_symlinks,
               continue_on_error=(self.continue_on_error or
                                  self.parallel_operations),
@@ -1085,8 +1110,7 @@ class CpCommand(Command):
                   copy_helper_opts.preserve_acl,
                   preserve_posix=self.preserve_posix_attrs,
                   delete_source=copy_helper_opts.perform_mv)),
-          DestinationInfo(exp_dst_url,
-                          have_existing_dst_container))
+          DestinationInfo(exp_dst_url, have_existing_dst_container))
 
       self.has_file_dst = self.has_file_dst or exp_dst_url.IsFileUrl()
       self.has_cloud_dst = self.has_cloud_dst or exp_dst_url.IsCloudUrl()
@@ -1103,21 +1127,21 @@ class CpCommand(Command):
     self.total_bytes_transferred = 0
 
     dst_url = StorageUrlFromString(self.args[-1])
-    if dst_url.IsFileUrl() and (dst_url.object_name == '-' or
-                                dst_url.IsFifo()):
+    if dst_url.IsFileUrl() and (dst_url.object_name == '-' or dst_url.IsFifo()):
       if self.preserve_posix_attrs:
         raise CommandException('Cannot preserve POSIX attributes with a '
                                'stream or a named pipe.')
       cat_out_fd = (GetStreamFromFileUrl(dst_url, mode='wb')
                     if dst_url.IsFifo() else None)
-      return CatHelper(self).CatUrlStrings(
-          self.args[:-1],
-          cat_out_fd=cat_out_fd)
+      return cat_helper.CatHelper(self).CatUrlStrings(self.args[:-1],
+                                                      cat_out_fd=cat_out_fd)
 
     if copy_helper_opts.read_args_from_stdin:
       if len(self.args) != 1:
         raise CommandException('Source URLs cannot be specified with -I option')
-      src_url_strs = [StdinIterator()]
+      # Use StdinIteratorCls instead of StdinIterator here to avoid Python 3
+      # generator pickling errors when multiprocessing a command.
+      src_url_strs = [StdinIteratorCls()]
     else:
       if len(self.args) < 2:
         raise CommandException('Wrong number of arguments for "cp" command.')
@@ -1133,24 +1157,28 @@ class CpCommand(Command):
     # Because cp may have multiple source URLs and multiple destinations, we
     # wrap the name expansion iterator in order to collect analytics.
     name_expansion_iterator = CopyObjectsIterator(
-        self._ConstructNameExpansionIteratorDstTupleIterator(src_url_strs,
-                                                             dst_url_strs),
-        copy_helper_opts.daisy_chain)
+        self._ConstructNameExpansionIteratorDstTupleIterator(
+            src_url_strs, dst_url_strs),
+        copy_helper_opts.daisy_chain,
+    )
 
     seek_ahead_iterator = None
     # Cannot seek ahead with stdin args, since we can only iterate them
     # once without buffering in memory.
     if not copy_helper_opts.read_args_from_stdin:
       seek_ahead_iterator = SeekAheadNameExpansionIterator(
-          self.command_name, self.debug, self.GetSeekAheadGsutilApi(),
+          self.command_name,
+          self.debug,
+          self.GetSeekAheadGsutilApi(),
           self.combined_src_urls,
           self.recursion_requested or copy_helper_opts.perform_mv,
-          all_versions=self.all_versions, project_id=self.project_id,
+          all_versions=self.all_versions,
+          project_id=self.project_id,
           ignore_symlinks=self.exclude_symlinks)
 
     # Use a lock to ensure accurate statistics in the face of
     # multi-threading/multi-processing.
-    self.stats_lock = CreateLock()
+    self.stats_lock = parallelism_framework_util.CreateLock()
 
     # Tracks if any copies failed.
     self.op_failure_count = 0
@@ -1165,12 +1193,14 @@ class CpCommand(Command):
     # Perform copy requests in parallel (-m) mode, if requested, using
     # configured number of parallel processes and threads. Otherwise,
     # perform requests with sequential function calls in current process.
-    self.Apply(_CopyFuncWrapper, name_expansion_iterator,
-               _CopyExceptionHandler, shared_attrs,
+    self.Apply(_CopyFuncWrapper,
+               name_expansion_iterator,
+               _CopyExceptionHandler,
+               shared_attrs,
                fail_on_error=(not self.continue_on_error),
                seek_ahead_iterator=seek_ahead_iterator)
-    self.logger.debug(
-        'total_bytes_transferred: %d', self.total_bytes_transferred)
+    self.logger.debug('total_bytes_transferred: %d',
+                      self.total_bytes_transferred)
 
     end_time = time.time()
     self.total_elapsed_time = end_time - start_time
@@ -1197,8 +1227,9 @@ class CpCommand(Command):
             MakeHumanReadable(self.total_bytes_per_second))
     if self.op_failure_count:
       plural_str = 's' if self.op_failure_count > 1 else ''
-      raise CommandException('%d file%s/object%s could not be transferred.' % (
-          self.op_failure_count, plural_str, plural_str))
+      raise CommandException('{count} file{pl}/object{pl} could '
+                             'not be transferred.'.format(
+                                 count=self.op_failure_count, pl=plural_str))
 
     return 0
 

@@ -14,10 +14,16 @@
 # limitations under the License.
 """Integration tests for multiple bucket configuration commands."""
 
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+
 import json
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.util import ObjectToURI as suri
+from gslib.utils.constants import UTF8
 
 
 class TestBucketConfig(testcase.GsUtilIntegrationTestCase):
@@ -55,32 +61,36 @@ class TestBucketConfig(testcase.GsUtilIntegrationTestCase):
   def test_set_multi_config(self):
     """Tests that bucket config patching affects only the desired config."""
     bucket_uri = self.CreateBucket()
-    lifecycle_path = self.CreateTempFile(contents=self.lifecycle_doc)
-    cors_path = self.CreateTempFile(contents=self.cors_doc)
+    lifecycle_path = self.CreateTempFile(
+        contents=self.lifecycle_doc.encode(UTF8))
+    cors_path = self.CreateTempFile(contents=self.cors_doc.encode(UTF8))
 
     self.RunGsUtil(self._set_cors_command + [cors_path, suri(bucket_uri)])
     cors_out = self.RunGsUtil(self._get_cors_command + [suri(bucket_uri)],
                               return_stdout=True)
     self.assertEqual(json.loads(cors_out), self.cors_json_obj)
 
-    self.RunGsUtil(self._set_lifecycle_command + [lifecycle_path,
-                                                  suri(bucket_uri)])
+    self.RunGsUtil(self._set_lifecycle_command +
+                   [lifecycle_path, suri(bucket_uri)])
     cors_out = self.RunGsUtil(self._get_cors_command + [suri(bucket_uri)],
                               return_stdout=True)
     lifecycle_out = self.RunGsUtil(self._get_lifecycle_command +
-                                   [suri(bucket_uri)], return_stdout=True)
+                                   [suri(bucket_uri)],
+                                   return_stdout=True)
     self.assertEqual(json.loads(cors_out), self.cors_json_obj)
     self.assertEqual(json.loads(lifecycle_out), self.lifecycle_json_obj)
 
     if not self._ServiceAccountCredentialsPresent():
       # See comments in _ServiceAccountCredentialsPresent
       self.RunGsUtil(
-          self._set_acl_command + ['authenticated-read', suri(bucket_uri)])
+          self._set_acl_command +
+          ['authenticated-read', suri(bucket_uri)])
 
     cors_out = self.RunGsUtil(self._get_cors_command + [suri(bucket_uri)],
                               return_stdout=True)
     lifecycle_out = self.RunGsUtil(self._get_lifecycle_command +
-                                   [suri(bucket_uri)], return_stdout=True)
+                                   [suri(bucket_uri)],
+                                   return_stdout=True)
     self.assertEqual(json.loads(cors_out), self.cors_json_obj)
     self.assertEqual(json.loads(lifecycle_out), self.lifecycle_json_obj)
 
@@ -89,13 +99,13 @@ class TestBucketConfig(testcase.GsUtilIntegrationTestCase):
                                return_stdout=True)
       self.assertIn('allAuthenticatedUsers', acl_out)
 
-    self.RunGsUtil(
-        self._set_defacl_command + ['public-read', suri(bucket_uri)])
+    self.RunGsUtil(self._set_defacl_command + ['public-read', suri(bucket_uri)])
 
     cors_out = self.RunGsUtil(self._get_cors_command + [suri(bucket_uri)],
                               return_stdout=True)
     lifecycle_out = self.RunGsUtil(self._get_lifecycle_command +
-                                   [suri(bucket_uri)], return_stdout=True)
+                                   [suri(bucket_uri)],
+                                   return_stdout=True)
     def_acl_out = self.RunGsUtil(self._get_defacl_command + [suri(bucket_uri)],
                                  return_stdout=True)
     self.assertEqual(json.loads(cors_out), self.cors_json_obj)

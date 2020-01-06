@@ -130,6 +130,42 @@ class NestedAdditionalPropertiesWithEnumMessage(messages.Message):
 
 
 @encoding.MapUnrecognizedFields('additionalProperties')
+class AdditionalPropertiesWithEnumMessage(messages.Message):
+
+    class AdditionalProperty(messages.Message):
+        key = messages.StringField(1)
+        value = messages.MessageField(MessageWithEnum, 2)
+
+    additionalProperties = messages.MessageField(
+        'AdditionalProperty', 1, repeated=True)
+
+
+class NestedMapMessage(messages.Message):
+
+    msg_field = messages.MessageField(AdditionalPropertiesWithEnumMessage, 1)
+
+
+class RepeatedNestedMapMessage(messages.Message):
+
+    map_field = messages.MessageField(NestedMapMessage, 1, repeated=True)
+
+
+class NestedWithEnumMessage(messages.Message):
+
+    class ThisEnum(messages.Enum):
+        VALUE_ONE = 1
+        VALUE_TWO = 2
+
+    msg_field = messages.MessageField(MessageWithEnum, 1)
+    enum_field = messages.EnumField(ThisEnum, 2)
+
+
+class RepeatedNestedMessage(messages.Message):
+
+    msg_field = messages.MessageField(SimpleMessage, 1, repeated=True)
+
+
+@encoding.MapUnrecognizedFields('additionalProperties')
 class MapToBytesValue(messages.Message):
     class AdditionalProperty(messages.Message):
         key = messages.StringField(1)
@@ -677,3 +713,60 @@ class EncodingTest(unittest2.TestCase):
                 key='key', value=1)
         ]
         self.assertEqual(encoded_msg, expected_msg)
+
+    def testUnrecognizedFieldIter(self):
+        m = encoding.DictToMessage({
+            'nested': {
+                'nested': {'a': 'b'},
+                'nested_list': ['foo'],
+                'extra_field': 'foo',
+            }
+        }, ExtraNestedMessage)
+        results = list(encoding.UnrecognizedFieldIter(m))
+        self.assertEqual(1, len(results))
+        edges, fields = results[0]
+        expected_edge = encoding.ProtoEdge(
+            encoding.EdgeType.SCALAR, 'nested', None)
+        self.assertEqual((expected_edge,), edges)
+        self.assertEqual(['extra_field'], fields)
+
+    def testUnrecognizedFieldIterRepeated(self):
+        m = encoding.DictToMessage({
+            'msg_field': [
+                {'field': 'foo'},
+                {'not_a_field': 'bar'}
+            ]
+        }, RepeatedNestedMessage)
+        results = list(encoding.UnrecognizedFieldIter(m))
+        self.assertEqual(1, len(results))
+        edges, fields = results[0]
+        expected_edge = encoding.ProtoEdge(
+            encoding.EdgeType.REPEATED, 'msg_field', 1)
+        self.assertEqual((expected_edge,), edges)
+        self.assertEqual(['not_a_field'], fields)
+
+    def testUnrecognizedFieldIterNestedMap(self):
+        m = encoding.DictToMessage({
+            'map_field': [{
+                'msg_field': {
+                    'foo': {'field_one': 1},
+                    'bar': {'not_a_field': 1},
+                }
+            }]
+        }, RepeatedNestedMapMessage)
+        results = list(encoding.UnrecognizedFieldIter(m))
+        self.assertEqual(1, len(results))
+        edges, fields = results[0]
+        expected_edges = (
+            encoding.ProtoEdge(encoding.EdgeType.REPEATED, 'map_field', 0),
+            encoding.ProtoEdge(encoding.EdgeType.MAP, 'msg_field', 'bar'),
+        )
+        self.assertEqual(expected_edges, edges)
+        self.assertEqual(['not_a_field'], fields)
+
+    def testUnrecognizedFieldIterAbortAfterFirstError(self):
+        m = encoding.DictToMessage({
+            'msg_field': {'field_one': 3},
+            'enum_field': 3,
+        }, NestedWithEnumMessage)
+        self.assertEqual(1, len(list(encoding.UnrecognizedFieldIter(m))))

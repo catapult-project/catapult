@@ -18,6 +18,7 @@
 
 import argparse
 import contextlib
+import io
 import json
 import logging
 import os
@@ -30,7 +31,7 @@ from apitools.gen import util
 
 
 def _CopyLocalFile(filename):
-    with contextlib.closing(open(filename, 'w')) as out:
+    with contextlib.closing(io.open(filename, 'w')) as out:
         src_data = pkgutil.get_data(
             'apitools.base.py', filename)
         if src_data is None:
@@ -49,8 +50,8 @@ def _GetDiscoveryDocFromFlags(args):
                 'Could not fetch discovery doc')
 
     infile = os.path.expanduser(args.infile) or '/dev/stdin'
-    with open(infile) as f:
-        return json.load(f)
+    with io.open(infile, encoding='utf8') as f:
+        return json.loads(util.ReplaceHomoglyphs(f.read()))
 
 
 def _GetCodegenFromFlags(args):
@@ -63,8 +64,8 @@ def _GetCodegenFromFlags(args):
 
     if args.client_json:
         try:
-            with open(args.client_json) as client_json:
-                f = json.loads(client_json.read())
+            with io.open(args.client_json, encoding='utf8') as client_json:
+                f = json.loads(util.ReplaceHomoglyphs(client_json.read()))
                 web = f.get('installed', f.get('web', {}))
                 client_id = web.get('client_id')
                 client_secret = web.get('client_secret')
@@ -98,7 +99,6 @@ def _GetCodegenFromFlags(args):
         discovery_doc, client_info, names, args.root_package, outdir,
         base_package=args.base_package,
         protorpc_package=args.protorpc_package,
-        generate_cli=args.generate_cli,
         init_wildcards_file=(args.init_file == 'wildcards'),
         use_proto2=args.experimental_proto2_output,
         unelidable_request_methods=args.unelidable_request_methods,
@@ -108,23 +108,21 @@ def _GetCodegenFromFlags(args):
 # TODO(craigcitro): Delete this if we don't need this functionality.
 def _WriteBaseFiles(codegen):
     with util.Chdir(codegen.outdir):
-        _CopyLocalFile('app2.py')
         _CopyLocalFile('base_api.py')
-        _CopyLocalFile('base_cli.py')
         _CopyLocalFile('credentials_lib.py')
         _CopyLocalFile('exceptions.py')
 
 
 def _WriteIntermediateInit(codegen):
-    with open('__init__.py', 'w') as out:
+    with io.open('__init__.py', 'w') as out:
         codegen.WriteIntermediateInit(out)
 
 
 def _WriteProtoFiles(codegen):
     with util.Chdir(codegen.outdir):
-        with open(codegen.client_info.messages_proto_file_name, 'w') as out:
+        with io.open(codegen.client_info.messages_proto_file_name, 'w') as out:
             codegen.WriteMessagesProtoFile(out)
-        with open(codegen.client_info.services_proto_file_name, 'w') as out:
+        with io.open(codegen.client_info.services_proto_file_name, 'w') as out:
             codegen.WriteServicesProtoFile(out)
 
 
@@ -132,24 +130,20 @@ def _WriteGeneratedFiles(args, codegen):
     if codegen.use_proto2:
         _WriteProtoFiles(codegen)
     with util.Chdir(codegen.outdir):
-        with open(codegen.client_info.messages_file_name, 'w') as out:
+        with io.open(codegen.client_info.messages_file_name, 'w') as out:
             codegen.WriteMessagesFile(out)
-        with open(codegen.client_info.client_file_name, 'w') as out:
+        with io.open(codegen.client_info.client_file_name, 'w') as out:
             codegen.WriteClientLibrary(out)
-        if args.generate_cli:
-            with open(codegen.client_info.cli_file_name, 'w') as out:
-                codegen.WriteCli(out)
-            os.chmod(codegen.client_info.cli_file_name, 0o755)
 
 
 def _WriteInit(codegen):
     with util.Chdir(codegen.outdir):
-        with open('__init__.py', 'w') as out:
+        with io.open('__init__.py', 'w') as out:
             codegen.WriteInit(out)
 
 
 def _WriteSetupPy(codegen):
-    with open('setup.py', 'w') as out:
+    with io.open('setup.py', 'w') as out:
         codegen.WriteSetupPy(out)
 
 
@@ -176,7 +170,6 @@ def GeneratePipPackage(args):
     args.outdir = os.path.join(
         args.outdir, 'apitools/clients/%s' % package)
     args.root_package = 'apitools.clients.%s' % package
-    args.generate_cli = False
     codegen = _GetCodegenFromFlags(args)
     if codegen is None:
         logging.error('Failed to create codegen, exiting.')
@@ -287,11 +280,10 @@ def main(argv=None):
 
     parser.add_argument(
         '--generate_cli', dest='generate_cli', action='store_true',
-        help='If specified (default), a CLI is also generated.')
+        help='Ignored.')
     parser.add_argument(
         '--nogenerate_cli', dest='generate_cli', action='store_false',
-        help='CLI will not be generated.')
-    parser.set_defaults(generate_cli=True)
+        help='Ignored.')
 
     parser.add_argument(
         '--init-file',
@@ -345,6 +337,7 @@ def main(argv=None):
 
     args = parser.parse_args(argv[1:])
     return args.func(args) or 0
+
 
 if __name__ == '__main__':
     sys.exit(main())

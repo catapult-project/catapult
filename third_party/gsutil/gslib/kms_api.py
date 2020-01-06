@@ -15,10 +15,12 @@
 """JSON gsutil Cloud API implementation for Google Cloud Storage."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import json
 import logging
-import os
 import traceback
 
 from apitools.base.py import exceptions as apitools_exceptions
@@ -28,18 +30,19 @@ from gslib.cloud_api import BadRequestException
 from gslib.cloud_api import NotFoundException
 from gslib.cloud_api import PreconditionException
 from gslib.cloud_api import ServiceException
-from gslib.gcs_json_credentials import CheckAndGetCredentials
+from gslib.gcs_json_credentials import SetUpJsonCredentialsAndCache
 from gslib.no_op_credentials import NoOpCredentials
 from gslib.third_party.kms_apitools import cloudkms_v1_client as apitools_client
 from gslib.third_party.kms_apitools import cloudkms_v1_messages as apitools_messages
-from gslib.util import GetCertsFile
-from gslib.util import GetMaxRetryDelay
-from gslib.util import GetNewHttp
-from gslib.util import GetNumRetries
+from gslib.utils import system_util
+from gslib.utils.boto_util import GetCertsFile
+from gslib.utils.boto_util import GetMaxRetryDelay
+from gslib.utils.boto_util import GetNewHttp
+from gslib.utils.boto_util import GetNumRetries
 
 TRANSLATABLE_APITOOLS_EXCEPTIONS = (apitools_exceptions.HttpError)
 
-if os.environ.get('CLOUDSDK_WRAPPER'):
+if system_util.InvokedViaCloudSdk():
   _INSUFFICIENT_OAUTH2_SCOPE_MESSAGE = (
       'Insufficient OAuth2 scope to perform this operation. '
       'Please re-run `gcloud auth login`')
@@ -63,61 +66,44 @@ class KmsApi(object):
     super(KmsApi, self).__init__()
     self.logger = logger
 
-    no_op_credentials = False
-    if not credentials:
-      loaded_credentials = CheckAndGetCredentials(logger)
-
-      if not loaded_credentials:
-        loaded_credentials = NoOpCredentials()
-        no_op_credentials = True
-    else:
-      if isinstance(credentials, NoOpCredentials):
-        no_op_credentials = True
-
-    self.credentials = credentials or loaded_credentials
     self.certs_file = GetCertsFile()
     self.http = GetNewHttp()
-
     self.http_base = 'https://'
     self.host_base = config.get('Credentials', 'gs_kms_host',
                                 'cloudkms.googleapis.com')
     gs_kms_port = config.get('Credentials', 'gs_kms_port', None)
-    if not gs_kms_port:
-      self.host_port = ''
-    else:
-      self.host_port = ':' + gs_kms_port
-
+    self.host_port = (':' + gs_kms_port) if gs_kms_port else ''
     self.url_base = (self.http_base + self.host_base + self.host_port)
 
-    self.num_retries = GetNumRetries()
-    self.max_retry_wait = GetMaxRetryDelay()
+    SetUpJsonCredentialsAndCache(self, logger, credentials=credentials)
 
     log_request = (debug >= 3)
     log_response = (debug >= 3)
 
-    self.api_client = apitools_client.CloudkmsV1(
-        url=self.url_base,
-        http=self.http,
-        log_request=log_request,
-        log_response=log_response,
-        credentials=self.credentials)
+    self.api_client = apitools_client.CloudkmsV1(url=self.url_base,
+                                                 http=self.http,
+                                                 log_request=log_request,
+                                                 log_response=log_response,
+                                                 credentials=self.credentials)
 
-    self.api_client.max_retry_wait = self.max_retry_wait
+    self.num_retries = GetNumRetries()
     self.api_client.num_retries = self.num_retries
 
-    if no_op_credentials:
+    self.max_retry_wait = GetMaxRetryDelay()
+    self.api_client.max_retry_wait = self.max_retry_wait
+
+    if isinstance(self.credentials, NoOpCredentials):
       # This API key is not secret and is used to identify gsutil during
       # anonymous requests.
-      self.api_client.AddGlobalParam('key',
-                                     u'AIzaSyDnacJHrKma0048b13sh8cgxNUwulubmJM')
+      self.api_client.AddGlobalParam(
+          'key', u'AIzaSyDnacJHrKma0048b13sh8cgxNUwulubmJM')
 
   def GetKeyIamPolicy(self, key_name):
     request = (apitools_messages.
                CloudkmsProjectsLocationsKeyRingsCryptoKeysGetIamPolicyRequest(
                    resource=key_name))
     try:
-      return (self.api_client.
-              projects_locations_keyRings_cryptoKeys.
+      return (self.api_client.projects_locations_keyRings_cryptoKeys.
               GetIamPolicy(request))
     except TRANSLATABLE_APITOOLS_EXCEPTIONS as e:
       self._TranslateExceptionAndRaise(e, key_name=key_name)
@@ -128,16 +114,12 @@ class KmsApi(object):
                CloudkmsProjectsLocationsKeyRingsCryptoKeysSetIamPolicyRequest(
                    resource=key_name, setIamPolicyRequest=policy_request))
     try:
-      return (self.api_client.
-              projects_locations_keyRings_cryptoKeys.
+      return (self.api_client.projects_locations_keyRings_cryptoKeys.
               SetIamPolicy(request))
     except TRANSLATABLE_APITOOLS_EXCEPTIONS as e:
       self._TranslateExceptionAndRaise(e, key_name=key_name)
 
-  def CreateKeyRing(self,
-                    project,
-                    keyring_name,
-                    location='global'):
+  def CreateKeyRing(self, project, keyring_name, location='global'):
     """Attempts to create the specified keyRing.
 
     Args:
@@ -157,8 +139,8 @@ class KmsApi(object):
       attempting creation, we continue and treat this as a success.
     """
     keyring_msg = apitools_messages.KeyRing(
-        name='projects/%s/locations/%s/keyRings/%s' % (
-            project, location, keyring_name))
+        name='projects/%s/locations/%s/keyRings/%s' %
+        (project, location, keyring_name))
     keyring_create_request = (
         apitools_messages.CloudkmsProjectsLocationsKeyRingsCreateRequest(
             keyRing=keyring_msg,
@@ -169,12 +151,10 @@ class KmsApi(object):
     except TRANSLATABLE_APITOOLS_EXCEPTIONS as e:
       if e.status_code != 409:
         raise
-    return 'projects/%s/locations/%s/keyRings/%s' % (
-        project, location, keyring_name)
+    return 'projects/%s/locations/%s/keyRings/%s' % (project, location,
+                                                     keyring_name)
 
-  def CreateCryptoKey(self,
-                      keyring_fqn,
-                      key_name):
+  def CreateCryptoKey(self, keyring_fqn, key_name):
     """Attempts to create the specified cryptoKey.
 
     Args:
@@ -192,15 +172,12 @@ class KmsApi(object):
       Note that in the event of a 409 status code (resource already exists) when
       attempting creation, we continue and treat this as a success.
     """
-    cryptokey_msg = apitools_messages.CryptoKey(
-        purpose=(apitools_messages.
-                 CryptoKey.PurposeValueValuesEnum.ENCRYPT_DECRYPT))
+    cryptokey_msg = apitools_messages.CryptoKey(purpose=(
+        apitools_messages.CryptoKey.PurposeValueValuesEnum.ENCRYPT_DECRYPT))
     cryptokey_create_request = (
         apitools_messages.
         CloudkmsProjectsLocationsKeyRingsCryptoKeysCreateRequest(
-            cryptoKey=cryptokey_msg,
-            cryptoKeyId=key_name,
-            parent=keyring_fqn))
+            cryptoKey=cryptokey_msg, cryptoKeyId=key_name, parent=keyring_fqn))
     try:
       self.api_client.projects_locations_keyRings_cryptoKeys.Create(
           cryptokey_create_request)
@@ -223,8 +200,8 @@ class KmsApi(object):
     if self.logger.isEnabledFor(logging.DEBUG):
       self.logger.debug('TranslateExceptionAndRaise: %s',
                         traceback.format_exc())
-    translated_exception = self._TranslateApitoolsException(
-        e, key_name=key_name)
+    translated_exception = self._TranslateApitoolsException(e,
+                                                            key_name=key_name)
     if translated_exception:
       raise translated_exception
     else:
@@ -247,7 +224,8 @@ class KmsApi(object):
       # In the event of a scope error, the www-authenticate field of the HTTP
       # response should contain text of the form
       #
-      # 'Bearer realm="https://accounts.google.com/", error=insufficient_scope,
+      # 'Bearer realm="https://oauth2.googleapis.com/",
+      # error=insufficient_scope,
       # scope="${space separated list of acceptable scopes}"'
       #
       # Here we use a quick string search to find the scope list, just looking
@@ -278,12 +256,13 @@ class KmsApi(object):
         # It is possible that the Project ID is incorrect.  Unfortunately the
         # JSON API does not give us much information about what part of the
         # request was bad.
-        return BadRequestException(
-            message or 'Bad Request', status=e.status_code)
+        return BadRequestException(message or 'Bad Request',
+                                   status=e.status_code)
       elif e.status_code == 401:
         if 'Login Required' in str(e):
-          return AccessDeniedException(
-              message or 'Access denied: login required.', status=e.status_code)
+          return AccessDeniedException(message or
+                                       'Access denied: login required.',
+                                       status=e.status_code)
         elif 'insufficient_scope' in str(e):
           # If the service includes insufficient scope error detail in the
           # response body, this check can be removed.
@@ -293,13 +272,13 @@ class KmsApi(object):
               body=self._GetAcceptableScopesFromHttpError(e))
       elif e.status_code == 403:
         if 'The account for the specified project has been disabled' in str(e):
-          return AccessDeniedException(
-              message or 'Account disabled.', status=e.status_code)
+          return AccessDeniedException(message or 'Account disabled.',
+                                       status=e.status_code)
         elif 'Daily Limit for Unauthenticated Use Exceeded' in str(e):
-          return AccessDeniedException(
-              message or 'Access denied: quota exceeded. '
-              'Is your project ID valid?',
-              status=e.status_code)
+          return AccessDeniedException(message or
+                                       'Access denied: quota exceeded. '
+                                       'Is your project ID valid?',
+                                       status=e.status_code)
         elif 'User Rate Limit Exceeded' in str(e):
           return AccessDeniedException(
               'Rate limit exceeded. Please retry this '
@@ -320,14 +299,14 @@ class KmsApi(object):
               status=e.status_code,
               body=self._GetAcceptableScopesFromHttpError(e))
         else:
-          return AccessDeniedException(
-              message or e.message or key_name, status=e.status_code)
+          return AccessDeniedException(message or e.message or key_name,
+                                       status=e.status_code)
       elif e.status_code == 404:
-        return NotFoundException(e.message, status=e.status_code)
+        return NotFoundException(message or e.message, status=e.status_code)
 
       elif e.status_code == 409 and key_name:
-        return ServiceException(
-            'The key %s already exists.' % key_name, status=e.status_code)
+        return ServiceException('The key %s already exists.' % key_name,
+                                status=e.status_code)
       elif e.status_code == 412:
         return PreconditionException(message, status=e.status_code)
       return ServiceException(message, status=e.status_code)

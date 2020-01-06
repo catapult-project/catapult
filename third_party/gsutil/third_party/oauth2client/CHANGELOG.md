@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v4.1.3
+
+**Note**: oauth2client is deprecated. No more features will be added to the
+libraries and the core team is turning down support. We recommend you use
+[google-auth](https://google-auth.readthedocs.io) and [oauthlib](http://oauthlib.readthedocs.io/).
+
+* Changed OAuth2 endpoints to use oauth2.googleapis.com variants. (#742)
+
 ## v4.1.2
 
 **Note**: oauth2client is deprecated. No more features will be added to the

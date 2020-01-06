@@ -14,12 +14,19 @@
 # limitations under the License.
 """Threading code for estimating total work of long-running gsutil commands."""
 
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+
 import threading
 import time
 
-from gslib.parallelism_framework_util import PutToQueueWithTimeout
-from gslib.thread_message import SeekAheadMessage
-from gslib.util import NUM_OBJECTS_PER_LIST_PAGE
+from gslib import thread_message
+from gslib.utils import constants
+from gslib.utils import parallelism_framework_util
+
+_PutToQueueWithTimeout = parallelism_framework_util.PutToQueueWithTimeout
 
 
 class SeekAheadResult(object):
@@ -91,20 +98,31 @@ class SeekAheadThread(threading.Thread):
   def run(self):
     num_objects = 0
     num_data_bytes = 0
-    for seek_ahead_result in self.seek_ahead_iterator:
-      if self.terminate:
-        return
-      # Periodically check to see if the ProducerThread has actually
-      # completed, at which point providing an estimate is no longer useful.
-      if (num_objects % NUM_OBJECTS_PER_LIST_PAGE) == 0:
-        if self.cancel_event.isSet():
+    try:
+      for seek_ahead_result in self.seek_ahead_iterator:
+        if self.terminate:
           return
-      num_objects += seek_ahead_result.est_num_ops
-      num_data_bytes += seek_ahead_result.data_bytes
+        # Periodically check to see if the ProducerThread has actually
+        # completed, at which point providing an estimate is no longer useful.
+        if (num_objects % constants.NUM_OBJECTS_PER_LIST_PAGE) == 0:
+          if self.cancel_event.isSet():
+            return
+        num_objects += seek_ahead_result.est_num_ops
+        num_data_bytes += seek_ahead_result.data_bytes
+    except OSError as e:
+      # This can happen because the seek_ahead_iterator races with the command
+      # being run (e.g., a gsutil mv command, which iterates over and moves
+      # files while the estimator is concurrently iterating over the files to
+      # count them). If this happens return here without calling
+      # _PutToQueueWithTimeout, so we don't signal the UI thread that seek ahead
+      # work has completed its estimation. This will cause no estimate to be
+      # printed, but the command will continue to execute as usual.
+      return
 
     if self.cancel_event.isSet():
       return
 
-    PutToQueueWithTimeout(self.status_queue,
-                          SeekAheadMessage(num_objects, num_data_bytes,
-                                           time.time()))
+    _PutToQueueWithTimeout(
+        self.status_queue,
+        thread_message.SeekAheadMessage(num_objects, num_data_bytes,
+                                        time.time()))

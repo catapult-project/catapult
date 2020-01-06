@@ -12,12 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Custom importer to handle module load times. Wraps gsutil."""
 
 from __future__ import absolute_import
 
-import __builtin__
+import six
+if six.PY3:
+  import builtins as builtin
+else:
+  import __builtin__ as builtin
+
 import atexit
 from collections import OrderedDict
 from operator import itemgetter
@@ -36,7 +40,7 @@ import timeit
 # used and take a significant amount of time to initialize (e.g. 100ms).
 INITIALIZATION_TIMES = {}
 
-real_importer = __builtin__.__import__
+real_importer = builtin.__import__
 
 
 def get_sorted_initialization_times(items=10):
@@ -51,15 +55,16 @@ def get_sorted_initialization_times(items=10):
   Returns:
     An OrderedDict object, sorting initialization times in increasing order.
   """
-  return OrderedDict(sorted(INITIALIZATION_TIMES.items(),
-                            key=itemgetter(1), reverse=True)[:items])
+  return OrderedDict(
+      sorted(INITIALIZATION_TIMES.items(), key=itemgetter(1),
+             reverse=True)[:items])
 
 
 def print_sorted_initialization_times():
   """Prints the most expensive imports in descending order."""
-  print '\n***Most expensive imports***'
+  print('\n***Most expensive imports***')
   for item in get_sorted_initialization_times().iteritems():
-    print item
+    print(item)
 
 
 def timed_importer(name, *args, **kwargs):
@@ -81,7 +86,8 @@ def timed_importer(name, *args, **kwargs):
   INITIALIZATION_TIMES[name] = import_end_time - import_start_time
   return import_value
 
-__builtin__.__import__ = timed_importer
+
+builtin.__import__ = timed_importer
 
 
 def initialize():

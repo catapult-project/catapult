@@ -15,26 +15,36 @@
 """Media helper functions and classes for Google Cloud Storage JSON API."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import copy
-import cStringIO
-import httplib
 import logging
 import re
 import socket
 import types
-import urlparse
+
+import six
+from six.moves import http_client
+from six.moves import urllib
+from six.moves import cStringIO
 
 from apitools.base.py import exceptions as apitools_exceptions
 
 from gslib.cloud_api import BadRequestException
+from gslib.lazy_wrapper import LazyWrapper
 from gslib.progress_callback import ProgressCallbackWithTimeout
-from gslib.util import DEBUGLEVEL_DUMP_REQUESTS
-from gslib.util import LazyWrapper
-from gslib.util import SSL_TIMEOUT
-from gslib.util import TRANSFER_BUFFER_SIZE
+from gslib.utils.constants import DEBUGLEVEL_DUMP_REQUESTS
+from gslib.utils.constants import SSL_TIMEOUT_SEC
+from gslib.utils.constants import TRANSFER_BUFFER_SIZE
+from gslib.utils.constants import UTF8
+from gslib.utils import text_util
 import httplib2
 from httplib2 import parse_uri
+
+if six.PY3:
+  long = int
 
 # A regex for matching any series of decimal digits.
 DECIMAL_REGEX = LazyWrapper(lambda: (re.compile(r'\d+')))
@@ -71,10 +81,13 @@ class UploadCallbackConnectionClassFactory(object):
   hash digestion during upload.
   """
 
-  def __init__(self, bytes_uploaded_container,
+  def __init__(self,
+               bytes_uploaded_container,
                buffer_size=TRANSFER_BUFFER_SIZE,
-               total_size=0, progress_callback=None,
-               logger=None, debug=0):
+               total_size=0,
+               progress_callback=None,
+               logger=None,
+               debug=0):
     self.bytes_uploaded_container = bytes_uploaded_container
     self.buffer_size = buffer_size
     self.total_size = total_size
@@ -107,13 +120,13 @@ class UploadCallbackConnectionClassFactory(object):
       size_modifier = 1.0
 
       def __init__(self, *args, **kwargs):
-        kwargs['timeout'] = SSL_TIMEOUT
+        kwargs['timeout'] = SSL_TIMEOUT_SEC
         httplib2.HTTPSConnectionWithTimeout.__init__(self, *args, **kwargs)
 
       # Override httplib.HTTPConnection._send_output for debug logging.
       # Because the distinction between headers and message body occurs
       # only in this httplib function, we can only differentiate them here.
-      def _send_output(self, message_body=None):
+      def _send_output(self, message_body=None, encode_chunked=False):
         r"""Send the currently buffered request and clear the buffer.
 
         Appends an extra \r\n to the buffer.
@@ -125,8 +138,17 @@ class UploadCallbackConnectionClassFactory(object):
         # (no prints) or 4 (dump upload payload, httplib prints to stdout).
         # Refactor to allow our media-handling functions to handle
         # debuglevel == 4 and print messages to stderr.
-        self._buffer.extend(('', ''))
-        msg = '\r\n'.join(self._buffer)
+        self._buffer.extend((b'', b''))
+        if six.PY2:
+          items = self._buffer
+        else:
+          items = []
+          for item in self._buffer:
+            if isinstance(item, bytes):
+              items.append(item)
+            else:
+              items.append(item.encode(UTF8))
+        msg = b'\r\n'.join(items)
         num_metadata_bytes = len(msg)
         if outer_debug == DEBUGLEVEL_DUMP_REQUESTS and outer_logger:
           outer_logger.debug('send: %s' % msg)
@@ -191,8 +213,8 @@ class UploadCallbackConnectionClassFactory(object):
             pass
         # If the content header is gzip, and a range and length are set,
         # update the modifier.
-        if (self.header_encoding == 'gzip' and self.header_length
-            and self.header_range):
+        if (self.header_encoding == 'gzip' and self.header_length and
+            self.header_range):
           # Update the modifier
           self.size_modifier = self.header_range / float(self.header_length)
           # Reset the headers
@@ -201,11 +223,10 @@ class UploadCallbackConnectionClassFactory(object):
           self.header_range = None
           # Log debug information to catch in tests.
           if outer_debug == DEBUGLEVEL_DUMP_REQUESTS and outer_logger:
-            outer_logger.debug(
-                'send: Setting progress modifier to %s.'
-                % (self.size_modifier))
+            outer_logger.debug('send: Setting progress modifier to %s.' %
+                               (self.size_modifier))
         # Propagate header values.
-        httplib.HTTPSConnection.putheader(self, header, *values)
+        http_client.HTTPSConnection.putheader(self, header, *values)
 
       def send(self, data, num_metadata_bytes=0):
         """Overrides HTTPConnection.send.
@@ -224,13 +245,22 @@ class UploadCallbackConnectionClassFactory(object):
                 self.bytes_uploaded_container.bytes_transferred)
         # httplib.HTTPConnection.send accepts either a string or a file-like
         # object (anything that implements read()).
-        if isinstance(data, basestring):
-          full_buffer = cStringIO.StringIO(data)
+        if isinstance(data, six.text_type):
+          full_buffer = cStringIO(data)
+        elif isinstance(data, six.binary_type):
+          full_buffer = six.BytesIO(data)
         else:
           full_buffer = data
         partial_buffer = full_buffer.read(self.GCS_JSON_BUFFER_SIZE)
         while partial_buffer:
-          httplib2.HTTPSConnectionWithTimeout.send(self, partial_buffer)
+          if six.PY2:
+            httplib2.HTTPSConnectionWithTimeout.send(self, partial_buffer)
+          else:
+            if isinstance(partial_buffer, bytes):
+              httplib2.HTTPSConnectionWithTimeout.send(self, partial_buffer)
+            else:
+              httplib2.HTTPSConnectionWithTimeout.send(
+                  self, partial_buffer.encode(UTF8))
           sent_data_bytes = len(partial_buffer)
           if num_metadata_bytes:
             if num_metadata_bytes <= sent_data_bytes:
@@ -264,16 +294,24 @@ def WrapUploadHttpRequest(upload_http):
     upload_http: httplib2.Http instance to wrap
   """
   request_orig = upload_http.request
-  def NewRequest(uri, method='GET', body=None, headers=None,
+
+  def NewRequest(uri,
+                 method='GET',
+                 body=None,
+                 headers=None,
                  redirections=httplib2.DEFAULT_MAX_REDIRECTS,
                  connection_type=None):
     if method == 'PUT' or method == 'POST':
       override_connection_type = connection_type
     else:
       override_connection_type = None
-    return request_orig(uri, method=method, body=body,
-                        headers=headers, redirections=redirections,
+    return request_orig(uri,
+                        method=method,
+                        body=body,
+                        headers=headers,
+                        redirections=redirections,
                         connection_type=override_connection_type)
+
   # Replace the request method with our own closure.
   upload_http.request = NewRequest
 
@@ -289,9 +327,12 @@ class DownloadCallbackConnectionClassFactory(object):
   gzip hash in the cloud.
   """
 
-  def __init__(self, bytes_downloaded_container,
-               buffer_size=TRANSFER_BUFFER_SIZE, total_size=0,
-               progress_callback=None, digesters=None):
+  def __init__(self,
+               bytes_downloaded_container,
+               buffer_size=TRANSFER_BUFFER_SIZE,
+               total_size=0,
+               progress_callback=None,
+               digesters=None):
     self.buffer_size = buffer_size
     self.total_size = total_size
     self.progress_callback = progress_callback
@@ -311,7 +352,7 @@ class DownloadCallbackConnectionClassFactory(object):
       callback_processor = None
 
       def __init__(self, *args, **kwargs):
-        kwargs['timeout'] = SSL_TIMEOUT
+        kwargs['timeout'] = SSL_TIMEOUT_SEC
         httplib2.HTTPSConnectionWithTimeout.__init__(self, *args, **kwargs)
 
       def getresponse(self, buffering=False):
@@ -325,8 +366,9 @@ class DownloadCallbackConnectionClassFactory(object):
         Returns:
           HTTPResponse object with wrapped read function.
         """
-        orig_response = httplib.HTTPConnection.getresponse(self)
-        if orig_response.status not in (httplib.OK, httplib.PARTIAL_CONTENT):
+        orig_response = http_client.HTTPConnection.getresponse(self)
+        if orig_response.status not in (http_client.OK,
+                                        http_client.PARTIAL_CONTENT):
           return orig_response
         orig_read_func = orig_response.read
 
@@ -366,9 +408,11 @@ class DownloadCallbackConnectionClassFactory(object):
             for alg in self.outer_digesters:
               self.outer_digesters[alg].update(data)
           return data
+
         orig_response.read = read
 
         return orig_response
+
     return DownloadCallbackConnection
 
 
@@ -392,10 +436,10 @@ def WrapDownloadHttpRequest(download_http):
   # pylint: disable=g-equals-none,g-doc-return-or-yield
   # pylint: disable=g-short-docstring-punctuation,g-doc-args
   # pylint: disable=too-many-statements
+  # yapf: disable
   def OverrideRequest(self, conn, host, absolute_uri, request_uri, method,
                       body, headers, redirections, cachekey):
     """Do the actual request using the connection object.
-
     Also follow one level of redirects if necessary.
     """
 
@@ -433,33 +477,33 @@ def WrapDownloadHttpRequest(download_http):
         # Pick out the location header and basically start from the beginning
         # remembering first to strip the ETag header and decrement our 'depth'
         if redirections:
-          if not response.has_key('location') and response.status != 300:
+          if 'location' not in response and response.status != 300:
             raise httplib2.RedirectMissingLocation(
                 "Redirected but the response is missing a Location: header.",
                 response, content)
           # Fix-up relative redirects (which violate an RFC 2616 MUST)
-          if response.has_key('location'):
+          if 'location' in response:
             location = response['location']
             (scheme, authority, path, query, fragment) = parse_uri(location)
-            if authority == None:
-              response['location'] = urlparse.urljoin(absolute_uri, location)
+            if authority is None:
+              response['location'] = urllib.parse.urljoin(absolute_uri, location)
           if response.status == 301 and method in ["GET", "HEAD"]:
             response['-x-permanent-redirect-url'] = response['location']
-            if not response.has_key('content-location'):
+            if 'content-location' not in response:
               response['content-location'] = absolute_uri
             httplib2._updateCache(headers, response, content, self.cache,
                                   cachekey)
-          if headers.has_key('if-none-match'):
+          if 'if-none-match' in headers:
             del headers['if-none-match']
-          if headers.has_key('if-modified-since'):
+          if 'if-modified-since' in headers:
             del headers['if-modified-since']
           if ('authorization' in headers and
               not self.forward_authorization_headers):
             del headers['authorization']
-          if response.has_key('location'):
+          if 'location' in response:
             location = response['location']
             old_response = copy.deepcopy(response)
-            if not old_response.has_key('content-location'):
+            if 'content-location' not in old_response:
               old_response['content-location'] = absolute_uri
             redirect_method = method
             if response.status in [302, 303]:
@@ -478,7 +522,7 @@ def WrapDownloadHttpRequest(download_http):
       elif response.status in [200, 203] and method in ["GET", "HEAD"]:
         # Don't cache 206's since we aren't going to handle byte range
         # requests
-        if not response.has_key('content-location'):
+        if 'content-location' in response:
           response['content-location'] = absolute_uri
         httplib2._updateCache(headers, response, content, self.cache,
                               cachekey)
@@ -532,12 +576,12 @@ class HttpWithNoRetries(httplib2.Http):
       raise
     except socket.gaierror:
       conn.close()
-      raise httplib2.ServerNotFoundError(
-          'Unable to find the server at %s' % conn.host)
-    except httplib2.ssl_SSLError:
+      raise httplib2.ServerNotFoundError('Unable to find the server at %s' %
+                                         conn.host)
+    except httplib2.ssl.SSLError:
       conn.close()
       raise
-    except socket.error, e:
+    except socket.error as e:
       err = 0
       if hasattr(e, 'args'):
         err = getattr(e, 'args')[0]
@@ -545,12 +589,12 @@ class HttpWithNoRetries(httplib2.Http):
         err = e.errno
       if err == httplib2.errno.ECONNREFUSED:  # Connection refused
         raise
-    except httplib.HTTPException:
+    except http_client.HTTPException:
       conn.close()
       raise
     try:
       response = conn.getresponse()
-    except (socket.error, httplib.HTTPException):
+    except (socket.error, http_client.HTTPException):
       conn.close()
       raise
     else:
@@ -602,12 +646,12 @@ class HttpWithDownloadStream(httplib2.Http):
       raise
     except socket.gaierror:
       conn.close()
-      raise httplib2.ServerNotFoundError(
-          'Unable to find the server at %s' % conn.host)
-    except httplib2.ssl_SSLError:
+      raise httplib2.ServerNotFoundError('Unable to find the server at %s' %
+                                         conn.host)
+    except httplib2.ssl.SSLError:
       conn.close()
       raise
-    except socket.error, e:
+    except socket.error as e:
       err = 0
       if hasattr(e, 'args'):
         err = getattr(e, 'args')[0]
@@ -615,14 +659,14 @@ class HttpWithDownloadStream(httplib2.Http):
         err = e.errno
       if err == httplib2.errno.ECONNREFUSED:  # Connection refused
         raise
-    except httplib.HTTPException:
+    except http_client.HTTPException:
       # Just because the server closed the connection doesn't apparently mean
       # that the server didn't send a response.
       conn.close()
       raise
     try:
       response = conn.getresponse()
-    except (socket.error, httplib.HTTPException):
+    except (socket.error, http_client.HTTPException) as e:
       conn.close()
       raise
     else:
@@ -630,8 +674,8 @@ class HttpWithDownloadStream(httplib2.Http):
       if method == 'HEAD':
         conn.close()
         response = httplib2.Response(response)
-      elif method == 'GET' and response.status in (httplib.OK,
-                                                   httplib.PARTIAL_CONTENT):
+      elif method == 'GET' and response.status in (http_client.OK,
+                                                   http_client.PARTIAL_CONTENT):
         content_length = None
         if hasattr(response, 'msg'):
           content_length = response.getheader('content-length')
@@ -643,7 +687,7 @@ class HttpWithDownloadStream(httplib2.Http):
             if self.stream is None:
               raise apitools_exceptions.InvalidUserInputError(
                   'Cannot exercise HttpWithDownloadStream with no stream')
-            self.stream.write(new_data)
+            text_util.write_to_fd(self.stream, new_data)
             bytes_read += len(new_data)
           else:
             break
@@ -669,4 +713,5 @@ class HttpWithDownloadStream(httplib2.Http):
         # pylint: disable=protected-access
         content = httplib2._decompressContent(response, content)
     return (response, content)
+
   # pylint: enable=too-many-statements

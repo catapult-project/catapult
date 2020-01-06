@@ -132,6 +132,25 @@ class BaseApiTest(unittest2.TestCase):
                 http_response.content,
                 service.ProcessHttpResponse(method_config, http_response))
 
+    def testJsonResponseEncoding(self):
+        # On Python 3, httplib2 always returns bytes, so we need to check that
+        # we can correctly decode the message content using the given encoding.
+        method_config = base_api.ApiMethodInfo(
+            response_type_name='SimpleMessage')
+        service = FakeService(FakeClient(
+            'http://www.example.com/', credentials=FakeCredentials(),
+            response_encoding='utf8'))
+        http_response = http_wrapper.Response(
+            info={'status': '200'}, content=b'{"field": "abc"}',
+            request_url='http://www.google.com')
+        response_message = SimpleMessage(field=u'abc')
+        self.assertEqual(response_message, service.ProcessHttpResponse(
+            method_config, http_response))
+        with service.client.JsonResponseModel():
+            self.assertEqual(
+                http_response.content.decode('utf8'),
+                service.ProcessHttpResponse(method_config, http_response))
+
     def testAdditionalHeaders(self):
         additional_headers = {'Request-Is-Awesome': '1'}
         client = self.__GetFakeClient()

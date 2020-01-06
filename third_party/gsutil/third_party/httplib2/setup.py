@@ -1,20 +1,18 @@
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+import setuptools
 import sys
 
 pkgdir = {'': 'python%s' % sys.version_info[0]}
-VERSION = '0.10.3'
+VERSION = '0.11.3'
 
-setup(name='httplib2',
-        version=VERSION,
-        author='Joe Gregorio',
-        author_email='joe@bitworking.org',
-        url='https://github.com/httplib2/httplib2',
-        description='A comprehensive HTTP client library.',
-        license='MIT',
-        long_description="""
+setuptools.setup(
+    name='httplib2',
+    version=VERSION,
+    author='Joe Gregorio',
+    author_email='joe@bitworking.org',
+    url='https://github.com/httplib2/httplib2',
+    description='A comprehensive HTTP client library.',
+    license='MIT',
+    long_description="""
 
 A comprehensive HTTP client library, ``httplib2`` supports many features left out of other HTTP libraries.
 
@@ -57,20 +55,25 @@ A comprehensive HTTP client library, ``httplib2`` supports many features left ou
 
 **Unit Tested**
   A large and growing set of unit tests.
-
-        """,
-        package_dir=pkgdir,
-        packages=['httplib2'],
-        package_data={'httplib2': ['*.txt']},
-        classifiers=[
+""",
+    package_dir=pkgdir,
+    packages=['httplib2'],
+    package_data={'httplib2': ['*.txt']},
+    classifiers=(
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Software Development :: Libraries',
-        ],
-        )
+    ),
+)

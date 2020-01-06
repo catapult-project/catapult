@@ -24,7 +24,7 @@ class IamV1(base_api.BaseApiClient):
                get_credentials=True, http=None, model=None,
                log_request=False, log_response=False,
                credentials_args=None, default_global_params=None,
-               additional_http_headers=None):
+               additional_http_headers=None, response_encoding=None):
     """Create a new iam handle."""
     url = url or self.BASE_URL
     super(IamV1, self).__init__(
@@ -33,7 +33,8 @@ class IamV1(base_api.BaseApiClient):
         log_request=log_request, log_response=log_response,
         credentials_args=credentials_args,
         default_global_params=default_global_params,
-        additional_http_headers=additional_http_headers)
+        additional_http_headers=additional_http_headers,
+        response_encoding=response_encoding)
     self.iamPolicies = self.IamPoliciesService(self)
     self.projects_serviceAccounts_keys = self.ProjectsServiceAccountsKeysService(self)
     self.projects_serviceAccounts = self.ProjectsServiceAccountsService(self)
@@ -51,7 +52,7 @@ class IamV1(base_api.BaseApiClient):
           }
 
     def GetPolicyDetails(self, request, global_params=None):
-      """Returns the current IAM policy and the policies on the inherited resources.
+      r"""Returns the current IAM policy and the policies on the inherited resources.
 that the user has access to.
 
       Args:
@@ -88,7 +89,7 @@ that the user has access to.
           }
 
     def Create(self, request, global_params=None):
-      """Creates a ServiceAccountKey.
+      r"""Creates a ServiceAccountKey.
 and returns it.
 
       Args:
@@ -116,7 +117,7 @@ and returns it.
     )
 
     def Delete(self, request, global_params=None):
-      """Deletes a ServiceAccountKey.
+      r"""Deletes a ServiceAccountKey.
 
       Args:
         request: (IamProjectsServiceAccountsKeysDeleteRequest) input message
@@ -143,7 +144,7 @@ and returns it.
     )
 
     def Get(self, request, global_params=None):
-      """Gets the ServiceAccountKey.
+      r"""Gets the ServiceAccountKey.
 by key id.
 
       Args:
@@ -171,7 +172,7 @@ by key id.
     )
 
     def List(self, request, global_params=None):
-      """Lists ServiceAccountKeys.
+      r"""Lists ServiceAccountKeys.
 
       Args:
         request: (IamProjectsServiceAccountsKeysListRequest) input message
@@ -208,7 +209,7 @@ by key id.
           }
 
     def Create(self, request, global_params=None):
-      """Creates a ServiceAccount.
+      r"""Creates a ServiceAccount.
 and returns it.
 
       Args:
@@ -236,7 +237,7 @@ and returns it.
     )
 
     def Delete(self, request, global_params=None):
-      """Deletes a ServiceAccount.
+      r"""Deletes a ServiceAccount.
 
       Args:
         request: (IamProjectsServiceAccountsDeleteRequest) input message
@@ -263,7 +264,7 @@ and returns it.
     )
 
     def Get(self, request, global_params=None):
-      """Gets a ServiceAccount.
+      r"""Gets a ServiceAccount.
 
       Args:
         request: (IamProjectsServiceAccountsGetRequest) input message
@@ -290,7 +291,7 @@ and returns it.
     )
 
     def GetIamPolicy(self, request, global_params=None):
-      """Returns the IAM access control policy for specified IAM resource.
+      r"""Returns the IAM access control policy for specified IAM resource.
 
       Args:
         request: (IamProjectsServiceAccountsGetIamPolicyRequest) input message
@@ -317,7 +318,7 @@ and returns it.
     )
 
     def List(self, request, global_params=None):
-      """Lists ServiceAccounts for a project.
+      r"""Lists ServiceAccounts for a project.
 
       Args:
         request: (IamProjectsServiceAccountsListRequest) input message
@@ -344,7 +345,7 @@ and returns it.
     )
 
     def SetIamPolicy(self, request, global_params=None):
-      """Sets the IAM access control policy for the specified IAM resource.
+      r"""Sets the IAM access control policy for the specified IAM resource.
 
       Args:
         request: (IamProjectsServiceAccountsSetIamPolicyRequest) input message
@@ -371,7 +372,7 @@ and returns it.
     )
 
     def SignBlob(self, request, global_params=None):
-      """Signs a blob using a service account's system-managed private key.
+      r"""Signs a blob using a service account's system-managed private key.
 
       Args:
         request: (IamProjectsServiceAccountsSignBlobRequest) input message
@@ -398,7 +399,7 @@ and returns it.
     )
 
     def SignJwt(self, request, global_params=None):
-      """Signs a JWT using a service account's system-managed private key.
+      r"""Signs a JWT using a service account's system-managed private key.
 
 If no `exp` (expiry) time is contained in the claims, we will
 provide an expiry of one hour in the future. If an expiry
@@ -430,7 +431,7 @@ will fail.
     )
 
     def TestIamPermissions(self, request, global_params=None):
-      """Tests the specified permissions against the IAM access control policy.
+      r"""Tests the specified permissions against the IAM access control policy.
 for the specified IAM resource.
 
       Args:
@@ -458,7 +459,7 @@ for the specified IAM resource.
     )
 
     def Update(self, request, global_params=None):
-      """Updates a ServiceAccount.
+      r"""Updates a ServiceAccount.
 
 Currently, only the following fields are updatable:
 `display_name` .
@@ -509,7 +510,7 @@ The `etag` is mandatory.
           }
 
     def QueryGrantableRoles(self, request, global_params=None):
-      """Queries roles that can be granted on a particular resource.
+      r"""Queries roles that can be granted on a particular resource.
 
       Args:
         request: (QueryGrantableRolesRequest) input message

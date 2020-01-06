@@ -37,10 +37,13 @@ class MessageWithRemappings(messages.Message):
 
     str_field = messages.StringField(1)
     enum_field = messages.EnumField('AnEnum', 2)
+    enum_field_remapping = messages.EnumField('AnEnum', 3)
 
 
 encoding.AddCustomJsonFieldMapping(
     MessageWithRemappings, 'str_field', 'path_field')
+encoding.AddCustomJsonFieldMapping(
+    MessageWithRemappings, 'enum_field_remapping', 'enum_field_remapped')
 encoding.AddCustomJsonEnumMapping(
     MessageWithRemappings.AnEnum, 'value_one', 'ONE')
 
@@ -178,10 +181,12 @@ class UtilTest(unittest2.TestCase):
         params = {
             'str_field': 'foo',
             'enum_field': MessageWithRemappings.AnEnum.value_one,
+            'enum_field_remapping': MessageWithRemappings.AnEnum.value_one,
         }
         remapped_params = {
             'path_field': 'foo',
             'enum_field': 'ONE',
+            'enum_field_remapped': 'ONE',
         }
         self.assertEqual(remapped_params,
                          util.MapRequestParams(params, MessageWithRemappings))

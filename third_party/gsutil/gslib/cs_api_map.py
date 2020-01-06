@@ -15,6 +15,9 @@
 """API map classes used with the CloudApiDelegator class."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from gslib.boto_translation import BotoTranslation
 from gslib.gcs_json_api import GcsJsonApi
@@ -54,11 +57,11 @@ class GsutilApiClassMapFactory(object):
         ApiSelector.JSON: GcsJsonApi
     }
     s3_class_map = {
-        ApiSelector.XML: BotoTranslation
+        ApiSelector.XML: BotoTranslation,
     }
     class_map = {
         'gs': gs_class_map,
-        's3': s3_class_map
+        's3': s3_class_map,
     }
     return class_map
 

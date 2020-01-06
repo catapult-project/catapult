@@ -15,6 +15,9 @@
 """Additional help about object metadata."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from gslib.help_provider import HelpProvider
 
@@ -51,7 +54,7 @@ _DETAILED_HELP_TEXT = ("""
   which allows browsers to render the object properly. gsutil sets the
   Content-Type automatically at upload time, based on each filename extension.
   For example, uploading files with names ending in .txt will set Content-Type
-  to text/plain. If you're running gsutil on Linux or MacOS and would prefer to
+  to text/plain. If you're running gsutil on Linux or macOS and would prefer to
   have content type set based on naming plus content examination, see the
   use_magicfile configuration variable in the .boto configuration file (See
   also "gsutil help config"). In general, using use_magicfile is more robust
@@ -83,20 +86,21 @@ _DETAILED_HELP_TEXT = ("""
   of objects after uploading a newer replacement object. Note also that because
   objects can be cached at various places on the Internet there is no way to
   force a cached object to expire globally (unlike the way you can force your
-  browser to refresh its cache). If you want to prevent caching of publicly
-  readable objects you should set a Cache-Control:private header on the object.
-  You can do this with a command such as:
+  browser to refresh its cache). If you want to prevent serving cached versions
+  of publicly readable objects, set "Cache-Control:no-cache, max-age=0" on the
+  object. You can do this with a command such as:
 
-    gsutil -h Cache-Control:private cp -a public-read file.png gs://your-bucket
+    gsutil -h "Cache-Control:no-cache,max-age=0" \\
+           cp -a public-read file.png gs://your-bucket
 
   Another use of Cache-Control is through the "no-transform" value,
   which instructs Google Cloud Storage to not apply any content transformations
   based on specifics of a download request, such as removing gzip
   content-encoding for incompatible clients.  Note that this parameter is only
   respected by the XML API. The Google Cloud Storage JSON API respects only the
-  no-cache and max-age Cache-Control parameters.
+  public, private, no-cache, and max-age Cache-Control parameters.
 
-  For details about how to set the Cache-Control header see
+  For details about how to set the Cache-Control metadata see
   "gsutil help setmeta".
 
 
@@ -193,8 +197,13 @@ class CommandOptions(HelpProvider):
   help_spec = HelpProvider.HelpSpec(
       help_name='metadata',
       help_name_aliases=[
-          'cache-control', 'caching', 'content type', 'mime type', 'mime',
-          'type'],
+          'cache-control',
+          'caching',
+          'content type',
+          'mime type',
+          'mime',
+          'type',
+      ],
       help_type='additional_help',
       help_one_line_summary='Working With Object Metadata',
       help_text=_DETAILED_HELP_TEXT,

@@ -14,24 +14,28 @@
 # limitations under the License.
 """Wrapper for use in daisy-chained copies."""
 
-from collections import deque
-from contextlib import contextmanager
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
+import collections
+import contextlib
 import os
 import threading
 import time
 
 from gslib.cloud_api import BadRequestException
 from gslib.cloud_api import CloudApi
-from gslib.encryption_helper import CryptoKeyWrapperFromKey
-from gslib.util import CreateLock
-from gslib.util import TRANSFER_BUFFER_SIZE
-
+from gslib.utils import constants
+from gslib.utils import parallelism_framework_util
+from gslib.utils.encryption_helper import CryptoKeyWrapperFromKey
 
 # This controls the amount of bytes downloaded per download request.
 # We do not buffer this many bytes in memory at a time - that is controlled by
 # DaisyChainWrapper.max_buffer_size. This is the upper bound of bytes that may
 # be unnecessarily downloaded if there is a break in the resumable upload.
-_DEFAULT_DOWNLOAD_CHUNK_SIZE = 1024*1024*100
+_DEFAULT_DOWNLOAD_CHUNK_SIZE = 1024 * 1024 * 100
 
 
 class BufferWrapper(object):
@@ -62,8 +66,8 @@ class BufferWrapper(object):
         self.daisy_chain_wrapper.bytes_buffered += data_len
 
 
-@contextmanager
-def AcquireLockWithTimeout(lock, timeout):
+@contextlib.contextmanager
+def AcquireLockWithTimeout(lock, timeout):  # pylint: disable=invalid-name
   result = lock.acquire(timeout=timeout)
   yield result
   if result:
@@ -79,12 +83,16 @@ class DaisyChainWrapper(object):
   to copy a file.
 
   This class is coupled with the XML and JSON implementations in that it
-  expects that small buffers (maximum of TRANSFER_BUFFER_SIZE) in size will be
-  used.
+  expects that small buffers (maximum of constants.TRANSFER_BUFFER_SIZE) in
+  size will be used.
   """
 
-  def __init__(self, src_url, src_obj_size, gsutil_api,
-               compressed_encoding=False, progress_callback=None,
+  def __init__(self,
+               src_url,
+               src_obj_size,
+               gsutil_api,
+               compressed_encoding=False,
+               progress_callback=None,
                download_chunk_size=_DEFAULT_DOWNLOAD_CHUNK_SIZE,
                decryption_key=None):
     """Initializes the daisy chain wrapper.
@@ -102,10 +110,12 @@ class DaisyChainWrapper(object):
           unnecessarily downloaded if there is a break in the resumable upload.
       decryption_key: Base64-encoded decryption key for the source object,
           if any.
+    Raises:
+      Exception: if the download thread doesn't start within 60 seconds
     """
     # Current read position for the upload file pointer.
     self.position = 0
-    self.buffer = deque()
+    self.buffer = collections.deque()
 
     self.bytes_buffered = 0
     # Maximum amount of bytes in memory at a time.
@@ -121,10 +131,10 @@ class DaisyChainWrapper(object):
     self.last_data = None
 
     # Protects buffer, position, bytes_buffered, last_position, and last_data.
-    self.lock = CreateLock()
+    self.lock = parallelism_framework_util.CreateLock()
 
     # Protects download_exception.
-    self.download_exception_lock = CreateLock()
+    self.download_exception_lock = parallelism_framework_util.CreateLock()
 
     self.src_obj_size = src_obj_size
     self.src_url = src_url
@@ -145,13 +155,13 @@ class DaisyChainWrapper(object):
     self.download_started = threading.Event()
     self.stop_download = threading.Event()
     self.StartDownloadThread(progress_callback=self.progress_callback)
-    if self.download_started.wait(60) == False:
+    if not self.download_started.wait(60):
       raise Exception('Could not start download thread after 60 seconds.')
 
-  def StartDownloadThread(self, start_byte=0, progress_callback=None):
+  def StartDownloadThread(self, start_byte=0, progress_callback=None):  # pylint: disable=invalid-name
     """Starts the download thread for the source object (from start_byte)."""
 
-    def PerformDownload(start_byte, progress_callback):
+    def PerformDownload(start_byte, progress_callback):  # pylint: disable=invalid-name
       """Downloads the source object in chunks.
 
       This function checks the stop_download event and exits early if it is set.
@@ -172,13 +182,17 @@ class DaisyChainWrapper(object):
       try:
         while start_byte + self._download_chunk_size < self.src_obj_size:
           self.gsutil_api.GetObjectMedia(
-              self.src_url.bucket_name, self.src_url.object_name,
-              BufferWrapper(self), compressed_encoding=self.compressed_encoding,
+              self.src_url.bucket_name,
+              self.src_url.object_name,
+              BufferWrapper(self),
+              compressed_encoding=self.compressed_encoding,
               start_byte=start_byte,
               end_byte=start_byte + self._download_chunk_size - 1,
-              generation=self.src_url.generation, object_size=self.src_obj_size,
+              generation=self.src_url.generation,
+              object_size=self.src_obj_size,
               download_strategy=CloudApi.DownloadStrategy.ONE_SHOT,
-              provider=self.src_url.scheme, progress_callback=progress_callback,
+              provider=self.src_url.scheme,
+              progress_callback=progress_callback,
               decryption_tuple=self.decryption_tuple)
           if self.stop_download.is_set():
             # Download thread needs to be restarted, so exit.
@@ -186,24 +200,28 @@ class DaisyChainWrapper(object):
             return
           start_byte += self._download_chunk_size
         self.gsutil_api.GetObjectMedia(
-            self.src_url.bucket_name, self.src_url.object_name,
-            BufferWrapper(self), compressed_encoding=self.compressed_encoding,
-            start_byte=start_byte, generation=self.src_url.generation,
+            self.src_url.bucket_name,
+            self.src_url.object_name,
+            BufferWrapper(self),
+            compressed_encoding=self.compressed_encoding,
+            start_byte=start_byte,
+            generation=self.src_url.generation,
             object_size=self.src_obj_size,
             download_strategy=CloudApi.DownloadStrategy.ONE_SHOT,
-            provider=self.src_url.scheme, progress_callback=progress_callback,
+            provider=self.src_url.scheme,
+            progress_callback=progress_callback,
             decryption_tuple=self.decryption_tuple)
       # We catch all exceptions here because we want to store them.
-      except Exception, e:  # pylint: disable=broad-except
+      except Exception as e:  # pylint: disable=broad-except
         # Save the exception so that it can be seen in the upload thread.
         with self.download_exception_lock:
           self.download_exception = e
           raise
 
     # TODO: If we do gzip encoding transforms mid-transfer, this will fail.
-    self.download_thread = threading.Thread(
-        target=PerformDownload,
-        args=(start_byte, progress_callback))
+    self.download_thread = threading.Thread(target=PerformDownload,
+                                            args=(start_byte,
+                                                  progress_callback))
     self.download_thread.start()
 
   def read(self, amt=None):  # pylint: disable=invalid-name
@@ -212,10 +230,10 @@ class DaisyChainWrapper(object):
       # If there is no data left or 0 bytes were requested, return an empty
       # string so callers can call still call len() and read(0).
       return ''
-    if amt is None or amt > TRANSFER_BUFFER_SIZE:
+    if amt is None or amt > constants.TRANSFER_BUFFER_SIZE:
       raise BadRequestException(
           'Invalid HTTP read size %s during daisy chain operation, '
-          'expected <= %s.' % (amt, TRANSFER_BUFFER_SIZE))
+          'expected <= %s.' % (amt, constants.TRANSFER_BUFFER_SIZE))
 
     while True:
       with self.lock:
@@ -251,6 +269,7 @@ class DaisyChainWrapper(object):
       return self.position
 
   def seek(self, offset, whence=os.SEEK_SET):  # pylint: disable=invalid-name
+    """Sets current read position of the stream."""
     restart_download = False
     if whence == os.SEEK_END:
       if offset:
@@ -295,10 +314,11 @@ class DaisyChainWrapper(object):
 
         with self.lock:
           self.position = offset
-          self.buffer = deque()
+          self.buffer = collections.deque()
           self.bytes_buffered = 0
           self.last_position = 0
           self.last_data = None
+          self.stop_download.clear()
         self.StartDownloadThread(start_byte=offset,
                                  progress_callback=self.progress_callback)
     else:

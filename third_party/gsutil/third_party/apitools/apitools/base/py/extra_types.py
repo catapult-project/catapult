@@ -26,7 +26,7 @@ import six
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
 from apitools.base.protorpclite import protojson
-from apitools.base.py import encoding
+from apitools.base.py import encoding_helper as encoding
 from apitools.base.py import exceptions
 from apitools.base.py import util
 
@@ -286,6 +286,7 @@ def _DecodeInt64Field(unused_field, value):
     # Don't need to do anything special, they're decoded just fine
     return encoding.CodecResult(value=value, complete=False)
 
+
 encoding.RegisterFieldTypeCodec(_EncodeInt64Field, _DecodeInt64Field)(
     messages.IntegerField)
 
@@ -302,5 +303,6 @@ def _EncodeDateField(field, value):
 def _DecodeDateField(unused_field, value):
     date = datetime.datetime.strptime(value, '%Y-%m-%d').date()
     return encoding.CodecResult(value=date, complete=True)
+
 
 encoding.RegisterFieldTypeCodec(_EncodeDateField, _DecodeDateField)(DateField)

@@ -88,7 +88,7 @@ class TestCase(unittest.TestCase):
         self.assertEqual(params1, params2)
 
     def assertIterEqual(self, iter1, iter2):
-        """Check that two iterators or iterables are equal independent of order.
+        """Check two iterators or iterables are equal independent of order.
 
         Similar to Python 2.7 assertItemsEqual.  Named differently in order to
         avoid potential conflict.

@@ -15,9 +15,11 @@
 """Additional help about types of credentials and authentication."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from gslib.help_provider import HelpProvider
-
 
 _DETAILED_HELP_TEXT = ("""
 <B>OVERVIEW</B>
@@ -119,7 +121,7 @@ _DETAILED_HELP_TEXT = ("""
 
     To set up a service account for use with "gsutil config -e" or "gcloud auth
     activate-service-account", see:
-     https://cloud.google.com/storage/docs/authentication#generating-a-private-key 
+     https://cloud.google.com/storage/docs/authentication#generating-a-private-key
 
     For more details about OAuth2 service accounts, see:
       https://developers.google.com/accounts/docs/OAuth2ServiceAccount
@@ -139,6 +141,21 @@ _DETAILED_HELP_TEXT = ("""
 
     For more details about App Engine service accounts, see:
       https://developers.google.com/appengine/docs/python/appidentity/overview
+
+  Service Account Impersonation:
+    Impersonating a service account is useful in scenarios where you need to
+    grant short-term access to specific resources. For example, if you have a
+    bucket of sensitive data that is typically read-only and want to
+    temporarily grant write access through a trusted service account.
+
+    You can specify which service account to use for impersonation by running
+    "gsutil -i", "gsutil config" and editing the boto configuration file, or
+    "gcloud config set auth/impersonate_service_account".
+
+    In order to impersonate, your original credentials need to be granted
+    roles/iam.serviceAccountTokenCreator on the target service account.
+    For more information see:
+      https://cloud.google.com/iam/docs/creating-short-lived-service-account-credentials
 """)
 
 

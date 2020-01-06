@@ -18,6 +18,9 @@ This enables Boto API auth in Developer Shell environment.
 """
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from boto.auth_handler import AuthHandler
 from boto.auth_handler import NotReadyToAuthenticate
@@ -43,4 +46,3 @@ class DevshellAuth(AuthHandler):
   def add_auth(self, http_request):
     http_request.headers['Authorization'] = ('Bearer %s' %
                                              self.creds.access_token)
-

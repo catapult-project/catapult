@@ -15,6 +15,9 @@
 """Integration tests for logging command."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForS3
@@ -33,9 +36,9 @@ class TestLogging(testcase.GsUtilIntegrationTestCase):
     """Tests enabling and disabling logging."""
     bucket_uri = self.CreateBucket()
     bucket_suri = suri(bucket_uri)
-    stderr = self.RunGsUtil(
-        self._enable_log_cmd + ['-b', bucket_suri, bucket_suri],
-        return_stderr=True)
+    stderr = self.RunGsUtil(self._enable_log_cmd +
+                            ['-b', bucket_suri, bucket_suri],
+                            return_stderr=True)
     self.assertIn('Enabling logging', stderr)
 
     stdout = self.RunGsUtil(self._get_log_cmd + [bucket_suri],
@@ -49,17 +52,20 @@ class TestLogging(testcase.GsUtilIntegrationTestCase):
   def testTooFewArgumentsFails(self):
     """Ensures logging commands fail with too few arguments."""
     # No arguments for enable, but valid subcommand.
-    stderr = self.RunGsUtil(self._enable_log_cmd, return_stderr=True,
+    stderr = self.RunGsUtil(self._enable_log_cmd,
+                            return_stderr=True,
                             expected_status=1)
     self.assertIn('command requires at least', stderr)
 
     # No arguments for disable, but valid subcommand.
-    stderr = self.RunGsUtil(self._disable_log_cmd, return_stderr=True,
+    stderr = self.RunGsUtil(self._disable_log_cmd,
+                            return_stderr=True,
                             expected_status=1)
     self.assertIn('command requires at least', stderr)
 
     # No arguments for get, but valid subcommand.
-    stderr = self.RunGsUtil(self._get_log_cmd, return_stderr=True,
+    stderr = self.RunGsUtil(self._get_log_cmd,
+                            return_stderr=True,
                             expected_status=1)
     self.assertIn('command requires at least', stderr)
 

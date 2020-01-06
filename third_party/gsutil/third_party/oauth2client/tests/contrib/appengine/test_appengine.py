@@ -911,7 +911,7 @@ class DecoratorTests(unittest.TestCase):
 
         # revoke_uri is not required
         self.assertEqual(self.decorator._revoke_uri,
-                         'https://accounts.google.com/o/oauth2/revoke')
+                         'https://oauth2.googleapis.com/revoke')
         self.assertEqual(self.decorator._revoke_uri,
                          self.decorator.credentials.revoke_uri)
 

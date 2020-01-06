@@ -249,6 +249,15 @@ class Oauth2CallbackTest(tests_django_util.TestWithDjangoEnvironment):
         self.assertIsInstance(response, http.HttpResponseBadRequest)
         self.assertIn(b'Authorization failed', response.content)
 
+    def test_error_escapes_html(self):
+        request = self.factory.get('oauth2/oauth2callback', data={
+            'error': '<script>bad</script>',
+        })
+        response = views.oauth2_callback(request)
+        self.assertIsInstance(response, http.HttpResponseBadRequest)
+        self.assertNotIn(b'<script>', response.content)
+        self.assertIn(b'&lt;script&gt;', response.content)
+
     def test_no_session(self):
         request = self.factory.get('oauth2/oauth2callback', data={
             'code': 123,

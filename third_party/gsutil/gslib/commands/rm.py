@@ -15,6 +15,9 @@
 """Implementation of Unix-like rm command for cloud storage providers."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import time
 
@@ -31,15 +34,16 @@ from gslib.exception import NO_URLS_MATCHED_GENERIC
 from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.name_expansion import NameExpansionIterator
 from gslib.name_expansion import SeekAheadNameExpansionIterator
-from gslib.parallelism_framework_util import PutToQueueWithTimeout
 from gslib.storage_url import StorageUrlFromString
 from gslib.thread_message import MetadataMessage
-from gslib.translation_helper import PreconditionsFromHeaders
-from gslib.util import GetCloudApiInstance
-from gslib.util import NO_MAX
-from gslib.util import Retry
-from gslib.util import StdinIterator
+from gslib.utils import constants
+from gslib.utils import parallelism_framework_util
+from gslib.utils.cloud_api_helper import GetCloudApiInstance
+from gslib.utils.retry_util import Retry
+from gslib.utils.system_util import StdinIterator
+from gslib.utils.translation_helper import PreconditionsFromHeaders
 
+_PutToQueueWithTimeout = parallelism_framework_util.PutToQueueWithTimeout
 
 _SYNOPSIS = """
   gsutil rm [-f] [-r] url...
@@ -52,7 +56,7 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>DESCRIPTION</B>
-  The gsutil rm command removes objects.
+  The gsutil rm command removes objects and/or buckets.
   For example, the command:
 
     gsutil rm gs://bucket/subdir/*
@@ -165,8 +169,7 @@ def _RemoveExceptionHandler(cls, e):
 # pylint: disable=unused-argument
 def _RemoveFoldersExceptionHandler(cls, e):
   """When removing folders, we don't mind if none exist."""
-  if ((isinstance(e, CommandException) and
-       NO_URLS_MATCHED_GENERIC in e.reason)
+  if ((isinstance(e, CommandException) and NO_URLS_MATCHED_GENERIC in e.reason)
       or isinstance(e, NotFoundException)):
     DecrementFailureCount()
   else:
@@ -208,17 +211,14 @@ class RmCommand(Command):
       command_name_aliases=['del', 'delete', 'remove'],
       usage_synopsis=_SYNOPSIS,
       min_args=0,
-      max_args=NO_MAX,
+      max_args=constants.NO_MAX,
       supported_sub_args='afIrR',
       file_url_ok=False,
       provider_url_ok=False,
       urls_start_arg=0,
       gs_api_support=[ApiSelector.XML, ApiSelector.JSON],
       gs_default_api=ApiSelector.JSON,
-      argparse_arguments=[
-          CommandArgument.MakeZeroOrMoreCloudURLsArgument()
-      ]
-  )
+      argparse_arguments=[CommandArgument.MakeZeroOrMoreCloudURLsArgument()])
   # Help specification. See help_provider.py for documentation.
   help_spec = Command.HelpSpec(
       help_name='rm',
@@ -283,8 +283,13 @@ class RmCommand(Command):
     try:
       # Expand wildcards, dirs, buckets, and bucket subdirs in URLs.
       name_expansion_iterator = NameExpansionIterator(
-          self.command_name, self.debug, self.logger, self.gsutil_api,
-          url_strs, self.recursion_requested, project_id=self.project_id,
+          self.command_name,
+          self.debug,
+          self.logger,
+          self.gsutil_api,
+          url_strs,
+          self.recursion_requested,
+          project_id=self.project_id,
           all_versions=self.all_versions,
           continue_on_error=self.continue_on_error or self.parallel_operations)
 
@@ -293,14 +298,19 @@ class RmCommand(Command):
       # once without buffering in memory.
       if not self.read_args_from_stdin:
         seek_ahead_iterator = SeekAheadNameExpansionIterator(
-            self.command_name, self.debug, self.GetSeekAheadGsutilApi(),
-            url_strs, self.recursion_requested,
-            all_versions=self.all_versions, project_id=self.project_id)
+            self.command_name,
+            self.debug,
+            self.GetSeekAheadGsutilApi(),
+            url_strs,
+            self.recursion_requested,
+            all_versions=self.all_versions,
+            project_id=self.project_id)
 
       # Perform remove requests in parallel (-m) mode, if requested, using
       # configured number of parallel processes and threads. Otherwise,
       # perform requests with sequential function calls in current process.
-      self.Apply(_RemoveFuncWrapper, name_expansion_iterator,
+      self.Apply(_RemoveFuncWrapper,
+                 name_expansion_iterator,
                  _RemoveExceptionHandler,
                  fail_on_error=(not self.continue_on_error),
                  shared_attrs=['op_failure_count', 'bucket_not_found_count'],
@@ -319,7 +329,7 @@ class RmCommand(Command):
         DecrementFailureCount()
       else:
         raise
-    except ServiceException, e:
+    except ServiceException as e:
       if not self.continue_on_error:
         raise
 
@@ -342,13 +352,17 @@ class RmCommand(Command):
         self.continue_on_error = True
         try:
           name_expansion_iterator = NameExpansionIterator(
-              self.command_name, self.debug,
-              self.logger, self.gsutil_api,
-              folder_object_wildcards, self.recursion_requested,
+              self.command_name,
+              self.debug,
+              self.logger,
+              self.gsutil_api,
+              folder_object_wildcards,
+              self.recursion_requested,
               project_id=self.project_id,
               all_versions=self.all_versions)
           # When we're removing folder objects, always continue on error
-          self.Apply(_RemoveFuncWrapper, name_expansion_iterator,
+          self.Apply(_RemoveFuncWrapper,
+                     name_expansion_iterator,
                      _RemoveFoldersExceptionHandler,
                      fail_on_error=False)
         except CommandException as e:
@@ -368,8 +382,8 @@ class RmCommand(Command):
 
     if self.op_failure_count:
       plural_str = 's' if self.op_failure_count else ''
-      raise CommandException('%d file%s/object%s could not be removed.' % (
-          self.op_failure_count, plural_str, plural_str))
+      raise CommandException('%d file%s/object%s could not be removed.' %
+                             (self.op_failure_count, plural_str, plural_str))
 
     return 0
 
@@ -378,9 +392,10 @@ class RmCommand(Command):
 
     exp_src_url = name_expansion_result.expanded_storage_url
     self.logger.info('Removing %s...', exp_src_url)
-    gsutil_api.DeleteObject(
-        exp_src_url.bucket_name, exp_src_url.object_name,
-        preconditions=self.preconditions, generation=exp_src_url.generation,
-        provider=exp_src_url.scheme)
-    PutToQueueWithTimeout(gsutil_api.status_queue,
-                          MetadataMessage(message_time=time.time()))
+    gsutil_api.DeleteObject(exp_src_url.bucket_name,
+                            exp_src_url.object_name,
+                            preconditions=self.preconditions,
+                            generation=exp_src_url.generation,
+                            provider=exp_src_url.scheme)
+    _PutToQueueWithTimeout(gsutil_api.status_queue,
+                           MetadataMessage(message_time=time.time()))

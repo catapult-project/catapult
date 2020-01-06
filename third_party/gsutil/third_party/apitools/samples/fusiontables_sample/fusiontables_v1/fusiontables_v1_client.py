@@ -24,7 +24,7 @@ class FusiontablesV1(base_api.BaseApiClient):
                get_credentials=True, http=None, model=None,
                log_request=False, log_response=False,
                credentials_args=None, default_global_params=None,
-               additional_http_headers=None):
+               additional_http_headers=None, response_encoding=None):
     """Create a new fusiontables handle."""
     url = url or self.BASE_URL
     super(FusiontablesV1, self).__init__(
@@ -33,7 +33,8 @@ class FusiontablesV1(base_api.BaseApiClient):
         log_request=log_request, log_response=log_response,
         credentials_args=credentials_args,
         default_global_params=default_global_params,
-        additional_http_headers=additional_http_headers)
+        additional_http_headers=additional_http_headers,
+        response_encoding=response_encoding)
     self.column = self.ColumnService(self)
     self.query = self.QueryService(self)
     self.style = self.StyleService(self)
@@ -52,7 +53,7 @@ class FusiontablesV1(base_api.BaseApiClient):
           }
 
     def Delete(self, request, global_params=None):
-      """Deletes the column.
+      r"""Deletes the column.
 
       Args:
         request: (FusiontablesColumnDeleteRequest) input message
@@ -78,7 +79,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Get(self, request, global_params=None):
-      """Retrieves a specific column by its id.
+      r"""Retrieves a specific column by its id.
 
       Args:
         request: (FusiontablesColumnGetRequest) input message
@@ -104,7 +105,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Insert(self, request, global_params=None):
-      """Adds a new column to the table.
+      r"""Adds a new column to the table.
 
       Args:
         request: (FusiontablesColumnInsertRequest) input message
@@ -130,7 +131,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def List(self, request, global_params=None):
-      """Retrieves a list of columns.
+      r"""Retrieves a list of columns.
 
       Args:
         request: (FusiontablesColumnListRequest) input message
@@ -156,7 +157,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Patch(self, request, global_params=None):
-      """Updates the name or type of an existing column. This method supports patch semantics.
+      r"""Updates the name or type of an existing column. This method supports patch semantics.
 
       Args:
         request: (FusiontablesColumnPatchRequest) input message
@@ -182,7 +183,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Update(self, request, global_params=None):
-      """Updates the name or type of an existing column.
+      r"""Updates the name or type of an existing column.
 
       Args:
         request: (FusiontablesColumnUpdateRequest) input message
@@ -218,7 +219,7 @@ class FusiontablesV1(base_api.BaseApiClient):
           }
 
     def Sql(self, request, global_params=None, download=None):
-      """Executes an SQL SELECT/INSERT/UPDATE/DELETE/SHOW/DESCRIBE/CREATE statement.
+      r"""Executes an SQL SELECT/INSERT/UPDATE/DELETE/SHOW/DESCRIBE/CREATE statement.
 
       Args:
         request: (FusiontablesQuerySqlRequest) input message
@@ -247,7 +248,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def SqlGet(self, request, global_params=None, download=None):
-      """Executes an SQL SELECT/SHOW/DESCRIBE statement.
+      r"""Executes an SQL SELECT/SHOW/DESCRIBE statement.
 
       Args:
         request: (FusiontablesQuerySqlGetRequest) input message
@@ -286,7 +287,7 @@ class FusiontablesV1(base_api.BaseApiClient):
           }
 
     def Delete(self, request, global_params=None):
-      """Deletes a style.
+      r"""Deletes a style.
 
       Args:
         request: (FusiontablesStyleDeleteRequest) input message
@@ -312,7 +313,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Get(self, request, global_params=None):
-      """Gets a specific style.
+      r"""Gets a specific style.
 
       Args:
         request: (FusiontablesStyleGetRequest) input message
@@ -338,7 +339,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Insert(self, request, global_params=None):
-      """Adds a new style for the table.
+      r"""Adds a new style for the table.
 
       Args:
         request: (StyleSetting) input message
@@ -364,7 +365,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def List(self, request, global_params=None):
-      """Retrieves a list of styles.
+      r"""Retrieves a list of styles.
 
       Args:
         request: (FusiontablesStyleListRequest) input message
@@ -390,7 +391,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Patch(self, request, global_params=None):
-      """Updates an existing style. This method supports patch semantics.
+      r"""Updates an existing style. This method supports patch semantics.
 
       Args:
         request: (StyleSetting) input message
@@ -416,7 +417,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Update(self, request, global_params=None):
-      """Updates an existing style.
+      r"""Updates an existing style.
 
       Args:
         request: (StyleSetting) input message
@@ -468,7 +469,7 @@ class FusiontablesV1(base_api.BaseApiClient):
           }
 
     def Copy(self, request, global_params=None):
-      """Copies a table.
+      r"""Copies a table.
 
       Args:
         request: (FusiontablesTableCopyRequest) input message
@@ -494,7 +495,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Delete(self, request, global_params=None):
-      """Deletes a table.
+      r"""Deletes a table.
 
       Args:
         request: (FusiontablesTableDeleteRequest) input message
@@ -520,7 +521,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Get(self, request, global_params=None):
-      """Retrieves a specific table by its id.
+      r"""Retrieves a specific table by its id.
 
       Args:
         request: (FusiontablesTableGetRequest) input message
@@ -546,7 +547,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def ImportRows(self, request, global_params=None, upload=None):
-      """Import more rows into a table.
+      r"""Import more rows into a table.
 
       Args:
         request: (FusiontablesTableImportRowsRequest) input message
@@ -576,7 +577,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def ImportTable(self, request, global_params=None, upload=None):
-      """Import a new table.
+      r"""Import a new table.
 
       Args:
         request: (FusiontablesTableImportTableRequest) input message
@@ -606,7 +607,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Insert(self, request, global_params=None):
-      """Creates a new table.
+      r"""Creates a new table.
 
       Args:
         request: (Table) input message
@@ -632,7 +633,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def List(self, request, global_params=None):
-      """Retrieves a list of tables a user owns.
+      r"""Retrieves a list of tables a user owns.
 
       Args:
         request: (FusiontablesTableListRequest) input message
@@ -658,7 +659,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Patch(self, request, global_params=None):
-      """Updates an existing table. Unless explicitly requested, only the name, description, and attribution will be updated. This method supports patch semantics.
+      r"""Updates an existing table. Unless explicitly requested, only the name, description, and attribution will be updated. This method supports patch semantics.
 
       Args:
         request: (FusiontablesTablePatchRequest) input message
@@ -684,7 +685,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Update(self, request, global_params=None):
-      """Updates an existing table. Unless explicitly requested, only the name, description, and attribution will be updated.
+      r"""Updates an existing table. Unless explicitly requested, only the name, description, and attribution will be updated.
 
       Args:
         request: (FusiontablesTableUpdateRequest) input message
@@ -720,7 +721,7 @@ class FusiontablesV1(base_api.BaseApiClient):
           }
 
     def Delete(self, request, global_params=None):
-      """Deletes the task, unless already started.
+      r"""Deletes the task, unless already started.
 
       Args:
         request: (FusiontablesTaskDeleteRequest) input message
@@ -746,7 +747,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Get(self, request, global_params=None):
-      """Retrieves a specific task by its id.
+      r"""Retrieves a specific task by its id.
 
       Args:
         request: (FusiontablesTaskGetRequest) input message
@@ -772,7 +773,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def List(self, request, global_params=None):
-      """Retrieves a list of tasks.
+      r"""Retrieves a list of tasks.
 
       Args:
         request: (FusiontablesTaskListRequest) input message
@@ -808,7 +809,7 @@ class FusiontablesV1(base_api.BaseApiClient):
           }
 
     def Delete(self, request, global_params=None):
-      """Deletes a template.
+      r"""Deletes a template.
 
       Args:
         request: (FusiontablesTemplateDeleteRequest) input message
@@ -834,7 +835,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Get(self, request, global_params=None):
-      """Retrieves a specific template by its id.
+      r"""Retrieves a specific template by its id.
 
       Args:
         request: (FusiontablesTemplateGetRequest) input message
@@ -860,7 +861,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Insert(self, request, global_params=None):
-      """Creates a new template for the table.
+      r"""Creates a new template for the table.
 
       Args:
         request: (Template) input message
@@ -886,7 +887,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def List(self, request, global_params=None):
-      """Retrieves a list of templates.
+      r"""Retrieves a list of templates.
 
       Args:
         request: (FusiontablesTemplateListRequest) input message
@@ -912,7 +913,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Patch(self, request, global_params=None):
-      """Updates an existing template. This method supports patch semantics.
+      r"""Updates an existing template. This method supports patch semantics.
 
       Args:
         request: (Template) input message
@@ -938,7 +939,7 @@ class FusiontablesV1(base_api.BaseApiClient):
     )
 
     def Update(self, request, global_params=None):
-      """Updates an existing template.
+      r"""Updates an existing template.
 
       Args:
         request: (Template) input message

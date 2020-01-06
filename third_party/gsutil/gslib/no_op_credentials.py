@@ -15,6 +15,9 @@
 """No-op implementation of credentials for JSON HTTP requests."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 
 class NoOpCredentials(object):
@@ -27,4 +30,3 @@ class NoOpCredentials(object):
 
   def set_store(self, store):  # pylint: disable=invalid-name
     pass
-

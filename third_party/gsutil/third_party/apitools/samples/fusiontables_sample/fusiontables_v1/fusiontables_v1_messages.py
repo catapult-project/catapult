@@ -12,7 +12,7 @@ package = 'fusiontables'
 
 
 class Bucket(_messages.Message):
-  """Specifies the minimum and maximum values, the color, opacity, icon and
+  r"""Specifies the minimum and maximum values, the color, opacity, icon and
   weight of a bucket within a StyleSetting.
 
   Fields:
@@ -35,7 +35,7 @@ class Bucket(_messages.Message):
 
 
 class Column(_messages.Message):
-  """Specifies the id, name and type of a column in a table.
+  r"""Specifies the id, name and type of a column in a table.
 
   Messages:
     BaseColumnValue: Optional identifier of the base column. If present, this
@@ -55,7 +55,7 @@ class Column(_messages.Message):
   """
 
   class BaseColumnValue(_messages.Message):
-    """Optional identifier of the base column. If present, this column is
+    r"""Optional identifier of the base column. If present, this column is
     derived from the specified base column.
 
     Fields:
@@ -78,7 +78,7 @@ class Column(_messages.Message):
 
 
 class ColumnList(_messages.Message):
-  """Represents a list of columns in a table.
+  r"""Represents a list of columns in a table.
 
   Fields:
     items: List of all requested columns.
@@ -95,7 +95,7 @@ class ColumnList(_messages.Message):
 
 
 class FusiontablesColumnDeleteRequest(_messages.Message):
-  """A FusiontablesColumnDeleteRequest object.
+  r"""A FusiontablesColumnDeleteRequest object.
 
   Fields:
     columnId: Name or identifier for the column being deleted.
@@ -107,11 +107,11 @@ class FusiontablesColumnDeleteRequest(_messages.Message):
 
 
 class FusiontablesColumnDeleteResponse(_messages.Message):
-  """An empty FusiontablesColumnDelete response."""
+  r"""An empty FusiontablesColumnDelete response."""
 
 
 class FusiontablesColumnGetRequest(_messages.Message):
-  """A FusiontablesColumnGetRequest object.
+  r"""A FusiontablesColumnGetRequest object.
 
   Fields:
     columnId: Name or identifier for the column that is being requested.
@@ -123,7 +123,7 @@ class FusiontablesColumnGetRequest(_messages.Message):
 
 
 class FusiontablesColumnInsertRequest(_messages.Message):
-  """A FusiontablesColumnInsertRequest object.
+  r"""A FusiontablesColumnInsertRequest object.
 
   Fields:
     column: A Column resource to be passed as the request body.
@@ -135,7 +135,7 @@ class FusiontablesColumnInsertRequest(_messages.Message):
 
 
 class FusiontablesColumnListRequest(_messages.Message):
-  """A FusiontablesColumnListRequest object.
+  r"""A FusiontablesColumnListRequest object.
 
   Fields:
     maxResults: Maximum number of columns to return. Optional. Default is 5.
@@ -150,7 +150,7 @@ class FusiontablesColumnListRequest(_messages.Message):
 
 
 class FusiontablesColumnPatchRequest(_messages.Message):
-  """A FusiontablesColumnPatchRequest object.
+  r"""A FusiontablesColumnPatchRequest object.
 
   Fields:
     column: A Column resource to be passed as the request body.
@@ -164,7 +164,7 @@ class FusiontablesColumnPatchRequest(_messages.Message):
 
 
 class FusiontablesColumnUpdateRequest(_messages.Message):
-  """A FusiontablesColumnUpdateRequest object.
+  r"""A FusiontablesColumnUpdateRequest object.
 
   Fields:
     column: A Column resource to be passed as the request body.
@@ -178,7 +178,7 @@ class FusiontablesColumnUpdateRequest(_messages.Message):
 
 
 class FusiontablesQuerySqlGetRequest(_messages.Message):
-  """A FusiontablesQuerySqlGetRequest object.
+  r"""A FusiontablesQuerySqlGetRequest object.
 
   Fields:
     hdrs: Should column names be included (in the first row)?. Default is
@@ -195,7 +195,7 @@ class FusiontablesQuerySqlGetRequest(_messages.Message):
 
 
 class FusiontablesQuerySqlRequest(_messages.Message):
-  """A FusiontablesQuerySqlRequest object.
+  r"""A FusiontablesQuerySqlRequest object.
 
   Fields:
     hdrs: Should column names be included (in the first row)?. Default is
@@ -212,7 +212,7 @@ class FusiontablesQuerySqlRequest(_messages.Message):
 
 
 class FusiontablesStyleDeleteRequest(_messages.Message):
-  """A FusiontablesStyleDeleteRequest object.
+  r"""A FusiontablesStyleDeleteRequest object.
 
   Fields:
     styleId: Identifier (within a table) for the style being deleted
@@ -224,11 +224,11 @@ class FusiontablesStyleDeleteRequest(_messages.Message):
 
 
 class FusiontablesStyleDeleteResponse(_messages.Message):
-  """An empty FusiontablesStyleDelete response."""
+  r"""An empty FusiontablesStyleDelete response."""
 
 
 class FusiontablesStyleGetRequest(_messages.Message):
-  """A FusiontablesStyleGetRequest object.
+  r"""A FusiontablesStyleGetRequest object.
 
   Fields:
     styleId: Identifier (integer) for a specific style in a table
@@ -240,7 +240,7 @@ class FusiontablesStyleGetRequest(_messages.Message):
 
 
 class FusiontablesStyleListRequest(_messages.Message):
-  """A FusiontablesStyleListRequest object.
+  r"""A FusiontablesStyleListRequest object.
 
   Fields:
     maxResults: Maximum number of styles to return. Optional. Default is 5.
@@ -255,7 +255,7 @@ class FusiontablesStyleListRequest(_messages.Message):
 
 
 class FusiontablesTableCopyRequest(_messages.Message):
-  """A FusiontablesTableCopyRequest object.
+  r"""A FusiontablesTableCopyRequest object.
 
   Fields:
     copyPresentation: Whether to also copy tabs, styles, and templates.
@@ -268,7 +268,7 @@ class FusiontablesTableCopyRequest(_messages.Message):
 
 
 class FusiontablesTableDeleteRequest(_messages.Message):
-  """A FusiontablesTableDeleteRequest object.
+  r"""A FusiontablesTableDeleteRequest object.
 
   Fields:
     tableId: ID of the table that is being deleted.
@@ -278,11 +278,11 @@ class FusiontablesTableDeleteRequest(_messages.Message):
 
 
 class FusiontablesTableDeleteResponse(_messages.Message):
-  """An empty FusiontablesTableDelete response."""
+  r"""An empty FusiontablesTableDelete response."""
 
 
 class FusiontablesTableGetRequest(_messages.Message):
-  """A FusiontablesTableGetRequest object.
+  r"""A FusiontablesTableGetRequest object.
 
   Fields:
     tableId: Identifier(ID) for the table being requested.
@@ -292,7 +292,7 @@ class FusiontablesTableGetRequest(_messages.Message):
 
 
 class FusiontablesTableImportRowsRequest(_messages.Message):
-  """A FusiontablesTableImportRowsRequest object.
+  r"""A FusiontablesTableImportRowsRequest object.
 
   Fields:
     delimiter: The delimiter used to separate cell values. This can only
@@ -324,7 +324,7 @@ class FusiontablesTableImportRowsRequest(_messages.Message):
 
 
 class FusiontablesTableImportTableRequest(_messages.Message):
-  """A FusiontablesTableImportTableRequest object.
+  r"""A FusiontablesTableImportTableRequest object.
 
   Fields:
     delimiter: The delimiter used to separate cell values. This can only
@@ -340,7 +340,7 @@ class FusiontablesTableImportTableRequest(_messages.Message):
 
 
 class FusiontablesTableListRequest(_messages.Message):
-  """A FusiontablesTableListRequest object.
+  r"""A FusiontablesTableListRequest object.
 
   Fields:
     maxResults: Maximum number of styles to return. Optional. Default is 5.
@@ -353,7 +353,7 @@ class FusiontablesTableListRequest(_messages.Message):
 
 
 class FusiontablesTablePatchRequest(_messages.Message):
-  """A FusiontablesTablePatchRequest object.
+  r"""A FusiontablesTablePatchRequest object.
 
   Fields:
     replaceViewDefinition: Should the view definition also be updated? The
@@ -369,7 +369,7 @@ class FusiontablesTablePatchRequest(_messages.Message):
 
 
 class FusiontablesTableUpdateRequest(_messages.Message):
-  """A FusiontablesTableUpdateRequest object.
+  r"""A FusiontablesTableUpdateRequest object.
 
   Fields:
     replaceViewDefinition: Should the view definition also be updated? The
@@ -385,7 +385,7 @@ class FusiontablesTableUpdateRequest(_messages.Message):
 
 
 class FusiontablesTaskDeleteRequest(_messages.Message):
-  """A FusiontablesTaskDeleteRequest object.
+  r"""A FusiontablesTaskDeleteRequest object.
 
   Fields:
     tableId: Table from which the task is being deleted.
@@ -397,11 +397,11 @@ class FusiontablesTaskDeleteRequest(_messages.Message):
 
 
 class FusiontablesTaskDeleteResponse(_messages.Message):
-  """An empty FusiontablesTaskDelete response."""
+  r"""An empty FusiontablesTaskDelete response."""
 
 
 class FusiontablesTaskGetRequest(_messages.Message):
-  """A FusiontablesTaskGetRequest object.
+  r"""A FusiontablesTaskGetRequest object.
 
   Fields:
     tableId: Table to which the task belongs.
@@ -413,7 +413,7 @@ class FusiontablesTaskGetRequest(_messages.Message):
 
 
 class FusiontablesTaskListRequest(_messages.Message):
-  """A FusiontablesTaskListRequest object.
+  r"""A FusiontablesTaskListRequest object.
 
   Fields:
     maxResults: Maximum number of columns to return. Optional. Default is 5.
@@ -429,7 +429,7 @@ class FusiontablesTaskListRequest(_messages.Message):
 
 
 class FusiontablesTemplateDeleteRequest(_messages.Message):
-  """A FusiontablesTemplateDeleteRequest object.
+  r"""A FusiontablesTemplateDeleteRequest object.
 
   Fields:
     tableId: Table from which the template is being deleted
@@ -441,11 +441,11 @@ class FusiontablesTemplateDeleteRequest(_messages.Message):
 
 
 class FusiontablesTemplateDeleteResponse(_messages.Message):
-  """An empty FusiontablesTemplateDelete response."""
+  r"""An empty FusiontablesTemplateDelete response."""
 
 
 class FusiontablesTemplateGetRequest(_messages.Message):
-  """A FusiontablesTemplateGetRequest object.
+  r"""A FusiontablesTemplateGetRequest object.
 
   Fields:
     tableId: Table to which the template belongs
@@ -457,7 +457,7 @@ class FusiontablesTemplateGetRequest(_messages.Message):
 
 
 class FusiontablesTemplateListRequest(_messages.Message):
-  """A FusiontablesTemplateListRequest object.
+  r"""A FusiontablesTemplateListRequest object.
 
   Fields:
     maxResults: Maximum number of templates to return. Optional. Default is 5.
@@ -472,7 +472,7 @@ class FusiontablesTemplateListRequest(_messages.Message):
 
 
 class Geometry(_messages.Message):
-  """Represents a Geometry object.
+  r"""Represents a Geometry object.
 
   Fields:
     geometries: The list of geometries in this geometry collection.
@@ -486,7 +486,7 @@ class Geometry(_messages.Message):
 
 
 class Import(_messages.Message):
-  """Represents an import request.
+  r"""Represents an import request.
 
   Fields:
     kind: Type name: a template for an import request.
@@ -498,7 +498,7 @@ class Import(_messages.Message):
 
 
 class Line(_messages.Message):
-  """Represents a line geometry.
+  r"""Represents a line geometry.
 
   Messages:
     CoordinatesValueListEntry: Single entry in a CoordinatesValue.
@@ -509,7 +509,7 @@ class Line(_messages.Message):
   """
 
   class CoordinatesValueListEntry(_messages.Message):
-    """Single entry in a CoordinatesValue.
+    r"""Single entry in a CoordinatesValue.
 
     Fields:
       entry: A number attribute.
@@ -522,7 +522,7 @@ class Line(_messages.Message):
 
 
 class LineStyle(_messages.Message):
-  """Represents a LineStyle within a StyleSetting
+  r"""Represents a LineStyle within a StyleSetting
 
   Fields:
     strokeColor: Color of the line in #RRGGBB format.
@@ -542,7 +542,7 @@ class LineStyle(_messages.Message):
 
 
 class Point(_messages.Message):
-  """Represents a point object.
+  r"""Represents a point object.
 
   Fields:
     coordinates: The coordinates that define the point.
@@ -554,7 +554,7 @@ class Point(_messages.Message):
 
 
 class PointStyle(_messages.Message):
-  """Represents a PointStyle within a StyleSetting
+  r"""Represents a PointStyle within a StyleSetting
 
   Fields:
     iconName: Name of the icon. Use values defined in
@@ -568,7 +568,7 @@ class PointStyle(_messages.Message):
 
 
 class Polygon(_messages.Message):
-  """Represents a polygon object.
+  r"""Represents a polygon object.
 
   Messages:
     CoordinatesValueListEntry: Single entry in a CoordinatesValue.
@@ -579,7 +579,7 @@ class Polygon(_messages.Message):
   """
 
   class CoordinatesValueListEntry(_messages.Message):
-    """Single entry in a CoordinatesValue.
+    r"""Single entry in a CoordinatesValue.
 
     Messages:
       EntryValueListEntry: Single entry in a EntryValue.
@@ -589,7 +589,7 @@ class Polygon(_messages.Message):
     """
 
     class EntryValueListEntry(_messages.Message):
-      """Single entry in a EntryValue.
+      r"""Single entry in a EntryValue.
 
       Fields:
         entry: A number attribute.
@@ -604,7 +604,7 @@ class Polygon(_messages.Message):
 
 
 class PolygonStyle(_messages.Message):
-  """Represents a PolygonStyle within a StyleSetting
+  r"""Represents a PolygonStyle within a StyleSetting
 
   Fields:
     fillColor: Color of the interior of the polygon in #RRGGBB format.
@@ -633,7 +633,7 @@ class PolygonStyle(_messages.Message):
 
 
 class Sqlresponse(_messages.Message):
-  """Represents a response to an sql statement.
+  r"""Represents a response to an sql statement.
 
   Messages:
     RowsValueListEntry: Single entry in a RowsValue.
@@ -647,7 +647,7 @@ class Sqlresponse(_messages.Message):
   """
 
   class RowsValueListEntry(_messages.Message):
-    """Single entry in a RowsValue.
+    r"""Single entry in a RowsValue.
 
     Fields:
       entry: A extra_types.JsonValue attribute.
@@ -661,7 +661,7 @@ class Sqlresponse(_messages.Message):
 
 
 class StandardQueryParameters(_messages.Message):
-  """Query parameters accepted by all methods.
+  r"""Query parameters accepted by all methods.
 
   Enums:
     AltValueValuesEnum: Data format for the response.
@@ -684,7 +684,7 @@ class StandardQueryParameters(_messages.Message):
   """
 
   class AltValueValuesEnum(_messages.Enum):
-    """Data format for the response.
+    r"""Data format for the response.
 
     Values:
       csv: Responses with Content-Type of text/csv
@@ -704,7 +704,7 @@ class StandardQueryParameters(_messages.Message):
 
 
 class StyleFunction(_messages.Message):
-  """Represents a StyleFunction within a StyleSetting
+  r"""Represents a StyleFunction within a StyleSetting
 
   Messages:
     GradientValue: Gradient function that interpolates a range of colors based
@@ -726,7 +726,7 @@ class StyleFunction(_messages.Message):
   """
 
   class GradientValue(_messages.Message):
-    """Gradient function that interpolates a range of colors based on column
+    r"""Gradient function that interpolates a range of colors based on column
     value.
 
     Messages:
@@ -741,7 +741,7 @@ class StyleFunction(_messages.Message):
     """
 
     class ColorsValueListEntry(_messages.Message):
-      """A ColorsValueListEntry object.
+      r"""A ColorsValueListEntry object.
 
       Fields:
         color: Color in #RRGGBB format.
@@ -762,7 +762,7 @@ class StyleFunction(_messages.Message):
 
 
 class StyleSetting(_messages.Message):
-  """Represents a complete StyleSettings object. The primary key is a
+  r"""Represents a complete StyleSettings object. The primary key is a
   combination of the tableId and a styleId.
 
   Fields:
@@ -788,7 +788,7 @@ class StyleSetting(_messages.Message):
 
 
 class StyleSettingList(_messages.Message):
-  """Represents a list of styles for a given table.
+  r"""Represents a list of styles for a given table.
 
   Fields:
     items: All requested style settings.
@@ -805,7 +805,7 @@ class StyleSettingList(_messages.Message):
 
 
 class Table(_messages.Message):
-  """Represents a table. Specifies the name, whether it is exportable,
+  r"""Represents a table. Specifies the name, whether it is exportable,
   description, attribution, and attribution link.
 
   Fields:
@@ -835,7 +835,7 @@ class Table(_messages.Message):
 
 
 class TableList(_messages.Message):
-  """Represents a list of tables.
+  r"""Represents a list of tables.
 
   Fields:
     items: List of all requested tables.
@@ -850,7 +850,7 @@ class TableList(_messages.Message):
 
 
 class Task(_messages.Message):
-  """Specifies the identifier, name, and type of a task in a table.
+  r"""Specifies the identifier, name, and type of a task in a table.
 
   Fields:
     kind: Type of the resource. This is always "fusiontables#task".
@@ -873,7 +873,7 @@ class Task(_messages.Message):
 
 
 class TaskList(_messages.Message):
-  """Represents a list of tasks for a table.
+  r"""Represents a list of tasks for a table.
 
   Fields:
     items: List of all requested tasks.
@@ -890,7 +890,7 @@ class TaskList(_messages.Message):
 
 
 class Template(_messages.Message):
-  """Represents the contents of InfoWindow templates.
+  r"""Represents the contents of InfoWindow templates.
 
   Fields:
     automaticColumnNames: List of columns from which the template is to be
@@ -918,7 +918,7 @@ class Template(_messages.Message):
 
 
 class TemplateList(_messages.Message):
-  """Represents a list of templates for a given table.
+  r"""Represents a list of templates for a given table.
 
   Fields:
     items: List of all requested templates.

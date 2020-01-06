@@ -15,6 +15,9 @@
 """Implementation of Unix-like stat command for cloud storage providers."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import logging
 import sys
@@ -28,14 +31,13 @@ from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
 from gslib.exception import InvalidUrlError
-from gslib.ls_helper import ENCRYPTED_FIELDS
 from gslib.exception import NO_URLS_MATCHED_TARGET
-from gslib.ls_helper import UNENCRYPTED_FULL_LISTING_FIELDS
 from gslib.storage_url import ContainsWildcard
 from gslib.storage_url import StorageUrlFromString
-from gslib.util import NO_MAX
-from gslib.util import PrintFullInfoAboutObject
-
+from gslib.utils.constants import NO_MAX
+from gslib.utils.ls_helper import ENCRYPTED_FIELDS
+from gslib.utils.ls_helper import PrintFullInfoAboutObject
+from gslib.utils.ls_helper import UNENCRYPTED_FULL_LISTING_FIELDS
 
 _SYNOPSIS = """
   gsutil stat url...
@@ -54,9 +56,9 @@ _DETAILED_HELP_TEXT = ("""
 
   but is more efficient because it avoids performing bucket listings and gets
   the minimum necessary amount of object metadata. Moreover, because it avoids
-  performing bucket listings (which are eventually consistent) the gsutil stat
-  command provides a strongly consistent way to check for the existence (and
-  read the metadata) of an object.
+  performing bucket listings (which for some storage providers are eventually
+  consistent) the gsutil stat command provides a strongly consistent way to
+  check for the existence (and read the metadata) of an object.
 
   The gsutil stat command will, however, perform bucket listings if you specify
   URLs using wildcards.
@@ -65,8 +67,9 @@ _DETAILED_HELP_TEXT = ("""
 
     gsutil -q stat gs://some-bucket/some-object
 
-  This can be useful for writing scripts, because the exit status will be 0 for
-  an existing object and 1 for a non-existent object.
+  This behavior can be useful when writing scripts: even though nothing is
+  printed from the command, it still has an exit status of 0 for an existing
+  object and 1 for a non-existent object.
 
   Note: Unlike the gsutil ls command, the stat command does not support
   operations on sub-directories. For example, if you run the command:
@@ -99,11 +102,14 @@ class StatCommand(Command):
       file_url_ok=False,
       provider_url_ok=False,
       urls_start_arg=0,
-      gs_api_support=[ApiSelector.XML, ApiSelector.JSON],
+      gs_api_support=[
+          ApiSelector.XML,
+          ApiSelector.JSON,
+      ],
       gs_default_api=ApiSelector.JSON,
       argparse_arguments=[
-          CommandArgument.MakeZeroOrMoreCloudURLsArgument()
-      ]
+          CommandArgument.MakeZeroOrMoreCloudURLsArgument(),
+      ],
   )
   # Help specification. See help_provider.py for documentation.
   help_spec = Command.HelpSpec(
@@ -131,13 +137,19 @@ class StatCommand(Command):
         else:
           try:
             single_obj = self.gsutil_api.GetObjectMetadata(
-                url.bucket_name, url.object_name, generation=url.generation,
-                provider=url.scheme, fields=stat_fields)
+                url.bucket_name,
+                url.object_name,
+                generation=url.generation,
+                provider=url.scheme,
+                fields=stat_fields)
           except EncryptionException:
             # Retry without requesting hashes.
             single_obj = self.gsutil_api.GetObjectMetadata(
-                url.bucket_name, url.object_name, generation=url.generation,
-                provider=url.scheme, fields=UNENCRYPTED_FULL_LISTING_FIELDS)
+                url.bucket_name,
+                url.object_name,
+                generation=url.generation,
+                provider=url.scheme,
+                fields=UNENCRYPTED_FULL_LISTING_FIELDS)
           blr_iter = [BucketListingObject(url, root_object=single_obj)]
         for blr in blr_iter:
           if blr.IsObject():

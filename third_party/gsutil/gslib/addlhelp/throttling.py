@@ -15,6 +15,9 @@
 """Additional help text for throttling gsutil."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from gslib.help_provider import HelpProvider
 
@@ -26,7 +29,7 @@ _DETAILED_HELP_TEXT = ("""
   network link that's also used by a number of other important jobs.
 
   While gsutil has no built-in support for throttling requests, there are
-  various tools available on Linux and MacOS that can be used to throttle
+  various tools available on Linux and macOS that can be used to throttle
   gsutil requests.
 
   One tool is `trickle <https://github.com/mariusae/trickle>`_ (available via
@@ -34,7 +37,8 @@ _DETAILED_HELP_TEXT = ("""
   consumes. For example, the following command would limit upload and download
   bandwidth consumed by gsutil rsync to 100 KBps:
 
-      trickle -d 100 -u 100 gsutil rsync -r ./dir gs://some bucket
+      trickle -d 100 -u 100 gsutil -o "GSUtil:parallel_process_count=1" \\
+        -o "GSUtil:parallel_thread_count=1" rsync -r ./dir gs://some bucket
 
   Note that we recommend against using the -m flag with gsutil when running via
   trickle, as this may cause resource starvation and prevent your command from

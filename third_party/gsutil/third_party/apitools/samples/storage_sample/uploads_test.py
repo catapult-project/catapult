@@ -27,7 +27,7 @@ import unittest
 
 import six
 
-import apitools.base.py as apitools_base
+from apitools.base.py import transfer
 import storage
 
 _CLIENT = None
@@ -148,12 +148,12 @@ class UploadsTest(unittest.TestCase):
         # Pretend the process died, and resume with a new attempt at the
         # same upload.
         upload_data = json.dumps(self.__upload.serialization_data)
-        second_upload_attempt = apitools_base.Upload.FromData(
+        second_upload_attempt = transfer.Upload.FromData(
             self.__buffer, upload_data, self.__upload.http)
         second_upload_attempt._Upload__SendChunk(0)
         self.assertEqual(second_upload_attempt.chunksize, self.__buffer.tell())
         # Simulate a third try, and stream from there.
-        final_upload_attempt = apitools_base.Upload.FromData(
+        final_upload_attempt = transfer.Upload.FromData(
             self.__buffer, upload_data, self.__upload.http)
         final_upload_attempt.StreamInChunks()
         self.assertEqual(size, self.__buffer.tell())
@@ -161,7 +161,7 @@ class UploadsTest(unittest.TestCase):
         object_info = self.__client.objects.Get(self.__GetRequest(filename))
         self.assertEqual(size, object_info.size)
         # Confirm that a new attempt successfully does nothing.
-        completed_upload_attempt = apitools_base.Upload.FromData(
+        completed_upload_attempt = transfer.Upload.FromData(
             self.__buffer, upload_data, self.__upload.http)
         self.assertTrue(completed_upload_attempt.complete)
         completed_upload_attempt.StreamInChunks()

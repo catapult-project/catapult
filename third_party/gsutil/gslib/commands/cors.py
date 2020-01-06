@@ -15,6 +15,9 @@
 """Implementation of cors configuration command for GCS buckets."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import sys
 
@@ -26,12 +29,11 @@ from gslib.exception import CommandException
 from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.help_provider import CreateHelpText
 from gslib.storage_url import StorageUrlFromString
+from gslib.storage_url import UrlsAreForSingleProvider
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
-from gslib.translation_helper import CorsTranslation
-from gslib.translation_helper import REMOVE_CORS_CONFIG
-from gslib.util import NO_MAX
-from gslib.util import UrlsAreForSingleProvider
-
+from gslib.utils.constants import NO_MAX
+from gslib.utils.translation_helper import CorsTranslation
+from gslib.utils.translation_helper import REMOVE_CORS_CONFIG
 
 _GET_SYNOPSIS = """
   gsutil cors get url
@@ -60,7 +62,7 @@ _SYNOPSIS = _SET_SYNOPSIS + _GET_SYNOPSIS.lstrip('\n') + '\n\n'
 _DESCRIPTION = ("""
   Gets or sets the Cross-Origin Resource Sharing (CORS) configuration on one or
   more buckets. This command is supported for buckets only, not objects. An
-  example CORS JSON document looks like the folllowing:
+  example CORS JSON document looks like the following:
 
     [
       {
@@ -82,7 +84,9 @@ _DESCRIPTION = ("""
 
   The cors command has two sub-commands:
 """ + '\n'.join([_GET_DESCRIPTION, _SET_DESCRIPTION]) + """
-For more info about CORS, see http://www.w3.org/TR/cors/.
+For more info about CORS generally, see https://www.w3.org/TR/cors/.
+For more info about CORS in Cloud Storage, see the 
+`CORS concept page <https://cloud.google.com/storage/docs/configuring-cors>`_.
 """)
 
 _DETAILED_HELP_TEXT = CreateHelpText(_SYNOPSIS, _DESCRIPTION)
@@ -110,22 +114,26 @@ class CorsCommand(Command):
       argparse_arguments={
           'set': [
               CommandArgument.MakeNFileURLsArgument(1),
-              CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument()
+              CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument(),
           ],
-          'get': [
-              CommandArgument.MakeNCloudBucketURLsArgument(1)
-          ]
-      }
-  )
+          'get': [CommandArgument.MakeNCloudBucketURLsArgument(1),]
+      })
   # Help specification. See help_provider.py for documentation.
   help_spec = Command.HelpSpec(
       help_name='cors',
-      help_name_aliases=['getcors', 'setcors', 'cross-origin'],
+      help_name_aliases=[
+          'getcors',
+          'setcors',
+          'cross-origin',
+      ],
       help_type='command_help',
       help_one_line_summary=(
           'Get or set a CORS JSON document for one or more buckets'),
       help_text=_DETAILED_HELP_TEXT,
-      subcommand_help_text={'get': _get_help_text, 'set': _set_help_text},
+      subcommand_help_text={
+          'get': _get_help_text,
+          'set': _set_help_text,
+      },
   )
 
   def _CalculateUrlsStartArg(self):
@@ -162,15 +170,18 @@ class CorsCommand(Command):
         some_matched = True
         self.logger.info('Setting CORS on %s...', blr)
         if url.scheme == 's3':
-          self.gsutil_api.XmlPassThroughSetCors(
-              cors_txt, url, provider=url.scheme)
+          self.gsutil_api.XmlPassThroughSetCors(cors_txt,
+                                                url,
+                                                provider=url.scheme)
         else:
           cors = CorsTranslation.JsonCorsToMessageEntries(cors_txt)
           if not cors:
             cors = REMOVE_CORS_CONFIG
           bucket_metadata = apitools_messages.Bucket(cors=cors)
-          self.gsutil_api.PatchBucket(url.bucket_name, bucket_metadata,
-                                      provider=url.scheme, fields=['id'])
+          self.gsutil_api.PatchBucket(url.bucket_name,
+                                      bucket_metadata,
+                                      provider=url.scheme,
+                                      fields=['id'])
     if not some_matched:
       raise CommandException(NO_URLS_MATCHED_TARGET % list(url_args))
     return 0
@@ -181,8 +192,9 @@ class CorsCommand(Command):
         self.args[0], bucket_fields=['cors'])
 
     if bucket_url.scheme == 's3':
-      sys.stdout.write(self.gsutil_api.XmlPassThroughGetCors(
-          bucket_url, provider=bucket_url.scheme))
+      sys.stdout.write(
+          self.gsutil_api.XmlPassThroughGetCors(bucket_url,
+                                                provider=bucket_url.scheme))
     else:
       if bucket_metadata.cors:
         sys.stdout.write(
@@ -199,8 +211,8 @@ class CorsCommand(Command):
     elif action_subcommand == 'set':
       func = self._SetCors
     else:
-      raise CommandException(('Invalid subcommand "%s" for the %s command.\n'
-                              'See "gsutil help cors".') %
-                             (action_subcommand, self.command_name))
+      raise CommandException(
+          ('Invalid subcommand "%s" for the %s command.\n'
+           'See "gsutil help cors".') % (action_subcommand, self.command_name))
     metrics.LogCommandParams(subcommands=[action_subcommand])
     return func()

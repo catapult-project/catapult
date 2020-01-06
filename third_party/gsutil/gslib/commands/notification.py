@@ -16,15 +16,18 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import getopt
 import re
 import time
 import uuid
 
+from datetime import datetime
 from gslib import metrics
-from gslib import copy_helper
 from gslib.cloud_api import AccessDeniedException
+from gslib.cloud_api import BadRequestException
 from gslib.cloud_api import NotFoundException
 from gslib.cloud_api import PublishPermissionDeniedException
 from gslib.command import Command
@@ -37,7 +40,7 @@ from gslib.project_id import PopulateProjectId
 from gslib.pubsub_api import PubsubApi
 from gslib.storage_url import StorageUrlFromString
 from gslib.third_party.pubsub_apitools.pubsub_v1_messages import Binding
-
+from gslib.utils import copy_helper
 
 # Cloud Pub/Sub commands
 
@@ -69,7 +72,7 @@ _SYNOPSIS = (
     _DELETE_SYNOPSIS.lstrip('\n') +
     _LIST_SYNOPSIS.lstrip('\n') +
     _WATCHBUCKET_SYNOPSIS +
-    _STOPCHANNEL_SYNOPSIS.lstrip('\n') + '\n')
+    _STOPCHANNEL_SYNOPSIS.lstrip('\n') + '\n')  # yapf: disable
 
 _LIST_DESCRIPTION = """
 <B>LIST</B>
@@ -77,13 +80,18 @@ _LIST_DESCRIPTION = """
   given bucket. The listed name of each notification config can be used with
   the delete sub-command to delete that specific notification config.
 
-  No object change notifications will be listed. Only Cloud Pub/Sub notification
-  subscription configs will be listed.
+  For listing Object Change Notifications instead of Cloud Pub/Sub notification
+  subscription configs, add a -o flag.
 
 <B>LIST EXAMPLES</B>
   Fetch the list of notification configs for the bucket example-bucket:
 
     gsutil notification list gs://example-bucket
+
+  The same as above, but for Object Change Notifications instead of Cloud
+  Pub/Sub notification subscription configs:
+
+    gsutil notification list -o gs://example-bucket
 
   Fetch the notification configs in all buckets matching a wildcard:
 
@@ -134,15 +142,16 @@ _CREATE_DESCRIPTION = """
   create command will use the Cloud Pub/Sub topic
   "projects/default-project/topics/example-bucket".
 
-  In order to enable notifications, a special Cloud Storage service account
-  unique to each project must have the IAM permission "projects.topics.publish".
-  This command will check to see if that permission exists and, if not, will
-  attempt to grant it.
+  In order to enable notifications, a `special Cloud Storage service account
+  <https://cloud.google.com/storage/docs/projects#service-accounts>`_ unique to
+  each project must have the IAM permission "pubsub.topics.publish". This
+  command will check to see if that permission exists and, if not, will attempt
+  to grant it.
 
   You can create multiple notification configurations for a bucket, but their
   triggers cannot overlap such that a single event could send multiple
   notifications. Attempting to create a notification configuration that
-  overlaps with an exisitng notification configuration results in an error.
+  overlaps with an existing notification configuration results in an error.
 
 <B>CREATE EXAMPLES</B>
   Begin sending notifications of all changes to the bucket example-bucket
@@ -226,11 +235,11 @@ _CREATE_DESCRIPTION = """
 <B>NEXT STEPS</B>
   Once the create command has succeeded, Cloud Storage will publish a message to
   the specified Cloud Pub/Sub topic when eligible changes occur. In order to
-  receive these message, you will need to create a Pub/Sub subscription for your
+  receive these messages, you must create a Pub/Sub subscription for your
   Pub/Sub topic. To learn more about creating Pub/Sub subscriptions, see `the
   Pub/Sub Subscriber Overview <https://cloud.google.com/pubsub/docs/subscriber>`_.
 
-  You can create a simple Pub/Sub subscription using the `gcloud` command-line
+  You can create a simple Pub/Sub subscription using the ``gcloud`` command-line
   tool. For example, to create a new subscription on the topic "myNewTopic" and
   attempt to pull messages from it, you could run:
 
@@ -322,7 +331,6 @@ _DESCRIPTION = """
 
 """.format(composite_namespace=copy_helper.PARALLEL_UPLOAD_TEMP_NAMESPACE)
 
-
 NOTIFICATION_AUTHORIZATION_FAILED_MESSAGE = """
 Watch bucket attempt failed:
   {watch_error}
@@ -342,6 +350,7 @@ verified using Google Webmaster Tools. For instructions, please see
 
 _DETAILED_HELP_TEXT = CreateHelpText(_SYNOPSIS, _DESCRIPTION)
 
+# yapf: disable
 _create_help_text = (
     CreateHelpText(_CREATE_SYNOPSIS, _CREATE_DESCRIPTION))
 _list_help_text = (
@@ -352,11 +361,11 @@ _watchbucket_help_text = (
     CreateHelpText(_WATCHBUCKET_SYNOPSIS, _WATCHBUCKET_DESCRIPTION))
 _stopchannel_help_text = (
     CreateHelpText(_STOPCHANNEL_SYNOPSIS, _STOPCHANNEL_DESCRIPTION))
-
+# yapf: enable
 
 PAYLOAD_FORMAT_MAP = {
     'none': 'NONE',
-    'json': 'JSON_API_V1'
+    'json': 'JSON_API_V1',
 }
 
 
@@ -380,11 +389,15 @@ class NotificationCommand(Command):
   command_spec = Command.CreateCommandSpec(
       'notification',
       command_name_aliases=[
-          'notify', 'notifyconfig', 'notifications', 'notif'],
+          'notify',
+          'notifyconfig',
+          'notifications',
+          'notif',
+      ],
       usage_synopsis=_SYNOPSIS,
       min_args=2,
       max_args=NO_MAX,
-      supported_sub_args='i:t:m:t:o:f:e:p:s',
+      supported_sub_args='i:t:m:t:of:e:p:s',
       file_url_ok=False,
       provider_url_ok=False,
       urls_start_arg=1,
@@ -393,28 +406,30 @@ class NotificationCommand(Command):
       argparse_arguments={
           'watchbucket': [
               CommandArgument.MakeFreeTextArgument(),
-              CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument()
+              CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument(),
           ],
           'stopchannel': [],
-          'list': [
-              CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument()
-          ],
+          'list': [CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument(),],
           'delete': [
               # Takes a list of one of the following:
               #   notification: projects/_/buckets/bla/notificationConfigs/5,
               #   bucket: gs://foobar
-              CommandArgument.MakeZeroOrMoreCloudURLsArgument()
+              CommandArgument.MakeZeroOrMoreCloudURLsArgument(),
           ],
           'create': [
               CommandArgument.MakeFreeTextArgument(),  # Cloud Pub/Sub topic
-              CommandArgument.MakeNCloudBucketURLsArgument(1)
+              CommandArgument.MakeNCloudBucketURLsArgument(1),
           ]
-      }
+      },
   )
   # Help specification. See help_provider.py for documentation.
   help_spec = Command.HelpSpec(
       help_name='notification',
-      help_name_aliases=['watchbucket', 'stopchannel', 'notifyconfig'],
+      help_name_aliases=[
+          'watchbucket',
+          'stopchannel',
+          'notifyconfig',
+      ],
       help_type='command_help',
       help_one_line_summary='Configure object change notification',
       help_text=_DETAILED_HELP_TEXT,
@@ -423,7 +438,8 @@ class NotificationCommand(Command):
           'list': _list_help_text,
           'delete': _delete_help_text,
           'watchbucket': _watchbucket_help_text,
-          'stopchannel': _stopchannel_help_text},
+          'stopchannel': _stopchannel_help_text,
+      },
   )
 
   def _WatchBucket(self):
@@ -458,12 +474,15 @@ class NotificationCommand(Command):
                      bucket_url, watch_url)
 
     try:
-      channel = self.gsutil_api.WatchBucket(
-          bucket_url.bucket_name, watch_url, identifier, token=client_token,
-          provider=bucket_url.scheme)
-    except AccessDeniedException, e:
-      self.logger.warn(NOTIFICATION_AUTHORIZATION_FAILED_MESSAGE.format(
-          watch_error=str(e), watch_url=watch_url))
+      channel = self.gsutil_api.WatchBucket(bucket_url.bucket_name,
+                                            watch_url,
+                                            identifier,
+                                            token=client_token,
+                                            provider=bucket_url.scheme)
+    except AccessDeniedException as e:
+      self.logger.warn(
+          NOTIFICATION_AUTHORIZATION_FAILED_MESSAGE.format(watch_error=str(e),
+                                                           watch_url=watch_url))
       raise
 
     channel_id = channel.id
@@ -484,6 +503,33 @@ class NotificationCommand(Command):
                      channel_id, resource_id)
     self.gsutil_api.StopChannel(channel_id, resource_id, provider='gs')
     self.logger.info('Succesfully removed channel.')
+
+    return 0
+
+  def _ListChannels(self, bucket_arg):
+    """Lists active channel watches on a bucket given in self.args."""
+    bucket_url = StorageUrlFromString(bucket_arg)
+    if not (bucket_url.IsBucket() and bucket_url.scheme == 'gs'):
+      raise CommandException(
+          'The %s command can only be used with gs:// bucket URLs.' %
+          self.command_name)
+    if not bucket_url.IsBucket():
+      raise CommandException('URL must name a bucket for the %s command.' %
+                             self.command_name)
+    channels = self.gsutil_api.ListChannels(bucket_url.bucket_name,
+                                            provider='gs').items
+    self.logger.info(
+        'Bucket %s has the following active Object Change Notifications:',
+        bucket_url.bucket_name)
+    for idx, channel in enumerate(channels):
+      self.logger.info('\tNotification channel %d:', idx + 1)
+      self.logger.info('\t\tChannel identifier: %s', channel.channel_id)
+      self.logger.info('\t\tResource identifier: %s', channel.resource_id)
+      self.logger.info('\t\tApplication URL: %s', channel.push_url)
+      self.logger.info('\t\tCreated by: %s', channel.subscriber_email)
+      self.logger.info(
+          '\t\tCreation time: %s',
+          str(datetime.fromtimestamp(channel.creation_time_ms / 1000)))
 
     return 0
 
@@ -538,22 +584,21 @@ class NotificationCommand(Command):
     self.logger.debug('Creating notification for bucket %s', bucket_url)
 
     # Find the project this bucket belongs to
-    bucket_metadata = self.gsutil_api.GetBucket(
-        bucket_name,
-        fields=['projectNumber'],
-        provider=bucket_url.scheme)
+    bucket_metadata = self.gsutil_api.GetBucket(bucket_name,
+                                                fields=['projectNumber'],
+                                                provider=bucket_url.scheme)
     bucket_project_number = bucket_metadata.projectNumber
 
     # If not specified, choose a sensible default for the Cloud Pub/Sub topic
     # name.
     if not pubsub_topic:
-      pubsub_topic = 'projects/%s/topics/%s' % (
-          PopulateProjectId(None), bucket_name)
+      pubsub_topic = 'projects/%s/topics/%s' % (PopulateProjectId(None),
+                                                bucket_name)
     if not pubsub_topic.startswith('projects/'):
       # If a user picks a topic ID (mytopic) but doesn't pass the whole name (
       # projects/my-project/topics/mytopic ), pick a default project.
-      pubsub_topic = 'projects/%s/topics/%s' % (
-          PopulateProjectId(None), pubsub_topic)
+      pubsub_topic = 'projects/%s/topics/%s' % (PopulateProjectId(None),
+                                                pubsub_topic)
     self.logger.debug('Using Cloud Pub/Sub topic %s', pubsub_topic)
 
     just_modified_topic_permissions = False
@@ -641,8 +686,7 @@ class NotificationCommand(Command):
                         pubsub_topic)
       return False
 
-  def _EnumerateNotificationsFromArgs(
-      self, accept_notification_configs=True):
+  def _EnumerateNotificationsFromArgs(self, accept_notification_configs=True):
     """Yields bucket/notification tuples from command-line args.
 
     Given a list of strings that are bucket names (gs://foo) or notification
@@ -660,8 +704,8 @@ class NotificationCommand(Command):
       if match:
         if not accept_notification_configs:
           raise CommandException(
-              '%s %s accepts only bucket names, but you provided %s' % (
-                  self.command_name, self.subcommand_name, list_entry))
+              '%s %s accepts only bucket names, but you provided %s' %
+              (self.command_name, self.subcommand_name, list_entry))
         bucket_name = match.group('bucket')
         notification_id = match.group('notification')
         found = False
@@ -698,10 +742,14 @@ class NotificationCommand(Command):
 
   def _List(self):
     self.CheckArguments()
-
-    for bucket_name, notification in self._EnumerateNotificationsFromArgs(
-        accept_notification_configs=False):
-      self._PrintNotificationDetails(bucket_name, notification)
+    if self.sub_opts:
+      if '-o' in dict(self.sub_opts):
+        for bucket_name in self.args:
+          self._ListChannels(bucket_name)
+    else:
+      for bucket_name, notification in self._EnumerateNotificationsFromArgs(
+          accept_notification_configs=False):
+        self._PrintNotificationDetails(bucket_name, notification)
     return 0
 
   def _PrintNotificationDetails(self, bucket, notification):
@@ -716,11 +764,11 @@ class NotificationCommand(Command):
         print('\t\t%s: %s' % (attr.key, attr.value))
     filters = []
     if notification.event_types:
-      filters.append(
-          '\t\tEvent Types: %s' % ', '.join(notification.event_types))
+      filters.append('\t\tEvent Types: %s' %
+                     ', '.join(notification.event_types))
     if notification.object_name_prefix:
-      filters.append(
-          "\t\tObject name prefix: '%s'" % notification.object_name_prefix)
+      filters.append("\t\tObject name prefix: '%s'" %
+                     notification.object_name_prefix)
     if filters:
       print('\tFilters:')
       for line in filters:
@@ -733,14 +781,16 @@ class NotificationCommand(Command):
     return 0
 
   def _DeleteNotification(self, bucket_name, notification_id):
-    self.gsutil_api.DeleteNotificationConfig(
-        bucket_name, notification=notification_id, provider='gs')
+    self.gsutil_api.DeleteNotificationConfig(bucket_name,
+                                             notification=notification_id,
+                                             provider='gs')
     return 0
 
   def _RunSubCommand(self, func):
     try:
-      (self.sub_opts, self.args) = getopt.getopt(
-          self.args, self.command_spec.supported_sub_args)
+      (self.sub_opts,
+       self.args) = getopt.getopt(self.args,
+                                  self.command_spec.supported_sub_args)
       # Commands with both suboptions and subcommands need to reparse for
       # suboptions, so we log again.
       metrics.LogCommandParams(sub_opts=self.sub_opts)
@@ -753,15 +803,16 @@ class NotificationCommand(Command):
       'list': _List,
       'delete': _Delete,
       'watchbucket': _WatchBucket,
-      'stopchannel': _StopChannel}
+      'stopchannel': _StopChannel
+  }
 
   def RunCommand(self):
     """Command entry point for the notification command."""
     self.subcommand_name = self.args.pop(0)
     if self.subcommand_name in NotificationCommand.SUBCOMMANDS:
       metrics.LogCommandParams(subcommands=[self.subcommand_name])
-      return self._RunSubCommand(NotificationCommand.SUBCOMMANDS[
-          self.subcommand_name])
+      return self._RunSubCommand(
+          NotificationCommand.SUBCOMMANDS[self.subcommand_name])
     else:
       raise CommandException('Invalid subcommand "%s" for the %s command.' %
                              (self.subcommand_name, self.command_name))

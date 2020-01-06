@@ -22,7 +22,6 @@ Relevant links:
 
 import datetime
 
-from apitools.gen import command_registry
 from apitools.gen import message_registry
 from apitools.gen import service_registry
 from apitools.gen import util
@@ -63,8 +62,7 @@ class DescriptorGenerator(object):
     """Code generator for a given discovery document."""
 
     def __init__(self, discovery_doc, client_info, names, root_package, outdir,
-                 base_package, protorpc_package, generate_cli=False,
-                 init_wildcards_file=True,
+                 base_package, protorpc_package, init_wildcards_file=True,
                  use_proto2=False, unelidable_request_methods=None,
                  apitools_version=''):
         self.__discovery_doc = discovery_doc
@@ -76,7 +74,6 @@ class DescriptorGenerator(object):
         self.__package = self.__client_info.package
         self.__version = self.__client_info.version
         self.__revision = discovery_doc.get('revision', '1')
-        self.__generate_cli = generate_cli
         self.__init_wildcards_file = init_wildcards_file
         self.__root_package = root_package
         self.__base_files_package = base_package
@@ -104,19 +101,9 @@ class DescriptorGenerator(object):
         # fields from MessageFields to EnumFields.
         self.__message_registry.FixupMessageFields()
 
-        self.__command_registry = command_registry.CommandRegistry(
-            self.__package, self.__version, self.__client_info,
-            self.__message_registry, self.__root_package,
-            self.__base_files_package, self.__protorpc_package,
-            self.__names)
-        self.__command_registry.AddGlobalParameters(
-            self.__message_registry.LookupDescriptorOrDie(
-                'StandardQueryParameters'))
-
         self.__services_registry = service_registry.ServiceRegistry(
             self.__client_info,
             self.__message_registry,
-            self.__command_registry,
             self.__names,
             self.__root_package,
             self.__base_files_package,
@@ -189,9 +176,6 @@ class DescriptorGenerator(object):
                 import_prefix = ''
             else:
                 import_prefix = '%s.' % self.__root_package
-            if self.__generate_cli:
-                printer('from %s%s import *',
-                        import_prefix, self.__client_info.cli_rule_name)
             printer('from %s%s import *',
                     import_prefix, self.__client_info.client_rule_name)
             printer('from %s%s import *',
@@ -281,6 +265,3 @@ class DescriptorGenerator(object):
 
     def WriteClientLibrary(self, out):
         self.__services_registry.WriteFile(self._GetPrinter(out))
-
-    def WriteCli(self, out):
-        self.__command_registry.WriteFile(self._GetPrinter(out))

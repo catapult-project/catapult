@@ -14,6 +14,11 @@
 # limitations under the License.
 """Mock logging handler to check for expected logs."""
 
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+
 import logging
 
 

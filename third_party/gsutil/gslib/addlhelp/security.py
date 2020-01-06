@@ -15,9 +15,11 @@
 """Additional help about types of credentials and authentication."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from gslib.help_provider import HelpProvider
-
 
 _DETAILED_HELP_TEXT = ("""
 <B>OVERVIEW</B>
@@ -166,10 +168,7 @@ _DETAILED_HELP_TEXT = ("""
   "gsutil help encryption".
 
 
-<B>DATA PRIVACY FROM GOOGLE EMPLOYEES</B>
-  Google employees will never look at your data unless you first explicitly
-  grant them permission to do so while troubleshooting a specific incident.
-
+<B>DATA PRIVACY</B>
   Google will never ask you to share your credentials, password, or other
   security-sensitive information. Beware of potential phishing scams where
   someone attempts to impersonate Google and asks for such information.

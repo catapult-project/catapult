@@ -22,7 +22,11 @@
 """Unit tests for help command."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
+from gslib.command import Command
 import gslib.tests.testcase as testcase
 
 
@@ -31,37 +35,37 @@ class HelpUnitTests(testcase.GsUtilUnitTestCase):
 
   def test_help_noargs(self):
     stdout = self.RunCommand('help', return_stdout=True)
-    self.assertIn('Available commands', stdout)
+    self.assertIn(b'Available commands', stdout)
 
   def test_help_subcommand_arg(self):
     stdout = self.RunCommand('help', ['web', 'set'], return_stdout=True)
-    self.assertIn('gsutil web set', stdout)
-    self.assertNotIn('gsutil web get', stdout)
+    self.assertIn(b'gsutil web set', stdout)
+    self.assertNotIn(b'gsutil web get', stdout)
 
   def test_help_invalid_subcommand_arg(self):
     stdout = self.RunCommand('help', ['web', 'asdf'], return_stdout=True)
-    self.assertIn('help about one of the subcommands', stdout)
+    self.assertIn(b'help about one of the subcommands', stdout)
 
   def test_help_with_subcommand_for_command_without_subcommands(self):
     stdout = self.RunCommand('help', ['ls', 'asdf'], return_stdout=True)
-    self.assertIn('has no subcommands', stdout)
+    self.assertIn(b'has no subcommands', stdout)
 
   def test_help_command_arg(self):
     stdout = self.RunCommand('help', ['ls'], return_stdout=True)
-    self.assertIn('ls - List providers, buckets', stdout)
+    self.assertIn(b'ls - List providers, buckets', stdout)
 
   def test_command_help_arg(self):
     stdout = self.RunCommand('ls', ['--help'], return_stdout=True)
-    self.assertIn('ls - List providers, buckets', stdout)
+    self.assertIn(b'ls - List providers, buckets', stdout)
 
   def test_subcommand_help_arg(self):
     stdout = self.RunCommand('web', ['set', '--help'], return_stdout=True)
-    self.assertIn('gsutil web set', stdout)
-    self.assertNotIn('gsutil web get', stdout)
+    self.assertIn(b'gsutil web set', stdout)
+    self.assertNotIn(b'gsutil web get', stdout)
 
   def test_command_args_with_help(self):
     stdout = self.RunCommand('cp', ['foo', 'bar', '--help'], return_stdout=True)
-    self.assertIn('cp - Copy files and objects', stdout)
+    self.assertIn(b'cp - Copy files and objects', stdout)
 
 
 class HelpIntegrationTests(testcase.GsUtilIntegrationTestCase):
@@ -70,3 +74,11 @@ class HelpIntegrationTests(testcase.GsUtilIntegrationTestCase):
   def test_help_wrong_num_args(self):
     stderr = self.RunGsUtil(['cp'], return_stderr=True, expected_status=1)
     self.assertIn('Usage:', stderr)
+
+  def test_help_runs_for_all_commands(self):
+    # This test is particularly helpful because the `help` command can fail
+    # under unusual circumstances (e.g. someone adds a new command and they make
+    # the "one-line" summary longer than the defined character limit).
+    for command in Command.__subclasses__():
+      # Raises exception if the exit code is non-zero.
+      self.RunGsUtil(['help', command.command_spec.command_name])

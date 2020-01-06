@@ -15,10 +15,14 @@
 """Defines gsutil-supported credential types."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 
 class CredTypes(object):
   HMAC = "HMAC"
+  IMPERSONATION = "Service Account Impersonation"
   OAUTH2_SERVICE_ACCOUNT = "OAuth 2.0 Service Account"
   OAUTH2_USER_ACCOUNT = "Oauth 2.0 User Account"
   GCE = "GCE"

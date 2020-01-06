@@ -46,6 +46,12 @@ class HttpErrorFromResponseTest(unittest2.TestCase):
         self.assertIsInstance(err, exceptions.HttpForbiddenError)
         self.assertEquals(err.status_code, 403)
 
+    def testExceptionMessageIncludesErrorDetails(self):
+        err = exceptions.HttpError.FromResponse(_MakeResponse(403))
+        self.assertIn('403', repr(err))
+        self.assertIn('http://www.google.com', repr(err))
+        self.assertIn('{"field": "abc"}', repr(err))
+
     def testNotFound(self):
         err = exceptions.HttpError.FromResponse(_MakeResponse(404))
         self.assertIsInstance(err, exceptions.HttpError)

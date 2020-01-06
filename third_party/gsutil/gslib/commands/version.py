@@ -15,6 +15,9 @@
 """Implementation of gsutil version command."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from hashlib import md5
 import os
@@ -22,14 +25,16 @@ import platform
 import re
 import sys
 
+import six
 import boto
 import crcmod
 import gslib
 from gslib.command import Command
-from gslib.util import CheckMultiprocessingAvailableAndInit
-from gslib.util import GetConfigFilePaths
-from gslib.util import UsingCrcmodExtension
-
+from gslib.utils import system_util
+from gslib.utils.boto_util import GetFriendlyConfigFilePaths
+from gslib.utils.boto_util import UsingCrcmodExtension
+from gslib.utils.constants import UTF8
+from gslib.utils.parallelism_framework_util import CheckMultiprocessingAvailableAndInit
 
 _SYNOPSIS = """
   gsutil version
@@ -84,10 +89,7 @@ class VersionCommand(Command):
         if o == '-l':
           long_form = True
 
-    if GetConfigFilePaths():
-      config_paths = ', '.join(GetConfigFilePaths())
-    else:
-      config_paths = 'no config found'
+    config_paths = ', '.join(GetFriendlyConfigFilePaths())
 
     shipped_checksum = gslib.CHECKSUM
     try:
@@ -115,26 +117,25 @@ class VersionCommand(Command):
           'gsutil path: {gsutil_path}\n'
           'compiled crcmod: {compiled_crcmod}\n'
           'installed via package manager: {is_package_install}\n'
-          'editable install: {is_editable_install}\n'
-          )
+          'editable install: {is_editable_install}\n')
 
-      sys.stdout.write(long_form_output.format(
-          checksum=cur_checksum,
-          checksum_ok=checksum_ok_str,
-          boto_version=boto.__version__,
-          python_version=sys.version.replace('\n', ''),
-          os_version='%s %s' % (platform.system(), platform.release()),
-          multiprocessing_available=(
-              CheckMultiprocessingAvailableAndInit().is_available),
-          cloud_sdk=(os.environ.get('CLOUDSDK_WRAPPER') == '1'),
-          cloud_sdk_credentials=(
-              os.environ.get('CLOUDSDK_CORE_PASS_CREDENTIALS_TO_GSUTIL') == '1'
-          ),
-          config_paths=config_paths,
-          gsutil_path=gslib.GSUTIL_PATH,
-          compiled_crcmod=UsingCrcmodExtension(crcmod),
-          is_package_install=gslib.IS_PACKAGE_INSTALL,
-          is_editable_install=gslib.IS_EDITABLE_INSTALL,
+      sys.stdout.write(
+          long_form_output.format(
+              checksum=cur_checksum,
+              checksum_ok=checksum_ok_str,
+              boto_version=boto.__version__,
+              python_version=sys.version.replace('\n', ''),
+              os_version='%s %s' % (platform.system(), platform.release()),
+              multiprocessing_available=(
+                  CheckMultiprocessingAvailableAndInit().is_available),
+              cloud_sdk=system_util.InvokedViaCloudSdk(),
+              cloud_sdk_credentials=system_util.CloudSdkCredPassingEnabled(),
+              config_paths=config_paths,
+              gsutil_path=(GetCloudSdkGsutilWrapperScriptPath() or
+                           gslib.GSUTIL_PATH),
+              compiled_crcmod=UsingCrcmodExtension(),
+              is_package_install=gslib.IS_PACKAGE_INSTALL,
+              is_editable_install=gslib.IS_EDITABLE_INSTALL,
           ))
 
     return 0
@@ -162,9 +163,44 @@ class VersionCommand(Command):
     # Sort to ensure consistent checksum build, no matter how os.walk
     # orders the list.
     for filepath in sorted(files_to_checksum):
-      f = open(filepath, 'r')
-      content = f.read()
-      content = re.sub(r'(\r\n|\r|\n)', '\n', content)
-      m.update(content)
-      f.close()
+      if six.PY2:
+        f = open(filepath, 'rb')
+        content = f.read()
+        content = re.sub(r'(\r\n|\r|\n)', b'\n', content)
+        m.update(content)
+        f.close()
+      else:
+        f = open(filepath, 'r', encoding=UTF8)
+        content = f.read()
+        content = re.sub(r'(\r\n|\r|\n)', '\n', content)
+        m.update(content.encode(UTF8))
+        f.close()
     return m.hexdigest()
+
+
+def GetCloudSdkGsutilWrapperScriptPath():
+  """If gsutil was invoked via the Cloud SDK, find its gsutil wrapper script.
+
+  Returns:
+    (str) The path to the Cloud SDK's gsutil wrapper script, or an empty string
+    if gsutil was not invoked via the Cloud SDK or the wrapper script could not
+    be found at its expected path.
+  """
+  # If running via the Cloud SDK, the "real" gsutil script was probably invoked
+  # indirectly through gcloud's gsutil wrapper script (the former is at
+  # <sdk-root>/platform/gsutil/gsutil, while the latter is located at
+  # <sdk-root>/bin/gsutil). We should print the wrapper script's path if it
+  # exists and we were invoked via the Cloud SDK.
+  gsutil_path = gslib.GSUTIL_PATH
+  if system_util.InvokedViaCloudSdk():
+    platform_path_suffix = os.path.join('platform', 'gsutil', 'gsutil')
+    if gsutil_path.endswith(platform_path_suffix):
+      bin_path = os.path.join(
+          gsutil_path[0:gsutil_path.rfind(platform_path_suffix)],
+          'bin',
+          'gsutil',
+      )
+      if os.path.exists(bin_path):
+        return bin_path
+
+  return ''

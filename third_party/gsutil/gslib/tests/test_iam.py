@@ -13,24 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Integration tests for the iam command."""
+
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from collections import defaultdict
 import json
+
 from gslib.exception import CommandException
-from gslib.iamhelpers import BindingsToDict
-from gslib.iamhelpers import BindingStringToTuple as bstt
-from gslib.iamhelpers import BindingsTuple
-from gslib.iamhelpers import DiffBindings
-from gslib.iamhelpers import IsEqualBindings
-from gslib.iamhelpers import PatchBindings
+from gslib.project_id import PopulateProjectId
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.testcase.integration_testcase import SkipForXML
 from gslib.tests.util import GenerationFromURI as urigen
 from gslib.tests.util import SetBotoConfigForTest
+from gslib.tests.util import unittest
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
-from gslib.util import Retry
+from gslib.utils.constants import UTF8
+from gslib.utils.iam_helper import BindingsToDict
+from gslib.utils.iam_helper import BindingStringToTuple as bstt
+from gslib.utils.iam_helper import BindingsTuple
+from gslib.utils.iam_helper import DiffBindings
+from gslib.utils.iam_helper import IsEqualBindings
+from gslib.utils.iam_helper import PatchBindings
+from gslib.utils.retry_util import Retry
 
 bvle = apitools_messages.Policy.BindingsValueListEntry
 
@@ -40,31 +48,42 @@ IAM_BUCKET_READ_ROLE_ABBREV = 'legacyBucketReader'
 IAM_BUCKET_READ_ROLE = 'roles/storage.%s' % IAM_BUCKET_READ_ROLE_ABBREV
 # GCS IAM does not currently support new object-level roles.
 IAM_OBJECT_READ_ROLE = 'roles/storage.legacyObjectReader'
+IAM_OBJECT_VIEWER_ROLE = 'roles/storage.objectViewer'
+
+TEST_CONDITION_DESCRIPTION = 'Description for our test condition.'
+TEST_CONDITION_EXPR_RESOURCE_IS_OBJECT = (
+    'resource.type == "google.cloud.storage.Object"')
+TEST_CONDITION_TITLE = 'Test Condition Title'
 
 
-def gen_binding(role, members=None):
-  """Generate an IAM Policy object dictionary.
+def gen_binding(role, members=None, condition=None):
+  """Generate the "bindings" portion of an IAM Policy dictionary.
 
-  Generates Python dictionary representation of a storage_v1_messages.Policy
-  object with a single storage_v1_messages.Policy.BindingsValueListEntry.
+  Generates list of dicts which each represent a
+  storage_v1_messages.Policy.BindingsValueListEntry object. The list will
+  contain a single dict which has attributes corresponding to arguments passed
+  to this method.
 
   Args:
-    role: An IAM policy role (e.g. "roles/storage.objectViewer"). Fully
-          specified in BindingsValueListEntry.
-    members: A list of members (e.g. ["user:foo@bar.com"]). If None,
-             bind to ["allUsers"]. Fully specified in BindingsValueListEntry.
+    role: (str) An IAM policy role (e.g. "roles/storage.objectViewer"). Fully
+        specified in BindingsValueListEntry.
+    members: (List[str]) A list of members (e.g. ["user:foo@bar.com"]). If None,
+        bind to ["allUsers"]. Fully specified in BindingsValueListEntry.
+    condition: (Dict) A dictionary representing the JSON used to define a
+        binding condition, containing the keys "description", "expression", and
+        "title".
 
   Returns:
-    A Python dict representation of an IAM Policy object.
+    (List[Dict[str, Any]]) A Python representation of the "bindings" portion of
+    an IAM Policy.
   """
-  if members is None:
-    members = ['allUsers']
-  return [
-      {
-          'members': members,
-          'role': role,
-      }
-  ]
+  binding = {
+      'members': ['allUsers'] if members is None else members,
+      'role': role,
+  }
+  if condition:
+    binding['condition'] = condition
+  return [binding]
 
 
 class TestIamIntegration(testcase.GsUtilIntegrationTestCase):
@@ -73,15 +92,13 @@ class TestIamIntegration(testcase.GsUtilIntegrationTestCase):
   def assertEqualsPoliciesString(self, a, b):
     """Asserts two serialized policy bindings are equal."""
     expected = [
-        bvle(
-            members=binding_dict['members'],
-            role=binding_dict['role'])
-        for binding_dict in json.loads(a)['bindings']]
+        bvle(members=binding_dict['members'], role=binding_dict['role'])
+        for binding_dict in json.loads(a)['bindings']
+    ]
     result = [
-        bvle(
-            members=binding_dict['members'],
-            role=binding_dict['role'])
-        for binding_dict in json.loads(b)['bindings']]
+        bvle(members=binding_dict['members'], role=binding_dict['role'])
+        for binding_dict in json.loads(b)['bindings']
+    ]
     self.assertTrue(IsEqualBindings(expected, result))
 
 
@@ -94,18 +111,19 @@ class TestIamHelpers(testcase.GsUtilUnitTestCase):
     """Tests that Policy.bindings lists are converted to dicts properly."""
     self.assertEquals(BindingsToDict([]), defaultdict(set))
     expected = defaultdict(set, {'x': set(['y'])})
-    self.assertEquals(
-        BindingsToDict([bvle(role='x', members=['y'])]), expected)
+    self.assertEquals(BindingsToDict([bvle(role='x', members=['y'])]), expected)
 
   def test_convert_bindings_duplicates(self):
     """Test that role and member duplication are converted correctly."""
     expected = defaultdict(set, {'x': set(['y', 'z'])})
     duplicate_roles = [
         bvle(role='x', members=['y']),
-        bvle(role='x', members=['z'])]
+        bvle(role='x', members=['z'])
+    ]
     duplicate_members = [
         bvle(role='x', members=['z', 'y']),
-        bvle(role='x', members=['z'])]
+        bvle(role='x', members=['z'])
+    ]
     self.assertEquals(BindingsToDict(duplicate_roles), expected)
     self.assertEquals(BindingsToDict(duplicate_members), expected)
 
@@ -281,9 +299,8 @@ class TestIamHelpers(testcase.GsUtilUnitTestCase):
     """Tests parsing single role."""
     (_, bindings) = bstt(True, 'allUsers:admin')
     self.assertEquals(len(bindings), 1)
-    self.assertIn(
-        bvle(members=['allUsers'], role='roles/storage.admin'),
-        bindings)
+    self.assertIn(bvle(members=['allUsers'], role='roles/storage.admin'),
+                  bindings)
 
   def test_grant_no_role_error(self):
     """Tests that an error is raised when no role is specified for a grant."""
@@ -293,6 +310,8 @@ class TestIamHelpers(testcase.GsUtilUnitTestCase):
       bstt(True, 'user:foo@bar.com')
     with self.assertRaises(CommandException):
       bstt(True, 'user:foo@bar.com:')
+    with self.assertRaises(CommandException):
+      bstt(True, 'deleted:user:foo@bar.com?uid=1234:')
 
   def test_remove_all_roles(self):
     """Tests parsing a -d allUsers or -d user:foo@bar.com request."""
@@ -308,21 +327,52 @@ class TestIamHelpers(testcase.GsUtilUnitTestCase):
 
   def test_valid_multiple_roles(self):
     """Tests parsing of multiple roles bound to one user."""
-    (_, bindings) = bstt(True, 'allUsers:a,b,c')
-    self.assertEquals(len(bindings), 3)
+    (_, bindings) = bstt(True, 'allUsers:a,b,c,roles/custom')
+    self.assertEquals(len(bindings), 4)
     self.assertIn(bvle(members=['allUsers'], role='roles/storage.a'), bindings)
     self.assertIn(bvle(members=['allUsers'], role='roles/storage.b'), bindings)
     self.assertIn(bvle(members=['allUsers'], role='roles/storage.c'), bindings)
+    self.assertIn(bvle(members=['allUsers'], role='roles/custom'), bindings)
+
+  def test_valid_custom_roles(self):
+    """Tests parsing of custom roles bound to one user."""
+    (_, bindings) = bstt(True, 'user:foo@bar.com:roles/custom1,roles/custom2')
+    self.assertEquals(len(bindings), 2)
+    self.assertIn(bvle(members=['user:foo@bar.com'], role='roles/custom1'),
+                  bindings)
+    self.assertIn(bvle(members=['user:foo@bar.com'], role='roles/custom2'),
+                  bindings)
 
   def test_valid_member(self):
     """Tests member parsing."""
     (_, bindings) = bstt(True, 'user:foo@bar.com:admin')
     self.assertEquals(len(bindings), 1)
     self.assertIn(
-        bvle(
-            members=['user:foo@bar.com'],
-            role='roles/storage.admin'),
+        bvle(members=['user:foo@bar.com'], role='roles/storage.admin'),
         bindings)
+
+  def test_valid_deleted_member(self):
+    """Tests deleted member parsing."""
+    (_, bindings) = bstt(False, 'deleted:user:foo@bar.com?uid=123')
+    self.assertEquals(len(bindings), 1)
+    self.assertIn(bvle(members=['deleted:user:foo@bar.com?uid=123'], role=''),
+                  bindings)
+    (_, bindings) = bstt(True, 'deleted:user:foo@bar.com?uid=123:admin')
+    self.assertEquals(len(bindings), 1)
+    self.assertIn(
+        bvle(members=['deleted:user:foo@bar.com?uid=123'],
+             role='roles/storage.admin'), bindings)
+    # These emails can actually have multiple query params
+    (_, bindings) = bstt(
+        True,
+        'deleted:user:foo@bar.com?query=param,uid=123?uid=456:admin,admin2')
+    self.assertEquals(len(bindings), 2)
+    self.assertIn(
+        bvle(members=['deleted:user:foo@bar.com?query=param,uid=123?uid=456'],
+             role='roles/storage.admin'), bindings)
+    self.assertIn(
+        bvle(members=['deleted:user:foo@bar.com?query=param,uid=123?uid=456'],
+             role='roles/storage.admin2'), bindings)
 
   def test_duplicate_roles(self):
     """Tests that duplicate roles are ignored."""
@@ -340,6 +390,12 @@ class TestIamHelpers(testcase.GsUtilUnitTestCase):
       bstt(True, 'user:r')
     with self.assertRaises(CommandException):
       bstt(True, 'projectViewer:123424:admin')
+    with self.assertRaises(CommandException):
+      bstt(True, 'deleted:user')
+    with self.assertRaises(CommandException):
+      bstt(True, 'deleted:not_a_type')
+    with self.assertRaises(CommandException):
+      bstt(True, 'deleted:user:foo@no_uid_suffix')
 
   def test_invalid_n_args(self):
     """Tests invalid input due to too many colons."""
@@ -347,6 +403,8 @@ class TestIamHelpers(testcase.GsUtilUnitTestCase):
       bstt(True, 'allUsers:some_id:some_role')
     with self.assertRaises(CommandException):
       bstt(True, 'user:foo@bar.com:r:nonsense')
+    with self.assertRaises(CommandException):
+      bstt(True, 'deleted:user:foo@bar.com?uid=1234:r:nonsense')
 
 
 @SkipForS3('Tests use GS IAM model.')
@@ -358,253 +416,284 @@ class TestIamCh(TestIamIntegration):
     super(TestIamCh, self).setUp()
     self.bucket = self.CreateBucket()
     self.bucket2 = self.CreateBucket()
-    self.object = self.CreateObject(bucket_uri=self.bucket, contents='foo')
-    self.object2 = self.CreateObject(bucket_uri=self.bucket, contents='bar')
+    self.object = self.CreateObject(bucket_uri=self.bucket, contents=b'foo')
+    self.object2 = self.CreateObject(bucket_uri=self.bucket, contents=b'bar')
 
-    self.bucket_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
-    self.object_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.object.uri], return_stdout=True)
-    self.object2_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.object2.uri], return_stdout=True)
+    self.bucket_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                            return_stdout=True)
+    self.object_iam_string = self.RunGsUtil(['iam', 'get', self.object.uri],
+                                            return_stdout=True)
+    self.object2_iam_string = self.RunGsUtil(['iam', 'get', self.object2.uri],
+                                             return_stdout=True)
 
     self.user = 'user:foo@bar.com'
     self.user2 = 'user:bar@foo.com'
 
   def test_patch_no_role(self):
     """Tests expected failure if no bindings are listed."""
-    stderr = self.RunGsUtil(
-        ['iam', 'ch', self.bucket.uri], return_stderr=True, expected_status=1)
+    stderr = self.RunGsUtil(['iam', 'ch', self.bucket.uri],
+                            return_stderr=True,
+                            expected_status=1)
     self.assertIn('CommandException', stderr)
 
   def test_patch_single_grant_single_bucket(self):
     """Tests granting single role."""
-    self.assertHasNo(
-        self.bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
-    self.RunGsUtil(
-        ['iam', 'ch', '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV),
-         self.bucket.uri])
+    self.assertHasNo(self.bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
+    self.RunGsUtil([
+        'iam', 'ch',
+        '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri
+    ])
 
-    bucket_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
+    bucket_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                       return_stdout=True)
     self.assertHas(bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
 
   def test_patch_repeated_grant(self):
     """Granting multiple times for the same member will have no effect."""
-    self.RunGsUtil(
-        ['iam', 'ch', '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV),
-         self.bucket.uri])
-    self.RunGsUtil(
-        ['iam', 'ch', '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV),
-         self.bucket.uri])
+    self.RunGsUtil([
+        'iam', 'ch',
+        '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri
+    ])
+    self.RunGsUtil([
+        'iam', 'ch',
+        '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri
+    ])
 
-    bucket_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
+    bucket_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                       return_stdout=True)
     self.assertHas(bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
 
   def test_patch_single_remove_single_bucket(self):
     """Tests removing a single role."""
-    self.RunGsUtil(
-        ['iam', 'ch', '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV),
-         self.bucket.uri])
-    self.RunGsUtil(
-        ['iam', 'ch', '-d', '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV),
-         self.bucket.uri])
+    self.RunGsUtil([
+        'iam', 'ch',
+        '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri
+    ])
+    self.RunGsUtil([
+        'iam', 'ch', '-d',
+        '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri
+    ])
 
-    bucket_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
-    self.assertHasNo(
-        bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
+    bucket_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                       return_stdout=True)
+    self.assertHasNo(bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
 
   def test_patch_null_remove(self):
     """Removing a non-existent binding will have no effect."""
-    self.RunGsUtil(
-        ['iam', 'ch', '-d', '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV),
-         self.bucket.uri])
+    self.RunGsUtil([
+        'iam', 'ch', '-d',
+        '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri
+    ])
 
-    bucket_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
-    self.assertHasNo(
-        bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
+    bucket_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                       return_stdout=True)
+    self.assertHasNo(bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
     self.assertEqualsPoliciesString(bucket_iam_string, self.bucket_iam_string)
 
   def test_patch_mixed_grant_remove_single_bucket(self):
     """Tests that mixing grant and remove requests will succeed."""
-    self.RunGsUtil(
-        ['iam', 'ch', '%s:%s' % (self.user2, IAM_BUCKET_READ_ROLE_ABBREV),
-         self.bucket.uri])
-    self.RunGsUtil(
-        ['iam', 'ch', '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV), '-d',
-         '%s:%s' % (self.user2, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri])
+    self.RunGsUtil([
+        'iam', 'ch',
+        '%s:%s' % (self.user2, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri
+    ])
+    self.RunGsUtil([
+        'iam', 'ch',
+        '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV), '-d',
+        '%s:%s' % (self.user2, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri
+    ])
 
-    bucket_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
+    bucket_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                       return_stdout=True)
     self.assertHas(bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
-    self.assertHasNo(
-        bucket_iam_string, self.user2, IAM_BUCKET_READ_ROLE)
+    self.assertHasNo(bucket_iam_string, self.user2, IAM_BUCKET_READ_ROLE)
 
   def test_patch_public_grant_single_bucket(self):
     """Test public grant request interacts properly with existing members."""
-    self.RunGsUtil(
-        ['iam', 'ch', '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV),
-         self.bucket.uri])
-    self.RunGsUtil(['iam', 'ch', 'allUsers:%s' % IAM_BUCKET_READ_ROLE_ABBREV,
-                    self.bucket.uri])
+    self.RunGsUtil([
+        'iam', 'ch',
+        '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri
+    ])
+    self.RunGsUtil([
+        'iam', 'ch',
+        'allUsers:%s' % IAM_BUCKET_READ_ROLE_ABBREV, self.bucket.uri
+    ])
 
-    bucket_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
+    bucket_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                       return_stdout=True)
     self.assertHas(bucket_iam_string, 'allUsers', IAM_BUCKET_READ_ROLE)
-    self.assertHas(
-        bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
+    self.assertHas(bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
 
   def test_patch_remove_all_roles(self):
     """Remove with no roles specified will remove member from all bindings."""
-    self.RunGsUtil(
-        ['iam', 'ch', '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV),
-         self.bucket.uri])
+    self.RunGsUtil([
+        'iam', 'ch',
+        '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri
+    ])
     self.RunGsUtil(['iam', 'ch', '-d', self.user, self.bucket.uri])
 
-    bucket_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
-    self.assertHasNo(
-        bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
+    bucket_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                       return_stdout=True)
+    self.assertHasNo(bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
 
   def test_patch_single_object(self):
     """Tests object IAM patch behavior."""
-    self.assertHasNo(
-        self.object_iam_string, self.user, IAM_OBJECT_READ_ROLE)
+    self.assertHasNo(self.object_iam_string, self.user, IAM_OBJECT_READ_ROLE)
     self.RunGsUtil(
-        ['iam', 'ch', '%s:legacyObjectReader' % self.user, self.object.uri])
+        ['iam', 'ch',
+         '%s:legacyObjectReader' % self.user, self.object.uri])
 
-    object_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.object.uri], return_stdout=True)
-    self.assertHas(
-        object_iam_string, self.user, IAM_OBJECT_READ_ROLE)
+    object_iam_string = self.RunGsUtil(['iam', 'get', self.object.uri],
+                                       return_stdout=True)
+    self.assertHas(object_iam_string, self.user, IAM_OBJECT_READ_ROLE)
 
   def test_patch_multithreaded_single_object(self):
     """Tests the edge-case behavior of multithreaded execution."""
-    self.assertHasNo(
-        self.object_iam_string, self.user, IAM_OBJECT_READ_ROLE)
-    self.RunGsUtil(
-        ['-m', 'iam', 'ch', '%s:legacyObjectReader' % self.user,
-         self.object.uri])
+    self.assertHasNo(self.object_iam_string, self.user, IAM_OBJECT_READ_ROLE)
+    self.RunGsUtil([
+        '-m', 'iam', 'ch',
+        '%s:legacyObjectReader' % self.user, self.object.uri
+    ])
 
-    object_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.object.uri], return_stdout=True)
-    self.assertHas(
-        object_iam_string, self.user, IAM_OBJECT_READ_ROLE)
+    object_iam_string = self.RunGsUtil(['iam', 'get', self.object.uri],
+                                       return_stdout=True)
+    self.assertHas(object_iam_string, self.user, IAM_OBJECT_READ_ROLE)
 
   def test_patch_invalid_input(self):
     """Tests that listing bindings after a bucket will throw an error."""
-    stderr = self.RunGsUtil(
-        ['iam', 'ch', '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV),
-         self.bucket.uri, '%s:%s' % (self.user2, IAM_BUCKET_READ_ROLE_ABBREV)],
-        return_stderr=True, expected_status=1)
+    stderr = self.RunGsUtil([
+        'iam', 'ch',
+        '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri,
+        '%s:%s' % (self.user2, IAM_BUCKET_READ_ROLE_ABBREV)
+    ],
+                            return_stderr=True,
+                            expected_status=1)
     self.assertIn('CommandException', stderr)
 
-    bucket_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
+    bucket_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                       return_stdout=True)
     self.assertHas(bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
-    self.assertHasNo(
-        bucket_iam_string, self.user2, IAM_BUCKET_READ_ROLE)
+    self.assertHasNo(bucket_iam_string, self.user2, IAM_BUCKET_READ_ROLE)
+
+  def test_patch_disallowed_binding_type(self):
+    """Tests that we disallow certain binding types with appropriate err."""
+    stderr = self.RunGsUtil(
+        ['iam', 'ch', 'projectOwner:my-project:admin', self.bucket.uri],
+        return_stderr=True,
+        expected_status=1)
+    self.assertIn('not supported', stderr)
 
   def test_patch_multiple_objects(self):
     """Tests IAM patch against multiple objects."""
-    self.RunGsUtil(
-        ['iam', 'ch', '-r', '%s:legacyObjectReader' % self.user,
-         self.bucket.uri])
+    self.RunGsUtil([
+        'iam', 'ch', '-r',
+        '%s:legacyObjectReader' % self.user, self.bucket.uri
+    ])
 
-    object_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.object.uri], return_stdout=True)
-    object2_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.object2.uri], return_stdout=True)
-    self.assertHas(
-        object_iam_string, self.user, IAM_OBJECT_READ_ROLE)
-    self.assertHas(
-        object2_iam_string, self.user, IAM_OBJECT_READ_ROLE)
+    object_iam_string = self.RunGsUtil(['iam', 'get', self.object.uri],
+                                       return_stdout=True)
+    object2_iam_string = self.RunGsUtil(['iam', 'get', self.object2.uri],
+                                        return_stdout=True)
+    self.assertHas(object_iam_string, self.user, IAM_OBJECT_READ_ROLE)
+    self.assertHas(object2_iam_string, self.user, IAM_OBJECT_READ_ROLE)
 
   def test_patch_multithreaded_multiple_objects(self):
     """Tests multithreaded behavior against multiple objects."""
-    self.RunGsUtil(
-        ['-m', 'iam', 'ch', '-r', '%s:legacyObjectReader' % self.user,
-         self.bucket.uri])
+    self.RunGsUtil([
+        '-m', 'iam', 'ch', '-r',
+        '%s:legacyObjectReader' % self.user, self.bucket.uri
+    ])
 
-    object_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.object.uri], return_stdout=True)
-    object2_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.object2.uri], return_stdout=True)
-    self.assertHas(
-        object_iam_string, self.user, IAM_OBJECT_READ_ROLE)
-    self.assertHas(
-        object2_iam_string, self.user, IAM_OBJECT_READ_ROLE)
+    object_iam_string = self.RunGsUtil(['iam', 'get', self.object.uri],
+                                       return_stdout=True)
+    object2_iam_string = self.RunGsUtil(['iam', 'get', self.object2.uri],
+                                        return_stdout=True)
+    self.assertHas(object_iam_string, self.user, IAM_OBJECT_READ_ROLE)
+    self.assertHas(object2_iam_string, self.user, IAM_OBJECT_READ_ROLE)
 
   def test_patch_error(self):
     """See TestIamSet.test_set_error."""
-    stderr = self.RunGsUtil(
-        ['iam', 'ch', '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV),
-         self.bucket.uri, 'gs://%s' % self.nonexistent_bucket_name,
-         self.bucket2.uri],
-        return_stderr=True, expected_status=1)
+    stderr = self.RunGsUtil([
+        'iam', 'ch',
+        '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri,
+        'gs://%s' % self.nonexistent_bucket_name, self.bucket2.uri
+    ],
+                            return_stderr=True,
+                            expected_status=1)
     self.assertIn('BucketNotFoundException', stderr)
 
-    bucket_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
-    bucket2_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket2.uri], return_stdout=True)
+    bucket_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                       return_stdout=True)
+    bucket2_iam_string = self.RunGsUtil(['iam', 'get', self.bucket2.uri],
+                                        return_stdout=True)
 
     self.assertHas(bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
     self.assertEqualsPoliciesString(bucket2_iam_string, self.bucket_iam_string)
 
   def test_patch_force_error(self):
     """See TestIamSet.test_set_force_error."""
-    stderr = self.RunGsUtil(
-        ['iam', 'ch', '-f', '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV),
-         self.bucket.uri, 'gs://%s' % self.nonexistent_bucket_name,
-         self.bucket2.uri],
-        return_stderr=True, expected_status=1)
+    stderr = self.RunGsUtil([
+        'iam', 'ch', '-f',
+        '%s:%s' % (self.user, IAM_BUCKET_READ_ROLE_ABBREV), self.bucket.uri,
+        'gs://%s' % self.nonexistent_bucket_name, self.bucket2.uri
+    ],
+                            return_stderr=True,
+                            expected_status=1)
     self.assertIn('CommandException', stderr)
 
-    bucket_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
-    bucket2_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket2.uri], return_stdout=True)
+    bucket_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                       return_stdout=True)
+    bucket2_iam_string = self.RunGsUtil(['iam', 'get', self.bucket2.uri],
+                                        return_stdout=True)
 
     self.assertHas(bucket_iam_string, self.user, IAM_BUCKET_READ_ROLE)
     self.assertHas(bucket2_iam_string, self.user, IAM_BUCKET_READ_ROLE)
 
   def test_patch_multithreaded_error(self):
     """See TestIamSet.test_set_multithreaded_error."""
-    stderr = self.RunGsUtil(
-        ['-m', 'iam', 'ch', '-r', '%s:legacyObjectReader' % self.user,
-         'gs://%s' % self.nonexistent_bucket_name, self.bucket.uri],
-        return_stderr=True, expected_status=1)
-    self.assertIn('BucketNotFoundException', stderr)
+    # TODO(b/135780661): Remove retry after bug resolved
+    @Retry(AssertionError, tries=3, timeout_secs=1)
+    def _Check1():
+      stderr = self.RunGsUtil([
+          '-m', 'iam', 'ch', '-r',
+          '%s:legacyObjectReader' % self.user,
+          'gs://%s' % self.nonexistent_bucket_name, self.bucket.uri
+      ],
+                              return_stderr=True,
+                              expected_status=1)
+      self.assertIn('BucketNotFoundException', stderr)
 
-    object_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.object.uri], return_stdout=True)
-    object2_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.object2.uri], return_stdout=True)
+    # TODO(b/135780661): Remove retry after bug resolved
+    @Retry(AssertionError, tries=3, timeout_secs=1)
+    def _Check2():
+      object_iam_string = self.RunGsUtil(['iam', 'get', self.object.uri],
+                                         return_stdout=True)
+      object2_iam_string = self.RunGsUtil(['iam', 'get', self.object2.uri],
+                                          return_stdout=True)
 
-    self.assertEqualsPoliciesString(self.object_iam_string, object_iam_string)
-    self.assertEqualsPoliciesString(self.object_iam_string, object2_iam_string)
+      self.assertEqualsPoliciesString(self.object_iam_string, object_iam_string)
+      self.assertEqualsPoliciesString(self.object_iam_string,
+                                      object2_iam_string)
+
+    _Check1()
+    _Check2()
 
   def test_assert_has(self):
     test_policy = {
-        'bindings': [
-            {'members': ['allUsers'], 'role': 'roles/storage.admin'},
-            {'members': ['user:foo@bar.com', 'serviceAccount:bar@foo.com'],
-             'role': IAM_BUCKET_READ_ROLE}
-        ]
+        'bindings': [{
+            'members': ['allUsers'],
+            'role': 'roles/storage.admin'
+        }, {
+            'members': ['user:foo@bar.com', 'serviceAccount:bar@foo.com'],
+            'role': IAM_BUCKET_READ_ROLE
+        }]
     }
 
     self.assertHas(json.dumps(test_policy), 'allUsers', 'roles/storage.admin')
-    self.assertHas(
-        json.dumps(test_policy), 'user:foo@bar.com',
-        IAM_BUCKET_READ_ROLE)
-    self.assertHasNo(
-        json.dumps(test_policy), 'allUsers', IAM_BUCKET_READ_ROLE)
-    self.assertHasNo(
-        json.dumps(test_policy), 'user:foo@bar.com', 'roles/storage.admin')
+    self.assertHas(json.dumps(test_policy), 'user:foo@bar.com',
+                   IAM_BUCKET_READ_ROLE)
+    self.assertHasNo(json.dumps(test_policy), 'allUsers', IAM_BUCKET_READ_ROLE)
+    self.assertHasNo(json.dumps(test_policy), 'user:foo@bar.com',
+                     'roles/storage.admin')
 
   def assertHas(self, policy, member, role):
     """Asserts a member has permission for role.
@@ -669,51 +758,80 @@ class TestIamSet(TestIamIntegration):
       A Python dict representation of the patched IAM Policy object.
     """
     bindings = [
-        b for b in policy.get('bindings', []) if b.get('role', '') != role]
+        b for b in policy.get('bindings', []) if b.get('role', '') != role
+    ]
     bindings.extend(new_policy)
     policy = dict(policy)
     policy['bindings'] = bindings
     return policy
 
   # TODO(iam-beta): Replace gen_binding, _patch_binding with generators from
-  # iamhelpers.
+  # iam_helper.
   def setUp(self):
     super(TestIamSet, self).setUp()
 
     self.public_bucket_read_binding = gen_binding(IAM_BUCKET_READ_ROLE)
     self.public_object_read_binding = gen_binding(IAM_OBJECT_READ_ROLE)
+    self.project_viewer_objectviewer_with_cond_binding = gen_binding(
+        IAM_OBJECT_VIEWER_ROLE,
+        # Note: We use projectViewer:some-project-id here because conditions
+        # cannot be applied to a binding that only has allUsers in the members
+        # list; the API gives back a 400 error if you try.
+        members=['projectViewer:%s' % PopulateProjectId()],
+        condition={
+            'title': TEST_CONDITION_TITLE,
+            'description': TEST_CONDITION_DESCRIPTION,
+            'expression': TEST_CONDITION_EXPR_RESOURCE_IS_OBJECT,
+        })
 
     self.bucket = self.CreateBucket()
     self.versioned_bucket = self.CreateVersionedBucket()
 
-    self.bucket_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
+    # Create a bucket to fetch its policy, used as a base for other policies.
+    self.bucket_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                            return_stdout=True)
     self.old_bucket_iam_path = self.CreateTempFile(
-        contents=self.bucket_iam_string)
+        contents=self.bucket_iam_string.encode(UTF8))
+
+    # Using the existing bucket's policy, make an altered policy that allows
+    # allUsers to be "legacyBucketReader"s. Some tests will later apply this
+    # policy.
     self.new_bucket_iam_policy = self._patch_binding(
-        json.loads(self.bucket_iam_string),
-        IAM_BUCKET_READ_ROLE,
+        json.loads(self.bucket_iam_string), IAM_BUCKET_READ_ROLE,
         self.public_bucket_read_binding)
     self.new_bucket_iam_path = self.CreateTempFile(
-        contents=json.dumps(self.new_bucket_iam_policy))
+        contents=json.dumps(self.new_bucket_iam_policy).encode(UTF8))
 
-    # Create a temporary object to get the IAM policy.
+    # Using the existing bucket's policy, make an altered policy that contains
+    # a binding with a condition in it. Some tests will later apply this policy.
+    self.new_bucket_policy_with_conditions_policy = json.loads(
+        self.bucket_iam_string)
+    self.new_bucket_policy_with_conditions_policy['bindings'].append(
+        self.project_viewer_objectviewer_with_cond_binding[0])
+    self.new_bucket_policy_with_conditions_path = self.CreateTempFile(
+        contents=json.dumps(self.new_bucket_policy_with_conditions_policy))
+
+    # Create an object to fetch its policy, used as a base for other policies.
     tmp_object = self.CreateObject(contents='foobar')
-    self.object_iam_string = self.RunGsUtil(
-        ['iam', 'get', tmp_object.uri], return_stdout=True)
+    self.object_iam_string = self.RunGsUtil(['iam', 'get', tmp_object.uri],
+                                            return_stdout=True)
     self.old_object_iam_path = self.CreateTempFile(
-        contents=self.object_iam_string)
+        contents=self.object_iam_string.encode(UTF8))
+
+    # Using the existing object's policy, make an altered policy that allows
+    # allUsers to be "legacyObjectReader"s. Some tests will later apply this
+    # policy.
     self.new_object_iam_policy = self._patch_binding(
         json.loads(self.object_iam_string), IAM_OBJECT_READ_ROLE,
         self.public_object_read_binding)
     self.new_object_iam_path = self.CreateTempFile(
-        contents=json.dumps(self.new_object_iam_policy))
+        contents=json.dumps(self.new_object_iam_policy).encode(UTF8))
 
   def test_seek_ahead_iam(self):
     """Ensures that the seek-ahead iterator is being used with iam commands."""
 
-    gsutil_object = self.CreateObject(
-        bucket_uri=self.bucket, contents='foobar')
+    gsutil_object = self.CreateObject(bucket_uri=self.bucket,
+                                      contents=b'foobar')
 
     # This forces the seek-ahead iterator to be utilized.
     with SetBotoConfigForTest([('GSUtil', 'task_estimation_threshold', '1'),
@@ -725,26 +843,39 @@ class TestIamSet(TestIamIntegration):
 
   def test_set_invalid_iam_bucket(self):
     """Ensures invalid content returns error on input check."""
-    inpath = self.CreateTempFile(contents='badIam')
-    stderr = self.RunGsUtil(['iam', 'set', inpath, self.bucket.uri],
-                            return_stderr=True, expected_status=1)
-    self.assertIn('ArgumentException', stderr)
+    # TODO(b/135780661): Remove retry after bug resolved
+    @Retry(AssertionError, tries=3, timeout_secs=1)
+    def _Check1():
+      inpath = self.CreateTempFile(contents=b'badIam')
+      stderr = self.RunGsUtil(['iam', 'set', inpath, self.bucket.uri],
+                              return_stderr=True,
+                              expected_status=1)
+      self.assertIn('ArgumentException', stderr)
 
-    # Tests that setting with a non-existent file will also return error.
-    stderr = self.RunGsUtil(
-        ['iam', 'set', 'nonexistent/path', self.bucket.uri],
-        return_stderr=True, expected_status=1)
-    self.assertIn('ArgumentException', stderr)
+    # TODO(b/135780661): Remove retry after bug resolved
+    @Retry(AssertionError, tries=3, timeout_secs=1)
+    def _Check2():
+      # Tests that setting with a non-existent file will also return error.
+      stderr = self.RunGsUtil(
+          ['iam', 'set', 'nonexistent/path', self.bucket.uri],
+          return_stderr=True,
+          expected_status=1)
+      self.assertIn('ArgumentException', stderr)
+
+    _Check1()
+    _Check2()
 
   def test_get_invalid_bucket(self):
     """Ensures that invalid bucket names returns an error."""
     stderr = self.RunGsUtil(['iam', 'get', self.nonexistent_bucket_name],
-                            return_stderr=True, expected_status=1)
+                            return_stderr=True,
+                            expected_status=1)
     self.assertIn('CommandException', stderr)
 
-    stderr = self.RunGsUtil(['iam', 'get',
-                             'gs://%s' % self.nonexistent_bucket_name],
-                            return_stderr=True, expected_status=1)
+    stderr = self.RunGsUtil(
+        ['iam', 'get', 'gs://%s' % self.nonexistent_bucket_name],
+        return_stderr=True,
+        expected_status=1)
     self.assertIn('BucketNotFoundException', stderr)
 
     # N.B.: The call to wildcard_iterator.WildCardIterator here will invoke
@@ -755,88 +886,144 @@ class TestIamSet(TestIamIntegration):
       # There are at least two buckets in the project
       # due to TestIamSet.setUp().
       stderr = self.RunGsUtil(['iam', 'get', 'gs://*'],
-                              return_stderr=True, expected_status=1)
+                              return_stderr=True,
+                              expected_status=1)
       self.assertIn('CommandException', stderr)
+
     _Check()
 
   def test_set_valid_iam_bucket(self):
     """Tests setting a valid IAM on a bucket."""
     self.RunGsUtil(
         ['iam', 'set', '-e', '', self.new_bucket_iam_path, self.bucket.uri])
-    set_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
+    set_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                    return_stdout=True)
     self.RunGsUtil(
         ['iam', 'set', '-e', '', self.old_bucket_iam_path, self.bucket.uri])
-    reset_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
+    reset_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                      return_stdout=True)
 
     self.assertEqualsPoliciesString(self.bucket_iam_string, reset_iam_string)
-    self.assertIn(
-        self.public_bucket_read_binding[0],
-        json.loads(set_iam_string)['bindings'])
+    self.assertIn(self.public_bucket_read_binding[0],
+                  json.loads(set_iam_string)['bindings'])
+
+  @unittest.skip('Disabled until all projects whitelisted for conditions.')
+  def test_set_and_get_valid_bucket_policy_with_conditions(self):
+    """Tests setting and getting an IAM policy with conditions on a bucket."""
+    self.RunGsUtil([
+        'iam', 'set', '-e', '', self.new_bucket_policy_with_conditions_path,
+        self.bucket.uri
+    ])
+    get_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                    return_stdout=True)
+    self.assertIn(TEST_CONDITION_DESCRIPTION, get_iam_string)
+    self.assertIn(TEST_CONDITION_EXPR_RESOURCE_IS_OBJECT,
+                  get_iam_string.replace('\\', ''))
+    self.assertIn(TEST_CONDITION_TITLE, get_iam_string)
+
+  # Note: We only test this for buckets, since objects cannot currently have
+  # conditions in their policy bindings.
+  @unittest.skip('Disabled until all projects whitelisted for conditions.')
+  def test_ch_fails_after_setting_conditions(self):
+    """Tests that if we "set" a policy with conditions, "ch" won't patch it."""
+    print()
+    self.RunGsUtil([
+        'iam', 'set', '-e', '', self.new_bucket_policy_with_conditions_path,
+        self.bucket.uri
+    ])
+
+    # Assert that we get an error both with and without ch's `-f` option.
+    # Without `-f`:
+    stderr = self.RunGsUtil(
+        ['iam', 'ch', 'allUsers:objectViewer', self.bucket.uri],
+        return_stderr=True,
+        expected_status=1)
+    self.assertIn('CommandException: Could not patch IAM policy for', stderr)
+    # Also make sure we print the workaround message.
+    self.assertIn('The resource had conditions present', stderr)
+
+    # With `-f`:
+    stderr = self.RunGsUtil(
+        ['iam', 'ch', '-f', 'allUsers:objectViewer', self.bucket.uri],
+        return_stderr=True,
+        expected_status=1)
+    self.assertIn('CommandException: Some IAM policies could not be patched',
+                  stderr)
+    # Also make sure we print the workaround message.
+    self.assertIn('Some resources had conditions', stderr)
 
   def test_set_blank_etag(self):
     """Tests setting blank etag behaves appropriately."""
     self.RunGsUtil(
         ['iam', 'set', '-e', '', self.new_bucket_iam_path, self.bucket.uri])
 
-    set_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
-    self.RunGsUtil(
-        ['iam', 'set', '-e', json.loads(set_iam_string)['etag'],
-         self.old_bucket_iam_path, self.bucket.uri])
+    set_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                    return_stdout=True)
+    self.RunGsUtil([
+        'iam', 'set', '-e',
+        json.loads(set_iam_string)['etag'], self.old_bucket_iam_path,
+        self.bucket.uri
+    ])
 
-    reset_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
+    reset_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                      return_stdout=True)
 
     self.assertEqualsPoliciesString(self.bucket_iam_string, reset_iam_string)
-    self.assertIn(
-        self.public_bucket_read_binding[0],
-        json.loads(set_iam_string)['bindings'])
+    self.assertIn(self.public_bucket_read_binding[0],
+                  json.loads(set_iam_string)['bindings'])
 
   def test_set_valid_etag(self):
     """Tests setting valid etag behaves correctly."""
-    get_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
-    self.RunGsUtil(
-        ['iam', 'set', '-e', json.loads(get_iam_string)['etag'],
-         self.new_bucket_iam_path, self.bucket.uri])
+    get_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                    return_stdout=True)
+    self.RunGsUtil([
+        'iam', 'set', '-e',
+        json.loads(get_iam_string)['etag'], self.new_bucket_iam_path,
+        self.bucket.uri
+    ])
 
-    set_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
-    self.RunGsUtil(
-        ['iam', 'set', '-e', json.loads(set_iam_string)['etag'],
-         self.old_bucket_iam_path, self.bucket.uri])
+    set_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                    return_stdout=True)
+    self.RunGsUtil([
+        'iam', 'set', '-e',
+        json.loads(set_iam_string)['etag'], self.old_bucket_iam_path,
+        self.bucket.uri
+    ])
 
-    reset_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
+    reset_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                      return_stdout=True)
 
     self.assertEqualsPoliciesString(self.bucket_iam_string, reset_iam_string)
-    self.assertIn(
-        self.public_bucket_read_binding[0],
-        json.loads(set_iam_string)['bindings'])
+    self.assertIn(self.public_bucket_read_binding[0],
+                  json.loads(set_iam_string)['bindings'])
 
   def test_set_invalid_etag(self):
     """Tests setting an invalid etag format raises an error."""
-    self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
-    stderr = self.RunGsUtil(
-        ['iam', 'set', '-e', 'some invalid etag',
-         self.new_bucket_iam_path, self.bucket.uri],
-        return_stderr=True, expected_status=1)
+    self.RunGsUtil(['iam', 'get', self.bucket.uri], return_stdout=True)
+    stderr = self.RunGsUtil([
+        'iam', 'set', '-e', 'some invalid etag', self.new_bucket_iam_path,
+        self.bucket.uri
+    ],
+                            return_stderr=True,
+                            expected_status=1)
     self.assertIn('ArgumentException', stderr)
 
   def test_set_mismatched_etag(self):
     """Tests setting mismatched etag raises an error."""
-    get_iam_string = self.RunGsUtil(
-        ['iam', 'get', self.bucket.uri], return_stdout=True)
-    self.RunGsUtil(
-        ['iam', 'set', '-e', json.loads(get_iam_string)['etag'],
-         self.new_bucket_iam_path, self.bucket.uri])
-    stderr = self.RunGsUtil(
-        ['iam', 'set', '-e', json.loads(get_iam_string)['etag'],
-         self.new_bucket_iam_path, self.bucket.uri],
-        return_stderr=True, expected_status=1)
+    get_iam_string = self.RunGsUtil(['iam', 'get', self.bucket.uri],
+                                    return_stdout=True)
+    self.RunGsUtil([
+        'iam', 'set', '-e',
+        json.loads(get_iam_string)['etag'], self.new_bucket_iam_path,
+        self.bucket.uri
+    ])
+    stderr = self.RunGsUtil([
+        'iam', 'set', '-e',
+        json.loads(get_iam_string)['etag'], self.new_bucket_iam_path,
+        self.bucket.uri
+    ],
+                            return_stderr=True,
+                            expected_status=1)
     self.assertIn('PreconditionException', stderr)
 
   def _create_multiple_objects(self):
@@ -846,18 +1033,20 @@ class TestIamSet(TestIamIntegration):
       A four-tuple (a, b, a*, b*) of storage_uri.BucketStorageUri instances.
     """
 
-    old_gsutil_object = self.CreateObject(
-        bucket_uri=self.versioned_bucket, contents='foo')
-    old_gsutil_object2 = self.CreateObject(
-        bucket_uri=self.versioned_bucket, contents='bar')
+    old_gsutil_object = self.CreateObject(bucket_uri=self.versioned_bucket,
+                                          contents=b'foo')
+    old_gsutil_object2 = self.CreateObject(bucket_uri=self.versioned_bucket,
+                                           contents=b'bar')
     gsutil_object = self.CreateObject(
         bucket_uri=self.versioned_bucket,
         object_name=old_gsutil_object.object_name,
-        contents='new_foo', gs_idempotent_generation=urigen(old_gsutil_object))
+        contents=b'new_foo',
+        gs_idempotent_generation=urigen(old_gsutil_object))
     gsutil_object2 = self.CreateObject(
         bucket_uri=self.versioned_bucket,
         object_name=old_gsutil_object2.object_name,
-        contents='new_bar', gs_idempotent_generation=urigen(old_gsutil_object2))
+        contents=b'new_bar',
+        gs_idempotent_generation=urigen(old_gsutil_object2))
     return (old_gsutil_object, old_gsutil_object2, gsutil_object,
             gsutil_object2)
 
@@ -867,16 +1056,16 @@ class TestIamSet(TestIamIntegration):
      gsutil_object2) = self._create_multiple_objects()
 
     # Set IAM policy on newest versions of all objects.
-    self.RunGsUtil(['iam', 'set', '-r',
-                    self.new_object_iam_path, self.versioned_bucket.uri])
-    set_iam_string = self.RunGsUtil(
-        ['iam', 'get', gsutil_object.uri], return_stdout=True)
-    set_iam_string2 = self.RunGsUtil(
-        ['iam', 'get', gsutil_object2.uri], return_stdout=True)
+    self.RunGsUtil([
+        'iam', 'set', '-r', self.new_object_iam_path, self.versioned_bucket.uri
+    ])
+    set_iam_string = self.RunGsUtil(['iam', 'get', gsutil_object.uri],
+                                    return_stdout=True)
+    set_iam_string2 = self.RunGsUtil(['iam', 'get', gsutil_object2.uri],
+                                     return_stdout=True)
     self.assertEqualsPoliciesString(set_iam_string, set_iam_string2)
-    self.assertIn(
-        self.public_object_read_binding[0],
-        json.loads(set_iam_string)['bindings'])
+    self.assertIn(self.public_object_read_binding[0],
+                  json.loads(set_iam_string)['bindings'])
 
     # Check that old versions are not affected by the set IAM call.
     iam_string_old = self.RunGsUtil(
@@ -894,16 +1083,17 @@ class TestIamSet(TestIamIntegration):
      gsutil_object2) = self._create_multiple_objects()
 
     # Set IAM policy on newest versions of all objects.
-    self.RunGsUtil(['-m', 'iam', 'set', '-r',
-                    self.new_object_iam_path, self.versioned_bucket.uri])
-    set_iam_string = self.RunGsUtil(
-        ['iam', 'get', gsutil_object.uri], return_stdout=True)
-    set_iam_string2 = self.RunGsUtil(
-        ['iam', 'get', gsutil_object2.uri], return_stdout=True)
+    self.RunGsUtil([
+        '-m', 'iam', 'set', '-r', self.new_object_iam_path,
+        self.versioned_bucket.uri
+    ])
+    set_iam_string = self.RunGsUtil(['iam', 'get', gsutil_object.uri],
+                                    return_stdout=True)
+    set_iam_string2 = self.RunGsUtil(['iam', 'get', gsutil_object2.uri],
+                                     return_stdout=True)
     self.assertEqualsPoliciesString(set_iam_string, set_iam_string2)
-    self.assertIn(
-        self.public_object_read_binding[0],
-        json.loads(set_iam_string)['bindings'])
+    self.assertIn(self.public_object_read_binding[0],
+                  json.loads(set_iam_string)['bindings'])
 
     # Check that old versions are not affected by the set IAM call.
     iam_string_old = self.RunGsUtil(
@@ -920,13 +1110,13 @@ class TestIamSet(TestIamIntegration):
     (old_gsutil_object, old_gsutil_object2, gsutil_object,
      gsutil_object2) = self._create_multiple_objects()
 
-    self.RunGsUtil(['iam', 'set', '-ra', self.new_object_iam_path,
-                    self.versioned_bucket.uri])
+    self.RunGsUtil([
+        'iam', 'set', '-ra', self.new_object_iam_path, self.versioned_bucket.uri
+    ])
     set_iam_string = self.RunGsUtil(
         ['iam', 'get', gsutil_object.version_specific_uri], return_stdout=True)
     set_iam_string2 = self.RunGsUtil(
-        ['iam', 'get', gsutil_object2.version_specific_uri],
-        return_stdout=True)
+        ['iam', 'get', gsutil_object2.version_specific_uri], return_stdout=True)
     set_iam_string_old = self.RunGsUtil(
         ['iam', 'get', old_gsutil_object.version_specific_uri],
         return_stdout=True)
@@ -936,9 +1126,8 @@ class TestIamSet(TestIamIntegration):
     self.assertEqualsPoliciesString(set_iam_string, set_iam_string2)
     self.assertEqualsPoliciesString(set_iam_string, set_iam_string_old)
     self.assertEqualsPoliciesString(set_iam_string, set_iam_string_old2)
-    self.assertIn(
-        self.public_object_read_binding[0],
-        json.loads(set_iam_string)['bindings'])
+    self.assertIn(self.public_object_read_binding[0],
+                  json.loads(set_iam_string)['bindings'])
 
   def test_set_error(self):
     """Tests fail-fast behavior of iam set.
@@ -955,23 +1144,23 @@ class TestIamSet(TestIamIntegration):
     bucket = self.CreateBucket()
     bucket2 = self.CreateBucket()
 
-    stderr = self.RunGsUtil(['iam', 'set', '-e', '', self.new_bucket_iam_path,
-                             bucket.uri,
-                             'gs://%s' % self.nonexistent_bucket_name,
-                             bucket2.uri],
-                            return_stderr=True, expected_status=1)
+    stderr = self.RunGsUtil([
+        'iam', 'set', '-e', '', self.new_bucket_iam_path, bucket.uri,
+        'gs://%s' % self.nonexistent_bucket_name, bucket2.uri
+    ],
+                            return_stderr=True,
+                            expected_status=1)
 
     # The program has exited due to a bucket lookup 404.
     self.assertIn('BucketNotFoundException', stderr)
-    set_iam_string = self.RunGsUtil(
-        ['iam', 'get', bucket.uri], return_stdout=True)
-    set_iam_string2 = self.RunGsUtil(
-        ['iam', 'get', bucket2.uri], return_stdout=True)
+    set_iam_string = self.RunGsUtil(['iam', 'get', bucket.uri],
+                                    return_stdout=True)
+    set_iam_string2 = self.RunGsUtil(['iam', 'get', bucket2.uri],
+                                     return_stdout=True)
 
     # The IAM policy has been set on Bucket "bucket".
-    self.assertIn(
-        self.public_bucket_read_binding[0],
-        json.loads(set_iam_string)['bindings'])
+    self.assertIn(self.public_bucket_read_binding[0],
+                  json.loads(set_iam_string)['bindings'])
 
     # The IAM policy for Bucket "bucket2" remains unchanged.
     self.assertEqualsPoliciesString(self.bucket_iam_string, set_iam_string2)
@@ -987,24 +1176,24 @@ class TestIamSet(TestIamIntegration):
     bucket = self.CreateBucket()
     bucket2 = self.CreateBucket()
 
-    stderr = self.RunGsUtil(['iam', 'set', '-f', self.new_bucket_iam_path,
-                             bucket.uri,
-                             'gs://%s' % self.nonexistent_bucket_name,
-                             bucket2.uri],
-                            return_stderr=True, expected_status=1)
+    stderr = self.RunGsUtil([
+        'iam', 'set', '-f', self.new_bucket_iam_path, bucket.uri,
+        'gs://%s' % self.nonexistent_bucket_name, bucket2.uri
+    ],
+                            return_stderr=True,
+                            expected_status=1)
 
     # The program asserts that an error has occured (due to 404).
     self.assertIn('CommandException', stderr)
 
-    set_iam_string = self.RunGsUtil(
-        ['iam', 'get', bucket.uri], return_stdout=True)
-    set_iam_string2 = self.RunGsUtil(
-        ['iam', 'get', bucket2.uri], return_stdout=True)
+    set_iam_string = self.RunGsUtil(['iam', 'get', bucket.uri],
+                                    return_stdout=True)
+    set_iam_string2 = self.RunGsUtil(['iam', 'get', bucket2.uri],
+                                     return_stdout=True)
 
     # The IAM policy has been set appropriately on Bucket "bucket".
-    self.assertIn(
-        self.public_bucket_read_binding[0],
-        json.loads(set_iam_string)['bindings'])
+    self.assertIn(self.public_bucket_read_binding[0],
+                  json.loads(set_iam_string)['bindings'])
 
     # The IAM policy has also been set on Bucket "bucket2".
     self.assertEqualsPoliciesString(set_iam_string, set_iam_string2)
@@ -1028,91 +1217,104 @@ class TestIamSet(TestIamIntegration):
     iterating over gs://bad_bucket.
     """
 
-    gsutil_object = self.CreateObject(bucket_uri=self.bucket, contents='foobar')
-    gsutil_object2 = self.CreateObject(
-        bucket_uri=self.bucket, contents='foobar')
+    # TODO(b/135780661): Remove retry after bug resolved
+    @Retry(AssertionError, tries=3, timeout_secs=1)
+    def _Check1():
+      stderr = self.RunGsUtil([
+          '-m', 'iam', 'set', '-r', self.new_object_iam_path,
+          'gs://%s' % self.nonexistent_bucket_name, self.bucket.uri
+      ],
+                              return_stderr=True,
+                              expected_status=1)
+      self.assertIn('BucketNotFoundException', stderr)
 
-    stderr = self.RunGsUtil(['-m', 'iam', 'set', '-r', self.new_object_iam_path,
-                             'gs://%s' % self.nonexistent_bucket_name,
-                             self.bucket.uri],
-                            return_stderr=True, expected_status=1)
-    self.assertIn('BucketNotFoundException', stderr)
-    set_iam_string = self.RunGsUtil(
-        ['iam', 'get', gsutil_object.uri], return_stdout=True)
-    set_iam_string2 = self.RunGsUtil(
-        ['iam', 'get', gsutil_object2.uri], return_stdout=True)
-    self.assertEqualsPoliciesString(set_iam_string, set_iam_string2)
-    self.assertEqualsPoliciesString(self.object_iam_string, set_iam_string)
+    # TODO(b/135780661): Remove retry after bug resolved
+    @Retry(AssertionError, tries=3, timeout_secs=1)
+    def _Check2():
+      gsutil_object = self.CreateObject(bucket_uri=self.bucket,
+                                        contents=b'foobar')
+      gsutil_object2 = self.CreateObject(bucket_uri=self.bucket,
+                                         contents=b'foobar')
+      set_iam_string = self.RunGsUtil(['iam', 'get', gsutil_object.uri],
+                                      return_stdout=True)
+      set_iam_string2 = self.RunGsUtil(['iam', 'get', gsutil_object2.uri],
+                                       return_stdout=True)
+      self.assertEqualsPoliciesString(set_iam_string, set_iam_string2)
+      self.assertEqualsPoliciesString(self.object_iam_string, set_iam_string)
+
+    _Check1()
+    _Check2()
 
   def test_set_valid_iam_single_unversioned_object(self):
     """Tests setting a valid IAM on an object."""
-    gsutil_object = self.CreateObject(bucket_uri=self.bucket, contents='foobar')
+    gsutil_object = self.CreateObject(bucket_uri=self.bucket,
+                                      contents=b'foobar')
 
     lookup_uri = gsutil_object.uri
     self.RunGsUtil(['iam', 'set', self.new_object_iam_path, lookup_uri])
-    set_iam_string = self.RunGsUtil(
-        ['iam', 'get', lookup_uri], return_stdout=True)
-    self.RunGsUtil(
-        ['iam', 'set', '-e', json.loads(set_iam_string)['etag'],
-         self.old_object_iam_path, lookup_uri])
-    reset_iam_string = self.RunGsUtil(
-        ['iam', 'get', lookup_uri], return_stdout=True)
+    set_iam_string = self.RunGsUtil(['iam', 'get', lookup_uri],
+                                    return_stdout=True)
+    self.RunGsUtil([
+        'iam', 'set', '-e',
+        json.loads(set_iam_string)['etag'], self.old_object_iam_path, lookup_uri
+    ])
+    reset_iam_string = self.RunGsUtil(['iam', 'get', lookup_uri],
+                                      return_stdout=True)
 
     self.assertEqualsPoliciesString(self.object_iam_string, reset_iam_string)
-    self.assertIn(
-        self.public_object_read_binding[0],
-        json.loads(set_iam_string)['bindings'])
+    self.assertIn(self.public_object_read_binding[0],
+                  json.loads(set_iam_string)['bindings'])
 
   def test_set_valid_iam_single_versioned_object(self):
     """Tests setting a valid IAM on a versioned object."""
-    gsutil_object = self.CreateObject(bucket_uri=self.bucket, contents='foobar')
+    gsutil_object = self.CreateObject(bucket_uri=self.bucket,
+                                      contents=b'foobar')
 
     lookup_uri = gsutil_object.version_specific_uri
     self.RunGsUtil(['iam', 'set', self.new_object_iam_path, lookup_uri])
-    set_iam_string = self.RunGsUtil(
-        ['iam', 'get', lookup_uri], return_stdout=True)
-    self.RunGsUtil(
-        ['iam', 'set', '-e', json.loads(set_iam_string)['etag'],
-         self.old_object_iam_path, lookup_uri])
-    reset_iam_string = self.RunGsUtil(
-        ['iam', 'get', lookup_uri], return_stdout=True)
+    set_iam_string = self.RunGsUtil(['iam', 'get', lookup_uri],
+                                    return_stdout=True)
+    self.RunGsUtil([
+        'iam', 'set', '-e',
+        json.loads(set_iam_string)['etag'], self.old_object_iam_path, lookup_uri
+    ])
+    reset_iam_string = self.RunGsUtil(['iam', 'get', lookup_uri],
+                                      return_stdout=True)
 
     self.assertEqualsPoliciesString(self.object_iam_string, reset_iam_string)
-    self.assertIn(
-        self.public_object_read_binding[0],
-        json.loads(set_iam_string)['bindings'])
+    self.assertIn(self.public_object_read_binding[0],
+                  json.loads(set_iam_string)['bindings'])
 
   def test_set_valid_iam_multithreaded_single_object(self):
     """Tests setting a valid IAM on a single object with multithreading."""
-    gsutil_object = self.CreateObject(bucket_uri=self.bucket, contents='foobar')
+    gsutil_object = self.CreateObject(bucket_uri=self.bucket,
+                                      contents=b'foobar')
 
     lookup_uri = gsutil_object.version_specific_uri
     self.RunGsUtil(
         ['-m', 'iam', 'set', '-e', '', self.new_object_iam_path, lookup_uri])
-    set_iam_string = self.RunGsUtil(
-        ['iam', 'get', lookup_uri], return_stdout=True)
+    set_iam_string = self.RunGsUtil(['iam', 'get', lookup_uri],
+                                    return_stdout=True)
     self.RunGsUtil(
         ['-m', 'iam', 'set', '-e', '', self.old_object_iam_path, lookup_uri])
-    reset_iam_string = self.RunGsUtil(
-        ['iam', 'get', lookup_uri], return_stdout=True)
+    reset_iam_string = self.RunGsUtil(['iam', 'get', lookup_uri],
+                                      return_stdout=True)
 
     self.assertEqualsPoliciesString(self.object_iam_string, reset_iam_string)
-    self.assertIn(
-        self.public_object_read_binding[0],
-        json.loads(set_iam_string)['bindings'])
+    self.assertIn(self.public_object_read_binding[0],
+                  json.loads(set_iam_string)['bindings'])
 
     # Test multithreading on single object, specified with wildcards.
     lookup_uri = '%s*' % self.bucket.uri
     self.RunGsUtil(
         ['-m', 'iam', 'set', '-e', '', self.new_object_iam_path, lookup_uri])
-    set_iam_string = self.RunGsUtil(
-        ['iam', 'get', lookup_uri], return_stdout=True)
+    set_iam_string = self.RunGsUtil(['iam', 'get', lookup_uri],
+                                    return_stdout=True)
     self.RunGsUtil(
         ['-m', 'iam', 'set', '-e', '', self.old_object_iam_path, lookup_uri])
-    reset_iam_string = self.RunGsUtil(
-        ['iam', 'get', lookup_uri], return_stdout=True)
+    reset_iam_string = self.RunGsUtil(['iam', 'get', lookup_uri],
+                                      return_stdout=True)
 
     self.assertEqualsPoliciesString(self.object_iam_string, reset_iam_string)
-    self.assertIn(
-        self.public_object_read_binding[0],
-        json.loads(set_iam_string)['bindings'])
+    self.assertIn(self.public_object_read_binding[0],
+                  json.loads(set_iam_string)['bindings'])

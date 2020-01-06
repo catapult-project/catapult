@@ -13,7 +13,7 @@ package = 'bigquery'
 
 
 class BigqueryDatasetsDeleteRequest(_messages.Message):
-  """A BigqueryDatasetsDeleteRequest object.
+  r"""A BigqueryDatasetsDeleteRequest object.
 
   Fields:
     datasetId: Dataset ID of dataset being deleted
@@ -28,11 +28,11 @@ class BigqueryDatasetsDeleteRequest(_messages.Message):
 
 
 class BigqueryDatasetsDeleteResponse(_messages.Message):
-  """An empty BigqueryDatasetsDelete response."""
+  r"""An empty BigqueryDatasetsDelete response."""
 
 
 class BigqueryDatasetsGetRequest(_messages.Message):
-  """A BigqueryDatasetsGetRequest object.
+  r"""A BigqueryDatasetsGetRequest object.
 
   Fields:
     datasetId: Dataset ID of the requested dataset
@@ -44,7 +44,7 @@ class BigqueryDatasetsGetRequest(_messages.Message):
 
 
 class BigqueryDatasetsInsertRequest(_messages.Message):
-  """A BigqueryDatasetsInsertRequest object.
+  r"""A BigqueryDatasetsInsertRequest object.
 
   Fields:
     dataset: A Dataset resource to be passed as the request body.
@@ -56,7 +56,7 @@ class BigqueryDatasetsInsertRequest(_messages.Message):
 
 
 class BigqueryDatasetsListRequest(_messages.Message):
-  """A BigqueryDatasetsListRequest object.
+  r"""A BigqueryDatasetsListRequest object.
 
   Fields:
     all: Whether to list all datasets, including hidden ones
@@ -79,7 +79,7 @@ class BigqueryDatasetsListRequest(_messages.Message):
 
 
 class BigqueryDatasetsPatchRequest(_messages.Message):
-  """A BigqueryDatasetsPatchRequest object.
+  r"""A BigqueryDatasetsPatchRequest object.
 
   Fields:
     dataset: A Dataset resource to be passed as the request body.
@@ -93,7 +93,7 @@ class BigqueryDatasetsPatchRequest(_messages.Message):
 
 
 class BigqueryDatasetsUpdateRequest(_messages.Message):
-  """A BigqueryDatasetsUpdateRequest object.
+  r"""A BigqueryDatasetsUpdateRequest object.
 
   Fields:
     dataset: A Dataset resource to be passed as the request body.
@@ -107,7 +107,7 @@ class BigqueryDatasetsUpdateRequest(_messages.Message):
 
 
 class BigqueryJobsCancelRequest(_messages.Message):
-  """A BigqueryJobsCancelRequest object.
+  r"""A BigqueryJobsCancelRequest object.
 
   Fields:
     jobId: [Required] Job ID of the job to cancel
@@ -119,7 +119,7 @@ class BigqueryJobsCancelRequest(_messages.Message):
 
 
 class BigqueryJobsGetQueryResultsRequest(_messages.Message):
-  """A BigqueryJobsGetQueryResultsRequest object.
+  r"""A BigqueryJobsGetQueryResultsRequest object.
 
   Fields:
     jobId: [Required] Job ID of the query job
@@ -142,7 +142,7 @@ class BigqueryJobsGetQueryResultsRequest(_messages.Message):
 
 
 class BigqueryJobsGetRequest(_messages.Message):
-  """A BigqueryJobsGetRequest object.
+  r"""A BigqueryJobsGetRequest object.
 
   Fields:
     jobId: [Required] Job ID of the requested job
@@ -154,7 +154,7 @@ class BigqueryJobsGetRequest(_messages.Message):
 
 
 class BigqueryJobsInsertRequest(_messages.Message):
-  """A BigqueryJobsInsertRequest object.
+  r"""A BigqueryJobsInsertRequest object.
 
   Fields:
     job: A Job resource to be passed as the request body.
@@ -166,7 +166,7 @@ class BigqueryJobsInsertRequest(_messages.Message):
 
 
 class BigqueryJobsListRequest(_messages.Message):
-  """A BigqueryJobsListRequest object.
+  r"""A BigqueryJobsListRequest object.
 
   Enums:
     ProjectionValueValuesEnum: Restrict information returned to a set of
@@ -185,7 +185,7 @@ class BigqueryJobsListRequest(_messages.Message):
   """
 
   class ProjectionValueValuesEnum(_messages.Enum):
-    """Restrict information returned to a set of selected fields
+    r"""Restrict information returned to a set of selected fields
 
     Values:
       full: Includes all job data
@@ -195,7 +195,7 @@ class BigqueryJobsListRequest(_messages.Message):
     minimal = 1
 
   class StateFilterValueValuesEnum(_messages.Enum):
-    """Filter for job state
+    r"""Filter for job state
 
     Values:
       done: Finished jobs
@@ -215,7 +215,7 @@ class BigqueryJobsListRequest(_messages.Message):
 
 
 class BigqueryJobsQueryRequest(_messages.Message):
-  """A BigqueryJobsQueryRequest object.
+  r"""A BigqueryJobsQueryRequest object.
 
   Fields:
     projectId: Project ID of the project billed for the query
@@ -227,7 +227,7 @@ class BigqueryJobsQueryRequest(_messages.Message):
 
 
 class BigqueryProjectsListRequest(_messages.Message):
-  """A BigqueryProjectsListRequest object.
+  r"""A BigqueryProjectsListRequest object.
 
   Fields:
     maxResults: Maximum number of results to return
@@ -240,7 +240,7 @@ class BigqueryProjectsListRequest(_messages.Message):
 
 
 class BigqueryTabledataInsertAllRequest(_messages.Message):
-  """A BigqueryTabledataInsertAllRequest object.
+  r"""A BigqueryTabledataInsertAllRequest object.
 
   Fields:
     datasetId: Dataset ID of the destination table.
@@ -257,7 +257,7 @@ class BigqueryTabledataInsertAllRequest(_messages.Message):
 
 
 class BigqueryTabledataListRequest(_messages.Message):
-  """A BigqueryTabledataListRequest object.
+  r"""A BigqueryTabledataListRequest object.
 
   Fields:
     datasetId: Dataset ID of the table to read
@@ -278,7 +278,7 @@ class BigqueryTabledataListRequest(_messages.Message):
 
 
 class BigqueryTablesDeleteRequest(_messages.Message):
-  """A BigqueryTablesDeleteRequest object.
+  r"""A BigqueryTablesDeleteRequest object.
 
   Fields:
     datasetId: Dataset ID of the table to delete
@@ -292,11 +292,11 @@ class BigqueryTablesDeleteRequest(_messages.Message):
 
 
 class BigqueryTablesDeleteResponse(_messages.Message):
-  """An empty BigqueryTablesDelete response."""
+  r"""An empty BigqueryTablesDelete response."""
 
 
 class BigqueryTablesGetRequest(_messages.Message):
-  """A BigqueryTablesGetRequest object.
+  r"""A BigqueryTablesGetRequest object.
 
   Fields:
     datasetId: Dataset ID of the requested table
@@ -310,7 +310,7 @@ class BigqueryTablesGetRequest(_messages.Message):
 
 
 class BigqueryTablesInsertRequest(_messages.Message):
-  """A BigqueryTablesInsertRequest object.
+  r"""A BigqueryTablesInsertRequest object.
 
   Fields:
     datasetId: Dataset ID of the new table
@@ -324,7 +324,7 @@ class BigqueryTablesInsertRequest(_messages.Message):
 
 
 class BigqueryTablesListRequest(_messages.Message):
-  """A BigqueryTablesListRequest object.
+  r"""A BigqueryTablesListRequest object.
 
   Fields:
     datasetId: Dataset ID of the tables to list
@@ -341,7 +341,7 @@ class BigqueryTablesListRequest(_messages.Message):
 
 
 class BigqueryTablesPatchRequest(_messages.Message):
-  """A BigqueryTablesPatchRequest object.
+  r"""A BigqueryTablesPatchRequest object.
 
   Fields:
     datasetId: Dataset ID of the table to update
@@ -357,7 +357,7 @@ class BigqueryTablesPatchRequest(_messages.Message):
 
 
 class BigqueryTablesUpdateRequest(_messages.Message):
-  """A BigqueryTablesUpdateRequest object.
+  r"""A BigqueryTablesUpdateRequest object.
 
   Fields:
     datasetId: Dataset ID of the table to update
@@ -373,7 +373,7 @@ class BigqueryTablesUpdateRequest(_messages.Message):
 
 
 class BigtableColumn(_messages.Message):
-  """A BigtableColumn object.
+  r"""A BigtableColumn object.
 
   Fields:
     encoding: [Optional] The encoding of the values when the type is not
@@ -417,7 +417,7 @@ class BigtableColumn(_messages.Message):
 
 
 class BigtableColumnFamily(_messages.Message):
-  """A BigtableColumnFamily object.
+  r"""A BigtableColumnFamily object.
 
   Fields:
     columns: [Optional] Lists of columns that should be exposed as individual
@@ -451,7 +451,7 @@ class BigtableColumnFamily(_messages.Message):
 
 
 class BigtableOptions(_messages.Message):
-  """A BigtableOptions object.
+  r"""A BigtableOptions object.
 
   Fields:
     columnFamilies: [Optional] List of column families to expose in the table
@@ -478,7 +478,7 @@ class BigtableOptions(_messages.Message):
 
 
 class CsvOptions(_messages.Message):
-  """A CsvOptions object.
+  r"""A CsvOptions object.
 
   Fields:
     allowJaggedRows: [Optional] Indicates if BigQuery should accept rows that
@@ -521,7 +521,7 @@ class CsvOptions(_messages.Message):
 
 
 class Dataset(_messages.Message):
-  """A Dataset object.
+  r"""A Dataset object.
 
   Messages:
     AccessValueListEntry: A AccessValueListEntry object.
@@ -582,7 +582,7 @@ class Dataset(_messages.Message):
   """
 
   class AccessValueListEntry(_messages.Message):
-    """A AccessValueListEntry object.
+    r"""A AccessValueListEntry object.
 
     Fields:
       domain: [Pick one] A domain to grant access to. Any users signed in with
@@ -616,7 +616,7 @@ class Dataset(_messages.Message):
 
   @encoding.MapUnrecognizedFields('additionalProperties')
   class LabelsValue(_messages.Message):
-    """[Experimental] The labels associated with this dataset. You can use
+    r"""[Experimental] The labels associated with this dataset. You can use
     these to organize and group your datasets. You can set this property when
     inserting or updating a dataset. Label keys and values can be no longer
     than 63 characters, can only contain letters, numeric characters,
@@ -633,7 +633,7 @@ class Dataset(_messages.Message):
     """
 
     class AdditionalProperty(_messages.Message):
-      """An additional property for a LabelsValue object.
+      r"""An additional property for a LabelsValue object.
 
       Fields:
         key: Name of the additional property.
@@ -661,7 +661,7 @@ class Dataset(_messages.Message):
 
 
 class DatasetList(_messages.Message):
-  """A DatasetList object.
+  r"""A DatasetList object.
 
   Messages:
     DatasetsValueListEntry: A DatasetsValueListEntry object.
@@ -680,7 +680,7 @@ class DatasetList(_messages.Message):
   """
 
   class DatasetsValueListEntry(_messages.Message):
-    """A DatasetsValueListEntry object.
+    r"""A DatasetsValueListEntry object.
 
     Messages:
       LabelsValue: [Experimental] The labels associated with this dataset. You
@@ -699,7 +699,7 @@ class DatasetList(_messages.Message):
 
     @encoding.MapUnrecognizedFields('additionalProperties')
     class LabelsValue(_messages.Message):
-      """[Experimental] The labels associated with this dataset. You can use
+      r"""[Experimental] The labels associated with this dataset. You can use
       these to organize and group your datasets.
 
       Messages:
@@ -710,7 +710,7 @@ class DatasetList(_messages.Message):
       """
 
       class AdditionalProperty(_messages.Message):
-        """An additional property for a LabelsValue object.
+        r"""An additional property for a LabelsValue object.
 
         Fields:
           key: Name of the additional property.
@@ -735,7 +735,7 @@ class DatasetList(_messages.Message):
 
 
 class DatasetReference(_messages.Message):
-  """A DatasetReference object.
+  r"""A DatasetReference object.
 
   Fields:
     datasetId: [Required] A unique ID for this dataset, without the project
@@ -749,7 +749,7 @@ class DatasetReference(_messages.Message):
 
 
 class ErrorProto(_messages.Message):
-  """A ErrorProto object.
+  r"""A ErrorProto object.
 
   Fields:
     debugInfo: Debugging information. This property is internal to Google and
@@ -766,7 +766,7 @@ class ErrorProto(_messages.Message):
 
 
 class ExplainQueryStage(_messages.Message):
-  """A ExplainQueryStage object.
+  r"""A ExplainQueryStage object.
 
   Fields:
     computeRatioAvg: Relative amount of time the average shard spent on CPU-
@@ -809,7 +809,7 @@ class ExplainQueryStage(_messages.Message):
 
 
 class ExplainQueryStep(_messages.Message):
-  """A ExplainQueryStep object.
+  r"""A ExplainQueryStep object.
 
   Fields:
     kind: Machine-readable operation type.
@@ -821,7 +821,7 @@ class ExplainQueryStep(_messages.Message):
 
 
 class ExternalDataConfiguration(_messages.Message):
-  """A ExternalDataConfiguration object.
+  r"""A ExternalDataConfiguration object.
 
   Fields:
     autodetect: [Experimental] Try to detect schema and format options
@@ -885,7 +885,7 @@ class ExternalDataConfiguration(_messages.Message):
 
 
 class GetQueryResultsResponse(_messages.Message):
-  """A GetQueryResultsResponse object.
+  r"""A GetQueryResultsResponse object.
 
   Fields:
     cacheHit: Whether the query result was fetched from the query cache.
@@ -934,7 +934,7 @@ class GetQueryResultsResponse(_messages.Message):
 
 
 class GoogleSheetsOptions(_messages.Message):
-  """A GoogleSheetsOptions object.
+  r"""A GoogleSheetsOptions object.
 
   Fields:
     skipLeadingRows: [Optional] The number of rows at the top of a sheet that
@@ -955,7 +955,7 @@ class GoogleSheetsOptions(_messages.Message):
 
 
 class Job(_messages.Message):
-  """A Job object.
+  r"""A Job object.
 
   Fields:
     configuration: [Required] Describes the job configuration.
@@ -985,7 +985,7 @@ class Job(_messages.Message):
 
 
 class JobCancelResponse(_messages.Message):
-  """A JobCancelResponse object.
+  r"""A JobCancelResponse object.
 
   Fields:
     job: The final state of the job.
@@ -997,7 +997,7 @@ class JobCancelResponse(_messages.Message):
 
 
 class JobConfiguration(_messages.Message):
-  """A JobConfiguration object.
+  r"""A JobConfiguration object.
 
   Fields:
     copy: [Pick one] Copies a table.
@@ -1018,7 +1018,7 @@ class JobConfiguration(_messages.Message):
 
 
 class JobConfigurationExtract(_messages.Message):
-  """A JobConfigurationExtract object.
+  r"""A JobConfigurationExtract object.
 
   Fields:
     compression: [Optional] The compression type to use for exported files.
@@ -1048,7 +1048,7 @@ class JobConfigurationExtract(_messages.Message):
 
 
 class JobConfigurationLoad(_messages.Message):
-  """A JobConfigurationLoad object.
+  r"""A JobConfigurationLoad object.
 
   Fields:
     allowJaggedRows: [Optional] Accept rows that are missing trailing optional
@@ -1167,7 +1167,7 @@ class JobConfigurationLoad(_messages.Message):
 
 
 class JobConfigurationQuery(_messages.Message):
-  """A JobConfigurationQuery object.
+  r"""A JobConfigurationQuery object.
 
   Messages:
     TableDefinitionsValue: [Optional] If querying an external data source
@@ -1247,7 +1247,7 @@ class JobConfigurationQuery(_messages.Message):
 
   @encoding.MapUnrecognizedFields('additionalProperties')
   class TableDefinitionsValue(_messages.Message):
-    """[Optional] If querying an external data source outside of BigQuery,
+    r"""[Optional] If querying an external data source outside of BigQuery,
     describes the data format, location and other properties of the data
     source. By defining these properties, the data source can then be queried
     as if it were a standard BigQuery table.
@@ -1262,7 +1262,7 @@ class JobConfigurationQuery(_messages.Message):
     """
 
     class AdditionalProperty(_messages.Message):
-      """An additional property for a TableDefinitionsValue object.
+      r"""An additional property for a TableDefinitionsValue object.
 
       Fields:
         key: Name of the additional property.
@@ -1293,7 +1293,7 @@ class JobConfigurationQuery(_messages.Message):
 
 
 class JobConfigurationTableCopy(_messages.Message):
-  """A JobConfigurationTableCopy object.
+  r"""A JobConfigurationTableCopy object.
 
   Fields:
     createDisposition: [Optional] Specifies whether the job is allowed to
@@ -1325,7 +1325,7 @@ class JobConfigurationTableCopy(_messages.Message):
 
 
 class JobList(_messages.Message):
-  """A JobList object.
+  r"""A JobList object.
 
   Messages:
     JobsValueListEntry: A JobsValueListEntry object.
@@ -1338,7 +1338,7 @@ class JobList(_messages.Message):
   """
 
   class JobsValueListEntry(_messages.Message):
-    """A JobsValueListEntry object.
+    r"""A JobsValueListEntry object.
 
     Fields:
       configuration: [Full-projection-only] Specifies the job configuration.
@@ -1373,7 +1373,7 @@ class JobList(_messages.Message):
 
 
 class JobReference(_messages.Message):
-  """A JobReference object.
+  r"""A JobReference object.
 
   Fields:
     jobId: [Required] The ID of the job. The ID must contain only letters
@@ -1387,7 +1387,7 @@ class JobReference(_messages.Message):
 
 
 class JobStatistics(_messages.Message):
-  """A JobStatistics object.
+  r"""A JobStatistics object.
 
   Fields:
     creationTime: [Output-only] Creation time of this job, in milliseconds
@@ -1414,7 +1414,7 @@ class JobStatistics(_messages.Message):
 
 
 class JobStatistics2(_messages.Message):
-  """A JobStatistics2 object.
+  r"""A JobStatistics2 object.
 
   Fields:
     billingTier: [Output-only] Billing tier for the job.
@@ -1445,7 +1445,7 @@ class JobStatistics2(_messages.Message):
 
 
 class JobStatistics3(_messages.Message):
-  """A JobStatistics3 object.
+  r"""A JobStatistics3 object.
 
   Fields:
     inputFileBytes: [Output-only] Number of bytes of source data in a load
@@ -1464,7 +1464,7 @@ class JobStatistics3(_messages.Message):
 
 
 class JobStatistics4(_messages.Message):
-  """A JobStatistics4 object.
+  r"""A JobStatistics4 object.
 
   Fields:
     destinationUriFileCounts: [Output-only] Number of files per destination
@@ -1477,7 +1477,7 @@ class JobStatistics4(_messages.Message):
 
 
 class JobStatus(_messages.Message):
-  """A JobStatus object.
+  r"""A JobStatus object.
 
   Fields:
     errorResult: [Output-only] Final error result of the job. If present,
@@ -1495,7 +1495,7 @@ class JobStatus(_messages.Message):
 
 @encoding.MapUnrecognizedFields('additionalProperties')
 class JsonObject(_messages.Message):
-  """Represents a single JSON object.
+  r"""Represents a single JSON object.
 
   Messages:
     AdditionalProperty: An additional property for a JsonObject object.
@@ -1505,7 +1505,7 @@ class JsonObject(_messages.Message):
   """
 
   class AdditionalProperty(_messages.Message):
-    """An additional property for a JsonObject object.
+    r"""An additional property for a JsonObject object.
 
     Fields:
       key: Name of the additional property.
@@ -1522,7 +1522,7 @@ JsonValue = extra_types.JsonValue
 
 
 class ProjectList(_messages.Message):
-  """A ProjectList object.
+  r"""A ProjectList object.
 
   Messages:
     ProjectsValueListEntry: A ProjectsValueListEntry object.
@@ -1536,7 +1536,7 @@ class ProjectList(_messages.Message):
   """
 
   class ProjectsValueListEntry(_messages.Message):
-    """A ProjectsValueListEntry object.
+    r"""A ProjectsValueListEntry object.
 
     Fields:
       friendlyName: A descriptive name for this project.
@@ -1560,7 +1560,7 @@ class ProjectList(_messages.Message):
 
 
 class ProjectReference(_messages.Message):
-  """A ProjectReference object.
+  r"""A ProjectReference object.
 
   Fields:
     projectId: [Required] ID of the project. Can be either the numeric ID or
@@ -1571,7 +1571,7 @@ class ProjectReference(_messages.Message):
 
 
 class QueryRequest(_messages.Message):
-  """A QueryRequest object.
+  r"""A QueryRequest object.
 
   Fields:
     defaultDataset: [Optional] Specifies the default datasetId and projectId
@@ -1624,7 +1624,7 @@ class QueryRequest(_messages.Message):
 
 
 class QueryResponse(_messages.Message):
-  """A QueryResponse object.
+  r"""A QueryResponse object.
 
   Fields:
     cacheHit: Whether the query result was fetched from the query cache.
@@ -1672,7 +1672,7 @@ class QueryResponse(_messages.Message):
 
 
 class StandardQueryParameters(_messages.Message):
-  """Query parameters accepted by all methods.
+  r"""Query parameters accepted by all methods.
 
   Enums:
     AltValueValuesEnum: Data format for the response.
@@ -1695,7 +1695,7 @@ class StandardQueryParameters(_messages.Message):
   """
 
   class AltValueValuesEnum(_messages.Enum):
-    """Data format for the response.
+    r"""Data format for the response.
 
     Values:
       json: Responses with Content-Type of application/json
@@ -1713,7 +1713,7 @@ class StandardQueryParameters(_messages.Message):
 
 
 class Streamingbuffer(_messages.Message):
-  """A Streamingbuffer object.
+  r"""A Streamingbuffer object.
 
   Fields:
     estimatedBytes: [Output-only] A lower-bound estimate of the number of
@@ -1731,7 +1731,7 @@ class Streamingbuffer(_messages.Message):
 
 
 class Table(_messages.Message):
-  """A Table object.
+  r"""A Table object.
 
   Fields:
     creationTime: [Output-only] The time when this table was created, in
@@ -1800,7 +1800,7 @@ class Table(_messages.Message):
 
 
 class TableCell(_messages.Message):
-  """A TableCell object.
+  r"""A TableCell object.
 
   Fields:
     v: A extra_types.JsonValue attribute.
@@ -1810,7 +1810,7 @@ class TableCell(_messages.Message):
 
 
 class TableDataInsertAllRequest(_messages.Message):
-  """A TableDataInsertAllRequest object.
+  r"""A TableDataInsertAllRequest object.
 
   Messages:
     RowsValueListEntry: A RowsValueListEntry object.
@@ -1833,7 +1833,7 @@ class TableDataInsertAllRequest(_messages.Message):
   """
 
   class RowsValueListEntry(_messages.Message):
-    """A RowsValueListEntry object.
+    r"""A RowsValueListEntry object.
 
     Fields:
       insertId: [Optional] A unique ID for each row. BigQuery uses this
@@ -1854,7 +1854,7 @@ class TableDataInsertAllRequest(_messages.Message):
 
 
 class TableDataInsertAllResponse(_messages.Message):
-  """A TableDataInsertAllResponse object.
+  r"""A TableDataInsertAllResponse object.
 
   Messages:
     InsertErrorsValueListEntry: A InsertErrorsValueListEntry object.
@@ -1865,7 +1865,7 @@ class TableDataInsertAllResponse(_messages.Message):
   """
 
   class InsertErrorsValueListEntry(_messages.Message):
-    """A InsertErrorsValueListEntry object.
+    r"""A InsertErrorsValueListEntry object.
 
     Fields:
       errors: Error information for the row indicated by the index property.
@@ -1880,7 +1880,7 @@ class TableDataInsertAllResponse(_messages.Message):
 
 
 class TableDataList(_messages.Message):
-  """A TableDataList object.
+  r"""A TableDataList object.
 
   Fields:
     etag: A hash of this page of results.
@@ -1900,7 +1900,7 @@ class TableDataList(_messages.Message):
 
 
 class TableFieldSchema(_messages.Message):
-  """A TableFieldSchema object.
+  r"""A TableFieldSchema object.
 
   Fields:
     description: [Optional] The field description. The maximum length is 16K
@@ -1925,7 +1925,7 @@ class TableFieldSchema(_messages.Message):
 
 
 class TableList(_messages.Message):
-  """A TableList object.
+  r"""A TableList object.
 
   Messages:
     TablesValueListEntry: A TablesValueListEntry object.
@@ -1939,7 +1939,7 @@ class TableList(_messages.Message):
   """
 
   class TablesValueListEntry(_messages.Message):
-    """A TablesValueListEntry object.
+    r"""A TablesValueListEntry object.
 
     Fields:
       friendlyName: The user-friendly name for this table.
@@ -1963,7 +1963,7 @@ class TableList(_messages.Message):
 
 
 class TableReference(_messages.Message):
-  """A TableReference object.
+  r"""A TableReference object.
 
   Fields:
     datasetId: [Required] The ID of the dataset containing this table.
@@ -1979,7 +1979,7 @@ class TableReference(_messages.Message):
 
 
 class TableRow(_messages.Message):
-  """A TableRow object.
+  r"""A TableRow object.
 
   Fields:
     f: Represents a single row in the result set, consisting of one or more
@@ -1990,7 +1990,7 @@ class TableRow(_messages.Message):
 
 
 class TableSchema(_messages.Message):
-  """A TableSchema object.
+  r"""A TableSchema object.
 
   Fields:
     fields: Describes the fields in a table.
@@ -2000,7 +2000,7 @@ class TableSchema(_messages.Message):
 
 
 class TimePartitioning(_messages.Message):
-  """A TimePartitioning object.
+  r"""A TimePartitioning object.
 
   Fields:
     expirationMs: [Optional] Number of milliseconds for which to keep the
@@ -2014,7 +2014,7 @@ class TimePartitioning(_messages.Message):
 
 
 class UserDefinedFunctionResource(_messages.Message):
-  """A UserDefinedFunctionResource object.
+  r"""A UserDefinedFunctionResource object.
 
   Fields:
     inlineCode: [Pick one] An inline resource that contains code for a user-
@@ -2029,7 +2029,7 @@ class UserDefinedFunctionResource(_messages.Message):
 
 
 class ViewDefinition(_messages.Message):
-  """A ViewDefinition object.
+  r"""A ViewDefinition object.
 
   Fields:
     query: [Required] A query that BigQuery executes when the view is

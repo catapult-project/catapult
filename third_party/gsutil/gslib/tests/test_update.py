@@ -22,6 +22,9 @@
 """Tests for the update command."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import os.path
 import shutil
@@ -35,9 +38,10 @@ from gslib.metrics import _UUID_FILE_PATH
 import gslib.tests.testcase as testcase
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import unittest
-from gslib.util import CERTIFICATE_VALIDATION_ENABLED
-from gslib.util import DisallowUpdateIfDataInGsutilDir
-
+from gslib.utils import system_util
+from gslib.utils.boto_util import CERTIFICATE_VALIDATION_ENABLED
+from gslib.utils.constants import UTF8
+from gslib.utils.update_util import DisallowUpdateIfDataInGsutilDir
 
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
 GSUTIL_DIR = os.path.join(TESTS_DIR, '..', '..')
@@ -50,9 +54,11 @@ class UpdateTest(testcase.GsUtilIntegrationTestCase):
                        'Test requires https certificate validation enabled.')
   def test_update(self):
     """Tests that the update command works or raises proper exceptions."""
-    if os.environ.get('CLOUDSDK_WRAPPER') == '1':
-      stderr = self.RunGsUtil(['update'], stdin='n',
-                              return_stderr=True, expected_status=1)
+    if system_util.InvokedViaCloudSdk():
+      stderr = self.RunGsUtil(['update'],
+                              stdin='n',
+                              return_stderr=True,
+                              expected_status=1)
       self.assertIn('update command is disabled for Cloud SDK', stderr)
       return
 
@@ -73,19 +79,28 @@ class UpdateTest(testcase.GsUtilIntegrationTestCase):
     # Path when executing from tmpdir (Windows doesn't support in-place rename)
     gsutil_relative_dst = os.path.join('gsutil', 'gsutil')
 
-    shutil.copytree(GSUTIL_DIR, gsutil_src)
+    ignore_callable = shutil.ignore_patterns(
+        '.git*',
+        '*.pyc',
+        '*.pyo',
+        '__pycache__',
+    )
+    shutil.copytree(GSUTIL_DIR, gsutil_src, ignore=ignore_callable)
     # Copy specific files rather than all of GSUTIL_DIR so we don't pick up temp
     # working files left in top-level directory by gsutil developers (like tags,
-    # .git*, etc.)
+    # .git*, .pyc files, etc.)
     os.makedirs(gsutil_dst)
-    for comp in ('CHANGES.md', 'CHECKSUM', 'gslib', 'gsutil',
-                 'gsutil.py', 'LICENSE', 'MANIFEST.in', 'README.md', 'setup.py', 'test',
-                 'third_party', 'VERSION'):
-      if os.path.isdir(os.path.join(GSUTIL_DIR, comp)):
-        func = shutil.copytree
-      else:
-        func = shutil.copyfile
-      func(os.path.join(GSUTIL_DIR, comp), os.path.join(gsutil_dst, comp))
+    for comp in os.listdir(GSUTIL_DIR):
+      if ('.git' not in comp and
+          '__pycache__' not in comp and
+           not comp.endswith('.pyc') and
+           not comp.endswith('.pyo')):  # yapf: disable
+        cp_src_path = os.path.join(GSUTIL_DIR, comp)
+        cp_dst_path = os.path.join(gsutil_dst, comp)
+        if os.path.isdir(cp_src_path):
+          shutil.copytree(cp_src_path, cp_dst_path, ignore=ignore_callable)
+        else:
+          shutil.copyfile(cp_src_path, cp_dst_path)
 
     # Create a fake version number in the source so we can verify it in the
     # destination.
@@ -114,40 +129,49 @@ class UpdateTest(testcase.GsUtilIntegrationTestCase):
 
     # Run with an invalid gs:// URI.
     p = subprocess.Popen(prefix + ['gsutil', 'update', 'gs://pub'],
-                         cwd=gsutil_dst, stdout=subprocess.PIPE,
+                         cwd=gsutil_dst,
+                         stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
     (_, stderr) = p.communicate()
     p.stdout.close()
     p.stderr.close()
     self.assertEqual(p.returncode, 1)
-    self.assertIn('update command only works with tar.gz', stderr)
+    self.assertIn(b'update command only works with tar.gz', stderr)
 
     # Run with non-existent gs:// URI.
-    p = subprocess.Popen(
-        prefix + ['gsutil', 'update', 'gs://pub/Jdjh38)(;.tar.gz'],
-        cwd=gsutil_dst, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (_, stderr) = p.communicate()
-    p.stdout.close()
-    p.stderr.close()
-    self.assertEqual(p.returncode, 1)
-    self.assertIn('NotFoundException', stderr)
-
-    # Run with file:// URI wihout -f option.
-    p = subprocess.Popen(prefix + ['gsutil', 'update', suri(src_tarball)],
-                         cwd=gsutil_dst, stdout=subprocess.PIPE,
+    p = subprocess.Popen(prefix +
+                         ['gsutil', 'update', 'gs://pub/Jdjh38)(;.tar.gz'],
+                         cwd=gsutil_dst,
+                         stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
     (_, stderr) = p.communicate()
     p.stdout.close()
     p.stderr.close()
     self.assertEqual(p.returncode, 1)
-    self.assertIn('command does not support', stderr)
+    self.assertIn(b'NotFoundException', stderr)
+
+    # Run with file:// URI wihout -f option.
+    p = subprocess.Popen(
+        prefix + ['gsutil', 'update', suri(src_tarball)],
+        cwd=gsutil_dst,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
+    (_, stderr) = p.communicate()
+    p.stdout.close()
+    p.stderr.close()
+    self.assertEqual(p.returncode, 1)
+    self.assertIn(b'command does not support', stderr)
 
     # Run with a file present that was not distributed with gsutil.
     with open(os.path.join(gsutil_dst, 'userdata.txt'), 'w') as fp:
       fp.write('important data\n')
-    p = subprocess.Popen(prefix + ['gsutil', 'update', '-f', suri(src_tarball)],
-                         cwd=gsutil_dst, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    p = subprocess.Popen(
+        prefix +
+        ['gsutil', 'update', '-f', suri(src_tarball)],
+        cwd=gsutil_dst,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        stdin=subprocess.PIPE)
     (_, stderr) = p.communicate()
     p.stdout.close()
     p.stderr.close()
@@ -155,28 +179,39 @@ class UpdateTest(testcase.GsUtilIntegrationTestCase):
     # this file around.
     os.unlink(os.path.join(gsutil_dst, 'userdata.txt'))
     self.assertEqual(p.returncode, 1)
+    # Additional check for Windows since it has \r\n and string may have just \n
+    os_ls = os.linesep.encode(UTF8)
+    if os_ls in stderr:
+      stderr = stderr.replace(os_ls, b' ')
+    elif b'\n' in stderr:
+      stderr = stderr.replace(b'\n', b' ')
     self.assertIn(
-        'The update command cannot run with user data in the gsutil directory',
-        stderr.replace(os.linesep, ' '))
+        b'The update command cannot run with user data in the gsutil directory',
+        stderr)
 
     # Determine whether we'll need to decline the analytics prompt.
-    analytics_prompt = not (
-        os.path.exists(_UUID_FILE_PATH) or
-        boto.config.get_value('GSUtil', 'disable_analytics_prompt'))
+    analytics_prompt = not (os.path.exists(_UUID_FILE_PATH) or
+                            boto.config.get_value('GSUtil',
+                                                  'disable_analytics_prompt'))
 
-    update_input = 'n\r\ny\r\n' if analytics_prompt else 'y\r\n'
+    update_input = b'n\r\ny\r\n' if analytics_prompt else b'y\r\n'
 
     # Now do the real update, which should succeed.
-    p = subprocess.Popen(prefix + [gsutil_relative_dst, 'update', '-f',
-                                   suri(src_tarball)],
-                         cwd=tmpdir_dst, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    p = subprocess.Popen(
+        prefix + [gsutil_relative_dst, 'update', '-f',
+                  suri(src_tarball)],
+        cwd=tmpdir_dst,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        stdin=subprocess.PIPE)
     (_, stderr) = p.communicate(input=update_input)
     p.stdout.close()
     p.stderr.close()
-    self.assertEqual(p.returncode, 0, msg=(
-        'Non-zero return code (%d) from gsutil update. stderr = \n%s' %
-        (p.returncode, stderr)))
+    self.assertEqual(
+        p.returncode,
+        0,
+        msg=('Non-zero return code (%d) from gsutil update. stderr = \n%s' %
+             (p.returncode, stderr.decode(UTF8))))
 
     # Verify that version file was updated.
     dst_version_file = os.path.join(tmpdir_dst, 'gsutil', 'VERSION')
@@ -204,9 +239,10 @@ class UpdateUnitTest(testcase.GsUtilUnitTestCase):
     os.makedirs(gsutil_src)
     copy_files = []
     for filename in os.listdir(GSUTIL_DIR):
-      if (filename.endswith('.pyc') or filename.startswith('.git')
-          or filename == '__pycache__' or filename == '.settings'
-          or filename == '.project' or filename == '.pydevproject'):
+      if (filename.endswith('.pyc') or filename.startswith('.git') or
+          filename == '__pycache__' or filename == '.settings' or
+          filename == '.project' or filename == '.pydevproject' or
+          filename == '.style.yapf' or filename == '.yapfignore'):
         # Need to ignore any compiled code or Eclipse project folders.
         continue
       copy_files.append(filename)

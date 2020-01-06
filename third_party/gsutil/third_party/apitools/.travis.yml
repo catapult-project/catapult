@@ -12,8 +12,6 @@ matrix:
     env: TOX_ENV=py27-oauth2client3
   - python: "2.7"
     env: TOX_ENV=py27-oauth2client4
-  - python: "3.3"
-    env: TOX_ENV=py33-oauth2client4
   - python: "3.4"
     env: TOX_ENV=py34-oauth2client4
   - python: "3.5"
@@ -26,7 +24,7 @@ matrix:
     env: TOX_ENV=py35-oauth2client4
 install:
   - pip install tox
-  - pip install . --allow-external argparse
+  - pip install . argparse
 script: tox -e $TOX_ENV
 after_success:
   - if [[ "${TOX_ENV}" == "py27-oauth2client4" ]]; then tox -e coveralls; fi

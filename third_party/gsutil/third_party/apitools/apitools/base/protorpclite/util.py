@@ -53,7 +53,7 @@ _TIME_ZONE_RE = re.compile(_TIME_ZONE_RE_STRING, re.IGNORECASE | re.VERBOSE)
 
 
 def positional(max_positional_args):
-    """A decorator to declare that only the first N arguments may be positional.
+    """A decorator that declares only the first N arguments may be positional.
 
     This decorator makes it easy to support Python 3 style keyword-only
     parameters. For example, in Python 3 it is possible to write:

@@ -17,6 +17,11 @@
 Messages are added to the status queue.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+
 import os
 import threading
 
@@ -45,9 +50,9 @@ class StatusMessage(object):
 
   def __str__(self):
     """Returns a string with a valid constructor for this message."""
-    return ('%s(%s, process_id=%s, thread_id=%s)' %
-            (self.__class__.__name__, self.time, self.process_id,
-             self.thread_id))
+    return (
+        '%s(%s, process_id=%s, thread_id=%s)' %
+        (self.__class__.__name__, self.time, self.process_id, self.thread_id))
 
 
 class RetryableErrorMessage(StatusMessage):
@@ -57,8 +62,13 @@ class RetryableErrorMessage(StatusMessage):
   report to analytics collection and to display in the UI.
   """
 
-  def __init__(self, exception, message_time, num_retries=0,
-               total_wait_sec=0, process_id=None, thread_id=None):
+  def __init__(self,
+               exception,
+               message_time,
+               num_retries=0,
+               total_wait_sec=0,
+               process_id=None,
+               thread_id=None):
     """Creates a RetryableErrorMessage.
 
     Args:
@@ -162,9 +172,17 @@ class FileMessage(StatusMessage):
   COMPONENT_TO_DOWNLOAD = 10
   EXISTING_OBJECT_TO_DELETE = 11
 
-  def __init__(self, src_url, dst_url, message_time, size=None, finished=False,
-               component_num=None, message_type=None,
-               bytes_already_downloaded=None, process_id=None, thread_id=None):
+  def __init__(self,
+               src_url,
+               dst_url,
+               message_time,
+               size=None,
+               finished=False,
+               component_num=None,
+               message_type=None,
+               bytes_already_downloaded=None,
+               process_id=None,
+               thread_id=None):
     """Creates a FileMessage.
 
     Args:
@@ -185,7 +203,8 @@ class FileMessage(StatusMessage):
       thread_id: Thread ID that produced this message (overridable for testing).
     """
 
-    super(FileMessage, self).__init__(message_time, process_id=process_id,
+    super(FileMessage, self).__init__(message_time,
+                                      process_id=process_id,
                                       thread_id=thread_id)
     self.src_url = src_url
     self.dst_url = dst_url
@@ -200,10 +219,9 @@ class FileMessage(StatusMessage):
     return ('%s(\'%s\', \'%s\', %s, size=%s, finished=%s, component_num=%s, '
             'message_type=%s, bytes_already_downloaded=%s, process_id=%s, '
             'thread_id=%s)' %
-            (self.__class__.__name__, self.src_url, self.dst_url,
-             self.time, self.size, self.finished, self.component_num,
-             self.message_type, self.bytes_already_downloaded, self.process_id,
-             self.thread_id))
+            (self.__class__.__name__, self.src_url, self.dst_url, self.time,
+             self.size, self.finished, self.component_num, self.message_type,
+             self.bytes_already_downloaded, self.process_id, self.thread_id))
 
 
 class ProgressMessage(StatusMessage):
@@ -213,9 +231,16 @@ class ProgressMessage(StatusMessage):
   cloud object or single component.
   """
 
-  def __init__(self, size, processed_bytes, src_url, message_time,
-               dst_url=None, component_num=None, operation_name=None,
-               process_id=None, thread_id=None):
+  def __init__(self,
+               size,
+               processed_bytes,
+               src_url,
+               message_time,
+               dst_url=None,
+               component_num=None,
+               operation_name=None,
+               process_id=None,
+               thread_id=None):
     """Creates a ProgressMessage.
 
     Args:
@@ -281,8 +306,8 @@ class SeekAheadMessage(StatusMessage):
   def __str__(self):
     """Returns a string with a valid constructor for this message."""
     return ('%s(%s, %s, %s, process_id=%s, thread_id=%s)' %
-            (self.__class__.__name__, self.num_objects, self.size,
-             self.time, self.process_id, self.thread_id))
+            (self.__class__.__name__, self.num_objects, self.size, self.time,
+             self.process_id, self.thread_id))
 
 
 class ProducerThreadMessage(StatusMessage):
@@ -315,8 +340,8 @@ class ProducerThreadMessage(StatusMessage):
   def __str__(self):
     """Returns a string with a valid constructor for this message."""
     return ('%s(%s, %s, %s, finished=%s)' %
-            (self.__class__.__name__, self.num_objects, self.size,
-             self.time, self.finished))
+            (self.__class__.__name__, self.num_objects, self.size, self.time,
+             self.finished))
 
 
 class PerformanceSummaryMessage(StatusMessage):

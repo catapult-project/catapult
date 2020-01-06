@@ -13,11 +13,19 @@
 # limitations under the License.
 """Helper class for streaming resumable uploads."""
 
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+
 import collections
 import os
 
+import six
+
 from gslib.exception import CommandException
-from gslib.util import GetJsonResumableChunkSize
+from gslib.utils.boto_util import GetJsonResumableChunkSize
+from gslib.utils.constants import UTF8
 
 
 class ResumableStreamingJsonUploadWrapper(object):
@@ -47,14 +55,19 @@ class ResumableStreamingJsonUploadWrapper(object):
                              'size %s, JSON resumable upload chunk size %s. '
                              'Buffer size must be >= JSON resumable upload '
                              'chunk size to ensure that uploads can be '
-                             'resumed.' % (max_buffer_size,
-                                           GetJsonResumableChunkSize()))
+                             'resumed.' %
+                             (max_buffer_size, GetJsonResumableChunkSize()))
 
     self._max_buffer_size = max_buffer_size
     self._buffer = collections.deque()
     self._buffer_start = 0
     self._buffer_end = 0
     self._position = 0
+
+  @property
+  def mode(self):
+    """Returns the mode of the underlying file descriptor, or None."""
+    return getattr(self._orig_fp, 'mode', None)
 
   def read(self, size=-1):  # pylint: disable=invalid-name
     """"Reads from the wrapped stream.
@@ -97,9 +110,9 @@ class ResumableStreamingJsonUploadWrapper(object):
         offset_from_position = self._position - pos_in_buffer
         bytes_available_this_buffer = buffer_len - offset_from_position
         read_size = min(bytes_available_this_buffer, bytes_remaining)
-        buffered_data.append(
-            self._buffer[buffer_index]
-            [offset_from_position:offset_from_position + read_size])
+        buffered_data.append(self._buffer[buffer_index]
+                             [offset_from_position:offset_from_position +
+                              read_size])
         bytes_remaining -= read_size
         pos_in_buffer += buffer_len
         buffer_index += 1
@@ -147,6 +160,12 @@ class ResumableStreamingJsonUploadWrapper(object):
             self._buffer.appendleft(oldest_data[-refill_amount:])
             self._buffer_start -= refill_amount
     else:
+      if six.PY3:
+        if buffered_data:
+          buffered_data = [
+              bd.encode(UTF8) if isinstance(bd, str) else bd
+              for bd in buffered_data
+          ]
       data = b''.join(buffered_data) if buffered_data else b''
 
     return data

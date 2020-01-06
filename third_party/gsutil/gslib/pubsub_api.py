@@ -15,9 +15,12 @@
 """JSON gsutil Cloud API implementation for Google Cloud Storage."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
+import json
 import logging
-import os
 import traceback
 
 from apitools.base.py import exceptions as apitools_exceptions
@@ -27,20 +30,20 @@ from gslib.cloud_api import BadRequestException
 from gslib.cloud_api import NotFoundException
 from gslib.cloud_api import PreconditionException
 from gslib.cloud_api import ServiceException
-from gslib.gcs_json_credentials import CheckAndGetCredentials
+from gslib.gcs_json_credentials import SetUpJsonCredentialsAndCache
 from gslib.no_op_credentials import NoOpCredentials
 from gslib.third_party.pubsub_apitools import pubsub_v1_client as apitools_client
 from gslib.third_party.pubsub_apitools import pubsub_v1_messages as apitools_messages
-from gslib.util import GetCertsFile
-from gslib.util import GetMaxRetryDelay
-from gslib.util import GetNewHttp
-from gslib.util import GetNumRetries
-
+from gslib.utils import system_util
+from gslib.utils.boto_util import GetCertsFile
+from gslib.utils.boto_util import GetMaxRetryDelay
+from gslib.utils.boto_util import GetNewHttp
+from gslib.utils.boto_util import GetNumRetries
+from gslib.utils.constants import UTF8
 
 TRANSLATABLE_APITOOLS_EXCEPTIONS = (apitools_exceptions.HttpError)
 
-
-if os.environ.get('CLOUDSDK_WRAPPER'):
+if system_util.InvokedViaCloudSdk():
   _INSUFFICIENT_OAUTH2_SCOPE_MESSAGE = (
       'Insufficient OAuth2 scope to perform this operation. '
       'Please re-run `gcloud auth login`')
@@ -65,50 +68,37 @@ class PubsubApi(object):
     super(PubsubApi, self).__init__()
     self.logger = logger
 
-    no_op_credentials = False
-    if not credentials:
-      loaded_credentials = CheckAndGetCredentials(logger)
-
-      if not loaded_credentials:
-        loaded_credentials = NoOpCredentials()
-        no_op_credentials = True
-    else:
-      if isinstance(credentials, NoOpCredentials):
-        no_op_credentials = True
-
-    self.credentials = credentials or loaded_credentials
     self.certs_file = GetCertsFile()
     self.http = GetNewHttp()
-
     self.http_base = 'https://'
     self.host_base = config.get('Credentials', 'gs_pubsub_host',
                                 'pubsub.googleapis.com')
     gs_pubsub_port = config.get('Credentials', 'gs_pubsub_port', None)
-    if not gs_pubsub_port:
-      self.host_port = ''
-    else:
-      self.host_port = ':' + gs_pubsub_port
-
+    self.host_port = (':' + gs_pubsub_port) if gs_pubsub_port else ''
     self.url_base = (self.http_base + self.host_base + self.host_port)
 
-    self.num_retries = GetNumRetries()
-    self.max_retry_wait = GetMaxRetryDelay()
+    SetUpJsonCredentialsAndCache(self, logger, credentials=credentials)
 
     log_request = (debug >= 3)
     log_response = (debug >= 3)
 
-    self.api_client = apitools_client.PubsubV1(
-        url=self.url_base, http=self.http, log_request=log_request,
-        log_response=log_response, credentials=self.credentials)
+    self.api_client = apitools_client.PubsubV1(url=self.url_base,
+                                               http=self.http,
+                                               log_request=log_request,
+                                               log_response=log_response,
+                                               credentials=self.credentials)
 
-    self.api_client.max_retry_wait = self.max_retry_wait
+    self.num_retries = GetNumRetries()
     self.api_client.num_retries = self.num_retries
 
-    if no_op_credentials:
+    self.max_retry_wait = GetMaxRetryDelay()
+    self.api_client.max_retry_wait = self.max_retry_wait
+
+    if isinstance(self.credentials, NoOpCredentials):
       # This API key is not secret and is used to identify gsutil during
       # anonymous requests.
       self.api_client.AddGlobalParam('key',
-                                     u'AIzaSyDnacJHrKma0048b13sh8cgxNUwulubmJM')
+                                     'AIzaSyDnacJHrKma0048b13sh8cgxNUwulubmJM')
 
   def GetTopic(self, topic_name):
     request = apitools_messages.PubsubProjectsTopicsGetRequest(topic=topic_name)
@@ -142,8 +132,7 @@ class PubsubApi(object):
       self._TranslateExceptionAndRaise(e, topic_name=topic_name)
 
   def SetTopicIamPolicy(self, topic_name, policy):
-    policy_request = apitools_messages.SetIamPolicyRequest(
-        policy=policy)
+    policy_request = apitools_messages.SetIamPolicyRequest(policy=policy)
     request = apitools_messages.PubsubProjectsTopicsSetIamPolicyRequest(
         resource=topic_name, setIamPolicyRequest=policy_request)
     try:
@@ -163,8 +152,8 @@ class PubsubApi(object):
       translatable.
     """
     if self.logger.isEnabledFor(logging.DEBUG):
-      self.logger.debug(
-          'TranslateExceptionAndRaise: %s', traceback.format_exc())
+      self.logger.debug('TranslateExceptionAndRaise: %s',
+                        traceback.format_exc())
     translated_exception = self._TranslateApitoolsException(
         e, topic_name=topic_name)
     if translated_exception:
@@ -176,7 +165,7 @@ class PubsubApi(object):
     if isinstance(http_error, apitools_exceptions.HttpError):
       if getattr(http_error, 'content', None):
         try:
-          json_obj = json.loads(http_error.content)
+          json_obj = json.loads(http_error.content.decode(UTF8))
           if 'error' in json_obj and 'message' in json_obj['error']:
             return json_obj['error']['message']
         except Exception:  # pylint: disable=broad-except
@@ -189,7 +178,8 @@ class PubsubApi(object):
       # In the event of a scope error, the www-authenticate field of the HTTP
       # response should contain text of the form
       #
-      # 'Bearer realm="https://accounts.google.com/", error=insufficient_scope,
+      # 'Bearer realm="https://oauth2.googleapis.com/",
+      # error=insufficient_scope,
       # scope="${space separated list of acceptable scopes}"'
       #
       # Here we use a quick string search to find the scope list, just looking
@@ -210,7 +200,7 @@ class PubsubApi(object):
       topic_name: Optional topic name in request that caused the exception.
 
     Returns:
-      CloudStorageApiServiceException for translatable exceptions, None
+      ServiceException for translatable exceptions, None
       otherwise.
     """
 
@@ -224,27 +214,30 @@ class PubsubApi(object):
                                    status=e.status_code)
       elif e.status_code == 401:
         if 'Login Required' in str(e):
-          return AccessDeniedException(
-              message or 'Access denied: login required.',
-              status=e.status_code)
+          return AccessDeniedException(message or
+                                       'Access denied: login required.',
+                                       status=e.status_code)
         elif 'insufficient_scope' in str(e):
           # If the service includes insufficient scope error detail in the
           # response body, this check can be removed.
           return AccessDeniedException(
-              _INSUFFICIENT_OAUTH2_SCOPE_MESSAGE, status=e.status_code,
+              _INSUFFICIENT_OAUTH2_SCOPE_MESSAGE,
+              status=e.status_code,
               body=self._GetAcceptableScopesFromHttpError(e))
       elif e.status_code == 403:
         if 'The account for the specified project has been disabled' in str(e):
           return AccessDeniedException(message or 'Account disabled.',
                                        status=e.status_code)
         elif 'Daily Limit for Unauthenticated Use Exceeded' in str(e):
-          return AccessDeniedException(
-              message or 'Access denied: quota exceeded. '
-              'Is your project ID valid?',
-              status=e.status_code)
+          return AccessDeniedException(message or
+                                       'Access denied: quota exceeded. '
+                                       'Is your project ID valid?',
+                                       status=e.status_code)
         elif 'User Rate Limit Exceeded' in str(e):
-          return AccessDeniedException('Rate limit exceeded. Please retry this '
-                                       'request later.', status=e.status_code)
+          return AccessDeniedException(
+              'Rate limit exceeded. Please retry this '
+              'request later.',
+              status=e.status_code)
         elif 'Access Not Configured' in str(e):
           return AccessDeniedException(
               'Access Not Configured. Please go to the Google Cloud Platform '
@@ -256,17 +249,18 @@ class PubsubApi(object):
           # If the service includes insufficient scope error detail in the
           # response body, this check can be removed.
           return AccessDeniedException(
-              _INSUFFICIENT_OAUTH2_SCOPE_MESSAGE, status=e.status_code,
+              _INSUFFICIENT_OAUTH2_SCOPE_MESSAGE,
+              status=e.status_code,
               body=self._GetAcceptableScopesFromHttpError(e))
         else:
           return AccessDeniedException(message or e.message,
                                        status=e.status_code)
       elif e.status_code == 404:
-        return NotFoundException(e.message, status=e.status_code)
+        return NotFoundException(message, status=e.status_code)
 
       elif e.status_code == 409 and topic_name:
-        return ServiceException(
-            'The topic %s already exists.' % topic_name, status=e.status_code)
+        return ServiceException('The topic %s already exists.' % topic_name,
+                                status=e.status_code)
       elif e.status_code == 412:
         return PreconditionException(message, status=e.status_code)
       return ServiceException(message, status=e.status_code)

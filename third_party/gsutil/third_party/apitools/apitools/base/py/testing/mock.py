@@ -191,8 +191,40 @@ class _MockedMethod(object):
         self.__mocked_client = mocked_client
         self.__real_method = real_method
         self.method_config = real_method.method_config
+        config = self.method_config()
+        self.__request_type = getattr(self.__mocked_client.MESSAGES_MODULE,
+                                      config.request_type_name)
+        self.__response_type = getattr(self.__mocked_client.MESSAGES_MODULE,
+                                       config.response_type_name)
 
-    def Expect(self, request, response=None, exception=None, **unused_kwargs):
+    def _TypeCheck(self, msg, is_request):
+        """Ensure the given message is of the expected type of this method.
+
+        Args:
+          msg: The message instance to check.
+          is_request: True to validate against the expected request type,
+             False to validate against the expected response type.
+
+        Raises:
+          exceptions.ConfigurationValueError: If the type of the message was
+             not correct.
+        """
+        if is_request:
+            mode = 'request'
+            real_type = self.__request_type
+        else:
+            mode = 'response'
+            real_type = self.__response_type
+
+        if not isinstance(msg, real_type):
+            raise exceptions.ConfigurationValueError(
+                'Expected {} is not of the correct type for method [{}].\n'
+                '   Required: [{}]\n'
+                '   Given:    [{}]'.format(
+                    mode, self.__key, real_type, type(msg)))
+
+    def Expect(self, request, response=None, exception=None,
+               enable_type_checking=True, **unused_kwargs):
         """Add an expectation on the mocked method.
 
         Exactly one of response and exception should be specified.
@@ -202,11 +234,20 @@ class _MockedMethod(object):
           response: The response that should be returned or None if
               exception is provided.
           exception: An exception that should be thrown, or None.
-
+          enable_type_checking: When true, the message type of the request
+              and response (if provided) will be checked against the types
+              required by this method.
         """
         # TODO(jasmuth): the unused_kwargs provides a placeholder for
         # future things that can be passed to Expect(), like special
         # params to the method call.
+
+        # Ensure that the registered request and response mocks actually
+        # match what this method accepts and returns.
+        if enable_type_checking:
+            self._TypeCheck(request, is_request=True)
+            if response:
+                self._TypeCheck(response, is_request=False)
 
         # pylint: disable=protected-access
         # Class in same module.

@@ -15,6 +15,9 @@
 """Helper functions for testing calls to the Rewrite API."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 
 class RewriteHaltException(Exception):
@@ -46,8 +49,8 @@ class EnsureRewriteResumeCallbackHandler(object):
     if total_bytes_rewritten <= self._required_byte:
       raise RewriteHaltException(
           'Rewrite did not resume; %s bytes written, but %s bytes should '
-          'have already been written.' % (total_bytes_rewritten,
-                                          self._required_byte))
+          'have already been written.' %
+          (total_bytes_rewritten, self._required_byte))
 
 
 class EnsureRewriteRestartCallbackHandler(object):
@@ -68,5 +71,5 @@ class EnsureRewriteRestartCallbackHandler(object):
       else:
         raise RewriteHaltException(
             'Rewrite did not restart; %s bytes written, but no more than %s '
-            'bytes should have already been written.' % (total_bytes_rewritten,
-                                                         self._required_byte))
+            'bytes should have already been written.' %
+            (total_bytes_rewritten, self._required_byte))

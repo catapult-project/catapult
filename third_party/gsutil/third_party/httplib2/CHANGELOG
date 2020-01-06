@@ -1,3 +1,43 @@
+0.11.3
+
+  No changes, just reupload of 0.11.2 after fixing automatic release conditions in Travis.
+
+0.11.2
+
+  proxy: py3 NameError basestring
+  https://github.com/httplib2/httplib2/pull/100
+
+0.11.1
+
+  Fix HTTP(S)ConnectionWithTimeout AttributeError proxy_info
+  https://github.com/httplib2/httplib2/pull/97
+
+0.11.0
+
+  Add DigiCert Global Root G2 serial 033af1e6a711a9a0bb2864b11d09fae5
+  https://github.com/httplib2/httplib2/pull/91
+
+  python3 proxy support
+  https://github.com/httplib2/httplib2/pull/90
+
+  If no_proxy environment value ends with comma then proxy is not used
+  https://github.com/httplib2/httplib2/issues/11
+
+  fix UnicodeDecodeError using socks5 proxy
+  https://github.com/httplib2/httplib2/pull/64
+
+  Respect NO_PROXY env var in proxy_info_from_url
+  https://github.com/httplib2/httplib2/pull/58
+
+  NO_PROXY=bar was matching foobar (suffix without dot delimiter)
+  New behavior matches curl/wget:
+  - no_proxy=foo.bar will only skip proxy for exact hostname match
+  - no_proxy=.wild.card will skip proxy for any.subdomains.wild.card
+  https://github.com/httplib2/httplib2/issues/94
+
+  Bugfix for Content-Encoding: deflate
+  https://stackoverflow.com/a/22311297
+
 0.10.3
 
   Fix certificate validation on Python<=2.7.8 without ssl.CertificateError
@@ -180,7 +220,7 @@
 
       #12 - Cache-Control: only-if-cached incorrectly does request if item not in cache
       #39 - Deprecation warnings in Python 2.6
-      #54 - Http.request fails accesing Google account via http proxy
+      #54 - Http.request fails accessing Google account via http proxy
       #56 - Block on response.read() for HEAD requests.
       #57 - Timeout ignore for Python 2.6
       #58 - Fixed parsing of Cache-Control: header to make it more robust
@@ -232,7 +272,7 @@
    the credentials to being only used on that domain.
 
    Added Http.add_certificate() which allows setting
-   a key and cert for SSL connnections.
+   a key and cert for SSL connections.
 
    Many other bugs fixed.
 
@@ -249,7 +289,7 @@
 
    Change Response._previous to Response.previous.
 
-   Addded Http.follow_all_redirects which forces
+   Added Http.follow_all_redirects which forces
    httplib2 to follow all redirects, as opposed to
    following only the safe redirects. This makes the
    GData protocol easier to use.

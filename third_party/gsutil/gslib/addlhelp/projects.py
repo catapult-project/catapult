@@ -15,6 +15,9 @@
 """Additional help about Google Cloud Storage projects."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from gslib.help_provider import HelpProvider
 
@@ -104,8 +107,14 @@ class CommandOptions(HelpProvider):
   help_spec = HelpProvider.HelpSpec(
       help_name='projects',
       help_name_aliases=[
-          'apis console', 'cloud console', 'console', 'dev console', 'project',
-          'proj', 'project-id'],
+          'apis console',
+          'cloud console',
+          'console',
+          'dev console',
+          'project',
+          'proj',
+          'project-id',
+      ],
       help_type='additional_help',
       help_one_line_summary='Working With Projects',
       help_text=_DETAILED_HELP_TEXT,

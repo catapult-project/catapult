@@ -15,11 +15,15 @@
 """FilePart implementation for representing part of a file."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import os
+import io
 
 
-class FilePart(file):
+class FilePart(io.IOBase):
   """Subclass of the file API for representing part of a file.
 
   This class behaves as a contiguous subset of a given file (e.g., this object

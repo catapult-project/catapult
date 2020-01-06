@@ -1,0 +1,42 @@
+language: python
+
+matrix:
+  include:
+    # Trusty Tests
+    - os: linux
+      dist: trusty
+      python: "pypy"
+    # Xenial Tests
+    - os: linux
+      dist: xenial
+      python: "2.7"
+    - os: linux
+      dist: xenial
+      python: "3.5"
+    - os: linux
+      dist: xenial
+      python: "3.6"
+    - os: linux
+      dist: xenial
+      python: "3.7"
+    - os: linux
+      dist: xenial
+      python: "pypy3.5"
+  fast_finish: true
+
+before_install:
+  - sudo rm -f /etc/boto.cfg
+
+# command to install dependencies
+install:
+  - pip install .
+  - pip install pylint
+  - pip install yapf
+
+# command to run tests
+script:
+  - gsutil version -l
+  - gsutil test -u
+  - if [[ "$TRAVIS_PYTHON_VERSION" =~ 3.6 ]]; then yapf -dr . ; fi
+  - test/run_pylint.sh
+

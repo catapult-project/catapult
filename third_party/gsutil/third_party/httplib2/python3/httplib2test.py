@@ -1630,5 +1630,11 @@ class TestProxyInfo(unittest.TestCase):
         pi = httplib2.ProxyInfo(httplib2.socks.PROXY_TYPE_HTTP, 'localhost', 1234, proxy_headers = headers)
         self.assertEqual(pi.proxy_headers, headers)
 
+    # regression: ensure that httplib2.HTTPConnectionWithTimeout initializes when proxy_info is not supplied
+    def test_proxy_init(self):
+        connection = httplib2.HTTPConnectionWithTimeout('www.google.com', 80)
+        connection.request('GET', '/')
+        connection.close()
+
 if __name__ == '__main__':
     unittest.main()

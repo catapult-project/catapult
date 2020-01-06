@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Setup installation module for gsutil."""
 
 import os
@@ -22,6 +21,8 @@ from setuptools import find_packages
 from setuptools import setup
 from setuptools.command import build_py
 from setuptools.command import sdist
+
+long_desc_content_type = 'text/plain'
 
 long_desc = """
 gsutil is a Python application that lets you access Google Cloud Storage from
@@ -36,35 +37,25 @@ management tasks, including:
 
 requires = [
     'argcomplete>=1.9.4',
-    'boto==2.48.0',
     'crcmod>=1.7',
     'fasteners>=0.14.1',
-    'gcs-oauth2-boto-plugin>=1.14',
-    'google-apitools>=0.5.22',
-    'httplib2>=0.10.3',
+    'gcs-oauth2-boto-plugin>=2.5',
+    'google-apitools>=0.5.30',
+    'httplib2>=0.11.3',
+    'google-reauth>=0.1.0',
     # TODO: Sync submodule with tag referenced here once #339 is fixed in mock.
     'mock==2.0.0',
     'monotonic>=1.4',
-    'oauth2client==4.1.2',
+    'oauth2client==4.1.3',
     'pyOpenSSL>=0.13',
-    'python-gflags>=2.0',
     'retry_decorator>=1.0.0',
-    'six>=1.9.0',
+    'six>=1.12.0',
     # Not using 1.02 because of:
     #   https://code.google.com/p/socksipy-branch/issues/detail?id=3
     'SocksiPy-branch==1.01',
 ]
 
-dependency_links = [
-    # Note: this commit ID should be kept in sync with the 'third_party/boto'
-    # entry in 'git submodule status'.
-    # pylint: disable=line-too-long
-    'https://github.com/boto/boto/archive/6c5b98861d726fdd5e05702972b14692e73e84f4.tar.gz#egg=boto-2.48.0',
-    # pylint: enable=line-too-long
-]
-
 CURDIR = os.path.abspath(os.path.dirname(__file__))
-BOTO_DIR = os.path.join(CURDIR, 'third_party', 'boto')
 
 with open(os.path.join(CURDIR, 'VERSION'), 'r') as f:
   VERSION = f.read().strip()
@@ -85,31 +76,6 @@ def PlaceNeededFiles(self, target_dir):
   # Copy the gsutil root CHECKSUM file into gslib module.
   with open(os.path.join(target_dir, 'CHECKSUM'), 'w') as fp:
     fp.write(CHECKSUM)
-
-  # Copy the Boto test module required by gsutil unit tests.
-  tests_dir = os.path.join(target_dir, 'tests')
-  self.mkpath(tests_dir)
-  mock_storage_dst = os.path.join(tests_dir, 'mock_storage_service.py')
-  mock_storage_src1 = os.path.join(
-      BOTO_DIR, 'tests', 'integration', 's3', 'mock_storage_service.py')
-  mock_storage_src2 = os.path.join(
-      CURDIR, 'gslib', 'tests', 'mock_storage_service.py')
-  mock_storage_src = (
-      mock_storage_src1
-      if os.path.isfile(mock_storage_src1) else mock_storage_src2)
-  if not os.path.isfile(mock_storage_src):
-    raise Exception('Unable to find required boto test source file at %s or %s.'
-                    % (mock_storage_src1, mock_storage_src2))
-  with open(mock_storage_src, 'r') as fp:
-    mock_storage_contents = fp.read()
-  with open(mock_storage_dst, 'w') as fp:
-    fp.write('#\n'
-             '# This file was copied during gsutil package generation from\n'
-             '# the Boto test suite, originally located at:\n'
-             '#   tests/integration/s3/mock_storage_service.py\n'
-             '# DO NOT MODIFY\n'
-             '#\n\n')
-    fp.write(mock_storage_contents)
 
 
 class CustomBuildPy(build_py.build_py):
@@ -149,6 +115,7 @@ setup(
     description=('A command line tool for interacting with cloud storage '
                  'services.'),
     long_description=long_desc,
+    long_description_content_type=long_desc_content_type,
     zip_safe=True,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -159,23 +126,33 @@ setup(
         'Natural Language :: English',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: System :: Filesystems',
         'Topic :: Utilities',
     ],
+    # Gsutil supports Python 2.7, 3.5+
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4',
     platforms='any',
-    packages=find_packages(exclude=['third_party']),
+    packages=find_packages(
+        exclude=[
+            # Packages under third_party are installed separately as
+            # dependencies (see the "requires" list above). Note that we do not
+            # exclude vendored dependencies (under gslib/vendored), as our
+            # vendored versions may differ slightly from the official versions.
+            'third_party',
+        ],
+    ),
     include_package_data=True,
     entry_points={
-        'console_scripts': [
-            'gsutil = gslib.__main__:main',
-        ],
+        'console_scripts': ['gsutil = gslib.__main__:main',],
     },
     install_requires=requires,
-    dependency_links=dependency_links,
     cmdclass={
         'build_py': CustomBuildPy,
         'sdist': CustomSDist,
-    }
+    },
 )

@@ -15,6 +15,9 @@
 """Impl. of default bucket storage class command for Google Cloud Storage."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from gslib import metrics
 from gslib.command import Command
@@ -24,8 +27,8 @@ from gslib.exception import CommandException
 from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.help_provider import CreateHelpText
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
-from gslib.util import NO_MAX
-from gslib.util import NormalizeStorageClass
+from gslib.utils.constants import NO_MAX
+from gslib.utils.text_util import NormalizeStorageClass
 
 _SET_SYNOPSIS = """
   gsutil defstorageclass set <storage-class> bucket_url...
@@ -79,20 +82,16 @@ class DefStorageClassCommand(Command):
       file_url_ok=False,
       provider_url_ok=False,
       urls_start_arg=2,
-      gs_api_support=[
-          ApiSelector.XML,
-          ApiSelector.JSON],
+      gs_api_support=[ApiSelector.XML, ApiSelector.JSON],
       gs_default_api=ApiSelector.JSON,
       argparse_arguments={
           'set': [
               # FreeTextArgument allows for using storage class abbreviations.
               CommandArgument.MakeFreeTextArgument(),
-              CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument()
+              CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument(),
           ],
-          'get': [
-              CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument()
-          ],
-      }
+          'get': [CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument(),],
+      },
   )
   # Help specification. See help_provider.py for documentation.
   help_spec = Command.HelpSpec(
@@ -102,7 +101,9 @@ class DefStorageClassCommand(Command):
       help_one_line_summary='Get or set the default storage class on buckets',
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={
-          'get': _get_help_text, 'set': _set_help_text},
+          'get': _get_help_text,
+          'set': _set_help_text,
+      },
   )
 
   def _CheckIsGsUrl(self, url_str):
@@ -138,9 +139,10 @@ class DefStorageClassCommand(Command):
         self.logger.info('Setting default storage class to "%s" for bucket %s' %
                          (normalized_storage_class, blr.url_string.rstrip('/')))
         bucket_metadata.storageClass = normalized_storage_class
-        self.gsutil_api.PatchBucket(
-            blr.storage_url.bucket_name, bucket_metadata,
-            provider=blr.storage_url.scheme, fields=['id'])
+        self.gsutil_api.PatchBucket(blr.storage_url.bucket_name,
+                                    bucket_metadata,
+                                    provider=blr.storage_url.scheme,
+                                    fields=['id'])
     if not some_matched:
       raise CommandException(NO_URLS_MATCHED_TARGET % list(url_args))
 
@@ -151,12 +153,12 @@ class DefStorageClassCommand(Command):
     some_matched = False
     for url_str in url_args:
       self._CheckIsGsUrl(url_str)
-      bucket_iter = self.GetBucketUrlIterFromArg(
-          url_str, bucket_fields=['storageClass'])
+      bucket_iter = self.GetBucketUrlIterFromArg(url_str,
+                                                 bucket_fields=['storageClass'])
       for blr in bucket_iter:
         some_matched = True
-        print '%s: %s' % (blr.url_string.rstrip('/'),
-                          blr.root_object.storageClass)
+        print('%s: %s' %
+              (blr.url_string.rstrip('/'), blr.root_object.storageClass))
     if not some_matched:
       raise CommandException(NO_URLS_MATCHED_TARGET % list(url_args))
 
@@ -171,10 +173,10 @@ class DefStorageClassCommand(Command):
       normalized_storage_class = NormalizeStorageClass(self.args[0])
       subcommand_args.append(normalized_storage_class)
     else:
-      raise CommandException((
-          'Invalid subcommand "%s" for the %s command.\n'
-          'See "gsutil help %s".') % (
-              action_subcommand, self.command_name, self.command_name))
+      raise CommandException(
+          ('Invalid subcommand "%s" for the %s command.\n'
+           'See "gsutil help %s".') %
+          (action_subcommand, self.command_name, self.command_name))
     metrics.LogCommandParams(subcommands=subcommand_args)
     func()
     return 0

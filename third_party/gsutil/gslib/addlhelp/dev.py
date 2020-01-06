@@ -15,6 +15,9 @@
 """Additional help about contributing code to gsutil."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 from gslib.help_provider import HelpProvider
 
@@ -114,20 +117,15 @@ _DETAILED_HELP_TEXT = ("""
   9. Please consider contributing test code for your change, especially if the
      change impacts any of the core gsutil code (like the gsutil cp command).
 
-  10. When it's time to send us code, please use the Rietveld code review tool
-      rather than simply sending us a code patch. Do this as follows:
+  10. Please run the yapf linter with the config files in the root of the GitHub
+      repository.
 
-      - Check out the gsutil code from your fork of the gsutil repository and
-        apply your changes.
-      - Download the "upload.py" script from
-        https://github.com/rietveld-codereview/rietveld
-      - Run upload.py from your git directory with the changes.
-      - Click the codereview.appspot.com link it generates, click "Edit Issue",
-        and add mfschwartz@google.com and thobrla@google.com as reviewers, and
-        Cc gs-team@google.com.
-      - Click Publish+Mail Comments.
-      - Once your changes are accepted, submit a pull request on GitHub and we
-        will merge your commits.
+        yapf -irp .
+
+  11. When it's time to send us code, please submit a PR to the `gsutil GitHub
+      repository <https://github.com/GoogleCloudPlatform/gsutil>`_. For help on
+      making GitHub PRs, please refer to this
+      `GitHub help document <https://help.github.com/en/articles/about-pull-requests>`_.
 """)
 
 
@@ -139,7 +137,12 @@ class CommandOptions(HelpProvider):
   help_spec = HelpProvider.HelpSpec(
       help_name='dev',
       help_name_aliases=[
-          'development', 'developer', 'code', 'mods', 'software'],
+          'development',
+          'developer',
+          'code',
+          'mods',
+          'software',
+      ],
       help_type='additional_help',
       help_one_line_summary='Contributing Code to gsutil',
       help_text=_DETAILED_HELP_TEXT,

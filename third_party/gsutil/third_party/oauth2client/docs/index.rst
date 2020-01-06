@@ -1,6 +1,14 @@
 oauth2client
 ============
 
+.. note:: oauth2client is now deprecated. No more features will be added to the
+libraries and the core team is turning down support. We recommend you use
+`google-auth`_ and `oauthlib`_. For more details on the deprecation, see `oauth2client deprecation`_.
+
+.. _google-auth: https://google-auth.readthedocs.io
+.. _oauthlib: http://oauthlib.readthedocs.io/
+.. _oauth2client deprecation: https://google-auth.readthedocs.io/en/latest/oauth2client-deprecation.html
+
 *making OAuth2 just a little less painful*
 
 ``oauth2client`` makes it easy to interact with OAuth2-protected resources,

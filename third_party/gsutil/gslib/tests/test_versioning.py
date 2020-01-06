@@ -15,10 +15,13 @@
 """Integration tests for versioning command."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import gslib.tests.testcase as testcase
 from gslib.tests.util import ObjectToURI as suri
-from gslib.util import Retry
+from gslib.utils.retry_util import Retry
 
 
 class TestVersioning(testcase.GsUtilIntegrationTestCase):
@@ -29,8 +32,8 @@ class TestVersioning(testcase.GsUtilIntegrationTestCase):
 
   def test_off_default(self):
     bucket_uri = self.CreateBucket()
-    stdout = self.RunGsUtil(
-        self._get_ver_cmd + [suri(bucket_uri)], return_stdout=True)
+    stdout = self.RunGsUtil(self._get_ver_cmd + [suri(bucket_uri)],
+                            return_stdout=True)
     self.assertEqual(stdout.strip(), '%s: Suspended' % suri(bucket_uri))
 
   def test_turning_on(self):
@@ -40,9 +43,10 @@ class TestVersioning(testcase.GsUtilIntegrationTestCase):
     # Work around eventual consistency for S3 versioning.
     @Retry(AssertionError, tries=3, timeout_secs=1)
     def _Check1():
-      stdout = self.RunGsUtil(
-          self._get_ver_cmd + [suri(bucket_uri)], return_stdout=True)
+      stdout = self.RunGsUtil(self._get_ver_cmd + [suri(bucket_uri)],
+                              return_stdout=True)
       self.assertEqual(stdout.strip(), '%s: Enabled' % suri(bucket_uri))
+
     _Check1()
 
   def test_turning_off(self):
@@ -52,9 +56,10 @@ class TestVersioning(testcase.GsUtilIntegrationTestCase):
     # Work around eventual consistency for S3 versioning.
     @Retry(AssertionError, tries=3, timeout_secs=1)
     def _Check1():
-      stdout = self.RunGsUtil(
-          self._get_ver_cmd + [suri(bucket_uri)], return_stdout=True)
+      stdout = self.RunGsUtil(self._get_ver_cmd + [suri(bucket_uri)],
+                              return_stdout=True)
       self.assertEqual(stdout.strip(), '%s: Enabled' % suri(bucket_uri))
+
     _Check1()
 
     self.RunGsUtil(self._set_ver_cmd + ['off', suri(bucket_uri)])
@@ -62,25 +67,29 @@ class TestVersioning(testcase.GsUtilIntegrationTestCase):
     # Work around eventual consistency for S3 versioning.
     @Retry(AssertionError, tries=3, timeout_secs=1)
     def _Check2():
-      stdout = self.RunGsUtil(
-          self._get_ver_cmd + [suri(bucket_uri)], return_stdout=True)
+      stdout = self.RunGsUtil(self._get_ver_cmd + [suri(bucket_uri)],
+                              return_stdout=True)
       self.assertEqual(stdout.strip(), '%s: Suspended' % suri(bucket_uri))
+
     _Check2()
 
   def testTooFewArgumentsFails(self):
     """Ensures versioning commands fail with too few arguments."""
     # No arguments for set, but valid subcommand.
-    stderr = self.RunGsUtil(self._set_ver_cmd, return_stderr=True,
+    stderr = self.RunGsUtil(self._set_ver_cmd,
+                            return_stderr=True,
                             expected_status=1)
     self.assertIn('command requires at least', stderr)
 
     # No arguments for get, but valid subcommand.
-    stderr = self.RunGsUtil(self._get_ver_cmd, return_stderr=True,
+    stderr = self.RunGsUtil(self._get_ver_cmd,
+                            return_stderr=True,
                             expected_status=1)
     self.assertIn('command requires at least', stderr)
 
     # Neither arguments nor subcommand.
-    stderr = self.RunGsUtil(['versioning'], return_stderr=True,
+    stderr = self.RunGsUtil(['versioning'],
+                            return_stderr=True,
                             expected_status=1)
     self.assertIn('command requires at least', stderr)
 

@@ -25,6 +25,10 @@
 # SOFTWARE.
 #-----------------------------------------------------------------------------
 
+import sys
+if sys.version_info.major > 2:
+  long = int
+
 def _crc8(data, crc, table):
     crc = crc & 0xFF
     for x in data:
@@ -62,26 +66,26 @@ def _crc24r(data, crc, table):
     return crc
 
 def _crc32(data, crc, table):
-    crc = crc & 0xFFFFFFFFL
+    crc = crc & long(0xFFFFFFFF)
     for x in data:
-        crc = table[ord(x) ^ (int(crc>>24) & 0xFF)] ^ ((crc << 8) & 0xFFFFFF00L)
+        crc = table[ord(x) ^ (int(crc>>24) & 0xFF)] ^ ((crc << 8) & long(0xFFFFFF00))
     return crc
 
 def _crc32r(data, crc, table):
-    crc = crc & 0xFFFFFFFFL
+    crc = crc & long(0xFFFFFFFF)
     for x in data:
-        crc = table[ord(x) ^ int(crc & 0xFFL)] ^ (crc >> 8)
+        crc = table[ord(x) ^ int(crc & long(0xFF))] ^ (crc >> 8)
     return crc
 
 def _crc64(data, crc, table):
-    crc = crc & 0xFFFFFFFFFFFFFFFFL
+    crc = crc & long(0xFFFFFFFFFFFFFFFF)
     for x in data:
-        crc = table[ord(x) ^ (int(crc>>56) & 0xFF)] ^ ((crc << 8) & 0xFFFFFFFFFFFFFF00L)
+        crc = table[ord(x) ^ (int(crc>>56) & 0xFF)] ^ ((crc << 8) & long(0xFFFFFFFFFFFFFF00))
     return crc
 
 def _crc64r(data, crc, table):
-    crc = crc & 0xFFFFFFFFFFFFFFFFL
+    crc = crc & long(0xFFFFFFFFFFFFFFFF)
     for x in data:
-        crc = table[ord(x) ^ int(crc & 0xFFL)] ^ (crc >> 8)
+        crc = table[ord(x) ^ int(crc & long(0xFF))] ^ (crc >> 8)
     return crc
 

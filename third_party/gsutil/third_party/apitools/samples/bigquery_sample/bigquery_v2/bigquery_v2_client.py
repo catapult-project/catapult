@@ -24,7 +24,7 @@ class BigqueryV2(base_api.BaseApiClient):
                get_credentials=True, http=None, model=None,
                log_request=False, log_response=False,
                credentials_args=None, default_global_params=None,
-               additional_http_headers=None):
+               additional_http_headers=None, response_encoding=None):
     """Create a new bigquery handle."""
     url = url or self.BASE_URL
     super(BigqueryV2, self).__init__(
@@ -33,7 +33,8 @@ class BigqueryV2(base_api.BaseApiClient):
         log_request=log_request, log_response=log_response,
         credentials_args=credentials_args,
         default_global_params=default_global_params,
-        additional_http_headers=additional_http_headers)
+        additional_http_headers=additional_http_headers,
+        response_encoding=response_encoding)
     self.datasets = self.DatasetsService(self)
     self.jobs = self.JobsService(self)
     self.projects = self.ProjectsService(self)
@@ -51,7 +52,7 @@ class BigqueryV2(base_api.BaseApiClient):
           }
 
     def Delete(self, request, global_params=None):
-      """Deletes the dataset specified by the datasetId value. Before you can delete a dataset, you must delete all its tables, either manually or by specifying deleteContents. Immediately after deletion, you can create another dataset with the same name.
+      r"""Deletes the dataset specified by the datasetId value. Before you can delete a dataset, you must delete all its tables, either manually or by specifying deleteContents. Immediately after deletion, you can create another dataset with the same name.
 
       Args:
         request: (BigqueryDatasetsDeleteRequest) input message
@@ -77,7 +78,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def Get(self, request, global_params=None):
-      """Returns the dataset specified by datasetID.
+      r"""Returns the dataset specified by datasetID.
 
       Args:
         request: (BigqueryDatasetsGetRequest) input message
@@ -103,7 +104,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def Insert(self, request, global_params=None):
-      """Creates a new empty dataset.
+      r"""Creates a new empty dataset.
 
       Args:
         request: (BigqueryDatasetsInsertRequest) input message
@@ -129,7 +130,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def List(self, request, global_params=None):
-      """Lists all datasets in the specified project to which you have been granted the READER dataset role.
+      r"""Lists all datasets in the specified project to which you have been granted the READER dataset role.
 
       Args:
         request: (BigqueryDatasetsListRequest) input message
@@ -155,7 +156,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def Patch(self, request, global_params=None):
-      """Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource. This method supports patch semantics.
+      r"""Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource. This method supports patch semantics.
 
       Args:
         request: (BigqueryDatasetsPatchRequest) input message
@@ -181,7 +182,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def Update(self, request, global_params=None):
-      """Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource.
+      r"""Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource.
 
       Args:
         request: (BigqueryDatasetsUpdateRequest) input message
@@ -225,7 +226,7 @@ class BigqueryV2(base_api.BaseApiClient):
           }
 
     def Cancel(self, request, global_params=None):
-      """Requests that a job be cancelled. This call will return immediately, and the client will need to poll for the job status to see if the cancel completed successfully. Cancelled jobs may still incur costs.
+      r"""Requests that a job be cancelled. This call will return immediately, and the client will need to poll for the job status to see if the cancel completed successfully. Cancelled jobs may still incur costs.
 
       Args:
         request: (BigqueryJobsCancelRequest) input message
@@ -251,7 +252,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def Get(self, request, global_params=None):
-      """Returns information about a specific job. Job information is available for a six month period after creation. Requires that you're the person who ran the job, or have the Is Owner project role.
+      r"""Returns information about a specific job. Job information is available for a six month period after creation. Requires that you're the person who ran the job, or have the Is Owner project role.
 
       Args:
         request: (BigqueryJobsGetRequest) input message
@@ -277,7 +278,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def GetQueryResults(self, request, global_params=None):
-      """Retrieves the results of a query job.
+      r"""Retrieves the results of a query job.
 
       Args:
         request: (BigqueryJobsGetQueryResultsRequest) input message
@@ -303,7 +304,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def Insert(self, request, global_params=None, upload=None):
-      """Starts a new asynchronous job. Requires the Can View project role.
+      r"""Starts a new asynchronous job. Requires the Can View project role.
 
       Args:
         request: (BigqueryJobsInsertRequest) input message
@@ -333,7 +334,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def List(self, request, global_params=None):
-      """Lists all jobs that you started in the specified project. Job information is available for a six month period after creation. The job list is sorted in reverse chronological order, by job creation time. Requires the Can View project role, or the Is Owner project role if you set the allUsers property.
+      r"""Lists all jobs that you started in the specified project. Job information is available for a six month period after creation. The job list is sorted in reverse chronological order, by job creation time. Requires the Can View project role, or the Is Owner project role if you set the allUsers property.
 
       Args:
         request: (BigqueryJobsListRequest) input message
@@ -359,7 +360,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def Query(self, request, global_params=None):
-      """Runs a BigQuery SQL query synchronously and returns query results if the query completes within a specified timeout.
+      r"""Runs a BigQuery SQL query synchronously and returns query results if the query completes within a specified timeout.
 
       Args:
         request: (BigqueryJobsQueryRequest) input message
@@ -395,7 +396,7 @@ class BigqueryV2(base_api.BaseApiClient):
           }
 
     def List(self, request, global_params=None):
-      """Lists all projects to which you have been granted any project role.
+      r"""Lists all projects to which you have been granted any project role.
 
       Args:
         request: (BigqueryProjectsListRequest) input message
@@ -431,7 +432,7 @@ class BigqueryV2(base_api.BaseApiClient):
           }
 
     def InsertAll(self, request, global_params=None):
-      """Streams data into BigQuery one record at a time without needing to run a load job. Requires the WRITER dataset role.
+      r"""Streams data into BigQuery one record at a time without needing to run a load job. Requires the WRITER dataset role.
 
       Args:
         request: (BigqueryTabledataInsertAllRequest) input message
@@ -457,7 +458,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def List(self, request, global_params=None):
-      """Retrieves table data from a specified set of rows. Requires the READER dataset role.
+      r"""Retrieves table data from a specified set of rows. Requires the READER dataset role.
 
       Args:
         request: (BigqueryTabledataListRequest) input message
@@ -493,7 +494,7 @@ class BigqueryV2(base_api.BaseApiClient):
           }
 
     def Delete(self, request, global_params=None):
-      """Deletes the table specified by tableId from the dataset. If the table contains data, all the data will be deleted.
+      r"""Deletes the table specified by tableId from the dataset. If the table contains data, all the data will be deleted.
 
       Args:
         request: (BigqueryTablesDeleteRequest) input message
@@ -519,7 +520,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def Get(self, request, global_params=None):
-      """Gets the specified table resource by table ID. This method does not return the data in the table, it only returns the table resource, which describes the structure of this table.
+      r"""Gets the specified table resource by table ID. This method does not return the data in the table, it only returns the table resource, which describes the structure of this table.
 
       Args:
         request: (BigqueryTablesGetRequest) input message
@@ -545,7 +546,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def Insert(self, request, global_params=None):
-      """Creates a new, empty table in the dataset.
+      r"""Creates a new, empty table in the dataset.
 
       Args:
         request: (BigqueryTablesInsertRequest) input message
@@ -571,7 +572,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def List(self, request, global_params=None):
-      """Lists all tables in the specified dataset. Requires the READER dataset role.
+      r"""Lists all tables in the specified dataset. Requires the READER dataset role.
 
       Args:
         request: (BigqueryTablesListRequest) input message
@@ -597,7 +598,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def Patch(self, request, global_params=None):
-      """Updates information in an existing table. The update method replaces the entire table resource, whereas the patch method only replaces fields that are provided in the submitted table resource. This method supports patch semantics.
+      r"""Updates information in an existing table. The update method replaces the entire table resource, whereas the patch method only replaces fields that are provided in the submitted table resource. This method supports patch semantics.
 
       Args:
         request: (BigqueryTablesPatchRequest) input message
@@ -623,7 +624,7 @@ class BigqueryV2(base_api.BaseApiClient):
     )
 
     def Update(self, request, global_params=None):
-      """Updates information in an existing table. The update method replaces the entire table resource, whereas the patch method only replaces fields that are provided in the submitted table resource.
+      r"""Updates information in an existing table. The update method replaces the entire table resource, whereas the patch method only replaces fields that are provided in the submitted table resource.
 
       Args:
         request: (BigqueryTablesUpdateRequest) input message

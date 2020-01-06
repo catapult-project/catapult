@@ -36,7 +36,7 @@ import six
 from apitools.base.protorpclite import descriptor as protorpc_descriptor
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
-import apitools.base.py as apitools_base
+from apitools.base.py import extra_types
 
 
 class ExtendedEnumValueDescriptor(messages.Message):
@@ -373,7 +373,7 @@ class _ProtoRpcPrinter(ProtoPrinter):
 
     def __PrintEnumDocstringLines(self, enum_type):
         description = enum_type.description or '%s enum type.' % enum_type.name
-        for line in textwrap.wrap('"""%s' % description,
+        for line in textwrap.wrap('r"""%s' % description,
                                   self.__printer.CalculateWidth()):
             self.__printer(line)
         PrintIndentedDescriptions(self.__printer, enum_type.values, 'Values')
@@ -433,9 +433,9 @@ class _ProtoRpcPrinter(ProtoPrinter):
             if short_description:
                 # Note that we use explicit string interpolation here since
                 # we're in comment context.
-                self.__printer('"""%s"""' % description)
+                self.__printer('r"""%s"""' % description)
                 return
-            for line in textwrap.wrap('"""%s' % description,
+            for line in textwrap.wrap('r"""%s' % description,
                                       self.__printer.CalculateWidth()):
                 self.__printer(line)
 
@@ -507,7 +507,7 @@ def _PrintFields(fields, printer):
             field_type = message_field
         elif field.type_name == 'extra_types.DateField':
             printed_field_info['module'] = 'extra_types'
-            field_type = apitools_base.DateField
+            field_type = extra_types.DateField
         else:
             field_type = messages.Field.lookup_field_type_by_variant(
                 field.variant)

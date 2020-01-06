@@ -12,10 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Contains classes related to argparse-based argument parsing."""
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
-from tab_complete import CompleterType
+from .tab_complete import CompleterType
 
 
 class CommandArgument(object):
@@ -44,56 +47,65 @@ class CommandArgument(object):
   @staticmethod
   def MakeZeroOrMoreCloudURLsArgument():
     """Constructs an argument that takes 0 or more Cloud URLs as parameters."""
-    return CommandArgument(
-        'file', nargs='*', completer=CompleterType.CLOUD_OBJECT)
+    return CommandArgument('file',
+                           nargs='*',
+                           completer=CompleterType.CLOUD_OBJECT)
 
   @staticmethod
   def MakeZeroOrMoreCloudBucketURLsArgument():
     """Constructs an argument that takes 0+ Cloud bucket URLs as parameters."""
-    return CommandArgument(
-        'file', nargs='*', completer=CompleterType.CLOUD_BUCKET)
+    return CommandArgument('file',
+                           nargs='*',
+                           completer=CompleterType.CLOUD_BUCKET)
 
   @staticmethod
   def MakeNCloudBucketURLsArgument(n):
     """Constructs an argument that takes N Cloud bucket URLs as parameters."""
-    return CommandArgument(
-        'file', nargs=n, completer=CompleterType.CLOUD_BUCKET)
+    return CommandArgument('file',
+                           nargs=n,
+                           completer=CompleterType.CLOUD_BUCKET)
 
   @staticmethod
   def MakeNCloudURLsArgument(n):
     """Constructs an argument that takes N Cloud URLs as parameters."""
-    return CommandArgument(
-        'file', nargs=n, completer=CompleterType.CLOUD_OBJECT)
+    return CommandArgument('file',
+                           nargs=n,
+                           completer=CompleterType.CLOUD_OBJECT)
 
   @staticmethod
   def MakeZeroOrMoreCloudOrFileURLsArgument():
     """Constructs an argument that takes 0 or more Cloud or File URLs."""
-    return CommandArgument(
-        'file', nargs='*', completer=CompleterType.CLOUD_OR_LOCAL_OBJECT)
+    return CommandArgument('file',
+                           nargs='*',
+                           completer=CompleterType.CLOUD_OR_LOCAL_OBJECT)
 
   @staticmethod
   def MakeNCloudOrFileURLsArgument(n):
     """Constructs an argument that takes N Cloud or File URLs as parameters."""
-    return CommandArgument(
-        'file', nargs=n, completer=CompleterType.CLOUD_OR_LOCAL_OBJECT)
+    return CommandArgument('file',
+                           nargs=n,
+                           completer=CompleterType.CLOUD_OR_LOCAL_OBJECT)
 
   @staticmethod
   def MakeZeroOrMoreFileURLsArgument():
     """Constructs an argument that takes 0 or more File URLs as parameters."""
-    return CommandArgument(
-        'file', nargs='*', completer=CompleterType.LOCAL_OBJECT)
+    return CommandArgument('file',
+                           nargs='*',
+                           completer=CompleterType.LOCAL_OBJECT)
 
   @staticmethod
   def MakeNFileURLsArgument(n):
     """Constructs an argument that takes N File URLs as parameters."""
-    return CommandArgument(
-        'file', nargs=n, completer=CompleterType.LOCAL_OBJECT)
+    return CommandArgument('file',
+                           nargs=n,
+                           completer=CompleterType.LOCAL_OBJECT)
 
   @staticmethod
   def MakeFileURLOrCannedACLArgument():
     """Constructs an argument that takes a File URL or a canned ACL."""
-    return CommandArgument(
-        'file', nargs=1, completer=CompleterType.LOCAL_OBJECT_OR_CANNED_ACL)
+    return CommandArgument('file',
+                           nargs=1,
+                           completer=CompleterType.LOCAL_OBJECT_OR_CANNED_ACL)
 
   @staticmethod
   def MakeFreeTextArgument():

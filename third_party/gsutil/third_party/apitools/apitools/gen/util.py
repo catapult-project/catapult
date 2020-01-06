@@ -16,14 +16,17 @@
 
 """Assorted utilities shared between parts of apitools."""
 from __future__ import print_function
+from __future__ import unicode_literals
 
 import collections
 import contextlib
+import gzip
 import json
 import keyword
 import logging
 import os
 import re
+import tempfile
 
 import six
 from six.moves import urllib_parse
@@ -223,14 +226,6 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
         return self.package
 
     @property
-    def cli_rule_name(self):
-        return '%s_%s' % (self.package, self.version)
-
-    @property
-    def cli_file_name(self):
-        return '%s.py' % self.cli_rule_name
-
-    @property
     def client_rule_name(self):
         return '%s_%s_client' % (self.package, self.version)
 
@@ -259,10 +254,51 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
         return '%s.proto' % self.services_rule_name
 
 
+def ReplaceHomoglyphs(s):
+    """Returns s with unicode homoglyphs replaced by ascii equivalents."""
+    homoglyphs = {
+        '\xa0': ' ',  # &nbsp; ?
+        '\u00e3': '',  # TODO(gsfowler) drop after .proto spurious char elided
+        '\u00a0': ' ',  # &nbsp; ?
+        '\u00a9': '(C)',  # COPYRIGHT SIGN (would you believe "asciiglyph"?)
+        '\u00ae': '(R)',  # REGISTERED SIGN (would you believe "asciiglyph"?)
+        '\u2014': '-',  # EM DASH
+        '\u2018': "'",  # LEFT SINGLE QUOTATION MARK
+        '\u2019': "'",  # RIGHT SINGLE QUOTATION MARK
+        '\u201c': '"',  # LEFT DOUBLE QUOTATION MARK
+        '\u201d': '"',  # RIGHT DOUBLE QUOTATION MARK
+        '\u2026': '...',  # HORIZONTAL ELLIPSIS
+        '\u2e3a': '-',  # TWO-EM DASH
+    }
+
+    def _ReplaceOne(c):
+        """Returns the homoglyph or escaped replacement for c."""
+        equiv = homoglyphs.get(c)
+        if equiv is not None:
+            return equiv
+        try:
+            c.encode('ascii')
+            return c
+        except UnicodeError:
+            pass
+        try:
+            return c.encode('unicode-escape').decode('ascii')
+        except UnicodeError:
+            return '?'
+
+    return ''.join([_ReplaceOne(c) for c in s])
+
+
 def CleanDescription(description):
     """Return a version of description safe for printing in a docstring."""
     if not isinstance(description, six.string_types):
         return description
+    if six.PY3:
+        # https://docs.python.org/3/reference/lexical_analysis.html#index-18
+        description = description.replace('\\N', '\\\\N')
+        description = description.replace('\\u', '\\\\u')
+        description = description.replace('\\U', '\\\\U')
+    description = ReplaceHomoglyphs(description)
     return description.replace('"""', '" " "')
 
 
@@ -306,8 +342,12 @@ class SimplePrettyPrinter(object):
                 line = (args[0] % args[1:]).rstrip()
             else:
                 line = args[0].rstrip()
-            line = line.encode('ascii', 'backslashreplace')
-            print('%s%s' % (self.__indent, line), file=self.__out)
+            line = ReplaceHomoglyphs(line)
+            try:
+                print('%s%s' % (self.__indent, line), file=self.__out)
+            except UnicodeEncodeError:
+                line = line.encode('ascii', 'backslashreplace').decode('ascii')
+                print('%s%s' % (self.__indent, line), file=self.__out)
         else:
             print('', file=self.__out)
 
@@ -327,6 +367,30 @@ def _NormalizeDiscoveryUrls(discovery_url):
     ]
 
 
+def _Gunzip(gzipped_content):
+    """Returns gunzipped content from gzipped contents."""
+    f = tempfile.NamedTemporaryFile(suffix='gz', mode='w+b', delete=False)
+    try:
+        f.write(gzipped_content)
+        f.close()  # force file synchronization
+        with gzip.open(f.name, 'rb') as h:
+            decompressed_content = h.read()
+        return decompressed_content
+    finally:
+        os.unlink(f.name)
+
+
+def _GetURLContent(url):
+    """Download and return the content of URL."""
+    response = urllib_request.urlopen(url)
+    encoding = response.info().get('Content-Encoding')
+    if encoding == 'gzip':
+        content = _Gunzip(response.read())
+    else:
+        content = response.read()
+    return content
+
+
 def FetchDiscoveryDoc(discovery_url, retries=5):
     """Fetch the discovery document at the given url."""
     discovery_urls = _NormalizeDiscoveryUrls(discovery_url)
@@ -335,7 +399,10 @@ def FetchDiscoveryDoc(discovery_url, retries=5):
     for url in discovery_urls:
         for _ in range(retries):
             try:
-                discovery_doc = json.loads(urllib_request.urlopen(url).read())
+                content = _GetURLContent(url)
+                if isinstance(content, bytes):
+                    content = content.decode('utf8')
+                discovery_doc = json.loads(content)
                 break
             except (urllib_error.HTTPError, urllib_error.URLError) as e:
                 logging.info(

@@ -15,11 +15,14 @@
 """Integration tests for tab completion."""
 
 from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
 
 import os
 import time
 
-from gslib.command import CreateGsutilLogger
+from gslib.command import CreateOrGetGsutilLogger
 from gslib.tab_complete import CloudObjectCompleter
 from gslib.tab_complete import TAB_COMPLETE_CACHE_TTL
 from gslib.tab_complete import TabCompletionCache
@@ -28,7 +31,7 @@ from gslib.tests.util import ARGCOMPLETE_AVAILABLE
 from gslib.tests.util import SetBotoConfigForTest
 from gslib.tests.util import unittest
 from gslib.tests.util import WorkingDirectory
-from gslib.util import GetTabCompletionCacheFilename
+from gslib.utils.boto_util import GetTabCompletionCacheFilename
 
 
 @unittest.skipUnless(ARGCOMPLETE_AVAILABLE,
@@ -38,16 +41,16 @@ class TestTabComplete(testcase.GsUtilIntegrationTestCase):
 
   def setUp(self):
     super(TestTabComplete, self).setUp()
-    self.logger = CreateGsutilLogger('tab_complete')
+    self.logger = CreateOrGetGsutilLogger('tab_complete')
 
   def test_single_bucket(self):
     """Tests tab completion matching a single bucket."""
 
-    bucket_base_name = self.MakeTempName('bucket')
-    bucket_name = bucket_base_name + '-suffix'
+    # Prefix is a workaround for XML API limitation, see PR 766 for details
+    bucket_name = self.MakeTempName('bucket', prefix='aaa-')
     self.CreateBucket(bucket_name)
 
-    request = '%s://%s' % (self.default_provider, bucket_base_name)
+    request = '%s://%s' % (self.default_provider, bucket_name[:-2])
     expected_result = '//%s/' % bucket_name
 
     self.RunGsUtilTabCompletion(['ls', request],
@@ -56,11 +59,11 @@ class TestTabComplete(testcase.GsUtilIntegrationTestCase):
   def test_bucket_only_single_bucket(self):
     """Tests bucket-only tab completion matching a single bucket."""
 
-    bucket_base_name = self.MakeTempName('bucket')
-    bucket_name = bucket_base_name + '-s'
+    bucket_name = self.MakeTempName('bucket', prefix='aaa-')
+    # Workaround for XML API limitation, see PR 766 for details
     self.CreateBucket(bucket_name)
 
-    request = '%s://%s' % (self.default_provider, bucket_base_name)
+    request = '%s://%s' % (self.default_provider, bucket_name[:-2])
     expected_result = '//%s ' % bucket_name
 
     self.RunGsUtilTabCompletion(['rb', request],
@@ -69,12 +72,11 @@ class TestTabComplete(testcase.GsUtilIntegrationTestCase):
   def test_bucket_only_no_objects(self):
     """Tests that bucket-only tab completion doesn't match objects."""
 
-    object_base_name = self.MakeTempName('obj')
-    object_name = object_base_name + '-suffix'
-    object_uri = self.CreateObject(object_name=object_name, contents='data')
+    object_name = self.MakeTempName('obj')
+    object_uri = self.CreateObject(object_name=object_name, contents=b'data')
 
-    request = '%s://%s/%s' % (
-        self.default_provider, object_uri.bucket_name, object_base_name)
+    request = '%s://%s/%s' % (self.default_provider, object_uri.bucket_name,
+                              object_name[:-2])
 
     self.RunGsUtilTabCompletion(['rb', request], expected_results=[])
 
@@ -83,7 +85,7 @@ class TestTabComplete(testcase.GsUtilIntegrationTestCase):
 
     object_base_name = self.MakeTempName('obj')
     object_name = object_base_name + '/subobj'
-    object_uri = self.CreateObject(object_name=object_name, contents='data')
+    object_uri = self.CreateObject(object_name=object_name, contents=b'data')
 
     request = '%s://%s/' % (self.default_provider, object_uri.bucket_name)
     expected_result = '//%s/%s/' % (object_uri.bucket_name, object_base_name)
@@ -94,28 +96,31 @@ class TestTabComplete(testcase.GsUtilIntegrationTestCase):
   def test_multiple_buckets(self):
     """Tests tab completion matching multiple buckets."""
 
-    bucket_base_name = self.MakeTempName('bucket')
-    bucket1_name = bucket_base_name + '-suffix1'
-    self.CreateBucket(bucket1_name)
-    bucket2_name = bucket_base_name + '-suffix2'
-    self.CreateBucket(bucket2_name)
+    base_name = self.MakeTempName('bucket')
+    # Workaround for XML API limitation, see PR 766 for details
+    prefix = 'aaa-'
+    self.CreateBucket(base_name,
+                      bucket_name_prefix=prefix,
+                      bucket_name_suffix='1')
+    self.CreateBucket(base_name,
+                      bucket_name_prefix=prefix,
+                      bucket_name_suffix='2')
 
-    request = '%s://%s' % (self.default_provider, bucket_base_name)
-    expected_result1 = '//%s/' % bucket1_name
-    expected_result2 = '//%s/' % bucket2_name
+    request = '%s://%s' % (self.default_provider, ''.join([prefix, base_name]))
+    expected_result1 = '//%s/' % ''.join([prefix, base_name, '1'])
+    expected_result2 = '//%s/' % ''.join([prefix, base_name, '2'])
 
-    self.RunGsUtilTabCompletion(['ls', request], expected_results=[
-        expected_result1, expected_result2])
+    self.RunGsUtilTabCompletion(
+        ['ls', request], expected_results=[expected_result1, expected_result2])
 
   def test_single_object(self):
     """Tests tab completion matching a single object."""
 
-    object_base_name = self.MakeTempName('obj')
-    object_name = object_base_name + '-suffix'
-    object_uri = self.CreateObject(object_name=object_name, contents='data')
+    object_name = self.MakeTempName('obj')
+    object_uri = self.CreateObject(object_name=object_name, contents=b'data')
 
-    request = '%s://%s/%s' % (
-        self.default_provider, object_uri.bucket_name, object_base_name)
+    request = '%s://%s/%s' % (self.default_provider, object_uri.bucket_name,
+                              object_name[:-2])
     expected_result = '//%s/%s ' % (object_uri.bucket_name, object_name)
 
     self.RunGsUtilTabCompletion(['ls', request],
@@ -128,28 +133,29 @@ class TestTabComplete(testcase.GsUtilIntegrationTestCase):
 
     object_base_name = self.MakeTempName('obj')
     object1_name = object_base_name + '-suffix1'
-    self.CreateObject(
-        bucket_uri=bucket_uri, object_name=object1_name, contents='data')
+    self.CreateObject(bucket_uri=bucket_uri,
+                      object_name=object1_name,
+                      contents=b'data')
     object2_name = object_base_name + '-suffix2'
-    self.CreateObject(
-        bucket_uri=bucket_uri, object_name=object2_name, contents='data')
+    self.CreateObject(bucket_uri=bucket_uri,
+                      object_name=object2_name,
+                      contents=b'data')
 
-    request = '%s://%s/%s' % (
-        self.default_provider, bucket_uri.bucket_name, object_base_name)
+    request = '%s://%s/%s' % (self.default_provider, bucket_uri.bucket_name,
+                              object_base_name)
     expected_result1 = '//%s/%s' % (bucket_uri.bucket_name, object1_name)
     expected_result2 = '//%s/%s' % (bucket_uri.bucket_name, object2_name)
 
-    self.RunGsUtilTabCompletion(['ls', request], expected_results=[
-        expected_result1, expected_result2])
+    self.RunGsUtilTabCompletion(
+        ['ls', request], expected_results=[expected_result1, expected_result2])
 
   def test_subcommands(self):
     """Tests tab completion for commands with subcommands."""
 
-    bucket_base_name = self.MakeTempName('bucket')
-    bucket_name = bucket_base_name + '-suffix'
+    bucket_name = self.MakeTempName('bucket', prefix='aaa-')
     self.CreateBucket(bucket_name)
 
-    bucket_request = '%s://%s' % (self.default_provider, bucket_base_name)
+    bucket_request = '%s://%s' % (self.default_provider, bucket_name[:-2])
     expected_bucket_result = '//%s ' % bucket_name
 
     local_file = 'a_local_file'
@@ -177,7 +183,7 @@ class TestTabComplete(testcase.GsUtilIntegrationTestCase):
     during tab completion may end in a dash and completion should still work.
     """
 
-    bucket_base_name = self.MakeTempName('bucket')
+    bucket_base_name = self.MakeTempName('bucket', prefix='aaa-')
     bucket_name = bucket_base_name + '-s'
     self.CreateBucket(bucket_name)
 
@@ -213,7 +219,9 @@ class TestTabComplete(testcase.GsUtilIntegrationTestCase):
                                   expected_results=[local_file, 'private'])
 
 
-def _WriteTabCompletionCache(prefix, results, timestamp=None,
+def _WriteTabCompletionCache(prefix,
+                             results,
+                             timestamp=None,
                              partial_results=False):
   if timestamp is None:
     timestamp = time.time()
@@ -288,19 +296,20 @@ class TestTabCompleteUnitTests(testcase.unit_testcase.GsUtilUnitTestCase):
     """
 
     with SetBotoConfigForTest([('GSUtil', 'state_dir', self.CreateTempDir())]):
-      object_uri = self.CreateObject(
-          object_name='subdir/subobj', contents='test data')
+      object_uri = self.CreateObject(object_name='subdir/subobj',
+                                     contents=b'test data')
 
-      cached_prefix = '%s://%s/' % (
-          self.default_provider, object_uri.bucket_name)
-      cached_results = ['%s://%s/subdir' % (
-          self.default_provider, object_uri.bucket_name)]
+      cached_prefix = '%s://%s/' % (self.default_provider,
+                                    object_uri.bucket_name)
+      cached_results = [
+          '%s://%s/subdir' % (self.default_provider, object_uri.bucket_name)
+      ]
       _WriteTabCompletionCache(cached_prefix, cached_results)
 
-      request = '%s://%s/subdir/' % (
-          self.default_provider, object_uri.bucket_name)
-      expected_result = '%s://%s/subdir/subobj' % (
-          self.default_provider, object_uri.bucket_name)
+      request = '%s://%s/subdir/' % (self.default_provider,
+                                     object_uri.bucket_name)
+      expected_result = '%s://%s/subdir/subobj' % (self.default_provider,
+                                                   object_uri.bucket_name)
 
       completer = CloudObjectCompleter(self.MakeGsUtilApi())
       results = completer(request)
@@ -316,10 +325,10 @@ class TestTabCompleteUnitTests(testcase.unit_testcase.GsUtilUnitTestCase):
     """
 
     with SetBotoConfigForTest([('GSUtil', 'state_dir', self.CreateTempDir())]):
-      object_uri = self.CreateObject(object_name='obj', contents='test data')
+      object_uri = self.CreateObject(object_name='obj', contents=b'test data')
 
-      cached_prefix = '%s://%s/' % (
-          self.default_provider, object_uri.bucket_name)
+      cached_prefix = '%s://%s/' % (self.default_provider,
+                                    object_uri.bucket_name)
       cached_results = []
       _WriteTabCompletionCache(cached_prefix, cached_results)
 
@@ -339,12 +348,13 @@ class TestTabCompleteUnitTests(testcase.unit_testcase.GsUtilUnitTestCase):
     """
 
     with SetBotoConfigForTest([('GSUtil', 'state_dir', self.CreateTempDir())]):
-      object_uri = self.CreateObject(object_name='obj', contents='test data')
+      object_uri = self.CreateObject(object_name='obj', contents=b'test data')
 
-      cached_prefix = '%s://%s/' % (
-          self.default_provider, object_uri.bucket_name)
+      cached_prefix = '%s://%s/' % (self.default_provider,
+                                    object_uri.bucket_name)
       cached_results = []
-      _WriteTabCompletionCache(cached_prefix, cached_results,
+      _WriteTabCompletionCache(cached_prefix,
+                               cached_results,
                                partial_results=True)
 
       request = '%s://%s/o' % (self.default_provider, object_uri.bucket_name)
