@@ -544,7 +544,12 @@ class DeviceUtils(object):
         # 'eng' builds have root enabled by default and the adb session cannot
         # be unrooted.
         return True
-      if self.product_name in _SPECIAL_ROOT_DEVICE_LIST:
+      # Devices using the system-as-root partition layout appear to not have
+      # a /root directory. See http://bit.ly/37F34sx for more context.
+      if (self.build_system_root_image == 'true'
+          or self.build_version_sdk >= version_codes.Q
+          # This may be redundant with the checks above.
+          or self.product_name in _SPECIAL_ROOT_DEVICE_LIST):
         return self.GetProp('service.adb.root') == '1'
       self.RunShellCommand(['ls', '/root'], check_return=True)
       return True
@@ -570,7 +575,12 @@ class DeviceUtils(object):
     """
     if 'needs_su' not in self._cache:
       cmd = '%s && ! ls /root' % self._Su('ls /root')
-      if self.product_name in _SPECIAL_ROOT_DEVICE_LIST:
+      # Devices using the system-as-root partition layout appear to not have
+      # a /root directory. See http://bit.ly/37F34sx for more context.
+      if (self.build_system_root_image == 'true'
+          or self.build_version_sdk >= version_codes.Q
+          # This may be redundant with the checks above.
+          or self.product_name in _SPECIAL_ROOT_DEVICE_LIST):
         if self.HasRoot():
           self._cache['needs_su'] = False
           return False
@@ -2530,6 +2540,15 @@ class DeviceUtils(object):
   def build_product(self):
     """Returns the build product of the system (e.g. 'grouper')."""
     return self.GetProp('ro.build.product', cache=True)
+
+  @property
+  def build_system_root_image(self):
+    """Returns the system_root_image property.
+
+    This seems to indicate whether the device is using a system-as-root
+    partition layout. See http://bit.ly/37F34sx for more info.
+    """
+    return self.GetProp('ro.build.system_root_image', cache=True)
 
   @property
   def build_type(self):
