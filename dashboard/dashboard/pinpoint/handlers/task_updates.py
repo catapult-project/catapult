@@ -47,11 +47,11 @@ def HandleTaskUpdate(request_body):
                      (error, data))
 
   try:
-    swarming_data = json.loads(decoded_data)
+    update_data = json.loads(decoded_data)
   except ValueError as error:
     raise ValueError('Failed JSON parsing `data` field in `message`: %s (%s)' %
                      (error, data))
-  logging.debug('Received: %s', swarming_data)
+  logging.debug('Received: %s', update_data)
 
   # From the swarming data, we can determine the job id and task id (if
   # there's any) which we can handle appropriately. Swarming will send a
@@ -64,9 +64,14 @@ def HandleTaskUpdate(request_body):
   #
   # In the 'userdata' field we can then use details to use the execution
   # engine, if the job is meant to be executed with the engine.
-  userdata = swarming_data.get('userdata')
+  #
+  # However, if we're receiving data from the buildbucket service, we'll get it
+  # from the 'user_data' field instead.
+  userdata = update_data.get('userdata')
   if not userdata:
-    raise ValueError('Ill-formed swarming update: %s' % (swarming_data,))
+    userdata = update_data.get('user_data')
+    if not userdata:
+      raise ValueError('Ill-formed update: %s' % (update_data,))
 
   pinpoint_data = json.loads(userdata)
   job_id = pinpoint_data.get('job_id')

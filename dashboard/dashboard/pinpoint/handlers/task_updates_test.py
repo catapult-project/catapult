@@ -36,7 +36,7 @@ def CreateBuildUpdate(job, commit_id):
                   json.dumps({
                       'task_id':
                           'some_task_id',
-                      'userdata':
+                      'user_data':
                           json.dumps({
                               'job_id': job.job_id,
                               'task': {

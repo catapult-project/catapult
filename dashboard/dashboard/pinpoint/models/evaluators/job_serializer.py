@@ -194,7 +194,7 @@ class Serializer(evaluators.DispatchByTaskType):
       states = context.get('state', [])
       if states:
         state_changes = {
-            change_module.Change.FromDict(state.get('change'))
+            change_module.ReconstituteChange(state.get('change'))
             for state in states
         }
         order_changes = local_context.get('order_changes', {})
@@ -208,15 +208,16 @@ class Serializer(evaluators.DispatchByTaskType):
         }
         ordered_states = [None] * len(states)
         for state in states:
-          # First, find the change index.
           index = change_index.get(
-              change_module.Change.FromDict(state.get('change')))
+              change_module.ReconstituteChange(state.get('change')))
           if index is not None:
             ordered_states[index] = state
 
         # Merge in the comparisons as they appear for the ordered_states.
         for state, comparison, result in itertools.izip_longest(
             ordered_states, comparisons or [], result_values or []):
+          if state is None:
+            continue
           if comparison is not None:
             state['comparisons'] = comparison
           state['result_values'] = result or []
