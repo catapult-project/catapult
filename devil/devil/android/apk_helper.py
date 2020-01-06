@@ -214,6 +214,9 @@ class BaseApkHelper(object):
   def path(self):
     raise NotImplementedError()
 
+  def __repr__(self):
+    return '%s(%s)' % (self.__class__.__name__, self.path)
+
   def _GetBaseApkPath(self):
     """Returns context manager providing path to this app's base APK.
 
@@ -453,6 +456,10 @@ class SplitApkHelper(BaseApkHelper):
   @property
   def split_apk_paths(self):
     return self._split_apk_paths
+
+  def __repr__(self):
+    return '%s(%s, %s)' % (
+        self.__class__.__name__, self.path, self.split_apk_paths)
 
   def _GetBaseApkPath(self):
     return _NoopFileHelper(self._base_apk_path)
