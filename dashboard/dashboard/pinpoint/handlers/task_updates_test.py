@@ -197,6 +197,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
                              comparison_mode='performance')
     self.PopulateSimpleBisectionGraph(job)
     self.assertTrue(job.use_execution_engine)
+    self.assertFalse(job.running)
     job.Start()
 
     # We are expecting two builds to be scheduled at the start of a bisection.
@@ -208,6 +209,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
 
     # Expect to see the Build quest in the list of quests here.
     job = job_module.JobFromId(job.job_id)
+    self.assertTrue(job.running)
     job_dict = job.AsDict([job_module.OPTION_STATE])
     self.assertEqual(['Build', 'Test'], job_dict.get('quests'))
     self.assertEqual(
@@ -568,6 +570,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     self.assertTrue(job.started)
     self.assertTrue(job.completed)
     self.assertTrue(job.done)
+    self.assertFalse(job.running)
 
     job_dict = job.AsDict([job_module.OPTION_STATE])
     self.assertEqual(job_dict.get('difference_count'), 5)
