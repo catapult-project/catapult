@@ -14,6 +14,7 @@ import logging
 from dashboard.common import timing
 
 from google.appengine.ext import ndb
+from google.appengine.ext import db
 
 __all__ = (
     'PopulateTaskGraph',
@@ -108,7 +109,7 @@ class TaskLog(ndb.Model):
   payload = ndb.JsonProperty(compressed=True, indexed=False)
 
 
-@ndb.transactional
+@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, retries=0)
 def PopulateTaskGraph(job, graph):
   """Populate the Datastore with Task instances associated with a Job.
 
@@ -137,7 +138,7 @@ def PopulateTaskGraph(job, graph):
   ndb.put_multi(tasks.values(), use_cache=True)
 
 
-@ndb.transactional
+@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, retries=0)
 def ExtendTaskGraph(job, vertices, dependencies):
   """Add new vertices and dependency links to the graph.
 
@@ -195,7 +196,7 @@ def ExtendTaskGraph(job, vertices, dependencies):
       use_cache=True)
 
 
-@ndb.transactional
+@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, retries=0)
 def UpdateTask(job, task_id, new_state=None, payload=None):
   """Update a task.
 
@@ -245,11 +246,14 @@ def LogStateTransitionFailures(wrapped_action):
     except InvalidTransition as e:
       logging.error('State transition failed: %s', e)
       return None
+    except db.TransactionFailedError as e:
+      logging.error('Transaction failed: %s', e)
+      return None
 
   return ActionWrapper
 
 
-@ndb.transactional
+@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, retries=0)
 def AppendTasklog(job, task_id, message, payload):
   task_log = TaskLog(
       parent=ndb.Key(Task, task_id, parent=job.key),
@@ -258,7 +262,7 @@ def AppendTasklog(job, task_id, message, payload):
   task_log.put()
 
 
-@ndb.transactional()
+@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, retries=0)
 def _LoadTaskGraph(job):
   with timing.WallTimeLogger('ExecutionEngine:_LoadTaskGraph'):
     tasks = Task.query(ancestor=job.key).fetch()
@@ -328,10 +332,7 @@ def Evaluate(job, event, evaluator):
       # This must not be called in a transaction.
       with timing.WallTimeLogger('ExecutionEngine:ActionRunner<%s>' %
                                  (type(action).__name__,)):
-        ndb.transaction(
-            functools.partial(action, accumulator),
-            # We want to have all transactions to be independent.
-            propagation=ndb.TransactionOptions.INDEPENDENT)
+        action(accumulator)
 
     # Clear the actions and accumulator for this traversal.
     del actions[:]
