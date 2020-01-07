@@ -17,6 +17,7 @@ from dashboard.pinpoint.models import evaluators
 from dashboard.pinpoint.models.change import commit as commit_module
 from dashboard.pinpoint.models.quest import find_isolate as find_isolate_quest
 from dashboard.services import buildbucket_service
+from dashboard.services import request
 
 FAILURE_MAPPING = {'FAILURE': 'failed', 'CANCELLED': 'cancelled'}
 
@@ -81,8 +82,39 @@ class UpdateBuildStatusAction(object):
       return None
 
     # Use the build ID and poll.
-    # TODO(dberris): Handle errors when getting job status?
-    build = buildbucket_service.GetJobStatus(build_details).get('build', {})
+    try:
+      build_id = build_details.get('build', {}).get('id')
+      if build_id is None:
+        logging.error('No build details stored in task payload; task = %s',
+                      self.task)
+        self.task.payload.update({
+            'errors':
+                self.task.payload.get('errors', []) + [{
+                    'reason': 'MissingBuildDetails',
+                    'message': 'Cannot find build details in task.',
+                }]
+        })
+        task_module.UpdateTask(
+            self.job,
+            self.task.id,
+            new_state='failed',
+            payload=self.task.payload)
+        return None
+
+      build = buildbucket_service.GetJobStatus(build_id).get('build', {})
+    except request.RequestError as e:
+      logging.error('Failed getting Buildbucket Job status: %s', e)
+      self.task.payload.update({
+          'errors':
+              self.task.payload.get('errors', []) + [{
+                  'reason': type(e).__name__,
+                  'message': 'Service request error response: %s' % (e,),
+              }]
+      })
+      task_module.UpdateTask(
+          self.job, self.task.id, new_state='failed', payload=self.task.payload)
+      return None
+
     logging.debug('buildbucket response: %s', build)
 
     # Update the buildbucket result.
