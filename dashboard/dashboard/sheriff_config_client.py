@@ -7,10 +7,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from dashboard import sheriff_pb2
 from dashboard import sheriff_config_pb2
-from dashboard.models.sheriff import Sheriff
-from google.appengine.ext import ndb
+from dashboard.models.subscription import Subscription
 import google.auth
 from google.auth import jwt
 from google.auth.transport.requests import AuthorizedSession
@@ -29,22 +27,17 @@ class SheriffConfigClient(object):
     self._session = AuthorizedSession(jwt_credentials)
 
   @staticmethod
-  def _SubscriptionToSheriff(subscription):
-    sheriff = Sheriff(
-        key=ndb.Key('Sheriff', subscription.name),
-        internal_only=(subscription.visibility !=
-                       sheriff_pb2.Subscription.PUBLIC),
-        # Sheriff model only support glob patterns
-        patterns=[p.glob for p in subscription.patterns if p.glob],
-        labels=(list(subscription.bug_labels) +
-                ['Component-' + c.replace('>', '-')
-                 for c in subscription.bug_components]),
+  def _ParseSubscription(revision, subscription):
+    return Subscription(
+        revision=revision,
+        name=subscription.name,
+        rotation_url=subscription.rotation_url,
+        notification_email=subscription.notification_email,
+        bug_labels=list(subscription.bug_labels),
+        bug_components=list(subscription.bug_components),
+        bug_cc_emails=list(subscription.bug_cc_emails),
+        visibility=subscription.visibility,
     )
-    if subscription.rotation_url:
-      sheriff.url = subscription.rotation_url
-    if subscription.notification_email:
-      sheriff.email = subscription.notification_email
-    return sheriff
 
   def Match(self, path):
     response = self._session.post(
@@ -53,7 +46,7 @@ class SheriffConfigClient(object):
     if not response.ok:
       return None, '%r\n%s' % (response, response.text)
     match = json_format.Parse(response.text, sheriff_config_pb2.MatchResponse())
-    return [self._SubscriptionToSheriff(s.subscription)
+    return [self._ParseSubscription(s.revision, s.subscription)
             for s in match.subscriptions], None
 
   def Update(self):

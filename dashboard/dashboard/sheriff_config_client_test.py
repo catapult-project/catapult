@@ -10,10 +10,10 @@ import json
 
 from dashboard import speed_releasing
 from dashboard.common import testing_common
-from dashboard.models.sheriff import Sheriff
+from dashboard.models.subscription import Subscription
+from dashboard.models.subscription import VISIBILITY
 from dashboard.sheriff_config_client import SheriffConfigClient
 import mock
-from google.appengine.ext import ndb
 
 _SAMPLE_BOTS = ['ChromiumPerf/win', 'ChromiumPerf/linux']
 _DOWNSTREAM_BOTS = ['ClankInternal/win', 'ClankInternal/linux']
@@ -89,13 +89,14 @@ class SheriffConfigClientTest(testing_common.TestCase):
     """
     clt._session = self._Session(self._Response(True, response_text))
     expected = [
-        Sheriff(
-            key=ndb.Key('Sheriff', 'Public Team1'),
-            url='https://some/url',
-            email='public@mail.com',
-            internal_only=False,
-            patterns=['Foo2/*/Bar2/*'],
-            labels=['Lable1', 'Lable2', 'Component-foo-bar'],
+        Subscription(
+            revision='c9d4943dc832e448f9786e244f918fdabc1e5303',
+            name='Public Team1',
+            rotation_url='https://some/url',
+            notification_email='public@mail.com',
+            visibility=VISIBILITY.PUBLIC,
+            bug_labels=['Lable1', 'Lable2'],
+            bug_components=['foo>bar']
         ),
     ]
     self.assertEqual(clt.Match('Foo2/a/Bar2/b'), (expected, None))

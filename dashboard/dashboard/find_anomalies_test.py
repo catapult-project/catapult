@@ -230,7 +230,7 @@ class ProcessAlertsTest(testing_common.TestCase):
             statistic='avg'))
 
   @mock.patch.object(
-      find_anomalies, '_ProcesssTestStat')
+      find_anomalies, '_ProcessTestStat')
   def testProcessTest_SkipsClankInternal(self, mock_process_stat):
     mock_process_stat.side_effect = _MockTasklet
 
@@ -252,7 +252,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertFalse(mock_process_stat.called)
 
   @mock.patch.object(
-      find_anomalies, '_ProcesssTestStat')
+      find_anomalies, '_ProcessTestStat')
   def testProcessTest_UsesLastAlert_Avg(self, mock_process_stat):
     mock_process_stat.side_effect = _MockTasklet
 
@@ -282,13 +282,13 @@ class ProcessAlertsTest(testing_common.TestCase):
     row_data = query.fetch()
     rows = [(r.revision, r, r.value) for r in row_data]
     mock_process_stat.assert_called_with(
-        mock.ANY, mock.ANY, mock.ANY, mock.ANY, rows, None)
+        mock.ANY, mock.ANY, mock.ANY, rows, None)
 
     anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(len(anomalies), 1)
 
   @mock.patch.object(
-      find_anomalies, '_ProcesssTestStat')
+      find_anomalies, '_ProcessTestStat')
   def testProcessTest_SkipsLastAlert_NotAvg(self, mock_process_stat):
     self._AddDataForTests(stats=('count',))
     test_path = 'ChromiumGPU/linux-release/scrolling_benchmark/ref'
@@ -306,9 +306,8 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     @ndb.tasklet
     def _AssertParams(
-        config, sheriff_entity, test_entity, stat, rows, ref_rows):
+        config, test_entity, stat, rows, ref_rows):
       del config
-      del sheriff_entity
       del test_entity
       del stat
       del ref_rows

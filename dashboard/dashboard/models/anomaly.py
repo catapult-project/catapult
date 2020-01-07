@@ -18,6 +18,7 @@ from dashboard.common import utils
 from dashboard.common import datastore_hooks
 from dashboard.models import internal_only_model
 from dashboard.models import sheriff as sheriff_module
+from dashboard.models.subscription import Subscription
 
 # A string to describe the magnitude of a change from zero to non-zero.
 FREAKIN_HUGE = 'zero-to-nonzero'
@@ -43,8 +44,13 @@ class Anomaly(internal_only_model.InternalOnlyModel):
   # By default, this is None, which denotes a non-triaged alert.
   bug_id = ndb.IntegerProperty(indexed=True)
 
-  # The sheriff rotation that should handle this alert.
+  # (Deprecated, use subscriptions instead) The sheriff rotation that
+  # should handle this alert.
   sheriff = ndb.KeyProperty(kind=sheriff_module.Sheriff, indexed=True)
+
+  # The subscribers who recieve alerts
+  subscriptions = ndb.LocalStructuredProperty(Subscription, repeated=True)
+  subscription_names = ndb.StringProperty(indexed=True, repeated=True)
 
   # Each Alert is related to one Test.
   test = ndb.KeyProperty(indexed=True)
