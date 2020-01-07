@@ -131,9 +131,6 @@ class BrowserFinderOptions(optparse.Values):
              'running benchmarks. The options are: %s' % ', '.join(
                  compat_mode_options_list))
     parser.add_option(
-        '--experimental-proto-trace-format',
-        help='OBSOLETE. This flag is ignored.')
-    parser.add_option(
         '--legacy-json-trace-format',
         action='store_true',
         help='Request traces from Chrome in legacy JSON format.')
