@@ -50,6 +50,9 @@ class FakeStory(object):
     self.name = name
     self.tags = tags or set()
 
+  def __repr__(self):
+    return '<FakeStory: name=%s, tags=%s>' % (self.name, self.tags)
+
 
 class FilterStoriesUnittest(unittest.TestCase):
 
@@ -133,7 +136,7 @@ class FilterStoriesUnittest(unittest.TestCase):
     foo = FakeStory('foo')  # pylint: disable=blacklisted-name
     stories = (a, foo)
     story_filter = story_filter_module.StoryFilter(
-        story_tag_filter='x')
+        story_tag_filter=' x ')
     output = story_filter.FilterStories(stories)
     self.assertEqual([], output)
 
@@ -142,7 +145,7 @@ class FilterStoriesUnittest(unittest.TestCase):
     b = FakeStory('b', {'1', '2'})
     stories = (a, b)
     story_filter = story_filter_module.StoryFilter(
-        story_tag_filter='1,2')
+        story_tag_filter='1, 2')
     output = story_filter.FilterStories(stories)
     self.assertEqual(list(stories), output)
 
@@ -152,7 +155,7 @@ class FilterStoriesUnittest(unittest.TestCase):
     stories = (x, y)
     story_filter = story_filter_module.StoryFilter(
         story_tag_filter='1',
-        story_tag_filter_exclude='2')
+        story_tag_filter_exclude='2 ')
     output = story_filter.FilterStories(stories)
     self.assertEqual([x], output)
 

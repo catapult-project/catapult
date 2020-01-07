@@ -31,7 +31,8 @@ class _StoryMatcher(object):
 
 class _StoryTagMatcher(object):
   def __init__(self, tags_str):
-    self._tags = tags_str.split(',') if tags_str else None
+    self._tags = [tag.strip() for tag in tags_str.split(',')
+                 ] if tags_str else None
 
   def __nonzero__(self):
     return self._tags is not None
