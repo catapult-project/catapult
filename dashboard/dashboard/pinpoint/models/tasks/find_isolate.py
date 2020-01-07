@@ -62,12 +62,10 @@ class ScheduleBuildAction(object):
     return 'Build Action(job = %s, task = %s)' % (self.job.job_id, self.task.id)
 
 
-class UpdateBuildStatusAction(object):
-
-  def __init__(self, job, task, change):
-    self.job = job
-    self.task = task
-    self.change = change
+class UpdateBuildStatusAction(
+    collections.namedtuple('UpdateBuildStatusAction',
+                           ('job', 'task', 'change', 'event'))):
+  __slots__ = ()
 
   @task_module.LogStateTransitionFailures
   def __call__(self, accumulator):
@@ -81,17 +79,37 @@ class UpdateBuildStatusAction(object):
       task_module.UpdateTask(self.job, self.task.id, new_state='failed')
       return None
 
-    # Use the build ID and poll.
-    try:
-      build_id = build_details.get('build', {}).get('id')
-      if build_id is None:
-        logging.error('No build details stored in task payload; task = %s',
-                      self.task)
+    # Attempt to use the payload in a buildbucket pub/sub update to handle the
+    # update without polling. Only poll as a last resort.
+    build = self.event.payload
+    if build is None or 'id' not in build:
+      try:
+        build_id = build_details.get('build', {}).get('id')
+        if build_id is None:
+          logging.error('No build details stored in task payload; task = %s',
+                        self.task)
+          self.task.payload.update({
+              'errors':
+                  self.task.payload.get('errors', []) + [{
+                      'reason': 'MissingBuildDetails',
+                      'message': 'Cannot find build details in task.',
+                  }]
+          })
+          task_module.UpdateTask(
+              self.job,
+              self.task.id,
+              new_state='failed',
+              payload=self.task.payload)
+          return None
+
+        build = buildbucket_service.GetJobStatus(build_id).get('build', {})
+      except request.RequestError as e:
+        logging.error('Failed getting Buildbucket Job status: %s', e)
         self.task.payload.update({
             'errors':
                 self.task.payload.get('errors', []) + [{
-                    'reason': 'MissingBuildDetails',
-                    'message': 'Cannot find build details in task.',
+                    'reason': type(e).__name__,
+                    'message': 'Service request error response: %s' % (e,),
                 }]
         })
         task_module.UpdateTask(
@@ -100,20 +118,6 @@ class UpdateBuildStatusAction(object):
             new_state='failed',
             payload=self.task.payload)
         return None
-
-      build = buildbucket_service.GetJobStatus(build_id).get('build', {})
-    except request.RequestError as e:
-      logging.error('Failed getting Buildbucket Job status: %s', e)
-      self.task.payload.update({
-          'errors':
-              self.task.payload.get('errors', []) + [{
-                  'reason': type(e).__name__,
-                  'message': 'Service request error response: %s' % (e,),
-              }]
-      })
-      task_module.UpdateTask(
-          self.job, self.task.id, new_state='failed', payload=self.task.payload)
-      return None
 
     logging.debug('buildbucket response: %s', build)
 
@@ -124,9 +128,7 @@ class UpdateBuildStatusAction(object):
 
     # Decide whether the build was successful or not.
     if build.get('status') != 'COMPLETED':
-      logging.error('Unexpected status: %s', build.get('status'))
-      task_module.UpdateTask(
-          self.job, self.task.id, new_state='failed', payload=self.task.payload)
+      # Skip this update.
       return None
 
     result = build.get('result')
@@ -321,11 +323,9 @@ class UpdateEvaluator(object):
     #       - Retry if the failure is a retryable error (update payload with
     #         retry information)
     #       - Fail if failure is non-retryable or we've exceeded retries.
-    if event.payload.get('status') == 'build_completed':
-      change = change_module.Change(
-          commits=task.payload.get('change').get('commits'),
-          patch=task.payload.get('patch'))
-      return [UpdateBuildStatusAction(self.job, task, change)]
+    if event.type == 'update':
+      change = change_module.ReconstituteChange(task.payload.get('change'))
+      return [UpdateBuildStatusAction(self.job, task, change, event)]
     return None
 
 

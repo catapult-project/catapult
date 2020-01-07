@@ -97,7 +97,10 @@ def HandleTaskUpdate(request_body):
   task_id = task_data.get('id')
   payload = {}
   if task_type == 'build':
-    payload = {'status': 'build_completed'}
+    # At this point, it's not that simple for us to assume that a build is
+    # completed. We need to see the 'build' payload in the message and let the
+    # evaluator react to the update.
+    payload = update_data.get('build')
   event = event_module.Event(
       type='update', target_task=task_id, payload=payload)
   logging.info('Update Event = %s', event)
