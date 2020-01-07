@@ -171,7 +171,6 @@ class Serializer(evaluators.DispatchByTaskType):
       add_execution = modification.get('add_execution')
       append_result_values = modification.get('append_result_values')
       attempt_index = modification.get('index', 0)
-      set_comparison = modification.get('set_comparison')
       state = states[state_index]
       if add_execution:
         attempts = state['attempts']
@@ -184,9 +183,6 @@ class Serializer(evaluators.DispatchByTaskType):
 
       if append_result_values:
         state.setdefault('result_values', []).extend(append_result_values)
-
-      if set_comparison:
-        state.setdefault('comparisons', {}).update(set_comparison)
 
     if 'order_changes' in local_context:
       # Here, we'll sort the states according to their order of appearance in
@@ -223,6 +219,17 @@ class Serializer(evaluators.DispatchByTaskType):
           state['result_values'] = result or []
         context['state'] = ordered_states
         context['difference_count'] = len(order_changes.get('culprits', []))
+
+        # At this point set the default comparisons between two adjacent states
+        # which don't have an associated comparison yet to 'pending'.
+        states = context.get('state', [])
+        for index, state in enumerate(states):
+          comparisons = state.get('comparisons')
+          if comparisons is None:
+            state['comparisons'] = {
+                'prev': None if index == 0 else 'pending',
+                'next': None if index + 1 == len(states) else 'pending',
+            }
 
     if 'set_parameters' in local_context:
       modification = local_context.get('set_parameters')

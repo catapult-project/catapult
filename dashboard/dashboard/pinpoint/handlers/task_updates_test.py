@@ -224,6 +224,10 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
             'change':
                 self.start_change.AsDict(),
             'result_values': [],
+            'comparisons': {
+                'prev': None,
+                'next': 'pending',
+            }
         }, {
             'attempts': [{
                 'executions': [{
@@ -235,6 +239,10 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
             'change':
                 self.end_change.AsDict(),
             'result_values': [],
+            'comparisons': {
+                'prev': 'pending',
+                'next': None,
+            }
         }])
 
     # We then post an update and expect it to succeed.
@@ -270,6 +278,10 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
             'change':
                 self.start_change.AsDict(),
             'result_values': [],
+            'comparisons': {
+                'prev': None,
+                'next': 'pending',
+            }
         }, {
             'attempts': [{
                 'executions': [{
@@ -281,6 +293,10 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
             'change':
                 self.end_change.AsDict(),
             'result_values': [],
+            'comparisons': {
+                'prev': 'pending',
+                'next': None,
+            }
         }])
 
     # Check that we did update the timestamp.
@@ -311,6 +327,10 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
             'change':
                 self.start_change.AsDict(),
             'result_values': [],
+            'comparisons': {
+                'prev': None,
+                'next': 'pending',
+            }
         }, {
             'attempts': [{
                 'executions': [{
@@ -322,6 +342,10 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
             'change':
                 self.end_change.AsDict(),
             'result_values': [],
+            'comparisons': {
+                'prev': 'pending',
+                'next': None,
+            }
         }])
 
     # Check that we did update the timestamp.
