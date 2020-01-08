@@ -99,9 +99,13 @@ def FindChangePoints(series,
   change-points in the window that's looked at, then this function will
   be less likely to find any of them.
 
-  First, the "most likely" split is found. The most likely split is defined as
-  a split that minimizes the sum of the variances on either side. Then the
-  split point is checked to see whether it passes the thresholds.
+  This uses two algorithms:
+
+    - A clustering change detector (an approximation of E-divisive) in the
+      `clustering_change_detector` module.
+    - A variance minimisation change point detection algorithm.
+
+  We run both algorithms, but only use the results from one.
 
   Args:
     series: A list of (x, y) pairs.
@@ -119,10 +123,12 @@ def FindChangePoints(series,
     return []  # Not enough points to possibly contain a valid split point.
   series = series[-max_window_size:]
   _, y_values = zip(*series)
-  split_index = _FindSplit(y_values)
-  alternate_split_index = None
+  split_index = None
+  # TODO(dberris): Remove this when we're convinced we no longer need this
+  # alternate implementation.
+  alternate_split_index = _FindSplit(y_values)
   try:
-    alternate_split_index = clustering_change_detector.ClusterAndFindSplit(
+    split_index = clustering_change_detector.ClusterAndFindSplit(
         y_values, min_segment_size)
     logging.warning(
         'Alternative found an alternate split at index %s compared to %s (%s)',
@@ -133,10 +139,10 @@ def FindChangePoints(series,
         series[alternate_split_index][0], alternate_split_index,
         series[split_index][0], split_index)
   except clustering_change_detector.Error as e:
-    # TODO(dberrs): When this is the default, bail out after logging.
     logging.warning('Pinpoint based comparison failed: %s', e)
+    return []
 
-  make_change_point = _PassesThresholds(
+  alternate_make_change_point = _PassesThresholds(
       y_values,
       split_index,
       min_segment_size=min_segment_size,
@@ -144,7 +150,7 @@ def FindChangePoints(series,
       min_relative_change=min_relative_change,
       min_steppiness=min_steppiness,
       multiple_of_std_dev=multiple_of_std_dev)
-  alternate_make_change_point = _PassesThresholds(
+  make_change_point = _PassesThresholds(
       y_values,
       alternate_split_index,
       min_segment_size=min_segment_size,
@@ -152,15 +158,11 @@ def FindChangePoints(series,
       min_relative_change=min_relative_change,
       min_steppiness=min_steppiness,
       multiple_of_std_dev=multiple_of_std_dev
-  ) if alternate_split_index is not None else False
-  logging.info(
-      'Anomaly detection study: current=%s alternate=%s diff=%s',
-      'CHANGE_FOUND' if make_change_point else 'NO_CHANGE',
-      'CHANGE_FOUND' if alternate_make_change_point else 'NO_CHANGE',
-      'SAME' if alternate_split_index == split_index else 'DIFFERENT')
-
-  # TODO(dberris): Make this dependent on the alternate when we change the
-  # default algorithm.
+  ) if split_index is not None else False
+  logging.info('Anomaly detection study: current=%s alternate=%s diff=%s',
+               'CHANGE_FOUND' if make_change_point else 'NO_CHANGE',
+               'CHANGE_FOUND' if alternate_make_change_point else 'NO_CHANGE',
+               'SAME' if alternate_split_index == split_index else 'DIFFERENT')
   return [MakeChangePoint(series, split_index)] if make_change_point else []
 
 
