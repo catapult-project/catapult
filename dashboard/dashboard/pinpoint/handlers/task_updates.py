@@ -101,6 +101,10 @@ def HandleTaskUpdate(request_body):
     # completed. We need to see the 'build' payload in the message and let the
     # evaluator react to the update.
     payload = update_data.get('build')
+  elif task_type == 'test':
+    # We want to include the swarming task id in the payload, so that the update
+    # handler can poll accordingly.
+    payload = {'task_id': update_data.get('task_id')}
   event = event_module.Event(
       type='update', target_task=task_id, payload=payload)
   logging.info('Update Event = %s', event)

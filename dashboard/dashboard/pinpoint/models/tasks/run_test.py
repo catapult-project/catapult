@@ -16,6 +16,7 @@ from dashboard.pinpoint.models import task as task_module
 from dashboard.pinpoint.models.quest import run_test as run_test_quest
 from dashboard.pinpoint.models.tasks import find_isolate
 from dashboard.services import swarming
+from dashboard.services import request
 
 
 class MarkTaskFailedAction(
@@ -89,15 +90,26 @@ class ScheduleTestAction(
         self.job, self.task.id, new_state='ongoing', payload=self.task.payload)
 
     # At this point we know we were successful in transitioning to 'ongoing'.
-    # TODO(dberris): Figure out error-handling for Swarming request failures?
-    response = swarming.Swarming(
-        self.task.payload.get('swarming_server')).Tasks().New(body)
-    self.task.payload.update({
-        'swarming_task_id': response.get('task_id'),
-        'tries': self.task.payload.get('tries', 0) + 1
-    })
+    try:
+      response = swarming.Swarming(
+          self.task.payload.get('swarming_server')).Tasks().New(body)
+      self.task.payload.update({
+          'swarming_task_id': response.get('task_id'),
+          'tries': self.task.payload.get('tries', 0) + 1
+      })
+    except request.RequestError as e:
+      self.task.payload.update({
+          'errors':
+              self.task.payload.get('errors', []) + [{
+                  'reason':
+                      type(e).__name__,
+                  'message':
+                      'Encountered failure in swarming request: %s' % (e,),
+              }]
+      })
 
-    # Update the payload with the task id from the Swarming request.
+    # Update the payload with the task id from the Swarming request. Note that
+    # this could also fail to commit.
     task_module.UpdateTask(self.job, self.task.id, payload=self.task.payload)
 
 
@@ -125,6 +137,8 @@ class PollSwarmingTaskAction(
 
     task_state = result.get('state')
     if task_state in {'PENDING', 'RUNNING'}:
+      # Commit the task payload still.
+      task_module.UpdateTask(self.job, self.task.id, payload=self.task.payload)
       return
 
     if task_state == 'EXPIRED':
@@ -156,7 +170,7 @@ class PollSwarmingTaskAction(
       if not exception_string:
         exception_string = 'No exception found in Swarming task output.'
       self.task.payload.update({
-          'errors': [{
+          'errors': self.task.payload.get('errors', []) + [{
               'reason': 'RunTestFailed',
               'message': 'Running the test failed: %s' % (exception_string,)
           }]
@@ -244,8 +258,13 @@ class UpdateEvaluator(object):
     if missing_keys:
       logging.error('Failed to find required keys from payload: %s; task = %s',
                     missing_keys, task.payload)
-      return None
+      # See if the event has the data we want.
+      task_id = event.payload.get('task_id')
 
+      # If it doesn't (which is unlikely) we ought to fail the task.
+      if task_id is None:
+        return [MarkTaskFailedAction(self.job, task)]
+      task.payload.update({'swarming_task_id': task_id})
     return [PollSwarmingTaskAction(job=self.job, task=task)]
 
 
@@ -372,8 +391,7 @@ class Serializer(evaluators.FilteringEvaluator):
 
   def __init__(self):
     super(Serializer, self).__init__(
-        predicate=evaluators.TaskTypeEq('run_test'),
-        delegate=TestSerializer)
+        predicate=evaluators.TaskTypeEq('run_test'), delegate=TestSerializer)
 
 
 def TaskId(change, attempt):
