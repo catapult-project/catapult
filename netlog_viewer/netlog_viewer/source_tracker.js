@@ -34,13 +34,6 @@ var SourceTracker = (function() {
      * Clears all log entries and SourceEntries and related state.
      */
     clearEntries_: function() {
-      // Used for sorting entries with automatically assigned IDs.
-      this.maxReceivedSourceId_ = 0;
-
-      // Next unique id to be assigned to a log entry without a source.
-      // Needed to identify associated GUI elements, etc.
-      this.nextSourcelessEventId_ = -1;
-
       // Ordered list of log entries.  Needed to maintain original order when
       // generating log dumps
       this.capturedEvents_ = [];
@@ -87,20 +80,10 @@ var SourceTracker = (function() {
       for (var e = 0; e < logEntries.length; ++e) {
         var logEntry = logEntries[e];
 
-        // Assign unique ID, if needed.
-        // TODO(mmenke):  Remove this, and all other code to handle 0 source
-        //                IDs when M19 hits stable.
-        if (logEntry.source.id == 0) {
-          logEntry.source.id = this.nextSourcelessEventId_;
-          --this.nextSourcelessEventId_;
-        } else if (this.maxReceivedSourceId_ < logEntry.source.id) {
-          this.maxReceivedSourceId_ = logEntry.source.id;
-        }
-
         // Create/update SourceEntry object.
         var sourceEntry = this.sourceEntries_[logEntry.source.id];
         if (!sourceEntry) {
-          sourceEntry = new SourceEntry(logEntry, this.maxReceivedSourceId_);
+          sourceEntry = new SourceEntry(logEntry);
           this.sourceEntries_[logEntry.source.id] = sourceEntry;
         } else {
           sourceEntry.update(logEntry);

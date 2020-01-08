@@ -65,11 +65,7 @@ var SourceRow = (function() {
       tr.onmouseout = this.onMouseout_.bind(this);
 
       // Set the cell values to match this source's data.
-      if (this.getSourceId() >= 0) {
-        addTextNode(idCell, this.getSourceId());
-      } else {
-        addTextNode(idCell, '-');
-      }
+      addTextNode(idCell, this.getSourceId());
       var sourceTypeString = this.sourceEntry_.getSourceTypeString();
       addTextNode(typeCell, sourceTypeString);
       this.updateDescription_();

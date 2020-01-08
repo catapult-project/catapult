@@ -10,8 +10,7 @@ class SourceEntry {
    *
    * @constructor
    */
-  constructor(logEntry, maxPreviousSourceId) {
-    this.maxPreviousSourceId_ = maxPreviousSourceId;
+  constructor(logEntry) {
     this.entries_ = [];
     this.description_ = '';
 
@@ -274,14 +273,6 @@ class SourceEntry {
 
   getSourceId() {
     return this.entries_[0].source.id;
-  }
-
-  /**
-   * Returns the largest source ID seen before this object was received.
-   * Used only for sorting SourceEntries without a source by source ID.
-   */
-  getMaxPreviousEntrySourceId() {
-    return this.maxPreviousSourceId_;
   }
 
   isInactive() {

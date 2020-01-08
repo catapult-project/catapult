@@ -310,10 +310,7 @@ var EventsView = (function() {
      * Called when either a log file is loaded, after clearing the old entries,
      * but before getting any new ones.
      */
-    onLoadLogStart: function() {
-      // Needed to sort new sourceless entries correctly.
-      this.maxReceivedSourceId_ = 0;
-    },
+    onLoadLogStart: function() {},
 
     onLoadLogFinish: function(data) {
       return true;
@@ -537,26 +534,8 @@ var EventsView = (function() {
     return compareSourceId_(source1, source2);
   }
 
-  /**
-   * For the purposes of sorting by source IDs, entries without a source
-   * appear right after the SourceEntry with the highest source ID received
-   * before the sourceless entry. Any ambiguities are resolved by ordering
-   * the entries without a source by the order in which they were received.
-   */
   function compareSourceId_(source1, source2) {
-    var sourceId1 = source1.getSourceId();
-    if (sourceId1 < 0)
-      sourceId1 = source1.getMaxPreviousEntrySourceId();
-    var sourceId2 = source2.getSourceId();
-    if (sourceId2 < 0)
-      sourceId2 = source2.getMaxPreviousEntrySourceId();
-
-    if (sourceId1 != sourceId2)
-      return sourceId1 - sourceId2;
-
-    // One or both have a negative ID. In either case, the source with the
-    // highest ID should be sorted first.
-    return source2.getSourceId() - source1.getSourceId();
+    return source1.getSourceId() - source2.getSourceId();
   }
 
   function compareSourceType_(source1, source2) {
