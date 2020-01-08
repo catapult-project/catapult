@@ -61,9 +61,10 @@ def _CheckChange(input_api, output_api):
   finally:
     sys.path = original_sys_path
 
+  black_list = input_api.DEFAULT_BLACK_LIST + (".*_pb2.py$",)
   results += input_api.RunTests(input_api.canned_checks.GetPylint(
       input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
-      pylintrc='../pylintrc'))
+      pylintrc='../pylintrc', black_list=black_list))
 
   results += _CheckRegisteredMetrics(input_api, output_api)
   results += _CheckRegisteredDiagnostics(input_api, output_api)
