@@ -158,6 +158,12 @@ tr.exportTo('tr.e.chrome', function() {
             {id: i, value: bottom, type: 'bottom'});
       }
 
+      if (verticalSweepEdges.length === 0 ||
+          horizontalSweepEdges.length === 0) {
+        // If there is nothing visible, visible area is 0.
+        return 0;
+      }
+
       verticalSweepEdges.sort((a, b) => a.value - b.value);
       horizontalSweepEdges.sort((a, b) => a.value - b.value);
 
