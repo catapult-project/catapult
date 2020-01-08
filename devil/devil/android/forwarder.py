@@ -9,6 +9,7 @@ import inspect
 import logging
 import os
 import psutil
+import textwrap
 
 from devil import base_error
 from devil import devil_env
@@ -430,11 +431,25 @@ class Forwarder(object):
         (exit_code, output) = cmd_helper.GetCmdStatusAndOutputWithTimeout(
             kill_cmd, Forwarder._TIMEOUT)
         if exit_code != 0:
+          _, ps_output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
+              ['ps', 'aux'], Forwarder._TIMEOUT)
+          host_forwarder_lines = (
+              line for line in ps_output.splitlines()
+              if 'host_forwarder' in line)
+          if host_forwarder_lines:
+            logger.error('Remaining host_forwarder processes:\n  %s',
+                         '\n  '.join(host_forwarder_lines))
+          else:
+            logger.error('No remaining host_forwarder processes?')
+          error_msg = textwrap.dedent(
+              """\
+              `{kill_cmd}` failed to kill host_forwarder.
+                exit_code: {exit_code}
+              """)
           raise HostForwarderError(
-              '%s exited with %d:\n%s' % (
-                  self._host_forwarder_path,
-                  exit_code,
-                  '\n'.join(output) if isinstance(output, list) else output))
+              error_msg.format(
+                  kill_cmd=' '.join(kill_cmd),
+                  exit_code=str(exit_code)))
     except cmd_helper.TimeoutError as e:
       raise HostForwarderError(
           '`%s` timed out:\n%s' % (' '.join(kill_cmd), e.output))
