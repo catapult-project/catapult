@@ -330,6 +330,13 @@ tr.exportTo('tr.ui', function() {
           viewLWorld / majorMarkDistanceWorld) * majorMarkDistanceWorld;
 
       this.majorMarkWorldPositions_ = [];
+      // JavaScript numbers are doubles which have 53 bits of precision. If the
+      // ratio between curX and majorMarkDistanceWorld is greater than about
+      // 2^53 then "curX += majorMarkDistanceWorld;" is a NOP, the loop will run
+      // endlessly, and chrome://tracing will fail with an OOM error.
+      // 2^53 is 9e15 but we might as well give up earlier, before the
+      // precision degrades to misleading levels.
+      if (firstMajorMark / majorMarkDistanceWorld > 1e15) return;
       for (let curX = firstMajorMark;
         curX < viewRWorld;
         curX += majorMarkDistanceWorld) {
