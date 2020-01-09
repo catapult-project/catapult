@@ -8,7 +8,6 @@
 # to talk about them that doesn't have quite so much legacy baggage), but
 # that might not be possible.
 
-import fnmatch
 import itertools
 import re
 import logging
@@ -92,6 +91,10 @@ class Expectation(object):
     @property
     def test(self):
         return self._test
+
+    @test.setter
+    def test(self, v):
+        self._test = v
 
     @property
     def tags(self):
@@ -257,9 +260,10 @@ class TaggedTestListParser(object):
         tags = [raw_tag.lower() for raw_tag in raw_tags.split()] if raw_tags else []
         tag_set_ids = set()
 
-        if '*' in test[:-1]:
-            raise ParseError(lineno,
-                'Invalid glob, \'*\' can only be at the end of the pattern')
+        for i in range(len(test)-1):
+            if test[i] == '*' and ((i > 0 and test[i-1] != '\\') or i == 0):
+                raise ParseError(lineno,
+                    'Invalid glob, \'*\' can only be at the end of the pattern')
 
         for t in tags:
             if not t in  self._tag_to_tag_set:
@@ -375,7 +379,9 @@ class TestExpectations(object):
         # reject, etc. Right now, you effectively just get a union.
         glob_exps = []
         for exp in parser.expectations:
-            if exp.test.endswith('*'):
+            is_glob = not exp.test.endswith('\\*') and exp.test.endswith('*')
+            exp.test = exp.test.replace('\\*', '*')
+            if is_glob:
                 glob_exps.append(exp)
             else:
                 self.individual_exps.setdefault(exp.test, []).append(exp)
@@ -402,6 +408,8 @@ class TestExpectations(object):
             self.individual_exps.setdefault(pattern, []).extend(exps)
         for pattern, exps in other.glob_exps.items():
             self.glob_exps.setdefault(pattern, []).extend(exps)
+        # resort the glob patterns by length in self.glob_exps ordered
+        # dictionary
         glob_exps = self.glob_exps
         self.glob_exps = OrderedDict()
         for pattern, exps in sorted(
@@ -458,10 +466,11 @@ class TestExpectations(object):
                     is_slow_test=self._is_slow_test, reason=' '.join(self._reasons))
 
         # If we didn't find an exact match, check for matching globs. Match by
-        # the most specific (i.e., longest) glob first. Because self.globs is
-        # ordered by length, this is a simple linear search.
+        # the most specific (i.e., longest) glob first. Because self.globs_exps
+        # is ordered by length, this is a simple linear search
         for glob, exps in self.glob_exps.items():
-            if fnmatch.fnmatch(test, glob):
+            glob = glob[:-1]
+            if test.startswith(glob):
                 for exp in exps:
                     _update_expected_results(exp)
                 # if *any* of the exps matched, results will be non-empty,
@@ -513,35 +522,6 @@ class TestExpectations(object):
                                   (e1.lineno, e2.lineno))
         return error_msg
 
-    @staticmethod
-    def get_broken_expectations(patterns_to_exps, test_names):
-        trie = {}
-        exps_dont_apply = []
-        # create trie of test names
-        for test in test_names:
-            _trie = trie.setdefault(test[0], {})
-            for l in test[1:]:
-                _trie = _trie.setdefault(l, {})
-            _trie.setdefault('$', {})
-        # look for patterns that do not match any test names and append their
-        # expectations to exps_dont_apply
-        for pattern, exps in patterns_to_exps.items():
-            _trie = trie
-            is_glob = False
-            broken_exp = False
-            for l in pattern:
-                if l == '*':
-                    is_glob = True
-                    break
-                if l not in _trie:
-                    exps_dont_apply.extend(exps)
-                    broken_exp = True
-                    break
-                _trie = _trie[l]
-            if not broken_exp and not is_glob and '$' not in _trie:
-                exps_dont_apply.extend(exps)
-        return exps_dont_apply
-
     def check_for_broken_expectations(self, test_names):
         # It returns a list expectations that do not apply to any test names in
         # the test_names list.
@@ -549,6 +529,31 @@ class TestExpectations(object):
         # args:
         # test_names: list of test names that are used to find test expectations
         # that do not apply to any of test names in the list.
-        patterns_to_exps = self.individual_exps.copy()
-        patterns_to_exps.update(self.glob_exps)
-        return self.get_broken_expectations(patterns_to_exps, test_names)
+        broken_exps = []
+        test_names = set(test_names)
+        for pattern, exps in self.individual_exps.items():
+            if pattern not in test_names:
+                broken_exps.extend(exps)
+
+        # look for broken glob expectations
+        # first create a trie of test names
+        trie = {}
+        broken_glob_exps = []
+        for test in test_names:
+            _trie = trie.setdefault(test[0], {})
+            for l in test[1:]:
+                _trie = _trie.setdefault(l, {})
+            _trie.setdefault('\0', {})
+
+        # look for globs that do not match any test names and append their
+        # expectations to glob_broken_exps
+        for pattern, exps in self.glob_exps.items():
+            _trie = trie
+            for i, l in enumerate(pattern):
+                if l == '*' and i == len(pattern) - 1:
+                    break
+                if l not in _trie:
+                    broken_glob_exps.extend(exps)
+                    break
+                _trie = _trie[l]
+        return broken_exps + broken_glob_exps
