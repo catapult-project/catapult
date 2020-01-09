@@ -8,10 +8,16 @@ dispatch:
     service: sheriff-config
 
   # Upload routing rules
+  - url: "chromeperf.appspot.com/add_histograms"
+    service: upload
+  - url: "chromeperf.appspot.com/add_point"
+    service: upload
+
+  # Upload processing rules
   - url: "chromeperf.appspot.com/add_histograms*"
-    service: upload
-  - url: "chromeperf.appspot.com/add_point*"
-    service: upload
+    service: upload-processing
+  - url: "chromeperf.appspot.com/add_point_queue"
+    service: upload-processing
 
   # API routing rules
   - url: "chromeperf.appspot.com/api/*"

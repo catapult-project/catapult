@@ -10,7 +10,7 @@ services:
     volumes:
       - ../..:/image/catapult:ro
       - gcloud-config:/root/.config/gcloud
-    command: [/catapult/dashboard/bin/deploy, --promote, app.yaml, api.yaml, upload.yaml]
+    command: [/catapult/dashboard/bin/deploy, --promote, app.yaml, api.yaml, upload.yaml, upload-processing.yaml]
   deploy-pinpoint:
     build: .
     volumes:
