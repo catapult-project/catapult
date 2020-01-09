@@ -136,4 +136,6 @@ class CrosPlatformBackend(
       tags.append('chromeos-local')
     else:
       tags.append('chromeos-remote')
+    if self.cri.GetBoard():
+      tags.append('chromeos-board-%s' % self.cri.GetBoard())
     return tags
