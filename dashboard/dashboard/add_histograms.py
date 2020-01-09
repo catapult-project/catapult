@@ -204,14 +204,14 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
         # Try to decompress at most 100 bytes from the data, only to determine
         # if we've been given compressed payload.
         zlib.decompressobj().decompress(data_str, 100)
-        logging.info('Recieved compressed data.')
+        logging.info('Received compressed data.')
       except zlib.error:
         data_str = self.request.get('data')
         if not data_str:
           raise api_request_handler.BadRequestError(
               'Missing or uncompressed data.')
         data_str = zlib.compress(data_str)
-        logging.info('Recieved uncompressed data.')
+        logging.info('Received uncompressed data.')
 
     if not data_str:
       raise api_request_handler.BadRequestError('Missing "data" parameter')
@@ -259,9 +259,10 @@ def _LogDebugInfo(histograms):
 
 
 def ProcessHistogramSet(histogram_dicts):
-  if not isinstance(histogram_dicts, list):
+  if (not isinstance(histogram_dicts, list) and
+      not isinstance(histogram_dicts, dict)):
     raise api_request_handler.BadRequestError(
-        'HistogramSet JSON much be a list of dicts')
+        'HistogramSet JSON much be a list of dicts, or a dict')
 
   histograms = histogram_set.HistogramSet()
 

@@ -36,6 +36,9 @@ class GenericSet(diagnostic.Diagnostic):
   def __eq__(self, other):
     return self._GetComparableSet() == other._GetComparableSet()
 
+  def __repr__(self):
+    return str(self._GetComparableSet())
+
   def __hash__(self):
     return id(self)
 
