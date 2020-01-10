@@ -32,7 +32,10 @@ let proxySettingsToString;
       return tablePrinter;
     }
 
-    const startTime = timeutil.convertTimeTicksToTime(entries[0].orig.time);
+    const startTime = timeutil.convertTimeTicksToTime(
+        (logEntries[0].source.start_time !== undefined) ?
+          logEntries[0].source.start_time :
+          entries[0].orig.time);
 
     for (let i = 0; i < entries.length; ++i) {
       const entry = entries[i];

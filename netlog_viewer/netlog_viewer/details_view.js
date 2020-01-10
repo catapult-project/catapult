@@ -69,8 +69,8 @@ var DetailsView = (function() {
         if (sourceEntry.getDescription())
           addNodeWithText(p, 'h4', sourceEntry.getDescription());
 
-        var logEntries = sourceEntry.getLogEntries();
-        var startDate = timeutil.convertTimeTicksToDate(logEntries[0].time);
+        const startDate =
+            timeutil.convertTimeTicksToDate(sourceEntry.getStartTicks());
         var startTimeDiv = addNodeWithText(p, 'div', 'Start Time: ');
         timeutil.addNodeWithDate(startTimeDiv, startDate);
 
