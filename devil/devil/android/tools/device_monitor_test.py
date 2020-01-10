@@ -9,8 +9,8 @@ import unittest
 
 if __name__ == '__main__':
   sys.path.append(
-        os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                           '..', '..', '..')))
+      os.path.abspath(
+          os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
 from devil import devil_env
 from devil.android import device_errors
@@ -22,20 +22,26 @@ with devil_env.SysPath(devil_env.PYMOCK_PATH):
 
 
 class DeviceMonitorTest(unittest.TestCase):
-
   def setUp(self):
-    self.device = mock.Mock(spec=device_utils.DeviceUtils,
-        serial='device_cereal', build_id='abc123', build_product='clownfish',
+    self.device = mock.Mock(
+        spec=device_utils.DeviceUtils,
+        serial='device_cereal',
+        build_id='abc123',
+        build_product='clownfish',
         GetIMEI=lambda: '123456789')
     self.file_contents = {
-        '/proc/meminfo': """
+        '/proc/meminfo':
+            """
                          MemTotal:        1234567 kB
                          MemFree:         1000000 kB
                          MemUsed:          234567 kB
                          """,
-        '/sys/class/thermal/thermal_zone0/type': 'CPU-therm',
-        '/sys/class/thermal/thermal_zone0/temp': '30',
-        '/proc/uptime': '12345 99999',
+        '/sys/class/thermal/thermal_zone0/type':
+            'CPU-therm',
+        '/sys/class/thermal/thermal_zone0/temp':
+            '30',
+        '/proc/uptime':
+            '12345 99999',
     }
     self.device.ReadFile = mock.MagicMock(
         side_effect=lambda file_name: self.file_contents[file_name])
@@ -56,31 +62,33 @@ class DeviceMonitorTest(unittest.TestCase):
     self.device.RunShellCommand = mock.MagicMock(side_effect=mock_run_shell)
 
     self.battery = mock.Mock()
-    self.battery.GetBatteryInfo = mock.MagicMock(
-        return_value={'level': '80', 'temperature': '123'})
+    self.battery.GetBatteryInfo = mock.MagicMock(return_value={
+        'level': '80',
+        'temperature': '123'
+    })
 
     self.expected_status = {
-      'device_cereal': {
-        'processes': 5,
-        'temp': {
-          'CPU-therm': 30.0
-         },
-         'battery': {
-           'temperature': 123,
-           'level': 80
-         },
-         'uptime': 12345.0,
-         'mem': {
-           'total': 1234567,
-           'free': 1000000
-         },
-         'build': {
-           'build.id': 'abc123',
-           'product.device': 'clownfish',
-         },
-         'imei': '123456789',
-         'state': 'available',
-      }
+        'device_cereal': {
+            'processes': 5,
+            'temp': {
+                'CPU-therm': 30.0
+            },
+            'battery': {
+                'temperature': 123,
+                'level': 80
+            },
+            'uptime': 12345.0,
+            'mem': {
+                'total': 1234567,
+                'free': 1000000
+            },
+            'build': {
+                'build.id': 'abc123',
+                'product.device': 'clownfish',
+            },
+            'imei': '123456789',
+            'state': 'available',
+        }
     }
 
   @mock.patch('devil.android.battery_utils.BatteryUtils')
@@ -98,8 +106,10 @@ class DeviceMonitorTest(unittest.TestCase):
     get_devices.return_value = [self.device]
     get_battery.return_value = self.battery
     broken_battery_info = mock.Mock()
-    broken_battery_info.GetBatteryInfo = mock.MagicMock(
-        return_value={'level': '-1', 'temperature': 'not_a_number'})
+    broken_battery_info.GetBatteryInfo = mock.MagicMock(return_value={
+        'level': '-1',
+        'temperature': 'not_a_number'
+    })
     get_battery.return_value = broken_battery_info
 
     # Should be same status dict but without battery stats.
@@ -146,7 +156,9 @@ class DeviceMonitorTest(unittest.TestCase):
     get_battery.return_value = self.battery
     blacklist = mock.Mock()
     blacklist.Read = mock.MagicMock(
-        return_value={'bad_device': {'reason': 'offline'}})
+        return_value={'bad_device': {
+            'reason': 'offline'
+        }})
 
     # Should be same status dict but with extra blacklisted device.
     expected_status = self.expected_status.copy()

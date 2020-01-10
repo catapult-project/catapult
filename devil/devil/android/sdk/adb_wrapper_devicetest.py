@@ -3,7 +3,6 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Tests for the AdbWrapper class."""
 
 import os
@@ -17,7 +16,6 @@ from devil.android.sdk import adb_wrapper
 
 
 class TestAdbWrapper(device_test_case.DeviceTestCase):
-
   def setUp(self):
     super(TestAdbWrapper, self).setUp()
     self._adb = adb_wrapper.AdbWrapper(self.serial)
@@ -54,7 +52,7 @@ class TestAdbWrapper(device_test_case.DeviceTestCase):
   def testPersistentShell(self):
     # We need to access the device serial number here in order
     # to create the persistent shell.
-    serial = self._adb.GetDeviceSerial() # pylint: disable=protected-access
+    serial = self._adb.GetDeviceSerial()  # pylint: disable=protected-access
     with self._adb.PersistentShell(serial) as pshell:
       (res1, code1) = pshell.RunCommand('echo TEST')
       (res2, code2) = pshell.RunCommand('echo TEST2')

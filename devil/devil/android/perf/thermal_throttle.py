@@ -39,6 +39,7 @@ class OmapThrottlingDetector(object):
 
 class ExynosThrottlingDetector(object):
   """Class to detect and track thermal throttling on an Exynos 5."""
+
   @staticmethod
   def IsSupported(device):
     return device.FileExists('/sys/bus/exynos5-core')
@@ -98,8 +99,9 @@ class ThermalThrottle(object):
       return False
     has_been_throttled = False
     serial_number = str(self._device)
-    log = self._device.RunShellCommand(
-        ['dmesg', '-c'], large_output=True, check_return=True)
+    log = self._device.RunShellCommand(['dmesg', '-c'],
+                                       large_output=True,
+                                       check_return=True)
     degree_symbol = unichr(0x00B0)
     for line in log:
       if self._detector.BecameThrottled(line):
@@ -114,19 +116,19 @@ class ThermalThrottle(object):
         has_been_throttled = True
       temperature = self._detector.GetThrottlingTemperature(line)
       if temperature is not None:
-        logger.info(u'Device %s thermally throttled at %3.1f%sC',
-                    serial_number, temperature, degree_symbol)
+        logger.info(u'Device %s thermally throttled at %3.1f%sC', serial_number,
+                    temperature, degree_symbol)
 
     if logger.isEnabledFor(logging.DEBUG):
       # Print current temperature of CPU SoC.
       temperature = self._detector.GetCurrentTemperature()
       if temperature is not None:
-        logger.debug(u'Current SoC temperature of %s = %3.1f%sC',
-                     serial_number, temperature, degree_symbol)
+        logger.debug(u'Current SoC temperature of %s = %3.1f%sC', serial_number,
+                     temperature, degree_symbol)
 
       # Print temperature of battery, to give a system temperature
-      dumpsys_log = self._device.RunShellCommand(
-          ['dumpsys', 'battery'], check_return=True)
+      dumpsys_log = self._device.RunShellCommand(['dumpsys', 'battery'],
+                                                 check_return=True)
       for line in dumpsys_log:
         if 'temperature' in line:
           btemp = float([s for s in line.split() if s.isdigit()][0]) / 10.0

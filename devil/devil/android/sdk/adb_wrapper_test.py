@@ -2,7 +2,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """
 Unit tests for some APIs with conditional logic in adb_wrapper.py
 """
@@ -24,8 +23,7 @@ class AdbWrapperTest(unittest.TestCase):
 
   def _MockRunDeviceAdbCmd(self, return_value):
     return mock.patch.object(
-        self.adb,
-        '_RunDeviceAdbCmd',
+        self.adb, '_RunDeviceAdbCmd',
         mock.Mock(side_effect=None, return_value=return_value))
 
   def testDisableVerityWhenDisabled(self):
@@ -50,23 +48,23 @@ class AdbWrapperTest(unittest.TestCase):
 
   def testFailEnableVerity(self):
     with self._MockRunDeviceAdbCmd('error: closed'):
-      self.assertRaises(
-          device_errors.AdbCommandFailedError, self.adb.EnableVerity)
+      self.assertRaises(device_errors.AdbCommandFailedError,
+                        self.adb.EnableVerity)
 
   def testFailDisableVerity(self):
     with self._MockRunDeviceAdbCmd('error: closed'):
-      self.assertRaises(
-          device_errors.AdbCommandFailedError, self.adb.DisableVerity)
+      self.assertRaises(device_errors.AdbCommandFailedError,
+                        self.adb.DisableVerity)
 
   @mock.patch('devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout')
   def testDeviceUnreachable(self, get_cmd_mock):
     get_cmd_mock.return_value = (
         1, "error: device '%s' not found" % self.device_serial)
-    self.assertRaises(
-        device_errors.DeviceUnreachableError, self.adb.Shell, '/bin/true')
+    self.assertRaises(device_errors.DeviceUnreachableError, self.adb.Shell,
+                      '/bin/true')
 
   @mock.patch('devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout')
   def testWaitingForDevice(self, get_cmd_mock):
     get_cmd_mock.return_value = (1, '- waiting for device - ')
-    self.assertRaises(
-        device_errors.DeviceUnreachableError, self.adb.Shell, '/bin/true')
+    self.assertRaises(device_errors.DeviceUnreachableError, self.adb.Shell,
+                      '/bin/true')

@@ -2,7 +2,6 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """A script to keep track of devices across builds and report state."""
 
 import argparse
@@ -14,8 +13,8 @@ import sys
 
 if __name__ == '__main__':
   sys.path.append(
-      os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                   '..', '..', '..')))
+      os.path.abspath(
+          os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 from devil.android import battery_utils
 from devil.android import device_blacklist
 from devil.android import device_errors
@@ -53,8 +52,7 @@ def _BatteryStatus(device, blacklist):
 
   except (device_errors.CommandFailedError,
           device_errors.DeviceUnreachableError):
-    logger.exception('Failed to get battery information for %s',
-                     str(device))
+    logger.exception('Failed to get battery information for %s', str(device))
 
   return battery_info
 
@@ -87,22 +85,22 @@ def DeviceStatus(devices, blacklist):
     }
   """
   adb_devices = {
-    a[0].GetDeviceSerial(): a
-    for a in adb_wrapper.AdbWrapper.Devices(desired_state=None, long_list=True)
+      a[0].GetDeviceSerial(): a
+      for a in adb_wrapper.AdbWrapper.Devices(
+          desired_state=None, long_list=True)
   }
   usb_devices = set(lsusb.get_android_devices())
 
   def blacklisting_device_status(device):
     serial = device.adb.GetDeviceSerial()
-    adb_status = (
-        adb_devices[serial][1] if serial in adb_devices
-        else 'missing')
+    adb_status = (adb_devices[serial][1]
+                  if serial in adb_devices else 'missing')
     usb_status = bool(serial in usb_devices)
 
     device_status = {
-      'serial': serial,
-      'adb_status': adb_status,
-      'usb_status': usb_status,
+        'serial': serial,
+        'adb_status': adb_status,
+        'usb_status': usb_status,
     }
 
     if not IsBlacklisted(serial, blacklist):
@@ -120,18 +118,18 @@ def DeviceStatus(devices, blacklist):
             logging.exception('Unable to fetch IMEI for %s.', str(device))
             imei_slice = 'unknown'
 
-          if (device.product_name == 'mantaray' and
-              battery_info.get('AC powered', None) != 'true'):
+          if (device.product_name == 'mantaray'
+              and battery_info.get('AC powered', None) != 'true'):
             logger.error('Mantaray device not connected to AC power.')
 
           device_status.update({
-            'ro.build.product': build_product,
-            'ro.build.id': build_id,
-            'ro.build.fingerprint': build_fingerprint,
-            'ro.build.description': build_description,
-            'battery': battery_info,
-            'imei_slice': imei_slice,
-            'wifi_ip': wifi_ip,
+              'ro.build.product': build_product,
+              'ro.build.id': build_id,
+              'ro.build.fingerprint': build_fingerprint,
+              'ro.build.description': build_description,
+              'battery': battery_info,
+              'imei_slice': imei_slice,
+              'wifi_ip': wifi_ip,
           })
 
         except (device_errors.CommandFailedError,
@@ -189,25 +187,21 @@ def _WriteBuildbotFile(file_path, statuses):
       for status in statuses:
         try:
           if status['adb_status'] == 'device':
-            f.write('{serial} {adb_status} {build_product} {build_id} '
-                    '{temperature:.1f}C {level}%\n'.format(
-                serial=status['serial'],
-                adb_status=status['adb_status'],
-                build_product=status['type'],
-                build_id=status['build'],
-                temperature=float(status['battery']['temperature']) / 10,
-                level=status['battery']['level']
-            ))
+            f.write(
+                '{serial} {adb_status} {build_product} {build_id} '
+                '{temperature:.1f}C {level}%\n'.format(
+                    serial=status['serial'],
+                    adb_status=status['adb_status'],
+                    build_product=status['type'],
+                    build_id=status['build'],
+                    temperature=float(status['battery']['temperature']) / 10,
+                    level=status['battery']['level']))
           elif status.get('usb_status', False):
             f.write('{serial} {adb_status}\n'.format(
-                serial=status['serial'],
-                adb_status=status['adb_status']
-            ))
+                serial=status['serial'], adb_status=status['adb_status']))
           else:
-            f.write('{serial} offline\n'.format(
-                serial=status['serial']
-            ))
-        except Exception: # pylint: disable=broad-except
+            f.write('{serial} offline\n'.format(serial=status['serial']))
+        except Exception:  # pylint: disable=broad-except
           pass
 
 
@@ -229,19 +223,27 @@ def GetExpectedDevices(known_devices_files):
 
 
 def AddArguments(parser):
-  parser.add_argument('--json-output',
-                      help='Output JSON information into a specified file.')
+  parser.add_argument(
+      '--json-output', help='Output JSON information into a specified file.')
   parser.add_argument('--blacklist-file', help='Device blacklist JSON file.')
-  parser.add_argument('--known-devices-file', action='append', default=[],
-                      dest='known_devices_files',
-                      help='Path to known device lists.')
-  parser.add_argument('--buildbot-path', '-b',
-                      default='/home/chrome-bot/.adb_device_info',
-                      help='Absolute path to buildbot file location')
-  parser.add_argument('-w', '--overwrite-known-devices-files',
-                      action='store_true',
-                      help='If set, overwrites known devices files wiht new '
-                           'values.')
+  parser.add_argument(
+      '--known-devices-file',
+      action='append',
+      default=[],
+      dest='known_devices_files',
+      help='Path to known device lists.')
+  parser.add_argument(
+      '--buildbot-path',
+      '-b',
+      default='/home/chrome-bot/.adb_device_info',
+      help='Absolute path to buildbot file location')
+  parser.add_argument(
+      '-w',
+      '--overwrite-known-devices-files',
+      action='store_true',
+      help='If set, overwrites known devices files wiht new '
+      'values.')
+
 
 def main():
   parser = argparse.ArgumentParser()
@@ -254,13 +256,13 @@ def main():
   script_common.InitializeEnvironment(args)
 
   blacklist = (device_blacklist.Blacklist(args.blacklist_file)
-               if args.blacklist_file
-               else None)
+               if args.blacklist_file else None)
 
   expected_devices = GetExpectedDevices(args.known_devices_files)
   usb_devices = set(lsusb.get_android_devices())
-  devices = [device_utils.DeviceUtils(s)
-             for s in expected_devices.union(usb_devices)]
+  devices = [
+      device_utils.DeviceUtils(s) for s in expected_devices.union(usb_devices)
+  ]
 
   statuses = DeviceStatus(devices, blacklist)
 
@@ -279,12 +281,15 @@ def main():
   # Dump the device statuses to JSON.
   if args.json_output:
     with open(args.json_output, 'wb') as f:
-      f.write(json.dumps(
-          statuses, indent=4, sort_keys=True, separators=(',', ': ')))
+      f.write(
+          json.dumps(
+              statuses, indent=4, sort_keys=True, separators=(',', ': ')))
 
-  live_devices = [status['serial'] for status in statuses
-                  if (status['adb_status'] == 'device'
-                      and not IsBlacklisted(status['serial'], blacklist))]
+  live_devices = [
+      status['serial'] for status in statuses
+      if (status['adb_status'] == 'device'
+          and not IsBlacklisted(status['serial'], blacklist))
+  ]
 
   # If all devices failed, or if there are no devices, it's an infra error.
   if not live_devices:

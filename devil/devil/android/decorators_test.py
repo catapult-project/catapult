@@ -1,7 +1,6 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """
 Unit tests for decorators.py.
 """
@@ -54,6 +53,7 @@ class DecoratorsTest(unittest.TestCase):
 
   def testFunctionDecoratorRequiresParams(self):
     """Tests that the base decorator requires timeout and retries params."""
+
     @decorators.WithTimeoutAndRetries
     def requiresExplicitTimeoutAndRetries(timeout=None, retries=None):
       return (timeout, retries)
@@ -66,14 +66,14 @@ class DecoratorsTest(unittest.TestCase):
       requiresExplicitTimeoutAndRetries(retries=0)
     expected_timeout = 10
     expected_retries = 1
-    (actual_timeout, actual_retries) = (
-        requiresExplicitTimeoutAndRetries(timeout=expected_timeout,
-                                          retries=expected_retries))
+    (actual_timeout, actual_retries) = (requiresExplicitTimeoutAndRetries(
+        timeout=expected_timeout, retries=expected_retries))
     self.assertEquals(expected_timeout, actual_timeout)
     self.assertEquals(expected_retries, actual_retries)
 
   def testFunctionDecoratorTranslatesReraiserExceptions(self):
     """Tests that the explicit decorator translates reraiser exceptions."""
+
     @decorators.WithTimeoutAndRetries
     def alwaysRaisesProvidedException(exception, timeout=None, retries=None):
       raise exception
@@ -81,8 +81,7 @@ class DecoratorsTest(unittest.TestCase):
     exception_desc = 'Reraiser thread timeout error'
     with self.assertRaises(device_errors.CommandTimeoutError) as e:
       alwaysRaisesProvidedException(
-          reraiser_thread.TimeoutError(exception_desc),
-          timeout=10, retries=1)
+          reraiser_thread.TimeoutError(exception_desc), timeout=10, retries=1)
     self.assertEquals(exception_desc, str(e.exception))
 
   def testConditionalRetriesDecoratorRetries(self):
@@ -158,6 +157,7 @@ class DecoratorsTest(unittest.TestCase):
 
   def testDefaultsFunctionDecoratorPassesValues(self):
     """Tests that the defaults decorator passes timeout and retries kwargs."""
+
     @decorators.WithTimeoutAndRetriesDefaults(30, 10)
     def alwaysReturnsTimeouts(timeout=None, retries=None):
       return timeout
@@ -174,6 +174,7 @@ class DecoratorsTest(unittest.TestCase):
 
   def testDefaultsFunctionDecoratorTranslatesReraiserExceptions(self):
     """Tests that the explicit decorator translates reraiser exceptions."""
+
     @decorators.WithTimeoutAndRetriesDefaults(30, 10)
     def alwaysRaisesProvidedException(exception, timeout=None, retries=None):
       raise exception
@@ -215,6 +216,7 @@ class DecoratorsTest(unittest.TestCase):
 
   def testExplicitDecoratorTranslatesReraiserExceptions(self):
     """Tests that the explicit decorator translates reraiser exceptions."""
+
     @decorators.WithExplicitTimeoutAndRetries(30, 10)
     def alwaysRaisesProvidedException(exception):
       raise exception
@@ -228,7 +230,9 @@ class DecoratorsTest(unittest.TestCase):
   class _MethodDecoratorTestObject(object):
     """An object suitable for testing the method decorator."""
 
-    def __init__(self, test_case, default_timeout=_DEFAULT_TIMEOUT,
+    def __init__(self,
+                 test_case,
+                 default_timeout=_DEFAULT_TIMEOUT,
                  default_retries=_DEFAULT_RETRIES):
       self._test_case = test_case
       self.default_timeout = default_timeout
@@ -239,23 +243,23 @@ class DecoratorsTest(unittest.TestCase):
           'requiresExplicitTimeoutAndRetries': 0,
       }
 
-    @decorators.WithTimeoutAndRetriesFromInstance(
-        'default_timeout', 'default_retries')
+    @decorators.WithTimeoutAndRetriesFromInstance('default_timeout',
+                                                  'default_retries')
     def alwaysTimesOut(self, timeout=None, retries=None):
       self.function_call_counters['alwaysTimesOut'] += 1
       time.sleep(100)
       self._test_case.assertFalse(True, msg='Failed to time out?')
 
-    @decorators.WithTimeoutAndRetriesFromInstance(
-        'default_timeout', 'default_retries')
+    @decorators.WithTimeoutAndRetriesFromInstance('default_timeout',
+                                                  'default_retries')
     def alwaysRaisesCommandFailedError(self, timeout=None, retries=None):
       self.function_call_counters['alwaysRaisesCommandFailedError'] += 1
       raise device_errors.CommandFailedError('testCommand failed')
 
     # pylint: disable=no-self-use
 
-    @decorators.WithTimeoutAndRetriesFromInstance(
-        'default_timeout', 'default_retries')
+    @decorators.WithTimeoutAndRetriesFromInstance('default_timeout',
+                                                  'default_retries')
     def alwaysReturnsTimeout(self, timeout=None, retries=None):
       return timeout
 
@@ -264,14 +268,16 @@ class DecoratorsTest(unittest.TestCase):
     def alwaysReturnsTimeoutWithMin(self, timeout=None, retries=None):
       return timeout
 
-    @decorators.WithTimeoutAndRetriesFromInstance(
-        'default_timeout', 'default_retries')
+    @decorators.WithTimeoutAndRetriesFromInstance('default_timeout',
+                                                  'default_retries')
     def alwaysReturnsRetries(self, timeout=None, retries=None):
       return retries
 
-    @decorators.WithTimeoutAndRetriesFromInstance(
-        'default_timeout', 'default_retries')
-    def alwaysRaisesProvidedException(self, exception, timeout=None,
+    @decorators.WithTimeoutAndRetriesFromInstance('default_timeout',
+                                                  'default_retries')
+    def alwaysRaisesProvidedException(self,
+                                      exception,
+                                      timeout=None,
                                       retries=None):
       raise exception
 
@@ -327,6 +333,6 @@ class DecoratorsTest(unittest.TestCase):
           reraiser_thread.TimeoutError(exception_desc))
     self.assertEquals(exception_desc, str(e.exception))
 
+
 if __name__ == '__main__':
   unittest.main(verbosity=2)
-

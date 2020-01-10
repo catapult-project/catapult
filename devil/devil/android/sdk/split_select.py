@@ -1,13 +1,11 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """This module wraps Android's split-select tool."""
 
 from devil.android.sdk import build_tools
 from devil.utils import cmd_helper
 from devil.utils import lazy
-
 
 _split_select_path = lazy.WeakConstant(
     lambda: build_tools.GetPath('split-select'))
@@ -37,11 +35,9 @@ def _SplitConfig(device, allow_cached_props=False):
     device: A DeviceUtils object.
     allow_cached_props: Whether to use cached values for device properties.
   """
-  return ('%s-r%s-%s:%s' %
-          (device.GetLanguage(cache=allow_cached_props),
-           device.GetCountry(cache=allow_cached_props),
-           device.screen_density,
-           device.product_cpu_abi))
+  return ('%s-r%s-%s:%s' % (device.GetLanguage(cache=allow_cached_props),
+                            device.GetCountry(cache=allow_cached_props),
+                            device.screen_density, device.product_cpu_abi))
 
 
 def SelectSplits(device, base_apk, split_apks, allow_cached_props=False):

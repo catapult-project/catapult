@@ -15,7 +15,6 @@ from devil.utils import mock_calls
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
   import mock  # pylint: disable=import-error
 
-
 # pylint: disable=line-too-long
 _MANIFEST_DUMP = """N: android=http://schemas.android.com/apk/res/android
   E: manifest (line=1)
@@ -134,6 +133,7 @@ _NO_NAMESPACE_MANIFEST_DUMP = """E: manifest (line=1)
     A: http://schemas.android.com/apk/res/android:name(0x01010003)="org.chromium.RandomTestRunner" (Raw: "org.chromium.RandomTestRunner")
     A: http://schemas.android.com/apk/res/android:targetPackage(0x01010021)="org.chromium.random_package" (Raw:"org.chromium.random_pacakge")
 """
+
 # pylint: enable=line-too-long
 
 
@@ -142,14 +142,13 @@ def _MockAaptDump(manifest_dump):
       'devil.android.sdk.aapt.Dump',
       mock.Mock(side_effect=None, return_value=manifest_dump.split('\n')))
 
+
 def _MockListApkPaths(files):
-  return mock.patch(
-      'devil.android.apk_helper.ApkHelper._ListApkPaths',
-      mock.Mock(side_effect=None, return_value=files))
+  return mock.patch('devil.android.apk_helper.ApkHelper._ListApkPaths',
+                    mock.Mock(side_effect=None, return_value=files))
 
 
 class _MockDeviceUtils(object):
-
   def __init__(self):
     self.product_cpu_abi = abis.ARM_64
     self.product_cpu_abis = [abis.ARM_64, abis.ARM]
@@ -169,7 +168,6 @@ class _MockDeviceUtils(object):
 
 
 class ApkHelperTest(mock_calls.TestCase):
-
   def testToHelperApk(self):
     apk = apk_helper.ToHelper('abc.apk')
     self.assertTrue(isinstance(apk, apk_helper.ApkHelper))
@@ -200,14 +198,14 @@ class ApkHelperTest(mock_calls.TestCase):
   def testGetActivityName(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals(
-          helper.GetActivityName(), 'org.chromium.abc.MainActivity')
+      self.assertEquals(helper.GetActivityName(),
+                        'org.chromium.abc.MainActivity')
 
   def testGetViewActivityName(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals(
-          helper.GetViewActivityName(), 'org.chromium.ViewActivity')
+      self.assertEquals(helper.GetViewActivityName(),
+                        'org.chromium.ViewActivity')
 
   def testGetAllInstrumentations(self):
     with _MockAaptDump(_MANIFEST_DUMP):
@@ -316,22 +314,28 @@ class ApkHelperTest(mock_calls.TestCase):
 
   def testGetArchitectures(self):
     AbiPair = collections.namedtuple('AbiPair', ['abi32bit', 'abi64bit'])
-    for abi_pair in [AbiPair('lib/' + abis.ARM, 'lib/' + abis.ARM_64),
-                     AbiPair('lib/' + abis.X86, 'lib/' + abis.X86_64)]:
+    for abi_pair in [
+        AbiPair('lib/' + abis.ARM, 'lib/' + abis.ARM_64),
+        AbiPair('lib/' + abis.X86, 'lib/' + abis.X86_64)
+    ]:
       with _MockListApkPaths([abi_pair.abi32bit]):
         helper = apk_helper.ApkHelper('')
-        self.assertEquals(set([os.path.basename(abi_pair.abi32bit),
-                               os.path.basename(abi_pair.abi64bit)]),
-                          set(helper.GetAbis()))
+        self.assertEquals(
+            set([
+                os.path.basename(abi_pair.abi32bit),
+                os.path.basename(abi_pair.abi64bit)
+            ]), set(helper.GetAbis()))
       with _MockListApkPaths([abi_pair.abi32bit, abi_pair.abi64bit]):
         helper = apk_helper.ApkHelper('')
-        self.assertEquals(set([os.path.basename(abi_pair.abi32bit),
-                               os.path.basename(abi_pair.abi64bit)]),
-                          set(helper.GetAbis()))
+        self.assertEquals(
+            set([
+                os.path.basename(abi_pair.abi32bit),
+                os.path.basename(abi_pair.abi64bit)
+            ]), set(helper.GetAbis()))
       with _MockListApkPaths([abi_pair.abi64bit]):
         helper = apk_helper.ApkHelper('')
-        self.assertEquals(set([os.path.basename(abi_pair.abi64bit)]),
-                          set(helper.GetAbis()))
+        self.assertEquals(
+            set([os.path.basename(abi_pair.abi64bit)]), set(helper.GetAbis()))
 
   def testGetSplitsApk(self):
     apk = apk_helper.ToHelper('abc.apk')
@@ -411,8 +415,6 @@ class ApkHelperTest(mock_calls.TestCase):
     apk.GetApkPaths(device, modules=['bar']) as apk_paths:
       self.assertEquals(apk_paths,
                         ['/tmp2/base-master.apk', '/tmp2/bar-master.apk'])
-
-
 
 
 if __name__ == '__main__':

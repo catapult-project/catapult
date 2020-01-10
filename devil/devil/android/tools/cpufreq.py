@@ -2,7 +2,6 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """A script to manipulate device CPU frequency."""
 
 import argparse
@@ -12,8 +11,8 @@ import sys
 
 if __name__ == '__main__':
   sys.path.append(
-      os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                   '..', '..', '..')))
+      os.path.abspath(
+          os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
 from devil.android import device_utils
 from devil.android.perf import perf_control
@@ -43,15 +42,16 @@ def main(raw_args):
   logging_common.AddLoggingArguments(parser)
   script_common.AddEnvironmentArguments(parser)
   parser.add_argument(
-      '--device', dest='devices', action='append', default=[],
+      '--device',
+      dest='devices',
+      action='append',
+      default=[],
       help='Devices for which the governor should be set. Defaults to all.')
 
   subparsers = parser.add_subparsers()
 
   set_governor = subparsers.add_parser('set-governor')
-  set_governor.add_argument(
-      'governor',
-      help='Desired CPU governor.')
+  set_governor.add_argument('governor', help='Desired CPU governor.')
   set_governor.set_defaults(func=SetScalingGovernor)
 
   get_governor = subparsers.add_parser('get-governor')

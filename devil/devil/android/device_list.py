@@ -1,7 +1,6 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """A module to keep track of devices across builds."""
 
 import json
@@ -26,8 +25,8 @@ def GetPersistentDeviceList(file_name):
   try:
     with open(file_name) as f:
       devices = json.load(f)
-    if not isinstance(devices, list) or not all(isinstance(d, basestring)
-                                                for d in devices):
+    if not isinstance(devices, list) or not all(
+        isinstance(d, basestring) for d in devices):
       logger.warning('Unrecognized device file format: %s', devices)
       return []
     return [d for d in devices if d != '(error)']

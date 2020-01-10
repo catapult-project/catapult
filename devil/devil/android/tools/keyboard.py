@@ -2,7 +2,6 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Use your keyboard as your phone's keyboard. Experimental."""
 
 import argparse
@@ -14,56 +13,55 @@ import tty
 
 if __name__ == '__main__':
   sys.path.append(
-      os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                   '..', '..', '..')))
+      os.path.abspath(
+          os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 from devil import base_error
 from devil.android.sdk import keyevent
 from devil.android.tools import script_common
 from devil.utils import logging_common
 
-
 _KEY_MAPPING = {
-  '\x08': keyevent.KEYCODE_DEL,
-  '\x0a': keyevent.KEYCODE_ENTER,
-  ' ': keyevent.KEYCODE_SPACE,
-  '.': keyevent.KEYCODE_PERIOD,
-  '0': keyevent.KEYCODE_0,
-  '1': keyevent.KEYCODE_1,
-  '2': keyevent.KEYCODE_2,
-  '3': keyevent.KEYCODE_3,
-  '4': keyevent.KEYCODE_4,
-  '5': keyevent.KEYCODE_5,
-  '6': keyevent.KEYCODE_6,
-  '7': keyevent.KEYCODE_7,
-  '8': keyevent.KEYCODE_8,
-  '9': keyevent.KEYCODE_9,
-  'a': keyevent.KEYCODE_A,
-  'b': keyevent.KEYCODE_B,
-  'c': keyevent.KEYCODE_C,
-  'd': keyevent.KEYCODE_D,
-  'e': keyevent.KEYCODE_E,
-  'f': keyevent.KEYCODE_F,
-  'g': keyevent.KEYCODE_G,
-  'h': keyevent.KEYCODE_H,
-  'i': keyevent.KEYCODE_I,
-  'j': keyevent.KEYCODE_J,
-  'k': keyevent.KEYCODE_K,
-  'l': keyevent.KEYCODE_L,
-  'm': keyevent.KEYCODE_M,
-  'n': keyevent.KEYCODE_N,
-  'o': keyevent.KEYCODE_O,
-  'p': keyevent.KEYCODE_P,
-  'q': keyevent.KEYCODE_Q,
-  'r': keyevent.KEYCODE_R,
-  's': keyevent.KEYCODE_S,
-  't': keyevent.KEYCODE_T,
-  'u': keyevent.KEYCODE_U,
-  'v': keyevent.KEYCODE_V,
-  'w': keyevent.KEYCODE_W,
-  'x': keyevent.KEYCODE_X,
-  'y': keyevent.KEYCODE_Y,
-  'z': keyevent.KEYCODE_Z,
-  '\x7f': keyevent.KEYCODE_DEL,
+    '\x08': keyevent.KEYCODE_DEL,
+    '\x0a': keyevent.KEYCODE_ENTER,
+    ' ': keyevent.KEYCODE_SPACE,
+    '.': keyevent.KEYCODE_PERIOD,
+    '0': keyevent.KEYCODE_0,
+    '1': keyevent.KEYCODE_1,
+    '2': keyevent.KEYCODE_2,
+    '3': keyevent.KEYCODE_3,
+    '4': keyevent.KEYCODE_4,
+    '5': keyevent.KEYCODE_5,
+    '6': keyevent.KEYCODE_6,
+    '7': keyevent.KEYCODE_7,
+    '8': keyevent.KEYCODE_8,
+    '9': keyevent.KEYCODE_9,
+    'a': keyevent.KEYCODE_A,
+    'b': keyevent.KEYCODE_B,
+    'c': keyevent.KEYCODE_C,
+    'd': keyevent.KEYCODE_D,
+    'e': keyevent.KEYCODE_E,
+    'f': keyevent.KEYCODE_F,
+    'g': keyevent.KEYCODE_G,
+    'h': keyevent.KEYCODE_H,
+    'i': keyevent.KEYCODE_I,
+    'j': keyevent.KEYCODE_J,
+    'k': keyevent.KEYCODE_K,
+    'l': keyevent.KEYCODE_L,
+    'm': keyevent.KEYCODE_M,
+    'n': keyevent.KEYCODE_N,
+    'o': keyevent.KEYCODE_O,
+    'p': keyevent.KEYCODE_P,
+    'q': keyevent.KEYCODE_Q,
+    'r': keyevent.KEYCODE_R,
+    's': keyevent.KEYCODE_S,
+    't': keyevent.KEYCODE_T,
+    'u': keyevent.KEYCODE_U,
+    'v': keyevent.KEYCODE_V,
+    'w': keyevent.KEYCODE_W,
+    'x': keyevent.KEYCODE_X,
+    'y': keyevent.KEYCODE_Y,
+    'z': keyevent.KEYCODE_Z,
+    '\x7f': keyevent.KEYCODE_DEL,
 }
 
 

@@ -9,9 +9,7 @@ import re
 
 from devil.android.sdk import version_codes
 
-
 logger = logging.getLogger(__name__)
-
 
 _CMDLINE_DIR = '/data/local/tmp'
 _CMDLINE_DIR_LEGACY = '/data/local'
@@ -72,15 +70,15 @@ class FlagChanger(object):
     alternate_cmdline_path = posixpath.join(_CMDLINE_DIR_LEGACY, cmdline_file)
 
     if use_legacy_path:
-      cmdline_path, alternate_cmdline_path = (
-          alternate_cmdline_path, cmdline_path)
+      cmdline_path, alternate_cmdline_path = (alternate_cmdline_path,
+                                              cmdline_path)
       if not self._device.HasRoot():
         raise ValueError('use_legacy_path requires a rooted device')
     self._cmdline_path = cmdline_path
 
     if self._device.PathExists(alternate_cmdline_path):
-      logger.warning(
-          'Removing alternate command line file %r.', alternate_cmdline_path)
+      logger.warning('Removing alternate command line file %r.',
+                     alternate_cmdline_path)
       self._device.RemovePath(alternate_cmdline_path, as_root=True)
 
     self._state_stack = [None]  # Actual state is set by GetCurrentFlags().
@@ -189,8 +187,8 @@ class FlagChanger(object):
     # permissions are needed, and document them in the code.
     if not self._device.HasRoot():
       return
-    if (self._device.build_version_sdk >= version_codes.NOUGAT and
-        self._device.GetEnforce()):
+    if (self._device.build_version_sdk >= version_codes.NOUGAT
+        and self._device.GetEnforce()):
       self._device.SetEnforce(enabled=False)
       self._should_reset_enforce = True
 

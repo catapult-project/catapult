@@ -2,7 +2,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Takes a screenshot from an Android device."""
 
 import argparse
@@ -11,8 +10,9 @@ import os
 import sys
 
 if __name__ == '__main__':
-  sys.path.append(os.path.abspath(os.path.join(
-      os.path.dirname(__file__), '..', '..', '..')))
+  sys.path.append(
+      os.path.abspath(
+          os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 from devil.android import device_utils
 from devil.android.tools import script_common
 from devil.utils import logging_common
@@ -25,11 +25,16 @@ def main():
   parser = argparse.ArgumentParser(description=__doc__)
   logging_common.AddLoggingArguments(parser)
   script_common.AddDeviceArguments(parser)
-  parser.add_argument('-f', '--file', metavar='FILE',
-                      help='Save result to file instead of generating a '
-                           'timestamped file name.')
-  parser.add_argument('host_file', nargs='?',
-                      help='File to which the screenshot will be saved.')
+  parser.add_argument(
+      '-f',
+      '--file',
+      metavar='FILE',
+      help='Save result to file instead of generating a '
+      'timestamped file name.')
+  parser.add_argument(
+      'host_file',
+      nargs='?',
+      help='File to which the screenshot will be saved.')
 
   args = parser.parse_args()
   host_file = args.host_file or args.file
@@ -43,8 +48,8 @@ def main():
       root, ext = os.path.splitext(host_file)
       f = '%s_%s%s' % (root, str(device), ext)
     f = device.TakeScreenshot(f)
-    print 'Screenshot for device %s written to %s' % (
-        str(device), os.path.abspath(f))
+    print 'Screenshot for device %s written to %s' % (str(device),
+                                                      os.path.abspath(f))
 
   device_utils.DeviceUtils.parallel(devices).pMap(screenshot)
   return 0

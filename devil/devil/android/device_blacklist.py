@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 class Blacklist(object):
-
   def __init__(self, path):
     self._blacklist_lock = threading.RLock()
     self._path = path
@@ -37,7 +36,7 @@ class Blacklist(object):
 
       if not isinstance(blacklist, dict):
         logger.warning('Ignoring %s: %s (a dict was expected instead)',
-                        self._path, blacklist)
+                       self._path, blacklist)
         blacklist = dict()
 
       return blacklist
@@ -65,8 +64,8 @@ class Blacklist(object):
         'reason': reason,
     }
     device_dicts = {device: event_info for device in devices}
-    logger.info('Adding %s to blacklist %s for reason: %s',
-                 ','.join(devices), self._path, reason)
+    logger.info('Adding %s to blacklist %s for reason: %s', ','.join(devices),
+                self._path, reason)
     with self._blacklist_lock:
       blacklist = self.Read()
       blacklist.update(device_dicts)

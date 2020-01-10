@@ -2,7 +2,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """
 Unit tests for the contents of fastboot_utils.py
 """
@@ -27,7 +26,8 @@ with devil_env.SysPath(devil_env.PYMOCK_PATH):
 _BOARD = 'board_type'
 _SERIAL = '0123456789abcdef'
 _PARTITIONS = [
-    'bootloader', 'radio', 'boot', 'recovery', 'system', 'userdata', 'cache']
+    'bootloader', 'radio', 'boot', 'recovery', 'system', 'userdata', 'cache'
+]
 _IMAGES = collections.OrderedDict([
     ('bootloader', 'bootloader.img'),
     ('radio', 'radio.img'),
@@ -42,7 +42,6 @@ _INVALID_FILES = ['test.zip', 'android-info.txt']
 
 
 class MockFile(object):
-
   def __init__(self, name='/tmp/some/file'):
     self.file = mock.MagicMock(spec=file)
     self.file.name = name
@@ -74,18 +73,18 @@ def _DeviceUtilsMock(test_serial):
 
 
 class FastbootUtilsTest(mock_calls.TestCase):
-
   def setUp(self):
     self.device_utils_mock = _DeviceUtilsMock(_SERIAL)
     self.fastboot_wrapper = _FastbootWrapperMock(_SERIAL)
     self.fastboot = fastboot_utils.FastbootUtils(
-        device=self.device_utils_mock, fastbooter=self.fastboot_wrapper,
-        default_timeout=2, default_retries=0)
+        device=self.device_utils_mock,
+        fastbooter=self.fastboot_wrapper,
+        default_timeout=2,
+        default_retries=0)
     self.fastboot._board = _BOARD
 
 
 class FastbootUtilsInitTest(FastbootUtilsTest):
-
   def testInitWithDeviceUtil(self):
     f = fastboot_utils.FastbootUtils(self.device_utils_mock)
     self.assertEqual(str(self.device_utils_mock), str(f._device))
@@ -106,7 +105,6 @@ class FastbootUtilsWaitForFastbootMode(FastbootUtilsTest):
 
 
 class FastbootUtilsEnableFastbootMode(FastbootUtilsTest):
-
   def testEnableFastbootMode(self):
     with self.assertCalls(
         self.call.fastboot._device.EnableRoot(),
@@ -116,11 +114,9 @@ class FastbootUtilsEnableFastbootMode(FastbootUtilsTest):
 
 
 class FastbootUtilsReboot(FastbootUtilsTest):
-
   def testReboot_bootloader(self):
-    with self.assertCalls(
-        self.call.fastboot.fastboot.RebootBootloader(),
-        self.call.fastboot.WaitForFastbootMode()):
+    with self.assertCalls(self.call.fastboot.fastboot.RebootBootloader(),
+                          self.call.fastboot.WaitForFastbootMode()):
       self.fastboot.Reboot(bootloader=True)
 
   def testReboot_normal(self):
@@ -131,13 +127,12 @@ class FastbootUtilsReboot(FastbootUtilsTest):
 
 
 class FastbootUtilsFlashPartitions(FastbootUtilsTest):
-
   def testFlashPartitions_wipe(self):
     with self.assertCalls(
         (self.call.fastboot._VerifyBoard('test'), True),
-        (mock.call.devil.android.fastboot_utils.
-            _FindAndVerifyPartitionsAndImages(
-                _PARTITIONS, 'test', 'board_type'), _IMAGES),
+        (mock.call.devil.android.
+         fastboot_utils._FindAndVerifyPartitionsAndImages(
+             _PARTITIONS, 'test', 'board_type'), _IMAGES),
         (self.call.fastboot.fastboot.Flash('bootloader', 'bootloader.img')),
         (self.call.fastboot.Reboot(bootloader=True)),
         (self.call.fastboot.fastboot.Flash('radio', 'radio.img')),
@@ -152,9 +147,9 @@ class FastbootUtilsFlashPartitions(FastbootUtilsTest):
   def testFlashPartitions_noWipe(self):
     with self.assertCalls(
         (self.call.fastboot._VerifyBoard('test'), True),
-        (mock.call.devil.android.fastboot_utils.
-            _FindAndVerifyPartitionsAndImages(
-                _PARTITIONS, 'test', 'board_type'), _IMAGES),
+        (mock.call.devil.android.
+         fastboot_utils._FindAndVerifyPartitionsAndImages(
+             _PARTITIONS, 'test', 'board_type'), _IMAGES),
         (self.call.fastboot.fastboot.Flash('bootloader', 'bootloader.img')),
         (self.call.fastboot.Reboot(bootloader=True)),
         (self.call.fastboot.fastboot.Flash('radio', 'radio.img')),
@@ -174,9 +169,9 @@ class FastbootUtilsFlashPartitions(FastbootUtilsTest):
     ab_partitions.append('vbmeta')
     with self.assertCalls(
         (self.call.fastboot._VerifyBoard('test'), True),
-        (mock.call.devil.android.fastboot_utils.
-            _FindAndVerifyPartitionsAndImages(
-                ab_partitions, 'test', 'walleye'), ab_images),
+        (mock.call.devil.android.
+         fastboot_utils._FindAndVerifyPartitionsAndImages(
+             ab_partitions, 'test', 'walleye'), ab_images),
         (self.call.fastboot.fastboot.Flash('bootloader', 'bootloader.img')),
         (self.call.fastboot.Reboot(bootloader=True)),
         (self.call.fastboot.fastboot.Flash('radio', 'radio.img')),
@@ -192,7 +187,6 @@ class FastbootUtilsFlashPartitions(FastbootUtilsTest):
 
 
 class FastbootUtilsFastbootMode(FastbootUtilsTest):
-
   def testFastbootMode_goodWait(self):
     with self.assertCalls(
         self.call.fastboot.EnableFastbootMode(),
@@ -229,7 +223,6 @@ class FastbootUtilsFastbootMode(FastbootUtilsTest):
 
 
 class FastbootUtilsVerifyBoard(FastbootUtilsTest):
-
   def testVerifyBoard_bothValid(self):
     mock_file = io.StringIO(u'require board=%s\n' % _BOARD)
     with mock.patch('__builtin__.open', return_value=mock_file, create=True):
@@ -278,33 +271,26 @@ class FastbootUtilsVerifyBoard(FastbootUtilsTest):
 
 
 class FastbootUtilsFindAndVerifyPartitionsAndImages(FastbootUtilsTest):
-
   def testFindAndVerifyPartitionsAndImages_validNoVendor(self):
     PARTITIONS = [
         'bootloader', 'radio', 'boot', 'recovery', 'system', 'userdata',
         'cache', 'vendor'
     ]
     files = [
-        'bootloader-test-.img',
-        'radio123.img',
-        'boot.img',
-        'recovery.img',
-        'system.img',
-        'userdata.img',
-        'cache.img'
+        'bootloader-test-.img', 'radio123.img', 'boot.img', 'recovery.img',
+        'system.img', 'userdata.img', 'cache.img'
     ]
     img_check = collections.OrderedDict([
-      ('bootloader', 'test/bootloader-test-.img'),
-      ('radio', 'test/radio123.img'),
-      ('boot', 'test/boot.img'),
-      ('recovery', 'test/recovery.img'),
-      ('system', 'test/system.img'),
-      ('userdata', 'test/userdata.img'),
-      ('cache', 'test/cache.img'),
+        ('bootloader', 'test/bootloader-test-.img'),
+        ('radio', 'test/radio123.img'),
+        ('boot', 'test/boot.img'),
+        ('recovery', 'test/recovery.img'),
+        ('system', 'test/system.img'),
+        ('userdata', 'test/userdata.img'),
+        ('cache', 'test/cache.img'),
     ])
     parts_check = [
-        'bootloader', 'radio', 'boot', 'recovery', 'system', 'userdata',
-        'cache'
+        'bootloader', 'radio', 'boot', 'recovery', 'system', 'userdata', 'cache'
     ]
     with mock.patch('os.listdir', return_value=files):
       imgs = fastboot_utils._FindAndVerifyPartitionsAndImages(
@@ -319,24 +305,18 @@ class FastbootUtilsFindAndVerifyPartitionsAndImages(FastbootUtilsTest):
         'cache', 'vendor'
     ]
     files = [
-        'bootloader-test-.img',
-        'radio123.img',
-        'boot.img',
-        'recovery.img',
-        'system.img',
-        'userdata.img',
-        'cache.img',
-        'vendor.img'
+        'bootloader-test-.img', 'radio123.img', 'boot.img', 'recovery.img',
+        'system.img', 'userdata.img', 'cache.img', 'vendor.img'
     ]
     img_check = {
-      'bootloader': 'test/bootloader-test-.img',
-      'radio': 'test/radio123.img',
-      'boot': 'test/boot.img',
-      'recovery': 'test/recovery.img',
-      'system': 'test/system.img',
-      'userdata': 'test/userdata.img',
-      'cache': 'test/cache.img',
-      'vendor': 'test/vendor.img',
+        'bootloader': 'test/bootloader-test-.img',
+        'radio': 'test/radio123.img',
+        'boot': 'test/boot.img',
+        'recovery': 'test/recovery.img',
+        'system': 'test/system.img',
+        'userdata': 'test/userdata.img',
+        'cache': 'test/cache.img',
+        'vendor': 'test/vendor.img',
     }
     parts_check = [
         'bootloader', 'radio', 'boot', 'recovery', 'system', 'userdata',
@@ -353,18 +333,17 @@ class FastbootUtilsFindAndVerifyPartitionsAndImages(FastbootUtilsTest):
   def testFindAndVerifyPartitionsAndImages_badPartition(self):
     with mock.patch('os.listdir', return_value=['test']):
       with self.assertRaises(KeyError):
-        fastboot_utils._FindAndVerifyPartitionsAndImages(
-            ['test'], 'test', 'board_type')
+        fastboot_utils._FindAndVerifyPartitionsAndImages(['test'], 'test',
+                                                         'board_type')
 
   def testFindAndVerifyPartitionsAndImages_noFile(self):
     with mock.patch('os.listdir', return_value=['test']):
       with self.assertRaises(device_errors.FastbootCommandFailedError):
-        fastboot_utils._FindAndVerifyPartitionsAndImages(
-            ['cache'], 'test', 'board_type')
+        fastboot_utils._FindAndVerifyPartitionsAndImages(['cache'], 'test',
+                                                         'board_type')
 
 
 class FastbootUtilsFlashDevice(FastbootUtilsTest):
-
   def testFlashDevice_wipe(self):
     with self.assertCalls(
         self.call.fastboot.EnableFastbootMode(),

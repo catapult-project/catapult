@@ -3,7 +3,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-
 import argparse
 import sys
 import tempfile
@@ -23,44 +22,43 @@ with devil_env.SysPath(devil_env.DEPENDENCY_MANAGER_PATH):
 
 
 class GetDevicesTest(unittest.TestCase):
-
   def testNoSpecs(self):
     devices = [
         device_utils.DeviceUtils('123'),
         device_utils.DeviceUtils('456'),
     ]
-    with mock.patch('devil.android.device_utils.DeviceUtils.HealthyDevices',
-                    return_value=devices):
-      self.assertEquals(
-          devices,
-          script_common.GetDevices(None, None))
+    with mock.patch(
+        'devil.android.device_utils.DeviceUtils.HealthyDevices',
+        return_value=devices):
+      self.assertEquals(devices, script_common.GetDevices(None, None))
 
   def testWithDevices(self):
     devices = [
         device_utils.DeviceUtils('123'),
         device_utils.DeviceUtils('456'),
     ]
-    with mock.patch('devil.android.device_utils.DeviceUtils.HealthyDevices',
-                    return_value=devices):
-      self.assertEquals(
-          [device_utils.DeviceUtils('456')],
-          script_common.GetDevices(['456'], None))
+    with mock.patch(
+        'devil.android.device_utils.DeviceUtils.HealthyDevices',
+        return_value=devices):
+      self.assertEquals([device_utils.DeviceUtils('456')],
+                        script_common.GetDevices(['456'], None))
 
   def testMissingDevice(self):
-    with mock.patch('devil.android.device_utils.DeviceUtils.HealthyDevices',
-                    return_value=[device_utils.DeviceUtils('123')]):
+    with mock.patch(
+        'devil.android.device_utils.DeviceUtils.HealthyDevices',
+        return_value=[device_utils.DeviceUtils('123')]):
       with self.assertRaises(device_errors.DeviceUnreachableError):
         script_common.GetDevices(['456'], None)
 
   def testNoDevices(self):
-    with mock.patch('devil.android.device_utils.DeviceUtils.HealthyDevices',
-                    return_value=[]):
+    with mock.patch(
+        'devil.android.device_utils.DeviceUtils.HealthyDevices',
+        return_value=[]):
       with self.assertRaises(device_errors.NoDevicesError):
         script_common.GetDevices(None, None)
 
 
 class InitializeEnvironmentTest(unittest.TestCase):
-
   def setUp(self):
     # pylint: disable=protected-access
     self.parser = argparse.ArgumentParser()
@@ -77,9 +75,7 @@ class InitializeEnvironmentTest(unittest.TestCase):
     with tempfile.NamedTemporaryFile() as f:
       args = self.parser.parse_args(['--adb-path=%s' % f.name])
       script_common.InitializeEnvironment(args)
-      self.assertEquals(
-          f.name,
-          devil_env.config.LocalPath('adb'))
+      self.assertEquals(f.name, devil_env.config.LocalPath('adb'))
 
   def testNonExistentAdb(self):
     with tempfile.NamedTemporaryFile() as f:

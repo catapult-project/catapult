@@ -14,7 +14,8 @@ class SurfaceStatsCollectorTests(unittest.TestCase):
         '7657467895508   7657482691352   7657493499756',
         '7657484466553   7657499645964   7657511077881',
         '7657500793457   7657516600576   7657527404785',
-    ], parse_timestamps=True)
+    ],
+                                                    parse_timestamps=True)
     self.assertEqual(
         actual, (16.954612, [7657482.691352, 7657499.645964, 7657516.600576]))
 
@@ -24,9 +25,9 @@ class SurfaceStatsCollectorTests(unittest.TestCase):
         '7657467895508   7657482691352   7657493499756',
         '7657484466553   7657499645964   7657511077881',
         '7657500793457   7657516600576   7657527404785',
-    ], parse_timestamps=False)
-    self.assertEqual(
-        actual, (16.954612, []))
+    ],
+                                                    parse_timestamps=False)
+    self.assertEqual(actual, (16.954612, []))
 
   def testParseFrameData_withWarning(self):
     actual = surface_stats_collector.ParseFrameData([
@@ -35,6 +36,7 @@ class SurfaceStatsCollectorTests(unittest.TestCase):
         '7657467895508   7657482691352   7657493499756',
         '7657484466553   7657499645964   7657511077881',
         '7657500793457   7657516600576   7657527404785',
-    ], parse_timestamps=True)
+    ],
+                                                    parse_timestamps=True)
     self.assertEqual(
         actual, (16.954612, [7657482.691352, 7657499.645964, 7657516.600576]))

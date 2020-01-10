@@ -12,111 +12,110 @@ _ALTERNATE_LOCK_SCREEN_SETTINGS_PATH = (
 PASSWORD_QUALITY_UNSPECIFIED = '0'
 _COMPATIBLE_BUILD_TYPES = ['userdebug', 'eng']
 
-
 ENABLE_LOCATION_SETTINGS = [
-  # Note that setting these in this order is required in order for all of
-  # them to take and stick through a reboot.
-  ('com.google.settings/partner', [
-    ('use_location_for_services', 1),
-  ]),
-  ('settings/secure', [
-    # Ensure Geolocation is enabled and allowed for tests.
-    ('location_providers_allowed', 'gps,network'),
-  ]),
-  ('com.google.settings/partner', [
-    ('network_location_opt_in', 1),
-  ])
+    # Note that setting these in this order is required in order for all of
+    # them to take and stick through a reboot.
+    ('com.google.settings/partner', [
+        ('use_location_for_services', 1),
+    ]),
+    (
+        'settings/secure',
+        [
+            # Ensure Geolocation is enabled and allowed for tests.
+            ('location_providers_allowed', 'gps,network'),
+        ]),
+    ('com.google.settings/partner', [
+        ('network_location_opt_in', 1),
+    ])
 ]
 
 DISABLE_LOCATION_SETTINGS = [
-  ('com.google.settings/partner', [
-    ('use_location_for_services', 0),
-  ]),
-  ('settings/secure', [
-    # Ensure Geolocation is disabled.
-    ('location_providers_allowed', ''),
-  ]),
+    ('com.google.settings/partner', [
+        ('use_location_for_services', 0),
+    ]),
+    (
+        'settings/secure',
+        [
+            # Ensure Geolocation is disabled.
+            ('location_providers_allowed', ''),
+        ]),
 ]
 
 ENABLE_MOCK_LOCATION_SETTINGS = [
-  ('settings/secure', [
-    ('mock_location', 1),
-  ]),
+    ('settings/secure', [
+        ('mock_location', 1),
+    ]),
 ]
 
 DISABLE_MOCK_LOCATION_SETTINGS = [
-  ('settings/secure', [
-    ('mock_location', 0),
-  ]),
+    ('settings/secure', [
+        ('mock_location', 0),
+    ]),
 ]
 
 DETERMINISTIC_DEVICE_SETTINGS = [
-  ('settings/global', [
-    ('assisted_gps_enabled', 0),
+    (
+        'settings/global',
+        [
+            ('assisted_gps_enabled', 0),
 
-    # Disable "auto time" and "auto time zone" to avoid network-provided time
-    # to overwrite the device's datetime and timezone synchronized from host
-    # when running tests later. See b/6569849.
-    ('auto_time', 0),
-    ('auto_time_zone', 0),
+            # Disable "auto time" and "auto time zone" to avoid network-provided
+            # time to overwrite the device's datetime and timezone synchronized
+            # from host when running tests later. See b/6569849.
+            ('auto_time', 0),
+            ('auto_time_zone', 0),
+            ('development_settings_enabled', 1),
 
-    ('development_settings_enabled', 1),
+            # Flag for allowing ActivityManagerService to send ACTION_APP_ERROR
+            # intens on application crashes and ANRs. If this is disabled, the
+            # crash/ANR dialog will never display the "Report" button.
+            # Type: int ( 0 = disallow, 1 = allow )
+            ('send_action_app_error', 0),
+            ('stay_on_while_plugged_in', 3),
+            ('verifier_verify_adb_installs', 0),
+            ('window_animation_scale', 0),
+        ]),
+    (
+        'settings/secure',
+        [
+            ('allowed_geolocation_origins',
+             'http://www.google.co.uk http://www.google.com'),
 
-    # Flag for allowing ActivityManagerService to send ACTION_APP_ERROR intents
-    # on application crashes and ANRs. If this is disabled, the crash/ANR dialog
-    # will never display the "Report" button.
-    # Type: int ( 0 = disallow, 1 = allow )
-    ('send_action_app_error', 0),
+            # Ensure that we never get random dialogs like "Unfortunately the
+            # process android.process.acore has stopped", which steal the focus,
+            # and make our automation fail (because the dialog steals the focus
+            # then mistakenly receives the injected user input events).
+            ('anr_show_background', 0),
+            ('lockscreen.disabled', 1),
+            ('screensaver_enabled', 0),
+            ('skip_first_use_hints', 1),
+        ]),
+    (
+        'settings/system',
+        [
+            # Don't want devices to accidentally rotate the screen as that could
+            # affect performance measurements.
+            ('accelerometer_rotation', 0),
+            ('lockscreen.disabled', 1),
 
-    ('stay_on_while_plugged_in', 3),
-
-    ('verifier_verify_adb_installs', 0),
-
-    ('window_animation_scale', 0),
-  ]),
-  ('settings/secure', [
-    ('allowed_geolocation_origins',
-        'http://www.google.co.uk http://www.google.com'),
-
-    # Ensure that we never get random dialogs like "Unfortunately the process
-    # android.process.acore has stopped", which steal the focus, and make our
-    # automation fail (because the dialog steals the focus then mistakenly
-    # receives the injected user input events).
-    ('anr_show_background', 0),
-
-    ('lockscreen.disabled', 1),
-
-    ('screensaver_enabled', 0),
-
-    ('skip_first_use_hints', 1),
-  ]),
-  ('settings/system', [
-    # Don't want devices to accidentally rotate the screen as that could
-    # affect performance measurements.
-    ('accelerometer_rotation', 0),
-
-    ('lockscreen.disabled', 1),
-
-    # Turn down brightness and disable auto-adjust so that devices run cooler.
-    ('screen_brightness', 5),
-    ('screen_brightness_mode', 0),
-
-    ('user_rotation', 0),
-
-    ('window_animation_scale', 0),
-  ]),
+            # Turn down brightness and disable auto-adjust so that devices run
+            # cooler.
+            ('screen_brightness', 5),
+            ('screen_brightness_mode', 0),
+            ('user_rotation', 0),
+            ('window_animation_scale', 0),
+        ]),
 ]
 
 NETWORK_DISABLED_SETTINGS = [
-  ('settings/global', [
-    ('airplane_mode_on', 1),
-    ('wifi_on', 0),
-  ]),
+    ('settings/global', [
+        ('airplane_mode_on', 1),
+        ('wifi_on', 0),
+    ]),
 ]
 
 
 class ContentSettings(dict):
-
   """A dict interface to interact with device content settings.
 
   System properties are key/value pairs as exposed by adb shell content.
@@ -143,18 +142,24 @@ class ContentSettings(dict):
 
   def iteritems(self):
     for row in self._device.RunShellCommand(
-        ['content', 'query', '--uri', 'content://%s' % self._table],
-        check_return=True, as_root=True):
+        ['content', 'query', '--uri',
+         'content://%s' % self._table],
+        check_return=True,
+        as_root=True):
       key, value = _ParseContentRow(row)
       if not key:
         continue
       yield key, value
 
   def __getitem__(self, key):
-    query_row = self._device.RunShellCommand(
-        ['content', 'query', '--uri', 'content://%s' % self._table,
-         '--where', "name='%s'" % key],
-        check_return=True, as_root=True, single_line=True)
+    query_row = self._device.RunShellCommand([
+        'content', 'query', '--uri',
+        'content://%s' % self._table, '--where',
+        "name='%s'" % key
+    ],
+                                             check_return=True,
+                                             as_root=True,
+                                             single_line=True)
     parsed_key, parsed_value = _ParseContentRow(query_row)
     if parsed_key is None:
       raise KeyError('key=%s not found' % key)
@@ -164,23 +169,32 @@ class ContentSettings(dict):
 
   def __setitem__(self, key, value):
     if key in self:
-      self._device.RunShellCommand(
-          ['content', 'update', '--uri', 'content://%s' % self._table,
-           '--bind', 'value:%s:%s' % (self._GetTypeBinding(value), value),
-           '--where', "name='%s'" % key],
-          check_return=True, as_root=True)
+      self._device.RunShellCommand([
+          'content', 'update', '--uri',
+          'content://%s' % self._table, '--bind',
+          'value:%s:%s' % (self._GetTypeBinding(value), value), '--where',
+          "name='%s'" % key
+      ],
+                                   check_return=True,
+                                   as_root=True)
     else:
-      self._device.RunShellCommand(
-          ['content', 'insert', '--uri', 'content://%s' % self._table,
-           '--bind', 'name:%s:%s' % (self._GetTypeBinding(key), key),
-           '--bind', 'value:%s:%s' % (self._GetTypeBinding(value), value)],
-          check_return=True, as_root=True)
+      self._device.RunShellCommand([
+          'content', 'insert', '--uri',
+          'content://%s' % self._table, '--bind',
+          'name:%s:%s' % (self._GetTypeBinding(key), key), '--bind',
+          'value:%s:%s' % (self._GetTypeBinding(value), value)
+      ],
+                                   check_return=True,
+                                   as_root=True)
 
   def __delitem__(self, key):
-    self._device.RunShellCommand(
-        ['content', 'delete', '--uri', 'content://%s' % self._table,
-         '--bind', 'name:%s:%s' % (self._GetTypeBinding(key), key)],
-        check_return=True, as_root=True)
+    self._device.RunShellCommand([
+        'content', 'delete', '--uri',
+        'content://%s' % self._table, '--bind',
+        'name:%s:%s' % (self._GetTypeBinding(key), key)
+    ],
+                                 check_return=True,
+                                 as_root=True)
 
 
 def ConfigureContentSettings(device, desired_settings):
@@ -259,14 +273,15 @@ def SetLockScreenSettings(device):
 delete from '%(table)s' where %(primary_key)s='%(primary_value)s';
 insert into '%(table)s' (%(columns)s) values (%(values)s);
 commit transaction;""" % {
-      'table': table,
-      'primary_key': columns[0],
-      'primary_value': values[0],
-      'columns': ', '.join(columns),
-      'values': ', '.join(["'%s'" % value for value in values])
+        'table': table,
+        'primary_key': columns[0],
+        'primary_value': values[0],
+        'columns': ', '.join(columns),
+        'values': ', '.join(["'%s'" % value for value in values])
     }
-    output_msg = device.RunShellCommand(
-        ['sqlite3', db, cmd], check_return=True, as_root=True)
+    output_msg = device.RunShellCommand(['sqlite3', db, cmd],
+                                        check_return=True,
+                                        as_root=True)
     if output_msg:
       logger.info(' '.join(output_msg))
 

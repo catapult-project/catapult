@@ -1,13 +1,11 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """This module wraps the Android Asset Packaging Tool."""
 
 from devil.android.sdk import build_tools
 from devil.utils import cmd_helper
 from devil.utils import lazy
-
 
 _aapt_path = lazy.WeakConstant(lambda: build_tools.GetPath('aapt'))
 

@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Unit tests for the app_ui module."""
 
 import unittest
@@ -15,7 +14,6 @@ from devil.utils import geometry
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
   import mock  # pylint: disable=import-error
 
-
 MOCK_XML_LOADING = '''
 <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <hierarchy rotation="0">
@@ -23,7 +21,6 @@ MOCK_XML_LOADING = '''
       resource-id="com.example.app:id/spinner"/>
 </hierarchy>
 '''.strip()
-
 
 MOCK_XML_LOADED = '''
 <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
@@ -56,7 +53,6 @@ MOCK_XML_LOADED = '''
 
 
 class UiAppTest(unittest.TestCase):
-
   def setUp(self):
     self.device = mock.Mock()
     self.device.pixel_density = 320  # Each dp pixel is 2 real pixels.
@@ -69,12 +65,13 @@ class UiAppTest(unittest.TestCase):
     Each time the method is called it will return a UI node for each string
     given in |xml_docs|, or rise a time out error when the list is exhausted.
     """
+
     # pylint: disable=protected-access
     def get_mock_root_ui_node(value):
       if isinstance(value, Exception):
         raise value
-      return app_ui._UiNode(
-          self.device, element_tree.fromstring(value), self.app.package)
+      return app_ui._UiNode(self.device, element_tree.fromstring(value),
+                            self.app.package)
 
     xml_docs.append(device_errors.CommandTimeoutError('Timed out!'))
 
@@ -92,20 +89,22 @@ class UiAppTest(unittest.TestCase):
 
   def testFind_byText(self):
     node = self.app.GetUiNode(text='Primary')
-    self.assertNodeHasAttribs(node, {
-        'text': 'Primary',
-        'content-desc': None,
-        'resource-id': 'com.example.app:id/actionbar_title',
-    })
+    self.assertNodeHasAttribs(
+        node, {
+            'text': 'Primary',
+            'content-desc': None,
+            'resource-id': 'com.example.app:id/actionbar_title',
+        })
     self.assertEquals(node.bounds, geometry.Rectangle([121, 50], [1424, 178]))
 
   def testFind_byContentDesc(self):
     node = self.app.GetUiNode(content_desc='Social')
-    self.assertNodeHasAttribs(node, {
-        'text': None,
-        'content-desc': 'Social',
-        'resource-id': 'com.example.app:id/image_view',
-    })
+    self.assertNodeHasAttribs(
+        node, {
+            'text': None,
+            'content-desc': 'Social',
+            'resource-id': 'com.example.app:id/image_view',
+        })
     self.assertEquals(node.bounds, geometry.Rectangle([16, 466], [128, 578]))
 
   def testFind_byResourceId_autocompleted(self):
@@ -123,12 +122,13 @@ class UiAppTest(unittest.TestCase):
     })
 
   def testFind_byMultiple(self):
-    node = self.app.GetUiNode(resource_id='image_view',
-                              content_desc='Promotions')
-    self.assertNodeHasAttribs(node, {
-        'content-desc': 'Promotions',
-        'resource-id': 'com.example.app:id/image_view',
-    })
+    node = self.app.GetUiNode(
+        resource_id='image_view', content_desc='Promotions')
+    self.assertNodeHasAttribs(
+        node, {
+            'content-desc': 'Promotions',
+            'resource-id': 'com.example.app:id/image_view',
+        })
     self.assertEquals(node.bounds, geometry.Rectangle([16, 578], [128, 690]))
 
   def testFind_notFound(self):
@@ -142,8 +142,8 @@ class UiAppTest(unittest.TestCase):
 
   def testGetChildren(self):
     node = self.app.GetUiNode(resource_id='mini_drawer')
-    self.assertNodeHasAttribs(
-        node[0], {'resource-id': 'com.example.app:id/avatar'})
+    self.assertNodeHasAttribs(node[0],
+                              {'resource-id': 'com.example.app:id/avatar'})
     self.assertNodeHasAttribs(node[1], {'content-desc': 'Primary'})
     self.assertNodeHasAttribs(node[2], {'content-desc': 'Social'})
     self.assertNodeHasAttribs(node[3], {'content-desc': 'Promotions'})

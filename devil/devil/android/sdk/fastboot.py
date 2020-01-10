@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """This module wraps Android's fastboot tool.
 
 This is a thin wrapper around the fastboot interface. Any additional complexity
@@ -25,7 +24,9 @@ class Fastboot(object):
   _fastboot_path = lazy.WeakConstant(
       lambda: devil_env.config.FetchPath('fastboot'))
 
-  def __init__(self, device_serial, default_timeout=_DEFAULT_TIMEOUT,
+  def __init__(self,
+               device_serial,
+               default_timeout=_DEFAULT_TIMEOUT,
                default_retries=_DEFAULT_RETRIES):
     """Initializes the FastbootWrapper.
 
@@ -57,8 +58,7 @@ class Fastboot(object):
     if isinstance(cmd, list):
       cmd = [cls._fastboot_path.read()] + cmd
     else:
-      raise TypeError(
-          'Command for _RunDeviceFastbootCommand must be a list.')
+      raise TypeError('Command for _RunDeviceFastbootCommand must be a list.')
     # fastboot can't be trusted to keep non-error output out of stderr, so
     # capture stderr as part of stdout.
     status, output = cmd_helper.GetCmdStatusAndOutput(cmd, merge_stderr=True)
@@ -133,5 +133,4 @@ class Fastboot(object):
     Args:
       value: boolean value to set off-mode-charging on or off.
     """
-    self._RunDeviceFastbootCommand(
-        ['oem', 'off-mode-charge', str(int(value))])
+    self._RunDeviceFastbootCommand(['oem', 'off-mode-charge', str(int(value))])

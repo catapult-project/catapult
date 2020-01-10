@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides a work around for various adb commands on android gce instances.
 
 Some adb commands don't work well when the device is a cloud vm, namely
@@ -22,14 +21,14 @@ logger = logging.getLogger(__name__)
 
 
 class GceAdbWrapper(adb_wrapper.AdbWrapper):
-
   def __init__(self, device_serial):
     super(GceAdbWrapper, self).__init__(device_serial)
     self._Connect()
     self.Root()
     self._instance_ip = self.Shell('getprop net.gce.ip').strip()
 
-  def _Connect(self, timeout=adb_wrapper.DEFAULT_TIMEOUT,
+  def _Connect(self,
+               timeout=adb_wrapper.DEFAULT_TIMEOUT,
                retries=adb_wrapper.DEFAULT_RETRIES):
     """Connects ADB to the android gce instance."""
     cmd = ['connect', self._device_serial]
@@ -59,8 +58,8 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
       # with the destination dir. So if local is a dir, just scp its contents.
       for f in os.listdir(local):
         self._PushObject(os.path.join(local, f), os.path.join(remote, f))
-        self.Shell('chmod 777 %s' %
-                   cmd_helper.SingleQuote(os.path.join(remote, f)))
+        self.Shell(
+            'chmod 777 %s' % cmd_helper.SingleQuote(os.path.join(remote, f)))
     else:
       parent_dir = remote[0:remote.rfind('/')]
       if parent_dir:
@@ -76,17 +75,15 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
       remote: Path on the instance filesystem.
     """
     cmd = [
-        'scp',
-        '-r',
-        '-o', 'UserKnownHostsFile=/dev/null',
-        '-o', 'StrictHostKeyChecking=no',
-        local,
+        'scp', '-r', '-o', 'UserKnownHostsFile=/dev/null', '-o',
+        'StrictHostKeyChecking=no', local,
         'root@%s:%s' % (self._instance_ip, remote)
     ]
     status, _ = cmd_helper.GetCmdStatusAndOutput(cmd)
     if status:
       raise device_errors.AdbCommandFailedError(
-          cmd, 'File not reachable on host: %s' % local,
+          cmd,
+          'File not reachable on host: %s' % local,
           device_serial=str(self))
 
   # override
@@ -101,15 +98,18 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
         'scp',
         '-p',
         '-r',
-        '-o', 'UserKnownHostsFile=/dev/null',
-        '-o', 'StrictHostKeyChecking=no',
+        '-o',
+        'UserKnownHostsFile=/dev/null',
+        '-o',
+        'StrictHostKeyChecking=no',
         'root@%s:%s' % (self._instance_ip, remote),
         local,
     ]
     status, _ = cmd_helper.GetCmdStatusAndOutput(cmd)
     if status:
       raise device_errors.AdbCommandFailedError(
-          cmd, 'File not reachable on host: %s' % local,
+          cmd,
+          'File not reachable on host: %s' % local,
           device_serial=str(self))
 
     try:
@@ -117,12 +117,17 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
     except (subprocess.CalledProcessError, IOError):
       logger.exception('Error when pulling files from android instance.')
       raise device_errors.AdbCommandFailedError(
-          cmd, 'File not reachable on host: %s' % local,
+          cmd,
+          'File not reachable on host: %s' % local,
           device_serial=str(self))
 
   # override
-  def Install(self, apk_path, forward_lock=False, reinstall=False,
-              sd_card=False, **kwargs):
+  def Install(self,
+              apk_path,
+              forward_lock=False,
+              reinstall=False,
+              sd_card=False,
+              **kwargs):
     """Installs an apk on the gce instance
 
     Args:

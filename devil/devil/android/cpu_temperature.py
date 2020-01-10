@@ -64,7 +64,6 @@ _DEVICE_THERMAL_INFORMATION = {
 
 
 class CpuTemperature(object):
-
   def __init__(self, device):
     """CpuTemperature constructor.
 
@@ -83,7 +82,7 @@ class CpuTemperature(object):
     """Init the current devices thermal information.
     """
     self._device_info = _DEVICE_THERMAL_INFORMATION.get(
-                        self._device.build_product)
+        self._device.build_product)
 
   def IsSupported(self):
     """Check if the current device is supported.

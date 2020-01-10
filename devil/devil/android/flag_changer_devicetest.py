@@ -14,19 +14,21 @@ import unittest
 
 if __name__ == '__main__':
   sys.path.append(
-      os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', )))
+      os.path.abspath(os.path.join(
+          os.path.dirname(__file__),
+          '..',
+          '..',
+      )))
 
 from devil.android import device_test_case
 from devil.android import device_utils
 from devil.android import flag_changer
 from devil.android.sdk import adb_wrapper
 
-
 _CMDLINE_FILE = 'dummy-command-line'
 
 
 class FlagChangerTest(device_test_case.DeviceTestCase):
-
   def setUp(self):
     super(FlagChangerTest, self).setUp()
     self.adb = adb_wrapper.AdbWrapper(self.serial)
@@ -35,21 +37,21 @@ class FlagChangerTest(device_test_case.DeviceTestCase):
         self.adb, default_timeout=10, default_retries=0)
     # pylint: disable=protected-access
     self.cmdline_path = posixpath.join(flag_changer._CMDLINE_DIR, _CMDLINE_FILE)
-    self.cmdline_path_legacy = posixpath.join(
-        flag_changer._CMDLINE_DIR_LEGACY, _CMDLINE_FILE)
+    self.cmdline_path_legacy = posixpath.join(flag_changer._CMDLINE_DIR_LEGACY,
+                                              _CMDLINE_FILE)
 
   def tearDown(self):
     super(FlagChangerTest, self).tearDown()
-    self.device.RemovePath(
-        [self.cmdline_path, self.cmdline_path_legacy], force=True, as_root=True)
+    self.device.RemovePath([self.cmdline_path, self.cmdline_path_legacy],
+                           force=True,
+                           as_root=True)
 
   def testFlagChanger_restoreFlags(self):
     if not self.device.HasRoot():
       self.skipTest('Test needs a rooted device')
 
     # Write some custom chrome command line flags.
-    self.device.WriteFile(
-        self.cmdline_path, 'chrome --some --old --flags')
+    self.device.WriteFile(self.cmdline_path, 'chrome --some --old --flags')
 
     # Write some more flags on a command line file in the legacy location.
     self.device.WriteFile(
@@ -64,21 +66,17 @@ class FlagChangerTest(device_test_case.DeviceTestCase):
 
     # Write some new files, and check they are set.
     new_flags = ['--my', '--new', '--flags=with special value']
-    self.assertItemsEqual(
-        changer.ReplaceFlags(new_flags),
-        new_flags)
+    self.assertItemsEqual(changer.ReplaceFlags(new_flags), new_flags)
 
     # Restore and go back to the old flags.
-    self.assertItemsEqual(
-        changer.Restore(),
-        ['--some', '--old', '--flags'])
+    self.assertItemsEqual(changer.Restore(), ['--some', '--old', '--flags'])
 
   def testFlagChanger_removeFlags(self):
     self.device.RemovePath(self.cmdline_path, force=True)
     self.assertFalse(self.device.PathExists(self.cmdline_path))
 
-    with flag_changer.CustomCommandLineFlags(
-        self.device, _CMDLINE_FILE, ['--some', '--flags']):
+    with flag_changer.CustomCommandLineFlags(self.device, _CMDLINE_FILE,
+                                             ['--some', '--flags']):
       self.assertTrue(self.device.PathExists(self.cmdline_path))
 
     self.assertFalse(self.device.PathExists(self.cmdline_path))

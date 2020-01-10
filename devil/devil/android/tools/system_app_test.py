@@ -8,8 +8,9 @@ import sys
 import unittest
 
 if __name__ == '__main__':
-  sys.path.append(os.path.abspath(
-      os.path.join(os.path.dirname(__file__), '..', '..', '..')))
+  sys.path.append(
+      os.path.abspath(
+          os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
 from devil import devil_env
 from devil.android import device_utils
@@ -20,19 +21,21 @@ from devil.android.tools import system_app
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
   import mock
 
-
 _PACKAGE_NAME = 'com.android'
 _PACKAGE_PATH = '/path/to/com.android.apk'
-_PM_LIST_PACKAGES_COMMAND = ['pm', 'list', 'packages', '-f', '-u',
-                             _PACKAGE_NAME]
-_PM_LIST_PACKAGES_OUTPUT_WITH_PATH = ['package:/path/to/other=' + _PACKAGE_NAME
-                                      + '.other', 'package:' + _PACKAGE_PATH +
-                                      '=' + _PACKAGE_NAME]
-_PM_LIST_PACKAGES_OUTPUT_WITHOUT_PATH = ['package:/path/to/other=' +
-                                         _PACKAGE_NAME + '.other']
+_PM_LIST_PACKAGES_COMMAND = [
+    'pm', 'list', 'packages', '-f', '-u', _PACKAGE_NAME
+]
+_PM_LIST_PACKAGES_OUTPUT_WITH_PATH = [
+    'package:/path/to/other=' + _PACKAGE_NAME + '.other',
+    'package:' + _PACKAGE_PATH + '=' + _PACKAGE_NAME
+]
+_PM_LIST_PACKAGES_OUTPUT_WITHOUT_PATH = [
+    'package:/path/to/other=' + _PACKAGE_NAME + '.other'
+]
+
 
 class SystemAppTest(unittest.TestCase):
-
   def testDoubleEnableModification(self):
     """Ensures that system app modification logic isn't repeated.
 
@@ -79,8 +82,7 @@ class SystemAppTest(unittest.TestCase):
     # pylint: disable=protected-access
     mock_device = mock.Mock(spec=device_utils.DeviceUtils)
     mock_device.RunShellCommand.configure_mock(
-        return_value=_PM_LIST_PACKAGES_OUTPUT_WITH_PATH
-    )
+        return_value=_PM_LIST_PACKAGES_OUTPUT_WITH_PATH)
 
     paths = system_app._GetApplicationPaths(mock_device, _PACKAGE_NAME)
 
@@ -93,8 +95,7 @@ class SystemAppTest(unittest.TestCase):
     # pylint: disable=protected-access
     mock_device = mock.Mock(spec=device_utils.DeviceUtils)
     mock_device.RunShellCommand.configure_mock(
-        return_value=_PM_LIST_PACKAGES_OUTPUT_WITHOUT_PATH
-    )
+        return_value=_PM_LIST_PACKAGES_OUTPUT_WITHOUT_PATH)
 
     paths = system_app._GetApplicationPaths(mock_device, _PACKAGE_NAME)
 
@@ -106,9 +107,7 @@ class SystemAppTest(unittest.TestCase):
     """Nothing containing text of package name found in output."""
     # pylint: disable=protected-access
     mock_device = mock.Mock(spec=device_utils.DeviceUtils)
-    mock_device.RunShellCommand.configure_mock(
-        return_value=[]
-    )
+    mock_device.RunShellCommand.configure_mock(return_value=[])
 
     paths = system_app._GetApplicationPaths(mock_device, _PACKAGE_NAME)
 
@@ -121,8 +120,7 @@ class SystemAppTest(unittest.TestCase):
     # pylint: disable=protected-access
     mock_device = mock.Mock(spec=device_utils.DeviceUtils)
     mock_device.RunShellCommand.configure_mock(
-        return_value=_PM_LIST_PACKAGES_OUTPUT_WITH_PATH
-    )
+        return_value=_PM_LIST_PACKAGES_OUTPUT_WITH_PATH)
 
     paths = system_app._GetApplicationPaths(mock_device, '')
 

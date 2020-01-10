@@ -9,7 +9,11 @@ import unittest
 
 if __name__ == '__main__':
   sys.path.append(
-      os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', )))
+      os.path.abspath(os.path.join(
+          os.path.dirname(__file__),
+          '..',
+          '..',
+      )))
 
 from devil.android import crash_handler
 from devil.android import device_errors
@@ -22,7 +26,6 @@ from devil.utils import timeout_retry
 
 
 class DeviceCrashTest(device_test_case.DeviceTestCase):
-
   def setUp(self):
     super(DeviceCrashTest, self).setUp()
     self.device = device_utils.DeviceUtils(self.serial)
@@ -34,9 +37,8 @@ class DeviceCrashTest(device_test_case.DeviceTestCase):
       trigger_text = 'hello world'
 
       def victim():
-        trigger_cmd = 'echo -n %s > %s; sleep 20' % (
-            cmd_helper.SingleQuote(trigger_text),
-            cmd_helper.SingleQuote(trigger_file.name))
+        trigger_cmd = 'echo -n %s > %s; sleep 20' % (cmd_helper.SingleQuote(
+            trigger_text), cmd_helper.SingleQuote(trigger_file.name))
         crash_handler.RetryOnSystemCrash(
             lambda d: d.RunShellCommand(
                 trigger_cmd, shell=True, check_return=True, retries=1,
@@ -60,11 +62,12 @@ class DeviceCrashTest(device_test_case.DeviceTestCase):
           return False
         self.device.adb.Shell(
             'echo c > /proc/sysrq-trigger',
-            expect_status=None, timeout=60, retries=0)
+            expect_status=None,
+            timeout=60,
+            retries=0)
         return True
 
-    self.assertEquals([True, True],
-                      reraiser_thread.RunAsync([crasher, victim]))
+    self.assertEquals([True, True], reraiser_thread.RunAsync([crasher, victim]))
 
 
 if __name__ == '__main__':

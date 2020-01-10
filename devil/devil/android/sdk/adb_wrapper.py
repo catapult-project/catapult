@@ -1,7 +1,6 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """This module wraps Android's adb tool.
 
 This is a thin wrapper around the adb interface. Any additional complexity
@@ -31,7 +30,6 @@ with devil_env.SysPath(devil_env.DEPENDENCY_MANAGER_PATH):
   import dependency_manager  # pylint: disable=import-error
 
 logger = logging.getLogger(__name__)
-
 
 ADB_KEYS_FILE = '/data/misc/adb/adb_keys'
 ADB_HOST_KEYS_DIR = os.path.join(os.path.expanduser('~'), '.android')
@@ -76,8 +74,8 @@ def _FindAdb():
     pass
 
   try:
-    return os.path.join(devil_env.config.LocalPath('android_sdk'),
-                        'platform-tools', 'adb')
+    return os.path.join(
+        devil_env.config.LocalPath('android_sdk'), 'platform-tools', 'adb')
   except dependency_manager.NoPathFoundError:
     pass
 
@@ -101,8 +99,8 @@ def _ShouldRetryAdbCmd(exc):
   # Errors are potentially transient and should be retried, with the exception
   # of NoAdbError. Exceptions [e.g. generated from SIGTERM handler] should be
   # raised.
-  return (isinstance(exc, base_error.BaseError) and
-          not isinstance(exc, device_errors.NoAdbError))
+  return (isinstance(exc, base_error.BaseError)
+          and not isinstance(exc, device_errors.NoAdbError))
 
 
 DeviceStat = collections.namedtuple('DeviceStat',
@@ -157,6 +155,7 @@ class AdbWrapper(object):
         pshell.RunCommand('which ls')
         pshell.RunCommand('echo TEST', close=True)
     '''
+
     def __init__(self, serial):
       """Initialization function:
 
@@ -179,11 +178,12 @@ class AdbWrapper(object):
       if self._process is not None:
         raise RuntimeError('Persistent shell already running.')
       # pylint: disable=protected-access
-      self._process = subprocess.Popen(self._cmd,
-                                       stdin=subprocess.PIPE,
-                                       stdout=subprocess.PIPE,
-                                       shell=False,
-                                       env=AdbWrapper._ADB_ENV)
+      self._process = subprocess.Popen(
+          self._cmd,
+          stdin=subprocess.PIPE,
+          stdout=subprocess.PIPE,
+          shell=False,
+          env=AdbWrapper._ADB_ENV)
 
     def WaitForReady(self):
       """Wait for the shell to be ready after starting.
@@ -210,6 +210,7 @@ class AdbWrapper(object):
       """
 
       if close:
+
         def run_cmd(cmd):
           send_cmd = '( %s ); echo $?; exit;\n' % cmd.rstrip()
           (output, _) = self._process.communicate(send_cmd)
@@ -218,6 +219,7 @@ class AdbWrapper(object):
             yield x
 
       else:
+
         def run_cmd(cmd):
           send_cmd = '( %s ); echo DONE:$?;\n' % cmd.rstrip()
           self._process.stdin.write(send_cmd)
@@ -228,8 +230,10 @@ class AdbWrapper(object):
               break
             yield output_line
 
-      result = [line for line in run_cmd(command)
-                if not _IsExtraneousLine(line, command)]
+      result = [
+          line for line in run_cmd(command)
+          if not _IsExtraneousLine(line, command)
+      ]
 
       return (result[:-1], int(result[-1]))
 
@@ -262,8 +266,14 @@ class AdbWrapper(object):
   # pylint: disable=unused-argument
   @classmethod
   @decorators.WithTimeoutAndConditionalRetries(_ShouldRetryAdbCmd)
-  def _RunAdbCmd(cls, args, timeout=None, retries=None, device_serial=None,
-                 check_error=True, cpu_affinity=None, additional_env=None):
+  def _RunAdbCmd(cls,
+                 args,
+                 timeout=None,
+                 retries=None,
+                 device_serial=None,
+                 check_error=True,
+                 cpu_affinity=None,
+                 additional_env=None):
     if timeout:
       remaining = timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime()
       if remaining:
@@ -278,7 +288,8 @@ class AdbWrapper(object):
     try:
       status, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
           cls._BuildAdbCmd(args, device_serial, cpu_affinity=cpu_affinity),
-          timeout, env=env)
+          timeout,
+          env=env)
     except OSError as e:
       if e.errno in (errno.ENOENT, errno.ENOEXEC):
         raise device_errors.NoAdbError(msg=str(e))
@@ -292,14 +303,15 @@ class AdbWrapper(object):
       not_found_m = _DEVICE_NOT_FOUND_RE.match(output)
       device_waiting_m = _WAITING_FOR_DEVICE_RE.match(output)
       if (device_waiting_m is not None
-          or (not_found_m is not None and
-              not_found_m.group('serial') == device_serial)):
+          or (not_found_m is not None
+              and not_found_m.group('serial') == device_serial)):
         raise device_errors.DeviceUnreachableError(device_serial)
       else:
-        raise device_errors.AdbCommandFailedError(
-            args, output, status, device_serial)
+        raise device_errors.AdbCommandFailedError(args, output, status,
+                                                  device_serial)
 
     return output
+
   # pylint: enable=unused-argument
 
   def _RunDeviceAdbCmd(self, args, timeout, retries, check_error=True):
@@ -316,12 +328,14 @@ class AdbWrapper(object):
     Returns:
       The output of the command.
     """
-    return self._RunAdbCmd(args, timeout=timeout, retries=retries,
-                           device_serial=self._device_serial,
-                           check_error=check_error)
+    return self._RunAdbCmd(
+        args,
+        timeout=timeout,
+        retries=retries,
+        device_serial=self._device_serial,
+        check_error=check_error)
 
-  def _IterRunDeviceAdbCmd(self, args, iter_timeout, timeout,
-                           check_error=True):
+  def _IterRunDeviceAdbCmd(self, args, iter_timeout, timeout, check_error=True):
     """Runs an adb command and returns an iterator over its output lines.
 
     Args:
@@ -371,6 +385,7 @@ class AdbWrapper(object):
     output = [int(x) for x in output.split()]
     logger.info('PIDs for adb found: %r', output)
     return status == 0
+
   # pylint: enable=unused-argument
 
   @classmethod
@@ -378,7 +393,9 @@ class AdbWrapper(object):
     cls._RunAdbCmd(['kill-server'], timeout=timeout, retries=retries)
 
   @classmethod
-  def StartServer(cls, keys=None, timeout=DEFAULT_TIMEOUT,
+  def StartServer(cls,
+                  keys=None,
+                  timeout=DEFAULT_TIMEOUT,
                   retries=DEFAULT_RETRIES):
     """Starts the ADB server.
 
@@ -391,8 +408,11 @@ class AdbWrapper(object):
     if keys:
       additional_env['ADB_VENDOR_KEYS'] = ':'.join(keys)
     # CPU affinity is used to reduce adb instability http://crbug.com/268450
-    cls._RunAdbCmd(['start-server'], timeout=timeout, retries=retries,
-                   cpu_affinity=0, additional_env=additional_env)
+    cls._RunAdbCmd(['start-server'],
+                   timeout=timeout,
+                   retries=retries,
+                   cpu_affinity=0,
+                   additional_env=additional_env)
 
   @classmethod
   def GetDevices(cls, timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):
@@ -401,8 +421,11 @@ class AdbWrapper(object):
     return cls.Devices(timeout=timeout, retries=retries)
 
   @classmethod
-  def Devices(cls, desired_state=_READY_STATE, long_list=False,
-              timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):
+  def Devices(cls,
+              desired_state=_READY_STATE,
+              long_list=False,
+              timeout=DEFAULT_TIMEOUT,
+              retries=DEFAULT_RETRIES):
     """Get the list of active attached devices.
 
     Args:
@@ -415,23 +438,22 @@ class AdbWrapper(object):
     Yields:
       AdbWrapper instances.
     """
-    lines = cls._RawDevices(long_list=long_list, timeout=timeout,
-                            retries=retries)
+    lines = cls._RawDevices(
+        long_list=long_list, timeout=timeout, retries=retries)
     if long_list:
-      return [
-        [AdbWrapper(line[0])] + line[1:]
-        for line in lines
-        if (len(line) >= 2 and (not desired_state or line[1] == desired_state))
-      ]
+      return [[AdbWrapper(line[0])] + line[1:] for line in lines if (
+          len(line) >= 2 and (not desired_state or line[1] == desired_state))]
     else:
       return [
-        AdbWrapper(line[0])
-        for line in lines
-        if (len(line) == 2 and (not desired_state or line[1] == desired_state))
+          AdbWrapper(line[0]) for line in lines
+          if (len(line) == 2 and (not desired_state or line[1] == desired_state)
+              )
       ]
 
   @classmethod
-  def _RawDevices(cls, long_list=False, timeout=DEFAULT_TIMEOUT,
+  def _RawDevices(cls,
+                  long_list=False,
+                  timeout=DEFAULT_TIMEOUT,
                   retries=DEFAULT_RETRIES):
     cmd = ['devices']
     if long_list:
@@ -447,8 +469,12 @@ class AdbWrapper(object):
     """
     return self._device_serial
 
-  def Push(self, local, remote, sync=False,
-           timeout=60 * 5, retries=DEFAULT_RETRIES):
+  def Push(self,
+           local,
+           remote,
+           sync=False,
+           timeout=60 * 5,
+           retries=DEFAULT_RETRIES):
     """Pushes a file from the host to the device.
 
     Args:
@@ -552,7 +578,10 @@ class AdbWrapper(object):
     return cmd_helper.StartCmd(
         self._BuildAdbCmd(['shell'] + cmd, self._device_serial))
 
-  def Shell(self, command, expect_status=0, timeout=DEFAULT_TIMEOUT,
+  def Shell(self,
+            command,
+            expect_status=0,
+            timeout=DEFAULT_TIMEOUT,
             retries=DEFAULT_RETRIES):
     """Runs a shell command on the device.
 
@@ -605,8 +634,9 @@ class AdbWrapper(object):
     """
     args = ['shell', command]
     return cmd_helper.IterCmdOutputLines(
-      self._BuildAdbCmd(args, self._device_serial), timeout=timeout,
-      env=self._ADB_ENV)
+        self._BuildAdbCmd(args, self._device_serial),
+        timeout=timeout,
+        env=self._ADB_ENV)
 
   def Ls(self, path, timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):
     """List the contents of a directory on the device.
@@ -625,12 +655,16 @@ class AdbWrapper(object):
           directory in the device, or the output of "adb ls" command is less
           than four columns
     """
+
     def ParseLine(line, cmd):
       cols = line.split(None, 3)
       if len(cols) < 4:
         raise device_errors.AdbCommandFailedError(
-            cmd, line, "the output should be 4 columns, but is only %d columns"
-            % len(cols), device_serial=self._device_serial)
+            cmd,
+            line,
+            "the output should be 4 columns, but is only %d columns" %
+            len(cols),
+            device_serial=self._device_serial)
       filename = cols.pop()
       stat = DeviceStat(*[int(num, base=16) for num in cols])
       return (filename, stat)
@@ -642,12 +676,20 @@ class AdbWrapper(object):
       return [ParseLine(line, cmd) for line in lines]
     else:
       raise device_errors.AdbCommandFailedError(
-          cmd, 'path does not specify an accessible directory in the device',
+          cmd,
+          'path does not specify an accessible directory in the device',
           device_serial=self._device_serial)
 
-  def Logcat(self, clear=False, dump=False, filter_specs=None,
-             logcat_format=None, ring_buffer=None, iter_timeout=None,
-             check_error=True, timeout=None, retries=DEFAULT_RETRIES):
+  def Logcat(self,
+             clear=False,
+             dump=False,
+             filter_specs=None,
+             logcat_format=None,
+             ring_buffer=None,
+             iter_timeout=None,
+             check_error=True,
+             timeout=None,
+             retries=DEFAULT_RETRIES):
     """Get an iterable over the logcat output.
 
     Args:
@@ -697,8 +739,12 @@ class AdbWrapper(object):
           cmd, timeout, retries, check_error=check_error)
       return output.splitlines()
 
-  def Forward(self, local, remote, allow_rebind=False,
-              timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):
+  def Forward(self,
+              local,
+              remote,
+              allow_rebind=False,
+              timeout=DEFAULT_TIMEOUT,
+              retries=DEFAULT_RETRIES):
     """Forward socket connections from the local socket to the remote socket.
 
     Sockets are specified by one of:
@@ -726,7 +772,9 @@ class AdbWrapper(object):
     if output:
       logger.warning('Unexpected output from "adb forward": %s', output)
 
-  def ForwardRemove(self, local, timeout=DEFAULT_TIMEOUT,
+  def ForwardRemove(self,
+                    local,
+                    timeout=DEFAULT_TIMEOUT,
                     retries=DEFAULT_RETRIES):
     """Remove a forward socket connection.
 
@@ -735,8 +783,7 @@ class AdbWrapper(object):
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
     """
-    self._RunDeviceAdbCmd(['forward', '--remove', str(local)], timeout,
-                          retries)
+    self._RunDeviceAdbCmd(['forward', '--remove', str(local)], timeout, retries)
 
   def ForwardList(self, timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):
     """List all currently forwarded socket connections.
@@ -770,12 +817,20 @@ class AdbWrapper(object):
     Returns:
       A list of PIDs as strings.
     """
-    return [a.strip() for a in
-            self._RunDeviceAdbCmd(['jdwp'], timeout, retries).split('\n')]
+    return [
+        a.strip()
+        for a in self._RunDeviceAdbCmd(['jdwp'], timeout, retries).split('\n')
+    ]
 
-  def Install(self, apk_path, forward_lock=False, allow_downgrade=False,
-              reinstall=False, sd_card=False, streaming=None,
-              timeout=60 * 2, retries=DEFAULT_RETRIES):
+  def Install(self,
+              apk_path,
+              forward_lock=False,
+              allow_downgrade=False,
+              reinstall=False,
+              sd_card=False,
+              streaming=None,
+              timeout=60 * 2,
+              retries=DEFAULT_RETRIES):
     """Install an apk on the device.
 
     Args:
@@ -810,9 +865,15 @@ class AdbWrapper(object):
       raise device_errors.AdbCommandFailedError(
           cmd, output, device_serial=self._device_serial)
 
-  def InstallMultiple(self, apk_paths, forward_lock=False, reinstall=False,
-                      sd_card=False, allow_downgrade=False, partial=False,
-                      streaming=None, timeout=60 * 2,
+  def InstallMultiple(self,
+                      apk_paths,
+                      forward_lock=False,
+                      reinstall=False,
+                      sd_card=False,
+                      allow_downgrade=False,
+                      partial=False,
+                      streaming=None,
+                      timeout=60 * 2,
                       retries=DEFAULT_RETRIES):
     """Install an apk with splits on the device.
 
@@ -852,7 +913,10 @@ class AdbWrapper(object):
       raise device_errors.AdbCommandFailedError(
           cmd, output, device_serial=self._device_serial)
 
-  def Uninstall(self, package, keep_data=False, timeout=DEFAULT_TIMEOUT,
+  def Uninstall(self,
+                package,
+                keep_data=False,
+                timeout=DEFAULT_TIMEOUT,
                 retries=DEFAULT_RETRIES):
     """Remove the app |package| from the device.
 
@@ -871,8 +935,14 @@ class AdbWrapper(object):
       raise device_errors.AdbCommandFailedError(
           cmd, output, device_serial=self._device_serial)
 
-  def Backup(self, path, packages=None, apk=False, shared=False,
-             nosystem=True, include_all=False, timeout=DEFAULT_TIMEOUT,
+  def Backup(self,
+             path,
+             packages=None,
+             apk=False,
+             shared=False,
+             nosystem=True,
+             include_all=False,
+             timeout=DEFAULT_TIMEOUT,
              retries=DEFAULT_RETRIES):
     """Write an archive of the device's data to |path|.
 
@@ -987,8 +1057,7 @@ class AdbWrapper(object):
       raise device_errors.AdbCommandFailedError(
           ['root'], output, device_serial=self._device_serial)
 
-  def Emu(self, cmd, timeout=DEFAULT_TIMEOUT,
-               retries=DEFAULT_RETRIES):
+  def Emu(self, cmd, timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):
     """Runs an emulator console command.
 
     See http://developer.android.com/tools/devices/emulator.html#console

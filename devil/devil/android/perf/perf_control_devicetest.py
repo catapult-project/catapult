@@ -15,7 +15,6 @@ from devil.android.perf import perf_control
 
 
 class TestPerfControl(device_test_case.DeviceTestCase):
-
   def setUp(self):
     super(TestPerfControl, self).setUp()
     if not os.getenv('BUILDTYPE'):
@@ -33,6 +32,7 @@ class TestPerfControl(device_test_case.DeviceTestCase):
         self.assertEquals('performance', governor)
     finally:
       perf.SetDefaultPerfMode()
+
 
 if __name__ == '__main__':
   unittest.main()

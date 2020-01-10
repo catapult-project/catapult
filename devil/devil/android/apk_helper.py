@@ -1,7 +1,6 @@
 # Copyright (c) 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Module containing utilities for apk packages."""
 
 import contextlib
@@ -21,10 +20,8 @@ from devil.utils import cmd_helper
 
 _logger = logging.getLogger(__name__)
 
-
-_MANIFEST_ATTRIBUTE_RE = re.compile(
-    r'\s*A: ([^\(\)= ]*)(?:\([^\(\)= ]*\))?='
-    r'(?:"(.*)" \(Raw: .*\)|\(type.*?\)(.*))$')
+_MANIFEST_ATTRIBUTE_RE = re.compile(r'\s*A: ([^\(\)= ]*)(?:\([^\(\)= ]*\))?='
+                                    r'(?:"(.*)" \(Raw: .*\)|\(type.*?\)(.*))$')
 _MANIFEST_ELEMENT_RE = re.compile(r'\s*(?:E|N): (\S*) .*$')
 _BASE_APK_APKS_RE = re.compile(r'^splits/base-master.*\.apk$')
 
@@ -58,7 +55,6 @@ def _NoopFileHelper(files):
   yield files
 
 
-
 def GetPackageName(apk_path):
   """Returns the package name of the apk."""
   return ToHelper(apk_path).GetPackageName()
@@ -90,8 +86,8 @@ def ToSplitHelper(path_or_helper, split_apks):
     if sorted(path_or_helper.split_apk_paths) != sorted(split_apks):
       raise ApkHelperError('Helper has different split APKs')
     return path_or_helper
-  elif (isinstance(path_or_helper, basestring) and
-        path_or_helper.endswith('.apk')):
+  elif (isinstance(path_or_helper, basestring)
+        and path_or_helper.endswith('.apk')):
     return SplitApkHelper(path_or_helper, split_apks)
 
   raise ApkHelperError(
@@ -128,7 +124,8 @@ def _ParseManifestFromApk(apk_path):
 
     # If namespaces are stripped, aapt still outputs the full url to the
     # namespace and appends it to the attribute names.
-    line = line.replace('http://schemas.android.com/apk/res/android:', 'android:')
+    line = line.replace('http://schemas.android.com/apk/res/android:',
+                        'android:')
 
     indent_depth = 0
     while line[(len(indent) * indent_depth):].startswith(indent):
@@ -228,8 +225,8 @@ class BaseApkHelper(object):
     """Returns the name of the first launcher Activity in the apk."""
     manifest_info = self._GetManifest()
     for activity in _IterateExportedActivities(manifest_info):
-      if ('android.intent.action.MAIN' in activity.actions and
-          'android.intent.category.LAUNCHER' in activity.categories):
+      if ('android.intent.action.MAIN' in activity.actions
+          and 'android.intent.category.LAUNCHER' in activity.categories):
         return self._ResolveName(activity.name)
     return None
 
@@ -237,13 +234,13 @@ class BaseApkHelper(object):
     """Returns name of the first action=View Activity that can handle http."""
     manifest_info = self._GetManifest()
     for activity in _IterateExportedActivities(manifest_info):
-      if ('android.intent.action.VIEW' in activity.actions and
-          'http' in activity.schemes):
+      if ('android.intent.action.VIEW' in activity.actions
+          and 'http' in activity.schemes):
         return self._ResolveName(activity.name)
     return None
 
-  def GetInstrumentationName(
-      self, default='android.test.InstrumentationTestRunner'):
+  def GetInstrumentationName(self,
+                             default='android.test.InstrumentationTestRunner'):
     """Returns the name of the Instrumentation in the apk."""
     all_instrumentations = self.GetAllInstrumentations(default=default)
     if len(all_instrumentations) != 1:
@@ -252,8 +249,8 @@ class BaseApkHelper(object):
     else:
       return self._ResolveName(all_instrumentations[0]['android:name'])
 
-  def GetAllInstrumentations(
-      self, default='android.test.InstrumentationTestRunner'):
+  def GetAllInstrumentations(self,
+                             default='android.test.InstrumentationTestRunner'):
     """Returns a list of all Instrumentations in the apk."""
     try:
       return self._GetManifest()['manifest'][0]['instrumentation']
@@ -271,8 +268,10 @@ class BaseApkHelper(object):
   def GetPermissions(self):
     manifest_info = self._GetManifest()
     try:
-      return [p['android:name'] for
-              p in manifest_info['manifest'][0]['uses-permission']]
+      return [
+          p['android:name']
+          for p in manifest_info['manifest'][0]['uses-permission']
+      ]
     except KeyError:
       return []
 
@@ -458,8 +457,8 @@ class SplitApkHelper(BaseApkHelper):
     return self._split_apk_paths
 
   def __repr__(self):
-    return '%s(%s, %s)' % (
-        self.__class__.__name__, self.path, self.split_apk_paths)
+    return '%s(%s, %s)' % (self.__class__.__name__, self.path,
+                           self.split_apk_paths)
 
   def _GetBaseApkPath(self):
     return _NoopFileHelper(self._base_apk_path)

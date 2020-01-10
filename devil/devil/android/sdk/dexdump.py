@@ -6,7 +6,6 @@ from devil.android.sdk import build_tools
 from devil.utils import cmd_helper
 from devil.utils import lazy
 
-
 _dexdump_path = lazy.WeakConstant(lambda: build_tools.GetPath('dexdump'))
 
 
@@ -28,4 +27,3 @@ def DexDump(dexfiles, file_summary=False):
     args.append('-f')
 
   return cmd_helper.IterCmdOutputLines(args)
-

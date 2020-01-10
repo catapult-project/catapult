@@ -3,4 +3,3 @@
 # found in the LICENSE file.
 
 WEBAPK_MAIN_ACTIVITY = 'org.chromium.webapk.shell_apk.MainActivity'
-

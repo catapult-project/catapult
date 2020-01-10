@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides a variety of device interactions based on fastboot."""
 # pylint: disable=unused-argument
 
@@ -27,29 +26,49 @@ _FASTBOOT_REBOOT_TIMEOUT = 10 * _DEFAULT_TIMEOUT
 # requirements when flashing.
 _A_B_BOARDS = {'walleye'}
 _KNOWN_PARTITIONS = collections.OrderedDict([
-    ('bootloader', {'image': 'bootloader*.img', 'restart': True}),
-    ('radio', {'image': 'radio*.img', 'restart': True}),
-    ('boot', {'image': 'boot.img'}),
+    ('bootloader', {
+        'image': 'bootloader*.img',
+        'restart': True
+    }),
+    ('radio', {
+        'image': 'radio*.img',
+        'restart': True
+    }),
+    ('boot', {
+        'image': 'boot.img'
+    }),
     # recovery.img moved into boot.img for A/B devices. See:
     # https://source.android.com/devices/tech/ota/ab/ab_implement#recovery
     ('recovery', {
         'image': 'recovery.img',
-        'optional': lambda b: b in _A_B_BOARDS}),
-    ('system', {'image': 'system.img'}),
-    ('userdata', {'image': 'userdata.img', 'wipe_only': True}),
+        'optional': lambda b: b in _A_B_BOARDS
+    }),
+    ('system', {
+        'image': 'system.img'
+    }),
+    ('userdata', {
+        'image': 'userdata.img',
+        'wipe_only': True
+    }),
     # cache.img deprecated for A/B devices. See:
     # https://source.android.com/devices/tech/ota/ab/ab_implement#cache
     ('cache', {
         'image': 'cache.img',
         'wipe_only': True,
-        'optional': lambda b: b in _A_B_BOARDS}),
-    ('vendor', {'image': 'vendor*.img', 'optional': lambda _: True}),
+        'optional': lambda b: b in _A_B_BOARDS
+    }),
+    ('vendor', {
+        'image': 'vendor*.img',
+        'optional': lambda _: True
+    }),
     ('dtbo', {
         'image': 'dtbo.img',
-        'optional': lambda b: b not in _A_B_BOARDS}),
+        'optional': lambda b: b not in _A_B_BOARDS
+    }),
     ('vbmeta', {
         'image': 'vbmeta.img',
-        'optional': lambda b: b not in _A_B_BOARDS}),
+        'optional': lambda b: b not in _A_B_BOARDS
+    }),
 ])
 ALL_PARTITIONS = _KNOWN_PARTITIONS.keys()
 
@@ -77,13 +96,14 @@ def _FindAndVerifyPartitionsAndImages(partitions, directory, board):
       if fnmatch.fnmatch(filename, pattern):
         return os.path.join(directory, filename)
     return None
+
   for partition in partitions:
     partition_info = _KNOWN_PARTITIONS[partition]
     image_file = find_file(partition_info['image'])
     if image_file:
       return_dict[partition] = image_file
-    elif ('optional' not in partition_info or
-          not partition_info['optional'](board)):
+    elif ('optional' not in partition_info
+          or not partition_info['optional'](board)):
       raise device_errors.FastbootCommandFailedError(
           'Failed to flash device. Could not find image for %s.',
           partition_info['image'])
@@ -95,7 +115,9 @@ class FastbootUtils(object):
   _FASTBOOT_WAIT_TIME = 1
   _BOARD_VERIFICATION_FILE = 'android-info.txt'
 
-  def __init__(self, device=None, fastbooter=None,
+  def __init__(self,
+               device=None,
+               fastbooter=None,
                default_timeout=_DEFAULT_TIMEOUT,
                default_retries=_DEFAULT_RETRIES):
     """FastbootUtils constructor.
@@ -140,6 +162,7 @@ class FastbootUtils(object):
 
     This waits for the device serial to show up in fastboot devices output.
     """
+
     def fastboot_mode():
       return any(self._serial == str(d) for d in self.fastboot.Devices())
 
@@ -160,8 +183,11 @@ class FastbootUtils(object):
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=_FASTBOOT_REBOOT_TIMEOUT)
-  def Reboot(
-      self, bootloader=False, wait_for_reboot=True, timeout=None, retries=None):
+  def Reboot(self,
+             bootloader=False,
+             wait_for_reboot=True,
+             timeout=None,
+             retries=None):
     """Reboots out of fastboot mode.
 
     It reboots the phone either back into fastboot, or to a regular boot. It
@@ -239,11 +265,11 @@ class FastbootUtils(object):
     partitions = flash_image_files.keys()
     for partition in partitions:
       if _KNOWN_PARTITIONS[partition].get('wipe_only') and not wipe:
-        logger.info(
-            'Not flashing in wipe mode. Skipping partition %s.', partition)
+        logger.info('Not flashing in wipe mode. Skipping partition %s.',
+                    partition)
       else:
-        logger.info(
-            'Flashing %s with %s', partition, flash_image_files[partition])
+        logger.info('Flashing %s with %s', partition,
+                    flash_image_files[partition])
         self.fastboot.Flash(partition, flash_image_files[partition])
         if _KNOWN_PARTITIONS[partition].get('restart', False):
           self.Reboot(bootloader=True)

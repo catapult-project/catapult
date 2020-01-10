@@ -2,7 +2,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """
 Unit tests for the contents of device_utils.py (mostly DeviceUtils).
 The test will invoke real devices
@@ -16,7 +15,11 @@ import unittest
 
 if __name__ == '__main__':
   sys.path.append(
-      os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', )))
+      os.path.abspath(os.path.join(
+          os.path.dirname(__file__),
+          '..',
+          '..',
+      )))
 
 from devil.android import device_test_case
 from devil.android import device_utils
@@ -32,7 +35,6 @@ _SUB_DIR2 = "sub2"
 
 
 class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
-
   def setUp(self):
     super(DeviceUtilsPushDeleteFilesTest, self).setUp()
     self.adb = adb_wrapper.AdbWrapper(self.serial)
@@ -88,8 +90,9 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
     device_file_path = "%s/%s" % (_DEVICE_DIR, file_name)
     self.adb.Push(host_file_path, device_file_path)
     self.device.PushChangedFiles([(host_file_path, device_file_path)])
-    result = self.device.RunShellCommand(
-        ['cat', device_file_path], check_return=True, single_line=True)
+    result = self.device.RunShellCommand(['cat', device_file_path],
+                                         check_return=True,
+                                         single_line=True)
     self.assertEqual(_OLD_CONTENTS, result)
 
     cmd_helper.RunCmd(['rm', host_file_path])
@@ -103,8 +106,9 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
     with open(host_file_path, 'w') as f:
       f.write(_NEW_CONTENTS)
     self.device.PushChangedFiles([(host_file_path, device_file_path)])
-    result = self.device.RunShellCommand(
-        ['cat', device_file_path], check_return=True, single_line=True)
+    result = self.device.RunShellCommand(['cat', device_file_path],
+                                         check_return=True,
+                                         single_line=True)
     self.assertEqual(_NEW_CONTENTS, result)
 
     cmd_helper.RunCmd(['rm', host_file_path])
@@ -144,9 +148,10 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
     cmd_helper.RunCmd(['rm', host_file_path2])
 
     self.device.PushChangedFiles([(host_tmp_dir, _DEVICE_DIR)],
-                                   delete_device_stale=True)
-    result = self.device.RunShellCommand(
-        ['cat', device_file_path1], check_return=True, single_line=True)
+                                 delete_device_stale=True)
+    result = self.device.RunShellCommand(['cat', device_file_path1],
+                                         check_return=True,
+                                         single_line=True)
     self.assertEqual(_NEW_CONTENTS, result)
 
     filenames = self.device.ListDirectory(_DEVICE_DIR)
@@ -174,8 +179,8 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
     device_file_path1 = "%s/%s" % (_DEVICE_DIR, file_name1)
     device_file_path2 = "%s/%s" % (_DEVICE_DIR, file_name2)
     device_file_path3 = "%s/%s/%s" % (_DEVICE_DIR, _SUB_DIR1, file_name3)
-    device_file_path4 = "%s/%s/%s/%s" % (_DEVICE_DIR, _SUB_DIR,
-                                         _SUB_DIR2, file_name4)
+    device_file_path4 = "%s/%s/%s/%s" % (_DEVICE_DIR, _SUB_DIR, _SUB_DIR2,
+                                         file_name4)
 
     self.adb.Push(host_file_path1, device_file_path1)
     self.adb.Push(host_file_path2, device_file_path2)
@@ -188,9 +193,10 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
     cmd_helper.RunCmd(['rm', host_file_path4])
 
     self.device.PushChangedFiles([(host_tmp_dir, _DEVICE_DIR)],
-                                   delete_device_stale=True)
-    result = self.device.RunShellCommand(
-        ['cat', device_file_path1], check_return=True, single_line=True)
+                                 delete_device_stale=True)
+    result = self.device.RunShellCommand(['cat', device_file_path1],
+                                         check_return=True,
+                                         single_line=True)
     self.assertEqual(_NEW_CONTENTS, result)
 
     filenames = self.device.ListDirectory(_DEVICE_DIR)
@@ -199,8 +205,9 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
     self.assertIn(_SUB_DIR, filenames)
     self.assertEqual(3, len(filenames))
 
-    result = self.device.RunShellCommand(
-        ['cat', device_file_path3], check_return=True, single_line=True)
+    result = self.device.RunShellCommand(['cat', device_file_path3],
+                                         check_return=True,
+                                         single_line=True)
     self.assertEqual(_OLD_CONTENTS, result)
 
     filenames = self.device.ListDirectory(
@@ -223,7 +230,7 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
 
     # Push all our created files/directories and verify they're on the device.
     self.device.PushChangedFiles([(host_tmp_dir, _DEVICE_DIR)],
-                                   delete_device_stale=True)
+                                 delete_device_stale=True)
     top_level_dirs = self.device.ListDirectory(_DEVICE_DIR)
     self.assertIn(_SUB_DIR1, top_level_dirs)
     self.assertIn(_SUB_DIR, top_level_dirs)
@@ -233,7 +240,7 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
     # Remove one of the directories on the host and push again.
     cmd_helper.RunCmd(['rm', '-rf', host_sub_dir2])
     self.device.PushChangedFiles([(host_tmp_dir, _DEVICE_DIR)],
-                                   delete_device_stale=True)
+                                 delete_device_stale=True)
 
     # Verify that the directory we removed is no longer on the device, but the
     # other directories still are.
@@ -266,7 +273,6 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
 
 
 class PsOutputCompatibilityTests(device_test_case.DeviceTestCase):
-
   def setUp(self):
     super(PsOutputCompatibilityTests, self).setUp()
     self.adb = adb_wrapper.AdbWrapper(self.serial)
@@ -283,8 +289,8 @@ class PsOutputCompatibilityTests(device_test_case.DeviceTestCase):
       column = column.upper()
       self.assertEqual(
           header[idx], column,
-          'Expected column %s at index %d but found %s\nsource: %r' % (
-              column, idx, header[idx], lines[0]))
+          'Expected column %s at index %d but found %s\nsource: %r' %
+          (column, idx, header[idx], lines[0]))
 
     # Check pid and ppid are numeric values.
     for line in lines[1:]:
@@ -293,8 +299,8 @@ class PsOutputCompatibilityTests(device_test_case.DeviceTestCase):
       for key in ('pid', 'ppid'):
         self.assertTrue(
             row[key].isdigit(),
-            'Expected numeric %s value but found %r\nsource: %r' % (
-                key, row[key], line))
+            'Expected numeric %s value but found %r\nsource: %r' %
+            (key, row[key], line))
 
 
 if __name__ == '__main__':

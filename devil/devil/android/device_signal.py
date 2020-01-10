@@ -1,12 +1,10 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Defines constants for signals that should be supported on devices.
 
 Note: Obtained by running `kill -l` on a user device.
 """
-
 
 SIGHUP = 1  # Hangup
 SIGINT = 2  # Interrupt

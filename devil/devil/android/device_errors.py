@@ -1,7 +1,6 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """
 Exception classes raised by AdbWrapper and DeviceUtils.
 
@@ -49,7 +48,11 @@ class CommandFailedError(base_error.BaseError):
 class _BaseCommandFailedError(CommandFailedError):
   """Base Exception for adb and fastboot command failures."""
 
-  def __init__(self, args, output, status=None, device_serial=None,
+  def __init__(self,
+               args,
+               output,
+               status=None,
+               device_serial=None,
                message=None):
     self.args = args
     self.output = output
@@ -69,8 +72,7 @@ class _BaseCommandFailedError(CommandFailedError):
 
   def __eq__(self, other):
     return (super(_BaseCommandFailedError, self).__eq__(other)
-            and self.args == other.args
-            and self.output == other.output
+            and self.args == other.args and self.output == other.output
             and self.status == other.status)
 
   def __ne__(self, other):
@@ -83,28 +85,42 @@ class _BaseCommandFailedError(CommandFailedError):
     result[:len(super_result)] = super_result
 
     # Update the args used to reconstruct this exception.
-    result[1] = (
-        self.args, self.output, self.status, self.device_serial, self.message)
+    result[1] = (self.args, self.output, self.status, self.device_serial,
+                 self.message)
     return tuple(result)
 
 
 class AdbCommandFailedError(_BaseCommandFailedError):
   """Exception for adb command failures."""
 
-  def __init__(self, args, output, status=None, device_serial=None,
+  def __init__(self,
+               args,
+               output,
+               status=None,
+               device_serial=None,
                message=None):
     super(AdbCommandFailedError, self).__init__(
-        args, output, status=status, message=message,
+        args,
+        output,
+        status=status,
+        message=message,
         device_serial=device_serial)
 
 
 class FastbootCommandFailedError(_BaseCommandFailedError):
   """Exception for fastboot command failures."""
 
-  def __init__(self, args, output, status=None, device_serial=None,
+  def __init__(self,
+               args,
+               output,
+               status=None,
+               device_serial=None,
                message=None):
     super(FastbootCommandFailedError, self).__init__(
-        args, output, status=status, message=message,
+        args,
+        output,
+        status=status,
+        message=message,
         device_serial=device_serial)
 
 
@@ -125,8 +141,8 @@ class AdbVersionError(CommandFailedError):
       desc += ' prior to %s' % min_version
     if actual_version:
       desc += ' (actual: %s)' % actual_version
-    super(AdbVersionError, self).__init__(
-        message='adb %s: %s' % (adb_cmd, desc))
+    super(AdbVersionError,
+          self).__init__(message='adb %s: %s' % (adb_cmd, desc))
 
 
 class AdbShellCommandFailedError(AdbCommandFailedError):
@@ -134,8 +150,10 @@ class AdbShellCommandFailedError(AdbCommandFailedError):
 
   def __init__(self, command, output, status, device_serial=None):
     self.command = command
-    segments = ['shell command run via adb failed on the device:\n',
-               '  command: %s\n' % command]
+    segments = [
+        'shell command run via adb failed on the device:\n',
+        '  command: %s\n' % command
+    ]
     segments.append('  exit status: %s\n' % status)
     if output:
       segments.append('  output:\n')
@@ -148,7 +166,7 @@ class AdbShellCommandFailedError(AdbCommandFailedError):
       segments.append("  output: ''\n")
     message = ''.join(segments)
     super(AdbShellCommandFailedError, self).__init__(
-      ['shell', command], output, status, device_serial, message)
+        ['shell', command], output, status, device_serial, message)
 
   def __reduce__(self):
     """Support pickling."""
@@ -163,6 +181,7 @@ class AdbShellCommandFailedError(AdbCommandFailedError):
 
 class CommandTimeoutError(base_error.BaseError):
   """Exception for command timeouts."""
+
   def __init__(self, message, is_infra_error=False, output=None):
     super(CommandTimeoutError, self).__init__(message, is_infra_error)
     self.output = output
@@ -186,8 +205,8 @@ class MultipleDevicesError(base_error.BaseError):
 
   def __init__(self, devices):
     parallel_devices = parallelizer.Parallelizer(devices)
-    descriptions = parallel_devices.pMap(
-        lambda d: d.build_description).pGet(None)
+    descriptions = parallel_devices.pMap(lambda d: d.build_description).pGet(
+        None)
     msg = ('More than one device available. Use -d/--device to select a device '
            'by serial.\n\nAvailable devices:\n')
     for d, desc in zip(devices, descriptions):

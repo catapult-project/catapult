@@ -30,8 +30,13 @@ class LogcatMonitor(object):
       r'(?P<date>\S*) +(?P<time>\S*) +(?P<proc_id>%s) +(?P<thread_id>%s) +'
       r'(?P<log_level>%s) +(?P<component>%s) *: +(?P<message>%s)$')
 
-  def __init__(self, adb, clear=True, filter_specs=None, output_file=None,
-               transform_func=None, check_error=True):
+  def __init__(self,
+               adb,
+               clear=True,
+               filter_specs=None,
+               output_file=None,
+               transform_func=None,
+               check_error=True):
     """Create a LogcatMonitor instance.
 
     Args:
@@ -63,7 +68,10 @@ class LogcatMonitor(object):
     return self._output_file
 
   @decorators.WithTimeoutAndRetriesDefaults(10, 0)
-  def WaitFor(self, success_regex, failure_regex=None, timeout=None,
+  def WaitFor(self,
+              success_regex,
+              failure_regex=None,
+              timeout=None,
               retries=None):
     """Wait for a matching logcat line or until a timeout occurs.
 
@@ -118,7 +126,11 @@ class LogcatMonitor(object):
         else:
           time.sleep(self._WAIT_TIME)
 
-  def FindAll(self, message_regex, proc_id=None, thread_id=None, log_level=None,
+  def FindAll(self,
+              message_regex,
+              proc_id=None,
+              thread_id=None,
+              log_level=None,
               component=None):
     """Finds all lines in the logcat that match the provided constraints.
 
@@ -153,8 +165,8 @@ class LogcatMonitor(object):
       component = r'[^\s:]+'
     # pylint: disable=protected-access
     threadtime_re = re.compile(
-        type(self).THREADTIME_RE_FORMAT % (
-            proc_id, thread_id, log_level, component, message_regex))
+        type(self).THREADTIME_RE_FORMAT % (proc_id, thread_id, log_level,
+                                           component, message_regex))
 
     with open(self._record_file.name, 'r') as f:
       for line in f:
@@ -168,6 +180,7 @@ class LogcatMonitor(object):
     Function spawns a thread that records logcat to file and will not die
     until |StopRecording| is called.
     """
+
     def record_to_file():
       # Write the log with line buffering so the consumer sees each individual
       # line.
@@ -259,8 +272,7 @@ class LogcatMonitor(object):
     """Closes logcat recording file in case |Close| was never called."""
     with self._record_file_lock:
       if self._record_file:
-        logger.warning(
-            'Need to call |Close| on the logcat monitor when done!')
+        logger.warning('Need to call |Close| on the logcat monitor when done!')
         self._record_file.close()
 
   @property

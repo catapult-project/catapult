@@ -7,7 +7,6 @@ import Queue
 import re
 import threading
 
-
 # Log marker containing SurfaceTexture timestamps.
 _SURFACE_TEXTURE_TIMESTAMPS_MESSAGE = 'SurfaceTexture update timestamps'
 _SURFACE_TEXTURE_TIMESTAMP_RE = r'\d+'
@@ -75,8 +74,10 @@ class SurfaceStatsCollector(object):
             break
           raise Exception('Unable to get surface flinger latency data')
 
-        timestamps += [timestamp for timestamp in new_timestamps
-                       if timestamp > last_timestamp]
+        timestamps += [
+            timestamp for timestamp in new_timestamps
+            if timestamp > last_timestamp
+        ]
         if len(timestamps):
           last_timestamp = timestamps[-1]
 

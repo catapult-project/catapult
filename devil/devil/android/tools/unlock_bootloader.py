@@ -2,7 +2,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """A script to open the unlock bootloader on-screen prompt on all devices."""
 
 import argparse
@@ -14,8 +13,8 @@ import time
 
 if __name__ == '__main__':
   sys.path.append(
-      os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                   '..', '..', '..')))
+      os.path.abspath(
+          os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
 from devil import devil_env
 from devil.android import device_errors
@@ -71,11 +70,9 @@ def unlock_bootloader(d):
   cmd_old = [d._fastboot_path.read(), '-s', str(d), 'oem', 'unlock']
   cmd_new = [d._fastboot_path.read(), '-s', str(d), 'flashing', 'unlock']
   unlocking_processes.append(
-      subprocess.Popen(
-          cmd_old, stdout=subprocess.PIPE, stderr=subprocess.PIPE))
+      subprocess.Popen(cmd_old, stdout=subprocess.PIPE, stderr=subprocess.PIPE))
   unlocking_processes.append(
-      subprocess.Popen(
-          cmd_new, stdout=subprocess.PIPE, stderr=subprocess.PIPE))
+      subprocess.Popen(cmd_new, stdout=subprocess.PIPE, stderr=subprocess.PIPE))
 
   # Give the unlocking command time to finish and/or open the on-screen prompt.
   logging.info('Sleeping for 5 seconds...')
@@ -95,8 +92,8 @@ def unlock_bootloader(d):
         logging.info('Device %s is waiting for confirmation.', d)
       else:
         logging.error(
-            'Device %s is hanging, but not waiting for confirmation: %s',
-            d, out)
+            'Device %s is hanging, but not waiting for confirmation: %s', d,
+            out)
       leftover_pids.append(p.pid)
     else:
       if 'unknown command' in out:
@@ -123,21 +120,22 @@ def main():
 
   parser = argparse.ArgumentParser()
   script_common.AddDeviceArguments(parser)
-  parser.add_argument('--adb-path',
-                      help='Absolute path to the adb binary to use.')
+  parser.add_argument(
+      '--adb-path', help='Absolute path to the adb binary to use.')
   args = parser.parse_args()
 
   devil_dynamic_config = devil_env.EmptyConfig()
   if args.adb_path:
     devil_dynamic_config['dependencies'].update(
-        devil_env.LocalConfigItem(
-            'adb', devil_env.GetPlatform(), args.adb_path))
+        devil_env.LocalConfigItem('adb', devil_env.GetPlatform(),
+                                  args.adb_path))
   devil_env.config.Initialize(configs=[devil_dynamic_config])
 
   reboot_into_bootloader(args.devices)
   devices = [
-      d for d in fastboot.Fastboot.Devices() if not args.devices or
-          str(d) in args.devices]
+      d for d in fastboot.Fastboot.Devices()
+      if not args.devices or str(d) in args.devices
+  ]
   parallel_devices = parallelizer.Parallelizer(devices)
   parallel_devices.pMap(unlock_bootloader).pGet(None)
   return 0

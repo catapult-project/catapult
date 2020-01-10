@@ -11,8 +11,8 @@ import signal
 import sys
 import unittest
 
-_CATAPULT_BASE_DIR = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '..', '..', '..', '..'))
+_CATAPULT_BASE_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
 
 sys.path.append(os.path.join(_CATAPULT_BASE_DIR, 'devil'))
 from devil import devil_env
@@ -22,9 +22,8 @@ from devil.android.sdk import adb_wrapper
 from devil.utils import cmd_helper
 from devil.utils import timeout_retry
 
-
-_TEST_DATA_DIR = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), 'test', 'data'))
+_TEST_DATA_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), 'test', 'data'))
 
 
 def _hostAdbPids():
@@ -34,26 +33,24 @@ def _hostAdbPids():
     return []
 
   pids_and_names = (line.split() for line in ps_output.splitlines())
-  return [int(pid) for pid, name in pids_and_names
-          if name == 'adb']
+  return [int(pid) for pid, name in pids_and_names if name == 'adb']
 
 
 class AdbCompatibilityTest(device_test_case.DeviceTestCase):
-
   @classmethod
   def setUpClass(cls):
     custom_adb_path = os.environ.get('ADB_PATH')
     custom_deps = {
-      'config_type': 'BaseConfig',
-      'dependencies': {},
+        'config_type': 'BaseConfig',
+        'dependencies': {},
     }
     if custom_adb_path:
       custom_deps['dependencies']['adb'] = {
-        'file_info': {
-          devil_env.GetPlatform(): {
-            'local_paths': [custom_adb_path],
+          'file_info': {
+              devil_env.GetPlatform(): {
+                  'local_paths': [custom_adb_path],
+              },
           },
-        },
       }
     devil_env.config.Initialize(configs=[custom_deps])
 
@@ -124,7 +121,7 @@ class AdbCompatibilityTest(device_test_case.DeviceTestCase):
     if not external_storage:
       self.skipTest('External storage not available.')
     while True:
-      random_hex = hex(random.randint(0, 2 ** 52))[2:]
+      random_hex = hex(random.randint(0, 2**52))[2:]
       name = 'tmp_push_test%s' % random_hex
       path = posixpath.join(external_storage, name)
       try:
@@ -156,9 +153,8 @@ class AdbCompatibilityTest(device_test_case.DeviceTestCase):
       with self.assertRaises(device_errors.AdbShellCommandFailedError):
         under_test.Shell('ls %s' % resulting_file)
       under_test.Push(src, dest)
-      self.assertEquals(
-          resulting_file,
-          under_test.Shell('ls %s' % resulting_file).strip())
+      self.assertEquals(resulting_file,
+                        under_test.Shell('ls %s' % resulting_file).strip())
 
   def testPush_directoryToDirectory(self):
     under_test = self.getTestInstance()

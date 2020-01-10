@@ -33,8 +33,8 @@ def CalculateHostMd5Sums(paths):
   md5sum_bin_host_path = devil_env.config.FetchPath('md5sum_host')
   if not os.path.exists(md5sum_bin_host_path):
     raise IOError('File not built: %s' % md5sum_bin_host_path)
-  out = cmd_helper.GetCmdOutput(
-    [md5sum_bin_host_path] + [os.path.realpath(p) for p in paths])
+  out = cmd_helper.GetCmdOutput([md5sum_bin_host_path] +
+                                [os.path.realpath(p) for p in paths])
 
   return _ParseMd5SumOutput(out.splitlines())
 
@@ -99,7 +99,8 @@ def CalculateDeviceMd5Sums(paths, device):
       # to re-push as non-root causes the push command to report success, but
       # actually fail. So, wipe the directory first.
       device.RunShellCommand(['rm', '-rf', MD5SUM_DEVICE_LIB_PATH],
-                             as_root=True, check_return=True)
+                             as_root=True,
+                             check_return=True)
       if os.path.isdir(md5sum_dist_path):
         device.adb.Push(md5sum_dist_path, MD5SUM_DEVICE_LIB_PATH)
       else:
@@ -119,4 +120,3 @@ def _ParseMd5SumOutput(out):
   hash_and_path = (l.split(None, 1) for l in out
                    if l and _STARTS_WITH_CHECKSUM_RE.match(l))
   return dict((p, h) for h, p in hash_and_path)
-

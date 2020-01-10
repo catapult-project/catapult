@@ -11,7 +11,6 @@ from devil.android import device_blacklist
 
 
 class DeviceBlacklistTest(unittest.TestCase):
-
   def testBlacklistFileDoesNotExist(self):
     with tempfile.NamedTemporaryFile() as blacklist_file:
       # Allow the temporary file to be deleted.

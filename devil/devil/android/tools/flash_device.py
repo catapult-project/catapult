@@ -9,8 +9,9 @@ import os
 import sys
 
 if __name__ == '__main__':
-  sys.path.append(os.path.abspath(os.path.join(
-      os.path.dirname(__file__), '..', '..', '..')))
+  sys.path.append(
+      os.path.abspath(
+          os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 from devil.android import device_blacklist
 from devil.android import device_errors
 from devil.android import fastboot_utils
@@ -26,8 +27,8 @@ logger = logging.getLogger(__name__)
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('build_path', help='Path to android build.')
-  parser.add_argument('-w', '--wipe', action='store_true',
-                       help='If set, wipes user data')
+  parser.add_argument(
+      '-w', '--wipe', action='store_true', help='If set, wipes user data')
   logging_common.AddLoggingArguments(parser)
   script_common.AddDeviceArguments(parser)
   args = parser.parse_args()
@@ -64,7 +65,8 @@ def main():
     if args.devices or not fastboot_devices:
       raise
     devices += [
-        fastboot_utils.FastbootUtils(fastbooter=d) for d in fastboot_devices]
+        fastboot_utils.FastbootUtils(fastbooter=d) for d in fastboot_devices
+    ]
 
   parallel_devices = parallelizer.SyncParallelizer(devices)
   parallel_devices.pMap(flash)
@@ -77,6 +79,7 @@ def main():
     logger.critical('  %s', ' '.join(str(d) for d in failed_devices))
     return exit_codes.INFRA
   return 0
+
 
 if __name__ == '__main__':
   sys.exit(main())

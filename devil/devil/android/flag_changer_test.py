@@ -8,7 +8,6 @@ import unittest
 
 from devil.android import flag_changer
 
-
 _CMDLINE_FILE = 'chrome-command-line'
 
 
@@ -39,8 +38,8 @@ class FlagChangerTest(unittest.TestCase):
     self.device = _FakeDevice()
     # pylint: disable=protected-access
     self.cmdline_path = posixpath.join(flag_changer._CMDLINE_DIR, _CMDLINE_FILE)
-    self.cmdline_path_legacy = posixpath.join(
-        flag_changer._CMDLINE_DIR_LEGACY, _CMDLINE_FILE)
+    self.cmdline_path_legacy = posixpath.join(flag_changer._CMDLINE_DIR_LEGACY,
+                                              _CMDLINE_FILE)
 
   def testFlagChanger_removeAlternateCmdLine(self):
     self.device.WriteFile(self.cmdline_path_legacy, 'chrome --old --stuff')
@@ -56,11 +55,11 @@ class FlagChangerTest(unittest.TestCase):
     self.device.WriteFile(self.cmdline_path, 'chrome --old --stuff')
     self.assertTrue(self.device.PathExists(self.cmdline_path))
 
-    changer = flag_changer.FlagChanger(self.device, 'chrome-command-line',
-                                       use_legacy_path=True)
+    changer = flag_changer.FlagChanger(
+        self.device, 'chrome-command-line', use_legacy_path=True)
     self.assertEquals(
-      changer._cmdline_path,  # pylint: disable=protected-access
-      self.cmdline_path_legacy)
+        changer._cmdline_path,  # pylint: disable=protected-access
+        self.cmdline_path_legacy)
     self.assertFalse(self.device.PathExists(self.cmdline_path))
 
   def testFlagChanger_mustBeFileName(self):
@@ -89,21 +88,20 @@ class ParseSerializeFlagsTest(unittest.TestCase):
     self._testQuoteFlag('--key=valueA valueB', '--key="valueA valueB"')
 
   def testQuoteFlag_withQuotedValue2(self):
-    self._testQuoteFlag(
-        '--key=this "should" work', r'--key="this \"should\" work"')
+    self._testQuoteFlag('--key=this "should" work',
+                        r'--key="this \"should\" work"')
 
   def testQuoteFlag_withQuotedValue3(self):
-    self._testQuoteFlag(
-        "--key=this is 'fine' too", '''--key="this is 'fine' too"''')
+    self._testQuoteFlag("--key=this is 'fine' too",
+                        '''--key="this is 'fine' too"''')
 
   def testQuoteFlag_withQuotedValue4(self):
-    self._testQuoteFlag(
-        "--key='I really want to keep these quotes'",
-        '''--key="'I really want to keep these quotes'"''')
+    self._testQuoteFlag("--key='I really want to keep these quotes'",
+                        '''--key="'I really want to keep these quotes'"''')
 
   def testQuoteFlag_withQuotedValue5(self):
-    self._testQuoteFlag(
-        "--this is a strange=flag", '"--this is a strange=flag"')
+    self._testQuoteFlag("--this is a strange=flag",
+                        '"--this is a strange=flag"')
 
   def testQuoteFlag_withEmptyValue(self):
     self._testQuoteFlag('--some-flag=', '--some-flag=')
@@ -122,24 +120,22 @@ class ParseSerializeFlagsTest(unittest.TestCase):
     self.assertItemsEqual(new_flags, expected_flags)
 
   def testParseCmdLine_simple(self):
-    self._testParseCmdLine(
-        'chrome --foo --bar="a b" --baz=true --fine="ok"',
-        ['--foo', '--bar=a b', '--baz=true', '--fine=ok'])
+    self._testParseCmdLine('chrome --foo --bar="a b" --baz=true --fine="ok"',
+                           ['--foo', '--bar=a b', '--baz=true', '--fine=ok'])
 
   def testParseCmdLine_withFancyQuotes(self):
     self._testParseCmdLine(
         r'''_ --foo="this 'is' ok"
               --bar='this \'is\' too'
               --baz="this \'is\' tricky"
-        ''',
-        ["--foo=this 'is' ok",
-         "--bar=this 'is' too",
-         r"--baz=this \'is\' tricky"])
+        ''', [
+            "--foo=this 'is' ok", "--bar=this 'is' too",
+            r"--baz=this \'is\' tricky"
+        ])
 
   def testParseCmdLine_withUnterminatedQuote(self):
-    self._testParseCmdLine(
-        '_ --foo --bar="I forgot something',
-        ['--foo', '--bar=I forgot something'])
+    self._testParseCmdLine('_ --foo --bar="I forgot something',
+                           ['--foo', '--bar=I forgot something'])
 
 
 if __name__ == '__main__':

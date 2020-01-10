@@ -22,7 +22,6 @@ with devil_env.SysPath(devil_env.PYMOCK_PATH):
 
 
 class CpuTemperatureTest(mock_calls.TestCase):
-
   @mock.patch('devil.android.perf.perf_control.PerfControl', mock.Mock())
   def setUp(self):
     # Mock the device
@@ -36,7 +35,6 @@ class CpuTemperatureTest(mock_calls.TestCase):
 
 
 class CpuTemperatureInitTest(unittest.TestCase):
-
   @mock.patch('devil.android.perf.perf_control.PerfControl', mock.Mock())
   def testInitWithDeviceUtil(self):
     d = mock.Mock(spec=device_utils.DeviceUtils)
@@ -52,7 +50,6 @@ class CpuTemperatureInitTest(unittest.TestCase):
 
 
 class CpuTemperatureGetThermalDeviceInformationTest(CpuTemperatureTest):
-
   @mock.patch('devil.android.perf.perf_control.PerfControl', mock.Mock())
   def testGetThermalDeviceInformation_noneWhenIncorrectLabel(self):
     invalid_device = mock.Mock(spec=device_utils.DeviceUtils)
@@ -78,7 +75,6 @@ class CpuTemperatureGetThermalDeviceInformationTest(CpuTemperatureTest):
 
 
 class CpuTemperatureIsSupportedTest(CpuTemperatureTest):
-
   @mock.patch('devil.android.perf.perf_control.PerfControl', mock.Mock())
   def testIsSupported_returnsTrue(self):
     d = mock.Mock(spec=device_utils.DeviceUtils)
@@ -98,8 +94,10 @@ class CpuTemperatureIsSupportedTest(CpuTemperatureTest):
 
 class CpuTemperatureLetCpuCoolToTemperatureTest(CpuTemperatureTest):
   # Return values for the mock side effect
-  cooling_down0 = ([45000 for _ in range(8)] + [43000 for _ in range(8)] +
-                   [41000 for _ in range(8)])
+  cooling_down0 = (
+      [45000
+       for _ in range(8)] + [43000
+                             for _ in range(8)] + [41000 for _ in range(8)])
 
   @mock.patch('time.sleep', mock.Mock())
   def testLetBatteryCoolToTemperature_coolWithin24Calls(self):

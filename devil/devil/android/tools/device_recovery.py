@@ -2,7 +2,6 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """A script to recover devices in a known bad state."""
 
 import argparse
@@ -16,8 +15,8 @@ import psutil
 
 if __name__ == '__main__':
   sys.path.append(
-      os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                   '..', '..', '..')))
+      os.path.abspath(
+          os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 from devil.android import device_blacklist
 from devil.android import device_errors
 from devil.android import device_utils
@@ -32,7 +31,6 @@ from devil.utils import reset_usb  # pylint: disable=unused-import
 logger = logging.getLogger(__name__)
 
 from py_utils import modules_util
-
 
 # Script depends on features from psutil version 2.0 or higher.
 modules_util.RequireVersion(psutil, '2.0')
@@ -76,16 +74,16 @@ def TryAuth(device):
   """
   possible_keys = glob.glob(os.path.join(adb_wrapper.ADB_HOST_KEYS_DIR, '*key'))
   if len(possible_keys) <= 1:
-    logger.warning(
-        'Only %d ADB keys available. Not forcing auth.', len(possible_keys))
+    logger.warning('Only %d ADB keys available. Not forcing auth.',
+                   len(possible_keys))
     return False
 
   KillAllAdb()
   adb_wrapper.AdbWrapper.StartServer(keys=possible_keys)
   new_state = device.adb.GetState()
   if new_state != 'device':
-    logger.error(
-        'Auth failed. Device %s still stuck in %s.', str(device), new_state)
+    logger.error('Auth failed. Device %s still stuck in %s.', str(device),
+                 new_state)
     return False
 
   # It worked! Now register the host's default ADB key on the device so we don't
@@ -99,8 +97,7 @@ def TryAuth(device):
     pub_key_contents = f.read()
   try:
     device.WriteFile(adb_wrapper.ADB_KEYS_FILE, pub_key_contents, as_root=True)
-  except (device_errors.CommandTimeoutError,
-          device_errors.CommandFailedError,
+  except (device_errors.CommandTimeoutError, device_errors.CommandFailedError,
           device_errors.DeviceUnreachableError):
     logger.exception('Unable to write default ADB key to %s.', str(device))
     return False
@@ -108,8 +105,7 @@ def TryAuth(device):
 
 
 def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
-  if device_status.IsBlacklisted(device.adb.GetDeviceSerial(),
-                                 blacklist):
+  if device_status.IsBlacklisted(device.adb.GetDeviceSerial(), blacklist):
     logger.debug('%s is blacklisted, skipping recovery.', str(device))
     return
 
@@ -120,17 +116,18 @@ def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
   if should_reboot(device):
     try:
       device.WaitUntilFullyBooted(retries=0)
-    except (device_errors.CommandTimeoutError,
-            device_errors.CommandFailedError,
+    except (device_errors.CommandTimeoutError, device_errors.CommandFailedError,
             device_errors.DeviceUnreachableError):
-      logger.exception('Failure while waiting for %s. '
-                       'Attempting to recover.', str(device))
+      logger.exception(
+          'Failure while waiting for %s. '
+          'Attempting to recover.', str(device))
     try:
       try:
         device.Reboot(block=False, timeout=5, retries=0)
       except device_errors.CommandTimeoutError:
-        logger.warning('Timed out while attempting to reboot %s normally.'
-                       'Attempting alternative reboot.', str(device))
+        logger.warning(
+            'Timed out while attempting to reboot %s normally.'
+            'Attempting alternative reboot.', str(device))
         # The device drops offline before we can grab the exit code, so
         # we don't check for status.
         try:
@@ -139,8 +136,11 @@ def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
           # We are already in a failure mode, attempt to reboot regardless of
           # what device.adb.Root() returns. If the sysrq reboot fails an
           # exception willbe thrown at that level.
-          device.adb.Shell('echo b > /proc/sysrq-trigger', expect_status=None,
-                           timeout=5, retries=0)
+          device.adb.Shell(
+              'echo b > /proc/sysrq-trigger',
+              expect_status=None,
+              timeout=5,
+              retries=0)
     except (device_errors.CommandFailedError,
             device_errors.DeviceUnreachableError):
       logger.exception('Failed to reboot %s.', str(device))
@@ -182,14 +182,13 @@ def RecoverDevices(devices, blacklist, enable_usb_reset=False):
 
   should_restart_usb = set(
       status['serial'] for status in statuses
-      if (not status['usb_status']
-          or status['adb_status'] in ('offline', 'missing')))
-  should_restart_adb = should_restart_usb.union(set(
-      status['serial'] for status in statuses
-      if status['adb_status'] == 'unauthorized'))
-  should_reboot_device = should_restart_usb.union(set(
-      status['serial'] for status in statuses
-      if status['blacklisted']))
+      if (not status['usb_status'] or status['adb_status'] in ('offline',
+                                                               'missing')))
+  should_restart_adb = should_restart_usb.union(
+      set(status['serial'] for status in statuses
+          if status['adb_status'] == 'unauthorized'))
+  should_reboot_device = should_restart_usb.union(
+      set(status['serial'] for status in statuses if status['blacklisted']))
 
   logger.debug('Should restart USB for:')
   for d in should_restart_usb:
@@ -215,8 +214,7 @@ def RecoverDevices(devices, blacklist, enable_usb_reset=False):
       if enable_usb_reset:
         reset_usb.reset_android_usb(serial)
       else:
-        logger.warning('USB reset disabled for %s (crbug.com/642914)',
-                       serial)
+        logger.warning('USB reset disabled for %s (crbug.com/642914)', serial)
     except IOError:
       logger.exception('Unable to reset USB for %s.', serial)
       if blacklist:
@@ -227,7 +225,8 @@ def RecoverDevices(devices, blacklist, enable_usb_reset=False):
         blacklist.Extend([serial], reason='offline')
 
   device_utils.DeviceUtils.parallel(devices).pMap(
-      RecoverDevice, blacklist,
+      RecoverDevice,
+      blacklist,
       should_reboot=lambda device: device.serial in should_reboot_device)
 
 
@@ -236,24 +235,27 @@ def main():
   logging_common.AddLoggingArguments(parser)
   script_common.AddEnvironmentArguments(parser)
   parser.add_argument('--blacklist-file', help='Device blacklist JSON file.')
-  parser.add_argument('--known-devices-file', action='append', default=[],
-                      dest='known_devices_files',
-                      help='Path to known device lists.')
-  parser.add_argument('--enable-usb-reset', action='store_true',
-                      help='Reset USB if necessary.')
+  parser.add_argument(
+      '--known-devices-file',
+      action='append',
+      default=[],
+      dest='known_devices_files',
+      help='Path to known device lists.')
+  parser.add_argument(
+      '--enable-usb-reset', action='store_true', help='Reset USB if necessary.')
 
   args = parser.parse_args()
   logging_common.InitializeLogging(args)
   script_common.InitializeEnvironment(args)
 
   blacklist = (device_blacklist.Blacklist(args.blacklist_file)
-               if args.blacklist_file
-               else None)
+               if args.blacklist_file else None)
 
   expected_devices = device_status.GetExpectedDevices(args.known_devices_files)
   usb_devices = set(lsusb.get_android_devices())
-  devices = [device_utils.DeviceUtils(s)
-             for s in expected_devices.union(usb_devices)]
+  devices = [
+      device_utils.DeviceUtils(s) for s in expected_devices.union(usb_devices)
+  ]
 
   RecoverDevices(devices, blacklist, enable_usb_reset=args.enable_usb_reset)
 

@@ -2,7 +2,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """A script to replace a system app while running a command."""
 
 import argparse
@@ -13,12 +12,10 @@ import posixpath
 import re
 import sys
 
-
 if __name__ == '__main__':
   sys.path.append(
-      os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                   '..', '..', '..')))
-
+      os.path.abspath(
+          os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
 from devil.android import apk_helper
 from devil.android import device_errors
@@ -31,23 +28,24 @@ from devil.utils import run_tests_helper
 
 logger = logging.getLogger(__name__)
 
-
 # Some system apps aren't actually installed in the /system/ directory, so
 # special case them here with the correct install location.
 SPECIAL_SYSTEM_APP_LOCATIONS = {
-  # Older versions of ArCore were installed in /data/app/ regardless of whether
-  # they were system apps or not. Newer versions install in /system/ if they
-  # are system apps, and in /data/app/ if they aren't.
-  'com.google.ar.core': ['/data/app/', '/system/'],
-  # On older versions of VrCore, the system app version is installed in /system/
-  # like normal. However, at some point, this moved to /data/. So, we have to
-  # handle both cases. Like ArCore, this means we'll end up removing even
-  # non-system versions due to this, but it doesn't cause any issues.
-  'com.google.vr.core': ['/data/app/', '/system/'],
+    # Older versions of ArCore were installed in /data/app/ regardless of
+    # whether they were system apps or not. Newer versions install in /system/
+    # if they are system apps, and in /data/app/ if they aren't.
+    'com.google.ar.core': ['/data/app/', '/system/'],
+    # On older versions of VrCore, the system app version is installed in
+    # /system/ like normal. However, at some point, this moved to /data/.
+    # So, we have to handle both cases. Like ArCore, this means we'll end up
+    # removing even non-system versions due to this, but it doesn't cause any
+    # issues.
+    'com.google.vr.core': ['/data/app/', '/system/'],
 }
 
 # Gets app path and package name pm list packages -f output.
 _PM_LIST_PACKAGE_PATH_RE = re.compile(r'^\s*package:(\S+)=(\S+)\s*$')
+
 
 def RemoveSystemApps(device, package_names):
   """Removes the given system apps.
@@ -64,7 +62,9 @@ def RemoveSystemApps(device, package_names):
 
 
 @contextlib.contextmanager
-def ReplaceSystemApp(device, package_name, replacement_apk,
+def ReplaceSystemApp(device,
+                     package_name,
+                     replacement_apk,
                      install_timeout=None):
   """A context manager that replaces the given system app while in scope.
 
@@ -98,8 +98,8 @@ def _FindSystemPackagePaths(device, system_package_list):
 # TODO(aluo): Move this into device_utils.py
 def _GetApplicationPaths(device, package):
   paths = []
-  lines = device.RunShellCommand(['pm', 'list', 'packages', '-f', '-u',
-                                  package], check_return=True)
+  lines = device.RunShellCommand(
+      ['pm', 'list', 'packages', '-f', '-u', package], check_return=True)
   for line in lines:
     match = re.match(_PM_LIST_PACKAGE_PATH_RE, line)
     if match:
@@ -165,8 +165,9 @@ def EnableSystemAppModification(device):
       # workaround this on an emulator.
       docs_url = ('https://chromium.googlesource.com/chromium/src/+/'
                   'master/docs/android_emulator.md#writable-system-partition')
-      logger.error('Did you start the emulator with "-writable-system?"\n'
-                   'See %s\n', docs_url)
+      logger.error(
+          'Did you start the emulator with "-writable-system?"\n'
+          'See %s\n', docs_url)
     raise e
   finally:
     device.SetProp(_ENABLE_MODIFICATION_PROP, '0')
@@ -187,11 +188,9 @@ def _RelocateApp(device, package_name, relocate_to):
         for p in system_package_paths
     }
     relocation_dirs = [
-        posixpath.dirname(d)
-        for _, d in relocation_map.iteritems()
+        posixpath.dirname(d) for _, d in relocation_map.iteritems()
     ]
-    device.RunShellCommand(['mkdir', '-p'] + relocation_dirs,
-                           check_return=True)
+    device.RunShellCommand(['mkdir', '-p'] + relocation_dirs, check_return=True)
     _MoveApp(device, relocation_map)
   else:
     logger.info('No system package "%s"', package_name)
@@ -223,10 +222,7 @@ def _MoveApp(device, relocation_map):
     device: (device_utils.DeviceUtils)
     relocation_map: (dict) A dict that maps src to dest
   """
-  movements = [
-      'mv %s %s' % (k, v)
-      for k, v in relocation_map.iteritems()
-  ]
+  movements = ['mv %s %s' % (k, v) for k, v in relocation_map.iteritems()]
   cmd = ' && '.join(movements)
   with EnableSystemAppModification(device):
     device.RunShellCommand(cmd, as_root=True, check_return=True, shell=True)
@@ -240,7 +236,10 @@ def main(raw_args):
     script_common.AddDeviceArguments(p)
     script_common.AddEnvironmentArguments(p)
     p.add_argument(
-        '-v', '--verbose', action='count', default=0,
+        '-v',
+        '--verbose',
+        action='count',
+        default=0,
         help='Print more information.')
     p.add_argument('command', nargs='*')
 
@@ -251,7 +250,10 @@ def main(raw_args):
 
   remove_parser = subparsers.add_parser('remove')
   remove_parser.add_argument(
-      '--package', dest='packages', nargs='*', required=True,
+      '--package',
+      dest='packages',
+      nargs='*',
+      required=True,
       help='The system package(s) to remove.')
   add_common_arguments(remove_parser)
   remove_parser.set_defaults(func=remove_system_app)
@@ -263,10 +265,11 @@ def main(raw_args):
 
   replace_parser = subparsers.add_parser('replace')
   replace_parser.add_argument(
-      '--package', required=True,
-      help='The system package to replace.')
+      '--package', required=True, help='The system package to replace.')
   replace_parser.add_argument(
-      '--replace-with', metavar='APK', required=True,
+      '--replace-with',
+      metavar='APK',
+      required=True,
       help='The APK with which the existing system app should be replaced.')
   add_common_arguments(replace_parser)
   replace_parser.set_defaults(func=replace_system_app)

@@ -13,8 +13,8 @@ import unittest
 
 if __name__ == '__main__':
   sys.path.append(
-      os.path.abspath(os.path.join(
-          os.path.dirname(__file__), '..', '..', '..')))
+      os.path.abspath(
+          os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
 from devil import base_error
 from devil import devil_env
@@ -55,9 +55,9 @@ class SystemAppDeviceTest(device_test_case.DeviceTestCase):
           try:
             with device_temp_file.DeviceTempFile(self._device.adb) as tmp:
               self._device.adb.Push(cached_apk, tmp.name)
-              self._device.RunShellCommand(
-                  ['mv', tmp.name, install_path],
-                  as_root=True, check_return=True)
+              self._device.RunShellCommand(['mv', tmp.name, install_path],
+                                           as_root=True,
+                                           check_return=True)
           except base_error.BaseError:
             logger.warning('Failed to reinstall %s',
                            os.path.basename(cached_apk))
@@ -71,11 +71,11 @@ class SystemAppDeviceTest(device_test_case.DeviceTestCase):
 
   def _check_preconditions(self):
     if not self._original_paths:
-      self.skipTest('%s is not installed on %s' % (
-          self.PACKAGE, str(self._device)))
+      self.skipTest(
+          '%s is not installed on %s' % (self.PACKAGE, str(self._device)))
     if not any(p.startswith('/system/') for p in self._original_paths):
-      self.skipTest('%s is not installed in a system location on %s' % (
-          self.PACKAGE, str(self._device)))
+      self.skipTest('%s is not installed in a system location on %s' %
+                    (self.PACKAGE, str(self._device)))
 
   def testReplace(self):
     self._check_preconditions()

@@ -28,13 +28,13 @@ def GetPath(build_tool):
 def _PathInLocalSdk(build_tool):
   build_tools_path = _build_tools_path.read()
   if not build_tools_path:
-    raise dependency_manager.NoPathFoundError(
-        build_tool, devil_env.GetPlatform())
+    raise dependency_manager.NoPathFoundError(build_tool,
+                                              devil_env.GetPlatform())
 
   candidate_path = os.path.join(build_tools_path, build_tool)
   if not os.path.exists(candidate_path):
-    raise dependency_manager.NoPathFoundError(
-        build_tool, devil_env.GetPlatform())
+    raise dependency_manager.NoPathFoundError(build_tool,
+                                              devil_env.GetPlatform())
 
   return candidate_path
 

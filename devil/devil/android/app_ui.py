@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides functionality to interact with UI elements of an Android app."""
 
 import collections
@@ -24,7 +23,6 @@ _RE_BOUNDS = re.compile(
 
 
 class _UiNode(object):
-
   def __init__(self, device, xml_node, package=None):
     """Object to interact with a UI node from an xml snapshot.
 
@@ -148,13 +146,11 @@ class _UiNode(object):
   def _NodeMatcher(self, kwargs):
     # Auto-complete resource-id's using the package name if available.
     resource_id = kwargs.get('resource_id')
-    if (resource_id is not None
-        and self._package is not None
+    if (resource_id is not None and self._package is not None
         and ':id/' not in resource_id):
       kwargs['resource_id'] = '%s:id/%s' % (self._package, resource_id)
 
-    criteria = [(k.replace('_', '-'), v)
-                for k, v in kwargs.iteritems()
+    criteria = [(k.replace('_', '-'), v) for k, v in kwargs.iteritems()
                 if v is not None]
     if not criteria:
       raise TypeError('At least one search criteria should be specified')
@@ -198,7 +194,7 @@ class AppUi(object):
     """
     with device_temp_file.DeviceTempFile(self._device.adb) as dtemp:
       self._device.RunShellCommand(['uiautomator', 'dump', dtemp.name],
-                                  check_return=True)
+                                   check_return=True)
       xml_node = element_tree.fromstring(
           self._device.ReadFile(dtemp.name, force_pull=True))
     return _UiNode(self._device, xml_node, package=self._package)
@@ -237,6 +233,7 @@ class AppUi(object):
       device_errors.CommandTimeoutError if the node is not found before the
       timeout.
     """
+
     def node_found():
       return self.GetUiNode(**kwargs)
 

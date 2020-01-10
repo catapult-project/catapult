@@ -5,6 +5,7 @@
 
 class BaseTool(object):
   """A tool that does nothing."""
+
   # pylint: disable=R0201
 
   def __init__(self):
