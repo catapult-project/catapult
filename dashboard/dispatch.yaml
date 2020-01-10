@@ -7,17 +7,30 @@ dispatch:
   - url: "sheriff-config-dot-chromeperf.appspot.com/*"
     service: sheriff-config
 
+  # Upload processing rules
+  - url: "chromeperf.appspot.com/add_histograms/process"
+    service: upload-processing
+  - url: "chromeperf.appspot.com/add_histograms_queue"
+    service: upload-processing
+  - url: "chromeperf.appspot.com/add_point_queue"
+    service: upload-processing
+
+  # We also intercept all the requests headed for the `upload` service for the
+  # URLs we care about. This happens when tasks are queued up for Cloud Tasks
+  # coming from a service, where it ends up hard-coding the service name in the
+  # URL.
+  - url: "*.chromeperf.appspot.com/add_histograms/process"
+    service: upload-processing
+  - url: "*.chromeperf.appspot.com/add_histograms_queue"
+    service: upload-processing
+  - url: "*.chromeperf.appspot.com/add_point_queue"
+    service: upload-processing
+
   # Upload routing rules
   - url: "chromeperf.appspot.com/add_histograms"
     service: upload
   - url: "chromeperf.appspot.com/add_point"
     service: upload
-
-  # Upload processing rules
-  - url: "chromeperf.appspot.com/add_histograms*"
-    service: upload-processing
-  - url: "chromeperf.appspot.com/add_point_queue"
-    service: upload-processing
 
   # API routing rules
   - url: "chromeperf.appspot.com/api/*"
