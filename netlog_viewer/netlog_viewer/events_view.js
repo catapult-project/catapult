@@ -206,7 +206,7 @@ var EventsView = (function() {
       this.comparisonFunction_ = COMPARISON_FUNCTION_TABLE[sort.method];
       if (!this.comparisonFunction_) {
         this.doSortBackwards_ = false;
-        this.comparisonFunction_ = compareSourceId_;
+        this.comparisonFunction_ = compareSourceStartTime_;
       }
     },
 
@@ -481,22 +481,22 @@ var EventsView = (function() {
   // ------------------------------------------------------------------------
 
   var COMPARISON_FUNCTION_TABLE = {
-    // sort: and sort:- are allowed
-    '': compareSourceId_,
+    // sort: and -sort: are allowed
+    '': compareSourceStartTime_,
     'active': compareActive_,
     'desc': compareDescription_,
     'description': compareDescription_,
     'duration': compareDuration_,
-    'id': compareSourceId_,
+    'id': compareSourceStartTime_,
     'source': compareSourceType_,
     'type': compareSourceType_
   };
 
   /**
    * Sorts active entries first.  If both entries are inactive, puts the one
-   * that was active most recently first.  If both are active, uses source ID,
-   * which puts longer lived events at the top, and behaves better than using
-   * duration or time of first event.
+   * that was active most recently first.  If both are active, uses source
+   * start time or source ID, which puts longer lived events at the top, and
+   * behaves better than using duration or time of first event.
    */
   function compareActive_(source1, source2) {
     if (!source1.isInactive() && source2.isInactive())
@@ -512,10 +512,10 @@ var EventsView = (function() {
       }
       // If both ended at the same time, then odds are they were related events,
       // started one after another, so sort in the opposite order of their
-      // source IDs to get a more intuitive ordering.
-      return -compareSourceId_(source1, source2);
+      // source start time or source IDs to get a more intuitive ordering.
+      return -compareSourceStartTime_(source1, source2);
     }
-    return compareSourceId_(source1, source2);
+    return compareSourceStartTime_(source1, source2);
   }
 
   function compareDescription_(source1, source2) {
@@ -524,14 +524,14 @@ var EventsView = (function() {
     var compareResult = source1Text.localeCompare(source2Text);
     if (compareResult != 0)
       return compareResult;
-    return compareSourceId_(source1, source2);
+    return compareSourceStartTime_(source1, source2);
   }
 
   function compareDuration_(source1, source2) {
     var durationDifference = source2.getDuration() - source1.getDuration();
     if (durationDifference)
       return durationDifference;
-    return compareSourceId_(source1, source2);
+    return compareSourceStartTime_(source1, source2);
   }
 
   function compareSourceId_(source1, source2) {
@@ -544,6 +544,25 @@ var EventsView = (function() {
     var compareResult = source1Text.localeCompare(source2Text);
     if (compareResult != 0)
       return compareResult;
+    return compareSourceStartTime_(source1, source2);
+  }
+
+  /**
+   * If the log contains source start_time fields, and the sources have
+   * differing start times, sort by that.
+   * Otherwise, sort by source id. Older logs that don't contain source start
+   * time also won't contain source id partitioning, so sorting by source id is
+   * equivalent to sorting by source start time.  If the start_times are the
+   * same, the source ID will indicate the true order the sources were created,
+   * if they were created in the same process.
+   */
+  function compareSourceStartTime_(source1, source2) {
+    if (source1.hasSourceStartTime() && source2.hasSourceStartTime()) {
+      var startDifference = source1.getStartTicks() - source2.getStartTicks();
+      if (startDifference) {
+        return startDifference;
+      }
+    }
     return compareSourceId_(source1, source2);
   }
 

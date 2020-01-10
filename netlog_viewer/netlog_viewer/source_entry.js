@@ -297,6 +297,14 @@ class SourceEntry {
   }
 
   /**
+   * Returns true if this entry was created by a version of Chrome that records
+   * the start time of each source.
+   */
+  hasSourceStartTime() {
+    return this.entries_[0].source.start_time !== undefined;
+  }
+
+  /**
    * Returns time of last event if inactive.  Returns current time otherwise.
    * Returned time is a "time ticks" value.
    */

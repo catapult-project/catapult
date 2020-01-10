@@ -224,7 +224,7 @@ tr.b.unittest.testSuite(function() {
     chai.assert.strictEqual('sort:id', eventsView.getFilterText_());
 
     // Sort by default is by ID, so toggling ID when there's no filter results
-    // in sort:-id.
+    // in -sort:id.
     eventsView.setFilterText_('');
     $(EventsView.SORT_BY_ID_ID).click();
     chai.assert.strictEqual('-sort:id', eventsView.getFilterText_());
