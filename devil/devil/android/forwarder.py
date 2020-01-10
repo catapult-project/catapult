@@ -427,8 +427,8 @@ class Forwarder(object):
         if exit_code != 0:
           _, ps_output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
               ['ps', 'aux'], Forwarder._TIMEOUT)
-          host_forwarder_lines = (line for line in ps_output.splitlines()
-                                  if 'host_forwarder' in line)
+          host_forwarder_lines = [line for line in ps_output.splitlines()
+                                  if 'host_forwarder' in line]
           if host_forwarder_lines:
             logger.error('Remaining host_forwarder processes:\n  %s',
                          '\n  '.join(host_forwarder_lines))
