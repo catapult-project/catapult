@@ -52,16 +52,18 @@ THIRD_PARTY_LIBRARIES = [
 
 # Files and directories in catapult/dashboard.
 DASHBOARD_FILES = [
-    'appengine_config.py',
-    'app.yaml',
     'api.yaml',
-    'upload.yaml',
-    'scripts.yaml',
+    'app.yaml',
+    'appengine_config.py',
     'cron.yaml',
     'dashboard',
+    'dispatch.yaml',
     'index.yaml',
     'pinpoint.yaml',
     'queue.yaml',
+    'scripts.yaml',
+    'upload-processing.yaml',
+    'upload.yaml',
 ]
 
 TRACING_PATHS = [
