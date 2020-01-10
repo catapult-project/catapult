@@ -1,0 +1,25 @@
+# These are the testing and deploy steps for the performance dashboard
+# services. We re-use the docker-compose files in the dev_dockerfiles directory
+# to ensure we're runing the same test and deploy cycle everytime.
+timeout: 1800s  # Wait for 30 minutes for the whole process to finish.
+options:
+  diskSizeGb: 100
+  machineType: 'N1_HIGHCPU_8'
+steps:
+  - name: 'docker/compose:1.19.0'
+    args: [
+      '-f', 'dashboard/dev_dockerfiles/cloud_build/docker-compose.yml',
+      'build'
+    ]
+  - name: 'docker/compose:1.19.0'
+    args: [
+      '-f', 'dashboard/dev_dockerfiles/cloud_build/docker-compose.yml',
+      'run', 'dashboard-tests'
+    ]
+  # We need to provide the auth token that the service account is using to the
+  # container from which we're going to deploy the Dashboard services.
+  - name: 'docker/compose:1.19.0'
+    args: [
+      '-f', 'dashboard/dev_dockerfiles/cloud_build/docker-compose.yml',
+      'run', 'deploy-dashboard'
+    ]
