@@ -21,6 +21,9 @@ import wire_format
 
 class TracePacket(object):
   def __init__(self):
+    self.clock_snapshot = None
+    self.timestamp = None
+    self.timestamp_clock_id = None
     self.interned_data = None
     self.thread_descriptor = None
     self.incremental_state_cleared = None
@@ -36,6 +39,14 @@ class TracePacket(object):
       data = self.chrome_event.encode()
       length = encoder._VarintBytes(len(data))
       parts += [tag, length, data]
+    if self.clock_snapshot is not None:
+      tag = encoder.TagBytes(6, wire_format.WIRETYPE_LENGTH_DELIMITED)
+      data = self.clock_snapshot.encode()
+      length = encoder._VarintBytes(len(data))
+      parts += [tag, length, data]
+    if self.timestamp is not None:
+      writer = encoder.UInt64Encoder(8, False, False)
+      writer(parts.append, self.timestamp)
     if self.trusted_packet_sequence_id is not None:
       writer = encoder.UInt32Encoder(10, False, False)
       writer(parts.append, self.trusted_packet_sequence_id)
@@ -62,6 +73,9 @@ class TracePacket(object):
       data = self.chrome_benchmark_metadata.encode()
       length = encoder._VarintBytes(len(data))
       parts += [tag, length, data]
+    if self.timestamp_clock_id is not None:
+      writer = encoder.UInt32Encoder(58, False, False)
+      writer(parts.append, self.timestamp_clock_id)
 
     return b"".join(parts)
 
@@ -112,11 +126,9 @@ class ThreadDescriptor(object):
   def __init__(self):
     self.pid = None
     self.tid = None
-    self.reference_timestamp_us = None
 
   def encode(self):
-    if (self.pid is None or self.tid is None or
-        self.reference_timestamp_us is None):
+    if (self.pid is None or self.tid is None):
       raise RuntimeError("Missing mandatory fields.")
 
     parts = []
@@ -124,8 +136,6 @@ class ThreadDescriptor(object):
     writer(parts.append, self.pid)
     writer = encoder.UInt32Encoder(2, False, False)
     writer(parts.append, self.tid)
-    writer = encoder.Int64Encoder(6, False, False)
-    writer(parts.append, self.reference_timestamp_us)
 
     return b"".join(parts)
 
@@ -147,17 +157,12 @@ class ChromeEventBundle(object):
 
 class TrackEvent(object):
   def __init__(self):
-    self.timestamp_absolute_us = None
-    self.timestamp_delta_us = None
     self.legacy_event = None
     self.category_iids = None
     self.debug_annotations = []
 
   def encode(self):
     parts = []
-    if self.timestamp_delta_us is not None:
-      writer = encoder.Int64Encoder(1, False, False)
-      writer(parts.append, self.timestamp_delta_us)
     if self.category_iids is not None:
       writer = encoder.UInt32Encoder(3, is_repeated=True, is_packed=False)
       writer(parts.append, self.category_iids)
@@ -171,9 +176,6 @@ class TrackEvent(object):
       data = self.legacy_event.encode()
       length = encoder._VarintBytes(len(data))
       parts += [tag, length, data]
-    if self.timestamp_absolute_us is not None:
-      writer = encoder.Int64Encoder(16, False, False)
-      writer(parts.append, self.timestamp_absolute_us)
 
     return b"".join(parts)
 
@@ -289,5 +291,41 @@ class ChromeMetadata(object):
     writer(parts.append, self.name)
     writer = encoder.StringEncoder(2, False, False)
     writer(parts.append, self.string_value)
+
+    return b"".join(parts)
+
+
+class Clock(object):
+  def __init__(self):
+    self.clock_id = None
+    self.timestamp = None
+
+  def encode(self):
+    if self.clock_id is None or self.timestamp is None:
+      raise RuntimeError("Clock must have a clock_id and a timestamp.")
+
+    parts = []
+    writer = encoder.UInt32Encoder(1, False, False)
+    writer(parts.append, self.clock_id)
+    writer = encoder.UInt64Encoder(2, False, False)
+    writer(parts.append, self.timestamp)
+
+    return b"".join(parts)
+
+
+class ClockSnapshot(object):
+  def __init__(self):
+    self.clocks = []
+
+  def encode(self):
+    if len(self.clocks) < 2:
+      raise RuntimeError("ClockSnapshot must have at least two clocks.")
+
+    parts = []
+    for clock in self.clocks:
+      tag = encoder.TagBytes(1, wire_format.WIRETYPE_LENGTH_DELIMITED)
+      data = clock.encode()
+      length = encoder._VarintBytes(len(data))
+      parts += [tag, length, data]
 
     return b"".join(parts)

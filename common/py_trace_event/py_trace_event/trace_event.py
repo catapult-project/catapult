@@ -102,6 +102,9 @@ if trace_event_impl:
   def trace_add_benchmark_metadata(*args, **kwargs):
     trace_event_impl.trace_add_benchmark_metadata(*args, **kwargs)
 
+  def trace_set_clock_snapshot(*args, **kwargs):
+    trace_event_impl.trace_set_clock_snapshot(*args, **kwargs)
+
   def trace(name, **kwargs):
     return trace_event_impl.trace(name, **kwargs)
 

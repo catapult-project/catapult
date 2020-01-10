@@ -512,6 +512,16 @@ class TraceEventTests(unittest.TestCase):
             story_run_index=0,
         )
 
+  def testSetClockSnapshotProtobuf(self):
+    with self._test_trace(format=trace_event.PROTOBUF):
+      trace_event.trace_set_clock_snapshot(
+          telemetry_ts=1234.5678,
+          boottime_ts=8765.4321,
+      )
+      trace_event.trace_disable()
+      with open(self._log_path, 'r') as f:
+        self.assertGreater(len(f.read()), 0)
+
 
 if __name__ == '__main__':
   logging.getLogger().setLevel(logging.DEBUG)

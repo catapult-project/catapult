@@ -9,13 +9,15 @@ import collections
 
 import perfetto_proto_classes as proto
 
+CLOCK_BOOTTIME = 6
+CLOCK_TELEMETRY = 64
+
 
 def reset_global_state():
   global _interned_categories_by_tid
   global _interned_event_names_by_tid
   global _next_sequence_id
   global _sequence_ids
-  global _last_timestamps
 
   # Dicts of strings for interning.
   # Note that each thread has its own interning index.
@@ -29,10 +31,6 @@ def reset_global_state():
   # confidence that it will not overlap.
   _next_sequence_id = 1<<20
   _sequence_ids = {}
-
-  # Timestamp of the last event from each thread. Used for delta-encoding
-  # of timestamps.
-  _last_timestamps = {}
 
 
 reset_global_state()
@@ -87,12 +85,11 @@ def write_thread_descriptor_event(output, pid, tid, ts):
     tid: thread ID.
     ts: timestamp in microseconds.
   """
-  global _last_timestamps
-  ts_us = int(ts)
-  _last_timestamps[tid] = ts_us
-
   thread_descriptor_packet = proto.TracePacket()
   thread_descriptor_packet.trusted_packet_sequence_id = _get_sequence_id(tid)
+  thread_descriptor_packet.timestamp = int(ts * 1e3)
+  thread_descriptor_packet.timestamp_clock_id = CLOCK_TELEMETRY
+
   thread_descriptor_packet.thread_descriptor = proto.ThreadDescriptor()
   thread_descriptor_packet.thread_descriptor.pid = pid
   # Thread ID from threading module doesn't fit into int32.
@@ -100,7 +97,6 @@ def write_thread_descriptor_event(output, pid, tid, ts):
   # distinguish one thread from another. We assume that the last 31 bits
   # will do for that purpose.
   thread_descriptor_packet.thread_descriptor.tid = tid & 0x7FFFFFFF
-  thread_descriptor_packet.thread_descriptor.reference_timestamp_us = ts_us
   thread_descriptor_packet.incremental_state_cleared = True;
 
   proto.write_trace_packet(output, thread_descriptor_packet)
@@ -120,20 +116,12 @@ def write_event(output, ph, category, name, ts, args, tid):
     args: dict of arbitrary key-values to be stored as DebugAnnotations.
     tid: thread ID.
   """
-  global _last_timestamps
-  ts_us = int(ts)
-  delta_ts = ts_us - _last_timestamps[tid]
-
   packet = proto.TracePacket()
   packet.trusted_packet_sequence_id = _get_sequence_id(tid)
+  packet.timestamp = int(ts * 1e3)
+  packet.timestamp_clock_id = CLOCK_TELEMETRY
+
   packet.track_event = proto.TrackEvent()
-
-  if delta_ts >= 0:
-    packet.track_event.timestamp_delta_us = delta_ts
-    _last_timestamps[tid] = ts_us
-  else:
-    packet.track_event.timestamp_absolute_us = ts_us
-
   packet.track_event.category_iids = [_intern_category(category, packet, tid)]
   legacy_event = proto.LegacyEvent()
   legacy_event.phase = ord(ph)
@@ -196,4 +184,36 @@ def write_metadata(
 
   packet = proto.TracePacket()
   packet.chrome_benchmark_metadata = metadata
+  proto.write_trace_packet(output, packet)
+
+
+def write_clock_snapshot(
+    output,
+    tid,
+    telemetry_ts=None,
+    boottime_ts=None,
+):
+  """Write a ClockSnapshot message.
+
+  Note that this function is NOT thread-safe.
+
+  Args:
+    output: a file-like object to write events into.
+    telemetry_ts: host BOOTTIME timestamp in microseconds.
+    boottime_ts: device BOOTTIME timestamp in microseconds.
+  """
+  clock_snapshot = proto.ClockSnapshot()
+  if telemetry_ts is not None:
+    clock = proto.Clock()
+    clock.clock_id = CLOCK_TELEMETRY
+    clock.timestamp = int(telemetry_ts * 1e3)
+    clock_snapshot.clocks.append(clock)
+  if boottime_ts is not None:
+    clock = proto.Clock()
+    clock.clock_id = CLOCK_BOOTTIME
+    clock.timestamp = int(boottime_ts * 1e3)
+    clock_snapshot.clocks.append(clock)
+  packet = proto.TracePacket()
+  packet.trusted_packet_sequence_id = _get_sequence_id(tid)
+  packet.clock_snapshot = clock_snapshot
   proto.write_trace_packet(output, packet)

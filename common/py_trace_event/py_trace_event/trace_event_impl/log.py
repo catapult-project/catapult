@@ -41,6 +41,8 @@ _log_file = None
 
 _cur_events = [] # events that have yet to be buffered
 _benchmark_metadata = {}
+_telemetry_ts = trace_time.Now()
+_boottime_ts = _telemetry_ts
 
 _tls = threading.local() # tls used to detect forking/etc
 _atexit_regsitered_for_pid = None
@@ -85,12 +87,14 @@ def trace_enable(log_file=None, format=None):
   _trace_enable(log_file, format)
 
 def _write_header():
-  tid = threading.current_thread().ident
-  if not tid:
-    tid = os.getpid()
-
   if _format == PROTOBUF:
     tid = threading.current_thread().ident
+    perfetto_trace_writer.write_clock_snapshot(
+        output=_log_file,
+        tid=tid,
+        telemetry_ts=_telemetry_ts,
+        boottime_ts=_boottime_ts,
+    )
     perfetto_trace_writer.write_thread_descriptor_event(
         output=_log_file,
         pid=os.getpid(),
@@ -358,6 +362,12 @@ def trace_add_benchmark_metadata(
     raise TraceException("Can't write metadata in JSON format")
   else:
     raise TraceException("Unknown format: %s" % _format)
+
+def trace_set_clock_snapshot(telemetry_ts, boottime_ts):
+  global _telemetry_ts
+  global _boottime_ts
+  _telemetry_ts = telemetry_ts
+  _boottime_ts = boottime_ts
 
 def _trace_disable_atexit():
   trace_disable()
