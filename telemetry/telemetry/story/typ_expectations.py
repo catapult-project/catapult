@@ -25,14 +25,15 @@ ResultType = json_results.ResultType
 SYSTEM_CONDITION_TAGS = frozenset([
     'android', 'android-go', 'android-low-end', 'android-nexus-5',
     'android-nexus-5x', 'android-nexus-6', 'android-pixel-2',
-    'chromeos', 'chromeos-local', 'chromeos-remote', 'desktop', 'fuchsia',
-    'linux', 'mac', 'mac-10.12', 'win', 'win10', 'win7', 'android-not-webview',
-    'android-webview', 'mobile', 'android-marshmallow', 'android-lollipop',
-    'android-nougat', 'android-oreo', 'android-pie', 'android-10',
-    'android-webview-google', 'reference', 'android-chromium', 'ubuntu',
-    'android-kitkat', 'highsierra', 'sierra', 'smart-display',
-    'web-engine-shell', 'mac-10.11', 'release', 'exact', 'debug',
-    'android-weblayer',
+    'chromeos', 'chromeos-board-amd64-generic', 'chromeos-board-betty',
+    'chromeos-board-eve', 'chromeos-board-kevin', 'chromeos-local',
+    'chromeos-remote', 'desktop', 'fuchsia', 'linux', 'mac', 'mac-10.12',
+    'win', 'win10', 'win7', 'android-not-webview', 'android-webview', 'mobile',
+    'android-marshmallow', 'android-lollipop', 'android-nougat',
+    'android-oreo', 'android-pie', 'android-10', 'android-webview-google',
+    'reference', 'android-chromium', 'ubuntu', 'android-kitkat', 'highsierra',
+    'sierra', 'smart-display', 'web-engine-shell', 'mac-10.11', 'release',
+    'exact', 'debug', 'android-weblayer',
 ])
 
 

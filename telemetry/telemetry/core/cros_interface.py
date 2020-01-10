@@ -67,6 +67,7 @@ class CrOSInterface(object):
     self._root_is_writable = False
     self._master_connection_open = False
     self._disable_strict_filenames = False
+    self._board = None
 
     if self.local:
       return
@@ -614,6 +615,17 @@ class CrOSInterface(object):
   def GetDeviceTypeName(self):
     """DEVICETYPE in /etc/lsb-release is CHROMEBOOK, CHROMEBIT, etc."""
     return self.LsbReleaseValue(key='DEVICETYPE', default='CHROMEBOOK')
+
+  def GetBoard(self):
+    """Gets the name of the board of the device, e.g. "kevin".
+
+    Returns:
+      The name of the board as a string, or None if it can't be retrieved.
+    """
+    if self._board is None:
+      self._board = self.LsbReleaseValue(
+          key='CHROMEOS_RELEASE_BOARD', default=None)
+    return self._board
 
   def RestartUI(self, clear_enterprise_policy):
     logging.info('(Re)starting the ui (logs the user out)')

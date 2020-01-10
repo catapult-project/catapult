@@ -20,4 +20,9 @@ class DesktopPlatformBackendTest(unittest.TestCase):
     for db in desktop_backends:
       with mock.patch.object(db, 'GetOSVersionDetailString', return_value=''):
         with mock.patch.object(db, 'GetOSVersionName', return_value=''):
-          self.assertIn('desktop', db().GetTypExpectationsTags())
+          backend = db()
+          # Without mocking, this ends up trying to read from /etc/lsb-release,
+          # which doesn't exist on Mac/Win.
+          if isinstance(backend, cros_platform_backend.CrosPlatformBackend):
+            backend.cri.GetBoard = mock.Mock(return_value='')
+          self.assertIn('desktop', backend.GetTypExpectationsTags())
