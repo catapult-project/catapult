@@ -584,9 +584,9 @@ tr.exportTo('tr.e.importer', function() {
       const slice = thread.sliceGroup.pushCompleteSlice(event.cat, event.name,
 
           this.toModelTimeFromUs_(event.ts),
-          this.maybeToModelTimeFromUs_(event.dur),
+          this.durationFromUs_(event.dur),
           this.maybeToModelTimeFromUs_(event.tts),
-          this.maybeToModelTimeFromUs_(event.tdur),
+          this.durationFromUs_(event.tdur),
           this.deepCopyIfNeeded_(event.args),
           event.argsStripped,
           getEventColor(event),
@@ -3386,6 +3386,18 @@ tr.exportTo('tr.e.importer', function() {
       }
 
       return this.toModelTimeFromUs_(ts);
+    },
+
+    /**
+     * Converts |dur| (in microseconds) to a millisecond value. If |dur| is
+     * undefined, undefined is returned.
+     */
+    durationFromUs_(dur) {
+      if (dur === undefined) {
+        return undefined;
+      }
+
+      return tr.b.Unit.timestampFromUs(dur);
     }
   };
 
