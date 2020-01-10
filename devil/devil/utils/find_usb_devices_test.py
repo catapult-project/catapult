@@ -4,7 +4,6 @@
 # found in the LICENSE file.
 
 # pylint: disable=protected-access
-
 """
 Unit tests for the contents of find_usb_devices.py.
 
@@ -37,32 +36,29 @@ from devil.utils import lsusb
 from devil.utils import usb_hubs
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock # pylint: disable=import-error
+  import mock  # pylint: disable=import-error
 
 # Output of lsusb.lsusb().
 # We just test that the dictionary is working by creating an
 # "ID number" equal to (bus_num*1000)+device_num and seeing if
 # it is picked up correctly. Also we test the description
 
-DEVLIST = [(1, 11, 'foo'),
-           (1, 12, 'bar'),
-           (1, 13, 'baz'),
-           (2, 11, 'quux'),
-           (2, 20, 'My Test HUB'),
-           (2, 21, 'ID 0403:6001 usb_device_p7_h1_t0'),
+DEVLIST = [(1, 11, 'foo'), (1, 12, 'bar'), (1, 13, 'baz'), (2, 11, 'quux'),
+           (2, 20, 'My Test HUB'), (2, 21, 'ID 0403:6001 usb_device_p7_h1_t0'),
            (2, 22, 'ID 0403:6001 usb_device_p5_h1_t1'),
            (2, 23, 'My Test Internal HUB'),
            (2, 24, 'ID 0403:6001 usb_device_p3_h1_t2'),
            (2, 25, 'ID 0403:6001 usb_device_p1_h1_t3'),
-           (2, 26, 'Not a Battery Monitor'),
-           (2, 100, 'My Test HUB'),
+           (2, 26, 'Not a Battery Monitor'), (2, 100, 'My Test HUB'),
            (2, 101, 'My Test Internal HUB'),
            (2, 102, 'ID 0403:6001 usb_device_p1_h1_t4')]
 
-LSUSB_OUTPUT = [
-  {'bus': b, 'device': d, 'desc': t, 'id': (1000*b)+d}
-       for (b, d, t) in DEVLIST]
-
+LSUSB_OUTPUT = [{
+    'bus': b,
+    'device': d,
+    'desc': t,
+    'id': (1000 * b) + d
+} for (b, d, t) in DEVLIST]
 
 # Note: "Lev", "Cnt", "Spd", and "MxCh" are not used by parser,
 # so we just leave them as zeros here. Also note that the port
@@ -170,12 +166,14 @@ ATTRS{devnum}=="0"
 '''
 
 UDEVADM_OUTPUT_DICT = {
-  'ttyUSB0': UDEVADM_USBTTY0_OUTPUT,
-  'ttyUSB1': UDEVADM_USBTTY1_OUTPUT,
-  'ttyUSB2': UDEVADM_USBTTY2_OUTPUT,
-  'ttyUSB3': UDEVADM_USBTTY3_OUTPUT,
-  'ttyUSB4': UDEVADM_USBTTY4_OUTPUT,
-  'ttyUSB5': UDEVADM_USBTTY5_OUTPUT}
+    'ttyUSB0': UDEVADM_USBTTY0_OUTPUT,
+    'ttyUSB1': UDEVADM_USBTTY1_OUTPUT,
+    'ttyUSB2': UDEVADM_USBTTY2_OUTPUT,
+    'ttyUSB3': UDEVADM_USBTTY3_OUTPUT,
+    'ttyUSB4': UDEVADM_USBTTY4_OUTPUT,
+    'ttyUSB5': UDEVADM_USBTTY5_OUTPUT
+}
+
 
 # Identification criteria for Plugable 7-Port Hub
 def isTestHub(node):
@@ -192,11 +190,19 @@ def isTestHub(node):
     return False
   return 'Test Internal HUB' in node.PortToDevice(4).desc
 
-TEST_HUB = usb_hubs.HubType(isTestHub,
-                            {1:7,
-                             2:6,
-                             3:5,
-                             4:{1:4, 2:3, 3:2, 4:1}})
+
+TEST_HUB = usb_hubs.HubType(isTestHub, {
+    1: 7,
+    2: 6,
+    3: 5,
+    4: {
+        1: 4,
+        2: 3,
+        3: 2,
+        4: 1
+    }
+})
+
 
 class USBScriptTest(unittest.TestCase):
   def setUp(self):
@@ -206,38 +212,42 @@ class USBScriptTest(unittest.TestCase):
         return_value=LSUSB_OUTPUT)
     find_usb_devices._GetUSBDevicesOutput = mock.Mock(
         return_value=USB_DEVICES_OUTPUT)
-    find_usb_devices._GetCommList = mock.Mock(
-        return_value=LIST_TTY_OUTPUT)
-    lsusb.raw_lsusb = mock.Mock(
-        return_value=RAW_LSUSB_OUTPUT)
+    find_usb_devices._GetCommList = mock.Mock(return_value=LIST_TTY_OUTPUT)
+    lsusb.raw_lsusb = mock.Mock(return_value=RAW_LSUSB_OUTPUT)
 
   def testGetTTYDevices(self):
     pp = find_usb_devices.GetAllPhysicalPortToTTYMaps([TEST_HUB])
     result = list(pp)
-    self.assertEquals(result[0], {7:'ttyUSB0',
-                                  5:'ttyUSB1',
-                                  3:'ttyUSB2',
-                                  2:'ttyUSB5',
-                                  1:'ttyUSB3'})
-    self.assertEquals(result[1], {1:'ttyUSB4'})
+    self.assertEquals(result[0], {
+        7: 'ttyUSB0',
+        5: 'ttyUSB1',
+        3: 'ttyUSB2',
+        2: 'ttyUSB5',
+        1: 'ttyUSB3'
+    })
+    self.assertEquals(result[1], {1: 'ttyUSB4'})
 
   def testGetPortDeviceMapping(self):
     pp = find_usb_devices.GetAllPhysicalPortToBusDeviceMaps([TEST_HUB])
     result = list(pp)
-    self.assertEquals(result[0], {7:(2, 21),
-                                  5:(2, 22),
-                                  3:(2, 24),
-                                  2:(2, 26),
-                                  1:(2, 25)})
-    self.assertEquals(result[1], {1:(2, 102)})
+    self.assertEquals(result[0], {
+        7: (2, 21),
+        5: (2, 22),
+        3: (2, 24),
+        2: (2, 26),
+        1: (2, 25)
+    })
+    self.assertEquals(result[1], {1: (2, 102)})
 
   def testGetSerialMapping(self):
     pp = find_usb_devices.GetAllPhysicalPortToSerialMaps([TEST_HUB])
     result = list(pp)
-    self.assertEquals(result[0], {7:'UsbDevice0',
-                                  5:'UsbDevice1',
-                                  3:'UsbDevice2',
-                                  1:'UsbDevice3'})
+    self.assertEquals(result[0], {
+        7: 'UsbDevice0',
+        5: 'UsbDevice1',
+        3: 'UsbDevice2',
+        1: 'UsbDevice3'
+    })
     self.assertEquals(result[1], {})
 
   def testFastDeviceDescriptions(self):
@@ -248,7 +258,7 @@ class USBScriptTest(unittest.TestCase):
     self.assertEquals(dev_foo.desc, 'FAST foo')
     self.assertEquals(dev_bar.desc, 'FAST bar')
     self.assertEquals(dev_usb_device_p7_h1_t0.desc,
-        'ID 0403:6001 usb_device_p7_h1_t0')
+                      'ID 0403:6001 usb_device_p7_h1_t0')
 
   def testDeviceDescriptions(self):
     bd = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=False)
@@ -258,7 +268,7 @@ class USBScriptTest(unittest.TestCase):
     self.assertEquals(dev_foo.desc, 'foo')
     self.assertEquals(dev_bar.desc, 'bar')
     self.assertEquals(dev_usb_device_p7_h1_t0.desc,
-        'ID 0403:6001 usb_device_p7_h1_t0')
+                      'ID 0403:6001 usb_device_p7_h1_t0')
 
   def testDeviceInformation(self):
     bd = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=False)

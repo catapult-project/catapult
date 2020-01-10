@@ -2,7 +2,6 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Tests for the cmd_helper module."""
 
 import unittest
@@ -12,7 +11,7 @@ from devil.utils import lsusb
 from devil.utils import mock_calls
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock # pylint: disable=import-error
+  import mock  # pylint: disable=import-error
 
 RAW_OUTPUT = """
 Bus 003 Device 007: ID 18d1:4ee2 Google Inc. Nexus 4 (debug)
@@ -138,81 +137,210 @@ EXPECTED_RESULT = {
         }
     },
     'Device Descriptor': {
-        'bLength': {'_value': '18', '_desc': None},
-        'bcdDevice': {'_value': '2.28', '_desc': None},
-        'bDeviceSubClass': {'_value': '0', '_desc': None},
-        'idVendor': {'_value': '0x18d1', '_desc': 'Google Inc.'},
-        'bcdUSB': {'_value': '2.00', '_desc': None},
-        'bDeviceProtocol': {'_value': '0', '_desc': None},
-        'bDescriptorType': {'_value': '1', '_desc': None},
+        'bLength': {
+            '_value': '18',
+            '_desc': None
+        },
+        'bcdDevice': {
+            '_value': '2.28',
+            '_desc': None
+        },
+        'bDeviceSubClass': {
+            '_value': '0',
+            '_desc': None
+        },
+        'idVendor': {
+            '_value': '0x18d1',
+            '_desc': 'Google Inc.'
+        },
+        'bcdUSB': {
+            '_value': '2.00',
+            '_desc': None
+        },
+        'bDeviceProtocol': {
+            '_value': '0',
+            '_desc': None
+        },
+        'bDescriptorType': {
+            '_value': '1',
+            '_desc': None
+        },
         'Configuration Descriptor': {
-            'bLength': {'_value': '9', '_desc': None},
-            'wTotalLength': {'_value': '62', '_desc': None},
-            'bConfigurationValue': {'_value': '1', '_desc': None},
+            'bLength': {
+                '_value': '9',
+                '_desc': None
+            },
+            'wTotalLength': {
+                '_value': '62',
+                '_desc': None
+            },
+            'bConfigurationValue': {
+                '_value': '1',
+                '_desc': None
+            },
             'Interface Descriptor': {
-                'bLength': {'_value': '9', '_desc': None},
-                'bAlternateSetting': {'_value': '0', '_desc': None},
-                'bInterfaceNumber': {'_value': '1', '_desc': None},
-                'bNumEndpoints': {'_value': '2', '_desc': None},
-                'bDescriptorType': {'_value': '4', '_desc': None},
-                'bInterfaceSubClass': {'_value': '66', '_desc': None},
+                'bLength': {
+                    '_value': '9',
+                    '_desc': None
+                },
+                'bAlternateSetting': {
+                    '_value': '0',
+                    '_desc': None
+                },
+                'bInterfaceNumber': {
+                    '_value': '1',
+                    '_desc': None
+                },
+                'bNumEndpoints': {
+                    '_value': '2',
+                    '_desc': None
+                },
+                'bDescriptorType': {
+                    '_value': '4',
+                    '_desc': None
+                },
+                'bInterfaceSubClass': {
+                    '_value': '66',
+                    '_desc': None
+                },
                 'bInterfaceClass': {
                     '_value': '255',
                     '_desc': 'Vendor Specific Class'
                 },
-                'bInterfaceProtocol': {'_value': '1', '_desc': None},
+                'bInterfaceProtocol': {
+                    '_value': '1',
+                    '_desc': None
+                },
                 'Endpoint Descriptor': {
-                    'bLength': {'_value': '7', '_desc': None},
-                    'bEndpointAddress': {'_value': '0x02', '_desc': 'EP 2 OUT'},
-                    'bInterval': {'_value': '0', '_desc': None},
-                    'bDescriptorType': {'_value': '5', '_desc': None},
+                    'bLength': {
+                        '_value': '7',
+                        '_desc': None
+                    },
+                    'bEndpointAddress': {
+                        '_value': '0x02',
+                        '_desc': 'EP 2 OUT'
+                    },
+                    'bInterval': {
+                        '_value': '0',
+                        '_desc': None
+                    },
+                    'bDescriptorType': {
+                        '_value': '5',
+                        '_desc': None
+                    },
                     'bmAttributes': {
                         '_value': '2',
-                        'Transfer': {'_value': 'Type', '_desc': 'Bulk'},
-                        'Usage': {'_value': 'Type', '_desc': 'Data'},
+                        'Transfer': {
+                            '_value': 'Type',
+                            '_desc': 'Bulk'
+                        },
+                        'Usage': {
+                            '_value': 'Type',
+                            '_desc': 'Data'
+                        },
                         '_desc': None,
-                        'Synch': {'_value': 'Type', '_desc': 'None'}
+                        'Synch': {
+                            '_value': 'Type',
+                            '_desc': 'None'
+                        }
                     },
                     'wMaxPacketSize': {
                         '_value': '0x0040',
                         '_desc': '1x 64 bytes'
                     }
                 },
-                'iInterface': {'_value': '0', '_desc': None}
+                'iInterface': {
+                    '_value': '0',
+                    '_desc': None
+                }
             },
-            'bDescriptorType': {'_value': '2', '_desc': None},
-            'iConfiguration': {'_value': '0', '_desc': None},
+            'bDescriptorType': {
+                '_value': '2',
+                '_desc': None
+            },
+            'iConfiguration': {
+                '_value': '0',
+                '_desc': None
+            },
             'bmAttributes': {
                 '_value': '0x80',
                 '_desc': None,
-                '(Bus': {'_value': 'Powered)', '_desc': None}
+                '(Bus': {
+                    '_value': 'Powered)',
+                    '_desc': None
+                }
             },
-            'bNumInterfaces': {'_value': '2', '_desc': None},
-            'MaxPower': {'_value': '500mA', '_desc': None}
+            'bNumInterfaces': {
+                '_value': '2',
+                '_desc': None
+            },
+            'MaxPower': {
+                '_value': '500mA',
+                '_desc': None
+            }
         },
-        'iSerial': {'_value': '3', '_desc': '01d2450ea194a93b'},
-        'idProduct': {'_value': '0x4ee2', '_desc': 'Nexus 4 (debug)'},
-        'iManufacturer': {'_value': '1', '_desc': 'LGE'},
+        'iSerial': {
+            '_value': '3',
+            '_desc': '01d2450ea194a93b'
+        },
+        'idProduct': {
+            '_value': '0x4ee2',
+            '_desc': 'Nexus 4 (debug)'
+        },
+        'iManufacturer': {
+            '_value': '1',
+            '_desc': 'LGE'
+        },
         'bDeviceClass': {
             '_value': '0',
             '_desc': '(Defined at Interface level)'
         },
-        'iProduct': {'_value': '2', '_desc': 'Nexus 4'},
-        'bMaxPacketSize0': {'_value': '64', '_desc': None},
-        'bNumConfigurations': {'_value': '1', '_desc': None}
+        'iProduct': {
+            '_value': '2',
+            '_desc': 'Nexus 4'
+        },
+        'bMaxPacketSize0': {
+            '_value': '64',
+            '_desc': None
+        },
+        'bNumConfigurations': {
+            '_value': '1',
+            '_desc': None
+        }
     },
     'Device Qualifier (for other device speed)': {
-        'bLength': {'_value': '10', '_desc': None},
-        'bNumConfigurations': {'_value': '1', '_desc': None},
-        'bDeviceSubClass': {'_value': '0', '_desc': None},
-        'bcdUSB': {'_value': '2.00', '_desc': None},
-        'bDeviceProtocol': {'_value': '0', '_desc': None},
-        'bDescriptorType': {'_value': '6', '_desc': None},
+        'bLength': {
+            '_value': '10',
+            '_desc': None
+        },
+        'bNumConfigurations': {
+            '_value': '1',
+            '_desc': None
+        },
+        'bDeviceSubClass': {
+            '_value': '0',
+            '_desc': None
+        },
+        'bcdUSB': {
+            '_value': '2.00',
+            '_desc': None
+        },
+        'bDeviceProtocol': {
+            '_value': '0',
+            '_desc': None
+        },
+        'bDescriptorType': {
+            '_value': '6',
+            '_desc': None
+        },
         'bDeviceClass': {
             '_value': '0',
             '_desc': '(Defined at Interface level)'
         },
-        'bMaxPacketSize0': {'_value': '64', '_desc': None}
+        'bMaxPacketSize0': {
+            '_value': '64',
+            '_desc': None
+        }
     }
 }
 
@@ -225,7 +353,7 @@ class LsusbTest(mock_calls.TestCase):
         (mock.call.devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout(
             ['lsusb'], timeout=10), (None, DEVICE_LIST)),
         (mock.call.devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout(
-          ['lsusb', '-v', '-s', '003:007'], timeout=10), (None, RAW_OUTPUT))):
+            ['lsusb', '-v', '-s', '003:007'], timeout=10), (None, RAW_OUTPUT))):
       self.assertDictEqual(lsusb.lsusb().pop(), EXPECTED_RESULT)
 
   def testGetSerial(self):
@@ -233,7 +361,7 @@ class LsusbTest(mock_calls.TestCase):
         (mock.call.devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout(
             ['lsusb'], timeout=10), (None, DEVICE_LIST)),
         (mock.call.devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout(
-          ['lsusb', '-v', '-s', '003:007'], timeout=10), (None, RAW_OUTPUT))):
+            ['lsusb', '-v', '-s', '003:007'], timeout=10), (None, RAW_OUTPUT))):
       self.assertEqual(lsusb.get_android_devices(), ['01d2450ea194a93b'])
 
   def testGetLsusbSerial(self):
@@ -241,7 +369,7 @@ class LsusbTest(mock_calls.TestCase):
         (mock.call.devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout(
             ['lsusb'], timeout=10), (None, DEVICE_LIST)),
         (mock.call.devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout(
-          ['lsusb', '-v', '-s', '003:007'], timeout=10), (None, RAW_OUTPUT))):
+            ['lsusb', '-v', '-s', '003:007'], timeout=10), (None, RAW_OUTPUT))):
       out = lsusb.lsusb().pop()
       self.assertEqual(lsusb.get_lsusb_serial(out), '01d2450ea194a93b')
 

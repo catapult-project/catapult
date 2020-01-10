@@ -8,6 +8,7 @@ import os
 
 def GetRecursiveDiskUsage(path):
   """Returns the disk usage in bytes of |path|. Similar to `du -sb |path|`."""
+
   def get_size(filepath):
     try:
       return os.path.getsize(filepath)
@@ -18,6 +19,6 @@ def GetRecursiveDiskUsage(path):
   running_size = get_size(path)
   if os.path.isdir(path):
     for root, dirs, files in os.walk(path):
-      running_size += sum([get_size(os.path.join(root, f))
-                           for f in files + dirs])
+      running_size += sum(
+          [get_size(os.path.join(root, f)) for f in files + dirs])
   return running_size

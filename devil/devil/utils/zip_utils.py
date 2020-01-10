@@ -22,7 +22,6 @@ from devil import base_error
 from devil.utils import cmd_helper
 from py_utils import tempfile_ext
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -74,16 +73,16 @@ def WriteZipFile(zip_path, zip_contents):
     ZipFailedError on failure.
   """
   zip_spec = {
-    'zip_path': zip_path,
-    'zip_contents': zip_contents,
+      'zip_path': zip_path,
+      'zip_contents': zip_contents,
   }
   with tempfile_ext.NamedTemporaryDirectory() as tmpdir:
     json_path = os.path.join(tmpdir, 'zip_spec.json')
     with open(json_path, 'w') as json_file:
       json.dump(zip_spec, json_file)
-    ret, output, error = cmd_helper.GetCmdStatusOutputAndError([
-        sys.executable, os.path.abspath(__file__),
-        '--zip-spec', json_path])
+    ret, output, error = cmd_helper.GetCmdStatusOutputAndError(
+        [sys.executable,
+         os.path.abspath(__file__), '--zip-spec', json_path])
 
   if ret != 0:
     exc_msg = ['Failed to create %s' % zip_path]

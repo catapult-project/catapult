@@ -15,10 +15,16 @@ def AddLoggingArguments(parser):
   """
   group = parser.add_mutually_exclusive_group()
   group.add_argument(
-      '-v', '--verbose', action='count', default=0,
+      '-v',
+      '--verbose',
+      action='count',
+      default=0,
       help='Log more. Use multiple times for even more logging.')
   group.add_argument(
-      '-q', '--quiet', action='count', default=0,
+      '-q',
+      '--quiet',
+      action='count',
+      default=0,
       help=('Log less (suppress output). Use multiple times for even less '
             'output.'))
 
@@ -66,4 +72,3 @@ class CustomFormatter(logging.Formatter):
       msg = msg.replace('MainThread', 'Main', 1)
     timediff = time.time() - self._creation_time
     return '%s %8.3fs %s' % (record.levelname[0], timediff, msg)
-

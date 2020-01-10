@@ -1,7 +1,6 @@
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Unittests for reraiser_thread.py."""
 
 import threading
@@ -52,7 +51,7 @@ class TestReraiserThreadGroup(unittest.TestCase):
       ran[i] = True
 
     group = reraiser_thread.ReraiserThreadGroup(
-      [reraiser_thread.ReraiserThread(f, args=[i]) for i in range(5)])
+        [reraiser_thread.ReraiserThread(f, args=[i]) for i in range(5)])
     group.StartAll()
     group.JoinAll()
     for v in ran:
@@ -75,8 +74,9 @@ class TestReraiserThreadGroup(unittest.TestCase):
   def testJoinRaise(self):
     def f():
       raise TestException
+
     group = reraiser_thread.ReraiserThreadGroup(
-      [reraiser_thread.ReraiserThread(f) for _ in xrange(5)])
+        [reraiser_thread.ReraiserThread(f) for _ in xrange(5)])
     group.StartAll()
     with self.assertRaises(TestException):
       group.JoinAll()
@@ -84,10 +84,12 @@ class TestReraiserThreadGroup(unittest.TestCase):
   def testJoinTimeout(self):
     def f():
       pass
+
     event = threading.Event()
 
     def g():
       event.wait()
+
     group = reraiser_thread.ReraiserThreadGroup(
         [reraiser_thread.ReraiserThread(g),
          reraiser_thread.ReraiserThread(f)])
@@ -112,6 +114,7 @@ class TestRunAsync(unittest.TestCase):
     a, b = reraiser_thread.RunAsync((lambda: 1, lambda: 2))
     self.assertEqual(1, a)
     self.assertEqual(2, b)
+
 
 if __name__ == '__main__':
   unittest.main()

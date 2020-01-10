@@ -85,11 +85,9 @@ def _lsusbv_on_device(bus_id, dev_id):
     m = _LSUSB_BUS_DEVICE_RE.match(line)
     if m:
       if m.group(1) != bus_id:
-        logger.warning(
-            'Expected bus_id value: %r, seen %r', bus_id, m.group(1))
+        logger.warning('Expected bus_id value: %r, seen %r', bus_id, m.group(1))
       if m.group(2) != dev_id:
-        logger.warning(
-            'Expected dev_id value: %r, seen %r', dev_id, m.group(2))
+        logger.warning('Expected dev_id value: %r, seen %r', dev_id, m.group(2))
       device['desc'] = m.group(3)
       continue
 
@@ -102,8 +100,7 @@ def _lsusbv_on_device(bus_id, dev_id):
     # Determine the indentation depth.
     depth = 1 + len(indent_match.group(1)) / 2
     if depth > len(depth_stack):
-      logger.error(
-          'lsusb parsing error: unexpected indentation: "%s"', line)
+      logger.error('lsusb parsing error: unexpected indentation: "%s"', line)
       continue
 
     # Pop everything off the depth stack that isn't a parent of
@@ -123,8 +120,8 @@ def _lsusbv_on_device(bus_id, dev_id):
     m = _LSUSB_ENTRY_RE.match(line)
     if m:
       new_entry = {
-        '_value': m.group(2),
-        '_desc': m.group(3),
+          '_value': m.group(2),
+          '_desc': m.group(3),
       }
       cur[m.group(1)] = new_entry
       depth_stack.append(new_entry)
@@ -134,10 +131,11 @@ def _lsusbv_on_device(bus_id, dev_id):
 
   return device
 
+
 def lsusb():
   """Call lsusb and return the parsed output."""
-  _, lsusb_list_output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
-      ['lsusb'], timeout=10)
+  _, lsusb_list_output = cmd_helper.GetCmdStatusAndOutputWithTimeout(['lsusb'],
+                                                                     timeout=10)
   devices = []
   for line in lsusb_list_output.splitlines():
     m = _LSUSB_BUS_DEVICE_RE.match(line)
@@ -151,14 +149,17 @@ def lsusb():
         logger.info('lsusb -v %s:%s timed out.', bus_num, dev_num)
   return devices
 
+
 def raw_lsusb():
   return cmd_helper.GetCmdOutput(['lsusb'])
+
 
 def get_lsusb_serial(device):
   try:
     return device['Device Descriptor']['iSerial']['_desc']
   except KeyError:
     return None
+
 
 def _is_android_device(device):
   try:
@@ -168,6 +169,7 @@ def _is_android_device(device):
   except KeyError:
     pass
   return get_lsusb_serial(device) is not None
+
 
 def get_android_devices():
   android_devices = (d for d in lsusb() if _is_android_device(d))

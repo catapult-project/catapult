@@ -11,8 +11,7 @@ import sys
 
 if __name__ == '__main__':
   sys.path.append(
-      os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                   '..', '..')))
+      os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from devil.utils import cmd_helper
 from devil.utils import usb_hubs
@@ -267,12 +266,12 @@ def GetBusNumberToDeviceTreeMap(fast=True):
     for line in lsusb.raw_lsusb().splitlines():
       match = _LSUSB_BUS_DEVICE_RE.match(line)
       if match:
-        info_map[(int(match.group(1)), int(match.group(2)))] = (
-          {'desc':match.group(3)})
+        info_map[(int(match.group(1)), int(match.group(2)))] = ({
+            'desc': match.group(3)
+        })
   else:
     info_map = {((int(line['bus']), int(line['device']))): line
                 for line in _GetParsedLSUSBOutput()}
-
 
   tree = {}
   bus_num = -1
@@ -290,10 +289,10 @@ def GetBusNumberToDeviceTreeMap(fast=True):
         tree[bus_num] = USBBusNode(bus_num=bus_num)
 
       # create the new device
-      new_device = USBDeviceNode(bus_num=bus_num,
-                                 device_num=device_num,
-                                 info=info_map.get((bus_num, device_num),
-                                                   {'desc': 'NOT AVAILABLE'}))
+      new_device = USBDeviceNode(
+          bus_num=bus_num,
+          device_num=device_num,
+          info=info_map.get((bus_num, device_num), {'desc': 'NOT AVAILABLE'}))
 
       # add device to bus
       if parent_num != 0:
@@ -351,8 +350,10 @@ def GetPhysicalPortToBusDeviceMap(hub, hub_type):
     Dict of {physical port: (bus number, device number)}
   """
   port_device = hub_type.GetPhysicalPortToNodeTuples(hub)
-  return {port: (device.bus_num, device.device_num)
-          for (port, device) in port_device}
+  return {
+      port: (device.bus_num, device.device_num)
+      for (port, device) in port_device
+  }
 
 
 def GetPhysicalPortToSerialMap(hub, hub_type):
@@ -366,9 +367,10 @@ def GetPhysicalPortToSerialMap(hub, hub_type):
     Dict of {physical port: serial number)}
   """
   port_device = hub_type.GetPhysicalPortToNodeTuples(hub)
-  return {port: device.serial
-          for (port, device) in port_device
-          if device.serial}
+  return {
+      port: device.serial
+      for (port, device) in port_device if device.serial
+  }
 
 
 def GetPhysicalPortToTTYMap(device, hub_type):
@@ -382,9 +384,11 @@ def GetPhysicalPortToTTYMap(device, hub_type):
   """
   port_device = hub_type.GetPhysicalPortToNodeTuples(device)
   bus_device_to_tty = GetBusDeviceToTTYMap()
-  return {port: bus_device_to_tty[(device.bus_num, device.device_num)]
-          for (port, device) in port_device
-          if (device.bus_num, device.device_num) in bus_device_to_tty}
+  return {
+      port: bus_device_to_tty[(device.bus_num, device.device_num)]
+      for (port, device) in port_device
+      if (device.bus_num, device.device_num) in bus_device_to_tty
+  }
 
 
 def CollectHubMaps(hub_types, map_func, device_tree_map=None, fast=False):
@@ -538,9 +542,11 @@ def parse_options(argv):
   parser = argparse.ArgumentParser(usage=USAGE)
   return parser.parse_args(argv[1:])
 
+
 def main():
   parse_options(sys.argv)
   TestUSBTopologyScript()
+
 
 if __name__ == "__main__":
   sys.exit(main())

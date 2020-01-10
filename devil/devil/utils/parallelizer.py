@@ -1,7 +1,6 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """ Wrapper that allows method execution in parallel.
 
 This class wraps a list of objects of the same type, emulates their
@@ -113,11 +112,11 @@ class Parallelizer(object):
         raise AttributeError("'%s' is not callable" % o.__name__)
 
     r = type(self)(self._orig_objs)
-    r._objs = reraiser_thread.ReraiserThreadGroup(
-        [reraiser_thread.ReraiserThread(
-            o, args=args, kwargs=kwargs,
-            name='%s.%s' % (str(d), o.__name__))
-         for d, o in zip(self._orig_objs, self._objs)])
+    r._objs = reraiser_thread.ReraiserThreadGroup([
+        reraiser_thread.ReraiserThread(
+            o, args=args, kwargs=kwargs, name='%s.%s' % (str(d), o.__name__))
+        for d, o in zip(self._orig_objs, self._objs)
+    ])
     r._objs.StartAll()
     return r
 
@@ -169,11 +168,14 @@ class Parallelizer(object):
     """
     self._assertNoShadow('pMap')
     r = type(self)(self._orig_objs)
-    r._objs = reraiser_thread.ReraiserThreadGroup(
-        [reraiser_thread.ReraiserThread(
-            f, args=tuple([o] + list(args)), kwargs=kwargs,
+    r._objs = reraiser_thread.ReraiserThreadGroup([
+        reraiser_thread.ReraiserThread(
+            f,
+            args=tuple([o] + list(args)),
+            kwargs=kwargs,
             name='%s(%s)' % (f.__name__, d))
-         for d, o in zip(self._orig_objs, self._objs)])
+        for d, o in zip(self._orig_objs, self._objs)
+    ])
     r._objs.StartAll()
     return r
 
@@ -262,4 +264,3 @@ class SyncParallelizer(Parallelizer):
     r = super(SyncParallelizer, self).pMap(f, *args, **kwargs)
     r.pFinish(None)
     return r
-

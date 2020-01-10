@@ -2,25 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-PLUGABLE_7PORT_LAYOUT = {1:7,
-                         2:6,
-                         3:5,
-                         4:{1:4, 2:3, 3:2, 4:1}}
+PLUGABLE_7PORT_LAYOUT = {1: 7, 2: 6, 3: 5, 4: {1: 4, 2: 3, 3: 2, 4: 1}}
 
-PLUGABLE_7PORT_USB3_LAYOUT = {1:{1:1, 2:2, 3:3, 4:4},
-                              2:5,
-                              3:6,
-                              4:7}
+PLUGABLE_7PORT_USB3_LAYOUT = {1: {1: 1, 2: 2, 3: 3, 4: 4}, 2: 5, 3: 6, 4: 7}
 
-KEEDOX_LAYOUT = {1:1,
-                 2:2,
-                 3:3,
-                 4:{1:4, 2:5, 3:6, 4:7}}
+KEEDOX_LAYOUT = {1: 1, 2: 2, 3: 3, 4: {1: 4, 2: 5, 3: 6, 4: 7}}
 
-VIA_LAYOUT = {1:1,
-              2:2,
-              3:3,
-              4:{1:4, 2:5, 3:6, 4:7}}
+VIA_LAYOUT = {1: 1, 2: 2, 3: 3, 4: {1: 4, 2: 5, 3: 6, 4: 7}}
+
 
 class HubType(object):
   def __init__(self, id_func, port_mapping):
@@ -92,6 +81,7 @@ class HubType(object):
         else:
           yield (physical, node.PortToDevice(virtual))
 
+
 def _is_plugable_7port_hub(node):
   """Check if a node is a Plugable 7-Port Hub
   (Model USB2-HUB7BC)
@@ -104,10 +94,12 @@ def _is_plugable_7port_hub(node):
     return False
   return '1a40:0101' in node.PortToDevice(4).desc
 
+
 # Plugable 7-Port USB-3 Hubs show up twice in the USB devices list; they have
 # two different "branches", one which has USB2 devices and one which has
 # USB3 devices. The "part2" is the "USB-2" branch of the hub, the
 # "part3" is the "USB-3" branch of the hub.
+
 
 def _is_plugable_7port_usb3_part2_hub(node):
   """Check if a node is the "USB2 branch" of
@@ -121,6 +113,7 @@ def _is_plugable_7port_usb3_part2_hub(node):
     return False
   return '2109:2811' in node.PortToDevice(1).desc
 
+
 def _is_plugable_7port_usb3_part3_hub(node):
   """Check if a node is the "USB3 branch" of
   a Plugable 7-Port USB-3 Hub (Model USB3-HUB7BC)
@@ -133,6 +126,7 @@ def _is_plugable_7port_usb3_part3_hub(node):
     return False
   return '2109:8110' in node.PortToDevice(1).desc
 
+
 def _is_keedox_hub(node):
   """Check if a node is a Keedox hub.
   The topology of this device is a 4-port hub,
@@ -144,6 +138,7 @@ def _is_keedox_hub(node):
     return False
   return '0bda:5411' in node.PortToDevice(4).desc
 
+
 def _is_via_hub(node):
   """Check if a node is a Via Labs hub.
   The topology of this device is a 4-port hub,
@@ -153,8 +148,8 @@ def _is_via_hub(node):
     return False
   if not node.HasPort(4):
     return False
-  return ('2109:2812' in node.PortToDevice(4).desc or
-          '2109:0812' in node.PortToDevice(4).desc)
+  return ('2109:2812' in node.PortToDevice(4).desc
+          or '2109:0812' in node.PortToDevice(4).desc)
 
 
 PLUGABLE_7PORT = HubType(_is_plugable_7port_hub, PLUGABLE_7PORT_LAYOUT)
@@ -165,11 +160,11 @@ PLUGABLE_7PORT_USB3_PART3 = HubType(_is_plugable_7port_usb3_part3_hub,
 KEEDOX = HubType(_is_keedox_hub, KEEDOX_LAYOUT)
 VIA = HubType(_is_via_hub, VIA_LAYOUT)
 
-ALL_HUBS = [PLUGABLE_7PORT,
-            PLUGABLE_7PORT_USB3_PART2,
-            PLUGABLE_7PORT_USB3_PART3,
-            KEEDOX,
-            VIA]
+ALL_HUBS = [
+    PLUGABLE_7PORT, PLUGABLE_7PORT_USB3_PART2, PLUGABLE_7PORT_USB3_PART3,
+    KEEDOX, VIA
+]
+
 
 def GetHubType(type_name):
   if type_name == 'plugable_7port':

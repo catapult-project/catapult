@@ -16,7 +16,6 @@ from devil.utils import markdown
 
 
 class MarkdownTest(unittest.TestCase):
-
   def testBold(self):
     raw = 'foo'
     self.assertEquals('**foo**', markdown.md_bold(raw))
@@ -85,13 +84,13 @@ class MarkdownTest(unittest.TestCase):
 
   def testInlineCode(self):
     raw = 'devil.utils.markdown_test'
-    self.assertEquals(
-        '`devil.utils.markdown_test`', markdown.md_inline_code(raw))
+    self.assertEquals('`devil.utils.markdown_test`',
+                      markdown.md_inline_code(raw))
 
   def testInlineCodeContainsTicks(self):
     raw = 'this contains `backticks`'
-    self.assertEquals(
-        '`this contains \\`backticks\\``', markdown.md_inline_code(raw))
+    self.assertEquals('`this contains \\`backticks\\``',
+                      markdown.md_inline_code(raw))
 
   def testItalic(self):
     raw = 'bar'

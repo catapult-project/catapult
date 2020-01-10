@@ -1,7 +1,6 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """
 A test facility to assert call sequences while mocking their behavior.
 """
@@ -16,8 +15,8 @@ with devil_env.SysPath(devil_env.PYMOCK_PATH):
 
 class TestCase(unittest.TestCase):
   """Adds assertCalls to TestCase objects."""
-  class _AssertCalls(object):
 
+  class _AssertCalls(object):
     def __init__(self, test_case, expected_calls, watched):
       def call_action(pair):
         if isinstance(pair, type(mock.call)):
@@ -36,21 +35,24 @@ class TestCase(unittest.TestCase):
               received_call == expected_call,
               msg=('Expected call mismatch:\n'
                    '  expected: %s\n'
-                   '  received: %s\n'
-                   % (str(expected_call), str(received_call))))
+                   '  received: %s\n' % (str(expected_call),
+                                         str(received_call))))
           if callable(action):
             return action(*args, **kwargs)
           else:
             return action
+
         return side_effect
 
       self._test_case = test_case
       self._expected_calls = [call_action(pair) for pair in expected_calls]
       watched = watched.copy()  # do not pollute the caller's dict
-      watched.update((call.parent.name, call.parent)
-                     for call, _ in self._expected_calls)
-      self._patched = [test_case.patch_call(call, side_effect=do_check(call))
-                       for call in watched.itervalues()]
+      watched.update(
+          (call.parent.name, call.parent) for call, _ in self._expected_calls)
+      self._patched = [
+          test_case.patch_call(call, side_effect=do_check(call))
+          for call in watched.itervalues()
+      ]
 
     def __enter__(self):
       for patch in self._patched:
@@ -61,11 +63,10 @@ class TestCase(unittest.TestCase):
       for patch in self._patched:
         patch.__exit__(exc_type, exc_val, exc_tb)
       if exc_type is None:
-        missing = ''.join('  expected: %s\n' % str(call)
-                          for call, _ in self._expected_calls)
+        missing = ''.join(
+            '  expected: %s\n' % str(call) for call, _ in self._expected_calls)
         self._test_case.assertFalse(
-            missing,
-            msg='Expected calls not found:\n' + missing)
+            missing, msg='Expected calls not found:\n' + missing)
 
   def __init__(self, *args, **kwargs):
     super(TestCase, self).__init__(*args, **kwargs)
@@ -135,9 +136,9 @@ class TestCase(unittest.TestCase):
     target = self.call_target(call)
     if ignore is None:
       ignore = []
-    self.watchCalls(getattr(call, method)
-                    for method in dir(target.__class__)
-                    if not method.startswith('_') and not method in ignore)
+    self.watchCalls(
+        getattr(call, method) for method in dir(target.__class__)
+        if not method.startswith('_') and not method in ignore)
 
   def clearWatched(self):
     """Clear the set of watched calls."""
@@ -177,4 +178,3 @@ class TestCase(unittest.TestCase):
 
   def assertCall(self, call, action=None):
     return self.assertCalls((call, action))
-

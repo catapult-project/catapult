@@ -1,7 +1,6 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Helper functions common to native, java and host-driven test runners."""
 
 import collections
@@ -9,12 +8,10 @@ import logging
 
 from devil.utils import logging_common
 
-
 CustomFormatter = logging_common.CustomFormatter
 
-
-_WrappedLoggingArgs = collections.namedtuple(
-    '_WrappedLoggingArgs', ['verbose', 'quiet'])
+_WrappedLoggingArgs = collections.namedtuple('_WrappedLoggingArgs',
+                                             ['verbose', 'quiet'])
 
 
 def SetLogLevel(verbose_count, add_handler=True):

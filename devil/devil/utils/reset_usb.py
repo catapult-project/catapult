@@ -15,8 +15,7 @@ import re
 
 if __name__ == '__main__':
   sys.path.append(
-      os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                   '..', '..')))
+      os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from devil.android import device_errors
 from devil.utils import lsusb
@@ -56,8 +55,8 @@ def reset_android_usb(serial):
     reset_usb(bus, device)
   else:
     raise device_errors.DeviceUnreachableError(
-        'Unable to determine bus(%s) or device(%s) for device %s'
-         % (bus, device, serial))
+        'Unable to determine bus(%s) or device(%s) for device %s' %
+        (bus, device, serial))
 
 
 def reset_all_android_devices():
@@ -75,17 +74,13 @@ def _reset_all_matching(condition):
         reset_usb(bus, device)
         serial = lsusb.get_lsusb_serial(device_info)
         if serial:
-          logger.info(
-              'Reset USB device (bus: %03d, device: %03d, serial: %s)',
-              bus, device, serial)
+          logger.info('Reset USB device (bus: %03d, device: %03d, serial: %s)',
+                      bus, device, serial)
         else:
-          logger.info(
-              'Reset USB device (bus: %03d, device: %03d)',
-              bus, device)
+          logger.info('Reset USB device (bus: %03d, device: %03d)', bus, device)
       except IOError:
-        logger.error(
-            'Failed to reset USB device (bus: %03d, device: %03d)',
-            bus, device)
+        logger.error('Failed to reset USB device (bus: %03d, device: %03d)',
+                     bus, device)
 
 
 def main():
@@ -111,4 +106,3 @@ def main():
 
 if __name__ == '__main__':
   sys.exit(main())
-

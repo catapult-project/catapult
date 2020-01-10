@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Tests for the geometry module."""
 
 import unittest
@@ -10,7 +9,6 @@ from devil.utils import geometry as g
 
 
 class PointTest(unittest.TestCase):
-
   def testStr(self):
     p = g.Point(1, 2)
     self.assertEquals(str(p), '(1, 2)')
@@ -45,7 +43,6 @@ class PointTest(unittest.TestCase):
 
 
 class RectangleTest(unittest.TestCase):
-
   def testStr(self):
     r = g.Rectangle(g.Point(0, 1), g.Point(2, 3))
     self.assertEquals(str(r), '[(0, 1), (2, 3)]')

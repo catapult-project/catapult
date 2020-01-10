@@ -19,8 +19,8 @@ _CODE_BLOCK_FORMAT = '''```{language}
 ```
 '''
 
-_DEVIL_ROOT = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '..', '..'))
+_DEVIL_ROOT = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..'))
 
 
 def md_bold(raw_text):
@@ -31,14 +31,15 @@ def md_bold(raw_text):
 def md_code(raw_text, language):
   """Returns a markdown-formatted code block in the given language."""
   return _CODE_BLOCK_FORMAT.format(
-      language=language or '',
-      code=md_escape(raw_text, characters='`'))
+      language=language or '', code=md_escape(raw_text, characters='`'))
 
 
 def md_escape(raw_text, characters='*_'):
   """Escapes * and _."""
+
   def escape_char(m):
     return '\\%s' % m.group(0)
+
   pattern = '[%s]' % re.escape(characters)
   return re.sub(pattern, escape_char, raw_text)
 
@@ -46,8 +47,8 @@ def md_escape(raw_text, characters='*_'):
 def md_heading(raw_text, level):
   """Returns markdown-formatted heading."""
   adjusted_level = min(max(level, 0), 6)
-  return '%s%s%s' % (
-      '#' * adjusted_level, ' ' if adjusted_level > 0 else '', raw_text)
+  return '%s%s%s' % ('#' * adjusted_level, ' ' if adjusted_level > 0 else '',
+                     raw_text)
 
 
 def md_inline_code(raw_text):
@@ -62,9 +63,8 @@ def md_italic(raw_text):
 
 def md_link(link_text, link_target):
   """returns a markdown-formatted link."""
-  return '[%s](%s)' % (
-      md_escape(link_text, characters=']'),
-      md_escape(link_target, characters=')'))
+  return '[%s](%s)' % (md_escape(link_text, characters=']'),
+                       md_escape(link_target, characters=')'))
 
 
 class MarkdownHelpFormatter(argparse.HelpFormatter):
@@ -112,8 +112,10 @@ class MarkdownHelpFormatter(argparse.HelpFormatter):
 
 
 class MarkdownHelpAction(argparse.Action):
-  def __init__(self, option_strings,
-               dest=argparse.SUPPRESS, default=argparse.SUPPRESS,
+  def __init__(self,
+               option_strings,
+               dest=argparse.SUPPRESS,
+               default=argparse.SUPPRESS,
                **kwargs):
     super(MarkdownHelpAction, self).__init__(
         option_strings=option_strings,
@@ -137,8 +139,10 @@ def add_md_help_argument(parser):
   Args:
     parser: The ArgumentParser to which --md-help should be added.
   """
-  parser.add_argument('--md-help', action=MarkdownHelpAction,
-                      help='print Markdown-formatted help text and exit.')
+  parser.add_argument(
+      '--md-help',
+      action=MarkdownHelpAction,
+      help='print Markdown-formatted help text and exit.')
 
 
 def load_module_from_path(module_path):
@@ -182,13 +186,15 @@ def md_module(module_obj, module_link=None):
   Returns:
     A list of markdown-formatted lines.
   """
+
   def should_doc(name):
     return (not isinstance(module_obj.__dict__[name], types.ModuleType)
             and not name.startswith('_'))
 
   stuff_to_doc = [
-    obj for name, obj in sorted(module_obj.__dict__.iteritems())
-    if should_doc(name)]
+      obj for name, obj in sorted(module_obj.__dict__.iteritems())
+      if should_doc(name)
+  ]
 
   classes_to_doc = []
   functions_to_doc = []
@@ -243,7 +249,8 @@ def md_class(class_obj):
 
   methods_to_doc = [
       obj for name, obj in sorted(class_obj.__dict__.iteritems())
-      if should_doc(name, obj)]
+      if should_doc(name, obj)
+  ]
 
   for m in methods_to_doc:
     content.extend(md_function(m, class_obj=class_obj))
@@ -306,8 +313,7 @@ def main(raw_args):
   args = parser.parse_args(raw_args)
 
   return md_module(
-      load_module_from_path(args.module_path),
-      module_link=args.module_link)
+      load_module_from_path(args.module_path), module_link=args.module_link)
 
 
 if __name__ == '__main__':

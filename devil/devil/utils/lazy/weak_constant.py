@@ -30,11 +30,11 @@ class WeakConstant(object):
         # We initialize the value on a separate thread to protect
         # from holding self._lock indefinitely in the event that
         # self._initializer hangs.
-        initializer_thread = reraiser_thread.ReraiserThread(
-            self._initializer)
+        initializer_thread = reraiser_thread.ReraiserThread(self._initializer)
         initializer_thread.start()
         timeout_retry.WaitFor(
-            lambda: initializer_thread.join(1) or not initializer_thread.isAlive(),
+            lambda: initializer_thread.join(1) or not initializer_thread.
+            isAlive(),
             wait_period=0)
         self._val = initializer_thread.GetReturnValue()
         self._initialized.set()
