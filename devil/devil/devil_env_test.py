@@ -19,12 +19,10 @@ _sys_path_after = list(sys.path)
 
 
 class DevilEnvTest(unittest.TestCase):
-
   def testSysPath(self):
     self.assertEquals(_sys_path_before, _sys_path_after)
-    self.assertEquals(
-        _sys_path_before + [devil_env.PYMOCK_PATH],
-        _sys_path_with_pymock)
+    self.assertEquals(_sys_path_before + [devil_env.PYMOCK_PATH],
+                      _sys_path_with_pymock)
 
   def testGetEnvironmentVariableConfig_configType(self):
     with mock.patch('os.environ.get',
@@ -42,20 +40,17 @@ class DevilEnvTest(unittest.TestCase):
     def mock_environment(env_var):
       return '/my/fake/adb/path' if env_var == 'ADB_PATH' else None
 
-    with mock.patch('os.environ.get',
-                    mock.Mock(side_effect=mock_environment)):
+    with mock.patch('os.environ.get', mock.Mock(side_effect=mock_environment)):
       env_config = devil_env._GetEnvironmentVariableConfig()
-    self.assertEquals(
-        {
-          'adb': {
+    self.assertEquals({
+        'adb': {
             'file_info': {
-              'linux2_x86_64': {
-                'local_paths': ['/my/fake/adb/path'],
-              },
+                'linux2_x86_64': {
+                    'local_paths': ['/my/fake/adb/path'],
+                },
             },
-          },
         },
-        env_config.get('dependencies'))
+    }, env_config.get('dependencies'))
 
 
 if __name__ == '__main__':

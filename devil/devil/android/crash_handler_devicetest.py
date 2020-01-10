@@ -41,8 +41,12 @@ class DeviceCrashTest(device_test_case.DeviceTestCase):
             trigger_text), cmd_helper.SingleQuote(trigger_file.name))
         crash_handler.RetryOnSystemCrash(
             lambda d: d.RunShellCommand(
-                trigger_cmd, shell=True, check_return=True, retries=1,
-                as_root=True, timeout=180),
+                trigger_cmd,
+                shell=True,
+                check_return=True,
+                retries=1,
+                as_root=True,
+                timeout=180),
             device=self.device)
         self.assertEquals(
             trigger_text,

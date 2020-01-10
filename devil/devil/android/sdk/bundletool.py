@@ -11,8 +11,8 @@ from devil.utils import cmd_helper
 from devil.utils import lazy
 from py_utils import tempfile_ext
 
-_bundletool_path = lazy.WeakConstant(
-    lambda: devil_env.config.FetchPath('bundletool'))
+_bundletool_path = lazy.WeakConstant(lambda: devil_env.config.FetchPath(
+    'bundletool'))
 
 
 def ExtractApks(output_dir,

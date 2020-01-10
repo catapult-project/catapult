@@ -3050,11 +3050,7 @@ class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
                                              'higher versionCode')
 
   def testSetWebViewImplementation_invalidSignature(self):
-    mock_dump_sys = {
-        'WebViewPackages': {
-            'foo.org': 'Incorrect signature',
-        }
-    }
+    mock_dump_sys = {'WebViewPackages': {'foo.org': 'Incorrect signature'}}
     self._testSetWebViewImplementationHelper(mock_dump_sys,
                                              'signed with release keys')
 

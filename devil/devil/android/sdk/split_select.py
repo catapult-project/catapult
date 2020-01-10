@@ -7,8 +7,8 @@ from devil.android.sdk import build_tools
 from devil.utils import cmd_helper
 from devil.utils import lazy
 
-_split_select_path = lazy.WeakConstant(
-    lambda: build_tools.GetPath('split-select'))
+_split_select_path = lazy.WeakConstant(lambda: build_tools.GetPath(
+    'split-select'))
 
 
 def _RunSplitSelectCmd(args):

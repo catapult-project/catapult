@@ -6,10 +6,9 @@
 import os
 import sys
 
-_CATAPULT_PATH = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '..', '..'))
-_DEVIL_PATH = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '..'))
+_CATAPULT_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..'))
+_DEVIL_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 sys.path.append(_CATAPULT_PATH)
 from catapult_build import run_with_typ
@@ -23,6 +22,7 @@ def main():
     del os.environ['ANDROID_SERIAL']
 
   return run_with_typ.Run(top_level_dir=_DEVIL_PATH)
+
 
 if __name__ == '__main__':
   sys.exit(main())

@@ -6,10 +6,9 @@
 import os
 import sys
 
-_CATAPULT_PATH = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '..', '..'))
-_DEVIL_PATH = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), '..'))
+_CATAPULT_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..'))
+_DEVIL_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 _TYP_PATH = os.path.abspath(os.path.join(_CATAPULT_PATH, 'third_party', 'typ'))
 
 sys.path.append(_TYP_PATH)
@@ -27,6 +26,7 @@ def main():
       jobs=1,
       suffixes=['*_devicetest.py'],
       top_level_dir=_DEVIL_PATH)
+
 
 if __name__ == '__main__':
   sys.exit(main())

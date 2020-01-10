@@ -21,8 +21,8 @@ _FLASH_TIMEOUT = _DEFAULT_TIMEOUT * 10
 
 class Fastboot(object):
 
-  _fastboot_path = lazy.WeakConstant(
-      lambda: devil_env.config.FetchPath('fastboot'))
+  _fastboot_path = lazy.WeakConstant(lambda: devil_env.config.FetchPath(
+      'fastboot'))
 
   def __init__(self,
                device_serial,
