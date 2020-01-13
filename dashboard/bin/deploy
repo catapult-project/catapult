@@ -50,7 +50,6 @@ def Main(args, extra_args):
         s = vulcanize_histograms_viewer.VulcanizeHistogramsViewer()
         f.write(s.encode('utf-8'))
 
-      preprocess.PackSPA(catapult_path, tempdir, deployment_paths)
       preprocess.PackPinpoint(catapult_path, tempdir, deployment_paths)
       deployment_paths.append(viewer_dir_path)
       logging.info('Deployment dir is at %s', tempdir)

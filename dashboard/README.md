@@ -33,8 +33,6 @@ subprojects which are also hosted in that directory:
     the [pinpoint documentation](/dashboard/dashboard/pinpoint/README.md).
 -   `services`: A collection of wrappers which represent external services which
     the dashboard subprojects interact with.
--   `spa`: The single-page-application implementation of the performance
-    dashboard; contains all the views (HTML) and logic (JavaScript).
 -   `static`: Directory containing all the static assets used in the user
     interface. This is deprecated in favor of `spa`.
 -   `templates`: HTML files representing the templates for views served through
@@ -44,8 +42,6 @@ subprojects which are also hosted in that directory:
 
 There are a number of efforts ongoing with the Performance Dashboard:
 
--   v2 of the Single Page Application (SPA) implementation, with the eventual
-    deprecation/removal of the non-SPA user interface.
 -   Attempt to externalise sheriff configuration, from being managed through the
     UI to being managed through the individual projects.
 

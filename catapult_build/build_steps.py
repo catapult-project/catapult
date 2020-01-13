@@ -48,11 +48,6 @@ _DASHBOARD_TESTS = [
         'additional_args': ['--no-install-hooks'],
         'disabled': ['android'],
     },
-    {
-        'name': 'Dashboard SPA Tests',
-        'path': 'dashboard/bin/run_spa_tests',
-        'disabled': ['android', 'win', 'mac'],
-    },
 ]
 
 _CATAPULT_TESTS = [
