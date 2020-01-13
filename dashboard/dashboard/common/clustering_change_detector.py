@@ -184,6 +184,7 @@ def ClusterAndFindSplit(values, min_segment_size, rand=None):
         (length, min_segment_size))
   partition_point, _ = ChangePointEstimator(values, min_segment_size)
   start = 0
+  first = True
   while True:
     logging.debug('Values for start = %s, length = %s, partition_point = %s',
                   start, length, partition_point)
@@ -199,7 +200,7 @@ def ClusterAndFindSplit(values, min_segment_size, rand=None):
     if len(cluster_b) > min_segment_size and PermutationTest(
         cluster_b, min_segment_size, rand):
       _, in_b = ChangePointEstimator(cluster_b, min_segment_size)
-    if compare_result == pinpoint_compare.DIFFERENT:
+    if compare_result == pinpoint_compare.DIFFERENT or not first:
       logging.debug('Found partition point: %s', partition_point)
       if not in_a and not in_b:
         potential_culprit = start + partition_point
@@ -212,6 +213,7 @@ def ClusterAndFindSplit(values, min_segment_size, rand=None):
       potential_culprit = start + partition_point
       return potential_culprit
 
+    first = False
     if in_a:
       length = len(cluster_a)
     elif in_b:
