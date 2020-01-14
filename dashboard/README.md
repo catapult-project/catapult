@@ -37,13 +37,8 @@ subprojects which are also hosted in that directory:
     interface. This is deprecated in favor of `spa`.
 -   `templates`: HTML files representing the templates for views served through
     the App Engine user interface. This is deprecated in favor of `spa`.
-
-## Ongoing Projects
-
-There are a number of efforts ongoing with the Performance Dashboard:
-
--   Attempt to externalise sheriff configuration, from being managed through the
-    UI to being managed through the individual projects.
+-   `sheriff_config`: A standalone service for managing sheriff configurations
+    hosted in git repositories, accessed through luci-config.
 
 ## Contact
 
