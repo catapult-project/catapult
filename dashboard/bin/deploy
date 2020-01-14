@@ -71,6 +71,10 @@ def Main(args, extra_args):
                                   os.environ.get('VERSION'))
   except RuntimeError as error:
     logging.error('Encountered an error: %s', error)
+    sys.exit(1)
+  except subprocess.CalledProcessError as error:
+    logging.error('Failed: %s', error)
+    sys.exit(error.returncode)
 
 
 if __name__ == '__main__':
