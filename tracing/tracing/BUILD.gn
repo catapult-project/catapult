@@ -15,8 +15,10 @@ source_set("histogram") {
   sources = [
     "value/histogram.cc",
     "value/histogram.h",
-    "value/running_statistics.h",
+    "value/histogram_json_converter.cc",
+    "value/histogram_json_converter.h",
     "value/running_statistics.cc",
+    "value/running_statistics.h",
   ]
   deps = [
     "proto:histogram_proto",
@@ -25,7 +27,7 @@ source_set("histogram") {
 }
 
 test("histogram_unittests") {
-  configs += [ ":common_config"]
+  configs += [ ":common_config" ]
   sources = [
     "value/histogram_unittest.cc",
     "value/running_statistics_unittest.cc",
@@ -39,5 +41,14 @@ test("histogram_unittests") {
     ":histogram",
     "proto:histogram_proto",
     "//testing/gtest:gtest_main",
+  ]
+}
+
+executable("proto_test_driver") {
+  configs += [ ":common_config" ]
+  sources = [ "value/proto_test_driver.cc" ]
+  deps = [
+    ":histogram",
+    "//third_party/protobuf:protobuf_full",
   ]
 }
