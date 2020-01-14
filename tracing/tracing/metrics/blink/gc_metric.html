@@ -15,6 +15,42 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.blink', function() {
+  // Maps Blink Unified GC marking events in timeline to telemetry friendly
+  // names.
+  const BLINK_TOP_UNIFIED_GC_MARKING_EVENTS = {
+    'BlinkGC.UnifiedMarkingStep': 'blink-gc-unified-marking-by-v8'
+  };
+
+  // Maps Blink GC foreground marking events in timeline to telemetry friendly
+  // names.
+  const BLINK_TOP_GC_FOREGROUND_MARKING_EVENTS = Object.assign({
+    'BlinkGC.AtomicPauseMarkEpilogue': 'blink-gc-atomic-pause-mark-epilogue',
+    'BlinkGC.AtomicPauseMarkPrologue': 'blink-gc-atomic-pause-mark-prologue',
+    'BlinkGC.AtomicPauseMarkRoots': 'blink-gc-atomic-pause-mark-roots',
+    'BlinkGC.AtomicPauseMarkTransitiveClosure':
+        'blink-gc-atomic-pause-mark-transitive-closure',
+    'BlinkGC.IncrementalMarkingStartMarking': 'blink-gc-incremental-start',
+    'BlinkGC.IncrementalMarkingStep': 'blink-gc-incremental-step',
+  }, BLINK_TOP_UNIFIED_GC_MARKING_EVENTS);
+
+  // Maps Blink GC background marking events in timeline to telemetry friendly
+  // names.
+  const BLINK_TOP_GC_BACKGROUND_MARKING_EVENTS = {
+    'BlinkGC.ConcurrentMarkingStep': 'blink-gc-mark-task-background'
+  };
+
+  // All events that should be summed up to 'blink-gc-mark-roots'.
+  const BLINK_TOP_GC_ROOTS_MARKING_EVENTS = [
+    'BlinkGC.VisitRoots'
+  ];
+
+  // All events that should be summed up to 'blink-gc-mark-transitive-closure'.
+  const BLINK_GC_FOREGROUND_MARKING_TRANSITIVE_CLOSURE_EVENTS = [
+    'BlinkGC.AtomicPauseMarkTransitiveClosure',
+    'BlinkGC.IncrementalMarkingStep',
+    'BlinkGC.UnifiedMarkingStep'
+  ];
+
   // Maps Blink GC foreground sweeping events in timeline to telemetry friendly
   // names.
   const BLINK_TOP_GC_FOREGROUND_SWEEPING_EVENTS = {
@@ -26,21 +62,16 @@ tr.exportTo('tr.metrics.blink', function() {
   // Maps Blink GC background sweeping events in timeline to telemetry friendly
   // names.
   const BLINK_TOP_GC_BACKGROUND_SWEEPING_EVENTS = {
-    'BlinkGC.ConcurrentSweep': 'blink-gc-sweep-task-background'
+    'BlinkGC.ConcurrentSweepingStep': 'blink-gc-sweep-task-background'
   };
 
-  // Maps the all Blink GC events in timeline to telemetry friendly names.
+  // Maps the all Blink Unified GC events in timeline to telemetry friendly
+  // names.
   const BLINK_TOP_GC_EVENTS = Object.assign({
-    'BlinkGC.AtomicPauseMarkEpilogue': 'blink-gc-atomic-pause-mark-epilogue',
-    'BlinkGC.AtomicPauseMarkPrologue': 'blink-gc-atomic-pause-mark-prologue',
-    'BlinkGC.AtomicPauseMarkRoots': 'blink-gc-atomic-pause-mark-roots',
-    'BlinkGC.AtomicPauseMarkTransitiveClosure':
-        'blink-gc-atomic-pause-mark-transitive-closure',
     'BlinkGC.AtomicPauseSweepAndCompact':
         'blink-gc-atomic-pause-sweep-and-compact',
-    'BlinkGC.IncrementalMarkingStartMarking': 'blink-gc-incremental-start',
-    'BlinkGC.IncrementalMarkingStep': 'blink-gc-incremental-step'
-  }, BLINK_TOP_GC_FOREGROUND_SWEEPING_EVENTS);
+  }, BLINK_TOP_GC_FOREGROUND_MARKING_EVENTS,
+  BLINK_TOP_GC_FOREGROUND_SWEEPING_EVENTS);
 
   // All events that should be summed up to 'blink-gc-atomic-pause'. Note that
   // this events need to have an epoch counter in args.epoch.
@@ -73,6 +104,28 @@ tr.exportTo('tr.metrics.blink', function() {
     return ATOMIC_PAUSE_EVENTS.includes(event.title) && isNonForcedEvent(event);
   }
 
+  function isNonForcedBlinkGarbageCollectionRootsMarkingEvent(event) {
+    return BLINK_TOP_GC_ROOTS_MARKING_EVENTS.includes(event.title) &&
+           isNonForcedEvent(event);
+  }
+
+  function
+  isNonForcedBlinkGarbageCollectionMarkingTransitiveColsureEvent(event) {
+    return BLINK_GC_FOREGROUND_MARKING_TRANSITIVE_CLOSURE_EVENTS.includes(
+        event.title) &&
+           isNonForcedEvent(event);
+  }
+
+  function isNonForcedBlinkGarbageCollectionForegroundMarkingEvent(event) {
+    return event.title in BLINK_TOP_GC_FOREGROUND_MARKING_EVENTS &&
+           isNonForcedEvent(event);
+  }
+
+  function isNonForcedBlinkGarbageCollectionBackgroundMarkingEvent(event) {
+    return event.title in BLINK_TOP_GC_BACKGROUND_MARKING_EVENTS &&
+           isNonForcedEvent(event);
+  }
+
   function isNonForcedBlinkGarbageCollectionForegroundSweepingEvent(event) {
     return event.title in BLINK_TOP_GC_FOREGROUND_SWEEPING_EVENTS &&
            isNonForcedEvent(event);
@@ -94,6 +147,10 @@ tr.exportTo('tr.metrics.blink', function() {
     addDurationOfAtomicPause(histograms, model);
     addTotalDurationOfTopEvents(histograms, model);
     addTotalDurationOfBlinkAndV8TopEvents(histograms, model);
+    addTotalDurationOfRootsMarking(histograms, model);
+    addTotalDurationOfMarkingTransitiveClosure(histograms, model);
+    addTotalDurationOfForegroundMarking(histograms, model);
+    addTotalDurationOfBackgroundMarking(histograms, model);
     addTotalDurationOfForegroundSweeping(histograms, model);
     addTotalDurationOfBackgroundSweeping(histograms, model);
   }
@@ -203,6 +260,82 @@ tr.exportTo('tr.metrics.blink', function() {
           histograms.addHistogram(cpuDuration);
         },
         ['blink-gc-total']
+    );
+  }
+
+  /**
+   * Example output:
+   * - blink-gc-mark-roots
+   */
+  function addTotalDurationOfRootsMarking(histograms, model) {
+    tr.metrics.v8.utils.groupAndProcessEvents(model,
+        isNonForcedBlinkGarbageCollectionRootsMarkingEvent,
+        event => 'blink-gc-mark-roots',
+        function(name, events) {
+          const cpuDuration = createNumericForTotalEventTime(name);
+          for (const event of events) {
+            cpuDuration.addSample(event.cpuDuration);
+          }
+          histograms.addHistogram(cpuDuration);
+        },
+        ['blink-gc-mark-roots']
+    );
+  }
+
+  /**
+   * Example output:
+   * - blink-gc-mark-transitive-closure
+   */
+  function addTotalDurationOfMarkingTransitiveClosure(histograms, model) {
+    tr.metrics.v8.utils.groupAndProcessEvents(model,
+        isNonForcedBlinkGarbageCollectionMarkingTransitiveColsureEvent,
+        event => 'blink-gc-mark-transitive-closure',
+        function(name, events) {
+          const cpuDuration = createNumericForTotalEventTime(name);
+          for (const event of events) {
+            cpuDuration.addSample(event.cpuDuration);
+          }
+          histograms.addHistogram(cpuDuration);
+        },
+        ['blink-gc-mark-transitive-closure']
+    );
+  }
+
+  /**
+   * Example output:
+   * - blink-gc-mark-foreground
+   */
+  function addTotalDurationOfForegroundMarking(histograms, model) {
+    tr.metrics.v8.utils.groupAndProcessEvents(model,
+        isNonForcedBlinkGarbageCollectionForegroundMarkingEvent,
+        event => 'blink-gc-mark-foreground',
+        function(name, events) {
+          const cpuDuration = createNumericForTotalEventTime(name);
+          for (const event of events) {
+            cpuDuration.addSample(event.cpuDuration);
+          }
+          histograms.addHistogram(cpuDuration);
+        },
+        ['blink-gc-mark-foreground']
+    );
+  }
+
+  /**
+   * Example output:
+   * - blink-gc-mark-background
+   */
+  function addTotalDurationOfBackgroundMarking(histograms, model) {
+    tr.metrics.v8.utils.groupAndProcessEvents(model,
+        isNonForcedBlinkGarbageCollectionBackgroundMarkingEvent,
+        event => 'blink-gc-mark-background',
+        function(name, events) {
+          const cpuDuration = createNumericForTotalEventTime(name);
+          for (const event of events) {
+            cpuDuration.addSample(event.cpuDuration);
+          }
+          histograms.addHistogram(cpuDuration);
+        },
+        ['blink-gc-mark-background']
     );
   }
 

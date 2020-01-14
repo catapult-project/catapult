@@ -56,7 +56,9 @@ tr.b.unittest.testSuite(function() {
       'BlinkGC.IncrementalMarkingStep': 'blink-gc-incremental-step',
       'BlinkGC.CompleteSweep': 'blink-gc-complete-sweep',
       'BlinkGC.LazySweepInIdle': 'blink-gc-sweep-task-foreground',
-      'BlinkGC.LazySweepOnAllocation': 'blink-gc-sweep-allocation'
+      'BlinkGC.LazySweepOnAllocation': 'blink-gc-sweep-allocation',
+      'BlinkGC.UnifiedMarkingStep': 'blink-gc-unified-marking-by-v8',
+      'BlinkGC.VisitRoots': 'blink-gc-mark-roots'
     };
     for (const [timelineName, telemetryName] of Object.entries(events)) {
       const slices = [
@@ -103,17 +105,40 @@ tr.b.unittest.testSuite(function() {
         title: 'BlinkGC.LazySweepInIdle', args: {}, start: 210,
         end: 290, cpuStart: 210, cpuEnd: 290
       },
+      {
+        title: 'BlinkGC.IncrementalMarkingStartMarking', args: {}, start: 500,
+        end: 550, cpuStart: 500, cpuEnd: 550
+      },
+      {
+        title: 'BlinkGC.IncrementalMarkingStep', args: {}, start: 550,
+        end: 600, cpuStart: 550, cpuEnd: 600
+      },
+      {
+        title: 'BlinkGC.UnifiedMarkingStep', args: {}, start: 600,
+        end: 650, cpuStart: 600, cpuEnd: 650
+      },
       // Background events shouldn't contribute to total time.
       {
-        title: 'BlinkGC.ConcurrentSweep', args: {}, start: 300,
+        title: 'BlinkGC.ConcurrentSweepingStep', args: {}, start: 300,
         end: 390, cpuStart: 300, cpuEnd: 390
+      },
+      {
+        title: 'BlinkGC.ConcurrentMarkingStep', args: {}, start: 400,
+        end: 450, cpuStart: 400, cpuEnd: 450
+      },
+      // Explicit roots marking should also not contribute to total time
+      // (this is already encompassed by BlinkGC.AtomicPauseMarkRoots and
+      // BlinkGC.IncrementalMarkingStartMarking).
+      {
+        title: 'BlinkGC.VisitRoots', args: {}, start: 450,
+        end: 500, cpuStart: 450, cpuEnd: 500
       }
     ];
     const actual = run(slices);
 
     const value = actual.getHistogramNamed('blink-gc-total');
-    assert.strictEqual(value.running.sum, 180);
-    assert.strictEqual(value.numValues, 6);
+    assert.strictEqual(value.running.sum, 330);
+    assert.strictEqual(value.numValues, 9);
     assert.strictEqual(value.running.max, 80);
   });
 
@@ -166,7 +191,7 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     const slices = [
       {
-        title: 'BlinkGC.ConcurrentSweep', args: {},
+        title: 'BlinkGC.ConcurrentSweepingStep', args: {},
         start: 100, end: 200, cpuStart: 100, cpuEnd: 200
       },
       {
@@ -174,7 +199,7 @@ tr.b.unittest.testSuite(function() {
         start: 210, end: 300, cpuStart: 210, cpuEnd: 300
       },
       {
-        title: 'BlinkGC.ConcurrentSweep', args: {},
+        title: 'BlinkGC.ConcurrentSweepingStep', args: {},
         start: 250, end: 300, cpuStart: 250, cpuEnd: 300
       },
       {
@@ -189,6 +214,80 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(value.numValues, 2);
     assert.strictEqual(value.average, 75);
     assert.strictEqual(value.running.max, 100);
+  });
+
+  test('totalMarkingTimeForBlinkGC', function() {
+    const histograms = new tr.v.HistogramSet();
+    const slices = [
+      {
+        title: 'BlinkGC.IncrementalMarkingStartMarking', args: {}, start: 0,
+        end: 10, cpuStart: 0, cpuEnd: 10
+      },
+      {
+        title: 'BlinkGC.VisitRoots', args: {}, start: 10,
+        end: 20, cpuStart: 10, cpuEnd: 20
+      },
+      {
+        title: 'BlinkGC.ConcurrentMarkingStep', args: {},
+        start: 20, end: 30, cpuStart: 20, cpuEnd: 30
+      },
+      {
+        title: 'BlinkGC.IncrementalMarkingStep', args: {},
+        start: 30, end: 40, cpuStart: 30, cpuEnd: 40
+      },
+      {
+        title: 'BlinkGC.ConcurrentMarkingStep', args: {},
+        start: 40, end: 44, cpuStart: 40, cpuEnd: 44
+      },
+      {
+        title: 'BlinkGC.UnifiedMarkingStep', args: {},
+        start: 50, end: 60, cpuStart: 50, cpuEnd: 60
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkPrologue', args: {},
+        start: 60, end: 66, cpuStart: 60, cpuEnd: 66
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkRoots', args: {},
+        start: 70, end: 80, cpuStart: 70, cpuEnd: 80
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkTransitiveClosure', args: {},
+        start: 80, end: 87, cpuStart: 80, cpuEnd: 87
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkEpilogue', args: {},
+        start: 90, end: 100, cpuStart: 90, cpuEnd: 100
+      }
+    ];
+    const actual = run(slices);
+
+    const foregroundValue = actual.getHistogramNamed(
+        'blink-gc-mark-foreground');
+    assert.strictEqual(foregroundValue.running.sum, 63);
+    assert.strictEqual(foregroundValue.numValues, 7);
+    assert.closeTo(foregroundValue.average, 9, 1e-6);
+    assert.strictEqual(foregroundValue.running.max, 10);
+
+    const backgroundValue = actual.getHistogramNamed(
+        'blink-gc-mark-background');
+    assert.strictEqual(backgroundValue.running.sum, 14);
+    assert.strictEqual(backgroundValue.numValues, 2);
+    assert.closeTo(backgroundValue.average, 7, 1e-6);
+    assert.strictEqual(backgroundValue.running.max, 10);
+
+    const rootsValue = actual.getHistogramNamed('blink-gc-mark-roots');
+    assert.strictEqual(rootsValue.running.sum, 10);
+    assert.strictEqual(rootsValue.numValues, 1);
+    assert.closeTo(rootsValue.average, 10, 1e-6);
+    assert.strictEqual(rootsValue.running.max, 10);
+
+    const closueValue = actual.getHistogramNamed(
+        'blink-gc-mark-transitive-closure');
+    assert.strictEqual(closueValue.running.sum, 27);
+    assert.strictEqual(closueValue.numValues, 3);
+    assert.closeTo(closueValue.average, 9, 1e-6);
+    assert.strictEqual(closueValue.running.max, 10);
   });
 
   test('totalTimeForUnifiedGC', function() {
@@ -220,8 +319,12 @@ tr.b.unittest.testSuite(function() {
       },
       // Background events shouldn't contribute to total time.
       {
-        title: 'BlinkGC.ConcurrentSweep', args: {},
+        title: 'BlinkGC.ConcurrentSweepingStep', args: {},
         start: 420, end: 520, cpuStart: 420, cpuEnd: 520
+      },
+      {
+        title: 'BlinkGC.ConcurrentMarkingStep', args: {},
+        start: 520, end: 620, cpuStart: 520, cpuEnd: 620
       }
     ];
     const actual = run(slices);
