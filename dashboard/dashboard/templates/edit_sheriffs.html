@@ -105,21 +105,13 @@ found in the LICENSE file.
 <body>
   <nav-bar></nav-bar>
   <h1>Edit Sheriffs</h1>
-
-  <p><b>Note</b>: If the test path patterns of two different sheriffs
-  threshold configurations both match some test, then the sheriff whose
-  name comes first according to lexicographical sort order will apply.</p>
+  <p><b>Note: Sheriff configs are no longer editable via this page.
+  See go/chromeperf-sheriff-redux</b></p>
 
   <form method="POST">
     {{xsrf_input | safe}}
     <label>
-      <input type="radio" name="add-edit" id="add-radio" value="add" checked>
-      Add a new config named:
-    </label>
-    <input type="text" name="add-name" id="add-name"><br>
-    <label>
-      <input type="radio" name="add-edit" id="edit-radio" value="edit">
-      Edit existing config:
+      View existing config:
     </label>
     <select name="edit-name" id="edit-name">
     {% for name in sheriff_names %}
@@ -129,38 +121,38 @@ found in the LICENSE file.
     <table>
       <tr>
         <td><label for="url">Rotation URL:</label></td>
-        <td><input type="url" name="url" id="url" size=75> </td>
+        <td><input type="url" name="url" id="url" size=75 disabled> </td>
       </tr>
         <td><label for="email">Notification Email:</label></td>
-        <td><input type="email" name="email" id="email" size=75></td>
+        <td><input type="email" name="email" id="email" size=75 disabled></td>
       </tr>
       <tr>
         <td><label for="labels">Bug labels to add (comma-separated):</label></td>
-        <td><input type="text" name="labels" id="labels" size=75></td>
+        <td><input type="text" name="labels" id="labels" size=75 disabled></td>
       </tr>
       <tr>
         <td>Internal-only:</td>
         <td>
           <label><input type="radio" name="internal-only" id="internal-only-yes"
-                        value="true" checked>yes</label>
+                        value="true" checked disabled>yes</label>
           <label><input type="radio" name="internal-only" id="internal-only-no"
-                        value="false">no</label>
+                        value="false" disabled>no</label>
         </td>
       </tr>
       <tr>
         <td>Summarize Email:</td>
         <td>
           <label><input type="radio" name="summarize" id="summarize-yes"
-                        value="true">yes</label>
+                        value="true" disabled>yes</label>
           <label><input type="radio" name="summarize" id="summarize-no"
-                        value="false" checked>no</label>
+                        value="false" checked disabled>no</label>
         </td>
       </tr>
     </table>
     <p>Patterns:</p>
     <textarea name="patterns" id="patterns-textarea"
-              rows="15" cols="72"></textarea><br>
-            <button type="submit">Submit</button><br><br>
+              rows="15" cols="72" disabled="true"></textarea><br>
+            <button type="submit" disabled="true">Submit</button><br><br>
     <button id="list-tests-button" hidden>List monitored tests</button>
     <div id="matching-list"></div>
     <h2>Subscription Proto</h2>

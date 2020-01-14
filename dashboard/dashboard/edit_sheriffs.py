@@ -72,6 +72,10 @@ class EditSheriffsHandler(edit_config_handler.EditConfigHandler):
         'sheriff_names': sorted(sheriff_dicts),
     })
 
+  def post(self):
+    self.ReportError('Sheriff configs are no longer editable via this page. '
+                     'See go/chromeperf-sheriff-redux', status=403)
+
   def _UpdateFromRequestParameters(self, sheriff_entity):
     """Updates the given Sheriff based on query parameters.
 
