@@ -828,6 +828,7 @@ class AdbWrapper(object):
               allow_downgrade=False,
               reinstall=False,
               sd_card=False,
+              streaming=None,
               timeout=60 * 2,
               retries=DEFAULT_RETRIES):
     """Install an apk on the device.
@@ -838,6 +839,10 @@ class AdbWrapper(object):
       allow_downgrade: (optional) If set, allows for downgrades.
       reinstall: (optional) If set reinstalls the app, keeping its data.
       sd_card: (optional) If set installs on the SD card.
+      streaming: (optional) If not set, use default way to install.
+        If True, performs streaming install.
+        If False, app is pushed to device and be installed from there.
+        Note this option is not supported prior to adb version 1.0.40
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
     """
@@ -851,6 +856,16 @@ class AdbWrapper(object):
       cmd.append('-s')
     if allow_downgrade:
       cmd.append('-d')
+    if streaming in (True, False):
+      if (du_version.LooseVersion(self.Version()) <
+        du_version.LooseVersion('1.0.40')):
+        logging.warning(
+            'adb: streaming options not supported prior to version 1.0.40 '
+            '(current: %s)', self.Version())
+      elif streaming:
+        cmd.append('--streaming')
+      else:
+        cmd.append('--no-streaming')
     cmd.append(apk_path)
     output = self._RunDeviceAdbCmd(cmd, timeout, retries)
     if 'Success' not in output:
@@ -864,6 +879,7 @@ class AdbWrapper(object):
                       sd_card=False,
                       allow_downgrade=False,
                       partial=False,
+                      streaming=None,
                       timeout=60 * 2,
                       retries=DEFAULT_RETRIES):
     """Install an apk with splits on the device.
@@ -875,6 +891,10 @@ class AdbWrapper(object):
       sd_card: (optional) If set installs on the SD card.
       allow_downgrade: (optional) Allow versionCode downgrade.
       partial: (optional) Package ID if apk_paths doesn't include all .apks.
+      streaming: (optional) If not set, use default way to install.
+        If True, performs streaming install.
+        If False, app is pushed to device and be installed from there.
+        Note this option is not supported prior to adb version 1.0.40
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
     """
@@ -889,6 +909,16 @@ class AdbWrapper(object):
       cmd.append('-s')
     if allow_downgrade:
       cmd.append('-d')
+    if streaming in (True, False):
+      if (du_version.LooseVersion(self.Version()) <
+        du_version.LooseVersion('1.0.40')):
+        logging.warning(
+            'adb: streaming options not supported prior to version 1.0.40 '
+            '(current: %s)', self.Version())
+      elif streaming:
+        cmd.append('--streaming')
+      else:
+        cmd.append('--no-streaming')
     if partial:
       cmd.extend(('-p', partial))
     cmd.extend(apk_paths)
