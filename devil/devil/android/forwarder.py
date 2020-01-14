@@ -35,7 +35,7 @@ def _GetProcessStartTime(pid):
     return p.create_time
 
 
-def _LogMapFailureDiagnostics(device):
+def _DumpHostLog():
   # The host forwarder daemon logs to /tmp/host_forwarder_log, so print the end
   # of that.
   try:
@@ -46,6 +46,10 @@ def _LogMapFailureDiagnostics(device):
   except Exception:  # pylint: disable=broad-except
     # Grabbing the host forwarder log is best-effort. Ignore all errors.
     logger.warning('Failed to get the contents of host_forwarder_log.')
+
+
+def _LogMapFailureDiagnostics(device):
+  _DumpHostLog()
 
   # The device forwarder daemon logs to the logcat, so print the end of that.
   try:
@@ -434,6 +438,7 @@ class Forwarder(object):
                          '\n  '.join(host_forwarder_lines))
           else:
             logger.error('No remaining host_forwarder processes?')
+          _DumpHostLog()
           error_msg = textwrap.dedent("""\
               `{kill_cmd}` failed to kill host_forwarder.
                 exit_code: {exit_code}
