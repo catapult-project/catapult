@@ -21,7 +21,9 @@ steps:
   - name: 'docker/compose:1.19.0'
     args: [
       '-f', 'dashboard/dev_dockerfiles/cloud_build/docker-compose.yml',
-      'run', 'deploy-dashboard',
-      # Pass in the version information from here.
-      '-e', 'VERSION=cloud-build-${SHORT_SHA}'
+      'run',
+      # Pass in the version information from here, so we can use the SHORT_SHA
+      # environment.
+      '-e', 'VERSION=cloud-build-${SHORT_SHA}',
+      'deploy-dashboard',
     ]
