@@ -27,7 +27,6 @@ found in the LICENSE file.
     };
     addListener('edit-name', 'change', onEditFocus);
     addListener('edit-name', 'focus', onEditFocus);
-    addListener('edit-radio', 'focus', onEditFocus);
     addListener('add-name', 'focus', onAddFocus);
     addListener('add-radio', 'focus', onAddFocus);
     addListener('list-tests-button', 'click', listTests);
@@ -38,7 +37,6 @@ found in the LICENSE file.
    * Updates the form with the properties of the selected existing sheriff.
    */
   function onEditFocus() {
-    document.getElementById('edit-radio').checked = true;
     var selectMenu = document.getElementById('edit-name');
     var sheriffName = selectMenu.options[selectMenu.selectedIndex].value;
     var sheriff = SHERIFF_DATA[sheriffName];
