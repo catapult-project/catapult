@@ -35,6 +35,12 @@ indexes:
     direction: desc
 - kind: Anomaly
   properties:
+  - name: subscription_names
+  - name: timestamp
+    direction: desc
+# TODO(fancl): Deprecated with sheriff
+- kind: Anomaly
+  properties:
   - name: sheriff
   - name: timestamp
     direction: desc
@@ -104,6 +110,15 @@ indexes:
 # the datastore only needs to merge 2 or 3 indexes, which is fast enough.
 - kind: Anomaly
   properties:
+  - name: subscription_names
+  - name: is_improvement
+  - name: bug_id
+  - name: recovered
+  - name: timestamp
+    direction: desc
+# TODO(fancl): Deprecated with sheriff
+- kind: Anomaly
+  properties:
   - name: sheriff
   - name: is_improvement
   - name: bug_id
@@ -111,8 +126,15 @@ indexes:
   - name: timestamp
     direction: desc
 
-# This composite index supports QueryAsync(sheriff=..., min_start_revision=...),
+# This composite index supports QueryAsync(subscription_names=..., min_start_revision=...),
 # which spa uses to load triaged alerts after loading untriaged alerts.
+- kind: Anomaly
+  properties:
+  - name: subscription_names
+  - name: start_revision
+  - name: timestamp
+    direction: desc
+# TODO(fancl): Deprecated with sheriff
 - kind: Anomaly
   properties:
   - name: sheriff

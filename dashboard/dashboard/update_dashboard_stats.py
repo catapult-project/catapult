@@ -295,15 +295,12 @@ def _ProcessPinpointStats(offset=0):
 
 @ndb.synctasklet
 def _ProcessAlerts():
-  sheriff = ndb.Key('Sheriff', 'Chromium Perf Sheriff')
   ts_start = datetime.datetime.now() - datetime.timedelta(days=1)
 
-  q = anomaly.Anomaly.query()
-  q = q.filter(anomaly.Anomaly.timestamp > ts_start)
-  q = q.filter(anomaly.Anomaly.sheriff == sheriff)
-  q = q.order(-anomaly.Anomaly.timestamp)
-
-  alerts = yield q.fetch_async()
+  alerts, _, _ = yield anomaly.Anomaly.QueryAsync(
+      min_timestamp=ts_start,
+      sheriff='Chromium Perf Sheriff',
+  )
   if not alerts:
     raise ndb.Return()
 

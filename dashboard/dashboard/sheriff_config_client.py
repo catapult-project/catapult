@@ -43,6 +43,8 @@ class SheriffConfigClient(object):
     response = self._session.post(
         'https://sheriff-config-dot-chromeperf.appspot.com/subscriptions/match',
         json={'path': path})
+    if response.status_code == 404: # If no subscription matched
+      return [], None
     if not response.ok:
       return None, '%r\n%s' % (response, response.text)
     match = json_format.Parse(response.text, sheriff_config_pb2.MatchResponse())

@@ -11,15 +11,13 @@ import json
 import unittest
 import uuid
 
-from google.appengine.ext import ndb
-
 from dashboard.api import api_auth
 from dashboard.api import timeseries2
 from dashboard.common import testing_common
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
-from dashboard.models import sheriff
+from dashboard.models.subscription import Subscription
 from tracing.value.diagnostics import reserved_infos
 
 
@@ -41,9 +39,6 @@ class Timeseries2Test(testing_common.TestCase):
     super(Timeseries2Test, self).setUp()
     self.SetUpApp([('/api/timeseries2', timeseries2.Timeseries2Handler)])
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
-    sheriff.Sheriff(
-        id='Taylor',
-        email=testing_common.INTERNAL_USER.email()).put()
     self.SetCurrentUserOAuth(None)
 
   def _MockData(self, path='master/bot/suite/measure/case',
@@ -78,7 +73,11 @@ class Timeseries2Test(testing_common.TestCase):
         is_improvement=False,
         median_after_anomaly=6,
         median_before_anomaly=4,
-        sheriff=ndb.Key('Sheriff', 'Taylor'),
+        subscriptions=[Subscription(
+            name='Taylor',
+            notification_email=testing_common.INTERNAL_USER.email(),
+        )],
+        subscription_names=['Taylor'],
         start_revision=10,
         test=test.key).put()
 

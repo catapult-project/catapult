@@ -81,11 +81,6 @@ handlers:
   login: admin
   secure: always
 
-- url: /email_summary
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
 - url: /file_bug
   script: dashboard.dispatcher.APP
   login: required

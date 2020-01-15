@@ -28,7 +28,7 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_label_patterns
 from dashboard.models import histogram
-from dashboard.models import sheriff
+from dashboard.models.subscription import Subscription
 from dashboard.services import crrev_service
 
 from tracing.value.diagnostics import generic_set
@@ -81,9 +81,11 @@ class FileBugTest(testing_common.TestCase):
   def _AddSampleAlerts(self, master='ChromiumPerf', has_commit_positions=True):
     """Adds sample data and returns a dict of rev to anomaly key."""
     # Add sample sheriff, masters, bots, and tests.
-    sheriff_key = sheriff.Sheriff(
-        id='Sheriff',
-        labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
+    subscription = Subscription(
+        name='Sheriff',
+        bug_labels=['Performance-Sheriff'],
+        bug_components=['Blink>Javascript'],
+    )
     testing_common.AddTests([master], ['linux'], {
         'scrolling': {
             'first_paint': {},
@@ -94,9 +96,9 @@ class FileBugTest(testing_common.TestCase):
     test_path2 = '%s/linux/scrolling/mean_frame_time' % master
     test_key1 = utils.TestKey(test_path1)
     test_key2 = utils.TestKey(test_path2)
-    anomaly_key1 = self._AddAnomaly(111995, 112005, test_key1, sheriff_key)
-    anomaly_key2 = self._AddAnomaly(112000, 112010, test_key2, sheriff_key)
-    anomaly_key3 = self._AddAnomaly(112015, 112015, test_key2, sheriff_key)
+    anomaly_key1 = self._AddAnomaly(111995, 112005, test_key1, subscription)
+    anomaly_key2 = self._AddAnomaly(112000, 112010, test_key2, subscription)
+    anomaly_key3 = self._AddAnomaly(112015, 112015, test_key2, subscription)
     rows_1 = testing_common.AddRows(test_path1, [112005])
     rows_2 = testing_common.AddRows(test_path2, [112010])
     rows_2 = testing_common.AddRows(test_path2, [112015])
@@ -113,9 +115,11 @@ class FileBugTest(testing_common.TestCase):
     it will update the end_revision if r_commit_pos is found.
     """
     # Add sample sheriff, masters, bots, and tests. Doesn't need to be Clank.
-    sheriff_key = sheriff.Sheriff(
-        id='Sheriff',
-        labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
+    subscription = Subscription(
+        name='Sheriff',
+        bug_labels=['Performance-Sheriff'],
+        bug_components=['Blink>Javascript'],
+    )
     testing_common.AddTests(['ChromiumPerf'], ['linux'], {
         'scrolling': {
             'first_paint': {},
@@ -127,11 +131,11 @@ class FileBugTest(testing_common.TestCase):
     test_key1 = utils.TestKey(test_path1)
     test_key2 = utils.TestKey(test_path2)
     anomaly_key1 = self._AddAnomaly(1476193324, 1476201840,
-                                    test_key1, sheriff_key)
+                                    test_key1, subscription)
     anomaly_key2 = self._AddAnomaly(1476193320, 1476201870,
-                                    test_key2, sheriff_key)
+                                    test_key2, subscription)
     anomaly_key3 = self._AddAnomaly(1476193390, 1476193390,
-                                    test_key2, sheriff_key)
+                                    test_key2, subscription)
     rows_1 = testing_common.AddRows(test_path1, [1476201840])
     rows_2 = testing_common.AddRows(test_path2, [1476201870])
     rows_3 = testing_common.AddRows(test_path2, [1476193390])
@@ -141,11 +145,12 @@ class FileBugTest(testing_common.TestCase):
     rows_3[0].r_commit_pos = 112015
     return (anomaly_key1, anomaly_key2, anomaly_key3)
 
-  def _AddAnomaly(self, start_rev, end_rev, test_key, sheriff_key):
+  def _AddAnomaly(self, start_rev, end_rev, test_key, subscription):
     return anomaly.Anomaly(
         start_revision=start_rev, end_revision=end_rev, test=test_key,
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key).put()
+        subscription_names=[subscription.name],
+        subscriptions=[subscription]).put()
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch(
@@ -161,8 +166,10 @@ class FileBugTest(testing_common.TestCase):
     components = []
     test_path = 'ChromiumPerf/linux/scrolling/first_paint'
     test_key = utils.TestKey(test_path)
-    sheriff_key = sheriff.Sheriff(id='Sheriff', labels=[]).put()
-    keys = [self._AddAnomaly(10, 20, test_key, sheriff_key).urlsafe()]
+    subscription = Subscription(
+        name='Sheriff',
+    )
+    keys = [self._AddAnomaly(10, 20, test_key, subscription).urlsafe()]
     bisect = False
     result = file_bug.FileBug(
         http, owner, cc, summary, description, labels, components, keys, bisect)
@@ -634,19 +641,21 @@ class FileBugTest(testing_common.TestCase):
                   'ChromiumPerf/linux/scrolling/mean_frame_time']
     test_keys = [utils.TestKey(test_path) for test_path in test_paths]
 
-    sheriff_key = sheriff.Sheriff(
-        id='Sheriff',
-        labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
+    subscription = Subscription(
+        name='Sheriff',
+        bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
 
     anomaly_1 = anomaly.Anomaly(
         start_revision=1476193324, end_revision=1476201840, test=test_keys[0],
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key, ownership=ownership_samples[0]).put()
+        subscriptions=[subscription], subscription_names=[subscription.name],
+        ownership=ownership_samples[0]).put()
 
     anomaly_2 = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_keys[1],
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key, ownership=ownership_samples[1]).put()
+        subscriptions=[subscription], subscription_names=[subscription.name],
+        ownership=ownership_samples[1]).put()
 
     response = self.testapp.post(
         '/file_bug',
@@ -680,14 +689,15 @@ class FileBugTest(testing_common.TestCase):
 
   def testGet_OwnersNotFilledWhenNoOwnership(self):
     test_key = utils.TestKey('ChromiumPerf/linux/scrolling/first_paint')
-    sheriff_key = sheriff.Sheriff(
-        id='Sheriff',
-        labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
+    subscription = Subscription(
+        name='Sheriff',
+        bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
 
     anomaly_entity = anomaly.Anomaly(
         start_revision=1476193324, end_revision=1476201840, test=test_key,
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key).put()
+        subscriptions=[subscription], subscription_names=[subscription.name],
+    ).put()
 
     response = self.testapp.post(
         '/file_bug',
@@ -722,19 +732,21 @@ class FileBugTest(testing_common.TestCase):
                   'ChromiumPerf/linux/scrolling/mean_frame_time']
     test_keys = [utils.TestKey(test_path) for test_path in test_paths]
 
-    sheriff_key = sheriff.Sheriff(
-        id='Sheriff',
-        labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
+    subscription = Subscription(
+        name='Sheriff',
+        bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
 
     anomaly_1 = anomaly.Anomaly(
         start_revision=1476193324, end_revision=1476201840, test=test_keys[0],
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key, ownership=ownership_samples[0]).put()
+        subscriptions=[subscription], subscription_names=[subscription.name],
+        ownership=ownership_samples[0]).put()
 
     anomaly_2 = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_keys[1],
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key, ownership=ownership_samples[1]).put()
+        subscriptions=[subscription], subscription_names=[subscription.name],
+        ownership=ownership_samples[1]).put()
 
     response = self.testapp.post(
         '/file_bug',
@@ -784,9 +796,9 @@ class FileBugTest(testing_common.TestCase):
         },
     ]
 
-    sheriff_key = sheriff.Sheriff(
-        id='Sheriff',
-        labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
+    subscription = Subscription(
+        name='Sheriff',
+        bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
 
     test_key = utils.TestKey('ChromiumPerf/linux/scrolling/first_paint')
 
@@ -795,13 +807,14 @@ class FileBugTest(testing_common.TestCase):
     older_alert = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_key,
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key, ownership=ownership_samples[0],
-        timestamp=now_datetime).put()
+        subscriptions=[subscription], subscription_names=[subscription.name],
+        ownership=ownership_samples[0], timestamp=now_datetime).put()
 
     newer_alert = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_key,
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key, ownership=ownership_samples[1],
+        subscriptions=[subscription], subscription_names=[subscription.name],
+        ownership=ownership_samples[1],
         timestamp=now_datetime + datetime.timedelta(10)).put()
 
     response = self.testapp.post(
@@ -858,9 +871,9 @@ class FileBugTest(testing_common.TestCase):
         },
     ]
 
-    sheriff_key = sheriff.Sheriff(
-        id='Sheriff',
-        labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
+    subscription = Subscription(
+        name='Sheriff',
+        bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
 
     test_paths = ['ChromiumPerf/linux/scrolling/first_paint',
                   'ChromiumPerf/linux/scrolling/mean_frame_time']
@@ -871,13 +884,14 @@ class FileBugTest(testing_common.TestCase):
     alert_test_key_0 = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_keys[0],
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key, ownership=ownership_samples[0],
-        timestamp=now_datetime).put()
+        subscriptions=[subscription], subscription_names=[subscription.name],
+        ownership=ownership_samples[0], timestamp=now_datetime).put()
 
     alert_test_key_1 = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_keys[1],
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key, ownership=ownership_samples[1],
+        subscriptions=[subscription], subscription_names=[subscription.name],
+        ownership=ownership_samples[1],
         timestamp=now_datetime + datetime.timedelta(10)).put()
 
     response = self.testapp.post(
@@ -922,31 +936,35 @@ class FileBugTest(testing_common.TestCase):
 
     test_key = utils.TestKey('ChromiumPerf/linux/scrolling/first_paint')
 
-    sheriff_key = sheriff.Sheriff(
-        id='Sheriff',
-        labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
+    subscription = Subscription(
+        name='Sheriff',
+        bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
 
     alert_without_ownership = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_key,
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key, timestamp=now_datetime).put()
+        subscriptions=[subscription], subscription_names=[subscription.name],
+        timestamp=now_datetime).put()
 
     alert_without_component = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_key,
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key, ownership=ownership_samples[0],
+        subscriptions=[subscription], subscription_names=[subscription.name],
+        ownership=ownership_samples[0],
         timestamp=now_datetime + datetime.timedelta(10)).put()
 
     alert_with_empty_component = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_key,
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key, ownership=ownership_samples[1],
+        subscriptions=[subscription], subscription_names=[subscription.name],
+        ownership=ownership_samples[1],
         timestamp=now_datetime + datetime.timedelta(20)).put()
 
     alert_with_component = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_key,
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key, ownership=ownership_samples[2],
+        subscriptions=[subscription], subscription_names=[subscription.name],
+        ownership=ownership_samples[2],
         timestamp=now_datetime + datetime.timedelta(30)).put()
 
     response = self.testapp.post(

@@ -19,7 +19,7 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
-from dashboard.models import sheriff
+from dashboard.models.subscription import Subscription
 
 
 class DumpGraphJsonTest(testing_common.TestCase):
@@ -106,8 +106,8 @@ class DumpGraphJsonTest(testing_common.TestCase):
   def testDumpJsonWithAlertData(self):
     testing_common.AddTests('M', 'b', {'foo': {}})
     test_key = utils.TestKey('M/b/foo')
-    sheriff_key = sheriff.Sheriff(email='example@google.com').put()
-    anomaly.Anomaly(sheriff=sheriff_key, test=test_key).put()
+    subscription = Subscription(notification_email='example@google.com')
+    anomaly.Anomaly(subscriptions=[subscription], test=test_key).put()
 
     # Anomaly entities for the requested test, as well as sheriffs for
     # the aforementioned Anomaly, should be returned.
@@ -119,10 +119,10 @@ class DumpGraphJsonTest(testing_common.TestCase):
     entities = list(
         map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings))
     anomalies = _EntitiesOfKind(entities, 'Anomaly')
-    sheriffs = _EntitiesOfKind(entities, 'Sheriff')
+    subscriptions = _EntitiesOfKind(entities, 'Subscription')
     self.assertEqual(1, len(anomalies))
-    self.assertEqual(1, len(sheriffs))
-    self.assertEqual('example@google.com', sheriffs[0].email)
+    self.assertEqual(1, len(subscriptions))
+    self.assertEqual('example@google.com', subscriptions[0].notification_email)
 
   def testGet_DumpAnomaliesDataForSheriff(self):
     # Insert some test, sheriffs and alerts.
@@ -132,12 +132,22 @@ class DumpGraphJsonTest(testing_common.TestCase):
     test_key_bar = utils.TestKey('M/b/bar')
     test_con_foo_key = utils.GetTestContainerKey(test_key_foo)
     test_con_bar_key = utils.GetTestContainerKey(test_key_bar)
-    chromium_sheriff = sheriff.Sheriff(
-        id='Chromium Perf Sheriff', email='chrisphan@google.com').put()
-    qa_sheriff = sheriff.Sheriff(
-        id='QA Perf Sheriff', email='chrisphan@google.com').put()
-    anomaly.Anomaly(sheriff=chromium_sheriff, test=test_key_foo).put()
-    anomaly.Anomaly(sheriff=qa_sheriff, test=test_key_bar).put()
+    chromium_subscription = Subscription(
+        name='Chromium Perf Sheriff',
+        notification_email='chrisphan@google.com'
+    )
+    qa_subscription = Subscription(
+        name='QA Perf Sheriff',
+        notification_email='chrisphan@google.com'
+    )
+    anomaly.Anomaly(
+        subscriptions=[chromium_subscription],
+        subscription_names=[chromium_subscription.name],
+        test=test_key_foo).put()
+    anomaly.Anomaly(
+        subscriptions=[qa_subscription],
+        subscription_names=[qa_subscription.name],
+        test=test_key_bar).put()
     default_max_points = dump_graph_json._DEFAULT_MAX_POINTS
 
     # Add some rows.
@@ -160,11 +170,11 @@ class DumpGraphJsonTest(testing_common.TestCase):
         map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings))
     rows = _EntitiesOfKind(entities, 'Row')
     anomalies = _EntitiesOfKind(entities, 'Anomaly')
-    sheriffs = _EntitiesOfKind(entities, 'Sheriff')
+    subscriptions = _EntitiesOfKind(entities, 'Subscription')
     self.assertEqual(default_max_points, len(rows))
     self.assertEqual(1, len(anomalies))
-    self.assertEqual(1, len(sheriffs))
-    self.assertEqual('Chromium Perf Sheriff', sheriffs[0].key.string_id())
+    self.assertEqual(1, len(subscriptions))
+    self.assertEqual('Chromium Perf Sheriff', subscriptions[0].name)
 
   def testGet_NoTestPath_ReturnsError(self):
     # If no test path is given, an error is reported.
@@ -178,7 +188,9 @@ class DumpGraphJsonTest(testing_common.TestCase):
 
 def _EntitiesOfKind(entities, kind):
   """Returns a sublist of entities that are of a certain kind."""
-  return [e for e in entities if e.key.kind() == kind]
+  def _GetKind(entity):
+    return str(type(entity)).split('<')[0]
+  return [e for e in entities if _GetKind(e) == kind]
 
 
 if __name__ == '__main__':

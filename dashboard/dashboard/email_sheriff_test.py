@@ -8,18 +8,15 @@ from __future__ import absolute_import
 
 import sys
 import unittest
-import urllib
 
 import mock
-
-from google.appengine.ext import ndb
 
 from dashboard import email_sheriff
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_label_patterns
-from dashboard.models import sheriff
+from dashboard.models.subscription import Subscription
 
 _SHERIFF_URL = 'http://chromium-build.appspot.com/p/chromium/sheriff_perf.js'
 _SHERIFF_EMAIL = 'perf-sheriff-group@google.com'
@@ -35,26 +32,28 @@ class EmailSheriffTest(testing_common.TestCase):
         ['ChromiumPerf'], ['Win7'], {'dromaeo': {'dom': {}}})
     test = utils.TestKey('ChromiumPerf/Win7/dromaeo/dom').get()
     test.improvement_direction = anomaly.DOWN
-    sheriff.Sheriff(
-        id='Chromium Perf Sheriff',
-        url=_SHERIFF_URL,
-        email=_SHERIFF_EMAIL,
-        labels=['Performance-Sheriff']).put()
     return test
 
   def _GetDefaultMailArgs(self):
     """Adds an Anomaly and returns arguments for email_sheriff.EmailSheriff."""
     test_entity = self._AddTestToStubDataStore()
-    sheriff_entity = ndb.Key('Sheriff', 'Chromium Perf Sheriff').get()
+    subscription = Subscription(
+        name='Chromium Perf Sheriff',
+        rotation_url=_SHERIFF_URL,
+        notification_email=_SHERIFF_EMAIL,
+        bug_labels=['Performance-Sheriff']
+    )
+
     anomaly_entity = anomaly.Anomaly(
         median_before_anomaly=5.0,
         median_after_anomaly=10.0,
         start_revision=10002,
         end_revision=10004,
-        sheriff=sheriff_entity.key,
+        subscription_names=[subscription.name],
+        subscriptions=[subscription],
         test=utils.TestKey('ChromiumPerf/Win7/dromaeo/dom'))
     return {
-        'sheriff': sheriff_entity,
+        'subscriptions': [subscription],
         'test': test_entity,
         'anomaly': anomaly_entity
     }
@@ -90,9 +89,6 @@ class EmailSheriffTest(testing_common.TestCase):
     self.assertIn('<b>Win7</b>', html)
     self.assertIn('<b>dromaeo/dom</b>', html)
 
-    # Sheriff link
-    self.assertIn(
-        '/alerts?sheriff=%s' % urllib.quote('Chromium Perf Sheriff'), html)
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
@@ -110,7 +106,7 @@ class EmailSheriffTest(testing_common.TestCase):
 
   def testEmail_NoSheriffUrl_EmailSentToSheriffRotationEmailAddress(self):
     args = self._GetDefaultMailArgs()
-    args['sheriff'].url = None
+    args['subscriptions'][0].rotation_url = None
     email_sheriff.EmailSheriff(**args)
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
@@ -134,7 +130,7 @@ class EmailSheriffTest(testing_common.TestCase):
   def testEmailSheriff_PercentChangeMaxFloat_ContentSaysAlertSize(self):
     """Tests the email content for "freakin huge" alert."""
     args = self._GetDefaultMailArgs()
-    args['sheriff'].url = None
+    args['subscriptions'][0].rotation_url = None
     args['anomaly'].median_before_anomaly = 0.0
     email_sheriff.EmailSheriff(**args)
     messages = self.mail_stub.get_sent_messages()

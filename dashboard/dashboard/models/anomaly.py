@@ -199,7 +199,8 @@ class Anomaly(internal_only_model.InternalOnlyModel):
       min_start_revision=None,
       min_timestamp=None,
       recovered=None,
-      sheriff=None,
+      sheriff=None, # deprecated. Same as subscriptions=[sheriff]
+      subscriptions=None,
       start_cursor=None,
       test=None,
       test_keys=None,
@@ -219,12 +220,11 @@ class Anomaly(internal_only_model.InternalOnlyModel):
       query = cls.query()
       equality_properties = []
       if sheriff is not None:
-        sheriff_key = ndb.Key('Sheriff', sheriff)
-        sheriff_entity = yield sheriff_key.get_async()
-        if sheriff_entity:
-          query = query.filter(cls.sheriff == sheriff_key)
-          equality_properties.append('sheriff')
-          inequality_property = 'key'
+        subscriptions = [sheriff]
+      if subscriptions: # Empty subscriptions is not allowed in query
+        query = query.filter(cls.subscription_names.IN(subscriptions))
+        equality_properties.append('subscription_names')
+        inequality_property = 'key'
       if is_improvement is not None:
         query = query.filter(cls.is_improvement == is_improvement)
         equality_properties.append('is_improvement')
@@ -332,10 +332,10 @@ class Anomaly(internal_only_model.InternalOnlyModel):
       if bug_id != '*':
         inequality_property = None
     elif inequality_property == 'key':
-      if equality_properties == ['sheriff'] and (min_start_revision or
-                                                 max_start_revision):
-        # Use the composite index (sheriff, start_revision, -timestamp). See
-        # index.yaml.
+      if equality_properties == ['subscription_names'] and (
+          min_start_revision or max_start_revision):
+        # Use the composite index (subscription_names, start_revision,
+        # -timestamp). See index.yaml.
         inequality_property = 'start_revision'
     else:
       inequality_property = None

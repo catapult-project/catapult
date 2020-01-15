@@ -17,7 +17,6 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
-from dashboard.models import sheriff
 from dashboard.models import table_config
 
 _SAMPLE_BOTS = ['ChromiumPerf/win', 'ChromiumPerf/linux']
@@ -79,12 +78,6 @@ class SpeedReleasingTest(testing_common.TestCase):
         override=0)
     return keys
 
-  def _AddSheriffToDatastore(self):
-    sheriff_key = sheriff.Sheriff(
-        id='Chromium Perf Sheriff', email='internal@chromium.org')
-    sheriff_key.patterns = ['*/*/my_test_suite/*']
-    sheriff_key.put()
-
   def _AddTests(self, is_downstream):
     master = 'ClankInternal' if is_downstream else 'ChromiumPerf'
     testing_common.AddTests([master], ['win', 'linux'], {
@@ -107,10 +100,6 @@ class SpeedReleasingTest(testing_common.TestCase):
 
   def _AddAlertsWithDifferentMasterAndBenchmark(self):
     """Adds 10 alerts with different benchmark/master."""
-    sheriff_key = sheriff.Sheriff(
-        id='Fake Sheriff', email='internal@chromium.org')
-    sheriff_key.patterns = ['*/*/my_fake_suite/*']
-    sheriff_key.put()
     master = 'FakeMaster'
     testing_common.AddTests([master], ['win'], {
         'my_fake_suite': {
@@ -126,7 +115,6 @@ class SpeedReleasingTest(testing_common.TestCase):
   def _AddAlertsToDataStore(self, test_keys):
     """Adds sample data, including triaged and non-triaged alerts."""
     key_map = {}
-    sheriff_key = ndb.Key('Sheriff', 'Chromium Perf Sheriff')
     for test_key in test_keys:
       test = test_key.get()
       test.improvement_direction = anomaly.DOWN
@@ -139,7 +127,7 @@ class SpeedReleasingTest(testing_common.TestCase):
         anomaly_entity = anomaly.Anomaly(
             start_revision=end_rev - 5, end_revision=end_rev, test=test_key,
             median_before_anomaly=100, median_after_anomaly=200,
-            ref_test=ref_test_key, sheriff=sheriff_key)
+            ref_test=ref_test_key)
         anomaly_entity.SetIsImprovement()
         anomaly_key = anomaly_entity.put()
         key_map[end_rev] = anomaly_key
@@ -365,7 +353,6 @@ class SpeedReleasingTest(testing_common.TestCase):
 
   def testPost_ReleaseNotes(self):
     keys = self._AddTableConfigDataStore('BestTable', True, False)
-    self._AddSheriffToDatastore()
     self._AddRows(keys)
     self._AddAlertsToDataStore(keys)
     self._AddAlertsWithDifferentMasterAndBenchmark()

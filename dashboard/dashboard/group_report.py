@@ -147,11 +147,16 @@ def GetAlertsForKeys(keys):
   if not requested_anomalies:
     raise request_handler.InvalidInputError('No anomalies found.')
 
-  sheriff_key = requested_anomalies[0].sheriff
+  # Just an optimization because we can't fetch anomalies directly based
+  # on revisions. Apply some filters to reduce unrelated anomalies.
+  subscriptions = []
+  for anomaly_entity in requested_anomalies:
+    subscriptions.extend(anomaly_entity.subscription_names)
+  subscriptions = list(set(subscriptions))
   min_range = utils.MinimumAlertRange(requested_anomalies)
   if min_range:
     anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-        sheriff=sheriff_key.id(), limit=_QUERY_LIMIT).get_result()
+        subscriptions=subscriptions, limit=_QUERY_LIMIT).get_result()
 
     # Filter out anomalies that have been marked as invalid or ignore.
     # Include all anomalies with an overlapping revision range that have

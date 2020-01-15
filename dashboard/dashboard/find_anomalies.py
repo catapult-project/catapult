@@ -130,6 +130,11 @@ def _ProcessTestStat(config, test, stat, rows, ref_rows):
     if legacy_sheriff.key.string_id() not in subscription_names:
       logging.warn('Sheriff do not match: %s', test_key.string_id())
 
+  # Breaks the process when Match failed to ensure find_anomaly do the best
+  # effort to find the subscriber. Leave retrying to upstream.
+  if err_msg is not None:
+    raise RuntimeError(err_msg)
+
   # We still check legacy sheriff for backward compatibility. So during the
   # migration, we should update both legacy and new sheriff_config to ensure
   # config take effect.

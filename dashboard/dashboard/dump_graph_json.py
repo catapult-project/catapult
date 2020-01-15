@@ -77,10 +77,9 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
 
     # Get the Anomaly and Sheriff entities.
     alerts, _, _ = anomaly.Anomaly.QueryAsync(test=test_key).get_result()
-    sheriff_keys = {alert.sheriff for alert in alerts}
-    sheriffs = [sheriff.get() for sheriff in sheriff_keys]
+    subscriptions = [s for a in alerts for s in a.subscriptions]
     entities += alerts
-    entities += sheriffs
+    entities += subscriptions
 
     # Convert the entities to protobuf message strings and output as JSON.
     protobuf_strings = list(map(EntityToBinaryProtobuf, entities))
@@ -102,10 +101,6 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
     sheriff_name = self.request.get('sheriff')
     num_points = int(self.request.get('num_points', _DEFAULT_MAX_POINTS))
     num_anomalies = int(self.request.get('num_alerts', _DEFAULT_MAX_ANOMALIES))
-    sheriff = ndb.Key('Sheriff', sheriff_name).get()
-    if not sheriff:
-      self.ReportError('Unknown sheriff specified.')
-      return
 
     anomalies, _, _ = anomaly.Anomaly.QueryAsync(
         sheriff=sheriff_name, limit=num_anomalies).get_result()
@@ -121,7 +116,8 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
 
     # Add the Anomaly and Sheriff entities.
     entities += anomalies
-    entities.append(sheriff)
+    subscriptions = [s for a in anomalies for s in a.subscriptions]
+    entities += subscriptions
 
     # Convert the entities to protobuf message strings and output as JSON.
     protobuf_strings = list(map(EntityToBinaryProtobuf, entities))

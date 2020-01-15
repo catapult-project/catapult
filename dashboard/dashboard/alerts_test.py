@@ -18,6 +18,7 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import sheriff
+from dashboard.models.subscription import Subscription
 
 
 class AlertsTest(testing_common.TestCase):
@@ -34,7 +35,13 @@ class AlertsTest(testing_common.TestCase):
     """Adds sample data, including triaged and non-triaged alerts."""
     key_map = {}
 
-    sheriff_key = sheriff.Sheriff(
+    subscription = Subscription(
+        name='Chromium Perf Sheriff',
+        notification_email='internal@chromium.org',
+    )
+    # We still need sheriff information from here before sheriff-config
+    # provide a way to fetch subsciber list.
+    sheriff.Sheriff(
         id='Chromium Perf Sheriff', email='internal@chromium.org').put()
     testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
@@ -65,7 +72,10 @@ class AlertsTest(testing_common.TestCase):
       anomaly_entity = anomaly.Anomaly(
           start_revision=end_rev - 5, end_revision=end_rev, test=test_key,
           median_before_anomaly=100, median_after_anomaly=200,
-          ref_test=ref_test_key, sheriff=sheriff_key)
+          ref_test=ref_test_key,
+          subscriptions=[subscription],
+          subscription_names=[subscription.name],
+      )
       anomaly_entity.SetIsImprovement()
       anomaly_key = anomaly_entity.put()
       key_map[end_rev] = anomaly_key.urlsafe()
@@ -78,7 +88,10 @@ class AlertsTest(testing_common.TestCase):
       anomaly_entity = anomaly.Anomaly(
           start_revision=end_rev - 5, end_revision=end_rev, test=test_key,
           median_before_anomaly=100, median_after_anomaly=200,
-          ref_test=ref_test_key, bug_id=bug_id, sheriff=sheriff_key)
+          ref_test=ref_test_key, bug_id=bug_id,
+          subscriptions=[subscription],
+          subscription_names=[subscription.name],
+      )
       anomaly_entity.SetIsImprovement()
       anomaly_key = anomaly_entity.put()
       key_map[end_rev] = anomaly_key.urlsafe()
@@ -92,7 +105,10 @@ class AlertsTest(testing_common.TestCase):
       anomaly_entity = anomaly.Anomaly(
           start_revision=end_rev - 5, end_revision=end_rev, test=test_key,
           median_before_anomaly=200, median_after_anomaly=100,
-          ref_test=ref_test_key, sheriff=sheriff_key)
+          ref_test=ref_test_key,
+          subscriptions=[subscription],
+          subscription_names=[subscription.name],
+      )
       anomaly_entity.SetIsImprovement()
       anomaly_key = anomaly_entity.put()
       self.assertTrue(anomaly_entity.is_improvement)
@@ -108,10 +124,11 @@ class AlertsTest(testing_common.TestCase):
         median_after_anomaly=30,
         median_before_anomaly=40,
         recovered=True,
-        sheriff=sheriff.Sheriff(
-            id='Sheriff2',
-            labels=['Cr-component'],
-            email='sullivan@google.com').put(),
+        subscription_names=['Sheriff2'],
+        subscriptions=[Subscription(
+            name='Sheriff2',
+            bug_components=['component'],
+            notification_email='sullivan@google.com')],
         start_revision=5,
         test=utils.TestKey('m/b/s/m/c'),
         units='ms',
@@ -206,16 +223,21 @@ class AlertsTest(testing_common.TestCase):
 
   def testPost_SheriffParameterSet_OtherSheriffAlertsListed(self):
     self._AddAlertsToDataStore()
-    # Add another sheriff to the mock datastore, and set the sheriff of some
-    # anomalies to be this new sheriff.
-    sheriff2_key = sheriff.Sheriff(
+    # We still need sheriff information from here before sheriff-config
+    # provide a way to fetch subsciber list.
+    sheriff.Sheriff(
         id='Sheriff2', email='sullivan@google.com').put()
+    subscription = Subscription(
+        name='Chromium Perf Sheriff',
+        notification_email='sullivan@google.com',
+    )
     mean_frame_time = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time')
     anomalies, _, _ = anomaly.Anomaly.QueryAsync(
         test=mean_frame_time).get_result()
     for anomaly_entity in anomalies:
-      anomaly_entity.sheriff = sheriff2_key
+      anomaly_entity.subscriptions = [subscription]
+      anomaly_entity.subscription_names = [subscription.name]
       anomaly_entity.put()
 
     response = self.testapp.post('/alerts', {'sheriff': 'Sheriff2'})

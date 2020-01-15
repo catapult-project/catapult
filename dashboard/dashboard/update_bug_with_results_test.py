@@ -17,7 +17,6 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 
 
-
 # In this class, we patch apiclient.discovery.build so as to not make network
 # requests, which are normally made when the IssueTrackerService is initialized.
 @mock.patch('apiclient.discovery.build', mock.MagicMock())
@@ -44,11 +43,11 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     anomaly.Anomaly(
         start_revision=9990, end_revision=9997, test=test_keys[0],
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=None, bug_id=12345).put()
+        bug_id=12345).put()
     anomaly.Anomaly(
         start_revision=9990, end_revision=9996, test=test_keys[0],
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=None, bug_id=54321).put()
+        bug_id=54321).put()
     # Map anomalies to base(dest_bug_id) bug.
     update_bug_with_results._MapAnomaliesToMergeIntoBug(
         dest_bug_id=12345, source_bug_id=54321)

@@ -43,10 +43,6 @@ View the graph: %(triage_url)s
 +++++++++++++++++++++++++++++++
 """
 
-_ALL_ALERTS_LINK = (
-    '<a href="https://chromeperf.appspot.com/alerts?sheriff=%s">'
-    'View all alerts for %s</a>.<br>')
-
 _PERF_TRY_EMAIL_SUBJECT = (
     'Perf Try %(status)s on %(bot)s at %(start)s:%(end)s.')
 
@@ -141,47 +137,49 @@ def GetPerfTryJobEmailReport(try_job_entity):
   return {'subject': subject, 'html': html, 'body': text}
 
 
-def GetSheriffEmails(sheriff):
+def GetSubscriptionEmails(subscriptions):
   """Gets all of the email addresses to send mail to for a Sheriff.
 
-  This includes both the general email address of the sheriff rotation,
+  This includes both the general email address of the subscription rotation,
   which is often a mailing list, and the email address of the particular
-  sheriff on duty, if applicable.
+  subscription on duty, if applicable.
 
   Args:
-    sheriff: A Sheriff entity.
+    subscriptions: Subscription entities.
 
   Returns:
     A comma-separated list of email addresses; this will be an empty string
     if there are no email addresses.
   """
-  receivers = [sheriff.email] if sheriff.email else []
-  sheriff_on_duty = _GetSheriffOnDutyEmail(sheriff)
-  if sheriff_on_duty:
-    receivers.append(sheriff_on_duty)
+  receivers = [s.notification_email for s in subscriptions
+               if s.notification_email]
+  for s in subscriptions:
+    emails = _GetSheriffOnDutyEmail(s)
+    if emails:
+      receivers.append(emails)
   return ','.join(receivers)
 
 
-def _GetSheriffOnDutyEmail(sheriff):
-  """Gets the email address of the sheriff on duty for a sheriff rotation.
+def _GetSheriffOnDutyEmail(subscription):
+  """Gets the email address of the subscription on duty for a rotation.
 
   Args:
-    sheriff: A Sheriff entity.
+    subscription: A Subscription entity.
 
   Returns:
     A comma-separated list of email addresses, or None.
   """
-  if not sheriff.url:
+  if not subscription.rotation_url:
     return None
-  response = urlfetch.fetch(sheriff.url)
+  response = urlfetch.fetch(subscription.rotation_url)
   if response.status_code != 200:
     logging.error('Response %d from %s for %s.', response.status_code,
-                  sheriff.url, sheriff.key.string_id())
+                  subscription.rotation_url, subscription.name)
     return None
   match = re.match(r'document\.write\(\'(.*)\'\)', response.content)
   if not match:
-    logging.error('Could not parse response from sheriff URL %s: %s',
-                  sheriff.url, response.content)
+    logging.error('Could not parse response from subscription URL %s: %s',
+                  subscription.rotation_url, response.content)
     return None
   addresses = match.groups()[0].split(', ')
   return ','.join('%s@google.com' % a for a in addresses)
@@ -222,10 +220,6 @@ def GetGroupReportPageLink(alert):
   return GetReportPageLink(test_path, rev=alert.end_revision)
 
 
-def GetAlertsLink(sheriff_name):
-  return _ALL_ALERTS_LINK % (urllib.quote(sheriff_name), sheriff_name)
-
-
 def GetAlertInfo(alert, test):
   """Gets the alert info formatted for the given alert and test.
 
@@ -235,12 +229,12 @@ def GetAlertInfo(alert, test):
 
   Returns:
     A dictionary of string keys to values. Keys are 'email_subject',
-    'email_text', 'email_html', 'dashboard_link', 'alerts_link', 'bug_link'.
+    'email_text', 'email_html', 'dashboard_link', 'bug_link'.
   """
   percent_changed = alert.GetDisplayPercentChanged()
   change_type = 'improvement' if alert.is_improvement else 'regression'
   test_name = '/'.join(test.test_path.split('/')[2:])
-  sheriff_name = alert.sheriff.string_id()
+  subscription_names = ','.join(alert.subscription_names)
   master = test.master_name
   bot = test.bot_name
 
@@ -253,7 +247,7 @@ def GetAlertInfo(alert, test):
       'master': master,
       'bot': bot,
       'test_name': test_name,
-      'sheriff_name': sheriff_name,
+      'sheriff_name': subscription_names,
       'start': alert.start_revision,
       'end': alert.end_revision,
       'triage_url': triage_url,
@@ -264,6 +258,5 @@ def GetAlertInfo(alert, test):
       'email_text': _SUMMARY_EMAIL_TEXT_BODY % interpolation_parameters,
       'email_html': _EMAIL_HTML_TABLE % interpolation_parameters,
       'dashboard_link': triage_url,
-      'alerts_link': GetAlertsLink(sheriff_name),
   }
   return results

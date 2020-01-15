@@ -19,12 +19,11 @@ from dashboard.common import utils
 from dashboard.common import datastore_hooks
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
-from dashboard.models import sheriff
 from dashboard.services import issue_tracker_service
 
 _TASK_QUEUE_NAME = 'auto-triage-queue'
 
-_MAX_UNTRIAGED_ANOMALIES = 1000
+_MAX_UNTRIAGED_ANOMALIES = 5000
 
 # Maximum relative difference between two steps for them to be considered
 # similar enough for the second to be a "recovery" of the first.
@@ -79,19 +78,19 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
 
   def _FetchUntriagedAnomalies(self):
     """Fetches recent untriaged anomalies asynchronously from all sheriffs."""
-    futures = []
-    for key in sheriff.Sheriff.query().fetch(keys_only=True):
-      futures.append(anomaly.Anomaly.QueryAsync(
-          keys_only=True,
-          limit=_MAX_UNTRIAGED_ANOMALIES,
-          recovered=False,
-          is_improvement=False,
-          bug_id='',
-          sheriff=key.id()))
-    ndb.Future.wait_all(futures)
-    anomalies = []
-    for future in futures:
-      anomalies.extend(future.get_result()[0])
+    # Previous code process anomalies by sheriff with LIMIT. It prevents some
+    # extreme cases that anomalies produced by a single sheriff prevent other
+    # sheriff's anomalies being processed. But it introduced some unnecessary
+    # complex to system and considered almost impossible happened.
+    future = anomaly.Anomaly.QueryAsync(
+        keys_only=True,
+        limit=_MAX_UNTRIAGED_ANOMALIES,
+        recovered=False,
+        is_improvement=False,
+        bug_id='',
+    )
+    future.wait()
+    anomalies = future.get_result()[0]
     return anomalies
 
   def _FetchOpenBugs(self):

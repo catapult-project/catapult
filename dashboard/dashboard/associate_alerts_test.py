@@ -20,7 +20,7 @@ from dashboard import associate_alerts
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
-from dashboard.models import sheriff
+from dashboard.models.subscription import Subscription
 from dashboard.services import issue_tracker_service
 
 
@@ -33,11 +33,6 @@ class AssociateAlertsTest(testing_common.TestCase):
     self.testapp = webtest.TestApp(app)
     testing_common.SetSheriffDomains(['chromium.org'])
     self.SetCurrentUser('foo@chromium.org', is_admin=True)
-
-  def _AddSheriff(self):
-    """Adds a Sheriff and returns its key."""
-    return sheriff.Sheriff(
-        id='Chromium Perf Sheriff', email='sullivan@google.com').put()
 
   def _AddTests(self):
     """Adds sample Tests and returns a list of their keys."""
@@ -54,7 +49,10 @@ class AssociateAlertsTest(testing_common.TestCase):
 
   def _AddAnomalies(self):
     """Adds sample Anomaly data and returns a dict of revision to key."""
-    sheriff_key = self._AddSheriff()
+    subscription = Subscription(
+        name='Chromium Perf Sheriff',
+        notification_email='sullivan@google.com'
+    )
     test_keys = self._AddTests()
     key_map = {}
 
@@ -64,21 +62,27 @@ class AssociateAlertsTest(testing_common.TestCase):
       anomaly_key = anomaly.Anomaly(
           start_revision=(end_rev - 5), end_revision=end_rev, test=test_key,
           median_before_anomaly=100, median_after_anomaly=200,
-          sheriff=sheriff_key).put()
+          subscriptions=[subscription],
+          subscription_names=[subscription.name],
+      ).put()
       key_map[end_rev] = anomaly_key.urlsafe()
 
     # Add an anomaly that overlaps.
     anomaly_key = anomaly.Anomaly(
         start_revision=9990, end_revision=9996, test=test_keys[0],
         median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key).put()
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
+    ).put()
     key_map[9996] = anomaly_key.urlsafe()
 
     # Add an anomaly that overlaps and has bug ID.
     anomaly_key = anomaly.Anomaly(
         start_revision=9990, end_revision=9997, test=test_keys[0],
-        median_before_anomaly=100, median_after_anomaly=200,
-        sheriff=sheriff_key, bug_id=12345).put()
+        median_before_anomaly=100, median_after_anomaly=200, bug_id=12345,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
+    ).put()
     key_map[9997] = anomaly_key.urlsafe()
     return key_map
 

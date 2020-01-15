@@ -201,30 +201,29 @@ def _ComponentFromCrLabel(label):
 
 def _FetchLabelsAndComponents(alert_keys):
   """Fetches a list of bug labels and components for the given Alert keys."""
-  labels = set(_DEFAULT_LABELS)
-  components = set()
   alerts = ndb.get_multi(alert_keys)
-  sheriff_keys = set(alert.sheriff for alert in alerts)
-  sheriff_labels = [sheriff.labels for sheriff in ndb.get_multi(sheriff_keys)]
-  tags = [item for sublist in sheriff_labels for item in sublist]
+  subscriptions = [s for alert in alerts for s in alert.subscriptions]
+  tags = set(l for s in subscriptions for l in s.bug_labels)
+  bug_labels = set(_DEFAULT_LABELS)
+  bug_components = set(c for s in subscriptions for c in s.bug_components)
   for tag in tags:
     if tag.startswith('Cr-'):
-      components.add(_ComponentFromCrLabel(tag))
+      bug_components.add(_ComponentFromCrLabel(tag))
     else:
-      labels.add(tag)
+      bug_labels.add(tag)
   if any(a.internal_only for a in alerts):
     # This is a Chrome-specific behavior, and should ideally be made
     # more general (maybe there should be a list in datastore of bug
     # labels to add for internal bugs).
-    labels.add('Restrict-View-Google')
+    bug_labels.add('Restrict-View-Google')
   for test in {a.GetTestMetadataKey() for a in alerts}:
     labels_components = bug_label_patterns.GetBugLabelsForTest(test)
     for item in labels_components:
       if item.startswith('Cr-'):
-        components.add(_ComponentFromCrLabel(item))
+        bug_components.add(_ComponentFromCrLabel(item))
       else:
-        labels.add(item)
-  return labels, components
+        bug_labels.add(item)
+  return bug_labels, bug_components
 
 def _FetchBugComponents(alert_keys):
   """Fetches the ownership bug components of the most recent alert on a per-test

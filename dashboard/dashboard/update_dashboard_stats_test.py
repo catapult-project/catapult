@@ -100,9 +100,9 @@ class UpdateDashboardStatsTest(test.TestCase):
       update_dashboard_stats.deferred, 'defer')
   def testPost_ProcessAlerts_Success(self, mock_defer):
     created = datetime.datetime.now() - datetime.timedelta(hours=1)
-    sheriff = ndb.Key('Sheriff', 'Chromium Perf Sheriff')
+    # sheriff = ndb.Key('Sheriff', 'Chromium Perf Sheriff')
     anomaly_entity = anomaly.Anomaly(
-        test=utils.TestKey('M/B/suite'), timestamp=created, sheriff=sheriff)
+        test=utils.TestKey('M/B/suite'), timestamp=created) #, sheriff=sheriff)
     anomaly_entity.put()
 
     self.testapp.get('/update_dashboard_stats')
@@ -114,9 +114,9 @@ class UpdateDashboardStatsTest(test.TestCase):
       update_dashboard_stats, '_ProcessPinpointStats', _StubFunc)
   def testPost_ProcessAlerts_NoAlerts(self):
     created = datetime.datetime.now() - datetime.timedelta(days=2)
-    sheriff = ndb.Key('Sheriff', 'Chromium Perf Sheriff')
+    # sheriff = ndb.Key('Sheriff', 'Chromium Perf Sheriff')
     anomaly_entity = anomaly.Anomaly(
-        test=utils.TestKey('M/B/suite'), timestamp=created, sheriff=sheriff)
+        test=utils.TestKey('M/B/suite'), timestamp=created) # , sheriff=sheriff)
     anomaly_entity.put()
 
     self.testapp.get('/update_dashboard_stats')

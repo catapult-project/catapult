@@ -14,22 +14,22 @@ from google.appengine.api import mail
 from dashboard import email_template
 
 
-def EmailSheriff(sheriff, test, anomaly):
-  """Sends an email to the sheriff on duty about the given anomaly.
+def EmailSheriff(subscriptions, test, anomaly):
+  """Sends an email to subscriptions on duty about the given anomaly.
 
   Args:
-    sheriff: sheriff.Sheriff entity.
+    subscriptions: subscription.Subscription entities.
     test: The graph_data.TestMetadata entity associated with the anomaly.
     anomaly: The anomaly.Anomaly entity.
   """
-  receivers = email_template.GetSheriffEmails(sheriff)
+  receivers = email_template.GetSubscriptionEmails(subscriptions)
   if not receivers:
-    logging.warn('No email address for %s', sheriff)
+    logging.warn('No email address for %s', subscriptions)
     return
   anomaly_info = email_template.GetAlertInfo(anomaly, test)
   mail.send_mail(sender='gasper-alerts@google.com',
                  to=receivers,
                  subject=anomaly_info['email_subject'],
                  body=anomaly_info['email_text'],
-                 html=anomaly_info['email_html'] + anomaly_info['alerts_link'])
+                 html=anomaly_info['email_html'])
   logging.info('Sent single mail to %s', receivers)

@@ -19,7 +19,6 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
-from dashboard.models import sheriff
 from dashboard.services import issue_tracker_service
 
 
@@ -35,8 +34,7 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
           mark_recovered_alerts.MarkRecoveredAlertsHandler)])
     self.testapp = webtest.TestApp(app)
 
-  def _AddTestData(self, series, sheriff_key,
-                   improvement_direction=anomaly.UP):
+  def _AddTestData(self, series, improvement_direction=anomaly.UP):
     """Adds one sample TestMetadata and associated data.
 
     Args:
@@ -51,16 +49,12 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
     test_path = 'M/b/benchmark/t'
     test = utils.TestKey(test_path).get()
     test.improvement_direction = improvement_direction
-    test.sheriff = sheriff_key
-    sheriff_entity = sheriff_key.get()
-    sheriff_entity.patterns.append(test.test_path)
-    sheriff_entity.put()
     if series and isinstance(series[0], (int, float)):
       series = enumerate(series, start=1)
     testing_common.AddRows(test_path, {x: {'value': y} for x, y in series})
     return test.put()
 
-  def _AddAnomalyForTest(self, sheriff_key, test_key, revision,
+  def _AddAnomalyForTest(self, test_key, revision,
                          median_before, median_after, bug_id=None):
     """Adds a sample Anomaly and returns the key."""
     if bug_id > 0:
@@ -74,78 +68,73 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
         median_before_anomaly=median_before,
         median_after_anomaly=median_after,
         bug_id=bug_id,
-        sheriff=sheriff_key).put()
+        ).put()
 
   def testPost_Recovered_MarkedAsRecovered(self):
-    sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     values = [
         49, 50, 51, 50, 51, 49, 51, 50, 50, 49,
         55, 54, 55, 56, 54, 56, 57, 56, 55, 56,
         49, 50, 51, 50, 51, 49, 51, 50, 50, 49,
     ]
-    test_key = self._AddTestData(values, sheriff_key)
+    test_key = self._AddTestData(values)
     anomaly_key = self._AddAnomalyForTest(
-        sheriff_key, test_key, revision=11, median_before=50, median_after=55)
+        test_key, revision=11, median_before=50, median_after=55)
     self.testapp.post('/mark_recovered_alerts')
     self.ExecuteTaskQueueTasks(
         '/mark_recovered_alerts', mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertTrue(anomaly_key.get().recovered)
 
   def testPost_NotRecovered_NotMarkedAsRecovered(self):
-    sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     values = [
         49, 50, 51, 50, 51, 49, 51, 50, 50, 49,
         55, 54, 55, 56, 54, 56, 57, 56, 55, 56,
         55, 54, 55, 56, 54, 56, 57, 56, 55, 56,
     ]
-    test_key = self._AddTestData(values, sheriff_key)
+    test_key = self._AddTestData(values)
     anomaly_key = self._AddAnomalyForTest(
-        sheriff_key, test_key, revision=11, median_before=50, median_after=55)
+        test_key, revision=11, median_before=50, median_after=55)
     self.testapp.post('/mark_recovered_alerts')
     self.ExecuteTaskQueueTasks(
         '/mark_recovered_alerts', mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertFalse(anomaly_key.get().recovered)
 
   def testPost_ChangeTooLarge_NotMarkedAsRecovered(self):
-    sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     values = [
         49, 50, 51, 50, 51, 49, 51, 50, 50, 49,
         55, 54, 55, 56, 54, 56, 57, 56, 55, 56,
         30, 29, 32, 34, 30, 31, 31, 32, 33, 30,
     ]
-    test_key = self._AddTestData(values, sheriff_key)
+    test_key = self._AddTestData(values)
     anomaly_key = self._AddAnomalyForTest(
-        sheriff_key, test_key, revision=11, median_before=50, median_after=55)
+        test_key, revision=11, median_before=50, median_after=55)
     self.testapp.post('/mark_recovered_alerts')
     self.ExecuteTaskQueueTasks(
         '/mark_recovered_alerts', mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertFalse(anomaly_key.get().recovered)
 
   def testPost_ChangeWrongDirection_NotMarkedAsRecovered(self):
-    sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     values = [
         49, 50, 51, 50, 51, 49, 51, 50, 50, 49,
         55, 54, 55, 56, 54, 56, 57, 56, 55, 56,
         59, 60, 61, 60, 61, 59, 61, 60, 60, 59,
     ]
-    test_key = self._AddTestData(values, sheriff_key)
+    test_key = self._AddTestData(values)
     anomaly_key = self._AddAnomalyForTest(
-        sheriff_key, test_key, revision=11, median_before=50, median_after=55)
+        test_key, revision=11, median_before=50, median_after=55)
     self.testapp.post('/mark_recovered_alerts')
     self.ExecuteTaskQueueTasks(
         '/mark_recovered_alerts', mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertFalse(anomaly_key.get().recovered)
 
   def testPost_AlertInvalid_NotMarkedAsRecovered(self):
-    sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     values = [
         49, 50, 51, 50, 51, 49, 51, 50, 50, 49,
         55, 54, 55, 56, 54, 56, 57, 56, 55, 56,
         49, 50, 51, 50, 51, 49, 51, 50, 50, 49,
     ]
-    test_key = self._AddTestData(values, sheriff_key)
+    test_key = self._AddTestData(values)
     anomaly_key = self._AddAnomalyForTest(
-        sheriff_key, test_key, revision=11, median_before=50, median_after=55,
+        test_key, revision=11, median_before=50, median_after=55,
         bug_id=-1)
     self.testapp.post('/mark_recovered_alerts')
     self.ExecuteTaskQueueTasks(
@@ -160,15 +149,14 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
       return_value={'items': [{'id': 1234}]})
   def testPost_AllAnomaliesRecovered_AddsComment(
       self, _, add_bug_comment_mock):
-    sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     values = [
         49, 50, 51, 50, 51, 49, 51, 50, 50, 49,
         55, 54, 55, 56, 54, 56, 57, 56, 55, 56,
         49, 50, 51, 50, 51, 49, 51, 50, 50, 49,
     ]
-    test_key = self._AddTestData(values, sheriff_key)
+    test_key = self._AddTestData(values)
     anomaly_key = self._AddAnomalyForTest(
-        sheriff_key, test_key, revision=11, median_before=50, median_after=55,
+        test_key, revision=11, median_before=50, median_after=55,
         bug_id=1234)
     self.testapp.post('/mark_recovered_alerts')
     self.ExecuteTaskQueueTasks(
@@ -194,7 +182,6 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
     # This test is based on a real-world case on a relatively noisy graph where
     # after the step up at r362262 the results meandered down again with no
     # clear step. Alert key agxzfmNocm9tZXBlcmZyFAsSB0Fub21hbHkYgIDAnYnIqAoM.
-    sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     series = [
         (362080, 1562.6), (362086, 1641.4), (362095, 1572.4), (362102, 1552.9),
         (362104, 1579.9), (362114, 1564.6), (362118, 1570.5), (362122, 1555.7),
@@ -211,9 +198,9 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
         (362950, 1567.4), (362963, 1608.3)
     ]
     test_key = self._AddTestData(
-        series, sheriff_key, improvement_direction=anomaly.DOWN)
+        series, improvement_direction=anomaly.DOWN)
     anomaly_key = self._AddAnomalyForTest(
-        sheriff_key, test_key, revision=362262,
+        test_key, revision=362262,
         median_before=1579.2, median_after=1680.7)
     self.testapp.post('/mark_recovered_alerts')
     self.ExecuteTaskQueueTasks(
@@ -224,7 +211,6 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
     # This test is based on a real-world case where there was a step up at
     # r362399, and shortly thereafter a step down at r362680 of roughly similar
     # magnitude. Alert key agxzfmNocm9tZXBlcmZyFAsSB0Fub21hbHkYgIDAnbimogoM
-    sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     series = [
         (361776, 78260720), (361807, 78760907), (361837, 77723737),
         (361864, 77984606), (361869, 78660955), (361879, 78276998),
@@ -237,9 +223,9 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
         (362975, 77906097)
     ]
     test_key = self._AddTestData(
-        series, sheriff_key, improvement_direction=anomaly.DOWN)
+        series, improvement_direction=anomaly.DOWN)
     anomaly_key = self._AddAnomalyForTest(
-        sheriff_key, test_key, revision=362399,
+        test_key, revision=362399,
         median_before=78275468.8, median_after=79630313.6)
     self.testapp.post('/mark_recovered_alerts')
     self.ExecuteTaskQueueTasks(

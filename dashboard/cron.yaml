@@ -14,14 +14,6 @@ cron:
   url: /mark_recovered_alerts
   schedule: every 6 hours
 
-- description: Send e-mails with daily anomaly summaries.
-  url: /email_summary
-  schedule: every 24 hours
-
-- description: Send e-mails with daily anomaly summaries for internal data.
-  url: /email_summary?internal_only=1
-  schedule: every 24 hours
-
 - description: Run a job to mark tests as deprecated.
   url: /deprecate_tests
   schedule: every 48 hours

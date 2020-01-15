@@ -41,6 +41,9 @@ class SheriffConfigClientTest(testing_common.TestCase):
     def json(self):
       return json.loads(self.text)
 
+    def status_code(self):
+      return 200
+
   class _Session(object):
 
     def __init__(self, response):
