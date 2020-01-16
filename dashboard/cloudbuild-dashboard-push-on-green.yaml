@@ -6,24 +6,32 @@ options:
   diskSizeGb: 100
   machineType: 'N1_HIGHCPU_8'
 steps:
-  - name: 'docker/compose:1.19.0'
-    args: [
-      '-f', 'dashboard/dev_dockerfiles/cloud_build/docker-compose.yml',
-      'build'
-    ]
-  - name: 'docker/compose:1.19.0'
-    args: [
-      '-f', 'dashboard/dev_dockerfiles/cloud_build/docker-compose.yml',
-      'run', 'dashboard-tests'
-    ]
-  # We need to provide the auth token that the service account is using to the
-  # container from which we're going to deploy the Dashboard services.
-  - name: 'docker/compose:1.19.0'
-    args: [
-      '-f', 'dashboard/dev_dockerfiles/cloud_build/docker-compose.yml',
-      'run',
-      # Pass in the version information from here, so we can use the SHORT_SHA
-      # environment.
-      '-e', 'VERSION=cloud-build-${SHORT_SHA}',
-      'deploy-dashboard',
-    ]
+- name: 'gcr.io/$PROJECT_ID/docker-compose'
+  dir: '/workspace/dashboard'
+  args: [
+    '-f', 'dev_dockerfiles/cloud_build/docker-compose.yml',
+    'build'
+  ]
+- name: 'gcr.io/$PROJECT_ID/docker-compose'
+  dir: '/workspace/dashboard'
+  args: [
+    '-f', 'dev_dockerfiles/cloud_build/docker-compose.yml',
+    'run', 'dashboard-tests'
+  ]
+# We need to provide the auth token that the service account is using to the
+# container from which we're going to deploy the Dashboard services.
+- name: 'gcr.io/$PROJECT_ID/docker-compose'
+  dir: '/workspace/dashboard'
+  args: [
+    '-f', 'dev_dockerfiles/cloud_build/docker-compose.yml',
+    'run',
+    'deploy-dashboard',
+  ]
+- name: 'gcr.io/cloud-builders/gcloud'
+  dir: '/workspace/deploy-dashboard'
+  args: [
+    app, deploy, '--promote', '--version', 'cloud-build-${SHORT_SHA}',
+    # We enumerate the files we need to deploy just for the dashboard.
+    api.yaml, app.yaml, cron.yaml, dispatch.yaml, index.yaml,
+    upload-processing.yaml, upload.yaml,
+  ]

@@ -13,15 +13,4 @@ RUN apt-get install -y \
 
 ENV PYTHONPATH=/usr/lib/google-cloud-sdk/platform/google_appengine
 
-# Copy the sources into the workdir, at build time.
-ADD ${SOURCE_DIR} /catapult
-
-# TODO(fancl): Figure out if we can remove this work-around later.
-# It turns out, running the tests need to install git hooks.
-# Instead of removing that part, we instead fake the fact that we have a .git
-# directory.
-RUN mkdir -p /catapult/.git/hooks
-WORKDIR /catapult/dashboard
-
-# Ensure that the protobufs are always built.
-RUN make -C dashboard
+WORKDIR /workspace/dashboard

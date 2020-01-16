@@ -32,19 +32,29 @@ def Main(args, extra_args):
   tracing_path = os.path.join(catapult_path, 'tracing')
   _AddToPathIfNeeded(tracing_path)
 
+  # Initialise the node_runner module to ensure that we have the right modules
+  # available even if we hadn't run the tests or the presubmit.
+  _AddToPathIfNeeded(os.path.join(catapult_path, 'common', 'py_utils'))
+  _AddToPathIfNeeded(os.path.join(catapult_path, 'common', 'node_runner'))
+  from node_runner import node_util
+  node_util.InitNode()
+
   try:
     from dashboard_build import preprocess
     from catapult_build import temp_deployment_dir
     deployment_paths = dashboard.PathsForDeployment()
-
+    target_dir = args.target_dir if args.target_dir else None
     with temp_deployment_dir.TempDeploymentDir(
-        deployment_paths, use_symlinks=True,
-        cleanup=not args.dry_run) as tempdir:
+        deployment_paths, use_symlinks=not args.copy_files,
+        cleanup=not args.dry_run, reuse_path=target_dir) as tempdir:
       logging.info('Temporary working directory: %s', tempdir)
       viewer_dir_path = os.path.join(tempdir, 'vulcanized_histograms_viewer')
       viewer_html_path = os.path.join(viewer_dir_path,
                                       'vulcanized_histograms_viewer.html')
-      os.mkdir(viewer_dir_path)
+      try:
+        os.mkdir(viewer_dir_path)
+      except OSError:
+        pass
       with open(viewer_html_path, 'w') as f:
         from tracing_build import vulcanize_histograms_viewer
         s = vulcanize_histograms_viewer.VulcanizeHistogramsViewer()
@@ -61,14 +71,10 @@ def Main(args, extra_args):
         if not extra_args:
           logging.info(
               'Deploying dashboard, api, upload, and pinpoint services')
-          appengine_deploy.Deploy(deployment_paths, ['api.yaml'],
-                                  os.environ.get('VERSION'))
-          appengine_deploy.Deploy(deployment_paths, ['app.yaml'],
-                                  os.environ.get('VERSION'))
-          appengine_deploy.Deploy(deployment_paths, ['pinpoint.yaml'],
-                                  os.environ.get('VERSION'))
-          appengine_deploy.Deploy(deployment_paths, ['upload.yaml'],
-                                  os.environ.get('VERSION'))
+          appengine_deploy.Deploy(deployment_paths, [
+              'api.yaml', 'app.yaml', 'upload.yaml', 'upload-processing.yaml',
+              'pinpoint.yaml'
+          ], os.environ.get('VERSION'))
   except RuntimeError as error:
     logging.error('Encountered an error: %s', error)
     sys.exit(1)
@@ -83,6 +89,15 @@ if __name__ == '__main__':
       '-n',
       '--dry_run',
       help='Create the deployment directory but do not actually deploy.',
+      action='store_true')
+  parser.add_argument(
+      '-t',
+      '--target_dir',
+      help='Specify the target directory, instead of creating a new one.')
+  parser.add_argument(
+      '-c',
+      '--copy_files',
+      help='Specify whether to copy files instead of symlinking.',
       action='store_true')
   args, extra_args = parser.parse_known_args()
 

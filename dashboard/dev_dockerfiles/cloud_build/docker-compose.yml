@@ -5,22 +5,17 @@ services:
       # We need the whole catapult repository for now.
       context: ../../..
       dockerfile: dashboard/dev_dockerfiles/cloud_build/Dockerfile
-      args:
-        SOURCE_DIR: .
-      # TODO(fancl): Add devserver tests.
+    volumes:
+    - /workspace:/workspace
     command: [
-      ./bin/run_py_tests, --verbose
+      'sh', '-x', /workspace/dashboard/dev_dockerfiles/cloud_build/run_tests.sh
     ]
   deploy-dashboard:
     build:
       context: ../../..
       dockerfile: dashboard/dev_dockerfiles/cloud_build/Dockerfile
-      args:
-        SOURCE_DIR: .
+    volumes:
+    - /workspace:/workspace
     command: [
-      ./bin/deploy,
-      # Promote this version to production
-      --promote,
-      # We enumerate the files we need to deploy just for the dashboard.
-      app.yaml, api.yaml, upload.yaml, upload-processing.yaml, dispatch.yaml,
+      'sh', '-x', /workspace/dashboard/dev_dockerfiles/cloud_build/prepare_deployment.sh
     ]
