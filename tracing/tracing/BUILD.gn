@@ -26,6 +26,14 @@ source_set("histogram") {
   ]
 }
 
+source_set("reserved_infos") {
+  configs += [ ":common_config" ]
+  sources = [
+    "value/diagnostics/reserved_infos.h",
+    "value/diagnostics/reserved_infos.cc",
+  ]
+}
+
 test("histogram_unittests") {
   configs += [ ":common_config" ]
   sources = [

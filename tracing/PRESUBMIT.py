@@ -39,6 +39,18 @@ def _CheckRegisteredDiagnostics(input_api, output_api):
   return results
 
 
+def _WarnOnReservedInfosChanges(input_api, output_api):
+  source_file_filter = lambda x: input_api.FilterSourceFile(
+      x, white_list=[r'.*reserved_infos\.(py|cc)$'])
+
+  count = len(input_api.AffectedSourceFiles(source_file_filter))
+  results = []
+  if count == 1:
+    results.append(output_api.PresubmitPromptWarning(
+        'Looks like you are modifying one of reserved_infos.py and\n'
+        'reserved_infos.cc. Please make sure the values in both files\n'
+        'are in sync.'))
+  return results
 
 def CheckChangeOnUpload(input_api, output_api):
   return _CheckChange(input_api, output_api)
@@ -68,6 +80,7 @@ def _CheckChange(input_api, output_api):
 
   results += _CheckRegisteredMetrics(input_api, output_api)
   results += _CheckRegisteredDiagnostics(input_api, output_api)
+  results += _WarnOnReservedInfosChanges(input_api, output_api)
 
   return results
 
