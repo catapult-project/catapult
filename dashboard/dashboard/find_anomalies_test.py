@@ -22,6 +22,8 @@ from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from dashboard.models import sheriff
+from dashboard.models.subscription import Subscription
+from dashboard.models.subscription import VISIBILITY
 from tracing.value.diagnostics import reserved_infos
 
 # Sample time series.
@@ -92,7 +94,7 @@ class ModelMatcher(object):
 
   def __eq__(self, rhs):
     """Checks to see if RHS has the same name."""
-    return rhs.key.string_id() == self._name
+    return (rhs.key.string_id() if rhs.key else rhs.name) == self._name
 
   def __repr__(self):
     """Shows a readable revision which can be printed when assert fails."""
@@ -158,22 +160,24 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.UpdateSheriff()
     test.put()
 
+    s1 = Subscription(name='sheriff1', visibility=VISIBILITY.PUBLIC)
+    s2 = Subscription(name='sheriff2', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([], None))) as m:
+                           mock.MagicMock(return_value=([s1, s2], None))) as m:
       find_anomalies.ProcessTests([test.key])
       self.assertEqual(m.call_args_list, [mock.call(test.key.id())])
     self.ExecuteDeferredTasks('default')
 
     expected_calls = [
-        mock.call(ModelMatcher('sheriff'),
+        mock.call([ModelMatcher('sheriff1'), ModelMatcher('sheriff2')],
                   ModelMatcher(
                       'ChromiumGPU/linux-release/scrolling_benchmark/ref'),
                   EndRevisionMatcher(10011)),
-        mock.call(ModelMatcher('sheriff'),
+        mock.call([ModelMatcher('sheriff1'), ModelMatcher('sheriff2')],
                   ModelMatcher(
                       'ChromiumGPU/linux-release/scrolling_benchmark/ref'),
                   EndRevisionMatcher(10041)),
-        mock.call(ModelMatcher('sheriff'),
+        mock.call([ModelMatcher('sheriff1'), ModelMatcher('sheriff2')],
                   ModelMatcher(
                       'ChromiumGPU/linux-release/scrolling_benchmark/ref'),
                   EndRevisionMatcher(10061))]
@@ -184,7 +188,7 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     def AnomalyExists(
         anomalies, test, percent_changed, direction,
-        start_revision, end_revision, sheriff_name, internal_only, units,
+        start_revision, end_revision, subscription_names, internal_only, units,
         absolute_delta, statistic):
       for a in anomalies:
         if (a.test == test and
@@ -192,7 +196,7 @@ class ProcessAlertsTest(testing_common.TestCase):
             a.direction == direction and
             a.start_revision == start_revision and
             a.end_revision == end_revision and
-            a.sheriff.string_id() == sheriff_name and
+            a.subscription_names == subscription_names and
             a.internal_only == internal_only and
             a.units == units and
             a.absolute_delta == absolute_delta and
@@ -203,14 +207,16 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertTrue(
         AnomalyExists(
             anomalies, test.key, percent_changed=100, direction=anomaly.UP,
-            start_revision=10007, end_revision=10011, sheriff_name='sheriff',
+            start_revision=10007, end_revision=10011,
+            subscription_names=['sheriff1', 'sheriff2'],
             internal_only=False, units='ms', absolute_delta=50,
             statistic='avg'))
 
     self.assertTrue(
         AnomalyExists(
             anomalies, test.key, percent_changed=-50, direction=anomaly.DOWN,
-            start_revision=10037, end_revision=10041, sheriff_name='sheriff',
+            start_revision=10037, end_revision=10041,
+            subscription_names=['sheriff1', 'sheriff2'],
             internal_only=False, units='ms', absolute_delta=-100,
             statistic='avg'))
 
@@ -218,14 +224,16 @@ class ProcessAlertsTest(testing_common.TestCase):
         AnomalyExists(
             anomalies, test.key, percent_changed=sys.float_info.max,
             direction=anomaly.UP, start_revision=10057, end_revision=10061,
-            sheriff_name='sheriff', internal_only=False, units='ms',
+            internal_only=False, units='ms',
+            subscription_names=['sheriff1', 'sheriff2'],
             absolute_delta=100, statistic='avg'))
 
     # This is here just to verify that AnomalyExists returns False sometimes.
     self.assertFalse(
         AnomalyExists(
             anomalies, test.key, percent_changed=100, direction=anomaly.DOWN,
-            start_revision=10037, end_revision=10041, sheriff_name='sheriff',
+            start_revision=10037, end_revision=10041,
+            subscription_names=['sheriff1', 'sheriff2'],
             internal_only=False, units='ms', absolute_delta=500,
             statistic='avg'))
 
@@ -367,13 +375,14 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.improvement_direction = anomaly.UP
     test.UpdateSheriff()
     test.put()
+    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([], None))) as m:
+                           mock.MagicMock(return_value=([s], None))) as m:
       find_anomalies.ProcessTests([test.key])
       self.assertEqual(m.call_args_list, [mock.call(test.key.id())])
     self.ExecuteDeferredTasks('default')
     mock_email_sheriff.assert_called_once_with(
-        ModelMatcher('sheriff'),
+        [ModelMatcher('sheriff')],
         ModelMatcher('ChromiumGPU/linux-release/scrolling_benchmark/ref'),
         EndRevisionMatcher(10041))
 
@@ -393,13 +402,14 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.UpdateSheriff()
     test.put()
 
+    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([], None))) as m:
+                           mock.MagicMock(return_value=([s], None))) as m:
       find_anomalies.ProcessTests([test.key])
       self.assertEqual(m.call_args_list, [mock.call(test.key.id())])
     self.ExecuteDeferredTasks('default')
     expected_calls = [
-        mock.call(ModelMatcher('sheriff'),
+        mock.call([ModelMatcher('sheriff')],
                   ModelMatcher(
                       'ChromiumGPU/linux-release/scrolling_benchmark/ref'),
                   EndRevisionMatcher(10011))]

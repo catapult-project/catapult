@@ -37,11 +37,15 @@ class EmailSheriffTest(testing_common.TestCase):
   def _GetDefaultMailArgs(self):
     """Adds an Anomaly and returns arguments for email_sheriff.EmailSheriff."""
     test_entity = self._AddTestToStubDataStore()
-    subscription = Subscription(
-        name='Chromium Perf Sheriff',
+    subscription_url = Subscription(
+        name='Chromium Perf Sheriff URL',
         rotation_url=_SHERIFF_URL,
+        bug_labels=['Performance-Sheriff-URL']
+    )
+    subscription_email = Subscription(
+        name='Chromium Perf Sheriff Mail',
         notification_email=_SHERIFF_EMAIL,
-        bug_labels=['Performance-Sheriff']
+        bug_labels=['Performance-Sheriff-Mail']
     )
 
     anomaly_entity = anomaly.Anomaly(
@@ -49,11 +53,14 @@ class EmailSheriffTest(testing_common.TestCase):
         median_after_anomaly=10.0,
         start_revision=10002,
         end_revision=10004,
-        subscription_names=[subscription.name],
-        subscriptions=[subscription],
+        subscription_names=[
+            subscription_url.name,
+            subscription_email.name,
+        ],
+        subscriptions=[subscription_url, subscription_email],
         test=utils.TestKey('ChromiumPerf/Win7/dromaeo/dom'))
     return {
-        'subscriptions': [subscription],
+        'subscriptions': [subscription_url, subscription_email],
         'test': test_entity,
         'anomaly': anomaly_entity
     }

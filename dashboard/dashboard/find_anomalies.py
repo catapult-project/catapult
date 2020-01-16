@@ -157,7 +157,7 @@ def _ProcessTestStat(config, test, stat, rows, ref_rows):
   for anomaly_entity in anomalies:
     if (anomaly_entity.bug_id is None and
         not anomaly_entity.is_improvement):
-      deferred.defer(_EmailSheriff, legacy_sheriff, test.key,
+      deferred.defer(_EmailSheriff, anomaly_entity.subscriptions, test.key,
                      anomaly_entity.key)
 
 
