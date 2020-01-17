@@ -9,6 +9,7 @@ from telemetry.internal.platform import tracing_agent
 from tracing.trace_data import trace_data
 
 from py_trace_event import trace_event
+from py_trace_event import trace_time
 
 
 def IsAgentEnabled():
@@ -58,6 +59,20 @@ class TelemetryTracingAgent(tracing_agent.TracingAgent):
   def __init__(self, platform_backend):
     super(TelemetryTracingAgent, self).__init__(platform_backend)
     self._trace_file = None
+
+    # When tracing Chrome on Android, Telemetry and the browser run on
+    # different devices. The trace_set_clock_snapshot() function provides
+    # a clock snapshot for the perfetto trace processor to synchronize
+    # host and device clocks.
+    if platform_backend and platform_backend.GetOSName() == 'android':
+      telemetry_ts = trace_time.Now()
+      device_uptime = platform_backend.device.RunShellCommand(
+          ['cat', '/proc/uptime'], single_line=True)
+      boottime_ts = float(device_uptime.split(' ')[0]) * 1e6
+      trace_event.trace_set_clock_snapshot(
+          telemetry_ts=telemetry_ts,
+          boottime_ts=boottime_ts,
+      )
 
   @classmethod
   def IsSupported(cls, platform_backend):

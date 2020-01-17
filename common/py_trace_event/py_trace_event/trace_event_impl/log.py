@@ -41,8 +41,24 @@ _log_file = None
 
 _cur_events = [] # events that have yet to be buffered
 _benchmark_metadata = {}
+
+# Default timestamp values for clock snapshot.
+# If a ClockSnapshot message with these default values is emitted, Telemetry
+# events' time will not be translated by trace processor, because both
+# TELEMETRY and BOOTTIME timestamps are the same. This allows the old-style
+# synchronization (using clock_sync events) to take place in catapult.
+# If we want to actually synchronize Telemetry with other trace producers
+# via clock snapshots in trace processor, we should set _boottime_ts to the
+# actual BOOTTIME of the device and _emit_clock_sync to False. In this case,
+# trace processor will translate both Chrome's and telemetry's timestamps
+# to the device time (BOOTTIME) during proto-to-json conversion, and catapult's
+# clock synchronization will not take place because we do not emit the
+# clock_sync event.
+# Note that we can't use both synchronization methods at the same time
+# because that will lead to wrong results.
 _telemetry_ts = trace_time.Now()
 _boottime_ts = _telemetry_ts
+_emit_clock_sync = True
 
 _tls = threading.local() # tls used to detect forking/etc
 _atexit_regsitered_for_pid = None
@@ -74,7 +90,7 @@ def _disallow_tracing_control():
   _control_allowed = False
 
 def trace_enable(log_file=None, format=None):
-  """ Enable tracing.
+  """Enable tracing.
 
   Args:
     log_file: file to write trace into. Can be a file-like object,
@@ -82,8 +98,13 @@ def trace_enable(log_file=None, format=None):
       from executable name.
     format: trace file format. See trace_event.py for available options.
   """
+  global _emit_clock_sync
   if format is None:
     format = JSON
+  # Can only write clock snapshots in protobuf format. In all other formats
+  # should use clock_syncs.
+  if format != PROTOBUF:
+    _emit_clock_sync = True
   _trace_enable(log_file, format)
 
 def _write_header():
@@ -297,7 +318,7 @@ def trace_add_benchmark_metadata(
     story_run_index,
     label=None,
 ):
-  """ Add benchmark metadata to be written to trace file.
+  """Add benchmark metadata to be written to trace file.
 
   Args:
     benchmark_start_time_us: Benchmark start time in microseconds.
@@ -324,10 +345,11 @@ def trace_add_benchmark_metadata(
         story_run_index=story_run_index,
         label=label,
     )
-    perfetto_trace_writer.write_chrome_metadata(
-        output=_log_file,
-        clock_domain="TELEMETRY",
-    )
+    if _emit_clock_sync:
+      perfetto_trace_writer.write_chrome_metadata(
+          output=_log_file,
+          clock_domain="TELEMETRY",
+      )
   elif _format == JSON_WITH_METADATA:
     # Store metadata to write it in the footer.
     telemetry_metadata_for_json = {
@@ -342,6 +364,7 @@ def trace_add_benchmark_metadata(
     if label:
       telemetry_metadata_for_json["labels"] = [label]
 
+    assert _emit_clock_sync
     _benchmark_metadata = {
         # TODO(crbug.com/948633): For right now, we use "TELEMETRY" as the
         # clock domain to guarantee that Telemetry is given its own clock
@@ -364,10 +387,46 @@ def trace_add_benchmark_metadata(
     raise TraceException("Unknown format: %s" % _format)
 
 def trace_set_clock_snapshot(telemetry_ts, boottime_ts):
+  """Set timestamps to be written in a ClockSnapshot message.
+
+  This function must be called before the trace start. When trace starts,
+  a ClockSnapshot message with given timestamps will be written in protobuf
+  format. In json format, nothing will happen. Use clock_sync function
+  for clock synchronization in json format.
+
+  Args:
+    telemetry_ts: BOOTTIME of the device where Telemetry runs.
+    boottime_ts: BOOTTIME of the device where the tested browser runs.
+  """
   global _telemetry_ts
   global _boottime_ts
+  global _emit_clock_sync
+  global _enabled
+  if _enabled:
+    raise TraceException("Can't set the clock snapshot after trace started.")
   _telemetry_ts = telemetry_ts
   _boottime_ts = boottime_ts
+  _emit_clock_sync = False
+
+def clock_sync(sync_id, issue_ts=None):
+  """Add a clock sync event to the trace log.
+
+  Adds a clock sync event if the TBMv2-style synchronization is enabled.
+  It's enabled in two cases:
+    1) Trace format is json.
+    2) The clock snapshot was not set before the trace start.
+
+  Args:
+    sync_id: ID of clock sync event.
+    issue_ts: Time at which clock sync was issued, in microseconds.
+  """
+  if _emit_clock_sync:
+    time_stamp = trace_time.Now()
+    args_to_log = {"sync_id": sync_id}
+    if issue_ts: # Issuer if issue_ts is set, else reciever.
+      assert issue_ts <= time_stamp
+      args_to_log["issue_ts"] = issue_ts
+    add_trace_event("c", time_stamp, "python", "clock_sync", args_to_log)
 
 def _trace_disable_atexit():
   trace_disable()

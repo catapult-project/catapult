@@ -113,21 +113,8 @@ if trace_event_impl:
   def traced(fn):
     return trace_event_impl.traced(fn)
 
-  def clock_sync(sync_id, issue_ts=None):
-    '''
-    Add a clock sync event to the trace log.
-
-    Args:
-      sync_id: ID of clock sync event.
-      issue_ts: Time at which clock sync was issued, in microseconds.
-    '''
-    time_stamp = trace_time.Now()
-    args_to_log = {'sync_id': sync_id}
-    if issue_ts: # Issuer if issue_ts is set, else reciever.
-      assert issue_ts <= time_stamp
-      args_to_log['issue_ts'] = issue_ts
-    trace_event_impl.add_trace_event(
-        "c", time_stamp, "python", "clock_sync", args_to_log)
+  def clock_sync(*args, **kwargs):
+    return trace_event_impl.clock_sync(*args, **kwargs)
 
   def is_tracing_controllable():
     return trace_event_impl.is_tracing_controllable()
@@ -271,7 +258,8 @@ trace.__doc__ = """Traces a block of code using a with statement.
   If tracing an entire function call, prefer the @traced decorator.
   """
 
-traced.__doc__ = """
+traced.__doc__ = """Traces the provided function.
+
   Traces the provided function, using the function name for the actual generated
   event.
 
@@ -287,12 +275,15 @@ traced.__doc__ = """
       urllib2.urlopen(url).read()
   """
 
-clock_sync.__doc__ = """
-  Issues a clock sync marker event.
+clock_sync.__doc__ = """Issues a clock sync marker event.
 
   Clock sync markers are used to synchronize the clock domains of different
   traces so that they can be used together. It takes a sync_id, and if it is
   the issuer of a clock sync event it will also require an issue_ts. The
   issue_ts is a timestamp from when the clocksync was first issued. This is used
   to calculate the time difference between clock domains.
+
+  This function has no effect if trace format is proto and
+  trace_set_clock_snapshot was called before trace start. The synchronization
+  will be performed in trace_processor using clock snapshots in this case.
   """
