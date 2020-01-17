@@ -16,8 +16,24 @@ namespace catapult {
 
 namespace proto = tracing::tracing::proto;
 
+static constexpr std::pair<const char*, proto::Unit> kJsonUnitToProtoUnit[] = {
+    {"ms", proto::MS},
+    {"msBestFitFormat", proto::MS_BEST_FIT_FORMAT},
+    {"tsMs", proto::TS_MS},
+    {"n%", proto::N_PERCENT},
+    {"sizeInBytes", proto::SIZE_IN_BYTES},
+    {"bytesPerSecond", proto::BYTES_PER_SECOND},
+    {"J", proto::J},
+    {"W", proto::W},
+    {"A", proto::A},
+    {"V", proto::V},
+    {"Hz", proto::HERTZ},
+    {"unitless", proto::UNITLESS},
+    {"count", proto::COUNT},
+    {"sigma", proto::SIGMA}};
+
 // Assume a single bin. The default num sample values is num bins * 10.
-constexpr int kDefaultNumSampleValues = 10;
+static constexpr int kDefaultNumSampleValues = 10;
 
 class HistogramBuilder::Resampler {
  public:
@@ -84,11 +100,24 @@ void HistogramBuilder::AddSample(float value) {
   }
 }
 
+void HistogramBuilder::AddDiagnostic(
+    const std::string& key,
+    tracing::tracing::proto::Diagnostic diagnostic) {
+  diagnostics_[key] = diagnostic;
+}
+
 std::unique_ptr<proto::Histogram> HistogramBuilder::toProto() const {
   auto histogram = std::make_unique<proto::Histogram>();
   histogram->set_name(name_);
   *histogram->mutable_unit() = unit_;
   histogram->set_description(description_);
+
+  proto::DiagnosticMap* diagnostics = histogram->mutable_diagnostics();
+  for (const auto& pair : diagnostics_) {
+    google::protobuf::Map<std::string, proto::Diagnostic>* diagnostic_map =
+        diagnostics->mutable_diagnostic_map();
+    (*diagnostic_map)[pair.first] = pair.second;
+  }
 
   for (float sample: sample_values_) {
     histogram->add_sample_values(sample);
@@ -109,9 +138,20 @@ std::unique_ptr<proto::Histogram> HistogramBuilder::toProto() const {
   running->set_sum(running_statistics_->sum());
   running->set_variance(running_statistics_->variance());
 
-  // TODO(https://bugs.chromium.org/1029452): diagnostics, bins, etc.
 
   return histogram;
+}
+
+tracing::tracing::proto::Unit UnitFromJsonUnit(std::string unit) {
+  unit.erase(std::find(unit.begin(), unit.end(), '_'), unit.end());
+
+  for (const auto& pair : kJsonUnitToProtoUnit) {
+    if (unit == pair.first) {
+      return pair.second;
+    }
+  }
+
+  return proto::UNITLESS;
 }
 
 }  // namespace catapult

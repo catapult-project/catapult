@@ -29,16 +29,6 @@ TEST(HistogramTest, WritesCorrectNameToProto) {
   EXPECT_EQ(histogram->name(), "my name");
 }
 
-TEST(HistogramTest, WritesCorrectDescriptionToProto) {
-  HistogramBuilder builder("", UnitWhatever());
-
-  builder.set_description("desc!");
-
-  auto histogram = builder.toProto();
-
-  EXPECT_EQ(histogram->description(), "desc!");
-}
-
 TEST(HistogramTest, WritesCorrectUnitToProto) {
   proto::UnitAndDirection unit;
   unit.set_unit(proto::TS_MS);
@@ -49,6 +39,46 @@ TEST(HistogramTest, WritesCorrectUnitToProto) {
 
   EXPECT_EQ(histogram->unit().unit(), proto::TS_MS);
   EXPECT_EQ(histogram->unit().improvement_direction(), proto::BIGGER_IS_BETTER);
+}
+
+TEST(HistogramTest, WritesCorrectDescriptionToProto) {
+  HistogramBuilder builder("", UnitWhatever());
+
+  builder.set_description("desc!");
+
+  auto histogram = builder.toProto();
+
+  EXPECT_EQ(histogram->description(), "desc!");
+}
+
+TEST(HistogramTest, WritesDiagnosticsToProto) {
+  HistogramBuilder builder("", UnitWhatever());
+
+  proto::Diagnostic diag1;
+  proto::GenericSet* set1 = diag1.mutable_generic_set();
+  set1->add_values("1234");
+  set1->add_values("\"a JSON encoded string\"");
+  builder.AddDiagnostic("diag1", diag1);
+
+  proto::Diagnostic diag2;
+  proto::GenericSet* set2 = diag2.mutable_generic_set();
+  set2->add_values("{}");
+  builder.AddDiagnostic("diag2", diag2);
+
+  auto histogram = builder.toProto();
+
+  auto map = histogram->diagnostics().diagnostic_map();
+  EXPECT_EQ(map.size(), 2u);
+
+  EXPECT_TRUE(map["diag1"].has_generic_set());
+  const proto::GenericSet& actual_set1 = map["diag1"].generic_set();
+  EXPECT_EQ(actual_set1.values().size(), 2);
+  EXPECT_EQ(actual_set1.values()[0], "1234");
+  EXPECT_EQ(actual_set1.values()[1], "\"a JSON encoded string\"");
+
+  EXPECT_TRUE(map["diag2"].has_generic_set());
+  EXPECT_EQ(map["diag2"].generic_set().values().size(), 1);
+  EXPECT_EQ(map["diag2"].generic_set().values()[0], "{}");
 }
 
 TEST(HistogramTest, WritesSmallNumberOfSamplesToProtoInOrder) {
@@ -119,6 +149,24 @@ TEST(HistogramTest, DoesNotWriteMeanlogsIfNegativeSampleAdded) {
   auto histogram = builder.toProto();
 
   ASSERT_EQ(histogram->running().meanlogs(), 0);
+}
+
+TEST(HistogramTest, UnitFromJsonUnitConvertsUnits) {
+  EXPECT_EQ(proto::MS, UnitFromJsonUnit("ms"));
+  EXPECT_EQ(proto::TS_MS, UnitFromJsonUnit("tsMs"));
+  EXPECT_EQ(proto::HERTZ, UnitFromJsonUnit("Hz"));
+  EXPECT_EQ(proto::N_PERCENT, UnitFromJsonUnit("n%"));
+  EXPECT_EQ(proto::MS_BEST_FIT_FORMAT, UnitFromJsonUnit("msBestFitFormat"));
+  EXPECT_EQ(proto::UNITLESS, UnitFromJsonUnit("unitless"));
+}
+
+TEST(HistogramTest, UnitFromJsonUnitReturnsUnitlessOnWrongUnits) {
+  EXPECT_EQ(proto::UNITLESS, UnitFromJsonUnit("notaunit"));
+}
+
+TEST(HistogramTest, UnitFromJsonUnitIgnoresImprovementDirection) {
+  EXPECT_EQ(proto::MS, UnitFromJsonUnit("ms_smallerIsBetter"));
+  EXPECT_EQ(proto::HERTZ, UnitFromJsonUnit("Hz_biggerIsBetter"));
 }
 
 }  // namespace catapult

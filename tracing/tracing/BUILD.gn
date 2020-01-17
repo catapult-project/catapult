@@ -20,10 +20,8 @@ source_set("histogram") {
     "value/running_statistics.cc",
     "value/running_statistics.h",
   ]
-  deps = [
-    "proto:histogram_proto",
-    "//third_party/protobuf:protobuf_full",
-  ]
+  public_deps = [ "//third_party/protobuf:protobuf_full" ]
+  deps = [ "proto:histogram_proto" ]
 }
 
 source_set("reserved_infos") {
