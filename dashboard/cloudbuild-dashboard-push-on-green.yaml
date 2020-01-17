@@ -32,12 +32,11 @@ steps:
   args: [
     app, deploy, '--promote', '--version', 'cloud-build-${SHORT_SHA}',
     # We enumerate the files we need to deploy just for the dashboard.
-    # TODO(dberris): Figure out how we can include cron.yaml from this
-    # automation. This fails in production with the service account used by
-    # cloud-build, so we've left it out for now.
+    # TODO(dberris): Figure out how we can include cron.yaml and dispatch.yaml
+    # from this automation. This fails in production with the service account
+    # used by cloud-build, so we've left it out for now.
     api.yaml,
     app.yaml,
-    dispatch.yaml,
     index.yaml,
     upload-processing.yaml,
     upload.yaml,
