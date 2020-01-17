@@ -274,11 +274,7 @@ class Anomaly(internal_only_model.InternalOnlyModel):
           min_timestamp, max_timestamp)
       if post_filters:
         keys_only = False
-      query = query.order(-cls.timestamp)
-
-      if start_cursor:
-        # "BadArgumentError: _MultiQuery with cursors requires __key__ order"
-        query = query.order(cls.key)
+      query = query.order(-cls.timestamp, cls.key)
 
       futures = [query.fetch_page_async(
           limit, start_cursor=start_cursor, keys_only=keys_only)]

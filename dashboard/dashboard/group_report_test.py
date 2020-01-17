@@ -34,14 +34,15 @@ class GroupReportTest(testing_common.TestCase):
     self.testapp = webtest.TestApp(app)
 
   def _AddAnomalyEntities(
-      self, revision_ranges, test_key, subscription, bug_id=None):
+      self, revision_ranges, test_key, subscriptions, bug_id=None):
     """Adds a group of Anomaly entities to the datastore."""
     urlsafe_keys = []
     for start_rev, end_rev in revision_ranges:
+      subscription_names = [s.name for s in subscriptions]
       anomaly_key = anomaly.Anomaly(
           start_revision=start_rev, end_revision=end_rev,
-          test=test_key, bug_id=bug_id, subscription_names=[subscription.name],
-          subscriptions=[subscription], median_before_anomaly=100,
+          test=test_key, bug_id=bug_id, subscription_names=subscription_names,
+          subscriptions=subscriptions, median_before_anomaly=100,
           median_after_anomaly=200).put()
       urlsafe_keys.append(anomaly_key.urlsafe())
     return urlsafe_keys
@@ -70,10 +71,11 @@ class GroupReportTest(testing_common.TestCase):
       test.put()
     return keys
 
-  def _Subscription(self):
+  def _Subscription(self, suffix=""):
     """Adds a Sheriff entity and returns the key."""
     return Subscription(
-        name='Chromium Perf Sheriff', notification_email='sullivan@google.com')
+        name='Chromium Perf Sheriff' + suffix,
+        notification_email='sullivan@google.com')
 
   def testGet(self):
     response = self.testapp.get('/group_report')
@@ -81,17 +83,20 @@ class GroupReportTest(testing_common.TestCase):
     self.assertIn('Chrome Performance Dashboard', response.body)
 
   def testPost_WithAnomalyKeys_ShowsSelectedAndOverlapping(self):
-    subscription = self._Subscription()
+    subscriptions = [
+        self._Subscription(suffix=" 1"),
+        self._Subscription(suffix=" 2"),
+    ]
     test_keys = self._AddTests()
     selected_ranges = [(400, 900), (200, 700)]
     overlapping_ranges = [(300, 500), (500, 600), (600, 800)]
     non_overlapping_ranges = [(100, 200)]
     selected_keys = self._AddAnomalyEntities(
-        selected_ranges, test_keys[0], subscription)
+        selected_ranges, test_keys[0], subscriptions)
     self._AddAnomalyEntities(
-        overlapping_ranges, test_keys[0], subscription)
+        overlapping_ranges, test_keys[0], subscriptions)
     self._AddAnomalyEntities(
-        non_overlapping_ranges, test_keys[0], subscription)
+        non_overlapping_ranges, test_keys[0], subscriptions)
 
     response = self.testapp.post(
         '/group_report?keys=%s' % ','.join(selected_keys))
@@ -118,7 +123,7 @@ class GroupReportTest(testing_common.TestCase):
     test_keys = self._AddTests()
     selected_ranges = [(400, 900), (200, 700)]
     selected_keys = self._AddAnomalyEntities(
-        selected_ranges, test_keys[0], subscription)
+        selected_ranges, test_keys[0], [subscription])
 
     json_keys = json.dumps(selected_keys)
     state_id = short_uri.GenerateHash(','.join(selected_keys))
@@ -153,7 +158,7 @@ class GroupReportTest(testing_common.TestCase):
     test_keys = self._AddTests()
     self._AddAnomalyEntities(
         [(190, 210), (200, 300), (100, 200), (400, 500)],
-        test_keys[0], subscription)
+        test_keys[0], [subscription])
     response = self.testapp.post('/group_report?rev=200')
     alert_list = self.GetJsonValue(response, 'alert_list')
     self.assertEqual(3, len(alert_list))
@@ -169,9 +174,9 @@ class GroupReportTest(testing_common.TestCase):
     bug_data.Bug(id=123).put()
     self._AddAnomalyEntities(
         [(200, 300), (100, 200), (400, 500)],
-        test_keys[0], subscription, bug_id=123)
+        test_keys[0], [subscription], bug_id=123)
     self._AddAnomalyEntities(
-        [(150, 250)], test_keys[0], subscription)
+        [(150, 250)], test_keys[0], [subscription])
     response = self.testapp.post('/group_report?bug_id=123')
     alert_list = self.GetJsonValue(response, 'alert_list')
     self.assertEqual(3, len(alert_list))
