@@ -93,7 +93,11 @@ class MinidumpSymbolizer(object):
     symbol_binaries = self.GetSymbolBinaries(minidump)
 
     cmds = []
+    missing_binaries = []
     for binary_path in symbol_binaries:
+      if not os.path.exists(binary_path):
+        missing_binaries.append(binary_path)
+        continue
       cmd = [
           sys.executable,
           generate_breakpad_symbols_command,
@@ -104,6 +108,20 @@ class MinidumpSymbolizer(object):
       if self.GetBreakpadPlatformOverride():
         cmd.append('--platform=%s' % self.GetBreakpadPlatformOverride())
       cmds.append(cmd)
+
+    if missing_binaries:
+      logging.warning(
+          'Unable to find %d of %d binaries for minidump symbolization. This '
+          'is likely not an actual issue, but is worth investigating if the '
+          'minidump fails to symbolize properly.',
+          len(missing_binaries), len(symbol_binaries))
+      # 5 is arbitrary, but a reasonable number of paths to print out.
+      if len(missing_binaries) < 5:
+        logging.warning('Missing binaries: %s', missing_binaries)
+      else:
+        logging.warning(
+            'Run test with high verbosity to get the list of missing binaries.')
+        logging.debug('Missing binaries: %s', missing_binaries)
 
     # We need to prevent the number of file handles that we open from reaching
     # the soft limit set for the current process. This can either be done by
