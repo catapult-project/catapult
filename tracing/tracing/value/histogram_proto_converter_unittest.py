@@ -81,6 +81,14 @@ class HistogramProtoConverterUnittest(unittest.TestCase):
     self.assertEqual(hist.max_num_sample_values, 3)
     self.assertEqual(hist.num_nans, 1)
 
+  def testRaisesCustomExceptionOnMissingMandatoryFields(self):
+    with self.assertRaises(ValueError):
+      # Missing name.
+      histogram_proto_converter.ConvertHistogram({})
+    with self.assertRaises(ValueError):
+      # Missing unit.
+      histogram_proto_converter.ConvertHistogram({'name': 'eh'})
+
   def testUnitWithImprovementSmallerIsBetter(self):
     hist_dict = histogram_proto_converter.ConvertHistogram(
         _Hist(unit={
@@ -271,6 +279,19 @@ class HistogramProtoConverterUnittest(unittest.TestCase):
     self.assertEqual(hist.running.sum, 66)
     self.assertAlmostEqual(hist.running.variance, 0.3333333333)
 
+  def testMinimalStats(self):
+    hist_dict = histogram_proto_converter.ConvertHistogram(
+        _Hist(running={
+            # The proto will not write ints that are 0 on the wire.
+            'count': 1
+        }))
+
+    hist = histogram.Histogram.FromDict(hist_dict)
+
+    self.assertEqual(hist.running.count, 1)
+    self.assertEqual(hist.running.mean, 0)
+    self.assertEqual(hist.running.variance, 0)
+
   def testAllBins(self):
     hist_dict = histogram_proto_converter.ConvertHistogram(
         _Hist(
@@ -322,5 +343,7 @@ class HistogramProtoConverterUnittest(unittest.TestCase):
     # See the histogram spec in docs/histogram-set-json-format.md.
     self.assertEqual(
         hist.statistics_names,
-        set(['std', 'count', 'pct_090', 'pct_095', 'max', 'sum', 'min',
-             'pct_099', 'avg']))
+        set([
+            'std', 'count', 'pct_090', 'pct_095', 'max', 'sum', 'min',
+            'pct_099', 'avg'
+        ]))

@@ -42,6 +42,9 @@ BOUNDARY_TYPE_MAP = {
 
 
 def ConvertHistogram(proto_dict):
+  if not 'name' in proto_dict:
+    raise ValueError('The "name" field is required.')
+
   hist = {
       'name': proto_dict['name'],
   }
@@ -68,6 +71,9 @@ def ConvertSharedDiagnostics(shared_diagnostics):
 
 
 def _ParseUnit(hist, proto_dict):
+  if not 'unit' in proto_dict:
+    raise ValueError('The "unit" field is required.')
+
   improvement_direction = proto_dict['unit'].get('improvement_direction')
   unit = UNIT_MAP[proto_dict['unit']['unit']]
   hist['unit'] = unit
@@ -137,10 +143,15 @@ def _ParseNanDiagnostics(_, proto_dict):
 
 def _ParseRunning(hist, proto_dict):
   running = proto_dict.get('running')
+
   if running:
+    def _SafeValue(key):
+      return running.get(key, 0)
+
     hist['running'] = [
-        running['count'], running['max'], running['meanlogs'], running['mean'],
-        running['min'], running['sum'], running['variance']
+        _SafeValue('count'), _SafeValue('max'), _SafeValue('meanlogs'),
+        _SafeValue('mean'), _SafeValue('min'), _SafeValue('sum'),
+        _SafeValue('variance')
     ]
 
 
