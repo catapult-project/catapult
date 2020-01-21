@@ -4,6 +4,7 @@
 
 syntax = "proto3";
 package catapult.tracing.tracing.proto;
+option optimize_for = LITE_RUNTIME;
 
 enum ImprovementDirection {
   NOT_SPECIFIED = 0;

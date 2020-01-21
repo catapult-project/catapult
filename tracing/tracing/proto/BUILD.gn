@@ -5,6 +5,7 @@
 import("//third_party/protobuf/proto_library.gni")
 
 proto_library("histogram_proto") {
+  generate_python = true
   sources = [
      "histogram.proto",
   ]

@@ -4,7 +4,6 @@
 
 #include "tracing/tracing/proto/histogram.pb.h"
 #include "tracing/tracing/value/histogram.h"
-#include "tracing/tracing/value/histogram_json_converter.h"
 
 // This program is useful for testing the new proto format in JSON.
 // TODO(https://crbug.com/1029452): Remove once the format is stable?.
@@ -129,10 +128,7 @@ void ExampleProtoToJson() {
   generic_set->add_values("123456");
   (*shared_diagnostics)["88ea36c7-6dcb-4ba8-ba56-1979de05e16f"] = point_id_diag;
 
-  std::string output;
-  if (catapult::ToJson(histogram_set, &output)) {
-    printf("%s\n", output.c_str());
-  }
+  printf("%s\n", histogram_set.DebugString().c_str());
 }
 
 }  // namespace catapult

@@ -15,20 +15,20 @@ source_set("histogram") {
   sources = [
     "value/histogram.cc",
     "value/histogram.h",
-    "value/histogram_json_converter.cc",
-    "value/histogram_json_converter.h",
     "value/running_statistics.cc",
     "value/running_statistics.h",
   ]
-  public_deps = [ "//third_party/protobuf:protobuf_full" ]
-  deps = [ "proto:histogram_proto" ]
+  public_deps = [
+    "proto:histogram_proto",
+    "//third_party/protobuf:protobuf_lite",
+  ]
 }
 
 source_set("reserved_infos") {
   configs += [ ":common_config" ]
   sources = [
-    "value/diagnostics/reserved_infos.h",
     "value/diagnostics/reserved_infos.cc",
+    "value/diagnostics/reserved_infos.h",
   ]
 }
 
@@ -55,6 +55,6 @@ executable("proto_test_driver") {
   sources = [ "value/proto_test_driver.cc" ]
   deps = [
     ":histogram",
-    "//third_party/protobuf:protobuf_full",
+    "//third_party/protobuf:protobuf_lite",
   ]
 }
