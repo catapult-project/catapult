@@ -208,7 +208,19 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         ['mv', self._CHROME_ENV_FILEPATH, self._EXISTING_ENV_FILEPATH])
 
     env_string = '\n'.join(env)
-    cri.PushContents(env_string, self._CHROME_ENV_FILEPATH)
+    # TODO(https://crbug.com/1043953): Remove the try/except once the root cause
+    # of the root partition randomly becoming read-only is fixed.
+    try:
+      cri.PushContents(env_string, self._CHROME_ENV_FILEPATH)
+    except OSError as e:
+      logging.error(
+          'Received error while trying to push Chrome environment: %s', e)
+      logging.error(
+          'Assuming root partition became read-only, attempting to make '
+          'writable again')
+      cri.ResetRootIsWritable()
+      cri.MakeRootReadWriteIfNecessary()
+      cri.PushContents(env_string, self._CHROME_ENV_FILEPATH)
 
   def _RestoreChromeEnvironment(self):
     """Restores the Chrome environment to state before the test started."""

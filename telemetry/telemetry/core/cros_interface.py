@@ -109,6 +109,11 @@ class CrOSInterface(object):
   def root_is_writable(self):
     return self._root_is_writable
 
+  # TODO(https://crbug.com/1043953): Remove this once the issue with the root
+  # partition randomly becoming read-only is fixed.
+  def ResetRootIsWritable(self):
+    self._root_is_writable = False
+
   def OpenConnection(self):
     """Opens a master connection to the device."""
     if self._master_connection_open or self.local:
