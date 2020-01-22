@@ -7,6 +7,7 @@ import json
 import logging
 import re
 import socket
+import time
 import traceback
 
 from telemetry.core import exceptions
@@ -293,19 +294,16 @@ class TracingBackend(object):
       since the last time any data is received.
       TracingUnrecoverableException: If there is a websocket error.
     """
+    start_time = time.time()
     self._trace_data_builder = trace_data_builder
     try:
       while True:
         try:
           self._inspector_websocket.DispatchNotifications(timeout)
+          start_time = time.time()
         except inspector_websocket.WebSocketException as err:
-          if issubclass(
+          if not issubclass(
               err.websocket_error_type, websocket.WebSocketTimeoutException):
-            raise TracingTimeoutException(
-                'Only received partial trace data due to timeout. '
-                'Timeout is %s seconds. If the trace data is big, '
-                'you may want to increase it.' % timeout)
-          else:
             raise TracingUnrecoverableException(
                 'Exception raised while collecting tracing data:\n' +
                 traceback.format_exc())
@@ -333,6 +331,12 @@ class TracingBackend(object):
         if self._has_received_all_tracing_data:
           break
 
+        elapsed_time = time.time() - start_time
+        if elapsed_time > timeout:
+          raise TracingTimeoutException(
+              'Only received partial trace data due to timeout after %s '
+              'seconds. If the trace data is big, you may want to increase '
+              'the timeout amount.' % elapsed_time)
     finally:
       self._trace_data_builder = None
     logging.info('Successfully collected all trace data.')
