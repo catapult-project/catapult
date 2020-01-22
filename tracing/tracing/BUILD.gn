@@ -47,6 +47,7 @@ test("histogram_unittests") {
     ":histogram",
     "proto:histogram_proto",
     "//testing/gtest:gtest_main",
+    "//testing/gtest:gtest",
   ]
 }
 
