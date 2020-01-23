@@ -183,19 +183,23 @@ def ClusterAndFindSplit(values, min_segment_size, rand=None):
         'Sequence is not larger than min_segment_size (%s <= %s)' %
         (length, min_segment_size))
   start = 0
-  first = True
   candidate_indices = []
   while True:
+    # Find the most possible change point
     partition_point, _ = ChangePointEstimator(values[start:start + length],
                                               min_segment_size)
-    candidate_indices.append(start + partition_point)
     logging.debug('Values for start = %s, length = %s, partition_point = %s',
                   start, length, partition_point)
+
+    # Compare the left and right part divided by the possible change point
     compare_result, cluster_a, cluster_b = ClusterAndCompare(
         values[start:start + length], partition_point)
+    if compare_result == pinpoint_compare.DIFFERENT:
+      candidate_indices.append(start + partition_point)
+
     in_a = False
     in_b = False
-
+    # Test on each part if there is a change point in it or not
     logging.debug('Attempting to refine with permutation testing.')
     if len(cluster_a) > min_segment_size and PermutationTest(
         cluster_a, min_segment_size, rand):
@@ -205,20 +209,18 @@ def ClusterAndFindSplit(values, min_segment_size, rand=None):
         cluster_b, min_segment_size, rand):
       _, in_b = ChangePointEstimator(cluster_b, min_segment_size)
 
-    if compare_result == pinpoint_compare.DIFFERENT or not first:
-      logging.debug('Found partition point: %s', partition_point)
-      if not in_a and not in_b:
-        break
-    elif compare_result in {pinpoint_compare.SAME, pinpoint_compare.UNKNOWN}:
-      if not in_a and not in_b:
+    # Case 1: Can't look into any of one, terminated.
+    if not in_a and not in_b:
+      if not candidate_indices:
         raise InsufficientData('Not enough data to suggest a change point.')
-    else:
       break
-
-    first = False
+    # Case 2: Look into the part that may contain change point
+    # Note: Current implementation only consider the left (earlier in timeline)
+    # part when both in_a and in_b.
     if in_a:
       length = min(len(cluster_a) + min_segment_size, len(values))
     elif in_b:
-      length = min(len(cluster_b) + min_segment_size - 1)
-      start += partition_point - (min_segment_size - 1)
+      length = min(len(cluster_b) + min_segment_size - 1, len(values))
+      start += max(partition_point - (min_segment_size - 1), 0)
+
   return candidate_indices
