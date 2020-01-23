@@ -77,6 +77,7 @@ def _ProcessTest(test_key):
 
   for s, rows in rows_by_stat.items():
     if rows:
+      logging.info('Processing test: %s', test_key.id())
       yield _ProcessTestStat(
           config, test, s, rows, ref_rows_by_stat.get(s))
 

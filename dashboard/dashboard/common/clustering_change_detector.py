@@ -83,7 +83,7 @@ def PermutationTest(sequence, min_segment_size, rand=None):
   differences = 0
   unknowns = 0
   for permutation in RandomPermutations(sequence, Midpoint(sequence),
-                                        min(100,
+                                        min(300,
                                             math.factorial(len(sequence)))):
     change_point, found = ChangePointEstimator(permutation, min_segment_size)
     if not found:
@@ -182,14 +182,17 @@ def ClusterAndFindSplit(values, min_segment_size, rand=None):
     raise InsufficientData(
         'Sequence is not larger than min_segment_size (%s <= %s)' %
         (length, min_segment_size))
-  partition_point, _ = ChangePointEstimator(values, min_segment_size)
   start = 0
   first = True
+  candidate_indices = []
   while True:
+    partition_point, _ = ChangePointEstimator(values[start:start + length],
+                                              min_segment_size)
+    candidate_indices.append(start + partition_point)
     logging.debug('Values for start = %s, length = %s, partition_point = %s',
                   start, length, partition_point)
     compare_result, cluster_a, cluster_b = ClusterAndCompare(
-        values[start:start+length], partition_point)
+        values[start:start + length], partition_point)
     in_a = False
     in_b = False
 
@@ -197,25 +200,25 @@ def ClusterAndFindSplit(values, min_segment_size, rand=None):
     if len(cluster_a) > min_segment_size and PermutationTest(
         cluster_a, min_segment_size, rand):
       _, in_a = ChangePointEstimator(cluster_a, min_segment_size)
+
     if len(cluster_b) > min_segment_size and PermutationTest(
         cluster_b, min_segment_size, rand):
       _, in_b = ChangePointEstimator(cluster_b, min_segment_size)
+
     if compare_result == pinpoint_compare.DIFFERENT or not first:
       logging.debug('Found partition point: %s', partition_point)
       if not in_a and not in_b:
-        potential_culprit = start + partition_point
-        logging.debug('Found potential change point @%s', potential_culprit)
-        return potential_culprit
+        break
     elif compare_result in {pinpoint_compare.SAME, pinpoint_compare.UNKNOWN}:
       if not in_a and not in_b:
         raise InsufficientData('Not enough data to suggest a change point.')
     else:
-      potential_culprit = start + partition_point
-      return potential_culprit
+      break
 
     first = False
     if in_a:
-      length = len(cluster_a)
+      length = min(len(cluster_a) + min_segment_size, len(values))
     elif in_b:
-      length = len(cluster_b)
-      start += max(len(cluster_a) - 1, 0)
+      length = min(len(cluster_b) + min_segment_size - 1)
+      start += partition_point - (min_segment_size - 1)
+  return candidate_indices

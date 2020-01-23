@@ -43,21 +43,21 @@ class ChangeDetectorTest(unittest.TestCase):
   def testClusterAndFindSplit_Simple(self):
     # This tests that we can find a change point in a contrived scenario.
     sequence = ([1] * 10) + ([10] * 10)
-    split = ccd.ClusterAndFindSplit(sequence, 6, self.rand)
-    self.assertEqual(split, 10)
+    splits = ccd.ClusterAndFindSplit(sequence, 6, self.rand)
+    self.assertIn(10, splits)
 
   def testClusterAndFindSplit_Steps(self):
     # We actually can find the first step very well.
     sequence = ([1] * 10) + ([2] * 10) + ([1] * 10)
-    split = ccd.ClusterAndFindSplit(sequence, 6, self.rand)
-    self.assertEqual(split, 10)
+    splits = ccd.ClusterAndFindSplit(sequence, 6, self.rand)
+    self.assertIn(10, splits)
 
   def testClusterAndFindSplit_Spikes(self):
     # We actually can ignore spikes very well.
     sequence = ([1] * 100) + [1000] + ([1] * 100)
     with self.assertRaises(ccd.InsufficientData):
-      split = ccd.ClusterAndFindSplit(sequence, 6, self.rand)
-      logging.debug('Split = %s', split)
+      splits = ccd.ClusterAndFindSplit(sequence, 6, self.rand)
+      logging.debug('Splits = %s', splits)
 
   def testClusterAndFindSplit_Windowing(self):
     # We contrive a case where we'd like to find change points by doing a
@@ -74,8 +74,8 @@ class ChangeDetectorTest(unittest.TestCase):
     for index_offset, sequence in enumerate(
         SlidingWindow(master_sequence, 50, 10)):
       try:
-        split_index = (index_offset * 10) + ccd.ClusterAndFindSplit(
-            sequence, 6, self.rand)
+        split_index = (index_offset * 10) + max(ccd.ClusterAndFindSplit(
+            sequence, 6, self.rand))
         collected_indices.add(split_index)
       except ccd.InsufficientData:
         continue

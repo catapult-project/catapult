@@ -73,22 +73,30 @@ class FindChangePointsTest(unittest.TestCase):
 
   def testIsAnomalous_FiltersOnSegmentSize(self):
     sample = [1, 1, 5, 5, 5, 9, 9]
-    self.assertFalse(self._PassesThresholds(sample, 2, min_segment_size=3))
-    self.assertFalse(self._PassesThresholds(sample, 5, min_segment_size=3))
-    self.assertTrue(self._PassesThresholds(sample, 2, min_segment_size=2))
-    self.assertTrue(self._PassesThresholds(sample, 5, min_segment_size=2))
+    self.assertEqual((False, 'min_segment_size'),
+                     self._PassesThresholds(sample, 2, min_segment_size=3))
+    self.assertEqual((False, 'min_segment_size'),
+                     self._PassesThresholds(sample, 5, min_segment_size=3))
+    self.assertEqual((True, 'passed'),
+                     self._PassesThresholds(sample, 2, min_segment_size=2))
+    self.assertEqual((True, 'passed'),
+                     self._PassesThresholds(sample, 5, min_segment_size=2))
 
   def testIsAnomalous_FiltersOnAbsoluteChange(self):
     sample = [2, 2, 2, 4, 4, 4, 4, 8, 8, 8]
-    self.assertTrue(self._PassesThresholds(sample, 7))
-    self.assertTrue(self._PassesThresholds(sample, 7, min_absolute_change=4))
-    self.assertFalse(self._PassesThresholds(sample, 3, min_absolute_change=4))
+    self.assertEqual((True, 'passed'), self._PassesThresholds(sample, 7))
+    self.assertEqual((True, 'passed'),
+                     self._PassesThresholds(sample, 7, min_absolute_change=4))
+    self.assertEqual((False, 'min_absolute_change'),
+                     self._PassesThresholds(sample, 3, min_absolute_change=4))
 
   def testIsAnomalous_FiltersOnRelativeChange(self):
     sample = [2, 2, 2, 6, 6, 6, 6, 10, 10, 10]
-    self.assertTrue(self._PassesThresholds(sample, 3))
-    self.assertTrue(self._PassesThresholds(sample, 3, min_relative_change=1))
-    self.assertFalse(self._PassesThresholds(sample, 7, min_relative_change=1))
+    self.assertEqual((True, 'passed'), self._PassesThresholds(sample, 3))
+    self.assertEqual((True, 'passed'),
+                     self._PassesThresholds(sample, 3, min_relative_change=1))
+    self.assertEqual((False, 'min_relative_change'),
+                     self._PassesThresholds(sample, 7, min_relative_change=1))
 
   def testIsAnomalous_FiltersOnMultipleOfStdDev(self):
     # In the first sample, the standard deviation on either side of index 5
@@ -96,10 +104,14 @@ class FindChangePointsTest(unittest.TestCase):
     # each of the two segments is 0.
     noisy = [2, 8, 5, 1, 7, 13, 19, 10, 15, 17]
     steady = [5, 5, 5, 5, 5, 15, 15, 15, 15, 15]
-    self.assertTrue(self._PassesThresholds(steady, 5, multiple_of_std_dev=1))
-    self.assertTrue(self._PassesThresholds(steady, 5, multiple_of_std_dev=8))
-    self.assertTrue(self._PassesThresholds(noisy, 5, multiple_of_std_dev=1))
-    self.assertFalse(self._PassesThresholds(noisy, 5, multiple_of_std_dev=8))
+    self.assertEqual((True, 'passed'),
+                     self._PassesThresholds(steady, 5, multiple_of_std_dev=1))
+    self.assertEqual((True, 'passed'),
+                     self._PassesThresholds(steady, 5, multiple_of_std_dev=8))
+    self.assertEqual((True, 'passed'),
+                     self._PassesThresholds(noisy, 5, multiple_of_std_dev=1))
+    self.assertEqual((False, 'min_std_dev'),
+                     self._PassesThresholds(noisy, 5, multiple_of_std_dev=8))
 
   def testIsAnomalous_MultipleOfStdDevFilter_LowOnOneSide(self):
     # The standard deviation to use is the lower of the standard deviations
@@ -109,8 +121,10 @@ class FindChangePointsTest(unittest.TestCase):
     right = [5, 30, 1, 50, 10, 3, 2, 3, 4, 3]
     # Note that stddev([3, 2, 3, 4, 3]) is less than 1, and the difference
     # between the medians of the two sides is 7.
-    self.assertTrue(self._PassesThresholds(left, 5, multiple_of_std_dev=7))
-    self.assertTrue(self._PassesThresholds(right, 5, multiple_of_std_dev=7))
+    self.assertEqual((True, 'passed'),
+                     self._PassesThresholds(left, 5, multiple_of_std_dev=7))
+    self.assertEqual((True, 'passed'),
+                     self._PassesThresholds(right, 5, multiple_of_std_dev=7))
 
   def testZeroMedian_ReturnsValuesWithMedianEqualToZero(self):
     # The _ZeroMedian function adjusts values so that the median is zero.

@@ -535,6 +535,84 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(241536, new_anomalies[0].start_revision)
     self.assertEqual(241537, new_anomalies[0].end_revision)
 
+  def testProcessTest_RefineAnomalyPlacement_OffByOneBefore(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['linux-perf'],
+        {'blink_perf.layout': {
+            'nested-percent-height-tables': {}
+        }})
+    test = utils.TestKey(
+        'ChromiumPerf/linux-perf/blink_perf.layout/nested-percent-height-tables'
+    ).get()
+    test_container_key = utils.GetTestContainerKey(test.key)
+    sample_data = [
+        (728446, 480.2504),
+        (728462, 487.685),
+        (728469, 486.6389),
+        (728480, 477.6597),
+        (728492, 471.2238),
+        (728512, 480.4379),
+        (728539, 464.5573),
+        (728594, 489.0594),
+        (728644, 484.4796),
+        (728714, 489.5986),
+        (728751, 489.474),
+        (728788, 481.9336),
+        (728835, 484.089),
+        (728869, 485.4287),
+        (728883, 476.8234),
+        (728907, 487.4736),
+        (728938, 490.601),
+        (728986, 483.5039),
+        (729021, 485.176),
+        (729066, 484.5855),
+        (729105, 483.9114),
+        (729119, 483.559),
+        (729161, 477.6875),
+        (729201, 484.9668),
+        (729240, 480.7091),
+        (729270, 484.5506),
+        (729292, 495.1445),
+        (729309, 479.9111),
+        (729329, 479.8815),
+        (729391, 487.5683),
+        (729430, 476.7355),
+        (729478, 487.7251),
+        (729525, 493.1012),
+        (729568, 497.7565),
+        (729608, 499.6481),
+        (729642, 496.1591),
+        (729658, 493.4581),
+        (729687, 486.1097),
+        (729706, 478.036),
+        (729730, 480.4222),  # In crbug/1041688 this was the original placement.
+        (729764, 421.0342),  # We instead should be setting it here.
+        (729795, 428.0284),
+        (729846, 433.8261),
+        (729883, 429.49),
+        (729920, 436.3342),
+        (729975, 434.3996),
+        (730011, 428.3672),
+        (730054, 436.309),
+        (730094, 435.3792),
+        (730128, 433.0537),
+    ]
+    for row in sample_data:
+      graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
+    sheriff.Sheriff(
+        email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
+    test.UpdateSheriff()
+    test.put()
+    with mock.patch.object(SheriffConfigClient, 'Match',
+                           mock.MagicMock(return_value=([], None))) as m:
+      find_anomalies.ProcessTests([test.key])
+      self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
+    new_anomalies = anomaly.Anomaly.query().fetch()
+    self.assertEqual(1, len(new_anomalies))
+    self.assertEqual(anomaly.DOWN, new_anomalies[0].direction)
+    self.assertEqual(729731, new_anomalies[0].start_revision)
+    self.assertEqual(729764, new_anomalies[0].end_revision)
+
   def testMakeAnomalyEntity_NoRefBuild(self):
     testing_common.AddTests(
         ['ChromiumPerf'],
@@ -612,8 +690,8 @@ class ProcessAlertsTest(testing_common.TestCase):
     test = utils.TestKey('ClankInternal/linux/page_cycler_v2/cnn').get()
     testing_common.AddRows(test.test_path, [100, 200, 300, 400])
     for row in graph_data.Row.query():
-      row.r_commit_pos = int(row.value) + 2 # Different enough to ensure it is
-                                            # picked up properly.
+      # Different enough to ensure it is picked up properly.
+      row.r_commit_pos = int(row.value) + 2
       row.put()
 
     alert = find_anomalies._MakeAnomalyEntity(
