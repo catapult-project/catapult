@@ -9,6 +9,8 @@ from typ import json_results
 
 ResultType = json_results.ResultType
 Expectation = expectations_parser.Expectation
+TestExpectations = expectations_parser.TestExpectations
+
 
 class TaggedTestListParserTest(unittest.TestCase):
     def testInitWithGoodData(self):
@@ -710,11 +712,47 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
 
     def testMultipleReasonsForExpectation(self):
         test_expectations = '''# results: [ Failure ]
-        skbug.com/111 crbug.com/lpz/222 skbug.com/hello/333 crbug.com/444 test [ Failure ]
+        skbug.com/111 crbug.com/wpt/222 skbug.com/hello/333 crbug.com/444 test [ Failure ]
         '''
         expectations = expectations_parser.TestExpectations()
         _, msg = expectations.parse_tagged_list(
             test_expectations, 'test.txt')
         self.assertFalse(msg)
         exp = expectations.expectations_for('test')
-        self.assertEqual(exp.reason, 'skbug.com/111 crbug.com/lpz/222 skbug.com/hello/333 crbug.com/444')
+        self.assertEqual(exp.reason, 'skbug.com/111 crbug.com/wpt/222 skbug.com/hello/333 crbug.com/444')
+
+    def testExpectationToString(self):
+        exp = Expectation(reason='crbug.com/123', test='test.html?*', tags=['intel'],
+                          results={ResultType.Pass, ResultType.Failure}, is_slow_test=True,
+                          retry_on_failure=True)
+        self.assertEqual(
+            exp.to_string(), 'crbug.com/123 [ Intel ] test.html?\* [ Failure Pass Slow RetryOnFailure ]')
+
+    def testGlobExpectationToString(self):
+        exp = Expectation(reason='crbug.com/123', test='a/*/test.html?*', tags=['intel'],
+                          results={ResultType.Pass, ResultType.Failure}, is_slow_test=True,
+                          retry_on_failure=True, is_glob=True)
+        self.assertEqual(
+            exp.to_string(), 'crbug.com/123 [ Intel ] a/\*/test.html?* [ Failure Pass Slow RetryOnFailure ]')
+
+    def testExpectationToStringUsingRawSpecifiers(self):
+        raw_expectations = (
+            '# tags: [ NVIDIA intel ]\n'
+            '# results: [ Failure Pass Slow ]\n'
+            'crbug.com/123 [ iNteL ] test.html?\* [ PasS FailuRe ]\n'
+            '[ NVIDIA ] test.\*.* [ SloW ]\n')
+        test_exps = TestExpectations()
+        ret, errors = test_exps.parse_tagged_list(raw_expectations)
+        assert not ret, errors
+        self.assertEqual(test_exps.individual_exps['test.html?*'][0].to_string(),
+                         'crbug.com/123 [ iNteL ] test.html?\* [ PasS FailuRe ]')
+        self.assertEqual(test_exps.glob_exps['test.*.*'][0].to_string(),
+                         '[ NVIDIA ] test.\*.* [ SloW ]')
+
+    def testExpectationToStringAfterRenamingTest(self):
+        exp = Expectation(reason='crbug.com/123', test='test.html?*', tags=['intel'],
+                          results={ResultType.Pass, ResultType.Failure}, raw_tags=['iNteL'],
+                          raw_results=['FailuRe', 'PasS'])
+        exp.test = 'a/*/test.html?*'
+        self.assertEqual(exp.to_string(), 'crbug.com/123 [ iNteL ] a/\*/test.html?\* [ FailuRe PasS ]')
+

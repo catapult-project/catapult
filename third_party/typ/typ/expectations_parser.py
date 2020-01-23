@@ -26,6 +26,17 @@ _EXPECTATION_MAP = {
     'skip': ResultType.Skip
 }
 
+_RESULT_TAGS = {
+    ResultType.Failure: 'Failure',
+    ResultType.Crash: 'Crash',
+    ResultType.Timeout: 'Timeout',
+    ResultType.Pass: 'Pass',
+    ResultType.Skip: 'Skip'
+}
+
+_SLOW_TAG = 'Slow'
+_RETRY_ON_FAILURE_TAG = 'RetryOnFailure'
+
 
 class ConflictResolutionTypes(object):
     UNION = 1
@@ -51,7 +62,8 @@ class ParseError(Exception):
 class Expectation(object):
     def __init__(self, reason='', test='*', tags=None, results=None, lineno=0,
                  retry_on_failure=False, is_slow_test=False,
-                 conflict_resolution=ConflictResolutionTypes.UNION):
+                 conflict_resolution=ConflictResolutionTypes.UNION, raw_tags=None, raw_results=None,
+                 is_glob=False):
         """Constructor for expectations.
 
         Args:
@@ -73,9 +85,12 @@ class Expectation(object):
         self._tags = frozenset(tags)
         self._results = frozenset(results)
         self._lineno = lineno
+        self._raw_tags = raw_tags
+        self._raw_results = raw_results
         self.should_retry_on_failure = retry_on_failure
         self.is_slow_test = is_slow_test
         self.conflict_resolution = conflict_resolution
+        self._is_glob = is_glob
 
     def __eq__(self, other):
         return (self.reason == other.reason and self.test == other.test
@@ -83,6 +98,44 @@ class Expectation(object):
                 and self.is_slow_test == other.is_slow_test
                 and self.tags == other.tags and self.results == other.results
                 and self.lineno == other.lineno)
+
+    def _set_string_value(self):
+        """This method will create an expectation line in string form and set the
+        _string_value member variable to it. If the _raw_results lists and _raw_tags
+        list are not set then the _tags list and _results set will be used to set them.
+        Setting the _raw_results and _raw_tags list to the original lists through the constructor
+        during parsing stops unintended modifications to test expectations when rewriting files.
+        """
+        # Use tags and results lists to set raw tag string lists
+        # if they were not already passed to the constructor
+        if not self._raw_tags:
+            self._raw_tags = [t[0].upper() + t[1:].lower() for t in self._tags]
+        if not self._raw_results:
+            self._raw_results = [_RESULT_TAGS[t] for t in self._results]
+            if self.is_slow_test:
+                self._raw_results.append(_SLOW_TAG)
+            if self.should_retry_on_failure:
+                self._raw_results.append(_RETRY_ON_FAILURE_TAG)
+        # If this instance is for a glob type expectation then do not escape
+        # the last asterisk
+        if self.is_glob:
+            assert len(self._test) and self._test[-1] == '*', (
+                'For Expectation instances for glob type expectations, the test value '
+                'must end in an asterisk')
+            pattern = self._test[:-1].replace('*', '\\*') + '*'
+        else:
+            pattern = self._test.replace('*', '\\*')
+        self._string_value = ''
+        if self._reason:
+            self._string_value += self._reason + ' '
+        if self._raw_tags:
+            self._string_value += '[ %s ] ' % ' '.join(self._raw_tags)
+        self._string_value += pattern + ' '
+        self._string_value += '[ %s ]' % ' '.join(self._raw_results)
+
+    def to_string(self):
+        self._set_string_value()
+        return self._string_value
 
     @property
     def reason(self):
@@ -94,6 +147,11 @@ class Expectation(object):
 
     @test.setter
     def test(self, v):
+        if not len(v):
+            raise ValueError('Cannot set test to empty string')
+        if self.is_glob and v[-1] != '*':
+            raise ValueError(
+                'test value for glob type expectations must end with an asterisk')
         self._test = v
 
     @property
@@ -107,6 +165,10 @@ class Expectation(object):
     @property
     def lineno(self):
         return self._lineno
+
+    @property
+    def is_glob(self):
+        return self._is_glob
 
 
 class TaggedTestListParser(object):
@@ -303,11 +365,20 @@ class TaggedTestListParser(object):
             except KeyError:
                 raise ParseError(lineno, 'Unknown result type "%s"' % r)
 
+        # remove escapes for asterisks
+        is_glob = not test.endswith('\\*') and test.endswith('*')
+        test = test.replace('\\*', '*')
+        if raw_tags:
+            raw_tags = raw_tags.split()
+        if raw_results:
+            raw_results = raw_results.split()
         # Tags from tag groups will be stored in lower case in the Expectation
         # instance. These tags will be compared to the tags passed in to
         # the Runner instance which are also stored in lower case.
         return Expectation(
-            reason, test, tags, results, lineno, retry_on_failure, is_slow_test, self._conflict_resolution)
+            reason, test, tags, results, lineno, retry_on_failure, is_slow_test,
+            self._conflict_resolution, raw_tags=raw_tags, raw_results=raw_results,
+            is_glob=is_glob)
 
 
 class TestExpectations(object):
@@ -379,9 +450,7 @@ class TestExpectations(object):
         # reject, etc. Right now, you effectively just get a union.
         glob_exps = []
         for exp in parser.expectations:
-            is_glob = not exp.test.endswith('\\*') and exp.test.endswith('*')
-            exp.test = exp.test.replace('\\*', '*')
-            if is_glob:
+            if exp.is_glob:
                 glob_exps.append(exp)
             else:
                 self.individual_exps.setdefault(exp.test, []).append(exp)
