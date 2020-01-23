@@ -740,14 +740,14 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
             '# tags: [ NVIDIA intel ]\n'
             '# results: [ Failure Pass Slow ]\n'
             'crbug.com/123 [ iNteL ] test.html?\* [ PasS FailuRe ]\n'
-            '[ NVIDIA ] test.\*.* [ SloW ]\n')
+            '[ NVIDIA ] test.\*.* [ SloW ]  # hello world\n')
         test_exps = TestExpectations()
         ret, errors = test_exps.parse_tagged_list(raw_expectations)
         assert not ret, errors
         self.assertEqual(test_exps.individual_exps['test.html?*'][0].to_string(),
                          'crbug.com/123 [ iNteL ] test.html?\* [ PasS FailuRe ]')
         self.assertEqual(test_exps.glob_exps['test.*.*'][0].to_string(),
-                         '[ NVIDIA ] test.\*.* [ SloW ]')
+                         '[ NVIDIA ] test.\*.* [ SloW ]  # hello world')
 
     def testExpectationToStringAfterRenamingTest(self):
         exp = Expectation(reason='crbug.com/123', test='test.html?*', tags=['intel'],

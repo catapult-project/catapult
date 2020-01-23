@@ -63,7 +63,7 @@ class Expectation(object):
     def __init__(self, reason='', test='*', tags=None, results=None, lineno=0,
                  retry_on_failure=False, is_slow_test=False,
                  conflict_resolution=ConflictResolutionTypes.UNION, raw_tags=None, raw_results=None,
-                 is_glob=False):
+                 is_glob=False, trailing_comments=''):
         """Constructor for expectations.
 
         Args:
@@ -91,6 +91,7 @@ class Expectation(object):
         self.is_slow_test = is_slow_test
         self.conflict_resolution = conflict_resolution
         self._is_glob = is_glob
+        self._trailing_comments = trailing_comments
 
     def __eq__(self, other):
         return (self.reason == other.reason and self.test == other.test
@@ -132,6 +133,8 @@ class Expectation(object):
             self._string_value += '[ %s ] ' % ' '.join(self._raw_tags)
         self._string_value += pattern + ' '
         self._string_value += '[ %s ]' % ' '.join(self._raw_results)
+        if self._trailing_comments:
+            self._string_value += self._trailing_comments
 
     def to_string(self):
         self._set_string_value()
@@ -169,6 +172,10 @@ class Expectation(object):
     @property
     def is_glob(self):
         return self._is_glob
+
+    @property
+    def trailing_comments(self):
+        return self._trailing_comments
 
 
 class TaggedTestListParser(object):
@@ -308,8 +315,7 @@ class TaggedTestListParser(object):
         if not match:
             raise ParseError(lineno, 'Syntax error: %s' % line)
 
-        # Unused group is optional trailing comment.
-        reason, raw_tags, test, raw_results, _ = match.groups()
+        reason, raw_tags, test, raw_results, trailing_comments = match.groups()
 
         # TODO(rmhasan): Find a better regex to capture the reasons. The '*' in
         # the reasons regex only allows us to get the last bug. We need to write
@@ -378,7 +384,7 @@ class TaggedTestListParser(object):
         return Expectation(
             reason, test, tags, results, lineno, retry_on_failure, is_slow_test,
             self._conflict_resolution, raw_tags=raw_tags, raw_results=raw_results,
-            is_glob=is_glob)
+            is_glob=is_glob, trailing_comments=trailing_comments or '')
 
 
 class TestExpectations(object):
