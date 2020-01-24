@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
 import logging
 import os
 import posixpath
@@ -17,6 +18,7 @@ from telemetry.core import exceptions
 from telemetry.internal.backends import app_backend
 from telemetry.internal.browser import web_contents
 from telemetry.internal.results import artifact_logger
+from telemetry.util import screenshot
 
 
 class ExtensionsNotSupportedException(Exception):
@@ -116,8 +118,45 @@ class BrowserBackend(app_backend.AppBackend):
   def CollectDebugData(self, log_level):
     """Attempts to symbolize all currently unsymbolized minidumps and log them.
 
+    Additionally, attempts to capture a screenshot and save it as an artifact.
+
     Platforms may override this to provide other crash information in addition
     to the symbolized minidumps.
+
+    Args:
+      log_level: The logging level to use from the logging module, e.g.
+          logging.ERROR.
+    """
+    self._CollectScreenshot(log_level)
+    self._SymbolizeAndLogMinidumps(log_level)
+
+  def _CollectScreenshot(self, log_level):
+    """Helper function to handle the screenshot portion of CollectDebugData.
+
+    Attempts to take a screenshot at the OS level and save it as an artifact.
+
+    Args:
+      log_level: The logging level to use from the logging module, e.g.
+          logging.ERROR.
+    """
+    screenshot_handle = screenshot.TryCaptureScreenShot(self.browser.platform)
+    if screenshot_handle:
+      with open(screenshot_handle.GetAbsPath(), 'rb') as infile:
+        now = datetime.datetime.now()
+        suffix = now.strftime('%Y-%m-%d-%H-%M-%S')
+        artifact_name = posixpath.join(
+            'debug_screenshots', 'screenshot-' + suffix)
+        logging.log(
+            log_level, 'Saving screenshot as artifact %s', artifact_name)
+        artifact_logger.CreateArtifact(artifact_name, infile.read())
+    else:
+      logging.log(log_level, 'Failed to capture screenshot')
+
+  def _SymbolizeAndLogMinidumps(self, log_level):
+    """Helper function to handle the minidump portion of CollectDebugData.
+
+    Attempts to find all unsymbolized minidumps, symbolize them, save the
+    results as artifacts, and log the results.
 
     Args:
       log_level: The logging level to use from the logging module, e.g.
