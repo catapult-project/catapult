@@ -142,10 +142,11 @@ def ChangePointEstimator(sequence, min_segment_size):
     return (((y * 2.0) / (len(cluster_a) * len(cluster_b))) -
             (x_a / a_len_combinations) - (x_b / b_len_combinations))
 
+  margin = max(min_segment_size, 1)
   estimates = [
       Estimator(i)
       for i, _ in enumerate(sequence)
-      if min_segment_size <= i < len(sequence) - min_segment_size
+      if margin <= i < len(sequence) - margin
   ]
   if not estimates:
     return (0, False)

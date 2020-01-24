@@ -87,3 +87,10 @@ class ChangeDetectorTest(unittest.TestCase):
       except ccd.InsufficientData:
         continue
     self.assertEqual(collected_indices, {100, 200})
+
+  def testClusterAndFindSplit_MinSegmentSizeZero(self):
+    sequence = ([1] * 10 + [2] * 10)
+    splits = ccd.ClusterAndFindSplit(sequence, 0, self.rand)
+    logging.debug('Splits = %s', splits)
+    self.assertEqual([10], splits)
+
