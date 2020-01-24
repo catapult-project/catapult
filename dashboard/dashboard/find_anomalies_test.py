@@ -613,6 +613,82 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(729731, new_anomalies[0].start_revision)
     self.assertEqual(729764, new_anomalies[0].end_revision)
 
+  def testProcessTest_RefineAnomalyPlacement_OffByOneStable(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['linux-perf'], {
+            'memory.desktop': {
+                ('memory:chrome:all_processes:'
+                 'reported_by_chrome:v8:effective_size_avg'): {}
+            }
+        })
+    test = utils.TestKey(
+        ('ChromiumPerf/linux-perf/memory.desktop/'
+         'memory:chrome:all_processes:reported_by_chrome:v8:effective_size_avg'
+        )).get()
+    test_container_key = utils.GetTestContainerKey(test.key)
+    sample_data = [
+        (733480, 1381203.0),
+        (733494, 1381220.0),
+        (733504, 1381212.0),
+        (733524, 1381220.0),
+        (733538, 1381211.0),
+        (733544, 1381212.0),
+        (733549, 1381220.0),
+        (733563, 1381220.0),
+        (733581, 1381220.0),
+        (733597, 1381212.0),
+        (733611, 1381228.0),
+        (733641, 1381212.0),
+        (733675, 1381204.0),
+        (733721, 1381212.0),
+        (733766, 1381211.0),
+        (733804, 1381204.0),
+        (733835, 1381219.0),
+        (733865, 1381211.0),
+        (733885, 1381219.0),
+        (733908, 1381204.0),
+        (733920, 1381211.0),
+        (733937, 1381220.0),
+        (734091, 1381211.0),
+        (734133, 1381219.0),
+        (734181, 1381204.0),
+        (734211, 1381720.0),
+        (734248, 1381712.0),
+        (734277, 1381696.0),
+        (734311, 1381704.0),
+        (734341, 1381703.0),
+        (734372, 1381704.0),
+        (734405, 1381703.0),
+        (734431, 1381711.0),
+        (734456, 1381720.0),
+        (734487, 1381703.0),
+        (734521, 1381704.0),
+        (734554, 1381726.0),
+        (734598, 1381704.0),
+        (734630, 1381703.0),  # In crbug/1041688 this is where it was placed.
+        (734673, 1529888.0),  # This is where it should be.
+        (734705, 1529888.0),
+        (734739, 1529860.0),
+        (734770, 1529860.0),
+        (734793, 1529888.0),
+        (734829, 1529860.0),
+    ]
+    for row in sample_data:
+      graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
+    sheriff.Sheriff(
+        email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
+    test.UpdateSheriff()
+    test.put()
+    with mock.patch.object(SheriffConfigClient, 'Match',
+                           mock.MagicMock(return_value=([], None))) as m:
+      find_anomalies.ProcessTests([test.key])
+      self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
+    new_anomalies = anomaly.Anomaly.query().fetch()
+    self.assertEqual(1, len(new_anomalies))
+    self.assertEqual(anomaly.UP, new_anomalies[0].direction)
+    self.assertEqual(734631, new_anomalies[0].start_revision)
+    self.assertEqual(734673, new_anomalies[0].end_revision)
+
   def testMakeAnomalyEntity_NoRefBuild(self):
     testing_common.AddTests(
         ['ChromiumPerf'],

@@ -128,34 +128,40 @@ def FindChangePoints(series,
   # alternate implementation.
   alternate_split_index = _FindSplit(y_values)
   candidate_indices = []
-  try:
-    potential_candidates = clustering_change_detector.ClusterAndFindSplit(
-        y_values, min_segment_size)
-    candidate_indices.extend(potential_candidates)
-    split_index = max(potential_candidates)
+  split_index = 0
 
-    # Then from here we need to adjust the index to find a more suitable change
-    # point. What happens sometimes is we find a partition point but the point
-    # we find is "before" the change actually happened.
-    while split_index + min_segment_size < len(y_values):
-      logging.debug('Find later change points with a shorter range.')
-      try:
-        potential_candidates = [
-            (x + split_index) - (min_segment_size - 1)
-            for x in clustering_change_detector.ClusterAndFindSplit(
-                y_values[split_index -
-                         (min_segment_size + 1):], min_segment_size)
-        ]
-        logging.debug('New indices: %s', potential_candidates)
+  def RelativeIndexAdjuster(base, offset):
+    return (base + offset) - min_segment_size if base != 0 else offset
+
+  # We iteratively find all potential change-points in the range.
+  while split_index + min_segment_size < len(y_values):
+    try:
+      # First we get an adjusted set of indices, starting from split_index,
+      # filtering out the ones we've already seen.
+      potential_candidates_unadjusted = (
+          clustering_change_detector.ClusterAndFindSplit(
+              y_values[max(split_index - min_segment_size, 0):],
+              min_segment_size))
+      potential_candidates_unfiltered = [
+          RelativeIndexAdjuster(split_index, x)
+          for x in potential_candidates_unadjusted
+      ]
+      potential_candidates = [
+          x for x in potential_candidates_unfiltered
+          if x not in candidate_indices
+      ]
+      logging.debug('New indices: %s', potential_candidates)
+
+      if potential_candidates:
         candidate_indices.extend(potential_candidates)
         split_index = max(potential_candidates)
-      except clustering_change_detector.Error as e:
-        logging.debug('Failed to refine the split index: %s', e)
+      else:
         break
-
-  except clustering_change_detector.Error as e:
-    logging.warning('Pinpoint based comparison failed: %s', e)
-    return []
+    except clustering_change_detector.Error as e:
+      if not candidate_indices:
+        logging.warning('Clustering change point detection failed: %s', e)
+        return []
+      break
 
   alternate_make_change_point, alternate_reason = _PassesThresholds(
       y_values,
@@ -189,6 +195,7 @@ def FindChangePoints(series,
     else:
       logging.debug('Rejected %s as potential index (%s); reason = %s',
                     potential_index, RevAndIdx(potential_index), reject_reason)
+
   logging.info('E-Divisive potential change-points: %s',
                [RevAndIdx(idx) for idx in change_points])
   logging.info(
