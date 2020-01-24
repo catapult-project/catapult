@@ -15,7 +15,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from apiclient.http import HttpMockSequence
+from tests.utils import HttpMockSequenceWithDiscovery
 from google.auth import credentials
 from google.cloud import datastore
 import base64
@@ -26,8 +26,6 @@ import unittest
 class LuciPollingTest(unittest.TestCase):
 
   def setUp(self):
-    with open('tests/config-discovery.json') as discovery_file:
-      self.discovery_file = discovery_file.read()
     with open(
         'tests/sample-configs-get_project_configs.json') as sample_config_file:
       self.sample_config = sample_config_file.read()
@@ -41,9 +39,7 @@ class LuciPollingTest(unittest.TestCase):
                 credentials=credentials.AnonymousCredentials(),
                 project='chromeperf'),
         'http':
-            HttpMockSequence([({
-                'status': '200'
-            }, self.discovery_file), ({
+            HttpMockSequenceWithDiscovery([({
                 'status': '200'
             }, self.sample_config)]),
     })
@@ -176,12 +172,88 @@ class LuciPollingTest(unittest.TestCase):
         headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 400)
 
+  def testListSubscriptions(self):
+    app = service.CreateApp({
+        'environ': {
+            'GOOGLE_CLOUD_PROJECT': 'chromeperf',
+            'GAE_SERVICE': 'sheriff-config',
+        },
+        'datastore_client':
+            datastore.Client(
+                credentials=credentials.AnonymousCredentials(),
+                project='chromeperf'),
+        'http':
+            HttpMockSequenceWithDiscovery([({
+                'status': '200'
+            }, self.sample_config), ({
+                'status': '200'
+            }, '{ "is_member": true }'), ({
+                'status': '200'
+            }, '{ "is_member": false }')]),
+    })
+    client = app.test_client()
+    response = client.get(
+        '/configs/update', headers={'X-Forwarded-Proto': 'https'})
+    self.assertEqual(response.status_code, 200)
+    response = client.post(
+        '/subscriptions/list',
+        json={
+            'identity_email': 'any@internal.com'
+        },
+        headers={'X-Forwarded-Proto': 'https'})
+    self.assertEqual(response.status_code, 200)
+    self.assertDictEqual(response.get_json(), {
+        'subscriptions': [{
+            'config_set': 'projects/project',
+            'revision': '0123456789abcdef',
+            'subscription': {
+                'name': 'Config 1',
+                'notification_email': 'config-1@example.com',
+                'bug_labels': ['Some-Label'],
+                'bug_components': ['Some>Component'],
+                'patterns': [{
+                    'glob': 'project/**'
+                }]
+            }
+        }, {
+            'config_set': 'projects/project',
+            'revision': '0123456789abcdef',
+            'subscription': {
+                'name': 'Config 2',
+                'notification_email': 'config-2@example.com',
+                'bug_labels': ['Some-Label'],
+                'bug_components': ['Some>Component'],
+                'patterns': [{
+                    'regex': '^project/platform/.*/memory_peak$'
+                }]
+            }
+        }, {
+            'config_set': 'projects/other_project',
+            'revision': '0123456789abcdff',
+            'subscription': {
+                'name': 'Expected 1',
+                'notification_email': 'expected-1@example.com',
+                'bug_labels': ['Some-Label'],
+                'bug_components': ['Some>Component'],
+                'patterns': [{
+                    'glob': 'Master/Bot/Test/Metric/Something'
+                }]
+            }
+        }]
+    })
+    response = client.post(
+        '/subscriptions/list',
+        json={
+            'identity_email': 'any@public.com'
+        },
+        headers={'X-Forwarded-Proto': 'https'})
+    self.assertEqual(response.status_code, 200)
+    self.assertDictEqual(response.get_json(), {})
+
 
 class LuciContentChangesTest(unittest.TestCase):
 
   def setUp(self):
-    with open('tests/config-discovery.json') as discovery_file:
-      self.discovery_file = discovery_file.read()
     with open(
         'tests/sample-configs-get_project_configs.json') as sample_config_file:
       self.sample_config = sample_config_file.read()
@@ -281,9 +353,7 @@ class LuciContentChangesTest(unittest.TestCase):
                 credentials=credentials.AnonymousCredentials(),
                 project='chromeperf'),
         'http':
-            HttpMockSequence([({
-                'status': '200'
-            }, self.discovery_file), ({
+            HttpMockSequenceWithDiscovery([({
                 'status': '200'
             }, '{}')])
     })
@@ -306,9 +376,7 @@ class LuciContentChangesTest(unittest.TestCase):
                 credentials=credentials.AnonymousCredentials(),
                 project='chromeperf'),
         'http':
-            HttpMockSequence([({
-                'status': '200'
-            }, self.discovery_file), ({
+            HttpMockSequenceWithDiscovery([({
                 'status': '200'
             }, self.sample_config), ({
                 'status': '200'
@@ -363,9 +431,7 @@ class LuciContentChangesTest(unittest.TestCase):
                 credentials=credentials.AnonymousCredentials(),
                 project='chromeperf'),
         'http':
-            HttpMockSequence([({
-                'status': '200'
-            }, self.discovery_file), ({
+            HttpMockSequenceWithDiscovery([({
                 'status': '200'
             }, invalid_content), ({
                 'status': '200'

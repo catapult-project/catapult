@@ -36,8 +36,8 @@ class ValidatorTest(unittest.TestCase):
     self.assertIsNotNone(subscriptions)
 
   def testInvalidJSON(self):
-    with self.assertRaisesRegexp(validator.InvalidConfig,
-                                 'SheriffConfig Validation Error'):
+    with self.assertRaisesRegex(validator.InvalidConfig,
+                                'SheriffConfig Validation Error'):
       _ = validator.Validate("""
                              subscriptions: ...
                              """)
@@ -96,8 +96,8 @@ class ValidatorTest(unittest.TestCase):
                              """)
 
   def testInvalidUndefinedPattern(self):
-    with self.assertRaisesRegexp(validator.InvalidPattern,
-                                 'must provide either \'glob\' or \'regex\''):
+    with self.assertRaisesRegex(validator.InvalidPattern,
+                                'must provide either \'glob\' or \'regex\''):
       _ = validator.Validate("""
                                subscriptions: [
                                  {
@@ -111,8 +111,8 @@ class ValidatorTest(unittest.TestCase):
                              """)
 
   def testInvalidEmptyGlob(self):
-    with self.assertRaisesRegexp(validator.InvalidPattern,
-                                 'glob must not be empty'):
+    with self.assertRaisesRegex(validator.InvalidPattern,
+                                'glob must not be empty'):
       _ = validator.Validate("""
                                subscriptions: [
                                  {
@@ -126,8 +126,8 @@ class ValidatorTest(unittest.TestCase):
                              """)
 
   def testInvalidEmptyRegex(self):
-    with self.assertRaisesRegexp(validator.InvalidPattern,
-                                 'regex must not be empty'):
+    with self.assertRaisesRegex(validator.InvalidPattern,
+                                'regex must not be empty'):
       _ = validator.Validate("""
                                subscriptions: [
                                  {

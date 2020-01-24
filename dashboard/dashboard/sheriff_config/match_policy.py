@@ -3,23 +3,59 @@
 # found in the LICENSE file.
 """Policies to ensure internal or restricted information won't be leaked."""
 
-# Support python3
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import time
+import functools
 import logging
 import sheriff_pb2
 
 
+def IsPrivate(config):
+  _, _, subscription = config
+  return subscription.visibility == sheriff_pb2.Subscription.INTERNAL_ONLY
+
+
 def FilterSubscriptionsByPolicy(request, configs):
-  def IsPrivate(config):
-    _, _, subscription = config
-    return subscription.visibility == sheriff_pb2.Subscription.INTERNAL_ONLY
+  # We consider sending information to both private and public subscribers a
+  # potential risk of leaking restricted information. So only return private
+  # subscribers when matched both public and private.
   privates = [IsPrivate(c) for c in configs]
   if any(privates) and not all(privates):
-    logging.warn("Private sheriff overlaps with public: %s, %s",
-                 request.path, [(config_set, subscription.name)
-                                for config_set, _, subscription in configs])
+    logging.warning('Private sheriff overlaps with public: %s, %s',
+                    request.path, [(config_set, subscription.name)
+                                   for config_set, _, subscription in configs])
     return [c for c in configs if IsPrivate(c)]
+  return configs
+
+
+def LRUCacheWithTTL(ttl_seconds=60, **lru_args):
+  def Wrapper(func):
+    @functools.lru_cache(**lru_args)
+    # pylint: disable=unused-argument
+    def Cached(ttl, *args, **kargs):
+      return func(*args, **kargs)
+    def Wrapping(*args, **kargs):
+      ttl = int(time.time()) // ttl_seconds
+      return Cached(ttl, *args, **kargs)
+    return Wrapping
+  return Wrapper
+
+
+@LRUCacheWithTTL(ttl_seconds=60, maxsize=128)
+def IsGroupMember(auth_client, email, group):
+  request = auth_client.membership(identity=email, group=group)
+  response = request.execute()
+  is_member = response['is_member']
+  return is_member
+
+
+def FilterSubscriptionsByIdentity(auth_client, request, configs):
+  # Only return private subscribers to internal user
+  is_internal = IsGroupMember(auth_client, request.identity_email,
+                              'chromeperf-access')
+  if not is_internal:
+    return [c for c in configs if not IsPrivate(c)]
   return configs

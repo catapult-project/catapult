@@ -7,9 +7,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from google.cloud import datastore
 from googleapiclient import errors
-from googleapiclient.discovery import build
+from google.cloud import datastore
 import base64
 import fnmatch
 import httplib2
@@ -17,8 +16,6 @@ import re
 import sheriff_pb2
 import validator
 
-# The Root of the luci-config API service.
-API_ROOT = 'https://luci-config.appspot.com/_ah/api'
 
 # The path which we will look for in projects.
 SHERIFF_CONFIG_PATH = 'chromeperf-sheriffs.cfg'
@@ -33,14 +30,6 @@ class FetchError(Error):
   def __init__(self, error):
     super(FetchError,
           self).__init__('Failed fetching project configs: {}'.format(error))
-    self.error = error
-
-
-class DiscoveryError(Error):
-
-  def __init__(self, error):
-    super(DiscoveryError,
-          self).__init__('Service discovery failed: {}'.format(error))
     self.error = error
 
 
@@ -60,40 +49,6 @@ class InvalidContentError(Error):
         'Config (%r) content decoding error: %s' % (config, error))
     self.config = config
     self.error = error
-
-
-def CreateConfigClient(http,
-                       api_root=API_ROOT,
-                       api='config',
-                       version='v1',
-                       credentials=None):
-  """Factory function for a creating a config client.
-
-  This uses the discovery API to generate a service object corresponding to the
-  API we're using from luci-config.
-
-  Args:
-    http: a fully configured HTTP client/request
-    api_root: the URL through which the API will be configured (default:
-      API_ROOT)
-    api: the service name (default: 'config')
-    version: the version of the API (default: 'v1')
-    credentials: a google.auth.Credential, directly supported by the
-      googleapiclient library (default: None)
-  """
-  discovery_url = '%s/discovery/v1/apis/%s/%s/rest' % (api_root, api, version)
-  try:
-    if not credentials:
-      client = build(api, version, discoveryServiceUrl=discovery_url, http=http)
-    else:
-      client = build(
-          api,
-          version,
-          discoveryServiceUrl=discovery_url,
-          credentials=credentials)
-  except (errors.HttpError, errors.UnknownApiNameOrVersion) as e:
-    raise DiscoveryError(e)
-  return client
 
 
 def FindAllSheriffConfigs(client):
@@ -190,7 +145,7 @@ def StoreConfigs(client, configs):
     client.put_multi(list(entities.values()) + [subscription_index])
 
 
-def FindMatchingConfigs(client, request):
+def ListAllConfigs(client):
   """Yield tuples of (config_set, revision, subscription)."""
   with client.transaction(read_only=True):
     # First look up the global index.
@@ -207,23 +162,30 @@ def FindMatchingConfigs(client, request):
     ])
 
   # From there we can then go through each of the subscriptions in the retrieved
-  # configs, and yield the ones that have patterns applying to the request.
+  # configs
   for config in config_sets:
     sheriff_config = sheriff_pb2.SheriffConfig()
     sheriff_config.ParseFromString(config['sheriff_config'])
     for subscription in sheriff_config.subscriptions:
-      for pattern in subscription.patterns:
-        if pattern.HasField('glob'):
-          matcher = re.compile(fnmatch.translate(pattern.glob))
-        elif pattern.HasField('regex'):
-          matcher = re.compile(pattern.regex)
-        else:
-          # TODO(dberris): this is the extension point for supporting new
-          # matchers; for now we'll skip the new patterns we don't handle yet.
-          continue
-        result = matcher.match(request.path)
-        if result is not None:
-          yield (config['config_set'], config['revision'], subscription)
-          # We break immediately after the yield, so that we can ignore the rest
-          # of the patterns defined for this subscription.
-          break
+      yield (config['config_set'], config['revision'], subscription)
+
+
+def FindMatchingConfigs(client, request):
+  """Yield tuples of (config_set, revision, subscription)."""
+  for config_set, revision, subscription in ListAllConfigs(client):
+    for pattern in subscription.patterns:
+      # TODO(fancl): cache compiled regexp
+      if pattern.HasField('glob'):
+        matcher = re.compile(fnmatch.translate(pattern.glob))
+      elif pattern.HasField('regex'):
+        matcher = re.compile(pattern.regex)
+      else:
+        # TODO(dberris): this is the extension point for supporting new
+        # matchers; for now we'll skip the new patterns we don't handle yet.
+        continue
+      result = matcher.match(request.path)
+      if result is not None:
+        yield (config_set, revision, subscription)
+        # We break immediately after the yield, so that we can ignore the rest
+        # of the patterns defined for this subscription.
+        break

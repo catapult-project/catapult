@@ -6,8 +6,8 @@ syntax = "proto3";
 package catapult.dashboard.dashboard.proto;
 import "sheriff.proto";
 
-// A MatchRequest proto defines the message we expect to get for requests to the
-// sheriff-config service.
+// A MatchRequest proto defines the message we expect to get for matching
+// subscriptions to the sheriff-config service.
 message MatchRequest {
   // Full path identifier for the test.
   string path = 1;
@@ -31,12 +31,35 @@ message MatchRequest {
   TestMetadata metadata = 3;
 }
 
-// A MatchResponse proto defines the message we respond with on requests to the
-// sheriff-config service.
+// A MatchResponse proto defines the message we respond to matching
+// subscriptions.
 message MatchResponse {
   // We wrap each Subscription that matches with an identifier, which allows us
   // to look up the specific configuration version that defines the particular
-  // Subscription. Since the in the sheriff-config service we're able to refer
+  // Subscription. Because in the sheriff-config service we're able to refer
+  // to specific configuration sets with the combination of a config_set and the
+  // revision, clients can look up the particular state of the configuration
+  // from luci-config provided those two pieces of information as well.
+  message SubscriptionMetadata {
+    string config_set = 1;
+    string revision = 2;
+    Subscription subscription = 3;
+  }
+  repeated SubscriptionMetadata subscriptions = 1;
+}
+
+// A ListRequest proto defines the message we expect to get for listing
+// subscriptions to the sheriff-config service.
+message ListRequest {
+  // Identity used for checking subscriptions' visibility
+  string identity_email = 1;
+}
+
+// A ListResponse proto defines the message we respond to listing subscriptions.
+message ListResponse {
+  // We wrap each Subscription that matches with an identifier, which allows us
+  // to look up the specific configuration version that defines the particular
+  // Subscription. Because in the sheriff-config service we're able to refer
   // to specific configuration sets with the combination of a config_set and the
   // revision, clients can look up the particular state of the configuration
   // from luci-config provided those two pieces of information as well.

@@ -17,6 +17,7 @@ import logging
 import luci_config
 import match_policy
 import os
+import service_client
 import sheriff_config_pb2
 import sheriff_pb2
 import validator
@@ -61,12 +62,11 @@ def CreateApp(test_config=None):
 
   # We can set up a preconfigured HTTP instance from the test_config, otherwise
   # we'll use the default auth for the production environment.
+  client_config = {}
   if test_config:
-    http = test_config.get('http')
-    credentials = None
+    client_config['http'] = test_config.get('http')
   else:
-    http = None
-    credentials, _ = google.auth.default()
+    client_config['credentials'], _ = google.auth.default()
 
   # In the python37 environment, we need to synthesize the URL from the
   # various parts in the environment variable, because we do not have access
@@ -81,9 +81,17 @@ def CreateApp(test_config=None):
   domain = '{parts[service]}-dot-{parts[app_id]}.appspot.com'.format(
       parts=domain_parts)
 
-  # We create an instance of the luci-config client, which we'll use in all
-  # requests handled in this application.
-  config_client = luci_config.CreateConfigClient(http, credentials=credentials)
+  # We create an instance of the luci-config and Auth client, which we'll use
+  # in all requests handled in this application.
+  config_client = service_client.CreateServiceClient(
+      'https://luci-config.appspot.com/_ah/api', 'config', 'v1',
+      **client_config
+  )
+  auth_client = service_client.CreateServiceClient(
+      'https://chrome-infra-auth.appspot.com/_ah/api', 'auth', 'v1',
+      **client_config
+  )
+
 
   # First we check whether the test_config already has a predefined
   # datastore_client.
@@ -135,7 +143,7 @@ def CreateApp(test_config=None):
       return jsonify({})
     except (luci_config.InvalidConfigError,
             luci_config.InvalidContentError) as error:
-      logging.warn('loading configs from luci-config failed: %s', error)
+      logging.warning('loading configs from luci-config failed: %s', error)
       return jsonify({}), 500
 
   @app.route('/subscriptions/match', methods=['POST'])
@@ -173,6 +181,43 @@ def CreateApp(test_config=None):
       return jsonify({}), 404
     return (json_format.MessageToJson(
         match_response, preserving_proto_field_name=True), 200, {
+            'Content-Type': 'application/json'
+        })
+
+  @app.route('/subscriptions/list', methods=['POST'])
+  def ListSubscriptions():  # pylint: disable=unused-variable
+    """List all visible subscriptions based on identity.
+
+    This is an API handler, which requires that we have an authenticated user
+    making the request. We'll require that the user be a service account
+    (from the main dashboard service).
+
+    """
+
+    try:
+      list_request = json_format.Parse(request.get_data(),
+                                       sheriff_config_pb2.ListRequest())
+    except json_format.ParseError as error:
+      return jsonify({
+          'messages': [{
+              'severity': 'ERROR',
+              'text': '%s' % (error)
+          }]
+      }), 400
+    list_response = sheriff_config_pb2.ListResponse()
+    configs = list(luci_config.ListAllConfigs(datastore_client))
+    configs = match_policy.FilterSubscriptionsByIdentity(
+        auth_client, list_request, configs)
+    for config_set, revision, subscription in configs:
+      subscription_metadata = list_response.subscriptions.add()
+      subscription_metadata.config_set = config_set
+      subscription_metadata.revision = revision
+      subscription_metadata.subscription.CopyFrom(subscription)
+      # We shouldn't use patterns outside the sheriff-config in any case.
+      # Maybe allow being explicitily requsted for debug usage later.
+      subscription_metadata.subscription.patterns = None
+    return (json_format.MessageToJson(
+        list_response, preserving_proto_field_name=True), 200, {
             'Content-Type': 'application/json'
         })
 

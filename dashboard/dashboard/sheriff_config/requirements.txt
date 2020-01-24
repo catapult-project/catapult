@@ -8,6 +8,7 @@ google-auth-httplib2==0.0.3
 google-cloud-core==1.1.0
 google-cloud-datastore==1.10.0
 google-cloud-logging==1.14.0
+oauth2client==4.1.3
 gunicorn==19.9.0
 protobuf>=3.4.0
 google-python-cloud-debugger
