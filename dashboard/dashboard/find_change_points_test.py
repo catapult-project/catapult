@@ -175,6 +175,12 @@ class FindChangePointsTest(unittest.TestCase):
         [1, 1, 5, 5, 5, 5, 9, 9, 9, 9, 9], [6],
         max_window_size=11, min_segment_size=3)
 
+  def testFindChangePoints_ZeroSegmentSize(self):
+    self._AssertFindsChangePoints(
+        [10, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [2],
+        max_window_size=50, min_segment_size=0
+    )
+
   def testChangePoint_CanBeMadeAndConvertedToDict(self):
     series = list(enumerate([4, 4, 4, 8, 8, 8, 8]))
     change_point = find_change_points.MakeChangePoint(series, 3)

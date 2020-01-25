@@ -131,7 +131,11 @@ def FindChangePoints(series,
   split_index = 0
 
   def RelativeIndexAdjuster(base, offset):
-    return (base + offset) - min_segment_size if base != 0 else offset
+    if base == 0:
+      return offset
+
+    # Prevent negative indices.
+    return max((base + offset) - min_segment_size, 0)
 
   # We iteratively find all potential change-points in the range.
   while split_index + min_segment_size < len(y_values):

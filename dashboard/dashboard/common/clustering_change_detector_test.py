@@ -93,4 +93,3 @@ class ChangeDetectorTest(unittest.TestCase):
     splits = ccd.ClusterAndFindSplit(sequence, 0, self.rand)
     logging.debug('Splits = %s', splits)
     self.assertEqual([10], splits)
-

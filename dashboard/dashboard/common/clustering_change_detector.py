@@ -242,7 +242,7 @@ def ClusterAndFindSplit(values, min_segment_size, rand=None):
     # TODO(crbug/1045595): Change this to explore both clusters, using an
     # interval tree traversal algorithm.
     if in_a:
-      length = min(len(cluster_a) + min_segment_size, len(values))
+      length = min(partition_point + min_segment_size, len(values))
     elif in_b:
       length = min(len(cluster_b) + min_segment_size - 1, len(values))
       start += max(partition_point - (min_segment_size - 1), 0)
