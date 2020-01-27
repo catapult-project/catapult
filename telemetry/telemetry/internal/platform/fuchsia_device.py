@@ -32,7 +32,7 @@ class FuchsiaDevice(device.Device):
   def __init__(self, target_name, host, output_dir,
                system_log_file, port):
     super(FuchsiaDevice, self).__init__(
-        name='Fuchsia with host localhost',
+        name='Fuchsia with host: %s' % host,
         guid='fuchsia:%s' % target_name)
     self._target_name = target_name
     self._output_dir = output_dir
@@ -123,6 +123,17 @@ def FindAllAvailableDevices(options):
     logging.warning('Fuchsia in Telemetry only supports Linux x64 hosts.')
     return []
 
+  # If the ssh port of the device has been forwarded to a port on the host,
+  # return that device directly.
+  if options.fuchsia_ssh_port:
+    try:
+      return [FuchsiaDevice(target_name='local_device',
+                            host='localhost',
+                            system_log_file=None,
+                            output_dir=options.fuchsia_output_dir,
+                            port=int(options.fuchsia_ssh_port))]
+    except ValueError:
+      logging.error('fuchsia-ssh-port must be an integer.')
   # Download the Fuchsia SDK if it doesn't exist.
   # TODO(https://crbug.com/1031763): Figure out how to use the dependency
   # manager.
