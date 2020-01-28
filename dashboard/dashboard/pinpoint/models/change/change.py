@@ -201,6 +201,10 @@ def _ExpandDepsToMatchRepositories(commits_a, commits_b):
     commits_a: A list of Commits.
     commits_b: A list of Commits.
   """
+  # First, scrub the list of commits of things we shouldn't be looking into.
+  commits_a[:] = [c for c in commits_a if commit_module.RepositoryInclusionFilter(c)]
+  commits_b[:] = [c for c in commits_b if commit_module.RepositoryInclusionFilter(c)]
+
   # The lists may be given in any order. Let's make commits_b the bigger list.
   if len(commits_a) > len(commits_b):
     commits_a, commits_b = commits_b, commits_a
@@ -215,7 +219,9 @@ def _ExpandDepsToMatchRepositories(commits_a, commits_b):
     for commit_b in commits_b[len(commits_a):]:
       dep_a = _FindRepositoryUrlInDeps(deps_a, commit_b.repository_url)
       if dep_a:
-        commits_a.append(commit_module.Commit.FromDep(dep_a))
+        dep_commit = commit_module.Commit.FromDep(dep_a)
+        if commit_module.RepositoryInclusionFilter(dep_commit):
+          commits_a.append(dep_commit)
       else:
         break
 
@@ -279,3 +285,4 @@ def _FindRepositoryUrlInCommits(commits, repository_url):
     if commit.repository_url == repository_url:
       return commit
   return None
+
