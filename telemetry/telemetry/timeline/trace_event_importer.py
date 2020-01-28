@@ -298,14 +298,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
             'Async events (ph: b, e, S, T or F) require an name parameter.')
         continue
 
-      if 'id2' in event:
-        if 'global' in event['id2']:
-          event_id = event['id2']['global']
-        else:
-          event_id = (event['pid'] << 64) | event['id2']['local']
-      else:
-        event_id = event.get('id')
-
+      event_id = event.get('id')
       if event_id is None:
         self._model.import_errors.append(
             'Async events (ph: b, e, S, T or F) require an id parameter.')
