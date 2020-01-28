@@ -621,9 +621,9 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     events = [
         # Time is intentionally out of order.
         {'name': 'a', 'args': {}, 'pid': 52, 'ts': 560, 'cat': 'cat',
-         'tid': 53, 'ph': 'F', 'id': 72},
+         'tid': 53, 'ph': 'F', 'id2': {'global': 72}},
         {'name': 'a', 'pid': 52, 'ts': 524, 'cat': 'cat',
-         'tid': 53, 'ph': 'S', 'id': 72, 'args': {'foo': 'bar'}}
+         'tid': 53, 'ph': 'S', 'id2': {'global': 72}, 'args': {'foo': 'bar'}}
     ]
 
     trace_data = trace_data_module.CreateFromRawChromeEvents(events)
@@ -750,9 +750,9 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     events = [
         # Time is intentionally out of order.
         {'name': 'c', 'args': {'y': 2}, 'pid': 52, 'ts': 560, 'cat': 'foo',
-         'tid': 53, 'ph': 'F', 'id': 72},
+         'tid': 53, 'ph': 'F', 'id2': {'local': 72}},
         {'name': 'c', 'args': {'x': 1}, 'pid': 52, 'ts': 524, 'cat': 'foo',
-         'tid': 53, 'ph': 'S', 'id': 72}
+         'tid': 53, 'ph': 'S', 'id2': {'local': 72}}
     ]
 
     trace_data = trace_data_module.CreateFromRawChromeEvents(events)
