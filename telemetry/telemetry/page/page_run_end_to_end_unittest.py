@@ -126,6 +126,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     test = TestOneTab()
     self.RunStorySet(test, story_set)
 
+  @decorators.Disabled('linux', 'mac')  # crbug.com/1042080
   def testTrafficSettings(self):
     story_set = story.StorySet()
     slow_page = page_module.Page(
