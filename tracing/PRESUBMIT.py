@@ -52,6 +52,28 @@ def _WarnOnReservedInfosChanges(input_api, output_api):
         'are in sync.'))
   return results
 
+
+def _CheckProtoNamespace(input_api, output_api):
+  source_file_filter = lambda x: input_api.FilterSourceFile(
+      x, white_list=[r'.*\.(cc|h)$'])
+
+  files = []
+  for f in input_api.AffectedSourceFiles(source_file_filter):
+    contents = input_api.ReadFile(f)
+    print f
+    if 'protobuf::' in contents:
+      files.append(f)
+
+  if files:
+    return [output_api.PresubmitError(
+        'Do not use the google::protobuf namespace. Use auto for '
+        'google::protobuf::Map or other proto types you need.\n'
+        'google::protobuf is currently not compatible with downstream '
+        'proto libraries.',
+        files)]
+
+  return []
+
 def CheckChangeOnUpload(input_api, output_api):
   return _CheckChange(input_api, output_api)
 
@@ -81,6 +103,7 @@ def _CheckChange(input_api, output_api):
   results += _CheckRegisteredMetrics(input_api, output_api)
   results += _CheckRegisteredDiagnostics(input_api, output_api)
   results += _WarnOnReservedInfosChanges(input_api, output_api)
+  results += _CheckProtoNamespace(input_api, output_api)
 
   return results
 

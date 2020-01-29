@@ -114,8 +114,7 @@ std::unique_ptr<proto::Histogram> HistogramBuilder::toProto() const {
 
   proto::DiagnosticMap* diagnostics = histogram->mutable_diagnostics();
   for (const auto& pair : diagnostics_) {
-    google::protobuf::Map<std::string, proto::Diagnostic>* diagnostic_map =
-        diagnostics->mutable_diagnostic_map();
+    auto* diagnostic_map = diagnostics->mutable_diagnostic_map();
     (*diagnostic_map)[pair.first] = pair.second;
   }
 
