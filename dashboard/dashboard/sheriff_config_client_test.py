@@ -104,6 +104,53 @@ class SheriffConfigClientTest(testing_common.TestCase):
     ]
     self.assertEqual(clt.Match('Foo2/a/Bar2/b'), (expected, None))
 
+  def testList(self):
+    clt = SheriffConfigClient()
+    response_text = """
+    {
+      "subscriptions": [
+        {
+          "config_set": "projects/catapult",
+          "revision": "c9d4943dc832e448f9786e244f918fdabc1e5303",
+          "subscription": {
+            "name": "Public Team1",
+            "rotation_url": "https://some/url",
+            "notification_email": "public@mail.com",
+            "bug_labels": [
+              "Lable1",
+              "Lable2"
+            ],
+            "bug_components": [
+              "foo>bar"
+            ],
+            "visibility": "PUBLIC",
+            "patterns": [
+              {
+                "glob": "Foo2/*/Bar2/*"
+              },
+              {
+                "regex": ".*"
+              }
+            ]
+          }
+        }
+      ]
+    }
+    """
+    clt._session = self._Session(self._Response(True, response_text))
+    expected = [
+        Subscription(
+            revision='c9d4943dc832e448f9786e244f918fdabc1e5303',
+            name='Public Team1',
+            rotation_url='https://some/url',
+            notification_email='public@mail.com',
+            visibility=VISIBILITY.PUBLIC,
+            bug_labels=['Lable1', 'Lable2'],
+            bug_components=['foo>bar']
+        ),
+    ]
+    self.assertEqual(clt.List(), (expected, None))
+
   def testMatchFailed(self):
     clt = SheriffConfigClient()
     clt._session = self._Session(self._Response(False, 'some error message'))

@@ -7,6 +7,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from common.utils import GetEmail
 from dashboard import sheriff_config_pb2
 from dashboard.models.subscription import Subscription
 import google.auth
@@ -47,9 +48,21 @@ class SheriffConfigClient(object):
       return [], None
     if not response.ok:
       return None, '%r\n%s' % (response, response.text)
-    match = json_format.Parse(response.text, sheriff_config_pb2.MatchResponse())
+    match_resp = json_format.Parse(response.text,
+                                   sheriff_config_pb2.MatchResponse())
     return [self._ParseSubscription(s.revision, s.subscription)
-            for s in match.subscriptions], None
+            for s in match_resp.subscriptions], None
+
+  def List(self):
+    response = self._session.post(
+        'https://sheriff-config-dot-chromeperf.appspot.com/subscriptions/match',
+        json={'identity_email': GetEmail()})
+    if not response.ok:
+      return None, '%r\n%s' % (response, response.text)
+    list_resp = json_format.Parse(response.text,
+                                  sheriff_config_pb2.ListResponse())
+    return [self._ParseSubscription(s.revision, s.subscription)
+            for s in list_resp.subscriptions], None
 
   def Update(self):
     response = self._session.get(

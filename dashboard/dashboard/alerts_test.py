@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import mock
 import sys
 import unittest
 
@@ -17,10 +18,12 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
-from dashboard.models import sheriff
 from dashboard.models.subscription import Subscription
+from dashboard.sheriff_config_client import SheriffConfigClient
 
 
+@mock.patch.object(SheriffConfigClient, '__init__',
+                   mock.MagicMock(return_value=None))
 class AlertsTest(testing_common.TestCase):
 
   def setUp(self):
@@ -39,10 +42,6 @@ class AlertsTest(testing_common.TestCase):
         name='Chromium Perf Sheriff',
         notification_email='internal@chromium.org',
     )
-    # We still need sheriff information from here before sheriff-config
-    # provide a way to fetch subsciber list.
-    sheriff.Sheriff(
-        id='Chromium Perf Sheriff', email='internal@chromium.org').put()
     testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
             'first_paint': {},
@@ -164,7 +163,12 @@ class AlertsTest(testing_common.TestCase):
 
   def testPost_NoParametersSet_UntriagedAlertsListed(self):
     key_map = self._AddAlertsToDataStore()
-    response = self.testapp.post('/alerts')
+    with mock.patch.object(SheriffConfigClient, 'List',
+                           mock.MagicMock(return_value=([Subscription(
+                               name='Chromium Perf Sheriff',
+                               notification_email='internal@chromium.org',
+                           )], None))):
+      response = self.testapp.post('/alerts')
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     self.assertEqual(12, len(anomaly_list))
     # The test below depends on the order of the items, but the order is not
@@ -196,7 +200,12 @@ class AlertsTest(testing_common.TestCase):
   @unittest.skipIf(sys.platform.startswith('win'), 'bad mock datastore')
   def testPost_TriagedParameterSet_TriagedListed(self):
     self._AddAlertsToDataStore()
-    response = self.testapp.post('/alerts', {'triaged': 'true'})
+    with mock.patch.object(SheriffConfigClient, 'List',
+                           mock.MagicMock(return_value=([Subscription(
+                               name='Chromium Perf Sheriff',
+                               notification_email='internal@chromium.org',
+                           )], None))):
+      response = self.testapp.post('/alerts', {'triaged': 'true'})
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     # The alerts listed should contain those added above, including alerts
     # that have a bug ID that is not None.
@@ -217,16 +226,17 @@ class AlertsTest(testing_common.TestCase):
 
   def testPost_ImprovementsParameterSet_ListsImprovements(self):
     self._AddAlertsToDataStore()
-    response = self.testapp.post('/alerts', {'improvements': 'true'})
+    with mock.patch.object(SheriffConfigClient, 'List',
+                           mock.MagicMock(return_value=([Subscription(
+                               name='Chromium Perf Sheriff',
+                               notification_email='internal@chromium.org',
+                           )], None))):
+      response = self.testapp.post('/alerts', {'improvements': 'true'})
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     self.assertEqual(18, len(anomaly_list))
 
   def testPost_SheriffParameterSet_OtherSheriffAlertsListed(self):
     self._AddAlertsToDataStore()
-    # We still need sheriff information from here before sheriff-config
-    # provide a way to fetch subsciber list.
-    sheriff.Sheriff(
-        id='Sheriff2', email='sullivan@google.com').put()
     subscription = Subscription(
         name='Chromium Perf Sheriff',
         notification_email='sullivan@google.com',
@@ -240,7 +250,15 @@ class AlertsTest(testing_common.TestCase):
       anomaly_entity.subscription_names = [subscription.name]
       anomaly_entity.put()
 
-    response = self.testapp.post('/alerts', {'sheriff': 'Sheriff2'})
+    with mock.patch.object(SheriffConfigClient, 'List',
+                           mock.MagicMock(return_value=([Subscription(
+                               name='Chromium Perf Sheriff',
+                               notification_email='internal@chromium.org',
+                           ), Subscription(
+                               name='Sheriff2',
+                               notification_email='sullivan@google.com',
+                           )], None))):
+      response = self.testapp.post('/alerts', {'sheriff': 'Sheriff2'})
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     sheriff_list = self.GetJsonValue(response, 'sheriff_list')
     for alert in anomaly_list:
@@ -250,28 +268,44 @@ class AlertsTest(testing_common.TestCase):
     self.assertEqual('Sheriff2', sheriff_list[1])
 
   def testPost_WithBogusSheriff_HasErrorMessage(self):
-    response = self.testapp.post('/alerts?sheriff=Foo')
+    with mock.patch.object(SheriffConfigClient, 'List',
+                           mock.MagicMock(return_value=([], None))):
+      response = self.testapp.post('/alerts?sheriff=Foo')
     error = self.GetJsonValue(response, 'error')
     self.assertIsNotNone(error)
 
   def testPost_ExternalUserRequestsInternalOnlySheriff_ErrorMessage(self):
     self.UnsetCurrentUser()
-    sheriff.Sheriff(id='Foo', internal_only=True).put()
     self.assertFalse(utils.IsInternalUser())
-    response = self.testapp.post('/alerts?sheriff=Foo')
+    with mock.patch.object(SheriffConfigClient, 'List',
+                           mock.MagicMock(return_value=([Subscription(
+                               name='Chromium Perf Sheriff',
+                               notification_email='internal@chromium.org',
+                           )], None))):
+      response = self.testapp.post('/alerts?sheriff=Foo')
     error = self.GetJsonValue(response, 'error')
     self.assertIsNotNone(error)
 
   def testPost_AnomalyCursorSet_ReturnsNextCursorAndShowMore(self):
     self._AddAlertsToDataStore()
     # Need to post to the app once to get the initial cursor.
-    response = self.testapp.post('/alerts', {'max_anomalies_to_show': 5})
+    with mock.patch.object(SheriffConfigClient, 'List',
+                           mock.MagicMock(return_value=([Subscription(
+                               name='Chromium Perf Sheriff',
+                               notification_email='internal@chromium.org',
+                           )], None))):
+      response = self.testapp.post('/alerts', {'max_anomalies_to_show': 5})
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     anomaly_cursor = self.GetJsonValue(response, 'anomaly_cursor')
 
-    response = self.testapp.post(
-        '/alerts',
-        {'anomaly_cursor': anomaly_cursor, 'max_anomalies_to_show': 5})
+    with mock.patch.object(SheriffConfigClient, 'List',
+                           mock.MagicMock(return_value=([Subscription(
+                               name='Chromium Perf Sheriff',
+                               notification_email='internal@chromium.org',
+                           )], None))):
+      response = self.testapp.post(
+          '/alerts',
+          {'anomaly_cursor': anomaly_cursor, 'max_anomalies_to_show': 5})
     anomaly_list2 = self.GetJsonValue(response, 'anomaly_list')
     anomalies_show_more = self.GetJsonValue(response, 'show_more_anomalies')
     anomaly_cursor = self.GetJsonValue(response, 'anomaly_cursor')

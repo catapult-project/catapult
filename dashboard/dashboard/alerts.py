@@ -18,10 +18,15 @@ from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_label_patterns
-from dashboard.models import sheriff
+from dashboard.sheriff_config_client import SheriffConfigClient
 
 _MAX_ANOMALIES_TO_COUNT = 5000
 _MAX_ANOMALIES_TO_SHOW = 500
+
+
+class InternalServerError(Exception):
+  """An error indicating that something unexpected happens."""
+  pass
 
 
 class AlertsHandler(request_handler.RequestHandler):
@@ -93,20 +98,18 @@ class AlertsHandler(request_handler.RequestHandler):
 
 def _SheriffIsFound(sheriff_name):
   """Checks whether the sheriff can be found for the current user."""
-  sheriff_key = ndb.Key('Sheriff', sheriff_name)
-  try:
-    sheriff_entity = sheriff_key.get()
-  except AssertionError:
-    # This assertion is raised in InternalOnlyModel._post_get_hook,
-    # and indicates an internal-only Sheriff but an external user.
-    return False
-  return sheriff_entity is not None
+  # TODO(fancl): Add an api for verifying single subscription visibility
+  subscriptions = _GetSheriffList()
+  return sheriff_name in subscriptions
 
 
 def _GetSheriffList():
   """Returns a list of sheriff names for all sheriffs in the datastore."""
-  sheriff_keys = sheriff.Sheriff.query().fetch(keys_only=True)
-  return [key.string_id() for key in sheriff_keys]
+  clt = SheriffConfigClient()
+  subscriptions, err_msg = clt.List()
+  if err_msg:
+    raise InternalServerError(err_msg)
+  return [s.name for s in subscriptions]
 
 
 def AnomalyDicts(anomalies, v2=False):
