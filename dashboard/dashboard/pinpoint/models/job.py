@@ -548,9 +548,10 @@ class Job(ndb.Model):
     commits_with_deltas = {}
     for change_a, change_b in differences:
       if change_b.patch:
-        commit_info = change_b.patch.AsDict()
+        commit = change_b.patch
       else:
-        commit_info = change_b.last_commit.AsDict()
+        commit = change_b.last_commit
+      commit_info = commit.AsDict()
 
       values_a = result_values[change_a]
       values_b = result_values[change_b]
@@ -560,13 +561,13 @@ class Job(ndb.Model):
       commit_infos.append(commit_info)
       if values_a and values_b:
         mean_delta = job_state.Mean(values_b) - job_state.Mean(values_a)
-        commits_with_deltas[commit_info['git_hash']] = (mean_delta, commit_info)
+        commits_with_deltas[commit.id_string] = (mean_delta, commit_info)
 
     deferred.defer(
         _UpdatePostAndMergeDeferred,
         difference_details,
         commit_infos,
-        commits_with_deltas,
+        list(commits_with_deltas.values()),
         self.bug_id,
         self.tags,
         self.url,
@@ -844,7 +845,7 @@ def _GenerateCommitCacheKey(commit_infos):
   commit_cache_key = None
   if len(commit_infos) == 1:
     commit_cache_key = update_bug_with_results._GetCommitHashCacheKey(
-        commit_infos[0]['git_hash'])
+        commit_infos[0].get('git_hash'))
   return commit_cache_key
 
 
@@ -856,7 +857,7 @@ def _ComputePostOwnerSheriffCCList(commits_with_deltas):
   # First, we sort the list of commits by absolute change.
   ordered_commits_by_delta = [
       commit for _, commit in sorted(
-          commits_with_deltas.values(), key=lambda i: abs(i[0]), reverse=True)
+          commits_with_deltas, key=lambda i: abs(i[0]), reverse=True)
   ]
 
   # We assign the issue to the author of the CL at the head of the ordered list.

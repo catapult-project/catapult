@@ -468,7 +468,6 @@ class BugCommentTest(test.TestCase):
         'author': 'author@chromium.org',
         'subject': 'Subject.',
         'message': 'Subject.\n\nCommit message.',
-        'git_hash': 'abc123'
     }
 
     self.get_issue.return_value = {'status': 'Untriaged'}
@@ -500,7 +499,6 @@ class BugCommentTest(test.TestCase):
         'author': 'author@chromium.org',
         'subject': 'Subject.',
         'message': 'Subject.\n\nCommit message.',
-        'git_hash': 'abc123'
     }
 
     self.get_issue.return_value = {'status': 'Assigned'}
@@ -530,7 +528,6 @@ class BugCommentTest(test.TestCase):
         'author': 'author@chromium.org',
         'subject': 'Subject.',
         'message': 'Subject.\n\nCommit message.',
-        'git_hash': 'abc123'
     }
 
     self.get_issue.return_value = {'status': 'Fixed'}
