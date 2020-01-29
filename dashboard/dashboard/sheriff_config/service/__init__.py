@@ -215,7 +215,7 @@ def CreateApp(test_config=None):
       subscription_metadata.subscription.CopyFrom(subscription)
       # We shouldn't use patterns outside the sheriff-config in any case.
       # Maybe allow being explicitily requsted for debug usage later.
-      subscription_metadata.subscription.patterns = None
+      del subscription_metadata.subscription.patterns[:]
     return (json_format.MessageToJson(
         list_response, preserving_proto_field_name=True), 200, {
             'Content-Type': 'application/json'

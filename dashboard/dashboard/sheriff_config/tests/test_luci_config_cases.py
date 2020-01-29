@@ -7,29 +7,38 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from googleapiclient.http import HttpMockSequence
 import unittest
+from googleapiclient.http import HttpMockSequence
 import luci_config
+import service_client
+from tests.utils import HttpMockSequenceWithDiscovery
 
 
 class LuciConfigTest(unittest.TestCase):
 
   # TODO(dberris): Implement more tests as we gather more use-cases.
   def testFindingAllSheriffConfigs(self):
-    with open('tests/config-discovery.json') as discovery_file:
-      discovery_response = discovery_file.read()
     with open('tests/configs-projects-empty.json') as configs_get_projects_file:
       configs_get_projects_response = configs_get_projects_file.read()
-    http = HttpMockSequence([({
-        'status': '200'
-    }, discovery_response), ({
-        'status': '200'
-    }, configs_get_projects_response)])
-    service = luci_config.CreateConfigClient(http=http)
+    http = HttpMockSequenceWithDiscovery([
+        ({'status': '200'}, configs_get_projects_response),
+    ])
+    service = service_client.CreateServiceClient(
+        'https://luci-config.appspot.com/_ah/api', 'config', 'v1',
+        http=http
+    )
+    _ = service_client.CreateServiceClient(
+        'https://chrome-infra-auth.appspot.com/_ah/api', 'auth', 'v1',
+        http=http
+    )
     self.assertEqual({}, luci_config.FindAllSheriffConfigs(service))
 
   def testFailingCreateConfigClient(self):
-    with self.assertRaisesRegex(luci_config.DiscoveryError,
+    with self.assertRaisesRegex(service_client.DiscoveryError,
                                 'Service discovery failed:'):
       http = HttpMockSequence([({'status': '403'}, 'Forbidden')])
-      _ = luci_config.CreateConfigClient(http)
+      _ = service_client.CreateServiceClient(
+          'https://luci-config.appspot.com/_ah/api', 'config', 'v1',
+          http=http
+      )
+

@@ -211,9 +211,6 @@ class LuciPollingTest(unittest.TestCase):
                 'notification_email': 'config-1@example.com',
                 'bug_labels': ['Some-Label'],
                 'bug_components': ['Some>Component'],
-                'patterns': [{
-                    'glob': 'project/**'
-                }]
             }
         }, {
             'config_set': 'projects/project',
@@ -223,9 +220,6 @@ class LuciPollingTest(unittest.TestCase):
                 'notification_email': 'config-2@example.com',
                 'bug_labels': ['Some-Label'],
                 'bug_components': ['Some>Component'],
-                'patterns': [{
-                    'regex': '^project/platform/.*/memory_peak$'
-                }]
             }
         }, {
             'config_set': 'projects/other_project',
@@ -235,9 +229,6 @@ class LuciPollingTest(unittest.TestCase):
                 'notification_email': 'expected-1@example.com',
                 'bug_labels': ['Some-Label'],
                 'bug_components': ['Some>Component'],
-                'patterns': [{
-                    'glob': 'Master/Bot/Test/Metric/Something'
-                }]
             }
         }]
     })
