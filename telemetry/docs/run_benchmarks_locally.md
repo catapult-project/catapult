@@ -47,7 +47,7 @@ yet supported. There are also a few additional steps to set up:
 
 #### Chrome OS
 
-See [Running Telemetry on Chrome OS](http://www.chromium.org/developers/telemetry/running-telemetry-on-chrome-os).
+See [Running Telemetry on Chrome OS](https://chromium.googlesource.com/chromiumos/docs/+/master/cros_vm.md#Run-telemetry-unit-tests).
 
 ## Benchmark Commands
 
