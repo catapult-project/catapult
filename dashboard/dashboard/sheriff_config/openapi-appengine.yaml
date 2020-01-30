@@ -74,6 +74,25 @@ paths:
             $ref: "#/definitions/MatchRequest"
       security:
         - chromeperf_service_account: []
+  "/subscriptions/list":
+    post:
+      description: "Provide a list of all Subscriptions."
+      operationId: subscriptions_list
+      responses:
+        200:
+          description: "List of subscriptions and config sets that match."
+          schema:
+            $ref: "#/definitions/ListResponse"
+        400:
+          description: "Invalid request (malformed payload)."
+      parameters:
+        - in: "body"
+          name: "list_request"
+          required: true
+          schema:
+            $ref: "#/definitions/ListRequest"
+      security:
+        - chromeperf_service_account: []
 definitions:
   ServiceMetadata:
     type: object
@@ -125,6 +144,22 @@ definitions:
             type: array
             items: { type: "string" }
   MatchResponse:
+    type: object
+    properties:
+      subscriptions:
+        type: array
+        items:
+          type: object
+          properties:
+            config_set: { type: "string" }
+            revision: { type: "string" }
+            # TODO(dberris): Maybe spell out the Subscription type?
+            subscription: { type: "object" }
+  ListRequest:
+    type: object
+    properties:
+      identity_email: { type: "string" }
+  ListResponse:
     type: object
     properties:
       subscriptions:

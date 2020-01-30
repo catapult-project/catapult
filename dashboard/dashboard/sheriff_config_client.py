@@ -55,7 +55,7 @@ class SheriffConfigClient(object):
 
   def List(self):
     response = self._session.post(
-        'https://sheriff-config-dot-chromeperf.appspot.com/subscriptions/match',
+        'https://sheriff-config-dot-chromeperf.appspot.com/subscriptions/list',
         json={'identity_email': GetEmail()})
     if not response.ok:
       return None, '%r\n%s' % (response, response.text)
