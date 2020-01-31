@@ -93,19 +93,13 @@ def FindChangePoints(series,
                      multiple_of_std_dev=_MULTIPLE_OF_STD_DEV):
   """Finds change points in the given series.
 
-  Only the last |max_window_size| points are examined, regardless of
-  how many points are passed in. The reason why it might make sense to
-  limit the number of points to look at is that if there are multiple
-  change-points in the window that's looked at, then this function will
-  be less likely to find any of them.
+  Only the last |max_window_size| points are examined, regardless of how many
+  points are passed in. The reason why it might make sense to limit the number
+  of points to look at is that if there are multiple change-points in the window
+  that's looked at, then this function will be less likely to find any of them.
 
-  This uses two algorithms:
-
-    - A clustering change detector (an approximation of E-divisive) in the
-      `clustering_change_detector` module.
-    - A variance minimisation change point detection algorithm.
-
-  We run both algorithms, but only use the results from one.
+  This uses a clustering change detector (an approximation of E-divisive) in the
+  `clustering_change_detector` module.
 
   Args:
     series: A list of (x, y) pairs.
@@ -124,9 +118,6 @@ def FindChangePoints(series,
   series = series[-max_window_size:]
   _, y_values = zip(*series)
 
-  # TODO(dberris): Remove this when we're convinced we no longer need this
-  # alternate implementation.
-  alternate_split_index = _FindSplit(y_values)
   candidate_indices = []
   split_index = 0
 
@@ -167,18 +158,6 @@ def FindChangePoints(series,
         return []
       break
 
-  alternate_make_change_point, alternate_reason = _PassesThresholds(
-      y_values,
-      alternate_split_index,
-      min_segment_size=min_segment_size,
-      min_absolute_change=min_absolute_change,
-      min_relative_change=min_relative_change,
-      min_steppiness=min_steppiness,
-      multiple_of_std_dev=multiple_of_std_dev)
-  if not alternate_make_change_point:
-    logging.warning('Alternate rejected %s as potential index; reason = %s',
-                    alternate_split_index, alternate_reason)
-
   def RevAndIdx(idx):
     return ('rev:%s' % (series[idx][0],), 'idx:%s' % (idx,))
 
@@ -202,17 +181,6 @@ def FindChangePoints(series,
 
   logging.info('E-Divisive potential change-points: %s',
                [RevAndIdx(idx) for idx in change_points])
-  logging.info(
-      'Anomaly detection study: current=%s alternate=%s diff=%s',
-      'CHANGE_FOUND' if change_points else 'NO_CHANGE',
-      'CHANGE_FOUND' if alternate_make_change_point else 'NO_CHANGE',
-      'SAME' if change_points and alternate_split_index == change_points[0] else
-      'DIFFERENT')
-  if change_points:
-    logging.warning(
-        'Alternative found an alternate split at index %s compared to %s (%s)',
-        alternate_split_index, change_points[0],
-        'SAME' if alternate_split_index == change_points[0] else 'DIFFERENT')
   return [MakeChangePoint(series, index) for index in change_points[0:1]]
 
 
@@ -244,38 +212,6 @@ def MakeChangePoint(series, split_index):
       t_statistic=ttest_results.t,
       degrees_of_freedom=ttest_results.df,
       p_value=ttest_results.p)
-
-
-def _FindSplit(values):
-  """Finds the index of the "most interesting" split of a sample of data.
-
-  Currently, the most interesting split is considered to be the split that
-  minimizes the standard deviation of the two sides concatenated together
-  (after modifying both sides by shifting all the numbers in the left and
-  right sides by the median of the left and right sides respectively).
-
-  The reason why this is done is that normalizing the two segments on either
-  side of a point so that both have the same center essentially removes any
-  jump or step that occurs at that point.
-
-  Args:
-    values: A list of numbers.
-
-  Returns:
-    The index of the "most interesting" point.
-  """
-
-  def StdDevOfTwoNormalizedSides(index):
-    left, right = values[:index], values[index:]
-    return math_utils.StandardDeviation(_ZeroMedian(left) + _ZeroMedian(right))
-
-  return min(range(1, len(values)), key=StdDevOfTwoNormalizedSides)
-
-
-def _ZeroMedian(values):
-  """Subtracts the median value in the list from all values in the list."""
-  median = math_utils.Median(values)
-  return [val - median for val in values]
 
 
 def _PassesThresholds(values, split_index, min_segment_size,

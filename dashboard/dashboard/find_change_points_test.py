@@ -9,7 +9,6 @@ from __future__ import absolute_import
 import unittest
 
 from dashboard import find_change_points
-from dashboard.common import math_utils
 
 
 class FindChangePointsTest(unittest.TestCase):
@@ -47,15 +46,6 @@ class FindChangePointsTest(unittest.TestCase):
   def testFindChangePoints_EmptySeries(self):
     # For an empty series, there are certainly no change points.
     self.assertEqual([], find_change_points.FindChangePoints([]))
-
-  def testFindSplit(self):
-    # Find split returns the first index of the segment after the split.
-    self.assertEqual(3, find_change_points._FindSplit([3, 2, 3, 5, 6, 5]))
-
-    # If there are several splits that are equally interesting, or no
-    # interesting splits, then the first one is returned.
-    self.assertEqual(2, find_change_points._FindSplit([2, 2, 4, 4, 6, 6]))
-    self.assertEqual(1, find_change_points._FindSplit([4, 4, 4, 4, 4, 4]))
 
   def _PassesThresholds(
       self, data, index, multiple_of_std_dev=0, min_relative_change=0,
@@ -125,21 +115,6 @@ class FindChangePointsTest(unittest.TestCase):
                      self._PassesThresholds(left, 5, multiple_of_std_dev=7))
     self.assertEqual((True, 'passed'),
                      self._PassesThresholds(right, 5, multiple_of_std_dev=7))
-
-  def testZeroMedian_ReturnsValuesWithMedianEqualToZero(self):
-    # The _ZeroMedian function adjusts values so that the median is zero.
-    self.assertEqual([0, 0, 1], find_change_points._ZeroMedian([1, 1, 2]))
-    self.assertEqual([-0.5, 0.5], find_change_points._ZeroMedian([45, 46]))
-
-  def testZeroMedian_ResultProperties(self):
-    nums = [3.4, 8, 100.2, 78, 3, -4, 12, 3.14, 1024]
-    zeroed_nums = find_change_points._ZeroMedian(nums)
-    # The output of _ZeroMedian has the same standard deviation as the input.
-    self.assertEqual(
-        math_utils.StandardDeviation(nums),
-        math_utils.StandardDeviation(zeroed_nums))
-    # Also, the median of the output is always zero.
-    self.assertEqual(0, math_utils.Median(zeroed_nums))
 
   def _AssertFindsChangePoints(
       self, y_values, expected_indexes, max_window_size=50, min_segment_size=6,
