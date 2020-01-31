@@ -46,6 +46,8 @@ def LRUCacheWithTTL(ttl_seconds=60, **lru_args):
 
 @LRUCacheWithTTL(ttl_seconds=60, maxsize=128)
 def IsGroupMember(auth_client, email, group):
+  if not email:
+    return False
   request = auth_client.membership(identity=email, group=group)
   response = request.execute()
   is_member = response['is_member']

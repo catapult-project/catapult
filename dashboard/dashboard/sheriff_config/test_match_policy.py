@@ -32,7 +32,6 @@ class MatchPolicyTest(unittest.TestCase):
     self.assertEqual(['Private'], [s.name for _, _, s in configs])
 
   def testListPrivate(self):
-    request = sheriff_config_pb2.ListRequest()
     configs = [
         ('', '', sheriff_pb2.Subscription(
             name='Private',
@@ -44,6 +43,7 @@ class MatchPolicyTest(unittest.TestCase):
         )),
     ]
     http = HttpMockSequenceWithDiscovery([
+        ({'status': '200'}, '{ "is_member": true }'),
         ({'status': '200'}, '{ "is_member": false }'),
     ])
     _ = service_client.CreateServiceClient(
@@ -54,6 +54,17 @@ class MatchPolicyTest(unittest.TestCase):
         'https://chrome-infra-auth.appspot.com/_ah/api', 'auth', 'v1',
         http=http
     )
+    request = sheriff_config_pb2.ListRequest(identity_email='foo@bar1')
+    configs = match_policy.FilterSubscriptionsByIdentity(
+        auth_client, request, configs)
+    self.assertEqual(['Private', 'Public'], [s.name for _, _, s in configs])
+
+    request = sheriff_config_pb2.ListRequest(identity_email='foo@bar2')
+    configs = match_policy.FilterSubscriptionsByIdentity(
+        auth_client, request, configs)
+    self.assertEqual(['Public'], [s.name for _, _, s in configs])
+
+    request = sheriff_config_pb2.ListRequest()
     configs = match_policy.FilterSubscriptionsByIdentity(
         auth_client, request, configs)
     self.assertEqual(['Public'], [s.name for _, _, s in configs])
