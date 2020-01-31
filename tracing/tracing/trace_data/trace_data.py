@@ -298,7 +298,7 @@ def SerializeAsHtml(trace_files, html_file, trace_title=None):
                    'import sys\nprint(sys.version_info.major)']
     version = subprocess.check_output(version_cmd)
     if version.strip() == '3':
-      raise RuntimeError('trace2htmal cannot run with python 3.')
+      raise RuntimeError('trace2html cannot run with python 3.')
     cmd.append('python')
   cmd.append(_TRACE2HTML_PATH)
   cmd.extend(trace_files)
