@@ -140,7 +140,7 @@ def RunCmd(args, cwd=None):
   Returns:
     Return code from the command execution.
   """
-  logger.info(str(args) + ' ' + (cwd or ''))
+  logger.debug(str(args) + ' ' + (cwd or ''))
   return Call(args, cwd=cwd)
 
 

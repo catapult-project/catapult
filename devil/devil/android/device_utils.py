@@ -1340,8 +1340,8 @@ class DeviceUtils(object):
       else:
         with device_temp_file.DeviceTempFile(self.adb, suffix='.sh') as script:
           self._WriteFileWithPush(script.name, cmd)
-          logger.info('Large shell command will be run from file: %s ...',
-                      cmd[:self._MAX_ADB_COMMAND_LENGTH])
+          logger.debug('Large shell command will be run from file: %s ...',
+                       cmd[:self._MAX_ADB_COMMAND_LENGTH])
           return handle_check_return('sh %s' % script.name_quoted)
 
     def handle_large_output(cmd, large_output_mode):
