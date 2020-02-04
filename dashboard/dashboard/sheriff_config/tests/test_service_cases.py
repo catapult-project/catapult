@@ -73,7 +73,7 @@ class ValidationTest(unittest.TestCase):
     self.assertIn('messages', response_proto)
     self.assertGreater(len(response_proto['messages']), 0)
     self.assertRegex(response_proto['messages'][0].get('text'),
-                     'notification_email')
+                     'contact_email')
 
   def testValidationSucceedsSilently(self):
     response = self.client.post(
@@ -89,13 +89,13 @@ class ValidationTest(unittest.TestCase):
                         """
                         subscriptions: [{
                             name: 'Release Team',
-                            notification_email: 'release-team@example.com',
+                            contact_email: 'release-team@example.com',
                             bug_labels: ['release-blocker'],
                             bug_components: ['Sample>Component'],
                             patterns: [{ glob: 'project/**' }]
                         }, {
                             name: 'Memory Team',
-                            notification_email: 'memory-team@example.com',
+                            contact_email: 'memory-team@example.com',
                             bug_labels: ['memory-regressions'],
                             patterns: [{ regex: '^project/.*memory_.*$' }],
                             anomaly_configs: [{

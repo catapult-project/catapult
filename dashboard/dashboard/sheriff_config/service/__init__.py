@@ -107,7 +107,7 @@ def CreateApp(test_config=None):
         'validation': {
             'patterns': [{
                 'config_set': 'regex:projects/.+',
-                'path': 'regex:chromeperf-sheriff.cfg'
+                'path': 'regex:chromeperf-sheriffs.cfg'
             }],
             'url': 'https://%s/configs/validate' % (domain)
         }

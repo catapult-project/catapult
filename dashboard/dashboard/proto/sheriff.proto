@@ -69,6 +69,9 @@ message Subscription {
   // The notification email address where reports are sent.
   string notification_email = 3;
 
+  // The contact email address who onws this sheriff config.
+  string contact_email = 10;
+
   // A list of labels applied to the alerts (Monorail issues) associated with
   // this subscription.
   repeated string bug_labels = 4;
@@ -122,6 +125,7 @@ message Subscription {
 //   subscriptions {
 //     name: "Release Team"
 //     notification_email: "release-team@example.com"
+//     contact_email: "release-team@example.com"
 //     bug_labels: ["release-blocker"]
 //     patterns {
 //       glob: "project/**"
@@ -131,6 +135,7 @@ message Subscription {
 //   subscriptions {
 //     name: "Memory Team"
 //     notification_email: "memory-team@example.com"
+//     contact_email: "memory-team@example.com"
 //     bug_labels: ["memory-regressions"]
 //
 //     // Get all default alerts for memory regressions from 'project/'.

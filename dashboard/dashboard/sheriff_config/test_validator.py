@@ -16,14 +16,14 @@ class ValidatorTest(unittest.TestCase):
     subscriptions = validator.Validate("""
           subscriptions: [{
             name: "Release Team"
-            notification_email: "release-team@example.com"
+            contact_email: "release-team@example.com"
             bug_labels: ["release-blocker"]
             bug_components: ["Sample>Component"]
             patterns: [{glob: "project/**"}]
           },
           {
             name: "Memory Team",
-            notification_email: "memory-team@example.com",
+            contact_email: "memory-team@example.com",
             bug_labels: ["memory-regressions"],
             patterns: [{regex: "^project/.*memory_.*$"}],
             anomaly_configs: [
@@ -60,7 +60,7 @@ class ValidatorTest(unittest.TestCase):
       _ = validator.Validate("""
                                subscriptions: [
                                  {
-                                   notification_email: "missing-name@domain",
+                                   contact_email: "missing-name@domain",
                                    bug_labels: ["test-blocker"],
                                    bug_components: ["Sample>Component"],
                                    patterns: [{glob: "project/**"}]
@@ -74,7 +74,7 @@ class ValidatorTest(unittest.TestCase):
                                subscriptions: [
                                  {
                                    name: "No Patterns",
-                                   notification_email: "no-patterns@domain",
+                                   contact_email: "no-patterns@domain",
                                    bug_labels: ["test-blocker"],
                                    bug_components: ["Sample>Component"]
                                  }
@@ -87,7 +87,7 @@ class ValidatorTest(unittest.TestCase):
                                subscriptions: [
                                  {
                                    name: "Empty List Patterns",
-                                   notification_email: "no-patterns@domain",
+                                   contact_email: "no-patterns@domain",
                                    bug_labels: ["test-blocker"],
                                    bug_components: ["Sample>Component"],
                                    patterns: []
@@ -102,7 +102,7 @@ class ValidatorTest(unittest.TestCase):
                                subscriptions: [
                                  {
                                    name: "Bad Pattern",
-                                   notification_email: "bad-pattern@domain",
+                                   contact_email: "bad-pattern@domain",
                                    bug_labels: ["test-blocker"],
                                    bug_components: ["Sample>Component"],
                                    patterns: [{}]
@@ -117,7 +117,7 @@ class ValidatorTest(unittest.TestCase):
                                subscriptions: [
                                  {
                                    name: "Empty Glob",
-                                   notification_email: "bad-pattern@domain",
+                                   contact_email: "bad-pattern@domain",
                                    bug_labels: ["test-blocker"],
                                    bug_components: ["Sample>Component"],
                                    patterns: [{glob: ""}]
@@ -132,7 +132,7 @@ class ValidatorTest(unittest.TestCase):
                                subscriptions: [
                                  {
                                    name: "Empty Regex",
-                                   notification_email: "bad-pattern@domain",
+                                   contact_email: "bad-pattern@domain",
                                    bug_labels: ["test-blocker"],
                                    bug_components: ["Sample>Component"],
                                    patterns: [{regex: ""}]

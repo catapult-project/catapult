@@ -43,10 +43,10 @@ class MissingFields(Error):
 
 
 class MissingEmail(MissingFields):
-  """Raised when a subscription is missing a notification_email field."""
+  """Raised when a subscription is missing a contact_email field."""
 
   def __init__(self, message, index):
-    super(MissingEmail, self).__init__(message, index, 'notification_email')
+    super(MissingEmail, self).__init__(message, index, 'contact_email')
 
 
 class MissingName(MissingFields):
@@ -101,8 +101,8 @@ def Validate(content):
   # Go through each of the subscriptions, and ensure we find the semantically
   # required fields.
   for (index, subscription) in enumerate(result.subscriptions):
-    if subscription.notification_email is None or len(
-        subscription.notification_email) == 0:
+    if subscription.contact_email is None or len(
+        subscription.contact_email) == 0:
       raise MissingEmail(result, index)
     if subscription.name is None or len(subscription.name) == 0:
       raise MissingName(result, index)

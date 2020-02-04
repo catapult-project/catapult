@@ -72,7 +72,7 @@ class LuciPollingTest(unittest.TestCase):
                 'revision': '0123456789abcdff',
                 'subscription': {
                     'name': 'Expected 1',
-                    'notification_email': 'expected-1@example.com',
+                    'contact_email': 'expected-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
                     'patterns': [{
@@ -110,7 +110,7 @@ class LuciPollingTest(unittest.TestCase):
                 'revision': '0123456789abcdef',
                 'subscription': {
                     'name': 'Config 1',
-                    'notification_email': 'config-1@example.com',
+                    'contact_email': 'config-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
                     'patterns': [{
@@ -122,7 +122,7 @@ class LuciPollingTest(unittest.TestCase):
                 'revision': '0123456789abcdef',
                 'subscription': {
                     'name': 'Config 2',
-                    'notification_email': 'config-2@example.com',
+                    'contact_email': 'config-2@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
                     'patterns': [{
@@ -208,7 +208,7 @@ class LuciPollingTest(unittest.TestCase):
             'revision': '0123456789abcdef',
             'subscription': {
                 'name': 'Config 1',
-                'notification_email': 'config-1@example.com',
+                'contact_email': 'config-1@example.com',
                 'bug_labels': ['Some-Label'],
                 'bug_components': ['Some>Component'],
             }
@@ -217,7 +217,7 @@ class LuciPollingTest(unittest.TestCase):
             'revision': '0123456789abcdef',
             'subscription': {
                 'name': 'Config 2',
-                'notification_email': 'config-2@example.com',
+                'contact_email': 'config-2@example.com',
                 'bug_labels': ['Some-Label'],
                 'bug_components': ['Some>Component'],
             }
@@ -226,7 +226,7 @@ class LuciPollingTest(unittest.TestCase):
             'revision': '0123456789abcdff',
             'subscription': {
                 'name': 'Expected 1',
-                'notification_email': 'expected-1@example.com',
+                'contact_email': 'expected-1@example.com',
                 'bug_labels': ['Some-Label'],
                 'bug_components': ['Some>Component'],
             }
@@ -275,7 +275,7 @@ class LuciContentChangesTest(unittest.TestCase):
                 'revision': '0123456789abcdff',
                 'subscription': {
                     'name': 'Expected 1',
-                    'notification_email': 'expected-1@example.com',
+                    'contact_email': 'expected-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
                     'patterns': [{
@@ -311,7 +311,7 @@ class LuciContentChangesTest(unittest.TestCase):
                 'revision': '0123456789abcdef',
                 'subscription': {
                     'name': 'Config 1',
-                    'notification_email': 'config-1@example.com',
+                    'contact_email': 'config-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
                     'patterns': [{
@@ -323,7 +323,7 @@ class LuciContentChangesTest(unittest.TestCase):
                 'revision': '0123456789abcdef',
                 'subscription': {
                     'name': 'Config 2',
-                    'notification_email': 'config-2@example.com',
+                    'contact_email': 'config-2@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
                     'patterns': [{
