@@ -25,6 +25,11 @@ from dashboard.common import math_utils
 # instead.
 from dashboard.pinpoint.models.compare import compare as pinpoint_compare
 
+# This number controls the maximum number of iterations we perform when doing
+# permutation testing to identify potential change-points hidden in the
+# sub-clustering of values. The higher the number, the more CPU time we're
+# likely to spend finding these potential hidden change-points.
+_MAX_PERMUTATION_TESTING_ITERATIONS = 150
 
 class Error(Exception):
   pass
@@ -82,9 +87,9 @@ def PermutationTest(sequence, min_segment_size, rand=None):
   sames = 0
   differences = 0
   unknowns = 0
-  for permutation in RandomPermutations(sequence, Midpoint(sequence),
-                                        min(300,
-                                            math.factorial(len(sequence)))):
+  for permutation in RandomPermutations(
+      sequence, Midpoint(sequence),
+      min(_MAX_PERMUTATION_TESTING_ITERATIONS, math.factorial(len(sequence)))):
     change_point, found = ChangePointEstimator(permutation, min_segment_size)
     if not found:
       sames += 1
@@ -101,12 +106,11 @@ def PermutationTest(sequence, min_segment_size, rand=None):
   # If at least 5% of the permutations compare differently, then it passes the
   # permutation test (meaning we can detect a potential change-point in the
   # sequence).
-  logging.debug('sames = %s ; differences = %s ; unknowns = %s', sames,
-                differences, unknowns)
   total = float(sames + unknowns + differences)
   probability = float(differences) / total if total > 0. else 0.
-  logging.debug('Computed probability: %s for sequence %s', probability,
-                sequence)
+  logging.debug(
+      'Computed probability: %s; sames = %s, differences = %s, unknowns = %s',
+      probability, sames, differences, unknowns)
   return probability >= 0.05
 
 
@@ -223,10 +227,14 @@ def ClusterAndFindSplit(values, min_segment_size, rand=None):
     # permutation testing to see potentially hidden change points.
     if len(cluster_a) > min_segment_size and PermutationTest(
         cluster_a, min_segment_size, rand):
+      logging.debug('Permutation testing positive at seq[%s:%s]', start,
+                    partition_point)
       _, in_a = ChangePointEstimator(cluster_a, min_segment_size)
 
     if len(cluster_b) > min_segment_size and PermutationTest(
         cluster_b, min_segment_size, rand):
+      logging.debug('Permutation testing positive at seq[%s:%s]',
+                    start + partition_point, length)
       _, in_b = ChangePointEstimator(cluster_b, min_segment_size)
 
     # Case 1: We haven't found alternative likely change points in either
