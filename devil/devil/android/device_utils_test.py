@@ -608,17 +608,25 @@ class DeviceUtils_GetPackageArchitectureTest(DeviceUtilsTest):
 
 class DeviceUtilsGetApplicationDataDirectoryTest(DeviceUtilsTest):
   def testGetApplicationDataDirectory_exists(self):
-    with self.assertCall(
-        self.call.device._RunPipedShellCommand(
+    with self.assertCalls(
+        (self.call.device.IsApplicationInstalled('foo.bar.baz'), True),
+        (self.call.device._RunPipedShellCommand(
             'pm dump foo.bar.baz | grep dataDir='),
-        ['dataDir=/data/data/foo.bar.baz']):
+         ['dataDir=/data/data/foo.bar.baz'])):
       self.assertEquals('/data/data/foo.bar.baz',
                         self.device.GetApplicationDataDirectory('foo.bar.baz'))
 
+  def testGetApplicationDataDirectory_notInstalled(self):
+    with self.assertCalls(
+        (self.call.device.IsApplicationInstalled('foo.bar.baz'), False)):
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.device.GetApplicationDataDirectory('foo.bar.baz')
+
   def testGetApplicationDataDirectory_notExists(self):
-    with self.assertCall(
-        self.call.device._RunPipedShellCommand(
-            'pm dump foo.bar.baz | grep dataDir='), self.ShellError()):
+    with self.assertCalls(
+        (self.call.device.IsApplicationInstalled('foo.bar.baz'), True),
+        (self.call.device._RunPipedShellCommand(
+            'pm dump foo.bar.baz | grep dataDir='), self.ShellError())):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.GetApplicationDataDirectory('foo.bar.baz')
 

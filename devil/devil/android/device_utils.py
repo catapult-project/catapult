@@ -852,6 +852,9 @@ class DeviceUtils(object):
       CommandFailedError if the package's data directory can't be found,
         whether because it's not installed or otherwise.
     """
+    if not self.IsApplicationInstalled(package):
+      raise device_errors.CommandFailedError('%s is not installed' % package,
+                                             str(self))
     output = self._RunPipedShellCommand(
         'pm dump %s | grep dataDir=' % cmd_helper.SingleQuote(package))
     for line in output:
@@ -859,7 +862,7 @@ class DeviceUtils(object):
       if dataDir:
         return dataDir
     raise device_errors.CommandFailedError(
-        'Could not find data directory for %s', package)
+        'Could not find data directory for %s' % package, str(self))
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetSecurityContextForPackage(self,
