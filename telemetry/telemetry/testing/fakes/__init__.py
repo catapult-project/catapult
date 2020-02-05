@@ -12,6 +12,7 @@ may need to be called in tests.
 """
 import types
 
+from telemetry.core import debug_data
 from telemetry.core import exceptions
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import websocket
@@ -321,7 +322,6 @@ class FakeApp(object):
     else:
       self._platform = platform
     self.standard_output = ''
-    self.stack_trace = (False, '')
     self.recent_minidump_path = None
 
   @property
@@ -337,15 +337,16 @@ class FakeApp(object):
   def GetStandardOutput(self):
     return self.standard_output
 
-  def GetStackTrace(self):
-    return self.stack_trace
-
   def GetMostRecentMinidumpPath(self):
     return self.recent_minidump_path
 
   def GetRecentMinidumpPathWithTimeout(self, timeout_s=15, oldest_ts=None):
     del timeout_s, oldest_ts
     return self.recent_minidump_path
+
+  def CollectDebugData(self, log_level):
+    del log_level
+    return debug_data.DebugData()
 
 # Internal classes. Note that end users may still need to both call
 # and mock out methods of these classes, but they should not be
@@ -405,9 +406,6 @@ class FakeBrowser(FakeApp):
 
   def DumpStateUponFailure(self):
     pass
-
-  def CollectDebugData(self, log_level):
-    del log_level # unused
 
   def GetTypExpectationsTags(self):
     tags = self.platform.GetTypExpectationsTags()

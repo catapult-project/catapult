@@ -20,9 +20,12 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     super(MacPlatformBackend, self).__init__()
 
   def GetSystemLog(self):
-    # Since the log file can be very large, only show the last 200 lines.
-    return subprocess.check_output(
-        ['tail', '-n', '200', '/var/log/system.log'])
+    try:
+      # Since the log file can be very large, only show the last 200 lines.
+      return subprocess.check_output(
+          ['tail', '-n', '200', '/var/log/system.log'])
+    except subprocess.CalledProcessError as e:
+      return 'Failed to collect system log: %s\nOutput:%s' % (e, e.output)
 
   @classmethod
   def IsPlatformBackendForHost(cls):

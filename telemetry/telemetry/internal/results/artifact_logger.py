@@ -22,6 +22,8 @@ artifact_logger.RegisterArtifactImplementation(self.results)
 artifact_logger.CreateArtifact('some/crash/stack.txt', GetStackTrace())
 """
 
+import datetime
+
 from telemetry.internal.results import (
     artifact_compatibility_wrapper as artifact_wrapper)
 
@@ -51,3 +53,15 @@ def RegisterArtifactImplementation(artifact_implementation):
   global artifact_impl  # pylint: disable=global-statement
   artifact_impl = artifact_wrapper.ArtifactCompatibilityWrapperFactory(
       artifact_implementation)
+
+
+def GetTimestampSuffix():
+  """Gets the current time as a human-readable string.
+
+  The returned value is suitable to use as a suffix for avoiding artifact name
+  collision across different tests.
+  """
+  # Format is YYYY-MM-DD-HH-MM-SS-microseconds. The microseconds are to prevent
+  # name collision if two artifacts with the same name are created in close
+  # succession.
+  return datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')

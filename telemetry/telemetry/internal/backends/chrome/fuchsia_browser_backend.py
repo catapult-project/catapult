@@ -82,9 +82,6 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def GetStandardOutput(self):
     return 'Stdout is not available on Fuchsia Devices.'
 
-  def GetStackTrace(self):
-    return (False, 'Stack trace is not yet supported on Fuchsia.')
-
   def SymbolizeMinidump(self, minidump_path):
     logging.warning('Symbolizing Minidump not supported on Fuchsia.')
     return None

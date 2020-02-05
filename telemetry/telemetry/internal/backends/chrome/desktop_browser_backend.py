@@ -248,13 +248,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                     repr(err))
       return '<Missing link>'
 
-  def GetStackTrace(self):
-    most_recent_dump = self.GetMostRecentMinidumpPath()
-    if not most_recent_dump:
-      return (False, 'No crash dump found.')
-    logging.info('Minidump found: %s', most_recent_dump)
-    return self._InternalSymbolizeMinidump(most_recent_dump)
-
   def SymbolizeMinidump(self, minidump_path):
     return self._InternalSymbolizeMinidump(minidump_path)
 

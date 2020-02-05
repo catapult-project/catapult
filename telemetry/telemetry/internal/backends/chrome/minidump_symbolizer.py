@@ -11,6 +11,7 @@ import sys
 import tempfile
 import time
 
+from dependency_manager import exceptions as dependency_exceptions
 from telemetry.internal.util import binary_manager
 
 
@@ -84,10 +85,16 @@ class MinidumpSymbolizer(object):
       minidump: The path to the minidump being symbolized.
     """
     logging.info('Dumping Breakpad symbols.')
-    generate_breakpad_symbols_command = binary_manager.FetchPath(
-        'generate_breakpad_symbols', self._arch_name, self._os_name)
+    try:
+      generate_breakpad_symbols_command = binary_manager.FetchPath(
+          'generate_breakpad_symbols', self._arch_name, self._os_name)
+    except dependency_exceptions.NoPathFoundError as e:
+      logging.warning('Failed to get generate_breakpad_symbols: %s', e)
+      generate_breakpad_symbols_command = None
     if not generate_breakpad_symbols_command:
-      logging.warning('generate_breakpad_symbols binary not found')
+      logging.warning(
+          'generate_breakpad_symbols binary not found, cannot symbolize '
+          'minidumps')
       return
 
     symbol_binaries = self.GetSymbolBinaries(minidump)

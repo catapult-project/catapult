@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import datetime
 import logging
 import os
 import posixpath
@@ -207,9 +206,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._PullMinidumpsAndAdjustMtimes()
 
   def CollectDebugData(self, log_level):
-    """Attempts to symbolize all currently unsymbolized minidumps and log them.
+    """Collects various information that may be useful for debugging.
 
-    Additionally, collects the following information and stores it as artifacts:
+    In addition to any data collected by parents' implementation, this also
+    collects the following and stores it as artifacts:
       1. UI state of the device
       2. Logcat
       3. Symbolized logcat
@@ -218,21 +218,17 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     Args:
       log_level: The logging level to use from the logging module, e.g.
           logging.ERROR.
+
+    Returns:
+      A debug_data.DebugData object containing the collected data.
     """
     # Store additional debug information as artifacts.
-    # Include the time in the name to guarantee uniqueness if this happens to be
-    # called multiple times in a single test. Formatted as
-    # year-month-day-hour-minute-second
-    now = datetime.datetime.now()
-    suffix = now.strftime('%Y-%m-%d-%H-%M-%S')
+    suffix = artifact_logger.GetTimestampSuffix()
     self._StoreUiDumpAsArtifact(suffix)
     self._StoreLogcatAsArtifact(suffix)
     self._StoreTombstonesAsArtifact(suffix)
-    super(AndroidBrowserBackend, self).CollectDebugData(
+    return super(AndroidBrowserBackend, self).CollectDebugData(
         log_level)
-
-  def GetStackTrace(self):
-    return self.platform_backend.GetStackTrace()
 
   def SymbolizeMinidump(self, minidump_path):
     dump_symbolizer = android_minidump_symbolizer.AndroidMinidumpSymbolizer(
@@ -257,6 +253,11 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     device_dump_path = posixpath.join(
         self.platform_backend.GetDumpLocation(), 'Crashpad', 'pending')
+    if not device.PathExists(device_dump_path):
+      logging.warning(
+          'Device minidump path %s does not exist - not attempting to pull '
+          'minidumps', device_dump_path)
+      return
     device_dumps = device.ListDirectory(device_dump_path)
     for dump_filename in device_dumps:
       host_path = os.path.join(self._tmp_minidump_dir, dump_filename)

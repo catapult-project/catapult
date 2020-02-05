@@ -59,33 +59,19 @@ class AppCrashException(Error):
     self._is_valid_dump = False
     self._stack_trace = []
     self._app_stdout = []
-    self._minidump_path = ''
     self._system_log = '(Not implemented)'
+
     if app:
-      try:
-        system_log = app.platform.GetSystemLog()
-        if system_log:
-          self._system_log = system_log
-      except Exception:  # pylint: disable=broad-except
-        logging.exception('Problem when trying to gather system log:')
-      try:
-        self._is_valid_dump, trace_output = app.GetStackTrace()
-        self._stack_trace = trace_output.splitlines()
-        self._minidump_path = app.GetRecentMinidumpPathWithTimeout()
-      except Exception:  # pylint: disable=broad-except
-        logging.exception('Problem when trying to gather stack trace:')
-      try:
-        self._app_stdout = app.GetStandardOutput().splitlines()
-      except Exception: # pylint: disable=broad-except
-        logging.exception('Problem when trying to gather standard output:')
+      debug_data = app.CollectDebugData(logging.ERROR)
+      self._system_log = debug_data.system_log or self._system_log
+      self._app_stdout = debug_data.stdout.splitlines()
+      self._is_valid_dump = bool(debug_data.symbolized_minidumps)
+      self._stack_trace = '\n'.join(
+          debug_data.symbolized_minidumps).splitlines()
 
   @property
   def stack_trace(self):
     return self._stack_trace
-
-  @property
-  def minidump_path(self):
-    return self._minidump_path
 
   @property
   def is_valid_dump(self):
@@ -98,7 +84,11 @@ class AppCrashException(Error):
     debug_messages.append('Found Minidump: %s' % self._is_valid_dump)
     debug_messages.append('Stack Trace:')
     debug_messages.append(divider)
-    debug_messages.extend(('\t%s' % l) for l in self._stack_trace)
+    if self.is_valid_dump:
+      # CollectDebugData will handle this already.
+      debug_messages.append('Stack trace(s) already output above.')
+    else:
+      debug_messages.append('Unable to get stack trace.')
     debug_messages.append(divider)
     debug_messages.append('Standard output:')
     debug_messages.append(divider)

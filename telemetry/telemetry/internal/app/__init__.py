@@ -2,7 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import time
+
+from telemetry.core import debug_data
 
 
 class App(object):
@@ -39,11 +42,26 @@ class App(object):
   def GetStandardOutput(self):
     return self._app_backend.GetStandardOutput()
 
-  def GetStackTrace(self):
-    return self._app_backend.GetStackTrace()
-
   def GetMostRecentMinidumpPath(self):
     return self._app_backend.GetMostRecentMinidumpPath()
+
+  def CollectDebugData(self, log_level):
+    """Collect debug data and return it.
+
+    Children should override this to actually collect useful debug data.
+
+    Args:
+      log_level: The logging level to use from the logging module, e.g.
+          logging.ERROR.
+
+    Returns:
+      A debug_data.DebugData object containing the collected data.
+    """
+    del log_level  # unused
+    logging.warning(
+        'Crashed app of type %s does not implement the CollectDebugData '
+        'method, unable to provide actual debug information', self.app_type)
+    return debug_data.DebugData()
 
   def GetRecentMinidumpPathWithTimeout(self, timeout_s=15, oldest_ts=None):
     """Get a path to a recent minidump, blocking until one is available.
