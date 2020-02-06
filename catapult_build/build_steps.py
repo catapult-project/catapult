@@ -218,10 +218,10 @@ def main(args=None):
       action='store_true')
   args = parser.parse_args(args)
 
-  proto_input_path = os.path.join(args.api_path_checkout, 'dashboard',
-                                  'dashboard', 'proto')
-  proto_files = [
-      os.path.join(proto_input_path, p)
+  dashboard_protos_path = os.path.join(args.api_path_checkout, 'dashboard',
+                                       'dashboard', 'proto')
+  dashboard_proto_files = [
+      os.path.join(dashboard_protos_path, p)
       for p in ['sheriff.proto', 'sheriff_config.proto']
   ]
 
@@ -229,6 +229,13 @@ def main(args=None):
                                            'dashboard', 'sheriff_config')
   dashboard_proto_output_path = os.path.join(args.api_path_checkout,
                                              'dashboard', 'dashboard')
+
+  tracing_protos_path = os.path.join(args.api_path_checkout, 'tracing',
+                                     'tracing', 'proto')
+  tracing_proto_output_path = os.path.join(args.api_path_checkout, 'tracing',
+                                           'tracing')
+  tracing_proto_files = [os.path.join(tracing_protos_path, 'histogram.proto')]
+
 
   steps = [
       {
@@ -253,10 +260,10 @@ def main(args=None):
           'cmd': [
               'protoc',
               '--proto_path',
-              proto_input_path,
+              dashboard_protos_path,
               '--python_out',
               sheriff_proto_output_path,
-          ] + proto_files,
+          ] + dashboard_proto_files,
       },
       {
           'name':
@@ -264,10 +271,21 @@ def main(args=None):
           'cmd': [
               'protoc',
               '--proto_path',
-              proto_input_path,
+              dashboard_protos_path,
               '--python_out',
               dashboard_proto_output_path,
-          ] + proto_files,
+          ] + dashboard_proto_files,
+      },
+      {
+          'name':
+              'Generate Tracing protocol buffers',
+          'cmd': [
+              'protoc',
+              '--proto_path',
+              tracing_protos_path,
+              '--python_out',
+              tracing_proto_output_path,
+          ] + tracing_proto_files,
       },
   ]
   if args.platform == 'android' and args.run_android_tests:

@@ -53,6 +53,10 @@ class RelatedEventSet(diagnostic.Diagnostic):
       result.Add(event)
     return result
 
+  @staticmethod
+  def FromProto(d):
+    assert False, 'Not implemented in proto yet'
+
   def Serialize(self, serializer):
     return [
         [

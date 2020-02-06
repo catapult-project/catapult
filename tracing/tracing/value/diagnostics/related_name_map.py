@@ -81,3 +81,7 @@ class RelatedNameMap(diagnostic.Diagnostic):
     for key, name in dct['names'].items():
       names.Set(key, name)
     return names
+
+  @staticmethod
+  def FromProto(d):
+    assert False, 'Not implemented in proto yet'

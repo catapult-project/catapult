@@ -59,3 +59,7 @@ class UnmergeableDiagnosticSet(diagnostic.Diagnostic):
 
     return UnmergeableDiagnosticSet(
         [RefOrDiagnostic(d) for d in dct['diagnostics']])
+
+  @staticmethod
+  def FromProto(d):
+    assert False, 'Not implemented in proto yet'

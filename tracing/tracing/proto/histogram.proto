@@ -127,7 +127,7 @@ message Bin {
 
 message SummaryOptions {
   bool avg = 1;
-  bool geometricMean = 2;
+  bool geometric_mean = 2;
   bool std = 3;
   bool count = 4;
   bool sum = 5;

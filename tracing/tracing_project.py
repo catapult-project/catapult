@@ -25,6 +25,7 @@ def GetDependencyPaths():
       p.catapult_path,
       p.py_vulcanize_path,
       p.vinn_path,
+      p.protobuf_path,
       os.path.join(p.catapult_third_party_path, 'WebOb'),
       os.path.join(p.catapult_third_party_path, 'Paste'),
       os.path.join(p.catapult_third_party_path, 'six'),
@@ -76,6 +77,11 @@ class TracingProject(object):
 
   catapult_third_party_path = os.path.join(catapult_path, 'third_party')
   polymer_path = os.path.join(catapult_third_party_path, 'polymer')
+
+  # We need google.protobuf for tests that use the proto. The dashboard uses
+  # the gae_ts_mon protobuf lib for its tests, so let's do the same for tracing.
+  protobuf_path = os.path.join(
+      catapult_third_party_path, 'gae_ts_mon', 'gae_ts_mon', 'protobuf')
 
   tracing_third_party_path = os.path.join(tracing_root_path, 'third_party')
   py_vulcanize_path = os.path.join(common_root_path, 'py_vulcanize')

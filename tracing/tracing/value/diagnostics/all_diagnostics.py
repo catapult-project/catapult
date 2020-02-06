@@ -29,7 +29,7 @@ def GetDiagnosticTypenames():
 
 
 def GetDiagnosticClassForName(name):
-  assert IsDiagnosticTypename(name)
+  assert IsDiagnosticTypename(name), name
 
   if name in _CLASSES_BY_NAME:
     return _CLASSES_BY_NAME[name]

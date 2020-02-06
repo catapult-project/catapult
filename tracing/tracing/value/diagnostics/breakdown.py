@@ -62,6 +62,10 @@ class Breakdown(diagnostic.Diagnostic):
       result.Set(name, value)
     return result
 
+  @staticmethod
+  def FromProto(d):
+    assert False, 'Not implemented in proto yet'
+
   def Serialize(self, serializer):
     keys = list(self._values.keys())
     keys.sort()

@@ -64,6 +64,7 @@ dummy-variables-rgx=^\*{0,2}(_$|unused_)
 # Tells wether missing members accessed in mixin class should be ignored. A
 # mixin class is detected if its name ends with "mixin" (case insensitive).
 ignore-mixin-members=yes
+ignored-classes=GenericSet,Histogram,HistogramSet,BinBoundaryDetailedSpec
 
 
 [FORMAT]

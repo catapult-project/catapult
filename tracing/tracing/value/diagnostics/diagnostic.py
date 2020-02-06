@@ -68,6 +68,23 @@ class Diagnostic(object):
       diagnostic.guid = dct['guid']
     return diagnostic
 
+  @staticmethod
+  def FromProto(d):
+    # Here we figure out which field is set and downcast to the right diagnostic
+    # type. The diagnostic names in the proto must be the same as the class
+    # names in the python code, for instance Breakdown.
+    attr_name = d.WhichOneof('diagnostic_oneof')
+    assert attr_name, 'The diagnostic oneof cannot be empty.'
+
+    d = getattr(d, attr_name)
+    assert type(d).__name__ in all_diagnostics.GetDiagnosticTypenames(), (
+        'Unrecognized diagnostic type ' + type(d).__name__)
+
+    diag_type = type(d).__name__
+    cls = all_diagnostics.GetDiagnosticClassForName(diag_type)
+
+    return cls.FromProto(d)
+
   def ResetGuid(self, guid=None):
     if guid:
       self._guid = guid

@@ -2,13 +2,22 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import math
 import unittest
 
+from tracing.proto import histogram_proto
 from tracing.value import histogram
 from tracing.value import histogram_set
 from tracing.value.diagnostics import date_range
 from tracing.value.diagnostics import diagnostic_ref
 from tracing.value.diagnostics import generic_set
+
+
+def _AddHist(hist_set, name=None, unit=None):
+  hist = hist_set.histograms.add()
+  hist.name = name or '_'
+  hist.unit.unit = unit or histogram_proto.Pb2().MS
+  return hist
 
 
 class HistogramSetUnittest(unittest.TestCase):
@@ -252,3 +261,204 @@ class HistogramSetUnittest(unittest.TestCase):
     self.assertEqual(
         a_hist2.diagnostics['date'],
         b_hist2.diagnostics['date'])
+
+  def testBasicImportFromProto(self):
+    hist_set = histogram_proto.Pb2().HistogramSet()
+
+    hist = hist_set.histograms.add()
+    hist.name = 'metric1'
+    hist.unit.unit = histogram_proto.Pb2().TS_MS
+
+    hist = hist_set.histograms.add()
+    hist.name = 'metric2'
+    hist.unit.unit = histogram_proto.Pb2().SIGMA
+    hist.unit.improvement_direction = histogram_proto.Pb2().BIGGER_IS_BETTER
+
+    parsed = histogram_set.HistogramSet()
+    parsed.ImportProto(hist_set.SerializeToString())
+    hists = list(parsed)
+
+    # The order of the histograms isn't guaranteed.
+    self.assertEqual(len(hists), 2)
+    self.assertItemsEqual(
+        [hists[0].name, hists[1].name], ['metric1', 'metric2'])
+    self.assertItemsEqual(
+        [hists[0].unit, hists[1].unit], ['tsMs', 'sigma_biggerIsBetter'])
+
+  def testSimpleFieldsFromProto(self):
+    hist_set = histogram_proto.Pb2().HistogramSet()
+
+    hist = _AddHist(hist_set)
+    hist.description = 'description!'
+    hist.sample_values.append(21)
+    hist.sample_values.append(22)
+    hist.sample_values.append(23)
+    hist.max_num_sample_values = 3
+    hist.num_nans = 1
+
+    parsed = histogram_set.HistogramSet()
+    parsed.ImportProto(hist_set.SerializeToString())
+    parsed_hist = parsed.GetFirstHistogram()
+
+    self.assertEqual(parsed_hist.description, 'description!')
+    self.assertEqual(parsed_hist.sample_values, [21, 22, 23])
+    self.assertEqual(parsed_hist.max_num_sample_values, 3)
+    self.assertEqual(parsed_hist.num_nans, 1)
+
+  def testRaisesOnMissingMandatoryFieldsInProto(self):
+    hist_set = histogram_proto.Pb2().HistogramSet()
+    hist = hist_set.histograms.add()
+
+    with self.assertRaises(ValueError):
+      # Missing name.
+      parsed = histogram_set.HistogramSet()
+      parsed.ImportProto(hist_set.SerializeToString())
+
+    with self.assertRaises(ValueError):
+      # Missing unit.
+      hist.name = "eh"
+      parsed.ImportProto(hist_set.SerializeToString())
+
+  def testMinimalBinBoundsInProto(self):
+    hist_set = histogram_proto.Pb2().HistogramSet()
+    hist = _AddHist(hist_set)
+
+    hist.bin_boundaries.first_bin_boundary = 1
+
+    parsed = histogram_set.HistogramSet()
+    parsed.ImportProto(hist_set.SerializeToString())
+    parsed_hist = parsed.GetFirstHistogram()
+
+    # The transport format for bins is relatively easily understood, whereas
+    # how bins are generated is very complex, so use the former for the bin
+    # bounds tests. See the histogram spec in docs/histogram-set-json-format.md.
+    dict_format = parsed_hist.AsDict()['binBoundaries']
+
+    self.assertEqual(dict_format, [1])
+
+  def testComplexBinBounds(self):
+    hist_set = histogram_proto.Pb2().HistogramSet()
+    hist = _AddHist(hist_set)
+
+    hist.bin_boundaries.first_bin_boundary = 17
+    spec1 = hist.bin_boundaries.bin_specs.add()
+    spec1.bin_boundary = 18
+    spec2 = hist.bin_boundaries.bin_specs.add()
+    spec2.bin_spec.boundary_type = (
+        histogram_proto.Pb2().BinBoundaryDetailedSpec.EXPONENTIAL)
+    spec2.bin_spec.maximum_bin_boundary = 19
+    spec2.bin_spec.num_bin_boundaries = 20
+    spec3 = hist.bin_boundaries.bin_specs.add()
+    spec3.bin_spec.boundary_type = (
+        histogram_proto.Pb2().BinBoundaryDetailedSpec.LINEAR)
+    spec3.bin_spec.maximum_bin_boundary = 21
+    spec3.bin_spec.num_bin_boundaries = 22
+
+    parsed = histogram_set.HistogramSet()
+    parsed.ImportProto(hist_set.SerializeToString())
+    parsed_hist = parsed.GetFirstHistogram()
+
+    dict_format = parsed_hist.AsDict()['binBoundaries']
+
+    self.assertEqual(dict_format, [17, 18, [1, 19, 20], [0, 21, 22]])
+
+  def testImportRunningStatisticsFromProto(self):
+    hist_set = histogram_proto.Pb2().HistogramSet()
+    hist = _AddHist(hist_set)
+
+    hist.running.count = 4
+    hist.running.max = 23
+    hist.running.meanlogs = 1
+    hist.running.mean = 22
+    hist.running.min = 21
+    hist.running.sum = 66
+    hist.running.variance = 1
+
+    parsed = histogram_set.HistogramSet()
+    parsed.ImportProto(hist_set.SerializeToString())
+    parsed_hist = parsed.GetFirstHistogram()
+
+    # We get at meanlogs through geometric_mean. Variance is after Bessel's
+    # correction has been applied.
+    self.assertEqual(parsed_hist.running.count, 4)
+    self.assertEqual(parsed_hist.running.max, 23)
+    self.assertEqual(parsed_hist.running.geometric_mean, math.exp(1))
+    self.assertEqual(parsed_hist.running.mean, 22)
+    self.assertEqual(parsed_hist.running.min, 21)
+    self.assertEqual(parsed_hist.running.sum, 66)
+    self.assertAlmostEqual(parsed_hist.running.variance, 0.3333333333)
+
+  def testImportAllBinsFromProto(self):
+    hist_set = histogram_proto.Pb2().HistogramSet()
+    hist = _AddHist(hist_set)
+    hist.all_bins[0].bin_count = 24
+    map1 = hist.all_bins[0].diagnostic_maps.add().diagnostic_map
+    map1['some bin diagnostic'].generic_set.values.append('"some value"')
+    map2 = hist.all_bins[0].diagnostic_maps.add().diagnostic_map
+    map2['other bin diagnostic'].generic_set.values.append('"some other value"')
+
+    parsed = histogram_set.HistogramSet()
+    parsed.ImportProto(hist_set.SerializeToString())
+    parsed_hist = parsed.GetFirstHistogram()
+
+    self.assertGreater(len(parsed_hist.bins), 1)
+    self.assertEqual(len(parsed_hist.bins[0].diagnostic_maps), 2)
+    self.assertEqual(len(parsed_hist.bins[0].diagnostic_maps[0]), 1)
+    self.assertEqual(len(parsed_hist.bins[0].diagnostic_maps[1]), 1)
+    self.assertEqual(
+        parsed_hist.bins[0].diagnostic_maps[0]['some bin diagnostic'],
+        generic_set.GenericSet(values=['some value']))
+    self.assertEqual(
+        parsed_hist.bins[0].diagnostic_maps[1]['other bin diagnostic'],
+        generic_set.GenericSet(values=['some other value']))
+
+  def testSummaryOptionsFromProto(self):
+    hist_set = histogram_proto.Pb2().HistogramSet()
+    hist = _AddHist(hist_set)
+    hist.summary_options.nans = False
+    hist.summary_options.geometric_mean = False
+    hist.summary_options.percentile.append(0.90)
+    hist.summary_options.percentile.append(0.95)
+    hist.summary_options.percentile.append(0.99)
+
+    parsed = histogram_set.HistogramSet()
+    parsed.ImportProto(hist_set.SerializeToString())
+    parsed_hist = parsed.GetFirstHistogram()
+
+    # See the histogram spec in docs/histogram-set-json-format.md.
+    # Serializing to proto leads to funny rounding errors.
+    self.assertEqual(
+        parsed_hist.statistics_names,
+        set([
+            'std', 'count', 'pct_089_9999976158', 'pct_094_9999988079', 'max',
+            'sum', 'min', 'pct_099_0000009537', 'avg'
+        ]), msg=str(parsed_hist.statistics_names))
+
+  def testImportSharedDiagnosticsFromProto(self):
+    guid1 = 'f7f17394-fa4a-481e-86bd-a82cd55935a7'
+    guid2 = '88ea36c7-6dcb-4ba8-ba56-1979de05e16f'
+    hist_set = histogram_proto.Pb2().HistogramSet()
+
+    hist_set.shared_diagnostics[guid1].generic_set.values.append(
+        '"webrtc_perf_tests"')
+    hist_set.shared_diagnostics[guid2].generic_set.values.append('123456')
+    hist_set.shared_diagnostics['whatever'].generic_set.values.append('2')
+
+    hist = hist_set.histograms.add()
+    hist.name = "_"
+    hist.unit.unit = histogram_proto.Pb2().MS
+    hist.diagnostics.diagnostic_map['bots'].shared_diagnostic_guid = guid1
+    hist.diagnostics.diagnostic_map['pointId'].shared_diagnostic_guid = guid2
+
+    parsed = histogram_set.HistogramSet()
+    parsed.ImportProto(hist_set.SerializeToString())
+
+    parsed_hist = parsed.GetFirstHistogram()
+
+    self.assertIsNotNone(parsed_hist)
+    self.assertEqual(len(parsed_hist.diagnostics), 2)
+
+    self.assertEqual(parsed_hist.diagnostics['pointId'],
+                     generic_set.GenericSet(values=[123456]))
+    self.assertEqual(parsed_hist.diagnostics['bots'],
+                     generic_set.GenericSet(values=['webrtc_perf_tests']))

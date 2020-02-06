@@ -76,6 +76,10 @@ class DateRange(diagnostic.Diagnostic):
       dr._range.AddValue(dct['max'])
     return dr
 
+  @staticmethod
+  def FromProto(d):
+    assert False, 'Not implemented in proto yet'
+
   def CanAddDiagnostic(self, other_diagnostic):
     return isinstance(other_diagnostic, DateRange)
 
