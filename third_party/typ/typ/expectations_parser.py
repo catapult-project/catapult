@@ -98,7 +98,8 @@ class Expectation(object):
                 and self.should_retry_on_failure == other.should_retry_on_failure
                 and self.is_slow_test == other.is_slow_test
                 and self.tags == other.tags and self.results == other.results
-                and self.lineno == other.lineno)
+                and self.lineno == other.lineno
+                and self.trailing_comments == other.trailing_comments)
 
     def _set_string_value(self):
         """This method will create an expectation line in string form and set the
@@ -514,6 +515,7 @@ class TestExpectations(object):
         self._reasons = set()
         self._should_retry_on_failure = False
         self._is_slow_test = False
+        self._trailing_comments = str()
 
         def _update_expected_results(exp):
             if exp.tags.issubset(self._tags):
@@ -521,12 +523,15 @@ class TestExpectations(object):
                     self._results.update(exp.results)
                     self._should_retry_on_failure |= exp.should_retry_on_failure
                     self._is_slow_test |= exp.is_slow_test
+                    if exp.trailing_comments:
+                        self._trailing_comments += exp.trailing_comments + '\n'
                     if exp.reason:
                         self._reasons.update([exp.reason])
                 else:
                     self._results = set(exp.results)
                     self._should_retry_on_failure = exp.should_retry_on_failure
                     self._is_slow_test = exp.is_slow_test
+                    self._trailing_comments = exp.trailing_comments
                     if exp.reason:
                         self._reasons = {exp.reason}
 
@@ -538,7 +543,8 @@ class TestExpectations(object):
             return Expectation(
                     test=test, results=self._results,
                     retry_on_failure=self._should_retry_on_failure,
-                    is_slow_test=self._is_slow_test, reason=' '.join(self._reasons))
+                    is_slow_test=self._is_slow_test, reason=' '.join(self._reasons),
+                    trailing_comments=self._trailing_comments)
 
         # If we didn't find an exact match, check for matching globs. Match by
         # the most specific (i.e., longest) glob first. Because self.globs_exps
@@ -555,7 +561,8 @@ class TestExpectations(object):
                     return Expectation(
                             test=test, results=self._results,
                             retry_on_failure=self._should_retry_on_failure,
-                            is_slow_test=self._is_slow_test, reason=' '.join(self._reasons))
+                            is_slow_test=self._is_slow_test, reason=' '.join(self._reasons),
+                            trailing_comments=self._trailing_comments)
 
         # Nothing matched, so by default, the test is expected to pass.
         return Expectation(test=test)

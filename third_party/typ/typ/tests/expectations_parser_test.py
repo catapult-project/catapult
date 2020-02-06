@@ -23,7 +23,7 @@ class TaggedTestListParserTest(unittest.TestCase):
 #   Win ]
 # results: [ Skip ]
 
-crbug.com/12345 [ Mac ] b1/s1 [ Skip ]
+crbug.com/12345 [ Mac ] b1/s1 [ Skip ] # foo
 crbug.com/23456 [ Mac Debug ] b1/s2 [ Skip ]
 """
         parser = expectations_parser.TaggedTestListParser(good_data)
@@ -32,7 +32,7 @@ crbug.com/23456 [ Mac Debug ] b1/s2 [ Skip ]
         self.assertEqual(tag_sets, parser.tag_sets)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/12345', 'b1/s1',
-                                            ['mac'], ['SKIP'], 10),
+                                            ['mac'], ['SKIP'], 10, trailing_comments=' # foo'),
             expectations_parser.Expectation('crbug.com/23456', 'b1/s2',
                                             ['mac', 'debug'], ['SKIP'], 11)
         ]
@@ -189,7 +189,8 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/23456', 'b1/s2',
-                                            ['mac'], ['SKIP'], 3)
+                                            ['mac'], ['SKIP'], 3,
+                                            trailing_comments=' # abc 123')
         ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcome[i])
@@ -393,13 +394,13 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
             '# tags: [ linux ]\n'
             '# results: [ Failure RetryOnFailure Slow ]\n'
             '[ linux ] b1/s3 [ Failure ]\n'
-            'crbug.com/2431 [ linux ] b1/s2 [ Failure RetryOnFailure ]\n'
+            'crbug.com/2431 [ linux ] b1/s2 [ Failure RetryOnFailure ] # c1\n'
             'crbug.com/2432 [ linux ] b1/s* [ Failure Slow ]\n')
         raw_data2 = (
             '# tags: [ Intel ]\n'
             '# results: [ Pass RetryOnFailure ]\n'
             '[ intel ] b1/s1 [ RetryOnFailure ]\n'
-            'crbug.com/2432 [ intel ] b1/s2 [ Pass ]\n'
+            'crbug.com/2432 [ intel ] b1/s2 [ Pass ] # c2\n'
             'crbug.com/2431 [ intel ] b1/s* [ RetryOnFailure ]\n')
         test_exp1 = expectations_parser.TestExpectations(['Linux'])
         ret, _ = test_exp1.parse_tagged_list(raw_data1)
@@ -413,7 +414,8 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
                          Expectation(
                              test='b1/s2', results={ResultType.Pass, ResultType.Failure},
                              retry_on_failure=True, is_slow_test=False,
-                             reason='crbug.com/2431 crbug.com/2432'))
+                             reason='crbug.com/2431 crbug.com/2432',
+                             trailing_comments=' # c1\n # c2\n'))
         self.assertEqual(test_exp1.expectations_for('b1/s1'),
                          Expectation(
                              test='b1/s1', results={ResultType.Pass},
