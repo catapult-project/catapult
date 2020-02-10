@@ -138,7 +138,7 @@ def _UninstallNonSystemApp(device, package_name):
       for user_path in user_paths:
         host_path = _RebasePath(temp_dir, user_path)
         # PullFile takes care of host_path creation if needed.
-        device.PullFile(user_path, host_path)
+        device.PullFile(user_path, host_path, timeout=_WEBVIEW_INSTALL_TIMEOUT)
         host_paths.append(host_path)
       device.Uninstall(package_name)
       try:
