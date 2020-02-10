@@ -18,11 +18,13 @@ from telemetry.internal.platform import desktop_platform_backend
 try:
   import pywintypes  # pylint: disable=import-error
   import win32api  # pylint: disable=import-error
+  from PIL import Image  # pylint: disable=import-error
   from win32com.shell import shell  # pylint: disable=no-name-in-module
   from win32com.shell import shellcon  # pylint: disable=no-name-in-module
   import win32con  # pylint: disable=import-error
   import win32gui  # pylint: disable=import-error
   import win32process  # pylint: disable=import-error
+  import win32ui  # pylint: disable=import-error
   import winerror  # pylint: disable=import-error
   try:
     import winreg  # pylint: disable=import-error
@@ -30,6 +32,7 @@ try:
     import _winreg as winreg  # pylint: disable=import-error,wrong-import-order
   import win32security  # pylint: disable=import-error
 except ImportError:
+  Image = None
   pywintypes = None
   shell = None
   shellcon = None
@@ -40,6 +43,7 @@ except ImportError:
   win32pipe = None
   win32process = None
   win32security = None
+  win32ui = None
   winerror = None
   winreg = None
 
@@ -136,6 +140,42 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   @decorators.Cache
   def GetOSVersionDetailString(self):
     return platform.uname()[3]
+
+  def CanTakeScreenshot(self):
+    return True
+
+  def TakeScreenshot(self, file_path):
+    width = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
+    height = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+    screen_win = win32gui.GetDesktopWindow()
+    win_dc = None
+    screen_dc = None
+    capture_dc = None
+    capture_bitmap = None
+    try:
+      win_dc = win32gui.GetWindowDC(screen_win)
+      screen_dc = win32ui.CreateDCFromHandle(win_dc)
+      capture_dc = screen_dc.CreateCompatibleDC()
+      capture_bitmap = win32ui.CreateBitmap()
+      capture_bitmap.CreateCompatibleBitmap(screen_dc, width, height)
+      capture_dc.SelectObject(capture_bitmap)
+      capture_dc.BitBlt(
+          (0, 0), (width, height), screen_dc, (0, 0), win32con.SRCCOPY)
+      pixels = capture_bitmap.GetBitmapBits(True)
+      image = Image.frombuffer(
+          'RGB', (width, height), pixels, 'raw', 'BGRX', 0, 1)
+      image.save(file_path, 'PNG')
+      image.close()
+    finally:
+      if capture_bitmap:
+        win32gui.DeleteObject(capture_bitmap.GetHandle())
+      if capture_dc:
+        capture_dc.DeleteDC()
+      if screen_dc:
+        screen_dc.DeleteDC()
+      if win_dc:
+        win32gui.ReleaseDC(screen_win, win_dc)
+    return True
 
   def CanFlushIndividualFilesFromSystemCache(self):
     return True
