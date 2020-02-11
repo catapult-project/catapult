@@ -37,7 +37,6 @@ steps:
     # used by cloud-build, so we've left it out for now.
     api.yaml,
     app.yaml,
-    index.yaml,
     upload-processing.yaml,
     upload.yaml,
   ]
