@@ -6,7 +6,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import datetime
 import math
 
 
@@ -19,13 +18,6 @@ def TestPath(key):
     return '/'.join(key.flat_path[1::2])
   assert key.kind == 'TestMetadata' or key.kind == 'TestContainer'
   return key.name
-
-
-def DaysAgoTimestamp(days_ago):
-  """Return a datetime for a day the given number of days in the past."""
-  now = datetime.datetime.now()
-  result_datetime = now - datetime.timedelta(days=days_ago)
-  return result_datetime
 
 
 def FloatHack(f):
@@ -45,3 +37,15 @@ def FloatHack(f):
   if math.isnan(f):
     return 'NaN'
   return f
+
+
+def PrintCounters(pipeline_result):
+  """Print pipeline counters to stdout.
+
+  Useful for seeing metrics when running pipelines directly rather than in
+  Dataflow.
+  """
+  for counter in pipeline_result.metrics().query()['counters']:
+    print('Counter: ' + repr(counter))
+    print('  = ' + str(counter.result))
+

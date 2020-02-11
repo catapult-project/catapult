@@ -7,8 +7,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import datetime
-
 import apache_beam as beam
 from apache_beam.io.gcp.bigquery import BigQueryWriteFn
 from apache_beam.options.pipeline_options import GoogleCloudOptions
@@ -17,7 +15,7 @@ from apache_beam.metrics import Metrics
 
 from bq_export.split_by_timestamp import ReadTimestampRangeFromDatastore
 from bq_export.export_options import BqExportOptions
-from bq_export.utils import TestPath, DaysAgoTimestamp, FloatHack
+from bq_export.utils import TestPath, FloatHack, PrintCounters
 
 
 def main():
@@ -34,13 +32,12 @@ def main():
     failed_bq_rows.inc()
 
   # Read 'Anomaly' entities from datastore.
-  start_time = DaysAgoTimestamp(bq_export_options.num_days)
-  end_time = start_time + datetime.timedelta(days=bq_export_options.num_days)
   entities = (
       p
       | 'ReadFromDatastore(Anomaly)' >> ReadTimestampRangeFromDatastore(
           {'project': project, 'kind': 'Anomaly'},
-          min_timestamp=start_time, max_timestamp=end_time))
+          min_timestamp=bq_export_options.StartTime(),
+          max_timestamp=bq_export_options.EndTime()))
 
   def AnomalyEntityToRowDict(entity):
     entities_read.inc()
@@ -122,12 +119,7 @@ def main():
   failed_anomaly_inserts = bq_anomalies[BigQueryWriteFn.FAILED_ROWS]
   _ = failed_anomaly_inserts | 'CountFailed(Anomaly)' >> beam.Map(CountFailed)
 
-  print(p)
   result = p.run()
   result.wait_until_finish()
-  import pprint
-  for counter in result.metrics().query()['counters']:
-    print('Counter: ' + repr(counter))
-    print('  = ' + str(counter.result))
-  print(result)
+  PrintCounters(result)
 

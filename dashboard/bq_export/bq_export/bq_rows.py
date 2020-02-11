@@ -20,7 +20,7 @@ from apache_beam.transforms.core import FlatMap
 
 from bq_export.split_by_timestamp import ReadTimestampRangeFromDatastore
 from bq_export.export_options import BqExportOptions
-from bq_export.utils import DaysAgoTimestamp, FloatHack
+from bq_export.utils import FloatHack, PrintCounters
 
 
 def main():
@@ -78,15 +78,15 @@ def main():
       failed_entity_transforms.inc()
       return []
 
+  print("Time range: %s -> %s" % (
+      bq_export_options.StartTime(), bq_export_options.EndTime()))
   row_query_params = dict(project=project, kind='Row')
-  start_time = DaysAgoTimestamp(bq_export_options.num_days)
-  end_time = start_time + datetime.timedelta(days=bq_export_options.num_days)
   row_entities = (
       p
       | 'ReadFromDatastore(Row)' >> ReadTimestampRangeFromDatastore(
           row_query_params,
-          min_timestamp=start_time,
-          max_timestamp=end_time,
+          min_timestamp=bq_export_options.StartTime(),
+          max_timestamp=bq_export_options.EndTime(),
           step=datetime.timedelta(minutes=10)))
 
   row_dicts = (
@@ -96,6 +96,7 @@ def main():
       'timePartitioning': {'type': 'DAY', 'field': 'timestamp'},
   }
 
+  # TODO(abennetts): clear any day partitions that we are about to overwrite.
   bq_rows = (
       row_dicts | 'WriteToBigQuery(rows)' >> beam.io.WriteToBigQuery(
           '{}:chromeperf_dashboard_data.rows_test'.format(project),
@@ -108,13 +109,6 @@ def main():
   failed_row_inserts = bq_rows[BigQueryWriteFn.FAILED_ROWS]
   _ = failed_row_inserts | 'CountFailed(Row)' >> beam.Map(CountFailed)
 
-  print(p)
   result = p.run()
   result.wait_until_finish()
-  import pprint
-  #for counter in result.monitoring_metrics().query(
-  #    filter=MetricsFilter().with_step('WriteToBigQuery'))['counters']:
-  for counter in result.metrics().query()['counters']:
-    print('Counter: ' + repr(counter))
-    print('  = ' + str(counter.result))
-  print(result)
+  PrintCounters(result)
