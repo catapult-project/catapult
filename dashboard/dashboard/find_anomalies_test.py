@@ -21,7 +21,6 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
-from dashboard.models import sheriff
 from dashboard.models.subscription import Subscription
 from dashboard.models.subscription import VISIBILITY
 from tracing.value.diagnostics import reserved_infos
@@ -155,8 +154,6 @@ class ProcessAlertsTest(testing_common.TestCase):
     self._AddDataForTests()
     test_path = 'ChromiumGPU/linux-release/scrolling_benchmark/ref'
     test = utils.TestKey(test_path).get()
-    sheriff.Sheriff(
-        email='a@google.com', id='sheriff', patterns=[test_path]).put()
     test.UpdateSheriff()
     test.put()
 
@@ -273,8 +270,6 @@ class ProcessAlertsTest(testing_common.TestCase):
         statistic='avg')
     a.put()
 
-    sheriff.Sheriff(
-        email='a@google.com', id='sheriff', patterns=[test_path]).put()
     test.UpdateSheriff()
     test.put()
 
@@ -307,8 +302,6 @@ class ProcessAlertsTest(testing_common.TestCase):
         statistic='count')
     a.put()
 
-    sheriff.Sheriff(
-        email='a@google.com', id='sheriff', patterns=[test_path]).put()
     test.UpdateSheriff()
     test.put()
 
@@ -336,8 +329,6 @@ class ProcessAlertsTest(testing_common.TestCase):
     self._AddDataForTests()
     test = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling_benchmark/ref').get()
-    sheriff.Sheriff(
-        email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
     test.improvement_direction = anomaly.DOWN
     test.UpdateSheriff()
     test.put()
@@ -349,7 +340,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(len(anomalies), 1)
     self.assertTrue(anomalies[0].is_improvement)
 
-  @mock.patch('logging.error')
+  @mock.patch('logging.warning')
   def testProcessTest_NoSheriff_ErrorLogged(self, mock_logging_error):
     self._AddDataForTests()
     ref = utils.TestKey(
@@ -357,7 +348,8 @@ class ProcessAlertsTest(testing_common.TestCase):
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))):
       find_anomalies.ProcessTests([ref.key])
-    mock_logging_error.assert_called_with('No sheriff for %s', ref.key)
+    mock_logging_error.assert_called_with('No subscription for %s',
+                                          ref.key.string_id())
 
   @mock.patch.object(
       find_anomalies.find_change_points, 'FindChangePoints',
@@ -370,8 +362,6 @@ class ProcessAlertsTest(testing_common.TestCase):
     self._AddDataForTests()
     test = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling_benchmark/ref').get()
-    sheriff.Sheriff(
-        email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
     test.improvement_direction = anomaly.UP
     test.UpdateSheriff()
     test.put()
@@ -397,8 +387,6 @@ class ProcessAlertsTest(testing_common.TestCase):
     test = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling_benchmark/ref').get()
     test.internal_only = True
-    sheriff.Sheriff(
-        email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
     test.UpdateSheriff()
     test.put()
 
@@ -439,8 +427,6 @@ class ProcessAlertsTest(testing_common.TestCase):
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
       graph_data.Row(id=row[0], value=row[1],
                      parent=test_container_key_non_ref).put()
-    sheriff.Sheriff(
-        email='a@google.com', id='sheriff', patterns=[ref.test_path]).put()
     ref.UpdateSheriff()
     ref.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
@@ -467,8 +453,6 @@ class ProcessAlertsTest(testing_common.TestCase):
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
       graph_data.Row(id=row[0], value=row[1],
                      parent=test_container_key_non_ref).put()
-    sheriff.Sheriff(
-        email='a@google.com', id='sheriff', patterns=[non_ref.test_path]).put()
     ref.UpdateSheriff()
     ref.put()
     non_ref.UpdateSheriff()
@@ -496,10 +480,6 @@ class ProcessAlertsTest(testing_common.TestCase):
       graph_data.Row(id=row[0], value=2125.375, parent=test_container_key).put()
       graph_data.Row(id=row[0], value=row[1],
                      parent=test_container_key_non_ref).put()
-    sheriff.Sheriff(
-        email='a@google.com', id='sheriff', patterns=[ref.test_path]).put()
-    sheriff.Sheriff(
-        email='a@google.com', id='sheriff', patterns=[non_ref.test_path]).put()
     ref.UpdateSheriff()
     ref.put()
     non_ref.UpdateSheriff()
@@ -521,8 +501,6 @@ class ProcessAlertsTest(testing_common.TestCase):
     test_container_key = utils.GetTestContainerKey(ref.key)
     for row in _TEST_ROW_DATA:
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
-    sheriff.Sheriff(
-        email='a@google.com', id='sheriff', patterns=[ref.test_path]).put()
     ref.UpdateSheriff()
     ref.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
@@ -599,8 +577,6 @@ class ProcessAlertsTest(testing_common.TestCase):
     ]
     for row in sample_data:
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
-    sheriff.Sheriff(
-        email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
     test.UpdateSheriff()
     test.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
@@ -675,8 +651,6 @@ class ProcessAlertsTest(testing_common.TestCase):
     ]
     for row in sample_data:
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
-    sheriff.Sheriff(
-        email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
     test.UpdateSheriff()
     test.put()
     with mock.patch.object(SheriffConfigClient, 'Match',

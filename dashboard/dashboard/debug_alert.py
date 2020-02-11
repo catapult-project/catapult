@@ -18,6 +18,7 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
+from dashboard.sheriff_config_client import SheriffConfigClient
 
 # Default number of points before and after a point to analyze.
 _NUM_BEFORE = 40
@@ -70,6 +71,10 @@ class DebugAlertHandler(request_handler.RequestHandler):
     anomaly_segments = _AnomalySegmentSeries(change_points)
 
     plot_data = _GetPlotData(chart_series, anomaly_points, anomaly_segments)
+    subscriptions, err_msg = SheriffConfigClient().Match(test.test_path)
+    subscription_names = ','.join([s.name for s in subscriptions or []])
+    if err_msg is not None:
+      self.RenderHtml('debug_alert.html', {'error': err_msg})
 
     # Render the debug_alert page with all of the parameters filled in.
     self.RenderHtml('debug_alert.html', {
@@ -77,7 +82,7 @@ class DebugAlertHandler(request_handler.RequestHandler):
         'rev': revision or '',
         'num_before': num_before,
         'num_after': num_after,
-        'sheriff_name': 'None' if not test.sheriff else test.sheriff.id(),
+        'sheriff_name': subscription_names,
         'config_name': config_name,
         'config_json': json.dumps(config_dict, indent=2, sort_keys=True),
         'plot_data': json.dumps(plot_data),

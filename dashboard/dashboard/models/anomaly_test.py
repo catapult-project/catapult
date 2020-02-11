@@ -210,7 +210,7 @@ class AnomalyTest(testing_common.TestCase):
     self._CreateAnomaly(sheriff_name='Chromium Perf Sheriff', start_revision=42)
     self._CreateAnomaly(sheriff_name='WebRTC Perf Sheriff')
     anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-        sheriff='Chromium Perf Sheriff').get_result()
+        subscriptions=['Chromium Perf Sheriff']).get_result()
     self.assertEqual(1, len(anomalies))
     self.assertEqual(42, anomalies[0].start_revision)
 

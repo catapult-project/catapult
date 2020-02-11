@@ -20,7 +20,6 @@ from dashboard.common import layered_cache
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import graph_data
-from dashboard.models import sheriff
 
 
 class ListTestsTest(testing_common.TestCase):
@@ -476,8 +475,6 @@ class ListTestsTest(testing_common.TestCase):
 
   def testPost_GetTestsForTestPath_Selected_Core_MonitoredChildWithRows(self):
     yahoo_path = 'Chromium/win7/scrolling/commit_time/www.yahoo.com'
-    sheriff.Sheriff(
-        id='my_sheriff1', email='a@chromium.org', patterns=[yahoo_path]).put()
 
     self._AddSampleData()
 
@@ -531,8 +528,6 @@ class ListTestsTest(testing_common.TestCase):
 
   def testPost_GetTestsForTestPath_Selected_Core_AllHaveRows(self):
     yahoo_path = 'Chromium/win7/scrolling/commit_time/www.yahoo.com'
-    sheriff.Sheriff(
-        id='my_sheriff1', email='a@chromium.org', patterns=[yahoo_path]).put()
 
     self._AddSampleData()
 
@@ -669,8 +664,6 @@ class ListTestsTest(testing_common.TestCase):
 
   def testPost_GetTestsForTestPath_Unselected_Core_Unmonitored(self):
     yahoo_path = 'Chromium/win7/scrolling/commit_time/www.yahoo.com'
-    sheriff.Sheriff(
-        id='my_sheriff1', email='a@chromium.org', patterns=[yahoo_path]).put()
 
     self._AddSampleData()
 
@@ -690,7 +683,8 @@ class ListTestsTest(testing_common.TestCase):
         'return_selected': '0'})
 
     expected = {
-        'tests': ['Chromium/win7/scrolling/commit_time/www.cnn.com'],
+        'tests': ['Chromium/win7/scrolling/commit_time/www.cnn.com',
+                  'Chromium/win7/scrolling/commit_time/www.yahoo.com'],
     }
     self.assertEqual(expected, json.loads(response.body))
 

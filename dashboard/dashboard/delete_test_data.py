@@ -34,8 +34,6 @@ _MAX_DELETIONS_PER_TASK = 30
 _SHERIFF_ALERT_EMAIL_BODY = """
 The test %(test_path)s has been DELETED.
 
-It was previously sheriffed by %(sheriff)s.
-
 Please ensure this is intended!
 """
 
@@ -200,11 +198,10 @@ def _SendNotificationEmail(test, notify):
     test_key: Key of the TestMetadata that's about to be deleted.
     notify: If true, send an email notification for monitored test deletion.
   """
-  if not test or not test.sheriff or not notify:
+  if not test or not notify:
     return
   body = _SHERIFF_ALERT_EMAIL_BODY % {
       'test_path': utils.TestPath(test.key),
-      'sheriff': test.sheriff.string_id(),
   }
   mail.send_mail(sender='gasper-alerts@google.com',
                  to='chrome-performance-monitoring-alerts@google.com',

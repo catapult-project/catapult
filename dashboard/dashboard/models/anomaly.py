@@ -17,7 +17,6 @@ from dashboard.common import timing
 from dashboard.common import utils
 from dashboard.common import datastore_hooks
 from dashboard.models import internal_only_model
-from dashboard.models import sheriff as sheriff_module
 from dashboard.models.subscription import Subscription
 
 # A string to describe the magnitude of a change from zero to non-zero.
@@ -43,10 +42,6 @@ class Anomaly(internal_only_model.InternalOnlyModel):
   # Note: -1 denotes an invalid alert and -2 an ignored alert.
   # By default, this is None, which denotes a non-triaged alert.
   bug_id = ndb.IntegerProperty(indexed=True)
-
-  # (Deprecated, use subscriptions instead) The sheriff rotation that
-  # should handle this alert.
-  sheriff = ndb.KeyProperty(kind=sheriff_module.Sheriff, indexed=True)
 
   # The subscribers who recieve alerts
   subscriptions = ndb.LocalStructuredProperty(Subscription, repeated=True)
@@ -199,7 +194,6 @@ class Anomaly(internal_only_model.InternalOnlyModel):
       min_start_revision=None,
       min_timestamp=None,
       recovered=None,
-      sheriff=None, # deprecated. Same as subscriptions=[sheriff]
       subscriptions=None,
       start_cursor=None,
       test=None,
@@ -219,8 +213,6 @@ class Anomaly(internal_only_model.InternalOnlyModel):
     while not results and time.time() < deadline:
       query = cls.query()
       equality_properties = []
-      if sheriff is not None:
-        subscriptions = [sheriff]
       if subscriptions: # Empty subscriptions is not allowed in query
         query = query.filter(cls.subscription_names.IN(subscriptions))
         equality_properties.append('subscription_names')

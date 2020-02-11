@@ -68,7 +68,6 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import internal_only_model
-from dashboard.models import sheriff as sheriff_module
 
 # Maximum level of nested tests.
 MAX_TEST_ANCESTORS = 10
@@ -145,10 +144,6 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
   _use_memcache = False
 
   internal_only = ndb.BooleanProperty(default=False, indexed=True)
-
-  # Sheriff rotation for this test. Rotations are specified by regular
-  # expressions that can be edited at /edit_sheriffs.
-  sheriff = ndb.KeyProperty(kind=sheriff_module.Sheriff, indexed=True)
 
   # There is a default anomaly threshold config (in anomaly.py), and it can
   # be overridden for a group of tests by using /edit_sheriffs.
@@ -283,7 +278,7 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
     raise ndb.Return(r)
 
   @ndb.tasklet
-  def UpdateSheriffAsync(self, sheriffs=None, anomaly_configs=None):
+  def UpdateSheriffAsync(self, anomaly_configs=None):
     """This method is called before a TestMetadata is put into the datastore.
 
     Here, we check the key to make sure it is valid and check the sheriffs and
@@ -296,25 +291,12 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
     path_parts = self.key.id().split('/')
     assert len(path_parts) >= 3
 
-    # Set the sheriff to the first sheriff (alphabetically by sheriff name)
-    # that has a test pattern that matches this test.
-    old_sheriff = self.sheriff
-    old_anomaly_config = self.overridden_anomaly_config
-
-    if not sheriffs:
-      sheriffs = yield sheriff_module.Sheriff.query().fetch_async()
-    self.sheriff = None
-    for sheriff_entity in sheriffs:
-      for pattern in sheriff_entity.patterns:
-        if utils.TestMatchesPattern(self, pattern):
-          self.sheriff = sheriff_entity.key
-      if self.sheriff:
-        break
 
     # Set the anomaly threshold config to the first one that has a test pattern
     # that matches this test, if there is one. Anomaly configs with a pattern
     # that more specifically matches the test are given higher priority.
     # ie. */*/*/foo is chosen over */*/*/*
+    old_anomaly_config = self.overridden_anomaly_config
     self.overridden_anomaly_config = None
     if not anomaly_configs:
       anomaly_configs = yield anomaly_config.AnomalyConfig.query().fetch_async()
@@ -327,9 +309,7 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
     if anomaly_config_to_use:
       self.overridden_anomaly_config = anomaly_config_to_use.key
 
-    raise ndb.Return(
-        self.sheriff != old_sheriff or
-        self.overridden_anomaly_config != old_anomaly_config)
+    raise ndb.Return(self.overridden_anomaly_config != old_anomaly_config)
 
   def CreateCallback(self):
     """Called when the entity is first saved."""

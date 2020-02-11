@@ -209,13 +209,11 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
   yield ndb.put_multi_async(rows) + [r.UpdateParentAsync() for r in rows]
 
   tests_keys = []
-  is_monitored = parent_test.sheriff and parent_test.has_rows
-  if is_monitored:
+  if parent_test.has_rows:
     tests_keys.append(parent_test.key)
 
   for legacy_parent_test in legacy_parent_tests.values():
-    is_monitored = legacy_parent_test.sheriff and legacy_parent_test.has_rows
-    if is_monitored:
+    if legacy_parent_test.has_rows:
       tests_keys.append(legacy_parent_test.key)
 
   tests_keys = [

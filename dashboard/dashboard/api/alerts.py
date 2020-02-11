@@ -53,6 +53,7 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
             template_id))
 
       try:
+        sheriff = self.request.get('sheriff', None)
         alert_list, next_cursor, count = anomaly.Anomaly.QueryAsync(
             bot_name=self.request.get('bot', None),
             bug_id=self.request.get('bug_id', None),
@@ -68,7 +69,7 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
             min_start_revision=self.request.get('min_start_revision', None),
             min_timestamp=min_timestamp,
             recovered=recovered,
-            sheriff=self.request.get('sheriff', None),
+            subscriptions=[sheriff] if sheriff else None,
             start_cursor=start_cursor,
             test=self.request.get('test', None),
             test_keys=test_keys,

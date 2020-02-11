@@ -18,6 +18,7 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
+from dashboard.sheriff_config_client import SheriffConfigClient
 
 _SAMPLE_SERIES = [
     (300, 60.06), (301, 60.36), (302, 61.76), (303, 60.06), (304, 61.24),
@@ -27,6 +28,10 @@ _SAMPLE_SERIES = [
 ]
 
 
+@mock.patch.object(SheriffConfigClient, '__init__',
+                   mock.MagicMock(return_value=None))
+@mock.patch.object(SheriffConfigClient, 'Match',
+                   mock.MagicMock(return_value=([], None)))
 class DebugAlertTest(testing_common.TestCase):
 
   def setUp(self):

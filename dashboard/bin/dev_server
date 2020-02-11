@@ -28,7 +28,7 @@ def Main():
   from dashboard_build import preprocess
   with temp_deployment_dir.TempDeploymentDir(paths) as tmp_dir:
     preprocess.PackPinpoint(catapult_path, tmp_dir, paths)
-    appengine_dev_server.DevAppserver(paths, sys.argv[1:], reuse_path=tmp_dir)
+    appengine_dev_server.DevAppserver(paths, sys.argv[1:])
 
 
 if __name__ == '__main__':
