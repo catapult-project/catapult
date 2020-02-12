@@ -23,11 +23,11 @@ class ThresholdsTest(unittest.TestCase):
 
   def testHighThresholdPerformance(self):
     threshold = thresholds.HighThreshold('performance', 1.5, 20)
-    self.assertEqual(threshold, 0.0090)
+    self.assertLessEqual(threshold, thresholds.LowThreshold())
 
   def testHighThresholdLowMagnitude(self):
     threshold = thresholds.HighThreshold('performance', 0.1, 20)
-    self.assertEqual(threshold, 0.9246)
+    self.assertLessEqual(threshold, 0.99)
 
   def testHighThresholdHighMagnitude(self):
     threshold = thresholds.HighThreshold('performance', 10, 5)
@@ -35,7 +35,7 @@ class ThresholdsTest(unittest.TestCase):
 
   def testHighThresholdHighSampleSize(self):
     threshold = thresholds.HighThreshold('performance', 1.5, 50)
-    self.assertEqual(threshold, 0.0090)
+    self.assertLessEqual(threshold, thresholds.LowThreshold())
 
   def testLowThreshold(self):
     self.assertEqual(thresholds.LowThreshold(), 0.01)

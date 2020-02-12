@@ -31,7 +31,7 @@ N = 1000000
 # sample sizes. We can estimate these values by running this script and
 # seeing how many samples are needed for the threshold to cross P_VALUE.
 DISTANCES_AND_SAMPLE_SIZES = (
-    (0.5, 120),
+    (0.3, 360), (0.4, 240), (0.5, 120),
     (0.6, 90), (0.7, 70), (0.8, 50), (0.9, 40), (1.0, 35),
     (1.1, 25), (1.2, 25), (1.3, 20), (1.4, 20), (1.5, 15),
     (1.6, 15), (1.7, 15), (1.8, 15), (1.9, 10), (2.0, 10),

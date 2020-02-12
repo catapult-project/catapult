@@ -17,6 +17,8 @@ SAME = 'same'
 UNKNOWN = 'unknown'
 
 
+# TODO(https://crbug.com/1051710): Make this return all the values useful in
+# decision making (and display).
 def Compare(values_a, values_b, attempt_count, mode, magnitude):
   """Decide whether two samples are the same, different, or unknown.
 
