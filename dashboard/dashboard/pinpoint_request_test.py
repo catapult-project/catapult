@@ -561,9 +561,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     t.put()
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
-    # TODO(crbug.com/974237): Stop expecting 'tir_label' when be start relying
-    # on 'grouping_label' only.
-    self.assertEqual('label', results['tir_label'])
     self.assertEqual('label', results['grouping_label'])
     self.assertEqual('foo', results['chart'])
     self.assertEqual('bar.html', results['trace'])
@@ -698,9 +695,6 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     }
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
-    # TODO(crbug.com/974237): Stop checking for 'tir_label' when we start
-    # relying on 'grouping_label' only.
-    self.assertNotIn('tir_label', results)
     self.assertNotIn('grouping_label', results)
     self.assertNotIn('trace', results)
     self.assertEqual('', results['chart'])

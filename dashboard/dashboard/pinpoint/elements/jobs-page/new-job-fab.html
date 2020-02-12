@@ -140,8 +140,6 @@ found in the LICENSE file.
             <input type="hidden" disabled="[[!isBisectJob(comparisonMode)]]" name="end_git_hash" value="[[end_git_hash]]">
 
             <template is="dom-if" if="[[hasJob(job)]]">
-              <!-- TODO(crbug.com/974237): Stop filling in 'tir_label' when no longer in use. -->
-              <input type="hidden" name="tir_label" disabled$="[[!job.arguments.tir_label]]" value="[[job.arguments.tir_label]]">
               <input type="hidden" name="grouping_label" disabled$="[[!job.arguments.grouping_label]]" value="[[job.arguments.grouping_label]]">
               <input type="hidden" name="trace" disabled$="[[!job.arguments.trace]]" value="[[job.arguments.trace]]">
               <input type="hidden" name="tags" disabled$="[[!job.arguments.tags]]" value="[[job.arguments.tags]]">

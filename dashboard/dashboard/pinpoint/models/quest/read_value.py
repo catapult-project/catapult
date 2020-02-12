@@ -72,10 +72,7 @@ class ReadHistogramsJsonValue(quest.Quest):
       results_filename = posixpath.join(benchmark, 'perf_results.json')
 
     chart = arguments.get('chart')
-    # TODO(crbug.com/974237): Only read from 'grouping_label' when enough time
-    # has passed and clients no longer write the 'tir_label' only.
-    grouping_label = (arguments.get('grouping_label') or
-                      arguments.get('tir_label'))
+    grouping_label = arguments.get('grouping_label')
 
     # Some benchmarks do not have a 'trace' associated with them, but do have a
     # 'story' which the Dashboard can sometimes provide. Let's support getting
