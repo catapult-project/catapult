@@ -56,8 +56,17 @@ origin_trial_tokens = [
   # WebComponent V0 origin trial token for googleusercontent.com + subdomains.
   # This is the domain from which traces in cloud storage are served.
   # Expires Nov 5, 2020. See https://crbug.com/1021137
-  "AnYuQDtUf6OrWCmR9Okd67JhWVTbmnRedvPi1TEvAxac8+1p6o9q08FoDO6oCbLD0xEqev+SkZFiIhFSzlY9HgUAAABxeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXVzZXJjb250ZW50LmNvbTo0NDMiLCJmZWF0dXJlIjoiV2ViQ29tcG9uZW50c1YwIiwiZXhwaXJ5IjoxNjA0NjE0NTM4LCJpc1N1YmRvbWFpbiI6dHJ1ZX0="
+  "AnYuQDtUf6OrWCmR9Okd67JhWVTbmnRedvPi1TEvAxac8+1p6o9q08FoDO6oCbLD0xEqev+SkZFiIhFSzlY9HgUAAABxeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXVzZXJjb250ZW50LmNvbTo0NDMiLCJmZWF0dXJlIjoiV2ViQ29tcG9uZW50c1YwIiwiZXhwaXJ5IjoxNjA0NjE0NTM4LCJpc1N1YmRvbWFpbiI6dHJ1ZX0=",
+  # This is for chromium-build-stats.appspot.com (ukai@)
+  # Expires Feb 2, 2021. see https://crbug.com/1050215
+  "AkFXw3wHnOs/XXYqFXpc3diDLrRFd9PTgGs/gs43haZmngI/u1g8L4bDnSKLZkB6fecjmjTwcAMQFCpWMAoHSQEAAAB8eyJvcmlnaW4iOiJodHRwczovL2Nocm9taXVtLWJ1aWxkLXN0YXRzLmFwcHNwb3QuY29tOjQ0MyIsImZlYXR1cmUiOiJXZWJDb21wb25lbnRzVjAiLCJleHBpcnkiOjE2MTIyMjM5OTksImlzU3ViZG9tYWluIjp0cnVlfQ==",
+  # This is for chromium-build-stats-staging.appspot.com (ukai@)
+  # Expires Feb 2, 2021, see https://crbug.com/1050215
+  "AtQY4wpX9+nj+Vn27cTgygzIPbtB2WoAoMQR5jK9mCm/H2gRIDH6MmGVAaziv9XnYTDKjhBnQYtecbTiIHCQiAIAAACEeyJvcmlnaW4iOiJodHRwczovL2Nocm9taXVtLWJ1aWxkLXN0YXRzLXN0YWdpbmcuYXBwc3BvdC5jb206NDQzIiwiZmVhdHVyZSI6IldlYkNvbXBvbmVudHNWMCIsImV4cGlyeSI6MTYxMjIyMzk5OSwiaXNTdWJkb21haW4iOnRydWV9"
+  #
   # Add more tokens here if traces are served from other domains.
+  # WebComponent V0 origin tiral token is generated on
+  # https://developers.chrome.com/origintrials/#/trials/active
 ]
 
 def _AssertIsUTF8(f):
