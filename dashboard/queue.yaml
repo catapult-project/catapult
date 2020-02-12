@@ -9,17 +9,17 @@ queue:
      task_retry_limit: 1
 
 
- # Upload:
+ # upload-processing:
  - name: histograms-queue
-   target: upload
+   target: upload-processing
    rate: 20/s
-   max_concurrent_requests: 100
+   max_concurrent_requests: 200
    retry_parameters:
      task_retry_limit: 8
      min_backoff_seconds: 2
 
  - name: new-points-queue
-   target: upload
+   target: upload-processing
    rate: 20/s
    max_concurrent_requests: 100
    retry_parameters:
