@@ -3325,7 +3325,11 @@ class DeviceUtils(object):
     Returns:
       Whether the cache was loaded.
     """
-    obj = json.loads(data)
+    try:
+      obj = json.loads(data)
+    except ValueError:
+      logger.error('Unable to parse cache file. Not using it.')
+      return False
     self._EnsureCacheInitialized()
     given_token = obj.get('token')
     if not given_token or self._cache['prev_token'] != given_token:

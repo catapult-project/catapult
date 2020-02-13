@@ -3599,6 +3599,9 @@ class DeviecUtilsSetScreen(DeviceUtilsTest):
 
 
 class DeviecUtilsLoadCacheData(DeviceUtilsTest):
+  def testInvalidJson(self):
+    self.assertFalse(self.device.LoadCacheData(''))
+
   def testTokenMissing(self):
     with self.assertCalls(self.EnsureCacheInitialized()):
       self.assertFalse(self.device.LoadCacheData('{}'))
