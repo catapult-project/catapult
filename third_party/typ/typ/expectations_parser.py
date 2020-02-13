@@ -170,6 +170,10 @@ class Expectation(object):
     def lineno(self):
         return self._lineno
 
+    @lineno.setter
+    def lineno(self, lineno):
+        self._lineno = lineno
+
     @property
     def is_glob(self):
         return self._is_glob
