@@ -7,8 +7,6 @@ import unittest
 
 from telemetry.internal.browser import browser_options
 
-import mock
-
 
 class BrowserOptionsTest(unittest.TestCase):
   def testBrowserMultipleValues_UseLast(self):
@@ -136,51 +134,3 @@ class BrowserOptionsTest(unittest.TestCase):
     self.assertFalse(options.default_false)
     self.assertFalse(options.override_to_true)
     self.assertTrue(options.override_to_false)
-
-  @mock.patch('socket.getservbyname')
-  def testGetServByNameOnlyCalledForRemoteCros(self, serv_mock):
-    serv_mock.return_value = 22
-
-    options = browser_options.BrowserFinderOptions()
-    parser = options.CreateParser()
-    parser.parse_args(['--browser=cros_chrome'])
-    serv_mock.assert_not_called()
-
-    options = browser_options.BrowserFinderOptions()
-    parser = options.CreateParser()
-    parser.parse_args(['--browser=release', '--remote=localhost'])
-    serv_mock.assert_not_called()
-
-    options = browser_options.BrowserFinderOptions()
-    parser = options.CreateParser()
-    parser.parse_args(['--browser=cros_chrome', '--remote=localhost'])
-    serv_mock.assert_called()
-    self.assertEquals(options.cros_remote_ssh_port, 22)
-
-  @mock.patch('socket.getservbyname')
-  def testGetServByNameNotCalledWithPortSpecified(self, serv_mock):
-    options = browser_options.BrowserFinderOptions()
-    parser = options.CreateParser()
-    parser.parse_args(
-        ['--browser=cros_chrome', '--remote=localhost', '--remote-ssh-port=22'])
-    serv_mock.assert_not_called()
-
-  @mock.patch('socket.getservbyname')
-  def testSshNotAvailableHardFailsCrosRemoteTest(self, serv_mock):
-    serv_mock.side_effect = OSError('No SSH here')
-    options = browser_options.BrowserFinderOptions()
-    parser = options.CreateParser()
-    with self.assertRaises(RuntimeError):
-      parser.parse_args(['--browser=cros_chrome', '--remote=localhost'])
-
-  @mock.patch('socket.getservbyname')
-  def testOriginalSshErrorIncludedInFailure(self, serv_mock):
-    serv_mock.side_effect = OSError('Some unique message')
-    options = browser_options.BrowserFinderOptions()
-    parser = options.CreateParser()
-    try:
-      parser.parse_args(['--browser=cros_chrome', '--remote=localhost'])
-      # Shouldn't be hit, but no assertNotReached or similar in unittest.
-      self.assertTrue(False)  # pylint: disable=redundant-unittest-assert
-    except RuntimeError as e:
-      self.assertIn('Some unique message', str(e))
