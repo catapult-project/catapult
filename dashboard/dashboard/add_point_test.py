@@ -28,6 +28,7 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
+from dashboard.models import sheriff
 
 # This is a very long file.
 # pylint: disable=too-many-lines
@@ -188,6 +189,8 @@ class AddPointTest(testing_common.TestCase):
 
   @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTestsAsync')
   def testPost_OauthUser_Authorized(self, mock_process_test):
+    sheriff.Sheriff(
+        id='my_sheriff1', email='a@chromium.org', patterns=['*/*/*/dom']).put()
     data_param = json.dumps([
         {
             'master': 'ChromiumPerf',
@@ -221,11 +224,13 @@ class AddPointTest(testing_common.TestCase):
 
     # Verify that an anomaly processing was called.
     tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
-    mock_process_test.assert_called_once_with([tests[1].key, tests[2].key])
+    mock_process_test.assert_called_once_with([tests[1].key])
 
   @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTestsAsync')
   def testPost(self, mock_process_test):
     """Tests all basic functionality of a POST request."""
+    sheriff.Sheriff(
+        id='my_sheriff1', email='a@chromium.org', patterns=['*/*/*/dom']).put()
     data_param = json.dumps([
         {
             'master': 'ChromiumPerf',
@@ -295,6 +300,7 @@ class AddPointTest(testing_common.TestCase):
 
     self.assertEqual('ChromiumPerf/win7/dromaeo/dom', tests[1].key.id())
     self.assertEqual('ChromiumPerf/win7/dromaeo', tests[1].parent_test.id())
+    self.assertEqual('my_sheriff1', tests[1].sheriff.string_id())
     self.assertIsNone(tests[1].bot)
     self.assertTrue(tests[1].has_rows)
     self.assertEqual('ChromiumPerf/win7/dromaeo/dom', tests[1].test_path)
@@ -303,6 +309,7 @@ class AddPointTest(testing_common.TestCase):
 
     self.assertEqual('ChromiumPerf/win7/dromaeo/jslib', tests[2].key.id())
     self.assertEqual('ChromiumPerf/win7/dromaeo', tests[2].parent_test.id())
+    self.assertIsNone(tests[2].sheriff)
     self.assertIsNone(tests[2].bot)
     self.assertTrue(tests[2].has_rows)
     self.assertEqual('ChromiumPerf/win7/dromaeo/jslib', tests[2].test_path)
@@ -322,12 +329,14 @@ class AddPointTest(testing_common.TestCase):
     self.assertIsNone(masters[0].key.parent())
 
     # Verify that an anomaly processing was called.
-    mock_process_test.assert_called_once_with([tests[1].key, tests[2].key])
+    mock_process_test.assert_called_once_with([tests[1].key])
 
   @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTestsAsync')
   def testPost_TestNameEndsWithUnderscoreRef_ProcessTestIsNotCalled(
       self, mock_process_test):
     """Tests that Tests ending with "_ref" aren't analyzed for Anomalies."""
+    sheriff.Sheriff(
+        id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
     point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = '1234/abcd_ref'
     self.testapp.post(
@@ -340,6 +349,8 @@ class AddPointTest(testing_common.TestCase):
   def testPost_TestNameEndsWithSlashRef_ProcessTestIsNotCalled(
       self, mock_process_test):
     """Tests that leaf tests named ref aren't added to the task queue."""
+    sheriff.Sheriff(
+        id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
     point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = '1234/ref'
     self.testapp.post(
@@ -351,6 +362,8 @@ class AddPointTest(testing_common.TestCase):
   @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTestsAsync')
   def testPost_TestNameEndsContainsButDoesntEndWithRef_ProcessTestIsCalled(
       self, mock_process_test):
+    sheriff.Sheriff(
+        id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
     point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = '_ref/abcd'
     self.testapp.post(
@@ -606,7 +619,56 @@ class AddPointTest(testing_common.TestCase):
 
   @mock.patch.object(
       add_point_queue.find_anomalies, 'ProcessTestsAsync', mock.MagicMock())
+  def testPost_NewTest_SheriffPropertyIsAdded(self):
+    """Tests that sheriffs are added to tests when Tests are created."""
+    sheriff1 = sheriff.Sheriff(
+        id='sheriff1', email='a@chromium.org',
+        patterns=['ChromiumPerf/*/*/jslib']).put()
+    sheriff2 = sheriff.Sheriff(
+        id='sheriff2', email='a@chromium.org',
+        patterns=['*/*/image_benchmark/*', '*/*/scrolling_benchmark/*']).put()
 
+    data_param = json.dumps([
+        {
+            'master': 'ChromiumPerf',
+            'bot': 'win7',
+            'test': 'scrolling_benchmark/mean_frame_time',
+            'revision': 123456,
+            'value': 700,
+        },
+        {
+            'master': 'ChromiumPerf',
+            'bot': 'win7',
+            'test': 'dromaeo/jslib',
+            'revision': 123445,
+            'value': 200,
+        },
+        {
+            'master': 'ChromiumWebkit',
+            'bot': 'win7',
+            'test': 'dromaeo/jslib',
+            'revision': 12345,
+            'value': 205.3,
+        }
+    ])
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+
+    sheriff1_test = ndb.Key(
+        'TestMetadata', 'ChromiumPerf/win7/dromaeo/jslib').get()
+    self.assertEqual(sheriff1, sheriff1_test.sheriff)
+
+    sheriff2_test = ndb.Key(
+        'TestMetadata',
+        'ChromiumPerf/win7/scrolling_benchmark/mean_frame_time').get()
+    self.assertEqual(sheriff2, sheriff2_test.sheriff)
+
+    no_sheriff_test = ndb.Key(
+        'TestMetadata', 'ChromiumWebkit/win7/dromaeo/jslib').get()
+    self.assertIsNone(no_sheriff_test.sheriff)
 
   def testPost_NewTest_AnomalyConfigPropertyIsAdded(self):
     """Tests that AnomalyConfig keys are added to TestMetadata upon creation.

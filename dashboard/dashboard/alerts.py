@@ -78,7 +78,7 @@ class AlertsHandler(request_handler.RequestHandler):
 
     anomalies, next_cursor, count = anomaly.Anomaly.QueryAsync(
         start_cursor=anomaly_cursor,
-        subscriptions=[sheriff_name],
+        sheriff=sheriff_name,
         bug_id=bug_id,
         is_improvement=is_improvement,
         recovered=recovered,

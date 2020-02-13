@@ -38,6 +38,12 @@ indexes:
   - name: subscription_names
   - name: timestamp
     direction: desc
+# TODO(fancl): Deprecated with sheriff
+- kind: Anomaly
+  properties:
+  - name: sheriff
+  - name: timestamp
+    direction: desc
 - kind: Anomaly
   properties:
   - name: is_improvement
@@ -110,12 +116,28 @@ indexes:
   - name: recovered
   - name: timestamp
     direction: desc
+# TODO(fancl): Deprecated with sheriff
+- kind: Anomaly
+  properties:
+  - name: sheriff
+  - name: is_improvement
+  - name: bug_id
+  - name: recovered
+  - name: timestamp
+    direction: desc
 
 # This composite index supports QueryAsync(subscription_names=..., min_start_revision=...),
 # which spa uses to load triaged alerts after loading untriaged alerts.
 - kind: Anomaly
   properties:
   - name: subscription_names
+  - name: start_revision
+  - name: timestamp
+    direction: desc
+# TODO(fancl): Deprecated with sheriff
+- kind: Anomaly
+  properties:
+  - name: sheriff
   - name: start_revision
   - name: timestamp
     direction: desc

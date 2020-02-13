@@ -68,7 +68,7 @@ class AddPointQueueHandler(request_handler.RequestHandler):
     ndb.Future.wait_all(all_put_futures)
 
     monitored_test_keys = [
-        t.key for t in parent_tests if t.has_rows]
+        t.key for t in parent_tests if t.sheriff and t.has_rows]
     tests_keys = [k for k in monitored_test_keys if not IsRefBuild(k)]
 
     # Updating of the cached graph revisions should happen after put because

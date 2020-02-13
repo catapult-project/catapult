@@ -299,7 +299,7 @@ def _ProcessAlerts():
 
   alerts, _, _ = yield anomaly.Anomaly.QueryAsync(
       min_timestamp=ts_start,
-      subscriptions=['Chromium Perf Sheriff'],
+      sheriff='Chromium Perf Sheriff',
   )
   if not alerts:
     raise ndb.Return()
