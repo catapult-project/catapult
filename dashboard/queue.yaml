@@ -13,7 +13,7 @@ queue:
  - name: histograms-queue
    target: upload-processing
    rate: 20/s
-   max_concurrent_requests: 200
+   max_concurrent_requests: 400
    retry_parameters:
      task_retry_limit: 8
      min_backoff_seconds: 2
