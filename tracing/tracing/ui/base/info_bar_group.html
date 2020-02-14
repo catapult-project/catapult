@@ -27,6 +27,10 @@ Polymer({
     this.messages_ = [];
   },
 
+  get messageCount() {
+    return this.messages_.length;
+  },
+
   clearMessages() {
     this.messages_ = [];
     this.updateContents_();

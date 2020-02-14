@@ -14,8 +14,9 @@ found in the LICENSE file.
 <!-- WebComponents V0 origin trial token for 127.0.0.1:8003, which turns out to
      be not the same as localhost. Expires 1 Feb 2021. -->
 <meta http-equiv="origin-trial" content="AuwWuUBIJgUHKi5rgEkqYaWR/Rbl/WrQPklxP3Lb9JBLQwdU4ykouPn0hTva5pHumlKNc1TqeZD1GEWo3YXTtQUAAABSeyJvcmlnaW4iOiJodHRwOi8vMTI3LjAuMC4xOjgwMDMiLCJmZWF0dXJlIjoiV2ViQ29tcG9uZW50c1YwIiwiZXhwaXJ5IjoxNjEyMjIzOTk5fQ==">
-<script src="/components/webcomponentsjs/HTMLImports.js"></script>
+<script src="/components/webcomponentsjs/webcomponents.js"></script>
 
+<link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/base/xhr.html">
 <link rel="import" href="/tracing/importer/import.html">
@@ -115,7 +116,7 @@ found in the LICENSE file.
 
   function onHashChange() {
     const file = window.location.hash.substr(1);
-    if (selectEl[selectEl.selectedIndex].value !== file) {
+    if (selectEl.children[selectEl.selectedIndex].value !== file) {
       for (let i = 0; i < selectEl.children.length; i++) {
         if (selectEl.children[i].value === file) {
           selectEl.selectedIndex = i;
@@ -168,11 +169,12 @@ found in the LICENSE file.
 
       if (!window.location.hash) {
         // This will trigger an onHashChange so no need to reload directly.
-        window.location.hash = '#' + selectEl[selectEl.selectedIndex].value;
+        window.location.hash =
+            '#' + selectEl.children[selectEl.selectedIndex].value;
       } else {
         onHashChange();
       }
-    }).then(onLoadTimer.end.call(this));
+    }).then(onLoadTimer.end());
 
     const trackDetailedModelStatsEl = tr.ui.b.createCheckBox(
         this, 'trackDetailedModelStats',
@@ -183,8 +185,22 @@ found in the LICENSE file.
     timelineViewEl.leftControls.appendChild(trackDetailedModelStatsEl);
   }
 
-  window.addEventListener('load', onLoad);
-  window.addEventListener('HTMLImportsLoaded', onLoad);
+  let loadEventFired = false;
+  let htmlImportsLoaded = false;
+  const maybeOnLoad = () => {
+    if (loadEventFired && htmlImportsLoaded) onLoad();
+  };
+
+  window.addEventListener('load', () => {
+    loadEventFired = true;
+    maybeOnLoad();
+  });
+
+  window.addEventListener('HTMLImportsLoaded', () => {
+    htmlImportsLoaded = true;
+    maybeOnLoad();
+  });
+
   </script>
 </body>
 </html>

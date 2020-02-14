@@ -141,7 +141,7 @@ tr.exportTo('tr.ui.b', function() {
       Polymer.dom(selectorEl).appendChild(optionEl);
     }
     function onChange(e) {
-      const value = selectorEl.selectedOptions[0].targetPropertyValue;
+      const value = selectorEl.selectedValue;
       tr.b.Settings.set(settingsKey, value, opt_namespace);
       targetEl[targetElProperty] = value;
     }

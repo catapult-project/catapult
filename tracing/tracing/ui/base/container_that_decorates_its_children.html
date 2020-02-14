@@ -24,7 +24,7 @@ tr.exportTo('tr.ui.b', function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate() {
-      this.observer_ = new WebKitMutationObserver(this.didMutate_.bind(this));
+      this.observer_ = new MutationObserver(this.didMutate_.bind(this));
       this.observer_.observe(this, { childList: true });
 
       // textContent is a variable on regular HTMLElements. However, we want to

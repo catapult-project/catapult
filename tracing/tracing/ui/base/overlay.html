@@ -124,7 +124,7 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.b', function() {
   if (tr.isHeadless) return {};
 
-  const THIS_DOC = document.currentScript.ownerDocument;
+  const THIS_DOC = document._currentScript.ownerDocument;
 
   /**
    * Creates a new overlay element. It will not be visible until shown.
@@ -170,7 +170,7 @@ tr.exportTo('tr.ui.b', function() {
           .querySelector('overlay-frame')
           .addEventListener('click', this.onClick_);
 
-      this.observer_ = new WebKitMutationObserver(
+      this.observer_ = new MutationObserver(
           this.didButtonBarMutate_.bind(this));
       this.observer_.observe(
           Polymer.dom(this.shadow_).querySelector('button-bar'),

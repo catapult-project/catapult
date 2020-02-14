@@ -307,7 +307,7 @@ tr.exportTo('tr.v.ui', function() {
       for (const row of rows) {
         if (!row.nameCell.isOverflowing) continue;
 
-        const [nameSpan, dots] = this.nameColumnTitle_.children;
+        const [nameSpan, dots] = Array.from(this.nameColumnTitle_.children);
         dots.style.display = 'block';
 
         // Size the span containing 'Name' so that the dots align with the

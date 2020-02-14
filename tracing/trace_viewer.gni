@@ -440,6 +440,7 @@ tracing_js_html_files = [
   "tracing/ui/base/ui.html",
   "tracing/ui/base/ui_state.html",
   "tracing/ui/base/utils.html",
+  "tracing/ui/base/webcomponentsjs_polyfill.html",
   "tracing/ui/brushing_state.html",
   "tracing/ui/brushing_state_controller.html",
   "tracing/ui/extras/about_tracing/about_tracing.html",

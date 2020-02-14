@@ -58,7 +58,7 @@ Polymer({
     this.addEventListener('mousedown', this.onMouseDown_);
     this.target_ = undefined;
     this.horizontal = true;
-    this.observer_ = new WebKitMutationObserver(
+    this.observer_ = new MutationObserver(
         this.didTargetMutate_.bind(this));
     this.targetSizesByModeKey_ = {};
     this.currentDraggingSize_ = undefined;

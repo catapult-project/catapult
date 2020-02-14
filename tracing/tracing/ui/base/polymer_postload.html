@@ -7,7 +7,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-if (!Polymer.Settings.useNativeShadow) {
-  tr.showPanic('Polymer error', 'base only works in shadow mode');
+if (!window.CustomElements || window.CustomElements.hasNative) {
+  if (!Polymer.Settings.useNativeShadow) {
+    tr.showPanic(
+        'Polymer error',
+        'base should use native shadow when possible.');
+  }
 }
 </script>

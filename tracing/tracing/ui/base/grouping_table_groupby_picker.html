@@ -140,7 +140,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get possibleGroups() {
-      return [...this.$.container.children].map(groupEl => groupEl.group);
+      return Array.from(this.$.container.children).map(
+          groupEl => groupEl.group);
     },
 
     set possibleGroups(possibleGroups) {
@@ -157,8 +158,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateFirstLast_() {
-      const groupEls = this.$.container.children;
-      const enabledGroupEls = [...groupEls].filter(el => el.enabled);
+      const groupEls = Array.from(this.$.container.children);
+      const enabledGroupEls = groupEls.filter(el => el.enabled);
       for (let i = 0; i < enabledGroupEls.length; ++i) {
         enabledGroupEls[i].isFirst = i === 0;
         enabledGroupEls[i].isLast = i === enabledGroupEls.length - 1;
@@ -171,7 +172,7 @@ tr.exportTo('tr.ui.b', function() {
 
     get currentGroups() {
       const groups = [];
-      for (const groupEl of this.$.container.children) {
+      for (const groupEl of Array.from(this.$.container.children)) {
         if (groupEl.enabled) {
           groups.push(groupEl.group);
         }

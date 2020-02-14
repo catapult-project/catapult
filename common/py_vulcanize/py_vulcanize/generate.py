@@ -81,13 +81,13 @@ def _MinifyJS(input_js):
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
-    res = p.communicate(input=input_js)
+    res = p.communicate(input=input_js.encode('utf-8'))
     errorcode = p.wait()
     if errorcode != 0:
       sys.stderr.write('rJSmin exited with error code %d' % errorcode)
       sys.stderr.write(res[1])
       raise Exception('Failed to minify, omgah')
-    return res[0]
+    return res[0].decode('utf-8')
 
 
 def GenerateJS(load_sequence,
