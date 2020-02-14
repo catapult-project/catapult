@@ -67,9 +67,20 @@ class AddPointQueueHandler(request_handler.RequestHandler):
 
     ndb.Future.wait_all(all_put_futures)
 
-    monitored_test_keys = [
-        t.key for t in parent_tests if t.sheriff and t.has_rows]
-    tests_keys = [k for k in monitored_test_keys if not IsRefBuild(k)]
+    tests_keys = []
+    for t in parent_tests:
+      reason = []
+      if not t.sheriff:
+        reason.append('sheriff')
+      if not t.has_rows:
+        reason.append('has_rows')
+      if IsRefBuild(t.key):
+        reason.append('RefBuild')
+      if reason:
+        logging.info('Skip test: %s reason=%s', t.key, ','.join(reason))
+        continue
+      logging.info('Process test: %s', t.key)
+      tests_keys.append(t.key)
 
     # Updating of the cached graph revisions should happen after put because
     # it requires the new row to have a timestamp, which happens upon put.

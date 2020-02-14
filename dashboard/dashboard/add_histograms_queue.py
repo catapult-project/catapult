@@ -208,14 +208,24 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
 
   yield ndb.put_multi_async(rows) + [r.UpdateParentAsync() for r in rows]
 
+  def IsMonitored(t):
+    reason = []
+    if not t.sheriff:
+      reason.append('sheriff')
+    if not t.has_rows:
+      reason.append('has_rows')
+    if reason:
+      logging.info('Skip test: %s reason=%s', t.key, ','.join(reason))
+      return False
+    logging.info('Process test: %s', t.key)
+    return True
+
   tests_keys = []
-  is_monitored = parent_test.sheriff and parent_test.has_rows
-  if is_monitored:
+  if IsMonitored(parent_test):
     tests_keys.append(parent_test.key)
 
   for legacy_parent_test in legacy_parent_tests.values():
-    is_monitored = legacy_parent_test.sheriff and legacy_parent_test.has_rows
-    if is_monitored:
+    if IsMonitored(legacy_parent_test):
       tests_keys.append(legacy_parent_test.key)
 
   tests_keys = [
