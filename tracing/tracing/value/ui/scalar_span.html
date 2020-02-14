@@ -36,7 +36,7 @@ tr.exportTo('tr.v.ui', function() {
     const config = opt_config || {};
     const ownerDocument = config.ownerDocument || document;
 
-    const span = ownerDocument.createElement('tr-v-ui-scalar-span');
+    const span = unwrap(ownerDocument).createElement('tr-v-ui-scalar-span');
 
     let numericValue;
     if (value instanceof tr.b.Scalar) {

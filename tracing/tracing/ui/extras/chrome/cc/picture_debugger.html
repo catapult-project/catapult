@@ -44,7 +44,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.e.chrome.cc', function() {
-  const THIS_DOC = document.currentScript.ownerDocument;
+  const THIS_DOC = document._currentScript.ownerDocument;
 
   /**
    * PictureDebugger is a view of a PictureSnapshot for inspecting

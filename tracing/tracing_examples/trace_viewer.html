@@ -111,7 +111,7 @@ found in the LICENSE file.
   }
 
   function onSelectionChange() {
-    window.location.hash = '#' + selectEl[selectEl.selectedIndex].value;
+    window.location.hash = '#' + selectEl.value;
   }
 
   function onHashChange() {
@@ -152,8 +152,10 @@ found in the LICENSE file.
     timelineViewEl = document.querySelector('tr-ui-timeline-view');
     timelineViewEl.globalMode = true;
 
-
     selectEl = document.createElement('select');
+    // Don't hide the right hand controls ever. Bit of a hack since changing
+    // flex layout in timelineViewEl can break other trace viewer use cases.
+    selectEl.style.maxWidth = 'calc(100vw - 700px)';
     timelineViewEl.leftControls.appendChild(selectEl);
 
     getAsync('/tracing/test_data/__file_list__', function(data) {

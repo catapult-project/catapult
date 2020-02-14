@@ -87,7 +87,7 @@ tr.exportTo('tr.ui.analysis', function() {
     buildViewForSingleContainerName_() {
       const containerMemoryDumps = tr.b.getFirstElement(
           this.dumpsByContainerName_.values());
-      const dumpView = this.ownerDocument.createElement(
+      const dumpView = unwrap(this.ownerDocument).createElement(
           'tr-ui-a-stacked-pane-view');
       Polymer.dom(this.$.content).appendChild(dumpView);
       dumpView.setPaneBuilder(function() {
@@ -126,7 +126,8 @@ tr.exportTo('tr.ui.analysis', function() {
           },
 
           singleDumpValue_(row) {
-            const linkEl = ownerDocument.createElement('tr-ui-a-analysis-link');
+            const linkEl =
+                unwrap(ownerDocument).createElement('tr-ui-a-analysis-link');
             linkEl.setSelectionAndContent(new tr.model.EventSet([row]));
             Polymer.dom(linkEl).appendChild(tr.v.ui.createScalarSpan(
                 row.start, {
@@ -137,7 +138,8 @@ tr.exportTo('tr.ui.analysis', function() {
           },
 
           groupedDumpValue_(row) {
-            const linkEl = ownerDocument.createElement('tr-ui-a-analysis-link');
+            const linkEl =
+                unwrap(ownerDocument).createElement('tr-ui-a-analysis-link');
             linkEl.setSelectionAndContent(new tr.model.EventSet(row.subRows));
             Polymer.dom(linkEl).appendChild(tr.ui.b.createSpan({
               ownerDocument,
@@ -154,7 +156,7 @@ tr.exportTo('tr.ui.analysis', function() {
         }
       ];
 
-      const table = this.ownerDocument.createElement('tr-ui-b-table');
+      const table = unwrap(this.ownerDocument).createElement('tr-ui-b-table');
       table.tableColumns = columns;
       table.tableRows = rows;
       table.showHeader = false;

@@ -26,7 +26,7 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.b', function() {
   const DataSeriesEnableChangeEventType = 'data-series-enabled-change';
 
-  const THIS_DOC = document.currentScript.ownerDocument;
+  const THIS_DOC = document._currentScript.ownerDocument;
 
   const svgNS = 'http://www.w3.org/2000/svg';
   const ColorScheme = tr.b.ColorScheme;

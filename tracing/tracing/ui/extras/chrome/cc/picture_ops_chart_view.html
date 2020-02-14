@@ -67,7 +67,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       this.chart_.addEventListener('click', this.onClick_.bind(this));
       this.chart_.addEventListener('mousemove', this.onMouseMove_.bind(this));
-      new ResizeObserver(this.onResize_.bind(this)).observe(this);
+      try {
+        new ResizeObserver(this.onResize_.bind(this)).observe(this);
+      } catch (e) {
+        // We can't set up resize observer under polyfill, but not being able
+        // to set up resize observer should not break everything else.
+      }
 
       this.usePercentileScale_ = false;
       this.usePercentileScaleCheckbox_ = tr.ui.b.createCheckBox(
