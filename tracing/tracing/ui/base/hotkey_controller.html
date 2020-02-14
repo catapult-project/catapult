@@ -215,7 +215,7 @@ Polymer({
   },
 
   findHost_() {
-    if (this.globalMode_) return document.body;
+    if (this.globalMode_) return wrap(document.body);
     if (this.parentElement) return this.parentElement;
     if (!Polymer.dom(this).parentNode) return this.host;
 
@@ -257,7 +257,6 @@ Polymer({
       // the one that would topologically win the tie, per DOM dispatch rules.
       throw new Error('More than one hotKey is currently unsupported');
     }
-
 
     const hotKey = matchedHotKeys[0];
 
