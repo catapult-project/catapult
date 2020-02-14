@@ -28,6 +28,10 @@ class BqExportOptions(PipelineOptions):
         default=_YesterdayUTC())
     parser.add_argument(
         '--num_days', help='Number of days data to export', type=int, default=1)
+    parser.add_argument(
+        '--table_suffix',
+        help='Suffix to add to table name (for dev purposes, e.g. "_test").',
+        default='')
 
   def _EndAsDatetime(self):
     # pylint: disable=access-member-before-definition

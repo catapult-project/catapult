@@ -8,6 +8,7 @@ from __future__ import print_function
 
 import math
 
+import apache_beam as beam
 
 ## Copy of dashboard.common.utils.TestPath for google.cloud.datastore.key.Key
 ## rather than ndb.Key.
@@ -49,3 +50,49 @@ def PrintCounters(pipeline_result):
     print('Counter: ' + repr(counter))
     print('  = ' + str(counter.result))
 
+
+def IsoDateToYYYYMMDD(iso_date_str):
+  """Convert ISO-formatted dates to a YYYYMMDD string."""
+  return iso_date_str[:4] + iso_date_str[5:7] + iso_date_str[8:10]
+
+
+def _ElementToYYYYMMDD(element):
+  return IsoDateToYYYYMMDD(element['timestamp'])
+
+
+def _GetPartitionNameFn(table_name, element_to_yyyymmdd_fn):
+  def TableWithPartitionSuffix(element):
+    # Partition names are the table name with a $yyyymmdd suffix, e.g.
+    # 'my_dataset.my_table$20200123'.  So extract the suffix from the ISO-format
+    # timestamp value in this element.
+    return table_name + '$' + element_to_yyyymmdd_fn(element)
+  return TableWithPartitionSuffix
+
+
+def WriteToPartitionedBigQuery(table_name,
+                               schema,
+                               element_to_yyyymmdd_fn=_ElementToYYYYMMDD,
+                               **kwargs):
+  """Return a WriteToBigQuery configured to load into a day-partitioned table.
+
+  This is useful for idempotent writing of whole days of data.
+
+  Instead of writing to the table, this writes to the individual partitions
+  instead (effectively treating each partition as an independent table).
+  Because the table is partitioned by day, this allows us to use the
+  WRITE_TRUNCATE option to regenerate the specified days without deleting the
+  rest of the table.  So instead of passing a table name string as the
+  destination for WriteToBigQuery, we pass a function that dynamically
+  calculates the partition name.
+
+  Because we are loading data into the partition directly we must *not* set
+  'timePartitioning' in additional_bq_parameters, otherwise the load job will
+  fail with a kind of schema mismatch.
+  """
+  return beam.io.WriteToBigQuery(
+      _GetPartitionNameFn(table_name, element_to_yyyymmdd_fn),
+      schema=schema,
+      method=beam.io.WriteToBigQuery.Method.FILE_LOADS,
+      write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE,
+      create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
+      **kwargs)

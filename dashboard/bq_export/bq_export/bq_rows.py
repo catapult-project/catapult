@@ -12,7 +12,6 @@ import json
 import logging
 
 import apache_beam as beam
-from apache_beam.io.gcp.bigquery import BigQueryWriteFn
 from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.metrics import Metrics
@@ -20,7 +19,8 @@ from apache_beam.transforms.core import FlatMap
 
 from bq_export.split_by_timestamp import ReadTimestampRangeFromDatastore
 from bq_export.export_options import BqExportOptions
-from bq_export.utils import FloatHack, PrintCounters
+from bq_export.utils import (FloatHack, PrintCounters,
+                             WriteToPartitionedBigQuery)
 
 
 def main():
@@ -32,18 +32,17 @@ def main():
   p = beam.Pipeline(options=options)
   entities_read = Metrics.counter('main', 'entities_read')
   failed_entity_transforms = Metrics.counter('main', 'failed_entity_transforms')
-  failed_bq_rows = Metrics.counter('main', 'failed_bq_rows')
-  def CountFailed(unused_element):
-    failed_bq_rows.inc()
 
-  # CREATE TABLE `chromeperf.chromeperf_dashboard_data.rows_test`
-  # (revision INT64 NOT NULL,
-  #  value FLOAT64 NOT NULL,
-  #  error FLOAT64,
-  #  `timestamp` TIMESTAMP NOT NULL,
-  #  parent_test STRING NOT NULL,
-  #  properties STRING)
-  # PARTITION BY DATE(`timestamp`);
+  """
+  CREATE TABLE `chromeperf.chromeperf_dashboard_data.rows_test`
+  (revision INT64 NOT NULL,
+   value FLOAT64 NOT NULL,
+   error FLOAT64,
+   `timestamp` TIMESTAMP NOT NULL,
+   parent_test STRING NOT NULL,
+   properties STRING)
+  PARTITION BY DATE(`timestamp`);
+  """  # pylint: disable=pointless-string-statement
   bq_row_schema = {'fields': [
       {'name': 'revision', 'type': 'INT64', 'mode': 'REQUIRED'},
       {'name': 'value', 'type': 'FLOAT', 'mode': 'REQUIRED'},
@@ -92,22 +91,10 @@ def main():
   row_dicts = (
       row_entities | 'ConvertEntityToRow(Row)' >> FlatMap(RowEntityToRowDict))
 
-  additional_bq_parameters = {
-      'timePartitioning': {'type': 'DAY', 'field': 'timestamp'},
-  }
-
-  # TODO(abennetts): clear any day partitions that we are about to overwrite.
-  bq_rows = (
-      row_dicts | 'WriteToBigQuery(rows)' >> beam.io.WriteToBigQuery(
-          '{}:chromeperf_dashboard_data.rows_test'.format(project),
-          schema=bq_row_schema,
-          method=beam.io.WriteToBigQuery.Method.STREAMING_INSERTS,
-          write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
-          create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
-          additional_bq_parameters=additional_bq_parameters,
-      ))
-  failed_row_inserts = bq_rows[BigQueryWriteFn.FAILED_ROWS]
-  _ = failed_row_inserts | 'CountFailed(Row)' >> beam.Map(CountFailed)
+  table_name = '{}:chromeperf_dashboard_data.rows{}'.format(
+      project, bq_export_options.table_suffix)
+  _ = row_dicts | 'WriteToBigQuery(rows)' >> WriteToPartitionedBigQuery(
+      table_name, bq_row_schema)
 
   result = p.run()
   result.wait_until_finish()

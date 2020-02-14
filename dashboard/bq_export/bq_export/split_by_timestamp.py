@@ -22,6 +22,7 @@ from __future__ import division
 from __future__ import print_function
 
 import datetime
+import logging
 
 import apache_beam as beam
 from google.cloud.datastore import client as ds_client
@@ -56,6 +57,15 @@ class ReadTimestampRangeFromDatastore(beam.PTransform):
     self._max_timestamp = max_timestamp
     self._step = step
     self._timestamp_property = timestamp_property
+    logging.getLogger().info(
+        'ReadTimestampRangeFromDatastore from %s to %s',
+        self._min_timestamp, self._max_timestamp)
+
+  def display_data(self):  # pylint: disable=invalid-name
+    return {'min_timestamp': str(self._min_timestamp),
+            'max_timestamp': str(self._max_timestamp),
+            'step': str(self._step),
+            'timestamp_property': self._timestamp_property}
 
   def expand(self, pcoll):  # pylint: disable=invalid-name
     return (pcoll.pipeline
@@ -78,7 +88,7 @@ class ReadTimestampRangeFromDatastore(beam.PTransform):
       query = ds_query.Query(client=client, **self._query_params)
       query.add_filter(self._timestamp_property, '>=', start)
       query.add_filter(self._timestamp_property, '<', end)
-      for entity in query.fetch(client=client):
+      for entity in query.fetch(client=client, eventual=True):
         yield entity
 
   def _Splits(self):
