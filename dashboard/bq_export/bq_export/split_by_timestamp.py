@@ -34,8 +34,7 @@ class ReadTimestampRangeFromDatastore(beam.PTransform):
 
   def __init__(self,
                query_params,
-               min_timestamp,
-               max_timestamp=None,
+               time_range_provider,
                step=datetime.timedelta(days=1),
                timestamp_property='timestamp'):
     """Constructor.
@@ -43,33 +42,25 @@ class ReadTimestampRangeFromDatastore(beam.PTransform):
     Params:
       :query_params: kwargs for google.cloud.datastore.query.Query's
           constructor.
-      :min_timestamp: a datetime.datetime of the lower bound to fetch.
-      :max_timestamp: a datetime.dateimte of the upper bound to fetch
-          (default is now).
-      :step: the interval to split the range to fetch by (default is 1 day).
-      :timestamp_property: the name of the timestamp property to filter on.
+      :time_range: see BqExportOptions.GetTimeRangeProvider.
+      :step: a datetime.timedelta of the interval to split the range to fetch by
+          (default is 1 day).
+      :timestamp_property: a str of the name of the timestamp property to filter
+          on.
     """
     super(ReadTimestampRangeFromDatastore, self).__init__()
     self._query_params = query_params
-    self._min_timestamp = min_timestamp
-    if max_timestamp is None:
-      max_timestamp = datetime.datetime.now()
-    self._max_timestamp = max_timestamp
+    self._time_range_provider = time_range_provider
     self._step = step
     self._timestamp_property = timestamp_property
-    logging.getLogger().info(
-        'ReadTimestampRangeFromDatastore from %s to %s',
-        self._min_timestamp, self._max_timestamp)
-
-  def display_data(self):  # pylint: disable=invalid-name
-    return {'min_timestamp': str(self._min_timestamp),
-            'max_timestamp': str(self._max_timestamp),
-            'step': str(self._step),
-            'timestamp_property': self._timestamp_property}
 
   def expand(self, pcoll):  # pylint: disable=invalid-name
     return (pcoll.pipeline
-            | 'UserSplits' >> beam.Create(list(self._Splits()))
+            | 'Init' >> beam.Create([None])
+            | 'SplitTimeRange' >> beam.FlatMap(lambda _: list(self._Splits()))
+            # Reshuffle is necessary to prevent fusing between SplitTimeRange
+            # and ReadRows, which would thwart parallel processing of ReadRows!
+            | 'Reshuffle' >> beam.Reshuffle()
             | 'ReadRows' >> beam.ParDo(
                 ReadTimestampRangeFromDatastore._QueryFn(
                     self._query_params, self._timestamp_property))
@@ -92,12 +83,16 @@ class ReadTimestampRangeFromDatastore(beam.PTransform):
         yield entity
 
   def _Splits(self):
-    start = self._min_timestamp
+    min_timestamp, max_timestamp = self._time_range_provider.Get()
+    logging.getLogger().info(
+        'ReadTimestampRangeFromDatastore from %s to %s',
+        min_timestamp, max_timestamp)
+    start = min_timestamp
     while True:
       end = start + self._step
       yield (start, end)
 
-      if end >= self._max_timestamp:
+      if end >= max_timestamp:
         break
       start = end
 

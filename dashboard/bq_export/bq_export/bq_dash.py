@@ -37,8 +37,7 @@ def main():
       p
       | 'ReadFromDatastore(Anomaly)' >> ReadTimestampRangeFromDatastore(
           {'project': project, 'kind': 'Anomaly'},
-          min_timestamp=bq_export_options.StartTime(),
-          max_timestamp=bq_export_options.EndTime()))
+          time_range_provider=bq_export_options.GetTimeRangeProvider()))
 
   def AnomalyEntityToRowDict(entity):
     entities_read.inc()

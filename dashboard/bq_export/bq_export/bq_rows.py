@@ -77,16 +77,13 @@ def main():
       failed_entity_transforms.inc()
       return []
 
-  print("Time range: %s -> %s" % (
-      bq_export_options.StartTime(), bq_export_options.EndTime()))
   row_query_params = dict(project=project, kind='Row')
   row_entities = (
       p
       | 'ReadFromDatastore(Row)' >> ReadTimestampRangeFromDatastore(
           row_query_params,
-          min_timestamp=bq_export_options.StartTime(),
-          max_timestamp=bq_export_options.EndTime(),
-          step=datetime.timedelta(minutes=10)))
+          time_range_provider=bq_export_options.GetTimeRangeProvider(),
+          step=datetime.timedelta(minutes=5)))
 
   row_dicts = (
       row_entities | 'ConvertEntityToRow(Row)' >> FlatMap(RowEntityToRowDict))
