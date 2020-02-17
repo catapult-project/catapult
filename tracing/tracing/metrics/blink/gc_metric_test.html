@@ -507,5 +507,29 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(value.numValues, 5);
     assert.strictEqual(value.running.max, 10);
   });
+
+  test('testAggregatedAtomicPauseTransitiveColsure', function() {
+    const histograms = new tr.v.HistogramSet();
+    const slices = [
+      {
+        title: 'BlinkGC.AtomicPauseMarkTransitiveClosure', args: {},
+        start: 10, end: 20, cpuStart: 10, cpuEnd: 20
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkTransitiveClosure', args: {},
+        start: 40, end: 60, cpuStart: 40, cpuEnd: 60
+      },
+      {
+        title: 'BlinkGC.AtomicPauseMarkTransitiveClosure', args: {},
+        start: 70, end: 75, cpuStart: 70, cpuEnd: 75
+      },
+    ];
+    const actual = run(slices);
+
+    const value = actual.getHistogramNamed(
+        'blink-gc-atomic-pause-mark-transitive-closure');
+    assert.strictEqual(value.running.sum, 35);
+    assert.strictEqual(value.numValues, 1);
+  });
 });
 </script>
