@@ -330,5 +330,4 @@ class NewTest(_NewTest):
     self.assertEqual(len(job.state._quests), 3)
     self.assertIsInstance(job.state._quests[0], quest_module.FindIsolate)
     self.assertIsInstance(job.state._quests[1], quest_module.RunVrTelemetryTest)
-    self.assertIsInstance(job.state._quests[2],
-                          quest_module.ReadHistogramsJsonValue)
+    self.assertIsInstance(job.state._quests[2], quest_module.ReadValue)

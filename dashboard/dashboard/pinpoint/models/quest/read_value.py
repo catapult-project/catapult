@@ -12,6 +12,7 @@ import json
 import logging
 import ntpath
 import posixpath
+import sys
 
 from dashboard.common import histogram_helpers
 from dashboard.pinpoint.models import errors
@@ -23,10 +24,299 @@ from tracing.value.diagnostics import diagnostic_ref
 from tracing.value.diagnostics import reserved_infos
 
 
+class ReadValue(quest.Quest):
+
+  def __init__(self,
+               results_filename,
+               metric=None,
+               grouping_label=None,
+               trace_or_story=None,
+               statistic=None,
+               chart=None):
+    self._results_filename = results_filename
+    self._metric = metric
+    self._grouping_label = grouping_label
+    self._trace_or_story = trace_or_story
+    self._statistic = statistic
+    self._chart = chart
+
+  def __eq__(self, other):
+    return (isinstance(other, type(self)) and
+            self._results_filename == other._results_filename and
+            self._metric == other._metric and
+            self._grouping_label == other._grouping_label and
+            self._trace_or_story == other._trace_or_story and
+            self._statistic == other._statistic and self._chart == other._chart)
+
+  def __str__(self):
+    return 'Get values'
+
+  def Start(self, _, isolate_server, isolate_hash):
+    # Here we create an execution that can handle both histograms and graph
+    # json and any other format we support later.
+    return ReadValueExecution(self._results_filename, self._metric,
+                              self._grouping_label, self._trace_or_story,
+                              self._statistic, self._chart, isolate_server,
+                              isolate_hash)
+
+  @classmethod
+  def FromDict(cls, arguments):
+    benchmark = arguments.get('benchmark')
+    if not benchmark:
+      raise TypeError('Missing "benchmark" argument.')
+    results_filename = ''
+    if IsWindows(arguments):
+      results_filename = ntpath.join(benchmark, 'perf_results.json')
+    else:
+      results_filename = posixpath.join(benchmark, 'perf_results.json')
+
+    metric = (arguments.get('metric') or arguments.get('chart'))
+    chart = arguments.get('chart')
+    grouping_label = arguments.get('grouping_label')
+    trace_or_story = (arguments.get('trace') or arguments.get('story'))
+    statistic = arguments.get('statistic')
+    return cls(
+        results_filename=results_filename,
+        metric=metric,
+        grouping_label=grouping_label,
+        trace_or_story=trace_or_story,
+        statistic=statistic,
+        chart=chart)
+
+
+class ReadValueExecution(execution.Execution):
+
+  def __init__(self, results_filename, metric, grouping_label, trace_or_story,
+               statistic, chart, isolate_server, isolate_hash):
+    super(ReadValueExecution, self).__init__()
+    self._results_filename = results_filename
+    self._metric = metric
+    self._grouping_label = grouping_label
+    self._trace_or_story = trace_or_story
+    self._statistic = statistic
+    self._chart = chart
+    self._isolate_server = isolate_server
+    self._isolate_hash = isolate_hash
+    self._trace_urls = []
+
+  def _AsDict(self):
+    return [{
+        'key': 'trace',
+        'value': trace_url['name'],
+        'url': trace_url['url'],
+    } for trace_url in self._trace_urls]
+
+  def _Poll(self):
+    json_data = RetrieveOutputJson(self._isolate_server, self._isolate_hash,
+                                   self._results_filename)
+
+    result_values = []
+    histogram_exception = None
+    graph_json_exception = None
+    try:
+      result_values = self._ParseHistograms(json_data)
+    except Exception:  # pylint: disable=broad-except
+      histogram_exception = sys.exc_info()[1]
+
+    if histogram_exception:
+      try:
+        result_values = self._ParseGraphJson(json_data)
+      except Exception: # pylint: disable=broad-except
+        graph_json_exception = sys.exc_info()[1]
+
+    if histogram_exception and graph_json_exception:
+      raise errors.ReadValueUnknownFormat(self._results_filename)
+
+    self._Complete(result_values=tuple(result_values))
+
+  def _ParseHistograms(self, json_data):
+    histograms = histogram_set.HistogramSet()
+    histograms.ImportDicts(json_data)
+    histograms_by_path = CreateHistogramSetByTestPathDict(histograms)
+    histograms_by_path_optional_grouping_label = (
+        CreateHistogramSetByTestPathDict(
+            histograms, ignore_grouping_label=True))
+    test_paths_to_match = set([
+        histogram_helpers.ComputeTestPathFromComponents(
+            self._metric,
+            grouping_label=self._grouping_label,
+            story_name=self._trace_or_story),
+        histogram_helpers.ComputeTestPathFromComponents(
+            self._metric,
+            grouping_label=self._grouping_label,
+            story_name=self._trace_or_story,
+            needs_escape=False)
+    ])
+    logging.debug('Test paths to match: %s', test_paths_to_match)
+
+    try:
+      result_values = ExtractValuesFromHistograms(
+          test_paths_to_match, histograms_by_path, self._metric,
+          self._grouping_label, self._trace_or_story, self._statistic)
+    except errors.ReadValueNotFound:
+      result_values = ExtractValuesFromHistograms(
+          test_paths_to_match, histograms_by_path_optional_grouping_label,
+          self._metric, None, self._trace_or_story, self._statistic)
+    return result_values
+
+  def _ParseGraphJson(self, json_data):
+    if not self._chart and not self._trace:
+      return []
+    if self._chart not in json_data:
+      raise errors.ReadValueChartNotFound(self._chart)
+    if self._trace_or_story not in json_data[self._chart]['traces']:
+      raise errors.ReadValueTraceNotFound(self._trace_or_story)
+    return [float(json_data[self._chart]['traces'][self._trace_or_story][0])]
+
+
+def CreateHistogramSetByTestPathDict(histograms, ignore_grouping_label=False):
+  histograms_by_path = collections.defaultdict(list)
+  for h in histograms:
+    histograms_by_path[histogram_helpers.ComputeTestPath(
+        h, ignore_grouping_label)].append(h)
+  return histograms_by_path
+
+
+def FindTraceUrls(histograms):
+  # Get and cache any trace URLs.
+  unique_trace_urls = set()
+  for hist in histograms:
+    trace_urls = hist.diagnostics.get(reserved_infos.TRACE_URLS.name)
+    # TODO(simonhatch): Remove this sometime after May 2018. We had a
+    # brief period where the histograms generated by tests had invalid
+    # trace_urls diagnostics. If the diagnostic we get back is just a ref,
+    # then skip.
+    # https://github.com/catapult-project/catapult/issues/4243
+    if trace_urls and not isinstance(trace_urls, diagnostic_ref.DiagnosticRef):
+      unique_trace_urls.update(trace_urls)
+
+  sorted_urls = sorted(unique_trace_urls)
+
+  return [{'name': t.split('/')[-1], 'url': t} for t in sorted_urls]
+
+
+def _GetValuesOrStatistic(statistic, hist):
+  if not statistic:
+    return hist.sample_values
+
+  if not hist.sample_values:
+    return []
+
+  # TODO(simonhatch): Use Histogram.getStatisticScalar when it's ported from
+  # js.
+  if statistic == 'avg':
+    return [hist.running.mean]
+  elif statistic == 'min':
+    return [hist.running.min]
+  elif statistic == 'max':
+    return [hist.running.max]
+  elif statistic == 'sum':
+    return [hist.running.sum]
+  elif statistic == 'std':
+    return [hist.running.stddev]
+  elif statistic == 'count':
+    return [hist.running.count]
+  raise errors.ReadValueUnknownStat(statistic)
+
+
+def IsWindows(arguments):
+  dimensions = arguments.get('dimensions', ())
+  if isinstance(dimensions, basestring):
+    dimensions = json.loads(dimensions)
+  for dimension in dimensions:
+    if dimension['key'] == 'os' and dimension['value'].startswith('Win'):
+      return True
+  return False
+
+
+def RetrieveOutputJson(isolate_server, isolate_hash, filename):
+  logging.debug('Retrieving json output (%s, %s, %s)', isolate_server,
+                isolate_hash, filename)
+
+  output_files = json.loads(isolate.Retrieve(isolate_server,
+                                             isolate_hash))['files']
+
+  if filename not in output_files:
+    if 'performance_browser_tests' not in filename:
+      raise errors.ReadValueNoFile(filename)
+
+    # TODO(simonhatch): Remove this once crbug.com/947501 is resolved.
+    filename = filename.replace('performance_browser_tests', 'browser_tests')
+    if filename not in output_files:
+      raise errors.ReadValueNoFile(filename)
+
+  output_json_isolate_hash = output_files[filename]['h']
+  logging.debug('Retrieving %s', output_json_isolate_hash)
+
+  # TODO(dberris): Use incremental json parsing through a file interface, to
+  # avoid having to load the whole string contents in memory. See
+  # https://crbug.com/998517 for more context.
+  response = json.loads(
+      isolate.Retrieve(isolate_server, output_json_isolate_hash))
+
+  return response
+
+
+def ExtractValuesFromHistograms(test_paths_to_match, histograms_by_path,
+                                histogram_name, grouping_label, story,
+                                statistic):
+  result_values = []
+  matching_histograms = list(
+      itertools.chain.from_iterable(
+          histograms_by_path.get(histogram)
+          for histogram in test_paths_to_match
+          if histogram in histograms_by_path))
+  logging.debug('Histograms in results: %s', histograms_by_path.keys())
+  if matching_histograms:
+    logging.debug('Found %s matching histograms: %s', len(matching_histograms),
+                  [h.name for h in matching_histograms])
+    for h in matching_histograms:
+      result_values.extend(_GetValuesOrStatistic(statistic, h))
+  elif histogram_name:
+    # Histograms don't exist, which means this is summary
+    summary_value = []
+    for test_path, histograms_for_test_path in histograms_by_path.items():
+      for test_path_to_match in test_paths_to_match:
+        if test_path.startswith(test_path_to_match):
+          for h in histograms_for_test_path:
+            summary_value.extend(_GetValuesOrStatistic(statistic, h))
+            matching_histograms.append(h)
+
+    logging.debug('Found %s matching summary histograms',
+                  len(matching_histograms))
+    if summary_value:
+      result_values.append(sum(summary_value))
+
+    logging.debug('result values: %s', result_values)
+
+  if not result_values and histogram_name:
+    if matching_histograms:
+      raise errors.ReadValueNoValues()
+    else:
+      conditions = {'histogram': histogram_name}
+      if grouping_label:
+        conditions['grouping_label'] = grouping_label
+      if story:
+        conditions['story'] = story
+      reason = ', '.join(list(':'.join(i) for i in conditions.items()))
+      raise errors.ReadValueNotFound(reason)
+  return result_values
+
+
+# WARNING: EVERYTHING AFTER THIS LINE IS DEPRECATED
+################################################################################
+# These are legacy quests and executions which are still in the pickled state of
+# JobState objects in Datastore. We're leaving these around for a time until we
+# can determine that it's safe to remove these types.
+#
 class ReadHistogramsJsonValue(quest.Quest):
 
-  def __init__(self, results_filename, hist_name=None,
-               grouping_label=None, trace_or_story=None, statistic=None):
+  def __init__(self,
+               results_filename,
+               hist_name=None,
+               grouping_label=None,
+               trace_or_story=None,
+               statistic=None):
     self._results_filename = results_filename
     self._hist_name = hist_name
     self._grouping_label = grouping_label
@@ -114,8 +404,9 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
     } for trace_url in self._trace_urls]
 
   def _Poll(self):
-    histogram_dicts = RetrieveOutputJson(
-        self._isolate_server, self._isolate_hash, self._results_filename)
+    histogram_dicts = RetrieveOutputJson(self._isolate_server,
+                                         self._isolate_hash,
+                                         self._results_filename)
     histograms = histogram_set.HistogramSet()
     histograms.ImportDicts(histogram_dicts)
 
@@ -134,7 +425,8 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
             self._hist_name,
             grouping_label=self._grouping_label,
             story_name=self._trace_or_story,
-            needs_escape=False)])
+            needs_escape=False)
+    ])
     logging.debug('Test paths to match: %s', test_paths_to_match)
 
     # Have to pull out either the raw sample values, or the statistic
@@ -147,105 +439,9 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
       # histograms without the grouping label applied.
       result_values = ExtractValuesFromHistograms(
           test_paths_to_match, histograms_by_path_optional_grouping_label,
-          self._hist_name, None, self._trace_or_story,
-          self._statistic)
+          self._hist_name, None, self._trace_or_story, self._statistic)
 
     self._Complete(result_values=tuple(result_values))
-
-
-def ExtractValuesFromHistograms(test_paths_to_match, histograms_by_path,
-                                histogram_name, grouping_label, story,
-                                statistic):
-  result_values = []
-  matching_histograms = list(itertools.chain.from_iterable(
-      histograms_by_path.get(histogram) for histogram in test_paths_to_match
-      if histogram in histograms_by_path
-  ))
-  logging.debug('Histograms in results: %s', histograms_by_path.keys())
-  if matching_histograms:
-    logging.debug('Found %s matching histograms: %s', len(matching_histograms),
-                  [h.name for h in matching_histograms])
-    for h in matching_histograms:
-      result_values.extend(_GetValuesOrStatistic(statistic, h))
-  elif histogram_name:
-    # Histograms don't exist, which means this is summary
-    summary_value = []
-    for test_path, histograms_for_test_path in histograms_by_path.items():
-      for test_path_to_match in test_paths_to_match:
-        if test_path.startswith(test_path_to_match):
-          for h in histograms_for_test_path:
-            summary_value.extend(_GetValuesOrStatistic(statistic, h))
-            matching_histograms.append(h)
-
-    logging.debug('Found %s matching summary histograms',
-                  len(matching_histograms))
-    if summary_value:
-      result_values.append(sum(summary_value))
-
-    logging.debug('result values: %s', result_values)
-
-  if not result_values and histogram_name:
-    if matching_histograms:
-      raise errors.ReadValueNoValues()
-    else:
-      conditions = {'histogram': histogram_name}
-      if grouping_label:
-        conditions['grouping_label'] = grouping_label
-      if story:
-        conditions['story'] = story
-      reason = ', '.join(list(':'.join(i) for i in conditions.items()))
-      raise errors.ReadValueNotFound(reason)
-  return result_values
-
-
-def CreateHistogramSetByTestPathDict(histograms, ignore_grouping_label=False):
-  histograms_by_path = collections.defaultdict(list)
-  for h in histograms:
-    histograms_by_path[histogram_helpers.ComputeTestPath(
-        h, ignore_grouping_label)].append(h)
-  return histograms_by_path
-
-
-def FindTraceUrls(histograms):
-  # Get and cache any trace URLs.
-  unique_trace_urls = set()
-  for hist in histograms:
-    trace_urls = hist.diagnostics.get(reserved_infos.TRACE_URLS.name)
-    # TODO(simonhatch): Remove this sometime after May 2018. We had a
-    # brief period where the histograms generated by tests had invalid
-    # trace_urls diagnostics. If the diagnostic we get back is just a ref,
-    # then skip.
-    # https://github.com/catapult-project/catapult/issues/4243
-    if trace_urls and not isinstance(
-        trace_urls, diagnostic_ref.DiagnosticRef):
-      unique_trace_urls.update(trace_urls)
-
-  sorted_urls = sorted(unique_trace_urls)
-
-  return [{'name': t.split('/')[-1], 'url': t} for t in sorted_urls]
-
-def _GetValuesOrStatistic(statistic, hist):
-  if not statistic:
-    return hist.sample_values
-
-  if not hist.sample_values:
-    return []
-
-  # TODO(simonhatch): Use Histogram.getStatisticScalar when it's ported from
-  # js.
-  if statistic == 'avg':
-    return [hist.running.mean]
-  elif statistic == 'min':
-    return [hist.running.min]
-  elif statistic == 'max':
-    return [hist.running.max]
-  elif statistic == 'sum':
-    return [hist.running.sum]
-  elif statistic == 'std':
-    return [hist.running.stddev]
-  elif statistic == 'count':
-    return [hist.running.count]
-  raise errors.ReadValueUnknownStat(statistic)
 
 
 class ReadGraphJsonValue(quest.Quest):
@@ -258,8 +454,7 @@ class ReadGraphJsonValue(quest.Quest):
   def __eq__(self, other):
     return (isinstance(other, type(self)) and
             self._results_filename == other._results_filename and
-            self._chart == other._chart and
-            self._trace == other._trace)
+            self._chart == other._chart and self._trace == other._trace)
 
   def __str__(self):
     return 'Get results'
@@ -271,9 +466,9 @@ class ReadGraphJsonValue(quest.Quest):
   def Start(self, change, isolate_server, isolate_hash):
     del change
 
-    return _ReadGraphJsonValueExecution(
-        self._results_filename, self._chart, self._trace,
-        isolate_server, isolate_hash)
+    return _ReadGraphJsonValueExecution(self._results_filename, self._chart,
+                                        self._trace, isolate_server,
+                                        isolate_hash)
 
   @classmethod
   def FromDict(cls, arguments):
@@ -293,8 +488,8 @@ class ReadGraphJsonValue(quest.Quest):
 
 class _ReadGraphJsonValueExecution(execution.Execution):
 
-  def __init__(
-      self, results_filename, chart, trace, isolate_server, isolate_hash):
+  def __init__(self, results_filename, chart, trace, isolate_server,
+               isolate_hash):
     super(_ReadGraphJsonValueExecution, self).__init__()
     self._results_filename = results_filename
     self._chart = chart
@@ -306,8 +501,8 @@ class _ReadGraphJsonValueExecution(execution.Execution):
     return {'isolate_server': self._isolate_server}
 
   def _Poll(self):
-    graphjson = RetrieveOutputJson(
-        self._isolate_server, self._isolate_hash, self._results_filename)
+    graphjson = RetrieveOutputJson(self._isolate_server, self._isolate_hash,
+                                   self._results_filename)
 
     if not self._chart and not self._trace:
       self._Complete(result_values=tuple([]))
@@ -320,43 +515,3 @@ class _ReadGraphJsonValueExecution(execution.Execution):
     result_value = float(graphjson[self._chart]['traces'][self._trace][0])
 
     self._Complete(result_values=(result_value,))
-
-
-def IsWindows(arguments):
-  dimensions = arguments.get('dimensions', ())
-  if isinstance(dimensions, basestring):
-    dimensions = json.loads(dimensions)
-  for dimension in dimensions:
-    if dimension['key'] == 'os' and dimension['value'].startswith('Win'):
-      return True
-  return False
-
-
-def RetrieveOutputJson(isolate_server, isolate_hash, filename):
-  logging.debug(
-      'Retrieving json output (%s, %s, %s)',
-      isolate_server, isolate_hash, filename)
-
-  output_files = json.loads(isolate.Retrieve(
-      isolate_server, isolate_hash))['files']
-
-  if filename not in output_files:
-    if 'performance_browser_tests' not in filename:
-      raise errors.ReadValueNoFile(filename)
-
-    # TODO(simonhatch): Remove this once crbug.com/947501 is resolved.
-    filename = filename.replace(
-        'performance_browser_tests', 'browser_tests')
-    if filename not in output_files:
-      raise errors.ReadValueNoFile(filename)
-
-  output_json_isolate_hash = output_files[filename]['h']
-  logging.debug('Retrieving %s', output_json_isolate_hash)
-
-  # TODO(dberris): Use incremental json parsing through a file interface, to
-  # avoid having to load the whole string contents in memory. See
-  # https://crbug.com/998517 for more context.
-  response = json.loads(
-      isolate.Retrieve(isolate_server, output_json_isolate_hash))
-
-  return response

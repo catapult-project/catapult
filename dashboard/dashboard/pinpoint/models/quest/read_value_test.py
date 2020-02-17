@@ -697,3 +697,47 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
     execution.Poll()
 
     self.assertReadValueError(execution, 'ReadValueTraceNotFound')
+
+
+class ReadValueTest(_ReadValueExecutionTest):
+
+  def testReadGraphJsonValue(self):
+    self.SetOutputFileContents(
+        {'chart': {'traces': {'trace': ['126444.869721', '0.0']}}})
+
+    quest = read_value.ReadValue(
+        results_filename='chartjson-output.json',
+        chart='chart',
+        trace_or_story='trace')
+    execution = quest.Start(None, 'server', 'output hash')
+    execution.Poll()
+
+    self.assertReadValueSuccess(execution)
+    self.assertEqual(execution.result_values, (126444.869721,))
+    self.assertRetrievedOutputJson()
+
+  def testReadHistogramsJsonValue(self):
+    hist = histogram_module.Histogram('hist', 'count')
+    hist.AddSample(0)
+    hist.AddSample(1)
+    hist.AddSample(2)
+    histograms = histogram_set.HistogramSet([hist])
+    histograms.AddSharedDiagnosticToAllHistograms(
+        reserved_infos.STORY_TAGS.name,
+        generic_set.GenericSet(['group:label']))
+    histograms.AddSharedDiagnosticToAllHistograms(
+        reserved_infos.STORIES.name,
+        generic_set.GenericSet(['story']))
+    self.SetOutputFileContents(histograms.AsDicts())
+
+    quest = read_value.ReadValue(
+        results_filename='chartjson-output.json',
+        metric=hist.name,
+        grouping_label='label',
+        trace_or_story='story')
+    execution = quest.Start(None, 'server', 'output hash')
+    execution.Poll()
+
+    self.assertReadValueSuccess(execution)
+    self.assertEqual(execution.result_values, (0, 1, 2))
+    self.assertRetrievedOutputJson()

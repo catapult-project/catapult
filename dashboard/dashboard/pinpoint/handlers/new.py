@@ -257,14 +257,14 @@ def _GenerateQuests(arguments):
     if target in ('performance_test_suite', 'performance_webview_test_suite',
                   'telemetry_perf_tests', 'telemetry_perf_webview_tests'):
       quest_classes = (quest_module.FindIsolate, quest_module.RunTelemetryTest,
-                       quest_module.ReadHistogramsJsonValue)
+                       quest_module.ReadValue)
     elif target == 'vr_perf_tests':
       quest_classes = (quest_module.FindIsolate,
                        quest_module.RunVrTelemetryTest,
-                       quest_module.ReadHistogramsJsonValue)
+                       quest_module.ReadValue)
     else:
       quest_classes = (quest_module.FindIsolate, quest_module.RunGTest,
-                       quest_module.ReadGraphJsonValue)
+                       quest_module.ReadValue)
 
   quest_instances = []
   for quest_class in quest_classes:
