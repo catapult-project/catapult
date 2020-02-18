@@ -39,7 +39,9 @@ def main():
    value FLOAT64 NOT NULL,
    error FLOAT64,
    `timestamp` TIMESTAMP NOT NULL,
-   parent_test STRING NOT NULL,
+   test_path STRING NOT NULL,
+   master STRING,
+   bot STRING,
    properties STRING)
   PARTITION BY DATE(`timestamp`);
   """  # pylint: disable=pointless-string-statement
@@ -48,7 +50,9 @@ def main():
       {'name': 'value', 'type': 'FLOAT', 'mode': 'REQUIRED'},
       {'name': 'error', 'type': 'FLOAT', 'mode': 'NULLABLE'},
       {'name': 'timestamp', 'type': 'TIMESTAMP', 'mode': 'REQUIRED'},
-      {'name': 'parent_test', 'type': 'STRING', 'mode': 'REQUIRED'},
+      {'name': 'test_path', 'type': 'STRING', 'mode': 'REQUIRED'},
+      {'name': 'master', 'type': 'STRING', 'mode': 'NULLABLE'},
+      {'name': 'bot', 'type': 'STRING', 'mode': 'NULLABLE'},
       {'name': 'properties', 'type': 'STRING', 'mode': 'NULLABLE'},
   ]}
   def RowEntityToRowDict(entity):
@@ -59,18 +63,23 @@ def main():
           'value': FloatHack(entity['value']),
           'error': FloatHack(entity.get('error')),
           'timestamp': entity['timestamp'].isoformat(),
-          'parent_test': entity.key.parent.name,
+          'test_path': entity.key.parent.name,
       }
       # Add the expando properties as a JSON-encoded dict.
       properties = {}
       for key, value in entity.items():
-        if key in d:
+        if key in d or key == 'parent_test':
           # skip properties with dedicated columns.
           continue
         if isinstance(value, float):
           value = FloatHack(value)
         properties[key] = value
       d['properties'] = json.dumps(properties) if properties else None
+      # Add columns derived from test_path: master, bot.
+      test_path_parts = d['test_path'].split('/', 2)
+      if len(test_path_parts) >= 3:
+        d['master'] = test_path_parts[0]
+        d['bot'] = test_path_parts[1]
       return [d]
     except KeyError:
       logging.getLogger().exception('Failed to convert Row')
