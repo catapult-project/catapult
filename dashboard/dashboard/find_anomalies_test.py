@@ -19,6 +19,7 @@ from dashboard.sheriff_config_client import SheriffConfigClient
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
+from dashboard.models import anomaly_config
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from dashboard.models import sheriff
@@ -688,6 +689,56 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(anomaly.UP, new_anomalies[0].direction)
     self.assertEqual(734631, new_anomalies[0].start_revision)
     self.assertEqual(734673, new_anomalies[0].end_revision)
+
+  def testProcessTest_RefineAnomalyPlacement_MinSize0Max2Elements(self):
+    testing_common.AddTests(['ChromiumPerf'], ['linux-perf'],
+                            {'sizes': {
+                                'method_count': {}
+                            }})
+    test = utils.TestKey(('ChromiumPerf/linux-perf/sizes/method_count')).get()
+    test_container_key = utils.GetTestContainerKey(test.key)
+    custom_config = {
+        'max_window_size': 10,
+        'min_absolute_change': 50,
+        'min_relative_change': 0,
+        'min_segment_size': 0,
+    }
+    anomaly_config.AnomalyConfig(
+        config=custom_config, patterns=[test.test_path]).put()
+    test.UpdateSheriff()
+    test.put()
+    self.assertEqual(custom_config, anomaly_config.GetAnomalyConfigDict(test))
+    sample_data = [
+        (6990, 100),
+        (6991, 100),
+        (6992, 100),
+        (6993, 100),
+        (6994, 100),
+        (6995, 100),
+        (6996, 100),
+        (6997, 100),
+        (6998, 100),
+        (6999, 100),
+        (7000, 100),
+        (7001, 155),
+        (7002, 155),
+        (7003, 155),
+    ]
+    for row in sample_data:
+      graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
+    sheriff.Sheriff(
+        email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
+    test.UpdateSheriff()
+    test.put()
+    with mock.patch.object(SheriffConfigClient, 'Match',
+                           mock.MagicMock(return_value=([], None))) as m:
+      find_anomalies.ProcessTests([test.key])
+      self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
+    new_anomalies = anomaly.Anomaly.query().fetch()
+    self.assertEqual(1, len(new_anomalies))
+    self.assertEqual(anomaly.UP, new_anomalies[0].direction)
+    self.assertEqual(7001, new_anomalies[0].start_revision)
+    self.assertEqual(7001, new_anomalies[0].end_revision)
 
   def testMakeAnomalyEntity_NoRefBuild(self):
     testing_common.AddTests(
