@@ -276,15 +276,21 @@ Polymer({
 
   warnPolyfill() {
     if (this.polyfillWarnedOnce_) return;
+    console.warn(POLYFILL_WARNING_MESSAGE); // eslint-disable-line no-console
     this.polyfillWarnedOnce_ = true;
 
-    const polyfillWarningsEl =
-          Polymer.dom(this.root).querySelector('#polyfill-warning');
-    polyfillWarningsEl.addMessage(
-        POLYFILL_WARNING_MESSAGE, [{
-          buttonText: 'Hide',
-          onClick: () => polyfillWarningsEl.clearMessages()
-        }]);
+    // You can set window.__hideTraceViewerPolyfillWarning = true somewhere
+    // in your setup code if you embed trace viewer and want to hide the
+    // UI polyfill warning.
+    if (!window.__hideTraceViewerPolyfillWarning) {
+      const polyfillWarningsEl =
+            Polymer.dom(this.root).querySelector('#polyfill-warning');
+      polyfillWarningsEl.addMessage(
+          POLYFILL_WARNING_MESSAGE, [{
+            buttonText: 'Hide',
+            onClick: () => polyfillWarningsEl.clearMessages()
+          }]);
+    }
   },
 
   updateDocumentFavicon() {
