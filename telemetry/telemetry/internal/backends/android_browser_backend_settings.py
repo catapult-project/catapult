@@ -205,7 +205,7 @@ class WebLayerBackendSettings(WebViewBackendSettings):
                       'localabstract:weblayer_devtools_remote_{pid}')
     kwargs.setdefault('package', 'org.chromium.weblayer.shell')
     kwargs.setdefault('activity',
-                      'org.chromium.weblayer.shell.TelemetryActivity')
+                      'org.chromium.weblayer.shell.WebLayerShellActivity')
     kwargs.setdefault('embedder_apk_name', 'WebLayerShellSystemWebView.apk')
     kwargs.setdefault('command_line_name', 'weblayer-command-line')
     return super(WebLayerBackendSettings, cls).__new__(cls, **kwargs)
