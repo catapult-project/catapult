@@ -51,4 +51,6 @@ vulcanize or trace2html will show the current set of configs we support, which m
 For more information on how to customize and extend trace viewer, see [Extending-and-Customizing-Trace-Viewer](Extending-and-Customizing-Trace-Viewer)
 
 # Example
-See bin/index.html for an example of using the embedding system.
+See tracing_examples/trace_viewer_embedder.html for an example of using the
+embedding system. Note that you have to include the WebComponentsV0 polyfill
+(see https://crbug.com/1036492) unless you have an origin trial token.

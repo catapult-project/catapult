@@ -5,6 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <head>
+<!-- WebComponent V0 polyfill. You may want to host this in a more suitable
+     place. See https://crbug.com/1036492 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/0.7.24/webcomponents.min.js"></script>
 <script>
 'use strict';
 
@@ -40,34 +43,33 @@ function onTraceViewerImportFail() {
 'use strict';
 
 (function() {
-  var viewer;
-  var url;
-  var model;
+  let viewer;
+  let url;
+  let model;
 
   function load() {
-    var req = new XMLHttpRequest();
-    var isBinary = /[.]gz$/.test(url) || /[.]zip$/.test(url);
+    const req = new XMLHttpRequest();
+    const isBinary = /[.]gz$/.test(url) || /[.]zip$/.test(url);
     req.overrideMimeType('text/plain; charset=x-user-defined');
     req.open('GET', url, true);
-    if (isBinary)
-      req.responseType = 'arraybuffer';
+    if (isBinary) req.responseType = 'arraybuffer';
 
     req.onreadystatechange = function(event) {
-      if (req.readyState !== 4)
-        return;
+      if (req.readyState !== 4) return;
 
       window.setTimeout(function() {
-        if (req.status === 200)
+        if (req.status === 200) {
           onResult(isBinary ? req.response : req.responseText);
-        else
+        } else {
           onResultFail(req.status);
+        }
       }, 0);
     };
     req.send(null);
   }
 
   function onResultFail(err) {
-    var overlay = new tr.ui.b.Overlay();
+    const overlay = new tr.ui.b.Overlay();
     overlay.textContent = err + ': ' + url + ' could not be loaded';
     overlay.title = 'Failed to fetch data';
     overlay.visible = true;
@@ -75,8 +77,8 @@ function onTraceViewerImportFail() {
 
   function onResult(result) {
     model = new tr.Model();
-    var i = new tr.importer.Import(model);
-    var p = i.importTracesWithProgressDialog([result]);
+    const i = new tr.importer.Import(model);
+    const p = i.importTracesWithProgressDialog([result]);
     p.then(onModelLoaded, onImportFail);
   }
 
@@ -86,14 +88,14 @@ function onTraceViewerImportFail() {
   }
 
   function onImportFail() {
-    var overlay = new tr.ui.b.Overlay();
+    const overlay = new tr.ui.b.Overlay();
     overlay.textContent = tr.b.normalizeException(err).message;
     overlay.title = 'Import error';
     overlay.visible = true;
   }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    var container = document.createElement('track-view-container');
+  document.addEventListener('WebComponentsReady', function() {
+    const container = document.createElement('track-view-container');
     container.id = 'track_view_container';
 
     viewer = document.createElement('tr-ui-timeline-view');
