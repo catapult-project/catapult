@@ -59,6 +59,9 @@ def GetDevToolsBackEndIfReady(devtools_port, app_backend, browser_target=None):
   return client
 
 
+class FuchsiaBrowserTargetNotFoundException(Exception):
+  pass
+
 class _DevToolsClientBackend(object):
   """An object that communicates with Chrome's devtools.
 
@@ -103,6 +106,14 @@ class _DevToolsClientBackend(object):
 
   @property
   def browser_target_url(self):
+    # For Fuchsia browsers, we get the browser_target through a JSON request
+    if self.platform_backend.GetOSName() == 'fuchsia':
+      resp = self.GetVersion()
+      if 'webSocketDebuggerUrl' in resp:
+        return resp['webSocketDebuggerUrl']
+      else:
+        raise FuchsiaBrowserTargetNotFoundException(
+            'Could not get the browser target.')
     return 'ws://127.0.0.1:%i%s' % (self._local_port, self._browser_target)
 
   @property

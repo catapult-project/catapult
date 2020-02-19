@@ -11,6 +11,9 @@ from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import fuchsia_device
 
 
+class UnsupportedExtensionException(Exception):
+  pass
+
 class PossibleFuchsiaBrowser(possible_browser.PossibleBrowser):
 
   def __init__(self, browser_type, finder_options, fuchsia_platform):
@@ -59,7 +62,10 @@ class PossibleFuchsiaBrowser(possible_browser.PossibleBrowser):
       self._browser_options = None
 
   def SupportsOptions(self, browser_options):
-    return bool(len(browser_options.extensions_to_load))
+    if len(browser_options.extensions_to_load) > 0:
+      raise UnsupportedExtensionException(
+          'Fuchsia browsers do not support extensions.')
+    return True
 
   def UpdateExecutableIfNeeded(self):
     # Updating the browser is currently handled in the Chromium repository
