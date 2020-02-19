@@ -18,7 +18,6 @@ from telemetry.internal.platform import desktop_platform_backend
 try:
   import pywintypes  # pylint: disable=import-error
   import win32api  # pylint: disable=import-error
-  from PIL import Image  # pylint: disable=import-error
   from win32com.shell import shell  # pylint: disable=no-name-in-module
   from win32com.shell import shellcon  # pylint: disable=no-name-in-module
   import win32con  # pylint: disable=import-error
@@ -32,7 +31,6 @@ try:
     import _winreg as winreg  # pylint: disable=import-error,wrong-import-order
   import win32security  # pylint: disable=import-error
 except ImportError:
-  Image = None
   pywintypes = None
   shell = None
   shellcon = None
@@ -46,6 +44,12 @@ except ImportError:
   win32ui = None
   winerror = None
   winreg = None
+
+
+try:
+  from PIL import Image  # pylint: disable=import-error
+except ImportError:
+  Image = None
 
 
 class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
