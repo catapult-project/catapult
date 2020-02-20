@@ -10,11 +10,11 @@ from __future__ import print_function
 from googleapiclient import errors
 from google.cloud import datastore
 import base64
-import fnmatch
 import httplib2
-import re
+import re2
 import sheriff_pb2
 import validator
+from utils import LRUCacheWithTTL, Translate
 
 
 # The path which we will look for in projects.
@@ -145,6 +145,35 @@ def StoreConfigs(client, configs):
     client.put_multi(list(entities.values()) + [subscription_index])
 
 
+def CompilePattern(pattern):
+  if pattern.HasField('glob'):
+    return re2.compile(Translate(pattern.glob))
+  elif pattern.HasField('regex'):
+    return re2.compile(pattern.regex)
+  else:
+    # TODO(dberris): this is the extension point for supporting new
+    # matchers; for now we'll skip the new patterns we don't handle yet.
+    return None
+
+
+def CompilePatterns(revision, subscription):
+  if not hasattr(CompilePatterns, 'cache'):
+    CompilePatterns.cache = dict()
+  cached = CompilePatterns.cache.get(subscription.name)
+  if cached is not None and cached[0] == revision:
+    return cached[1]
+
+  compiled = []
+  for pattern in subscription.patterns:
+    c = CompilePattern(pattern)
+    if c:
+      compiled.append(c)
+  matcher = lambda s: any([c.match(s) for c in compiled])
+  CompilePatterns.cache[subscription.name] = (revision, matcher)
+  return matcher
+
+
+@LRUCacheWithTTL(ttl_seconds=60, maxsize=2)
 def ListAllConfigs(client):
   """Yield tuples of (config_set, revision, subscription)."""
   with client.transaction(read_only=True):
@@ -163,29 +192,22 @@ def ListAllConfigs(client):
 
   # From there we can then go through each of the subscriptions in the retrieved
   # configs
+  subscriptions = []
   for config in config_sets:
     sheriff_config = sheriff_pb2.SheriffConfig()
     sheriff_config.ParseFromString(config['sheriff_config'])
     for subscription in sheriff_config.subscriptions:
-      yield (config['config_set'], config['revision'], subscription)
+      subscriptions.append((
+          config['config_set'],
+          config['revision'],
+          subscription,
+      ))
+  return subscriptions
 
 
 def FindMatchingConfigs(client, request):
   """Yield tuples of (config_set, revision, subscription)."""
   for config_set, revision, subscription in ListAllConfigs(client):
-    for pattern in subscription.patterns:
-      # TODO(fancl): cache compiled regexp
-      if pattern.HasField('glob'):
-        matcher = re.compile(fnmatch.translate(pattern.glob))
-      elif pattern.HasField('regex'):
-        matcher = re.compile(pattern.regex)
-      else:
-        # TODO(dberris): this is the extension point for supporting new
-        # matchers; for now we'll skip the new patterns we don't handle yet.
-        continue
-      result = matcher.match(request.path)
-      if result is not None:
-        yield (config_set, revision, subscription)
-        # We break immediately after the yield, so that we can ignore the rest
-        # of the patterns defined for this subscription.
-        break
+    matcher = CompilePatterns(revision, subscription)
+    if matcher(request.path):
+      yield (config_set, revision, subscription)

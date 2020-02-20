@@ -20,7 +20,9 @@ from google.auth import credentials
 from google.cloud import datastore
 import base64
 import service
+import time
 import unittest
+from unittest import mock
 
 
 class LuciPollingTest(unittest.TestCase):
@@ -388,8 +390,15 @@ class LuciContentChangesTest(unittest.TestCase):
         '/configs/update', headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 200)
 
-    self.AssertProjectConfigSet1Holds(client, 404)
+    # Update doesn't take effect because of caching
+    self.AssertProjectConfigSet1Holds(client, 200)
     self.AssertProjectConfigSet2Holds(client, 200)
+
+    # mocking utils.Time to invalid caching
+    with mock.patch('utils.Time') as mock_time:
+      mock_time.method.return_value = (time.time() + 60)
+      self.AssertProjectConfigSet1Holds(client, 404)
+      self.AssertProjectConfigSet2Holds(client, 200)
 
   def testInvalidContentPulled(self):
     invalid_content = """
