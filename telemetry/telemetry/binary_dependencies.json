@@ -192,7 +192,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "linux_x86_64": {
-          "cloud_storage_hash": "9eac751ac8618d7cc3514792719c05e7722e9bdc",
+          "cloud_storage_hash": "3d0b7c55cac2a3b50c9973055561876ffe6025b3",
           "download_path": "bin/linux/x86_64/minidump_stackwalk"
         },
         "mac_x86_64": {
