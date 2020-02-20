@@ -37,9 +37,9 @@ def main():
   CREATE TABLE `chromeperf.chromeperf_dashboard_data.rows_test`
   (revision INT64 NOT NULL,
    value FLOAT64 NOT NULL,
-   error FLOAT64,
+   std_error FLOAT64,
    `timestamp` TIMESTAMP NOT NULL,
-   test_path STRING NOT NULL,
+   test STRING NOT NULL,
    master STRING,
    bot STRING,
    properties STRING)
@@ -48,9 +48,9 @@ def main():
   bq_row_schema = {'fields': [
       {'name': 'revision', 'type': 'INT64', 'mode': 'REQUIRED'},
       {'name': 'value', 'type': 'FLOAT', 'mode': 'REQUIRED'},
-      {'name': 'error', 'type': 'FLOAT', 'mode': 'NULLABLE'},
+      {'name': 'std_error', 'type': 'FLOAT', 'mode': 'NULLABLE'},
       {'name': 'timestamp', 'type': 'TIMESTAMP', 'mode': 'REQUIRED'},
-      {'name': 'test_path', 'type': 'STRING', 'mode': 'REQUIRED'},
+      {'name': 'test', 'type': 'STRING', 'mode': 'REQUIRED'},
       {'name': 'master', 'type': 'STRING', 'mode': 'NULLABLE'},
       {'name': 'bot', 'type': 'STRING', 'mode': 'NULLABLE'},
       {'name': 'properties', 'type': 'STRING', 'mode': 'NULLABLE'},
@@ -61,22 +61,22 @@ def main():
       d = {
           'revision': entity.key.id,
           'value': FloatHack(entity['value']),
-          'error': FloatHack(entity.get('error')),
+          'std_error': FloatHack(entity.get('error')),
           'timestamp': entity['timestamp'].isoformat(),
-          'test_path': entity.key.parent.name,
+          'test': entity.key.parent.name,
       }
       # Add the expando properties as a JSON-encoded dict.
       properties = {}
       for key, value in entity.items():
-        if key in d or key == 'parent_test':
+        if key in d or key in ['parent_test', 'error']:
           # skip properties with dedicated columns.
           continue
         if isinstance(value, float):
           value = FloatHack(value)
         properties[key] = value
       d['properties'] = json.dumps(properties) if properties else None
-      # Add columns derived from test_path: master, bot.
-      test_path_parts = d['test_path'].split('/', 2)
+      # Add columns derived from test: master, bot.
+      test_path_parts = d['test'].split('/', 2)
       if len(test_path_parts) >= 3:
         d['master'] = test_path_parts[0]
         d['bot'] = test_path_parts[1]
