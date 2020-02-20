@@ -24,7 +24,8 @@ class Page(story.Story):
                cache_temperature=cache_temperature_module.ANY,
                traffic_setting=traffic_setting_module.NONE,
                platform_specific=False,
-               extra_browser_args=None):
+               extra_browser_args=None,
+               perform_final_navigation=False):
     self._url = url
     self._SchemeErrorCheck()
 
@@ -42,6 +43,10 @@ class Page(story.Story):
     self._base_dir = base_dir
     self._name = name
     self._cache_temperature = cache_temperature
+    # A "final navigation" is a navigation to about:blank after the
+    # test in order to flush metrics. Some UMA metrics are not output to traces
+    # until the page is navigated away from.
+    self._perform_final_navigation = perform_final_navigation
 
     assert traffic_setting in traffic_setting_module.NETWORK_CONFIGS, (
         'Invalid traffic setting: %s' % traffic_setting)
@@ -83,6 +88,10 @@ class Page(story.Story):
       with shared_state.interval_profiling_controller.SamplePeriod(
           'interactions', action_runner):
         self.RunPageInteractions(action_runner)
+    # Navigate to about:blank in order to force previous page's metrics to
+    # flush. Needed for many UMA metrics reported from PageLoadMetricsObserver.
+    if self._perform_final_navigation:
+      action_runner.Navigate('about:blank')
 
   def RunNavigateSteps(self, action_runner):
     url = self.file_path_url_with_scheme if self.is_file else self.url
