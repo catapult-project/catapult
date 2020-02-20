@@ -60,10 +60,10 @@ class ParseError(Exception):
 
 
 class Expectation(object):
-    def __init__(self, reason='', test='*', tags=None, results=None, lineno=0,
+    def __init__(self, reason=None, test='*', tags=None, results=None, lineno=0,
                  retry_on_failure=False, is_slow_test=False,
                  conflict_resolution=ConflictResolutionTypes.UNION, raw_tags=None, raw_results=None,
-                 is_glob=False, trailing_comments=''):
+                 is_glob=False, trailing_comments=None):
         """Constructor for expectations.
 
         Args:
@@ -78,7 +78,9 @@ class Expectation(object):
         """
         tags = tags or []
         results = results or {ResultType.Pass}
-        assert python_2_3_compat.is_str(reason) or reason is None
+        reason = reason or ''
+        trailing_comments = trailing_comments or ''
+        assert python_2_3_compat.is_str(reason)
         assert python_2_3_compat.is_str(test)
         self._reason = reason
         self._test = test
@@ -389,7 +391,7 @@ class TaggedTestListParser(object):
         return Expectation(
             reason, test, tags, results, lineno, retry_on_failure, is_slow_test,
             self._conflict_resolution, raw_tags=raw_tags, raw_results=raw_results,
-            is_glob=is_glob, trailing_comments=trailing_comments or '')
+            is_glob=is_glob, trailing_comments=trailing_comments)
 
 
 class TestExpectations(object):
