@@ -1,35 +1,27 @@
 version: "3"
 services:
-  python-unittest-dashboard:
+  python-unittest:
     build: .
     volumes:
-      - ../..:/image/workspace:ro
-    command: [/workspace/dashboard/bin/run_py_tests, -t, -v]
+      - ../..:/image/catapult:ro
+    command: [/catapult/dashboard/bin/run_py_tests]
   deploy-dashboard:
     build: .
     volumes:
-      - ../..:/image/workspace:ro
+      - ../..:/image/catapult:ro
       - gcloud-config:/root/.config/gcloud
-    command: [/workspace/dashboard/bin/deploy, --promote, app.yaml, api.yaml, upload.yaml, upload-processing.yaml, dispatch.yaml, index.yaml]
+    command: [/catapult/dashboard/bin/deploy, --promote, app.yaml, api.yaml, upload.yaml, upload-processing.yaml, dispatch.yaml, index.yaml]
   deploy-pinpoint:
     build: .
     volumes:
-      - ../..:/image/workspace:ro
+      - ../..:/image/catapult:ro
       - gcloud-config:/root/.config/gcloud
-    command: [/workspace/dashboard/bin/deploy, --promote, pinpoint.yaml]
+    command: [/catapult/dashboard/bin/deploy, --promote, pinpoint.yaml]
   auth:
     build: .
     volumes:
       - gcloud-config:/root/.config/gcloud
     command: [bash, -xc, "gcloud auth login && gcloud config set project chromeperf"]
-  # Update workspace enviroment for cloud build deploy.
-  # We must make content available for outside gcloud client.
-  cloudbuild-prepare-deployment:
-    build: .
-    volumes:
-      - ../..:/workspace
-    working_dir: /workspace/dashboard
-    command: [./bin/deploy, --dry_run, --target_dir, /workspace/deploy-dashboard, --copy_files]
 networks:
   default:
     external:

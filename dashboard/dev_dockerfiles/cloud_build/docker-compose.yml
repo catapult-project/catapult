@@ -1,0 +1,21 @@
+version: "3"
+services:
+  dashboard-tests:
+    build:
+      # We need the whole catapult repository for now.
+      context: ../../..
+      dockerfile: dashboard/dev_dockerfiles/cloud_build/Dockerfile
+    volumes:
+    - /workspace:/workspace
+    command: [
+      'sh', '-x', /workspace/dashboard/dev_dockerfiles/cloud_build/run_tests.sh
+    ]
+  deploy-dashboard:
+    build:
+      context: ../../..
+      dockerfile: dashboard/dev_dockerfiles/cloud_build/Dockerfile
+    volumes:
+    - /workspace:/workspace
+    command: [
+      'sh', '-x', /workspace/dashboard/dev_dockerfiles/cloud_build/prepare_deployment.sh
+    ]

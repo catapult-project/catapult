@@ -31,9 +31,9 @@ ENV DATASTORE_DATASET chromeperf
 ENV DATASTORE_PROJECT_ID chromeperf
 ENV DATASTORE_EMULATOR_HOST $emulator_host:$emulator_port
 ENV DATASTORE_EMULATOR_HOST_PATH $emulator_host:$emulator_port/datastore
+ENV DATASTORE_HOST http://$emulator_host:$emulator_port
 # === Testing Enviroment End ===
 
 ADD . /app
 
 CMD python -m unittest discover -p 'test_*.py' -s /app
-ENTRYPOINT ["/app/tests/entrypoint.sh"]

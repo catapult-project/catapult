@@ -7,16 +7,25 @@ options:
   machineType: 'N1_HIGHCPU_8'
 steps:
 - name: 'gcr.io/$PROJECT_ID/docker-compose'
-  dir: '/workspace/dashboard/dev_dockerfiles'
+  dir: '/workspace/dashboard'
   args: [
-    'run', 'python-unittest-dashboard'
+    '-f', 'dev_dockerfiles/cloud_build/docker-compose.yml',
+    'build'
+  ]
+- name: 'gcr.io/$PROJECT_ID/docker-compose'
+  dir: '/workspace/dashboard'
+  args: [
+    '-f', 'dev_dockerfiles/cloud_build/docker-compose.yml',
+    'run', 'dashboard-tests'
   ]
 # We need to provide the auth token that the service account is using to the
 # container from which we're going to deploy the Dashboard services.
 - name: 'gcr.io/$PROJECT_ID/docker-compose'
-  dir: '/workspace/dashboard/dev_dockerfiles'
+  dir: '/workspace/dashboard'
   args: [
-    'run', 'cloudbuild-prepare-deployment'
+    '-f', 'dev_dockerfiles/cloud_build/docker-compose.yml',
+    'run',
+    'deploy-dashboard',
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   dir: '/workspace/deploy-dashboard'
