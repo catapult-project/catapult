@@ -46,7 +46,13 @@ def PrintCounters(pipeline_result):
   Useful for seeing metrics when running pipelines directly rather than in
   Dataflow.
   """
-  for counter in pipeline_result.metrics().query()['counters']:
+  try:
+    metrics = pipeline_result.metrics().query()
+  except ValueError:
+    # Don't crash if there are no metrics, e.g. if we were run with
+    # --template_location, which stages a job template but does not run the job.
+    return
+  for counter in metrics['counters']:
     print('Counter: ' + repr(counter))
     print('  = ' + str(counter.result))
 

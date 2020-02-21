@@ -12,6 +12,7 @@ import json
 import logging
 
 import apache_beam as beam
+from apache_beam.options.pipeline_options import DebugOptions
 from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.metrics import Metrics
@@ -26,6 +27,7 @@ from bq_export.utils import (FloatHack, PrintCounters,
 def main():
   project = 'chromeperf'
   options = PipelineOptions()
+  options.view_as(DebugOptions).add_experiment('use_beam_bq_sink')
   options.view_as(GoogleCloudOptions).project = project
   bq_export_options = options.view_as(BqExportOptions)
 
