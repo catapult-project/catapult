@@ -33,7 +33,8 @@ def LRUCacheWithTTL(ttl_seconds=60, **lru_args):
 # Modified from fnmatch.translate because it add \Z to the end of the
 # translated regexp which re2 doesn't support. The main differences are:
 # 1. * in glob won't match /, that should be unsuperising for most of users.
-# 2. Generate $ at the end of regexp instead of \Z so re2 can use the regular
+# 2. Support ** for recursively matching. It's same to .* in regexp.
+# 3. Generate $ at the end of regexp instead of \Z so re2 can use the regular
 # expression.
 def Translate(pat):
   """
@@ -47,7 +48,11 @@ def Translate(pat):
     c = pat[i]
     i = i+1
     if c == '*':
-      res = res + '[^/]*'
+      if i < n and pat[i] == '*':
+        res = res + '.*'
+        i = i+1
+      else:
+        res = res + '[^/]*'
     elif c == '?':
       res = res + '[^/]'
     elif c == '[':
@@ -70,4 +75,4 @@ def Translate(pat):
         res = '%s[%s]' % (res, stuff)
     else:
       res = res + re.escape(c)
-    return res + '$'
+  return res + '$'
