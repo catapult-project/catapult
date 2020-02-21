@@ -44,8 +44,7 @@ class MinidumpSymbolizer(object):
       None if the stack could not be retrieved for some reason, otherwise a
       string containing the stack trace.
     """
-    stackwalk = binary_manager.FetchPath(
-        'minidump_stackwalk', self._arch_name, self._os_name)
+    stackwalk = self._GetMinidumpStackwalkPath()
     if not stackwalk:
       logging.warning('minidump_stackwalk binary not found.')
       return None
@@ -76,6 +75,16 @@ class MinidumpSymbolizer(object):
   def GetBreakpadPlatformOverride(self):
     """Returns the platform to be passed to generate_breakpad_symbols."""
     return None
+
+  def _GetMinidumpStackwalkPath(self):
+    """Gets the path to the minidump_stackwalk binary to use."""
+    # TODO(https://crbug.com/1054583): Remove this once Telemetry searches
+    # locally for all dependencies automatically.
+    stackwalk_path = os.path.join(self._build_dir, 'minidump_stackwalk')
+    if not os.path.exists(stackwalk_path):
+      stackwalk_path = binary_manager.FetchPath(
+          'minidump_stackwalk', self._arch_name, self._os_name)
+    return stackwalk_path
 
   def _GenerateBreakpadSymbols(self, symbols_dir, minidump):
     """Generates Breakpad symbols for use with stackwalking tools.
