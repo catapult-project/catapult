@@ -22,7 +22,8 @@ def Get(id_string):
   """
   entity = ndb.Key(Commit, id_string).get(use_datastore=False)
   if not entity:
-    raise KeyError('Commit or Patch not found in the Datastore:\n' + id_string)
+    raise KeyError('Commit or Patch not found in the Datastore:\n' +
+                   str(id_string))
 
   return {
       'url': entity.url,
