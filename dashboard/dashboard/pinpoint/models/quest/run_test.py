@@ -14,7 +14,6 @@ from __future__ import absolute_import
 import collections
 import json
 import logging
-import re
 import shlex
 
 from dashboard.pinpoint.models import errors
@@ -260,16 +259,23 @@ class _RunTestExecution(execution_module.Execution):
       raise errors.SwarmingTaskError(result['state'])
 
     if result['failure']:
-      exception_string = ParseException(swarming_task.Stdout()['output'])
-      if exception_string:
-        raise errors.SwarmingTaskFailed(exception_string)
+      if 'outputs_ref' not in result:
+        task_url = 'https://%s/task?id=%s' % (self._swarming_server,
+                                              self._task_id)
+        raise errors.SwarmingTaskFailed('<a href="%s">%s</a>' %
+                                        (task_url, task_url))
       else:
-        raise errors.SwarmingTaskFailedNoException()
+        isolate_output_url = 'https://%s/browse?digest=%s' % (
+            result['outputs_ref']['isolatedserver'],
+            result['outputs_ref']['isolated'])
+        raise errors.SwarmingTaskFailed(
+            '<a href="%s">%s</a>' % (isolate_output_url, isolate_output_url))
 
     result_arguments = {
         'isolate_server': result['outputs_ref']['isolatedserver'],
         'isolate_hash': result['outputs_ref']['isolated'],
     }
+
     self._Complete(result_arguments=result_arguments)
 
 
@@ -330,44 +336,3 @@ class _RunTestExecution(execution_module.Execution):
     logging.debug('Response: %s', response)
 
     self._task_id = response['task_id']
-
-
-def ParseException(log):
-  """Searches a log for a stack trace and returns the exception string.
-
-  This function supports both default Python-style stacks and Telemetry-style
-  stacks. It returns the first stack trace found in the log - sometimes a bug
-  leads to a cascade of failures, so the first one is usually the root cause.
-
-  Args:
-    log: A string. The stderr log containing the stack trace(s).
-
-  Returns:
-    The exception string, or None if no traceback is found.
-  """
-  log_iterator = iter(log.splitlines())
-
-  # Look for the start of the traceback and stop there.
-  for line in log_iterator:
-    if line == 'Traceback (most recent call last):':
-      break
-  else:
-    return None
-
-  # The traceback alternates between "location of stack frame" and
-  # "code at that location", then ends with the exception string.
-  for line in log_iterator:
-    # Look for the line containing the location of the stack frame.
-    match1 = re.match(r'\s*File "(?P<file>.+)", line (?P<line>[0-9]+), '
-                      'in (?P<function>.+)', line)
-    match2 = re.match(r'\s*(?P<function>.+) at '
-                      '(?P<file>.+):(?P<line>[0-9]+)', line)
-
-    if not (match1 or match2):
-      # No more stack frames. Return the exception string!
-      return line
-
-    # Skip the line containing the code at the stack frame location.
-    next(log_iterator)
-
-

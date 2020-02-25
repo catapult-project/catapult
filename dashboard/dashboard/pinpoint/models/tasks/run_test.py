@@ -165,15 +165,17 @@ class PollSwarmingTaskAction(
     new_state = 'completed'
     if result.get('failure', False):
       new_state = 'failed'
-      exception_string = run_test_quest.ParseException(
-          swarming_task.Stdout()['output'])
-      if not exception_string:
-        exception_string = 'No exception found in Swarming task output.'
       self.task.payload.update({
-          'errors': self.task.payload.get('errors', []) + [{
-              'reason': 'RunTestFailed',
-              'message': 'Running the test failed: %s' % (exception_string,)
-          }]
+          'errors':
+              self.task.payload.get('errors', []) + [{
+                  'reason':
+                      'RunTestFailed',
+                  'message': ('Running the test failed, see isolate output: '
+                              'https://%s/browse?digest=%s' % (
+                                  self.task.payload.get('isolate_server'),
+                                  self.task.payload.get('isolate_hash'),
+                              ))
+              }]
       })
     task_module.UpdateTask(
         self.job, self.task.id, new_state=new_state, payload=self.task.payload)

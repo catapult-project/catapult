@@ -23,7 +23,6 @@ Here's the exception hierarchy:
    |    +-- CancelError
    |    +-- SwarmingTaskError
    |    +-- SwarmingTaskFailed
-   |    +-- SwarmingTaskFailedNoException
    |    +-- SwarmingNoBots
    |    +-- ReadValidNoValues
    |    +-- ReadValueNotFound
@@ -108,7 +107,7 @@ class BuildCancelled(InformationalError):
     super(BuildCancelled,
           self).__init__('The build was cancelled with reason: %s. "\
         "Pinpoint will be unable to run any tests against this "\
-        "revision.' % reason)
+        "revision.'                    % reason)
 
 
 class BuildGerritUrlNotFound(InformationalError):
@@ -165,22 +164,13 @@ class SwarmingTaskFailed(InformationalError):
 
   category = 'test'
 
-  def __init__(self, taskOutput):
+  def __init__(self, task_output):
     super(SwarmingTaskFailed, self).__init__(
-        'The test ran but failed. This is likely to a problem with the test '\
-        'itself either being broken or flaky in the range specified.\n\n'\
-        'The test failed with the following error:')
-    self.task_output = taskOutput
-
-
-class SwarmingTaskFailedNoException(InformationalError):
-
-  category = 'test'
-
-  def __init__(self):
-    super(SwarmingTaskFailedNoException, self).__init__(
-        'The test was run but failed and Pinpoint was unable to parse the '\
-        'exception from the logs.')
+        'The test ran but failed. This is likely to a problem with the test '
+        'itself either being broken or flaky in the range specified.\n\n'
+        'Please click through to the task isolate output at:'
+        ' %s' % (task_output,))
+    self.task_output = task_output
 
 
 class SwarmingNoBots(InformationalError):

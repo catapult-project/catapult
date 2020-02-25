@@ -10,6 +10,7 @@ import collections
 import json
 import mock
 import unittest
+import logging
 
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models.quest import run_test
@@ -311,6 +312,10 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
         'exit_code': 1,
         'failure': True,
         'state': 'COMPLETED',
+        'outputs_ref': {
+            'isolatedserver': 'server',
+            'isolated': 'deadc0de',
+        },
     }
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
@@ -321,37 +326,9 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
 
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    last_exception_line = execution.exception['traceback'].splitlines()[-1]
-    self.assertTrue(last_exception_line.startswith('SwarmingTaskFailed'))
-
-  @mock.patch('dashboard.services.swarming.Task.Stdout')
-  def testTestErrorWithPythonException(
-      self, swarming_task_stdout, swarming_task_result, swarming_tasks_new):
-    swarming_task_stdout.return_value = {
-        'output': """Traceback (most recent call last):
-  File "../../testing/scripts/run_performance_tests.py", line 282, in <module>
-    sys.exit(main())
-  File "../../testing/scripts/run_performance_tests.py", line 226, in main
-    benchmarks = args.benchmark_names.split(',')
-AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
-    }
-    swarming_task_result.return_value = {
-        'bot_id': 'bot id',
-        'exit_code': 1,
-        'failure': True,
-        'state': 'COMPLETED',
-    }
-    swarming_tasks_new.return_value = {'task_id': 'task id'}
-
-    quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS)
-    execution = quest.Start(None, 'isolate server', 'isolate_hash')
-    execution.Poll()
-    execution.Poll()
-
-    self.assertTrue(execution.completed)
-    self.assertTrue(execution.failed)
-    last_exception_line = execution.exception['traceback'].splitlines()[-1]
-    self.assertRegexpMatches(last_exception_line, '^AttributeError.*')
+    logging.debug('Exception: %s', execution.exception)
+    self.assertIn('https://server/browse?digest=deadc0de',
+                  execution.exception['traceback'])
 
 
 @mock.patch('dashboard.services.swarming.Tasks.New')
