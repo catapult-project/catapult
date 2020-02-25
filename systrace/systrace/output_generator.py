@@ -28,6 +28,7 @@ _SYSTRACE_TO_TRACE_DATA_NAME_MAPPING = {
     'systraceController': trace_data.TELEMETRY_PART,
     'traceEvents': trace_data.CHROME_TRACE_PART,
     'waltTrace': trace_data.WALT_TRACE_PART,
+    'cgroupDump': trace_data.CGROUP_TRACE_PART,
 }
 _SYSTRACE_HEADER = 'Systrace'
 

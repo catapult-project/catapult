@@ -47,10 +47,11 @@ from systrace.tracing_agents import atrace_from_file_agent
 from systrace.tracing_agents import atrace_process_dump
 from systrace.tracing_agents import ftrace_agent
 from systrace.tracing_agents import walt_agent
+from systrace.tracing_agents import android_cgroup_agent
 
 
 ALL_MODULES = [atrace_agent, atrace_from_file_agent, atrace_process_dump,
-               ftrace_agent, walt_agent]
+               ftrace_agent, walt_agent, android_cgroup_agent]
 
 
 def parse_options(argv):

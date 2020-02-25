@@ -61,6 +61,7 @@ CHROME_TRACE_PART = TraceDataPart('traceEvents')
 CPU_TRACE_DATA = TraceDataPart('cpuSnapshots')
 TELEMETRY_PART = TraceDataPart('telemetry')
 WALT_TRACE_PART = TraceDataPart('waltTraceEvents')
+CGROUP_TRACE_PART = TraceDataPart('cgroupDump')
 
 ALL_TRACE_PARTS = {ANDROID_PROCESS_DATA_PART,
                    ATRACE_PART,
