@@ -158,6 +158,12 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
         self.finder_options, self.fake_platform)
     self.assertNotIn('reference', [b.browser_type for b in possible_browsers])
 
+  def testWebViewBrowserReturned(self):
+    self.finder_options.browser_type = 'android-webview'
+    possible_browsers = android_browser_finder._FindAllPossibleBrowsers(
+        self.finder_options, self.fake_platform)
+    self.assertEqual(possible_browsers[0].target_os, 'android_webview')
+
   def testCanPossiblyHandlePath(self):
     self.assertTrue(android_browser_finder._CanPossiblyHandlePath('foo.apk'))
     self.assertTrue(android_browser_finder._CanPossiblyHandlePath('foo_bundle'))

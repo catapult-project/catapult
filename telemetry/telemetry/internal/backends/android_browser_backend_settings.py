@@ -79,6 +79,11 @@ class AndroidBrowserBackendSettings(_BackendSettingsTuple):
     else:
       return util.FindLatestApkOnHost(chrome_root, apk_name)
 
+  # returns True if this is a WebView browser and WebView-specific
+  # field trial configurations should apply.
+  def IsWebView(self):
+    return False
+
 
 class GenericChromeBackendSettings(AndroidBrowserBackendSettings):
   def __new__(cls, **kwargs):
@@ -165,6 +170,9 @@ class WebViewBackendSettings(WebViewBasedBackendSettings):
         return [embedder_apk_path]
     return []
 
+  def IsWebView(self):
+    return True
+
 
 class WebViewGoogleBackendSettings(WebViewBackendSettings):
   def GetApkName(self, device):
@@ -214,6 +222,9 @@ class WebLayerBackendSettings(WebViewBackendSettings):
     del device # Unused
     assert self.apk_name is None
     return 'Monochrome.apk'
+
+  def IsWebView(self):
+    return False
 
 
 ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
