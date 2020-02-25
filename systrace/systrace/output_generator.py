@@ -62,7 +62,7 @@ def GenerateHTMLOutput(trace_results, output_file_name):
   # Java verison of systrace. Java systrace is expected to be deleted at a later
   # date. We should consolidate this logic when that happens.
 
-  if len(trace_results) > 3:
+  if len(trace_results) > 4:
     NewGenerateHTMLOutput(trace_results, output_file_name)
     return os.path.abspath(output_file_name)
 

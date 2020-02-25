@@ -22,6 +22,7 @@ ATRACE_DATA = os.path.join(TEST_DIR, 'atrace_data')
 ATRACE_PROCESS_DUMP_DATA = os.path.join(TEST_DIR, 'atrace_procfs_dump')
 COMBINED_PROFILE_CHROME_DATA = os.path.join(
     TEST_DIR, 'profile-chrome_systrace_perf_chrome_data')
+CGROUP_DUMP_DATA = os.path.join(TEST_DIR, 'cgroup_dump')
 
 
 class OutputGeneratorTest(unittest.TestCase):
@@ -84,6 +85,14 @@ class OutputGeneratorTest(unittest.TestCase):
           'atraceProcessDump', atrace_process_dump_data))
       trace_data_builder.AddTraceFor(trace_data_module.ATRACE_PROCESS_DUMP_PART,
                                      atrace_process_dump_data,
+                                     allow_unstructured=True)
+
+      with open(CGROUP_DUMP_DATA) as fp:
+        cgroup_dump_data = fp.read()
+      trace_results.append(trace_result.TraceResult(
+          'cgroupDump', cgroup_dump_data))
+      trace_data_builder.AddTraceFor(trace_data_module.CGROUP_TRACE_PART,
+                                     cgroup_dump_data,
                                      allow_unstructured=True)
 
       with open(COMBINED_PROFILE_CHROME_DATA) as fp:
