@@ -12,7 +12,7 @@ cron:
 
 - description: Mark alerts as recovered.
   url: /mark_recovered_alerts
-  schedule: every 6 hours
+  schedule: every 1 hours
 
 - description: Run a job to mark tests as deprecated.
   url: /deprecate_tests
