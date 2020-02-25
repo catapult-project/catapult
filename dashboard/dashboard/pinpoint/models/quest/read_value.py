@@ -51,9 +51,12 @@ class ReadValue(quest.Quest):
   def __str__(self):
     return 'Get values'
 
-  def Start(self, _, isolate_server, isolate_hash):
+  def Start(self, change, isolate_server, isolate_hash):
     # Here we create an execution that can handle both histograms and graph
     # json and any other format we support later.
+    # TODO(dberris): It seems change is a required input, need to preserve this
+    # for forward/backward compatibility.
+    del change
     return ReadValueExecution(self._results_filename, self._metric,
                               self._grouping_label, self._trace_or_story,
                               self._statistic, self._chart, isolate_server,
