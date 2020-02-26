@@ -9,7 +9,7 @@
 
 namespace catapult {
 
-void RunningStatistics::Add(float value) {
+void RunningStatistics::Add(double value) {
   count_++;
 
   max_ = std::max(max_, value);
@@ -28,8 +28,8 @@ void RunningStatistics::Add(float value) {
     mean_ = value;
     variance_ = 0.0;
   } else {
-    float old_mean = mean_;
-    float old_variance = variance_;
+    double old_mean = mean_;
+    double old_variance = variance_;
 
     // Using the 2nd formula for updating the mean yields better precision but
     // it doesn't work for the case old_mean is Infinity. Hence we handle that
@@ -44,12 +44,12 @@ void RunningStatistics::Add(float value) {
   }
 }
 
-float RunningStatistics::meanlogs() const {
+double RunningStatistics::meanlogs() const {
   assert(meanlogs_valid_);
   return meanlogs_;
 }
 
-float RunningStatistics::variance() const {
+double RunningStatistics::variance() const {
   if (count() == 0 || count() == 1) {
     return 0;
   }

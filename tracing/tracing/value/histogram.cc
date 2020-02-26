@@ -45,9 +45,9 @@ class HistogramBuilder::Resampler {
   // |max_num_samples|. After |stream_length| samples have been processed, each
   // sample has equal probability of being retained in |samples|. The order of
   // samples is not preserved after |stream_length| exceeds |num_samples|.
-  void UniformlySampleStream(std::vector<float>* samples,
+  void UniformlySampleStream(std::vector<double>* samples,
                              uint32_t stream_length,
-                             float new_element,
+                             double new_element,
                              uint32_t max_num_samples) {
     assert(max_num_samples > 0);
 
@@ -59,7 +59,7 @@ class HistogramBuilder::Resampler {
       }
       return;
     }
-    float prob_keep = static_cast<float>(max_num_samples) / stream_length;
+    double prob_keep = static_cast<double>(max_num_samples) / stream_length;
     if (random() > prob_keep) {
       // Reject new sample.
       return;
@@ -71,10 +71,10 @@ class HistogramBuilder::Resampler {
   }
 
  private:
-  float random() { return distribution_(generator_); }
+  double random() { return distribution_(generator_); }
 
   std::default_random_engine generator_;
-  std::uniform_real_distribution<float> distribution_;
+  std::uniform_real_distribution<double> distribution_;
 };
 
 HistogramBuilder::HistogramBuilder(
@@ -89,7 +89,7 @@ HistogramBuilder::HistogramBuilder(
 
 HistogramBuilder::~HistogramBuilder() = default;
 
-void HistogramBuilder::AddSample(float value) {
+void HistogramBuilder::AddSample(double value) {
   if (std::isnan(value)) {
     num_nans_++;
   } else {
@@ -122,7 +122,7 @@ std::unique_ptr<proto::Histogram> HistogramBuilder::toProto() const {
     (*diagnostic_map)[pair.first] = pair.second;
   }
 
-  for (float sample: sample_values_) {
+  for (double sample: sample_values_) {
     histogram->add_sample_values(sample);
   }
 

@@ -11,29 +11,29 @@ class RunningStatistics {
  public:
   RunningStatistics()
       : count_(0), mean_(0.0),
-        max_(std::numeric_limits<float>::min()),
-        min_(std::numeric_limits<float>::max()),
+        max_(std::numeric_limits<double>::min()),
+        min_(std::numeric_limits<double>::max()),
         sum_(0.0), variance_(0.0), meanlogs_(0.0), meanlogs_valid_(true) {}
 
-  void Add(float value);
+  void Add(double value);
 
   int count() const { return count_;}
-  float mean() const { return mean_;}
-  float max() const { return max_;}
-  float min() const { return min_;}
-  float sum() const { return sum_;}
-  float variance() const;
-  float meanlogs() const;
+  double mean() const { return mean_;}
+  double max() const { return max_;}
+  double min() const { return min_;}
+  double sum() const { return sum_;}
+  double variance() const;
+  double meanlogs() const;
   bool meanlogs_valid() const { return meanlogs_valid_; }
 
  private:
   int count_;
-  float mean_;
-  float max_;
-  float min_;
-  float sum_;
-  float variance_;
-  float meanlogs_;  // Mean of logarithms of samples.
+  double mean_;
+  double max_;
+  double min_;
+  double sum_;
+  double variance_;
+  double meanlogs_;  // Mean of logarithms of samples.
   bool meanlogs_valid_;
 };
 
