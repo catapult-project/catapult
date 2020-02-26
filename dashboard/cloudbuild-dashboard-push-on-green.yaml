@@ -30,4 +30,6 @@ steps:
     app.yaml,
     upload-processing.yaml,
     upload.yaml,
+    # Deploy Pinpoint as well.
+    pinpoint.yaml,
   ]
