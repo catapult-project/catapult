@@ -58,7 +58,8 @@ class DeviceTempFile(object):
     # ignore exception if the file is already gone.
     def delete_temporary_file():
       try:
-        self._adb.Shell('rm -f %s' % self.name_quoted, expect_status=None)
+        self._adb.Shell(
+            'rm -f %s' % self.name_quoted, expect_status=None, retries=0)
       except base_error.BaseError as e:
         # We don't really care, and stack traces clog up the log.
         # Log a warning and move on.
