@@ -106,6 +106,10 @@ void HistogramBuilder::AddDiagnostic(
   diagnostics_[key] = diagnostic;
 }
 
+void HistogramBuilder::SetSummaryOptions(proto::SummaryOptions options) {
+  options_ = options;
+}
+
 std::unique_ptr<proto::Histogram> HistogramBuilder::toProto() const {
   auto histogram = std::make_unique<proto::Histogram>();
   histogram->set_name(name_);
@@ -137,6 +141,8 @@ std::unique_ptr<proto::Histogram> HistogramBuilder::toProto() const {
   running->set_sum(running_statistics_->sum());
   running->set_variance(running_statistics_->variance());
 
+  proto::SummaryOptions* options = histogram->mutable_summary_options();
+  *options = options_;
 
   return histogram;
 }

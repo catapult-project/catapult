@@ -181,7 +181,8 @@ message Histogram {
   map<int32, Bin> all_bins = 11;
 
   // This allows metrics to specify which summary statistics are interesting and
-  // should be displayed.
+  // should be displayed. If not set, this will fall back to some suitable
+  // default (see histogram.py).
   SummaryOptions summary_options = 12;
 }
 

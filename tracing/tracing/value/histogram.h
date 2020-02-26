@@ -34,6 +34,8 @@ class HistogramBuilder {
 
   void AddSample(float value);
 
+  void SetSummaryOptions(tracing::tracing::proto::SummaryOptions options);
+
   std::unique_ptr<tracing::tracing::proto::Histogram> toProto() const;
 
  private:
@@ -44,6 +46,7 @@ class HistogramBuilder {
   int max_num_sample_values_;
   std::string name_;
   std::string description_;
+  tracing::tracing::proto::SummaryOptions options_;
   tracing::tracing::proto::UnitAndDirection unit_;
   std::vector<float> sample_values_;
   std::unordered_map<std::string, tracing::tracing::proto::Diagnostic>

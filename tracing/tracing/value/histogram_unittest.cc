@@ -151,6 +151,21 @@ TEST(HistogramTest, DoesNotWriteMeanlogsIfNegativeSampleAdded) {
   ASSERT_EQ(histogram->running().meanlogs(), 0);
 }
 
+TEST(HistogramTest, WritesSummaryOptions) {
+  HistogramBuilder builder("", UnitWhatever());
+
+  proto::SummaryOptions options;
+  options.set_count(false);
+  options.set_avg(true);
+  builder.SetSummaryOptions(options);
+
+  auto histogram = builder.toProto();
+
+  ASSERT_EQ(histogram->summary_options().count(), false);
+  ASSERT_EQ(histogram->summary_options().avg(), true);
+  ASSERT_EQ(histogram->summary_options().nans(), false);
+}
+
 TEST(HistogramTest, UnitFromJsonUnitConvertsUnits) {
   EXPECT_EQ(proto::MS, UnitFromJsonUnit("ms"));
   EXPECT_EQ(proto::TS_MS, UnitFromJsonUnit("tsMs"));
