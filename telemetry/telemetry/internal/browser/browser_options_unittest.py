@@ -184,3 +184,19 @@ class BrowserOptionsTest(unittest.TestCase):
       self.assertTrue(False)  # pylint: disable=redundant-unittest-assert
     except RuntimeError as e:
       self.assertIn('Some unique message', str(e))
+
+  # Regression test for crbug.com/1056281.
+  def testPathsDontDropSlashes(self):
+    log_file = '--log-file=%s' % os.path.join('some', 'test', 'path.txt')
+    options = browser_options.BrowserFinderOptions()
+    parser = options.CreateParser()
+    parser.parse_args([
+        '--interval-profiler-options=%s' % log_file,
+        '--extra-browser-args=%s' % log_file,
+        '--extra-wpr-args=%s' % log_file,
+    ])
+
+    self.assertEquals(options.interval_profiler_options, [log_file])
+    self.assertEquals(
+        options.browser_options.extra_browser_args, set([log_file]))
+    self.assertEquals(options.browser_options.extra_wpr_args, [log_file])

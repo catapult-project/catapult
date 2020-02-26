@@ -24,6 +24,10 @@ from telemetry.internal.util import binary_manager
 from telemetry.util import wpr_modes
 
 
+def _IsWin():
+  return sys.platform == 'win32'
+
+
 class BrowserFinderOptions(optparse.Values):
   """Options to be used for discovering a browser."""
 
@@ -338,7 +342,7 @@ class BrowserFinderOptions(optparse.Values):
         sys.exit(1)
 
       self.interval_profiler_options = shlex.split(
-          self.interval_profiler_options)
+          self.interval_profiler_options, posix=(not _IsWin()))
 
       # Parse browser options.
       self.browser_options.UpdateFromParseResults(self)
@@ -564,13 +568,11 @@ class BrowserOptions(object):
     self.browser_type = finder_options.browser_type
 
     if hasattr(self, 'extra_browser_args_as_string'):
-      tmp = shlex.split(
-          self.extra_browser_args_as_string)
+      tmp = shlex.split(self.extra_browser_args_as_string, posix=(not _IsWin()))
       self.AppendExtraBrowserArgs(tmp)
       delattr(self, 'extra_browser_args_as_string')
     if hasattr(self, 'extra_wpr_args_as_string'):
-      tmp = shlex.split(
-          self.extra_wpr_args_as_string)
+      tmp = shlex.split(self.extra_wpr_args_as_string, posix=(not _IsWin()))
       self.extra_wpr_args.extend(tmp)
       delattr(self, 'extra_wpr_args_as_string')
     if self.profile_type == 'default':
