@@ -117,14 +117,27 @@ class ReadValueExecution(execution.Execution):
     histogram_exception = None
     graph_json_exception = None
     try:
+      logging.debug('Attempting to parse as a HistogramSet.')
       result_values = self._ParseHistograms(json_data)
-    except Exception:  # pylint: disable=broad-except
+      logging.debug('Succeess.')
+    except (errors.ReadValueNotFound, errors.ReadValueNoValues,
+            errors.FatalError):
+      raise
+    except (errors.InformationalError, errors.ReadValueUnknownFormat) as e:
+      # In case we encounter any other error, we should log and proceed.
+      logging.error('Failed parsing histograms: %s', e)
       histogram_exception = sys.exc_info()[1]
 
     if histogram_exception:
       try:
+        logging.debug('Attempting to parse as GraphJSON.')
         result_values = self._ParseGraphJson(json_data)
-      except Exception: # pylint: disable=broad-except
+        logging.debug('Succeess.')
+      except (errors.ReadValueChartNotFound, errors.ReadValueTraceNotFound,
+              errors.FatalError):
+        raise
+      except errors.InformationalError as e:
+        logging.error('Failed parsing histograms: %s', e)
         graph_json_exception = sys.exc_info()[1]
 
     if histogram_exception and graph_json_exception:
@@ -134,7 +147,12 @@ class ReadValueExecution(execution.Execution):
 
   def _ParseHistograms(self, json_data):
     histograms = histogram_set.HistogramSet()
-    histograms.ImportDicts(json_data)
+    try:
+      histograms.ImportDicts(json_data)
+    except BaseException:
+      raise errors.ReadValueUnknownFormat(self._results_filename)
+
+    self._trace_urls = FindTraceUrls(histograms)
     histograms_by_path = CreateHistogramSetByTestPathDict(histograms)
     histograms_by_path_optional_grouping_label = (
         CreateHistogramSetByTestPathDict(
@@ -163,7 +181,7 @@ class ReadValueExecution(execution.Execution):
     return result_values
 
   def _ParseGraphJson(self, json_data):
-    if not self._chart and not self._trace:
+    if not self._chart and not self._trace_or_story:
       return []
     if self._chart not in json_data:
       raise errors.ReadValueChartNotFound(self._chart)
@@ -236,8 +254,9 @@ def RetrieveOutputJson(isolate_server, isolate_hash, filename):
   logging.debug('Retrieving json output (%s, %s, %s)', isolate_server,
                 isolate_hash, filename)
 
-  output_files = json.loads(isolate.Retrieve(isolate_server,
-                                             isolate_hash))['files']
+  retrieve_result = isolate.Retrieve(isolate_server, isolate_hash)
+  response = json.loads(retrieve_result)
+  output_files = response.get('files', {})
 
   if filename not in output_files:
     if 'performance_browser_tests' not in filename:
