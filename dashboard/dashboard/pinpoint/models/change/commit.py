@@ -166,14 +166,18 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
 
     If the repository url is unknown, it will be added to the local datastore.
 
+    If the repository is on the exclusion list returns None.
+
     Arguments:
       dep: A Dep namedtuple.
 
     Returns:
-      A Commit.
+      A Commit or None.
     """
     repository = repository_module.RepositoryName(
         dep.repository_url, add_if_missing=True)
+    if repository in utils.GetRepositoryExclusions():
+      return None
     commit = cls(repository, dep.git_hash)
     commit._repository_url = dep.repository_url
     return commit
