@@ -711,3 +711,10 @@ class ReadValueTest(_ReadValueExecutionTest):
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
     self.assertReadValueError(execution, 'ReadValueNotFound')
+
+  def testMetricPropertyReturnsChart(self):
+    quest = read_value.ReadValue(
+        results_filename='somefile.json',
+        chart='somechart',
+        trace_or_story='trace')
+    self.assertEqual(quest.metric, 'somechart')

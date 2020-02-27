@@ -51,6 +51,10 @@ class ReadValue(quest.Quest):
   def __str__(self):
     return 'Get values'
 
+  @property
+  def metric(self):
+    return self._chart
+
   def Start(self, change, isolate_server, isolate_hash):
     # Here we create an execution that can handle both histograms and graph
     # json and any other format we support later.
