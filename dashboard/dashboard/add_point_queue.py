@@ -18,13 +18,12 @@ from dashboard import add_point
 from dashboard import find_anomalies
 from dashboard import graph_revisions
 from dashboard import units_to_direction
+from dashboard import sheriff_config_client
 from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
-from dashboard.sheriff_config_client import SheriffConfigClient
-
 
 class AddPointQueueHandler(request_handler.RequestHandler):
   """Request handler to process points and add them to the datastore.
@@ -69,7 +68,7 @@ class AddPointQueueHandler(request_handler.RequestHandler):
 
     ndb.Future.wait_all(all_put_futures)
 
-    client = SheriffConfigClient()
+    client = sheriff_config_client.GetSheriffConfigClient()
     tests_keys = []
     for t in parent_tests:
       reason = []

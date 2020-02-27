@@ -16,6 +16,17 @@ from google.auth.transport.requests import AuthorizedSession
 from google.protobuf import json_format
 
 
+def GetSheriffConfigClient():
+  """Get a cached SheriffConfigClient instance.
+  Most code should use this rather than constructing a SheriffConfigClient
+  directly.
+  """
+  # pylint: disable=protected-access
+  if not hasattr(GetSheriffConfigClient, '_client'):
+    GetSheriffConfigClient._client = SheriffConfigClient()
+  return GetSheriffConfigClient._client
+
+
 class SheriffConfigClient(object):
   """Wrapping of sheriff-config HTTP API."""
 
