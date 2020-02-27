@@ -9,10 +9,10 @@ from __future__ import print_function
 import json
 
 from dashboard import speed_releasing
+from dashboard import sheriff_config_client
 from dashboard.common import testing_common
 from dashboard.models.subscription import Subscription
 from dashboard.models.subscription import VISIBILITY
-from dashboard.sheriff_config_client import SheriffConfigClient
 import mock
 
 _SAMPLE_BOTS = ['ChromiumPerf/win', 'ChromiumPerf/linux']
@@ -27,7 +27,7 @@ RECENT_REV = speed_releasing.CHROMIUM_MILESTONES[
     speed_releasing.CURRENT_MILESTONE][0] + 42
 
 
-@mock.patch.object(SheriffConfigClient, '__init__',
+@mock.patch.object(sheriff_config_client.SheriffConfigClient, '__init__',
                    mock.MagicMock(return_value=None))
 class SheriffConfigClientTest(testing_common.TestCase):
 
@@ -58,7 +58,7 @@ class SheriffConfigClientTest(testing_common.TestCase):
       return self._response
 
   def testMatch(self):
-    clt = SheriffConfigClient()
+    clt = sheriff_config_client.SheriffConfigClient()
     response_text = """
     {
       "subscriptions": [
@@ -105,7 +105,7 @@ class SheriffConfigClientTest(testing_common.TestCase):
     self.assertEqual(clt.Match('Foo2/a/Bar2/b'), (expected, None))
 
   def testList(self):
-    clt = SheriffConfigClient()
+    clt = sheriff_config_client.SheriffConfigClient()
     response_text = """
     {
       "subscriptions": [
@@ -152,8 +152,14 @@ class SheriffConfigClientTest(testing_common.TestCase):
     self.assertEqual(clt.List(), (expected, None))
 
   def testMatchFailed(self):
-    clt = SheriffConfigClient()
+    clt = sheriff_config_client.SheriffConfigClient()
     clt._session = self._Session(self._Response(False, 'some error message'))
     res, err_msg = clt.Match('Foo2/a/Bar2/b')
     self.assertIsNone(res)
     self.assertIn('some error message', err_msg)
+
+  def testMatchFailedCheck(self):
+    clt = sheriff_config_client.SheriffConfigClient()
+    clt._session = self._Session(self._Response(False, 'some error message'))
+    with self.assertRaises(sheriff_config_client.InternalServerError):
+      clt.Match('Foo2/a/Bar2/b', check=True)

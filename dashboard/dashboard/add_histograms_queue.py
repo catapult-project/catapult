@@ -214,9 +214,10 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
     reason = []
     request_sampling_percentage = 0.2
     if random.random() < request_sampling_percentage:
-      subscriptions, err_msg = client.Match(test.test_path)
-      logging.info('Sheriff Config Matching: %s err=%s', subscriptions, err_msg)
-    if not test.sheriff:
+      subscriptions, _ = client.Match(test.test_path, check=True)
+      if not subscriptions:
+        reason.append('subscriptions')
+    elif not test.sheriff:
       reason.append('sheriff')
     if not test.has_rows:
       reason.append('has_rows')

@@ -13,20 +13,15 @@ from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
 
 from dashboard import email_template
+from dashboard import sheriff_config_client
 from dashboard.common import descriptor
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_label_patterns
-from dashboard.sheriff_config_client import SheriffConfigClient
 
 _MAX_ANOMALIES_TO_COUNT = 5000
 _MAX_ANOMALIES_TO_SHOW = 500
-
-
-class InternalServerError(Exception):
-  """An error indicating that something unexpected happens."""
-  pass
 
 
 class AlertsHandler(request_handler.RequestHandler):
@@ -105,10 +100,8 @@ def _SheriffIsFound(sheriff_name):
 
 def _GetSheriffList():
   """Returns a list of sheriff names for all sheriffs in the datastore."""
-  clt = SheriffConfigClient()
-  subscriptions, err_msg = clt.List()
-  if err_msg:
-    raise InternalServerError(err_msg)
+  client = sheriff_config_client.GetSheriffConfigClient()
+  subscriptions, _ = client.List(check=True)
   return [s.name for s in subscriptions]
 
 

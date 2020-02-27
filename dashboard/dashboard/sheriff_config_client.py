@@ -16,6 +16,11 @@ from google.auth.transport.requests import AuthorizedSession
 from google.protobuf import json_format
 
 
+class InternalServerError(Exception):
+  """An error indicating that something unexpected happens."""
+  pass
+
+
 def GetSheriffConfigClient():
   """Get a cached SheriffConfigClient instance.
   Most code should use this rather than constructing a SheriffConfigClient
@@ -51,33 +56,42 @@ class SheriffConfigClient(object):
         visibility=subscription.visibility,
     )
 
-  def Match(self, path):
+  def Match(self, path, check=False):
     response = self._session.post(
         'https://sheriff-config-dot-chromeperf.appspot.com/subscriptions/match',
         json={'path': path})
     if response.status_code == 404: # If no subscription matched
       return [], None
     if not response.ok:
-      return None, '%r\n%s' % (response, response.text)
+      err_msg = '%r\n%s' % (response, response.text)
+      if check:
+        raise InternalServerError(err_msg)
+      return None, err_msg
     match_resp = json_format.Parse(response.text,
                                    sheriff_config_pb2.MatchResponse())
     return [self._ParseSubscription(s.revision, s.subscription)
             for s in match_resp.subscriptions], None
 
-  def List(self):
+  def List(self, check=False):
     response = self._session.post(
         'https://sheriff-config-dot-chromeperf.appspot.com/subscriptions/list',
         json={'identity_email': GetEmail()})
     if not response.ok:
-      return None, '%r\n%s' % (response, response.text)
+      err_msg = '%r\n%s' % (response, response.text)
+      if check:
+        raise InternalServerError(err_msg)
+      return None, err_msg
     list_resp = json_format.Parse(response.text,
                                   sheriff_config_pb2.ListResponse())
     return [self._ParseSubscription(s.revision, s.subscription)
             for s in list_resp.subscriptions], None
 
-  def Update(self):
+  def Update(self, check=False):
     response = self._session.get(
         'https://sheriff-config-dot-chromeperf.appspot.com/configs/update')
     if response.ok:
       return True, None
-    return False, '%r\n%s' % (response, response.text)
+    err_msg = '%r\n%s' % (response, response.text)
+    if check:
+      raise InternalServerError(err_msg)
+    return False, err_msg
