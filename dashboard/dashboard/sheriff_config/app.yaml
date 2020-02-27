@@ -3,7 +3,7 @@ runtime: custom
 env: flex
 
 automatic_scaling:
-  min_num_instances: 3
+  min_num_instances: 10
   max_num_instances: 50
   cool_down_period_sec: 180
   cpu_utilization:

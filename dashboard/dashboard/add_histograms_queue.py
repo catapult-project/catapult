@@ -212,7 +212,7 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
 
   def IsMonitored(client, test):
     reason = []
-    request_sampling_percentage = 0.2
+    request_sampling_percentage = 0.5
     if random.random() < request_sampling_percentage:
       subscriptions, _ = client.Match(test.test_path, check=True)
       if not subscriptions:
