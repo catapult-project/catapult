@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import os
 import sys
 
@@ -18,7 +19,24 @@ sys.path.append(_DEVIL_PATH)
 from devil.android import device_test_case
 
 
+def _SetUpLogging():
+  parsed_args = typ.arg_parser.ArgumentParser().parse_args(args=sys.argv[1:])
+  verbosity = parsed_args.verbose
+  level = None
+  if verbosity == 0:
+    level = logging.WARNING
+  elif verbosity == 1:
+    level = logging.INFO
+  elif verbosity >= 2:
+    level = logging.DEBUG
+  else:
+    raise RuntimeError(
+        'Logging verbosity of {} is not allowed.'.format(verbosity))
+  logging.basicConfig(level=level)
+
+
 def main():
+  _SetUpLogging()
   runner = typ.Runner()
   runner.setup_fn = device_test_case.PrepareDevices
   return runner.main(
