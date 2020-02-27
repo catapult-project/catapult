@@ -29,6 +29,7 @@ from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
 from dashboard.models import sheriff
+from dashboard.sheriff_config_client import SheriffConfigClient
 
 # This is a very long file.
 # pylint: disable=too-many-lines
@@ -172,6 +173,10 @@ _UNITS_TO_DIRECTION_DICT = {
 _WHITELISTED_IP = '123.45.67.89'
 
 
+@mock.patch.object(SheriffConfigClient, '__init__',
+                   mock.MagicMock(return_value=None))
+@mock.patch.object(SheriffConfigClient, 'Match',
+                   mock.MagicMock(return_value=([], None)))
 class AddPointTest(testing_common.TestCase):
 
   def setUp(self):

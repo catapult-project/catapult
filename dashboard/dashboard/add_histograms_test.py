@@ -28,6 +28,7 @@ from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from dashboard.models import sheriff
+from dashboard.sheriff_config_client import SheriffConfigClient
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import breakdown
@@ -205,6 +206,10 @@ class AddHistogramsBaseTest(testing_common.TestCase):
     return r
 
 
+@mock.patch.object(SheriffConfigClient, '__init__',
+                   mock.MagicMock(return_value=None))
+@mock.patch.object(SheriffConfigClient, 'Match',
+                   mock.MagicMock(return_value=([], None)))
 class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
 
   def setUp(self):

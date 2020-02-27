@@ -9,6 +9,7 @@ from __future__ import absolute_import
 
 import json
 import logging
+import random
 
 from google.appengine.api import datastore_errors
 from google.appengine.ext import ndb
@@ -22,6 +23,7 @@ from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
+from dashboard.sheriff_config_client import SheriffConfigClient
 
 
 class AddPointQueueHandler(request_handler.RequestHandler):
@@ -67,9 +69,15 @@ class AddPointQueueHandler(request_handler.RequestHandler):
 
     ndb.Future.wait_all(all_put_futures)
 
+    client = SheriffConfigClient()
     tests_keys = []
     for t in parent_tests:
       reason = []
+      request_sampling_percentage = 0.2
+      if random.random() < request_sampling_percentage:
+        subscriptions, err_msg = client.Match(t.test_path)
+        logging.info('Sheriff Config Matching: %s err=%s',
+                     subscriptions, err_msg)
       if not t.sheriff:
         reason.append('sheriff')
       if not t.has_rows:
