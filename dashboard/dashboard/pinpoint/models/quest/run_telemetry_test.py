@@ -39,8 +39,8 @@ def ChangeDependentArgs(args, change):
     # move the following code to run without checking commit_position as part
     # of the _ExtraTestArgs method once we no longer need to be able to run
     # Pinpoint against changes that old.
-    commit_position = change.base_commit.AsDict()['commit_position']
-    if commit_position and commit_position >= 675459:
+    commit_position = change.base_commit.AsDict().get('commit_position')
+    if commit_position is None or commit_position >= 675459:
       # Since benchmarks are run in abridged form by default, we need to
       # add the argument --run-full-story-set to make sure that if someone
       # chooses to run a specific story we will run it even if it is not
