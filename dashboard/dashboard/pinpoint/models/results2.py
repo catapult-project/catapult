@@ -115,39 +115,46 @@ def _FetchHistograms(job):
   for change in _ChangeList(job):
     for attempt in job.state._attempts[change]:
       for execution in attempt.executions:
+        mode = None
         if isinstance(
             execution, read_value._ReadHistogramsJsonValueExecution):
-          # The histogram sets are very big. Since we have limited
-          # memory, delete the histogram sets as we go along.
-          histogram_set = _JsonFromExecution(execution)
-          for histogram in histogram_set:
-            yield histogram
-          del histogram_set
+          mode = 'histograms'
         elif isinstance(
             execution, read_value._ReadGraphJsonValueExecution):
-          graphjson_results = _JsonFromExecution(execution)
-          hs = gtest_json_converter.ConvertGtestJson(graphjson_results)
-          hs.AddSharedDiagnosticToAllHistograms(
-              reserved_infos.LABELS.name,
-              generic_set.GenericSet([str(change)]))
-          hs = hs.AsDicts()
-          for histogram in hs:
-            yield histogram
-          del hs
+          mode = 'graphjson'
+        elif isinstance(execution, read_value.ReadValueExecution):
+          mode = execution.mode or 'histograms'
+
+        if mode is None:
+          continue
+
+        histogram_sets = None
+        if mode == 'graphjson':
+          histograms = gtest_json_converter.ConvertGtestJson(
+              _JsonFromExecution(execution))
+          histograms.AddSharedDiagnosticToAllHistograms(
+              reserved_infos.LABELS.name, generic_set.GenericSet([str(change)]))
+          histogram_sets = histograms.AsDicts()
+        else:
+          histogram_sets = _JsonFromExecution(execution)
+
+        for histogram in histogram_sets:
+          yield histogram
+
+        # Force deletion of histogram_set objects which can be O(100MB).
+        del histogram_sets
 
 
 def _ChangeList(job):
   # If there are differences, only include Changes with differences.
-  changes = []
+  changes = set()
 
   for change_a, change_b in job.state.Differences():
-    if change_a not in changes:
-      changes.append(change_a)
-    if change_b not in changes:
-      changes.append(change_b)
+    changes.add(change_a)
+    changes.add(change_b)
 
   if changes:
-    return changes
+    return list(changes)
 
   return job.state._changes
 

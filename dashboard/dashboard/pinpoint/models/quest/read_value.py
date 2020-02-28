@@ -53,7 +53,7 @@ class ReadValue(quest.Quest):
 
   @property
   def metric(self):
-    return self._chart
+    return self._chart or self._metric
 
   def Start(self, change, isolate_server, isolate_hash):
     # Here we create an execution that can handle both histograms and graph
@@ -105,6 +105,11 @@ class ReadValueExecution(execution.Execution):
     self._isolate_server = isolate_server
     self._isolate_hash = isolate_hash
     self._trace_urls = []
+    self._mode = None
+
+  @property
+  def mode(self):
+    return getattr(self, '_mode', None)
 
   def _AsDict(self):
     return [{
@@ -123,6 +128,7 @@ class ReadValueExecution(execution.Execution):
     try:
       logging.debug('Attempting to parse as a HistogramSet.')
       result_values = self._ParseHistograms(json_data)
+      self._mode = 'histograms'
       logging.debug('Succeess.')
     except (errors.ReadValueNotFound, errors.ReadValueNoValues,
             errors.FatalError):
@@ -136,6 +142,7 @@ class ReadValueExecution(execution.Execution):
       try:
         logging.debug('Attempting to parse as GraphJSON.')
         result_values = self._ParseGraphJson(json_data)
+        self._mode = 'graphjson'
         logging.debug('Succeess.')
       except (errors.ReadValueChartNotFound, errors.ReadValueTraceNotFound,
               errors.FatalError):

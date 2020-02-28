@@ -6,6 +6,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import itertools
+import logging
 import mock
 import unittest
 
@@ -13,6 +15,9 @@ from google.appengine.api import taskqueue
 
 from dashboard.common import testing_common
 from dashboard.pinpoint.models import results2
+from dashboard.pinpoint.models.quest import read_value
+from tracing.value import histogram_set
+from tracing.value import histogram as histogram_module
 
 
 _ATTEMPT_DATA = {
@@ -156,32 +161,164 @@ class GenerateResults2Test(testing_common.TestCase):
     results = results2.CachedResults2.query().fetch()
     self.assertEqual(1, len(results))
 
+  @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
+  @mock.patch.object(results2.render_histograms_viewer,
+                     'RenderHistogramsViewer')
+  @mock.patch.object(results2, '_JsonFromExecution')
+  def testTypeDispatch_LegacyHistogramExecution(self, mock_json, mock_render):
+    job = _JobStub(
+        None, '123',
+        _JobStateFake({
+            'f00c0de': [{
+                'executions': [
+                    read_value._ReadHistogramsJsonValueExecution(
+                        'fake_filename', 'fake_metric', 'fake_grouping',
+                        'fake_trace_or_story', 'avg', 'https://isolate_server',
+                        'deadc0decafef00d')
+                ]
+            }]
+        }))
+    histograms = []
 
-# TODO(dtu): Write unit tests once a full mocking framework is in place.
-#@mock.patch.object(results2.read_value, '_RetrieveOutputJson',
-#                   mock.MagicMock(return_value=['a']))
-#class FetchHistogramsTest(unittest.TestCase):
-#  def testGet_WithNoDifferences(self):
-#    job = _JobStub(_JOB_NO_DIFFERENCES, '123')
-#    fetch = results2._FetchHistograms(job)
-#    self.assertEqual(['a', 'a', 'a', 'a'], [f for f in fetch])
-#
-#  def testGet_WithDifferences(self):
-#    job = _JobStub(_JOB_WITH_DIFFERENCES, '123')
-#    fetch = results2._FetchHistograms(job)
-#    self.assertEqual(['a', 'a', 'a'], [f for f in fetch])
-#
-#  def testGet_MissingExecutions(self):
-#    job = _JobStub(_JOB_MISSING_EXECUTIONS, '123')
-#    fetch = results2._FetchHistograms(job)
-#    self.assertEqual(['a', 'a'], [f for f in fetch])
+    def TraverseHistograms(hists, *unused_args, **unused_kw_args):
+      for histogram in hists:
+        histograms.append(histogram)
+
+    mock_render.side_effect = TraverseHistograms
+    histogram = histogram_module.Histogram('histogram', 'count')
+    histogram.AddSample(0)
+    histogram.AddSample(1)
+    histogram.AddSample(2)
+    expected_histogram_set = histogram_set.HistogramSet([histogram])
+    mock_json.return_value = expected_histogram_set.AsDicts()
+    results2.GenerateResults2(job)
+    mock_render.assert_called_with(
+        mock.ANY, mock.ANY, reset_results=True, vulcanized_html='fake_viewer')
+    results = results2.CachedResults2.query().fetch()
+    self.assertEqual(1, len(results))
+    self.assertEqual(expected_histogram_set.AsDicts(), histograms)
+
+  @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
+  @mock.patch.object(results2.render_histograms_viewer,
+                     'RenderHistogramsViewer')
+  @mock.patch.object(results2, '_JsonFromExecution')
+  def testTypeDispatch_LegacyGraphJsonExecution(self, mock_json, mock_render):
+    job = _JobStub(
+        None, '123',
+        _JobStateFake({
+            'f00c0de': [{
+                'executions': [
+                    read_value._ReadGraphJsonValueExecution(
+                        'fake_filename', 'fake_chart', 'fake_trace',
+                        'https://isolate_server', 'deadc0decafef00d')
+                ]
+            }]
+        }))
+    histograms = []
+
+    def TraverseHistograms(hists, *unused_args, **unused_kw_args):
+      for histogram in hists:
+        histograms.append(histogram)
+
+    mock_render.side_effect = TraverseHistograms
+    mock_json.return_value = {
+        'fake_chart': {
+            'traces': {
+                'fake_trace': ['12345.6789', '0.0']
+            }
+        }
+    }
+
+    results2.GenerateResults2(job)
+    mock_render.assert_called_with(
+        mock.ANY, mock.ANY, reset_results=True, vulcanized_html='fake_viewer')
+    results = results2.CachedResults2.query().fetch()
+    self.assertEqual(1, len(results))
+    # TODO(dberris): check more precisely the contents of the histograms.
+    self.assertEqual([mock.ANY, mock.ANY], histograms)
+
+  @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
+  @mock.patch.object(results2.render_histograms_viewer,
+                     'RenderHistogramsViewer')
+  @mock.patch.object(results2, '_JsonFromExecution')
+  def testTypeDispatch_ReadValueExecution(self, mock_json, mock_render):
+    job = _JobStub(
+        None, '123',
+        _JobStateFake({
+            'f00c0de': [{
+                'executions': [
+                    read_value.ReadValueExecution(
+                        'fake_filename', 'fake_metric', 'fake_grouping_label',
+                        'fake_trace_or_story', 'avg', 'fake_chart',
+                        'https://isolate_server', 'deadc0decafef00d')
+                ]
+            }]
+        }))
+    histograms = []
+
+    def TraverseHistograms(hists, *args, **kw_args):
+      del args
+      del kw_args
+      for histogram in hists:
+        histograms.append(histogram)
+
+    mock_render.side_effect = TraverseHistograms
+    histogram = histogram_module.Histogram('histogram', 'count')
+    histogram.AddSample(0)
+    histogram.AddSample(1)
+    histogram.AddSample(2)
+    expected_histogram_set = histogram_set.HistogramSet([histogram])
+    mock_json.return_value = expected_histogram_set.AsDicts()
+    results2.GenerateResults2(job)
+    mock_render.assert_called_with(
+        mock.ANY, mock.ANY, reset_results=True, vulcanized_html='fake_viewer')
+    results = results2.CachedResults2.query().fetch()
+    self.assertEqual(1, len(results))
+    self.assertEqual(expected_histogram_set.AsDicts(), histograms)
+
+
+class _AttemptFake(object):
+  def __init__(self, attempt):
+    self._attempt = attempt
+
+  @property
+  def executions(self):
+    logging.debug('Attempt.executions = %s', self._attempt['executions'])
+    return self._attempt['executions']
+
+  def __str__(self):
+    return '%s' % (self._attempt,)
+
+
+class _JobStateFake(object):
+
+  def __init__(self, attempts):
+    self._attempts = {
+        change: [_AttemptFake(attempt)]
+        for change, attempt_list in attempts.items() for attempt in attempt_list
+    }
+    logging.debug('JobStateFake = %s', self._attempts)
+
+  @property
+  def _changes(self):
+    changes = list(self._attempts.keys())
+    logging.debug('JobStateFake._changes = %s', changes)
+    return changes
+
+  def Differences(self):
+    def Pairwise(iterable):
+      a, b = itertools.tee(iterable)
+      next(b, None)
+      return itertools.izip(a, b)
+    return [(a, b) for a, b in Pairwise(self._attempts.keys())]
 
 
 class _JobStub(object):
 
-  def __init__(self, job_dict, job_id):
+  def __init__(self, job_dict, job_id, state=None):
     self._job_dict = job_dict
     self.job_id = job_id
+    self.state = state
 
   def AsDict(self, options=None):
     del options
