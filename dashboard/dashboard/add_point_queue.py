@@ -72,7 +72,7 @@ class AddPointQueueHandler(request_handler.RequestHandler):
     tests_keys = []
     for t in parent_tests:
       reason = []
-      request_sampling_percentage = 0.5
+      request_sampling_percentage = 1.0
       if random.random() < request_sampling_percentage:
         subscriptions, _ = client.Match(t.test_path, check=True)
         if not subscriptions:
