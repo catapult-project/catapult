@@ -101,7 +101,9 @@ class LocalServer(object):
     named_ports_re = re.compile('LocalServerBackend started: (?P<port>.+)')
     # TODO: This will hang if the subprocess doesn't print the correct output.
     while self._subprocess.poll() is None:
-      m = named_ports_re.match(self._subprocess.stdout.readline())
+      line = self._subprocess.stdout.readline()
+      print line
+      m = named_ports_re.match(line)
       if m:
         named_ports_json = m.group('port')
         break
@@ -222,6 +224,10 @@ def _LocalServerBackendMain(args):
   if handler_module_name and handler_class_name:
     handler_module = __import__(handler_module_name, fromlist=[True])
     handler_class = getattr(handler_module, handler_class_name, None)
+    logging.info('Loading request handler: %s', handler_class_name)
+
+    if handler_class is None:
+      raise Exception('Failed to load request handler %s.' % handler_class_name)
 
   named_ports = server.StartAndGetNamedPorts(server_args, handler_class)
   assert isinstance(named_ports, list)
