@@ -101,6 +101,8 @@ def GenerateResults2(job):
       reset_results=True, vulcanized_html=vulcanized_html)
 
   gcs_file.close()
+  logging.debug('Generated %s; see https://storage.cloud.google.com%s',
+                filename, filename)
 
 
 def _ReadVulcanizedHistogramsViewer():
@@ -137,6 +139,8 @@ def _FetchHistograms(job):
           histogram_sets = histograms.AsDicts()
         else:
           histogram_sets = _JsonFromExecution(execution)
+
+        logging.debug('Found %s histograms for %s', len(histogram_sets), change)
 
         for histogram in histogram_sets:
           yield histogram

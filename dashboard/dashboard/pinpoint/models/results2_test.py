@@ -277,6 +277,64 @@ class GenerateResults2Test(testing_common.TestCase):
     self.assertEqual(expected_histogram_set.AsDicts(), histograms)
 
 
+  @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
+  @mock.patch.object(results2.render_histograms_viewer,
+                     'RenderHistogramsViewer')
+  @mock.patch.object(results2, '_JsonFromExecution')
+  def testTypeDispatch_ReadValueExecution_MultipleChanges(
+      self, mock_json, mock_render):
+    job = _JobStub(
+        None, '123',
+        _JobStateFake({
+            'f00c0de': [{
+                'executions': [
+                    read_value.ReadValueExecution(
+                        'fake_filename', 'fake_metric', 'fake_grouping_label',
+                        'fake_trace_or_story', 'avg', 'fake_chart',
+                        'https://isolate_server', 'deadc0decafef00d')
+                ]
+            }],
+            'badc0de': [{
+                'executions': [
+                    read_value.ReadValueExecution(
+                        'fake_filename', 'fake_metric', 'fake_grouping_label',
+                        'fake_trace_or_story', 'avg', 'fake_chart',
+                        'https://isolate_server', 'deadc0decafef00d')
+                ]
+            }]
+        }))
+    histograms = []
+
+    def TraverseHistograms(hists, *args, **kw_args):
+      del args
+      del kw_args
+      for histogram in hists:
+        histograms.append(histogram)
+
+    mock_render.side_effect = TraverseHistograms
+    histogram_a = histogram_module.Histogram('histogram', 'count')
+    histogram_a.AddSample(0)
+    histogram_a.AddSample(1)
+    histogram_a.AddSample(2)
+    expected_histogram_set_a = histogram_set.HistogramSet([histogram_a])
+    histogram_b = histogram_module.Histogram('histogram', 'count')
+    histogram_b.AddSample(0)
+    histogram_b.AddSample(1)
+    histogram_b.AddSample(2)
+    expected_histogram_set_b = histogram_set.HistogramSet([histogram_b])
+
+    mock_json.side_effect = (expected_histogram_set_a.AsDicts(),
+                             expected_histogram_set_b.AsDicts())
+    results2.GenerateResults2(job)
+    mock_render.assert_called_with(
+        mock.ANY, mock.ANY, reset_results=True, vulcanized_html='fake_viewer')
+    results = results2.CachedResults2.query().fetch()
+    self.assertEqual(1, len(results))
+    self.assertEqual(
+        expected_histogram_set_a.AsDicts() + expected_histogram_set_b.AsDicts(),
+        histograms)
+
+
 class _AttemptFake(object):
   def __init__(self, attempt):
     self._attempt = attempt
