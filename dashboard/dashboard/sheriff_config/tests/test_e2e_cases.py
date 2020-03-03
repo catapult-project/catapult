@@ -243,6 +243,15 @@ class LuciPollingTest(unittest.TestCase):
     self.assertEqual(response.status_code, 200)
     self.assertDictEqual(response.get_json(), {})
 
+  def testPollAndWarmup(self):
+    client = self.app.test_client()
+    response = client.get(
+        '/configs/update', headers={'X-Forwarded-Proto': 'https'})
+    self.assertEqual(response.status_code, 200)
+    response = client.get(
+        '/warmup', headers={'X-Forwarded-Proto': 'https'})
+    self.assertEqual(response.status_code, 200)
+
 
 class LuciContentChangesTest(unittest.TestCase):
 

@@ -24,7 +24,8 @@ def LRUCacheWithTTL(ttl_seconds=60, **lru_args):
     def Cached(ttl, *args, **kargs):
       return func(*args, **kargs)
     def Wrapping(*args, **kargs):
-      ttl = int(Time()) // ttl_seconds
+      ttl = kargs.get('_cache_timestamp', int(Time())) // ttl_seconds
+      kargs.pop('_cache_timestamp', None)
       return Cached(ttl, *args, **kargs)
     return Wrapping
   return Wrapper

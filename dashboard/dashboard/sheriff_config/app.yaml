@@ -17,7 +17,7 @@ liveness_check:
   path: /service-metadata
 
 readiness_check:
-  path: /service-metadata
+  path: /warmup
 
 endpoints_api_service:
   name: sheriff-config-dot-chromeperf.appspot.com
