@@ -212,10 +212,9 @@ class BrowserFinderOptions(optparse.Values):
 
     group = optparse.OptionGroup(parser, 'Fuchsia platform options')
     group.add_option(
-        '--fuchsia-output-dir',
+        '--fuchsia-ssh-config-dir',
         default='out/Release',
-        help='Specify the build directory for the Fuchsia OS installed on '
-        'the device.')
+        help='Specify directory of the ssh_config file for the Fuchsia OS.')
     group.add_option(
         '--fuchsia-ssh-port',
         default=None,

@@ -29,13 +29,13 @@ _SDK_TOOLS = [
 
 class FuchsiaDevice(device.Device):
 
-  def __init__(self, target_name, host, output_dir,
+  def __init__(self, target_name, host, ssh_config_dir,
                system_log_file, port):
     super(FuchsiaDevice, self).__init__(
         name='Fuchsia with host: %s' % host,
         guid='fuchsia:%s' % target_name)
     self._target_name = target_name
-    self._output_dir = output_dir
+    self._ssh_config_dir = ssh_config_dir
     self._system_log_file = system_log_file
     self._host = host
     self._port = port
@@ -53,8 +53,8 @@ class FuchsiaDevice(device.Device):
     return self._host
 
   @property
-  def output_dir(self):
-    return self._output_dir
+  def ssh_config_dir(self):
+    return self._ssh_config_dir
 
   @property
   def system_log_file(self):
@@ -130,7 +130,7 @@ def FindAllAvailableDevices(options):
       return [FuchsiaDevice(target_name='local_device',
                             host='localhost',
                             system_log_file=None,
-                            output_dir=options.fuchsia_output_dir,
+                            ssh_config_dir=options.fuchsia_ssh_config_dir,
                             port=int(options.fuchsia_ssh_port))]
     except ValueError:
       logging.error('fuchsia-ssh-port must be an integer.')
@@ -155,5 +155,5 @@ def FindAllAvailableDevices(options):
   return [FuchsiaDevice(target_name=target_name,
                         host=host,
                         system_log_file=None,
-                        output_dir=options.fuchsia_output_dir,
+                        ssh_config_dir=options.fuchsia_ssh_config_dir,
                         port=22)]

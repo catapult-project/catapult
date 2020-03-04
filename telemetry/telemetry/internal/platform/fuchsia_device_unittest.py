@@ -57,7 +57,7 @@ class FuchsiaSDKUsageTest(unittest.TestCase):
     self.addCleanup(platform_mock.stop)
     self._options = browser_options.BrowserFinderOptions(
         fuchsia_interface.FUCHSIA_BROWSERS[0])
-    self._options.fuchsia_output_dir = 'test/'
+    self._options.fuchsia_ssh_config_dir = 'test/'
     self._options.fuchsia_ssh_port = None
 
   def testSkipSDKUseIfSshPortExists(self):
