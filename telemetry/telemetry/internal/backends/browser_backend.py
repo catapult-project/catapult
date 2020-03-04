@@ -252,6 +252,36 @@ class BrowserBackend(app_backend.AppBackend):
             'Minidump symbolization failed, check artifact %s for output',
             artifact_name)
 
+  def CleanupUnsymbolizedMinidumps(self, fatal=False):
+    """Cleans up any unsymbolized minidumps so they aren't found later.
+
+    Args:
+      fatal: Whether the presence of unsymbolized minidumps should be considered
+          a fatal error or not. Typically, before a test should be non-fatal,
+          while after a test should be fatal.
+    """
+    log_level = logging.ERROR if fatal else logging.WARNING
+    unsymbolized_paths = self.GetAllUnsymbolizedMinidumpPaths(log=False)
+    if not unsymbolized_paths:
+      return
+
+    culprit_test = 'current test' if fatal else 'a previous test'
+    logging.log(log_level,
+                'Found %d unsymbolized minidumps leftover from %s. Outputting '
+                'below: ', len(unsymbolized_paths), culprit_test)
+    self._SymbolizeAndLogMinidumps(log_level, debug_data.DebugData())
+    if fatal:
+      raise RuntimeError(
+          'Test left unsymbolized minidumps around after finishing.')
+
+  def IgnoreMinidump(self, path):
+    """Ignores the given minidump, treating it as already symbolized.
+
+    Args:
+      path: The path to the minidump to ignore.
+    """
+    self._symbolized_minidump_paths.add(path)
+
   def GetMostRecentMinidumpPath(self):
     """Gets the most recent minidump that has been written to disk.
 
@@ -298,8 +328,11 @@ class BrowserBackend(app_backend.AppBackend):
     finally:
       logging.info('\n'.join(explanation))
 
-  def GetAllMinidumpPaths(self):
+  def GetAllMinidumpPaths(self, log=True):
     """Get all paths to minidumps currently written to disk.
+
+    Args:
+      log: Whether to log the output from looking for minidumps or not.
 
     Returns:
       A list of paths to all found minidumps.
@@ -307,16 +340,20 @@ class BrowserBackend(app_backend.AppBackend):
     self.PullMinidumps()
     paths, explanation = self._dump_finder.GetAllMinidumpPaths(
         self._tmp_minidump_dir)
-    logging.info('\n'.join(explanation))
+    if log:
+      logging.info('\n'.join(explanation))
     return paths
 
-  def GetAllUnsymbolizedMinidumpPaths(self):
+  def GetAllUnsymbolizedMinidumpPaths(self, log=True):
     """Get all paths to minidumps have have not yet been symbolized.
+
+    Args:
+      log: Whether to log the output from looking for minidumps or not.
 
     Returns:
       A list of paths to all found minidumps that have not been symbolized yet.
     """
-    minidump_paths = set(self.GetAllMinidumpPaths())
+    minidump_paths = set(self.GetAllMinidumpPaths(log=log))
     # If we have already symbolized paths remove them from the list
     unsymbolized_paths = (
         minidump_paths - self._symbolized_minidump_paths)

@@ -58,8 +58,15 @@ class BrowserTestCase(unittest.TestCase):
   _browser = None
   _device = None
 
-  def setUp(self):
-    pass
+  # TODO(crbug.com/1056235): Re-add once the Chromium-side tests that are
+  # affected are fixed
+  # def setUp(self):
+  #   if self._browser:
+  #     self._browser.CleanupUnsymbolizedMinidumps()
+
+  # def tearDown(self):
+  #   if self._browser:
+  #     self._browser.CleanupUnsymbolizedMinidumps(fatal=True)
 
   @classmethod
   def setUpClass(cls):

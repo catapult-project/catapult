@@ -407,6 +407,9 @@ class FakeBrowser(FakeApp):
   def DumpStateUponFailure(self):
     pass
 
+  def CleanupUnsymbolizedMinidumps(self, fatal=False):
+    del fatal
+
   def GetTypExpectationsTags(self):
     tags = self.platform.GetTypExpectationsTags()
     return tags + test_utils.sanitizeTypExpectationsTags([self.browser_type])

@@ -310,3 +310,21 @@ class Browser(app.App):
       logging.exception('Failed to get symbolized minidump:')
     logging.info(
         '***************** END OF SYMBOLIZED MINIDUMP ******************')
+
+  def CleanupUnsymbolizedMinidumps(self, fatal=False):
+    """Cleans up any unsymbolized minidumps so they aren't found later.
+
+    Args:
+      fatal: Whether the presence of unsymbolized minidumps should be considered
+          a fatal error or not. Typically, before a test should be non-fatal,
+          while after a test should be fatal.
+    """
+    self._browser_backend.CleanupUnsymbolizedMinidumps(fatal=fatal)
+
+  def IgnoreMinidump(self, path):
+    """Ignores the given minidump, treating it as already symbolized.
+
+    Args:
+      path: The path to the minidump to ignore.
+    """
+    self._browser_backend.IgnoreMinidump(path)

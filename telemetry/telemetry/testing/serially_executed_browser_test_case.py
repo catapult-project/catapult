@@ -39,6 +39,16 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
     super(SeriallyExecutedBrowserTestCase, self).set_artifacts(artifacts)
     artifact_logger.RegisterArtifactImplementation(artifacts)
 
+  # TODO(crbug.com/1056235): Re-add once the Chromium-side tests that are
+  # affected are fixed
+  # def setUp(self):
+  #   if hasattr(self, 'browser') and self.browser:
+  #     self.browser.CleanupUnsymbolizedMinidumps()
+
+  # def tearDown(self):
+  #   if hasattr(self, 'browser') and self.browser:
+  #     self.browser.CleanupUnsymbolizedMinidumps(fatal=True)
+
   @classmethod
   def Name(cls):
     return cls.__name__
