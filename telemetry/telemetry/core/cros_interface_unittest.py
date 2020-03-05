@@ -111,6 +111,26 @@ class CrOSInterfaceTest(unittest.TestCase):
       shutil.rmtree(tempdir)
 
   @decorators.Enabled('chromeos')
+  def testPullDumpsDirectoriesIgnored(self):
+    """Tests that directories are ignored when pulling minidumps."""
+    tempdir = tempfile.mkdtemp()
+    try:
+      with self._GetCRI() as cri:
+        remote_path = '/tmp/dumps/'
+        cri.CROS_MINIDUMP_DIR = remote_path
+        cri.RunCmdOnDevice(['mkdir', '-p', remote_path + 'test_dir'])
+        # Set the mtime to one second after the epoch
+        cri.RunCmdOnDevice(['touch', remote_path + 'test_dump'])
+        try:
+          cri.PullDumps(tempdir)
+        finally:
+          cri.RmRF(remote_path)
+        # We should have pulled the dump, but not the directory.
+        self.assertEqual(os.listdir(tempdir), ['test_dump'])
+    finally:
+      shutil.rmtree(tempdir)
+
+  @decorators.Enabled('chromeos')
   def testGetFile(self):  # pylint: disable=no-self-use
     with self._GetCRI() as cri:
       f = tempfile.NamedTemporaryFile()
