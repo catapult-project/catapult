@@ -24,24 +24,26 @@ $ cd dashboard/
 ```
 $ PYTHONPATH=$PYTHONPATH:"$(pwd)/bq_export" python bq_export/export_rows.py \
   --service_account_email=bigquery-exporter@chromeperf.iam.gserviceaccount.com \
-  --runner=DataflowRunner
+  --runner=DataflowRunner \
   --region=us-central1 \
   --experiments=use_beam_bq_sink  \
   --setup_file=bq_export/setup.py \
   --staging_location=gs://chromeperf-dataflow/staging \
-  --template_location=gs://chromeperf-dataflow/templates/export_rows
+  --template_location=gs://chromeperf-dataflow/templates/export_rows \
+  --temp_location=gs://chromeperf-dataflow-temp/export-rows-daily
 ```
 
 ```
 $ PYTHONPATH=$PYTHONPATH:"$(pwd)/bq_export" python \
   bq_export/export_anomalies.py \
   --service_account_email=bigquery-exporter@chromeperf.iam.gserviceaccount.com \
-  --runner=DataflowRunner
+  --runner=DataflowRunner \
   --region=us-central1 \
   --experiments=use_beam_bq_sink  \
   --setup_file=bq_export/setup.py \
   --staging_location=gs://chromeperf-dataflow/staging \
-  --template_location=gs://chromeperf-dataflow/templates/export_anomalies
+  --template_location=gs://chromeperf-dataflow/templates/export_anomalies \
+  --temp_location=gs://chromeperf-dataflow-temp/export-anomalies-daily
 ```
 
 There are Cloud Scheduler jobs configured to run
