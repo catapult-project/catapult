@@ -134,10 +134,8 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
             '(SharedState.CanRunStory() returns False).')
         return
 
-      # TODO(crbug.com/1056235): Re-add once the Chromium-side tests that are
-      # affected are fixed
-      # if hasattr(state, 'browser') and state.browser:
-      #   state.browser.CleanupUnsymbolizedMinidumps()
+      if hasattr(state, 'browser') and state.browser:
+        state.browser.CleanupUnsymbolizedMinidumps()
 
       story.wpr_mode = state.wpr_mode
       state.RunStory(results)
@@ -162,10 +160,8 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
     finally:
       has_existing_exception = (sys.exc_info() != (None, None, None))
       try:
-        # TODO(crbug.com/1056235): Re-add once the Chromium-side tests that are
-        # affected are fixed
-        # if hasattr(state, 'browser') and state.browser:
-        #   state.browser.CleanupUnsymbolizedMinidumps(fatal=True)
+        if hasattr(state, 'browser') and state.browser:
+          state.browser.CleanupUnsymbolizedMinidumps(fatal=True)
         # We attempt to stop tracing and/or metric collecting before possibly
         # closing the browser. Closing the browser first and stopping tracing
         # later appeared to cause issues where subsequent browser instances
