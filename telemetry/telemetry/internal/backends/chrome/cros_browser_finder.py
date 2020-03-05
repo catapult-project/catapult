@@ -35,6 +35,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
 
   _DEFAULT_CHROME_ENV = [
       'CHROME_HEADLESS=1',
+      'BREAKPAD_DUMP_LOCATION=%s' % _CROS_MINIDUMP_DIR,
   ]
 
   def __init__(self, browser_type, finder_options, cros_platform, is_guest):
