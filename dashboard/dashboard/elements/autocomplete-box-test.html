@@ -184,6 +184,32 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(fixture.get('selectedItem'), undefined);
   }, testOptions);
 
+  test('on_blur_input', function() {
+    const fixture = document.createElement('autocomplete-box');
+    const master1 = item('Master1', undefined, true);
+    const master2 = item('Master2', undefined, true);
+    const botA1 = item('BotA', 'Master1');
+    const botB1 = item('BotB', 'Master1');
+    const botA2 = item('BotA', 'Master2');
+    fixture.set('items', [master1, botA1, botB1, master2, botA2]);
+    fixture.selectItem(botA2);
+
+    // Verify that the selection is not changed if the query is not changed.
+    fixture.onBlurInput();
+    assert.deepEqual(fixture.get('selectedItem'), botA2);
+
+    // Verify that the selection is not changed if the query is changed to
+    // same value.
+    fixture.set('query', botA1.name); // Setting it to "BotA"
+    fixture.onBlurInput();
+    assert.deepEqual(fixture.get('selectedItem'), botA2);
+
+    // Verify that it does when a new query is entered.
+    fixture.set('query', botB1.name);
+    fixture.onBlurInput();
+    assert.deepEqual(fixture.get('selectedItem'), botB1);
+  }, testOptions);
+
   test('maybe_select_locus', function() {
     const fixture = document.createElement('autocomplete-box-test-fixture');
 

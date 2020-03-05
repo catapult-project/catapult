@@ -434,8 +434,10 @@ Polymer({
 
   onBlurInput() {
     this.set('dropdownOpen', false);
-    const item = this.suggestedItems.find(i => i.name == this.query, this);
-    this.set('selectedItem', item || {name: this.query});
+    if (!this.selectedItem || this.selectedItem.name != this.query) {
+      const item = this.suggestedItems.find(i => i.name == this.query, this);
+      this.set('selectedItem', item || {name: this.query});
+    }
     this.$.textbox.readonly = true;
   },
 
