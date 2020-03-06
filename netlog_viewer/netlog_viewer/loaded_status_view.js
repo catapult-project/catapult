@@ -24,9 +24,9 @@ var LoadedStatusView = (function() {
 
     setFileName: function(fileName) {
       $(LoadedStatusView.DUMP_FILE_NAME_ID).innerText = fileName;
+      document.title = fileName + ' - NetLog Viewer';
     }
   };
 
   return LoadedStatusView;
 })();
-
