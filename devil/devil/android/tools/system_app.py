@@ -126,9 +126,17 @@ _MODIFICATION_RETRIES = 2
 _ENABLE_MODIFICATION_PROP = 'devil.modify_sys_apps'
 
 
-@decorators.WithExplicitTimeoutAndRetries(_MODIFICATION_TIMEOUT,
-                                          _MODIFICATION_RETRIES)
-def _SetUpSystemAppModification(device):
+def _ShouldRetryModification(exc):
+  return not isinstance(exc, device_errors.CommandTimeoutError)
+
+
+# timeout and retries are both required by the decorator, but neither
+# are used within the body of the function.
+# pylint: disable=unused-argument
+
+
+@decorators.WithTimeoutAndConditionalRetries(_ShouldRetryModification)
+def _SetUpSystemAppModification(device, timeout=None, retries=None):
   # Ensure that the device is online & available before proceeding to
   # handle the case where something fails in the middle of set up and
   # triggers a retry.
@@ -172,14 +180,24 @@ def _SetUpSystemAppModification(device):
   return should_restore_root
 
 
-@decorators.WithExplicitTimeoutAndRetries(_MODIFICATION_TIMEOUT,
-                                          _MODIFICATION_RETRIES)
-def _TearDownSystemAppModification(device, should_restore_root):
-  device.SetProp(_ENABLE_MODIFICATION_PROP, '0')
-  device.Reboot()
-  device.WaitUntilFullyBooted()
-  if should_restore_root:
-    device.EnableRoot()
+@decorators.WithTimeoutAndConditionalRetries(_ShouldRetryModification)
+def _TearDownSystemAppModification(device,
+                                   should_restore_root,
+                                   timeout=None,
+                                   retries=None):
+  try:
+    device.SetProp(_ENABLE_MODIFICATION_PROP, '0')
+    device.Reboot()
+    device.WaitUntilFullyBooted()
+    if should_restore_root:
+      device.EnableRoot()
+  except device_errors.CommandTimeoutError:
+    logger.error('Timed out while tearing down system app modification.')
+    logger.error('  device state: %s', device.adb.GetState())
+    raise
+
+
+# pylint: enable=unused-argument
 
 
 @contextlib.contextmanager
@@ -193,11 +211,16 @@ def EnableSystemAppModification(device):
     yield
     return
 
-  should_restore_root = _SetUpSystemAppModification(device)
+  should_restore_root = _SetUpSystemAppModification(
+      device, timeout=_MODIFICATION_TIMEOUT, retries=_MODIFICATION_RETRIES)
   try:
     yield
   finally:
-    _TearDownSystemAppModification(device, should_restore_root)
+    _TearDownSystemAppModification(
+        device,
+        should_restore_root,
+        timeout=_MODIFICATION_TIMEOUT,
+        retries=_MODIFICATION_RETRIES)
 
 
 @contextlib.contextmanager
