@@ -50,12 +50,3 @@ test("histogram_unittests") {
     "//testing/gtest:gtest",
   ]
 }
-
-executable("proto_test_driver") {
-  configs += [ ":common_config" ]
-  sources = [ "value/proto_test_driver.cc" ]
-  deps = [
-    ":histogram",
-    "//third_party/protobuf:protobuf_lite",
-  ]
-}
