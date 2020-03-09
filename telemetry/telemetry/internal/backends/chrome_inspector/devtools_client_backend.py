@@ -8,6 +8,7 @@ import socket
 import sys
 
 from py_utils import exc_util
+from py_utils import retry_util
 from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.backends import browser_backend
@@ -141,6 +142,23 @@ class _DevToolsClientBackend(object):
       self.Close()  # Close any connections made if failed to connect to all.
       raise
 
+  @retry_util.RetryOnException(devtools_http.DevToolsClientUrlError, retries=3)
+  def _WaitForConnection(self, retries=None):
+    del retries
+    self._devtools_http.Request('')
+
+  def _SetUpPortForwarding(self, devtools_port):
+    self._forwarder = self.platform_backend.forwarder_factory.Create(
+        local_port=None,  # Forwarder will choose an available port.
+        remote_port=devtools_port, reverse=True)
+    self._local_port = self._forwarder._local_port
+    self._remote_port = self._forwarder._remote_port
+    self._devtools_http = devtools_http.DevToolsHttp(self.local_port)
+
+    # For Fuchsia, wait until port forwarding has started working.
+    if self.platform_backend.GetOSName() == 'fuchsia':
+      self._WaitForConnection()
+
   def _Connect(self, devtools_port, browser_target):
     """Attempt to connect to the DevTools client.
 
@@ -153,13 +171,8 @@ class _DevToolsClientBackend(object):
       Any of _DEVTOOLS_CONNECTION_ERRORS if failed to establish the connection.
     """
     self._browser_target = browser_target or '/devtools/browser'
-    self._forwarder = self.platform_backend.forwarder_factory.Create(
-        local_port=None,  # Forwarder will choose an available port.
-        remote_port=devtools_port, reverse=True)
-    self._local_port = self._forwarder._local_port
-    self._remote_port = self._forwarder._remote_port
+    self._SetUpPortForwarding(devtools_port)
 
-    self._devtools_http = devtools_http.DevToolsHttp(self.local_port)
     # If the agent is not alive and ready, trying to get the branch number will
     # raise a devtools_http.DevToolsClientConnectionError.
     branch_number = self.GetChromeBranchNumber()
