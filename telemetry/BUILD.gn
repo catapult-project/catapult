@@ -58,7 +58,7 @@ group("telemetry") {
   ]
 }
 
-if (!is_android) {
+if (!is_android && !is_fuchsia) {
   executable("bitmaptools") {
     sources = [
       "telemetry/internal/image_processing/bitmaptools.cc",
