@@ -158,7 +158,7 @@ class CrOSBrowserEnvironmentTest(unittest.TestCase):
 
   @decorators.Enabled('chromeos')
   def testChromeEnvironmentSet(self):
-    """Tests that browser setup sets the Chrome environment file."""
+    """Tests that browset setup sets the Chrome environment file."""
     browser = self._CreateBrowser()
     cri = browser._platform_backend.cri
     # This is expected to fail if running locally and the root is not writable,

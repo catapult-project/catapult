@@ -381,12 +381,6 @@ class CrOSInterface(object):
       if not os.path.exists(host_path):
         device_path = cmd_helper.SingleQuote(
             posixpath.join(self.CROS_MINIDUMP_DIR, dump_filename))
-        # Skip any directories that happen to be in the list.
-        stdout, _ = self.RunCmdOnDevice(
-            ['test', '-f', device_path, '&&',
-             'echo', 'true', '||', 'echo', 'false'])
-        if 'false' in stdout:
-          continue
         self.GetFile(device_path, host_path)
         # Set the local version's modification time to the device's.
         stdout, _ = self.RunCmdOnDevice(
