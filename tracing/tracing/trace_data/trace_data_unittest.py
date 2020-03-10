@@ -11,7 +11,6 @@ import unittest
 from py_utils import tempfile_ext
 from tracing.trace_data import trace_data
 
-
 class TraceDataTest(unittest.TestCase):
   def testHasTracesForChrome(self):
     d = trace_data.CreateFromRawChromeEvents([{'ph': 'B'}])
@@ -104,6 +103,15 @@ class TraceDataBuilderTest(unittest.TestCase):
       with self.assertRaises(RuntimeError):
         builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
                             {'traceEvents': [1, 2, 3]})
+
+  def testCleanupReraisesExceptions(self):
+    with trace_data.TraceDataBuilder() as builder:
+      try:
+        raise Exception("test exception") # pylint: disable=broad-except
+      except Exception: # pylint: disable=broad-except
+        builder.RecordTraceDataException()
+      with self.assertRaises(trace_data.TraceDataException):
+        builder.CleanUpTraceData()
 
   def testCantWriteAfterFreeze(self):
     with trace_data.TraceDataBuilder() as builder:

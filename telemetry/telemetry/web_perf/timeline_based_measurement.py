@@ -156,12 +156,14 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     assert tbm_metrics, (
         'Please specify required metrics using SetTimelineBasedMetrics')
     results.AddTraces(traces, tbm_metrics=tbm_metrics)
+    traces.CleanUpTraceData()
 
   def DidRunStory(self, platform, results):
     """Clean up after running the story."""
     if platform.tracing_controller.is_tracing_running:
       traces = platform.tracing_controller.StopTracing()
       results.AddTraces(traces)
+      traces.CleanUpTraceData()
 
   @property
   def tbm_options(self):

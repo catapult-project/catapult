@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import tempfile
 import time
+import traceback
 import six
 
 
@@ -96,6 +97,10 @@ _TraceItem = collections.namedtuple(
     '_TraceItem', ['part_name', 'handle'])
 
 
+class TraceDataException(Exception):
+  """Exception raised by TraceDataBuilder via RecordTraceDataException()."""
+
+
 class TraceDataBuilder(object):
   """TraceDataBuilder helps build up a trace from multiple trace agents.
 
@@ -112,6 +117,7 @@ class TraceDataBuilder(object):
     self._traces = []
     self._frozen = False
     self._temp_dir = tempfile.mkdtemp()
+    self._exceptions = []
 
   def __enter__(self):
     return self
@@ -192,7 +198,11 @@ class TraceDataBuilder(object):
     return self
 
   def CleanUpTraceData(self):
-    """Clean up resources used by the data builder."""
+    """Clean up resources used by the data builder.
+
+    Will also re-raise any exceptions previously added by
+    RecordTraceCollectionException().
+    """
     if self._traces is None:
       return  # Already cleaned up.
     self.Freeze()
@@ -203,6 +213,11 @@ class TraceDataBuilder(object):
     shutil.rmtree(self._temp_dir)
     self._temp_dir = None
     self._traces = None
+
+    if self._exceptions:
+      raise TraceDataException(
+          'Exceptions raised during trace data collection:\n' +
+          '\n'.join(self._exceptions))
 
   def Serialize(self, file_path, trace_title=None):
     """Serialize the trace data to a file in HTML format."""
@@ -249,6 +264,22 @@ class TraceDataBuilder(object):
     """
     for trace in self._traces:
       yield trace.part_name, trace.handle.name
+
+  def RecordTraceDataException(self):
+    """Records the most recent exception to be re-raised during cleanup.
+
+    Exceptions raised during trace data collection can be stored temporarily
+    in the builder. They will be re-raised when the builder is cleaned up later.
+    This way, any collected trace data can still be retained before the
+    benchmark is aborted.
+
+    This method is intended to be called from within an "except" handler, e.g.:
+      try:
+        # Collect trace data.
+      except Exception: # pylint: disable=broad-except
+        builder.RecordTraceDataException()
+    """
+    self._exceptions.append(traceback.format_exc())
 
 
 def CreateTestTrace(number=1):

@@ -4,13 +4,13 @@
 
 import contextlib
 import gc
+import logging
 import os
 import sys
 import traceback
 import uuid
 
 from py_trace_event import trace_event
-from telemetry.core import exceptions
 from telemetry.internal.platform.tracing_agent import atrace_tracing_agent
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.internal.platform.tracing_agent import cpu_tracing_agent
@@ -58,6 +58,10 @@ class _TraceDataDiscarder(object):
     assert not allow_unstructured
     del part  # Unused.
     del data  # Unused.
+
+  def RecordTraceDataException(self):
+    logging.info('Ignoring exception while flushing to TraceDataDiscarder:\n%s',
+                 ''.join(traceback.format_exception(*sys.exc_info())))
 
 
 class _TracingState(object):
@@ -113,36 +117,26 @@ class TracingControllerBackend(object):
     self._IssueClockSyncMarker()
     builder = self._current_state.builder
 
-    raised_exception_messages = []
     for agent in reversed(self._active_agents_instances):
       try:
         agent.StopAgentTracing()
       except Exception: # pylint: disable=broad-except
-        raised_exception_messages.append(
-            ''.join(traceback.format_exception(*sys.exc_info())))
+        builder.RecordTraceDataException()
 
     for agent in self._active_agents_instances:
       try:
         agent.CollectAgentTraceData(builder)
       except Exception: # pylint: disable=broad-except
-        raised_exception_messages.append(
-            ''.join(traceback.format_exception(*sys.exc_info())))
+        builder.RecordTraceDataException()
 
     self._active_agents_instances = []
     self._current_state = None
-
-    if raised_exception_messages:
-      raise exceptions.TracingException(
-          'Exceptions raised when trying to stop tracing:\n' +
-          '\n'.join(raised_exception_messages))
 
     return builder.Freeze()
 
   def FlushTracing(self, discard_current=False):
     assert self.is_tracing_running, 'Can only flush tracing when tracing is on.'
     self._IssueClockSyncMarker()
-
-    raised_exception_messages = []
 
     # pylint: disable=redefined-variable-type
     # See: https://github.com/PyCQA/pylint/issues/710
@@ -158,13 +152,7 @@ class TracingControllerBackend(object):
                                   self._current_state.timeout,
                                   trace_builder)
       except Exception: # pylint: disable=broad-except
-        raised_exception_messages.append(
-            ''.join(traceback.format_exception(*sys.exc_info())))
-
-    if raised_exception_messages:
-      raise exceptions.TracingException(
-          'Exceptions raised when trying to flush tracing:\n' +
-          '\n'.join(raised_exception_messages))
+        trace_builder.RecordTraceDataException()
 
   def _IssueClockSyncMarker(self):
     if not telemetry_tracing_agent.IsAgentEnabled():

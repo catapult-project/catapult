@@ -30,20 +30,24 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     self._tab.AddTimelineMarker(title)
 
   @decorators.Isolated
-  def testExceptionRaisedInStopTracing(self):
+  def testExceptionDuringStopTracingIsCaught(self):
     self.tracing_controller.StartTracing(self.config)
     self.assertTrue(self.tracing_controller.is_tracing_running)
 
-    # Inject exception while trying to stop Chrome tracing.
+    # Inject exception while trying to stop Chrome tracing. It should be
+    # caught and buffered until the trace builder is cleaned up.
     with mock.patch.object(
         self._tab._inspector_backend._devtools_client,
         'StopChromeTracing',
         side_effect=Exception('Intentional Tracing Exception')):
-      with self.assertRaisesRegexp(Exception, 'Intentional Tracing Exception'):
-        self.tracing_controller.StopTracing()
+      trace_builder = self.tracing_controller.StopTracing()
 
     # Tracing is stopped even if there was an exception.
     self.assertFalse(self.tracing_controller.is_tracing_running)
+
+    # Cleaning up the builder raises the exception.
+    with self.assertRaisesRegexp(Exception, 'Intentional Tracing Exception'):
+      trace_builder.CleanUpTraceData()
 
   @decorators.Isolated
   def testGotTrace(self):
