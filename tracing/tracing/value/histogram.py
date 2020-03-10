@@ -916,9 +916,17 @@ class Histogram(object):
     if proto.HasField('running'):
       hist._running = RunningStatistics.FromProto(proto.running)
     if proto.HasField('summary_options'):
-      options_dict = {}
-      for field, value in proto.summary_options.ListFields():
-        options_dict[field.name] = value
+      options_dict = {
+          'avg': proto.summary_options.avg,
+          'geometricMean': proto.summary_options.geometric_mean,
+          'std': proto.summary_options.std,
+          'count': proto.summary_options.count,
+          'sum': proto.summary_options.sum,
+          'min': proto.summary_options.min,
+          'max': proto.summary_options.max,
+          'nans': proto.summary_options.nans,
+          'percentile': proto.summary_options.percentile,
+      }
       hist.CustomizeSummaryOptions(options_dict)
     if proto.max_num_sample_values:
       hist._max_num_sample_values = proto.max_num_sample_values

@@ -415,8 +415,9 @@ class HistogramSetUnittest(unittest.TestCase):
   def testSummaryOptionsFromProto(self):
     hist_set = histogram_proto.Pb2().HistogramSet()
     hist = _AddHist(hist_set)
-    hist.summary_options.nans = False
-    hist.summary_options.geometric_mean = False
+    hist.summary_options.avg = True
+    hist.summary_options.nans = True
+    hist.summary_options.geometric_mean = True
     hist.summary_options.percentile.append(0.90)
     hist.summary_options.percentile.append(0.95)
     hist.summary_options.percentile.append(0.99)
@@ -429,10 +430,9 @@ class HistogramSetUnittest(unittest.TestCase):
     # Serializing to proto leads to funny rounding errors.
     self.assertEqual(
         parsed_hist.statistics_names,
-        set([
-            'std', 'count', 'pct_089_9999976158', 'pct_094_9999988079', 'max',
-            'sum', 'min', 'pct_099_0000009537', 'avg'
-        ]), msg=str(parsed_hist.statistics_names))
+        set(['pct_099_0000009537', 'pct_089_9999976158', 'pct_094_9999988079',
+             'nans', 'avg', 'geometricMean']),
+        msg=str(parsed_hist.statistics_names))
 
   def testImportSharedDiagnosticsFromProto(self):
     guid1 = 'f7f17394-fa4a-481e-86bd-a82cd55935a7'

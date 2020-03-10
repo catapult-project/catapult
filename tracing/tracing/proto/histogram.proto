@@ -182,7 +182,7 @@ message Histogram {
 
   // This allows metrics to specify which summary statistics are interesting and
   // should be displayed. If not set, this will fall back to some suitable
-  // default (see histogram.py).
+  // default (see histogram.py). You can either override all values or none.
   SummaryOptions summary_options = 12;
 }
 
