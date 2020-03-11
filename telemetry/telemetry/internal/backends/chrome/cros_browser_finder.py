@@ -6,6 +6,7 @@
 import logging
 import os
 import posixpath
+import random
 
 from telemetry.core import cros_interface
 from telemetry.core import platform as platform_module
@@ -31,8 +32,6 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   # used.
   _CROS_MINIDUMP_DIR = cmd_helper.SingleQuote(
       cros_interface.CrOSInterface.CROS_MINIDUMP_DIR)
-  _EXISTING_ENV_FILEPATH = '/tmp/existing_chrome_env.conf'
-  _EXISTING_MINIDUMP_DIR = '/tmp/existing_minidumps/'
 
   _DEFAULT_CHROME_ENV = [
       'CHROME_HEADLESS=1',
@@ -51,6 +50,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
 
     # --chromium-output-dir also sets CHROMIUM_OUTPUT_DIR in browser_options.
     self._build_dir = os.environ.get('CHROMIUM_OUTPUT_DIR')
+    self._existing_env_filepath = None
+    self._existing_minidump_dir = None
 
   def __repr__(self):
     return 'PossibleCrOSBrowser(browser_type=%s)' % self.browser_type
@@ -90,10 +91,10 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
       cri.Chown(extension_dir)
 
     # Move any existing crash dumps temporarily so that they don't get deleted.
-    if cri.FileExistsOnDevice(self._EXISTING_MINIDUMP_DIR):
-      cri.RmRF(self._EXISTING_MINIDUMP_DIR)
+    self._existing_minidump_dir = (
+        '/tmp/existing_minidumps_%s' % _GetRandomHash())
     cri.RunCmdOnDevice(
-        ['mv', self._CROS_MINIDUMP_DIR, self._EXISTING_MINIDUMP_DIR])
+        ['mv', self._CROS_MINIDUMP_DIR, self._existing_minidump_dir])
 
     self._SetChromeEnvironment()
 
@@ -116,7 +117,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     # Move back any dumps that existed before we started the test.
     cri.RmRF(self._CROS_MINIDUMP_DIR)
     cri.RunCmdOnDevice(
-        ['mv', self._EXISTING_MINIDUMP_DIR, self._CROS_MINIDUMP_DIR])
+        ['mv', self._existing_minidump_dir, self._CROS_MINIDUMP_DIR])
 
     self._RestoreChromeEnvironment()
 
@@ -204,10 +205,15 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
       logging.error('Failed to set root to read-write. Functionality such as '
                     'stack symbolization will be broken.')
       return
+    self._existing_env_filepath = (
+        '/tmp/existing_chrome_env_%s.conf' % _GetRandomHash())
     cri.RunCmdOnDevice(
-        ['mv', self._CHROME_ENV_FILEPATH, self._EXISTING_ENV_FILEPATH])
+        ['mv', self._CHROME_ENV_FILEPATH, self._existing_env_filepath])
 
-    env_string = '\n'.join(env)
+    # Trailing newline to ensure that if anything else happens to add to this
+    # file, it gets added as its own entry instead of being appended to whatever
+    # is the last line.
+    env_string = '\n'.join(env) + '\n'
     # TODO(https://crbug.com/1043953): Remove the try/except once the root cause
     # of the root partition randomly becoming read-only is fixed.
     try:
@@ -227,7 +233,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     if not self._platform_backend.cri.root_is_writable:
       return
     self._platform_backend.cri.RunCmdOnDevice(
-        ['mv', self._EXISTING_ENV_FILEPATH, self._CHROME_ENV_FILEPATH])
+        ['mv', self._existing_env_filepath, self._CHROME_ENV_FILEPATH])
 
 
 def SelectDefaultBrowser(possible_browsers):
@@ -302,3 +308,7 @@ def FindAllAvailableBrowsers(finder_options, device):
           'cros-chrome-guest', finder_options, platform, is_guest=True)
   ])
   return browsers
+
+
+def _GetRandomHash():
+  return '%08x' % random.getrandbits(32)

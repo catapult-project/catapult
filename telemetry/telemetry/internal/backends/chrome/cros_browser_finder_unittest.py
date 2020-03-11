@@ -171,6 +171,12 @@ class CrOSBrowserEnvironmentTest(unittest.TestCase):
     new_contents = cri.GetFileContents(browser._CHROME_ENV_FILEPATH)
     self.assertNotEqual(new_contents, existing_contents)
     self.assertIn('FOO=BAR', new_contents)
+    # Ensure that multiple PossibleBrowsers don't negatively impact each other,
+    # regression test for crbug.com/1059426.
+    nested_browser = self._CreateBrowser()
+    nested_browser.SetUpEnvironment(
+        options_for_unittests.GetCopy().browser_options)
+    nested_browser._TearDownEnvironment()
     browser._TearDownEnvironment()
     new_contents = cri.GetFileContents(browser._CHROME_ENV_FILEPATH)
     self.assertEqual(new_contents, existing_contents)
