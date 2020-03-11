@@ -108,6 +108,18 @@ class PossibleDesktopBrowserTest(unittest.TestCase):
     profile = possible_desktop.profile_directory
     self.assertTrue(os.path.exists(os.path.join(profile, 'AUTHORS')))
 
+  def testExpectationTagsIncludeDebug(self):
+    possible_desktop = desktop_browser_finder.PossibleDesktopBrowser(
+        'debug_x64', self._finder_options, None, None,
+        False, self._finder_options.chrome_root)
+    self.assertIn('debug', possible_desktop.GetTypExpectationsTags())
+
+  def testExpectationTagsIncludeRelease(self):
+    possible_desktop = desktop_browser_finder.PossibleDesktopBrowser(
+        'release_x64', self._finder_options, None, None,
+        False, self._finder_options.chrome_root)
+    self.assertIn('release', possible_desktop.GetTypExpectationsTags())
+
   def testCopyProfileFilesRecursive(self):
     """ Ensure copied files can create directories if needed."""
 

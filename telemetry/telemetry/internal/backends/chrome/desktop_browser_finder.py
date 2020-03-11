@@ -216,6 +216,21 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
   def UpdateExecutableIfNeeded(self):
     pass
 
+  def GetTypExpectationsTags(self):
+    '''Override parent function to add release/debug tags
+
+    This function overrides PossibleBrowser's GetTypExpectationTags
+    member function. It adds the debug tag if the  debug browser like
+    debug_x64 is being used for tests, and the release tag if a release
+    browser like release_x64 is being used.
+    '''
+    tags = super(PossibleDesktopBrowser, self).GetTypExpectationsTags()
+    if 'debug' in self.browser_type.lower().split('_'):
+      tags.append('debug')
+    if 'release' in self.browser_type.lower().split('_'):
+      tags.append('release')
+    return tags
+
 
 def SelectDefaultBrowser(possible_browsers):
   local_builds_by_date = [
