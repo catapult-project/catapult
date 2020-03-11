@@ -3,7 +3,10 @@
 # found in the LICENSE file.
 
 try:
-  from tracing import histogram_pb2
+  # Note: from tracing.proto import histogram_pb2 would make more sense here,
+  # but unfortunately protoc does not generate __init__.py files if you specify
+  # an out package (at least for the gn proto_library rule).
+  import histogram_pb2  # pylint:disable=relative-import
   HAS_PROTO = True
 except ImportError:
   HAS_PROTO = False
@@ -19,7 +22,7 @@ def _EnsureProto():
   flag).
   """
   assert HAS_PROTO, ('Tried to use histogram protos, but missing '
-                     'histogram_pb2.py. You could try cd tracing && make.')
+                     'histogram_pb2.py. Try cd tracing/proto && make.')
 
 
 def Pb2():

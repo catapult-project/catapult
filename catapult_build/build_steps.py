@@ -232,8 +232,7 @@ def main(args=None):
 
   tracing_protos_path = os.path.join(args.api_path_checkout, 'tracing',
                                      'tracing', 'proto')
-  tracing_proto_output_path = os.path.join(args.api_path_checkout, 'tracing',
-                                           'tracing')
+  tracing_proto_output_path = tracing_protos_path
   tracing_proto_files = [os.path.join(tracing_protos_path, 'histogram.proto')]
 
 
