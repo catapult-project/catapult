@@ -22,6 +22,7 @@ from telemetry.internal.results import artifact_logger
 from devil.android import app_ui
 from devil.android import device_signal
 from devil.android.sdk import intent
+from devil.android.sdk import version_codes
 
 
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
@@ -268,9 +269,17 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # Set the local version's modification time to the device's
       # The mtime returned by device_utils.StatPath only has a resolution down
       # to the minute, so we can't use that.
-      device_mtime = device.RunShellCommand(
-          ['stat', '-c', '%Y', device_path], single_line=True)
-      device_mtime = int(device_mtime.strip())
+      # On Android L and earlier, 'stat' is not available, so fall back to
+      # device_utils.StatPath and adjust the returned value so that it's as new
+      # as possible while still fitting in that 1 minute resolution.
+      device_mtime = None
+      if device.build_version_sdk >= version_codes.MARSHMALLOW:
+        device_mtime = device.RunShellCommand(
+            ['stat', '-c', '%Y', device_path], single_line=True)
+        device_mtime = int(device_mtime.strip())
+      else:
+        stat_output = device.StatPath(device_path)
+        device_mtime = stat_output['st_mtime'] + 59
       host_mtime = device_mtime - time_offset
       os.utime(host_path, (host_mtime, host_mtime))
 
