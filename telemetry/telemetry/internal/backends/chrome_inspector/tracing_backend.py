@@ -312,23 +312,24 @@ class TracingBackend(object):
               'Exception raised while collecting tracing data:\n' +
               traceback.format_exc())
 
-        if self._data_loss_occurred:
-          raise TraceBufferDataLossException(
-              'The trace buffer has been overrun and data loss has occurred. '
-              'Chrome\'s tracing is stored in a ring buffer. When it runs out '
-              'of space, it will start deleting trace information from the '
-              'start. Data loss can cause some unexpected problems in the '
-              'metrics calculation implementation. For example, metrics depend '
-              'on the clock sync marker existing. For that reason, it is '
-              'better to hard fail here than to let metrics calculations fail '
-              'in a more cryptic way.\n'
-              'There are several ways to prevent this error:\n'
-              '1. Shorten your story so that it does not run long enough to '
-              'overflow the trace buffer.\n'
-              '2. Enable fewer trace categories to generate less data.\n'
-              '3. Increase the trace buffer size.')
-
         if self._has_received_all_tracing_data:
+          # Only raise this exception after collecting all the data to aid
+          # debugging.
+          if self._data_loss_occurred:
+            raise TraceBufferDataLossException(
+                'The trace buffer has been overrun and data loss has occurred. '
+                'Chrome\'s tracing is stored in a ring buffer. When it runs '
+                'out of space, it will start deleting trace information from '
+                'the start. Data loss can cause some unexpected problems in '
+                'the metrics calculation implementation. For example, metrics '
+                'depend on the clock sync marker existing. For that reason, it '
+                'is better to hard fail here than to let metrics calculations '
+                'fail in a more cryptic way.\n'
+                'There are several ways to prevent this error:\n'
+                '1. Shorten your story so that it does not run long enough to '
+                'overflow the trace buffer.\n'
+                '2. Enable fewer trace categories to generate less data.\n'
+                '3. Increase the trace buffer size.')
           break
 
         elapsed_time = time.time() - start_time
