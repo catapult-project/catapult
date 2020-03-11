@@ -1,7 +1,15 @@
 crouleau@chromium.org
+wenbinzhang@google.com
+
+# crash symbolization/minidumps and functional testing
+bsheedy@chromium.org
 
 # expectations.config format
 rmhasan@google.com
+
+# tracing and artifacts
+eseckler@chromium.org
+khokhlov@google.com
 
 # For CrOS-related changes.
 achuith@chromium.org
