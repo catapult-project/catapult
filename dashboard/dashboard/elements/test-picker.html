@@ -540,6 +540,11 @@ Polymer({
     parts.unshift(suite);
     parts.unshift(bot);
 
+    // If the last part is empty, drop it.  A test path can have subtests while
+    // also being a test.  E.g. if both Foo/Bar/Baz and Foo/Bar/Baz/ref are
+    // tests, then this happens when the user picks the former.
+    if (parts[parts.length - 1] == '') parts.pop();
+
     if (parts.length < maxLevel) {
       getCurrentSelectedPathUpToMark.end();
       return undefined;
