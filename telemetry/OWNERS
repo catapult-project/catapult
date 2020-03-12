@@ -1,5 +1,7 @@
+# Overall Owners
 crouleau@chromium.org
-wenbinzhang@google.com
+johnchen@chromium.org
+wenbinzhang@google.com  # Overall backup reviewer
 
 # crash symbolization/minidumps and functional testing
 bsheedy@chromium.org
