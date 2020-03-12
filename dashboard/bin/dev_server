@@ -28,6 +28,10 @@ def Main():
   from dashboard_build import preprocess
   with temp_deployment_dir.TempDeploymentDir(paths) as tmp_dir:
     preprocess.PackPinpoint(catapult_path, tmp_dir, paths)
+
+    # The bundled dir is already copied, so don't have the deployment logic
+    # copy it again.
+    paths.remove(os.path.join(tmp_dir, 'bundled'))
     appengine_dev_server.DevAppserver(paths, sys.argv[1:], reuse_path=tmp_dir)
 
 

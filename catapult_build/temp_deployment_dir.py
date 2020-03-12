@@ -14,7 +14,7 @@ import logging
 def TempDeploymentDir(paths, use_symlinks=True, cleanup=True, reuse_path=None):
   """Sets up and tears down a directory for deploying an app."""
   if use_symlinks:
-    link_func = os.symlink
+    link_func = _Symlink
   else:
     link_func = _Copy
 
@@ -39,6 +39,15 @@ def TempDeploymentDir(paths, use_symlinks=True, cleanup=True, reuse_path=None):
     if cleanup and reuse_path is not None:
       logging.info('Cleaning up: %s', deployment_dir)
       shutil.rmtree(deployment_dir)
+
+
+def _Symlink(src, dst):
+  if os.path.exists(dst):
+    # Update the symlink.
+    os.unlink(dst)
+    os.symlink(src, dst)
+  else:
+    os.symlink(src, dst)
 
 
 def _Copy(src, dst):
