@@ -30,17 +30,5 @@ found in the LICENSE file.
   <toplevel-toast></toplevel-toast>
   <group-report-page></group-report-page>
   <load-analytics></load-analytics>
-  <script>
-    'use strict';
-    window.addEventListener('load', function() {
-      const params = new URLSearchParams(location.search.substr(1));
-      const bug = params.get('bug_id');
-      const anchor = document.querySelector('#v2');
-      const url = new URL(anchor.href);
-      url.hash = bug ? ('bug=' + bug) : '';
-      anchor.href = url;
-      // TODO Translate `?keys` into `#alerts&minRev&maxRev`.
-    });
-  </script>
 </body>
 </html>

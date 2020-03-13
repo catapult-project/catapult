@@ -24,21 +24,6 @@ found in the LICENSE file.
 
   <title>Chrome Performance Dashboard</title>
   <script async="" defer="" src="//survey.g.doubleclick.net/async_survey?site=3lz324s7zmcmh6sxbh572ok7ja"></script>
-  <script>
-    'use strict';
-    (function() {
-      function updateV2Link() {
-        const params = new URLSearchParams(location.search.substr(1));
-        const sid = params.get('sid');
-        const anchor = document.querySelector('#v2');
-        const url = new URL(anchor.href);
-        url.hash = sid ? ('session=' + sid) : '';
-        anchor.href = url;
-      }
-      window.addEventListener('pagestaterequest', updateV2Link);
-      window.addEventListener('load', updateV2Link);
-    })();
-  </script>
 </head>
 <body>
   <nav-bar></nav-bar>
