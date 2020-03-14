@@ -43,7 +43,7 @@ message BinBoundaryDetailedSpec {
   Type boundary_type = 1;
 
   // The maximum bin boundary of the sequence.
-  float maximum_bin_boundary = 2;
+  double maximum_bin_boundary = 2;
 
   // The number of bin boundaries in the sequence.
   int32 num_bin_boundaries = 3;
@@ -52,7 +52,7 @@ message BinBoundaryDetailedSpec {
 message BinBoundarySpec {
   oneof boundary_oneof {
     // A number denoting the boundary.
-    float bin_boundary = 1;
+    double bin_boundary = 1;
 
     // A more detailed spec of the boundary.
     BinBoundaryDetailedSpec bin_spec = 2;
@@ -61,7 +61,7 @@ message BinBoundarySpec {
 
 message BinBoundaries {
   // Boundary between the underflow bin and the first central bin.
-  float first_bin_boundary = 1;
+  double first_bin_boundary = 1;
 
   // An array that specifies how to build bin boundaries.
   repeated BinBoundarySpec bin_specs = 2;
@@ -112,12 +112,12 @@ message DiagnosticMap {
 
 message RunningStatistics {
   int32 count = 1;
-  float max = 2;
-  float meanlogs = 3;
-  float mean = 4;
-  float min = 5;
-  float sum = 6;
-  float variance = 7;
+  double max = 2;
+  double meanlogs = 3;
+  double mean = 4;
+  double min = 5;
+  double sum = 6;
+  double variance = 7;
 }
 
 message Bin {
@@ -162,7 +162,7 @@ message Histogram {
 
   // Array of sample values to support Mann-Whitney U hypothesis testing to
   // determine the significance of the difference between two Histograms.
-  repeated float sample_values = 6;
+  repeated double sample_values = 6;
 
   // Maximum number of sample values If undefined, defaults to
   // allBins.length * 10.
