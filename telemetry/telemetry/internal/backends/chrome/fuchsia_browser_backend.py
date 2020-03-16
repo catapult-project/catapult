@@ -8,6 +8,7 @@ import subprocess
 
 from telemetry.core import exceptions
 from telemetry.internal.backends.chrome import chrome_browser_backend
+from telemetry.internal.backends.chrome import minidump_finder
 from telemetry.internal.platform import fuchsia_platform_backend as fuchsia_platform_backend_module
 
 import py_utils
@@ -54,6 +55,8 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     ]
     self._browser_process = self._command_runner.RunCommandPiped(
         browser_cmd, stderr=subprocess.PIPE)
+    self._dump_finder = minidump_finder.MinidumpFinder(
+        self.browser.platform.GetOSName(), self.browser.platform.GetArchName())
     self._devtools_port = self._ReadDevToolsPort(
         self._browser_process.stderr)
     try:
