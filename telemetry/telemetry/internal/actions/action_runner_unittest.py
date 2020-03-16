@@ -58,6 +58,7 @@ class ActionRunnerMeasureMemoryTest(tab_test_case.TabTestCase):
   def testDeterministicMode(self):
     self._TestWithTracing(deterministic_mode=True)
 
+  @decorators.Disabled('chromeos')  # crbug.com/1061321
   def testRealisticMode(self):
     with mock.patch.object(self.action_runner,
                            'ForceGarbageCollection') as mock_method:
