@@ -485,9 +485,9 @@ def _GetCoreTestPathsForTest(path, return_selected):
   for subtest in GetTestsMatchingPattern(
       '%s/*' % path, only_with_rows=True, list_entities=True):
     # All subtests that are monitored are core.
-    if return_selected and subtest.sheriff:
+    if return_selected:
       paths.append(utils.TestPath(subtest.key))
-    elif not return_selected and not subtest.sheriff:
+    elif not return_selected:
       paths.append(utils.TestPath(subtest.key))
 
 

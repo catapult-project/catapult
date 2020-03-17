@@ -79,8 +79,6 @@ _ROW_EXCLUDE = ['parent_test', 'revision', 'id', 'internal_only']
 _SHERIFF_ALERT_EMAIL_BODY = """
 The test %(old_test_path)s has been migrated to %(new_test_path)s.
 
-It was previously sheriffed by %(old_sheriff)s.
-
 Please ensure the new test is properly sheriffed!
 """
 
@@ -479,13 +477,9 @@ def _SendNotificationEmail(old_test_key, new_test_key):
     old_test_key: TestMetadata key of the test that's about to be deleted.
     new_test_key: TestMetadata key of the test that's replacing the old one.
   """
-  old_entity = old_test_key.get()
-  if not old_entity or not old_entity.sheriff:
-    return
   body = _SHERIFF_ALERT_EMAIL_BODY % {
       'old_test_path': utils.TestPath(old_test_key),
       'new_test_path': utils.TestPath(new_test_key),
-      'old_sheriff': old_entity.sheriff.string_id(),
   }
   mail.send_mail(sender='gasper-alerts@google.com',
                  to='chrome-performance-monitoring-alerts@google.com',

@@ -16,7 +16,6 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import histogram
-from dashboard.models import sheriff
 
 # Masters, bots and test names to add to the mock datastore.
 _MOCK_DATA = [
@@ -183,10 +182,6 @@ class DeleteTestDataTest(testing_common.TestCase):
     # Add a sheriff for one test.
     test_path = 'ChromiumPerf/mac/SunSpider/Total/t'
     test = utils.TestKey(test_path).get()
-    sheriff_key = sheriff.Sheriff(
-        id='Perf Sheriff Mac', email='sullivan@google.com',
-        patterns=['*/*/*/*/*'], internal_only=False).put()
-    test.sheriff = sheriff_key
     test.put()
 
     self.testapp.post('/delete_test_data', {
@@ -215,10 +210,6 @@ class DeleteTestDataTest(testing_common.TestCase):
     # Add a sheriff for one test.
     test_path = 'ChromiumPerf/mac/SunSpider/Total/t'
     test = utils.TestKey(test_path).get()
-    sheriff_key = sheriff.Sheriff(
-        id='Perf Sheriff Mac', email='sullivan@google.com',
-        patterns=['*/*/*/*/*'], internal_only=False).put()
-    test.sheriff = sheriff_key
     test.put()
 
     self.testapp.post('/delete_test_data', {

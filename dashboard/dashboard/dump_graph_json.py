@@ -103,7 +103,7 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
     num_anomalies = int(self.request.get('num_alerts', _DEFAULT_MAX_ANOMALIES))
 
     anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-        sheriff=sheriff_name, limit=num_anomalies).get_result()
+        subscriptions=[sheriff_name], limit=num_anomalies).get_result()
     test_keys = [a.GetTestMetadataKey() for a in anomalies]
 
     # List of datastore entities that will be dumped.

@@ -14,7 +14,6 @@ from dashboard.common import datastore_hooks
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import graph_data
-from dashboard.models import sheriff
 
 
 class FakeRequest(object):
@@ -87,10 +86,6 @@ class DatastoreHooksTest(testing_common.TestCase):
       graph_data.Row(
           parent=external_test_container_key, id=i, value=float(i * 2)).put()
     self.UnsetCurrentUser()
-    sheriff.Sheriff(
-        id='external', email='foo@chromium.org', internal_only=False).put()
-    sheriff.Sheriff(
-        id='internal', email='internal@google.com', internal_only=True).put()
 
   def _CheckQueryResults(self, include_internal):
     """Asserts that the expected entities are fetched.
@@ -154,17 +149,6 @@ class DatastoreHooksTest(testing_common.TestCase):
     else:
       self.assertEqual(2, len(tests))
 
-    sheriffs = sheriff.Sheriff.query().fetch()
-    if include_internal:
-      self.assertEqual(2, len(sheriffs))
-      self.assertEqual('external', sheriffs[0].key.string_id())
-      self.assertEqual('foo@chromium.org', sheriffs[0].email)
-      self.assertEqual('internal', sheriffs[1].key.string_id())
-      self.assertEqual('internal@google.com', sheriffs[1].email)
-    else:
-      self.assertEqual(1, len(sheriffs))
-      self.assertEqual('external', sheriffs[0].key.string_id())
-      self.assertEqual('foo@chromium.org', sheriffs[0].email)
 
   def testQuery_NoUser_InternalOnlyNotFetched(self):
     self.UnsetCurrentUser()
@@ -220,16 +204,6 @@ class DatastoreHooksTest(testing_common.TestCase):
       self.assertRaises(AssertionError, k.get)
       self.assertRaises(AssertionError, graph_data.Bot.get_by_id,
                         'FooInternal', parent=m.key)
-    sheriff_entity = ndb.Key('Sheriff', 'external').get()
-    self.assertEqual(sheriff_entity.email, 'foo@chromium.org')
-    if include_internal:
-      internal_sheriff_entity = ndb.Key('Sheriff', 'internal').get()
-      self.assertEqual('internal@google.com', internal_sheriff_entity.email)
-    else:
-      k = ndb.Key('Sheriff', 'internal')
-      self.assertRaises(AssertionError, k.get)
-      self.assertRaises(
-          AssertionError, sheriff.Sheriff.get_by_id, 'internal')
 
   def testGet_NoUser(self):
     self.UnsetCurrentUser()

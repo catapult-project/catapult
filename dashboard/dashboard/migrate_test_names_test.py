@@ -17,12 +17,11 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
-from dashboard.models import sheriff
 from tracing.value.diagnostics import generic_set
 
 # Masters, bots and test names to add to the mock datastore.
 _MOCK_DATA = [
-    ['ChromiumPerf', 'ChromiumWebkit'],
+    ['ChromiumPerf'],
     ['win7', 'mac'],
     {
         'SunSpider': {
@@ -299,19 +298,11 @@ class MigrateTestNamesTest(testing_common.TestCase):
     # Add a sheriff for one test.
     test_path = 'ChromiumPerf/mac/moz/read_op_b/r_op_b'
     test = utils.TestKey(test_path).get()
-    sheriff_key = sheriff.Sheriff(
-        id='Perf Sheriff Mac', email='sullivan@google.com',
-        patterns=['*/mac/*/*/r_op_b']).put()
-    test.sheriff = sheriff_key
     test.put()
 
     # Add another sheriff for another test.
     test_path = 'ChromiumPerf/win7/moz/read_op_b/r_op_b'
     test = utils.TestKey(test_path).get()
-    sheriff_key = sheriff.Sheriff(
-        id='Perf Sheriff Win', email='sullivan@google.com',
-        patterns=['*/win7/*/*/r_op_b']).put()
-    test.sheriff = sheriff_key
     test.put()
 
     # Make a request to t migrate a test and then execute tasks on the queue.
@@ -334,8 +325,6 @@ class MigrateTestNamesTest(testing_common.TestCase):
         'test ChromiumPerf/mac/moz/read_op_b/r_op_b has been migrated', body)
     self.assertIn(
         'migrated to ChromiumPerf/mac/moz/read_operations_browser', body)
-    self.assertIn(
-        'sheriffed by Perf Sheriff Mac', body)
     self.assertEqual('gasper-alerts@google.com', messages[1].sender)
     self.assertEqual('chrome-performance-monitoring-alerts@google.com',
                      messages[1].to)
@@ -345,7 +334,6 @@ class MigrateTestNamesTest(testing_common.TestCase):
         'test ChromiumPerf/win7/moz/read_op_b/r_op_b has been migrated', body)
     self.assertIn(
         'migrated to ChromiumPerf/win7/moz/read_operations_browser', body)
-    self.assertIn('sheriffed by Perf Sheriff Win', body)
 
 
   def testGetNewTestPath_WithAsterisks(self):

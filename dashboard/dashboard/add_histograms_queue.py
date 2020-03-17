@@ -11,7 +11,6 @@ import json
 import logging
 import sys
 import uuid
-import random
 
 from google.appengine.ext import ndb
 
@@ -212,13 +211,9 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
 
   def IsMonitored(client, test):
     reason = []
-    request_sampling_percentage = 1.0
-    if random.random() < request_sampling_percentage:
-      subscriptions, _ = client.Match(test.test_path, check=True)
-      if not subscriptions:
-        reason.append('subscriptions')
-    elif not test.sheriff:
-      reason.append('sheriff')
+    subscriptions, _ = client.Match(test.test_path, check=True)
+    if not subscriptions:
+      reason.append('subscriptions')
     if not test.has_rows:
       reason.append('has_rows')
     if reason:

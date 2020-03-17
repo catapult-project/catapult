@@ -120,31 +120,19 @@ def _ProcessTestStat(config, test, stat, rows, ref_rows):
   logging.info(' Stat: %s', stat)
 
   # Get all the sheriff from sheriff-config match the path
-  legacy_sheriff = yield _GetSheriffForTest(test)
   client = SheriffConfigClient()
   subscriptions, err_msg = client.Match(test.test_path)
   subscription_names = [s.name for s in subscriptions or []]
-  if legacy_sheriff is not None:
-    logging.info('Sheriff for %s: old: %s, new: %s', test.test_path,
-                 legacy_sheriff.key.string_id(),
-                 err_msg if subscriptions is None else subscription_names)
-    if legacy_sheriff.key.string_id() not in subscription_names:
-      logging.warn('Sheriff do not match: %s', test_key.string_id())
 
   # Breaks the process when Match failed to ensure find_anomaly do the best
   # effort to find the subscriber. Leave retrying to upstream.
   if err_msg is not None:
     raise RuntimeError(err_msg)
 
-  # We still check legacy sheriff for backward compatibility. So during the
-  # migration, we should update both legacy and new sheriff_config to ensure
-  # config take effect.
-  if not legacy_sheriff:
-    logging.error('No sheriff for %s', test_key)
-    raise ndb.Return(None)
+  if not subscriptions:
+    logging.warning('No subscription for %s', test.test_path)
 
   for a in anomalies:
-    a.sheriff = legacy_sheriff.key
     a.subscriptions = subscriptions
     a.subscription_names = subscription_names
     a.internal_only = (any([s.visibility != subscription.VISIBILITY.PUBLIC
@@ -297,16 +285,6 @@ def _IsAnomalyInRef(change_point, ref_change_points):
   return False
 
 
-@ndb.tasklet
-def _GetSheriffForTest(test):
-  """Gets the Sheriff for a test, or None if no sheriff."""
-  # Old one. Get the sheriff from TestMetadata
-  sheriff = None
-  if test.sheriff:
-    sheriff = yield test.sheriff.get_async()
-  raise ndb.Return(sheriff)
-
-
 def _GetImmediatelyPreviousRevisionNumber(later_revision, rows):
   """Gets the revision number of the Row immediately before the given one.
 
@@ -426,7 +404,6 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
       ref_test=_GetRefBuildKeyForTest(test),
       test=test.key,
       statistic=stat,
-      sheriff=test.sheriff,
       internal_only=test.internal_only,
       units=test.units,
       display_start=display_start,

@@ -70,7 +70,7 @@ def _GetRecentAnomalies(days, sheriff):
   """
   anomalies, _, _ = anomaly.Anomaly.QueryAsync(
       min_timestamp=datetime.datetime.now() - datetime.timedelta(days=days),
-      sheriff=sheriff.id(),
+      subscriptions=[sheriff.id()],
       limit=_ANOMALY_FETCH_LIMIT).get_result()
   # We only want to list alerts that aren't marked invalid or ignored.
   anomalies = [a for a in anomalies if a.bug_id is None or a.bug_id > 0]

@@ -6,8 +6,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-from google.appengine.ext import ndb
-
 from dashboard.api import api_request_handler
 from dashboard.common import utils
 from dashboard.models import graph_data
@@ -34,8 +32,11 @@ class ListTimeseriesHandler(api_request_handler.ApiRequestHandler):
     query = query.filter(graph_data.TestMetadata.suite_name == benchmark)
     query = query.filter(graph_data.TestMetadata.has_rows == True)
     query = query.filter(graph_data.TestMetadata.deprecated == False)
-    if sheriff_name != 'all':
-      sheriff = ndb.Key('Sheriff', sheriff_name)
-      query = query.filter(graph_data.TestMetadata.sheriff == sheriff)
+    if sheriff_name and sheriff_name != 'all':
+      print(sheriff_name, 'xxxxxxxxxxxxxxxxxxxxxxxx')
+      raise api_request_handler.BadRequestError(
+          'Not supporting sheriff name anymore. Use `all` instead.'
+      )
+
     keys = query.fetch(keys_only=True)
     return [utils.TestPath(key) for key in keys]

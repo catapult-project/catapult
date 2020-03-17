@@ -27,7 +27,6 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import histogram
-from dashboard.models import sheriff
 from dashboard.sheriff_config_client import SheriffConfigClient
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
@@ -224,9 +223,6 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
         master='master', bot='bot', benchmark='benchmark', commit_position=123,
         benchmark_description='Benchmark description.', samples=[1, 2, 3])
     data = json.dumps(hs.AsDicts())
-    sheriff.Sheriff(
-        id='my_sheriff1', email='a@chromium.org', patterns=[
-            '*/*/*/hist', '*/*/*/hist_avg']).put()
 
     self.PostAddHistogram({'data': data})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -242,7 +238,6 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
 
     # Verify that an anomaly processing was called.
     self.assertEqual(mock_process_test.call_count, 1)
-
     rows = graph_data.Row.query().fetch()
     # We want to verify that the method was called with all rows that have
     # been added, but the ordering will be different because we produce
@@ -258,9 +253,6 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
         master='master', bot='bot', benchmark='benchmark', commit_position=123,
         benchmark_description='Benchmark description.', samples=[1, 2, 3])
     data = zlib.compress(json.dumps(hs.AsDicts()))
-    sheriff.Sheriff(
-        id='my_sheriff1', email='a@chromium.org', patterns=[
-            '*/*/*/hist', '*/*/*/hist_avg']).put()
 
     self.PostAddHistogram(data)
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -276,7 +268,6 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
 
     # Verify that an anomaly processing was called.
     self.assertEqual(mock_process_test.call_count, 1)
-
 
     rows = graph_data.Row.query().fetch()
     # We want to verify that the method was called with all rows that have
@@ -402,9 +393,6 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
         samples=[])
     data = json.dumps(hs.AsDicts())
 
-    sheriff.Sheriff(
-        id='my_sheriff1', email='a@chromium.org', patterns=['*/*/*/foo2']).put()
-
     self.testapp.post('/add_histograms', {'data': data})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
@@ -422,8 +410,6 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
   def testPost_TestNameEndsWithUnderscoreRef_ProcessTestIsNotCalled(
       self, mock_process_test):
     """Tests that Tests ending with "_ref" aren't analyzed for Anomalies."""
-    sheriff.Sheriff(
-        id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
     hs = _CreateHistogram(
         master='master', bot='bot', benchmark='benchmark',
         commit_position=424242, stories=['abcd'], samples=[1, 2, 3],
@@ -438,8 +424,6 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
   def testPost_TestNameEndsWithSlashRef_ProcessTestIsNotCalled(
       self, mock_process_test):
     """Tests that leaf tests named ref aren't added to the task queue."""
-    sheriff.Sheriff(
-        id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
     hs = _CreateHistogram(
         master='master', bot='bot', benchmark='benchmark',
         commit_position=424242, stories=['ref'], samples=[1, 2, 3])
@@ -452,8 +436,6 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
   def testPost_TestNameEndsContainsButDoesntEndWithRef_ProcessTestIsCalled(
       self, mock_process_test):
-    sheriff.Sheriff(
-        id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
     hs = _CreateHistogram(
         master='master', bot='bot', benchmark='benchmark',
         commit_position=424242, stories=['_ref_abcd'], samples=[1, 2, 3])
