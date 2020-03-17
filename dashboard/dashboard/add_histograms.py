@@ -167,6 +167,7 @@ class AddHistogramsProcessHandler(request_handler.RequestHandler):
       gcs_file_path = params['gcs_file_path']
 
       try:
+        logging.debug('Loading %s', gcs_file_path)
         gcs_file = cloudstorage.open(
             gcs_file_path, 'r', retry_params=_RETRY_PARAMS)
         with DecompressFileWrapper(gcs_file) as decompressing_file:
@@ -389,6 +390,9 @@ def _BatchHistogramsIntoTasks(
     # TODO(896856): Don't compute full diagnostics, because we need anyway to
     # call GetOrCreate here and in the queue.
     test_path = '%s/%s' % (suite_path, histogram_helpers.ComputeTestPath(hist))
+
+    # Log the information here so we can see which histograms are being queued.
+    logging.debug('Queueing: %s', test_path)
 
     if test_path in duplicate_check:
       raise api_request_handler.BadRequestError(
