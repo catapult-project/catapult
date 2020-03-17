@@ -12,6 +12,7 @@ import decimal
 import ijson
 import json
 import logging
+import StringIO
 import sys
 import uuid
 import zlib
@@ -195,7 +196,8 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
       # In prod, the data will be written to cloud storage and processed on the
       # taskqueue, so the caller will not see any errors. In dev_appserver,
       # process the data immediately so the caller will see errors.
-      ProcessHistogramSet(json.loads(self.request.body))
+      ProcessHistogramSet(
+          _LoadHistogramList(StringIO.StringIO(self.request.body)))
       return
 
     with timing.WallTimeLogger('decompress'):
