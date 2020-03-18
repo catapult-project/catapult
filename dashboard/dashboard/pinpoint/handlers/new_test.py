@@ -32,6 +32,7 @@ _BASE_REQUEST = {
     'base_git_hash': '3',
     'start_git_hash': '1',
     'end_git_hash': '3',
+    'story': 'speedometer',
 }
 
 
@@ -145,6 +146,13 @@ class NewTest(_NewTest):
     response = self.Post('/api/new', request, status=200)
     job = job_module.JobFromId(json.loads(response.body)['jobId'])
     self.assertEqual(job.comparison_mode, 'try')
+
+  def testComparisonModeTry_MissingRequiredArgs(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'try'
+    del request['story']
+    response = self.Post('/api/new', request, status=400)
+    self.assertIn('error', json.loads(response.body))
 
   def testComparisonModeOmitted(self):
     request = dict(_BASE_REQUEST)

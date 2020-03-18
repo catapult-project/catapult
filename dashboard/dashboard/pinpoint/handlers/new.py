@@ -76,6 +76,19 @@ def _CreateJob(request):
       arguments.get('experimental_execution_engine') and
       arguments.get('comparison_mode') == job_state.PERFORMANCE)
 
+  # Ensure that we have the required fields in tryjob requests.
+  if comparison_mode == 'try':
+    if 'benchmark' not in arguments:
+      raise ValueError('Missing required "benchmark" argument.')
+
+    # First we check whether there's a quest that's of type 'RunTelemetryTest'.
+    is_telemetry_test = any(
+        [isinstance(q, quest_module.RunTelemetryTest) for q in quests])
+    if is_telemetry_test and ('story' not in arguments and
+                              'story_tags' not in arguments):
+      raise ValueError(
+          'Missing either "story" or "story_tags" as arguments for try jobs.')
+
   # Create job.
   job = job_module.Job.New(
       quests if not use_execution_engine else (),
