@@ -1,31 +1,34 @@
 version: "3"
 services:
-  python-unittest-dashboard:
+  dashboard-base:
     build: .
+    image: dashboard-base:latest
+  python-unittest-dashboard:
+    image: dashboard-base:latest
     volumes:
       - ../..:/image/workspace:ro
     command: [/workspace/dashboard/bin/run_py_tests, -t, -v]
   deploy-dashboard:
-    build: .
+    image: dashboard-base:latest
     volumes:
       - ../..:/image/workspace:ro
       - gcloud-config:/root/.config/gcloud
     command: [/workspace/dashboard/bin/deploy, --promote, app.yaml, api.yaml, upload.yaml, upload-processing.yaml, dispatch.yaml, index.yaml]
   deploy-pinpoint:
-    build: .
+    image: dashboard-base:latest
     volumes:
       - ../..:/image/workspace:ro
       - gcloud-config:/root/.config/gcloud
     command: [/workspace/dashboard/bin/deploy, --promote, pinpoint.yaml]
   auth:
-    build: .
+    image: dashboard-base:latest
     volumes:
       - gcloud-config:/root/.config/gcloud
     command: [bash, -xc, "gcloud auth login && gcloud config set project chromeperf"]
   # Update workspace enviroment for cloud build deploy.
   # We must make content available for outside gcloud client.
   cloudbuild-prepare-deployment:
-    build: .
+    image: dashboard-base:latest
     volumes:
       - ../..:/workspace
     working_dir: /workspace/dashboard
