@@ -203,6 +203,9 @@ def _ComputeChromeCategories(config):
   if config.trace_gpu:
     categories.append('disabled-by-default-gpu.debug*')
   if config.trace_flow:
+    categories.append('toplevel.flow')
+    # toplevel.flow was moved out of disabled-by-default, leaving here for
+    # compatibility with older versions of Chrome.
     categories.append('disabled-by-default-toplevel.flow')
   if config.trace_memory:
     categories.append('disabled-by-default-memory')

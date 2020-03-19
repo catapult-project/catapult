@@ -26,8 +26,11 @@ tr.exportTo('tr.e.cc', function() {
   const MAIN_RENDERER_THREAD_NAME = 'CrRendererMain';
   const COMPOSITOR_THREAD_NAME = 'Compositor';
 
-  const POSTTASK_FLOW_EVENT = 'disabled-by-default-toplevel.flow';
-  const IPC_FLOW_EVENT = 'disabled-by-default-ipc.flow';
+  // toplevel.flow now covers both of the old categories.
+  // Leaving them here for compatibility with older versions.
+  const OLD_IPC_FLOW_EVENT = 'disabled-by-default-ipc.flow';
+  const OLD_POSTTASK_FLOW_EVENT = 'disabled-by-default-toplevel.flow';
+  const NEW_POSTTASK_FLOW_EVENT = 'toplevel.flow';
 
   const INPUT_EVENT_TYPE_NAMES = {
     CHAR: 'Char',
@@ -261,9 +264,10 @@ tr.exportTo('tr.e.cc', function() {
       // only one outgoing flow (PostTask) from ScheduleBeginImplFrameDeadline
       // and PostComposite.
       const flow = event.outFlowEvents[0];
+      const isPostTask = flow.category === NEW_POSTTASK_FLOW_EVENT ||
+                         flow.category === OLD_POSTTASK_FLOW_EVENT;
 
-      if (flow.category !== POSTTASK_FLOW_EVENT ||
-          !flow.endSlice) {
+      if (!isPostTask || !flow.endSlice) {
         return false;
       }
 
@@ -323,8 +327,9 @@ tr.exportTo('tr.e.cc', function() {
     // Follow outgoing flow events of the current slice.
     followCurrentSlice(event, queue, visited) {
       event.outFlowEvents.forEach(function(outflow) {
-        if ((outflow.category === POSTTASK_FLOW_EVENT ||
-            outflow.category === IPC_FLOW_EVENT) &&
+        if ((outflow.category === NEW_POSTTASK_FLOW_EVENT ||
+            outflow.category === OLD_POSTTASK_FLOW_EVENT ||
+            outflow.category === OLD_IPC_FLOW_EVENT) &&
             outflow.endSlice) {
           this.associatedEvents_.push(outflow);
 
