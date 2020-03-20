@@ -277,6 +277,33 @@ class Platform(object):
     """
     return self._platform_backend.TakeScreenshot(file_path)
 
+  def CanRecordVideo(self):
+    return self._platform_backend.CanRecordVideo()
+
+  def StartVideoRecording(self):
+    """Starts recording a video on the device.
+
+    Note that this method may not be supported on all platforms, so the caller
+    must check with CanRecordVideo before calling this. Once the caller starts
+    recording a video using this call, the caller must stop recording the video
+    by calling StopVideoRecording() before attempting to start recording another
+    video.
+    """
+    self._platform_backend.StartVideoRecording()
+
+  def StopVideoRecording(self, video_path):
+    """Stops recording a video on the device and saves to |video_path|.
+
+    This method must be called only if recording a video had started using a
+    call to StartVideoRecording(), and it was not already stopped using a call
+    to StopVideoRecording().
+
+    Args:
+      video_path: Where to save the video to. If the platform is remote,
+        |video_path| is the path on the host platform.
+    """
+    self._platform_backend.StopVideoRecording(video_path)
+
   def SetFullPerformanceModeEnabled(self, enabled):
     """ Set full performance mode on the platform.
 

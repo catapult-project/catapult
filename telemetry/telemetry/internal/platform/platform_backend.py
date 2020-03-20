@@ -180,6 +180,15 @@ class PlatformBackend(object):
   def TakeScreenshot(self, file_path):
     raise NotImplementedError
 
+  def CanRecordVideo(self):
+    return False
+
+  def StartVideoRecording(self):
+    raise NotImplementedError
+
+  def StopVideoRecording(self, video_path):
+    raise NotImplementedError
+
   def IsCooperativeShutdownSupported(self):
     """Indicates whether CooperativelyShutdown, below, is supported.
     It is not necessary to implement it on all platforms."""

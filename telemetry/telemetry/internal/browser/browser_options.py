@@ -62,6 +62,7 @@ class BrowserFinderOptions(optparse.Values):
     self.interval_profiling_periods = []
     self.interval_profiling_frequency = 1000
     self.interval_profiler_options = ''
+    self.capture_screen_video = False
 
   def __repr__(self):
     return str(sorted(self.__dict__.items()))
@@ -171,6 +172,11 @@ class BrowserFinderOptions(optparse.Values):
         '--enable-systrace', dest='enable_systrace', action='store_true',
         help='Enable collection of systrace. (Useful on ChromeOS where'
              ' atrace is not supported; collects scheduling information.)')
+    group.add_option(
+        '--capture-screen-video',
+        dest='capture_screen_video', action='store_true',
+        help='Capture the screen during the test and save it to a video file '
+             '(note that it is supported only on some platforms)')
     parser.add_option_group(group)
 
     # Platform options

@@ -7,6 +7,7 @@ import os
 import posixpath
 import re
 import subprocess
+import threading
 import time
 
 from telemetry.core import android_platform
@@ -32,6 +33,7 @@ from devil.android.perf import thermal_throttle
 from devil.android.sdk import shared_prefs
 from devil.android.tools import provision_devices
 from devil.android.tools import system_app
+from devil.android.tools import video_recorder
 
 try:
   # devil.android.forwarder uses fcntl, which doesn't exist on Windows.
@@ -73,6 +75,42 @@ _DEVICE_MEMTRACK_HELPER_LOCATION = '/data/local/tmp/profilers/memtrack_helper'
 _DEVICE_CLEAR_SYSTEM_CACHE_TOOL_LOCATION = '/data/local/tmp/clear_system_cache'
 
 
+class _VideoRecorder(object):
+  def __init__(self):
+    self._stop_recording_signal = threading.Event()
+    self._recording_path = None
+    self._runner = None
+
+  def WaitForSignal(self):
+    self._stop_recording_signal.wait()
+
+  @property
+  def recording_path(self):
+    return self._recording_path
+
+  def Start(self, device):
+    def record_video(device, state):
+      recorder = video_recorder.VideoRecorder(device)
+      with recorder:
+        state.WaitForSignal()
+      if state.recording_path:
+        f = recorder.Pull(state.recording_path)
+        logging.info('Video written to %s' % os.path.abspath(f))
+
+    # Start recording the video in parallel to running the story, so that the
+    # video recording here does not block running the story (which involve
+    # executing additional commands in parallel on the device).
+    parallel_devices = device_utils.DeviceUtils.parallel([device], async=True)
+    self._runner = parallel_devices.pMap(record_video, self)
+
+  def Stop(self, video_path):
+    self._recording_path = video_path
+    self._stop_recording_signal.set()
+    # Recording the video may take a few seconds in the extreme cases. So allow
+    # a few seconds when shutting down the recording.
+    self._runner.pGet(timeout=10)
+
+
 class AndroidPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
   def __init__(self, device, require_root):
@@ -103,6 +141,7 @@ class AndroidPlatformBackend(
     self._device_copy_script = None
     self._system_ui = None
     self._device_host_clock_offset = None
+    self._video_recorder = None
 
     # TODO(https://crbug.com/1026296): Remove this once --chromium-output-dir
     # has a default value we can use.
@@ -230,6 +269,19 @@ class AndroidPlatformBackend(
 
   def TakeScreenshot(self, file_path):
     return bool(self._device.TakeScreenshot(host_path=file_path))
+
+  def CanRecordVideo(self):
+    return True
+
+  def StartVideoRecording(self):
+    assert self._video_recorder is None
+    self._video_recorder = _VideoRecorder()
+    self._video_recorder.Start(self.device)
+
+  def StopVideoRecording(self, video_path):
+    assert self._video_recorder
+    self._video_recorder.Stop(video_path)
+    self._video_recorder = None
 
   def CooperativelyShutdown(self, proc, app_name):
     # Suppress the 'abstract-method' lint warning.
