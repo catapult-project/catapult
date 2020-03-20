@@ -53,8 +53,6 @@ See [Running Telemetry on Chrome OS](https://chromium.googlesource.com/chromiumo
 
 Telemetry benchmarks can be run with run\_benchmark.
 
-In the Telemetry zip archive, this is located at `telemetry/run_benchmark`.
-
 In the Chromium source tree, this is located at `src/tools/perf/run_benchmark`.
 
 #### Running a benchmark
@@ -63,55 +61,61 @@ List the available benchmarks with `telemetry/run_benchmark list`.
 
 Here's an example for running a particular benchmark:
 
-`telemetry/run_benchmark --browser=canary smoothness.top_25_smooth`
+`src/tools/perf/run_benchmark blink_perf.css --browser=stable`
 
 #### Running on another browser
 
 To list available browsers, use:
 
-`telemetry/run_benchmark --browser=list`
+`src/tools/perf/run_benchmark --browser=list`
 
 For ease of use, you can use default system browsers on desktop:
 
-`telemetry/run_benchmark --browser=system`
+`src/tools/perf/run_benchmark blink_perf.css --browser=system`
 
 and on Android:
 
-`telemetry/run_benchmark --browser=android-system-chrome`
+`src/tools/perf/run_benchmark blink_perf.css --browser=android-system-chrome`
 
 If you're running telemetry from within a Chromium checkout, the release and
 debug browsers are what's built in out/Release and out/Debug, respectively.
 
 To run a specific browser executable:
 
-`telemetry/run_benchmark --browser=exact --browser-executable=/path/to/binary`
+`src/tools/perf/run_benchmark blink_perf.css --browser=exact --browser-executable=/path/to/binary`
 
 To run on a Chromebook:
 
-`telemetry/run_benchmark --browser=cros-chrome --remote=[ip_address]`
+`src/tools/perf/run_benchmark blink_perf.css --browser=cros-chrome --remote=[ip_address]`
 
 #### Options
 
 To see all options, run:
 
-`telemetry/run_benchmark run --help`
+`src/tools/perf/run_benchmark run --help`
 
-Use --pageset-repeat to run the test repeatedly. For example:
+Use --pageset-repeat to run the benchmark repeatedly. For example:
 
-`telemetry/run_benchmark smoothness.top_25 --pageset-repeat=30`
+`src/tools/perf/run_benchmark blink_perf.css --pageset-repeat=30`
+
+Use --run-abridged-story-set to run a shortened version of a benchmark with a
+representative subset of the stories included (Note that some benchmarks do not
+have an abridged version yet. Instructions for abridging a benchmark are
+[here](https://docs.google.com/document/d/1GOl4QiOQ0hjwBa0xzvIkgp5wmepqdNpQ6iBybvKENIE/edit#heading=h.x7s3eoyaqdu)). Example:
+
+`src/tools/perf/run_benchmark rendering.desktop --run-abridged-story-set`
 
 If you want to re-generate HTML results and add label, you can do this locally
 by using the parameters `--reset-results --results-label="foo"`
 
-`telemetry/run_benchmark smoothness.top_25 --reset-results
---results-label="foo"`
+`src/tools/perf/run_benchmark blink_perf.css --reset-results --results-label="foo"`
 
-####Comparing Two Runs
+#### Comparing Two Runs
 
-`telemetry/run_benchmark some_test --browser-executable=path/to/version/1
+`src/tools/perf/run_benchmark some_benchmark --browser-executable=path/to/version/1
 --reset-results --results-label="Version 1"`
 
-`telemetry/run_benchmark some_test --browser-executable=path/to/version/2
+`src/tools/perf/run_benchmark some_benchmark --browser-executable=path/to/version/2
 --results-label="Version 2"`
 
 The results will be written to in the `results.html` file in the same location
