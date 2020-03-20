@@ -105,6 +105,27 @@ class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
           continue
 
         symbol_binaries.append(binary_path)
+    return self._FilterSymbolBinaries(symbol_binaries)
+
+  def _FilterSymbolBinaries(self, symbol_binaries):
+    """Filters out unnecessary symbol binaries to save symbolization time.
+
+    Args:
+      symbol_binaries: A list of paths to binaries that will have their
+          symbols dumped.
+
+    Returns:
+      A copy of |symbol_binaries| with any unnecessary paths removed.
+    """
+    if self._os_name == 'mac':
+      # The vast majority of the symbol binaries for component builds on Mac
+      # are .dylib, and none of them appear to contribute any additional
+      # information. So, remove them to save a *lot* of time.
+      filtered_binaries = []
+      for binary in symbol_binaries:
+        if not binary.endswith('.dylib'):
+          filtered_binaries.append(binary)
+      symbol_binaries = filtered_binaries
     return symbol_binaries
 
   def _GetCdbPath(self):
