@@ -38,6 +38,7 @@ class Benchmark(command_line.Command):
   page_set = None
   test = timeline_based_measurement.TimelineBasedMeasurement
   SUPPORTED_PLATFORMS = [expectations_module.ALL]
+  SUPPORTED_PLATFORM_TAGS = []
 
   def __init__(self, max_failures=None):
     """Creates a new Benchmark.
