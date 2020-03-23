@@ -56,6 +56,9 @@ class DateRange(diagnostic.Diagnostic):
       return
     dct['max'] = self._range.max
 
+  def _AsProto(self):
+    raise NotImplementedError()
+
   def Serialize(self, unused_serializer):
     if self.duration_ms == 0:
       return self._range.min
@@ -78,7 +81,7 @@ class DateRange(diagnostic.Diagnostic):
 
   @staticmethod
   def FromProto(d):
-    assert False, 'Not implemented in proto yet'
+    raise NotImplementedError()
 
   def CanAddDiagnostic(self, other_diagnostic):
     return isinstance(other_diagnostic, DateRange)

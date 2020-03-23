@@ -4,6 +4,7 @@
 
 import json
 
+from tracing.proto import histogram_proto
 from tracing.value.diagnostics import diagnostic
 
 
@@ -83,6 +84,11 @@ class GenericSet(diagnostic.Diagnostic):
 
   def _AsDictInto(self, dct):
     dct['values'] = list(self)
+
+  def _AsProto(self):
+    proto = histogram_proto.Pb2().Diagnostic()
+    proto.generic_set.values.extend([json.dumps(v) for v in list(self)])
+    return proto
 
   @staticmethod
   def Deserialize(data, deserializer):

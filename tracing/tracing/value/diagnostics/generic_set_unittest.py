@@ -130,6 +130,21 @@ class GenericSetUnittest(unittest.TestCase):
     values = list(g)
     self.assertEqual([12345, 'string', {"attr": 1}], values)
 
+  def testProtoRoundtrip(self):
+    a_set = generic_set.GenericSet([
+        None,
+        True,
+        False,
+        0,
+        1,
+        42,
+        [],
+        {},
+        [0, False],
+        {'a': 1, 'b': True},
+    ])
+    self.assertEqual(a_set, diagnostic.Diagnostic.FromProto(a_set.AsProto()))
+
   def testInvalidJsonValueInProto(self):
     with self.assertRaises(TypeError):
       p = histogram_proto.Pb2().GenericSet()

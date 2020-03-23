@@ -51,10 +51,14 @@ if HAS_PROTO:
       histogram_pb2.COUNT: 'count',
       histogram_pb2.SIGMA: 'sigma',
   }
+  UNIT_PROTO_MAP = {v: k for k, v in PROTO_UNIT_MAP.iteritems()}
 
   PROTO_IMPROVEMENT_DIRECTION_MAP = {
       histogram_pb2.BIGGER_IS_BETTER: 'biggerIsBetter',
       histogram_pb2.SMALLER_IS_BETTER: 'smallerIsBetter',
+  }
+  IMPROVEMENT_DIRECTION_PROTO_MAP = {
+      v: k for k, v in PROTO_IMPROVEMENT_DIRECTION_MAP.iteritems()
   }
 
 
@@ -66,3 +70,21 @@ def UnitFromProto(proto_unit):
     unit += '_' + PROTO_IMPROVEMENT_DIRECTION_MAP[direction]
 
   return unit
+
+
+def ProtoFromUnit(unit):
+  _EnsureProto()
+
+  parts = unit.split('_')
+
+  assert unit
+  assert 0 < len(parts) <= 2, ('expected <unit>_(bigger|smaller)IsBetter' +
+                               str(parts))
+
+  proto_unit = histogram_pb2.UnitAndDirection()
+  proto_unit.unit = UNIT_PROTO_MAP[parts[0]]
+  if len(parts) > 1:
+    proto_unit.improvement_direction = IMPROVEMENT_DIRECTION_PROTO_MAP[parts[1]]
+
+  return proto_unit
+

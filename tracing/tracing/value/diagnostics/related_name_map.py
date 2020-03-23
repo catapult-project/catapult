@@ -68,6 +68,9 @@ class RelatedNameMap(diagnostic.Diagnostic):
   def _AsDictInto(self, dct):
     dct['names'] = dict(self._map)
 
+  def _AsProto(self):
+    raise NotImplementedError()
+
   @staticmethod
   def Deserialize(data, deserializer):
     names = RelatedNameMap()
@@ -84,4 +87,4 @@ class RelatedNameMap(diagnostic.Diagnostic):
 
   @staticmethod
   def FromProto(d):
-    assert False, 'Not implemented in proto yet'
+    raise NotImplementedError()

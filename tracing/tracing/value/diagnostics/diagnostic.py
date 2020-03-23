@@ -48,6 +48,11 @@ class Diagnostic(object):
       return self._guid
     return self.AsDict()
 
+  def AsProtoOrReference(self):
+    if self._guid:
+      return self._guid
+    return self.AsProto()
+
   def AsDict(self):
     dct = {'type': self.__class__.__name__}
     if self._guid:
@@ -55,8 +60,14 @@ class Diagnostic(object):
     self._AsDictInto(dct)
     return dct
 
+  def AsProto(self):
+    return self._AsProto()
+
   def _AsDictInto(self, unused_dct):
-    raise NotImplementedError
+    raise NotImplementedError()
+
+  def _AsProto(self):
+    raise NotImplementedError()
 
   @staticmethod
   def FromDict(dct):

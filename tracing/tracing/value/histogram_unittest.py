@@ -279,6 +279,20 @@ class HistogramUnittest(unittest.TestCase):
     e = histogram.Histogram.FromDict(d)
     self.assertEqual(d, e.AsDict())
 
+  def testManyBinsRoundtripProto(self):
+    hist = histogram.Histogram('name', 'unitless', self.TEST_BOUNDARIES)
+
+    for sample in range(0, 400):
+      hist.AddSample(sample if sample % 2 else 10000 - sample)
+
+    d = hist.AsProto()
+    self.assertEqual(400, hist.num_values)
+    self.assertEqual((len(hist.bins) / 2) - 1, len(d.all_bins))
+
+    # Ensure that we can reconstitute a histogram properly from a proto.
+    e = histogram.Histogram.FromProto(d)
+    self.assertEqual(d, e.AsProto())
+
   def testBasic(self):
     hist = histogram.Histogram('', 'unitless', self.TEST_BOUNDARIES)
     self.assertEqual(hist.GetBinForValue(250).range.min, 200)
@@ -641,6 +655,59 @@ class HistogramUnittest(unittest.TestCase):
     for h in histograms:
       self.assertEqual(h.name, 'foo')
 
+  def testProtoOnlyWritesSummaryOptionsIfNotDefault(self):
+    hist = histogram.Histogram('name', 'unitless')
+
+    with_defaults = hist.AsProto()
+
+    hist.CustomizeSummaryOptions({
+        'count': True,
+        'min': False,
+        'max': True,
+        'sum': True,
+        'avg': True,
+        'std': True,
+        'nans': True,
+        'geometricMean': True,
+        'percentile': [0.5, 1]
+    })
+
+    proto = hist.AsProto()
+
+    self.assertFalse(with_defaults.HasField('summary_options'))
+    self.assertTrue(proto.HasField('summary_options'))
+
+  def testProtoRoundtrip(self):
+    generic = generic_set.GenericSet(['generic diagnostic'])
+    hist = histogram.Histogram(
+        'name', 'count_smallerIsBetter', self.TEST_BOUNDARIES)
+    hist.diagnostics['foo'] = generic
+
+    hist.CustomizeSummaryOptions({
+        'count': True,
+        'min': False,
+    })
+
+    hist.max_num_sample_values = 84
+    hist.description = "desc"
+
+    hist.AddSample(17)
+    hist.AddSample(18)
+    hist.AddSample(-1)
+    # TODO(http://crbug.com/1029452): uncomment once proto supports non-float
+    # samples and nan diagnostics are supported by protos.
+    # hist.AddSample('i am not a number', diagnostic_map=generic)
+
+    clone = histogram.Histogram.FromProto(hist.AsProto())
+
+    self.assertEqual(hist.sample_values, clone.sample_values)
+    self.assertEqual(hist.description, clone.description)
+    self.assertEqual(len(hist.diagnostics), len(clone.diagnostics))
+    self.assertEqual(hist.diagnostics['foo'], clone.diagnostics['foo'])
+    self.assertEqual(hist.statistics_scalars.keys(),
+                     clone.statistics_scalars.keys())
+    self.assertEqual(hist.max_num_sample_values, clone.max_num_sample_values)
+
 class DiagnosticMapUnittest(unittest.TestCase):
   def testDisallowReservedNames(self):
     diagnostics = histogram.DiagnosticMap()
@@ -741,3 +808,4 @@ class DiagnosticMapUnittest(unittest.TestCase):
     self.assertIs(related_map, diagnostics[1])
     self.assertIs(events, diagnostics[2])
     self.assertIs(generic2, diagnostics[3])
+

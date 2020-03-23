@@ -382,6 +382,24 @@ class RunningStatistics(object):
         FloatAsFloatOrInt(self._variance),
     ]
 
+  def AsProto(self):
+    proto = histogram_proto.Pb2().RunningStatistics()
+
+    if self._count == 0:
+      return proto
+
+    # We can't currently set None; setting 0 at least means nothing is sent
+    # on the wire.
+    proto.count = self._count or 0
+    proto.max = self._max or 0
+    proto.meanlogs = self._meanlogs or 0
+    proto.mean = self._mean or 0
+    proto.min = self._min or 0
+    proto.sum = self._sum or 0
+    proto.variance = self._variance or 0
+
+    return proto
+
   @staticmethod
   def FromDict(dct):
     result = RunningStatistics()
@@ -503,6 +521,11 @@ class DiagnosticMap(dict):
       dct[name] = diag.AsDictOrReference()
     return dct
 
+  def AsProto(self, proto):
+    for name, diag in self.items():
+      proto.diagnostic_map[name].CopyFrom(diag.AsProtoOrReference())
+    return proto
+
   def Merge(self, other):
     for name, other_diagnostic in other.items():
       if name not in self:
@@ -566,6 +589,15 @@ class HistogramBin(object):
     if len(self._diagnostic_maps) == 0:
       return [self.count]
     return [self.count, [d.AsDict() for d in self._diagnostic_maps]]
+
+  def AsProto(self):
+    proto = histogram_proto.Pb2().Bin()
+    proto.bin_count = self._count
+    if len(self._diagnostic_maps) == 0:
+      return proto
+
+    proto.diagnostic_maps.extend([d.AsProto() for d in self._diagnostic_maps])
+    return proto
 
   def Serialize(self, serializer):
     if len(self._diagnostic_maps) == 0:
@@ -905,14 +937,12 @@ class Histogram(object):
     if proto.HasField('diagnostics'):
       hist._diagnostics.AddProtos(proto.diagnostics.diagnostic_map)
     for i, bin_spec in proto.all_bins.items():
-      print(hist._bins)
       i = int(i)
       # Check whether i is a valid index before using it as a list index.
       if i >= len(hist._bins) or i < 0:
         raise InvalidBucketError(i, str(bin_spec), hist._bins)
       hist._bins[i] = HistogramBin(hist._bins[i].range)
       hist._bins[i].FromProto(bin_spec)
-      print(hist._bins)
     if proto.HasField('running'):
       hist._running = RunningStatistics.FromProto(proto.running)
     if proto.HasField('summary_options'):
@@ -934,6 +964,8 @@ class Histogram(object):
       hist._sample_values = proto.sample_values
     if proto.num_nans:
       hist._num_nans = proto.num_nans
+
+    # TODO: NaN diagnostics.
 
     return hist
 
@@ -1246,6 +1278,54 @@ class Histogram(object):
       dct['summaryOptions'] = summary_options
     return dct
 
+  def AsProto(self):
+    proto = histogram_proto.Pb2().Histogram()
+
+    proto.name = self.name
+    unit = histogram_proto.ProtoFromUnit(self.unit)
+    proto.unit.unit = unit.unit
+    proto.unit.improvement_direction = unit.improvement_direction
+
+    if self._bin_boundaries_dict:
+      bounds = HistogramBinBoundaries.ToProto(self._bin_boundaries_dict)
+      proto.bin_boundaries.first_bin_boundary = bounds.first_bin_boundary
+      proto.bin_boundaries.bin_specs.extend(bounds.bin_specs)
+    if self._description:
+      proto.description = self._description
+    if len(self.diagnostics):
+      self.diagnostics.AsProto(proto.diagnostics)
+
+    if self.max_num_sample_values != self._GetDefaultMaxNumSampleValues():
+      proto.max_num_sample_values = self.max_num_sample_values
+    if self.num_nans:
+      proto.num_nans = self.num_nans
+    if self.num_values:
+      proto.sample_values.extend(list(self.sample_values))
+      proto.running.CopyFrom(self._running.AsProto())
+      self._GetAllBinsAsProto(proto.all_bins)
+
+    any_overridden_summary_options = any(
+        [self._summary_options[k] != DEFAULT_SUMMARY_OPTIONS[k]
+         for k in DEFAULT_SUMMARY_OPTIONS])
+
+    if any_overridden_summary_options or self._summary_options['percentile']:
+      # Note: iprs and ci are not supported in the proto format yet.
+      # Also, we must set all options or none (could be fixed by moving to bool
+      # wrappers in the proto).
+      proto.summary_options.avg = self._summary_options['avg']
+      proto.summary_options.geometric_mean = (
+          self._summary_options['geometricMean'])
+      proto.summary_options.std = self._summary_options['std']
+      proto.summary_options.count = self._summary_options['count']
+      proto.summary_options.sum = self._summary_options['sum']
+      proto.summary_options.min = self._summary_options['min']
+      proto.summary_options.max = self._summary_options['max']
+      proto.summary_options.nans = self._summary_options['nans']
+      proto.summary_options.percentile.extend(
+          self._summary_options['percentile'])
+
+    return proto
+
   def _SerializeBins(self, serializer):
     num_bins = len(self._bins)
     empty_bins = 0
@@ -1287,6 +1367,21 @@ class Histogram(object):
     for hbin in self._bins:
       all_bins_list.append(hbin.AsDict())
     return all_bins_list
+
+  def _GetAllBinsAsProto(self, proto_bin_map):
+    num_bins = len(self._bins)
+    empty_bins = 0
+    for hbin in self._bins:
+      if hbin.count == 0:
+        empty_bins += 1
+    print("%d == %d", empty_bins, num_bins)
+    print(str(self._bins))
+    if empty_bins == num_bins:
+      return
+
+    for i, hbin in enumerate(self._bins):
+      if hbin.count > 0:
+        proto_bin_map[i].CopyFrom(hbin.AsProto())
 
   def _GetDefaultMaxNumSampleValues(self):
     return len(self._bins) * 10
@@ -1358,6 +1453,34 @@ class HistogramBinBoundaries(object):
 
     bin_boundaries._BuildBins()
     return bin_boundaries
+
+  @staticmethod
+  def ToProto(dct):
+    proto = histogram_proto.Pb2().BinBoundaries()
+    if dct is None:
+      proto.first_bin_boundary = JS_MAX_VALUE
+      return proto
+
+    proto.first_bin_boundary = dct[0]
+    for slic in dct[1:]:
+      spec = proto.bin_specs.add()
+      if not isinstance(slic, list):
+        spec.bin_boundary = slic
+        continue
+
+      b = histogram_proto.Pb2().BinBoundaryDetailedSpec
+      if slic[0] == HistogramBinBoundaries.SLICE_TYPE_LINEAR:
+        spec.bin_spec.boundary_type = b.LINEAR
+        spec.bin_spec.maximum_bin_boundary = slic[1]
+        spec.bin_spec.num_bin_boundaries = slic[2]
+      elif slic[0] == HistogramBinBoundaries.SLICE_TYPE_EXPONENTIAL:
+        spec.bin_spec.boundary_type = b.EXPONENTIAL
+        spec.bin_spec.maximum_bin_boundary = slic[1]
+        spec.bin_spec.num_bin_boundaries = slic[2]
+      else:
+        raise ValueError('Unrecognized HistogramBinBoundaries slice type')
+
+    return proto
 
   def AsDict(self):
     if len(self._builder) == 1 and self._builder[0] == JS_MAX_VALUE:

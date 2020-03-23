@@ -161,6 +161,15 @@ class HistogramSet(object):
       dcts.append(h.AsDict())
     return dcts
 
+  def AsProto(self):
+    proto = histogram_proto.Pb2().HistogramSet()
+    for guid, d in self._shared_diagnostics_by_guid.items():
+      proto.shared_diagnostics[guid].CopyFrom(d.AsProto())
+    for h in self:
+      proto.histograms.extend([h.AsProto()])
+
+    return proto
+
   def ReplaceSharedDiagnostic(self, old_guid, new_diagnostic):
     if not isinstance(new_diagnostic, diagnostic_ref.DiagnosticRef):
       self._shared_diagnostics_by_guid[new_diagnostic.guid] = new_diagnostic

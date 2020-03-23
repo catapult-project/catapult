@@ -55,7 +55,7 @@ class RelatedEventSet(diagnostic.Diagnostic):
 
   @staticmethod
   def FromProto(d):
-    assert False, 'Not implemented in proto yet'
+    raise NotImplementedError()
 
   def Serialize(self, serializer):
     return [
@@ -69,3 +69,6 @@ class RelatedEventSet(diagnostic.Diagnostic):
 
   def _AsDictInto(self, d):
     d['events'] = [event for event in self]
+
+  def _AsProto(self):
+    raise NotImplementedError()

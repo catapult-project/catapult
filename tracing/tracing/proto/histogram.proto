@@ -162,6 +162,8 @@ message Histogram {
 
   // Array of sample values to support Mann-Whitney U hypothesis testing to
   // determine the significance of the difference between two Histograms.
+  // TODO(http://crbug.com/1029452): These are not necessarily numbers; they
+  // can be any JSON object. Make JSON objects instead.
   repeated double sample_values = 6;
 
   // Maximum number of sample values If undefined, defaults to
