@@ -292,8 +292,9 @@ class _RunTestExecution(execution_module.Execution):
         },
         'extra_args': self._extra_args,
         'dimensions': self._dimensions,
+        # TODO(dberris): Make this configuration dependent.
         'execution_timeout_secs': '2700',  # 45 minutes for all tasks.
-        'io_timeout_secs': '1800',  # 30 minutes of inactivity is enough.
+        'io_timeout_secs': '2700',  # Also set 45 minutes for all tasks.
     }
     properties.update(VPYTHON_PARAMS)
     body = {
