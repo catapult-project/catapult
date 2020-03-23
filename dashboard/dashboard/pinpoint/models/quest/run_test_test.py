@@ -113,8 +113,7 @@ class _RunTestExecutionTest(unittest.TestCase):
         'pubsub_userdata':
             mock.ANY,
         'task_slices': [{
-            'expiration_secs':
-                '86400',
+            'expiration_secs': '86400',
             'properties': {
                 'inputs_ref': {
                     'isolatedserver': 'isolate server',
@@ -124,9 +123,9 @@ class _RunTestExecutionTest(unittest.TestCase):
                 'dimensions':
                     DIMENSIONS,
                 'execution_timeout_secs':
-                    '21600',
+                    mock.ANY,
                 'io_timeout_secs':
-                    '14400',
+                    mock.ANY,
                 'caches': [{
                     'name': 'swarming_module_cache_vpython',
                     'path': '.swarming_module_cache/vpython',

@@ -283,10 +283,6 @@ class _RunTestExecution(execution_module.Execution):
     """Kick off a Swarming task to run a test."""
     if (self._previous_execution and not self._previous_execution.bot_id
         and self._previous_execution.failed):
-      # If the previous Execution fails before it gets a bot ID, it's likely
-      # it couldn't find any device to run on. Subsequent Executions probably
-      # wouldn't have any better luck, and failing fast is less complex than
-      # handling retries.
       raise errors.SwarmingNoBots()
 
     properties = {
@@ -296,8 +292,8 @@ class _RunTestExecution(execution_module.Execution):
         },
         'extra_args': self._extra_args,
         'dimensions': self._dimensions,
-        'execution_timeout_secs': '21600',  # 6 hours, for rendering.mobile.
-        'io_timeout_secs': '14400',  # 4 hours, to match the perf bots.
+        'execution_timeout_secs': '2700',  # 45 minutes for all tasks.
+        'io_timeout_secs': '1800',  # 30 minutes of inactivity is enough.
     }
     properties.update(VPYTHON_PARAMS)
     body = {
