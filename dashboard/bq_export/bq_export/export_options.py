@@ -32,6 +32,10 @@ class BqExportOptions(PipelineOptions):
         '--table_suffix',
         help='Suffix to add to table name (for dev purposes, e.g. "_test").',
         default='')
+    parser.add_argument(
+        '--dataset',
+        help='BigQuery dataset name.  Overrideable for testing/dev purposes.',
+        default='chromeperf_dashboard_data')
 
   def GetTimeRangeProvider(self):
     """Return an object with .Get() method that returns (start, end) tuple.
