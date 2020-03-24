@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import datetime
+import hashlib
 import logging
 import os
 import os.path
@@ -228,11 +229,44 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return False
 
   def _GetStackFromMinidump(self, minidump):
+    # Create an executable-specific directory if necessary to store symbols
+    # for re-use. We purposefully don't clean this up so that future
+    # tests can continue to use the same symbols that are unique to the
+    # executable.
+    symbols_dir = self._CreateExecutableUniqueDirectory('chrome_symbols_')
     dump_symbolizer = desktop_minidump_symbolizer.DesktopMinidumpSymbolizer(
         self.browser.platform.GetOSName(),
         self.browser.platform.GetArchName(),
-        self._dump_finder, self.browser_directory)
+        self._dump_finder, self.browser_directory, symbols_dir=symbols_dir)
     return dump_symbolizer.SymbolizeMinidump(minidump)
+
+  def _CreateExecutableUniqueDirectory(self, prefix):
+    """Creates a semi-permanent directory unique to the browser executable.
+
+    This directory will persist between different tests, and potentially
+    be available between different test suites, but is liable to be cleaned
+    up by the OS at any point outside of a test suite's run.
+
+    Args:
+      prefix: A string to include before the unique identifier in the
+          directory name.
+
+    Returns:
+      A string containing an absolute path to the created directory.
+    """
+    hashfunc = hashlib.sha1()
+    with open(self._executable, 'rb') as infile:
+      hashfunc.update(infile.read())
+    symbols_dirname = prefix + hashfunc.hexdigest()
+    # We can't use mkdtemp() directly since that will result in the directory
+    # being different, and thus not shared. So, create an unused directory
+    # and use the same parent directory.
+    unused_dir = tempfile.mkdtemp().rstrip(os.path.sep)
+    symbols_dir = os.path.join(os.path.dirname(unused_dir), symbols_dirname)
+    if not os.path.exists(symbols_dir) or not os.path.isdir(symbols_dir):
+      os.makedirs(symbols_dir)
+    shutil.rmtree(unused_dir)
+    return symbols_dir
 
   def _UploadMinidumpToCloudStorage(self, minidump_path):
     """ Upload minidump_path to cloud storage and return the cloud storage url.

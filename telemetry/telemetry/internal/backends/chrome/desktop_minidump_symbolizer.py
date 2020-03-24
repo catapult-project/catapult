@@ -12,7 +12,8 @@ from telemetry.internal.util import binary_manager
 from telemetry.internal.util import path
 
 class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
-  def __init__(self, os_name, arch_name, dump_finder, build_dir):
+  def __init__(self, os_name, arch_name, dump_finder, build_dir,
+               symbols_dir=None):
     """Class for handling all minidump symbolizing code on Desktop platforms.
 
     Args:
@@ -22,9 +23,13 @@ class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
           used to find minidumps for the test.
       build_dir: The directory containing Chromium build artifacts to generate
           symbols from.
+      symbols_dir: An optional path to a directory to store symbols for re-use.
+          Re-using symbols will result in faster symbolization times, but the
+          provided directory *must* be unique per browser binary, e.g. by
+          including the hash of the binary in the directory name.
     """
     super(DesktopMinidumpSymbolizer, self).__init__(
-        os_name, arch_name, dump_finder, build_dir)
+        os_name, arch_name, dump_finder, build_dir, symbols_dir=symbols_dir)
 
   def SymbolizeMinidump(self, minidump):
     """Gets the stack trace from the given minidump.

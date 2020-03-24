@@ -14,7 +14,7 @@ from telemetry.internal.results import artifact_logger
 
 
 class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
-  def __init__(self, dump_finder, build_dir):
+  def __init__(self, dump_finder, build_dir, symbols_dir=None):
     """Class for handling all minidump symbolizing code on Android.
 
     Args:
@@ -22,10 +22,15 @@ class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
           used to find minidumps for the test.
       build_dir: The directory containing Chromium build artifacts to generate
           symbols from.
+      symbols_dir: An optional path to a directory to store symbols for re-use.
+          Re-using symbols will result in faster symbolization times, but the
+          provided directory *must* be unique per browser binary, e.g. by
+          including the hash of the binary in the directory name.
     """
     # We use the OS/arch of the host, not the device.
     super(AndroidMinidumpSymbolizer, self).__init__(
-        platform.system().lower(), platform.machine(), dump_finder, build_dir)
+        platform.system().lower(), platform.machine(), dump_finder, build_dir,
+        symbols_dir=symbols_dir)
 
   def SymbolizeMinidump(self, minidump):
     if platform.system() != 'Linux':

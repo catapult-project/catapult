@@ -16,7 +16,8 @@ from telemetry.internal.util import binary_manager
 
 
 class MinidumpSymbolizer(object):
-  def __init__(self, os_name, arch_name, dump_finder, build_dir):
+  def __init__(self, os_name, arch_name, dump_finder, build_dir,
+               symbols_dir=None):
     """Abstract class for handling all minidump symbolizing code.
 
     Args:
@@ -28,11 +29,16 @@ class MinidumpSymbolizer(object):
           used to find minidumps for the test.
       build_dir: The directory containing Chromium build artifacts to generate
           symbols from.
+      symbols_dir: An optional path to a directory to store symbols for re-use.
+          Re-using symbols will result in faster symbolization times, but the
+          provided directory *must* be unique per browser binary, e.g. by
+          including the hash of the binary in the directory name.
     """
     self._os_name = os_name
     self._arch_name = arch_name
     self._dump_finder = dump_finder
     self._build_dir = build_dir
+    self._symbols_dir = symbols_dir
 
   def SymbolizeMinidump(self, minidump):
     """Gets the stack trace from the given minidump.
@@ -56,13 +62,16 @@ class MinidumpSymbolizer(object):
         with open(minidump, 'wb') as outfile:
           outfile.write(''.join(infile.read().partition('MDMP')[1:]))
 
-    symbols_dir = tempfile.mkdtemp()
+    symbols_dir = self._symbols_dir
+    if not symbols_dir:
+      symbols_dir = tempfile.mkdtemp()
     try:
       self._GenerateBreakpadSymbols(symbols_dir, minidump)
       return subprocess.check_output([stackwalk, minidump, symbols_dir],
                                      stderr=open(os.devnull, 'w'))
     finally:
-      shutil.rmtree(symbols_dir)
+      if not self._symbols_dir:
+        shutil.rmtree(symbols_dir)
 
   def GetSymbolBinaries(self, minidump):
     """Returns a list of paths to binaries where symbols may be located.
@@ -109,10 +118,19 @@ class MinidumpSymbolizer(object):
     symbol_binaries = self.GetSymbolBinaries(minidump)
 
     cmds = []
+    cached_binaries = []
     missing_binaries = []
     for binary_path in symbol_binaries:
       if not os.path.exists(binary_path):
         missing_binaries.append(binary_path)
+        continue
+      # Skip dumping symbols for binaries if they already exist in the symbol
+      # directory, i.e. whatever is using this symbolizer has opted to cache
+      # symbols. The directory will contain a directory with the binary name if
+      # it has already been dumped.
+      cache_path = os.path.join(symbols_dir, os.path.basename(binary_path))
+      if os.path.exists(cache_path) and os.path.isdir(cache_path):
+        cached_binaries.append(binary_path)
         continue
       cmd = [
           sys.executable,
@@ -138,6 +156,18 @@ class MinidumpSymbolizer(object):
         logging.warning(
             'Run test with high verbosity to get the list of missing binaries.')
         logging.debug('Missing binaries: %s', missing_binaries)
+
+    if cached_binaries:
+      logging.info(
+          'Skipping symbol dumping for %d of %d binaries due to cached symbols '
+          'being present.', len(cached_binaries), len(symbol_binaries))
+      if len(cached_binaries) < 5:
+        logging.info('Skipped binaries: %s', cached_binaries)
+      else:
+        logging.info(
+            'Run test with high verbosity to get the list of binaries with '
+            'cached symbols.')
+        logging.debug('Skipped binaries: %s', cached_binaries)
 
     # We need to prevent the number of file handles that we open from reaching
     # the soft limit set for the current process. This can either be done by
