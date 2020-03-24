@@ -323,6 +323,10 @@ class CrOSInterfaceTest(unittest.TestCase):
     def mockRunCmdOnDevice(args): # pylint: disable=invalid-name
       if args[0] == 'cryptohome-path':
         return ('/home/user/%s' % args[2], '')
+      elif args[0] == 'nsenter':
+        # 'nsenter' is used to find Guest sessions. Ignore it in unit tests.
+        # 'nsenter' takes one argument so skip first two args.
+        return mockRunCmdOnDevice(args[2:])
       elif args[0] == '/bin/df':
         if 'unmount' in args[2]:
           # For the user unmount@gmail.com, returns the unmounted state.
