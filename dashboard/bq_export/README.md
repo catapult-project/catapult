@@ -1,7 +1,7 @@
 # Chromeperf Datastore → BigQuery export pipeline.
 
-This directory contains Apache Beam pipelines for exporting Anomaly and Row
-entities from chromeperf's Datastore into BigQuery tables.
+This directory contains Apache Beam pipelines for exporting Anomaly, Row, and
+Job entities from chromeperf's Datastore into BigQuery tables.
 
 This README briefly describes how to run and deploy those pipelines.
 
@@ -46,9 +46,23 @@ $ PYTHONPATH=$PYTHONPATH:"$(pwd)/bq_export" python \
   --temp_location=gs://chromeperf-dataflow-temp/export-anomalies-daily
 ```
 
+```
+$ PYTHONPATH=$PYTHONPATH:"$(pwd)/bq_export" python \
+  bq_export/export_jobs.py \
+  --service_account_email=bigquery-exporter@chromeperf.iam.gserviceaccount.com \
+  --runner=DataflowRunner \
+  --region=us-central1 \
+  --experiments=use_beam_bq_sink  \
+  --setup_file=bq_export/setup.py \
+  --staging_location=gs://chromeperf-dataflow/staging \
+  --template_location=gs://chromeperf-dataflow/templates/export_jobs \
+  --temp_location=gs://chromeperf-dataflow-temp/export-jobs-daily
+```
+
 There are Cloud Scheduler jobs configured to run
-`gs://chromeperf-dataflow/templates/export_anomalies` and
-`gs://chromeperf-dataflow/templates/export_rows` once every day, so updating
+`gs://chromeperf-dataflow/templates/export_anomalies`,
+`gs://chromeperf-dataflow/templates/export_rows`, and
+`gs://chromeperf-dataflow/templates/export_jobs` once every day, so updating
 those job templates is all that is required to update those daily runs.  See the
 Cloud Scheduler jobs at
 https://console.cloud.google.com/cloudscheduler?project=chromeperf.
