@@ -85,7 +85,7 @@ class ReplayServer(object):
         self._GetGoBinaryPath(), http_port, https_port, replay_options,
         archive_path)
 
-    if 'record' in replay_options:
+    if '--record' in replay_options or 'record' in replay_options:
       self._CheckPath('archive directory', os.path.dirname(self.archive_path))
     elif not os.path.exists(self.archive_path):
       self._CheckPath('archive file', self.archive_path)
@@ -95,6 +95,8 @@ class ReplayServer(object):
   @classmethod
   def _GetGoBinaryPath(cls):
     if not cls._go_binary_path:
+      if binary_manager.NeedsInit():
+        binary_manager.InitDependencyManager(None)
       cls._go_binary_path = binary_manager.FetchPath(
           'wpr_go', py_utils.GetHostArchName(), py_utils.GetHostOsName())
     return cls._go_binary_path
