@@ -145,8 +145,11 @@ class StoryRun(object):
       self.AddTags(version, [name])
 
   def SetFailed(self, failure_str):
-    self._failed = True
-    self._failure_str = failure_str
+    if self._failed:
+      self._failure_str += '\n' + failure_str
+    else:
+      self._failed = True
+      self._failure_str = failure_str
 
   def Skip(self, reason, expected=True):
     if not reason:

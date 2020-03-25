@@ -161,7 +161,13 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
       has_existing_exception = (sys.exc_info() != (None, None, None))
       try:
         if hasattr(state, 'browser') and state.browser:
-          state.browser.CleanupUnsymbolizedMinidumps(fatal=True)
+          try:
+            state.browser.CleanupUnsymbolizedMinidumps(fatal=True)
+          except Exception: # pylint: disable=broad-except
+            exception_formatter.PrintFormattedException(
+                msg='Exception raised when cleaning unsymbolized minidumps: ')
+            results.Fail(sys.exc_info())
+
         # We attempt to stop tracing and/or metric collecting before possibly
         # closing the browser. Closing the browser first and stopping tracing
         # later appeared to cause issues where subsequent browser instances
