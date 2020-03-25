@@ -81,6 +81,8 @@ tr.exportTo('tr.metrics', function() {
     for (const pid in chromeHelper.rendererHelpers) {
       const rendererHelper = chromeHelper.rendererHelpers[pid];
       if (rendererHelper.isChromeTracingUI) continue;
+      // Main thread may be missing. See crbug.com/1059726 for an example.
+      if (rendererHelper.mainThread === undefined) continue;
       measureUserTime(rendererHelper,
           'navigationStart',
           'telemetry:reported_by_page:viewable',

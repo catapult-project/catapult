@@ -137,6 +137,8 @@ tr.exportTo('tr.metrics.sh', function() {
         navigationStartEvent.start, pcEvent.start);
     const networkEvents = EventFinderUtils.getNetworkEventsInRange(
         rendererHelper.process, navStartToEventRange);
+    // Main thread may be missing. See crbug.com/1059726 for an example.
+    if (rendererHelper.mainThread === undefined) return samples;
     const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents, navStartToEventRange);
     samples.push({

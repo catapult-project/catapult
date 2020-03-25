@@ -489,6 +489,8 @@ tr.exportTo('tr.metrics.v8.utils', function() {
 
     for (const rendererHelper of rendererHelpers) {
       if (rendererHelper.isChromeTracingUI) continue;
+      // Main thread may be missing. See crbug.com/1059726 for an example.
+      if (rendererHelper.mainThread === undefined) continue;
       const pauses = [];
       for (const event of rendererHelper.mainThread.sliceGroup.childEvents()) {
         if (eventFilter(event) && event.end > event.start) {

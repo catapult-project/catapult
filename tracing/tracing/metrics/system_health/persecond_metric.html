@@ -112,6 +112,8 @@ tr.exportTo('tr.metrics.sh', function() {
       }
       const rendererHelper = chromeHelper.rendererHelpers[
           expectation.renderProcess.pid];
+      // Main thread may be missing. See crbug.com/1059726 for an example.
+      if (rendererHelper.mainThread === undefined) continue;
       navigationInfos.push({
         navigationStart: expectation.navigationStart,
         rendererHelper,
@@ -127,18 +129,6 @@ tr.exportTo('tr.metrics.sh', function() {
       }
     });
     return navigationInfos;
-  }
-
-  function getRendererHelpers(model) {
-    const chromeHelper = model.getOrCreateHelper(
-        tr.model.helpers.ChromeModelHelper);
-    const rendererHelpers = [];
-    for (const pid in chromeHelper.rendererHelpers) {
-      const rendererHelper = chromeHelper.rendererHelpers[pid];
-      if (rendererHelper.isChromeTracingUI) continue;
-      rendererHelpers.push(rendererHelper);
-    }
-    return rendererHelpers;
   }
 
   function getWallTimeBreakdownTree(rendererHelper, start, end) {
@@ -158,7 +148,6 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function persecondMetric(histograms, model) {
-    const rendererHelpers = getRendererHelpers(model);
     const navigationInfos = getNavigationInfos(model);
     if (navigationInfos.length === 0) {
       return;
