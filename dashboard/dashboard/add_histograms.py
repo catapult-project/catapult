@@ -262,10 +262,9 @@ def _LogDebugInfo(histograms):
 
 
 def ProcessHistogramSet(histogram_dicts):
-  if (not isinstance(histogram_dicts, list) and
-      not isinstance(histogram_dicts, dict)):
+  if not isinstance(histogram_dicts, list):
     raise api_request_handler.BadRequestError(
-        'HistogramSet JSON much be a list of dicts, or a dict')
+        'HistogramSet JSON must be a list of dicts')
 
   histograms = histogram_set.HistogramSet()
 

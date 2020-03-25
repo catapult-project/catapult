@@ -7,7 +7,6 @@ import collections
 from tracing.proto import histogram_proto
 from tracing.value import histogram as histogram
 from tracing.value import histogram_deserializer
-from tracing.value import histogram_proto_converter
 from tracing.value.diagnostics import all_diagnostics
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
@@ -116,27 +115,9 @@ class HistogramSet(object):
       self.Deserialize(dicts)
       return
 
-    # The even newer proto-backed JSON format (see histogram.proto) is a dict
-    # with histograms and shared diagnostics.
-    if isinstance(dicts, dict) and dicts and 'histograms' in dicts:
-      self.ImportProtoDict(dicts)
-      return
-
     # The original HistogramSet JSON format was a flat array of objects.
     for d in dicts:
       self.ImportLegacyDict(d)
-
-  def ImportProtoDict(self, dicts):
-    shared_diagnostics = dicts.get('sharedDiagnostics')
-    if shared_diagnostics:
-      convert = histogram_proto_converter.ConvertSharedDiagnostics
-      converted = convert(shared_diagnostics)
-      for d in converted:
-        self.ImportLegacyDict(d)
-
-    for histogram_dict in dicts["histograms"]:
-      hist = histogram_proto_converter.ConvertHistogram(histogram_dict)
-      self.ImportLegacyDict(hist)
 
   def ImportLegacyDict(self, d):
     if 'type' in d:
