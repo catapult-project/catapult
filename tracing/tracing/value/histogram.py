@@ -1374,8 +1374,6 @@ class Histogram(object):
     for hbin in self._bins:
       if hbin.count == 0:
         empty_bins += 1
-    print("%d == %d", empty_bins, num_bins)
-    print(str(self._bins))
     if empty_bins == num_bins:
       return
 
