@@ -728,14 +728,14 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
                           results={ResultType.Pass, ResultType.Failure}, is_slow_test=True,
                           retry_on_failure=True)
         self.assertEqual(
-            exp.to_string(), 'crbug.com/123 [ Intel ] test.html?\* [ Failure Pass Slow RetryOnFailure ]')
+            exp.to_string(), 'crbug.com/123 [ Intel ] test.html?\* [ Failure Slow RetryOnFailure Pass ]')
 
     def testGlobExpectationToString(self):
         exp = Expectation(reason='crbug.com/123', test='a/*/test.html?*', tags=['intel'],
                           results={ResultType.Pass, ResultType.Failure}, is_slow_test=True,
                           retry_on_failure=True, is_glob=True)
         self.assertEqual(
-            exp.to_string(), 'crbug.com/123 [ Intel ] a/\*/test.html?* [ Failure Pass Slow RetryOnFailure ]')
+            exp.to_string(), 'crbug.com/123 [ Intel ] a/\*/test.html?* [ Failure Slow RetryOnFailure Pass ]')
 
     def testExpectationToStringUsingRawSpecifiers(self):
         raw_expectations = (

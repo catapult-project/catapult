@@ -110,16 +110,6 @@ class Expectation(object):
         Setting the _raw_results and _raw_tags list to the original lists through the constructor
         during parsing stops unintended modifications to test expectations when rewriting files.
         """
-        # Use tags and results lists to set raw tag string lists
-        # if they were not already passed to the constructor
-        if not self._raw_tags:
-            self._raw_tags = [t[0].upper() + t[1:].lower() for t in self._tags]
-        if not self._raw_results:
-            self._raw_results = [_RESULT_TAGS[t] for t in self._results]
-            if self.is_slow_test:
-                self._raw_results.append(_SLOW_TAG)
-            if self.should_retry_on_failure:
-                self._raw_results.append(_RETRY_ON_FAILURE_TAG)
         # If this instance is for a glob type expectation then do not escape
         # the last asterisk
         if self.is_glob:
@@ -132,12 +122,28 @@ class Expectation(object):
         self._string_value = ''
         if self._reason:
             self._string_value += self._reason + ' '
-        if self._raw_tags:
-            self._string_value += '[ %s ] ' % ' '.join(self._raw_tags)
+        if self.raw_tags:
+            self._string_value += '[ %s ] ' % ' '.join(self.raw_tags)
         self._string_value += pattern + ' '
-        self._string_value += '[ %s ]' % ' '.join(self._raw_results)
+        self._string_value += '[ %s ]' % ' '.join(self.raw_results)
         if self._trailing_comments:
             self._string_value += self._trailing_comments
+
+    @property
+    def raw_tags(self):
+        if not self._raw_tags:
+            self._raw_tags = {t[0].upper() + t[1:].lower() for t in self._tags}
+        return self._raw_tags
+
+    @property
+    def raw_results(self):
+        if not self._raw_results:
+            self._raw_results = {_RESULT_TAGS[t] for t in self._results}
+            if self.is_slow_test:
+                self._raw_results.add(_SLOW_TAG)
+            if self.should_retry_on_failure:
+                self._raw_results.add(_RETRY_ON_FAILURE_TAG)
+        return self._raw_results
 
     def to_string(self):
         self._set_string_value()
