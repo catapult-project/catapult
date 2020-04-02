@@ -20,6 +20,7 @@ from google.appengine.ext import ndb
 from dashboard import email_sheriff
 from dashboard import find_change_points
 from dashboard.common import utils
+from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
@@ -137,6 +138,7 @@ def _ProcessTestStat(config, test, stat, rows, ref_rows):
     a.subscription_names = subscription_names
     a.internal_only = (any([s.visibility != subscription.VISIBILITY.PUBLIC
                             for s in subscriptions]) or test.internal_only)
+    a.groups = alert_group.AlertGroup.GetGroupsForAnomaly(a)
 
   yield ndb.put_multi_async(anomalies)
 

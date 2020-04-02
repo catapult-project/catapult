@@ -15,6 +15,7 @@ from dashboard import add_histograms_queue
 from dashboard import add_point
 from dashboard import add_point_queue
 from dashboard import alerts
+from dashboard import alert_groups
 from dashboard import associate_alerts
 from dashboard import bug_details
 from dashboard import buildbucket_job_status
@@ -94,6 +95,7 @@ _URL_MAPPING = [
     (r'/api/timeseries/(.*)', timeseries.TimeseriesHandler),
     (r'/api/timeseries2', timeseries2.Timeseries2Handler),
     ('/associate_alerts', associate_alerts.AssociateAlertsHandler),
+    ('/alert_groups_update', alert_groups.AlertGroupsHandler),
     ('/bug_details', bug_details.BugDetailsHandler),
     (r'/buildbucket_job_status/(\d+)',
      buildbucket_job_status.BuildbucketJobStatusHandler),

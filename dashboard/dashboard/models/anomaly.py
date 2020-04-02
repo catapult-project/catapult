@@ -43,6 +43,9 @@ class Anomaly(internal_only_model.InternalOnlyModel):
   # By default, this is None, which denotes a non-triaged alert.
   bug_id = ndb.IntegerProperty(indexed=True)
 
+  # AlertGroups used for grouping
+  groups = ndb.KeyProperty(indexed=True, repeated=True)
+
   # The subscribers who recieve alerts
   subscriptions = ndb.LocalStructuredProperty(Subscription, repeated=True)
   subscription_names = ndb.StringProperty(indexed=True, repeated=True)

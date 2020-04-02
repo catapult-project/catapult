@@ -81,6 +81,12 @@ handlers:
   upload: tsmon-client.js
   secure: always
 
+# We need admin so only cron can trigger it.
+- url: /alert_groups_update
+  script: dashboard.dispatcher.APP
+  secure: always
+  login: admin
+
 - url: /.*
   script: dashboard.dispatcher.APP
   secure: always

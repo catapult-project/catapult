@@ -21,7 +21,7 @@ VISIBILITY = _Visibility()
 
 class Subscription(ndb.Model):
   """
-  Configuration options for alerts' subscriber. It's a mappint to the
+  Configuration options for alerts' subscriber. It's a mapping to the
   Subscription protobuf and should never be directly stored to datastore.
   """
 
@@ -33,4 +33,3 @@ class Subscription(ndb.Model):
   bug_components = ndb.StringProperty(repeated=True)
   bug_cc_emails = ndb.StringProperty(repeated=True)
   visibility = ndb.IntegerProperty(default=VISIBILITY.INTERNAL_ONLY)
-

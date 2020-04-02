@@ -18,6 +18,7 @@ from dashboard import find_change_points
 from dashboard.sheriff_config_client import SheriffConfigClient
 from dashboard.common import testing_common
 from dashboard.common import utils
+from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
@@ -158,6 +159,14 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.UpdateSheriff()
     test.put()
 
+    alert_group_key = alert_group.AlertGroup(
+        name='scrolling_benchmark',
+        status=alert_group.AlertGroup.Status.untriaged,
+        active=True,
+        revision=alert_group.RevisionRange(
+            repository='chromium', start=10000, end=10070),
+    ).put()
+
     s1 = Subscription(name='sheriff1', visibility=VISIBILITY.PUBLIC)
     s2 = Subscription(name='sheriff2', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
@@ -183,6 +192,8 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(len(anomalies), 3)
+    for a in anomalies:
+      self.assertEqual(a.groups, [alert_group_key])
 
     def AnomalyExists(
         anomalies, test, percent_changed, direction,

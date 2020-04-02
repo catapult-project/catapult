@@ -99,7 +99,7 @@ class SheriffConfigClientTest(testing_common.TestCase):
             notification_email='public@mail.com',
             visibility=VISIBILITY.PUBLIC,
             bug_labels=['Lable1', 'Lable2'],
-            bug_components=['foo>bar']
+            bug_components=['foo>bar'],
         ),
     ]
     self.assertEqual(clt.Match('Foo2/a/Bar2/b'), (expected, None))
@@ -146,7 +146,7 @@ class SheriffConfigClientTest(testing_common.TestCase):
             notification_email='public@mail.com',
             visibility=VISIBILITY.PUBLIC,
             bug_labels=['Lable1', 'Lable2'],
-            bug_components=['foo>bar']
+            bug_components=['foo>bar'],
         ),
     ]
     self.assertEqual(clt.List(), (expected, None))
