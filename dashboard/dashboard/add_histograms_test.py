@@ -783,7 +783,7 @@ class AddHistogramsTest(AddHistogramsBaseTest):
 
   @mock.patch.object(
       add_histograms, '_QueueHistogramTasks')
-  def testPostHistogram_FewHistograms_SingleTask(self, mock_queue):
+  def testPostHistogram_OneToOneHistogramTasks(self, mock_queue):
     def _MakeHistogram(name):
       h = histogram_module.Histogram(name, 'count')
       for i in range(100):
@@ -810,7 +810,7 @@ class AddHistogramsTest(AddHistogramsBaseTest):
 
     self.PostAddHistogram({'data': json.dumps(histograms.AsDicts())})
 
-    self.assertEqual(len(mock_queue.call_args[0][0]), 1)
+    self.assertEqual(len(mock_queue.call_args[0][0]), 50)
 
   def testPostHistogramSetsTestPathAndRevision(self):
     data = json.dumps([
