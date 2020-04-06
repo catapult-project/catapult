@@ -760,7 +760,7 @@ def GetSheriffForAutorollCommit(author, message):
     # Not an autoroll.
     return None
   # This is an autoroll. The sheriff should be the first person on TBR list.
-  m = re.search(r'TBR=([^,^\s]*)', message)
+  m = re.search(r'TBR[=:]\s*([^,^\s]*)', message, flags=re.IGNORECASE)
   if not m:
     return None
   return m.group(1)

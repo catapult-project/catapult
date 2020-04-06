@@ -437,6 +437,25 @@ class UtilsTest(testing_common.TestCase):
             'v8-ci-autoroll-builder@'
             'chops-service-accounts.iam.gserviceaccount.com',
             'TBR=sheriff@v8.com'))
+    # Some alternative spellings for TBR.
+    self.assertEqual(
+        'sheriff@v8.com',
+        utils.GetSheriffForAutorollCommit(
+            'v8-ci-autoroll-builder@'
+            'chops-service-accounts.iam.gserviceaccount.com',
+            'TBR: sheriff@v8.com'))
+    self.assertEqual(
+        'sheriff@v8.com',
+        utils.GetSheriffForAutorollCommit(
+            'v8-ci-autoroll-builder@'
+            'chops-service-accounts.iam.gserviceaccount.com',
+            'Tbr: sheriff@v8.com'))
+    self.assertEqual(
+        'sheriff@v8.com',
+        utils.GetSheriffForAutorollCommit(
+            'v8-ci-autoroll-builder@'
+            'chops-service-accounts.iam.gserviceaccount.com',
+            'TBR= sheriff@v8.com'))
 
   @mock.patch.object(utils, 'GetEmail',
                      mock.MagicMock(return_value='admin@chromium.org'))
