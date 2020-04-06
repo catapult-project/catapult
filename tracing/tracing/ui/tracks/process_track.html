@@ -76,19 +76,20 @@ tr.exportTo('tr.ui.tracks', function() {
       const ctx = this.context();
       const canvasBounds = ctx.canvas.getBoundingClientRect();
       const pixelRatio = window.devicePixelRatio || 1;
+      const children = this.children;
 
       let draw = false;
       ctx.fillStyle = '#eee';
-      for (let i = 0; i < this.children.length; ++i) {
-        if (!(this.children[i] instanceof tr.ui.tracks.Track) ||
-            (this.children[i] instanceof tr.ui.tracks.SpacingTrack)) {
+      for (let i = 0; i < children.length; ++i) {
+        if (!(children[i] instanceof tr.ui.tracks.Track) ||
+            (children[i] instanceof tr.ui.tracks.SpacingTrack)) {
           continue;
         }
 
         draw = !draw;
         if (!draw) continue;
 
-        const bounds = this.children[i].getBoundingClientRect();
+        const bounds = children[i].getBoundingClientRect();
         ctx.fillRect(0, pixelRatio * (bounds.top - canvasBounds.top),
             ctx.canvas.width, pixelRatio * bounds.height);
       }

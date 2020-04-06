@@ -34,9 +34,10 @@ tr.exportTo('tr.ui.tracks', function() {
 
     get tracks_() {
       const tracks = [];
-      for (let i = 0; i < this.children.length; i++) {
-        if (this.children[i] instanceof tr.ui.tracks.Track) {
-          tracks.push(this.children[i]);
+      const children = this.children;
+      for (let i = 0; i < children.length; i++) {
+        if (children[i] instanceof tr.ui.tracks.Track) {
+          tracks.push(children[i]);
         }
       }
       return tracks;
