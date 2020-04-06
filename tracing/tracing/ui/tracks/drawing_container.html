@@ -116,12 +116,13 @@ tr.exportTo('tr.ui.tracks', function() {
         DrawType.FLOW_ARROWS
       ];
 
+      const children = this.children;
       for (const idx in typesToDraw) {
-        for (let i = 0; i < this.children.length; ++i) {
-          if (!(this.children[i] instanceof tr.ui.tracks.Track)) {
+        for (let i = 0; i < children.length; ++i) {
+          if (!(children[i] instanceof tr.ui.tracks.Track)) {
             continue;
           }
-          this.children[i].drawTrack(typesToDraw[idx]);
+          children[i].drawTrack(typesToDraw[idx]);
         }
       }
 
@@ -201,15 +202,16 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addClosestEventToSelection(
         worldX, worldMaxDist, loY, hiY, selection) {
-      for (let i = 0; i < this.children.length; ++i) {
-        if (!(this.children[i] instanceof tr.ui.tracks.Track)) {
+      const children = this.children;
+      for (let i = 0; i < children.length; ++i) {
+        if (!(children[i] instanceof tr.ui.tracks.Track)) {
           continue;
         }
-        const trackClientRect = this.children[i].getBoundingClientRect();
+        const trackClientRect = children[i].getBoundingClientRect();
         const a = Math.max(loY, trackClientRect.top);
         const b = Math.min(hiY, trackClientRect.bottom);
         if (a <= b) {
-          this.children[i].addClosestEventToSelection(
+          children[i].addClosestEventToSelection(
               worldX, worldMaxDist, loY, hiY, selection);
         }
       }
@@ -219,11 +221,12 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addEventsToTrackMap(eventToTrackMap) {
-      for (let i = 0; i < this.children.length; ++i) {
-        if (!(this.children[i] instanceof tr.ui.tracks.Track)) {
+      const children = this.children;
+      for (let i = 0; i < children.length; ++i) {
+        if (!(children[i] instanceof tr.ui.tracks.Track)) {
           continue;
         }
-        this.children[i].addEventsToTrackMap(eventToTrackMap);
+        children[i].addEventsToTrackMap(eventToTrackMap);
       }
     }
   };

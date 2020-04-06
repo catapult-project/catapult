@@ -137,20 +137,21 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     expandedStateChanged_() {
-      const minH = Math.max(2, Math.ceil(18 / this.children.length));
+      const children = this.children;
+      const minH = Math.max(2, Math.ceil(18 / children.length));
       const h = (this.expanded_ ? 18 : minH) + 'px';
 
-      for (let i = 0; i < this.children.length; i++) {
-        this.children[i].height = h;
+      for (let i = 0; i < children.length; i++) {
+        children[i].height = h;
         if (i === 0) {
-          this.children[i].arrowVisible = true;
+          children[i].arrowVisible = true;
         }
-        this.children[i].expanded = this.expanded;
+        children[i].expanded = this.expanded;
       }
 
-      if (this.children.length === 1) {
-        this.children[0].expanded = true;
-        this.children[0].arrowVisible = false;
+      if (children.length === 1) {
+        children[0].expanded = true;
+        children[0].arrowVisible = false;
       }
     },
 
