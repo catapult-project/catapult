@@ -277,7 +277,10 @@ class BugCommentTest(test.TestCase):
 
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_NO_COMPARISON)
+        123456,
+        _COMMENT_COMPLETED_NO_COMPARISON,
+        labels=['Pinpoint-Tryjob-Completed'],
+    )
 
   def testCompletedNoDifference(self):
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
@@ -287,7 +290,10 @@ class BugCommentTest(test.TestCase):
 
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_NO_DIFFERENCES)
+        123456,
+        _COMMENT_COMPLETED_NO_DIFFERENCES,
+        labels=['Pinpoint-No-Repro'],
+    )
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -316,6 +322,7 @@ class BugCommentTest(test.TestCase):
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_COMMIT,
         status='Assigned', owner='author@chromium.org',
+        labels=['Pinpoint-Culprit-Found'],
         cc_list=['author@chromium.org'], merge_issue=None)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
@@ -345,9 +352,13 @@ class BugCommentTest(test.TestCase):
 
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_WITH_COMMIT,
-        status='Assigned', owner='author@chromium.org',
-        cc_list=[], merge_issue='111222')
+        123456,
+        _COMMENT_COMPLETED_WITH_COMMIT,
+        status='Assigned',
+        owner='author@chromium.org',
+        cc_list=[],
+        labels=['Pinpoint-Culprit-Found'],
+        merge_issue='111222')
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -385,6 +396,7 @@ class BugCommentTest(test.TestCase):
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_WITH_COMMIT,
         status='Assigned', owner='author@chromium.org',
+        labels=['Pinpoint-Culprit-Found'],
         cc_list=['author@chromium.org'], merge_issue=None)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
@@ -450,9 +462,13 @@ class BugCommentTest(test.TestCase):
 
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_WITH_COMMIT_AND_DOCS,
-        status='Assigned', owner='author@chromium.org',
-        cc_list=['author@chromium.org'], merge_issue=None)
+        123456,
+        _COMMENT_COMPLETED_WITH_COMMIT_AND_DOCS,
+        status='Assigned',
+        owner='author@chromium.org',
+        labels=['Pinpoint-Culprit-Found'],
+        cc_list=['author@chromium.org'],
+        merge_issue=None)
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -479,9 +495,13 @@ class BugCommentTest(test.TestCase):
 
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_WITH_PATCH,
-        status='Assigned', owner='author@chromium.org',
-        cc_list=['author@chromium.org'], merge_issue=None)
+        123456,
+        _COMMENT_COMPLETED_WITH_PATCH,
+        status='Assigned',
+        owner='author@chromium.org',
+        labels=['Pinpoint-Culprit-Found'],
+        cc_list=['author@chromium.org'],
+        merge_issue=None)
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -510,8 +530,13 @@ class BugCommentTest(test.TestCase):
 
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_WITH_PATCH, owner=None, status=None,
-        cc_list=['author@chromium.org'], merge_issue=None)
+        123456,
+        _COMMENT_COMPLETED_WITH_PATCH,
+        owner=None,
+        status=None,
+        cc_list=['author@chromium.org'],
+        labels=['Pinpoint-Culprit-Found'],
+        merge_issue=None)
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -539,8 +564,13 @@ class BugCommentTest(test.TestCase):
 
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_WITH_PATCH, owner=None, status=None,
-        cc_list=['author@chromium.org'], merge_issue=None)
+        123456,
+        _COMMENT_COMPLETED_WITH_PATCH,
+        owner=None,
+        status=None,
+        cc_list=['author@chromium.org'],
+        labels=['Pinpoint-Culprit-Found'],
+        merge_issue=None)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -596,6 +626,7 @@ class BugCommentTest(test.TestCase):
         123456, _COMMENT_COMPLETED_THREE_DIFFERENCES,
         status='Assigned', owner='author1@chromium.org',
         cc_list=['author1@chromium.org', 'author2@chromium.org'],
+        labels=['Pinpoint-Multiple-Culprits'],
         merge_issue=None)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
@@ -651,6 +682,7 @@ class BugCommentTest(test.TestCase):
         123456, _COMMENT_COMPLETED_THREE_DIFFERENCES_ABSOLUTE,
         status='Assigned', owner='author3@chromium.org',
         cc_list=['author2@chromium.org', 'author3@chromium.org'],
+        labels=['Pinpoint-Multiple-Culprits'],
         merge_issue=None)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
@@ -683,6 +715,7 @@ class BugCommentTest(test.TestCase):
         123456, _COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT,
         status='Assigned', owner='sheriff@bar.com',
         cc_list=['chromium-autoroll@skia-public.iam.gserviceaccount.com'],
+        labels=['Pinpoint-Culprit-Found'],
         merge_issue=None)
 
   @mock.patch.object(job.job_state.JobState, 'ScheduleWork',
@@ -695,7 +728,11 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
 
     self.assertTrue(j.failed)
-    self.add_bug_comment.assert_called_once_with(123456, _COMMENT_FAILED)
+    self.add_bug_comment.assert_called_once_with(
+        123456,
+        _COMMENT_FAILED,
+        send_email=True,
+        labels=['Pinpoint-Job-Failed'])
 
   @mock.patch.object(job.job_state.JobState, 'ScheduleWork',
                      mock.MagicMock(side_effect=AssertionError('Error string')))

@@ -504,6 +504,7 @@ class Job(ndb.Model):
           _PostBugCommentDeferred,
           self.bug_id,
           '\n'.join((title, self.url)),
+          labels=['Pinpoint-Tryjob-Completed'],
           _retry_options=RETRY_OPTIONS)
       return
 
@@ -539,6 +540,7 @@ class Job(ndb.Model):
           _PostBugCommentDeferred,
           self.bug_id,
           '\n'.join((title, self.url)),
+          labels=['Pinpoint-No-Repro'],
           _retry_options=RETRY_OPTIONS)
       return
 
@@ -617,6 +619,8 @@ class Job(ndb.Model):
         _PostBugCommentDeferred,
         self.bug_id,
         comment,
+        labels=['Pinpoint-Job-Failed'],
+        send_email=True,
         _retry_options=RETRY_OPTIONS)
     scheduler.Complete(self)
 
@@ -808,6 +812,7 @@ class Job(ndb.Model):
         self.bug_id,
         comment,
         send_email=True,
+        labels=['Pinpoint-Job-Cancelled'],
         _retry_options=RETRY_OPTIONS)
 
 
@@ -893,6 +898,9 @@ def _UpdatePostAndMergeDeferred(difference_details, commit_infos,
 
   status = None
   bug_owner = None
+  label = 'Pinpoint-Culprit-Found' if len(
+      difference_details) == 1 else 'Pinpoint-Multiple-Culprits'
+
   if current_bug_status in ['Untriaged', 'Unconfirmed', 'Available']:
     # Set the bug status and owner if this bug is opened and unowned.
     status = 'Assigned'
@@ -904,6 +912,7 @@ def _UpdatePostAndMergeDeferred(difference_details, commit_infos,
       status=status,
       cc_list=sorted(cc_list),
       owner=bug_owner,
+      labels=[label],
       merge_issue=merge_details.get('id'))
   update_bug_with_results.UpdateMergeIssue(commit_cache_key, merge_details,
                                            bug_id)
@@ -930,10 +939,7 @@ def _FormatDifferenceForBug(commit_info, values_a, values_b, metric):
     mean_b = None
     formatted_b = 'No values'
 
-  if metric:
-    metric = '%s: ' % metric
-  else:
-    metric = ''
+  metric = '%s: ' % metric if metric else ''
 
   difference = '%s%s %s %s' % (metric, formatted_a, _RIGHT_ARROW, formatted_b)
   if values_a and values_b:
@@ -955,21 +961,17 @@ def _FormatComment(difference_details, commit_infos, sheriff, tags, url):
 
   title = '<b>%s %s</b>' % (_ROUND_PUSHPIN, status)
   header = '\n'.join((title, url))
-
-  # Body.
   body = '\n\n'.join(difference_details)
   if sheriff:
     body += '\n\nAssigning to sheriff %s because "%s" is a roll.' % (
         sheriff, commit_infos[-1]['subject'])
 
-  # Footer.
   footer = ('Understanding performance regressions:\n'
             '  http://g.co/ChromePerformanceRegressions')
 
   if difference_details:
     footer += _FormatDocumentationUrls(tags)
 
-  # Bring it all together.
   comment = '\n\n'.join((header, body, footer))
   return comment
 
