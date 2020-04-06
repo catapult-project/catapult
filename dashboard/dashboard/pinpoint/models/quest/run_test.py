@@ -23,10 +23,12 @@ from dashboard.services import swarming
 
 
 # TODO(dberris): Move these into configuration instead of being in code.
-_CIPD_VERSION = 'git_revision:66410e06ff82b4e79e849977e4e58c0a261d9953'
+_CIPD_VERSION = 'git_revision:9f9afb5ef6ef9d4887e8aa2bb617dfdd798f8005'
 _CPYTHON_VERSION = 'version:2.7.14.chromium14'
 _LOGDOG_BUTLER_VERSION = 'git_revision:e1abc57be62d198b5c2f487bfb2fa2d2eb0e867c'
-_VPYTHON_VERSION = 'git_revision:00e2d8b49a4e7505d1c71f19d15c9e7c5b9245a5'
+_VPYTHON_VERSION = 'git_revision:b01b3ede35a24f76f21420f11d13f234848e5d34'
+_LUCI_AUTH_VERSION = 'git_revision:41a7e9bcbf18718dcda83dd5c6188cfc44271e70'
+_GOMA_CLIENT_VERSION = 'git_revision:bd9711495c9357eead845f0ae2d4eef92494c6d5'
 VPYTHON_PARAMS = {
     'caches': [
         {
@@ -60,6 +62,16 @@ VPYTHON_PARAMS = {
                 'path': '.swarming_module',
                 'version': _VPYTHON_VERSION,
             },
+            {
+                'package_name': 'infra/tools/luci-auth/${platform}',
+                'path': '.swarming_module',
+                'version': _LUCI_AUTH_VERSION,
+            },
+            {
+                'package_name': 'infra/goma/client/${os}-${arch=amd64}',
+                'path': '.swarming_module',
+                'version': _GOMA_CLIENT_VERSION,
+            }
         ],
         'server': 'https://chrome-infra-packages.appspot.com',
     },

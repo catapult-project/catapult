@@ -165,6 +165,19 @@ class _RunTestExecutionTest(unittest.TestCase):
                             'version':
                                 mock.ANY,
                         },
+                        {
+                            'package_name': 'infra/tools/luci-auth/${platform}',
+                            'path': '.swarming_module',
+                            'version': mock.ANY,
+                        },
+                        {
+                            'package_name':
+                                'infra/goma/client/${os}-${arch=amd64}',
+                            'path':
+                                '.swarming_module',
+                            'version':
+                                mock.ANY,
+                        },
                     ],
                     'server': 'https://chrome-infra-packages.appspot.com',
                 },
