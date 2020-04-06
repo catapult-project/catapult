@@ -1,8 +1,7 @@
-# Copyright 2016 The Chromium Authors. All rights reserved.
+# Copyright 2020 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
@@ -125,6 +124,8 @@ class _RunTestExecutionTest(unittest.TestCase):
                 'execution_timeout_secs':
                     mock.ANY,
                 'io_timeout_secs':
+                    mock.ANY,
+                'service_account':
                     mock.ANY,
                 'caches': [{
                     'name': 'swarming_module_cache_vpython',

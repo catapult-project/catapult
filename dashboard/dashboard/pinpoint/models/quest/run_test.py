@@ -29,6 +29,8 @@ _LOGDOG_BUTLER_VERSION = 'git_revision:e1abc57be62d198b5c2f487bfb2fa2d2eb0e867c'
 _VPYTHON_VERSION = 'git_revision:b01b3ede35a24f76f21420f11d13f234848e5d34'
 _LUCI_AUTH_VERSION = 'git_revision:41a7e9bcbf18718dcda83dd5c6188cfc44271e70'
 _GOMA_CLIENT_VERSION = 'git_revision:bd9711495c9357eead845f0ae2d4eef92494c6d5'
+_TESTER_SERVICE_ACCOUNT = (
+    'chrome-tester@chops-service-accounts.iam.gserviceacount.com')
 VPYTHON_PARAMS = {
     'caches': [
         {
@@ -307,6 +309,7 @@ class _RunTestExecution(execution_module.Execution):
         # TODO(dberris): Make this configuration dependent.
         'execution_timeout_secs': '2700',  # 45 minutes for all tasks.
         'io_timeout_secs': '2700',  # Also set 45 minutes for all tasks.
+        'service_account': _TESTER_SERVICE_ACCOUNT,
     }
     properties.update(VPYTHON_PARAMS)
     body = {
