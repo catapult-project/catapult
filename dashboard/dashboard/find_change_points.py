@@ -135,8 +135,7 @@ def FindChangePoints(series,
       # filtering out the ones we've already seen.
       potential_candidates_unadjusted = (
           clustering_change_detector.ClusterAndFindSplit(
-              y_values[max(split_index - min_segment_size, 0):],
-              min_segment_size))
+              y_values[max(split_index - min_segment_size, 0):]))
       potential_candidates_unfiltered = [
           RelativeIndexAdjuster(split_index, x)
           for x in potential_candidates_unadjusted
