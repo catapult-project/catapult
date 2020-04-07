@@ -29,8 +29,7 @@ found in the LICENSE file.
 // The metric also supports multiple browser restarts, in this case multiple
 // samples would be added to the histograms above.
 tr.exportTo('tr.metrics.sh', function() {
-  const MESSAGE_LOOP_EVENT_NAME =
-      'Startup.BrowserMessageLoopStartTimeFromMainEntry3';
+  const MESSAGE_LOOP_EVENT_NAME = 'Startup.BrowserMessageLoopStartTime';
   const CONTENT_START_EVENT_NAME = 'content::Start';
   const NAVIGATION_EVENT_NAME = 'Navigation StartToCommit';
   const FIRST_CONTENTFUL_PAINT_EVENT_NAME = 'firstContentfulPaint';

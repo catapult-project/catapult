@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
     browserMainThread.asyncSliceGroup.push(
         tr.c.TestUtils.newAsyncSliceEx({
           cat: 'startup',
-          title: 'Startup.BrowserMessageLoopStartTimeFromMainEntry3',
+          title: 'Startup.BrowserMessageLoopStartTime',
           start: (offset + 6800.125),
           duration: (incrementForMetrics + 1700.0625)}));
     browserMainThread.asyncSliceGroup.push(
@@ -83,7 +83,7 @@ tr.b.unittest.testSuite(function() {
     browserMainThread.asyncSliceGroup.push(
         tr.c.TestUtils.newAsyncSliceEx({
           cat: 'startup',
-          title: 'Startup.BrowserMessageLoopStartTimeFromMainEntry3',
+          title: 'Startup.BrowserMessageLoopStartTime',
           start: (offset + 1.0),
           duration: 10.0}));
     const rendererMainThread = createRendererThread(model);
@@ -134,7 +134,7 @@ tr.b.unittest.testSuite(function() {
     function makeTestModelWithOneEventMissing() {
       return tr.c.TestUtils.newModel(function(model) {
         fillModelWithOneBrowserSession(model, 0.0, 0.0);
-        // Note: the initial Startup.BrowserMessageLoopStartTimeFromMainEntry3'
+        // Note: the initial Startup.BrowserMessageLoopStartTime'
         // is intentionally missing.
         createRendererThread(model).sliceGroup.pushSlice(
             tr.c.TestUtils.newSliceEx({
@@ -147,7 +147,7 @@ tr.b.unittest.testSuite(function() {
         browserMainThread.asyncSliceGroup.push(
             tr.c.TestUtils.newAsyncSliceEx({
               cat: 'startup',
-              title: 'Startup.BrowserMessageLoopStartTimeFromMainEntry3',
+              title: 'Startup.BrowserMessageLoopStartTime',
               start: (20.0 + 1.0),
               duration: 10.0}));
         browserMainThread.asyncSliceGroup.push(
@@ -190,7 +190,7 @@ tr.b.unittest.testSuite(function() {
         browserMainThread.asyncSliceGroup.push(
             tr.c.TestUtils.newAsyncSliceEx({
               cat: 'startup',
-              title: 'Startup.BrowserMessageLoopStartTimeFromMainEntry3',
+              title: 'Startup.BrowserMessageLoopStartTime',
               start: (20.0 + 1.0),
               duration: 10.0}));
         const rendererMainThread = createRendererThread(model);
