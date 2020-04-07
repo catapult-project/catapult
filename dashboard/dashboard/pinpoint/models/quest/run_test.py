@@ -22,73 +22,8 @@ from dashboard.pinpoint.models.quest import quest
 from dashboard.services import swarming
 
 
-# TODO(dberris): Move these into configuration instead of being in code.
-_CIPD_VERSION = 'git_revision:9f9afb5ef6ef9d4887e8aa2bb617dfdd798f8005'
-_CPYTHON_VERSION = 'version:2.7.14.chromium14'
-_LOGDOG_BUTLER_VERSION = 'git_revision:e1abc57be62d198b5c2f487bfb2fa2d2eb0e867c'
-_VPYTHON_VERSION = 'git_revision:b01b3ede35a24f76f21420f11d13f234848e5d34'
-_LUCI_AUTH_VERSION = 'git_revision:41a7e9bcbf18718dcda83dd5c6188cfc44271e70'
-_GOMA_CLIENT_VERSION = 'git_revision:bd9711495c9357eead845f0ae2d4eef92494c6d5'
 _TESTER_SERVICE_ACCOUNT = (
     'chrome-tester@chops-service-accounts.iam.gserviceacount.com')
-VPYTHON_PARAMS = {
-    'caches': [
-        {
-            'name': 'swarming_module_cache_vpython',
-            'path': '.swarming_module_cache/vpython',
-        },
-    ],
-    'cipd_input': {
-        'client_package': {
-            'version': _CIPD_VERSION,
-            'package_name': 'infra/tools/cipd/${platform}',
-        },
-        'packages': [
-            {
-                'package_name': 'infra/python/cpython/${platform}',
-                'path': '.swarming_module',
-                'version': _CPYTHON_VERSION,
-            },
-            {
-                'package_name': 'infra/tools/luci/logdog/butler/${platform}',
-                'path': '.swarming_module',
-                'version': _LOGDOG_BUTLER_VERSION,
-            },
-            {
-                'package_name': 'infra/tools/luci/vpython/${platform}',
-                'path': '.swarming_module',
-                'version': _VPYTHON_VERSION,
-            },
-            {
-                'package_name': 'infra/tools/luci/vpython-native/${platform}',
-                'path': '.swarming_module',
-                'version': _VPYTHON_VERSION,
-            },
-            {
-                'package_name': 'infra/tools/luci-auth/${platform}',
-                'path': '.swarming_module',
-                'version': _LUCI_AUTH_VERSION,
-            },
-            {
-                'package_name': 'infra/goma/client/${os}-${arch=amd64}',
-                'path': '.swarming_module',
-                'version': _GOMA_CLIENT_VERSION,
-            }
-        ],
-        'server': 'https://chrome-infra-packages.appspot.com',
-    },
-    'env_prefixes': [
-        {
-            'key': 'PATH',
-            'value': ['.swarming_module', '.swarming_module/bin'],
-        },
-        {
-            'key': 'VPYTHON_VIRTUALENV_ROOT',
-            'value': ['.swarming_module_cache/vpython'],
-        },
-    ],
-}
-
 
 def SwarmingTagsFromJob(job):
   return {
@@ -311,7 +246,6 @@ class _RunTestExecution(execution_module.Execution):
         'io_timeout_secs': '2700',  # Also set 45 minutes for all tasks.
         'service_account': _TESTER_SERVICE_ACCOUNT,
     }
-    properties.update(VPYTHON_PARAMS)
     body = {
         'name': 'Pinpoint job',
         'user': 'Pinpoint',

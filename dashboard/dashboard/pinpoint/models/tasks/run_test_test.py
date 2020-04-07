@@ -93,6 +93,7 @@ class EvaluatorTest(test.TestCase):
                     'pubsub_auth_token': mock.ANY,
                     'pubsub_topic': mock.ANY,
                     'pubsub_userdata': mock.ANY,
+                    'service_account': mock.ANY,
                 },
                 'swarming_task_id': 'task id',
                 'tries': 1,
@@ -148,6 +149,7 @@ class EvaluatorTest(test.TestCase):
                     'pubsub_auth_token': mock.ANY,
                     'pubsub_topic': mock.ANY,
                     'pubsub_userdata': mock.ANY,
+                    'service_account': mock.ANY,
                 },
                 'swarming_task_result': {
                     'bot_id': mock.ANY,
@@ -298,6 +300,7 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
                     'pubsub_auth_token': mock.ANY,
                     'pubsub_topic': mock.ANY,
                     'pubsub_userdata': mock.ANY,
+                    'service_account': mock.ANY,
                 },
                 'swarming_task_result': {
                     'bot_id': mock.ANY,
@@ -371,6 +374,7 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
                     'pubsub_auth_token': mock.ANY,
                     'pubsub_topic': mock.ANY,
                     'pubsub_userdata': mock.ANY,
+                    'service_account': mock.ANY,
                 },
                 'swarming_task_result': {
                     'state': 'EXPIRED',

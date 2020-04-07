@@ -44,7 +44,6 @@ class ScheduleTestAction(
   @task_module.LogStateTransitionFailures
   def __call__(self, _):
     logging.debug('Scheduling a Swarming task to run a test.')
-    self.properties.update(run_test_quest.VPYTHON_PARAMS)
     body = {
         'name':
             'Pinpoint job',
@@ -64,6 +63,10 @@ class ScheduleTestAction(
             '%s:%s' % (k, v)
             for k, v in run_test_quest.SwarmingTagsFromJob(self.job).items()
         ],
+
+        # Use an explicit service account.
+        'service_account':
+            run_test_quest._TESTER_SERVICE_ACCOUNT,
 
         # TODO(dberris): Consolidate constants in environment vars?
         'pubsub_topic':
