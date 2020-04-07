@@ -107,15 +107,32 @@ sets.
     is an application scenario and a set of actions to run in that scenario. In
     the typical Chromium use case, this will be a web page together with actions
     like scrolling, clicking, or executing JavaScript.
-*   A _metric_ describes how to collect data about the story run and compute
-    results.
-    *   New metrics should generally be
-        [timeline-based](https://cs.chromium.org/chromium/src/third_party/catapult/telemetry/telemetry/web_perf/metrics/timeline_based_metric.py).
-    *   Metrics can specify many different types of results, including numbers,
-        histograms, traces, and failures.
-*   _Timeline Based Measurement_ is a built-in `StoryTest` that runs all
-    available timeline-based metrics, and benchmarks that use it can filter
-    relevant results.
+*   There are two major ways to collect data (often referred to as
+    _measurements_ or _metrics_) about the stories:
+    * _Ad hoc measurements:_  These are measurements that do not require traces,
+        for example when a metric is calculated directly in the test page in
+        Javascript and we simply want to extract and report this number.
+        Currently `PressBenchmark` and associated `PressStory` subclasses are
+        examples that use ad hoc measurements. (In reality, PressBenchmark uses
+        `DualMetricMeasurement` StoryTest, where you can have both ad hoc and
+        timeline based metrics.)
+    *  _Timeline Based Measurements:_ These are measurements that require
+       recording a timeline of events, for example a [chrome
+       trace](https://www.chromium.org/developers/how-tos/trace-event-profiling-tool).
+       Telemetry collects traces and other artifacts as it interacts with the
+       page and stores them in the form of test results, then [Results Processor](https://source.chromium.org/chromium/chromium/src/+/master:tools/perf/core/results_processor/README.md)
+       computes metrics using these test results. New metrics should generally
+       be timeline based measurements: Computing metrics on the trace makes it
+       possible to compute many different metrics from the same run easily, and
+       the collected trace is useful for debugging metrics values.
+        *  The current supported programming model is known as [Timeline Based Measurements v2](https://github.com/catapult-project/catapult/blob/master/docs/how-to-write-metrics.md)
+           **This is the current recommended method of adding metrics to telemetry**.
+        *  [TBMv3](https://source.chromium.org/chromium/chromium/src/+/master:tools/perf/core/tbmv3/),
+           a new version of Timeline Based Measurement based on Perfetto is
+           currently under development. It is not ready for general use yet but
+           there are active experiments on the FYI bots. Ideally this will
+           eventually replace TBMv2, but this will only happen once have an easy
+           migration path of current TBMv2 metrics to TBMv3.
 
 ## Next Steps
 
