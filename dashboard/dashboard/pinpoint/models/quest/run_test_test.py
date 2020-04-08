@@ -112,6 +112,8 @@ class _RunTestExecutionTest(unittest.TestCase):
             'UNUSED',
         'pubsub_userdata':
             mock.ANY,
+        'service_account':
+            mock.ANY,
         'task_slices': [{
             'expiration_secs': '86400',
             'properties': {
@@ -125,8 +127,6 @@ class _RunTestExecutionTest(unittest.TestCase):
                 'execution_timeout_secs':
                     mock.ANY,
                 'io_timeout_secs':
-                    mock.ANY,
-                'service_account':
                     mock.ANY,
             }
         },],

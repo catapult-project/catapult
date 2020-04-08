@@ -23,7 +23,7 @@ from dashboard.services import swarming
 
 
 _TESTER_SERVICE_ACCOUNT = (
-    'chrome-tester@chops-service-accounts.iam.gserviceacount.com')
+    'chrome-tester@chops-service-accounts.iam.gserviceaccount.com')
 
 def SwarmingTagsFromJob(job):
   return {
@@ -244,12 +244,12 @@ class _RunTestExecution(execution_module.Execution):
         # TODO(dberris): Make this configuration dependent.
         'execution_timeout_secs': '2700',  # 45 minutes for all tasks.
         'io_timeout_secs': '2700',  # Also set 45 minutes for all tasks.
-        'service_account': _TESTER_SERVICE_ACCOUNT,
     }
     body = {
         'name': 'Pinpoint job',
         'user': 'Pinpoint',
         'priority': '100',
+        'service_account': _TESTER_SERVICE_ACCOUNT,
         'task_slices': [{
             'properties': properties,
             'expiration_secs': '86400',  # 1 day.
