@@ -41,6 +41,11 @@ message Pattern {
   repeated StatType stats = 3;
 }
 
+// TODO(fancl): Support post filter
+message Rules {
+  repeated Pattern match = 1;
+}
+
 // An AnomalyConfig defines the bounds for which a change in a matching metric
 // can be considered "anomalous". For metrics that are matched, we apply the
 // anomaly config to determine whether we should create an alert.
@@ -54,6 +59,19 @@ message AnomalyConfig {
   repeated Pattern patterns = 7;
 }
 
+// Sheriff can use enable flag or rules to select tests being auto triaged. But
+// when sending Match request to the sheriff-config service, we only respond
+// enable or not without rules.
+message AutoTriage {
+  oneof auto_triage {
+    bool enable = 1;
+    Rules rules = 2;
+  };
+}
+
+// TODO(fancl): Maybe split Subscription used in config with the one used in
+// sheriff-config's response. We only return part of the Subscription info
+// from sheriff-config.
 // A Subscription describes a configuration through which we determine routing
 // information for alerts generated to matching metrics.
 message Subscription {
@@ -82,6 +100,9 @@ message Subscription {
   // A list of email addresses to CC for issues filed by the dashboard.
   repeated string bug_cc_emails = 6;
 
+  // Enable automatic create issue based on alert group
+  AutoTriage auto_triage = 11;
+
   enum VisibilityTag {
     INTERNAL_ONLY = 0;
     PUBLIC = 1;
@@ -105,6 +126,9 @@ message Subscription {
   // generated for the patterns that match will include the `notification_email`
   // in the list of CC'ed email addresses.
   repeated Pattern patterns = 8;
+
+  // TODO(fancl): Migrate patterns to rules
+  Rules rules = 12;
 
   // Subscription-specific anomaly configurations. These refine the thresholds
   // for alerts generated for this subscription specifically. If an alert would

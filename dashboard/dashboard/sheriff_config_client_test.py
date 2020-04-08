@@ -100,6 +100,7 @@ class SheriffConfigClientTest(testing_common.TestCase):
             visibility=VISIBILITY.PUBLIC,
             bug_labels=['Lable1', 'Lable2'],
             bug_components=['foo>bar'],
+            auto_triage_enable=False,
         ),
     ]
     self.assertEqual(clt.Match('Foo2/a/Bar2/b'), (expected, None))
@@ -147,6 +148,7 @@ class SheriffConfigClientTest(testing_common.TestCase):
             visibility=VISIBILITY.PUBLIC,
             bug_labels=['Lable1', 'Lable2'],
             bug_components=['foo>bar'],
+            auto_triage_enable=False,
         ),
     ]
     self.assertEqual(clt.List(), (expected, None))

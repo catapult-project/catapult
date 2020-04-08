@@ -33,3 +33,4 @@ class Subscription(ndb.Model):
   bug_components = ndb.StringProperty(repeated=True)
   bug_cc_emails = ndb.StringProperty(repeated=True)
   visibility = ndb.IntegerProperty(default=VISIBILITY.INTERNAL_ONLY)
+  auto_triage_enable = ndb.BooleanProperty()

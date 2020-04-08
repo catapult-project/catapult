@@ -121,7 +121,7 @@ def CreateApp(test_config=None):
         datastore_client,
         _cache_timestamp=time.time() + 10)
     for _, revision, subscription in configs:
-      luci_config.CompilePatterns(revision, subscription)
+      luci_config.GetMatcher(revision, subscription)
     return jsonify({})
 
   @app.route('/configs/validate', methods=['POST'])
@@ -187,7 +187,8 @@ def CreateApp(test_config=None):
       subscription_metadata = match_response.subscriptions.add()
       subscription_metadata.config_set = config_set
       subscription_metadata.revision = revision
-      subscription_metadata.subscription.CopyFrom(subscription)
+      luci_config.CopyNormalizedSubscription(
+          subscription, subscription_metadata.subscription)
     if not match_response.subscriptions:
       return jsonify({}), 404
     return (json_format.MessageToJson(
@@ -223,10 +224,8 @@ def CreateApp(test_config=None):
       subscription_metadata = list_response.subscriptions.add()
       subscription_metadata.config_set = config_set
       subscription_metadata.revision = revision
-      subscription_metadata.subscription.CopyFrom(subscription)
-      # We shouldn't use patterns outside the sheriff-config in any case.
-      # Maybe allow being explicitily requsted for debug usage later.
-      del subscription_metadata.subscription.patterns[:]
+      luci_config.CopyNormalizedSubscription(
+          subscription, subscription_metadata.subscription)
     return (json_format.MessageToJson(
         list_response, preserving_proto_field_name=True), 200, {
             'Content-Type': 'application/json'

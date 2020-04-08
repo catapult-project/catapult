@@ -77,9 +77,8 @@ class LuciPollingTest(unittest.TestCase):
                     'contact_email': 'expected-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
-                    'patterns': [{
-                        'glob': 'Master/Bot/Test/Metric/Something'
-                    }]
+                    'auto_triage': {'enable': True},
+                    'rules': {},
                 }
             }]
         })
@@ -115,9 +114,8 @@ class LuciPollingTest(unittest.TestCase):
                     'contact_email': 'config-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
-                    'patterns': [{
-                        'glob': 'project/**'
-                    }]
+                    'auto_triage': {'enable': False},
+                    'rules': {},
                 }
             }, {
                 'config_set': 'projects/project',
@@ -127,9 +125,8 @@ class LuciPollingTest(unittest.TestCase):
                     'contact_email': 'config-2@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
-                    'patterns': [{
-                        'regex': '^project/platform/.*/memory_peak$'
-                    }]
+                    'auto_triage': {'enable': False},
+                    'rules': {},
                 }
             }]
         })
@@ -213,6 +210,8 @@ class LuciPollingTest(unittest.TestCase):
                 'contact_email': 'config-1@example.com',
                 'bug_labels': ['Some-Label'],
                 'bug_components': ['Some>Component'],
+                'auto_triage': {'enable': False},
+                'rules': {},
             }
         }, {
             'config_set': 'projects/project',
@@ -222,6 +221,8 @@ class LuciPollingTest(unittest.TestCase):
                 'contact_email': 'config-2@example.com',
                 'bug_labels': ['Some-Label'],
                 'bug_components': ['Some>Component'],
+                'auto_triage': {'enable': False},
+                'rules': {},
             }
         }, {
             'config_set': 'projects/other_project',
@@ -231,6 +232,8 @@ class LuciPollingTest(unittest.TestCase):
                 'contact_email': 'expected-1@example.com',
                 'bug_labels': ['Some-Label'],
                 'bug_components': ['Some>Component'],
+                'auto_triage': {'enable': False},
+                'rules': {},
             }
         }]
     })
@@ -289,9 +292,8 @@ class LuciContentChangesTest(unittest.TestCase):
                     'contact_email': 'expected-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
-                    'patterns': [{
-                        'glob': 'Master/Bot/Test/Metric/Something'
-                    }]
+                    'auto_triage': {'enable': True},
+                    'rules': {},
                 }
             }]
         })
@@ -325,9 +327,8 @@ class LuciContentChangesTest(unittest.TestCase):
                     'contact_email': 'config-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
-                    'patterns': [{
-                        'glob': 'project/**'
-                    }]
+                    'auto_triage': {'enable': False},
+                    'rules': {},
                 }
             }, {
                 'config_set': 'projects/project',
@@ -337,9 +338,8 @@ class LuciContentChangesTest(unittest.TestCase):
                     'contact_email': 'config-2@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
-                    'patterns': [{
-                        'regex': '^project/platform/.*/memory_peak$'
-                    }]
+                    'auto_triage': {'enable': False},
+                    'rules': {},
                 }
             }]
         })

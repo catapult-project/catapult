@@ -9,7 +9,7 @@
 		},
 		{
 			"url": "https://example.com/other_project/sources/+/0123456789abcdff/configs/chromeperf-sheriff.cfg",
-			"content": "c3Vic2NyaXB0aW9uczogewoJbmFtZTogIkV4cGVjdGVkIDEiLAoJY29udGFjdF9lbWFpbDogImV4cGVjdGVkLTFAZXhhbXBsZS5jb20iLAoJYnVnX2xhYmVsczogWyJTb21lLUxhYmVsIl0sCglidWdfY29tcG9uZW50czogWyJTb21lPkNvbXBvbmVudCJdLAoJcGF0dGVybnM6IFt7Z2xvYjogIk1hc3Rlci9Cb3QvVGVzdC9NZXRyaWMvU29tZXRoaW5nIn1dCn0=",
+			"content": "c3Vic2NyaXB0aW9uczogewoJbmFtZTogIkV4cGVjdGVkIDEiLAoJY29udGFjdF9lbWFpbDogImV4cGVjdGVkLTFAZXhhbXBsZS5jb20iLAoJYnVnX2xhYmVsczogWyJTb21lLUxhYmVsIl0sCglidWdfY29tcG9uZW50czogWyJTb21lPkNvbXBvbmVudCJdLAoJcGF0dGVybnM6IFt7Z2xvYjogIk1hc3Rlci9Cb3QvVGVzdC9NZXRyaWMvU29tZXRoaW5nIn1dLAogICAgICAgIGF1dG9fdHJpYWdlOiB7cnVsZXM6IHttYXRjaDogW3tnbG9iOiAiTWFzdGVyL0JvdC9UZXN0L01ldHJpYy9Tb21ldGhpbmcifV19fQp9",
 			"content_hash": "v1:someotherhash",
 			"config_set": "projects/other_project",
 			"revision": "0123456789abcdff"

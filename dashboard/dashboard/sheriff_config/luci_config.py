@@ -10,6 +10,7 @@ from __future__ import print_function
 from googleapiclient import errors
 from google.cloud import datastore
 import base64
+import collections
 import httplib2
 import re2
 import sheriff_pb2
@@ -155,21 +156,48 @@ def CompilePattern(pattern):
     # matchers; for now we'll skip the new patterns we don't handle yet.
     return None
 
-
-def CompilePatterns(revision, subscription):
-  if not hasattr(CompilePatterns, 'cache'):
-    CompilePatterns.cache = dict()
-  cached = CompilePatterns.cache.get(subscription.name)
-  if cached is not None and cached[0] == revision:
-    return cached[1]
-
+def CompileRules(rules):
   compiled = []
-  for pattern in subscription.patterns:
+  for pattern in rules.match:
     c = CompilePattern(pattern)
     if c:
       compiled.append(c)
-  matcher = lambda s: any([c.match(s) for c in compiled])
-  CompilePatterns.cache[subscription.name] = (revision, matcher)
+  return lambda s: any(c.match(s) for c in compiled)
+
+
+class Matcher(object):
+
+  def __init__(self, subscription):
+    # TODO(fancl): Remove after all patterns move to rules
+    rules = sheriff_pb2.Rules()
+    rules.CopyFrom(subscription.rules)
+    for pattern in subscription.patterns:
+      rules.match.append(pattern)
+    self._match_subscription = CompileRules(rules)
+
+    if subscription.auto_triage.enable:
+      self._match_auto_triage = lambda s: True
+    else:
+      self._match_auto_triage = CompileRules(subscription.auto_triage.rules)
+
+  def MatchSubscription(self, test):
+    return self._match_subscription(test)
+
+  def MatchAutoTriage(self, test):
+    return self._match_auto_triage(test)
+
+
+def GetMatcher(revision, subscription):
+  if not hasattr(GetMatcher, 'cache'):
+    GetMatcher.cache = dict()
+  cached = GetMatcher.cache.get(subscription.name)
+  if cached and cached.revision == revision:
+    return cached.matcher
+
+  cached_tuple = collections.namedtuple(
+      'CachedMatcher', ['revision', 'matcher'])
+  matcher = Matcher(subscription)
+  GetMatcher.cache[subscription.name] = cached_tuple(revision, matcher)
   return matcher
 
 
@@ -208,6 +236,19 @@ def ListAllConfigs(client):
 def FindMatchingConfigs(client, request):
   """Yield tuples of (config_set, revision, subscription)."""
   for config_set, revision, subscription in ListAllConfigs(client):
-    matcher = CompilePatterns(revision, subscription)
-    if matcher(request.path):
+    matcher = GetMatcher(revision, subscription)
+    if matcher.MatchSubscription(request.path):
+      subscription.auto_triage.enable = matcher.MatchAutoTriage(
+          request.path)
       yield (config_set, revision, subscription)
+
+
+def CopyNormalizedSubscription(src, dst):
+  dst.CopyFrom(src)
+  # We shouldn't use patterns outside the sheriff-config in any case.
+  # Maybe allow being explicitily requsted for debug usage later.
+  del dst.patterns[:]
+  dst.rules.Clear()
+  auto_triage_enable = dst.auto_triage.enable
+  dst.auto_triage.Clear()
+  dst.auto_triage.enable = auto_triage_enable
