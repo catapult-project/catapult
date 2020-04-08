@@ -13,6 +13,7 @@ import tempfile
 import unittest
 import mock
 
+from devil.utils import cmd_helper
 from telemetry.core import cros_interface
 from telemetry import decorators
 from telemetry.internal.forwarders import cros_forwarder
@@ -135,6 +136,15 @@ class CrOSInterfaceTest(unittest.TestCase):
     with self._GetCRI() as cri:
       f = tempfile.NamedTemporaryFile()
       cri.GetFile('/etc/lsb-release', f.name)
+      with open(f.name, 'r') as f2:
+        res = f2.read()
+        self.assertTrue('CHROMEOS' in res)
+
+  @decorators.Enabled('chromeos')
+  def testGetFileQuotes(self):  # pylint: disable=no-self-use
+    with self._GetCRI() as cri:
+      f = tempfile.NamedTemporaryFile()
+      cri.GetFile(cmd_helper.SingleQuote('/etc/lsb-release'), f.name)
       with open(f.name, 'r') as f2:
         res = f2.read()
         self.assertTrue('CHROMEOS' in res)
