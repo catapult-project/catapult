@@ -278,6 +278,11 @@ tr.exportTo('tr.model', function() {
       return this.sumOverToplevelSlicesInRange(range, slice => 1);
     },
 
+    getWallTimeForRange(range) {
+      return this.sumOverToplevelSlicesInRange(
+          range, slice => slice.duration || 0);
+    },
+
     getSchedulingStatsForRange(start, end) {
       const stats = {};
 

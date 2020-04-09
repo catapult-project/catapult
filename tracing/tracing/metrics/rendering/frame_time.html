@@ -297,6 +297,21 @@ tr.exportTo('tr.metrics.rendering', function() {
           category => `tasks_per_frame_${category}`,
           'Number of tasks of a thread group per frame',
           tr.b.Unit.byName.unitlessNumber_smallerIsBetter);
+
+      let totalWallTime = 0;
+      let totalCpuTime = 0;
+      for (const segment of frameSegments) {
+        for (const thread of model.getAllThreads()) {
+          totalCpuTime += thread.getCpuTimeForRange(segment.boundsRange);
+          totalWallTime += thread.getWallTimeForRange(segment.boundsRange);
+        }
+      }
+      histograms.createHistogram('cpu_wall_time_ratio',
+          tr.b.Unit.byName.unitlessNumber_biggerIsBetter,
+          totalCpuTime / totalWallTime,
+          { description: 'Ratio of total cpu-time vs. wall-time.',
+            summaryOptions: {},
+          });
     }
 
     const refreshPeriod = getRefreshPeriod(model,
