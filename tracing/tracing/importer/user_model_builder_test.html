@@ -337,7 +337,13 @@ tr.b.unittest.testSuite(function() {
         start: 20,
         duration: 5.0,
       }));
-      ChromeTestUtils.addFirstContentfulPaintEvent(model, {start: 20});
+      model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstContentfulPaint',
+        start: 20,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
         title: 'firstMeaningfulPaintCandidate',
@@ -362,7 +368,7 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 20, eventCount: 4},
-      {title: 'Successful Load', start: 20, end: 40, eventCount: 4},
+      {title: 'Successful Load', start: 20, end: 40, eventCount: 5},
       {title: 'Idle', start: 40, end: 5050, eventCount: 2}
     ];
     verifier.expectedSegments = [
@@ -1120,7 +1126,13 @@ tr.b.unittest.testSuite(function() {
         start: 0,
         duration: 5.0,
       }));
-      ChromeTestUtils.addFirstContentfulPaintEvent(model, {start: 20});
+      model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstContentfulPaint',
+        start: 20,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
         title: 'firstMeaningfulPaintCandidate',
@@ -1145,7 +1157,7 @@ tr.b.unittest.testSuite(function() {
     };
 
     verifier.expectedUEs = [
-      {title: 'Successful Load', start: 0, end: 350, eventCount: 4},
+      {title: 'Successful Load', start: 0, end: 350, eventCount: 5},
       {title: 'Idle', start: 350, end: 7130, eventCount: 1}
     ];
     verifier.expectedSegments = [
@@ -1211,7 +1223,13 @@ tr.b.unittest.testSuite(function() {
         start: 10,
         duration: 5.0,
       }));
-      ChromeTestUtils.addFirstContentfulPaintEvent(model, {start: 20});
+      model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstContentfulPaint',
+        start: 20,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
         title: 'firstMeaningfulPaintCandidate',
@@ -1236,7 +1254,7 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 1},
-      {title: 'Successful Load', start: 10, end: 350, eventCount: 5},
+      {title: 'Successful Load', start: 10, end: 350, eventCount: 6},
       {title: 'Idle', start: 350, end: 7130, eventCount: 1}
     ];
     verifier.expectedSegments = [

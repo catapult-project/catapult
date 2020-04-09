@@ -22,7 +22,7 @@ tr.exportTo('tr.model.um', function() {
   }
 
   function LoadExpectation(parentModel, initiatorTitle, start, duration,
-      renderer, navigationStart, fmpEvent, dclEndEvent, cpuIdleTime,
+      renderer, navigationStart, fmpEvent, fcpEvent, dclEndEvent, cpuIdleTime,
       timeToInteractive, url, frameId) {
     if (!DOES_LOAD_SUBTYPE_NAME_EXIST[initiatorTitle]) {
       throw new Error(initiatorTitle + ' is not in LOAD_SUBTYPE_NAMES');
@@ -57,8 +57,11 @@ tr.exportTo('tr.model.um', function() {
     // load expectation.
     this.navigationStart = navigationStart;
 
-    // First meaningful event corresponding to the navigation start event.
+    // First meaningful paint event corresponding to the navigation start event.
     this.fmpEvent = fmpEvent;
+
+    // First contentful paint event corresponding to the navigation start event.
+    this.fcpEvent = fcpEvent;
 
     // DomcontentLoadedEndEvent corresponding to the navigation start event.
     this.domContentLoadedEndEvent = dclEndEvent;

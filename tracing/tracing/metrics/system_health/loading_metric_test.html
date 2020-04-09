@@ -1072,6 +1072,16 @@ tr.b.unittest.testSuite(function() {
     }));
   }
 
+  function addFirstContentfulPaint_(rendererMain, timestamp) {
+    rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'loading',
+      title: 'firstContentfulPaint',
+      start: timestamp,
+      duration: 0.0,
+      args: {frame: '0xdeadbeef'}
+    }));
+  }
+
   function addDomContentLoadedEnd_(rendererMain, timestamp) {
     rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'blink.user_timing',
@@ -1120,7 +1130,8 @@ tr.b.unittest.testSuite(function() {
             documentLoaderURL: 'http://example.com',
           });
 
-      addFirstMeaningfulPaint_(mainThread, 500);
+      addFirstContentfulPaint_(mainThread, 500);
+      addFirstMeaningfulPaint_(mainThread, 510);
       addDomContentLoadedEnd_(mainThread, 600);
 
       // New navigation to close the search window.
@@ -1132,7 +1143,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.sh.loadingMetric(histograms, model);
     const fmpHist = histograms.getHistogramNamed('timeToFirstMeaningfulPaint');
     assert.strictEqual(1, fmpHist.running.count);
-    assert.strictEqual(300, fmpHist.running.mean);
+    assert.strictEqual(310, fmpHist.running.mean);
     // Both TTI and First CPU Idle firing at DCL.
     const ttiHist = histograms.getHistogramNamed('timeToInteractive');
     assert.strictEqual(1, ttiHist.running.count);
@@ -1150,7 +1161,7 @@ tr.b.unittest.testSuite(function() {
       addNavigationStart_(mainThread, 200);
       addNetworkRequest_(mainThread, 200, 250);
       addFrameLoaderObject_(rendererProcess, 300);
-      addFirstMeaningfulPaint_(mainThread, 500);
+      addFirstContentfulPaint_(mainThread, 500);
       addDomContentLoadedEnd_(mainThread, 600);
 
       const mainThreadTopLevelTasks = [
@@ -1178,7 +1189,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(1500, firstCpuIdleHist.running.mean);
   });
 
-  test('interactivityMetrics_longTaskBeforeFMP', function() {
+  test('interactivityMetrics_longTaskBeforeFCP', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcess = model.rendererProcess;
       const mainThread = model.rendererMain;
@@ -1188,7 +1199,7 @@ tr.b.unittest.testSuite(function() {
       addFrameLoaderObject_(rendererProcess, 300);
       addDomContentLoadedEnd_(mainThread, 600);
       addTopLevelTask_(mainThread, 600, 200);
-      addFirstMeaningfulPaint_(mainThread, 1000);  // TTI at FMP.
+      addFirstContentfulPaint_(mainThread, 1000);  // TTI at FMP.
       // New navigation to close the search window.
       addNavigationStart_(mainThread, 7000);
     });
@@ -1213,7 +1224,7 @@ tr.b.unittest.testSuite(function() {
       addNavigationStart_(mainThread, 200);
       addNetworkRequest_(mainThread, 200, 50);
       addFrameLoaderObject_(rendererProcess, 300);
-      addFirstMeaningfulPaint_(mainThread, 1000);
+      addFirstContentfulPaint_(mainThread, 1000);
       addDomContentLoadedEnd_(mainThread, 3000);
       // New navigation to close the search window.
       addNavigationStart_(mainThread, 7000);
@@ -1238,7 +1249,7 @@ tr.b.unittest.testSuite(function() {
 
       addNavigationStart_(mainThread, 200);
       addFrameLoaderObject_(rendererProcess, 300);
-      addFirstMeaningfulPaint_(mainThread, 1000);
+      addFirstContentfulPaint_(mainThread, 1000);
       addDomContentLoadedEnd_(mainThread, 1100);
       // Network busy requires at least three network requests.
       addNetworkRequest_(mainThread, 1000, 7000);
@@ -1274,7 +1285,7 @@ tr.b.unittest.testSuite(function() {
       addNetworkRequest_(mainThread, 200, 50);
       addFrameLoaderObject_(rendererProcess, 300);
       addDomContentLoadedEnd_(mainThread, 600);
-      addFirstMeaningfulPaint_(mainThread, 1000);
+      addFirstContentfulPaint_(mainThread, 1000);
       addTopLevelTask_(mainThread, 2000, 400);
       // Last task in the model. 2501 will be considered end of tracing.
       addTopLevelTask_(mainThread, 2500, 1);
@@ -1297,7 +1308,7 @@ tr.b.unittest.testSuite(function() {
       addNetworkRequest_(mainThread, 200, 50);
       addFrameLoaderObject_(rendererProcess, 300);
       addDomContentLoadedEnd_(mainThread, 600);
-      addFirstMeaningfulPaint_(mainThread, 1000);
+      addFirstContentfulPaint_(mainThread, 1000);
       addTopLevelTask_(mainThread, 2000, 400);
       // New navigation to close the search window. The window is not big enough
       // to reach TTI.
@@ -1321,7 +1332,7 @@ tr.b.unittest.testSuite(function() {
       addNetworkRequest_(mainThread, 200, 50);
       addFrameLoaderObject_(rendererProcess, 300);
       addDomContentLoadedEnd_(mainThread, 600);
-      addFirstMeaningfulPaint_(mainThread, 1000);
+      addFirstContentfulPaint_(mainThread, 1000);
       addTopLevelTask_(mainThread, 2000, 400);
       // Last task in the model. 8001 will be considered end of tracing, so
       // there is sufficiently large window to detect TTI.
@@ -1353,7 +1364,7 @@ tr.b.unittest.testSuite(function() {
         addNetworkRequest_(mainThread, 200, 50);
         addFrameLoaderObject_(rendererProcess, 300);
         addDomContentLoadedEnd_(mainThread, 600);
-        addFirstMeaningfulPaint_(mainThread, 1000);
+        addFirstContentfulPaint_(mainThread, 1000);
         // Durations are 400 and 800 for i value of 0 an 1.
         addTopLevelTask_(mainThread, 2000, (i + 1) * 400);
         // New navigation to close the search window.
@@ -1383,7 +1394,7 @@ tr.b.unittest.testSuite(function() {
       addNavigationStart_(mainThread, 200);
       addNetworkRequest_(mainThread, 200, 50);
       addFrameLoaderObject_(rendererProcess, 300);
-      addFirstMeaningfulPaint_(mainThread, 1000);
+      addFirstContentfulPaint_(mainThread, 1000);
       // No long task. TTI is reached at 3000.
       addDomContentLoadedEnd_(mainThread, 3000);
 
@@ -1435,7 +1446,7 @@ tr.b.unittest.testSuite(function() {
       addNavigationStart_(mainThread, 200);
       addFrameLoaderObject_(rendererProcess, 300);
       addDomContentLoadedEnd_(mainThread, 600);
-      addFirstMeaningfulPaint_(mainThread, 1000);
+      addFirstContentfulPaint_(mainThread, 1000);
       addTopLevelTask_(mainThread, 2000, 400);
       // Last task in the model. 8001 will be considered end of tracing, so
       // there is sufficiently large window to detect TTI.

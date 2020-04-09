@@ -344,13 +344,13 @@ tr.exportTo('tr.metrics.sh', function() {
    * @param {?number} eventTimestamp - Timestamp of the event for which the
    *     sample is being generated.
    * @param {tr.model.ThreadSlice} navigationStartEvent
-   * @param {number} firstMeaningfulPaintTime
+   * @param {number} firstContentfulPaintTime
    * @param {number} domContentLoadedEndTime
    * @param {string} url - URL of the current main frame document.
    * @returns {MetricSample|undefined}
    */
   function decorateInteractivitySampleWithDiagnostics_(rendererHelper,
-      eventTimestamp, navigationStartEvent, firstMeaningfulPaintTime,
+      eventTimestamp, navigationStartEvent, firstContentfulPaintTime,
       domContentLoadedEndTime, url) {
     if (eventTimestamp === undefined) return undefined;
     const navigationStartTime = navigationStartEvent.start;
@@ -371,7 +371,7 @@ tr.exportTo('tr.metrics.sh', function() {
           url,
           pid: rendererHelper.pid,
           navigationStartTime,
-          firstMeaningfulPaintTime,
+          firstContentfulPaintTime,
           domContentLoadedEndTime,
           // eventTimestamp can be derived from value and navigationStartEvent,
           // but it's useful to directly see the value in the UI.
@@ -532,14 +532,14 @@ tr.exportTo('tr.metrics.sh', function() {
         firstCpuIdleSamples.push(decorateInteractivitySampleWithDiagnostics_(
             rendererHelper, expectation.firstCpuIdleTime,
             expectation.navigationStart,
-            expectation.fmpEvent.start,
+            expectation.fcpEvent.start,
             expectation.domContentLoadedEndEvent.start, expectation.url));
       }
       if (expectation.timeToInteractive !== undefined) {
         interactiveSamples.push(decorateInteractivitySampleWithDiagnostics_(
             rendererHelper, expectation.timeToInteractive,
             expectation.navigationStart,
-            expectation.fmpEvent.start,
+            expectation.fcpEvent.start,
             expectation.domContentLoadedEndEvent.start, expectation.url));
       }
     }

@@ -69,7 +69,7 @@ tr.exportTo('tr.importer', function() {
    *     helper for the renderer of interest.
    * @param {tr.model.ThreadSlice} navigationStart - The navigation start
    *     event for which loading metrics is being computed.
-   * @param {tr.model.ThreadSlice} fmpEvent - The first meaningful paint
+   * @param {tr.model.ThreadSlice} fcpEvent - The first contentful paint
    *     event for which loading metrics is being computed.
    * @param {tr.model.ThreadSlice} domContentLoadedEndEvent - Event
    *     corresponding to finish  of dom content loading
@@ -79,14 +79,14 @@ tr.exportTo('tr.importer', function() {
    *           firstCpuIdleTime: {number}|undefined}
    */
   function computeInteractivityMetricSample_(rendererHelper, navigationStart,
-      fmpEvent, domContentLoadedEndEvent, searchWindowEnd) {
+      fcpEvent, domContentLoadedEndEvent, searchWindowEnd) {
     // Cannot determine TTI if DomContentLoadedEnd was never reached or if
-    // there is no corresponding fmpEvent.
-    if (domContentLoadedEndEvent === undefined || fmpEvent === undefined) {
+    // there is no corresponding fcpEvent.
+    if (domContentLoadedEndEvent === undefined || fcpEvent === undefined) {
       return {interactiveTime: undefined, firstCpuIdleTime: undefined};
     }
 
-    const firstMeaningfulPaintTime = fmpEvent.start;
+    const firstContentfulPaintTime = fcpEvent.start;
     const mainThreadTasks =
         tr.e.chrome.EventFinderUtils.findToplevelSchedulerTasks(
             rendererHelper.mainThread);
@@ -95,7 +95,7 @@ tr.exportTo('tr.importer', function() {
         task => task.duration >= LONG_TASK_THRESHOLD_MS);
     const longTasksInWindow = longTasks.filter(
         task => task.range.intersectsExplicitRangeInclusive(
-            firstMeaningfulPaintTime, searchWindowEnd));
+            firstContentfulPaintTime, searchWindowEnd));
 
     const resourceLoadEvents =
         tr.e.chrome.EventFinderUtils.getNetworkEventsInRange(
@@ -105,14 +105,14 @@ tr.exportTo('tr.importer', function() {
 
     const firstCpuIdleTime =
         tr.e.chrome.findFirstCpuIdleTime(
-            firstMeaningfulPaintTime, searchWindowEnd,
+            firstContentfulPaintTime, searchWindowEnd,
             domContentLoadedEndEvent.start, longTasksInWindow);
 
     // If we did not find any resource load events, interactiveTime should not
     // be computed to avoid reporting misleading values.
     const interactiveTime = resourceLoadEvents.length > 0 ?
       tr.e.chrome.findInteractiveTime(
-          firstMeaningfulPaintTime, searchWindowEnd,
+          firstContentfulPaintTime, searchWindowEnd,
           domContentLoadedEndEvent.start, longTasksInWindow,
           resourceLoadEvents) : undefined;
 
@@ -130,6 +130,9 @@ tr.exportTo('tr.importer', function() {
    * @param {Map.<string, Array<!tr.model.ThreadSlice>>}
    *     frameToDomContentLoadedEndEvents - Map from frame ids to sorted array
    *     of DOMContentLoadedEnd events.
+   * @param {Map.<string, Array<!tr.model.ThreadSlice>>}
+   *     frameToFcpEvents - Map from frame ids to sorted array
+   *     of FirstContentfulPaint events.
    * @param {tr.model.ThreadSlice} navigationStart - The navigation start
    *     event for which loading metrics is being computed.
    * @param {tr.model.ThreadSlice} fmpEvent - The first meaningful paint
@@ -144,15 +147,15 @@ tr.exportTo('tr.importer', function() {
    *  interactiveSample: {number}|undefined, url: {string}, frameId: {number}}}
    */
   function constructLoadingExpectation_(rendererHelper,
-      frameToDomContentLoadedEndEvents, navigationStart, fmpEvent,
-      searchWindowEnd, url, frameId) {
+      frameToDomContentLoadedEndEvents, frameToFcpEvents, navigationStart,
+      fmpEvent, searchWindowEnd, url, frameId) {
     // Find when dom content has loaded.
+    const searchRange = tr.b.math.Range.fromExplicitRange(
+        navigationStart.start, searchWindowEnd);
     const dclTimesForFrame =
         frameToDomContentLoadedEndEvents.get(frameId) || [];
-    const dclSearchRange = tr.b.math.Range.fromExplicitRange(
-        navigationStart.start, searchWindowEnd);
     const dclTimesInWindow =
-        dclSearchRange.filterArray(dclTimesForFrame, event => event.start);
+        searchRange.filterArray(dclTimesForFrame, event => event.start);
     let domContentLoadedEndEvent = undefined;
     if (dclTimesInWindow.length !== 0) {
       // TODO(catapult:#3796): Ideally a frame should reach DomContentLoadedEnd
@@ -165,9 +168,14 @@ tr.exportTo('tr.importer', function() {
         dclTimesInWindow[dclTimesInWindow.length - 1];
     }
 
+    const fcpForFrame = frameToFcpEvents.get(frameId) || [];
+    const fcpInWindow =
+        searchRange.filterArray(fcpForFrame, event => event.start);
+    const fcpEvent = fcpInWindow[0];  // May be undefined, and that's fine.
+
     const {interactiveTime, firstCpuIdleTime} =
       computeInteractivityMetricSample_(
-          rendererHelper, navigationStart, fmpEvent,
+          rendererHelper, navigationStart, fcpEvent,
           domContentLoadedEndEvent, searchWindowEnd);
 
     const duration = (interactiveTime === undefined) ?
@@ -177,7 +185,7 @@ tr.exportTo('tr.importer', function() {
     return new tr.model.um.LoadExpectation(
         rendererHelper.modelHelper.model,
         tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, navigationStart.start,
-        duration, rendererHelper.process, navigationStart, fmpEvent,
+        duration, rendererHelper.process, navigationStart, fmpEvent, fcpEvent,
         domContentLoadedEndEvent, firstCpuIdleTime, interactiveTime, url,
         frameId);
   }
@@ -216,6 +224,9 @@ tr.exportTo('tr.importer', function() {
     const frameToDomContentLoadedEndEvents =
           tr.e.chrome.EventFinderUtils.getSortedMainThreadEventsByFrame(
               rendererHelper, 'domContentLoadedEventEnd', 'blink.user_timing');
+    const frameToFcpEvents =
+          tr.e.chrome.EventFinderUtils.getSortedMainThreadEventsByFrame(
+              rendererHelper, 'firstContentfulPaint', 'loading');
 
     function addSamples(frameIdRef, navigationStart, fmpCandidateEvents,
         searchWindowEnd, url) {
@@ -229,8 +240,8 @@ tr.exportTo('tr.importer', function() {
         fmpMarkerEvent = undefined;
       }
       samples.push(constructLoadingExpectation_(
-          rendererHelper, frameToDomContentLoadedEndEvents, navigationStart,
-          fmpMarkerEvent, searchWindowEnd, url, frameIdRef));
+          rendererHelper, frameToDomContentLoadedEndEvents, frameToFcpEvents,
+          navigationStart, fmpMarkerEvent, searchWindowEnd, url, frameIdRef));
     }
 
     const candidatesForFrameId =
