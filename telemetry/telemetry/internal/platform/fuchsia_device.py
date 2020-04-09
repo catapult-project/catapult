@@ -129,7 +129,7 @@ def FindAllAvailableDevices(options):
     try:
       return [FuchsiaDevice(target_name='local_device',
                             host='localhost',
-                            system_log_file=None,
+                            system_log_file=options.fuchsia_system_log_file,
                             ssh_config_dir=options.fuchsia_ssh_config_dir,
                             port=int(options.fuchsia_ssh_port))]
     except ValueError:
@@ -154,6 +154,6 @@ def FindAllAvailableDevices(options):
                % (host, target_name))
   return [FuchsiaDevice(target_name=target_name,
                         host=host,
-                        system_log_file=None,
+                        system_log_file=options.fuchsia_system_log_file,
                         ssh_config_dir=options.fuchsia_ssh_config_dir,
                         port=22)]

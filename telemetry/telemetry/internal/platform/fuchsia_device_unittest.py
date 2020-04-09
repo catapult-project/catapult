@@ -59,6 +59,7 @@ class FuchsiaSDKUsageTest(unittest.TestCase):
         fuchsia_interface.FUCHSIA_BROWSERS[0])
     self._options.fuchsia_ssh_config_dir = 'test/'
     self._options.fuchsia_ssh_port = None
+    self._options.fuchsia_system_log_file = None
 
   def testSkipSDKUseIfSshPortExists(self):
     self._options.fuchsia_ssh_port = '22222'

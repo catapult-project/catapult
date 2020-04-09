@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import subprocess
 
 from telemetry.core import platform as telemetry_platform
 from telemetry.core.fuchsia_interface import CommandRunner
@@ -15,6 +16,7 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
   def __init__(self, device):
     super(FuchsiaPlatformBackend, self).__init__(device)
     config_path = os.path.join(device.ssh_config_dir, 'ssh_config')
+    self._system_log_file = device.system_log_file
     self._command_runner = CommandRunner(config_path,
                                          device.host,
                                          device.port)
@@ -31,6 +33,17 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
   @property
   def command_runner(self):
     return self._command_runner
+
+  def GetSystemLog(self):
+    if not self._system_log_file:
+      return None
+    try:
+      # Since the log file can be very large, only show the last 200 lines.
+      return subprocess.check_output(
+          ['tail', '-n', '200', self._system_log_file],
+          stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+      return 'Failed to collect system log: %s\nOutput:%s' % (e, e.output)
 
   def _CreateForwarderFactory(self):
     return fuchsia_forwarder.FuchsiaForwarderFactory(self._command_runner)
