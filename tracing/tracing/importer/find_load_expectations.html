@@ -58,6 +58,61 @@ tr.exportTo('tr.importer', function() {
   }
 
   /**
+   * Computes Total Blocking Time between |fcpTime| and |interactiveTime| using
+   * |topLevelTasks|.
+   *
+   * We define Blocking Time as any time interval in the loading timeline where
+   * task length exceeds 50ms. For example, if there is a 110ms main thread
+   * task, the last 60ms of it is blocking time. Total Blocking Time is the sum
+   * of all Blocking Time between First Contentful Paint and Interactive Time
+   * (TTI).
+   *
+   *  This is a new metric designed to accompany Time to Interactive. TTI is
+   *  strict and does not reflect incremental improvements to the site
+   *  performance unless the improvement concerns the last long task. Total
+   *  Blocking Time on the other hand is designed to be much more responsive to
+   *  smaller improvements to main thread responsiveness.
+   */
+  function computeTotalBlockingTime_(fcpTime, interactiveTime, topLevelTasks) {
+    let sumBlockingTime = 0;
+    for (const event of topLevelTasks) {
+      // Early exit for small tasks, which should far outnumber long tasks.
+      if (event.duration < LONG_TASK_THRESHOLD_MS) continue;
+
+      // We only want to consider tasks that fall between FCP and TTI. FCP is
+      // picked as the lower bound because there is little risk of user input
+      // happening before FCP so Long Queuing Qelay regions do not harm user
+      // experience. Developers should be optimizing to reach FCP as fast as
+      // possible without having to worry about task lengths.
+      if (event.end < fcpTime) continue;
+
+      // TTI is picked as the upper bound because we want a well defined end
+      // point so that the metric does not rely on how long we trace.
+      if (event.start > interactiveTime) continue;
+
+      // We first perform the clipping, and then calculate Blocking Region. So
+      // if we have a 150ms task [0, 150] and FCP happens midway at 50ms, we
+      // first clip the task to [50, 150], and then calculate the Blocking
+      // Region to be [100, 150]. The rational here is that tasks before FCP are
+      // unimportant, so we care whether the main thread is busy more than 50ms
+      // at a time only after FCP.
+      const clippedStart = Math.max(event.start, fcpTime);
+      const clippedEnd = Math.min(event.end, interactiveTime);
+      const clippedDuration = clippedEnd - clippedStart;
+      if (clippedDuration < LONG_TASK_THRESHOLD_MS) continue;
+
+      // The duration of the task beyond 50ms at the beginning is considered the
+      // Blocking Region.
+      // Example:
+      //   [              250ms Task                   ]
+      //   | First 50ms |   Blocking Region (200ms)    |
+      sumBlockingTime += (clippedDuration - LONG_TASK_THRESHOLD_MS);
+    }
+
+    return sumBlockingTime;
+  }
+
+  /**
    * Returns Time to Interactive and First CPU Idle for the
    * given parameters. See the time_to_interactive.html module for detailed
    * description and implementation of these metrics. The two metrics are
@@ -83,7 +138,11 @@ tr.exportTo('tr.importer', function() {
     // Cannot determine TTI if DomContentLoadedEnd was never reached or if
     // there is no corresponding fcpEvent.
     if (domContentLoadedEndEvent === undefined || fcpEvent === undefined) {
-      return {interactiveTime: undefined, firstCpuIdleTime: undefined};
+      return {
+        interactiveTime: undefined,
+        firstCpuIdleTime: undefined,
+        totalBlockingTime: undefined
+      };
     }
 
     const firstContentfulPaintTime = fcpEvent.start;
@@ -116,7 +175,11 @@ tr.exportTo('tr.importer', function() {
           domContentLoadedEndEvent.start, longTasksInWindow,
           resourceLoadEvents) : undefined;
 
-    return {interactiveTime, firstCpuIdleTime};
+    const totalBlockingTime = interactiveTime ?
+      computeTotalBlockingTime_(fcpEvent.start, interactiveTime, longTasks) :
+      undefined;
+
+    return {interactiveTime, firstCpuIdleTime, totalBlockingTime};
   }
 
   /* Constructs a loading metrics for the specified navigation start event and
@@ -173,7 +236,7 @@ tr.exportTo('tr.importer', function() {
         searchRange.filterArray(fcpForFrame, event => event.start);
     const fcpEvent = fcpInWindow[0];  // May be undefined, and that's fine.
 
-    const {interactiveTime, firstCpuIdleTime} =
+    const {interactiveTime, firstCpuIdleTime, totalBlockingTime} =
       computeInteractivityMetricSample_(
           rendererHelper, navigationStart, fcpEvent,
           domContentLoadedEndEvent, searchWindowEnd);
@@ -186,8 +249,8 @@ tr.exportTo('tr.importer', function() {
         rendererHelper.modelHelper.model,
         tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, navigationStart.start,
         duration, rendererHelper.process, navigationStart, fmpEvent, fcpEvent,
-        domContentLoadedEndEvent, firstCpuIdleTime, interactiveTime, url,
-        frameId);
+        domContentLoadedEndEvent, firstCpuIdleTime, interactiveTime,
+        totalBlockingTime, url, frameId);
   }
 
   /**

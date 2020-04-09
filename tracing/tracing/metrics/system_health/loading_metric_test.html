@@ -1651,5 +1651,57 @@ tr.b.unittest.testSuite(function() {
     const hist = histograms.getHistogramNamed('rectsBasedSpeedIndex');
     assert.isNotNull(hist);
   });
+
+  test('totalBlockingTime_looksAtCorrectInterval', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+
+      addNavigationStart_(mainThread, 200);
+      addFrameLoaderObject_(rendererProcess, 300);
+      addNetworkRequest_(mainThread, 200, 100);
+      addDomContentLoadedEnd_(mainThread, 600);
+
+      // Contributes 0 since it's before FCP.
+      addTopLevelTask_(mainThread, 800, 100);
+      addFirstContentfulPaint_(mainThread, 1000);
+      addTopLevelTask_(mainThread, 2000, 400);  // Contributes 350.
+      addTopLevelTask_(mainThread, 2500, 300);  // Contributes 250.
+
+      // Contributes 0 since it's after TTI. TTI at 2800.
+      addTopLevelTask_(mainThread, 10000, 300);
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('totalBlockingTime');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(600, hist.running.mean);
+  });
+
+  test('totalBlockingTime_performsProperClipping', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+
+      addNavigationStart_(mainThread, 200);
+      addFrameLoaderObject_(rendererProcess, 300);
+      addNetworkRequest_(mainThread, 200, 100);
+
+      // Contributes 150 since only 250ms is after FCP.
+      addTopLevelTask_(mainThread, 800, 400);
+      addFirstContentfulPaint_(mainThread, 1000);
+      // Task straddles DCL, but contributes 0 since duration < 50ms.
+      addTopLevelTask_(mainThread, 1980, 49);
+      addDomContentLoadedEnd_(mainThread, 2000);  // TTI fires at DCL: 2000ms.
+
+      // Sufficiently far task to trigger TTI.
+      addTopLevelTask_(mainThread, 10000, 0);
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('totalBlockingTime');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(150, hist.running.mean);
+  });
 });
 </script>

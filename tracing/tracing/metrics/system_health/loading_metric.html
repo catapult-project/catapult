@@ -513,6 +513,7 @@ tr.exportTo('tr.metrics.sh', function() {
     const firstCpuIdleSamples = [];
     const firstMeaningfulPaintSamples = [];
     const firstMeaningfulPaintCpuTimeSamples = [];
+    const totalBlockingTimeSamples = [];
     for (const expectation of model.userModel.expectations) {
       if (!(expectation instanceof tr.model.um.LoadExpectation)) continue;
       if (tr.e.chrome.CHROME_INTERNAL_URLS.includes(expectation.url)) {
@@ -542,6 +543,17 @@ tr.exportTo('tr.metrics.sh', function() {
             expectation.fcpEvent.start,
             expectation.domContentLoadedEndEvent.start, expectation.url));
       }
+      if (expectation.totalBlockingTime !== undefined) {
+        totalBlockingTimeSamples.push({
+          value: expectation.totalBlockingTime,
+          diagnostics: {
+            url: new tr.v.d.GenericSet([expectation.url]),
+            navigationStart: new RelatedEventSet(expectation.navigationStart),
+            firstContentfulPaint: new RelatedEventSet(expectation.fcpEvent),
+            interactiveTime: new tr.v.d.GenericSet(
+                [expectation.timeToInteractive]),
+          }});
+      }
     }
 
     return {
@@ -549,6 +561,7 @@ tr.exportTo('tr.metrics.sh', function() {
       firstMeaningfulPaintCpuTimeSamples,
       firstCpuIdleSamples,
       interactiveSamples,
+      totalBlockingTimeSamples,
     };
   }
 
@@ -634,6 +647,12 @@ tr.exportTo('tr.metrics.sh', function() {
         'timeToInteractive', timeDurationInMs_smallerIsBetter, [], {
           binBoundaries: TIME_TO_INTERACTIVE_BOUNDARIES,
           description: 'Time to Interactive',
+          summaryOptions: SUMMARY_OPTIONS,
+        });
+    const totalBlockingTimeHistogram = histograms.createHistogram(
+        'totalBlockingTime', timeDurationInMs_smallerIsBetter, [], {
+          binBoundaries: TIME_TO_INTERACTIVE_BOUNDARIES,
+          description: 'Total Blocking Time',
           summaryOptions: SUMMARY_OPTIONS,
         });
     const timeToFirstCpuIdleHistogram = histograms.createHistogram(
@@ -752,6 +771,10 @@ tr.exportTo('tr.metrics.sh', function() {
     addSamplesToHistogram(
         samplesSet.firstCpuIdleSamples,
         timeToFirstCpuIdleHistogram,
+        histograms);
+    addSamplesToHistogram(
+        samplesSet.totalBlockingTimeSamples,
+        totalBlockingTimeHistogram,
         histograms);
   }
 

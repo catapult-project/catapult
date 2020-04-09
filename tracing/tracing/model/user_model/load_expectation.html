@@ -23,7 +23,7 @@ tr.exportTo('tr.model.um', function() {
 
   function LoadExpectation(parentModel, initiatorTitle, start, duration,
       renderer, navigationStart, fmpEvent, fcpEvent, dclEndEvent, cpuIdleTime,
-      timeToInteractive, url, frameId) {
+      timeToInteractive, totalBlockingTime, url, frameId) {
     if (!DOES_LOAD_SUBTYPE_NAME_EXIST[initiatorTitle]) {
       throw new Error(initiatorTitle + ' is not in LOAD_SUBTYPE_NAMES');
     }
@@ -73,6 +73,10 @@ tr.exportTo('tr.model.um', function() {
     // The time at which renderer is interactive. Please look at
     // time_to_interactive.html for further details on how this is computed.
     this.timeToInteractive = timeToInteractive;
+
+    // Sum of all blocking time (time in top level task exceeding 50ms) between
+    // FCP and TTI.
+    this.totalBlockingTime = totalBlockingTime;
 
     this.url = url;
     this.frameId = frameId;
