@@ -17,41 +17,19 @@ found in the LICENSE file.
  * @fileoverview This file contains implementations of the following metrics.
  *
  * The addCpuUtilizationHistograms method can generate the following sets of
- * metrics, dependeing on the input values for segments, shouldNormalize, and
- * segmentCostFunc.
- *
- * thread_{thread group}_cpu_time_per_second
- * =========================================
- * segments: any set of interesting segments
- * shouldNormalize: True
- * segmentCostFunc: thread.getCpuTimeForRange
- *
- * This set of metrics show how much a thread group was busy during specific
- * segments marked by a test. More precisely, it shows the average amount of CPU
- * cores per seconds the thread group consumes during the segments.
+ * metrics, dependeing on the input values for segments, and segmentCostFunc.
  *
  * thread_{thread group}_cpu_time_per_frame
  * ========================================
  * segments: display compositor's frames
- * shouldNormalize: False
  * segmentCostFunc: thread.getCpuTimeForRange
  *
  * This set of metrics show the distribution of CPU usage of a thread
  * group in each display compositor's frame.
  *
- * tasks_per_second_{thread group}
- * ===============================
- * segments: any set of interesting segments
- * shouldNormalize: True
- * segmentCostFunc: thread.getNumToplevelSlicesForRange
- *
- * This set of metrics show the average number of tasks per second of a thread
- * group during specific segments marked by a test.
- *
  * tasks_per_frame_{thread group}
  * ==============================
  * segments: display compositor's frames
- * shouldNormalize: False
  * segmentCostFunc: thread.getNumToplevelSlicesForRange
  *
  * This set of metrics show the distribution of the number of task in each
@@ -117,8 +95,8 @@ tr.exportTo('tr.metrics.rendering', function() {
   }
 
   function addCpuUtilizationHistograms(
-      histograms, model, segments, shouldNormalize, segmentCostFunc,
-      histogramNameFunc, description, unit) {
+      histograms, model, segments, segmentCostFunc, histogramNameFunc,
+      description, unit) {
     if (!unit) unit = tr.b.Unit.byName.unitlessNumber;
     const histogramMap = new Map();
     for (const category of ALL_CATEGORIES) {
@@ -179,8 +157,7 @@ tr.exportTo('tr.metrics.rendering', function() {
       }
 
       for (const category of ALL_CATEGORIES) {
-        let value = categoryValues.get(category) || 0;
-        if (shouldNormalize) value /= segment.duration;
+        const value = categoryValues.get(category) || 0;
         const diagnostics = new tr.v.d.DiagnosticMap();
         const breakdown = breakdowns.get(category);
         if (breakdown) diagnostics.set('breakdown', breakdown);

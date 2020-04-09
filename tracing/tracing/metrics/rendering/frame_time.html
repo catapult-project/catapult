@@ -285,13 +285,13 @@ tr.exportTo('tr.metrics.rendering', function() {
 
     if (addCpuMetrics) {
       tr.metrics.rendering.addCpuUtilizationHistograms(
-          histograms, model, frameSegments, false,
+          histograms, model, frameSegments,
           (thread, segment) => thread.getCpuTimeForRange(segment.boundsRange),
           category => `thread_${category}_cpu_time_per_frame`,
           'CPU cores of a thread group per frame',
           tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
       tr.metrics.rendering.addCpuUtilizationHistograms(
-          histograms, model, frameSegments, false,
+          histograms, model, frameSegments,
           (thread, segment) =>
             thread.getNumToplevelSlicesForRange(segment.boundsRange),
           category => `tasks_per_frame_${category}`,
