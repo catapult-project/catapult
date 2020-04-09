@@ -267,12 +267,12 @@ tr.exportTo('tr.metrics.rendering', function() {
         tr.model.helpers.ChromeModelHelper);
     const events = getDisplayCompositorPresentationEvents_(modelHelper);
     if (!events) return;
-    addFrameTimeHistogramsHelper(histograms, model, segments, events, '', true,
-        minFrameCount);
+    addFrameTimeHistogramsHelper(histograms, model, segments, events, '',
+        true, minFrameCount);
     const eventsExp = getDisplayCompositorPresentationEventsExp_(modelHelper);
     if (eventsExp && eventsExp.length > 0) {
       addFrameTimeHistogramsHelper(histograms, model, segments, eventsExp,
-          'exp_', minFrameCount);
+          'exp_', false, minFrameCount);
     }
   }
 
