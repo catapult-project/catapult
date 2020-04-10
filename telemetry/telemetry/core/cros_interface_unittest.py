@@ -40,20 +40,9 @@ class CrOSInterfaceTest(unittest.TestCase):
       self.assertEquals(contents, test_contents)
 
   @decorators.Enabled('chromeos')
-  def testPushContentsQuotes(self):
-    with self._GetCRI() as cri:
-      tmp_file = '"/tmp/testPushContents"'
-      test_contents = 'hello world'
-      cri.RmRF(tmp_file)
-      cri.PushContents(test_contents, tmp_file)
-      contents = cri.GetFileContents(tmp_file)
-      self.assertEquals(contents, test_contents)
-
-  @decorators.Enabled('chromeos')
   def testExists(self):
     with self._GetCRI() as cri:
       self.assertTrue(cri.FileExistsOnDevice('/proc/cpuinfo'))
-      self.assertTrue(cri.FileExistsOnDevice('"/proc/cpuinfo"'))
       self.assertTrue(cri.FileExistsOnDevice('/etc/passwd'))
       self.assertFalse(cri.FileExistsOnDevice('/etc/sdlfsdjflskfjsflj'))
 
