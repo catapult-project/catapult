@@ -639,13 +639,26 @@ class CrOSInterface(object):
 
   def _GetMountSourceAndTarget(self, path, ns=None):
     path = _Requote(path)
-    cmd = []
+    def _RunAndSplit(cmd):
+      cmd_out, _ = self.RunCmdOnDevice(cmd)
+      return cmd_out.split('\n')
+
+    cmd = ['/bin/df', '--output=source,target', path]
+    df_ary = []
     if ns:
-      cmd.extend(['nsenter', '--mount=%s' % ns])
-    cmd.extend(['/bin/df', '--output=source,target', path])
-    df_out, _ = self.RunCmdOnDevice(cmd)
-    df_ary = df_out.split('\n')
-    # 3 lines for title, mount info, and empty line.
+      ns_cmd = ['nsenter', '--mount=%s' % ns]
+      ns_cmd.extend(cmd)
+      # Try running 'df' in the non-root mount namespace.
+      df_ary = _RunAndSplit(ns_cmd)
+
+    if len(df_ary) < 3:
+      df_ary = _RunAndSplit(cmd)
+
+    # 3 lines for title, mount info, and empty line:
+    # # df --output=source,target `cryptohome-path user '$guest'`
+    # Filesystem     Mounted on\n
+    # /dev/loop6     /home/user/a5715c406109752ce7c31dad219c85c4e812728f\n
+    #
     if len(df_ary) == 3:
       line_ary = df_ary[1].split()
       return line_ary if len(line_ary) == 2 else None
