@@ -70,6 +70,26 @@ def _Unquote(s):
   return s.strip("'").strip('"').strip("'")
 
 
+def _Requote(s):
+  """Replaces any existing quotes around a string with single quotes.
+
+  No-ops if the given object is not a string or otherwise does not have a
+  .strip() method.
+
+  Examples: "foo" -> 'foo', '"foo"' -> 'foo'
+
+  Args:
+    s: The string to replace quotes on.
+
+  Returns:
+    |s| with trailing/leading quotes replaced with a single pair of single
+    quotes.
+  """
+  if not hasattr(s, 'strip'):
+    return s
+  return cmd_helper.SingleQuote(_Unquote(s))
+
+
 class CrOSInterface(object):
 
   CROS_MINIDUMP_DIR = '/var/log/chrome/Crash Reports/'
@@ -277,10 +297,19 @@ class CrOSInterface(object):
       raise LoginException('Logged into %s, expected $USER=root, but got %s.' %
                            (self._hostname, stdout))
 
-  def FileExistsOnDevice(self, file_name):
+  def FileExistsOnDevice(self, filename):
+    """Checks whether a path exists on the device.
+
+    Args:
+      filename: The path to check the existence of.
+
+    Returns:
+      True if the path exists on the device, otherwise False.
+    """
+    filename = _Requote(filename)
     stdout, stderr = self.RunCmdOnDevice(
         [
-            'if', 'test', '-e', file_name, ';', 'then', 'echo', '1', ';', 'fi'
+            'if', 'test', '-e', filename, ';', 'then', 'echo', '1', ';', 'fi'
         ],
         quiet=True)
     if stderr != '':
@@ -288,10 +317,18 @@ class CrOSInterface(object):
         raise OSError('Machine wasn\'t responding to ssh: %s' % stderr)
       raise OSError('Unexpected error: %s' % stderr)
     exists = stdout == '1\n'
-    logging.debug("FileExistsOnDevice(<text>, %s)->%s" % (file_name, exists))
+    logging.debug('FileExistsOnDevice(<text>, %s)->%s', filename, exists)
     return exists
 
   def PushFile(self, filename, remote_filename):
+    """Pushes a file onto the device.
+
+    Args:
+      filename: The local path to push.
+      remote_filename: The remote path to push to.
+    """
+    filename = _Requote(filename)
+    remote_filename = _Requote(remote_filename)
     if self.local:
       args = ['cp', '-r', filename, remote_filename]
       _, stderr = GetAllCmdOutput(args, quiet=True)
@@ -310,7 +347,14 @@ class CrOSInterface(object):
       raise OSError('No such file or directory %s' % stderr)
 
   def PushContents(self, text, remote_filename):
-    logging.debug("PushContents(<text>, %s)" % remote_filename)
+    """Pushes text content onto the device.
+
+    Args:
+      text: The text to push.
+      remote_filename: The remote path to push to.
+    """
+    remote_filename = _Requote(remote_filename)
+    logging.debug('PushContents(<text>, %s)', remote_filename)
     with tempfile.NamedTemporaryFile() as f:
       f.write(text)
       f.flush()
@@ -323,12 +367,11 @@ class CrOSInterface(object):
       filename: The name of the remote source file.
       destfile: The name of the file to copy to, and if it is not specified
         then it is the basename of the source file.
-
     """
-    logging.debug("GetFile(%s, %s)" % (filename, destfile))
+    filename = _Unquote(filename)
+    destfile = _Unquote(destfile)
+    logging.debug('GetFile(%s, %s)', filename, destfile)
     if self.local:
-      filename = _Unquote(filename)
-      destfile = _Unquote(destfile)
       if destfile is not None and destfile != filename:
         shutil.copyfile(filename, destfile)
         return
@@ -338,6 +381,8 @@ class CrOSInterface(object):
     if destfile is None:
       destfile = os.path.basename(filename)
     destfile = os.path.abspath(destfile)
+    filename = _Requote(filename)
+    destfile = _Requote(destfile)
     extra_args = ['-T'] if self._disable_strict_filenames else []
     args = self._FormSCPFromRemote(
         filename, destfile, extra_scp_args=extra_args)
@@ -370,12 +415,45 @@ class CrOSInterface(object):
     Returns:
       A string containing the contents of the file.
     """
+    filename = _Requote(filename)
     with tempfile.NamedTemporaryFile() as t:
       self.GetFile(filename, t.name)
       with open(t.name, 'r') as f2:
         res = f2.read()
-        logging.debug("GetFileContents(%s)->%s" % (filename, res))
+        logging.debug('GetFileContents(%s)->%s', filename, res)
         return res
+
+  def ListDirectory(self, filepath):
+    """Runs 'ls -1' on the given filepath on the device.
+
+    Args:
+      filepath: The path to ls.
+
+    Returns:
+      A list of strings, each element being an entry in |filepath|.
+    """
+    filepath = _Requote(filepath)
+    stdout, stderr = self.RunCmdOnDevice(['ls', '-1', filepath])
+    if stderr:
+      raise OSError('Unable to ls path %s' % stderr)
+    return stdout.splitlines()
+
+  def IsDirectory(self, filepath):
+    """Determines whether a path on the device is a directory or not.
+
+    Args:
+      filepath: The path to check.
+
+    Returns:
+      True if the path is a directory, otherwise False.
+    """
+    filepath = _Requote(filepath)
+    stdout, stderr = self.RunCmdOnDevice(
+        ['test', '-d', filepath, '&&',
+         'echo', 'true', '||', 'echo', 'false'])
+    if stderr:
+      raise OSError('Unable to determine if path is directory %s' % stderr)
+    return 'true' in stdout
 
   def PullDumps(self, host_dir):
     """Pulls any minidumps from the device/emulator to the host.
@@ -395,19 +473,13 @@ class CrOSInterface(object):
     # the device clock is ahead.
     time_offset = self.GetDeviceHostClockOffset()
 
-    stdout, _ = self.RunCmdOnDevice(
-        ['ls', '-1', cmd_helper.SingleQuote(self.CROS_MINIDUMP_DIR)])
-    device_dumps = stdout.splitlines()
+    device_dumps = self.ListDirectory(self.CROS_MINIDUMP_DIR)
     for dump_filename in device_dumps:
       host_path = os.path.join(host_dir, dump_filename)
       if not os.path.exists(host_path):
         device_path = cmd_helper.SingleQuote(
             posixpath.join(self.CROS_MINIDUMP_DIR, dump_filename))
-        # Skip any directories that happen to be in the list.
-        stdout, _ = self.RunCmdOnDevice(
-            ['test', '-f', device_path, '&&',
-             'echo', 'true', '||', 'echo', 'false'])
-        if 'false' in stdout:
+        if self.IsDirectory(device_path):
           continue
         self.GetFile(device_path, host_path)
         # Set the local version's modification time to the device's.
@@ -454,7 +526,7 @@ class CrOSInterface(object):
       assert m
       procs.append((int(m.group(1)), m.group(3).rstrip(), int(m.group(2)),
                     m.group(4)))
-    logging.debug("ListProcesses(<predicate>)->[%i processes]" % len(procs))
+    logging.debug('ListProcesses(<predicate>)->[%i processes]', len(procs))
     return procs
 
   def _GetSessionManagerPid(self, procs):
@@ -501,19 +573,23 @@ class CrOSInterface(object):
     return None
 
   def RmRF(self, filename):
-    logging.debug("rm -rf %s" % filename)
+    """Removes |filename|."""
+    filename = _Requote(filename)
+    logging.debug('rm -rf %s', filename)
     self.RunCmdOnDevice(['rm', '-rf', filename], quiet=True)
 
   def Chown(self, filename):
+    """Changes the owner of |filename| to chronos:chronos."""
+    filename = _Requote(filename)
     self.RunCmdOnDevice(['chown', '-R', 'chronos:chronos', filename])
 
   def KillAllMatching(self, predicate):
     kills = ['kill', '-KILL']
     for pid, cmd, _, _ in self.ListProcesses():
       if predicate(cmd):
-        logging.info('Killing %s, pid %d' % cmd, pid)
+        logging.info('Killing %s, pid %d', cmd, pid)
         kills.append(pid)
-    logging.debug("KillAllMatching(<predicate>)->%i" % (len(kills) - 2))
+    logging.debug('KillAllMatching(<predicate>)->%i', len(kills) - 2)
     if len(kills) > 2:
       self.RunCmdOnDevice(kills, quiet=True)
     return len(kills) - 2
@@ -530,7 +606,7 @@ class CrOSInterface(object):
       stdout, stderr = self.RunCmdOnDevice(['status', service_name], quiet=True)
       running = 'running, process' in stdout
     assert stderr == '', stderr
-    logging.debug("IsServiceRunning(%s)->%s" % (service_name, running))
+    logging.debug('IsServiceRunning(%s)->%s', service_name, running)
     return running
 
   def GetRemotePort(self):
@@ -562,6 +638,7 @@ class CrOSInterface(object):
     return True
 
   def _GetMountSourceAndTarget(self, path, ns=None):
+    path = _Requote(path)
     cmd = []
     if ns:
       cmd.extend(['nsenter', '--mount=%s' % ns])
@@ -575,7 +652,8 @@ class CrOSInterface(object):
     return None
 
   def FilesystemMountedAt(self, path):
-    """Returns the filesystem mounted at |path|"""
+    """Returns the filesystem mounted at |path|."""
+    path = _Requote(path)
     mount_info = self._GetMountSourceAndTarget(path)
     return mount_info[0] if mount_info else None
 
@@ -616,10 +694,11 @@ class CrOSInterface(object):
       return is_guestfs == is_guest and mount_info[1] == profile_path
     return False
 
-  def TakeScreenshot(self, file_path):
-    """Takes a screenshot, saves to |file_path|."""
+  def TakeScreenshot(self, filepath):
+    """Takes a screenshot, saves to |filepath|."""
+    filepath = _Requote(filepath)
     stdout, stderr = self.RunCmdOnDevice(['/usr/local/sbin/screenshot',
-                                          file_path])
+                                          filepath])
     return stdout == '' and stderr == ''
 
   def TakeScreenshotWithPrefix(self, screenshot_prefix):
