@@ -7,7 +7,6 @@ from __future__ import absolute_import
 
 import sys
 
-import array
 import logging
 import unittest
 import itertools
@@ -28,8 +27,8 @@ class ChangeDetectorTest(unittest.TestCase):
 
   def testClusterPartitioning(self):
     a, b = ccd.Cluster([1, 2, 3], 1)
-    self.assertEqual(a, array.array('d', [1]))
-    self.assertEqual(b, array.array('d', [2, 3]))
+    self.assertEqual(a, [1])
+    self.assertEqual(b, [2, 3])
 
   def testMidpoint_Long(self):
     self.assertEqual(1, ccd.Midpoint([0, 0, 0]))
@@ -62,17 +61,17 @@ class ChangeDetectorTest(unittest.TestCase):
 
   def testClusterAndFindSplit_Spikes(self):
     # We actually can identify spikes very well.
-    sequence = ([1] * 100) + [1000] + ([1] * 100)
+    sequence = ([1] * 15) + [500, 1000, 500] + ([1] * 15)
     splits = ccd.ClusterAndFindSplit(sequence, self.rand)
     logging.debug('Splits = %s', splits)
-    self.assertEqual([101], splits)
+    self.assertEqual([15], splits)
 
   def testClusterAndFindSplit_SpikeAndLevelChange(self):
     # We actually can identify the spike, the drop, and the level change.
-    sequence = ([1] * 100) + [1000, 1] + ([2] * 100)
+    sequence = ([1] * 50) + [1000] * 10 + [1] * 50 + ([500] * 50)
     splits = ccd.ClusterAndFindSplit(sequence, self.rand)
     logging.debug('Splits = %s', splits)
-    self.assertEqual([100, 101, 102], splits)
+    self.assertEqual([50, 60, 110], splits)
 
   def testClusterAndFindSplit_Windowing(self):
     # We contrive a case where we'd like to find change points by doing a
@@ -104,21 +103,40 @@ class ChangeDetectorTest(unittest.TestCase):
 
   def testClusterAndFindSplit_N_Pattern(self):
     # In this test case we're ensuring that permutation testing is finding the
-    # local mimima for a sub-segment.
-    sequence = range(100, 200) + range(200, 100, -1) + [300] * 10
+    # local mimima for a sub-segment. We're introducing randomness here but
+    # seeding well-known inflection points to make it clear that we're able to
+    # see those inflection points.
+    sequence = (
+        # First we have a sequence of numbers in [100..200] with mode = 150.
+        [random.triangular(100, 200, 150) for _ in range(49)]
+
+        # Then we see our first inflection point.
+        + [300]
+
+        # Then we have a sequence of numbers in [300..350] with mode = 325.
+        + [random.triangular(300, 350, 325) for _ in range(49)]
+
+        # Then we see our next inflection point.
+        + [400]
+
+        # Then finally we have a sequence of numbers in [400..500] with mode =
+        # 500.
+        + [random.triangular(400, 500, 450) for _ in range(100)])
     splits = ccd.ClusterAndFindSplit(sequence, self.rand)
     logging.debug('Splits = %s', splits)
-    self.assertIn(200, splits)
-    self.assertTrue(any(c < 200 for c in splits))
+
+    # Instead of asserting that we have specific indices, we're testing that the
+    # splits found are within certain ranges.
+    self.assertTrue(any(50 <= c < 100 for c in splits))
 
   def testClusterAndFindSplit_InifiniteLooper(self):
     # We construct a case where we find a clear partition point in offset 240,
     # but permutation testing of the segment [0:240] will find more plausible
     # points. The important part is that we don't run into an infinite loop.
-    sequence = [100] * 119 + [150] + [100] * 120 + [200] * 2
+    sequence = [100] * 120 + [200] * 10 + [100] * 110 + [500] * 2
     splits = ccd.ClusterAndFindSplit(sequence, self.rand)
     logging.debug('Splits = %s', splits)
     self.assertIn(240, splits)
-    self.assertEqual(sequence[240], 200)
-    self.assertIn(119, splits)
-    self.assertEqual(sequence[119], 150)
+    self.assertEqual(sequence[240], 500)
+    self.assertIn(120, splits)
+    self.assertEqual(sequence[120], 200)

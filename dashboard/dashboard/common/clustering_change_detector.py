@@ -14,7 +14,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import array
 import itertools
 import logging
 import math
@@ -32,6 +31,14 @@ from dashboard.pinpoint.models.compare import compare as pinpoint_compare
 # likely to spend finding these potential hidden change-points.
 _MAX_PERMUTATION_TESTING_ITERATIONS = 150
 
+# This is the threshold percentage that permutation testing must meet for us to
+# consider the sub-range that might contain a potential change-point.
+_MIN_PERCENTAGE_DIFFERENT = 0.05
+
+# The subsampling length is the maximum length we're letting the permutation
+# testing use to find potential rearrangements of the underlying data.
+_MAX_SUBSAMPLING_LENGTH = 40
+
 class Error(Exception):
   pass
 
@@ -42,9 +49,7 @@ class InsufficientData(Error):
 
 def Cluster(sequence, partition_point):
   """Return a tuple (left, right) where partition_point is part of right."""
-  cluster_a = array.array('d', sequence[:partition_point])
-  cluster_b = array.array('d', sequence[partition_point:])
-  return (cluster_a, cluster_b)
+  return (sequence[:partition_point], sequence[partition_point:])
 
 
 def Midpoint(sequence):
@@ -85,18 +90,19 @@ def PermutationTest(sequence, rand=None):
   if rand is None:
     rand = random.Random()
 
-  def RandomPermutations(sequence, length, count):
-    pool = array.array('d', sequence)
+  def RandomPermutations(sequence, count):
+    pool = tuple(sequence)
+    length = len(sequence)
     i = 0
     while i < count:
       i += 1
-      yield array.array('d', rand.sample(pool, length))
+      yield tuple(rand.sample(pool, min(length, _MAX_SUBSAMPLING_LENGTH)))
 
   sames = 0
   differences = 0
   unknowns = 0
   for permutation in RandomPermutations(
-      sequence, Midpoint(sequence),
+      sequence,
       min(_MAX_PERMUTATION_TESTING_ITERATIONS, math.factorial(len(sequence)))):
     change_point, found = ChangePointEstimator(permutation)
     if not found:
@@ -116,10 +122,7 @@ def PermutationTest(sequence, rand=None):
   # sequence).
   total = float(sames + unknowns + differences)
   probability = float(differences) / total if total > 0. else 0.
-  logging.debug(
-      'Computed probability: %s; sames = %s, differences = %s, unknowns = %s',
-      probability, sames, differences, unknowns)
-  return probability >= 0.05
+  return probability
 
 
 def ChangePointEstimator(sequence):
@@ -142,26 +145,36 @@ def ChangePointEstimator(sequence):
   # This algorithm is O(N^2) to the size of the sequence.
   def Estimator(index):
     cluster_a, cluster_b = Cluster(sequence, index)
-    x_a = sum(abs(a - b)**2 for a, b in itertools.product(cluster_a, repeat=2))
-    x_b = sum(abs(a - b)**2 for a, b in itertools.product(cluster_b, repeat=2))
+    a_array = tuple(
+        abs(a - b)**2 for a, b in itertools.combinations(cluster_a, 2))
+    if not a_array:
+      a_array = (0.,)
+    b_array = tuple(
+        abs(a - b)**2 for a, b in itertools.combinations(cluster_b, 2))
+    if not b_array:
+      b_array = (0.,)
     y = sum(abs(a - b)**2 for a, b in itertools.product(cluster_a, cluster_b))
-    a_len_combinations = (
-        math.factorial(len(cluster_a)) /
-        (math.factorial(2) * math.factorial(len(cluster_a) - 1)))
-    b_len_combinations = (
-        math.factorial(len(cluster_b)) /
-        (math.factorial(2) * math.factorial(len(cluster_b) - 1)))
-    return (((y * 2.0) / (len(cluster_a) * len(cluster_b))) -
-            (x_a / a_len_combinations) - (x_b / b_len_combinations))
+    x_a = sum(a_array)
+    x_b = sum(b_array)
+    a_len_combinations = len(a_array)
+    b_len_combinations = len(b_array)
+    y_scaler = 2.0 / (len(cluster_a) * len(cluster_b))
+    a_estimate = (x_a / a_len_combinations)
+    b_estimate = (x_b / b_len_combinations)
+    e = (y_scaler * y) - a_estimate - b_estimate
+    return (e * a_len_combinations * b_len_combinations) / (
+        a_len_combinations + b_len_combinations)
 
   margin = 1
-  estimates = array.array('d', (Estimator(i)
-                                for i, _ in enumerate(sequence)
-                                if margin <= i < len(sequence) - margin))
-  if not estimates:
-    return (0, False)
   max_estimate = None
   max_index = 0
+  estimates = [
+      Estimator(i)
+      for i, _ in enumerate(sequence)
+      if margin <= i < len(sequence)
+  ]
+  if not estimates:
+    return (0, False)
   for index, estimate in enumerate(estimates):
     if max_estimate is None or estimate > max_estimate:
       max_estimate = estimate
@@ -205,60 +218,41 @@ def ClusterAndFindSplit(values, rand=None):
     raise InsufficientData(
         'Sequence is not larger than minimum length (%s <= %s)' %
         (length, 3))
-  start = 0
-  candidate_indices = []
-  while True:
+  candidate_indices = set()
+  exploration_queue = [(0, length)]
+  while exploration_queue:
     # Find the most likely change point in the whole range, only excluding the
     # first and last elements. We're doing this because we want to still be able
     # to pick a candidate within the margins (excluding the ends) if we have
     # enough confidence that it is a change point.
-    segment = array.array('d', values[start:(start + length)])
+    start, end = exploration_queue.pop(0)
+    logging.debug('Exploring range seq[%s:%s]', start, end)
+    segment = values[start:end]
     partition_point, _ = ChangePointEstimator(segment)
-    logging.debug('Values for start = %s, length = %s, partition_point = %s',
-                  start, length, partition_point)
 
     # Compare the left and right part divided by the possible change point
     compare_result, cluster_a, cluster_b = ClusterAndCompare(
         segment, partition_point)
     if compare_result == pinpoint_compare.DIFFERENT:
-      candidate_indices.append(start + partition_point)
-
-    in_a = False
-    in_b = False
+      candidate_indices.add(start + partition_point)
 
     # Even though we have a likely partiion point, we want to be able to find
     # other potential change points in the A and B clusters by performing
     # permutation testing to see potentially hidden change points.
-    if PermutationTest(cluster_a, rand):
-      logging.debug('A: Permutation testing positive at seq[%s:%s]', start,
-                    partition_point)
-      _, in_a = ChangePointEstimator(cluster_a)
+    a_probability = PermutationTest(cluster_a, rand)
+    if a_probability > _MIN_PERCENTAGE_DIFFERENT:
+      logging.debug(
+          'A: Permutation testing positive at seq[%s:%s]; probability = %.4f',
+          start, start + partition_point, a_probability)
+      exploration_queue.append((start, start + partition_point))
 
-    if PermutationTest(cluster_b, rand):
-      logging.debug('B: Permutation testing positive at seq[%s:%s]',
-                    start + partition_point, length)
-      _, in_b = ChangePointEstimator(cluster_b)
-
-    # Case 1: We haven't found alternative likely change points in either
-    # cluster.
-    if not in_a and not in_b:
-      break
-
-    # Case 2: We've found a likely change point in one of the clusters. In this
-    # implementation we're biased towards finding the change points in the A
-    # cluster (those earlier in time).
-    # TODO(crbug/1045595): Change this to explore both clusters, using an
-    # interval tree traversal algorithm.
-    if in_a:
-      new_length = min(partition_point + 1, length)
-      logging.debug('New length: %d', new_length)
-      length = new_length
-    elif in_b:
-      new_length = min(len(cluster_b), length)
-      new_start = start + max(partition_point, 0)
-      logging.debug('New start: %d ; new_length: %d', new_start, new_length)
-      start, length = new_start, new_length
+    b_probability = PermutationTest(cluster_b, rand)
+    if b_probability > _MIN_PERCENTAGE_DIFFERENT:
+      logging.debug(
+          'B: Permutation testing positive at seq[%s:%s]; probability = %.4f',
+          start + partition_point, end, b_probability)
+      exploration_queue.append((start + partition_point, end))
 
   if not candidate_indices:
     raise InsufficientData('Not enough data to suggest a change point.')
-  return candidate_indices
+  return [c for c in sorted(candidate_indices)]
