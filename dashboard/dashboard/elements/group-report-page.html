@@ -410,6 +410,10 @@ Polymer({
     if (rev) {
       params.rev = rev;
     }
+    const groupId = uri.getParameter('group_id');
+    if (groupId) {
+      params.group_id = groupId;
+    }
     simple_xhr.send('/group_report', params,
         function(response) {
           this.revisionInfo = response.revision_info;
