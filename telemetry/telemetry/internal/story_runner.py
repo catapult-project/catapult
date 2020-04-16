@@ -166,6 +166,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
           except Exception: # pylint: disable=broad-except
             exception_formatter.PrintFormattedException(
                 msg='Exception raised when cleaning unsymbolized minidumps: ')
+            state.DumpStateUponStoryRunFailure(results)
             results.Fail(sys.exc_info())
 
         # We attempt to stop tracing and/or metric collecting before possibly
