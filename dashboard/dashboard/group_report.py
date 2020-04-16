@@ -16,6 +16,7 @@ from dashboard import chart_handler
 from dashboard import update_test_suites
 from dashboard.common import request_handler
 from dashboard.common import utils
+from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import page_state
 
@@ -34,13 +35,15 @@ class GroupReportHandler(chart_handler.ChartHandler):
   def post(self):
     """Returns dynamic data for /group_report with some set of alerts.
 
-    The set of alerts is determined by the sid, keys, bug ID, or revision given.
+    The set of alerts is determined by the sid, keys, bug ID, AlertGroup ID,
+    or revision given.
 
     Request parameters:
       keys: A comma-separated list of urlsafe Anomaly keys (optional).
       bug_id: A bug number on the Chromium issue tracker (optional).
       rev: A revision number (optional).
       sid: A hash of a group of keys from /short_uri (optional).
+      group_id: An AlertGroup ID (optional).
 
     Outputs:
       JSON for the /group_report page XHR request.
@@ -49,6 +52,7 @@ class GroupReportHandler(chart_handler.ChartHandler):
     rev = self.request.get('rev')
     keys = self.request.get('keys')
     hash_code = self.request.get('sid')
+    group_id = self.request.get('group_id')
 
     # sid takes precedence.
     if hash_code:
@@ -71,6 +75,8 @@ class GroupReportHandler(chart_handler.ChartHandler):
         alert_list = GetAlertsForKeys(keys)
       elif rev:
         alert_list = GetAlertsAroundRevision(rev)
+      elif group_id:
+        alert_list = GetAlertsForGroupID(group_id)
       else:
         raise request_handler.InvalidInputError('No anomalies specified.')
 
@@ -173,6 +179,22 @@ def GetAlertsForKeys(keys):
   else:
     anomalies = requested_anomalies
   return anomalies
+
+
+def GetAlertsForGroupID(group_id):
+  """Get alerts for AlertGroup.
+
+  Args:
+    group_id: AlertGroup ID
+
+  Returns:
+    list of anomaly.Anomaly
+  """
+  group = alert_group.AlertGroup.GetByID(group_id)
+  if not group:
+    raise request_handler.InvalidInputError(
+        'Invalid AlertGroup ID "%s".' % group_id)
+  return ndb.get_multi(group.anomalies)
 
 
 def _IsInt(x):

@@ -19,6 +19,7 @@ from dashboard import group_report
 from dashboard import short_uri
 from dashboard.common import testing_common
 from dashboard.common import utils
+from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import page_state
@@ -34,9 +35,11 @@ class GroupReportTest(testing_common.TestCase):
     self.testapp = webtest.TestApp(app)
 
   def _AddAnomalyEntities(
-      self, revision_ranges, test_key, subscriptions, bug_id=None):
+      self, revision_ranges, test_key, subscriptions,
+      bug_id=None, group_id=None):
     """Adds a group of Anomaly entities to the datastore."""
     urlsafe_keys = []
+    keys = []
     for start_rev, end_rev in revision_ranges:
       subscription_names = [s.name for s in subscriptions]
       anomaly_key = anomaly.Anomaly(
@@ -45,6 +48,12 @@ class GroupReportTest(testing_common.TestCase):
           subscriptions=subscriptions, median_before_anomaly=100,
           median_after_anomaly=200).put()
       urlsafe_keys.append(anomaly_key.urlsafe())
+      keys.append(anomaly_key)
+    if group_id:
+      alert_group.AlertGroup(
+          id=int(group_id),
+          anomalies=keys,
+      ).put()
     return urlsafe_keys
 
   def _AddTests(self):
@@ -187,6 +196,25 @@ class GroupReportTest(testing_common.TestCase):
     self.assertIsNone(alert_list)
     error = self.GetJsonValue(response, 'error')
     self.assertEqual('Invalid bug ID "foo".', error)
+
+  def testPost_WithGroupIdParameter(self):
+    subscription = self._Subscription()
+    test_keys = self._AddTests()
+    self._AddAnomalyEntities(
+        [(200, 300), (100, 200), (400, 500)],
+        test_keys[0], [subscription], group_id="123")
+    self._AddAnomalyEntities(
+        [(150, 250)], test_keys[0], [subscription])
+    response = self.testapp.post('/group_report?group_id=123')
+    alert_list = self.GetJsonValue(response, 'alert_list')
+    self.assertEqual(3, len(alert_list))
+
+  def testPost_WithInvalidGroupIdParameter(self):
+    response = self.testapp.post('/group_report?group_id=foo')
+    alert_list = self.GetJsonValue(response, 'alert_list')
+    self.assertIsNone(alert_list)
+    error = self.GetJsonValue(response, 'error')
+    self.assertEqual('Invalid AlertGroup ID "foo".', error)
 
 
 if __name__ == '__main__':
