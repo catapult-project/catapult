@@ -24,18 +24,6 @@ from google.appengine.ext import ndb
 ISOLATE_EXPIRY_DURATION = datetime.timedelta(days=58)
 
 
-# A list of builders that recently changed names.
-# TODO(dtu): Remove 6 months after LUCI migration is complete.
-_BUILDER_NAME_MAP = {
-    'Android Compile Perf': 'android-builder-perf',
-    'Android arm64 Compile Perf': 'android_arm64-builder-perf',
-    'Linux Builder Perf': 'linux-builder-perf',
-    'Mac Builder Perf': 'mac-builder-perf',
-    'Win Builder Perf': 'win32-builder-perf',
-    'Win x64 Builder Perf': 'win64-builder-perf',
-}
-
-
 def Get(builder_name, change, target):
   """Retrieve an isolate hash from the Datastore.
 
@@ -49,19 +37,10 @@ def Get(builder_name, change, target):
   """
   entity = ndb.Key(Isolate, _Key(builder_name, change, target)).get()
   if not entity:
-    if builder_name in _BUILDER_NAME_MAP:
-      # The builder has changed names. Try again with the new name.
-      # TODO(dtu): Remove 6 months after LUCI migration is complete.
-      builder_name = _BUILDER_NAME_MAP[builder_name]
-      entity = ndb.Key(Isolate, _Key(builder_name, change, target)).get()
-      if not entity:
-        raise KeyError('No isolate with builder %s, change %s, and target %s.' %
-                       (builder_name, change, target))
-    else:
-      raise KeyError('No isolate with builder %s, change %s, and target %s.' %
-                     (builder_name, change, target))
+    raise KeyError('No isolate with builder %s, change %s, and target %s.' %
+                   (builder_name, change, target))
 
-  if entity.created + ISOLATE_EXPIRY_DURATION < datetime.datetime.now():
+  if entity.created + ISOLATE_EXPIRY_DURATION < datetime.datetime.utcnow():
     raise KeyError('Isolate with builder %s, change %s, and target %s was '
                    'found, but is expired.' % (builder_name, change, target))
 
@@ -88,8 +67,9 @@ def Put(isolate_infos):
   ndb.put_multi(entities)
 
 
+# TODO(dberris): Turn this into a Dataflow job instead.
 def DeleteExpiredIsolates(start_cursor=None):
-  expire_time = datetime.datetime.now() - ISOLATE_EXPIRY_DURATION
+  expire_time = datetime.datetime.utcnow() - ISOLATE_EXPIRY_DURATION
   q = Isolate.query()
   q = q.filter(Isolate.created < expire_time)
 
@@ -106,6 +86,14 @@ class Isolate(ndb.Model):
   isolate_server = ndb.StringProperty(indexed=False, required=True)
   isolate_hash = ndb.StringProperty(indexed=False, required=True)
   created = ndb.DateTimeProperty(auto_now_add=True)
+
+  # We can afford to look directly in Datastore here since we don't expect to
+  # make multiple calls to this at a high rate to benefit from being in
+  # memcache. This lets us clear out the cache in Datastore and not have to
+  # clear out memcache as well.
+  _use_memcache = False
+  _use_datastore = True
+  _use_cache = False
 
 
 def _Key(builder_name, change, target):

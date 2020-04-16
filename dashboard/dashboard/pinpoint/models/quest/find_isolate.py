@@ -19,7 +19,6 @@ from dashboard.pinpoint.models.quest import quest
 from dashboard.services import buildbucket_service
 from dashboard.services import gerrit_service
 
-
 BUCKET = 'master.tryserver.chromium.perf'
 
 
@@ -34,8 +33,7 @@ class FindIsolate(quest.Quest):
     self._build_tags = collections.OrderedDict()
 
   def __eq__(self, other):
-    return (isinstance(other, type(self)) and
-            self._bucket == other._bucket and
+    return (isinstance(other, type(self)) and self._bucket == other._bucket and
             self._builder_name == other._builder_name)
 
   def __str__(self):
@@ -59,6 +57,7 @@ class FindIsolate(quest.Quest):
 
   def PropagateJob(self, job):
     self._build_tags = BuildTagsFromJob(job)
+
   @classmethod
   def FromDict(cls, arguments):
     for arg in ('builder', 'target', 'bucket'):
@@ -77,6 +76,7 @@ class _FindIsolateExecution(execution.Execution):
     self._target = target
     self._bucket = bucket
     self._change = change
+
     # previous_builds is shared among all Executions of the same Quest.
     self._previous_builds = previous_builds
 
@@ -100,10 +100,13 @@ class _FindIsolateExecution(execution.Execution):
       })
     if self._result_arguments:
       details.append({
-          'key': 'isolate',
-          'value': self._result_arguments['isolate_hash'],
-          'url': self._result_arguments['isolate_server'] + '/browse?digest=' +
-                 self._result_arguments['isolate_hash'],
+          'key':
+              'isolate',
+          'value':
+              self._result_arguments['isolate_hash'],
+          'url':
+              self._result_arguments['isolate_server'] + '/browse?digest=' +
+              self._result_arguments['isolate_hash'],
       })
     return details
 
@@ -126,8 +129,8 @@ class _FindIsolateExecution(execution.Execution):
       True iff the isolate was found, meaning the execution is completed.
     """
     try:
-      isolate_server, isolate_hash = isolate.Get(
-          self._builder_name, self._change, self._target)
+      isolate_server, isolate_hash = isolate.Get(self._builder_name,
+                                                 self._change, self._target)
     except KeyError:
       logging.debug('NOT found in isolate cache')
       return False
