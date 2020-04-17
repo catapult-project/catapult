@@ -256,6 +256,10 @@
         "android_armeabi-v7a": {
           "cloud_storage_hash": "5b724ddcb63405d1e23de80da9152bf84e72524d",
           "download_path": "bin/android/armeabi-v7a/PushAppsToBackground.apk"
+        },
+        "android_x86": {
+          "cloud_storage_hash": "ecf22e749eeeb91baeccb067306cf08c5fd0aa22",
+          "download_path": "bin/android/x86/PushAppsToBackground.apk"
         }
       }
     },
