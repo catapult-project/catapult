@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-for SERVICE in "$*"; do
+for SERVICE in "$@"; do
   gcloud app versions list \
     --format="table[no-heading](VERSION.ID)" \
     --filter="SERVICE=${SERVICE} AND
