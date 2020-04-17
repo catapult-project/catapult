@@ -65,6 +65,7 @@ class BrowserFinderOptions(optparse.Values):
     self.capture_screen_video = False
 
     self.experimental_system_tracing = False
+    self.experimental_system_data_sources = False
 
   def __repr__(self):
     return str(sorted(self.__dict__.items()))
@@ -147,6 +148,10 @@ class BrowserFinderOptions(optparse.Values):
         '--experimental-system-tracing',
         action='store_true',
         help='Use system tracing from Perfetto to trace Chrome.')
+    parser.add_option(
+        '--experimental-system-data-sources',
+        action='store_true',
+        help='Use Perfetto tracing to collect power and CPU usage data.')
     identity = None
     testing_rsa = os.path.join(
         util.GetTelemetryThirdPartyDir(), 'chromite', 'ssh_keys', 'testing_rsa')

@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
 import logging
 import time
 
@@ -24,30 +23,6 @@ _ALL_ANDROID_BINS = (
     ANDROID_TRACED_PROBES,
     ANDROID_PERFETTO
 )
-
-_TRACE_CONFIG = """
-buffers: {{
-    size_kb: 200000
-    fill_policy: DISCARD
-}}
-duration_ms: 1800000
-data_sources: {{
-    config {{
-        name: "org.chromium.trace_event"
-        chrome_config {{
-            trace_config: {chrome_trace_config}
-        }}
-    }}
-}}
-data_sources: {{
-    config {{
-        name: "org.chromium.trace_metadata"
-        chrome_config {{
-            trace_config: {chrome_trace_config}
-        }}
-    }}
-}}
-"""
 
 
 class PerfettoTracingAgent(tracing_agent.TracingAgent):
@@ -85,8 +60,8 @@ class PerfettoTracingAgent(tracing_agent.TracingAgent):
                                                   dir=ANDROID_TMP_DIR)
     self._trace_output_temp_file = self._TempFile(suffix='.pftrace',
                                                   dir=ANDROID_TRACES_DIR)
-    self._device.WriteFile(
-        self._trace_config_temp_file.name, ConfigToTextProto(config))
+    text_config = config.system_trace_config.GetTextConfig()
+    self._device.WriteFile(self._trace_config_temp_file.name, text_config)
     start_perfetto = (
         'cat %s | %s --background --config - --txt --out %s' % (
             self._trace_config_temp_file.name,
@@ -125,17 +100,3 @@ class PerfettoTracingAgent(tracing_agent.TracingAgent):
     self._trace_output_temp_file = None
     self._perfetto_pid = None
     logging.info('Collected trace from Perfetto system tracing.')
-
-
-def ConfigToTextProto(config):
-  # TODO: Relax this assert.
-  assert config.enable_chrome_trace, 'Chrome tracing must be enabled'
-  chrome_trace_config = (
-      config.chrome_trace_config.GetChromeTraceConfigForStartupTracing())
-  # Note: The inner json.dumps is to serialize the chrome_trace_config dict
-  # into a json string. The second outer json.dumps is to convert that to
-  # a string literal to paste into the text proto config.
-  chrome_trace_config = json.dumps(
-      json.dumps(chrome_trace_config, sort_keys=True, separators=(',', ':')))
-  trace_config = _TRACE_CONFIG.format(chrome_trace_config=chrome_trace_config)
-  return trace_config
