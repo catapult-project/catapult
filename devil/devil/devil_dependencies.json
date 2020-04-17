@@ -46,7 +46,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "linux2_x86_64": {
-          "cloud_storage_hash": "4e22f641e4757309510e8d9f933f5aa504574ab6",
+          "cloud_storage_hash": "6efb1501c7c49e6ae84cc467648930eaf9f6a9e5",
           "download_path": "../bin/deps/linux2/x86_64/lib.java/chromium_commands.dex.jar"
         }
       }
@@ -90,11 +90,11 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "android_arm64-v8a": {
-          "cloud_storage_hash": "f222268d8442979240d1b18de00911a49e548daa",
+          "cloud_storage_hash": "b30e8bfb234d02899b05a7957c6a84dc6e16ec4b",
           "download_path": "../bin/deps/android/arm64-v8a/bin/forwarder_device"
         },
         "android_armeabi-v7a": {
-          "cloud_storage_hash": "c15267bf01c26eb0aea4f61c780bbba460c5c981",
+          "cloud_storage_hash": "efc7f092f5394a7b88d77a2544adfe33c5c4fd3c",
           "download_path": "../bin/deps/android/armeabi-v7a/bin/forwarder_device"
         },
         "android_x86": {
@@ -112,7 +112,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "linux2_x86_64": {
-          "cloud_storage_hash": "8fe69994b670f028484eed475dbffc838c8a57f7",
+          "cloud_storage_hash": "334c172dd90bae568cbff9465130f1245a35cade",
           "download_path": "../bin/deps/linux2/x86_64/forwarder_host"
         }
       }
@@ -122,11 +122,11 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "android_arm64-v8a": {
-          "cloud_storage_hash": "4e7d2dedd9c6321fdc152b06869e09a3c5817904",
+          "cloud_storage_hash": "f3fd06036f271a699065cdef2821983f2693ed71",
           "download_path": "../bin/deps/android/arm64-v8a/bin/md5sum_device"
         },
         "android_armeabi-v7a": {
-          "cloud_storage_hash": "39fd90af0f8828202b687f7128393759181c5e2e",
+          "cloud_storage_hash": "2d5823924c87b29abca99ac5fa516d161e1fb427",
           "download_path": "../bin/deps/android/armeabi-v7a/bin/md5sum_device"
         },
         "android_x86": {
@@ -144,7 +144,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "linux2_x86_64": {
-          "cloud_storage_hash": "4db5bd5e9bea8880d8bf2caa59d0efb0acc19f74",
+          "cloud_storage_hash": "f8d2f54ee425c336a0edcf0e9c7f983de7a54de8",
           "download_path": "../bin/deps/linux2/x86_64/bin/md5sum_host"
         }
       }
