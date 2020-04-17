@@ -206,6 +206,10 @@ class Benchmark(command_line.Command):
       tbm_options.config.chrome_trace_config.SetJsonTraceFormat()
     else:
       tbm_options.config.chrome_trace_config.SetProtoTraceFormat()
+    if options and options.experimental_system_tracing:
+      assert not legacy_json_format
+      logging.warning('Enabling experimental system tracing!')
+      tbm_options.config.EnableExperimentalSystemTracing()
     # TODO(crbug.com/1012687): Remove or adjust the following warnings as the
     # development of TBMv3 progresses.
     tbmv3_metrics = [m[6:] for m in tbm_options.GetTimelineBasedMetrics()

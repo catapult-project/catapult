@@ -64,6 +64,8 @@ class BrowserFinderOptions(optparse.Values):
     self.interval_profiler_options = ''
     self.capture_screen_video = False
 
+    self.experimental_system_tracing = False
+
   def __repr__(self):
     return str(sorted(self.__dict__.items()))
 
@@ -141,6 +143,10 @@ class BrowserFinderOptions(optparse.Values):
         '--legacy-json-trace-format',
         action='store_true',
         help='Request traces from Chrome in legacy JSON format.')
+    parser.add_option(
+        '--experimental-system-tracing',
+        action='store_true',
+        help='Use system tracing from Perfetto to trace Chrome.')
     identity = None
     testing_rsa = os.path.join(
         util.GetTelemetryThirdPartyDir(), 'chromite', 'ssh_keys', 'testing_rsa')

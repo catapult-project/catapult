@@ -11,6 +11,7 @@ from telemetry.core import platform as platform_module
 from telemetry.internal.backends.chrome import gpu_compositing_checker
 from telemetry.internal.browser import browser_info as browser_info_module
 from telemetry.internal.browser import browser_interval_profiling_controller
+from telemetry.internal.platform.tracing_agent import perfetto_tracing_agent
 from telemetry.page import cache_temperature
 from telemetry.page import legacy_page_test
 from telemetry.page import traffic_setting
@@ -75,6 +76,9 @@ class SharedPageState(story_module.SharedState):
     self.platform.Initialize()
     self._video_recording_enabled = (self._finder_options.capture_screen_video
                                      and self.platform.CanRecordVideo())
+    if finder_options.experimental_system_tracing:
+      perfetto_tracing_agent.PerfettoTracingAgent.SetUpAgent(
+          self.platform._platform_backend)
 
   @property
   def interval_profiling_controller(self):

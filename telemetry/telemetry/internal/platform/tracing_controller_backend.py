@@ -15,6 +15,7 @@ from telemetry.internal.platform.tracing_agent import atrace_tracing_agent
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.internal.platform.tracing_agent import cpu_tracing_agent
 from telemetry.internal.platform.tracing_agent import display_tracing_agent
+from telemetry.internal.platform.tracing_agent import perfetto_tracing_agent
 from telemetry.internal.platform.tracing_agent import telemetry_tracing_agent
 from telemetry.timeline import tracing_config
 from tracing.trace_data import trace_data
@@ -28,6 +29,11 @@ _TRACING_AGENT_CLASSES = (
     atrace_tracing_agent.AtraceTracingAgent,
     cpu_tracing_agent.CpuTracingAgent,
     display_tracing_agent.DisplayTracingAgent
+)
+
+_EXPERIMENTAL_TRACING_AGENTS = (
+    telemetry_tracing_agent.TelemetryTracingAgent,
+    perfetto_tracing_agent.PerfettoTracingAgent
 )
 
 
@@ -104,7 +110,12 @@ class TracingControllerBackend(object):
 
     self._current_state = _TracingState(config, timeout)
 
-    for agent_class in _TRACING_AGENT_CLASSES:
+    if config.enable_experimental_system_tracing:
+      agent_classes = _EXPERIMENTAL_TRACING_AGENTS
+    else:
+      agent_classes = _TRACING_AGENT_CLASSES
+
+    for agent_class in agent_classes:
       if agent_class.IsSupported(self._platform_backend):
         agent = agent_class(self._platform_backend)
         if agent.StartAgentTracing(config, timeout):

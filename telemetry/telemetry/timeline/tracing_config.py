@@ -39,6 +39,7 @@ class TracingConfig(object):
     self._enable_android_graphics_memtrack = False
     self._enable_cpu_trace = False
     self._enable_chrome_trace = False
+    self._enable_experimental_system_tracing = False
 
     self._atrace_config = atrace_config.AtraceConfig()
     self._chrome_trace_config = chrome_trace_config.ChromeTraceConfig()
@@ -90,3 +91,10 @@ class TracingConfig(object):
   @property
   def chrome_trace_config(self):
     return self._chrome_trace_config
+
+  @property
+  def enable_experimental_system_tracing(self):
+    return self._enable_experimental_system_tracing
+
+  def EnableExperimentalSystemTracing(self):
+    self._enable_experimental_system_tracing = True
