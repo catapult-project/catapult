@@ -40,20 +40,9 @@ class CrOSInterfaceTest(unittest.TestCase):
       self.assertEquals(contents, test_contents)
 
   @decorators.Enabled('chromeos')
-  def testPushContentsQuotes(self):
-    with self._GetCRI() as cri:
-      tmp_file = '"/tmp/testPushContents"'
-      test_contents = 'hello world'
-      cri.RmRF(tmp_file)
-      cri.PushContents(test_contents, tmp_file)
-      contents = cri.GetFileContents(tmp_file)
-      self.assertEquals(contents, test_contents)
-
-  @decorators.Enabled('chromeos')
   def testExists(self):
     with self._GetCRI() as cri:
       self.assertTrue(cri.FileExistsOnDevice('/proc/cpuinfo'))
-      self.assertTrue(cri.FileExistsOnDevice('"/proc/cpuinfo"'))
       self.assertTrue(cri.FileExistsOnDevice('/etc/passwd'))
       self.assertFalse(cri.FileExistsOnDevice('/etc/sdlfsdjflskfjsflj'))
 
@@ -73,15 +62,12 @@ class CrOSInterfaceTest(unittest.TestCase):
         # Make sure we don't end up getting a negative timestamp when we pull
         # the dump.
         ts = abs(time_offset) + 1
-        # Space to ensure that spaces are handled correctly.
-        remote_path = '/tmp/dump dir/'
-        quoted_remote_path = cmd_helper.SingleQuote(remote_path)
+        remote_path = '/tmp/dumps/'
         cri.CROS_MINIDUMP_DIR = remote_path
-        cri.RunCmdOnDevice(['mkdir', '-p', quoted_remote_path])
+        cri.RunCmdOnDevice(['mkdir', '-p', remote_path])
         # Set the mtime to one second after the epoch
         cri.RunCmdOnDevice(
-            ['touch', '-d', '@%d' % ts,
-             cmd_helper.SingleQuote(remote_path + 'test_dump')])
+            ['touch', '-d', '@%d' % ts, remote_path + 'test_dump'])
         try:
           cri.PullDumps(tempdir)
         finally:
@@ -231,11 +217,6 @@ class CrOSInterfaceTest(unittest.TestCase):
       self.assertTrue(cri.FileExistsOnDevice(
           '/var/log/screenshots/test-prefix-0.png'))
       _Cleanup()
-      # Again, but with spaces.
-      self.assertTrue(cri.TakeScreenshotWithPrefix('test-prefix with spaces'))
-      self.assertTrue(cri.FileExistsOnDevice(
-          '/var/log/screenshots/test-prefix with spaces-0.png'))
-      _Cleanup()
 
   @decorators.Enabled('chromeos')
   def testLsbReleaseValue(self):
@@ -350,9 +331,6 @@ class CrOSInterfaceTest(unittest.TestCase):
     # The following mock replaces RunCmdOnDevice() to return mocked mount states
     # from the command execution.
     def mockRunCmdOnDevice(args): # pylint: disable=invalid-name
-      # Normally, any quotes around args would be removed by running the
-      # command, so remove them here.
-      args = [cros_interface._Unquote(a) for a in args]
       if args[0] == 'cryptohome-path':
         return ('/home/user/%s' % args[2], '')
       elif args[0] == 'nsenter':
