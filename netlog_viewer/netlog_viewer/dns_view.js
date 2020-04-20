@@ -130,6 +130,10 @@ var DnsView = (function() {
           addTextNode(expiredSpan, ' [Expired]');
         }
 
+        var nikCell = addNode(tr, 'td');
+        // Versions prior to M84 used lists instead of strings for logged NIKs.
+        addTextNode(nikCell, '' + e.network_isolation_key);
+
         // HostCache keeps track of how many network changes have happened since
         // it was created, and entries store what that number was at the time
         // they were created. If more network changes have happened since an
