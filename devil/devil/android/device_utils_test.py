@@ -633,7 +633,7 @@ class DeviceUtilsGetApplicationDataDirectoryTest(DeviceUtilsTest):
 
 @mock.patch('time.sleep', mock.Mock())
 class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
-  def testWaitUntilFullyBooted_succeedsNoWifi(self):
+  def testWaitUntilFullyBooted_succeedsWithDefaults(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),
         # sd_card_ready
@@ -644,7 +644,7 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
             'android', skip_cache=True), ['package:/some/fake/path']),
         # boot_completed
         (self.call.device.GetProp('sys.boot_completed', cache=False), '1')):
-      self.device.WaitUntilFullyBooted(wifi=False)
+      self.device.WaitUntilFullyBooted(wifi=False, decrypt=False)
 
   def testWaitUntilFullyBooted_succeedsWithWifi(self):
     with self.assertCalls(
@@ -660,7 +660,38 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         # wifi_enabled
         (self.call.adb.Shell('dumpsys wifi'),
          'stuff\nWi-Fi is enabled\nmore stuff\n')):
-      self.device.WaitUntilFullyBooted(wifi=True)
+      self.device.WaitUntilFullyBooted(wifi=True, decrypt=False)
+
+  def testWaitUntilFullyBooted_succeedsWithDecryptFDE(self):
+    with self.assertCalls(
+        self.call.adb.WaitForDevice(),
+        # sd_card_ready
+        (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
+        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        # pm_ready
+        (self.call.device._GetApplicationPathsInternal(
+            'android', skip_cache=True), ['package:/some/fake/path']),
+        # boot_completed
+        (self.call.device.GetProp('sys.boot_completed', cache=False), '1'),
+        # decryption_completed
+        (self.call.device.GetProp('vold.decrypt', cache=False),
+         'trigger_restart_framework')):
+      self.device.WaitUntilFullyBooted(wifi=False, decrypt=True)
+
+  def testWaitUntilFullyBooted_succeedsWithDecryptNotFDE(self):
+    with self.assertCalls(
+        self.call.adb.WaitForDevice(),
+        # sd_card_ready
+        (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
+        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        # pm_ready
+        (self.call.device._GetApplicationPathsInternal(
+            'android', skip_cache=True), ['package:/some/fake/path']),
+        # boot_completed
+        (self.call.device.GetProp('sys.boot_completed', cache=False), '1'),
+        # decryption_completed
+        (self.call.device.GetProp('vold.decrypt', cache=False), '')):
+      self.device.WaitUntilFullyBooted(wifi=False, decrypt=True)
 
   def testWaitUntilFullyBooted_deviceNotInitiallyAvailable(self):
     with self.assertCalls(
@@ -681,7 +712,7 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
             'android', skip_cache=True), ['package:/some/fake/path']),
         # boot_completed
         (self.call.device.GetProp('sys.boot_completed', cache=False), '1')):
-      self.device.WaitUntilFullyBooted(wifi=False)
+      self.device.WaitUntilFullyBooted(wifi=False, decrypt=False)
 
   def testWaitUntilFullyBooted_deviceBrieflyOffline(self):
     with self.assertCalls(
@@ -697,7 +728,7 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
          self.AdbCommandError()),
         # boot_completed
         (self.call.device.GetProp('sys.boot_completed', cache=False), '1')):
-      self.device.WaitUntilFullyBooted(wifi=False)
+      self.device.WaitUntilFullyBooted(wifi=False, decrypt=False)
 
   def testWaitUntilFullyBooted_sdCardReadyFails_noPath(self):
     with self.assertCalls(
@@ -705,7 +736,7 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), self.CommandError())):
       with self.assertRaises(device_errors.CommandFailedError):
-        self.device.WaitUntilFullyBooted(wifi=False)
+        self.device.WaitUntilFullyBooted(wifi=False, decrypt=False)
 
   def testWaitUntilFullyBooted_sdCardReadyFails_notExists(self):
     with self.assertCalls(
@@ -721,7 +752,7 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.adb.Shell('test -d /fake/storage/path'),
          self.TimeoutError())):
       with self.assertRaises(device_errors.CommandTimeoutError):
-        self.device.WaitUntilFullyBooted(wifi=False)
+        self.device.WaitUntilFullyBooted(wifi=False, decrypt=False)
 
   def testWaitUntilFullyBooted_devicePmFails(self):
     with self.assertCalls(
@@ -739,7 +770,7 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), self.TimeoutError())):
       with self.assertRaises(device_errors.CommandTimeoutError):
-        self.device.WaitUntilFullyBooted(wifi=False)
+        self.device.WaitUntilFullyBooted(wifi=False, decrypt=False)
 
   def testWaitUntilFullyBooted_bootFails(self):
     with self.assertCalls(
@@ -758,7 +789,7 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('sys.boot_completed', cache=False),
          self.TimeoutError())):
       with self.assertRaises(device_errors.CommandTimeoutError):
-        self.device.WaitUntilFullyBooted(wifi=False)
+        self.device.WaitUntilFullyBooted(wifi=False, decrypt=False)
 
   def testWaitUntilFullyBooted_wifiFails(self):
     with self.assertCalls(
@@ -778,7 +809,30 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         # wifi_enabled
         (self.call.adb.Shell('dumpsys wifi'), self.TimeoutError())):
       with self.assertRaises(device_errors.CommandTimeoutError):
-        self.device.WaitUntilFullyBooted(wifi=True)
+        self.device.WaitUntilFullyBooted(wifi=True, decrypt=False)
+
+  def testWaitUntilFullyBooted_decryptFails(self):
+    with self.assertCalls(
+        self.call.adb.WaitForDevice(),
+        # sd_card_ready
+        (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
+        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        # pm_ready
+        (self.call.device._GetApplicationPathsInternal(
+            'android', skip_cache=True), ['package:/some/fake/path']),
+        # boot_completed
+        (self.call.device.GetProp('sys.boot_completed', cache=False), '1'),
+        # decryption_completed
+        (self.call.device.GetProp('vold.decrypt', cache=False),
+         'trigger_restart_min_framework'),
+        # decryption_completed
+        (self.call.device.GetProp('vold.decrypt', cache=False),
+         'trigger_restart_min_framework'),
+        # decryption_completed
+        (self.call.device.GetProp('vold.decrypt', cache=False),
+         self.TimeoutError())):
+      with self.assertRaises(device_errors.CommandTimeoutError):
+        self.device.WaitUntilFullyBooted(wifi=False, decrypt=True)
 
 
 @mock.patch('time.sleep', mock.Mock())
@@ -790,18 +844,25 @@ class DeviceUtilsRebootTest(DeviceUtilsTest):
       self.device.Reboot(block=False)
 
   def testReboot_blocking(self):
-    with self.assertCalls(self.call.adb.Reboot(),
-                          (self.call.device.IsOnline(), True),
-                          (self.call.device.IsOnline(), False),
-                          self.call.device.WaitUntilFullyBooted(wifi=False)):
+    with self.assertCalls(
+        self.call.adb.Reboot(), (self.call.device.IsOnline(), True),
+        (self.call.device.IsOnline(), False),
+        self.call.device.WaitUntilFullyBooted(wifi=False, decrypt=False)):
       self.device.Reboot(block=True)
 
   def testReboot_blockUntilWifi(self):
-    with self.assertCalls(self.call.adb.Reboot(),
-                          (self.call.device.IsOnline(), True),
-                          (self.call.device.IsOnline(), False),
-                          self.call.device.WaitUntilFullyBooted(wifi=True)):
-      self.device.Reboot(block=True, wifi=True)
+    with self.assertCalls(
+        self.call.adb.Reboot(), (self.call.device.IsOnline(), True),
+        (self.call.device.IsOnline(), False),
+        self.call.device.WaitUntilFullyBooted(wifi=True, decrypt=False)):
+      self.device.Reboot(block=True, wifi=True, decrypt=False)
+
+  def testReboot_blockUntilDecrypt(self):
+    with self.assertCalls(
+        self.call.adb.Reboot(), (self.call.device.IsOnline(), True),
+        (self.call.device.IsOnline(), False),
+        self.call.device.WaitUntilFullyBooted(wifi=False, decrypt=True)):
+      self.device.Reboot(block=True, wifi=False, decrypt=True)
 
 
 class DeviceUtilsInstallTest(DeviceUtilsTest):

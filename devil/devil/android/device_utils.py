@@ -913,15 +913,23 @@ class DeviceUtils(object):
       self.PullFile(device_tmp_file.name, path)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
-  def WaitUntilFullyBooted(self, wifi=False, timeout=None, retries=None):
+  def WaitUntilFullyBooted(self,
+                           wifi=False,
+                           decrypt=False,
+                           timeout=None,
+                           retries=None):
     """Wait for the device to fully boot.
 
     This means waiting for the device to boot, the package manager to be
-    available, and the SD card to be ready. It can optionally mean waiting
-    for wifi to come up, too.
+    available, and the SD card to be ready.
+    It can optionally wait the following:
+     - Wait for wifi to come up.
+     - Wait for full-disk decryption to complete.
 
     Args:
       wifi: A boolean indicating if we should wait for wifi to come up or not.
+      decrypt: A boolean indicating if we should wait for full-disk decryption
+        to complete.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -955,24 +963,49 @@ class DeviceUtils(object):
       return 'Wi-Fi is enabled' in self.RunShellCommand(['dumpsys', 'wifi'],
                                                         check_return=False)
 
+    def decryption_completed():
+      try:
+        decrypt = self.GetProp('vold.decrypt', cache=False)
+        # The prop "void.decrypt" will only be set when the device uses
+        # full-disk encryption (FDE).
+        # Return true when:
+        #  - The prop is empty, which means the device is unencrypted or uses
+        #    file-based encryption (FBE).
+        #  - or the prop has value "trigger_restart_framework", which means
+        #    the decription is finished.
+        return decrypt == '' or decrypt == 'trigger_restart_framework'
+      except device_errors.CommandFailedError:
+        return False
+
     self.adb.WaitForDevice()
     timeout_retry.WaitFor(sd_card_ready)
     timeout_retry.WaitFor(pm_ready)
     timeout_retry.WaitFor(boot_completed)
     if wifi:
       timeout_retry.WaitFor(wifi_enabled)
+    if decrypt:
+      timeout_retry.WaitFor(decryption_completed)
 
   REBOOT_DEFAULT_TIMEOUT = 10 * _DEFAULT_TIMEOUT
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=REBOOT_DEFAULT_TIMEOUT)
-  def Reboot(self, block=True, wifi=False, timeout=None, retries=None):
+  def Reboot(self,
+             block=True,
+             wifi=False,
+             decrypt=False,
+             timeout=None,
+             retries=None):
     """Reboot the device.
 
     Args:
       block: A boolean indicating if we should wait for the reboot to complete.
       wifi: A boolean indicating if we should wait for wifi to be enabled after
-        the reboot. The option has no effect unless |block| is also True.
+        the reboot.
+        The option has no effect unless |block| is also True.
+      decrypt: A boolean indicating if we should wait for full-disk decryption
+        to complete after the reboot.
+        The option has no effect unless |block| is also True.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -988,7 +1021,7 @@ class DeviceUtils(object):
     self.ClearCache()
     timeout_retry.WaitFor(device_offline, wait_period=1)
     if block:
-      self.WaitUntilFullyBooted(wifi=wifi)
+      self.WaitUntilFullyBooted(wifi=wifi, decrypt=decrypt)
 
   INSTALL_DEFAULT_TIMEOUT = 8 * _DEFAULT_TIMEOUT
   MODULES_SRC_DIRECTORY_PATH = '/data/local/tmp/modules'
