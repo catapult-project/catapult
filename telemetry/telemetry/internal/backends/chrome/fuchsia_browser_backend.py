@@ -3,10 +3,12 @@
 # found in the LICENSE file.
 
 import logging
+import os
 import re
+import select
 import subprocess
 
-from telemetry.core import exceptions
+from telemetry.core import fuchsia_interface
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.backends.chrome import minidump_finder
 from telemetry.internal.platform import fuchsia_platform_backend as fuchsia_platform_backend_module
@@ -29,6 +31,9 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._command_runner = fuchsia_platform_backend.command_runner
     self._browser_process = None
     self._devtools_port = None
+    self._symbolizer_proc = None
+    self._config_dir = fuchsia_platform_backend.config_dir
+    self._browser_log = ''
 
   @property
   def log_file_path(self):
@@ -43,6 +48,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         return None
       line = f.readline()
       tokens = re.search(r'Remote debugging port: (\d+)', line)
+      self._browser_log += line
       return int(tokens.group(1)) if tokens else None
     return py_utils.WaitFor(lambda: TryReadingPort(stderr), timeout=60)
 
@@ -53,15 +59,28 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         '--remote-debugging-port=0',
         'about:blank'
     ]
-    self._browser_process = self._command_runner.RunCommandPiped(
-        browser_cmd, stderr=subprocess.PIPE)
-    self._dump_finder = minidump_finder.MinidumpFinder(
-        self.browser.platform.GetOSName(), self.browser.platform.GetArchName())
-    self._devtools_port = self._ReadDevToolsPort(
-        self._browser_process.stderr)
     try:
+      self._browser_process = self._command_runner.RunCommandPiped(
+          browser_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+      browser_id_file = os.path.join(self._config_dir, 'gen', 'fuchsia',
+                                     'engine', 'web_engine_shell', 'ids.txt')
+
+      # Symbolize stderr of browser process if possible
+      self._symbolizer_proc = (
+          fuchsia_interface.StartSymbolizerForProcessIfPossible(
+              self._browser_process.stderr, subprocess.PIPE, browser_id_file))
+      if self._symbolizer_proc:
+        self._browser_process.stderr = self._symbolizer_proc.stdout
+
+      self._dump_finder = minidump_finder.MinidumpFinder(
+          self.browser.platform.GetOSName(),
+          self.browser.platform.GetArchName())
+      self._devtools_port = self._ReadDevToolsPort(self._browser_process.stderr)
       self.BindDevToolsClient()
-    except exceptions.ProcessGoneException:
+    except:
+      logging.info('The browser failed to start. Output of the browser: \n%s' %
+                   self.GetStandardOutput())
       self.Close()
       raise
 
@@ -77,13 +96,19 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self._browser_process:
       logging.info('Shutting down browser process on Fuchsia')
       self._browser_process.kill()
+    if self._symbolizer_proc:
+      self._symbolizer_proc.kill()
     self._browser_process = None
 
   def IsBrowserRunning(self):
     return bool(self._browser_process)
 
   def GetStandardOutput(self):
-    return 'Stdout is not available on Fuchsia Devices.'
+    if self._browser_process:
+      # Make sure there is something to read.
+      if select.select([self._browser_process.stderr], [], [], 0.0)[0]:
+        self._browser_log += self._browser_process.stderr.read()
+    return self._browser_log
 
   def SymbolizeMinidump(self, minidump_path):
     logging.warning('Symbolizing Minidump not supported on Fuchsia.')

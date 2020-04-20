@@ -15,11 +15,12 @@ from telemetry.internal.platform import platform_backend
 class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
   def __init__(self, device):
     super(FuchsiaPlatformBackend, self).__init__(device)
-    config_path = os.path.join(device.ssh_config_dir, 'ssh_config')
+    self._config_dir = device.ssh_config_dir
     self._system_log_file = device.system_log_file
-    self._command_runner = CommandRunner(config_path,
-                                         device.host,
-                                         device.port)
+    self._command_runner = CommandRunner(
+        os.path.join(self._config_dir, 'ssh_config'),
+        device.host,
+        device.port)
 
   @classmethod
   def SupportsDevice(cls, device):
@@ -33,6 +34,10 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
   @property
   def command_runner(self):
     return self._command_runner
+
+  @property
+  def config_dir(self):
+    return self._config_dir
 
   def GetSystemLog(self):
     if not self._system_log_file:
