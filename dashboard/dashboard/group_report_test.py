@@ -51,7 +51,7 @@ class GroupReportTest(testing_common.TestCase):
       keys.append(anomaly_key)
     if group_id:
       alert_group.AlertGroup(
-          id=int(group_id),
+          id=group_id,
           anomalies=keys,
       ).put()
     return urlsafe_keys

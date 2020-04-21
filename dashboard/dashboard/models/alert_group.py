@@ -7,6 +7,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import uuid
+
 from dashboard.models import anomaly
 from google.appengine.ext import ndb
 
@@ -50,6 +52,7 @@ class AlertGroup(ndb.Model):
   def GenerateAllGroupsForAnomaly(cls, anomaly_entity):
     # TODO(fancl): Support multiple group name
     return [cls(
+        id=str(uuid.uuid4()),
         name=anomaly_entity.benchmark_name,
         status=cls.Status.untriaged,
         active=True,
@@ -74,9 +77,7 @@ class AlertGroup(ndb.Model):
 
   @classmethod
   def GetByID(cls, group_id):
-    if not group_id.isdigit():
-      return None
-    return ndb.Key('AlertGroup', int(group_id)).get()
+    return ndb.Key('AlertGroup', group_id).get()
 
   @classmethod
   def Get(cls, group_name, revision_info, active=True):
