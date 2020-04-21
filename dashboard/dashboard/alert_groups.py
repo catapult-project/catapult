@@ -32,17 +32,16 @@ class AlertGroupsHandler(request_handler.RequestHandler):
     groups = alert_group.AlertGroup.GetAll()
     for group in groups:
       group.Update()
-      if group.status == alert_group.AlertGroup.Status.untriaged:
+      deadline = group.updated + datetime.timedelta(days=7)
+      past_due = deadline < datetime.datetime.utcnow()
+      closed = (group.status == alert_group.AlertGroup.Status.closed)
+      untriaged = (group.status == alert_group.AlertGroup.Status.untriaged)
+      if past_due and (closed or untriaged):
+        group.Archive()
+      elif group.status == alert_group.AlertGroup.Status.untriaged:
         group.TryTriage()
       elif group.status == alert_group.AlertGroup.Status.triaged:
         group.TryBisect()
-      else:
-        deadline = group.updated + datetime.timedelta(days=7)
-        past_due = deadline < datetime.datetime.now()
-        closed = (group.status == alert_group.AlertGroup.Status.closed)
-        untriaged = (group.status == alert_group.AlertGroup.Status.untriaged)
-        if past_due and (closed or untriaged):
-          group.Archive()
     ndb.put_multi(groups)
 
     def FindGroup(group):

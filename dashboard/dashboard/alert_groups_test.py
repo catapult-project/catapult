@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import mock
+import datetime
 
 import webapp2
 import webtest
@@ -80,3 +81,22 @@ class GroupReportTest(testing_common.TestCase):
     self.testapp.get('/alert_groups_update')
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     self.assertItemsEqual(group.anomalies, [a1, a2])
+
+  def testArchiveAltertsGroup(self, mock_get_sheriff_client):
+    sheriff = subscription.Subscription(name='sheriff')
+    mock_get_sheriff_client().Match.return_value = ([sheriff], None)
+    self.testapp.get('/alert_groups_update')
+    # Add anomalies
+    self._AddAnomaly()
+    # Create Group
+    self.testapp.get('/alert_groups_update')
+    # Update Group to associate alerts
+    self.testapp.get('/alert_groups_update')
+    # Set Update timestamp to 10 days ago
+    group = alert_group.AlertGroup.Get('test_suite', None)[0]
+    group.updated = datetime.datetime.utcnow() - datetime.timedelta(days=10)
+    group.put()
+    # Archive Group
+    self.testapp.get('/alert_groups_update')
+    group = alert_group.AlertGroup.Get('test_suite', None, active=False)[0]
+    self.assertEqual(group.name, 'test_suite')
