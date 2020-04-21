@@ -105,6 +105,10 @@ class Oobe(web_contents.WebContents):
     if for_user_triggered_enrollment:
       self._ExecuteOobeApi('Oobe.switchToEnterpriseEnrollmentForTesting')
 
+    url = self.EvaluateJavaScript("window.location.href")
+    if url.startswith('chrome://oobe/gaia-signin'):
+      self.ExecuteJavaScript('Oobe.showAddUserForTesting()')
+
     py_utils.WaitFor(self._GaiaWebviewContext, 20)
     self._NavigateWebviewLogin(username, password,
                                wait_for_close=not enterprise_enroll)
