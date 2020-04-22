@@ -110,8 +110,12 @@ class Oobe(web_contents.WebContents):
       self.ExecuteJavaScript('Oobe.showAddUserForTesting()')
 
     py_utils.WaitFor(self._GaiaWebviewContext, 20)
-    self._NavigateWebviewLogin(username, password,
-                               wait_for_close=not enterprise_enroll)
+    if enterprise_enroll:
+      # TOOD(https://crbug.com/1050551): Migrate enrollment to
+      # GaiaActionButtons.
+      self._NavigateWebviewLoginLegacy(username, password, wait_for_close=True)
+    else:
+      self._NavigateWebviewLogin(username, password, wait_for_close=False)
 
     if enterprise_enroll:
       self.WaitForJavaScriptCondition(
@@ -145,23 +149,33 @@ class Oobe(web_contents.WebContents):
     parent_user = self.Canonicalize(parent_user, remove_dots=False)
     self._ClickGaiaButton(parent_user, self._UnicornObfuscated(parent_user))
     logging.info('Entering parent credentials')
-    self._NavigateWebviewEntry('password', parent_pass, 'passwordNext')
-    logging.info('Clicking Yes')
-    self._ClickGaiaButton('Yes', 'Yes')
+    self._NavigateWebviewEntry('password', parent_pass)
+    self._ClickPrimaryActionButton()
+    logging.info('Clicking Yes (or I agree)')
+    self._ClickGaiaButton('Yes', 'agree')
     py_utils.WaitFor(lambda: not self._GaiaWebviewContext(), 60)
     logging.info('Logged in as unicorn user')
 
   def _NavigateWebviewLogin(self, username, password, wait_for_close):
     """Logs into the webview-based GAIA screen."""
+    self._NavigateWebviewEntry('identifierId', username)
+    self._ClickPrimaryActionButton()
+    self._NavigateWebviewEntry('password', password)
+    self._ClickPrimaryActionButton()
+    if wait_for_close:
+      py_utils.WaitFor(lambda: not self._GaiaWebviewContext(), 60)
+
+  def _NavigateWebviewLoginLegacy(self, username, password, wait_for_close):
+    """Logs into the webview-based GAIA screen. Needed for Gaia screens which
+    are not yet migrated to GaiaActionButtons"""
     self._NavigateWebviewEntry('identifierId', username, 'identifierNext')
     self._NavigateWebviewEntry('password', password, 'passwordNext')
     if wait_for_close:
       py_utils.WaitFor(lambda: not self._GaiaWebviewContext(), 60)
 
-  def _NavigateWebviewEntry(self, field, value, next_field):
+  def _NavigateWebviewEntry(self, field, value, next_field=None):
     """Navigate a username/password GAIA screen."""
     self._WaitForField(field)
-    self._WaitForField(next_field)
     # This code supports both ChromeOS Gaia v1 and v2.
     # In v2 'password' id is assigned to <DIV> element encapsulating
     # unnamed <INPUT>. So this code will select the first <INPUT> element
@@ -173,11 +187,16 @@ class Oobe(web_contents.WebContents):
         if (field.tagName != 'INPUT')
           field = field.getElementsByTagName('INPUT')[0];
 
-        field.value= {{ value }};
-        document.getElementById({{ next_field }}).click();""",
+        field.value= {{ value }};""",
         field=field,
-        value=value,
-        next_field=next_field)
+        value=value)
+
+    if next_field:
+      self._WaitForField(next_field)
+      self._GaiaWebviewContext().ExecuteJavaScript(
+          """document.getElementById({{ next_field }}).click();""",
+          next_field=next_field)
+
 
   def _WaitForField(self, field):
     """Wait for username/password field to become available."""
@@ -205,3 +224,8 @@ class Oobe(web_contents.WebContents):
     ''' % (button_text, alt_text)
     self._GaiaWebviewContext().WaitForJavaScriptCondition(
         get_button_js, timeout=20)
+
+  def _ClickPrimaryActionButton(self):
+    """Click the Gaia primary action button on the oobe page"""
+    self.ExecuteJavaScript(("document.getElementById('gaia-signin')."
+                            "$$('#primary-action-button').click();"))
