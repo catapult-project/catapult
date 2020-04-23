@@ -278,6 +278,12 @@ ANDROID_CHROMIUM_BUNDLE = GenericChromeBundleBackendSettings(
     package='org.chromium.chrome',
     apk_name='chrome_modern_public_bundle')
 
+ANDROID_CHROMIUM_MONOCHROME = GenericChromeBackendSettings(
+    browser_type='android-chromium-monochrome',
+    package='org.chromium.chrome',
+    apk_name='MonochromePublic.apk'
+)
+
 # TODO(crbug.com/1038137): Add reference setting for android-chrome
 ANDROID_CHROME = ChromeBackendSettings(
     browser_type='android-chrome',
@@ -319,6 +325,7 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_WEBVIEW_INSTRUMENTATION,
     ANDROID_CHROMIUM,
     ANDROID_CHROMIUM_BUNDLE,
+    ANDROID_CHROMIUM_MONOCHROME,
     REFERENCE_ANDROID_CHROME_BUNDLE,
     ANDROID_CHROME,
     ANDROID_CHROME_BUNDLE,
