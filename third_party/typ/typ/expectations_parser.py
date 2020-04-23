@@ -129,6 +129,14 @@ class Expectation(object):
         if self._trailing_comments:
             self._string_value += self._trailing_comments
 
+    def add_expectations(self, results, reason=None):
+        if reason:
+            self._reason = ' '.join(self._reason.split() + reason.split())
+        if not results <= self._results:
+            self._results = frozenset(self._results | results)
+            self._raw_results = sorted(
+                [_RESULT_TAGS[t] for t in self._results])
+
     @property
     def raw_tags(self):
         if not self._raw_tags:

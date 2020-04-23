@@ -758,3 +758,33 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         exp.test = 'a/*/test.html?*'
         self.assertEqual(exp.to_string(), 'crbug.com/123 [ iNteL ] a/\*/test.html?\* [ FailuRe PasS ]')
 
+    def testAddExpectationsToExpectation(self):
+        raw_expectations = (
+            '# tags: [ NVIDIA intel ]\n'
+            '# results: [ Failure Pass Slow ]\n'
+            'crbug.com/123 [ iNteL ] test.html?\* [ PasS FailuRe ]\n'
+            '[ NVIDIA ] test.\*.* [ SloW ]  # hello world\n')
+        test_exps = TestExpectations()
+        ret, errors = test_exps.parse_tagged_list(raw_expectations)
+        test_exps.individual_exps['test.html?*'][0].add_expectations(
+            {ResultType.Timeout}, reason='crbug.com/124')
+        assert not ret, errors
+        self.assertEqual(test_exps.individual_exps['test.html?*'][0].results,
+                         frozenset([ResultType.Pass, ResultType.Failure,
+                                    ResultType.Timeout]))
+        self.assertEqual(test_exps.individual_exps['test.html?*'][0].reason,
+                         'crbug.com/123 crbug.com/124')
+
+    def testAddingExistingExpectationsDoesntChangeRawResults(self):
+        raw_expectations = (
+            '# tags: [ NVIDIA intel ]\n'
+            '# results: [ Failure Pass Slow ]\n'
+            'crbug.com/123 [ iNteL ] test.html?\* [ PasS FailuRe ]\n'
+            '[ NVIDIA ] test.\*.* [ SloW ]  # hello world\n')
+        test_exps = TestExpectations()
+        ret, errors = test_exps.parse_tagged_list(raw_expectations)
+        test_exps.individual_exps['test.html?*'][0].add_expectations(
+            {ResultType.Failure}, reason='crbug.com/124')
+        assert not ret, errors
+        self.assertIn('[ PasS FailuRe ]',
+            test_exps.individual_exps['test.html?*'][0].to_string())
