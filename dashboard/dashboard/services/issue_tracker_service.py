@@ -117,6 +117,8 @@ class IssueTrackerService(object):
         return True
     except errors.HttpError as e:
       reason = _GetErrorReason(e)
+      if reason is None:
+        reason = ''
       # Retry without owner if we cannot set owner to this issue.
       if retry and 'The user does not exist' in reason:
         # Remove both the owner and the cc list.
