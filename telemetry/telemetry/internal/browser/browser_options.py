@@ -242,6 +242,10 @@ class BrowserFinderOptions(optparse.Values):
         '--fuchsia-system-log-file',
         default=None,
         help='The file where Fuchsia system logs will be stored.')
+    group.add_option(
+        '--fuchsia-repo',
+        default="fuchsia.com",
+        help='The name of the Fuchsia repo used to serve required packages.')
     parser.add_option_group(group)
 
     # CPU profiling on Android/Linux/ChromeOS.

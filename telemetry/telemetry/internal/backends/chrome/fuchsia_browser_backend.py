@@ -34,6 +34,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._symbolizer_proc = None
     self._config_dir = fuchsia_platform_backend.config_dir
     self._browser_log = ''
+    self._managed_repo = fuchsia_platform_backend.managed_repo
 
   @property
   def log_file_path(self):
@@ -52,13 +53,19 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return int(tokens.group(1)) if tokens else None
     return py_utils.WaitFor(lambda: TryReadingPort(stderr), timeout=60)
 
-  def Start(self, startup_args):
+  def _ConstructCmdLine(self, startup_args):
+    del startup_args
     browser_cmd = [
         'run',
-        'fuchsia-pkg://fuchsia.com/web_engine_shell#meta/web_engine_shell.cmx',
+        'fuchsia-pkg://%s/web_engine_shell#meta/web_engine_shell.cmx' %
+        self._managed_repo,
         '--remote-debugging-port=0',
         'about:blank'
     ]
+    return browser_cmd
+
+  def Start(self, startup_args):
+    browser_cmd = self._ConstructCmdLine(startup_args)
     try:
       self._browser_process = self._command_runner.RunCommandPiped(
           browser_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

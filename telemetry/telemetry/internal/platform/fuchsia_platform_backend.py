@@ -21,6 +21,7 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
         os.path.join(self._config_dir, 'ssh_config'),
         device.host,
         device.port)
+    self._managed_repo = device.managed_repo
 
   @classmethod
   def SupportsDevice(cls, device):
@@ -30,6 +31,10 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
   def CreatePlatformForDevice(cls, device, finder_options):
     assert cls.SupportsDevice(device)
     return telemetry_platform.Platform(FuchsiaPlatformBackend(device))
+
+  @property
+  def managed_repo(self):
+    return self._managed_repo
 
   @property
   def command_runner(self):

@@ -30,7 +30,7 @@ _SDK_TOOLS = [
 class FuchsiaDevice(device.Device):
 
   def __init__(self, target_name, host, ssh_config_dir,
-               system_log_file, port):
+               system_log_file, port, managed_repo):
     super(FuchsiaDevice, self).__init__(
         name='Fuchsia with host: %s' % host,
         guid='fuchsia:%s' % target_name)
@@ -39,10 +39,15 @@ class FuchsiaDevice(device.Device):
     self._system_log_file = system_log_file
     self._host = host
     self._port = port
+    self._managed_repo = managed_repo
 
   @classmethod
   def GetAllConnectedDevices(cls, blacklist):
     return []
+
+  @property
+  def managed_repo(self):
+    return self._managed_repo
 
   @property
   def target_name(self):
@@ -131,7 +136,8 @@ def FindAllAvailableDevices(options):
                             host='localhost',
                             system_log_file=options.fuchsia_system_log_file,
                             ssh_config_dir=options.fuchsia_ssh_config_dir,
-                            port=int(options.fuchsia_ssh_port))]
+                            port=int(options.fuchsia_ssh_port),
+                            managed_repo=options.fuchsia_repo)]
     except ValueError:
       logging.error('fuchsia-ssh-port must be an integer.')
   # Download the Fuchsia SDK if it doesn't exist.
@@ -156,4 +162,5 @@ def FindAllAvailableDevices(options):
                         host=host,
                         system_log_file=options.fuchsia_system_log_file,
                         ssh_config_dir=options.fuchsia_ssh_config_dir,
-                        port=22)]
+                        port=22,
+                        managed_repo=options.fuchsia_repo)]
