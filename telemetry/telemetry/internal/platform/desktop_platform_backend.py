@@ -18,7 +18,7 @@ class DesktopPlatformBackend(platform_backend.PlatformBackend):
     assert directory and os.path.exists(directory), \
         'Target directory %s must exist' % directory
     flush_command = binary_manager.FetchPath(
-        'clear_system_cache', self.GetArchName(), self.GetOSName())
+        'clear_system_cache', self.GetOSName(), self.GetArchName())
     assert flush_command, 'You must build clear_system_cache first'
 
     subprocess.check_call([flush_command, '--recurse', directory])

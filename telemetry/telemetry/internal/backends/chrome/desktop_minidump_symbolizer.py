@@ -75,7 +75,7 @@ class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
       minidump: The path to the minidump being symbolized.
     """
     minidump_dump = binary_manager.FetchPath(
-        'minidump_dump', self._arch_name, self._os_name)
+        'minidump_dump', self._os_name, self._arch_name)
     assert minidump_dump
 
     symbol_binaries = []

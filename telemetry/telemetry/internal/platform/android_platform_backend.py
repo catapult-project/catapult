@@ -320,7 +320,7 @@ class AndroidPlatformBackend(
   def EnsureBackgroundApkInstalled(self):
     app = 'push_apps_to_background_apk'
     arch_name = self._device.GetABI()
-    host_path = binary_manager.FetchPath(app, arch_name, 'android')
+    host_path = binary_manager.FetchPath(app, 'android', arch_name)
     if not host_path:
       raise Exception('Error installing PushAppsToBackground.apk.')
     self.InstallApplication(host_path)

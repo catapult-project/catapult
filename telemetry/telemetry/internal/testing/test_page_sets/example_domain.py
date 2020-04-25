@@ -20,7 +20,7 @@ def FetchExampleDomainArchive():
   '''
   p = platform.GetHostPlatform()
   return binary_manager.FetchPath(
-      'example_domain_wpr_go_archive', p.GetArchName(), p.GetOSName())
+      'example_domain_wpr_go_archive', p.GetOSName(), p.GetArchName())
 
 
 class ExampleDomainPageSet(story.StorySet):

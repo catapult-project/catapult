@@ -182,7 +182,7 @@ class PerfProfilerAgent(tracing_agents.TracingAgent):
                                                     required_libs,
                                                     use_symlinks=False)
     perfhost_path = binary_manager.FetchPath(
-        android_profiling_helper.GetPerfhostName(), 'x86_64', 'linux')
+        android_profiling_helper.GetPerfhostName(), 'linux', 'x86_64')
 
     ui.PrintMessage('\nNote: to view the profile in perf, run:')
     ui.PrintMessage('  ' + self._GetInteractivePerfCommand(perfhost_path,
