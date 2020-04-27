@@ -38,6 +38,10 @@ class QueueElement(ndb.Model):
   status = ndb.StringProperty(
       required=True, default='Queued', choices=['Running', 'Done', 'Cancelled'])
 
+  # Priority is in "nice" order, where 0 is highest priority and anything higher
+  # is lower priority.
+  priority = ndb.IntegerProperty(required=True, default=0)
+
 
 class SampleElementTiming(ndb.Model):
   """Represents a measurement of queue time delay."""
@@ -131,6 +135,7 @@ def Schedule(job):
   # 1. Use the configuration as the name of the pool.
   # TODO(dberris): Figure out whether a missing configuration is even valid.
   configuration = job.arguments.get('configuration', '(none)')
+  priority = job.arguments.get('priority', 0)
 
   # 2. Load the (potentially empty) FIFO queue.
   queue = ConfigurationQueue.GetOrCreateQueue(configuration)
@@ -140,7 +145,8 @@ def Schedule(job):
 
   # 3. Enqueue job according to insertion time.
   queue.jobs.append(
-      QueueElement(job_id=job.job_id, queue_length=len(queue.jobs)))
+      QueueElement(
+          job_id=job.job_id, queue_length=len(queue.jobs), priority=priority))
   queue.put()
   logging.debug('Scheduled: %r', queue)
 
@@ -164,7 +170,6 @@ def PickJob(configuration):
   """
   # Load the FIFO queue for the configuration.
   queue = ConfigurationQueue.GetOrCreateQueue(configuration)
-  logging.debug('Fetched: %r', queue)
 
   result = (None, None)
   if not queue.jobs:
@@ -173,6 +178,10 @@ def PickJob(configuration):
   if queue.jobs[0].status == 'Running':
     return (queue.jobs[0].job_id, queue.jobs[0].status)
 
+  # Sort the jobs in priority and submission time. Note that we can starve lower
+  # priority (those whose priority is higher than 0) jobs by design, since we'll
+  # assume those are batch jobs.
+  queue.jobs.sort(key=lambda j: (j.priority, j.timestamp))
   for job in queue.jobs:
     # Pick the first job that's queued, and mark it 'Running'.
     if job.status == 'Queued':

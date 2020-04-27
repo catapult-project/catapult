@@ -24,6 +24,7 @@ from dashboard.pinpoint.models.tasks import read_value
 _ERROR_BUG_ID = 'Bug ID must be an integer.'
 _ERROR_TAGS_DICT = 'Tags must be a dict of key/value string pairs.'
 _ERROR_UNSUPPORTED = 'This benchmark (%s) is unsupported.'
+_ERROR_PRIORITY = 'Priority must be an integer.'
 _UNSUPPORTED_BENCHMARKS = []
 
 
@@ -60,6 +61,8 @@ def _CreateJob(request):
   # Validate arguments and convert them to canonical internal representation.
   quests = _GenerateQuests(arguments)
 
+  # Validate the priority, if it's present.
+  priority = _ValidatePriority(arguments.get('priority'))
   bug_id = _ValidateBugId(arguments.get('bug_id'))
   comparison_mode = _ValidateComparisonMode(arguments.get('comparison_mode'))
   comparison_magnitude = _ValidateComparisonMagnitude(
@@ -103,6 +106,7 @@ def _CreateJob(request):
       pin=pin,
       tags=tags,
       user=user,
+      priority=priority,
       use_execution_engine=use_execution_engine)
 
   if use_execution_engine:
@@ -184,6 +188,15 @@ def _ValidateBugId(bug_id):
     return int(bug_id)
   except ValueError:
     raise ValueError(_ERROR_BUG_ID)
+
+def _ValidatePriority(priority):
+  if not priority:
+    return None
+
+  try:
+    return int(priority)
+  except ValueError:
+    raise ValueError(_ERROR_PRIORITY)
 
 
 def _ValidateChanges(comparison_mode, arguments):

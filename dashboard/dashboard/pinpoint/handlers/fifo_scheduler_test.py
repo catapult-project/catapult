@@ -191,6 +191,50 @@ class FifoSchedulerTest(test.TestCase):
     stats = scheduler.QueueStats('mock')
     self.assertLessEqual(len(stats.get('queue_time_samples')), 50)
 
+  def testSchedulePriorityOrder(self):
+    j0 = job.Job.New((), (),
+                     arguments={'configuration': 'mock'},
+                     comparison_mode='performance')
+    scheduler.Schedule(j0)
+    j0.Start = mock.MagicMock(  # pylint: disable=invalid-name
+        side_effect=j0._Complete)
+    j1 = job.Job.New((), (),
+                     arguments={
+                         'configuration': 'mock',
+                         'priority': 100
+                     },
+                     comparison_mode='performance')
+    j1.Start = mock.MagicMock(  # pylint: disable=invalid-name
+        side_effect=j1._Complete)
+    scheduler.Schedule(j1)
+    j2 = job.Job.New((), (),
+                     arguments={'configuration': 'mock'},
+                     comparison_mode='performance')
+    scheduler.Schedule(j2)
+    j2.Start = mock.MagicMock(  # pylint: disable=invalid-name
+        side_effect=j2._Complete)
+
+    # The first time we call the scheduler, it must mark j0 completed.
+    response = self.testapp.get('/cron/fifo-scheduler')
+    self.assertEqual(response.status_code, 200)
+    self.ExecuteDeferredTasks('default')
+    self.assertTrue(j0.Start.called)
+    self.assertFalse(j1.Start.called)
+    self.assertFalse(j2.Start.called)
+
+    # Next time, j2 should be completed.
+    response = self.testapp.get('/cron/fifo-scheduler')
+    self.assertEqual(response.status_code, 200)
+    self.ExecuteDeferredTasks('default')
+    self.assertFalse(j1.Start.called)
+    self.assertTrue(j2.Start.called)
+
+    # Then we should have j1 completed.
+    response = self.testapp.get('/cron/fifo-scheduler')
+    self.assertEqual(response.status_code, 200)
+    self.ExecuteDeferredTasks('default')
+    self.assertTrue(j1.Start.called)
+
 
 # TODO(dberris): Need to mock *all* of the back-end services that the various
 # "live" bisection operations will be looking into.

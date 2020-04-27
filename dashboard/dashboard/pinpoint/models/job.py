@@ -241,9 +241,9 @@ class Job(ndb.Model):
   # engine.
   use_execution_engine = ndb.BooleanProperty(default=False, indexed=False)
 
-  # TODO(simonhatch): After migrating all Pinpoint entities, this can be
-  # removed.
-  # crbug.com/971370
+  # Priority for scheduling purposes. Lower numbers indicate higher priority.
+  priority = ndb.IntegerProperty(default=0)
+
   @classmethod
   def _post_get_hook(cls, key, future):  # pylint: disable=unused-argument
     e = future.get_result()
@@ -253,9 +253,6 @@ class Job(ndb.Model):
     if not getattr(e, 'exception_details'):
       e.exception_details = e.exception_details_dict
 
-  # TODO(simonhatch): After migrating all Pinpoint entities, this can be
-  # removed.
-  # crbug.com/971370
   @property
   def exception_details_dict(self):
     if hasattr(self, 'exception_details'):
@@ -283,6 +280,7 @@ class Job(ndb.Model):
           pin=None,
           tags=None,
           user=None,
+          priority=None,
           use_execution_engine=False):
     """Creates a new Job, adds Changes to it, and puts it in the Datstore.
 
@@ -304,6 +302,7 @@ class Job(ndb.Model):
       pin: A Change (Commits + Patch) to apply to every Change in this Job.
       tags: A dict of key-value pairs used to filter the Jobs listings.
       user: The email of the Job creator.
+      priority: An integer indicating priority.
       use_execution_engine: A bool indicating whether to use the experimental
         execution engine. Currently defaulted to False, but will be switched to
         True and eventually removed as an option later.
@@ -329,7 +328,7 @@ class Job(ndb.Model):
         user=user,
         started=False,
         cancelled=False,
-        use_execution_engine=use_execution_engine)
+        use_execution_engine=use_execution_engine, priority=priority)
 
     # Pull out the benchmark arguments to the top-level.
     job.benchmark_arguments = BenchmarkArguments.FromArgs(args)
