@@ -118,6 +118,14 @@ class Anomaly(internal_only_model.InternalOnlyModel):
   recipe_bisects = ndb.KeyProperty(repeated=True, indexed=False)
   pinpoint_bisects = ndb.StringProperty(repeated=True, indexed=False)
 
+  # Additional Metadata
+  # ====
+  #
+  # Timestamps for the earliest and latest Row we used to determine whether this
+  # is an anomaly. We use this to compute time-to-detection.
+  earliest_input_timestamp = ndb.DateTimeProperty()
+  latest_input_timestamp = ndb.DateTimeProperty()
+
   @property
   def percent_changed(self):
     """The percent change from before the anomaly to after."""
