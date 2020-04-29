@@ -2344,42 +2344,28 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device._ReadFileWithPull('/path/to/device/file')
 
-  def testReadFile_exists(self):
+  def testReadFile_withSU_zeroSize(self):
     with self.assertCalls(
-        (self.call.device.FileSize('/read/this/test/file', as_root=False), 256),
-        (self.call.device.RunShellCommand(
-            ['cat', '/read/this/test/file'], as_root=False, check_return=True),
-         ['this is a test file'])):
-      self.assertEqual('this is a test file\n',
-                       self.device.ReadFile('/read/this/test/file'))
-
-  def testReadFile_exists2(self):
-    # Same as testReadFile_exists, but uses Android N ls output.
-    with self.assertCalls(
-        (self.call.device.FileSize('/read/this/test/file', as_root=False), 256),
-        (self.call.device.RunShellCommand(
-            ['cat', '/read/this/test/file'], as_root=False, check_return=True),
-         ['this is a test file'])):
-      self.assertEqual('this is a test file\n',
-                       self.device.ReadFile('/read/this/test/file'))
-
-  def testReadFile_doesNotExist(self):
-    with self.assertCall(
-        self.call.device.FileSize('/this/file/does.not.exist', as_root=False),
-        self.CommandError('File does not exist')):
-      with self.assertRaises(device_errors.CommandFailedError):
-        self.device.ReadFile('/this/file/does.not.exist')
-
-  def testReadFile_zeroSize(self):
-    with self.assertCalls(
-        (self.call.device.FileSize('/this/file/has/zero/size', as_root=False),
-         0), (self.call.device._ReadFileWithPull('/this/file/has/zero/size'),
-              'but it has contents\n')):
+        (self.call.device.NeedsSU(), True),
+        (self.call.device.FileSize(
+            '/this/file/has/zero/size', as_root=True), 0),
+        (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb),
+         MockTempFile('/sdcard/tmp/on.device')),
+        self.call.device.RunShellCommand(
+            'SRC=/this/file/has/zero/size DEST=/sdcard/tmp/on.device;'
+            'cp "$SRC" "$DEST" && chmod 666 "$DEST"',
+            shell=True,
+            as_root=True,
+            check_return=True),
+        (self.call.device._ReadFileWithPull('/sdcard/tmp/on.device'),
+         'but it has contents\n')):
       self.assertEqual('but it has contents\n',
-                       self.device.ReadFile('/this/file/has/zero/size'))
+                       self.device.ReadFile('/this/file/has/zero/size',
+                       as_root=True))
 
   def testReadFile_withSU(self):
     with self.assertCalls(
+        (self.call.device.NeedsSU(), True),
         (self.call.device.FileSize(
             '/this/file/can.be.read.with.su', as_root=True), 256),
         (self.call.device.RunShellCommand(
@@ -2390,11 +2376,17 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
           'this is a test file\nread with su\n',
           self.device.ReadFile('/this/file/can.be.read.with.su', as_root=True))
 
+  def testReadFile_withSU_doesNotExist(self):
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), True),
+        (self.call.device.FileSize('/this/file/does.not.exist', as_root=True),
+         self.CommandError('File does not exist'))):
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.device.ReadFile('/this/file/does.not.exist', as_root=True)
+
   def testReadFile_withPull(self):
     contents = 'a' * 123456
     with self.assertCalls(
-        (self.call.device.FileSize('/read/this/big/test/file', as_root=False),
-         123456),
         (self.call.device._ReadFileWithPull('/read/this/big/test/file'),
          contents)):
       self.assertEqual(contents,
@@ -2403,9 +2395,9 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
   def testReadFile_withPullAndSU(self):
     contents = 'b' * 123456
     with self.assertCalls(
+        (self.call.device.NeedsSU(), True),
         (self.call.device.FileSize(
             '/this/big/file/can.be.read.with.su', as_root=True), 123456),
-        (self.call.device.NeedsSU(), True),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb),
          MockTempFile('/sdcard/tmp/on.device')),
         self.call.device.RunShellCommand(

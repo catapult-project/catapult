@@ -2287,8 +2287,9 @@ class DeviceUtils(object):
       as_root: A boolean indicating whether the read should be executed with
                root privileges.
       force_pull: A boolean indicating whether to force the operation to be
-          performed by pulling a file from the device. The default is, when the
-          contents are short, to retrieve the contents using cat instead.
+          performed by pulling a file from the device. The default is, when root
+          is needed, and the contents are short, to retrieve the contents using
+          cat instead.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -2306,15 +2307,18 @@ class DeviceUtils(object):
     def get_size(path):
       return self.FileSize(path, as_root=as_root)
 
-    if (not force_pull
-        and 0 < get_size(device_path) <= self._MAX_ADB_OUTPUT_LENGTH):
-      return _JoinLines(
-          self.RunShellCommand(['cat', device_path],
-                               as_root=as_root,
-                               check_return=True))
-    elif as_root and self.NeedsSU():
-      with self._CopyToReadableLocation(device_path) as readable_temp_file:
-        return self._ReadFileWithPull(readable_temp_file.name)
+    # Reading by pulling is faster than first getting the file size and cat-ing,
+    # so only read by cat when we need root.
+    if as_root and self.NeedsSU():
+      if (not force_pull
+          and 0 < get_size(device_path) <= self._MAX_ADB_OUTPUT_LENGTH):
+        return _JoinLines(
+            self.RunShellCommand(['cat', device_path],
+                                 as_root=as_root,
+                                 check_return=True))
+      else:
+        with self._CopyToReadableLocation(device_path) as readable_temp_file:
+          return self._ReadFileWithPull(readable_temp_file.name)
     else:
       return self._ReadFileWithPull(device_path)
 
