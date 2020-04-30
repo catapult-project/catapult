@@ -182,7 +182,7 @@ def GetRowsToAnalyze(test, max_num_rows):
   Returns:
     A list of the latest Rows after the last alerted revision, ordered by
     revision. These rows are fetched with t a projection query so they only
-    have the revision, value, and timestamp properties.
+    have the revision and value properties.
   """
   result = yield GetRowsToAnalyzeAsync(test, max_num_rows)
   raise ndb.Return(result)
@@ -213,7 +213,7 @@ def _FetchRowsByStat(test_key, stat, last_alert_future, max_num_rows):
   # If stats are specified, we only want to alert on those, otherwise alert on
   # everything.
   if stat == 'avg':
-    query = graph_data.Row.query(projection=['revision', 'value', 'timestamp'])
+    query = graph_data.Row.query(projection=['revision', 'value'])
   else:
     query = graph_data.Row.query()
 
@@ -390,21 +390,6 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
           reserved_infos.OWNERS.name, {}).get('values'),
       'component': bug_components}
 
-  # Compute additional anomaly metadata.
-  def MinMax(iterable):
-    min_ = max_ = None
-    for val in iterable:
-      if min_ is None:
-        min_ = max_ = val
-      else:
-        min_ = min(min_, val)
-        max_ = max(max_, val)
-    return min_, max_
-
-  earliest_input_timestamp, latest_input_timestamp = MinMax(
-      r.timestamp for unused_rev, r, unused_val in rows
-  )
-
   new_anomaly = anomaly.Anomaly(
       start_revision=start_rev,
       end_revision=end_rev,
@@ -425,11 +410,8 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
       units=test.units,
       display_start=display_start,
       display_end=display_end,
-      ownership=ownership_information,
-      earliest_input_timestamp=earliest_input_timestamp,
-      latest_input_timestamp=latest_input_timestamp)
+      ownership=ownership_information)
   raise ndb.Return(new_anomaly)
-
 
 def FindChangePointsForTest(rows, config_dict):
   """Gets the anomaly data from the anomaly detection module.
