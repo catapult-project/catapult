@@ -135,13 +135,14 @@ indexes:
     direction: desc
 
 # Used in find_anomalies.GetRowsToAnalyze when getting latest points,
-# with projection query for properties revision and value.
+# with projection query for properties revision, value, and timestamp.
 - kind: Row
   properties:
   - name: parent_test
   - name: revision
     direction: desc
   - name: value
+  - name: timestamp
 
 # Used in graph_revisions.py to do a projection query for timestamp, revision
 # and value for points from a particular test.
