@@ -825,7 +825,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         test_exps = TestExpectations()
         ret, errors = test_exps.parse_tagged_list(raw_expectations)
         test_exps.individual_exps['test.html?*'][0].add_expectations(
-            {ResultType.Timeout}, reason='crbug.com/124')
+            {ResultType.Timeout}, reason='crbug.com/124 crbug.com/123')
         assert not ret, errors
         self.assertEqual(test_exps.individual_exps['test.html?*'][0].results,
                          frozenset([ResultType.Pass, ResultType.Failure,

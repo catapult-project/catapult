@@ -132,7 +132,7 @@ class Expectation(object):
 
     def add_expectations(self, results, reason=None):
         if reason:
-            self._reason = ' '.join(self._reason.split() + reason.split())
+            self._reason = ' '.join(set(self._reason.split() + reason.split()))
         if not results <= self._results:
             self._results = frozenset(self._results | results)
             self._raw_results = sorted(
