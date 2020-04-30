@@ -303,7 +303,6 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
                       str(context.exception))
         self.assertNotIn('  - Tags webgl-version-1', str(context.exception))
 
-
     def testEachTagInGroupIsFromDisjointTagSets(self):
         raw_data = (
             '# tags: [ Mac Win Linux ]\n'
@@ -338,6 +337,65 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         parser = expectations_parser.TaggedTestListParser(raw_data)
         exp = parser.expectations[0]
         self.assertEqual(exp.should_retry_on_failure, True)
+
+    def testDefaultPass(self):
+        raw_data = (
+            '# tags: [ Linux ]\n'
+            '# results: [ Failure ]\n'
+            'crbug.com/23456 [ linux ] b1/s1 [ Failure ]\n')
+        expectations = expectations_parser.TestExpectations(tags=['linux'])
+        expectations.parse_tagged_list(raw_data)
+        exp = expectations.expectations_for('b1/s1')
+        self.assertEqual(exp.results, set([ResultType.Failure]))
+        self.assertFalse(exp.is_default_pass)
+        self.assertFalse(exp.is_slow_test)
+
+        exp = expectations.expectations_for('b1/s2')
+        self.assertEqual(exp.results, set([ResultType.Pass]))
+        self.assertTrue(exp.is_default_pass)
+        self.assertFalse(exp.is_slow_test)
+
+    def testSlowDefaultPassAndFailure(self):
+        raw_data = (
+            '# tags: [ Linux ]\n'
+            '# results: [ Failure Slow ]\n'
+            'crbug.com/23456 [ Linux ] b1/s1 [ Failure ]\n'
+            'crbug.com/23456 b1/s1 [ Slow ]\n')
+
+        expectations = expectations_parser.TestExpectations(tags=['linux'])
+        expectations.parse_tagged_list(raw_data)
+        exp = expectations.expectations_for('b1/s1')
+        self.assertEqual(exp.results, set([ResultType.Failure]))
+        self.assertFalse(exp.is_default_pass)
+        self.assertTrue(exp.is_slow_test)
+
+        expectations = expectations_parser.TestExpectations(tags=['win'])
+        expectations.parse_tagged_list(raw_data)
+        exp = expectations.expectations_for('b1/s1')
+        self.assertEqual(exp.results, set([ResultType.Pass]))
+        self.assertTrue(exp.is_default_pass)
+        self.assertTrue(exp.is_slow_test)
+
+    def testRetryOnFailureDefaultPassAndFailure(self):
+        raw_data = (
+            '# tags: [ Linux ]\n'
+            '# results: [ Failure RetryOnFailure ]\n'
+            'crbug.com/23456 [ Linux ] b1/s1 [ Failure ]\n'
+            'crbug.com/23456 b1/s1 [ RetryOnFailure ]\n')
+
+        expectations = expectations_parser.TestExpectations(tags=['linux'])
+        expectations.parse_tagged_list(raw_data)
+        exp = expectations.expectations_for('b1/s1')
+        self.assertEqual(exp.results, set([ResultType.Failure]))
+        self.assertFalse(exp.is_default_pass)
+        self.assertTrue(exp.should_retry_on_failure)
+
+        expectations = expectations_parser.TestExpectations(tags=['win'])
+        expectations.parse_tagged_list(raw_data)
+        exp = expectations.expectations_for('b1/s1')
+        self.assertEqual(exp.results, set([ResultType.Pass]))
+        self.assertTrue(exp.is_default_pass)
+        self.assertTrue(exp.should_retry_on_failure)
 
     def testGetExpectationsFromGlob(self):
         raw_data = (
@@ -374,7 +432,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
             test_expectations.parse_tagged_list(raw_data, 'test.txt'), (0,''))
         self.assertEqual(test_expectations.expectations_for('b1/s1'),
                          Expectation(
-                             test='b1/s1', results={ResultType.Failure, ResultType.Pass}, retry_on_failure=True,
+                             test='b1/s1', results={ResultType.Failure}, retry_on_failure=True,
                              is_slow_test=False, reason='crbug.com/23456'))
         self.assertEqual(test_expectations.expectations_for('b1/s2'),
                          Expectation(
@@ -426,7 +484,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
                              retry_on_failure=False, is_slow_test=False))
         self.assertEqual(test_exp1.expectations_for('b1/s5'),
                          Expectation(
-                             test='b1/s5', results={ResultType.Failure, ResultType.Pass},
+                             test='b1/s5', results={ResultType.Failure},
                              retry_on_failure=True, is_slow_test=True,
                              reason='crbug.com/2431 crbug.com/2432'))
 
