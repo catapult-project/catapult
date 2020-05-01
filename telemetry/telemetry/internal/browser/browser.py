@@ -38,6 +38,7 @@ class Browser(app.App):
     try:
       self._browser_backend = backend
       self._platform_backend = platform_backend
+      self._startup_args = startup_args
       self._tabs = tab_list.TabList(backend.tab_list_backend)
       self._browser_backend.SetBrowser(self)
       if find_existing:
@@ -53,6 +54,10 @@ class Browser(app.App):
   @property
   def browser_type(self):
     return self.app_type
+
+  @property
+  def startup_args(self):
+    return self._startup_args
 
   @property
   def supports_extensions(self):
