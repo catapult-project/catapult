@@ -846,3 +846,19 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         assert not ret, errors
         self.assertIn('[ PasS FailuRe ]',
             test_exps.individual_exps['test.html?*'][0].to_string())
+
+    def testTopDownOrderMaintainedForNonGlobExps(self):
+        raw_expectations = (
+            '# tags: [ NVIDIA intel ]\n'
+            '# results: [ Failure Pass Slow ]\n'
+            'crbug.com/123 [ iNteL ] test1 [ PasS FailuRe ]\n'
+            'crbug.com/123 [ iNteL ] test2 [ PasS FailuRe ]\n'
+            'crbug.com/123 [ iNteL ] test8 [ PasS FailuRe ]\n'
+            'crbug.com/123 [ iNteL ] test9 [ PasS FailuRe ]\n'
+            'crbug.com/123 [ iNteL ] test5 [ PasS FailuRe ]\n'
+            '[ NVIDIA ] test.\* [ SloW ]  # hello world\n')
+        test_exps = TestExpectations()
+        ret, errors = test_exps.parse_tagged_list(raw_expectations)
+        assert not ret, errors
+        self.assertEqual(list(test_exps.individual_exps),
+                         ['test1','test2','test8', 'test9', 'test5', 'test.*'])

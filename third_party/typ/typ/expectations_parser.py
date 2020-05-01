@@ -423,7 +423,7 @@ class TestExpectations(object):
         # expected results, so we store these in dicts ordered by the string
         # for ease of retrieve. glob_exps use an OrderedDict rather than
         # a regular dict for reasons given below.
-        self.individual_exps = {}
+        self.individual_exps = OrderedDict()
         self.glob_exps = OrderedDict()
         self._tags_conflict = _default_tags_conflict
 
