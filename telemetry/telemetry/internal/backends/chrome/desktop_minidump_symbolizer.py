@@ -74,8 +74,14 @@ class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
     Args:
       minidump: The path to the minidump being symbolized.
     """
-    minidump_dump = binary_manager.FetchPath(
-        'minidump_dump', self._arch_name, self._os_name)
+    # TODO(https://crbug.com/1054583): Remove this once Telemetry searches
+    # locally for all dependencies automatically.
+    minidump_dump = os.path.join(self._build_dir, 'minidump_dump')
+    if not os.path.exists(minidump_dump):
+      logging.warning(
+          'Unable to find locally built minidump_dump, using Catapult version.')
+      minidump_dump = binary_manager.FetchPath(
+          'minidump_dump', self._arch_name, self._os_name)
     assert minidump_dump
 
     symbol_binaries = []
