@@ -113,9 +113,9 @@ class Oobe(web_contents.WebContents):
     if enterprise_enroll:
       # TOOD(https://crbug.com/1050551): Migrate enrollment to
       # GaiaActionButtons.
-      self._NavigateWebviewLoginLegacy(username, password, wait_for_close=True)
+      self._NavigateWebviewLoginLegacy(username, password, wait_for_close=False)
     else:
-      self._NavigateWebviewLogin(username, password, wait_for_close=False)
+      self._NavigateWebviewLogin(username, password, wait_for_close=True)
 
     if enterprise_enroll:
       self.WaitForJavaScriptCondition(
