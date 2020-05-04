@@ -281,7 +281,7 @@ def FindAllAvailableBrowsers(finder_options, device):
   os_name = platform_module.GetHostPlatform().GetOSName()
   arch_name = platform_module.GetHostPlatform().GetArchName()
   try:
-    flash_path = binary_manager.LocalPath('flash', arch_name, os_name)
+    flash_path = binary_manager.LocalPath('flash', os_name, arch_name)
   except dependency_manager.NoPathFoundError:
     flash_path = None
 
@@ -345,7 +345,7 @@ def FindAllAvailableBrowsers(finder_options, device):
     os_name = platform_module.GetHostPlatform().GetOSName()
     arch_name = platform_module.GetHostPlatform().GetArchName()
     reference_build = binary_manager.FetchPath(
-        'chrome_stable', arch_name, os_name)
+        'chrome_stable', os_name, arch_name)
 
   # Mac-specific options.
   if sys.platform == 'darwin':

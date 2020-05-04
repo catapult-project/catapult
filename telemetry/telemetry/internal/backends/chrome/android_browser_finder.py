@@ -356,7 +356,7 @@ def _FetchReferenceApk(android_platform, is_bundle=False):
   arch = android_platform.GetArchName()
   try:
     reference_build = binary_manager.FetchPath(
-        'chrome_stable', arch, 'android', os_version)
+        'chrome_stable', 'android', arch, os_version)
     if reference_build and os.path.exists(reference_build):
       return reference_build
   except binary_manager.NoPathFoundError:

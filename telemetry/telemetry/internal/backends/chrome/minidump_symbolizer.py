@@ -92,7 +92,7 @@ class MinidumpSymbolizer(object):
     stackwalk_path = os.path.join(self._build_dir, 'minidump_stackwalk')
     if not os.path.exists(stackwalk_path):
       stackwalk_path = binary_manager.FetchPath(
-          'minidump_stackwalk', self._arch_name, self._os_name)
+          'minidump_stackwalk', self._os_name, self._arch_name)
     return stackwalk_path
 
   def _GenerateBreakpadSymbols(self, symbols_dir, minidump):
@@ -105,7 +105,7 @@ class MinidumpSymbolizer(object):
     logging.info('Dumping Breakpad symbols.')
     try:
       generate_breakpad_symbols_command = binary_manager.FetchPath(
-          'generate_breakpad_symbols', self._arch_name, self._os_name)
+          'generate_breakpad_symbols', self._os_name, self._arch_name)
     except dependency_exceptions.NoPathFoundError as e:
       logging.warning('Failed to get generate_breakpad_symbols: %s', e)
       generate_breakpad_symbols_command = None
