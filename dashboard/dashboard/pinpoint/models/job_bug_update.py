@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 
 from collections import namedtuple
+import math
 
 from dashboard import update_bug_with_results
 from dashboard.common import utils
@@ -91,11 +92,13 @@ class DifferencesFoundBugUpdateBuilder(object):
       * cc_list (list, authors of the top 2 commits)
       * why_text (str, text explaining why this owner was chosen)
     """
-    ordered_commits = self._OrderedCommitsByDelta()[:2]
+    ordered_commits = self._OrderedCommitsByDelta()
 
-    # CC the folks in the top two commits.
+    # CC the folks in the top N commits.  N is scaled by the number of commits
+    # (fewer than 10 means N=1, fewer than 100 means N=2, etc.)
+    commits_cap = int(math.floor(math.log10(len(ordered_commits)))) + 1
     cc_list = set()
-    for commit in ordered_commits:
+    for commit in ordered_commits[:commits_cap]:
       cc_list.add(commit['author'])
 
     # Assign to the author of the top commit.  If that is an autoroll, assign to

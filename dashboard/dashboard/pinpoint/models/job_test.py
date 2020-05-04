@@ -621,11 +621,11 @@ class BugCommentTest(test.TestCase):
 
     self.assertFalse(j.failed)
 
-    # We now only CC folks from the top two commits.
+    # We now only CC folks from the top commit.
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_THREE_DIFFERENCES,
         status='Assigned', owner='author1@chromium.org',
-        cc_list=['author1@chromium.org', 'author2@chromium.org'],
+        cc_list=['author1@chromium.org'],
         labels=['Pinpoint-Multiple-Culprits'],
         merge_issue=None)
 
@@ -676,14 +676,83 @@ class BugCommentTest(test.TestCase):
 
     self.assertFalse(j.failed)
 
-    # We now only CC folks from the top two commits, in absolute descending
-    # order.
+    # We now only CC folks from the top commit.
     self.add_bug_comment.assert_called_once_with(
         123456, _COMMENT_COMPLETED_THREE_DIFFERENCES_ABSOLUTE,
         status='Assigned', owner='author3@chromium.org',
-        cc_list=['author2@chromium.org', 'author3@chromium.org'],
+        cc_list=['author3@chromium.org'],
         labels=['Pinpoint-Multiple-Culprits'],
         merge_issue=None)
+
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
+  def testCompletedMultipleDifferences_TenCulpritsCcTopTwo(
+      self, differences, result_values, commit_as_dict):
+    self.Parameterized_TestCompletedMultipleDifferences(
+        10, 2, differences, result_values, commit_as_dict)
+
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
+  def testCompletedMultipleDifferences_HundredCulpritsCcTopThree(
+      self, differences, result_values, commit_as_dict):
+    self.Parameterized_TestCompletedMultipleDifferences(
+        100, 3, differences, result_values, commit_as_dict)
+
+  def Parameterized_TestCompletedMultipleDifferences(
+      self, number_culprits, expected_num_ccs, differences, result_values,
+      commit_as_dict):
+    changes = [
+        change.Change((change.Commit('chromium', 'git_hash_%d' % (i,)),))
+        for i in range(1, number_culprits+1)]
+    # Return [(None,c1), (c1,c2), (c2,c3), ...]
+    differences.return_value = zip([None] + changes, changes)
+    # Ensure culprits are ordered by deriving change results values from commit
+    # names.  E.g.:
+    #   Change(git_hash_1) -> result_value=[1],
+    #   Change(git_hash_2) -> result_value=[4],
+    # etc.
+    def ResultValuesFromFakeGitHash(change_obj):
+      if change_obj is None:
+        return [0]
+      v = int(change_obj.commits[0].git_hash[len('git_hash_'):])
+      return [v*v]  # Square the value to ensure increasing deltas.
+    result_values.side_effect = ResultValuesFromFakeGitHash
+
+    commit_as_dict.side_effect = [
+        {
+            'repository': 'chromium',
+            'git_hash': 'git_hash_%d' % (i,),
+            'url': 'https://example.com/repository/+/git_hash_%d' % (i,),
+            'author': 'author%d@chromium.org' % (i,),
+            'subject': 'Subject.',
+            'message': 'Subject.\n\nCommit message.',
+        }
+        for i in range(1, number_culprits+1)]
+
+    self.get_issue.return_value = {'status': 'Untriaged'}
+
+    j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
+    j.Run()
+
+    self.ExecuteDeferredTasks('default')
+
+    self.assertFalse(j.failed)
+
+    expected_ccs = [
+        'author%d@chromium.org' % (i,)
+        for i in range(number_culprits, number_culprits - expected_num_ccs, -1)
+    ]
+
+    # We only CC folks from the top commits.
+    self.add_bug_comment.assert_called_once_with(
+        123456, mock.ANY,
+        status='Assigned', owner=expected_ccs[0],
+        cc_list=sorted(expected_ccs),
+        labels=['Pinpoint-Multiple-Culprits'],
+        merge_issue=None)
+
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -765,8 +834,7 @@ class BugCommentTest(test.TestCase):
     self.add_bug_comment.assert_called_once_with(
         mock.ANY, mock.ANY,
         status='Assigned', owner='sheriff@bar.com',
-        cc_list=['author2@chromium.org',
-                 'chromium-autoroll@skia-public.iam.gserviceaccount.com'],
+        cc_list=['chromium-autoroll@skia-public.iam.gserviceaccount.com'],
         labels=mock.ANY,
         merge_issue=None)
 
