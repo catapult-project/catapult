@@ -718,6 +718,58 @@ class BugCommentTest(test.TestCase):
         labels=['Pinpoint-Culprit-Found'],
         merge_issue=None)
 
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
+  def testCompletedWithAutorollCulpritButNotMostRecent(
+      self, differences, result_values, commit_as_dict):
+    """Regression test for http://crbug.com/1076756.
+
+    When an autoroll has the biggest delta, assigns to its sheriff even when it
+    is not the latest change.
+    """
+    c0 = change.Change((change.Commit('chromium', 'git_hash_0'),))
+    c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
+    c2 = change.Change((change.Commit('chromium', 'git_hash_2'),))
+    change_map = {c0: [0], c1: [10], c2: [10]}
+    differences.return_value = [(c0, c1), (c1, c2)]
+    result_values.side_effect = lambda c: change_map.get(c, [])
+    commit_as_dict.side_effect = (
+        {
+            'repository': 'chromium',
+            'git_hash': 'git_hash_1',
+            'url': 'https://example.com/repository/+/git_hash_1',
+            'author': 'chromium-autoroll@skia-public.iam.gserviceaccount.com',
+            'subject': 'Subject.',
+            'message': 'Subject.\n\nCommit message.\n\nTBR=sheriff@bar.com',
+        },
+        {
+            'repository': 'chromium',
+            'git_hash': 'git_hash_2',
+            'url': 'https://example.com/repository/+/git_hash_2',
+            'author': 'author2@chromium.org',
+            'subject': 'Subject.',
+            'message': 'Subject.\n\nCommit message.',
+        },
+    )
+
+    self.get_issue.return_value = {'status': 'Untriaged'}
+
+    j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
+    j.put()
+    j.Run()
+
+    self.ExecuteDeferredTasks('default')
+
+    self.assertFalse(j.failed)
+    self.add_bug_comment.assert_called_once_with(
+        mock.ANY, mock.ANY,
+        status='Assigned', owner='sheriff@bar.com',
+        cc_list=['author2@chromium.org',
+                 'chromium-autoroll@skia-public.iam.gserviceaccount.com'],
+        labels=mock.ANY,
+        merge_issue=None)
+
   @mock.patch.object(job.job_state.JobState, 'ScheduleWork',
                      mock.MagicMock(side_effect=AssertionError('Error string')))
   def testFailed(self):

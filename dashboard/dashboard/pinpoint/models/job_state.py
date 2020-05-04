@@ -197,8 +197,8 @@ class JobState(object):
     """Compares every pair of Changes and yields ones with different results.
 
     This method loops through every pair of adjacent Changes. If they have
-    statistically different results, this method yields the latter one (which is
-    assumed to have caused the difference).
+    statistically different results, this method yields that pair.  (The second
+    element of each returned pair is assumed to have caused the difference).
 
     Returns:
       A list of tuples: [(Change_before, Change_after), ...]

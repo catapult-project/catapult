@@ -19,13 +19,12 @@ from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 from google.appengine.runtime import apiproxy_errors
 
-from dashboard import update_bug_with_results
 from dashboard.common import utils
-from dashboard.models import histogram
 from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import evaluators
 from dashboard.pinpoint.models import event as event_module
+from dashboard.pinpoint.models import job_bug_update
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models import results2
 from dashboard.pinpoint.models import scheduler
@@ -35,8 +34,6 @@ from dashboard.pinpoint.models.evaluators import job_serializer
 from dashboard.pinpoint.models.tasks import evaluator as task_evaluator
 from dashboard.services import gerrit_service
 from dashboard.services import issue_tracker_service
-
-from tracing.value.diagnostics import reserved_infos
 
 # We want this to be fast to minimize overhead while waiting for tasks to
 # finish, but don't want to consume too many resources.
@@ -544,31 +541,21 @@ class Job(ndb.Model):
       return
 
     # Collect the result values for each of the differences
-    difference_details = []
-    commit_infos = []
-    commits_with_deltas = {}
+    bug_update_builder = job_bug_update.DifferencesFoundBugUpdateBuilder(
+        self.state.metric)
     for change_a, change_b in differences:
       if change_b.patch:
         commit = change_b.patch
       else:
         commit = change_b.last_commit
-      commit_info = commit.AsDict()
 
       values_a = result_values[change_a]
       values_b = result_values[change_b]
-      difference = _FormatDifferenceForBug(commit_info, values_a, values_b,
-                                           self.state.metric)
-      difference_details.append(difference)
-      commit_infos.append(commit_info)
-      if values_a and values_b:
-        mean_delta = job_state.Mean(values_b) - job_state.Mean(values_a)
-        commits_with_deltas[commit.id_string] = (mean_delta, commit_info)
+      bug_update_builder.AddDifference(commit, values_a, values_b)
 
     deferred.defer(
-        _UpdatePostAndMergeDeferred,
-        difference_details,
-        commit_infos,
-        list(commits_with_deltas.values()),
+        job_bug_update.UpdatePostAndMergeDeferred,
+        bug_update_builder,
         self.bug_id,
         self.tags,
         self.url,
@@ -815,27 +802,6 @@ class Job(ndb.Model):
         _retry_options=RETRY_OPTIONS)
 
 
-def _GetBugStatus(issue_tracker, bug_id):
-  if not bug_id:
-    return None
-
-  issue_data = issue_tracker.GetIssue(bug_id)
-  if not issue_data:
-    return None
-
-  return issue_data.get('status')
-
-
-def _ComputePostMergeDetails(issue_tracker, commit_cache_key, cc_list):
-  merge_details = {}
-  if commit_cache_key:
-    merge_details = update_bug_with_results.GetMergeIssueDetails(
-        issue_tracker, commit_cache_key)
-    if merge_details['id']:
-      cc_list = []
-  return merge_details, cc_list
-
-
 def _PostBugCommentDeferred(bug_id, *args, **kwargs):
   if not bug_id:
     return
@@ -845,155 +811,6 @@ def _PostBugCommentDeferred(bug_id, *args, **kwargs):
   issue_tracker.AddBugComment(bug_id, *args, **kwargs)
 
 
-def _GenerateCommitCacheKey(commit_infos):
-  commit_cache_key = None
-  if len(commit_infos) == 1:
-    commit_cache_key = update_bug_with_results._GetCommitHashCacheKey(
-        commit_infos[0].get('git_hash'))
-  return commit_cache_key
-
-
-def _ComputePostOwnerSheriffCCList(commits_with_deltas):
-  owner = None
-  sheriff = None
-  cc_list = set()
-
-  # First, we sort the list of commits by absolute change.
-  ordered_commits_by_delta = [
-      commit for _, commit in sorted(
-          commits_with_deltas, key=lambda i: abs(i[0]), reverse=True)
-  ]
-
-  # We assign the issue to the author of the CL at the head of the ordered list.
-  # Then we only CC the folks in the top two commits.
-  for commit in ordered_commits_by_delta[:2]:
-    if not owner:
-      owner = commit['author']
-    sheriff = utils.GetSheriffForAutorollCommit(owner, commit['message'])
-    cc_list.add(commit['author'])
-    if sheriff:
-      owner = sheriff
-
-  return owner, sheriff, cc_list
-
-
-def _UpdatePostAndMergeDeferred(difference_details, commit_infos,
-                                commits_with_deltas, bug_id, tags, url):
-  if not bug_id:
-    return
-
-  commit_cache_key = _GenerateCommitCacheKey(commit_infos)
-
-  # Bring it all together.
-  owner, sheriff, cc_list = _ComputePostOwnerSheriffCCList(commits_with_deltas)
-  comment = _FormatComment(difference_details, commit_infos, sheriff, tags, url)
-  issue_tracker = issue_tracker_service.IssueTrackerService(
-      utils.ServiceAccountHttp())
-  merge_details, cc_list = _ComputePostMergeDetails(issue_tracker,
-                                                    commit_cache_key, cc_list)
-  current_bug_status = _GetBugStatus(issue_tracker, bug_id)
-  if not current_bug_status:
-    return
-
-  status = None
-  bug_owner = None
-  label = 'Pinpoint-Culprit-Found' if len(
-      difference_details) == 1 else 'Pinpoint-Multiple-Culprits'
-
-  if current_bug_status in ['Untriaged', 'Unconfirmed', 'Available']:
-    # Set the bug status and owner if this bug is opened and unowned.
-    status = 'Assigned'
-    bug_owner = owner
-
-  issue_tracker.AddBugComment(
-      bug_id,
-      comment,
-      status=status,
-      cc_list=sorted(cc_list),
-      owner=bug_owner,
-      labels=[label],
-      merge_issue=merge_details.get('id'))
-  update_bug_with_results.UpdateMergeIssue(commit_cache_key, merge_details,
-                                           bug_id)
-
-
 def _UpdateGerritDeferred(*args, **kwargs):
   gerrit_service.PostChangeComment(*args, **kwargs)
 
-
-def _FormatDifferenceForBug(commit_info, values_a, values_b, metric):
-  subject = '<b>%s</b> by %s' % (commit_info['subject'], commit_info['author'])
-
-  if values_a:
-    mean_a = job_state.Mean(values_a)
-    formatted_a = '%.4g' % mean_a
-  else:
-    mean_a = None
-    formatted_a = 'No values'
-
-  if values_b:
-    mean_b = job_state.Mean(values_b)
-    formatted_b = '%.4g' % mean_b
-  else:
-    mean_b = None
-    formatted_b = 'No values'
-
-  metric = '%s: ' % metric if metric else ''
-
-  difference = '%s%s %s %s' % (metric, formatted_a, _RIGHT_ARROW, formatted_b)
-  if values_a and values_b:
-    difference += ' (%+.4g)' % (mean_b - mean_a)
-    if mean_a:
-      difference += ' (%+.4g%%)' % ((mean_b - mean_a) / mean_a * 100)
-    else:
-      difference += ' (+%s%%)' % _INFINITY
-
-  return '\n'.join((subject, commit_info['url'], difference))
-
-
-def _FormatComment(difference_details, commit_infos, sheriff, tags, url):
-  if len(difference_details) == 1:
-    status = 'Found a significant difference after 1 commit.'
-  else:
-    status = ('Found significant differences after each of %d commits.' %
-              len(difference_details))
-
-  title = '<b>%s %s</b>' % (_ROUND_PUSHPIN, status)
-  header = '\n'.join((title, url))
-  body = '\n\n'.join(difference_details)
-  if sheriff:
-    body += '\n\nAssigning to sheriff %s because "%s" is a roll.' % (
-        sheriff, commit_infos[-1]['subject'])
-
-  footer = ('Understanding performance regressions:\n'
-            '  http://g.co/ChromePerformanceRegressions')
-
-  if difference_details:
-    footer += _FormatDocumentationUrls(tags)
-
-  comment = '\n\n'.join((header, body, footer))
-  return comment
-
-
-def _FormatDocumentationUrls(tags):
-  if not tags:
-    return ''
-
-  # TODO(simonhatch): Tags isn't the best way to get at this, but wait until
-  # we move this back into the dashboard so we have a better way of getting
-  # at the test path.
-  # crbug.com/876899
-  test_path = tags.get('test_path')
-  if not test_path:
-    return ''
-
-  test_suite = utils.TestKey('/'.join(test_path.split('/')[:3]))
-  docs = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
-      test_suite, [reserved_infos.DOCUMENTATION_URLS.name])
-
-  if not docs:
-    return ''
-
-  docs = docs[reserved_infos.DOCUMENTATION_URLS.name].get('values')
-  footer = '\n\n%s:\n  %s' % (docs[0][0], docs[0][1])
-  return footer
