@@ -317,7 +317,7 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertEqual(len(rows), 3)
     self.assertTrue(rows[2].key.parent().id().endswith('_pct_090'))
 
-  def testPostHistogram_FiltersV8Stats(self):
+  def testPostHistogram_V8StatsNotSpecial(self):
     test_path = 'Chromium/win7/v8.browsing_desktop/v8-gc-blah'
 
     params = [{
@@ -329,7 +329,8 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.testapp.post('/add_histograms_queue', json.dumps(params))
 
     rows = graph_data.Row.query().fetch()
-    self.assertEqual(len(rows), 1)
+    # We now create all the stats as described in the histogram.
+    self.assertEqual(len(rows), 7)
     self.assertEqual(
         rows[0].key.parent().id(),
         'Chromium/win7/v8.browsing_desktop/v8-gc-blah')

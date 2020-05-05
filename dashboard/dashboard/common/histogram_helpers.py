@@ -171,9 +171,6 @@ def ShouldFilterStatistic(test_name, benchmark_name, stat_name):
   if benchmark_name.startswith('system_health'):
     if stat_name in _STATS_BLACKLIST:
       return True
-  if benchmark_name.startswith('v8.browsing'):
-    value_name = '%s_%s' % (test_name, stat_name)
-    return not _ShouldAddV8BrowsingValue(value_name)
   return False
 
 
@@ -192,27 +189,3 @@ def _ShouldAddMemoryLongRunningValue(value_name):
             'renderer:vmstats:overall' in value_name or
             bool(v8_re.search(value_name)))
   return 'v8' in value_name
-
-
-def _ShouldAddV8BrowsingValue(value_name):
-  v8_gc_re = re.compile(
-      r'^v8-gc-('
-      r'full-mark-compactor_|'
-      r'incremental-finalize_|'
-      r'incremental-step_|'
-      r'latency-mark-compactor_|'
-      r'memory-mark-compactor_|'
-      r'scavenger_|'
-      r'total_)')
-  stats_re = re.compile(r'_(std|count|min|sum|pct_\d{4}(_\d+)?)$')
-  v8_stats_re = re.compile(
-      r'_(idle_deadline_overrun|percentage_idle|outside_idle)')
-  if 'memory:unknown_browser' in value_name:
-    return ('renderer_processes' in value_name and
-            not stats_re.search(value_name))
-  if 'memory:chrome' in value_name:
-    return ('renderer_processes' in value_name and
-            not stats_re.search(value_name))
-  if 'v8-gc' in value_name:
-    return v8_gc_re.search(value_name) and not v8_stats_re.search(value_name)
-  return True
