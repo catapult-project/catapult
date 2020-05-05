@@ -209,16 +209,14 @@ class _RunTestExecution(execution_module.Execution):
 
     if result['failure']:
       if 'outputs_ref' not in result:
-        task_url = 'https://%s/task?id=%s' % (self._swarming_server,
-                                              self._task_id)
-        raise errors.SwarmingTaskFailed('<a href="%s">%s</a>' %
-                                        (task_url, task_url))
+        task_url = '%s/task?id=%s' % (self._swarming_server, self._task_id)
+        raise errors.SwarmingTaskFailed('%s' % (task_url,))
       else:
-        isolate_output_url = 'https://%s/browse?digest=%s' % (
+        isolate_output_url = '%s/browse?digest=%s' % (
             result['outputs_ref']['isolatedserver'],
             result['outputs_ref']['isolated'])
         raise errors.SwarmingTaskFailed(
-            '<a href="%s">%s</a>' % (isolate_output_url, isolate_output_url))
+            '%s' % (isolate_output_url,))
 
     result_arguments = {
         'isolate_server': result['outputs_ref']['isolatedserver'],

@@ -262,7 +262,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
         'failure': True,
         'state': 'COMPLETED',
         'outputs_ref': {
-            'isolatedserver': 'server',
+            'isolatedserver': 'https://server',
             'isolated': 'deadc0de',
         },
     }
