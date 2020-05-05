@@ -1,0 +1,14 @@
+Alert group updated:
+
+Added {{ regressions|length }} regressions to the group
+  https://chromeperf.appspot.com/group_report?group_id={{ group.key.string_id() }}
+{% for benchmark in benchmarks|sort %}
+{% set top_regressions = benchmark.regressions[:3] -%}
+Top {{ top_regressions|length }} affected measurements in {{ benchmark.name }}:
+{%- for regression in top_regressions %}
+  - {{ regression.test.string_id() }}
+    {%- set before = regression.median_before_anomaly %}
+    {%- set after = regression.median_after_anomaly %}
+    {{ '%8.2f'|format((after/before-1)*100) }}%: {{ before }} -> {{ after }} {{ parse_unit(regression.units) }}
+{%- endfor %}
+{% endfor %}

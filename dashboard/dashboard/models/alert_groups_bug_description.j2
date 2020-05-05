@@ -1,0 +1,29 @@
+All graphs for this regression group at {{ group.revision.start }}:{{ group.revision.end }}:
+  https://chromeperf.appspot.com/group_report?group_id={{ group.key.string_id() }}
+
+{% set top_regressions = regressions[:10] -%}
+Top {{ top_regressions|length }} regressions (out of {{ regressions|length }}, with {{ group.anomalies|length - regressions|length }} improvements) in this group:
+{%- for regression in top_regressions %}
+  - {{ regression.test.string_id() }}
+    {%- set before = regression.median_before_anomaly %}
+    {%- set after = regression.median_after_anomaly %}
+    {{ '%8.2f'|format((after/before-1)*100) }}%: {{ before }} -> {{ after }} {{ parse_unit(regression.units) }}
+{%- endfor %}
+{% for benchmark in benchmarks|sort %}
+{% set top_regressions = benchmark.regressions[:3] -%}
+Top {{ top_regressions|length }} affected measurements in {{ benchmark.name }}:
+{%- for regression in top_regressions %}
+  - {{ regression.test.string_id() }}
+    {%- set before = regression.median_before_anomaly %}
+    {%- set after = regression.median_after_anomaly %}
+    {{ '%8.2f'|format((after/before-1)*100) }}%: {{ before }} -> {{ after }} {{ parse_unit(regression.units) }}
+{%- endfor %}
+{% endfor %}
+Regressions grouped by {{ group.name }} includes data from the following benchmarks with listed owners:
+{%- for benchmark in benchmarks|sort %}
+  {{ benchmark.name }}: {{ benchmark.owners|sort|join(',') }}
+{%- endfor %}
+
+{# TODO(fancl): directly use commit range instead -#}
+Commits in this range:
+  https://test-results.appspot.com/revision_range?start={{ group.revision.start }}&end={{ group.revision.end }}&n=1000
