@@ -140,12 +140,40 @@ class NewTest(_NewTest):
     job = job_module.JobFromId(json.loads(response.body)['jobId'])
     self.assertEqual(job.comparison_mode, 'performance')
 
+  def testComparisonModePerformance_ApplyPatch(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'performance'
+    request['patch'] = 'https://lalala/c/foo/bar/+/123'
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertEqual(job.comparison_mode, 'performance')
+    self.assertEqual(
+        job.state._changes[0].id_string,
+        'chromium@1 + %s' % ('https://lalala/repo~branch~id/abc123',))
+    self.assertEqual(
+        job.state._changes[1].id_string,
+        'chromium@3 + %s' % ('https://lalala/repo~branch~id/abc123',))
+
   def testComparisonModeTry(self):
     request = dict(_BASE_REQUEST)
     request['comparison_mode'] = 'try'
     response = self.Post('/api/new', request, status=200)
     job = job_module.JobFromId(json.loads(response.body)['jobId'])
     self.assertEqual(job.comparison_mode, 'try')
+    self.assertEqual(job.state._changes[0].id_string, 'chromium@3')
+    self.assertEqual(job.state._changes[1].id_string, 'chromium@3')
+
+  def testComparisonModeTry_ApplyPatch(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'try'
+    request['patch'] = 'https://lalala/c/foo/bar/+/123'
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertEqual(job.comparison_mode, 'try')
+    self.assertEqual(job.state._changes[0].id_string, 'chromium@3')
+    self.assertEqual(
+        job.state._changes[1].id_string,
+        'chromium@3 + %s' % ('https://lalala/repo~branch~id/abc123',))
 
   def testComparisonModeTry_MissingRequiredArgs(self):
     request = dict(_BASE_REQUEST)
@@ -153,6 +181,39 @@ class NewTest(_NewTest):
     del request['story']
     response = self.Post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
+
+  def testComparisonModeTry_MissingBaseGitHash(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'try'
+    del request['base_git_hash']
+    response = self.Post('/api/new', request, status=400)
+    self.assertIn('error', json.loads(response.body))
+
+  def testComparisonModeTry_SupportDebugTrace(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'try'
+    request['end_git_hash'] = 'f00d'
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertEqual(job.comparison_mode, 'try')
+    self.assertEqual(job.state._changes[0].id_string, 'chromium@3')
+    self.assertEqual(job.state._changes[1].id_string, 'chromium@f00d')
+
+  def testComparisonModeTry_SupportDebugTraceWithPatch(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'try'
+    request['end_git_hash'] = 'f00d'
+    request['patch'] = 'https://lalala/c/foo/bar/+/123'
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertEqual(job.comparison_mode, 'try')
+    self.assertEqual(
+        job.state._changes[0].id_string,
+        'chromium@3 + %s' % ('https://lalala/repo~branch~id/abc123',))
+    self.assertEqual(
+        job.state._changes[1].id_string,
+        'chromium@f00d + %s' % ('https://lalala/repo~branch~id/abc123',))
+
 
   def testComparisonModeOmitted(self):
     request = dict(_BASE_REQUEST)
