@@ -165,7 +165,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('system_health', results['benchmark'])
     self.assertEqual('performance_test_suite', results['target'])
     self.assertEqual('foo@chromium.org', results['user'])
-    self.assertEqual('abcd1234', results['start_git_hash'])
+    self.assertEqual('abcd1234', results['base_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertEqual(
         ['--extra-trace-args', 'abc,123,foo'],
@@ -188,7 +188,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('system_health', results['benchmark'])
     self.assertEqual('performance_webview_test_suite', results['target'])
     self.assertEqual('foo@chromium.org', results['user'])
-    self.assertEqual('abcd1234', results['start_git_hash'])
+    self.assertEqual('abcd1234', results['base_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
 
   @mock.patch.object(
@@ -206,7 +206,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
-    self.assertEqual('abcd', results['start_git_hash'])
+    self.assertEqual('abcd', results['base_git_hash'])
     self.assertEqual('abcd', results['end_git_hash'])
 
   @mock.patch.object(
@@ -223,7 +223,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     }
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
-    self.assertEqual('abcd1234', results['start_git_hash'])
+    self.assertEqual('abcd1234', results['base_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
     self.assertFalse(mock_crrev.called)
 

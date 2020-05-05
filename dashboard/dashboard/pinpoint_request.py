@@ -249,7 +249,7 @@ def PinpointParamsFromPerfTryParams(params):
       'comparison_mode': 'try',
       'configuration': bot_name,
       'benchmark': suite,
-      'start_git_hash': start_git_hash,
+      'base_git_hash': start_git_hash,
       'end_git_hash': end_git_hash,
       'extra_test_args': extra_test_args,
       'target': target,
