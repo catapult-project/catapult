@@ -208,6 +208,7 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
     raise ndb.Return()
 
   yield ndb.put_multi_async(rows) + [r.UpdateParentAsync() for r in rows]
+  logging.debug('Processed %s row entities.', len(rows))
 
   def IsMonitored(client, test):
     reason = []
