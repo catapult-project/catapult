@@ -531,12 +531,18 @@ class Job(ndb.Model):
       }
 
     if not differences:
+      # When we cannot find a difference, we want to not only update the issue
+      # with that (minimal) information but also automatically mark the issue
+      # WontFix. This is based on information we've gathered in production that
+      # most issues where we find Pinpoint cannot reproduce the difference end
+      # up invariably as "Unconfirmed" with very little follow-up.
       title = "<b>%s Couldn't reproduce a difference.</b>" % _ROUND_PUSHPIN
       deferred.defer(
           _PostBugCommentDeferred,
           self.bug_id,
           '\n'.join((title, self.url)),
           labels=['Pinpoint-No-Repro'],
+          status='WontFix',
           _retry_options=RETRY_OPTIONS)
       return
 

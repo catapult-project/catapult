@@ -293,6 +293,7 @@ class BugCommentTest(test.TestCase):
         123456,
         _COMMENT_COMPLETED_NO_DIFFERENCES,
         labels=['Pinpoint-No-Repro'],
+        status='WontFix',
     )
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
