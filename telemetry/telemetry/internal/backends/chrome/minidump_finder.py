@@ -113,7 +113,7 @@ class MinidumpFinder(object):
       return None
     try:
       crashpad_database_util = binary_manager.FetchPath(
-          'crashpad_database_util', self._os, self._arch)
+          'crashpad_database_util', self._arch, self._os)
       if not crashpad_database_util:
         self._explanation.append('Unable to find crashpad_database_util. This '
                                  'is likely due to running on a platform that '

@@ -81,7 +81,7 @@ class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
       logging.warning(
           'Unable to find locally built minidump_dump, using Catapult version.')
       minidump_dump = binary_manager.FetchPath(
-          'minidump_dump', self._os_name, self._arch_name)
+          'minidump_dump', self._arch_name, self._os_name)
     assert minidump_dump
 
     symbol_binaries = []
