@@ -74,6 +74,26 @@ class GroupReportTest(testing_common.TestCase):
     a.groups = alert_group.AlertGroup.GetGroupsForAnomaly(a)
     return a.put()
 
+  def _AddAnomalyNoOwners(self,
+                          test='master/bot/test_suite/measurement/test_case',
+                          start_revision=0,
+                          end_revision=100,
+                          is_improvement=False):
+    a = anomaly.Anomaly(
+        test=utils.TestKey(test),
+        start_revision=start_revision,
+        end_revision=end_revision,
+        is_improvement=is_improvement,
+        median_before_anomaly=1.1,
+        median_after_anomaly=1.3,
+        ownership={
+            'component': 'Foo>Bar',
+            'emails': None,
+        },
+    )
+    a.groups = alert_group.AlertGroup.GetGroupsForAnomaly(a)
+    return a.put()
+
   def testNoGroup(self, _):
     # Put an anomaly before Ungrouped is created
     self._AddAnomaly()
@@ -154,6 +174,31 @@ class GroupReportTest(testing_common.TestCase):
     self.assertItemsEqual(MockIssueTrackerService.new_bug_kwargs['components'],
                           ['Foo>Bar'])
     self.assertEqual(a.get().bug_id, 12345)
+
+  def testTriageAltertsGroupNoOwners(self, mock_get_sheriff_client):
+    sheriff = subscription.Subscription(name='sheriff', auto_triage_enable=True)
+    mock_get_sheriff_client().Match.return_value = ([sheriff], None)
+    self.PatchObject(alert_group, '_IssueTracker',
+                     lambda: MockIssueTrackerService)
+    self.testapp.get('/alert_groups_update')
+    # Add anomalies
+    a = self._AddAnomalyNoOwners()
+    # Create Group
+    self.testapp.get('/alert_groups_update')
+    # Update Group to associate alerts
+    self.testapp.get('/alert_groups_update')
+    # Set Create timestamp to 2 hours ago
+    group = alert_group.AlertGroup.Get('test_suite', None)[0]
+    group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
+    group.put()
+    # Submit issue
+    self.testapp.get('/alert_groups_update')
+    group = alert_group.AlertGroup.Get('test_suite', None)[0]
+    self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
+    self.assertItemsEqual(MockIssueTrackerService.new_bug_kwargs['components'],
+                          ['Foo>Bar'])
+    self.assertEqual(a.get().bug_id, 12345)
+
 
   def testAddAlertsAfterTriage(self, mock_get_sheriff_client):
     sheriff = subscription.Subscription(name='sheriff', auto_triage_enable=True)

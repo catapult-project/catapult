@@ -214,7 +214,8 @@ class AlertGroup(ndb.Model):
       benchmark = benchmarks_dict.get(
           name, cls._benchmark_tuple(name, set(), []))
       if regression.ownership:
-        benchmark.owners.update(regression.ownership.get('emails', []))
+        emails = regression.ownership.get('emails') or []
+        benchmark.owners.update(emails)
       benchmark.regressions.append(regression)
       benchmarks_dict[name] = benchmark
     return benchmarks_dict.values()
