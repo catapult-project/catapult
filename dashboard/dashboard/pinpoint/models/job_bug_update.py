@@ -94,6 +94,11 @@ class DifferencesFoundBugUpdateBuilder(object):
     """
     ordered_commits = self._OrderedCommitsByDelta()
 
+    if len(ordered_commits) == 0:
+      # No commits have deltas, so just use the original ordering (the change
+      # order) for picking people to notify.
+      ordered_commits = [d.commit_info for d in self._differences]
+
     # CC the folks in the top N commits.  N is scaled by the number of commits
     # (fewer than 10 means N=1, fewer than 100 means N=2, etc.)
     commits_cap = int(math.floor(math.log10(len(ordered_commits)))) + 1

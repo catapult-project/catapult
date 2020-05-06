@@ -758,6 +758,60 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
+  def testCompletedMultipleDifferences_NoDeltas(self, differences,
+                                                result_values, commit_as_dict):
+    """Regression test for http://crbug.com/1078680.
+
+    Picks people to notify even when none of the differences have deltas (they
+    are all transitions to/from "No values").
+    """
+    # Two differences, neither has deltas (50 -> No Values, No Values -> 50).
+    c0 = change.Change((change.Commit('chromium', 'git_hash_0'),))
+    c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
+    c2 = change.Change((change.Commit('chromium', 'git_hash_2'),))
+    change_map = {c0: [50], c1: [], c2: [50]}
+    differences.return_value = [(c0, c1), (c1, c2)]
+    result_values.side_effect = lambda c: change_map.get(c, [])
+    commit_as_dict.side_effect = (
+        {
+            'repository': 'chromium',
+            'git_hash': 'git_hash_1',
+            'url': 'https://example.com/repository/+/git_hash_1',
+            'author': 'author1@chromium.org',
+            'subject': 'Subject.',
+            'message': 'Subject.\n\nCommit message.',
+        },
+        {
+            'repository': 'chromium',
+            'git_hash': 'git_hash_2',
+            'url': 'https://example.com/repository/+/git_hash_2',
+            'author': 'author2@chromium.org',
+            'subject': 'Subject.',
+            'message': 'Subject.\n\nCommit message.',
+        },
+    )
+
+    self.get_issue.return_value = {'status': 'Untriaged'}
+
+    j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
+    j.Run()
+
+    self.ExecuteDeferredTasks('default')
+
+    self.assertFalse(j.failed)
+
+    # Notifies the owner of the first change in the list of differences, seeing
+    # as they are all equally small.
+    self.add_bug_comment.assert_called_once_with(
+        123456, mock.ANY,
+        status='Assigned', owner='author1@chromium.org',
+        cc_list=['author1@chromium.org'],
+        labels=['Pinpoint-Multiple-Culprits'],
+        merge_issue=None)
+
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedWithAutoroll(
       self, differences, result_values, commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
