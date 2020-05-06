@@ -2,9 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import base64
+import gzip
 import os
-import posixpath
 import re
+import StringIO
 
 from devil import devil_env
 from devil.android import device_errors
@@ -13,7 +15,16 @@ from devil.utils import cmd_helper
 MD5SUM_DEVICE_LIB_PATH = '/data/local/tmp/md5sum'
 MD5SUM_DEVICE_BIN_PATH = MD5SUM_DEVICE_LIB_PATH + '/md5sum_bin'
 
-_STARTS_WITH_CHECKSUM_RE = re.compile(r'^\s*[0-9a-fA-F]{32}\s+')
+_STARTS_WITH_CHECKSUM_RE = re.compile(r'^[0-9a-fA-F]{16}$')
+
+# We need to cap how many paths we send to the md5_sum binaries at once because
+# the ARG_MAX on Android devices is relatively small, typically 131072 bytes.
+# However, the more paths we use per invocation, the lower the overhead of
+# starting processes, so we want to maximize this number, but we can't compute
+# it exactly as we don't know how well our paths will compress.
+# 5000 is experimentally determined to be reasonable. 10000 fails, and 7500
+# works with existing usage, so 5000 seems like a pretty safe compromise.
+_MAX_PATHS_PER_INVOCATION = 5000
 
 
 def CalculateHostMd5Sums(paths):
@@ -29,14 +40,22 @@ def CalculateHostMd5Sums(paths):
   """
   if isinstance(paths, basestring):
     paths = [paths]
+  paths = list(paths)
 
   md5sum_bin_host_path = devil_env.config.FetchPath('md5sum_host')
   if not os.path.exists(md5sum_bin_host_path):
     raise IOError('File not built: %s' % md5sum_bin_host_path)
-  out = cmd_helper.GetCmdOutput([md5sum_bin_host_path] +
-                                [os.path.realpath(p) for p in paths])
+  out = ""
+  for i in range(0, len(paths), _MAX_PATHS_PER_INVOCATION):
+    mem_file = StringIO.StringIO()
+    compressed = gzip.GzipFile(fileobj=mem_file, mode="wb")
+    compressed.write(";".join(
+        [os.path.realpath(p) for p in paths[i:i+_MAX_PATHS_PER_INVOCATION]]))
+    compressed.close()
+    compressed_paths = base64.b64encode(mem_file.getvalue())
+    out += cmd_helper.GetCmdOutput([md5sum_bin_host_path, "-gz", compressed_paths])
 
-  return _ParseMd5SumOutput(out.splitlines())
+  return dict(zip(paths, out.splitlines()))
 
 
 def CalculateDeviceMd5Sums(paths, device):
@@ -55,7 +74,6 @@ def CalculateDeviceMd5Sums(paths, device):
 
   if isinstance(paths, basestring):
     paths = [paths]
-  # Allow generators
   paths = list(paths)
 
   md5sum_dist_path = devil_env.config.FetchPath('md5sum_device', device=device)
@@ -78,16 +96,13 @@ def CalculateDeviceMd5Sums(paths, device):
   md5sum_script += '! [[ $(ls -l $a) = *%d* ]]&&exit 2;' % md5sum_file_size
   # Make sure it can find libbase.so
   md5sum_script += 'export LD_LIBRARY_PATH=%s;' % MD5SUM_DEVICE_LIB_PATH
-  if len(paths) > 1:
-    prefix = posixpath.commonprefix(paths)
-    if len(prefix) > 4:
-      md5sum_script += 'p="%s";' % prefix
-      paths = ['$p"%s"' % p[len(prefix):] for p in paths]
-
-  md5sum_script += ';'.join('$a %s' % p for p in paths)
-  # Don't fail the script if the last md5sum fails (due to file not found)
-  # Note: ":" is equivalent to "true".
-  md5sum_script += ';:'
+  for i in range(0, len(paths), _MAX_PATHS_PER_INVOCATION):
+    mem_file = StringIO.StringIO()
+    compressed = gzip.GzipFile(fileobj=mem_file, mode="wb")
+    compressed.write(";".join(paths[i:i+_MAX_PATHS_PER_INVOCATION]))
+    compressed.close()
+    compressed_paths = base64.b64encode(mem_file.getvalue())
+    md5sum_script += '$a -gz %s;' % compressed_paths
   try:
     out = device.RunShellCommand(
         md5sum_script, shell=True, check_return=True, large_output=True)
@@ -113,10 +128,4 @@ def CalculateDeviceMd5Sums(paths, device):
     else:
       raise
 
-  return _ParseMd5SumOutput(out)
-
-
-def _ParseMd5SumOutput(out):
-  hash_and_path = (l.split(None, 1) for l in out
-                   if l and _STARTS_WITH_CHECKSUM_RE.match(l))
-  return dict((p, h) for h, p in hash_and_path)
+  return dict(zip(paths, [l for l in out if _STARTS_WITH_CHECKSUM_RE.match(l)]))

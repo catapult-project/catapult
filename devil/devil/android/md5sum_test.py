@@ -40,52 +40,30 @@ class Md5SumTest(unittest.TestCase):
   def testCalculateHostMd5Sums_singlePath(self):
     test_path = '/test/host/file.dat'
     mock_get_cmd_output = mock.Mock(
-        return_value='0123456789abcdeffedcba9876543210 /test/host/file.dat')
+        return_value='0123456789abcdef')
     with mock.patch(
         'devil.utils.cmd_helper.GetCmdOutput', new=mock_get_cmd_output):
       out = md5sum.CalculateHostMd5Sums(test_path)
       self.assertEquals(1, len(out))
       self.assertTrue('/test/host/file.dat' in out)
-      self.assertEquals('0123456789abcdeffedcba9876543210',
-                        out['/test/host/file.dat'])
+      self.assertEquals('0123456789abcdef', out['/test/host/file.dat'])
       mock_get_cmd_output.assert_called_once_with(
-          [HOST_MD5_EXECUTABLE, '/test/host/file.dat'])
+          [HOST_MD5_EXECUTABLE, "-gz", mock.ANY])
 
   def testCalculateHostMd5Sums_list(self):
     test_paths = ['/test/host/file0.dat', '/test/host/file1.dat']
     mock_get_cmd_output = mock.Mock(
-        return_value='0123456789abcdeffedcba9876543210 /test/host/file0.dat\n'
-        '123456789abcdef00fedcba987654321 /test/host/file1.dat\n')
+        return_value='0123456789abcdef\n123456789abcdef0\n')
     with mock.patch(
         'devil.utils.cmd_helper.GetCmdOutput', new=mock_get_cmd_output):
       out = md5sum.CalculateHostMd5Sums(test_paths)
       self.assertEquals(2, len(out))
       self.assertTrue('/test/host/file0.dat' in out)
-      self.assertEquals('0123456789abcdeffedcba9876543210',
-                        out['/test/host/file0.dat'])
+      self.assertEquals('0123456789abcdef', out['/test/host/file0.dat'])
       self.assertTrue('/test/host/file1.dat' in out)
-      self.assertEquals('123456789abcdef00fedcba987654321',
-                        out['/test/host/file1.dat'])
+      self.assertEquals('123456789abcdef0', out['/test/host/file1.dat'])
       mock_get_cmd_output.assert_called_once_with(
-          [HOST_MD5_EXECUTABLE, '/test/host/file0.dat', '/test/host/file1.dat'])
-
-  def testCalculateHostMd5Sums_generator(self):
-    test_paths = ('/test/host/' + p for p in ['file0.dat', 'file1.dat'])
-    mock_get_cmd_output = mock.Mock(
-        return_value='0123456789abcdeffedcba9876543210 /test/host/file0.dat\n'
-        '123456789abcdef00fedcba987654321 /test/host/file1.dat\n')
-    with mock.patch(
-        'devil.utils.cmd_helper.GetCmdOutput', new=mock_get_cmd_output):
-      out = md5sum.CalculateHostMd5Sums(test_paths)
-      self.assertEquals(2, len(out))
-      self.assertTrue('/test/host/file0.dat' in out)
-      self.assertEquals('0123456789abcdeffedcba9876543210',
-                        out['/test/host/file0.dat'])
-      self.assertTrue('/test/host/file1.dat' in out)
-      self.assertEquals('123456789abcdef00fedcba987654321',
-                        out['/test/host/file1.dat'])
-      mock_get_cmd_output.assert_called_once_with(
-          [HOST_MD5_EXECUTABLE, '/test/host/file0.dat', '/test/host/file1.dat'])
+          [HOST_MD5_EXECUTABLE, "-gz", mock.ANY])
 
   def testCalculateDeviceMd5Sums_noPaths(self):
     device = mock.NonCallableMock()
@@ -98,17 +76,14 @@ class Md5SumTest(unittest.TestCase):
     test_path = '/storage/emulated/legacy/test/file.dat'
 
     device = mock.NonCallableMock()
-    device_md5sum_output = [
-        '0123456789abcdeffedcba9876543210 '
-        '/storage/emulated/legacy/test/file.dat',
-    ]
+    device_md5sum_output = ['0123456789abcdef',]
     device.RunShellCommand = mock.Mock(return_value=device_md5sum_output)
 
     with mock.patch('os.path.getsize', return_value=1337):
       out = md5sum.CalculateDeviceMd5Sums(test_path, device)
       self.assertEquals(1, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file.dat' in out)
-      self.assertEquals('0123456789abcdeffedcba9876543210',
+      self.assertEquals('0123456789abcdef',
                         out['/storage/emulated/legacy/test/file.dat'])
       self.assertEquals(1, len(device.RunShellCommand.call_args_list))
 
@@ -119,10 +94,8 @@ class Md5SumTest(unittest.TestCase):
     ]
     device = mock.NonCallableMock()
     device_md5sum_output = [
-        '0123456789abcdeffedcba9876543210 '
-        '/storage/emulated/legacy/test/file0.dat',
-        '123456789abcdef00fedcba987654321 '
-        '/storage/emulated/legacy/test/file1.dat',
+        '0123456789abcdef',
+        '123456789abcdef0',
     ]
     device.RunShellCommand = mock.Mock(return_value=device_md5sum_output)
 
@@ -130,10 +103,10 @@ class Md5SumTest(unittest.TestCase):
       out = md5sum.CalculateDeviceMd5Sums(test_path, device)
       self.assertEquals(2, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file0.dat' in out)
-      self.assertEquals('0123456789abcdeffedcba9876543210',
+      self.assertEquals('0123456789abcdef',
                         out['/storage/emulated/legacy/test/file0.dat'])
       self.assertTrue('/storage/emulated/legacy/test/file1.dat' in out)
-      self.assertEquals('123456789abcdef00fedcba987654321',
+      self.assertEquals('123456789abcdef0',
                         out['/storage/emulated/legacy/test/file1.dat'])
       self.assertEquals(1, len(device.RunShellCommand.call_args_list))
 
@@ -143,10 +116,8 @@ class Md5SumTest(unittest.TestCase):
 
     device = mock.NonCallableMock()
     device_md5sum_output = [
-        '0123456789abcdeffedcba9876543210 '
-        '/storage/emulated/legacy/test/file0.dat',
-        '123456789abcdef00fedcba987654321 '
-        '/storage/emulated/legacy/test/file1.dat',
+        '0123456789abcdef',
+        '123456789abcdef0',
     ]
     device.RunShellCommand = mock.Mock(return_value=device_md5sum_output)
 
@@ -154,10 +125,10 @@ class Md5SumTest(unittest.TestCase):
       out = md5sum.CalculateDeviceMd5Sums(test_path, device)
       self.assertEquals(2, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file0.dat' in out)
-      self.assertEquals('0123456789abcdeffedcba9876543210',
+      self.assertEquals('0123456789abcdef',
                         out['/storage/emulated/legacy/test/file0.dat'])
       self.assertTrue('/storage/emulated/legacy/test/file1.dat' in out)
-      self.assertEquals('123456789abcdef00fedcba987654321',
+      self.assertEquals('123456789abcdef0',
                         out['/storage/emulated/legacy/test/file1.dat'])
       self.assertEquals(1, len(device.RunShellCommand.call_args_list))
 
@@ -170,8 +141,7 @@ class Md5SumTest(unittest.TestCase):
         'WARNING: linker: /data/local/tmp/md5sum/md5sum_bin: '
         'unused DT entry: type 0x1d arg 0x15db',
         'THIS_IS_NOT_A_VALID_CHECKSUM_ZZZ some random text',
-        '0123456789abcdeffedcba9876543210 '
-        '/storage/emulated/legacy/test/file.dat',
+        '0123456789abcdef',
     ]
     device.RunShellCommand = mock.Mock(return_value=device_md5sum_output)
 
@@ -179,7 +149,7 @@ class Md5SumTest(unittest.TestCase):
       out = md5sum.CalculateDeviceMd5Sums(test_path, device)
       self.assertEquals(1, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file.dat' in out)
-      self.assertEquals('0123456789abcdeffedcba9876543210',
+      self.assertEquals('0123456789abcdef',
                         out['/storage/emulated/legacy/test/file.dat'])
       self.assertEquals(1, len(device.RunShellCommand.call_args_list))
 
@@ -190,8 +160,7 @@ class Md5SumTest(unittest.TestCase):
     ]
     device = mock.NonCallableMock()
     device_md5sum_output = [
-        '0123456789abcdeffedcba9876543210 '
-        '/storage/emulated/legacy/test/file0.dat',
+        '0123456789abcdef',
         '[0819/203513:ERROR:md5sum.cc(25)] Could not open file asdf',
         '',
     ]
@@ -201,7 +170,7 @@ class Md5SumTest(unittest.TestCase):
       out = md5sum.CalculateDeviceMd5Sums(test_path, device)
       self.assertEquals(1, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file0.dat' in out)
-      self.assertEquals('0123456789abcdeffedcba9876543210',
+      self.assertEquals('0123456789abcdef',
                         out['/storage/emulated/legacy/test/file0.dat'])
       self.assertEquals(1, len(device.RunShellCommand.call_args_list))
 
@@ -215,8 +184,7 @@ class Md5SumTest(unittest.TestCase):
         'WARNING: linker: /data/local/tmp/md5sum/md5sum_bin: '
         'unused DT entry: type 0x1d arg 0x15db',
         'THIS_IS_NOT_A_VALID_CHECKSUM_ZZZ some random text',
-        '0123456789abcdeffedcba9876543210 '
-        '/storage/emulated/legacy/test/file.dat',
+        '0123456789abcdef',
     ]
     error = device_errors.AdbShellCommandFailedError('cmd', 'out', 2)
     device.RunShellCommand = mock.Mock(
@@ -228,7 +196,7 @@ class Md5SumTest(unittest.TestCase):
       out = md5sum.CalculateDeviceMd5Sums(test_path, device)
       self.assertEquals(1, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file.dat' in out)
-      self.assertEquals('0123456789abcdeffedcba9876543210',
+      self.assertEquals('0123456789abcdef',
                         out['/storage/emulated/legacy/test/file.dat'])
       self.assertEquals(3, len(device.RunShellCommand.call_args_list))
       device.adb.Push.assert_called_once_with('test/out/directory/md5sum_dist',
