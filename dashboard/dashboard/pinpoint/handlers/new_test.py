@@ -55,11 +55,15 @@ class _NewTest(test.TestCase):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
 
-    key = namespaced_stored_object.NamespaceKey(
-        'bot_configurations', datastore_hooks.INTERNAL)
-    stored_object.Set(key, {
-        'chromium-rel-mac11-pro': _CONFIGURATION_ARGUMENTS
-    })
+    key = namespaced_stored_object.NamespaceKey('bot_configurations',
+                                                datastore_hooks.INTERNAL)
+    config_with_args = _CONFIGURATION_ARGUMENTS.copy()
+    config_with_args.update({'extra_test_args': '--experimental-flag'})
+    stored_object.Set(
+        key, {
+            'chromium-rel-mac11-pro': _CONFIGURATION_ARGUMENTS,
+            'test-config-with-args': config_with_args,
+        })
 
 
 class NewAuthTest(_NewTest):
@@ -213,7 +217,6 @@ class NewTest(_NewTest):
     self.assertEqual(
         job.state._changes[1].id_string,
         'chromium@f00d + %s' % ('https://lalala/repo~branch~id/abc123',))
-
 
   def testComparisonModeOmitted(self):
     request = dict(_BASE_REQUEST)
@@ -371,6 +374,26 @@ class NewTest(_NewTest):
     self.assertEqual('some_chart', job.benchmark_arguments.chart)
     self.assertEqual(None, job.benchmark_arguments.statistic)
 
+  def testExtraArgsSupported(self):
+    request = dict(_BASE_REQUEST)
+    request.update({
+        'extra_test_args': '["--provided-args"]',
+        'configuration': 'test-config-with-args',
+    })
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+
+    # Validate that the arguments are only the input arguments.
+    self.assertEqual(
+        job.arguments.get('extra_test_args'),
+        json.dumps(['--provided-args']))
+
+    # And that the RunTest instance has the extra arguments.
+    for quest in job.state._quests:
+      if isinstance(quest, quest_module.RunTelemetryTest) or isinstance(
+          quest, quest_module.RunGTest):
+        self.assertIn('--experimental-flag', quest._extra_args)
+
   def testNewUsingExecutionEngine(self):
     request = dict(_BASE_REQUEST)
     request.update({
@@ -391,7 +414,6 @@ class NewTest(_NewTest):
     self.assertEqual('some_chart', job.benchmark_arguments.chart)
     self.assertEqual(None, job.benchmark_arguments.statistic)
     self.assertTrue(job.use_execution_engine)
-
 
   def testVrQuest(self):
     request = dict(_BASE_REQUEST)

@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import json
 import logging
+import shlex
 
 from dashboard.api import api_request_handler
 from dashboard.common import bot_configurations
@@ -25,7 +26,6 @@ _ERROR_BUG_ID = 'Bug ID must be an integer.'
 _ERROR_TAGS_DICT = 'Tags must be a dict of key/value string pairs.'
 _ERROR_UNSUPPORTED = 'This benchmark (%s) is unsupported.'
 _ERROR_PRIORITY = 'Priority must be an integer.'
-_UNSUPPORTED_BENCHMARKS = []
 
 
 class New(api_request_handler.ApiRequestHandler):
@@ -172,10 +172,29 @@ def _ArgumentsWithConfiguration(original_arguments):
 
     if default_arguments:
       for k, v in list(default_arguments.items()):
-        new_arguments.setdefault(k, v)
+        # We special-case the extra_test_args argument to be additive, so that
+        # we can respect the value set in bot_configurations in addition to
+        # those provided from the UI.
+        if k == 'extra_test_args':
+          # First, parse whatever is already there. We'll canonicalise the
+          # inputs as a JSON list of strings.
+          provided_args = new_arguments.get('extra_test_args', '')
+          extra_test_args = []
+          if provided_args:
+            try:
+              extra_test_args = json.loads(provided_args)
+            except ValueError:
+              extra_test_args = shlex.split(provided_args)
 
-  if new_arguments.get('benchmark') in _UNSUPPORTED_BENCHMARKS:
-    raise ValueError(_ERROR_UNSUPPORTED % new_arguments.get('benchmark'))
+          try:
+            configured_args = json.loads(v)
+          except ValueError:
+            configured_args = shlex.split(v)
+
+          new_arguments['extra_test_args'] = json.dumps(extra_test_args +
+                                                        configured_args)
+        else:
+          new_arguments.setdefault(k, v)
 
   return new_arguments
 
