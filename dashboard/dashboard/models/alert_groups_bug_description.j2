@@ -2,7 +2,7 @@ All graphs for this regression group at {{ group.revision.start }}:{{ group.revi
   https://chromeperf.appspot.com/group_report?group_id={{ group.key.string_id() }}
 
 {% set top_regressions = regressions[:10] -%}
-Top {{ top_regressions|length }} regressions (out of {{ regressions|length }}, with {{ group.anomalies|length - regressions|length }} improvements) in this group:
+Top {{ top_regressions|length }} regressions (out of {{ group.anomalies|length }}, with {{ group.anomalies|length - regressions|length }} improvements) in this group:
 {%- for regression in top_regressions %}
   - {{ regression.test.string_id() }}
     {%- set before = regression.median_before_anomaly %}

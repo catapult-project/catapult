@@ -51,7 +51,6 @@ class AlertGroupsHandler(request_handler.RequestHandler):
     now = datetime.datetime.utcnow()
     for group in groups:
       group.Update(now, _ALERT_GROUP_ACTIVE_WINDOW, _ALERT_GROUP_TRIAGE_DELAY)
-    ndb.put_multi(groups)
 
     def FindGroup(group):
       for g in groups:

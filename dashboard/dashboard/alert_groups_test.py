@@ -174,6 +174,13 @@ class GroupReportTest(testing_common.TestCase):
     self.assertItemsEqual(MockIssueTrackerService.new_bug_kwargs['components'],
                           ['Foo>Bar'])
     self.assertEqual(a.get().bug_id, 12345)
+    self.assertEqual(group.bug.bug_id, 12345)
+    # Make sure we don't file the issue again for this alert group.
+    MockIssueTrackerService.new_bug_args = None
+    MockIssueTrackerService.new_bug_kwargs = None
+    self.testapp.get('/alert_groups_update')
+    self.assertIsNone(MockIssueTrackerService.new_bug_args)
+    self.assertIsNone(MockIssueTrackerService.new_bug_kwargs)
 
   def testTriageAltertsGroupNoOwners(self, mock_get_sheriff_client):
     sheriff = subscription.Subscription(name='sheriff', auto_triage_enable=True)

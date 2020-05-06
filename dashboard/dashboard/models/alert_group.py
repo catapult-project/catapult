@@ -134,6 +134,10 @@ class AlertGroup(ndb.Model):
     elif self.status == self.Status.triaged:
       self._TryBisect()
 
+    # We force that we update each group after every update, instead of
+    # attempting to batch those to allow for partial success.
+    self.put()
+
   def _UpdateAnomalies(self):
     anomalies = anomaly.Anomaly.query(
         anomaly.Anomaly.groups.IN([self.key])).fetch()
@@ -179,15 +183,17 @@ class AlertGroup(ndb.Model):
 
   @staticmethod
   def _GetPreproccessedRegressions(anomalies):
-    regressions = [a for a in anomalies if not a.is_improvement]
+    regressions = []
     sheriff_config = sheriff_config_client.GetSheriffConfigClient()
     subscriptions_dict = {}
-    for a in regressions:
-      response, _ = sheriff_config.Match(a.test.string_id(), check=True)
-      subscriptions_dict.update({s.name: s for s in response})
-      a.auto_triage_enable = any(s.auto_triage_enable for s in response)
-    subscriptions = subscriptions_dict.values()
-    return (regressions, subscriptions)
+    for a in anomalies:
+      subscriptions, _ = sheriff_config.Match(a.test.string_id(), check=True)
+      subscriptions_dict.update({s.name: s for s in subscriptions})
+      # Only auto-triage if this is a regression.
+      if not a.is_improvement:
+        a.auto_triage_enable = any(s.auto_triage_enable for s in subscriptions)
+        regressions.append(a)
+    return (regressions, subscriptions_dict.values())
 
   @staticmethod
   def _GetComponentsFromRegressions(regressions):
