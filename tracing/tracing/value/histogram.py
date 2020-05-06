@@ -287,7 +287,7 @@ class RunningStatistics(object):
   # been applied.
   @property
   def variance(self):
-    if self.count == 0:
+    if self.count == 0 or self._variance is None:
       return None
     if self.count == 1:
       return 0
@@ -297,7 +297,7 @@ class RunningStatistics(object):
   # correction has been applied.
   @property
   def stddev(self):
-    if self.count == 0:
+    if self.count == 0 or self._variance is None:
       return None
     return math.sqrt(self.variance)
 
