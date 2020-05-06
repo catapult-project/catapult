@@ -252,15 +252,13 @@ class AlertGroup(ndb.Model):
     # Fetching issue labels, components and cc from subscriptions and owner
     issue_tracker = _IssueTracker()
     # TODO(fancl): Fix legacy bug components in labels
-    components = (
-        set(c for s in subscriptions for c in s.bug_components) |
-        self._GetComponentsFromRegressions(regressions)
-    )
-    cc = set(e for s in subscriptions for e in s.bug_cc_emails)
-    labels = (
-        set(l for s in subscriptions for l in s.bug_labels) |
-        set(['Chromeperf-Auto-Triaged'])
-    )
+    components = list(
+        set(c for s in subscriptions for c in s.bug_components)
+        | self._GetComponentsFromRegressions(regressions))
+    cc = list(set(e for s in subscriptions for e in s.bug_cc_emails))
+    labels = list(
+        set(l for s in subscriptions for l in s.bug_labels)
+        | set(['Chromeperf-Auto-Triaged']))
     response = issue_tracker.NewBug(
         title, description, labels=labels, components=components, cc=cc)
     if 'error' in response:

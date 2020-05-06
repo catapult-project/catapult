@@ -151,8 +151,8 @@ class GroupReportTest(testing_common.TestCase):
     self.testapp.get('/alert_groups_update')
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
-    self.assertEqual(MockIssueTrackerService.new_bug_kwargs['components'],
-                     set(['Foo>Bar']))
+    self.assertItemsEqual(MockIssueTrackerService.new_bug_kwargs['components'],
+                          ['Foo>Bar'])
     self.assertEqual(a.get().bug_id, 12345)
 
   def testAddAlertsAfterTriage(self, mock_get_sheriff_client):
