@@ -1036,7 +1036,8 @@ class DeviceUtils(object):
               timeout=None,
               retries=None,
               modules=None,
-              fake_modules=None):
+              fake_modules=None,
+              additional_locales=None):
     """Install an APK or app bundle.
 
     Noop if an identical APK is already installed. If installing a bundle, the
@@ -1059,6 +1060,8 @@ class DeviceUtils(object):
           should have their apks copied to |MODULES_SRC_DIRECTORY_PATH| rather
           than installed. Thus the app can emulate SplitCompat while running.
           This should not have any overlap with |modules|.
+      additional_locales: An iterable with additional locales to install for a
+        bundle.
 
     Raises:
       CommandFailedError if the installation fails.
@@ -1071,7 +1074,9 @@ class DeviceUtils(object):
     assert modules_set.isdisjoint(fake_modules_set), (
         'These modules overlap: %s' % (modules_set & fake_modules_set))
     all_modules = modules_set | fake_modules_set
-    with apk.GetApkPaths(self, modules=all_modules) as apk_paths:
+    with apk.GetApkPaths(self,
+                         modules=all_modules,
+                         additional_locales=additional_locales) as apk_paths:
       fake_apk_paths = self._GetFakeInstallPaths(apk_paths, fake_modules)
       apk_paths_to_install = [p for p in apk_paths if p not in fake_apk_paths]
       self._FakeInstall(fake_apk_paths, fake_modules)

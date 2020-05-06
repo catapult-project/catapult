@@ -90,7 +90,11 @@ class _MockApkHelper(object):
   def GetAbis(self):
     return self.abis
 
-  def GetApkPaths(self, device, modules=None, allow_cached_props=False):
+  def GetApkPaths(self,
+                  device,
+                  modules=None,
+                  allow_cached_props=False,
+                  additional_locales=None):
     return _FakeContextManager([self.path] + self.splits)
 
 

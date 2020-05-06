@@ -380,6 +380,30 @@ class ApkHelperTest(mock_calls.TestCase):
           '/tmp/base-master.apk', '/tmp/foo-master.apk', '/tmp/bar-master.apk'
       ])
 
+  def testGetSplitsApksWithAdditionalLocales(self):
+    apk = apk_helper.ToHelper('abc.apks')
+    with self.assertCalls(
+        (mock.call.tempfile.mkdtemp(),
+         '/tmp'),
+        (mock.call.devil.android.sdk.bundletool.ExtractApks(
+            '/tmp', 'abc.apks', ['arm64-v8a', 'armeabi-v7a'],
+            [('en', 'US'), ('es', 'ES'), ('fr', 'CA')],
+            ['android.hardware.wifi', 'android.hardware.nfc'], 500, 28, None)),
+        (mock.call.os.listdir('/tmp'),
+         ['base-master.apk', 'base-es.apk', 'base-fr.apk']),
+        (mock.call.shutil.rmtree('/tmp')),
+    ),\
+        apk.GetApkPaths(_MockDeviceUtils(),
+                        additional_locales=['es-ES', 'fr-CA']) as apk_paths:
+      self.assertEquals(
+          apk_paths,
+          ['/tmp/base-master.apk', '/tmp/base-es.apk', '/tmp/base-fr.apk'])
+
+  def testGetSplitsApksWithAdditionalLocalesIncorrectFormat(self):
+    apk = apk_helper.ToHelper('abc.apks')
+    with self.assertRaises(apk_helper.ApkHelperError):
+      apk.GetApkPaths(_MockDeviceUtils(), additional_locales=['es'])
+
   def testGetSplitsSplitApk(self):
     apk = apk_helper.ToSplitHelper('base.apk',
                                    ['split1.apk', 'split2.apk', 'split3.apk'])

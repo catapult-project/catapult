@@ -170,6 +170,13 @@ def _ParseNumericKey(obj, key, default=0):
   return int(val, 0)
 
 
+def _SplitLocaleString(locale):
+  split_locale = locale.split('-')
+  if len(split_locale) != 2:
+    raise ApkHelperError('Locale has incorrect format: {}'.format(locale))
+  return tuple(split_locale)
+
+
 class _ExportedActivity(object):
   def __init__(self, name):
     self.name = name
@@ -404,7 +411,11 @@ class BaseApkHelper(object):
     except KeyError:
       raise ApkHelperError('Unexpected ABI in lib/* folder.')
 
-  def GetApkPaths(self, device, modules=None, allow_cached_props=False):
+  def GetApkPaths(self,
+                  device,
+                  modules=None,
+                  allow_cached_props=False,
+                  additional_locales=None):
     """Returns context manager providing list of split APK paths for |device|.
 
     The paths may be deleted when the context manager exits. Must be implemented
@@ -434,7 +445,11 @@ class ApkHelper(BaseApkHelper):
   def _GetBaseApkPath(self):
     return _NoopFileHelper(self._apk_path)
 
-  def GetApkPaths(self, device, modules=None, allow_cached_props=False):
+  def GetApkPaths(self,
+                  device,
+                  modules=None,
+                  allow_cached_props=False,
+                  additional_locales=None):
     if modules:
       raise ApkHelperError('Cannot install modules when installing single APK')
     return _NoopFileHelper([self._apk_path])
@@ -463,7 +478,11 @@ class SplitApkHelper(BaseApkHelper):
   def _GetBaseApkPath(self):
     return _NoopFileHelper(self._base_apk_path)
 
-  def GetApkPaths(self, device, modules=None, allow_cached_props=False):
+  def GetApkPaths(self,
+                  device,
+                  modules=None,
+                  allow_cached_props=False,
+                  additional_locales=None):
     if modules:
       raise ApkHelperError('Cannot install modules when installing single APK')
     splits = split_select.SelectSplits(
@@ -501,13 +520,20 @@ class BaseBundleHelper(BaseApkHelper):
       shutil.rmtree(base_apk_path)
       raise
 
-  def GetApkPaths(self, device, modules=None, allow_cached_props=False):
+  def GetApkPaths(self,
+                  device,
+                  modules=None,
+                  allow_cached_props=False,
+                  additional_locales=None):
+    locales = [device.GetLocale()]
+    if additional_locales:
+      locales.extend(_SplitLocaleString(l) for l in additional_locales)
     with self._GetApksPath() as apks_path:
       try:
         split_dir = tempfile.mkdtemp()
         # TODO(tiborg): Support all locales.
         bundletool.ExtractApks(split_dir, apks_path,
-                               device.product_cpu_abis, [device.GetLocale()],
+                               device.product_cpu_abis, locales,
                                device.GetFeatures(), device.pixel_density,
                                device.build_version_sdk, modules)
         splits = [os.path.join(split_dir, p) for p in os.listdir(split_dir)]
