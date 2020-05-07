@@ -227,5 +227,4 @@ class Oobe(web_contents.WebContents):
 
   def _ClickPrimaryActionButton(self):
     """Click the Gaia primary action button on the oobe page"""
-    self.ExecuteJavaScript(("document.getElementById('gaia-signin')."
-                            "$$('#primary-action-button').click();"))
+    self._ExecuteOobeApi('Oobe.clickGaiaPrimaryButtonForTesting')
