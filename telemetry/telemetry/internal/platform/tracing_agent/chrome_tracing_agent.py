@@ -226,6 +226,10 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
       self._trace_config_file = os.path.join(_CHROME_TRACE_CONFIG_DIR_CROS,
                                              _CHROME_TRACE_CONFIG_FILE_NAME)
       cri = self._platform_backend.cri
+      # Before push the config file to DUT, first make sure the DUT is not
+      # write-protected, and remount the root here to avoid losing the config
+      # file.
+      cri.MakeRootReadWriteIfNecessary()
       cri.PushContents(self._CreateTraceConfigFileString(config),
                        self._trace_config_file)
       cri.Chown(self._trace_config_file)

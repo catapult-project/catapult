@@ -26,6 +26,7 @@ import py_utils
 class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   """A launchable CrOS browser instance."""
 
+  _CHROME_ENV_FILEPATH = '/etc/chrome_dev.conf'
   # The path contains spaces, so we need to quote it. We don't join it with
   # anything in this file, so we can quote it here instead of everywhere it's
   # used.
@@ -50,6 +51,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
 
     # --chromium-output-dir also sets CHROMIUM_OUTPUT_DIR in browser_options.
     self._build_dir = os.environ.get('CHROMIUM_OUTPUT_DIR')
+    self._existing_env_filepath = None
     self._existing_minidump_dir = None
 
   def __repr__(self):
@@ -95,6 +97,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     cri.RunCmdOnDevice(
         ['mv', self._CROS_MINIDUMP_DIR, self._existing_minidump_dir])
 
+    self._SetChromeEnvironment()
+
     def browser_ready():
       return cri.GetChromePid() is not None
 
@@ -116,13 +120,15 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     cri.RunCmdOnDevice(
         ['mv', self._existing_minidump_dir, self._CROS_MINIDUMP_DIR])
 
+    self._RestoreChromeEnvironment()
+
   def Create(self):
     startup_args = self.GetBrowserStartupArgs(self._browser_options)
 
     browser_backend = cros_browser_backend.CrOSBrowserBackend(
         self._platform_backend, self._browser_options,
         self.browser_directory, self.profile_directory,
-        self._is_guest, self._build_dir, self._DEFAULT_CHROME_ENV)
+        self._is_guest, self._build_dir)
 
     if self._browser_options.create_browser_with_oobe:
       return cros_browser_with_oobe.CrOSBrowserWithOOBE(
@@ -184,6 +190,53 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
 
   def UpdateExecutableIfNeeded(self):
     pass
+
+  def _SetChromeEnvironment(self, env=None):
+    """Sets environment variables, command line flags, etc. for Chrome.
+
+    RestartUI() must be called sometime afterwards for the changes to actually
+    take effect.
+    """
+    if env is None:
+      env = self._DEFAULT_CHROME_ENV
+    assert isinstance(env, list)
+
+    cri = self._platform_backend.cri
+    cri.MakeRootReadWriteIfNecessary()
+    if not cri.root_is_writable:
+      logging.error('Failed to set root to read-write. Functionality such as '
+                    'stack symbolization will be broken.')
+      return
+    self._existing_env_filepath = (
+        '/tmp/existing_chrome_env_%s.conf' % _GetRandomHash())
+    cri.RunCmdOnDevice(
+        ['mv', self._CHROME_ENV_FILEPATH, self._existing_env_filepath])
+
+    # Trailing newline to ensure that if anything else happens to add to this
+    # file, it gets added as its own entry instead of being appended to whatever
+    # is the last line.
+    env_string = '\n'.join(env) + '\n'
+    # TODO(https://crbug.com/1043953): Remove the try/except once the root cause
+    # of the root partition randomly becoming read-only is fixed.
+    try:
+      cri.PushContents(env_string, self._CHROME_ENV_FILEPATH)
+    except OSError as e:
+      logging.error(
+          'Received error while trying to push Chrome environment: %s', e)
+      logging.error(
+          'Assuming root partition became read-only, attempting to make '
+          'writable again')
+      cri.ResetRootIsWritable()
+      cri.MakeRootReadWriteIfNecessary()
+      cri.PushContents(env_string, self._CHROME_ENV_FILEPATH)
+
+  def _RestoreChromeEnvironment(self):
+    """Restores the Chrome environment to state before the test started."""
+    if not self._platform_backend.cri.root_is_writable:
+      return
+    self._platform_backend.cri.RunCmdOnDevice(
+        ['mv', self._existing_env_filepath, self._CHROME_ENV_FILEPATH])
+
 
 def SelectDefaultBrowser(possible_browsers):
   if cros_device.IsRunningOnCrOS():

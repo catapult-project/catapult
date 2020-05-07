@@ -84,6 +84,7 @@ class CrOSInterface(object):
     self._reserved_ports = []
 
     self._device_host_clock_offset = None
+    self._root_is_writable = False
     self._master_connection_open = False
     self._disable_strict_filenames = False
     self._board = None
@@ -123,6 +124,15 @@ class CrOSInterface(object):
   @property
   def ssh_port(self):
     return self._ssh_port
+
+  @property
+  def root_is_writable(self):
+    return self._root_is_writable
+
+  # TODO(https://crbug.com/1043953): Remove this once the issue with the root
+  # partition randomly becoming read-only is fixed.
+  def ResetRootIsWritable(self):
+    self._root_is_writable = False
 
   def OpenConnection(self):
     """Opens a master connection to the device."""
@@ -698,6 +708,33 @@ class CrOSInterface(object):
             stdout=devnull,
             stderr=devnull)
       self._master_connection_open = False
+
+  def MakeRootReadWriteIfNecessary(self):
+    """Remounts / as read-write if it is currently read-only."""
+    if self._root_is_writable:
+      return
+    write_check_cmd = ['touch', '/testfile', '&&', 'rm', '/testfile']
+    _, stderr = self.RunCmdOnDevice(write_check_cmd)
+    if stderr == '':
+      self._root_is_writable = True
+      return
+    if self.local:
+      logging.error('Root is read-only, and running in local mode, so cannot '
+                    'remount as read-write. Functionality such as stack '
+                    'symbolization will be broken.')
+      return
+    logging.warning('Root is currently read-only. Attempting to remount as '
+                    'read-write, which will disable rootfs verification and '
+                    'require a reboot.')
+    self._DisableRootFsVerification()
+    self._RemountRootAsReadWrite()
+
+    _, stderr = self.RunCmdOnDevice(write_check_cmd)
+    if stderr != '':
+      logging.error('Failed to set root to read-write. Functionality such as '
+                    'stack symbolization will be broken.')
+      return
+    self._root_is_writable = True
 
   def _DisableRootFsVerification(self):
     """Disables rootfs verification on the device, requiring a reboot."""
