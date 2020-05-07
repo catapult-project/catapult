@@ -101,6 +101,7 @@ class GroupReportTest(testing_common.TestCase):
   def testCreatingUngrouped(self, _):
     self.assertIs(len(alert_group.AlertGroup.Get('Ungrouped', None)), 0)
     response = self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     self.assertEqual(response.status_code, 200)
     self.assertIs(len(alert_group.AlertGroup.Get('Ungrouped', None)), 1)
 
@@ -109,12 +110,15 @@ class GroupReportTest(testing_common.TestCase):
     mock_get_sheriff_client().Match.return_value = ([sheriff], None)
     # Ungrouped is created in first run
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Put an anomaly after Ungrouped is created
     a1 = self._AddAnomaly()
     # Anomaly is associated with Ungrouped and AlertGroup Created
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Anomaly is associated with its AlertGroup
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     self.assertEqual(len(a1.get().groups), 1)
     self.assertEqual(a1.get().groups[0].get().name, 'test_suite')
 
@@ -122,13 +126,16 @@ class GroupReportTest(testing_common.TestCase):
     sheriff = subscription.Subscription(name='sheriff')
     mock_get_sheriff_client().Match.return_value = ([sheriff], None)
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Add anomalies
     a1 = self._AddAnomaly()
     a2 = self._AddAnomaly(start_revision=50, end_revision=150)
     # Create Group
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Update Group to associate alerts
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     self.assertItemsEqual(group.anomalies, [a1, a2])
 
@@ -136,18 +143,22 @@ class GroupReportTest(testing_common.TestCase):
     sheriff = subscription.Subscription(name='sheriff')
     mock_get_sheriff_client().Match.return_value = ([sheriff], None)
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Add anomalies
     self._AddAnomaly()
     # Create Group
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Update Group to associate alerts
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Set Update timestamp to 10 days ago
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     group.updated = datetime.datetime.utcnow() - datetime.timedelta(days=10)
     group.put()
     # Archive Group
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     group = alert_group.AlertGroup.Get('test_suite', None, active=False)[0]
     self.assertEqual(group.name, 'test_suite')
 
@@ -157,18 +168,22 @@ class GroupReportTest(testing_common.TestCase):
     self.PatchObject(alert_group, '_IssueTracker',
                      lambda: MockIssueTrackerService)
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Add anomalies
     a = self._AddAnomaly()
     # Create Group
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Update Group to associate alerts
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Set Create timestamp to 2 hours ago
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
     group.put()
     # Submit issue
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
     self.assertItemsEqual(MockIssueTrackerService.new_bug_kwargs['components'],
@@ -179,6 +194,7 @@ class GroupReportTest(testing_common.TestCase):
     MockIssueTrackerService.new_bug_args = None
     MockIssueTrackerService.new_bug_kwargs = None
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     self.assertIsNone(MockIssueTrackerService.new_bug_args)
     self.assertIsNone(MockIssueTrackerService.new_bug_kwargs)
 
@@ -188,18 +204,22 @@ class GroupReportTest(testing_common.TestCase):
     self.PatchObject(alert_group, '_IssueTracker',
                      lambda: MockIssueTrackerService)
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Add anomalies
     a = self._AddAnomalyNoOwners()
     # Create Group
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Update Group to associate alerts
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Set Create timestamp to 2 hours ago
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
     group.put()
     # Submit issue
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
     self.assertItemsEqual(MockIssueTrackerService.new_bug_kwargs['components'],
@@ -213,18 +233,22 @@ class GroupReportTest(testing_common.TestCase):
     self.PatchObject(alert_group, '_IssueTracker',
                      lambda: MockIssueTrackerService)
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Add anomalies
     a = self._AddAnomaly()
     # Create Group
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Update Group to associate alerts
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     # Set Create timestamp to 2 hours ago
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
     group.put()
     # Submit issue
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
 
     # Add anomalies
     anomalies = [
@@ -232,6 +256,7 @@ class GroupReportTest(testing_common.TestCase):
         self._AddAnomaly(),
     ]
     self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
     for a in anomalies:
       self.assertEqual(a.get().bug_id, 12345)
     self.assertEqual(MockIssueTrackerService.add_comment_args[0], 12345)

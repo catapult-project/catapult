@@ -7,9 +7,11 @@ from __future__ import division
 from __future__ import absolute_import
 
 import datetime
+import logging
 
 from dashboard.common import request_handler
 from dashboard.models import alert_group
+from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 
 # Waiting 7 days to gather more potential alerts. Just choose a long
@@ -30,9 +32,52 @@ _ALERT_GROUP_ACTIVE_WINDOW = datetime.timedelta(days=7)
 # )
 _ALERT_GROUP_TRIAGE_DELAY = datetime.timedelta(hours=1)
 
+_ALERT_GROUP_TASK_QUEUE = 'alert-groups'
+
+
+def ProcessAlertGroups():
+  logging.info('Fetching alert groups.')
+  groups = alert_group.AlertGroup.GetAll()
+  logging.info('Found %s alert groups.', len(groups))
+  now = datetime.datetime.utcnow()
+  for group in groups:
+    logging.info('Processing group: %s', group.key.string_id())
+    group.Update(now, _ALERT_GROUP_ACTIVE_WINDOW, _ALERT_GROUP_TRIAGE_DELAY)
+
+  def FindGroup(group):
+    for g in groups:
+      if group.revision.IsOverlapping(g.revision):
+        return g.key
+    groups.append(group)
+    return None
+
+  logging.info('Processing un-grouped alerts.')
+  ungrouped_list = alert_group.AlertGroup.Get('Ungrouped', None)
+  if not ungrouped_list:
+    alert_group.AlertGroup(name='Ungrouped', active=True).put()
+    return
+  ungrouped = ungrouped_list[0]
+  ungrouped_anomalies = ndb.get_multi(ungrouped.anomalies)
+
+  # Scan all ungrouped anomalies and create missing groups. This doesn't
+  # mean their groups are not created so we still need to check if group
+  # has been created. There are two cases:
+  # 1. If multiple groups are related to an anomaly, maybe only part of
+  # groups are not created.
+  # 2. Groups may be created during the iteration.
+  # Newly created groups won't be updated until next iteration.
+  for anomaly_entity in ungrouped_anomalies:
+    anomaly_entity.groups = [
+        FindGroup(g) or g.put() for g in
+        alert_group.AlertGroup.GenerateAllGroupsForAnomaly(anomaly_entity)
+    ]
+  logging.info('Persisting anomlies')
+  ndb.put_multi(ungrouped_anomalies)
+
 
 class AlertGroupsHandler(request_handler.RequestHandler):
   """Create and Update AlertGroups.
+
   All active groups are fetched and updated in every iteration. Auto-Triage
   and Auto-Bisection are triggered based on configuration in matching
   subscriptions.
@@ -47,36 +92,6 @@ class AlertGroupsHandler(request_handler.RequestHandler):
   """
 
   def get(self):
-    groups = alert_group.AlertGroup.GetAll()
-    now = datetime.datetime.utcnow()
-    for group in groups:
-      group.Update(now, _ALERT_GROUP_ACTIVE_WINDOW, _ALERT_GROUP_TRIAGE_DELAY)
-
-    def FindGroup(group):
-      for g in groups:
-        if group.revision.IsOverlapping(g.revision):
-          return g.key
-      groups.append(group)
-      return None
-
-    ungrouped_list = alert_group.AlertGroup.Get('Ungrouped', None)
-    if not ungrouped_list:
-      alert_group.AlertGroup(name='Ungrouped', active=True).put()
-      return
-    ungrouped = ungrouped_list[0]
-    ungrouped_anomalies = ndb.get_multi(ungrouped.anomalies)
-
-    # Scan all ungrouped anomalies and create missing groups. This doesn't
-    # mean their groups are not created so we still need to check if group
-    # has been created. There are two cases:
-    # 1. If multiple groups are related to an anomaly, maybe only part of
-    # groups are not created.
-    # 2. Groups may be created during the iteration.
-    # Newly created groups won't be updated until next iteration.
-    for anomaly_entity in ungrouped_anomalies:
-      anomaly_entity.groups = [
-          FindGroup(g) or g.put()
-          for g in alert_group.AlertGroup.GenerateAllGroupsForAnomaly(
-              anomaly_entity)
-      ]
-    ndb.put_multi(ungrouped_anomalies)
+    logging.info('Queueing task for deferred processing.')
+    deferred.defer(ProcessAlertGroups)
+    self.response.write('OK')
