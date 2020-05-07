@@ -290,7 +290,7 @@ class ProcessAlertsTest(testing_common.TestCase):
       find_anomalies.ProcessTests([test.key])
     self.ExecuteDeferredTasks('default')
 
-    query = graph_data.Row.query(projection=['revision', 'value'])
+    query = graph_data.Row.query(projection=['revision', 'timestamp', 'value'])
     query = query.filter(graph_data.Row.revision > 10062)
     query = query.filter(
         graph_data.Row.parent_test == utils.OldStyleTestKey(test.key))
