@@ -70,6 +70,9 @@ class AlertGroup(ndb.Model):
   bisection_ids = ndb.StringProperty(repeated=True)
   anomalies = ndb.KeyProperty(repeated=True)
 
+  def IsOverlapping(self, b):
+    return self.name == b.name and self.revision.IsOverlapping(b.revision)
+
   @classmethod
   def GenerateAllGroupsForAnomaly(cls, anomaly_entity):
     # TODO(fancl): Support multiple group name

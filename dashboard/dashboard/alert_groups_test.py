@@ -130,6 +130,7 @@ class GroupReportTest(testing_common.TestCase):
     # Add anomalies
     a1 = self._AddAnomaly()
     a2 = self._AddAnomaly(start_revision=50, end_revision=150)
+    a3 = self._AddAnomaly(test='master/bot/other/measurement/test_case')
     # Create Group
     self.testapp.get('/alert_groups_update')
     self.ExecuteDeferredTasks('default')
@@ -138,6 +139,8 @@ class GroupReportTest(testing_common.TestCase):
     self.ExecuteDeferredTasks('default')
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     self.assertItemsEqual(group.anomalies, [a1, a2])
+    group = alert_group.AlertGroup.Get('other', None)[0]
+    self.assertItemsEqual(group.anomalies, [a3])
 
   def testArchiveAltertsGroup(self, mock_get_sheriff_client):
     sheriff = subscription.Subscription(name='sheriff')

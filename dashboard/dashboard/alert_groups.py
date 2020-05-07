@@ -46,7 +46,7 @@ def ProcessAlertGroups():
 
   def FindGroup(group):
     for g in groups:
-      if group.revision.IsOverlapping(g.revision):
+      if group.IsOverlapping(g):
         return g.key
     groups.append(group)
     return None
