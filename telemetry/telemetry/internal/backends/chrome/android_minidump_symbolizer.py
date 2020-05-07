@@ -13,6 +13,27 @@ from telemetry.internal.backends.chrome import minidump_symbolizer
 from telemetry.internal.results import artifact_logger
 
 
+# Directories relative to the build directory that may contain symbol binaries
+# that can be dumped to symbolize a minidump.
+_POSSIBLE_SYMBOL_BINARY_DIRECTORIES = [
+    'lib.unstripped',
+    os.path.join('android_clang_arm', 'lib.unstripped'),
+    os.path.join('android_clang_arm64', 'lib.unstripped'),
+]
+
+# Mappings from Crashpad/Breakpad processor architecture values to regular
+# expressions that will match the output of running "file" on a .so compiled
+# for that architecture.
+# The Breakpad processor architecture values are hex representations of the
+# values in MDCPUArchitecture from Breakpad's minidump_format.h.
+_BREAKPAD_ARCH_TO_FILE_REGEX = {
+    # 32-bit ARM.
+    '0x5': r'.*32-bit.*ARM.*',
+    # 64-bit ARM.
+    '0xc': r'.*64-bit.*ARM.*',
+}
+
+
 class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
   def __init__(self, dump_finder, build_dir, symbols_dir=None):
     """Class for handling all minidump symbolizing code on Android.
@@ -29,6 +50,9 @@ class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
     """
     # Map from minidump path (string) to minidump_dump output (string).
     self._minidump_dump_output = {}
+    # Map from minidump path (string) to the directory that should be used when
+    # looking for symbol binaries (string).
+    self._minidump_symbol_binaries_directories = {}
     # We use the OS/arch of the host, not the device.
     super(AndroidMinidumpSymbolizer, self).__init__(
         platform.system().lower(), platform.machine(), dump_finder, build_dir,
@@ -52,25 +76,11 @@ class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
       minidump: The path to the minidump being symbolized.
     """
     libraries = self._ExtractLibraryNamesFromDump(minidump)
-    # The main lib.unstripped directory is usually the correct one, but in the
-    # case of mixed bitness (e.g. with Monochrome), a different directory might
-    # be necessary.
-    # We can pretty easily check the architecture the minidump came from.
-    # However, trying to use that to only use a single directory is prone to
-    # causing symbolization to fail due to using stale symbols, e.g. if the
-    # bitness for a build directory changes without `gn clean` being run in
-    # between. So, return all valid symbol locations. This could result in a
-    # bit of unnecessary symbol dumping, but guaranteeing a symbolized minidump
-    # is worth the few extra seconds.
-    default_path = os.path.join(self._build_dir, 'lib.unstripped')
-    arm_path = os.path.join(
-        self._build_dir, 'android_clang_arm', 'lib.unstripped')
-    arm64_path = os.path.join(
-        self._build_dir, 'android_clang_arm64', 'lib.unstripped')
-    binary_paths = [os.path.join(default_path, lib) for lib in libraries]
-    binary_paths.extend([os.path.join(arm_path, lib) for lib in libraries])
-    binary_paths.extend([os.path.join(arm64_path, lib) for lib in libraries])
-    return binary_paths
+    symbol_binary_dir = self._GetSymbolBinaryDirectory(minidump, libraries)
+    if not symbol_binary_dir:
+      return []
+
+    return [os.path.join(symbol_binary_dir, lib) for lib in libraries]
 
   def GetBreakpadPlatformOverride(self):
     return 'android'
@@ -115,6 +125,67 @@ class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
           'default to: %s', default_library_name)
       return [default_library_name]
     return library_names
+
+  def _GetSymbolBinaryDirectory(self, minidump, libraries):
+    """Gets the directory that should contain symbol binaries for |minidump|.
+
+    Args:
+      minidump: The path to the minidump being analyzed.
+      libraries: A list of library names that are within the minidump.
+
+    Returns:
+      A string containing the path to the directory that should contain the
+      symbol binaries that can be dumped to symbolize |minidump|. Returns None
+      if the directory is unable to be determined for some reason.
+    """
+    if minidump in self._minidump_symbol_binaries_directories:
+      return self._minidump_symbol_binaries_directories[minidump]
+
+    # Get the processor architecture reported by the minidump.
+    arch = None
+    for line in self._GetMinidumpDumpOutput(minidump).splitlines():
+      if 'processor_architecture' in line:
+        # Line looks like "processor_architecture = 0xc".
+        arch = line.split('=')[1].strip().lower()
+    if not arch:
+      logging.error('Unable to find processor architecture for minidump %s',
+                    minidump)
+      self._minidump_symbol_binaries_directories[minidump] = None
+      return None
+    if arch not in _BREAKPAD_ARCH_TO_FILE_REGEX:
+      logging.error(
+          'Unsupported processor architecture %s for minidump %s. This is '
+          'likely fixable by adding the correct mapping for the architecture '
+          'in android_minidump_symbolizer._BREAKPAD_ARCH_TO_FILE_REGEX.',
+          arch, minidump)
+      self._minidump_symbol_binaries_directories[minidump] = None
+      return None
+
+    # Look for a directory that contains binaries with the correct architecture.
+    matcher = re.compile(_BREAKPAD_ARCH_TO_FILE_REGEX[arch])
+    symbol_dir = None
+    for symbol_subdir in _POSSIBLE_SYMBOL_BINARY_DIRECTORIES:
+      possible_symbol_dir = os.path.join(self._build_dir, symbol_subdir)
+      if not os.path.exists(possible_symbol_dir):
+        continue
+      for f in os.listdir(possible_symbol_dir):
+        if f not in libraries:
+          continue
+        binary_path = os.path.join(possible_symbol_dir, f)
+        stdout = subprocess.check_output(
+            ['file', binary_path], stderr=subprocess.STDOUT)
+        if matcher.match(stdout):
+          symbol_dir = possible_symbol_dir
+          break
+
+    if not symbol_dir:
+      logging.error(
+          'Unable to find suitable symbol binary directory for architecture %s.'
+          'This is likely fixable by adding the correct directory to '
+          'android_minidump_symbolizer._POSSIBLE_SYMBOL_BINARY_DIRECTORIES.',
+          arch)
+    self._minidump_symbol_binaries_directories[minidump] = symbol_dir
+    return symbol_dir
 
   def _GetMinidumpDumpOutput(self, minidump):
     """Runs minidump_dump on the given minidump.
