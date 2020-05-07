@@ -159,6 +159,6 @@ class LinuxPlatformBackend(
 
   def _InstallBinary(self, bin_name):
     bin_path = binary_manager.FetchPath(
-        bin_name, self.GetArchName(), self.GetOSName())
+        bin_name, self.GetOSName(), self.GetArchName())
     os.environ['PATH'] += os.pathsep + os.path.dirname(bin_path)
     assert self.CanLaunchApplication(bin_name), 'Failed to install ' + bin_name

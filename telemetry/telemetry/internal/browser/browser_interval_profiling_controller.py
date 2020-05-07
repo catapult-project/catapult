@@ -144,7 +144,7 @@ class _AndroidController(_PlatformController):
     # This is the architecture of the app to be profiled, not of the device.
     package_arch = device.GetPackageArchitecture(package) or 'armeabi-v7a'
     host_path = binary_manager.FetchPath(
-        'simpleperf', package_arch, 'android')
+        'simpleperf', 'android', package_arch)
     if not host_path:
       raise Exception('Could not get path to simpleperf executable on host.')
     device_path = os.path.join(cls.DEVICE_PROFILERS_DIR,

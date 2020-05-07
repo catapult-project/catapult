@@ -142,9 +142,9 @@ def GetChromeInfo(args):
     binary = 'chrome'
     print('Fetching the', channel, binary, 'binary via the binary_manager.')
     chrome_manager = binary_manager.BinaryManager([CHROME_BINARIES_CONFIG])
-    arch, os_name = dependency_util.GetOSAndArchForCurrentDesktopPlatform()
+    os_name, arch = dependency_util.GetOSAndArchForCurrentDesktopPlatform()
     chrome_path, version = chrome_manager.FetchPathWithVersion(
-        '%s_%s' % (binary, channel), arch, os_name)
+        '%s_%s' % (binary, channel), os_name, arch)
     print('Finished fetching the', binary, 'binary to', chrome_path)
     return ChromeInfo(path=chrome_path, version=version)
 

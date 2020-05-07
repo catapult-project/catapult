@@ -90,7 +90,7 @@ def _IsChromeOSLocalMode(os_name):
   return os_name == 'chromeos' and py_utils.GetHostOsName() == 'chromeos'
 
 
-def FetchPath(binary_name, arch, os_name, os_version=None):
+def FetchPath(binary_name, os_name, arch, os_version=None):
   """ Return a path to the appropriate executable for <binary_name>, downloading
       from cloud storage if needed, or None if it cannot be found.
   """
@@ -102,7 +102,7 @@ def FetchPath(binary_name, arch, os_name, os_version=None):
       arch, os_version)
 
 
-def LocalPath(binary_name, arch, os_name, os_version=None):
+def LocalPath(binary_name, os_name, arch, os_version=None):
   """ Return a local path to the given binary name, or None if an executable
       cannot be found. Will not download the executable.
       """
@@ -195,7 +195,7 @@ def ReinstallAndroidHelperIfNeeded(binary_name, install_path, device):
   """
   if (device.serial, install_path) in _installed_helpers:
     return
-  host_path = FetchPath(binary_name, device.GetABI(), 'android')
+  host_path = FetchPath(binary_name, 'android', device.GetABI())
   if not host_path:
     raise Exception(
         '%s binary could not be fetched as %s', binary_name, host_path)

@@ -30,8 +30,8 @@ class _BitmapTools(object):
   def __init__(self, dimensions, pixels):
     binary = binary_manager.FetchPath(
         'bitmaptools',
-        platform.GetHostPlatform().GetArchName(),
-        platform.GetHostPlatform().GetOSName())
+        platform.GetHostPlatform().GetOSName(),
+        platform.GetHostPlatform().GetArchName())
     assert binary, 'You must build bitmaptools first!'
 
     self._popen = subprocess.Popen([binary],
