@@ -15,7 +15,6 @@ from google.appengine.ext import ndb
 
 from dashboard import find_anomalies
 from dashboard import find_change_points
-from dashboard.sheriff_config_client import SheriffConfigClient
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import alert_group
@@ -26,6 +25,7 @@ from dashboard.models import histogram
 from dashboard.models.subscription import Subscription
 from dashboard.models.subscription import VISIBILITY
 from tracing.value.diagnostics import reserved_infos
+from dashboard.sheriff_config_client import SheriffConfigClient
 
 # Sample time series.
 _TEST_ROW_DATA = [

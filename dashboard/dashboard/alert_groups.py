@@ -21,8 +21,8 @@ _ALERT_GROUP_ACTIVE_WINDOW = datetime.timedelta(days=7)
 
 # (2020-05-01) Only ~62% issues' alerts are triggered in one hour.
 # But we don't want to wait all these long tail alerts finished.
-# SELECT APPROX_QUANTILES(diff, 100) as percentiles
 #
+# SELECT APPROX_QUANTILES(diff, 100) as percentiles
 # FROM (
 #   SELECT TIMESTAMP_DIFF(MAX(timestamp), MIN(timestamp), MINUTE) as diff
 #   FROM chromeperf.chromeperf_dashboard_data.anomalies
