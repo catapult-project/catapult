@@ -178,13 +178,23 @@ class Matcher(object):
     if subscription.auto_triage.enable:
       self._match_auto_triage = lambda s: True
     else:
-      self._match_auto_triage = CompileRules(subscription.auto_triage.rules)
+      self._match_auto_triage = CompileRules(
+          subscription.auto_triage.rules)
+
+    if subscription.auto_bisection.enable:
+      self._match_auto_bisection = lambda s: True
+    else:
+      self._match_auto_bisection = CompileRules(
+          subscription.auto_bisection.rules)
 
   def MatchSubscription(self, test):
     return self._match_subscription(test)
 
   def MatchAutoTriage(self, test):
     return self._match_auto_triage(test)
+
+  def MatchAutoBisection(self, test):
+    return self._match_auto_bisection(test)
 
 
 def GetMatcher(revision, subscription):
@@ -240,6 +250,10 @@ def FindMatchingConfigs(client, request):
     if matcher.MatchSubscription(request.path):
       subscription.auto_triage.enable = matcher.MatchAutoTriage(
           request.path)
+      subscription.auto_bisection.enable = (
+          subscription.auto_triage.enable and
+          matcher.MatchAutoBisection(request.path)
+      )
       yield (config_set, revision, subscription)
 
 
@@ -249,6 +263,11 @@ def CopyNormalizedSubscription(src, dst):
   # Maybe allow being explicitily requsted for debug usage later.
   del dst.patterns[:]
   dst.rules.Clear()
+
   auto_triage_enable = dst.auto_triage.enable
   dst.auto_triage.Clear()
   dst.auto_triage.enable = auto_triage_enable
+
+  auto_bisection_enable = dst.auto_bisection.enable
+  dst.auto_bisection.Clear()
+  dst.auto_bisection.enable = auto_bisection_enable
