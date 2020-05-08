@@ -116,7 +116,7 @@ def _UpdateCache(test_key):
 
   # A projection query queries just for the values of particular properties;
   # this is faster than querying for whole entities.
-  query = graph_data.Row.query(projection=['revision', 'timestamp', 'value'])
+  query = graph_data.Row.query(projection=['revision', 'value', 'timestamp'])
   query = query.filter(
       graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
 
