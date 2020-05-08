@@ -149,8 +149,9 @@ class AlertGroup(ndb.Model):
     return added
 
   def _UpdateStatus(self):
-    # TODO(fancl): Fetch issue status
-    pass
+    issue = _IssueTracker().GetIssue(self.bug.bug_id)
+    if issue and issue.get('state') == 'closed':
+      self.status = self.Status.closed
 
   def _UpdateIssue(self, added):
     regressions, subscriptions = self._GetPreproccessedRegressions(added)

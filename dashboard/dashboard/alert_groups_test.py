@@ -43,6 +43,47 @@ class MockIssueTrackerService(object):
     cls.add_comment_args = args
     cls.add_comment_kwargs = kwargs
 
+  issue = {
+      'cc': [
+          {
+              'kind': 'monorail#issuePerson',
+              'htmlLink': 'https://bugs.chromium.org/u/1253971105',
+              'name': 'user@chromium.org',
+          }, {
+              'kind': 'monorail#issuePerson',
+              'name': 'hello@world.org',
+          }
+      ],
+      'labels': [
+          'Type-Bug',
+          'Pri-3',
+          'M-61',
+      ],
+      'owner': {
+          'kind': 'monorail#issuePerson',
+          'htmlLink': 'https://bugs.chromium.org/u/49586776',
+          'name': 'owner@chromium.org',
+      },
+      'id': 737355,
+      'author': {
+          'kind': 'monorail#issuePerson',
+          'htmlLink': 'https://bugs.chromium.org/u/49586776',
+          'name': 'author@chromium.org',
+      },
+      'state': 'closed',
+      'status': 'Fixed',
+      'summary': 'The bug title',
+      'components': [
+          'Blink>ServiceWorker',
+          'Foo>Bar',
+      ],
+      'published': '2017-06-28T01:26:53',
+      'updated': '2018-03-01T16:16:22',
+  }
+
+  @classmethod
+  def GetIssue(cls, _):
+    return cls.issue
 
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
 class GroupReportTest(testing_common.TestCase):
@@ -159,6 +200,43 @@ class GroupReportTest(testing_common.TestCase):
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     group.updated = datetime.datetime.utcnow() - datetime.timedelta(days=10)
     group.put()
+    # Archive Group
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    group = alert_group.AlertGroup.Get('test_suite', None, active=False)[0]
+    self.assertEqual(group.name, 'test_suite')
+
+  def testArchiveAltertsGroupIssueClosed(self, mock_get_sheriff_client):
+    sheriff = subscription.Subscription(name='sheriff', auto_triage_enable=True)
+    mock_get_sheriff_client().Match.return_value = ([sheriff], None)
+    self.PatchObject(alert_group, '_IssueTracker',
+                     lambda: MockIssueTrackerService)
+    MockIssueTrackerService.issue['state'] = 'open'
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    # Add anomalies
+    self._AddAnomaly()
+    # Create Group
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    # Update Group to associate alerts
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    # Set Create timestamp to 2 hours ago
+    group = alert_group.AlertGroup.Get('test_suite', None)[0]
+    group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
+    group.put()
+    # Create Issue
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    # ...Nothing should happen here
+    group.updated = datetime.datetime.utcnow() - datetime.timedelta(days=10)
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    group = alert_group.AlertGroup.Get('test_suite', None)[0]
+    self.assertEqual(group.name, 'test_suite')
+    # Issue closed
+    MockIssueTrackerService.issue['state'] = 'closed'
     # Archive Group
     self.testapp.get('/alert_groups_update')
     self.ExecuteDeferredTasks('default')
