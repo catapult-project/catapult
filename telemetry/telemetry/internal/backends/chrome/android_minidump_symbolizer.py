@@ -33,6 +33,9 @@ _BREAKPAD_ARCH_TO_FILE_REGEX = {
     '0xc': r'.*64-bit.*ARM.*',
 }
 
+# Line looks like " processor_architecture = 0xc ".
+_PROCESSOR_ARCH_REGEX = r'\s*processor_architecture\s*\=\s*(?P<arch>\w*)\s*'
+
 
 class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
   def __init__(self, dump_finder, build_dir, symbols_dir=None):
@@ -143,10 +146,12 @@ class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
 
     # Get the processor architecture reported by the minidump.
     arch = None
+    matcher = re.compile(_PROCESSOR_ARCH_REGEX)
     for line in self._GetMinidumpDumpOutput(minidump).splitlines():
-      if 'processor_architecture' in line:
-        # Line looks like "processor_architecture = 0xc".
-        arch = line.split('=')[1].strip().lower()
+      match = matcher.match(line)
+      if match:
+        arch = match.groupdict()['arch'].lower()
+        break
     if not arch:
       logging.error('Unable to find processor architecture for minidump %s',
                     minidump)
