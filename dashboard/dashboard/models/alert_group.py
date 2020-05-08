@@ -227,13 +227,12 @@ class AlertGroup(ndb.Model):
     return benchmarks_dict.values()
 
   def _GetTemplateArgs(self, regressions):
-    def Key(x):
+    def GetMagnitude(x):
       if not x.median_before_anomaly:
-        # -inf if x.median_after_anomaly is negative
-        return x.median_after_anomaly * float('Inf')
-      return x.median_after_anomaly / x.median_before_anomaly
+        return float('Inf')
+      return abs(x.median_after_anomaly / x.median_before_anomaly)
     # Preparing template arguments used in rendering issue's title and content.
-    regressions.sort(key=Key, reverse=True)
+    regressions.sort(key=GetMagnitude, reverse=True)
     benchmarks = self._GetBenchmarksFromRegressions(regressions)
     return {
         # Current AlertGroup used for rendering templates
@@ -244,6 +243,8 @@ class AlertGroup(ndb.Model):
         'benchmarks': benchmarks,
         # Parse the real unit (remove things like smallerIsBetter)
         'parse_unit': lambda s: (s or '').rsplit('_', 1)[0],
+        # Get magnitude from anomaly
+        'get_magnitude': GetMagnitude,
     }
 
   def _FileIssue(self):

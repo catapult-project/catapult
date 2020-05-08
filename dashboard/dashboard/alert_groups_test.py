@@ -317,7 +317,7 @@ class GroupReportTest(testing_common.TestCase):
     # Add anomalies
     anomalies = [
         self._AddAnomaly(),
-        self._AddAnomaly(),
+        self._AddAnomaly(median_before_anomaly=0),
     ]
     self.testapp.get('/alert_groups_update')
     self.ExecuteDeferredTasks('default')
