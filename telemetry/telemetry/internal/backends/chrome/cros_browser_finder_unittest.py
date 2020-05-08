@@ -17,6 +17,8 @@ from telemetry.internal.platform import cros_platform_backend
 
 from devil.utils import cmd_helper
 
+import py_utils
+
 
 class CrOSBrowserMockCreationTest(unittest.TestCase):
   """Tests that a CrOS browser can be created by the Telemetry APIs.
@@ -116,7 +118,6 @@ class CrOSBrowserEnvironmentTest(unittest.TestCase):
         device, options_for_unittests.GetCopy())
     browser = cros_browser_finder.PossibleCrOSBrowser(
         'cros-chrome', options_for_unittests.GetCopy(), plat, False)
-    browser._platform_backend.cri.MakeRootReadWriteIfNecessary()
     return browser
 
   @decorators.Enabled('chromeos')
@@ -126,7 +127,7 @@ class CrOSBrowserEnvironmentTest(unittest.TestCase):
     cri = browser._platform_backend.cri
     # This is expected to fail if running locally and the root is not writable,
     # as we can't reboot in order to make it writable.
-    if cri.local and not cri.root_is_writable:
+    if cri.local:
       return
     remote_path = cmd_helper.SingleQuote(
         posixpath.join(cri.CROS_MINIDUMP_DIR, 'test_dump'))
@@ -144,39 +145,22 @@ class CrOSBrowserEnvironmentTest(unittest.TestCase):
     cri = browser._platform_backend.cri
     # This is expected to fail if running locally and the root is not writable,
     # as we can't reboot in order to make it writable.
-    if cri.local and not cri.root_is_writable:
+    if cri.local:
       return
     remote_path = cmd_helper.SingleQuote(
         posixpath.join(cri.CROS_MINIDUMP_DIR, 'test_dump'))
     if cri.FileExistsOnDevice(remote_path):
       cri.RmRF(remote_path)
     browser.SetUpEnvironment(options_for_unittests.GetCopy().browser_options)
+
+    # SetUpEnvironment may finish too early, CROS_MINIDUMP_DIR might not exist
+    # yet. First waits for its existence, and then create a test dump.
+    def minidump_dir_exists():
+      return cri.FileExistsOnDevice(
+          cmd_helper.SingleQuote(cri.CROS_MINIDUMP_DIR))
+    py_utils.WaitFor(minidump_dir_exists, timeout=10)
+
     cri.RunCmdOnDevice(['touch', remote_path])
     self.assertTrue(cri.FileExistsOnDevice(remote_path))
     browser._TearDownEnvironment()
     self.assertFalse(cri.FileExistsOnDevice(remote_path))
-
-  @decorators.Enabled('chromeos')
-  def testChromeEnvironmentSet(self):
-    """Tests that browser setup sets the Chrome environment file."""
-    browser = self._CreateBrowser()
-    cri = browser._platform_backend.cri
-    # This is expected to fail if running locally and the root is not writable,
-    # as we can't reboot in order to make it writable.
-    if cri.local and not cri.root_is_writable:
-      return
-    browser._DEFAULT_CHROME_ENV = ['FOO=BAR']
-    existing_contents = cri.GetFileContents(browser._CHROME_ENV_FILEPATH)
-    browser.SetUpEnvironment(options_for_unittests.GetCopy().browser_options)
-    new_contents = cri.GetFileContents(browser._CHROME_ENV_FILEPATH)
-    self.assertNotEqual(new_contents, existing_contents)
-    self.assertIn('FOO=BAR', new_contents)
-    # Ensure that multiple PossibleBrowsers don't negatively impact each other,
-    # regression test for crbug.com/1059426.
-    nested_browser = self._CreateBrowser()
-    nested_browser.SetUpEnvironment(
-        options_for_unittests.GetCopy().browser_options)
-    nested_browser._TearDownEnvironment()
-    browser._TearDownEnvironment()
-    new_contents = cri.GetFileContents(browser._CHROME_ENV_FILEPATH)
-    self.assertEqual(new_contents, existing_contents)

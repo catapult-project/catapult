@@ -20,7 +20,7 @@ from telemetry.internal.util import format_for_logging
 
 class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __init__(self, cros_platform_backend, browser_options,
-               browser_directory, profile_directory, is_guest, build_dir):
+               browser_directory, profile_directory, is_guest, build_dir, env):
     assert browser_options.IsCrosBrowserOptions()
     super(CrOSBrowserBackend, self).__init__(
         cros_platform_backend,
@@ -32,6 +32,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._is_guest = is_guest
     self._build_dir = build_dir
     self._cri = cros_platform_backend.cri
+    self._env = env
 
   @property
   def log_file_path(self):
@@ -79,7 +80,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             'org.chromium.SessionManagerInterface.EnableChromeTesting',
             'boolean:true',
             'array:string:"%s"' % ','.join(startup_args),
-            'array:string:']
+            'array:string:"%s"' % ','.join(self._env)]
     formatted_args = format_for_logging.ShellFormat(
         args, trim=self.browser_options.trim_logs)
     logging.info('Starting Chrome: %s', formatted_args)
