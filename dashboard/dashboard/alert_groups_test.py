@@ -94,46 +94,25 @@ class GroupReportTest(testing_common.TestCase):
         [('/alert_groups_update', alert_groups.AlertGroupsHandler)])
     self.testapp = webtest.TestApp(app)
 
-  def _AddAnomaly(
-      self,
-      test='master/bot/test_suite/measurement/test_case',
-      start_revision=0,
-      end_revision=100,
-      is_improvement=False):
-    a = anomaly.Anomaly(
-        test=utils.TestKey(test),
-        start_revision=start_revision,
-        end_revision=end_revision,
-        is_improvement=is_improvement,
-        median_before_anomaly=1.1,
-        median_after_anomaly=1.3,
-        ownership={
+  def _AddAnomaly(self, **kargs):
+    default = {
+        'test': 'master/bot/test_suite/measurement/test_case',
+        'start_revision': 0,
+        'end_revision': 100,
+        'is_improvement': False,
+        'median_before_anomaly': 1.1,
+        'median_after_anomaly': 1.3,
+        'ownership': {
             'component': 'Foo>Bar',
             'emails': ['x@google.com', 'y@google.com'],
         },
-    )
+    }
+    default.update(kargs)
+    default['test'] = utils.TestKey(default['test'])
+    a = anomaly.Anomaly(**default)
     a.groups = alert_group.AlertGroup.GetGroupsForAnomaly(a)
     return a.put()
 
-  def _AddAnomalyNoOwners(self,
-                          test='master/bot/test_suite/measurement/test_case',
-                          start_revision=0,
-                          end_revision=100,
-                          is_improvement=False):
-    a = anomaly.Anomaly(
-        test=utils.TestKey(test),
-        start_revision=start_revision,
-        end_revision=end_revision,
-        is_improvement=is_improvement,
-        median_before_anomaly=1.1,
-        median_after_anomaly=1.3,
-        ownership={
-            'component': 'Foo>Bar',
-            'emails': None,
-        },
-    )
-    a.groups = alert_group.AlertGroup.GetGroupsForAnomaly(a)
-    return a.put()
 
   def testNoGroup(self, _):
     # Put an anomaly before Ungrouped is created
@@ -172,6 +151,7 @@ class GroupReportTest(testing_common.TestCase):
     a1 = self._AddAnomaly()
     a2 = self._AddAnomaly(start_revision=50, end_revision=150)
     a3 = self._AddAnomaly(test='master/bot/other/measurement/test_case')
+    a4 = self._AddAnomaly(median_before_anomaly=0)
     # Create Group
     self.testapp.get('/alert_groups_update')
     self.ExecuteDeferredTasks('default')
@@ -179,7 +159,7 @@ class GroupReportTest(testing_common.TestCase):
     self.testapp.get('/alert_groups_update')
     self.ExecuteDeferredTasks('default')
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
-    self.assertItemsEqual(group.anomalies, [a1, a2])
+    self.assertItemsEqual(group.anomalies, [a1, a2, a4])
     group = alert_group.AlertGroup.Get('other', None)[0]
     self.assertItemsEqual(group.anomalies, [a3])
 
@@ -287,7 +267,10 @@ class GroupReportTest(testing_common.TestCase):
     self.testapp.get('/alert_groups_update')
     self.ExecuteDeferredTasks('default')
     # Add anomalies
-    a = self._AddAnomalyNoOwners()
+    a = self._AddAnomaly(ownership={
+        'component': 'Foo>Bar',
+        'emails': None,
+    })
     # Create Group
     self.testapp.get('/alert_groups_update')
     self.ExecuteDeferredTasks('default')

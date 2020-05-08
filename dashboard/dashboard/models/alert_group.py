@@ -227,11 +227,13 @@ class AlertGroup(ndb.Model):
     return benchmarks_dict.values()
 
   def _GetTemplateArgs(self, regressions):
+    def Key(x):
+      if not x.median_before_anomaly:
+        # -inf if x.median_after_anomaly is negative
+        return x.median_after_anomaly * float('Inf')
+      return x.median_after_anomaly / x.median_before_anomaly
     # Preparing template arguments used in rendering issue's title and content.
-    regressions.sort(
-        key=lambda x: x.median_after_anomaly / x.median_before_anomaly,
-        reverse=True,
-    )
+    regressions.sort(key=Key, reverse=True)
     benchmarks = self._GetBenchmarksFromRegressions(regressions)
     return {
         # Current AlertGroup used for rendering templates
