@@ -18,6 +18,7 @@ import jinja2
 from dashboard import sheriff_config_client
 from dashboard.common import utils
 from dashboard.models import anomaly
+from dashboard.models import subscription
 from dashboard.services import issue_tracker_service
 from google.appengine.ext import ndb
 
@@ -49,6 +50,11 @@ class RevisionRange(ndb.Model):
 class BugInfo(ndb.Model):
   project = ndb.StringProperty()
   bug_id = ndb.IntegerProperty()
+
+
+class BugUpdateDetails(
+    collections.namedtuple('BugUpdateDetails', ('components', 'cc', 'labels'))):
+  __slots__ = ()
 
 
 class AlertGroup(ndb.Model):
@@ -165,7 +171,13 @@ class AlertGroup(ndb.Model):
 
     template_args = self._GetTemplateArgs(regressions)
     comment = _TEMPLATE_ISSUE_COMMENT.render(template_args)
-    _IssueTracker().AddBugComment(self.bug.bug_id, comment)
+    components, cc, labels = self._ComputeBugUpdate(subscriptions, regressions)
+    _IssueTracker().AddBugComment(
+        self.bug.bug_id,
+        comment,
+        labels=labels,
+        cc_list=cc,
+        components=components)
 
   def _TryTriage(self):
     self.bug = self._FileIssue()
@@ -247,6 +259,25 @@ class AlertGroup(ndb.Model):
         'get_magnitude': GetMagnitude,
     }
 
+  def _ComputeBugUpdate(self, subscriptions, regressions):
+    components = list(
+        set(c for s in subscriptions for c in s.bug_components)
+        | self._GetComponentsFromRegressions(regressions))
+    cc = list(set(e for s in subscriptions for e in s.bug_cc_emails))
+    labels = list(
+        set(l for s in subscriptions for l in s.bug_labels)
+        | set(['Chromeperf-Auto-Triaged']))
+    # We layer on some default labels if they don't conflict with any of the
+    # provided ones.
+    if not any(l.startswith('Pri-') for l in labels):
+      labels.append('Pri-2')
+    if not any(l.startswith('Type-') for l in labels):
+      labels.append('Type-Bug-Regression')
+    if any(s.visibility == subscription.VISIBILITY.INTERNAL_ONLY
+           for s in subscriptions):
+      labels = list(set(labels) | set(['Restrict-View-Google']))
+    return BugUpdateDetails(components, cc, labels)
+
   def _FileIssue(self):
     anomalies = ndb.get_multi(self.anomalies)
     regressions, subscriptions = self._GetPreproccessedRegressions(anomalies)
@@ -263,14 +294,8 @@ class AlertGroup(ndb.Model):
 
     # Fetching issue labels, components and cc from subscriptions and owner
     issue_tracker = _IssueTracker()
-    # TODO(fancl): Fix legacy bug components in labels
-    components = list(
-        set(c for s in subscriptions for c in s.bug_components)
-        | self._GetComponentsFromRegressions(regressions))
-    cc = list(set(e for s in subscriptions for e in s.bug_cc_emails))
-    labels = list(
-        set(l for s in subscriptions for l in s.bug_labels)
-        | set(['Chromeperf-Auto-Triaged']))
+    components, cc, labels = self._ComputeBugUpdate(subscriptions, regressions)
+
     response = issue_tracker.NewBug(
         title, description, labels=labels, components=components, cc=cc)
     if 'error' in response:

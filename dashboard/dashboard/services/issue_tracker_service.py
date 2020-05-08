@@ -43,8 +43,16 @@ class IssueTrackerService(object):
     self._service = discovery.build(
         'monorail', 'v1', discoveryServiceUrl=_DISCOVERY_URI, http=http)
 
-  def AddBugComment(self, bug_id, comment, status=None, cc_list=None,
-                    merge_issue=None, labels=None, owner=None, send_email=True):
+  def AddBugComment(self,
+                    bug_id,
+                    comment,
+                    status=None,
+                    cc_list=None,
+                    merge_issue=None,
+                    components=None,
+                    labels=None,
+                    owner=None,
+                    send_email=True):
     """Adds a comment with the bisect results to the given bug.
 
     Args:
@@ -54,6 +62,7 @@ class IssueTrackerService(object):
       cc_list: List of email addresses of users to add to the CC list.
       merge_issue: ID of the issue to be merged into; specifying this option
           implies that the status should be "Duplicate".
+      components: List of components to add/remove from the issue.
       labels: List of labels for bug.
       owner: Owner of the bug.
       send_email: True to send email to bug cc list, False otherwise.
@@ -80,6 +89,8 @@ class IssueTrackerService(object):
       updates['labels'] = labels
     if owner:
       updates['owner'] = owner
+    if components:
+      updates['components'] = components
     body['updates'] = updates
 
     return self._MakeCommentRequest(bug_id, body, send_email=send_email)
