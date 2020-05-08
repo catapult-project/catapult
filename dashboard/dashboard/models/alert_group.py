@@ -15,12 +15,15 @@ import uuid
 
 import jinja2
 
-from dashboard import sheriff_config_client
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import subscription
 from dashboard.services import issue_tracker_service
 from google.appengine.ext import ndb
+
+# Move import of protobuf-dependent code here so that all AppEngine work-arounds
+# have a chance to be live before we import any proto code.
+from dashboard import sheriff_config_client
 
 # Templates used for rendering issue contents
 _TEMPLATE_LOADER = jinja2.FileSystemLoader(
