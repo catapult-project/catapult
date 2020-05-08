@@ -205,8 +205,8 @@ class AlertGroup(ndb.Model):
       subscriptions, _ = sheriff_config.Match(a.test.string_id(), check=True)
       subscriptions_dict.update({s.name: s for s in subscriptions})
       # Only auto-triage if this is a regression.
+      a.auto_triage_enable = any(s.auto_triage_enable for s in subscriptions)
       if not a.is_improvement:
-        a.auto_triage_enable = any(s.auto_triage_enable for s in subscriptions)
         regressions.append(a)
     return (regressions, subscriptions_dict.values())
 
@@ -306,7 +306,7 @@ class AlertGroup(ndb.Model):
       return None
 
     # Update the issue associated witht his group, before we continue.
-    # TODO(fancl): Add bug project in config and anomaly
+    # TODO(dberris): Add bug project in config and anomaly
     result = BugInfo(project='chromium', bug_id=response['bug_id'])
     self.bug = result
     self.put()
@@ -314,7 +314,8 @@ class AlertGroup(ndb.Model):
     # Link the bug to auto-triage enabled anomalies.
     for a in anomalies:
       if not a.bug_id and a.auto_triage_enable:
-        a.bug_id = response['bug_id']
+        # TODO(dberris): Add bug project in config and anomaly
+        a.bug_id = self.bug.bug_id
     ndb.put_multi(anomalies)
     return result
 
