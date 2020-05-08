@@ -274,13 +274,18 @@ class AlertGroup(ndb.Model):
       logging.warning('AlertGroup file bug failed: %s', response['error'])
       return None
 
-    # Link the bug to auto-triage enabled alerts.
-    for a in regressions:
+    # Update the issue associated witht his group, before we continue.
+    # TODO(fancl): Add bug project in config and anomaly
+    result = BugInfo(project='chromium', bug_id=response['bug_id'])
+    self.bug = result
+    self.put()
+
+    # Link the bug to auto-triage enabled anomalies.
+    for a in anomalies:
       if not a.bug_id and a.auto_triage_enable:
         a.bug_id = response['bug_id']
-    ndb.put_multi(regressions)
-    # TODO(fancl): Add bug project in config and anomaly
-    return BugInfo(project='chromium', bug_id=response['bug_id'])
+    ndb.put_multi(anomalies)
+    return result
 
 
 def _BugTitle(env):
