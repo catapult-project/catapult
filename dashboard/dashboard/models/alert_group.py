@@ -137,10 +137,6 @@ class AlertGroup(ndb.Model):
     elif self.status == self.Status.triaged:
       self._TryBisect()
 
-    # We force that we update each group after every update, instead of
-    # attempting to batch those to allow for partial success.
-    self.put()
-
   def _UpdateAnomalies(self):
     anomalies = anomaly.Anomaly.query(
         anomaly.Anomaly.groups.IN([self.key])).fetch()
@@ -252,7 +248,9 @@ class AlertGroup(ndb.Model):
     anomalies = ndb.get_multi(self.anomalies)
     regressions, subscriptions = self._GetPreproccessedRegressions(anomalies)
     # Only file a issue if there is at least one regression
-    if not regressions or not any(s.auto_triage_enable for s in subscriptions):
+    # We can't use subsciptions' auto_triage_enable here because it's
+    # merged across anomalies.
+    if not any(r.auto_triage_enable for r in regressions):
       return None
 
     template_args = self._GetTemplateArgs(regressions)

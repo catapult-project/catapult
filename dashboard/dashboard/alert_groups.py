@@ -43,6 +43,10 @@ def ProcessAlertGroups():
   for group in groups:
     logging.info('Processing group: %s', group.key.string_id())
     group.Update(now, _ALERT_GROUP_ACTIVE_WINDOW, _ALERT_GROUP_TRIAGE_DELAY)
+    # We force that we update each group after every update, instead of
+    # attempting to batch those to allow for partial success.
+    group.put()
+
 
   def FindGroup(group):
     for g in groups:
