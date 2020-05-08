@@ -13,6 +13,7 @@ from dashboard.common import request_handler
 from dashboard.models import alert_group
 from google.appengine.ext import deferred
 from google.appengine.ext import ndb
+from google.appengine.api import taskqueue
 
 # Waiting 7 days to gather more potential alerts. Just choose a long
 # enough time and all alerts arrive after archived shouldn't be silent
@@ -31,8 +32,6 @@ _ALERT_GROUP_ACTIVE_WINDOW = datetime.timedelta(days=7)
 #   GROUP BY bug_id
 # )
 _ALERT_GROUP_TRIAGE_DELAY = datetime.timedelta(hours=1)
-
-_ALERT_GROUP_TASK_QUEUE = 'alert-groups'
 
 
 def ProcessAlertGroups():
@@ -97,5 +96,8 @@ class AlertGroupsHandler(request_handler.RequestHandler):
 
   def get(self):
     logging.info('Queueing task for deferred processing.')
-    deferred.defer(ProcessAlertGroups)
+    # Do not retry failed tasks.
+    deferred.defer(
+        ProcessAlertGroups,
+        _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0))
     self.response.write('OK')
