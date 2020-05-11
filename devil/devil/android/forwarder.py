@@ -428,24 +428,29 @@ class Forwarder(object):
         kill_cmd = ['pkill', '-9', 'host_forwarder']
         (exit_code, output) = cmd_helper.GetCmdStatusAndOutputWithTimeout(
             kill_cmd, Forwarder._TIMEOUT)
-        if exit_code != 0:
-          _, ps_output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
-              ['ps', 'aux'], Forwarder._TIMEOUT)
-          host_forwarder_lines = [line for line in ps_output.splitlines()
-                                  if 'host_forwarder' in line]
-          if host_forwarder_lines:
-            logger.error('Remaining host_forwarder processes:\n  %s',
-                         '\n  '.join(host_forwarder_lines))
-          else:
-            logger.error('No remaining host_forwarder processes?')
-          _DumpHostLog()
-          error_msg = textwrap.dedent("""\
-              `{kill_cmd}` failed to kill host_forwarder.
-                exit_code: {exit_code}
-              """)
-          raise HostForwarderError(
-              error_msg.format(
-                  kill_cmd=' '.join(kill_cmd), exit_code=str(exit_code)))
+        if exit_code in (0, 1):
+          # pkill exits with a 0 if it was able to signal at least one process.
+          # pkill exits with a 1 if it wasn't able to singal a process because
+          # no matching process existed. We're ok with either.
+          return
+
+        _, ps_output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
+            ['ps', 'aux'], Forwarder._TIMEOUT)
+        host_forwarder_lines = [line for line in ps_output.splitlines()
+                                if 'host_forwarder' in line]
+        if host_forwarder_lines:
+          logger.error('Remaining host_forwarder processes:\n  %s',
+                       '\n  '.join(host_forwarder_lines))
+        else:
+          logger.error('No remaining host_forwarder processes?')
+        _DumpHostLog()
+        error_msg = textwrap.dedent("""\
+            `{kill_cmd}` failed to kill host_forwarder.
+              exit_code: {exit_code}
+            """)
+        raise HostForwarderError(
+            error_msg.format(
+                kill_cmd=' '.join(kill_cmd), exit_code=str(exit_code)))
     except cmd_helper.TimeoutError as e:
       raise HostForwarderError(
           '`%s` timed out:\n%s' % (' '.join(kill_cmd), e.output))
