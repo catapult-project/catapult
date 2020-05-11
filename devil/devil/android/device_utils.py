@@ -75,7 +75,8 @@ _FILE_LIST_SCRIPT = """
   function list_files() {
     for f in "$1"/{.,}*
     do
-      if [ "$f" == "." ] || [ "$f" == ".." ] || [ "$f" == "${1}/.*" ]
+      if [ "$f" == "." ] || [ "$f" == ".." ] || [ "$f" == "${1}/.*" ] \
+          || [ "$f" == "${1}/*" ]
       then
         continue
       fi
