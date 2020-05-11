@@ -3192,11 +3192,28 @@ class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
     self._testSetWebViewImplementationHelper(mock_dump_sys,
                                              'WebView native library')
 
-  def testSetWebViewImplementation_lowTargetSdkVersion(self):
+  def testSetWebViewImplementation_lowTargetSdkVersion_finalizedSdk(self):
     mock_dump_sys = {'WebViewPackages': {'foo.org': 'SDK version too low', }}
-    with self.patch_call(self.call.device.build_version_sdk, return_value=26):
-      self._testSetWebViewImplementationHelper(mock_dump_sys,
-                                               'higher targetSdkVersion')
+    with self.assertCalls(
+        (self.call.device.GetApplicationTargetSdk('foo.org'), '29'),
+        (self.call.device.GetProp('ro.build.version.preview_sdk'), '0')):
+      with self.patch_call(self.call.device.build_version_sdk, return_value=30):
+        self._testSetWebViewImplementationHelper(
+            mock_dump_sys,
+            "has targetSdkVersion '29', but valid WebView providers must "
+            "target >= 30 on this device")
+
+  def testSetWebViewImplementation_lowTargetSdkVersion_prefinalizedSdk(self):
+    mock_dump_sys = {'WebViewPackages': {'foo.org': 'SDK version too low', }}
+    with self.assertCalls(
+        (self.call.device.GetApplicationTargetSdk('foo.org'), '29'),
+        (self.call.device.GetProp('ro.build.version.preview_sdk'), '1'),
+        (self.call.device.GetProp('ro.build.version.codename'), 'R')):
+      with self.patch_call(self.call.device.build_version_sdk, return_value=29):
+        self._testSetWebViewImplementationHelper(
+            mock_dump_sys,
+            "targets a finalized SDK ('29'), but valid WebView providers must "
+            "target a pre-finalized SDK ('R') on this device")
 
   def testSetWebViewImplementation_lowVersionCode(self):
     mock_dump_sys = {

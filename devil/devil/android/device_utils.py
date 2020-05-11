@@ -3201,9 +3201,20 @@ class DeviceUtils(object):
               '%s does not declare a WebView native library, so it cannot '
               'be a WebView provider' % package_name, str(self))
         if re.search(r'SDK version too low', reason):
-          raise device_errors.CommandFailedError(
-              '%s needs a higher targetSdkVersion (must be >= %d)' %
-              (package_name, self.build_version_sdk), str(self))
+          app_target_sdk_version = self.GetApplicationTargetSdk(package_name)
+          is_preview_sdk = self.GetProp('ro.build.version.preview_sdk') == '1'
+          if is_preview_sdk:
+            codename = self.GetProp('ro.build.version.codename')
+            raise device_errors.CommandFailedError(
+                '%s targets a finalized SDK (%r), but valid WebView providers '
+                'must target a pre-finalized SDK (%r) on this device' %
+                (package_name, app_target_sdk_version, codename), str(self))
+          else:
+            raise device_errors.CommandFailedError(
+                '%s has targetSdkVersion %r, but valid WebView providers must '
+                'target >= %r on this device' %
+                (package_name, app_target_sdk_version, self.build_version_sdk),
+                str(self))
         if re.search(r'Version code too low', reason):
           raise device_errors.CommandFailedError(
               '%s needs a higher versionCode (must be >= %d)' %
