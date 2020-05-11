@@ -214,12 +214,15 @@ class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
                       dumper_path)
       return None
 
-    stdout = None
-    try:
-      stdout = subprocess.check_output(
-          [dumper_path, minidump], stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-      stdout = e.output
+    # Using subprocess.check_output with stdout/stderr mixed can result in
+    # errors due to log messages showing up in the minidump_dump output. So,
+    # use Popen and combine into a single string afterwards.
+    p = subprocess.Popen(
+        [dumper_path, minidump], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    stdout = stdout + '\n' + stderr
+
+    if p.returncode != 0:
       # Dumper errors often do not affect stack walkability, just a warning.
       # It's possible for the same stack to be symbolized multiple times, so
       # add a timestamp suffix to prevent artifact collisions.
