@@ -169,6 +169,8 @@ _CURRENT_FOCUS_CRASH_RE = re.compile(
     r'\s*mCurrentFocus.*Application (Error|Not Responding): (\S+)}')
 
 _GETPROP_RE = re.compile(r'\[(.*?)\]: \[(.*?)\]')
+_VERSION_CODE_SDK_RE = re.compile(
+    r'\s*versionCode=(\d+).*minSdk=(\d+).*targetSdk=(.*)\s*')
 
 # Regex to parse the long (-l) output of 'ls' command, c.f.
 # https://github.com/landley/toybox/blob/master/toys/posix/ls.c#L446
@@ -827,6 +829,35 @@ class DeviceUtils(object):
         return line[len('versionName='):]
     raise device_errors.CommandFailedError(
         'Version name for %s not found on dumpsys output' % package, str(self))
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetApplicationTargetSdk(self, package, timeout=None, retries=None):
+    """Get the targetSdkVersion of a package installed on the device.
+
+    Args:
+      package: Name of the package.
+
+    Returns:
+      A string with the targetSdkVersion or None if the package is not found on
+      the device. Note: this cannot always be cast to an integer. If this
+      application targets a pre-release SDK, this returns the version codename
+      instead (ex. "R").
+    """
+    if not self.IsApplicationInstalled(package):
+      return None
+    lines = self._GetDumpsysOutput(['package', package], 'targetSdk=')
+    for line in lines:
+      m = _VERSION_CODE_SDK_RE.match(line)
+      if m:
+        value = m.group(3)
+        # 10000 is the code used by Android for a pre-finalized SDK.
+        if value == '10000':
+          return self.GetProp('ro.build.version.codename', cache=True)
+        else:
+          return value
+    raise device_errors.CommandFailedError(
+        'targetSdkVersion for %s not found on dumpsys output' % package,
+        str(self))
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetPackageArchitecture(self, package, timeout=None, retries=None):

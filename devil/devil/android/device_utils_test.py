@@ -593,6 +593,42 @@ class DeviceUtils_GetApplicationVersionTest(DeviceUtilsTest):
         self.device.GetApplicationVersion('com.android.chrome')
 
 
+class DeviceUtils_GetApplicationTargetSdkTest(DeviceUtilsTest):
+  def test_GetApplicationTargetSdk_exists(self):
+    with self.assertCalls(
+        (self.call.device.IsApplicationInstalled('com.android.chrome'), True),
+        (self.call.device._GetDumpsysOutput(['package', 'com.android.chrome'],
+                                            'targetSdk='),
+         ['    versionCode=413200001 minSdk=21 targetSdk=29'])):
+      self.assertEquals(
+          '29', self.device.GetApplicationTargetSdk('com.android.chrome'))
+
+  def test_GetApplicationTargetSdk_notExists(self):
+    with self.assertCalls(
+        (self.call.device.IsApplicationInstalled('com.android.chrome'), False)):
+      self.assertIsNone(
+          self.device.GetApplicationTargetSdk('com.android.chrome'))
+
+  def test_GetApplicationTargetSdk_fails(self):
+    with self.assertCalls(
+        (self.call.device.IsApplicationInstalled('com.android.chrome'), True),
+        (self.call.device._GetDumpsysOutput(['package', 'com.android.chrome'],
+                                            'targetSdk='), [])):
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.device.GetApplicationTargetSdk('com.android.chrome')
+
+  def test_GetApplicationTargetSdk_prefinalizedSdk(self):
+    with self.assertCalls(
+        (self.call.device.IsApplicationInstalled('com.android.chrome'), True),
+        (self.call.device._GetDumpsysOutput(['package', 'com.android.chrome'],
+                                            'targetSdk='),
+         ['    versionCode=410301483 minSdk=10000 targetSdk=10000']),
+        (self.call.device.GetProp('ro.build.version.codename',
+                                  cache=True), 'R')):
+      self.assertEquals(
+          'R', self.device.GetApplicationTargetSdk('com.android.chrome'))
+
+
 class DeviceUtils_GetPackageArchitectureTest(DeviceUtilsTest):
   def test_GetPackageArchitecture_exists(self):
     with self.assertCall(

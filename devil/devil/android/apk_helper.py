@@ -353,7 +353,9 @@ class BaseApkHelper(object):
   def GetTargetSdkVersion(self):
     """Returns the targetSdkVersion as a string, or None if not available.
 
-    Note: this cannot always be cast to an integer."""
+    Note: this cannot always be cast to an integer. If this application targets
+    a pre-release SDK, this returns the SDK codename instead (ex. "R").
+    """
     manifest_info = self._GetManifest()
     try:
       uses_sdk = manifest_info['manifest'][0]['uses-sdk'][0]
