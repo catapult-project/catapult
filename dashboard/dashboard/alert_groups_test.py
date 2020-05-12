@@ -10,6 +10,7 @@ import mock
 import datetime
 
 import logging
+import unittest
 import webapp2
 import webtest
 
@@ -258,6 +259,59 @@ class GroupReportTest(testing_common.TestCase):
     logging.debug('Rendered:\n%s', MockIssueTrackerService.new_bug_args[1])
     self.assertRegexpMatches(MockIssueTrackerService.new_bug_args[1],
                              r'Top 1 affected measurements in bot:')
+    self.assertEqual(a.get().bug_id, 12345)
+    self.assertEqual(group.bug.bug_id, 12345)
+    # Make sure we don't file the issue again for this alert group.
+    MockIssueTrackerService.new_bug_args = None
+    MockIssueTrackerService.new_bug_kwargs = None
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    self.assertIsNone(MockIssueTrackerService.new_bug_args)
+    self.assertIsNone(MockIssueTrackerService.new_bug_kwargs)
+
+  # TODO(dberris): Re-enable this when we start supporting multiple benchmarks
+  # in the same alert group in the future.
+  @unittest.expectedFailure
+  def testTriageAltertsGroup_MultipleBenchmarks(self, mock_get_sheriff_client):
+    sheriff = subscription.Subscription(name='sheriff', auto_triage_enable=True)
+    mock_get_sheriff_client().Match.return_value = ([sheriff], None)
+    self.PatchObject(alert_group, '_IssueTracker',
+                     lambda: MockIssueTrackerService)
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    # Add anomalies
+    a = self._AddAnomaly()
+    _ = self._AddAnomaly(
+        test='master/bot/other_test_suite/measurement/test_case'
+    )
+    # Create Group
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    # Update Group to associate alerts
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    # Set Create timestamp to 2 hours ago
+    group = alert_group.AlertGroup.Get('test_suite', None)[0]
+    group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
+    group.put()
+    # Submit issue
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    group = alert_group.AlertGroup.Get('test_suite', None)[0]
+    self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
+    self.assertItemsEqual(MockIssueTrackerService.new_bug_kwargs['components'],
+                          ['Foo>Bar'])
+    self.assertItemsEqual(MockIssueTrackerService.new_bug_kwargs['labels'], [
+        'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
+        'Chromeperf-Auto-Triaged'
+    ])
+    logging.debug('Rendered:\n%s', MockIssueTrackerService.new_bug_args[1])
+    self.assertRegexpMatches(MockIssueTrackerService.new_bug_args[1],
+                             r'Top 4 affected measurements in bot:')
+    self.assertRegexpMatches(MockIssueTrackerService.new_bug_args[1],
+                             r'Top 1 affected in test_suite:')
+    self.assertRegexpMatches(MockIssueTrackerService.new_bug_args[1],
+                             r'Top 1 affected in other_test_suite:')
     self.assertEqual(a.get().bug_id, 12345)
     self.assertEqual(group.bug.bug_id, 12345)
     # Make sure we don't file the issue again for this alert group.

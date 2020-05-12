@@ -7,7 +7,7 @@ Top {{ top_regressions|length }} affected measurements in {{ benchmark.name }}:
   - {{ regression.test.string_id() }}
     {%- set before = regression.median_before_anomaly %}
     {%- set after = regression.median_after_anomaly %}
-    {{ '%8.2f'|format((get_magnitude(regression)-1)*100) }}%: {{ before }} -> {{ after }} {{ parse_unit(regression.units) }}
+    {{ '%8.2f'|format(regression*100.0) }}%: {{ before }} -> {{ after }} {{ parse_unit(regression.units) }}
 {%- endfor %}
 {% endfor %}
 {%- endif -%}
