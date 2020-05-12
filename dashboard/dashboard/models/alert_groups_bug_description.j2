@@ -7,22 +7,14 @@ Top {{ top_regressions|length }} regressions (out of {{ group.anomalies|length }
   - {{ regression.test.string_id() }}
     {%- set before = regression.median_before_anomaly %}
     {%- set after = regression.median_after_anomaly %}
-    {{ '%8.2f'|format((get_magnitude(regression)-1)*100) }}%: {{ before }} -> {{ after }} {{ parse_unit(regression.units) }}
-{%- endfor %}
-{% for benchmark in benchmarks|sort %}
-{% set top_regressions = benchmark.regressions[:3] -%}
-Top {{ top_regressions|length }} affected measurements in {{ benchmark.name }}:
-{%- for regression in top_regressions %}
-  - {{ regression.test.string_id() }}
-    {%- set before = regression.median_before_anomaly %}
-    {%- set after = regression.median_after_anomaly %}
-    {{ '%8.2f'|format((get_magnitude(regression)-1)*100) }}%: {{ before }} -> {{ after }} {{ parse_unit(regression.units) }}
-{%- endfor %}
-{% endfor %}
-Regressions grouped by {{ group.name }} includes data from the following benchmarks with listed owners:
-{%- for benchmark in benchmarks|sort %}
-  {{ benchmark.name }}: {{ benchmark.owners|sort|join(',') }}
-{%- endfor %}
+    {{ '%8.2f'|format(regression.relative_delta*100.0) }}%: {{ before }} -> {{ after }} {{ parse_unit(regression.units) }}
+{%- endfor -%}
+{# Show the benchmark groupings conditionally. #}
+{%- include 'benchmark_grouping.j2' -%}
+{# Group the anomalies by bot. #}
+{%- include 'bot_grouping.j2' -%}
+{# Show owners for the benchmarks. #}
+{%- include 'benchmark_owners.j2' %}
 
 {# TODO(fancl): directly use commit range instead -#}
 Commits in this range:

@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import mock
 import datetime
 
+import logging
 import webapp2
 import webtest
 
@@ -254,6 +255,9 @@ class GroupReportTest(testing_common.TestCase):
         'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
         'Chromeperf-Auto-Triaged'
     ])
+    logging.debug('Rendered:\n%s', MockIssueTrackerService.new_bug_args[1])
+    self.assertRegexpMatches(MockIssueTrackerService.new_bug_args[1],
+                             r'Top 1 affected measurements in bot:')
     self.assertEqual(a.get().bug_id, 12345)
     self.assertEqual(group.bug.bug_id, 12345)
     # Make sure we don't file the issue again for this alert group.
@@ -299,7 +303,6 @@ class GroupReportTest(testing_common.TestCase):
     ])
     self.assertEqual(a.get().bug_id, 12345)
 
-
   def testAddAlertsAfterTriage(self, mock_get_sheriff_client):
     sheriff = subscription.Subscription(name='sheriff', auto_triage_enable=True)
     mock_get_sheriff_client().Match.return_value = ([sheriff], None)
@@ -332,6 +335,7 @@ class GroupReportTest(testing_common.TestCase):
     self.ExecuteDeferredTasks('default')
     for a in anomalies:
       self.assertEqual(a.get().bug_id, 12345)
+    logging.debug('Rendered:\n%s', MockIssueTrackerService.add_comment_args[1])
     self.assertEqual(MockIssueTrackerService.add_comment_args[0], 12345)
     self.assertItemsEqual(
         MockIssueTrackerService.add_comment_kwargs['components'], ['Foo>Bar'])
@@ -340,3 +344,5 @@ class GroupReportTest(testing_common.TestCase):
                               'Pri-2', 'Restrict-View-Google',
                               'Type-Bug-Regression', 'Chromeperf-Auto-Triaged'
                           ])
+    self.assertRegexpMatches(MockIssueTrackerService.add_comment_args[1],
+                             r'Top 2 affected measurements in bot:')

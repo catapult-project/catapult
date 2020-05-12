@@ -1,0 +1,5 @@
+{# List owners for benchmarks. #}
+Regressions grouped by {{ group.name }} includes data from the following benchmarks with listed owners:
+{%- for benchmark in benchmarks|sort %}
+  {{ benchmark.name }}: {{ benchmark.owners|sort|join(',') }}
+{%- endfor %}

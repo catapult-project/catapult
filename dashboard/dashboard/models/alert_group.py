@@ -60,6 +60,12 @@ class BugUpdateDetails(
   __slots__ = ()
 
 
+class BenchmarkDetails(
+    collections.namedtuple('BenchmarkDetails',
+                           ('name', 'bot', 'owners', 'regressions'))):
+  __slots__ = ()
+
+
 class AlertGroup(ndb.Model):
   name = ndb.StringProperty(indexed=True)
   created = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
@@ -206,6 +212,8 @@ class AlertGroup(ndb.Model):
       subscriptions_dict.update({s.name: s for s in subscriptions})
       # Only auto-triage if this is a regression.
       a.auto_triage_enable = any(s.auto_triage_enable for s in subscriptions)
+      a.relative_delta = abs(a.absolute_delta / float(a.median_before_anomaly)
+                            ) if a.median_before_anomaly != 0. else float('Inf')
       if not a.is_improvement:
         regressions.append(a)
     return (regressions, subscriptions_dict.values())
@@ -223,17 +231,13 @@ class AlertGroup(ndb.Model):
         components.append(component)
     return set(components)
 
-  _benchmark_tuple = collections.namedtuple(
-      '_Benchmark', ['name', 'owners', 'regressions']
-  )
-
   @classmethod
   def _GetBenchmarksFromRegressions(cls, regressions):
     benchmarks_dict = dict()
     for regression in regressions:
       name = regression.benchmark_name
       benchmark = benchmarks_dict.get(
-          name, cls._benchmark_tuple(name, set(), []))
+          name, BenchmarkDetails(name, regression.bot_name, set(), []))
       if regression.ownership:
         emails = regression.ownership.get('emails') or []
         benchmark.owners.update(emails)
@@ -242,24 +246,21 @@ class AlertGroup(ndb.Model):
     return benchmarks_dict.values()
 
   def _GetTemplateArgs(self, regressions):
-    def GetMagnitude(x):
-      if not x.median_before_anomaly:
-        return float('Inf')
-      return abs(x.median_after_anomaly / x.median_before_anomaly)
     # Preparing template arguments used in rendering issue's title and content.
-    regressions.sort(key=GetMagnitude, reverse=True)
+    regressions.sort(key=lambda x: x.relative_delta, reverse=True)
     benchmarks = self._GetBenchmarksFromRegressions(regressions)
     return {
         # Current AlertGroup used for rendering templates
         'group': self,
+
         # Performance regressions sorted by relative difference
         'regressions': regressions,
-        # Benchmarks occur in regressions, including names and owners
+
+        # Benchmarks that occur in regressions, including names and owners
         'benchmarks': benchmarks,
+
         # Parse the real unit (remove things like smallerIsBetter)
         'parse_unit': lambda s: (s or '').rsplit('_', 1)[0],
-        # Get magnitude from anomaly
-        'get_magnitude': GetMagnitude,
     }
 
   def _ComputeBugUpdate(self, subscriptions, regressions):
