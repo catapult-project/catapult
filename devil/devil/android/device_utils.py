@@ -1240,7 +1240,7 @@ class DeviceUtils(object):
       try:
         apks_to_install, host_checksums = (self._ComputeStaleApks(
             package_name, apk_paths))
-      except EnvironmentError as e:
+      except device_errors.CommandFailedError as e:
         logger.warning('Error calculating md5: %s', e)
         apks_to_install, host_checksums = apk_paths, None
       if apks_to_install and not reinstall:
@@ -1972,7 +1972,7 @@ class DeviceUtils(object):
     try:
       host_checksums, device_checksums = reraiser_thread.RunAsync(
           (calculate_host_checksums, calculate_device_checksums))
-    except EnvironmentError as e:
+    except device_errors.CommandFailedError as e:
       logger.warning('Error calculating md5: %s', e)
       return (host_device_tuples, lambda: 0)
 
