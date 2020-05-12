@@ -43,7 +43,8 @@ def _ProcessAlertGroup(group_key, now):
   group.put()
 
 
-def _ProcessUngroupedAlerts(groups):
+def _ProcessUngroupedAlerts():
+  groups = alert_group.AlertGroup.GetAll()
 
   # TODO(fancl): This is an inefficient algorithm, as it's linear to the number
   # of groups. We should instead create an interval tree so that it's
@@ -91,7 +92,7 @@ def ProcessAlertGroups():
         now,
         _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0))
 
-  deferred.defer(_ProcessUngroupedAlerts, groups)
+  deferred.defer(_ProcessUngroupedAlerts)
 
 
 class AlertGroupsHandler(request_handler.RequestHandler):
