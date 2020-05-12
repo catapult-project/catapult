@@ -1,7 +1,6 @@
 # Copyright 2020 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """The database model for an "Anomaly", which represents a step up or down."""
 from __future__ import print_function
 from __future__ import division
@@ -31,8 +30,7 @@ _TEMPLATE_LOADER = jinja2.FileSystemLoader(
 _TEMPLATE_ENV = jinja2.Environment(loader=_TEMPLATE_LOADER)
 _TEMPLATE_ISSUE_TITLE = jinja2.Template(
     'Chromeperf Alerts: '
-    '{{ regressions|length }} regressions in {{ group.name }}'
-)
+    '{{ regressions|length }} regressions in {{ group.name }}')
 _TEMPLATE_ISSUE_CONTENT = _TEMPLATE_ENV.get_template(
     'alert_groups_bug_description.j2')
 _TEMPLATE_ISSUE_COMMENT = _TEMPLATE_ENV.get_template(
@@ -91,17 +89,19 @@ class AlertGroup(ndb.Model):
   @classmethod
   def GenerateAllGroupsForAnomaly(cls, anomaly_entity):
     # TODO(fancl): Support multiple group name
-    return [cls(
-        id=str(uuid.uuid4()),
-        name=anomaly_entity.benchmark_name,
-        status=cls.Status.untriaged,
-        active=True,
-        revision=RevisionRange(
-            repository='chromium',
-            start=anomaly_entity.start_revision,
-            end=anomaly_entity.end_revision,
-        ),
-    )]
+    return [
+        cls(
+            id=str(uuid.uuid4()),
+            name=anomaly_entity.benchmark_name,
+            status=cls.Status.untriaged,
+            active=True,
+            revision=RevisionRange(
+                repository='chromium',
+                start=anomaly_entity.start_revision,
+                end=anomaly_entity.end_revision,
+            ),
+        )
+    ]
 
   @classmethod
   def GetGroupsForAnomaly(cls, anomaly_entity):
@@ -127,12 +127,15 @@ class AlertGroup(ndb.Model):
     )
     if not revision_info:
       return list(query.fetch())
-    return [group for group in query.fetch()
-            if revision_info.IsOverlapping(group.revision)]
+    return [
+        group for group in query.fetch()
+        if revision_info.IsOverlapping(group.revision)
+    ]
 
   @classmethod
   def GetAll(cls, active=True):
-    return list(cls.query(cls.active == active).fetch())
+    groups = cls.query(cls.active == active).fetch()
+    return groups or []
 
   def Update(self, now, active_window, triage_delay):
     added = self._UpdateAnomalies()
@@ -153,8 +156,8 @@ class AlertGroup(ndb.Model):
       self._TryBisect()
 
   def _UpdateAnomalies(self):
-    anomalies = anomaly.Anomaly.query(
-        anomaly.Anomaly.groups.IN([self.key])).fetch()
+    anomalies = anomaly.Anomaly.query(anomaly.Anomaly.groups.IN([self.key
+                                                                ])).fetch()
     added = [a for a in anomalies if a.key not in self.anomalies]
     self.anomalies = [a.key for a in anomalies]
     return added

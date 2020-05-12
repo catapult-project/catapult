@@ -34,19 +34,20 @@ _ALERT_GROUP_ACTIVE_WINDOW = datetime.timedelta(days=7)
 _ALERT_GROUP_TRIAGE_DELAY = datetime.timedelta(hours=1)
 
 
-def ProcessAlertGroups():
-  logging.info('Fetching alert groups.')
-  groups = alert_group.AlertGroup.GetAll()
-  logging.info('Found %s alert groups.', len(groups))
-  now = datetime.datetime.utcnow()
-  for group in groups:
-    logging.info('Processing group: %s', group.key.string_id())
-    group.Update(now, _ALERT_GROUP_ACTIVE_WINDOW, _ALERT_GROUP_TRIAGE_DELAY)
-    # We force that we update each group after every update, instead of
-    # attempting to batch those to allow for partial success.
-    group.put()
+def _ProcessAlertGroup(group_key, now):
+  group = group_key.get()
+  logging.info('Processing group: %s', group.key.string_id())
+  group.Update(now, _ALERT_GROUP_ACTIVE_WINDOW, _ALERT_GROUP_TRIAGE_DELAY)
+  # We force that we update each group after every update, instead of
+  # attempting to batch those to allow for partial success.
+  group.put()
 
 
+def _ProcessUngroupedAlerts(groups):
+
+  # TODO(fancl): This is an inefficient algorithm, as it's linear to the number
+  # of groups. We should instead create an interval tree so that it's
+  # logarithmic to the number of unique revision ranges.
   def FindGroup(group):
     for g in groups:
       if group.IsOverlapping(g):
@@ -74,8 +75,23 @@ def ProcessAlertGroups():
         FindGroup(g) or g.put() for g in
         alert_group.AlertGroup.GenerateAllGroupsForAnomaly(anomaly_entity)
     ]
-  logging.info('Persisting anomlies')
+  logging.info('Persisting anomalies')
   ndb.put_multi(ungrouped_anomalies)
+
+
+def ProcessAlertGroups():
+  logging.info('Fetching alert groups.')
+  groups = alert_group.AlertGroup.GetAll()
+  logging.info('Found %s alert groups.', len(groups))
+  now = datetime.datetime.utcnow()
+  for group in groups:
+    deferred.defer(
+        _ProcessAlertGroup,
+        group.key,
+        now,
+        _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0))
+
+  deferred.defer(_ProcessUngroupedAlerts, groups)
 
 
 class AlertGroupsHandler(request_handler.RequestHandler):
