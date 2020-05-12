@@ -269,6 +269,34 @@ class GroupReportTest(testing_common.TestCase):
     self.assertIsNone(MockIssueTrackerService.new_bug_args)
     self.assertIsNone(MockIssueTrackerService.new_bug_kwargs)
 
+  def testTriageAlertsGroup_NoRecovered(self, mock_get_sheriff_client):
+    sheriff = subscription.Subscription(name='sheriff', auto_triage_enable=True)
+    mock_get_sheriff_client().Match.return_value = ([sheriff], None)
+    self.PatchObject(alert_group, '_IssueTracker',
+                     lambda: MockIssueTrackerService)
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    self._AddAnomaly()
+    self._AddAnomaly(recovered=True, start_revision=50, end_revision=150)
+    # Create Group
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    # Update Group to associate alerts
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    # Set Create timestamp to 2 hours ago
+    group = alert_group.AlertGroup.Get('test_suite', None)[0]
+    group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
+    group.put()
+    # Submit issue
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    group = alert_group.AlertGroup.Get('test_suite', None)[0]
+    logging.debug('Rendered:\n%s', MockIssueTrackerService.new_bug_args[1])
+    self.assertRegexpMatches(MockIssueTrackerService.new_bug_args[1],
+                             r'Top 1 affected measurements in bot:')
+
+
   # TODO(dberris): Re-enable this when we start supporting multiple benchmarks
   # in the same alert group in the future.
   @unittest.expectedFailure

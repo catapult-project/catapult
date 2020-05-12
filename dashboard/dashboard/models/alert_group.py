@@ -217,7 +217,7 @@ class AlertGroup(ndb.Model):
       a.auto_triage_enable = any(s.auto_triage_enable for s in subscriptions)
       a.relative_delta = abs(a.absolute_delta / float(a.median_before_anomaly)
                             ) if a.median_before_anomaly != 0. else float('Inf')
-      if not a.is_improvement:
+      if not a.is_improvement and not a.recovered:
         regressions.append(a)
     return (regressions, subscriptions_dict.values())
 
