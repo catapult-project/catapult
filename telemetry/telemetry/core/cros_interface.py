@@ -390,26 +390,37 @@ class CrOSInterface(object):
     device_dumps = stdout.splitlines()
     for dump_filename in device_dumps:
       host_path = os.path.join(host_dir, dump_filename)
-      if not os.path.exists(host_path):
-        device_path = cmd_helper.SingleQuote(
-            posixpath.join(self.CROS_MINIDUMP_DIR, dump_filename))
-        # Skip any directories that happen to be in the list.
-        stdout, _ = self.RunCmdOnDevice(
-            ['test', '-f', device_path, '&&',
-             'echo', 'true', '||', 'echo', 'false'])
-        if 'false' in stdout:
-          continue
-        self.GetFile(device_path, host_path)
-        # Set the local version's modification time to the device's.
-        stdout, _ = self.RunCmdOnDevice(
-            ['ls', '--time-style', '+%s', '-l', device_path])
-        stdout = stdout.strip()
-        # We expect whitespace-separated fields in this order:
-        # mode, links, owner, group, size, mtime, filename.
-        # Offset by the difference of the device and host clocks.
-        device_mtime = int(stdout.split()[5])
-        host_mtime = device_mtime - time_offset
-        os.utime(host_path, (host_mtime, host_mtime))
+      # Skip any .lock files since they're not useful and could be deleted by
+      # the time we try to pull them.
+      if dump_filename.endswith('.lock'):
+        continue
+      if os.path.exists(host_path):
+        continue
+      device_path = cmd_helper.SingleQuote(
+          posixpath.join(self.CROS_MINIDUMP_DIR, dump_filename))
+      # Skip any directories that happen to be in the list.
+      stdout, _ = self.RunCmdOnDevice(['test', '-f', device_path, '&&',
+                                       'echo', 'true', '||', 'echo', 'false'])
+      if 'false' in stdout:
+        continue
+      # Skip any files that have a corresponding .lock file, as that implies the
+      # file hasn't been fully written to disk yet.
+      device_lock_path = device_path + '.lock'
+      if self.FileExistsOnDevice(device_lock_path):
+        logging.debug('Not pulling file %s because a .lock file exists for it',
+                      device_path)
+        continue
+      self.GetFile(device_path, host_path)
+      # Set the local version's modification time to the device's.
+      stdout, _ = self.RunCmdOnDevice(
+          ['ls', '--time-style', '+%s', '-l', device_path])
+      stdout = stdout.strip()
+      # We expect whitespace-separated fields in this order:
+      # mode, links, owner, group, size, mtime, filename.
+      # Offset by the difference of the device and host clocks.
+      device_mtime = int(stdout.split()[5])
+      host_mtime = device_mtime - time_offset
+      os.utime(host_path, (host_mtime, host_mtime))
 
   def GetDeviceHostClockOffset(self):
     """Returns the difference between the device and host clocks."""

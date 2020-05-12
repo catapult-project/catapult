@@ -261,10 +261,21 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return
     device_dumps = device.ListDirectory(device_dump_path)
     for dump_filename in device_dumps:
+      # Skip any .lock files since they're not useful and are prone to being
+      # deleted by the time we try to actually pull them.
+      if dump_filename.endswith('.lock'):
+        continue
       host_path = os.path.join(self._tmp_minidump_dir, dump_filename)
       if os.path.exists(host_path):
         continue
       device_path = posixpath.join(device_dump_path, dump_filename)
+      # Skip any files that have a .lock file associated with them, as that
+      # implies that the minidump hasn't been fully written to disk yet.
+      device_lock_path = device_path + '.lock'
+      if device.FileExists(device_lock_path):
+        logging.debug('Not pulling file %s because a .lock file exists for it',
+                      device_path)
+        continue
       device.PullFile(device_path, host_path)
       # Set the local version's modification time to the device's
       # The mtime returned by device_utils.StatPath only has a resolution down
