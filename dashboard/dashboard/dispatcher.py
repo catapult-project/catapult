@@ -80,6 +80,7 @@ _URL_MAPPING = [
     ('/add_point_queue', add_point_queue.AddPointQueueHandler),
     ('/alerts', alerts.AlertsHandler),
     (r'/api/alerts', api_alerts.AlertsHandler),
+    (r'/api/bugs/p/(.+)/(.+)', bugs.BugsWithProjectHandler),
     (r'/api/bugs/(.*)', bugs.BugsHandler),
     (r'/api/config', config.ConfigHandler),
     (r'/api/describe', describe.DescribeHandler),

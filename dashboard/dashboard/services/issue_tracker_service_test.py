@@ -26,7 +26,12 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     self.assertTrue(service.AddBugComment(12345, 'The comment'))
     self.assertEqual(1, service._MakeCommentRequest.call_count)
     service._MakeCommentRequest.assert_called_with(
-        12345, {'updates': {}, 'content': 'The comment'}, send_email=True)
+        12345, {
+            'updates': {},
+            'content': 'The comment'
+        },
+        project='chromium',
+        send_email=True)
 
   def testAddBugComment_WithNoBug_ReturnsFalse(self):
     service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
@@ -37,13 +42,16 @@ class IssueTrackerServiceTest(testing_common.TestCase):
   def testAddBugComment_WithOptionalParameters(self):
     service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
     service._MakeCommentRequest = mock.Mock()
-    self.assertTrue(service.AddBugComment(
-        12345, 'Some other comment', status='Fixed',
-        labels=['Foo'], cc_list=['someone@chromium.org']))
+    self.assertTrue(
+        service.AddBugComment(
+            12345,
+            'Some other comment',
+            status='Fixed',
+            labels=['Foo'],
+            cc_list=['someone@chromium.org']))
     self.assertEqual(1, service._MakeCommentRequest.call_count)
     service._MakeCommentRequest.assert_called_with(
-        12345,
-        {
+        12345, {
             'updates': {
                 'status': 'Fixed',
                 'cc': ['someone@chromium.org'],
@@ -51,6 +59,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             },
             'content': 'Some other comment'
         },
+        project='chromium',
         send_email=True)
 
   def testAddBugComment_MergeBug(self):
@@ -59,14 +68,14 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     self.assertTrue(service.AddBugComment(12345, 'Dupe', merge_issue=54321))
     self.assertEqual(1, service._MakeCommentRequest.call_count)
     service._MakeCommentRequest.assert_called_with(
-        12345,
-        {
+        12345, {
             'updates': {
                 'status': 'Duplicate',
-                'mergedInto': 54321,
+                'mergedInto': 'chromium:54321',
             },
             'content': 'Dupe'
         },
+        project='chromium',
         send_email=True)
 
   @mock.patch('logging.error')

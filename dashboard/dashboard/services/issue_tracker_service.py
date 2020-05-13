@@ -46,6 +46,7 @@ class IssueTrackerService(object):
   def AddBugComment(self,
                     bug_id,
                     comment,
+                    project='chromium',
                     status=None,
                     cc_list=None,
                     merge_issue=None,
@@ -79,7 +80,7 @@ class IssueTrackerService(object):
     # Avoid marking an issue as duplicate of itself.
     if merge_issue and int(merge_issue) != bug_id:
       status = STATUS_DUPLICATE
-      updates['mergedInto'] = merge_issue
+      updates['mergedInto'] = '%s:%s' % (project, merge_issue)
       logging.info('Bug %s marked as duplicate of %s', bug_id, merge_issue)
     if status:
       updates['status'] = status
@@ -93,24 +94,31 @@ class IssueTrackerService(object):
       updates['components'] = components
     body['updates'] = updates
 
-    return self._MakeCommentRequest(bug_id, body, send_email=send_email)
+    return self._MakeCommentRequest(
+        bug_id, body, project=project, send_email=send_email)
 
-  def List(self, **kwargs):
+  def List(self, project='chromium', **kwargs):
     """Makes a request to the issue tracker to list bugs."""
-    request = self._service.issues().list(projectId='chromium', **kwargs)
+    request = self._service.issues().list(projectId=project, **kwargs)
     return self._ExecuteRequest(request)
 
-  def GetIssue(self, issue_id):
+  def GetIssue(self, issue_id, project='chromium'):
     """Makes a request to the issue tracker to get an issue."""
-    request = self._service.issues().get(projectId='chromium', issueId=issue_id)
+    request = self._service.issues().get(projectId=project, issueId=issue_id)
     return self._ExecuteRequest(request)
 
-  def _MakeCommentRequest(self, bug_id, body, retry=True, send_email=True):
+  def _MakeCommentRequest(self,
+                          bug_id,
+                          body,
+                          project='chromium',
+                          retry=True,
+                          send_email=True):
     """Makes a request to the issue tracker to update a bug.
 
     Args:
       bug_id: Bug ID of the issue.
       body: Dict of comment parameters.
+      project: The project id in Monorail.
       retry: True to retry on failure, False otherwise.
       send_email: True to send email to bug cc list, False otherwise.
 
@@ -119,7 +127,7 @@ class IssueTrackerService(object):
       making a comment failed unexpectedly.
     """
     request = self._service.issues().comments().insert(
-        projectId='chromium',
+        projectId=project,
         issueId=bug_id,
         sendEmail=send_email,
         body=body)
@@ -152,13 +160,21 @@ class IssueTrackerService(object):
     logging.error('Error updating bug %s with body %s', bug_id, body)
     return False
 
-  def NewBug(self, title, description, labels=None, components=None,
-             owner=None, cc=None, status=None):
+  def NewBug(self,
+             title,
+             description,
+             project='chromium',
+             labels=None,
+             components=None,
+             owner=None,
+             cc=None,
+             status=None):
     """Creates a new bug.
 
     Args:
       title: The short title text of the bug.
       description: The body text for the bug.
+      project: The project id in Monorail.
       labels: Starting labels for the bug.
       components: Starting components for the bug.
       owner: Starting owner account name.
@@ -175,7 +191,7 @@ class IssueTrackerService(object):
         'labels': labels or [],
         'components': components or [],
         'status': status or ('Assigned' if owner else 'Unconfirmed'),
-        'projectId': 'chromium'
+        'projectId': project,
     }
     if owner:
       body['owner'] = {'name': owner}
@@ -210,7 +226,7 @@ class IssueTrackerService(object):
       return {'error': str(e)}
     return {'error': 'Unknown failure creating issue.'}
 
-  def GetIssueComments(self, bug_id):
+  def GetIssueComments(self, bug_id, project='chromium'):
     """Gets all the comments for the given bug.
 
     Args:
@@ -221,7 +237,7 @@ class IssueTrackerService(object):
     """
     if not bug_id or bug_id < 0:
       return None
-    response = self._MakeGetCommentsRequest(bug_id)
+    response = self._MakeGetCommentsRequest(bug_id, project=project)
     if not response:
       return None
     return [{
@@ -230,7 +246,7 @@ class IssueTrackerService(object):
         'published': r['published']
         } for r in response.get('items')]
 
-  def GetLastBugCommentsAndTimestamp(self, bug_id):
+  def GetLastBugCommentsAndTimestamp(self, bug_id, project='chromium'):
     """Gets last updated comments and timestamp in the given bug.
 
     Args:
@@ -241,7 +257,7 @@ class IssueTrackerService(object):
     """
     if not bug_id or bug_id < 0:
       return None
-    response = self._MakeGetCommentsRequest(bug_id)
+    response = self._MakeGetCommentsRequest(bug_id, project=project)
     if response and all(v in list(response.keys())
                         for v in ['totalResults', 'items']):
       bug_comments = response.get('items')[response.get('totalResults') - 1]
@@ -252,7 +268,7 @@ class IssueTrackerService(object):
         }
     return None
 
-  def _MakeGetCommentsRequest(self, bug_id):
+  def _MakeGetCommentsRequest(self, bug_id, project):
     """Makes a request to the issue tracker to get comments in the bug."""
     # TODO (prasadv): By default the max number of comments retrieved in
     # one request is 100. Since bisect-fyi jobs may have more then 100
@@ -260,7 +276,7 @@ class IssueTrackerService(object):
     # Remove this max count once we find a way to clear old comments
     # on FYI issues.
     request = self._service.issues().comments().list(
-        projectId='chromium',
+        projectId=project,
         issueId=bug_id,
         maxResults=10000)
     return self._ExecuteRequest(request)
