@@ -111,6 +111,8 @@ class MinidumpFinder(object):
                                'attempted to retrieve the Crashpad minidumps '
                                'after the browser was already closed.')
       return None
+    if binary_manager.NeedsInit():
+      binary_manager.InitDependencyManager(None)
     try:
       crashpad_database_util = binary_manager.FetchPath(
           'crashpad_database_util', self._os, self._arch)
