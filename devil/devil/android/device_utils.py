@@ -75,7 +75,8 @@ _FILE_LIST_SCRIPT = """
   function list_files() {
     for f in "$1"/{.,}*
     do
-      if [ "$f" == "." ] || [ "$f" == ".." ] || [ "$f" == "${1}/.*" ]
+      if [ "$f" == "." ] || [ "$f" == ".." ] || [ "$f" == "${1}/.*" ] \
+          || [ "$f" == "${1}/*" ]
       then
         continue
       fi
@@ -1934,7 +1935,7 @@ class DeviceUtils(object):
       nodes_to_delete = current_device_nodes - expected_device_nodes
 
     if not file_tuples:
-      if delete_stale:
+      if delete_stale and nodes_to_delete:
         self.RemovePath(nodes_to_delete, force=True, recursive=True)
       return (host_device_tuples, lambda: 0)
 
