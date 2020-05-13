@@ -138,10 +138,13 @@ class AlertGroup(ndb.Model):
     return groups or []
 
   def Update(self, now, active_window, triage_delay):
-    added = self._UpdateAnomalies()
+    anomalies = anomaly.Anomaly.query(anomaly.Anomaly.groups.IN([self.key
+                                                                ])).fetch()
+    added = [a for a in anomalies if a.key not in self.anomalies]
+    self.anomalies = [a.key for a in anomalies]
     if (self.status == self.Status.triaged or
         self.status == self.Status.bisected):
-      self._UpdateIssue(added)
+      self._UpdateIssue(anomalies, added)
       self._UpdateStatus()
 
     # Trigger actions
@@ -155,22 +158,28 @@ class AlertGroup(ndb.Model):
     elif self.status == self.Status.triaged:
       self._TryBisect()
 
-  def _UpdateAnomalies(self):
-    anomalies = anomaly.Anomaly.query(anomaly.Anomaly.groups.IN([self.key
-                                                                ])).fetch()
-    added = [a for a in anomalies if a.key not in self.anomalies]
-    self.anomalies = [a.key for a in anomalies]
-    return added
-
   def _UpdateStatus(self):
     issue = _IssueTracker().GetIssue(self.bug.bug_id)
     if issue and issue.get('state') == 'closed':
       self.status = self.Status.closed
 
-  def _UpdateIssue(self, added):
+  def _CloseBecauseRecovered(self):
+    self.status = AlertGroup.Status.closed
+    _IssueTracker().AddBugComment(
+        self.bug.bug_id,
+        'All regressions for this issue have been marked recovered; closing.',
+        status='WontFix',
+        labels='Chromeperf-Auto-Closed')
+    # Update as soon as the comment update is completed.
+    self.put()
+
+  def _UpdateIssue(self, anomalies, added):
     regressions, subscriptions = self._GetPreproccessedRegressions(added)
     # Only update issue if there is at least one regression
     if not regressions or not any(s.auto_triage_enable for s in subscriptions):
+      # Check whether all the anomalies associated have been marked recovered.
+      if all(a.recovered for a in anomalies if not a.is_improvement):
+        return self._CloseBecauseRecovered()
       return None
 
     for regression in regressions:
