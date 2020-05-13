@@ -447,10 +447,13 @@ class Forwarder(object):
         error_msg = textwrap.dedent("""\
             `{kill_cmd}` failed to kill host_forwarder.
               exit_code: {exit_code}
+              output:
+            {output}
             """)
         raise HostForwarderError(
             error_msg.format(
-                kill_cmd=' '.join(kill_cmd), exit_code=str(exit_code)))
+                kill_cmd=' '.join(kill_cmd), exit_code=str(exit_code),
+                output='\n'.join('    %s' % l for l in output.splitlines())))
     except cmd_helper.TimeoutError as e:
       raise HostForwarderError(
           '`%s` timed out:\n%s' % (' '.join(kill_cmd), e.output))
