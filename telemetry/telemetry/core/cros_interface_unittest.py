@@ -132,6 +132,80 @@ class CrOSInterfaceTest(unittest.TestCase):
       shutil.rmtree(tempdir)
 
   @decorators.Enabled('chromeos')
+  def testPullDumpsIgnoresLockedFiles(self):
+    """Tests that files with associated .lock files are not pulled."""
+    tempdir = tempfile.mkdtemp()
+    try:
+      with self._GetCRI() as cri:
+        remote_path = '/tmp/dumps/'
+        cri.CROS_MINIDUMP_DIR = remote_path
+        cri.RunCmdOnDevice(['mkdir', '-p', remote_path])
+        cri.RunCmdOnDevice(
+            ['touch', remote_path + 'test_dump'])
+        cri.RunCmdOnDevice(
+            ['touch', remote_path + 'locked_dump'])
+        cri.RunCmdOnDevice(
+            ['touch', remote_path + 'locked_dump.lock'])
+        try:
+          cri.PullDumps(tempdir)
+        finally:
+          cri.RmRF(remote_path)
+        local_path = os.path.join(tempdir, 'test_dump')
+        self.assertTrue(os.path.exists(local_path))
+        local_path = os.path.join(tempdir, 'locked_dump')
+        self.assertFalse(os.path.exists(local_path))
+    finally:
+      shutil.rmtree(tempdir)
+
+  @decorators.Enabled('chromeos')
+  def testPullDumpsIgnoredFiletype(self):
+    """Tests that ignored filetypes are not pulled when pulling minidumps."""
+    tempdir = tempfile.mkdtemp()
+    try:
+      with self._GetCRI() as cri:
+        remote_path = '/tmp/dumps/'
+        cri.CROS_MINIDUMP_DIR = remote_path
+        cri.RunCmdOnDevice(['mkdir', '-p', remote_path])
+        cri.RunCmdOnDevice(
+            ['touch', remote_path + 'test_dump'])
+        for ignored_type in cros_interface._IGNORE_FILETYPES_FOR_MINIDUMP_PULLS:
+          cri.RunCmdOnDevice(
+              ['touch', remote_path + 'test_file' + ignored_type])
+        try:
+          cri.PullDumps(tempdir)
+        finally:
+          cri.RmRF(remote_path)
+        local_path = os.path.join(tempdir, 'test_dump')
+        self.assertTrue(os.path.exists(local_path))
+        for ignored_type in cros_interface._IGNORE_FILETYPES_FOR_MINIDUMP_PULLS:
+          local_path = os.path.join(tempdir, 'test_file' + ignored_type)
+          self.assertFalse(os.path.exists(local_path))
+    finally:
+      shutil.rmtree(tempdir)
+
+  @decorators.Enabled('chromeos')
+  @mock.patch.object(cros_interface.CrOSInterface, 'GetFile')
+  def testPullDumpsHandlesFailedFilePulls(self, get_file_mock):
+    """Tests that pulling minidumps does not explode if a file pull fails."""
+    get_file_mock.side_effect = IOError('File go bye bye.')
+    tempdir = tempfile.mkdtemp()
+    try:
+      with self._GetCRI() as cri:
+        remote_path = '/tmp/dumps/'
+        cri.CROS_MINIDUMP_DIR = remote_path
+        cri.RunCmdOnDevice(['mkdir', '-p', remote_path])
+        cri.RunCmdOnDevice(
+            ['touch', remote_path + 'test_dump'])
+        try:
+          cri.PullDumps(tempdir)
+        finally:
+          cri.RmRF(remote_path)
+        get_file_mock.assert_called_once_with(
+            remote_path + 'test_dump', mock.ANY)
+    finally:
+      shutil.rmtree(tempdir)
+
+  @decorators.Enabled('chromeos')
   def testGetFile(self):  # pylint: disable=no-self-use
     with self._GetCRI() as cri:
       f = tempfile.NamedTemporaryFile()

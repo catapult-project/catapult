@@ -23,6 +23,11 @@ _CHROME_PROCESS_REGEX = [re.compile(r'^/opt/google/chrome/chrome '),
 
 _CHROME_MOUNT_NAMESPACE_PATH = "/run/namespaces/mnt_chrome"
 
+_IGNORE_FILETYPES_FOR_MINIDUMP_PULLS = [
+    '.lock',
+    '.dat',
+]
+
 
 def RunCmd(args, cwd=None, quiet=False):
   return cmd_util.RunCmd(args, cwd, quiet)
@@ -68,6 +73,21 @@ def _Unquote(s):
     return s
   # Repeated to handle both "'foo'" and '"foo"'
   return s.strip("'").strip('"').strip("'")
+
+
+def _IsIgnoredFileType(filename):
+  """Returns whether a given file should be ignored when pulling minidumps.
+
+  Args:
+    filename: A string containing the filename of the file to check.
+
+  Returns:
+    True if the file should be ignored, otherwise False.
+  """
+  for extension in _IGNORE_FILETYPES_FOR_MINIDUMP_PULLS:
+    if filename.endswith(extension):
+      return True
+  return False
 
 
 class CrOSInterface(object):
@@ -390,9 +410,9 @@ class CrOSInterface(object):
     device_dumps = stdout.splitlines()
     for dump_filename in device_dumps:
       host_path = os.path.join(host_dir, dump_filename)
-      # Skip any .lock files since they're not useful and could be deleted by
+      # Skip any ignored files since they're not useful and could be deleted by
       # the time we try to pull them.
-      if dump_filename.endswith('.lock'):
+      if _IsIgnoredFileType(dump_filename):
         continue
       if os.path.exists(host_path):
         continue
@@ -410,7 +430,11 @@ class CrOSInterface(object):
         logging.debug('Not pulling file %s because a .lock file exists for it',
                       device_path)
         continue
-      self.GetFile(device_path, host_path)
+      try:
+        self.GetFile(device_path, host_path)
+      except Exception as e:  # pylint: disable=broad-except
+        logging.error('Failed to get file %s: %s', device_path, e)
+        continue
       # Set the local version's modification time to the device's.
       stdout, _ = self.RunCmdOnDevice(
           ['ls', '--time-style', '+%s', '-l', device_path])

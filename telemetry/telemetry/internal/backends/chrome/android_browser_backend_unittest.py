@@ -83,3 +83,61 @@ class AndroidBrowserBackendTest(
     self.assertTrue(os.path.exists(local_old_dump_path))
     # A changed mtime would mean that the dump was re-pulled
     self.assertEqual(os.stat(local_old_dump_path).st_mtime, old_dump_time)
+
+  @decorators.Enabled('android')
+  def testPullMinidumpsLockFilesIgnored(self):
+    """Tests that .lock files are ignored when pulling minidumps."""
+    def GetDumpLocation():
+      return '/sdcard/dumps/'
+
+    platform_backend = self._browser_backend.platform_backend
+    platform_backend.GetDumpLocation = GetDumpLocation
+    remote_path = posixpath.join(GetDumpLocation(), 'Crashpad', 'pending')
+    self._browser_backend.device.RunShellCommand(['mkdir', '-p', remote_path])
+    remote_dump_file = posixpath.join(remote_path, 'test_dump')
+    remote_lock_file = posixpath.join(remote_path, 'test_file.lock')
+    self._browser_backend.device.RunShellCommand(
+        ['touch', remote_dump_file])
+    self._browser_backend.device.RunShellCommand(
+        ['touch', remote_lock_file])
+    try:
+      self._browser_backend.PullMinidumps()
+    finally:
+      self._browser_backend.device.RemovePath(GetDumpLocation(), recursive=True)
+
+    local_path = os.path.join(
+        self._browser_backend._tmp_minidump_dir, 'test_dump')
+    self.assertTrue(os.path.exists(local_path))
+    local_path = os.path.join(
+        self._browser_backend._tmp_minidump_dir, 'test_file.lock')
+    self.assertFalse(os.path.exists(local_path))
+
+  @decorators.Enabled('android')
+  def testPullMinidumpsLockedFilesIgnored(self):
+    """Tests that files with associated .lock files are ignored."""
+    def GetDumpLocation():
+      return '/sdcard/dumps/'
+
+    platform_backend = self._browser_backend.platform_backend
+    platform_backend.GetDumpLocation = GetDumpLocation
+    remote_path = posixpath.join(GetDumpLocation(), 'Crashpad', 'pending')
+    self._browser_backend.device.RunShellCommand(['mkdir', '-p', remote_path])
+    remote_dump_file = posixpath.join(remote_path, 'test_dump')
+    remote_locked_dump_file = posixpath.join(remote_path, 'locked_dump')
+    self._browser_backend.device.RunShellCommand(
+        ['touch', remote_dump_file])
+    self._browser_backend.device.RunShellCommand(
+        ['touch', remote_locked_dump_file])
+    self._browser_backend.device.RunShellCommand(
+        ['touch', remote_locked_dump_file + '.lock'])
+    try:
+      self._browser_backend.PullMinidumps()
+    finally:
+      self._browser_backend.device.RemovePath(GetDumpLocation(), recursive=True)
+
+    local_path = os.path.join(
+        self._browser_backend._tmp_minidump_dir, 'test_dump')
+    self.assertTrue(os.path.exists(local_path))
+    local_path = os.path.join(
+        self._browser_backend._tmp_minidump_dir, 'locked_dump')
+    self.assertFalse(os.path.exists(local_path))
