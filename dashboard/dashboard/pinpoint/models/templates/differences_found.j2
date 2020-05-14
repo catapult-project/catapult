@@ -1,0 +1,22 @@
+<b>📍 {% if differences|length == 1 -%}
+Found a significant difference after 1 commit.
+{%- else -%}
+Found significant differences after each of {{ differences|length }} commits.
+{%- endif -%}
+</b>
+{{ url }}
+
+{% for diff in differences -%}
+<b>{{ diff.commit_info['subject'] }}</b> by {{ diff.commit_info['author'] }}
+{{ diff.commit_info['url'] }}
+{% if metric %}{{ metric }}: {% endif -%}
+{{ diff.Formatted() }}
+{%- if not loop.last %}
+{% endif %}
+{% endfor -%}
+{% if notify_why_text %}
+{{ notify_why_text }}
+{% endif %}
+Understanding performance regressions:
+  http://g.co/ChromePerformanceRegressions
+{%- if differences %}{{doc_links}}{% endif %}

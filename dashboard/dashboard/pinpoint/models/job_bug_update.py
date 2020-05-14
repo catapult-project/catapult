@@ -7,8 +7,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import jinja2
 from collections import namedtuple
 import math
+import os.path
 
 from dashboard import update_bug_with_results
 from dashboard.common import utils
@@ -21,7 +23,13 @@ from tracing.value.diagnostics import reserved_infos
 
 _INFINITY = u'\u221e'
 _RIGHT_ARROW = u'\u2192'
-_ROUND_PUSHPIN = u'\U0001f4cd'
+
+
+_TEMPLATE_ENV = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(
+        searchpath=os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), 'templates')))
+_DIFFERENCES_FOUND_TMPL = _TEMPLATE_ENV.get_template('differences_found.j2')
 
 
 class DifferencesFoundBugUpdateBuilder(object):
@@ -114,7 +122,7 @@ class DifferencesFoundBugUpdateBuilder(object):
     sheriff = utils.GetSheriffForAutorollCommit(owner, top_commit['message'])
     if sheriff:
       owner = sheriff
-      why_text = '\n\nAssigning to sheriff %s because "%s" is a roll.' % (
+      why_text = 'Assigning to sheriff %s because "%s" is a roll.' % (
           sheriff, top_commit['subject'])
 
     return owner, cc_list, why_text
@@ -130,10 +138,7 @@ class _Difference(object):
   def MeanDelta(self):
     return job_state.Mean(self.values_b) - job_state.Mean(self.values_a)
 
-  def FormatForBug(self, metric):
-    subject = '<b>%s</b> by %s' % (
-        self.commit_info['subject'], self.commit_info['author'])
-
+  def Formatted(self):
     if self.values_a:
       mean_a = job_state.Mean(self.values_a)
       formatted_a = '%.4g' % mean_a
@@ -148,17 +153,14 @@ class _Difference(object):
       mean_b = None
       formatted_b = 'No values'
 
-    metric = '%s: ' % metric if metric else ''
-
-    difference = '%s%s %s %s' % (metric, formatted_a, _RIGHT_ARROW, formatted_b)
+    difference = ''
     if self.values_a and self.values_b:
-      difference += ' (%+.4g)' % (mean_b - mean_a)
+      difference = ' (%+.4g)' % (mean_b - mean_a)
       if mean_a:
         difference += ' (%+.4g%%)' % ((mean_b - mean_a) / mean_a * 100)
       else:
         difference += ' (+%s%%)' % _INFINITY
-
-    return '\n'.join((subject, self.commit_info['url'], difference))
+    return '%s %s %s%s' % (formatted_a, _RIGHT_ARROW, formatted_b, difference)
 
 
 class _BugUpdateInfo(
@@ -171,25 +173,12 @@ class _BugUpdateInfo(
 
 
 def _FormatComment(differences, metric, notify_why_text, tags, url):
-  if len(differences) == 1:
-    status = 'Found a significant difference after 1 commit.'
-  else:
-    status = ('Found significant differences after each of %d commits.' %
-              len(differences))
-
-  title = '<b>%s %s</b>' % (_ROUND_PUSHPIN, status)
-  header = '\n'.join((title, url))
-  body = '\n\n'.join(diff.FormatForBug(metric) for diff in differences)
-  body += notify_why_text
-
-  footer = ('Understanding performance regressions:\n'
-            '  http://g.co/ChromePerformanceRegressions')
-
-  if differences:
-    footer += _FormatDocumentationUrls(tags)
-
-  comment = '\n\n'.join((header, body, footer))
-  return comment
+  return _DIFFERENCES_FOUND_TMPL.render(
+      differences=differences,
+      url=url,
+      metric=metric,
+      notify_why_text=notify_why_text,
+      doc_links=_FormatDocumentationUrls(tags))
 
 
 def _ComputePostMergeDetails(issue_tracker, commit_cache_key, cc_list):
