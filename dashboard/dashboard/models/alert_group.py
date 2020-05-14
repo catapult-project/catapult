@@ -35,6 +35,8 @@ _TEMPLATE_ISSUE_CONTENT = _TEMPLATE_ENV.get_template(
     'alert_groups_bug_description.j2')
 _TEMPLATE_ISSUE_COMMENT = _TEMPLATE_ENV.get_template(
     'alert_groups_bug_comment.j2')
+_TEMPLATE_REOPEN_COMMENT = _TEMPLATE_ENV.get_template(
+    'reopen_issue_comment.j2')
 
 
 class RevisionRange(ndb.Model):
@@ -142,8 +144,9 @@ class AlertGroup(ndb.Model):
                                                                 ])).fetch()
     added = [a for a in anomalies if a.key not in self.anomalies]
     self.anomalies = [a.key for a in anomalies]
-    if (self.status == self.Status.triaged or
-        self.status == self.Status.bisected):
+    if self.status in {
+        self.Status.triaged, self.Status.bisected, self.Status.closed
+    }:
       self._UpdateIssue(anomalies, added)
       self._UpdateStatus()
 
@@ -173,6 +176,31 @@ class AlertGroup(ndb.Model):
     # Update as soon as the comment update is completed.
     self.put()
 
+  def _ReopenWithNewRegressions(self, regressions, subscriptions):
+    self.status = AlertGroup.Status.triaged
+    template_args = self._GetTemplateArgs(regressions)
+    comment = _TEMPLATE_REOPEN_COMMENT.render(template_args)
+    components, cc, _ = self._ComputeBugUpdate(subscriptions, regressions)
+    _IssueTracker().AddBugComment(
+        self.bug.bug_id,
+        comment,
+        components=components,
+        labels=['Chromeperf-Auto-Reopened'],
+        status='Unconfirmed',
+        cc_list=cc)
+    self.put()
+
+  def _FileNormalUpdate(self, regressions, subscriptions):
+    template_args = self._GetTemplateArgs(regressions)
+    comment = _TEMPLATE_ISSUE_COMMENT.render(template_args)
+    components, cc, labels = self._ComputeBugUpdate(subscriptions, regressions)
+    _IssueTracker().AddBugComment(
+        self.bug.bug_id,
+        comment,
+        labels=labels,
+        cc_list=cc,
+        components=components)
+
   def _UpdateIssue(self, anomalies, added):
     regressions, subscriptions = self._GetPreproccessedRegressions(added)
     # Only update issue if there is at least one regression
@@ -190,15 +218,10 @@ class AlertGroup(ndb.Model):
     # found because group may being updating at that time.
     ndb.put_multi(regressions)
 
-    template_args = self._GetTemplateArgs(regressions)
-    comment = _TEMPLATE_ISSUE_COMMENT.render(template_args)
-    components, cc, labels = self._ComputeBugUpdate(subscriptions, regressions)
-    _IssueTracker().AddBugComment(
-        self.bug.bug_id,
-        comment,
-        labels=labels,
-        cc_list=cc,
-        components=components)
+    if self.status == self.Status.closed:
+      self._ReopenWithNewRegressions(regressions, subscriptions)
+    else:
+      self._FileNormalUpdate(regressions, subscriptions)
 
   def _TryTriage(self):
     self.bug = self._FileIssue()
