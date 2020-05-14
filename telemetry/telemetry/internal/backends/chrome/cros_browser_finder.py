@@ -48,8 +48,6 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         cros_platform._platform_backend)  # pylint: disable=protected-access
     self._is_guest = is_guest
 
-    # --chromium-output-dir also sets CHROMIUM_OUTPUT_DIR in browser_options.
-    self._build_dir = os.environ.get('CHROMIUM_OUTPUT_DIR')
     self._existing_minidump_dir = None
 
   def __repr__(self):
@@ -122,7 +120,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     browser_backend = cros_browser_backend.CrOSBrowserBackend(
         self._platform_backend, self._browser_options,
         self.browser_directory, self.profile_directory,
-        self._is_guest, self._build_dir, self._DEFAULT_CHROME_ENV)
+        self._is_guest, self._DEFAULT_CHROME_ENV)
 
     if self._browser_options.create_browser_with_oobe:
       return cros_browser_with_oobe.CrOSBrowserWithOOBE(

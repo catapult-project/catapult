@@ -31,6 +31,23 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
   def __init__(self, browser_type, finder_options, executable, flash_path,
                is_content_shell, browser_directory, is_local_build=False):
+    """
+    Args:
+      browser_type: A string representing what type of browser this is, e.g.
+          'stable' or 'debug'.
+      finder_options: A browser_options.BrowserFinderOptions instance containing
+          parsed arguments.
+      executable: A string containing a path to the browser executable to use.
+      flash_path: A string containing a path to the version of Flash to use. Can
+          be None if Flash is not going to be used.
+      is_content_shell: A boolean denoting if this browser is a content shell
+          instead of a full browser.
+      browser_directory: A string containing a path to the directory where
+          the browser is installed. This is typically the directory containing
+          |executable|, but not guaranteed.
+      is_local_build: Whether the browser was built locally (as opposed to
+          being downloaded).
+    """
     del finder_options
     target_os = sys.platform.lower()
     super(PossibleDesktopBrowser, self).__init__(

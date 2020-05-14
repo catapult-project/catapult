@@ -161,6 +161,27 @@ def FindLatestApkOnHost(chrome_root, apk_name):
   return found_apk_path
 
 
+def GetBuildDirFromHostApkPath(apk_path):
+  """Finds the build directory for an APK if possible.
+
+  Args:
+    apk_path: A string containing a path to an APK.
+
+  Returns:
+    A string containing a path to the build directory for the APK, or None if
+    it cannot be determined.
+  """
+  if not apk_path:
+    return None
+  parent_dir = os.path.basename(os.path.dirname(apk_path))
+  # Locally built regular APKs should be in out/Foo/apks/, while locally built
+  # bundle APKs should be in out/Foo/bin/. We want out/Foo in this case.
+  if parent_dir == 'apks' or parent_dir == 'bin':
+    return os.path.dirname(os.path.dirname(apk_path))
+  # Otherwise, we're probably a prebuilt binary.
+  return None
+
+
 def GetSequentialFileName(base_name):
   """Returns the next sequential file name based on |base_name| and the
   existing files. base_name should not contain extension.

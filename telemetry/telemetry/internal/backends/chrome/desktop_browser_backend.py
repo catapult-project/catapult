@@ -42,7 +42,13 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         browser_directory=browser_directory,
         profile_directory=profile_directory,
         supports_extensions=not is_content_shell,
-        supports_tab_control=not is_content_shell)
+        supports_tab_control=not is_content_shell,
+        # If the browser was locally built, then the chosen browser directory
+        # should be the same as the build directory. If the browser wasn't
+        # locally built, then passing in a non-None build directory is fine
+        # since a build directory without any useful debug artifacts is
+        # equivalent to no build directory at all.
+        build_dir=browser_directory)
     self._executable = executable
     self._flash_path = flash_path
     self._is_content_shell = is_content_shell
@@ -237,7 +243,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     dump_symbolizer = desktop_minidump_symbolizer.DesktopMinidumpSymbolizer(
         self.browser.platform.GetOSName(),
         self.browser.platform.GetArchName(),
-        self._dump_finder, self.browser_directory, symbols_dir=symbols_dir)
+        self._dump_finder, self.build_dir, symbols_dir=symbols_dir)
     return dump_symbolizer.SymbolizeMinidump(minidump)
 
   def _CreateExecutableUniqueDirectory(self, prefix):

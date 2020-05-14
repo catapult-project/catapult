@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import logging
+import os
 import shutil
 import time
 
@@ -20,7 +21,21 @@ from telemetry.internal.util import format_for_logging
 
 class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __init__(self, cros_platform_backend, browser_options,
-               browser_directory, profile_directory, is_guest, build_dir, env):
+               browser_directory, profile_directory, is_guest, env):
+    """
+    Args:
+      cros_platform_backend: The cros_platform_backend.CrOSPlatformBackend
+          instance to use.
+      browser_options: The browser_options.BrowserOptions instance to use.
+      browser_directory: A string containing the path to the directory on the
+          device where the browser is installed.
+      profile_directory: A string containing a path to the directory on the
+          device to store browser profile information in.
+      is_guest: A boolean indicating whether the browser is being run in guest
+          mode or not.
+      env: A list of strings containing environment variables to start the
+          browser with.
+    """
     assert browser_options.IsCrosBrowserOptions()
     super(CrOSBrowserBackend, self).__init__(
         cros_platform_backend,
@@ -28,9 +43,14 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         browser_directory=browser_directory,
         profile_directory=profile_directory,
         supports_extensions=not is_guest,
-        supports_tab_control=True)
+        supports_tab_control=True,
+        # There's no way to automatically determine the build directory, as
+        # unlike Android, we're not responsible for installing the browser. If
+        # we're running on a bot, then the CrOS wrapper script will set this
+        # accordingly, and normal users can pass --chromium-output-dir to have
+        # this set in browser_options.
+        build_dir=os.environ.get('CHROMIUM_OUTPUT_DIR'))
     self._is_guest = is_guest
-    self._build_dir = build_dir
     self._cri = cros_platform_backend.cri
     self._env = env
 
@@ -275,5 +295,5 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       string containing the stack trace.
     """
     dump_symbolizer = cros_minidump_symbolizer.CrOSMinidumpSymbolizer(
-        self._dump_finder, self._build_dir)
+        self._dump_finder, self.build_dir)
     return dump_symbolizer.SymbolizeMinidump(minidump)

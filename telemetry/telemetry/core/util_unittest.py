@@ -63,3 +63,18 @@ class TestGetUsedBuildDirectory(unittest.TestCase):
       m.side_effect = side_effect
       self.assertEquals(util.GetUsedBuildDirectory(chrome_root='.'),
                         os.path.join('.', 'out', 'Release_x64'))
+
+
+class TestGetBuildDirFromHostApkPath(unittest.TestCase):
+  def testNoPathReturnsNone(self):
+    self.assertEqual(util.GetBuildDirFromHostApkPath(None), None)
+
+  def testLocallyBuiltPaths(self):
+    self.assertEqual(util.GetBuildDirFromHostApkPath('/out/Foo/apks/test.apk'),
+                     '/out/Foo')
+    self.assertEqual(
+        util.GetBuildDirFromHostApkPath('/out/Bar/bin/test_bundle'), '/out/Bar')
+
+  def testNonLocallyBuiltPath(self):
+    self.assertEqual(
+        util.GetBuildDirFromHostApkPath('/some/other/path/test.apk'), None)
