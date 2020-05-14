@@ -490,8 +490,9 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
         comparison_magnitude = task.payload.get('comparison_magnitude',
                                                 1.0) / max_iqr
         attempts = (len(values_for_a) + len(values_for_b)) // 2
-        return compare.Compare(values_for_a, values_for_b, attempts,
-                               'performance', comparison_magnitude)
+        result = compare.Compare(values_for_a, values_for_b, attempts,
+                                 'performance', comparison_magnitude)
+        return result.result
 
       def DetectChange(change_a, change_b):
         # We return None if the comparison determines that the result is

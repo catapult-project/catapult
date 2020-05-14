@@ -108,11 +108,11 @@ def PermutationTest(sequence, rand=None):
     if not found:
       sames += 1
       continue
-    compare_result, unused_a, unused_b = ClusterAndCompare(
-        permutation, change_point)
-    if compare_result == pinpoint_compare.SAME:
+    comparison, unused_a, unused_b = ClusterAndCompare(permutation,
+                                                       change_point)
+    if comparison.result == pinpoint_compare.SAME:
       sames += 1
-    elif compare_result == pinpoint_compare.UNKNOWN:
+    elif comparison.result == pinpoint_compare.UNKNOWN:
       unknowns += 1
     else:
       differences += 1
@@ -231,9 +231,12 @@ def ClusterAndFindSplit(values, rand=None):
     partition_point, _ = ChangePointEstimator(segment)
 
     # Compare the left and right part divided by the possible change point
-    compare_result, cluster_a, cluster_b = ClusterAndCompare(
+    comparison, cluster_a, cluster_b = ClusterAndCompare(
         segment, partition_point)
-    if compare_result == pinpoint_compare.DIFFERENT:
+    logging.debug('Comparison results = %s', comparison)
+    if comparison.result == pinpoint_compare.DIFFERENT:
+      logging.debug('p-value = %.4f < alpha = %.4f', comparison.p_value,
+                    comparison.low_threshold)
       candidate_indices.add(start + partition_point)
 
     # Even though we have a likely partiion point, we want to be able to find

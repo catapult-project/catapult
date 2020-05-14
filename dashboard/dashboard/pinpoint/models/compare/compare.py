@@ -6,15 +6,23 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import collections
+
 from dashboard.pinpoint.models.compare import kolmogorov_smirnov
 from dashboard.pinpoint.models.compare import mann_whitney_u
 from dashboard.pinpoint.models.compare import thresholds
-
 
 DIFFERENT = 'different'
 PENDING = 'pending'
 SAME = 'same'
 UNKNOWN = 'unknown'
+
+
+class ComparisonResults(
+    collections.namedtuple(
+        'ComparisonResults',
+        ('result', 'p_value', 'low_threshold', 'high_threshold'))):
+  __slots__ = ()
 
 
 # TODO(https://crbug.com/1051710): Make this return all the values useful in
@@ -27,23 +35,36 @@ def Compare(values_a, values_b, attempt_count, mode, magnitude):
     values_b: A list of sortable values. They don't need to be numeric.
     attempt_count: The average number of attempts made.
     mode: 'functional' or 'performance'. We use different significance
-        thresholds for each type.
-    magnitude: An estimate of the size of differences to look for. We need
-        more values to find smaller differences. If mode is 'functional',
-        this is the failure rate, a float between 0 and 1. If mode is
-        'performance', this is a multiple of the interquartile range (IQR).
+      thresholds for each type.
+    magnitude: An estimate of the size of differences to look for. We need more
+      values to find smaller differences. If mode is 'functional', this is the
+      failure rate, a float between 0 and 1. If mode is 'performance', this is a
+      multiple of the interquartile range (IQR).
 
   Returns:
-    DIFFERENT: The samples are unlikely to come from the same distribution,
-        and are therefore likely different. Reject the null hypothesis.
-    SAME: The samples are unlikely to come from distributions that differ by the
-        given magnitude. Reject the alternative hypothesis.
-    UNKNOWN: Not enough evidence to reject either hypothesis.
-        We should collect more data before making a final decision.
+    A tuple `ComparisonResults` which contains the following elements:
+      * result: one of the following values:
+          DIFFERENT: The samples are unlikely to come from the same
+                     distribution, and are therefore likely different. Reject
+                     the null hypothesis.
+          SAME     : The samples are unlikely to come from distributions that
+                     differ by the given magnitude. Cannot reject the null
+                     hypothesis.
+          UNKNOWN  : Not enough evidence to reject either hypothesis. We should
+                     collect more data before making a final decision.
+      * p_value: the consolidated p-value for the statistical tests used in the
+                 implementation.
+      * low_threshold: the `alpha` where if the p-value is lower means we can
+                       reject the null hypothesis.
+      * high_threshold: the `alpha` where if the p-value is lower means we need
+                        more information to make a definitive judgement.
   """
+  low_threshold = thresholds.LowThreshold()
+  high_threshold = thresholds.HighThreshold(mode, magnitude, attempt_count)
+
   if not (values_a and values_b):
     # A sample has no values in it.
-    return UNKNOWN
+    return ComparisonResults(UNKNOWN, None, low_threshold, high_threshold)
 
   # MWU is bad at detecting changes in variance, and K-S is bad with discrete
   # distributions. So use both. We want low p-values for the below examples.
@@ -54,16 +75,16 @@ def Compare(values_a, values_b, attempt_count, mode, magnitude):
       kolmogorov_smirnov.KolmogorovSmirnov(values_a, values_b),
       mann_whitney_u.MannWhitneyU(values_a, values_b))
 
-  if p_value <= thresholds.LowThreshold():
+  if p_value <= low_threshold:
     # The p-value is less than the significance level. Reject the null
     # hypothesis.
-    return DIFFERENT
+    return ComparisonResults(DIFFERENT, p_value, low_threshold, high_threshold)
 
   if p_value <= thresholds.HighThreshold(mode, magnitude, attempt_count):
     # The p-value is not less than the significance level, but it's small
     # enough to be suspicious. We'd like to investigate more closely.
-    return UNKNOWN
+    return ComparisonResults(UNKNOWN, p_value, low_threshold, high_threshold)
 
   # The p-value is quite large. We're not suspicious that the two samples might
   # come from different distributions, and we don't care to investigate more.
-  return SAME
+  return ComparisonResults(SAME, p_value, low_threshold, high_threshold)

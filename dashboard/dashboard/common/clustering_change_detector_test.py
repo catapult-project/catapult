@@ -42,8 +42,8 @@ class ChangeDetectorTest(unittest.TestCase):
   def testClusterAndCompare(self):
     # We want to see that we can detect a contrived change point.
     sequence = ([1] * 10) + ([2] * 10)
-    result, a, b = ccd.ClusterAndCompare(sequence, 9)
-    self.assertEqual(result, 'different')
+    comparison, a, b = ccd.ClusterAndCompare(sequence, 9)
+    self.assertEqual(comparison.result, 'different')
     self.assertEqual(len(a), 9)
     self.assertEqual(len(b), 11)
 
