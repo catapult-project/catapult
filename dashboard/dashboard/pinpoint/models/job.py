@@ -507,11 +507,13 @@ class Job(ndb.Model):
     # There is a comparison metric.
     differences = []
     result_values = {}
+    changes_examined = None
     if not self.use_execution_engine:
       differences = self.state.Differences()
       for change_a, change_b in differences:
         result_values.setdefault(change_a, self.state.ResultValues(change_a))
         result_values.setdefault(change_b, self.state.ResultValues(change_b))
+      changes_examined = self.state.ChangesExamined()
     else:
       logging.debug('Execution Engine: Finding culprits.')
       context = task_module.Evaluate(
@@ -549,6 +551,7 @@ class Job(ndb.Model):
     # Collect the result values for each of the differences
     bug_update_builder = job_bug_update.DifferencesFoundBugUpdateBuilder(
         self.state.metric)
+    bug_update_builder.SetExaminedCount(changes_examined)
     for change_a, change_b in differences:
       if change_b.patch:
         commit = change_b.patch

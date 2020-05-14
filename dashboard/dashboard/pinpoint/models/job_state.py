@@ -354,6 +354,9 @@ class JobState(object):
 
     return result_values
 
+  def ChangesExamined(self):
+    return len(self._changes)
+
 
 def _ExecutionsPerQuest(attempts):
   executions = collections.defaultdict(list)

@@ -50,6 +50,10 @@ class DifferencesFoundBugUpdateBuilder(object):
   def __init__(self, metric):
     self._metric = metric
     self._differences = []
+    self._examined_count = None
+
+  def SetExaminedCount(self, examined_count):
+    self._examined_count = examined_count
 
   def AddDifference(self, commit, values_a, values_b):
     """Add a difference (a commit where the metric changed significantly).
@@ -67,8 +71,14 @@ class DifferencesFoundBugUpdateBuilder(object):
     if len(self._differences) == 0:
       raise ValueError("BuildUpdate called with 0 differences")
     owner, cc_list, notify_why_text = self._PeopleToNotify()
-    comment_text = _FormatComment(self._differences, self._metric,
-                                  notify_why_text, tags, url)
+    comment_text = _DIFFERENCES_FOUND_TMPL.render(
+        differences=self._differences,
+        url=url,
+        metric=self._metric,
+        notify_why_text=notify_why_text,
+        doc_links=_FormatDocumentationUrls(tags),
+        examined_count=self._examined_count,
+    )
     labels = [
         'Pinpoint-Culprit-Found'
         if len(self._differences) == 1 else 'Pinpoint-Multiple-Culprits'
@@ -170,15 +180,6 @@ class _BugUpdateInfo(
 
   This is the return type of DifferencesFoundBugUpdateBuilder.BuildUpdate.
   """
-
-
-def _FormatComment(differences, metric, notify_why_text, tags, url):
-  return _DIFFERENCES_FOUND_TMPL.render(
-      differences=differences,
-      url=url,
-      metric=metric,
-      notify_why_text=notify_why_text,
-      doc_links=_FormatDocumentationUrls(tags))
 
 
 def _ComputePostMergeDetails(issue_tracker, commit_cache_key, cc_list):

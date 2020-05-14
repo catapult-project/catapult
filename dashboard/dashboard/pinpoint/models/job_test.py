@@ -41,7 +41,8 @@ https://testbed.example.com/job/1""")
 
 
 _COMMENT_COMPLETED_WITH_COMMIT = (
-    u"""<b>\U0001f4cd Found a significant difference after 1 commit.</b>
+    u"""<b>\U0001f4cd Found a significant difference at 1 commit.</b>
+10 revisions compared.
 https://testbed.example.com/job/1
 
 <b>Subject.</b> by author@chromium.org
@@ -52,7 +53,8 @@ Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions""")
 
 _COMMENT_COMPLETED_WITH_COMMIT_AND_DOCS = (
-    u"""<b>\U0001f4cd Found a significant difference after 1 commit.</b>
+    u"""<b>\U0001f4cd Found a significant difference at 1 commit.</b>
+10 revisions compared.
 https://testbed.example.com/job/1
 
 <b>Subject.</b> by author@chromium.org
@@ -66,7 +68,8 @@ Benchmark doc link:
   http://docs""")
 
 _COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT = (
-    u"""<b>\U0001f4cd Found a significant difference after 1 commit.</b>
+    u"""<b>\U0001f4cd Found a significant difference at 1 commit.</b>
+10 revisions compared.
 https://testbed.example.com/job/1
 
 <b>Subject.</b> by chromium-autoroll@skia-public.iam.gserviceaccount.com
@@ -80,7 +83,8 @@ Understanding performance regressions:
 
 
 _COMMENT_COMPLETED_WITH_PATCH = (
-    u"""<b>\U0001f4cd Found a significant difference after 1 commit.</b>
+    u"""<b>\U0001f4cd Found a significant difference at 1 commit.</b>
+10 revisions compared.
 https://testbed.example.com/job/1
 
 <b>Subject.</b> by author@chromium.org
@@ -92,18 +96,21 @@ Understanding performance regressions:
 
 
 _COMMENT_COMPLETED_THREE_DIFFERENCES = (
-    u"""<b>\U0001f4cd Found significant differences after each of 3 commits.</b>
+    u"""<b>\U0001f4cd Found significant differences at 3 commits.</b>
+10 revisions compared.
 https://testbed.example.com/job/1
 
-<b>Subject.</b> by author1@chromium.org
+The top 3 are:
+
+<b>1. Subject.</b> by author1@chromium.org
 https://example.com/repository/+/git_hash_1
 50 \u2192 0 (-50) (-100%)
 
-<b>Subject.</b> by author2@chromium.org
+<b>2. Subject.</b> by author2@chromium.org
 https://example.com/repository/+/git_hash_2
 0 \u2192 40 (+40) (+\u221e%)
 
-<b>Subject.</b> by author3@chromium.org
+<b>3. Subject.</b> by author3@chromium.org
 https://example.com/repository/+/git_hash_3
 0 \u2192 No values
 
@@ -111,18 +118,21 @@ Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions""")
 
 _COMMENT_COMPLETED_THREE_DIFFERENCES_ABSOLUTE = (
-    u"""<b>\U0001f4cd Found significant differences after each of 3 commits.</b>
+    u"""<b>\U0001f4cd Found significant differences at 3 commits.</b>
+10 revisions compared.
 https://testbed.example.com/job/1
 
-<b>Subject.</b> by author1@chromium.org
+The top 3 are:
+
+<b>1. Subject.</b> by author1@chromium.org
 https://example.com/repository/+/git_hash_1
 No values \u2192 10
 
-<b>Subject.</b> by author2@chromium.org
+<b>2. Subject.</b> by author2@chromium.org
 https://example.com/repository/+/git_hash_2
 10 \u2192 0 (-10) (-100%)
 
-<b>Subject.</b> by author3@chromium.org
+<b>3. Subject.</b> by author3@chromium.org
 https://example.com/repository/+/git_hash_3
 0 \u2192 -100 (-100) (+\u221e%)
 
@@ -235,6 +245,8 @@ class RetryTest(test.TestCase):
     self.assertEqual(0, j.retry_count)
 
 
+@mock.patch('dashboard.pinpoint.models.job_state.JobState.ChangesExamined',
+            lambda _: 10)
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
 class BugCommentTest(test.TestCase):
 
