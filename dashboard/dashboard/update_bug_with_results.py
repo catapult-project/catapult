@@ -7,6 +7,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import collections
 import logging
 
 from google.appengine.ext import ndb
@@ -37,11 +38,17 @@ def GetMergeIssueDetails(issue_tracker, commit_cache_key):
   """
   merge_issue_key = layered_cache.GetExternal(commit_cache_key)
   if not merge_issue_key:
-    return {'issue': {}, 'id': None, 'comments': ''}
+    return {'issue': {}, 'projectId': None, 'id': None, 'comments': ''}
 
-  merge_issue = issue_tracker.GetIssue(merge_issue_key)
+  try:
+    project, issue_id = merge_issue_key.split(':')
+  except ValueError:
+    project = 'chromium'
+    issue_id = merge_issue_key
+
+  merge_issue = issue_tracker.GetIssue(issue_id, project=project)
   if not merge_issue:
-    return {'issue': {}, 'id': None, 'comments': ''}
+    return {'issue': {}, 'projectId': None, 'id': None, 'comments': ''}
 
   # Check if we can duplicate this issue against an existing issue.
   merge_issue_id = None
@@ -52,16 +59,25 @@ def GetMergeIssueDetails(issue_tracker, commit_cache_key):
   # just keep things simple and flat for now.
   if merge_issue.get('status') != issue_tracker_service.STATUS_DUPLICATE:
     merge_issue_id = str(merge_issue.get('id'))
+    project = merge_issue.get('projectId', 'chromium')
 
   return {
       'issue': merge_issue,
+      'projectId': project,
       'id': merge_issue_id,
       'comments': additional_comments
   }
 
 
-def UpdateMergeIssue(commit_cache_key, merge_details, bug_id):
-  if not merge_details:
+class IssueInfo(collections.namedtuple('IssueInfo', ('project', 'issue_id'))):
+  __slots__ = ()
+
+
+def UpdateMergeIssue(commit_cache_key,
+                     merge_details,
+                     bug_id,
+                     project='chromium'):
+  if merge_details.get('issue', {}).get('id') is None:
     return
 
   # If the issue we were going to merge into was itself a duplicate, we don't
@@ -70,45 +86,53 @@ def UpdateMergeIssue(commit_cache_key, merge_details, bug_id):
       issue_tracker_service.STATUS_DUPLICATE):
     return
 
-  _MapAnomaliesAndUpdateBug(merge_details['id'], bug_id)
-  _UpdateCacheKeyForIssue(merge_details['id'], commit_cache_key, bug_id)
+  _MapAnomaliesAndUpdateBug(
+      dest=IssueInfo(
+          merge_details.get('projectId', 'chromium'),
+          int(merge_details['issue']['id'])),
+      source=IssueInfo(project, bug_id))
+  _UpdateCacheKeyForIssue(merge_details['id'], commit_cache_key, bug_id,
+                          project)
 
 
-def _MapAnomaliesAndUpdateBug(merge_issue_id, bug_id):
-  if merge_issue_id:
-    _MapAnomaliesToMergeIntoBug(merge_issue_id, bug_id)
+def _MapAnomaliesAndUpdateBug(dest, source):
+  if dest.issue_id:
+    _MapAnomaliesToMergeIntoBug(dest, source)
     # Mark the duplicate bug's Bug entity status as closed so that
     # it doesn't get auto triaged.
-    bug = ndb.Key('Bug', bug_id).get()
+    bug = ndb.Key('Bug', '%s:%d' % (source.project, source.issue_id)).get()
     if bug:
       bug.status = bug_data.BUG_STATUS_CLOSED
       bug.put()
 
 
-def _UpdateCacheKeyForIssue(merge_issue_id, commit_cache_key, bug_id):
+def _UpdateCacheKeyForIssue(merge_issue_id, commit_cache_key, bug_id, project):
   # Cache the commit info and bug ID to datastore when there is no duplicate
   # issue that this issue is getting merged into. This has to be done only
   # after the issue is updated successfully with bisect information.
   if commit_cache_key and not merge_issue_id:
-    layered_cache.SetExternal(commit_cache_key, str(bug_id),
-                              days_to_keep=30)
-    logging.info('Cached bug id %s and commit info %s in the datastore.',
-                 bug_id, commit_cache_key)
+    issue_info = IssueInfo(project, bug_id)
+    layered_cache.SetExternal(
+        commit_cache_key, '%s:%d' % (issue_info), days_to_keep=30)
+    logging.info('Cached bug %s and commit info %s in the datastore.',
+                 issue_info, commit_cache_key)
 
 
-def _MapAnomaliesToMergeIntoBug(dest_bug_id, source_bug_id):
+def _MapAnomaliesToMergeIntoBug(dest_issue, source_issue):
   """Maps anomalies from source bug to destination bug.
 
   Args:
-    dest_bug_id: Merge into bug (base bug) number.
-    source_bug_id: The bug to be merged.
+    dest_issue: an IssueInfo with both the project and issue id.
+    source_issue: an IssueInfo with both the project and issue id.
   """
   anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-      bug_id=source_bug_id).get_result()
+      bug_id=int(source_issue.issue_id),
+      project_id=source_issue.project).get_result()
 
-  bug_id = int(dest_bug_id)
+  bug_id = int(dest_issue.issue_id)
   for a in anomalies:
     a.bug_id = bug_id
+    a.project_id = dest_issue.project
 
   ndb.put_multi(anomalies)
 

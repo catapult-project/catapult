@@ -35,6 +35,11 @@ indexes:
     direction: desc
 - kind: Anomaly
   properties:
+  - name: project_id
+  - name: timestamp
+    direction: desc
+- kind: Anomaly
+  properties:
   - name: subscription_names
   - name: timestamp
     direction: desc
@@ -107,6 +112,7 @@ indexes:
   - name: subscription_names
   - name: is_improvement
   - name: bug_id
+  - name: project_id
   - name: recovered
   - name: timestamp
     direction: desc

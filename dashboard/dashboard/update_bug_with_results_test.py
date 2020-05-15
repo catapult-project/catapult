@@ -37,22 +37,32 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
 
   def testMapAnomaliesToMergeIntoBug(self):
     # Add anomalies.
-    test_keys = list(map(utils.TestKey, [
-        'ChromiumGPU/linux-release/scrolling-benchmark/first_paint',
-        'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time']))
+    test_keys = list(
+        map(utils.TestKey, [
+            'ChromiumGPU/linux-release/scrolling-benchmark/first_paint',
+            'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time'
+        ]))
     anomaly.Anomaly(
-        start_revision=9990, end_revision=9997, test=test_keys[0],
-        median_before_anomaly=100, median_after_anomaly=200,
+        start_revision=9990,
+        end_revision=9997,
+        test=test_keys[0],
+        median_before_anomaly=100,
+        median_after_anomaly=200,
         bug_id=12345).put()
     anomaly.Anomaly(
-        start_revision=9990, end_revision=9996, test=test_keys[0],
-        median_before_anomaly=100, median_after_anomaly=200,
+        start_revision=9990,
+        end_revision=9996,
+        test=test_keys[0],
+        median_before_anomaly=100,
+        median_after_anomaly=200,
         bug_id=54321).put()
     # Map anomalies to base(dest_bug_id) bug.
     update_bug_with_results._MapAnomaliesToMergeIntoBug(
-        dest_bug_id=12345, source_bug_id=54321)
+        dest_issue=update_bug_with_results.IssueInfo('chromium', 12345),
+        source_issue=update_bug_with_results.IssueInfo('chromium', 54321))
     anomalies = anomaly.Anomaly.query(
-        anomaly.Anomaly.bug_id == int(54321)).fetch()
+        anomaly.Anomaly.bug_id == int(54321),
+        anomaly.Anomaly.project_id == 'chromium').fetch()
     self.assertEqual(0, len(anomalies))
 
 

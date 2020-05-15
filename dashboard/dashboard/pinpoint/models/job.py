@@ -178,6 +178,7 @@ class Job(ndb.Model):
   # Request parameters.
   arguments = ndb.JsonProperty(required=True)
   bug_id = ndb.IntegerProperty()
+  project = ndb.StringProperty(default='chromium')
   comparison_mode = ndb.StringProperty()
 
   # The Gerrit server url and change id of the code review to update upon
@@ -278,7 +279,8 @@ class Job(ndb.Model):
           tags=None,
           user=None,
           priority=None,
-          use_execution_engine=False):
+          use_execution_engine=False,
+          project='chromium'):
     """Creates a new Job, adds Changes to it, and puts it in the Datstore.
 
     Args:
@@ -303,6 +305,7 @@ class Job(ndb.Model):
       use_execution_engine: A bool indicating whether to use the experimental
         execution engine. Currently defaulted to False, but will be switched to
         True and eventually removed as an option later.
+      project: A Monorail project ID.
 
     Returns:
       A Job object.
@@ -325,7 +328,9 @@ class Job(ndb.Model):
         user=user,
         started=False,
         cancelled=False,
-        use_execution_engine=use_execution_engine, priority=priority)
+        use_execution_engine=use_execution_engine,
+        priority=priority,
+        project=project)
 
     # Pull out the benchmark arguments to the top-level.
     job.benchmark_arguments = BenchmarkArguments.FromArgs(args)
@@ -367,6 +372,7 @@ class Job(ndb.Model):
         _PostBugCommentDeferred,
         self.bug_id,
         comment,
+        project=self.project,
         send_email=True,
         _retry_options=RETRY_OPTIONS)
 
@@ -461,6 +467,7 @@ class Job(ndb.Model):
         _PostBugCommentDeferred,
         self.bug_id,
         comment,
+        project=self.project,
         send_email=True,
         _retry_options=RETRY_OPTIONS)
 
@@ -500,6 +507,7 @@ class Job(ndb.Model):
           _PostBugCommentDeferred,
           self.bug_id,
           '\n'.join((title, self.url)),
+          project=self.project,
           labels=['Pinpoint-Tryjob-Completed'],
           _retry_options=RETRY_OPTIONS)
       return
@@ -543,6 +551,7 @@ class Job(ndb.Model):
           _PostBugCommentDeferred,
           self.bug_id,
           '\n'.join((title, self.url)),
+          project=self.project,
           labels=['Pinpoint-No-Repro'],
           status='WontFix',
           _retry_options=RETRY_OPTIONS)
@@ -568,6 +577,7 @@ class Job(ndb.Model):
         self.bug_id,
         self.tags,
         self.url,
+        self.project,
         _retry_options=RETRY_OPTIONS)
 
   def _UpdateGerritIfNeeded(self):
@@ -614,6 +624,7 @@ class Job(ndb.Model):
         _PostBugCommentDeferred,
         self.bug_id,
         comment,
+        project=self.project,
         labels=['Pinpoint-Job-Failed'],
         send_email=True,
         _retry_options=RETRY_OPTIONS)
@@ -806,6 +817,7 @@ class Job(ndb.Model):
         _PostBugCommentDeferred,
         self.bug_id,
         comment,
+        project=self.project,
         send_email=True,
         labels=['Pinpoint-Job-Cancelled'],
         _retry_options=RETRY_OPTIONS)
@@ -822,4 +834,3 @@ def _PostBugCommentDeferred(bug_id, *args, **kwargs):
 
 def _UpdateGerritDeferred(*args, **kwargs):
   gerrit_service.PostChangeComment(*args, **kwargs)
-

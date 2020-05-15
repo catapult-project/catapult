@@ -43,6 +43,10 @@ class Anomaly(internal_only_model.InternalOnlyModel):
   # By default, this is None, which denotes a non-triaged alert.
   bug_id = ndb.IntegerProperty(indexed=True)
 
+  # This is the project to which an anomaly is associated with, in the issue
+  # tracker service.
+  project_id = ndb.StringProperty(indexed=True, default='chromium')
+
   # AlertGroups used for grouping
   groups = ndb.KeyProperty(indexed=True, repeated=True)
 
@@ -209,7 +213,8 @@ class Anomaly(internal_only_model.InternalOnlyModel):
       start_cursor=None,
       test=None,
       test_keys=None,
-      test_suite_name=None):
+      test_suite_name=None,
+      project_id=None):
     if key:
       # This tasklet isn't allowed to catch the internal_only AssertionError.
       alert = yield ndb.Key(urlsafe=key).get_async()
@@ -243,6 +248,10 @@ class Anomaly(internal_only_model.InternalOnlyModel):
           inequality_property = 'key'
         # bug_id='*' translates to bug_id != None, which is handled with the
         # other inequality filters.
+      if project_id is not None:
+        query = query.filter(cls.project_id == project_id)
+        equality_properties.append('project_id')
+        inequality_property = 'key'
       if recovered is not None:
         query = query.filter(cls.recovered == recovered)
         equality_properties.append('recovered')

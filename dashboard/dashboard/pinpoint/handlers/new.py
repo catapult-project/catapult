@@ -63,7 +63,8 @@ def _CreateJob(request):
 
   # Validate the priority, if it's present.
   priority = _ValidatePriority(arguments.get('priority'))
-  bug_id = _ValidateBugId(arguments.get('bug_id'))
+  bug_id, project = _ValidateBugId(
+      arguments.get('bug_id'), arguments.get('project', 'chromium'))
   comparison_mode = _ValidateComparisonMode(arguments.get('comparison_mode'))
   comparison_magnitude = _ValidateComparisonMagnitude(
       arguments.get('comparison_magnitude'))
@@ -73,6 +74,7 @@ def _CreateJob(request):
   tags = _ValidateTags(arguments.get('tags'))
   user = _ValidateUser(arguments.get('user'))
   changes = _ValidateChanges(comparison_mode, arguments)
+
 
   # If this is a try job, we assume it's higher priority than bisections, so
   # we'll set it at a negative priority.
@@ -112,7 +114,7 @@ def _CreateJob(request):
       tags=tags,
       user=user,
       priority=priority,
-      use_execution_engine=use_execution_engine)
+      use_execution_engine=use_execution_engine, project=project)
 
   if use_execution_engine:
     # TODO(dberris): We need to figure out a way to get the arguments to be more
@@ -204,12 +206,16 @@ def _ArgumentsWithConfiguration(original_arguments):
   return new_arguments
 
 
-def _ValidateBugId(bug_id):
+def _ValidateBugId(bug_id, project):
   if not bug_id:
-    return None
+    return None, project
 
   try:
-    return int(bug_id)
+    # TODO(dberris): Figure out a way to check the issue tracker if the project
+    # is valid at creation time. That might involve a user credential check, so
+    # we might need to update the scopes we're asking for. For now trust that
+    # the inputs are valid.
+    return int(bug_id), project
   except ValueError:
     raise ValueError(_ERROR_BUG_ID)
 

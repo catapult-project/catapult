@@ -204,7 +204,6 @@ class RetryTest(test.TestCase):
     j._Schedule = mock.MagicMock()
     j.put = mock.MagicMock()
     j.Fail = mock.MagicMock()
-
     j.Run()
     j.Run()
     j.Run()
@@ -215,7 +214,6 @@ class RetryTest(test.TestCase):
     self.assertEqual(j._Schedule.call_args_list[2],
                      mock.call(countdown=job._TASK_INTERVAL * 8))
     self.assertFalse(j.Fail.called)
-
     j.Run()
     self.assertTrue(j.Fail.called)
 
@@ -227,7 +225,6 @@ class RetryTest(test.TestCase):
     j._Schedule = mock.MagicMock()
     j.put = mock.MagicMock()
     j.Fail = mock.MagicMock()
-
     j.Run()
     j.Run()
     j.Run()
@@ -238,10 +235,8 @@ class RetryTest(test.TestCase):
     self.assertEqual(j._Schedule.call_args_list[2],
                      mock.call(countdown=job._TASK_INTERVAL * 8))
     self.assertFalse(j.Fail.called)
-
     j.state.Explore = mock.MagicMock()
     j.Run()
-
     self.assertEqual(0, j.retry_count)
 
 
@@ -252,7 +247,6 @@ class BugCommentTest(test.TestCase):
 
   def setUp(self):
     super(BugCommentTest, self).setUp()
-
     self.add_bug_comment = mock.MagicMock()
     self.get_issue = mock.MagicMock()
     patcher = mock.patch('dashboard.services.issue_tracker_service.'
@@ -266,46 +260,40 @@ class BugCommentTest(test.TestCase):
     j = job.Job.New((), ())
     j.Start()
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(self.add_bug_comment.called)
 
   def testStarted(self):
     j = job.Job.New((), (), bug_id=123456)
     j.Start()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_STARTED, send_email=True)
+        123456, _COMMENT_STARTED, send_email=True, project='chromium')
 
   def testCompletedNoComparison(self):
     j = job.Job.New((), (), bug_id=123456)
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
         _COMMENT_COMPLETED_NO_COMPARISON,
         labels=['Pinpoint-Tryjob-Completed'],
+        project='chromium',
     )
 
   def testCompletedNoDifference(self):
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
         _COMMENT_COMPLETED_NO_DIFFERENCES,
         labels=['Pinpoint-No-Repro'],
         status='WontFix',
+        project='chromium',
     )
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
@@ -323,20 +311,20 @@ class BugCommentTest(test.TestCase):
         'subject': 'Subject.',
         'message': 'Subject.\n\nCommit message.',
     }
-
     self.get_issue.return_value = {'status': 'Untriaged'}
-
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_WITH_COMMIT,
-        status='Assigned', owner='author@chromium.org',
+        123456,
+        _COMMENT_COMPLETED_WITH_COMMIT,
+        status='Assigned',
+        owner='author@chromium.org',
         labels=['Pinpoint-Culprit-Found'],
-        cc_list=['author@chromium.org'], merge_issue=None)
+        cc_list=['author@chromium.org'],
+        merge_issue=None,
+        project='chromium')
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -354,15 +342,15 @@ class BugCommentTest(test.TestCase):
         'url': 'https://example.com/repository/+/git_hash',
         'message': 'Subject.\n\nCommit message.',
     }
-
-    self.get_issue.return_value = {'status': 'Untriaged', 'id': '111222'}
-    layered_cache.SetExternal('commit_hash_git_hash', 111222)
-
+    self.get_issue.return_value = {
+        'status': 'Untriaged',
+        'id': '111222',
+        'projectId': 'chromium'
+    }
+    layered_cache.SetExternal('commit_hash_git_hash', 'chromium:111222')
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
@@ -371,7 +359,8 @@ class BugCommentTest(test.TestCase):
         owner='author@chromium.org',
         cc_list=[],
         labels=['Pinpoint-Culprit-Found'],
-        merge_issue='111222')
+        merge_issue='111222',
+        project='chromium')
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -390,27 +379,30 @@ class BugCommentTest(test.TestCase):
         'message': 'Subject.\n\nCommit message.',
     }
 
-    def _GetIssue(bug_id):
-      if bug_id == 111222:
-        return {'status': 'Duplicate', 'id': '111222'}
+    def _GetIssue(bug_id, project='chromium'):
+      if bug_id == '111222':
+        return {'status': 'Duplicate', 'projectId': project, 'id': '111222'}
       else:
-        return {'status': 'Untriaged'}
+        return {'status': 'Untriaged', 'projectId': project, 'id': str(bug_id)}
 
     self.get_issue.side_effect = _GetIssue
-
-    layered_cache.SetExternal('commit_hash_git_hash', 111222)
-
-    j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
+    layered_cache.SetExternal('commit_hash_git_hash', 'chromium:111222')
+    j = job.Job.New((), (),
+                    bug_id=123456,
+                    comparison_mode='performance',
+                    project='chromium')
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_WITH_COMMIT,
-        status='Assigned', owner='author@chromium.org',
+        123456,
+        _COMMENT_COMPLETED_WITH_COMMIT,
+        status='Assigned',
+        owner='author@chromium.org',
         labels=['Pinpoint-Culprit-Found'],
-        cc_list=['author@chromium.org'], merge_issue=None)
+        cc_list=['author@chromium.org'],
+        merge_issue=None,
+        project='chromium')
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -428,14 +420,10 @@ class BugCommentTest(test.TestCase):
         'subject': 'Subject.',
         'message': 'Subject.\n\nCommit message.',
     }
-
     self.get_issue.return_value = None
-
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
     self.assertFalse(self.add_bug_comment.called)
 
@@ -455,24 +443,18 @@ class BugCommentTest(test.TestCase):
         'subject': 'Subject.',
         'message': 'Subject.\n\nCommit message.',
     }
-
     self.get_issue.return_value = {'status': 'Untriaged'}
-
     j = job.Job.New(
         (), (), bug_id=123456, comparison_mode='performance',
         tags={'test_path': 'master/bot/benchmark'})
-
     diag_dict = generic_set.GenericSet([[u'Benchmark doc link', u'http://docs']])
     diag = histogram.SparseDiagnostic(
         data=diag_dict.AsDict(), start_revision=1, end_revision=sys.maxsize,
         name=reserved_infos.DOCUMENTATION_URLS.name,
         test=utils.TestKey('master/bot/benchmark'))
     diag.put()
-
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
@@ -481,7 +463,8 @@ class BugCommentTest(test.TestCase):
         owner='author@chromium.org',
         labels=['Pinpoint-Culprit-Found'],
         cc_list=['author@chromium.org'],
-        merge_issue=None)
+        merge_issue=None,
+        project='chromium')
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -498,14 +481,10 @@ class BugCommentTest(test.TestCase):
         'subject': 'Subject.',
         'message': 'Subject.\n\nCommit message.',
     }
-
     self.get_issue.return_value = {'status': 'Untriaged'}
-
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
@@ -514,7 +493,8 @@ class BugCommentTest(test.TestCase):
         owner='author@chromium.org',
         labels=['Pinpoint-Culprit-Found'],
         cc_list=['author@chromium.org'],
-        merge_issue=None)
+        merge_issue=None,
+        project='chromium')
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -533,14 +513,10 @@ class BugCommentTest(test.TestCase):
         'subject': 'Subject.',
         'message': 'Subject.\n\nCommit message.',
     }
-
     self.get_issue.return_value = {'status': 'Assigned'}
-
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
@@ -549,7 +525,8 @@ class BugCommentTest(test.TestCase):
         status=None,
         cc_list=['author@chromium.org'],
         labels=['Pinpoint-Culprit-Found'],
-        merge_issue=None)
+        merge_issue=None,
+        project='chromium')
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -567,14 +544,10 @@ class BugCommentTest(test.TestCase):
         'subject': 'Subject.',
         'message': 'Subject.\n\nCommit message.',
     }
-
     self.get_issue.return_value = {'status': 'Fixed'}
-
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
@@ -583,7 +556,8 @@ class BugCommentTest(test.TestCase):
         status=None,
         cc_list=['author@chromium.org'],
         labels=['Pinpoint-Culprit-Found'],
-        merge_issue=None)
+        merge_issue=None,
+        project='chromium')
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -624,23 +598,22 @@ class BugCommentTest(test.TestCase):
             'message': 'Subject.\n\nCommit message.',
         },
     )
-
     self.get_issue.return_value = {'status': 'Untriaged'}
-
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
 
     # We now only CC folks from the top commit.
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_THREE_DIFFERENCES,
-        status='Assigned', owner='author1@chromium.org',
+        123456,
+        _COMMENT_COMPLETED_THREE_DIFFERENCES,
+        status='Assigned',
+        owner='author1@chromium.org',
         cc_list=['author1@chromium.org'],
         labels=['Pinpoint-Multiple-Culprits'],
-        merge_issue=None)
+        merge_issue=None,
+        project='chromium')
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -679,23 +652,22 @@ class BugCommentTest(test.TestCase):
             'message': 'Subject.\n\nCommit message.',
         },
     )
-
     self.get_issue.return_value = {'status': 'Untriaged'}
-
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
 
     # We now only CC folks from the top commit.
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_THREE_DIFFERENCES_ABSOLUTE,
-        status='Assigned', owner='author3@chromium.org',
+        123456,
+        _COMMENT_COMPLETED_THREE_DIFFERENCES_ABSOLUTE,
+        status='Assigned',
+        owner='author3@chromium.org',
         cc_list=['author3@chromium.org'],
         labels=['Pinpoint-Multiple-Culprits'],
-        merge_issue=None)
+        merge_issue=None,
+        project='chromium')
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -731,8 +703,8 @@ class BugCommentTest(test.TestCase):
         return [0]
       v = int(change_obj.commits[0].git_hash[len('git_hash_'):])
       return [v*v]  # Square the value to ensure increasing deltas.
-    result_values.side_effect = ResultValuesFromFakeGitHash
 
+    result_values.side_effect = ResultValuesFromFakeGitHash
     commit_as_dict.side_effect = [
         {
             'repository': 'chromium',
@@ -745,14 +717,10 @@ class BugCommentTest(test.TestCase):
         for i in range(1, number_culprits+1)]
 
     self.get_issue.return_value = {'status': 'Untriaged'}
-
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
-
     expected_ccs = [
         'author%d@chromium.org' % (i,)
         for i in range(number_culprits, number_culprits - expected_num_ccs, -1)
@@ -760,11 +728,14 @@ class BugCommentTest(test.TestCase):
 
     # We only CC folks from the top commits.
     self.add_bug_comment.assert_called_once_with(
-        123456, mock.ANY,
-        status='Assigned', owner=expected_ccs[0],
+        123456,
+        mock.ANY,
+        status='Assigned',
+        owner=expected_ccs[0],
         cc_list=sorted(expected_ccs),
         labels=['Pinpoint-Multiple-Culprits'],
-        merge_issue=None)
+        merge_issue=None,
+        project='chromium')
 
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
@@ -804,22 +775,22 @@ class BugCommentTest(test.TestCase):
     )
 
     self.get_issue.return_value = {'status': 'Untriaged'}
-
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
 
     # Notifies the owner of the first change in the list of differences, seeing
     # as they are all equally small.
     self.add_bug_comment.assert_called_once_with(
-        123456, mock.ANY,
-        status='Assigned', owner='author1@chromium.org',
+        123456,
+        mock.ANY,
+        status='Assigned',
+        owner='author1@chromium.org',
         cc_list=['author1@chromium.org'],
         labels=['Pinpoint-Multiple-Culprits'],
-        merge_issue=None)
+        merge_issue=None,
+        project='chromium')
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -839,20 +810,20 @@ class BugCommentTest(test.TestCase):
     }
 
     self.get_issue.return_value = {'status': 'Untriaged'}
-
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.put()
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456, _COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT,
-        status='Assigned', owner='sheriff@bar.com',
+        123456,
+        _COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT,
+        status='Assigned',
+        owner='sheriff@bar.com',
         cc_list=['chromium-autoroll@skia-public.iam.gserviceaccount.com'],
         labels=['Pinpoint-Culprit-Found'],
-        merge_issue=None)
+        merge_issue=None,
+        project='chromium')
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -890,20 +861,20 @@ class BugCommentTest(test.TestCase):
     )
 
     self.get_issue.return_value = {'status': 'Untriaged'}
-
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.put()
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        mock.ANY, mock.ANY,
-        status='Assigned', owner='sheriff@bar.com',
+        mock.ANY,
+        mock.ANY,
+        status='Assigned',
+        owner='sheriff@bar.com',
         cc_list=['chromium-autoroll@skia-public.iam.gserviceaccount.com'],
         labels=mock.ANY,
-        merge_issue=None)
+        merge_issue=None,
+        project='chromium')
 
   @mock.patch.object(job.job_state.JobState, 'ScheduleWork',
                      mock.MagicMock(side_effect=AssertionError('Error string')))
@@ -913,13 +884,13 @@ class BugCommentTest(test.TestCase):
       j.Run()
 
     self.ExecuteDeferredTasks('default')
-
     self.assertTrue(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
         _COMMENT_FAILED,
         send_email=True,
-        labels=['Pinpoint-Job-Failed'])
+        labels=['Pinpoint-Job-Failed'],
+        project='chromium')
 
   @mock.patch.object(job.job_state.JobState, 'ScheduleWork',
                      mock.MagicMock(side_effect=AssertionError('Error string')))
@@ -929,19 +900,13 @@ class BugCommentTest(test.TestCase):
       j.Run()
 
     j.exception = j.exception_details['traceback']
-
     exception_details = job.Job.exception_details
     delattr(job.Job, 'exception_details')
-
     j.put()
-
     self.assertTrue(j.failed)
     self.assertFalse(hasattr(j, 'exception_details'))
-
     job.Job.exception_details = exception_details
-
     j = j.key.get(use_cache=False)
-
     self.assertTrue(j.failed)
     self.assertTrue(hasattr(j, 'exception_details'))
     self.assertEqual(j.exception, j.exception_details['traceback'])
@@ -953,8 +918,6 @@ class BugCommentTest(test.TestCase):
     j = job.Job.New(
         (), (), gerrit_server='https://review.com', gerrit_change_id='123456')
     j.Run()
-
     self.ExecuteDeferredTasks('default')
-
     post_change_comment.assert_called_once_with(
         'https://review.com', '123456', _COMMENT_CODE_REVIEW)
