@@ -35,6 +35,7 @@ tr.exportTo('tr.metrics.v8', function() {
     addMarkCompactorMutatorUtilization(histograms, model);
     addTotalMarkCompactorTime(histograms, model);
     addTotalMarkCompactorMarkingTime(histograms, model);
+    addScavengerSurvivedFromStackEvents(histograms, model);
   }
 
   tr.metrics.MetricRegistry.register(gcMetric);
@@ -45,6 +46,8 @@ tr.exportTo('tr.metrics.v8', function() {
       tr.b.Unit.byName.normalizedPercentage_biggerIsBetter;
   const percentage_smallerIsBetter =
       tr.b.Unit.byName.normalizedPercentage_smallerIsBetter;
+  const bytes_smallerIsBetter =
+      tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
 
   // 0.1 steps from 0 to 20 since it is the most common range.
   // Exponentially increasing steps from 20 to 200.
@@ -214,6 +217,82 @@ tr.exportTo('tr.metrics.v8', function() {
         event => 'v8-gc-mark-compactor-marking',
         (name, events) => createHistogramFromSummary(histograms, name, events),
         ['v8-gc-mark-compactor-marking']
+    );
+  }
+
+  function createNumericForTotalBytes(name) {
+    const n = new tr.v.Histogram(name,
+        bytes_smallerIsBetter, CUSTOM_BOUNDARIES);
+    n.customizeSummaryOptions({
+      avg: false,
+      count: false,
+      max: false,
+      min: false,
+      std: false,
+      sum: true,
+      percentile: []
+    });
+    return n;
+  }
+
+  function createNumericForSampledPercent(name) {
+    const n = new tr.v.Histogram(name,
+        percentage_smallerIsBetter, CUSTOM_BOUNDARIES);
+    n.customizeSummaryOptions({
+      avg: true,
+      count: false,
+      max: true,
+      min: true,
+      std: true,
+      sum: false,
+      percentile: []
+    });
+    return n;
+  }
+
+  /**
+   * Adds the following metrics:
+   * - v8-gc-scavenger-survived-percentage-from-stack
+   * - v8-gc-scavenger-survived-total-bytes-without-stack
+   * - v8-gc-scavenger-survived-total-bytes-with-stack
+   * - v8-gc-scavenger-survived-total-percentage-from-stack
+   */
+  function addScavengerSurvivedFromStackEvents(histograms, model) {
+    const baseName = 'v8-gc-scavenger-survived';
+    tr.metrics.v8.utils.groupAndProcessEvents(model,
+        tr.metrics.v8.utils.isScavengerStackScanningEvent,
+        event => baseName,
+        function(name, events) {
+          const sampledPercentage = createNumericForSampledPercent(
+              baseName + '-percentage-from-stack');
+          let survivedWithoutStack = 0;
+          let survivedWithStack = 0;
+          events.forEach(function(event) {
+            const bytesBefore = event.args.survived_bytes_before;
+            const bytesAfter = event.args.survived_bytes_after;
+            sampledPercentage.addSample((bytesAfter > 0) ?
+              (bytesAfter - bytesBefore) / bytesAfter :
+              0);
+            survivedWithoutStack += bytesBefore;
+            survivedWithStack += bytesAfter;
+          });
+          histograms.addHistogram(sampledPercentage);
+          const totalBytesSurvivedWithoutStack = createNumericForTotalBytes(
+              baseName + '-total-bytes-without-stack');
+          totalBytesSurvivedWithoutStack.addSample(survivedWithoutStack);
+          histograms.addHistogram(totalBytesSurvivedWithoutStack);
+          const totalBytesSurvivedWithStack = createNumericForTotalBytes(
+              baseName + '-total-bytes-with-stack');
+          totalBytesSurvivedWithStack.addSample(survivedWithStack);
+          histograms.addHistogram(totalBytesSurvivedWithStack);
+          const overallPercentage = createPercentage(
+              baseName + '-total-percentage-from-stack',
+              survivedWithStack - survivedWithoutStack,
+              survivedWithStack,
+              percentage_smallerIsBetter);
+          histograms.addHistogram(overallPercentage);
+        },
+        [baseName]
     );
   }
 

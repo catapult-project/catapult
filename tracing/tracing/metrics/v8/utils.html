@@ -145,6 +145,10 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     return event.title === 'V8.GCMarkCompactorMarkingSummary';
   }
 
+  function isScavengerStackScanningEvent(event) {
+    return event.title === 'V8.GCScavengerStackScanning';
+  }
+
   function isIncrementalMarkingEvent(event) {
     return event.title.startsWith('V8.GCIncrementalMarking');
   }
@@ -528,6 +532,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     isNotForcedTopGarbageCollectionEvent,
     isNotForcedSubGarbageCollectionEvent,
     isScavengerEvent,
+    isScavengerStackScanningEvent,
     isSubGarbageCollectionEvent,
     isTopGarbageCollectionEvent,
     isTopV8ExecuteEvent,

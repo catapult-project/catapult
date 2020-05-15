@@ -206,5 +206,43 @@ tr.b.unittest.testSuite(function() {
         'v8-gc-mark-compactor-marking-total');
     assert.closeTo(5.5, markCompactorTotal.sum, 1e-3);
   });
+
+  test('scavenverSurvivedFromStackEvents', function() {
+    const slices = [
+      {
+        title: 'V8.GCScavengerStackScanning',
+        args: {'survived_bytes_before': 50, 'survived_bytes_after': 100},
+        start: 100, end: 100, cpuStart: 100, cpuEnd: 100
+      },
+      {
+        title: 'V8.GCScavengerStackScanning',
+        args: {'survived_bytes_before': 0, 'survived_bytes_after': 0},
+        start: 200, end: 200, cpuStart: 200, cpuEnd: 200
+      },
+      {
+        title: 'V8.GCScavengerStackScanning',
+        args: {'survived_bytes_before': 50, 'survived_bytes_after': 50},
+        start: 300, end: 300, cpuStart: 300, cpuEnd: 300
+      },
+      {
+        title: 'V8.GCScavengerStackScanning',
+        args: {'survived_bytes_before': 0, 'survived_bytes_after': 250},
+        start: 400, end: 400, cpuStart: 400, cpuEnd: 400
+      },
+    ];
+    const histograms = run(slices);
+    const totalBytesWithoutStack = histograms.getHistogramNamed(
+        'v8-gc-scavenger-survived-total-bytes-without-stack');
+    assert.strictEqual(100, totalBytesWithoutStack.sum, 1e-3);
+    const totalBytesWithStack = histograms.getHistogramNamed(
+        'v8-gc-scavenger-survived-total-bytes-with-stack');
+    assert.strictEqual(400, totalBytesWithStack.sum, 1e-3);
+    const totalPercentageFromStack = histograms.getHistogramNamed(
+        'v8-gc-scavenger-survived-total-percentage-from-stack');
+    assert.closeTo(0.75, totalPercentageFromStack.average, 1e-3);
+    const percentageFromStack = histograms.getHistogramNamed(
+        'v8-gc-scavenger-survived-percentage-from-stack');
+    assert.closeTo(0.375, percentageFromStack.average, 1e-3);
+  });
 });
 </script>
