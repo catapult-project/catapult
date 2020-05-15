@@ -35,6 +35,30 @@ class ValidatorTest(unittest.TestCase):
           }]""")
     self.assertIsNotNone(subscriptions)
 
+  def testMonorailProjectId(self):
+    subscriptions = validator.Validate("""
+          subscriptions: [{
+            name: "Non-Chromium Team"
+            contact_email: "release-team@example.com"
+            bug_labels: ["release-blocker"]
+            bug_components: ["Sample>Component"]
+            monorail_project_id: "not-chromium"
+            patterns: [{glob: "project/**"}]
+          },
+          {
+            name: "Memory Team",
+            contact_email: "memory-team@example.com",
+            bug_labels: ["memory-regressions"],
+            patterns: [{regex: "^project/.*memory_.*$"}],
+            anomaly_configs: [
+              {
+                min_relative_change: 0.01
+                patterns: [{regex: "^project/platform/.*/memory_peak$"}]
+              }
+            ]
+          }]""")
+    self.assertIsNotNone(subscriptions)
+
   def testInvalidJSON(self):
     with self.assertRaisesRegex(validator.InvalidConfig,
                                 'SheriffConfig Validation Error'):
