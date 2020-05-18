@@ -9,6 +9,7 @@ import inspect
 import logging
 import os
 import psutil
+import re
 import textwrap
 
 from devil import base_error
@@ -25,6 +26,8 @@ logger = logging.getLogger(__name__)
 # a dynamic port on the device. The actual port can then be retrieved with
 # Forwarder.DevicePortForHostPort.
 DYNAMIC_DEVICE_PORT = 0
+
+PORT_REGEX = re.compile(r'(?P<device_port>\d+):(?P<host_port>\d+)')
 
 
 def _GetProcessStartTime(pid):
@@ -179,12 +182,15 @@ class Forwarder(object):
           raise HostForwarderError(
               '`%s` exited with %d:\n%s' % (' '.join(map_cmd), exit_code,
                                             formatted_output))
-        tokens = output.split(':')
-        if len(tokens) != 2:
-          raise HostForwarderError('Unexpected host forwarder output "%s", '
-                                   'expected "device_port:host_port"' % output)
-        device_port = int(tokens[0])
-        host_port = int(tokens[1])
+        for line in output.splitlines():
+          match = PORT_REGEX.match(line)
+          if match:
+            break
+        if not match:
+          raise HostForwarderError('Unable to find device_port:host_port in '
+                                   'host forwarder output: %s' % output)
+        device_port = int(match.groupdict()['device_port'])
+        host_port = int(match.groupdict()['host_port'])
         serial_with_port = (device_serial, device_port)
         instance._device_to_host_port_map[serial_with_port] = host_port
         instance._host_to_device_port_map[host_port] = serial_with_port
