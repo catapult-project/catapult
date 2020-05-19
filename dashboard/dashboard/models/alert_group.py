@@ -82,19 +82,29 @@ class AlertGroup(ndb.Model):
   active = ndb.BooleanProperty(indexed=True)
   revision = ndb.LocalStructuredProperty(RevisionRange)
   bug = ndb.LocalStructuredProperty(BugInfo)
+  project_id = ndb.StringProperty(indexed=True, default='chromium')
   bisection_ids = ndb.StringProperty(repeated=True)
   anomalies = ndb.KeyProperty(repeated=True)
 
   def IsOverlapping(self, b):
-    return self.name == b.name and self.revision.IsOverlapping(b.revision)
+    return (self.name == b.name and self.project_id == b.project_id and
+            self.revision.IsOverlapping(b.revision))
 
   @classmethod
   def GenerateAllGroupsForAnomaly(cls, anomaly_entity):
-    # TODO(fancl): Support multiple group name
+    sheriff_config = sheriff_config_client.GetSheriffConfigClient()
+    subscriptions, _ = sheriff_config.Match(
+        anomaly_entity.test.string_id(), check=True)
+
+    # We want to create an issue per project if multiple subscriptions apply to
+    # this anomaly that have different projects.
+    projects = set(s.monorail_project_id for s in subscriptions)
     return [
+        # TODO(fancl): Support multiple group name
         cls(
             id=str(uuid.uuid4()),
             name=anomaly_entity.benchmark_name,
+            project_id=project,
             status=cls.Status.untriaged,
             active=True,
             revision=RevisionRange(
@@ -102,7 +112,7 @@ class AlertGroup(ndb.Model):
                 start=anomaly_entity.start_revision,
                 end=anomaly_entity.end_revision,
             ),
-        )
+        ) for project in projects
     ]
 
   @classmethod
@@ -245,10 +255,11 @@ class AlertGroup(ndb.Model):
     for a in anomalies:
       subscriptions, _ = sheriff_config.Match(a.test.string_id(), check=True)
       subscriptions_dict.update({s.name: s for s in subscriptions})
-      # Only auto-triage if this is a regression.
       a.auto_triage_enable = any(s.auto_triage_enable for s in subscriptions)
       a.relative_delta = abs(a.absolute_delta / float(a.median_before_anomaly)
                             ) if a.median_before_anomaly != 0. else float('Inf')
+
+      # Only auto-triage if this is a regression.
       if not a.is_improvement and not a.recovered:
         regressions.append(a)
     return (regressions, subscriptions_dict.values())
@@ -336,21 +347,25 @@ class AlertGroup(ndb.Model):
     components, cc, labels = self._ComputeBugUpdate(subscriptions, regressions)
 
     response = issue_tracker.NewBug(
-        title, description, labels=labels, components=components, cc=cc)
+        title,
+        description,
+        labels=labels,
+        components=components,
+        cc=cc,
+        project=self.project_id)
     if 'error' in response:
       logging.warning('AlertGroup file bug failed: %s', response['error'])
       return None
 
-    # Update the issue associated witht his group, before we continue.
-    # TODO(dberris): Add bug project in config and anomaly
-    result = BugInfo(project='chromium', bug_id=response['bug_id'])
+    # Update the issue associated with his group, before we continue.
+    result = BugInfo(project=self.project_id, bug_id=response['bug_id'])
     self.bug = result
     self.put()
 
     # Link the bug to auto-triage enabled anomalies.
     for a in anomalies:
       if not a.bug_id and a.auto_triage_enable:
-        # TODO(dberris): Add bug project in config and anomaly
+        a.project_id = self.project_id
         a.bug_id = self.bug.bug_id
     ndb.put_multi(anomalies)
     return result

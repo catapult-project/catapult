@@ -22,8 +22,9 @@ VISIBILITY = _Visibility()
 class Subscription(ndb.Model):
   """
   Configuration options for alerts' subscriber. It's a mapping to the
-  Subscription protobuf and should never be directly stored to datastore.
+  Subscription protobuf and must never be directly stored to datastore.
   """
+  _use_datastore = False
 
   revision = ndb.StringProperty()
   name = ndb.StringProperty()
@@ -34,3 +35,4 @@ class Subscription(ndb.Model):
   bug_cc_emails = ndb.StringProperty(repeated=True)
   visibility = ndb.IntegerProperty(default=VISIBILITY.INTERNAL_ONLY)
   auto_triage_enable = ndb.BooleanProperty()
+  monorail_project_id = ndb.StringProperty(default='chromium')

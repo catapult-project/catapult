@@ -25,74 +25,84 @@ from dashboard.models import subscription
 class FakeIssueTrackerService(object):
   """A fake version of IssueTrackerService that saves call values."""
 
-  bug_id = 12345
-  new_bug_args = None
-  new_bug_kwargs = None
-  add_comment_args = None
-  add_comment_kwargs = None
+  def __init__(self):
+    self.bug_id = 12345
+    self.new_bug_args = None
+    self.new_bug_kwargs = None
+    self.add_comment_args = None
+    self.add_comment_kwargs = None
+    self.calls = []
+    self.issue = {
+        'cc': [{
+            'kind': 'monorail#issuePerson',
+            'htmlLink': 'https://bugs.chromium.org/u/1253971105',
+            'name': 'user@chromium.org',
+        }, {
+            'kind': 'monorail#issuePerson',
+            'name': 'hello@world.org',
+        }],
+        'labels': [
+            'Type-Bug',
+            'Pri-3',
+            'M-61',
+        ],
+        'owner': {
+            'kind': 'monorail#issuePerson',
+            'htmlLink': 'https://bugs.chromium.org/u/49586776',
+            'name': 'owner@chromium.org',
+        },
+        'id': 737355,
+        'author': {
+            'kind': 'monorail#issuePerson',
+            'htmlLink': 'https://bugs.chromium.org/u/49586776',
+            'name': 'author@chromium.org',
+        },
+        'state': 'closed',
+        'status': 'Fixed',
+        'summary': 'The bug title',
+        'components': [
+            'Blink>ServiceWorker',
+            'Foo>Bar',
+        ],
+        'published': '2017-06-28T01:26:53',
+        'updated': '2018-03-01T16:16:22',
+    }
 
-  def __init__(self, http=None):
-    pass
+  def NewBug(self, *args, **kwargs):
+    self.new_bug_args = args
+    self.new_bug_kwargs = kwargs
+    self.calls.append({
+        'method': 'NewBug',
+        'args': args,
+        'kwargs': kwargs,
+    })
+    return {'bug_id': self.bug_id}
 
-  @classmethod
-  def NewBug(cls, *args, **kwargs):
-    cls.new_bug_args = args
-    cls.new_bug_kwargs = kwargs
-    return {'bug_id': cls.bug_id}
-
-  @classmethod
-  def AddBugComment(cls, *args, **kwargs):
-    cls.add_comment_args = args
-    cls.add_comment_kwargs = kwargs
+  def AddBugComment(self, *args, **kwargs):
+    self.add_comment_args = args
+    self.add_comment_kwargs = kwargs
     # If we fined that one of the keyword arguments is an update, we'll mimic
     # what the actual service will do and mark the state "closed" or "open".
     if kwargs.get('status') in {'WontFix', 'Fixed'}:
-      cls.issue['state'] = 'closed'
+      self.issue['state'] = 'closed'
     else:
-      cls.issue['state'] = 'open'
+      self.issue['state'] = 'open'
+    self.calls.append({
+        'method': 'AddBugComment',
+        'args': args,
+        'kwargs': kwargs,
+    })
 
-  issue = {
-      'cc': [{
-          'kind': 'monorail#issuePerson',
-          'htmlLink': 'https://bugs.chromium.org/u/1253971105',
-          'name': 'user@chromium.org',
-      }, {
-          'kind': 'monorail#issuePerson',
-          'name': 'hello@world.org',
-      }],
-      'labels': [
-          'Type-Bug',
-          'Pri-3',
-          'M-61',
-      ],
-      'owner': {
-          'kind': 'monorail#issuePerson',
-          'htmlLink': 'https://bugs.chromium.org/u/49586776',
-          'name': 'owner@chromium.org',
-      },
-      'id': 737355,
-      'author': {
-          'kind': 'monorail#issuePerson',
-          'htmlLink': 'https://bugs.chromium.org/u/49586776',
-          'name': 'author@chromium.org',
-      },
-      'state': 'closed',
-      'status': 'Fixed',
-      'summary': 'The bug title',
-      'components': [
-          'Blink>ServiceWorker',
-          'Foo>Bar',
-      ],
-      'published': '2017-06-28T01:26:53',
-      'updated': '2018-03-01T16:16:22',
-  }
-
-  @classmethod
-  def GetIssue(cls, _):
-    return cls.issue
+  def GetIssue(self, *_):
+    return self.issue
 
 
 class GroupReportTestBase(testing_common.TestCase):
+
+  def __init__(self, *args, **kwargs):
+    super(GroupReportTestBase, self).__init__(*args, **kwargs)
+    self.fake_issue_tracker = FakeIssueTrackerService()
+    self.mock_get_sheriff_client = mock.MagicMock()
 
   def setUp(self):
     super(GroupReportTestBase, self).setUp()
@@ -110,7 +120,7 @@ class GroupReportTestBase(testing_common.TestCase):
     sheriff = subscription.Subscription(name='sheriff', auto_triage_enable=True)
     mock_get_sheriff_client().Match.return_value = ([sheriff], None)
     self.PatchObject(alert_group, '_IssueTracker',
-                     lambda: FakeIssueTrackerService)
+                     lambda: self.fake_issue_tracker)
 
   def _AddAnomaly(self, **kargs):
     default = {
@@ -198,7 +208,7 @@ class GroupReportTest(GroupReportTestBase):
 
   def testArchiveAltertsGroupIssueClosed(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
-    FakeIssueTrackerService.issue['state'] = 'open'
+    self.fake_issue_tracker.issue['state'] = 'open'
     self._CallHandler()
     # Add anomalies
     self._AddAnomaly()
@@ -218,7 +228,7 @@ class GroupReportTest(GroupReportTestBase):
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     self.assertEqual(group.name, 'test_suite')
     # Issue closed
-    FakeIssueTrackerService.issue['state'] = 'closed'
+    self.fake_issue_tracker.issue['state'] = 'closed'
     # Archive Group
     self._CallHandler()
     group = alert_group.AlertGroup.Get('test_suite', None, active=False)[0]
@@ -241,23 +251,23 @@ class GroupReportTest(GroupReportTestBase):
     self._CallHandler()
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
-    self.assertItemsEqual(FakeIssueTrackerService.new_bug_kwargs['components'],
+    self.assertItemsEqual(self.fake_issue_tracker.new_bug_kwargs['components'],
                           ['Foo>Bar'])
-    self.assertItemsEqual(FakeIssueTrackerService.new_bug_kwargs['labels'], [
+    self.assertItemsEqual(self.fake_issue_tracker.new_bug_kwargs['labels'], [
         'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
         'Chromeperf-Auto-Triaged'
     ])
-    logging.debug('Rendered:\n%s', FakeIssueTrackerService.new_bug_args[1])
-    self.assertRegexpMatches(FakeIssueTrackerService.new_bug_args[1],
+    logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
+    self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
                              r'Top 1 affected measurements in bot:')
     self.assertEqual(a.get().bug_id, 12345)
     self.assertEqual(group.bug.bug_id, 12345)
     # Make sure we don't file the issue again for this alert group.
-    FakeIssueTrackerService.new_bug_args = None
-    FakeIssueTrackerService.new_bug_kwargs = None
+    self.fake_issue_tracker.new_bug_args = None
+    self.fake_issue_tracker.new_bug_kwargs = None
     self._CallHandler()
-    self.assertIsNone(FakeIssueTrackerService.new_bug_args)
-    self.assertIsNone(FakeIssueTrackerService.new_bug_kwargs)
+    self.assertIsNone(self.fake_issue_tracker.new_bug_args)
+    self.assertIsNone(self.fake_issue_tracker.new_bug_kwargs)
 
   # TODO(dberris): Re-enable this when we start supporting multiple benchmarks
   # in the same alert group in the future.
@@ -281,27 +291,27 @@ class GroupReportTest(GroupReportTestBase):
     self._CallHandler()
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
-    self.assertItemsEqual(FakeIssueTrackerService.new_bug_kwargs['components'],
+    self.assertItemsEqual(self.fake_issue_tracker.new_bug_kwargs['components'],
                           ['Foo>Bar'])
-    self.assertItemsEqual(FakeIssueTrackerService.new_bug_kwargs['labels'], [
+    self.assertItemsEqual(self.fake_issue_tracker.new_bug_kwargs['labels'], [
         'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
         'Chromeperf-Auto-Triaged'
     ])
-    logging.debug('Rendered:\n%s', FakeIssueTrackerService.new_bug_args[1])
-    self.assertRegexpMatches(FakeIssueTrackerService.new_bug_args[1],
+    logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
+    self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
                              r'Top 4 affected measurements in bot:')
-    self.assertRegexpMatches(FakeIssueTrackerService.new_bug_args[1],
+    self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
                              r'Top 1 affected in test_suite:')
-    self.assertRegexpMatches(FakeIssueTrackerService.new_bug_args[1],
+    self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
                              r'Top 1 affected in other_test_suite:')
     self.assertEqual(a.get().bug_id, 12345)
     self.assertEqual(group.bug.bug_id, 12345)
     # Make sure we don't file the issue again for this alert group.
-    FakeIssueTrackerService.new_bug_args = None
-    FakeIssueTrackerService.new_bug_kwargs = None
+    self.fake_issue_tracker.new_bug_args = None
+    self.fake_issue_tracker.new_bug_kwargs = None
     self._CallHandler()
-    self.assertIsNone(FakeIssueTrackerService.new_bug_args)
-    self.assertIsNone(FakeIssueTrackerService.new_bug_kwargs)
+    self.assertIsNone(self.fake_issue_tracker.new_bug_args)
+    self.assertIsNone(self.fake_issue_tracker.new_bug_kwargs)
 
   def testTriageAltertsGroupNoOwners(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
@@ -323,19 +333,16 @@ class GroupReportTest(GroupReportTestBase):
     self._CallHandler()
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
-    self.assertItemsEqual(FakeIssueTrackerService.new_bug_kwargs['components'],
+    self.assertItemsEqual(self.fake_issue_tracker.new_bug_kwargs['components'],
                           ['Foo>Bar'])
-    self.assertItemsEqual(FakeIssueTrackerService.new_bug_kwargs['labels'], [
+    self.assertItemsEqual(self.fake_issue_tracker.new_bug_kwargs['labels'], [
         'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
         'Chromeperf-Auto-Triaged'
     ])
     self.assertEqual(a.get().bug_id, 12345)
 
   def testAddAlertsAfterTriage(self, mock_get_sheriff_client):
-    sheriff = subscription.Subscription(name='sheriff', auto_triage_enable=True)
-    mock_get_sheriff_client().Match.return_value = ([sheriff], None)
-    self.PatchObject(alert_group, '_IssueTracker',
-                     lambda: FakeIssueTrackerService)
+    self._SetUpMocks(mock_get_sheriff_client)
     self._CallHandler()
     # Add anomalies
     a = self._AddAnomaly()
@@ -358,24 +365,30 @@ class GroupReportTest(GroupReportTestBase):
     self._CallHandler()
     for a in anomalies:
       self.assertEqual(a.get().bug_id, 12345)
-    logging.debug('Rendered:\n%s', FakeIssueTrackerService.add_comment_args[1])
-    self.assertEqual(FakeIssueTrackerService.add_comment_args[0], 12345)
+    logging.debug('Rendered:\n%s', self.fake_issue_tracker.add_comment_args[1])
+    self.assertEqual(self.fake_issue_tracker.add_comment_args[0], 12345)
     self.assertItemsEqual(
-        FakeIssueTrackerService.add_comment_kwargs['components'], ['Foo>Bar'])
-    self.assertItemsEqual(FakeIssueTrackerService.add_comment_kwargs['labels'],
+        self.fake_issue_tracker.add_comment_kwargs['components'], ['Foo>Bar'])
+    self.assertItemsEqual(self.fake_issue_tracker.add_comment_kwargs['labels'],
                           [
                               'Pri-2', 'Restrict-View-Google',
                               'Type-Bug-Regression', 'Chromeperf-Auto-Triaged'
                           ])
-    self.assertRegexpMatches(FakeIssueTrackerService.add_comment_args[1],
+    self.assertRegexpMatches(self.fake_issue_tracker.add_comment_args[1],
                              r'Top 2 affected measurements in bot:')
 
 
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
 class RecoveredAlertsTests(GroupReportTestBase):
 
+  def __init__(self, *args, **kwargs):
+    super(RecoveredAlertsTests, self).__init__(*args, **kwargs)
+    self.anomalies = []
+
   def setUp(self):
     super(RecoveredAlertsTests, self).setUp()
+
+  def InitAfterMocks(self):
     # First create the 'Ungrouped' AlertGroup.
     self._CallHandler()
 
@@ -399,19 +412,21 @@ class RecoveredAlertsTests(GroupReportTestBase):
   def testNoRecovered(self, mock_get_sheriff_client):
     # Ensure that we only include the non-recovered regressions in the filing.
     self._SetUpMocks(mock_get_sheriff_client)
+    self.InitAfterMocks()
     self._CallHandler()
-    logging.debug('Rendered:\n%s', FakeIssueTrackerService.new_bug_args[1])
-    self.assertRegexpMatches(FakeIssueTrackerService.new_bug_args[1],
+    logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
+    self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
                              r'Top 1 affected measurements in bot:')
 
   def testClosesIssueOnAllRecovered(self, mock_get_sheriff_client):
     # Ensure that we close the issue if all regressions in the group have been
     # marked 'recovered'.
     self._SetUpMocks(mock_get_sheriff_client)
+    self.InitAfterMocks()
     self._CallHandler()
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
-    logging.debug('Rendered:\n%s', FakeIssueTrackerService.new_bug_args[1])
-    self.assertRegexpMatches(FakeIssueTrackerService.new_bug_args[1],
+    logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
+    self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
                              r'Top 1 affected measurements in bot:')
     # Mark one of the anomalies recovered.
     recovered_anomaly = self.anomalies[0].get()
@@ -421,7 +436,7 @@ class RecoveredAlertsTests(GroupReportTestBase):
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     self.assertEqual(group.status, alert_group.AlertGroup.Status.closed)
     self.assertRegexpMatches(
-        FakeIssueTrackerService.add_comment_args[1],
+        self.fake_issue_tracker.add_comment_args[1],
         r'All regressions for this issue have been marked recovered; closing.')
 
   def testReopensClosedIssuesWithNewRegressions(self, mock_get_sheriff_client):
@@ -435,11 +450,87 @@ class RecoveredAlertsTests(GroupReportTestBase):
         test='master/bot/test_suite/measurement/other_test_case')
     self._CallHandler()
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
-    logging.debug('Rendered:\n%s', FakeIssueTrackerService.add_comment_args[1])
+    logging.debug('Rendered:\n%s', self.fake_issue_tracker.add_comment_args[1])
     self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
     self.assertRegexpMatches(
-        FakeIssueTrackerService.add_comment_args[1],
+        self.fake_issue_tracker.add_comment_args[1],
         r'Reopened due to new regressions detected for this alert group:')
     self.assertRegexpMatches(
-        FakeIssueTrackerService.add_comment_args[1],
+        self.fake_issue_tracker.add_comment_args[1],
         r'test_suite/measurement/other_test_case')
+
+
+class NonChromiumAutoTriage(GroupReportTestBase):
+
+  def testFileIssue_InChromiumExplicitly(self):
+    self.mock_get_sheriff_client.Match.return_value = ([
+        subscription.Subscription(
+            name='sheriff',
+            auto_triage_enable=True,
+            monorail_project_id='chromium')
+    ], None)
+    self.PatchObject(alert_group.sheriff_config_client,
+                     'GetSheriffConfigClient',
+                     lambda: self.mock_get_sheriff_client)
+    self.PatchObject(alert_group, '_IssueTracker',
+                     lambda: self.fake_issue_tracker)
+    # First create the 'Ungrouped' AlertGroup.
+    self._CallHandler()
+    a = self._AddAnomaly()
+    self._CallHandler()
+    grouped_anomaly = a.get()
+    self.assertEqual(grouped_anomaly.project_id, 'chromium')
+
+  def testAlertGroups_OnePerProject(self):
+    self.mock_get_sheriff_client.Match.return_value = ([
+        subscription.Subscription(
+            name='chromium sheriff',
+            auto_triage_enable=True,
+            monorail_project_id='chromium'),
+        subscription.Subscription(
+            name='v8 sheriff',
+            auto_triage_enable=True,
+            monorail_project_id='v8')
+    ], None)
+    self.PatchObject(alert_group.sheriff_config_client,
+                     'GetSheriffConfigClient',
+                     lambda: self.mock_get_sheriff_client)
+    self.PatchObject(alert_group, '_IssueTracker',
+                     lambda: self.fake_issue_tracker)
+
+    # First create the 'Ungrouped' AlertGroup.
+    self._CallHandler()
+
+    # Then create an anomaly.
+    self._AddAnomaly()
+    self._CallHandler()
+
+    # Ensure that we have two different groups on different projects.
+    groups = alert_group.AlertGroup.Get('test_suite', None)
+    self.assertEqual(2, len(groups))
+    self.assertItemsEqual(['chromium', 'v8'], [g.project_id for g in groups])
+    for group in groups:
+      group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
+      group.put()
+
+    # And that we've filed two issues.
+    self._CallHandler()
+    self.assertItemsEqual([{
+        'method': 'NewBug',
+        'args': (mock.ANY, mock.ANY),
+        'kwargs': {
+            'project': 'v8',
+            'cc': [],
+            'labels': mock.ANY,
+            'components': mock.ANY,
+        },
+    }, {
+        'method': 'NewBug',
+        'args': (mock.ANY, mock.ANY),
+        'kwargs': {
+            'project': 'chromium',
+            'cc': [],
+            'labels': mock.ANY,
+            'components': mock.ANY,
+        },
+    }], self.fake_issue_tracker.calls)

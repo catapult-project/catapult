@@ -27,6 +27,11 @@ FREAKIN_HUGE = 'zero-to-nonzero'
 UP, DOWN, UNKNOWN = (0, 1, 4)
 
 
+class Issue(ndb.Model):
+  project_id = ndb.StringProperty(default='chromium', indexed=True)
+  issue_id = ndb.IntegerProperty(required=True, indexed=True)
+
+
 class Anomaly(internal_only_model.InternalOnlyModel):
   """Represents a change-point or step found in the data series for a test.
 
@@ -39,6 +44,10 @@ class Anomaly(internal_only_model.InternalOnlyModel):
   # The time the alert fired.
   timestamp = ndb.DateTimeProperty(indexed=True, auto_now_add=True)
 
+  # TODO(dberris): Remove these after migrating all issues to use the issues
+  # repeated field, to allow an anomaly to be represented in multiple issues on
+  # different Monorail projects.
+  # === DEPRECATED START ===
   # Note: -1 denotes an invalid alert and -2 an ignored alert.
   # By default, this is None, which denotes a non-triaged alert.
   bug_id = ndb.IntegerProperty(indexed=True)
@@ -46,9 +55,20 @@ class Anomaly(internal_only_model.InternalOnlyModel):
   # This is the project to which an anomaly is associated with, in the issue
   # tracker service.
   project_id = ndb.StringProperty(indexed=True, default='chromium')
+  # === DEPRECATED END   ===
 
   # AlertGroups used for grouping
   groups = ndb.KeyProperty(indexed=True, repeated=True)
+
+  # This is the list of issues associated with the anomaly. We're doing this to
+  # allow a single anomaly to be represented in multiple issues in different
+  # issue trackers.
+  issues = ndb.StructuredProperty(Issue, indexed=True, repeated=True)
+
+  # This field aims to replace the 'bug_id' field serving as a state indicator.
+  state = ndb.StringProperty(
+      default='untriaged',
+      choices=['untriaged', 'triaged', 'ignored', 'invalid'])
 
   # The subscribers who recieve alerts
   subscriptions = ndb.LocalStructuredProperty(Subscription, repeated=True)
