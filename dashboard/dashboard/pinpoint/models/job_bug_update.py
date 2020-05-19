@@ -51,6 +51,7 @@ class DifferencesFoundBugUpdateBuilder(object):
     self._metric = metric
     self._differences = []
     self._examined_count = None
+    self._cached_ordered_diffs_by_delta = None
 
   def SetExaminedCount(self, examined_count):
     self._examined_count = examined_count
@@ -65,6 +66,7 @@ class DifferencesFoundBugUpdateBuilder(object):
     """
     commit_info = commit.AsDict()
     self._differences.append(_Difference(commit_info, values_a, values_b))
+    self._cached_ordered_diffs_by_delta = None
 
   def BuildUpdate(self, tags, url):
     """Return _BugUpdateInfo for the differences."""
@@ -72,7 +74,7 @@ class DifferencesFoundBugUpdateBuilder(object):
       raise ValueError("BuildUpdate called with 0 differences")
     owner, cc_list, notify_why_text = self._PeopleToNotify()
     comment_text = _DIFFERENCES_FOUND_TMPL.render(
-        differences=self._differences,
+        differences=self._OrderedDifferencesByDelta(),
         url=url,
         metric=self._metric,
         notify_why_text=notify_why_text,
@@ -92,15 +94,26 @@ class DifferencesFoundBugUpdateBuilder(object):
           self._differences[0].commit_info.get('git_hash'))
     return commit_cache_key
 
-  def _OrderedCommitsByDelta(self):
-    """Return the list of commits sorted by absolute change."""
-    commits_with_deltas = [(diff.MeanDelta(), diff.commit_info)
-                           for diff in self._differences
-                           if diff.values_a and diff.values_b]
-    return [
-        commit for _, commit in sorted(
-            commits_with_deltas, key=lambda i: abs(i[0]), reverse=True)
-    ]
+  def _OrderedDifferencesByDelta(self):
+    """Return the list of differences sorted by absolute change."""
+    if self._cached_ordered_diffs_by_delta is not None:
+      return self._cached_ordered_diffs_by_delta
+
+    # First, the diffs with deltas.
+    diffs_with_deltas = [(diff.MeanDelta(), diff)
+                         for diff in self._differences
+                         if diff.values_a and diff.values_b]
+    # Followed by the remaining diffs (those with "No values" on either side),
+    # in the original order.
+    no_values_diffs = [diff for diff in self._differences
+                       if not (diff.values_a and diff.values_b)]
+    ordered_diffs = [
+        diff for _, diff in sorted(
+            diffs_with_deltas, key=lambda i: abs(i[0]), reverse=True)
+    ] + no_values_diffs
+
+    self._cached_ordered_diffs_by_delta = ordered_diffs
+    return ordered_diffs
 
   def _PeopleToNotify(self):
     """Return the people to notify for these differences.
@@ -110,12 +123,9 @@ class DifferencesFoundBugUpdateBuilder(object):
       * cc_list (list, authors of the top 2 commits)
       * why_text (str, text explaining why this owner was chosen)
     """
-    ordered_commits = self._OrderedCommitsByDelta()
-
-    if len(ordered_commits) == 0:
-      # No commits have deltas, so just use the original ordering (the change
-      # order) for picking people to notify.
-      ordered_commits = [d.commit_info for d in self._differences]
+    ordered_commits = [
+        diff.commit_info for diff in self._OrderedDifferencesByDelta()
+    ]
 
     # CC the folks in the top N commits.  N is scaled by the number of commits
     # (fewer than 10 means N=1, fewer than 100 means N=2, etc.)

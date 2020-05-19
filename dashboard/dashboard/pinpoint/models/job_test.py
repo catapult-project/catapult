@@ -124,17 +124,17 @@ https://testbed.example.com/job/1
 
 The top 3 are:
 
-<b>1. Subject.</b> by author1@chromium.org
-https://example.com/repository/+/git_hash_1
-No values \u2192 10
+<b>1. Subject.</b> by author3@chromium.org
+https://example.com/repository/+/git_hash_3
+0 \u2192 -100 (-100) (+\u221e%)
 
 <b>2. Subject.</b> by author2@chromium.org
 https://example.com/repository/+/git_hash_2
 10 \u2192 0 (-10) (-100%)
 
-<b>3. Subject.</b> by author3@chromium.org
-https://example.com/repository/+/git_hash_3
-0 \u2192 -100 (-100) (+\u221e%)
+<b>3. Subject.</b> by author1@chromium.org
+https://example.com/repository/+/git_hash_1
+No values \u2192 10
 
 Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions"""
