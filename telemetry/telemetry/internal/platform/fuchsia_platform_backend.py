@@ -121,3 +121,8 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
 
   def TakeScreenshot(self, file_path):
     return None
+
+  # TODO(crbug.com/1084367): Use default implementation once Fuchsia has
+  # OS version info.
+  def GetTypExpectationsTags(self):
+    return [self.GetOSName()]

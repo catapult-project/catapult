@@ -27,7 +27,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         browser_directory=browser_directory,
         profile_directory=profile_directory,
         supports_extensions=False,
-        supports_tab_control=False)
+        supports_tab_control=True)
     self._command_runner = fuchsia_platform_backend.command_runner
     self._browser_process = None
     self._devtools_port = None
@@ -54,7 +54,6 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return py_utils.WaitFor(lambda: TryReadingPort(stderr), timeout=60)
 
   def _ConstructCmdLine(self, startup_args):
-    del startup_args
     browser_cmd = [
         'run',
         'fuchsia-pkg://%s/web_engine_shell#meta/web_engine_shell.cmx' %
@@ -62,6 +61,9 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         '--remote-debugging-port=0',
         'about:blank'
     ]
+    if startup_args:
+      browser_cmd.append('--')
+      browser_cmd.extend(startup_args)
     return browser_cmd
 
   def Start(self, startup_args):
