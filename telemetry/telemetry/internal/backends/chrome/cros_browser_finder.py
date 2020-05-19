@@ -5,6 +5,7 @@
 
 import logging
 import os
+import platform
 import posixpath
 import random
 
@@ -17,6 +18,7 @@ from telemetry.internal.browser import browser
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import cros_device
+from telemetry.internal.util import local_first_binary_manager
 
 from devil.utils import cmd_helper
 
@@ -49,6 +51,12 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     self._is_guest = is_guest
 
     self._existing_minidump_dir = None
+    # There's no way to automatically determine the build directory, as
+    # unlike Android, we're not responsible for installing the browser. If
+    # we're running on a bot, then the CrOS wrapper script will set this
+    # accordingly, and normal users can pass --chromium-output-dir to have
+    # this set in browser_options.
+    self._build_dir = os.environ.get('CHROMIUM_OUTPUT_DIR')
 
   def __repr__(self):
     return 'PossibleCrOSBrowser(browser_type=%s)' % self.browser_type
@@ -115,12 +123,22 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         ['mv', self._existing_minidump_dir, self._CROS_MINIDUMP_DIR])
 
   def Create(self):
+    # Init the LocalFirstBinaryManager if this is the first time we're creating
+    # a browser.
+    if local_first_binary_manager.LocalFirstBinaryManager.NeedsInit():
+      local_first_binary_manager.LocalFirstBinaryManager.Init(
+          self._build_dir, None, 'linux', platform.machine(),
+          # TODO(crbug.com/1084334): Remove crashpad_database_util once the
+          # locally compiled version works.
+          ignored_dependencies=['crashpad_database_util'])
+
     startup_args = self.GetBrowserStartupArgs(self._browser_options)
 
     browser_backend = cros_browser_backend.CrOSBrowserBackend(
         self._platform_backend, self._browser_options,
         self.browser_directory, self.profile_directory,
-        self._is_guest, self._DEFAULT_CHROME_ENV)
+        self._is_guest, self._DEFAULT_CHROME_ENV,
+        build_dir=self._build_dir)
 
     if self._browser_options.create_browser_with_oobe:
       return cros_browser_with_oobe.CrOSBrowserWithOOBE(
@@ -227,7 +245,7 @@ def FindAllAvailableBrowsers(finder_options, device):
 
   # Check ssh
   try:
-    platform = platform_module.GetPlatformForDevice(device, finder_options)
+    plat = platform_module.GetPlatformForDevice(device, finder_options)
   except cros_interface.LoginException, ex:
     if isinstance(ex, cros_interface.KeylessLoginRequiredException):
       logging.warn('Could not ssh into %s. Your device must be configured',
@@ -250,9 +268,9 @@ def FindAllAvailableBrowsers(finder_options, device):
 
   browsers.extend([
       PossibleCrOSBrowser(
-          'cros-chrome', finder_options, platform, is_guest=False),
+          'cros-chrome', finder_options, plat, is_guest=False),
       PossibleCrOSBrowser(
-          'cros-chrome-guest', finder_options, platform, is_guest=True)
+          'cros-chrome-guest', finder_options, plat, is_guest=True)
   ])
   return browsers
 
