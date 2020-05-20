@@ -86,8 +86,10 @@ _FILE_LIST_SCRIPT = """
   }
   for dir in %s
   do
-    echo "$dir"
-    list_files "$dir"
+    if [ -d "$dir" ]; then
+      echo "$dir"
+      list_files "$dir"
+    fi
   done
 """
 
@@ -1828,10 +1830,31 @@ class DeviceUtils(object):
         # sync-unaware implementation.
         logging.warning(str(e))
 
-    changed_files, cache_commit_func = (
-        self._GetChangedFiles(host_device_tuples, delete_device_stale))
+    changed_files, missing_dirs, cache_commit_func = (self._GetChangedFiles(
+        host_device_tuples, delete_device_stale))
 
     if changed_files:
+      if missing_dirs:
+        try:
+          self.RunShellCommand(['mkdir', '-p'] + list(missing_dirs),
+                               check_return=True)
+        except device_errors.AdbShellCommandFailedError as e:
+          # TODO(crbug.com/739899): This is attempting to diagnose flaky EBUSY
+          # errors that have been popping up in single-device scenarios.
+          # Remove it once we've figured out what's causing them and how best
+          # to handle them.
+          m = _EBUSY_RE.search(e.output)
+          if m:
+            logging.error(
+                'Hit EBUSY while attempting to make missing directories.')
+            logging.error('lsof output:')
+            # Don't check for return below since grep exits with a non-zero when
+            # no match is found.
+            for l in self.RunShellCommand('lsof | grep %s' %
+                                          cmd_helper.SingleQuote(m.group(1)),
+                                          check_return=False):
+              logging.error('  %s', l)
+          raise
       self._PushFilesImpl(host_device_tuples, changed_files)
     cache_commit_func()
 
@@ -1884,9 +1907,10 @@ class DeviceUtils(object):
       delete_stale: Whether to delete stale files
 
     Returns:
-      a four-element tuple
+      a three-element tuple
       1st element: a list of (host_files_path, device_files_path) tuples to push
-      2nd element: a cache commit function.
+      2nd element: a list of missing device directories to mkdir
+      3rd element: a cache commit function
     """
     # The fully expanded list of host/device tuples of files to push.
     file_tuples = []
@@ -1934,10 +1958,12 @@ class DeviceUtils(object):
       current_device_nodes = self._GetDeviceNodes(device_dirs_to_push_to)
       nodes_to_delete = current_device_nodes - expected_device_nodes
 
+    missing_dirs = device_dirs_to_push_to - current_device_nodes
+
     if not file_tuples:
       if delete_stale and nodes_to_delete:
         self.RemovePath(nodes_to_delete, force=True, recursive=True)
-      return (host_device_tuples, lambda: 0)
+      return (host_device_tuples, missing_dirs, lambda: 0)
 
     possibly_stale_device_nodes = current_device_nodes - nodes_to_delete
     possibly_stale_tuples = (
@@ -2000,7 +2026,7 @@ class DeviceUtils(object):
         host_checksum = host_checksums.get(host_path, None)
         self._cache['device_path_checksums'][device_path] = host_checksum
 
-    return (to_push, cache_commit_func)
+    return (to_push, missing_dirs, cache_commit_func)
 
   def _ComputeDeviceChecksumsForApks(self, package_name):
     ret = self._cache['package_apk_checksums'].get(package_name)
