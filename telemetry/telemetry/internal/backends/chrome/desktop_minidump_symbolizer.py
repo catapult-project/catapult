@@ -8,7 +8,7 @@ import re
 import subprocess
 
 from telemetry.internal.backends.chrome import minidump_symbolizer
-from telemetry.internal.util import local_first_binary_manager
+from telemetry.internal.util import binary_manager
 from telemetry.internal.util import path
 
 class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
@@ -74,8 +74,14 @@ class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
     Args:
       minidump: The path to the minidump being symbolized.
     """
-    minidump_dump = local_first_binary_manager.GetInstance().FetchPath(
-        'minidump_dump')
+    # TODO(https://crbug.com/1054583): Remove this once Telemetry searches
+    # locally for all dependencies automatically.
+    minidump_dump = os.path.join(self._build_dir, 'minidump_dump')
+    if not os.path.exists(minidump_dump):
+      logging.warning(
+          'Unable to find locally built minidump_dump, using Catapult version.')
+      minidump_dump = binary_manager.FetchPath(
+          'minidump_dump', self._os_name, self._arch_name)
     assert minidump_dump
 
     symbol_binaries = []

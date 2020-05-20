@@ -7,7 +7,6 @@
 import contextlib
 import logging
 import os
-import platform
 import posixpath
 import shutil
 import subprocess
@@ -21,7 +20,7 @@ from py_utils import tempfile_ext
 from telemetry import compat_mode_options
 from telemetry import decorators
 from telemetry.core import exceptions
-from telemetry.core import platform as telemetry_platform
+from telemetry.core import platform
 from telemetry.core import util
 from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends.chrome import android_browser_backend
@@ -31,7 +30,6 @@ from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import android_device
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import format_for_logging
-from telemetry.internal.util import local_first_binary_manager
 
 
 ANDROID_BACKEND_SETTINGS = (
@@ -96,7 +94,6 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
     # At this point the local_apk, if any, must exist.
     assert self._local_apk is None or os.path.exists(self._local_apk)
-    self._build_dir = util.GetBuildDirFromHostApkPath(self._local_apk)
 
     if finder_options.modules_to_install:
       self._modules_to_install = set(['base'] +
@@ -242,19 +239,11 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     return self._GetBrowserInstance(existing=True)
 
   def _GetBrowserInstance(self, existing):
-    # Init the LocalFirstBinaryManager if this is the first time we're creating
-    # a browser. Note that we use the host's OS and architecture since the
-    # retrieved dependencies are used on the host, not the device.
-    if local_first_binary_manager.LocalFirstBinaryManager.NeedsInit():
-      local_first_binary_manager.LocalFirstBinaryManager.Init(
-          self._build_dir, self._local_apk, platform.system().lower(),
-          platform.machine())
-
     browser_backend = android_browser_backend.AndroidBrowserBackend(
         self._platform_backend, self._browser_options,
         self.browser_directory, self.profile_directory,
         self._backend_settings,
-        build_dir=self._build_dir)
+        build_dir=util.GetBuildDirFromHostApkPath(self._local_apk))
     try:
       return browser.Browser(
           browser_backend, self._platform_backend, startup_args=(),
@@ -463,8 +452,7 @@ def FindAllAvailableBrowsers(finder_options, device):
     return []
 
   try:
-    android_platform = telemetry_platform.GetPlatformForDevice(
-        device, finder_options)
+    android_platform = platform.GetPlatformForDevice(device, finder_options)
     return _FindAllPossibleBrowsers(finder_options, android_platform)
   except base_error.BaseError as e:
     logging.error('Unable to find browsers on %s: %s', device.device_id, str(e))

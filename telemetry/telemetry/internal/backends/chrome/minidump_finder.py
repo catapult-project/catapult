@@ -11,7 +11,7 @@ import time
 
 import dependency_manager  # pylint: disable=import-error
 
-from telemetry.internal.util import local_first_binary_manager
+from telemetry.internal.util import binary_manager
 
 
 def _ParseCrashpadDateTime(date_time_str):
@@ -111,10 +111,11 @@ class MinidumpFinder(object):
                                'attempted to retrieve the Crashpad minidumps '
                                'after the browser was already closed.')
       return None
+    if binary_manager.NeedsInit():
+      binary_manager.InitDependencyManager(None)
     try:
-      crashpad_database_util = \
-          local_first_binary_manager.GetInstance().FetchPath(
-              'crashpad_database_util')
+      crashpad_database_util = binary_manager.FetchPath(
+          'crashpad_database_util', self._os, self._arch)
       if not crashpad_database_util:
         self._explanation.append('Unable to find crashpad_database_util. This '
                                  'is likely due to running on a platform that '

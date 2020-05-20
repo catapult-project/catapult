@@ -35,8 +35,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """
   def __init__(self, desktop_platform_backend, browser_options,
                browser_directory, profile_directory,
-               executable, flash_path, is_content_shell,
-               build_dir=None):
+               executable, flash_path, is_content_shell):
     super(DesktopBrowserBackend, self).__init__(
         desktop_platform_backend,
         browser_options=browser_options,
@@ -44,7 +43,12 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         profile_directory=profile_directory,
         supports_extensions=not is_content_shell,
         supports_tab_control=not is_content_shell,
-        build_dir=build_dir)
+        # If the browser was locally built, then the chosen browser directory
+        # should be the same as the build directory. If the browser wasn't
+        # locally built, then passing in a non-None build directory is fine
+        # since a build directory without any useful debug artifacts is
+        # equivalent to no build directory at all.
+        build_dir=browser_directory)
     self._executable = executable
     self._flash_path = flash_path
     self._is_content_shell = is_content_shell

@@ -11,7 +11,6 @@ import subprocess
 
 from telemetry.internal.backends.chrome import minidump_symbolizer
 from telemetry.internal.results import artifact_logger
-from telemetry.internal.util import local_first_binary_manager
 
 
 # Directories relative to the build directory that may contain symbol binaries
@@ -209,8 +208,7 @@ class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
       logging.debug('Returning cached minidump_dump output for %s', minidump)
       return self._minidump_dump_output[minidump]
 
-    dumper_path = local_first_binary_manager.GetInstance().FetchPath(
-        'minidump_dump')
+    dumper_path = os.path.join(self._build_dir, 'minidump_dump')
     if not os.access(dumper_path, os.X_OK):
       logging.warning('Cannot run minidump_dump because %s is not found.',
                       dumper_path)
