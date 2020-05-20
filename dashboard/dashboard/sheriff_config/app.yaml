@@ -7,11 +7,11 @@ automatic_scaling:
   max_num_instances: 50
   cool_down_period_sec: 180
   cpu_utilization:
-    target_utilization: 0.8
+    target_utilization: 0.6
 
 resources:
-  cpu: 2
-  memory_gb: 2.4
+  cpu: 4
+  memory_gb: 4.8
 
 liveness_check:
   path: /service-metadata

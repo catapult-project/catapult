@@ -17,4 +17,4 @@ RUN pip install -r requirements.txt
 
 ADD . /app
 
-ENTRYPOINT gunicorn -b :$PORT main:APP --workers 2
+ENTRYPOINT gunicorn -b :$PORT main:APP --workers 6
