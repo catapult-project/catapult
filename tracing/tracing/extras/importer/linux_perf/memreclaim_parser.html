@@ -130,7 +130,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       const kthread = this.importer.getOrCreateKernelThread(
           eventBase.threadName, tgid, pid);
 
-      if (kthread.openSliceTS !== undefined) {
+      if (kthread.openSliceTS !== undefined &&
+          kthread.order !== undefined &&
+          kthread.gfp !== undefined) {
         kthread.thread.sliceGroup.pushCompleteSlice('memreclaim',
             'direct reclaim', kthread.openSliceTS, ts - kthread.openSliceTS,
             0, 0,
@@ -139,11 +141,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
               gfp: kthread.gfp,
               nr_reclaimed: nrReclaimed
             });
+        kthread.openSliceTS = undefined;
+        kthread.order = undefined;
+        kthread.gfp = undefined;
+        return true;
       }
-      kthread.openSliceTS = undefined;
-      kthread.order = undefined;
-      kthread.gfp = undefined;
-      return true;
+      return false;
     },
 
     lowmemoryKill(eventName, cpuNumber, pid, ts, eventBase) {
