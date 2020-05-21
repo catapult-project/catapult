@@ -18,90 +18,16 @@ from dashboard import alert_groups
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import alert_group
+from dashboard.models import alert_group_workflow
 from dashboard.models import anomaly
 from dashboard.models import subscription
-
-
-class FakeIssueTrackerService(object):
-  """A fake version of IssueTrackerService that saves call values."""
-
-  def __init__(self):
-    self.bug_id = 12345
-    self.new_bug_args = None
-    self.new_bug_kwargs = None
-    self.add_comment_args = None
-    self.add_comment_kwargs = None
-    self.calls = []
-    self.issue = {
-        'cc': [{
-            'kind': 'monorail#issuePerson',
-            'htmlLink': 'https://bugs.chromium.org/u/1253971105',
-            'name': 'user@chromium.org',
-        }, {
-            'kind': 'monorail#issuePerson',
-            'name': 'hello@world.org',
-        }],
-        'labels': [
-            'Type-Bug',
-            'Pri-3',
-            'M-61',
-        ],
-        'owner': {
-            'kind': 'monorail#issuePerson',
-            'htmlLink': 'https://bugs.chromium.org/u/49586776',
-            'name': 'owner@chromium.org',
-        },
-        'id': 737355,
-        'author': {
-            'kind': 'monorail#issuePerson',
-            'htmlLink': 'https://bugs.chromium.org/u/49586776',
-            'name': 'author@chromium.org',
-        },
-        'state': 'closed',
-        'status': 'Fixed',
-        'summary': 'The bug title',
-        'components': [
-            'Blink>ServiceWorker',
-            'Foo>Bar',
-        ],
-        'published': '2017-06-28T01:26:53',
-        'updated': '2018-03-01T16:16:22',
-    }
-
-  def NewBug(self, *args, **kwargs):
-    self.new_bug_args = args
-    self.new_bug_kwargs = kwargs
-    self.calls.append({
-        'method': 'NewBug',
-        'args': args,
-        'kwargs': kwargs,
-    })
-    return {'bug_id': self.bug_id}
-
-  def AddBugComment(self, *args, **kwargs):
-    self.add_comment_args = args
-    self.add_comment_kwargs = kwargs
-    # If we fined that one of the keyword arguments is an update, we'll mimic
-    # what the actual service will do and mark the state "closed" or "open".
-    if kwargs.get('status') in {'WontFix', 'Fixed'}:
-      self.issue['state'] = 'closed'
-    else:
-      self.issue['state'] = 'open'
-    self.calls.append({
-        'method': 'AddBugComment',
-        'args': args,
-        'kwargs': kwargs,
-    })
-
-  def GetIssue(self, *_):
-    return self.issue
 
 
 class GroupReportTestBase(testing_common.TestCase):
 
   def __init__(self, *args, **kwargs):
     super(GroupReportTestBase, self).__init__(*args, **kwargs)
-    self.fake_issue_tracker = FakeIssueTrackerService()
+    self.fake_issue_tracker = testing_common.FakeIssueTrackerService()
     self.mock_get_sheriff_client = mock.MagicMock()
 
   def setUp(self):
@@ -119,7 +45,7 @@ class GroupReportTestBase(testing_common.TestCase):
   def _SetUpMocks(self, mock_get_sheriff_client):
     sheriff = subscription.Subscription(name='sheriff', auto_triage_enable=True)
     mock_get_sheriff_client().Match.return_value = ([sheriff], None)
-    self.PatchObject(alert_group, '_IssueTracker',
+    self.PatchObject(alert_group_workflow, '_IssueTracker',
                      lambda: self.fake_issue_tracker)
 
   def _AddAnomaly(self, **kargs):
@@ -156,8 +82,7 @@ class GroupReportTest(GroupReportTestBase):
     self.assertIs(len(alert_group.AlertGroup.Get('Ungrouped', None)), 1)
 
   def testCreatingGroup(self, mock_get_sheriff_client):
-    sheriff = subscription.Subscription(name='sheriff')
-    mock_get_sheriff_client().Match.return_value = ([sheriff], None)
+    self._SetUpMocks(mock_get_sheriff_client)
     # Ungrouped is created in first run
     self._CallHandler()
     # Put an anomaly after Ungrouped is created
@@ -170,8 +95,7 @@ class GroupReportTest(GroupReportTestBase):
     self.assertEqual(a1.get().groups[0].get().name, 'test_suite')
 
   def testMultipleAltertsGrouping(self, mock_get_sheriff_client):
-    sheriff = subscription.Subscription(name='sheriff')
-    mock_get_sheriff_client().Match.return_value = ([sheriff], None)
+    self._SetUpMocks(mock_get_sheriff_client)
     self.testapp.get('/alert_groups_update')
     self.ExecuteDeferredTasks('default')
     # Add anomalies
@@ -424,7 +348,6 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self._SetUpMocks(mock_get_sheriff_client)
     self.InitAfterMocks()
     self._CallHandler()
-    group = alert_group.AlertGroup.Get('test_suite', None)[0]
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
     self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
                              r'Top 1 affected measurements in bot:')
@@ -433,8 +356,7 @@ class RecoveredAlertsTests(GroupReportTestBase):
     recovered_anomaly.recovered = True
     recovered_anomaly.put()
     self._CallHandler()
-    group = alert_group.AlertGroup.Get('test_suite', None)[0]
-    self.assertEqual(group.status, alert_group.AlertGroup.Status.closed)
+    self.assertEqual(self.fake_issue_tracker.issue['state'], 'closed')
     self.assertRegexpMatches(
         self.fake_issue_tracker.add_comment_args[1],
         r'All regressions for this issue have been marked recovered; closing.')
@@ -449,9 +371,8 @@ class RecoveredAlertsTests(GroupReportTestBase):
         end_revision=75,
         test='master/bot/test_suite/measurement/other_test_case')
     self._CallHandler()
-    group = alert_group.AlertGroup.Get('test_suite', None)[0]
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.add_comment_args[1])
-    self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
+    self.assertEqual(self.fake_issue_tracker.issue["state"], 'open')
     self.assertRegexpMatches(
         self.fake_issue_tracker.add_comment_args[1],
         r'Reopened due to new regressions detected for this alert group:')
@@ -472,7 +393,7 @@ class NonChromiumAutoTriage(GroupReportTestBase):
     self.PatchObject(alert_group.sheriff_config_client,
                      'GetSheriffConfigClient',
                      lambda: self.mock_get_sheriff_client)
-    self.PatchObject(alert_group, '_IssueTracker',
+    self.PatchObject(alert_group_workflow, '_IssueTracker',
                      lambda: self.fake_issue_tracker)
     # First create the 'Ungrouped' AlertGroup.
     self._CallHandler()
@@ -495,7 +416,7 @@ class NonChromiumAutoTriage(GroupReportTestBase):
     self.PatchObject(alert_group.sheriff_config_client,
                      'GetSheriffConfigClient',
                      lambda: self.mock_get_sheriff_client)
-    self.PatchObject(alert_group, '_IssueTracker',
+    self.PatchObject(alert_group_workflow, '_IssueTracker',
                      lambda: self.fake_issue_tracker)
 
     # First create the 'Ungrouped' AlertGroup.

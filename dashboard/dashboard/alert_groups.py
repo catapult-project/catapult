@@ -6,41 +6,19 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import datetime
 import logging
 
 from dashboard.common import request_handler
 from dashboard.models import alert_group
+from dashboard.models import alert_group_workflow
 from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
-# Waiting 7 days to gather more potential alerts. Just choose a long
-# enough time and all alerts arrive after archived shouldn't be silent
-# merged.
-_ALERT_GROUP_ACTIVE_WINDOW = datetime.timedelta(days=7)
-
-# (2020-05-01) Only ~62% issues' alerts are triggered in one hour.
-# But we don't want to wait all these long tail alerts finished.
-#
-# SELECT APPROX_QUANTILES(diff, 100) as percentiles
-# FROM (
-#   SELECT TIMESTAMP_DIFF(MAX(timestamp), MIN(timestamp), MINUTE) as diff
-#   FROM chromeperf.chromeperf_dashboard_data.anomalies
-#   WHERE 'Chromium Perf Sheriff' IN UNNEST(subscription_names)
-#         AND bug_id IS NOT NULL AND timestamp > '2020-03-01'
-#   GROUP BY bug_id
-# )
-_ALERT_GROUP_TRIAGE_DELAY = datetime.timedelta(hours=1)
-
-
-def _ProcessAlertGroup(group_key, now):
-  group = group_key.get()
-  logging.info('Processing group: %s', group.key.string_id())
-  group.Update(now, _ALERT_GROUP_ACTIVE_WINDOW, _ALERT_GROUP_TRIAGE_DELAY)
-  # We force that we update each group after every update, instead of
-  # attempting to batch those to allow for partial success.
-  group.put()
+def _ProcessAlertGroup(group_key):
+  workflow = alert_group_workflow.AlertGroupWorkflow(group_key.get())
+  logging.info('Processing group: %s', group_key.string_id())
+  workflow.Process()
 
 
 def _ProcessUngroupedAlerts():
@@ -84,12 +62,10 @@ def ProcessAlertGroups():
   logging.info('Fetching alert groups.')
   groups = alert_group.AlertGroup.GetAll()
   logging.info('Found %s alert groups.', len(groups))
-  now = datetime.datetime.utcnow()
   for group in groups:
     deferred.defer(
         _ProcessAlertGroup,
         group.key,
-        now,
         _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0))
 
   deferred.defer(_ProcessUngroupedAlerts)

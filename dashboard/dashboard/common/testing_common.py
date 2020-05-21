@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import base64
+import fnmatch
 import json
 import logging
 import mock
@@ -327,3 +328,94 @@ def SetSheriffDomains(domains):
 def SetIpWhitelist(ip_addresses):
   """Sets the list of whitelisted IP addresses."""
   stored_object.Set(utils.IP_WHITELIST_KEY, ip_addresses)
+
+
+# TODO(fancl): Make it a "real" fake issue tracker.
+class FakeIssueTrackerService(object):
+  """A fake version of IssueTrackerService that saves call values."""
+
+  def __init__(self):
+    self.bug_id = 12345
+    self.new_bug_args = None
+    self.new_bug_kwargs = None
+    self.add_comment_args = None
+    self.add_comment_kwargs = None
+    self.calls = []
+    self.issue = {
+        'cc': [{
+            'kind': 'monorail#issuePerson',
+            'htmlLink': 'https://bugs.chromium.org/u/1253971105',
+            'name': 'user@chromium.org',
+        }, {
+            'kind': 'monorail#issuePerson',
+            'name': 'hello@world.org',
+        }],
+        'labels': [
+            'Type-Bug',
+            'Pri-3',
+            'M-61',
+        ],
+        'owner': {
+            'kind': 'monorail#issuePerson',
+            'htmlLink': 'https://bugs.chromium.org/u/49586776',
+            'name': 'owner@chromium.org',
+        },
+        'id': 737355,
+        'author': {
+            'kind': 'monorail#issuePerson',
+            'htmlLink': 'https://bugs.chromium.org/u/49586776',
+            'name': 'author@chromium.org',
+        },
+        'state': 'closed',
+        'status': 'Fixed',
+        'summary': 'The bug title',
+        'components': [
+            'Blink>ServiceWorker',
+            'Foo>Bar',
+        ],
+        'published': '2017-06-28T01:26:53',
+        'updated': '2018-03-01T16:16:22',
+    }
+
+  def NewBug(self, *args, **kwargs):
+    self.new_bug_args = args
+    self.new_bug_kwargs = kwargs
+    self.issue['state'] = 'open'
+    self.calls.append({
+        'method': 'NewBug',
+        'args': args,
+        'kwargs': kwargs,
+    })
+    return {'bug_id': self.bug_id}
+
+  def AddBugComment(self, *args, **kwargs):
+    self.add_comment_args = args
+    self.add_comment_kwargs = kwargs
+    # If we fined that one of the keyword arguments is an update, we'll mimic
+    # what the actual service will do and mark the state "closed" or "open".
+    if kwargs.get('status') in {'WontFix', 'Fixed'}:
+      self.issue['state'] = 'closed'
+    else:
+      self.issue['state'] = 'open'
+    self.calls.append({
+        'method': 'AddBugComment',
+        'args': args,
+        'kwargs': kwargs,
+    })
+
+  def GetIssue(self, *_):
+    return self.issue
+
+
+class FakeSheriffConfigClient(object):
+
+  def __init__(self):
+    self.patterns = {}
+
+  def Match(self, path, **_):
+    # The real implementation is quite different from fnmatch. But this is
+    # enough for testing because we shouldn't test match logic.
+    for p, s in self.patterns.items():
+      if re.match(fnmatch.translate(p), path):
+        return s, None
+    return [], None
