@@ -81,7 +81,8 @@ $ gcloud dataflow jobs run export-anomalies-example-job \
   --max-workers=10 \
   --region=us-central1 \
   --staging-location=gs://chromeperf-dataflow-temp/export_anomalies \
-  --parameters=experiments=shuffle_mode=service,subnetwork=regions/us-central1/subnetworks/dashboard-batch
+  --subnetwork=regions/us-central1/subnetworks/dashboard-batch \
+  --parameters=experiments=shuffle_mode=service
 ```
 
 To execute a manual backfill, specify the `end_date` and/or `num_days`
@@ -95,7 +96,8 @@ $ gcloud dataflow jobs run export-anomalies-backfill-example \
   --max-workers=10 \
   --region=us-central1 \
   --staging-location=gs://chromeperf-dataflow-temp/export_anomalies \
-  --parameters=experiments=shuffle_mode=service,subnetwork=regions/us-central1/subnetworks/dashboard-batch,end_date=20191231,num_days=31
+  --subnetwork=regions/us-central1/subnetworks/dashboard-batch \
+  --parameters=experiments=shuffle_mode=service,end_date=20191231,num_days=31
 ```
 
 **Tips:**

@@ -36,25 +36,28 @@ def main():
   failed_entity_transforms = Metrics.counter('main', 'failed_entity_transforms')
 
   """
-  CREATE TABLE `chromeperf.chromeperf_dashboard_data.rows_test`
+  CREATE TABLE `chromeperf.chromeperf_dashboard_data.rows`
   (revision INT64 NOT NULL,
    value FLOAT64 NOT NULL,
    std_error FLOAT64,
    `timestamp` TIMESTAMP NOT NULL,
+   master STRING NOT NULL,
+   bot STRING NOT NULL,
+   measurement STRING,
    test STRING NOT NULL,
-   master STRING,
-   bot STRING,
    properties STRING)
-  PARTITION BY DATE(`timestamp`);
+  PARTITION BY DATE(`timestamp`)
+  CLUSTER BY master, bot, measurement;
   """  # pylint: disable=pointless-string-statement
   bq_row_schema = {'fields': [
       {'name': 'revision', 'type': 'INT64', 'mode': 'REQUIRED'},
       {'name': 'value', 'type': 'FLOAT', 'mode': 'REQUIRED'},
       {'name': 'std_error', 'type': 'FLOAT', 'mode': 'NULLABLE'},
       {'name': 'timestamp', 'type': 'TIMESTAMP', 'mode': 'REQUIRED'},
+      {'name': 'master', 'type': 'STRING', 'mode': 'REQUIRED'},
+      {'name': 'bot', 'type': 'STRING', 'mode': 'REQUIRED'},
+      {'name': 'measurement', 'type': 'STRING', 'mode': 'NULLABLE'},
       {'name': 'test', 'type': 'STRING', 'mode': 'REQUIRED'},
-      {'name': 'master', 'type': 'STRING', 'mode': 'NULLABLE'},
-      {'name': 'bot', 'type': 'STRING', 'mode': 'NULLABLE'},
       {'name': 'properties', 'type': 'STRING', 'mode': 'NULLABLE'},
   ]}
   def RowEntityToRowDict(entity):
@@ -82,6 +85,7 @@ def main():
       if len(test_path_parts) >= 3:
         d['master'] = test_path_parts[0]
         d['bot'] = test_path_parts[1]
+        d['measurement'] = '/'.join(test_path_parts[2:])
       return [d]
     except KeyError:
       logging.getLogger().exception('Failed to convert Row')
