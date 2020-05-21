@@ -27,7 +27,7 @@ RECENT_REV = speed_releasing.CHROMIUM_MILESTONES[
     speed_releasing.CURRENT_MILESTONE][0] + 42
 
 
-@mock.patch.object(sheriff_config_client.SheriffConfigClient, '__init__',
+@mock.patch.object(sheriff_config_client.SheriffConfigClient, '_InitSession',
                    mock.MagicMock(return_value=None))
 class SheriffConfigClientTest(testing_common.TestCase):
 

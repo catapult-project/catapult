@@ -7,14 +7,17 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-from dashboard import sheriff_pb2
 from google.appengine.ext import ndb
 
 
 class _Visibility(object):
+  """Mirror of sheriff_pb2.Subscription.VisibilityTag."""
+  # This needs to be kept in sync with sheriff_pb2.Subscription.VisibilityTag.
+  # We don't import it here to avoid circular imports, especially as protobuf
+  # imports involve fragile import hook hacks.
+  INTERNAL_ONLY = 0
+  PUBLIC = 1
 
-  def __getattr__(self, name):
-    return sheriff_pb2.Subscription.VisibilityTag.Value(name)
 
 VISIBILITY = _Visibility()
 

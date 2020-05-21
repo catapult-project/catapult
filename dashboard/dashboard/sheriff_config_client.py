@@ -7,16 +7,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from dashboard.common.utils import GetEmail
-from dashboard.models.subscription import Subscription
-import google.auth
-from google.auth import jwt
-from google.auth.transport.requests import AuthorizedSession
-from google.protobuf import json_format
-
-# Move the protobuf import later, to let AppEngine work-arounds to kick in
-# before we do any protobuf imports.
-from dashboard import sheriff_config_pb2
 
 class InternalServerError(Exception):
   """An error indicating that something unexpected happens."""
@@ -37,8 +27,26 @@ def GetSheriffConfigClient():
 class SheriffConfigClient(object):
   """Wrapping of sheriff-config HTTP API."""
 
+  _Subscription = None
+
   def __init__(self):
     """Make the Cloud Endpoints request from this handler."""
+    # Defer as many imports as possible until here, to ensure AppEngine
+    # workarounds for protobuf import paths are fully installed.
+    self._InitSession()
+    from dashboard.common.utils import GetEmail
+    from dashboard.models.subscription import Subscription
+    from google.protobuf import json_format
+    from dashboard import sheriff_config_pb2
+    self._GetEmail = GetEmail  # pylint: disable=invalid-name
+    SheriffConfigClient._Subscription = Subscription
+    self._json_format = json_format
+    self._sheriff_config_pb2 = sheriff_config_pb2
+
+  def _InitSession(self):
+    import google.auth
+    from google.auth import jwt
+    from google.auth.transport.requests import AuthorizedSession
     credentials, _ = google.auth.default(
         scopes=['https://www.googleapis.com/auth/userinfo.email'])
     jwt_credentials = jwt.Credentials.from_signing_credentials(
@@ -47,7 +55,7 @@ class SheriffConfigClient(object):
 
   @staticmethod
   def _ParseSubscription(revision, subscription):
-    return Subscription(
+    return SheriffConfigClient._Subscription(
         revision=revision,
         name=subscription.name,
         rotation_url=subscription.rotation_url,
@@ -70,22 +78,22 @@ class SheriffConfigClient(object):
       if check:
         raise InternalServerError(err_msg)
       return None, err_msg
-    match_resp = json_format.Parse(response.text,
-                                   sheriff_config_pb2.MatchResponse())
+    match_resp = self._json_format.Parse(
+        response.text, self._sheriff_config_pb2.MatchResponse())
     return [self._ParseSubscription(s.revision, s.subscription)
             for s in match_resp.subscriptions], None
 
   def List(self, check=False):
     response = self._session.post(
         'https://sheriff-config-dot-chromeperf.appspot.com/subscriptions/list',
-        json={'identity_email': GetEmail()})
+        json={'identity_email': self._GetEmail()})
     if not response.ok:
       err_msg = '%r\n%s' % (response, response.text)
       if check:
         raise InternalServerError(err_msg)
       return None, err_msg
-    list_resp = json_format.Parse(response.text,
-                                  sheriff_config_pb2.ListResponse())
+    list_resp = self._json_format.Parse(
+        response.text, self._sheriff_config_pb2.ListResponse())
     return [self._ParseSubscription(s.revision, s.subscription)
             for s in list_resp.subscriptions], None
 
