@@ -30,6 +30,38 @@ _TEMPLATE_ENV = jinja2.Environment(
         searchpath=os.path.join(
             os.path.dirname(os.path.realpath(__file__)), 'templates')))
 _DIFFERENCES_FOUND_TMPL = _TEMPLATE_ENV.get_template('differences_found.j2')
+_CREATED_TEMPL = _TEMPLATE_ENV.get_template('job_created.j2')
+
+
+class JobUpdateBuilder(object):
+  """Builder for job issue updates.
+
+  The builder lets us collect the useful information for filing an update on an
+  issue, ranging from when a job is created, updated, and when it fails.
+
+  Intended usage looks like::
+
+    builder = JobUpdateBuilder(...)
+    issue_update_info = builder.CreationUpdate()
+
+  In cases where we encounter a failure::
+
+    builder.AddFailure(...)
+    issue_update_info = builder.FailureUpdate()
+  """
+  def __init__(self, job):
+    self._env = {
+        'url': job.url,
+        'user': job.user,
+        'args': job.benchmark_arguments,
+        'configuration': job.configuration if job.configuration else '(None)',
+    }
+
+  def CreationUpdate(self, pending):
+    env = self._env.copy()
+    env.update({'pending': pending})
+    comment_text = _CREATED_TEMPL.render(**env)
+    return _BugUpdateInfo(comment_text, None, None, None)
 
 
 class DifferencesFoundBugUpdateBuilder(object):

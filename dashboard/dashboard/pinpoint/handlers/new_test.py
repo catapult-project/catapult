@@ -87,8 +87,8 @@ class NewAuthTest(_NewTest):
     self.assertEqual(result, {'error': 'User authentication error'})
 
 
-@mock.patch('dashboard.services.issue_tracker_service.IssueTrackerService',
-            mock.MagicMock())
+@mock.patch.object(job_module.issue_tracker_service, 'IssueTrackerService',
+                   mock.MagicMock())
 @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
 @mock.patch.object(api_auth, 'Authorize', mock.MagicMock())
 @mock.patch.object(utils, 'IsTryjobUser', mock.MagicMock())
@@ -373,6 +373,28 @@ class NewTest(_NewTest):
                      job.benchmark_arguments.story_tags)
     self.assertEqual('some_chart', job.benchmark_arguments.chart)
     self.assertEqual(None, job.benchmark_arguments.statistic)
+
+  def testNewPostsCreationMessage(self):
+    tracker = mock.MagicMock()
+    tracker.AddBugComment.return_value = None
+    job_module.issue_tracker_service.IssueTrackerService.return_value = tracker
+    request = dict(_BASE_REQUEST)
+    request.update({
+        'chart': 'some_chart',
+        'story': 'some_story',
+        'story_tags': 'some_tag,some_other_tag'
+    })
+    response = self.Post('/api/new', request, status=200)
+    self.assertIsNotNone(
+        job_module.JobFromId(json.loads(response.body)['jobId']))
+    self.ExecuteDeferredTasks('default')
+    self.assertEqual(
+        1, job_module.issue_tracker_service.IssueTrackerService.call_count)
+    tracker.AddBugComment.assert_called_once_with(
+        12345, mock.ANY, project='chromium', send_email=True)
+    args, _ = tracker.AddBugComment.call_args
+    _, message = args
+    self.assertIn('Pinpoint job created and queued.', message)
 
   def testExtraArgsSupported(self):
     request = dict(_BASE_REQUEST)

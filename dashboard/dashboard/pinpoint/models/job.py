@@ -55,13 +55,6 @@ COMPARISON_MODES = job_state.COMPARISON_MODES
 RETRY_OPTIONS = taskqueue.TaskRetryOptions(
     task_retry_limit=8, min_backoff_seconds=2)
 
-CREATED_COMMENT_FORMAT = u"""{title}
-{url}
-
-The job has been scheduled on the "{configuration}" queue which currently has
-{pending} pending jobs.
-"""
-
 
 def JobFromId(job_id):
   """Get a Job object from its ID.
@@ -354,7 +347,6 @@ class Job(ndb.Model):
     return job
 
   def PostCreationUpdate(self):
-    title = _ROUND_PUSHPIN + ' Pinpoint job created and queued.'
     pending = 0
     if self.configuration:
       try:
@@ -363,15 +355,11 @@ class Job(ndb.Model):
         logging.warning('Error encountered fetching queue named "%s": %s ',
                         self.configuration, e)
 
-    comment = CREATED_COMMENT_FORMAT.format(
-        title=title,
-        url=self.url,
-        configuration=self.configuration if self.configuration else '(None)',
-        pending=pending)
+    bug_update = job_bug_update.JobUpdateBuilder(self).CreationUpdate(pending)
     deferred.defer(
         _PostBugCommentDeferred,
         self.bug_id,
-        comment,
+        bug_update.comment_text,
         project=self.project,
         send_email=True,
         _retry_options=RETRY_OPTIONS)
