@@ -23,7 +23,7 @@ class RevisionRange(ndb.Model):
   def IsOverlapping(self, b):
     if not b or self.repository != b.repository:
       return False
-    return max(self.start, b.start) < min(self.end, b.end)
+    return max(self.start, b.start) <= min(self.end, b.end)
 
 
 class BugInfo(ndb.Model):

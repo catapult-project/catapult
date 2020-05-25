@@ -15,6 +15,7 @@ from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
+
 def _ProcessAlertGroup(group_key):
   workflow = alert_group_workflow.AlertGroupWorkflow(group_key.get())
   logging.info('Processing group: %s', group_key.string_id())
@@ -68,7 +69,9 @@ def ProcessAlertGroups():
         group.key,
         _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0))
 
-  deferred.defer(_ProcessUngroupedAlerts)
+  deferred.defer(
+      _ProcessUngroupedAlerts,
+      _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0))
 
 
 class AlertGroupsHandler(request_handler.RequestHandler):
