@@ -7,7 +7,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
-
 import mock
 
 from dashboard.api import api_auth
@@ -289,6 +288,12 @@ class NewTest(_NewTest):
   def testMissingTarget(self):
     request = dict(_BASE_REQUEST)
     del request['target']
+    response = self.Post('/api/new', request, status=400)
+    self.assertIn('error', json.loads(response.body))
+
+  def testEmptyTarget(self):
+    request = dict(_BASE_REQUEST)
+    request['target'] = ''
     response = self.Post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 

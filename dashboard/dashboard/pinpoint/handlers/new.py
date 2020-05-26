@@ -55,6 +55,10 @@ def _CreateJob(request):
   original_arguments = request.params.mixed()
   logging.debug('Received Params: %s', original_arguments)
 
+  # This call will fail if some of the required arguments are not in the
+  # original request.
+  _ValidateRequiredParams(original_arguments)
+
   arguments = _ArgumentsWithConfiguration(original_arguments)
   logging.debug('Updated Params: %s', arguments)
 
@@ -400,3 +404,16 @@ def _ValidateTags(tags):
 
 def _ValidateUser(user):
   return user or utils.GetEmail()
+
+
+_REQUIRED_NON_EMPTY_PARAMS = {'target', 'benchmark'}
+
+
+def _ValidateRequiredParams(params):
+  missing = _REQUIRED_NON_EMPTY_PARAMS - set(params.keys())
+  if missing:
+    raise ValueError('Missing required parameters: %s' % (list(missing)))
+  # Check that they're not empty.
+  empty_keys = [key for key in _REQUIRED_NON_EMPTY_PARAMS if not params[key]]
+  if empty_keys:
+    raise ValueError('Parameters must not be empty: %s' % (empty_keys))
