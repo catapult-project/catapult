@@ -3,13 +3,17 @@
 # found in the LICENSE file.
 """Finds Fuchsia browsers that can be started and controlled by telemetry."""
 
+import os
+import platform
+
 from telemetry.core import fuchsia_interface
-from telemetry.core import platform
+from telemetry.core import platform as telemetry_platform
 from telemetry.internal.backends.chrome import fuchsia_browser_backend
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import fuchsia_device
 from telemetry.internal.backends.chrome import chrome_startup_args
+from telemetry.internal.util import local_first_binary_manager
 
 
 class UnsupportedExtensionException(Exception):
@@ -23,6 +27,10 @@ class PossibleFuchsiaBrowser(possible_browser.PossibleBrowser):
     self._platform = fuchsia_platform
     self._platform_backend = (
         fuchsia_platform._platform_backend) # pylint: disable=protected-access
+
+    # Like CrOS, there's no way to automatically determine the build directory,
+    # so use the manually set output directory if possible.
+    self._build_dir = os.environ.get('CHROMIUM_OUTPUT_DIR')
 
   def __repr__(self):
     return 'PossibleFuchsiaBrowser(app_type=%s)' % self.browser_type
@@ -43,6 +51,10 @@ class PossibleFuchsiaBrowser(possible_browser.PossibleBrowser):
 
   def Create(self):
     """Start the browser process."""
+    if local_first_binary_manager.LocalFirstBinaryManager.NeedsInit():
+      local_first_binary_manager.LocalFirstBinaryManager.Init(
+          self._build_dir, None, 'linux', platform.machine())
+
     startup_args = chrome_startup_args.GetFromBrowserOptions(
         self._browser_options)
     browser_backend = fuchsia_browser_backend.FuchsiaBrowserBackend(
@@ -97,7 +109,8 @@ def FindAllAvailableBrowsers(finder_options, device):
   if not isinstance(device, fuchsia_device.FuchsiaDevice):
     return browsers
 
-  fuchsia_platform = platform.GetPlatformForDevice(device, finder_options)
+  fuchsia_platform = telemetry_platform.GetPlatformForDevice(device,
+                                                             finder_options)
 
   browsers.extend([
       PossibleFuchsiaBrowser(

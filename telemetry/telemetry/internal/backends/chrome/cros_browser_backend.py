@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import logging
-import os
 import shutil
 import time
 
@@ -21,7 +20,8 @@ from telemetry.internal.util import format_for_logging
 
 class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __init__(self, cros_platform_backend, browser_options,
-               browser_directory, profile_directory, is_guest, env):
+               browser_directory, profile_directory, is_guest, env,
+               build_dir=None):
     """
     Args:
       cros_platform_backend: The cros_platform_backend.CrOSPlatformBackend
@@ -35,6 +35,10 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           mode or not.
       env: A list of strings containing environment variables to start the
           browser with.
+      build_dir: A string containing a path to the directory on the host that
+          the browser was built in, for finding debug artifacts. Can be None if
+          the browser was not locally built, or the directory otherwise cannot
+          be determined.
     """
     assert browser_options.IsCrosBrowserOptions()
     super(CrOSBrowserBackend, self).__init__(
@@ -44,12 +48,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         profile_directory=profile_directory,
         supports_extensions=not is_guest,
         supports_tab_control=True,
-        # There's no way to automatically determine the build directory, as
-        # unlike Android, we're not responsible for installing the browser. If
-        # we're running on a bot, then the CrOS wrapper script will set this
-        # accordingly, and normal users can pass --chromium-output-dir to have
-        # this set in browser_options.
-        build_dir=os.environ.get('CHROMIUM_OUTPUT_DIR'))
+        build_dir=build_dir)
     self._is_guest = is_guest
     self._cri = cros_platform_backend.cri
     self._env = env

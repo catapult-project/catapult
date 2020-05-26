@@ -12,7 +12,7 @@ import tempfile
 import time
 
 from dependency_manager import exceptions as dependency_exceptions
-from telemetry.internal.util import binary_manager
+from telemetry.internal.util import local_first_binary_manager
 
 
 class MinidumpSymbolizer(object):
@@ -50,7 +50,8 @@ class MinidumpSymbolizer(object):
       None if the stack could not be retrieved for some reason, otherwise a
       string containing the stack trace.
     """
-    stackwalk = self._GetMinidumpStackwalkPath()
+    stackwalk = local_first_binary_manager.GetInstance().FetchPath(
+        'minidump_stackwalk')
     if not stackwalk:
       logging.warning('minidump_stackwalk binary not found.')
       return None
@@ -85,16 +86,6 @@ class MinidumpSymbolizer(object):
     """Returns the platform to be passed to generate_breakpad_symbols."""
     return None
 
-  def _GetMinidumpStackwalkPath(self):
-    """Gets the path to the minidump_stackwalk binary to use."""
-    # TODO(https://crbug.com/1054583): Remove this once Telemetry searches
-    # locally for all dependencies automatically.
-    stackwalk_path = os.path.join(self._build_dir, 'minidump_stackwalk')
-    if not os.path.exists(stackwalk_path):
-      stackwalk_path = binary_manager.FetchPath(
-          'minidump_stackwalk', self._os_name, self._arch_name)
-    return stackwalk_path
-
   def _GenerateBreakpadSymbols(self, symbols_dir, minidump):
     """Generates Breakpad symbols for use with stackwalking tools.
 
@@ -104,8 +95,9 @@ class MinidumpSymbolizer(object):
     """
     logging.info('Dumping Breakpad symbols.')
     try:
-      generate_breakpad_symbols_command = binary_manager.FetchPath(
-          'generate_breakpad_symbols', self._os_name, self._arch_name)
+      generate_breakpad_symbols_command = \
+          local_first_binary_manager.GetInstance().FetchPath(
+              'generate_breakpad_symbols')
     except dependency_exceptions.NoPathFoundError as e:
       logging.warning('Failed to get generate_breakpad_symbols: %s', e)
       generate_breakpad_symbols_command = None
