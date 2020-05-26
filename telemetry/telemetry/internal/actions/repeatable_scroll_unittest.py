@@ -36,8 +36,7 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('__GestureCommon_GetWindowHeight()'))
 
   # Test flaky on chromeos: https://crbug.com/826527.
-  # Test flaky on mac: https://crbug.com/934649
-  @decorators.Disabled('mac', 'chromeos')
+  @decorators.Disabled('chromeos')
   def testRepeatableScrollActionNoRepeats(self):
     expected_scroll = (self._window_height / 2) - 1
     self.assertLess(

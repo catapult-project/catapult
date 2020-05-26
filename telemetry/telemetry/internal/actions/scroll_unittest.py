@@ -90,7 +90,7 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     self._RunScrollDistanceTest(
         500000, 200000, page_action.GESTURE_SOURCE_TOUCH, 200)
 
-  @decorators.Disabled('android')  # crbug.com/934649
+  @decorators.Disabled('android-reference')  # crbug.com/934649
   def testScrollDistanceFastWheel(self):
     # Wheel scrolling will have a much greater error than touch. There's 2
     # reasons: 1) synthetic wheel gesture accumulate the sent deltas and use
@@ -113,13 +113,12 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     self._RunScrollDistanceTest(
         1000, 300, page_action.GESTURE_SOURCE_TOUCH, 10)
 
-  @decorators.Disabled('android')  # crbug.com/934649
+  @decorators.Disabled('android-reference')  # crbug.com/934649
   def testScrollDistanceSlowWheel(self):
     self._RunScrollDistanceTest(
         1000, 300, page_action.GESTURE_SOURCE_MOUSE, 200)
 
-  @decorators.Disabled('android', 'mac')  # crbug.com/934649
-  @decorators.Disabled('chromeos', 'linux')  # crbug.com/805523
+  @decorators.Disabled('android-reference')  # crbug.com/934649
   @decorators.Disabled('win-reference')  # crbug.com/805523
   def testWheelScrollDistanceWhileZoomed(self):
     # TODO(bokan): This API was added recently so only run the test once it's
