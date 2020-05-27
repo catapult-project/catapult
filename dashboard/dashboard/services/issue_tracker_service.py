@@ -198,26 +198,26 @@ class IssueTrackerService(object):
     if cc:
       body['cc'] = [{'name': account.strip()}
                     for account in cc.split(',') if account.strip()]
-    return self._MakeCreateRequest(body)
+    return self._MakeCreateRequest(body, project=project)
 
-  def _MakeCreateRequest(self, body):
+  def _MakeCreateRequest(self, body, project):
     """Makes a request to create a new bug.
 
     Args:
       body: The request body parameter dictionary.
+      project: The projectId parameter.
 
     Returns:
-      A dict containing the bug_id (if successful), or the error message if not.
+      A dict containing the bug_id and project_id (if successful), or the error
+      message if not.
     """
     request = self._service.issues().insert(
-        projectId='chromium',
-        sendEmail=True,
-        body=body)
+        projectId=project, sendEmail=True, body=body)
     logging.info('Making create issue request with body %s', body)
     try:
       response = self._ExecuteRequest(request, ignore_error=False)
       if response and 'id' in response:
-        return {'bug_id': response['id']}
+        return {'bug_id': response['id'], 'project_id': project}
       logging.error('Failed to create new bug; response %s', response)
     except errors.HttpError as e:
       reason = _GetErrorReason(e)

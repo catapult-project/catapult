@@ -45,13 +45,17 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     return anomaly.Anomaly(**default).put()
 
   @staticmethod
-  def _AddAlertGroup(anomaly_key, issue=None, anomalies=None, status=None):
+  def _AddAlertGroup(anomaly_key,
+                     issue=None,
+                     anomalies=None,
+                     status=None,
+                     project_id=None):
     anomaly_entity = anomaly_key.get()
     group = alert_group.AlertGroup(
         id=str(uuid.uuid4()),
         name=anomaly_entity.benchmark_name,
-        project_id='chromium',
         status=alert_group.AlertGroup.Status.untriaged,
+        project_id=project_id or 'chromium',
         active=True,
         revision=alert_group.RevisionRange(
             repository='chromium',
@@ -62,8 +66,9 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     if issue:
       group.bug = alert_group.BugInfo(
           bug_id=issue.get('id'),
-          project='chromium',
+          project=issue.get('projectId', 'chromium'),
       )
+      group.project_id = issue.get('projectId', 'chromium')
     if anomalies:
       group.anomalies = anomalies
     if status:
@@ -304,6 +309,46 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         issue=None,
     ))
     self.assertIn('2 regressions', self._issue_tracker.new_bug_args[0])
+
+  def testTriage_NonChromiumProject(self):
+    anomalies = [self._AddAnomaly()]
+    # TODO(dberris): Figure out a way to not have to hack the fake service to
+    # seed it with the correct issue in the correct project.
+    self._issue_tracker.issues[(
+        'v8', self._issue_tracker.bug_id)] = self._issue_tracker.issues[(
+            'chromium', self._issue_tracker.bug_id)]
+    del self._issue_tracker.issues[('chromium', self._issue_tracker.bug_id)]
+    self._issue_tracker.issues[('v8', self._issue_tracker.bug_id)].update({
+        'projectId': 'v8',
+    })
+    group = self._AddAlertGroup(
+        anomalies[0],
+        status=alert_group.AlertGroup.Status.untriaged,
+        project_id='v8')
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                monorail_project_id='v8')
+        ],
+    }
+    self.assertEqual(group.get().project_id, 'v8')
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=None))
+    self.assertEqual(group.get().bug.project, 'v8')
+    self.assertEqual(anomalies[0].get().project_id, 'v8')
 
   def testTriage_GroupUntriaged_InfAnomaly(self):
     anomalies = [self._AddAnomaly(median_before_anomaly=0), self._AddAnomaly()]

@@ -9,6 +9,7 @@ from __future__ import absolute_import
 
 import base64
 import fnmatch
+import itertools
 import json
 import logging
 import mock
@@ -336,12 +337,13 @@ class FakeIssueTrackerService(object):
 
   def __init__(self):
     self.bug_id = 12345
+    self._bug_id_counter = self.bug_id
     self.new_bug_args = None
     self.new_bug_kwargs = None
     self.add_comment_args = None
     self.add_comment_kwargs = None
     self.calls = []
-    self.issue = {
+    self._base_issue = {
         'cc': [{
             'kind': 'monorail#issuePerson',
             'htmlLink': 'https://bugs.chromium.org/u/1253971105',
@@ -360,7 +362,6 @@ class FakeIssueTrackerService(object):
             'htmlLink': 'https://bugs.chromium.org/u/49586776',
             'name': 'owner@chromium.org',
         },
-        'id': 737355,
         'author': {
             'kind': 'monorail#issuePerson',
             'htmlLink': 'https://bugs.chromium.org/u/49586776',
@@ -376,35 +377,56 @@ class FakeIssueTrackerService(object):
         'published': '2017-06-28T01:26:53',
         'updated': '2018-03-01T16:16:22',
     }
+    # TODO(dberris): Migrate users to not rely on the seeded issue.
+    self.issues = {
+        ('chromium', self._bug_id_counter): {
+            k: v for k, v in itertools.chain(self._base_issue.items(), [(
+                'id', self._bug_id_counter), ('projectId', 'chromium')])
+        }
+    }
+
+  @property
+  def issue(self):
+    return self.issues.get(('chromium', self.bug_id))
 
   def NewBug(self, *args, **kwargs):
     self.new_bug_args = args
     self.new_bug_kwargs = kwargs
-    self.issue['state'] = 'open'
     self.calls.append({
         'method': 'NewBug',
         'args': args,
         'kwargs': kwargs,
     })
-    return {'bug_id': self.bug_id}
+    # TODO(dberris): In the future, actually generate the issue.
+    self._bug_id_counter += 1
+    self.issues.update({
+        (kwargs.get('project', 'chromium'), self._bug_id_counter): {
+            k: v for k, v in itertools.chain(self._base_issue.items(), [(
+                'id', self._bug_id_counter
+            ), ('projectId', kwargs.get('project', 'chromium'))])
+        }
+    })
+    return {
+        'bug_id': self.bug_id,
+        'project_id': kwargs.get('project', 'chromium')
+    }
 
   def AddBugComment(self, *args, **kwargs):
     self.add_comment_args = args
     self.add_comment_kwargs = kwargs
     # If we fined that one of the keyword arguments is an update, we'll mimic
     # what the actual service will do and mark the state "closed" or "open".
-    if kwargs.get('status') in {'WontFix', 'Fixed'}:
-      self.issue['state'] = 'closed'
-    else:
-      self.issue['state'] = 'open'
+    # TODO(dberris): Actually simulate an update faithfully, someday.
+    self.issues.get((kwargs.get('project', 'chromium'), args[0]))['state'] = (
+        'closed' if kwargs.get('status') in {'WontFix', 'Fixed'} else 'open')
     self.calls.append({
         'method': 'AddBugComment',
         'args': args,
         'kwargs': kwargs,
     })
 
-  def GetIssue(self, *_):
-    return self.issue
+  def GetIssue(self, issue_id, project='chromium'):
+    return self.issues.get((project, issue_id))
 
 
 class FakeSheriffConfigClient(object):

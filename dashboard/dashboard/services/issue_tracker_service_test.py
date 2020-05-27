@@ -138,7 +138,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'owner': {'name': 'someone@chromium.org'},
             'cc': [{'name': 'somebody@chromium.org'},
                    {'name': 'nobody@chromium.org'}],
-        })
+        }, project='chromium')
 
   def testNewBug_UsesExpectedParamsSansOwner(self):
     service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
@@ -156,7 +156,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'projectId': 'chromium',
             'cc': [{'name': 'somebody@chromium.org'},
                    {'name': 'nobody@chromium.org'}],
-        })
+        }, project='chromium')
 
   def testMakeCommentRequest_UserCantOwn_RetryMakeCommentRequest(self):
     service = issue_tracker_service.IssueTrackerService(mock.MagicMock())

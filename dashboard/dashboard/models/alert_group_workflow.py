@@ -113,10 +113,11 @@ class AlertGroupWorkflow(object):
     anomalies = query.fetch()
     issue = None
     if self._group.status in {
-        self._group.Status.triaged,
-        self._group.Status.bisected,
-        self._group.Status.closed}:
-      issue = self._issue_tracker.GetIssue(self._group.bug.bug_id)
+        self._group.Status.triaged, self._group.Status.bisected,
+        self._group.Status.closed
+    }:
+      issue = self._issue_tracker.GetIssue(
+          self._group.bug.bug_id, project=self._group.bug.project)
     return self.GroupUpdate(now, anomalies, issue)
 
   def Process(self, update=None):
@@ -192,7 +193,8 @@ class AlertGroupWorkflow(object):
         self._group.bug.bug_id,
         'All regressions for this issue have been marked recovered; closing.',
         status='WontFix',
-        labels='Chromeperf-Auto-Closed')
+        labels='Chromeperf-Auto-Closed',
+        project=self._group.project_id)
 
   def _ReopenWithNewRegressions(self, regressions, subscriptions):
     template_args = self._GetTemplateArgs(regressions)
@@ -204,7 +206,8 @@ class AlertGroupWorkflow(object):
         components=components,
         labels=['Chromeperf-Auto-Reopened'],
         status='Unconfirmed',
-        cc_list=cc)
+        cc_list=cc,
+        project=self._group.project_id)
 
   def _FileNormalUpdate(self, regressions, subscriptions):
     template_args = self._GetTemplateArgs(regressions)
@@ -216,7 +219,7 @@ class AlertGroupWorkflow(object):
         labels=labels,
         cc_list=cc,
         components=components,
-    )
+        project=self._group.project_id)
 
   def _GetPreproccessedRegressions(self, anomalies):
     regressions = []
@@ -314,7 +317,7 @@ class AlertGroupWorkflow(object):
     # Link the bug to auto-triage enabled anomalies.
     for a in anomalies:
       if not a.bug_id and a.auto_triage_enable:
-        # TODO(dberris): Add bug project in config and anomaly
+        a.project_id = bug.project
         a.bug_id = bug.bug_id
     ndb.put_multi(anomalies)
 
@@ -351,9 +354,8 @@ class AlertGroupWorkflow(object):
       return None, []
 
     # Update the issue associated witht his group, before we continue.
-    # TODO(dberris): Add bug project in config and anomaly
     return alert_group.BugInfo(
-        project='chromium',
+        project=self._group.project_id,
         bug_id=response['bug_id'],
     ), anomalies
 

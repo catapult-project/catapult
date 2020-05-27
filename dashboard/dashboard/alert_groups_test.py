@@ -131,7 +131,7 @@ class GroupReportTest(GroupReportTestBase):
     self.assertItemsEqual(group.anomalies, [a3])
 
 
-  def testArchiveAltertsGroup(self, mock_get_sheriff_client):
+  def testArchiveAlertsGroup_IssueClosed(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     self._CallHandler()
     # Add anomalies
@@ -313,10 +313,7 @@ class GroupReportTest(GroupReportTestBase):
     self.assertItemsEqual(
         self.fake_issue_tracker.add_comment_kwargs['components'], ['Foo>Bar'])
     self.assertItemsEqual(self.fake_issue_tracker.add_comment_kwargs['labels'],
-                          [
-                              'Pri-2', 'Restrict-View-Google',
-                              'Type-Bug-Regression', 'Chromeperf-Auto-Triaged'
-                          ])
+                          ['Chromeperf-Auto-Reopened'])
     self.assertRegexpMatches(self.fake_issue_tracker.add_comment_args[1],
                              r'Top 2 affected measurements in bot:')
 
