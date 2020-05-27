@@ -124,6 +124,30 @@ def PermutationTest(sequence, rand=None):
   probability = float(differences) / total if total > 0. else 0.
   return probability
 
+def Estimator(sequence, index):
+  cluster_a, cluster_b = Cluster(sequence, index)
+  if len(cluster_a) == 0 or len(cluster_b) == 0:
+    return float('NaN')
+  a_array = tuple(
+      abs(a - b)**2 for a, b in itertools.combinations(cluster_a, 2))
+  if not a_array:
+    a_array = (0.,)
+  b_array = tuple(
+      abs(a - b)**2 for a, b in itertools.combinations(cluster_b, 2))
+  if not b_array:
+    b_array = (0.,)
+  y = sum(abs(a - b)**2 for a, b in itertools.product(cluster_a, cluster_b))
+  x_a = sum(a_array)
+  x_b = sum(b_array)
+  a_len_combinations = len(a_array)
+  b_len_combinations = len(b_array)
+  y_scaler = 2.0 / (len(cluster_a) * len(cluster_b))
+  a_estimate = (x_a / a_len_combinations)
+  b_estimate = (x_b / b_len_combinations)
+  e = (y_scaler * y) - a_estimate - b_estimate
+  return (e * a_len_combinations * b_len_combinations) / (
+      a_len_combinations + b_len_combinations)
+
 
 def ChangePointEstimator(sequence):
   # This algorithm does the following:
@@ -143,33 +167,11 @@ def ChangePointEstimator(sequence):
   # either side of a sequence is likely to show a divergence.
   #
   # This algorithm is O(N^2) to the size of the sequence.
-  def Estimator(index):
-    cluster_a, cluster_b = Cluster(sequence, index)
-    a_array = tuple(
-        abs(a - b)**2 for a, b in itertools.combinations(cluster_a, 2))
-    if not a_array:
-      a_array = (0.,)
-    b_array = tuple(
-        abs(a - b)**2 for a, b in itertools.combinations(cluster_b, 2))
-    if not b_array:
-      b_array = (0.,)
-    y = sum(abs(a - b)**2 for a, b in itertools.product(cluster_a, cluster_b))
-    x_a = sum(a_array)
-    x_b = sum(b_array)
-    a_len_combinations = len(a_array)
-    b_len_combinations = len(b_array)
-    y_scaler = 2.0 / (len(cluster_a) * len(cluster_b))
-    a_estimate = (x_a / a_len_combinations)
-    b_estimate = (x_b / b_len_combinations)
-    e = (y_scaler * y) - a_estimate - b_estimate
-    return (e * a_len_combinations * b_len_combinations) / (
-        a_len_combinations + b_len_combinations)
-
   margin = 1
   max_estimate = None
   max_index = 0
   estimates = [
-      Estimator(i)
+      Estimator(sequence, i)
       for i, _ in enumerate(sequence)
       if margin <= i < len(sequence)
   ]

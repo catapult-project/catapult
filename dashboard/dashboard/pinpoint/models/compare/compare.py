@@ -62,7 +62,7 @@ def Compare(values_a, values_b, attempt_count, mode, magnitude):
   low_threshold = thresholds.LowThreshold()
   high_threshold = thresholds.HighThreshold(mode, magnitude, attempt_count)
 
-  if not (values_a and values_b):
+  if not (len(values_a) > 0 and len(values_b) > 0):
     # A sample has no values in it.
     return ComparisonResults(UNKNOWN, None, low_threshold, high_threshold)
 
