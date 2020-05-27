@@ -76,27 +76,20 @@ found in the LICENSE file.
           return [];
         }
         const args = Object.assign({}, job.arguments);
-        args.start_git_hash = 'HEAD';
+
+        // We really want a try job, not a bisection.
+        args.comparison_mode = 'try';
+        args.base_git_hash = 'HEAD';
         args.end_git_hash = 'HEAD';
+
+        // Try jobs don't support the `start_git_hash` argument.
+        delete args.start_git_hash;
         delete args.name;
         delete args.patch;
         delete args.user;
 
-        // TODO(dtu): Remove after there are no jobs we care about with
-        // comparison_magnitude == 'None' (a string containing 'None').
-        if (args.comparison_magnitude == 'None') {
-          delete args.comparison_magnitude;
-        }
-
         const tuples = [];
         for (const key in args) {
-          // TODO(dtu): Hack for OBBS migration. Remove in 2019.
-          // https://crbug.com/867643
-          if (args[key] == 'telemetry_perf_tests') {
-            args[key] = 'performance_test_suite';
-          } else if (args[key] == 'telemetry_perf_webview_tests') {
-            args[key] = 'performance_webview_test_suite';
-          }
           tuples.push({key, value: args[key]});
         }
         return tuples;
