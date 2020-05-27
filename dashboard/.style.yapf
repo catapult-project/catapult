@@ -1,0 +1,4 @@
+[yapf]
+based_on_style = chromium
+spaces_before_comment = 2
+split_before_logical_operator = true
