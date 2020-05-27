@@ -54,6 +54,7 @@ class LocalFirstBinaryManager(object):
     self._arch = arch
     self._ignored_dependencies = ignored_dependencies
     self._os_version = os_version
+    self._dependency_cache = {}
     self._browser_mtime = None
     if browser_binary:
       mtime = os.path.getmtime(browser_binary)
@@ -72,8 +73,11 @@ class LocalFirstBinaryManager(object):
       A string containing the path to the dependency, or None if it could not be
       found.
     """
-    local_path = self._FetchLocalPath(dependency_name)
-    return local_path or self._FetchBinaryManagerPath(dependency_name)
+    if dependency_name not in self._dependency_cache:
+      local_path = self._FetchLocalPath(dependency_name)
+      path = local_path or self._FetchBinaryManagerPath(dependency_name)
+      self._dependency_cache[dependency_name] = path
+    return self._dependency_cache[dependency_name]
 
   def _FetchLocalPath(self, dependency_name):
     """Fetches the path for the locally built dependency if possible.
@@ -95,6 +99,9 @@ class LocalFirstBinaryManager(object):
                    dependency_name)
       return None
     local_path = os.path.join(self._build_dir, dependency_name)
+    # Try the .exe version on Windows if the non-.exe version does not exist.
+    if not os.path.exists(local_path) and self._os == 'win':
+      local_path = local_path + '.exe'
     if not os.path.exists(local_path):
       logging.info(
           'No local version of dependency found for %s', dependency_name)
