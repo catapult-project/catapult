@@ -258,7 +258,7 @@ found in the LICENSE file.
               the "pin" field to allow re-running the job with a provided
               patch. -->
             <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
-              <paper-input class="column" name="pin" value="[[job.arguments.pin]]" label="Patch to apply (Gerrit URL)"></paper-input>
+              <paper-input name="pin" value="[[job.arguments.pin]]" label="Patch to apply (Gerrit URL)"></paper-input>
             </template>
 
             <paper-input name="bug_id" value="{{bug_id}}" label="Bug ID"></paper-input>
