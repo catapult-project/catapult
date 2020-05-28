@@ -178,7 +178,7 @@ class IssueTrackerService(object):
       labels: Starting labels for the bug.
       components: Starting components for the bug.
       owner: Starting owner account name.
-      cc: CSV of email addresses to CC on the bug.
+      cc: list of email addresses to CC on the bug.
       status: defaults to Assigned if owner else Unconfirmed.
 
     Returns:
@@ -196,8 +196,10 @@ class IssueTrackerService(object):
     if owner:
       body['owner'] = {'name': owner}
     if cc:
-      body['cc'] = [{'name': account.strip()}
-                    for account in cc.split(',') if account.strip()]
+      # We deduplicate the CC'ed emails to avoid having to forward
+      # those to the issue tracker.
+      accounts = set(email.strip() for email in cc)
+      body['cc'] = [{'name': account} for account in accounts if account]
     return self._MakeCreateRequest(body, project=project)
 
   def _MakeCreateRequest(self, body, project):

@@ -9,7 +9,6 @@ from __future__ import absolute_import
 import datetime
 import json
 import sys
-import unittest
 
 import mock
 import webapp2
@@ -160,6 +159,30 @@ class FileBugTest(testing_common.TestCase):
     http = utils.ServiceAccountHttp()
     owner = ''
     cc = 'you@chromium.org'
+    summary = 'test'
+    description = 'Test test.'
+    labels = []
+    components = []
+    test_path = 'ChromiumPerf/linux/scrolling/first_paint'
+    test_key = utils.TestKey(test_path)
+    subscription = Subscription(
+        name='Sheriff',
+    )
+    keys = [self._AddAnomaly(10, 20, test_key, subscription).urlsafe()]
+    bisect = False
+    result = file_bug.FileBug(
+        http, owner, cc, summary, description, labels, components, keys, bisect)
+    self.assertNotIn('bisect_error', result)
+    self.assertNotIn('jobId', result)
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch(
+      'google.appengine.api.app_identity.get_default_version_hostname',
+      mock.MagicMock(return_value='chromeperf.appspot.com'))
+  def testSupportsCCList(self):
+    http = utils.ServiceAccountHttp()
+    owner = ''
+    cc = 'you@chromium.org,me@chromium.org,other@chromium.org,,'
     summary = 'test'
     description = 'Test test.'
     labels = []
@@ -870,30 +893,24 @@ class FileBugTest(testing_common.TestCase):
             'component': '123>456'
         },
     ]
-
     subscription = Subscription(
         name='Sheriff',
         bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
-
     test_paths = ['ChromiumPerf/linux/scrolling/first_paint',
                   'ChromiumPerf/linux/scrolling/mean_frame_time']
     test_keys = [utils.TestKey(test_path) for test_path in test_paths]
-
     now_datetime = datetime.datetime.now()
-
     alert_test_key_0 = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_keys[0],
         median_before_anomaly=100, median_after_anomaly=200,
         subscriptions=[subscription], subscription_names=[subscription.name],
         ownership=ownership_samples[0], timestamp=now_datetime).put()
-
     alert_test_key_1 = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_keys[1],
         median_before_anomaly=100, median_after_anomaly=200,
         subscriptions=[subscription], subscription_names=[subscription.name],
         ownership=ownership_samples[1],
         timestamp=now_datetime + datetime.timedelta(10)).put()
-
     response = self.testapp.post(
         '/file_bug',
         [
@@ -905,11 +922,9 @@ class FileBugTest(testing_common.TestCase):
             ('label', 'two'),
             ('component', 'Foo>Bar'),
         ])
-
     self.assertIn(
         '<input type="checkbox" checked name="component" value="Abc&gt;Def">',
         response.body)
-
     self.assertIn(
         '<input type="checkbox" checked name="component" value="123&gt;456">',
         response.body)
@@ -931,42 +946,34 @@ class FileBugTest(testing_common.TestCase):
             'component': 'Abc>Def'
         }
     ]
-
     now_datetime = datetime.datetime.now()
-
     test_key = utils.TestKey('ChromiumPerf/linux/scrolling/first_paint')
-
     subscription = Subscription(
         name='Sheriff',
         bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
-
     alert_without_ownership = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_key,
         median_before_anomaly=100, median_after_anomaly=200,
         subscriptions=[subscription], subscription_names=[subscription.name],
         timestamp=now_datetime).put()
-
     alert_without_component = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_key,
         median_before_anomaly=100, median_after_anomaly=200,
         subscriptions=[subscription], subscription_names=[subscription.name],
         ownership=ownership_samples[0],
         timestamp=now_datetime + datetime.timedelta(10)).put()
-
     alert_with_empty_component = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_key,
         median_before_anomaly=100, median_after_anomaly=200,
         subscriptions=[subscription], subscription_names=[subscription.name],
         ownership=ownership_samples[1],
         timestamp=now_datetime + datetime.timedelta(20)).put()
-
     alert_with_component = anomaly.Anomaly(
         start_revision=1476193320, end_revision=1476201870, test=test_key,
         median_before_anomaly=100, median_after_anomaly=200,
         subscriptions=[subscription], subscription_names=[subscription.name],
         ownership=ownership_samples[2],
         timestamp=now_datetime + datetime.timedelta(30)).put()
-
     response = self.testapp.post(
         '/file_bug',
         [
@@ -980,10 +987,6 @@ class FileBugTest(testing_common.TestCase):
             ('label', 'two'),
             ('component', 'Foo>Bar'),
         ])
-
     self.assertIn(
         '<input type="checkbox" checked name="component" value="Abc&gt;Def">',
         response.body)
-
-if __name__ == '__main__':
-  unittest.main()

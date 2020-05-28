@@ -26,12 +26,6 @@ class NewBugHandler(api_request_handler.ApiRequestHandler):
     components = self.request.get_all('component')
     keys = self.request.get_all('key')
     bisect = api_utils.ParseBool(self.request.get('bisect', 'true'))
-
-    # TODO(924228): After v2spa launches, change its client id to something
-    # that is whitelisted by the issue tracker service (or have its client id
-    # whitelisted), then forward the bearer token from
-    # self.request.headers.get('Authorization') to the issue tracker service by
-    # overriding httplib2.Http().request.
     http = utils.ServiceAccountHttp()
 
     return file_bug.FileBug(

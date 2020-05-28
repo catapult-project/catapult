@@ -398,7 +398,7 @@ def FileBug(http, owner, cc, summary, description, labels, components,
 
   new_bug_response = user_issue_tracker_service.NewBug(
       summary, description, labels=labels, components=components, owner=owner,
-      cc=cc)
+      cc=[email for email in cc.split(',') if email.strip()])
   if 'error' in new_bug_response:
     return {'error': new_bug_response['error']}
 

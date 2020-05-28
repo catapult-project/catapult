@@ -93,3 +93,25 @@ class NewBugTest(testing_common.TestCase):
         value=1).put()
     response = self._Post(key=key)
     self.assertEqual(12345, response['bug_id'])
+
+  @mock.patch.object(
+      file_bug.auto_bisect, 'StartNewBisectForBug', mock.MagicMock())
+  def testHasCC(self):
+    self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
+    path = 'm/b/s/m/c'
+    test = graph_data.TestMetadata(
+        has_rows=True,
+        id=path,
+        improvement_direction=anomaly.DOWN,
+        units='units')
+    test.put()
+    key = anomaly.Anomaly(
+        test=test.key,
+        start_revision=1,
+        end_revision=1).put().urlsafe()
+    graph_data.Row(
+        id=1,
+        parent=test.key,
+        value=1).put()
+    response = self._Post(key=key, cc='user@example.com,other@example.com')
+    self.assertEqual(12345, response['bug_id'])
