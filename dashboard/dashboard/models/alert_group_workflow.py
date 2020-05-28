@@ -470,7 +470,7 @@ class AlertGroupWorkflow(object):
         tags={
             'test_path': utils.TestPath(alert.test),
             'alert': alert.key.urlsafe(),
-            'auto_bisection': True,
+            'auto_bisection': 'true',
         },
     )
 

@@ -496,9 +496,14 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         anomalies=ndb.get_multi(anomalies),
         issue=self._issue_tracker.issue,
     ))
-    self.assertEqual(
-        anomalies[1].urlsafe(),
-        json.loads(self._pinpoint.new_job_request['tags'])['alert'])
+    tags = json.loads(self._pinpoint.new_job_request['tags'])
+    self.assertEqual(anomalies[1].urlsafe(), tags['alert'])
+
+    # Tags must be a dict of key/value string pairs.
+    for k, v in tags.items():
+      self.assertIsInstance(k, basestring)
+      self.assertIsInstance(v, basestring)
+
     self.assertEqual(['123456'], group.get().bisection_ids)
 
   def testBisect_GroupTriaged_MultiBot(self):
