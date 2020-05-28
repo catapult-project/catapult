@@ -83,7 +83,7 @@ def _CreateJob(request):
   # If this is a try job, we assume it's higher priority than bisections, so
   # we'll set it at a negative priority.
   if priority not in arguments and comparison_mode == job_state.TRY:
-    arguments['priority'] = -10
+    priority = -1
 
   # TODO(dberris): Make this the default when we've graduated the beta.
   use_execution_engine = (

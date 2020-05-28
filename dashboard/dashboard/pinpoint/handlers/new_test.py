@@ -350,6 +350,12 @@ class NewTest(_NewTest):
     response = self.Post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 
+  def testPriorityIsAString(self):
+    request = dict(_BASE_REQUEST)
+    request['priority'] = '10'
+    response = self.Post('/api/new', request, status=200)
+    self.assertNotIn('error', json.loads(response.body))
+
   def testUserFromParams(self):
     request = dict(_BASE_REQUEST)
     request['user'] = 'foo@example.org'

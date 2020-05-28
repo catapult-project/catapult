@@ -201,9 +201,10 @@ class FifoSchedulerTest(test.TestCase):
     j1 = job.Job.New((), (),
                      arguments={
                          'configuration': 'mock',
-                         'priority': 100
+                         'priority': '100',
                      },
-                     comparison_mode='performance')
+                     comparison_mode='performance',
+                     priority=100)
     j1.Start = mock.MagicMock(  # pylint: disable=invalid-name
         side_effect=j1._Complete)
     scheduler.Schedule(j1)

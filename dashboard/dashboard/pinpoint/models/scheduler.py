@@ -135,7 +135,7 @@ def Schedule(job):
   # 1. Use the configuration as the name of the pool.
   # TODO(dberris): Figure out whether a missing configuration is even valid.
   configuration = job.arguments.get('configuration', '(none)')
-  priority = job.arguments.get('priority', 0)
+  priority = job.priority
 
   # 2. Load the (potentially empty) FIFO queue.
   queue = ConfigurationQueue.GetOrCreateQueue(configuration)
