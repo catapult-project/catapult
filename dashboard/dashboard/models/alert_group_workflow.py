@@ -171,7 +171,7 @@ class AlertGroupWorkflow(object):
   def _UpdateStatus(self, issue):
     if issue.get('state') == 'closed':
       self._group.status = self._group.Status.closed
-    else:
+    elif self._group.status == self._group.Status.closed:
       self._group.status = self._group.Status.triaged
 
   def _UpdateIssue(self, issue, anomalies, added):
