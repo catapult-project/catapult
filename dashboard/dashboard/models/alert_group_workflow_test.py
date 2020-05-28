@@ -6,8 +6,9 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import uuid
 import datetime
+import json
+import uuid
 
 from dashboard.common import testing_common
 from dashboard.common import utils
@@ -25,6 +26,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.maxDiff = None
     self._issue_tracker = testing_common.FakeIssueTrackerService()
     self._sheriff_config = testing_common.FakeSheriffConfigClient()
+    self._pinpoint = testing_common.FakePinpoint()
+    self._crrev = testing_common.FakeCrrev()
 
   @staticmethod
   def _AddAnomaly(**kwargs):
@@ -41,7 +44,15 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         },
     }
     default.update(kwargs)
+
+    tests = default['test'].split('/')
+    def GenerateTestDict(tests):
+      if not tests:
+        return {}
+      return {tests[0]: GenerateTestDict(tests[1:])}
+    testing_common.AddTests([tests[0]], [tests[1]], GenerateTestDict(tests[2:]))
     default['test'] = utils.TestKey(default['test'])
+
     return anomaly.Anomaly(**default).put()
 
   @staticmethod
@@ -455,3 +466,237 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         issue=self._issue_tracker.issue,
     ))
     self.assertEqual(True, group.get().active)
+
+  def testBisect_GroupTriaged(self):
+    anomalies = [
+        self._AddAnomaly(median_before_anomaly=0.2),
+        self._AddAnomaly(median_before_anomaly=0.1),
+    ]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    self._issue_tracker.issue.update({
+        'state': 'open',
+    })
+    self._sheriff_config.patterns = {
+        '*': [subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+        now=datetime.datetime.utcnow(),
+        anomalies=ndb.get_multi(anomalies),
+        issue=self._issue_tracker.issue,
+    ))
+    self.assertEqual(
+        anomalies[1].urlsafe(),
+        json.loads(self._pinpoint.new_job_request['tags'])['alert'])
+    self.assertEqual(['123456'], group.get().bisection_ids)
+
+  def testBisect_GroupTriaged_MultiBot(self):
+    anomalies = [
+        self._AddAnomaly(
+            test='master/bot1/test_suite/measurement/test_case1',
+            median_before_anomaly=0.3,
+        ),
+        self._AddAnomaly(
+            test='master/bot1/test_suite/measurement/test_case2',
+            median_before_anomaly=0.2,
+        ),
+        self._AddAnomaly(
+            test='master/bot2/test_suite/measurement/test_case2',
+            median_before_anomaly=0.1,
+        ),
+    ]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    self._issue_tracker.issue.update({
+        'state': 'open',
+    })
+    self._sheriff_config.patterns = {
+        '*': [subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+        now=datetime.datetime.utcnow(),
+        anomalies=ndb.get_multi(anomalies),
+        issue=self._issue_tracker.issue,
+    ))
+    self.assertEqual(
+        anomalies[1].urlsafe(),
+        json.loads(self._pinpoint.new_job_request['tags'])['alert'])
+    self.assertEqual(['123456'], group.get().bisection_ids)
+
+  def testBisect_GroupTriaged_MultiBot_PartInf(self):
+    anomalies = [
+        self._AddAnomaly(
+            test='master/bot1/test_suite/measurement/test_case1',
+            median_before_anomaly=0.0,
+        ),
+        self._AddAnomaly(
+            test='master/bot1/test_suite/measurement/test_case2',
+            median_before_anomaly=0.2,
+        ),
+        self._AddAnomaly(
+            test='master/bot2/test_suite/measurement/test_case2',
+            median_before_anomaly=0.1,
+        ),
+    ]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    self._issue_tracker.issue.update({
+        'state': 'open',
+    })
+    self._sheriff_config.patterns = {
+        '*': [subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+        now=datetime.datetime.utcnow(),
+        anomalies=ndb.get_multi(anomalies),
+        issue=self._issue_tracker.issue,
+    ))
+    self.assertEqual(
+        anomalies[1].urlsafe(),
+        json.loads(self._pinpoint.new_job_request['tags'])['alert'])
+    self.assertEqual(['123456'], group.get().bisection_ids)
+
+  def testBisect_GroupTriaged_MultiBot_AllInf(self):
+    anomalies = [
+        self._AddAnomaly(
+            test='master/bot1/test_suite/measurement/test_case1',
+            median_before_anomaly=0.0,
+            median_after_anomaly=1.0,
+        ),
+        self._AddAnomaly(
+            test='master/bot1/test_suite/measurement/test_case2',
+            median_before_anomaly=0.0,
+            median_after_anomaly=2.0,
+        ),
+        self._AddAnomaly(
+            test='master/bot2/test_suite/measurement/test_case2',
+            median_before_anomaly=0.1,
+        ),
+    ]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    self._issue_tracker.issue.update({
+        'state': 'open',
+    })
+    self._sheriff_config.patterns = {
+        '*': [subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+        now=datetime.datetime.utcnow(),
+        anomalies=ndb.get_multi(anomalies),
+        issue=self._issue_tracker.issue,
+    ))
+    self.assertEqual(
+        anomalies[1].urlsafe(),
+        json.loads(self._pinpoint.new_job_request['tags'])['alert'])
+    self.assertEqual(['123456'], group.get().bisection_ids)
+
+  def testBisect_GroupTriaged_CrrevFailed(self):
+    anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    self._issue_tracker.issue.update({
+        'state': 'open',
+    })
+    self._crrev.SetFailure()
+    self._sheriff_config.patterns = {
+        '*': [subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+        now=datetime.datetime.utcnow(),
+        anomalies=ndb.get_multi(anomalies),
+        issue=self._issue_tracker.issue,
+    ))
+    self.assertEqual(alert_group.AlertGroup.Status.bisected, group.get().status)
+    self.assertEqual([], group.get().bisection_ids)
+    self.assertEqual(
+        ['Chromeperf-Auto-NeedsAttention'],
+        self._issue_tracker.add_comment_kwargs['labels'])
+
+  def testBisect_GroupTriaged_PinpointFailed(self):
+    anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    self._issue_tracker.issue.update({
+        'state': 'open',
+    })
+    self._pinpoint.SetFailure()
+    self._sheriff_config.patterns = {
+        '*': [subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+        now=datetime.datetime.utcnow(),
+        anomalies=ndb.get_multi(anomalies),
+        issue=self._issue_tracker.issue,
+    ))
+    self.assertEqual(alert_group.AlertGroup.Status.bisected, group.get().status)
+    self.assertEqual([], group.get().bisection_ids)
+    self.assertEqual(
+        ['Chromeperf-Auto-NeedsAttention'],
+        self._issue_tracker.add_comment_kwargs['labels'])

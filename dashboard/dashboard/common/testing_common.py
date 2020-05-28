@@ -367,8 +367,8 @@ class FakeIssueTrackerService(object):
             'htmlLink': 'https://bugs.chromium.org/u/49586776',
             'name': 'author@chromium.org',
         },
-        'state': 'closed',
-        'status': 'Fixed',
+        'state': 'open',
+        'status': 'Unconfirmed',
         'summary': 'The bug title',
         'components': [
             'Blink>ServiceWorker',
@@ -441,3 +441,38 @@ class FakeSheriffConfigClient(object):
       if re.match(fnmatch.translate(p), path):
         return s, None
     return [], None
+
+
+class FakeCrrev(object):
+
+  def __init__(self):
+    self._response = None
+    self.SetSuccess()
+
+  def SetSuccess(self, git_sha='abcd'):
+    self._response = {'git_sha': git_sha}
+
+  def SetFailure(self):
+    self._response = {'error': {'message': 'some error'}}
+
+  def GetNumbering(self, *args, **kwargs):
+    # pylint: disable=unused-argument
+    return self._response
+
+
+class FakePinpoint(object):
+
+  def __init__(self):
+    self.new_job_request = None
+    self._response = None
+    self.SetSuccess()
+
+  def SetSuccess(self, job_id='123456'):
+    self._response = {'jobId': job_id}
+
+  def SetFailure(self):
+    self._response = {'error': 'some error'}
+
+  def NewJob(self, request):
+    self.new_job_request = request
+    return self._response

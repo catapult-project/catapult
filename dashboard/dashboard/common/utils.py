@@ -45,6 +45,7 @@ _AUTOROLL_DOMAINS = (
     'skia-corp.google.com.iam.gserviceaccount.com',
     'skia-public.iam.gserviceaccount.com',
 )
+STATISTICS = ['avg', 'count', 'max', 'min', 'std', 'sum']
 
 
 class _SimpleCache(
@@ -220,6 +221,16 @@ def OldStyleTestKey(key_or_string):
   for part in path_parts[2:]:
     key_parts += ['Test', part]
   return ndb.Key(*key_parts)
+
+
+def ParseStatisticNameFromChart(chart_name):
+  chart_name_parts = chart_name.split('_')
+  statistic_name = ''
+
+  if chart_name_parts[-1] in STATISTICS:
+    chart_name = '_'.join(chart_name_parts[:-1])
+    statistic_name = chart_name_parts[-1]
+  return chart_name, statistic_name
 
 
 def MostSpecificMatchingPattern(test, pattern_data_tuples):

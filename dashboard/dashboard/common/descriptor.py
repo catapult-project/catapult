@@ -28,11 +28,13 @@ from google.appengine.ext import ndb
 
 from dashboard.common import bot_configurations
 from dashboard.common import stored_object
+from dashboard.common import utils
 
 TEST_BUILD_TYPE = 'test'
 REFERENCE_BUILD_TYPE = 'ref'
-STATISTICS = ['avg', 'count', 'max', 'min', 'std', 'sum']
 NO_MITIGATIONS_CASE = 'no-mitigations'
+# TODO(fancl): Remove alias.
+STATISTICS = utils.STATISTICS
 STATISTICS_REGEX = '(.*)_(%s)$' % '|'.join(STATISTICS + [
     r'pct_[\d_]+',
     r'ipr_[\d_]+',

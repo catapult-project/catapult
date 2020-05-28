@@ -371,6 +371,8 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_ComparisonMagnitude_Added(self):
     test_key = utils.TestKey('ChromiumPerf/mac/cc_perftests/foo')
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['mac'], {'cc_perftests': {'foo': {}}})
     anomaly_entity = anomaly.Anomaly(
         start_revision=1, end_revision=2, test=test_key,
         median_before_anomaly=1, median_after_anomaly=10)
@@ -395,6 +397,8 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_IsolateTarget_NonTelemetry(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['mac'], {'cc_perftests': {'foo': {}}})
     params = {
         'test_path': 'ChromiumPerf/mac/cc_perftests/foo',
         'start_commit': 'abcd1234',
@@ -422,6 +426,8 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_IsolateTarget_Telemetry(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['mac'], {'system_health': {'foo': {}}})
     params = {
         'test_path': 'ChromiumPerf/mac/system_health/foo',
         'start_commit': 'abcd1234',
@@ -447,6 +453,9 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_IsolateTarget_WebviewTelemetry(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['Android Nexus5X WebView Perf'],
+        {'system_health': {'foo': {}}})
     params = {
         'test_path':
             'ChromiumPerf/Android Nexus5X WebView Perf/system_health/foo',
@@ -475,6 +484,9 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
       pinpoint_request.crrev_service, 'GetNumbering',
       mock.MagicMock(return_value={'git_sha': 'abcd'}))
   def testPinpointParams_OldIsolateTarget_Telemetry(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['android-nexus5x'],
+        {'system_health': {'foo': {}}})
     params = {
         'test_path': 'ChromiumPerf/android-nexus5x/system_health/foo',
         'start_commit': '572200',
@@ -494,6 +506,9 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
       pinpoint_request.crrev_service, 'GetNumbering',
       mock.MagicMock(return_value={'git_sha': 'abcd'}))
   def testPinpointParams_OldIsolateTarget_WebviewTelemetry(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['android-webview-nexus5x'],
+        {'system_health': {'foo': {}}})
     params = {
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
         'start_commit': '572200',
@@ -510,6 +525,8 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_Metric_TopLevelOnly(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['mac'], {'blink_perf': {'foo': {}}})
     params = {
         'test_path': 'ChromiumPerf/mac/blink_perf/foo',
         'start_commit': 'abcd1234',
@@ -526,6 +543,9 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_Metric_ChartAndTrace(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['mac'],
+        {'blink_perf': {'foo': {'http___bar.html': {}}}})
     params = {
         'test_path': 'ChromiumPerf/mac/blink_perf/foo/http___bar.html',
         'start_commit': 'abcd1234',
@@ -547,6 +567,9 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_Metric_GroupingLabelChartAndTrace(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['mac'],
+        {'blink_perf': {'foo': {'label': {'bar.html': {}}}}})
     params = {
         'test_path': 'ChromiumPerf/mac/blink_perf/foo/label/bar.html',
         'start_commit': 'abcd1234',
@@ -608,6 +631,9 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
       pinpoint_request.crrev_service, 'GetNumbering',
       mock.MagicMock(return_value={'git_sha': 'abcd'}))
   def testPinpointParams_ConvertsCommitsToGitHashes(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['android-webview-nexus5x'],
+        {'system_health': {'foo': {}}})
     params = {
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
         'start_commit': '1234',
@@ -627,6 +653,9 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(
       pinpoint_request.crrev_service, 'GetNumbering')
   def testPinpointParams_SkipsConvertingHashes(self, mock_crrev):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['android-webview-nexus5x'],
+        {'system_health': {'foo': {}}})
     params = {
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
         'start_commit': 'abcd1234',
@@ -648,6 +677,8 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     statistic_types = ['avg', 'min', 'max', 'sum', 'std', 'count']
 
     for s in statistic_types:
+      testing_common.AddTests(
+          ['ChromiumPerf'], ['mac'], {'system_health': {'foo_%s' % s: {}}})
       params = {
           'test_path': 'ChromiumPerf/mac/system_health/foo_%s' % s,
           'start_commit': 'abcd1234',
@@ -665,6 +696,9 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_WithPin(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['android-webview-nexus5x'],
+        {'system_health': {'foo': {}}})
     params = {
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
         'start_commit': 'abcd1234',
@@ -684,6 +718,9 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
       pinpoint_request.crrev_service, 'GetNumbering')
   def testPinpointParams_V8(self, mock_crrev):
     mock_crrev.return_value = {'git_sha': 'acbd'}
+    testing_common.AddTests(
+        ['internal.client.v8'], ['Pixel2'],
+        {'v8': {'JSTests': {'Array': {'Total': {}}}}})
     params = {
         'test_path': 'internal.client.v8/Pixel2/v8/JSTests/Array/Total',
         'start_commit': '1234',
@@ -722,6 +759,9 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_NoAlert(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['Android Nexus5X WebView Perf'],
+        {'system_health': {'foo': {}}})
     params = {
         'test_path':
             'ChromiumPerf/Android Nexus5X WebView Perf/system_health/foo',
@@ -763,7 +803,9 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
       else:
         return {'number': 1150}
     mock_commit.side_effect = _MockCommit
-
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['Android Nexus5X WebView Perf'],
+        {'system_health': {'foo': {}}})
     params = {
         'test_path':
             'ChromiumPerf/Android Nexus5X WebView Perf/system_health/foo',
@@ -797,6 +839,9 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_NoData(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['Android Nexus5X WebView Perf'],
+        {'system_health': {'foo': {}}})
     params = {
         'test_path':
             'ChromiumPerf/Android Nexus5X WebView Perf/system_health/foo',
@@ -820,6 +865,9 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))
   def testPinpointParams_OverriddenAnomalyConfig(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['Android Nexus5X WebView Perf'],
+        {'system_health': {'foo': {}}})
     params = {
         'test_path':
             'ChromiumPerf/Android Nexus5X WebView Perf/system_health/foo',

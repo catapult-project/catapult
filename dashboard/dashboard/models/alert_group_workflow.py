@@ -23,16 +23,19 @@ from __future__ import absolute_import
 
 import collections
 import datetime
+import itertools
 import os
 import logging
 
 import jinja2
 
+from dashboard import pinpoint_request
 from dashboard import sheriff_config_client
 from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import subscription
+from dashboard.services import crrev_service
 from dashboard.services import issue_tracker_service
 from dashboard.services import pinpoint_service
 from google.appengine.ext import ndb
@@ -71,6 +74,10 @@ _ALERT_GROUP_ACTIVE_WINDOW = datetime.timedelta(days=7)
 _ALERT_GROUP_TRIAGE_DELAY = datetime.timedelta(minutes=20)
 
 
+class InvalidPinpointRequest(Exception):
+  pass
+
+
 class AlertGroupWorkflow(object):
   """Workflow used to manipulate the AlertGroup.
 
@@ -96,7 +103,7 @@ class AlertGroupWorkflow(object):
     __slots__ = ()
 
   def __init__(self, group, config=None, sheriff_config=None,
-               issue_tracker=None, pinpoint=None):
+               issue_tracker=None, pinpoint=None, crrev=None):
     self._group = group
     self._config = config or self.Config(
         active_window=_ALERT_GROUP_ACTIVE_WINDOW,
@@ -106,6 +113,7 @@ class AlertGroupWorkflow(object):
         sheriff_config or sheriff_config_client.GetSheriffConfigClient())
     self._issue_tracker = issue_tracker or _IssueTracker()
     self._pinpoint = pinpoint or pinpoint_service
+    self._crrev = crrev or crrev_service
 
   def _PrepareGroupUpdate(self):
     now = datetime.datetime.utcnow()
@@ -149,7 +157,7 @@ class AlertGroupWorkflow(object):
         group.status in {group.Status.untriaged}):
       self._TryTriage(update.now, update.anomalies)
     elif group.status in {group.Status.triaged}:
-      self._TryBisect()
+      self._TryBisect(update.now, update.anomalies)
     return self._CommitGroup()
 
   def _CommitGroup(self):
@@ -230,6 +238,7 @@ class AlertGroupWorkflow(object):
       subscriptions_dict.update({s.name: s for s in subscriptions})
       # Only auto-triage if this is a regression.
       a.auto_triage_enable = any(s.auto_triage_enable for s in subscriptions)
+      a.auto_bisect_enable = any(s.auto_bisect_enable for s in subscriptions)
       a.relative_delta = abs(a.absolute_delta / float(a.median_before_anomaly)
                             ) if a.median_before_anomaly != 0. else float('Inf')
       if not a.is_improvement and not a.recovered:
@@ -321,9 +330,25 @@ class AlertGroupWorkflow(object):
         a.bug_id = bug.bug_id
     ndb.put_multi(anomalies)
 
-  def _TryBisect(self):
-    # TODO(fancl): Trigger bisection
-    pass
+  def _TryBisect(self, now, anomalies):
+    try:
+      job_id, bisected = self._StartPinpointBisectJob(anomalies)
+      if not job_id:
+        return
+    except InvalidPinpointRequest as error:
+      self._UpdateWithBisectError(now, error)
+      return
+
+    # Update the issue associated with his group, before we continue.
+    self._group.bisection_ids.append(job_id)
+    self._group.updated = now
+    self._group.status = self._group.Status.bisected
+    self._CommitGroup()
+
+    # Link the bug to auto-bisect enabled anomalies.
+    for a in bisected:
+      a.pinpoint_bisects.append(job_id)
+    ndb.put_multi(bisected)
 
   def _FileIssue(self, anomalies):
     regressions, subscriptions = self._GetPreproccessedRegressions(anomalies)
@@ -359,6 +384,106 @@ class AlertGroupWorkflow(object):
         bug_id=response['bug_id'],
     ), anomalies
 
+  def _StartPinpointBisectJob(self, anomalies):
+    regressions, _ = self._GetPreproccessedRegressions(anomalies)
+    bisect_enabled = [r for r in regressions if r.auto_bisect_enable]
+    if not bisect_enabled:
+      return None, []
+
+    regression = self._SelectAutoBisectRegression(bisect_enabled)
+    try:
+      results = self._pinpoint.NewJob(self._NewPinpointRequest(regression))
+    except pinpoint_request.InvalidParamsError as error:
+      raise InvalidPinpointRequest('Invalid pinpoint request: %s' % (error,))
+
+    if 'jobId' not in results:
+      raise InvalidPinpointRequest(
+          'Start pinpoint bisection failed: %s' % (results,))
+
+    return results.get('jobId'), [regression]
+
+  @staticmethod
+  def _SelectAutoBisectRegression(regressions):
+    max_regression = None
+    max_count = 0
+
+    def MaxRegression(x, y):
+      if x is None or y is None:
+        return x or y
+      if x.relative_delta == float('Inf'):
+        if y.relative_delta == float('Inf'):
+          return max(x, y, key=lambda a: a.absolute_delta)
+        else:
+          return y
+      if y.relative_delta == float('Inf'):
+        return x
+      return max(x, y, key=lambda a: a.relative_delta)
+
+    bot_name = lambda r: r.bot_name
+    for _, rs in itertools.groupby(
+        sorted(regressions, key=bot_name), key=bot_name):
+      count = 0
+      group_max = None
+      for r in rs:
+        count += 1
+        group_max = MaxRegression(group_max, r)
+      if count >= max_count:
+        max_count = count
+        max_regression = MaxRegression(max_regression, group_max)
+    return max_regression
+
+  def _NewPinpointRequest(self, alert):
+    start_git_hash = pinpoint_request.ResolveToGitHash(
+        alert.end_revision, alert.benchmark_name, crrev=self._crrev)
+    end_git_hash = pinpoint_request.ResolveToGitHash(
+        alert.start_revision, alert.benchmark_name, crrev=self._crrev)
+
+    # Pinpoint also requires you specify which isolate target to run the
+    # test, so we derive that from the suite name. Eventually, this would
+    # ideally be stored in a SparseDiagnostic but for now we can guess.
+    target = pinpoint_request.GetIsolateTarget(
+        alert.bot_name, alert.benchmark_name,
+        alert.start_revision, alert.end_revision)
+    if not target:
+      return None
+
+    job_name = 'Auto-Bisection on %s/%s' % (
+        alert.bot_name, alert.benchmark_name)
+
+    alert_magnitude = alert.median_after_anomaly - alert.median_before_anomaly
+
+    return pinpoint_service.MakeBisectionRequest(
+        test=alert.test.get(),
+        commit_range=pinpoint_service.CommitRange(
+            start=start_git_hash,
+            end=end_git_hash
+        ),
+        issue=anomaly.Issue(
+            project_id='chromium',
+            issue_id=alert.bug_id,
+        ),
+        comparison_mode='performance',
+        target=target,
+        comparison_magnitude=alert_magnitude,
+        name=job_name,
+        priority=10,
+        tags={
+            'test_path': utils.TestPath(alert.test),
+            'alert': alert.key.urlsafe(),
+            'auto_bisection': True,
+        },
+    )
+
+  def _UpdateWithBisectError(self, now, error):
+    self._group.updated = now
+    self._group.status = self._group.Status.bisected
+    self._CommitGroup()
+    self._issue_tracker.AddBugComment(
+        self._group.bug.bug_id,
+        'Auto-Bisection failed with the following message:\n\n'
+        '%s\n\nNot retrying' % (error,),
+        labels=['Chromeperf-Auto-NeedsAttention'],
+        project=self._group.project_id)
 
 def _IssueTracker():
   """Get a cached IssueTracker instance."""

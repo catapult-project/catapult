@@ -17,6 +17,7 @@ from dashboard.common import descriptor
 from dashboard.common import math_utils
 from dashboard.common import request_handler
 from dashboard.common import utils
+from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
 from dashboard.services import crrev_service
@@ -121,14 +122,15 @@ def FindMagnitudeBetweenCommits(test_key, start_commit, end_commit):
   return median_after - median_before
 
 
-def ResolveToGitHash(commit_position, suite):
+def ResolveToGitHash(commit_position, suite, crrev=None):
+  crrev = crrev or crrev_service
   try:
     int(commit_position)
     if suite in _SUITE_CRREV_CONFIGS:
       project, repo = _SUITE_CRREV_CONFIGS[suite]
     else:
       project, repo = 'chromium', 'chromium/src'
-    result = crrev_service.GetNumbering(
+    result = crrev.GetNumbering(
         number=commit_position,
         numbering_identifier='refs/heads/master',
         numbering_type='COMMIT_POSITION',
@@ -145,8 +147,8 @@ def ResolveToGitHash(commit_position, suite):
   return commit_position
 
 
-def _GetIsolateTarget(bot_name, suite, start_commit,
-                      end_commit, only_telemetry=False):
+def GetIsolateTarget(bot_name, suite, start_commit,
+                     end_commit, only_telemetry=False):
   if suite in _NON_CHROME_TARGETS:
     return ''
 
@@ -237,8 +239,8 @@ def PinpointParamsFromPerfTryParams(params):
   # Pinpoint also requires you specify which isolate target to run the
   # test, so we derive that from the suite name. Eventually, this would
   # ideally be stored in a SparesDiagnostic but for now we can guess.
-  target = _GetIsolateTarget(bot_name, suite, start_commit,
-                             end_commit, only_telemetry=True)
+  target = GetIsolateTarget(bot_name, suite, start_commit,
+                            end_commit, only_telemetry=True)
 
   extra_test_args = params['extra_test_args']
 
@@ -288,21 +290,12 @@ def PinpointParamsFromBisectParams(params):
   test_path_parts = test_path.split('/')
   bot_name = test_path_parts[1]
   suite = test_path_parts[2]
-  story_filter = params['story_filter']
-  pin = params.get('pin')
 
   # If functional bisects are speciied, Pinpoint expects these parameters to be
   # empty.
   bisect_mode = params['bisect_mode']
   if bisect_mode != 'performance' and bisect_mode != 'functional':
     raise InvalidParamsError('Invalid bisect mode %s specified.' % bisect_mode)
-
-  grouping_label = ''
-  chart_name = ''
-  trace_name = ''
-  if bisect_mode == 'performance':
-    grouping_label, chart_name, trace_name = (
-        ParseGroupingLabelChartNameAndTraceName(test_path))
 
   start_commit = params['start_commit']
   end_commit = params['end_commit']
@@ -312,13 +305,10 @@ def PinpointParamsFromBisectParams(params):
   # Pinpoint also requires you specify which isolate target to run the
   # test, so we derive that from the suite name. Eventually, this would
   # ideally be stored in a SparesDiagnostic but for now we can guess.
-  target = _GetIsolateTarget(bot_name, suite, start_commit, end_commit)
+  target = GetIsolateTarget(bot_name, suite, start_commit, end_commit)
 
   email = utils.GetEmail()
   job_name = '%s bisect on %s/%s' % (bisect_mode.capitalize(), bot_name, suite)
-
-  # Histogram names don't include the statistic, so split these
-  chart_name, statistic_name = ParseStatisticNameFromChart(chart_name)
 
   alert_key = ''
   if params.get('alerts'):
@@ -335,34 +325,24 @@ def PinpointParamsFromBisectParams(params):
     alert_magnitude = FindMagnitudeBetweenCommits(
         utils.TestKey(test_path), start_commit, end_commit)
 
-  pinpoint_params = {
-      'configuration': bot_name,
-      'benchmark': suite,
-      'chart': chart_name,
-      'start_git_hash': start_git_hash,
-      'end_git_hash': end_git_hash,
-      'bug_id': params['bug_id'],
-      'comparison_mode': bisect_mode,
-      'target': target,
-      'user': email,
-      'name': job_name,
-      'tags': json.dumps({
+  issue = anomaly.Issue(
+      project_id='chromium',
+      issue_id=int(params['bug_id'])) if params['bug_id'] else None
+
+  return pinpoint_service.MakeBisectionRequest(
+      test=utils.TestKey(test_path).get(),
+      commit_range=pinpoint_service.CommitRange(
+          start=start_git_hash, end=end_git_hash),
+      issue=issue,
+      comparison_mode=bisect_mode,
+      target=target,
+      comparison_magnitude=alert_magnitude,
+      user=email,
+      name=job_name,
+      story_filter=params['story_filter'],
+      pin=params.get('pin'),
+      tags={
           'test_path': test_path,
-          'alert': alert_key
-      }),
-  }
-
-  if alert_magnitude:
-    pinpoint_params['comparison_magnitude'] = alert_magnitude
-  if pin:
-    pinpoint_params['pin'] = pin
-  if statistic_name:
-    pinpoint_params['statistic'] = statistic_name
-  if story_filter:
-    pinpoint_params['story'] = story_filter
-  if grouping_label:
-    pinpoint_params['grouping_label'] = grouping_label
-  if trace_name:
-    pinpoint_params['trace'] = trace_name
-
-  return pinpoint_params
+          'alert': alert_key,
+      },
+  )
