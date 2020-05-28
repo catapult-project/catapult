@@ -247,20 +247,18 @@ found in the LICENSE file.
               </div>
             </template>
 
-            <!-- If we're showing a bisection, we should allow setting
-              the "pin" field to allow re-running the job with a provided
-              patch. -->
-            <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
-              <div class="horizontal">
-                <paper-input class="column" name="pin" value="[[job.arguments.pin]]" label="Patch to apply (Gerrit URL)"></paper-input>
-              </div>
-            </template>
-
             <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
               <div class="horizontal">
                   <commit-details class="column rightPad" value="{{start_git_hash}}" label="Start Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
                   <commit-details class="column" value="{{end_git_hash}}" label="End Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
               </div>
+            </template>
+
+            <!-- If we're showing a bisection, we should allow setting
+              the "pin" field to allow re-running the job with a provided
+              patch. -->
+            <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
+              <paper-input class="column" name="pin" value="[[job.arguments.pin]]" label="Patch to apply (Gerrit URL)"></paper-input>
             </template>
 
             <paper-input name="bug_id" value="{{bug_id}}" label="Bug ID"></paper-input>
