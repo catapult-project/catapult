@@ -143,7 +143,6 @@ found in the LICENSE file.
               <input type="hidden" name="grouping_label" disabled$="[[!job.arguments.grouping_label]]" value="[[job.arguments.grouping_label]]">
               <input type="hidden" name="trace" disabled$="[[!job.arguments.trace]]" value="[[job.arguments.trace]]">
               <input type="hidden" name="tags" disabled$="[[!job.arguments.tags]]" value="[[job.arguments.tags]]">
-              <input type="hidden" name="pin" disabled$="[[!job.arguments.pin]]" value="[[job.arguments.pin]]">
             </template>
 
             <div class="divider">
@@ -244,7 +243,16 @@ found in the LICENSE file.
             <template is="dom-if" if="[[!isBisectJob(comparisonMode)]]">
               <div class="horizontal">
                 <commit-details class="column rightPad" value="{{base_git_hash}}" label="Base Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
-                <paper-input class="column" name="patch" value="{{patch}}" label="Gerrit URL" required disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
+                <paper-input class="column" name="patch" value="{{patch}}" label="Patch to apply (Gerrit URL)" required disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
+              </div>
+            </template>
+
+            <!-- If we're showing a bisection, we should allow setting
+              the "pin" field to allow re-running the job with a provided
+              patch. -->
+            <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
+              <div class="horizontal">
+                <paper-input class="column" name="pin" value="[[job.arguments.pin]]" label="Patch to apply (Gerrit URL)"></paper-input>
               </div>
             </template>
 
