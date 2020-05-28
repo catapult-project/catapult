@@ -505,6 +505,9 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
       self.assertIsInstance(v, basestring)
 
     self.assertEqual(['123456'], group.get().bisection_ids)
+    self.assertEqual(
+        ['Chromeperf-Auto-Bisected'],
+        self._issue_tracker.add_comment_kwargs['labels'])
 
   def testBisect_GroupBisected(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]

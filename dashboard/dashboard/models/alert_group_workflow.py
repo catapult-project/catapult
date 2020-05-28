@@ -345,6 +345,13 @@ class AlertGroupWorkflow(object):
     self._group.status = self._group.Status.bisected
     self._CommitGroup()
 
+    self._issue_tracker.AddBugComment(
+        self._group.bug.bug_id,
+        'Auto-Bisection started on %s' % (
+            ','.join(utils.TestPath(a.test) for a in bisected),),
+        labels=['Chromeperf-Auto-Bisected'],
+        project=self._group.project_id)
+
     # Link the bug to auto-bisect enabled anomalies.
     for a in bisected:
       a.pinpoint_bisects.append(job_id)
