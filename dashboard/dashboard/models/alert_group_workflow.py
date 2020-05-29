@@ -183,13 +183,14 @@ class AlertGroupWorkflow(object):
         return self._CloseBecauseRecovered()
       return None
 
-    for regression in regressions:
-      if not regression.bug_id and regression.auto_triage_enable:
-        regression.bug_id = self._group.bug.bug_id
+    for a in added:
+      if a.bug_id is None and a.auto_triage_enable:
+        a.project_id = self._group.project_id
+        a.bug_id = self._group.bug.bug_id
 
-    # Write back bug_id to regressions. We can't do it when anomaly is
+    # Write back bug_id to anomalies. We can't do it when anomaly is
     # found because group may being updating at that time.
-    ndb.put_multi(regressions)
+    ndb.put_multi(added)
 
     if issue.get('state') == 'closed':
       self._ReopenWithNewRegressions(regressions, subscriptions)
@@ -241,6 +242,13 @@ class AlertGroupWorkflow(object):
       a.auto_bisect_enable = any(s.auto_bisect_enable for s in subscriptions)
       a.relative_delta = abs(a.absolute_delta / float(a.median_before_anomaly)
                             ) if a.median_before_anomaly != 0. else float('Inf')
+
+      # Always associate the issue to an anomaly if it qualifies for
+      # auto-triage, and if we already have an issue associated with the group.
+      if (self._group.bug is not None and a.bug_id is None
+          and a.auto_triage_enable):
+        a.bug_id = self._group.bug.bug_id
+        a.project_id = self._group.project_id
       if not a.is_improvement and not a.recovered:
         regressions.append(a)
     return (regressions, subscriptions_dict.values())
@@ -325,7 +333,7 @@ class AlertGroupWorkflow(object):
 
     # Link the bug to auto-triage enabled anomalies.
     for a in anomalies:
-      if not a.bug_id and a.auto_triage_enable:
+      if a.bug_id is None and a.auto_triage_enable:
         a.project_id = bug.project
         a.bug_id = bug.bug_id
     ndb.put_multi(anomalies)
@@ -393,7 +401,10 @@ class AlertGroupWorkflow(object):
 
   def _StartPinpointBisectJob(self, anomalies):
     regressions, _ = self._GetPreproccessedRegressions(anomalies)
-    bisect_enabled = [r for r in regressions if r.auto_bisect_enable]
+    bisect_enabled = [
+        r for r in regressions
+        if r.auto_bisect_enable and r.bug_id > 0
+    ]
     if not bisect_enabled:
       return None, []
 

@@ -537,6 +537,102 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     ))
     self.assertIsNone(self._pinpoint.new_job_request)
 
+  def testBisect_GroupBisected_NoRecovered(self):
+    anomalies = [
+        self._AddAnomaly(
+            median_before_anomaly=0.1, median_after_anomaly=1.0,
+            recovered=True),
+        self._AddAnomaly(median_before_anomaly=0.2, median_after_anomaly=1.0),
+    ]
+    group = self._AddAlertGroup(
+        anomalies[1],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+        anomalies=anomalies,
+    )
+    self._issue_tracker.issue.update({
+        'state': 'open',
+    })
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
+    self.assertIsNotNone(self._pinpoint.new_job_request)
+    self.assertEqual(group.get().status, alert_group.AlertGroup.Status.bisected)
+
+    # Check that we bisected the anomaly that is not recovered.
+    recovered_anomaly = anomalies[0].get()
+    bisected_anomaly = anomalies[1].get()
+    self.assertNotEqual(recovered_anomaly.pinpoint_bisects, ['123456'])
+    self.assertEqual(bisected_anomaly.pinpoint_bisects, ['123456'])
+
+  def testBisect_GroupBisected_NoIgnored(self):
+    anomalies = [
+        # This anomaly is manually ignored.
+        self._AddAnomaly(
+            median_before_anomaly=0.1, median_after_anomaly=1.0, bug_id=-2),
+        self._AddAnomaly(
+            median_before_anomaly=0.2,
+            median_after_anomaly=1.0,
+            start_revision=20),
+    ]
+    group = self._AddAlertGroup(
+        anomalies[1],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+        anomalies=anomalies,
+    )
+    self._issue_tracker.issue.update({
+        'state': 'open',
+    })
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
+    self.assertIsNotNone(self._pinpoint.new_job_request)
+    self.assertEqual(self._pinpoint.new_job_request['bug_id'], 12345)
+    self.assertEqual(group.get().status, alert_group.AlertGroup.Status.bisected)
+
+    # Check that we bisected the anomaly that is not ignored.
+    ignored_anomaly = anomalies[0].get()
+    bisected_anomaly = anomalies[1].get()
+    self.assertNotEqual(ignored_anomaly.pinpoint_bisects, ['123456'])
+    self.assertEqual(bisected_anomaly.pinpoint_bisects, ['123456'])
+
   def testBisect_GroupTriaged_MultiBot(self):
     anomalies = [
         self._AddAnomaly(
