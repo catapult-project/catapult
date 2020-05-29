@@ -94,6 +94,23 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     self.assertEqual(1, service._ExecuteRequest.call_count)
     self.assertEqual(333, bug_id)
 
+  def testNewBug_Success_SupportNonChromium(self):
+    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service._ExecuteRequest = mock.Mock(return_value={
+        'id': 333,
+        'projectId': 'non-chromium'
+    })
+    response = service.NewBug(
+        'Bug title',
+        'body',
+        owner='someone@example.com',
+        project='non-chromium')
+    bug_id = response['bug_id']
+    project_id = response['project_id']
+    self.assertEqual(1, service._ExecuteRequest.call_count)
+    self.assertEqual(333, bug_id)
+    self.assertEqual('non-chromium', project_id)
+
   def testNewBug_Failure_HTTPException(self):
     service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
     service._ExecuteRequest = mock.Mock(
@@ -134,10 +151,9 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'labels': [],
             'components': [],
             'status': 'Assigned',
-            'projectId': 'chromium',
             'owner': {'name': 'someone@chromium.org'},
             'cc': mock.ANY,
-        }, project='chromium')
+        }, 'chromium')
     self.assertItemsEqual(
         [
             {'name': 'somebody@chromium.org'},
@@ -158,9 +174,8 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'labels': [],
             'components': [],
             'status': 'Unconfirmed',
-            'projectId': 'chromium',
             'cc': mock.ANY,
-        }, project='chromium')
+        }, 'chromium')
     self.assertItemsEqual(
         [
             {'name': 'somebody@chromium.org'},
@@ -171,7 +186,6 @@ class IssueTrackerServiceTest(testing_common.TestCase):
   def testMakeCommentRequest_UserCantOwn_RetryMakeCommentRequest(self):
     service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
     error_content = {
-
         'error': {'message': 'Issue owner must be a project member',
                   'code': 400}
     }

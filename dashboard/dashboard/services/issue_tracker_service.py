@@ -191,7 +191,6 @@ class IssueTrackerService(object):
         'labels': labels or [],
         'components': components or [],
         'status': status or ('Assigned' if owner else 'Unconfirmed'),
-        'projectId': project,
     }
     if owner:
       body['owner'] = {'name': owner}
@@ -200,7 +199,7 @@ class IssueTrackerService(object):
       # those to the issue tracker.
       accounts = set(email.strip() for email in cc)
       body['cc'] = [{'name': account} for account in accounts if account]
-    return self._MakeCreateRequest(body, project=project)
+    return self._MakeCreateRequest(body, project)
 
   def _MakeCreateRequest(self, body, project):
     """Makes a request to create a new bug.
@@ -216,6 +215,7 @@ class IssueTrackerService(object):
     request = self._service.issues().insert(
         projectId=project, sendEmail=True, body=body)
     logging.info('Making create issue request with body %s', body)
+    logging.info('Issue tracker project = %s', project)
     try:
       response = self._ExecuteRequest(request, ignore_error=False)
       if response and 'id' in response:

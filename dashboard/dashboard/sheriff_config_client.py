@@ -60,6 +60,7 @@ class SheriffConfigClient(object):
         name=subscription.name,
         rotation_url=subscription.rotation_url,
         notification_email=subscription.notification_email,
+        monorail_project_id=subscription.monorail_project_id,
         bug_labels=list(subscription.bug_labels),
         bug_components=list(subscription.bug_components),
         bug_cc_emails=list(subscription.bug_cc_emails),

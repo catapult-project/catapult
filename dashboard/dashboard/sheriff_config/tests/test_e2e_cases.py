@@ -75,6 +75,7 @@ class LuciPollingTest(unittest.TestCase):
                 'revision': '0123456789abcdff',
                 'subscription': {
                     'name': 'Expected 1',
+                    'monorail_project_id': 'non-chromium',
                     'contact_email': 'expected-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
@@ -114,6 +115,7 @@ class LuciPollingTest(unittest.TestCase):
                   'revision': '0123456789abcdff',
                   'subscription': {
                       'name': 'Expected 1',
+                      'monorail_project_id': 'non-chromium',
                       'contact_email': 'expected-1@example.com',
                       'bug_labels': ['Some-Label'],
                       'bug_components': ['Some>Component'],
@@ -277,6 +279,7 @@ class LuciPollingTest(unittest.TestCase):
             'revision': '0123456789abcdff',
             'subscription': {
                 'name': 'Expected 1',
+                'monorail_project_id': 'non-chromium',
                 'contact_email': 'expected-1@example.com',
                 'bug_labels': ['Some-Label'],
                 'bug_components': ['Some>Component'],
@@ -339,6 +342,7 @@ class LuciContentChangesTest(unittest.TestCase):
                 'revision': '0123456789abcdff',
                 'subscription': {
                     'name': 'Expected 1',
+                    'monorail_project_id': 'non-chromium',
                     'contact_email': 'expected-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],

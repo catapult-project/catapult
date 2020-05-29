@@ -505,3 +505,46 @@ class NonChromiumAutoTriage(GroupReportTestBase):
             'components': mock.ANY,
         },
     }], self.fake_issue_tracker.calls)
+
+  def testAlertGroups_NonChromium(self):
+    self.mock_get_sheriff_client.Match.return_value = ([
+        subscription.Subscription(
+            name='non-chromium sheriff',
+            auto_triage_enable=True,
+            monorail_project_id='non-chromium')
+    ], None)
+    self.PatchObject(
+        alert_group.sheriff_config_client,
+        'GetSheriffConfigClient', lambda: self.mock_get_sheriff_client)
+    self.PatchObject(alert_group_workflow,
+                     '_IssueTracker', lambda: self.fake_issue_tracker)
+    self._CallHandler()
+    a = self._AddAnomaly()
+    self._CallHandler()
+    groups = alert_group.AlertGroup.Get('test_suite', None)
+    self.assertEqual(1, len(groups))
+    self.assertEqual(['non-chromium'], [g.project_id for g in groups])
+    for group in groups:
+      group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
+      group.put()
+    self._CallHandler()
+    self.assertItemsEqual([{
+        'method': 'NewBug',
+        'args': (mock.ANY, mock.ANY),
+        'kwargs': {
+            'project': 'non-chromium',
+            'cc': [],
+            'labels': mock.ANY,
+            'components': mock.ANY,
+        }
+    }], self.fake_issue_tracker.calls)
+    a = a.get()
+    self.assertEqual(a.project_id, 'non-chromium')
+
+    # Now let's ensure that when new anomalies come in, that we're grouping
+    # them into the same group for non-chromium alerts.
+    self._AddAnomaly(start_revision=1)
+    self._CallHandler()
+    groups = alert_group.AlertGroup.Get('test_suite', None)
+    self.assertEqual(1, len(groups))
+    self.assertEqual(groups[0].project_id, 'non-chromium')

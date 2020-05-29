@@ -466,7 +466,7 @@ class AlertGroupWorkflow(object):
             end=end_git_hash
         ),
         issue=anomaly.Issue(
-            project_id='chromium',
+            project_id=alert.project_id,
             issue_id=alert.bug_id,
         ),
         comparison_mode='performance',
