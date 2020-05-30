@@ -111,6 +111,40 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     self.assertEqual(333, bug_id)
     self.assertEqual('non-chromium', project_id)
 
+  def testNewBug_Success_ProjectIsEmpty(self):
+    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service._ExecuteRequest = mock.Mock(return_value={
+        'id': 333,
+        'projectId': 'chromium'
+    })
+    response = service.NewBug(
+        'Bug title',
+        'body',
+        owner='someone@example.com',
+        project='')
+    bug_id = response['bug_id']
+    project_id = response['project_id']
+    self.assertEqual(1, service._ExecuteRequest.call_count)
+    self.assertEqual(333, bug_id)
+    self.assertEqual('chromium', project_id)
+
+  def testNewBug_Success_ProjectIsNone(self):
+    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service._ExecuteRequest = mock.Mock(return_value={
+        'id': 333,
+        'projectId': 'chromium'
+    })
+    response = service.NewBug(
+        'Bug title',
+        'body',
+        owner='someone@example.com',
+        project=None)
+    bug_id = response['bug_id']
+    project_id = response['project_id']
+    self.assertEqual(1, service._ExecuteRequest.call_count)
+    self.assertEqual(333, bug_id)
+    self.assertEqual('chromium', project_id)
+
   def testNewBug_Failure_HTTPException(self):
     service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
     service._ExecuteRequest = mock.Mock(

@@ -199,6 +199,9 @@ class IssueTrackerService(object):
       # those to the issue tracker.
       accounts = set(email.strip() for email in cc)
       body['cc'] = [{'name': account} for account in accounts if account]
+
+    # Normalize the project in case it is empty or None.
+    project = 'chromium' if project is None or not project.strip() else project
     return self._MakeCreateRequest(body, project)
 
   def _MakeCreateRequest(self, body, project):
