@@ -187,6 +187,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'status': 'Assigned',
             'owner': {'name': 'someone@chromium.org'},
             'cc': mock.ANY,
+            'projectId': 'chromium',
         }, 'chromium')
     self.assertItemsEqual(
         [
@@ -209,6 +210,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'components': [],
             'status': 'Unconfirmed',
             'cc': mock.ANY,
+            'projectId': 'chromium',
         }, 'chromium')
     self.assertItemsEqual(
         [

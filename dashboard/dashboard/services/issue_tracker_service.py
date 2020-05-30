@@ -94,6 +94,8 @@ class IssueTrackerService(object):
       updates['components'] = components
     body['updates'] = updates
 
+    # Normalize the project in case it is empty or None.
+    project = 'chromium' if project is None or not project.strip() else project
     return self._MakeCommentRequest(
         bug_id, body, project=project, send_email=send_email)
 
@@ -184,6 +186,8 @@ class IssueTrackerService(object):
     Returns:
       A dict containing the bug_id (if successful), or the error message if not.
     """
+    # Normalize the project in case it is empty or None.
+    project = 'chromium' if project is None or not project.strip() else project
     body = {
         'title': title,
         'summary': title,
@@ -191,6 +195,7 @@ class IssueTrackerService(object):
         'labels': labels or [],
         'components': components or [],
         'status': status or ('Assigned' if owner else 'Unconfirmed'),
+        'projectId': project,
     }
     if owner:
       body['owner'] = {'name': owner}
@@ -200,8 +205,6 @@ class IssueTrackerService(object):
       accounts = set(email.strip() for email in cc)
       body['cc'] = [{'name': account} for account in accounts if account]
 
-    # Normalize the project in case it is empty or None.
-    project = 'chromium' if project is None or not project.strip() else project
     return self._MakeCreateRequest(body, project)
 
   def _MakeCreateRequest(self, body, project):
