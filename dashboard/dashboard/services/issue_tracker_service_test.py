@@ -33,6 +33,32 @@ class IssueTrackerServiceTest(testing_common.TestCase):
         project='chromium',
         send_email=True)
 
+  def testAddBugComment_Basic_EmptyProject(self):
+    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service._MakeCommentRequest = mock.Mock()
+    self.assertTrue(service.AddBugComment(12345, 'The comment', project=''))
+    self.assertEqual(1, service._MakeCommentRequest.call_count)
+    service._MakeCommentRequest.assert_called_with(
+        12345, {
+            'updates': {},
+            'content': 'The comment'
+        },
+        project='chromium',
+        send_email=True)
+
+  def testAddBugComment_Basic_ProjectIsNone(self):
+    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service._MakeCommentRequest = mock.Mock()
+    self.assertTrue(service.AddBugComment(12345, 'The comment', project=None))
+    self.assertEqual(1, service._MakeCommentRequest.call_count)
+    service._MakeCommentRequest.assert_called_with(
+        12345, {
+            'updates': {},
+            'content': 'The comment'
+        },
+        project='chromium',
+        send_email=True)
+
   def testAddBugComment_WithNoBug_ReturnsFalse(self):
     service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
     service._MakeCommentRequest = mock.Mock()

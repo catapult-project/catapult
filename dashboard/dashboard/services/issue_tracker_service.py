@@ -101,11 +101,15 @@ class IssueTrackerService(object):
 
   def List(self, project='chromium', **kwargs):
     """Makes a request to the issue tracker to list bugs."""
+    # Normalize the project in case it is empty or None.
+    project = 'chromium' if project is None or not project.strip() else project
     request = self._service.issues().list(projectId=project, **kwargs)
     return self._ExecuteRequest(request)
 
   def GetIssue(self, issue_id, project='chromium'):
     """Makes a request to the issue tracker to get an issue."""
+    # Normalize the project in case it is empty or None.
+    project = 'chromium' if project is None or not project.strip() else project
     request = self._service.issues().get(projectId=project, issueId=issue_id)
     return self._ExecuteRequest(request)
 
