@@ -133,14 +133,20 @@ class ServiceWorkerTabTest(tab_test_case.TabTestCase):
   def testClearDataForOrigin(self):
     self._tab.Navigate(self.UrlOfUnittestFile('blank.html'))
     self._tab.ExecuteJavaScript(
-        'var isServiceWorkerRegisteredForThisOrigin = false; \
-         navigator.serviceWorker.register("{{ @scriptURL }}");',
+        'var asyncOperationDone = false; \
+         var isServiceWorkerRegisteredForThisOrigin = false; \
+         navigator.serviceWorker.register("{{ @scriptURL }}").then(_ => { \
+             asyncOperationDone = true; });',
         scriptURL=self.UrlOfUnittestFile('blank.js'))
-    check_registration = 'isServiceWorkerRegisteredForThisOrigin = false; \
+    self._tab.WaitForJavaScriptCondition('asyncOperationDone')
+    check_registration = 'asyncOperationDone = false; \
+        isServiceWorkerRegisteredForThisOrigin = false; \
         navigator.serviceWorker.getRegistration().then( \
             (reg) => { \
+                asyncOperationDone = true; \
                 isServiceWorkerRegisteredForThisOrigin = reg ? true : false;});'
     self._tab.ExecuteJavaScript(check_registration)
+    self._tab.WaitForJavaScriptCondition('asyncOperationDone')
     self.assertTrue(self._tab.EvaluateJavaScript(
         'isServiceWorkerRegisteredForThisOrigin;'))
     py_utils.WaitFor(self._tab.IsServiceWorkerActivatedOrNotRegistered,
@@ -148,5 +154,6 @@ class ServiceWorkerTabTest(tab_test_case.TabTestCase):
     self._tab.ClearDataForOrigin(self.UrlOfUnittestFile(''))
     time.sleep(1)
     self._tab.ExecuteJavaScript(check_registration)
+    self._tab.WaitForJavaScriptCondition('asyncOperationDone')
     self.assertFalse(self._tab.EvaluateJavaScript(
         'isServiceWorkerRegisteredForThisOrigin;'))
