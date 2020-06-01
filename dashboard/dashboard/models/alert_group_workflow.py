@@ -458,10 +458,15 @@ class AlertGroupWorkflow(object):
 
     # Pinpoint also requires you specify which isolate target to run the
     # test, so we derive that from the suite name. Eventually, this would
-    # ideally be stored in a SparseDiagnostic but for now we can guess.
+    # ideally be stored in a SparseDiagnostic but for now we can guess. Also,
+    # Pinpoint only currently works well with Telemetry targets, so we only run
+    # benchmarks that are not explicitly blacklisted.
     target = pinpoint_request.GetIsolateTarget(
-        alert.bot_name, alert.benchmark_name,
-        alert.start_revision, alert.end_revision)
+        alert.bot_name,
+        alert.benchmark_name,
+        alert.start_revision,
+        alert.end_revision,
+        only_telemetry=True)
     if not target:
       return None
 

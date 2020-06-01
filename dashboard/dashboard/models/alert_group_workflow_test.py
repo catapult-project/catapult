@@ -832,3 +832,41 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(
         ['Chromeperf-Auto-NeedsAttention'],
         self._issue_tracker.add_comment_kwargs['labels'])
+
+  def testBisect_UnsupportedTarget(self):
+    anomalies = [
+        self._AddAnomaly(test='master/bot/performance_browser_tests/some_case')
+    ]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    self._issue_tracker.issue.update({
+        'state': 'open',
+    })
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ]
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev)
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue))
+    self.assertEqual(alert_group.AlertGroup.Status.bisected, group.get().status)
+    self.assertEqual([], group.get().bisection_ids)
+    self.assertEqual(['Chromeperf-Auto-NeedsAttention'],
+                     self._issue_tracker.add_comment_kwargs['labels'])
+    self.assertIn('Only telemetry is supported at the moment.',
+                  self._issue_tracker.add_comment_args[1])
