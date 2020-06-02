@@ -34,30 +34,6 @@ from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 
-class MockIssueTrackerService(object):
-  """A fake version of IssueTrackerService that saves call values."""
-
-  bug_id = 12345
-  new_bug_args = None
-  new_bug_kwargs = None
-  add_comment_args = None
-  add_comment_kwargs = None
-
-  def __init__(self, http=None):
-    pass
-
-  @classmethod
-  def NewBug(cls, *args, **kwargs):
-    cls.new_bug_args = args
-    cls.new_bug_kwargs = kwargs
-    return {'bug_id': cls.bug_id}
-
-  @classmethod
-  def AddBugComment(cls, *args, **kwargs):
-    cls.add_comment_args = args
-    cls.add_comment_kwargs = kwargs
-
-
 class FileBugTest(testing_common.TestCase):
 
   def setUp(self):
@@ -69,9 +45,10 @@ class FileBugTest(testing_common.TestCase):
     testing_common.SetIsInternalUser('foo@chromium.org', False)
     self.SetCurrentUser('foo@chromium.org')
 
-    mits = mock.MagicMock()
-    mits.IssueTrackerService = MockIssueTrackerService
-    self.PatchObject(file_bug, 'issue_tracker_service', mits)
+    self._issue_tracker_service = testing_common.FakeIssueTrackerService()
+    self.PatchObject(
+        file_bug.issue_tracker_service,
+        'IssueTrackerService', lambda *_: self._issue_tracker_service)
 
   def tearDown(self):
     super(FileBugTest, self).tearDown()
@@ -291,7 +268,7 @@ class FileBugTest(testing_common.TestCase):
     # parameter given, an issue will be created using the issue tracker
     # API, and the anomalies will be updated, and a response page will
     # be sent which indicates success.
-    MockIssueTrackerService.bug_id = 277761
+    self._issue_tracker_service.bug_id = 277761
     response = self._PostSampleBug()
 
     # The response page should have a bug number.
@@ -305,7 +282,7 @@ class FileBugTest(testing_common.TestCase):
         self.assertIsNone(anomaly_entity.bug_id)
 
     # Two HTTP requests are made when filing a bug; only test 2nd request.
-    comment = MockIssueTrackerService.add_comment_args[1]
+    comment = self._issue_tracker_service.add_comment_args[1]
     self.assertIn(
         'https://chromeperf.appspot.com/group_report?bug_id=277761', comment)
     self.assertIn('https://chromeperf.appspot.com/group_report?sid=', comment)
@@ -331,7 +308,7 @@ class FileBugTest(testing_common.TestCase):
     # parameter given, an issue will be created using the issue tracker
     # API, and the anomalies will be updated, and a response page will
     # be sent which indicates success.
-    MockIssueTrackerService.bug_id = 277761
+    self._issue_tracker_service.bug_id = 277761
     response = self._PostSampleBug()
 
     # The response page should have a bug number.
@@ -345,7 +322,7 @@ class FileBugTest(testing_common.TestCase):
         self.assertIsNone(anomaly_entity.bug_id)
 
     # Two HTTP requests are made when filing a bug; only test 2nd request.
-    comment = MockIssueTrackerService.add_comment_args[1]
+    comment = self._issue_tracker_service.add_comment_args[1]
     self.assertIn(
         'https://chromeperf.appspot.com/group_report?bug_id=277761', comment)
     self.assertIn('https://chromeperf.appspot.com/group_report?sid=', comment)
@@ -376,7 +353,7 @@ class FileBugTest(testing_common.TestCase):
         {"chromium": {
             "repository_url": "https://chromium.googlesource.com/chromium/src"
         }})
-    MockIssueTrackerService.bug_id = 277761
+    self._issue_tracker_service.bug_id = 277761
     response = self._PostSampleBug(is_single_rev=True)
 
     # The response page should have a bug number.
@@ -384,7 +361,7 @@ class FileBugTest(testing_common.TestCase):
 
     # Three HTTP requests are made when filing a bug with owner; test third
     # request for owner hame.
-    comment = MockIssueTrackerService.add_comment_args[1]
+    comment = self._issue_tracker_service.add_comment_args[1]
     self.assertIn(
         'Assigning to foo@bar.com because this is the only CL in range',
         comment)
@@ -413,14 +390,14 @@ class FileBugTest(testing_common.TestCase):
         {"chromium": {
             "repository_url": "https://chromium.googlesource.com/chromium/src"
         }})
-    MockIssueTrackerService.bug_id = 277761
+    self._issue_tracker_service.bug_id = 277761
     response = self._PostSampleBug(is_single_rev=True)
 
     # The response page should have a bug number.
     self.assertIn('277761', response.body)
 
     # Two HTTP requests are made when filing a bug; only test 2nd request.
-    comment = MockIssueTrackerService.add_comment_args[1]
+    comment = self._issue_tracker_service.add_comment_args[1]
     self.assertIn(
         'https://chromeperf.appspot.com/group_report?bug_id=277761', comment)
     self.assertIn('https://chromeperf.appspot.com/group_report?sid=', comment)
@@ -441,7 +418,7 @@ class FileBugTest(testing_common.TestCase):
         {"chromium": {
             "repository_url": "https://chromium.googlesource.com/chromium/src"
         }})
-    MockIssueTrackerService.bug_id = 277761
+    self._issue_tracker_service.bug_id = 277761
     response = self._PostSampleBug(is_single_rev=True, master='ClankInternal')
 
     # The response page should have a bug number.
@@ -449,7 +426,7 @@ class FileBugTest(testing_common.TestCase):
 
     # Three HTTP requests are made when filing a bug with owner; test third
     # request for owner hame.
-    comment = MockIssueTrackerService.add_comment_args[1]
+    comment = self._issue_tracker_service.add_comment_args[1]
     self.assertNotIn(
         'Assigning to foo@bar.com because this is the only CL in range',
         comment)
@@ -468,7 +445,7 @@ class FileBugTest(testing_common.TestCase):
         {"chromium": {
             "repository_url": "https://chromium.googlesource.com/chromium/src"
         }})
-    MockIssueTrackerService.bug_id = 277761
+    self._issue_tracker_service.bug_id = 277761
     response = self._PostSampleBug(is_single_rev=True, master='FakeMaster')
 
     # The response page should have a bug number.
@@ -476,7 +453,7 @@ class FileBugTest(testing_common.TestCase):
 
     # Three HTTP requests are made when filing a bug with owner; test third
     # request for owner hame.
-    comment = MockIssueTrackerService.add_comment_args[1]
+    comment = self._issue_tracker_service.add_comment_args[1]
     self.assertNotIn(
         'Assigning to foo@bar.com because this is the only CL in range',
         comment)
@@ -503,7 +480,7 @@ class FileBugTest(testing_common.TestCase):
         {"chromium": {
             "repository_url": "https://chromium.googlesource.com/chromium/src"
         }})
-    MockIssueTrackerService.bug_id = 277761
+    self._issue_tracker_service.bug_id = 277761
     response = self._PostSampleBug(is_single_rev=True, master='Foo')
 
     # The response page should have a bug number.
@@ -511,7 +488,7 @@ class FileBugTest(testing_common.TestCase):
 
     # Three HTTP requests are made when filing a bug with owner; test third
     # request for owner hame.
-    comment = MockIssueTrackerService.add_comment_args[1]
+    comment = self._issue_tracker_service.add_comment_args[1]
     self.assertNotIn(
         'Assigning to foo@bar.com because this is the only CL in range',
         comment)
@@ -538,7 +515,7 @@ class FileBugTest(testing_common.TestCase):
     # M-2 since 111995 (lowest possible revision introducing regression)
     # is less than 112010 (revision for M-2).
     self._PostSampleBug()
-    self.assertIn('M-2', MockIssueTrackerService.new_bug_kwargs['labels'])
+    self.assertIn('M-2', self._issue_tracker_service.new_bug_kwargs['labels'])
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(
@@ -560,7 +537,7 @@ class FileBugTest(testing_common.TestCase):
     # testGet_WithFinish_LabelsBugWithMilestone passes, M-2
     # would be the label that it would get if the alert was Chromium.
     self._PostSampleBug(has_commit_positions=False)
-    labels = MockIssueTrackerService.new_bug_kwargs['labels']
+    labels = self._issue_tracker_service.new_bug_kwargs['labels']
     self.assertEqual(0, len([x for x in labels if x.startswith(u'M-')]))
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
@@ -585,7 +562,7 @@ class FileBugTest(testing_common.TestCase):
     # actually changing the revision that is checked to r_commit_pos instead
     # of just displaying the highest one (previous behavior).
     self._PostSampleBug(master='ClankInternal')
-    self.assertIn('M-2', MockIssueTrackerService.new_bug_kwargs['labels'])
+    self.assertIn('M-2', self._issue_tracker_service.new_bug_kwargs['labels'])
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch(
@@ -597,7 +574,7 @@ class FileBugTest(testing_common.TestCase):
     # Here, we test that we don't label the bug with an unexpected value when
     # there is no version information from omahaproxy (for whatever reason)
     self._PostSampleBug()
-    labels = MockIssueTrackerService.new_bug_kwargs['labels']
+    labels = self._issue_tracker_service.new_bug_kwargs['labels']
     self.assertEqual(0, len([x for x in labels if x.startswith(u'M-')]))
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
@@ -608,7 +585,7 @@ class FileBugTest(testing_common.TestCase):
   def testGet_WithFinish_SucceedsWithComponents(self):
     # Here, we test that components are posted separately from labels.
     self._PostSampleBug()
-    self.assertIn('Foo>Bar', MockIssueTrackerService.new_bug_kwargs[
+    self.assertIn('Foo>Bar', self._issue_tracker_service.new_bug_kwargs[
         'components'])
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
@@ -626,7 +603,7 @@ class FileBugTest(testing_common.TestCase):
     # Here, we test that we label the bug with the highest milestone when the
     # revision introducing regression is beyond all milestones in the list.
     self._PostSampleBug()
-    self.assertIn('M-1', MockIssueTrackerService.new_bug_kwargs['labels'])
+    self.assertIn('M-1', self._issue_tracker_service.new_bug_kwargs['labels'])
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch(
@@ -642,7 +619,7 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch('logging.warn')
   def testGet_WithFinish_SucceedsWithNAAndLogsWarning(self, mock_warn):
     self._PostSampleBug()
-    labels = MockIssueTrackerService.new_bug_kwargs['labels']
+    labels = self._issue_tracker_service.new_bug_kwargs['labels']
     self.assertEqual(0, len([x for x in labels if x.startswith(u'M-')]))
     self.assertEqual(1, mock_warn.call_count)
 
