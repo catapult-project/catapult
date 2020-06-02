@@ -9,42 +9,11 @@ from __future__ import absolute_import
 import json
 import mock
 
-# Importing mock_oauth2_decorator before file_bug mocks out
-# OAuth2Decorator usage in that file.
-# pylint: disable=unused-import
-from dashboard import mock_oauth2_decorator
-# pylint: enable=unused-import
-
-from dashboard import file_bug
 from dashboard.api import api_auth
 from dashboard.api import new_bug
 from dashboard.common import testing_common
 from dashboard.models import anomaly
 from dashboard.models import graph_data
-
-
-class MockIssueTrackerService(object):
-  """A fake version of IssueTrackerService that saves call values."""
-
-  bug_id = 12345
-  new_bug_args = None
-  new_bug_kwargs = None
-  add_comment_args = None
-  add_comment_kwargs = None
-
-  def __init__(self, http=None):
-    pass
-
-  @classmethod
-  def NewBug(cls, *args, **kwargs):
-    cls.new_bug_args = args
-    cls.new_bug_kwargs = kwargs
-    return {'bug_id': cls.bug_id}
-
-  @classmethod
-  def AddBugComment(cls, *args, **kwargs):
-    cls.add_comment_args = args
-    cls.add_comment_kwargs = kwargs
 
 
 class NewBugTest(testing_common.TestCase):
@@ -55,16 +24,14 @@ class NewBugTest(testing_common.TestCase):
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
     self.SetCurrentUserOAuth(None)
     testing_common.SetSheriffDomains(['example.com'])
-
     self.PatchObject(new_bug.utils, 'ServiceAccountHttp',
                      mock.Mock(return_value=None))
-
-    mits = mock.MagicMock()
-    mits.IssueTrackerService = MockIssueTrackerService
-    self.PatchObject(file_bug, 'issue_tracker_service', mits)
-
-    self.PatchObject(file_bug.app_identity, 'get_default_version_hostname',
-                     mock.Mock(return_value=''))
+    self._issue_tracker_service = testing_common.FakeIssueTrackerService()
+    self.PatchObject(
+        new_bug.file_bug.issue_tracker_service,
+        'IssueTrackerService', lambda *_: self._issue_tracker_service)
+    self.PatchObject(new_bug.file_bug.app_identity,
+                     'get_default_version_hostname', mock.Mock(return_value=''))
 
   def _Post(self, **params):
     return json.loads(self.Post('/api/new_bug', params).body)
@@ -73,7 +40,7 @@ class NewBugTest(testing_common.TestCase):
     self.Post('/api/new_bug', status=403)
 
   @mock.patch.object(
-      file_bug.auto_bisect, 'StartNewBisectForBug', mock.MagicMock())
+      new_bug.file_bug.auto_bisect, 'StartNewBisectForBug', mock.MagicMock())
   def testSuccess(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     path = 'm/b/s/m/c'
@@ -95,7 +62,7 @@ class NewBugTest(testing_common.TestCase):
     self.assertEqual(12345, response['bug_id'])
 
   @mock.patch.object(
-      file_bug.auto_bisect, 'StartNewBisectForBug', mock.MagicMock())
+      new_bug.file_bug.auto_bisect, 'StartNewBisectForBug', mock.MagicMock())
   def testHasCC(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     path = 'm/b/s/m/c'

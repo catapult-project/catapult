@@ -47,7 +47,7 @@ class FileBugTest(testing_common.TestCase):
 
     self._issue_tracker_service = testing_common.FakeIssueTrackerService()
     self.PatchObject(
-        file_bug.issue_tracker_service,
+        file_bug.file_bug.issue_tracker_service,
         'IssueTrackerService', lambda *_: self._issue_tracker_service)
 
   def tearDown(self):
@@ -62,12 +62,12 @@ class FileBugTest(testing_common.TestCase):
         bug_labels=['Performance-Sheriff'],
         bug_components=['Blink>Javascript'],
     )
-    testing_common.AddTests([master], ['linux'], {
-        'scrolling': {
+    testing_common.AddTests(
+        [master], ['linux'],
+        {'scrolling': {
             'first_paint': {},
             'mean_frame_time': {},
-        }
-    })
+        }})
     test_path1 = '%s/linux/scrolling/first_paint' % master
     test_path2 = '%s/linux/scrolling/mean_frame_time' % master
     test_key1 = utils.TestKey(test_path1)
@@ -96,22 +96,22 @@ class FileBugTest(testing_common.TestCase):
         bug_labels=['Performance-Sheriff'],
         bug_components=['Blink>Javascript'],
     )
-    testing_common.AddTests(['ChromiumPerf'], ['linux'], {
-        'scrolling': {
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['linux'],
+        {'scrolling': {
             'first_paint': {},
             'mean_frame_time': {},
-        }
-    })
+        }})
     test_path1 = 'ChromiumPerf/linux/scrolling/first_paint'
     test_path2 = 'ChromiumPerf/linux/scrolling/mean_frame_time'
     test_key1 = utils.TestKey(test_path1)
     test_key2 = utils.TestKey(test_path2)
-    anomaly_key1 = self._AddAnomaly(1476193324, 1476201840,
-                                    test_key1, subscription)
-    anomaly_key2 = self._AddAnomaly(1476193320, 1476201870,
-                                    test_key2, subscription)
-    anomaly_key3 = self._AddAnomaly(1476193390, 1476193390,
-                                    test_key2, subscription)
+    anomaly_key1 = self._AddAnomaly(1476193324, 1476201840, test_key1,
+                                    subscription)
+    anomaly_key2 = self._AddAnomaly(1476193320, 1476201870, test_key2,
+                                    subscription)
+    anomaly_key3 = self._AddAnomaly(1476193390, 1476193390, test_key2,
+                                    subscription)
     rows_1 = testing_common.AddRows(test_path1, [1476201840])
     rows_2 = testing_common.AddRows(test_path2, [1476201870])
     rows_3 = testing_common.AddRows(test_path2, [1476193390])
@@ -123,15 +123,17 @@ class FileBugTest(testing_common.TestCase):
 
   def _AddAnomaly(self, start_rev, end_rev, test_key, subscription):
     return anomaly.Anomaly(
-        start_revision=start_rev, end_revision=end_rev, test=test_key,
-        median_before_anomaly=100, median_after_anomaly=200,
+        start_revision=start_rev,
+        end_revision=end_rev,
+        test=test_key,
+        median_before_anomaly=100,
+        median_after_anomaly=200,
         subscription_names=[subscription.name],
         subscriptions=[subscription]).put()
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch(
-      'google.appengine.api.app_identity.get_default_version_hostname',
-      mock.MagicMock(return_value='chromeperf.appspot.com'))
+  @mock.patch('google.appengine.api.app_identity.get_default_version_hostname',
+              mock.MagicMock(return_value='chromeperf.appspot.com'))
   def testBisectDisabled(self):
     http = utils.ServiceAccountHttp()
     owner = ''
@@ -142,20 +144,17 @@ class FileBugTest(testing_common.TestCase):
     components = []
     test_path = 'ChromiumPerf/linux/scrolling/first_paint'
     test_key = utils.TestKey(test_path)
-    subscription = Subscription(
-        name='Sheriff',
-    )
+    subscription = Subscription(name='Sheriff',)
     keys = [self._AddAnomaly(10, 20, test_key, subscription).urlsafe()]
     bisect = False
-    result = file_bug.FileBug(
-        http, owner, cc, summary, description, labels, components, keys, bisect)
+    result = file_bug.file_bug.FileBug(http, owner, cc, summary, description,
+                                       labels, components, keys, bisect)
     self.assertNotIn('bisect_error', result)
     self.assertNotIn('jobId', result)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch(
-      'google.appengine.api.app_identity.get_default_version_hostname',
-      mock.MagicMock(return_value='chromeperf.appspot.com'))
+  @mock.patch('google.appengine.api.app_identity.get_default_version_hostname',
+              mock.MagicMock(return_value='chromeperf.appspot.com'))
   def testSupportsCCList(self):
     http = utils.ServiceAccountHttp()
     owner = ''
@@ -166,21 +165,18 @@ class FileBugTest(testing_common.TestCase):
     components = []
     test_path = 'ChromiumPerf/linux/scrolling/first_paint'
     test_key = utils.TestKey(test_path)
-    subscription = Subscription(
-        name='Sheriff',
-    )
+    subscription = Subscription(name='Sheriff',)
     keys = [self._AddAnomaly(10, 20, test_key, subscription).urlsafe()]
     bisect = False
-    result = file_bug.FileBug(
-        http, owner, cc, summary, description, labels, components, keys, bisect)
+    result = file_bug.file_bug.FileBug(http, owner, cc, summary, description,
+                                       labels, components, keys, bisect)
     self.assertNotIn('bisect_error', result)
     self.assertNotIn('jobId', result)
 
   def testGet_WithNoKeys_ShowsError(self):
     # When a request is made and no keys parameter is given,
     # an error message is shown in the reply.
-    response = self.testapp.get(
-        '/file_bug?summary=s&description=d&finish=true')
+    response = self.testapp.get('/file_bug?summary=s&description=d&finish=true')
     self.assertIn('<div class="error">', response.body)
     self.assertIn('No alerts specified', response.body)
 
@@ -189,8 +185,8 @@ class FileBugTest(testing_common.TestCase):
     # is not given, the response should contain a form for the sheriff to fill
     # in bug details (summary, description, etc).
     alert_keys = self._AddSampleAlerts()
-    response = self.testapp.get(
-        '/file_bug?summary=s&description=d&keys=%s' % alert_keys[0].urlsafe())
+    response = self.testapp.get('/file_bug?summary=s&description=d&keys=%s' %
+                                alert_keys[0].urlsafe())
     self.assertEqual(1, len(response.html('form')))
     self.assertIn('<input name="cc" type="text" value="foo@chromium.org">',
                   str(response.html('form')[0]))
@@ -205,8 +201,8 @@ class FileBugTest(testing_common.TestCase):
     anomaly_entity = alert_keys[0].get()
     anomaly_entity.internal_only = True
     anomaly_entity.put()
-    response = self.testapp.get(
-        '/file_bug?summary=s&description=d&keys=%s' % alert_keys[0].urlsafe())
+    response = self.testapp.get('/file_bug?summary=s&description=d&keys=%s' %
+                                alert_keys[0].urlsafe())
     self.assertIn('Restrict-View-Google', response.body)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
@@ -217,20 +213,21 @@ class FileBugTest(testing_common.TestCase):
     bug_label_patterns.AddBugLabelPattern('Cr-Performance-Blink',
                                           '*/*/*/mean_frame_time')
     response = self.testapp.get(
-        '/file_bug?summary=s&description=d&keys=%s,%s' % (
-            alert_keys[0].urlsafe(), alert_keys[1].urlsafe()))
+        '/file_bug?summary=s&description=d&keys=%s,%s' %
+        (alert_keys[0].urlsafe(), alert_keys[1].urlsafe()))
     self.assertIn('label1-foo', response.body)
     self.assertIn('Performance&gt;Blink', response.body)
     self.assertIn('Performance-Sheriff', response.body)
     self.assertIn('Blink&gt;Javascript', response.body)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch(
-      'google.appengine.api.app_identity.get_default_version_hostname',
-      mock.MagicMock(return_value='chromeperf.appspot.com'))
-  @mock.patch.object(
-      file_bug.auto_bisect, 'StartNewBisectForBug',
-      mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
+  @mock.patch('google.appengine.api.app_identity.get_default_version_hostname',
+              mock.MagicMock(return_value='chromeperf.appspot.com'))
+  @mock.patch.object(file_bug.file_bug.auto_bisect, 'StartNewBisectForBug',
+                     mock.MagicMock(return_value={
+                         'issue_id': 123,
+                         'issue_url': 'foo.com'
+                     }))
   def _PostSampleBug(self,
                      has_commit_positions=True,
                      master='ChromiumPerf',
@@ -243,26 +240,25 @@ class FileBugTest(testing_common.TestCase):
       alert_keys = alert_keys[2].urlsafe()
     else:
       alert_keys = '%s,%s' % (alert_keys[0].urlsafe(), alert_keys[1].urlsafe())
-    response = self.testapp.post(
-        '/file_bug',
-        [
-            ('keys', alert_keys),
-            ('summary', 's'),
-            ('description', 'd\n'),
-            ('finish', 'true'),
-            ('label', 'one'),
-            ('label', 'two'),
-            ('component', 'Foo>Bar'),
-        ])
+    response = self.testapp.post('/file_bug', [
+        ('keys', alert_keys),
+        ('summary', 's'),
+        ('description', 'd\n'),
+        ('finish', 'true'),
+        ('label', 'one'),
+        ('label', 'two'),
+        ('component', 'Foo>Bar'),
+    ])
     return response
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(
-      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
-      mock.MagicMock(return_value=[]))
-  @mock.patch.object(
-      file_bug.auto_bisect, 'StartNewBisectForBug',
-      mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[]))
+  @mock.patch.object(file_bug.file_bug.auto_bisect, 'StartNewBisectForBug',
+                     mock.MagicMock(return_value={
+                         'issue_id': 123,
+                         'issue_url': 'foo.com'
+                     }))
   def testGet_WithFinish_CreatesBug(self):
     # When a POST request is sent with keys specified and with the finish
     # parameter given, an issue will be created using the issue tracker
@@ -283,23 +279,27 @@ class FileBugTest(testing_common.TestCase):
 
     # Two HTTP requests are made when filing a bug; only test 2nd request.
     comment = self._issue_tracker_service.add_comment_args[1]
-    self.assertIn(
-        'https://chromeperf.appspot.com/group_report?bug_id=277761', comment)
+    self.assertIn('https://chromeperf.appspot.com/group_report?bug_id=277761',
+                  comment)
     self.assertIn('https://chromeperf.appspot.com/group_report?sid=', comment)
-    self.assertIn(
-        '\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux', comment)
+    self.assertIn('\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux',
+                  comment)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(
-      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
-      mock.MagicMock(return_value=[]))
-  @mock.patch.object(
-      file_bug.auto_bisect, 'StartNewBisectForBug',
-      mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[]))
+  @mock.patch.object(file_bug.file_bug.auto_bisect, 'StartNewBisectForBug',
+                     mock.MagicMock(return_value={
+                         'issue_id': 123,
+                         'issue_url': 'foo.com'
+                     }))
   def testGet_WithFinish_CreatesBug_WithDocs(self):
-    diag_dict = generic_set.GenericSet([[u'Benchmark doc link', u'http://docs']])
+    diag_dict = generic_set.GenericSet([[u'Benchmark doc link',
+                                         u'http://docs']])
     diag = histogram.SparseDiagnostic(
-        data=diag_dict.AsDict(), start_revision=1, end_revision=sys.maxsize,
+        data=diag_dict.AsDict(),
+        start_revision=1,
+        end_revision=sys.maxsize,
         name=reserved_infos.DOCUMENTATION_URLS.name,
         test=utils.TestKey('ChromiumPerf/linux/scrolling'))
     diag.put()
@@ -323,36 +323,40 @@ class FileBugTest(testing_common.TestCase):
 
     # Two HTTP requests are made when filing a bug; only test 2nd request.
     comment = self._issue_tracker_service.add_comment_args[1]
-    self.assertIn(
-        'https://chromeperf.appspot.com/group_report?bug_id=277761', comment)
+    self.assertIn('https://chromeperf.appspot.com/group_report?bug_id=277761',
+                  comment)
     self.assertIn('https://chromeperf.appspot.com/group_report?sid=', comment)
-    self.assertIn(
-        '\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux', comment)
+    self.assertIn('\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux',
+                  comment)
     self.assertIn('scrolling - Benchmark doc link:', comment)
     self.assertIn('http://docs', comment)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(
-      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
-      mock.MagicMock(return_value=[]))
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[]))
   @mock.patch.object(
       crrev_service, 'GetNumbering',
-      mock.MagicMock(return_value={
-          'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
+      mock.MagicMock(
+          return_value={'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
   @mock.patch('dashboard.services.gitiles_service.CommitInfo',
               mock.MagicMock(return_value={
-                  'author': {'email': 'foo@bar.com'},
-                  'message': 'My first commit!'}))
+                  'author': {
+                      'email': 'foo@bar.com'
+                  },
+                  'message': 'My first commit!'
+              }))
   def testGet_WithFinish_CreatesBugSingleRevOwner(self):
     # When a POST request is sent with keys specified and with the finish
     # parameter given, an issue will be created using the issue tracker
     # API, and the anomalies will be updated, and a response page will
     # be sent which indicates success.
     namespaced_stored_object.Set(
-        'repositories',
-        {"chromium": {
-            "repository_url": "https://chromium.googlesource.com/chromium/src"
-        }})
+        'repositories', {
+            "chromium": {
+                "repository_url":
+                    "https://chromium.googlesource.com/chromium/src"
+            }
+        })
     self._issue_tracker_service.bug_id = 277761
     response = self._PostSampleBug(is_single_rev=True)
 
@@ -368,28 +372,33 @@ class FileBugTest(testing_common.TestCase):
     self.assertIn('My first commit', comment)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(
-      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
-      mock.MagicMock(return_value=[]))
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[]))
   @mock.patch.object(
       crrev_service, 'GetNumbering',
-      mock.MagicMock(return_value={
-          'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
+      mock.MagicMock(
+          return_value={'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
   @mock.patch('dashboard.services.gitiles_service.CommitInfo',
-              mock.MagicMock(return_value={
-                  'author': {'email': 'v8-ci-autoroll-builder@chops-service-'
-                                      'accounts.iam.gserviceaccount.com'},
-                  'message': 'This is a roll\n\nTBR=sheriff@bar.com'}))
+              mock.MagicMock(
+                  return_value={
+                      'author': {
+                          'email': 'v8-ci-autoroll-builder@chops-service-'
+                                   'accounts.iam.gserviceaccount.com'
+                      },
+                      'message': 'This is a roll\n\nTBR=sheriff@bar.com'
+                  }))
   def testGet_WithFinish_CreatesBugSingleRevAutorollOwner(self):
     # When a POST request is sent with keys specified and with the finish
     # parameter given, an issue will be created using the issue tracker
     # API, and the anomalies will be updated, and a response page will
     # be sent which indicates success.
     namespaced_stored_object.Set(
-        'repositories',
-        {"chromium": {
-            "repository_url": "https://chromium.googlesource.com/chromium/src"
-        }})
+        'repositories', {
+            "chromium": {
+                "repository_url":
+                    "https://chromium.googlesource.com/chromium/src"
+            }
+        })
     self._issue_tracker_service.bug_id = 277761
     response = self._PostSampleBug(is_single_rev=True)
 
@@ -398,26 +407,27 @@ class FileBugTest(testing_common.TestCase):
 
     # Two HTTP requests are made when filing a bug; only test 2nd request.
     comment = self._issue_tracker_service.add_comment_args[1]
-    self.assertIn(
-        'https://chromeperf.appspot.com/group_report?bug_id=277761', comment)
+    self.assertIn('https://chromeperf.appspot.com/group_report?bug_id=277761',
+                  comment)
     self.assertIn('https://chromeperf.appspot.com/group_report?sid=', comment)
-    self.assertIn(
-        '\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux', comment)
+    self.assertIn('\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux',
+                  comment)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(
-      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
-      mock.MagicMock(return_value=[]))
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[]))
   def testGet_WithFinish_SingleRevOwner_Clank_Skips(self):
     # When a POST request is sent with keys specified and with the finish
     # parameter given, an issue will be created using the issue tracker
     # API, and the anomalies will be updated, and a response page will
     # be sent which indicates success.
     namespaced_stored_object.Set(
-        'repositories',
-        {"chromium": {
-            "repository_url": "https://chromium.googlesource.com/chromium/src"
-        }})
+        'repositories', {
+            "chromium": {
+                "repository_url":
+                    "https://chromium.googlesource.com/chromium/src"
+            }
+        })
     self._issue_tracker_service.bug_id = 277761
     response = self._PostSampleBug(is_single_rev=True, master='ClankInternal')
 
@@ -432,19 +442,20 @@ class FileBugTest(testing_common.TestCase):
         comment)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(
-      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
-      mock.MagicMock(return_value=[]))
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[]))
   def testGet_WithFinish_SingleRevOwner_InvalidRepository_Skips(self):
     # When a POST request is sent with keys specified and with the finish
     # parameter given, an issue will be created using the issue tracker
     # API, and the anomalies will be updated, and a response page will
     # be sent which indicates success.
     namespaced_stored_object.Set(
-        'repositories',
-        {"chromium": {
-            "repository_url": "https://chromium.googlesource.com/chromium/src"
-        }})
+        'repositories', {
+            "chromium": {
+                "repository_url":
+                    "https://chromium.googlesource.com/chromium/src"
+            }
+        })
     self._issue_tracker_service.bug_id = 277761
     response = self._PostSampleBug(is_single_rev=True, master='FakeMaster')
 
@@ -459,27 +470,31 @@ class FileBugTest(testing_common.TestCase):
         comment)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(
-      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
-      mock.MagicMock(return_value=[]))
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[]))
   @mock.patch.object(
       crrev_service, 'GetNumbering',
-      mock.MagicMock(return_value={
-          'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
+      mock.MagicMock(
+          return_value={'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
   @mock.patch('dashboard.services.gitiles_service.CommitInfo',
               mock.MagicMock(return_value={
-                  'author': {'email': 'foo@bar.com'},
-                  'message': 'My first commit!'}))
+                  'author': {
+                      'email': 'foo@bar.com'
+                  },
+                  'message': 'My first commit!'
+              }))
   def testGet_WithFinish_CreatesBugSingleRevDifferentMasterOwner(self):
     # When a POST request is sent with keys specified and with the finish
     # parameter given, an issue will be created using the issue tracker
     # API, and the anomalies will be updated, and a response page will
     # be sent which indicates success.
     namespaced_stored_object.Set(
-        'repositories',
-        {"chromium": {
-            "repository_url": "https://chromium.googlesource.com/chromium/src"
-        }})
+        'repositories', {
+            "chromium": {
+                "repository_url":
+                    "https://chromium.googlesource.com/chromium/src"
+            }
+        })
     self._issue_tracker_service.bug_id = 277761
     response = self._PostSampleBug(is_single_rev=True, master='Foo')
 
@@ -495,19 +510,21 @@ class FileBugTest(testing_common.TestCase):
     self.assertNotIn('My first commit', comment)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(
-      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
-      mock.MagicMock(return_value=[
-          {
-              'versions': [
-                  {'branch_base_position': '112000', 'current_version': '2.0'},
-                  {'branch_base_position': '111990', 'current_version': '1.0'}
-              ]
-          }
-      ]))
-  @mock.patch.object(
-      file_bug.auto_bisect, 'StartNewBisectForBug',
-      mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[{
+                         'versions': [{
+                             'branch_base_position': '112000',
+                             'current_version': '2.0'
+                         }, {
+                             'branch_base_position': '111990',
+                             'current_version': '1.0'
+                         }]
+                     }]))
+  @mock.patch.object(file_bug.file_bug.auto_bisect, 'StartNewBisectForBug',
+                     mock.MagicMock(return_value={
+                         'issue_id': 123,
+                         'issue_url': 'foo.com'
+                     }))
   def testGet_WithFinish_LabelsBugWithMilestone(self):
     # Here, we expect the bug to have the following end revisions:
     # [112005, 112010] and the milestones are M-1 for rev 111990 and
@@ -518,19 +535,21 @@ class FileBugTest(testing_common.TestCase):
     self.assertIn('M-2', self._issue_tracker_service.new_bug_kwargs['labels'])
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(
-      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
-      mock.MagicMock(return_value=[
-          {
-              'versions': [
-                  {'branch_base_position': '112000', 'current_version': '2.0'},
-                  {'branch_base_position': '111990', 'current_version': '1.0'}
-              ]
-          }
-      ]))
-  @mock.patch.object(
-      file_bug.auto_bisect, 'StartNewBisectForBug',
-      mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[{
+                         'versions': [{
+                             'branch_base_position': '112000',
+                             'current_version': '2.0'
+                         }, {
+                             'branch_base_position': '111990',
+                             'current_version': '1.0'
+                         }]
+                     }]))
+  @mock.patch.object(file_bug.file_bug.auto_bisect, 'StartNewBisectForBug',
+                     mock.MagicMock(return_value={
+                         'issue_id': 123,
+                         'issue_url': 'foo.com'
+                     }))
   def testGet_WithFinish_LabelsBugWithNoMilestoneBecauseNoCommitPos(self):
     # Here, we expect to return no Milestone label because the alerts do not
     # contain r_commit_pos (and therefore aren't chromium). Assuming
@@ -541,20 +560,24 @@ class FileBugTest(testing_common.TestCase):
     self.assertEqual(0, len([x for x in labels if x.startswith(u'M-')]))
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch.object(
-      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
-      mock.MagicMock(return_value=[
-          {
-              'versions': [
-                  {'branch_base_position': '113000', 'current_version': '2.0'},
-                  {'branch_base_position': '112000', 'current_version': '2.0'},
-                  {'branch_base_position': '111990', 'current_version': '1.0'}
-              ]
-          }
-      ]))
-  @mock.patch.object(
-      file_bug.auto_bisect, 'StartNewBisectForBug',
-      mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[{
+                         'versions': [{
+                             'branch_base_position': '113000',
+                             'current_version': '2.0'
+                         }, {
+                             'branch_base_position': '112000',
+                             'current_version': '2.0'
+                         }, {
+                             'branch_base_position': '111990',
+                             'current_version': '1.0'
+                         }]
+                     }]))
+  @mock.patch.object(file_bug.file_bug.auto_bisect, 'StartNewBisectForBug',
+                     mock.MagicMock(return_value={
+                         'issue_id': 123,
+                         'issue_url': 'foo.com'
+                     }))
   def testGet_WithFinish_LabelsBugForClank(self):
     # Here, we expect to return M-2 even though the alert revisions aren't
     # even close to the branching points. We use r_commmit_pos to determine
@@ -567,9 +590,7 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(return_value=testing_common.FakeResponseObject(
-          200, '[]')))
-
+      mock.MagicMock(return_value=testing_common.FakeResponseObject(200, '[]')))
   def testGet_WithFinish_SucceedsWithNoVersions(self):
     # Here, we test that we don't label the bug with an unexpected value when
     # there is no version information from omahaproxy (for whatever reason)
@@ -580,25 +601,24 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(return_value=testing_common.FakeResponseObject(
-          200, '[]')))
+      mock.MagicMock(return_value=testing_common.FakeResponseObject(200, '[]')))
   def testGet_WithFinish_SucceedsWithComponents(self):
     # Here, we test that components are posted separately from labels.
     self._PostSampleBug()
-    self.assertIn('Foo>Bar', self._issue_tracker_service.new_bug_kwargs[
-        'components'])
+    self.assertIn('Foo>Bar',
+                  self._issue_tracker_service.new_bug_kwargs['components'])
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(return_value=testing_common.FakeResponseObject(
-          200, json.dumps([
-              {
-                  'versions': [
-                      {'branch_base_position': '0', 'current_version': '1.0'}
-                  ]
-              }
-          ]))))
+  @mock.patch('google.appengine.api.urlfetch.fetch',
+              mock.MagicMock(
+                  return_value=testing_common.FakeResponseObject(
+                      200,
+                      json.dumps([{
+                          'versions': [{
+                              'branch_base_position': '0',
+                              'current_version': '1.0'
+                          }]
+                      }]))))
   def testGet_WithFinish_SucceedsWithRevisionOutOfRange(self):
     # Here, we test that we label the bug with the highest milestone when the
     # revision introducing regression is beyond all milestones in the list.
@@ -606,16 +626,16 @@ class FileBugTest(testing_common.TestCase):
     self.assertIn('M-1', self._issue_tracker_service.new_bug_kwargs['labels'])
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(return_value=testing_common.FakeResponseObject(
-          200, json.dumps([
-              {
-                  'versions': [
-                      {'branch_base_position': 'N/A', 'current_version': 'N/A'}
-                  ]
-              }
-          ]))))
+  @mock.patch('google.appengine.api.urlfetch.fetch',
+              mock.MagicMock(
+                  return_value=testing_common.FakeResponseObject(
+                      200,
+                      json.dumps([{
+                          'versions': [{
+                              'branch_base_position': 'N/A',
+                              'current_version': 'N/A'
+                          }]
+                      }]))))
   @mock.patch('logging.warn')
   def testGet_WithFinish_SucceedsWithNAAndLogsWarning(self, mock_warn):
     self._PostSampleBug()
@@ -624,160 +644,143 @@ class FileBugTest(testing_common.TestCase):
     self.assertEqual(1, mock_warn.call_count)
 
   def testGet_OwnersAreEmptyEvenWithOwnership(self):
-    ownership_samples = [
-        {
-            'type': 'Ownership',
-            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
-            'emails': ['alice@chromium.org']
-        },
-        {
-            'type': 'Ownership',
-            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb827',
-            'emails': ['bob@chromium.org']
-        }
+    ownership_samples = [{
+        'type': 'Ownership',
+        'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
+        'emails': ['alice@chromium.org']
+    }, {
+        'type': 'Ownership',
+        'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb827',
+        'emails': ['bob@chromium.org']
+    }]
+    test_paths = [
+        'ChromiumPerf/linux/scrolling/first_paint',
+        'ChromiumPerf/linux/scrolling/mean_frame_time'
     ]
-
-    test_paths = ['ChromiumPerf/linux/scrolling/first_paint',
-                  'ChromiumPerf/linux/scrolling/mean_frame_time']
     test_keys = [utils.TestKey(test_path) for test_path in test_paths]
-
     subscription = Subscription(
         name='Sheriff',
         bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
-
     anomaly_1 = anomaly.Anomaly(
-        start_revision=1476193324, end_revision=1476201840, test=test_keys[0],
-        median_before_anomaly=100, median_after_anomaly=200,
-        subscriptions=[subscription], subscription_names=[subscription.name],
+        start_revision=1476193324,
+        end_revision=1476201840,
+        test=test_keys[0],
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
         ownership=ownership_samples[0]).put()
-
     anomaly_2 = anomaly.Anomaly(
-        start_revision=1476193320, end_revision=1476201870, test=test_keys[1],
-        median_before_anomaly=100, median_after_anomaly=200,
-        subscriptions=[subscription], subscription_names=[subscription.name],
+        start_revision=1476193320,
+        end_revision=1476201870,
+        test=test_keys[1],
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
         ownership=ownership_samples[1]).put()
-
-    response = self.testapp.post(
-        '/file_bug',
-        [
-            ('keys', '%s,%s' % (anomaly_1.urlsafe(), anomaly_2.urlsafe())),
-            ('summary', 's'),
-            ('description', 'd\n'),
-            ('label', 'one'),
-            ('label', 'two'),
-            ('component', 'Foo>Bar'),
-        ])
-
-    self.assertIn(
-        '<input type="text" name="owner" value="">',
-        response.body)
-
-    response_changed_order = self.testapp.post(
-        '/file_bug',
-        [
-            ('keys', '%s,%s' % (anomaly_2.urlsafe(), anomaly_1.urlsafe())),
-            ('summary', 's'),
-            ('description', 'd\n'),
-            ('label', 'one'),
-            ('label', 'two'),
-            ('component', 'Foo>Bar'),
-        ])
-
-    self.assertIn(
-        '<input type="text" name="owner" value="">',
-        response_changed_order.body)
+    response = self.testapp.post('/file_bug', [
+        ('keys', '%s,%s' % (anomaly_1.urlsafe(), anomaly_2.urlsafe())),
+        ('summary', 's'),
+        ('description', 'd\n'),
+        ('label', 'one'),
+        ('label', 'two'),
+        ('component', 'Foo>Bar'),
+    ])
+    self.assertIn('<input type="text" name="owner" value="">', response.body)
+    response_changed_order = self.testapp.post('/file_bug', [
+        ('keys', '%s,%s' % (anomaly_2.urlsafe(), anomaly_1.urlsafe())),
+        ('summary', 's'),
+        ('description', 'd\n'),
+        ('label', 'one'),
+        ('label', 'two'),
+        ('component', 'Foo>Bar'),
+    ])
+    self.assertIn('<input type="text" name="owner" value="">',
+                  response_changed_order.body)
 
   def testGet_OwnersNotFilledWhenNoOwnership(self):
     test_key = utils.TestKey('ChromiumPerf/linux/scrolling/first_paint')
     subscription = Subscription(
         name='Sheriff',
         bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
-
     anomaly_entity = anomaly.Anomaly(
-        start_revision=1476193324, end_revision=1476201840, test=test_key,
-        median_before_anomaly=100, median_after_anomaly=200,
-        subscriptions=[subscription], subscription_names=[subscription.name],
+        start_revision=1476193324,
+        end_revision=1476201840,
+        test=test_key,
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
     ).put()
-
-    response = self.testapp.post(
-        '/file_bug',
-        [
-            ('keys', '%s' % (anomaly_entity.urlsafe())),
-            ('summary', 's'),
-            ('description', 'd\n'),
-            ('label', 'one'),
-            ('label', 'two'),
-            ('component', 'Foo>Bar'),
-        ])
-
-    self.assertIn(
-        '<input type="text" name="owner" value="">',
-        response.body)
+    response = self.testapp.post('/file_bug', [
+        ('keys', '%s' % (anomaly_entity.urlsafe())),
+        ('summary', 's'),
+        ('description', 'd\n'),
+        ('label', 'one'),
+        ('label', 'two'),
+        ('component', 'Foo>Bar'),
+    ])
+    self.assertIn('<input type="text" name="owner" value="">', response.body)
 
   def testGet_WithAllOwnershipComponents(self):
-    ownership_samples = [
-        {
-            'type': 'Ownership',
-            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
-            'component': 'Abc>Xyz'
-        },
-        {
-            'type': 'Ownership',
-            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb827',
-            'component': 'Def>123'
-        }
+    ownership_samples = [{
+        'type': 'Ownership',
+        'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
+        'component': 'Abc>Xyz'
+    }, {
+        'type': 'Ownership',
+        'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb827',
+        'component': 'Def>123'
+    }]
+    test_paths = [
+        'ChromiumPerf/linux/scrolling/first_paint',
+        'ChromiumPerf/linux/scrolling/mean_frame_time'
     ]
-
-    test_paths = ['ChromiumPerf/linux/scrolling/first_paint',
-                  'ChromiumPerf/linux/scrolling/mean_frame_time']
     test_keys = [utils.TestKey(test_path) for test_path in test_paths]
-
     subscription = Subscription(
         name='Sheriff',
         bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
-
     anomaly_1 = anomaly.Anomaly(
-        start_revision=1476193324, end_revision=1476201840, test=test_keys[0],
-        median_before_anomaly=100, median_after_anomaly=200,
-        subscriptions=[subscription], subscription_names=[subscription.name],
+        start_revision=1476193324,
+        end_revision=1476201840,
+        test=test_keys[0],
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
         ownership=ownership_samples[0]).put()
-
     anomaly_2 = anomaly.Anomaly(
-        start_revision=1476193320, end_revision=1476201870, test=test_keys[1],
-        median_before_anomaly=100, median_after_anomaly=200,
-        subscriptions=[subscription], subscription_names=[subscription.name],
+        start_revision=1476193320,
+        end_revision=1476201870,
+        test=test_keys[1],
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
         ownership=ownership_samples[1]).put()
-
-    response = self.testapp.post(
-        '/file_bug',
-        [
-            ('keys', '%s' % (anomaly_1.urlsafe())),
-            ('summary', 's'),
-            ('description', 'd\n'),
-            ('label', 'one'),
-            ('label', 'two'),
-            ('component', 'Foo>Bar'),
-        ])
-
+    response = self.testapp.post('/file_bug', [
+        ('keys', '%s' % (anomaly_1.urlsafe())),
+        ('summary', 's'),
+        ('description', 'd\n'),
+        ('label', 'one'),
+        ('label', 'two'),
+        ('component', 'Foo>Bar'),
+    ])
     self.assertIn(
         '<input type="checkbox" checked name="component" value="Abc&gt;Xyz">',
         response.body)
-
-    response_with_both_anomalies = self.testapp.post(
-        '/file_bug',
-        [
-            ('keys', '%s,%s' % (anomaly_1.urlsafe(), anomaly_2.urlsafe())),
-            ('summary', 's'),
-            ('description', 'd\n'),
-            ('label', 'one'),
-            ('label', 'two'),
-            ('component', 'Foo>Bar'),
-        ])
-
+    response_with_both_anomalies = self.testapp.post('/file_bug', [
+        ('keys', '%s,%s' % (anomaly_1.urlsafe(), anomaly_2.urlsafe())),
+        ('summary', 's'),
+        ('description', 'd\n'),
+        ('label', 'one'),
+        ('label', 'two'),
+        ('component', 'Foo>Bar'),
+    ])
     self.assertIn(
         '<input type="checkbox" checked name="component" value="Abc&gt;Xyz">',
         response_with_both_anomalies.body)
-
     self.assertIn(
         '<input type="checkbox" checked name="component" value="Def&gt;123">',
         response_with_both_anomalies.body)
@@ -795,64 +798,56 @@ class FileBugTest(testing_common.TestCase):
             'component': '123>456'
         },
     ]
-
     subscription = Subscription(
         name='Sheriff',
         bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
-
     test_key = utils.TestKey('ChromiumPerf/linux/scrolling/first_paint')
-
     now_datetime = datetime.datetime.now()
-
     older_alert = anomaly.Anomaly(
-        start_revision=1476193320, end_revision=1476201870, test=test_key,
-        median_before_anomaly=100, median_after_anomaly=200,
-        subscriptions=[subscription], subscription_names=[subscription.name],
-        ownership=ownership_samples[0], timestamp=now_datetime).put()
-
+        start_revision=1476193320,
+        end_revision=1476201870,
+        test=test_key,
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
+        ownership=ownership_samples[0],
+        timestamp=now_datetime).put()
     newer_alert = anomaly.Anomaly(
-        start_revision=1476193320, end_revision=1476201870, test=test_key,
-        median_before_anomaly=100, median_after_anomaly=200,
-        subscriptions=[subscription], subscription_names=[subscription.name],
+        start_revision=1476193320,
+        end_revision=1476201870,
+        test=test_key,
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
         ownership=ownership_samples[1],
         timestamp=now_datetime + datetime.timedelta(10)).put()
-
-    response = self.testapp.post(
-        '/file_bug',
-        [
-            ('keys', '%s,%s' % (older_alert.urlsafe(),
-                                newer_alert.urlsafe())),
-            ('summary', 's'),
-            ('description', 'd\n'),
-            ('label', 'one'),
-            ('label', 'two'),
-            ('component', 'Foo>Bar'),
-        ])
-
+    response = self.testapp.post('/file_bug', [
+        ('keys', '%s,%s' % (older_alert.urlsafe(), newer_alert.urlsafe())),
+        ('summary', 's'),
+        ('description', 'd\n'),
+        ('label', 'one'),
+        ('label', 'two'),
+        ('component', 'Foo>Bar'),
+    ])
     self.assertNotIn(
         '<input type="checkbox" checked name="component" value="Abc&gt;Def">',
         response.body)
-
     self.assertIn(
         '<input type="checkbox" checked name="component" value="123&gt;456">',
         response.body)
-
-    response_inverted_order = self.testapp.post(
-        '/file_bug',
-        [
-            ('keys', '%s,%s' % (newer_alert.urlsafe(),
-                                older_alert.urlsafe())),
-            ('summary', 's'),
-            ('description', 'd\n'),
-            ('label', 'one'),
-            ('label', 'two'),
-            ('component', 'Foo>Bar'),
-        ])
-
+    response_inverted_order = self.testapp.post('/file_bug', [
+        ('keys', '%s,%s' % (newer_alert.urlsafe(), older_alert.urlsafe())),
+        ('summary', 's'),
+        ('description', 'd\n'),
+        ('label', 'one'),
+        ('label', 'two'),
+        ('component', 'Foo>Bar'),
+    ])
     self.assertNotIn(
         '<input type="checkbox" checked name="component" value="Abc&gt;Def">',
         response_inverted_order.body)
-
     self.assertIn(
         '<input type="checkbox" checked name="component" value="123&gt;456">',
         response_inverted_order.body)
@@ -873,32 +868,41 @@ class FileBugTest(testing_common.TestCase):
     subscription = Subscription(
         name='Sheriff',
         bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
-    test_paths = ['ChromiumPerf/linux/scrolling/first_paint',
-                  'ChromiumPerf/linux/scrolling/mean_frame_time']
+    test_paths = [
+        'ChromiumPerf/linux/scrolling/first_paint',
+        'ChromiumPerf/linux/scrolling/mean_frame_time'
+    ]
     test_keys = [utils.TestKey(test_path) for test_path in test_paths]
     now_datetime = datetime.datetime.now()
     alert_test_key_0 = anomaly.Anomaly(
-        start_revision=1476193320, end_revision=1476201870, test=test_keys[0],
-        median_before_anomaly=100, median_after_anomaly=200,
-        subscriptions=[subscription], subscription_names=[subscription.name],
-        ownership=ownership_samples[0], timestamp=now_datetime).put()
+        start_revision=1476193320,
+        end_revision=1476201870,
+        test=test_keys[0],
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
+        ownership=ownership_samples[0],
+        timestamp=now_datetime).put()
     alert_test_key_1 = anomaly.Anomaly(
-        start_revision=1476193320, end_revision=1476201870, test=test_keys[1],
-        median_before_anomaly=100, median_after_anomaly=200,
-        subscriptions=[subscription], subscription_names=[subscription.name],
+        start_revision=1476193320,
+        end_revision=1476201870,
+        test=test_keys[1],
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
         ownership=ownership_samples[1],
         timestamp=now_datetime + datetime.timedelta(10)).put()
-    response = self.testapp.post(
-        '/file_bug',
-        [
-            ('keys', '%s,%s' % (alert_test_key_0.urlsafe(),
-                                alert_test_key_1.urlsafe())),
-            ('summary', 's'),
-            ('description', 'd\n'),
-            ('label', 'one'),
-            ('label', 'two'),
-            ('component', 'Foo>Bar'),
-        ])
+    response = self.testapp.post('/file_bug', [
+        ('keys', '%s,%s' %
+         (alert_test_key_0.urlsafe(), alert_test_key_1.urlsafe())),
+        ('summary', 's'),
+        ('description', 'd\n'),
+        ('label', 'one'),
+        ('label', 'two'),
+        ('component', 'Foo>Bar'),
+    ])
     self.assertIn(
         '<input type="checkbox" checked name="component" value="Abc&gt;Def">',
         response.body)
@@ -907,63 +911,73 @@ class FileBugTest(testing_common.TestCase):
         response.body)
 
   def testGet_UsesFirstDefinedComponent(self):
-    ownership_samples = [
-        {
-            'type': 'Ownership',
-            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb827',
-        },
-        {
-            'type': 'Ownership',
-            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
-            'component': ''
-        },
-        {
-            'type': 'Ownership',
-            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
-            'component': 'Abc>Def'
-        }
-    ]
+    ownership_samples = [{
+        'type': 'Ownership',
+        'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb827',
+    }, {
+        'type': 'Ownership',
+        'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
+        'component': ''
+    }, {
+        'type': 'Ownership',
+        'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
+        'component': 'Abc>Def'
+    }]
     now_datetime = datetime.datetime.now()
     test_key = utils.TestKey('ChromiumPerf/linux/scrolling/first_paint')
     subscription = Subscription(
         name='Sheriff',
         bug_labels=['Performance-Sheriff', 'Cr-Blink-Javascript'])
     alert_without_ownership = anomaly.Anomaly(
-        start_revision=1476193320, end_revision=1476201870, test=test_key,
-        median_before_anomaly=100, median_after_anomaly=200,
-        subscriptions=[subscription], subscription_names=[subscription.name],
+        start_revision=1476193320,
+        end_revision=1476201870,
+        test=test_key,
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
         timestamp=now_datetime).put()
     alert_without_component = anomaly.Anomaly(
-        start_revision=1476193320, end_revision=1476201870, test=test_key,
-        median_before_anomaly=100, median_after_anomaly=200,
-        subscriptions=[subscription], subscription_names=[subscription.name],
+        start_revision=1476193320,
+        end_revision=1476201870,
+        test=test_key,
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
         ownership=ownership_samples[0],
         timestamp=now_datetime + datetime.timedelta(10)).put()
     alert_with_empty_component = anomaly.Anomaly(
-        start_revision=1476193320, end_revision=1476201870, test=test_key,
-        median_before_anomaly=100, median_after_anomaly=200,
-        subscriptions=[subscription], subscription_names=[subscription.name],
+        start_revision=1476193320,
+        end_revision=1476201870,
+        test=test_key,
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
         ownership=ownership_samples[1],
         timestamp=now_datetime + datetime.timedelta(20)).put()
     alert_with_component = anomaly.Anomaly(
-        start_revision=1476193320, end_revision=1476201870, test=test_key,
-        median_before_anomaly=100, median_after_anomaly=200,
-        subscriptions=[subscription], subscription_names=[subscription.name],
+        start_revision=1476193320,
+        end_revision=1476201870,
+        test=test_key,
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        subscriptions=[subscription],
+        subscription_names=[subscription.name],
         ownership=ownership_samples[2],
         timestamp=now_datetime + datetime.timedelta(30)).put()
-    response = self.testapp.post(
-        '/file_bug',
-        [
-            ('keys', '%s,%s,%s,%s' % (alert_without_ownership.urlsafe(),
-                                      alert_without_component.urlsafe(),
-                                      alert_with_empty_component.urlsafe(),
-                                      alert_with_component.urlsafe())),
-            ('summary', 's'),
-            ('description', 'd\n'),
-            ('label', 'one'),
-            ('label', 'two'),
-            ('component', 'Foo>Bar'),
-        ])
+    response = self.testapp.post('/file_bug', [
+        ('keys', '%s,%s,%s,%s' %
+         (alert_without_ownership.urlsafe(), alert_without_component.urlsafe(),
+          alert_with_empty_component.urlsafe(),
+          alert_with_component.urlsafe())),
+        ('summary', 's'),
+        ('description', 'd\n'),
+        ('label', 'one'),
+        ('label', 'two'),
+        ('component', 'Foo>Bar'),
+    ])
     self.assertIn(
         '<input type="checkbox" checked name="component" value="Abc&gt;Def">',
         response.body)

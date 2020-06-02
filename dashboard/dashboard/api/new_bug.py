@@ -6,9 +6,9 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-from dashboard import file_bug
 from dashboard.api import api_request_handler
 from dashboard.api import utils as api_utils
+from dashboard.common import file_bug
 from dashboard.common import utils
 
 
