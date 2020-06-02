@@ -258,7 +258,6 @@ Result: Parcel(
 """
 _PARCEL_RESULT_RE = re.compile(
     r'0x[0-9a-f]{8}\: (?:[0-9a-f]{8}\s+){1,4}\'(.{16})\'')
-_EBUSY_RE = re.compile(r'mkdir failed for ([^,]*), Device or resource busy')
 
 # http://bit.ly/2WLZhUF added a timeout to adb wait-for-device. We sometimes
 # want to wait longer than the implicit call within adb root allows.
@@ -1835,26 +1834,8 @@ class DeviceUtils(object):
 
     if changed_files:
       if missing_dirs:
-        try:
-          self.RunShellCommand(['mkdir', '-p'] + list(missing_dirs),
-                               check_return=True)
-        except device_errors.AdbShellCommandFailedError as e:
-          # TODO(crbug.com/739899): This is attempting to diagnose flaky EBUSY
-          # errors that have been popping up in single-device scenarios.
-          # Remove it once we've figured out what's causing them and how best
-          # to handle them.
-          m = _EBUSY_RE.search(e.output)
-          if m:
-            logging.error(
-                'Hit EBUSY while attempting to make missing directories.')
-            logging.error('lsof output:')
-            # Don't check for return below since grep exits with a non-zero when
-            # no match is found.
-            for l in self.RunShellCommand('lsof | grep %s' %
-                                          cmd_helper.SingleQuote(m.group(1)),
-                                          check_return=False):
-              logging.error('  %s', l)
-          raise
+        self.RunShellCommand(['mkdir', '-p'] + list(missing_dirs),
+                             check_return=True)
       self._PushFilesImpl(host_device_tuples, changed_files)
     cache_commit_func()
 
