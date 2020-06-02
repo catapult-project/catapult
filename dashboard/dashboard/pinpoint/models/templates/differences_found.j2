@@ -10,7 +10,7 @@ Found significant differences at {{ differences|length }} commits
 {%- else -%}
 {{ examined_count }} revisions
 {%- endif %} compared.{% endif %}
-{{ url }}
+{{url}}
 
 {% if differences|length != 1 -%}
 The top {{ differences[:3]|length }} are:
@@ -31,4 +31,12 @@ The top {{ differences[:3]|length }} are:
 {% endif %}
 Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions
-{%- if differences %}{{doc_links}}{% endif %}
+{%- if differences %}{{doc_links}}{%- endif %}
+
+You can view the full results and re-run the Pinpoint job at:
+
+{{url}}
+
+If you think Pinpoint blamed the wrong commit, please add the
+`Chromeperf-Auto-NeedsAttention` label to the issue so that a sheriff can
+help diagnose.

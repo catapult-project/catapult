@@ -21,24 +21,17 @@ from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import job
 from dashboard.pinpoint import test
 
-
 _CHROMIUM_URL = 'https://chromium.googlesource.com/chromium/src'
-
-
-_COMMENT_STARTED = (
-    u"""\U0001f4cd Pinpoint job started.
+_COMMENT_STARTED = (u"""\U0001f4cd Pinpoint job started.
 https://testbed.example.com/job/1""")
-
 
 _COMMENT_COMPLETED_NO_COMPARISON = (
     u"""<b>\U0001f4cd Job complete. See results below.</b>
 https://testbed.example.com/job/1""")
 
-
 _COMMENT_COMPLETED_NO_DIFFERENCES = (
     u"""<b>\U0001f4cd Couldn't reproduce a difference.</b>
 https://testbed.example.com/job/1""")
-
 
 _COMMENT_COMPLETED_WITH_COMMIT = (
     u"""<b>\U0001f4cd Found a significant difference at 1 commit.</b>
@@ -50,7 +43,15 @@ https://example.com/repository/+/git_hash
 0 \u2192 1.235 (+1.235) (+\u221e%)
 
 Understanding performance regressions:
-  http://g.co/ChromePerformanceRegressions""")
+  http://g.co/ChromePerformanceRegressions
+
+You can view the full results and re-run the Pinpoint job at:
+
+https://testbed.example.com/job/1
+
+If you think Pinpoint blamed the wrong commit, please add the
+`Chromeperf-Auto-NeedsAttention` label to the issue so that a sheriff can
+help diagnose.""")
 
 _COMMENT_COMPLETED_WITH_COMMIT_AND_DOCS = (
     u"""<b>\U0001f4cd Found a significant difference at 1 commit.</b>
@@ -65,7 +66,15 @@ Understanding performance regressions:
   http://g.co/ChromePerformanceRegressions
 
 Benchmark doc link:
-  http://docs""")
+  http://docs
+
+You can view the full results and re-run the Pinpoint job at:
+
+https://testbed.example.com/job/1
+
+If you think Pinpoint blamed the wrong commit, please add the
+`Chromeperf-Auto-NeedsAttention` label to the issue so that a sheriff can
+help diagnose.""")
 
 _COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT = (
     u"""<b>\U0001f4cd Found a significant difference at 1 commit.</b>
@@ -79,8 +88,15 @@ https://example.com/repository/+/git_hash
 Assigning to sheriff sheriff@bar.com because "Subject." is a roll.
 
 Understanding performance regressions:
-  http://g.co/ChromePerformanceRegressions""")
+  http://g.co/ChromePerformanceRegressions
 
+You can view the full results and re-run the Pinpoint job at:
+
+https://testbed.example.com/job/1
+
+If you think Pinpoint blamed the wrong commit, please add the
+`Chromeperf-Auto-NeedsAttention` label to the issue so that a sheriff can
+help diagnose.""")
 
 _COMMENT_COMPLETED_WITH_PATCH = (
     u"""<b>\U0001f4cd Found a significant difference at 1 commit.</b>
@@ -92,8 +108,15 @@ https://codereview.com/c/672011/2f0d5c7
 40 \u2192 20 (-20) (-50%)
 
 Understanding performance regressions:
-  http://g.co/ChromePerformanceRegressions""")
+  http://g.co/ChromePerformanceRegressions
 
+You can view the full results and re-run the Pinpoint job at:
+
+https://testbed.example.com/job/1
+
+If you think Pinpoint blamed the wrong commit, please add the
+`Chromeperf-Auto-NeedsAttention` label to the issue so that a sheriff can
+help diagnose.""")
 
 _COMMENT_COMPLETED_THREE_DIFFERENCES = (
     u"""<b>\U0001f4cd Found significant differences at 3 commits.</b>
@@ -115,7 +138,15 @@ https://example.com/repository/+/git_hash_3
 0 \u2192 No values
 
 Understanding performance regressions:
-  http://g.co/ChromePerformanceRegressions""")
+  http://g.co/ChromePerformanceRegressions
+
+You can view the full results and re-run the Pinpoint job at:
+
+https://testbed.example.com/job/1
+
+If you think Pinpoint blamed the wrong commit, please add the
+`Chromeperf-Auto-NeedsAttention` label to the issue so that a sheriff can
+help diagnose.""")
 
 _COMMENT_COMPLETED_THREE_DIFFERENCES_ABSOLUTE = (
     u"""<b>\U0001f4cd Found significant differences at 3 commits.</b>
@@ -137,9 +168,15 @@ https://example.com/repository/+/git_hash_1
 No values \u2192 10
 
 Understanding performance regressions:
-  http://g.co/ChromePerformanceRegressions"""
-)
+  http://g.co/ChromePerformanceRegressions
 
+You can view the full results and re-run the Pinpoint job at:
+
+https://testbed.example.com/job/1
+
+If you think Pinpoint blamed the wrong commit, please add the
+`Chromeperf-Auto-NeedsAttention` label to the issue so that a sheriff can
+help diagnose.""")
 
 _COMMENT_FAILED = (
     u"""\U0001f63f Pinpoint job stopped with an error.
