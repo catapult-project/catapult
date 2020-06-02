@@ -482,8 +482,8 @@ class AlertGroupWorkflow(object):
             end=end_git_hash
         ),
         issue=anomaly.Issue(
-            project_id=alert.project_id,
-            issue_id=alert.bug_id,
+            project_id=self._group.bug.project,
+            issue_id=self._group.bug.bug_id,
         ),
         comparison_mode='performance',
         target=target,
