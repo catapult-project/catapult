@@ -10,6 +10,15 @@ import datetime
 import json
 import uuid
 
+# Importing mock_oauth2_decorator before file_bug mocks out OAuth2Decorator
+# usage in that file. We need this because importing alert_group_workflow.py
+# will transitively import file_bug.py which then uses the decorator the first
+# time it's loaded.
+# pylint: disable=unused-import
+from dashboard import mock_oauth2_decorator
+# pylint: enable=unused-import
+
+from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import alert_group
@@ -28,6 +37,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self._sheriff_config = testing_common.FakeSheriffConfigClient()
     self._pinpoint = testing_common.FakePinpoint()
     self._crrev = testing_common.FakeCrrev()
+    self._gitiles = testing_common.FakeGitiles()
 
   @staticmethod
   def _AddAnomaly(**kwargs):
@@ -907,4 +917,70 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(['Chromeperf-Auto-NeedsAttention'],
                      self._issue_tracker.add_comment_kwargs['labels'])
     self.assertIn('Only telemetry is supported at the moment.',
+                  self._issue_tracker.add_comment_args[1])
+
+  def testBisect_SingleCL(self):
+    anomalies = [
+        self._AddAnomaly(
+            # Current implementation requires that a revision string is between
+            # 5 and 7 digits long.
+            start_revision=11111,
+            end_revision=11111,
+            test='ChromiumPerf/some-bot/some-benchmark/some-metric/some-story')
+    ]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged)
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ]
+    }
+    # Here we are simulating that a gitiles service will respond to a specific
+    # repository URL (the format is not important) and can map a commit (40
+    # hexadecimal characters) to some commit information.
+    self._gitiles._repo_commit_list.update({
+        'git://chromium': {
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa': {
+                'author': {
+                    'email': 'author@chromium.org',
+                },
+                'message': 'This is some commit.\n\nWith some details.',
+            }
+        }
+    })
+
+    # We are also seeding some repository information to let us set which
+    # repository URL is being used to look up data from a gitiles service.
+    namespaced_stored_object.Set('repositories', {
+        'chromium': {
+            'repository_url': 'git://chromium'
+        },
+    })
+
+    # Current implementation requires that a git hash is 40 characters of
+    # hexadecimal digits.
+    self._crrev.SetSuccess('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+        gitiles=self._gitiles)
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue))
+    self.assertEqual(alert_group.AlertGroup.Status.bisected, group.get().status)
+    self.assertEqual([], group.get().bisection_ids)
+    self.assertEqual(['Chromeperf-Auto-Assigned'],
+                     self._issue_tracker.add_comment_kwargs['labels'])
+    self.assertIn(('Assigning to author@chromium.org because this is the '
+                   'only CL in range:'),
                   self._issue_tracker.add_comment_args[1])

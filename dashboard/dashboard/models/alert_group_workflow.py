@@ -24,21 +24,23 @@ from __future__ import absolute_import
 import collections
 import datetime
 import itertools
-import os
-import logging
-
 import jinja2
+import logging
+import os
+
+from google.appengine.ext import ndb
 
 from dashboard import pinpoint_request
 from dashboard import sheriff_config_client
+from dashboard.common import file_bug
 from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import subscription
 from dashboard.services import crrev_service
+from dashboard.services import gitiles_service
 from dashboard.services import issue_tracker_service
 from dashboard.services import pinpoint_service
-from google.appengine.ext import ndb
 
 # Templates used for rendering issue contents
 _TEMPLATE_LOADER = jinja2.FileSystemLoader(
@@ -103,7 +105,7 @@ class AlertGroupWorkflow(object):
     __slots__ = ()
 
   def __init__(self, group, config=None, sheriff_config=None,
-               issue_tracker=None, pinpoint=None, crrev=None):
+               issue_tracker=None, pinpoint=None, crrev=None, gitiles=None):
     self._group = group
     self._config = config or self.Config(
         active_window=_ALERT_GROUP_ACTIVE_WINDOW,
@@ -114,6 +116,7 @@ class AlertGroupWorkflow(object):
     self._issue_tracker = issue_tracker or _IssueTracker()
     self._pinpoint = pinpoint or pinpoint_service
     self._crrev = crrev or crrev_service
+    self._gitiles = gitiles or gitiles_service
 
   def _PrepareGroupUpdate(self):
     now = datetime.datetime.utcnow()
@@ -340,11 +343,49 @@ class AlertGroupWorkflow(object):
         a.bug_id = bug.bug_id
     ndb.put_multi(anomalies)
 
+  def _AssignIssue(self, regression):
+    commit_info = file_bug.GetCommitInfoForAlert(regression, self._crrev,
+                                                 self._gitiles)
+    if not commit_info:
+      return False
+    assert self._group.bug is not None
+    file_bug.AssignBugToCLAuthor(
+        self._group.bug.bug_id,
+        commit_info,
+        self._issue_tracker,
+        labels=['Chromeperf-Auto-Assigned'],
+        project=self._group.project_id)
+    return True
+
   def _TryBisect(self, now, anomalies):
     try:
-      job_id, bisected = self._StartPinpointBisectJob(anomalies)
-      if not job_id:
+      regressions, _ = self._GetRegressions(anomalies)
+      bisect_enabled = [
+          r for r in regressions
+          if r.auto_bisect_enable and r.bug_id > 0
+      ]
+
+      # Do nothing if none of the regressions should be auto-bisected.
+      if not bisect_enabled:
         return
+
+      regression = self._SelectAutoBisectRegression(bisect_enabled)
+
+      # We'll only bisect a range if the range at least one point.
+      if regression.start_revision == regression.end_revision:
+        # At this point we've decided that the range of the commits is a single
+        # point, so we don't bother bisecting.
+        if not self._AssignIssue(regression):
+          self._UpdateWithBisectError(
+              now, 'Cannot find assignee for regression at %s.' %
+              (regression.end_revision,))
+        else:
+          self._group.updated = now
+          self._group.status = self._group.Status.bisected
+          self._CommitGroup()
+        return
+
+      job_id = self._StartPinpointBisectJob(regression)
     except InvalidPinpointRequest as error:
       self._UpdateWithBisectError(now, error)
       return
@@ -354,18 +395,13 @@ class AlertGroupWorkflow(object):
     self._group.updated = now
     self._group.status = self._group.Status.bisected
     self._CommitGroup()
-
     self._issue_tracker.AddBugComment(
         self._group.bug.bug_id,
-        'Auto-Bisection started on %s' % (
-            ','.join(utils.TestPath(a.test) for a in bisected),),
+        'Auto-Bisection started on %s' % (utils.TestPath(regression.test)),
         labels=['Chromeperf-Auto-Bisected'],
         project=self._group.project_id)
-
-    # Link the bug to auto-bisect enabled anomalies.
-    for a in bisected:
-      a.pinpoint_bisects.append(job_id)
-    ndb.put_multi(bisected)
+    regression.pinpoint_bisects.append(job_id)
+    regression.put()
 
   def _FileIssue(self, anomalies):
     regressions, subscriptions = self._GetRegressions(anomalies)
@@ -401,16 +437,7 @@ class AlertGroupWorkflow(object):
         bug_id=response['bug_id'],
     ), anomalies
 
-  def _StartPinpointBisectJob(self, anomalies):
-    regressions, _ = self._GetRegressions(anomalies)
-    bisect_enabled = [
-        r for r in regressions
-        if r.auto_bisect_enable and r.bug_id > 0
-    ]
-    if not bisect_enabled:
-      return None, []
-
-    regression = self._SelectAutoBisectRegression(bisect_enabled)
+  def _StartPinpointBisectJob(self, regression):
     try:
       results = self._pinpoint.NewJob(self._NewPinpointRequest(regression))
     except pinpoint_request.InvalidParamsError as error:
@@ -420,10 +447,13 @@ class AlertGroupWorkflow(object):
       raise InvalidPinpointRequest(
           'Start pinpoint bisection failed: %s' % (results,))
 
-    return results.get('jobId'), [regression]
+    return results.get('jobId')
 
   @staticmethod
   def _SelectAutoBisectRegression(regressions):
+    if not regressions:
+      return None, []
+
     max_regression = None
     max_count = 0
 
@@ -499,7 +529,7 @@ class AlertGroupWorkflow(object):
         },
     )
 
-  def _UpdateWithBisectError(self, now, error):
+  def _UpdateWithBisectError(self, now, error, labels=None):
     self._group.updated = now
     self._group.status = self._group.Status.bisected
     self._CommitGroup()
@@ -507,8 +537,9 @@ class AlertGroupWorkflow(object):
         self._group.bug.bug_id,
         'Auto-Bisection failed with the following message:\n\n'
         '%s\n\nNot retrying' % (error,),
-        labels=['Chromeperf-Auto-NeedsAttention'],
+        labels=labels if labels else ['Chromeperf-Auto-NeedsAttention'],
         project=self._group.project_id)
+
 
 def _IssueTracker():
   """Get a cached IssueTracker instance."""

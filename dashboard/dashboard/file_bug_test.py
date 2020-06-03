@@ -8,9 +8,8 @@ from __future__ import absolute_import
 
 import datetime
 import json
-import sys
-
 import mock
+import sys
 import webapp2
 import webtest
 
@@ -28,7 +27,6 @@ from dashboard.models import anomaly
 from dashboard.models import bug_label_patterns
 from dashboard.models import histogram
 from dashboard.models.subscription import Subscription
-from dashboard.services import crrev_service
 
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
@@ -38,17 +36,16 @@ class FileBugTest(testing_common.TestCase):
 
   def setUp(self):
     super(FileBugTest, self).setUp()
-    app = webapp2.WSGIApplication([('/file_bug', file_bug.FileBugHandler)])
-    self.testapp = webtest.TestApp(app)
     testing_common.SetSheriffDomains(['chromium.org'])
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
     self.SetCurrentUser('foo@chromium.org')
-
     self._issue_tracker_service = testing_common.FakeIssueTrackerService()
     self.PatchObject(
         file_bug.file_bug.issue_tracker_service,
         'IssueTrackerService', lambda *_: self._issue_tracker_service)
+    app = webapp2.WSGIApplication([('/file_bug', file_bug.FileBugHandler)])
+    self.testapp = webtest.TestApp(app)
 
   def tearDown(self):
     super(FileBugTest, self).tearDown()
@@ -335,9 +332,9 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
                      mock.MagicMock(return_value=[]))
   @mock.patch.object(
-      crrev_service, 'GetNumbering',
-      mock.MagicMock(
-          return_value={'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
+      file_bug.file_bug.crrev_service, 'GetNumbering',
+      mock.MagicMock(return_value={
+          'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
   @mock.patch('dashboard.services.gitiles_service.CommitInfo',
               mock.MagicMock(return_value={
                   'author': {
@@ -375,9 +372,9 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
                      mock.MagicMock(return_value=[]))
   @mock.patch.object(
-      crrev_service, 'GetNumbering',
-      mock.MagicMock(
-          return_value={'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
+      file_bug.file_bug.crrev_service, 'GetNumbering',
+      mock.MagicMock(return_value={
+          'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
   @mock.patch('dashboard.services.gitiles_service.CommitInfo',
               mock.MagicMock(
                   return_value={
@@ -473,9 +470,9 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
                      mock.MagicMock(return_value=[]))
   @mock.patch.object(
-      crrev_service, 'GetNumbering',
-      mock.MagicMock(
-          return_value={'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
+      file_bug.file_bug.crrev_service, 'GetNumbering',
+      mock.MagicMock(return_value={
+          'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
   @mock.patch('dashboard.services.gitiles_service.CommitInfo',
               mock.MagicMock(return_value={
                   'author': {
