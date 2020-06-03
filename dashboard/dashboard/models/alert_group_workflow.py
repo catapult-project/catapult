@@ -143,7 +143,21 @@ class AlertGroupWorkflow(object):
 
     Returns the key for the associated group when the workflow was
     initialized."""
+
     update = update or self._PrepareGroupUpdate()
+
+    # Process input before we start processing the group.
+    for a in update.anomalies:
+      subscriptions, _ = self._sheriff_config.Match(
+          a.test.string_id(), check=True)
+      a.subscriptions = subscriptions
+      a.auto_triage_enable = any(s.auto_triage_enable for s in subscriptions)
+      a.auto_bisect_enable = any(s.auto_bisect_enable for s in subscriptions)
+      a.relative_delta = (
+          abs(a.absolute_delta / float(a.median_before_anomaly))
+          if a.median_before_anomaly != 0. else float('Inf')
+      )
+
     added = self._UpdateAnomalies(update.anomalies)
     if update.issue:
       self._UpdateStatus(update.issue)
@@ -175,22 +189,24 @@ class AlertGroupWorkflow(object):
       self._group.status = self._group.Status.triaged
 
   def _UpdateIssue(self, issue, anomalies, added):
-    regressions, subscriptions = self._GetPreproccessedRegressions(added)
-    # Only update issue if there is at least one regression
-    if not regressions or not any(r.auto_triage_enable for r in regressions):
-      # Check whether all the anomalies associated have been marked recovered.
-      if all(a.recovered for a in anomalies if not a.is_improvement):
-        return self._CloseBecauseRecovered()
-      return None
-
-    for a in added:
+    for a in anomalies:
       if a.bug_id is None and a.auto_triage_enable:
         a.project_id = self._group.project_id
         a.bug_id = self._group.bug.bug_id
 
     # Write back bug_id to anomalies. We can't do it when anomaly is
-    # found because group may being updating at that time.
-    ndb.put_multi(added)
+    # found because group may be updating at the same time.
+    ndb.put_multi(anomalies)
+
+    # Check whether all the anomalies associated have been marked recovered.
+    if all(a.recovered for a in anomalies if not a.is_improvement):
+      return self._CloseBecauseRecovered()
+
+    regressions, subscriptions = self._GetRegressions(added)
+
+    # Only update issue if there is at least one regression
+    if not regressions or not any(r.auto_triage_enable for r in regressions):
+      return
 
     if issue.get('state') == 'closed':
       self._ReopenWithNewRegressions(regressions, subscriptions)
@@ -230,25 +246,11 @@ class AlertGroupWorkflow(object):
         components=components,
         project=self._group.project_id)
 
-  def _GetPreproccessedRegressions(self, anomalies):
+  def _GetRegressions(self, anomalies):
     regressions = []
     subscriptions_dict = {}
     for a in anomalies:
-      subscriptions, _ = self._sheriff_config.Match(
-          a.test.string_id(), check=True)
-      subscriptions_dict.update({s.name: s for s in subscriptions})
-      # Only auto-triage if this is a regression.
-      a.auto_triage_enable = any(s.auto_triage_enable for s in subscriptions)
-      a.auto_bisect_enable = any(s.auto_bisect_enable for s in subscriptions)
-      a.relative_delta = abs(a.absolute_delta / float(a.median_before_anomaly)
-                            ) if a.median_before_anomaly != 0. else float('Inf')
-
-      # Always associate the issue to an anomaly if it qualifies for
-      # auto-triage, and if we already have an issue associated with the group.
-      if (self._group.bug is not None and a.bug_id is None
-          and a.auto_triage_enable):
-        a.bug_id = self._group.bug.bug_id
-        a.project_id = self._group.project_id
+      subscriptions_dict.update({s.name: s for s in a.subscriptions})
       if not a.is_improvement and not a.recovered:
         regressions.append(a)
     return (regressions, subscriptions_dict.values())
@@ -366,7 +368,7 @@ class AlertGroupWorkflow(object):
     ndb.put_multi(bisected)
 
   def _FileIssue(self, anomalies):
-    regressions, subscriptions = self._GetPreproccessedRegressions(anomalies)
+    regressions, subscriptions = self._GetRegressions(anomalies)
     # Only file a issue if there is at least one regression
     # We can't use subsciptions' auto_triage_enable here because it's
     # merged across anomalies.
@@ -400,7 +402,7 @@ class AlertGroupWorkflow(object):
     ), anomalies
 
   def _StartPinpointBisectJob(self, anomalies):
-    regressions, _ = self._GetPreproccessedRegressions(anomalies)
+    regressions, _ = self._GetRegressions(anomalies)
     bisect_enabled = [
         r for r in regressions
         if r.auto_bisect_enable and r.bug_id > 0
