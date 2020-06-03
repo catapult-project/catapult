@@ -541,6 +541,10 @@ class NonChromiumAutoTriage(GroupReportTestBase):
     a = a.get()
     self.assertEqual(a.project_id, 'non-chromium')
 
+    stored_issue = self.fake_issue_tracker.GetIssue(a.bug_id, 'non-chromium')
+    logging.debug('bug_id = %s', a.bug_id)
+    self.assertIsNotNone(stored_issue)
+
     # Now let's ensure that when new anomalies come in, that we're grouping
     # them into the same group for non-chromium alerts.
     self._AddAnomaly(start_revision=1)

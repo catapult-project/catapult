@@ -261,7 +261,7 @@ class FileBugTest(testing_common.TestCase):
     # parameter given, an issue will be created using the issue tracker
     # API, and the anomalies will be updated, and a response page will
     # be sent which indicates success.
-    self._issue_tracker_service.bug_id = 277761
+    self._issue_tracker_service._bug_id_counter = 277761
     response = self._PostSampleBug()
 
     # The response page should have a bug number.
@@ -305,7 +305,7 @@ class FileBugTest(testing_common.TestCase):
     # parameter given, an issue will be created using the issue tracker
     # API, and the anomalies will be updated, and a response page will
     # be sent which indicates success.
-    self._issue_tracker_service.bug_id = 277761
+    self._issue_tracker_service._bug_id_counter = 277761
     response = self._PostSampleBug()
 
     # The response page should have a bug number.
@@ -354,7 +354,7 @@ class FileBugTest(testing_common.TestCase):
                     "https://chromium.googlesource.com/chromium/src"
             }
         })
-    self._issue_tracker_service.bug_id = 277761
+    self._issue_tracker_service._bug_id_counter = 277761
     response = self._PostSampleBug(is_single_rev=True)
 
     # The response page should have a bug number.
@@ -396,7 +396,7 @@ class FileBugTest(testing_common.TestCase):
                     "https://chromium.googlesource.com/chromium/src"
             }
         })
-    self._issue_tracker_service.bug_id = 277761
+    self._issue_tracker_service._bug_id_counter = 277761
     response = self._PostSampleBug(is_single_rev=True)
 
     # The response page should have a bug number.
@@ -425,7 +425,7 @@ class FileBugTest(testing_common.TestCase):
                     "https://chromium.googlesource.com/chromium/src"
             }
         })
-    self._issue_tracker_service.bug_id = 277761
+    self._issue_tracker_service._bug_id_counter = 277761
     response = self._PostSampleBug(is_single_rev=True, master='ClankInternal')
 
     # The response page should have a bug number.
@@ -453,7 +453,7 @@ class FileBugTest(testing_common.TestCase):
                     "https://chromium.googlesource.com/chromium/src"
             }
         })
-    self._issue_tracker_service.bug_id = 277761
+    self._issue_tracker_service._bug_id_counter = 277761
     response = self._PostSampleBug(is_single_rev=True, master='FakeMaster')
 
     # The response page should have a bug number.
@@ -492,7 +492,7 @@ class FileBugTest(testing_common.TestCase):
                     "https://chromium.googlesource.com/chromium/src"
             }
         })
-    self._issue_tracker_service.bug_id = 277761
+    self._issue_tracker_service._bug_id_counter = 277761
     response = self._PostSampleBug(is_single_rev=True, master='Foo')
 
     # The response page should have a bug number.

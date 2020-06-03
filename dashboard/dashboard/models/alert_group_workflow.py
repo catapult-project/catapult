@@ -53,8 +53,9 @@ _TEMPLATE_ISSUE_CONTENT = _TEMPLATE_ENV.get_template(
     'alert_groups_bug_description.j2')
 _TEMPLATE_ISSUE_COMMENT = _TEMPLATE_ENV.get_template(
     'alert_groups_bug_comment.j2')
-_TEMPLATE_REOPEN_COMMENT = _TEMPLATE_ENV.get_template(
-    'reopen_issue_comment.j2')
+_TEMPLATE_REOPEN_COMMENT = _TEMPLATE_ENV.get_template('reopen_issue_comment.j2')
+_TEMPLATE_AUTO_BISECT_COMMENT = _TEMPLATE_ENV.get_template(
+    'auto_bisect_comment.j2')
 
 # Waiting 7 days to gather more potential alerts. Just choose a long
 # enough time and all alerts arrive after archived shouldn't be silent
@@ -174,7 +175,7 @@ class AlertGroupWorkflow(object):
         group.status in {group.Status.untriaged}):
       self._TryTriage(update.now, update.anomalies)
     elif group.status in {group.Status.triaged}:
-      self._TryBisect(update.now, update.anomalies)
+      self._TryBisect(update)
     return self._CommitGroup()
 
   def _CommitGroup(self):
@@ -357,9 +358,13 @@ class AlertGroupWorkflow(object):
         project=self._group.project_id)
     return True
 
-  def _TryBisect(self, now, anomalies):
+  def _TryBisect(self, update):
+    if (update.issue
+        and 'Chromeperf-Auto-BisectOptOut' in update.issue.get('labels')):
+      return
+
     try:
-      regressions, _ = self._GetRegressions(anomalies)
+      regressions, _ = self._GetRegressions(update.anomalies)
       bisect_enabled = [
           r for r in regressions
           if r.auto_bisect_enable and r.bug_id > 0
@@ -377,27 +382,28 @@ class AlertGroupWorkflow(object):
         # point, so we don't bother bisecting.
         if not self._AssignIssue(regression):
           self._UpdateWithBisectError(
-              now, 'Cannot find assignee for regression at %s.' %
+              update.now, 'Cannot find assignee for regression at %s.' %
               (regression.end_revision,))
         else:
-          self._group.updated = now
+          self._group.updated = update.now
           self._group.status = self._group.Status.bisected
           self._CommitGroup()
         return
 
       job_id = self._StartPinpointBisectJob(regression)
     except InvalidPinpointRequest as error:
-      self._UpdateWithBisectError(now, error)
+      self._UpdateWithBisectError(update.now, error)
       return
 
     # Update the issue associated with his group, before we continue.
     self._group.bisection_ids.append(job_id)
-    self._group.updated = now
+    self._group.updated = update.now
     self._group.status = self._group.Status.bisected
     self._CommitGroup()
     self._issue_tracker.AddBugComment(
         self._group.bug.bug_id,
-        'Auto-Bisection started on %s' % (utils.TestPath(regression.test)),
+        _TEMPLATE_AUTO_BISECT_COMMENT.render(
+            {'test': utils.TestPath(regression.test)}),
         labels=['Chromeperf-Auto-Bisected'],
         project=self._group.project_id)
     regression.pinpoint_bisects.append(job_id)

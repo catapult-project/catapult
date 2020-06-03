@@ -398,7 +398,6 @@ class FakeIssueTrackerService(object):
         'kwargs': kwargs,
     })
     # TODO(dberris): In the future, actually generate the issue.
-    self._bug_id_counter += 1
     self.issues.update({
         (kwargs.get('project', 'chromium'), self._bug_id_counter): {
             k: v for k, v in itertools.chain(self._base_issue.items(), [(
@@ -406,10 +405,12 @@ class FakeIssueTrackerService(object):
             ), ('projectId', kwargs.get('project', 'chromium'))])
         }
     })
-    return {
-        'bug_id': self.bug_id,
+    result = {
+        'bug_id': self._bug_id_counter,
         'project_id': kwargs.get('project', 'chromium')
     }
+    self._bug_id_counter += 1
+    return result
 
   def AddBugComment(self, *args, **kwargs):
     self.add_comment_args = args

@@ -1,6 +1,7 @@
 # Copyright 2020 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+# pylint: disable=too-many-lines
 
 from __future__ import print_function
 from __future__ import division
@@ -10,13 +11,7 @@ import datetime
 import json
 import uuid
 
-# Importing mock_oauth2_decorator before file_bug mocks out OAuth2Decorator
-# usage in that file. We need this because importing alert_group_workflow.py
-# will transitively import file_bug.py which then uses the decorator the first
-# time it's loaded.
-# pylint: disable=unused-import
-from dashboard import mock_oauth2_decorator
-# pylint: enable=unused-import
+from google.appengine.ext import ndb
 
 from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
@@ -25,7 +20,6 @@ from dashboard.models import alert_group
 from dashboard.models import alert_group_workflow
 from dashboard.models import anomaly
 from dashboard.models import subscription
-from google.appengine.ext import ndb
 
 
 class AlertGroupWorkflowTest(testing_common.TestCase):
@@ -984,3 +978,37 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertIn(('Assigning to author@chromium.org because this is the '
                    'only CL in range:'),
                   self._issue_tracker.add_comment_args[1])
+
+  def testBisect_ExplicitOptOut(self):
+    anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    self._issue_tracker.issue.update({
+        'state':
+            'open',
+        'labels':
+            self._issue_tracker.issue.get('labels') +
+            ['Chromeperf-Auto-BisectOptOut']
+    })
+    self._sheriff_config.patterns = {
+        '*': [subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    self.assertIn('Chromeperf-Auto-BisectOptOut',
+                  self._issue_tracker.issue.get('labels'))
+    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+        now=datetime.datetime.utcnow(),
+        anomalies=ndb.get_multi(anomalies),
+        issue=self._issue_tracker.issue,
+    ))
+    self.assertIsNone(self._pinpoint.new_job_request)
