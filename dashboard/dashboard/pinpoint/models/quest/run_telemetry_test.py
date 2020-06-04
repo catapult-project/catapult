@@ -51,6 +51,20 @@ def ChangeDependentArgs(args, change):
 
 class RunTelemetryTest(run_performance_test.RunPerformanceTest):
 
+  @classmethod
+  def _ComputeCommand(cls, arguments):
+    # We're moving the definition of which command to run here, instead of
+    # relying on what's in the isolate because the 'command' feature is
+    # deprecated and will be removed soon (EOY 2020).
+    # TODO(dberris): Move this out to a configuration elsewhere.
+    command = [
+        'luci-auth', 'context', '--', 'vpython', '../../testing/test_env.py',
+        '../../testing/scripts/run_performance_tests.py',
+        '../../tools/perf/run_benchmark'
+    ]
+    relative_cwd = arguments.get('relative_cwd', 'out/Release')
+    return relative_cwd, command
+
   def Start(self, change, isolate_server, isolate_hash):
     extra_swarming_tags = {'change': str(change)}
     return self._Start(change, isolate_server, isolate_hash,

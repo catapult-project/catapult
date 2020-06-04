@@ -14,6 +14,7 @@ from dashboard.pinpoint.models.quest import run_test_test
 _BASE_ARGUMENTS = {
     'swarming_server': 'server',
     'dimensions': run_test_test.DIMENSIONS,
+    'target': 'some_browser_test',
 }
 
 
@@ -29,7 +30,8 @@ class FromDictTest(unittest.TestCase):
     quest = run_browser_test.RunBrowserTest.FromDict(_BASE_ARGUMENTS)
     expected = run_browser_test.RunBrowserTest(
         'server', run_test_test.DIMENSIONS, _BASE_EXTRA_ARGS,
-        _BASE_SWARMING_TAGS)
+        _BASE_SWARMING_TAGS,
+        ['luci-auth', 'context', '--', 'some_browser_test'], 'out/Release')
     self.assertEqual(quest, expected)
 
   def testAllArguments(self):
@@ -40,6 +42,6 @@ class FromDictTest(unittest.TestCase):
 
     extra_args = ['--gtest_filter=%s' % filter_string] + _BASE_EXTRA_ARGS
     expected = run_browser_test.RunBrowserTest(
-        'server', run_test_test.DIMENSIONS, extra_args,
-        _BASE_SWARMING_TAGS)
+        'server', run_test_test.DIMENSIONS, extra_args, _BASE_SWARMING_TAGS,
+        ['luci-auth', 'context', '--', 'some_browser_test'], 'out/Release')
     self.assertEqual(quest, expected)

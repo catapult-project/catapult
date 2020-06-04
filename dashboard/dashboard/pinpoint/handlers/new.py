@@ -368,6 +368,14 @@ def _GenerateQuests(arguments):
       quest_classes = (quest_module.FindIsolate,
                        quest_module.RunVrTelemetryTest,
                        quest_module.ReadValue)
+    elif 'browser_test' in target:
+      quest_classes = (quest_module.FindIsolate,
+                       quest_module.RunBrowserTest,
+                       quest_module.ReadValue)
+    elif 'instrumentation_test' in target:
+      quest_classes = (quest_module.FindIsolate,
+                       quest_module.RunInstrumentationTest,
+                       quest_module.ReadValue)
     else:
       quest_classes = (quest_module.FindIsolate, quest_module.RunGTest,
                        quest_module.ReadValue)

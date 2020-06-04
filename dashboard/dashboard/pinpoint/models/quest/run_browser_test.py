@@ -16,6 +16,19 @@ _DEFAULT_EXTRA_ARGS = ['--test-launcher-bot-mode']
 class RunBrowserTest(run_test.RunTest):
 
   @classmethod
+  def _ComputeCommand(cls, arguments):
+    if 'target' not in arguments:
+      raise ValueError('Missing "target" in arguments.')
+
+    # We are assuming that the 'target' already has the name of the browser
+    # test.
+    command = arguments.get(
+        'command', ['luci-auth', 'context', '--',
+                    arguments.get('target')])
+    relative_cwd = arguments.get('relative_cwd', 'out/Release')
+    return relative_cwd, command
+
+  @classmethod
   def _ExtraTestArgs(cls, arguments):
     extra_test_args = []
 

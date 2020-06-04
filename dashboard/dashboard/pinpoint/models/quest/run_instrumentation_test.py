@@ -16,6 +16,15 @@ _DEFAULT_EXTRA_ARGS = ['--recover-devices']
 class RunInstrumentationTest(run_test.RunTest):
 
   @classmethod
+  def _ComputeCommand(cls, arguments):
+    target = arguments.get('target')
+    if not target:
+      raise ValueError('Missing "target" in arguments.')
+    command = arguments.get('command', ['luci-auth', 'context', '--', target])
+    relative_cwd = arguments.get('relative_cwd', 'out/Release')
+    return relative_cwd, command
+
+  @classmethod
   def _ExtraTestArgs(cls, arguments):
     extra_test_args = []
 

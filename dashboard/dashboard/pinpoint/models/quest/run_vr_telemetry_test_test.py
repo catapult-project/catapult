@@ -42,7 +42,11 @@ _CARDBOARD_EXTRA_ARGS = [
     '--shared-prefs-file', run_vr_telemetry_test.CARDBOARD_PREFS,
     '--benchmarks', 'xr.webxr.static'] + _BASE_EXTRA_ARGS
 
-
+_TELEMETRY_COMMAND = [
+    'luci-auth', 'context', '--', 'vpython', '../../testing/test_env.py',
+    '../../testing/scripts/run_performance_tests.py',
+    '../../tools/perf/run_benchmark'
+]
 _BASE_SWARMING_TAGS = {}
 
 
@@ -63,7 +67,7 @@ class AndroidFromDictTest(unittest.TestCase):
         _CARDBOARD_ARGUMENTS)
     expected = run_vr_telemetry_test.RunVrTelemetryTest(
         'server', run_test_test.DIMENSIONS, _CARDBOARD_EXTRA_ARGS,
-        _BASE_SWARMING_TAGS)
+        _BASE_SWARMING_TAGS, _TELEMETRY_COMMAND, 'out/Release')
     self.assertEqual(quest, expected)
 
   def testBrowsingArgs(self):
@@ -71,7 +75,7 @@ class AndroidFromDictTest(unittest.TestCase):
         _BROWSING_ARGUMENTS)
     expected = run_vr_telemetry_test.RunVrTelemetryTest(
         'server', run_test_test.DIMENSIONS, _BROWSING_EXTRA_ARGS,
-        _BASE_SWARMING_TAGS)
+        _BASE_SWARMING_TAGS, _TELEMETRY_COMMAND, 'out/Release')
     self.assertEqual(quest, expected)
 
 
@@ -94,7 +98,7 @@ class WindowsFromDictTest(unittest.TestCase):
         _BASE_WINDOWS_ARGUMENTS)
     expected = run_vr_telemetry_test.RunVrTelemetryTest(
         'server', run_test_test.DIMENSIONS, _WINDOWS_EXTRA_ARGS,
-        _BASE_SWARMING_TAGS)
+        _BASE_SWARMING_TAGS, _TELEMETRY_COMMAND, 'out/Release')
     self.assertEqual(quest, expected)
 
   def testContentShell(self):

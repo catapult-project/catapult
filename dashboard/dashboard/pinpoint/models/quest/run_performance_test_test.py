@@ -30,5 +30,5 @@ class FromDictTest(unittest.TestCase):
     quest = run_performance_test.RunPerformanceTest.FromDict(_BASE_ARGUMENTS)
     expected = run_performance_test.RunPerformanceTest(
         'server', run_test_test.DIMENSIONS, _BASE_EXTRA_ARGS,
-        _BASE_SWARMING_TAGS)
+        _BASE_SWARMING_TAGS, None, None)
     self.assertEqual(quest, expected)
