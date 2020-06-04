@@ -50,10 +50,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     default.update(kwargs)
 
     tests = default['test'].split('/')
+
     def GenerateTestDict(tests):
       if not tests:
         return {}
       return {tests[0]: GenerateTestDict(tests[1:])}
+
     testing_common.AddTests([tests[0]], [tests[1]], GenerateTestDict(tests[2:]))
     default['test'] = utils.TestKey(default['test'])
 
@@ -64,7 +66,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                      issue=None,
                      anomalies=None,
                      status=None,
-                     project_id=None):
+                     project_id=None,
+                     bisection_ids=None):
     anomaly_entity = anomaly_key.get()
     group = alert_group.AlertGroup(
         id=str(uuid.uuid4()),
@@ -77,6 +80,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             start=anomaly_entity.start_revision,
             end=anomaly_entity.end_revision,
         ),
+        bisection_ids=bisection_ids or [],
     )
     if issue:
       group.bug = alert_group.BugInfo(
@@ -93,10 +97,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
   def testAddAnomalies_GroupUntriaged(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
     added = [self._AddAnomaly(), self._AddAnomaly()]
-    group = self._AddAlertGroup(
-        anomalies[0],
-        anomalies=anomalies
-    )
+    group = self._AddAlertGroup(anomalies[0], anomalies=anomalies)
     self._sheriff_config.patterns = {
         '*': [subscription.Subscription(name='sheriff')],
     }
@@ -105,11 +106,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies + added),
-        issue={},
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies + added),
+            issue={},
+        ))
 
     self.assertEqual(len(group.get().anomalies), 4)
     for a in added:
@@ -128,23 +130,24 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'state': 'open',
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True)],
+        '*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies + added),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies + added),
+            issue=self._issue_tracker.issue,
+        ))
 
     self.assertEqual(len(group.get().anomalies), 4)
-    self.assertEqual(group.get().status,
-                     alert_group.AlertGroup.Status.triaged)
+    self.assertEqual(group.get().status, alert_group.AlertGroup.Status.triaged)
     for a in added:
       self.assertIn(a, group.get().anomalies)
       self.assertEqual(group.get().bug.bug_id,
@@ -165,19 +168,21 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'state': 'closed',
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True)],
+        '*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies + added),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies + added),
+            issue=self._issue_tracker.issue,
+        ))
 
     self.assertEqual(len(group.get().anomalies), 4)
     self.assertEqual('open', self._issue_tracker.issue.get('state'))
@@ -199,19 +204,21 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'state': 'closed',
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True)],
+        '*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
 
     self.assertEqual(group.get().status, alert_group.AlertGroup.Status.closed)
 
@@ -226,19 +233,21 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'state': 'open',
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True)],
+        '*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
 
     self.assertEqual(group.get().status, alert_group.AlertGroup.Status.triaged)
 
@@ -256,19 +265,21 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'state': 'open',
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True)],
+        '*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
 
     self.assertEqual('closed', self._issue_tracker.issue.get('state'))
 
@@ -283,19 +294,21 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'state': 'open',
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True)],
+        '*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
 
     self.assertEqual('open', self._issue_tracker.issue.get('state'))
 
@@ -306,8 +319,9 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         status=alert_group.AlertGroup.Status.untriaged,
     )
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True)],
+        '*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
@@ -318,11 +332,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             triage_delay=datetime.timedelta(hours=0),
         ),
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=None,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=None,
+        ))
     self.assertIn('2 regressions', self._issue_tracker.new_bug_args[0])
 
   def testTriage_NonChromiumProject(self):
@@ -372,8 +387,9 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         status=alert_group.AlertGroup.Status.untriaged,
     )
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True)],
+        '*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
@@ -384,11 +400,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             triage_delay=datetime.timedelta(hours=0),
         ),
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=None,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=None,
+        ))
     self.assertIn('inf', self._issue_tracker.new_bug_args[1])
 
   def testTriage_GroupTriaged_InfAnomaly(self):
@@ -399,19 +416,21 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         status=alert_group.AlertGroup.Status.triaged,
     )
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True)],
+        '*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
     self.assertIn('inf', self._issue_tracker.add_comment_args[1])
 
   def testArchive_GroupUntriaged(self):
@@ -433,11 +452,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             triage_delay=datetime.timedelta(hours=0),
         ),
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=None,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=None,
+        ))
     self.assertEqual(False, group.get().active)
 
   def testArchive_GroupTriaged(self):
@@ -452,8 +472,9 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'state': 'open',
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True)],
+        '*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
@@ -464,11 +485,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             triage_delay=datetime.timedelta(hours=0),
         ),
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
     self.assertEqual(True, group.get().active)
 
   def testBisect_GroupTriaged(self):
@@ -485,8 +507,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'state': 'open',
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
@@ -495,11 +521,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
     tags = json.loads(self._pinpoint.new_job_request['tags'])
     self.assertEqual(anomalies[1].urlsafe(), tags['alert'])
 
@@ -509,9 +536,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
       self.assertIsInstance(v, basestring)
 
     self.assertEqual(['123456'], group.get().bisection_ids)
-    self.assertEqual(
-        ['Chromeperf-Auto-Bisected'],
-        self._issue_tracker.add_comment_kwargs['labels'])
+    self.assertEqual(['Chromeperf-Auto-Bisected'],
+                     self._issue_tracker.add_comment_kwargs['labels'])
 
   def testBisect_GroupBisected(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
@@ -524,8 +550,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'state': 'open',
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
@@ -534,14 +564,15 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
     self.assertIsNone(self._pinpoint.new_job_request)
 
-  def testBisect_GroupBisected_NoRecovered(self):
+  def testBisect_GroupTriaged_NoRecovered(self):
     anomalies = [
         self._AddAnomaly(
             median_before_anomaly=0.1, median_after_anomaly=1.0,
@@ -587,7 +618,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertNotEqual(recovered_anomaly.pinpoint_bisects, ['123456'])
     self.assertEqual(bisected_anomaly.pinpoint_bisects, ['123456'])
 
-  def testBisect_GroupBisected_NoIgnored(self):
+  def testBisect_GroupTriaged_NoIgnored(self):
     anomalies = [
         # This anomaly is manually ignored.
         self._AddAnomaly(
@@ -655,8 +686,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'state': 'open',
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
@@ -665,11 +700,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
     self.assertEqual(self._issue_tracker.bug_id,
                      self._pinpoint.new_job_request['bug_id'])
     self.assertEqual('chromium', self._pinpoint.new_job_request['project'])
@@ -699,8 +735,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'state': 'open',
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
@@ -709,11 +749,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
     self.assertEqual(
         anomalies[1].urlsafe(),
         json.loads(self._pinpoint.new_job_request['tags'])['alert'])
@@ -743,8 +784,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'state': 'open',
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
@@ -753,11 +798,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
     self.assertEqual(
         anomalies[1].urlsafe(),
         json.loads(self._pinpoint.new_job_request['tags'])['alert'])
@@ -789,8 +835,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'state': 'open',
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
@@ -799,15 +849,64 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
     self.assertEqual(
         anomalies[1].urlsafe(),
         json.loads(self._pinpoint.new_job_request['tags'])['alert'])
     self.assertEqual(['123456'], group.get().bisection_ids)
+
+  def testBisect_GroupTriaged_AlertBisected(self):
+    anomalies = [
+        self._AddAnomaly(
+            test='master/bot1/test_suite/measurement/test_case1',
+            pinpoint_bisects=['abcdefg'],
+            median_before_anomaly=0.2,
+        ),
+        self._AddAnomaly(
+            test='master/bot1/test_suite/measurement/test_case2',
+            pinpoint_bisects=['abcdef'],
+            median_before_anomaly=0.1,
+        ),
+    ]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+        bisection_ids=['abcdef'],
+    )
+    self._issue_tracker.issue.update({
+        'state': 'open',
+    })
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
+    self.assertEqual(
+        anomalies[0].urlsafe(),
+        json.loads(self._pinpoint.new_job_request['tags'])['alert'])
+    self.assertItemsEqual(['abcdef', '123456'], group.get().bisection_ids)
 
   def testBisect_GroupTriaged_CrrevFailed(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
@@ -821,8 +920,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     })
     self._crrev.SetFailure()
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
@@ -831,16 +934,16 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
     self.assertEqual(alert_group.AlertGroup.Status.bisected, group.get().status)
     self.assertEqual([], group.get().bisection_ids)
-    self.assertEqual(
-        ['Chromeperf-Auto-NeedsAttention'],
-        self._issue_tracker.add_comment_kwargs['labels'])
+    self.assertEqual(['Chromeperf-Auto-NeedsAttention'],
+                     self._issue_tracker.add_comment_kwargs['labels'])
 
   def testBisect_GroupTriaged_PinpointFailed(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
@@ -854,8 +957,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     })
     self._pinpoint.SetFailure()
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
@@ -864,16 +971,16 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
     self.assertEqual(alert_group.AlertGroup.Status.bisected, group.get().status)
     self.assertEqual([], group.get().bisection_ids)
-    self.assertEqual(
-        ['Chromeperf-Auto-NeedsAttention'],
-        self._issue_tracker.add_comment_kwargs['labels'])
+    self.assertEqual(['Chromeperf-Auto-NeedsAttention'],
+                     self._issue_tracker.add_comment_kwargs['labels'])
 
   def testBisect_UnsupportedTarget(self):
     anomalies = [
@@ -994,8 +1101,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             ['Chromeperf-Auto-BisectOptOut']
     })
     self._sheriff_config.patterns = {
-        '*': [subscription.Subscription(
-            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)],
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
@@ -1006,9 +1117,10 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     )
     self.assertIn('Chromeperf-Auto-BisectOptOut',
                   self._issue_tracker.issue.get('labels'))
-    w.Process(update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-        now=datetime.datetime.utcnow(),
-        anomalies=ndb.get_multi(anomalies),
-        issue=self._issue_tracker.issue,
-    ))
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
     self.assertIsNone(self._pinpoint.new_job_request)

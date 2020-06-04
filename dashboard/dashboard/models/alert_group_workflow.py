@@ -89,24 +89,33 @@ class AlertGroupWorkflow(object):
   process.
   """
 
-  class Config(collections.namedtuple(
-      'WorkflowConfig', ('active_window', 'triage_delay'))):
+  class Config(
+      collections.namedtuple('WorkflowConfig',
+                             ('active_window', 'triage_delay'))):
     __slots__ = ()
 
-  class GroupUpdate(collections.namedtuple(
-      'GroupUpdate', ('now', 'anomalies', 'issue'))):
+  class GroupUpdate(
+      collections.namedtuple('GroupUpdate', ('now', 'anomalies', 'issue'))):
     __slots__ = ()
 
-  class BenchmarkDetails(collections.namedtuple(
-      'BenchmarkDetails', ('name', 'bot', 'owners', 'regressions'))):
+  class BenchmarkDetails(
+      collections.namedtuple('BenchmarkDetails',
+                             ('name', 'bot', 'owners', 'regressions'))):
     __slots__ = ()
 
-  class BugUpdateDetails(collections.namedtuple(
-      'BugUpdateDetails', ('components', 'cc', 'labels'))):
+  class BugUpdateDetails(
+      collections.namedtuple('BugUpdateDetails',
+                             ('components', 'cc', 'labels'))):
     __slots__ = ()
 
-  def __init__(self, group, config=None, sheriff_config=None,
-               issue_tracker=None, pinpoint=None, crrev=None, gitiles=None):
+  def __init__(self,
+               group,
+               config=None,
+               sheriff_config=None,
+               issue_tracker=None,
+               pinpoint=None,
+               crrev=None,
+               gitiles=None):
     self._group = group
     self._config = config or self.Config(
         active_window=_ALERT_GROUP_ACTIVE_WINDOW,
@@ -159,8 +168,7 @@ class AlertGroupWorkflow(object):
       a.auto_bisect_enable = any(s.auto_bisect_enable for s in subscriptions)
       a.relative_delta = (
           abs(a.absolute_delta / float(a.median_before_anomaly))
-          if a.median_before_anomaly != 0. else float('Inf')
-      )
+          if a.median_before_anomaly != 0. else float('Inf'))
 
     added = self._UpdateAnomalies(update.anomalies)
     if update.issue:
@@ -365,16 +373,11 @@ class AlertGroupWorkflow(object):
 
     try:
       regressions, _ = self._GetRegressions(update.anomalies)
-      bisect_enabled = [
-          r for r in regressions
-          if r.auto_bisect_enable and r.bug_id > 0
-      ]
+      regression = self._SelectAutoBisectRegression(regressions)
 
       # Do nothing if none of the regressions should be auto-bisected.
-      if not bisect_enabled:
+      if regression is None:
         return
-
-      regression = self._SelectAutoBisectRegression(bisect_enabled)
 
       # We'll only bisect a range if the range at least one point.
       if regression.start_revision == regression.end_revision:
@@ -431,8 +434,7 @@ class AlertGroupWorkflow(object):
         labels=labels,
         components=components,
         cc=cc,
-        project=self._group.project_id
-    )
+        project=self._group.project_id)
     if 'error' in response:
       logging.warning('AlertGroup file bug failed: %s', response['error'])
       return None, []
@@ -450,15 +452,23 @@ class AlertGroupWorkflow(object):
       raise InvalidPinpointRequest('Invalid pinpoint request: %s' % (error,))
 
     if 'jobId' not in results:
-      raise InvalidPinpointRequest(
-          'Start pinpoint bisection failed: %s' % (results,))
+      raise InvalidPinpointRequest('Start pinpoint bisection failed: %s' %
+                                   (results,))
 
     return results.get('jobId')
 
-  @staticmethod
-  def _SelectAutoBisectRegression(regressions):
+  def _SelectAutoBisectRegression(self, regressions):
+    # Select valid regressions for bisection:
+    # 1. auto_bisect_enable
+    # 2. has a valid bug_id
+    # 3. hasn't start a bisection
+    regressions = [
+        r for r in regressions or []
+        if (r.auto_bisect_enable and r.bug_id > 0
+            and not set(r.pinpoint_bisects) & set(self._group.bisection_ids))
+    ]
     if not regressions:
-      return None, []
+      return None
 
     max_regression = None
     max_count = 0
@@ -508,17 +518,15 @@ class AlertGroupWorkflow(object):
     if not target:
       return None
 
-    job_name = 'Auto-Bisection on %s/%s' % (
-        alert.bot_name, alert.benchmark_name)
+    job_name = 'Auto-Bisection on %s/%s' % (alert.bot_name,
+                                            alert.benchmark_name)
 
     alert_magnitude = alert.median_after_anomaly - alert.median_before_anomaly
 
     return pinpoint_service.MakeBisectionRequest(
         test=alert.test.get(),
         commit_range=pinpoint_service.CommitRange(
-            start=start_git_hash,
-            end=end_git_hash
-        ),
+            start=start_git_hash, end=end_git_hash),
         issue=anomaly.Issue(
             project_id=self._group.bug.project,
             issue_id=self._group.bug.bug_id,
