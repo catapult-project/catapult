@@ -53,6 +53,9 @@ _TEST_COMPUTED_PROPERTIES = [
     'test_part3_name',
     'test_part4_name',
     'test_part5_name',
+    'test_part6_name',
+    'test_part7_name',
+    'test_part8_name',
 ]
 # The following shouldn't be copied because they were removed from the Model;
 # Creating a new entity with one of these properties will result in an error.
