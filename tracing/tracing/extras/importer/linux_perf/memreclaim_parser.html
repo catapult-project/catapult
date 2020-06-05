@@ -81,6 +81,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         kthread.openSliceTS = ts;
         kthread.order = order;
       }
+      kthread.waitingFor = 'kswapSleep';
       return true;
     },
 
@@ -89,6 +90,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
       const kthread = this.importer.getOrCreateKernelThread(
           eventBase.threadName, tgid, pid);
+      if (kthread.waitingFor !== 'kswapSleep') return false;
+      kthread.waitingFor = undefined;
 
       if (kthread.openSliceTS) {
         kthread.thread.sliceGroup.pushCompleteSlice(
@@ -114,34 +117,35 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       const kthread = this.importer.getOrCreateKernelThread(
           eventBase.threadName, tgid, pid);
 
-      kthread.openSliceTS = ts;
+      kthread.openMemReclaimSliceTS = ts;
       kthread.order = order;
       kthread.gfp = gfp;
+      kthread.waitingFor = 'reclaimEnd';
       return true;
     },
 
     reclaimEnd(eventName, cpuNumber, pid, ts, eventBase) {
       const event = reclaimEndRE.exec(eventBase.details);
       if (!event) return false;
-
       const nrReclaimed = parseInt(event[1]);
       const tgid = parseInt(eventBase.tgid);
 
       const kthread = this.importer.getOrCreateKernelThread(
           eventBase.threadName, tgid, pid);
+      if (kthread.waitingFor !== 'reclaimEnd') return false;
+      kthread.waitingFor = undefined;
 
-      if (kthread.openSliceTS !== undefined &&
-          kthread.order !== undefined &&
-          kthread.gfp !== undefined) {
+      if (kthread.openMemReclaimSliceTS !== undefined) {
         kthread.thread.sliceGroup.pushCompleteSlice('memreclaim',
-            'direct reclaim', kthread.openSliceTS, ts - kthread.openSliceTS,
+            'direct reclaim', kthread.openMemReclaimSliceTS,
+            ts - kthread.openMemReclaimSliceTS,
             0, 0,
             {
               order: kthread.order,
               gfp: kthread.gfp,
               nr_reclaimed: nrReclaimed
             });
-        kthread.openSliceTS = undefined;
+        kthread.openMemReclaimSliceTS = undefined;
         kthread.order = undefined;
         kthread.gfp = undefined;
         return true;
