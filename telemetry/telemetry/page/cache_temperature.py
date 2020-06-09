@@ -12,6 +12,7 @@ https://docs.google.com/document/u/1/d/12D7tkhZi887g9d0U2askU9JypU_wYiEI7Lw0bfwx
 
 import logging
 from telemetry.core import exceptions
+from py_trace_event import trace_event
 
 # Default Cache Temperature. The page doesn't care which browser cache state
 # it is run on.
@@ -71,6 +72,9 @@ def _WarmCache(page, tab, temperature):
 
 
 class CacheManipulator(object):
+
+  __metaclass__ = trace_event.TracedMetaClass
+
   RENDERER_TEMPERATURE = None
   BROWSER_TEMPERATURE = None
   @staticmethod

@@ -48,7 +48,9 @@ class TsProxyServer(object):
   This class can be used as a context manager.
   """
 
-  def __init__(self, host_ip=None, http_port=None, https_port=None):
+  def __init__(self, host_ip=None, http_port=None, https_port=None,
+               round_trip_latency_ms=0, download_bandwidth_kbps=0,
+               upload_bandwidth_kbps=0):
     """
     Initialize TsProxyServer.
 
@@ -56,7 +58,10 @@ class TsProxyServer(object):
 
       host_ip: A string of the host ip address.
       http_port: A decimal of the port used for http traffic.
-      https_port: a decimal of the port used for https traffic.
+      https_port: A decimal of the port used for https traffic.
+      round_trip_latency_ms: Latency in milliseconds, full round trip
+      download_bandwith_kbps: Upload bandwidth in Kbps
+      upload_bandwith_kbps: Downlaad bandwidth in Kbps
 
     """
     self._proc = None
@@ -67,9 +72,9 @@ class TsProxyServer(object):
     self._http_port = http_port
     self._https_port = https_port
     self._non_blocking = False
-    self._rtt = None
-    self._inbkps = None
-    self._outkbps = None
+    self._rtt = round_trip_latency_ms
+    self._inkbps = download_bandwidth_kbps
+    self._outkbps = upload_bandwidth_kbps
 
   @property
   def port(self):
@@ -87,7 +92,13 @@ class TsProxyServer(object):
     if self._http_port:
       cmd_line.append(
           '--mapports=443:%s,*:%s' % (self._https_port, self._http_port))
-      logging.info('Tsproxy commandline: %s', cmd_line)
+    if self._rtt:
+      cmd_line.append('--rtt=%s' % self._rtt)
+    if self._inkbps:
+      cmd_line.append('--inkbps=%s' % self._inkbps)
+    if self._outkbps:
+      cmd_line.append('--outkbps=%s' % self._outkbps)
+    logging.info('Tsproxy commandline: %s', cmd_line)
     self._proc = subprocess.Popen(
         cmd_line, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
         stderr=subprocess.PIPE, bufsize=1)
@@ -177,9 +188,9 @@ class TsProxyServer(object):
       self._rtt = round_trip_latency_ms
 
     if (download_bandwidth_kbps is not None and
-        self._inbkps != download_bandwidth_kbps):
+        self._inkbps != download_bandwidth_kbps):
       self._IssueCommand('set inkbps %s' % download_bandwidth_kbps, timeout)
-      self._inbkps = download_bandwidth_kbps
+      self._inkbps = download_bandwidth_kbps
 
     if (upload_bandwidth_kbps is not None and
         self._outkbps != upload_bandwidth_kbps):
@@ -207,9 +218,6 @@ class TsProxyServer(object):
     self._proc = None
     self._port = None
     self._is_running = False
-    self._rtt = None
-    self._inbkps = None
-    self._outkbps = None
     return err
 
   def __enter__(self):
