@@ -600,7 +600,7 @@ def IsValidSheriffUser():
 def IsTryjobUser():
   email = GetEmail()
   return bool(email) and IsGroupMember(
-      identity=email, group='project-chromium-tryjob-access')
+      identity=email, group='project-pinpoint-tryjob-access')
 
 
 @ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)
