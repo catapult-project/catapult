@@ -12,10 +12,10 @@ import os
 import tempfile
 import shutil
 
-def _RunArgs(args, input_api, cwd, env):
+def _RunArgs(args, input_api, cwd):
   p = input_api.subprocess.Popen(args, stdout=input_api.subprocess.PIPE,
                                  stderr=input_api.subprocess.STDOUT,
-                                 cwd=cwd, env=env)
+                                 cwd=cwd)
   out, _ = p.communicate()
   return (out, p.returncode)
 
@@ -33,40 +33,14 @@ def _CommonChecks(input_api, output_api):
         'Go files.'))
     return results
 
-  # We want to build wpr from the local source. We do this by
-  # making a temporary GOPATH that symlinks to our local directory.
-
-  try:
-    # Make a tmp GOPATH directory which points at the local repo.
-    wpr_dir = input_api.PresubmitLocalPath()
-    go_path_dir = tempfile.mkdtemp()
-    repo_dir = os.path.join(go_path_dir, 'src/github.com/catapult-project')
-    os.makedirs(repo_dir)
-    os.symlink(os.path.abspath(os.path.join(wpr_dir, '..')),
-               os.path.join(repo_dir, 'catapult'))
-
-    # Preserve GOPATH, if it's defined, to avoid redownloading packages
-    # that have already been downloaded.
-    env = os.environ.copy()
-    if 'GOPATH' in env:
-      env['GOPATH'] = '%s:%s' % (env['GOPATH'], go_path_dir)
-    else:
-      env['GOPATH'] = go_path_dir
-
-    cmd = ['go', 'get', '-d', './...']
-    _RunArgs(cmd, input_api, wpr_dir, env)
-    cmd = ['go', 'test',
-           'github.com/catapult-project/catapult/web_page_replay_go/src/' +
-           'webpagereplay']
-    out, return_code = _RunArgs(cmd, input_api, wpr_dir, env)
-    if return_code:
-      results.append(output_api.PresubmitError(
-          'webpagereplay tests failed.', long_text=out))
-    print out
-
-  finally:
-    if go_path_dir:
-      shutil.rmtree(go_path_dir)
+  # Run go test ./webpagereplay
+  cwd = os.path.join(input_api.PresubmitLocalPath(), 'src')
+  cmd = ['go', 'test', './webpagereplay']
+  out, return_code = _RunArgs(cmd, input_api, cwd)
+  if return_code:
+    results.append(output_api.PresubmitError(
+        'webpagereplay tests failed.', long_text=out))
+  print out
 
   return results
 
