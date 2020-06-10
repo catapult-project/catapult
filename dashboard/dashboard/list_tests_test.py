@@ -54,14 +54,8 @@ class ListTestsTest(testing_common.TestCase):
             'really': {
                 'nested': {
                     'very': {
-                        'extremely': {
-                            'supremely': {
-                                'even_more': {
-                                    'deeply': {
-                                        'subtest': {}
-                                    }
-                                }
-                            }
+                        'deeply': {
+                            'subtest': {}
                         }
                     },
                     'very_very': {}
@@ -86,7 +80,7 @@ class ListTestsTest(testing_common.TestCase):
 
     # Set the has_rows flag to true on two of the TestMetadata entities.
     for test_path in [
-        'Chromium/win7/really/nested/very/extremely/supremely/even_more/deeply/subtest',
+        'Chromium/win7/really/nested/very/deeply/subtest',
         'Chromium/win7/really/nested/very_very']:
       test = utils.TestKey(test_path).get()
       test.has_rows = True
@@ -107,27 +101,12 @@ class ListTestsTest(testing_common.TestCase):
                 'very': {
                     'has_rows': False,
                     'sub_tests': {
-                        'extremely': {
+                        'deeply': {
                             'has_rows': False,
                             'sub_tests': {
-                                'supremely': {
-                                    'has_rows': False,
-                                    'sub_tests': {
-                                        'even_more': {
-                                            'has_rows': False,
-                                            'sub_tests': {
-                                                'deeply': {
-                                                    'has_rows': False,
-                                                    'sub_tests': {
-                                                        'subtest': {
-                                                            'has_rows': True,
-                                                            'sub_tests': {}
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+                                'subtest': {
+                                    'has_rows': True,
+                                    'sub_tests': {}
                                 }
                             }
                         }
@@ -781,16 +760,9 @@ class ListTestsTest(testing_common.TestCase):
                 ndb.Key('TestMetadata', 'Chromium/win7/really/nested'),
                 ndb.Key('TestMetadata', 'Chromium/win7/really/nested/very'),
                 ndb.Key('TestMetadata',
-                        'Chromium/win7/really/nested/very/extremely'),
+                        'Chromium/win7/really/nested/very/deeply'),
                 ndb.Key('TestMetadata',
-                        'Chromium/win7/really/nested/very/extremely/supremely'),
-                ndb.Key('TestMetadata',
-                        'Chromium/win7/really/nested/very/extremely/supremely/even_more'),
-                ndb.Key('TestMetadata',
-                        'Chromium/win7/really/nested/very/extremely/supremely/even_more/deeply'),
-                ndb.Key('TestMetadata',
-                        'Chromium/win7/' +
-                        'really/nested/very/extremely/supremely/even_more/deeply/subtest'),
+                        'Chromium/win7/really/nested/very/deeply/subtest'),
                 ndb.Key('TestMetadata',
                         'Chromium/win7/really/nested/very_very'),])
 
