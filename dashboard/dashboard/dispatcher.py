@@ -21,7 +21,6 @@ from dashboard import bug_details
 from dashboard import buildbucket_job_status
 from dashboard import create_health_report
 from dashboard import debug_alert
-from dashboard import delete_test_data
 from dashboard import deprecate_tests
 from dashboard import dump_graph_json
 from dashboard import edit_anomalies
@@ -105,7 +104,6 @@ _URL_MAPPING = [
     ('/debug_alert', debug_alert.DebugAlertHandler),
     ('/delete_expired_entities',
      layered_cache_delete_expired.LayeredCacheDeleteExpiredHandler),
-    ('/delete_test_data', delete_test_data.DeleteTestDataHandler),
     ('/dump_graph_json', dump_graph_json.DumpGraphJsonHandler),
     ('/edit_anomalies', edit_anomalies.EditAnomaliesHandler),
     ('/edit_anomaly_configs', edit_anomaly_configs.EditAnomalyConfigsHandler),
