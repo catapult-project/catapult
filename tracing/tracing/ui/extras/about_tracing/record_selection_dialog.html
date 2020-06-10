@@ -244,6 +244,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
   const DEFAULT_CONTINUOUS_TRACING = true;
   const DEFAULT_SYSTEM_TRACING = true;
   const DEFAULT_SAMPLING_TRACING = false;
+  const DEFAULT_USE_PROTOBUF = false;
 
   RecordSelectionDialog.prototype = {
     __proto__: tr.ui.b.Overlay.prototype,
@@ -291,6 +292,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
           undefined, undefined,
           'recordSelectionDialog.useSampling', DEFAULT_SAMPLING_TRACING,
           'State sampling');
+      this.useProtobufBn_ = tr.ui.b.createCheckBox(
+          undefined, undefined,
+          'recordSelectionDialog.useProtobuf', DEFAULT_USE_PROTOBUF,
+          'Use protobuf');
       this.tracingModesContainerEl_ = Polymer.dom(this).querySelector(
           '.tracing-modes');
       Polymer.dom(this.tracingModesContainerEl_).appendChild(
@@ -299,6 +304,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
           this.systemTracingBn_);
       Polymer.dom(this.tracingModesContainerEl_).appendChild(
           this.samplingTracingBn_);
+      Polymer.dom(this.tracingModesContainerEl_).appendChild(
+          this.useProtobufBn_);
 
       this.enabledCategoriesContainerEl_ =
           Polymer.dom(this).querySelector(
@@ -354,6 +361,13 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
     set useSampling(value) {
       this.samplingTracingBn_.checked = !!value;
+    },
+
+    get useProtobuf() {
+      return this.useProtobufBn_.checked;
+    },
+    set useProtobuf(value) {
+      this.useProtobufBn_.checked = !!value;
     },
 
     set categories(c) {

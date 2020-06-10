@@ -21,7 +21,8 @@ tr.exportTo('tr.ui.b', function() {
         reject(err);
       };
 
-      const isBinary = filename.endsWith('.gz') || filename.endsWith('.zip');
+      const isBinary = filename.endsWith('.gz') || filename.endsWith('.zip') ||
+          filename.endsWith('.pftrace');
       if (isBinary) {
         reader.readAsArrayBuffer(fileBlob);
       } else {

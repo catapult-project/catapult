@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/base64.html">
+<link rel="import" href="/tracing/extras/importer/pako.html">
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/ui/base/file.html">
 <link rel="import" href="/tracing/ui/base/hotkey_controller.html">
@@ -166,7 +167,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
             this.isRecording_ = false;
             const traceName = tr.ui.e.about_tracing.defaultTraceName(
                 this.tracingControllerClient_);
-            this.setActiveTrace(traceName, data, false);
+            this.setActiveTrace(traceName, data);
           }.bind(this),
           function(err) {
             this.isRecording_ = false;
@@ -190,6 +191,11 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     setActiveTrace(filename, data) {
+      const isProtobufTrace = this.isProtobufTrace_(data);
+      if (isProtobufTrace) {
+        filename = filename.replace('.json', '.pftrace');
+      }
+
       this.activeTrace_ = {
         filename,
         data
@@ -199,6 +205,25 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.updateTracingControllerSpecificState_();
       this.saveButton_.disabled = false;
       this.timelineView_.viewTitle = filename;
+
+      // Bypass the standard importer pipeline for protobuf-format traces and
+      // redirect the user to the Perfetto UI instead. Note that we can't
+      // actually open the trace for the user due to chrome:// protocol
+      // restrictions.
+      if (isProtobufTrace) {
+        this.timelineView_.model = new tr.Model();
+        this.timelineView_.updateDocumentFavicon();
+        this.infoBarGroup_.addMessage(
+            'Cannot display protobuf format trace. Please save the trace ' +
+              'and view it in Perfetto UI instead.',
+            [{
+              buttonText: 'Open Perfetto UI',
+              onClick(event, infobar) {
+                window.open('https://ui.perfetto.dev');
+              }
+            }]);
+        return;
+      }
 
       const m = new tr.Model();
       const i = new tr.importer.Import(m);
@@ -214,6 +239,43 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     ///////////////////////////////////////////////////////////////////////////
+
+    // Detects a (possibly gzipped) Perfetto protobuf trace.
+    isProtobufTrace_(data) {
+      // We only look at the first ~4 KB to avoid reading the entire trace.
+      data = new Uint8Array(data, 0, 4096);
+
+      // If the trace is gzipped, decompress the beginning first.
+      const GZIP_HEADER_ID1 = 0x1f;
+      const GZIP_HEADER_ID2 = 0x8b;
+      const GZIP_DEFLATE_COMPRESSION = 8;
+      if (data.length > 3 &&
+          data[0] === GZIP_HEADER_ID1 &&
+          data[1] === GZIP_HEADER_ID2 &&
+          data[2] === GZIP_DEFLATE_COMPRESSION) {
+        data = pako.ungzip(data);
+      }
+
+      // Look for Perfetto's sync marker.
+      const syncMarker = new Uint8Array([0x82, 0x47, 0x7a, 0x76, 0xb2, 0x8d,
+        0x42, 0xba, 0x81, 0xdc, 0x33, 0x32, 0x6d, 0x57, 0xa0, 0x79]);
+      for (let i = 0; i < data.length; i++) {
+        let match = true;
+        for (let j = 0; j < syncMarker.length; j++) {
+          if (i + j >= data.length) {
+            return false;
+          }
+          if (data[i + j] !== syncMarker[j]) {
+            match = false;
+            break;
+          }
+        }
+        if (match) {
+          return true;
+        }
+      }
+      return false;
+    },
 
     initButtons_() {
       this.recordButton_.addEventListener(

@@ -91,6 +91,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         excluded_categories: categories.excluded,
         enable_systrace: selectionDlg.useSystemTracing,
         record_mode: selectionDlg.tracingRecordMode,
+        stream_format: selectionDlg.useProtobuf ? 'protobuf' : 'json',
       };
       if (categories.included.indexOf(
           'disabled-by-default-memory-infra') !== -1) {
