@@ -16,11 +16,6 @@ handlers:
   script: google.appengine.ext.deferred.application
   login: admin
 
-- url: /_ah/dev_console(/.*)?
-  script: google.appengine.ext.admin.application
-  login: admin
-  secure: always
-
 - url: /add_histograms_queue
   script: dashboard.dispatcher.APP
   login: admin
