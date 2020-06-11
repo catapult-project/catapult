@@ -79,8 +79,12 @@ class LuciPollingTest(unittest.TestCase):
                     'contact_email': 'expected-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
-                    'auto_triage': {'enable': False},
-                    'auto_bisection': {'enable': False},
+                    'auto_triage': {
+                        'enable': False
+                    },
+                    'auto_bisection': {
+                        'enable': False
+                    },
                     'rules': {},
                 }
             }]
@@ -91,6 +95,7 @@ class LuciPollingTest(unittest.TestCase):
     response = client.get(
         '/configs/update', headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 200)
+
     def Test(path, triaged, bisected):
       response = client.post(
           '/subscriptions/match',
@@ -119,12 +124,17 @@ class LuciPollingTest(unittest.TestCase):
                       'contact_email': 'expected-1@example.com',
                       'bug_labels': ['Some-Label'],
                       'bug_components': ['Some>Component'],
-                      'auto_triage': {'enable': triaged},
-                      'auto_bisection': {'enable': bisected},
+                      'auto_triage': {
+                          'enable': triaged
+                      },
+                      'auto_bisection': {
+                          'enable': bisected
+                      },
                       'rules': {},
                   }
               }]
           })
+
     Test('Triage_Bisect', True, True)
     Test('NoTriage_Bisect', False, False)
     Test('Triage_NoBisect', True, False)
@@ -160,8 +170,12 @@ class LuciPollingTest(unittest.TestCase):
                     'contact_email': 'config-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
-                    'auto_triage': {'enable': False},
-                    'auto_bisection': {'enable': False},
+                    'auto_triage': {
+                        'enable': False
+                    },
+                    'auto_bisection': {
+                        'enable': False
+                    },
                     'rules': {},
                 }
             }, {
@@ -172,12 +186,37 @@ class LuciPollingTest(unittest.TestCase):
                     'contact_email': 'config-2@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
-                    'auto_triage': {'enable': False},
-                    'auto_bisection': {'enable': False},
+                    'auto_triage': {
+                        'enable': False
+                    },
+                    'auto_bisection': {
+                        'enable': False
+                    },
                     'rules': {},
                 }
             }]
         })
+
+  def testPollAndMatchPostFilter(self):
+    client = self.app.test_client()
+    response = client.get(
+        '/configs/update', headers={'X-Forwarded-Proto': 'https'})
+    self.assertEqual(response.status_code, 200)
+    response = client.post(
+        '/subscriptions/match',
+        json={
+            'path': 'Master/Bot/Test/Metric/Something_PostFilter',
+            'stats': ['PCT_99'],
+            'metadata': {
+                'units': 'SomeUnit',
+                'master': 'Master',
+                'bot': 'Bot',
+                'benchmark': 'Test',
+                'metric_parts': ['Metric', 'Something'],
+            }
+        },
+        headers={'X-Forwarded-Proto': 'https'})
+    self.assertEqual(response.status_code, 404)
 
   def testPollAndMatchNone(self):
     client = self.app.test_client()
@@ -234,9 +273,10 @@ class LuciPollingTest(unittest.TestCase):
                 'status': '200'
             }, self.sample_config), ({
                 'status': '200'
-            }, '{ "is_member": true }'), ({
-                'status': '200'
-            }, '{ "is_member": false }')]),
+            }, '{ "is_member": true }'),
+                                           ({
+                                               'status': '200'
+                                           }, '{ "is_member": false }')]),
     })
     client = app.test_client()
     response = client.get(
@@ -244,56 +284,65 @@ class LuciPollingTest(unittest.TestCase):
     self.assertEqual(response.status_code, 200)
     response = client.post(
         '/subscriptions/list',
-        json={
-            'identity_email': 'any@internal.com'
-        },
+        json={'identity_email': 'any@internal.com'},
         headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 200)
-    self.assertDictEqual(response.get_json(), {
-        'subscriptions': [{
-            'config_set': 'projects/project',
-            'revision': '0123456789abcdef',
-            'subscription': {
-                'name': 'Config 1',
-                'contact_email': 'config-1@example.com',
-                'bug_labels': ['Some-Label'],
-                'bug_components': ['Some>Component'],
-                'auto_triage': {'enable': False},
-                'auto_bisection': {'enable': False},
-                'rules': {},
-            }
-        }, {
-            'config_set': 'projects/project',
-            'revision': '0123456789abcdef',
-            'subscription': {
-                'name': 'Config 2',
-                'contact_email': 'config-2@example.com',
-                'bug_labels': ['Some-Label'],
-                'bug_components': ['Some>Component'],
-                'auto_triage': {'enable': False},
-                'auto_bisection': {'enable': False},
-                'rules': {},
-            }
-        }, {
-            'config_set': 'projects/other_project',
-            'revision': '0123456789abcdff',
-            'subscription': {
-                'name': 'Expected 1',
-                'monorail_project_id': 'non-chromium',
-                'contact_email': 'expected-1@example.com',
-                'bug_labels': ['Some-Label'],
-                'bug_components': ['Some>Component'],
-                'auto_triage': {'enable': False},
-                'auto_bisection': {'enable': False},
-                'rules': {},
-            }
-        }]
-    })
+    self.assertDictEqual(
+        response.get_json(), {
+            'subscriptions': [{
+                'config_set': 'projects/project',
+                'revision': '0123456789abcdef',
+                'subscription': {
+                    'name': 'Config 1',
+                    'contact_email': 'config-1@example.com',
+                    'bug_labels': ['Some-Label'],
+                    'bug_components': ['Some>Component'],
+                    'auto_triage': {
+                        'enable': False
+                    },
+                    'auto_bisection': {
+                        'enable': False
+                    },
+                    'rules': {},
+                }
+            }, {
+                'config_set': 'projects/project',
+                'revision': '0123456789abcdef',
+                'subscription': {
+                    'name': 'Config 2',
+                    'contact_email': 'config-2@example.com',
+                    'bug_labels': ['Some-Label'],
+                    'bug_components': ['Some>Component'],
+                    'auto_triage': {
+                        'enable': False
+                    },
+                    'auto_bisection': {
+                        'enable': False
+                    },
+                    'rules': {},
+                }
+            }, {
+                'config_set': 'projects/other_project',
+                'revision': '0123456789abcdff',
+                'subscription': {
+                    'name': 'Expected 1',
+                    'monorail_project_id': 'non-chromium',
+                    'contact_email': 'expected-1@example.com',
+                    'bug_labels': ['Some-Label'],
+                    'bug_components': ['Some>Component'],
+                    'auto_triage': {
+                        'enable': False
+                    },
+                    'auto_bisection': {
+                        'enable': False
+                    },
+                    'rules': {},
+                }
+            }]
+        })
     response = client.post(
         '/subscriptions/list',
-        json={
-            'identity_email': 'any@public.com'
-        },
+        json={'identity_email': 'any@public.com'},
         headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 200)
     self.assertDictEqual(response.get_json(), {})
@@ -303,8 +352,7 @@ class LuciPollingTest(unittest.TestCase):
     response = client.get(
         '/configs/update', headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 200)
-    response = client.get(
-        '/warmup', headers={'X-Forwarded-Proto': 'https'})
+    response = client.get('/warmup', headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 200)
 
 
@@ -346,8 +394,12 @@ class LuciContentChangesTest(unittest.TestCase):
                     'contact_email': 'expected-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
-                    'auto_triage': {'enable': False},
-                    'auto_bisection': {'enable': False},
+                    'auto_triage': {
+                        'enable': False
+                    },
+                    'auto_bisection': {
+                        'enable': False
+                    },
                     'rules': {},
                 }
             }]
@@ -382,8 +434,12 @@ class LuciContentChangesTest(unittest.TestCase):
                     'contact_email': 'config-1@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
-                    'auto_triage': {'enable': False},
-                    'auto_bisection': {'enable': False},
+                    'auto_triage': {
+                        'enable': False
+                    },
+                    'auto_bisection': {
+                        'enable': False
+                    },
                     'rules': {},
                 }
             }, {
@@ -394,8 +450,12 @@ class LuciContentChangesTest(unittest.TestCase):
                     'contact_email': 'config-2@example.com',
                     'bug_labels': ['Some-Label'],
                     'bug_components': ['Some>Component'],
-                    'auto_triage': {'enable': False},
-                    'auto_bisection': {'enable': False},
+                    'auto_triage': {
+                        'enable': False
+                    },
+                    'auto_bisection': {
+                        'enable': False
+                    },
                     'rules': {},
                 }
             }]
@@ -467,6 +527,13 @@ class LuciContentChangesTest(unittest.TestCase):
       self.AssertProjectConfigSet2Holds(client, 200)
 
   def testInvalidContentPulled(self):
+    subscription = """
+subscriptions: {
+  name: "Missing Email"
+  bug_labels: ["Some-Label"]
+  bug_components: ["Some>Component"]
+  patterns: [{glob: "project/**"}]
+}"""
     invalid_content = """
 {
   "configs": [
@@ -478,15 +545,7 @@ class LuciContentChangesTest(unittest.TestCase):
       "revision": "0123456789abcdef"
     }
   ]
-}""" % (
-    base64.standard_b64encode(
-        bytearray(
-            """subscriptions: {
-                    name: "Missing Email"
-                    bug_labels: ["Some-Label"]
-                    bug_components: ["Some>Component"]
-                    patterns: [{glob: "project/**"}]
-        }""", 'utf-8')).decode())
+}""" % (base64.standard_b64encode(bytearray(subscription, 'utf-8')).decode(),)
     app = service.CreateApp({
         'environ': {
             'GOOGLE_CLOUD_PROJECT': 'chromeperf',

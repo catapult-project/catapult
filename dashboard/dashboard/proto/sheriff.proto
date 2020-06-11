@@ -41,9 +41,20 @@ message Pattern {
   repeated StatType stats = 3;
 }
 
-// TODO(fancl): Support post filter
+// We can't exclude patterns using regular expression due to re2's limitation.
+// A typical usage is like:
+// {
+//   match: [
+//     { glob: "*" }
+//   ],
+//   exclude: [
+//     { glob: "*/exclude_something/*" }
+//   ]
+// }
+// It will match everything except */exclude_something/*.
 message Rules {
   repeated Pattern match = 1;
+  repeated Pattern exclude = 2;
 }
 
 // An AnomalyConfig defines the bounds for which a change in a matching metric
