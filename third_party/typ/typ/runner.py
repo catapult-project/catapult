@@ -33,8 +33,10 @@ path_to_file = os.path.realpath(__file__)
 if path_to_file.endswith('.pyc'):  # pragma: no cover
     path_to_file = path_to_file[:-1]
 dir_above_typ = os.path.dirname(os.path.dirname(path_to_file))
-if dir_above_typ not in sys.path:  # pragma: no cover
-    sys.path.append(dir_above_typ)
+dir_cov = os.path.join(os.path.dirname(dir_above_typ), 'coverage')
+for path in (dir_above_typ, dir_cov):
+  if path not in sys.path:  # pragma: no cover
+    sys.path.append(path)
 
 from typ import artifacts
 from typ import json_results
