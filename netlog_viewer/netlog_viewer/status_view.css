@@ -6,12 +6,3 @@
   background: rgb(113, 113, 171);
 }
 
-/* Completely un-style the SELECT. Will place an arrow over it manually. */
-#capture-status-view-actions {
-  -webkit-appearance: none;
-  background: none;
-  border: none;
-  height: 25px;
-  outline: none;
-  width: 30px;
-}
