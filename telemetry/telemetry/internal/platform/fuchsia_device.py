@@ -22,7 +22,7 @@ _SDK_ROOT_IN_CATAPULT = os.path.join(util.GetCatapultDir(), 'third_party',
 _SDK_ROOT_IN_CHROMIUM = os.path.join(util.GetCatapultDir(), '..',
                                      'fuchsia-sdk', 'sdk')
 _SDK_TOOLS = [
-    os.path.join('tools', 'dev_finder'),
+    os.path.join('tools', 'device-finder'),
     os.path.join('tools', 'symbolize')
 ]
 
