@@ -304,9 +304,13 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       const defaultName = this.activeTrace_.filename;
       let fileExtension = '.json';
       let fileRegex = /\.json$/;
+      if (/[.]pftrace/.test(defaultName)) {
+        fileExtension = '.pftrace';
+        fileRegex = /\.pftrace$/;
+      }
       if (/[.]gz$/.test(defaultName)) {
         fileExtension += '.gz';
-        fileRegex = /\.json\.gz$/;
+        fileRegex = new RegExp(fileExtension + '[.]gz$');
       } else if (/[.]zip$/.test(defaultName)) {
         fileExtension = '.zip';
         fileRegex = /\.zip$/;
