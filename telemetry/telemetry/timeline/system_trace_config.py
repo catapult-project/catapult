@@ -14,6 +14,7 @@ class SystemTraceConfig(object):
     self._enable_power = False
     self._enable_sys_stats_cpu = False
     self._enable_ftrace_cpu = False
+    self._enable_ftrace_sched = False
     self._chrome_config = None
 
   def GetTextConfig(self):
@@ -81,19 +82,31 @@ class SystemTraceConfig(object):
           }
       """
 
-    if self._enable_ftrace_cpu:
+    if self._enable_ftrace_cpu or self._enable_ftrace_sched:
       text_config += """
         data_sources: {
             config {
                 name: "linux.ftrace"
                 ftrace_config {
+                    ftrace_events: "power/suspend_resume"
+      """
+
+      if self._enable_ftrace_cpu:
+        text_config += """
                     ftrace_events: "power/cpu_frequency"
                     ftrace_events: "power/cpu_idle"
-                    ftrace_events: "power/suspend_resume"
-                }
-            }
-        }
-    """
+        """
+
+      if self._enable_ftrace_sched:
+        text_config += """
+                    ftrace_events: "sched/sched_switch"
+                    ftrace_events: "sched/sched_process_exit"
+                    ftrace_events: "sched/sched_process_free"
+                    ftrace_events: "task/task_newtask"
+                    ftrace_events: "task/task_rename"
+        """
+
+      text_config += "}}}\n"
 
     return text_config
 
@@ -109,3 +122,6 @@ class SystemTraceConfig(object):
 
   def EnableFtraceCpu(self):
     self._enable_ftrace_cpu = True
+
+  def EnableFtraceSched(self):
+    self._enable_ftrace_sched = True
