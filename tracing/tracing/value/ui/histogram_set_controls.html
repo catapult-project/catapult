@@ -108,10 +108,6 @@ found in the LICENSE file.
       margin-right: 20px;
     }
 
-    #show_visualization {
-      margin-right: 20px;
-    }
-
     #export {
       margin-right: 20px;
     }
@@ -158,8 +154,6 @@ found in the LICENSE file.
 
       <select id="statistic" value="{{displayStatisticName::change}}">
       </select>
-
-      <button id="show_visualization" on-tap="loadVisualization_">Visualize</button>
 
       <tr-ui-b-dropdown label="Export">
         <tr-v-ui-histogram-set-controls-export>
@@ -540,14 +534,6 @@ tr.exportTo('tr.v.ui', function() {
         if (ALPHA_OPTIONS[i] >= this.viewState.alpha) return i;
       }
       return ALPHA_OPTIONS.length - 1;
-    },
-
-    set enableVisualization(enable) {
-      this.$.show_visualization.style.display = enable ? 'inline' : 'none';
-    },
-
-    loadVisualization_() {
-      tr.b.dispatchSimpleEvent(this, 'loadVisualization', true, true, {});
     },
   });
 

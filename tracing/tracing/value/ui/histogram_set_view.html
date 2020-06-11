@@ -11,7 +11,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/histogram_parameter_collector.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_controls.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_table.html">
-<link rel="import" href="/tracing/value/ui/visualizations_data_container.html">
 
 <dom-module id="tr-v-ui-histogram-set-view">
   <template>
@@ -34,9 +33,6 @@ found in the LICENSE file.
       display: none;
     }
 
-    #visualizations{
-      display: none;
-    }
     </style>
 
     <div id="zero">zero Histograms</div>
@@ -44,9 +40,6 @@ found in the LICENSE file.
     <div id="container">
       <tr-v-ui-histogram-set-controls id="controls">
       </tr-v-ui-histogram-set-controls>
-
-      <tr-v-ui-visualizations-data-container id="visualizations">
-      </tr-v-ui-visualizations-data-container>
 
       <tr-v-ui-histogram-set-table id="table"></tr-v-ui-histogram-set-table>
     </div>
@@ -61,13 +54,11 @@ tr.exportTo('tr.v.ui', function() {
 
     listeners: {
       export: 'onExport_',
-      loadVisualization: 'onLoadVisualization_'
     },
 
     created() {
       this.brushingStateController_ = new tr.ui.NullBrushingStateController();
       this.viewState_ = new tr.v.ui.HistogramSetViewState();
-      this.visualizationLoaded_ = false;
     },
 
     ready() {
@@ -139,20 +130,6 @@ tr.exportTo('tr.v.ui', function() {
       this.$.controls.displayLabels = displayLabels;
       collectParametersMark.end();
 
-      // Only show visualizer button if values are from rendering benchmarks
-      const hist = [...histograms][0];
-      const benchmarks = hist.diagnostics.get(tr.v.d.RESERVED_NAMES.BENCHMARKS);
-      let enable = false;
-      if (benchmarks !== undefined && benchmarks.length > 0) {
-        for (const benchmark of benchmarks) {
-          if (benchmark.includes('rendering')) {
-            enable = true;
-            break;
-          }
-        }
-      }
-      this.$.controls.enableVisualization = enable;
-
       // Table.build() displays its own progress.
       await this.$.table.build(
           histograms, sourceHistograms, displayLabels, progress);
@@ -187,20 +164,6 @@ tr.exportTo('tr.v.ui', function() {
       anchor.href = window.URL.createObjectURL(blob);
       anchor.click();
       mark.end();
-    },
-
-    onLoadVisualization_(event) {
-      if (!this.visualizationLoaded_) { // Initial loading
-        this.$.visualizations.style.display = 'block';
-        this.$.visualizations.build(this.$.table.leafHistograms,
-            this.histograms);
-        this.visualizationLoaded_ = true;
-      } else if (this.$.visualizations.style.display === 'none') {
-        // Toggle to hide
-        this.$.visualizations.style.display = 'block';
-      } else {
-        this.$.visualizations.style.display = 'none';
-      }
     },
   });
 
