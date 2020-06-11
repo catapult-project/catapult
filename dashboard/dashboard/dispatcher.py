@@ -21,7 +21,6 @@ from dashboard import bug_details
 from dashboard import buildbucket_job_status
 from dashboard import create_health_report
 from dashboard import debug_alert
-from dashboard import deprecate_tests
 from dashboard import dump_graph_json
 from dashboard import edit_anomalies
 from dashboard import edit_anomaly_configs
@@ -123,7 +122,6 @@ _URL_MAPPING = [
      mark_recovered_alerts.MarkRecoveredAlertsHandler),
     ('/memory_report', memory_report.MemoryReportHandler),
     ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler),
-    ('/deprecate_tests', deprecate_tests.DeprecateTestsHandler),
     ('/navbar', navbar.NavbarHandler),
     ('/pinpoint/new/bisect',
      pinpoint_request.PinpointNewBisectRequestHandler),

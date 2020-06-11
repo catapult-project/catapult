@@ -14,10 +14,6 @@ cron:
   url: /mark_recovered_alerts
   schedule: every 1 hours
 
-- description: Run a job to mark tests as deprecated.
-  url: /deprecate_tests
-  schedule: every 48 hours
-
 - description: Update dashboard stats.
   url: /update_dashboard_stats
   schedule: every 24 hours
