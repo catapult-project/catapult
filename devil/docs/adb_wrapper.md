@@ -147,6 +147,10 @@ Install an apk on the device.
       allow_downgrade: (optional) If set, allows for downgrades.
       reinstall: (optional) If set reinstalls the app, keeping its data.
       sd_card: (optional) If set installs on the SD card.
+      streaming: (optional) If not set, use default way to install.
+        If True, performs streaming install.
+        If False, app is pushed to device and be installed from there.
+        Note this option is not supported prior to adb version 1.0.40
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
 ```
@@ -163,6 +167,10 @@ Install an apk with splits on the device.
       sd_card: (optional) If set installs on the SD card.
       allow_downgrade: (optional) Allow versionCode downgrade.
       partial: (optional) Package ID if apk_paths doesn't include all .apks.
+      streaming: (optional) If not set, use default way to install.
+        If True, performs streaming install.
+        If False, app is pushed to device and be installed from there.
+        Note this option is not supported prior to adb version 1.0.40
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
 ```

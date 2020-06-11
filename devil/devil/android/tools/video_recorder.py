@@ -43,7 +43,7 @@ class VideoRecorder(object):
     self._bit_rate = megabits_per_second * 1000 * 1000
     self._device = device
     self._device_file = (
-        '%s/screen-recording.mp4' % device.GetExternalStoragePath())
+        '%s/screen-recording.mp4' % device.GetAppWritablePath())
     self._recorder_thread = None
     self._rotate = rotate
     self._size = size

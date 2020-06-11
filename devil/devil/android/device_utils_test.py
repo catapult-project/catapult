@@ -494,6 +494,29 @@ class DeviceUtilsGetExternalStoragePathTest(DeviceUtilsTest):
         self.device.GetExternalStoragePath()
 
 
+class DeviceUtilsGetAppWritablePathTest(DeviceUtilsTest):
+  def testGetAppWritablePath_succeeds_sdk_pre_q(self):
+    with self.assertCalls(
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '28'),
+        self.EnsureCacheInitialized(sdcard='/fake/storage/path')):
+      self.assertEquals('/fake/storage/path',
+                        self.device.GetAppWritablePath())
+
+  def testGetAppWritablePath_succeeds_sdk_q(self):
+    with self.assertCalls(
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '29'),
+        self.EnsureCacheInitialized(sdcard='/fake/storage/path')):
+      self.assertEquals('/fake/storage/path/Download',
+                        self.device.GetAppWritablePath())
+
+  def testGetAppWritablePath_fails(self):
+    with self.assertCalls(
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '29'),
+        self.EnsureCacheInitialized(sdcard='')):
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.device.GetAppWritablePath()
+
+
 class DeviceUtilsIsApplicationInstalledTest(DeviceUtilsTest):
   def testIsApplicationInstalled_installed(self):
     with self.assertCalls((self.call.device.RunShellCommand(
