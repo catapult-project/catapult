@@ -14,6 +14,11 @@
   color: #fff;
   display: -webkit-flex;
   padding: 2px 2px 4px 7px;
+  align-items: center;
+}
+
+#top-bar-view-content a {
+  color: #fff;
 }
 
 #import-view-command-line,
