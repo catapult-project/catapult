@@ -39,11 +39,36 @@ data:
   - file: {wpr_binary}
 """
 
+_UPDATE_DEPS_MSG = """
+Instruction to update your chromium/src/DEPS file:
+  - Open DEPS with an editor
+  - Find entry 'src/third_party/webpagereplay'
+  - Find the entry with 'package' : 'infra/tools/wpr/{platform}'
+  - Change the entry version string to 'version' : '{version}'
+  - Create a commit and send for review.
+  - The final diff of DEFS looks like:
+
+  'src/third_party/webpagereplay': {{
+      'packages' : [
+          {{
+              'package': 'infra/tools/wpr/{platform}',
+              'version': '{version}',
+          }},
+      ],
+      'condition': 'checkout_android',
+      'dep_type': 'cipd',
+  }},
+"""
+
+INSTANCE = 'Instance'
+
+
 class cipd_uploader(object):
   """Helper to upload wpr binaries to CIPD repository."""
   def __init__(self):
     self._common_path = None
     self._binaries_to_upload = {}
+    self._cipd_instances = {}
 
   def register_binary_to_upload(self, path):
     """Registers the binary for later batch upload."""
@@ -63,7 +88,9 @@ class cipd_uploader(object):
         raise RuntimeError('The wpr binary for platform %s is not registered.',
                            platform)
       pkg_def_file = self._write_pkg_def_file(platform)
-      self._upload_cipd(pkg_def_file)
+      instance_id = self._upload_cipd(pkg_def_file)
+      if instance_id:
+        self._cipd_instances[platform] = instance_id
 
   def _write_pkg_def_file(self, platform):
     """Creates a CIPD pkg_def file on disk and returns path.
@@ -87,11 +114,27 @@ class cipd_uploader(object):
 
     Args:
       pkg_def: The path of the pkg_def file used to upload to CIPD repository.
-
+    Returns:
+      A instance id to be stored later into _cipd_instances.
     """
     upload_cmd = ['cipd', 'create',
                   '-pkg-def', os.path.basename(pkg_def)]
-    subprocess.check_call(upload_cmd, cwd=os.path.dirname(pkg_def))
+    instance_id = None
+    p = subprocess.check_output(upload_cmd, cwd=os.path.dirname(pkg_def))
+    if INSTANCE in p:
+      p = p[p.find(INSTANCE):]
+      parts = p.split(':')
+      if len(parts) > 2:
+        instance_id = parts[2].rstrip()
+    return instance_id
+
+  def print_update_instructions(self):
+    """Prints out the update diff to DEPS file."""
+    for platform in _SUPPORTED_CIPD_PLATFORMS:
+      if platform not in self._cipd_instances:
+        continue
+      print(_UPDATE_DEPS_MSG.format(platform=platform,
+                                    version=self._cipd_instances[platform]))
 
 
 def download_from_gcs_and_update_cipd():
@@ -111,6 +154,7 @@ def download_from_gcs_and_update_cipd():
     uploader.register_binary_to_upload(wpr_bin)
 
   uploader.upload_to_cipd()
+  uploader.print_update_instructions()
 
 
 def main():
