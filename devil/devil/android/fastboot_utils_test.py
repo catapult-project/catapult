@@ -83,6 +83,14 @@ class FastbootUtilsTest(mock_calls.TestCase):
         default_retries=0)
     self.fastboot._board = _BOARD
 
+  def FastbootCommandFailedError(self,
+                                 args=None,
+                                 output=None,
+                                 status=None,
+                                 msg=None):
+    return mock.Mock(side_effect=device_errors.FastbootCommandFailedError(
+        args, output, status, msg, str(self.device_utils_mock)))
+
 
 class FastbootUtilsInitTest(FastbootUtilsTest):
   def testInitWithDeviceUtil(self):
@@ -104,9 +112,51 @@ class FastbootUtilsWaitForFastbootMode(FastbootUtilsTest):
     self.fastboot.WaitForFastbootMode()
 
 
+class FastbootUtilsIsFastbootMode(FastbootUtilsTest):
+  def testIsFastbootMode_True(self):
+    self.assertEqual(True, self.fastboot.IsFastbootMode())
+
+  def testIsFastbootMode_False(self):
+    self.fastboot._serial = 'not' + _SERIAL
+    self.assertEqual(False, self.fastboot.IsFastbootMode())
+
+
+class FastbootUtils_supports_ab(FastbootUtilsTest):
+  def test_supports_ab_fastboot_True(self):
+    with self.assertCalls(
+        (self.call.fastboot.IsFastbootMode(), True),
+        (self.call.fastboot.fastboot.GetVar('slot-count'), 2)):
+      self.assertEqual(True, self.fastboot.supports_ab)
+
+  def test_supports_ab_fastboot_False(self):
+    with self.assertCalls(
+        (self.call.fastboot.IsFastbootMode(), True),
+        (self.call.fastboot.fastboot.GetVar('slot-count'), 1)):
+      self.assertEqual(False, self.fastboot.supports_ab)
+
+  def test_supports_ab_fastboot_FalseWithError(self):
+    with self.assertCalls((self.call.fastboot.IsFastbootMode(), True),
+                          (self.call.fastboot.fastboot.GetVar('slot-count'),
+                           self.FastbootCommandFailedError([], ''))):
+      self.assertEqual(False, self.fastboot.supports_ab)
+
+  def test_supports_ab_device_True(self):
+    with self.assertCalls(
+        (self.call.fastboot.IsFastbootMode(), False),
+        (self.call.fastboot._device.GetProp('ro.build.ab_update'), 'true')):
+      self.assertEqual(True, self.fastboot.supports_ab)
+
+  def test_supports_ab_device_False(self):
+    with self.assertCalls(
+        (self.call.fastboot.IsFastbootMode(), False),
+        (self.call.fastboot._device.GetProp('ro.build.ab_update'), '')):
+      self.assertEqual(False, self.fastboot.supports_ab)
+
+
 class FastbootUtilsEnableFastbootMode(FastbootUtilsTest):
   def testEnableFastbootMode(self):
     with self.assertCalls(
+        (self.call.fastboot.IsFastbootMode(), False),
         self.call.fastboot._device.EnableRoot(),
         self.call.fastboot._device.adb.Reboot(to_bootloader=True),
         self.call.fastboot.WaitForFastbootMode()):
@@ -128,62 +178,64 @@ class FastbootUtilsReboot(FastbootUtilsTest):
 
 class FastbootUtilsFlashPartitions(FastbootUtilsTest):
   def testFlashPartitions_wipe(self):
-    with self.assertCalls(
-        (self.call.fastboot._VerifyBoard('test'), True),
-        (mock.call.devil.android.
-         fastboot_utils._FindAndVerifyPartitionsAndImages(
-             _PARTITIONS, 'test', 'board_type'), _IMAGES),
-        (self.call.fastboot.fastboot.Flash('bootloader', 'bootloader.img')),
-        (self.call.fastboot.Reboot(bootloader=True)),
-        (self.call.fastboot.fastboot.Flash('radio', 'radio.img')),
-        (self.call.fastboot.Reboot(bootloader=True)),
-        (self.call.fastboot.fastboot.Flash('boot', 'boot.img')),
-        (self.call.fastboot.fastboot.Flash('recovery', 'recovery.img')),
-        (self.call.fastboot.fastboot.Flash('system', 'system.img')),
-        (self.call.fastboot.fastboot.Flash('userdata', 'userdata.img')),
-        (self.call.fastboot.fastboot.Flash('cache', 'cache.img'))):
-      self.fastboot._FlashPartitions(_PARTITIONS, 'test', wipe=True)
+    with self.patch_call(self.call.fastboot.supports_ab, return_value=False):
+      with self.assertCalls(
+          (self.call.fastboot._VerifyBoard('test'), True),
+          (mock.call.devil.android.
+           fastboot_utils._FindAndVerifyPartitionsAndImages(
+               _PARTITIONS, 'test', False), _IMAGES),
+          (self.call.fastboot.fastboot.Flash('bootloader', 'bootloader.img')),
+          (self.call.fastboot.Reboot(bootloader=True)),
+          (self.call.fastboot.fastboot.Flash('radio', 'radio.img')),
+          (self.call.fastboot.Reboot(bootloader=True)),
+          (self.call.fastboot.fastboot.Flash('boot', 'boot.img')),
+          (self.call.fastboot.fastboot.Flash('recovery', 'recovery.img')),
+          (self.call.fastboot.fastboot.Flash('system', 'system.img')),
+          (self.call.fastboot.fastboot.Flash('userdata', 'userdata.img')),
+          (self.call.fastboot.fastboot.Flash('cache', 'cache.img'))):
+        self.fastboot._FlashPartitions(_PARTITIONS, 'test', wipe=True)
 
   def testFlashPartitions_noWipe(self):
-    with self.assertCalls(
-        (self.call.fastboot._VerifyBoard('test'), True),
-        (mock.call.devil.android.
-         fastboot_utils._FindAndVerifyPartitionsAndImages(
-             _PARTITIONS, 'test', 'board_type'), _IMAGES),
-        (self.call.fastboot.fastboot.Flash('bootloader', 'bootloader.img')),
-        (self.call.fastboot.Reboot(bootloader=True)),
-        (self.call.fastboot.fastboot.Flash('radio', 'radio.img')),
-        (self.call.fastboot.Reboot(bootloader=True)),
-        (self.call.fastboot.fastboot.Flash('boot', 'boot.img')),
-        (self.call.fastboot.fastboot.Flash('recovery', 'recovery.img')),
-        (self.call.fastboot.fastboot.Flash('system', 'system.img'))):
-      self.fastboot._FlashPartitions(_PARTITIONS, 'test')
+    with self.patch_call(self.call.fastboot.supports_ab, return_value=False):
+      with self.assertCalls(
+          (self.call.fastboot._VerifyBoard('test'), True),
+          (mock.call.devil.android.
+           fastboot_utils._FindAndVerifyPartitionsAndImages(
+               _PARTITIONS, 'test', False), _IMAGES),
+          (self.call.fastboot.fastboot.Flash('bootloader', 'bootloader.img')),
+          (self.call.fastboot.Reboot(bootloader=True)),
+          (self.call.fastboot.fastboot.Flash('radio', 'radio.img')),
+          (self.call.fastboot.Reboot(bootloader=True)),
+          (self.call.fastboot.fastboot.Flash('boot', 'boot.img')),
+          (self.call.fastboot.fastboot.Flash('recovery', 'recovery.img')),
+          (self.call.fastboot.fastboot.Flash('system', 'system.img'))):
+        self.fastboot._FlashPartitions(_PARTITIONS, 'test')
 
-  def testFlashPartitions_A_B_device(self):
-    self.fastboot._board = 'walleye'
+  def testFlashPartitions_AB_device(self):
     ab_images = _IMAGES.copy()
     ab_images['dtbo'] = 'dtbo.img'
     ab_images['vbmeta'] = 'vbmeta.img'
     ab_partitions = _PARTITIONS[:]
     ab_partitions.append('dtbo')
     ab_partitions.append('vbmeta')
-    with self.assertCalls(
-        (self.call.fastboot._VerifyBoard('test'), True),
-        (mock.call.devil.android.
-         fastboot_utils._FindAndVerifyPartitionsAndImages(
-             ab_partitions, 'test', 'walleye'), ab_images),
-        (self.call.fastboot.fastboot.Flash('bootloader', 'bootloader.img')),
-        (self.call.fastboot.Reboot(bootloader=True)),
-        (self.call.fastboot.fastboot.Flash('radio', 'radio.img')),
-        (self.call.fastboot.Reboot(bootloader=True)),
-        (self.call.fastboot.fastboot.Flash('boot', 'boot.img')),
-        (self.call.fastboot.fastboot.Flash('recovery', 'recovery.img')),
-        (self.call.fastboot.fastboot.Flash('system', 'system.img')),
-        (self.call.fastboot.fastboot.Flash('userdata', 'userdata.img')),
-        (self.call.fastboot.fastboot.Flash('cache', 'cache.img')),
-        (self.call.fastboot.fastboot.Flash('dtbo', 'dtbo.img')),
-        (self.call.fastboot.fastboot.Flash('vbmeta', 'vbmeta.img'))):
-      self.fastboot._FlashPartitions(ab_partitions, 'test', wipe=True)
+    with self.patch_call(self.call.fastboot.supports_ab, return_value=True):
+      with self.assertCalls(
+          (self.call.fastboot._VerifyBoard('test'), True),
+          (mock.call.devil.android.
+           fastboot_utils._FindAndVerifyPartitionsAndImages(
+               ab_partitions, 'test', True), ab_images),
+          (self.call.fastboot.fastboot.Flash('bootloader', 'bootloader.img')),
+          (self.call.fastboot.Reboot(bootloader=True)),
+          (self.call.fastboot.fastboot.Flash('radio', 'radio.img')),
+          (self.call.fastboot.Reboot(bootloader=True)),
+          (self.call.fastboot.fastboot.Flash('boot', 'boot.img')),
+          (self.call.fastboot.fastboot.Flash('recovery', 'recovery.img')),
+          (self.call.fastboot.fastboot.Flash('system', 'system.img')),
+          (self.call.fastboot.fastboot.Flash('userdata', 'userdata.img')),
+          (self.call.fastboot.fastboot.Flash('cache', 'cache.img')),
+          (self.call.fastboot.fastboot.Flash('dtbo', 'dtbo.img')),
+          (self.call.fastboot.fastboot.Flash('vbmeta', 'vbmeta.img'))):
+        self.fastboot._FlashPartitions(ab_partitions, 'test', wipe=True)
 
 
 class FastbootUtilsFastbootMode(FastbootUtilsTest):
@@ -294,7 +346,7 @@ class FastbootUtilsFindAndVerifyPartitionsAndImages(FastbootUtilsTest):
     ]
     with mock.patch('os.listdir', return_value=files):
       imgs = fastboot_utils._FindAndVerifyPartitionsAndImages(
-          PARTITIONS, 'test', 'board_type')
+          PARTITIONS, 'test', False)
       parts = imgs.keys()
       self.assertDictEqual(imgs, img_check)
       self.assertListEqual(parts, parts_check)
@@ -325,7 +377,7 @@ class FastbootUtilsFindAndVerifyPartitionsAndImages(FastbootUtilsTest):
 
     with mock.patch('os.listdir', return_value=files):
       imgs = fastboot_utils._FindAndVerifyPartitionsAndImages(
-          PARTITIONS, 'test', 'board_type')
+          PARTITIONS, 'test', False)
       parts = imgs.keys()
       self.assertDictEqual(imgs, img_check)
       self.assertListEqual(parts, parts_check)
@@ -334,13 +386,39 @@ class FastbootUtilsFindAndVerifyPartitionsAndImages(FastbootUtilsTest):
     with mock.patch('os.listdir', return_value=['test']):
       with self.assertRaises(KeyError):
         fastboot_utils._FindAndVerifyPartitionsAndImages(['test'], 'test',
-                                                         'board_type')
+                                                         False)
 
-  def testFindAndVerifyPartitionsAndImages_noFile(self):
+  def testFindAndVerifyPartitionsAndImages_noFile_RequiredImage(self):
     with mock.patch('os.listdir', return_value=['test']):
       with self.assertRaises(device_errors.FastbootCommandFailedError):
-        fastboot_utils._FindAndVerifyPartitionsAndImages(['cache'], 'test',
-                                                         'board_type')
+        fastboot_utils._FindAndVerifyPartitionsAndImages(['boot'], 'test',
+                                                         False)
+
+  def testFindAndVerifyPartitionsAndImages_noFile_RequiredImageAB(self):
+    with mock.patch('os.listdir', return_value=['test']):
+      with self.assertRaises(device_errors.FastbootCommandFailedError):
+        fastboot_utils._FindAndVerifyPartitionsAndImages(['boot'], 'test', True)
+
+      with self.assertRaises(device_errors.FastbootCommandFailedError):
+        fastboot_utils._FindAndVerifyPartitionsAndImages(['dtbo'], 'test', True)
+
+  def testFindAndVerifyPartitionsAndImages_noFile_NotRequiredImage(self):
+    with mock.patch('os.listdir', return_value=['test']):
+      self.assertFalse(
+          fastboot_utils._FindAndVerifyPartitionsAndImages(['vendor'], 'test',
+                                                           False))
+      self.assertFalse(
+          fastboot_utils._FindAndVerifyPartitionsAndImages(['dtbo'], 'test',
+                                                           False))
+
+  def testFindAndVerifyPartitionsAndImages_noFile_NotRequiredImageAB(self):
+    with mock.patch('os.listdir', return_value=['test']):
+      self.assertFalse(
+          fastboot_utils._FindAndVerifyPartitionsAndImages(['vendor'], 'test',
+                                                           True))
+      self.assertFalse(
+          fastboot_utils._FindAndVerifyPartitionsAndImages(['cache'], 'test',
+                                                           True))
 
 
 class FastbootUtilsFlashDevice(FastbootUtilsTest):
