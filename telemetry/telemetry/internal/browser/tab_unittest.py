@@ -34,6 +34,15 @@ class TabTest(tab_test_case.TabTestCase):
     self.assertRaises(exceptions.DevtoolsTargetCrashException,
                       lambda: self._tab.Navigate('chrome://crash',
                                                  timeout=30))
+    # This is expected to produce a single minidump, so ignore it so that the
+    # post-test cleanup doesn't complain about unsymbolized minidumps.
+    minidumps = self._tab.browser.GetAllMinidumpPaths()
+    if len(minidumps) == 1:
+      # If we don't have a minidump, no need to do anything. If we have more
+      # than one, then we should leave them alone and let the cleanup fail,
+      # as that implies that something went wrong and we currently don't have
+      # a good way to distinguish the expected minidump from unexpected ones.
+      self._tab.browser.IgnoreMinidump(minidumps[0])
 
   def testTimeoutExceptionIncludeConsoleMessage(self):
     self._tab.EvaluateJavaScript("""

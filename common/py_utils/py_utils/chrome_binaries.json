@@ -6,22 +6,22 @@
       "cloud_storage_bucket": "chrome-telemetry",
       "file_info": {
         "mac_x86_64": {
-          "cloud_storage_hash": "805bcd36abcadd252fc433b1b440edc9c1d1abaf",
+          "cloud_storage_hash": "841d45e806a296ce21f7f783cc7a2ae5f857924c",
           "download_path": "bin/reference_builds/chrome-mac64.zip",
           "path_within_archive": "chrome-mac/Google Chrome.app/Contents/MacOS/Google Chrome",
-          "version_in_cs": "80.0.3951.6"
+          "version_in_cs": "85.0.4169.0"
         },
         "win_AMD64": {
-          "cloud_storage_hash": "7ad4063151c506f73b350665ca8e189e18565a3a",
+          "cloud_storage_hash": "c0b02f47afb6bacdd8d12eda6f03488583404b60",
           "download_path": "bin\\reference_build\\chrome-win64-clang.zip",
           "path_within_archive": "chrome-win64-clang\\chrome.exe",
-          "version_in_cs": "80.0.3951.4"
+          "version_in_cs": "85.0.4169.0"
         },
         "win_x86": {
-          "cloud_storage_hash": "9ccaf1f26fc1f9d4e46258504a2de0f3808c1cf0",
+          "cloud_storage_hash": "5879958eda4edc5b0eaffeda4c7369a07937af73",
           "download_path": "bin\\reference_build\\chrome-win32-clang.zip",
           "path_within_archive": "chrome-win32-clang\\chrome.exe",
-          "version_in_cs": "80.0.3951.4"
+          "version_in_cs": "85.0.4169.0"
         }
       }
     },
@@ -30,10 +30,10 @@
       "cloud_storage_bucket": "chrome-telemetry",
       "file_info": {
         "linux_x86_64": {
-          "cloud_storage_hash": "0db52435a728bbb0343791e275efd52904d059d6",
+          "cloud_storage_hash": "1b21a60f8e83a43d01e2ddbe83c5df56c8159d56",
           "download_path": "bin/reference_build/chrome-linux64.zip",
           "path_within_archive": "chrome-linux64/chrome",
-          "version_in_cs": "79.0.3945.16"
+          "version_in_cs": "85.0.4164.2"
         }
       }
     },
@@ -42,63 +42,63 @@
       "cloud_storage_bucket": "chrome-telemetry",
       "file_info": {
         "android_k_armeabi-v7a": {
-          "cloud_storage_hash": "fcd18925f0929d38273c860e6fa4d1c3064b2037",
+          "cloud_storage_hash": "cf89ebbcf302fab3d4cd80b5566c5246cdf1504a",
           "download_path": "bin/reference_build/android_k_armeabi-v7a/ChromeStable.apk",
-          "version_in_cs": "78.0.3904.62"
+          "version_in_cs": "83.0.4103.101"
         },
         "android_l_arm64-v8a": {
-          "cloud_storage_hash": "f2a8fd07fa7e082835a3c4ac228e66dc0dc89fee",
+          "cloud_storage_hash": "8d3d5fe99655f61a088d4b4d51cad028b1a60f9c",
           "download_path": "bin/reference_build/android_l_arm64-v8a/ChromeStable.apk",
-          "version_in_cs": "78.0.3904.62"
+          "version_in_cs": "83.0.4103.101"
         },
         "android_l_armeabi-v7a": {
-          "cloud_storage_hash": "fcd18925f0929d38273c860e6fa4d1c3064b2037",
+          "cloud_storage_hash": "cf89ebbcf302fab3d4cd80b5566c5246cdf1504a",
           "download_path": "bin/reference_build/android_l_armeabi-v7a/ChromeStable.apk",
-          "version_in_cs": "78.0.3904.62"
+          "version_in_cs": "83.0.4103.101"
         },
         "android_n_arm64-v8a": {
-          "cloud_storage_hash": "46943be19af7dd4dd70930d1838e7058a4a91235",
+          "cloud_storage_hash": "8a4a0e3be7c1043c63446b74c210c3bd1387c1f8",
           "download_path": "bin/reference_build/android_n_arm64-v8a/Monochrome.apk",
-          "version_in_cs": "78.0.3904.62"
+          "version_in_cs": "83.0.4103.101"
         },
         "android_n_armeabi-v7a": {
-          "cloud_storage_hash": "628c0a492ac8c465b6da47909b3d1c92769da771",
+          "cloud_storage_hash": "3c80e59b2c0fede2a85a6b79dc71a5c787e01d30",
           "download_path": "bin/reference_build/android_n_armeabi-v7a/Monochrome.apk",
-          "version_in_cs": "78.0.3904.62"
+          "version_in_cs": "83.0.4103.101"
         },
         "android_n_bundle_arm64-v8a": {
-          "cloud_storage_hash": "d294dad73aace7aad342b2448454700fa63987bf",
+          "cloud_storage_hash": "b369c1a955d49d246b52e93b8c5692a80d5356b1",
           "download_path": "bin/reference_build/android_n_bundle_arm64-v8a/Monochrome.apks",
-          "version_in_cs": "79.0.3945.93"
+          "version_in_cs": "83.0.4103.101"
         },
         "android_n_bundle_armeabi-v7a": {
-          "cloud_storage_hash": "b36e829a0d9e73f39508b7bf033bd701ae26ed75",
+          "cloud_storage_hash": "8529aa69c987bcc731589e54543a870263dfa431",
           "download_path": "bin/reference_build/android_n_bundle_armeabi-v7a/Monochrome.apks",
-          "version_in_cs": "79.0.3945.93"
+          "version_in_cs": "83.0.4103.101"
         },
         "linux_x86_64": {
-          "cloud_storage_hash": "6428da5968a0e69b84ee4525f8886517a45e4c92",
+          "cloud_storage_hash": "2eb0469024c127a4b99d6b20ac673e2be7ab1b2d",
           "download_path": "bin/reference_build/chrome-linux64.zip",
           "path_within_archive": "chrome-linux64/chrome",
-          "version_in_cs": "78.0.3904.70"
+          "version_in_cs": "83.0.4103.97"
         },
         "mac_x86_64": {
-          "cloud_storage_hash": "40096f095b8f8b3694219c23b3f7254a60ca35e0",
+          "cloud_storage_hash": "012c5a5e7b1e69a0960462e7ba7f77f90464a10f",
           "download_path": "bin/reference_builds/chrome-mac64.zip",
           "path_within_archive": "chrome-mac/Google Chrome.app/Contents/MacOS/Google Chrome",
-          "version_in_cs": "78.0.3904.70"
+          "version_in_cs": "83.0.4103.97"
         },
         "win_AMD64": {
-          "cloud_storage_hash": "7fcc267926ac55afe6fc28bc14eb252c98e20e08",
+          "cloud_storage_hash": "e6515496ebab0d02a5294a008fe8bbf9dd3dbc0c",
           "download_path": "bin\\reference_build\\chrome-win64-clang.zip",
           "path_within_archive": "chrome-win64-clang\\chrome.exe",
-          "version_in_cs": "78.0.3904.70"
+          "version_in_cs": "83.0.4103.97"
         },
         "win_x86": {
-          "cloud_storage_hash": "d6fdf2a4858bf9ddcbdb97b29b68863dfa3574f7",
+          "cloud_storage_hash": "1749fac72241bc48e4adaf881a9278811b7ee406",
           "download_path": "bin\\reference_build\\chrome-win-clang.zip",
           "path_within_archive": "chrome-win-clang\\chrome.exe",
-          "version_in_cs": "78.0.3904.70"
+          "version_in_cs": "83.0.4103.97"
         }
       }
     },
@@ -107,22 +107,22 @@
       "cloud_storage_bucket": "chrome-telemetry",
       "file_info": {
         "mac_x86_64": {
-          "cloud_storage_hash": "6502438babd29256ae0407c818123d7d25b439c4",
+          "cloud_storage_hash": "0e1a89d8aabd37e971aca506130d8ef7a1997b14",
           "download_path": "bin/reference_builds/chrome-mac.zip",
           "path_within_archive": "chrome-mac/Chromium.app/Contents/MacOS/Chromium",
-          "version_in_cs": "80.0.3951.6"
+          "version_in_cs": "85.0.4169.0"
         },
         "win_AMD64": {
-          "cloud_storage_hash": "e177a29aa1bc1d86dae31fc80bca293011e8ff51",
+          "cloud_storage_hash": "fed673ad3f4744160b4997af461573be85153a1a",
           "download_path": "bin\\reference_build\\chrome-win.zip",
           "path_within_archive": "chrome-win\\chrome.exe",
-          "version_in_cs": "80.0.3951.4"
+          "version_in_cs": "85.0.4169.0"
         },
         "win_x86": {
-          "cloud_storage_hash": "4f1bfd18c5cc386cb966ab48bf174d34ae9596ee",
+          "cloud_storage_hash": "e413191b7355f9bb8daad2cfc26cca924f48c44a",
           "download_path": "bin\\reference_build\\chrome-win32-clang.zip",
           "path_within_archive": "chrome-win32-clang\\chrome.exe",
-          "version_in_cs": "80.0.3951.4"
+          "version_in_cs": "85.0.4169.0"
         }
       }
     },
@@ -131,10 +131,10 @@
       "cloud_storage_bucket": "chrome-telemetry",
       "file_info": {
         "linux_x86_64": {
-          "cloud_storage_hash": "5821ab5c8693c87b5a02c2684bb45e08ba901960",
+          "cloud_storage_hash": "b8b8aeaf5174ba09598ee637353b87f25fe9926e",
           "download_path": "bin/reference_build/chrome-linux.zip",
           "path_within_archive": "chrome-linux/chrome",
-          "version_in_cs": "79.0.3945.16"
+          "version_in_cs": "85.0.4164.2"
         }
       }
     },
@@ -143,28 +143,28 @@
       "cloud_storage_bucket": "chrome-telemetry",
       "file_info": {
         "linux_x86_64": {
-          "cloud_storage_hash": "eb82b5d41759b6eeb2e61ef1a702be31aadf71c5",
+          "cloud_storage_hash": "9d7903d1e29589c9a9731b856893a0b6ee4de760",
           "download_path": "bin/reference_build/chrome-linux.zip",
           "path_within_archive": "chrome-linux/chrome",
-          "version_in_cs": "78.0.3904.70"
+          "version_in_cs": "83.0.4103.97"
         },
         "mac_x86_64": {
-          "cloud_storage_hash": "0eb8d99f6ea6e1ff5bd9607d5be3e0eb29a9a497",
+          "cloud_storage_hash": "d1ddbcd3b1d2efd44c5a5030ae871308cca26000",
           "download_path": "bin/reference_builds/chrome-mac.zip",
           "path_within_archive": "chrome-mac/Chromium.app/Contents/MacOS/Chromium",
-          "version_in_cs": "78.0.3904.70"
+          "version_in_cs": "83.0.4103.97"
         },
         "win_AMD64": {
-          "cloud_storage_hash": "c28d9e5bd2229164731fc7725293e361d9a850df",
+          "cloud_storage_hash": "5e503f1bfeae37061ddc80ae1660a1c41594b188",
           "download_path": "bin\\reference_build\\chrome-win.zip",
           "path_within_archive": "chrome-win\\chrome.exe",
-          "version_in_cs": "78.0.3904.70"
+          "version_in_cs": "83.0.4103.97"
         },
         "win_x86": {
-          "cloud_storage_hash": "5af50c744ace488341a79e5f8d208ddaee04c5e7",
+          "cloud_storage_hash": "66e8c83cc4b57c38d71a56f6928bcafe7da17d80",
           "download_path": "bin\\reference_build\\chrome-win-clang.zip",
           "path_within_archive": "chrome-win-clang\\chrome.exe",
-          "version_in_cs": "78.0.3904.70"
+          "version_in_cs": "83.0.4103.97"
         }
       }
     }
