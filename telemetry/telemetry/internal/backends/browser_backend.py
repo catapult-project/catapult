@@ -138,9 +138,9 @@ class BrowserBackend(app_backend.AppBackend):
     """
     suffix = artifact_logger.GetTimestampSuffix()
     data = debug_data.DebugData()
-    self._CollectScreenshot(log_level, suffix)
-    self._CollectSystemLog(log_level, suffix, data)
-    self._CollectStdout(log_level, suffix, data)
+    self._CollectScreenshot(log_level, suffix + '.png')
+    self._CollectSystemLog(log_level, suffix + '.txt', data)
+    self._CollectStdout(log_level, suffix + '.txt', data)
     self._SymbolizeAndLogMinidumps(log_level, data)
     return data
 
