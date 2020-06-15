@@ -197,7 +197,7 @@ class InspectorWebsocket(object):
     dot_pos = mname.find('.')
     domain_name = mname[:dot_pos]
     if not domain_name in self._domain_handlers:
-      logging.warn('Unhandled inspector message: %s', result)
+      logging.debug('Unhandled inspector message: %s', result)
       return
 
     self._domain_handlers[domain_name](result)
