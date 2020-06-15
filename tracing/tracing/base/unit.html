@@ -484,6 +484,17 @@ tr.exportTo('tr.b', function() {
   });
 
   Unit.define({
+    baseUnitName: 'batteryChargeInAmpereHours',
+    baseJsonName: 'Ah',
+    formatSpec: {
+      baseSymbol: 'Ah',
+      unitScale: tr.b.UnitScale.defineUnitScaleFromPrefixScale(
+          'Ah', 'AMPEREHOUR', tr.b.UnitPrefixScale.METRIC, 'AMPEREHOUR').AUTO,
+      minimumFractionDigits: 3
+    }
+  });
+
+  Unit.define({
     baseUnitName: 'electricPotentialInVolts',
     baseJsonName: 'V',
     formatSpec: {

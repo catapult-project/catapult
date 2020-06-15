@@ -399,6 +399,19 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(Unit.byName.powerInWatts.format(.001005), '1.005 mW');
   });
 
+  test('batteryChargeInAmpereHours', function() {
+    assert.strictEqual(
+        Unit.byName.batteryChargeInAmpereHours.format(1000), '1.000 kAh');
+    assert.strictEqual(
+        Unit.byName.batteryChargeInAmpereHours.format(1), '1.000 Ah');
+    assert.strictEqual(
+        Unit.byName.batteryChargeInAmpereHours.format(0), '0.000 Ah');
+    assert.strictEqual(
+        Unit.byName.batteryChargeInAmpereHours.format(.001), '1.000 mAh');
+    assert.strictEqual(
+        Unit.byName.batteryChargeInAmpereHours.format(.001005), '1.005 mAh');
+  });
+
   test('electricCurrentInAmperes', function() {
     assert.strictEqual(
         Unit.byName.electricCurrentInAmperes.format(1000), '1.000 kA');

@@ -629,6 +629,7 @@ UNIT_NAMES = [
     'J',  # Joule
     'W',  # Watt
     'A',  # Ampere
+    'Ah',  # Ampere-hours
     'V',  # Volt
     'Hz',  # Hertz
     'unitless',
@@ -1658,6 +1659,7 @@ DEFAULT_BOUNDARIES_FOR_UNIT = {
     'J': HistogramBinBoundaries.CreateExponential(1e-3, 1e3, 50),
     'W': HistogramBinBoundaries.CreateExponential(1e-3, 1, 50),
     'A': HistogramBinBoundaries.CreateExponential(1e-3, 1, 50),
+    'Ah': HistogramBinBoundaries.CreateExponential(1e-3, 1, 50),
     'V': HistogramBinBoundaries.CreateExponential(1e-3, 1, 50),
     'Hz': HistogramBinBoundaries.CreateExponential(1e-3, 1, 50),
     'unitless': HistogramBinBoundaries.CreateExponential(1e-3, 1e3, 50),
