@@ -938,14 +938,13 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         return_value='notflounder'), (self.patch_call(
             self.call.device.build_version_sdk, return_value=23)):
       with self.assertCalls(
-          (self.call.device._FakeInstall(set(), None)),
+          (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
-          self.call.adb.Install(
-              TEST_APK_PATH,
-              reinstall=False,
-              streaming=None,
-              allow_downgrade=False),
+          self.call.adb.Install(TEST_APK_PATH,
+                                reinstall=False,
+                                streaming=None,
+                                allow_downgrade=False),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
@@ -955,14 +954,13 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         return_value='flounder'), (self.patch_call(
             self.call.device.build_version_sdk, return_value=23)):
       with self.assertCalls(
-          (self.call.device._FakeInstall(set(), None)),
+          (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
-          self.call.adb.Install(
-              TEST_APK_PATH,
-              reinstall=False,
-              streaming=False,
-              allow_downgrade=False),
+          self.call.adb.Install(TEST_APK_PATH,
+                                reinstall=False,
+                                streaming=False,
+                                allow_downgrade=False),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
@@ -972,14 +970,13 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         return_value='notflounder'), (self.patch_call(
             self.call.device.build_version_sdk, return_value=20)):
       with self.assertCalls(
-          (self.call.device._FakeInstall(set(), None)),
+          (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
-          (self.call.adb.Install(
-              TEST_APK_PATH,
-              reinstall=False,
-              streaming=None,
-              allow_downgrade=False))):
+          (self.call.adb.Install(TEST_APK_PATH,
+                                 reinstall=False,
+                                 streaming=None,
+                                 allow_downgrade=False))):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
   def testInstall_findPermissions(self):
@@ -988,14 +985,13 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         return_value='notflounder'), (self.patch_call(
             self.call.device.build_version_sdk, return_value=23)):
       with self.assertCalls(
-          (self.call.device._FakeInstall(set(), None)),
+          (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
-          (self.call.adb.Install(
-              TEST_APK_PATH,
-              reinstall=False,
-              streaming=None,
-              allow_downgrade=False)),
+          (self.call.adb.Install(TEST_APK_PATH,
+                                 reinstall=False,
+                                 streaming=None,
+                                 allow_downgrade=False)),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
@@ -1003,14 +999,13 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
     with self.patch_call(
         self.call.device.product_name, return_value='notflounder'):
       with self.assertCalls(
-          (self.call.device._FakeInstall(set(), None)),
+          (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
-          (self.call.adb.Install(
-              TEST_APK_PATH,
-              reinstall=False,
-              streaming=None,
-              allow_downgrade=False)),
+          (self.call.adb.Install(TEST_APK_PATH,
+                                 reinstall=False,
+                                 streaming=None,
+                                 allow_downgrade=False)),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1', 'p2']), [])):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk,
@@ -1019,7 +1014,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
 
   def testInstall_identicalPriorInstall(self):
     with self.assertCalls(
-        (self.call.device._FakeInstall(set(), None)),
+        (self.call.device._FakeInstall(set(), None, 'test.package')),
         (mock.call.os.path.exists(TEST_APK_PATH), True),
         (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE),
          ['/fake/data/app/test.package.apk']),
@@ -1032,17 +1027,16 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
     with self.patch_call(
         self.call.device.product_name, return_value='notflounder'):
       with self.assertCalls(
-          (self.call.device._FakeInstall(set(), None)),
+          (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE),
            ['/fake/data/app/test.package.apk']),
           (self.call.device._ComputeStaleApks(TEST_PACKAGE, [TEST_APK_PATH]),
            ([TEST_APK_PATH], None)), self.call.device.Uninstall(TEST_PACKAGE),
-          self.call.adb.Install(
-              TEST_APK_PATH,
-              reinstall=False,
-              streaming=None,
-              allow_downgrade=False)):
+          self.call.adb.Install(TEST_APK_PATH,
+                                reinstall=False,
+                                streaming=None,
+                                allow_downgrade=False)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
 
@@ -1050,17 +1044,16 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
     with self.patch_call(
         self.call.device.product_name, return_value='notflounder'):
       with self.assertCalls(
-          (self.call.device._FakeInstall(set(), None)),
+          (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), [
               '/fake/data/app/test.package.apk',
               '/fake/data/app/test.package2.apk'
           ]), self.call.device.Uninstall(TEST_PACKAGE),
-          self.call.adb.Install(
-              TEST_APK_PATH,
-              reinstall=False,
-              streaming=None,
-              allow_downgrade=False)):
+          self.call.adb.Install(TEST_APK_PATH,
+                                reinstall=False,
+                                streaming=None,
+                                allow_downgrade=False)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
 
@@ -1068,17 +1061,16 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
     with self.patch_call(
         self.call.device.product_name, return_value='notflounder'):
       with self.assertCalls(
-          (self.call.device._FakeInstall(set(), None)),
+          (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE),
            ['/fake/data/app/test.package.apk']),
           (self.call.device._ComputeStaleApks(TEST_PACKAGE, [TEST_APK_PATH]),
            ([TEST_APK_PATH], None)),
-          self.call.adb.Install(
-              TEST_APK_PATH,
-              reinstall=True,
-              streaming=None,
-              allow_downgrade=False)):
+          self.call.adb.Install(TEST_APK_PATH,
+                                reinstall=True,
+                                streaming=None,
+                                allow_downgrade=False)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk,
             reinstall=True,
@@ -1087,7 +1079,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
 
   def testInstall_identicalPriorInstall_reinstall(self):
     with self.assertCalls(
-        (self.call.device._FakeInstall(set(), None)),
+        (self.call.device._FakeInstall(set(), None, 'test.package')),
         (mock.call.os.path.exists(TEST_APK_PATH), True),
         (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE),
          ['/fake/data/app/test.package.apk']),
@@ -1100,8 +1092,9 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
           permissions=[])
 
   def testInstall_missingApk(self):
-    with self.assertCalls((self.call.device._FakeInstall(set(), None)),
-                          (mock.call.os.path.exists(TEST_APK_PATH), False)):
+    with self.assertCalls(
+        (self.call.device._FakeInstall(set(), None, 'test.package')),
+        (mock.call.os.path.exists(TEST_APK_PATH), False)):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
@@ -1109,7 +1102,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
     with self.patch_call(
         self.call.device.product_name, return_value='notflounder'):
       with self.assertCalls(
-          (self.call.device._FakeInstall(set(), None)),
+          (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
           (self.call.adb.Install(
@@ -1124,17 +1117,16 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
     with self.patch_call(
         self.call.device.product_name, return_value='notflounder'):
       with self.assertCalls(
-          (self.call.device._FakeInstall(set(), None)),
+          (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE),
            ['/fake/data/app/test.package.apk']),
           (self.call.device._ComputeStaleApks(TEST_PACKAGE, [TEST_APK_PATH]),
            ([TEST_APK_PATH], None)),
-          self.call.adb.Install(
-              TEST_APK_PATH,
-              reinstall=True,
-              streaming=None,
-              allow_downgrade=True)):
+          self.call.adb.Install(TEST_APK_PATH,
+                                reinstall=True,
+                                streaming=None,
+                                allow_downgrade=True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk,
             reinstall=True,
@@ -1159,15 +1151,14 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
            mock_zip_temp_dir),
           (mock.call.os.rename('fake1-master.apk', '/test/tmp/dir/fake1.apk')),
           (self.call.device.PushChangedFiles(
-              [('/test/tmp/dir', '/data/local/tmp/modules')],
+              [('/test/tmp/dir', '/data/local/tmp/modules/test.package')],
               delete_device_stale=True)),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
-          self.call.adb.Install(
-              TEST_APK_PATH,
-              reinstall=False,
-              streaming=None,
-              allow_downgrade=False),
+          self.call.adb.Install(TEST_APK_PATH,
+                                reinstall=False,
+                                streaming=None,
+                                allow_downgrade=False),
           (self.call.device.GrantPermissions(TEST_PACKAGE, None), [])):
         self.device.Install(
             mock_apk_with_fake, fake_modules=fake_modules, retries=0)

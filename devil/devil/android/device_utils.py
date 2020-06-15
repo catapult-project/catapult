@@ -1120,10 +1120,10 @@ class DeviceUtils(object):
       retries: number of retries
       modules: An iterable containing specific bundle modules to install.
           Error if set and |apk| points to an APK instead of a bundle.
-      fake_modules: An iterable containing specific bundle modules that
-          should have their apks copied to |MODULES_SRC_DIRECTORY_PATH| rather
-          than installed. Thus the app can emulate SplitCompat while running.
-          This should not have any overlap with |modules|.
+      fake_modules: An iterable containing specific bundle modules that should
+          have their apks copied to |MODULES_SRC_DIRECTORY_PATH| subdirectory
+          rather than installed. Thus the app can emulate SplitCompat while
+          running. This should not have any overlap with |modules|.
       additional_locales: An iterable with additional locales to install for a
         bundle.
 
@@ -1138,12 +1138,14 @@ class DeviceUtils(object):
     assert modules_set.isdisjoint(fake_modules_set), (
         'These modules overlap: %s' % (modules_set & fake_modules_set))
     all_modules = modules_set | fake_modules_set
+    package_name = apk.GetPackageName()
+
     with apk.GetApkPaths(self,
                          modules=all_modules,
                          additional_locales=additional_locales) as apk_paths:
       fake_apk_paths = self._GetFakeInstallPaths(apk_paths, fake_modules)
+      self._FakeInstall(fake_apk_paths, fake_modules, package_name)
       apk_paths_to_install = [p for p in apk_paths if p not in fake_apk_paths]
-      self._FakeInstall(fake_apk_paths, fake_modules)
       self._InstallInternal(
           apk,
           apk_paths_to_install,
@@ -1161,11 +1163,12 @@ class DeviceUtils(object):
       return set()
     return set(p for p in apk_paths if IsFakeModulePath(p))
 
-  def _FakeInstall(self, fake_apk_paths, fake_modules):
+  def _FakeInstall(self, fake_apk_paths, fake_modules, package_name):
     with tempfile_ext.NamedTemporaryDirectory() as modules_dir:
+      device_dir = posixpath.join(self.MODULES_SRC_DIRECTORY_PATH, package_name)
       if not fake_modules:
         # Push empty module dir to clear device dir and update the cache.
-        self.PushChangedFiles([(modules_dir, self.MODULES_SRC_DIRECTORY_PATH)],
+        self.PushChangedFiles([(modules_dir, device_dir)],
                               delete_device_stale=True)
         return
 
@@ -1187,7 +1190,7 @@ class DeviceUtils(object):
 
       assert not still_need_master, (
           'Missing master apk file for %s' % still_need_master)
-      self.PushChangedFiles([(modules_dir, self.MODULES_SRC_DIRECTORY_PATH)],
+      self.PushChangedFiles([(modules_dir, device_dir)],
                             delete_device_stale=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance(
