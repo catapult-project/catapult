@@ -76,15 +76,7 @@ class SheriffConfigClientTest(testing_common.TestCase):
             "bug_components": [
               "foo>bar"
             ],
-            "visibility": "PUBLIC",
-            "patterns": [
-              {
-                "glob": "Foo2/*/Bar2/*"
-              },
-              {
-                "regex": ".*"
-              }
-            ]
+            "visibility": "PUBLIC"
           }
         }
       ]
@@ -127,15 +119,7 @@ class SheriffConfigClientTest(testing_common.TestCase):
             "bug_components": [
               "foo>bar"
             ],
-            "visibility": "PUBLIC",
-            "patterns": [
-              {
-                "glob": "Foo2/*/Bar2/*"
-              },
-              {
-                "regex": ".*"
-              }
-            ]
+            "visibility": "PUBLIC"
           }
         }
       ]

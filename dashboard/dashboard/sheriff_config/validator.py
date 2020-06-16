@@ -106,9 +106,9 @@ def Validate(content):
       raise MissingEmail(result, index)
     if subscription.name is None or len(subscription.name) == 0:
       raise MissingName(result, index)
-    if not subscription.patterns and not subscription.rules.match:
+    if not subscription.rules.match:
       raise MissingPatterns(result, index)
-    for (pattern_idx, pattern) in enumerate(subscription.patterns):
+    for (pattern_idx, pattern) in enumerate(subscription.rules.match):
       field = pattern.WhichOneof('pattern')
       if field is None:
         raise InvalidPattern(result, index, pattern_idx,

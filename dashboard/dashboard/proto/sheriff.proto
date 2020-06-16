@@ -97,6 +97,9 @@ message AutoBisection {
 // information for alerts generated to matching metrics.
 // Next ID: 15
 message Subscription {
+  reserved 8;
+  reserved "patterns";
+
   // A name is a free-form name for human readability purposes. It does not
   // serve as a unique key nor have any value other than for identifying a
   // subscription in logs, error messages, and in human readable contexts.
@@ -151,12 +154,9 @@ message Subscription {
   // that are considered "internal" or "public".
   VisibilityTag visibility = 7;
 
-  // A list of patterns to which a subscription applies. This means any alerts
-  // generated for the patterns that match will include the `notification_email`
+  // A list of rules to which a subscription applies. This means any alerts
+  // generated for the rule that match will include the `notification_email`
   // in the list of CC'ed email addresses.
-  repeated Pattern patterns = 8;
-
-  // TODO(fancl): Migrate patterns to rules
   Rules rules = 12;
 
   // Subscription-specific anomaly configurations. These refine the thresholds
@@ -180,8 +180,10 @@ message Subscription {
 //     notification_email: "release-team@example.com"
 //     contact_email: "release-team@example.com"
 //     bug_labels: ["release-blocker"]
-//     patterns {
-//       glob: "project/**"
+//     rules: {
+//       match: [
+//         { glob: "project/**" }
+//       ]
 //     }
 //   }
 //

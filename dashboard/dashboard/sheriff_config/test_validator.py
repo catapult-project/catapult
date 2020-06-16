@@ -19,13 +19,13 @@ class ValidatorTest(unittest.TestCase):
             contact_email: "release-team@example.com"
             bug_labels: ["release-blocker"]
             bug_components: ["Sample>Component"]
-            patterns: [{glob: "project/**"}]
+              rules: { match: [{glob: "project/**"}] }
           },
           {
             name: "Memory Team",
             contact_email: "memory-team@example.com",
             bug_labels: ["memory-regressions"],
-            patterns: [{regex: "^project/.*memory_.*$"}],
+            rules: { match: [{regex: "^project/.*memory_.*$"}] },
             anomaly_configs: [
               {
                 min_relative_change: 0.01
@@ -43,13 +43,13 @@ class ValidatorTest(unittest.TestCase):
             bug_labels: ["release-blocker"]
             bug_components: ["Sample>Component"]
             monorail_project_id: "not-chromium"
-            patterns: [{glob: "project/**"}]
+            rules: { match: [{glob: "project/**"}] }
           },
           {
             name: "Memory Team",
             contact_email: "memory-team@example.com",
             bug_labels: ["memory-regressions"],
-            patterns: [{regex: "^project/.*memory_.*$"}],
+            rules: { match: [{regex: "^project/.*memory_.*$"}] },
             anomaly_configs: [
               {
                 min_relative_change: 0.01
@@ -74,7 +74,7 @@ class ValidatorTest(unittest.TestCase):
                                    name: "Missing Email",
                                    bug_labels: ["test-blocker"],
                                    bug_components: ["Sample>Component"],
-                                   patterns: [{glob: "project/**"}]
+                                   rules: { match: [{glob: "project/**"}] }
                                  }
                                ]
                              """)
@@ -87,7 +87,7 @@ class ValidatorTest(unittest.TestCase):
                                    contact_email: "missing-name@domain",
                                    bug_labels: ["test-blocker"],
                                    bug_components: ["Sample>Component"],
-                                   patterns: [{glob: "project/**"}]
+                                   rules: { match: [{glob: "project/**"}] }
                                  }
                                ]
                              """)
@@ -114,7 +114,7 @@ class ValidatorTest(unittest.TestCase):
                                    contact_email: "no-patterns@domain",
                                    bug_labels: ["test-blocker"],
                                    bug_components: ["Sample>Component"],
-                                   patterns: []
+                                   rules: { match: [] }
                                  }
                                ]
                              """)
@@ -129,7 +129,7 @@ class ValidatorTest(unittest.TestCase):
                                    contact_email: "bad-pattern@domain",
                                    bug_labels: ["test-blocker"],
                                    bug_components: ["Sample>Component"],
-                                   patterns: [{}]
+                                   rules: { match: [{}] }
                                  }
                                ]
                              """)
@@ -144,7 +144,7 @@ class ValidatorTest(unittest.TestCase):
                                    contact_email: "bad-pattern@domain",
                                    bug_labels: ["test-blocker"],
                                    bug_components: ["Sample>Component"],
-                                   patterns: [{glob: ""}]
+                                   rules: { match: [{glob: ""}] }
                                  }
                                ]
                              """)
@@ -159,7 +159,7 @@ class ValidatorTest(unittest.TestCase):
                                    contact_email: "bad-pattern@domain",
                                    bug_labels: ["test-blocker"],
                                    bug_components: ["Sample>Component"],
-                                   patterns: [{regex: ""}]
+                                   rules: { match: [{regex: ""}] }
                                  }
                                ]
                              """)

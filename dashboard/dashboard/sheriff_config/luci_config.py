@@ -174,12 +174,7 @@ def CompileRules(rules):
 class Matcher(object):
 
   def __init__(self, subscription):
-    # TODO(fancl): Remove after all patterns move to rules
-    rules = sheriff_pb2.Rules()
-    rules.CopyFrom(subscription.rules)
-    for pattern in subscription.patterns:
-      rules.match.append(pattern)
-    self._match_subscription = CompileRules(rules)
+    self._match_subscription = CompileRules(subscription.rules)
 
     if subscription.auto_triage.enable:
       self._match_auto_triage = lambda s: True
@@ -262,9 +257,8 @@ def FindMatchingConfigs(client, request):
 
 def CopyNormalizedSubscription(src, dst):
   dst.CopyFrom(src)
-  # We shouldn't use patterns outside the sheriff-config in any case.
+  # We shouldn't use rules outside the sheriff-config in any case.
   # Maybe allow being explicitily requsted for debug usage later.
-  del dst.patterns[:]
   dst.rules.Clear()
 
   auto_triage_enable = dst.auto_triage.enable
