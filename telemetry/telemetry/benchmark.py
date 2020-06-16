@@ -218,6 +218,7 @@ class Benchmark(command_line.Command):
       tbm_options.config.system_trace_config.EnablePower()
       tbm_options.config.system_trace_config.EnableSysStatsCpu()
       tbm_options.config.system_trace_config.EnableFtraceCpu()
+      tbm_options.config.system_trace_config.EnableFtraceSched()
 
     # TODO(crbug.com/1012687): Remove or adjust the following warnings as the
     # development of TBMv3 progresses.
