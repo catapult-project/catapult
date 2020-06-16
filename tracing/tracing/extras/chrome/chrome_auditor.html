@@ -52,16 +52,17 @@ tr.exportTo('tr.e.audits', function() {
       const thread = rendererHelper.compositorThread;
       const asyncSlices = Object.values(thread.asyncSliceGroup.slices);
       for (const slice of asyncSlices) {
-        if (slice.title !== 'PipelineReporter' ||
-            !slice.args.termination_status ||
-            slice.args.termination_status !== 'missed_frame') continue;
-        const alertSlices = [slice].concat(slice.subSlices);
-        alerts.push(new Alert(
-            new EventInfo(
-                'Missed Frame',
-                'Frame was not submitted before deadline.'),
-            slice.start,
-            alertSlices));
+        if (slice.title === 'PipelineReporter' &&
+            slice.args.chrome_frame_reporter &&
+            slice.args.chrome_frame_reporter.state === 'STATE_DROPPED') {
+          const alertSlices = [slice].concat(slice.subSlices);
+          alerts.push(new Alert(
+              new EventInfo(
+                  'Dropped Frame',
+                  'Frame was dropped (i.e. not produced/presented).'),
+              slice.start,
+              alertSlices));
+        }
       }
     }
     return alerts;
