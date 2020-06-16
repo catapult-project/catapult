@@ -619,6 +619,8 @@ class HistogramBin(object):
           sample[1:], deserializer))
 
 
+# This list should be kept in sync with tracing/tracing/base/unit.html
+# and tracing/tracing/value/histogram.cc.
 # TODO(#3814) Presubmit to compare with unit.html.
 UNIT_NAMES = [
     'ms',

@@ -27,6 +27,7 @@ enum Unit {
     UNITLESS = 11;
     COUNT = 12;
     SIGMA = 13;
+    AH = 14; // Ampere-hours.
 }
 
 message UnitAndDirection {

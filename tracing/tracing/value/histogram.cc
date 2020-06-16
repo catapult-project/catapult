@@ -26,6 +26,7 @@ static constexpr std::pair<const char*, proto::Unit> kJsonUnitToProtoUnit[] = {
     {"J", proto::J},
     {"W", proto::W},
     {"A", proto::A},
+    {"Ah", proto::AH},
     {"V", proto::V},
     {"Hz", proto::HERTZ},
     {"unitless", proto::UNITLESS},
