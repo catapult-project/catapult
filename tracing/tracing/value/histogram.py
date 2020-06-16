@@ -9,6 +9,7 @@ from __future__ import print_function
 import json
 import math
 import numbers
+import pprint
 import random
 
 import six
@@ -648,13 +649,18 @@ def ExtendUnitNames():
 
 ExtendUnitNames()
 
+def UnrecognizedUnitMessage(unit):
+  output = 'Unrecognized unit "%r". ' % unit
+  output += "Use one of the following:\n"
+  output += pprint.pformat(UNIT_NAMES)
+  return output
+
 
 class Scalar(object):
   __slots__ = '_unit', '_value'
 
   def __init__(self, unit, value):
-    assert unit in UNIT_NAMES, (
-        'Unrecognized unit "%r"' % unit)
+    assert unit in UNIT_NAMES, UnrecognizedUnitMessage(unit)
     self._unit = unit
     self._value = value
 
@@ -706,8 +712,7 @@ class Histogram(object):
       '_max_num_sample_values')
 
   def __init__(self, name, unit, bin_boundaries=None):
-    assert unit in UNIT_NAMES, (
-        'Unrecognized unit "%r"' % unit)
+    assert unit in UNIT_NAMES, UnrecognizedUnitMessage(unit)
 
     if bin_boundaries is None:
       base_unit = unit.split('_')[0].strip('+-')
