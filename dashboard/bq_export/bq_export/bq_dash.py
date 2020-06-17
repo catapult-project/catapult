@@ -44,6 +44,13 @@ def main():
   def AnomalyEntityToRowDict(entity):
     entities_read.inc()
     try:
+      # We do the iso conversion of the nullable timestamps in isolation.
+      earliest_input_timestamp = entity.get('earliest_input_timestamp')
+      if earliest_input_timestamp:
+        earliest_input_timestamp = earliest_input_timestamp.isoformat()
+      latest_input_timestamp = entity.get('latest_input_timestamp')
+      if latest_input_timestamp:
+        latest_input_timestamp = latest_input_timestamp.isoformat()
       d = {
           'id': entity.key.id,
           # TODO: 'sheriff'
@@ -74,6 +81,9 @@ def main():
           'units': entity.get('units'),
           # TODO: 'recipe_bisects'
           'pinpoint_bisects': entity.get('pinpoint_bisects', []),
+          # These are critical to "time-to-culprit" calculations.
+          'earliest_input_timestamp': earliest_input_timestamp,
+          'latest_input_timestamp': latest_input_timestamp,
       }
       if d['statistic'] is None:
         # Some years-old anomalies lack this.
@@ -111,35 +121,145 @@ def main():
    is_improvement BOOLEAN NOT NULL,
    recovered BOOLEAN NOT NULL,
    units STRING,
-   pinpoint_bisects ARRAY<STRING>)
+   pinpoint_bisects ARRAY<STRING>,
+   earliest_input_timestamp TIMESTAMP,
+   latest_input_timestamp TIMESTAMP)
   PARTITION BY DATE(`timestamp`);
   """  # pylint: disable=pointless-string-statement
-  bq_anomaly_schema = {'fields': [
-      {'name': 'id', 'type': 'INT64', 'mode': 'REQUIRED'},
-      {'name': 'subscription_names', 'type': 'STRING', 'mode': 'REPEATED'},
-      {'name': 'test', 'type': 'STRING', 'mode': 'REQUIRED'},
-      {'name': 'start_revision', 'type': 'INT64', 'mode': 'REQUIRED'},
-      {'name': 'end_revision', 'type': 'INT64', 'mode': 'REQUIRED'},
-      {'name': 'display_start', 'type': 'INT64', 'mode': 'NULLABLE'},
-      {'name': 'display_end', 'type': 'INT64', 'mode': 'NULLABLE'},
-      {'name': 'statistic', 'type': 'STRING', 'mode': 'REQUIRED'},
-      {'name': 'bug_id', 'type': 'INT64', 'mode': 'NULLABLE'},
-      {'name': 'internal_only', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
-      {'name': 'timestamp', 'type': 'TIMESTAMP', 'mode': 'REQUIRED'},
-      {'name': 'segment_size_before', 'type': 'INT64', 'mode': 'NULLABLE'},
-      {'name': 'segment_size_after', 'type': 'INT64', 'mode': 'NULLABLE'},
-      {'name': 'median_before_anomaly', 'type': 'FLOAT', 'mode': 'NULLABLE'},
-      {'name': 'median_after_anomaly', 'type': 'FLOAT', 'mode': 'NULLABLE'},
-      {'name': 'std_dev_before_anomaly', 'type': 'FLOAT', 'mode': 'NULLABLE'},
-      {'name': 'window_end_revision', 'type': 'INT64', 'mode': 'NULLABLE'},
-      {'name': 't_statistic', 'type': 'FLOAT', 'mode': 'NULLABLE'},
-      {'name': 'degrees_of_freedom', 'type': 'FLOAT', 'mode': 'NULLABLE'},
-      {'name': 'p_value', 'type': 'FLOAT', 'mode': 'NULLABLE'},
-      {'name': 'is_improvement', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
-      {'name': 'recovered', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
-      {'name': 'units', 'type': 'STRING', 'mode': 'NULLABLE'},
-      {'name': 'pinpoint_bisects', 'type': 'STRING', 'mode': 'REPEATED'},
-  ]}
+  bq_anomaly_schema = {
+      'fields': [
+          {
+              'name': 'id',
+              'type': 'INT64',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'subscription_names',
+              'type': 'STRING',
+              'mode': 'REPEATED'
+          },
+          {
+              'name': 'test',
+              'type': 'STRING',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'start_revision',
+              'type': 'INT64',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'end_revision',
+              'type': 'INT64',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'display_start',
+              'type': 'INT64',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'display_end',
+              'type': 'INT64',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'statistic',
+              'type': 'STRING',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'bug_id',
+              'type': 'INT64',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'internal_only',
+              'type': 'BOOLEAN',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'timestamp',
+              'type': 'TIMESTAMP',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'segment_size_before',
+              'type': 'INT64',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'segment_size_after',
+              'type': 'INT64',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'median_before_anomaly',
+              'type': 'FLOAT',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'median_after_anomaly',
+              'type': 'FLOAT',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'std_dev_before_anomaly',
+              'type': 'FLOAT',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'window_end_revision',
+              'type': 'INT64',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 't_statistic',
+              'type': 'FLOAT',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'degrees_of_freedom',
+              'type': 'FLOAT',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'p_value',
+              'type': 'FLOAT',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'is_improvement',
+              'type': 'BOOLEAN',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'recovered',
+              'type': 'BOOLEAN',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'units',
+              'type': 'STRING',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'pinpoint_bisects',
+              'type': 'STRING',
+              'mode': 'REPEATED'
+          },
+          {
+              'name': 'earliest_input_timestamp',
+              'type': 'TIMESTAMP',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'latest_input_timestamp',
+              'type': 'TIMESTAMP',
+              'mode': 'NULLABLE'
+          },
+      ]
+  }
 
   table_name = '{}:chromeperf_dashboard_data.anomalies{}'.format(
       project, bq_export_options.table_suffix)
