@@ -45,33 +45,12 @@ class TsProxyServerTest(unittest.TestCase):
       server.UpdateTrafficSettings(upload_bandwidth_kbps=2000)
 
       self.assertEquals(server._rtt, 100)
-      self.assertEquals(server._inkbps, 5000)
+      self.assertEquals(server._inbkps, 5000)
       self.assertEquals(server._outkbps, 2000)
 
       server.UpdateTrafficSettings(
           round_trip_latency_ms=200, download_bandwidth_kbps=500,
           upload_bandwidth_kbps=2000)
       self.assertEquals(server._rtt, 200)
-      self.assertEquals(server._inkbps, 500)
-      self.assertEquals(server._outkbps, 2000)
-
-  def testStartServerWithSettings(self):
-    settings = {
-        "round_trip_latency_ms": 100,
-        "download_bandwidth_kbps": 5000,
-        "upload_bandwidth_kbps": 2000
-    }
-    with ts_proxy_server.TsProxyServer(**settings) as server:
-      self.assertEquals(server._rtt, 100)
-      self.assertEquals(server._inkbps, 5000)
-      self.assertEquals(server._outkbps, 2000)
-
-    settings2 = {
-        "round_trip_latency_ms": 1000,
-        "download_bandwidth_kbps": 500,
-        "upload_bandwidth_kbps": 2000
-    }
-    with ts_proxy_server.TsProxyServer(**settings2) as server:
-      self.assertEquals(server._rtt, 1000)
-      self.assertEquals(server._inkbps, 500)
+      self.assertEquals(server._inbkps, 500)
       self.assertEquals(server._outkbps, 2000)
