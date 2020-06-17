@@ -97,6 +97,11 @@ class _MockApkHelper(object):
                   additional_locales=None):
     return _FakeContextManager([self.path] + self.splits)
 
+  #override
+  @staticmethod
+  def SupportsSplits():
+    return True
+
 
 class _MockMultipleDevicesError(Exception):
   pass

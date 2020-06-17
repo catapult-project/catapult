@@ -432,6 +432,10 @@ class BaseApkHelper(object):
     # pylint: disable=unused-argument
     raise NotImplementedError()
 
+  @staticmethod
+  def SupportsSplits():
+    return False
+
 
 class ApkHelper(BaseApkHelper):
   """Represents a single APK Android app."""
@@ -496,6 +500,11 @@ class SplitApkHelper(BaseApkHelper):
       _logger.warning('split-select did not select any from %s', splits)
     return _NoopFileHelper([self._base_apk_path] + splits)
 
+  #override
+  @staticmethod
+  def SupportsSplits():
+    return True
+
 
 class BaseBundleHelper(BaseApkHelper):
   """Abstract base class representing an Android app bundle."""
@@ -543,6 +552,11 @@ class BaseBundleHelper(BaseApkHelper):
       except:
         shutil.rmtree(split_dir)
         raise
+
+  #override
+  @staticmethod
+  def SupportsSplits():
+    return True
 
 
 class ApksHelper(BaseBundleHelper):

@@ -1143,9 +1143,12 @@ class DeviceUtils(object):
     with apk.GetApkPaths(self,
                          modules=all_modules,
                          additional_locales=additional_locales) as apk_paths:
-      fake_apk_paths = self._GetFakeInstallPaths(apk_paths, fake_modules)
-      self._FakeInstall(fake_apk_paths, fake_modules, package_name)
-      apk_paths_to_install = [p for p in apk_paths if p not in fake_apk_paths]
+      if apk.SupportsSplits():
+        fake_apk_paths = self._GetFakeInstallPaths(apk_paths, fake_modules)
+        self._FakeInstall(fake_apk_paths, fake_modules, package_name)
+        apk_paths_to_install = [p for p in apk_paths if p not in fake_apk_paths]
+      else:
+        apk_paths_to_install = apk_paths
       self._InstallInternal(
           apk,
           apk_paths_to_install,
