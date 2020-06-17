@@ -437,6 +437,24 @@ Gets the SELinux security context for the given package.
 ```
 
 
+### DeviceUtils.GetTracingPath
+
+Gets tracing path from the device.
+```
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      /sys/kernel/debug/tracing for device with debugfs mount support;
+      /sys/kernel/tracing for device with tracefs support;
+      /sys/kernel/debug/tracing if support can't be determined.
+
+    Raises:
+      CommandTimeoutError on timeout.
+```
+
+
 ### DeviceUtils.GetWebViewUpdateServiceDump
 
 Get the WebView update command sysdump on the device.
@@ -529,10 +547,10 @@ Install an APK or app bundle.
       retries: number of retries
       modules: An iterable containing specific bundle modules to install.
           Error if set and |apk| points to an APK instead of a bundle.
-      fake_modules: An iterable containing specific bundle modules that
-          should have their apks copied to |MODULES_SRC_DIRECTORY_PATH| rather
-          than installed. Thus the app can emulate SplitCompat while running.
-          This should not have any overlap with |modules|.
+      fake_modules: An iterable containing specific bundle modules that should
+          have their apks copied to |MODULES_SRC_DIRECTORY_PATH| subdirectory
+          rather than installed. Thus the app can emulate SplitCompat while
+          running. This should not have any overlap with |modules|.
       additional_locales: An iterable with additional locales to install for a
         bundle.
 

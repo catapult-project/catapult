@@ -104,7 +104,7 @@ def try_create_agent(config):
            'Your device SDK version is %d.' % device_sdk_version)
     return None
 
-  return AtraceAgent(device_sdk_version)
+  return AtraceAgent(device_sdk_version, util.get_tracing_path())
 
 def _construct_extra_atrace_args(config, categories):
   """Construct extra arguments (-a, -k, categories) for atrace command.
@@ -158,9 +158,10 @@ def _construct_atrace_args(config, categories):
 
 class AtraceAgent(tracing_agents.TracingAgent):
 
-  def __init__(self, device_sdk_version):
+  def __init__(self, device_sdk_version, tracing_path):
     super(AtraceAgent, self).__init__()
     self._device_sdk_version = device_sdk_version
+    self._tracing_path = tracing_path
     self._adb = None
     self._trace_data = None
     self._tracer_args = None
@@ -232,7 +233,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
         sync_id: ID string for clock sync marker.
     """
     cmd = 'echo trace_event_clock_sync: name=%s >' \
-        ' /sys/kernel/debug/tracing/trace_marker' % sync_id
+        ' %s/trace_marker' % (sync_id, self._tracing_path)
     with self._device_utils.adb.PersistentShell(
         self._device_serial_number) as shell:
       t1 = trace_time_module.Now()
@@ -246,7 +247,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
     doesn't stop tracing and clears trace buffer before dumping it rendering
     results unusable."""
     if self._device_sdk_version < version_codes.MARSHMALLOW:
-      is_trace_enabled_file = '/sys/kernel/debug/tracing/tracing_on'
+      is_trace_enabled_file = '%s/tracing_on' % self._tracing_path
       # Stop tracing first so new data won't arrive while dump is performed (it
       # may take a non-trivial time and tracing buffer may overflow).
       self._device_utils.WriteFile(is_trace_enabled_file, '0')

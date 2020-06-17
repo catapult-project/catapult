@@ -16,7 +16,8 @@ class AtraceTracingAgent(tracing_agent.TracingAgent):
     self._device = platform_backend.device
     self._categories = None
     self._atrace_agent = atrace_agent.AtraceAgent(
-        platform_backend.device.build_version_sdk)
+        platform_backend.device.build_version_sdk,
+        platform_backend.device.tracing_path)
     self._config = None
 
   @classmethod

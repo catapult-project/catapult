@@ -2785,6 +2785,11 @@ class DeviceUtils(object):
           'Invalid build version sdk: %r' % value)
 
   @property
+  def tracing_path(self):
+    """Returns the tracing path of the device for atrace."""
+    return self.GetTracingPath()
+
+  @property
   def product_cpu_abi(self):
     """Returns the product cpu abi of the device (e.g. 'armeabi-v7a').
 
@@ -2839,6 +2844,39 @@ class DeviceUtils(object):
       for key, value in _GETPROP_RE.findall(''.join(output)):
         prop_cache[key] = value
       self._cache['token'] = token
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetTracingPath(self, timeout=None, retries=None):
+    """Gets tracing path from the device.
+
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      /sys/kernel/debug/tracing for device with debugfs mount support;
+      /sys/kernel/tracing for device with tracefs support;
+      /sys/kernel/debug/tracing if support can't be determined.
+
+    Raises:
+      CommandTimeoutError on timeout.
+    """
+    tracing_path = self._cache['tracing_path']
+    if tracing_path:
+      return tracing_path
+    with self._cache_lock:
+      tracing_path = '/sys/kernel/debug/tracing'
+      try:
+        value = self.RunShellCommand(['mount'],
+                                     check_return=True,
+                                     timeout=timeout,
+                                     retries=retries)
+        if value and 'debugfs' not in value:
+          tracing_path = '/sys/kernel/tracing'
+      except device_errors.AdbCommandFailedError:
+        pass
+      self._cache['tracing_path'] = tracing_path
+    return tracing_path
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetProp(self, property_name, cache=False, timeout=None, retries=None):
@@ -3419,6 +3457,8 @@ class DeviceUtils(object):
         # Token used to detect when LoadCacheData is stale.
         'token': None,
         'prev_token': None,
+        # Path for tracing.
+        'tracing_path': None,
     }
 
   @decorators.WithTimeoutAndRetriesFromInstance()
