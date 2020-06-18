@@ -12,6 +12,8 @@ import uuid
 
 from py_trace_event import trace_event
 from telemetry.internal.platform.tracing_agent import atrace_tracing_agent
+from telemetry.internal.platform.tracing_agent import chrome_report_events_tracing_agent
+from telemetry.internal.platform.tracing_agent import chrome_return_as_stream_tracing_agent
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.internal.platform.tracing_agent import cpu_tracing_agent
 from telemetry.internal.platform.tracing_agent import display_tracing_agent
@@ -25,7 +27,8 @@ from tracing.trace_data import trace_data
 # trace events when the other agents start/stop.
 _TRACING_AGENT_CLASSES = (
     telemetry_tracing_agent.TelemetryTracingAgent,
-    chrome_tracing_agent.ChromeTracingAgent,
+    chrome_report_events_tracing_agent.ChromeReportEventsTracingAgent,
+    chrome_return_as_stream_tracing_agent.ChromeReturnAsStreamTracingAgent,
     atrace_tracing_agent.AtraceTracingAgent,
     cpu_tracing_agent.CpuTracingAgent,
     display_tracing_agent.DisplayTracingAgent
@@ -210,4 +213,5 @@ class TracingControllerBackend(object):
     return None
 
   def ClearStateIfNeeded(self):
-    chrome_tracing_agent.ClearStarupTracingStateIfNeeded(self._platform_backend)
+    chrome_return_as_stream_tracing_agent.ClearStarupTracingStateIfNeeded(
+        self._platform_backend)

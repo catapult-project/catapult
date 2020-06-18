@@ -1,21 +1,18 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
+
 import platform
-import stat
 import unittest
 
-from telemetry import decorators
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
 from telemetry.timeline import tracing_config
-from telemetry.core import cros_interface
-from telemetry.testing import options_for_unittests
+import mock
 
-
-from devil.android import device_utils
+_CHROME_TRACING_AGENT_IMPORT_PATH = 'telemetry.internal.platform.tracing_agent'\
+                                    '.chrome_tracing_agent.ChromeTracingAgent'
 
 
 class FakeTracingControllerBackend(object):
@@ -23,7 +20,7 @@ class FakeTracingControllerBackend(object):
     self.is_tracing_running = False
 
 
-class _FakePlatformBackend(object):
+class FakePlatformBackend(object):
   def __init__(self):
     self.tracing_controller_backend = FakeTracingControllerBackend()
 
@@ -31,28 +28,7 @@ class _FakePlatformBackend(object):
     raise NotImplementedError
 
 
-class FakeAndroidPlatformBackend(_FakePlatformBackend):
-  def __init__(self):
-    super(FakeAndroidPlatformBackend, self).__init__()
-    devices = device_utils.DeviceUtils.HealthyDevices(None)
-    self.device = devices[0]
-
-  def GetOSName(self):
-    return 'android'
-
-class FakeCrOSPlatformBackend(_FakePlatformBackend):
-  def __init__(self):
-    super(FakeCrOSPlatformBackend, self).__init__()
-    remote = options_for_unittests.GetCopy().cros_remote
-    remote_ssh_port = options_for_unittests.GetCopy().cros_remote_ssh_port
-    self.cri = cros_interface.CrOSInterface(
-        remote, remote_ssh_port,
-        options_for_unittests.GetCopy().cros_ssh_identity)
-
-  def GetOSName(self):
-    return 'chromeos'
-
-class FakeDesktopPlatformBackend(_FakePlatformBackend):
+class FakeDesktopPlatformBackend(FakePlatformBackend):
   def GetOSName(self):
     system = platform.system()
     if system == 'Linux':
@@ -82,8 +58,8 @@ class FakeDevtoolsClient(object):
   def IsAlive(self):
     return self.is_alive
 
-  def StartChromeTracing(self, trace_options, timeout=20):
-    del trace_options, timeout  # unused
+  def StartChromeTracing(self, trace_options, transfer_mode=None, timeout=20):
+    del trace_options, transfer_mode, timeout  # unused
     self.is_tracing_running = True
 
   def StopChromeTracing(self):
@@ -119,7 +95,6 @@ class ChromeTracingAgentTest(unittest.TestCase):
 
   def StartTracing(self, platform_backend, enable_chrome_trace=True,
                    throw_exception=False):
-    assert chrome_tracing_agent.ChromeTracingAgent.IsSupported(platform_backend)
     agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
     config = tracing_config.TracingConfig()
     config.enable_chrome_trace = enable_chrome_trace
@@ -128,17 +103,26 @@ class ChromeTracingAgentTest(unittest.TestCase):
       agent._trace_config = True
     agent._platform_backend.tracing_controller_backend.is_tracing_running = True
     agent._test_config = config
-    agent.StartAgentTracing(config, 10)
+    agent._transfer_mode = 'ReturnAsStream'
+    with mock.patch(_CHROME_TRACING_AGENT_IMPORT_PATH + '._StartStartupTracing',
+                    return_value=True):
+      agent.StartAgentTracing(config, 10)
     return agent
 
   def FlushTracing(self, agent):
-    agent.FlushAgentTracing(agent._test_config, 10, None)
+    with mock.patch(_CHROME_TRACING_AGENT_IMPORT_PATH + '._StartStartupTracing',
+                    return_value=True):
+      with mock.patch(
+          _CHROME_TRACING_AGENT_IMPORT_PATH + '._RemoveTraceConfigFile'):
+        agent.FlushAgentTracing(agent._test_config, 10, None)
 
   def StopTracing(self, agent):
     agent._platform_backend.tracing_controller_backend.is_tracing_running = (
         False)
     agent.RecordClockSyncMarker('123', lambda *unused: True)
-    agent.StopAgentTracing()
+    with mock.patch(
+        _CHROME_TRACING_AGENT_IMPORT_PATH + '._RemoveTraceConfigFile'):
+      agent.StopAgentTracing()
     agent.CollectAgentTraceData(None)
 
   def testRegisterDevtoolsClient(self):
@@ -329,76 +313,3 @@ class ChromeTracingAgentTest(unittest.TestCase):
     self.StopTracing(tracing_agent2)
     self.assertIsNone(tracing_agent2.trace_config)
     self.assertFalse(devtool2.is_tracing_running)
-
-  @decorators.Enabled('android')
-  def testCreateAndRemoveTraceConfigFileOnAndroid(self):
-    platform_backend = FakeAndroidPlatformBackend()
-    agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
-    self.assertIsNone(agent.trace_config_file)
-
-    config = tracing_config.TracingConfig()
-    agent._CreateTraceConfigFile(config)
-    self.assertIsNotNone(agent.trace_config_file)
-    self.assertTrue(platform_backend.device.PathExists(agent.trace_config_file))
-    config_file_str = platform_backend.device.ReadFile(agent.trace_config_file,
-                                                       as_root=True)
-    self.assertEqual(agent._CreateTraceConfigFileString(config),
-                     config_file_str.strip())
-
-    config_file_path = agent.trace_config_file
-    agent._RemoveTraceConfigFile()
-    self.assertFalse(platform_backend.device.PathExists(config_file_path))
-    self.assertIsNone(agent.trace_config_file)
-    # robust to multiple file removal
-    agent._RemoveTraceConfigFile()
-    self.assertFalse(platform_backend.device.PathExists(config_file_path))
-    self.assertIsNone(agent.trace_config_file)
-
-  @decorators.Enabled('chromeos')
-  def testCreateAndRemoveTraceConfigFileOnCrOS(self):
-    platform_backend = FakeCrOSPlatformBackend()
-    cri = platform_backend.cri
-    agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
-    self.assertIsNone(agent.trace_config_file)
-
-    config = tracing_config.TracingConfig()
-    agent._CreateTraceConfigFile(config)
-    self.assertIsNotNone(agent.trace_config_file)
-    self.assertTrue(cri.FileExistsOnDevice(agent.trace_config_file))
-    config_file_str = cri.GetFileContents(agent.trace_config_file)
-    self.assertEqual(agent._CreateTraceConfigFileString(config),
-                     config_file_str.strip())
-
-    config_file_path = agent.trace_config_file
-    agent._RemoveTraceConfigFile()
-    self.assertFalse(cri.FileExistsOnDevice(config_file_path))
-    self.assertIsNone(agent.trace_config_file)
-    # robust to multiple file removal
-    agent._RemoveTraceConfigFile()
-    self.assertFalse(cri.FileExistsOnDevice(config_file_path))
-    self.assertIsNone(agent.trace_config_file)
-
-  @decorators.Enabled('linux', 'mac', 'win')
-  def testCreateAndRemoveTraceConfigFileOnDesktop(self):
-    platform_backend = FakeDesktopPlatformBackend()
-    agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
-    self.assertIsNone(agent.trace_config_file)
-
-    config = tracing_config.TracingConfig()
-    agent._CreateTraceConfigFile(config)
-    self.assertIsNotNone(agent.trace_config_file)
-    self.assertTrue(os.path.exists(agent.trace_config_file))
-    self.assertTrue(os.stat(agent.trace_config_file).st_mode & stat.S_IROTH)
-    with open(agent.trace_config_file, 'r') as f:
-      config_file_str = f.read()
-      self.assertEqual(agent._CreateTraceConfigFileString(config),
-                       config_file_str.strip())
-
-    config_file_path = agent.trace_config_file
-    agent._RemoveTraceConfigFile()
-    self.assertFalse(os.path.exists(config_file_path))
-    self.assertIsNone(agent.trace_config_file)
-    # robust to multiple file removal
-    agent._RemoveTraceConfigFile()
-    self.assertFalse(os.path.exists(config_file_path))
-    self.assertIsNone(agent.trace_config_file)

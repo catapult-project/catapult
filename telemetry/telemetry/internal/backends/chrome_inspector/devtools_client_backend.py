@@ -359,14 +359,17 @@ class _DevToolsClientBackend(object):
       self._system_info_backend = system_info_backend.SystemInfoBackend(
           self.browser_target_url)
 
-  def StartChromeTracing(self, trace_config, timeout=20):
+  def StartChromeTracing(self, trace_config, transfer_mode=None, timeout=20):
     """
     Args:
         trace_config: An tracing_config.TracingConfig instance.
+        transfer_mode: Defaults to using 'ReturnAsStream' transfer mode
+          for Chrome tracing. Can be set to 'ReportEvents'.
+        timeout: Time waited for websocket to receive a response.
     """
     assert trace_config and trace_config.enable_chrome_trace
     return self._tracing_backend.StartTracing(
-        trace_config.chrome_trace_config, timeout)
+        trace_config.chrome_trace_config, transfer_mode, timeout)
 
   def RecordChromeClockSyncMarker(self, sync_id):
     assert self.is_tracing_running, 'Tracing must be running to clock sync.'

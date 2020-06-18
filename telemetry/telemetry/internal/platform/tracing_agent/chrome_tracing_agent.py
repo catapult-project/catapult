@@ -2,16 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
 import logging
-import os
-import shutil
-import stat
 import sys
-import tempfile
 import traceback
-
-from py_utils import atexit_with_log
 
 from py_trace_event import trace_time
 
@@ -19,23 +12,6 @@ from telemetry.core import exceptions
 from telemetry.internal.platform import tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
-
-_DESKTOP_OS_NAMES = ['linux', 'mac', 'win']
-
-# The trace config file path should be the same as specified in
-# src/components/tracing/trace_config_file.[h|cc]
-_CHROME_TRACE_CONFIG_DIR_ANDROID = '/data/local/'
-_CHROME_TRACE_CONFIG_DIR_CROS = '/tmp/'
-_CHROME_TRACE_CONFIG_FILE_NAME = 'chrome-trace-config.json'
-
-
-def ClearStarupTracingStateIfNeeded(platform_backend):
-  # Trace config file has fixed path on Android and temporary path on desktop.
-  if platform_backend.GetOSName() == 'android':
-    trace_config_file = os.path.join(_CHROME_TRACE_CONFIG_DIR_ANDROID,
-                                     _CHROME_TRACE_CONFIG_FILE_NAME)
-    platform_backend.device.RunShellCommand(
-        ['rm', '-f', trace_config_file], check_return=True, as_root=True)
 
 
 class ChromeTracingStartedError(exceptions.Error):
@@ -68,14 +44,13 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
 
   @classmethod
   def IsSupported(cls, platform_backend):
-    del platform_backend  # Unused.
-    return True
+    raise NotImplementedError
+
+  def _GetTransferMode(self):
+    return None
 
   def _StartStartupTracing(self, config):
-    self._CreateTraceConfigFile(config)
-    logging.info('Created startup trace config file in: %s',
-                 self._trace_config_file)
-    return True
+    raise NotImplementedError
 
   def _StartDevToolsTracing(self, config, timeout):
     devtools_clients = (
@@ -88,7 +63,8 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
         raise ChromeTracingStartedError(
             'Tracing is already running on devtools at port %s on platform'
             'backend %s.' % (client.remote_port, self._platform_backend))
-      client.StartChromeTracing(config, timeout)
+      client.StartChromeTracing(config, transfer_mode=self._GetTransferMode(),
+                                timeout=timeout)
     return True
 
   def StartAgentTracing(self, config, timeout):
@@ -111,6 +87,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     # latter, we invoke start tracing command through devtools for browsers that
     # are already started and tracked by chrome_tracing_devtools_manager.
     started_startup_tracing = self._StartStartupTracing(config)
+
     started_devtools_tracing = self._StartDevToolsTracing(config, timeout)
     if started_startup_tracing or started_devtools_tracing:
       self._trace_config = config
@@ -150,7 +127,6 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
       raise ChromeTracingStoppedError(
           'Tracing is not running on platform backend %s.'
           % self._platform_backend)
-
     self._RemoveTraceConfigFile()
 
     # We get all DevTools clients including the stale ones, so that we get an
@@ -185,6 +161,9 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
           'Exceptions raised when trying to stop Chrome devtool tracing:\n' +
           '\n'.join(raised_exception_messages))
 
+  def _RemoveTraceConfigFile(self):
+    raise NotImplementedError
+
   def CollectAgentTraceData(self, trace_data_builder, timeout=None):
     raised_exception_messages = []
     for client in self._previously_responsive_devtools:
@@ -201,65 +180,6 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
       raise ChromeTracingStoppedError(
           'Exceptions raised when trying to collect Chrome devtool tracing:\n' +
           '\n'.join(raised_exception_messages))
-
-  def _CreateTraceConfigFileString(self, config):
-    # See src/components/tracing/trace_config_file.h for the format
-    result = {
-        'trace_config':
-        config.chrome_trace_config.GetChromeTraceConfigForStartupTracing()
-    }
-    return json.dumps(result, sort_keys=True)
-
-  def _CreateTraceConfigFile(self, config):
-    assert not self._trace_config_file
-    os_name = self._platform_backend.GetOSName()
-    if os_name == 'android':
-      self._trace_config_file = os.path.join(_CHROME_TRACE_CONFIG_DIR_ANDROID,
-                                             _CHROME_TRACE_CONFIG_FILE_NAME)
-      self._platform_backend.device.WriteFile(
-          self._trace_config_file,
-          self._CreateTraceConfigFileString(config), as_root=True)
-      # The config file has fixed path on Android. We need to ensure it is
-      # always cleaned up.
-      atexit_with_log.Register(self._RemoveTraceConfigFile)
-    elif os_name == 'chromeos':
-      self._trace_config_file = os.path.join(_CHROME_TRACE_CONFIG_DIR_CROS,
-                                             _CHROME_TRACE_CONFIG_FILE_NAME)
-      cri = self._platform_backend.cri
-      cri.PushContents(self._CreateTraceConfigFileString(config),
-                       self._trace_config_file)
-      cri.Chown(self._trace_config_file)
-      # The config file has fixed path on CrOS. We need to ensure it is
-      # always cleaned up.
-      atexit_with_log.Register(self._RemoveTraceConfigFile)
-    elif os_name in _DESKTOP_OS_NAMES:
-      self._trace_config_file = os.path.join(tempfile.mkdtemp(),
-                                             _CHROME_TRACE_CONFIG_FILE_NAME)
-      with open(self._trace_config_file, 'w') as f:
-        trace_config_string = self._CreateTraceConfigFileString(config)
-        logging.info('Trace config file string: %s', trace_config_string)
-        f.write(trace_config_string)
-      os.chmod(self._trace_config_file,
-               os.stat(self._trace_config_file).st_mode | stat.S_IROTH)
-    else:
-      raise NotImplementedError('Tracing not supported on: %s' % os_name)
-
-  def _RemoveTraceConfigFile(self):
-    if not self._trace_config_file:
-      return
-    logging.info('Remove trace config file in %s', self._trace_config_file)
-    if self._platform_backend.GetOSName() == 'android':
-      self._platform_backend.device.RemovePath(
-          self._trace_config_file, force=True, rename=True, as_root=True)
-    elif self._platform_backend.GetOSName() == 'chromeos':
-      self._platform_backend.cri.RmRF(self._trace_config_file)
-    elif self._platform_backend.GetOSName() in _DESKTOP_OS_NAMES:
-      if os.path.exists(self._trace_config_file):
-        os.remove(self._trace_config_file)
-      shutil.rmtree(os.path.dirname(self._trace_config_file))
-    else:
-      raise NotImplementedError
-    self._trace_config_file = None
 
   def SupportsFlushingAgentTracing(self):
     return True

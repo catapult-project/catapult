@@ -142,10 +142,17 @@ class TracingBackend(object):
     logging.info('Successfully confirmed startup tracing is in place.')
     self._is_tracing_running = True
 
-  def StartTracing(self, chrome_trace_config, timeout=20):
-    """When first called, starts tracing, and returns True.
+  def StartTracing(self, chrome_trace_config, transfer_mode=None, timeout=20):
+    """Starts tracing if not already started.
 
-    If called during tracing, tracing is unchanged, and it returns False.
+    Args:
+      chrome_trace_config: A chrome_trace_config.ChromeTraceConfig instance.
+      transfer_mode: The transfer mode for chrome tracing. If set to default,
+        'ReturnAsStream' mode will be used.
+      timeout: Time waited for websocket to receive a response.
+
+    Returns:
+      True if tracing was not running and False otherwise.
     """
     if self.is_tracing_running:
       return False
@@ -156,9 +163,12 @@ class TracingBackend(object):
     if not self.IsTracingSupported():
       raise TracingUnsupportedException(
           'Chrome tracing not supported for this app.')
+
     response = self._SendTracingStartRequest(
+        transfer_mode=transfer_mode,
         trace_config=chrome_trace_config.GetChromeTraceConfigForDevTools(),
-        trace_format=chrome_trace_config.trace_format, timeout=timeout)
+        trace_format=chrome_trace_config.trace_format,
+        timeout=timeout)
     if 'error' in response:
       raise TracingUnexpectedResponseException(
           'Inspector returned unexpected response for Tracing.start:\n' +
@@ -167,8 +177,8 @@ class TracingBackend(object):
     self._is_tracing_running = True
     return True
 
-  def _SendTracingStartRequest(self, trace_config=None, trace_format=None,
-                               timeout=20):
+  def _SendTracingStartRequest(self, transfer_mode=None, trace_config=None,
+                               trace_format=None, timeout=20):
     """Send a Tracing.start request and wait for a response.
 
     Args:
@@ -188,9 +198,10 @@ class TracingBackend(object):
     # especially when the test is running on an android device. Using
     # compression can save upto 10 seconds (or more) for each story.
     params = {
-        'transferMode': 'ReturnAsStream',
-        'streamCompression': 'gzip',
+        'transferMode': transfer_mode or 'ReturnAsStream',
         'traceConfig': trace_config or {}}
+    if params['transferMode'] == 'ReturnAsStream':
+      params['streamCompression'] = 'gzip'
     if trace_format is not None:
       params['streamFormat'] = trace_format
     request = {'method': 'Tracing.start', 'params': params}
@@ -345,8 +356,9 @@ class TracingBackend(object):
   def _NotificationHandler(self, res):
     if res.get('method') == 'Tracing.dataCollected':
       value = res.get('params', {}).get('value')
-      self._trace_data_builder.AddTraceFor(trace_data_module.CHROME_TRACE_PART,
-                                           value)
+      self._trace_data_builder.AddTraceFor(
+          trace_data_module.CHROME_TRACE_PART,
+          {'traceEvents': value})
     elif res.get('method') == 'Tracing.tracingComplete':
       params = res.get('params', {})
       # TODO(crbug.com/948412): Start requiring a value for dataLossOccurred
