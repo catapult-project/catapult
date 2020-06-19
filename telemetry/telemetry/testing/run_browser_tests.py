@@ -270,7 +270,6 @@ def RunTests(args):
   typ_runner.args.metadata = options.metadata
   typ_runner.args.passthrough = options.passthrough
   typ_runner.args.path = options.path
-  typ_runner.args.quiet = options.quiet
   typ_runner.args.repeat = options.repeat
   typ_runner.args.repository_absolute_path = options.repository_absolute_path
   typ_runner.args.retry_limit = options.retry_limit
@@ -287,10 +286,10 @@ def RunTests(args):
   typ_runner.args.write_full_results_to = options.write_full_results_to
   typ_runner.args.write_trace_to = options.write_trace_to
 
-  typ_runner.setup_fn = _SetUpProcess
-  typ_runner.teardown_fn = _TearDownProcess
   typ_runner.classifier = _GetClassifier(typ_runner)
   typ_runner.path_delimiter = test_class.GetJSONResultsDelimiter()
+  typ_runner.setup_fn = _SetUpProcess
+  typ_runner.teardown_fn = _TearDownProcess
 
   tests_to_run = LoadTestCasesToBeRun(
       test_class=test_class, finder_options=typ_runner.context.finder_options,

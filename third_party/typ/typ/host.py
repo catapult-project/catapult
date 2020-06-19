@@ -254,62 +254,37 @@ class Host(object):
         return out, err
 
 
-class _TeedStream(object):
+class _TeedStream(io.StringIO):
 
     def __init__(self, stream):
+        super(_TeedStream, self).__init__()
         self.stream = stream
         self.capturing = False
         self.diverting = False
-        self._capture_file = tempfile.NamedTemporaryFile(delete=True)
-        self.original_stream = os.fdopen(
-            os.dup(self.stream.fileno()), self.mode)
 
     def write(self, msg, *args, **kwargs):
         if self.capturing:
-            self._capture_file.write(
-                    python_2_3_compat.str_to_bytes(msg), *args, **kwargs)
+            if (sys.version_info.major == 2 and
+                    isinstance(msg, str)):  # pragma: python2
+                msg = unicode(msg)
+            super(_TeedStream, self).write(msg, *args, **kwargs)
         if not self.diverting:
-            self.original_stream.write(
-                    python_2_3_compat.bytes_to_str(msg), *args, **kwargs)
+            self.stream.write(msg, *args, **kwargs)
 
     def flush(self):
         if self.capturing:
-            self._capture_file.flush()
+            super(_TeedStream, self).flush()
         if not self.diverting:
-            self.original_stream.flush()
+            self.stream.flush()
 
     def capture(self, divert=True):
+        self.truncate(0)
         self.capturing = True
         self.diverting = divert
-        self.stream.flush()
-        os.dup2(self._capture_file.fileno(), self.stream.fileno())
 
     def restore(self):
-        output = self.getvalue()
+        msg = self.getvalue()
+        self.truncate(0)
         self.capturing = False
         self.diverting = False
-        os.dup2(self.original_stream.fileno(), self.stream.fileno())
-        self.original_stream.close()
-        self._capture_file.close()
-        return output
-
-    def fileno(self):
-        return self._capture_file.fileno()
-
-    @property
-    def mode(self):
-        return self.stream.mode
-
-    def getvalue(self):
-        assert self.capturing
-        self.flush()
-        os.lseek(self._capture_file.fileno(), 0, 0)
-        # on mac python stream object does not account for captured bytes
-        # added when another host object captures the output and turns on
-        # passthrough
-        return python_2_3_compat.bytes_to_str(os.read(
-            self._capture_file.fileno(),
-            os.path.getsize(self._capture_file.name)))
-
-    def isatty(self):
-        return self.stream.isatty()
+        return msg

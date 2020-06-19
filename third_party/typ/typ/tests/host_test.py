@@ -16,8 +16,6 @@ import logging
 import pickle
 import sys
 import unittest
-import os
-import subprocess
 
 from typ.host import Host
 
@@ -216,44 +214,3 @@ class TestHost(unittest.TestCase):
     def test_platform(self):
         h = self.host()
         self.assertNotEqual(h.platform, None)
-
-
-class TestHostReceivesProcessOutput(unittest.TestCase):
-
-    def setUp(self):
-        self.script_path = os.path.join(
-            os.path.abspath(os.path.dirname(__file__)), '..', 'runner.py')
-
-    def testFinalOutputContainsAllChildOutput(self):
-        sys.stdout.write('Started testFinalOutputContainsAllChildOutput')
-        host = Host()
-        host.capture_output()
-        self.assertEqual(
-            subprocess.call(
-                [sys.executable, self.script_path,
-                ('typ.tests.host_test.TestHostReceivesProcessOutput.'
-                 'testChildStderrIsInTypFinalOutput'),
-                '-vv'], stdout=sys.stdout, stderr=sys.stderr),0)
-        out, _ = host.restore_output()
-        self.assertIn('Started testFinalOutputContainsAllChildOutput',
-                      sys.stdout.getvalue())
-        sys.stdout.write(out)
-        self.assertIn('  Started testChildStderrIsInTypFinalOutput', out)
-        self.assertIn('    Started testWriteToStderr', out)
-
-    def testChildStderrIsInTypFinalOutput(self):
-        sys.stdout.write('Started testChildStderrIsInTypFinalOutput')
-        host = Host()
-        host.capture_output()
-        self.assertEqual(
-            subprocess.call(
-                [sys.executable, self.script_path,
-                ('typ.tests.host_test.TestHostReceivesProcessOutput'
-                 '.testWriteToStderr'),
-                '-vv'], stdout=sys.stdout, stderr=sys.stderr), 0)
-        out, _ = host.restore_output()
-        sys.stderr.write(out)
-        self.assertIn('  Started testWriteToStderr', out)
-
-    def testWriteToStderr(self):
-        sys.stderr.write('Started testWriteToStderr')
