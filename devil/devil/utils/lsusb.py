@@ -145,7 +145,7 @@ def lsusb():
       try:
         devices.append(_lsusbv_on_device(bus_num, dev_num))
       except cmd_helper.TimeoutError:
-        # Will be blacklisted if it is in expected device file, but times out.
+        # Will be denylisted if it is in expected device file, but times out.
         logger.info('lsusb -v %s:%s timed out.', bus_num, dev_num)
   return devices
 

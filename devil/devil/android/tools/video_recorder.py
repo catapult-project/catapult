@@ -111,13 +111,7 @@ class VideoRecorder(object):
 def main():
   # Parse options.
   parser = argparse.ArgumentParser(description=__doc__)
-  parser.add_argument(
-      '-d',
-      '--device',
-      dest='devices',
-      action='append',
-      help='Serial number of Android device to use.')
-  parser.add_argument('--blacklist-file', help='Device blacklist JSON file.')
+  script_common.AddDeviceArguments(parser)
   parser.add_argument(
       '-f',
       '--file',
@@ -168,8 +162,9 @@ def main():
     f = recorder.Pull(f)
     print 'Video written to %s' % os.path.abspath(f)
 
-  parallel_devices = device_utils.DeviceUtils.parallel(
-      script_common.GetDevices(args.devices, args.blacklist_file), async=True)
+  parallel_devices = device_utils.DeviceUtils.parallel(script_common.GetDevices(
+      args.devices, args.denylist_file),
+                                                       async=True)
   stop_recording = threading.Event()
   running_recording = parallel_devices.pMap(record_video, stop_recording)
   print 'Recording. Press Enter to stop.',

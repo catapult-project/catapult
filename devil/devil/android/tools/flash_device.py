@@ -12,7 +12,7 @@ if __name__ == '__main__':
   sys.path.append(
       os.path.abspath(
           os.path.join(os.path.dirname(__file__), '..', '..', '..')))
-from devil.android import device_blacklist
+from devil.android import device_denylist
 from devil.android import device_errors
 from devil.android import fastboot_utils
 from devil.android.sdk import fastboot
@@ -34,11 +34,11 @@ def main():
   args = parser.parse_args()
   logging_common.InitializeLogging(args)
 
-  if args.blacklist_file:
-    blacklist = device_blacklist.Blacklist(args.blacklist_file).Read()
-    if blacklist:
-      logger.critical('Device(s) in blacklist, not flashing devices:')
-      for key in blacklist:
+  if args.denylist_file:
+    denylist = device_denylist.Denylist(args.denylist_file).Read()
+    if denylist:
+      logger.critical('Device(s) in denylist, not flashing devices:')
+      for key in denylist:
         logger.critical('  %s', key)
       return exit_codes.INFRA
 
@@ -55,7 +55,7 @@ def main():
 
   devices = []
   try:
-    adb_devices = script_common.GetDevices(args.devices, args.blacklist_file)
+    adb_devices = script_common.GetDevices(args.devices, args.denylist_file)
     devices += [fastboot_utils.FastbootUtils(device=d) for d in adb_devices]
   except device_errors.NoDevicesError:
     # Don't bail out if we're not looking for any particular device and there's

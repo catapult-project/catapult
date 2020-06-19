@@ -151,20 +151,20 @@ class DeviceMonitorTest(unittest.TestCase):
 
   @mock.patch('devil.android.battery_utils.BatteryUtils')
   @mock.patch('devil.android.device_utils.DeviceUtils.HealthyDevices')
-  def test_getStatsWithBlacklist(self, get_devices, get_battery):
+  def test_getStatsWithDenylist(self, get_devices, get_battery):
     get_devices.return_value = [self.device]
     get_battery.return_value = self.battery
-    blacklist = mock.Mock()
-    blacklist.Read = mock.MagicMock(
+    denylist = mock.Mock()
+    denylist.Read = mock.MagicMock(
         return_value={'bad_device': {
             'reason': 'offline'
         }})
 
-    # Should be same status dict but with extra blacklisted device.
+    # Should be same status dict but with extra denylisted device.
     expected_status = self.expected_status.copy()
     expected_status['bad_device'] = {'state': 'offline'}
 
-    status = device_monitor.get_all_status(blacklist)
+    status = device_monitor.get_all_status(denylist)
     self.assertEquals(expected_status, status['devices'])
 
   @mock.patch('devil.android.battery_utils.BatteryUtils')

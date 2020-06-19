@@ -17,7 +17,7 @@ if __name__ == '__main__':
   sys.path.append(
       os.path.abspath(
           os.path.join(os.path.dirname(__file__), '..', '..', '..')))
-from devil.android import device_blacklist
+from devil.android import device_denylist
 from devil.android import device_errors
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
@@ -104,9 +104,9 @@ def TryAuth(device):
   return True
 
 
-def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
-  if device_status.IsBlacklisted(device.adb.GetDeviceSerial(), blacklist):
-    logger.debug('%s is blacklisted, skipping recovery.', str(device))
+def RecoverDevice(device, denylist, should_reboot=lambda device: True):
+  if device_status.IsDenylisted(device.adb.GetDeviceSerial(), denylist):
+    logger.debug('%s is denylisted, skipping recovery.', str(device))
     return
 
   if device.adb.GetState() == 'unauthorized' and TryAuth(device):
@@ -144,14 +144,12 @@ def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
     except (device_errors.CommandFailedError,
             device_errors.DeviceUnreachableError):
       logger.exception('Failed to reboot %s.', str(device))
-      if blacklist:
-        blacklist.Extend([device.adb.GetDeviceSerial()],
-                         reason='reboot_failure')
+      if denylist:
+        denylist.Extend([device.adb.GetDeviceSerial()], reason='reboot_failure')
     except device_errors.CommandTimeoutError:
       logger.exception('Timed out while rebooting %s.', str(device))
-      if blacklist:
-        blacklist.Extend([device.adb.GetDeviceSerial()],
-                         reason='reboot_timeout')
+      if denylist:
+        denylist.Extend([device.adb.GetDeviceSerial()], reason='reboot_timeout')
 
     try:
       device.WaitUntilFullyBooted(
@@ -159,26 +157,24 @@ def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
     except (device_errors.CommandFailedError,
             device_errors.DeviceUnreachableError):
       logger.exception('Failure while waiting for %s.', str(device))
-      if blacklist:
-        blacklist.Extend([device.adb.GetDeviceSerial()],
-                         reason='reboot_failure')
+      if denylist:
+        denylist.Extend([device.adb.GetDeviceSerial()], reason='reboot_failure')
     except device_errors.CommandTimeoutError:
       logger.exception('Timed out while waiting for %s.', str(device))
-      if blacklist:
-        blacklist.Extend([device.adb.GetDeviceSerial()],
-                         reason='reboot_timeout')
+      if denylist:
+        denylist.Extend([device.adb.GetDeviceSerial()], reason='reboot_timeout')
 
 
-def RecoverDevices(devices, blacklist, enable_usb_reset=False):
+def RecoverDevices(devices, denylist, enable_usb_reset=False):
   """Attempts to recover any inoperable devices in the provided list.
 
   Args:
     devices: The list of devices to attempt to recover.
-    blacklist: The current device blacklist, which will be used then
+    denylist: The current device denylist, which will be used then
       reset.
   """
 
-  statuses = device_status.DeviceStatus(devices, blacklist)
+  statuses = device_status.DeviceStatus(devices, denylist)
 
   should_restart_usb = set(
       status['serial'] for status in statuses
@@ -188,7 +184,7 @@ def RecoverDevices(devices, blacklist, enable_usb_reset=False):
       set(status['serial'] for status in statuses
           if status['adb_status'] == 'unauthorized'))
   should_reboot_device = should_restart_usb.union(
-      set(status['serial'] for status in statuses if status['blacklisted']))
+      set(status['serial'] for status in statuses if status['denylisted']))
 
   logger.debug('Should restart USB for:')
   for d in should_restart_usb:
@@ -200,8 +196,8 @@ def RecoverDevices(devices, blacklist, enable_usb_reset=False):
   for d in should_reboot_device:
     logger.debug('  %s', d)
 
-  if blacklist:
-    blacklist.Reset()
+  if denylist:
+    denylist.Reset()
 
   if should_restart_adb:
     KillAllAdb()
@@ -217,16 +213,16 @@ def RecoverDevices(devices, blacklist, enable_usb_reset=False):
         logger.warning('USB reset disabled for %s (crbug.com/642914)', serial)
     except IOError:
       logger.exception('Unable to reset USB for %s.', serial)
-      if blacklist:
-        blacklist.Extend([serial], reason='USB failure')
+      if denylist:
+        denylist.Extend([serial], reason='USB failure')
     except device_errors.DeviceUnreachableError:
       logger.exception('Unable to reset USB for %s.', serial)
-      if blacklist:
-        blacklist.Extend([serial], reason='offline')
+      if denylist:
+        denylist.Extend([serial], reason='offline')
 
   device_utils.DeviceUtils.parallel(devices).pMap(
       RecoverDevice,
-      blacklist,
+      denylist,
       should_reboot=lambda device: device.serial in should_reboot_device)
 
 
@@ -234,7 +230,7 @@ def main():
   parser = argparse.ArgumentParser()
   logging_common.AddLoggingArguments(parser)
   script_common.AddEnvironmentArguments(parser)
-  parser.add_argument('--blacklist-file', help='Device blacklist JSON file.')
+  parser.add_argument('--denylist-file', help='Device denylist JSON file.')
   parser.add_argument(
       '--known-devices-file',
       action='append',
@@ -248,8 +244,8 @@ def main():
   logging_common.InitializeLogging(args)
   script_common.InitializeEnvironment(args)
 
-  blacklist = (device_blacklist.Blacklist(args.blacklist_file)
-               if args.blacklist_file else None)
+  denylist = (device_denylist.Denylist(args.denylist_file)
+              if args.denylist_file else None)
 
   expected_devices = device_status.GetExpectedDevices(args.known_devices_files)
   usb_devices = set(lsusb.get_android_devices())
@@ -257,7 +253,7 @@ def main():
       device_utils.DeviceUtils(s) for s in expected_devices.union(usb_devices)
   ]
 
-  RecoverDevices(devices, blacklist, enable_usb_reset=args.enable_usb_reset)
+  RecoverDevices(devices, denylist, enable_usb_reset=args.enable_usb_reset)
 
 
 if __name__ == '__main__':

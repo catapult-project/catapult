@@ -2,10 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import argparse
 import os
 
 from devil import devil_env
-from devil.android import device_blacklist
+from devil.android import device_denylist
 from devil.android import device_errors
 from devil.android import device_utils
 
@@ -52,7 +53,7 @@ def InitializeEnvironment(args):
 
 
 def AddDeviceArguments(parser):
-  """Adds device and blacklist arguments to the provided parser.
+  """Adds device and denylist arguments to the provided parser.
 
   Args:
     parser: an instance of argparse.ArgumentParser
@@ -64,16 +65,32 @@ def AddDeviceArguments(parser):
       action='append',
       default=[],
       help='Serial number of the Android device to use. (default: use all)')
-  parser.add_argument('--blacklist-file', help='Device blacklist JSON file.')
+
+  # TODO(crbug.com/1097306): Simplify this to an ungrouped --denylist-file
+  # once all uses of --blacklist-file / args.blacklist_file have been updated.
+  class DenylistAction(argparse.Action):
+
+    #override
+    def __call__(self, parser, namespace, values, option_string=None):
+      setattr(namespace, 'denylist_file', values)
+      setattr(namespace, 'blacklist_file', values)
+
+  denylist_group = parser.add_mutually_exclusive_group()
+  denylist_group.add_argument('--denylist-file',
+                              help='Device denylist JSON file.',
+                              action=DenylistAction)
+  denylist_group.add_argument('--blacklist-file',
+                              help=argparse.SUPPRESS,
+                              action=DenylistAction)
 
 
-def GetDevices(requested_devices, blacklist_file):
+def GetDevices(requested_devices, denylist_file):
   """Gets a list of healthy devices matching the given parameters."""
-  if not isinstance(blacklist_file, device_blacklist.Blacklist):
-    blacklist_file = (device_blacklist.Blacklist(blacklist_file)
-                      if blacklist_file else None)
+  if not isinstance(denylist_file, device_denylist.Denylist):
+    denylist_file = (device_denylist.Denylist(denylist_file)
+                     if denylist_file else None)
 
-  devices = device_utils.DeviceUtils.HealthyDevices(blacklist_file)
+  devices = device_utils.DeviceUtils.HealthyDevices(denylist_file)
   if not devices:
     raise device_errors.NoDevicesError()
   elif requested_devices:

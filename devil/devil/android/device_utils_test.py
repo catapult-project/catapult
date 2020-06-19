@@ -3378,28 +3378,28 @@ class DeviceUtilsClientCache(DeviceUtilsTest):
 
 
 class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
-  def testHealthyDevices_emptyBlacklist_defaultDeviceArg(self):
+  def testHealthyDevices_emptyDenylist_defaultDeviceArg(self):
     test_serials = ['0123456789abcdef', 'fedcba9876543210']
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
          [_AdbWrapperMock(s) for s in test_serials]),
         (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM),
         (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM)):
-      blacklist = mock.NonCallableMock(**{'Read.return_value': []})
-      devices = device_utils.DeviceUtils.HealthyDevices(blacklist)
+      denylist = mock.NonCallableMock(**{'Read.return_value': []})
+      devices = device_utils.DeviceUtils.HealthyDevices(denylist)
     for serial, device in zip(test_serials, devices):
       self.assertTrue(isinstance(device, device_utils.DeviceUtils))
       self.assertEquals(serial, device.adb.GetDeviceSerial())
 
-  def testHealthyDevices_blacklist_defaultDeviceArg(self):
+  def testHealthyDevices_denylist_defaultDeviceArg(self):
     test_serials = ['0123456789abcdef', 'fedcba9876543210']
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
          [_AdbWrapperMock(s) for s in test_serials]),
         (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM)):
-      blacklist = mock.NonCallableMock(
+      denylist = mock.NonCallableMock(
           **{'Read.return_value': ['fedcba9876543210']})
-      devices = device_utils.DeviceUtils.HealthyDevices(blacklist)
+      devices = device_utils.DeviceUtils.HealthyDevices(denylist)
     self.assertEquals(1, len(devices))
     self.assertTrue(isinstance(devices[0], device_utils.DeviceUtils))
     self.assertEquals('0123456789abcdef', devices[0].adb.GetDeviceSerial())
@@ -3622,7 +3622,7 @@ class DeviceUtilsGrantPermissionsTest(DeviceUtilsTest):
           self.device.GrantPermissions('package', [WRITE])
       self.assertEqual(logger.warnings, [])
 
-  def testGrantPermissions_BlackList(self):
+  def testGrantPermissions_DenyList(self):
     with PatchLogger() as logger:
       with self.patch_call(
           self.call.device.build_version_sdk,

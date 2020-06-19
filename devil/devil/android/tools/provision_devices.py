@@ -30,7 +30,7 @@ if __name__ == '__main__':
           os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
 from devil.android import battery_utils
-from devil.android import device_blacklist
+from devil.android import device_denylist
 from devil.android import device_errors
 from devil.android import device_temp_file
 from devil.android import device_utils
@@ -71,7 +71,7 @@ class ProvisionStep(object):
 
 
 def ProvisionDevices(devices,
-                     blacklist_file,
+                     denylist_file,
                      adb_key_files=None,
                      disable_location=False,
                      disable_mock_location=False,
@@ -81,22 +81,22 @@ def ProvisionDevices(devices,
                      enable_java_debug=False,
                      max_battery_temp=None,
                      min_battery_level=None,
-                     output_device_blacklist=None,
+                     output_device_denylist=None,
                      reboot_timeout=None,
                      remove_system_webview=False,
                      system_app_remove_list=None,
                      system_package_remove_list=None,
                      wipe=True):
-  blacklist = (device_blacklist.Blacklist(blacklist_file)
-               if blacklist_file else None)
+  denylist = (device_denylist.Denylist(denylist_file)
+              if denylist_file else None)
   system_app_remove_list = system_app_remove_list or []
   system_package_remove_list = system_package_remove_list or []
   try:
-    devices = script_common.GetDevices(devices, blacklist)
+    devices = script_common.GetDevices(devices, denylist)
   except device_errors.NoDevicesError:
     logging.error('No available devices to provision.')
-    if blacklist:
-      logging.error('Local device blacklist: %s', blacklist.Read())
+    if denylist:
+      logging.error('Local device denylist: %s', denylist.Read())
     raise
   devices = [d for d in devices if not emulators or d.adb.is_emulator]
   parallel_devices = device_utils.DeviceUtils.parallel(devices)
@@ -136,18 +136,18 @@ def ProvisionDevices(devices,
   steps.append(ProvisionStep(CheckExternalStorage))
   steps.append(ProvisionStep(StandaloneVrDeviceSetup))
 
-  parallel_devices.pMap(ProvisionDevice, steps, blacklist, reboot_timeout)
+  parallel_devices.pMap(ProvisionDevice, steps, denylist, reboot_timeout)
 
-  blacklisted_devices = blacklist.Read() if blacklist else []
-  if output_device_blacklist:
-    with open(output_device_blacklist, 'w') as f:
-      json.dump(blacklisted_devices, f)
-  if all(d in blacklisted_devices for d in devices):
+  denylisted_devices = denylist.Read() if denylist else []
+  if output_device_denylist:
+    with open(output_device_denylist, 'w') as f:
+      json.dump(denylisted_devices, f)
+  if all(d in denylisted_devices for d in devices):
     raise device_errors.NoDevicesError
   return 0
 
 
-def ProvisionDevice(device, steps, blacklist, reboot_timeout=None):
+def ProvisionDevice(device, steps, denylist, reboot_timeout=None):
   try:
     if not reboot_timeout:
       if device.build_version_sdk >= version_codes.LOLLIPOP:
@@ -167,17 +167,17 @@ def ProvisionDevice(device, steps, blacklist, reboot_timeout=None):
         device.adb.WaitForDevice()
 
   except device_errors.CommandTimeoutError:
-    logger.exception('Timed out waiting for device %s. Adding to blacklist.',
+    logger.exception('Timed out waiting for device %s. Adding to denylist.',
                      str(device))
-    if blacklist:
-      blacklist.Extend([str(device)], reason='provision_timeout')
+    if denylist:
+      denylist.Extend([str(device)], reason='provision_timeout')
 
   except (device_errors.CommandFailedError,
           device_errors.DeviceUnreachableError):
-    logger.exception('Failed to provision device %s. Adding to blacklist.',
+    logger.exception('Failed to provision device %s. Adding to denylist.',
                      str(device))
-    if blacklist:
-      blacklist.Extend([str(device)], reason='provision_failure')
+    if denylist:
+      denylist.Extend([str(device)], reason='provision_failure')
 
 
 def Wipe(device, adb_key_files=None):
@@ -625,9 +625,8 @@ def main(raw_args):
       metavar='NUM',
       help='wait for the device to reach this minimum battery'
       ' level before trying to continue')
-  parser.add_argument(
-      '--output-device-blacklist',
-      help='Json file to output the device blacklist.')
+  parser.add_argument('--output-device-denylist',
+                      help='Json file to output the device denylist.')
   parser.add_argument(
       '--reboot-timeout',
       metavar='SECS',
@@ -675,7 +674,7 @@ def main(raw_args):
   try:
     return ProvisionDevices(
         args.devices,
-        args.blacklist_file,
+        args.denylist_file,
         adb_key_files=args.adb_key_files,
         disable_location=args.disable_location,
         disable_mock_location=args.disable_mock_location,
@@ -685,7 +684,7 @@ def main(raw_args):
         enable_java_debug=args.enable_java_debug,
         max_battery_temp=args.max_battery_temp,
         min_battery_level=args.min_battery_level,
-        output_device_blacklist=args.output_device_blacklist,
+        output_device_denylist=args.output_device_denylist,
         reboot_timeout=args.reboot_timeout,
         remove_system_webview=args.remove_system_webview,
         system_app_remove_list=args.system_app_remove_list,

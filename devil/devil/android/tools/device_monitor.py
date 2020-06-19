@@ -25,7 +25,7 @@ if __name__ == '__main__':
           os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
 from devil.android import battery_utils
-from devil.android import device_blacklist
+from devil.android import device_denylist
 from devil.android import device_errors
 from devil.android import device_utils
 from devil.android.tools import script_common
@@ -168,13 +168,13 @@ def get_device_status(device):
   return status
 
 
-def get_all_status(blacklist):
+def get_all_status(denylist):
   status_dict = {
       'version': DEVICE_FILE_VERSION,
       'devices': {},
   }
 
-  healthy_devices = device_utils.DeviceUtils.HealthyDevices(blacklist)
+  healthy_devices = device_utils.DeviceUtils.HealthyDevices(denylist)
   parallel_devices = device_utils.DeviceUtils.parallel(healthy_devices)
   results = parallel_devices.pMap(get_device_status).pGet(None)
 
@@ -183,10 +183,10 @@ def get_all_status(blacklist):
       for device, result in zip(healthy_devices, results)
   }
 
-  if blacklist:
-    for device, reason in blacklist.Read().iteritems():
+  if denylist:
+    for device, reason in denylist.Read().iteritems():
       status_dict['devices'][device] = {
-          'state': reason.get('reason', 'blacklisted')
+          'state': reason.get('reason', 'denylisted')
       }
 
   status_dict['timestamp'] = time.time()
@@ -197,12 +197,17 @@ def main(argv):
   """Launches the device monitor.
 
   Polls the devices for their battery and cpu temperatures and scans the
-  blacklist file every 60 seconds and dumps the data to DEVICE_FILE.
+  denylist file every 60 seconds and dumps the data to DEVICE_FILE.
   """
 
   parser = argparse.ArgumentParser(description='Launches the device monitor.')
   script_common.AddEnvironmentArguments(parser)
-  parser.add_argument('--blacklist-file', help='Path to device blacklist file.')
+  parser.add_argument('--denylist-file', help='Path to device denylist file.')
+  # TODO(crbug.com/1097306): Remove this once chromium_android/api.py stops
+  # using it.
+  parser.add_argument('--blacklist-file',
+                      dest='denylist_file',
+                      help=argparse.SUPPRESS)
   args = parser.parse_args(argv)
 
   logger = logging.getLogger()
@@ -215,14 +220,14 @@ def main(argv):
   logger.addHandler(handler)
   script_common.InitializeEnvironment(args)
 
-  blacklist = (device_blacklist.Blacklist(args.blacklist_file)
-               if args.blacklist_file else None)
+  denylist = (device_denylist.Denylist(args.denylist_file)
+              if args.denylist_file else None)
 
-  logging.info('Device monitor running with pid %d, adb: %s, blacklist: %s',
-               os.getpid(), args.adb_path, args.blacklist_file)
+  logging.info('Device monitor running with pid %d, adb: %s, denylist: %s',
+               os.getpid(), args.adb_path, args.denylist_file)
   while True:
     start = time.time()
-    status_dict = get_all_status(blacklist)
+    status_dict = get_all_status(denylist)
     with open(DEVICE_FILE, 'wb') as f:
       json.dump(status_dict, f, indent=2, sort_keys=True)
     logging.info('Got status of all devices in %.2fs.', time.time() - start)

@@ -325,7 +325,7 @@ def main(raw_args):
   run_tests_helper.SetLogLevel(args.verbose)
   script_common.InitializeEnvironment(args)
 
-  devices = script_common.GetDevices(args.devices, args.blacklist_file)
+  devices = script_common.GetDevices(args.devices, args.denylist_file)
   parallel_devices = parallelizer.SyncParallelizer(
       [args.func(d, args) for d in devices])
   with parallel_devices:

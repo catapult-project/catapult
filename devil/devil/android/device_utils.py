@@ -105,7 +105,7 @@ _RESTART_ADBD_SCRIPT = """
 """
 
 # Not all permissions can be set.
-_PERMISSIONS_BLACKLIST_RE = re.compile('|'.join(
+_PERMISSIONS_DENYLIST_RE = re.compile('|'.join(
     fnmatch.translate(p) for p in [
         'android.permission.ACCESS_LOCATION_EXTRA_COMMANDS',
         'android.permission.ACCESS_MOCK_LOCATION',
@@ -3506,7 +3506,7 @@ class DeviceUtils(object):
 
   @classmethod
   def HealthyDevices(cls,
-                     blacklist=None,
+                     denylist=None,
                      device_arg='default',
                      retries=1,
                      enable_usb_resets=False,
@@ -3514,13 +3514,13 @@ class DeviceUtils(object):
                      **kwargs):
     """Returns a list of DeviceUtils instances.
 
-    Returns a list of DeviceUtils instances that are attached, not blacklisted,
+    Returns a list of DeviceUtils instances that are attached, not denylisted,
     and optionally filtered by --device flags or ANDROID_SERIAL environment
     variable.
 
     Args:
-      blacklist: A DeviceBlacklist instance (optional). Device serials in this
-          blacklist will never be returned, but a warning will be logged if they
+      denylist: A DeviceDenylist instance (optional). Device serials in this
+          denylist will never be returned, but a warning will be logged if they
           otherwise would have been.
       device_arg: The value of the --device flag. This can be:
           'default' -> Same as [], but returns an empty list rather than raise a
@@ -3530,9 +3530,9 @@ class DeviceUtils(object):
               attached device. Raises an exception if multiple devices are
               attached.
           'serial' -> Returns an instance for the given serial, if not
-              blacklisted.
+              denylisted.
           ['A', 'B', ...] -> Returns instances for the subset that is not
-              blacklisted.
+              denylisted.
       retries: Number of times to restart adb server and query it again if no
           devices are found on the previous attempts, with exponential backoffs
           up to 60s between each retry.
@@ -3547,7 +3547,7 @@ class DeviceUtils(object):
       A list of DeviceUtils instances.
 
     Raises:
-      NoDevicesError: Raised when no non-blacklisted devices exist and
+      NoDevicesError: Raised when no non-denylisted devices exist and
           device_arg is passed.
       MultipleDevicesError: Raise when multiple devices exist, but |device_arg|
           is None.
@@ -3563,16 +3563,16 @@ class DeviceUtils(object):
       if device_arg:
         device_arg = (device_arg, )
 
-    blacklisted_devices = blacklist.Read() if blacklist else []
+    denylisted_devices = denylist.Read() if denylist else []
 
     # adb looks for ANDROID_SERIAL, so support it as well.
     android_serial = os.environ.get('ANDROID_SERIAL')
     if not device_arg and android_serial:
       device_arg = (android_serial, )
 
-    def blacklisted(serial):
-      if serial in blacklisted_devices:
-        logger.warning('Device %s is blacklisted.', serial)
+    def denylisted(serial):
+      if serial in denylisted_devices:
+        logger.warning('Device %s is denylisted.', serial)
         return True
       return False
 
@@ -3584,12 +3584,12 @@ class DeviceUtils(object):
 
     def _get_devices():
       if device_arg:
-        devices = [cls(x, **kwargs) for x in device_arg if not blacklisted(x)]
+        devices = [cls(x, **kwargs) for x in device_arg if not denylisted(x)]
       else:
         devices = []
         for adb in adb_wrapper.AdbWrapper.Devices():
           serial = adb.GetDeviceSerial()
-          if not blacklisted(serial):
+          if not denylisted(serial):
             device = cls(_CreateAdbWrapper(adb), **kwargs)
             if supports_abi(device.GetABI(), serial):
               devices.append(device)
@@ -3647,8 +3647,8 @@ class DeviceUtils(object):
     if not permissions:
       return
 
-    permissions = set(
-        p for p in permissions if not _PERMISSIONS_BLACKLIST_RE.match(p))
+    permissions = set(p for p in permissions
+                      if not _PERMISSIONS_DENYLIST_RE.match(p))
 
     if ('android.permission.WRITE_EXTERNAL_STORAGE' in permissions
         and 'android.permission.READ_EXTERNAL_STORAGE' not in permissions):
@@ -3679,7 +3679,7 @@ class DeviceUtils(object):
 
     if failures:
       logger.warning(
-          'Failed to grant some permissions. Blacklist may need to be updated?')
+          'Failed to grant some permissions. Denylist may need to be updated?')
       for permission, output in failures:
         # Try to grab the relevant error message from the output.
         m = _PERMISSIONS_EXCEPTION_RE.search(output)

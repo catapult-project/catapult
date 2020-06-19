@@ -32,7 +32,7 @@ def main():
   logging_common.InitializeLogging(args)
   script_common.InitializeEnvironment(args)
 
-  devices = script_common.GetDevices(args.devices, args.blacklist_file)
+  devices = script_common.GetDevices(args.devices, args.denylist_file)
   p_out = (device_utils.DeviceUtils.parallel(devices).RunShellCommand(
       args.cmd, large_output=True, as_root=args.as_root,
       check_return=True).pGet(None))

@@ -16,7 +16,7 @@ if __name__ == '__main__':
       os.path.abspath(
           os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 from devil.android import battery_utils
-from devil.android import device_blacklist
+from devil.android import device_denylist
 from devil.android import device_errors
 from devil.android import device_list
 from devil.android import device_utils
@@ -31,11 +31,11 @@ logger = logging.getLogger(__name__)
 _RE_DEVICE_ID = re.compile(r'Device ID = (\d+)')
 
 
-def IsBlacklisted(serial, blacklist):
-  return blacklist and serial in blacklist.Read()
+def IsDenylisted(serial, denylist):
+  return denylist and serial in denylist.Read()
 
 
-def _BatteryStatus(device, blacklist):
+def _BatteryStatus(device, denylist):
   battery_info = {}
   try:
     battery = battery_utils.BatteryUtils(device)
@@ -47,8 +47,8 @@ def _BatteryStatus(device, blacklist):
       battery = battery_utils.BatteryUtils(device)
       if not battery.GetCharging():
         battery.SetCharging(True)
-      if blacklist:
-        blacklist.Extend([device.adb.GetDeviceSerial()], reason='low_battery')
+      if denylist:
+        denylist.Extend([device.adb.GetDeviceSerial()], reason='low_battery')
 
   except (device_errors.CommandFailedError,
           device_errors.DeviceUnreachableError):
@@ -57,12 +57,12 @@ def _BatteryStatus(device, blacklist):
   return battery_info
 
 
-def DeviceStatus(devices, blacklist):
+def DeviceStatus(devices, denylist):
   """Generates status information for the given devices.
 
   Args:
     devices: The devices to generate status for.
-    blacklist: The current device blacklist.
+    denylist: The current device denylist.
   Returns:
     A dict of the following form:
     {
@@ -70,8 +70,8 @@ def DeviceStatus(devices, blacklist):
         'serial': '<serial>',
         'adb_status': str,
         'usb_status': bool,
-        'blacklisted': bool,
-        # only if the device is connected and not blacklisted
+        'denylisted': bool,
+        # only if the device is connected and not denylisted
         'type': ro.build.product,
         'build': ro.build.id,
         'build_detail': ro.build.fingerprint,
@@ -91,7 +91,7 @@ def DeviceStatus(devices, blacklist):
   }
   usb_devices = set(lsusb.get_android_devices())
 
-  def blacklisting_device_status(device):
+  def denylisting_device_status(device):
     serial = device.adb.GetDeviceSerial()
     adb_status = (adb_devices[serial][1]
                   if serial in adb_devices else 'missing')
@@ -103,7 +103,7 @@ def DeviceStatus(devices, blacklist):
         'usb_status': usb_status,
     }
 
-    if not IsBlacklisted(serial, blacklist):
+    if not IsDenylisted(serial, denylist):
       if adb_status == 'device':
         try:
           build_product = device.build_product
@@ -111,7 +111,7 @@ def DeviceStatus(devices, blacklist):
           build_fingerprint = device.build_fingerprint
           build_description = device.build_description
           wifi_ip = device.GetProp('dhcp.wlan0.ipaddress')
-          battery_info = _BatteryStatus(device, blacklist)
+          battery_info = _BatteryStatus(device, denylist)
           try:
             imei_slice = device.GetIMEI()
           except device_errors.CommandFailedError:
@@ -136,25 +136,25 @@ def DeviceStatus(devices, blacklist):
                 device_errors.DeviceUnreachableError):
           logger.exception('Failure while getting device status for %s.',
                            str(device))
-          if blacklist:
-            blacklist.Extend([serial], reason='status_check_failure')
+          if denylist:
+            denylist.Extend([serial], reason='status_check_failure')
 
         except device_errors.CommandTimeoutError:
           logger.exception('Timeout while getting device status for %s.',
                            str(device))
-          if blacklist:
-            blacklist.Extend([serial], reason='status_check_timeout')
+          if denylist:
+            denylist.Extend([serial], reason='status_check_timeout')
 
-      elif blacklist:
-        blacklist.Extend([serial],
-                         reason=adb_status if usb_status else 'offline')
+      elif denylist:
+        denylist.Extend([serial],
+                        reason=adb_status if usb_status else 'offline')
 
-    device_status['blacklisted'] = IsBlacklisted(serial, blacklist)
+    device_status['denylisted'] = IsDenylisted(serial, denylist)
 
     return device_status
 
   parallel_devices = device_utils.DeviceUtils.parallel(devices)
-  statuses = parallel_devices.pMap(blacklisting_device_status).pGet(None)
+  statuses = parallel_devices.pMap(denylisting_device_status).pGet(None)
   return statuses
 
 
@@ -163,12 +163,12 @@ def _LogStatuses(statuses):
   for status in statuses:
     logger.info(status['serial'])
     adb_status = status.get('adb_status')
-    blacklisted = status.get('blacklisted')
+    denylisted = status.get('denylisted')
     logger.info('  USB status: %s',
                 'online' if status.get('usb_status') else 'offline')
     logger.info('  ADB status: %s', adb_status)
-    logger.info('  Blacklisted: %s', str(blacklisted))
-    if adb_status == 'device' and not blacklisted:
+    logger.info('  Denylisted: %s', str(denylisted))
+    if adb_status == 'device' and not denylisted:
       logger.info('  Device type: %s', status.get('ro.build.product'))
       logger.info('  OS build: %s', status.get('ro.build.id'))
       logger.info('  OS build fingerprint: %s',
@@ -225,7 +225,12 @@ def GetExpectedDevices(known_devices_files):
 def AddArguments(parser):
   parser.add_argument(
       '--json-output', help='Output JSON information into a specified file.')
-  parser.add_argument('--blacklist-file', help='Device blacklist JSON file.')
+  parser.add_argument('--denylist-file', help='Device denylist JSON file.')
+  # TODO(crbug.com/1097306): Remove this once //testing/scripts/host_info.py
+  # stops using it.
+  parser.add_argument('--blacklist-file',
+                      dest='denylist_file',
+                      help=argparse.SUPPRESS)
   parser.add_argument(
       '--known-devices-file',
       action='append',
@@ -255,8 +260,8 @@ def main():
   logging_common.InitializeLogging(args)
   script_common.InitializeEnvironment(args)
 
-  blacklist = (device_blacklist.Blacklist(args.blacklist_file)
-               if args.blacklist_file else None)
+  denylist = (device_denylist.Denylist(args.denylist_file)
+              if args.denylist_file else None)
 
   expected_devices = GetExpectedDevices(args.known_devices_files)
   usb_devices = set(lsusb.get_android_devices())
@@ -264,7 +269,7 @@ def main():
       device_utils.DeviceUtils(s) for s in expected_devices.union(usb_devices)
   ]
 
-  statuses = DeviceStatus(devices, blacklist)
+  statuses = DeviceStatus(devices, denylist)
 
   # Log the state of all devices.
   _LogStatuses(statuses)
@@ -288,7 +293,7 @@ def main():
   live_devices = [
       status['serial'] for status in statuses
       if (status['adb_status'] == 'device'
-          and not IsBlacklisted(status['serial'], blacklist))
+          and not IsDenylisted(status['serial'], denylist))
   ]
 
   # If all devices failed, or if there are no devices, it's an infra error.

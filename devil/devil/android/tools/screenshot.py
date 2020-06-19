@@ -40,7 +40,7 @@ def main():
   host_file = args.host_file or args.file
   logging_common.InitializeLogging(args)
 
-  devices = script_common.GetDevices(args.devices, args.blacklist_file)
+  devices = script_common.GetDevices(args.devices, args.denylist_file)
 
   def screenshot(device):
     f = None

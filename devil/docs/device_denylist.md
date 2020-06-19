@@ -3,11 +3,11 @@
      found in the LICENSE file.
 -->
 
-# Devil: Device Blacklist
+# Devil: Device Denylist
 
 ## What is it?
 
-The device blacklist is a per-run list of devices detected to be in a known bad
+The device denylist is a per-run list of devices detected to be in a known bad
 state along with the reason they are suspected of being in a bad state (offline,
 not responding, etc). It is stored as a json file. This gets reset every run
 during the device recovery step (currently part of `bb_device_status_check`).
@@ -15,13 +15,13 @@ during the device recovery step (currently part of `bb_device_status_check`).
 ## Bots
 
 On bots, this is normally found at `//out/bad_devices.json`. If you are having
-problems with blacklisted devices locally even though a device is in a good
+problems with denylisted devices locally even though a device is in a good
 state, you can safely delete this file.
 
-# Tools for interacting with device black list.
+# Tools for interacting with device deny list.
 
-You can interact with the device blacklist via [devil.android.device\_blacklist](https://cs.chromium.org/chromium/src/third_party/catapult/devil/devil/android/device_blacklist.py).
-This allows for any interaction you would need with a device blacklist:
+You can interact with the device denylist via [devil.android.device\_denylist](https://cs.chromium.org/chromium/src/third_party/catapult/devil/devil/android/device_denylist.py).
+This allows for any interaction you would need with a device denylist:
 
   - Reading
   - Writing
@@ -30,28 +30,28 @@ This allows for any interaction you would need with a device blacklist:
 
 An example usecase of this is:
 ```python
-from devil.android import device_blacklist
+from devil.android import device_denylist
 
-blacklist = device_blacklist.Blacklist(blacklist_path)
-blacklisted_devices = blacklist.Read()
-for device in blacklisted_devices:
-  print 'Device %s is blacklisted' % device
-blacklist.Reset()
-new_blacklist = {'device_id1': {'timestamp': ts, 'reason': reason}}
-blacklist.Write(new_blacklist)
-blacklist.Extend([device_2, device_3], reason='Reason for blacklisting')
+denylist = device_denylist.Denylist(denylist_path)
+denylisted_devices = denylist.Read()
+for device in denylisted_devices:
+  print 'Device %s is denylisted' % device
+denylist.Reset()
+new_denylist = {'device_id1': {'timestamp': ts, 'reason': reason}}
+denylist.Write(new_denylist)
+denylist.Extend([device_2, device_3], reason='Reason for denylisting')
 ```
 
 
 ## Where it is used.
 
-The blacklist file path is passed directly to the following scripts in chromium:
+The denylist file path is passed directly to the following scripts in chromium:
 
   - [test\_runner.py](https://cs.chromium.org/chromium/src/build/android/test_runner.py)
   - [provision\_devices.py](https://cs.chromium.org/chromium/src/build/android/provision_devices.py)
   - [bb\_device\_status\_check.py](https://cs.chromium.org/chromium/src/build/android/buildbot/bb_device_status_check.py)
 
-The blacklist is also used in the following scripts:
+The denylist is also used in the following scripts:
 
   - [device\_status.py](https://cs.chromium.org/chromium/src/third_party/catapult/devil/devil/android/tools/device_status.py)
   - [device\_recovery.py](https://cs.chromium.org/chromium/src/third_party/catapult/devil/devil/android/tools/device_recovery.py)
