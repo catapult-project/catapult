@@ -187,8 +187,9 @@ class FastbootUtils(object):
       if self.IsFastbootMode():
         try:
           # According to https://bit.ly/2XIuICQ, slot-count is used to
-          # determine if a device supports A/B updates
-          self._supports_ab = int(self.fastboot.GetVar('slot-count')) >= 2
+          # determine if a device supports A/B updates.
+          slot_count = self.fastboot.GetVar('slot-count') or '0'
+          self._supports_ab = int(slot_count) >= 2
         except device_errors.FastbootCommandFailedError:
           self._supports_ab = False
       else:

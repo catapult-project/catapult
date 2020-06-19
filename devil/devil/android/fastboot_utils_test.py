@@ -125,13 +125,19 @@ class FastbootUtils_supports_ab(FastbootUtilsTest):
   def test_supports_ab_fastboot_True(self):
     with self.assertCalls(
         (self.call.fastboot.IsFastbootMode(), True),
-        (self.call.fastboot.fastboot.GetVar('slot-count'), 2)):
+        (self.call.fastboot.fastboot.GetVar('slot-count'), '2')):
       self.assertEqual(True, self.fastboot.supports_ab)
 
   def test_supports_ab_fastboot_False(self):
     with self.assertCalls(
         (self.call.fastboot.IsFastbootMode(), True),
-        (self.call.fastboot.fastboot.GetVar('slot-count'), 1)):
+        (self.call.fastboot.fastboot.GetVar('slot-count'), '1')):
+      self.assertEqual(False, self.fastboot.supports_ab)
+
+  def test_supports_ab_fastboot_FalseWithEmpty(self):
+    with self.assertCalls(
+        (self.call.fastboot.IsFastbootMode(), True),
+        (self.call.fastboot.fastboot.GetVar('slot-count'), '')):
       self.assertEqual(False, self.fastboot.supports_ab)
 
   def test_supports_ab_fastboot_FalseWithError(self):
