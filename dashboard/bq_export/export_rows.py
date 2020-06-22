@@ -17,7 +17,13 @@ reasonable defaults for other values)::
         --setup_file=bq_export/setup.py \
         --max_num_workers=60 \
         --num_workers=10 \
-        --num_days=10
+        --num_days=10 \
+        --dataset=chromeperf_dashboard_rows
+
+Unlike the other exporters in this directory, this one writes multiple tables as
+a simple form of clustering by master.  E.g. if an entity read from Datastore
+has a master of 'foo.bar', this will write it to a table named 'foo_bar' in the
+specified dataset.
 """
 from __future__ import absolute_import
 from __future__ import division

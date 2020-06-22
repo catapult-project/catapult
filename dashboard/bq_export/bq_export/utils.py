@@ -68,10 +68,14 @@ def _ElementToYYYYMMDD(element):
 
 def _GetPartitionNameFn(table_name, element_to_yyyymmdd_fn):
   def TableWithPartitionSuffix(element):
+    if callable(table_name):
+      table_name_str = table_name(element)
+    else:
+      table_name_str = table_name
     # Partition names are the table name with a $yyyymmdd suffix, e.g.
     # 'my_dataset.my_table$20200123'.  So extract the suffix from the ISO-format
     # timestamp value in this element.
-    return table_name + '$' + element_to_yyyymmdd_fn(element)
+    return table_name_str + '$' + element_to_yyyymmdd_fn(element)
   return TableWithPartitionSuffix
 
 
@@ -94,6 +98,10 @@ def WriteToPartitionedBigQuery(table_name,
   Because we are loading data into the partition directly we must *not* set
   'timePartitioning' in additional_bq_parameters, otherwise the load job will
   fail with a kind of schema mismatch.
+
+  Like WriteToBigQuery, table_name can either be a str or a callable.  When it
+  is a callable it will be called with each element and the return value is used
+  as the table name for that element.
   """
   return beam.io.WriteToBigQuery(
       _GetPartitionNameFn(table_name, element_to_yyyymmdd_fn),

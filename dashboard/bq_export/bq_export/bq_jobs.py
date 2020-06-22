@@ -200,10 +200,15 @@ def main():
       {'name': 'configuration', 'type': 'STRING', 'mode': 'NULLABLE'},
   ]}
 
-  table_name = '{}:{}.jobs{}'.format(
-      project, bq_export_options.dataset, bq_export_options.table_suffix)
+  # 'dataset' may be a RuntimeValueProvider, so we have to defer calculating
+  # the table name until runtime.  The simplest way to do this is by passing a
+  # function for the table name rather than a string.
+  def TableNameFn(unused_element):
+    return '{}:{}.jobs{}'.format(project, bq_export_options.dataset.get(),
+                                 bq_export_options.table_suffix)
+
   _ = job_dicts | 'WriteToBigQuery(jobs)' >> WriteToPartitionedBigQuery(
-      table_name, bq_job_schema, element_to_yyyymmdd_fn=_JobToYYYYMMDD)
+      TableNameFn, bq_job_schema, element_to_yyyymmdd_fn=_JobToYYYYMMDD)
 
   result = p.run()
   result.wait_until_finish()

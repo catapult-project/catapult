@@ -32,7 +32,7 @@ class BqExportOptions(PipelineOptions):
         '--table_suffix',
         help='Suffix to add to table name (for dev purposes, e.g. "_test").',
         default='')
-    parser.add_argument(
+    parser.add_value_provider_argument(
         '--dataset',
         help='BigQuery dataset name.  Overrideable for testing/dev purposes.',
         default='chromeperf_dashboard_data')

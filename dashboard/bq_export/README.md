@@ -67,6 +67,9 @@ those job templates is all that is required to update those daily runs.  See the
 Cloud Scheduler jobs at
 https://console.cloud.google.com/cloudscheduler?project=chromeperf.
 
+**Tip:** You can also use the "RUN NOW" buttons on the Cloud Scheduler console
+page to manually re-run daily job.
+
 ## Executing jobs
 
 ### Manually trigger jobs from templates
@@ -104,7 +107,8 @@ $ gcloud dataflow jobs run export-anomalies-backfill-example \
 
 * When testing changes to the pipelines add `table_suffix=_test` to the
   parameters to write to `anomalies_test` or `rows_test` tables rather than the
-  real tables.
+  real tables.  Alternatively, change the `dataset` parameter to something like
+  `dataset=chromeperf_dashboard_data_test`.
 
 * You can of also use the REST API instead of `gcloud`.  See [Using the REST
   API](https://cloud.google.com/dataflow/docs/guides/templates/running-templates#using-the-rest-api)
@@ -130,5 +134,6 @@ $ PYTHONPATH=$PYTHONPATH:"$(pwd)/bq_export" python bq_export/export_rows.py \
   --num_workers=70 \
   --setup_file=bq_export/setup.py \
   --no_use_public_ips \
-  --subnetwork=regions/us-central1/subnetworks/dashboard-batch
+  --subnetwork=regions/us-central1/subnetworks/dashboard-batch \
+  --dataset=chromeperf_dashboard_rows
 ```

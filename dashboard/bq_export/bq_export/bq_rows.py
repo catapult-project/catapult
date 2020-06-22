@@ -10,6 +10,7 @@ from __future__ import print_function
 import datetime
 import json
 import logging
+import re
 
 import apache_beam as beam
 from apache_beam.options.pipeline_options import DebugOptions
@@ -24,6 +25,10 @@ from bq_export.utils import (FloatHack, PrintCounters,
                              WriteToPartitionedBigQuery)
 
 
+# BigQuery table names may only have letters, numbers, and underscore.
+_INVALID_BQ_TABLE_NAME_CHARS_RE = re.compile('[^a-zA-Z0-9_]')
+
+
 def main():
   project = 'chromeperf'
   options = PipelineOptions()
@@ -36,7 +41,7 @@ def main():
   failed_entity_transforms = Metrics.counter('main', 'failed_entity_transforms')
 
   """
-  CREATE TABLE `chromeperf.chromeperf_dashboard_data.rows`
+  CREATE TABLE `chromeperf.chromeperf_dashboard_rows.<MASTER>`
   (revision INT64 NOT NULL,
    value FLOAT64 NOT NULL,
    std_error FLOAT64,
@@ -103,10 +108,15 @@ def main():
   row_dicts = (
       row_entities | 'ConvertEntityToRow(Row)' >> FlatMap(RowEntityToRowDict))
 
-  table_name = '{}:chromeperf_dashboard_data.rows{}'.format(
-      project, bq_export_options.table_suffix)
+  def TableNameFn(element):
+    """Write each element to a table based on the table name."""
+    master = _INVALID_BQ_TABLE_NAME_CHARS_RE.sub('_', element['master'])
+    return '{project}:{dataset}.{master}{suffix}'.format(
+        project=project, dataset=bq_export_options.dataset.get(), master=master,
+        suffix=bq_export_options.table_suffix)
+
   _ = row_dicts | 'WriteToBigQuery(rows)' >> WriteToPartitionedBigQuery(
-      table_name, bq_row_schema)
+      TableNameFn, bq_row_schema)
 
   result = p.run()
   result.wait_until_finish()
