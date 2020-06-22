@@ -113,7 +113,7 @@ class PlatformBackend(object):
     """
     raise NotImplementedError()
 
-  def SetFullPerformanceModeEnabled(self, enabled):
+  def SetPerformanceMode(self, performance_mode):
     pass
 
   def CanMonitorThermalThrottling(self):

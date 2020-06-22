@@ -71,7 +71,7 @@ class FakePlatform(object):
   def FlushDnsCache(self):
     pass
 
-  def SetFullPerformanceModeEnabled(self, enabled):
+  def SetPerformanceMode(self, mode):
     pass
 
   def CanMonitorThermalThrottling(self):

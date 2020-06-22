@@ -11,6 +11,7 @@ from telemetry.core import platform as platform_module
 from telemetry.internal.backends.chrome import gpu_compositing_checker
 from telemetry.internal.browser import browser_info as browser_info_module
 from telemetry.internal.browser import browser_interval_profiling_controller
+from telemetry.internal.platform import android_device
 from telemetry.internal.platform.tracing_agent import perfetto_tracing_agent
 from telemetry.page import cache_temperature
 from telemetry.page import legacy_page_test
@@ -70,8 +71,9 @@ class SharedPageState(story_module.SharedState):
             frequency=finder_options.interval_profiling_frequency,
             profiler_options=finder_options.interval_profiler_options))
 
-    self.platform.SetFullPerformanceModeEnabled(
-        finder_options.full_performance_mode)
+    self.platform.SetPerformanceMode(finder_options.performance_mode)
+    self._perf_mode_set = (finder_options.performance_mode !=
+                           android_device.KEEP_PERFORMANCE_MODE)
     self.platform.network_controller.Open(self.wpr_mode)
     self.platform.Initialize()
     self._video_recording_enabled = (self._finder_options.capture_screen_video
@@ -306,7 +308,8 @@ class SharedPageState(story_module.SharedState):
     self._StopBrowser()
     self.platform.StopAllLocalServers()
     self.platform.network_controller.Close()
-    self.platform.SetFullPerformanceModeEnabled(False)
+    if self._perf_mode_set:
+      self.platform.SetPerformanceMode(android_device.NORMAL_PERFORMANCE_MODE)
 
   def _StopBrowser(self):
     if self._browser:

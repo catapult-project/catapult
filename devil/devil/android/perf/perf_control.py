@@ -46,6 +46,7 @@ _PERFORMANCE_MODE_DEFINITIONS = {
             },
             'gpu_max_freq': 710000000,
         },
+        'big_cores': ['4', '5', '6', '7'],
         'default_mode_governor': 'schedutil',
     },
     'Pixel 2': {
@@ -70,6 +71,7 @@ _PERFORMANCE_MODE_DEFINITIONS = {
             },
             'gpu_max_freq': 710000000,
         },
+        'big_cores': ['4', '5', '6', '7'],
         'default_mode_governor': 'schedutil',
     },
     'GT-I9300': {
@@ -94,6 +96,7 @@ _PERFORMANCE_MODE_DEFINITIONS = {
             },
             'gpu_max_freq': 624000000,
         },
+        'big_cores': ['2', '3'],
         'default_mode_governor': 'sched',
     },
     'Nexus 7': {
@@ -140,6 +143,7 @@ _PERFORMANCE_MODE_DEFINITIONS = {
             },
             'gpu_max_freq': 600000000,
         },
+        'big_cores': ['4', '5'],
         'default_mode_governor': 'ondemand',
     },
 }
@@ -238,6 +242,25 @@ class PerfControl(object):
     # otherwise it would not affect the cores that are currently offline.
     self.SetScalingGovernor('performance')
     self._SetMaxFrequenciesFromMode(high_perf_mode)
+
+  def SetLittleOnlyMode(self):
+    """Turns off big CPU cores on the device."""
+    try:
+      self._device.EnableRoot()
+    except device_errors.CommandFailedError:
+      _NoisyWarning('Need root to turn off cores.')
+      return
+    mode_definitions = _GetPerfModeDefinitions(self._device.product_model)
+    if not mode_definitions:
+      _NoisyWarning('Unknown device: %s. Can\'t turn off cores.'
+                    % self._device.product_model)
+      return
+    big_cores = mode_definitions.get('big_cores', [])
+    if not big_cores:
+      _NoisyWarning('No mode definition for device: %s.' %
+                    self._device.product_model)
+      return
+    self._ForceCpusOffline(cpu_list=big_cores)
 
   def SetDefaultPerfMode(self):
     """Sets the performance mode for the device to its default mode."""
@@ -388,3 +411,11 @@ class PerfControl(object):
 
     if force_online:
       self._ForEachCpu('echo 1 > "$CPU/online"')
+
+  def _ForceCpusOffline(self, cpu_list):
+    """Disable selected CPUs on a device."""
+    if self._have_mpdecision:
+      cmd = ['stop', 'mpdecision']
+      self._device.RunShellCommand(cmd, check_return=True, as_root=True)
+
+    self._ForEachCpu('echo 0 > "$CPU/online"', cpu_list=cpu_list)

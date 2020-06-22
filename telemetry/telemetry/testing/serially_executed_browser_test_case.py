@@ -10,6 +10,7 @@ import unittest
 from py_utils import cloud_storage
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
+from telemetry.internal.platform import android_device
 from telemetry.internal.results import artifact_logger
 from telemetry.testing import browser_test_context
 from typ import json_results
@@ -96,8 +97,7 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
                   browser_options))))
     if not cls.platform:
       cls.platform = cls._browser_to_create.platform
-      cls.platform.SetFullPerformanceModeEnabled(
-          browser_options.full_performance_mode)
+      cls.platform.SetPerformanceMode(android_device.HIGH_PERFORMANCE_MODE)
       cls.platform.network_controller.Open(
           browser_options.browser_options.wpr_mode)
     else:
@@ -169,7 +169,7 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
     if cls.platform:
       cls.platform.StopAllLocalServers()
       cls.platform.network_controller.Close()
-      cls.platform.SetFullPerformanceModeEnabled(False)
+      cls.platform.SetPerformanceMode(android_device.NORMAL_PERFORMANCE_MODE)
     if cls.browser:
       cls.StopBrowser()
 

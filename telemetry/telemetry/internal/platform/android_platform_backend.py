@@ -118,6 +118,7 @@ class AndroidPlatformBackend(
         'AndroidPlatformBackend can only be initialized from remote device')
     super(AndroidPlatformBackend, self).__init__(device)
     self._device = device_utils.DeviceUtils(device.device_id)
+    self._can_elevate_privilege = False
     self._require_root = require_root
     if self._require_root:
       # Trying to root the device, if possible.
@@ -130,9 +131,6 @@ class AndroidPlatformBackend(
           self._device.HasRoot() or self._device.NeedsSU())
       assert self._can_elevate_privilege, (
           'Android device must have root access to run Telemetry')
-      self._enable_performance_mode = device.enable_performance_mode
-    else:
-      self._enable_performance_mode = False
     self._battery = battery_utils.BatteryUtils(self._device)
     self._surface_stats_collector = None
     self._perf_tests_setup = perf_control.PerfControl(self._device)
@@ -287,14 +285,25 @@ class AndroidPlatformBackend(
     # Suppress the 'abstract-method' lint warning.
     return False
 
-  def SetFullPerformanceModeEnabled(self, enabled):
-    if not self._enable_performance_mode:
-      logging.warning('CPU governor will not be set!')
+  def SetPerformanceMode(self, performance_mode):
+    if not self._can_elevate_privilege:
+      logging.warning('No root privileges, so ignoring performance mode.')
       return
-    if enabled:
+    if performance_mode == android_device.KEEP_PERFORMANCE_MODE:
+      logging.info('Keeping device performance settings intact.')
+      return
+    elif performance_mode == android_device.HIGH_PERFORMANCE_MODE:
+      logging.info('Setting high performance mode.')
       self._perf_tests_setup.SetHighPerfMode()
-    else:
+    elif performance_mode == android_device.NORMAL_PERFORMANCE_MODE:
+      logging.info('Setting normal performance mode.')
       self._perf_tests_setup.SetDefaultPerfMode()
+    elif performance_mode == android_device.LITTLE_ONLY_PERFORMANCE_MODE:
+      logging.info('Setting little-only performance mode.')
+      self._perf_tests_setup.SetLittleOnlyMode()
+    else:
+      raise ValueError('Unknown performance mode: %s' % performance_mode)
+
 
   def CanMonitorThermalThrottling(self):
     return True

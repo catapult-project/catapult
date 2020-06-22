@@ -18,6 +18,7 @@ from telemetry.core import util
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import profile_types
+from telemetry.internal.platform import android_device
 from telemetry.internal.platform import device_finder
 from telemetry.internal.platform import remote_platform_options
 from telemetry.internal.util import binary_manager
@@ -53,7 +54,7 @@ class BrowserFinderOptions(optparse.Values):
 
     self.remote_platform_options = None
 
-    self.full_performance_mode = True
+    self.performance_mode = None
 
     # TODO(crbug.com/798703): remove this
     self.no_performance_mode = False
@@ -193,11 +194,21 @@ class BrowserFinderOptions(optparse.Values):
     # Platform options
     group = optparse.OptionGroup(parser, 'Platform options')
     group.add_option(
-        '--no-performance-mode', action='store_true',
+        '--performance-mode',
+        choices=[android_device.HIGH_PERFORMANCE_MODE,
+                 android_device.NORMAL_PERFORMANCE_MODE,
+                 android_device.LITTLE_ONLY_PERFORMANCE_MODE,
+                 android_device.KEEP_PERFORMANCE_MODE],
+        default=android_device.HIGH_PERFORMANCE_MODE,
         help='Some platforms run on "full performance mode" where the '
         'test is executed at maximum CPU speed in order to minimize noise '
         '(specially important for dashboards / continuous builds). '
-        'This option prevents Telemetry from tweaking such platform settings.')
+        'This option allows to choose performance mode. '
+        'Available choices: '
+        'high (default): high performance mode; '
+        'normal: normal performance mode; '
+        'little-only: execute the benchmark on little cores only; '
+        'keep: don\'t touch the device performance settings.')
     # TODO(crbug.com/1025207): Rename this to --support-apk
     group.add_option(
         '--webview-embedder-apk',

@@ -14,6 +14,12 @@ from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
 
 
+HIGH_PERFORMANCE_MODE = 'high'
+NORMAL_PERFORMANCE_MODE = 'normal'
+LITTLE_ONLY_PERFORMANCE_MODE = 'little-only'
+KEEP_PERFORMANCE_MODE = 'keep'
+
+
 class AndroidDevice(device.Device):
   """ Class represents information for connecting to an android device.
 
@@ -21,14 +27,11 @@ class AndroidDevice(device.Device):
     device_id: the device's serial string created by adb to uniquely
       identify an emulator/device instance. This string can be found by running
       'adb devices' command
-    enable_performance_mode: when this is set to True, android platform will be
-    set to high performance mode after browser is started.
   """
-  def __init__(self, device_id, enable_performance_mode=True):
+  def __init__(self, device_id):
     super(AndroidDevice, self).__init__(
         name='Android device %s' % device_id, guid=device_id)
     self._device_id = device_id
-    self._enable_performance_mode = enable_performance_mode
 
   @classmethod
   def GetAllConnectedDevices(cls, blacklist):
@@ -38,10 +41,6 @@ class AndroidDevice(device.Device):
   @property
   def device_id(self):
     return self._device_id
-
-  @property
-  def enable_performance_mode(self):
-    return self._enable_performance_mode
 
 
 def _ListSerialsOfHealthyOnlineDevices(blacklist):
@@ -83,9 +82,7 @@ def GetDevice(finder_options):
 
   if (android_platform_options.device
       and android_platform_options.device in GetDeviceSerials(blacklist)):
-    return AndroidDevice(
-        android_platform_options.device,
-        enable_performance_mode=not finder_options.no_performance_mode)
+    return AndroidDevice(android_platform_options.device)
 
   devices = AndroidDevice.GetAllConnectedDevices(blacklist)
   if len(devices) == 0:
