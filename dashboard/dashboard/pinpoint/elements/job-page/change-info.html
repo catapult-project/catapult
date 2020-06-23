@@ -18,6 +18,7 @@ found in the LICENSE file.
     </style>
 
     <p><a href="[[url(change)]]" target="_blank">[[subject(change)]]</a></p>
+    <p class="commit">[[commit(change)]]</p>
     <p class="byline">By [[author(change)]]</p>
   </template>
 
@@ -54,6 +55,10 @@ found in the LICENSE file.
 
       author(change) {
         return this.visibleCommit_(change).author;
+      },
+
+      commit(change) {
+        return this.visibleCommit_(change).commit;
       },
     });
   </script>
