@@ -15,6 +15,7 @@ from tracing.trace_data import trace_data
 class AtraceTracingAgentTest(unittest.TestCase):
   def setUp(self):
     self._mock_platform_backend = mock.NonCallableMagicMock()
+    self._mock_config = mock.NonCallableMagicMock()
 
   @mock.patch.object(systrace_atrace_agent.AtraceAgent, 'GetResults')
   def testCollectAgentTraceDataEmptyTrace(self, mock_get_results):
@@ -23,7 +24,7 @@ class AtraceTracingAgentTest(unittest.TestCase):
     empty_atrace_output = '# tracer: nop'
     mock_get_results.return_value.raw_data = empty_atrace_output
     atrace_agent = atrace_tracing_agent.AtraceTracingAgent(
-        self._mock_platform_backend)
+        self._mock_platform_backend, self._mock_config)
 
     mock_trace_builder = mock.NonCallableMagicMock(spec=['AddTraceFor'])
     atrace_agent.CollectAgentTraceData(mock_trace_builder)
@@ -36,7 +37,7 @@ class AtraceTracingAgentTest(unittest.TestCase):
     # simulate a timeout happening inside the Systrace Atrace agent.
     mock_get_results.return_value = False
     atrace_agent = atrace_tracing_agent.AtraceTracingAgent(
-        self._mock_platform_backend)
+        self._mock_platform_backend, self._mock_config)
 
     mock_trace_builder = mock.NonCallableMagicMock(spec=['AddTraceFor'])
     with self.assertRaises(exceptions.AtraceTracingError):

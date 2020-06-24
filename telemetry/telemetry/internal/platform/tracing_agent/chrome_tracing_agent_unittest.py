@@ -95,10 +95,11 @@ class ChromeTracingAgentTest(unittest.TestCase):
 
   def StartTracing(self, platform_backend, enable_chrome_trace=True,
                    throw_exception=False):
-    agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
     config = tracing_config.TracingConfig()
     config.enable_chrome_trace = enable_chrome_trace
     config.chrome_trace_config.category_filter.AddIncludedCategory('foo')
+    agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend, config)
+
     if throw_exception:
       agent._trace_config = True
     agent._platform_backend.tracing_controller_backend.is_tracing_running = True

@@ -39,7 +39,8 @@ class CpuTracingAgentTest(unittest.TestCase):
       self._desktop_backend = mac_platform_backend.MacPlatformBackend()
     else:
       self._desktop_backend = linux_platform_backend.LinuxPlatformBackend()
-    self._agent = cpu_tracing_agent.CpuTracingAgent(self._desktop_backend)
+    self._agent = cpu_tracing_agent.CpuTracingAgent(self._desktop_backend,
+                                                    self._config)
 
   @decorators.Enabled('linux', 'mac', 'win')
   def testInit(self):

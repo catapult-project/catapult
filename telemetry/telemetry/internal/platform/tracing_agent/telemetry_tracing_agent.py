@@ -56,8 +56,8 @@ class TelemetryTracingAgent(tracing_agent.TracingAgent):
   can issue clock sync events. And is responsible for recording telemetry
   metadata with information e.g. about the benchmark that produced a trace.
   """
-  def __init__(self, platform_backend):
-    super(TelemetryTracingAgent, self).__init__(platform_backend)
+  def __init__(self, platform_backend, config):
+    super(TelemetryTracingAgent, self).__init__(platform_backend, config)
     self._trace_file = None
 
     # When tracing Chrome on Android, Telemetry and the browser run on

@@ -44,11 +44,11 @@ class ChromeReturnAsStreamTracingAgentTest(unittest.TestCase):
   @decorators.Enabled('android')
   def testCreateAndRemoveTraceConfigFileOnAndroid(self):
     platform_backend = FakeAndroidPlatformBackend()
+    config = tracing_config.TracingConfig()
     agent = (chrome_return_as_stream_tracing_agent.
-             ChromeReturnAsStreamTracingAgent(platform_backend))
+             ChromeReturnAsStreamTracingAgent(platform_backend, config))
     self.assertIsNone(agent.trace_config_file)
 
-    config = tracing_config.TracingConfig()
     agent._CreateTraceConfigFile(config)
     self.assertIsNotNone(agent.trace_config_file)
     self.assertTrue(platform_backend.device.PathExists(agent.trace_config_file))
@@ -69,12 +69,12 @@ class ChromeReturnAsStreamTracingAgentTest(unittest.TestCase):
   @decorators.Enabled('chromeos')
   def testCreateAndRemoveTraceConfigFileOnCrOS(self):
     platform_backend = FakeCrOSPlatformBackend()
+    config = tracing_config.TracingConfig()
     cri = platform_backend.cri
     agent = (chrome_return_as_stream_tracing_agent.
-             ChromeReturnAsStreamTracingAgent(platform_backend))
+             ChromeReturnAsStreamTracingAgent(platform_backend, config))
     self.assertIsNone(agent.trace_config_file)
 
-    config = tracing_config.TracingConfig()
     agent._CreateTraceConfigFile(config)
     self.assertIsNotNone(agent.trace_config_file)
     self.assertTrue(cri.FileExistsOnDevice(agent.trace_config_file))
@@ -95,11 +95,11 @@ class ChromeReturnAsStreamTracingAgentTest(unittest.TestCase):
   def testCreateAndRemoveTraceConfigFileOnDesktop(self):
     platform_backend = (chrome_tracing_agent_unittest.
                         FakeDesktopPlatformBackend())
+    config = tracing_config.TracingConfig()
     agent = (chrome_return_as_stream_tracing_agent.
-             ChromeReturnAsStreamTracingAgent(platform_backend))
+             ChromeReturnAsStreamTracingAgent(platform_backend, config))
     self.assertIsNone(agent.trace_config_file)
 
-    config = tracing_config.TracingConfig()
     agent._CreateTraceConfigFile(config)
     self.assertIsNotNone(agent.trace_config_file)
     self.assertTrue(os.path.exists(agent.trace_config_file))

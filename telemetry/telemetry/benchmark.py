@@ -220,6 +220,10 @@ class Benchmark(command_line.Command):
       tbm_options.config.system_trace_config.EnableFtraceCpu()
       tbm_options.config.system_trace_config.EnableFtraceSched()
 
+    if options and options.force_sideload_perfetto:
+      assert tbm_options.config.enable_experimental_system_tracing
+      tbm_options.config.force_sideload_perfetto = True
+
     # TODO(crbug.com/1012687): Remove or adjust the following warnings as the
     # development of TBMv3 progresses.
     tbmv3_metrics = [m[6:] for m in tbm_options.GetTimelineBasedMetrics()

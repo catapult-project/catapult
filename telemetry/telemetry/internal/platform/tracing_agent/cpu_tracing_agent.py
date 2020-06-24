@@ -263,8 +263,8 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
       'linux': 1.0
   }
 
-  def __init__(self, platform_backend):
-    super(CpuTracingAgent, self).__init__(platform_backend)
+  def __init__(self, platform_backend, config):
+    super(CpuTracingAgent, self).__init__(platform_backend, config)
     self._snapshot_ongoing = False
     self._snapshots = []
     self._os_name = platform_backend.GetOSName()

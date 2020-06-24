@@ -67,6 +67,7 @@ class BrowserFinderOptions(optparse.Values):
 
     self.experimental_system_tracing = False
     self.experimental_system_data_sources = False
+    self.force_sideload_perfetto = False
 
   def __repr__(self):
     return str(sorted(self.__dict__.items()))
@@ -153,6 +154,11 @@ class BrowserFinderOptions(optparse.Values):
         '--experimental-system-data-sources',
         action='store_true',
         help='Use Perfetto tracing to collect power and CPU usage data.')
+    parser.add_option(
+        '--force-sideload-perfetto',
+        action='store_true',
+        help='Sideload perfetto binaries from the cloud even if the device '
+             'already has Perfetto installed.')
     identity = None
     testing_rsa = os.path.join(
         util.GetTelemetryThirdPartyDir(), 'chromite', 'ssh_keys', 'testing_rsa')

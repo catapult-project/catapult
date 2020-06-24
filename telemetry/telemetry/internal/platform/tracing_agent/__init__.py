@@ -24,7 +24,8 @@ class TracingAgent(object):
 
   __metaclass__ = trace_event.TracedMetaClass
 
-  def __init__(self, platform_backend):
+  def __init__(self, platform_backend, config):
+    del config  # unused
     self._platform_backend = platform_backend
 
   @classmethod

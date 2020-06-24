@@ -20,8 +20,9 @@ def GetEventNames(trace):
 class TelemetryTracingAgentTest(unittest.TestCase):
   def setUp(self):
     platform = None  # Does not actually need one.
-    self.agent = telemetry_tracing_agent.TelemetryTracingAgent(platform)
     self.config = None  # Does not actually need one.
+    self.agent = telemetry_tracing_agent.TelemetryTracingAgent(
+        platform, self.config)
 
   def tearDown(self):
     if self.agent.is_tracing:

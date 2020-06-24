@@ -27,8 +27,8 @@ class ChromeClockSyncError(exceptions.Error):
 
 
 class ChromeTracingAgent(tracing_agent.TracingAgent):
-  def __init__(self, platform_backend):
-    super(ChromeTracingAgent, self).__init__(platform_backend)
+  def __init__(self, platform_backend, config):
+    super(ChromeTracingAgent, self).__init__(platform_backend, config)
     self._trace_config = None
     self._trace_config_file = None
     self._previously_responsive_devtools = []

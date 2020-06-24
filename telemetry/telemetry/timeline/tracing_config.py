@@ -41,6 +41,7 @@ class TracingConfig(object):
     self._enable_cpu_trace = False
     self._enable_chrome_trace = False
     self._enable_experimental_system_tracing = False
+    self._force_sideload_perfetto = False
 
     self._atrace_config = atrace_config.AtraceConfig()
     self._chrome_trace_config = chrome_trace_config.ChromeTraceConfig()
@@ -93,6 +94,14 @@ class TracingConfig(object):
   @enable_experimental_system_tracing.setter
   def enable_experimental_system_tracing(self, value):
     self._enable_experimental_system_tracing = value
+
+  @property
+  def force_sideload_perfetto(self):
+    return self._force_sideload_perfetto
+
+  @force_sideload_perfetto.setter
+  def force_sideload_perfetto(self, value):
+    self._force_sideload_perfetto = value
 
   @property
   def atrace_config(self):

@@ -215,6 +215,48 @@
         }
       }
     },
+    "perfetto_monolithic_perfetto": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "android_arm64-v8a": {
+          "cloud_storage_hash": "02431fd96ab4f098aa270d42d5b675ca29e62c98",
+          "download_path": "bin/android/arm64-v8a/perfetto"
+        },
+        "android_armeabi-v7a": {
+          "cloud_storage_hash": "a6dd7a0875bbd74c61e9e50cd9a03422a843b72a",
+          "download_path": "bin/android/armeabi-v7a/perfetto"
+        }
+      }
+    },
+    "perfetto_monolithic_traced": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "android_arm64-v8a": {
+          "cloud_storage_hash": "28805f8a7da39ef0f20f59bb265e32ed8aa10ae0",
+          "download_path": "bin/android/arm64-v8a/traced"
+        },
+        "android_armeabi-v7a": {
+          "cloud_storage_hash": "fe8b812f637de8b40c86741bc08ddadf579a967a",
+          "download_path": "bin/android/armeabi-v7a/traced"
+        }
+      }
+    },
+    "perfetto_monolithic_traced_probes": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "android_arm64-v8a": {
+          "cloud_storage_hash": "58611385179adcca91f0fa18c5d97f99782419e3",
+          "download_path": "bin/android/arm64-v8a/traced_probes"
+        },
+        "android_armeabi-v7a": {
+          "cloud_storage_hash": "0cf8f88b0b72a7346bbfa05f6cb615041854eb24",
+          "download_path": "bin/android/armeabi-v7a/traced_probes"
+        }
+      }
+    },
     "perfhost": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",

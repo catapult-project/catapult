@@ -120,7 +120,7 @@ class TracingControllerBackend(object):
 
     for agent_class in agent_classes:
       if agent_class.IsSupported(self._platform_backend):
-        agent = agent_class(self._platform_backend)
+        agent = agent_class(self._platform_backend, config)
         if agent.StartAgentTracing(config, timeout):
           self._active_agents_instances.append(agent)
 
