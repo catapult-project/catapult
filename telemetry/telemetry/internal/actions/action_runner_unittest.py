@@ -55,6 +55,7 @@ class ActionRunnerMeasureMemoryTest(tab_test_case.TabTestCase):
     actual_dump_ids = trace_processor.ExtractMemoryDumpIds(trace_data)
     self.assertEqual(actual_dump_ids, expected_dump_ids)
 
+  @decorators.Disabled('chromeos')  # crbug.com/1098669
   def testDeterministicMode(self):
     self._TestWithTracing(deterministic_mode=True)
 
