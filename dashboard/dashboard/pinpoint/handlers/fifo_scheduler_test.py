@@ -22,7 +22,7 @@ class FifoSchedulerTest(test.TestCase):
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock()  # pylint: disable=invalid-name
+    j.Start = mock.MagicMock()
 
     response = self.testapp.get('/cron/fifo-scheduler')
     self.assertEqual(response.status_code, 200)
@@ -37,7 +37,7 @@ class FifoSchedulerTest(test.TestCase):
 
     # On the next poll, we need to ensure that an ongoing job doesn't get marked
     # completed until it really is completed.
-    j.Start = mock.MagicMock()  # pylint: disable=invalid-name
+    j.Start = mock.MagicMock()
     response = self.testapp.get('/cron/fifo-scheduler')
     self.assertEqual(response.status_code, 200)
     self.ExecuteDeferredTasks('default')
@@ -51,7 +51,7 @@ class FifoSchedulerTest(test.TestCase):
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock(  # pylint: disable=invalid-name
+    j.Start = mock.MagicMock(
         side_effect=j._Complete)
 
     response = self.testapp.get('/cron/fifo-scheduler')
@@ -67,7 +67,7 @@ class FifoSchedulerTest(test.TestCase):
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock(side_effect=j.Fail)  # pylint: disable=invalid-name
+    j.Start = mock.MagicMock(side_effect=j.Fail)
 
     response = self.testapp.get('/cron/fifo-scheduler')
     self.assertEqual(response.status_code, 200)
@@ -87,7 +87,7 @@ class FifoSchedulerTest(test.TestCase):
             (), (),
             arguments={'configuration': 'queue-{}'.format(configuration_id)},
             comparison_mode='performance')
-        j.Start = mock.MagicMock(  # pylint: disable=invalid-name
+        j.Start = mock.MagicMock(
             side_effect=j._Complete)
         scheduler.Schedule(j)
         jobs.append(j)
@@ -108,7 +108,7 @@ class FifoSchedulerTest(test.TestCase):
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock(  # pylint: disable=invalid-name
+    j.Start = mock.MagicMock(
         side_effect=j._Complete)
 
     # Check that we can find the queued job.
@@ -141,7 +141,7 @@ class FifoSchedulerTest(test.TestCase):
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock()  # pylint: disable=invalid-name
+    j.Start = mock.MagicMock()
 
     response = self.testapp.get('/cron/fifo-scheduler')
     self.assertEqual(response.status_code, 200)
@@ -167,7 +167,7 @@ class FifoSchedulerTest(test.TestCase):
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock()  # pylint: disable=invalid-name
+    j.Start = mock.MagicMock()
     self.assertTrue(scheduler.Cancel(j))
 
     response = self.testapp.get('/cron/fifo-scheduler')
@@ -181,7 +181,7 @@ class FifoSchedulerTest(test.TestCase):
                       arguments={'configuration': 'mock'},
                       comparison_mode='performance')
       scheduler.Schedule(j)
-      j.Start = mock.MagicMock(  # pylint: disable=invalid-name
+      j.Start = mock.MagicMock(
           side_effect=j._Complete)
       response = self.testapp.get('/cron/fifo-scheduler')
       self.assertEqual(response.status_code, 200)
@@ -196,7 +196,7 @@ class FifoSchedulerTest(test.TestCase):
                      arguments={'configuration': 'mock'},
                      comparison_mode='performance')
     scheduler.Schedule(j0)
-    j0.Start = mock.MagicMock(  # pylint: disable=invalid-name
+    j0.Start = mock.MagicMock(
         side_effect=j0._Complete)
     j1 = job.Job.New((), (),
                      arguments={
@@ -205,14 +205,14 @@ class FifoSchedulerTest(test.TestCase):
                      },
                      comparison_mode='performance',
                      priority=100)
-    j1.Start = mock.MagicMock(  # pylint: disable=invalid-name
+    j1.Start = mock.MagicMock(
         side_effect=j1._Complete)
     scheduler.Schedule(j1)
     j2 = job.Job.New((), (),
                      arguments={'configuration': 'mock'},
                      comparison_mode='performance')
     scheduler.Schedule(j2)
-    j2.Start = mock.MagicMock(  # pylint: disable=invalid-name
+    j2.Start = mock.MagicMock(
         side_effect=j2._Complete)
 
     # The first time we call the scheduler, it must mark j0 completed.
@@ -248,7 +248,7 @@ class FifoSchedulerExecutionEngineTest(bisection_test_util.BisectionTestBase):
                     use_execution_engine=True)
     self.PopulateSimpleBisectionGraph(j)
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock(  # pylint: disable=invalid-name
+    j.Start = mock.MagicMock(
         side_effect=j._Complete)
 
     response = self.testapp.get('/cron/fifo-scheduler')

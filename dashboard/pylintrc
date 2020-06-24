@@ -58,6 +58,11 @@ function-rgx=^(?:(?P<exempt>setUp|tearDown|setUpModule|tearDownModule)|(?P<camel
 # Regular expression which should only match correct method names.
 method-rgx=^(?:(?P<exempt>_[a-z0-9_]+__|get|post|run|put|execute|_pre_put_hook|_post_put_hook|_post_get_hook|_pre_delete_hook|runTest|setUp|tearDown|setUpTestCase|tearDownTestCase|setupSelf|tearDownClass|setUpClass)|(?P<camel_case>(_{0,2}|test|assert)[A-Z][a-zA-Z0-9_]*))$
 
+# Regular expression which should only match correct instance attribute names.
+# TODO(crbug.com/1090608): remove the crbug_1090608 branch of this regex when
+# that pylint bug is fixed.
+attr-rgx=^(?:_{0,2}[a-z][a-z0-9_]*|(?P<crbug_1090608>Start|_Schedule|Fail))$
+
 # Regular expression which should only match correct argument names.
 argument-rgx=^[a-z][a-z0-9_]*$
 

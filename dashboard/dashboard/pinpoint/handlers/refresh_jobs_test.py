@@ -35,8 +35,8 @@ class RefreshJobsTest(test.TestCase):
     job.started = True
     job.updated = datetime.datetime.utcnow() - datetime.timedelta(hours=8)
     job.put()
-    job._Schedule = mock.MagicMock()  # pylint: disable=invalid-name
-    job.Fail = mock.MagicMock()  # pylint: disable=invalid-name
+    job._Schedule = mock.MagicMock()
+    job.Fail = mock.MagicMock()
     self.assertTrue(job.running)
     self.testapp.get('/cron/refresh-jobs')
     self.ExecuteDeferredTasks('default')
@@ -45,16 +45,16 @@ class RefreshJobsTest(test.TestCase):
 
   def testGetWithQueuedJobs(self):
     queued_job = job_module.Job.New((), ())
-    queued_job._Schedule = mock.MagicMock()  # pylint: disable=invalid-name
-    queued_job.Fail = mock.MagicMock()  # pylint: disable=invalid-name
+    queued_job._Schedule = mock.MagicMock()
+    queued_job.Fail = mock.MagicMock()
     running_job = job_module.Job.New((), ())
     running_job.task = '123'
     running_job.started = True
     running_job.updated = datetime.datetime.utcnow() - datetime.timedelta(
         hours=24)
     running_job.put()
-    running_job._Schedule = mock.MagicMock()  # pylint: disable=invalid-name
-    running_job.Fail = mock.MagicMock()  # pylint: disable=invalid-name
+    running_job._Schedule = mock.MagicMock()
+    running_job.Fail = mock.MagicMock()
     self.assertFalse(queued_job.running)
     self.assertTrue(running_job.running)
     self.testapp.get('/cron/refresh-jobs')
@@ -64,8 +64,8 @@ class RefreshJobsTest(test.TestCase):
 
   def testGetWithCancelledJobs(self):
     cancelled_job = job_module.Job.New((), ())
-    cancelled_job._Schedule = mock.MagicMock()  # pylint: disable=invalid-name
-    cancelled_job.Fail = mock.MagicMock()  # pylint: disable=invalid-name
+    cancelled_job._Schedule = mock.MagicMock()
+    cancelled_job.Fail = mock.MagicMock()
     cancelled_job.started = True
     cancelled_job.updated = datetime.datetime.utcnow() - datetime.timedelta(
         hours=24)
@@ -91,8 +91,8 @@ class RefreshJobsTest(test.TestCase):
     j2.started = True
     j2.updated = datetime.datetime.utcnow() - datetime.timedelta(hours=8)
     j2.put()
-    j2._Schedule = mock.MagicMock()  # pylint: disable=invalid-name
-    j2.Fail = mock.MagicMock()  # pylint: disable=invalid-name
+    j2._Schedule = mock.MagicMock()
+    j2.Fail = mock.MagicMock()
 
     layered_cache.Set(refresh_jobs._JOB_CACHE_KEY % j2.job_id,
                       {'retries': refresh_jobs._JOB_MAX_RETRIES})
@@ -120,8 +120,8 @@ class RefreshJobsTest(test.TestCase):
     j2.started = True
     j2.updated = datetime.datetime.utcnow() - datetime.timedelta(hours=8)
     j2.put()
-    j2._Schedule = mock.MagicMock()  # pylint: disable=invalid-name
-    j2.Fail = mock.MagicMock()  # pylint: disable=invalid-name
+    j2._Schedule = mock.MagicMock()
+    j2.Fail = mock.MagicMock()
 
     layered_cache.Set(refresh_jobs._JOB_CACHE_KEY % j2.job_id,
                       {'retries': refresh_jobs._JOB_MAX_RETRIES + 1})
