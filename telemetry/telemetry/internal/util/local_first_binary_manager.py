@@ -74,8 +74,12 @@ class LocalFirstBinaryManager(object):
       found.
     """
     if dependency_name not in self._dependency_cache:
-      local_path = self._FetchLocalPath(dependency_name)
-      path = local_path or self._FetchBinaryManagerPath(dependency_name)
+      path = self._FetchLocalPath(dependency_name)
+      if not path:
+        try:
+          path = self._FetchBinaryManagerPath(dependency_name)
+        except binary_manager.NoPathFoundError:
+          path = None
       self._dependency_cache[dependency_name] = path
     return self._dependency_cache[dependency_name]
 
