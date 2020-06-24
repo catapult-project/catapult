@@ -123,8 +123,7 @@ class CrosPlatformBackend(
     return self._cri.FileExistsOnDevice(path)
 
   def CanTakeScreenshot(self):
-    # crbug.com/609001: screenshots don't work on VMs.
-    return not self.cri.IsRunningOnVM()
+    return True
 
   def TakeScreenshot(self, file_path):
     return self._cri.TakeScreenshot(file_path)

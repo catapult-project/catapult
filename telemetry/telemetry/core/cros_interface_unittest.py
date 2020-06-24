@@ -279,17 +279,21 @@ class CrOSInterfaceTest(unittest.TestCase):
 
       self.assertTrue(remote_port_1 != remote_port_2)
 
-  # TODO(achuith): Doesn't work in VMs.
-  @decorators.Disabled('all')
+  @decorators.Enabled('chromeos')
   def testTakeScreenshotWithPrefix(self):
     with self._GetCRI() as cri:
       def _Cleanup():
-        cri.RmRF('/var/log/screenshots/test-prefix*')
+        cri.RmRF('/tmp/telemetry/screenshots/test-prefix*')
 
       _Cleanup()
       self.assertTrue(cri.TakeScreenshotWithPrefix('test-prefix'))
-      self.assertTrue(cri.FileExistsOnDevice(
-          '/var/log/screenshots/test-prefix-0.png'))
+      screenshot_file = '/tmp/telemetry/screenshots/test-prefix-0.png'
+      self.assertTrue(cri.FileExistsOnDevice(screenshot_file))
+      # Ensure we've pulled the screenshot to the host if we're running in
+      # remote mode.
+      self.assertTrue(os.path.exists(screenshot_file))
+      # Ensure we actually have some amount of data.
+      self.assertTrue(os.path.getsize(screenshot_file) > 0)
       _Cleanup()
 
   @decorators.Enabled('chromeos')

@@ -655,14 +655,39 @@ class CrOSInterface(object):
     return False
 
   def TakeScreenshot(self, file_path):
-    """Takes a screenshot, saves to |file_path|."""
-    stdout, stderr = self.RunCmdOnDevice(['/usr/local/sbin/screenshot',
-                                          file_path])
-    return stdout == '' and stderr == ''
+    """Takes a screenshot, saves to |file_path|.
+
+    Also Saves a copy of the screenshot to //var/log/screenshots for additional
+    debug scenarios.
+
+    If running in remote mode, also pulls the file to the same location on the
+    host.
+
+    Returns:
+      True if the screenshot was taken successfully, otherwise False.
+    """
+    stdout, _ = self.RunCmdOnDevice(['/usr/local/sbin/screenshot',
+                                     file_path,
+                                     '&&',
+                                     'echo',
+                                     'screenshot return value:$?'])
+    # Try to save a copy to /var/log on the device, as it is saved by CrOS bots.
+    self.RunCmdOnDevice(['cp', file_path,
+                         '/var/log/screenshots/%s' %
+                         os.path.basename(file_path)])
+    # Pull the screenshot to the host in remote mode.
+    if not self.local:
+      try:
+        if not os.path.exists(os.path.dirname(file_path)):
+          os.makedirs(os.path.dirname(file_path))
+        self.GetFile(file_path, file_path)
+      except OSError as e:
+        logging.error('Unable to pull screenshot file %s: %s', file_path, e)
+    return 'screenshot return value:0' in stdout
 
   def TakeScreenshotWithPrefix(self, screenshot_prefix):
     """Takes a screenshot, useful for debugging failures."""
-    screenshot_dir = '/var/log/screenshots/'
+    screenshot_dir = '/tmp/telemetry/screenshots/'
     screenshot_ext = '.png'
 
     self.RunCmdOnDevice(['mkdir', '-p', screenshot_dir])
