@@ -249,7 +249,13 @@ def RequestBuild(builder_name, change, bucket, build_tags, task=None):
   parameters = {
       'builder_name': builder_name,
       'properties': {
-          'clobber': True,
+          # We're making Pinpoint use incremental builds to amortise the cost
+          # of rebuilding the object files. Clobber builds indicate that a
+          # builder will clean out previous build artifacts instead of re-using
+          # potentially already-built object files from a previous checkout.
+          # Incremental builds will be much faster especially with the help of
+          # goma.
+          'clobber': False,
           'revision': change.base_commit.git_hash,
           'deps_revision_overrides': deps_overrides,
       },
