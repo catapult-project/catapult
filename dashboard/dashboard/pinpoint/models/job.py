@@ -742,6 +742,7 @@ class Job(ndb.Model):
         'user': self.user,
         'created': self.created.isoformat(),
         'updated': self.updated.isoformat(),
+        'started_time': self.started_time if self.started else None,
         'difference_count': self.difference_count,
         'exception': self.exception_details_dict,
         'status': self.status,
@@ -794,6 +795,7 @@ class Job(ndb.Model):
 
     self.cancelled = True
     self.cancel_reason = '{}: {}'.format(user, reason)
+    self.updated = datetime.datetime.now()
 
     # Remove any "task" identifiers.
     self.task = None

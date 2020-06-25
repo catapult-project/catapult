@@ -127,9 +127,13 @@ found in the LICENSE file.
       <p class="byline">
         For [[job.user]]
         <span class="middle-dot"></span>
-        [[duration(job)]]
+        created on [[createTime(job)]]
         <span class="middle-dot"></span>
-        [[start(job)]]
+        waiting time: [[queueDuration(job)]]
+        <span class="middle-dot"></span>
+        started on [[startTime(job)]]
+        <span class="middle-dot"></span>
+        running time: [[runDuration(job)]]
       </p>
       <div id="layout">
         <div id="details-column">
@@ -242,11 +246,18 @@ found in the LICENSE file.
         return job.status.toLowerCase() === 'queued';
       },
 
-      start(job) {
+      createTime(job) {
         if (!job) {
           return false;
         }
         return new Date(job.created + 'Z').toLocaleString();
+      },
+
+      startTime(job) {
+        if (!job || job.started_time === null) {
+          return 'N/A';
+        }
+        return new Date(job.started_time + 'Z').toLocaleString();
       },
 
       formatQueueUrl(configuration) {
@@ -332,14 +343,7 @@ found in the LICENSE file.
         return this.formatTimedelta(job.estimate.timings[2]);
       },
 
-      duration(job) {
-        if (!job) {
-          return 'unknown';
-        }
-        const created = new Date(job.created + 'Z');
-        const updated = new Date(job.updated + 'Z');
-        const durationMs = updated - created;
-
+      formatDuration(durationMs) {
         const seconds = durationMs / 1000;
         if (seconds < 60) {
           return seconds.toFixed(1) + ' seconds';
@@ -352,6 +356,45 @@ found in the LICENSE file.
 
         const hours = durationMs / (1000 * 60 * 60);
         return hours.toFixed(1) + ' hours';
+      },
+
+      queueDuration(job) {
+        if (!job) {
+          return 'unknown';
+        }
+        const created = new Date(job.created + 'Z');
+
+        if (job.started_time === null) {
+          if (cancelled(job)) {
+            // Since we don't have a start time, this means it was
+            // cancelled in the queue.
+            const updated = new Date(job.updated + 'Z');
+            return formatDuration(updated - created);
+          }
+
+          // We assume this job is still in the queue.
+          return formatDuration(new Date() - created);
+        }
+
+        const started = new Date(job.started_time + 'Z');
+        const durationMs = started - created;
+        return formatDuration(durationMs);
+      },
+
+      runDuration(job) {
+        if (!job) {
+          return 'unknown';
+        }
+
+        if (job.started_time === null) {
+          // This means we haven't started yet, so leave this 0.
+          return formatDuration(0);
+        }
+
+        const started = new Date(job.started_time + 'Z');
+        const updated = new Date(job.updated + 'Z');
+        const durationMs = updated - created;
+        return formatDuration(durationMs);
       },
 
       shouldShowChart(job) {
