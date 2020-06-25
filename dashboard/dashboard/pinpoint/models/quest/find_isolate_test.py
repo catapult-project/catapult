@@ -406,3 +406,10 @@ class BuildTest(_FindIsolateExecutionTest):
     }
     with self.assertRaises(errors.BuildIsolateNotFound):
       execution.Poll()
+
+  def testBuildSucceedsAndIsolateIsCached(self, *_):
+    self.testBuildLifecycle()  # pylint: disable=no-value-for-parameter
+    cached_isolate = isolate.Get('Mac Builder',
+                                 change_test.Change(123, 456, patch=True),
+                                 'telemetry_perf_tests')
+    self.assertIsNotNone(cached_isolate)

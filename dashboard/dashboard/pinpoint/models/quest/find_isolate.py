@@ -171,6 +171,9 @@ class _FindIsolateExecution(execution.Execution):
     if self._target not in properties[key]:
       raise errors.BuildIsolateNotFound()
 
+    # Cache the isolate information.
+    isolate.Put([(self._builder_name, self._change, self._target,
+                  properties['isolate_server'], properties[key][self._target])])
     result_arguments = {
         'isolate_server': properties['isolate_server'],
         'isolate_hash': properties[key][self._target],
