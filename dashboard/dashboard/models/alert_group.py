@@ -33,6 +33,7 @@ class BugInfo(ndb.Model):
 
 class AlertGroup(ndb.Model):
   name = ndb.StringProperty(indexed=True)
+  domain = ndb.StringProperty(indexed=True)
   created = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
   updated = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
 
@@ -52,8 +53,9 @@ class AlertGroup(ndb.Model):
   anomalies = ndb.KeyProperty(repeated=True)
 
   def IsOverlapping(self, b):
-    return (self.name == b.name and self.project_id == b.project_id and
-            self.revision.IsOverlapping(b.revision))
+    return (self.name == b.name and self.domain == b.domain
+            and self.project_id == b.project_id
+            and self.revision.IsOverlapping(b.revision))
 
   @classmethod
   def GenerateAllGroupsForAnomaly(cls, anomaly_entity, sheriff_config=None):
@@ -70,6 +72,7 @@ class AlertGroup(ndb.Model):
         cls(
             id=str(uuid.uuid4()),
             name=anomaly_entity.benchmark_name,
+            domain=anomaly_entity.master_name,
             project_id=project,
             status=cls.Status.untriaged,
             active=True,

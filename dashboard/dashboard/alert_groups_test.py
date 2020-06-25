@@ -102,7 +102,42 @@ class GroupReportTest(GroupReportTestBase):
     self.assertEqual(len(a1.get().groups), 1)
     self.assertEqual(a1.get().groups[0].get().name, 'test_suite')
 
-  def testMultipleAltertsGrouping(self, mock_get_sheriff_client):
+  def testMultipleAltertsGroupingDifferentMaster(self, mock_get_sheriff_client):
+    self._SetUpMocks(mock_get_sheriff_client)
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    # Add anomalies
+    a1 = self._AddAnomaly()
+    a2 = self._AddAnomaly(start_revision=50, end_revision=150)
+    a3 = self._AddAnomaly(test='other/bot/test_suite/measurement/test_case')
+    a4 = self._AddAnomaly(median_before_anomaly=0)
+    # Create Group
+    self._CallHandler()
+    # Update Group to associate alerts
+    self._CallHandler()
+    groups = {
+        g.domain: g for g in alert_group.AlertGroup.Get('test_suite', None)
+    }
+    self.assertItemsEqual(groups['master'].anomalies, [a1, a2, a4])
+    self.assertItemsEqual(groups['other'].anomalies, [a3])
+
+  def testMultipleAltertsGroupingDifferentBot(self, mock_get_sheriff_client):
+    self._SetUpMocks(mock_get_sheriff_client)
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    # Add anomalies
+    a1 = self._AddAnomaly()
+    a2 = self._AddAnomaly(start_revision=50, end_revision=150)
+    a3 = self._AddAnomaly(test='master/other/test_suite/measurement/test_case')
+    a4 = self._AddAnomaly(median_before_anomaly=0)
+    # Create Group
+    self._CallHandler()
+    # Update Group to associate alerts
+    self._CallHandler()
+    group = alert_group.AlertGroup.Get('test_suite', None)[0]
+    self.assertItemsEqual(group.anomalies, [a1, a2, a3, a4])
+
+  def testMultipleAltertsGroupingDifferentSuite(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     self.testapp.get('/alert_groups_update')
     self.ExecuteDeferredTasks('default')
@@ -127,17 +162,12 @@ class GroupReportTest(GroupReportTestBase):
     # Add anomalies
     a1 = self._AddAnomaly(start_revision=100, end_revision=100)
     a2 = self._AddAnomaly(start_revision=100, end_revision=100)
-    a3 = self._AddAnomaly(test='master/bot/other/measurement/test_case',
-                          start_revision=100, end_revision=100)
     # Create Group
     self._CallHandler()
     # Update Group to associate alerts
     self._CallHandler()
     group = alert_group.AlertGroup.Get('test_suite', None)[0]
     self.assertItemsEqual(group.anomalies, [a1, a2])
-    group = alert_group.AlertGroup.Get('other', None)[0]
-    self.assertItemsEqual(group.anomalies, [a3])
-
 
   def testArchiveAltertsGroup(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
@@ -398,17 +428,14 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self.assertRegexpMatches(
         self.fake_issue_tracker.add_comment_args[1],
         r'Reopened due to new regressions detected for this alert group:')
-    self.assertRegexpMatches(
-        self.fake_issue_tracker.add_comment_args[1],
-        r'test_suite/measurement/other_test_case')
+    self.assertRegexpMatches(self.fake_issue_tracker.add_comment_args[1],
+                             r'test_suite/measurement/other_test_case')
 
   def testStartAutoBisection(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     mock_get_sheriff_client().Match.return_value = ([
         subscription.Subscription(
-            name='sheriff',
-            auto_triage_enable=True,
-            auto_bisect_enable=True)
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)
     ], None)
 
     self._CallHandler()
@@ -513,11 +540,11 @@ class NonChromiumAutoTriage(GroupReportTestBase):
             auto_triage_enable=True,
             monorail_project_id='non-chromium')
     ], None)
-    self.PatchObject(
-        alert_group.sheriff_config_client,
-        'GetSheriffConfigClient', lambda: self.mock_get_sheriff_client)
-    self.PatchObject(alert_group_workflow,
-                     '_IssueTracker', lambda: self.fake_issue_tracker)
+    self.PatchObject(alert_group.sheriff_config_client,
+                     'GetSheriffConfigClient',
+                     lambda: self.mock_get_sheriff_client)
+    self.PatchObject(alert_group_workflow, '_IssueTracker',
+                     lambda: self.fake_issue_tracker)
     self._CallHandler()
     a = self._AddAnomaly()
     self._CallHandler()
