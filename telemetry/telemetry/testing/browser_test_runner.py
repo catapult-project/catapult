@@ -8,7 +8,8 @@ import sys
 from telemetry.core import util
 
 
-def Run(project_config, args):
+def ProcessConfig(project_config, args=None):
+  args = args or []
   assert '--top-level-dir' not in args, (
       'Top level directory for running tests should be specified through '
       'the instance of telemetry.project_config.ProjectConfig.')
@@ -25,7 +26,11 @@ def Run(project_config, args):
     args.extend(['--expectations-file', e])
   if project_config.default_chrome_root and not '--chrome-root' in args:
     args.extend(['--chrome-root', project_config.default_chrome_root])
+  return args
 
+
+def Run(project_config, args):
+  args = ProcessConfig(project_config, args)
   env = os.environ.copy()
   telemetry_dir = util.GetTelemetryDir()
   if 'PYTHONPATH' in env:
