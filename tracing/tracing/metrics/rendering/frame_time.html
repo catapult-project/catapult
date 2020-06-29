@@ -288,15 +288,13 @@ tr.exportTo('tr.metrics.rendering', function() {
           histograms, model, frameSegments,
           (thread, segment) => thread.getCpuTimeForRange(segment.boundsRange),
           category => `thread_${category}_cpu_time_per_frame`,
-          'CPU cores of a thread group per frame',
-          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
+          'CPU cores of a thread group per frame');
       tr.metrics.rendering.addCpuUtilizationHistograms(
           histograms, model, frameSegments,
           (thread, segment) =>
             thread.getNumToplevelSlicesForRange(segment.boundsRange),
           category => `tasks_per_frame_${category}`,
-          'Number of tasks of a thread group per frame',
-          tr.b.Unit.byName.unitlessNumber_smallerIsBetter);
+          'Number of tasks of a thread group per frame');
 
       let totalWallTime = 0;
       let totalCpuTime = 0;

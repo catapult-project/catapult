@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/base/unit.html">
-<link rel="import" href="/tracing/value/diagnostics/breakdown.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
 <script>
@@ -67,10 +66,6 @@ tr.exportTo('tr.metrics.rendering', function() {
     map.set(key, oldValue + value);
   }
 
-  function categoryShouldHaveBreakdown(category) {
-    return category === 'total_all' || category === 'total_rendering';
-  }
-
   function* getCategories_(threadName) {
     let isOther = true;
     for (const [category, regexps] of CATEGORY_THREAD_MAP) {
@@ -85,19 +80,10 @@ tr.exportTo('tr.metrics.rendering', function() {
     if (isOther) yield 'other';
   }
 
-  function isSubset_(regexps1, regexps2) {
-    for (const r1 of regexps1) {
-      if (regexps2.find(r2 => r2.toString() === r1.toString()) === undefined) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   function addCpuUtilizationHistograms(
       histograms, model, segments, segmentCostFunc, histogramNameFunc,
-      description, unit) {
-    if (!unit) unit = tr.b.Unit.byName.unitlessNumber;
+      description) {
+    const unit = tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
     const histogramMap = new Map();
     for (const category of ALL_CATEGORIES) {
       const histogram = histograms.createHistogram(
@@ -110,21 +96,6 @@ tr.exportTo('tr.metrics.rendering', function() {
       histogramMap.set(category, histogram);
     }
 
-    // Add histogram breakdowns.
-    for (const [category, regexps] of CATEGORY_THREAD_MAP) {
-      const relatedCategories = new tr.v.d.RelatedNameMap();
-      const histogram = histogramMap.get(category);
-      for (const [otherCategory, otherRegexps] of CATEGORY_THREAD_MAP) {
-        if (otherCategory === category) continue;
-        if (category !== 'all' && !isSubset_(otherRegexps, regexps)) continue;
-        const otherHistogram = histogramMap.get(otherCategory);
-        relatedCategories.set(otherCategory, otherHistogram.name);
-      }
-      if ([...relatedCategories.values()].length > 0) {
-        histogram.diagnostics.set('breakdown', relatedCategories);
-      }
-    }
-
     for (const segment of segments) {
       const threadValues = new Map();
       // Compute and store CPU times per categories and thread name.
@@ -135,34 +106,16 @@ tr.exportTo('tr.metrics.rendering', function() {
             segmentCostFunc(thread, segment));
       }
       const categoryValues = new Map();
-      const breakdowns = new Map();
       for (const [threadName, coresPerSec] of threadValues) {
         for (const category of getCategories_(threadName)) {
           addValueToMap_(categoryValues, category, coresPerSec);
-          if (!categoryShouldHaveBreakdown(category)) continue;
-          if (!breakdowns.has(category)) {
-            breakdowns.set(category, new tr.v.d.Breakdown());
-          }
-          // TODO(chiniforooshan): We break down the CPU usage of each category
-          // by the thread name here. It will be more useful if we could add
-          // task names too. On the other hand, breaking down at task level may
-          // be too granular and we may end up with a ton of tiny slices that
-          // will not be that useful.  Maybe we can break down by just top x
-          // tasks, or top x (thread, task) pairs?
-          //
-          // Another possbility to investigate is to break down by initiator
-          // type of the animation expectation.
-          breakdowns.get(category).set(threadName, coresPerSec);
         }
       }
 
       for (const category of ALL_CATEGORIES) {
         const value = categoryValues.get(category) || 0;
-        const diagnostics = new tr.v.d.DiagnosticMap();
-        const breakdown = breakdowns.get(category);
-        if (breakdown) diagnostics.set('breakdown', breakdown);
         const histogram = histogramMap.get(category);
-        histogram.addSample(value, diagnostics);
+        histogram.addSample(value);
       }
     }
   }
