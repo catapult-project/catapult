@@ -105,8 +105,8 @@ tr.b.unittest.testSuite(function() {
     // in the second segment, using 1 + 4 + 1 = 6ms of CPU.
     const hist = histograms.getHistogramNamed(
         'thread_total_all_cpu_time_per_frame');
-    assert.closeTo(2, hist.min, 1e-6);
-    assert.closeTo(6, hist.max, 1e-6);
+    assert.closeTo(4, hist.min, 1e-6);
+    assert.closeTo(4, hist.max, 1e-6);
     assert.closeTo(4, hist.average, 1e-6);
   });
 

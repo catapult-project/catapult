@@ -66,6 +66,12 @@ tr.exportTo('tr.metrics.rendering', function() {
     map.set(key, oldValue + value);
   }
 
+  function addToArrayInMap_(map, key, value) {
+    const arr = map.get(key) || [];
+    arr.push(value);
+    map.set(key, arr);
+  }
+
   function* getCategories_(threadName) {
     let isOther = true;
     for (const [category, regexps] of CATEGORY_THREAD_MAP) {
@@ -83,19 +89,7 @@ tr.exportTo('tr.metrics.rendering', function() {
   function addCpuUtilizationHistograms(
       histograms, model, segments, segmentCostFunc, histogramNameFunc,
       description) {
-    const unit = tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
-    const histogramMap = new Map();
-    for (const category of ALL_CATEGORIES) {
-      const histogram = histograms.createHistogram(
-          histogramNameFunc(category), unit, [], {
-            binBoundaries:
-                tr.v.HistogramBinBoundaries.createExponential(1, 50, 20),
-            description,
-            summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
-          });
-      histogramMap.set(category, histogram);
-    }
-
+    const categoryValues = new Map();
     for (const segment of segments) {
       const threadValues = new Map();
       // Compute and store CPU times per categories and thread name.
@@ -105,18 +99,24 @@ tr.exportTo('tr.metrics.rendering', function() {
             thread.name || UNKNOWN_THREAD_NAME,
             segmentCostFunc(thread, segment));
       }
-      const categoryValues = new Map();
+
       for (const [threadName, coresPerSec] of threadValues) {
         for (const category of getCategories_(threadName)) {
-          addValueToMap_(categoryValues, category, coresPerSec);
+          addToArrayInMap_(categoryValues, category, coresPerSec);
         }
       }
+    }
 
-      for (const category of ALL_CATEGORIES) {
-        const value = categoryValues.get(category) || 0;
-        const histogram = histogramMap.get(category);
-        histogram.addSample(value);
-      }
+    const unit = tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
+    for (const category of ALL_CATEGORIES) {
+      const values = categoryValues.get(category) || 0;
+      if (!values) continue;
+      const avg = values.reduce((sum, e) => sum + e, 0) / segments.length;
+      histograms.createHistogram(
+          histogramNameFunc(category), unit, avg, {
+            description,
+            summaryOptions: {},
+          });
     }
   }
 
