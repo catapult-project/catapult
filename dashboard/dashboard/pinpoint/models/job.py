@@ -742,7 +742,7 @@ class Job(ndb.Model):
         'user': self.user,
         'created': self.created.isoformat(),
         'updated': self.updated.isoformat(),
-        'started_time': self.started_time if self.started else None,
+        'started_time': self.started_time.isoformat() if self.started else None,
         'difference_count': self.difference_count,
         'exception': self.exception_details_dict,
         'status': self.status,
