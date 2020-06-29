@@ -393,7 +393,7 @@ found in the LICENSE file.
 
         const started = new Date(job.started_time + 'Z');
         const updated = new Date(job.updated + 'Z');
-        const durationMs = updated - created;
+        const durationMs = updated - started;
         return this.formatDuration(durationMs);
       },
 
