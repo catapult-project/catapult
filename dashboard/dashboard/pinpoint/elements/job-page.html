@@ -365,20 +365,20 @@ found in the LICENSE file.
         const created = new Date(job.created + 'Z');
 
         if (job.started_time === null) {
-          if (cancelled(job)) {
+          if (this.cancelled(job)) {
             // Since we don't have a start time, this means it was
             // cancelled in the queue.
             const updated = new Date(job.updated + 'Z');
-            return formatDuration(updated - created);
+            return this.formatDuration(updated - created);
           }
 
           // We assume this job is still in the queue.
-          return formatDuration(new Date() - created);
+          return this.formatDuration(new Date() - created);
         }
 
         const started = new Date(job.started_time + 'Z');
         const durationMs = started - created;
-        return formatDuration(durationMs);
+        return this.formatDuration(durationMs);
       },
 
       runDuration(job) {
@@ -388,13 +388,13 @@ found in the LICENSE file.
 
         if (job.started_time === null) {
           // This means we haven't started yet, so leave this 0.
-          return formatDuration(0);
+          return this.formatDuration(0);
         }
 
         const started = new Date(job.started_time + 'Z');
         const updated = new Date(job.updated + 'Z');
         const durationMs = updated - created;
-        return formatDuration(durationMs);
+        return this.formatDuration(durationMs);
       },
 
       shouldShowChart(job) {
