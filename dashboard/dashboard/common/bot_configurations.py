@@ -17,8 +17,10 @@ BOT_CONFIGURATIONS_KEY = 'bot_configurations'
 
 
 def Get(name):
-  configurations = namespaced_stored_object.Get(BOT_CONFIGURATIONS_KEY)
-  configuration = configurations[name]
+  configurations = namespaced_stored_object.Get(BOT_CONFIGURATIONS_KEY) or {}
+  configuration = configurations.get(name)
+  if configuration is None:
+    raise ValueError('Bot configuration not found: "%s"' % (name,))
   if 'alias' in configuration:
     return configurations[configuration['alias']]
   return configuration

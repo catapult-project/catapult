@@ -21,6 +21,9 @@ from dashboard.pinpoint.models import job as job_model
 from dashboard.pinpoint.models import scheduler
 
 
+DEFAULT_BUDGET = 1.0
+
+
 class FifoScheduler(webapp2.RequestHandler):
 
   def get(self):
@@ -29,14 +32,25 @@ class FifoScheduler(webapp2.RequestHandler):
     for configuration in scheduler.AllConfigurations():
       logging.info('Processing queue \'%s\'', configuration)
       process_queue = True
-      while process_queue:
-        job_id, queue_status = scheduler.PickJob(configuration)
 
-        if not job_id:
-          logging.info('Empty queue.')
-          process_queue = False
-        else:
-          process_queue = _ProcessJob(job_id, queue_status, configuration)
+      # The way we're doing the capacity-aware scheduling is by setting a
+      # budget that we can consume on every scheduler run. Each type of
+      # comparison_mode for a job will have an associated budget for the queue
+      # (or we'll set a default). We will consume this budget every time by
+      # accounting the jobs that are running against it, and stop when we have
+      # the budget exhausted in the loop.
+      # TODO(dberris): See if we can use retroactive cost assignment instead of
+      # relying on the cost at job creation time.
+      _, budget = scheduler.GetSchedulerOptions(configuration)
+      logging.info('Budget: %s', budget)
+      while process_queue:
+        jobs = scheduler.PickJobs(configuration, budget)
+        for job_id, queue_status in jobs:
+          if not job_id:
+            logging.info('Empty queue for configuration = %s', configuration)
+            process_queue = False
+          else:
+            process_queue = _ProcessJob(job_id, queue_status, configuration)
 
 
 def _ProcessJob(job_id, queue_status, configuration):
@@ -50,7 +64,6 @@ def _ProcessJob(job_id, queue_status, configuration):
                configuration)
 
   if queue_status == 'Running':
-    logging.debug('Job details: %r', job)
     if job.status in {'Failed', 'Completed'}:
       scheduler.Complete(job)
       return True  # Continue processing this queue.

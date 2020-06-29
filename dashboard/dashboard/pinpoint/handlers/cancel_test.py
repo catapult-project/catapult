@@ -150,7 +150,7 @@ class CancelJobTest(test.TestCase):
                              arguments={'configuration': 'mock'},
                              user='lovely.user@example.com')
     scheduler.Schedule(job)
-    _, status = scheduler.PickJob(job.configuration)
+    _, status = scheduler.PickJobs(job.configuration)[0]
     self.assertEqual(status, 'Queued')
     job.task = '123'
     job.started = True

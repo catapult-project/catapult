@@ -17,15 +17,18 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import collections
 import datetime
 import functools
-import logging
 import random
 
 from google.appengine.ext import ndb
 
-SECS_PER_HOUR = datetime.timedelta(hours=1).total_seconds()
+from dashboard.common import bot_configurations
 
+SECS_PER_HOUR = datetime.timedelta(hours=1).total_seconds()
+DEFAULT_BUDGET = 1.0
+DEFAULT_COST = 1.0
 
 # TODO(dberris): These models are temporary, when we move to using the service
 # we'll use the google-cloud-datastore API directly.
@@ -41,6 +44,10 @@ class QueueElement(ndb.Model):
   # Priority is in "nice" order, where 0 is highest priority and anything higher
   # is lower priority.
   priority = ndb.IntegerProperty(required=True, default=0)
+
+  # Cost is imbued at schedule time, and is advisory if the queue supports
+  # cost-based scheduling.
+  cost = ndb.FloatProperty(default=1.0)
 
 
 class SampleElementTiming(ndb.Model):
@@ -114,7 +121,7 @@ class QueueNotFound(Error):
 
 
 @ndb.transactional
-def Schedule(job):
+def Schedule(job, cost=1.0):
   """Schedules a job for later execution.
 
   This function deduces the appropriate queue to which a fully-formed
@@ -123,6 +130,7 @@ def Schedule(job):
 
   Arguments:
   - job: a fully-formed `dashboard.models.job.Job` instance.
+  - cost: an advisory weight for scheduling in a cost-based scheduler.
 
   Raises:
   - ndb.TransactionFailedError when we fail to persist the queue
@@ -146,23 +154,29 @@ def Schedule(job):
   # 3. Enqueue job according to insertion time.
   queue.jobs.append(
       QueueElement(
-          job_id=job.job_id, queue_length=len(queue.jobs), priority=priority))
+          job_id=job.job_id,
+          queue_length=len(queue.jobs),
+          priority=priority,
+          cost=cost))
   queue.put()
-  logging.debug('Scheduled: %r', queue)
 
 
 @ndb.transactional
-def PickJob(configuration):
+def PickJobs(configuration, budget=1.0):
   """Picks a job for execution for a given configuration.
 
   This returns the next eligible job to run which is one that's either already
   running, or one that's Queued.
 
-  Returns a tuple (job_id, 'Running'|'Queued') if we have an eligible job to
-  run, or (None, None).
+  Returns a list of tuples (job_id, 'Running'|'Queued') if we have eligible
+  jobs to run, or a list with a single element (None, None). We'll use the
+  provided budget and the costs of each queued element to determine which
+  jobs to pick for scheduling decisions.
 
   Arguments:
   - configuration: a configuration name, also used as a queue identifier.
+  - budget: we will consume this budget, i.e. only return a value if the cost
+    for a queued item is less than or equal to the budget provided.
 
   Raises:
   - ndb.TransactionFailedError when we fail to persist the queue
@@ -171,21 +185,33 @@ def PickJob(configuration):
   # Load the FIFO queue for the configuration.
   queue = ConfigurationQueue.GetOrCreateQueue(configuration)
 
-  result = (None, None)
   if not queue.jobs:
-    return result
+    return [(None, None)]
 
-  if queue.jobs[0].status == 'Running':
-    return (queue.jobs[0].job_id, queue.jobs[0].status)
+  # Find all the 'Running' instances and consume the budget to return all the
+  # currently running jobs.
+  results = []
+  for job in queue.jobs:
+    if budget <= 0:
+      # We have no more budget for running new jobs.
+      return results
+    if job.status == 'Running':
+      results.append((job.job_id, job.status))
+      budget -= job.cost
 
   # Sort the jobs in priority and submission time. Note that we can starve lower
   # priority (those whose priority is higher than 0) jobs by design, since we'll
   # assume those are batch jobs.
   queue.jobs.sort(key=lambda j: (j.priority, j.timestamp))
   for job in queue.jobs:
+    # Short-circuit out if the budget is not exhausted.
+    if budget <= 0.0:
+      break
+
     # Pick the first job that's queued, and mark it 'Running'.
     if job.status == 'Queued':
-      result = (job.job_id, job.status)
+      results.append((job.job_id, job.status))
+      budget -= job.cost
       job.status = 'Running'
 
       # Add this to the samples.
@@ -194,13 +220,12 @@ def PickJob(configuration):
               job_id=job.job_id,
               enqueue_timestamp=job.timestamp,
               queue_length=job.queue_length))
-      break
 
   # Persist the changes transactionally.
   queue.put()
 
-  # Then return the result.
-  return result
+  # Then return the results.
+  return results
 
 
 @ndb.transactional
@@ -329,3 +354,45 @@ def Remove(configuration, job_id):
 @ndb.transactional
 def AllConfigurations():
   return [q.configuration for q in ConfigurationQueue.AllQueues().fetch()]
+
+
+class SchedulerOptions(
+    collections.namedtuple('SchedulerOptions', ('costs', 'budget'))):
+  __slots__ = ()
+
+
+def GetSchedulerOptions(configuration):
+  # Here we're getting the configuration settings on the following, for this
+  # particular configuration:
+  #
+  #   - What cost do we attribute to tryjobs/bisections?
+  #   - What is the budget for each scheduling iteration?
+  #
+  # These options will all be part of a sub-object in the 'scheduler' key in
+  # the bot configuration. What we're expecting is a structure like so:
+  #
+  #   {
+  #     "scheduler": {
+  #       "cost": {
+  #       },
+  #       "budget": <floating point>
+  #     }
+  #   }
+  try:
+    bot_config = bot_configurations.Get(configuration)
+  except ValueError:
+    bot_config = {}
+
+  scheduler_options = bot_config.get('scheduler', {})
+  return SchedulerOptions(
+      costs=scheduler_options.get(
+          'costs', collections.defaultdict(lambda: DEFAULT_COST)),
+      budget=scheduler_options.get('budget', DEFAULT_BUDGET))
+
+
+def Cost(job):
+  """Computes the cost for a job, for scheduling decisions.
+
+  Returns a floating point number to indicate cost in a cost-based scheduler.
+  """
+  return GetSchedulerOptions(job.configuration).costs[job.comparison_mode]

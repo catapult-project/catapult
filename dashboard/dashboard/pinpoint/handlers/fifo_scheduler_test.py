@@ -9,6 +9,8 @@ from __future__ import absolute_import
 
 import mock
 
+from dashboard.common import namespaced_stored_object
+from dashboard.common import bot_configurations
 from dashboard.pinpoint import test
 from dashboard.pinpoint.models import job
 from dashboard.pinpoint.models import scheduler
@@ -16,6 +18,11 @@ from dashboard.pinpoint.models.tasks import bisection_test_util
 
 
 class FifoSchedulerTest(test.TestCase):
+
+  def setUp(self):
+    super(FifoSchedulerTest, self).setUp()
+    namespaced_stored_object.Set(bot_configurations.BOT_CONFIGURATIONS_KEY,
+                                 {'mock': {}})
 
   def testSingleQueue(self):
     j = job.Job.New((), (),
@@ -31,7 +38,7 @@ class FifoSchedulerTest(test.TestCase):
     self.assertTrue(j.Start.called)
 
     # Ensure that the job is still running.
-    job_id, queue_status = scheduler.PickJob('mock')
+    job_id, queue_status = scheduler.PickJobs('mock')[0]
     self.assertEqual(job_id, j.job_id)
     self.assertEqual(queue_status, 'Running')
 
@@ -42,7 +49,7 @@ class FifoSchedulerTest(test.TestCase):
     self.assertEqual(response.status_code, 200)
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.Start.called)
-    job_id, queue_status = scheduler.PickJob('mock')
+    job_id, queue_status = scheduler.PickJobs('mock')[0]
     self.assertEqual(job_id, j.job_id)
     self.assertEqual(queue_status, 'Running')
 
@@ -59,7 +66,7 @@ class FifoSchedulerTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
 
     self.assertTrue(j.Start.called)
-    job_id, _ = scheduler.PickJob('mock')
+    job_id, _ = scheduler.PickJobs('mock')[0]
     self.assertIsNone(job_id)
 
   def testJobFails(self):
@@ -74,7 +81,7 @@ class FifoSchedulerTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
 
     self.assertTrue(j.Start.called)
-    job_id, _ = scheduler.PickJob('mock')
+    job_id, _ = scheduler.PickJobs('mock')[0]
     self.assertIsNone(job_id)
 
   def testMultipleQueues(self):
@@ -123,7 +130,7 @@ class FifoSchedulerTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
 
     self.assertTrue(j.Start.called)
-    job_id, _ = scheduler.PickJob('mock')
+    job_id, _ = scheduler.PickJobs('mock')[0]
     self.assertIsNone(job_id)
 
     # Check that point-in-time stats are zero, and that we have one sample.
@@ -150,7 +157,7 @@ class FifoSchedulerTest(test.TestCase):
     self.assertTrue(j.Start.called)
 
     # Ensure that the job is still running.
-    job_id, queue_status = scheduler.PickJob('mock')
+    job_id, queue_status = scheduler.PickJobs('mock')[0]
     self.assertEqual(job_id, j.job_id)
     self.assertEqual(queue_status, 'Running')
 
@@ -158,7 +165,7 @@ class FifoSchedulerTest(test.TestCase):
     self.assertTrue(scheduler.Cancel(j))
 
     # Ensure that the job is still running.
-    job_id, queue_status = scheduler.PickJob('mock')
+    job_id, queue_status = scheduler.PickJobs('mock')[0]
     self.assertNotEqual(job_id, j.job_id)
     self.assertNotEqual(queue_status, 'Running')
 
@@ -241,6 +248,11 @@ class FifoSchedulerTest(test.TestCase):
 # "live" bisection operations will be looking into.
 class FifoSchedulerExecutionEngineTest(bisection_test_util.BisectionTestBase):
 
+  def setUp(self):
+    super(FifoSchedulerExecutionEngineTest, self).setUp()
+    namespaced_stored_object.Set(bot_configurations.BOT_CONFIGURATIONS_KEY,
+                                 {'mock': {}})
+
   def testJobRunInExecutionEngine(self):
     j = job.Job.New((), (),
                     arguments={'configuration': 'mock'},
@@ -256,5 +268,50 @@ class FifoSchedulerExecutionEngineTest(bisection_test_util.BisectionTestBase):
     self.ExecuteDeferredTasks('default')
 
     self.assertTrue(j.Start.called)
-    job_id, _ = scheduler.PickJob('mock')
+    job_id, _ = scheduler.PickJobs('mock')[0]
     self.assertIsNone(job_id)
+
+
+class FifoSchedulerCostModelTest(test.TestCase):
+
+  def setUp(self):
+    super(FifoSchedulerCostModelTest, self).setUp()
+    # We're setting up a cost model where tryjobs cost half as much as a
+    # performance or functional bisection, and ensure that we're seeing the
+    # budget consumed appropriately in a scheduling iteration.
+    namespaced_stored_object.Set(
+        bot_configurations.BOT_CONFIGURATIONS_KEY, {
+            'mock': {
+                'scheduler': {
+                    'cost': {
+                        'try': 0.5,
+                        'performance': 1.0,
+                        'functional': 1.0
+                    },
+                    'budget': 2.0
+                }
+            }
+        })
+
+  def testSchedule_AllBisections(self):
+
+    def CreateAndSchedule():
+      j = job.Job.New((), (),
+                      arguments={'configuration': 'mock'},
+                      comparison_mode='performance')
+      scheduler.Schedule(j)
+      j.Start = mock.MagicMock(side_effect=j._Complete)
+      return j
+
+    jobs = [CreateAndSchedule() for _ in range(10)]
+
+    # We want to ensure that every iteration, we'll have two of the bisections
+    # started, given our cost model and budget.
+    for offset in range(4):
+      response = self.testapp.get('/cron/fifo-scheduler')
+      self.assertEqual(response.status_code, 200)
+      self.ExecuteDeferredTasks('default')
+      self.assertTrue(jobs[offset * 2].Start.called,
+                      'Job %s not started.' % (jobs[offset * 2].job_id,))
+      self.assertTrue(jobs[offset * 2 + 1].Start.called,
+                      'Job %s not started.' % (jobs[offset * 2 + 1].job_id,))

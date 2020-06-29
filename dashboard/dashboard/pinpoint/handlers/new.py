@@ -40,7 +40,9 @@ class New(api_request_handler.ApiRequestHandler):
     # TODO(dberris): Validate the inputs based on the type of job requested.
     job = _CreateJob(self.request)
 
-    scheduler.Schedule(job)
+    # We apply the cost-based scheduling at job creation time, so that we can
+    # roll out the feature as jobs come along.
+    scheduler.Schedule(job, scheduler.Cost(job))
 
     job.PostCreationUpdate()
 
@@ -176,7 +178,7 @@ def _ArgumentsWithConfiguration(original_arguments):
   if configuration:
     try:
       default_arguments = bot_configurations.Get(configuration)
-    except KeyError:
+    except ValueError:
       # Reraise with a clearer message.
       raise ValueError("Bot Config: %s doesn't exist." % configuration)
     logging.info('Bot Config: %s', default_arguments)
