@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+Copyright 2020 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/math/range.html">
+<link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/value/histogram.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.v8', function() {
+  function computeSyncInstantiationTimeMetric(histograms, model) {
+    const wasmSyncInstantiationTimeCPU = new tr.v.Histogram(
+        'v8:wasm:sync_instantiate:cpu_time',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
+    wasmSyncInstantiationTimeCPU.description =
+      'cpu time spent instantiating a WebAssembly module';
+    const wasmSyncInstantiationTimeWall = new tr.v.Histogram(
+        'v8:wasm:sync_instantiate:wall_time',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
+    wasmSyncInstantiationTimeWall.description =
+      'wall time spent instantiating a WebAssembly module';
+
+    for (const e of model.findTopmostSlicesNamed('wasm.SyncInstantiate')) {
+      wasmSyncInstantiationTimeCPU.addSample(e.cpuDuration);
+      wasmSyncInstantiationTimeWall.addSample(e.duration);
+    }
+
+    histograms.addHistogram(wasmSyncInstantiationTimeCPU);
+    histograms.addHistogram(wasmSyncInstantiationTimeWall);
+  }
+
+  function wasmMetric(histograms, model) {
+    computeSyncInstantiationTimeMetric(histograms, model);
+  }
+
+  tr.metrics.MetricRegistry.register(wasmMetric);
+
+  return {
+    wasmMetric,
+  };
+});
+
+</script>
