@@ -135,6 +135,9 @@ found in the LICENSE file.
         <span class="middle-dot"></span>
         running time: [[runDuration(job)]]
       </p>
+      <p class="byline">
+        In queue: <a href="[[formatQueueUrl(job.configuration)]]">[[job.configuration]]</a>
+      </p>
       <div id="layout">
         <div id="details-column">
           <job-details job="[[job]]"></job-details>
