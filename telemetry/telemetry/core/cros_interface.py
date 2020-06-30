@@ -666,32 +666,23 @@ class CrOSInterface(object):
     Returns:
       True if the screenshot was taken successfully, otherwise False.
     """
-    # When running remotely, taking a screenshot to the specified |file_path|
-    # may fail due to differences between the device and host. We also want
-    # to save a copy to /var/log/ on the device, as it is saved by CrOS bots.
-    # Address both by taking the screenshot to /var/log/ and either copying
-    # to the correct location in local mode or pulling to the correct location
-    # in remote mode.
-    basename = os.path.basename(file_path)
-    var_path = '/var/log/screenshots/%s' % basename
-    dir_name = os.path.dirname(file_path)
-    self.RunCmdOnDevice(['mkdir', '-p', '/var/log/screenshots'])
     stdout, _ = self.RunCmdOnDevice(['/usr/local/sbin/screenshot',
-                                     var_path,
+                                     file_path,
                                      '&&',
                                      'echo',
                                      'screenshot return value:$?'])
-    if self.local:
-      self.RunCmdOnDevice(['mkdir', '-p', dir_name])
-      self.RunCmdOnDevice(['cp', var_path, file_path])
-    else:
+    # Try to save a copy to /var/log on the device, as it is saved by CrOS bots.
+    self.RunCmdOnDevice(['cp', file_path,
+                         '/var/log/screenshots/%s' %
+                         os.path.basename(file_path)])
+    # Pull the screenshot to the host in remote mode.
+    if not self.local:
       try:
-        if not os.path.exists(dir_name):
-          os.makedirs(dir_name)
-        self.GetFile(var_path, file_path)
+        if not os.path.exists(os.path.dirname(file_path)):
+          os.makedirs(os.path.dirname(file_path))
+        self.GetFile(file_path, file_path)
       except OSError as e:
-        logging.error('Unable to pull screenshot file %s to %s: %s',
-                      var_path, file_path, e)
+        logging.error('Unable to pull screenshot file %s: %s', file_path, e)
     return 'screenshot return value:0' in stdout
 
   def TakeScreenshotWithPrefix(self, screenshot_prefix):
