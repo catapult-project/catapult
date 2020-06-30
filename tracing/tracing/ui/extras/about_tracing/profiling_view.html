@@ -295,27 +295,32 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.saveButton_.disabled = true;
     },
 
+    detectFileExtension_(filename) {
+      let fileExtension = /[.]pftrace/.test(filename) ? '.pftrace' : '.json';
+      if (/[.]gz$/.test(filename)) {
+        fileExtension += '.gz';
+      } else if (/[.]zip$/.test(filename)) {
+        fileExtension += '.zip';
+      }
+      return fileExtension;
+    },
+
     requestFilename_() {
       // unsafe filename patterns:
       const illegalRe = /[\/\?<>\\:\*\|":]/g;
       const controlRe = /[\x00-\x1f\x80-\x9f]/g;
       const reservedRe = /^\.+$/;
-
       const defaultName = this.activeTrace_.filename;
-      let fileExtension = '.json';
-      let fileRegex = /\.json$/;
-      if (/[.]pftrace/.test(defaultName)) {
-        fileExtension = '.pftrace';
-        fileRegex = /\.pftrace$/;
-      }
-      if (/[.]gz$/.test(defaultName)) {
-        fileExtension += '.gz';
-        fileRegex = new RegExp(fileExtension + '[.]gz$');
-      } else if (/[.]zip$/.test(defaultName)) {
-        fileExtension = '.zip';
-        fileRegex = /\.zip$/;
-      }
 
+      const fileExtension = this.detectFileExtension_(defaultName);
+      const escapedExtension = fileExtension.replace('.', '\\.');
+      const extensionRegex = new RegExp(escapedExtension + '$');
+      // |defaultName| is usually trace.json.gz, so |defaultNameWithoutExt|
+      // becomes 'trace'.
+      const defaultNameWithoutExt = defaultName.replace(extensionRegex, '');
+
+      // If |custom| is 'foo', the final name eventually becomes
+      // something like 'trace_foo.json.gz'.
       const custom = prompt('Filename? (' + fileExtension +
                           ' appended) Or leave blank:');
       if (custom === null) {
@@ -324,15 +329,20 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       let name;
       if (custom) {
-        name = ' ' + custom;
+        // Strip the extension from |custom| if it matches up with default
+        // extension of the trace. If |custom| is 'foo.json.gz', we don't
+        // want filename to be 'foo.json.gz.json.gz'.
+        name = custom.replace(extensionRegex, '');
       } else {
         const date = new Date();
-        const dateText = ' ' + date.toDateString() +
+        const dateText = date.toDateString() +
                        ' ' + date.toLocaleTimeString();
         name = dateText;
       }
 
-      const filename = defaultName.replace(fileRegex, name) + fileExtension;
+      // filename will be something like 'trace foo.json.gz'. All spaces will be
+      // changed to '_' later.
+      const filename = defaultNameWithoutExt + ' ' + name + fileExtension;
 
       return filename
           .replace(illegalRe, '.')
