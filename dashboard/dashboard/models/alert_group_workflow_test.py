@@ -185,6 +185,47 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         ))
 
     self.assertEqual(len(group.get().anomalies), 4)
+    self.assertEqual('closed', self._issue_tracker.issue.get('state'))
+    for a in added:
+      self.assertIn(a, group.get().anomalies)
+      self.assertEqual(group.get().bug.bug_id,
+                       self._issue_tracker.add_comment_args[0])
+      self.assertIn('Added 2 regressions to the group',
+                    self._issue_tracker.add_comment_args[1])
+
+  def testAddAnomalies_GroupTriaged_IssueClosed_AutoBisect(self):
+    anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    added = [self._AddAnomaly(), self._AddAnomaly()]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        anomalies=anomalies,
+        status=alert_group.AlertGroup.Status.closed,
+    )
+    self._issue_tracker.issue.update({
+        'state': 'closed',
+    })
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+    )
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies + added),
+            issue=self._issue_tracker.issue,
+        ))
+
+    self.assertEqual(len(group.get().anomalies), 4)
     self.assertEqual('open', self._issue_tracker.issue.get('state'))
     for a in added:
       self.assertIn(a, group.get().anomalies)

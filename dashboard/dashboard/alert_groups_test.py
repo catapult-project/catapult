@@ -417,6 +417,10 @@ class RecoveredAlertsTests(GroupReportTestBase):
     # pylint: disable=no-value-for-parameter
     self.testClosesIssueOnAllRecovered()
     self._SetUpMocks(mock_get_sheriff_client)
+    mock_get_sheriff_client().Match.return_value = ([
+        subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)
+    ], None)
     # Then we add a new anomaly which should cause the issue to be reopened.
     self._AddAnomaly(
         start_revision=50,

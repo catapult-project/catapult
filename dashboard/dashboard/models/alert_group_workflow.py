@@ -220,7 +220,10 @@ class AlertGroupWorkflow(object):
     if not regressions or not any(r.auto_triage_enable for r in regressions):
       return
 
-    if issue.get('state') == 'closed':
+    if issue.get('state') == 'closed' and any(
+        a.auto_bisect_enable
+        for a in anomalies
+        if not a.is_improvement and not a.recovered):
       self._ReopenWithNewRegressions(regressions, subscriptions)
     else:
       self._FileNormalUpdate(regressions, subscriptions)

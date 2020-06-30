@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Helper functions used in multiple unit tests."""
 from __future__ import print_function
 from __future__ import division
@@ -121,9 +120,8 @@ class TestCase(unittest.TestCase):
     responses = []
     for task in tasks:
       responses.append(
-          self.Post(
-              handler_name,
-              urllib.unquote_plus(base64.b64decode(task['body']))))
+          self.Post(handler_name,
+                    urllib.unquote_plus(base64.b64decode(task['body']))))
       if recurse:
         responses.extend(
             self.ExecuteTaskQueueTasks(handler_name, task_queue_name))
@@ -156,8 +154,7 @@ class TestCase(unittest.TestCase):
     self.addCleanup(patch.stop)
 
   def SetCurrentUserOAuth(self, user):
-    self.PatchObject(oauth, 'get_current_user', mock.Mock(
-        return_value=user))
+    self.PatchObject(oauth, 'get_current_user', mock.Mock(return_value=user))
 
   def SetCurrentClientIdOAuth(self, client_id):
     self.PatchObject(oauth, 'get_client_id', mock.Mock(return_value=client_id))
@@ -185,8 +182,7 @@ class TestCase(unittest.TestCase):
     for script_element in scripts_elements:
       contents = script_element.renderContents()
       # Assume that the variable is all one line, with no line breaks.
-      match = re.search(var_name + r'\s*=\s*(.+);\s*$', contents,
-                        re.MULTILINE)
+      match = re.search(var_name + r'\s*=\s*(.+);\s*$', contents, re.MULTILINE)
       if match:
         javascript_value = match.group(1)
         try:
@@ -219,6 +215,7 @@ class TestCase(unittest.TestCase):
     user is internal; it just checks for cached values and returns False
     if nothing is found.
     """
+
     def IsInternalUser():
       return bool(utils.GetCachedIsInternalUser(utils.GetEmail()))
 
@@ -231,6 +228,7 @@ class TestCase(unittest.TestCase):
     user is internal; it just checks for cached values and returns False
     if nothing is found.
     """
+
     def IsAdministrator():
       return bool(utils.GetCachedIsAdministrator(utils.GetEmail()))
 
@@ -296,8 +294,8 @@ def _AddRowsFromDict(container_key, row_dict):
   for int_id in sorted(row_dict):
     rows.append(
         graph_data.Row(id=int_id, parent=container_key, **row_dict[int_id]))
-  ndb.Future.wait_all(
-      [r.put_async() for r in rows] + [rows[0].UpdateParentAsync()])
+  ndb.Future.wait_all([r.put_async() for r in rows] +
+                      [rows[0].UpdateParentAsync()])
   return rows
 
 
@@ -306,8 +304,8 @@ def _AddRowsFromIterable(container_key, row_ids):
   rows = []
   for int_id in sorted(row_ids):
     rows.append(graph_data.Row(id=int_id, parent=container_key, value=int_id))
-  ndb.Future.wait_all(
-      [r.put_async() for r in rows] + [rows[0].UpdateParentAsync()])
+  ndb.Future.wait_all([r.put_async() for r in rows] +
+                      [rows[0].UpdateParentAsync()])
   return rows
 
 
@@ -420,12 +418,12 @@ class FakeIssueTrackerService(object):
     # what the actual service will do and mark the state "closed" or "open".
     # TODO(dberris): Actually simulate an update faithfully, someday.
     issue_key = (kwargs.get('project', 'chromium'), args[0])
-    status_update = {
-        'state': (
-            'closed' if kwargs.get('status') in {'WontFix', 'Fixed'} else 'open'
-        )
-    }
-    self.issues.setdefault(issue_key, {}).update(status_update)
+    status = kwargs.get('status')
+    if status:
+      self.issues.setdefault(issue_key, {}).update({
+          'state': ('closed'
+                    if kwargs.get('status') in {'WontFix', 'Fixed'} else 'open')
+      })
     self.calls.append({
         'method': 'AddBugComment',
         'args': args,
