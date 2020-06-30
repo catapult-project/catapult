@@ -284,13 +284,15 @@ class CrOSInterfaceTest(unittest.TestCase):
     with self._GetCRI() as cri:
       def _Cleanup():
         cri.RmRF('/tmp/telemetry/screenshots/test-prefix*')
+        cri.RmRF('/var/log/screenshots/test-prefix*')
 
       _Cleanup()
       self.assertTrue(cri.TakeScreenshotWithPrefix('test-prefix'))
       screenshot_file = '/tmp/telemetry/screenshots/test-prefix-0.png'
-      self.assertTrue(cri.FileExistsOnDevice(screenshot_file))
+      self.assertTrue(
+          cri.FileExistsOnDevice('/var/log/screenshots/test-prefix-0.png'))
       # Ensure we've pulled the screenshot to the host if we're running in
-      # remote mode.
+      # remote mode or copied to the correct location in local mode.
       self.assertTrue(os.path.exists(screenshot_file))
       # Ensure we actually have some amount of data.
       self.assertTrue(os.path.getsize(screenshot_file) > 0)
