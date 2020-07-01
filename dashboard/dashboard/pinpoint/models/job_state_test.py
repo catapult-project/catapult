@@ -139,7 +139,7 @@ class ExploreTest(test.TestCase):
     self.assertEqual(len(state._changes), 2)
     attempt_count_1 = len(state._attempts[change_test.Change(1)])
     attempt_count_2 = len(state._attempts[change_test.Change(9)])
-    self.assertGreater(attempt_count_1, attempt_count_2)
+    self.assertGreaterEqual(attempt_count_1, attempt_count_2)
 
     state.ScheduleWork()
     state.Explore()

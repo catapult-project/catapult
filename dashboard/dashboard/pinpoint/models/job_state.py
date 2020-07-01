@@ -21,7 +21,10 @@ from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import exploration
 
 
-_REPEAT_COUNT_INCREASE = 10
+# We start with 10 attempts at a given change and double until we reach 160
+# attempts max (that's 4 iterations).
+MIN_ATTEMPTS = 10
+MAX_ATTEMPTS = 160
 _DEFAULT_SPECULATION_LEVELS = 2
 
 FUNCTIONAL = 'functional'
@@ -94,9 +97,15 @@ class JobState(object):
     else:
       change_with_pin = change
 
-    for _ in range(_REPEAT_COUNT_INCREASE):
+    # This algorithm will double the number of attempts, to allow us to get
+    # more attempts sooner and getting to better statistical decisions with
+    # less iterations.
+    current_attempt_count = max(len(self._attempts[change]), MIN_ATTEMPTS)
+    it = 0
+    while it != current_attempt_count:
       attempt = attempt_module.Attempt(self._quests, change_with_pin)
       self._attempts[change].append(attempt)
+      it += 1
 
   def AddChange(self, change, index=None):
     if index:
@@ -132,11 +141,19 @@ class JobState(object):
         return None
       return comparison == compare.DIFFERENT
 
-    changes_to_refine = []
+    changes_to_refine = set()
     def CollectChangesToRefine(change_a, change_b):
-      changes_to_refine.append(
-          change_a if len(self._attempts[change_a]
-                         ) <= len(self._attempts[change_b]) else change_b)
+      # We will return the changes which has less than or equal number of
+      # attempts but also doesn't have the maximum number of attempts.
+      change_a_attempts = len(self._attempts[change_a])
+      change_b_attempts = len(self._attempts[change_b])
+
+      if (change_a_attempts <= change_b_attempts
+          and change_a_attempts < MAX_ATTEMPTS):
+        changes_to_refine.add(change_a)
+      if (change_b_attempts <= change_a_attempts
+          and change_b_attempts < MAX_ATTEMPTS):
+        changes_to_refine.add(change_b)
 
     def FindMidpoint(change_a, change_b):
       try:
