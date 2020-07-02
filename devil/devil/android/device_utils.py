@@ -2015,7 +2015,7 @@ class DeviceUtils(object):
           (calculate_host_checksums, calculate_device_checksums))
     except device_errors.CommandFailedError as e:
       logger.warning('Error calculating md5: %s', e)
-      return (host_device_tuples, lambda: 0)
+      return (host_device_tuples, set(), lambda: 0)
 
     up_to_date = set()
 
