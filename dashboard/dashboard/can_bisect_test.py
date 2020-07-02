@@ -19,45 +19,45 @@ class CanBisectTest(testing_common.TestCase):
     super(CanBisectTest, self).setUp()
     namespaced_stored_object.Set(
         can_bisect.BISECT_BOT_MAP_KEY,
-        {'SupportedMaster': ['perf_bot', 'bisect_bot']})
+        {'SupportedDomain': ['perf_bot', 'bisect_bot']})
 
   def testIsValidTestForBisect_BisectableTests_ReturnsTrue(self):
     self.assertEqual(
         can_bisect.IsValidTestForBisect(
-            'SupportedMaster/mac/blink_perf.parser/simple-url'),
+            'SupportedDomain/mac/blink_perf.parser/simple-url'),
         True)
 
   def testIsValidTestForBisect_Supported_ReturnsTrue(self):
     self.assertTrue(
-        can_bisect.IsValidTestForBisect('SupportedMaster/b/t/foo'))
+        can_bisect.IsValidTestForBisect('SupportedDomain/b/t/foo'))
 
   def testIsValidTestForBisect_V8_IsSupported(self):
     self.assertTrue(can_bisect.IsValidTestForBisect(
-        'SupportedMaster/Pixel2/v8/JSTests/Array/Total'))
+        'SupportedDomain/Pixel2/v8/JSTests/Array/Total'))
 
   def testIsValidTestForBisect_RefTest_ReturnsFalse(self):
     self.assertFalse(
-        can_bisect.IsValidTestForBisect('SupportedMaster/b/t/ref'))
+        can_bisect.IsValidTestForBisect('SupportedDomain/b/t/ref'))
 
-  def testIsValidTestForBisect_UnsupportedMaster_ReturnsFalse(self):
+  def testIsValidTestForBisect_UnsupportedDomain_ReturnsFalse(self):
     self.assertFalse(
         can_bisect.IsValidTestForBisect('X/b/t/foo'))
 
-  def testMasterNameIsBlacklistedForTriageBisects_NoMasters_ReturnsFalse(self):
+  def testDomainNameIsExcludedForTriageBisects_NoDomains_ReturnsFalse(self):
     self.assertFalse(
-        can_bisect.MasterNameIsBlacklistedForTriageBisects('foo'))
+        can_bisect.DomainIsExcludedFromTriageBisects('foo'))
 
-  def testMasterNameIsBlacklistedForTriageBisects_NoMatch_ReturnsFalse(self):
+  def testDomainNameIsExcludedForTriageBisects_NoMatch_ReturnsFalse(self):
     namespaced_stored_object.Set(
-        can_bisect.FILE_BUG_BISECT_BLACKLIST_KEY, {'bar': []})
+        can_bisect.FILE_BUG_BISECT_DENYLIST_KEY, {'bar': []})
     self.assertFalse(
-        can_bisect.MasterNameIsBlacklistedForTriageBisects('foo'))
+        can_bisect.DomainIsExcludedFromTriageBisects('foo'))
 
-  def testMasterNameIsBlacklistedForTriageBisects_Match_ReturnsTrue(self):
+  def testDomainNameIsExcludedForTriageBisects_Match_ReturnsTrue(self):
     namespaced_stored_object.Set(
-        can_bisect.FILE_BUG_BISECT_BLACKLIST_KEY, {'foo': []})
+        can_bisect.FILE_BUG_BISECT_DENYLIST_KEY, {'foo': []})
     self.assertTrue(
-        can_bisect.MasterNameIsBlacklistedForTriageBisects('foo'))
+        can_bisect.DomainIsExcludedFromTriageBisects('foo'))
 
 
 if __name__ == '__main__':

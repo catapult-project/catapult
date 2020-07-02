@@ -27,7 +27,7 @@ BISECT_BOT_MAP_KEY = 'bisect_bot_map'
 # master names to nothing (i.e. a set since JSON does not support actual sets).
 # If a master name is in the dict, automatic bisects kicked off by alert
 # triaging are not supported.
-FILE_BUG_BISECT_BLACKLIST_KEY = 'file_bug_bisect_blacklist'
+FILE_BUG_BISECT_DENYLIST_KEY = 'file_bug_bisect_blacklist'
 
 
 def IsValidTestForBisect(test_path):
@@ -37,7 +37,7 @@ def IsValidTestForBisect(test_path):
   path_parts = test_path.split('/')
   if len(path_parts) < 3:
     return False
-  if not _MasterNameIsWhitelisted(path_parts[0]):
+  if not _DomainIsSupported(path_parts[0]):
     return False
   if path_parts[2] in _UNBISECTABLE_SUITES:
     return False
@@ -46,22 +46,22 @@ def IsValidTestForBisect(test_path):
   return True
 
 
-def _MasterNameIsWhitelisted(master_name):
-  """Checks whether a master name is acceptable by checking a whitelist."""
+def _DomainIsSupported(domain):
+  """Checks whether a master name is acceptable by checking a list."""
   bisect_bot_map = namespaced_stored_object.Get(BISECT_BOT_MAP_KEY)
   if not bisect_bot_map:
     return True  # If there's no list available, all names are OK.
-  whitelisted_masters = list(bisect_bot_map)
-  return master_name in whitelisted_masters
+  allow_listed_domain = list(bisect_bot_map)
+  return domain in allow_listed_domain
 
 
-def MasterNameIsBlacklistedForTriageBisects(master_name):
+def DomainIsExcludedFromTriageBisects(domain):
   """Checks whether a master name is blacklisted for alert triage bisects."""
-  file_bug_bisect_blacklist = namespaced_stored_object.Get(
-      FILE_BUG_BISECT_BLACKLIST_KEY)
-  if not file_bug_bisect_blacklist:
+  file_bug_bisect_denylist = namespaced_stored_object.Get(
+      FILE_BUG_BISECT_DENYLIST_KEY)
+  if not file_bug_bisect_denylist:
     return False  # If there's no blacklist, all masters are OK.
-  return master_name in file_bug_bisect_blacklist
+  return domain in file_bug_bisect_denylist
 
 
 def IsValidRevisionForBisect(revision):

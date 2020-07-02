@@ -137,12 +137,13 @@ class StartNewBisectForBugTest(testing_common.TestCase):
         'chromium': {'some': 'params'},
     })
 
-    testing_common.AddTests(
-        ['ChromiumPerf'], ['linux-pinpoint'], {'sunspider': {'score': {}}})
+    testing_common.AddTests(['ChromiumPerf'], ['linux-pinpoint'],
+                            {'sunspider': {
+                                'score': {}
+                            }})
     test_key = utils.TestKey('ChromiumPerf/linux-pinpoint/sunspider/score')
     testing_common.AddRows(
-        'ChromiumPerf/linux-pinpoint/sunspider/score',
-        {
+        'ChromiumPerf/linux-pinpoint/sunspider/score', {
             11999: {
                 'a_default_rev': 'r_chromium',
                 'r_chromium': '9e29b5bcd08357155b2859f87227d50ed60cf857'
@@ -153,14 +154,16 @@ class StartNewBisectForBugTest(testing_common.TestCase):
             }
         })
     anomaly.Anomaly(
-        bug_id=333, test=test_key,
-        start_revision=12000, end_revision=12500,
-        median_before_anomaly=100, median_after_anomaly=200).put()
+        bug_id=333,
+        test=test_key,
+        start_revision=12000,
+        end_revision=12500,
+        median_before_anomaly=100,
+        median_after_anomaly=200).put()
     result = auto_bisect.StartNewBisectForBug(333)
     self.assertIn('error', result)
-    self.assertIn(
-        'only available masters are blacklisted from automatic bisects',
-        result['error'])
+    self.assertIn('only available domains are excluded from automatic bisects',
+                  result['error'])
 
   @mock.patch.object(
       utils, 'IsValidSheriffUser', mock.MagicMock(return_value=True))

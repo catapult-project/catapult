@@ -118,25 +118,25 @@ def _ChooseTest(anomalies):
     An Anomaly entity, or None if no valid entity could be chosen.
 
   Raises:
-    NotBisectableError: The only matching tests are on masters that have been
-        blacklisted for automatic bisects on alert triage.
+    NotBisectableError: The only matching tests are on domains that have been
+        excluded for automatic bisects on alert triage.
   """
   if not anomalies:
     return None
   anomalies.sort(cmp=_CompareAnomalyBisectability)
-  found_blacklisted_master = False
+  found_excluded_domain = False
   for anomaly_entity in anomalies:
     if can_bisect.IsValidTestForBisect(
         utils.TestPath(anomaly_entity.GetTestMetadataKey())):
-      if can_bisect.MasterNameIsBlacklistedForTriageBisects(
+      if can_bisect.DomainIsExcludedFromTriageBisects(
           anomaly_entity.master_name):
-        found_blacklisted_master = True
+        found_excluded_domain = True
         continue
       return anomaly_entity
-  if found_blacklisted_master:
+  if found_excluded_domain:
     raise NotBisectableError(
-        'Did not kick off bisect because only available masters are '
-        'blacklisted from automatic bisects on triage.')
+        'Did not kick off bisect because only available domains are '
+        'excluded from automatic bisects on triage.')
   return None
 
 

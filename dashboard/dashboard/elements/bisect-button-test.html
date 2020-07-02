@@ -26,7 +26,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(button);
   }, testOptions);
 
-  test('onlyOneRevision_ButtonDisabled', function() {
+  test('onlyOneRevision_ButtonEnabled', function() {
     const button = document.createElement('bisect-button');
     button.bisectInfo = {
       goodRev: 1,
@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
       canBisect: true
     };
     this.addHTMLOutput(button);
-    assert.isTrue(button.$.button.disabled);
+    assert.isFalse(button.$.button.disabled);
   }, testOptions);
 
   test('moreThanOneRevision_ButtonEnabled', function() {
