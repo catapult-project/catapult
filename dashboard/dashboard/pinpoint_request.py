@@ -24,12 +24,6 @@ from dashboard.services import crrev_service
 from dashboard.services import pinpoint_service
 
 _NON_CHROME_TARGETS = ['v8']
-# TODO(simonhatch): Find a more official way to lookup isolate targets for
-# suites; crbug.com/950165
-_ISOLATE_TARGETS = [
-    'angle_perftests', 'base_perftests', 'cc_perftests', 'gpu_perftests',
-    'load_library_perf_tests', 'media_perftests', 'net_perftests',
-    'performance_browser_tests', 'tracing_perftests']
 _SUITE_CRREV_CONFIGS = {
     'v8': ['chromium', 'v8/v8'],
 }
@@ -147,33 +141,17 @@ def ResolveToGitHash(commit_position, suite, crrev=None):
   return commit_position
 
 
-def GetIsolateTarget(bot_name, suite, start_commit,
-                     end_commit, only_telemetry=False):
+def GetIsolateTarget(bot_name, suite):
   if suite in _NON_CHROME_TARGETS:
     return ''
-
-  if suite in _ISOLATE_TARGETS:
-    if only_telemetry:
-      raise InvalidParamsError('Only telemetry is supported at the moment.')
-    return suite
 
   # ChromeVR
   if suite.startswith('xr.'):
     return 'vr_perf_tests'
 
-  try:
-    # TODO: Remove this code path in 2019.
-    average_commit = (int(start_commit) + int(end_commit)) / 2
-    if 'android' in bot_name and average_commit < 572268:
-      if 'webview' in bot_name.lower():
-        return 'telemetry_perf_webview_tests'
-      return 'telemetry_perf_tests'
-
-    if 'win' in bot_name and average_commit < 571917:
-      return 'telemetry_perf_tests'
-  except ValueError:
-    pass
-
+  # This is a special-case for webview, which we probably don't need to handle
+  # in the Dashboard (instead should just support in Pinpoint through
+  # configuration).
   if 'webview' in bot_name.lower():
     return 'performance_webview_test_suite'
   return 'performance_test_suite'
@@ -238,11 +216,10 @@ def PinpointParamsFromPerfTryParams(params):
 
   # Pinpoint also requires you specify which isolate target to run the
   # test, so we derive that from the suite name. Eventually, this would
-  # ideally be stored in a SparesDiagnostic but for now we can guess.
-  target = GetIsolateTarget(bot_name, suite, start_commit,
-                            end_commit, only_telemetry=True)
+  # ideally be stored in a SparseDiagnostic but for now we can guess.
+  target = GetIsolateTarget(bot_name, suite)
 
-  extra_test_args = params['extra_test_args']
+  extra_test_args = params.get('extra_test_args')
 
   email = utils.GetEmail()
   job_name = 'Try job on %s/%s' % (bot_name, suite)
@@ -305,7 +282,7 @@ def PinpointParamsFromBisectParams(params):
   # Pinpoint also requires you specify which isolate target to run the
   # test, so we derive that from the suite name. Eventually, this would
   # ideally be stored in a SparesDiagnostic but for now we can guess.
-  target = GetIsolateTarget(bot_name, suite, start_commit, end_commit)
+  target = GetIsolateTarget(bot_name, suite)
 
   email = utils.GetEmail()
   job_name = '%s bisect on %s/%s' % (bisect_mode.capitalize(), bot_name, suite)
