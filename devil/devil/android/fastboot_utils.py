@@ -38,7 +38,7 @@ _KNOWN_PARTITIONS = collections.OrderedDict([
     # https://source.android.com/devices/tech/ota/ab/ab_implement#recovery
     ('recovery', {
         'image': 'recovery.img',
-        'ab_exclusive': False
+        'optional': lambda fu: fu.supports_ab
     }),
     ('system', {
         'image': 'system.img'
@@ -52,81 +52,22 @@ _KNOWN_PARTITIONS = collections.OrderedDict([
     ('cache', {
         'image': 'cache.img',
         'wipe_only': True,
-        'ab_exclusive': False
+        'optional': lambda fu: fu.supports_ab
     }),
     ('vendor', {
         'image': 'vendor*.img',
-        'optional': True
+        'optional': lambda _: True
     }),
     ('dtbo', {
         'image': 'dtbo.img',
-        'ab_exclusive': True
+        'optional': lambda fu: not fu.requires_dtbo
     }),
     ('vbmeta', {
         'image': 'vbmeta.img',
-        'ab_exclusive': True
+        'optional': lambda fu: not fu.requires_vbmeta
     }),
 ])
 ALL_PARTITIONS = _KNOWN_PARTITIONS.keys()
-
-
-def _FindAndVerifyPartitionsAndImages(partitions, directory, supports_ab):
-  """Validate partitions and images.
-
-  Validate all partition names and partition directories. Cannot stop mid
-  flash so its important to validate everything first.
-
-  Args:
-    Partitions: partitions to be tested.
-    directory: directory containing the images.
-    supports_ab: boolean to indicate if the device supports A/B system updates.
-
-  Returns:
-    Dictionary with exact partition, image name mapping.
-  """
-
-  files = os.listdir(directory)
-  return_dict = collections.OrderedDict()
-
-  def find_file(pattern):
-    for filename in files:
-      if fnmatch.fnmatch(filename, pattern):
-        return os.path.join(directory, filename)
-    return None
-
-  def is_image_required(partition_info, supports_ab):
-    """Check if an image is required.
-
-    An image will be required if:
-     - key 'optional' does not exist in partition_info.
-     - and (
-        - the device does not support A/B updates,
-        - and key 'ab_exclusive' does not exist or is False in partition_info.
-       ) or (
-        - the device supports A/B updates,
-        - and key 'ab_exclusive' does not exist or is True in partition_info.
-       )
-    """
-    return (not 'optional' in partition_info
-            and ((not supports_ab and
-                  (not 'ab_exclusive' in partition_info
-                   or not partition_info.get('ab_exclusive'))) or
-                 (supports_ab and (not 'ab_exclusive' in partition_info
-                                   or partition_info.get('ab_exclusive')))))
-
-  for partition in partitions:
-    partition_info = _KNOWN_PARTITIONS[partition]
-    image_file = find_file(partition_info['image'])
-    if image_file:
-      return_dict[partition] = image_file
-    elif is_image_required(partition_info, supports_ab):
-      raise device_errors.FastbootCommandFailedError(
-          [],
-          '',
-          message='Failed to flash device%s. Could not find image for %s.' %
-          (' which supports A/B updates' if supports_ab else '',
-           partition_info['image']))
-  return return_dict
 
 
 class FastbootUtils(object):
@@ -174,7 +115,10 @@ class FastbootUtils(object):
 
     self._default_timeout = default_timeout
     self._default_retries = default_retries
+
     self._supports_ab = None
+    self._requires_dtbo = None
+    self._requires_vbmeta = None
 
   @property
   def supports_ab(self):
@@ -196,10 +140,43 @@ class FastbootUtils(object):
         # According to https://bit.ly/2UlJkGa and https://bit.ly/2MG8CL0,
         # the property 'ro.build.ab_update' will be defined if the device
         # supports A/B system updates.
-        self._supports_ab = (
-            self._device.GetProp('ro.build.ab_update') == 'true')
+        self._supports_ab = self._device.GetProp('ro.build.ab_update') == 'true'
 
     return self._supports_ab
+
+  @property
+  def requires_dtbo(self):
+    if self._requires_dtbo is None:
+      if self.IsFastbootMode():
+        try:
+          self._requires_dtbo = self.fastboot.GetVar('has-slot:dtbo') == 'yes'
+        except device_errors.FastbootCommandFailedError:
+          self._requires_dtbo = False
+      else:
+        # This prop will be set when a device supports dtbo.
+        # See https://bit.ly/2VUjBp0.
+        # Checking if this prop has a non-empty value should be good enough.
+        self._requires_dtbo = len(self._device.GetProp('ro.boot.dtbo_idx')) > 0
+
+    return self._requires_dtbo
+
+  @property
+  def requires_vbmeta(self):
+    if self._requires_vbmeta is None:
+      if self.IsFastbootMode():
+        try:
+          self._requires_vbmeta = self.fastboot.GetVar(
+              'has-slot:vbmeta') == 'yes'
+        except device_errors.FastbootCommandFailedError:
+          self._requires_vbmeta = False
+      else:
+        # This prop will be set when a device uses Android Verified Boot (avb).
+        # See https://bit.ly/2CbsO5z.
+        # Checking if this prop has a non-empty value should be good enough.
+        self._requires_vbmeta = len(
+            self._device.GetProp('ro.boot.vbmeta.digest')) > 0
+
+    return self._requires_vbmeta
 
   def IsFastbootMode(self):
     return self._serial in (str(d) for d in self.fastboot.Devices())
@@ -305,8 +282,8 @@ class FastbootUtils(object):
             'device type. Run again with force=True to force flashing with an '
             'unverified board.')
 
-    flash_image_files = _FindAndVerifyPartitionsAndImages(
-        partitions, directory, self.supports_ab)
+    flash_image_files = self._FindAndVerifyPartitionsAndImages(
+        partitions, directory)
     partitions = flash_image_files.keys()
     for partition in partitions:
       if _KNOWN_PARTITIONS[partition].get('wipe_only') and not wipe:
@@ -318,6 +295,44 @@ class FastbootUtils(object):
         self.fastboot.Flash(partition, flash_image_files[partition])
         if _KNOWN_PARTITIONS[partition].get('restart', False):
           self.Reboot(bootloader=True)
+
+  def _FindAndVerifyPartitionsAndImages(self, partitions, directory):
+    """Validate partitions and images.
+
+    Validate all partition names and partition directories. Cannot stop mid
+    flash so its important to validate everything first.
+
+    Args:
+      Partitions: partitions to be tested.
+      directory: directory containing the images.
+
+    Returns:
+      Dictionary with exact partition, image name mapping.
+    """
+
+    files = os.listdir(directory)
+    return_dict = collections.OrderedDict()
+
+    def find_file(pattern):
+      for filename in files:
+        if fnmatch.fnmatch(filename, pattern):
+          return os.path.join(directory, filename)
+      return None
+
+    for partition in partitions:
+      partition_info = _KNOWN_PARTITIONS[partition]
+      image_file = find_file(partition_info['image'])
+      if image_file:
+        return_dict[partition] = image_file
+      elif (not 'optional' in partition_info
+            or not partition_info['optional'](self)):
+        raise device_errors.FastbootCommandFailedError(
+            [],
+            '',
+            message='Failed to flash device%s. Could not find image for %s.' %
+            (' which supports A/B updates' if self.supports_ab else '',
+             partition_info['image']))
+    return return_dict
 
   @contextlib.contextmanager
   def FastbootMode(self, wait_for_reboot=True, timeout=None, retries=None):
