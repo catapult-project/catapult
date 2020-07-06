@@ -202,6 +202,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner.args.retry_only_retry_on_failure_tests = (
         args.retry_only_retry_on_failure_tests)
     runner.args.path.append(util.GetUnittestDataDir())
+    runner.args.quiet = args.quiet
 
     # Standard verbosity will only emit output on test failure. Higher verbosity
     # levels spam the output with logging, making it very difficult to figure

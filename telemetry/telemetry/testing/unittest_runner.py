@@ -9,9 +9,9 @@ import sys
 from telemetry.core import util
 
 
-def Run(project_config, no_browser=False,
-        disable_cloud_storage_io_during_test=False, passed_args=None):
-  args = passed_args or sys.argv[1:]
+def ProcessConfig(project_config, args=None, no_browser=False,
+                  disable_cloud_storage_io_during_test=False):
+  args = args or []
   assert '--top-level-dir' not in args, (
       'Top level directory for running tests should be specified through '
       'the instance of telemetry.project_config.ProjectConfig.')
@@ -32,7 +32,13 @@ def Run(project_config, no_browser=False,
 
   if disable_cloud_storage_io_during_test:
     args.extend(['--disable-cloud-storage-io'])
+  return args
 
+
+def Run(project_config, no_browser=False,
+        disable_cloud_storage_io_during_test=False, passed_args=None):
+  args = ProcessConfig(project_config, passed_args or sys.argv[1:], no_browser,
+                       disable_cloud_storage_io_during_test)
   env = os.environ.copy()
   telemetry_dir = util.GetTelemetryDir()
   if 'PYTHONPATH' in env:
