@@ -74,6 +74,8 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       return os_version_module.MOJAVE
     if os_version.startswith('19.'):
       return os_version_module.CATALINA
+    if os_version.startswith('20.'):
+      return os_version_module.BIGSUR
 
     raise NotImplementedError('Unknown mac version %s.' % os_version)
 

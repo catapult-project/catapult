@@ -13,6 +13,12 @@ from telemetry import decorators
 
 class MacPlatformBackendTest(unittest.TestCase):
   def testVersionCamparison(self):
+    self.assertGreater(os_version.BIGSUR, os_version.CATALINA)
+    self.assertGreater(os_version.CATALINA, os_version.MOJAVE)
+    self.assertGreater(os_version.MOJAVE, os_version.HIGHSIERRA)
+    self.assertGreater(os_version.HIGHSIERRA, os_version.SIERRA)
+    self.assertGreater(os_version.SIERRA, os_version.ELCAPITAN)
+    self.assertGreater(os_version.ELCAPITAN, os_version.YOSEMITE)
     self.assertGreater(os_version.YOSEMITE, os_version.MAVERICKS)
     self.assertGreater(os_version.MAVERICKS, os_version.SNOWLEOPARD)
     self.assertGreater(os_version.LION, os_version.LEOPARD)
