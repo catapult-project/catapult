@@ -165,8 +165,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     if self._cri:
       self._cri.RestartUI(False) # Logs out.
-      self._cri.CloseConnection()
       py_utils.WaitFor(lambda: not self._IsCryptohomeMounted(), 180)
+      self._cri.CloseConnection()
 
     self._cri = None
 
