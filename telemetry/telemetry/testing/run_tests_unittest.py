@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import contextlib
 import os
 import tempfile
 import unittest
@@ -23,18 +22,6 @@ class MockArgs(object):
     self.exact_test_filter = True
     self.run_disabled_tests = False
     self.skip = []
-
-
-@contextlib.contextmanager
-def _ReinitializeDependencyManager():
-  # TODO(crbug.com/1099856): Fix telemetry binary_manager API so that
-  # we don't need to access its private global variable
-  old_manager = binary_manager._binary_manager
-  try:
-    binary_manager._binary_manager = None
-    yield
-  finally:
-    binary_manager._binary_manager = old_manager
 
 
 class MockPossibleBrowser(object):
@@ -123,7 +110,7 @@ class RunTestsUnitTest(unittest.TestCase):
       passed_args.append('--write-full-results-to=%s' % temp_file_name)
       args = unittest_runner.ProcessConfig(config, passed_args + extra_args)
       test_runner = run_tests.RunTestsCommand()
-      with _ReinitializeDependencyManager():
+      with binary_manager.TemporarilyReplaceBinaryManager(None):
         ret = test_runner.main(args=args)
       assert ret == expected_return_code, (
           'actual return code %d, does not equal the expected return code %d' %
@@ -170,7 +157,7 @@ class RunTestsUnitTest(unittest.TestCase):
                      ['--tag=%s' % tag for tag in test_tags.split()])
       args = unittest_runner.ProcessConfig(config, passed_args + extra_args)
       test_runner = run_tests.RunTestsCommand()
-      with _ReinitializeDependencyManager():
+      with binary_manager.TemporarilyReplaceBinaryManager(None):
         ret = test_runner.main(args=args)
       self.assertEqual(ret, expected_exit_code)
       with open(results.name) as f:

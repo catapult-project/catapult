@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import contextlib
 import logging
 import os
 
@@ -66,8 +67,7 @@ def NeedsInit():
 
 
 def InitDependencyManager(client_configs):
-  global _binary_manager # pylint: disable=global-statement
-  if _binary_manager:
+  if GetBinaryManager():
     raise exceptions.InitializationError(
         'Trying to re-initialize the binary manager with config %s'
         % client_configs)
@@ -75,9 +75,28 @@ def InitDependencyManager(client_configs):
   if client_configs:
     configs += client_configs
   configs += [TELEMETRY_PROJECT_CONFIG, CHROME_BINARY_CONFIG]
-  _binary_manager = binary_manager.BinaryManager(configs)
+  SetBinaryManager(binary_manager.BinaryManager(configs))
 
   devil_env.config.Initialize()
+
+
+@contextlib.contextmanager
+def TemporarilyReplaceBinaryManager(manager):
+  old_manager = GetBinaryManager()
+  try:
+    SetBinaryManager(manager)
+    yield
+  finally:
+    SetBinaryManager(old_manager)
+
+
+def GetBinaryManager():
+  return _binary_manager
+
+
+def SetBinaryManager(manager):
+  global _binary_manager # pylint: disable=global-statement
+  _binary_manager = manager
 
 
 def _IsChromeOSLocalMode(os_name):
@@ -94,10 +113,10 @@ def FetchPath(binary_name, os_name, arch, os_version=None):
   """ Return a path to the appropriate executable for <binary_name>, downloading
       from cloud storage if needed, or None if it cannot be found.
   """
-  if _binary_manager is None:
+  if GetBinaryManager() is None:
     raise exceptions.InitializationError(
         'Called FetchPath with uninitialized binary manager.')
-  return _binary_manager.FetchPath(
+  return GetBinaryManager().FetchPath(
       binary_name, 'linux' if _IsChromeOSLocalMode(os_name) else os_name,
       arch, os_version)
 
@@ -106,10 +125,10 @@ def LocalPath(binary_name, os_name, arch, os_version=None):
   """ Return a local path to the given binary name, or None if an executable
       cannot be found. Will not download the executable.
       """
-  if _binary_manager is None:
+  if GetBinaryManager() is None:
     raise exceptions.InitializationError(
         'Called LocalPath with uninitialized binary manager.')
-  return _binary_manager.LocalPath(binary_name, os_name, arch, os_version)
+  return GetBinaryManager().LocalPath(binary_name, os_name, arch, os_version)
 
 
 def FetchBinaryDependencies(
