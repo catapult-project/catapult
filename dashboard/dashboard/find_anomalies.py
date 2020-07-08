@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Processes tests and creates new Anomaly entities.
 
 This module contains the ProcessTest function, which searches the recent
@@ -32,6 +31,7 @@ from tracing.value.diagnostics import reserved_infos
 # Number of points to fetch and pass to FindChangePoints. A different number
 # may be used if a test has a "max_window_size" anomaly config parameter.
 DEFAULT_NUM_POINTS = 50
+
 
 @ndb.synctasklet
 def ProcessTests(test_keys):
@@ -79,8 +79,7 @@ def _ProcessTest(test_key):
   for s, rows in rows_by_stat.items():
     if rows:
       logging.info('Processing test: %s', test_key.id())
-      yield _ProcessTestStat(
-          config, test, s, rows, ref_rows_by_stat.get(s))
+      yield _ProcessTestStat(config, test, s, rows, ref_rows_by_stat.get(s))
 
 
 def _EmailSheriff(sheriff, test_key, anomaly_key):
@@ -106,11 +105,12 @@ def _ProcessTestStat(config, test, stat, rows, ref_rows):
     ref_change_points = FindChangePointsForTest(ref_rows, config)
 
     # Filter using any jumps in ref
-    change_points = _FilterAnomaliesFoundInRef(
-        change_points, ref_change_points, test_key)
+    change_points = _FilterAnomaliesFoundInRef(change_points, ref_change_points,
+                                               test_key)
 
   anomalies = yield [
-      _MakeAnomalyEntity(c, test, stat, rows) for c in change_points]
+      _MakeAnomalyEntity(c, test, stat, rows) for c in change_points
+  ]
 
   # If no new anomalies were found, then we're done.
   if not anomalies:
@@ -136,9 +136,12 @@ def _ProcessTestStat(config, test, stat, rows, ref_rows):
   for a in anomalies:
     a.subscriptions = subscriptions
     a.subscription_names = subscription_names
-    a.internal_only = (any([s.visibility != subscription.VISIBILITY.PUBLIC
-                            for s in subscriptions]) or test.internal_only)
-    a.groups = alert_group.AlertGroup.GetGroupsForAnomaly(a)
+    a.internal_only = (
+        any([
+            s.visibility != subscription.VISIBILITY.PUBLIC
+            for s in subscriptions
+        ]) or test.internal_only)
+    a.groups = alert_group.AlertGroup.GetGroupsForAnomaly(a, subscriptions)
 
   yield ndb.put_multi_async(anomalies)
 
@@ -146,8 +149,7 @@ def _ProcessTestStat(config, test, stat, rows, ref_rows):
   # code will run serially.
   # Email sheriff about any new regressions.
   for anomaly_entity in anomalies:
-    if (anomaly_entity.bug_id is None and
-        not anomaly_entity.is_improvement):
+    if anomaly_entity.bug_id is None and not anomaly_entity.is_improvement:
       deferred.defer(_EmailSheriff, anomaly_entity.subscriptions, test.key,
                      anomaly_entity.key)
 
@@ -199,8 +201,8 @@ def GetRowsToAnalyzeAsync(test, max_num_rows):
 
   results = {}
   for s in alerted_stats:
-    results[s] = _FetchRowsByStat(
-        test.key, s, latest_alert_by_stat[s], max_num_rows)
+    results[s] = _FetchRowsByStat(test.key, s, latest_alert_by_stat[s],
+                                  max_num_rows)
 
   for s in results.keys():
     results[s] = yield results[s]
@@ -335,11 +337,9 @@ def _GetDisplayRange(old_end, rows):
   """
   start_rev = end_rev = 0
   for (revision, row, _) in reversed(rows):
-    if (revision == old_end and
-        hasattr(row, 'r_commit_pos')):
+    if revision == old_end and hasattr(row, 'r_commit_pos'):
       end_rev = row.r_commit_pos
-    elif (revision < old_end and
-          hasattr(row, 'r_commit_pos')):
+    elif revision < old_end and hasattr(row, 'r_commit_pos'):
       start_rev = row.r_commit_pos + 1
       break
   if not end_rev or not start_rev:
@@ -374,11 +374,12 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
 
   queried_diagnostics = yield (
       histogram.SparseDiagnostic.GetMostRecentDataByNamesAsync(
-          suite_key, set([reserved_infos.BUG_COMPONENTS.name,
-                          reserved_infos.OWNERS.name])))
+          suite_key,
+          set([reserved_infos.BUG_COMPONENTS.name,
+               reserved_infos.OWNERS.name])))
 
-  bug_components = queried_diagnostics.get(
-      reserved_infos.BUG_COMPONENTS.name, {}).get('values')
+  bug_components = queried_diagnostics.get(reserved_infos.BUG_COMPONENTS.name,
+                                           {}).get('values')
   if bug_components:
     bug_components = bug_components[0]
     # TODO(902796): Remove this typecheck.
@@ -386,9 +387,11 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
       bug_components = bug_components[0]
 
   ownership_information = {
-      'emails': queried_diagnostics.get(
-          reserved_infos.OWNERS.name, {}).get('values'),
-      'component': bug_components}
+      'emails':
+          queried_diagnostics.get(reserved_infos.OWNERS.name, {}).get('values'),
+      'component':
+          bug_components
+  }
 
   # Compute additional anomaly metadata.
   def MinMax(iterable):
@@ -402,8 +405,7 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
     return min_, max_
 
   earliest_input_timestamp, latest_input_timestamp = MinMax(
-      r.timestamp for unused_rev, r, unused_val in rows
-  )
+      r.timestamp for unused_rev, r, unused_val in rows)
 
   new_anomaly = anomaly.Anomaly(
       start_revision=start_rev,
@@ -456,10 +458,10 @@ def _IsImprovement(test, median_before, median_after):
   Returns:
     True if it is improvement anomaly, otherwise False.
   """
-  if (median_before < median_after and
-      test.improvement_direction == anomaly.UP):
+  if (median_before < median_after
+      and test.improvement_direction == anomaly.UP):
     return True
-  if (median_before >= median_after and
-      test.improvement_direction == anomaly.DOWN):
+  if (median_before >= median_after
+      and test.improvement_direction == anomaly.DOWN):
     return True
   return False

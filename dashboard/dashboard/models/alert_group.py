@@ -34,6 +34,7 @@ class BugInfo(ndb.Model):
 class AlertGroup(ndb.Model):
   name = ndb.StringProperty(indexed=True)
   domain = ndb.StringProperty(indexed=True)
+  subscription_name = ndb.StringProperty(indexed=True)
   created = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
   updated = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
 
@@ -54,26 +55,29 @@ class AlertGroup(ndb.Model):
 
   def IsOverlapping(self, b):
     return (self.name == b.name and self.domain == b.domain
+            and self.subscription_name == b.subscription_name
             and self.project_id == b.project_id
             and self.revision.IsOverlapping(b.revision))
 
   @classmethod
-  def GenerateAllGroupsForAnomaly(cls, anomaly_entity, sheriff_config=None):
-    sheriff_config = (
-        sheriff_config or sheriff_config_client.GetSheriffConfigClient())
-    subscriptions, _ = sheriff_config.Match(
-        anomaly_entity.test.string_id(), check=True)
+  def GenerateAllGroupsForAnomaly(cls,
+                                  anomaly_entity,
+                                  sheriff_config=None,
+                                  subscriptions=None):
+    if subscriptions is None:
+      sheriff_config = (
+          sheriff_config or sheriff_config_client.GetSheriffConfigClient())
+      subscriptions, _ = sheriff_config.Match(
+          anomaly_entity.test.string_id(), check=True)
 
-    # We want to create an issue per project if multiple subscriptions apply to
-    # this anomaly that have different projects.
-    projects = set(s.monorail_project_id for s in subscriptions)
     return [
         # TODO(fancl): Support multiple group name
         cls(
             id=str(uuid.uuid4()),
             name=anomaly_entity.benchmark_name,
             domain=anomaly_entity.master_name,
-            project_id=project,
+            subscription_name=s.name,
+            project_id=s.monorail_project_id,
             status=cls.Status.untriaged,
             active=True,
             revision=RevisionRange(
@@ -81,11 +85,11 @@ class AlertGroup(ndb.Model):
                 start=anomaly_entity.start_revision,
                 end=anomaly_entity.end_revision,
             ),
-        ) for project in projects
+        ) for s in subscriptions
     ]
 
   @classmethod
-  def GetGroupsForAnomaly(cls, anomaly_entity):
+  def GetGroupsForAnomaly(cls, anomaly_entity, subscriptions):
     # TODO(fancl): Support multiple group name
     name = anomaly_entity.benchmark_name
     revision = RevisionRange(
@@ -93,7 +97,16 @@ class AlertGroup(ndb.Model):
         start=anomaly_entity.start_revision,
         end=anomaly_entity.end_revision,
     )
-    groups = cls.Get(name, revision) or cls.Get('Ungrouped', None)
+    subscription_names = [s.name for s in subscriptions]
+    groups = [
+        g for g in cls.Get(name, revision)
+        if g.subscription_name in subscription_names
+    ]
+    all_groups = cls.GenerateAllGroupsForAnomaly(
+        anomaly_entity, subscriptions=subscriptions)
+    if not groups or not all(
+        any(g1.IsOverlapping(g2) for g2 in groups) for g1 in all_groups):
+      groups += cls.Get('Ungrouped', None)
     return [g.key for g in groups]
 
   @classmethod

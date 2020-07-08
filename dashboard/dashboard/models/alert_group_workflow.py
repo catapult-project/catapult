@@ -164,8 +164,12 @@ class AlertGroupWorkflow(object):
       subscriptions, _ = self._sheriff_config.Match(
           a.test.string_id(), check=True)
       a.subscriptions = subscriptions
-      a.auto_triage_enable = any(s.auto_triage_enable for s in subscriptions)
-      a.auto_bisect_enable = any(s.auto_bisect_enable for s in subscriptions)
+      a.auto_triage_enable = any(s.auto_triage_enable
+                                 for s in subscriptions
+                                 if s.name == self._group.subscription_name)
+      a.auto_bisect_enable = any(s.auto_bisect_enable
+                                 for s in subscriptions
+                                 if s.name == self._group.subscription_name)
       a.relative_delta = (
           abs(a.absolute_delta / float(a.median_before_anomaly))
           if a.median_before_anomaly != 0. else float('Inf'))

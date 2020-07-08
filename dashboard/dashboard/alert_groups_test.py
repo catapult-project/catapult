@@ -15,6 +15,7 @@ import webapp2
 import webtest
 
 from dashboard import alert_groups
+from dashboard import sheriff_config_client
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import alert_group
@@ -72,14 +73,17 @@ class GroupReportTestBase(testing_common.TestCase):
     default['test'] = utils.TestKey(default['test'])
     graph_data.TestMetadata(key=default['test']).put()
     a = anomaly.Anomaly(**default)
-    a.groups = alert_group.AlertGroup.GetGroupsForAnomaly(a)
+    clt = sheriff_config_client.GetSheriffConfigClient()
+    subscriptions, _ = clt.Match(a)
+    a.groups = alert_group.AlertGroup.GetGroupsForAnomaly(a, subscriptions)
     return a.put()
 
 
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
 class GroupReportTest(GroupReportTestBase):
 
-  def testNoGroup(self, _):
+  def testNoGroup(self, mock_get_sheriff_client):
+    self._SetUpMocks(mock_get_sheriff_client)
     # Put an anomaly before Ungrouped is created
     self._AddAnomaly()
 
@@ -102,7 +106,7 @@ class GroupReportTest(GroupReportTestBase):
     self.assertEqual(len(a1.get().groups), 1)
     self.assertEqual(a1.get().groups[0].get().name, 'test_suite')
 
-  def testMultipleAltertsGroupingDifferentMaster(self, mock_get_sheriff_client):
+  def testMultipleAltertsGroupingDifferentDomain(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     self.testapp.get('/alert_groups_update')
     self.ExecuteDeferredTasks('default')
@@ -154,6 +158,52 @@ class GroupReportTest(GroupReportTestBase):
     self.assertItemsEqual(group.anomalies, [a1, a2, a4])
     group = alert_group.AlertGroup.Get('other', None)[0]
     self.assertItemsEqual(group.anomalies, [a3])
+
+  def testMultipleAltertsGroupingMultipleSheriff(self, mock_get_sheriff_client):
+    self._SetUpMocks(mock_get_sheriff_client)
+    mock_get_sheriff_client().Match.return_value = ([
+        subscription.Subscription(
+            name='sheriff1', auto_triage_enable=True, auto_bisect_enable=True),
+        subscription.Subscription(
+            name='sheriff2', auto_triage_enable=True, auto_bisect_enable=True),
+    ], None)
+    self.testapp.get('/alert_groups_update')
+    self.ExecuteDeferredTasks('default')
+    # Add anomaly
+    a1 = self._AddAnomaly()
+    # Create Group
+    self._CallHandler()
+    # Update Group to associate alerts
+    self._CallHandler()
+    # Add another anomaly with part of the subscription
+    mock_get_sheriff_client().Match.return_value = ([
+        subscription.Subscription(
+            name='sheriff1', auto_triage_enable=True, auto_bisect_enable=True),
+    ], None)
+    a2 = self._AddAnomaly()
+    # Update Group to associate alerts
+    self._CallHandler()
+    # Add another anomaly with different subscription
+    mock_get_sheriff_client().Match.return_value = ([
+        subscription.Subscription(
+            name='sheriff2', auto_triage_enable=True, auto_bisect_enable=True),
+        subscription.Subscription(
+            name='sheriff3', auto_triage_enable=True, auto_bisect_enable=True),
+    ], None)
+    a3 = self._AddAnomaly()
+    # Create Group
+    self._CallHandler()
+    # Update Group to associate alerts
+    self._CallHandler()
+
+    groups = {
+        g.subscription_name: g
+        for g in alert_group.AlertGroup.Get('test_suite', None)
+    }
+    self.assertItemsEqual(groups.keys(), ['sheriff1', 'sheriff2', 'sheriff3'])
+    self.assertItemsEqual(groups['sheriff1'].anomalies, [a1, a2])
+    self.assertItemsEqual(groups['sheriff2'].anomalies, [a1, a3])
+    self.assertItemsEqual(groups['sheriff3'].anomalies, [a3])
 
   def testMultipleAltertsGroupingPointRange(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)

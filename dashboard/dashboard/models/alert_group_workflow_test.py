@@ -63,6 +63,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
   @staticmethod
   def _AddAlertGroup(anomaly_key,
+                     subscription_name=None,
                      issue=None,
                      anomalies=None,
                      status=None,
@@ -72,6 +73,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     group = alert_group.AlertGroup(
         id=str(uuid.uuid4()),
         name=anomaly_entity.benchmark_name,
+        subscription_name=subscription_name or 'sheriff',
         status=alert_group.AlertGroup.Status.untriaged,
         project_id=project_id or 'chromium',
         active=True,
@@ -381,6 +383,36 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         ))
     self.assertIn('2 regressions', self._issue_tracker.new_bug_args[0])
 
+  def testTriage_GroupUntriaged_MultiSubscriptions(self):
+    anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        status=alert_group.AlertGroup.Status.untriaged,
+    )
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(name='sheriff'),
+            subscription.Subscription(
+                name='sheriff_not_bind', auto_triage_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ),
+    )
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=None,
+        ))
+    self.assertIsNone(self._issue_tracker.new_bug_args)
+
   def testTriage_NonChromiumProject(self):
     anomalies = [self._AddAnomaly()]
     # TODO(dberris): Figure out a way to not have to hack the fake service to
@@ -579,6 +611,43 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(['123456'], group.get().bisection_ids)
     self.assertEqual(['Chromeperf-Auto-Bisected'],
                      self._issue_tracker.add_comment_kwargs['labels'])
+
+  def testBisect_GroupTriaged_MultiSubscriptions(self):
+    anomalies = [
+        self._AddAnomaly(median_before_anomaly=0.2),
+        self._AddAnomaly(median_before_anomaly=0.1),
+    ]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    self._issue_tracker.issue.update({
+        'state': 'open',
+    })
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(name='sheriff'),
+            subscription.Subscription(
+                name='sheriff_not_bind',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
+    self.assertIsNone(self._pinpoint.new_job_request)
 
   def testBisect_GroupBisected(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
