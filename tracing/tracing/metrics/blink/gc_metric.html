@@ -57,6 +57,17 @@ tr.exportTo('tr.metrics.blink', function() {
     'BlinkGC.IncrementalMarkingStartMarking',
   ].concat(BLINK_GC_FOREGROUND_MARKING_TRANSITIVE_CLOSURE_EVENTS);
 
+  // Names of Blink GC foreground marking events in timeline.
+  const BLINK_GC_FORCED_FOREGROUND_MARKING_EVENTS = [
+    'BlinkGC.AtomicPauseMarkEpilogue',
+    'BlinkGC.AtomicPauseMarkPrologue',
+    'BlinkGC.AtomicPauseMarkRoots',
+    'BlinkGC.IncrementalMarkingStartMarking',
+    'BlinkGC.MarkBailOutObjects',
+    'BlinkGC.MarkFlushV8References',
+    'BlinkGC.MarkFlushEphemeronPairs',
+  ];
+
   // Names of Blink GC background marking events in timeline.
   const BLINK_TOP_GC_BACKGROUND_MARKING_EVENTS = [
     'BlinkGC.ConcurrentMarkingStep'
@@ -138,6 +149,12 @@ tr.exportTo('tr.metrics.blink', function() {
            isNonForcedEvent(event);
   }
 
+  function isNonForcedBlinkGarbageCollectionForcedForegroundMarkEvent(event) {
+    return BLINK_GC_FORCED_FOREGROUND_MARKING_EVENTS.includes(
+        event.title) &&
+           isNonForcedEvent(event);
+  }
+
   function isNonForcedBlinkGarbageCollectionBackgroundMarkingEvent(event) {
     return BLINK_TOP_GC_BACKGROUND_MARKING_EVENTS.includes(event.title) &&
            isNonForcedEvent(event);
@@ -168,6 +185,7 @@ tr.exportTo('tr.metrics.blink', function() {
     addTotalDurationOfRootsMarking(histograms, model);
     addTotalDurationOfMarkingTransitiveClosure(histograms, model);
     addTotalDurationOfForegroundMarking(histograms, model);
+    addTotalDurationOfForcedForegroundMarking(histograms, model);
     addTotalDurationOfBackgroundMarking(histograms, model);
     addTotalDurationOfForegroundSweeping(histograms, model);
     addTotalDurationOfBackgroundSweeping(histograms, model);
@@ -353,6 +371,25 @@ tr.exportTo('tr.metrics.blink', function() {
           histograms.addHistogram(cpuDuration);
         },
         ['blink-gc-mark-foreground']
+    );
+  }
+
+  /**
+   * Example output:
+   * - blink-gc-mark-foreground-forced
+   */
+  function addTotalDurationOfForcedForegroundMarking(histograms, model) {
+    tr.metrics.v8.utils.groupAndProcessEvents(model,
+        isNonForcedBlinkGarbageCollectionForcedForegroundMarkEvent,
+        event => 'blink-gc-mark-foreground-forced',
+        function(name, events) {
+          const cpuDuration = createNumericForTotalEventTime(name);
+          for (const event of events) {
+            cpuDuration.addSample(event.cpuDuration);
+          }
+          histograms.addHistogram(cpuDuration);
+        },
+        ['blink-gc-mark-foreground-forced']
     );
   }
 
