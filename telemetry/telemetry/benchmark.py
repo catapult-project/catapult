@@ -154,6 +154,10 @@ class Benchmark(command_line.Command):
       links.append(['Benchmark documentation link', url])
     return links
 
+  def GetInfoBlurb(self):
+    """Return any info blurb associated with the the benchmark"""
+    return decorators.GetInfoBlurb(self)
+
   def CreateCoreTimelineBasedMeasurementOptions(self):
     """Return the base TimelineBasedMeasurementOptions for this Benchmark.
 

@@ -247,7 +247,8 @@ class PageTestResults(object):
                            architecture=None,
                            device_id=None,
                            os_name=None,
-                           os_version=None):
+                           os_version=None,
+                           info_blurb=None):
     """Save diagnostics to intermediate results."""
     diag_values = [
         (reserved_infos.OWNERS, owners),
@@ -257,6 +258,7 @@ class PageTestResults(object):
         (reserved_infos.DEVICE_IDS, device_id),
         (reserved_infos.OS_NAMES, os_name),
         (reserved_infos.OS_VERSIONS, os_version),
+        (reserved_infos.INFO_BLURB, info_blurb),
     ]
     for info, value in diag_values:
       if value is None or value == []:

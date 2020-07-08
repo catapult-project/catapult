@@ -136,15 +136,18 @@ class TestInfoDecorators(unittest.TestCase):
 
     @decorators.Info(emails=['owner2@chromium.org'])
     @decorators.Info(component='component',
-                     documentation_url='http://bar.com')
+                     documentation_url='http://bar.com',
+                     info_blurb='Has CVT Transmission')
     class Honda(object):
       pass
+
 
     self.assertEquals(['owner2@chromium.org'], decorators.GetEmails(Honda))
     self.assertEquals('http://bar.com', decorators.GetDocumentationLink(Honda))
     self.assertEquals('component', decorators.GetComponent(Honda))
     self.assertEquals(['owner@chromium.org'], decorators.GetEmails(Ford))
     self.assertEquals('http://foo.com', decorators.GetDocumentationLink(Ford))
+    self.assertEquals('Has CVT Transmission', decorators.GetInfoBlurb(Honda))
 
 
   def testInfoStringOnSubClass(self):
@@ -166,14 +169,13 @@ class TestInfoDecorators(unittest.TestCase):
 
 
   def testInfoWithDuplicateAttributeSetting(self):
-
+    # The class Car below is unused. It just throws an error.
+    #pylint: disable=unused-variable
     with self.assertRaises(AssertionError):
       @decorators.Info(emails=['owner2@chromium.org'])
       @decorators.Info(emails=['owner@chromium.org'], component='comp')
       class Car(object):
         pass
-
-      self.assertEquals(['owner@chromium.org'], decorators.GetEmails(Car))
 
 
 class TestShouldSkip(unittest.TestCase):

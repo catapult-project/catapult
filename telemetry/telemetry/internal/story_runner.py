@@ -422,6 +422,7 @@ def RunBenchmark(benchmark, finder_options):
         owners=benchmark.GetOwners(),
         bug_components=benchmark.GetBugComponents(),
         documentation_urls=benchmark.GetDocumentationLinks(),
+        info_blurb=benchmark.GetInfoBlurb(),
     )
 
     try:
