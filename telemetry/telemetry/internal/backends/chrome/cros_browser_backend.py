@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import logging
+import posixpath
 import shutil
 import time
 
@@ -15,6 +16,7 @@ from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.backends.chrome import cros_minidump_symbolizer
 from telemetry.internal.backends.chrome import minidump_finder
 from telemetry.internal.backends.chrome import misc_web_contents_backend
+from telemetry.internal.results import artifact_logger
 from telemetry.internal.util import format_for_logging
 
 
@@ -192,6 +194,78 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def SymbolizeMinidump(self, minidump_path):
     return self._SymbolizeMinidump(minidump_path)
+
+  def CollectDebugData(self, log_level):
+    """Collects various information that may be useful for debugging.
+
+    In addition to data captured by the parent class' implementation, also
+    captures:
+    1. Chrome logs
+    2. ChromeOS UI logs
+
+    Args:
+      log_level: The logging level to use from the logging module, e.g.
+          logging.ERROR.
+
+    Returns:
+      A debug_data.DebugData object containing the collected data.
+    """
+    self._CollectBrowserLogs(log_level)
+    self._CollectUiLogs(log_level)
+    return super(CrOSBrowserBackend, self).CollectDebugData(log_level)
+
+  def _CollectBrowserLogs(self, log_level):
+    """Helper function to handle the browser log part of CollectDebugData.
+
+    Attempts to retrieve the current and previous browser logs, merge them, and
+    save the result as an artifact.
+
+    Args:
+      log_level: The logging level to use from the logging module, e.g.
+          logging.ERROR.
+    """
+    # /var/log/chrome/chrome is the log for the current browser, but in case
+    # there's something useful in the previous browser's logs, merge chrome
+    # and chrome.PREVIOUS.
+    try:
+      current_log = self._cri.GetFileContents('/var/log/chrome/chrome')
+    except OSError:
+      logging.log(log_level, 'Unexpectedly did not find browser log')
+      return
+    current_log = '#### Current Chrome Log ####\n\n%s' % current_log
+    try:
+      previous_log = self._cri.GetFileContents(
+          '/var/log/chrome/chrome.PREVIOUS')
+    except OSError:
+      # This is expected if this is the first browser launch on this device.
+      previous_log = 'Did not find a previous Chrome log.'
+    merged_log = '%s\n\n#### Previous Chrome Log ####\n\n%s' % (current_log,
+                                                                previous_log)
+    artifact_name = posixpath.join(
+        'browser_logs', 'browser_log-%s' % artifact_logger.GetTimestampSuffix())
+    logging.log(log_level, 'Saving browser log as artifact %s', artifact_name)
+    artifact_logger.CreateArtifact(artifact_name, merged_log)
+
+  def _CollectUiLogs(self, log_level):
+    """Helper function to handle the UI log part of CollectDebugData.
+
+    Attempts to retrieve the current UI log and save it as an artifact.
+
+    Args:
+      log_level: The logging level to use from the logging module, e.g.
+          logging.ERROR.
+    """
+    # Unlike the browser logs, there is no .PREVIOUS version, so we can only
+    # easily get the most recent UI log.
+    try:
+      ui_log = self._cri.GetFileContents('/var/log/ui/ui.LATEST')
+    except OSError:
+      logging.log(log_level, 'Unexpectedly did not find UI log')
+      return
+    artifact_name = posixpath.join(
+        'ui_logs', 'ui_log-%s' % artifact_logger.GetTimestampSuffix())
+    logging.log(log_level, 'Saving UI log as artifact %s', artifact_name)
+    artifact_logger.CreateArtifact(artifact_name, ui_log)
 
   @property
   def supports_overview_mode(self): # pylint: disable=invalid-name
