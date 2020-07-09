@@ -29,7 +29,7 @@ from oauth2client import client
 from dashboard.common import stored_object
 
 SHERIFF_DOMAINS_KEY = 'sheriff_domains_key'
-IP_WHITELIST_KEY = 'ip_whitelist'
+IP_ALLOWLIST_KEY = 'ip_whitelist'
 SERVICE_ACCOUNT_KEY = 'service_account'
 PINPOINT_REPO_EXCLUSION_KEY = 'pinpoint_repo_exclusions'
 EMAIL_SCOPE = 'https://www.googleapis.com/auth/userinfo.email'
@@ -604,9 +604,9 @@ def IsTryjobUser():
 
 
 @ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)
-def GetIpWhitelist():
-  """Returns a list of IP address strings in the whitelist."""
-  return stored_object.Get(IP_WHITELIST_KEY)
+def GetIpAllowlist():
+  """Returns a list of IP addresses allowed to post data."""
+  return stored_object.Get(IP_ALLOWLIST_KEY)
 
 
 def GetRepositoryExclusions():

@@ -23,7 +23,7 @@ _UNBISECTABLE_SUITES = [
 # a dict mapping master names to [perf bot, bisect bot] pairs.
 # If a master name is not in the dict, bisect isn't supported.
 BISECT_BOT_MAP_KEY = 'bisect_bot_map'
-# The file bug bisect blacklist in datastore is expected to be a dict mapping
+# The file bug bisect denylist in datastore is expected to be a dict mapping
 # master names to nothing (i.e. a set since JSON does not support actual sets).
 # If a master name is in the dict, automatic bisects kicked off by alert
 # triaging are not supported.
@@ -56,11 +56,11 @@ def _DomainIsSupported(domain):
 
 
 def DomainIsExcludedFromTriageBisects(domain):
-  """Checks whether a master name is blacklisted for alert triage bisects."""
+  """Checks whether a master name is disallowed for alert triage bisects."""
   file_bug_bisect_denylist = namespaced_stored_object.Get(
       FILE_BUG_BISECT_DENYLIST_KEY)
   if not file_bug_bisect_denylist:
-    return False  # If there's no blacklist, all masters are OK.
+    return False  # If there's no denylist, all masters are allowed.
   return domain in file_bug_bisect_denylist
 
 

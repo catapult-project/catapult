@@ -122,7 +122,7 @@ class StartNewBisectForBugTest(testing_common.TestCase):
     self.assertEqual(
         {'error': 'Some reason'}, result)
 
-  def testStartNewBisectForBug_BlacklistedMaster_RaisesError(self):
+  def testStartNewBisectForBug_DenylistedMaster_RaisesError(self):
     # Same setup as testStartNewBisectForBug_Pinpoint_Succeeds except for this
     # one setting.
     namespaced_stored_object.Set(
@@ -171,10 +171,10 @@ class StartNewBisectForBugTest(testing_common.TestCase):
       auto_bisect.pinpoint_service, 'NewJob')
   @mock.patch.object(auto_bisect.pinpoint_request, 'ResolveToGitHash',
                      mock.MagicMock(return_value='abc123'))
-  def testStartNewBisectForBut_BlacklistedMaster_SucceedsIfAlternative(
+  def testStartNewBisectForBut_DenylistedMaster_SucceedsIfAlternative(
       self, mock_new):
-    # Even if there are blacklisted masters, the bisect request should still
-    # succeed if there's a non-blacklisted master.
+    # Even if there are denylisted masters, the bisect request should still
+    # succeed if there's a non-denylisted master.
     namespaced_stored_object.Set(
         'file_bug_bisect_blacklist', {'ChromiumPerf': []})
     namespaced_stored_object.Set('bot_configurations', {

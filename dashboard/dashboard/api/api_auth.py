@@ -14,7 +14,7 @@ from dashboard.common import datastore_hooks
 from dashboard.common import utils
 
 
-OAUTH_CLIENT_ID_WHITELIST = [
+OAUTH_CLIENT_ID_ALLOWLIST = [
     # This oauth client id is from Pinpoint.
     '62121018386-aqdfougp0ddn93knqj6g79vvn42ajmrg.apps.googleusercontent.com',
     # This oauth client id is from the 'chromeperf' API console.
@@ -97,11 +97,11 @@ def Authorize():
     # TODO(dberris): Migrate to using Cloud IAM and checking roles instead, to
     # allow for dynamic management of the accounts.
     if not email.endswith('.gserviceaccount.com'):
-      # For non-service account, need to verify that the OAuth client ID
-      # is in our whitelist.
+      # For non-service accounts, need to verify that the OAuth client ID
+      # is in our allowlist.
       client_id = oauth.get_client_id(utils.OAUTH_SCOPES)
-      if client_id not in OAUTH_CLIENT_ID_WHITELIST:
-        logging.error('OAuth client id %s for user %s not in whitelist',
+      if client_id not in OAUTH_CLIENT_ID_ALLOWLIST:
+        logging.error('OAuth client id %s for user %s not in allowlist',
                       client_id, email)
         email = None
         raise OAuthError

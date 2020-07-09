@@ -170,22 +170,25 @@ the existing test data to use the new name. You
 can do this by entering a pattern for the test name
 at [/migrate\_test\_names](https://chromeperf.appspot.com/migrate_test_names).
 
-### Whitelisting senders of data
+### Allowing data senders
 
-There are two types of whitelisting on the perf dashboard:
+There are two types of allowlists used in the perf dashboard:
 
-The IP whitelist is a list of IP addresses of machines which
+The IP allowlist is a list of IP addresses of machines which
 are allowed to post data to /add\_point. This is to prevent
-/add\_point from being spammed. You can add a bot to the IP whitelist
+/add\_point from being spammed. You can add a bot to the IP allowlist
 at [/ip\_whitelist](https://chromeperf.appspot.com/ip_whitelist). If
 you’re seeing 403 errors on your buildbots, the IPs to add are likely
 already in the logs. Note that if you are seeing 500 errors, those are
-not related to IP whitelisting. They are usually caused by an error in
+not related to the IP allowlist. They are usually caused by an error in
 the JSON data sent by the buildbot. If you can’t tell by looking at
 the JSON data what is going wrong, the easiest thing to do is to add a
 unit test with the JSON to `add_point_test.py` and debug it from there.
 
-The bot whitelist is a list of bot names which are publicly visible. If a
+The bot allowlist is a list of bot names which are publicly visible. If a
 bot is not on the list, users must be logged into google.com accounts to
-see the data for that bot. You can add or remove a bot from the whitelist
+see the data for that bot. You can add or remove a bot from the allowlist
 using the dev console by importing `dashboard.change_internal_only`.
+
+Note that in some places the allowlists may also be referred to as
+whitelists.

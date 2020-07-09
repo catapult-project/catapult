@@ -16,11 +16,11 @@ def CheckChangeOnCommit(input_api, output_api):
 
 
 def _CommonChecks(input_api, output_api):
-  blacklist = input_api.DEFAULT_BLACK_LIST + ('.*_pb2.py$',)
+  ignorelist = input_api.DEFAULT_BLACK_LIST + ('.*_pb2.py$',)
   results = []
   results += input_api.RunTests(input_api.canned_checks.GetPylint(
       input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
-      black_list=blacklist, pylintrc='pylintrc'))
+      black_list=ignorelist, pylintrc='pylintrc'))
   return results
 
 

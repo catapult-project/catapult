@@ -24,7 +24,7 @@ class AlertsGeneralTest(testing_common.TestCase):
   def setUp(self):
     super(AlertsGeneralTest, self).setUp()
     self.SetUpApp([('/api/alerts', alerts.AlertsHandler)])
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
 
   def _Post(self, **params):
     return json.loads(self.Post('/api/alerts', params).body)

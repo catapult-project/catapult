@@ -169,7 +169,7 @@ _UNITS_TO_DIRECTION_DICT = {
 }
 
 # Sample IP addresses to use in the tests below.
-_WHITELISTED_IP = '123.45.67.89'
+_ALLOWED_IP = '123.45.67.89'
 
 
 #TODO(fancl): mocking Match to return some actuall result
@@ -186,10 +186,10 @@ class AddPointTest(testing_common.TestCase):
         ('/add_point_queue', add_point_queue.AddPointQueueHandler)])
     self.testapp = webtest.TestApp(app)
     units_to_direction.UpdateFromJson(_UNITS_TO_DIRECTION_DICT)
-    # Set up the default whitelisted IP used in the tests below.
-    # Note: The behavior of responses from whitelisted and unwhitelisted IPs
+    # Set up the default IP allowlist used in the tests below.
+    # Note: The behavior of responses from allowed and disallowed IPs
     # is tested in post_data_handler_test.py.
-    testing_common.SetIpWhitelist([_WHITELISTED_IP])
+    testing_common.SetIpAllowlist([_ALLOWED_IP])
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
   @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTestsAsync')
@@ -217,7 +217,7 @@ class AddPointTest(testing_common.TestCase):
         }
     ])
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     self.Post('/add_point', {'data': data_param})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
@@ -256,7 +256,7 @@ class AddPointTest(testing_common.TestCase):
     ])
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
@@ -338,7 +338,7 @@ class AddPointTest(testing_common.TestCase):
     point['test'] = '1234/abcd_ref'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     mock_process_test.assert_called_once_with([])
 
@@ -350,7 +350,7 @@ class AddPointTest(testing_common.TestCase):
     point['test'] = '1234/ref'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     mock_process_test.assert_called_once_with([])
 
@@ -361,7 +361,7 @@ class AddPointTest(testing_common.TestCase):
     point['test'] = '_ref/abcd'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     self.assertTrue(mock_process_test.called)
 
@@ -371,7 +371,7 @@ class AddPointTest(testing_common.TestCase):
     point['test'] = 'long_test/%s' % ('x' * 490)
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(0, len(tests))
@@ -381,7 +381,7 @@ class AddPointTest(testing_common.TestCase):
     point['test'] = 'mach_ports_parent/mach_ports/'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(2, len(tests))
@@ -396,7 +396,7 @@ class AddPointTest(testing_common.TestCase):
     point['test'] = '/boot_time/pre_plugin_time'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(2, len(tests))
@@ -409,7 +409,7 @@ class AddPointTest(testing_common.TestCase):
     """Tests that an error is returned when the given data is not valid JSON."""
     self.testapp.post(
         '/add_point', {'data': "This isn't JSON"}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
   def testPost_BadGraphName_DataRejected(self):
     """Tests that an error is returned when the test name has too many parts."""
@@ -417,7 +417,7 @@ class AddPointTest(testing_common.TestCase):
     point['test'] = 'a/b/c/d/e/f/g/h/i/j/k'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
   def testPost_BenchmarkName_Slash_DataRejected(self):
     """Tests that an error is returned when the test name has too many parts."""
@@ -425,7 +425,7 @@ class AddPointTest(testing_common.TestCase):
     point['test_suite_name'] = 'no/slashes'
     response = self.testapp.post(
         '/add_point', {'data': json.dumps(point)}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.assertIn('Illegal slash in test_suite_name', response.body)
 
   def testPost_BenchmarkName_NotString_DataRejected(self):
@@ -433,7 +433,7 @@ class AddPointTest(testing_common.TestCase):
     point['test_suite_name'] = ['name']
     response = self.testapp.post(
         '/add_point', {'data': json.dumps(point)}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.assertIn('Error: test_suite_name must be a string', response.body)
 
   def testPost_BotName_Slash_DataRejected(self):
@@ -441,7 +441,7 @@ class AddPointTest(testing_common.TestCase):
     point['bot'] = 'no/slashes'
     response = self.testapp.post(
         '/add_point', {'data': json.dumps(point)}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.assertIn('Illegal slash in bot', response.body)
 
   def testPost_BotName_NotString_DataRejected(self):
@@ -449,7 +449,7 @@ class AddPointTest(testing_common.TestCase):
     point['bot'] = ['name']
     response = self.testapp.post(
         '/add_point', {'data': json.dumps(point)}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.assertIn('Error: bot must be a string', response.body)
 
   def testPost_MasterName_Slash_DataRejected(self):
@@ -457,7 +457,7 @@ class AddPointTest(testing_common.TestCase):
     point['master'] = 'no/slashes'
     response = self.testapp.post(
         '/add_point', {'data': json.dumps(point)}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.assertIn('Illegal slash in master', response.body)
 
   def testPost_MasterName_NotString_DataRejected(self):
@@ -465,7 +465,7 @@ class AddPointTest(testing_common.TestCase):
     point['master'] = ['name']
     response = self.testapp.post(
         '/add_point', {'data': json.dumps(point)}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.assertIn('Error: master must be a string', response.body)
 
   def testPost_TestNameHasDoubleUnderscores_Rejected(self):
@@ -473,7 +473,7 @@ class AddPointTest(testing_common.TestCase):
     point['test'] = 'my_test_suite/__my_test__'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
   @mock.patch('logging.error')
   @mock.patch.object(graph_data.Master, 'get_by_id')
@@ -483,7 +483,7 @@ class AddPointTest(testing_common.TestCase):
     mock_get_by_id.side_effect = datastore_errors.BadRequestError
     self.testapp.post(
         '/add_point', {'data': json.dumps([_SAMPLE_POINT])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     self.assertEqual(1, len(mock_logging_error.mock_calls))
 
@@ -498,7 +498,7 @@ class AddPointTest(testing_common.TestCase):
     ])
     self.testapp.post(
         '/add_point', {'data': data_param}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
   def testPost_NoRevisionAndNoVersionNums_Rejected(self):
     """Asserts post fails when both revision and version numbers are missing."""
@@ -513,14 +513,14 @@ class AddPointTest(testing_common.TestCase):
     ])
     self.testapp.post(
         '/add_point', {'data': data_param}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
   def testPost_InvalidRevision_Rejected(self):
     point = copy.deepcopy(_SAMPLE_POINT)
     point['revision'] = 'I am not a valid revision number!'
     response = self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.assertIn(
         'Bad value for "revision", should be numerical.\n', response.body)
 
@@ -532,14 +532,14 @@ class AddPointTest(testing_common.TestCase):
     }
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     # Supplemental revision numbers with an invalid format should be dropped.
     row = graph_data.Row.query().get()
     self.assertEqual('1234', row.r_one)
     self.assertFalse(hasattr(row, 'r_two'))
 
-  def testPost_UnWhitelistedBots_MarkedInternalOnly(self):
+  def testPost_UnAllowlistedBots_MarkedInternalOnly(self):
     parent = graph_data.Master(id='ChromiumPerf').put()
     parent = graph_data.Bot(id='win7', parent=parent, internal_only=False).put()
     t = graph_data.TestMetadata(
@@ -572,7 +572,7 @@ class AddPointTest(testing_common.TestCase):
     ])
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
@@ -653,7 +653,7 @@ class AddPointTest(testing_common.TestCase):
     ])
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
@@ -694,7 +694,7 @@ class AddPointTest(testing_common.TestCase):
     ])
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
@@ -717,7 +717,7 @@ class AddPointTest(testing_common.TestCase):
     ])
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
@@ -760,7 +760,7 @@ class AddPointTest(testing_common.TestCase):
     ])
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
@@ -808,7 +808,7 @@ class AddPointTest(testing_common.TestCase):
     ])
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
@@ -882,7 +882,7 @@ class AddPointTest(testing_common.TestCase):
     }
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
@@ -907,7 +907,7 @@ class AddPointTest(testing_common.TestCase):
     }
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(1, len(rows))
@@ -942,7 +942,7 @@ class AddPointTest(testing_common.TestCase):
     ])
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     # Subtests for ChromiumPerf/win7/scrolling_benchmark should be cleared.
     self.assertIsNone(layered_cache.Get(
@@ -986,7 +986,7 @@ class AddPointTest(testing_common.TestCase):
     del point['value']
     response = self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.assertIn('No "value" given.\n', response.body)
     self.assertIsNone(graph_data.Row.query().get())
 
@@ -996,7 +996,7 @@ class AddPointTest(testing_common.TestCase):
     point['value'] = 'hello'
     response = self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     self.assertIn(
         'Bad value for "value", should be numerical.\n', response.body)
@@ -1007,7 +1007,7 @@ class AddPointTest(testing_common.TestCase):
     point['error'] = 'not a number'
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     row = graph_data.Row.query().get()
     self.assertIsNone(row.error)
@@ -1021,7 +1021,7 @@ class AddPointTest(testing_common.TestCase):
     point['supplemental_columns'] = supplemental_columns
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     row = graph_data.Row.query().get()
     row_dict = row.to_dict()
@@ -1035,7 +1035,7 @@ class AddPointTest(testing_common.TestCase):
 
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     # Supplemental columns with undefined prefixes should be dropped.
     row = graph_data.Row.query().get()
@@ -1049,7 +1049,7 @@ class AddPointTest(testing_common.TestCase):
     }
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
@@ -1065,7 +1065,7 @@ class AddPointTest(testing_common.TestCase):
     }
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     # Row properties with names that are too long are not added.
     row = graph_data.Row.query().get()
@@ -1081,7 +1081,7 @@ class AddPointTest(testing_common.TestCase):
     }
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     # Row data properties that aren't numerical aren't added.
     row = graph_data.Row.query().get()
@@ -1096,7 +1096,7 @@ class AddPointTest(testing_common.TestCase):
     point['revision'] = 1408479179
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     test_path = 'ChromiumPerf/win7/my_test_suite/my_test'
     last_added_revision = ndb.Key('LastAddedRevision', test_path).get()
@@ -1106,7 +1106,7 @@ class AddPointTest(testing_common.TestCase):
     point['revision'] = 285000
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     rows = graph_data.Row.query().fetch()
     self.assertEqual(1, len(rows))
 
@@ -1116,14 +1116,14 @@ class AddPointTest(testing_common.TestCase):
     point['revision'] = 285000
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
     point = copy.deepcopy(_SAMPLE_POINT)
     point['revision'] = 1408479179
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     rows = graph_data.Row.query().fetch()
     self.assertEqual(1, len(rows))
 
@@ -1132,17 +1132,17 @@ class AddPointTest(testing_common.TestCase):
     point['revision'] = 285000
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     point = copy.deepcopy(_SAMPLE_POINT)
     point['revision'] = 285200
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     point = copy.deepcopy(_SAMPLE_POINT)
     point['revision'] = 285100
     self.testapp.post(
         '/add_point', {'data': json.dumps([point])},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     rows = graph_data.Row.query().fetch()
     self.assertEqual(3, len(rows))
@@ -1152,7 +1152,7 @@ class AddPointTest(testing_common.TestCase):
     data_param = json.dumps(_SAMPLE_DASHBOARD_JSON)
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(1, len(rows))
@@ -1173,7 +1173,7 @@ class AddPointTest(testing_common.TestCase):
     data_param = json.dumps(sample)
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     self.assertIsNone(utils.TestKey('ChromiumPerf/win7/my_test_suite').get())
     self.assertIsNotNone(utils.TestKey('ChromiumPerf/win7/my_benchmark').get())
@@ -1184,7 +1184,7 @@ class AddPointTest(testing_common.TestCase):
     data_param = json.dumps(sample)
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     self.assertIsNone(utils.TestKey('ChromiumPerf/win7/my_test_suite').get())
     self.assertIsNotNone(utils.TestKey('ChromiumPerf/win7/my_benchmark').get())
@@ -1194,7 +1194,7 @@ class AddPointTest(testing_common.TestCase):
     data_param = json.dumps(_SAMPLE_DASHBOARD_JSON_WITH_TRACE)
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(2, len(rows))
@@ -1211,7 +1211,7 @@ class AddPointTest(testing_common.TestCase):
     data_param = json.dumps(_SAMPLE_DASHBOARD_JSON_ESCAPE_STORYNAME)
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     k = ndb.Key(
         'TestMetadata',
@@ -1234,7 +1234,7 @@ class AddPointTest(testing_common.TestCase):
     data_param = json.dumps(_SAMPLE_DASHBOARD_JSON_ESCAPE_STORYNAME)
     self.testapp.post(
         '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     k = ndb.Key(
         'TestMetadata',
@@ -1247,7 +1247,7 @@ class AddPointTest(testing_common.TestCase):
     chart['chart_data']['charts'] = {'test': False}
     self.testapp.post(
         '/add_point', {'data': json.dumps(chart)}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
   def testPost_FormatV1_BadMaster_Rejected(self):
     """Tests that attempting to post with no master name will error."""
@@ -1255,7 +1255,7 @@ class AddPointTest(testing_common.TestCase):
     del chart['master']
     self.testapp.post(
         '/add_point', {'data': json.dumps(chart)}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
   def testPost_FormatV1_BadBot_Rejected(self):
     """Tests that attempting to post with no bot name will error."""
@@ -1263,7 +1263,7 @@ class AddPointTest(testing_common.TestCase):
     del chart['bot']
     self.testapp.post(
         '/add_point', {'data': json.dumps(chart)}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
   def testPost_FormatV1_BadPointId_Rejected(self):
     """Tests that attempting to post a chart no point id will error."""
@@ -1271,21 +1271,21 @@ class AddPointTest(testing_common.TestCase):
     del chart['point_id']
     self.testapp.post(
         '/add_point', {'data': json.dumps(chart)}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
   def testPost_GarbageDict_Rejected(self):
     """Tests that posting an ill-formatted dict will error."""
     chart = {'foo': 'garbage'}
     self.testapp.post(
         '/add_point', {'data': json.dumps(chart)}, status=400,
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
 
   def testPost_FormatV1_EmptyCharts_NothingAdded(self):
     chart = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
     chart['chart_data']['charts'] = {}
     self.testapp.post(
         '/add_point', {'data': json.dumps(chart)},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+        extra_environ={'REMOTE_ADDR': _ALLOWED_IP})
     # Status is OK, but no rows are added.
     self.assertIsNone(graph_data.Row.query().get())
 

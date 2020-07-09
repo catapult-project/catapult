@@ -53,7 +53,7 @@ def SetPrivilegedRequest():
   """Allows the current request to act as a privileged user.
 
   This should ONLY be called for handlers that are restricted from end users
-  by some other mechanism (IP whitelisting, admin-only pages).
+  by some other mechanism (IP allowlist, admin-only pages).
 
   This should be set once per request, before accessing the data store.
   """
@@ -97,9 +97,9 @@ def _IsServicingPrivilegedRequest():
   if request.registry.get('single_privileged', False):
     request.registry['single_privileged'] = False
     return True
-  whitelist = utils.GetIpWhitelist()
-  if whitelist and hasattr(request, 'remote_addr'):
-    return request.remote_addr in whitelist
+  allowlist = utils.GetIpAllowlist()
+  if allowlist and hasattr(request, 'remote_addr'):
+    return request.remote_addr in allowlist
   return False
 
 

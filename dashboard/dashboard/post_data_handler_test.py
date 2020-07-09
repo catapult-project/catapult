@@ -27,9 +27,9 @@ _SAMPLE_POINT = {
 class TestingPostDataHandler(post_data_handler.PostDataHandler):
 
   def post(self):
-    if not self._CheckIpAgainstWhitelist():
+    if not self._CheckIpAgainstAllowlist():
       self.ReportError(
-          'IP address %s not in IP whitelist!' % (self.request.remote_addr,),
+          'IP address %s not in IP allowlist!' % (self.request.remote_addr,),
           403)
 
 
@@ -37,23 +37,23 @@ class PostDataHandlerTest(testing_common.TestCase):
 
   def setUp(self):
     super(PostDataHandlerTest, self).setUp()
-    app = webapp2.WSGIApplication([('/whitelist_test', TestingPostDataHandler)])
+    app = webapp2.WSGIApplication([('/allowlist_test', TestingPostDataHandler)])
     self.testapp = webtest.TestApp(app)
 
-  def testPost_NoIPWhitelist_Authorized(self):
-    self.testapp.post('/whitelist_test', {'data': json.dumps([_SAMPLE_POINT])})
+  def testPost_NoIPAllowlist_Authorized(self):
+    self.testapp.post('/allowlist_test', {'data': json.dumps([_SAMPLE_POINT])})
 
-  def testPost_IPNotInWhitelist_NotAuthorized(self):
-    testing_common.SetIpWhitelist(['123.45.67.89', '98.76.54.32'])
+  def testPost_IPNotInAllowlist_NotAuthorized(self):
+    testing_common.SetIpAllowlist(['123.45.67.89', '98.76.54.32'])
     self.testapp.post(
-        '/whitelist_test', {'data': json.dumps([_SAMPLE_POINT])},
+        '/allowlist_test', {'data': json.dumps([_SAMPLE_POINT])},
         status=403,
         extra_environ={'REMOTE_ADDR': '22.45.67.89'})
 
-  def testPost_IPInWhiteList_Authorized(self):
-    testing_common.SetIpWhitelist(['123.45.67.89', '98.76.54.32'])
+  def testPost_IPInAllowlist_Authorized(self):
+    testing_common.SetIpAllowlist(['123.45.67.89', '98.76.54.32'])
     self.testapp.post(
-        '/whitelist_test', {'data': json.dumps([_SAMPLE_POINT])},
+        '/allowlist_test', {'data': json.dumps([_SAMPLE_POINT])},
         extra_environ={'REMOTE_ADDR': '123.45.67.89'})
 
 

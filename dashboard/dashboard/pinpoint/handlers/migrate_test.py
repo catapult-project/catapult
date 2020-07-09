@@ -45,7 +45,7 @@ class MigrateAuthTest(test.TestCase):
 
   def testGet_InternalUser_NotAdmin_Fails(self):
     self._SetupCredentials(
-        testing_common.INTERNAL_USER, api_auth.OAUTH_CLIENT_ID_WHITELIST[0],
+        testing_common.INTERNAL_USER, api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0],
         True, False)
 
     self.testapp.get('/api/migrate', status=403)
@@ -57,7 +57,7 @@ class MigrateTest(MigrateAuthTest):
 
     print('MigrateTest')
     self._SetupCredentials(
-        testing_common.INTERNAL_USER, api_auth.OAUTH_CLIENT_ID_WHITELIST[0],
+        testing_common.INTERNAL_USER, api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0],
         True, True)
 
   def testGet_NoMigration(self):

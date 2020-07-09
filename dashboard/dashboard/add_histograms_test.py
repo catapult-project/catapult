@@ -40,7 +40,7 @@ from tracing.value.diagnostics import reserved_infos
 
 def SetGooglerOAuth(mock_oauth):
   mock_oauth.get_current_user.return_value = testing_common.INTERNAL_USER
-  mock_oauth.get_client_id.return_value = api_auth.OAUTH_CLIENT_ID_WHITELIST[0]
+  mock_oauth.get_client_id.return_value = api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0]
 
 
 def _CreateHistogram(

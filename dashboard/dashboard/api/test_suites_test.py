@@ -23,7 +23,7 @@ class TestSuitesTest(testing_common.TestCase):
   def setUp(self):
     super(TestSuitesTest, self).setUp()
     self.SetUpApp([('/api/test_suites', test_suites.TestSuitesHandler)])
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     external_key = namespaced_stored_object.NamespaceKey(
         update_test_suites.TEST_SUITES_2_CACHE_KEY, datastore_hooks.EXTERNAL)
     stored_object.Set(external_key, ['external'])

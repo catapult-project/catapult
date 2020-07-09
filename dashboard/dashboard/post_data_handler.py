@@ -17,21 +17,21 @@ class PostDataHandler(request_handler.RequestHandler):
   """Helper class to handle common functionality for dealing with slaves."""
 
   def post(self):
-    # This used to just call the _CheckIpAgainstWhitelist() function, and
+    # This used to just call the _CheckIpAgainstAllowlist() function, and
     # subclasses are expected now to call that function directly if they need
     # it.
     raise NotImplementedError('Handlers must implement this method!')
 
-  def _CheckIpAgainstWhitelist(self):
-    """Checks the remote address of the request against the IP whitelist.
+  def _CheckIpAgainstAllowlist(self):
+    """Checks the remote address of the request against the IP allowlist.
 
     Returns:
-      True if whitelisted, False otherwise.
+      True if allowed, False otherwise.
     """
-    whitelist = utils.GetIpWhitelist()
-    if not whitelist or self.request.remote_addr in whitelist:
+    allowlist = utils.GetIpAllowlist()
+    if not allowlist or self.request.remote_addr in allowlist:
       return True
-    # Try to log some info about the post data that is not whitelisted.
+    # Try to log some info about the post data that is not allowlisted.
     # This could be totally bogus data, so ignore huge postdata and swallow
     # exceptions.
     try:

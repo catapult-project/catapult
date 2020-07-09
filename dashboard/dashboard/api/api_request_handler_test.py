@@ -48,7 +48,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
 
   def testPost_Authorized_PostCalled(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     response = self.Post('/api/test')
     self.assertEqual(
         {'foo': 'response'},
@@ -56,7 +56,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
 
   def testPost_ForbiddenError_Raised(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     self.Post('/api/forbidden', status=403)
 
   @mock.patch.object(
@@ -78,7 +78,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
       mock.MagicMock(side_effect=api_request_handler.BadRequestError('foo')))
   def testPost_BadRequest_400(self, _):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     response = self.Post('/api/test', status=400)
     self.assertEqual(
         {'error': 'foo'},

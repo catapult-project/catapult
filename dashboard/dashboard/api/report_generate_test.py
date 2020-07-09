@@ -41,7 +41,7 @@ class ReportGenerateTest(testing_common.TestCase):
     self.SetUpApp([
         ('/api/report/generate', report_generate.ReportGenerateHandler),
     ])
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
 
   def _Post(self, **params):
     return json.loads(self.Post('/api/report/generate', params).body)

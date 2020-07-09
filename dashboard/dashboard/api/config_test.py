@@ -22,30 +22,30 @@ class ConfigTest(testing_common.TestCase):
   def setUp(self):
     super(ConfigTest, self).setUp()
     self.SetUpApp([(r'/api/config', config.ConfigHandler)])
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     external_key = namespaced_stored_object.NamespaceKey(
-        config.WHITELIST[0], datastore_hooks.EXTERNAL)
+        config.ALLOWLIST[0], datastore_hooks.EXTERNAL)
     stored_object.Set(external_key, datastore_hooks.EXTERNAL)
     internal_key = namespaced_stored_object.NamespaceKey(
-        config.WHITELIST[0], datastore_hooks.INTERNAL)
+        config.ALLOWLIST[0], datastore_hooks.INTERNAL)
     stored_object.Set(internal_key, datastore_hooks.INTERNAL)
 
   def _Post(self, suite):
     return json.loads(self.Post('/api/config?key=' + suite).body)
 
-  def testUnwhitelisted(self):
+  def testNotInAllowlist(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    response = self._Post('unwhitelisted')
+    response = self._Post('disallowed')
     self.assertEqual(None, response)
 
   def testInternal(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    response = self._Post(config.WHITELIST[0])
+    response = self._Post(config.ALLOWLIST[0])
     self.assertEqual(datastore_hooks.INTERNAL, response)
 
   def testAnonymous(self):
     self.SetCurrentUserOAuth(None)
-    response = self._Post(config.WHITELIST[0])
+    response = self._Post(config.ALLOWLIST[0])
     self.assertEqual(datastore_hooks.EXTERNAL, response)
 
 

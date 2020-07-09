@@ -66,7 +66,7 @@ class Isolate(api_request_handler.ApiRequestHandler):
 
   def _CheckUser(self):
     # TODO: Remove when all Pinpoint builders are migrated to LUCI.
-    if self.request.remote_addr in utils.GetIpWhitelist():
+    if self.request.remote_addr in utils.GetIpAllowlist():
       return
     self._CheckIsInternalUser()
 

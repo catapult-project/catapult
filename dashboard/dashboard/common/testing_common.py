@@ -1,7 +1,9 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 """Helper functions used in multiple unit tests."""
+
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
@@ -324,9 +326,9 @@ def SetSheriffDomains(domains):
   stored_object.Set(utils.SHERIFF_DOMAINS_KEY, domains)
 
 
-def SetIpWhitelist(ip_addresses):
-  """Sets the list of whitelisted IP addresses."""
-  stored_object.Set(utils.IP_WHITELIST_KEY, ip_addresses)
+def SetIpAllowlist(ip_addresses):
+  """Sets the IP address allowlist."""
+  stored_object.Set(utils.IP_ALLOWLIST_KEY, ip_addresses)
 
 
 # TODO(fancl): Make it a "real" fake issue tracker.

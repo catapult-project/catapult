@@ -511,7 +511,7 @@ class AlertGroupWorkflow(object):
     # test, so we derive that from the suite name. Eventually, this would
     # ideally be stored in a SparseDiagnostic but for now we can guess. Also,
     # Pinpoint only currently works well with Telemetry targets, so we only run
-    # benchmarks that are not explicitly blacklisted.
+    # benchmarks that are not explicitly denylisted.
     target = pinpoint_request.GetIsolateTarget(alert.bot_name,
                                                alert.benchmark_name)
     if not target:

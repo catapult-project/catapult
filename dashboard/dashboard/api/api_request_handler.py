@@ -53,7 +53,7 @@ class ApiRequestHandler(webapp2.RequestHandler):
       api_auth.NotLoggedInError: The user was not logged in,
           and must be to be to make this request.
       api_auth.OAuthError: The request was not a valid OAuth request,
-          or the client ID was not in the whitelist.
+          or the client ID was not in the allowlist.
       ForbiddenError: The user does not have permission to make this request.
     """
     raise NotImplementedError()

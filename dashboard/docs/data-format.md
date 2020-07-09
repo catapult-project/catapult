@@ -241,7 +241,8 @@ Implementations of code that sends data to the dashboard:
 
 Once you're ready to start sending data to the real perf dashboard, there
 are a few more things you might want to do. Firstly, in order for the
-dashboard to accept the data, the IP of the sender must be whitelisted.
+dashboard to accept the data, the IP of the sender must be added to the
+IP allowlist.
 
 If your data is not internal-only data, you can request that it be marked
 as such, again by filing an issue.

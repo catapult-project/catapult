@@ -110,7 +110,7 @@ class BugsTest(testing_common.TestCase):
     bugs.issue_tracker_service = mock.MagicMock()
     self.service = MockIssueTrackerService
     bugs.issue_tracker_service.IssueTrackerService = self.service
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
 
   def tearDown(self):
     super(BugsTest, self).tearDown()

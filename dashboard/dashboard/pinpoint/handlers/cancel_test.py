@@ -21,7 +21,7 @@ class CancelJobTest(test.TestCase):
   def setUp(self):
     super(CancelJobTest, self).setUp()
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
 
     self.add_bug_comment = mock.MagicMock()
     self.get_issue = mock.MagicMock()

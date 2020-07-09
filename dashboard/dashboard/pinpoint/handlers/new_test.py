@@ -52,7 +52,7 @@ class _NewTest(test.TestCase):
     super(_NewTest, self).setUp()
 
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
 
     key = namespaced_stored_object.NamespaceKey('bot_configurations',
                                                 datastore_hooks.INTERNAL)

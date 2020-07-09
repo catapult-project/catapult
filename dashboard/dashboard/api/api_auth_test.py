@@ -33,7 +33,7 @@ class ApiAuthTest(testing_common.TestCase):
 
   def testPost_OAuthUser(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     with self.PatchEnviron('/api/fake'):
       api_auth.Authorize()
     self.assertTrue(self.mock_set_privileged_request.called)
@@ -51,7 +51,7 @@ class ApiAuthTest(testing_common.TestCase):
       api_auth.Authorize()
     self.assertFalse(self.mock_set_privileged_request.called)
 
-  def testPost_AuthorizedUser_NotInWhitelist(self):
+  def testPost_AuthorizedUser_NotInAllowlist(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     with self.assertRaises(api_auth.OAuthError):
       with self.PatchEnviron('/api/fake'):
@@ -60,14 +60,14 @@ class ApiAuthTest(testing_common.TestCase):
 
   def testPost_OAuthUser_User_NotInChromeperfAccess(self):
     self.SetCurrentUserOAuth(testing_common.EXTERNAL_USER)
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     with self.PatchEnviron('/api/fake'):
       api_auth.Authorize()
     self.assertFalse(self.mock_set_privileged_request.called)
 
   def testPost_OAuthUser_User_InChromeperfAccess(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     with self.PatchEnviron('/api/fake'):
       api_auth.Authorize()
     self.assertTrue(self.mock_set_privileged_request.called)

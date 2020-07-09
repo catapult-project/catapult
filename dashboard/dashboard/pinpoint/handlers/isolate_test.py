@@ -30,29 +30,29 @@ class AuthTest(test.TestCase):
     }
     return params
 
-  def testPost_Anonymous_Whitelisted_Succeeds(self):
-    testing_common.SetIpWhitelist(['remote_ip'])
+  def testPost_Anonymous_Allowlisted_Succeeds(self):
+    testing_common.SetIpAllowlist(['remote_ip'])
     self.SetCurrentUserOAuth(None)
 
     self.Post('/api/isolate', self._ValidParams(), status=200)
 
-  def testPost_Anonymous_NotWhitelisted_Fails(self):
-    testing_common.SetIpWhitelist(['invalid'])
+  def testPost_Anonymous_NotAllowlisted_Fails(self):
+    testing_common.SetIpAllowlist(['invalid'])
     self.SetCurrentUserOAuth(None)
 
     self.Post('/api/isolate', self._ValidParams(), status=401)
 
   def testPost_Internal_Oauth_Succeeds(self):
-    testing_common.SetIpWhitelist(['invalid'])
+    testing_common.SetIpAllowlist(['invalid'])
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
 
     self.Post('/api/isolate', self._ValidParams(), status=200)
 
   def testPost_External_Oauth_Fails(self):
-    testing_common.SetIpWhitelist(['invalid'])
+    testing_common.SetIpAllowlist(['invalid'])
     self.SetCurrentUserOAuth(testing_common.EXTERNAL_USER)
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
 
     self.Post('/api/isolate', self._ValidParams(), status=403)
 
@@ -60,7 +60,7 @@ class AuthTest(test.TestCase):
 class FunctionalityTest(test.TestCase):
 
   def testPostAndGet(self):
-    testing_common.SetIpWhitelist(['remote_ip'])
+    testing_common.SetIpAllowlist(['remote_ip'])
 
     builder_name = 'Mac Builder'
     change = '{"commits": [{"repository": "chromium", "git_hash": "git hash"}]}'
@@ -98,7 +98,7 @@ class FunctionalityTest(test.TestCase):
     self.testapp.get('/api/isolate', params, status=404)
 
   def testPostPermissionDenied(self):
-    testing_common.SetIpWhitelist([])
+    testing_common.SetIpAllowlist([])
     self.testapp.post('/api/isolate', status=401)
 
 
@@ -156,7 +156,7 @@ class ParameterValidationTest(test.TestCase):
     self.testapp.get('/api/isolate', params, status=400)
 
   def testPostInvalidChangeBecauseOfUnknownRepository(self):
-    testing_common.SetIpWhitelist(['remote_ip'])
+    testing_common.SetIpAllowlist(['remote_ip'])
 
     params = {
         'builder_name': 'Mac Builder',

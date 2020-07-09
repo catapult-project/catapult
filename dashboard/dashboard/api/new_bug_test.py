@@ -21,7 +21,7 @@ class NewBugTest(testing_common.TestCase):
   def setUp(self):
     super(NewBugTest, self).setUp()
     self.SetUpApp([('/api/new_bug', new_bug.NewBugHandler)])
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     self.SetCurrentUserOAuth(None)
     testing_common.SetSheriffDomains(['example.com'])
     self.PatchObject(new_bug.utils, 'ServiceAccountHttp',

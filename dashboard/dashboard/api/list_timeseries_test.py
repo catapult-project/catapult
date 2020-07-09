@@ -18,7 +18,7 @@ class ListTimeseriesTest(testing_common.TestCase):
     super(ListTimeseriesTest, self).setUp()
     self.SetUpApp([(r'/api/list_timeseries/(.*)',
                     list_timeseries.ListTimeseriesHandler)])
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
 
   def _AddData(self):
     """Adds sample TestMetadata entities and returns their keys."""

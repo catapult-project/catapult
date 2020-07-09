@@ -26,7 +26,7 @@ class NudgeAlertTest(testing_common.TestCase):
   def setUp(self):
     super(NudgeAlertTest, self).setUp()
     self.SetUpApp([('/api/nudge_alert', nudge_alert.NudgeAlertHandler)])
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     self.SetCurrentUserOAuth(None)
     testing_common.SetSheriffDomains(['example.com'])
 

@@ -24,7 +24,7 @@ class DescribeTest(testing_common.TestCase):
   def setUp(self):
     super(DescribeTest, self).setUp()
     self.SetUpApp([(r'/api/describe', describe.DescribeHandler)])
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
 
     external_key = update_test_suite_descriptors.CacheKey(
         'external', TEST_SUITE_NAME)

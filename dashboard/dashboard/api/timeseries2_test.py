@@ -38,7 +38,7 @@ class Timeseries2Test(testing_common.TestCase):
   def setUp(self):
     super(Timeseries2Test, self).setUp()
     self.SetUpApp([('/api/timeseries2', timeseries2.Timeseries2Handler)])
-    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_WHITELIST[0])
+    self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     self.SetCurrentUserOAuth(None)
 
   def _MockData(self, path='master/bot/suite/measure/case',

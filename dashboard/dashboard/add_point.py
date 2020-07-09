@@ -125,13 +125,13 @@ class AddPointHandler(post_data_handler.PostDataHandler):
       500 with error message otherwise.
     """
     datastore_hooks.SetPrivilegedRequest()
-    if not self._CheckIpAgainstWhitelist():
+    if not self._CheckIpAgainstAllowlist():
       try:
         api_auth.Authorize()
       except api_auth.ApiAuthException as error:
         logging.error('Auth error: %s', error)
         self.ReportError(
-            'IP address %s not in IP whitelist!' % self.request.remote_addr,
+            'IP address %s not in IP allowlist!' % self.request.remote_addr,
             403)
         return
 
