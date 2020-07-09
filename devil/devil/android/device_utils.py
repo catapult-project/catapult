@@ -2867,11 +2867,11 @@ class DeviceUtils(object):
     with self._cache_lock:
       tracing_path = '/sys/kernel/debug/tracing'
       try:
-        value = self.RunShellCommand(['mount'],
+        lines = self.RunShellCommand(['mount'],
                                      check_return=True,
                                      timeout=timeout,
                                      retries=retries)
-        if value and 'debugfs' not in value:
+        if not any('debugfs' in line for line in lines):
           tracing_path = '/sys/kernel/tracing'
       except device_errors.AdbCommandFailedError:
         pass
