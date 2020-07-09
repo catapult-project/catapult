@@ -45,19 +45,6 @@ def RecordIssuerClockSyncMarker(sync_id, issue_ts):
   trace_event.clock_sync(sync_id, issue_ts=issue_ts)
 
 
-def _UsePerfettoSync(platform_backend, config):
-  is_android = (platform_backend is not None
-                and platform_backend.GetOSName() == 'android')
-  if config is not None and config.enable_experimental_system_tracing:
-    all_agents_support_proto = True
-  else:
-    all_agents_support_proto = config is not None and not (
-        config.enable_atrace_trace or
-        config.enable_cpu_trace or
-        config.enable_platform_display_trace)
-  return is_android and all_agents_support_proto
-
-
 class TelemetryTracingAgent(tracing_agent.TracingAgent):
   """Tracing agent to collect data about Telemetry (and Python) execution.
 
@@ -77,7 +64,7 @@ class TelemetryTracingAgent(tracing_agent.TracingAgent):
     # different devices. The trace_set_clock_snapshot() function provides
     # a clock snapshot for the perfetto trace processor to synchronize
     # host and device clocks.
-    if _UsePerfettoSync(platform_backend, config):
+    if platform_backend and platform_backend.GetOSName() == 'android':
       telemetry_ts = trace_time.Now()
       device_uptime = platform_backend.device.RunShellCommand(
           ['cat', '/proc/uptime'], single_line=True)
