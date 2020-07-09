@@ -61,7 +61,11 @@ tr.exportTo('tr.ui.b', function() {
     }
     const linkEl = ownerDocument.createElement('a');
     if (opt_args) {
-      if (opt_args.href) linkEl.href = opt_args.href;
+      if (opt_args.href) {
+        linkEl.href = opt_args.href;
+        // Open link in a new tab so people don't lose their Trace Viewer state.
+        linkEl.target = '_blank';
+      }
       if (opt_args.tooltip) linkEl.title = opt_args.tooltip;
       if (opt_args.color) linkEl.style.color = opt_args.color;
       if (opt_args.bold) linkEl.style.fontWeight = 'bold';
