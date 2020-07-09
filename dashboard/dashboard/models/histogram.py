@@ -1,7 +1,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """The datastore models for histograms and diagnostics."""
 from __future__ import print_function
 from __future__ import division
@@ -84,6 +83,13 @@ class SparseDiagnostic(JsonModel):
   start_revision = ndb.IntegerProperty(indexed=True)
   end_revision = ndb.IntegerProperty(indexed=True)
 
+  def IsValid(self):
+    try:
+      diagnostic_module.Diagnostic.FromDict(self.data)
+      return True
+    except Exception:  # pylint: disable=broad-except
+      return False
+
   def IsDifferent(self, rhs):
     return (diagnostic_module.Diagnostic.FromDict(self.data) !=
             diagnostic_module.Diagnostic.FromDict(rhs.data))
@@ -98,22 +104,22 @@ class SparseDiagnostic(JsonModel):
   @classmethod
   @ndb.tasklet
   def GetMostRecentDataByNamesAsync(cls, test_key, diagnostic_names):
-    diagnostics = yield cls.query(
-        cls.end_revision == sys.maxsize,
-        cls.test == test_key).fetch_async()
+    diagnostics = yield cls.query(cls.end_revision == sys.maxsize,
+                                  cls.test == test_key).fetch_async()
     diagnostics_by_name = {}
     for diagnostic in diagnostics:
       if diagnostic.name not in diagnostic_names:
         continue
-      if (diagnostic.name in diagnostics_by_name and
-          diagnostic.start_revision <
+      if (diagnostic.name in diagnostics_by_name and diagnostic.start_revision <
           diagnostics_by_name[diagnostic.name].start_revision):
         # TODO(crbug.com/877809) Assert
         continue
       assert diagnostic.data, diagnostic
       diagnostics_by_name[diagnostic.name] = diagnostic
-    raise ndb.Return({diagnostic.name: diagnostic.data
-                      for diagnostic in diagnostics_by_name.values()})
+    raise ndb.Return({
+        diagnostic.name: diagnostic.data
+        for diagnostic in diagnostics_by_name.values()
+    })
 
   @staticmethod
   @ndb.tasklet
@@ -183,9 +189,8 @@ class SparseDiagnostic(JsonModel):
 @ndb.tasklet
 def _FindOrInsertDiagnosticsLast(new_entities, test, rev):
   query = SparseDiagnostic.query(
-      ndb.AND(
-          SparseDiagnostic.end_revision == sys.maxsize,
-          SparseDiagnostic.test == test))
+      ndb.AND(SparseDiagnostic.end_revision == sys.maxsize,
+              SparseDiagnostic.test == test))
   existing_entities = yield query.fetch_async()
   existing_entities = dict((d.name, d) for d in existing_entities)
   entity_futures = []
@@ -193,7 +198,7 @@ def _FindOrInsertDiagnosticsLast(new_entities, test, rev):
 
   for new_entity in new_entities:
     existing_entity = existing_entities.get(new_entity.name)
-    if existing_entity is not None:
+    if existing_entity is not None and existing_entity.IsValid():
       # Case 1: One in datastore, different from new one.
       if existing_entity.IsDifferent(new_entity):
         # Special case, they're overwriting the head value.
@@ -220,8 +225,8 @@ def _FindOrInsertDiagnosticsLast(new_entities, test, rev):
 
 
 @ndb.tasklet
-def _FindOrInsertNamedDiagnosticsOutOfOrder(
-    new_diagnostic, old_diagnostics, rev):
+def _FindOrInsertNamedDiagnosticsOutOfOrder(new_diagnostic, old_diagnostics,
+                                            rev):
   new_guid = new_diagnostic.key.id()
   guid_mapping = {}
 
@@ -230,7 +235,7 @@ def _FindOrInsertNamedDiagnosticsOutOfOrder(
 
     suite_key = utils.TestKey('/'.join(cur.test.id().split('/')[:3]))
 
-    next_diagnostic = None if i == 0 else old_diagnostics[i-1]
+    next_diagnostic = None if i == 0 else old_diagnostics[i - 1]
 
     # Overall there are 2 major cases to handle. Either you're clobbering an
     # existing diagnostic by uploading right to the start of that diagnostic's
@@ -315,7 +320,7 @@ def _FindOrInsertNamedDiagnosticsOutOfOrder(
       # it's different than the new one.
       prev_diagnostic = None
       if i + 1 < len(old_diagnostics):
-        prev_diagnostic = old_diagnostics[i+1]
+        prev_diagnostic = old_diagnostics[i + 1]
 
       cur_diagnostic = cur
       if new_diagnostic:
@@ -366,9 +371,12 @@ def _FindOrInsertNamedDiagnosticsOutOfOrder(
           new_diagnostic.end_revision = next_revision
 
           clone_of_cur = SparseDiagnostic(
-              data=cur.data, test=cur.test,
-              start_revision=next_revision + 1, end_revision=sys.maxsize,
-              name=cur.name, internal_only=cur.internal_only)
+              data=cur.data,
+              test=cur.test,
+              start_revision=next_revision + 1,
+              end_revision=sys.maxsize,
+              name=cur.name,
+              internal_only=cur.internal_only)
           futures.append(clone_of_cur.put_async())
 
         futures.append(new_diagnostic.put_async())
@@ -387,10 +395,12 @@ def _FindOrInsertNamedDiagnosticsOutOfOrder(
           new_diagnostic.end_revision = next_revision
 
           clone_of_cur = SparseDiagnostic(
-              data=cur.data, test=cur.test,
+              data=cur.data,
+              test=cur.test,
               start_revision=next_revision + 1,
               end_revision=next_diagnostic.start_revision - 1,
-              name=cur.name, internal_only=cur.internal_only)
+              name=cur.name,
+              internal_only=cur.internal_only)
 
           futures.append(clone_of_cur.put_async())
           futures.append(new_diagnostic.put_async())
@@ -436,9 +446,8 @@ def _FindOrInsertNamedDiagnosticsOutOfOrder(
 @ndb.tasklet
 def _FindOrInsertDiagnosticsOutOfOrder(new_entities, test, rev):
   query = SparseDiagnostic.query(
-      ndb.AND(
-          SparseDiagnostic.end_revision >= rev - 1,
-          SparseDiagnostic.test == test))
+      ndb.AND(SparseDiagnostic.end_revision >= rev - 1,
+              SparseDiagnostic.test == test))
   query = query.order(-SparseDiagnostic.end_revision)
   diagnostic_entities = yield query.fetch_async()
 
@@ -455,8 +464,8 @@ def _FindOrInsertDiagnosticsOutOfOrder(new_entities, test, rev):
       continue
 
     futures.append(
-        _FindOrInsertNamedDiagnosticsOutOfOrder(
-            new_entities_by_name[name], diagnostics_by_name[name], rev))
+        _FindOrInsertNamedDiagnosticsOutOfOrder(new_entities_by_name[name],
+                                                diagnostics_by_name[name], rev))
 
   guid_mappings = yield futures
 
