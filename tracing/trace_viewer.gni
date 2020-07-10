@@ -140,6 +140,7 @@ tracing_js_html_files = [
   "tracing/extras/importer/linux_perf/rss_parser.html",
   "tracing/extras/importer/linux_perf/sched_parser.html",
   "tracing/extras/importer/linux_perf/sync_parser.html",
+  "tracing/extras/importer/linux_perf/thermal_parser.html",
   "tracing/extras/importer/linux_perf/workqueue_parser.html",
   "tracing/extras/importer/oboe.html",
   "tracing/extras/importer/pako.html",
