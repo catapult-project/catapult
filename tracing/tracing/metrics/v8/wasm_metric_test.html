@@ -66,6 +66,54 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(wallValue.average, 20);
     assert.strictEqual(wallValue.running.max, 30);
   });
+
+  test('testStreamingBaselineCompileTime', function() {
+    const slices = [
+      {
+        title: 'wasm.StartStreamingCompilation', args: {}, start: 10, end: 20,
+        cpuStart: 10, cpuEnd: 20
+      },
+      {
+        title: 'wasm.BaselineFinished', args: {}, start: 100, end: 110,
+        cpuStart: 100, cpuEnd: 110
+      },
+    ];
+    const histograms = runMetrics(slices);
+
+    const compileTime = histograms.getHistogramNamed(
+        'v8:wasm:streaming_baseline_compilation:wall_time');
+    assert.strictEqual(compileTime.numValues, 1);
+    assert.strictEqual(compileTime.average, 100);
+    assert.strictEqual(compileTime.running.max, 100);
+  });
+
+  test('testStreamingBaselineCompileTimeNoStartEvent', function() {
+    const slices = [
+      {
+        title: 'wasm.BaselineFinished', args: {}, start: 100, end: 110,
+        cpuStart: 100, cpuEnd: 110
+      },
+    ];
+    const histograms = runMetrics(slices);
+
+    const compileTime = histograms.getHistogramNamed(
+        'v8:wasm:streaming_baseline_compilation:wall_time');
+    assert.strictEqual(compileTime, undefined);
+  });
+
+  test('testStreamingBaselineCompileTimeNoEndEvent', function() {
+    const slices = [
+      {
+        title: 'wasm.StartStreamingCompilation', args: {}, start: 100, end: 110,
+        cpuStart: 100, cpuEnd: 110
+      },
+    ];
+    const histograms = runMetrics(slices);
+
+    const compileTime = histograms.getHistogramNamed(
+        'v8:wasm:streaming_baseline_compilation:wall_time');
+    assert.strictEqual(compileTime, undefined);
+  });
 });
 
 </script>

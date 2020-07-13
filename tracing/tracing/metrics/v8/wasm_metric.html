@@ -35,8 +35,37 @@ tr.exportTo('tr.metrics.v8', function() {
     histograms.addHistogram(wasmSyncInstantiationTimeWall);
   }
 
+  function computeStreamingBaselineCompileTimeMetric(histograms, model) {
+    // With streaming compilation, baseline compilation happens from when the
+    // first bytes get received until when baseline compilation finishes. If
+    // compilation speed is faster than download speed, then this metric also
+    // includes the time compilation is waiting for additional bytes.
+    const histogram = new tr.v.Histogram(
+        'v8:wasm:streaming_baseline_compilation:wall_time',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
+
+    const streamingStartsEvent =
+      model.findTopmostSlicesNamed('wasm.StartStreamingCompilation');
+
+    const startEvent = streamingStartsEvent.next();
+    if (startEvent.done) return;
+    const compilationStart = startEvent.value.start;
+
+    const baselineFinishedEvents =
+      model.findTopmostSlicesNamed('wasm.BaselineFinished');
+
+    const finishedEvent = baselineFinishedEvents.next();
+    if (finishedEvent.done) return;
+    const compilationEnd = finishedEvent.value.end;
+
+    histogram.addSample(compilationEnd - compilationStart);
+
+    histograms.addHistogram(histogram);
+  }
+
   function wasmMetric(histograms, model) {
     computeSyncInstantiationTimeMetric(histograms, model);
+    computeStreamingBaselineCompileTimeMetric(histograms, model);
   }
 
   tr.metrics.MetricRegistry.register(wasmMetric);
