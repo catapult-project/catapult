@@ -41,7 +41,7 @@ def _CheckRegisteredDiagnostics(input_api, output_api):
 
 def _WarnOnReservedInfosChanges(input_api, output_api):
   source_file_filter = lambda x: input_api.FilterSourceFile(
-      x, white_list=[r'.*reserved_infos\.(py|cc)$'])
+      x, files_to_check=[r'.*reserved_infos\.(py|cc)$'])
 
   count = len(input_api.AffectedSourceFiles(source_file_filter))
   results = []
@@ -55,7 +55,7 @@ def _WarnOnReservedInfosChanges(input_api, output_api):
 
 def _CheckHistogramProtoIsGated(input_api, output_api):
   source_file_filter = lambda x: input_api.FilterSourceFile(
-      x, white_list=[r'.*\.py$'], black_list=['.*PRESUBMIT.py$'])
+      x, files_to_check=[r'.*\.py$'], block_list=['.*PRESUBMIT.py$'])
 
   files = []
   for f in input_api.AffectedSourceFiles(source_file_filter):
@@ -76,7 +76,7 @@ def _CheckHistogramProtoIsGated(input_api, output_api):
 
 def _CheckProtoNamespace(input_api, output_api):
   source_file_filter = lambda x: input_api.FilterSourceFile(
-      x, white_list=[r'.*\.(cc|h)$'])
+      x, files_to_check=[r'.*\.(cc|h)$'])
 
   files = []
   for f in input_api.AffectedSourceFiles(source_file_filter):
@@ -117,10 +117,10 @@ def _CheckChange(input_api, output_api):
     sys.path = original_sys_path
 
 
-  black_list = input_api.DEFAULT_BLACK_LIST + (".*_pb2.py$",)
+  files_to_skip = input_api.DEFAULT_FILES_TO_SKIP + (".*_pb2.py$",)
   results += input_api.RunTests(input_api.canned_checks.GetPylint(
       input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
-      pylintrc='../pylintrc', black_list=black_list))
+      pylintrc='../pylintrc', files_to_skip=files_to_skip))
 
   results += _CheckRegisteredMetrics(input_api, output_api)
   results += _CheckRegisteredDiagnostics(input_api, output_api)
