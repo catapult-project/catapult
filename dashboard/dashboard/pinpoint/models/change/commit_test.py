@@ -44,8 +44,7 @@ deps = {
     'condition': 'checkout_mac or checkout_win',
   },
   'src/third_party/webrtc': {
-    'url': '{webrtc_git}/src.git',
-    'revision': '{webrtc_rev}',
+    'url': '{webrtc_git}/src.git@{webrtc_rev}',
   },
   'src/third_party/intellij': {
     'packages': [{
@@ -83,6 +82,16 @@ hooks = [
         'src/tools/do_stuff.py',
     ],
   }]
+    """
+
+    self.assertEqual(Commit(0).Deps(), frozenset([]))
+
+  def testDepsIgnoresInvalid(self):
+    # A file that fails gclient_eval.Parse's validation.
+    self.file_contents.return_value = """
+deps = {
+  'some_dep': {'invalid_key': ''}
+}
     """
 
     self.assertEqual(Commit(0).Deps(), frozenset([]))

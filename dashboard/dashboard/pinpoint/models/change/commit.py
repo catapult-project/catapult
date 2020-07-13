@@ -10,6 +10,7 @@ import collections
 import datetime
 import re
 
+from depot_tools import gclient_eval
 from google.appengine.ext import deferred
 
 from dashboard.pinpoint.models.change import commit_cache
@@ -97,34 +98,29 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     except gitiles_service.NotFoundError:
       return frozenset()  # No DEPS file => no DEPS.
 
-    deps_data = {'Var': lambda variable: deps_data['vars'][variable]}
-    exec(deps_file_contents, deps_data)  # pylint: disable=exec-used
+
+    try:
+      deps_data = gclient_eval.Parse(deps_file_contents,
+                                     '{}@{}/DEPS'.format(self.repository_url,
+                                                         self.git_hash))
+    except gclient_eval.Error:
+      return frozenset()  # Invalid/unparseable DEPS file => no DEPS.
 
     # Pull out deps dict, including OS-specific deps.
     deps_dict = deps_data.get('deps', {})
     if not deps_dict:
       return frozenset()
 
-    for deps_os in deps_data.get('deps_os', {}).values():
-      deps_dict.update(deps_os)
-
-    # Pull out vars dict to format brace variables.
-    vars_dict = deps_data.get('vars', {})
-
     # Convert deps strings to repository and git hash.
     commits = []
     for dep_value in deps_dict.values():
-      if isinstance(dep_value, basestring):
-        dep_string = dep_value
-      else:
-        if 'url' not in dep_value:
-          # We don't support DEPS that are CIPD packages.
-          continue
-        dep_string = dep_value['url']
-        if 'revision' in dep_value:
-          dep_string += '@' + dep_value['revision']
+      if dep_value.get('dep_type') != 'git':
+        # We don't support DEPS that are CIPD packages.
+        continue
 
-      dep_string_parts = dep_string.format(**vars_dict).split('@')
+      dep_string = dep_value.get('url', '')
+
+      dep_string_parts = dep_string.split('@')
       if len(dep_string_parts) < 2:
         continue  # Dep is not pinned to any particular revision.
       if len(dep_string_parts) > 2:

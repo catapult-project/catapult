@@ -21,6 +21,7 @@ THIRD_PARTY_LIBRARIES = [
     'certifi',
     'chardet',
     'cloudstorage',
+    'depot_tools',
     'flot',
     'gae_ts_mon',
     'google-auth',
