@@ -62,6 +62,7 @@ group("telemetry_chrome_test_support") {
     "third_party/cloudstorage/",
     "third_party/coverage/",
     "third_party/d3/",
+    "third_party/depot_tools/",
     "third_party/flot/",
     "third_party/gae_ts_mon/",
     "third_party/google-auth/",
