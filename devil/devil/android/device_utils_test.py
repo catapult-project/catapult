@@ -3962,6 +3962,23 @@ class IterPushableComponentsTest(unittest.TestCase):
       self.assertItemsEqual(expected, actual)
 
 
+class DeviceUtilsGetTracingPathTest(DeviceUtilsTest):
+  def testGetTracingPath_hasDebugfs(self):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(['mount'], retries=0,
+                                          timeout=10, check_return=True),
+        ['debugfs on /sys/kernel/debug', 'proc on /proc'])):
+      self.assertEquals('/sys/kernel/debug/tracing',
+                        self.device.GetTracingPath())
+
+  def testGetTracingPath_noDebugfs(self):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(['mount'], retries=0,
+                                          timeout=10, check_return=True),
+        ['proc on /proc'])):
+      self.assertEquals('/sys/kernel/tracing', self.device.GetTracingPath())
+
+
 if __name__ == '__main__':
   logging.getLogger().setLevel(logging.DEBUG)
   unittest.main(verbosity=2)
