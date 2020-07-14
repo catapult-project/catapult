@@ -305,14 +305,14 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   @decorators.Cache
   def UpdateExecutableIfNeeded(self):
     # TODO(crbug.com/815133): This logic should belong to backend_settings.
+    for apk in self._support_apk_list:
+      logging.warn('Installing %s on device if needed.', apk)
+      self.platform.InstallApplication(apk)
+
     if self._local_apk:
       logging.warn('Installing %s on device if needed.', self._local_apk)
       self.platform.InstallApplication(
           self._local_apk, modules=self._modules_to_install)
-
-    for apk in self._support_apk_list:
-      logging.warn('Installing %s on device if needed.', apk)
-      self.platform.InstallApplication(apk)
 
     if (self._backend_settings.GetApkName(
         self._platform_backend.device) == 'Monochrome.apk'):
