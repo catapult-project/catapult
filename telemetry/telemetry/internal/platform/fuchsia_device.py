@@ -87,7 +87,7 @@ def _DownloadFuchsiaSDK(tar_file, dest=_SDK_ROOT_IN_CATAPULT):
 
 
 def _FindFuchsiaDevice(sdk_root, is_emulator):
-  dev_finder_path = os.path.join(sdk_root, 'tools', 'dev_finder')
+  dev_finder_path = os.path.join(sdk_root, 'tools', 'device-finder')
   if is_emulator:
     logging.warning('Fuchsia emulators not supported at this time.')
     return None
