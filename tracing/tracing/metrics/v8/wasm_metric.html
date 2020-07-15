@@ -8,13 +8,16 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/metrics/v8/utils.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.metrics.v8', function() {
-  function computeSyncInstantiationTimeMetric(histograms, model) {
+  function computeSyncInstantiationTimeMetric(histograms, wasmEvents) {
+    if (!wasmEvents.hasOwnProperty('wasm.SyncInstantiate')) return;
+
     const wasmSyncInstantiationTimeCPU = new tr.v.Histogram(
         'v8:wasm:sync_instantiate:cpu_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
@@ -26,7 +29,7 @@ tr.exportTo('tr.metrics.v8', function() {
     wasmSyncInstantiationTimeWall.description =
       'wall time spent instantiating a WebAssembly module';
 
-    for (const e of model.findTopmostSlicesNamed('wasm.SyncInstantiate')) {
+    for (const e of wasmEvents['wasm.SyncInstantiate']) {
       wasmSyncInstantiationTimeCPU.addSample(e.cpuDuration);
       wasmSyncInstantiationTimeWall.addSample(e.duration);
     }
@@ -35,37 +38,41 @@ tr.exportTo('tr.metrics.v8', function() {
     histograms.addHistogram(wasmSyncInstantiationTimeWall);
   }
 
-  function computeStreamingBaselineCompileTimeMetric(histograms, model) {
+  function computeStreamingBaselineCompileTimeMetric(histograms, wasmEvents) {
     // With streaming compilation, baseline compilation happens from when the
     // first bytes get received until when baseline compilation finishes. If
     // compilation speed is faster than download speed, then this metric also
     // includes the time compilation is waiting for additional bytes.
+    if (!wasmEvents.hasOwnProperty('wasm.StartStreamingCompilation') ||
+        !wasmEvents.hasOwnProperty('wasm.BaselineFinished')) {
+      return;
+    }
     const histogram = new tr.v.Histogram(
         'v8:wasm:streaming_baseline_compilation:wall_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
 
-    const streamingStartsEvent =
-      model.findTopmostSlicesNamed('wasm.StartStreamingCompilation');
+    const compilationStart =
+      wasmEvents['wasm.StartStreamingCompilation'][0].start;
 
-    const startEvent = streamingStartsEvent.next();
-    if (startEvent.done) return;
-    const compilationStart = startEvent.value.start;
-
-    const baselineFinishedEvents =
-      model.findTopmostSlicesNamed('wasm.BaselineFinished');
-
-    const finishedEvent = baselineFinishedEvents.next();
-    if (finishedEvent.done) return;
-    const compilationEnd = finishedEvent.value.end;
+    const compilationEnd = wasmEvents['wasm.BaselineFinished'][0].end;
 
     histogram.addSample(compilationEnd - compilationStart);
-
     histograms.addHistogram(histogram);
   }
 
+  function collectWasmEvents(model) {
+    const wasmEvents = tr.metrics.v8.utils.filterAndOrderEvents(model,
+        event => event.title.startsWith('wasm.'),
+        event => event.title);
+
+    return wasmEvents;
+  }
+
   function wasmMetric(histograms, model) {
-    computeSyncInstantiationTimeMetric(histograms, model);
-    computeStreamingBaselineCompileTimeMetric(histograms, model);
+    const wasmEvents = collectWasmEvents(model);
+
+    computeSyncInstantiationTimeMetric(histograms, wasmEvents);
+    computeStreamingBaselineCompileTimeMetric(histograms, wasmEvents);
   }
 
   tr.metrics.MetricRegistry.register(wasmMetric);

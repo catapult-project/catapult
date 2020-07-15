@@ -300,6 +300,29 @@ tr.exportTo('tr.metrics.v8.utils', function() {
   }
 
   /**
+   * Returns a map of events that pass the |filterCallback| filter. The keys
+   * for the map are produced by |keyCallback|.
+   * @param {Function} filterCallback Takes an event and returns a boolean.
+   * @param {Function} keyCallback Takes an event and returns a string.
+   */
+  function filterAndOrderEvents(model, filterCallback, keyCallback) {
+    const threads = jsExecutionThreads(model);
+    const events = {};
+    for (const thread of threads) {
+      for (const event of thread.sliceGroup.childEvents()) {
+        if (!filterCallback(event)) continue;
+        const key = keyCallback(event);
+        if (events[key]) {
+          events[key].push(event);
+        } else {
+          events[key] = [event];
+        }
+      }
+    }
+    return events;
+  }
+
+  /**
    * Given a list of intervals, returns a new list with all overalapping
    * intervals merged into a single interval.
    */
@@ -517,6 +540,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     findParent,
     forcedGCEventName,
     filterEvents,
+    filterAndOrderEvents,
     groupAndProcessEvents,
     isForcedGarbageCollectionEvent,
     isFullMarkCompactorEvent,
