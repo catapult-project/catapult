@@ -237,6 +237,8 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         self._ProcessAsyncEvent(event)
       elif phase == 'b' or phase == 'e':
         self._ProcessAsyncEvent(event)
+      elif phase == 'n':
+        self._ProcessAsyncEvent(event)
       # Note, I is historic. The instant event marker got changed, but we
       # want to support loading old trace files so we have both I and i.
       elif phase == 'I' or phase == 'i':
@@ -295,7 +297,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
       name = event.get('name', None)
       if name is None:
         self._model.import_errors.append(
-            'Async events (ph: b, e, S, T or F) require an name parameter.')
+            'Async events (ph: b, e, n, S, T or F) require an name parameter.')
         continue
 
       if 'id2' in event:
@@ -308,7 +310,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
 
       if event_id is None:
         self._model.import_errors.append(
-            'Async events (ph: b, e, S, T or F) require an id parameter.')
+            'Async events (ph: b, e, n, S, T or F) require an id parameter.')
         continue
 
       # TODO(simonjam): Add a synchronous tick on the appropriate thread.
@@ -325,6 +327,15 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         async_event_states_by_name_then_id[name][event_id] = []
         async_event_states_by_name_then_id[name][event_id].append(
             async_event_state)
+      elif event['ph'] == 'n':
+        thread_start = event['tts'] / 1000.0 if 'tts' in event else None
+        async_slice = tracing_async_slice.AsyncSlice(
+            event['cat'], name, event['ts'] / 1000.0,
+            event['args'], 0, async_event_state['thread'],
+            async_event_state['thread'], thread_start
+        )
+        async_slice.id = event_id
+        async_slice.start_thread.AddAsyncSlice(async_slice)
       else:
         if name not in async_event_states_by_name_then_id:
           self._model.import_errors.append(

@@ -617,6 +617,51 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     # the order in which the series names are added.
     self.assertEqual(14, ctr.max_total)
 
+  def testNestableInstant(self):
+    events = [
+        {'name': 'a', 'args': {'arg1': 'value1'}, 'pid': 52, 'ts': 540,
+         'cat': 'foo', 'tid': 53, 'ph': 'n', 'id2': {'local': 72}},
+        {'name': 'b', 'args': {'arg2': 'value3'}, 'pid': 52, 'ts': 1554,
+         'cat': 'bar', 'tid': 54, 'ph': 'n', 'id2': {'global': 85}},
+        {'name': 'c', 'args': {'arg3': 'value4'}, 'pid': 52, 'tts': 1555,
+         'ts': 1560, 'cat': 'baz', 'tid': 54, 'ph': 'n', 'id2': {'local': 72}},
+    ]
+    trace_data = trace_data_module.CreateFromRawChromeEvents(events)
+
+    m = timeline_model.TimelineModel(trace_data)
+    events = list(m.IterAllEvents())
+    self.assertEqual(3, len(events))
+
+    processes = m.GetAllProcesses()
+    t1 = processes[0].threads[53]
+    self.assertEqual(1, len(t1.async_slices))
+    e1 = t1.async_slices[0]
+    self.assertEqual('a', e1.name)
+    self.assertEqual('value1', e1.args['arg1'])
+    self.assertEqual(0, e1.start)
+    self.assertEqual(0, e1.duration)
+    self.assertEqual('foo', e1.category)
+    self.assertEqual('52.72', e1.id)
+
+    t2 = processes[0].threads[54]
+    self.assertEqual(2, len(t2.async_slices))
+    e2 = t2.async_slices[0]
+    self.assertEqual('b', e2.name)
+    self.assertEqual('value3', e2.args['arg2'])
+    self.assertEqual((1554 - 540) / 1000.0, e2.start)
+    self.assertEqual(0, e2.duration)
+    self.assertEqual('bar', e2.category)
+    self.assertEqual(85, e2.id)
+
+    e3 = t2.async_slices[1]
+    self.assertEqual('c', e3.name)
+    self.assertEqual('value4', e3.args['arg3'])
+    self.assertEqual((1560 - 540) / 1000.0, e3.start)
+    self.assertEqual(1555 / 1000.0, e3.thread_start)
+    self.assertEqual(0, e3.duration)
+    self.assertEqual('baz', e3.category)
+    self.assertEqual('52.72', e3.id)
+
   def testStartFinishOneSliceOneThread(self):
     events = [
         # Time is intentionally out of order.
