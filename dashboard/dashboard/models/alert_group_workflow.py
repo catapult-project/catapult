@@ -218,19 +218,21 @@ class AlertGroupWorkflow(object):
     if all(a.recovered for a in anomalies if not a.is_improvement):
       return self._CloseBecauseRecovered()
 
-    regressions, subscriptions = self._GetRegressions(added)
+    new_regressions, subscriptions = self._GetRegressions(added)
+    all_regressions, _ = self._GetRegressions(anomalies)
 
     # Only update issue if there is at least one regression
-    if not regressions or not any(r.auto_triage_enable for r in regressions):
+    if not new_regressions:
       return
 
     if issue.get('state') == 'closed' and any(
         a.auto_bisect_enable
         for a in anomalies
         if not a.is_improvement and not a.recovered):
-      self._ReopenWithNewRegressions(regressions, subscriptions)
+      self._ReopenWithNewRegressions(all_regressions, new_regressions,
+                                     subscriptions)
     else:
-      self._FileNormalUpdate(regressions, subscriptions)
+      self._FileNormalUpdate(all_regressions, new_regressions, subscriptions)
 
   def _CloseBecauseRecovered(self):
     self._issue_tracker.AddBugComment(
@@ -240,26 +242,30 @@ class AlertGroupWorkflow(object):
         labels='Chromeperf-Auto-Closed',
         project=self._group.project_id)
 
-  def _ReopenWithNewRegressions(self, regressions, subscriptions):
-    template_args = self._GetTemplateArgs(regressions)
-    comment = _TEMPLATE_REOPEN_COMMENT.render(template_args)
-    components, cc, _ = self._ComputeBugUpdate(subscriptions, regressions)
+  def _ReopenWithNewRegressions(self, all_regressions, added, subscriptions):
+    summary = _TEMPLATE_ISSUE_TITLE.render(
+        self._GetTemplateArgs(all_regressions))
+    comment = _TEMPLATE_REOPEN_COMMENT.render(self._GetTemplateArgs(added))
+    components, cc, _ = self._ComputeBugUpdate(subscriptions, added)
     self._issue_tracker.AddBugComment(
         self._group.bug.bug_id,
         comment,
+        summary=summary,
         components=components,
         labels=['Chromeperf-Auto-Reopened'],
         status='Unconfirmed',
         cc_list=cc,
         project=self._group.project_id)
 
-  def _FileNormalUpdate(self, regressions, subscriptions):
-    template_args = self._GetTemplateArgs(regressions)
-    comment = _TEMPLATE_ISSUE_COMMENT.render(template_args)
-    components, cc, labels = self._ComputeBugUpdate(subscriptions, regressions)
+  def _FileNormalUpdate(self, all_regressions, added, subscriptions):
+    summary = _TEMPLATE_ISSUE_TITLE.render(
+        self._GetTemplateArgs(all_regressions))
+    comment = _TEMPLATE_ISSUE_COMMENT.render(self._GetTemplateArgs(added))
+    components, cc, labels = self._ComputeBugUpdate(subscriptions, added)
     self._issue_tracker.AddBugComment(
         self._group.bug.bug_id,
         comment,
+        summary=summary,
         labels=labels,
         cc_list=cc,
         components=components,

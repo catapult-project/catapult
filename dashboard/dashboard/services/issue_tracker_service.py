@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides a layer of abstraction for the issue tracker API."""
 from __future__ import print_function
 from __future__ import division
@@ -47,6 +46,7 @@ class IssueTrackerService(object):
                     bug_id,
                     comment,
                     project='chromium',
+                    summary=None,
                     status=None,
                     cc_list=None,
                     merge_issue=None,
@@ -82,6 +82,8 @@ class IssueTrackerService(object):
       status = STATUS_DUPLICATE
       updates['mergedInto'] = '%s:%s' % (project, merge_issue)
       logging.info('Bug %s marked as duplicate of %s', bug_id, merge_issue)
+    if summary:
+      updates['summary'] = summary
     if status:
       updates['status'] = status
     if cc_list:
@@ -133,10 +135,7 @@ class IssueTrackerService(object):
       making a comment failed unexpectedly.
     """
     request = self._service.issues().comments().insert(
-        projectId=project,
-        issueId=bug_id,
-        sendEmail=send_email,
-        body=body)
+        projectId=project, issueId=bug_id, sendEmail=send_email, body=body)
     try:
       if self._ExecuteRequest(request, ignore_error=False):
         return True
@@ -256,7 +255,7 @@ class IssueTrackerService(object):
         'author': r['author'].get('name'),
         'content': r['content'],
         'published': r['published']
-        } for r in response.get('items')]
+    } for r in response.get('items')]
 
   def GetLastBugCommentsAndTimestamp(self, bug_id, project='chromium'):
     """Gets last updated comments and timestamp in the given bug.
@@ -270,8 +269,8 @@ class IssueTrackerService(object):
     if not bug_id or bug_id < 0:
       return None
     response = self._MakeGetCommentsRequest(bug_id, project=project)
-    if response and all(v in list(response.keys())
-                        for v in ['totalResults', 'items']):
+    if response and all(
+        v in list(response.keys()) for v in ['totalResults', 'items']):
       bug_comments = response.get('items')[response.get('totalResults') - 1]
       if bug_comments.get('content') and bug_comments.get('published'):
         return {
@@ -288,9 +287,7 @@ class IssueTrackerService(object):
     # Remove this max count once we find a way to clear old comments
     # on FYI issues.
     request = self._service.issues().comments().list(
-        projectId=project,
-        issueId=bug_id,
-        maxResults=10000)
+        projectId=project, issueId=bug_id, maxResults=10000)
     return self._ExecuteRequest(request)
 
   def _ExecuteRequest(self, request, ignore_error=True):
