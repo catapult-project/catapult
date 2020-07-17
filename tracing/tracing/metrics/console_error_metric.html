@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/value/diagnostics/generic_set.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
 <script>
@@ -33,32 +34,43 @@ tr.exportTo('tr.metrics.console', function() {
   function consoleErrorMetric(histograms, model) {
     const counts = {};
     for (const source of SOURCES) {
-      counts[source] = 0;
+      counts[source] = {count: 0, details: []};
     }
     for (const slice of model.getDescendantEvents()) {
       if (slice.category === 'blink.console' &&
           slice.title === 'ConsoleMessage::Error') {
         const source = slice.args.source.toLowerCase();
-        counts.all++;
+        counts.all.count++;
+        if (slice.args.message) {
+          counts.all.details.push(
+              {pid: slice.getProcess().pid, ...slice.args.message});
+        }
         if (source in counts) {
-          counts[source]++;
+          counts[source].count++;
+          if (slice.args.message) {
+            counts[source].details.push(
+                {pid: slice.getProcess().pid, ...slice.args.message});
+          }
         }
       }
       if (slice.category === 'v8.console' && (
         slice.title === 'V8ConsoleMessage::Exception' ||
         slice.title === 'V8ConsoleMessage::Error' ||
         slice.title === 'V8ConsoleMessage::Assert')) {
-        counts.all++;
-        counts.js++;
+        counts.all.count++;
+        counts.js.count++;
       }
     }
     for (const source of SOURCES) {
-      histograms.createHistogram(
+      const hist = histograms.createHistogram(
           `console:error:${source}`,
-          tr.b.Unit.byName.count_smallerIsBetter,
-          counts[source], {
+          tr.b.Unit.byName.count_smallerIsBetter, {
+            value: counts[source].count, diagnostics: {
+              details: new tr.v.d.GenericSet(counts[source].details)
+            }
+          }, {
             description: `Number of ${source} console error messages`,
-            summaryOptions: SUMMARY_OPTIONS
+            summaryOptions: SUMMARY_OPTIONS,
           });
     }
   }
