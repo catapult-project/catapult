@@ -310,16 +310,23 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       logging.warn('Installing %s on device if needed.', apk)
       self.platform.InstallApplication(apk)
 
+    apk_name = self._backend_settings.GetApkName(
+        self._platform_backend.device)
+    is_webview_apk = apk_name is not None and ('SystemWebView' in apk_name or
+                                               'TrichromeWebView' in apk_name)
+    # The WebView fallback logic prevents sideloaded WebView APKs from being
+    # installed and set as the WebView implementation correctly. Disable the
+    # fallback logic before installing the WebView APK to make sure the fallback
+    # logic doesn't interfere.
+    if is_webview_apk:
+      self._platform_backend.device.SetWebViewFallbackLogic(False)
+
     if self._local_apk:
       logging.warn('Installing %s on device if needed.', self._local_apk)
       self.platform.InstallApplication(
           self._local_apk, modules=self._modules_to_install)
 
-    apk_name = self._backend_settings.GetApkName(
-        self._platform_backend.device)
-    if (apk_name is not None and (apk_name == 'Monochrome.apk' or
-                                  'SystemWebView' in apk_name or
-                                  'TrichromeWebView' in apk_name) and
+    if ((is_webview_apk or apk_name == 'Monochrome.apk') and
         self._platform_backend.device.build_version_sdk >=
         version_codes.NOUGAT):
       package_name = apk_helper.GetPackageName(self._local_apk)
