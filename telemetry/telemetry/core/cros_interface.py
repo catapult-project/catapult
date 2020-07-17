@@ -676,11 +676,11 @@ class CrOSInterface(object):
     var_path = '/var/log/screenshots/%s' % basename
     dir_name = os.path.dirname(file_path)
     self.RunCmdOnDevice(['mkdir', '-p', '/var/log/screenshots'])
-    stdout, _ = self.RunCmdOnDevice(['/usr/local/sbin/screenshot',
-                                     var_path,
-                                     '&&',
-                                     'echo',
-                                     'screenshot return value:$?'])
+    stdout, stderr = self.RunCmdOnDevice(['/usr/local/sbin/screenshot',
+                                          var_path,
+                                          '&&',
+                                          'echo',
+                                          'screenshot return value:$?'])
     if self.local:
       self.RunCmdOnDevice(['mkdir', '-p', dir_name])
       self.RunCmdOnDevice(['cp', var_path, file_path])
@@ -692,6 +692,7 @@ class CrOSInterface(object):
       except OSError as e:
         logging.error('Unable to pull screenshot file %s to %s: %s',
                       var_path, file_path, e)
+        logging.error('Screenshot capture output: %s\n%s', stdout, stderr)
     return 'screenshot return value:0' in stdout
 
   def TakeScreenshotWithPrefix(self, screenshot_prefix):
