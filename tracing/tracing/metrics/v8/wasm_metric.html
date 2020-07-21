@@ -60,6 +60,24 @@ tr.exportTo('tr.metrics.v8', function() {
     histograms.addHistogram(histogram);
   }
 
+  function computeCompilationTierupWallTimeMetric(histograms, wasmEvents) {
+    if (!wasmEvents.hasOwnProperty('wasm.BaselineFinished') ||
+        !wasmEvents.hasOwnProperty('wasm.TopTierFinished')) {
+      return;
+    }
+
+    const histogram = new tr.v.Histogram(
+        'v8:wasm:compilation_tierup:wall_time',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
+
+    const tierupStart = wasmEvents['wasm.BaselineFinished'][0].start;
+    const tierupEnd = wasmEvents['wasm.TopTierFinished'][0].end;
+
+    histogram.addSample(tierupEnd - tierupStart);
+
+    histograms.addHistogram(histogram);
+  }
+
   function collectWasmEvents(model) {
     const wasmEvents = tr.metrics.v8.utils.filterAndOrderEvents(model,
         event => event.title.startsWith('wasm.'),
@@ -73,6 +91,7 @@ tr.exportTo('tr.metrics.v8', function() {
 
     computeSyncInstantiationTimeMetric(histograms, wasmEvents);
     computeStreamingBaselineCompileTimeMetric(histograms, wasmEvents);
+    computeCompilationTierupWallTimeMetric(histograms, wasmEvents);
   }
 
   tr.metrics.MetricRegistry.register(wasmMetric);

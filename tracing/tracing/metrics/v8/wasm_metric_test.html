@@ -114,6 +114,56 @@ tr.b.unittest.testSuite(function() {
         'v8:wasm:streaming_baseline_compilation:wall_time');
     assert.strictEqual(compileTime, undefined);
   });
-});
 
+  test('testTierupWallTime', function() {
+    const slices = [
+      {
+        title: 'wasm.BaselineFinished', args: {}, start: 100, end: 110,
+        cpuStart: 100, cpuEnd: 110
+      },
+      {
+        title: 'wasm.TopTierFinished', args: {}, start: 200, end: 210,
+        cpuStart: 200, cpuEnd: 210
+      },
+    ];
+
+    const histograms = runMetrics(slices);
+
+    const tierupTime = histograms.getHistogramNamed(
+        'v8:wasm:compilation_tierup:wall_time');
+    assert.strictEqual(tierupTime.numValues, 1);
+    assert.strictEqual(tierupTime.average, 110);
+    assert.strictEqual(tierupTime.running.max, 110);
+  });
+
+  test('testTierupNoStartEvent', function() {
+    const slices = [
+      {
+        title: 'wasm.TopTierFinished', args: {}, start: 200, end: 210,
+        cpuStart: 200, cpuEnd: 210
+      },
+    ];
+
+    const histograms = runMetrics(slices);
+
+    const tierupTime = histograms.getHistogramNamed(
+        'v8:wasm:compilation_tierup:wall_time');
+    assert.strictEqual(tierupTime, undefined);
+  });
+
+  test('testTierupNoEndEvent', function() {
+    const slices = [
+      {
+        title: 'wasm.BaselineFinished', args: {}, start: 100, end: 110,
+        cpuStart: 100, cpuEnd: 110
+      },
+    ];
+
+    const histograms = runMetrics(slices);
+
+    const tierupTime = histograms.getHistogramNamed(
+        'v8:wasm:compilation_tierup:wall_time');
+    assert.strictEqual(tierupTime, undefined);
+  });
+});
 </script>
