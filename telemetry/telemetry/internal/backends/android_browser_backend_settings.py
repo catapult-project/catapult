@@ -263,10 +263,21 @@ ANDROID_WEBVIEW_STANDALONE = WebViewBackendSettings(
     browser_type='android-webview-standalone')
 
 # TODO(crbug.com/1038137): Add reference setting for android-webview
+ANDROID_WEBVIEW_STANDALONE_BUNDLE = WebViewBundleBackendSettings(
+    browser_type='android-webview-standalone-bundle',
+    apk_name='system_webview_bundle')
+
+# TODO(crbug.com/1038137): Add reference setting for android-webview
 ANDROID_WEBVIEW_TRICHROME = WebViewBackendSettings(
     apk_name='TrichromeWebView.apk',
     additional_apk_name='TrichromeLibrary.apk',
     browser_type='android-webview-trichrome')
+
+# TODO(crbug.com/1038137): Add reference setting for android-webview
+ANDROID_WEBVIEW_TRICHROME_BUNDLE = WebViewBackendSettings(
+    apk_name='trichrome_webview_bundle',
+    additional_apk_name='TrichromeLibrary.apk',
+    browser_type='android-webview-trichrome-bundle')
 
 # TODO(crbug.com/1038137): Add reference setting for android-webview-bundle
 ANDROID_WEBVIEW_BUNDLE = WebViewBundleBackendSettings(
@@ -289,10 +300,21 @@ ANDROID_WEBVIEW_STANDALONE_GOOGLE = WebViewBackendSettings(
     browser_type='android-webview-standalone-google')
 
 # TODO(crbug.com/1038137): Add reference setting for android-webview
+ANDROID_WEBVIEW_STANDALONE_GOOGLE_BUNDLE = WebViewBundleBackendSettings(
+    browser_type='android-webview-standalone-google-bundle',
+    apk_name='system_webview_google_bundle')
+
+# TODO(crbug.com/1038137): Add reference setting for android-webview
 ANDROID_WEBVIEW_TRICHROME_GOOGLE = WebViewBackendSettings(
     apk_name='TrichromeWebViewGoogle.apk',
     additional_apk_name='TrichromeLibraryGoogle.apk',
     browser_type='android-webview-trichrome-google')
+
+# TODO(crbug.com/1038137): Add reference setting for android-webview
+ANDROID_WEBVIEW_TRICHROME_GOOGLE_BUNDLE = WebViewBackendSettings(
+    apk_name='trichrome_webview_google_bundle',
+    additional_apk_name='TrichromeLibraryGoogle.apk',
+    browser_type='android-webview-trichrome-google-bundle')
 
 ANDROID_WEBVIEW_INSTRUMENTATION = WebViewBasedBackendSettings(
     browser_type='android-webview-instrumentation',
@@ -357,9 +379,13 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_WEBVIEW_GOOGLE_BUNDLE,
     ANDROID_WEBVIEW_INSTRUMENTATION,
     ANDROID_WEBVIEW_STANDALONE,
+    ANDROID_WEBVIEW_STANDALONE_BUNDLE,
     ANDROID_WEBVIEW_STANDALONE_GOOGLE,
+    ANDROID_WEBVIEW_STANDALONE_GOOGLE_BUNDLE,
     ANDROID_WEBVIEW_TRICHROME,
+    ANDROID_WEBVIEW_TRICHROME_BUNDLE,
     ANDROID_WEBVIEW_TRICHROME_GOOGLE,
+    ANDROID_WEBVIEW_TRICHROME_GOOGLE_BUNDLE,
     ANDROID_CHROMIUM,
     ANDROID_CHROMIUM_BUNDLE,
     ANDROID_CHROMIUM_MONOCHROME,

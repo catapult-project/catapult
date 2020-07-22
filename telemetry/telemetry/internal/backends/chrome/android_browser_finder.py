@@ -313,7 +313,9 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     apk_name = self._backend_settings.GetApkName(
         self._platform_backend.device)
     is_webview_apk = apk_name is not None and ('SystemWebView' in apk_name or
-                                               'TrichromeWebView' in apk_name)
+                                               'system_webview' in apk_name or
+                                               'TrichromeWebView' in apk_name or
+                                               'trichrome_webview' in apk_name)
     # The WebView fallback logic prevents sideloaded WebView APKs from being
     # installed and set as the WebView implementation correctly. Disable the
     # fallback logic before installing the WebView APK to make sure the fallback
