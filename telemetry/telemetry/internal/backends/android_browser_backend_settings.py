@@ -353,6 +353,12 @@ REFERENCE_ANDROID_CHROME_BUNDLE = GenericChromeBackendSettings(
     browser_type='reference-android-chrome-bundle',
     package='com.google.android.apps.chrome')
 
+# TODO(crbug.com/1038137): Add reference setting for android-chrome-64-bundle
+ANDROID_CHROME_64_BUNDLE = GenericChromeBundleBackendSettings(
+    browser_type='android-chrome-64-bundle',
+    package='com.google.android.apps.chrome',
+    apk_name='monochrome_64_32_bundle')
+
 ANDROID_CHROME_BETA = GenericChromeBackendSettings(
     browser_type='android-chrome-beta',
     package='com.chrome.beta')
@@ -391,6 +397,7 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_CHROMIUM_MONOCHROME,
     REFERENCE_ANDROID_CHROME_BUNDLE,
     ANDROID_CHROME,
+    ANDROID_CHROME_64_BUNDLE,
     ANDROID_CHROME_BUNDLE,
     ANDROID_CHROME_BETA,
     ANDROID_CHROME_DEV,
