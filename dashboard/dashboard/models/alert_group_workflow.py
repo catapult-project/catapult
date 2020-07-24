@@ -47,7 +47,7 @@ _TEMPLATE_LOADER = jinja2.FileSystemLoader(
     searchpath=os.path.join(os.path.dirname(os.path.realpath(__file__))))
 _TEMPLATE_ENV = jinja2.Environment(loader=_TEMPLATE_LOADER)
 _TEMPLATE_ISSUE_TITLE = jinja2.Template(
-    'Chromeperf Alerts: '
+    '[{{ group.subscription_name }}]: '
     '{{ regressions|length }} regressions in {{ group.name }}')
 _TEMPLATE_ISSUE_CONTENT = _TEMPLATE_ENV.get_template(
     'alert_groups_bug_description.j2')

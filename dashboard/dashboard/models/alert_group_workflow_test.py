@@ -158,6 +158,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                     self._issue_tracker.add_comment_args[1])
       self.assertIn('4 regressions in test_suite',
                     self._issue_tracker.add_comment_kwargs['summary'])
+      self.assertIn('sheriff',
+                    self._issue_tracker.add_comment_kwargs['summary'])
 
   def testAddAnomalies_GroupTriaged_IssueClosed(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
@@ -197,6 +199,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
       self.assertIn('Added 2 regressions to the group',
                     self._issue_tracker.add_comment_args[1])
       self.assertIn('4 regressions in test_suite',
+                    self._issue_tracker.add_comment_kwargs['summary'])
+      self.assertIn('sheriff',
                     self._issue_tracker.add_comment_kwargs['summary'])
 
   def testAddAnomalies_GroupTriaged_IssueClosed_AutoBisect(self):
