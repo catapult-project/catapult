@@ -242,6 +242,11 @@ class BrowserFinderOptions(optparse.Values):
         default=[],
         help='Specify Android App Bundle modules to install in addition to the '
         'base module. Ignored on Non-Android platforms.')
+    group.add_option(
+        '--compile-apk',
+        action='store_true',
+        help='Will compile the APK under test using dex2oat in speed mode. '
+        'Ignored on non-Android platforms.')
     parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser, 'Fuchsia platform options')

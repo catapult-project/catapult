@@ -90,6 +90,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     self._local_apk = local_apk
     self._flag_changer = None
     self._modules_to_install = None
+    self._compile_apk = finder_options.compile_apk
 
     if self._local_apk is None and finder_options.chrome_root is not None:
       self._local_apk = self._backend_settings.FindLocalApk(
@@ -327,6 +328,12 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       logging.warn('Installing %s on device if needed.', self._local_apk)
       self.platform.InstallApplication(
           self._local_apk, modules=self._modules_to_install)
+      if self._compile_apk:
+        package_name = apk_helper.GetPackageName(self._local_apk)
+        logging.warn('Compiling %s.', package_name)
+        self._platform_backend.device.RunShellCommand(
+            ['cmd', 'package', 'compile', '-m', 'speed', '-f', package_name],
+            check_return=True)
 
     if ((is_webview_apk or apk_name == 'Monochrome.apk') and
         self._platform_backend.device.build_version_sdk >=
