@@ -33,6 +33,8 @@ class GroupReportTestBase(testing_common.TestCase):
     super(GroupReportTestBase, self).__init__(*args, **kwargs)
     self.fake_issue_tracker = testing_common.FakeIssueTrackerService()
     self.mock_get_sheriff_client = mock.MagicMock()
+    self.fake_revision_info = testing_common.FakeRevisionInfoClient(
+        infos={}, revisions={})
 
   def setUp(self):
     super(GroupReportTestBase, self).setUp()
@@ -55,11 +57,13 @@ class GroupReportTestBase(testing_common.TestCase):
                      lambda *args, **kargs: {'git_sha': 'abcd'})
     new_job = mock.MagicMock(return_value={'jobId': '123456'})
     self.PatchObject(pinpoint_service, 'NewJob', new_job)
+    self.PatchObject(alert_group_workflow, 'revision_info_client',
+                     self.fake_revision_info)
 
   def _AddAnomaly(self, **kargs):
     default = {
         'test': 'master/bot/test_suite/measurement/test_case',
-        'start_revision': 0,
+        'start_revision': 1,
         'end_revision': 100,
         'is_improvement': False,
         'median_before_anomaly': 1.1,
@@ -524,9 +528,7 @@ class NonChromiumAutoTriage(GroupReportTestBase):
     self.PatchObject(alert_group.sheriff_config_client,
                      'GetSheriffConfigClient',
                      lambda: self.mock_get_sheriff_client)
-    self.PatchObject(alert_group_workflow, '_IssueTracker',
-                     lambda: self.fake_issue_tracker)
-    # First create the 'Ungrouped' AlertGroup.
+    self._SetUpMocks(self.mock_get_sheriff_client)
     self._CallHandler()
     a = self._AddAnomaly()
     self._CallHandler()
@@ -547,8 +549,7 @@ class NonChromiumAutoTriage(GroupReportTestBase):
     self.PatchObject(alert_group.sheriff_config_client,
                      'GetSheriffConfigClient',
                      lambda: self.mock_get_sheriff_client)
-    self.PatchObject(alert_group_workflow, '_IssueTracker',
-                     lambda: self.fake_issue_tracker)
+    self._SetUpMocks(self.mock_get_sheriff_client)
 
     # First create the 'Ungrouped' AlertGroup.
     self._CallHandler()
@@ -597,8 +598,7 @@ class NonChromiumAutoTriage(GroupReportTestBase):
     self.PatchObject(alert_group.sheriff_config_client,
                      'GetSheriffConfigClient',
                      lambda: self.mock_get_sheriff_client)
-    self.PatchObject(alert_group_workflow, '_IssueTracker',
-                     lambda: self.fake_issue_tracker)
+    self._SetUpMocks(self.mock_get_sheriff_client)
     self._CallHandler()
     a = self._AddAnomaly()
     self._CallHandler()
@@ -628,7 +628,7 @@ class NonChromiumAutoTriage(GroupReportTestBase):
 
     # Now let's ensure that when new anomalies come in, that we're grouping
     # them into the same group for non-chromium alerts.
-    self._AddAnomaly(start_revision=1)
+    self._AddAnomaly(start_revision=2)
     self._CallHandler()
     groups = alert_group.AlertGroup.Get('test_suite', None)
     self.assertEqual(1, len(groups))
