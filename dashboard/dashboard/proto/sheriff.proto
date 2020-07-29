@@ -60,14 +60,47 @@ message Rules {
 // An AnomalyConfig defines the bounds for which a change in a matching metric
 // can be considered "anomalous". For metrics that are matched, we apply the
 // anomaly config to determine whether we should create an alert.
+//
+// The configuration settings defined for an anomaly configuration override
+// defaults that are defined by the anomaly detection algorithm. Typically these
+// settings are applied in an "all or nothing" manner (i.e. logical and) -- if
+// one of the criteria set isn't met then a detected anomaly is rejected.
 message AnomalyConfig {
+  // Setting the max_window_size influences the number of datapoints to consider
+  // when performing anomaly detection. Default is 50.
   uint64 max_window_size = 1;
+
+  // Setting the min_segment_size lets the anomaly detection algorithm filter
+  // out anomalies that don't have at least min_segment_size data points
+  // before/after the candidate change-point. Default is 6.
   uint64 min_segment_size = 2;
+
+  // Setting the min_absolute_change lets the anomaly detection algorithm filter
+  // out detected changes that don't meet the minimum absolute change for values
+  // before and at the candidate change-point. Default is 0.
   float min_absolute_change = 3;
+
+  // Setting the min_relative_change lets the anomaly detection algorithm filter
+  // out detected changes that don't meet the minimum relative change for values
+  // before and at the candidate change-point. Default is 0.01.
   float min_relative_change = 4;
+
+  // "Setppiness" is a number between 0 and 1 that indicates how similar the
+  // shape of a sequence of values to a perfect step function, where 1
+  // represents a step function. It uses the slope of normalized values to make
+  // this determination. Default is 0.5.
   float min_steppiness = 5;
+
+  // The minimum multiple of the standard deviation for an absolute change to be
+  // considered significant. If absolute change / std-dev is less than this
+  // value then the anomaly detection algorithm will reject it. Default is 0.
   float multiple_of_std_dev = 6;
-  repeated Pattern patterns = 7;
+
+  reserved "patterns";
+  reserved 7;
+
+  // The rules to which this anomaly configuration apply.
+  repeated Rules rules = 8;
 }
 
 // Sheriff can use enable flag or rules to select tests being auto triaged. But

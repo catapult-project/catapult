@@ -29,7 +29,11 @@ class ValidatorTest(unittest.TestCase):
             anomaly_configs: [
               {
                 min_relative_change: 0.01
-                patterns: [{regex: "^project/platform/.*/memory_peak$"}]
+                rules: {
+                  match: {
+                    regex: "^project/platform/.*/memory_peak$"
+                  }
+                }
               }
             ]
           }]""")
@@ -53,7 +57,7 @@ class ValidatorTest(unittest.TestCase):
             anomaly_configs: [
               {
                 min_relative_change: 0.01
-                patterns: [{regex: "^project/platform/.*/memory_peak$"}]
+                rules: { match: {regex: "^project/platform/.*/memory_peak$"} }
               }
             ]
           }]""")

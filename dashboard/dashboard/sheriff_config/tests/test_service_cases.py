@@ -101,9 +101,11 @@ class ValidationTest(unittest.TestCase):
                             },
                             anomaly_configs: [{
                                 min_relative_change: 0.01,
-                                patterns: [{
+                                rules: {
+                                  match: {
                                     regex: '^project/platform/.*/memory_peak$'
-                                }]
+                                  }
+                                }
                             }]
                         }]""", 'utf-8')).decode('utf-8')
         },
