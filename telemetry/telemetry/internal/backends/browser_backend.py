@@ -77,6 +77,10 @@ class BrowserBackend(app_backend.AppBackend):
     return self.app_type
 
   @property
+  def screenshot_timeout(self):
+    return None
+
+  @property
   def supports_uploading_logs(self):
     # Specific browser backend is responsible for overriding this properly.
     return False
@@ -154,7 +158,8 @@ class BrowserBackend(app_backend.AppBackend):
           logging.ERROR.
       suffix: The suffix to append to the names of any created artifacts.
     """
-    screenshot_handle = screenshot.TryCaptureScreenShot(self.browser.platform)
+    screenshot_handle = screenshot.TryCaptureScreenShot(
+        self.browser.platform, timeout=self.screenshot_timeout)
     if screenshot_handle:
       with open(screenshot_handle.GetAbsPath(), 'rb') as infile:
         artifact_name = posixpath.join(

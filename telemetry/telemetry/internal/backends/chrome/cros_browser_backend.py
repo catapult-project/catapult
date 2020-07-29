@@ -268,6 +268,13 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     artifact_logger.CreateArtifact(artifact_name, ui_log)
 
   @property
+  def screenshot_timeout(self):
+    # Screenshots fail when the screen is off, and we can flakily attempt to
+    # capture screenshots on failure when the screen is off. So, retry for a
+    # while if we run into that.
+    return 15
+
+  @property
   def supports_overview_mode(self): # pylint: disable=invalid-name
     return True
 

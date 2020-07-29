@@ -39,6 +39,36 @@ class ScreenshotUtilTests(unittest.TestCase):
     finally:  # Must clean up screenshot file if exists.
       os.remove(screenshot_file_path)
 
+  def testScreenshotTimeout(self):
+    fake_platform = FakeScreenshotTimeoutPlatform()
+    def SetTargetCallCount(target):
+      fake_platform.take_screenshot_call_count = 0
+      fake_platform.target_screenshot_call_count = target
+
+    # No timeout.
+    SetTargetCallCount(None)
+    try:
+      fh = screenshot.TryCaptureScreenShot(fake_platform, timeout=None)
+      self.assertEqual(fake_platform.take_screenshot_call_count, 1)
+    finally:
+      os.remove(fh.GetAbsPath())
+
+    # Timeout, never succeeds.
+    SetTargetCallCount(None)
+    try:
+      fh = screenshot.TryCaptureScreenShot(fake_platform, timeout=1)
+      self.assertTrue(fake_platform.take_screenshot_call_count >= 2)
+    finally:
+      os.remove(fh.GetAbsPath())
+
+    # Timeout, eventual success.
+    SetTargetCallCount(3)
+    try:
+      fh = screenshot.TryCaptureScreenShot(fake_platform, timeout=10)
+      self.assertEqual(fake_platform.take_screenshot_call_count, 3)
+    finally:
+      os.remove(fh.GetAbsPath())
+
   def testUploadScreenshotToCloudStorage(self):
     tf = tempfile.NamedTemporaryFile(
         suffix='.png', delete=False)
@@ -57,3 +87,23 @@ class ScreenshotUtilTests(unittest.TestCase):
             local_path,
             fh1.GetAbsPath())
         self.assertTrue(url is not None)
+
+
+class FakeScreenshotTimeoutPlatform(fakes.FakePlatform):
+  def __init__(self, *args, **kwargs):
+    super(FakeScreenshotTimeoutPlatform, self).__init__(*args, **kwargs)
+    self.take_screenshot_call_count = 0
+    self.target_screenshot_call_count = None
+
+  @property
+  def is_host_platform(self):
+    return True
+
+  def CanTakeScreenshot(self):
+    return True
+
+  def TakeScreenshot(self, _):
+    self.take_screenshot_call_count += 1
+    if self.target_screenshot_call_count is None:
+      return False
+    return self.take_screenshot_call_count >= self.target_screenshot_call_count

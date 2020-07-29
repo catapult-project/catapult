@@ -8,31 +8,34 @@ import os
 import random
 import tempfile
 
+import py_utils
 from py_utils import cloud_storage  # pylint: disable=import-error
 from telemetry.util import image_util
 from telemetry.internal.util import file_handle
 
 
-def TryCaptureScreenShot(platform, tab=None):
+def TryCaptureScreenShot(platform, tab=None, timeout=None):
   """ If the platform or tab supports screenshot, attempt to take a screenshot
   of the current browser.
 
   Args:
     platform: current platform
     tab: browser tab if available
+    timeout: An float denoting the number of seconds to wait for a successful
+        screenshot. If set to None, only attempts once.
 
   Returns:
     file handle of the tempoerary file path for the screenshot if
     present, None otherwise.
   """
   try:
-    # TODO(nednguyen): once all platforms support taking screenshot,
-    # remove the tab checking logic and consider moving this to story_runner.
-    # (crbug.com/369490)
     if platform.CanTakeScreenshot():
       tf = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
       tf.close()
-      platform.TakeScreenshot(tf.name)
+      try:
+        py_utils.WaitFor(lambda: platform.TakeScreenshot(tf.name), timeout or 0)
+      except py_utils.TimeoutException:
+        logging.warning('Did not succeed in screenshot capture')
       return file_handle.FromTempFile(tf)
     elif tab and tab.IsAlive() and tab.screenshot_supported:
       tf = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
