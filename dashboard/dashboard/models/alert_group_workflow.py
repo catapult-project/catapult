@@ -101,7 +101,7 @@ class AlertGroupWorkflow(object):
 
   class BenchmarkDetails(
       collections.namedtuple('BenchmarkDetails',
-                             ('name', 'bot', 'owners', 'regressions'))):
+                             ('name', 'owners', 'regressions', 'info_blurb'))):
     __slots__ = ()
 
   class BugUpdateDetails(
@@ -290,11 +290,14 @@ class AlertGroupWorkflow(object):
     benchmarks_dict = dict()
     for regression in regressions:
       name = regression.benchmark_name
-      benchmark = benchmarks_dict.get(
-          name, cls.BenchmarkDetails(name, regression.bot_name, set(), []))
+      emails = []
+      info_blurb = None
       if regression.ownership:
         emails = regression.ownership.get('emails') or []
-        benchmark.owners.update(emails)
+        info_blurb = regression.ownership.get('info_blurb') or ''
+      benchmark = benchmarks_dict.get(
+          name,
+          cls.BenchmarkDetails(name, list(set(emails)), list(), info_blurb))
       benchmark.regressions.append(regression)
       benchmarks_dict[name] = benchmark
     return benchmarks_dict.values()
@@ -342,7 +345,8 @@ class AlertGroupWorkflow(object):
         # Performance regressions sorted by relative difference
         'regressions': regressions,
 
-        # Benchmarks that occur in regressions, including names and owners
+        # Benchmarks that occur in regressions, including names, owners, and
+        # information blurbs.
         'benchmarks': benchmarks,
 
         # Parse the real unit (remove things like smallerIsBetter)

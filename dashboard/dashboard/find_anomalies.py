@@ -375,8 +375,10 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
   queried_diagnostics = yield (
       histogram.SparseDiagnostic.GetMostRecentDataByNamesAsync(
           suite_key,
-          set([reserved_infos.BUG_COMPONENTS.name,
-               reserved_infos.OWNERS.name])))
+          set([
+              reserved_infos.BUG_COMPONENTS.name, reserved_infos.OWNERS.name,
+              reserved_infos.INFO_BLURB.name
+          ])))
 
   bug_components = queried_diagnostics.get(reserved_infos.BUG_COMPONENTS.name,
                                            {}).get('values')
@@ -390,7 +392,12 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
       'emails':
           queried_diagnostics.get(reserved_infos.OWNERS.name, {}).get('values'),
       'component':
-          bug_components
+          bug_components,
+      'info_blurb':
+          # Info blurbs should be a single string, and we'll only take the
+          # first element of the list of values.
+          queried_diagnostics.get(reserved_infos.INFO_BLURB.name,
+                                  {}).get('values', [None])[0],
   }
 
   # Compute additional anomaly metadata.

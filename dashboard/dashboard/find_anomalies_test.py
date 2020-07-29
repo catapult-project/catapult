@@ -885,6 +885,10 @@ class ProcessAlertsTest(testing_common.TestCase):
         'type': 'GenericSet',
         'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb827',
         'values': ['abc']
+    }, {
+        'type': 'GenericSet',
+        'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb828',
+        'values': ['This is an info blurb.']
     }]
 
     test_key = utils.TestKey('ChromiumPerf/linux/page_cycler_v2/cnn')
@@ -918,6 +922,15 @@ class ProcessAlertsTest(testing_common.TestCase):
         name=reserved_infos.BUG_COMPONENTS.name)
     entity.put()
 
+    entity = histogram.SparseDiagnostic(
+        data=data_samples[2],
+        test=suite_key,
+        start_revision=1,
+        end_revision=sys.maxsize,
+        id=data_samples[2]['guid'],
+        name=reserved_infos.INFO_BLURB.name)
+    entity.put()
+
     alert = find_anomalies._MakeAnomalyEntity(
         _MakeSampleChangePoint(10011, 50, 100), test, 'avg',
         self._DataSeries()).get_result()
@@ -925,6 +938,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(alert.ownership['component'], 'abc')
     self.assertListEqual(alert.ownership['emails'],
                          ['alice@chromium.org', 'bob@chromium.org'])
+    self.assertEqual(alert.ownership['info_blurb'], 'This is an info blurb.')
 
 
 if __name__ == '__main__':

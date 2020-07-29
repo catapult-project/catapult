@@ -64,6 +64,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'ownership': {
             'component': 'Foo>Bar',
             'emails': ['x@google.com', 'y@google.com'],
+            'info_blurb': 'This is an info blurb.',
         },
     }
     default.update(kwargs)
