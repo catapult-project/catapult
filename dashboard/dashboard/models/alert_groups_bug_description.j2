@@ -18,6 +18,4 @@ Top {{ top_regressions|length }} regressions (out of {{ group.anomalies|length }
 
 {# TODO(fancl): directly use commit range instead -#}
 Commits in this range:
-{%- for info in revision_infos %}
-  {{ info.name }}: {{ info.url }}
-{%- endfor -%}
+  https://test-results.appspot.com/revision_range?start={{ group.revision.start }}&end={{ group.revision.end }}&n=1000

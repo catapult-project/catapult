@@ -32,7 +32,6 @@ from google.appengine.ext import ndb
 
 from dashboard import pinpoint_request
 from dashboard import sheriff_config_client
-from dashboard import revision_info_client
 from dashboard.common import file_bug
 from dashboard.common import utils
 from dashboard.models import alert_group
@@ -109,17 +108,14 @@ class AlertGroupWorkflow(object):
                              ('components', 'cc', 'labels'))):
     __slots__ = ()
 
-  def __init__(
-      self,
-      group,
-      config=None,
-      sheriff_config=None,
-      issue_tracker=None,
-      pinpoint=None,
-      crrev=None,
-      gitiles=None,
-      revision_info=None,
-  ):
+  def __init__(self,
+               group,
+               config=None,
+               sheriff_config=None,
+               issue_tracker=None,
+               pinpoint=None,
+               crrev=None,
+               gitiles=None):
     self._group = group
     self._config = config or self.Config(
         active_window=_ALERT_GROUP_ACTIVE_WINDOW,
@@ -131,7 +127,6 @@ class AlertGroupWorkflow(object):
     self._pinpoint = pinpoint or pinpoint_service
     self._crrev = crrev or crrev_service
     self._gitiles = gitiles or gitiles_service
-    self._revision_info = revision_info or revision_info_client
 
   def _PrepareGroupUpdate(self):
     now = datetime.datetime.utcnow()
@@ -439,11 +434,6 @@ class AlertGroupWorkflow(object):
       return None, []
 
     template_args = self._GetTemplateArgs(regressions)
-    template_args['revision_infos'] = self._revision_info.GetRangeRevisionInfo(
-        template_args['regressions'][0].test,
-        self._group.revision.start,
-        self._group.revision.end,
-    )
     # Rendering issue's title and content
     title = _TEMPLATE_ISSUE_TITLE.render(template_args)
     description = _TEMPLATE_ISSUE_CONTENT.render(template_args)

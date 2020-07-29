@@ -32,25 +32,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self._pinpoint = testing_common.FakePinpoint()
     self._crrev = testing_common.FakeCrrev()
     self._gitiles = testing_common.FakeGitiles()
-    self._revision_info = testing_common.FakeRevisionInfoClient(
-        infos={
-            "r_chromium_commit_pos": {
-                "name":
-                    "Chromium Commit Position",
-                "url":
-                    "http://test-results.appspot.com/revision_range?start={{R1}}&end={{R2}}",
-            },
-        },
-        revisions={
-            'master/bot/test_suite/measurement/test_case': {
-                0: {
-                    'r_chromium_commit_pos': '0'
-                },
-                100: {
-                    'r_chromium_commit_pos': '100'
-                },
-            }
-        })
 
   @staticmethod
   def _AddAnomaly(**kwargs):
@@ -397,7 +378,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
-        revision_info=self._revision_info,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),
@@ -410,9 +390,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             issue=None,
         ))
     self.assertIn('2 regressions', self._issue_tracker.new_bug_args[0])
-    self.assertIn(
-        'Chromium Commit Position: http://test-results.appspot.com/revision_range?start=0&end=100',
-        self._issue_tracker.new_bug_args[1])
 
   def testTriage_GroupUntriaged_MultiSubscriptions(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
@@ -431,7 +408,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
-        revision_info=self._revision_info,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),
@@ -445,7 +421,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         ))
     self.assertIsNone(self._issue_tracker.new_bug_args)
 
-  def testTriage_GroupUntriaged_NonChromiumProject(self):
+  def testTriage_NonChromiumProject(self):
     anomalies = [self._AddAnomaly()]
     # TODO(dberris): Figure out a way to not have to hack the fake service to
     # seed it with the correct issue in the correct project.
@@ -473,7 +449,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
-        revision_info=self._revision_info,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),
@@ -501,7 +476,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
-        revision_info=self._revision_info,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),

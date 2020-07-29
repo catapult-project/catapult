@@ -8,10 +8,11 @@ from __future__ import absolute_import
 
 from dashboard.api import api_request_handler
 from dashboard.common import namespaced_stored_object
-from dashboard import revision_info_client
+from dashboard import chart_handler
+
 
 ALLOWLIST = [
-    revision_info_client.REVISION_INFO_KEY,
+    chart_handler.REVISION_INFO_KEY,
 ]
 
 

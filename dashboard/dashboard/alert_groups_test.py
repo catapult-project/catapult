@@ -33,8 +33,6 @@ class GroupReportTestBase(testing_common.TestCase):
     super(GroupReportTestBase, self).__init__(*args, **kwargs)
     self.fake_issue_tracker = testing_common.FakeIssueTrackerService()
     self.mock_get_sheriff_client = mock.MagicMock()
-    self.fake_revision_info = testing_common.FakeRevisionInfoClient(
-        infos={}, revisions={})
 
   def setUp(self):
     super(GroupReportTestBase, self).setUp()
@@ -57,8 +55,6 @@ class GroupReportTestBase(testing_common.TestCase):
                      lambda *args, **kargs: {'git_sha': 'abcd'})
     new_job = mock.MagicMock(return_value={'jobId': '123456'})
     self.PatchObject(pinpoint_service, 'NewJob', new_job)
-    self.PatchObject(alert_group_workflow, 'revision_info_client',
-                     self.fake_revision_info)
 
   def _AddAnomaly(self, **kargs):
     default = {
@@ -528,7 +524,9 @@ class NonChromiumAutoTriage(GroupReportTestBase):
     self.PatchObject(alert_group.sheriff_config_client,
                      'GetSheriffConfigClient',
                      lambda: self.mock_get_sheriff_client)
-    self._SetUpMocks(self.mock_get_sheriff_client)
+    self.PatchObject(alert_group_workflow, '_IssueTracker',
+                     lambda: self.fake_issue_tracker)
+    # First create the 'Ungrouped' AlertGroup.
     self._CallHandler()
     a = self._AddAnomaly()
     self._CallHandler()
@@ -549,7 +547,8 @@ class NonChromiumAutoTriage(GroupReportTestBase):
     self.PatchObject(alert_group.sheriff_config_client,
                      'GetSheriffConfigClient',
                      lambda: self.mock_get_sheriff_client)
-    self._SetUpMocks(self.mock_get_sheriff_client)
+    self.PatchObject(alert_group_workflow, '_IssueTracker',
+                     lambda: self.fake_issue_tracker)
 
     # First create the 'Ungrouped' AlertGroup.
     self._CallHandler()
@@ -598,7 +597,8 @@ class NonChromiumAutoTriage(GroupReportTestBase):
     self.PatchObject(alert_group.sheriff_config_client,
                      'GetSheriffConfigClient',
                      lambda: self.mock_get_sheriff_client)
-    self._SetUpMocks(self.mock_get_sheriff_client)
+    self.PatchObject(alert_group_workflow, '_IssueTracker',
+                     lambda: self.fake_issue_tracker)
     self._CallHandler()
     a = self._AddAnomaly()
     self._CallHandler()
