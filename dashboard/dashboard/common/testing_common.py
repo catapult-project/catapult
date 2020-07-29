@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Helper functions used in multiple unit tests."""
 
 from __future__ import print_function
@@ -493,3 +492,30 @@ class FakeGitiles(object):
   def CommitInfo(self, repo, revision):
     logging.debug('Called: repo = %s, revision = %s', repo, revision)
     return self._repo_commit_list.get(repo, {}).get(revision, {})
+
+
+class FakeRevisionInfoClient(object):
+
+  def __init__(self, infos, revisions):
+    self._infos = infos
+    self._revisions = revisions
+
+  def GetRevisionInfoConfig(self):
+    return self._infos
+
+  def GetRevisions(self, test_key, revision):
+    return self._revisions.get(test_key.string_id(), {}).get(revision, {})
+
+  def GetRangeRevisionInfo(self, test_key, start, end):
+    revision_info = self.GetRevisionInfoConfig()
+    revision_start = self.GetRevisions(test_key, start)
+    revision_end = self.GetRevisions(test_key, end)
+    infos = []
+    for k, info in revision_info.items():
+      if k not in revision_start or k not in revision_end:
+        continue
+      url = info.get('url', '')
+      info['url'] = url.replace('{{R1}}', revision_start[k]).replace(
+          '{{R2}}', revision_end[k])
+      infos.append(info)
+    return infos
