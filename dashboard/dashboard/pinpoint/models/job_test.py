@@ -50,7 +50,7 @@ You can view the full results and re-run the Pinpoint job at:
 https://testbed.example.com/job/1
 
 If you think Pinpoint blamed the wrong commit, please add the
-`Chromeperf-Auto-NeedsAttention` label to the issue so that a sheriff can
+`Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
 help diagnose.""")
 
 _COMMENT_COMPLETED_WITH_COMMIT_AND_DOCS = (
@@ -73,7 +73,7 @@ You can view the full results and re-run the Pinpoint job at:
 https://testbed.example.com/job/1
 
 If you think Pinpoint blamed the wrong commit, please add the
-`Chromeperf-Auto-NeedsAttention` label to the issue so that a sheriff can
+`Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
 help diagnose.""")
 
 _COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT = (
@@ -95,7 +95,7 @@ You can view the full results and re-run the Pinpoint job at:
 https://testbed.example.com/job/1
 
 If you think Pinpoint blamed the wrong commit, please add the
-`Chromeperf-Auto-NeedsAttention` label to the issue so that a sheriff can
+`Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
 help diagnose.""")
 
 _COMMENT_COMPLETED_WITH_PATCH = (
@@ -115,7 +115,7 @@ You can view the full results and re-run the Pinpoint job at:
 https://testbed.example.com/job/1
 
 If you think Pinpoint blamed the wrong commit, please add the
-`Chromeperf-Auto-NeedsAttention` label to the issue so that a sheriff can
+`Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
 help diagnose.""")
 
 _COMMENT_COMPLETED_THREE_DIFFERENCES = (
@@ -145,7 +145,7 @@ You can view the full results and re-run the Pinpoint job at:
 https://testbed.example.com/job/1
 
 If you think Pinpoint blamed the wrong commit, please add the
-`Chromeperf-Auto-NeedsAttention` label to the issue so that a sheriff can
+`Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
 help diagnose.""")
 
 _COMMENT_COMPLETED_THREE_DIFFERENCES_ABSOLUTE = (
@@ -175,7 +175,7 @@ You can view the full results and re-run the Pinpoint job at:
 https://testbed.example.com/job/1
 
 If you think Pinpoint blamed the wrong commit, please add the
-`Chromeperf-Auto-NeedsAttention` label to the issue so that a sheriff can
+`Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
 help diagnose.""")
 
 _COMMENT_FAILED = (
