@@ -66,3 +66,9 @@ class RevisionInfoClient(testing_common.TestCase):
         'name':
             'Chromium Commit Position'
     }])
+
+  def testGetRangeRevisionInfo_NotFound(self):
+    self._SetRevisionConfig()
+    info = revision_info_client.GetRangeRevisionInfo(
+        utils.TestKey('Chromium/win7/suite/metric'), 100, 200)
+    self.assertEqual(info, [])

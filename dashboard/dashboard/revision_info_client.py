@@ -25,6 +25,8 @@ def GetRevisionInfoConfig():
 def GetRevisions(test_key, revision):
   row_parent_key = utils.GetTestContainerKey(test_key)
   row = graph_data.Row.get_by_id(revision, parent=row_parent_key)
+  if row is None:
+    return {}
   return {k: v for k, v in row.to_dict().items() if k.startswith('r_')}
 
 
