@@ -2176,7 +2176,8 @@ class DeviceUtils(object):
 
     return True
 
-  # TODO(nednguyen): remove this and migrate the callsite to PathExists().
+  # TODO(crbug.com/1111556): remove this and migrate the callsite to
+  # PathExists().
   @decorators.WithTimeoutAndRetriesFromInstance()
   def FileExists(self, device_path, timeout=None, retries=None):
     """Checks whether the given file exists on the device.

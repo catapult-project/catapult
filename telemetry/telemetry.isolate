@@ -7,8 +7,9 @@
       'variables': {
         'files': [
           # For now, just include the whole catapult directory.
-          # TODO(nednguyen, aiolos): only include what telemetry needs.
-          # https://github.com/catapult-project/catapult/issues/1953
+          # TODO(https://github.com/catapult-project/catapult/issues/1953): only
+          # include what telemetry needs.
+          #
           '../',
           # For Telemetry's screenshot support.
           '<(PRODUCT_DIR)/bitmaptools<(EXECUTABLE_SUFFIX)',

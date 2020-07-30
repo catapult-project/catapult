@@ -50,8 +50,8 @@ class InspectorBackendList(collections.Sequence):
     """
     raise NotImplementedError
 
-  # TODO(nednguyen): Remove this method and turn inspector_backend_list API to
-  # dictionary-like API (crbug.com/398467)
+  # TODO(crbug.com/398467): Remove this method and turn inspector_backend_list
+  # API to dictionary-like API.
   def __getitem__(self, index):
     self._Update()
     if index >= len(self._filtered_context_ids):

@@ -246,7 +246,8 @@ def Isolated(*args):
   return _Isolated
 
 
-# TODO(nednguyen): Remove this and have call site just use ShouldSkip directly.
+# TODO(crbug.com/1111556): Remove this and have call site just use ShouldSkip
+# directly.
 def IsEnabled(test, possible_browser):
   """Returns True iff |test| is enabled given the |possible_browser|.
 

@@ -29,7 +29,7 @@ class DependencyManagerTest(fake_filesystem_unittest.TestCase):
   def tearDown(self):
     self.tearDownPyfakefs()
 
-  # TODO(nednguyen): add a test that construct
+  # TODO(crbug.com/1111556): add a test that construct
   # dependency_manager.DependencyManager from a list of DependencyInfo.
   def testErrorInit(self):
     with self.assertRaises(ValueError):

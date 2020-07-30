@@ -262,7 +262,7 @@ class Platform(object):
   def CanTakeScreenshot(self):
     return self._platform_backend.CanTakeScreenshot()
 
-  # TODO(nednguyen): Implement this on Mac, Linux & Win. (crbug.com/369490)
+  # TODO(crbug.com/369490): Implement this on Mac, Linux & Win.
   def TakeScreenshot(self, file_path):
     """ Takes a screenshot of the platform and save to |file_path|.
 
