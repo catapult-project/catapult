@@ -6,8 +6,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import inspect
-
 from dashboard.common import namespaced_stored_object
 from dashboard.common import utils
 from dashboard.models import graph_data
@@ -27,7 +25,7 @@ def GetRevisionInfoConfig():
 def GetRevisions(test_key, revision):
   row_parent_key = utils.GetTestContainerKey(test_key)
   row = graph_data.Row.get_by_id(revision, parent=row_parent_key)
-  return {k: v for k, v in inspect.getmembers(row) if k.startswith('r_')}
+  return {k: v for k, v in row.to_dict().items() if k.startswith('r_')}
 
 
 def GetRangeRevisionInfo(test_key, start, end):

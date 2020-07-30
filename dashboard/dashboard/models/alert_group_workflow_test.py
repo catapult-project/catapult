@@ -34,11 +34,11 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self._gitiles = testing_common.FakeGitiles()
     self._revision_info = testing_common.FakeRevisionInfoClient(
         infos={
-            "r_chromium_commit_pos": {
-                "name":
-                    "Chromium Commit Position",
-                "url":
-                    "http://test-results.appspot.com/revision_range?start={{R1}}&end={{R2}}",
+            'r_chromium_commit_pos': {
+                'name':
+                    'Chromium Commit Position',
+                'url':
+                    'http://test-results.appspot.com/revision_range?start={{R1}}&end={{R2}}',
             },
         },
         revisions={
