@@ -487,6 +487,41 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(group.get().bug.project, 'v8')
     self.assertEqual(anomalies[0].get().project_id, 'v8')
 
+  def testTriage_GroupUntriaged_MultipleRange(self):
+    anomalies = [
+        self._AddAnomaly(median_before_anomaly=0.2, start_revision=10),
+        self._AddAnomaly(median_before_anomaly=0.1)
+    ]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        status=alert_group.AlertGroup.Status.untriaged,
+    )
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        revision_info=self._revision_info,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ),
+    )
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=None,
+        ))
+    self.assertIn('2 regressions', self._issue_tracker.new_bug_args[0])
+    self.assertIn(
+        'Chromium Commit Position: http://test-results.appspot.com/revision_range?start=0&end=100',
+        self._issue_tracker.new_bug_args[1])
+
   def testTriage_GroupUntriaged_InfAnomaly(self):
     anomalies = [self._AddAnomaly(median_before_anomaly=0), self._AddAnomaly()]
     group = self._AddAlertGroup(

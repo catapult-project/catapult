@@ -443,10 +443,11 @@ class AlertGroupWorkflow(object):
       return None, []
 
     template_args = self._GetTemplateArgs(regressions)
+    top_regression = template_args['regressions'][0]
     template_args['revision_infos'] = self._revision_info.GetRangeRevisionInfo(
-        template_args['regressions'][0].test,
-        self._group.revision.start,
-        self._group.revision.end,
+        top_regression.test,
+        top_regression.start_revision,
+        top_regression.end_revision,
     )
     # Rendering issue's title and content
     title = _TEMPLATE_ISSUE_TITLE.render(template_args)
