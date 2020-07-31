@@ -195,6 +195,9 @@ class PageTestResults(object):
       self._progress_reporter.DidRunStory(self._current_story_run)
       self._all_story_runs.append(self._current_story_run)
       self._current_story_run = None
+      # Clear the artifact implementation so that other tests don't
+      # accidentally use a stale artifact instance.
+      artifact_logger.RegisterArtifactImplementation(None)
 
   def InterruptBenchmark(self, reason):
     """Mark the benchmark as interrupted.

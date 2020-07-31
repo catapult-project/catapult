@@ -1069,6 +1069,10 @@ def _run_one_test(child, test_input):
             suite.run(test_result)
     finally:
         out, err = h.restore_output()
+        # Clear the artifact implementation so that later tests don't try to
+        # use a stale instance.
+        if isinstance(test_case, TypTestCase):
+          test_case.set_artifacts(None)
 
     took = h.time() - started
     return (_result_from_test_result(test_result, test_name, started, took, out,
