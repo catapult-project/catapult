@@ -76,6 +76,9 @@ class Histogram(JsonModel):
   # Needed for timeseries queries (e.g. for alerting).
   revision = ndb.IntegerProperty(indexed=True)
 
+  # The time the histogram was added to the dashboard.
+  timestamp = ndb.DateTimeProperty(auto_now_add=True, indexed=True)
+
 
 class SparseDiagnostic(JsonModel):
   # Need for intersecting range queries.
