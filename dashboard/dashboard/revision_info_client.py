@@ -45,6 +45,6 @@ def GetRangeRevisionInfo(test_key, start, end):
       continue
     url = info.get('url', '')
     info['url'] = url.replace('{{R1}}', revision_start[k]).replace(
-        '{{R2}}', revision_end[k])
+        '{{R2}}', revision_end[k]).replace('{{n}}', '1000')
     infos.append(info)
   return infos

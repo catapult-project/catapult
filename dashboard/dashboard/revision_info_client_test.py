@@ -23,10 +23,9 @@ class RevisionInfoClient(testing_common.TestCase):
         revision_info_client.REVISION_INFO_KEY,
         {
             'r_commit_pos': {
-                'name':
-                    'Chromium Commit Position',
-                'url':
-                    'http://test-results.appspot.com/revision_range?start={{R1}}&end={{R2}}',
+                'name': 'Chromium Commit Position',
+                'url': 'http://test-results.appspot.com/revision_range'
+                       '?start={{R1}}&end={{R2}}&n={{n}}',
             },
         },
     )
@@ -61,10 +60,9 @@ class RevisionInfoClient(testing_common.TestCase):
     info = revision_info_client.GetRangeRevisionInfo(
         utils.TestKey('Chromium/win7/suite/metric'), 100, 200)
     self.assertEqual(info, [{
-        'url':
-            'http://test-results.appspot.com/revision_range?start=99&end=200',
-        'name':
-            'Chromium Commit Position'
+        'url': 'http://test-results.appspot.com/revision_range'
+               '?start=99&end=200&n=1000',
+        'name': 'Chromium Commit Position'
     }])
 
   def testGetRangeRevisionInfo_Suffixed(self):
@@ -73,10 +71,9 @@ class RevisionInfoClient(testing_common.TestCase):
     info = revision_info_client.GetRangeRevisionInfo(
         utils.TestKey('Chromium/win7/suite/metric_avg'), 100, 200)
     self.assertEqual(info, [{
-        'url':
-            'http://test-results.appspot.com/revision_range?start=99&end=200',
-        'name':
-            'Chromium Commit Position'
+        'url': 'http://test-results.appspot.com/revision_range'
+               '?start=99&end=200&n=1000',
+        'name': 'Chromium Commit Position'
     }])
 
   def testGetRangeRevisionInfo_NotFound(self):
