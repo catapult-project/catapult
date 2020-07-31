@@ -323,6 +323,8 @@ def CreateRowEntities(
     row_dict = _MakeRowDict(revision, suffixed_key.id(), h, stat_name=stat_name)
     properties = add_point.GetAndValidateRowProperties(row_dict)
     test_container_key = utils.GetTestContainerKey(suffixed_key)
+    # TODO(fancl): Change suffixed_key (TestMetadata) to
+    # test_container_key (TestContainer)
     rows.append(graph_data.Row(
         id=revision, parent=suffixed_key, **properties))
 

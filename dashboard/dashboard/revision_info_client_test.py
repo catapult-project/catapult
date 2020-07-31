@@ -67,6 +67,18 @@ class RevisionInfoClient(testing_common.TestCase):
             'Chromium Commit Position'
     }])
 
+  def testGetRangeRevisionInfo_Suffixed(self):
+    self._SetRevisionConfig()
+    self._CreateRows()
+    info = revision_info_client.GetRangeRevisionInfo(
+        utils.TestKey('Chromium/win7/suite/metric_avg'), 100, 200)
+    self.assertEqual(info, [{
+        'url':
+            'http://test-results.appspot.com/revision_range?start=99&end=200',
+        'name':
+            'Chromium Commit Position'
+    }])
+
   def testGetRangeRevisionInfo_NotFound(self):
     self._SetRevisionConfig()
     info = revision_info_client.GetRangeRevisionInfo(

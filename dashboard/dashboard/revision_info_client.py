@@ -6,6 +6,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from google.appengine.ext import ndb
+
 from dashboard.common import namespaced_stored_object
 from dashboard.common import utils
 from dashboard.models import graph_data
@@ -23,8 +25,9 @@ def GetRevisionInfoConfig():
 
 
 def GetRevisions(test_key, revision):
-  row_parent_key = utils.GetTestContainerKey(test_key)
-  row = graph_data.Row.get_by_id(revision, parent=row_parent_key)
+  row = graph_data.Row.query(
+      ndb.AND(graph_data.Row.parent_test == utils.OldStyleTestKey(test_key),
+              graph_data.Row.revision == revision)).get()
   if row is None:
     return {}
   return {k: v for k, v in row.to_dict().items() if k.startswith('r_')}
