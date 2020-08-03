@@ -434,6 +434,15 @@ class Forwarder(object):
         kill_cmd = ['pkill', '-9', 'host_forwarder']
         (exit_code, output) = cmd_helper.GetCmdStatusAndOutputWithTimeout(
             kill_cmd, Forwarder._TIMEOUT)
+        if exit_code == -9:
+          # pkill can exit with -9, seemingly in cases where the process it's
+          # asked to kill dies sometime during pkill running. In this case,
+          # re-running should result in pkill succeeding.
+          logging.warning(
+              'pkilling host forwarder returned -9, retrying. Output: %s',
+              output)
+          exit_code, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
+              kill_cmd, Forwarder._TIMEOUT)
         if exit_code in (0, 1):
           # pkill exits with a 0 if it was able to signal at least one process.
           # pkill exits with a 1 if it wasn't able to singal a process because
