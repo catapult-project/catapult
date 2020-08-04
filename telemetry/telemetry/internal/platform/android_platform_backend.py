@@ -588,9 +588,17 @@ class AndroidPlatformBackend(
     else:
       return '/data/local/tmp/%s/' % package
 
-  def GetDumpLocation(self):
-    """Returns the location where crash dumps should be written to."""
-    return '/sdcard/telemetry_crashpad_dumps'
+  def GetDumpLocation(self, package):
+    """Returns the location where crash dumps should be written to.
+
+    Args:
+      package: A string containing the package name of the application that the
+          dump location is for.
+    """
+    # On Android Q+, apps by default only have access to certain directories,
+    # so use a subdirectory of the package's profile directory to guarantee that
+    # it has access to it.
+    return self.GetProfileDir(package) + 'dumps'
 
   def SetDebugApp(self, package):
     """Set application to debugging.

@@ -19,7 +19,7 @@ class AndroidBrowserBackendTest(
   @decorators.Enabled('android')
   def testPullMinidumps(self):
     """Test that minidumps can be pulled off the device and their mtimes set."""
-    def GetDumpLocation():
+    def GetDumpLocation(_=None):
       return '/sdcard/dumps/'
 
     platform_backend = self._browser_backend.platform_backend
@@ -52,7 +52,7 @@ class AndroidBrowserBackendTest(
   @decorators.Enabled('android')
   def testPullMinidumpsOnlyNew(self):
     """Tests that a minidump is not pulled to the host if it already exists."""
-    def GetDumpLocation():
+    def GetDumpLocation(_=None):
       return '/sdcard/dumps/'
 
     local_old_dump_path = os.path.join(
@@ -87,7 +87,7 @@ class AndroidBrowserBackendTest(
   @decorators.Enabled('android')
   def testPullMinidumpsLockFilesIgnored(self):
     """Tests that .lock files are ignored when pulling minidumps."""
-    def GetDumpLocation():
+    def GetDumpLocation(_=None):
       return '/sdcard/dumps/'
 
     platform_backend = self._browser_backend.platform_backend
@@ -115,7 +115,7 @@ class AndroidBrowserBackendTest(
   @decorators.Enabled('android')
   def testPullMinidumpsLockedFilesIgnored(self):
     """Tests that files with associated .lock files are ignored."""
-    def GetDumpLocation():
+    def GetDumpLocation(_=None):
       return '/sdcard/dumps/'
 
     platform_backend = self._browser_backend.platform_backend

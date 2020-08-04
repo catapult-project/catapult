@@ -267,7 +267,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     device = self.platform_backend.device
 
     device_dump_path = posixpath.join(
-        self.platform_backend.GetDumpLocation(), 'Crashpad', 'pending')
+        self.platform_backend.GetDumpLocation(self.package),
+        'Crashpad', 'pending')
     if not device.PathExists(device_dump_path):
       logging.warning(
           'Device minidump path %s does not exist - not attempting to pull '

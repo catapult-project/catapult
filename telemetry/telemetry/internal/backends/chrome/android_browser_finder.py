@@ -216,7 +216,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
     # Remove any old crash dumps
     self._platform_backend.device.RemovePath(
-        self._platform_backend.GetDumpLocation(), recursive=True, force=True)
+        self._platform_backend.GetDumpLocation(self._backend_settings.package),
+        recursive=True, force=True)
 
   def _TearDownEnvironment(self):
     self._RestoreCommandLineFlags()
@@ -288,7 +289,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     # crashpad_stackwalker.py is hard-coded to look for a "Crashpad" directory
     # in the dump directory that it is provided.
     startup_args.append('--breakpad-dump-location=' + posixpath.join(
-        self._platform_backend.GetDumpLocation(), 'Crashpad'))
+        self._platform_backend.GetDumpLocation(self._backend_settings.package),
+        'Crashpad'))
 
     return startup_args
 
