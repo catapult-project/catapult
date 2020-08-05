@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Task queue task which migrates a TestMetadata and its Rows to a new name.
 
 A rename consists of listing all TestMetadata entities which match the old_name,
@@ -124,9 +123,8 @@ class MigrateTestNamesHandler(request_handler.RequestHandler):
         old_pattern = self.request.get('old_pattern')
         new_pattern = self.request.get('new_pattern')
         _MigrateTestBegin(old_pattern, new_pattern)
-        self.RenderHtml('result.html', {
-            'headline': 'Test name migration task started.'
-        })
+        self.RenderHtml('result.html',
+                        {'headline': 'Test name migration task started.'})
       except BadInputPatternError as error:
         self.ReportError('Error: %s' % error.message, status=400)
     elif status:
@@ -278,10 +276,9 @@ def _RemoveBracketedSubstring(old_part, new_part):
 
 def _QueueTask(task_params, countdown=None):
   queue = taskqueue.Queue(_TASK_QUEUE_NAME)
-  return queue.add_async(taskqueue.Task(
-      url='/migrate_test_names',
-      params=task_params,
-      countdown=countdown))
+  return queue.add_async(
+      taskqueue.Task(
+          url='/migrate_test_names', params=task_params, countdown=countdown))
 
 
 @ndb.synctasklet
@@ -299,15 +296,14 @@ def _MigrateTestCreateTest(old_test_key, new_test_key):
   Returns:
     True if finished or False if there is more work.
   """
-  new_test_entity = yield _GetOrCreate(
-      graph_data.TestMetadata, old_test_key.get(), new_test_key.id(),
-      None, _TEST_EXCLUDE)
+  new_test_entity = yield _GetOrCreate(graph_data.TestMetadata,
+                                       old_test_key.get(), new_test_key.id(),
+                                       None, _TEST_EXCLUDE)
 
   yield new_test_entity.UpdateSheriffAsync()
 
-  yield (
-      new_test_entity.put_async(),
-      _MigrateTestScheduleChildTests(old_test_key, new_test_key))
+  yield (new_test_entity.put_async(),
+         _MigrateTestScheduleChildTests(old_test_key, new_test_key))
 
   # Now migrate the actual row data and any associated data (ex. anomalies).
   # Do this in a seperate task that just spins on the row data.
@@ -325,7 +321,9 @@ def _MigrateTestScheduleChildTests(old_test_key, new_test_key):
   tests_to_reparent = yield graph_data.TestMetadata.query(
       graph_data.TestMetadata.parent_test == old_test_key).fetch_async(
           limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL,
-          keys_only=True, use_cache=False, use_memcache=False)
+          keys_only=True,
+          use_cache=False,
+          use_memcache=False)
 
   futures = []
   for old_child_test_key in tests_to_reparent:
@@ -345,19 +343,20 @@ def _MigrateTestScheduleChildTests(old_test_key, new_test_key):
 @ndb.synctasklet
 def _MigrateTestCopyData(old_test_key, new_test_key):
 
-  more = yield (
-      _MigrateTestRows(old_test_key, new_test_key),
-      _MigrateAnomalies(old_test_key, new_test_key),
-      _MigrateHistogramData(old_test_key, new_test_key))
+  more = yield (_MigrateTestRows(old_test_key, new_test_key),
+                _MigrateAnomalies(old_test_key, new_test_key),
+                _MigrateHistogramData(old_test_key, new_test_key))
 
   if any(more):
     # Rows at a specific test path are contained in a single entity group, thus
     # we space out writes to avoid data contention.
-    _QueueTask({
-        'old_test_key': old_test_key.urlsafe(),
-        'new_test_key': new_test_key.urlsafe(),
-        'status': _MIGRATE_TEST_COPY_DATA
-    }, countdown=_TASK_INTERVAL).get_result()
+    _QueueTask(
+        {
+            'old_test_key': old_test_key.urlsafe(),
+            'new_test_key': new_test_key.urlsafe(),
+            'status': _MIGRATE_TEST_COPY_DATA
+        },
+        countdown=_TASK_INTERVAL).get_result()
     return
 
   _SendNotificationEmail(old_test_key, new_test_key)
@@ -387,9 +386,9 @@ def _MigrateTestRows(old_parent_key, new_parent_key):
       old_parent_key, _MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
 
   rows_to_put = yield [
-      _GetOrCreate(
-          graph_data.Row, r, r.key.id(), new_parent_key, _ROW_EXCLUDE)
-      for r in rows]
+      _GetOrCreate(graph_data.Row, r, r.key.id(), new_parent_key, _ROW_EXCLUDE)
+      for r in rows
+  ]
   rows_to_delete = [r.key for r in rows]
 
   # Clear the cached revision range selector data for both the old and new
@@ -426,8 +425,7 @@ def _MigrateAnomalies(old_parent_key, new_parent_key):
     A list of Future objects for Anomaly entities to update.
   """
   anomalies_to_update, _, _ = yield anomaly.Anomaly.QueryAsync(
-      test=old_parent_key,
-      limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
+      test=old_parent_key, limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
   if not anomalies_to_update:
     raise ndb.Return([])
 
@@ -444,7 +442,8 @@ def _MigrateHistogramClassData(cls, old_parent_key, new_parent_key):
   query = cls.query(cls.test == old_parent_key)
   entities = yield query.fetch_async(
       limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL,
-      use_cache=False, use_memcache=False)
+      use_cache=False,
+      use_memcache=False)
   for e in entities:
     e.test = new_parent_key
   yield ndb.put_multi_async(entities)
@@ -454,10 +453,10 @@ def _MigrateHistogramClassData(cls, old_parent_key, new_parent_key):
 @ndb.tasklet
 def _MigrateHistogramData(old_parent_key, new_parent_key):
   result = yield (
-      _MigrateHistogramClassData(
-          histogram.SparseDiagnostic, old_parent_key, new_parent_key),
-      _MigrateHistogramClassData(
-          histogram.Histogram, old_parent_key, new_parent_key),
+      _MigrateHistogramClassData(histogram.SparseDiagnostic, old_parent_key,
+                                 new_parent_key),
+      _MigrateHistogramClassData(histogram.Histogram, old_parent_key,
+                                 new_parent_key),
   )
 
   if not any(result):
@@ -481,15 +480,15 @@ def _SendNotificationEmail(old_test_key, new_test_key):
       'old_test_path': utils.TestPath(old_test_key),
       'new_test_path': utils.TestPath(new_test_key),
   }
-  mail.send_mail(sender='gasper-alerts@google.com',
-                 to='chrome-performance-monitoring-alerts@google.com',
-                 subject='Sheriffed Test Migrated',
-                 body=body)
+  mail.send_mail(
+      sender='gasper-alerts@google.com',
+      to='chrome-performance-monitoring-alerts@google.com',
+      subject='Sheriffed Test Migrated',
+      body=body)
 
 
 @ndb.tasklet
-def _GetOrCreate(
-    cls, old_entity, new_name, parent_key, exclude):
+def _GetOrCreate(cls, old_entity, new_name, parent_key, exclude):
   """Create an entity with the desired name if one does not exist.
 
   Args:

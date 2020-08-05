@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Simple Request handler using Jinja2 templates."""
 from __future__ import print_function
 from __future__ import division
@@ -76,8 +75,8 @@ class RequestHandler(webapp2.RequestHandler):
       # the correct redirect URL, since the user should already be logged in at
       # this point anyway.
       login_url = users.create_login_url('/')
-    user_info = '<a href="%s" title="%s">%s</a>' % (
-        login_url, title, display_username)
+    user_info = '<a href="%s" title="%s">%s</a>' % (login_url, title,
+                                                    display_username)
     # Force out of passive login, as it creates multilogin issues.
     login_url = login_url.replace('passive=true', 'passive=false')
     template_values['login_url'] = login_url

@@ -55,25 +55,29 @@ class ReadTimestampRangeFromDatastore(beam.PTransform):
     self._timestamp_property = timestamp_property
 
   def expand(self, pcoll):  # pylint: disable=invalid-name
-    return (pcoll.pipeline
-            | 'Init' >> beam.Create([None])
-            | 'SplitTimeRange' >> beam.FlatMap(lambda _: list(self._Splits()))
-            # Reshuffle is necessary to prevent fusing between SplitTimeRange
-            # and ReadRows, which would thwart parallel processing of ReadRows!
-            | 'Reshuffle' >> beam.Reshuffle()
-            | 'ReadRows' >> beam.ParDo(
-                ReadTimestampRangeFromDatastore._QueryFn(
-                    self._query_params, self._timestamp_property))
-           )
+    return (
+        pcoll.pipeline
+        | 'Init' >> beam.Create([None])
+        | 'SplitTimeRange' >> beam.FlatMap(lambda _: list(self._Splits()))
+        # Reshuffle is necessary to prevent fusing between SplitTimeRange
+        # and ReadRows, which would thwart parallel processing of ReadRows!
+        | 'Reshuffle' >> beam.Reshuffle()
+        | 'ReadRows' >> beam.ParDo(
+            ReadTimestampRangeFromDatastore._QueryFn(self._query_params,
+                                                     self._timestamp_property)))
 
   class _QueryFn(beam.DoFn):
+
     def __init__(self, query_params, timestamp_property):
       super(ReadTimestampRangeFromDatastore._QueryFn, self).__init__()
       self._query_params = query_params
       self._timestamp_property = timestamp_property
 
-    def process(self, start_end, *unused_args,  # pylint: disable=invalid-name
-                **unused_kwargs):
+    def process(
+        self,
+        start_end,
+        *unused_args,  # pylint: disable=invalid-name
+        **unused_kwargs):
       start, end = start_end
       client = ds_client.Client(project=self._query_params['project'])
       query = ds_query.Query(client=client, **self._query_params)
@@ -84,9 +88,8 @@ class ReadTimestampRangeFromDatastore(beam.PTransform):
 
   def _Splits(self):
     min_timestamp, max_timestamp = self._time_range_provider.Get()
-    logging.getLogger().info(
-        'ReadTimestampRangeFromDatastore from %s to %s',
-        min_timestamp, max_timestamp)
+    logging.getLogger().info('ReadTimestampRangeFromDatastore from %s to %s',
+                             min_timestamp, max_timestamp)
     start = min_timestamp
     while True:
       end = start + self._step
@@ -95,4 +98,3 @@ class ReadTimestampRangeFromDatastore(beam.PTransform):
       if end >= max_timestamp:
         break
       start = end
-

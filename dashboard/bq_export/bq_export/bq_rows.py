@@ -24,7 +24,6 @@ from bq_export.export_options import BqExportOptions
 from bq_export.utils import (FloatHack, PrintCounters,
                              WriteToPartitionedBigQuery)
 
-
 # BigQuery table names may only have letters, numbers, and underscore.
 _INVALID_BQ_TABLE_NAME_CHARS_RE = re.compile('[^a-zA-Z0-9_]')
 
@@ -54,17 +53,56 @@ def main():
   PARTITION BY DATE(`timestamp`)
   CLUSTER BY master, bot, measurement;
   """  # pylint: disable=pointless-string-statement
-  bq_row_schema = {'fields': [
-      {'name': 'revision', 'type': 'INT64', 'mode': 'REQUIRED'},
-      {'name': 'value', 'type': 'FLOAT', 'mode': 'REQUIRED'},
-      {'name': 'std_error', 'type': 'FLOAT', 'mode': 'NULLABLE'},
-      {'name': 'timestamp', 'type': 'TIMESTAMP', 'mode': 'REQUIRED'},
-      {'name': 'master', 'type': 'STRING', 'mode': 'REQUIRED'},
-      {'name': 'bot', 'type': 'STRING', 'mode': 'REQUIRED'},
-      {'name': 'measurement', 'type': 'STRING', 'mode': 'NULLABLE'},
-      {'name': 'test', 'type': 'STRING', 'mode': 'REQUIRED'},
-      {'name': 'properties', 'type': 'STRING', 'mode': 'NULLABLE'},
-  ]}
+  bq_row_schema = {
+      'fields': [
+          {
+              'name': 'revision',
+              'type': 'INT64',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'value',
+              'type': 'FLOAT',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'std_error',
+              'type': 'FLOAT',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'timestamp',
+              'type': 'TIMESTAMP',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'master',
+              'type': 'STRING',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'bot',
+              'type': 'STRING',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'measurement',
+              'type': 'STRING',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'test',
+              'type': 'STRING',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'properties',
+              'type': 'STRING',
+              'mode': 'NULLABLE'
+          },
+      ]
+  }
+
   def RowEntityToRowDict(entity):
     entities_read.inc()
     try:
@@ -112,7 +150,9 @@ def main():
     """Write each element to a table based on the table name."""
     master = _INVALID_BQ_TABLE_NAME_CHARS_RE.sub('_', element['master'])
     return '{project}:{dataset}.{master}{suffix}'.format(
-        project=project, dataset=bq_export_options.dataset.get(), master=master,
+        project=project,
+        dataset=bq_export_options.dataset.get(),
+        master=master,
         suffix=bq_export_options.table_suffix)
 
   _ = row_dicts | 'WriteToBigQuery(rows)' >> WriteToPartitionedBigQuery(

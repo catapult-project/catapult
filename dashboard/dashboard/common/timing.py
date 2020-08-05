@@ -12,6 +12,7 @@ import time
 
 
 class WallTimeLogger(object):
+
   def __init__(self, label, description=''):
     """Initialize a context manager labeled `label` that measures the wall time
     between enter and exit.
@@ -22,8 +23,9 @@ class WallTimeLogger(object):
     self.seconds = 0
     self._metric = None
     if description:
-      self._metric = gae_ts_mon.FloatMetric(
-          self._Suffix(), description, [gae_ts_mon.StringField('label')], 's')
+      self._metric = gae_ts_mon.FloatMetric(self._Suffix(), description,
+                                            [gae_ts_mon.StringField('label')],
+                                            's')
 
   def _Now(self):
     return time.time()
@@ -42,6 +44,7 @@ class WallTimeLogger(object):
 
 
 class CpuTimeLogger(WallTimeLogger):
+
   def _Now(self):
     return time.clock()
 
@@ -50,18 +53,26 @@ class CpuTimeLogger(WallTimeLogger):
 
 
 def TimeWall(label):
+
   def Decorator(wrapped):
+
     def Wrapper(*a, **kw):
       with WallTimeLogger(label):
         return wrapped(*a, **kw)
+
     return Wrapper
+
   return Decorator
 
 
 def TimeCpu(label):
+
   def Decorator(wrapped):
+
     def Wrapper(*a, **kw):
       with CpuTimeLogger(label):
         return wrapped(*a, **kw)
+
     return Wrapper
+
   return Decorator

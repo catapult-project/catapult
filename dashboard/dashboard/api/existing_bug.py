@@ -14,6 +14,7 @@ from dashboard.common import utils
 
 
 class ExistingBugHandler(api_request_handler.ApiRequestHandler):
+
   def _CheckUser(self):
     if not utils.IsValidSheriffUser():
       raise api_request_handler.ForbiddenError()

@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides an interface for debugging the anomaly detection function."""
 from __future__ import print_function
 from __future__ import division
@@ -77,21 +76,22 @@ class DebugAlertHandler(request_handler.RequestHandler):
       self.RenderHtml('debug_alert.html', {'error': err_msg})
 
     # Render the debug_alert page with all of the parameters filled in.
-    self.RenderHtml('debug_alert.html', {
-        'test_path': test.test_path,
-        'rev': revision or '',
-        'num_before': num_before,
-        'num_after': num_after,
-        'sheriff_name': subscription_names,
-        'config_name': config_name,
-        'config_json': json.dumps(config_dict, indent=2, sort_keys=True),
-        'plot_data': json.dumps(plot_data),
-        'lookup': json.dumps(lookup),
-        'anomalies': json.dumps([c.AsDict() for c in change_points]),
-        'csv_url': _CsvUrl(test.test_path, rows),
-        'graph_url': _GraphUrl(test, revision),
-        'stored_anomalies': _FetchStoredAnomalies(test, lookup),
-    })
+    self.RenderHtml(
+        'debug_alert.html', {
+            'test_path': test.test_path,
+            'rev': revision or '',
+            'num_before': num_before,
+            'num_after': num_after,
+            'sheriff_name': subscription_names,
+            'config_name': config_name,
+            'config_json': json.dumps(config_dict, indent=2, sort_keys=True),
+            'plot_data': json.dumps(plot_data),
+            'lookup': json.dumps(lookup),
+            'anomalies': json.dumps([c.AsDict() for c in change_points]),
+            'csv_url': _CsvUrl(test.test_path, rows),
+            'graph_url': _GraphUrl(test, revision),
+            'stored_anomalies': _FetchStoredAnomalies(test, lookup),
+        })
 
   def post(self):
     """A POST request to this endpoint does the same thing as a GET request."""
@@ -215,22 +215,35 @@ def _GetPlotData(chart_series, anomaly_points, anomaly_segments):
       {
           'data': chart_series,
           'color': '#666',
-          'lines': {'show': True},
-          'points': {'show': False},
+          'lines': {
+              'show': True
+          },
+          'points': {
+              'show': False
+          },
       },
       {
           'data': anomaly_points,
           'color': '#f90',
-          'lines': {'show': False},
-          'points': {'show': True, 'radius': 4}
+          'lines': {
+              'show': False
+          },
+          'points': {
+              'show': True,
+              'radius': 4
+          }
       },
   ]
   for series in anomaly_segments:
     data.append({
         'data': series,
         'color': '#f90',
-        'lines': {'show': True},
-        'points': {'show': False},
+        'lines': {
+            'show': True
+        },
+        'points': {
+            'show': False
+        },
     })
   return data
 
@@ -258,8 +271,7 @@ def _FetchLatestRows(test, num_points):
   """
   assert utils.IsInternalUser() or not test.internal_only
   datastore_hooks.SetSinglePrivilegedRequest()
-  return list(reversed(
-      graph_data.GetLatestRowsForTest(test.key, num_points)))
+  return list(reversed(graph_data.GetLatestRowsForTest(test.key, num_points)))
 
 
 def _FetchRowsAroundRev(test, revision, num_before, num_after):
@@ -277,8 +289,8 @@ def _FetchRowsAroundRev(test, revision, num_before, num_after):
     to their use in this module.
   """
   assert utils.IsInternalUser() or not test.internal_only
-  return graph_data.GetRowsForTestBeforeAfterRev(
-      test.key, revision, num_before, num_after)
+  return graph_data.GetRowsForTestBeforeAfterRev(test.key, revision, num_before,
+                                                 num_after)
 
 
 def _FetchStoredAnomalies(test, revisions):

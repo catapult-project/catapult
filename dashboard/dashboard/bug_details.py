@@ -1,7 +1,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides an endpoint for getting details about a sheriffed bug."""
 from __future__ import print_function
 from __future__ import division
@@ -13,7 +12,6 @@ import re
 from dashboard import oauth2_decorator
 from dashboard.common import request_handler
 from dashboard.services import issue_tracker_service
-
 
 BUGDROID = 'bugdroid1@chromium.org'
 REVIEW_RE = r'(Review-Url|Reviewed-on): (https?:\/\/[\/\.\w\d]+)'
@@ -44,8 +42,7 @@ class BugDetailsHandler(request_handler.RequestHandler):
 
 def GetBugDetails(bug_id, http):
   bug_details = _GetDetailsFromMonorail(bug_id, http)
-  bug_details['review_urls'] = _GetLinkedRevisions(
-      bug_details['comments'])
+  bug_details['review_urls'] = _GetLinkedRevisions(bug_details['comments'])
   bug_details['bisects'] = []
   return bug_details
 

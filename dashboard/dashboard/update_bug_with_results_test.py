@@ -29,11 +29,13 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
 
     self.SetCurrentUser('internal@chromium.org', is_admin=True)
 
-    namespaced_stored_object.Set('repositories', {
-        'chromium': {
-            'repository_url': 'https://chromium.googlesource.com/chromium/src'
-        },
-    })
+    namespaced_stored_object.Set(
+        'repositories', {
+            'chromium': {
+                'repository_url':
+                    'https://chromium.googlesource.com/chromium/src'
+            },
+        })
 
   def testMapAnomaliesToMergeIntoBug(self):
     # Add anomalies.

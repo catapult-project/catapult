@@ -1,7 +1,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """An example of using perf dashboard API with your own user account.
 
 Getting set up:
@@ -24,7 +23,6 @@ from __future__ import absolute_import
 import httplib2
 from oauth2client import client
 
-
 # See security notes about why the 'secret' doesn't need to be kept secret here:
 # https://cs.chromium.org/chromium/tools/depot_tools/auth.py
 # This client ID and secret are managed in API console project 'chromeperf'.
@@ -37,15 +35,11 @@ SCOPES = ['https://www.googleapis.com/auth/userinfo.email']
 
 def MakeApiRequest():
   flow = client.OAuth2WebServerFlow(
-      OAUTH_CLIENT_ID,
-      OAUTH_CLIENT_SECRET,
-      SCOPES,
-      approval_prompt='force')
+      OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, SCOPES, approval_prompt='force')
   flow.redirect_uri = client.OOB_CALLBACK_URN
   authorize_url = flow.step1_get_authorize_url()
-  print(
-      'Go to the following link in your browser:\n\n'
-      '    %s\n' % authorize_url)
+  print('Go to the following link in your browser:\n\n'
+        '    %s\n' % authorize_url)
 
   # pylint:disable=raw_input-builtin
   code = raw_input('Enter verification code: ').strip()

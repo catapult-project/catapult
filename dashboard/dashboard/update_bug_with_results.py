@@ -1,7 +1,6 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """URL endpoint for a cron job to update bugs after bisects."""
 from __future__ import print_function
 from __future__ import division
@@ -16,7 +15,6 @@ from dashboard.common import layered_cache
 from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.services import issue_tracker_service
-
 
 _COMMIT_HASH_CACHE_KEY = 'commit_hash_%s'
 

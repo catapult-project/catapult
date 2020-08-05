@@ -63,8 +63,10 @@ class ReportGenerateTest(testing_common.TestCase):
 
   def testAnonymous_GetReport(self):
     self.SetCurrentUserOAuth(None)
-    self.Post('/api/report/generate', dict(
-        revisions='latest', id=577335040), status=404)
+    self.Post(
+        '/api/report/generate',
+        dict(revisions='latest', id=577335040),
+        status=404)
     response = self._Post(revisions='latest', id=421533545)
     self.assertEqual({'url': 'external'}, response['report'])
     self.assertEqual(421533545, response['id'])

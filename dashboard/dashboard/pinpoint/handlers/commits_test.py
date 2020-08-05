@@ -15,6 +15,7 @@ from dashboard.services import request
 
 
 class MockCommit(object):
+
   def __init__(self, url, msg):
     self.url = url
     self.msg = msg
@@ -25,13 +26,13 @@ class MockCommit(object):
 
 class CommitsHandlerTest(test.TestCase):
 
-  @mock.patch(
-      'dashboard.pinpoint.models.change.commit.Commit.CommitRange',
-      mock.MagicMock(return_value=[{'commit': 'abc'}]))
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.CommitRange',
+              mock.MagicMock(return_value=[{
+                  'commit': 'abc'
+              }]))
   def testPost(self):
     params = {'start_git_hash': 'foo', 'end_git_hash': 'bar'}
-    data = json.loads(
-        self.testapp.post('/api/commits', params).body)
+    data = json.loads(self.testapp.post('/api/commits', params).body)
 
     c1 = commit.Commit('chromium', 'foo')
     c2 = commit.Commit('chromium', 'abc')

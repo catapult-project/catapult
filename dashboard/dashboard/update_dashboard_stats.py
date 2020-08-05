@@ -74,21 +74,17 @@ def _FetchCompletedPinpointJobs(start_date):
   return total_jobs
 
 
-def _CreateHistogramSet(
-    master, bot, benchmark, commit_position, histograms):
+def _CreateHistogramSet(master, bot, benchmark, commit_position, histograms):
   histograms = histogram_set.HistogramSet(histograms)
   histograms.AddSharedDiagnosticToAllHistograms(
-      reserved_infos.MASTERS.name,
-      generic_set.GenericSet([master]))
-  histograms.AddSharedDiagnosticToAllHistograms(
-      reserved_infos.BOTS.name,
-      generic_set.GenericSet([bot]))
+      reserved_infos.MASTERS.name, generic_set.GenericSet([master]))
+  histograms.AddSharedDiagnosticToAllHistograms(reserved_infos.BOTS.name,
+                                                generic_set.GenericSet([bot]))
   histograms.AddSharedDiagnosticToAllHistograms(
       reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
       generic_set.GenericSet([commit_position]))
   histograms.AddSharedDiagnosticToAllHistograms(
-      reserved_infos.BENCHMARKS.name,
-      generic_set.GenericSet([benchmark]))
+      reserved_infos.BENCHMARKS.name, generic_set.GenericSet([benchmark]))
 
   return histograms
 
@@ -109,8 +105,8 @@ def _GetDiffCommitTimeFromJob(job):
   try:
     for d in diffs:
       diff = d[1].AsDict()
-      commit_time = datetime.datetime.strptime(
-          diff['commits'][0]['created'], '%Y-%m-%dT%H:%M:%S')
+      commit_time = datetime.datetime.strptime(diff['commits'][0]['created'],
+                                               '%Y-%m-%dT%H:%M:%S')
       return commit_time
   except httplib.HTTPException:
     return None
@@ -133,20 +129,16 @@ def _FetchStatsForJob(job, commit_time):
   if alert_time < commit_time:
     raise ndb.Return(None)
 
-  time_from_job_to_culprit = (
-      culprit_time - create_time).total_seconds() * 1000.0
-  time_from_commit_to_alert = (
-      alert_time - commit_time).total_seconds() * 1000.0
-  time_from_alert_to_job = (
-      create_time - alert_time).total_seconds() * 1000.0
-  time_from_commit_to_culprit = (
-      culprit_time - commit_time).total_seconds() * 1000.0
+  time_from_job_to_culprit = (culprit_time -
+                              create_time).total_seconds() * 1000.0
+  time_from_commit_to_alert = (alert_time -
+                               commit_time).total_seconds() * 1000.0
+  time_from_alert_to_job = (create_time - alert_time).total_seconds() * 1000.0
+  time_from_commit_to_culprit = (culprit_time -
+                                 commit_time).total_seconds() * 1000.0
 
-  raise ndb.Return((
-      time_from_commit_to_culprit,
-      time_from_commit_to_alert,
-      time_from_alert_to_job,
-      time_from_job_to_culprit))
+  raise ndb.Return((time_from_commit_to_culprit, time_from_commit_to_alert,
+                    time_from_alert_to_job, time_from_job_to_culprit))
 
 
 @ndb.tasklet
@@ -190,8 +182,12 @@ def _ProcessPinpointStats(offset=0):
   completed_jobs = yield _FetchPerformancePinpointJobs(start_date, end_date)
 
   jobs_by_bot = collections.defaultdict(
-      lambda: collections.defaultdict(
-          lambda: {'pass': 0, 'fail': 0, 'norepro': 0, 'total': 0}))
+      lambda: collections.defaultdict(lambda: {
+          'pass': 0,
+          'fail': 0,
+          'norepro': 0,
+          'total': 0
+      }))
 
   for j in completed_jobs:
     bot = j.arguments.get('configuration')
@@ -230,8 +226,12 @@ def _ProcessPinpointStats(offset=0):
       unit = 'count_smallerIsBetter'
     return unit
 
-  data_by_benchmark = collections.defaultdict(
-      lambda: {'pass': 0, 'fail': 0, 'norepro': 0, 'total': 0})
+  data_by_benchmark = collections.defaultdict(lambda: {
+      'pass': 0,
+      'fail': 0,
+      'norepro': 0,
+      'total': 0
+  })
 
   for bot, benchmark_dict in jobs_by_bot.items():
     hists = []
@@ -255,13 +255,12 @@ def _ProcessPinpointStats(offset=0):
       if summaries['total'] > 0 and k != 'total':
         h = _CreateHistogram(
             k + '.normalized', _UnitType(k), summary_options=avg_opts)
-        h.AddSample(v/float(summaries['total']))
+        h.AddSample(v / float(summaries['total']))
         hists.append(h)
 
-    hs = _CreateHistogramSet(
-        'ChromiumPerfFyi', bot, 'pinpoint.success', commit_pos, hists)
-    deferred.defer(
-        add_histograms.ProcessHistogramSet, hs.AsDicts())
+    hs = _CreateHistogramSet('ChromiumPerfFyi', bot, 'pinpoint.success',
+                             commit_pos, hists)
+    deferred.defer(add_histograms.ProcessHistogramSet, hs.AsDicts())
 
   # Create one "uber" bot to contain all benchmarks results, just for ease of
   # use.
@@ -284,13 +283,12 @@ def _ProcessPinpointStats(offset=0):
     if summaries['total'] > 0 and k != 'total':
       h = _CreateHistogram(
           k + '.normalized', _UnitType(k), summary_options=avg_opts)
-      h.AddSample(v/float(summaries['total']))
+      h.AddSample(v / float(summaries['total']))
       hists.append(h)
 
-  hs = _CreateHistogramSet(
-      'ChromiumPerfFyi.all', 'all', 'pinpoint.success', commit_pos, hists)
-  deferred.defer(
-      add_histograms.ProcessHistogramSet, hs.AsDicts())
+  hs = _CreateHistogramSet('ChromiumPerfFyi.all', 'all', 'pinpoint.success',
+                           commit_pos, hists)
+  deferred.defer(add_histograms.ProcessHistogramSet, hs.AsDicts())
 
 
 @ndb.synctasklet
@@ -331,18 +329,18 @@ def _ProcessAlertsForBot(bot_name, alerts):
         'chromium.perf.alerts', 'count', story=s)
     hists_by_suite[s].AddSample(c)
 
-  hs = _CreateHistogramSet(
-      'ChromiumPerfFyi', bot_name, 'chromeperf.stats', int(time.time()),
-      [alerts_total] + list(hists_by_suite.values()))
+  hs = _CreateHistogramSet('ChromiumPerfFyi', bot_name, 'chromeperf.stats',
+                           int(time.time()),
+                           [alerts_total] + list(hists_by_suite.values()))
 
-  deferred.defer(
-      add_histograms.ProcessHistogramSet, hs.AsDicts())
+  deferred.defer(add_histograms.ProcessHistogramSet, hs.AsDicts())
 
 
 @ndb.synctasklet
 def _ProcessPinpointJobs():
-  jobs_and_commits = yield _FetchCompletedPinpointJobs(
-      datetime.datetime.now() - datetime.timedelta(days=14))
+  jobs_and_commits = yield _FetchCompletedPinpointJobs(datetime.datetime.now() -
+                                                       datetime.timedelta(
+                                                           days=14))
 
   job_results = yield [_FetchStatsForJob(j, c) for j, c in jobs_and_commits]
   job_results = [j for j in job_results if j]
@@ -350,9 +348,7 @@ def _ProcessPinpointJobs():
     raise ndb.Return(None)
 
   commit_to_culprit = _CreateHistogram('pinpoint', 'msBestFitFormat')
-  commit_to_culprit.CustomizeSummaryOptions({
-      'percentile': [0.5, 0.9]
-  })
+  commit_to_culprit.CustomizeSummaryOptions({'percentile': [0.5, 0.9]})
 
   commit_to_alert = _CreateHistogram(
       'pinpoint', 'msBestFitFormat', story='commitToAlert')
@@ -376,5 +372,4 @@ def _ProcessPinpointJobs():
       'ChromiumPerfFyi', 'test1', 'chromeperf.stats', int(time.time()),
       [commit_to_alert, alert_to_job, job_to_culprit, commit_to_culprit])
 
-  deferred.defer(
-      add_histograms.ProcessHistogramSet, hs.AsDicts())
+  deferred.defer(add_histograms.ProcessHistogramSet, hs.AsDicts())

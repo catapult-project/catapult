@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """The datastore models for graph data.
 
 The Chromium project uses Buildbot to run its performance tests, and the
@@ -154,13 +153,8 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
   # filter out alerts on regressions.
   improvement_direction = ndb.IntegerProperty(
       default=anomaly.UNKNOWN,
-      choices=[
-          anomaly.UP,
-          anomaly.DOWN,
-          anomaly.UNKNOWN
-      ],
-      indexed=False
-  )
+      choices=[anomaly.UP, anomaly.DOWN, anomaly.UNKNOWN],
+      indexed=False)
 
   # Units of the child Rows of this test, or None if there are no child Rows.
   units = ndb.StringProperty(indexed=False)
@@ -291,7 +285,6 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
     path_parts = self.key.id().split('/')
     assert len(path_parts) >= 3
 
-
     # Set the anomaly threshold config to the first one that has a test pattern
     # that matches this test, if there is one. Anomaly configs with a pattern
     # that more specifically matches the test are given higher priority.
@@ -316,8 +309,8 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
     if len(self.key.id().split('/')) > 3:
       # Since this is not a test suite, the menu cache for the suite must
       # be updated.
-      layered_cache.Delete(
-          LIST_TESTS_SUBTEST_CACHE_KEY % self._GetMasterBotSuite(self.key))
+      layered_cache.Delete(LIST_TESTS_SUBTEST_CACHE_KEY %
+                           self._GetMasterBotSuite(self.key))
 
   @classmethod
   # pylint: disable=unused-argument
@@ -325,8 +318,8 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
     if len(key.id().split('/')) > 3:
       # Since this is not a test suite, the menu cache for the suite must
       # be updated.
-      layered_cache.Delete(
-          LIST_TESTS_SUBTEST_CACHE_KEY % TestMetadata._GetMasterBotSuite(key))
+      layered_cache.Delete(LIST_TESTS_SUBTEST_CACHE_KEY %
+                           TestMetadata._GetMasterBotSuite(key))
 
 
 class LastAddedRevision(ndb.Model):
@@ -405,8 +398,8 @@ class Row(ndb.Expando):
 
     if not parent_test:
       parent_key = self.key.parent()
-      logging.warning(
-          'Row put without valid TestMetadata. Parent key: %s', parent_key)
+      logging.warning('Row put without valid TestMetadata. Parent key: %s',
+                      parent_key)
       return
 
     if not parent_test.has_rows:
@@ -418,10 +411,8 @@ class Row(ndb.Expando):
 def GetRowsForTestInRange(test_key, start_rev, end_rev):
   """Gets all the Row entities for a test between a given start and end."""
   test_key = utils.OldStyleTestKey(test_key)
-  query = Row.query(
-      Row.parent_test == test_key,
-      Row.revision >= start_rev,
-      Row.revision <= end_rev)
+  query = Row.query(Row.parent_test == test_key, Row.revision >= start_rev,
+                    Row.revision <= end_rev)
   return query.fetch(batch_size=100)
 
 
@@ -431,19 +422,19 @@ def GetRowsForTestAroundRev(test_key, rev, num_points):
   num_rows_before = int(num_points / 2) + 1
   num_rows_after = int(num_points / 2)
 
-  return GetRowsForTestBeforeAfterRev(
-      test_key, rev, num_rows_before, num_rows_after)
+  return GetRowsForTestBeforeAfterRev(test_key, rev, num_rows_before,
+                                      num_rows_after)
 
 
-def GetRowsForTestBeforeAfterRev(
-    test_key, rev, num_rows_before, num_rows_after):
+def GetRowsForTestBeforeAfterRev(test_key, rev, num_rows_before,
+                                 num_rows_after):
   """Gets up to |num_points| Row entities for a test centered on a revision."""
   test_key = utils.OldStyleTestKey(test_key)
 
   query_up_to_rev = Row.query(Row.parent_test == test_key, Row.revision <= rev)
   query_up_to_rev = query_up_to_rev.order(-Row.revision)
-  rows_up_to_rev = list(reversed(
-      query_up_to_rev.fetch(limit=num_rows_before, batch_size=100)))
+  rows_up_to_rev = list(
+      reversed(query_up_to_rev.fetch(limit=num_rows_before, batch_size=100)))
 
   query_after_rev = Row.query(Row.parent_test == test_key, Row.revision > rev)
   query_after_rev = query_after_rev.order(Row.revision)
@@ -452,8 +443,7 @@ def GetRowsForTestBeforeAfterRev(
   return rows_up_to_rev + rows_after_rev
 
 
-def GetLatestRowsForTest(
-    test_key, num_points, keys_only=False):
+def GetLatestRowsForTest(test_key, num_points, keys_only=False):
   """Gets the latest num_points Row entities for a test."""
   test_key = utils.OldStyleTestKey(test_key)
   query = Row.query(Row.parent_test == test_key)

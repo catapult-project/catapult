@@ -21,16 +21,17 @@ class LuciConfigTest(unittest.TestCase):
     with open('tests/configs-projects-empty.json') as configs_get_projects_file:
       configs_get_projects_response = configs_get_projects_file.read()
     http = HttpMockSequenceWithDiscovery([
-        ({'status': '200'}, configs_get_projects_response),
+        ({
+            'status': '200'
+        }, configs_get_projects_response),
     ])
     service = service_client.CreateServiceClient(
-        'https://luci-config.appspot.com/_ah/api', 'config', 'v1',
-        http=http
-    )
+        'https://luci-config.appspot.com/_ah/api', 'config', 'v1', http=http)
     _ = service_client.CreateServiceClient(
-        'https://chrome-infra-auth.appspot.com/_ah/api', 'auth', 'v1',
-        http=http
-    )
+        'https://chrome-infra-auth.appspot.com/_ah/api',
+        'auth',
+        'v1',
+        http=http)
     self.assertEqual({}, luci_config.FindAllSheriffConfigs(service))
 
   def testFailingCreateConfigClient(self):
@@ -38,7 +39,4 @@ class LuciConfigTest(unittest.TestCase):
                                 'Service discovery failed:'):
       http = HttpMockSequence([({'status': '403'}, 'Forbidden')])
       _ = service_client.CreateServiceClient(
-          'https://luci-config.appspot.com/_ah/api', 'config', 'v1',
-          http=http
-      )
-
+          'https://luci-config.appspot.com/_ah/api', 'config', 'v1', http=http)

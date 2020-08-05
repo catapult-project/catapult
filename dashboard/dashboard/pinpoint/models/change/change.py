@@ -88,8 +88,9 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
     """
     commits = collections.OrderedDict(self.commits)
     commits.update(other.commits)
-    commits = tuple(commit_module.Commit(repository, git_hash)
-                    for repository, git_hash in commits.items())
+    commits = tuple(
+        commit_module.Commit(repository, git_hash)
+        for repository, git_hash in commits.items())
 
     if self.patch and other.patch:
       raise NotImplementedError(
@@ -124,8 +125,8 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
 
   @classmethod
   def FromDict(cls, data):
-    commits = tuple(commit_module.Commit.FromDict(commit)
-                    for commit in data['commits'])
+    commits = tuple(
+        commit_module.Commit.FromDict(commit) for commit in data['commits'])
     if data.get('patch') is not None:
       patch = patch_module.GerritPatch.FromDict(data['patch'])
     else:
@@ -203,9 +204,11 @@ def _ExpandDepsToMatchRepositories(commits_a, commits_b):
   """
   # First, scrub the list of commits of things we shouldn't be looking into.
   commits_a[:] = [
-      c for c in commits_a if commit_module.RepositoryInclusionFilter(c)]
+      c for c in commits_a if commit_module.RepositoryInclusionFilter(c)
+  ]
   commits_b[:] = [
-      c for c in commits_b if commit_module.RepositoryInclusionFilter(c)]
+      c for c in commits_b if commit_module.RepositoryInclusionFilter(c)
+  ]
 
   # The lists may be given in any order. Let's make commits_b the bigger list.
   if len(commits_a) > len(commits_b):
@@ -266,10 +269,12 @@ def _FindMidpoints(commits_a, commits_b):
       deps_a = commit_a.Deps()
       deps_b = commit_b.Deps()
       dep_commits_a = sorted(
-          commit_module.Commit.FromDep(dep) for dep in deps_a.difference(deps_b)
+          commit_module.Commit.FromDep(dep)
+          for dep in deps_a.difference(deps_b)
           if not _FindRepositoryUrlInCommits(commits_a, dep.repository_url))
       dep_commits_b = sorted(
-          commit_module.Commit.FromDep(dep) for dep in deps_b.difference(deps_a)
+          commit_module.Commit.FromDep(dep)
+          for dep in deps_b.difference(deps_a)
           if not _FindRepositoryUrlInCommits(commits_b, dep.repository_url))
       commits_a += [c for c in dep_commits_a if c is not None]
       commits_b += [c for c in dep_commits_b if c is not None]
@@ -289,4 +294,3 @@ def _FindRepositoryUrlInCommits(commits, repository_url):
     if commit.repository_url == repository_url:
       return commit
   return None
-

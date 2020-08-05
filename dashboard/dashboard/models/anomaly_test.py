@@ -53,21 +53,20 @@ class AnomalyTest(testing_common.TestCase):
     anomaly.Anomaly(id="new_2a", test=new_style_key2).put()
     key1_alerts, _, _ = anomaly.Anomaly.QueryAsync(
         test=new_style_key1).get_result()
-    self.assertEqual(
-        ['new_1', 'old_1', 'old_1a'], [a.key.id() for a in key1_alerts])
+    self.assertEqual(['new_1', 'old_1', 'old_1a'],
+                     [a.key.id() for a in key1_alerts])
     key2_alerts, _, _ = anomaly.Anomaly.QueryAsync(
         test=old_style_key2).get_result()
-    self.assertEqual(
-        ['new_2', 'new_2a', 'old_2'], [a.key.id() for a in key2_alerts])
+    self.assertEqual(['new_2', 'new_2a', 'old_2'],
+                     [a.key.id() for a in key2_alerts])
     key2_alerts_limit, _, _ = anomaly.Anomaly.QueryAsync(
         test=old_style_key2, limit=2).get_result()
-    self.assertEqual(
-        ['new_2', 'new_2a'], [a.key.id() for a in key2_alerts_limit])
+    self.assertEqual(['new_2', 'new_2a'],
+                     [a.key.id() for a in key2_alerts_limit])
 
   def testComputedTestProperties(self):
     anomaly.Anomaly(
-        id="foo",
-        test=utils.TestKey('master/bot/benchmark/metric/page')).put()
+        id="foo", test=utils.TestKey('master/bot/benchmark/metric/page')).put()
     a = ndb.Key('Anomaly', 'foo').get()
     self.assertEqual(a.master_name, 'master')
     self.assertEqual(a.bot_name, 'bot')
@@ -92,9 +91,9 @@ class AnomalyTest(testing_common.TestCase):
     entity.bug_id = bug_id
     if sheriff_name:
       entity.subscription_names.append(sheriff_name)
-      entity.subscriptions.append(Subscription(
-          name=sheriff_name,
-          notification_email='sullivan@google.com'))
+      entity.subscriptions.append(
+          Subscription(
+              name=sheriff_name, notification_email='sullivan@google.com'))
     if test:
       entity.test = utils.TestKey(test)
     entity.start_revision = start_revision
@@ -150,26 +149,23 @@ class AnomalyTest(testing_common.TestCase):
     self._CreateAnomaly()
     test_path = 'adept/android/lodging/assessment/story'
     self._CreateAnomaly(test=test_path)
-    anomalies, _, _ = anomaly.Anomaly.QueryAsync(test_keys=[
-        utils.TestMetadataKey(test_path)]).get_result()
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+        test_keys=[utils.TestMetadataKey(test_path)]).get_result()
     self.assertEqual(1, len(anomalies))
     self.assertEqual(test_path, anomalies[0].test.id())
 
   def testBugId(self):
     self._CreateAnomaly()
     self._CreateAnomaly(bug_id=42)
-    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-        bug_id=42).get_result()
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(bug_id=42).get_result()
     self.assertEqual(1, len(anomalies))
     self.assertEqual(42, anomalies[0].bug_id)
 
-    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-        bug_id='').get_result()
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(bug_id='').get_result()
     self.assertEqual(1, len(anomalies))
     self.assertEqual(None, anomalies[0].bug_id)
 
-    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-        bug_id='*').get_result()
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(bug_id='*').get_result()
     self.assertEqual(1, len(anomalies))
     self.assertEqual(42, anomalies[0].bug_id)
 
@@ -189,21 +185,18 @@ class AnomalyTest(testing_common.TestCase):
   def testRecovered(self):
     self._CreateAnomaly()
     self._CreateAnomaly(recovered=True)
-    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-        recovered=True).get_result()
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(recovered=True).get_result()
     self.assertEqual(1, len(anomalies))
     self.assertEqual(True, anomalies[0].recovered)
 
-    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-        recovered=False).get_result()
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(recovered=False).get_result()
     self.assertEqual(1, len(anomalies))
     self.assertEqual(False, anomalies[0].recovered)
 
   def testLimit(self):
     self._CreateAnomaly()
     self._CreateAnomaly()
-    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-        limit=1).get_result()
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(limit=1).get_result()
     self.assertEqual(1, len(anomalies))
 
   def testSheriff(self):
@@ -250,8 +243,7 @@ class AnomalyTest(testing_common.TestCase):
     self._CreateAnomaly()
     self._CreateAnomaly(end_revision=200)
     anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-        min_end_revision=200, max_start_revision=200
-    ).get_result()
+        min_end_revision=200, max_start_revision=200).get_result()
     self.assertGreaterEqual(1, len(anomalies))
     self.assertEqual(200, anomalies[0].end_revision)
 
@@ -261,8 +253,8 @@ class AnomalyTest(testing_common.TestCase):
     anomalies, _, _ = anomaly.Anomaly.QueryAsync(
         max_timestamp=datetime.datetime.utcfromtimestamp(60)).get_result()
     self.assertEqual(1, len(anomalies))
-    self.assertEqual(datetime.datetime.utcfromtimestamp(59),
-                     anomalies[0].timestamp)
+    self.assertEqual(
+        datetime.datetime.utcfromtimestamp(59), anomalies[0].timestamp)
 
   def testMinTimestamp(self):
     self._CreateAnomaly(timestamp=datetime.datetime.utcfromtimestamp(59))
@@ -270,21 +262,21 @@ class AnomalyTest(testing_common.TestCase):
     anomalies, _, _ = anomaly.Anomaly.QueryAsync(
         min_timestamp=datetime.datetime.utcfromtimestamp(60)).get_result()
     self.assertEqual(1, len(anomalies))
-    self.assertEqual(datetime.datetime.utcfromtimestamp(61),
-                     anomalies[0].timestamp)
+    self.assertEqual(
+        datetime.datetime.utcfromtimestamp(61), anomalies[0].timestamp)
 
   def testInequalityWithTestKeys(self):
     self._CreateAnomaly(timestamp=datetime.datetime.utcfromtimestamp(59))
     self._CreateAnomaly(timestamp=datetime.datetime.utcfromtimestamp(61))
-    self._CreateAnomaly(timestamp=datetime.datetime.utcfromtimestamp(61),
-                        test='master/bot/test_suite/measurement/test_case2')
+    self._CreateAnomaly(
+        timestamp=datetime.datetime.utcfromtimestamp(61),
+        test='master/bot/test_suite/measurement/test_case2')
     anomalies, _, _ = anomaly.Anomaly.QueryAsync(
         test='master/bot/test_suite/measurement/test_case2',
         min_timestamp=datetime.datetime.utcfromtimestamp(60)).get_result()
     self.assertEqual(1, len(anomalies))
-    self.assertEqual(datetime.datetime.utcfromtimestamp(61),
-                     anomalies[0].timestamp)
-
+    self.assertEqual(
+        datetime.datetime.utcfromtimestamp(61), anomalies[0].timestamp)
 
   def testAllInequalityFilters(self):
     matching_start_revision = 15
@@ -345,12 +337,10 @@ class AnomalyTest(testing_common.TestCase):
     self._CreateAnomaly(timestamp=datetime.datetime.utcfromtimestamp(70))
     self._CreateAnomaly(timestamp=matching_timestamp)
     anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-        limit=1,
-        min_start_revision=0,
+        limit=1, min_start_revision=0,
         max_timestamp=matching_timestamp).get_result()
     self.assertEqual(1, len(anomalies))
-    self.assertEqual(matching_timestamp,
-                     anomalies[0].timestamp)
+    self.assertEqual(matching_timestamp, anomalies[0].timestamp)
 
 
 if __name__ == '__main__':

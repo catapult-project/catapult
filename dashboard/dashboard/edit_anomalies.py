@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """URI endpoint for nudging Anomaly entities and updating alert bug IDs."""
 from __future__ import print_function
 from __future__ import division
@@ -49,8 +48,8 @@ class EditAnomaliesHandler(request_handler.RequestHandler):
     # Get the list of alerts to modify.
     urlsafe_keys = self.request.get('keys')
     if not urlsafe_keys:
-      self.response.out.write(json.dumps({
-          'error': 'No alerts specified to add bugs to.'}))
+      self.response.out.write(
+          json.dumps({'error': 'No alerts specified to add bugs to.'}))
       return
     keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
     alert_entities = ndb.get_multi(keys)
@@ -63,8 +62,8 @@ class EditAnomaliesHandler(request_handler.RequestHandler):
     if bug_id:
       result = self.ChangeBugId(alert_entities, bug_id)
     elif new_start_revision and new_end_revision:
-      result = self.NudgeAnomalies(
-          alert_entities, new_start_revision, new_end_revision)
+      result = self.NudgeAnomalies(alert_entities, new_start_revision,
+                                   new_end_revision)
     else:
       result = {'error': 'No bug ID or new revision specified.'}
     self.response.out.write(json.dumps(result))

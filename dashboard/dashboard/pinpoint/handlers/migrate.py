@@ -18,7 +18,6 @@ from dashboard.common import stored_object
 from dashboard.common import utils
 from dashboard.pinpoint.models import job
 
-
 _BATCH_SIZE = 50
 _STATUS_KEY = 'job_migration_status'
 
@@ -40,6 +39,7 @@ class Migrate(api_request_handler.ApiRequestHandler):
       _Start()
     return self.Get()
 
+
 def _Start():
   query = job.Job.query(job.Job.task == None)
   status = {
@@ -50,6 +50,7 @@ def _Start():
   }
   stored_object.Set(_STATUS_KEY, status)
   deferred.defer(_Migrate, status, None)
+
 
 def _Migrate(status, cursor=None):
   if cursor:

@@ -37,8 +37,8 @@ class GetOrCreateAncestorsTest(testing_common.TestCase):
 
     actual_parent = add_point_queue.GetOrCreateAncestors(
         'ChromiumPerf', 'win7', 'dromaeo/dom/modify')
-    self.assertEqual(
-        'ChromiumPerf/win7/dromaeo/dom/modify', actual_parent.key.id())
+    self.assertEqual('ChromiumPerf/win7/dromaeo/dom/modify',
+                     actual_parent.key.id())
     # No extra TestMetadata or Bot objects should have been added to the
     # database beyond the four that were put in before the _GetOrCreateAncestors
     # call.
@@ -47,8 +47,8 @@ class GetOrCreateAncestorsTest(testing_common.TestCase):
     self.assertEqual(3, len(graph_data.TestMetadata.query().fetch()))
 
   def testGetOrCreateAncestors_CreatesAllExpectedEntities(self):
-    parent = add_point_queue.GetOrCreateAncestors(
-        'ChromiumPerf', 'win7', 'dromaeo/dom/modify')
+    parent = add_point_queue.GetOrCreateAncestors('ChromiumPerf', 'win7',
+                                                  'dromaeo/dom/modify')
     self.assertEqual('ChromiumPerf/win7/dromaeo/dom/modify', parent.key.id())
     # Check that all the Bot and TestMetadata entities were correctly added.
     created_masters = graph_data.Master.query().fetch()
@@ -65,19 +65,18 @@ class GetOrCreateAncestorsTest(testing_common.TestCase):
     self.assertIsNone(created_tests[0].parent_test)
     self.assertEqual('win7', created_tests[0].bot_name)
     self.assertEqual('dom', created_tests[1].test_part1_name)
-    self.assertEqual(
-        'ChromiumPerf/win7/dromaeo', created_tests[1].parent_test.id())
+    self.assertEqual('ChromiumPerf/win7/dromaeo',
+                     created_tests[1].parent_test.id())
     self.assertIsNone(created_tests[1].bot)
-    self.assertEqual(
-        'ChromiumPerf/win7/dromaeo/dom/modify', created_tests[2].key.id())
-    self.assertEqual(
-        'ChromiumPerf/win7/dromaeo/dom', created_tests[2].parent_test.id())
+    self.assertEqual('ChromiumPerf/win7/dromaeo/dom/modify',
+                     created_tests[2].key.id())
+    self.assertEqual('ChromiumPerf/win7/dromaeo/dom',
+                     created_tests[2].parent_test.id())
     self.assertIsNone(created_tests[2].bot)
 
   def testGetOrCreateAncestors_RespectsImprovementDirectionForNewTest(self):
     test = add_point_queue.GetOrCreateAncestors(
-        'M', 'b', 'suite/foo', units='bogus',
-        improvement_direction=anomaly.UP)
+        'M', 'b', 'suite/foo', units='bogus', improvement_direction=anomaly.UP)
     self.assertEqual(anomaly.UP, test.improvement_direction)
 
 

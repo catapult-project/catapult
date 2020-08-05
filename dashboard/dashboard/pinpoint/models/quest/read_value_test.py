@@ -18,8 +18,6 @@ from tracing.value import histogram as histogram_module
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
-
-
 _BASE_ARGUMENTS_HISTOGRAMS = {'benchmark': 'speedometer'}
 _BASE_ARGUMENTS_GRAPH_JSON = {
     'benchmark': 'base_perftests',
@@ -41,8 +39,7 @@ class ReadValueQuestTest(unittest.TestCase):
     super(ReadValueQuestTest, self).setUp()
 
   def testMinimumArguments(self):
-    quest = read_value.ReadValue.FromDict(
-        _BASE_ARGUMENTS_HISTOGRAMS)
+    quest = read_value.ReadValue.FromDict(_BASE_ARGUMENTS_HISTOGRAMS)
     expected = read_value.ReadValue(
         results_filename='speedometer/perf_results.json')
     self.assertEqual(quest, expected)
@@ -168,10 +165,14 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
 
   def testReadGraphJsonValue(self):
     self.SetOutputFileContents(
-        {'chart': {'traces': {'trace': ['126444.869721', '0.0']}}})
+        {'chart': {
+            'traces': {
+                'trace': ['126444.869721', '0.0']
+            }
+        }})
 
-    quest = read_value.ReadGraphJsonValue(
-        'chartjson-output.json', 'chart', 'trace')
+    quest = read_value.ReadGraphJsonValue('chartjson-output.json', 'chart',
+                                          'trace')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
@@ -202,8 +203,8 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
   def testReadGraphJsonValueWithMissingFile(self):
     self._retrieve.return_value = '{"files": {}}'
 
-    quest = read_value.ReadGraphJsonValue(
-        'base_perftests/perf_results.json', 'metric', 'test')
+    quest = read_value.ReadGraphJsonValue('base_perftests/perf_results.json',
+                                          'metric', 'test')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
@@ -212,8 +213,8 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
   def testReadGraphJsonValueWithMissingChart(self):
     self.SetOutputFileContents({})
 
-    quest = read_value.ReadGraphJsonValue(
-        'chartjson-output.json', 'metric', 'test')
+    quest = read_value.ReadGraphJsonValue('chartjson-output.json', 'metric',
+                                          'test')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
@@ -222,8 +223,8 @@ class ReadGraphJsonValueTest(_ReadValueExecutionTest):
   def testReadGraphJsonValueWithMissingTrace(self):
     self.SetOutputFileContents({'chart': {'traces': {}}})
 
-    quest = read_value.ReadGraphJsonValue(
-        'chartjson-output.json', 'chart', 'test')
+    quest = read_value.ReadGraphJsonValue('chartjson-output.json', 'chart',
+                                          'test')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
 
@@ -234,7 +235,11 @@ class ReadValueTest(_ReadValueExecutionTest):
 
   def testReadGraphJsonValue(self):
     self.SetOutputFileContents(
-        {'chart': {'traces': {'trace': ['126444.869721', '0.0']}}})
+        {'chart': {
+            'traces': {
+                'trace': ['126444.869721', '0.0']
+            }
+        }})
 
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
@@ -274,11 +279,9 @@ class ReadValueTest(_ReadValueExecutionTest):
     hist.AddSample(2)
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.STORY_TAGS.name,
-        generic_set.GenericSet(['group:label']))
+        reserved_infos.STORY_TAGS.name, generic_set.GenericSet(['group:label']))
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.STORIES.name,
-        generic_set.GenericSet(['story']))
+        reserved_infos.STORIES.name, generic_set.GenericSet(['story']))
     self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadValue(
@@ -331,8 +334,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     hist.AddSample(2)
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.STORY_TAGS.name,
-        generic_set.GenericSet(['group:label']))
+        reserved_infos.STORY_TAGS.name, generic_set.GenericSet(['group:label']))
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name,
         generic_set.GenericSet(['story:has:colons:too']))
@@ -355,8 +357,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     hist.AddSample(2)
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.STORY_TAGS.name,
-        generic_set.GenericSet(['group:label']))
+        reserved_infos.STORY_TAGS.name, generic_set.GenericSet(['group:label']))
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORIES.name,
         generic_set.GenericSet(['story:has:colons:too']))
@@ -465,8 +466,10 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (0,))
     self.assertEqual(
         {
-            'completed': True,
-            'exception': None,
+            'completed':
+                True,
+            'exception':
+                None,
             'details': [
                 {
                     'key': 'trace',
@@ -484,8 +487,7 @@ class ReadValueTest(_ReadValueExecutionTest):
                     'url': 'trace_url3',
                 },
             ],
-        },
-        execution.AsDict())
+        }, execution.AsDict())
     self.assertRetrievedOutputJson()
 
   def testReadHistogramsDiagnosticRefSkipTraceUrls(self):
@@ -507,8 +509,10 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (0,))
     self.assertEqual(
         {
-            'completed': True,
-            'exception': None,
+            'completed':
+                True,
+            'exception':
+                None,
             'details': [
                 {
                     'key': 'trace',
@@ -521,8 +525,7 @@ class ReadValueTest(_ReadValueExecutionTest):
                     'url': 'trace_url2',
                 },
             ],
-        },
-        execution.AsDict())
+        }, execution.AsDict())
     self.assertRetrievedOutputJson()
 
   def testReadHistogramsJsonValueWithNoGroupingLabel(self):
@@ -618,8 +621,7 @@ class ReadValueTest(_ReadValueExecutionTest):
 
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.STORY_TAGS.name,
-        generic_set.GenericSet(['group:label']))
+        reserved_infos.STORY_TAGS.name, generic_set.GenericSet(['group:label']))
 
     self.SetOutputFileContents(histograms.AsDicts())
 
@@ -648,8 +650,7 @@ class ReadValueTest(_ReadValueExecutionTest):
 
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.STORY_TAGS.name,
-        generic_set.GenericSet(['group:label']))
+        reserved_infos.STORY_TAGS.name, generic_set.GenericSet(['group:label']))
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(results_filename='chartjson-output.json')
     execution = quest.Start(None, 'server', 'output hash')

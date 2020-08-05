@@ -37,11 +37,12 @@ class CrrevServiceTest(unittest.TestCase):
         'etag': '"z28iYHtWcY14RRFEUgin0OFGLHY/au8p5YtferYwojQRpsPavK6G5-A"'
     }
     mock_request.return_value = json.dumps(return_value)
-    self.assertEqual(
-        crrev_service.GetNumbering(**params),
-        return_value)
+    self.assertEqual(crrev_service.GetNumbering(**params), return_value)
     mock_request.assert_called_once_with(
-        'https://cr-rev.appspot.com/_ah/api/crrev/v1/get_numbering', 'GET',
-        project='chromium', repo='chromium/src', number='498032',
+        'https://cr-rev.appspot.com/_ah/api/crrev/v1/get_numbering',
+        'GET',
+        project='chromium',
+        repo='chromium/src',
+        number='498032',
         numbering_type='COMMIT_POSITION',
         numbering_identifier='refs/heads/master')

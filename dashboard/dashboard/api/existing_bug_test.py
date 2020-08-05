@@ -45,14 +45,8 @@ class ExistingBugTest(testing_common.TestCase):
         improvement_direction=anomaly.DOWN,
         units='units')
     test.put()
-    key = anomaly.Anomaly(
-        test=test.key,
-        start_revision=1,
-        end_revision=1).put()
-    graph_data.Row(
-        id=1,
-        parent=test.key,
-        value=1).put()
+    key = anomaly.Anomaly(test=test.key, start_revision=1, end_revision=1).put()
+    graph_data.Row(id=1, parent=test.key, value=1).put()
     response = self._Post(key=key.urlsafe(), bug=12345)
     self.assertEqual({}, response)
     self.assertEqual(12345, key.get().bug_id)

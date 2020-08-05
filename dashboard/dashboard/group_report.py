@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides the web interface for a set of alerts and their graphs."""
 from __future__ import print_function
 from __future__ import division
@@ -69,8 +68,8 @@ class GroupReportHandler(chart_handler.ChartHandler):
           alert_list, _, _ = anomaly.Anomaly.QueryAsync(
               bug_id=bug_id, limit=_QUERY_LIMIT).get_result()
         except ValueError:
-          raise request_handler.InvalidInputError(
-              'Invalid bug ID "%s".' % bug_id)
+          raise request_handler.InvalidInputError('Invalid bug ID "%s".' %
+                                                  bug_id)
       elif keys:
         alert_list = GetAlertsForKeys(keys)
       elif rev:
@@ -147,8 +146,8 @@ def GetAlertsForKeys(keys):
 
   for i, anomaly_entity in enumerate(requested_anomalies):
     if anomaly_entity is None:
-      raise request_handler.InvalidInputError(
-          'No Anomaly found for key %s.' % urlsafe_keys[i])
+      raise request_handler.InvalidInputError('No Anomaly found for key %s.' %
+                                              urlsafe_keys[i])
 
   if not requested_anomalies:
     raise request_handler.InvalidInputError('No anomalies found.')
@@ -168,6 +167,7 @@ def GetAlertsForKeys(keys):
     # Include all anomalies with an overlapping revision range that have
     # been associated with a bug, or are not yet triaged.
     requested_anomalies_set = set([a.key for a in requested_anomalies])
+
     def _IsValidAlert(a):
       if a.key in requested_anomalies_set:
         return False
@@ -192,8 +192,8 @@ def GetAlertsForGroupID(group_id):
   """
   group = alert_group.AlertGroup.GetByID(group_id)
   if not group:
-    raise request_handler.InvalidInputError(
-        'Invalid AlertGroup ID "%s".' % group_id)
+    raise request_handler.InvalidInputError('Invalid AlertGroup ID "%s".' %
+                                            group_id)
   return ndb.get_multi(group.anomalies)
 
 
@@ -217,5 +217,7 @@ def _GetOverlaps(anomalies, start, end):
   Returns:
     A list of anomalies.
   """
-  return [a for a in anomalies
-          if a.start_revision <= end and a.end_revision >= start]
+  return [
+      a for a in anomalies
+      if a.start_revision <= end and a.end_revision >= start
+  ]

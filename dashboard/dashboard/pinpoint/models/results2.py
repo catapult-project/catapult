@@ -74,7 +74,8 @@ def ScheduleResults2Generation(job):
     # name to deduplicate.
     task_name = 'results2-public-%s' % job.job_id
     taskqueue.add(
-        queue_name='job-queue', url='/api/generate-results2/' + job.job_id,
+        queue_name='job-queue',
+        url='/api/generate-results2/' + job.job_id,
         name=task_name)
   except taskqueue.TombstonedTaskError:
     return False
@@ -93,12 +94,16 @@ def GenerateResults2(job):
 
   filename = _GetCloudStorageName(job.job_id)
   gcs_file = _GcsFileStream(
-      filename, 'w', content_type='text/html',
+      filename,
+      'w',
+      content_type='text/html',
       retry_params=cloudstorage.RetryParams(backoff_factor=1.1))
 
   render_histograms_viewer.RenderHistogramsViewer(
-      histogram_dicts, gcs_file,
-      reset_results=True, vulcanized_html=vulcanized_html)
+      histogram_dicts,
+      gcs_file,
+      reset_results=True,
+      vulcanized_html=vulcanized_html)
 
   gcs_file.close()
   logging.debug('Generated %s; see https://storage.cloud.google.com%s',
@@ -118,11 +123,9 @@ def _FetchHistograms(job):
     for attempt in job.state._attempts[change]:
       for execution in attempt.executions:
         mode = None
-        if isinstance(
-            execution, read_value._ReadHistogramsJsonValueExecution):
+        if isinstance(execution, read_value._ReadHistogramsJsonValueExecution):
           mode = 'histograms'
-        elif isinstance(
-            execution, read_value._ReadGraphJsonValueExecution):
+        elif isinstance(execution, read_value._ReadGraphJsonValueExecution):
           mode = 'graphjson'
         elif isinstance(execution, read_value.ReadValueExecution):
           mode = execution.mode or 'histograms'
@@ -174,5 +177,5 @@ def _JsonFromExecution(execution):
   else:
     results_filename = 'chartjson-output.json'
 
-  return read_value.RetrieveOutputJson(
-      isolate_server, isolate_hash, results_filename)
+  return read_value.RetrieveOutputJson(isolate_server, isolate_hash,
+                                       results_filename)

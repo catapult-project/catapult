@@ -33,17 +33,14 @@ def FetchCachedTestSuiteDescriptor(master, test_suite):
   if not master:
     masters = _GetMastersForSuite(test_suite)
 
-  futures = [namespaced_stored_object.GetAsync(
-      CacheKey(m, test_suite)) for m in masters]
+  futures = [
+      namespaced_stored_object.GetAsync(CacheKey(m, test_suite))
+      for m in masters
+  ]
 
   ndb.Future.wait_all(futures)
 
-  desc = {
-      'measurements': [],
-      'bots': [],
-      'cases': [],
-      'caseTags': {}
-  }
+  desc = {'measurements': [], 'bots': [], 'cases': [], 'caseTags': {}}
 
   for f in futures:
     cur_desc = f.get_result()
@@ -105,6 +102,7 @@ def _CollectCaseTags(futures, case_tags):
 
 TESTS_TO_FETCH = 5000
 
+
 def _GetMastersForSuite(suite):
   masters = list_tests.GetTestsMatchingPattern('*/*/%s' % suite)
   masters = list(set([m.split('/')[0] for m in masters]))
@@ -117,8 +115,14 @@ def _UpdateDescriptorByMaster(test_suite, namespace):
     deferred.defer(_UpdateDescriptor, m, test_suite, namespace)
 
 
-def _UpdateDescriptor(master, test_suite, namespace, start_cursor=None,
-                      measurements=(), bots=(), cases=(), case_tags=None):
+def _UpdateDescriptor(master,
+                      test_suite,
+                      namespace,
+                      start_cursor=None,
+                      measurements=(),
+                      bots=(),
+                      cases=(),
+                      case_tags=None):
   logging.info('%s %s %s %d %d %d', master, test_suite, namespace,
                len(measurements), len(bots), len(cases))
   # This function always runs in the taskqueue as an anonymous user.
@@ -138,15 +142,16 @@ def _UpdateDescriptor(master, test_suite, namespace, start_cursor=None,
   query = query.filter(graph_data.TestMetadata.has_rows == True)
 
   tests, next_cursor, more = query.fetch_page(
-      TESTS_TO_FETCH, start_cursor=start_cursor,
-      use_cache=False, use_memcache=False)
+      TESTS_TO_FETCH,
+      start_cursor=start_cursor,
+      use_cache=False,
+      use_memcache=False)
 
   for test in tests:
     bots.add(test.bot_name)
 
     try:
-      _, measurement, story = utils.ParseTelemetryMetricParts(
-          test.test_path)
+      _, measurement, story = utils.ParseTelemetryMetricParts(test.test_path)
     except utils.ParseTelemetryMetricFailed as e:
       # Log the error and process the rest of the test suite.
       logging.error('Parsing error encounted: %s', e)
@@ -171,15 +176,16 @@ def _UpdateDescriptor(master, test_suite, namespace, start_cursor=None,
   if more:
     logging.info('continuing')
     deferred.defer(_UpdateDescriptor, master, test_suite, namespace,
-                   next_cursor, measurements, bots, cases,
-                   case_tags)
+                   next_cursor, measurements, bots, cases, case_tags)
     return
 
   desc = {
       'measurements': list(sorted(measurements)),
       'bots': list(sorted(bots)),
       'cases': list(sorted(cases)),
-      'caseTags': {tag: sorted(cases) for tag, cases in list(case_tags.items())}
+      'caseTags': {
+          tag: sorted(cases) for tag, cases in list(case_tags.items())
+      }
   }
 
   key = namespaced_stored_object.NamespaceKey(

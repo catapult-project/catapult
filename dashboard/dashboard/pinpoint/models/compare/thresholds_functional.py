@@ -2,7 +2,6 @@
 # Copyright 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Calculates significance thresholds for functional comparisons."""
 from __future__ import print_function
 from __future__ import division
@@ -12,7 +11,6 @@ import itertools
 import math
 
 from scipy import stats
-
 
 # The approximate false negative rate.
 P_VALUE = 0.01

@@ -18,16 +18,21 @@ def Time():
 
 
 def LRUCacheWithTTL(ttl_seconds=60, **lru_args):
+
   def Wrapper(func):
+
     @functools.lru_cache(**lru_args)
     # pylint: disable=unused-argument
     def Cached(ttl, *args, **kargs):
       return func(*args, **kargs)
+
     def Wrapping(*args, **kargs):
       ttl = kargs.get('_cache_timestamp', int(Time())) // ttl_seconds
       kargs.pop('_cache_timestamp', None)
       return Cached(ttl, *args, **kargs)
+
     return Wrapping
+
   return Wrapper
 
 
@@ -47,11 +52,11 @@ def Translate(pat):
   res = ''
   while i < n:
     c = pat[i]
-    i = i+1
+    i = i + 1
     if c == '*':
       if i < n and pat[i] == '*':
         res = res + '.*'
-        i = i+1
+        i = i + 1
       else:
         res = res + '[^/]*'
     elif c == '?':
@@ -59,16 +64,16 @@ def Translate(pat):
     elif c == '[':
       j = i
       if j < n and pat[j] == '!':
-        j = j+1
+        j = j + 1
       if j < n and pat[j] == ']':
-        j = j+1
+        j = j + 1
       while j < n and pat[j] != ']':
-        j = j+1
+        j = j + 1
       if j >= n:
         res = res + '\\['
       else:
         stuff = pat[i:j].replace('\\', '\\\\')
-        i = j+1
+        i = j + 1
         if stuff[0] == '!':
           stuff = '^' + stuff[1:]
         elif stuff[0] == '^':

@@ -27,8 +27,10 @@ class GitilesTest(unittest.TestCase):
 
   def testCommitInfo(self):
     return_value = {
-        'commit': 'commit_hash',
-        'tree': 'tree_hash',
+        'commit':
+            'commit_hash',
+        'tree':
+            'tree_hash',
         'parents': ['parent_hash'],
         'author': {
             'name': 'username',
@@ -40,27 +42,27 @@ class GitilesTest(unittest.TestCase):
             'email': 'commit-bot@chromium.org',
             'time': 'Fri Jan 01 00:01:00 2016',
         },
-        'message': 'Subject.\n\nCommit message.',
-        'tree_diff': [
-            {
-                'type': 'modify',
-                'old_id': 'old_hash',
-                'old_mode': 33188,
-                'old_path': 'a/b/c.py',
-                'new_id': 'new_hash',
-                'new_mode': 33188,
-                'new_path': 'a/b/c.py',
-            },
-        ],
+        'message':
+            'Subject.\n\nCommit message.',
+        'tree_diff': [{
+            'type': 'modify',
+            'old_id': 'old_hash',
+            'old_mode': 33188,
+            'old_path': 'a/b/c.py',
+            'new_id': 'new_hash',
+            'new_mode': 33188,
+            'new_path': 'a/b/c.py',
+        },],
     }
     self._request_json.return_value = return_value
     self.assertEqual(
         gitiles_service.CommitInfo('https://chromium.googlesource.com/repo',
-                                   'commit_hash'),
-        return_value)
+                                   'commit_hash'), return_value)
     self._request_json.assert_called_once_with(
         'https://chromium.googlesource.com/repo/+/commit_hash?format=JSON',
-        use_cache=False, use_auth=True, scope=gerrit_service.GERRIT_SCOPE)
+        use_cache=False,
+        use_auth=True,
+        scope=gerrit_service.GERRIT_SCOPE)
 
   def testCommitRange(self):
     return_value = {
@@ -107,20 +109,30 @@ class GitilesTest(unittest.TestCase):
     self._request_json.assert_called_once_with(
         'https://chromium.googlesource.com/repo/+log/'
         'commit_0_hash..commit_2_hash?format=JSON',
-        use_cache=False, use_auth=True, scope=gerrit_service.GERRIT_SCOPE)
+        use_cache=False,
+        use_auth=True,
+        scope=gerrit_service.GERRIT_SCOPE)
 
   def testCommitRangePaginated(self):
     return_value_1 = {
         'log': [
-            {'commit': 'commit_4_hash'},
-            {'commit': 'commit_3_hash'},
+            {
+                'commit': 'commit_4_hash'
+            },
+            {
+                'commit': 'commit_3_hash'
+            },
         ],
         'next': 'commit_2_hash',
     }
     return_value_2 = {
         'log': [
-            {'commit': 'commit_2_hash'},
-            {'commit': 'commit_1_hash'},
+            {
+                'commit': 'commit_2_hash'
+            },
+            {
+                'commit': 'commit_1_hash'
+            },
         ],
     }
 
@@ -135,11 +147,12 @@ class GitilesTest(unittest.TestCase):
     self._request.return_value = 'aGVsbG8='
     self.assertEqual(
         gitiles_service.FileContents('https://chromium.googlesource.com/repo',
-                                     'commit_hash', 'path'),
-        'hello')
+                                     'commit_hash', 'path'), 'hello')
     self._request.assert_called_once_with(
         'https://chromium.googlesource.com/repo/+/commit_hash/path?format=TEXT',
-        use_cache=False, use_auth=True, scope=gerrit_service.GERRIT_SCOPE)
+        use_cache=False,
+        use_auth=True,
+        scope=gerrit_service.GERRIT_SCOPE)
 
   def testCache(self):
     self._request_json.return_value = {'log': []}
@@ -151,14 +164,20 @@ class GitilesTest(unittest.TestCase):
     gitiles_service.CommitInfo(repository, git_hash)
     self._request_json.assert_called_with(
         '%s/+/%s?format=JSON' % (repository, git_hash),
-        use_cache=True, use_auth=True, scope=gerrit_service.GERRIT_SCOPE)
+        use_cache=True,
+        use_auth=True,
+        scope=gerrit_service.GERRIT_SCOPE)
 
     gitiles_service.CommitRange(repository, git_hash, git_hash)
     self._request_json.assert_called_with(
         '%s/+log/%s..%s?format=JSON' % (repository, git_hash, git_hash),
-        use_cache=True, use_auth=True, scope=gerrit_service.GERRIT_SCOPE)
+        use_cache=True,
+        use_auth=True,
+        scope=gerrit_service.GERRIT_SCOPE)
 
     gitiles_service.FileContents(repository, git_hash, 'path')
     self._request.assert_called_with(
         '%s/+/%s/path?format=TEXT' % (repository, git_hash),
-        use_cache=True, use_auth=True, scope=gerrit_service.GERRIT_SCOPE)
+        use_cache=True,
+        use_auth=True,
+        scope=gerrit_service.GERRIT_SCOPE)

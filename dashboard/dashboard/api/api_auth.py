@@ -13,7 +13,6 @@ from google.appengine.api import oauth
 from dashboard.common import datastore_hooks
 from dashboard.common import utils
 
-
 OAUTH_CLIENT_ID_ALLOWLIST = [
     # This oauth client id is from Pinpoint.
     '62121018386-aqdfougp0ddn93knqj6g79vvn42ajmrg.apps.googleusercontent.com',
@@ -70,16 +69,19 @@ class ApiAuthException(Exception):
 
 
 class OAuthError(ApiAuthException):
+
   def __init__(self):
     super(OAuthError, self).__init__('User authentication error')
 
 
 class NotLoggedInError(ApiAuthException):
+
   def __init__(self):
     super(NotLoggedInError, self).__init__('User not authenticated')
 
 
 class InternalOnlyError(ApiAuthException):
+
   def __init__(self):
     super(InternalOnlyError, self).__init__('User does not have access')
 

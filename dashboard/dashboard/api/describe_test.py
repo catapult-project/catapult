@@ -28,41 +28,50 @@ class DescribeTest(testing_common.TestCase):
 
     external_key = update_test_suite_descriptors.CacheKey(
         'external', TEST_SUITE_NAME)
-    namespaced_stored_object.SetExternal(external_key, {
-        'measurements': ['measurement'],
-        'bots': ['external:bot'],
-        'cases': ['case'],
-        'caseTags': {}
-    })
+    namespaced_stored_object.SetExternal(
+        external_key, {
+            'measurements': ['measurement'],
+            'bots': ['external:bot'],
+            'cases': ['case'],
+            'caseTags': {}
+        })
 
-    testing_common.AddTests(['external'], ['bot'], {
-        'test_suite': {'measurement': {'case': {},}}
-    })
+    testing_common.AddTests(['external'], ['bot'],
+                            {'test_suite': {
+                                'measurement': {
+                                    'case': {},
+                                }
+                            }})
 
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     self.SetCurrentUser(testing_common.INTERNAL_USER.email())
-    testing_common.AddTests(['internal'], ['bot'], {
-        'test_suite': {'measurement': {'case': {},}}
-    })
+    testing_common.AddTests(['internal'], ['bot'],
+                            {'test_suite': {
+                                'measurement': {
+                                    'case': {},
+                                }
+                            }})
     t = utils.TestKey('internal/bot/test_suite').get()
     t.internal_only = True
     t.put()
 
-    namespaced_stored_object.Set(external_key, {
-        'measurements': ['measurement'],
-        'bots': ['external:bot'],
-        'cases': ['case'],
-        'caseTags': {}
-    })
+    namespaced_stored_object.Set(
+        external_key, {
+            'measurements': ['measurement'],
+            'bots': ['external:bot'],
+            'cases': ['case'],
+            'caseTags': {}
+        })
 
     internal_key = update_test_suite_descriptors.CacheKey(
         'internal', TEST_SUITE_NAME)
-    namespaced_stored_object.Set(internal_key, {
-        'measurements': ['measurement'],
-        'bots': ['internal:bot'],
-        'cases': ['case'],
-        'caseTags': {}
-    })
+    namespaced_stored_object.Set(
+        internal_key, {
+            'measurements': ['measurement'],
+            'bots': ['internal:bot'],
+            'cases': ['case'],
+            'caseTags': {}
+        })
 
   def _Post(self, suite):
     return json.loads(self.Post('/api/describe?test_suite=' + suite).body)

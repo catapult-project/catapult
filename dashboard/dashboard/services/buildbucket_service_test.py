@@ -13,10 +13,11 @@ import mock
 
 from dashboard.services import buildbucket_service
 
-
 _BUILD_PARAMETERS = {
     'builder_name': 'dummy_builder',
-    'properties': {'bisect_config': {}}
+    'properties': {
+        'bisect_config': {}
+    }
 }
 
 
@@ -42,8 +43,8 @@ class BuildbucketServiceTest(unittest.TestCase):
         'tags': ['buildset:foo'],
         'parameters_json': json.dumps(_BUILD_PARAMETERS, separators=(',', ':')),
     }
-    response = buildbucket_service.Put(
-        'bucket_name', ['buildset:foo'], _BUILD_PARAMETERS)
+    response = buildbucket_service.Put('bucket_name', ['buildset:foo'],
+                                       _BUILD_PARAMETERS)
     self._AssertCorrectResponse(response)
     self._AssertRequestMadeOnce('builds', method='PUT', body=expected_body)
 

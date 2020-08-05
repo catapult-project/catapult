@@ -48,11 +48,11 @@ class TimeseriesHandler(api_request_handler.ApiRequestHandler):
     test_key = utils.TestKey(test_path)
     test = test_key.get()
     if not test:
-      raise api_request_handler.BadRequestError(
-          'Invalid test_path %s' % test_path)
+      raise api_request_handler.BadRequestError('Invalid test_path %s' %
+                                                test_path)
 
-    assert(
-        datastore_hooks.IsUnalteredQueryPermitted() or not test.internal_only)
+    assert (datastore_hooks.IsUnalteredQueryPermitted()
+            or not test.internal_only)
     datastore_hooks.SetSinglePrivilegedRequest()
 
     q = graph_data.Row.query()

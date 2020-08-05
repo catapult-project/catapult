@@ -20,9 +20,10 @@ class LayeredCacheDeleteExpiredTest(testing_common.TestCase):
 
   def setUp(self):
     super(LayeredCacheDeleteExpiredTest, self).setUp()
-    app = webapp2.WSGIApplication([(
-        '/delete_expired_entities',
-        layered_cache_delete_expired.LayeredCacheDeleteExpiredHandler)])
+    app = webapp2.WSGIApplication([
+        ('/delete_expired_entities',
+         layered_cache_delete_expired.LayeredCacheDeleteExpiredHandler)
+    ])
     self.testapp = webtest.TestApp(app)
     self.UnsetCurrentUser()
     testing_common.SetIsInternalUser('internal@chromium.org', True)

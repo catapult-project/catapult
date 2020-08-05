@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Defines common functionality used for generating e-mail to sheriffs."""
 from __future__ import print_function
 from __future__ import division
@@ -15,9 +14,8 @@ from google.appengine.api import urlfetch
 
 from dashboard.common import utils
 
-_SINGLE_EMAIL_SUBJECT = (
-    '%(percent_changed)s %(change_type)s in %(test_name)s '
-    'on %(bot)s at %(start)d:%(end)d')
+_SINGLE_EMAIL_SUBJECT = ('%(percent_changed)s %(change_type)s in %(test_name)s '
+                         'on %(bot)s at %(start)d:%(end)d')
 
 _EMAIL_HTML_TABLE = """
 A <b>%(percent_changed)s</b> %(change_type)s.<br>
@@ -88,7 +86,8 @@ def GetPerfTryJobEmailReport(try_job_entity):
       profiler_html_links += _PERF_PROFILER_HTML_ROW % link_dict
       profiler_text_links += _PERF_PROFILER_TEXT_ROW % link_dict
     subject_dict = {
-        'status': 'Success', 'bot': results_data['bisect_bot'],
+        'status': 'Success',
+        'bot': results_data['bisect_bot'],
         'start': config['good_revision'],
         'end': config['bad_revision']
     }
@@ -114,7 +113,8 @@ def GetPerfTryJobEmailReport(try_job_entity):
           'command': '?',
       }
     subject_dict = {
-        'status': 'Failure', 'bot': results_data['bisect_bot'],
+        'status': 'Failure',
+        'bot': results_data['bisect_bot'],
         'start': config['good_revision'],
         'end': config['bad_revision']
     }
@@ -125,7 +125,8 @@ def GetPerfTryJobEmailReport(try_job_entity):
         'command': config['command'],
         'start': config['good_revision'],
         'end': config['bad_revision'],
-        'html_results': '', 'profiler_results': '',
+        'html_results': '',
+        'profiler_results': '',
     }
     text_dict = html_dict
   else:
@@ -151,8 +152,9 @@ def GetSubscriptionEmails(subscriptions):
     A comma-separated list of email addresses; this will be an empty string
     if there are no email addresses.
   """
-  receivers = [s.notification_email for s in subscriptions
-               if s.notification_email]
+  receivers = [
+      s.notification_email for s in subscriptions if s.notification_email
+  ]
   for s in subscriptions:
     emails = _GetSheriffOnDutyEmail(s)
     if emails:

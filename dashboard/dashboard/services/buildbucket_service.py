@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Encapsulates a simplistic interface to the buildbucket service."""
 from __future__ import print_function
 from __future__ import division
@@ -10,7 +9,6 @@ from __future__ import absolute_import
 import json
 
 from dashboard.services import request
-
 
 API_BASE_URL = 'https://cr-buildbucket.appspot.com/api/buildbucket/v1/'
 
@@ -27,6 +25,7 @@ def Put(bucket, tags, parameters, pubsub_callback=None):
   if pubsub_callback:
     body['pubsub_callback'] = pubsub_callback
   return request.RequestJson(API_BASE_URL + 'builds', method='PUT', body=body)
+
 
 # TODO: Deprecated. Use Put() instead.
 def PutJob(job, bucket=_BUCKET_NAME):

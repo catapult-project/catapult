@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides the web interface for adding and editing stored configs."""
 
 from __future__ import print_function
@@ -62,12 +61,13 @@ class EditSiteConfigHandler(request_handler.RequestHandler):
     value = stored_object.Get(key)
     external_value = namespaced_stored_object.GetExternal(key)
     internal_value = namespaced_stored_object.Get(key)
-    self.RenderHtml('edit_site_config.html', {
-        'key': key,
-        'value': _FormatJson(value),
-        'external_value': _FormatJson(external_value),
-        'internal_value': _FormatJson(internal_value),
-    })
+    self.RenderHtml(
+        'edit_site_config.html', {
+            'key': key,
+            'value': _FormatJson(value),
+            'external_value': _FormatJson(external_value),
+            'internal_value': _FormatJson(internal_value),
+        })
 
   @xsrf.TokenRequired
   def post(self):
@@ -75,9 +75,9 @@ class EditSiteConfigHandler(request_handler.RequestHandler):
     key = self.request.get('key')
 
     if not utils.IsInternalUser():
-      self.RenderHtml('edit_site_config.html', {
-          'error': 'Only internal users can post to this end-point.'
-      })
+      self.RenderHtml(
+          'edit_site_config.html',
+          {'error': 'Only internal users can post to this end-point.'})
       return
 
     if not key:
@@ -112,16 +112,16 @@ class EditSiteConfigHandler(request_handler.RequestHandler):
     namespaced_stored_object.SetExternal(key, new_external_value)
     namespaced_stored_object.Set(key, new_internal_value)
 
-    _SendNotificationEmail(
-        key, old_value, old_external_value, old_internal_value,
-        new_value, new_external_value, new_internal_value)
+    _SendNotificationEmail(key, old_value, old_external_value,
+                           old_internal_value, new_value, new_external_value,
+                           new_internal_value)
 
     self.RenderHtml('edit_site_config.html', template_params)
 
 
-def _SendNotificationEmail(
-    key, old_value, old_external_value, old_internal_value,
-    new_value, new_external_value, new_internal_value):
+def _SendNotificationEmail(key, old_value, old_external_value,
+                           old_internal_value, new_value, new_external_value,
+                           new_internal_value):
   user_email = users.get_current_user().email()
   subject = 'Config "%s" changed by %s' % (key, user_email)
   email_body = _NOTIFICATION_EMAIL_BODY % {
@@ -142,9 +142,10 @@ def _SendNotificationEmail(
 def _DiffJson(obj1, obj2):
   """Returns a string diff of two JSON-serializable objects."""
   differ = difflib.Differ()
-  return '\n'.join(differ.compare(
-      _FormatJson(obj1).splitlines(),
-      _FormatJson(obj2).splitlines()))
+  return '\n'.join(
+      differ.compare(
+          _FormatJson(obj1).splitlines(),
+          _FormatJson(obj2).splitlines()))
 
 
 def _FormatJson(obj):

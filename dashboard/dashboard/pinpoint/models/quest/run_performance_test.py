@@ -1,7 +1,6 @@
 # Copyright 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Quest and Execution for running a performance test in Swarming."""
 from __future__ import print_function
 from __future__ import division
@@ -12,8 +11,10 @@ import copy
 from dashboard.pinpoint.models.quest import run_test
 
 _DEFAULT_EXTRA_ARGS = [
-    '--isolated-script-test-output', '${ISOLATED_OUTDIR}/output.json',
+    '--isolated-script-test-output',
+    '${ISOLATED_OUTDIR}/output.json',
 ]
+
 
 class RunPerformanceTest(run_test.RunTest):
 

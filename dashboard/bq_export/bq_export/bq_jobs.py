@@ -49,29 +49,48 @@ def JobEntityToRowDict(entity):
       # 2 (the integer, not a string!).
       comparison_mode = str(comparison_mode)
     d = {
-        'id': entity.key.id,
-        'arguments': entity['arguments'],  # required
-        'bug_id': entity.get('bug_id'),
-        'comparison_mode': comparison_mode,
+        'id':
+            entity.key.id,
+        'arguments':
+            entity['arguments'],  # required
+        'bug_id':
+            entity.get('bug_id'),
+        'comparison_mode':
+            comparison_mode,
         'gerrit': {
             'server': entity.get('gerrit_server'),
             'change_id': entity.get('gerrit_change_id'),
         },
-        'name': entity.get('name'),
-        'tags': entity.get('tags'),
-        'user_email': entity.get('user'),
-        'create_time': entity['created'].isoformat(),  # required
-        'start_time': _ConvertOptionalDateTime(entity.get('started_time')),
-        'update_time': entity['updated'].isoformat(),  # required
-        'started': _IfNone(entity.get('started', True), False),
-        'cancelled': _IfNone(entity.get('cancelled'), False),
-        'cancel_reason': entity.get('cancel_reason'),
-        'done': _IfNone(entity.get('done'), False),
-        'task': entity.get('task'),
-        'exception': entity.get('exception'),
-        'exception_details': entity.get('exception_details'),
-        'difference_count': entity.get('difference_count'),
-        'retry_count': entity.get('retry_count', 0),
+        'name':
+            entity.get('name'),
+        'tags':
+            entity.get('tags'),
+        'user_email':
+            entity.get('user'),
+        'create_time':
+            entity['created'].isoformat(),  # required
+        'start_time':
+            _ConvertOptionalDateTime(entity.get('started_time')),
+        'update_time':
+            entity['updated'].isoformat(),  # required
+        'started':
+            _IfNone(entity.get('started', True), False),
+        'cancelled':
+            _IfNone(entity.get('cancelled'), False),
+        'cancel_reason':
+            entity.get('cancel_reason'),
+        'done':
+            _IfNone(entity.get('done'), False),
+        'task':
+            entity.get('task'),
+        'exception':
+            entity.get('exception'),
+        'exception_details':
+            entity.get('exception_details'),
+        'difference_count':
+            entity.get('difference_count'),
+        'retry_count':
+            entity.get('retry_count', 0),
         'benchmark_arguments': {
             'benchmark': entity.get('benchmark_arguments.benchmark'),
             'story': entity.get('story'),
@@ -79,20 +98,20 @@ def JobEntityToRowDict(entity):
             'chart': entity.get('chart'),
             'statistic': entity.get('statistic'),
         },
-        'use_execution_engine': _IfNone(entity.get('use_execution_engine'),
-                                        False),
+        'use_execution_engine':
+            _IfNone(entity.get('use_execution_engine'), False),
     }
   except KeyError as e:
     raise UnconvertibleJobError('Missing property: ' + str(e))
   # Computed properties, directly translated from the ComputedProperty
   # definitions of the ndb.Model.
-  d['completed'] = bool(d['done'] or (
-      not d['use_execution_engine'] and d['started'] and not d['task']))
+  d['completed'] = bool(
+      d['done']
+      or (not d['use_execution_engine'] and d['started'] and not d['task']))
   d['failed'] = bool(d.get('exception_details') or d.get('exception'))
-  d['running'] = bool(
-      (not d['use_execution_engine'] and (
-          d['started'] and not d['cancelled'] and d['task']) or
-       (d['started'] and not d['completed'])))
+  d['running'] = bool((not d['use_execution_engine'] and
+                       (d['started'] and not d['cancelled'] and d['task'])
+                       or (d['started'] and not d['completed'])))
   d['configuration'] = json.loads(d['arguments']).get('configuration')
   return d
 
@@ -112,7 +131,10 @@ def main():
   job_entities = (
       p
       | 'ReadFromDatastore(Job)' >> ReadTimestampRangeFromDatastore(
-          {'project': project, 'kind': 'Job'},
+          {
+              'project': project,
+              'kind': 'Job'
+          },
           time_range_provider=bq_export_options.GetTimeRangeProvider(),
           timestamp_property='created'))
 
@@ -161,44 +183,185 @@ def main():
    configuration STRING)
   PARTITION BY DATE(`create_time`);
   """  # pylint: disable=pointless-string-statement
-  bq_job_schema = {'fields': [
-      {'name': 'id', 'type': 'INT64', 'mode': 'REQUIRED'},
-      {'name': 'arguments', 'type': 'STRING', 'mode': 'REQUIRED'},
-      {'name': 'bug_id', 'type': 'INT64', 'mode': 'NULLABLE'},
-      {'name': 'comparison_mode', 'type': 'STRING', 'mode': 'NULLABLE'},
-      {'name': 'gerrit', 'type': 'RECORD', 'mode': 'NULLABLE', 'fields': [
-          {'name': 'server', 'type': 'STRING', 'mode': 'NULLABLE'},
-          {'name': 'change_id', 'type': 'STRING', 'mode': 'NULLABLE'},
-      ]},
-      {'name': 'name', 'type': 'STRING', 'mode': 'NULLABLE'},
-      {'name': 'tags', 'type': 'STRING', 'mode': 'NULLABLE'},
-      {'name': 'user_email', 'type': 'STRING', 'mode': 'NULLABLE'},
-      {'name': 'create_time', 'type': 'TIMESTAMP', 'mode': 'REQUIRED'},
-      {'name': 'start_time', 'type': 'TIMESTAMP', 'mode': 'NULLABLE'},
-      {'name': 'update_time', 'type': 'TIMESTAMP', 'mode': 'REQUIRED'},
-      {'name': 'started', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
-      {'name': 'done', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
-      {'name': 'cancelled', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
-      {'name': 'cancel_reason', 'type': 'STRING', 'mode': 'NULLABLE'},
-      {'name': 'task', 'type': 'STRING', 'mode': 'NULLABLE'},
-      {'name': 'exception', 'type': 'STRING', 'mode': 'NULLABLE'},
-      {'name': 'exception_details', 'type': 'STRING', 'mode': 'NULLABLE'},
-      {'name': 'difference_count', 'type': 'INT64', 'mode': 'NULLABLE'},
-      {'name': 'retry_count', 'type': 'INT64', 'mode': 'REQUIRED'},
-      {'name': 'benchmark_arguments', 'type': 'RECORD', 'mode': 'NULLABLE',
-       'fields': [
-           {'name': 'benchmark', 'type': 'STRING', 'mode': 'NULLABLE'},
-           {'name': 'story', 'type': 'STRING', 'mode': 'NULLABLE'},
-           {'name': 'story_tags', 'type': 'STRING', 'mode': 'NULLABLE'},
-           {'name': 'chart', 'type': 'STRING', 'mode': 'NULLABLE'},
-           {'name': 'statistic', 'type': 'STRING', 'mode': 'NULLABLE'},
-       ]},
-      {'name': 'use_execution_engine', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
-      {'name': 'completed', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
-      {'name': 'failed', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
-      {'name': 'running', 'type': 'BOOLEAN', 'mode': 'REQUIRED'},
-      {'name': 'configuration', 'type': 'STRING', 'mode': 'NULLABLE'},
-  ]}
+  bq_job_schema = {
+      'fields': [
+          {
+              'name': 'id',
+              'type': 'INT64',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'arguments',
+              'type': 'STRING',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'bug_id',
+              'type': 'INT64',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'comparison_mode',
+              'type': 'STRING',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name':
+                  'gerrit',
+              'type':
+                  'RECORD',
+              'mode':
+                  'NULLABLE',
+              'fields': [
+                  {
+                      'name': 'server',
+                      'type': 'STRING',
+                      'mode': 'NULLABLE'
+                  },
+                  {
+                      'name': 'change_id',
+                      'type': 'STRING',
+                      'mode': 'NULLABLE'
+                  },
+              ]
+          },
+          {
+              'name': 'name',
+              'type': 'STRING',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'tags',
+              'type': 'STRING',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'user_email',
+              'type': 'STRING',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'create_time',
+              'type': 'TIMESTAMP',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'start_time',
+              'type': 'TIMESTAMP',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'update_time',
+              'type': 'TIMESTAMP',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'started',
+              'type': 'BOOLEAN',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'done',
+              'type': 'BOOLEAN',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'cancelled',
+              'type': 'BOOLEAN',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'cancel_reason',
+              'type': 'STRING',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'task',
+              'type': 'STRING',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'exception',
+              'type': 'STRING',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'exception_details',
+              'type': 'STRING',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'difference_count',
+              'type': 'INT64',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'retry_count',
+              'type': 'INT64',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name':
+                  'benchmark_arguments',
+              'type':
+                  'RECORD',
+              'mode':
+                  'NULLABLE',
+              'fields': [
+                  {
+                      'name': 'benchmark',
+                      'type': 'STRING',
+                      'mode': 'NULLABLE'
+                  },
+                  {
+                      'name': 'story',
+                      'type': 'STRING',
+                      'mode': 'NULLABLE'
+                  },
+                  {
+                      'name': 'story_tags',
+                      'type': 'STRING',
+                      'mode': 'NULLABLE'
+                  },
+                  {
+                      'name': 'chart',
+                      'type': 'STRING',
+                      'mode': 'NULLABLE'
+                  },
+                  {
+                      'name': 'statistic',
+                      'type': 'STRING',
+                      'mode': 'NULLABLE'
+                  },
+              ]
+          },
+          {
+              'name': 'use_execution_engine',
+              'type': 'BOOLEAN',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'completed',
+              'type': 'BOOLEAN',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'failed',
+              'type': 'BOOLEAN',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'running',
+              'type': 'BOOLEAN',
+              'mode': 'REQUIRED'
+          },
+          {
+              'name': 'configuration',
+              'type': 'STRING',
+              'mode': 'NULLABLE'
+          },
+      ]
+  }
 
   # 'dataset' may be a RuntimeValueProvider, so we have to defer calculating
   # the table name until runtime.  The simplest way to do this is by passing a

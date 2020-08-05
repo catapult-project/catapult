@@ -1,7 +1,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Functions for interfacing with the Isolate Server.
 
 The Isolate Server is content-addressable cache. Swarming inputs and outputs are
@@ -26,7 +25,9 @@ def Retrieve(server, digest):
   # in memory for processing.
   url = server + '/_ah/api/isolateservice/v1/retrieve'
   body = {
-      'namespace': {'namespace': 'default-gzip'},
+      'namespace': {
+          'namespace': 'default-gzip'
+      },
       'digest': digest,
   }
 

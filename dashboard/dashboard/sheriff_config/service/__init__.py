@@ -86,13 +86,10 @@ def CreateApp(test_config=None):
   # in all requests handled in this application.
   config_client = service_client.CreateServiceClient(
       'https://luci-config.appspot.com/_ah/api', 'config', 'v1',
-      **client_config
-  )
+      **client_config)
   auth_client = service_client.CreateServiceClient(
       'https://chrome-infra-auth.appspot.com/_ah/api', 'auth', 'v1',
-      **client_config
-  )
-
+      **client_config)
 
   # First we check whether the test_config already has a predefined
   # datastore_client.
@@ -118,8 +115,7 @@ def CreateApp(test_config=None):
   def Warmup():  # pylint: disable=unused-variable
     """Caching configs and compiled patterns for warmup."""
     configs = luci_config.ListAllConfigs(
-        datastore_client,
-        _cache_timestamp=time.time() + 10)
+        datastore_client, _cache_timestamp=time.time() + 10)
     for _, revision, subscription in configs:
       luci_config.GetMatcher(revision, subscription)
     return jsonify({})
@@ -173,22 +169,21 @@ def CreateApp(test_config=None):
       match_request = json_format.Parse(request.get_data(),
                                         sheriff_config_pb2.MatchRequest())
     except json_format.ParseError as error:
-      return jsonify({
-          'messages': [{
+      return jsonify(
+          {'messages': [{
               'severity': 'ERROR',
               'text': '%s' % (error)
-          }]
-      }), 400
+          }]}), 400
     match_response = sheriff_config_pb2.MatchResponse()
-    configs = list(luci_config.FindMatchingConfigs(
-        datastore_client, match_request))
+    configs = list(
+        luci_config.FindMatchingConfigs(datastore_client, match_request))
     configs = match_policy.FilterSubscriptionsByPolicy(match_request, configs)
     for config_set, revision, subscription in configs:
       subscription_metadata = match_response.subscriptions.add()
       subscription_metadata.config_set = config_set
       subscription_metadata.revision = revision
-      luci_config.CopyNormalizedSubscription(
-          subscription, subscription_metadata.subscription)
+      luci_config.CopyNormalizedSubscription(subscription,
+                                             subscription_metadata.subscription)
     if not match_response.subscriptions:
       return jsonify({}), 404
     return (json_format.MessageToJson(
@@ -210,12 +205,11 @@ def CreateApp(test_config=None):
       list_request = json_format.Parse(request.get_data(),
                                        sheriff_config_pb2.ListRequest())
     except json_format.ParseError as error:
-      return jsonify({
-          'messages': [{
+      return jsonify(
+          {'messages': [{
               'severity': 'ERROR',
               'text': '%s' % (error)
-          }]
-      }), 400
+          }]}), 400
     list_response = sheriff_config_pb2.ListResponse()
     configs = list(luci_config.ListAllConfigs(datastore_client))
     configs = match_policy.FilterSubscriptionsByIdentity(
@@ -224,8 +218,8 @@ def CreateApp(test_config=None):
       subscription_metadata = list_response.subscriptions.add()
       subscription_metadata.config_set = config_set
       subscription_metadata.revision = revision
-      luci_config.CopyNormalizedSubscription(
-          subscription, subscription_metadata.subscription)
+      luci_config.CopyNormalizedSubscription(subscription,
+                                             subscription_metadata.subscription)
     return (json_format.MessageToJson(
         list_response, preserving_proto_field_name=True), 200, {
             'Content-Type': 'application/json'

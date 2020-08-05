@@ -42,14 +42,15 @@ class AlertsTest(testing_common.TestCase):
         name='Chromium Perf Sheriff',
         notification_email='internal@chromium.org',
     )
-    testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
-        'scrolling-benchmark': {
-            'first_paint': {},
-            'first_paint_ref': {},
-            'mean_frame_time': {},
-            'mean_frame_time_ref': {},
-        }
-    })
+    testing_common.AddTests(
+        ['ChromiumGPU'], ['linux-release'], {
+            'scrolling-benchmark': {
+                'first_paint': {},
+                'first_paint_ref': {},
+                'mean_frame_time': {},
+                'mean_frame_time_ref': {},
+            }
+        })
     first_paint = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling-benchmark/first_paint')
     mean_frame_time = utils.TestKey(
@@ -69,8 +70,11 @@ class AlertsTest(testing_common.TestCase):
       test_key = first_paint if end_rev % 20 == 0 else mean_frame_time
       ref_test_key = utils.TestKey('%s_ref' % utils.TestPath(test_key))
       anomaly_entity = anomaly.Anomaly(
-          start_revision=end_rev - 5, end_revision=end_rev, test=test_key,
-          median_before_anomaly=100, median_after_anomaly=200,
+          start_revision=end_rev - 5,
+          end_revision=end_rev,
+          test=test_key,
+          median_before_anomaly=100,
+          median_after_anomaly=200,
           ref_test=ref_test_key,
           subscriptions=[subscription],
           subscription_names=[subscription.name],
@@ -85,9 +89,13 @@ class AlertsTest(testing_common.TestCase):
       ref_test_key = utils.TestKey('%s_ref' % utils.TestPath(test_key))
       bug_id = -1 if end_rev % 20 == 0 else 12345
       anomaly_entity = anomaly.Anomaly(
-          start_revision=end_rev - 5, end_revision=end_rev, test=test_key,
-          median_before_anomaly=100, median_after_anomaly=200,
-          ref_test=ref_test_key, bug_id=bug_id,
+          start_revision=end_rev - 5,
+          end_revision=end_rev,
+          test=test_key,
+          median_before_anomaly=100,
+          median_after_anomaly=200,
+          ref_test=ref_test_key,
+          bug_id=bug_id,
           subscriptions=[subscription],
           subscription_names=[subscription.name],
       )
@@ -102,8 +110,11 @@ class AlertsTest(testing_common.TestCase):
       test_key = mean_frame_time
       ref_test_key = utils.TestKey('%s_ref' % utils.TestPath(test_key))
       anomaly_entity = anomaly.Anomaly(
-          start_revision=end_rev - 5, end_revision=end_rev, test=test_key,
-          median_before_anomaly=200, median_after_anomaly=100,
+          start_revision=end_rev - 5,
+          end_revision=end_rev,
+          test=test_key,
+          median_before_anomaly=200,
+          median_after_anomaly=100,
           ref_test=ref_test_key,
           subscriptions=[subscription],
           subscription_names=[subscription.name],
@@ -124,37 +135,40 @@ class AlertsTest(testing_common.TestCase):
         median_before_anomaly=40,
         recovered=True,
         subscription_names=['Sheriff2'],
-        subscriptions=[Subscription(
-            name='Sheriff2',
-            bug_components=['component'],
-            notification_email='sullivan@google.com')],
+        subscriptions=[
+            Subscription(
+                name='Sheriff2',
+                bug_components=['component'],
+                notification_email='sullivan@google.com')
+        ],
         start_revision=5,
         test=utils.TestKey('m/b/s/m/c'),
         units='ms',
     ).put().get()
     actual = alerts.GetAnomalyDict(alert, v2=True)
     del actual['dashboard_link']
-    self.assertEqual({
-        'bug_components': ['component'],
-        'bug_id': 10,
-        'bug_labels': ['Restrict-View-Google'],
-        'descriptor': {
-            'testSuite': 's',
-            'measurement': 'm',
-            'bot': 'm:b',
-            'testCase': 'c',
-            'statistic': None,
-        },
-        'end_revision': 20,
-        'improvement': True,
-        'key': alert.key.urlsafe(),
-        'median_after_anomaly': 30,
-        'median_before_anomaly': 40,
-        'recovered': True,
-        'start_revision': 5,
-        'units': 'ms',
-        'pinpoint_bisects': [],
-    }, actual)
+    self.assertEqual(
+        {
+            'bug_components': ['component'],
+            'bug_id': 10,
+            'bug_labels': ['Restrict-View-Google'],
+            'descriptor': {
+                'testSuite': 's',
+                'measurement': 'm',
+                'bot': 'm:b',
+                'testCase': 'c',
+                'statistic': None,
+            },
+            'end_revision': 20,
+            'improvement': True,
+            'key': alert.key.urlsafe(),
+            'median_after_anomaly': 30,
+            'median_before_anomaly': 40,
+            'recovered': True,
+            'start_revision': 5,
+            'units': 'ms',
+            'pinpoint_bisects': [],
+        }, actual)
 
   def testGet(self):
     response = self.testapp.get('/alerts')
@@ -163,11 +177,15 @@ class AlertsTest(testing_common.TestCase):
 
   def testPost_NoParametersSet_UntriagedAlertsListed(self):
     key_map = self._AddAlertsToDataStore()
-    with mock.patch.object(SheriffConfigClient, 'List',
-                           mock.MagicMock(return_value=([Subscription(
-                               name='Chromium Perf Sheriff',
-                               notification_email='internal@chromium.org',
-                           )], None))):
+    with mock.patch.object(
+        SheriffConfigClient, 'List',
+        mock.MagicMock(
+            return_value=([
+                Subscription(
+                    name='Chromium Perf Sheriff',
+                    notification_email='internal@chromium.org',
+                )
+            ], None))):
       response = self.testapp.post('/alerts')
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     self.assertEqual(12, len(anomaly_list))
@@ -200,11 +218,15 @@ class AlertsTest(testing_common.TestCase):
   @unittest.skipIf(sys.platform.startswith('win'), 'bad mock datastore')
   def testPost_TriagedParameterSet_TriagedListed(self):
     self._AddAlertsToDataStore()
-    with mock.patch.object(SheriffConfigClient, 'List',
-                           mock.MagicMock(return_value=([Subscription(
-                               name='Chromium Perf Sheriff',
-                               notification_email='internal@chromium.org',
-                           )], None))):
+    with mock.patch.object(
+        SheriffConfigClient, 'List',
+        mock.MagicMock(
+            return_value=([
+                Subscription(
+                    name='Chromium Perf Sheriff',
+                    notification_email='internal@chromium.org',
+                )
+            ], None))):
       response = self.testapp.post('/alerts', {'triaged': 'true'})
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     # The alerts listed should contain those added above, including alerts
@@ -226,11 +248,15 @@ class AlertsTest(testing_common.TestCase):
 
   def testPost_ImprovementsParameterSet_ListsImprovements(self):
     self._AddAlertsToDataStore()
-    with mock.patch.object(SheriffConfigClient, 'List',
-                           mock.MagicMock(return_value=([Subscription(
-                               name='Chromium Perf Sheriff',
-                               notification_email='internal@chromium.org',
-                           )], None))):
+    with mock.patch.object(
+        SheriffConfigClient, 'List',
+        mock.MagicMock(
+            return_value=([
+                Subscription(
+                    name='Chromium Perf Sheriff',
+                    notification_email='internal@chromium.org',
+                )
+            ], None))):
       response = self.testapp.post('/alerts', {'improvements': 'true'})
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     self.assertEqual(18, len(anomaly_list))
@@ -250,14 +276,19 @@ class AlertsTest(testing_common.TestCase):
       anomaly_entity.subscription_names = [subscription.name]
       anomaly_entity.put()
 
-    with mock.patch.object(SheriffConfigClient, 'List',
-                           mock.MagicMock(return_value=([Subscription(
-                               name='Chromium Perf Sheriff',
-                               notification_email='internal@chromium.org',
-                           ), Subscription(
-                               name='Sheriff2',
-                               notification_email='sullivan@google.com',
-                           )], None))):
+    with mock.patch.object(
+        SheriffConfigClient, 'List',
+        mock.MagicMock(
+            return_value=([
+                Subscription(
+                    name='Chromium Perf Sheriff',
+                    notification_email='internal@chromium.org',
+                ),
+                Subscription(
+                    name='Sheriff2',
+                    notification_email='sullivan@google.com',
+                )
+            ], None))):
       response = self.testapp.post('/alerts', {'sheriff': 'Sheriff2'})
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     sheriff_list = self.GetJsonValue(response, 'sheriff_list')
@@ -277,11 +308,15 @@ class AlertsTest(testing_common.TestCase):
   def testPost_ExternalUserRequestsInternalOnlySheriff_ErrorMessage(self):
     self.UnsetCurrentUser()
     self.assertFalse(utils.IsInternalUser())
-    with mock.patch.object(SheriffConfigClient, 'List',
-                           mock.MagicMock(return_value=([Subscription(
-                               name='Chromium Perf Sheriff',
-                               notification_email='internal@chromium.org',
-                           )], None))):
+    with mock.patch.object(
+        SheriffConfigClient, 'List',
+        mock.MagicMock(
+            return_value=([
+                Subscription(
+                    name='Chromium Perf Sheriff',
+                    notification_email='internal@chromium.org',
+                )
+            ], None))):
       response = self.testapp.post('/alerts?sheriff=Foo')
     error = self.GetJsonValue(response, 'error')
     self.assertIsNotNone(error)
@@ -289,23 +324,32 @@ class AlertsTest(testing_common.TestCase):
   def testPost_AnomalyCursorSet_ReturnsNextCursorAndShowMore(self):
     self._AddAlertsToDataStore()
     # Need to post to the app once to get the initial cursor.
-    with mock.patch.object(SheriffConfigClient, 'List',
-                           mock.MagicMock(return_value=([Subscription(
-                               name='Chromium Perf Sheriff',
-                               notification_email='internal@chromium.org',
-                           )], None))):
+    with mock.patch.object(
+        SheriffConfigClient, 'List',
+        mock.MagicMock(
+            return_value=([
+                Subscription(
+                    name='Chromium Perf Sheriff',
+                    notification_email='internal@chromium.org',
+                )
+            ], None))):
       response = self.testapp.post('/alerts', {'max_anomalies_to_show': 5})
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     anomaly_cursor = self.GetJsonValue(response, 'anomaly_cursor')
 
-    with mock.patch.object(SheriffConfigClient, 'List',
-                           mock.MagicMock(return_value=([Subscription(
-                               name='Chromium Perf Sheriff',
-                               notification_email='internal@chromium.org',
-                           )], None))):
-      response = self.testapp.post(
-          '/alerts',
-          {'anomaly_cursor': anomaly_cursor, 'max_anomalies_to_show': 5})
+    with mock.patch.object(
+        SheriffConfigClient, 'List',
+        mock.MagicMock(
+            return_value=([
+                Subscription(
+                    name='Chromium Perf Sheriff',
+                    notification_email='internal@chromium.org',
+                )
+            ], None))):
+      response = self.testapp.post('/alerts', {
+          'anomaly_cursor': anomaly_cursor,
+          'max_anomalies_to_show': 5
+      })
     anomaly_list2 = self.GetJsonValue(response, 'anomaly_list')
     anomalies_show_more = self.GetJsonValue(response, 'show_more_anomalies')
     anomaly_cursor = self.GetJsonValue(response, 'anomaly_cursor')
@@ -316,6 +360,7 @@ class AlertsTest(testing_common.TestCase):
     self.assertEqual(12, anomaly_count)
     for a in anomaly_list:  # Ensure anomaly_lists aren't equal.
       self.assertNotIn(a, anomaly_list2)
+
 
 if __name__ == '__main__':
   unittest.main()

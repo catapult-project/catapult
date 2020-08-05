@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Downloads a single time series as CSV."""
 from __future__ import print_function
 from __future__ import division
@@ -45,8 +44,8 @@ class GraphCsvHandler(request_handler.RequestHandler):
 
     test_key = utils.TestKey(test_path)
     test = test_key.get()
-    assert(datastore_hooks.IsUnalteredQueryPermitted() or
-           not test.internal_only)
+    assert (datastore_hooks.IsUnalteredQueryPermitted()
+            or not test.internal_only)
     datastore_hooks.SetSinglePrivilegedRequest()
     q = graph_data.Row.query()
     q = q.filter(graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))

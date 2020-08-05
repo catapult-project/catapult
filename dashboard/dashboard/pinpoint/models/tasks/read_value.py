@@ -38,8 +38,8 @@ class CompleteReadValueAction(
   __slots__ = ()
 
   def __str__(self):
-    return 'CompleteReadValueAction(job = %s, task = %s)' % (
-        self.job.job_id, self.task.id)
+    return 'CompleteReadValueAction(job = %s, task = %s)' % (self.job.job_id,
+                                                             self.task.id)
 
   @task_module.LogStateTransitionFailures
   def __call__(self, _):
@@ -185,8 +185,8 @@ def ResultSerializer(task, _, accumulator):
       'completed':
           task.status in {'completed', 'failed', 'cancelled'},
       'exception':
-          ','.join(e.get('reason') for e in task.payload.get('errors', []))
-          or None,
+          ','.join(e.get('reason') for e in task.payload.get('errors', [])) or
+          None,
       'details': []
   })
 

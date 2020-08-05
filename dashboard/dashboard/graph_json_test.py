@@ -27,8 +27,8 @@ class GraphJsonTest(testing_common.TestCase):
 
   def setUp(self):
     super(GraphJsonTest, self).setUp()
-    app = webapp2.WSGIApplication(
-        [('/graph_json', graph_json.GraphJsonHandler)])
+    app = webapp2.WSGIApplication([('/graph_json', graph_json.GraphJsonHandler)
+                                  ])
     self.testapp = webtest.TestApp(app)
     self.PatchDatastoreHooksRequest()
 
@@ -68,8 +68,11 @@ class GraphJsonTest(testing_common.TestCase):
           # with the other bots.
           rev = i + 1 if name == 'mac' else i
           row = graph_data.Row(
-              parent=test_container_key, id=rev, value=float(i * 2),
-              r_webkit=int(i * 0.25), a_str='some_string',
+              parent=test_container_key,
+              id=rev,
+              value=float(i * 2),
+              r_webkit=int(i * 0.25),
+              a_str='some_string',
               buildnumber=i - start_rev,
               a_tracing_uri='http://trace/%d' % i)
           rows.append(row)
@@ -95,16 +98,18 @@ class GraphJsonTest(testing_common.TestCase):
     path = 'master/bot/suite'
     for sub_name in ['sub1', 'sub2', 'sub3', 'sub4', 'sub5']:
       path = '%s/%s' % (path, sub_name)
-      test = graph_data.TestMetadata(id=path,
-                                     improvement_direction=anomaly.UP,
-                                     has_rows=True)
+      test = graph_data.TestMetadata(
+          id=path, improvement_direction=anomaly.UP, has_rows=True)
       test.UpdateSheriff()
       test.put()
       test_container_key = utils.GetTestContainerKey(test.key)
       for i in range(start_rev, end_rev, step):
         row = graph_data.Row(
-            parent=test_container_key, id=i, value=float(i * 2),
-            r_webkit=int(i * 0.25), a_str='some_string',
+            parent=test_container_key,
+            id=i,
+            value=float(i * 2),
+            r_webkit=int(i * 0.25),
+            a_str='some_string',
             buildnumber=i - start_rev,
             a_tracing_uri='http://trace/%d' % i)
         rows.append(row)
@@ -117,8 +122,13 @@ class GraphJsonTest(testing_common.TestCase):
         return index
     return None
 
-  def CheckFlotJson(
-      self, json_str, num_rows, num_cols, start_rev, end_rev, step=3):
+  def CheckFlotJson(self,
+                    json_str,
+                    num_rows,
+                    num_cols,
+                    start_rev,
+                    end_rev,
+                    step=3):
     """Checks whether a JSON string output by GetGraphJson is correct.
 
     It's assumed that data should match data that might be added by the
@@ -166,8 +176,7 @@ class GraphJsonTest(testing_common.TestCase):
         }
     }
     # If the request is valid, a valid response will be returned.
-    response = self.testapp.post(
-        '/graph_json', {'graphs': json.dumps(graphs)})
+    response = self.testapp.post('/graph_json', {'graphs': json.dumps(graphs)})
     flot_json_str = response.body
     self.CheckFlotJson(flot_json_str, 150, 2, 15850, 16000, step=1)
     self.assertEqual('*', response.headers.get('Access-Control-Allow-Origin'))
@@ -181,14 +190,9 @@ class GraphJsonTest(testing_common.TestCase):
     row.value = float('nan')
     row.put()
 
-    graphs = {
-        'test_path_dict': {
-            'ChromiumGPU/win7/dromaeo/jslib': [],
-        }
-    }
+    graphs = {'test_path_dict': {'ChromiumGPU/win7/dromaeo/jslib': [],}}
     # If the request is valid, a valid response will be returned.
-    response = self.testapp.post(
-        '/graph_json', {'graphs': json.dumps(graphs)})
+    response = self.testapp.post('/graph_json', {'graphs': json.dumps(graphs)})
     flot_json_str = response.body
     rows = json.loads(flot_json_str)['data']['0']['data']
     self.assertEqual(149, len(rows))
@@ -207,8 +211,7 @@ class GraphJsonTest(testing_common.TestCase):
         'is_selected': True
     }
     # If the request is valid, a valid response will be returned.
-    response = self.testapp.post(
-        '/graph_json', {'graphs': json.dumps(graphs)})
+    response = self.testapp.post('/graph_json', {'graphs': json.dumps(graphs)})
     flot_json_str = response.body
     self.CheckFlotJson(flot_json_str, 150, 1, 15850, 16000, step=1)
 
@@ -220,8 +223,7 @@ class GraphJsonTest(testing_common.TestCase):
         }
     }
     # If the request is valid, a valid response will be returned.
-    response = self.testapp.post(
-        '/graph_json', {'graphs': json.dumps(graphs)})
+    response = self.testapp.post('/graph_json', {'graphs': json.dumps(graphs)})
     flot_json_str = response.body
     self.CheckFlotJson(flot_json_str, 150, 1, 15850, 16000, step=1)
 
@@ -233,8 +235,7 @@ class GraphJsonTest(testing_common.TestCase):
         },
     }
     # If the request is valid, a valid response will be returned.
-    response = self.testapp.post(
-        '/graph_json', {'graphs': json.dumps(graphs)})
+    response = self.testapp.post('/graph_json', {'graphs': json.dumps(graphs)})
     flot_json_str = response.body
     flot = json.loads(flot_json_str)
     self.assertEqual(0, len(flot['data']))
@@ -242,14 +243,9 @@ class GraphJsonTest(testing_common.TestCase):
   def testRequest_NoSubTest_ShowsSummaryTests(self):
     """Tests the post method of the request handler."""
     self._AddTestColumns(start_rev=15700, end_rev=16000, step=1)
-    graphs = {
-        'test_path_dict': {
-            'ChromiumGPU/winXP/dromaeo': [],
-        }
-    }
+    graphs = {'test_path_dict': {'ChromiumGPU/winXP/dromaeo': [],}}
     # If the request is valid, a valid response will be returned.
-    response = self.testapp.post(
-        '/graph_json', {'graphs': json.dumps(graphs)})
+    response = self.testapp.post('/graph_json', {'graphs': json.dumps(graphs)})
     flot_json_str = response.body
     self.CheckFlotJson(flot_json_str, 150, 2, 15850, 16000, step=1)
 
@@ -280,48 +276,42 @@ class GraphJsonTest(testing_common.TestCase):
   def testGetGraphJsonStartEndRev(self):
     self._AddTestColumns(start_rev=15991)
     flot_json_str = graph_json.GetGraphJson(
-        {'ChromiumGPU/win7/dromaeo/dom': []}, start_rev=16000,
-        end_rev=16030)
+        {'ChromiumGPU/win7/dromaeo/dom': []}, start_rev=16000, end_rev=16030)
     self.CheckFlotJson(flot_json_str, 11, 1, 16000, 16030)
 
   def testGetGraphJsonMultipleBots(self):
     self._AddTestColumns(start_rev=16047)
-    flot_json_str = graph_json.GetGraphJson(
-        {
-            'ChromiumGPU/win7/dromaeo/dom': [],
-            'ChromiumGPU/winXP/dromaeo/dom': [],
-        })
+    flot_json_str = graph_json.GetGraphJson({
+        'ChromiumGPU/win7/dromaeo/dom': [],
+        'ChromiumGPU/winXP/dromaeo/dom': [],
+    })
     self.CheckFlotJson(flot_json_str, 150, 2, 16050, 16500)
 
   def testGetGraphJsonMultipleTests(self):
     self._AddTestColumns(start_rev=16047)
-    flot_json_str = graph_json.GetGraphJson(
-        {
-            'ChromiumGPU/win7/dromaeo/dom': [],
-            'ChromiumGPU/win7/dromaeo/jslib': [],
-        })
+    flot_json_str = graph_json.GetGraphJson({
+        'ChromiumGPU/win7/dromaeo/dom': [],
+        'ChromiumGPU/win7/dromaeo/jslib': [],
+    })
     self.CheckFlotJson(flot_json_str, 150, 2, 16050, 16500)
 
   def testGetGraphJsonError(self):
     self._AddTestColumns(start_rev=15000, end_rev=15015)
 
-    rows = graph_data.Row.query(
-        graph_data.Row.parent_test == ndb.Key(
-            'TestMetadata', 'ChromiumGPU/win7/dromaeo/dom'))
+    rows = graph_data.Row.query(graph_data.Row.parent_test == ndb.Key(
+        'TestMetadata', 'ChromiumGPU/win7/dromaeo/dom'))
     for row in rows:
       row.error = 1 + ((row.revision - 15000) * 0.25)
     ndb.put_multi(rows)
-    flot_json_str = graph_json.GetGraphJson(
-        {
-            'ChromiumGPU/win7/dromaeo/dom': [],
-        })
+    flot_json_str = graph_json.GetGraphJson({
+        'ChromiumGPU/win7/dromaeo/dom': [],
+    })
     flot = json.loads(flot_json_str)
     self.assertEqual(1, len(list(flot['error_bars'].keys())))
     rev = 0
-    for col_dom, col_top, col_bottom in zip(
-        flot['data']['0']['data'],
-        flot['error_bars']['0'][1]['data'],
-        flot['error_bars']['0'][0]['data']):
+    for col_dom, col_top, col_bottom in zip(flot['data']['0']['data'],
+                                            flot['error_bars']['0'][1]['data'],
+                                            flot['error_bars']['0'][0]['data']):
       error = 1 + (rev * 0.25)
       self.assertEqual(rev + 15000, col_top[0])
       self.assertEqual(col_dom[1] + error, col_top[1])
@@ -336,7 +326,8 @@ class GraphJsonTest(testing_common.TestCase):
             'ChromiumGPU/win7/dromaeo/dom': [],
             'ChromiumGPU/mac/dromaeo/dom': [],
         },
-        rev=15000, num_points=8)
+        rev=15000,
+        num_points=8)
     flot = json.loads(json_str)
     data = flot.get('data')
     win7_index = self._GetSeriesIndex(flot, 'ChromiumGPU/win7/dromaeo/dom')
@@ -345,12 +336,10 @@ class GraphJsonTest(testing_common.TestCase):
     if not data:
       self.fail('No flot data generated by GetGraphJson')
     self.assertEqual(2, len(data))
-    self.assertEqual(
-        [[15000, 30000.0], [15003, 30006.0], [15006, 30012.0]],
-        data[win7_index].get('data'))
-    self.assertEqual(
-        [[15001, 30000.0], [15004, 30006.0]],
-        data[mac_index].get('data'))
+    self.assertEqual([[15000, 30000.0], [15003, 30006.0], [15006, 30012.0]],
+                     data[win7_index].get('data'))
+    self.assertEqual([[15001, 30000.0], [15004, 30006.0]],
+                     data[mac_index].get('data'))
 
   def testGetGraphJson_ClampsRevisions(self):
     self._AddTestColumns(end_rev=15500)
@@ -370,23 +359,11 @@ class GraphJsonTest(testing_common.TestCase):
     # Two columns
     self.assertEqual(2, len(data))
     # Clamped from 15487-15499 by 3 steps.  First row doesn't contain 15487.
-    self.assertEqual(
-        [
-            [15489, 30978.0],
-            [15492, 30984.0],
-            [15495, 30990.0],
-            [15498, 30996.0]
-        ],
-        data[win7_index].get('data'))
-    self.assertEqual(
-        [
-            [15487, 30972.0],
-            [15490, 30978.0],
-            [15493, 30984.0],
-            [15496, 30990.0],
-            [15499, 30996.0]
-        ],
-        data[mac_index].get('data'))
+    self.assertEqual([[15489, 30978.0], [15492, 30984.0], [15495, 30990.0],
+                      [15498, 30996.0]], data[win7_index].get('data'))
+    self.assertEqual([[15487, 30972.0], [15490, 30978.0], [15493, 30984.0],
+                      [15496, 30990.0], [15499, 30996.0]],
+                     data[mac_index].get('data'))
 
     # Revision 100 (way before data starts) specified, clamp to the first 8 rows
     json_str = graph_json.GetGraphJson(
@@ -394,7 +371,8 @@ class GraphJsonTest(testing_common.TestCase):
             'ChromiumGPU/win7/dromaeo/dom': [],
             'ChromiumGPU/mac/dromaeo/dom': [],
         },
-        rev=100, num_points=8)
+        rev=100,
+        num_points=8)
     flot = json.loads(json_str)
     data = flot.get('data')
     win7_index = self._GetSeriesIndex(flot, 'ChromiumGPU/win7/dromaeo/dom')
@@ -403,22 +381,10 @@ class GraphJsonTest(testing_common.TestCase):
     # Two columns
     self.assertEqual(2, len(data))
     # 15000-15012.
-    self.assertEqual(
-        [
-            [15000, 30000.0],
-            [15003, 30006.0],
-            [15006, 30012.0],
-            [15009, 30018.0]
-        ],
-        data[win7_index].get('data'))
-    self.assertEqual(
-        [
-            [15001, 30000.0],
-            [15004, 30006.0],
-            [15007, 30012.0],
-            [15010, 30018.0]
-        ],
-        data[mac_index].get('data'))
+    self.assertEqual([[15000, 30000.0], [15003, 30006.0], [15006, 30012.0],
+                      [15009, 30018.0]], data[win7_index].get('data'))
+    self.assertEqual([[15001, 30000.0], [15004, 30006.0], [15007, 30012.0],
+                      [15010, 30018.0]], data[mac_index].get('data'))
 
     # Revision 15530 (valid) specified, clamp 4 rows before/after
     json_str = graph_json.GetGraphJson(
@@ -426,7 +392,8 @@ class GraphJsonTest(testing_common.TestCase):
             'ChromiumGPU/win7/dromaeo/dom': [],
             'ChromiumGPU/mac/dromaeo/dom': [],
         },
-        rev=15030, num_points=8)
+        rev=15030,
+        num_points=8)
     flot = json.loads(json_str)
     data = flot.get('data')
     win7_index = self._GetSeriesIndex(flot, 'ChromiumGPU/win7/dromaeo/dom')
@@ -435,23 +402,11 @@ class GraphJsonTest(testing_common.TestCase):
     # Two columns
     self.assertEqual(2, len(data))
     # 15524-15536.
-    self.assertEqual(
-        [
-            [15024, 30048.0],
-            [15027, 30054.0],
-            [15030, 30060.0],
-            [15033, 30066.0],
-            [15036, 30072.0]
-        ],
-        data[win7_index].get('data'))
-    self.assertEqual(
-        [
-            [15025, 30048.0],
-            [15028, 30054.0],
-            [15031, 30060.0],
-            [15034, 30066.0]
-        ],
-        data[mac_index].get('data'))
+    self.assertEqual([[15024, 30048.0], [15027, 30054.0], [15030, 30060.0],
+                      [15033, 30066.0], [15036, 30072.0]],
+                     data[win7_index].get('data'))
+    self.assertEqual([[15025, 30048.0], [15028, 30054.0], [15031, 30060.0],
+                      [15034, 30066.0]], data[mac_index].get('data'))
 
     # Revision 15498 specified, clamp 4 rows before and after is cut off
     json_str = graph_json.GetGraphJson(
@@ -459,7 +414,8 @@ class GraphJsonTest(testing_common.TestCase):
             'ChromiumGPU/win7/dromaeo/dom': [],
             'ChromiumGPU/mac/dromaeo/dom': [],
         },
-        rev=15498, num_points=7)
+        rev=15498,
+        num_points=7)
     flot = json.loads(json_str)
     data = flot.get('data')
     win7_index = self._GetSeriesIndex(flot, 'ChromiumGPU/win7/dromaeo/dom')
@@ -469,12 +425,10 @@ class GraphJsonTest(testing_common.TestCase):
     self.assertEqual(2, len(data))
 
     # 15493-15499.
-    self.assertEqual(
-        [[15495, 30990.0], [15498, 30996.0]],
-        data[win7_index].get('data'))
-    self.assertEqual(
-        [[15493, 30984.0], [15496, 30990.0], [15499, 30996.0]],
-        data[mac_index].get('data'))
+    self.assertEqual([[15495, 30990.0], [15498, 30996.0]],
+                     data[win7_index].get('data'))
+    self.assertEqual([[15493, 30984.0], [15496, 30990.0], [15499, 30996.0]],
+                     data[mac_index].get('data'))
 
     # Revision 15001 specified, before is cut off and clamp 4 rows after
     json_str = graph_json.GetGraphJson(
@@ -482,7 +436,8 @@ class GraphJsonTest(testing_common.TestCase):
             'ChromiumGPU/win7/dromaeo/dom': [],
             'ChromiumGPU/mac/dromaeo/dom': [],
         },
-        rev=15001, num_points=8)
+        rev=15001,
+        num_points=8)
     flot = json.loads(json_str)
     data = flot.get('data')
     win7_index = self._GetSeriesIndex(flot, 'ChromiumGPU/win7/dromaeo/dom')
@@ -492,33 +447,31 @@ class GraphJsonTest(testing_common.TestCase):
     self.assertEqual(2, len(data))
 
     # 15493-15499.
-    self.assertEqual(
-        [[15000, 30000.0], [15003, 30006.0], [15006, 30012.0]],
-        data[win7_index].get('data'))
-    self.assertEqual(
-        [[15001, 30000.0], [15004, 30006.0], [15007, 30012.0]],
-        data[mac_index].get('data'))
+    self.assertEqual([[15000, 30000.0], [15003, 30006.0], [15006, 30012.0]],
+                     data[win7_index].get('data'))
+    self.assertEqual([[15001, 30000.0], [15004, 30006.0], [15007, 30012.0]],
+                     data[mac_index].get('data'))
 
   def testGetGraphJson_GraphJsonAnnotations(self):
     self._AddTestColumns(end_rev=15500)
     flot_json_str = graph_json.GetGraphJson(
         {
             'ChromiumGPU/win7/dromaeo/dom': [],
-        },
-        rev=15000, num_points=8)
+        }, rev=15000, num_points=8)
     flot = json.loads(flot_json_str)
     annotations = flot['annotations']
     self.assertEqual(5, len(flot['data']['0']['data']))
     for i, _ in enumerate(flot['data']['0']['data']):
       rev = flot['data']['0']['data'][i][0]
-      self.assertEqual(int(int(rev) * 0.25),
-                       annotations['0'][str(i)]['r_webkit'])
+      self.assertEqual(
+          int(int(rev) * 0.25), annotations['0'][str(i)]['r_webkit'])
 
   def testGetGraphJson_WithAnomalies_ReturnsCorrectAnomalyAnnotations(self):
     self._AddTestColumns()
 
     anomaly1 = anomaly.Anomaly(
-        start_revision=14999, end_revision=15000,
+        start_revision=14999,
+        end_revision=15000,
         test=utils.TestKey('ChromiumGPU/win7/dromaeo/dom'),
         median_before_anomaly=100,
         median_after_anomaly=200)
@@ -526,7 +479,8 @@ class GraphJsonTest(testing_common.TestCase):
     key1 = anomaly1.put()
 
     anomaly2 = anomaly.Anomaly(
-        start_revision=15004, end_revision=15006,
+        start_revision=15004,
+        end_revision=15006,
         test=utils.TestKey('ChromiumGPU/win7/dromaeo/dom'),
         median_before_anomaly=200,
         median_after_anomaly=100,
@@ -534,17 +488,14 @@ class GraphJsonTest(testing_common.TestCase):
     anomaly2.SetIsImprovement()
     key2 = anomaly2.put()
 
-    old_style_test_key = ndb.Key(
-        'Master', 'ChromiumGPU',
-        'Bot', 'win7',
-        'Test', 'dromaeo',
-        'Test', 'dom')
+    old_style_test_key = ndb.Key('Master', 'ChromiumGPU', 'Bot', 'win7', 'Test',
+                                 'dromaeo', 'Test', 'dom')
     anomaly3 = anomaly.Anomaly(
-        start_revision=15008, end_revision=15009,
+        start_revision=15008,
+        end_revision=15009,
         test=old_style_test_key,
         median_before_anomaly=100,
-        median_after_anomaly=200
-    )
+        median_after_anomaly=200)
     key3 = anomaly3.put()
 
     test = utils.TestKey('ChromiumGPU/win7/dromaeo/dom').get()
@@ -557,8 +508,7 @@ class GraphJsonTest(testing_common.TestCase):
     flot_json_str = graph_json.GetGraphJson(
         {
             'ChromiumGPU/win7/dromaeo/dom': [],
-        },
-        rev=15000, num_points=8)
+        }, rev=15000, num_points=8)
 
     flot = json.loads(flot_json_str)
     annotations = flot['annotations']
@@ -593,16 +543,17 @@ class GraphJsonTest(testing_common.TestCase):
                      annotations['0']['4']['a_tracing_uri'])
 
     # Verify the series annotations.
-    self.assertEqual({
-        '0': {
-            'name': 'dom',
-            'path': 'ChromiumGPU/win7/dromaeo/dom',
-            'units': 'ms',
-            'better': 'Higher',
-            'description': 'About this test',
-            'can_bisect': True,
-        }
-    }, annotations['series'])
+    self.assertEqual(
+        {
+            '0': {
+                'name': 'dom',
+                'path': 'ChromiumGPU/win7/dromaeo/dom',
+                'units': 'ms',
+                'better': 'Higher',
+                'description': 'About this test',
+                'can_bisect': True,
+            }
+        }, annotations['series'])
 
   def testGetGraphJson_SomeDataDeprecated_OmitsDeprecatedData(self):
     self._AddTestColumns(start_rev=15000, end_rev=15050)
@@ -620,7 +571,8 @@ class GraphJsonTest(testing_common.TestCase):
             'ChromiumGPU/mac/dromaeo/dom': [],
             'ChromiumGPU/mac/dromaeo/jslib': [],
         },
-        rev=15000, num_points=8)
+        rev=15000,
+        num_points=8)
     flot = json.loads(flot_json_str)
     # The win7 tests are deprecated and the mac tests are not. So only the mac
     # tests should be returned.
@@ -644,7 +596,9 @@ class GraphJsonTest(testing_common.TestCase):
         {
             'ChromiumGPU/win7/dromaeo/jslib': ['jslib'],
         },
-        rev=15000, num_points=8, is_selected=True)
+        rev=15000,
+        num_points=8,
+        is_selected=True)
     flot = json.loads(flot_json_str)
 
     self.assertEqual(1, len(flot['data']))
@@ -667,9 +621,10 @@ class GraphJsonTest(testing_common.TestCase):
     start_rev = 15000
     end_rev = 15050
     for name in ['sub_test_a', 'sub_test_b']:
-      sub_test = graph_data.TestMetadata(id='%s/%s' % (test_key.id(), name),
-                                         improvement_direction=anomaly.UP,
-                                         has_rows=True)
+      sub_test = graph_data.TestMetadata(
+          id='%s/%s' % (test_key.id(), name),
+          improvement_direction=anomaly.UP,
+          has_rows=True)
       sub_test.UpdateSheriff()
       sub_test.put()
 
@@ -678,8 +633,11 @@ class GraphJsonTest(testing_common.TestCase):
         # Add Rows for one bot with revision numbers that aren't lined up
         # with the other bots.
         row = graph_data.Row(
-            parent=sub_test_container_key, id=i, value=float(i * 2),
-            r_webkit=int(i * 0.25), a_str='some_string',
+            parent=sub_test_container_key,
+            id=i,
+            value=float(i * 2),
+            r_webkit=int(i * 0.25),
+            a_str='some_string',
             buildnumber=i - start_rev,
             a_tracing_uri='http://trace/%d' % i)
         rows.append(row)
@@ -707,17 +665,19 @@ class GraphJsonTest(testing_common.TestCase):
         5, len(list(flot['annotations'].get(sub_test_b_index).keys())))
 
   def testGetGraphJson_ManyUnselected_ReturnsNothing(self):
-    testing_common.AddTests(
-        ['M'], ['b'], {'suite': {str(i): {} for i in range(100)}})
+    testing_common.AddTests(['M'], ['b'],
+                            {'suite': {str(i): {} for i in range(100)}})
     test_paths = ['M/b/suite/%s' % i for i in range(100)]
     for p in test_paths:
       testing_common.AddRows(p, [1])
-    path_list = list_tests.GetTestsForTestPathDict(
-        {p: [] for p in test_paths}, False)['tests']
+    path_list = list_tests.GetTestsForTestPathDict({p: [] for p in test_paths},
+                                                   False)['tests']
     response = graph_json.GetGraphJson(path_list, is_selected=False)
-    self.assertEqual(
-        {'data': {}, 'annotations': {}, 'error_bars': {}},
-        json.loads(response))
+    self.assertEqual({
+        'data': {},
+        'annotations': {},
+        'error_bars': {}
+    }, json.loads(response))
 
 
 class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
@@ -760,10 +720,12 @@ class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
 
   def testParseRequestArguments_TestPathListSpecified(self):
     handler = self._HandlerWithMockRequestParams(
-        test_path_dict=None, test_path_list=[
+        test_path_dict=None,
+        test_path_list=[
             'Master/b1/scrolling/frame_times/about.com',
             'Master/b2/scrolling/frame_times/about.com',
-            'Master/linux/dromaeo.domcoremodify/dom'])
+            'Master/linux/dromaeo.domcoremodify/dom'
+        ])
 
     expected = {
         'test_paths': [
@@ -859,8 +821,7 @@ class GraphJsonHelperFunctionTest(testing_common.TestCase):
                        'http://build.chromium.org/p/my.master.id/'
                        'builders/MyBuilder%20%281%29/builds/456/steps/'
                        'my_suite/logs/stdio)')
-    row.a_build_uri = ('[Build]('
-                       'http://foo/bar)')
+    row.a_build_uri = ('[Build](' 'http://foo/bar)')
     point_info = graph_json._PointInfoDict(row, {})
     self.assertEqual(
         '[Buildbot stdio](https://luci-logdog.appspot.com/v/?s='

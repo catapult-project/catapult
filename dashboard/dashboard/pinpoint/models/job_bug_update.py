@@ -20,10 +20,8 @@ from dashboard.pinpoint.models import job_state
 
 from tracing.value.diagnostics import reserved_infos
 
-
 _INFINITY = u'\u221e'
 _RIGHT_ARROW = u'\u2192'
-
 
 _TEMPLATE_ENV = jinja2.Environment(
     loader=jinja2.FileSystemLoader(
@@ -49,6 +47,7 @@ class JobUpdateBuilder(object):
     builder.AddFailure(...)
     issue_update_info = builder.FailureUpdate()
   """
+
   def __init__(self, job):
     self._env = {
         'url': job.url,
@@ -137,8 +136,10 @@ class DifferencesFoundBugUpdateBuilder(object):
                          if diff.values_a and diff.values_b]
     # Followed by the remaining diffs (those with "No values" on either side),
     # in the original order.
-    no_values_diffs = [diff for diff in self._differences
-                       if not (diff.values_a and diff.values_b)]
+    no_values_diffs = [
+        diff for diff in self._differences
+        if not (diff.values_a and diff.values_b)
+    ]
     ordered_diffs = [
         diff for _, diff in sorted(
             diffs_with_deltas, key=lambda i: abs(i[0]), reverse=True)

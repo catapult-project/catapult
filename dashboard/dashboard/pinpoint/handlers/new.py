@@ -81,7 +81,6 @@ def _CreateJob(request):
   user = _ValidateUser(arguments.get('user'))
   changes = _ValidateChanges(comparison_mode, arguments)
 
-
   # If this is a try job, we assume it's higher priority than bisections, so
   # we'll set it at a negative priority.
   if priority not in arguments and comparison_mode == job_state.TRY:
@@ -89,8 +88,8 @@ def _CreateJob(request):
 
   # TODO(dberris): Make this the default when we've graduated the beta.
   use_execution_engine = (
-      arguments.get('experimental_execution_engine') and
-      arguments.get('comparison_mode') == job_state.PERFORMANCE)
+      arguments.get('experimental_execution_engine')
+      and arguments.get('comparison_mode') == job_state.PERFORMANCE)
 
   # Ensure that we have the required fields in tryjob requests.
   if comparison_mode == 'try':
@@ -100,8 +99,8 @@ def _CreateJob(request):
     # First we check whether there's a quest that's of type 'RunTelemetryTest'.
     is_telemetry_test = any(
         [isinstance(q, quest_module.RunTelemetryTest) for q in quests])
-    if is_telemetry_test and ('story' not in arguments and
-                              'story_tags' not in arguments):
+    if is_telemetry_test and ('story' not in arguments
+                              and 'story_tags' not in arguments):
       raise ValueError(
           'Missing either "story" or "story_tags" as arguments for try jobs.')
 
@@ -120,7 +119,8 @@ def _CreateJob(request):
       tags=tags,
       user=user,
       priority=priority,
-      use_execution_engine=use_execution_engine, project=project)
+      use_execution_engine=use_execution_engine,
+      project=project)
 
   if use_execution_engine:
     # TODO(dberris): We need to figure out a way to get the arguments to be more
@@ -225,6 +225,7 @@ def _ValidateBugId(bug_id, project):
   except ValueError:
     raise ValueError(_ERROR_BUG_ID)
 
+
 def _ValidatePriority(priority):
   if not priority:
     return None
@@ -284,8 +285,8 @@ def _ValidateChanges(comparison_mode, arguments):
     return change_1, change_2
 
   # Everything else that follows only applies to bisections.
-  assert (comparison_mode == job_state.FUNCTIONAL or
-          comparison_mode == job_state.PERFORMANCE)
+  assert (comparison_mode == job_state.FUNCTIONAL
+          or comparison_mode == job_state.PERFORMANCE)
 
   if 'start_git_hash' not in arguments or 'end_git_hash' not in arguments:
     raise ValueError(
@@ -368,11 +369,9 @@ def _GenerateQuests(arguments):
                        quest_module.ReadValue)
     elif target == 'vr_perf_tests':
       quest_classes = (quest_module.FindIsolate,
-                       quest_module.RunVrTelemetryTest,
-                       quest_module.ReadValue)
+                       quest_module.RunVrTelemetryTest, quest_module.ReadValue)
     elif 'browser_test' in target:
-      quest_classes = (quest_module.FindIsolate,
-                       quest_module.RunBrowserTest,
+      quest_classes = (quest_module.FindIsolate, quest_module.RunBrowserTest,
                        quest_module.ReadValue)
     elif 'instrumentation_test' in target:
       quest_classes = (quest_module.FindIsolate,

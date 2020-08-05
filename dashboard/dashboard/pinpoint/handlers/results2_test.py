@@ -109,4 +109,3 @@ class _JobStub(object):
   @property
   def completed(self):
     return self.started and not self.task
-

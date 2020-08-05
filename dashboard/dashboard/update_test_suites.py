@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Functions for fetching and updating a list of top-level tests."""
 from __future__ import print_function
 from __future__ import division
@@ -74,12 +73,14 @@ def UpdateTestSuites(permissions_namespace):
   """Updates test suite data for either internal or external users."""
   logging.info('Updating test suite data for: %s', permissions_namespace)
   suite_dict = _CreateTestSuiteDict()
-  key = namespaced_stored_object.NamespaceKey(
-      _LIST_SUITES_CACHE_KEY, permissions_namespace)
+  key = namespaced_stored_object.NamespaceKey(_LIST_SUITES_CACHE_KEY,
+                                              permissions_namespace)
   stored_object.Set(key, suite_dict)
 
-  stored_object.Set(namespaced_stored_object.NamespaceKey(
-      TEST_SUITES_2_CACHE_KEY, permissions_namespace), _ListTestSuites())
+  stored_object.Set(
+      namespaced_stored_object.NamespaceKey(TEST_SUITES_2_CACHE_KEY,
+                                            permissions_namespace),
+      _ListTestSuites())
 
 
 @ndb.tasklet
@@ -185,9 +186,11 @@ def _FetchSuites():
   try:
     while more:
       some_suites, cursor, more = suite_query.fetch_page(
-          2000, start_cursor=cursor,
+          2000,
+          start_cursor=cursor,
           projection=['deprecated', 'description'],
-          use_cache=False, use_memcache=False)
+          use_cache=False,
+          use_memcache=False)
       suites.extend(some_suites)
   except datastore_errors.Timeout:
     logging.error('Timeout after fetching %d test suites.', len(suites))

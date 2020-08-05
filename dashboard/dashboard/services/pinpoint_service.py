@@ -1,7 +1,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Functions for getting commit information from Pinpoint."""
 from __future__ import print_function
 from __future__ import division
@@ -37,10 +36,18 @@ class CommitRange(collections.namedtuple('CommitRange', ['start', 'end'])):
   __slots__ = ()
 
 
-def MakeBisectionRequest(
-    test, commit_range, issue, comparison_mode, target,
-    comparison_magnitude=None, user=None, name=None,
-    story_filter=None, priority=0, pin=None, tags=None):
+def MakeBisectionRequest(test,
+                         commit_range,
+                         issue,
+                         comparison_mode,
+                         target,
+                         comparison_magnitude=None,
+                         user=None,
+                         name=None,
+                         story_filter=None,
+                         priority=0,
+                         pin=None,
+                         tags=None):
   """Generate a valid pinpoint bisection request.
 
   Args:

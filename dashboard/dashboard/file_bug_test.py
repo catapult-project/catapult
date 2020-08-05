@@ -41,9 +41,9 @@ class FileBugTest(testing_common.TestCase):
     testing_common.SetIsInternalUser('foo@chromium.org', False)
     self.SetCurrentUser('foo@chromium.org')
     self._issue_tracker_service = testing_common.FakeIssueTrackerService()
-    self.PatchObject(
-        file_bug.file_bug.issue_tracker_service,
-        'IssueTrackerService', lambda *_: self._issue_tracker_service)
+    self.PatchObject(file_bug.file_bug.issue_tracker_service,
+                     'IssueTrackerService',
+                     lambda *_: self._issue_tracker_service)
     app = webapp2.WSGIApplication([('/file_bug', file_bug.FileBugHandler)])
     self.testapp = webtest.TestApp(app)
 
@@ -333,8 +333,8 @@ class FileBugTest(testing_common.TestCase):
                      mock.MagicMock(return_value=[]))
   @mock.patch.object(
       file_bug.file_bug.crrev_service, 'GetNumbering',
-      mock.MagicMock(return_value={
-          'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
+      mock.MagicMock(
+          return_value={'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
   @mock.patch('dashboard.services.gitiles_service.CommitInfo',
               mock.MagicMock(return_value={
                   'author': {
@@ -373,8 +373,8 @@ class FileBugTest(testing_common.TestCase):
                      mock.MagicMock(return_value=[]))
   @mock.patch.object(
       file_bug.file_bug.crrev_service, 'GetNumbering',
-      mock.MagicMock(return_value={
-          'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
+      mock.MagicMock(
+          return_value={'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
   @mock.patch('dashboard.services.gitiles_service.CommitInfo',
               mock.MagicMock(
                   return_value={
@@ -471,8 +471,8 @@ class FileBugTest(testing_common.TestCase):
                      mock.MagicMock(return_value=[]))
   @mock.patch.object(
       file_bug.file_bug.crrev_service, 'GetNumbering',
-      mock.MagicMock(return_value={
-          'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
+      mock.MagicMock(
+          return_value={'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
   @mock.patch('dashboard.services.gitiles_service.CommitInfo',
               mock.MagicMock(return_value={
                   'author': {

@@ -12,6 +12,7 @@ from dashboard.api import utils
 
 
 class ParseBoolTest(unittest.TestCase):
+
   def testTrueValues(self):
     self.assertTrue(utils.ParseBool('1'))
     self.assertTrue(utils.ParseBool('true'))

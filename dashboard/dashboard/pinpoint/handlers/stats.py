@@ -1,7 +1,6 @@
 # Copyright 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides the web interface for displaying an overview of jobs."""
 from __future__ import print_function
 from __future__ import division
@@ -14,12 +13,11 @@ import webapp2
 
 from dashboard.pinpoint.models import job
 
-
 _MAX_JOBS_TO_FETCH = 10000
-
 
 # TODO: Generalize the Jobs handler to allow the user to choose what fields to
 # include and how many Jobs to fertch.
+
 
 class Stats(webapp2.RequestHandler):
   """Shows an overview of recent anomalies for perf sheriffing."""

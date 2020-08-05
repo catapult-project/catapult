@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Small test to send a put request to buildbucket."""
 from __future__ import print_function
 from __future__ import division
@@ -13,13 +12,25 @@ import re
 class BisectJob(object):
   """A buildbot bisect job started and monitored through buildbucket."""
 
-  def __init__(self, try_job_id, good_revision, bad_revision,
-               test_command, metric, repeats, timeout_minutes, bug_id,
-               gs_bucket, recipe_tester_name, builder_host=None,
-               builder_port=None, test_type='perf',
+  def __init__(self,
+               try_job_id,
+               good_revision,
+               bad_revision,
+               test_command,
+               metric,
+               repeats,
+               timeout_minutes,
+               bug_id,
+               gs_bucket,
+               recipe_tester_name,
+               builder_host=None,
+               builder_port=None,
+               test_type='perf',
                required_initial_confidence=None):
-    if not all([good_revision, bad_revision, test_command, metric,
-                repeats, timeout_minutes, recipe_tester_name]):
+    if not all([
+        good_revision, bad_revision, test_command, metric, repeats,
+        timeout_minutes, recipe_tester_name
+    ]):
       raise ValueError('At least one of the values required for BisectJob '
                        'construction was not given or was given with a None '
                        'value.')

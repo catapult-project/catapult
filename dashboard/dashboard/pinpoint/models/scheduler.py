@@ -30,6 +30,7 @@ SECS_PER_HOUR = datetime.timedelta(hours=1).total_seconds()
 DEFAULT_BUDGET = 1.0
 DEFAULT_COST = 1.0
 
+
 # TODO(dberris): These models are temporary, when we move to using the service
 # we'll use the google-cloud-datastore API directly.
 class QueueElement(ndb.Model):

@@ -8,5 +8,4 @@ from __future__ import absolute_import
 
 import dashboard_project
 
-
 dashboard_project.UpdateSysPathIfNeeded()

@@ -1,7 +1,6 @@
 # Copyright 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Caches processed query results in memcache and datastore.
 
 Memcache is not very reliable for the perf dashboard. Prometheus team explained
@@ -52,8 +51,8 @@ class CachedPickledString(ndb.Model):
 
   @classmethod
   def NamespacedKey(cls, key, namespace):
-    return ndb.Key(cls.__name__, namespaced_stored_object.NamespaceKey(
-        key, namespace))
+    return ndb.Key(cls.__name__,
+                   namespaced_stored_object.NamespaceKey(key, namespace))
 
   @classmethod
   def GetExpiredKeys(cls):
@@ -73,8 +72,8 @@ def Get(key):
   if key is None:
     return None
   namespaced_key = namespaced_stored_object.NamespaceKey(key)
-  entity = ndb.Key('CachedPickledString', namespaced_key).get(
-      read_policy=ndb.EVENTUAL_CONSISTENCY)
+  entity = ndb.Key('CachedPickledString',
+                   namespaced_key).get(read_policy=ndb.EVENTUAL_CONSISTENCY)
   if entity:
     return cPickle.loads(entity.value)
   else:
@@ -87,8 +86,8 @@ def GetExternal(key):
     return None
   namespaced_key = namespaced_stored_object.NamespaceKey(
       key, datastore_hooks.EXTERNAL)
-  entity = ndb.Key('CachedPickledString', namespaced_key).get(
-      read_policy=ndb.EVENTUAL_CONSISTENCY)
+  entity = ndb.Key('CachedPickledString',
+                   namespaced_key).get(read_policy=ndb.EVENTUAL_CONSISTENCY)
   if entity:
     return cPickle.loads(entity.value)
   else:
@@ -116,9 +115,9 @@ def Set(key, value, days_to_keep=None, namespace=None):
   namespaced_key = namespaced_stored_object.NamespaceKey(key, namespace)
 
   try:
-    CachedPickledString(id=namespaced_key,
-                        value=cPickle.dumps(value),
-                        expire_time=expire_time).put()
+    CachedPickledString(
+        id=namespaced_key, value=cPickle.dumps(value),
+        expire_time=expire_time).put()
   except datastore_errors.BadRequestError as e:
     logging.warning('BadRequestError for key %s: %s', key, e)
   except apiproxy_errors.RequestTooLargeError as e:

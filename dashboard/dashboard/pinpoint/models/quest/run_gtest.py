@@ -1,14 +1,12 @@
 # Copyright 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Quest for running a GTest in Swarming."""
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
 from dashboard.pinpoint.models.quest import run_performance_test
-
 
 _DEFAULT_EXTRA_ARGS = ['--non-telemetry', 'true']
 

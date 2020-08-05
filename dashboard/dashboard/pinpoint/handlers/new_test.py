@@ -21,7 +21,6 @@ from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import quest as quest_module
 from dashboard.pinpoint.models.change import change_test
 
-
 # All arguments must have string values.
 _BASE_REQUEST = {
     'target': 'telemetry_perf_tests',
@@ -33,7 +32,6 @@ _BASE_REQUEST = {
     'end_git_hash': '3',
     'story': 'speedometer',
 }
-
 
 # TODO: Make this agnostic to the parameters the Quests take.
 _CONFIGURATION_ARGUMENTS = {
@@ -97,9 +95,8 @@ class NewTest(_NewTest):
     response = self.Post('/api/new', _BASE_REQUEST, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
-    self.assertEqual(
-        result['jobUrl'],
-        'https://testbed.example.com/job/%s' % result['jobId'])
+    self.assertEqual(result['jobUrl'],
+                     'https://testbed.example.com/job/%s' % result['jobId'])
 
   def testNoConfiguration(self):
     request = dict(_BASE_REQUEST)
@@ -108,9 +105,8 @@ class NewTest(_NewTest):
     response = self.Post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
-    self.assertEqual(
-        result['jobUrl'],
-        'https://testbed.example.com/job/%s' % result['jobId'])
+    self.assertEqual(result['jobUrl'],
+                     'https://testbed.example.com/job/%s' % result['jobId'])
 
   def testBadConfiguration(self):
     request = dict(_BASE_REQUEST)
@@ -265,16 +261,23 @@ class NewTest(_NewTest):
     request = dict(_BASE_REQUEST)
     del request['start_git_hash']
     del request['end_git_hash']
-    request['changes'] = json.dumps([
-        {'commits': [{'repository': 'chromium', 'git_hash': '1'}]},
-        {'commits': [{'repository': 'chromium', 'git_hash': '3'}]}])
+    request['changes'] = json.dumps([{
+        'commits': [{
+            'repository': 'chromium',
+            'git_hash': '1'
+        }]
+    }, {
+        'commits': [{
+            'repository': 'chromium',
+            'git_hash': '3'
+        }]
+    }])
 
     response = self.Post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
-    self.assertEqual(
-        result['jobUrl'],
-        'https://testbed.example.com/job/%s' % result['jobId'])
+    self.assertEqual(result['jobUrl'],
+                     'https://testbed.example.com/job/%s' % result['jobId'])
 
   def testWithPatch(self):
     request = dict(_BASE_REQUEST)
@@ -307,8 +310,7 @@ class NewTest(_NewTest):
     request = dict(_BASE_REQUEST)
     request['bug_id'] = 'not_an_int'
     response = self.Post('/api/new', request, status=400)
-    self.assertEqual({'error': new._ERROR_BUG_ID},
-                     json.loads(response.body))
+    self.assertEqual({'error': new._ERROR_BUG_ID}, json.loads(response.body))
 
   def testEmptyBug(self):
     request = dict(_BASE_REQUEST)
@@ -418,8 +420,7 @@ class NewTest(_NewTest):
 
     # Validate that the arguments are only the input arguments.
     self.assertEqual(
-        job.arguments.get('extra_test_args'),
-        json.dumps(['--provided-args']))
+        job.arguments.get('extra_test_args'), json.dumps(['--provided-args']))
 
     # And that the RunTest instance has the extra arguments.
     for quest in job.state._quests:

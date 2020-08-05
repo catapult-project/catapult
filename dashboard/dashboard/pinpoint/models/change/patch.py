@@ -16,8 +16,8 @@ from dashboard.pinpoint.models.change import commit_cache
 from dashboard.services import gerrit_service
 
 
-class GerritPatch(collections.namedtuple(
-    'GerritPatch', ('server', 'change', 'revision'))):
+class GerritPatch(
+    collections.namedtuple('GerritPatch', ('server', 'change', 'revision'))):
   """A patch in Gerrit.
 
   change is a change ID of the format '<project>~<branch>~<Change-Id>' and
@@ -72,15 +72,16 @@ class GerritPatch(collections.namedtuple(
       d['created'] = d['created'].isoformat()
     except KeyError:
       patch_info = gerrit_service.GetChange(
-          self.server, self.change,
+          self.server,
+          self.change,
           fields=('ALL_REVISIONS', 'DETAILED_ACCOUNTS', 'COMMIT_FOOTERS'))
       revision_info = patch_info['revisions'][self.revision]
-      url = '%s/c/%s/+/%d/%d' % (
-          self.server, patch_info['project'],
-          patch_info['_number'], revision_info['_number'])
+      url = '%s/c/%s/+/%d/%d' % (self.server, patch_info['project'],
+                                 patch_info['_number'],
+                                 revision_info['_number'])
       author = revision_info['uploader']['email']
-      created = datetime.datetime.strptime(
-          revision_info['created'], '%Y-%m-%d %H:%M:%S.%f000')
+      created = datetime.datetime.strptime(revision_info['created'],
+                                           '%Y-%m-%d %H:%M:%S.%f000')
       subject = patch_info['subject']
       current_revision = patch_info['current_revision']
       message = patch_info['revisions'][current_revision]['commit_with_footers']
@@ -148,7 +149,7 @@ class GerritPatch(collections.namedtuple(
     elif change_match:  # support URLs returned by the 'git cl issue' command
       change = change_match.group(1)
       revision = None
-    elif redirector_match: # Supprt non-fully-resolved URLs
+    elif redirector_match:  # Supprt non-fully-resolved URLs
       change = redirector_match.group(1)
       revision = None
     else:

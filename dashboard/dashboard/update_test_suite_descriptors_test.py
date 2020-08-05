@@ -46,16 +46,13 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
     internal_key = namespaced_stored_object.NamespaceKey(
         update_test_suites.TEST_SUITES_2_CACHE_KEY, datastore_hooks.INTERNAL)
     stored_object.Set(internal_key, ['internal'])
-    testing_common.AddTests(
-        ['master'],
-        ['bot'],
-        {
-            'internal': {
-                'measurement': {
-                    'test_case': {},
-                },
+    testing_common.AddTests(['master'], ['bot'], {
+        'internal': {
+            'measurement': {
+                'test_case': {},
             },
-        })
+        },
+    })
     test = utils.TestKey('master/bot/internal/measurement/test_case').get()
     test.unescaped_story_name = 'test_case'
     test.has_rows = True
@@ -69,8 +66,10 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
     # taskqueue does, and test that UpdateDescriptor sets it back to True so
     # that it gets the internal TestMetadata.
     class FakeRequest(object):
+
       def __init__(self):
         self.registry = {'privileged': False}
+
     webapp2._local.request = FakeRequest()
     self.ExecuteDeferredTasks('default')
 
@@ -89,18 +88,15 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
     external_key = namespaced_stored_object.NamespaceKey(
         update_test_suites.TEST_SUITES_2_CACHE_KEY, datastore_hooks.EXTERNAL)
     stored_object.Set(external_key, ['suite'])
-    testing_common.AddTests(
-        ['master'],
-        ['a', 'b'],
-        {
-            'suite': {
-                'measurement': {
-                    'x': {},
-                    'y': {},
-                    'z': {},
-                },
+    testing_common.AddTests(['master'], ['a', 'b'], {
+        'suite': {
+            'measurement': {
+                'x': {},
+                'y': {},
+                'z': {},
             },
-        })
+        },
+    })
     for bot in 'ab':
       for case in 'xyz':
         test = utils.TestKey('master/%s/suite/measurement/%s' %
@@ -126,7 +122,10 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
         'measurements': ['measurement'],
         'bots': ['a', 'b'],
         'cases': ['x', 'y', 'z'],
-        'caseTags': {'j': ['x', 'y'], 'k': ['y']},
+        'caseTags': {
+            'j': ['x', 'y'],
+            'k': ['y']
+        },
     }
     actual = update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
         'master', 'suite')

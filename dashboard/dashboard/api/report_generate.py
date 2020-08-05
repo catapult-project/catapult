@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from dashboard.api import api_request_handler
 # Module imported for its side effects, to register static report templates.
-import dashboard.common.system_health_report # pylint: disable=unused-import
+import dashboard.common.system_health_report  # pylint: disable=unused-import
 from dashboard.models import report_template
 
 
@@ -22,8 +22,7 @@ class ReportGenerateHandler(api_request_handler.ApiRequestHandler):
     if revisions is None:
       raise api_request_handler.BadRequestError
     try:
-      revisions = [int(r) if r != 'latest' else r
-                   for r in revisions.split(',')]
+      revisions = [int(r) if r != 'latest' else r for r in revisions.split(',')]
     except ValueError:
       raise api_request_handler.BadRequestError
 

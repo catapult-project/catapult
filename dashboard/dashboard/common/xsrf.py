@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Decorator that validates XSRF tokens."""
 from __future__ import print_function
 from __future__ import division
@@ -28,8 +27,7 @@ def _ValidateToken(token, email):
 
 
 def GenerateToken(email):
-  return xsrfutil.generate_token(
-      _GetSecretKey(), user_id=email, action_id='')
+  return xsrfutil.generate_token(_GetSecretKey(), user_id=email, action_id='')
 
 
 def _GenerateNewSecretKey():

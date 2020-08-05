@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """URL endpoint for the main page which lists recent anomalies."""
 from __future__ import print_function
 from __future__ import division
@@ -114,9 +113,8 @@ def _AnomalyInfoDicts(anomalies, tests):
   for anomaly_entity in anomalies:
     test = tests.get(anomaly_entity.GetTestMetadataKey())
     if not test:
-      logging.warning(
-          'No TestMetadata entity for key: %s.',
-          anomaly_entity.GetTestMetadataKey())
+      logging.warning('No TestMetadata entity for key: %s.',
+                      anomaly_entity.GetTestMetadataKey())
       continue
     subtest_path = '/'.join(test.test_path.split('/')[3:])
     graph_link = email_template.GetGroupReportPageLink(anomaly_entity)

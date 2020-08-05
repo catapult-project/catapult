@@ -28,8 +28,9 @@ class IsolateTest(test.TestCase):
     )
     isolate.Put(isolate_infos)
 
-    isolate_server, isolate_hash = isolate.Get(
-        'Mac Builder Perf', change_test.Change(1), 'target_name')
+    isolate_server, isolate_hash = isolate.Get('Mac Builder Perf',
+                                               change_test.Change(1),
+                                               'target_name')
     self.assertEqual(isolate_server, 'https://isolate.server')
     self.assertEqual(isolate_hash, '7c7e90be')
 
@@ -39,10 +40,8 @@ class IsolateTest(test.TestCase):
 
   @mock.patch.object(isolate, 'datetime')
   def testExpiredIsolate(self, mock_datetime):
-    isolate_infos = (
-        ('Mac Builder Perf', change_test.Change(1), 'target_name',
-         'https://isolate.server', '7c7e90be'),
-    )
+    isolate_infos = (('Mac Builder Perf', change_test.Change(1), 'target_name',
+                      'https://isolate.server', '7c7e90be'),)
     isolate.Put(isolate_infos)
 
     # Teleport to the future after the isolate is expired.
@@ -63,13 +62,17 @@ class IsolateTest(test.TestCase):
     )
     isolate.Put(isolate_infos)
 
-    cur = ndb.Key('Isolate', isolate._Key(
-        'Mac Builder Perf', change_test.Change(0), 'target_name')).get()
+    cur = ndb.Key(
+        'Isolate',
+        isolate._Key('Mac Builder Perf', change_test.Change(0),
+                     'target_name')).get()
     cur.created = datetime.datetime.utcnow() - datetime.timedelta(hours=1)
     cur.put()
 
-    cur = ndb.Key('Isolate', isolate._Key(
-        isolate_infos[1][0], isolate_infos[1][1], isolate_infos[1][2])).get()
+    cur = ndb.Key(
+        'Isolate',
+        isolate._Key(isolate_infos[1][0], isolate_infos[1][1],
+                     isolate_infos[1][2])).get()
     cur.created = datetime.datetime.utcnow() - (
         isolate.ISOLATE_EXPIRY_DURATION + datetime.timedelta(hours=1))
     cur.put()

@@ -19,7 +19,6 @@ from dashboard.common import xsrf
 from dashboard.models import table_config
 from dashboard.models import graph_data
 
-
 # Sample table config that contains all the required fields.
 _SAMPLE_TABLE_CONFIG = {
     'tableName': 'my_sample_config',
@@ -41,13 +40,15 @@ _ALT_SAMPLE_TABLE_CONFIG = {
     'override': '0',
 }
 
+
 class CreateHealthReportTest(testing_common.TestCase):
 
   def setUp(self):
     super(CreateHealthReportTest, self).setUp()
-    app = webapp2.WSGIApplication([(
-        '/create_health_report',
-        create_health_report.CreateHealthReportHandler)])
+    app = webapp2.WSGIApplication([
+        ('/create_health_report',
+         create_health_report.CreateHealthReportHandler)
+    ])
     self.testapp = webtest.TestApp(app)
     testing_common.SetSheriffDomains(['chromium.org'])
     testing_common.SetIsInternalUser('internal@chromium.org', True)
@@ -77,16 +78,15 @@ class CreateHealthReportTest(testing_common.TestCase):
     self._AddTests()
 
   def _AddTests(self):
-    testing_common.AddTests(['ChromiumPerf'], ['win', 'linux'], {
-        'my_test_suite': {
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['win', 'linux'],
+        {'my_test_suite': {
             'my_test': {},
             'my_other_test': {},
-        }
-    })
+        }})
 
   def testPost_NoXSRFToken_Returns403Error(self):
-    self.testapp.post('/create_health_report', {
-    }, status=403)
+    self.testapp.post('/create_health_report', {}, status=403)
     query = table_config.TableConfig.query()
     table_values = query.fetch()
     self.assertEqual(len(table_values), 0)
@@ -94,7 +94,7 @@ class CreateHealthReportTest(testing_common.TestCase):
   def testPost_GetXsrfToken(self):
     response = self.testapp.post('/create_health_report', {
         'getToken': 'true',
-        })
+    })
     self.assertIn(xsrf.GenerateToken(users.get_current_user()), response)
 
   def testGet_ShowPage(self):
@@ -116,9 +116,8 @@ class CreateHealthReportTest(testing_common.TestCase):
     table_entity = ndb.Key('TableConfig', 'my_sample_config').get()
     self.assertTrue(table_entity.internal_only)
     self.assertEqual('internal@chromium.org', table_entity.username)
-    self.assertEqual(
-        ['my_test_suite/my_test', 'my_test_suite/my_other_test'],
-        table_entity.tests)
+    self.assertEqual(['my_test_suite/my_test', 'my_test_suite/my_other_test'],
+                     table_entity.tests)
     master_key = ndb.Key('Master', 'ChromiumPerf')
     win_bot = graph_data.Bot(
         id='win', parent=master_key, internal_only=False).key
@@ -135,7 +134,7 @@ class CreateHealthReportTest(testing_common.TestCase):
     response = self.testapp.post('/create_health_report', {
         'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
         'override': 0,
-        })
+    })
     self.assertIn('Please fill out the form entirely.', response)
     query = table_config.TableConfig.query()
     table_values = query.fetch()
@@ -152,13 +151,14 @@ class CreateHealthReportTest(testing_common.TestCase):
 
   def testPost_InvalidBots(self):
     self._AddInternalBotsToDataStore()
-    response = self.testapp.post('/create_health_report', {
-        'tableName': 'myName',
-        'tableBots': 'garbage/moarGarbage',
-        'tableTests': 'my_test_suite/my_test',
-        'tableLayout': '{"Alayout":"isHere"}',
-        'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
-        'override': 0,
+    response = self.testapp.post(
+        '/create_health_report', {
+            'tableName': 'myName',
+            'tableBots': 'garbage/moarGarbage',
+            'tableTests': 'my_test_suite/my_test',
+            'tableLayout': '{"Alayout":"isHere"}',
+            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+            'override': 0,
         })
     self.assertIn('Invalid Master/Bot: garbage/moarGarbage', response)
     query = table_config.TableConfig.query()
@@ -185,13 +185,14 @@ class CreateHealthReportTest(testing_common.TestCase):
 
   def testPost_ValidBotsBadLayout(self):
     self._AddPublicBotsToDataStore()
-    response = self.testapp.post('/create_health_report', {
-        'tableName': 'myName',
-        'tableBots': 'ChromiumPerf/linux',
-        'tableTests': 'my_test_suite/my_test',
-        'tableLayout': 'garbage',
-        'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
-        'override': 0,
+    response = self.testapp.post(
+        '/create_health_report', {
+            'tableName': 'myName',
+            'tableBots': 'ChromiumPerf/linux',
+            'tableTests': 'my_test_suite/my_test',
+            'tableLayout': 'garbage',
+            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+            'override': 0,
         })
     self.assertIn('Invalid JSON for table layout', response)
     query = table_config.TableConfig.query()
@@ -200,13 +201,14 @@ class CreateHealthReportTest(testing_common.TestCase):
 
   def testPost_InvalidTests(self):
     self._AddInternalBotsToDataStore()
-    response = self.testapp.post('/create_health_report', {
-        'tableName': 'myName',
-        'tableBots': 'ChromiumPerf/linux',
-        'tableTests': 'someTests',
-        'tableLayout': '{"Alayout":"isHere"}',
-        'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
-        'override': 0,
+    response = self.testapp.post(
+        '/create_health_report', {
+            'tableName': 'myName',
+            'tableBots': 'ChromiumPerf/linux',
+            'tableTests': 'someTests',
+            'tableLayout': '{"Alayout":"isHere"}',
+            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+            'override': 0,
         })
     self.assertIn('someTests is not a valid test.', response)
     query = table_config.TableConfig.query()
@@ -226,7 +228,7 @@ class CreateHealthReportTest(testing_common.TestCase):
 
     response = self.testapp.post('/create_health_report', {
         'getTableConfigList': True,
-        })
+    })
     return_list = self.GetJsonValue(response, 'table_config_list')
     query = table_config.TableConfig.query()
     all_configs = query.fetch(keys_only=True)
@@ -242,15 +244,14 @@ class CreateHealthReportTest(testing_common.TestCase):
 
     response = self.testapp.post('/create_health_report', {
         'getTableConfigDetails': 'my_sample_config',
-        })
+    })
     # Similar to the valid data test, ensure everything is correct.
     self.assertIn('my_sample_config', response)
     table_entity = ndb.Key('TableConfig', 'my_sample_config').get()
     self.assertTrue(table_entity.internal_only)
     self.assertEqual('internal@chromium.org', table_entity.username)
-    self.assertEqual(
-        ['my_test_suite/my_test', 'my_test_suite/my_other_test'],
-        table_entity.tests)
+    self.assertEqual(['my_test_suite/my_test', 'my_test_suite/my_other_test'],
+                     table_entity.tests)
     master_key = ndb.Key('Master', 'ChromiumPerf')
     win_bot = graph_data.Bot(
         id='win', parent=master_key, internal_only=False).key
@@ -282,4 +283,3 @@ class CreateHealthReportTest(testing_common.TestCase):
                   table_entity.table_layout)
     self.assertIn('my_test_suite/my_other_test": ["Foreground", "New Name 2"]',
                   table_entity.table_layout)
-

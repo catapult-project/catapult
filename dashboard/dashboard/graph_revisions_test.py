@@ -24,8 +24,8 @@ class GraphRevisionsTest(testing_common.TestCase):
 
   def setUp(self):
     super(GraphRevisionsTest, self).setUp()
-    app = webapp2.WSGIApplication(
-        [('/graph_revisions', graph_revisions.GraphRevisionsHandler)])
+    app = webapp2.WSGIApplication([('/graph_revisions',
+                                    graph_revisions.GraphRevisionsHandler)])
     self.testapp = webtest.TestApp(app)
     self.PatchDatastoreHooksRequest()
 
@@ -45,15 +45,15 @@ class GraphRevisionsTest(testing_common.TestCase):
 
       test_container_key = utils.GetTestContainerKey(subtest_key)
       for rev in range(15000, 16000, 5):
-        row = graph_data.Row(parent=test_container_key,
-                             id=rev, value=float(rev * 2.5))
+        row = graph_data.Row(
+            parent=test_container_key, id=rev, value=float(rev * 2.5))
         row.timestamp = datetime.datetime(2013, 8, 1)
         row.put()
 
   def testPost_ReturnsAndCachesCorrectRevisions(self):
     self._AddMockData()
-    response = self.testapp.post(
-        '/graph_revisions', {'test_path': 'ChromiumPerf/win7/dromaeo/dom'})
+    response = self.testapp.post('/graph_revisions',
+                                 {'test_path': 'ChromiumPerf/win7/dromaeo/dom'})
 
     cached_rows = stored_object.Get(
         'externally_visible__num_revisions_ChromiumPerf/win7/dromaeo/dom')
@@ -70,16 +70,16 @@ class GraphRevisionsTest(testing_common.TestCase):
     stored_object.Set(
         'externally_visible__num_revisions_ChromiumPerf/win7/dromaeo/dom',
         [[1, 2, 3]])
-    response = self.testapp.post(
-        '/graph_revisions', {'test_path': 'ChromiumPerf/win7/dromaeo/dom'})
+    response = self.testapp.post('/graph_revisions',
+                                 {'test_path': 'ChromiumPerf/win7/dromaeo/dom'})
     self.assertEqual([[1, 2, 3]], json.loads(response.body))
 
   def testPost_CacheSet_NanBecomesNone(self):
     stored_object.Set(
         'externally_visible__num_revisions_ChromiumPerf/win7/dromaeo/dom',
         [[1, 2, 3], [4, float('nan'), 6]])
-    response = self.testapp.post(
-        '/graph_revisions', {'test_path': 'ChromiumPerf/win7/dromaeo/dom'})
+    response = self.testapp.post('/graph_revisions',
+                                 {'test_path': 'ChromiumPerf/win7/dromaeo/dom'})
     self.assertEqual([[1, 2, 3], [4, None, 6]], json.loads(response.body))
 
   def testAddRowsToCache(self):
@@ -93,24 +93,22 @@ class GraphRevisionsTest(testing_common.TestCase):
     test_key = utils.TestKey('ChromiumPerf/win7/dromaeo/dom')
     test_container_key = utils.GetTestContainerKey(test_key)
     ts1 = datetime.datetime(2013, 1, 1)
-    row1 = graph_data.Row(parent=test_container_key,
-                          id=1, value=9, timestamp=ts1)
+    row1 = graph_data.Row(
+        parent=test_container_key, id=1, value=9, timestamp=ts1)
     rows.append(row1)
     ts2 = datetime.datetime(2013, 1, 2)
-    row2 = graph_data.Row(parent=test_container_key,
-                          id=12, value=90, timestamp=ts2)
+    row2 = graph_data.Row(
+        parent=test_container_key, id=12, value=90, timestamp=ts2)
     rows.append(row2)
     ts3 = datetime.datetime(2013, 1, 3)
-    row3 = graph_data.Row(parent=test_container_key,
-                          id=102, value=99, timestamp=ts3)
+    row3 = graph_data.Row(
+        parent=test_container_key, id=102, value=99, timestamp=ts3)
     rows.append(row3)
     graph_revisions.AddRowsToCache(rows)
 
     self.assertEqual(
-        [[1, 9, utils.TimestampMilliseconds(ts1)],
-         [10, 2, 3],
-         [12, 90, utils.TimestampMilliseconds(ts2)],
-         [15, 4, 5], [100, 6, 7],
+        [[1, 9, utils.TimestampMilliseconds(ts1)], [10, 2, 3],
+         [12, 90, utils.TimestampMilliseconds(ts2)], [15, 4, 5], [100, 6, 7],
          [102, 99, utils.TimestampMilliseconds(ts3)]],
         stored_object.Get('externally_visible__num_revisions_'
                           'ChromiumPerf/win7/dromaeo/dom'))

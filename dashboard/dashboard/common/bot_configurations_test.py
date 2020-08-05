@@ -16,10 +16,15 @@ class ConfigTest(testing_common.TestCase):
   def setUp(self):
     super(ConfigTest, self).setUp()
 
-    namespaced_stored_object.Set(bot_configurations.BOT_CONFIGURATIONS_KEY, {
-        'chromium-rel-mac11-pro': {'alias': 'mac-11-perf'},
-        'mac-11-perf': {'arg': 'value'},
-    })
+    namespaced_stored_object.Set(
+        bot_configurations.BOT_CONFIGURATIONS_KEY, {
+            'chromium-rel-mac11-pro': {
+                'alias': 'mac-11-perf'
+            },
+            'mac-11-perf': {
+                'arg': 'value'
+            },
+        })
 
   def testGet(self):
     actual = bot_configurations.Get('mac-11-perf')
@@ -37,20 +42,21 @@ class ConfigTest(testing_common.TestCase):
     self.assertEqual(actual, expected)
 
   def testAliases(self):
-    namespaced_stored_object.Set(bot_configurations.BOT_CONFIGURATIONS_KEY, {
-        'a-alias0': {
-            'alias': 'a-canonical',
-        },
-        'a-alias1': {
-            'alias': 'a-canonical',
-        },
-        'a-canonical': {},
-        'b-canonical': {},
-        'c-canonical': {},
-        'c-alias0': {
-            'alias': 'c-canonical',
-        },
-    })
+    namespaced_stored_object.Set(
+        bot_configurations.BOT_CONFIGURATIONS_KEY, {
+            'a-alias0': {
+                'alias': 'a-canonical',
+            },
+            'a-alias1': {
+                'alias': 'a-canonical',
+            },
+            'a-canonical': {},
+            'b-canonical': {},
+            'c-canonical': {},
+            'c-alias0': {
+                'alias': 'c-canonical',
+            },
+        })
     actual = bot_configurations.GetAliasesAsync('a-canonical').get_result()
     self.assertEqual({'a-canonical', 'a-alias0', 'a-alias1'}, actual)
     actual = bot_configurations.GetAliasesAsync('a-alias0').get_result()

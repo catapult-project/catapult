@@ -26,7 +26,6 @@ _SAMPLE_LAYOUT = ('{ "my_test_suite/my_test": ["Foreground", '
                   '"Pretty Name 1"],"my_test_suite/my_other_test": '
                   ' ["Foreground", "Pretty Name 2"]}')
 
-
 RECENT_REV = speed_releasing.CHROMIUM_MILESTONES[
     speed_releasing.CURRENT_MILESTONE][0] + 42
 
@@ -35,9 +34,8 @@ class SpeedReleasingTest(testing_common.TestCase):
 
   def setUp(self):
     super(SpeedReleasingTest, self).setUp()
-    app = webapp2.WSGIApplication([(
-        r'/speed_releasing/(.*)',
-        speed_releasing.SpeedReleasingHandler)])
+    app = webapp2.WSGIApplication([(r'/speed_releasing/(.*)',
+                                    speed_releasing.SpeedReleasingHandler)])
     self.testapp = webtest.TestApp(app)
     testing_common.SetSheriffDomains(['chromium.org'])
     testing_common.SetIsInternalUser('internal@chromium.org', True)
@@ -50,18 +48,14 @@ class SpeedReleasingTest(testing_common.TestCase):
   def _AddInternalBotsToDataStore(self):
     """Adds sample bot/master pairs."""
     master_key = ndb.Key('Master', 'ChromiumPerf')
-    graph_data.Bot(
-        id='win', parent=master_key, internal_only=True).put()
-    graph_data.Bot(
-        id='linux', parent=master_key, internal_only=True).put()
+    graph_data.Bot(id='win', parent=master_key, internal_only=True).put()
+    graph_data.Bot(id='linux', parent=master_key, internal_only=True).put()
 
   def _AddPublicBotsToDataStore(self):
     """Adds sample bot/master pairs."""
     master_key = ndb.Key('Master', 'ChromiumPerf')
-    graph_data.Bot(
-        id='win', parent=master_key, internal_only=False).put()
-    graph_data.Bot(
-        id='linux', parent=master_key, internal_only=False).put()
+    graph_data.Bot(id='win', parent=master_key, internal_only=False).put()
+    graph_data.Bot(id='linux', parent=master_key, internal_only=False).put()
 
   def _AddTableConfigDataStore(self, name, is_internal, is_downstream=False):
     """Add sample internal only tableConfig."""
@@ -71,7 +65,8 @@ class SpeedReleasingTest(testing_common.TestCase):
     else:
       self._AddPublicBotsToDataStore()
     table_config.CreateTableConfig(
-        name=name, bots=_SAMPLE_BOTS if not is_downstream else _DOWNSTREAM_BOTS,
+        name=name,
+        bots=_SAMPLE_BOTS if not is_downstream else _DOWNSTREAM_BOTS,
         tests=_SAMPLE_TESTS,
         layout=_SAMPLE_LAYOUT,
         username='internal@chromium.org',
@@ -125,15 +120,17 @@ class SpeedReleasingTest(testing_common.TestCase):
       for test_key in test_keys:
         ref_test_key = utils.TestKey('%s_ref' % utils.TestPath(test_key))
         anomaly_entity = anomaly.Anomaly(
-            start_revision=end_rev - 5, end_revision=end_rev, test=test_key,
-            median_before_anomaly=100, median_after_anomaly=200,
+            start_revision=end_rev - 5,
+            end_revision=end_rev,
+            test=test_key,
+            median_before_anomaly=100,
+            median_after_anomaly=200,
             ref_test=ref_test_key)
         anomaly_entity.SetIsImprovement()
         anomaly_key = anomaly_entity.put()
         key_map[end_rev] = anomaly_key
 
     return key_map
-
 
   def _AddRows(self, keys):
     for key in keys:
@@ -142,8 +139,7 @@ class SpeedReleasingTest(testing_common.TestCase):
   def _AddDownstreamRows(self, keys):
     revisions = [1, 2, 1485025126, 1485099999]
     for key in keys:
-      testing_common.AddRows(
-          utils.TestPath(key), revisions)
+      testing_common.AddRows(utils.TestPath(key), revisions)
     for key in keys:
       for rev in revisions:
         row_key = utils.GetRowKey(key, rev)
@@ -163,8 +159,9 @@ class SpeedReleasingTest(testing_common.TestCase):
     self._AddTableConfigDataStore('ThirdBestTable', False)
     response = self.testapp.post('/speed_releasing/')
     self.assertIn('"show_list": true', response)
-    self.assertIn('"list": ["BestTable", "SecondBestTable", '
-                  '"ThirdBestTable"]', response)
+    self.assertIn(
+        '"list": ["BestTable", "SecondBestTable", '
+        '"ThirdBestTable"]', response)
 
   def testPost_ShowInternalTable(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
@@ -173,37 +170,39 @@ class SpeedReleasingTest(testing_common.TestCase):
     self.assertIn('"name": "BestTable"', response)
     self.assertIn('"table_bots": ["ChromiumPerf/win", '
                   '"ChromiumPerf/linux"]', response)
-    self.assertIn('"table_tests": ["my_test_suite/my_test",'
-                  ' "my_test_suite/my_other_test"]', response)
+    self.assertIn(
+        '"table_tests": ["my_test_suite/my_test",'
+        ' "my_test_suite/my_other_test"]', response)
     self.assertIn('"table_layout"', response)
     self.assertIn('"revisions": [2, 1]', response)
     self.assertIn('"display_revisions": [2, 1]', response)
-    self.assertIn('"units": {"my_test_suite/my_test": "timeDurationInMs", '
-                  '"my_test_suite/my_other_test": "timeDurationInMs"',
-                  response)
+    self.assertIn(
+        '"units": {"my_test_suite/my_test": "timeDurationInMs", '
+        '"my_test_suite/my_other_test": "timeDurationInMs"', response)
     self.assertIn('"categories": {"Foreground": 2}', response)
-    self.assertIn('"values": {"1": {"ChromiumPerf/linux": '
-                  '{"my_test_suite/my_test": 1.0, '
-                  '"my_test_suite/my_other_test": 1.0}, '
-                  '"ChromiumPerf/win": {"my_test_suite/my_test": 1.0, '
-                  '"my_test_suite/my_other_test": 1.0}}, '
-                  '"2": {"ChromiumPerf/linux": {"my_test_suite/my_test": '
-                  '2.0, "my_test_suite/my_other_test": 2.0}, '
-                  '"ChromiumPerf/win": {"my_test_suite/my_test": 2.0, '
-                  '"my_test_suite/my_other_test": 2.0}}}', response)
-    self.assertIn('"urls": {"ChromiumPerf/linux/my_test_suite/my_other_test": '
-                  '"?masters=ChromiumPerf&start_rev=1&checked=my_other_test&'
-                  'tests=my_test_suite%2Fmy_other_test&end_rev=2&bots=linux", '
-                  '"ChromiumPerf/win/my_test_suite/my_other_test": '
-                  '"?masters=ChromiumPerf&start_rev=1&checked=my_other_test&'
-                  'tests=my_test_suite%2Fmy_other_test&end_rev=2&bots=win", '
-                  '"ChromiumPerf/linux/my_test_suite/my_test": "?masters'
-                  '=ChromiumPerf&start_rev=1&checked=my_test&tests='
-                  'my_test_suite%2Fmy_test&end_rev=2&bots=linux", '
-                  '"ChromiumPerf/win/my_test_suite/my_test": "?masters='
-                  'ChromiumPerf&start_rev=1&checked=my_test&tests=my_test_suite'
-                  '%2Fmy_test&end_rev=2&bots=win"}',
-                  response)
+    self.assertIn(
+        '"values": {"1": {"ChromiumPerf/linux": '
+        '{"my_test_suite/my_test": 1.0, '
+        '"my_test_suite/my_other_test": 1.0}, '
+        '"ChromiumPerf/win": {"my_test_suite/my_test": 1.0, '
+        '"my_test_suite/my_other_test": 1.0}}, '
+        '"2": {"ChromiumPerf/linux": {"my_test_suite/my_test": '
+        '2.0, "my_test_suite/my_other_test": 2.0}, '
+        '"ChromiumPerf/win": {"my_test_suite/my_test": 2.0, '
+        '"my_test_suite/my_other_test": 2.0}}}', response)
+    self.assertIn(
+        '"urls": {"ChromiumPerf/linux/my_test_suite/my_other_test": '
+        '"?masters=ChromiumPerf&start_rev=1&checked=my_other_test&'
+        'tests=my_test_suite%2Fmy_other_test&end_rev=2&bots=linux", '
+        '"ChromiumPerf/win/my_test_suite/my_other_test": '
+        '"?masters=ChromiumPerf&start_rev=1&checked=my_other_test&'
+        'tests=my_test_suite%2Fmy_other_test&end_rev=2&bots=win", '
+        '"ChromiumPerf/linux/my_test_suite/my_test": "?masters'
+        '=ChromiumPerf&start_rev=1&checked=my_test&tests='
+        'my_test_suite%2Fmy_test&end_rev=2&bots=linux", '
+        '"ChromiumPerf/win/my_test_suite/my_test": "?masters='
+        'ChromiumPerf&start_rev=1&checked=my_test&tests=my_test_suite'
+        '%2Fmy_test&end_rev=2&bots=win"}', response)
 
   def testPost_InternalListPageToExternalUser(self):
     self._AddTableConfigDataStore('BestTable', True)
@@ -218,8 +217,9 @@ class SpeedReleasingTest(testing_common.TestCase):
   def testPost_ShowInternalTableToExternalUser(self):
     self._AddTableConfigDataStore('BestTable', True)
     self.UnsetCurrentUser()
-    self.testapp.post('/speed_releasing/BestTable?revA=1&revB=2', {
-    }, status=500) # 500 means user can't see data.
+    self.testapp.post(
+        '/speed_releasing/BestTable?revA=1&revB=2', {},
+        status=500)  # 500 means user can't see data.
 
   def testPost_TableWithTableNameThatDoesntExist(self):
     response = self.testapp.post('/speed_releasing/BestTable')
@@ -250,14 +250,14 @@ class SpeedReleasingTest(testing_common.TestCase):
     current_milestone_start_rev = speed_releasing.CHROMIUM_MILESTONES[
         current_milestone][0]
     self.assertIn(
-        '"revisions": [%s, %s]' % (
-            RECENT_REV, current_milestone_start_rev), response)
+        '"revisions": [%s, %s]' % (RECENT_REV, current_milestone_start_rev),
+        response)
     self.assertIn(
-        '"display_milestones": [%s, %s]' % (
-            current_milestone, current_milestone), response)
+        '"display_milestones": [%s, %s]' %
+        (current_milestone, current_milestone), response)
     self.assertIn(
-        '"navigation_milestones": [%s, null]' % (
-            current_milestone - 1), response)
+        '"navigation_milestones": [%s, null]' % (current_milestone - 1),
+        response)
 
   def testPost_TableWithHighMilestoneParam(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
@@ -278,8 +278,8 @@ class SpeedReleasingTest(testing_common.TestCase):
     current_milestone_start_rev = speed_releasing.CHROMIUM_MILESTONES[
         speed_releasing.CURRENT_MILESTONE][0]
     self.assertIn(
-        '"revisions": [%s, %s]' % (
-            RECENT_REV, current_milestone_start_rev), response)
+        '"revisions": [%s, %s]' % (RECENT_REV, current_milestone_start_rev),
+        response)
 
   def testPost_TableWithRevParamEndRevAlsoStartRev(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
@@ -314,16 +314,18 @@ class SpeedReleasingTest(testing_common.TestCase):
     self._AddRows(keys)
     response = self.testapp.post('/speed_releasing/BestTable?revB=50000000')
     self.assertIn('"revisions": [50000000, %s]' % RECENT_REV, response)
-    self.assertIn('"display_milestones": [%s, %s]' % ((
-        speed_releasing.CURRENT_MILESTONE,)*2), response)
+    self.assertIn(
+        '"display_milestones": [%s, %s]' %
+        ((speed_releasing.CURRENT_MILESTONE,) * 2), response)
 
   def testPost_TableWithRevParamLowRev(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
     self._AddRows(keys)
     response = self.testapp.post('/speed_releasing/BestTable?revB=1')
     self.assertIn('"revisions": [%s, 1]' % RECENT_REV, response)
-    self.assertIn('"display_milestones": [%s, %s]' % ((
-        speed_releasing.CURRENT_MILESTONE,)*2), response)
+    self.assertIn(
+        '"display_milestones": [%s, %s]' %
+        ((speed_releasing.CURRENT_MILESTONE,) * 2), response)
 
   def testPost_TableWithRevsParamTwoMilestones(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
@@ -340,8 +342,9 @@ class SpeedReleasingTest(testing_common.TestCase):
     response = self.testapp.post('/speed_releasing/BestTable?'
                                  'revA=50000000&revB=60000000')
     self.assertIn('"revisions": [60000000, 50000000]', response)
-    self.assertIn('"display_milestones": [%s, %s]' % ((
-        speed_releasing.CURRENT_MILESTONE,)*2), response)
+    self.assertIn(
+        '"display_milestones": [%s, %s]' %
+        ((speed_releasing.CURRENT_MILESTONE,) * 2), response)
 
   def testPost_TableWithRevsParamSelfContained(self):
     keys = self._AddTableConfigDataStore('BestTable', True)

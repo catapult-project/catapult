@@ -28,8 +28,10 @@ class EmailSheriffTest(testing_common.TestCase):
     """Adds a test which will be used in the methods below."""
     bug_label_patterns.AddBugLabelPattern('label1', '*/*/dromaeo/dom')
     bug_label_patterns.AddBugLabelPattern('label2', '*/*/other/test')
-    testing_common.AddTests(
-        ['ChromiumPerf'], ['Win7'], {'dromaeo': {'dom': {}}})
+    testing_common.AddTests(['ChromiumPerf'], ['Win7'],
+                            {'dromaeo': {
+                                'dom': {}
+                            }})
     test = utils.TestKey('ChromiumPerf/Win7/dromaeo/dom').get()
     test.improvement_direction = anomaly.DOWN
     return test
@@ -40,13 +42,11 @@ class EmailSheriffTest(testing_common.TestCase):
     subscription_url = Subscription(
         name='Chromium Perf Sheriff URL',
         rotation_url=_SHERIFF_URL,
-        bug_labels=['Performance-Sheriff-URL']
-    )
+        bug_labels=['Performance-Sheriff-URL'])
     subscription_email = Subscription(
         name='Chromium Perf Sheriff Mail',
         notification_email=_SHERIFF_EMAIL,
-        bug_labels=['Performance-Sheriff-Mail']
-    )
+        bug_labels=['Performance-Sheriff-Mail'])
 
     anomaly_entity = anomaly.Anomaly(
         median_before_anomaly=5.0,
@@ -65,10 +65,10 @@ class EmailSheriffTest(testing_common.TestCase):
         'anomaly': anomaly_entity
     }
 
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(return_value=testing_common.FakeResponseObject(
-          200, 'document.write(\'sullivan\')')))
+  @mock.patch('google.appengine.api.urlfetch.fetch',
+              mock.MagicMock(
+                  return_value=testing_common.FakeResponseObject(
+                      200, 'document.write(\'sullivan\')')))
   def testEmailSheriff_ContentAndRecipientAreCorrect(self):
     email_sheriff.EmailSheriff(**self._GetDefaultMailArgs())
 
@@ -96,20 +96,20 @@ class EmailSheriffTest(testing_common.TestCase):
     self.assertIn('<b>Win7</b>', html)
     self.assertIn('<b>dromaeo/dom</b>', html)
 
-
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(return_value=testing_common.FakeResponseObject(
-          200, 'document.write(\'sonnyrao, digit\')')))
+  @mock.patch('google.appengine.api.urlfetch.fetch',
+              mock.MagicMock(
+                  return_value=testing_common.FakeResponseObject(
+                      200, 'document.write(\'sonnyrao, digit\')')))
   def testEmailSheriff_MultipleSheriffs_AllGetEmailed(self):
     email_sheriff.EmailSheriff(**self._GetDefaultMailArgs())
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
     self.assertEqual('gasper-alerts@google.com', messages[0].sender)
     self.assertEqual(
-        set(['perf-sheriff-group@google.com',
-             'sonnyrao@google.com', 'digit@google.com']),
-        set([s.strip() for s in messages[0].to.split(',')]))
+        set([
+            'perf-sheriff-group@google.com', 'sonnyrao@google.com',
+            'digit@google.com'
+        ]), set([s.strip() for s in messages[0].to.split(',')]))
 
   def testEmail_NoSheriffUrl_EmailSentToSheriffRotationEmailAddress(self):
     args = self._GetDefaultMailArgs()

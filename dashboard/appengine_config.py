@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """App Engine config.
 
 This module is loaded before others and can be used to set up the
@@ -25,8 +24,8 @@ appstats_SHELL_OK = True
 appstats_CALC_RPC_COSTS = True
 
 # Allows remote_api from the peng team to support the crosbolt dashboard.
-remoteapi_CUSTOM_ENVIRONMENT_AUTHENTICATION = (
-    'LOAS_PEER_USERNAME', ['chromeos-peng-performance'])
+remoteapi_CUSTOM_ENVIRONMENT_AUTHENTICATION = ('LOAS_PEER_USERNAME',
+                                               ['chromeos-peng-performance'])
 
 
 def webapp_add_wsgi_middleware(app):
@@ -34,7 +33,9 @@ def webapp_add_wsgi_middleware(app):
   app = recording.appstats_wsgi_middleware(app)
   return app
 
+
 # pylint: enable=invalid-name
+
 
 def _AddThirdPartyLibraries():
   """Registers the third party libraries with App Engine.

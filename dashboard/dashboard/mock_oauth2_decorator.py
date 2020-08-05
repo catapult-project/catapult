@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Mocks out oauth2_decorator for unit testing."""
 from __future__ import print_function
 from __future__ import division
@@ -29,9 +28,11 @@ class MockOAuth2Decorator(object):
     return http.HttpMock(headers={'status': '200'})
 
   def oauth_required(self, method):
+
     def check_oauth(request_handler, *args, **kwargs):
       resp = method(request_handler, *args, **kwargs)
       return resp
+
     return check_oauth
 
   def callback_handler(self):

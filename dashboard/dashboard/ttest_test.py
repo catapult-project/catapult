@@ -18,21 +18,18 @@ class TTestTest(unittest.TestCase):
 
   def setUp(self):
     """Sets the t-table values for the tests below."""
-    table_patch = mock.patch.object(
-        ttest, '_TABLE',
-        [
-            (1, [0, 6.314, 12.71, 31.82, 63.66, 318.31]),
-            (2, [0, 2.920, 4.303, 6.965, 9.925, 22.327]),
-            (3, [0, 2.353, 3.182, 4.541, 5.841, 10.215]),
-            (4, [0, 2.132, 2.776, 3.747, 4.604, 7.173]),
-            (10, [0, 1.372, 1.812, 2.228, 2.764, 3.169]),
-            (100, [0, 1.290, 1.660, 1.984, 2.364, 2.626]),
-        ])
+    table_patch = mock.patch.object(ttest, '_TABLE', [
+        (1, [0, 6.314, 12.71, 31.82, 63.66, 318.31]),
+        (2, [0, 2.920, 4.303, 6.965, 9.925, 22.327]),
+        (3, [0, 2.353, 3.182, 4.541, 5.841, 10.215]),
+        (4, [0, 2.132, 2.776, 3.747, 4.604, 7.173]),
+        (10, [0, 1.372, 1.812, 2.228, 2.764, 3.169]),
+        (100, [0, 1.290, 1.660, 1.984, 2.364, 2.626]),
+    ])
     table_patch.start()
     self.addCleanup(table_patch.stop)
-    two_tail_patch = mock.patch.object(
-        ttest, '_TWO_TAIL',
-        [1, 0.2, 0.1, 0.05, 0.02, 0.01])
+    two_tail_patch = mock.patch.object(ttest, '_TWO_TAIL',
+                                       [1, 0.2, 0.1, 0.05, 0.02, 0.01])
     two_tail_patch.start()
     self.addCleanup(two_tail_patch.stop)
 
@@ -109,8 +106,8 @@ class TTestTest(unittest.TestCase):
     # the result is a floating-point number and not an integer.
     stats1 = ttest.SampleStats(mean=0.299, var=0.05, size=150)
     stats2 = ttest.SampleStats(mean=0.307, var=0.08, size=165)
-    self.assertAlmostEqual(
-        307.19879975, ttest._DegreesOfFreedom(stats1, stats2))
+    self.assertAlmostEqual(307.19879975,
+                           ttest._DegreesOfFreedom(stats1, stats2))
 
   def testDegreesOfFreedom_ZeroVariance_ResultIsOne(self):
     """The lowest possible value is returned for df if variance is zero."""
@@ -141,21 +138,18 @@ class LookupPValueTest(unittest.TestCase):
 
   def setUp(self):
     """Sets the t-table values for the tests below."""
-    table_patch = mock.patch.object(
-        ttest, '_TABLE',
-        [
-            (1, [0, 6.314, 12.71, 31.82, 63.66, 318.31]),
-            (2, [0, 2.920, 4.303, 6.965, 9.925, 22.327]),
-            (3, [0, 2.353, 3.182, 4.541, 5.841, 10.215]),
-            (4, [0, 2.132, 2.776, 3.747, 4.604, 7.173]),
-            (10, [0, 1.372, 1.812, 2.228, 2.764, 3.169]),
-            (100, [0, 1.290, 1.660, 1.984, 2.364, 2.626]),
-        ])
+    table_patch = mock.patch.object(ttest, '_TABLE', [
+        (1, [0, 6.314, 12.71, 31.82, 63.66, 318.31]),
+        (2, [0, 2.920, 4.303, 6.965, 9.925, 22.327]),
+        (3, [0, 2.353, 3.182, 4.541, 5.841, 10.215]),
+        (4, [0, 2.132, 2.776, 3.747, 4.604, 7.173]),
+        (10, [0, 1.372, 1.812, 2.228, 2.764, 3.169]),
+        (100, [0, 1.290, 1.660, 1.984, 2.364, 2.626]),
+    ])
     table_patch.start()
     self.addCleanup(table_patch.stop)
-    two_tail_patch = mock.patch.object(
-        ttest, '_TWO_TAIL',
-        [1, 0.2, 0.1, 0.05, 0.02, 0.01])
+    two_tail_patch = mock.patch.object(ttest, '_TWO_TAIL',
+                                       [1, 0.2, 0.1, 0.05, 0.02, 0.01])
     two_tail_patch.start()
     self.addCleanup(two_tail_patch.stop)
 

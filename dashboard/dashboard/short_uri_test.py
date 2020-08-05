@@ -28,12 +28,12 @@ class ShortUriTest(testing_common.TestCase):
         has_rows=True, id='master/bot/suite/measurement/case')
     t.UpdateSheriff()
     t.put()
-    page_state.PageState(id='test_sid', value=json.dumps({
-        'charts': [
-            [
+    page_state.PageState(
+        id='test_sid',
+        value=json.dumps(
+            {'charts': [[
                 ['master/bot/suite/measurement', ['all']],
-            ],
-        ]})).put()
+            ],]})).put()
     response = self.testapp.get('/short_uri', {'sid': 'test_sid', 'v2': 'true'})
     expected = {
         'testSuites': ['suite'],
@@ -51,15 +51,15 @@ class ShortUriTest(testing_common.TestCase):
         has_rows=True, id='master/bot/suite/measurement/case')
     t.UpdateSheriff()
     t.put()
-    page_state.PageState(id='test_sid', value=json.dumps({
-        'charts': [
-            {
+    page_state.PageState(
+        id='test_sid',
+        value=json.dumps({
+            'charts': [{
                 'seriesGroups': [
                     ['master/bot/suite/measurement', ['measurement']],
                 ],
-            },
-        ],
-    })).put()
+            },],
+        })).put()
     response = self.testapp.get('/short_uri', {'sid': 'test_sid', 'v2': 'true'})
     expected = {
         'testSuites': ['suite'],
@@ -77,8 +77,8 @@ class ShortUriTest(testing_common.TestCase):
         'charts': [['Chromium/win/sunspider/total', 'important']]
     }
 
-    response = self.testapp.post(
-        '/short_uri', {'page_state': json.dumps(sample_page_state)})
+    response = self.testapp.post('/short_uri',
+                                 {'page_state': json.dumps(sample_page_state)})
     page_state_id = json.loads(response.body)['sid']
     self.assertIsNotNone(page_state_id)
 

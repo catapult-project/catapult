@@ -17,7 +17,6 @@ from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.change import change_test
 from dashboard.pinpoint.models.quest import find_isolate
 
-
 FakeJob = collections.namedtuple('Job',
                                  ['job_id', 'url', 'comparison_mode', 'user'])
 
@@ -60,8 +59,8 @@ class FindIsolateQuestTest(unittest.TestCase):
         'target': 'telemetry_perf_tests',
         'bucket': 'luci.bucket'
     }
-    expected = find_isolate.FindIsolate(
-        'Mac Builder', 'telemetry_perf_tests', 'luci.bucket')
+    expected = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
+                                        'luci.bucket')
     self.assertEqual(find_isolate.FindIsolate.FromDict(arguments), expected)
 
 
@@ -71,10 +70,8 @@ class _FindIsolateExecutionTest(test.TestCase):
     super(_FindIsolateExecutionTest, self).setUp()
 
     change = change_test.Change(123)
-    isolate.Put((
-        ('Mac Builder', change, 'telemetry_perf_tests',
-         'https://isolate.server', '7c7e90be'),
-    ))
+    isolate.Put((('Mac Builder', change, 'telemetry_perf_tests',
+                  'https://isolate.server', '7c7e90be'),))
 
   def assertExecutionFailure(self, execution, exception_class):
     self.assertTrue(execution.completed)
@@ -93,8 +90,8 @@ class _FindIsolateExecutionTest(test.TestCase):
 class IsolateLookupTest(_FindIsolateExecutionTest):
 
   def testIsolateLookupSuccess(self):
-    quest = find_isolate.FindIsolate(
-        'Mac Builder', 'telemetry_perf_tests', 'luci.bucket')
+    quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
+                                     'luci.bucket')
 
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
@@ -109,8 +106,10 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
         'isolate_hash': '7c7e90be',
     }
     expected_as_dict = {
-        'completed': True,
-        'exception': None,
+        'completed':
+            True,
+        'exception':
+            None,
         'details': [
             {
                 'key': 'builder',
@@ -139,8 +138,8 @@ class BuildTest(_FindIsolateExecutionTest):
     del results['review_url']
     change.base_commit.AsDict = mock.MagicMock(return_value=results)
 
-    quest = find_isolate.FindIsolate(
-        'Mac Builder', 'telemetry_perf_tests', 'luci.bucket')
+    quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
+                                     'luci.bucket')
     execution = quest.Start(change)
     del execution._bucket
 
@@ -152,8 +151,8 @@ class BuildTest(_FindIsolateExecutionTest):
 
   def testBuildNoBucket(self, put, _):
     change = change_test.Change(123, 456, patch=True)
-    quest = find_isolate.FindIsolate(
-        'Mac Builder', 'telemetry_perf_tests', 'luci.bucket')
+    quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
+                                     'luci.bucket')
     execution = quest.Start(change)
     del execution._bucket
 
@@ -163,18 +162,18 @@ class BuildTest(_FindIsolateExecutionTest):
 
     self.assertFalse(execution.completed)
     put.assert_called_once_with(
-        find_isolate.BUCKET,
-        [
+        find_isolate.BUCKET, [
             'buildset:patch/gerrit/codereview.com/567890/5',
             'buildset:commit/gitiles/chromium.googlesource.com/'
             'project/name/+/commit_123'
-        ],
-        {
+        ], {
             'builder_name': 'Mac Builder',
             'properties': {
                 'clobber': False,
                 'revision': 'commit_123',
-                'deps_revision_overrides': {test.CATAPULT_URL: 'commit_456'},
+                'deps_revision_overrides': {
+                    test.CATAPULT_URL: 'commit_456'
+                },
                 'patch_gerrit_url': 'https://codereview.com',
                 'patch_issue': 567890,
                 'patch_project': 'project/name',
@@ -183,14 +182,12 @@ class BuildTest(_FindIsolateExecutionTest):
                 'patch_set': 5,
                 'patch_storage': 'gerrit',
             }
-        },
-        None
-    )
+        }, None)
 
   def testBuildLifecycle(self, put, get_job_status):
     change = change_test.Change(123, 456, patch=True)
-    quest = find_isolate.FindIsolate(
-        'Mac Builder', 'telemetry_perf_tests', 'luci.bucket')
+    quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
+                                     'luci.bucket')
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
@@ -203,21 +200,21 @@ class BuildTest(_FindIsolateExecutionTest):
 
     self.assertFalse(execution.completed)
     put.assert_called_once_with(
-        'luci.bucket',
-        [
+        'luci.bucket', [
             'buildset:patch/gerrit/codereview.com/567890/5',
             'buildset:commit/gitiles/chromium.googlesource.com/'
             'project/name/+/commit_123',
             'pinpoint_job_id:cafef00d',
             'pinpoint_user:user@example.com',
             'pinpoint_url:https://pinpoint/cafef00d',
-        ],
-        {
+        ], {
             'builder_name': 'Mac Builder',
             'properties': {
                 'clobber': False,
                 'revision': 'commit_123',
-                'deps_revision_overrides': {test.CATAPULT_URL: 'commit_456'},
+                'deps_revision_overrides': {
+                    test.CATAPULT_URL: 'commit_456'
+                },
                 'patch_gerrit_url': 'https://codereview.com',
                 'patch_issue': 567890,
                 'patch_project': 'project/name',
@@ -226,19 +223,19 @@ class BuildTest(_FindIsolateExecutionTest):
                 'patch_set': 5,
                 'patch_storage': 'gerrit',
             },
-        },
-        {
+        }, {
             'topic': 'projects/chromeperf/topics/pinpoint-swarming-updates',
             'auth_token': 'UNUSED',
             'user_data': mock.ANY,
-        }
-    )
+        })
 
     # Check build status.
-    get_job_status.return_value = {'build': {
-        'status': 'STARTED',
-        'url': 'build_url',
-    }}
+    get_job_status.return_value = {
+        'build': {
+            'status': 'STARTED',
+            'url': 'build_url',
+        }
+    }
     execution.Poll()
 
     self.assertFalse(execution.completed)
@@ -247,10 +244,14 @@ class BuildTest(_FindIsolateExecutionTest):
     # Look up isolate hash.
     get_job_status.return_value = {
         'build': {
-            'status': 'COMPLETED',
-            'result': 'SUCCESS',
-            'url': 'build_url',
-            'result_details_json': """{
+            'status':
+                'COMPLETED',
+            'result':
+                'SUCCESS',
+            'url':
+                'build_url',
+            'result_details_json':
+                """{
                 "properties": {
                     "got_revision_cp": "refs/heads/master@{#123}",
                     "isolate_server": "https://isolate.server",
@@ -267,8 +268,10 @@ class BuildTest(_FindIsolateExecutionTest):
         'isolate_hash': 'isolate git hash',
     }
     expected_as_dict = {
-        'completed': True,
-        'exception': None,
+        'completed':
+            True,
+        'exception':
+            None,
         'details': [
             {
                 'key': 'builder',
@@ -295,8 +298,8 @@ class BuildTest(_FindIsolateExecutionTest):
     # Two builds started at the same time on the same Change should reuse the
     # same build request.
     change = change_test.Change(0)
-    quest = find_isolate.FindIsolate(
-        'Mac Builder', 'telemetry_perf_tests', 'luci.bucket')
+    quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
+                                     'luci.bucket')
     execution_1 = quest.Start(change)
     execution_2 = quest.Start(change)
 
@@ -321,9 +324,12 @@ class BuildTest(_FindIsolateExecutionTest):
     # Look up isolate hash.
     get_job_status.return_value = {
         'build': {
-            'status': 'COMPLETED',
-            'result': 'SUCCESS',
-            'result_details_json': """{
+            'status':
+                'COMPLETED',
+            'result':
+                'SUCCESS',
+            'result_details_json':
+                """{
                 "properties": {
                     "got_revision_cp": "refs/heads/master@{#123}",
                     "isolate_server": "https://isolate.server",
@@ -340,8 +346,8 @@ class BuildTest(_FindIsolateExecutionTest):
     self.assertExecutionSuccess(execution_2)
 
   def testBuildFailure(self, put, get_job_status):
-    quest = find_isolate.FindIsolate(
-        'Mac Builder', 'telemetry_perf_tests', 'luci.bucket')
+    quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
+                                     'luci.bucket')
     execution = quest.Start(change_test.Change(0))
 
     # Request a build.
@@ -361,8 +367,8 @@ class BuildTest(_FindIsolateExecutionTest):
     self.assertExecutionFailure(execution, errors.BuildFailed)
 
   def testBuildCanceled(self, put, get_job_status):
-    quest = find_isolate.FindIsolate(
-        'Mac Builder', 'telemetry_perf_tests', 'luci.bucket')
+    quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
+                                     'luci.bucket')
     execution = quest.Start(change_test.Change(0))
 
     # Request a build.
@@ -382,8 +388,8 @@ class BuildTest(_FindIsolateExecutionTest):
     self.assertExecutionFailure(execution, errors.BuildCancelled)
 
   def testBuildSucceededButIsolateIsMissing(self, put, get_job_status):
-    quest = find_isolate.FindIsolate(
-        'Mac Builder', 'telemetry_perf_tests', 'luci.bucket')
+    quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
+                                     'luci.bucket')
     execution = quest.Start(change_test.Change(0))
 
     # Request a build.
@@ -393,9 +399,12 @@ class BuildTest(_FindIsolateExecutionTest):
     # Check build status.
     get_job_status.return_value = {
         'build': {
-            'status': 'COMPLETED',
-            'result': 'SUCCESS',
-            'result_details_json': """{
+            'status':
+                'COMPLETED',
+            'result':
+                'SUCCESS',
+            'result_details_json':
+                """{
                 "properties": {
                     "got_revision_cp": "refs/heads/master@{#123}",
                     "isolate_server": "https://isolate.server",

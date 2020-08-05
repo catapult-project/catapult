@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Serves JSON for a graph.
 
 This serves the JSON in the format consumed by Flot:
@@ -122,13 +121,16 @@ def _ResolveTestPathDict(test_path_dict, is_selected):
       if selected == []:
         test_path_dict[test] = 'all'
 
-  return list_tests.GetTestsForTestPathDict(
-      test_path_dict, bool(is_selected))['tests']
+  return list_tests.GetTestsForTestPathDict(test_path_dict,
+                                            bool(is_selected))['tests']
 
 
-def GetGraphJson(
-    test_paths, rev=None, num_points=None,
-    is_selected=True, start_rev=None, end_rev=None):
+def GetGraphJson(test_paths,
+                 rev=None,
+                 num_points=None,
+                 is_selected=True,
+                 start_rev=None,
+                 end_rev=None):
   """Makes a JSON serialization of data for one chart with multiple series.
 
   This function can return data for one chart (with multiple data series
@@ -192,8 +194,12 @@ def _GetAnomalyAnnotationMap(test):
   return dict((a.end_revision, a) for a in anomalies)
 
 
-def _UpdateRevisionMap(revision_map, parent_test, rev, num_points,
-                       start_rev=None, end_rev=None):
+def _UpdateRevisionMap(revision_map,
+                       parent_test,
+                       rev,
+                       num_points,
+                       start_rev=None,
+                       end_rev=None):
   """Updates a dict of revisions to data point information for one test.
 
   Depending on which arguments are given, there are several ways that
@@ -214,8 +220,8 @@ def _UpdateRevisionMap(revision_map, parent_test, rev, num_points,
     end_rev: End revision number (optional).
   """
   anomaly_annotation_map = _GetAnomalyAnnotationMap(parent_test.key)
-  assert(datastore_hooks.IsUnalteredQueryPermitted() or
-         not parent_test.internal_only)
+  assert (datastore_hooks.IsUnalteredQueryPermitted()
+          or not parent_test.internal_only)
 
   if start_rev and end_rev:
     rows = graph_data.GetRowsForTestInRange(parent_test.key, start_rev, end_rev)
@@ -285,8 +291,7 @@ def _GetUpdatedBuildbotLinks(old_stdio_link):
   if logdog_link:
     logdog_markdown = '[Buildbot stdio](%s)' % logdog_link
   buildbot_status_markdown = None
-  buildbot_link = utils.GetBuildbotStatusPageUriFromStdioLink(
-      old_stdio_link)
+  buildbot_link = utils.GetBuildbotStatusPageUriFromStdioLink(old_stdio_link)
   if buildbot_link:
     buildbot_status_markdown = '[Buildbot status page](%s)' % buildbot_link
   return logdog_markdown, buildbot_status_markdown
@@ -349,8 +354,7 @@ def _ClampRevisionMap(revision_map, rev, num_points):
   clamp_before = max(index - rows_before, 0)
   rows_after = int(num_points / 2) if rev is not None else 0
   clamp_after = index + rows_after + 1
-  for rev_to_delete in (
-      revisions[:clamp_before] + revisions[clamp_after:]):
+  for rev_to_delete in revisions[:clamp_before] + revisions[clamp_after:]:
     del revision_map[rev_to_delete]
 
 
@@ -390,8 +394,8 @@ def _GetFlotJson(revision_map, tests):
   # For each TestMetadata (which corresponds to a trace line), the shaded error
   # region is specified by two series objects. For a demo, see:
   # http://www.flotcharts.org/flot/examples/percentiles/index.html
-  error_bars = {x: [
-      {
+  error_bars = {
+      x: [{
           'id': 'bottom_%d' % x,
           'data': [],
           'color': x,
@@ -403,8 +407,7 @@ def _GetFlotJson(revision_map, tests):
               'fill': 0.2,
           },
           'fillBetween': 'line_%d' % x,
-      },
-      {
+      }, {
           'id': 'top_%d' % x,
           'data': [],
           'color': x,
@@ -416,8 +419,8 @@ def _GetFlotJson(revision_map, tests):
               'fill': 0.2,
           },
           'fillBetween': 'line_%d' % x,
-      }
-  ] for x, _ in enumerate(tests)}
+      }] for x, _ in enumerate(tests)
+  }
 
   test_keys = [t.key.urlsafe() for t in tests]
   for revision in sorted(revision_map.keys()):

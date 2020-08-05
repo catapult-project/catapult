@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides the web interface for reporting a graph of traces."""
 from __future__ import print_function
 from __future__ import division
@@ -33,13 +32,14 @@ class ReportHandler(chart_handler.ChartHandler):
     """Gets dynamic data for selecting graphs"""
     values = {}
     self.GetDynamicVariables(values)
-    self.response.out.write(json.dumps({
-        'is_internal_user': values['is_internal_user'],
-        'login_url': values['login_url'],
-        'revision_info': values['revision_info'],
-        'xsrf_token': values['xsrf_token'],
-        'test_suites': update_test_suites.FetchCachedTestSuites(),
-    }))
+    self.response.out.write(
+        json.dumps({
+            'is_internal_user': values['is_internal_user'],
+            'login_url': values['login_url'],
+            'revision_info': values['revision_info'],
+            'xsrf_token': values['xsrf_token'],
+            'test_suites': update_test_suites.FetchCachedTestSuites(),
+        }))
 
   def _GetQueryStringForOldUri(self):
     """Gets a new query string if old URI parameters are present.
@@ -124,9 +124,7 @@ def _CreatePageState(masters, bots, tests, checked):
   for path in test_paths:
     chart_states.append([[path, selected_series]])
 
-  return {
-      'charts': chart_states
-  }
+  return {'charts': chart_states}
 
 
 def _GetFirstTest(test_suite, bot_path):

@@ -30,22 +30,29 @@ class GroupReportTest(testing_common.TestCase):
 
   def setUp(self):
     super(GroupReportTest, self).setUp()
-    app = webapp2.WSGIApplication(
-        [('/group_report', group_report.GroupReportHandler)])
+    app = webapp2.WSGIApplication([('/group_report',
+                                    group_report.GroupReportHandler)])
     self.testapp = webtest.TestApp(app)
 
-  def _AddAnomalyEntities(
-      self, revision_ranges, test_key, subscriptions,
-      bug_id=None, group_id=None):
+  def _AddAnomalyEntities(self,
+                          revision_ranges,
+                          test_key,
+                          subscriptions,
+                          bug_id=None,
+                          group_id=None):
     """Adds a group of Anomaly entities to the datastore."""
     urlsafe_keys = []
     keys = []
     for start_rev, end_rev in revision_ranges:
       subscription_names = [s.name for s in subscriptions]
       anomaly_key = anomaly.Anomaly(
-          start_revision=start_rev, end_revision=end_rev,
-          test=test_key, bug_id=bug_id, subscription_names=subscription_names,
-          subscriptions=subscriptions, median_before_anomaly=100,
+          start_revision=start_rev,
+          end_revision=end_rev,
+          test=test_key,
+          bug_id=bug_id,
+          subscription_names=subscription_names,
+          subscriptions=subscriptions,
+          median_before_anomaly=100,
           median_after_anomaly=200).put()
       urlsafe_keys.append(anomaly_key.urlsafe())
       keys.append(anomaly_key)
@@ -58,12 +65,12 @@ class GroupReportTest(testing_common.TestCase):
 
   def _AddTests(self):
     """Adds sample TestMetadata entities and returns their keys."""
-    testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
-        'scrolling-benchmark': {
+    testing_common.AddTests(
+        ['ChromiumGPU'], ['linux-release'],
+        {'scrolling-benchmark': {
             'first_paint': {},
             'mean_frame_time': {},
-        }
-    })
+        }})
     keys = [
         utils.TestKey(
             'ChromiumGPU/linux-release/scrolling-benchmark/first_paint'),
@@ -100,15 +107,14 @@ class GroupReportTest(testing_common.TestCase):
     selected_ranges = [(400, 900), (200, 700)]
     overlapping_ranges = [(300, 500), (500, 600), (600, 800)]
     non_overlapping_ranges = [(100, 200)]
-    selected_keys = self._AddAnomalyEntities(
-        selected_ranges, test_keys[0], subscriptions)
-    self._AddAnomalyEntities(
-        overlapping_ranges, test_keys[0], subscriptions)
-    self._AddAnomalyEntities(
-        non_overlapping_ranges, test_keys[0], subscriptions)
+    selected_keys = self._AddAnomalyEntities(selected_ranges, test_keys[0],
+                                             subscriptions)
+    self._AddAnomalyEntities(overlapping_ranges, test_keys[0], subscriptions)
+    self._AddAnomalyEntities(non_overlapping_ranges, test_keys[0],
+                             subscriptions)
 
-    response = self.testapp.post(
-        '/group_report?keys=%s' % ','.join(selected_keys))
+    response = self.testapp.post('/group_report?keys=%s' %
+                                 ','.join(selected_keys))
     alert_list = self.GetJsonValue(response, 'alert_list')
 
     # Confirm the first N keys are the selected keys.
@@ -131,8 +137,8 @@ class GroupReportTest(testing_common.TestCase):
     subscription = self._Subscription()
     test_keys = self._AddTests()
     selected_ranges = [(400, 900), (200, 700)]
-    selected_keys = self._AddAnomalyEntities(
-        selected_ranges, test_keys[0], [subscription])
+    selected_keys = self._AddAnomalyEntities(selected_ranges, test_keys[0],
+                                             [subscription])
 
     json_keys = json.dumps(selected_keys)
     state_id = short_uri.GenerateHash(','.join(selected_keys))
@@ -165,9 +171,8 @@ class GroupReportTest(testing_common.TestCase):
     # includes the given revision should be included.
     subscription = self._Subscription()
     test_keys = self._AddTests()
-    self._AddAnomalyEntities(
-        [(190, 210), (200, 300), (100, 200), (400, 500)],
-        test_keys[0], [subscription])
+    self._AddAnomalyEntities([(190, 210), (200, 300), (100, 200), (400, 500)],
+                             test_keys[0], [subscription])
     response = self.testapp.post('/group_report?rev=200')
     alert_list = self.GetJsonValue(response, 'alert_list')
     self.assertEqual(3, len(alert_list))
@@ -181,11 +186,10 @@ class GroupReportTest(testing_common.TestCase):
     subscription = self._Subscription()
     test_keys = self._AddTests()
     bug_data.Bug(id=123).put()
-    self._AddAnomalyEntities(
-        [(200, 300), (100, 200), (400, 500)],
-        test_keys[0], [subscription], bug_id=123)
-    self._AddAnomalyEntities(
-        [(150, 250)], test_keys[0], [subscription])
+    self._AddAnomalyEntities([(200, 300), (100, 200), (400, 500)],
+                             test_keys[0], [subscription],
+                             bug_id=123)
+    self._AddAnomalyEntities([(150, 250)], test_keys[0], [subscription])
     response = self.testapp.post('/group_report?bug_id=123')
     alert_list = self.GetJsonValue(response, 'alert_list')
     self.assertEqual(3, len(alert_list))
@@ -200,11 +204,10 @@ class GroupReportTest(testing_common.TestCase):
   def testPost_WithGroupIdParameter(self):
     subscription = self._Subscription()
     test_keys = self._AddTests()
-    self._AddAnomalyEntities(
-        [(200, 300), (100, 200), (400, 500)],
-        test_keys[0], [subscription], group_id="123")
-    self._AddAnomalyEntities(
-        [(150, 250)], test_keys[0], [subscription])
+    self._AddAnomalyEntities([(200, 300), (100, 200), (400, 500)],
+                             test_keys[0], [subscription],
+                             group_id="123")
+    self._AddAnomalyEntities([(150, 250)], test_keys[0], [subscription])
     response = self.testapp.post('/group_report?group_id=123')
     alert_list = self.GetJsonValue(response, 'alert_list')
     self.assertEqual(3, len(alert_list))

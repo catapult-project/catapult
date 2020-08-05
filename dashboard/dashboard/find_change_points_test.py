@@ -47,14 +47,20 @@ class FindChangePointsTest(unittest.TestCase):
     # For an empty series, there are certainly no change points.
     self.assertEqual([], find_change_points.FindChangePoints([]))
 
-  def _PassesThresholds(
-      self, data, index, multiple_of_std_dev=0, min_relative_change=0,
-      min_absolute_change=0, min_segment_size=0, min_steppiness=0):
+  def _PassesThresholds(self,
+                        data,
+                        index,
+                        multiple_of_std_dev=0,
+                        min_relative_change=0,
+                        min_absolute_change=0,
+                        min_segment_size=0,
+                        min_steppiness=0):
     """Tests whether a split passes the thresholds with the given parameters."""
     # All of the threshold parameters are set to zero by default here, so that
     # we can test just one threshold at a time.
     return find_change_points._PassesThresholds(
-        data, index,
+        data,
+        index,
         min_segment_size=min_segment_size,
         min_absolute_change=min_absolute_change,
         min_relative_change=min_relative_change,
@@ -116,10 +122,15 @@ class FindChangePointsTest(unittest.TestCase):
     self.assertEqual((True, 'passed'),
                      self._PassesThresholds(right, 5, multiple_of_std_dev=7))
 
-  def _AssertFindsChangePoints(
-      self, y_values, expected_indexes, max_window_size=50, min_segment_size=6,
-      min_absolute_change=0, min_relative_change=0.01, min_steppiness=0.4,
-      multiple_of_std_dev=2.5):
+  def _AssertFindsChangePoints(self,
+                               y_values,
+                               expected_indexes,
+                               max_window_size=50,
+                               min_segment_size=6,
+                               min_absolute_change=0,
+                               min_relative_change=0.01,
+                               min_steppiness=0.4,
+                               multiple_of_std_dev=2.5):
     """Asserts that change points are found at particular indexes."""
     series = list(enumerate(y_values))
     results = find_change_points.FindChangePoints(
@@ -134,38 +145,44 @@ class FindChangePointsTest(unittest.TestCase):
     self.assertEqual(expected_indexes, actual_indexes)
 
   def testFindChangePoints_ShortSequences(self):
-    self._AssertFindsChangePoints(
-        [1, 1, 1, 9, 9, 9, 9, 9, 9, 9], [3],
-        max_window_size=10, min_segment_size=3)
-    self._AssertFindsChangePoints(
-        [1, 1, 5, 5, 5, 5, 9, 9, 9, 9], [6],
-        max_window_size=10, min_segment_size=3)
-    self._AssertFindsChangePoints(
-        [1, 1, 1, 1, 6, 6, 6, 6, 9, 9, 9], [4],
-        max_window_size=11, min_segment_size=3)
-    self._AssertFindsChangePoints(
-        [1, 1, 1, 6, 6, 6, 6, 12, 12, 12, 12], [7],
-        max_window_size=11, min_segment_size=3)
-    self._AssertFindsChangePoints(
-        [1, 1, 5, 5, 5, 5, 9, 9, 9, 9, 9], [6],
-        max_window_size=11, min_segment_size=3)
+    self._AssertFindsChangePoints([1, 1, 1, 9, 9, 9, 9, 9, 9, 9], [3],
+                                  max_window_size=10,
+                                  min_segment_size=3)
+    self._AssertFindsChangePoints([1, 1, 5, 5, 5, 5, 9, 9, 9, 9], [6],
+                                  max_window_size=10,
+                                  min_segment_size=3)
+    self._AssertFindsChangePoints([1, 1, 1, 1, 6, 6, 6, 6, 9, 9, 9], [4],
+                                  max_window_size=11,
+                                  min_segment_size=3)
+    self._AssertFindsChangePoints([1, 1, 1, 6, 6, 6, 6, 12, 12, 12, 12], [7],
+                                  max_window_size=11,
+                                  min_segment_size=3)
+    self._AssertFindsChangePoints([1, 1, 5, 5, 5, 5, 9, 9, 9, 9, 9], [6],
+                                  max_window_size=11,
+                                  min_segment_size=3)
 
   def testFindChangePoints_ZeroSegmentSize(self):
-    self._AssertFindsChangePoints(
-        [10, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [2],
-        max_window_size=50, min_segment_size=0
-    )
+    self._AssertFindsChangePoints([10, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [2],
+                                  max_window_size=50,
+                                  min_segment_size=0)
 
   def testChangePoint_CanBeMadeAndConvertedToDict(self):
     series = list(enumerate([4, 4, 4, 8, 8, 8, 8]))
     change_point = find_change_points.MakeChangePoint(series, 3)
     self.assertEqual(
         find_change_points.ChangePoint(
-            x_value=3, median_before=4.0, median_after=8.0, size_before=3,
-            size_after=4, window_start=0, window_end=6, relative_change=1.0,
-            std_dev_before=0.0, t_statistic=float('inf'),
-            degrees_of_freedom=1.0, p_value=0.001),
-        change_point)
+            x_value=3,
+            median_before=4.0,
+            median_after=8.0,
+            size_before=3,
+            size_after=4,
+            window_start=0,
+            window_end=6,
+            relative_change=1.0,
+            std_dev_before=0.0,
+            t_statistic=float('inf'),
+            degrees_of_freedom=1.0,
+            p_value=0.001), change_point)
     self.assertEqual(
         {
             'x_value': 3,
@@ -180,8 +197,7 @@ class FindChangePointsTest(unittest.TestCase):
             't_statistic': float('inf'),
             'degrees_of_freedom': 1.0,
             'p_value': 0.001,
-        },
-        change_point.AsDict())
+        }, change_point.AsDict())
 
 
 if __name__ == '__main__':

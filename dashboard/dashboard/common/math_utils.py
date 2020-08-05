@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Basic statistics-related math functions used by the dashboard."""
 from __future__ import print_function
 from __future__ import division
@@ -31,7 +30,7 @@ def Variance(values):
   if not values:
     return float('nan')
   mean = Mean(values)
-  return Mean([(x - mean) ** 2 for x in values])
+  return Mean([(x - mean)**2 for x in values])
 
 
 def StandardDeviation(values):

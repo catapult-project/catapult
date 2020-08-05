@@ -1,7 +1,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """The datastore model TableConfig, which specify which reports to generate.
 
 Each /speed_releasing report will be generated via creating a corresponding
@@ -42,6 +41,7 @@ class BadRequestError(Exception):
   """An error indicating that a 400 response status should be returned."""
   pass
 
+
 class TableConfig(internal_only_model.InternalOnlyModel):
 
   # A list of bots the speed releasing report will contain.
@@ -57,6 +57,7 @@ class TableConfig(internal_only_model.InternalOnlyModel):
 
   # The username of the creator
   username = ndb.StringProperty()
+
 
 def CreateTableConfig(name, bots, tests, layout, username, override):
   """Performs checks to verify bots and layout are valid, sets internal_only.
@@ -109,11 +110,13 @@ def CreateTableConfig(name, bots, tests, layout, username, override):
   except ValueError:
     raise BadRequestError('Invalid JSON for table layout')
 
-
   # Input validates, create table now.
-  table_config = TableConfig(id=name, bots=valid_bots, tests=tests,
-                             table_layout=layout, internal_only=internal_only,
-                             username=username)
+  table_config = TableConfig(
+      id=name,
+      bots=valid_bots,
+      tests=tests,
+      table_layout=layout,
+      internal_only=internal_only,
+      username=username)
   table_config.put()
   return table_config
-

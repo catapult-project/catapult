@@ -28,31 +28,30 @@ class AssociateAlertsTest(testing_common.TestCase):
 
   def setUp(self):
     super(AssociateAlertsTest, self).setUp()
-    app = webapp2.WSGIApplication([(
-        '/associate_alerts', associate_alerts.AssociateAlertsHandler)])
+    app = webapp2.WSGIApplication([('/associate_alerts',
+                                    associate_alerts.AssociateAlertsHandler)])
     self.testapp = webtest.TestApp(app)
     testing_common.SetSheriffDomains(['chromium.org'])
     self.SetCurrentUser('foo@chromium.org', is_admin=True)
 
   def _AddTests(self):
     """Adds sample Tests and returns a list of their keys."""
-    testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
-        'scrolling-benchmark': {
+    testing_common.AddTests(
+        ['ChromiumGPU'], ['linux-release'],
+        {'scrolling-benchmark': {
             'first_paint': {},
             'mean_frame_time': {},
-        }
-    })
-    return list(map(utils.TestKey, [
-        'ChromiumGPU/linux-release/scrolling-benchmark/first_paint',
-        'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time',
-    ]))
+        }})
+    return list(
+        map(utils.TestKey, [
+            'ChromiumGPU/linux-release/scrolling-benchmark/first_paint',
+            'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time',
+        ]))
 
   def _AddAnomalies(self):
     """Adds sample Anomaly data and returns a dict of revision to key."""
     subscription = Subscription(
-        name='Chromium Perf Sheriff',
-        notification_email='sullivan@google.com'
-    )
+        name='Chromium Perf Sheriff', notification_email='sullivan@google.com')
     test_keys = self._AddTests()
     key_map = {}
 
@@ -60,8 +59,11 @@ class AssociateAlertsTest(testing_common.TestCase):
     for end_rev in range(10000, 10120, 10):
       test_key = test_keys[0] if end_rev % 20 == 0 else test_keys[1]
       anomaly_key = anomaly.Anomaly(
-          start_revision=(end_rev - 5), end_revision=end_rev, test=test_key,
-          median_before_anomaly=100, median_after_anomaly=200,
+          start_revision=(end_rev - 5),
+          end_revision=end_rev,
+          test=test_key,
+          median_before_anomaly=100,
+          median_after_anomaly=200,
           subscriptions=[subscription],
           subscription_names=[subscription.name],
       ).put()
@@ -69,8 +71,11 @@ class AssociateAlertsTest(testing_common.TestCase):
 
     # Add an anomaly that overlaps.
     anomaly_key = anomaly.Anomaly(
-        start_revision=9990, end_revision=9996, test=test_keys[0],
-        median_before_anomaly=100, median_after_anomaly=200,
+        start_revision=9990,
+        end_revision=9996,
+        test=test_keys[0],
+        median_before_anomaly=100,
+        median_after_anomaly=200,
         subscriptions=[subscription],
         subscription_names=[subscription.name],
     ).put()
@@ -78,8 +83,12 @@ class AssociateAlertsTest(testing_common.TestCase):
 
     # Add an anomaly that overlaps and has bug ID.
     anomaly_key = anomaly.Anomaly(
-        start_revision=9990, end_revision=9997, test=test_keys[0],
-        median_before_anomaly=100, median_after_anomaly=200, bug_id=12345,
+        start_revision=9990,
+        end_revision=9997,
+        test=test_keys[0],
+        median_before_anomaly=100,
+        median_after_anomaly=200,
+        bug_id=12345,
         subscriptions=[subscription],
         subscription_names=[subscription.name],
     ).put()
@@ -97,8 +106,8 @@ class AssociateAlertsTest(testing_common.TestCase):
 
   def testGet_InvalidBugId_ShowsError(self):
     key_map = self._AddAnomalies()
-    response = self.testapp.get(
-        '/associate_alerts?keys=%s&bug_id=foo' % key_map[9996])
+    response = self.testapp.get('/associate_alerts?keys=%s&bug_id=foo' %
+                                key_map[9996])
     self.assertIn('<div class="error">', response.body)
     self.assertIn('Invalid bug ID', response.body)
 
@@ -107,23 +116,29 @@ class AssociateAlertsTest(testing_common.TestCase):
               mock.MagicMock())
   @mock.patch.object(
       issue_tracker_service.IssueTrackerService, 'List',
-      mock.MagicMock(return_value={
-          'items': [
-              {
-                  'id': 12345,
-                  'summary': '5% regression in bot/suite/x at 10000:20000',
-                  'state': 'open',
-                  'status': 'New',
-                  'author': {'name': 'exam...@google.com'},
-              },
-              {
-                  'id': 13579,
-                  'summary': '1% regression in bot/suite/y at 10000:20000',
-                  'state': 'closed',
-                  'status': 'WontFix',
-                  'author': {'name': 'exam...@google.com'},
-              },
-          ]}))
+      mock.MagicMock(
+          return_value={
+              'items': [
+                  {
+                      'id': 12345,
+                      'summary': '5% regression in bot/suite/x at 10000:20000',
+                      'state': 'open',
+                      'status': 'New',
+                      'author': {
+                          'name': 'exam...@google.com'
+                      },
+                  },
+                  {
+                      'id': 13579,
+                      'summary': '1% regression in bot/suite/y at 10000:20000',
+                      'state': 'closed',
+                      'status': 'WontFix',
+                      'author': {
+                          'name': 'exam...@google.com'
+                      },
+                  },
+              ]
+          }))
   def testGet_NoBugId_ShowsDialog(self):
     # When a GET request is made with some anomaly keys but no bug ID,
     # A HTML form is shown for the user to input a bug number.
@@ -138,9 +153,8 @@ class AssociateAlertsTest(testing_common.TestCase):
     # When the bug ID is given and the alerts overlap, then the Anomaly
     # entities are updated and there is a response indicating success.
     key_map = self._AddAnomalies()
-    response = self.testapp.get(
-        '/associate_alerts?keys=%s,%s&bug_id=12345' % (
-            key_map[9996], key_map[10000]))
+    response = self.testapp.get('/associate_alerts?keys=%s,%s&bug_id=12345' %
+                                (key_map[9996], key_map[10000]))
     # The response page should have a bug number.
     self.assertIn('12345', response.body)
     # The Anomaly entities should be updated.
@@ -153,26 +167,26 @@ class AssociateAlertsTest(testing_common.TestCase):
   def testGet_TargetBugHasNoAlerts_DoesNotAskForConfirmation(self):
     # Associating alert with bug ID that has no alerts is always OK.
     key_map = self._AddAnomalies()
-    response = self.testapp.get(
-        '/associate_alerts?keys=%s,%s&bug_id=578' % (
-            key_map[9996], key_map[10000]))
+    response = self.testapp.get('/associate_alerts?keys=%s,%s&bug_id=578' %
+                                (key_map[9996], key_map[10000]))
     # The response page should have a bug number.
     self.assertIn('578', response.body)
     # The Anomaly entities should be updated.
     self.assertEqual(
-        578, anomaly.Anomaly.query(
+        578,
+        anomaly.Anomaly.query(
             anomaly.Anomaly.end_revision == 9996).get().bug_id)
     self.assertEqual(
-        578, anomaly.Anomaly.query(
+        578,
+        anomaly.Anomaly.query(
             anomaly.Anomaly.end_revision == 10000).get().bug_id)
 
   def testGet_NonOverlappingAlerts_AsksForConfirmation(self):
     # Associating alert with bug ID that contains non-overlapping revision
     # ranges should show a confirmation page.
     key_map = self._AddAnomalies()
-    response = self.testapp.get(
-        '/associate_alerts?keys=%s,%s&bug_id=12345' % (
-            key_map[10000], key_map[10010]))
+    response = self.testapp.get('/associate_alerts?keys=%s,%s&bug_id=12345' %
+                                (key_map[10000], key_map[10010]))
     # The response page should show confirmation page.
     self.assertIn('Do you want to continue?', response.body)
     # The Anomaly entities should not be updated.
@@ -185,8 +199,8 @@ class AssociateAlertsTest(testing_common.TestCase):
     # range should update alert with bug ID.
     key_map = self._AddAnomalies()
     response = self.testapp.get(
-        '/associate_alerts?confirm=true&keys=%s,%s&bug_id=12345' % (
-            key_map[10000], key_map[10010]))
+        '/associate_alerts?confirm=true&keys=%s,%s&bug_id=12345' %
+        (key_map[10000], key_map[10010]))
     # The response page should have the bug number.
     self.assertIn('12345', response.body)
     # The Anomaly entities should be updated.
@@ -198,10 +212,9 @@ class AssociateAlertsTest(testing_common.TestCase):
 
   def testRevisionRangeFromSummary(self):
     # If the summary is in the expected format, a pair is returned.
-    self.assertEqual(
-        (10000, 10500),
-        associate_alerts._RevisionRangeFromSummary(
-            '1% regression in bot/my_suite/test at 10000:10500'))
+    self.assertEqual((10000, 10500),
+                     associate_alerts._RevisionRangeFromSummary(
+                         '1% regression in bot/my_suite/test at 10000:10500'))
     # Otherwise None is returned.
     self.assertIsNone(
         associate_alerts._RevisionRangeFromSummary(

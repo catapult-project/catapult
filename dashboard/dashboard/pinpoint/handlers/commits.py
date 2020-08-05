@@ -28,7 +28,8 @@ class Commits(api_request_handler.ApiRequestHandler):
       })
       commits = change.Commit.CommitRange(c1, c2)
       commits = [
-          change.Commit('chromium', c['commit']).AsDict() for c in commits]
+          change.Commit('chromium', c['commit']).AsDict() for c in commits
+      ]
       return [c1.AsDict()] + commits
     except request.RequestError as e:
       raise api_request_handler.BadRequestError(e.message)

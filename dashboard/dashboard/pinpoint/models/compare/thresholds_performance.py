@@ -2,7 +2,6 @@
 # Copyright 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Calculates significance thresholds for performance comparisons."""
 from __future__ import print_function
 from __future__ import division
@@ -15,15 +14,12 @@ import sys
 import numpy
 from scipy import stats
 
-
 # The approximate false negative rate.
 P_VALUE = 0.01
-
 
 # The number of simulations to run. 1 million will give pretty
 # stable numbers, but will take about 12 hours to run on 4 cores.
 N = 1000000
-
 
 # As the distances increase, the sample sizes we need decreases. It's
 # costly to run too many extra repeats, but we need to know in advance how
@@ -31,14 +27,44 @@ N = 1000000
 # sample sizes. We can estimate these values by running this script and
 # seeing how many samples are needed for the threshold to cross P_VALUE.
 DISTANCES_AND_SAMPLE_SIZES = (
-    (0.3, 360), (0.4, 240), (0.5, 120),
-    (0.6, 90), (0.7, 70), (0.8, 50), (0.9, 40), (1.0, 35),
-    (1.1, 25), (1.2, 25), (1.3, 20), (1.4, 20), (1.5, 15),
-    (1.6, 15), (1.7, 15), (1.8, 15), (1.9, 10), (2.0, 10),
-    (2.1, 10), (2.2, 10), (2.3, 10), (2.4, 10), (2.5, 10),
-    (2.6, 10), (2.7, 10), (2.8, 10), (2.9, 10), (3.0, 10),
-    (3.1, 10), (3.2, 10), (3.3, 10), (3.4, 10), (3.5, 10),
-    (3.6, 10), (3.7, 10), (3.8, 10), (3.9, 10), (4.0, 10),
+    (0.3, 360),
+    (0.4, 240),
+    (0.5, 120),
+    (0.6, 90),
+    (0.7, 70),
+    (0.8, 50),
+    (0.9, 40),
+    (1.0, 35),
+    (1.1, 25),
+    (1.2, 25),
+    (1.3, 20),
+    (1.4, 20),
+    (1.5, 15),
+    (1.6, 15),
+    (1.7, 15),
+    (1.8, 15),
+    (1.9, 10),
+    (2.0, 10),
+    (2.1, 10),
+    (2.2, 10),
+    (2.3, 10),
+    (2.4, 10),
+    (2.5, 10),
+    (2.6, 10),
+    (2.7, 10),
+    (2.8, 10),
+    (2.9, 10),
+    (3.0, 10),
+    (3.1, 10),
+    (3.2, 10),
+    (3.3, 10),
+    (3.4, 10),
+    (3.5, 10),
+    (3.6, 10),
+    (3.7, 10),
+    (3.8, 10),
+    (3.9, 10),
+    (4.0, 10),
 )
 
 

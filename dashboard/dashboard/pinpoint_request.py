@@ -1,7 +1,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """URL endpoint containing server-side functionality for pinpoint jobs."""
 from __future__ import print_function
 from __future__ import division
@@ -34,12 +33,14 @@ class InvalidParamsError(Exception):
 
 
 class PinpointNewPrefillRequestHandler(request_handler.RequestHandler):
+
   def post(self):
     t = utils.TestKey(self.request.get('test_path')).get()
     self.response.write(json.dumps({'story_filter': t.unescaped_story_name}))
 
 
 class PinpointNewBisectRequestHandler(request_handler.RequestHandler):
+
   def post(self):
     job_params = dict(
         (a, self.request.get(a)) for a in self.request.arguments())
@@ -70,6 +71,7 @@ def NewPinpointBisect(job_params):
 
 
 class PinpointNewPerfTryRequestHandler(request_handler.RequestHandler):
+
   def post(self):
     job_params = dict(
         (a, self.request.get(a)) for a in self.request.arguments())
@@ -89,8 +91,8 @@ def _GitHashToCommitPosition(commit_position):
   except ValueError:
     result = crrev_service.GetCommit(commit_position)
     if 'error' in result:
-      raise InvalidParamsError(
-          'Error retrieving commit info: %s' % result['error'].get('message'))
+      raise InvalidParamsError('Error retrieving commit info: %s' %
+                               result['error'].get('message'))
     commit_position = int(result['number'])
   return commit_position
 
@@ -102,10 +104,10 @@ def FindMagnitudeBetweenCommits(test_key, start_commit, end_commit):
   test = test_key.get()
   num_points = anomaly_config.GetAnomalyConfigDict(test).get(
       'min_segment_size', find_change_points.MIN_SEGMENT_SIZE)
-  start_rows = graph_data.GetRowsForTestBeforeAfterRev(
-      test_key, start_commit, num_points, 0)
-  end_rows = graph_data.GetRowsForTestBeforeAfterRev(
-      test_key, end_commit, 0, num_points)
+  start_rows = graph_data.GetRowsForTestBeforeAfterRev(test_key, start_commit,
+                                                       num_points, 0)
+  end_rows = graph_data.GetRowsForTestBeforeAfterRev(test_key, end_commit, 0,
+                                                     num_points)
 
   if not start_rows or not end_rows:
     return None
@@ -131,8 +133,8 @@ def ResolveToGitHash(commit_position, suite, crrev=None):
         project=project,
         repo=repo)
     if 'error' in result:
-      raise InvalidParamsError(
-          'Error retrieving commit info: %s' % result['error'].get('message'))
+      raise InvalidParamsError('Error retrieving commit info: %s' %
+                               result['error'].get('message'))
     return result['git_sha']
   except ValueError:
     pass
@@ -303,8 +305,8 @@ def PinpointParamsFromBisectParams(params):
         utils.TestKey(test_path), start_commit, end_commit)
 
   issue = anomaly.Issue(
-      project_id='chromium',
-      issue_id=int(params['bug_id'])) if params['bug_id'] else None
+      project_id='chromium', issue_id=int(
+          params['bug_id'])) if params['bug_id'] else None
 
   return pinpoint_service.MakeBisectionRequest(
       test=utils.TestKey(test_path).get(),

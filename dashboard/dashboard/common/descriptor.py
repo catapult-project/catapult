@@ -1,7 +1,6 @@
 # Copyright 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Translate between test paths and Descriptors.
 
 Test paths describe a timeseries by its path in a tree of timeseries.
@@ -81,8 +80,13 @@ class Descriptor(object):
   characteristics to be None.
   """
 
-  def __init__(self, test_suite=None, measurement=None, bot=None,
-               test_case=None, statistic=None, build_type=None):
+  def __init__(self,
+               test_suite=None,
+               measurement=None,
+               bot=None,
+               test_case=None,
+               statistic=None,
+               build_type=None):
     self.test_suite = test_suite
     self.measurement = measurement
     self.bot = bot
@@ -141,38 +145,42 @@ class Descriptor(object):
 
     complex_cases_test_suites = yield cls._GetConfiguration(
         COMPLEX_CASES_TEST_SUITES_KEY, [])
-    if (test_suite.startswith('system_health') or
-        (test_suite in complex_cases_test_suites)):
+    if (test_suite.startswith('system_health')
+        or (test_suite in complex_cases_test_suites)):
       measurement = path.pop(0)
       prefix = path.pop(0)
       if len(path) == 0:
         raise ndb.Return((measurement, prefix.replace('_', ':')))
-      raise ndb.Return((measurement, path.pop(0).replace('_', ':').replace(
-          'long:running:tools', 'long_running_tools')))
+      raise ndb.Return(
+          (measurement,
+           path.pop(0).replace('_', ':').replace('long:running:tools',
+                                                 'long_running_tools')))
 
-    one_two_test_suites = yield cls._GetConfiguration(
-        ONE_TWO_TEST_SUITES_KEY, [])
+    one_two_test_suites = yield cls._GetConfiguration(ONE_TWO_TEST_SUITES_KEY,
+                                                      [])
     if test_suite in one_two_test_suites:
       parts, path[:] = path[:], []
       raise ndb.Return(parts[0], ':'.join(parts[1:]))
 
-    two_two_test_suites = yield cls._GetConfiguration(
-        TWO_TWO_TEST_SUITES_KEY, [])
+    two_two_test_suites = yield cls._GetConfiguration(TWO_TWO_TEST_SUITES_KEY,
+                                                      [])
     if test_suite in two_two_test_suites:
       parts, path[:] = path[:], []
       raise ndb.Return(':'.join(parts[:2]), ':'.join(parts[2:]))
 
     if test_suite in [
         'memory.dual_browser_test', 'memory.top_10_mobile',
-        'v8:runtime_stats.top_25']:
+        'v8:runtime_stats.top_25'
+    ]:
       measurement = path.pop(0)
       case = path.pop(0)
       if len(path) == 0:
         raise ndb.Return((measurement, None))
       raise ndb.Return((measurement, case + ':' + path.pop(0)))
 
-    if test_suite in (yield cls._GetConfiguration(
-        POLY_MEASUREMENT_TEST_SUITES_KEY, [])):
+    if test_suite in (yield
+                      cls._GetConfiguration(POLY_MEASUREMENT_TEST_SUITES_KEY,
+                                            [])):
       parts, path[:] = path[:], []
       case = None
       if parts[-1] == NO_MITIGATIONS_CASE:
@@ -214,8 +222,9 @@ class Descriptor(object):
     if test_suite.startswith('resource_sizes '):
       test_suite = 'resource_sizes:' + test_suite[16:-1]
     else:
-      for prefix in (yield cls._GetConfiguration(
-          GROUPABLE_TEST_SUITE_PREFIXES_KEY, [])):
+      for prefix in (yield
+                     cls._GetConfiguration(GROUPABLE_TEST_SUITE_PREFIXES_KEY,
+                                           [])):
         if test_suite.startswith(prefix):
           test_suite = prefix[:-1] + ':' + test_suite[len(prefix):]
           break
@@ -232,8 +241,8 @@ class Descriptor(object):
       path[-1] = path[-1][:-4]
 
     if len(path) == 0:
-      raise ndb.Return(cls(
-          test_suite=test_suite, bot=bot, build_type=build_type))
+      raise ndb.Return(
+          cls(test_suite=test_suite, bot=bot, build_type=build_type))
 
     measurement, test_case = yield cls._MeasurementCase(test_suite, path)
 
@@ -246,9 +255,13 @@ class Descriptor(object):
     if test_suite != 'graphics:GLBench' and path:
       raise ValueError('Unable to parse %r' % test_path)
 
-    raise ndb.Return(cls(
-        test_suite=test_suite, bot=bot, measurement=measurement,
-        statistic=statistic, test_case=test_case, build_type=build_type))
+    raise ndb.Return(
+        cls(test_suite=test_suite,
+            bot=bot,
+            measurement=measurement,
+            statistic=statistic,
+            test_case=test_case,
+            build_type=build_type))
 
   def ToTestPathsSync(self):
     return self.ToTestPathsAsync().get_result()
@@ -289,14 +302,15 @@ class Descriptor(object):
   @ndb.tasklet
   def _AppendTestSuite(self, test_paths):
     if self.test_suite.startswith('resource_sizes:'):
-      raise ndb.Return({p + '/resource_sizes (%s)' % self.test_suite[15:]
-                        for p in test_paths})
+      raise ndb.Return({
+          p + '/resource_sizes (%s)' % self.test_suite[15:] for p in test_paths
+      })
 
     composite_test_suites = yield self._GetConfiguration(
         COMPOSITE_TEST_SUITES_KEY, [])
     if self.test_suite in composite_test_suites:
-      raise ndb.Return({p + '/' + self.test_suite.replace(':', '/')
-                        for p in test_paths})
+      raise ndb.Return(
+          {p + '/' + self.test_suite.replace(':', '/') for p in test_paths})
 
     first_part = self.test_suite.split(':')[0]
     groupable_prefixes = yield self._GetConfiguration(
@@ -305,7 +319,8 @@ class Descriptor(object):
       if prefix[:-1] == first_part:
         raise ndb.Return({
             p + '/' + prefix + self.test_suite[len(first_part) + 1:]
-            for p in test_paths})
+            for p in test_paths
+        })
 
     raise ndb.Return({p + '/' + self.test_suite for p in test_paths})
 
@@ -316,8 +331,8 @@ class Descriptor(object):
     poly_measurement_test_suites += yield self._GetConfiguration(
         TWO_TWO_TEST_SUITES_KEY, [])
     if self.test_suite in poly_measurement_test_suites:
-      raise ndb.Return({p + '/' + self.measurement.replace(':', '/')
-                        for p in test_paths})
+      raise ndb.Return(
+          {p + '/' + self.measurement.replace(':', '/') for p in test_paths})
 
     raise ndb.Return({p + '/' + self.measurement for p in test_paths})
 
@@ -325,8 +340,8 @@ class Descriptor(object):
   def _AppendTestCase(self, test_paths):
     complex_cases_test_suites = yield self._GetConfiguration(
         COMPLEX_CASES_TEST_SUITES_KEY, [])
-    if (self.test_suite.startswith('system_health') or
-        (self.test_suite in complex_cases_test_suites)):
+    if (self.test_suite.startswith('system_health')
+        or (self.test_suite in complex_cases_test_suites)):
       test_case = self.test_case.split(':')
       if test_case[0] == 'long_running_tools':
         test_paths = {p + '/' + test_case[0] for p in test_paths}
@@ -335,9 +350,11 @@ class Descriptor(object):
       raise ndb.Return({p + '/' + '_'.join(test_case) for p in test_paths})
 
     if self.test_suite.startswith('loading.'):
-      raise ndb.Return({p + '/' + self.test_case.replace(':', '/') + extra
-                        for p in test_paths
-                        for extra in ['', '_' + self.test_case.split(':')[0]]})
+      raise ndb.Return({
+          p + '/' + self.test_case.replace(':', '/') + extra
+          for p in test_paths
+          for extra in ['', '_' + self.test_case.split(':')[0]]
+      })
 
     poly_case_test_suites = [
         'sizes',
@@ -350,8 +367,8 @@ class Descriptor(object):
     poly_case_test_suites += yield self._GetConfiguration(
         TWO_TWO_TEST_SUITES_KEY, [])
     if self.test_suite in poly_case_test_suites:
-      raise ndb.Return({p + '/' + self.test_case.replace(':', '/')
-                        for p in test_paths})
+      raise ndb.Return(
+          {p + '/' + self.test_case.replace(':', '/') for p in test_paths})
 
     raise ndb.Return({p + '/' + self.test_case for p in test_paths})
 

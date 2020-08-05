@@ -52,6 +52,7 @@ class _TimeRangeProvider(object):
   This class is a workaround for the lack of NestedValueProviders in Beam's
   Python SDK.
   """
+
   def __init__(self, end_date, num_days):
     self._end_date = end_date
     self._num_days = num_days

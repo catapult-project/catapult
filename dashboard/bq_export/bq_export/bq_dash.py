@@ -38,7 +38,10 @@ def main():
   entities = (
       p
       | 'ReadFromDatastore(Anomaly)' >> ReadTimestampRangeFromDatastore(
-          {'project': project, 'kind': 'Anomaly'},
+          {
+              'project': project,
+              'kind': 'Anomaly'
+          },
           time_range_provider=bq_export_options.GetTimeRangeProvider()))
 
   def AnomalyEntityToRowDict(entity):
@@ -92,6 +95,7 @@ def main():
     except (KeyError, UnconvertibleAnomalyError):
       failed_entity_transforms.inc()
       return []
+
   anomaly_dicts = (
       entities
       | 'ConvertEntityToRow(Anomaly)' >> beam.FlatMap(AnomalyEntityToRowDict))
@@ -267,6 +271,7 @@ def main():
   def TableNameFn(unused_element):
     return '{}:{}.anomalies{}'.format(project, bq_export_options.dataset.get(),
                                       bq_export_options.table_suffix)
+
   _ = (
       anomaly_dicts | 'WriteToBigQuery(anomalies)' >>
       WriteToPartitionedBigQuery(TableNameFn, bq_anomaly_schema))

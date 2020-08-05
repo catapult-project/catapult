@@ -13,13 +13,10 @@ from dashboard.common import report_query
 from dashboard.models import report_template
 from dashboard import update_test_suite_descriptors
 
-
-MEMORY_METRICS = [
-    ('Java Heap', 'system_memory:java_heap'),
-    ('Native Heap', 'system_memory:native_heap'),
-    ('Android Graphics', 'gpu_memory'),
-    ('Overall PSS', 'system_memory')
-]
+MEMORY_METRICS = [('Java Heap', 'system_memory:java_heap'),
+                  ('Native Heap', 'system_memory:native_heap'),
+                  ('Android Graphics', 'gpu_memory'),
+                  ('Overall PSS', 'system_memory')]
 
 STARTUP_BY_BROWSER = {
     'chrome': {
@@ -38,16 +35,20 @@ STARTUP_BY_BROWSER = {
 def MemoizeWithTimeout(**kwargs):
   """Memoize the value returned by a function that takes no arguments."""
   duration = datetime.timedelta(**kwargs)
+
   def Decorator(f):
     f._value = None
     f._expires_at = None
+
     @functools.wraps(f)
     def Replacement():
       if f._expires_at is None or datetime.datetime.utcnow() > f._expires_at:
         f._value = f()
         f._expires_at = datetime.datetime.utcnow() + duration
       return f._value
+
     return Replacement
+
   return Decorator
 
 
@@ -71,13 +72,17 @@ def IterTemplateRows(browser, bot):
     browser = 'chrome'
   for label, component in MEMORY_METRICS:
     yield {
-        'label': ':'.join(['Memory', label]),
+        'label':
+            ':'.join(['Memory', label]),
         'testSuites': ['system_health.memory_mobile'],
         'bots': [bot],
-        'measurement': ':'.join([
-            'memory', browser, 'all_processes:reported_by_os', component,
-            'proportional_resident_size']),
-        'testCases': test_cases
+        'measurement':
+            ':'.join([
+                'memory', browser, 'all_processes:reported_by_os', component,
+                'proportional_resident_size'
+            ]),
+        'testCases':
+            test_cases
     }
 
   # CPU.

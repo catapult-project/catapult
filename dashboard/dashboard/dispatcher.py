@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Dispatches requests to request handler classes."""
 from __future__ import print_function
 from __future__ import division
@@ -68,7 +67,6 @@ from dashboard.api import test_suites
 from dashboard.api import timeseries
 from dashboard.api import timeseries2
 
-
 _URL_MAPPING = [
     ('/_/jstsmon', jstsmon.JsTsMonHandler),
     ('/add_histograms', add_histograms.AddHistogramsHandler),
@@ -123,8 +121,7 @@ _URL_MAPPING = [
     ('/memory_report', memory_report.MemoryReportHandler),
     ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler),
     ('/navbar', navbar.NavbarHandler),
-    ('/pinpoint/new/bisect',
-     pinpoint_request.PinpointNewBisectRequestHandler),
+    ('/pinpoint/new/bisect', pinpoint_request.PinpointNewBisectRequestHandler),
     ('/pinpoint/new/perf_try',
      pinpoint_request.PinpointNewPerfTryRequestHandler),
     ('/pinpoint/new/prefill',
@@ -132,8 +129,7 @@ _URL_MAPPING = [
     ('/put_entities_task', put_entities_task.PutEntitiesTaskHandler),
     ('/report', report.ReportHandler),
     ('/short_uri', short_uri.ShortUriHandler),
-    (r'/speed_releasing/(.*)',
-     speed_releasing.SpeedReleasingHandler),
+    (r'/speed_releasing/(.*)', speed_releasing.SpeedReleasingHandler),
     ('/speed_releasing', speed_releasing.SpeedReleasingHandler),
     ('/update_dashboard_stats',
      update_dashboard_stats.UpdateDashboardStatsHandler),

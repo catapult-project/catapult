@@ -117,14 +117,14 @@ class TaskPayloadLiftingEvaluator(object):
     self._include_event_types = include_event_types
 
   def __call__(self, task, event, accumulator):
-    if (self._include_event_types is not None and
-        event.type not in self._include_event_types
+    if (self._include_event_types is not None
+        and event.type not in self._include_event_types
        ) or event.type in self._exclude_event_types:
       return None
 
     def IncludeKey(key):
-      return (self._include_keys is not None and
-              key in self._include_keys) or key not in self._exclude_keys
+      return (self._include_keys is not None
+              and key in self._include_keys) or key not in self._exclude_keys
 
     update = {key: val for key, val in task.payload.items() if IncludeKey(key)}
     update['status'] = task.status

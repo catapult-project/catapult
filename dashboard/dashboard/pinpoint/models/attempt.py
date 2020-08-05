@@ -50,9 +50,9 @@ class Attempt(object):
     if not self._executions:
       return not self._quests
 
-    return self._last_execution.failed or (
-        self._last_execution.completed and
-        len(self._quests) == len(self._executions))
+    return self._last_execution.failed or (self._last_execution.completed
+                                           and len(self._quests) == len(
+                                               self._executions))
 
   @property
   def failed(self):

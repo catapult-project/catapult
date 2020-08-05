@@ -25,9 +25,9 @@ class ListTestSuitesTest(testing_common.TestCase):
 
   def setUp(self):
     super(ListTestSuitesTest, self).setUp()
-    app = webapp2.WSGIApplication(
-        [('/update_test_suites',
-          update_test_suites.UpdateTestSuitesHandler)])
+    app = webapp2.WSGIApplication([
+        ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler)
+    ])
     self.testapp = webtest.TestApp(app)
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     self.UnsetCurrentUser()
@@ -44,15 +44,11 @@ class ListTestSuitesTest(testing_common.TestCase):
     key = namespaced_stored_object.NamespaceKey(
         update_test_suites._LIST_SUITES_CACHE_KEY)
     stored_object.Set(key, {'foo': 'bar'})
-    self.assertEqual(
-        {'foo': 'bar'},
-        update_test_suites.FetchCachedTestSuites())
+    self.assertEqual({'foo': 'bar'}, update_test_suites.FetchCachedTestSuites())
 
   def _AddSampleData(self):
     testing_common.AddTests(
-        ['Chromium'],
-        ['win7', 'mac'],
-        {
+        ['Chromium'], ['win7', 'mac'], {
             'dromaeo': {
                 'dom': {},
                 'jslib': {},
@@ -80,18 +76,15 @@ class ListTestSuitesTest(testing_common.TestCase):
     key = namespaced_stored_object.NamespaceKey(
         update_test_suites._LIST_SUITES_CACHE_KEY)
     stored_object.Set(key, {'foo': 'bar'})
-    self.assertEqual(
-        {'foo': 'bar'},
-        update_test_suites.FetchCachedTestSuites())
+    self.assertEqual({'foo': 'bar'}, update_test_suites.FetchCachedTestSuites())
     self._AddSampleData()
     # Because there is something cached, the cache is
     # not automatically updated when new data is added.
-    self.assertEqual(
-        {'foo': 'bar'},
-        update_test_suites.FetchCachedTestSuites())
+    self.assertEqual({'foo': 'bar'}, update_test_suites.FetchCachedTestSuites())
 
-    stored_object.Set(namespaced_stored_object.NamespaceKey(
-        update_test_suites.TEST_SUITES_2_CACHE_KEY), ['foo'])
+    stored_object.Set(
+        namespaced_stored_object.NamespaceKey(
+            update_test_suites.TEST_SUITES_2_CACHE_KEY), ['foo'])
     self.assertEqual(['foo'], update_test_suites.FetchCachedTestSuites2())
 
     # Making a request to /udate_test_suites forces an update.
@@ -99,20 +92,33 @@ class ListTestSuitesTest(testing_common.TestCase):
     self.assertEqual(
         {
             'dromaeo': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'scrolling': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'really': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
-        },
-        update_test_suites.FetchCachedTestSuites())
+        }, update_test_suites.FetchCachedTestSuites())
 
-    self.assertEqual(
-        ['dromaeo', 'really', 'scrolling'],
-        update_test_suites.FetchCachedTestSuites2())
+    self.assertEqual(['dromaeo', 'really', 'scrolling'],
+                     update_test_suites.FetchCachedTestSuites2())
 
   def testPost_InternalOnly(self):
     self.SetCurrentUser('internal@chromium.org')
@@ -130,19 +136,37 @@ class ListTestSuitesTest(testing_common.TestCase):
     self.assertEqual(
         {
             'dromaeo': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'internal_test': {
-                'mas': {'Chromium': {'internal_mac': False}},
+                'mas': {
+                    'Chromium': {
+                        'internal_mac': False
+                    }
+                },
             },
             'scrolling': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'really': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
-        },
-        update_test_suites.FetchCachedTestSuites())
+        }, update_test_suites.FetchCachedTestSuites())
 
   def testFetchCachedTestSuites_Empty_UpdatesWhenFetching(self):
     # If the cache is not set at all, then FetchCachedTestSuites
@@ -151,16 +175,30 @@ class ListTestSuitesTest(testing_common.TestCase):
     self.assertEqual(
         {
             'dromaeo': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'scrolling': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'really': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
-        },
-        update_test_suites.FetchCachedTestSuites())
+        }, update_test_suites.FetchCachedTestSuites())
 
   def testFetchSuites_BasicDescription(self):
     self._AddSampleData()
@@ -174,45 +212,75 @@ class ListTestSuitesTest(testing_common.TestCase):
     self.assertEqual(
         {
             'dromaeo': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'scrolling': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
                 'des': 'Description string.'
             },
             'really': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
-        },
-        update_test_suites.FetchCachedTestSuites())
+        }, update_test_suites.FetchCachedTestSuites())
 
   def testFetchSuites_DifferentMasters(self):
     # If the cache is not set at all, then FetchCachedTestSuites
     # just updates the cache before returning the list.
     self._AddSampleData()
-    testing_common.AddTests(
-        ['ChromiumFYI'],
-        ['linux'],
-        {
-            'sunspider': {
-                'Total': {},
-            },
-        }
-    )
+    testing_common.AddTests(['ChromiumFYI'], ['linux'], {
+        'sunspider': {
+            'Total': {},
+        },
+    })
     self.assertEqual(
         {
             'dromaeo': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'scrolling': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'really': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
-            'sunspider': {'mas': {'ChromiumFYI': {'linux': False}}},
-        },
-        update_test_suites._CreateTestSuiteDict())
+            'sunspider': {
+                'mas': {
+                    'ChromiumFYI': {
+                        'linux': False
+                    }
+                }
+            },
+        }, update_test_suites._CreateTestSuiteDict())
 
   def testFetchSuites_SingleDeprecatedBot(self):
     self._AddSampleData()
@@ -228,16 +296,30 @@ class ListTestSuitesTest(testing_common.TestCase):
     self.assertEqual(
         {
             'dromaeo': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'scrolling': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'really': {
-                'mas': {'Chromium': {'mac': False, 'win7': True}}
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': True
+                    }
+                }
             },
-        },
-        update_test_suites._CreateTestSuiteDict())
+        }, update_test_suites._CreateTestSuiteDict())
 
   def testFetchSuites_AllDeprecatedBots(self):
     self._AddSampleData()
@@ -253,17 +335,31 @@ class ListTestSuitesTest(testing_common.TestCase):
     self.assertEqual(
         {
             'dromaeo': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'scrolling': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'really': {
                 'dep': True,
-                'mas': {'Chromium': {'mac': True, 'win7': True}}
+                'mas': {
+                    'Chromium': {
+                        'mac': True,
+                        'win7': True
+                    }
+                }
             },
-        },
-        update_test_suites._CreateTestSuiteDict())
+        }, update_test_suites._CreateTestSuiteDict())
 
   def testFetchSuites_BasicMonitored(self):
     self._AddSampleData()
@@ -271,80 +367,100 @@ class ListTestSuitesTest(testing_common.TestCase):
     self.assertEqual(
         {
             'dromaeo': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'scrolling': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'really': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}}
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                }
             },
-        },
-        update_test_suites._CreateTestSuiteDict())
+        }, update_test_suites._CreateTestSuiteDict())
 
   def testFetchSuites_MultipleMonitored(self):
     self._AddSampleData()
-    testing_common.AddTests(
-        ['ChromiumFYI'],
-        ['linux'],
-        {
-            'dromaeo': {
-                'foo': {},
-            },
-        }
-    )
+    testing_common.AddTests(['ChromiumFYI'], ['linux'], {
+        'dromaeo': {
+            'foo': {},
+        },
+    })
 
     self.assertEqual(
         {
             'dromaeo': {
                 'mas': {
-                    'Chromium': {'mac': False, 'win7': False},
-                    'ChromiumFYI': {'linux': False}
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    },
+                    'ChromiumFYI': {
+                        'linux': False
+                    }
                 },
             },
             'scrolling': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                },
             },
             'really': {
-                'mas': {'Chromium': {'mac': False, 'win7': False}}
+                'mas': {
+                    'Chromium': {
+                        'mac': False,
+                        'win7': False
+                    }
+                }
             },
-        },
-        update_test_suites._CreateTestSuiteDict())
+        }, update_test_suites._CreateTestSuiteDict())
 
   def testFetchSuites(self):
     self._AddSampleData()
     suites = update_test_suites._FetchSuites()
     suite_keys = [s.key for s in suites]
     self.assertEqual(
-        list(map(utils.TestKey, [
-            'Chromium/mac/dromaeo',
-            'Chromium/mac/really',
-            'Chromium/mac/scrolling',
-            'Chromium/win7/dromaeo',
-            'Chromium/win7/really',
-            'Chromium/win7/scrolling',
-        ])),
-        suite_keys)
+        list(
+            map(utils.TestKey, [
+                'Chromium/mac/dromaeo',
+                'Chromium/mac/really',
+                'Chromium/mac/scrolling',
+                'Chromium/win7/dromaeo',
+                'Chromium/win7/really',
+                'Chromium/win7/scrolling',
+            ])), suite_keys)
 
   def testGetSubTestPath(self):
     key = utils.TestKey('Chromium/mac/my_suite/foo/bar')
     self.assertEqual('foo/bar', update_test_suites._GetTestSubPath(key))
 
   def testPartialTestSuites(self):
-    testing_common.AddTests(
-        ['master'],
-        ['bot'],
-        {
-            'TEST_PARTIAL_TEST_SUITE': {
-                'COMPOSITE': {
-                    'measurement': {},
-                },
+    testing_common.AddTests(['master'], ['bot'], {
+        'TEST_PARTIAL_TEST_SUITE': {
+            'COMPOSITE': {
+                'measurement': {},
             },
-        })
+        },
+    })
     self.testapp.post('/update_test_suites')
-    self.assertEqual(
-        ['TEST_PARTIAL_TEST_SUITE:COMPOSITE'],
-        update_test_suites.FetchCachedTestSuites2())
+    self.assertEqual(['TEST_PARTIAL_TEST_SUITE:COMPOSITE'],
+                     update_test_suites.FetchCachedTestSuites2())
 
 
 if __name__ == '__main__':

@@ -47,13 +47,20 @@ class BotsTest(_SwarmingTest):
 
   def testList(self):
     response = swarming.Swarming('https://server').Bots().List(
-        'CkMSPWoQ', {'pool': 'Chrome-perf', 'a': 'b'}, False, 1, True)
+        'CkMSPWoQ', {
+            'pool': 'Chrome-perf',
+            'a': 'b'
+        }, False, 1, True)
     self._AssertCorrectResponse(response)
 
     path = ('bots/list')
-    self._AssertRequestMadeOnce(path, cursor='CkMSPWoQ',
-                                dimensions=('a:b', 'pool:Chrome-perf'),
-                                is_dead=False, limit=1, quarantined=True)
+    self._AssertRequestMadeOnce(
+        path,
+        cursor='CkMSPWoQ',
+        dimensions=('a:b', 'pool:Chrome-perf'),
+        is_dead=False,
+        limit=1,
+        quarantined=True)
 
 
 class TaskTest(_SwarmingTest):
@@ -76,8 +83,8 @@ class TaskTest(_SwarmingTest):
   def testResultWithPerformanceStats(self):
     response = swarming.Swarming('https://server').Task('task_id').Result(True)
     self._AssertCorrectResponse(response)
-    self._AssertRequestMadeOnce('task/task_id/result',
-                                include_performance_stats=True)
+    self._AssertRequestMadeOnce(
+        'task/task_id/result', include_performance_stats=True)
 
   def testStdout(self):
     response = swarming.Swarming('https://server').Task('task_id').Stdout()
@@ -99,8 +106,14 @@ class TasksTest(_SwarmingTest):
             },
             'extra_args': ['--output-format=histograms'],
             'dimensions': [
-                {'key': 'id', 'value': 'bot_id'},
-                {'key': 'pool', 'value': 'Chrome-perf'},
+                {
+                    'key': 'id',
+                    'value': 'bot_id'
+                },
+                {
+                    'key': 'pool',
+                    'value': 'Chrome-perf'
+                },
             ],
             'execution_timeout_secs': '3600',
             'io_timeout_secs': '3600',

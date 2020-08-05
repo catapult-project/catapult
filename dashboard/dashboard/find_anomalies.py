@@ -393,9 +393,10 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
           queried_diagnostics.get(reserved_infos.OWNERS.name, {}).get('values'),
       'component':
           bug_components,
+
+      # Info blurbs should be a single string, and we'll only take the firs
+      #  element of the list of values.
       'info_blurb':
-          # Info blurbs should be a single string, and we'll only take the
-          # first element of the list of values.
           queried_diagnostics.get(reserved_infos.INFO_BLURB.name,
                                   {}).get('values', [None])[0],
   }

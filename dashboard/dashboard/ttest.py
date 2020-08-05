@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Functions for doing independent two-sample t-tests and looking up p-values.
 
 > A t-test is any statistical hypothesis test in which the test statistic
@@ -31,7 +30,6 @@ import collections
 import math
 
 from dashboard.common import math_utils
-
 
 # A container for the results of a t-test.
 TTestResult = collections.namedtuple('TTestResult', ('t', 'df', 'p'))
@@ -98,8 +96,7 @@ def _TValue(stats1, stats2):
     return float('inf')
   return math_utils.Divide(
       stats1.mean - stats2.mean,
-      math.sqrt(stats1.var / stats1.size +
-                stats2.var / stats2.size))
+      math.sqrt(stats1.var / stats1.size + stats2.var / stats2.size))
 
 
 def _DegreesOfFreedom(stats1, stats2):
@@ -131,11 +128,9 @@ def _DegreesOfFreedom(stats1, stats2):
   if stats2.size < 2:
     raise RuntimeError('Sample 2 size < 2. Actual size: %s' % stats2.size)
   df = math_utils.Divide(
-      (stats1.var / stats1.size + stats2.var / stats2.size) ** 2,
-      math_utils.Divide(stats1.var ** 2,
-                        (stats1.size ** 2) * (stats1.size - 1)) +
-      math_utils.Divide(stats2.var ** 2,
-                        (stats2.size ** 2) * (stats2.size - 1)))
+      (stats1.var / stats1.size + stats2.var / stats2.size)**2,
+      math_utils.Divide(stats1.var**2, (stats1.size**2) * (stats1.size - 1)) +
+      math_utils.Divide(stats2.var**2, (stats2.size**2) * (stats2.size - 1)))
   return max(1.0, df)
 
 

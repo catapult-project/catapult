@@ -12,14 +12,12 @@ import datetime
 from google.appengine.ext import ndb
 from dashboard.common import math_utils
 
-
 FETCH_LIMIT = 500
 
-Timings = collections.namedtuple(
-    'Timings', ('median', 'standard_deviation', 'p90'))
+Timings = collections.namedtuple('Timings',
+                                 ('median', 'standard_deviation', 'p90'))
 
-EstimateResult = collections.namedtuple(
-    'EstimateResult', ('timings', 'tags'))
+EstimateResult = collections.namedtuple('EstimateResult', ('timings', 'tags'))
 
 
 class TimingRecord(ndb.Model):
@@ -56,8 +54,11 @@ def RecordJobTiming(job):
     estimate = job.started_time + estimate.timings.median
 
   e = TimingRecord(
-      id=job.job_id, started=job.started_time, completed=job.updated,
-      estimate=estimate, tags=tags)
+      id=job.job_id,
+      started=job.started_time,
+      completed=job.updated,
+      estimate=estimate,
+      tags=tags)
   e.put()
 
 
@@ -94,8 +95,7 @@ def _Estimate(tags, completed_before=None):
   std_dev = math_utils.StandardDeviation(times)
   p90 = math_utils.Percentile(times, 0.9)
   timings = Timings(
-      datetime.timedelta(seconds=median),
-      datetime.timedelta(seconds=std_dev),
+      datetime.timedelta(seconds=median), datetime.timedelta(seconds=std_dev),
       datetime.timedelta(seconds=p90))
 
   return EstimateResult(timings, tags)

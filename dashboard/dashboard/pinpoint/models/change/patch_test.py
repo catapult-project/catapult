@@ -25,7 +25,9 @@ _GERRIT_CHANGE_INFO = {
         'current revision': {
             '_number': 5,
             'created': '2018-02-01 23:46:56.000000000',
-            'uploader': {'email': 'author@example.org'},
+            'uploader': {
+                'email': 'author@example.org'
+            },
             'fetch': {
                 'http': {
                     'url': 'https://googlesource.com/chromium/src',
@@ -38,7 +40,9 @@ _GERRIT_CHANGE_INFO = {
         'other revision': {
             '_number': 4,
             'created': '2018-02-01 23:46:56.000000000',
-            'uploader': {'email': 'author@example.org'},
+            'uploader': {
+                'email': 'author@example.org'
+            },
             'fetch': {
                 'http': {
                     'url': 'https://googlesource.com/chromium/src',
@@ -49,7 +53,9 @@ _GERRIT_CHANGE_INFO = {
         'yet another revision': {
             '_number': 3,
             'created': '2018-02-01 23:46:56.000000000',
-            'uploader': {'email': 'author@example.org'},
+            'uploader': {
+                'email': 'author@example.org'
+            },
             'fetch': {
                 'http': {
                     'url': 'https://googlesource.com/chromium/src',

@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """URL endpoint for a cron job to automatically run bisects."""
 from __future__ import print_function
 from __future__ import division
@@ -58,8 +57,8 @@ def _StartBisectForBug(bug_id):
   bot_configurations = namespaced_stored_object.Get('bot_configurations')
 
   if test.bot_name not in list(bot_configurations.keys()):
-    raise NotBisectableError(
-        'Bot: %s has no corresponding Pinpoint bot.' % test.bot_name)
+    raise NotBisectableError('Bot: %s has no corresponding Pinpoint bot.' %
+                             test.bot_name)
   return _StartPinpointBisect(bug_id, test_anomaly, test)
 
 

@@ -45,8 +45,8 @@ class DashboardDevServerConfig(object):
     return '/dashboard/tests.html'
 
   def AddOptionstToArgParseGroup(self, g):
-    g.add_argument('--dashboard-data-dir',
-                   default=self.project.dashboard_test_data_path)
+    g.add_argument(
+        '--dashboard-data-dir', default=self.project.dashboard_test_data_path)
 
   def GetRoutes(self, args):  # pylint: disable=unused-argument
     return [

@@ -6,7 +6,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-
 import json
 import sys
 
@@ -14,6 +13,7 @@ from google.appengine.ext import ndb
 
 from dashboard import post_data_handler
 from dashboard.models import histogram
+
 
 class GetDiagnosticsHandler(post_data_handler.PostDataHandler):
   """URL endpoint to get diagnostics by guid or test path."""
@@ -44,9 +44,7 @@ class GetDiagnosticsHandler(post_data_handler.PostDataHandler):
         return
       results = self._FetchByGuid(guid)
     elif test_path:
-      results = self._FetchByTestPath(test_path,
-                                      start_revision,
-                                      end_revision,
+      results = self._FetchByTestPath(test_path, start_revision, end_revision,
                                       name)
     else:
       self.ReportError('Missing parameter', status=400)
@@ -54,15 +52,13 @@ class GetDiagnosticsHandler(post_data_handler.PostDataHandler):
 
     diagnostics = []
     for result in results:
-      diagnostics.append(
-          {
-              'start_revision': result.start_revision,
-              'end_revision': result.end_revision,
-              'test_path': result.test.id(),
-              'name': result.name,
-              'data': result.data,
-          }
-      )
+      diagnostics.append({
+          'start_revision': result.start_revision,
+          'end_revision': result.end_revision,
+          'test_path': result.test.id(),
+          'name': result.name,
+          'data': result.data,
+      })
 
     self.response.out.write(json.dumps(diagnostics))
 
@@ -108,8 +104,10 @@ class GetDiagnosticsHandler(post_data_handler.PostDataHandler):
 
     if filter_again:
       # Workaround because appengine doesn't support two inequality filters
-      results = [result for result in results if
-                 result.start_revision <= int(end_revision)]
+      results = [
+          result for result in results
+          if result.start_revision <= int(end_revision)
+      ]
 
     if not results:
       self.ReportError('Diagnostic(s) not found', status=400)

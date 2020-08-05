@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides an endpoint and web interface for associating alerts with bug."""
 from __future__ import print_function
 from __future__ import division
@@ -47,8 +46,8 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
 
     urlsafe_keys = self.request.get('keys')
     if not urlsafe_keys:
-      self.RenderHtml('bug_result.html', {
-          'error': 'No alerts specified to add bugs to.'})
+      self.RenderHtml('bug_result.html',
+                      {'error': 'No alerts specified to add bugs to.'})
       return
 
     is_confirmed = bool(self.request.get('confirm'))
@@ -89,7 +88,8 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
     http = oauth2_decorator.DECORATOR.http()
     issue_tracker = issue_tracker_service.IssueTrackerService(http)
     response = issue_tracker.List(
-        q='opened-after:today-5', label='Type-Bug-Regression,Performance',
+        q='opened-after:today-5',
+        label='Type-Bug-Regression,Performance',
         sort='-id')
     return response.get('items', []) if response else []
 
@@ -109,9 +109,8 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
     try:
       bug_id = int(bug_id)
     except ValueError:
-      self.RenderHtml(
-          'bug_result.html',
-          {'error': 'Invalid bug ID "%s".' % str(bug_id)})
+      self.RenderHtml('bug_result.html',
+                      {'error': 'Invalid bug ID "%s".' % str(bug_id)})
       return
 
     # Get Anomaly entities and related TestMetadata entities.
@@ -166,12 +165,13 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
       parameters: Dictionary of request parameters to submit with confirm
                   dialog.
     """
-    self.RenderHtml('bug_result.html', {
-        'confirmation_required': True,
-        'handler': handler,
-        'message': message,
-        'parameters': parameters or {}
-    })
+    self.RenderHtml(
+        'bug_result.html', {
+            'confirmation_required': True,
+            'handler': handler,
+            'message': message,
+            'parameters': parameters or {}
+        })
 
 
 def AssociateAlerts(bug_id, alerts):

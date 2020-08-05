@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """URL endpoint to add new graph data to the datastore."""
 from __future__ import print_function
 from __future__ import division
@@ -23,6 +22,7 @@ from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
+
 
 class AddPointQueueHandler(request_handler.RequestHandler):
   """Request handler to process points and add them to the datastore.
@@ -88,7 +88,8 @@ class AddPointQueueHandler(request_handler.RequestHandler):
     # it requires the new row to have a timestamp, which happens upon put.
     futures = [
         graph_revisions.AddRowsToCacheAsync(added_rows),
-        find_anomalies.ProcessTestsAsync(tests_keys)]
+        find_anomalies.ProcessTestsAsync(tests_keys)
+    ]
     ndb.Future.wait_all(futures)
 
 
@@ -192,8 +193,12 @@ def _GetParentTest(row_dict):
   unescaped_story_name = row_dict.get('unescaped_story_name')
 
   parent_test = GetOrCreateAncestors(
-      master_name, bot_name, test_name, internal_only=internal_only,
-      benchmark_description=benchmark_description, units=units,
+      master_name,
+      bot_name,
+      test_name,
+      internal_only=internal_only,
+      benchmark_description=benchmark_description,
+      units=units,
       improvement_direction=improvement_direction,
       unescaped_story_name=unescaped_story_name)
 
@@ -207,10 +212,14 @@ def _ImprovementDirection(higher_is_better):
   return anomaly.UP if higher_is_better else anomaly.DOWN
 
 
-def GetOrCreateAncestors(
-    master_name, bot_name, test_name, internal_only=True,
-    benchmark_description='', units=None, improvement_direction=None,
-    unescaped_story_name=None):
+def GetOrCreateAncestors(master_name,
+                         bot_name,
+                         test_name,
+                         internal_only=True,
+                         benchmark_description='',
+                         units=None,
+                         improvement_direction=None,
+                         unescaped_story_name=None):
   """Gets or creates all parent Master, Bot, TestMetadata entities for a Row."""
 
   master_entity = _GetOrCreateMaster(master_name)
@@ -233,8 +242,8 @@ def GetOrCreateAncestors(
       test_properties['improvement_direction'] = improvement_direction
     if is_leaf_test and unescaped_story_name is not None:
       test_properties['unescaped_story_name'] = unescaped_story_name
-    ancestor_test = _GetOrCreateTest(
-        ancestor_test_name, test_path, test_properties)
+    ancestor_test = _GetOrCreateTest(ancestor_test_name, test_path,
+                                     test_properties)
     if index == 0:
       suite = ancestor_test
     test_path = ancestor_test.test_path
@@ -330,8 +339,8 @@ def _GetOrCreateTest(name, parent_test_path, properties):
 
   # Go through the list of general properties and update if necessary.
   for prop, value in list(properties.items()):
-    if (hasattr(existing, prop) and value is not None and
-        getattr(existing, prop) != value):
+    if (hasattr(existing, prop) and value is not None
+        and getattr(existing, prop) != value):
       setattr(existing, prop, value)
       properties_changed = True
 

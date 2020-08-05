@@ -90,10 +90,12 @@ class FunctionalityTest(test.TestCase):
 
   def testGetUnknownIsolate(self):
     params = {
-        'builder_name': 'Mac Builder',
+        'builder_name':
+            'Mac Builder',
         'change':
             '{"commits": [{"repository": "chromium", "git_hash": "hash"}]}',
-        'target': 'not a real target',
+        'target':
+            'not a real target',
     }
     self.testapp.get('/api/isolate', params, status=404)
 
@@ -106,17 +108,21 @@ class ParameterValidationTest(test.TestCase):
 
   def testExtraParameter(self):
     params = {
-        'builder_name': 'Mac Builder',
+        'builder_name':
+            'Mac Builder',
         'change':
             '{"commits": [{"repository": "chromium", "git_hash": "hash"}]}',
-        'target': 'telemetry_perf_tests',
-        'extra_parameter': '',
+        'target':
+            'telemetry_perf_tests',
+        'extra_parameter':
+            '',
     }
     self.testapp.get('/api/isolate', params, status=400)
 
   def testMissingParameter(self):
     params = {
-        'builder_name': 'Mac Builder',
+        'builder_name':
+            'Mac Builder',
         'change':
             '{"commits": [{"repository": "chromium", "git_hash": "hash"}]}',
     }
@@ -124,10 +130,12 @@ class ParameterValidationTest(test.TestCase):
 
   def testEmptyParameter(self):
     params = {
-        'builder_name': 'Mac Builder',
+        'builder_name':
+            'Mac Builder',
         'change':
             '{"commits": [{"repository": "chromium", "git_hash": "hash"}]}',
-        'target': '',
+        'target':
+            '',
     }
     self.testapp.get('/api/isolate', params, status=400)
 

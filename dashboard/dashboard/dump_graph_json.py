@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides a web interface for dumping graph data as JSON.
 
 This is meant to be used with /load_from_prod in order to easily grab

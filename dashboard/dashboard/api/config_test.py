@@ -51,4 +51,3 @@ class ConfigTest(testing_common.TestCase):
 
 if __name__ == '__main__':
   unittest.main()
-

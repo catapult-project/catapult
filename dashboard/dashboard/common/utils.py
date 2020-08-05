@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """General functions which are useful throughout this project."""
 from __future__ import print_function
 from __future__ import division
@@ -35,9 +34,7 @@ PINPOINT_REPO_EXCLUSION_KEY = 'pinpoint_repo_exclusions'
 EMAIL_SCOPE = 'https://www.googleapis.com/auth/userinfo.email'
 _PROJECT_ID_KEY = 'project_id'
 _DEFAULT_CUSTOM_METRIC_VAL = 1
-OAUTH_SCOPES = (
-    'https://www.googleapis.com/auth/userinfo.email',
-)
+OAUTH_SCOPES = ('https://www.googleapis.com/auth/userinfo.email',)
 OAUTH_ENDPOINTS = ['/api/', '/add_histograms', '/add_point']
 
 _AUTOROLL_DOMAINS = (
@@ -107,8 +104,7 @@ def TickMonitoringCustomMetric(metric_name):
     metric_name: The name of the metric being monitored.
   """
   credentials = client.GoogleCredentials.get_application_default()
-  monitoring = discovery.build(
-      'monitoring', 'v3', credentials=credentials)
+  monitoring = discovery.build('monitoring', 'v3', credentials=credentials)
   now = _GetNowRfc3339()
   project_id = stored_object.Get(_PROJECT_ID_KEY)
   points = [{
@@ -121,13 +117,15 @@ def TickMonitoringCustomMetric(metric_name):
       },
   }]
   write_request = monitoring.projects().timeSeries().create(
-      name='projects/%s' %project_id,
-      body={'timeSeries': [{
-          'metric': {
-              'type': 'custom.googleapis.com/%s' % metric_name,
-          },
-          'points': points
-      }]})
+      name='projects/%s' % project_id,
+      body={
+          'timeSeries': [{
+              'metric': {
+                  'type': 'custom.googleapis.com/%s' % metric_name,
+              },
+              'points': points
+          }]
+      })
   write_request.execute()
 
 
@@ -212,8 +210,8 @@ def OldStyleTestKey(key_or_string):
     return None
   elif isinstance(key_or_string, ndb.Key) and key_or_string.kind() == 'Test':
     return key_or_string
-  if (isinstance(key_or_string, ndb.Key) and
-      key_or_string.kind() == 'TestMetadata'):
+  if (isinstance(key_or_string, ndb.Key)
+      and key_or_string.kind() == 'TestMetadata'):
     key_or_string = key_or_string.id()
   assert isinstance(key_or_string, basestring)
   path_parts = key_or_string.split('/')
@@ -540,7 +538,9 @@ def IsGroupMember(identity, group):
     discovery_url = ('https://chrome-infra-auth.appspot.com'
                      '/_ah/api/discovery/v1/apis/{api}/{apiVersion}/rest')
     service = discovery.build(
-        'auth', 'v1', discoveryServiceUrl=discovery_url,
+        'auth',
+        'v1',
+        discoveryServiceUrl=discovery_url,
         http=ServiceAccountHttp())
     request = service.membership(identity=identity, group=group)
     response = request.execute()
@@ -557,7 +557,8 @@ def GetCachedIsGroupMember(identity, group):
 
 
 def SetCachedIsGroupMember(identity, group, value):
-  memcache.set(_IsGroupMemberCacheKey(identity, group), value, time=60*60*24)
+  memcache.set(
+      _IsGroupMemberCacheKey(identity, group), value, time=60 * 60 * 24)
 
 
 def _IsGroupMemberCacheKey(identity, group):
@@ -613,8 +614,8 @@ def GetRepositoryExclusions():
   # TODO(abennetts): determine if this caching hack is useful.
   global _PINPOINT_REPO_EXCLUSION_CACHED
   if _PINPOINT_REPO_EXCLUSION_CACHED.IsStale(_PINPOINT_REPO_EXCLUSION_TTL):
-    _PINPOINT_REPO_EXCLUSION_CACHED = _SimpleCache(
-        time.time(), _GetRepositoryExclusions())
+    _PINPOINT_REPO_EXCLUSION_CACHED = _SimpleCache(time.time(),
+                                                   _GetRepositoryExclusions())
   return _PINPOINT_REPO_EXCLUSION_CACHED.value
 
 
@@ -644,6 +645,7 @@ def Validate(expected, actual):
         keys and type.  A dictionary can contain a list of expected values.
     actual: A value.
   """
+
   def IsValidType(expected, actual):
     if isinstance(expected, type) and not isinstance(actual, expected):
       try:
@@ -671,12 +673,12 @@ def Validate(expected, actual):
                        '%s. Actual: %s.' % (','.join(expected), actual))
   elif expected_type is dict:
     if actual_type is not dict:
-      raise ValueError('Invalid type. Expected: %s. Actual: %s.'
-                       % (expected_type, actual_type))
+      raise ValueError('Invalid type. Expected: %s. Actual: %s.' %
+                       (expected_type, actual_type))
     missing = set(expected.keys()) - set(actual.keys())
     if missing:
-      raise ValueError('Missing the following properties: %s'
-                       % ','.join(missing))
+      raise ValueError('Missing the following properties: %s' %
+                       ','.join(missing))
     for key in expected:
       Validate(expected[key], actual[key])
   elif not IsValidType(expected, actual):
@@ -708,8 +710,7 @@ def FetchURL(request_url, skip_status_code=False):
   if skip_status_code:
     return response
   elif response.status_code != 200:
-    logging.error(
-        'ERROR %s checking %s', response.status_code, request_url)
+    logging.error('ERROR %s checking %s', response.status_code, request_url)
     return None
   return response
 
@@ -738,13 +739,12 @@ def GetStdioLinkFromRow(row):
   Due to crbug.com/690630, many row entities have this set to "a_a_stdio_uri"
   instead of "a_stdio_uri".
   """
-  return(getattr(row, 'a_stdio_uri', None) or
-         getattr(row, 'a_a_stdio_uri', None))
+  return (getattr(row, 'a_stdio_uri', None)
+          or getattr(row, 'a_a_stdio_uri', None))
 
 
 def GetBuildbotStatusPageUriFromStdioLink(stdio_link):
-  base_url, _, bot, buildnumber, _ = GetBuildDetailsFromStdioLink(
-      stdio_link)
+  base_url, _, bot, buildnumber, _ = GetBuildDetailsFromStdioLink(stdio_link)
   if not base_url:
     # Can't parse status page
     return None
@@ -758,13 +758,17 @@ def GetLogdogLogUriFromStdioLink(stdio_link):
     # Can't parse status page
     return None
   bot = re.sub(r'[ \(\)]', '_', bot)
-  s_param = urllib.quote('chrome/bb/%s/%s/%s/+/recipes/steps/%s/0/stdout' % (
-      master, bot, buildnumber, step), safe='')
+  s_param = urllib.quote(
+      'chrome/bb/%s/%s/%s/+/recipes/steps/%s/0/stdout' %
+      (master, bot, buildnumber, step),
+      safe='')
   return 'https://luci-logdog.appspot.com/v/?s=%s' % s_param
+
 
 def GetRowKey(testmetadata_key, revision):
   test_container_key = GetTestContainerKey(testmetadata_key)
   return ndb.Key('Row', revision, parent=test_container_key)
+
 
 def GetSheriffForAutorollCommit(author, message):
   if author.split('@')[-1] not in _AUTOROLL_DOMAINS:

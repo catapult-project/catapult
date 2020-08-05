@@ -14,7 +14,6 @@ import mock
 
 from dashboard.services import isolate
 
-
 _FILE_HASH = 'c6911f39564106542b28081c81bde61c43121bda'
 _ISOLATED_HASH = 'fc5e63011ae25b057b3097eba4413fc357c05cff'
 
@@ -25,8 +24,9 @@ class IsolateServiceTest(unittest.TestCase):
 
   def testRetrieveUrl(self, request_json, request):
     request_json.return_value = {
-        'url': 'https://isolateserver.storage.googleapis.com/default-gzip/' +
-               _FILE_HASH
+        'url':
+            'https://isolateserver.storage.googleapis.com/default-gzip/' +
+            _FILE_HASH
     }
     request.return_value = zlib.compress('file contents')
 
@@ -51,7 +51,9 @@ class IsolateServiceTest(unittest.TestCase):
 
     url = 'https://isolate.com/_ah/api/isolateservice/v1/retrieve'
     body = {
-        'namespace': {'namespace': 'default-gzip'},
+        'namespace': {
+            'namespace': 'default-gzip'
+        },
         'digest': _ISOLATED_HASH,
     }
     request_json.assert_called_once_with(url, 'POST', body)

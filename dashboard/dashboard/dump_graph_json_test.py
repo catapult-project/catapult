@@ -26,8 +26,8 @@ class DumpGraphJsonTest(testing_common.TestCase):
 
   def setUp(self):
     super(DumpGraphJsonTest, self).setUp()
-    app = webapp2.WSGIApplication([(
-        '/dump_graph_json', dump_graph_json.DumpGraphJsonHandler)])
+    app = webapp2.WSGIApplication([('/dump_graph_json',
+                                    dump_graph_json.DumpGraphJsonHandler)])
     self.testapp = webtest.TestApp(app)
 
   def testGet_DumpJson_Basic(self):
@@ -64,25 +64,24 @@ class DumpGraphJsonTest(testing_common.TestCase):
 
     # There is a maximum number of rows returned by default, and the rows
     # are listed with latest revisions first.
-    response = self.testapp.get(
-        '/dump_graph_json',
-        {'test_path': 'M/b/foo'})
+    response = self.testapp.get('/dump_graph_json', {'test_path': 'M/b/foo'})
     protobuf_strings = json.loads(response.body)
     entities = list(
         map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings))
     out_rows = _EntitiesOfKind(entities, 'Row')
     expected_num_rows = dump_graph_json._DEFAULT_MAX_POINTS
     self.assertEqual(expected_num_rows, len(out_rows))
-    expected_rev_range = range(
-        highest_rev, highest_rev + 1 - expected_num_rows, -1)
+    expected_rev_range = range(highest_rev, highest_rev + 1 - expected_num_rows,
+                               -1)
     for expected_rev, row in zip(expected_rev_range, out_rows):
       self.assertEqual(expected_rev, row.revision)
       self.assertEqual(expected_rev * 2, row.value)
 
     # Specifying end_rev sets the final revision.
-    response = self.testapp.get(
-        '/dump_graph_json',
-        {'test_path': 'M/b/foo', 'end_rev': 1199})
+    response = self.testapp.get('/dump_graph_json', {
+        'test_path': 'M/b/foo',
+        'end_rev': 1199
+    })
     protobuf_strings = json.loads(response.body)
     entities = list(
         map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings))
@@ -92,9 +91,10 @@ class DumpGraphJsonTest(testing_common.TestCase):
     self.assertEqual(1199, out_rows[0].revision)
 
     # An alternative max number of rows can be specified.
-    response = self.testapp.get(
-        '/dump_graph_json',
-        {'test_path': 'M/b/foo', 'num_points': 4})
+    response = self.testapp.get('/dump_graph_json', {
+        'test_path': 'M/b/foo',
+        'num_points': 4
+    })
     protobuf_strings = json.loads(response.body)
     entities = list(
         map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings))
@@ -111,9 +111,7 @@ class DumpGraphJsonTest(testing_common.TestCase):
 
     # Anomaly entities for the requested test, as well as sheriffs for
     # the aforementioned Anomaly, should be returned.
-    response = self.testapp.get(
-        '/dump_graph_json',
-        {'test_path': 'M/b/foo'})
+    response = self.testapp.get('/dump_graph_json', {'test_path': 'M/b/foo'})
     protobuf_strings = json.loads(response.body)
     self.assertEqual(5, len(protobuf_strings))
     entities = list(
@@ -133,13 +131,9 @@ class DumpGraphJsonTest(testing_common.TestCase):
     test_con_foo_key = utils.GetTestContainerKey(test_key_foo)
     test_con_bar_key = utils.GetTestContainerKey(test_key_bar)
     chromium_subscription = Subscription(
-        name='Chromium Perf Sheriff',
-        notification_email='chrisphan@google.com'
-    )
+        name='Chromium Perf Sheriff', notification_email='chrisphan@google.com')
     qa_subscription = Subscription(
-        name='QA Perf Sheriff',
-        notification_email='chrisphan@google.com'
-    )
+        name='QA Perf Sheriff', notification_email='chrisphan@google.com')
     anomaly.Anomaly(
         subscriptions=[chromium_subscription],
         subscription_names=[chromium_subscription.name],
@@ -161,9 +155,8 @@ class DumpGraphJsonTest(testing_common.TestCase):
 
     # Anomaly entities, Row entities, TestMetadata, and Sheriff entities for
     # parameter 'sheriff' should be returned.
-    response = self.testapp.get(
-        '/dump_graph_json',
-        {'sheriff': 'Chromium Perf Sheriff'})
+    response = self.testapp.get('/dump_graph_json',
+                                {'sheriff': 'Chromium Perf Sheriff'})
     protobuf_strings = json.loads(response.body)
     self.assertEqual(default_max_points + 5, len(protobuf_strings))
     entities = list(
@@ -188,8 +181,10 @@ class DumpGraphJsonTest(testing_common.TestCase):
 
 def _EntitiesOfKind(entities, kind):
   """Returns a sublist of entities that are of a certain kind."""
+
   def _GetKind(entity):
     return str(type(entity)).split('<')[0]
+
   return [e for e in entities if _GetKind(e) == kind]
 
 

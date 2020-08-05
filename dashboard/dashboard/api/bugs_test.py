@@ -17,44 +17,49 @@ from dashboard.common import utils
 
 class MockIssueTrackerService(object):
   """A fake version of IssueTrackerService that returns expected data."""
+
   def __init__(self, http=None):
     pass
 
   @classmethod
   def List(cls, project='chromium', *unused_args, **unused_kwargs):
     del project
-    return {'items': [
-        {
-            'id': 12345,
-            'summary': '5% regression in bot/suite/x at 10000:20000',
-            'state': 'open',
-            'status': 'New',
-            'author': {'name': 'exam...@google.com'},
-        },
-        {
-            'id': 13579,
-            'summary': '1% regression in bot/suite/y at 10000:20000',
-            'state': 'closed',
-            'status': 'WontFix',
-            'author': {'name': 'exam...@google.com'},
-        },
-    ]}
+    return {
+        'items': [
+            {
+                'id': 12345,
+                'summary': '5% regression in bot/suite/x at 10000:20000',
+                'state': 'open',
+                'status': 'New',
+                'author': {
+                    'name': 'exam...@google.com'
+                },
+            },
+            {
+                'id': 13579,
+                'summary': '1% regression in bot/suite/y at 10000:20000',
+                'state': 'closed',
+                'status': 'WontFix',
+                'author': {
+                    'name': 'exam...@google.com'
+                },
+            },
+        ]
+    }
 
   @classmethod
   def GetIssue(cls, bug_id, project='chromium'):
     del bug_id
     del project
     return {
-        'cc': [
-            {
-                'kind': 'monorail#issuePerson',
-                'htmlLink': 'https://bugs.chromium.org/u/1253971105',
-                'name': 'user@chromium.org',
-            }, {
-                'kind': 'monorail#issuePerson',
-                'name': 'hello@world.org',
-            }
-        ],
+        'cc': [{
+            'kind': 'monorail#issuePerson',
+            'htmlLink': 'https://bugs.chromium.org/u/1253971105',
+            'name': 'user@chromium.org',
+        }, {
+            'kind': 'monorail#issuePerson',
+            'name': 'hello@world.org',
+        }],
         'labels': [
             'Type-Bug',
             'Pri-3',
@@ -133,8 +138,8 @@ class BugsTest(testing_common.TestCase):
     self.assertEqual('chromium', bug.get('projectId'))
     self.assertEqual(2, len(bug.get('comments')))
     self.assertEqual('Comment two', bug.get('comments')[1].get('content'))
-    self.assertEqual(
-        'author-two@chromium.org', bug.get('comments')[1].get('author'))
+    self.assertEqual('author-two@chromium.org',
+                     bug.get('comments')[1].get('author'))
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   def testPost_WithAlternateUrlWorksWithProjects(self):
@@ -153,8 +158,8 @@ class BugsTest(testing_common.TestCase):
     self.assertEqual('chromium', bug.get('projectId'))
     self.assertEqual(2, len(bug.get('comments')))
     self.assertEqual('Comment two', bug.get('comments')[1].get('content'))
-    self.assertEqual(
-        'author-two@chromium.org', bug.get('comments')[1].get('author'))
+    self.assertEqual('author-two@chromium.org',
+                     bug.get('comments')[1].get('author'))
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   def testPost_WithValidBugButNoComments(self):
@@ -167,8 +172,8 @@ class BugsTest(testing_common.TestCase):
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   def testPost_Recent(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
-    self.assertEqual(MockIssueTrackerService.List()['items'], self.GetJsonValue(
-        self.Post('/api/bugs/recent'), 'bugs'))
+    self.assertEqual(MockIssueTrackerService.List()['items'],
+                     self.GetJsonValue(self.Post('/api/bugs/recent'), 'bugs'))
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   def testPost_WithInvalidBugIdParameter_ShowsError(self):

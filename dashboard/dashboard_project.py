@@ -47,8 +47,7 @@ def _IsFilenameATest(x):
 
 
 class DashboardProject(object):
-  catapult_path = os.path.abspath(
-      os.path.join(os.path.dirname(__file__), '..'))
+  catapult_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
   catapult_third_party_path = os.path.join(catapult_path, 'third_party')
 
@@ -84,9 +83,12 @@ class DashboardProject(object):
     if pred is None:
       pred = lambda x: True
     all_filenames = _FindAllFilesRecursive([self.dashboard_src_path])
-    test_module_filenames = [x for x in all_filenames if
-                             _IsFilenameATest(x) and pred(x)]
+    test_module_filenames = [
+        x for x in all_filenames if _IsFilenameATest(x) and pred(x)
+    ]
     test_module_filenames.sort()
 
-    return [os.path.relpath(x, self.dashboard_root_path)
-            for x in test_module_filenames]
+    return [
+        os.path.relpath(x, self.dashboard_root_path)
+        for x in test_module_filenames
+    ]

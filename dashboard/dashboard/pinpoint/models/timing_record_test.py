@@ -38,7 +38,11 @@ class RecordTimingTest(test.TestCase):
 
   def testRecord_Try_Success(self):
     j = self._RecordTiming(
-        {'configuration': 'linux', 'benchmark': 'foo', 'story': 'bar'},
+        {
+            'configuration': 'linux',
+            'benchmark': 'foo',
+            'story': 'bar'
+        },
         datetime.datetime.now() - datetime.timedelta(minutes=1),
         datetime.datetime.now())
 
@@ -52,16 +56,25 @@ class RecordTimingTest(test.TestCase):
 
   def testRecord_Performance_Success(self):
     j = self._RecordTiming(
-        {'configuration': 'linux', 'benchmark': 'foo', 'story': 'bar'},
+        {
+            'configuration': 'linux',
+            'benchmark': 'foo',
+            'story': 'bar'
+        },
         datetime.datetime.now() - datetime.timedelta(minutes=1),
-        datetime.datetime.now(), comparison_mode=job_state.PERFORMANCE)
+        datetime.datetime.now(),
+        comparison_mode=job_state.PERFORMANCE)
 
     _, tags = timing_record.GetSimilarHistoricalTimings(j)
     self.assertEqual(['performance', 'linux', 'foo', 'bar'], tags)
 
   def testRecord_Once(self):
     j = self._RecordTiming(
-        {'configuration': 'linux', 'benchmark': 'foo', 'story': 'bar'},
+        {
+            'configuration': 'linux',
+            'benchmark': 'foo',
+            'story': 'bar'
+        },
         datetime.datetime.now() - datetime.timedelta(minutes=1),
         datetime.datetime.now())
 
@@ -75,16 +88,22 @@ class RecordTimingTest(test.TestCase):
   def testGetSimilarHistoricalTimings_Same(self):
     now = datetime.datetime.now()
     self._RecordTiming(
-        {'configuration': 'linux', 'benchmark': 'foo', 'story': 'bar1'},
-        now - datetime.timedelta(minutes=1), now)
+        {
+            'configuration': 'linux',
+            'benchmark': 'foo',
+            'story': 'bar1'
+        }, now - datetime.timedelta(minutes=1), now)
 
     median = math_utils.Median([i for i in range(0, 10)])
     std_dev = math_utils.StandardDeviation([i for i in range(0, 10)])
     p90 = math_utils.Percentile([i for i in range(0, 10)], 0.9)
     for i in range(0, 10):
       j = self._RecordTiming(
-          {'configuration': 'linux', 'benchmark': 'foo', 'story': 'bar2'},
-          now - datetime.timedelta(seconds=i), now)
+          {
+              'configuration': 'linux',
+              'benchmark': 'foo',
+              'story': 'bar2'
+          }, now - datetime.timedelta(seconds=i), now)
 
     timings, tags = timing_record.GetSimilarHistoricalTimings(j)
 
@@ -97,20 +116,31 @@ class RecordTimingTest(test.TestCase):
     now = datetime.datetime.now()
 
     self._RecordTiming(
-        {'configuration': 'linux', 'benchmark': 'foo1', 'story': 'bar1'},
-        now - datetime.timedelta(hours=1), now)
+        {
+            'configuration': 'linux',
+            'benchmark': 'foo1',
+            'story': 'bar1'
+        }, now - datetime.timedelta(hours=1), now)
 
     self._RecordTiming(
-        {'configuration': 'linux', 'benchmark': 'foo2', 'story': 'bar1'},
-        now - datetime.timedelta(seconds=12), now)
+        {
+            'configuration': 'linux',
+            'benchmark': 'foo2',
+            'story': 'bar1'
+        }, now - datetime.timedelta(seconds=12), now)
 
     self._RecordTiming(
-        {'configuration': 'linux', 'benchmark': 'foo2', 'story': 'bar2'},
-        now - datetime.timedelta(seconds=10), now)
+        {
+            'configuration': 'linux',
+            'benchmark': 'foo2',
+            'story': 'bar2'
+        }, now - datetime.timedelta(seconds=10), now)
 
     j = job.Job.New((), ())
     j.arguments = {
-        'configuration': 'linux', 'benchmark': 'foo2', 'story': 'bar3'
+        'configuration': 'linux',
+        'benchmark': 'foo2',
+        'story': 'bar3'
     }
 
     timings, tags = timing_record.GetSimilarHistoricalTimings(j)
@@ -122,24 +152,38 @@ class RecordTimingTest(test.TestCase):
     now = datetime.datetime.now()
 
     self._RecordTiming(
-        {'configuration': 'windows', 'benchmark': 'foo1', 'story': 'bar1'},
-        now - datetime.timedelta(seconds=14), now)
+        {
+            'configuration': 'windows',
+            'benchmark': 'foo1',
+            'story': 'bar1'
+        }, now - datetime.timedelta(seconds=14), now)
 
     self._RecordTiming(
-        {'configuration': 'linux', 'benchmark': 'foo1', 'story': 'bar1'},
-        now - datetime.timedelta(seconds=14), now)
+        {
+            'configuration': 'linux',
+            'benchmark': 'foo1',
+            'story': 'bar1'
+        }, now - datetime.timedelta(seconds=14), now)
 
     self._RecordTiming(
-        {'configuration': 'linux', 'benchmark': 'foo2', 'story': 'bar1'},
-        now - datetime.timedelta(seconds=12), now)
+        {
+            'configuration': 'linux',
+            'benchmark': 'foo2',
+            'story': 'bar1'
+        }, now - datetime.timedelta(seconds=12), now)
 
     self._RecordTiming(
-        {'configuration': 'linux', 'benchmark': 'foo2', 'story': 'bar2'},
-        now - datetime.timedelta(seconds=10), now)
+        {
+            'configuration': 'linux',
+            'benchmark': 'foo2',
+            'story': 'bar2'
+        }, now - datetime.timedelta(seconds=10), now)
 
     j = job.Job.New((), ())
     j.arguments = {
-        'configuration': 'linux', 'benchmark': 'foo3', 'story': 'bar1'
+        'configuration': 'linux',
+        'benchmark': 'foo3',
+        'story': 'bar1'
     }
 
     timings, tags = timing_record.GetSimilarHistoricalTimings(j)
@@ -151,20 +195,31 @@ class RecordTimingTest(test.TestCase):
     now = datetime.datetime.now()
 
     self._RecordTiming(
-        {'configuration': 'mac', 'benchmark': 'foo1', 'story': 'bar1'},
-        now - datetime.timedelta(seconds=14), now)
+        {
+            'configuration': 'mac',
+            'benchmark': 'foo1',
+            'story': 'bar1'
+        }, now - datetime.timedelta(seconds=14), now)
 
     self._RecordTiming(
-        {'configuration': 'windows', 'benchmark': 'foo1', 'story': 'bar1'},
-        now - datetime.timedelta(seconds=12), now)
+        {
+            'configuration': 'windows',
+            'benchmark': 'foo1',
+            'story': 'bar1'
+        }, now - datetime.timedelta(seconds=12), now)
 
     self._RecordTiming(
-        {'configuration': 'linux', 'benchmark': 'foo2', 'story': 'bar2'},
-        now - datetime.timedelta(seconds=10), now)
+        {
+            'configuration': 'linux',
+            'benchmark': 'foo2',
+            'story': 'bar2'
+        }, now - datetime.timedelta(seconds=10), now)
 
     j = job.Job.New((), ())
     j.arguments = {
-        'configuration': 'coco', 'benchmark': 'foo1', 'story': 'bar1'
+        'configuration': 'coco',
+        'benchmark': 'foo1',
+        'story': 'bar1'
     }
 
     timings, tags = timing_record.GetSimilarHistoricalTimings(j)
@@ -175,8 +230,11 @@ class RecordTimingTest(test.TestCase):
   def testRecord_Estimate_Recorded(self):
     now = datetime.datetime.now()
     j1 = self._Job(
-        {'configuration': 'linux', 'benchmark': 'foo', 'story': 'bar'},
-        now - datetime.timedelta(minutes=5),
+        {
+            'configuration': 'linux',
+            'benchmark': 'foo',
+            'story': 'bar'
+        }, now - datetime.timedelta(minutes=5),
         now - datetime.timedelta(minutes=4))
     e1 = timing_record.GetSimilarHistoricalTimings(j1)
     timing_record.RecordJobTiming(j1)
@@ -187,8 +245,11 @@ class RecordTimingTest(test.TestCase):
     self.assertIsNone(t1.estimate)
 
     j2 = self._RecordTiming(
-        {'configuration': 'linux', 'benchmark': 'foo', 'story': 'bar'},
-        now - datetime.timedelta(minutes=3),
+        {
+            'configuration': 'linux',
+            'benchmark': 'foo',
+            'story': 'bar'
+        }, now - datetime.timedelta(minutes=3),
         now - datetime.timedelta(minutes=2))
     e2 = timing_record.GetSimilarHistoricalTimings(j2)
     timing_record.RecordJobTiming(j2)

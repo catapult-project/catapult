@@ -39,6 +39,7 @@ _MIN_PERCENTAGE_DIFFERENT = 0.05
 # testing use to find potential rearrangements of the underlying data.
 _MAX_SUBSAMPLING_LENGTH = 40
 
+
 class Error(Exception):
   pass
 
@@ -123,6 +124,7 @@ def PermutationTest(sequence, rand=None):
   total = float(sames + unknowns + differences)
   probability = float(differences) / total if total > 0. else 0.
   return probability
+
 
 def Estimator(sequence, index):
   cluster_a, cluster_b = Cluster(sequence, index)
@@ -218,8 +220,7 @@ def ClusterAndFindSplit(values, rand=None):
   length = len(values)
   if length <= 3:
     raise InsufficientData(
-        'Sequence is not larger than minimum length (%s <= %s)' %
-        (length, 3))
+        'Sequence is not larger than minimum length (%s <= %s)' % (length, 3))
   candidate_indices = set()
   exploration_queue = [(0, length)]
   while exploration_queue:

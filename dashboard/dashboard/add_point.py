@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """URL endpoint to allow Buildbot slaves to post data to the dashboard."""
 from __future__ import print_function
 from __future__ import division
@@ -248,14 +247,14 @@ def _DashboardJsonToRawRows(dash_json_dict):
     for trace in charts[chart]:
       # Need to do a deep copy here so we don't copy a_tracing_uri data.
       row = copy.deepcopy(row_template)
-      specific_vals = _FlattenTrace(
-          test_suite_name, chart, trace, charts[chart][trace], is_ref,
-          tracing_links, benchmark_description)
+      specific_vals = _FlattenTrace(test_suite_name, chart, trace,
+                                    charts[chart][trace], is_ref, tracing_links,
+                                    benchmark_description)
       # Telemetry may validly produce rows that represent a value of NaN. To
       # avoid getting into messy situations with alerts, we do not add such
       # rows to be processed.
-      if not (math.isnan(specific_vals['value']) or
-              math.isnan(specific_vals['error'])):
+      if not (math.isnan(specific_vals['value'])
+              or math.isnan(specific_vals['error'])):
         if specific_vals['tracing_uri']:
           row['supplemental_columns']['a_tracing_uri'] = specific_vals[
               'tracing_uri']
@@ -294,13 +293,14 @@ def _AddTasks(data):
   """
   task_list = []
   for data_sublist in _Chunk(data, _TASK_QUEUE_SIZE):
-    task_list.append(taskqueue.Task(
-        url='/add_point_queue',
-        params={'data': json.dumps(data_sublist)}))
+    task_list.append(
+        taskqueue.Task(
+            url='/add_point_queue', params={'data': json.dumps(data_sublist)}))
 
   queue = taskqueue.Queue(_TASK_QUEUE_NAME)
-  futures = [queue.add_async(t)
-             for t in _Chunk(task_list, taskqueue.MAX_TASKS_PER_ADD)]
+  futures = [
+      queue.add_async(t) for t in _Chunk(task_list, taskqueue.MAX_TASKS_PER_ADD)
+  ]
   for f in futures:
     f.get_result()
 
@@ -358,8 +358,13 @@ def _MakeRowTemplate(dash_json_dict):
   return row_template
 
 
-def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
-                  is_ref=False, tracing_links=None, benchmark_description=''):
+def _FlattenTrace(test_suite_name,
+                  chart_name,
+                  trace_name,
+                  trace,
+                  is_ref=False,
+                  tracing_links=None,
+                  benchmark_description=''):
   """Takes a trace dict from dashboard JSON and readies it for display.
 
   Traces can be either scalars or lists; if scalar we take the value directly;
@@ -394,9 +399,8 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
   # If there is a link to an about:tracing trace in cloud storage for this
   # test trace_name, cache it.
   tracing_uri = None
-  if (tracing_links and
-      trace_name in tracing_links and
-      'cloud_url' in tracing_links[trace_name]):
+  if (tracing_links and trace_name in tracing_links
+      and 'cloud_url' in tracing_links[trace_name]):
     tracing_uri = tracing_links[trace_name]['cloud_url'].replace('\\/', '/')
 
   story_name = trace_name
@@ -529,7 +533,7 @@ def _GeomMeanAndStdDevFromHistogram(histogram):
   geom_mean = math.exp(sum_of_logs / count)
   for bucket in histogram['buckets']:
     if bucket['mean'] > 0:
-      sum_of_squares += (bucket['mean'] - geom_mean) ** 2 * bucket['count']
+      sum_of_squares += (bucket['mean'] - geom_mean)**2 * bucket['count']
   return geom_mean, math.sqrt(sum_of_squares / count)
 
 
@@ -818,8 +822,8 @@ def _CheckSupplementalColumn(name, value):
         r'^\d+\.\d+\.\d+\.\d+$',
         r'^[A-Fa-f0-9]{40}$',
     ]
-    if (not value or len(str(value)) > _STRING_COLUMN_MAX_LENGTH or
-        not any(re.match(p, str(value)) for p in revision_patterns)):
+    if (not value or len(str(value)) > _STRING_COLUMN_MAX_LENGTH
+        or not any(re.match(p, str(value)) for p in revision_patterns)):
       logging.warn('Bad value for revision column "%s".', name)
       return None
     value = str(value)
@@ -827,8 +831,8 @@ def _CheckSupplementalColumn(name, value):
   if name.startswith('a_'):
     # Annotation column, should be a short string.
     if len(str(value)) > _STRING_COLUMN_MAX_LENGTH:
-      logging.warn('Value for "%s" too long, max length is %d.',
-                   name, _STRING_COLUMN_MAX_LENGTH)
+      logging.warn('Value for "%s" too long, max length is %d.', name,
+                   _STRING_COLUMN_MAX_LENGTH)
       return None
 
   return value

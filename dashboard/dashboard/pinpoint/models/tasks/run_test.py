@@ -361,8 +361,8 @@ def TestSerializer(task, _, accumulator):
       'completed':
           task.status in {'completed', 'failed', 'cancelled'},
       'exception':
-          ','.join(e.get('reason') for e in task.payload.get('errors', []))
-          or None,
+          ','.join(e.get('reason') for e in task.payload.get('errors', [])) or
+          None,
       'details': []
   })
 

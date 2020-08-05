@@ -19,80 +19,106 @@ from dashboard.pinpoint.models.quest import read_value
 from tracing.value import histogram_set
 from tracing.value import histogram as histogram_module
 
-
 _ATTEMPT_DATA = {
-    "executions": [{"result_arguments": {
-        "isolate_server": "https://isolateserver.appspot.com",
-        "isolate_hash": "e26a40a0d4",
-    }}]
+    "executions": [{
+        "result_arguments": {
+            "isolate_server": "https://isolateserver.appspot.com",
+            "isolate_hash": "e26a40a0d4",
+        }
+    }]
 }
-
 
 _JOB_NO_DIFFERENCES = {
     "state": [
         {
             "attempts": [_ATTEMPT_DATA],
             "change": {},
-            "comparisons": {'next': 'same'},
+            "comparisons": {
+                'next': 'same'
+            },
         },
         {
             "attempts": [_ATTEMPT_DATA],
             "change": {},
-            "comparisons": {'next': 'same', 'prev': 'same'},
+            "comparisons": {
+                'next': 'same',
+                'prev': 'same'
+            },
         },
         {
             "attempts": [_ATTEMPT_DATA],
             "change": {},
-            "comparisons": {'next': 'same', 'prev': 'same'},
+            "comparisons": {
+                'next': 'same',
+                'prev': 'same'
+            },
         },
         {
             "attempts": [_ATTEMPT_DATA],
             "change": {},
-            "comparisons": {'prev': 'same'},
+            "comparisons": {
+                'prev': 'same'
+            },
         },
     ],
     "quests": ["Test"],
 }
-
 
 _JOB_WITH_DIFFERENCES = {
     "state": [
         {
             "attempts": [_ATTEMPT_DATA],
             "change": {},
-            "comparisons": {'next': 'same'},
+            "comparisons": {
+                'next': 'same'
+            },
         },
         {
             "attempts": [_ATTEMPT_DATA],
             "change": {},
-            "comparisons": {'prev': 'same', 'next': 'different'},
+            "comparisons": {
+                'prev': 'same',
+                'next': 'different'
+            },
         },
         {
             "attempts": [_ATTEMPT_DATA],
             "change": {},
-            "comparisons": {'prev': 'different', 'next': 'different'},
+            "comparisons": {
+                'prev': 'different',
+                'next': 'different'
+            },
         },
         {
             "attempts": [_ATTEMPT_DATA],
             "change": {},
-            "comparisons": {'prev': 'different'},
+            "comparisons": {
+                'prev': 'different'
+            },
         },
     ],
     "quests": ["Test"],
 }
 
-
 _JOB_MISSING_EXECUTIONS = {
     "state": [
         {
-            "attempts": [_ATTEMPT_DATA, {"executions": []}],
+            "attempts": [_ATTEMPT_DATA, {
+                "executions": []
+            }],
             "change": {},
-            "comparisons": {'next': 'same'},
+            "comparisons": {
+                'next': 'same'
+            },
         },
         {
-            "attempts": [{"executions": []}, _ATTEMPT_DATA],
+            "attempts": [{
+                "executions": []
+            }, _ATTEMPT_DATA],
             "change": {},
-            "comparisons": {'prev': 'same'},
+            "comparisons": {
+                'prev': 'same'
+            },
         },
     ],
     "quests": ["Test"],
@@ -110,8 +136,7 @@ class GetCachedResults2Test(unittest.TestCase):
 
     self.assertEqual(
         'https://storage.cloud.google.com/results2-public/'
-        '%s.html' % job.job_id,
-        url)
+        '%s.html' % job.job_id, url)
 
   @mock.patch.object(results2, 'ScheduleResults2Generation', mock.MagicMock())
   def testGetCachedResults2_Uncached_Fails(self, mock_cloudstorage):
@@ -142,8 +167,8 @@ class ScheduleResults2Generation2Test(unittest.TestCase):
     self.assertTrue(result)
 
 
-@mock.patch.object(results2, 'open',
-                   mock.mock_open(read_data='fake_viewer'), create=True)
+@mock.patch.object(
+    results2, 'open', mock.mock_open(read_data='fake_viewer'), create=True)
 class GenerateResults2Test(testing_common.TestCase):
 
   @mock.patch.object(results2, '_FetchHistograms',
@@ -155,8 +180,10 @@ class GenerateResults2Test(testing_common.TestCase):
     job = _JobStub(None, '123')
     results2.GenerateResults2(job)
 
-    mock_render.assert_called_with(
-        ['a', 'b'], mock.ANY, reset_results=True, vulcanized_html='fake_viewer')
+    mock_render.assert_called_with(['a', 'b'],
+                                   mock.ANY,
+                                   reset_results=True,
+                                   vulcanized_html='fake_viewer')
 
     results = results2.CachedResults2.query().fetch()
     self.assertEqual(1, len(results))
@@ -276,7 +303,6 @@ class GenerateResults2Test(testing_common.TestCase):
     self.assertEqual(1, len(results))
     self.assertEqual(expected_histogram_set.AsDicts(), histograms)
 
-
   @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
   @mock.patch.object(results2.render_histograms_viewer,
                      'RenderHistogramsViewer')
@@ -336,6 +362,7 @@ class GenerateResults2Test(testing_common.TestCase):
 
 
 class _AttemptFake(object):
+
   def __init__(self, attempt):
     self._attempt = attempt
 
@@ -364,10 +391,12 @@ class _JobStateFake(object):
     return changes
 
   def Differences(self):
+
     def Pairwise(iterable):
       a, b = itertools.tee(iterable)
       next(b, None)
       return itertools.izip(a, b)
+
     return [(a, b) for a, b in Pairwise(self._attempts.keys())]
 
 

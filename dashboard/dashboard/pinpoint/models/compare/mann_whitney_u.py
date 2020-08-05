@@ -1,7 +1,6 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Pure Python implementation of the Mann-Whitney U test.
 
 This code is adapted from SciPy:
@@ -30,14 +29,14 @@ def MannWhitneyU(x, y):
   n2 = len(y)
   ranked = _RankData(x + y)
   rankx = ranked[0:n1]  # get the x-ranks
-  u1 = n1*n2 + n1*(n1+1)/2.0 - sum(rankx)  # calc U for x
-  u2 = n1*n2 - u1  # remainder is U for y
+  u1 = n1 * n2 + n1 * (n1 + 1) / 2.0 - sum(rankx)  # calc U for x
+  u2 = n1 * n2 - u1  # remainder is U for y
   t = _TieCorrectionFactor(ranked)
   if t == 0:
     return 1.0
-  sd = math.sqrt(t * n1 * n2 * (n1+n2+1) / 12.0)
+  sd = math.sqrt(t * n1 * n2 * (n1 + n2 + 1) / 12.0)
 
-  mean_rank = n1*n2/2.0 + 0.5
+  mean_rank = n1 * n2 / 2.0 + 0.5
   big_u = max(u1, u2)
 
   z = (big_u - mean_rank) / sd
@@ -60,7 +59,7 @@ def _RankData(a):
   for i, j in enumerate(sorter):
     ranked_max[j] = i
 
-  return [1 + (x+y)/2.0 for x, y in zip(ranked_min, ranked_max)]
+  return [1 + (x + y) / 2.0 for x, y in zip(ranked_min, ranked_max)]
 
 
 def _ArgSort(a):
@@ -90,4 +89,4 @@ def _TieCorrectionFactor(rankvals):
 
 def _NormSf(x):
   """Survival function of the standard normal distribution. (1 - cdf)"""
-  return (1 - math.erf(x/math.sqrt(2))) / 2
+  return (1 - math.erf(x / math.sqrt(2))) / 2

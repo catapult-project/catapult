@@ -55,5 +55,6 @@ class BuildbucketJobTest(testing_common.TestCase):
       job = buildbucket_job.BisectJob(**self._args_base)
       _ = job.GetBuildParameters()
 
+
 if __name__ == '__main__':
   unittest.main()

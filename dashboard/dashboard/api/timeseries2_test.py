@@ -20,7 +20,6 @@ from dashboard.models import histogram
 from dashboard.models.subscription import Subscription
 from tracing.value.diagnostics import reserved_infos
 
-
 _TEST_HISTOGRAM_DATA = {
     'binBoundaries': [1, [1, 1000, 20]],
     'diagnostics': {
@@ -41,7 +40,8 @@ class Timeseries2Test(testing_common.TestCase):
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     self.SetCurrentUserOAuth(None)
 
-  def _MockData(self, path='master/bot/suite/measure/case',
+  def _MockData(self,
+                path='master/bot/suite/measure/case',
                 internal_only=False):
     test = graph_data.TestMetadata(
         has_rows=True,
@@ -73,16 +73,22 @@ class Timeseries2Test(testing_common.TestCase):
         is_improvement=False,
         median_after_anomaly=6,
         median_before_anomaly=4,
-        subscriptions=[Subscription(
-            name='Taylor',
-            notification_email=testing_common.INTERNAL_USER.email(),
-        )],
+        subscriptions=[
+            Subscription(
+                name='Taylor',
+                notification_email=testing_common.INTERNAL_USER.email(),
+            )
+        ],
         subscription_names=['Taylor'],
         start_revision=10,
         test=test.key).put()
 
     histogram.SparseDiagnostic(
-        data={'type': 'GenericSet', 'guid': str(uuid.uuid4()), 'values': [1]},
+        data={
+            'type': 'GenericSet',
+            'guid': str(uuid.uuid4()),
+            'values': [1]
+        },
         end_revision=11,
         id=str(uuid.uuid4()),
         internal_only=internal_only,
@@ -91,7 +97,11 @@ class Timeseries2Test(testing_common.TestCase):
         test=test.key).put()
 
     histogram.SparseDiagnostic(
-        data={'type': 'GenericSet', 'guid': str(uuid.uuid4()), 'values': [2]},
+        data={
+            'type': 'GenericSet',
+            'guid': str(uuid.uuid4()),
+            'values': [2]
+        },
         end_revision=None,
         id=str(uuid.uuid4()),
         internal_only=internal_only,
@@ -105,24 +115,33 @@ class Timeseries2Test(testing_common.TestCase):
   def testNotFound(self):
     self._MockData()
     params = dict(
-        test_suite='not a thing', measurement='measure', bot='master:bot',
-        test_case='case', build_type='test',
+        test_suite='not a thing',
+        measurement='measure',
+        bot='master:bot',
+        test_case='case',
+        build_type='test',
         columns='revision,revisions,avg,std,alert,diagnostics,histogram')
     self.Post('/api/timeseries2', params, status=404)
 
   def testInternalData_AnonymousUser(self):
     self._MockData(internal_only=True)
     params = dict(
-        test_suite='suite', measurement='measure', bot='master:bot',
-        test_case='case', build_type='test',
+        test_suite='suite',
+        measurement='measure',
+        bot='master:bot',
+        test_case='case',
+        build_type='test',
         columns='revision,revisions,avg,std,alert,diagnostics,histogram')
     self.Post('/api/timeseries2', params, status=404)
 
   def testCollateAllColumns(self):
     self._MockData()
     response = self._Post(
-        test_suite='suite', measurement='measure', bot='master:bot',
-        test_case='case', build_type='test',
+        test_suite='suite',
+        measurement='measure',
+        bot='master:bot',
+        test_case='case',
+        build_type='test',
         columns='revision,revisions,avg,std,alert,diagnostics,histogram')
     self.assertEqual('units', response['units'])
     self.assertEqual('down', response['improvement_direction'])
@@ -147,9 +166,13 @@ class Timeseries2Test(testing_common.TestCase):
   def testRevisionRange(self):
     self._MockData(internal_only=False)
     response = self._Post(
-        test_suite='suite', measurement='measure', bot='master:bot',
-        test_case='case', build_type='test',
-        min_revision=5, max_revision=15,
+        test_suite='suite',
+        measurement='measure',
+        bot='master:bot',
+        test_case='case',
+        build_type='test',
+        min_revision=5,
+        max_revision=15,
         columns='revision,revisions,avg,std,alert,diagnostics,histogram')
     self.assertEqual(6, len(response['data']))
     for i, datum in enumerate(response['data']):
@@ -159,8 +182,11 @@ class Timeseries2Test(testing_common.TestCase):
   def testTimestampRange(self):
     self._MockData(internal_only=False)
     response = self._Post(
-        test_suite='suite', measurement='measure', bot='master:bot',
-        test_case='case', build_type='test',
+        test_suite='suite',
+        measurement='measure',
+        bot='master:bot',
+        test_case='case',
+        build_type='test',
         min_timestamp=datetime.datetime.utcfromtimestamp(5).isoformat(),
         max_timestamp=datetime.datetime.utcfromtimestamp(15).isoformat(),
         columns='timestamp,revision,revisions,avg,alert,diagnostics')
@@ -182,8 +208,11 @@ class Timeseries2Test(testing_common.TestCase):
         a_trace_uri='http://example.com').put()
 
     response = self._Post(
-        test_suite='suite', measurement='measure', bot='master:bot',
-        test_case='case', build_type='test',
+        test_suite='suite',
+        measurement='measure',
+        bot='master:bot',
+        test_case='case',
+        build_type='test',
         columns='revision,annotations')
     self.assertEqual(1, len(response['data']))
     self.assertEqual(1, response['data'][0][0])
@@ -192,9 +221,7 @@ class Timeseries2Test(testing_common.TestCase):
 
   def testMixOldStyleRowsWithNewStyleRows(self):
     old_count_test = graph_data.TestMetadata(
-        has_rows=True,
-        id='master/bot/suite/measure_count/case',
-        units='count')
+        has_rows=True, id='master/bot/suite/measure_count/case', units='count')
     old_count_test.UpdateSheriff()
     old_count_test.put()
 
@@ -207,9 +234,7 @@ class Timeseries2Test(testing_common.TestCase):
     old_avg_test.put()
 
     old_std_test = graph_data.TestMetadata(
-        has_rows=True,
-        id='master/bot/suite/measure_std/case',
-        units='units')
+        has_rows=True, id='master/bot/suite/measure_std/case', units='units')
     old_std_test.UpdateSheriff()
     old_std_test.put()
 
@@ -234,8 +259,11 @@ class Timeseries2Test(testing_common.TestCase):
           value=float(i)).put()
 
     response = self._Post(
-        test_suite='suite', measurement='measure', bot='master:bot',
-        test_case='case', build_type='test',
+        test_suite='suite',
+        measurement='measure',
+        bot='master:bot',
+        test_case='case',
+        build_type='test',
         columns='revision,avg,std,count')
     self.assertEqual('units', response['units'])
     self.assertEqual('down', response['improvement_direction'])
@@ -251,8 +279,11 @@ class Timeseries2Test(testing_common.TestCase):
   def testProjection(self):
     self._MockData(internal_only=False)
     response = self._Post(
-        test_suite='suite', measurement='measure', bot='master:bot',
-        test_case='case', build_type='test',
+        test_suite='suite',
+        measurement='measure',
+        bot='master:bot',
+        test_case='case',
+        build_type='test',
         columns='revision,avg,timestamp')
     self.assertEqual(10, len(response['data']))
     for i, datum in enumerate(response['data']):
@@ -260,14 +291,17 @@ class Timeseries2Test(testing_common.TestCase):
       ri = 1 + (2 * i)
       self.assertEqual(ri, datum[0])
       self.assertEqual(ri, datum[1])
-      self.assertEqual(datetime.datetime.utcfromtimestamp(ri).isoformat(),
-                       datum[2])
+      self.assertEqual(
+          datetime.datetime.utcfromtimestamp(ri).isoformat(), datum[2])
 
   def testHistogramsOnly(self):
     self._MockData()
     response = self._Post(
-        test_suite='suite', measurement='measure', bot='master:bot',
-        test_case='case', build_type='test',
+        test_suite='suite',
+        measurement='measure',
+        bot='master:bot',
+        test_case='case',
+        build_type='test',
         columns='revision,histogram')
     self.assertEqual('units', response['units'])
     self.assertEqual('down', response['improvement_direction'])

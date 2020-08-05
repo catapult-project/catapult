@@ -17,47 +17,65 @@ from dashboard import get_diagnostics
 from dashboard.common import testing_common
 from dashboard.models import histogram
 
-_TEST_DIAGNOSTIC_DATA = [
-    {
-        'start_revision': 1,
-        'end_revision': 3,
-        'test_path': 'foobar',
-        'name': 'occam',
-        'data': {'type': 'GenericSet', 'guid': 'abc', 'values': ['foo', 'bar']}
-    }, {
-        'start_revision': 5,
-        'end_revision': 7,
-        'test_path': 'foobar',
-        'name': 'occam',
-        'data': {'type': 'GenericSet', 'guid': 'def', 'values': ['foo', 'bar']}
-    }, {
-        'start_revision': 12,
-        'end_revision': 15,
-        'test_path': 'foobar',
-        'name': 'occam',
-        'data': {'type': 'GenericSet', 'guid': 'ghi', 'values': ['foo', 'bar']}
-    }, {
-        'start_revision': 3,
-        'end_revision': 8,
-        'test_path': 'foobar',
-        'name': 'occam',
-        'data': {'type': 'GenericSet', 'guid': 'jkl', 'values': ['foo', 'bar']}
-    }, {
-        'start_revision': 10,
-        'end_revision': sys.maxsize,
-        'test_path': 'abcdef',
-        'name': 'occam',
-        'data': {'type': 'GenericSet', 'guid': 'mno', 'values': ['foo', 'bar']}
+_TEST_DIAGNOSTIC_DATA = [{
+    'start_revision': 1,
+    'end_revision': 3,
+    'test_path': 'foobar',
+    'name': 'occam',
+    'data': {
+        'type': 'GenericSet',
+        'guid': 'abc',
+        'values': ['foo', 'bar']
     }
-]
+}, {
+    'start_revision': 5,
+    'end_revision': 7,
+    'test_path': 'foobar',
+    'name': 'occam',
+    'data': {
+        'type': 'GenericSet',
+        'guid': 'def',
+        'values': ['foo', 'bar']
+    }
+}, {
+    'start_revision': 12,
+    'end_revision': 15,
+    'test_path': 'foobar',
+    'name': 'occam',
+    'data': {
+        'type': 'GenericSet',
+        'guid': 'ghi',
+        'values': ['foo', 'bar']
+    }
+}, {
+    'start_revision': 3,
+    'end_revision': 8,
+    'test_path': 'foobar',
+    'name': 'occam',
+    'data': {
+        'type': 'GenericSet',
+        'guid': 'jkl',
+        'values': ['foo', 'bar']
+    }
+}, {
+    'start_revision': 10,
+    'end_revision': sys.maxsize,
+    'test_path': 'abcdef',
+    'name': 'occam',
+    'data': {
+        'type': 'GenericSet',
+        'guid': 'mno',
+        'values': ['foo', 'bar']
+    }
+}]
 
 
 class GetDiagnosticsTest(testing_common.TestCase):
 
   def setUp(self):
     super(GetDiagnosticsTest, self).setUp()
-    app = webapp2.WSGIApplication([
-        ('/get_diagnostics', get_diagnostics.GetDiagnosticsHandler)])
+    app = webapp2.WSGIApplication([('/get_diagnostics',
+                                    get_diagnostics.GetDiagnosticsHandler)])
     self.testapp = webtest.TestApp(app)
     testing_common.SetIsInternalUser('foo@bar.com', True)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
@@ -84,8 +102,8 @@ class GetDiagnosticsTest(testing_common.TestCase):
               'type': 'GenericSet',
               'guid': 'guid' + str(entry),
               'values': ['foo', 'bar']
-              }
-          })
+          }
+      })
     return mock_data
 
   def testGetDiagnosticsByGuid(self):
@@ -104,18 +122,17 @@ class GetDiagnosticsTest(testing_common.TestCase):
         '/get_diagnostics', {
             'guid': _TEST_DIAGNOSTIC_DATA[0]['data']['guid'],
             'test_path': 'foobar'
-        }, status=400)
+        },
+        status=400)
 
   def testGetMultipleDiagnosticsByRevisionRange(self):
     self._AddMockData(_TEST_DIAGNOSTIC_DATA)
 
-    response = self.testapp.post(
-        '/get_diagnostics', {
-            'start_revision': 4,
-            'end_revision': 10,
-            'test_path': 'foobar'
-        }
-    )
+    response = self.testapp.post('/get_diagnostics', {
+        'start_revision': 4,
+        'end_revision': 10,
+        'test_path': 'foobar'
+    })
     data = json.loads(response.body)
 
     self.assertEqual([_TEST_DIAGNOSTIC_DATA[3], _TEST_DIAGNOSTIC_DATA[1]], data)
@@ -127,7 +144,8 @@ class GetDiagnosticsTest(testing_common.TestCase):
         '/get_diagnostics', {
             'start_revision': 4,
             'test_path': 'foobar'
-        }, status=400)
+        },
+        status=400)
 
   def testGetMultipleDiagnosticsByEndRevision(self):
     self._AddMockData(_TEST_DIAGNOSTIC_DATA)
@@ -135,18 +153,17 @@ class GetDiagnosticsTest(testing_common.TestCase):
         '/get_diagnostics', {
             'end_revision': 10,
             'test_path': 'foobar'
-        }, status=400)
+        },
+        status=400)
 
   def testGetLastDiagnostic(self):
     self._AddMockData(_TEST_DIAGNOSTIC_DATA)
 
-    response = self.testapp.post(
-        '/get_diagnostics', {
-            'end_revision': 'last',
-            'test_path': 'abcdef',
-            'name': 'occam'
-        }
-    )
+    response = self.testapp.post('/get_diagnostics', {
+        'end_revision': 'last',
+        'test_path': 'abcdef',
+        'name': 'occam'
+    })
     data = json.loads(response.body)
 
     self.assertEqual([_TEST_DIAGNOSTIC_DATA[4]], data)
@@ -159,7 +176,8 @@ class GetDiagnosticsTest(testing_common.TestCase):
             'end_revision': 'last',
             'test_path': 'foobar',
             'name': 'occam'
-        }, status=400)
+        },
+        status=400)
 
   def testGetMultipleDiagnosticsByTestPath(self):
     self._AddMockData(_TEST_DIAGNOSTIC_DATA)
@@ -169,12 +187,11 @@ class GetDiagnosticsTest(testing_common.TestCase):
   def testGetDiagnostics_limit_500_diagnostics(self):
     self._AddMockData(self._GenerateData(501))
 
-    response = self.testapp.post(
-        '/get_diagnostics', {
-            'test_path': 'foobar',
-            'start_revision': 0,
-            'end_revision': 1000
-        })
+    response = self.testapp.post('/get_diagnostics', {
+        'test_path': 'foobar',
+        'start_revision': 0,
+        'end_revision': 1000
+    })
     data = json.loads(response.body)
     self.assertTrue(len(data) == 500)
 

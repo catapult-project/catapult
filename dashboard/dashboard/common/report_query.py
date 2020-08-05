@@ -20,8 +20,8 @@ def TableRowDescriptors(table_row):
   for test_suite in table_row['testSuites']:
     for bot in table_row['bots']:
       for case in table_row['testCases']:
-        yield descriptor.Descriptor(
-            test_suite, table_row['measurement'], bot, case)
+        yield descriptor.Descriptor(test_suite, table_row['measurement'], bot,
+                                    case)
       if not table_row['testCases']:
         yield descriptor.Descriptor(test_suite, table_row['measurement'], bot)
 
@@ -97,8 +97,8 @@ class ReportQuery(object):
     for rev, data in table_row['data'].items():
       new_data = []
       for datum in data:
-        max_rev_key = (
-            datum['descriptor'].test_suite, datum['descriptor'].bot, tri, rev)
+        max_rev_key = (datum['descriptor'].test_suite, datum['descriptor'].bot,
+                       tri, rev)
         if datum['revision'] == self._max_revs[max_rev_key]:
           new_data.append(datum)
       table_row['data'][rev] = new_data
@@ -156,14 +156,11 @@ class ReportQuery(object):
         revision = data[0]['revision']
       table_row['data'][rev] = {
           'statistics': statistics.AsDict(),
-          'descriptors': [
-              {
-                  'testSuite': datum['descriptor'].test_suite,
-                  'bot': datum['descriptor'].bot,
-                  'testCase': datum['descriptor'].test_case,
-              }
-              for datum in data
-          ],
+          'descriptors': [{
+              'testSuite': datum['descriptor'].test_suite,
+              'bot': datum['descriptor'].bot,
+              'testCase': datum['descriptor'].test_case,
+          } for datum in data],
           'revision': revision,
       }
 
@@ -172,19 +169,24 @@ class ReportQuery(object):
     # First try to find the unsuffixed test.
     test_paths = yield desc.ToTestPathsAsync()
     logging.info('_GetRow %r', test_paths)
-    unsuffixed_tests = yield [utils.TestMetadataKey(test_path).get_async()
-                              for test_path in test_paths]
+    unsuffixed_tests = yield [
+        utils.TestMetadataKey(test_path).get_async() for test_path in test_paths
+    ]
     unsuffixed_tests = [t for t in unsuffixed_tests if t]
 
     if not unsuffixed_tests:
       # Fall back to suffixed tests.
-      yield [self._GetSuffixedCell(tri, table_row, desc, rev)
-             for rev in self._revisions]
+      yield [
+          self._GetSuffixedCell(tri, table_row, desc, rev)
+          for rev in self._revisions
+      ]
 
     for test in unsuffixed_tests:
       test_path = utils.TestPath(test.key)
-      yield [self._GetUnsuffixedCell(tri, table_row, desc, test, test_path, rev)
-             for rev in self._revisions]
+      yield [
+          self._GetUnsuffixedCell(tri, table_row, desc, test, test_path, rev)
+          for rev in self._revisions
+      ]
 
   @ndb.tasklet
   def _GetUnsuffixedCell(self, tri, table_row, desc, test, test_path, rev):
@@ -218,8 +220,10 @@ class ReportQuery(object):
   @ndb.tasklet
   def _GetSuffixedCell(self, tri, table_row, desc, rev):
     datum = {'descriptor': desc}
-    statistics = yield [self._GetStatistic(datum, desc, rev, stat)
-                        for stat in descriptor.STATISTICS]
+    statistics = yield [
+        self._GetStatistic(datum, desc, rev, stat)
+        for stat in descriptor.STATISTICS
+    ]
     statistics = {
         descriptor.STATISTICS[i]: stat
         for i, stat in enumerate(statistics)
@@ -241,8 +245,9 @@ class ReportQuery(object):
     desc.statistic = stat
     test_paths = yield desc.ToTestPathsAsync()
     logging.info('_GetStatistic %r', test_paths)
-    suffixed_tests = yield [utils.TestMetadataKey(test_path).get_async()
-                            for test_path in test_paths]
+    suffixed_tests = yield [
+        utils.TestMetadataKey(test_path).get_async() for test_path in test_paths
+    ]
     suffixed_tests = [t for t in suffixed_tests if t]
     if not suffixed_tests:
       raise ndb.Return(None)
@@ -265,7 +270,8 @@ class ReportQuery(object):
   def _GetDataRow(self, test_path, rev):
     entities = yield [
         self._GetDataRowForKey(utils.TestMetadataKey(test_path), rev),
-        self._GetDataRowForKey(utils.OldStyleTestKey(test_path), rev)]
+        self._GetDataRowForKey(utils.OldStyleTestKey(test_path), rev)
+    ]
     entities = [e for e in entities if e]
     if not entities:
       raise ndb.Return(None)
@@ -296,4 +302,5 @@ def _MakeRunningStatistics(statistics):
       statistics['avg'],
       statistics.get('min', statistics['avg']),
       statistics.get('sum', statistics['avg'] * count),
-      std * std * (count - 1)])
+      std * std * (count - 1)
+  ])

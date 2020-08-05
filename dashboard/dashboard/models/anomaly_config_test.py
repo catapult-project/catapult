@@ -47,8 +47,8 @@ class AnomalyConfigTest(testing_common.TestCase):
     self.assertEqual(expected, anomaly_config.GetAnomalyConfigDict(test))
 
   @mock.patch('logging.warning')
-  def testGetAnomalyConfigDict_OverriddenConfigNotFound(
-      self, mock_logging_warning):
+  def testGetAnomalyConfigDict_OverriddenConfigNotFound(self,
+                                                        mock_logging_warning):
     testing_common.AddTests(['M'], ['b'], {'foo': {'bar': {}}})
     test = utils.TestKey('M/b/foo/bar').get()
     test.overridden_anomaly_config = ndb.Key('AnomalyConfig', 'Non-existent')

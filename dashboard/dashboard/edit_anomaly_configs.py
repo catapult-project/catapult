@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides the web interface for editing anomaly threshold configurations."""
 from __future__ import print_function
 from __future__ import division
@@ -24,11 +23,12 @@ class EditAnomalyConfigsHandler(edit_config_handler.EditConfigHandler):
   """
 
   def __init__(self, request, response):
-    super(EditAnomalyConfigsHandler, self).__init__(
-        request, response, anomaly_config.AnomalyConfig)
+    super(EditAnomalyConfigsHandler,
+          self).__init__(request, response, anomaly_config.AnomalyConfig)
 
   def get(self):
     """Renders the UI with the form."""
+
     # Note, this is similar to edit_sheriffs, and there may be some common
     # logic that oculd be extracted to EditConfigHandler.
     def ConfigData(config):
@@ -37,13 +37,16 @@ class EditAnomalyConfigsHandler(edit_config_handler.EditConfigHandler):
           'patterns': '\n'.join(sorted(config.patterns)),
       }
 
-    anomaly_configs = {config.key.string_id(): ConfigData(config)
-                       for config in anomaly_config.AnomalyConfig.query()}
+    anomaly_configs = {
+        config.key.string_id(): ConfigData(config)
+        for config in anomaly_config.AnomalyConfig.query()
+    }
 
-    self.RenderHtml('edit_anomaly_configs.html', {
-        'anomaly_config_json': json.dumps(anomaly_configs),
-        'anomaly_config_names': sorted(anomaly_configs.keys()),
-    })
+    self.RenderHtml(
+        'edit_anomaly_configs.html', {
+            'anomaly_config_json': json.dumps(anomaly_configs),
+            'anomaly_config_names': sorted(anomaly_configs.keys()),
+        })
 
   def _UpdateFromRequestParameters(self, anomaly_config_entity):
     """Updates the given AnomalyConfig based on query parameters."""

@@ -35,8 +35,7 @@ class ListTimeseriesHandler(api_request_handler.ApiRequestHandler):
     if sheriff_name and sheriff_name != 'all':
       print(sheriff_name, 'xxxxxxxxxxxxxxxxxxxxxxxx')
       raise api_request_handler.BadRequestError(
-          'Not supporting sheriff name anymore. Use `all` instead.'
-      )
+          'Not supporting sheriff name anymore. Use `all` instead.')
 
     keys = query.fetch(keys_only=True)
     return [utils.TestPath(key) for key in keys]

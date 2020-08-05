@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides the web interface for displaying an overview of alerts."""
 from __future__ import print_function
 from __future__ import division
@@ -50,9 +49,8 @@ class AlertsHandler(request_handler.RequestHandler):
     """
     sheriff_name = self.request.get('sheriff', 'Chromium Perf Sheriff')
     if not _SheriffIsFound(sheriff_name):
-      self.response.out.write(json.dumps({
-          'error': 'Sheriff "%s" not found.' % sheriff_name
-      }))
+      self.response.out.write(
+          json.dumps({'error': 'Sheriff "%s" not found.' % sheriff_name}))
       return
 
     # Cursors are used to fetch paged queries. If none is supplied, then the
@@ -113,8 +111,9 @@ def _GetSheriffList():
 def AnomalyDicts(anomalies, v2=False):
   """Makes a list of dicts with properties of Anomaly entities."""
   bisect_statuses = _GetBisectStatusDict(anomalies)
-  return [GetAnomalyDict(a, bisect_statuses.get(a.bug_id), v2)
-          for a in anomalies]
+  return [
+      GetAnomalyDict(a, bisect_statuses.get(a.bug_id), v2) for a in anomalies
+  ]
 
 
 def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False):

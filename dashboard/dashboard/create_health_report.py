@@ -1,7 +1,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides the web interface for adding and editing sheriff rotations."""
 from __future__ import print_function
 from __future__ import division
@@ -33,9 +32,11 @@ class CreateHealthReportHandler(request_handler.RequestHandler):
       self.response.out.write(json.dumps({'error': 'User not logged in.'}))
       return
     if not utils.IsInternalUser():
-      self.response.out.write(json.dumps(
-          {'error':
-           'Unauthorized access, please use chromium account to login.'}))
+      self.response.out.write(
+          json.dumps({
+              'error':
+                  'Unauthorized access, please use chromium account to login.'
+          }))
       return
 
     get_token = self.request.get('getToken')
@@ -44,9 +45,10 @@ class CreateHealthReportHandler(request_handler.RequestHandler):
     if get_token == 'true':
       values = {}
       self.GetDynamicVariables(values)
-      self.response.out.write(json.dumps({
-          'xsrf_token': values['xsrf_token'],
-      }))
+      self.response.out.write(
+          json.dumps({
+              'xsrf_token': values['xsrf_token'],
+          }))
     elif get_table_config_list:
       self._GetTableConfigList()
     elif get_table_config_details:
@@ -70,16 +72,15 @@ class CreateHealthReportHandler(request_handler.RequestHandler):
       master_bot_list = []
       for bot in config_entity.bots:
         master_bot_list.append(bot.parent().string_id() + '/' + bot.string_id())
-      self.response.out.write(json.dumps({
-          'table_name': config_name,
-          'table_bots': master_bot_list,
-          'table_tests': config_entity.tests,
-          'table_layout': config_entity.table_layout
-      }))
+      self.response.out.write(
+          json.dumps({
+              'table_name': config_name,
+              'table_bots': master_bot_list,
+              'table_tests': config_entity.tests,
+              'table_layout': config_entity.table_layout
+          }))
     else:
-      self.response.out.write(json.dumps({
-          'error': 'Invalid config name.'
-      }))
+      self.response.out.write(json.dumps({'error': 'Invalid config name.'}))
 
   def _CreateTableConfig(self):
     """Creates a table config. Writes a valid name or an error message."""
@@ -91,15 +92,18 @@ class CreateHealthReportHandler(request_handler.RequestHandler):
     override = int(self.request.get('override'))
     user = users.get_current_user()
     if not name or not master_bot or not tests or not table_layout or not user:
-      self.response.out.write(json.dumps({
-          'error': 'Please fill out the form entirely.'
-          }))
+      self.response.out.write(
+          json.dumps({'error': 'Please fill out the form entirely.'}))
       return
 
     try:
       created_table = table_config.CreateTableConfig(
-          name=name, bots=master_bot, tests=tests, layout=table_layout,
-          username=user.email(), override=override)
+          name=name,
+          bots=master_bot,
+          tests=tests,
+          layout=table_layout,
+          username=user.email(),
+          override=override)
     except table_config.BadRequestError as error:
       self.response.out.write(json.dumps({
           'error': error.message,
@@ -107,15 +111,15 @@ class CreateHealthReportHandler(request_handler.RequestHandler):
       logging.error('BadRequestError: %r', error.message)
       return
 
-
     if created_table:
       self.response.out.write(json.dumps({
           'name': name,
       }))
     else:
-      self.response.out.write(json.dumps({
-          'error': 'Could not create table.',
-      }))
+      self.response.out.write(
+          json.dumps({
+              'error': 'Could not create table.',
+          }))
       logging.error('Could not create table.')
 
   def _ValidateToken(self):

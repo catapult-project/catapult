@@ -88,8 +88,8 @@ class ChangeDetectorTest(unittest.TestCase):
     for index_offset, sequence in enumerate(
         SlidingWindow(master_sequence, 50, 10)):
       try:
-        split_index = (index_offset * 10) + max(ccd.ClusterAndFindSplit(
-            sequence, self.rand))
+        split_index = (index_offset * 10) + max(
+            ccd.ClusterAndFindSplit(sequence, self.rand))
         collected_indices.add(split_index)
       except ccd.InsufficientData:
         continue

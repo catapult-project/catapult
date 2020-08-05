@@ -17,9 +17,7 @@ _BASE_ARGUMENTS = {
     'target': 'some_browser_test',
 }
 
-
 _BASE_EXTRA_ARGS = run_browser_test._DEFAULT_EXTRA_ARGS
-
 
 _BASE_SWARMING_TAGS = {}
 

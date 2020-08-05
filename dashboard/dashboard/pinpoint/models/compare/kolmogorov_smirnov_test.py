@@ -31,8 +31,8 @@ class KolmogorovSmirnovTest(unittest.TestCase):
         kolmogorov_smirnov.KolmogorovSmirnov([0], [1]), 0.2890414283708268)
 
   def testAllValuesIdentical(self):
-    self.assertEqual(kolmogorov_smirnov.KolmogorovSmirnov(
-        [0] * 5, [0] * 5), 1.0)
+    self.assertEqual(
+        kolmogorov_smirnov.KolmogorovSmirnov([0] * 5, [0] * 5), 1.0)
 
 
 if __name__ == '__main__':

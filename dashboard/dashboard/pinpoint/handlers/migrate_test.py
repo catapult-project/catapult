@@ -20,6 +20,7 @@ from dashboard.pinpoint import test
 
 
 class MigrateAuthTest(test.TestCase):
+
   def setUp(self):
     super(MigrateAuthTest, self).setUp()
 
@@ -44,21 +45,20 @@ class MigrateAuthTest(test.TestCase):
     self.testapp.get('/api/migrate', status=403)
 
   def testGet_InternalUser_NotAdmin_Fails(self):
-    self._SetupCredentials(
-        testing_common.INTERNAL_USER, api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0],
-        True, False)
+    self._SetupCredentials(testing_common.INTERNAL_USER,
+                           api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0], True, False)
 
     self.testapp.get('/api/migrate', status=403)
 
 
 class MigrateTest(MigrateAuthTest):
+
   def setUp(self):
     super(MigrateTest, self).setUp()
 
     print('MigrateTest')
-    self._SetupCredentials(
-        testing_common.INTERNAL_USER, api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0],
-        True, True)
+    self._SetupCredentials(testing_common.INTERNAL_USER,
+                           api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0], True, True)
 
   def testGet_NoMigration(self):
     response = self.testapp.get('/api/migrate', status=200)

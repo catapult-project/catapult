@@ -26,8 +26,8 @@ class ListTestsTest(testing_common.TestCase):
 
   def setUp(self):
     super(ListTestsTest, self).setUp()
-    app = webapp2.WSGIApplication(
-        [('/list_tests', list_tests.ListTestsHandler)])
+    app = webapp2.WSGIApplication([('/list_tests', list_tests.ListTestsHandler)
+                                  ])
     self.testapp = webtest.TestApp(app)
     datastore_hooks.InstallHooks()
     self.UnsetCurrentUser()
@@ -36,9 +36,7 @@ class ListTestsTest(testing_common.TestCase):
 
   def _AddSampleData(self):
     testing_common.AddTests(
-        ['Chromium'],
-        ['win7', 'mac'],
-        {
+        ['Chromium'], ['win7', 'mac'], {
             'dromaeo': {
                 'dom': {},
                 'jslib': {},
@@ -67,11 +65,17 @@ class ListTestsTest(testing_common.TestCase):
     self._AddSampleData()
     # Requesting an invalid test path should not throw 500 error, it should
     # silently ignore the requested invalid test path.
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': ['commit_time_ref']}),
-        'return_selected': '1'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({
+                    'Chromium/win7/scrolling/commit_time': ['commit_time_ref']
+                }),
+            'return_selected':
+                '1'
+        })
     expected = {'anyMissing': True, 'tests': []}
     self.assertEqual(expected, json.loads(response.body))
 
@@ -81,7 +85,8 @@ class ListTestsTest(testing_common.TestCase):
     # Set the has_rows flag to true on two of the TestMetadata entities.
     for test_path in [
         'Chromium/win7/really/nested/very/deeply/subtest',
-        'Chromium/win7/really/nested/very_very']:
+        'Chromium/win7/really/nested/very_very'
+    ]:
       test = utils.TestKey(test_path).get()
       test.has_rows = True
       test.put()
@@ -89,10 +94,12 @@ class ListTestsTest(testing_common.TestCase):
     # A tree-structured dict of dicts is constructed, and the 'has_rows'
     # flag is set to true for two of these tests. These two tests and
     # their parents are all included in the result.
-    response = self.testapp.post('/list_tests', {
-        'type': 'sub_tests',
-        'suite': 'really',
-        'bots': 'Chromium/win7,Chromium/mac'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type': 'sub_tests',
+            'suite': 'really',
+            'bots': 'Chromium/win7,Chromium/mac'
+        })
     self.assertEqual('*', response.headers.get('Access-Control-Allow-Origin'))
     expected = {
         'nested': {
@@ -123,9 +130,11 @@ class ListTestsTest(testing_common.TestCase):
     self.assertEqual(expected, json.loads(response.body))
 
     # The cache should be set for the win7 bot with the expected response.
-    self.assertEqual(expected, json.loads(layered_cache.Get(
-        graph_data.LIST_TESTS_SUBTEST_CACHE_KEY % (
-            'Chromium', 'win7', 'really'))))
+    self.assertEqual(
+        expected,
+        json.loads(
+            layered_cache.Get(graph_data.LIST_TESTS_SUBTEST_CACHE_KEY %
+                              ('Chromium', 'win7', 'really'))))
 
     # Change mac subtests in cache. Should be merged with win7.
     mac_subtests = {
@@ -142,10 +151,12 @@ class ListTestsTest(testing_common.TestCase):
     layered_cache.Set(
         graph_data.LIST_TESTS_SUBTEST_CACHE_KEY % ('Chromium', 'mac', 'really'),
         json.dumps(mac_subtests))
-    response = self.testapp.post('/list_tests', {
-        'type': 'sub_tests',
-        'suite': 'really',
-        'bots': 'Chromium/win7,Chromium/mac'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type': 'sub_tests',
+            'suite': 'really',
+            'bots': 'Chromium/win7,Chromium/mac'
+        })
     self.assertEqual('*', response.headers.get('Access-Control-Allow-Origin'))
     expected.update(mac_subtests)
     self.assertEqual(expected, json.loads(response.body))
@@ -162,10 +173,9 @@ class ListTestsTest(testing_common.TestCase):
 
     # Set the has_rows flag to true for all of the test entities.
     for test_path in [
-        'Chromium/win7/dromaeo/dom',
-        'Chromium/win7/dromaeo/jslib',
-        'Chromium/mac/dromaeo/dom',
-        'Chromium/mac/dromaeo/jslib']:
+        'Chromium/win7/dromaeo/dom', 'Chromium/win7/dromaeo/jslib',
+        'Chromium/mac/dromaeo/dom', 'Chromium/mac/dromaeo/jslib'
+    ]:
       test = utils.TestKey(test_path).get()
       test.has_rows = True
       test.put()
@@ -175,7 +185,8 @@ class ListTestsTest(testing_common.TestCase):
     response = self.testapp.post('/list_tests', {
         'type': 'sub_tests',
         'suite': 'dromaeo',
-        'bots': 'Chromium/mac'})
+        'bots': 'Chromium/mac'
+    })
     self.assertEqual('*', response.headers.get('Access-Control-Allow-Origin'))
     expected = {
         'dom': {
@@ -206,18 +217,24 @@ class ListTestsTest(testing_common.TestCase):
     test.put()
 
     request = {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': [
-                'www.cnn.com', 'www.yahoo.com']}),
-        'return_selected': '1',
+        'type':
+            'test_path_dict',
+        'test_path_dict':
+            json.dumps({
+                'Chromium/win7/scrolling/commit_time': [
+                    'www.cnn.com', 'www.yahoo.com'
+                ]
+            }),
+        'return_selected':
+            '1',
     }
 
     self.SetCurrentUser('internal@chromium.org')
     response = self.testapp.post('/list_tests', request)
 
     expected = {
-        'anyMissing': False,
+        'anyMissing':
+            False,
         'tests': [
             'Chromium/win7/scrolling/commit_time/www.cnn.com',
             'Chromium/win7/scrolling/commit_time/www.yahoo.com',
@@ -230,12 +247,9 @@ class ListTestsTest(testing_common.TestCase):
 
     expected = {
         'anyMissing': True,
-        'tests': [
-            'Chromium/win7/scrolling/commit_time/www.yahoo.com',
-        ],
+        'tests': ['Chromium/win7/scrolling/commit_time/www.yahoo.com',],
     }
     self.assertEqual(expected, json.loads(response.body))
-
 
   def testGetSubTests_InternalData_OnlyReturnedForAuthorizedUsers(self):
     # When the user has a an internal account, internal-only data is given.
@@ -252,15 +266,18 @@ class ListTestsTest(testing_common.TestCase):
 
     # Set internal_only and has_rows to true on two subtests.
     for name in ['dom', 'jslib']:
-      subtest = graph_data.TestMetadata.get_by_id(
-          'Chromium/win7/dromaeo/%s' % name)
+      subtest = graph_data.TestMetadata.get_by_id('Chromium/win7/dromaeo/%s' %
+                                                  name)
       subtest.internal_only = True
       subtest.has_rows = True
       subtest.put()
 
     # All of the internal-only tests are returned.
     response = self.testapp.post('/list_tests', {
-        'type': 'sub_tests', 'suite': 'dromaeo', 'bots': 'Chromium/win7'})
+        'type': 'sub_tests',
+        'suite': 'dromaeo',
+        'bots': 'Chromium/win7'
+    })
     expected = {
         'dom': {
             'has_rows': True,
@@ -276,14 +293,22 @@ class ListTestsTest(testing_common.TestCase):
     # After setting the user to another domain, an empty dict is returned.
     self.SetCurrentUser('foo@chromium.org')
     response = self.testapp.post('/list_tests', {
-        'type': 'sub_tests', 'suite': 'dromaeo', 'bots': 'Chromium/win7'})
+        'type': 'sub_tests',
+        'suite': 'dromaeo',
+        'bots': 'Chromium/win7'
+    })
     self.assertEqual({}, json.loads(response.body))
 
   def testMergeSubTestsDict(self):
     a = {
         'foo': {
             'has_rows': True,
-            'sub_tests': {'a': {'has_rows': True, 'sub_tests': {}}},
+            'sub_tests': {
+                'a': {
+                    'has_rows': True,
+                    'sub_tests': {}
+                }
+            },
         },
         'bar': {
             'has_rows': False,
@@ -316,13 +341,21 @@ class ListTestsTest(testing_common.TestCase):
                 },
             },
         },
-        'baz': {'has_rows': False, 'sub_tests': {}},
+        'baz': {
+            'has_rows': False,
+            'sub_tests': {}
+        },
     }
     self.assertEqual(
         {
             'foo': {
                 'has_rows': True,
-                'sub_tests': {'a': {'has_rows': True, 'sub_tests': {}}},
+                'sub_tests': {
+                    'a': {
+                        'has_rows': True,
+                        'sub_tests': {}
+                    }
+                },
             },
             'bar': {
                 'has_rows': True,
@@ -330,14 +363,19 @@ class ListTestsTest(testing_common.TestCase):
                     'b': {
                         'has_rows': False,
                         'sub_tests': {
-                            'c': {'has_rows': False, 'sub_tests': {}},
+                            'c': {
+                                'has_rows': False,
+                                'sub_tests': {}
+                            },
                         },
                     },
                 },
             },
-            'baz': {'has_rows': False, 'sub_tests': {}},
-        },
-        list_tests._MergeSubTestsDict(a, b))
+            'baz': {
+                'has_rows': False,
+                'sub_tests': {}
+            },
+        }, list_tests._MergeSubTestsDict(a, b))
 
   def testSubTestsDict(self):
     paths = [
@@ -352,15 +390,20 @@ class ListTestsTest(testing_common.TestCase):
                 'b': {
                     'has_rows': False,
                     'sub_tests': {
-                        'c': {'has_rows': True, 'sub_tests': {}},
-                        'd': {'has_rows': True, 'sub_tests': {}},
+                        'c': {
+                            'has_rows': True,
+                            'sub_tests': {}
+                        },
+                        'd': {
+                            'has_rows': True,
+                            'sub_tests': {}
+                        },
                     },
                 },
             },
         },
     }
-    self.assertEqual(
-        expected, list_tests._SubTestsDict(paths, False))
+    self.assertEqual(expected, list_tests._SubTestsDict(paths, False))
 
   def testSubTestsDict_Deprecated(self):
     paths = [
@@ -380,8 +423,7 @@ class ListTestsTest(testing_common.TestCase):
             },
         },
     }
-    self.assertEqual(
-        expected, list_tests._SubTestsDict(paths, True))
+    self.assertEqual(expected, list_tests._SubTestsDict(paths, True))
 
   def testSubTestsDict_TopLevel_HasRows_False(self):
     paths = [
@@ -392,13 +434,18 @@ class ListTestsTest(testing_common.TestCase):
         'a': {
             'has_rows': False,
             'sub_tests': {
-                'b': {'has_rows': True, 'sub_tests': {}},
-                'c': {'has_rows': True, 'sub_tests': {}},
+                'b': {
+                    'has_rows': True,
+                    'sub_tests': {}
+                },
+                'c': {
+                    'has_rows': True,
+                    'sub_tests': {}
+                },
             },
         },
     }
-    self.assertEqual(
-        expected, list_tests._SubTestsDict(paths, False))
+    self.assertEqual(expected, list_tests._SubTestsDict(paths, False))
 
   def testSubTestsDict_RepeatedPathIgnored(self):
     paths = [
@@ -410,13 +457,18 @@ class ListTestsTest(testing_common.TestCase):
         'a': {
             'has_rows': False,
             'sub_tests': {
-                'b': {'has_rows': True, 'sub_tests': {}},
-                'c': {'has_rows': True, 'sub_tests': {}},
+                'b': {
+                    'has_rows': True,
+                    'sub_tests': {}
+                },
+                'c': {
+                    'has_rows': True,
+                    'sub_tests': {}
+                },
             },
         },
     }
-    self.assertEqual(
-        expected, list_tests._SubTestsDict(paths, False))
+    self.assertEqual(expected, list_tests._SubTestsDict(paths, False))
 
   def testPost_GetTestsMatchingPattern(self):
     """Tests the basic functionality of the GetTestsMatchingPattern function."""
@@ -427,7 +479,8 @@ class ListTestsTest(testing_common.TestCase):
     # The results are lexicographically ordered by test path.
     response = self.testapp.post('/list_tests', {
         'type': 'pattern',
-        'p': 'Chromium/mac/*/*/www*'})
+        'p': 'Chromium/mac/*/*/www*'
+    })
     expected = [
         'Chromium/mac/scrolling/commit_time/www.alibaba.com',
         'Chromium/mac/scrolling/commit_time/www.cnn.com',
@@ -440,12 +493,14 @@ class ListTestsTest(testing_common.TestCase):
     response = self.testapp.post('/list_tests', {
         'type': 'pattern',
         'has_rows': '0',
-        'p': '*/mac/*/*/www*'})
+        'p': '*/mac/*/*/www*'
+    })
     self.assertEqual(expected, json.loads(response.body))
     response = self.testapp.post('/list_tests', {
         'type': 'pattern',
         'has_rows': 'foo',
-        'p': '*/mac/*/*/www*'})
+        'p': '*/mac/*/*/www*'
+    })
     self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsMatchingPattern_OnlyWithRows(self):
@@ -457,7 +512,8 @@ class ListTestsTest(testing_common.TestCase):
     response = self.testapp.post('/list_tests', {
         'type': 'pattern',
         'has_rows': '1',
-        'p': '*/mac/dromaeo/*'})
+        'p': '*/mac/dromaeo/*'
+    })
     self.assertEqual([], json.loads(response.body))
 
     # Set the has_rows flag on one of the tests.
@@ -470,7 +526,8 @@ class ListTestsTest(testing_common.TestCase):
     response = self.testapp.post('/list_tests', {
         'type': 'pattern',
         'has_rows': '1',
-        'p': '*/mac/dromaeo/*'})
+        'p': '*/mac/dromaeo/*'
+    })
     self.assertEqual(['Chromium/mac/dromaeo/dom'], json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Selected_Core_MonitoredChildWithRows(self):
@@ -482,11 +539,15 @@ class ListTestsTest(testing_common.TestCase):
     yahoo.has_rows = True
     yahoo.put()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': 'core'}),
-        'return_selected': '1'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({'Chromium/win7/scrolling/commit_time': 'core'}),
+            'return_selected':
+                '1'
+        })
 
     expected = {
         'anyMissing': False,
@@ -497,11 +558,15 @@ class ListTestsTest(testing_common.TestCase):
   def testPost_GetTestsForTestPath_Selected_Core_MonitoredChildNoRows(self):
     self._AddSampleData()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': 'core'}),
-        'return_selected': '1'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({'Chromium/win7/scrolling/commit_time': 'core'}),
+            'return_selected':
+                '1'
+        })
 
     expected = {'tests': [], 'anyMissing': False}
     self.assertEqual(expected, json.loads(response.body))
@@ -514,11 +579,15 @@ class ListTestsTest(testing_common.TestCase):
     core.has_rows = True
     core.put()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': 'core'}),
-        'return_selected': '1'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({'Chromium/win7/scrolling/commit_time': 'core'}),
+            'return_selected':
+                '1'
+        })
 
     expected = {
         'anyMissing': False,
@@ -540,14 +609,19 @@ class ListTestsTest(testing_common.TestCase):
     yahoo.has_rows = True
     yahoo.put()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': 'core'}),
-        'return_selected': '1'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({'Chromium/win7/scrolling/commit_time': 'core'}),
+            'return_selected':
+                '1'
+        })
 
     expected = {
-        'anyMissing': False,
+        'anyMissing':
+            False,
         'tests': [
             'Chromium/win7/scrolling/commit_time',
             'Chromium/win7/scrolling/commit_time/www.yahoo.com',
@@ -558,11 +632,15 @@ class ListTestsTest(testing_common.TestCase):
   def testPost_GetTestsForTestPath_Selected_Core_NoRows(self):
     self._AddSampleData()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': 'core'}),
-        'return_selected': '1'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({'Chromium/win7/scrolling/commit_time': 'core'}),
+            'return_selected':
+                '1'
+        })
 
     expected = {
         'anyMissing': False,
@@ -573,11 +651,15 @@ class ListTestsTest(testing_common.TestCase):
   def testPost_GetTestsForTestPath_Selected_EmptyPreselected(self):
     self._AddSampleData()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': []}),
-        'return_selected': '1'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({'Chromium/win7/scrolling/commit_time': []}),
+            'return_selected':
+                '1'
+        })
 
     expected = {'anyMissing': False, 'tests': []}
     self.assertEqual(expected, json.loads(response.body))
@@ -590,12 +672,18 @@ class ListTestsTest(testing_common.TestCase):
     test.has_rows = True
     test.put()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': [
-                'commit_time', 'www.yahoo.com']}),
-        'return_selected': '1'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({
+                    'Chromium/win7/scrolling/commit_time':
+                        ['commit_time', 'www.yahoo.com']
+                }),
+            'return_selected':
+                '1'
+        })
 
     expected = {
         'anyMissing': True,
@@ -615,18 +703,26 @@ class ListTestsTest(testing_common.TestCase):
     subtest.has_rows = True
     subtest.put()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': ['www.cnn.com'],
-            'Chromium/mac/scrolling/commit_time': ['www.cnn.com']}),
-        'return_selected': '1'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({
+                    'Chromium/win7/scrolling/commit_time': ['www.cnn.com'],
+                    'Chromium/mac/scrolling/commit_time': ['www.cnn.com']
+                }),
+            'return_selected':
+                '1'
+        })
 
     expected = {
-        'anyMissing': False,
+        'anyMissing':
+            False,
         'tests': [
             'Chromium/win7/scrolling/commit_time/www.cnn.com',
-            'Chromium/mac/scrolling/commit_time/www.cnn.com'],
+            'Chromium/mac/scrolling/commit_time/www.cnn.com'
+        ],
     }
     self.assertEqual(expected, json.loads(response.body))
 
@@ -638,11 +734,15 @@ class ListTestsTest(testing_common.TestCase):
     subtest.has_rows = True
     subtest.put()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': 'all'}),
-        'return_selected': '1'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({'Chromium/win7/scrolling/commit_time': 'all'}),
+            'return_selected':
+                '1'
+        })
 
     expected = {
         'anyMissing': True,
@@ -653,11 +753,15 @@ class ListTestsTest(testing_common.TestCase):
   def testPost_GetTestsForTestPath_Unselected_Core_NoParent(self):
     self._AddSampleData()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': 'core'}),
-        'return_selected': '0'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({'Chromium/win7/scrolling/commit_time': 'core'}),
+            'return_selected':
+                '0'
+        })
 
     expected = {'tests': []}
     self.assertEqual(expected, json.loads(response.body))
@@ -676,26 +780,36 @@ class ListTestsTest(testing_common.TestCase):
     yahoo.has_rows = True
     yahoo.put()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': 'core'}),
-        'return_selected': '0'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({'Chromium/win7/scrolling/commit_time': 'core'}),
+            'return_selected':
+                '0'
+        })
 
     expected = {
-        'tests': ['Chromium/win7/scrolling/commit_time/www.cnn.com',
-                  'Chromium/win7/scrolling/commit_time/www.yahoo.com'],
+        'tests': [
+            'Chromium/win7/scrolling/commit_time/www.cnn.com',
+            'Chromium/win7/scrolling/commit_time/www.yahoo.com'
+        ],
     }
     self.assertEqual(expected, json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Unselected_EmptyPreselected(self):
     self._AddSampleData()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': []}),
-        'return_selected': '0'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({'Chromium/win7/scrolling/commit_time': []}),
+            'return_selected':
+                '0'
+        })
 
     expected = {
         'tests': ['Chromium/win7/scrolling/commit_time'],
@@ -710,12 +824,18 @@ class ListTestsTest(testing_common.TestCase):
     subtest.has_rows = True
     subtest.put()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': [
-                'commit_time', 'www.yahoo.com']}),
-        'return_selected': '0'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({
+                    'Chromium/win7/scrolling/commit_time':
+                        ['commit_time', 'www.yahoo.com']
+                }),
+            'return_selected':
+                '0'
+        })
 
     expected = {
         'tests': ['Chromium/win7/scrolling/commit_time/www.cnn.com'],
@@ -725,12 +845,18 @@ class ListTestsTest(testing_common.TestCase):
   def testPost_GetTestsForTestPath_Unselected_PreselectedWithoutRows(self):
     self._AddSampleData()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': [
-                'commit_time', 'www.yahoo.com']}),
-        'return_selected': '0'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({
+                    'Chromium/win7/scrolling/commit_time':
+                        ['commit_time', 'www.yahoo.com']
+                }),
+            'return_selected':
+                '0'
+        })
 
     expected = {'tests': []}
     self.assertEqual(expected, json.loads(response.body))
@@ -738,11 +864,15 @@ class ListTestsTest(testing_common.TestCase):
   def testPost_GetTestsForTestPath_Unselected_All(self):
     self._AddSampleData()
 
-    response = self.testapp.post('/list_tests', {
-        'type': 'test_path_dict',
-        'test_path_dict': json.dumps({
-            'Chromium/win7/scrolling/commit_time': 'all'}),
-        'return_selected': '0'})
+    response = self.testapp.post(
+        '/list_tests', {
+            'type':
+                'test_path_dict',
+            'test_path_dict':
+                json.dumps({'Chromium/win7/scrolling/commit_time': 'all'}),
+            'return_selected':
+                '0'
+        })
 
     self.assertEqual({'tests': []}, json.loads(response.body))
 
@@ -753,18 +883,19 @@ class ListTestsTest(testing_common.TestCase):
             ndb.Key('TestMetadata', 'Chromium/mac/dromaeo')), [
                 ndb.Key('TestMetadata', 'Chromium/mac/dromaeo'),
                 ndb.Key('TestMetadata', 'Chromium/mac/dromaeo/dom'),
-                ndb.Key('TestMetadata', 'Chromium/mac/dromaeo/jslib'),])
+                ndb.Key('TestMetadata', 'Chromium/mac/dromaeo/jslib'),
+            ])
     self.assertEqual(
         list_tests.GetTestDescendants(
-            ndb.Key('TestMetadata', 'Chromium/win7/really/nested')), [
-                ndb.Key('TestMetadata', 'Chromium/win7/really/nested'),
-                ndb.Key('TestMetadata', 'Chromium/win7/really/nested/very'),
-                ndb.Key('TestMetadata',
-                        'Chromium/win7/really/nested/very/deeply'),
-                ndb.Key('TestMetadata',
-                        'Chromium/win7/really/nested/very/deeply/subtest'),
-                ndb.Key('TestMetadata',
-                        'Chromium/win7/really/nested/very_very'),])
+            ndb.Key('TestMetadata', 'Chromium/win7/really/nested')),
+        [
+            ndb.Key('TestMetadata', 'Chromium/win7/really/nested'),
+            ndb.Key('TestMetadata', 'Chromium/win7/really/nested/very'),
+            ndb.Key('TestMetadata', 'Chromium/win7/really/nested/very/deeply'),
+            ndb.Key('TestMetadata',
+                    'Chromium/win7/really/nested/very/deeply/subtest'),
+            ndb.Key('TestMetadata', 'Chromium/win7/really/nested/very_very'),
+        ])
 
 
 if __name__ == '__main__':

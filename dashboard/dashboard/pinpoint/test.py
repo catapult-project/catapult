@@ -14,7 +14,6 @@ from dashboard.common import testing_common
 from dashboard.pinpoint import dispatcher
 from dashboard.pinpoint.models.change import repository
 
-
 CATAPULT_URL = 'https://chromium.googlesource.com/catapult'
 CHROMIUM_URL = 'https://chromium.googlesource.com/chromium/src'
 
@@ -61,7 +60,9 @@ class TestCase(testing_common.TestCase):
             'abc123': {
                 '_number': 5,
                 'created': '2018-02-01 23:46:56.000000000',
-                'uploader': {'email': 'author@codereview.com'},
+                'uploader': {
+                    'email': 'author@codereview.com'
+                },
                 'fetch': {
                     'http': {
                         'url': CHROMIUM_URL,
@@ -95,9 +96,13 @@ def _CommitInfoStub(repository_url, git_hash, override=False):
       parents.append('commit_' + str(parent_num))
 
   return {
-      'author': {'email': 'author@chromium.org'},
+      'author': {
+          'email': 'author@chromium.org'
+      },
       'commit': git_hash,
-      'committer': {'time': 'Fri Jan 01 00:01:00 2018'},
+      'committer': {
+          'time': 'Fri Jan 01 00:01:00 2018'
+      },
       'message': 'Subject.\n\nCommit message.\n'
                  'Reviewed-on: https://foo.bar/+/123456\n'
                  'Change-Id: If32lalatdfg325simon8943washere98j589\n'
@@ -131,11 +136,26 @@ def _CommitRangeStub(repository_url, first_git_hash, last_git_hash):
     # commits are not in the linear history from the tip of master.
     #
     commit_tree = [
-        {'git_hash': 'mc_4', 'parents' : ['merge_3_2_1']},
-        {'git_hash': 'merge_3_2_1', 'parents' : ['commit_2', 'commit_1']},
-        {'git_hash': 'commit_2', 'parents' : []},
-        {'git_hash': 'commit_1', 'parents' : ['commit_0']},
-        {'git_hash': 'commit_0', 'parents' : []},
+        {
+            'git_hash': 'mc_4',
+            'parents': ['merge_3_2_1']
+        },
+        {
+            'git_hash': 'merge_3_2_1',
+            'parents': ['commit_2', 'commit_1']
+        },
+        {
+            'git_hash': 'commit_2',
+            'parents': []
+        },
+        {
+            'git_hash': 'commit_1',
+            'parents': ['commit_0']
+        },
+        {
+            'git_hash': 'commit_0',
+            'parents': []
+        },
     ]
     return [_InfoStubWithParents(commit) for commit in commit_tree]
 
@@ -180,8 +200,9 @@ def _CommitRangeStub(repository_url, first_git_hash, last_git_hash):
     }] + [c for c in _Interleave(branch_other, branch_master)]
     return [_InfoStubWithParents(commit) for commit in commit_tree]
 
-
   # From here we use the default algorithm for generating a linear range of
   # commits.
-  return [_CommitInfoStub(repository_url, 'commit_' + str(x))
-          for x in range(last_number, first_number, -1)]
+  return [
+      _CommitInfoStub(repository_url, 'commit_' + str(x))
+      for x in range(last_number, first_number, -1)
+  ]

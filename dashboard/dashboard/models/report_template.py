@@ -28,8 +28,10 @@ STATIC_TEMPLATES = []
 
 
 def ListStaticTemplates():
-  return [handler for handler in STATIC_TEMPLATES
-          if (not handler.template.internal_only) or utils.IsInternalUser()]
+  return [
+      handler for handler in STATIC_TEMPLATES
+      if (not handler.template.internal_only) or utils.IsInternalUser()
+  ]
 
 
 def Static(internal_only, template_id, name, modified):
@@ -83,15 +85,19 @@ def Static(internal_only, template_id, name, modified):
   this".
   """
   assert isinstance(template_id, int)  # JS can't handle python floats or longs!
+
   def Decorator(decorated):
+
     @functools.wraps(decorated)
     def Replacement(revisions):
       report = decorated(revisions)
       if isinstance(report, report_query.ReportQuery):
         report = report.FetchSync()
-      assert isinstance(report.get('url'), basestring), (
-          'Reports are required to link to documentation')
+      assert isinstance(
+          report.get('url'),
+          basestring), ('Reports are required to link to documentation')
       return report
+
     Replacement.template = ReportTemplate(
         internal_only=internal_only,
         id=template_id,
@@ -99,6 +105,7 @@ def Static(internal_only, template_id, name, modified):
         modified=modified)
     STATIC_TEMPLATES.append(Replacement)
     return Replacement
+
   return Decorator
 
 
@@ -106,13 +113,11 @@ def List():
   with timing.WallTimeLogger('List'), timing.CpuTimeLogger('List'):
     templates = ReportTemplate.query().fetch()
     templates += [handler.template for handler in ListStaticTemplates()]
-    templates = [
-        {
-            'id': template.key.id(),
-            'name': template.name,
-            'modified': template.modified.isoformat(),
-        }
-        for template in templates]
+    templates = [{
+        'id': template.key.id(),
+        'name': template.name,
+        'modified': template.modified.isoformat(),
+    } for template in templates]
     return sorted(templates, key=lambda d: d['name'])
 
 
@@ -137,7 +142,8 @@ def PutTemplate(template_id, name, owners, template):
     if not entity or email not in entity.owners:
       raise ValueError
     if any(name == existing['name']
-           for existing in List() if existing['id'] != template_id):
+           for existing in List()
+           if existing['id'] != template_id):
       raise ValueError
 
   entity.internal_only = _GetInternalOnly(template)
@@ -174,8 +180,8 @@ def GetReport(template_id, revisions):
     if template:
       result['owners'] = template.owners
       result['editable'] = utils.GetEmail() in template.owners
-      result['report'] = report_query.ReportQuery(
-          template.template, revisions).FetchSync()
+      result['report'] = report_query.ReportQuery(template.template,
+                                                  revisions).FetchSync()
     else:
       for handler in ListStaticTemplates():
         if handler.template.key.id() != template_id:

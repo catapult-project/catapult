@@ -25,9 +25,12 @@ class TimeseriesTest(testing_common.TestCase):
 
   def _AddData(self):
     """Adds sample TestMetadata entities and returns their keys."""
-    testing_common.AddTests(['ChromiumPerf'], ['linux'], {
-        'page_cycler': {'warm': {'cnn': {},}}
-    })
+    testing_common.AddTests(['ChromiumPerf'], ['linux'],
+                            {'page_cycler': {
+                                'warm': {
+                                    'cnn': {},
+                                }
+                            }})
     test_path = 'ChromiumPerf/linux/page_cycler/warm/cnn'
     test = utils.TestKey(test_path).get()
     test.improvement_direction = anomaly.UP
@@ -83,14 +86,16 @@ class TimeseriesTest(testing_common.TestCase):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     response = self.Post(
         '/api/timeseries/ChromiumPerf/linux/page_cycler/warm/cnn',
-        {'num_days': 'foo'}, status=400)
+        {'num_days': 'foo'},
+        status=400)
     self.assertIn('Invalid num_days parameter', response.body)
 
   def testPost_NegativeNumDays_400Response(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     response = self.Post(
         '/api/timeseries/ChromiumPerf/linux/page_cycler/warm/cnn',
-        {'num_days': -1}, status=400)
+        {'num_days': -1},
+        status=400)
     self.assertIn('num_days cannot be negative', response.body)
 
   def testPost_ExternalUserInternalData_500Error(self):
@@ -100,8 +105,8 @@ class TimeseriesTest(testing_common.TestCase):
     test.internal_only = True
     test.put()
 
-    self.Post('/api/timeseries/ChromiumPerf/linux/page_cycler/warm/cnn',
-              status=500)
+    self.Post(
+        '/api/timeseries/ChromiumPerf/linux/page_cycler/warm/cnn', status=500)
 
 
 if __name__ == '__main__':

@@ -43,12 +43,24 @@ def SetGooglerOAuth(mock_oauth):
   mock_oauth.get_client_id.return_value = api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0]
 
 
-def _CreateHistogram(
-    name='hist', master=None, bot=None, benchmark=None,
-    device=None, owner=None, stories=None, story_tags=None,
-    benchmark_description=None, commit_position=None, summary_options=None,
-    samples=None, max_samples=None, is_ref=False, is_summary=None,
-    point_id=None, build_url=None, revision_timestamp=None):
+def _CreateHistogram(name='hist',
+                     master=None,
+                     bot=None,
+                     benchmark=None,
+                     device=None,
+                     owner=None,
+                     stories=None,
+                     story_tags=None,
+                     benchmark_description=None,
+                     commit_position=None,
+                     summary_options=None,
+                     samples=None,
+                     max_samples=None,
+                     is_ref=False,
+                     is_summary=None,
+                     point_id=None,
+                     build_url=None,
+                     revision_timestamp=None):
   hists = [histogram_module.Histogram(name, 'count')]
   if max_samples:
     hists[0].max_num_sample_values = max_samples
@@ -61,52 +73,42 @@ def _CreateHistogram(
   histograms = histogram_set.HistogramSet(hists)
   if master:
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.MASTERS.name,
-        generic_set.GenericSet([master]))
+        reserved_infos.MASTERS.name, generic_set.GenericSet([master]))
   if bot:
-    histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.BOTS.name,
-        generic_set.GenericSet([bot]))
+    histograms.AddSharedDiagnosticToAllHistograms(reserved_infos.BOTS.name,
+                                                  generic_set.GenericSet([bot]))
   if commit_position:
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
         generic_set.GenericSet([commit_position]))
   if benchmark:
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.BENCHMARKS.name,
-        generic_set.GenericSet([benchmark]))
+        reserved_infos.BENCHMARKS.name, generic_set.GenericSet([benchmark]))
   if benchmark_description:
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.BENCHMARK_DESCRIPTIONS.name,
         generic_set.GenericSet([benchmark_description]))
   if owner:
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.OWNERS.name,
-        generic_set.GenericSet([owner]))
+        reserved_infos.OWNERS.name, generic_set.GenericSet([owner]))
   if device:
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.DEVICE_IDS.name,
-        generic_set.GenericSet([device]))
+        reserved_infos.DEVICE_IDS.name, generic_set.GenericSet([device]))
   if stories:
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.STORIES.name,
-        generic_set.GenericSet(stories))
+        reserved_infos.STORIES.name, generic_set.GenericSet(stories))
   if story_tags:
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.STORY_TAGS.name,
-        generic_set.GenericSet(story_tags))
+        reserved_infos.STORY_TAGS.name, generic_set.GenericSet(story_tags))
   if is_ref:
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.IS_REFERENCE_BUILD.name,
-        generic_set.GenericSet([True]))
+        reserved_infos.IS_REFERENCE_BUILD.name, generic_set.GenericSet([True]))
   if is_summary is not None:
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.SUMMARY_KEYS.name,
-        generic_set.GenericSet(is_summary))
+        reserved_infos.SUMMARY_KEYS.name, generic_set.GenericSet(is_summary))
   if point_id is not None:
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.POINT_ID.name,
-        generic_set.GenericSet([point_id]))
+        reserved_infos.POINT_ID.name, generic_set.GenericSet([point_id]))
   if build_url is not None:
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.BUILD_URLS.name,
@@ -119,11 +121,12 @@ def _CreateHistogram(
 
 
 class BufferedFakeFile(object):
+
   def __init__(self, data=str()):
     self.data = data
     self.position = 0
 
-  def read(self, size=None): # pylint: disable=invalid-name
+  def read(self, size=None):  # pylint: disable=invalid-name
     if self.position == len(self.data):
       return ''
     if size is None or size < 0:
@@ -140,11 +143,11 @@ class BufferedFakeFile(object):
     result = self.data[current_position:self.position]
     return result
 
-  def write(self, data): # pylint: disable=invalid-name
+  def write(self, data):  # pylint: disable=invalid-name
     self.data += data
     return len(data)
 
-  def close(self): # pylint: disable=invalid-name
+  def close(self):  # pylint: disable=invalid-name
     pass
 
   def __exit__(self, *args):
@@ -199,8 +202,8 @@ class AddHistogramsBaseTest(testing_common.TestCase):
     # TODO(simonhatch): Should we surface the error somewhere that can be
     # retrieved by the uploader?
 
-    r = self.testapp.post(
-        '/add_histograms/process', json.dumps({'gcs_file_path': ''}))
+    r = self.testapp.post('/add_histograms/process',
+                          json.dumps({'gcs_file_path': ''}))
     self.assertTrue(self.mock_error.called)
     return r
 
@@ -215,13 +218,17 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
   def setUp(self):
     super(AddHistogramsEndToEndTest, self).setUp()
 
-  @mock.patch.object(
-      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync')
+  @mock.patch.object(add_histograms_queue.graph_revisions,
+                     'AddRowsToCacheAsync')
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
   def testPost_Succeeds(self, mock_process_test, mock_graph_revisions):
     hs = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark', commit_position=123,
-        benchmark_description='Benchmark description.', samples=[1, 2, 3])
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=123,
+        benchmark_description='Benchmark description.',
+        samples=[1, 2, 3])
     data = json.dumps(hs.AsDicts())
 
     self.PostAddHistogram({'data': data})
@@ -245,13 +252,17 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     mock_graph_revisions.assert_called_once_with(mock.ANY)
     self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
 
-  @mock.patch.object(
-      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync')
+  @mock.patch.object(add_histograms_queue.graph_revisions,
+                     'AddRowsToCacheAsync')
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
   def testPost_ZlibSucceeds(self, mock_process_test, mock_graph_revisions):
     hs = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark', commit_position=123,
-        benchmark_description='Benchmark description.', samples=[1, 2, 3])
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=123,
+        benchmark_description='Benchmark description.',
+        samples=[1, 2, 3])
     data = zlib.compress(json.dumps(hs.AsDicts()))
 
     self.PostAddHistogram(data)
@@ -276,16 +287,18 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     mock_graph_revisions.assert_called_once_with(mock.ANY)
     self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
 
-  @mock.patch.object(
-      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
-      mock.MagicMock())
-  @mock.patch.object(
-      add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
-      mock.MagicMock())
+  @mock.patch.object(add_histograms_queue.graph_revisions,
+                     'AddRowsToCacheAsync', mock.MagicMock())
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+                     mock.MagicMock())
   def testPost_BuildUrls_Added(self):
     hs = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark', commit_position=123,
-        benchmark_description='Benchmark description.', samples=[1, 2, 3],
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=123,
+        benchmark_description='Benchmark description.',
+        samples=[1, 2, 3],
         build_url='http://foo')
     data = zlib.compress(json.dumps(hs.AsDicts()))
 
@@ -298,22 +311,29 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
 
   def testPost_NotZlib_Fails(self):
     hs = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark', commit_position=123,
-        benchmark_description='Benchmark description.', samples=[1, 2, 3])
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=123,
+        benchmark_description='Benchmark description.',
+        samples=[1, 2, 3])
     data = json.dumps(hs.AsDicts())
 
     self.PostAddHistogram(data, status=400)
 
-  @mock.patch.object(
-      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
-      mock.MagicMock())
-  @mock.patch.object(
-      add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
-      mock.MagicMock())
+  @mock.patch.object(add_histograms_queue.graph_revisions,
+                     'AddRowsToCacheAsync', mock.MagicMock())
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+                     mock.MagicMock())
   def testPost_BenchmarkTotalDuration_Filtered(self):
     hs = _CreateHistogram(
-        name='benchmark_total_duration', master='master', bot='bot',
-        benchmark='v8.browsing', commit_position=123, samples=[1], is_ref=True)
+        name='benchmark_total_duration',
+        master='master',
+        bot='bot',
+        benchmark='v8.browsing',
+        commit_position=123,
+        samples=[1],
+        is_ref=True)
     data = json.dumps(hs.AsDicts())
 
     self.testapp.post('/add_histograms', {'data': data})
@@ -327,8 +347,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
       self.assertEqual('benchmark_total_duration', parts[3])
 
   def testPost_PurgesBinData(self):
-    hs = _CreateHistogram(
-        master='m', bot='b', benchmark='s', commit_position=1)
+    hs = _CreateHistogram(master='m', bot='b', benchmark='s', commit_position=1)
     b = breakdown.Breakdown()
     dm = histogram_module.DiagnosticMap()
     dm['breakdown'] = b
@@ -380,16 +399,19 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     response = self.PostAddHistogramProcess(data)
     self.assertIn('Duplicate histogram detected', response.body)
 
-  @mock.patch.object(
-      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync')
+  @mock.patch.object(add_histograms_queue.graph_revisions,
+                     'AddRowsToCacheAsync')
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
-  @mock.patch.object(
-      add_histograms_queue, 'CreateRowEntities',
-      mock.MagicMock(return_value=None))
-  def testPost_EmptyHistogram_NotAdded(
-      self, mock_process_test, mock_graph_revisions):
+  @mock.patch.object(add_histograms_queue, 'CreateRowEntities',
+                     mock.MagicMock(return_value=None))
+  def testPost_EmptyHistogram_NotAdded(self, mock_process_test,
+                                       mock_graph_revisions):
     hs = _CreateHistogram(
-        master='m', bot='b', benchmark='s', name='foo', commit_position=1,
+        master='m',
+        bot='b',
+        benchmark='s',
+        name='foo',
+        commit_position=1,
         samples=[])
     data = json.dumps(hs.AsDicts())
 
@@ -411,8 +433,12 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
       self, mock_process_test):
     """Tests that Tests ending with "_ref" aren't analyzed for Anomalies."""
     hs = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark',
-        commit_position=424242, stories=['abcd'], samples=[1, 2, 3],
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=424242,
+        stories=['abcd'],
+        samples=[1, 2, 3],
         is_ref=True)
     data = json.dumps(hs.AsDicts())
     self.PostAddHistogram({'data': data})
@@ -425,8 +451,12 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
       self, mock_process_test):
     """Tests that leaf tests named ref aren't added to the task queue."""
     hs = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark',
-        commit_position=424242, stories=['ref'], samples=[1, 2, 3])
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=424242,
+        stories=['ref'],
+        samples=[1, 2, 3])
     data = json.dumps(hs.AsDicts())
     self.PostAddHistogram({'data': data})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -437,24 +467,32 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
   def testPost_TestNameEndsContainsButDoesntEndWithRef_ProcessTestIsCalled(
       self, mock_process_test):
     hs = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark',
-        commit_position=424242, stories=['_ref_abcd'], samples=[1, 2, 3])
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=424242,
+        stories=['_ref_abcd'],
+        samples=[1, 2, 3])
     data = json.dumps(hs.AsDicts())
     self.PostAddHistogram({'data': data})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
     self.assertTrue(mock_process_test.called)
 
-  @mock.patch.object(
-      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
-      mock.MagicMock())
-  @mock.patch.object(
-      add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
-      mock.MagicMock())
+  @mock.patch.object(add_histograms_queue.graph_revisions,
+                     'AddRowsToCacheAsync', mock.MagicMock())
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+                     mock.MagicMock())
   def testPost_DeduplicateByName(self):
     hs = _CreateHistogram(
-        master='m', bot='b', benchmark='s', stories=['s1', 's2'],
-        commit_position=1111, device='device1', owner='owner1', samples=[42])
+        master='m',
+        bot='b',
+        benchmark='s',
+        stories=['s1', 's2'],
+        commit_position=1111,
+        device='device1',
+        owner='owner1',
+        samples=[42])
     self.PostAddHistogram({'data': json.dumps(hs.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
@@ -464,8 +502,14 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     self.assertEqual(6, len(diagnostics))
 
     hs = _CreateHistogram(
-        master='m', bot='b', benchmark='s', stories=['s1', 's2'],
-        commit_position=1112, device='device1', owner='owner1', samples=[42])
+        master='m',
+        bot='b',
+        benchmark='s',
+        stories=['s1', 's2'],
+        commit_position=1112,
+        device='device1',
+        owner='owner1',
+        samples=[42])
     self.PostAddHistogram({'data': json.dumps(hs.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
@@ -475,8 +519,14 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     self.assertEqual(6, len(diagnostics))
 
     hs = _CreateHistogram(
-        master='m', bot='b', benchmark='s', stories=['s1', 's2'],
-        commit_position=1113, device='device2', owner='owner1', samples=[42])
+        master='m',
+        bot='b',
+        benchmark='s',
+        stories=['s1', 's2'],
+        commit_position=1113,
+        device='device2',
+        owner='owner1',
+        samples=[42])
     self.PostAddHistogram({'data': json.dumps(hs.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
@@ -486,8 +536,13 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     self.assertEqual(7, len(diagnostics))
 
     hs = _CreateHistogram(
-        master='m', bot='b', benchmark='s', stories=['s1', 's2'],
-        commit_position=1114, device='device2', owner='owner2')
+        master='m',
+        bot='b',
+        benchmark='s',
+        stories=['s1', 's2'],
+        commit_position=1114,
+        device='device2',
+        owner='owner2')
     self.PostAddHistogram({'data': json.dumps(hs.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
@@ -497,8 +552,14 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     self.assertEqual(8, len(diagnostics))
 
     hs = _CreateHistogram(
-        master='m', bot='b', benchmark='s', stories=['s1', 's2'],
-        commit_position=1115, device='device2', owner='owner2', samples=[42])
+        master='m',
+        bot='b',
+        benchmark='s',
+        stories=['s1', 's2'],
+        commit_position=1115,
+        device='device2',
+        owner='owner2',
+        samples=[42])
     self.PostAddHistogram({'data': json.dumps(hs.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
@@ -507,16 +568,18 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     diagnostics = histogram.SparseDiagnostic.query().fetch()
     self.assertEqual(8, len(diagnostics))
 
-  @mock.patch.object(
-      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
-      mock.MagicMock())
-  @mock.patch.object(
-      add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
-      mock.MagicMock())
+  @mock.patch.object(add_histograms_queue.graph_revisions,
+                     'AddRowsToCacheAsync', mock.MagicMock())
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+                     mock.MagicMock())
   def testPost_NamesAreSet(self):
     hs = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark',
-        commit_position=12345, device='foo', samples=[42])
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=12345,
+        device='foo',
+        samples=[42])
 
     self.PostAddHistogram({'data': json.dumps(hs.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -528,44 +591,42 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     # The first 3 are all suite level diagnostics, the last is a histogram
     # level diagnostic.
     names = [
-        reserved_infos.MASTERS.name,
-        reserved_infos.BOTS.name,
-        reserved_infos.BENCHMARKS.name,
-        reserved_infos.DEVICE_IDS.name]
+        reserved_infos.MASTERS.name, reserved_infos.BOTS.name,
+        reserved_infos.BENCHMARKS.name, reserved_infos.DEVICE_IDS.name
+    ]
     for d in diagnostics:
       self.assertIn(d.name, names)
       names.remove(d.name)
 
   def _TestDiagnosticsInternalOnly(self):
     hs = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark',
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
         commit_position=12345)
 
     self.PostAddHistogram({'data': json.dumps(hs.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
 
-  @mock.patch.object(
-      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
-      mock.MagicMock())
-  @mock.patch.object(
-      add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
-      mock.MagicMock())
+  @mock.patch.object(add_histograms_queue.graph_revisions,
+                     'AddRowsToCacheAsync', mock.MagicMock())
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+                     mock.MagicMock())
   def testPost_DiagnosticsInternalOnly_False(self):
-    graph_data.Bot(key=ndb.Key('Master', 'master', 'Bot', 'bot'),
-                   internal_only=False).put()
+    graph_data.Bot(
+        key=ndb.Key('Master', 'master', 'Bot', 'bot'),
+        internal_only=False).put()
     self._TestDiagnosticsInternalOnly()
 
     diagnostics = histogram.SparseDiagnostic.query().fetch()
     for d in diagnostics:
       self.assertFalse(d.internal_only)
 
-  @mock.patch.object(
-      add_histograms_queue.graph_revisions, 'AddRowsToCacheAsync',
-      mock.MagicMock())
-  @mock.patch.object(
-      add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
-      mock.MagicMock())
+  @mock.patch.object(add_histograms_queue.graph_revisions,
+                     'AddRowsToCacheAsync', mock.MagicMock())
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+                     mock.MagicMock())
   def testPost_DiagnosticsInternalOnly_True(self):
     self._TestDiagnosticsInternalOnly()
 
@@ -575,9 +636,14 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
 
   def testPost_SetsCorrectTestPathForSummary(self):
     histograms = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark',
-        commit_position=12345, device='device_foo', stories=['story'],
-        story_tags=['group:media', 'case:browse'], is_summary=['name'],
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=12345,
+        device='device_foo',
+        stories=['story'],
+        story_tags=['group:media', 'case:browse'],
+        is_summary=['name'],
         samples=[42])
 
     self.PostAddHistogram({'data': json.dumps(histograms.AsDicts())})
@@ -604,10 +670,15 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
 
   def testPost_SetsCorrectTestPathForTIRLabelSummary(self):
     histograms = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark',
-        commit_position=12345, device='device_foo', stories=['story'],
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=12345,
+        device='device_foo',
+        stories=['story'],
         story_tags=['group:media', 'case:browse'],
-        is_summary=['name', 'storyTags'], samples=[42])
+        is_summary=['name', 'storyTags'],
+        samples=[42])
 
     self.PostAddHistogram({'data': json.dumps(histograms.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -640,9 +711,14 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
 
   def testPost_SetsCorrectTestPathForNonSummary(self):
     histograms = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark',
-        commit_position=12345, device='device_foo', stories=['story'],
-        is_summary=None, samples=[42])
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=12345,
+        device='device_foo',
+        stories=['story'],
+        is_summary=None,
+        samples=[42])
 
     self.PostAddHistogram({'data': json.dumps(histograms.AsDicts())})
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -654,8 +730,12 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
 
   def testPost_SetsCorrectTestPathForSummaryAbsent(self):
     histograms = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark',
-        commit_position=12345, device='device_foo', stories=['story'],
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=12345,
+        device='device_foo',
+        stories=['story'],
         samples=[42])
 
     self.PostAddHistogram({'data': json.dumps(histograms.AsDicts())})
@@ -676,13 +756,18 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
         'sum': False
     }
     hs = _CreateHistogram(
-        master='master', bot='bot', benchmark='benchmark',
-        commit_position=commit_position, summary_options=opts,
-        device=device, owner=owner, samples=[1])
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=commit_position,
+        summary_options=opts,
+        device=device,
+        owner=owner,
+        samples=[1])
 
     self.PostAddHistogram({'data': json.dumps(hs.AsDicts())})
-    self.ExecuteTaskQueueTasks(
-        '/add_histograms_queue', add_histograms.TASK_QUEUE_NAME)
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
 
   def _CheckOutOfOrderExpectations(self, expected):
     diags = histogram.SparseDiagnostic.query().fetch()
@@ -690,9 +775,8 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     for d in diags:
       if d.name not in expected:
         continue
-      self.assertIn(
-          (d.start_revision, d.end_revision, d.data['values']),
-          expected[d.name])
+      self.assertIn((d.start_revision, d.end_revision, d.data['values']),
+                    expected[d.name])
       expected[d.name].remove(
           (d.start_revision, d.end_revision, d.data['values']))
 
@@ -707,14 +791,9 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     self._AddAtCommit(15, 'd1', 'o2')
 
     expected = {
-        'deviceIds': [
-            (1, sys.maxsize, [u'd1'])
-        ],
-        'owners': [
-            (1, 14, [u'o1']),
-            (15, 19, [u'o2']),
-            (20, sys.maxsize, [u'o1'])
-        ]
+        'deviceIds': [(1, sys.maxsize, [u'd1'])],
+        'owners': [(1, 14, [u'o1']), (15, 19, [u'o2']),
+                   (20, sys.maxsize, [u'o1'])]
     }
     self._CheckOutOfOrderExpectations(expected)
 
@@ -726,14 +805,9 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     self._AddAtCommit(15, 'd2', 'o1')
 
     expected = {
-        'deviceIds': [
-            (1, 14, [u'd1']),
-            (15, 19, [u'd2']),
-            (20, sys.maxsize, [u'd1'])
-        ],
-        'owners': [
-            (1, sys.maxsize, [u'o1'])
-        ]
+        'deviceIds': [(1, 14, [u'd1']), (15, 19, [u'd2']),
+                      (20, sys.maxsize, [u'd1'])],
+        'owners': [(1, sys.maxsize, [u'o1'])]
     }
     self._CheckOutOfOrderExpectations(expected)
 
@@ -750,9 +824,9 @@ class AddHistogramsTest(AddHistogramsBaseTest):
       params.extend(json.loads(base64.b64decode(task['body'])))
     return params
 
-  @mock.patch.object(
-      add_histograms, '_QueueHistogramTasks')
+  @mock.patch.object(add_histograms, '_QueueHistogramTasks')
   def testPostHistogram_TooManyHistograms_Splits(self, mock_queue):
+
     def _MakeHistogram(name):
       h = histogram_module.Histogram(name, 'count')
       for i in range(100):
@@ -762,28 +836,24 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     hists = [_MakeHistogram('hist_%d' % i) for i in range(100)]
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.MASTERS.name,
-        generic_set.GenericSet(['master']))
+        reserved_infos.MASTERS.name, generic_set.GenericSet(['master']))
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.BOTS.name,
-        generic_set.GenericSet(['bot']))
+        reserved_infos.BOTS.name, generic_set.GenericSet(['bot']))
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
         generic_set.GenericSet([12345]))
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.BENCHMARKS.name,
-        generic_set.GenericSet(['benchmark']))
+        reserved_infos.BENCHMARKS.name, generic_set.GenericSet(['benchmark']))
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.DEVICE_IDS.name,
-        generic_set.GenericSet(['devie_foo']))
+        reserved_infos.DEVICE_IDS.name, generic_set.GenericSet(['devie_foo']))
 
     self.PostAddHistogram({'data': json.dumps(histograms.AsDicts())})
 
     self.assertTrue(len(mock_queue.call_args[0][0]) > 1)
 
-  @mock.patch.object(
-      add_histograms, '_QueueHistogramTasks')
+  @mock.patch.object(add_histograms, '_QueueHistogramTasks')
   def testPostHistogram_OneToOneHistogramTasks(self, mock_queue):
+
     def _MakeHistogram(name):
       h = histogram_module.Histogram(name, 'count')
       for i in range(100):
@@ -793,81 +863,75 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     hists = [_MakeHistogram('hist_%d' % i) for i in range(50)]
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.MASTERS.name,
-        generic_set.GenericSet(['master']))
+        reserved_infos.MASTERS.name, generic_set.GenericSet(['master']))
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.BOTS.name,
-        generic_set.GenericSet(['bot']))
+        reserved_infos.BOTS.name, generic_set.GenericSet(['bot']))
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
         generic_set.GenericSet([12345]))
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.BENCHMARKS.name,
-        generic_set.GenericSet(['benchmark']))
+        reserved_infos.BENCHMARKS.name, generic_set.GenericSet(['benchmark']))
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.DEVICE_IDS.name,
-        generic_set.GenericSet(['devie_foo']))
+        reserved_infos.DEVICE_IDS.name, generic_set.GenericSet(['devie_foo']))
 
     self.PostAddHistogram({'data': json.dumps(histograms.AsDicts())})
 
     self.assertEqual(len(mock_queue.call_args[0][0]), 50)
 
   def testPostHistogramSetsTestPathAndRevision(self):
-    data = json.dumps([
-        {
-            'values': ['benchmark'],
-            'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            'type': 'GenericSet',
-        }, {
-            'values': [424242],
-            'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'type': 'GenericSet',
-        }, {
-            'values': ['master'],
-            'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-            'type': 'GenericSet'
-        }, {
-            'values': ['bot'],
-            'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
-            'type': 'GenericSet'
-        }, {
-            'values': ['story'],
-            'guid': 'dc894bd9-0b73-4400-9d95-b21ee371031d',
-            'type': 'GenericSet',
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.STORIES.name:
-                    'dc894bd9-0b73-4400-9d95-b21ee371031d',
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
-                reserved_infos.BENCHMARKS.name:
-                    '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            },
-            'name': 'foo',
-            'unit': 'count'
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
-                reserved_infos.BENCHMARKS.name:
-                    '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-                reserved_infos.STORIES.name:
-                    'dc894bd9-0b73-4400-9d95-b21ee371031d',
-            },
-            'name': 'foo2',
-            'unit': 'count'
-        }
-    ])
+    data = json.dumps([{
+        'values': ['benchmark'],
+        'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        'type': 'GenericSet',
+    }, {
+        'values': [424242],
+        'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+        'type': 'GenericSet',
+    }, {
+        'values': ['master'],
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'type': 'GenericSet'
+    }, {
+        'values': ['bot'],
+        'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
+        'type': 'GenericSet'
+    }, {
+        'values': ['story'],
+        'guid': 'dc894bd9-0b73-4400-9d95-b21ee371031d',
+        'type': 'GenericSet',
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.STORIES.name:
+                'dc894bd9-0b73-4400-9d95-b21ee371031d',
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        },
+        'name': 'foo',
+        'unit': 'count'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+            reserved_infos.STORIES.name:
+                'dc894bd9-0b73-4400-9d95-b21ee371031d',
+        },
+        'name': 'foo2',
+        'unit': 'count'
+    }])
     self.PostAddHistogram({'data': data})
     params = self.TaskParams()
 
@@ -879,69 +943,66 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     self.assertIn('master/bot/benchmark/foo2/story', paths)
 
   def testPostHistogramPassesHistogramLevelSparseDiagnostics(self):
-    data = json.dumps([
-        {
-            'values': ['benchmark'],
-            'guid': '876d0fba-1d12-4c00-a7e9-5fed467e19e3',
-            'type': 'GenericSet',
-        }, {
-            'values': ['test'],
-            'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            'type': 'GenericSet',
-        }, {
-            'values': [424242],
-            'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'type': 'GenericSet',
-        }, {
-            'values': ['master'],
-            'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-            'type': 'GenericSet'
-        }, {
-            'values': ['bot'],
-            'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
-            'type': 'GenericSet'
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
-                reserved_infos.BENCHMARKS.name:
-                    '876d0fba-1d12-4c00-a7e9-5fed467e19e3',
-            },
-            'name': 'foo',
-            'unit': 'count'
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.DEVICE_IDS.name:
-                    '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
-                reserved_infos.BENCHMARKS.name:
-                    '876d0fba-1d12-4c00-a7e9-5fed467e19e3',
-            },
-            'name': 'foo2',
-            'unit': 'count'
-        }
-    ])
+    data = json.dumps([{
+        'values': ['benchmark'],
+        'guid': '876d0fba-1d12-4c00-a7e9-5fed467e19e3',
+        'type': 'GenericSet',
+    }, {
+        'values': ['test'],
+        'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        'type': 'GenericSet',
+    }, {
+        'values': [424242],
+        'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+        'type': 'GenericSet',
+    }, {
+        'values': ['master'],
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'type': 'GenericSet'
+    }, {
+        'values': ['bot'],
+        'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
+        'type': 'GenericSet'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '876d0fba-1d12-4c00-a7e9-5fed467e19e3',
+        },
+        'name': 'foo',
+        'unit': 'count'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.DEVICE_IDS.name:
+                '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '876d0fba-1d12-4c00-a7e9-5fed467e19e3',
+        },
+        'name': 'foo2',
+        'unit': 'count'
+    }])
     self.PostAddHistogram({'data': data})
     for params in self.TaskParams():
       diagnostics = params['diagnostics']
       if len(diagnostics) < 1:
         continue
-      self.assertEqual(
-          ['test'], diagnostics[reserved_infos.DEVICE_IDS.name]['values'])
-      self.assertNotEqual(
-          '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-          diagnostics[reserved_infos.DEVICE_IDS.name]['guid'])
+      self.assertEqual(['test'],
+                       diagnostics[reserved_infos.DEVICE_IDS.name]['values'])
+      self.assertNotEqual('0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+                          diagnostics[reserved_infos.DEVICE_IDS.name]['guid'])
 
   def testPostHistogram_AddsNewSparseDiagnostic(self):
     diag_dict = {
@@ -950,41 +1011,42 @@ class AddHistogramsTest(AddHistogramsBaseTest):
         'type': 'GenericSet'
     }
     diag = histogram.SparseDiagnostic(
-        data=diag_dict, start_revision=1, end_revision=sys.maxsize,
+        data=diag_dict,
+        start_revision=1,
+        end_revision=sys.maxsize,
         test=utils.TestKey('master/bot/benchmark'))
     diag.put()
-    data = json.dumps([
-        {
-            'values': ['benchmark'],
-            'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            'type': 'GenericSet',
-        }, {
-            'values': [424242],
-            'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'type': 'GenericSet',
-        }, {
-            'values': ['master'],
-            'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-            'type': 'GenericSet'
-        }, {
-            'values': ['bot'],
-            'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
-            'type': 'GenericSet'
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
-                reserved_infos.BENCHMARKS.name:
-                    '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            },
-            'name': 'foo',
-            'unit': 'count'}
-    ])
+    data = json.dumps([{
+        'values': ['benchmark'],
+        'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        'type': 'GenericSet',
+    }, {
+        'values': [424242],
+        'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+        'type': 'GenericSet',
+    }, {
+        'values': ['master'],
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'type': 'GenericSet'
+    }, {
+        'values': ['bot'],
+        'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
+        'type': 'GenericSet'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        },
+        'name': 'foo',
+        'unit': 'count'
+    }])
     self.PostAddHistogram({'data': data})
 
     diagnostics = histogram.SparseDiagnostic.query().fetch()
@@ -992,9 +1054,8 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     hist = params['data']
 
     self.assertEqual(4, len(diagnostics))
-    self.assertEqual(
-        'e9c2891d-2b04-413f-8cf4-099827e67626',
-        hist['diagnostics'][reserved_infos.MASTERS.name])
+    self.assertEqual('e9c2891d-2b04-413f-8cf4-099827e67626',
+                     hist['diagnostics'][reserved_infos.MASTERS.name])
 
   def testPostHistogram_DeduplicatesSameSparseDiagnostic(self):
     diag_dict = {
@@ -1003,198 +1064,188 @@ class AddHistogramsTest(AddHistogramsBaseTest):
         'type': 'GenericSet'
     }
     diag = histogram.SparseDiagnostic(
-        id='e9c2891d-2b04-413f-8cf4-099827e67626', data=diag_dict,
-        start_revision=1, end_revision=sys.maxsize,
+        id='e9c2891d-2b04-413f-8cf4-099827e67626',
+        data=diag_dict,
+        start_revision=1,
+        end_revision=sys.maxsize,
         test=utils.TestKey('master/bot/benchmark'))
     diag.put()
-    data = json.dumps([
-        {
-            'values': ['benchmark'],
-            'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            'type': 'GenericSet',
-        }, {
-            'values': [424242],
-            'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'type': 'GenericSet',
-        }, {
-            'values': ['master'],
-            'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-            'type': 'GenericSet'
-        }, {
-            'values': ['bot'],
-            'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
-            'type': 'GenericSet'
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
-                reserved_infos.BENCHMARKS.name:
-                    '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            },
-            'name': 'foo',
-            'unit': 'count'
-        }
-    ])
+    data = json.dumps([{
+        'values': ['benchmark'],
+        'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        'type': 'GenericSet',
+    }, {
+        'values': [424242],
+        'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+        'type': 'GenericSet',
+    }, {
+        'values': ['master'],
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'type': 'GenericSet'
+    }, {
+        'values': ['bot'],
+        'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
+        'type': 'GenericSet'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        },
+        'name': 'foo',
+        'unit': 'count'
+    }])
     self.PostAddHistogram({'data': data})
 
     diagnostics = histogram.SparseDiagnostic.query().fetch()
     hist = self.TaskParams()[0]['data']
 
     self.assertEqual(3, len(diagnostics))
-    self.assertEqual(
-        'e9c2891d-2b04-413f-8cf4-099827e67626',
-        hist['diagnostics'][reserved_infos.MASTERS.name])
+    self.assertEqual('e9c2891d-2b04-413f-8cf4-099827e67626',
+                     hist['diagnostics'][reserved_infos.MASTERS.name])
 
   def testPostHistogramFailsWithoutHistograms(self):
-    data = json.dumps([
-        {
-            'values': ['benchmark'],
-            'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            'type': 'GenericSet',
-        }, {
-            'values': ['master'],
-            'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-            'type': 'GenericSet'
-        }, {
-            'values': ['bot'],
-            'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
-            'type': 'GenericSet'
-        }
-    ])
+    data = json.dumps([{
+        'values': ['benchmark'],
+        'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        'type': 'GenericSet',
+    }, {
+        'values': ['master'],
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'type': 'GenericSet'
+    }, {
+        'values': ['bot'],
+        'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
+        'type': 'GenericSet'
+    }])
 
     self.PostAddHistogramProcess(data)
 
   def testPostHistogramFailsWithoutBuildbotInfo(self):
-    data = json.dumps([
-        {
-            'values': ['benchmark'],
-            'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            'type': 'GenericSet'
-        }, {
-            'values': [424242],
-            'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'type': 'GenericSet',
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
-                reserved_infos.BENCHMARKS.name:
-                    '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            },
-            'name': 'foo',
-            'unit': 'count'
-        }
-    ])
+    data = json.dumps([{
+        'values': ['benchmark'],
+        'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        'type': 'GenericSet'
+    }, {
+        'values': [424242],
+        'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+        'type': 'GenericSet',
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        },
+        'name': 'foo',
+        'unit': 'count'
+    }])
 
     self.PostAddHistogramProcess(data)
 
   def testPostHistogramFailsWithoutChromiumCommit(self):
-    data = json.dumps([
-        {
-            'values': ['benchmark'],
-            'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            'type': 'GenericSet',
-        }, {
-            'values': ['master'],
-            'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-            'type': 'GenericSet'
-        }, {
-            'values': ['bot'],
-            'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
-            'type': 'GenericSet'
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.BENCHMARKS.name:
-                    '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            },
-            'name': 'foo',
-            'unit': 'count'}
-    ])
+    data = json.dumps([{
+        'values': ['benchmark'],
+        'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        'type': 'GenericSet',
+    }, {
+        'values': ['master'],
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'type': 'GenericSet'
+    }, {
+        'values': ['bot'],
+        'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
+        'type': 'GenericSet'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.BENCHMARKS.name:
+                '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        },
+        'name': 'foo',
+        'unit': 'count'
+    }])
 
     self.PostAddHistogramProcess(data)
 
   def testPostHistogramFailsWithoutBenchmark(self):
-    data = json.dumps([
-        {
-            'values': [424242],
-            'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'type': 'GenericSet',
-        }, {
-            'values': ['master'],
-            'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-            'type': 'GenericSet'
-        }, {
-            'values': ['bot'],
-            'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
-            'type': 'GenericSet'
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160'
-            },
-            'name': 'foo',
-            'unit': 'count'
-        }
-    ])
+    data = json.dumps([{
+        'values': [424242],
+        'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+        'type': 'GenericSet',
+    }, {
+        'values': ['master'],
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'type': 'GenericSet'
+    }, {
+        'values': ['bot'],
+        'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
+        'type': 'GenericSet'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160'
+        },
+        'name': 'foo',
+        'unit': 'count'
+    }])
 
     self.PostAddHistogramProcess(data)
 
   def testPostHistogram_AddsSparseDiagnosticByName(self):
-    data = json.dumps([
-        {
-            'type': 'GenericSet',
-            'guid': 'cabb59fe-4bcf-4512-881c-d038c7a80635',
-            'values': ['alice@chromium.org']
+    data = json.dumps([{
+        'type': 'GenericSet',
+        'guid': 'cabb59fe-4bcf-4512-881c-d038c7a80635',
+        'values': ['alice@chromium.org']
+    }, {
+        'values': ['benchmark'],
+        'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        'type': 'GenericSet',
+    }, {
+        'values': [424242],
+        'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+        'type': 'GenericSet',
+    }, {
+        'values': ['master'],
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'type': 'GenericSet'
+    }, {
+        'values': ['bot'],
+        'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
+        'type': 'GenericSet'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.OWNERS.name:
+                'cabb59fe-4bcf-4512-881c-d038c7a80635',
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
         },
-        {
-            'values': ['benchmark'],
-            'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            'type': 'GenericSet',
-        }, {
-            'values': [424242],
-            'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'type': 'GenericSet',
-        }, {
-            'values': ['master'],
-            'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-            'type': 'GenericSet'
-        }, {
-            'values': ['bot'],
-            'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
-            'type': 'GenericSet'
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.OWNERS.name:
-                    'cabb59fe-4bcf-4512-881c-d038c7a80635',
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
-                reserved_infos.BENCHMARKS.name:
-                    '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            },
-            'name': 'foo',
-            'unit': 'count'}
-        ])
+        'name': 'foo',
+        'unit': 'count'
+    }])
 
     self.PostAddHistogram({'data': data})
 
@@ -1206,10 +1257,9 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     self.assertEqual(4, len(diagnostics))
 
     names = [
-        reserved_infos.BENCHMARKS.name,
-        reserved_infos.BOTS.name,
-        reserved_infos.OWNERS.name,
-        reserved_infos.MASTERS.name]
+        reserved_infos.BENCHMARKS.name, reserved_infos.BOTS.name,
+        reserved_infos.OWNERS.name, reserved_infos.MASTERS.name
+    ]
     diagnostics_by_name = {}
     for d in diagnostics:
       self.assertIn(d.name, names)
@@ -1219,8 +1269,7 @@ class AddHistogramsTest(AddHistogramsBaseTest):
         ['benchmark'],
         diagnostics_by_name[reserved_infos.BENCHMARKS.name].data['values'])
     self.assertEqual(
-        ['bot'],
-        diagnostics_by_name[reserved_infos.BOTS.name].data['values'])
+        ['bot'], diagnostics_by_name[reserved_infos.BOTS.name].data['values'])
     self.assertEqual(
         ['alice@chromium.org'],
         diagnostics_by_name[reserved_infos.OWNERS.name].data['values'])
@@ -1230,61 +1279,59 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     self.assertEqual('cabb59fe-4bcf-4512-881c-d038c7a80635', owners_info)
 
   def testPostHistogram_AddsSparseDiagnosticByName_OnlyOnce(self):
-    data = json.dumps([
-        {
-            'type': 'GenericSet',
-            'guid': 'cabb59fe-4bcf-4512-881c-d038c7a80635',
-            'values': ['alice@chromium.org']
+    data = json.dumps([{
+        'type': 'GenericSet',
+        'guid': 'cabb59fe-4bcf-4512-881c-d038c7a80635',
+        'values': ['alice@chromium.org']
+    }, {
+        'values': ['benchmark'],
+        'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        'type': 'GenericSet',
+    }, {
+        'values': [424242],
+        'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+        'type': 'GenericSet'
+    }, {
+        'values': ['master'],
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'type': 'GenericSet'
+    }, {
+        'values': ['bot'],
+        'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
+        'type': 'GenericSet'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+            reserved_infos.OWNERS.name:
+                'cabb59fe-4bcf-4512-881c-d038c7a80635'
         },
-        {
-            'values': ['benchmark'],
-            'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            'type': 'GenericSet',
-        }, {
-            'values': [424242],
-            'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'type': 'GenericSet'
-        }, {
-            'values': ['master'],
-            'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-            'type': 'GenericSet'
-        }, {
-            'values': ['bot'],
-            'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
-            'type': 'GenericSet'
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
-                reserved_infos.BENCHMARKS.name:
-                    '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-                reserved_infos.OWNERS.name:
-                    'cabb59fe-4bcf-4512-881c-d038c7a80635'
-            },
-            'name': 'foo',
-            'unit': 'count'
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
-                reserved_infos.OWNERS.name:
-                    'cabb59fe-4bcf-4512-881c-d038c7a80635',
-                reserved_infos.BENCHMARKS.name:
-                    '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            },
-            'name': 'bar',
-            'unit': 'count'
-        }])
+        'name': 'foo',
+        'unit': 'count'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.OWNERS.name:
+                'cabb59fe-4bcf-4512-881c-d038c7a80635',
+            reserved_infos.BENCHMARKS.name:
+                '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        },
+        'name': 'bar',
+        'unit': 'count'
+    }])
 
     self.PostAddHistogram({'data': data})
 
@@ -1295,64 +1342,63 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     self.assertNotEqual(reserved_infos.BOTS.name, diagnostics[0].name)
 
   def testPostHistogram_AddsSparseDiagnosticByName_ErrorsIfDiverging(self):
-    data = json.dumps([
-        {
-            'type': 'GenericSet',
-            'guid': 'cabb59fe-4bcf-4512-881c-d038c7a80635',
-            'values': ['alice@chromium.org']
-        }, {
-            'type': 'GenericSet',
-            'guid': '7c5bd92f-4146-411b-9192-248ffc1be92c',
-            'values': ['bob@chromium.org']
-        }, {
-            'values': ['benchmark'],
-            'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-            'type': 'GenericSet'
-        }, {
-            'values': [424242],
-            'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
-            'type': 'GenericSet'
-        }, {
-            'values': ['master'],
-            'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
-            'type': 'GenericSet'
-        }, {
-            'values': ['bot'],
-            'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
-            'type': 'GenericSet'
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
-                reserved_infos.BENCHMARKS.name:
-                    '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-                reserved_infos.OWNERS.name:
-                    'cabb59fe-4bcf-4512-881c-d038c7a80635'
-            },
-            'name': 'foo',
-            'unit': 'count'
-        }, {
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.MASTERS.name:
-                    'e9c2891d-2b04-413f-8cf4-099827e67626',
-                reserved_infos.BOTS.name:
-                    '53fb5448-9f8d-407a-8891-e7233fe1740f',
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    '25f0a111-9bb4-4cea-b0c1-af2609623160',
-                reserved_infos.BENCHMARKS.name:
-                    '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
-                reserved_infos.OWNERS.name:
-                    '7c5bd92f-4146-411b-9192-248ffc1be92c'
-            },
-            'name': 'foo',
-            'unit': 'count'
-        }])
+    data = json.dumps([{
+        'type': 'GenericSet',
+        'guid': 'cabb59fe-4bcf-4512-881c-d038c7a80635',
+        'values': ['alice@chromium.org']
+    }, {
+        'type': 'GenericSet',
+        'guid': '7c5bd92f-4146-411b-9192-248ffc1be92c',
+        'values': ['bob@chromium.org']
+    }, {
+        'values': ['benchmark'],
+        'guid': '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+        'type': 'GenericSet'
+    }, {
+        'values': [424242],
+        'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+        'type': 'GenericSet'
+    }, {
+        'values': ['master'],
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'type': 'GenericSet'
+    }, {
+        'values': ['bot'],
+        'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
+        'type': 'GenericSet'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+            reserved_infos.OWNERS.name:
+                'cabb59fe-4bcf-4512-881c-d038c7a80635'
+        },
+        'name': 'foo',
+        'unit': 'count'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
+            reserved_infos.OWNERS.name:
+                '7c5bd92f-4146-411b-9192-248ffc1be92c'
+        },
+        'name': 'foo',
+        'unit': 'count'
+    }])
 
     self.PostAddHistogramProcess(data)
 
@@ -1362,16 +1408,15 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     histograms.AddSharedDiagnosticToAllHistograms(
         'foo', generic_set.GenericSet(['bar']))
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.DEVICE_IDS.name,
-        generic_set.GenericSet([]))
+        reserved_infos.DEVICE_IDS.name, generic_set.GenericSet([]))
     diagnostics = add_histograms.FindHistogramLevelSparseDiagnostics(hist)
 
     self.assertEqual(1, len(diagnostics))
-    self.assertIsInstance(
-        diagnostics[reserved_infos.DEVICE_IDS.name],
-        generic_set.GenericSet)
+    self.assertIsInstance(diagnostics[reserved_infos.DEVICE_IDS.name],
+                          generic_set.GenericSet)
 
   def testFindSuiteLevelSparseDiagnostics(self):
+
     def _CreateSingleHistogram(hist, master):
       h = histogram_module.Histogram(hist, 'count')
       h.diagnostics[reserved_infos.MASTERS.name] = (
@@ -1380,15 +1425,17 @@ class AddHistogramsTest(AddHistogramsBaseTest):
 
     histograms = histogram_set.HistogramSet([
         _CreateSingleHistogram('hist1', 'master1'),
-        _CreateSingleHistogram('hist2', 'master2')])
+        _CreateSingleHistogram('hist2', 'master2')
+    ])
 
     with self.assertRaises(ValueError):
-      add_histograms.FindSuiteLevelSparseDiagnostics(
-          histograms, utils.TestKey('M/B/Foo'), 12345, False)
+      add_histograms.FindSuiteLevelSparseDiagnostics(histograms,
+                                                     utils.TestKey('M/B/Foo'),
+                                                     12345, False)
 
   def testComputeRevision(self):
-    hs = _CreateHistogram(name='hist', commit_position=424242,
-                          revision_timestamp=123456)
+    hs = _CreateHistogram(
+        name='hist', commit_position=424242, revision_timestamp=123456)
     self.assertEqual(424242, add_histograms.ComputeRevision(hs))
 
   def testComputeRevision_NotInteger_Raises(self):
@@ -1410,8 +1457,11 @@ class AddHistogramsTest(AddHistogramsBaseTest):
       add_histograms.ComputeRevision(histograms)
 
   def testComputeRevision_UsesPointIdIfPresent(self):
-    hs = _CreateHistogram(name='foo', commit_position=123456, point_id=234567,
-                          revision_timestamp=345678)
+    hs = _CreateHistogram(
+        name='foo',
+        commit_position=123456,
+        point_id=234567,
+        revision_timestamp=345678)
     rev = add_histograms.ComputeRevision(hs)
     self.assertEqual(234567, rev)
 
@@ -1439,8 +1489,7 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.BENCHMARKS.name,
-        generic_set.GenericSet(['benchmark']))
+        reserved_infos.BENCHMARKS.name, generic_set.GenericSet(['benchmark']))
     add_histograms.InlineDenseSharedDiagnostics(histograms)
     self.assertTrue(hist.diagnostics[reserved_infos.BENCHMARKS.name].has_guid)
 
@@ -1449,16 +1498,14 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     hist = histogram_module.Histogram('hist', 'count')
     histograms = histogram_set.HistogramSet([hist])
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.LOG_URLS.name,
-        generic_set.GenericSet(['http://foo']))
+        reserved_infos.LOG_URLS.name, generic_set.GenericSet(['http://foo']))
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.BUILD_URLS.name,
-        generic_set.GenericSet(['http://bar']))
+        reserved_infos.BUILD_URLS.name, generic_set.GenericSet(['http://bar']))
     add_histograms._LogDebugInfo(histograms)
-    self.assertEqual(
-        'Buildbot URL: %s' % "['http://foo']", mock_log.call_args_list[0][0][0])
-    self.assertEqual(
-        'Build URL: %s' % "['http://bar']", mock_log.call_args_list[1][0][0])
+    self.assertEqual('Buildbot URL: %s' % "['http://foo']",
+                     mock_log.call_args_list[0][0][0])
+    self.assertEqual('Build URL: %s' % "['http://bar']",
+                     mock_log.call_args_list[1][0][0])
 
   @mock.patch('logging.info')
   def testLogDebugInfo_NoHistograms(self, mock_log):
@@ -1530,20 +1577,16 @@ class DecompressFileWrapperTest(testing_common.TestCase):
     ]
     histograms = histogram_set.HistogramSet(hists)
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.MASTERS.name,
-        generic_set.GenericSet(['master']))
+        reserved_infos.MASTERS.name, generic_set.GenericSet(['master']))
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.BOTS.name,
-        generic_set.GenericSet(['bot']))
+        reserved_infos.BOTS.name, generic_set.GenericSet(['bot']))
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
         generic_set.GenericSet([12345]))
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.BENCHMARKS.name,
-        generic_set.GenericSet(['benchmark']))
+        reserved_infos.BENCHMARKS.name, generic_set.GenericSet(['benchmark']))
     histograms.AddSharedDiagnosticToAllHistograms(
-        reserved_infos.DEVICE_IDS.name,
-        generic_set.GenericSet(['device_foo']))
+        reserved_infos.DEVICE_IDS.name, generic_set.GenericSet(['device_foo']))
 
     input_file_compressed = BufferedFakeFile(
         zlib.compress(json.dumps(histograms.AsDicts())))
@@ -1551,8 +1594,8 @@ class DecompressFileWrapperTest(testing_common.TestCase):
 
     loaded_compressed_histograms = histogram_set.HistogramSet()
 
-    with add_histograms.DecompressFileWrapper(
-        input_file_compressed, 256) as decompressor:
+    with add_histograms.DecompressFileWrapper(input_file_compressed,
+                                              256) as decompressor:
       loaded_compressed_histograms.ImportDicts(
           add_histograms._LoadHistogramList(decompressor))
 
@@ -1563,8 +1606,9 @@ class DecompressFileWrapperTest(testing_common.TestCase):
         add_histograms._LoadHistogramList(input_file_raw))
     loaded_raw_histograms.DeduplicateDiagnostics()
 
-    self.assertEquals(sorted(loaded_raw_histograms.AsDicts()),
-                      sorted(loaded_compressed_histograms.AsDicts()))
+    self.assertEquals(
+        sorted(loaded_raw_histograms.AsDicts()),
+        sorted(loaded_compressed_histograms.AsDicts()))
 
   def testJSONFail(self):
     with BufferedFakeFile('Not JSON') as input_file:

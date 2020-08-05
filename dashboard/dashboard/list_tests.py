@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Functions for making lists of tests, and an AJAX endpoint to list tests.
 
 This module contains functions for listing:
@@ -132,6 +131,7 @@ def GetSubTests(suite_name, bot_names):
 
   return combined
 
+
 def _SubTestsDict(paths, deprecated):
   """Constructs a sub-test dict from a list of test paths.
 
@@ -221,8 +221,10 @@ def _MergeSubTestsDictEntry(a, b):
 
 
 @ndb.synctasklet
-def GetTestsMatchingPattern(
-    pattern, only_with_rows=False, list_entities=False, use_cache=True):
+def GetTestsMatchingPattern(pattern,
+                            only_with_rows=False,
+                            list_entities=False,
+                            use_cache=True):
   """Gets the TestMetadata entities or keys which match |pattern|.
 
   For this function, it's assumed that a test path should only have up to seven
@@ -240,18 +242,22 @@ def GetTestsMatchingPattern(
     A list of test paths, or test entities if list_entities is True.
   """
   result = yield GetTestsMatchingPatternAsync(
-      pattern, only_with_rows=only_with_rows, list_entities=list_entities,
+      pattern,
+      only_with_rows=only_with_rows,
+      list_entities=list_entities,
       use_cache=use_cache)
   raise ndb.Return(result)
 
 
 @ndb.tasklet
-def GetTestsMatchingPatternAsync(
-    pattern, only_with_rows=False, list_entities=False, use_cache=True):
+def GetTestsMatchingPatternAsync(pattern,
+                                 only_with_rows=False,
+                                 list_entities=False,
+                                 use_cache=True):
   property_names = [
       'master_name', 'bot_name', 'suite_name', 'test_part1_name',
-      'test_part2_name', 'test_part3_name', 'test_part4_name',
-      'test_part5_name']
+      'test_part2_name', 'test_part3_name', 'test_part4_name', 'test_part5_name'
+  ]
   pattern_parts = pattern.split('/')
   if len(pattern_parts) > 8:
     raise ndb.Return([])
@@ -279,8 +285,7 @@ def GetTestsMatchingPatternAsync(
         graph_data.TestMetadata._properties[f[0]] == f[1])
   query = query.order(graph_data.TestMetadata.key)
   if only_with_rows:
-    query = query.filter(
-        graph_data.TestMetadata.has_rows == True)
+    query = query.filter(graph_data.TestMetadata.has_rows == True)
   test_keys = yield query.fetch_async(keys_only=True)
 
   # Filter to include only tests that match the pattern.
@@ -292,8 +297,10 @@ def GetTestsMatchingPatternAsync(
   raise ndb.Return([utils.TestPath(k) for k in test_keys])
 
 
-def GetTestDescendants(
-    test_key, has_rows=None, deprecated=None, keys_only=True):
+def GetTestDescendants(test_key,
+                       has_rows=None,
+                       deprecated=None,
+                       keys_only=True):
   """Returns all the tests which are subtests of the test with the given key.
 
   Args:
@@ -304,14 +311,15 @@ def GetTestDescendants(
   Returns:
     A list of keys of all descendants of the given test.
   """
-  return GetTestDescendantsAsync(test_key,
-                                 has_rows=has_rows,
-                                 deprecated=deprecated,
-                                 keys_only=keys_only).get_result()
+  return GetTestDescendantsAsync(
+      test_key, has_rows=has_rows, deprecated=deprecated,
+      keys_only=keys_only).get_result()
 
 
-def GetTestDescendantsAsync(
-    test_key, has_rows=None, deprecated=None, keys_only=True):
+def GetTestDescendantsAsync(test_key,
+                            has_rows=None,
+                            deprecated=None,
+                            keys_only=True):
   """Returns all the tests which are subtests of the test with the given key.
 
   Args:
@@ -409,8 +417,8 @@ def _GetSelectedTestPathsForDict(test_path_dict):
     elif selection == 'all':
       test_key_futures.append(utils.TestKey(path).get_async())
       try:
-        paths.extend(GetTestsMatchingPattern(
-            '%s/*' % path, only_with_rows=True))
+        paths.extend(
+            GetTestsMatchingPattern('%s/*' % path, only_with_rows=True))
       except AssertionError:
         any_missing = True
     elif isinstance(selection, list):
@@ -462,8 +470,7 @@ def _GetUnselectedTestPathsForDict(test_path_dict):
         paths.append(path)
       # We want to find all the complementary children, which are
       # those that do not appear in the selection, with rows.
-      children = GetTestsMatchingPattern(
-          '%s/*' % path, only_with_rows=True)
+      children = GetTestsMatchingPattern('%s/*' % path, only_with_rows=True)
       for child in children:
         item = child.split('/')[-1]
         if item not in selection:
@@ -489,6 +496,5 @@ def _GetCoreTestPathsForTest(path, return_selected):
       paths.append(utils.TestPath(subtest.key))
     elif not return_selected:
       paths.append(utils.TestPath(subtest.key))
-
 
   return paths

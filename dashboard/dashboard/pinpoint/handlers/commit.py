@@ -24,5 +24,5 @@ class Commit(api_request_handler.ApiRequestHandler):
       })
       return c.AsDict()
     except KeyError:
-      raise api_request_handler.BadRequestError(
-          'Unknown git hash: %s' % git_hash)
+      raise api_request_handler.BadRequestError('Unknown git hash: %s' %
+                                                git_hash)

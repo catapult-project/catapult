@@ -18,15 +18,14 @@ from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
 
-
 # These limits should prevent DeadlineExceededErrors.
 # TODO(benjhayden): Find a better strategy for staying under the deadline.
 DIAGNOSTICS_QUERY_LIMIT = 10000
 HISTOGRAMS_QUERY_LIMIT = 1000
 ROWS_QUERY_LIMIT = 20000
 
-COLUMNS_REQUIRING_ROWS = {'timestamp', 'revisions', 'annotations'}.union(
-    descriptor.STATISTICS)
+COLUMNS_REQUIRING_ROWS = {'timestamp', 'revisions',
+                          'annotations'}.union(descriptor.STATISTICS)
 
 
 class Timeseries2Handler(api_request_handler.ApiRequestHandler):
@@ -47,8 +46,8 @@ class Timeseries2Handler(api_request_handler.ApiRequestHandler):
     max_revision = self.request.get('max_revision')
     max_revision = int(max_revision) if max_revision else None
     query = TimeseriesQuery(
-        desc, self.request.get('columns').split(','),
-        min_revision, max_revision,
+        desc,
+        self.request.get('columns').split(','), min_revision, max_revision,
         api_utils.ParseISO8601(self.request.get('min_timestamp', None)),
         api_utils.ParseISO8601(self.request.get('max_timestamp', None)))
     try:
@@ -61,8 +60,13 @@ class Timeseries2Handler(api_request_handler.ApiRequestHandler):
 
 class TimeseriesQuery(object):
 
-  def __init__(self, desc, columns, min_revision=None, max_revision=None,
-               min_timestamp=None, max_timestamp=None):
+  def __init__(self,
+               desc,
+               columns,
+               min_revision=None,
+               max_revision=None,
+               min_timestamp=None,
+               max_timestamp=None):
     self._descriptor = desc
     self._columns = columns
     self._min_revision = min_revision
@@ -112,9 +116,12 @@ class TimeseriesQuery(object):
       futures.append(self._FetchDiagnostics())
     yield futures
     raise ndb.Return({
-        'units': self._units,
-        'improvement_direction': self._improvement_direction,
-        'data': [[datum.get(col) for col in self._columns]
+        'units':
+            self._units,
+        'improvement_direction':
+            self._improvement_direction,
+        'data': [[datum.get(col)
+                  for col in self._columns]
                  for _, datum in sorted(self._data.items())],
     })
 
@@ -138,14 +145,16 @@ class TimeseriesQuery(object):
     desc = self._descriptor.Clone()
 
     self._statistic_columns = [
-        col for col in self._columns if col in descriptor.STATISTICS]
+        col for col in self._columns if col in descriptor.STATISTICS
+    ]
     if desc.statistic and desc.statistic not in self._statistic_columns:
       self._statistic_columns.append(desc.statistic)
 
     desc.statistic = None
     unsuffixed_test_paths = desc.ToTestPathsSync()
     self._unsuffixed_test_metadata_keys = [
-        utils.TestMetadataKey(path) for path in unsuffixed_test_paths]
+        utils.TestMetadataKey(path) for path in unsuffixed_test_paths
+    ]
 
     test_paths = []
     for statistic in self._statistic_columns:
@@ -153,7 +162,8 @@ class TimeseriesQuery(object):
       test_paths.extend(desc.ToTestPathsSync())
 
     self._test_metadata_keys = [
-        utils.TestMetadataKey(path) for path in test_paths]
+        utils.TestMetadataKey(path) for path in test_paths
+    ]
     self._test_metadata_keys.extend(self._unsuffixed_test_metadata_keys)
     test_paths.extend(unsuffixed_test_paths)
 
@@ -225,8 +235,8 @@ class TimeseriesQuery(object):
     # If statistic is None and there are multiple statistics, then fetch full
     # Row entities because we might need their 'error' aka 'std' or
     # 'd_'-prefixed statistics.
-    if ((statistic is not None) or
-        (','.join(self._statistic_columns) == 'avg')):
+    if ((statistic is not None)
+        or (','.join(self._statistic_columns) == 'avg')):
       projection = ['revision', 'value']
       if 'timestamp' in self._columns:
         projection.append('timestamp')
@@ -271,12 +281,16 @@ class TimeseriesQuery(object):
           datum['timestamp'] = row.timestamp.isoformat()
         if 'revisions' in self._columns:
           datum['revisions'] = {
-              attr: value for attr, value in row.to_dict().items()
-              if attr.startswith('r_')}
+              attr: value
+              for attr, value in row.to_dict().items()
+              if attr.startswith('r_')
+          }
         if 'annotations' in self._columns:
           datum['annotations'] = {
-              attr: value for attr, value in row.to_dict().items()
-              if attr.startswith('a_')}
+              attr: value
+              for attr, value in row.to_dict().items()
+              if attr.startswith('a_')
+          }
 
     if 'histogram' in self._columns and test_desc.statistic == None:
       with timing.WallTimeLogger('fetch_histograms'):
@@ -322,8 +336,10 @@ class TimeseriesQuery(object):
     query = self._FilterRowQuery(query)
     with timing.WallTimeLogger('fetch_histograms'):
       row_keys = yield query.fetch_async(HISTOGRAMS_QUERY_LIMIT, keys_only=True)
-      yield [self._FetchHistogram(test, row_key.integer_id())
-             for row_key in row_keys]
+      yield [
+          self._FetchHistogram(test, row_key.integer_id())
+          for row_key in row_keys
+      ]
 
   @ndb.tasklet
   def _FetchHistogram(self, test, revision):
@@ -340,8 +356,10 @@ class TimeseriesQuery(object):
   @ndb.tasklet
   def _FetchDiagnostics(self):
     with timing.WallTimeLogger('fetch_diagnosticss'):
-      yield [self._FetchDiagnosticsForTest(test)
-             for test in self._unsuffixed_test_metadata_keys]
+      yield [
+          self._FetchDiagnosticsForTest(test)
+          for test in self._unsuffixed_test_metadata_keys
+      ]
 
   @ndb.tasklet
   def _FetchDiagnosticsForTest(self, test):

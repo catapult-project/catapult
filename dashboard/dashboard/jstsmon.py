@@ -9,7 +9,6 @@ from __future__ import absolute_import
 from gae_ts_mon.handlers import TSMonJSHandler
 from infra_libs import ts_mon
 
-
 FIELDS = [
     ts_mon.IntegerField('fe_version'),
     ts_mon.BooleanField('signed_in'),

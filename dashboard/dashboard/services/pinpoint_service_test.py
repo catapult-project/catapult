@@ -35,7 +35,10 @@ class PinpointServiceTest(unittest.TestCase):
 
     self.mock_request.assert_called_with(
         pinpoint_service._PINPOINT_URL + '/api/new',
-        foo='bar', use_cache=False, use_auth=True, method='POST')
+        foo='bar',
+        use_cache=False,
+        use_auth=True,
+        method='POST')
 
   def testRequest_Unprivileged_Asserts(self):
     self.mock_hooks.return_value = False

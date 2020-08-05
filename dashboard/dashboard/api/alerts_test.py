@@ -49,10 +49,12 @@ class AlertsGeneralTest(testing_common.TestCase):
       entity.timestamp = timestamp
     entity.bug_id = bug_id
     if sheriff_name:
-      entity.subscriptions = [Subscription(
-          name=sheriff_name,
-          notification_email='sullivan@google.com',
-      )]
+      entity.subscriptions = [
+          Subscription(
+              name=sheriff_name,
+              notification_email='sullivan@google.com',
+          )
+      ]
       entity.subscription_names = [sheriff_name]
     if test:
       entity.test = utils.TestKey(test)
@@ -102,11 +104,17 @@ class AlertsGeneralTest(testing_common.TestCase):
   def testReport(self):
     self._CreateAnomaly()
     self._CreateAnomaly(test='adept/android/lodging/assessment/story')
-    report_template.ReportTemplate(name='foo', id=42, template={'rows': [{
-        'testSuites': ['lodging'],
-        'measurement': 'assessment',
-        'bots': ['adept:android'],
-        'testCases': ['story']}]}).put()
+    report_template.ReportTemplate(
+        name='foo',
+        id=42,
+        template={
+            'rows': [{
+                'testSuites': ['lodging'],
+                'measurement': 'assessment',
+                'bots': ['adept:android'],
+                'testCases': ['story']
+            }]
+        }).put()
     response = self._Post(report=42)
     self.assertEqual(1, len(response['anomalies']))
     self.assertEqual('android', response['anomalies'][0]['bot'])
@@ -296,9 +304,7 @@ class AlertsGeneralTest(testing_common.TestCase):
     self._CreateAnomaly(timestamp=datetime.datetime.utcfromtimestamp(70))
     self._CreateAnomaly(timestamp=matching_timestamp)
     response = self._Post(
-        limit=1,
-        min_start_revision=0,
-        max_timestamp='1970-1-1T0:1:0')
+        limit=1, min_start_revision=0, max_timestamp='1970-1-1T0:1:0')
     self.assertEqual(1, len(response['anomalies']))
     self.assertEqual(matching_timestamp.isoformat(),
                      response['anomalies'][0]['timestamp'])

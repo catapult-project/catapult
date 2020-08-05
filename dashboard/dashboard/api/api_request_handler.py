@@ -29,11 +29,13 @@ class BadRequestError(Exception):
 
 
 class ForbiddenError(Exception):
+
   def __init__(self):
     super(ForbiddenError, self).__init__('Access denied')
 
 
 class NotFoundError(Exception):
+
   def __init__(self):
     super(NotFoundError, self).__init__('Not found')
 
@@ -121,8 +123,8 @@ class ApiRequestHandler(webapp2.RequestHandler):
     set_cors_headers = False
     origin = self.request.headers.get('Origin', '')
     for allowed in _ALLOWED_ORIGINS:
-      dev_pattern = re.compile(
-          r'https://[A-Za-z0-9-]+-dot-' + re.escape(allowed))
+      dev_pattern = re.compile(r'https://[A-Za-z0-9-]+-dot-' +
+                               re.escape(allowed))
       prod_pattern = re.compile(r'https://' + re.escape(allowed))
       if dev_pattern.match(origin) or prod_pattern.match(origin):
         set_cors_headers = True
@@ -130,10 +132,10 @@ class ApiRequestHandler(webapp2.RequestHandler):
       return
     self.response.headers.add_header('Access-Control-Allow-Origin', origin)
     self.response.headers.add_header('Access-Control-Allow-Credentials', 'true')
-    self.response.headers.add_header(
-        'Access-Control-Allow-Methods', 'GET,OPTIONS,POST')
-    self.response.headers.add_header(
-        'Access-Control-Allow-Headers', 'Accept,Authorization,Content-Type')
+    self.response.headers.add_header('Access-Control-Allow-Methods',
+                                     'GET,OPTIONS,POST')
+    self.response.headers.add_header('Access-Control-Allow-Headers',
+                                     'Accept,Authorization,Content-Type')
     self.response.headers.add_header('Access-Control-Max-Age', '3600')
 
   def WriteErrorMessage(self, message, status):

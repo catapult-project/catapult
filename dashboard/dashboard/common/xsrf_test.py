@@ -49,8 +49,7 @@ class XsrfTest(testing_common.TestCase):
 
   def testTokenRequired_BogusToken_Returns403(self):
     self.testapp.post(
-        '/example',
-        {'xsrf_token': 'abcdefghijklmnopqrstuvwxyz0123456789'},
+        '/example', {'xsrf_token': 'abcdefghijklmnopqrstuvwxyz0123456789'},
         status=403)
 
   def testTokenRequired_CorrectToken_Success(self):

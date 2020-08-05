@@ -20,7 +20,6 @@ import webapp2
 from dashboard.pinpoint.models import job as job_model
 from dashboard.pinpoint.models import scheduler
 
-
 DEFAULT_BUDGET = 1.0
 
 

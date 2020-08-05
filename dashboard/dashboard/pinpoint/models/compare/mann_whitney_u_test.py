@@ -12,17 +12,17 @@ from dashboard.pinpoint.models.compare import mann_whitney_u
 
 
 class MannWhitneyUTest(unittest.TestCase):
+
   def testBasic(self):
     self.assertAlmostEqual(
         mann_whitney_u.MannWhitneyU(range(10), range(20, 30)),
         0.00018267179110955002)
     self.assertAlmostEqual(
-        mann_whitney_u.MannWhitneyU(range(5), range(10)),
-        0.13986357686781267)
+        mann_whitney_u.MannWhitneyU(range(5), range(10)), 0.13986357686781267)
 
   def testDuplicateValues(self):
-    self.assertAlmostEqual(mann_whitney_u.MannWhitneyU([0] * 5, [1] * 5),
-                           0.0039767517097886512)
+    self.assertAlmostEqual(
+        mann_whitney_u.MannWhitneyU([0] * 5, [1] * 5), 0.0039767517097886512)
 
   def testSmallSamples(self):
     self.assertEqual(mann_whitney_u.MannWhitneyU([0], [1]), 1.0)

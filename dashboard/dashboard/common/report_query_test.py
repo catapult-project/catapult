@@ -57,14 +57,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(id=20, parent=test.key, value=200).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:b'],
-                'measurement': 'measure',
-                'testCases': [],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:b'],
+            'measurement': 'measure',
+            'testCases': [],
+        },],
         'statistics': ['avg'],
     }
     report = report_query.ReportQuery(template, [10, 20]).FetchSync()
@@ -86,14 +84,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(id=10, parent=test.key, value=100).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': [],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': [],
+        },],
         'statistics': ['avg'],
     }
     report = report_query.ReportQuery(template, [10]).FetchSync()
@@ -117,14 +113,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(error=4, id=30, parent=test.key, value=40).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': [],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': [],
+        },],
         'statistics': ['avg', 'std'],
     }
     report = report_query.ReportQuery(template, [10, 20, 30]).FetchSync()
@@ -156,14 +150,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(error=4, id=20, parent=test.key, value=40).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': [],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': [],
+        },],
         'statistics': ['avg'],
     }
     report = report_query.ReportQuery(template, ['latest']).FetchSync()
@@ -239,14 +231,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(error=2, id=10, parent=test.key, value=20).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['a', 'b'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': [],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['a', 'b'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': [],
+        },],
         'statistics': ['avg'],
     }
     report = report_query.ReportQuery(template, [10]).FetchSync()
@@ -275,14 +265,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(error=2, id=10, parent=test.key, value=20).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:a', 'master:b'],
-                'measurement': 'measure',
-                'testCases': [],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:a', 'master:b'],
+            'measurement': 'measure',
+            'testCases': [],
+        },],
         'statistics': ['avg'],
     }
     report = report_query.ReportQuery(template, [10, 20]).FetchSync()
@@ -311,14 +299,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(error=2, id=10, parent=test.key, value=20).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': ['a', 'b'],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': ['a', 'b'],
+        },],
         'statistics': ['avg'],
     }
     report = report_query.ReportQuery(template, [10]).FetchSync()
@@ -348,14 +334,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(error=2, id=20, parent=test.key, value=20).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': ['a', 'b'],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': ['a', 'b'],
+        },],
         'statistics': ['avg'],
     }
     report = report_query.ReportQuery(template, [10, 20]).FetchSync()
@@ -391,14 +375,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(error=2, id=19, parent=test.key, value=20).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': ['a', 'b'],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': ['a', 'b'],
+        },],
         'statistics': ['avg'],
     }
     report = report_query.ReportQuery(template, [10, 20]).FetchSync()
@@ -434,14 +416,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(error=2, id=10, parent=test.key, value=20).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': ['a', 'b'],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': ['a', 'b'],
+        },],
         'statistics': ['avg'],
     }
     report = report_query.ReportQuery(template, [10, 20]).FetchSync()
@@ -466,14 +446,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(error=10, id=10, parent=test.key, value=100).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': [],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': [],
+        },],
         'statistics': ['avg', 'std', 'count'],
     }
     report = report_query.ReportQuery(template, [10]).FetchSync()
@@ -505,14 +483,12 @@ class ReportQueryTest(testing_common.TestCase):
         value=100).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': [],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': [],
+        },],
         'statistics': ['avg', 'std', 'count', 'min', 'max'],
     }
     report = report_query.ReportQuery(template, [10]).FetchSync()
@@ -572,14 +548,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(id=10, parent=test.key, value=500).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': [],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': [],
+        },],
         'statistics': ['avg', 'std', 'count', 'min', 'max', 'sum'],
     }
     report = report_query.ReportQuery(template, [10]).FetchSync()
@@ -613,14 +587,12 @@ class ReportQueryTest(testing_common.TestCase):
     test.put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': [],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': [],
+        },],
         'statistics': ['avg'],
     }
     report = report_query.ReportQuery(template, [10]).FetchSync()
@@ -712,14 +684,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(id=10, parent=test.key, value=500).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': ['a', 'b'],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': ['a', 'b'],
+        },],
         'statistics': ['avg', 'std', 'count'],
     }
     report = report_query.ReportQuery(template, [10]).FetchSync()
@@ -757,14 +727,12 @@ class ReportQueryTest(testing_common.TestCase):
     graph_data.Row(id=10, parent=test.key, value=100).put()
 
     template = {
-        'rows': [
-            {
-                'testSuites': ['suite'],
-                'bots': ['master:bot'],
-                'measurement': 'measure',
-                'testCases': ['a', 'b'],
-            },
-        ],
+        'rows': [{
+            'testSuites': ['suite'],
+            'bots': ['master:bot'],
+            'measurement': 'measure',
+            'testCases': ['a', 'b'],
+        },],
         'statistics': ['avg'],
     }
     report = report_query.ReportQuery(template, [10]).FetchSync()

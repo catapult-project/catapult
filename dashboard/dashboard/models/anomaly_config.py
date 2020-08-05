@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """The database models for anomaly alerting threshold configs."""
 from __future__ import print_function
 from __future__ import division
@@ -47,8 +46,11 @@ def CleanConfigDict(config_dict):
   should be ignored. These are removed so that the parameters can
   be passed to FindChangePoints using ** notation.
   """
-  return {key: value for key, value in config_dict.items()
-          if key in _VALID_ANOMALY_CONFIG_PARAMETERS}
+  return {
+      key: value
+      for key, value in config_dict.items()
+      if key in _VALID_ANOMALY_CONFIG_PARAMETERS
+  }
 
 
 @ndb.synctasklet

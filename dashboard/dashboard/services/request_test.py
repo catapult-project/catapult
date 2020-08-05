@@ -59,11 +59,16 @@ class SuccessTest(_RequestTest):
 
   def testRequestWithBodyAndParameters(self):
     self._request.return_value = ({'status': '200'}, 'response')
-    response = request.Request('https://example.com', 'POST', body='a string',
-                               url_param_1='value_1', url_param_2='value_2')
+    response = request.Request(
+        'https://example.com',
+        'POST',
+        body='a string',
+        url_param_1='value_1',
+        url_param_2='value_2')
     self._request.assert_called_once_with(
         'https://example.com?url_param_1=value_1&url_param_2=value_2',
-        method='POST', body='"a string"',
+        method='POST',
+        body='"a string"',
         headers={'Content-Type': 'application/json'})
     self.assertEqual(response, 'response')
 

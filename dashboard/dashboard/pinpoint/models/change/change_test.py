@@ -69,34 +69,54 @@ class ChangeTest(test.TestCase):
     expected = {
         'commits': [
             {
-                'author': 'author@chromium.org',
-                'commit_position': 123456,
-                'git_hash': 'commit_123',
-                'repository': 'chromium',
-                'created': '2018-01-01T00:01:00',
-                'url': u'https://chromium.googlesource.com/chromium/src/+/commit_123',
-                'subject': 'Subject.',
-                'review_url': 'https://foo.bar/+/123456',
-                'change_id': 'If32lalatdfg325simon8943washere98j589',
-                'message': 'Subject.\n\nCommit message.\n'
-                           'Reviewed-on: https://foo.bar/+/123456\n'
-                           'Change-Id: If32lalatdfg325simon8943washere98j589\n'
-                           'Cr-Commit-Position: refs/heads/master@{#123456}',
+                'author':
+                    'author@chromium.org',
+                'commit_position':
+                    123456,
+                'git_hash':
+                    'commit_123',
+                'repository':
+                    'chromium',
+                'created':
+                    '2018-01-01T00:01:00',
+                'url':
+                    u'https://chromium.googlesource.com/chromium/src/+/commit_123',
+                'subject':
+                    'Subject.',
+                'review_url':
+                    'https://foo.bar/+/123456',
+                'change_id':
+                    'If32lalatdfg325simon8943washere98j589',
+                'message':
+                    'Subject.\n\nCommit message.\n'
+                    'Reviewed-on: https://foo.bar/+/123456\n'
+                    'Change-Id: If32lalatdfg325simon8943washere98j589\n'
+                    'Cr-Commit-Position: refs/heads/master@{#123456}',
             },
             {
-                'author': 'author@chromium.org',
-                'commit_position': 123456,
-                'git_hash': 'commit_456',
-                'repository': 'catapult',
-                'created': '2018-01-01T00:01:00',
-                'url': u'https://chromium.googlesource.com/catapult/+/commit_456',
-                'subject': 'Subject.',
-                'review_url': 'https://foo.bar/+/123456',
-                'change_id': 'If32lalatdfg325simon8943washere98j589',
-                'message': 'Subject.\n\nCommit message.\n'
-                           'Reviewed-on: https://foo.bar/+/123456\n'
-                           'Change-Id: If32lalatdfg325simon8943washere98j589\n'
-                           'Cr-Commit-Position: refs/heads/master@{#123456}',
+                'author':
+                    'author@chromium.org',
+                'commit_position':
+                    123456,
+                'git_hash':
+                    'commit_456',
+                'repository':
+                    'catapult',
+                'created':
+                    '2018-01-01T00:01:00',
+                'url':
+                    u'https://chromium.googlesource.com/catapult/+/commit_456',
+                'subject':
+                    'Subject.',
+                'review_url':
+                    'https://foo.bar/+/123456',
+                'change_id':
+                    'If32lalatdfg325simon8943washere98j589',
+                'message':
+                    'Subject.\n\nCommit message.\n'
+                    'Reviewed-on: https://foo.bar/+/123456\n'
+                    'Change-Id: If32lalatdfg325simon8943washere98j589\n'
+                    'Cr-Commit-Position: refs/heads/master@{#123456}',
             },
         ],
         'patch': {
@@ -119,7 +139,10 @@ class ChangeTest(test.TestCase):
 
   def testFromDataDict(self):
     c = change.Change.FromData({
-        'commits': [{'repository': 'chromium', 'git_hash': 'commit_123'}],
+        'commits': [{
+            'repository': 'chromium',
+            'git_hash': 'commit_123'
+        }],
     })
     self.assertEqual(c, Change(chromium=123))
 
@@ -133,20 +156,31 @@ class ChangeTest(test.TestCase):
 
   def testFromDictWithJustOneCommit(self):
     c = change.Change.FromDict({
-        'commits': [{'repository': 'chromium', 'git_hash': 'commit_123'}],
+        'commits': [{
+            'repository': 'chromium',
+            'git_hash': 'commit_123'
+        }],
     })
     self.assertEqual(c, Change(chromium=123))
 
   def testFromDictWithAllFields(self):
     self.get_change.return_value = {
         'id': 'repo~branch~id',
-        'revisions': {'abc123': {}}
+        'revisions': {
+            'abc123': {}
+        }
     }
 
     c = change.Change.FromDict({
         'commits': (
-            {'repository': 'chromium', 'git_hash': 'commit_123'},
-            {'repository': 'catapult', 'git_hash': 'commit_456'},
+            {
+                'repository': 'chromium',
+                'git_hash': 'commit_123'
+            },
+            {
+                'repository': 'catapult',
+                'git_hash': 'commit_456'
+            },
         ),
         'patch': {
             'server': 'https://codereview.com',
@@ -161,13 +195,21 @@ class ChangeTest(test.TestCase):
   def testFromDictWithNonePatch(self):
     self.get_change.return_value = {
         'id': 'repo~branch~id',
-        'revisions': {'abc123': {}}
+        'revisions': {
+            'abc123': {}
+        }
     }
 
     c = change.Change.FromDict({
         'commits': (
-            {'repository': 'chromium', 'git_hash': 'commit_123'},
-            {'repository': 'catapult', 'git_hash': 'commit_456'},
+            {
+                'repository': 'chromium',
+                'git_hash': 'commit_123'
+            },
+            {
+                'repository': 'catapult',
+                'git_hash': 'commit_456'
+            },
         ),
         'patch': None,
     })
@@ -190,6 +232,7 @@ class MidpointTest(test.TestCase):
             test.CATAPULT_URL + '.git')
       else:
         return 'deps = {"chromium/catapult": "%s@commit_9"}' % test.CATAPULT_URL
+
     self.file_contents.side_effect = _FileContents
 
   def testDifferingPatch(self):

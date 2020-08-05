@@ -49,16 +49,15 @@ class ExecutionFail2(_ExecutionStub):
   """This Execution always fails on first Poll()."""
 
   def _Poll(self):
-    raise errors.InformationalError(
-        'A different expected error for testing.')
+    raise errors.InformationalError('A different expected error for testing.')
 
 
 class ExecutionPass(_ExecutionStub):
   """This Execution always completes on first Poll()."""
 
   def _Poll(self):
-    self._Complete(result_arguments={'arg key': 'arg value'},
-                   result_values=(1, 2, 3))
+    self._Complete(
+        result_arguments={'arg key': 'arg value'}, result_values=(1, 2, 3))
 
 
 class ExecutionSpin(_ExecutionStub):
@@ -99,7 +98,9 @@ class ExecutionTest(unittest.TestCase):
     expected = {
         'completed': True,
         'exception': None,
-        'details': {'details key': 'details value'},
+        'details': {
+            'details key': 'details value'
+        },
     }
     self.assertEqual(e.AsDict(), expected)
 

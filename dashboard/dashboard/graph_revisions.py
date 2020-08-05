@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Handler to serve a simple time series for all points in a series.
 
 This is used to show the revision slider for a chart; it includes data
@@ -55,8 +54,9 @@ class GraphRevisionsHandler(request_handler.RequestHandler):
       if math.isnan(x):
         return None
       return x
-    rows = [
-        (_NaNtoNone(r[0]), _NaNtoNone(r[1]), _NaNtoNone(r[2])) for r in rows]
+
+    rows = [(_NaNtoNone(r[0]), _NaNtoNone(r[1]), _NaNtoNone(r[2])) for r in rows
+           ]
     self.response.out.write(json.dumps(rows))
 
 
@@ -82,8 +82,8 @@ def SetCacheAsync(test_path, rows):
     test = utils.TestKey(test_path).get()
     if test and not test.internal_only:
       futures.append(
-          namespaced_stored_object.SetExternalAsync(
-              _CACHE_KEY % test_path, rows))
+          namespaced_stored_object.SetExternalAsync(_CACHE_KEY % test_path,
+                                                    rows))
   yield futures
 
 

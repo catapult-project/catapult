@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides a web interface for loading graph data from the production server.
 
 This is meant to be used on a dev server only.
@@ -35,8 +34,9 @@ class LoadFromProdHandler(request_handler.RequestHandler):
   def get(self):
     if 'Development' not in os.environ['SERVER_SOFTWARE']:
       self.RenderHtml('result.html', {
-          'errors': [
-              'This should not be run in production, only on dev server.']})
+          'errors':
+              ['This should not be run in production, only on dev server.']
+      })
       return
     self.RenderHtml('load_from_prod.html', {})
 
@@ -44,8 +44,9 @@ class LoadFromProdHandler(request_handler.RequestHandler):
     """Loads the requested data from the production server."""
     if 'Development' not in os.environ['SERVER_SOFTWARE']:
       self.RenderHtml('result.html', {
-          'errors': [
-              'This should not be run in production, only on dev server.']})
+          'errors':
+              ['This should not be run in production, only on dev server.']
+      })
       return
 
     sheriff = self.request.get('sheriff')
@@ -70,8 +71,8 @@ class LoadFromProdHandler(request_handler.RequestHandler):
       protos = json.loads(raw_json)
     else:
       self.RenderHtml('result.html', {
-          'errors': [
-              'Need to specify a test_path, sheriff or json data file.']})
+          'errors': ['Need to specify a test_path, sheriff or json data file.']
+      })
       return
 
     if not protos:
@@ -109,10 +110,8 @@ class LoadFromProdHandler(request_handler.RequestHandler):
 
     num_entities = sum(len(entities[kind]) for kind in kinds)
     self.RenderHtml('result.html', {
-        'results': [
-            {
-                'name': 'Added data',
-                'value': '%d entities' % num_entities
-            }
-        ]
+        'results': [{
+            'name': 'Added data',
+            'value': '%d entities' % num_entities
+        }]
     })

@@ -178,21 +178,18 @@ If you think Pinpoint blamed the wrong commit, please add the
 `Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
 help diagnose.""")
 
-_COMMENT_FAILED = (
-    u"""\U0001f63f Pinpoint job stopped with an error.
+_COMMENT_FAILED = (u"""\U0001f63f Pinpoint job stopped with an error.
 https://testbed.example.com/job/1
 
 Error string""")
 
-_COMMENT_CODE_REVIEW = (
-    u"""\U0001f4cd Job complete.
+_COMMENT_CODE_REVIEW = (u"""\U0001f4cd Job complete.
 
 See results at: https://testbed.example.com/job/1""")
 
 
-@mock.patch.object(
-    job.results2, 'GetCachedResults2',
-    mock.MagicMock(return_value='http://foo'))
+@mock.patch.object(job.results2, 'GetCachedResults2',
+                   mock.MagicMock(return_value='http://foo'))
 class JobTest(test.TestCase):
 
   @mock.patch.object(
@@ -200,12 +197,11 @@ class JobTest(test.TestCase):
       mock.MagicMock(
           return_value=job.timing_record.EstimateResult(
               job.timing_record.Timings(
-                  datetime.timedelta(seconds=10),
-                  datetime.timedelta(seconds=5),
-                  datetime.timedelta(seconds=100)), ['try', 'linux'])))
-  @mock.patch.object(
-      job.scheduler, 'QueueStats',
-      mock.MagicMock(return_value=[]))
+                  datetime.timedelta(seconds=10), datetime.timedelta(
+                      seconds=5), datetime.timedelta(
+                          seconds=100)), ['try', 'linux'])))
+  @mock.patch.object(job.scheduler, 'QueueStats',
+                     mock.MagicMock(return_value=[]))
   def testAsDictOptions_Estimate(self):
     j = job.Job.New((), (), bug_id=123456)
 
@@ -216,12 +212,10 @@ class JobTest(test.TestCase):
     self.assertEqual(d['estimate']['timings'][2], 100)
     self.assertEqual(d['estimate']['tags'], ['try', 'linux'])
 
-  @mock.patch.object(
-      job.timing_record, 'GetSimilarHistoricalTimings',
-      mock.MagicMock(return_value=None))
-  @mock.patch.object(
-      job.scheduler, 'QueueStats',
-      mock.MagicMock(return_value=[]))
+  @mock.patch.object(job.timing_record, 'GetSimilarHistoricalTimings',
+                     mock.MagicMock(return_value=None))
+  @mock.patch.object(job.scheduler, 'QueueStats',
+                     mock.MagicMock(return_value=[]))
   def testAsDictOptions_EstimateFails(self):
     j = job.Job.New((), (), bug_id=123456)
 
@@ -230,14 +224,14 @@ class JobTest(test.TestCase):
 
 
 class RetryTest(test.TestCase):
+
   def setUp(self):
     super(RetryTest, self).setUp()
 
   def testStarted_RecoverableError_BacksOff(self):
     j = job.Job.New((), (), comparison_mode='performance')
     j.Start()
-    j.state.Explore = mock.MagicMock(
-        side_effect=errors.RecoverableError(None))
+    j.state.Explore = mock.MagicMock(side_effect=errors.RecoverableError(None))
     j._Schedule = mock.MagicMock()
     j.put = mock.MagicMock()
     j.Fail = mock.MagicMock()
@@ -257,8 +251,7 @@ class RetryTest(test.TestCase):
   def testStarted_RecoverableError_Resets(self):
     j = job.Job.New((), (), comparison_mode='performance')
     j.Start()
-    j.state.Explore = mock.MagicMock(
-        side_effect=errors.RecoverableError(None))
+    j.state.Explore = mock.MagicMock(side_effect=errors.RecoverableError(None))
     j._Schedule = mock.MagicMock()
     j.put = mock.MagicMock()
     j.Fail = mock.MagicMock()
@@ -366,8 +359,8 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedMergeIntoExisting(
-      self, differences, result_values, commit_as_dict):
+  def testCompletedMergeIntoExisting(self, differences, result_values,
+                                     commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
     differences.return_value = [(None, c)]
     result_values.side_effect = [0], [1.23456]
@@ -402,8 +395,8 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedSkipsMergeWhenDuplicate(
-      self, differences, result_values, commit_as_dict):
+  def testCompletedSkipsMergeWhenDuplicate(self, differences, result_values,
+                                           commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
     differences.return_value = [(None, c)]
     result_values.side_effect = [0], [1.23456]
@@ -444,8 +437,8 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedWithInvalidIssue(
-      self, differences, result_values, commit_as_dict):
+  def testCompletedWithInvalidIssue(self, differences, result_values,
+                                    commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
     differences.return_value = [(None, c)]
     result_values.side_effect = [0], [1.23456]
@@ -467,8 +460,8 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedWithCommitAndDocs(
-      self, differences, result_values, commit_as_dict):
+  def testCompletedWithCommitAndDocs(self, differences, result_values,
+                                     commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
     differences.return_value = [(None, c)]
     result_values.side_effect = [1.23456], [0]
@@ -481,12 +474,16 @@ class BugCommentTest(test.TestCase):
         'message': 'Subject.\n\nCommit message.',
     }
     self.get_issue.return_value = {'status': 'Untriaged'}
-    j = job.Job.New(
-        (), (), bug_id=123456, comparison_mode='performance',
-        tags={'test_path': 'master/bot/benchmark'})
-    diag_dict = generic_set.GenericSet([[u'Benchmark doc link', u'http://docs']])
+    j = job.Job.New((), (),
+                    bug_id=123456,
+                    comparison_mode='performance',
+                    tags={'test_path': 'master/bot/benchmark'})
+    diag_dict = generic_set.GenericSet([[u'Benchmark doc link',
+                                         u'http://docs']])
     diag = histogram.SparseDiagnostic(
-        data=diag_dict.AsDict(), start_revision=1, end_revision=sys.maxsize,
+        data=diag_dict.AsDict(),
+        start_revision=1,
+        end_revision=sys.maxsize,
         name=reserved_infos.DOCUMENTATION_URLS.name,
         test=utils.TestKey('master/bot/benchmark'))
     diag.put()
@@ -536,8 +533,8 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedDoesNotReassign(
-      self, differences, result_values, patch_as_dict):
+  def testCompletedDoesNotReassign(self, differences, result_values,
+                                   patch_as_dict):
     commits = (change.Commit('chromium', 'git_hash'),)
     patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
     c = change.Change(commits, patch)
@@ -568,8 +565,8 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedDoesNotReopen(
-      self, differences, result_values, patch_as_dict):
+  def testCompletedDoesNotReopen(self, differences, result_values,
+                                 patch_as_dict):
     commits = (change.Commit('chromium', 'git_hash'),)
     patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
     c = change.Change(commits, patch)
@@ -711,25 +708,30 @@ class BugCommentTest(test.TestCase):
   @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedMultipleDifferences_TenCulpritsCcTopTwo(
       self, differences, result_values, commit_as_dict):
-    self.Parameterized_TestCompletedMultipleDifferences(
-        10, 2, differences, result_values, commit_as_dict)
+    self.Parameterized_TestCompletedMultipleDifferences(10, 2, differences,
+                                                        result_values,
+                                                        commit_as_dict)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedMultipleDifferences_HundredCulpritsCcTopThree(
       self, differences, result_values, commit_as_dict):
-    self.Parameterized_TestCompletedMultipleDifferences(
-        100, 3, differences, result_values, commit_as_dict)
+    self.Parameterized_TestCompletedMultipleDifferences(100, 3, differences,
+                                                        result_values,
+                                                        commit_as_dict)
 
-  def Parameterized_TestCompletedMultipleDifferences(
-      self, number_culprits, expected_num_ccs, differences, result_values,
-      commit_as_dict):
+  def Parameterized_TestCompletedMultipleDifferences(self, number_culprits,
+                                                     expected_num_ccs,
+                                                     differences, result_values,
+                                                     commit_as_dict):
     changes = [
         change.Change((change.Commit('chromium', 'git_hash_%d' % (i,)),))
-        for i in range(1, number_culprits+1)]
+        for i in range(1, number_culprits + 1)
+    ]
     # Return [(None,c1), (c1,c2), (c2,c3), ...]
     differences.return_value = zip([None] + changes, changes)
+
     # Ensure culprits are ordered by deriving change results values from commit
     # names.  E.g.:
     #   Change(git_hash_1) -> result_value=[1],
@@ -739,19 +741,17 @@ class BugCommentTest(test.TestCase):
       if change_obj is None:
         return [0]
       v = int(change_obj.commits[0].git_hash[len('git_hash_'):])
-      return [v*v]  # Square the value to ensure increasing deltas.
+      return [v * v]  # Square the value to ensure increasing deltas.
 
     result_values.side_effect = ResultValuesFromFakeGitHash
-    commit_as_dict.side_effect = [
-        {
-            'repository': 'chromium',
-            'git_hash': 'git_hash_%d' % (i,),
-            'url': 'https://example.com/repository/+/git_hash_%d' % (i,),
-            'author': 'author%d@chromium.org' % (i,),
-            'subject': 'Subject.',
-            'message': 'Subject.\n\nCommit message.',
-        }
-        for i in range(1, number_culprits+1)]
+    commit_as_dict.side_effect = [{
+        'repository': 'chromium',
+        'git_hash': 'git_hash_%d' % (i,),
+        'url': 'https://example.com/repository/+/git_hash_%d' % (i,),
+        'author': 'author%d@chromium.org' % (i,),
+        'subject': 'Subject.',
+        'message': 'Subject.\n\nCommit message.',
+    } for i in range(1, number_culprits + 1)]
 
     self.get_issue.return_value = {'status': 'Untriaged'}
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
@@ -773,7 +773,6 @@ class BugCommentTest(test.TestCase):
         labels=['Pinpoint-Multiple-Culprits'],
         merge_issue=None,
         project='chromium')
-
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -832,8 +831,8 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedWithAutoroll(
-      self, differences, result_values, commit_as_dict):
+  def testCompletedWithAutoroll(self, differences, result_values,
+                                commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
     differences.return_value = [(None, c)]
     result_values.side_effect = [20], [30]
@@ -865,8 +864,9 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedWithAutorollCulpritButNotMostRecent(
-      self, differences, result_values, commit_as_dict):
+  def testCompletedWithAutorollCulpritButNotMostRecent(self, differences,
+                                                       result_values,
+                                                       commit_as_dict):
     """Regression test for http://crbug.com/1076756.
 
     When an autoroll has the biggest delta, assigns to its sheriff even when it
@@ -952,9 +952,10 @@ class BugCommentTest(test.TestCase):
 
   @mock.patch('dashboard.services.gerrit_service.PostChangeComment')
   def testCompletedUpdatesGerrit(self, post_change_comment):
-    j = job.Job.New(
-        (), (), gerrit_server='https://review.com', gerrit_change_id='123456')
+    j = job.Job.New((), (),
+                    gerrit_server='https://review.com',
+                    gerrit_change_id='123456')
     j.Run()
     self.ExecuteDeferredTasks('default')
-    post_change_comment.assert_called_once_with(
-        'https://review.com', '123456', _COMMENT_CODE_REVIEW)
+    post_change_comment.assert_called_once_with('https://review.com', '123456',
+                                                _COMMENT_CODE_REVIEW)

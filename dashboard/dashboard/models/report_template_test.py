@@ -46,44 +46,52 @@ class ReportTemplateTest(testing_common.TestCase):
         id='ex-id',
         name='external',
         owners=[testing_common.EXTERNAL_USER.email()],
-        template={'rows': [], 'statistics': ['avg']}).put()
+        template={
+            'rows': [],
+            'statistics': ['avg']
+        }).put()
     report_template.ReportTemplate(
         internal_only=True,
         name='internal',
         id='in-id',
         owners=[testing_common.INTERNAL_USER.email()],
-        template={'rows': [], 'statistics': ['avg']}).put()
+        template={
+            'rows': [],
+            'statistics': ['avg']
+        }).put()
 
   def testInternal_PutTemplate(self):
     self.SetCurrentUser(testing_common.INTERNAL_USER.email())
 
     with self.assertRaises(ValueError):
-      report_template.PutTemplate(
-          None, 'Test:External', [testing_common.INTERNAL_USER.email()],
-          {'rows': []})
+      report_template.PutTemplate(None, 'Test:External',
+                                  [testing_common.INTERNAL_USER.email()],
+                                  {'rows': []})
 
     with self.assertRaises(ValueError):
-      report_template.PutTemplate(
-          'in-id', 'Test:External', [testing_common.INTERNAL_USER.email()],
-          {'rows': []})
+      report_template.PutTemplate('in-id', 'Test:External',
+                                  [testing_common.INTERNAL_USER.email()],
+                                  {'rows': []})
 
     with self.assertRaises(ValueError):
-      report_template.PutTemplate(
-          'invalid', 'bad', [testing_common.INTERNAL_USER.email()],
-          {'rows': []})
+      report_template.PutTemplate('invalid', 'bad',
+                                  [testing_common.INTERNAL_USER.email()],
+                                  {'rows': []})
 
     with self.assertRaises(ValueError):
-      report_template.PutTemplate(
-          'ex-id', 'bad', [testing_common.INTERNAL_USER.email()], {'rows': []})
+      report_template.PutTemplate('ex-id', 'bad',
+                                  [testing_common.INTERNAL_USER.email()],
+                                  {'rows': []})
     self.assertEqual('external', ndb.Key('ReportTemplate', 'ex-id').get().name)
 
     with self.assertRaises(ValueError):
-      report_template.PutTemplate(
-          584630894, 'bad', [testing_common.INTERNAL_USER.email()],
-          {'rows': []})
+      report_template.PutTemplate(584630894, 'bad',
+                                  [testing_common.INTERNAL_USER.email()],
+                                  {'rows': []})
 
-    report_template.PutTemplate(
-        'in-id', 'foo', [testing_common.INTERNAL_USER.email()], {'rows': []})
+    report_template.PutTemplate('in-id', 'foo',
+                                [testing_common.INTERNAL_USER.email()],
+                                {'rows': []})
     self.assertEqual('foo', ndb.Key('ReportTemplate', 'in-id').get().name)
 
   def testPutTemplate_InternalOnly(self):
@@ -96,14 +104,12 @@ class ReportTemplateTest(testing_common.TestCase):
     test.put()
     report_template.PutTemplate(
         None, 'foo', [testing_common.INTERNAL_USER.email()], {
-            'rows': [
-                {
-                    'testSuites': ['internalsuite'],
-                    'bots': ['master:internalbot'],
-                    'measurement': 'measure',
-                    'testCases': [],
-                },
-            ],
+            'rows': [{
+                'testSuites': ['internalsuite'],
+                'bots': ['master:internalbot'],
+                'measurement': 'measure',
+                'testCases': [],
+            },],
         })
     template = report_template.ReportTemplate.query(
         report_template.ReportTemplate.name == 'foo').get()
@@ -113,14 +119,12 @@ class ReportTemplateTest(testing_common.TestCase):
     self.SetCurrentUser(testing_common.EXTERNAL_USER.email())
     report_template.PutTemplate(
         None, 'foo', [testing_common.EXTERNAL_USER.email()], {
-            'rows': [
-                {
-                    'testSuites': ['externalsuite'],
-                    'bots': ['master:externalbot'],
-                    'measurement': 'measure',
-                    'testCases': [],
-                },
-            ],
+            'rows': [{
+                'testSuites': ['externalsuite'],
+                'bots': ['master:externalbot'],
+                'measurement': 'measure',
+                'testCases': [],
+            },],
         })
     template = report_template.ReportTemplate.query(
         report_template.ReportTemplate.name == 'foo').get()
@@ -129,8 +133,8 @@ class ReportTemplateTest(testing_common.TestCase):
   def testAnonymous_PutTemplate(self):
     self.SetCurrentUser('')
     with self.assertRaises(ValueError):
-      report_template.PutTemplate(
-          'ex-id', 'foo', [testing_common.EXTERNAL_USER.email()], {})
+      report_template.PutTemplate('ex-id', 'foo',
+                                  [testing_common.EXTERNAL_USER.email()], {})
     self.assertEqual('external', ndb.Key('ReportTemplate', 'ex-id').get().name)
 
   def testInternal_GetReport(self):

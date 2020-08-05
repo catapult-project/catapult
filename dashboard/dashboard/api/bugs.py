@@ -52,8 +52,7 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
     try:
       bug_id = int(bug_id)
     except ValueError:
-      raise api_request_handler.BadRequestError(
-          'Invalid bug ID "%s".' % bug_id)
+      raise api_request_handler.BadRequestError('Invalid bug ID "%s".' % bug_id)
 
     try:
       include_comments = api_utils.ParseBool(
@@ -70,32 +69,34 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
         return ''
       return d.isoformat()
 
-    response = {'bug': {
-        'author': issue.get('author', {}).get('name'),
-        'owner': issue.get('owner', {}).get('name'),
-        'legacy_bisects': [{
-            'status': b.status,
-            'bot': b.bot,
-            'bug_id': b.bug_id,
-            'buildbucket_link': (
-                'https://chromeperf.appspot.com/buildbucket_job_status/%s' %
-                b.buildbucket_job_id),
-            'command': b.GetConfigDict()['command'],
-            'culprit': None,
-            'metric': (b.results_data or {}).get('metric'),
-            'started_timestamp': _FormatDate(b.last_ran_timestamp),
-        } for b in bisects],
-        'cc': [cc.get('name') for cc in issue.get('cc', [])],
-        'components': issue.get('components', []),
-        'projectId': project,
-        'id': bug_id,
-        'labels': issue.get('labels', []),
-        'published': issue.get('published'),
-        'updated': issue.get('updated'),
-        'state': issue.get('state'),
-        'status': issue.get('status'),
-        'summary': issue.get('summary'),
-    }}
+    response = {
+        'bug': {
+            'author': issue.get('author', {}).get('name'),
+            'owner': issue.get('owner', {}).get('name'),
+            'legacy_bisects': [{
+                'status': b.status,
+                'bot': b.bot,
+                'bug_id': b.bug_id,
+                'buildbucket_link': (
+                    'https://chromeperf.appspot.com/buildbucket_job_status/%s' %
+                    b.buildbucket_job_id),
+                'command': b.GetConfigDict()['command'],
+                'culprit': None,
+                'metric': (b.results_data or {}).get('metric'),
+                'started_timestamp': _FormatDate(b.last_ran_timestamp),
+            } for b in bisects],
+            'cc': [cc.get('name') for cc in issue.get('cc', [])],
+            'components': issue.get('components', []),
+            'projectId': project,
+            'id': bug_id,
+            'labels': issue.get('labels', []),
+            'published': issue.get('published'),
+            'updated': issue.get('updated'),
+            'state': issue.get('state'),
+            'status': issue.get('status'),
+            'summary': issue.get('summary'),
+        }
+    }
 
     if include_comments:
       comments = service.GetIssueComments(bug_id)

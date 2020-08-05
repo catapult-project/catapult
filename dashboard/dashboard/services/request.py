@@ -22,6 +22,7 @@ _VULNERABILITY_PREFIX = ")]}'\n"
 
 
 class RequestError(httplib.HTTPException):
+
   def __init__(self, msg, content):
     super(RequestError, self).__init__(msg)
     self.content = content
@@ -29,7 +30,6 @@ class RequestError(httplib.HTTPException):
 
 class NotFoundError(RequestError):
   """Raised when a request gives a HTTP 404 error."""
-
 
 
 def RequestJson(*args, **kwargs):

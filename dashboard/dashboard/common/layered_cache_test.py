@@ -41,10 +41,10 @@ class LayeredCacheTest(testing_common.TestCase):
     self.SetCurrentUser('foo@chromium.org')
     self.assertIsNone(layered_cache.Get('str'))
     self.SetCurrentUser('internal@chromium.org')
-    self.assertEqual(
-        {'hello': [1, 2, 3]},
-        cPickle.loads(
-            ndb.Key('CachedPickledString', 'internal_only__dict').get().value))
+    self.assertEqual({'hello': [1, 2, 3]},
+                     cPickle.loads(
+                         ndb.Key('CachedPickledString',
+                                 'internal_only__dict').get().value))
     self.assertIsNone(
         ndb.Key('CachedPickledString', 'externally_visible__dict').get())
     self.assertEqual({'hello': [1, 2, 3]}, layered_cache.Get('dict'))
@@ -59,15 +59,13 @@ class LayeredCacheTest(testing_common.TestCase):
         cPickle.loads(
             ndb.Key('CachedPickledString',
                     'externally_visible__str').get().value))
-    self.assertEqual(
-        None,
-        ndb.Key('CachedPickledString', 'internal_only__str').get())
+    self.assertEqual(None,
+                     ndb.Key('CachedPickledString', 'internal_only__str').get())
     self.assertEqual('Hello, World!', layered_cache.GetExternal('str'))
-    self.assertEqual(
-        {'hello': [1, 2, 3]},
-        cPickle.loads(
-            ndb.Key('CachedPickledString',
-                    'externally_visible__dict').get().value))
+    self.assertEqual({'hello': [1, 2, 3]},
+                     cPickle.loads(
+                         ndb.Key('CachedPickledString',
+                                 'externally_visible__dict').get().value))
     self.assertEqual(
         None,
         ndb.Key('CachedPickledString', 'internal_only__dict').get())

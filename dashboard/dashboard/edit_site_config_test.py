@@ -24,8 +24,8 @@ class EditSiteConfigTest(testing_common.TestCase):
 
   def setUp(self):
     super(EditSiteConfigTest, self).setUp()
-    app = webapp2.WSGIApplication(
-        [('/edit_site_config', edit_site_config.EditSiteConfigHandler)])
+    app = webapp2.WSGIApplication([('/edit_site_config',
+                                    edit_site_config.EditSiteConfigHandler)])
     self.testapp = webtest.TestApp(app)
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
@@ -50,66 +50,72 @@ class EditSiteConfigTest(testing_common.TestCase):
     self.assertIn('XXXinternalYYY', response.body)
 
   def testPost_NoXsrfToken_ReturnsErrorStatus(self):
-    self.testapp.post('/edit_site_config', {
-        'key': 'foo',
-        'value': '[1, 2, 3]',
-    }, status=403)
+    self.testapp.post(
+        '/edit_site_config', {
+            'key': 'foo',
+            'value': '[1, 2, 3]',
+        }, status=403)
 
   def testPost_ExternalUser_ShowsErrorMessage(self):
     self.SetCurrentUser('foo@chromium.org')
-    response = self.testapp.post('/edit_site_config', {
-        'key': 'foo',
-        'value': '[1, 2, 3]',
-        'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
-    })
+    response = self.testapp.post(
+        '/edit_site_config', {
+            'key': 'foo',
+            'value': '[1, 2, 3]',
+            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+        })
     self.assertIn('Only internal users', response.body)
 
   def testPost_WithKey_UpdatesNonNamespacedValues(self):
-    self.testapp.post('/edit_site_config', {
-        'key': 'foo',
-        'value': '[1, 2, 3]',
-        'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
-    })
+    self.testapp.post(
+        '/edit_site_config', {
+            'key': 'foo',
+            'value': '[1, 2, 3]',
+            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+        })
     self.assertEqual([1, 2, 3], stored_object.Get('foo'))
 
   def testPost_WithSomeInvalidJSON_ShowsErrorAndDoesNotModify(self):
     stored_object.Set('foo', 'XXX')
-    response = self.testapp.post('/edit_site_config', {
-        'key': 'foo',
-        'value': '[1, 2, this is not json',
-        'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
-    })
+    response = self.testapp.post(
+        '/edit_site_config', {
+            'key': 'foo',
+            'value': '[1, 2, this is not json',
+            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+        })
     self.assertIn('Invalid JSON', response.body)
     self.assertEqual('XXX', stored_object.Get('foo'))
 
   def testPost_WithKey_UpdatesNamespacedValues(self):
     namespaced_stored_object.Set('foo', 'XXXinternalYYY')
     namespaced_stored_object.SetExternal('foo', 'XXXYYY')
-    self.testapp.post('/edit_site_config', {
-        'key': 'foo',
-        'external_value': '{"x": "y"}',
-        'internal_value': '{"x": "yz"}',
-        'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
-    })
+    self.testapp.post(
+        '/edit_site_config', {
+            'key': 'foo',
+            'external_value': '{"x": "y"}',
+            'internal_value': '{"x": "yz"}',
+            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+        })
     self.assertEqual({'x': 'yz'}, namespaced_stored_object.Get('foo'))
     self.assertEqual({'x': 'y'}, namespaced_stored_object.GetExternal('foo'))
 
   def testPost_SendsNotificationEmail(self):
     namespaced_stored_object.SetExternal('foo', {'x': 10, 'y': 2})
     namespaced_stored_object.Set('foo', {'z': 3, 'x': 1})
-    self.testapp.post('/edit_site_config', {
-        'key': 'foo',
-        'external_value': '{"x": 1, "y": 2}',
-        'internal_value': '{"x": 1, "z": 3, "y": 2}',
-        'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
-    })
+    self.testapp.post(
+        '/edit_site_config', {
+            'key': 'foo',
+            'external_value': '{"x": 1, "y": 2}',
+            'internal_value': '{"x": 1, "z": 3, "y": 2}',
+            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+        })
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
     self.assertEqual('gasper-alerts@google.com', messages[0].sender)
     self.assertEqual('chrome-performance-monitoring-alerts@google.com',
                      messages[0].to)
-    self.assertEqual(
-        'Config "foo" changed by internal@chromium.org', messages[0].subject)
+    self.assertEqual('Config "foo" changed by internal@chromium.org',
+                     messages[0].subject)
     self.assertIn(
         'Non-namespaced value diff:\n'
         '  null\n'
@@ -128,8 +134,7 @@ class EditSiteConfigTest(testing_common.TestCase):
         '    "x": 1, \n'
         '+   "y": 2, \n'
         '    "z": 3\n'
-        '  }\n',
-        str(messages[0].body))
+        '  }\n', str(messages[0].body))
 
 
 class HelperFunctionTests(unittest.TestCase):
@@ -138,9 +143,8 @@ class HelperFunctionTests(unittest.TestCase):
     self.assertEqual('- null\n+ ""', edit_site_config._DiffJson(None, ''))
 
   def testDiffJson_AddListItem(self):
-    self.assertEqual(
-        '  [\n    1, \n+   2, \n    3\n  ]',
-        edit_site_config._DiffJson([1, 3], [1, 2, 3]))
+    self.assertEqual('  [\n    1, \n+   2, \n    3\n  ]',
+                     edit_site_config._DiffJson([1, 3], [1, 2, 3]))
 
 
 if __name__ == '__main__':

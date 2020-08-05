@@ -38,97 +38,86 @@ class UtilsTest(testing_common.TestCase):
     self.assertFalse(utils.TestMatchesPattern(test_key, pattern))
 
   def testMatchesPattern_AllWildcards(self):
-    self._AssertMatches(
-        'ChromiumPerf/cros-one/dromaeo.top25/Total', '*/*/*/*')
-    self._AssertDoesntMatch(
-        'ChromiumPerf/cros-one/dromaeo.top25/Total', '*/*/*')
+    self._AssertMatches('ChromiumPerf/cros-one/dromaeo.top25/Total', '*/*/*/*')
+    self._AssertDoesntMatch('ChromiumPerf/cros-one/dromaeo.top25/Total',
+                            '*/*/*')
 
   def testMatchesPattern_SomeWildcards(self):
-    self._AssertMatches(
-        'ChromiumPerf/cros-one/dromaeo.top25/Total',
-        'ChromiumPerf/*/dromaeo.top25/*')
-    self._AssertDoesntMatch(
-        'ChromiumPerf/cros-one/dromaeo.top25/Total',
-        'ChromiumPerf/*/dromaeo.another_page_set/*')
+    self._AssertMatches('ChromiumPerf/cros-one/dromaeo.top25/Total',
+                        'ChromiumPerf/*/dromaeo.top25/*')
+    self._AssertDoesntMatch('ChromiumPerf/cros-one/dromaeo.top25/Total',
+                            'ChromiumPerf/*/dromaeo.another_page_set/*')
 
   def testMatchesPattern_SomePartialWildcards(self):
-    self._AssertMatches(
-        'ChromiumPerf/cros-one/dromaeo.top25/Total',
-        'ChromiumPerf/cros-*/dromaeo.*/Total')
-    self._AssertDoesntMatch(
-        'ChromiumPerf/cros-one/dromaeoXtop25/Total',
-        'ChromiumPerf/cros-*/dromaeo.*/Total')
-    self._AssertDoesntMatch(
-        'ChromiumPerf/cros-one/dromaeo.top25/Total',
-        'OtherMaster/cros-*/dromaeo.*/Total')
+    self._AssertMatches('ChromiumPerf/cros-one/dromaeo.top25/Total',
+                        'ChromiumPerf/cros-*/dromaeo.*/Total')
+    self._AssertDoesntMatch('ChromiumPerf/cros-one/dromaeoXtop25/Total',
+                            'ChromiumPerf/cros-*/dromaeo.*/Total')
+    self._AssertDoesntMatch('ChromiumPerf/cros-one/dromaeo.top25/Total',
+                            'OtherMaster/cros-*/dromaeo.*/Total')
 
   def testMatchesPattern_MorePartialWildcards(self):
     # Note that the wildcard matches zero or more characters.
-    self._AssertMatches(
-        'ChromiumPerf/cros-one/dromaeo.top25/Total',
-        'Chromium*/cros-one*/*.*/To*al')
-    self._AssertDoesntMatch(
-        'ChromiumPerf/cros-one/dromaeo.top25/Total',
-        'Chromium*/linux-*/*.*/To*al')
+    self._AssertMatches('ChromiumPerf/cros-one/dromaeo.top25/Total',
+                        'Chromium*/cros-one*/*.*/To*al')
+    self._AssertDoesntMatch('ChromiumPerf/cros-one/dromaeo.top25/Total',
+                            'Chromium*/linux-*/*.*/To*al')
 
   def testMatchesPattern_RequiresFullMatchAtEnd(self):
     # If there is no wildcard at the beginning or end of the
     # test path part, then a part will only match if it matches
     # right up to the beginning or end.
-    self._AssertDoesntMatch(
-        'ChromiumPerf/cros-one/dromaeo.top25/Total',
-        'ChromiumPerf/cros-one/dromaeo.top25/*Tot')
-    self._AssertDoesntMatch(
-        'ChromiumPerf/cros-one/dromaeo.top25/Total',
-        'ChromiumPerf/cros-one/dromaeo.top25/otal*')
+    self._AssertDoesntMatch('ChromiumPerf/cros-one/dromaeo.top25/Total',
+                            'ChromiumPerf/cros-one/dromaeo.top25/*Tot')
+    self._AssertDoesntMatch('ChromiumPerf/cros-one/dromaeo.top25/Total',
+                            'ChromiumPerf/cros-one/dromaeo.top25/otal*')
 
   def testMostSpecificMatchingPattern_SpecificVsGeneral(self):
     test_key = utils.TestKey('M/B/S/Total')
 
-    result = utils.MostSpecificMatchingPattern(
-        test_key,
-        [('*/*/*/*', 1), ('*/*/*/Total', 2), ('*/*/*/Foo', 3)])
+    result = utils.MostSpecificMatchingPattern(test_key, [('*/*/*/*', 1),
+                                                          ('*/*/*/Total', 2),
+                                                          ('*/*/*/Foo', 3)])
     self.assertEqual(2, result)
 
   def testMostSpecificMatchingPattern_PartialVsGeneral(self):
     test_key = utils.TestKey('M/B/S/Total')
 
-    result = utils.MostSpecificMatchingPattern(
-        test_key,
-        [('*/*/*/*', 1), ('*/*/*/To*al', 2), ('*/*/*/Foo', 3)])
+    result = utils.MostSpecificMatchingPattern(test_key, [('*/*/*/*', 1),
+                                                          ('*/*/*/To*al', 2),
+                                                          ('*/*/*/Foo', 3)])
     self.assertEqual(2, result)
 
   def testMostSpecificMatchingPattern_2ndLevel(self):
     test_key = utils.TestKey('M/B/S/Total')
 
-    result = utils.MostSpecificMatchingPattern(
-        test_key,
-        [('*/*/*/*', 1), ('*/*/S/*', 2), ('*/*/*/Foo', 3)])
+    result = utils.MostSpecificMatchingPattern(test_key, [('*/*/*/*', 1),
+                                                          ('*/*/S/*', 2),
+                                                          ('*/*/*/Foo', 3)])
     self.assertEqual(2, result)
 
   def testMostSpecificMatchingPattern_TopLevelSpecificOverLowerSpecific(self):
     test_key = utils.TestKey('M/B/S/Total')
 
-    result = utils.MostSpecificMatchingPattern(
-        test_key,
-        [('*/*/S/*', 1), ('*/*/*/Total', 2), ('*/*/*/Foo', 3)])
+    result = utils.MostSpecificMatchingPattern(test_key, [('*/*/S/*', 1),
+                                                          ('*/*/*/Total', 2),
+                                                          ('*/*/*/Foo', 3)])
     self.assertEqual(2, result)
 
   def testMostSpecificMatchingPattern_TopLevelPartialOverLowerSpecific(self):
     test_key = utils.TestKey('M/B/S/Total')
 
-    result = utils.MostSpecificMatchingPattern(
-        test_key,
-        [('*/*/S/*', 1), ('*/*/*/To*al', 2), ('*/*/*/Foo', 3)])
+    result = utils.MostSpecificMatchingPattern(test_key, [('*/*/S/*', 1),
+                                                          ('*/*/*/To*al', 2),
+                                                          ('*/*/*/Foo', 3)])
     self.assertEqual(2, result)
 
   def testMostSpecificMatchingPattern_Duplicate(self):
     test_key = utils.TestKey('Does/Not/Match/Something')
 
-    result = utils.MostSpecificMatchingPattern(
-        test_key,
-        [('Does/Not/Match/*', 1), ('Does/Not/Match/*', 2)]
-    )
+    result = utils.MostSpecificMatchingPattern(test_key,
+                                               [('Does/Not/Match/*', 1),
+                                                ('Does/Not/Match/*', 2)])
     self.assertEqual(1, result)
 
   def testParseTelemetryMetricParts_TooShort(self):
@@ -140,9 +129,8 @@ class UtilsTest(testing_common.TestCase):
       utils.ParseTelemetryMetricParts('M/B/S/1/2/3/4')
 
   def testParseTelemetryMetricParts_1Part(self):
-    self.assertEqual(
-        ('', 'Measurement', ''),
-        utils.ParseTelemetryMetricParts('M/B/Suite/Measurement'))
+    self.assertEqual(('', 'Measurement', ''),
+                     utils.ParseTelemetryMetricParts('M/B/Suite/Measurement'))
 
   def testParseTelemetryMetricParts_2Part(self):
     self.assertEqual(
@@ -247,8 +235,8 @@ class UtilsTest(testing_common.TestCase):
     self.assertIsNone(key)
 
   def testOldStyleTestKey_Test(self):
-    original_key = ndb.Key(
-        'Master', 'm', 'Bot', 'b', 'Test', 'suite', 'Test', 'metric')
+    original_key = ndb.Key('Master', 'm', 'Bot', 'b', 'Test', 'suite', 'Test',
+                           'metric')
     key = utils.OldStyleTestKey(original_key)
     self.assertEqual(original_key, key)
 
@@ -285,13 +273,12 @@ class UtilsTest(testing_common.TestCase):
     self.assertEqual((5, 5), utils.MinimumRange([(2, 5), (5, 10)]))
 
   def testMinimumRange_MoreThanTwoRanges_ReturnsIntersection(self):
-    self.assertEqual((6, 14), utils.MinimumRange(
-        [(3, 20), (5, 15), (6, 25), (3, 14)]))
+    self.assertEqual((6, 14),
+                     utils.MinimumRange([(3, 20), (5, 15), (6, 25), (3, 14)]))
 
   def testValidate_StringNotInOptionList_Fails(self):
     with self.assertRaises(ValueError):
-      utils.Validate(
-          ['completed', 'pending', 'failed'], 'running')
+      utils.Validate(['completed', 'pending', 'failed'], 'running')
 
   def testValidate_InvalidType_Fails(self):
     with self.assertRaises(ValueError):
@@ -300,26 +287,38 @@ class UtilsTest(testing_common.TestCase):
   def testValidate_MissingProperty_Fails(self):
     with self.assertRaises(ValueError):
       utils.Validate(
-          {'status': str, 'try_job_id': int, 'required_property': int},
-          {'status': 'completed', 'try_job_id': 1234})
+          {
+              'status': str,
+              'try_job_id': int,
+              'required_property': int
+          }, {
+              'status': 'completed',
+              'try_job_id': 1234
+          })
 
   def testValidate_InvalidTypeInDict_Fails(self):
     with self.assertRaises(ValueError):
-      utils.Validate(
-          {'status': int, 'try_job_id': int},
-          {'status': 'completed', 'try_job_id': 1234})
+      utils.Validate({
+          'status': int,
+          'try_job_id': int
+      }, {
+          'status': 'completed',
+          'try_job_id': 1234
+      })
 
   def testValidate_StringNotInNestedOptionList_Fails(self):
     with self.assertRaises(ValueError):
-      utils.Validate(
-          {'values': {'nested_values': ['orange', 'banana']}},
-          {'values': {'nested_values': 'apple'}})
+      utils.Validate({'values': {
+          'nested_values': ['orange', 'banana']
+      }}, {'values': {
+          'nested_values': 'apple'
+      }})
 
   def testValidate_MissingPropertyInNestedDict_Fails(self):
     with self.assertRaises(ValueError):
-      utils.Validate(
-          {'values': {'nested_values': ['orange', 'banana']}},
-          {'values': {}})
+      utils.Validate({'values': {
+          'nested_values': ['orange', 'banana']
+      }}, {'values': {}})
 
   def testValidate_ExpectedValueIsNone_Passes(self):
     utils.Validate(None, 'running')
@@ -328,14 +327,20 @@ class UtilsTest(testing_common.TestCase):
     utils.Validate(str, 'a string')
 
   def testValidate_HasExpectedProperties_Passes(self):
-    utils.Validate(
-        {'status': str, 'try_job_id': int},
-        {'status': 'completed', 'try_job_id': 1234})
+    utils.Validate({
+        'status': str,
+        'try_job_id': int
+    }, {
+        'status': 'completed',
+        'try_job_id': 1234
+    })
 
   def testValidate_StringInNestedOptionList_Passes(self):
-    utils.Validate(
-        {'values': {'nested_values': ['orange', 'banana']}},
-        {'values': {'nested_values': 'orange'}})
+    utils.Validate({'values': {
+        'nested_values': ['orange', 'banana']
+    }}, {'values': {
+        'nested_values': 'orange'
+    }})
 
   def testValidate_TypeConversion_Passes(self):
     utils.Validate([1], '1')
@@ -350,10 +355,10 @@ class UtilsTest(testing_common.TestCase):
     self.assertIsNone(step)
 
   def testGetBuildDetailsFromStdioLink(self):
-    base_url, master, bot, number, step = utils.GetBuildDetailsFromStdioLink((
-        '[Buildbot stdio](https://build.chromium.org/p/chromium.perf/builders/'
-        'Android%20One%20Perf%20%282%29/builds/5365/steps/'
-        'blink_style.top_25/logs/stdio)'))
+    base_url, master, bot, number, step = utils.GetBuildDetailsFromStdioLink(
+        ('[Buildbot stdio](https://build.chromium.org/p/chromium.perf/builders/'
+         'Android%20One%20Perf%20%282%29/builds/5365/steps/'
+         'blink_style.top_25/logs/stdio)'))
     self.assertEqual('https://build.chromium.org/p/chromium.perf/builders/',
                      base_url)
     self.assertEqual('chromium.perf', master)
@@ -362,36 +367,35 @@ class UtilsTest(testing_common.TestCase):
     self.assertEqual('blink_style.top_25', step)
 
   def testGetBuildDetailsFromStdioLink_DifferentBaseUrl(self):
-    base_url, master, bot, number, step = utils.GetBuildDetailsFromStdioLink((
-        '[Buildbot stdio]('
-        'https://uberchromegw.corp.google.com/i/new.master/builders/Builder/'
-        'builds/3486/steps/new_test/logs/stdio)'))
+    base_url, master, bot, number, step = utils.GetBuildDetailsFromStdioLink(
+        ('[Buildbot stdio]('
+         'https://uberchromegw.corp.google.com/i/new.master/builders/Builder/'
+         'builds/3486/steps/new_test/logs/stdio)'))
     self.assertEqual(
-        'https://uberchromegw.corp.google.com/i/new.master/builders/',
-        base_url)
+        'https://uberchromegw.corp.google.com/i/new.master/builders/', base_url)
     self.assertEqual('new.master', master)
     self.assertEqual('Builder', bot)
     self.assertEqual('3486', number)
     self.assertEqual('new_test', step)
 
   def testGetBuildbotStatusPageUriFromStdioLink(self):
-    buildbot_status_page = utils.GetBuildbotStatusPageUriFromStdioLink((
-        '[Buildbot stdio](https://build.chromium.org/p/chromium.perf/builders/'
-        'Android%20One%20Perf%20%282%29/builds/5365/steps/'
-        'blink_style.top_25/logs/stdio)'))
-    self.assertEqual((
-        'https://build.chromium.org/p/chromium.perf/builders/'
-        'Android%20One%20Perf%20%282%29/builds/5365'), buildbot_status_page)
+    buildbot_status_page = utils.GetBuildbotStatusPageUriFromStdioLink(
+        ('[Buildbot stdio](https://build.chromium.org/p/chromium.perf/builders/'
+         'Android%20One%20Perf%20%282%29/builds/5365/steps/'
+         'blink_style.top_25/logs/stdio)'))
+    self.assertEqual(('https://build.chromium.org/p/chromium.perf/builders/'
+                      'Android%20One%20Perf%20%282%29/builds/5365'),
+                     buildbot_status_page)
 
   def testGetLogdogLogUriFromStdioLink(self):
-    logdog_uri = utils.GetLogdogLogUriFromStdioLink((
-        '[Buildbot stdio](https://build.chromium.org/p/chromium.perf/builders/'
-        'Android%20One%20Perf%20%282%29/builds/5365/steps/'
-        'blink_style.top_25/logs/stdio)'))
-    self.assertEqual((
-        'https://luci-logdog.appspot.com/v/?s='
-        'chrome%2Fbb%2Fchromium.perf%2FAndroid_One_Perf__2_%2F5365%2F%2B%2F'
-        'recipes%2Fsteps%2Fblink_style.top_25%2F0%2Fstdout'), logdog_uri)
+    logdog_uri = utils.GetLogdogLogUriFromStdioLink(
+        ('[Buildbot stdio](https://build.chromium.org/p/chromium.perf/builders/'
+         'Android%20One%20Perf%20%282%29/builds/5365/steps/'
+         'blink_style.top_25/logs/stdio)'))
+    self.assertEqual(
+        ('https://luci-logdog.appspot.com/v/?s='
+         'chrome%2Fbb%2Fchromium.perf%2FAndroid_One_Perf__2_%2F5365%2F%2B%2F'
+         'recipes%2Fsteps%2Fblink_style.top_25%2F0%2Fstdout'), logdog_uri)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch('common.utils.discovery.build')
@@ -399,8 +403,7 @@ class UtilsTest(testing_common.TestCase):
     mock_request = mock.MagicMock()
     mock_request.execute = mock.MagicMock(return_value={'is_member': True})
     mock_service = mock.MagicMock()
-    mock_service.membership = mock.MagicMock(
-        return_value=mock_request)
+    mock_service.membership = mock.MagicMock(return_value=mock_request)
     mock_discovery_build.return_value = mock_service
     self.assertTrue(utils.IsGroupMember('foo@bar.com', 'group'))
     mock_service.membership.assert_called_once_with(
@@ -419,18 +422,19 @@ class UtilsTest(testing_common.TestCase):
     self.assertEqual(1, mock_logging_error.call_count)
 
   def testGetSheriffForAutorollCommit_NotAutoroll_ReturnsNone(self):
-    self.assertIsNone(utils.GetSheriffForAutorollCommit(
-        'user@foo.org', 'TBR=donotreturnme@foo.org'))
-    self.assertIsNone(utils.GetSheriffForAutorollCommit(
-        'not-a-roll@foo.org', 'TBR=donotreturnme@foo.org'))
+    self.assertIsNone(
+        utils.GetSheriffForAutorollCommit('user@foo.org',
+                                          'TBR=donotreturnme@foo.org'))
+    self.assertIsNone(
+        utils.GetSheriffForAutorollCommit('not-a-roll@foo.org',
+                                          'TBR=donotreturnme@foo.org'))
 
   def testGetSheriffForAutorollCommit_AutoRoll_ReturnsSheriff(self):
     self.assertEqual(
         'sheriff@foo.org',
         utils.GetSheriffForAutorollCommit(
             'chromium-autoroll@skia-public.iam.gserviceaccount.com',
-            'This is a roll.\n\nTBR=sheriff@foo.org,bar@foo.org\n\n'
-        ))
+            'This is a roll.\n\nTBR=sheriff@foo.org,bar@foo.org\n\n'))
     self.assertEqual(
         'sheriff@v8.com',
         utils.GetSheriffForAutorollCommit(
@@ -470,12 +474,15 @@ class UtilsTest(testing_common.TestCase):
 
 def _MakeMockFetch(base64_encoded=True, status=200):
   """Returns a mock fetch object that returns a canned response."""
+
   def _MockFetch(_):
     response_text = json.dumps({'key': 'this is well-formed JSON.'})
     if base64_encoded:
       response_text = base64.b64encode(response_text)
     return testing_common.FakeResponseObject(status, response_text)
+
   return _MockFetch
+
 
 if __name__ == '__main__':
   unittest.main()

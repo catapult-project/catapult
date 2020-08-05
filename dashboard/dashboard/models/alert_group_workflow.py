@@ -296,8 +296,8 @@ class AlertGroupWorkflow(object):
         emails = regression.ownership.get('emails') or []
         info_blurb = regression.ownership.get('info_blurb') or ''
       benchmark = benchmarks_dict.get(
-          name,
-          cls.BenchmarkDetails(name, list(set(emails)), list(), info_blurb))
+          name, cls.BenchmarkDetails(name, list(set(emails)), list(),
+                                     info_blurb))
       benchmark.regressions.append(regression)
       benchmarks_dict[name] = benchmark
     return benchmarks_dict.values()

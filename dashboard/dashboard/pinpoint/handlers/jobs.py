@@ -1,7 +1,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides the web interface for displaying an overview of jobs."""
 from __future__ import print_function
 from __future__ import division
@@ -13,7 +12,6 @@ import webapp2
 from dashboard.pinpoint.models import job as job_module
 from dashboard.common import utils
 
-
 _MAX_JOBS_TO_FETCH = 100
 _MAX_JOBS_TO_COUNT = 1000
 
@@ -22,8 +20,7 @@ class Jobs(webapp2.RequestHandler):
   """Shows an overview of recent anomalies for perf sheriffing."""
 
   def get(self):
-    self.response.out.write(
-        json.dumps(_GetJobs(self.request.get_all('o'))))
+    self.response.out.write(json.dumps(_GetJobs(self.request.get_all('o'))))
 
 
 def _GetJobs(options):

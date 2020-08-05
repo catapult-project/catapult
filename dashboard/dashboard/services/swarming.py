@@ -1,7 +1,6 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Functions for interfacing with the Chromium Swarming Server.
 
 The Swarming Server is a task distribution service. It can be used to kick off
@@ -14,7 +13,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 from dashboard.services import request
-
 
 _API_PATH = '_ah/api/swarming/v1'
 
@@ -64,17 +62,25 @@ class Bots(object):
   def __init__(self, server):
     self._server = server
 
-  def List(self, cursor=None, dimensions=None, is_dead=None, limit=None,
+  def List(self,
+           cursor=None,
+           dimensions=None,
+           is_dead=None,
+           limit=None,
            quarantined=None):
     """Provides list of known bots. Deleted bots will not be listed."""
     if dimensions:
-      dimensions = tuple(':'.join(dimension)
-                         for dimension in dimensions.items())
+      dimensions = tuple(
+          ':'.join(dimension) for dimension in dimensions.items())
 
     url = '%s/%s/bots/list' % (self._server, _API_PATH)
     return request.RequestJson(
-        url, cursor=cursor, dimensions=dimensions,
-        is_dead=is_dead, limit=limit, quarantined=quarantined)
+        url,
+        cursor=cursor,
+        dimensions=dimensions,
+        is_dead=is_dead,
+        limit=limit,
+        quarantined=quarantined)
 
 
 class Task(object):

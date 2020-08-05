@@ -41,12 +41,13 @@ class ReadValue(quest.Quest):
     self._chart = chart
 
   def __eq__(self, other):
-    return (isinstance(other, type(self)) and
-            self._results_filename == other._results_filename and
-            self._metric == other._metric and
-            self._grouping_label == other._grouping_label and
-            self._trace_or_story == other._trace_or_story and
-            self._statistic == other._statistic and self._chart == other._chart)
+    return (isinstance(other, type(self))
+            and self._results_filename == other._results_filename
+            and self._metric == other._metric
+            and self._grouping_label == other._grouping_label
+            and self._trace_or_story == other._trace_or_story
+            and self._statistic == other._statistic
+            and self._chart == other._chart)
 
   def __str__(self):
     return 'Get values'
@@ -357,12 +358,12 @@ class ReadHistogramsJsonValue(quest.Quest):
     self._statistic = statistic
 
   def __eq__(self, other):
-    return (isinstance(other, type(self)) and
-            self._results_filename == other._results_filename and
-            self._hist_name == other._hist_name and
-            self._grouping_label == other._grouping_label and
-            self.trace_or_story == other.trace_or_story and
-            self._statistic == other._statistic)
+    return (isinstance(other, type(self))
+            and self._results_filename == other._results_filename
+            and self._hist_name == other._hist_name
+            and self._grouping_label == other._grouping_label
+            and self.trace_or_story == other.trace_or_story
+            and self._statistic == other._statistic)
 
   def __str__(self):
     return 'Get results'
@@ -485,9 +486,9 @@ class ReadGraphJsonValue(quest.Quest):
     self._trace = trace
 
   def __eq__(self, other):
-    return (isinstance(other, type(self)) and
-            self._results_filename == other._results_filename and
-            self._chart == other._chart and self._trace == other._trace)
+    return (isinstance(other, type(self))
+            and self._results_filename == other._results_filename
+            and self._chart == other._chart and self._trace == other._trace)
 
   def __str__(self):
     return 'Get results'

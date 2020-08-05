@@ -36,21 +36,19 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
     alert_list = None
     response = {}
     try:
-      is_improvement = utils.ParseBool(self.request.get(
-          'is_improvement', None))
+      is_improvement = utils.ParseBool(self.request.get('is_improvement', None))
       recovered = utils.ParseBool(self.request.get('recovered', None))
       start_cursor = self.request.get('cursor', None)
       if start_cursor:
         start_cursor = datastore_query.Cursor(urlsafe=start_cursor)
-      min_timestamp = utils.ParseISO8601(self.request.get(
-          'min_timestamp', None))
-      max_timestamp = utils.ParseISO8601(self.request.get(
-          'max_timestamp', None))
+      min_timestamp = utils.ParseISO8601(
+          self.request.get('min_timestamp', None))
+      max_timestamp = utils.ParseISO8601(
+          self.request.get('max_timestamp', None))
 
       test_keys = []
       for template_id in self.request.get_all('report'):
-        test_keys.extend(report_template.TestKeysForReportTemplate(
-            template_id))
+        test_keys.extend(report_template.TestKeysForReportTemplate(template_id))
 
       try:
         sheriff = self.request.get('sheriff', None)

@@ -18,16 +18,15 @@ class Error(Exception):
 class DiscoveryError(Error):
 
   def __init__(self, error):
-    super(DiscoveryError, self).__init__(
-        'Service discovery failed: {}'.format(error))
+    super(DiscoveryError,
+          self).__init__('Service discovery failed: {}'.format(error))
     self.error = error
 
 
 class BadArgumentError(Error):
 
   def __init__(self, err_str):
-    super(BadArgumentError, self).__init__(
-        'Bad Argument: {}'.format(err_str))
+    super(BadArgumentError, self).__init__('Bad Argument: {}'.format(err_str))
 
 
 def CreateServiceClient(api_root, api, version, http=None, credentials=None):
@@ -59,11 +58,19 @@ def CreateServiceClient(api_root, api, version, http=None, credentials=None):
   discovery_url = '%s/discovery/v1/apis/%s/%s/rest' % (api_root, api, version)
   try:
     if credentials:
-      client = discovery.build(api, version, discoveryServiceUrl=discovery_url,
-                               credentials=credentials, cache_discovery=False)
+      client = discovery.build(
+          api,
+          version,
+          discoveryServiceUrl=discovery_url,
+          credentials=credentials,
+          cache_discovery=False)
     else:
-      client = discovery.build(api, version, discoveryServiceUrl=discovery_url,
-                               http=http, cache_discovery=False)
+      client = discovery.build(
+          api,
+          version,
+          discoveryServiceUrl=discovery_url,
+          http=http,
+          cache_discovery=False)
   except (errors.HttpError, errors.UnknownApiNameOrVersion) as e:
     raise DiscoveryError(e)
   return client

@@ -1,7 +1,6 @@
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Helper methods for working with histograms and diagnostics."""
 from __future__ import print_function
 from __future__ import division
@@ -13,28 +12,14 @@ from tracing.value.diagnostics import reserved_infos
 
 # List of non-TBMv2 chromium.perf Telemetry benchmarks
 _LEGACY_BENCHMARKS = [
-    'blink_perf.bindings',
-    'blink_perf.canvas',
-    'blink_perf.css',
-    'blink_perf.dom',
-    'blink_perf.events',
-    'blink_perf.image_decoder',
-    'blink_perf.layout',
-    'blink_perf.owp_storage',
-    'blink_perf.paint',
-    'blink_perf.parser',
-    'blink_perf.shadow_dom',
-    'blink_perf.svg',
-    'cronet_perf_tests',
-    'dromaeo',
-    'dummy_benchmark.noisy_benchmark_1',
-    'dummy_benchmark.stable_benchmark_1',
-    'jetstream',
-    'kraken',
-    'octane',
+    'blink_perf.bindings', 'blink_perf.canvas', 'blink_perf.css',
+    'blink_perf.dom', 'blink_perf.events', 'blink_perf.image_decoder',
+    'blink_perf.layout', 'blink_perf.owp_storage', 'blink_perf.paint',
+    'blink_perf.parser', 'blink_perf.shadow_dom', 'blink_perf.svg',
+    'cronet_perf_tests', 'dromaeo', 'dummy_benchmark.noisy_benchmark_1',
+    'dummy_benchmark.stable_benchmark_1', 'jetstream', 'kraken', 'octane',
     'rasterize_and_record_micro.partial_invalidation',
-    'rasterize_and_record_micro.top_25',
-    'scheduler.tough_scheduling_cases',
+    'rasterize_and_record_micro.top_25', 'scheduler.tough_scheduling_cases',
     'smoothness.desktop_tough_pinch_zoom_cases',
     'smoothness.gpu_rasterization.polymer',
     'smoothness.gpu_rasterization.top_25_smooth',
@@ -43,41 +28,24 @@ _LEGACY_BENCHMARKS = [
     'smoothness.gpu_rasterization.tough_pinch_zoom_cases',
     'smoothness.gpu_rasterization.tough_scrolling_cases',
     'smoothness.gpu_rasterization_and_decoding.image_decoding_cases',
-    'smoothness.image_decoding_cases',
-    'smoothness.key_desktop_move_cases',
-    'smoothness.key_mobile_sites_smooth',
-    'smoothness.key_silk_cases',
-    'smoothness.maps',
-    'smoothness.pathological_mobile_sites',
+    'smoothness.image_decoding_cases', 'smoothness.key_desktop_move_cases',
+    'smoothness.key_mobile_sites_smooth', 'smoothness.key_silk_cases',
+    'smoothness.maps', 'smoothness.pathological_mobile_sites',
     'smoothness.simple_mobile_sites',
     'smoothness.sync_scroll.key_mobile_sites_smooth',
-    'smoothness.top_25_smooth',
-    'smoothness.tough_ad_cases',
-    'smoothness.tough_animation_cases',
-    'smoothness.tough_canvas_cases',
-    'smoothness.tough_filters_cases',
-    'smoothness.tough_image_decode_cases',
+    'smoothness.top_25_smooth', 'smoothness.tough_ad_cases',
+    'smoothness.tough_animation_cases', 'smoothness.tough_canvas_cases',
+    'smoothness.tough_filters_cases', 'smoothness.tough_image_decode_cases',
     'smoothness.tough_path_rendering_cases',
-    'smoothness.tough_pinch_zoom_cases',
-    'smoothness.tough_scrolling_cases',
-    'smoothness.tough_texture_upload_cases',
-    'smoothness.tough_webgl_ad_cases',
-    'smoothness.tough_webgl_cases',
-    'speedometer',
-    'speedometer-future',
-    'speedometer2',
-    'speedometer2-future',
-    'start_with_url.cold.startup_pages',
-    'start_with_url.warm.startup_pages',
-    'thread_times.key_hit_test_cases',
-    'thread_times.key_idle_power_cases',
-    'thread_times.key_mobile_sites_smooth',
-    'thread_times.key_noop_cases',
-    'thread_times.key_silk_cases',
-    'thread_times.simple_mobile_sites',
-    'thread_times.tough_compositor_cases',
-    'thread_times.tough_scrolling_cases',
-    'v8.detached_context_age_in_gc'
+    'smoothness.tough_pinch_zoom_cases', 'smoothness.tough_scrolling_cases',
+    'smoothness.tough_texture_upload_cases', 'smoothness.tough_webgl_ad_cases',
+    'smoothness.tough_webgl_cases', 'speedometer', 'speedometer-future',
+    'speedometer2', 'speedometer2-future', 'start_with_url.cold.startup_pages',
+    'start_with_url.warm.startup_pages', 'thread_times.key_hit_test_cases',
+    'thread_times.key_idle_power_cases', 'thread_times.key_mobile_sites_smooth',
+    'thread_times.key_noop_cases', 'thread_times.key_silk_cases',
+    'thread_times.simple_mobile_sites', 'thread_times.tough_compositor_cases',
+    'thread_times.tough_scrolling_cases', 'v8.detached_context_age_in_gc'
 ]
 _STATS_BLACKLIST = ['std', 'count', 'max', 'min', 'sum']
 
@@ -99,8 +67,7 @@ def ComputeTestPath(hist, ignore_grouping_label=False):
   # 'stories' diagnostic will contain the names of all of the stories.
   # If a Histogram is not a summary, then its 'stories' diagnostic will contain
   # the singular name of its story.
-  is_summary = list(
-      hist.diagnostics.get(reserved_infos.SUMMARY_KEYS.name, []))
+  is_summary = list(hist.diagnostics.get(reserved_infos.SUMMARY_KEYS.name, []))
 
   grouping_label = GetGroupingLabelFromHistogram(
       hist) if not ignore_grouping_label else None
@@ -116,17 +83,23 @@ def ComputeTestPath(hist, ignore_grouping_label=False):
     story_name = None
 
   return ComputeTestPathFromComponents(
-      hist.name, grouping_label=grouping_label, story_name=story_name,
-      is_summary=is_summary, is_ref=is_ref)
+      hist.name,
+      grouping_label=grouping_label,
+      story_name=story_name,
+      is_summary=is_summary,
+      is_ref=is_ref)
 
 
-def ComputeTestPathFromComponents(
-    hist_name, grouping_label=None, story_name=None, is_summary=None,
-    is_ref=False, needs_escape=True):
+def ComputeTestPathFromComponents(hist_name,
+                                  grouping_label=None,
+                                  story_name=None,
+                                  is_summary=None,
+                                  is_ref=False,
+                                  needs_escape=True):
   path = hist_name or ''
 
-  if grouping_label and (
-      not is_summary or reserved_infos.STORY_TAGS.name in is_summary):
+  if grouping_label and (not is_summary
+                         or reserved_infos.STORY_TAGS.name in is_summary):
     path += '/' + grouping_label
 
   if story_name and not is_summary:
@@ -158,8 +131,8 @@ def IsLegacyBenchmark(benchmark_name):
 def ShouldFilterStatistic(test_name, benchmark_name, stat_name):
   if test_name == 'benchmark_total_duration':
     return True
-  if benchmark_name.startswith('memory') and not benchmark_name.startswith(
-      'memory.long_running'):
+  if benchmark_name.startswith(
+      'memory') and not benchmark_name.startswith('memory.long_running'):
     if 'memory:' in test_name and stat_name in _STATS_BLACKLIST:
       return True
   if benchmark_name.startswith('memory.long_running'):
@@ -185,7 +158,7 @@ def _ShouldAddMemoryLongRunningValue(value_name):
       r'renderer_processes:'
       r'(reported_by_chrome:v8|reported_by_os:system_memory:[^:]+$)')
   if 'memory:chrome' in value_name:
-    return ('renderer:subsystem:v8' in value_name or
-            'renderer:vmstats:overall' in value_name or
-            bool(v8_re.search(value_name)))
+    return ('renderer:subsystem:v8' in value_name
+            or 'renderer:vmstats:overall' in value_name
+            or bool(v8_re.search(value_name)))
   return 'v8' in value_name

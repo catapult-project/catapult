@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Provides an endpoint for handling storing and retrieving page states."""
 from __future__ import print_function
 from __future__ import division
@@ -17,7 +16,6 @@ from dashboard.common import descriptor
 from dashboard.common import request_handler
 from dashboard.common import datastore_hooks
 from dashboard.models import page_state
-
 
 
 class ShortUriHandler(request_handler.RequestHandler):
@@ -129,9 +127,7 @@ def _Upgrade(statejson):
     return statejson
   state = {
       'showingReportSection': False,
-      'chartSections': [
-          _UpgradeChart(chart) for chart in state['charts']
-      ],
+      'chartSections': [_UpgradeChart(chart) for chart in state['charts']],
   }
   statejson = json.dumps(state)
   return statejson

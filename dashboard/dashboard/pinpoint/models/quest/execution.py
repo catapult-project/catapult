@@ -87,7 +87,6 @@ class Execution(object):
           'traceback': self._exception
       }
 
-
   def AsDict(self):
     d = {
         'completed': self._completed,
@@ -133,10 +132,7 @@ class Execution(object):
       tb = traceback.format_exc()
       if hasattr(e, 'task_output'):
         tb += '\n%s' % getattr(e, 'task_output')
-      self._exception = {
-          'message': e.message,
-          'traceback': tb
-      }
+      self._exception = {'message': e.message, 'traceback': tb}
     except:
       # All other exceptions must be propagated.
       raise

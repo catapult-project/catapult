@@ -33,8 +33,8 @@ class FindIsolate(quest.Quest):
     self._build_tags = collections.OrderedDict()
 
   def __eq__(self, other):
-    return (isinstance(other, type(self)) and self._bucket == other._bucket and
-            self._builder_name == other._builder_name)
+    return (isinstance(other, type(self)) and self._bucket == other._bucket
+            and self._builder_name == other._builder_name)
 
   def __str__(self):
     return 'Build'

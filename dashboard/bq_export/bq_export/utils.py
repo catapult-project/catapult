@@ -10,6 +10,7 @@ import math
 
 import apache_beam as beam
 
+
 ## Copy of dashboard.common.utils.TestPath for google.cloud.datastore.key.Key
 ## rather than ndb.Key.
 def TestPath(key):
@@ -67,6 +68,7 @@ def _ElementToYYYYMMDD(element):
 
 
 def _GetPartitionNameFn(table_name, element_to_yyyymmdd_fn):
+
   def TableWithPartitionSuffix(element):
     if callable(table_name):
       table_name_str = table_name(element)
@@ -76,6 +78,7 @@ def _GetPartitionNameFn(table_name, element_to_yyyymmdd_fn):
     # 'my_dataset.my_table$20200123'.  So extract the suffix from the ISO-format
     # timestamp value in this element.
     return table_name_str + '$' + element_to_yyyymmdd_fn(element)
+
   return TableWithPartitionSuffix
 
 

@@ -1,12 +1,11 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """A common base class for pages that are used to edit configs."""
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
-from future_builtins import map # pylint: disable=redefined-builtin
+from future_builtins import map  # pylint: disable=redefined-builtin
 
 import functools
 import itertools
@@ -138,10 +137,9 @@ class EditConfigHandler(request_handler.RequestHandler):
     self._RenderResults(entity, new_patterns, old_patterns)
     self._QueueChangeTestPatternsAndEmail(entity, new_patterns, old_patterns)
 
-  def  _QueueChangeTestPatternsAndEmail(
-      self, entity, new_patterns, old_patterns):
-    deferred.defer(
-        _QueueChangeTestPatternsTasks, old_patterns, new_patterns)
+  def _QueueChangeTestPatternsAndEmail(self, entity, new_patterns,
+                                       old_patterns):
+    deferred.defer(_QueueChangeTestPatternsTasks, old_patterns, new_patterns)
 
     user_email = users.get_current_user().email()
     subject = 'Added or updated %s: %s by %s' % (
@@ -149,22 +147,30 @@ class EditConfigHandler(request_handler.RequestHandler):
     email_key = entity.key.string_id()
 
     email_body = _NOTIFICATION_EMAIL_BODY % {
-        'key': email_key,
-        'new_test_path_patterns': json.dumps(
-            list(new_patterns), indent=2, sort_keys=True,
-            separators=(',', ': ')),
-        'old_test_path_patterns': json.dumps(
-            list(old_patterns), indent=2, sort_keys=True,
-            separators=(',', ': ')),
-        'hostname': app_identity.get_default_version_hostname(),
-        'user': user_email,
+        'key':
+            email_key,
+        'new_test_path_patterns':
+            json.dumps(
+                list(new_patterns),
+                indent=2,
+                sort_keys=True,
+                separators=(',', ': ')),
+        'old_test_path_patterns':
+            json.dumps(
+                list(old_patterns),
+                indent=2,
+                sort_keys=True,
+                separators=(',', ': ')),
+        'hostname':
+            app_identity.get_default_version_hostname(),
+        'user':
+            user_email,
     }
     mail.send_mail(
         sender=_SENDER_ADDRESS,
         to=_NOTIFICATION_ADDRESS,
         subject=subject,
         body=email_body)
-
 
   def _UpdateFromRequestParameters(self, entity):
     """Updates the given entity based on query parameters.
@@ -184,19 +190,21 @@ class EditConfigHandler(request_handler.RequestHandler):
       new_patterns: New test patterns that this config now applies to.
       old_patterns: Old Test patterns that this config no longer applies to.
     """
+
     def ResultEntry(name, value):
       """Returns an entry in the results lists to embed on result.html."""
       return {'name': name, 'value': value, 'class': 'results-pre'}
 
-    self.RenderHtml('result.html', {
-        'headline': ('Added or updated %s "%s".' %
-                     (self._model_class.__name__, entity.key.string_id())),
-        'results': [
-            ResultEntry('Entity', str(entity)),
-            ResultEntry('New Patterns', '\n'.join(new_patterns)),
-            ResultEntry('Old Patterns', '\n'.join(old_patterns)),
-        ]
-    })
+    self.RenderHtml(
+        'result.html', {
+            'headline': ('Added or updated %s "%s".' %
+                         (self._model_class.__name__, entity.key.string_id())),
+            'results': [
+                ResultEntry('Entity', str(entity)),
+                ResultEntry('New Patterns', '\n'.join(new_patterns)),
+                ResultEntry('Old Patterns', '\n'.join(old_patterns)),
+            ]
+        })
 
 
 def _SplitPatternLines(patterns_string):
@@ -249,7 +257,7 @@ def _QueueChangeTestPatternsTasks(old_patterns, new_patterns):
   def Chunks(seq, size):
     for i in itertools.count(0, size):
       if i < len(seq):
-        yield seq[i:i+size]
+        yield seq[i:i + size]
       else:
         break
 
@@ -285,16 +293,16 @@ def _RemoveOverlapping(added_items, removed_items):
 
 def _AllTestPathsMatchingPatterns(patterns_list):
   """Returns a list of all test paths matching the given list of patterns."""
+
   def GetResult(future):
     return set(future.get_result())
 
   return sorted(
       functools.reduce(
           operator.ior,
-          map(
-              GetResult,
-              map(list_tests.GetTestsMatchingPatternAsync,
-                  patterns_list)), set()))
+          map(GetResult,
+              map(list_tests.GetTestsMatchingPatternAsync, patterns_list)),
+          set()))
 
 
 def _AddTestsToPutToTaskQueue(test_paths):

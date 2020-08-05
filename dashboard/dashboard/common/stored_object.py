@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """A module for storing and getting objects from datastore.
 
 App Engine datastore limits entity size to less than 1 MB; this module
@@ -114,8 +113,10 @@ class MultipartEntity(ndb.Model):
       raise ndb.Return(None)
 
     string_id = self.key.string_id()
-    part_keys = [ndb.Key(MultipartEntity, string_id, PartEntity, i + 1)
-                 for i in range(self.size)]
+    part_keys = [
+        ndb.Key(MultipartEntity, string_id, PartEntity, i + 1)
+        for i in range(self.size)
+    ]
     part_entities = yield ndb.get_multi_async(part_keys)
     serialized = ''.join(p.value for p in part_entities if p is not None)
     self.SetData(pickle.loads(serialized))

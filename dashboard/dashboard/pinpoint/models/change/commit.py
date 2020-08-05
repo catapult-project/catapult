@@ -19,7 +19,6 @@ from dashboard.services import gitiles_service
 
 from dashboard.common import utils
 
-
 _REPO_EXCLUSION_KEY = 'pinpoint_repo_exclusion_map'
 
 
@@ -44,8 +43,7 @@ def ParseDateWithUTCOffset(date_string):
     date_string, utc_offset = date_string.split(utc_sign)
     date_string = date_string.strip()
 
-  dt = datetime.datetime.strptime(
-      date_string, '%a %b %d %H:%M:%S %Y')
+  dt = datetime.datetime.strptime(date_string, '%a %b %d %H:%M:%S %Y')
 
   if utc_sign and len(utc_offset) == 4:
     if utc_sign == '+':
@@ -93,16 +91,15 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     """
     # Download and execute DEPS file.
     try:
-      deps_file_contents = gitiles_service.FileContents(
-          self.repository_url, self.git_hash, 'DEPS')
+      deps_file_contents = gitiles_service.FileContents(self.repository_url,
+                                                        self.git_hash, 'DEPS')
     except gitiles_service.NotFoundError:
       return frozenset()  # No DEPS file => no DEPS.
 
-
     try:
-      deps_data = gclient_eval.Parse(deps_file_contents,
-                                     '{}@{}/DEPS'.format(self.repository_url,
-                                                         self.git_hash))
+      deps_data = gclient_eval.Parse(
+          deps_file_contents, '{}@{}/DEPS'.format(self.repository_url,
+                                                  self.git_hash))
     except gclient_eval.Error:
       return frozenset()  # Invalid/unparseable DEPS file => no DEPS.
 
@@ -249,7 +246,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     # IF this is something like HEAD, cache this for a short time so that we
     # avoid hammering gitiles.
     if not gitiles_service.IsHash(data['git_hash']):
-      commit.CacheCommitInfo(result, memcache_timeout=30*60)
+      commit.CacheCommitInfo(result, memcache_timeout=30 * 60)
 
     return commit
 
@@ -281,8 +278,8 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     try:
       return commit_cache.Get(self.id_string)
     except KeyError:
-      commit_info = gitiles_service.CommitInfo(
-          self.repository_url, self.git_hash)
+      commit_info = gitiles_service.CommitInfo(self.repository_url,
+                                               self.git_hash)
       return self.CacheCommitInfo(commit_info)
 
   def CacheCommitInfo(self, commit_info, memcache_timeout=None):
@@ -295,7 +292,12 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     message = commit_info['message']
 
     commit_cache.Put(
-        self.id_string, url, author, created, subject, message,
+        self.id_string,
+        url,
+        author,
+        created,
+        subject,
+        message,
         memcache_timeout=memcache_timeout)
 
     return {
@@ -368,8 +370,8 @@ def _ParseCommitPosition(commit_message):
 
   Returns:
     An int if there is a commit position, or None otherwise."""
-  match = re.search('^Cr-Commit-Position: [a-z/]+@{#([0-9]+)}$',
-                    commit_message, re.MULTILINE)
+  match = re.search('^Cr-Commit-Position: [a-z/]+@{#([0-9]+)}$', commit_message,
+                    re.MULTILINE)
   if match:
     return int(match.group(1))
   return None

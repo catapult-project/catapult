@@ -31,25 +31,28 @@ _TEST_HISTOGRAM_DATA = {
 
 
 class GetHistogramsTest(testing_common.TestCase):
+
   def setUp(self):
     super(GetHistogramsTest, self).setUp()
-    app = webapp2.WSGIApplication([
-        ('/get_histogram', get_histogram.GetHistogramHandler)])
+    app = webapp2.WSGIApplication([('/get_histogram',
+                                    get_histogram.GetHistogramHandler)])
     self.testapp = webtest.TestApp(app)
     testing_common.SetIsInternalUser('foo@bar.com', True)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
   def _AddMockData(self, histogram_data, internal_only=False):
     histogram.Histogram(
-        id=histogram_data['guid'], test=ndb.Key('TestMetadata', 'M/B/S'),
-        revision=10, data=histogram_data,
+        id=histogram_data['guid'],
+        test=ndb.Key('TestMetadata', 'M/B/S'),
+        revision=10,
+        data=histogram_data,
         internal_only=internal_only).put()
 
   def testGetHistogram(self):
     self._AddMockData(_TEST_HISTOGRAM_DATA)
 
-    response = self.testapp.post(
-        '/get_histogram', {'guid': _TEST_HISTOGRAM_DATA['guid']})
+    response = self.testapp.post('/get_histogram',
+                                 {'guid': _TEST_HISTOGRAM_DATA['guid']})
     data = json.loads(response.body)
 
     self.assertTrue(isinstance(data, dict))
@@ -58,8 +61,8 @@ class GetHistogramsTest(testing_common.TestCase):
   def testGetHistogram_Internal_Succeeds(self):
     self._AddMockData(_TEST_HISTOGRAM_DATA, True)
 
-    response = self.testapp.post(
-        '/get_histogram', {'guid': _TEST_HISTOGRAM_DATA['guid']})
+    response = self.testapp.post('/get_histogram',
+                                 {'guid': _TEST_HISTOGRAM_DATA['guid']})
     data = json.loads(response.body)
 
     self.assertTrue(isinstance(data, dict))

@@ -1,7 +1,6 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Service for tracking isolates and looking them up by builder and commit.
 
 An isolate is a way to describe the dependencies of a specific build.
@@ -59,10 +58,11 @@ class Isolate(api_request_handler.ApiRequestHandler):
       self.response.write(e)
       return
 
-    self.response.write(json.dumps({
-        'isolate_server': isolate_server,
-        'isolate_hash': isolate_hash,
-    }))
+    self.response.write(
+        json.dumps({
+            'isolate_server': isolate_server,
+            'isolate_hash': isolate_hash,
+        }))
 
   def _CheckUser(self):
     # TODO: Remove when all Pinpoint builders are migrated to LUCI.
@@ -96,9 +96,9 @@ class Isolate(api_request_handler.ApiRequestHandler):
       return
 
     # Put information into the datastore.
-    isolate_infos = [
-        (builder_name, change, target, isolate_server, isolate_hash)
-        for target, isolate_hash in isolate_map.items()]
+    isolate_infos = [(builder_name, change, target, isolate_server,
+                      isolate_hash)
+                     for target, isolate_hash in isolate_map.items()]
     isolate.Put(isolate_infos)
 
     # Respond to the API user.
@@ -142,5 +142,6 @@ class Isolate(api_request_handler.ApiRequestHandler):
 
 
 class IsolateCleanup(webapp2.RequestHandler):
+
   def get(self):
     isolate.DeleteExpiredIsolates()

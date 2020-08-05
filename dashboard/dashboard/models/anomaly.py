@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """The database model for an "Anomaly", which represents a step up or down."""
 from __future__ import print_function
 from __future__ import division
@@ -80,14 +79,11 @@ class Anomaly(internal_only_model.InternalOnlyModel):
 
   # We'd like to be able to query Alerts by Master, Bot, and Benchmark names.
   master_name = ndb.ComputedProperty(
-      lambda self: utils.TestPath(self.test).split('/')[0],
-      indexed=True)
+      lambda self: utils.TestPath(self.test).split('/')[0], indexed=True)
   bot_name = ndb.ComputedProperty(
-      lambda self: utils.TestPath(self.test).split('/')[1],
-      indexed=True)
+      lambda self: utils.TestPath(self.test).split('/')[1], indexed=True)
   benchmark_name = ndb.ComputedProperty(
-      lambda self: utils.TestPath(self.test).split('/')[2],
-      indexed=True)
+      lambda self: utils.TestPath(self.test).split('/')[2], indexed=True)
 
   # Each Alert has a revision range it's associated with; however,
   # start_revision and end_revision could be the same.
@@ -210,31 +206,30 @@ class Anomaly(internal_only_model.InternalOnlyModel):
 
   @classmethod
   @ndb.tasklet
-  def QueryAsync(
-      cls,
-      bot_name=None,
-      bug_id=None,
-      count_limit=0,
-      deadline_seconds=50,
-      inequality_property=None,
-      is_improvement=None,
-      key=None,
-      keys_only=False,
-      limit=100,
-      master_name=None,
-      max_end_revision=None,
-      max_start_revision=None,
-      max_timestamp=None,
-      min_end_revision=None,
-      min_start_revision=None,
-      min_timestamp=None,
-      recovered=None,
-      subscriptions=None,
-      start_cursor=None,
-      test=None,
-      test_keys=None,
-      test_suite_name=None,
-      project_id=None):
+  def QueryAsync(cls,
+                 bot_name=None,
+                 bug_id=None,
+                 count_limit=0,
+                 deadline_seconds=50,
+                 inequality_property=None,
+                 is_improvement=None,
+                 key=None,
+                 keys_only=False,
+                 limit=100,
+                 master_name=None,
+                 max_end_revision=None,
+                 max_start_revision=None,
+                 max_timestamp=None,
+                 min_end_revision=None,
+                 min_start_revision=None,
+                 min_timestamp=None,
+                 recovered=None,
+                 subscriptions=None,
+                 start_cursor=None,
+                 test=None,
+                 test_keys=None,
+                 test_suite_name=None,
+                 project_id=None):
     if key:
       # This tasklet isn't allowed to catch the internal_only AssertionError.
       alert = yield ndb.Key(urlsafe=key).get_async()
@@ -249,7 +244,7 @@ class Anomaly(internal_only_model.InternalOnlyModel):
     while not results and time.time() < deadline:
       query = cls.query()
       equality_properties = []
-      if subscriptions: # Empty subscriptions is not allowed in query
+      if subscriptions:  # Empty subscriptions is not allowed in query
         query = query.filter(cls.subscription_names.IN(subscriptions))
         equality_properties.append('subscription_names')
         inequality_property = 'key'
@@ -280,8 +275,10 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         if not test_keys:
           test_keys = []
         if test:
-          test_keys += [utils.OldStyleTestKey(test),
-                        utils.TestMetadataKey(test)]
+          test_keys += [
+              utils.OldStyleTestKey(test),
+              utils.TestMetadataKey(test)
+          ]
         query = query.filter(cls.test.IN(test_keys))
         query = query.order(cls.key)
         equality_properties.append('test')
@@ -301,15 +298,16 @@ class Anomaly(internal_only_model.InternalOnlyModel):
 
       query, post_filters = cls._InequalityFilters(
           query, equality_properties, inequality_property, bug_id,
-          min_end_revision, max_end_revision,
-          min_start_revision, max_start_revision,
-          min_timestamp, max_timestamp)
+          min_end_revision, max_end_revision, min_start_revision,
+          max_start_revision, min_timestamp, max_timestamp)
       if post_filters:
         keys_only = False
       query = query.order(-cls.timestamp, cls.key)
 
-      futures = [query.fetch_page_async(
-          limit, start_cursor=start_cursor, keys_only=keys_only)]
+      futures = [
+          query.fetch_page_async(
+              limit, start_cursor=start_cursor, keys_only=keys_only)
+      ]
       if count_limit:
         futures.append(query.count_async(count_limit))
       query_duration = timing.WallTimeLogger('query_duration')
@@ -325,8 +323,10 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         logging.info('duration_per_result=%f',
                      query_duration.seconds / len(results))
       if post_filters:
-        results = [alert for alert in results
-                   if all(post_filter(alert) for post_filter in post_filters)]
+        results = [
+            alert for alert in results if all(
+                post_filter(alert) for post_filter in post_filters)
+        ]
       if not more:
         start_cursor = None
       if not start_cursor:
@@ -334,11 +334,10 @@ class Anomaly(internal_only_model.InternalOnlyModel):
     raise ndb.Return((results, start_cursor, count))
 
   @classmethod
-  def _InequalityFilters(
-      cls, query, equality_properties, inequality_property, bug_id,
-      min_end_revision, max_end_revision,
-      min_start_revision, max_start_revision,
-      min_timestamp, max_timestamp):
+  def _InequalityFilters(cls, query, equality_properties, inequality_property,
+                         bug_id, min_end_revision, max_end_revision,
+                         min_start_revision, max_start_revision, min_timestamp,
+                         max_timestamp):
     # A query cannot have more than one inequality filter.
     # inequality_property allows users to decide which property to filter in the
     # query, which can significantly affect performance. If other inequalities
@@ -360,8 +359,9 @@ class Anomaly(internal_only_model.InternalOnlyModel):
       if bug_id != '*':
         inequality_property = None
     elif inequality_property == 'key':
-      if equality_properties == ['subscription_names'] and (
-          min_start_revision or max_start_revision):
+      if equality_properties == [
+          'subscription_names'
+      ] and (min_start_revision or max_start_revision):
         # Use the composite index (subscription_names, start_revision,
         # -timestamp). See index.yaml.
         inequality_property = 'start_revision'

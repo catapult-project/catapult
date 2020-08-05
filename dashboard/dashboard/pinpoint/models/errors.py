@@ -107,7 +107,7 @@ class BuildCancelled(InformationalError):
     super(BuildCancelled,
           self).__init__('The build was cancelled with reason: %s. "\
         "Pinpoint will be unable to run any tests against this "\
-        "revision.'                    % reason)
+        "revision.' % reason)
 
 
 class BuildGerritUrlNotFound(InformationalError):
@@ -249,6 +249,7 @@ class ReadValueNoFile(InformationalError):
         'output file: %s. This is likely due to a problem with the test '\
         'itself in this range.' % reason)
 
+
 class ReadValueUnknownFormat(InformationalError):
 
   category = 'request'
@@ -257,7 +258,8 @@ class ReadValueUnknownFormat(InformationalError):
     super(ReadValueUnknownFormat, self).__init__(
         'The test ran successfully but produced a format that Pinpoint could '
         'not parse properly. Please see the file "%s" and potentially file an '
-        'issue in Speed>Bisection for further debugging.'% reason)
+        'issue in Speed>Bisection for further debugging.' % reason)
+
 
 class AllRunsFailed(FatalError):
 

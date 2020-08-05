@@ -1,7 +1,6 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """A wrapper for stored_object that separates internal and external."""
 from __future__ import print_function
 from __future__ import division
@@ -75,9 +74,8 @@ def Delete(key):
 def DeleteAsync(key):
   internal_key = NamespaceKey(key, namespace=datastore_hooks.INTERNAL)
   external_key = NamespaceKey(key, namespace=datastore_hooks.EXTERNAL)
-  yield (
-      stored_object.DeleteAsync(internal_key),
-      stored_object.DeleteAsync(external_key))
+  yield (stored_object.DeleteAsync(internal_key),
+         stored_object.DeleteAsync(external_key))
 
 
 def NamespaceKey(key, namespace=None):

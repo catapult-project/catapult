@@ -27,11 +27,11 @@ from dashboard.pinpoint.models.quest import execution_test
 from dashboard.pinpoint.models.quest import quest
 from dashboard.pinpoint import test
 
-
 _RESULTS_BY_CHANGE = {
     'chromium@aaaaaaa': [1, 1, 1, 1],
     'chromium@bbbbbbb': [5, 5, 5, 5]
 }
+
 
 class _QuestStub(quest.Quest):
 
@@ -47,17 +47,20 @@ class _QuestStub(quest.Quest):
 
 
 class ExecutionResults(execution_test._ExecutionStub):
+
   def __init__(self, c):
     super(ExecutionResults, self).__init__()
     self._result_for_test = _RESULTS_BY_CHANGE[str(c)]
 
   def _Poll(self):
-    self._Complete(result_arguments={'arg key': 'arg value'},
-                   result_values=self._result_for_test)
+    self._Complete(
+        result_arguments={'arg key': 'arg value'},
+        result_values=self._result_for_test)
+
 
 def _StubFunc(*args, **kwargs):
   del args
-  del  kwargs
+  del kwargs
 
 
 @ndb.tasklet
@@ -69,23 +72,30 @@ class UpdateDashboardStatsTest(test.TestCase):
 
   def setUp(self):
     super(UpdateDashboardStatsTest, self).setUp()
-    app = webapp2.WSGIApplication(
-        [('/update_dashboard_stats',
-          update_dashboard_stats.UpdateDashboardStatsHandler)])
+    app = webapp2.WSGIApplication([
+        ('/update_dashboard_stats',
+         update_dashboard_stats.UpdateDashboardStatsHandler)
+    ])
     self.testapp = webtest.TestApp(app)
 
-  def _CreateJob(
-      self, hash1, hash2, comparison_mode, created, bug_id, exception=None,
-      arguments=None):
+  def _CreateJob(self,
+                 hash1,
+                 hash2,
+                 comparison_mode,
+                 created,
+                 bug_id,
+                 exception=None,
+                 arguments=None):
     old_commit = commit.Commit('chromium', hash1)
     change_a = change_module.Change((old_commit,))
 
     old_commit = commit.Commit('chromium', hash2)
     change_b = change_module.Change((old_commit,))
 
-    job = job_module.Job.New(
-        (_QuestStub(),), (change_a, change_b),
-        comparison_mode=comparison_mode, bug_id=bug_id, arguments=arguments)
+    job = job_module.Job.New((_QuestStub(),), (change_a, change_b),
+                             comparison_mode=comparison_mode,
+                             bug_id=bug_id,
+                             arguments=arguments)
     job.created = created
     job.exception = exception
     job.state.ScheduleWork()
@@ -93,30 +103,27 @@ class UpdateDashboardStatsTest(test.TestCase):
     job.put()
     return job
 
-  @mock.patch.object(
-      update_dashboard_stats, '_ProcessPinpointJobs',
-      mock.MagicMock(side_effect=_FakeTasklet))
-  @mock.patch.object(
-      update_dashboard_stats.deferred, 'defer')
+  @mock.patch.object(update_dashboard_stats, '_ProcessPinpointJobs',
+                     mock.MagicMock(side_effect=_FakeTasklet))
+  @mock.patch.object(update_dashboard_stats.deferred, 'defer')
   def testPost_ProcessAlerts_Success(self, mock_defer):
     created = datetime.datetime.now() - datetime.timedelta(hours=1)
     # sheriff = ndb.Key('Sheriff', 'Chromium Perf Sheriff')
     anomaly_entity = anomaly.Anomaly(
-        test=utils.TestKey('M/B/suite'), timestamp=created) #, sheriff=sheriff)
+        test=utils.TestKey('M/B/suite'), timestamp=created)  #, sheriff=sheriff)
     anomaly_entity.put()
 
     self.testapp.get('/update_dashboard_stats')
     self.assertTrue(mock_defer.called)
 
-  @mock.patch.object(
-      update_dashboard_stats, '_ProcessPinpointJobs', _StubFunc)
-  @mock.patch.object(
-      update_dashboard_stats, '_ProcessPinpointStats', _StubFunc)
+  @mock.patch.object(update_dashboard_stats, '_ProcessPinpointJobs', _StubFunc)
+  @mock.patch.object(update_dashboard_stats, '_ProcessPinpointStats', _StubFunc)
   def testPost_ProcessAlerts_NoAlerts(self):
     created = datetime.datetime.now() - datetime.timedelta(days=2)
     # sheriff = ndb.Key('Sheriff', 'Chromium Perf Sheriff')
     anomaly_entity = anomaly.Anomaly(
-        test=utils.TestKey('M/B/suite'), timestamp=created) # , sheriff=sheriff)
+        test=utils.TestKey('M/B/suite'),
+        timestamp=created)  # , sheriff=sheriff)
     anomaly_entity.put()
 
     self.testapp.get('/update_dashboard_stats')
@@ -128,25 +135,36 @@ class UpdateDashboardStatsTest(test.TestCase):
     mock_defer = patcher.start()
     self.assertFalse(mock_defer.called)
 
-  @mock.patch.object(
-      update_dashboard_stats, '_ProcessAlerts', _StubFunc)
-  @mock.patch.object(
-      change_module.Change, 'Midpoint',
-      mock.MagicMock(side_effect=commit.NonLinearError))
-  @mock.patch.object(
-      update_dashboard_stats, '_ProcessPinpointJobs', _StubFunc)
+  @mock.patch.object(update_dashboard_stats, '_ProcessAlerts', _StubFunc)
+  @mock.patch.object(change_module.Change, 'Midpoint',
+                     mock.MagicMock(side_effect=commit.NonLinearError))
+  @mock.patch.object(update_dashboard_stats, '_ProcessPinpointJobs', _StubFunc)
   def testPost_ProcessPinpointStats_Success(self):
     created = datetime.datetime.now() - datetime.timedelta(hours=12)
     j = self._CreateJob(
-        'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 12345,
-        arguments={'configuration': 'bot1', 'benchmark': 'suite1'})
+        'aaaaaaaa',
+        'bbbbbbbb',
+        job_state.PERFORMANCE,
+        created,
+        12345,
+        arguments={
+            'configuration': 'bot1',
+            'benchmark': 'suite1'
+        })
     j.updated = created + datetime.timedelta(hours=1)
     j.put()
 
     created = datetime.datetime.now() - datetime.timedelta(hours=12)
     j = self._CreateJob(
-        'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 12345,
-        arguments={'configuration': 'bot2', 'benchmark': 'suite2'})
+        'aaaaaaaa',
+        'bbbbbbbb',
+        job_state.PERFORMANCE,
+        created,
+        12345,
+        arguments={
+            'configuration': 'bot2',
+            'benchmark': 'suite2'
+        })
     j.updated = created + datetime.timedelta(hours=1)
     j.put()
 
@@ -160,21 +178,17 @@ class UpdateDashboardStatsTest(test.TestCase):
 
     self.assertTrue(mock_defer.called)
 
-  @mock.patch.object(
-      update_dashboard_stats, '_ProcessAlerts',
-      mock.MagicMock(side_effect=_FakeTasklet))
-  @mock.patch.object(
-      update_dashboard_stats, '_ProcessPinpointStats',
-      mock.MagicMock(side_effect=_FakeTasklet))
-  @mock.patch.object(
-      change_module.Change, 'Midpoint',
-      mock.MagicMock(side_effect=commit.NonLinearError))
-  @mock.patch.object(
-      update_dashboard_stats.deferred, 'defer')
+  @mock.patch.object(update_dashboard_stats, '_ProcessAlerts',
+                     mock.MagicMock(side_effect=_FakeTasklet))
+  @mock.patch.object(update_dashboard_stats, '_ProcessPinpointStats',
+                     mock.MagicMock(side_effect=_FakeTasklet))
+  @mock.patch.object(change_module.Change, 'Midpoint',
+                     mock.MagicMock(side_effect=commit.NonLinearError))
+  @mock.patch.object(update_dashboard_stats.deferred, 'defer')
   def testPost_ProcessPinpoint_Success(self, mock_defer):
     created = datetime.datetime.now() - datetime.timedelta(days=1)
-    self._CreateJob(
-        'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 12345)
+    self._CreateJob('aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created,
+                    12345)
     anomaly_entity = anomaly.Anomaly(
         test=utils.TestKey('M/B/S'), bug_id=12345, timestamp=created)
     anomaly_entity.put()
@@ -182,16 +196,12 @@ class UpdateDashboardStatsTest(test.TestCase):
     self.testapp.get('/update_dashboard_stats')
     self.assertTrue(mock_defer.called)
 
-  @mock.patch.object(
-      gerrit_service, 'GetChange',
-      mock.MagicMock(side_effect=httplib.HTTPException))
-  @mock.patch.object(
-      update_dashboard_stats, '_ProcessAlerts', _StubFunc)
-  @mock.patch.object(
-      update_dashboard_stats, '_ProcessPinpointStats', _StubFunc)
-  @mock.patch.object(
-      change_module.Change, 'Midpoint',
-      mock.MagicMock(side_effect=commit.NonLinearError))
+  @mock.patch.object(gerrit_service, 'GetChange',
+                     mock.MagicMock(side_effect=httplib.HTTPException))
+  @mock.patch.object(update_dashboard_stats, '_ProcessAlerts', _StubFunc)
+  @mock.patch.object(update_dashboard_stats, '_ProcessPinpointStats', _StubFunc)
+  @mock.patch.object(change_module.Change, 'Midpoint',
+                     mock.MagicMock(side_effect=commit.NonLinearError))
   def testPost_ProcessPinpoint_NoResults(self):
     created = datetime.datetime.now() - datetime.timedelta(days=1)
 
@@ -199,24 +209,24 @@ class UpdateDashboardStatsTest(test.TestCase):
         test=utils.TestKey('M/B/S'), bug_id=12345, timestamp=created)
     anomaly_entity.put()
 
-    self._CreateJob(
-        'aaaaaaaa', 'bbbbbbbb', job_state.FUNCTIONAL, created, 12345)
+    self._CreateJob('aaaaaaaa', 'bbbbbbbb', job_state.FUNCTIONAL, created,
+                    12345)
 
     created = datetime.datetime.now() - datetime.timedelta(days=15)
-    self._CreateJob(
-        'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 12345)
+    self._CreateJob('aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created,
+                    12345)
 
     created = datetime.datetime.now() - datetime.timedelta(days=1)
-    self._CreateJob(
-        'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, None)
+    self._CreateJob('aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created,
+                    None)
 
     created = datetime.datetime.now() - datetime.timedelta(days=1)
-    self._CreateJob(
-        'aaaaaaaa', 'aaaaaaaa', job_state.PERFORMANCE, created, 12345)
+    self._CreateJob('aaaaaaaa', 'aaaaaaaa', job_state.PERFORMANCE, created,
+                    12345)
 
     created = datetime.datetime.now() - datetime.timedelta(days=1)
-    self._CreateJob(
-        'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 12345, 'foo')
+    self._CreateJob('aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created,
+                    12345, 'foo')
 
     way_too_old = datetime.datetime(year=2000, month=1, day=1)
     anomaly_entity = anomaly.Anomaly(
@@ -224,8 +234,7 @@ class UpdateDashboardStatsTest(test.TestCase):
     anomaly_entity.put()
 
     created = datetime.datetime.now() - datetime.timedelta(days=1)
-    self._CreateJob(
-        'aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 1)
+    self._CreateJob('aaaaaaaa', 'bbbbbbbb', job_state.PERFORMANCE, created, 1)
 
     self.testapp.get('/update_dashboard_stats')
 

@@ -73,7 +73,7 @@ class SheriffConfigClient(object):
     response = self._session.post(
         'https://sheriff-config-dot-chromeperf.appspot.com/subscriptions/match',
         json={'path': path})
-    if response.status_code == 404: # If no subscription matched
+    if response.status_code == 404:  # If no subscription matched
       return [], None
     if not response.ok:
       err_msg = '%r\n%s' % (response, response.text)
@@ -82,8 +82,10 @@ class SheriffConfigClient(object):
       return None, err_msg
     match_resp = self._json_format.Parse(
         response.text, self._sheriff_config_pb2.MatchResponse())
-    return [self._ParseSubscription(s.revision, s.subscription)
-            for s in match_resp.subscriptions], None
+    return [
+        self._ParseSubscription(s.revision, s.subscription)
+        for s in match_resp.subscriptions
+    ], None
 
   def List(self, check=False):
     response = self._session.post(
@@ -94,10 +96,12 @@ class SheriffConfigClient(object):
       if check:
         raise InternalServerError(err_msg)
       return None, err_msg
-    list_resp = self._json_format.Parse(
-        response.text, self._sheriff_config_pb2.ListResponse())
-    return [self._ParseSubscription(s.revision, s.subscription)
-            for s in list_resp.subscriptions], None
+    list_resp = self._json_format.Parse(response.text,
+                                        self._sheriff_config_pb2.ListResponse())
+    return [
+        self._ParseSubscription(s.revision, s.subscription)
+        for s in list_resp.subscriptions
+    ], None
 
   def Update(self, check=False):
     response = self._session.get(

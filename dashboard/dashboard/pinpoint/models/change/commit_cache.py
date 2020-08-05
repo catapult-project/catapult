@@ -34,9 +34,13 @@ def Get(id_string):
   }
 
 
-def Put(
-    id_string, url, author, created, subject, message,
-    memcache_timeout=_MEMCACHE_TIMEOUT):
+def Put(id_string,
+        url,
+        author,
+        created,
+        subject,
+        message,
+        memcache_timeout=_MEMCACHE_TIMEOUT):
   """Add commit or patch details to the Datastore cache.
 
   Args:
@@ -56,7 +60,8 @@ def Put(
       created=created,
       subject=subject,
       message=message,
-      id=id_string).put(use_datastore=False, memcache_timeout=memcache_timeout)
+      id=id_string).put(
+          use_datastore=False, memcache_timeout=memcache_timeout)
 
 
 class Commit(ndb.Model):

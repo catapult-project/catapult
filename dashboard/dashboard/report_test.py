@@ -24,9 +24,10 @@ class ReportTest(testing_common.TestCase):
 
   def setUp(self):
     super(ReportTest, self).setUp()
-    app = webapp2.WSGIApplication(
-        [('/report', report.ReportHandler),
-         ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler)])
+    app = webapp2.WSGIApplication([
+        ('/report', report.ReportHandler),
+        ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler)
+    ])
     self.testapp = webtest.TestApp(app)
 
   def _AddTestSuites(self):
@@ -108,8 +109,10 @@ class ReportTest(testing_common.TestCase):
     expected_state = {
         'charts': [
             [['ChromiumGPU/linux/scrolling/num_layers', ['num_layers']]],
-            [['ChromiumGPU/linux/scrolling/num_layers/about.com',
-              ['num_layers']]],
+            [[
+                'ChromiumGPU/linux/scrolling/num_layers/about.com',
+                ['num_layers']
+            ]],
             [['ChromiumGPU/win/scrolling/num_layers', ['num_layers']]],
             [['ChromiumGPU/win/scrolling/num_layers/about.com',
               ['num_layers']]],
@@ -128,14 +131,13 @@ class ReportTest(testing_common.TestCase):
 
     state_id = location.split('sid=')[1]
     state = ndb.Key(page_state.PageState, state_id).get()
-    self.assertEqual(json.dumps(expected_state, separators=(',', ':')),
-                     state.value)
+    self.assertEqual(
+        json.dumps(expected_state, separators=(',', ':')), state.value)
 
   def testGet_OldUriMissingTestParam(self):
-    response = self.testapp.get(
-        '/report'
-        '?masters=ChromiumGPU&bots=linux,win'
-        '&checked=num_layers')
+    response = self.testapp.get('/report'
+                                '?masters=ChromiumGPU&bots=linux,win'
+                                '&checked=num_layers')
 
     location = response.headers.get('location')
     self.assertIsNone(location)
@@ -150,17 +152,13 @@ class ReportTest(testing_common.TestCase):
         {200})
 
     expected_state = {
-        'charts': [
-            [[('ChromiumGPU/linux-release/scrolling_benchmark/'
-               'a_first_listed_test'),
-              ['a_first_listed_test']]],
-        ]
+        'charts': [[[('ChromiumGPU/linux-release/scrolling_benchmark/'
+                      'a_first_listed_test'), ['a_first_listed_test']]],]
     }
 
-    response = self.testapp.get(
-        '/report'
-        '?masters=ChromiumGPU&bots=linux-release'
-        '&tests=scrolling_benchmark')
+    response = self.testapp.get('/report'
+                                '?masters=ChromiumGPU&bots=linux-release'
+                                '&tests=scrolling_benchmark')
 
     # We expect to get a URL redirect with an sid.
     location = response.headers.get('location')
@@ -168,8 +166,8 @@ class ReportTest(testing_common.TestCase):
 
     state_id = location.split('sid=')[1]
     state = ndb.Key(page_state.PageState, state_id).get()
-    self.assertEqual(json.dumps(expected_state, separators=(',', ':')),
-                     state.value)
+    self.assertEqual(
+        json.dumps(expected_state, separators=(',', ':')), state.value)
 
   def testGet_OldUriWithRevisionParams(self):
     response = self.testapp.get(
@@ -186,21 +184,17 @@ class ReportTest(testing_common.TestCase):
     self._AddTestSuites()
     testing_common.AddRows(
         ('ChromiumGPU/linux-release/scrolling_benchmark/average_commit_time/'
-         'answers.yahoo.com'),
-        {200})
+         'answers.yahoo.com'), {200})
 
     expected_state = {
-        'charts': [
-            [[('ChromiumGPU/linux-release/scrolling_benchmark/'
-               'average_commit_time/answers.yahoo.com'),
-              ['answers.yahoo.com']]],
-        ]
+        'charts': [[[('ChromiumGPU/linux-release/scrolling_benchmark/'
+                      'average_commit_time/answers.yahoo.com'),
+                     ['answers.yahoo.com']]],]
     }
 
-    response = self.testapp.get(
-        '/report'
-        '?masters=ChromiumGPU&bots=linux-release'
-        '&tests=scrolling_benchmark')
+    response = self.testapp.get('/report'
+                                '?masters=ChromiumGPU&bots=linux-release'
+                                '&tests=scrolling_benchmark')
 
     # We expect to get a URL redirect with an sid.
     location = response.headers.get('location')
@@ -208,8 +202,8 @@ class ReportTest(testing_common.TestCase):
 
     state_id = location.split('sid=')[1]
     state = ndb.Key(page_state.PageState, state_id).get()
-    self.assertEqual(json.dumps(expected_state, separators=(',', ':')),
-                     state.value)
+    self.assertEqual(
+        json.dumps(expected_state, separators=(',', ':')), state.value)
 
 
 if __name__ == '__main__':

@@ -1,7 +1,6 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 """Model for storing information to look up isolates.
 
 An isolate is a way to describe the dependencies of a specific build.
@@ -17,7 +16,6 @@ import datetime
 
 from google.appengine.ext import deferred
 from google.appengine.ext import ndb
-
 
 # Isolates expire in isolate server after 60 days. We expire
 # our isolate lookups a little bit sooner, just to be safe.

@@ -20,7 +20,6 @@ from dashboard.pinpoint.models import compare
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import exploration
 
-
 # We start with 10 attempts at a given change and double until we reach 160
 # attempts max (that's 4 iterations).
 MIN_ATTEMPTS = 10
@@ -42,8 +41,11 @@ class JobState(object):
   We lose the ability to index and query the fields, but it's all internal
   anyway. Everything queryable should be on the Job object."""
 
-  def __init__(self, quests, comparison_mode=None,
-               comparison_magnitude=None, pin=None):
+  def __init__(self,
+               quests,
+               comparison_mode=None,
+               comparison_magnitude=None,
+               pin=None):
     """Create a JobState.
 
     Args:
@@ -142,6 +144,7 @@ class JobState(object):
       return comparison == compare.DIFFERENT
 
     changes_to_refine = set()
+
     def CollectChangesToRefine(change_a, change_b):
       # We will return the changes which has less than or equal number of
       # attempts but also doesn't have the maximum number of attempts.
@@ -207,8 +210,7 @@ class JobState(object):
 
     exception, exception_count = most_common_exceptions[0]
     attempt_count = sum(counter.values())
-    raise errors.AllRunsFailed(
-        exception_count, attempt_count, exception)
+    raise errors.AllRunsFailed(exception_count, attempt_count, exception)
 
   def Differences(self):
     """Compares every pair of Changes and yields ones with different results.
@@ -221,16 +223,19 @@ class JobState(object):
       A list of tuples: [(Change_before, Change_after), ...]
     """
     differences = []
+
     def Comparison(a, b):
       if not a:
         return b
       if self._Compare(a, b) == compare.DIFFERENT:
         differences.append((a, b))
       return b
+
     functools.reduce(Comparison, self._changes, None)
     return differences
 
   def AsDict(self):
+
     def Transform(change):
       return ({
           'attempts': [attempt.AsDict() for attempt in self._attempts[change]],
