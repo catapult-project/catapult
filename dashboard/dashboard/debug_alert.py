@@ -64,12 +64,13 @@ class DebugAlertHandler(request_handler.RequestHandler):
 
     # Get the anomaly data from the new anomaly detection module. This will
     # also be passed to the template so that it can be shown on the page.
-    change_points = SimulateAlertProcessing(chart_series, **config_dict)
-    anomaly_indexes = [c.x_value for c in change_points]
-    anomaly_points = [(i, chart_series[i][1]) for i in anomaly_indexes]
-    anomaly_segments = _AnomalySegmentSeries(change_points)
 
-    plot_data = _GetPlotData(chart_series, anomaly_points, anomaly_segments)
+    # TODO(fancl): Fix SimulateAlertProcessing timeout. It was disabled
+    # because anomaly detection algorithm runs longer than 10s. We should
+    # change it to asynchronized request.
+    # TODO(fancl): Include current anomalies in the graph
+
+    plot_data = _GetPlotData(chart_series, [], [])
     subscriptions, err_msg = SheriffConfigClient().Match(test.test_path)
     subscription_names = ','.join([s.name for s in subscriptions or []])
     if err_msg is not None:
@@ -87,7 +88,7 @@ class DebugAlertHandler(request_handler.RequestHandler):
             'config_json': json.dumps(config_dict, indent=2, sort_keys=True),
             'plot_data': json.dumps(plot_data),
             'lookup': json.dumps(lookup),
-            'anomalies': json.dumps([c.AsDict() for c in change_points]),
+            'anomalies': '{}',
             'csv_url': _CsvUrl(test.test_path, rows),
             'graph_url': _GraphUrl(test, revision),
             'stored_anomalies': _FetchStoredAnomalies(test, lookup),
