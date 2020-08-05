@@ -10,10 +10,10 @@ import json
 
 from google.appengine.ext import ndb
 
-from dashboard import post_data_handler
+from dashboard.common import request_handler
 
 
-class GetHistogramHandler(post_data_handler.PostDataHandler):
+class GetHistogramHandler(request_handler.RequestHandler):
   """URL endpoint to get histogramby guid."""
 
   def post(self):

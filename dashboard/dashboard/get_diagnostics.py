@@ -11,11 +11,10 @@ import sys
 
 from google.appengine.ext import ndb
 
-from dashboard import post_data_handler
+from dashboard.common import request_handler
 from dashboard.models import histogram
 
-
-class GetDiagnosticsHandler(post_data_handler.PostDataHandler):
+class GetDiagnosticsHandler(request_handler.RequestHandler):
   """URL endpoint to get diagnostics by guid or test path."""
 
   def post(self):

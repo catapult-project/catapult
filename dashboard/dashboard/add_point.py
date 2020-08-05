@@ -16,8 +16,8 @@ from google.appengine.api import datastore_errors
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
-from dashboard import post_data_handler
 from dashboard.api import api_auth
+from dashboard.common import request_handler
 from dashboard.common import datastore_hooks
 from dashboard.common import histogram_helpers
 from dashboard.common import math_utils
@@ -49,7 +49,7 @@ class BadRequestError(Exception):
   pass
 
 
-class AddPointHandler(post_data_handler.PostDataHandler):
+class AddPointHandler(request_handler.RequestHandler):
   """URL endpoint to post data to the dashboard."""
 
   def post(self):
@@ -124,15 +124,12 @@ class AddPointHandler(post_data_handler.PostDataHandler):
       500 with error message otherwise.
     """
     datastore_hooks.SetPrivilegedRequest()
-    if not self._CheckIpAgainstAllowlist():
-      try:
-        api_auth.Authorize()
-      except api_auth.ApiAuthException as error:
-        logging.error('Auth error: %s', error)
-        self.ReportError(
-            'IP address %s not in IP allowlist!' % self.request.remote_addr,
-            403)
-        return
+    try:
+      api_auth.Authorize()
+    except api_auth.ApiAuthException as error:
+      logging.error('Auth error: %s', error)
+      self.ReportError('User unauthorized.', 403)
+      return
 
     data_str = self.request.get('data')
     if not data_str:
