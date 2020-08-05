@@ -314,19 +314,19 @@ def CreateRowEntities(
   rows = []
 
   row_dict = _MakeRowDict(revision, test_metadata_key.id(), h)
-  properties = add_point.GetAndValidateRowProperties(row_dict)
-  test_container_key = utils.GetTestContainerKey(test_metadata_key)
-  rows.append(graph_data.Row(id=revision, parent=test_container_key,
-                             **properties))
+  rows.append(graph_data.Row(
+      id=revision,
+      parent=utils.GetTestContainerKey(test_metadata_key),
+      **add_point.GetAndValidateRowProperties(row_dict)
+  ))
 
   for stat_name, suffixed_key in stat_names_to_test_keys.items():
     row_dict = _MakeRowDict(revision, suffixed_key.id(), h, stat_name=stat_name)
-    properties = add_point.GetAndValidateRowProperties(row_dict)
-    test_container_key = utils.GetTestContainerKey(suffixed_key)
-    # TODO(fancl): Change suffixed_key (TestMetadata) to
-    # test_container_key (TestContainer)
     rows.append(graph_data.Row(
-        id=revision, parent=suffixed_key, **properties))
+        id=revision,
+        parent=utils.GetTestContainerKey(suffixed_key),
+        **add_point.GetAndValidateRowProperties(row_dict)
+    ))
 
   return rows
 

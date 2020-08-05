@@ -298,6 +298,12 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertTrue(parts[3].endswith('_avg'))
     self.assertFalse(parts[4].endswith('_avg'))
 
+    # Ensure we can retrive the row using container_key
+    avg_test_key = utils.TestKey(rows[1].key.parent().id())
+    container_key = utils.GetTestContainerKey(avg_test_key)
+    row_get_by_id = graph_data.Row.get_by_id(123, parent=container_key)
+    self.assertEqual(rows[1], row_get_by_id)
+
   def testPostHistogram_KeepsWeirdStatistics(self):
     test_path = 'Chromium/win7/memory_desktop/memory:chrome'
     hist = histogram_module.Histogram.FromDict(TEST_HISTOGRAM)
