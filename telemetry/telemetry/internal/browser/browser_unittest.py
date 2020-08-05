@@ -90,10 +90,7 @@ class BrowserTest(browser_test_case.BrowserTestCase):
 
   # This test uses the reference browser and doesn't have access to
   # helper binaries like crashpad_database_util.
-  # TODO(https://crbug.com/1108432): Re-enable on 'linux', and maybe consider
-  # switching this to run on all platforms since all platforms should support
-  # this now.
-  @decorators.Disabled('all')
+  @decorators.Enabled('linux')  # https://crbug.com/1113416
   def testGetMinidumpPathOnCrash(self):
     tab = self._browser.tabs[0]
     with self.assertRaises(exceptions.AppCrashException):

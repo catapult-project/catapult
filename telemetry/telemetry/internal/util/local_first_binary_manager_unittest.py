@@ -14,13 +14,23 @@ from telemetry.internal.util import binary_manager
 from telemetry.internal.util import local_first_binary_manager
 
 
-def ResetBinaryManagerInstance():
+def ClearBinaryManagerInstance(test):
+  test.previous_manager_instance =\
+      local_first_binary_manager.LocalFirstBinaryManager._instance
   local_first_binary_manager.LocalFirstBinaryManager._instance = None
+
+
+def RestoreBinaryManagerInstance(test):
+  local_first_binary_manager.LocalFirstBinaryManager._instance =\
+      test.previous_manager_instance
 
 
 class LocalFirstBinaryManagerFetchPathTest(unittest.TestCase):
   def setUp(self):
-    ResetBinaryManagerInstance()
+    ClearBinaryManagerInstance(self)
+
+  def tearDown(self):
+    RestoreBinaryManagerInstance(self)
 
   @mock.patch.object(local_first_binary_manager.LocalFirstBinaryManager,
                      '_FetchBinaryManagerPath')
@@ -80,10 +90,11 @@ class LocalFirstBinaryManagerFetchPathTest(unittest.TestCase):
 
 class LocalFirstBinaryManagerFetchLocalPathTest(unittest.TestCase):
   def setUp(self):
-    ResetBinaryManagerInstance()
+    ClearBinaryManagerInstance(self)
     self._build_dir = tempfile.mkdtemp()
 
   def tearDown(self):
+    RestoreBinaryManagerInstance(self)
     shutil.rmtree(self._build_dir)
     self._build_dir = None
 
@@ -113,7 +124,10 @@ class LocalFirstBinaryManagerFetchLocalPathTest(unittest.TestCase):
 
 class LocalFirstBinaryManagerFetchBinaryManagerPathTest(unittest.TestCase):
   def setUp(self):
-    ResetBinaryManagerInstance()
+    ClearBinaryManagerInstance(self)
+
+  def tearDown(self):
+    RestoreBinaryManagerInstance(self)
 
   @mock.patch('telemetry.internal.util.binary_manager.FetchPath')
   @mock.patch('telemetry.internal.util.binary_manager.NeedsInit')
@@ -155,7 +169,10 @@ class LocalFirstBinaryManagerFetchBinaryManagerPathTest(unittest.TestCase):
 
 class LocalFirstBinaryManagerInitializationTest(unittest.TestCase):
   def setUp(self):
-    ResetBinaryManagerInstance()
+    ClearBinaryManagerInstance(self)
+
+  def tearDown(self):
+    RestoreBinaryManagerInstance(self)
 
   def testSuccessfulInit(self):
     self.assertTrue(
