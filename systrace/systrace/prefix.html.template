@@ -25,6 +25,12 @@
     outline: none;
   }
 </style>
+
+<!-- WebComponent V0 polyfill. See https://crbug.com/1036492 -->
+<script>
+'use strict';
+{{WEBCOMPONENTS_V0_POLYFILL_JS}}
+</script>
 {{SYSTRACE_TRACE_VIEWER_HTML}}
 </head>
 <body>

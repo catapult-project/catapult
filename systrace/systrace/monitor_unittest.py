@@ -36,7 +36,7 @@ class MonitorTest(unittest.TestCase):
 
   @decorators.HostOnlyTest
   def test_prefix(self):
-    with open(os.path.join(SCRIPT_DIR, 'prefix.html')) as f:
+    with open(os.path.join(SCRIPT_DIR, 'prefix.html.template')) as f:
       content = f.read().strip()
 
       self.assertTrue("<html>" in content)
