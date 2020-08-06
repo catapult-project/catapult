@@ -17,6 +17,7 @@ _DISCOVERY_URI = ('https://monorail-prod.appspot.com'
                   '/_ah/api/discovery/v1/apis/{api}/{apiVersion}/rest')
 
 STATUS_DUPLICATE = 'Duplicate'
+MAX_DISCOVERY_RETRIES = 3
 
 
 class IssueTrackerService(object):
@@ -35,12 +36,20 @@ class IssueTrackerService(object):
       http: A Http object that requests will be made through; this should be an
           Http object that's already authenticated via OAuth2.
     """
-    # Monorail recommends a 15s timeout on all requests.
-    # https://github.com/catapult-project/catapult/issues/4115
-    http.timeout = 15
+    http.timeout = 30
 
-    self._service = discovery.build(
-        'monorail', 'v1', discoveryServiceUrl=_DISCOVERY_URI, http=http)
+    # Retry connecting at least 3 times.
+    attempt = 1
+    while attempt != MAX_DISCOVERY_RETRIES:
+      try:
+        self._service = discovery.build(
+            'monorail', 'v1', discoveryServiceUrl=_DISCOVERY_URI, http=http)
+        break
+      except httplib.HTTPException as e:
+        logging.error('Attempt #%d: %s', attempt, e)
+        if attempt == MAX_DISCOVERY_RETRIES:
+          raise
+      attempt += 1
 
   def AddBugComment(self,
                     bug_id,
