@@ -27,6 +27,8 @@ from dashboard.models.subscription import VISIBILITY
 from tracing.value.diagnostics import reserved_infos
 from dashboard.sheriff_config_client import SheriffConfigClient
 
+# pylint: disable=too-many-lines
+
 # Sample time series.
 _TEST_ROW_DATA = [
     (241105, 2136.7),
@@ -673,7 +675,7 @@ class ProcessAlertsTest(testing_common.TestCase):
       find_anomalies.ProcessTests([test.key])
       self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
     new_anomalies = anomaly.Anomaly.query().fetch()
-    self.assertEqual(1, len(new_anomalies))
+    self.assertEqual(2, len(new_anomalies))
     self.assertEqual(anomaly.DOWN, new_anomalies[0].direction)
     self.assertEqual(729731, new_anomalies[0].start_revision)
     self.assertEqual(729764, new_anomalies[0].end_revision)
@@ -799,6 +801,84 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(anomaly.UP, new_anomalies[0].direction)
     self.assertEqual(7001, new_anomalies[0].start_revision)
     self.assertEqual(7001, new_anomalies[0].end_revision)
+
+  def testProcessTest_MultipleChangePoints(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['linux-perf'],
+        {'blink_perf.layout': {
+            'nested-percent-height-tables': {}
+        }})
+    test = utils.TestKey(
+        'ChromiumPerf/linux-perf/blink_perf.layout/nested-percent-height-tables'
+    ).get()
+    test_container_key = utils.GetTestContainerKey(test.key)
+    sample_data = [
+        (793468, 136.5382),
+        (793486, 137.7192),
+        (793495, 137.4038),
+        (793504, 137.4919),
+        (793505, 137.4465),
+        (793518, 136.9279),
+        (793525, 137.3501),
+        (793528, 136.9622),
+        (793543, 137.1027),
+        (793550, 137.7351),
+        (793555, 137.1511),
+        (793559, 137.2094),
+        (793560, 136.5192),
+        (793565, 138.1536),
+        (793580, 137.4172),
+        (793590, 136.8746),
+        (793601, 137.5016),
+        (793609, 137.0773),
+        (793625, 137.4702),
+        (793646, 135.9019),
+        (793657, 137.2827),
+        (793702, 136.5978),
+        (793712, 136.0732),
+        (793721, 132.1820),
+        (793742, 122.1631),
+        (793760, 136.3152),
+        (793774, 136.9616),
+        (793788, 136.8438),
+        (794016, 136.3022),
+        (794024, 136.3495),
+        (794027, 136.3145),
+        (794036, 136.5502),
+        (794043, 136.3861),
+        (794051, 136.2035),
+        (794059, 136.2348),
+        (794066, 136.2594),
+        (794074, 135.9686),
+        (794088, 136.7375),
+        (794107, 136.5570),
+        (794132, 129.9924),  # This one is a potential change point - but weak
+        (794143, 135.8275),
+        (794154, 107.2502),  # This is a better change point
+        (794158, 108.3948),
+        (794160, 107.3564),
+        (794196, 107.9707),
+        (794236, 111.3168),
+        (794268, 108.7905),
+        (794281, 111.1065),
+        (794319, 109.7699),
+        (794320, 109.8082),
+    ]
+    for row in sample_data:
+      graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
+    test.UpdateSheriff()
+    test.put()
+    with mock.patch.object(SheriffConfigClient, 'Match',
+                           mock.MagicMock(return_value=([], None))) as m:
+      find_anomalies.ProcessTests([test.key])
+      self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
+    new_anomalies = anomaly.Anomaly.query().fetch()
+    self.assertEqual(2, len(new_anomalies))
+    self.assertEqual(anomaly.DOWN, new_anomalies[0].direction)
+    self.assertEqual(794144, new_anomalies[0].start_revision)
+    self.assertEqual(794154, new_anomalies[0].end_revision)
+    self.assertEqual(794108, new_anomalies[1].start_revision)
+    self.assertEqual(794132, new_anomalies[1].end_revision)
 
   def testMakeAnomalyEntity_NoRefBuild(self):
     testing_common.AddTests(['ChromiumPerf'], ['linux'], {

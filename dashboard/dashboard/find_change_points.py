@@ -180,7 +180,7 @@ def FindChangePoints(series,
 
   logging.info('E-Divisive potential change-points: %s',
                [RevAndIdx(idx) for idx in change_points])
-  return [MakeChangePoint(series, index) for index in change_points[0:1]]
+  return [MakeChangePoint(series, index) for index in change_points]
 
 
 def MakeChangePoint(series, split_index):
