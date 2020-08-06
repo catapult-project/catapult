@@ -13,7 +13,8 @@ from systrace import tracing_agents
 from systrace import trace_result
 
 # identify this as trace of cgroup state
-TRACE_HEADER = 'CGROUP DUMP\n'
+# for now fake it as trace as no importer supports it
+TRACE_HEADER = '# tracer: \nCGROUP DUMP\n'
 
 def add_options(parser): # pylint: disable=unused-argument
   return None
