@@ -133,6 +133,7 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False):
 
   dct = {
       'bug_id': anomaly_entity.bug_id,
+      'project_id': anomaly_entity.project_id,
       'dashboard_link': dashboard_link,
       'end_revision': anomaly_entity.end_revision,
       'improvement': anomaly_entity.is_improvement,

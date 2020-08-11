@@ -181,8 +181,9 @@ This template contains HTML for the following things:
             {% for bug in bugs %}
               <tr {% if bug.relevant %} class="highlighted" {% endif %}>
                 <td>
-                  <a href="http://crbug.com/{{bug.id}}"
+                  <a href="http://crbug.com/{{bug.projectId}}/{{bug.id}}"
                      data-bugid="{{bug.id}}"
+                     data-projectId="{{bug.projectId}}"
                      target="_blank"
                      class="bug-link bug-{{bug.state}} bug-{{bug.status}}">
                      {{bug.id}}
@@ -203,6 +204,8 @@ This template contains HTML for the following things:
             bugLinks[i].addEventListener('click', function(e) {
               var bugId = e.target.getAttribute('data-bugid');
               document.getElementById('bug_id').value = bugId;
+              var projectId = e.target.getAttribute('data-projectId');
+              document.getElementById('project_id').value = projectId;
               e.preventDefault();
             }, true);
           }
@@ -257,6 +260,7 @@ This template contains HTML for the following things:
           var data = {
             'action': 'bug_create_result',
             'bug_id': {{bug_id}},
+            'project_id': {{project_id}},
             'bisect_error': '{{bisect_error}}',
             'issue_url': '{{issue_url}}',
             'issue_id': '{{issue_id}}',

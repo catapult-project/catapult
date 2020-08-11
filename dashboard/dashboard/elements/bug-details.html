@@ -47,10 +47,10 @@ found in the LICENSE file.
     <template is="dom-if" if="{{!loading}}">
       <template is="dom-if" if={{!compactView}}>
         <table class="container">
-          <tr><th colspan="2">Bug <a href="https://crbug.com/{{bugId}}" target="_blank">{{bugId}}</a></th></tr>
+          <tr><th colspan="2">Bug <a href="https://crbug.com/{{projectId}}/{{bugId}}" target="_blank">{{projectId}}:{{bugId}}</a></th></tr>
           <template is="dom-if" if="{{error}}">
             <tr><td colspan="2" class="error">
-              Could not load bug {{bugId}}. {{error}}</td></tr>
+              Could not load bug {{projectId}}:{{bugId}}. {{error}}</td></tr>
           </template>
           <template is="dom-if" if="{{isValidBug}}">
             <tr><td colspan="2">{{summary}}</td></tr>
@@ -84,11 +84,11 @@ found in the LICENSE file.
       </template>
         <template is="dom-if" if={{compactView}}>
           <template is="dom-if" if="{{error}}">
-            <p class="error">Could not load bug {{bugId}}. {{error}}</p>
+            <p class="error">Could not load bug {{projectId}}:{{bugId}}. {{error}}</p>
           </template>
           <template is="dom-if" if={{isValidBug}}>
             <br>
-            <a href="https://crbug.com/{{bugId}}" target="_blank">
+            <a href="https://crbug.com/{{projectId}}/{{bugId}}" target="_blank">
               {{summary}}</a>: <br>
             Filed on {{formatDate(published)}} <br>
             Owner: {{owner}} <br>
@@ -114,8 +114,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('d', function() {
-  const BUG_DETAILS = new d.AsyncMap(async bugId =>
-    await simple_xhr.asPromise('/bug_details', {bug_id: bugId}));
+  const BUG_DETAILS = new d.AsyncMap(async bugId => async projectId =>
+    await simple_xhr.asPromise(
+        '/bug_details',
+        {bug_id: bugId, project_id: projectId}
+    )
+  );
   return {
     BUG_DETAILS,
   };
@@ -132,6 +136,10 @@ Polymer({
       notify: true,
       type: Number,
       observer: 'ready'
+    },
+    projectId: {
+      notify: true,
+      type: String
     },
     comments: {
       notify: true,
@@ -187,7 +195,8 @@ Polymer({
     if (this.bugId > 0) {
       this.isValidBug = true;
       try {
-        const details = await d.BUG_DETAILS.get(this.bugId);
+        const details =
+          await d.BUG_DETAILS.get(this.bugId).get(this.projectId);
         this.bisects = details.bisects;
         this.comments = details.comments;
         this.owner = details.owner;

@@ -128,6 +128,7 @@ class AlertsTest(testing_common.TestCase):
   def testV2(self):
     alert = anomaly.Anomaly(
         bug_id=10,
+        project_id='test_project',
         end_revision=20,
         internal_only=True,
         is_improvement=True,
@@ -151,6 +152,7 @@ class AlertsTest(testing_common.TestCase):
         {
             'bug_components': ['component'],
             'bug_id': 10,
+            'project_id': 'test_project',
             'bug_labels': ['Restrict-View-Google'],
             'descriptor': {
                 'testSuite': 's',

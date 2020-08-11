@@ -39,6 +39,7 @@ class GroupReportTest(testing_common.TestCase):
                           test_key,
                           subscriptions,
                           bug_id=None,
+                          project_id=None,
                           group_id=None):
     """Adds a group of Anomaly entities to the datastore."""
     urlsafe_keys = []
@@ -50,6 +51,7 @@ class GroupReportTest(testing_common.TestCase):
           end_revision=end_rev,
           test=test_key,
           bug_id=bug_id,
+          project_id=project_id,
           subscription_names=subscription_names,
           subscriptions=subscriptions,
           median_before_anomaly=100,
@@ -188,7 +190,22 @@ class GroupReportTest(testing_common.TestCase):
     bug_data.Bug(id=123).put()
     self._AddAnomalyEntities([(200, 300), (100, 200), (400, 500)],
                              test_keys[0], [subscription],
-                             bug_id=123)
+                             bug_id=123,
+                             project_id='test_project')
+    self._AddAnomalyEntities([(150, 250)], test_keys[0], [subscription])
+    response = self.testapp.post(
+        '/group_report?bug_id=123&project_id=test_project')
+    alert_list = self.GetJsonValue(response, 'alert_list')
+    self.assertEqual(3, len(alert_list))
+
+  def testPost_WithProjectIdMissing(self):
+    subscription = self._Subscription()
+    test_keys = self._AddTests()
+    bug_data.Bug(id=123).put()
+    self._AddAnomalyEntities([(200, 300), (100, 200), (400, 500)],
+                             test_keys[0], [subscription],
+                             bug_id=123,
+                             project_id='chromium')
     self._AddAnomalyEntities([(150, 250)], test_keys[0], [subscription])
     response = self.testapp.post('/group_report?bug_id=123')
     alert_list = self.GetJsonValue(response, 'alert_list')

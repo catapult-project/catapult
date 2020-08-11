@@ -48,6 +48,7 @@ class GroupReportHandler(chart_handler.ChartHandler):
       JSON for the /group_report page XHR request.
     """
     bug_id = self.request.get('bug_id')
+    project_id = self.request.get('project_id', 'chromium')
     rev = self.request.get('rev')
     keys = self.request.get('keys')
     hash_code = self.request.get('sid')
@@ -66,7 +67,8 @@ class GroupReportHandler(chart_handler.ChartHandler):
       if bug_id:
         try:
           alert_list, _, _ = anomaly.Anomaly.QueryAsync(
-              bug_id=bug_id, limit=_QUERY_LIMIT).get_result()
+              bug_id=bug_id, project_id=project_id,
+              limit=_QUERY_LIMIT).get_result()
         except ValueError:
           raise request_handler.InvalidInputError('Invalid bug ID "%s".' %
                                                   bug_id)
