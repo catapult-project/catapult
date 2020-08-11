@@ -64,7 +64,20 @@ def FromPngFile(path):
 def FromPng(png_data):
   if cv2 is not None:
     file_bytes = np.asarray(bytearray(png_data), dtype=np.uint8)
-    return cv2.imdecode(file_bytes, cv2.CV_LOAD_IMAGE_COLOR)
+    image = cv2.imdecode(file_bytes, cv2.CV_LOAD_IMAGE_UNCHANGED)
+
+    # Some platforms set a transparent background. For consistency, we override
+    # transparency to white and drop the alpha channel here.
+    if image[0][0].size == 4:
+      # Set the alpha channel to white.
+      alpha_mask = image[:, :, 3] == 0
+      image[alpha_mask] = [255, 255, 255, 255]
+      image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
+
+      # Drop the alpha channel.
+      image = image[:, :, :3]
+
+    return image
   else:
     warnings.warn(
         'Using pure python png decoder, which could be very slow. To speed up, '
