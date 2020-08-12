@@ -28,6 +28,9 @@ tr.exportTo('tr.model.helpers', function() {
     this.dedicatedWorkerThreads_ = process.findAllThreadsMatching(function(t) {
       return t.name && t.name.startsWith('DedicatedWorker');
     });
+    this.serviceWorkerThreads_ = process.findAllThreadsMatching(function(t) {
+      return t.name && t.name.startsWith('ServiceWorker');
+    });
     this.foregroundWorkerThreads_ = process.findAllThreadsMatching(function(t) {
       return t.name && t.name.startsWith('ThreadPoolForegroundWorker');
     });
@@ -72,6 +75,10 @@ tr.exportTo('tr.model.helpers', function() {
 
     get dedicatedWorkerThreads() {
       return this.dedicatedWorkerThreads_;
+    },
+
+    get serviceWorkerThreads() {
+      return this.serviceWorkerThreads_;
     },
 
     get foregroundWorkerThreads() {
