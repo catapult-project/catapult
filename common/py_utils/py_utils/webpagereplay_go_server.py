@@ -102,16 +102,9 @@ class ReplayServer(object):
     # subprocess.
     self._temp_log_file_path = None
 
-    # Assign the downloader func and binary_manager
-    downloader = None
-    if binary_downloader:
-      downloader = binary_downloader
-    else:
-      configs = [CHROME_BINARY_CONFIG, TELEMETRY_PROJECT_CONFIG]
-      downloader = binary_manager.BinaryManager(configs).FetchPath
-
+    self._downloader = binary_downloader
     self._cmd_line = self._GetCommandLine(
-        self._GetGoBinaryPath(downloader=downloader), http_port, https_port,
+        self._GetGoBinaryPath(), http_port, https_port,
         replay_options, archive_path)
 
     if RECORD in replay_options or 'record' in replay_options:
@@ -122,19 +115,44 @@ class ReplayServer(object):
 
     self.replay_process = None
 
-  @classmethod
-  def _GetGoBinaryPath(cls, downloader):
-    if not cls._go_binary_path:
-      cls._go_binary_path = downloader(
+  def _GetDownloader(self):
+    """Gets the downloader used to download wpr_go binary from GCS."""
+    if ReplayServer._go_binary_path:
+      # If the _go_binary_path was already set, then no need to use downloader
+      # to download via binary_manager.
+      self._downloader = None
+    elif not self._downloader:
+      configs = [CHROME_BINARY_CONFIG, TELEMETRY_PROJECT_CONFIG]
+      self._downloader = binary_manager.BinaryManager(configs).FetchPath
+    return self._downloader
+
+  def _GetGoBinaryPath(self):
+    """Gets the _go_binary_path if it already set, or downloads it."""
+    if not ReplayServer._go_binary_path:
+      downloader = self._GetDownloader()
+      if not downloader:
+        raise RuntimeError('downloader should not be None '
+                           'while _go_binary_path is None')
+      ReplayServer._go_binary_path = downloader(
           'wpr_go', py_utils.GetHostOsName(), py_utils.GetHostArchName())
-    return cls._go_binary_path
+    return ReplayServer._go_binary_path
 
   @classmethod
   def SetGoBinaryPath(cls, go_binary_path):
     """Overrides the _go_binary_path.
 
     This allows the server to use WPRGO files retrieved from somewhere
-    other than GCS, such as CIPD."""
+    other than GCS via binary_manager, such as test isolation.
+
+    For chromium project to use WPR, it is encourage to use test isolation,
+    and therefore should call SetGoBinaryPath to set _go_binary_path.
+
+    For Catapult/Telemetry project, the tradition is to download wpr_go
+    binary via binary_manager. So do not call SetGoBinaryPath.
+    """
+    if not os.path.exists(go_binary_path):
+      raise ValueError('SetGoBinaryPath could not set {} as it does not exist'
+                       .format(go_binary_path))
     cls._go_binary_path = go_binary_path
 
   @property
