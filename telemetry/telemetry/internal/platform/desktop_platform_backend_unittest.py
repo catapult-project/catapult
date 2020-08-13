@@ -25,4 +25,8 @@ class DesktopPlatformBackendTest(unittest.TestCase):
           # which doesn't exist on Mac/Win.
           if isinstance(backend, cros_platform_backend.CrosPlatformBackend):
             backend.cri.GetBoard = mock.Mock(return_value='')
+          # Need to mock the check which Windows uses to check whether the
+          # device is a laptop.
+          if isinstance(backend, win_platform_backend.WinPlatformBackend):
+            backend.GetPcSystemType = mock.Mock(return_value='1')
           self.assertIn('desktop', backend.GetTypExpectationsTags())
