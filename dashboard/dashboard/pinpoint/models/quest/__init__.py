@@ -13,6 +13,7 @@ from dashboard.pinpoint.models.quest.find_isolate import FindIsolate
 from dashboard.pinpoint.models.quest.run_gtest import RunGTest
 from dashboard.pinpoint.models.quest.run_telemetry_test import RunTelemetryTest
 from dashboard.pinpoint.models.quest.run_vr_telemetry_test import RunVrTelemetryTest
+from dashboard.pinpoint.models.quest.run_webrtc_test import RunWebRtcTest
 from dashboard.pinpoint.models.quest.read_value import ReadGraphJsonValue
 from dashboard.pinpoint.models.quest.read_value import ReadHistogramsJsonValue
 from dashboard.pinpoint.models.quest.read_value import ReadValue

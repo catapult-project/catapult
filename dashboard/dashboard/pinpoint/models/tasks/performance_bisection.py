@@ -22,6 +22,7 @@ from dashboard.pinpoint.models.tasks import run_test
 from dashboard.pinpoint.models.quest import run_telemetry_test
 from dashboard.pinpoint.models.quest import run_vr_telemetry_test
 from dashboard.pinpoint.models.quest import run_gtest
+from dashboard.pinpoint.models.quest import run_webrtc_test
 from dashboard.services import gitiles_service
 
 _DEFAULT_SPECULATION_LEVELS = 2
@@ -682,6 +683,9 @@ def ComputeExtraArgs(args, change):
   if target in EXPERIMENTAL_VR_BENCHMARKS:
     return _ComputeVrArgs(args, change)
 
+  if target in 'webrtc_perf_tests':
+    return _ComputeWebRtcArgs(args)
+
   return _ComputeGTestArgs(args)
 
 
@@ -693,6 +697,10 @@ def _ComputeTelemetryArgs(args, change):
 def _ComputeVrArgs(args, change):
   return run_telemetry_test.ChangeDependentArgs(
       run_vr_telemetry_test.RunVrTelemetryTest._ExtraTestArgs(args), change)
+
+
+def _ComputeWebRtcArgs(args):
+  return run_webrtc_test.RunWebRtcTest._ExtraTestArgs(args)
 
 
 def _ComputeGTestArgs(args):

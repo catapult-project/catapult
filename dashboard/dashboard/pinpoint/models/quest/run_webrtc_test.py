@@ -8,10 +8,10 @@ from __future__ import division
 from __future__ import absolute_import
 
 import os
-from dashboard.pinpoint.models.quest import run_performance_test
+from dashboard.pinpoint.models.quest import run_test
 
 
-class RunWebRtcTest(run_performance_test.RunPerformanceTest):
+class RunWebRtcTest(run_test.RunTest):
 
   @classmethod
   def _ComputeCommand(cls, arguments):
@@ -28,10 +28,6 @@ class RunWebRtcTest(run_performance_test.RunPerformanceTest):
     builder_cwd = _SanitizeFileName(arguments.get('builder'))
     relative_cwd = arguments.get('relative_cwd', 'out/' + builder_cwd)
     return relative_cwd, command
-
-  @classmethod
-  def _ExtraTestArgs(cls, arguments):
-    return []
 
 
 def _SanitizeFileName(name):
