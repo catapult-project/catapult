@@ -155,6 +155,11 @@ class InspectorBackend(object):
     assert self.screenshot_supported, 'Browser does not support screenshotting'
     return self._page.CaptureScreenshot(timeout)
 
+  @_HandleInspectorWebSocketExceptions
+  def FullScreenshot(self, timeout):
+    assert self.screenshot_supported, 'Browser does not support screenshotting'
+    return self._page.CaptureFullScreenshot(timeout)
+
   # Memory public methods.
 
   @_HandleInspectorWebSocketExceptions

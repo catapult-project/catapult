@@ -110,7 +110,7 @@ class Tab(web_contents.WebContents):
     return self._inspector_backend.screenshot_supported
 
   def Screenshot(self, timeout=DEFAULT_TAB_TIMEOUT):
-    """Capture a screenshot of the tab's contents.
+    """Capture a screenshot of the tab's visible contents.
 
     Returns:
       A telemetry.core.Bitmap.
@@ -120,6 +120,18 @@ class Tab(web_contents.WebContents):
       exceptions.DevtoolsTargetCrashException
     """
     return self._inspector_backend.Screenshot(timeout)
+
+  def FullScreenshot(self, timeout=DEFAULT_TAB_TIMEOUT):
+    """Capture a screenshot of the tab's full contents.
+
+    Returns:
+      A telemetry.core.Bitmap.
+    Raises:
+      exceptions.WebSocketDisconnected
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    return self._inspector_backend.FullScreenshot(timeout)
 
   def GetCookieByName(self, name, timeout=DEFAULT_TAB_TIMEOUT):
     """Returns the value of the cookie by the given |name|.

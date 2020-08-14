@@ -137,6 +137,15 @@ class InspectorPage(object):
     return None
 
   def CaptureScreenshot(self, timeout=60):
+    """Captures a screenshot of the visible web contents.
+
+    Includes scroll bars if the full web contents do not fit into the current
+    viewport.
+
+    Returns:
+      An image in whatever format telemetry.util.image_util has chosen to use,
+      or None if screenshot capture failed.
+    """
     request = {
         'method': 'Page.captureScreenshot',
         'params': {
@@ -147,6 +156,32 @@ class InspectorPage(object):
             'fromSurface': False
             }
         }
+    return self._CaptureScreenshotImpl(request, timeout)
+
+  def CaptureFullScreenshot(self, timeout=60):
+    """Captures a screenshot of the full web contents.
+
+    Shouldn't contain any scroll bars.
+
+    Returns:
+      An image in whatever format telemetry.util.image_util has chosen to use,
+      or None if screenshot capture failed.
+    """
+    content_width, content_height = self.GetContentDimensions()
+    self.SetEmulatedWindowDimensions(content_width, content_height)
+    request = {
+        'method': 'Page.captureScreenshot',
+        'params': {
+            # fromSurface must be true to actually capture the full web contents
+            # if they do not fit into the viewport.
+            'fromSurface': True,
+        },
+    }
+    screenshot = self._CaptureScreenshotImpl(request, timeout)
+    self.ClearEmulatedWindowDimensions()
+    return screenshot
+
+  def _CaptureScreenshotImpl(self, request, timeout):
     # "Google API are missing..." infobar might cause a viewport resize
     # which invalidates screenshot request. See crbug.com/459820.
     for _ in range(2):
@@ -154,6 +189,46 @@ class InspectorPage(object):
       if res and ('result' in res) and ('data' in res['result']):
         return image_util.FromBase64Png(res['result']['data'])
     return None
+
+  def GetContentDimensions(self, timeout=60):
+    """Gets the width/height of the page contents.
+
+    Returns:
+      A tuple (width, height) in pixels.
+    """
+    request = {
+        'method': 'Page.getLayoutMetrics',
+    }
+    res = self._inspector_websocket.SyncRequest(request, timeout)
+    dom_rect = res['result']['contentSize']
+    return dom_rect['width'], dom_rect['height']
+
+  def SetEmulatedWindowDimensions(self, width, height, timeout=60):
+    """Sets the emulated window dimensions for the page.
+
+    Args:
+      width: An int specifying the width of the window in pixels.
+      height: An int specifying the height of the window in pixels.
+    """
+    request = {
+        'method': 'Emulation.setDeviceMetricsOverride',
+        'params': {
+            'width': width,
+            'height': height,
+            'deviceScaleFactor': 0,
+            'mobile': False,
+        }
+    }
+    res = self._inspector_websocket.SyncRequest(request, timeout)
+    assert 'result' in res
+
+  def ClearEmulatedWindowDimensions(self, timeout=60):
+    """Clears the emulated window dimensions, restoring them to real values."""
+    request = {
+        'method': 'Emulation.clearDeviceMetricsOverride',
+    }
+    res = self._inspector_websocket.SyncRequest(request, timeout)
+    assert 'result' in res
 
   def CollectGarbage(self, timeout=60):
     request = {
