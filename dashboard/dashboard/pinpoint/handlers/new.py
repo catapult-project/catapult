@@ -377,6 +377,9 @@ def _GenerateQuests(arguments):
       quest_classes = (quest_module.FindIsolate,
                        quest_module.RunInstrumentationTest,
                        quest_module.ReadValue)
+    elif 'webrtc_perf_tests' in target:
+      quest_classes = (quest_module.FindIsolate, quest_module.RunWebRtcTest,
+                       quest_module.ReadValue)
     else:
       quest_classes = (quest_module.FindIsolate, quest_module.RunGTest,
                        quest_module.ReadValue)
