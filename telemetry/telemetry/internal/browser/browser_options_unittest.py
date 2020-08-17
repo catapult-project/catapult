@@ -200,3 +200,50 @@ class BrowserOptionsTest(unittest.TestCase):
     self.assertEquals(
         options.browser_options.extra_browser_args, set([log_file]))
     self.assertEquals(options.browser_options.extra_wpr_args, [log_file])
+
+
+class ParseAndroidEmulatorOptionsTest(unittest.TestCase):
+  class EarlyExitException(Exception):
+    pass
+
+  def setUp(self):
+    self._old_emulator_environment =\
+        browser_options.BrowserFinderOptions.emulator_environment
+    browser_options.BrowserFinderOptions.emulator_environment = None
+    patcher = mock.patch.object(browser_options.BrowserFinderOptions,
+                                '_NoOpFunctionForTesting')
+    self.addCleanup(patcher.stop)
+    self.breakpoint_mock = patcher.start()
+    self.breakpoint_mock.side_effect =\
+        ParseAndroidEmulatorOptionsTest.EarlyExitException
+
+  def tearDown(self):
+    browser_options.BrowserFinderOptions.emulator_environment =\
+        self._old_emulator_environment
+
+  def testNoConfig(self):
+    options = browser_options.BrowserFinderOptions()
+    parser = options.CreateParser()
+    parser.parse_args([])
+
+  def testExistingEnvironment(self):
+    options = browser_options.BrowserFinderOptions()
+    parser = options.CreateParser()
+    browser_options.BrowserFinderOptions.emulator_environment = True
+    parser.parse_args(['--avd-config=foo'])
+
+  @mock.patch('os.path.exists')
+  def testNoBuildAndroidDir(self, exists_mock):
+    exists_mock.return_value = False
+    options = browser_options.BrowserFinderOptions()
+    parser = options.CreateParser()
+    with self.assertRaises(RuntimeError):
+      parser.parse_args(['--avd-config=foo'])
+
+  @mock.patch('os.path.exists')
+  def testAllPrerequisites(self, exists_mock):
+    exists_mock.return_value = True
+    options = browser_options.BrowserFinderOptions()
+    parser = options.CreateParser()
+    with self.assertRaises(ParseAndroidEmulatorOptionsTest.EarlyExitException):
+      parser.parse_args(['--avd-config=foo'])

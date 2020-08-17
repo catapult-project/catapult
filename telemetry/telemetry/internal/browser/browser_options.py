@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import atexit
 import copy
 import logging
 import optparse
@@ -31,6 +32,8 @@ def _IsWin():
 
 class BrowserFinderOptions(optparse.Values):
   """Options to be used for discovering a browser."""
+
+  emulator_environment = None
 
   def __init__(self, browser_type=None):
     optparse.Values.__init__(self)
@@ -247,6 +250,12 @@ class BrowserFinderOptions(optparse.Values):
         action='store_true',
         help='Will compile the APK under test using dex2oat in speed mode. '
         'Ignored on non-Android platforms.')
+    group.add_option(
+        '--avd-config',
+        default=None,
+        help='A path to an AVD configuration to use for starting an Android '
+        'emulator.'
+    )
     parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser, 'Fuchsia platform options')
@@ -326,6 +335,9 @@ class BrowserFinderOptions(optparse.Values):
 
       if self.chromium_output_dir:
         os.environ['CHROMIUM_OUTPUT_DIR'] = self.chromium_output_dir
+
+      # Set up Android emulator if necessary.
+      self.ParseAndroidEmulatorOptions()
 
       # Parse remote platform options.
       self.BuildRemotePlatformOptions()
@@ -415,6 +427,75 @@ class BrowserFinderOptions(optparse.Values):
   def IsBrowserTypeBundle(self):
     """Determines if the browser_type is a bundle browser_type."""
     return self.browser_type and self.browser_type.endswith('-bundle')
+
+  def _NoOpFunctionForTesting(self):
+    """No-op function that can be overridden for unittests."""
+    pass
+
+  def ParseAndroidEmulatorOptions(self):
+    """Parses Android emulator args, and if necessary, starts an emulator.
+
+    No-ops if --avd-config is not specified or if an emulator is already
+    started.
+
+    Performing this setup during argument parsing isn't ideal, but we need to
+    set up the emulator sometime between arg parsing and browser finding.
+    """
+    if not self.avd_config:
+      return
+    if BrowserFinderOptions.emulator_environment:
+      return
+    build_android_dir = os.path.join(
+        util.GetChromiumSrcDir(), 'build', 'android')
+    if not os.path.exists(build_android_dir):
+      raise RuntimeError(
+          '--avd-config specified, but Chromium //build/android directory not '
+          'available')
+    # Everything after this point only works if //build/android is actually
+    # available, which we can't rely on, so use this to exit early in unittests.
+    self._NoOpFunctionForTesting()
+    sys.path.append(build_android_dir)
+    # pylint: disable=import-error
+    from pylib import constants as pylib_constants
+    from pylib.local.emulator import local_emulator_environment
+    # pylint: enable=import-error
+
+    # We need to call this so that the Chromium output directory is set if it
+    # is not explicitly specified via the command line argument/environment
+    # variable.
+    pylib_constants.CheckOutputDirectory()
+
+    class AvdArgs(object):
+      """A class to stand in for the AVD argparse.ArgumentParser object.
+
+      Chromium's Android emulator code expects quite a few arguments from
+      //build/android/test_runner.py, but the only one we actually care about
+      here is avd_config. So, use a stand-in class with some sane defaults.
+      """
+      def __init__(self, avd_config):
+        self.avd_config = avd_config
+        self.emulator_count = 1
+        self.emulator_window = False
+        self.use_webview_provider = False
+        self.replace_system_package = False
+        self.blacklist_file = None
+        self.test_devices = []
+        self.enable_concurrent_adb = False
+        self.logcat_output_dir = None
+        self.logcat_output_file = None
+        self.num_retries = 1
+        self.recover_devices = False
+        self.skip_clear_data = True
+        self.tool = None
+        self.adb_path = None
+        self.enable_device_cache = True
+
+    avd_args = AvdArgs(self.avd_config)
+    BrowserFinderOptions.emulator_environment =\
+        local_emulator_environment.LocalEmulatorEnvironment(
+            avd_args, None, None)
+    BrowserFinderOptions.emulator_environment.SetUp()
+    atexit.register(BrowserFinderOptions.emulator_environment.TearDown)
 
   # TODO(eakuefner): Factor this out into OptionBuilder pattern
   def BuildRemotePlatformOptions(self):
