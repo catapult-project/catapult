@@ -26,41 +26,15 @@ OAUTH_CLIENT_ID_ALLOWLIST = [
     '401211562413-g8hq6k75vr2767p1vspbs3vu9vscgrot.apps.googleusercontent.com',
     # This oauth client id is used to upload histograms from the perf waterfall.
     '113172445342431053212',
-    'chromeperf@webrtc-perf-test.google.com.iam.gserviceaccount.com',
-    # This oauth client id is used to upload histograms when debugging Fuchsia
-    # locally (e.g. in a cron-job).
-    'catapult-uploader@fuchsia-infra.iam.gserviceaccount.com',
-    # This oauth client id is used to upload histograms from Fuchsia dev
-    # builders.
-    'garnet-ci-builder-dev@fuchsia-infra.iam.gserviceaccount.com',
-    # These client id's are used from Fuchsia CI builders.
-    'garnet-ci-builder@fuchsia-infra.iam.gserviceaccount.com',
-    'global-integration-ci-builder@fuchsia-infra.iam.gserviceaccount.com',
-    'fuchsia-ci-builder@fuchsia-infra.iam.gserviceaccount.com',
-    'peridot-ci-builder@fuchsia-infra.iam.gserviceaccount.com',
-    'topaz-ci-builder@fuchsia-infra.iam.gserviceaccount.com',
-    'vendor-google-ci-builder@fuchsia-infra.iam.gserviceaccount.com',
     # This oauth client id used to upload histograms from cronet bots.
     '113172445342431053212',
-    # Used by luci builders to upload perf data.
-    'chrome-ci-builder@chops-service-accounts.iam.gserviceaccount.com',
-    'v8-ci-builder@chops-service-accounts.iam.gserviceaccount.com',
-    # Used by luci builders to upload perf data.
-    'chrome-try-builder@chops-service-accounts.iam.gserviceaccount.com',
-    'v8-try-builder@chops-service-accounts.iam.gserviceaccount.com',
     # These oauth client ids are used to upload Android performance metrics.
     '528014426327-fptk0tpfi4orpcol559k77v7bi9onpq5.apps.googleusercontent.com',
-    ('android-metrics-dashboard'
-     '@android-metrics-dashboard.iam.gserviceaccount.com'),
     '107857144893180953937',
     # This oauth client id is used by all LUCI binaries. In particular, it will
     # allow accessing the APIs by authorized users that generate tokens via
     # luci-auth command.
     '446450136466-2hr92jrq8e6i4tnsa56b52vacp7t3936.apps.googleusercontent.com',
-    # This oauth client id is used to upload ChromeOS performance metrics.
-    'chromeperf-uploader@chromeos-bot.iam.gserviceaccount.com',
-    # This oauth client is is used to upload GPU metrics.
-    'chromium-ci-gpu-builder@chops-service-accounts.iam.gserviceaccount.com',
 ]
 
 
@@ -105,7 +79,6 @@ def Authorize():
       if client_id not in OAUTH_CLIENT_ID_ALLOWLIST:
         logging.error('OAuth client id %s for user %s not in allowlist',
                       client_id, email)
-        email = None
         raise OAuthError
   except oauth.OAuthRequestError:
     # Transient errors when checking the token result should result in HTTP 500,
