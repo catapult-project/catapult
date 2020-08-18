@@ -66,9 +66,13 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
 
   def Start(self, change, isolate_server, isolate_hash):
     extra_swarming_tags = {'change': str(change)}
-    return self._Start(change, isolate_server, isolate_hash,
-                       ChangeDependentArgs(self._extra_args, change),
-                       extra_swarming_tags)
+    return self._Start(
+        change,
+        isolate_server,
+        isolate_hash,
+        ChangeDependentArgs(self._extra_args, change),
+        extra_swarming_tags,
+        execution_timeout_secs=None)
 
   @classmethod
   def _ExtraTestArgs(cls, arguments):

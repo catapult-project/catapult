@@ -97,10 +97,10 @@ class RunTest(quest.Quest):
 
   def Start(self, change, isolate_server, isolate_hash):
     return self._Start(change, isolate_server, isolate_hash, self._extra_args,
-                       {})
+                       {}, None)
 
   def _Start(self, change, isolate_server, isolate_hash, extra_args,
-             swarming_tags):
+             swarming_tags, execution_timeout_secs):
     index = self._execution_counts[change]
     self._execution_counts[change] += 1
 
@@ -116,7 +116,8 @@ class RunTest(quest.Quest):
           isolate_hash,
           swarming_tags,
           command=self.command,
-          relative_cwd=self.relative_cwd)
+          relative_cwd=self.relative_cwd,
+          execution_timeout_secs=execution_timeout_secs)
       self._canonical_executions.append(execution)
     else:
       execution = _RunTestExecution(
@@ -128,7 +129,8 @@ class RunTest(quest.Quest):
           swarming_tags,
           previous_execution=self._canonical_executions[index],
           command=self.command,
-          relative_cwd=self.relative_cwd)
+          relative_cwd=self.relative_cwd,
+          execution_timeout_secs=execution_timeout_secs)
 
     return execution
 
@@ -197,7 +199,8 @@ class _RunTestExecution(execution_module.Execution):
                swarming_tags,
                previous_execution=None,
                command=None,
-               relative_cwd='out/Release'):
+               relative_cwd='out/Release',
+               execution_timeout_secs=None):
     super(_RunTestExecution, self).__init__()
     self._bot_id = None
     self._command = command
@@ -209,6 +212,7 @@ class _RunTestExecution(execution_module.Execution):
     self._relative_cwd = relative_cwd
     self._swarming_server = swarming_server
     self._swarming_tags = swarming_tags
+    self._execution_timeout_secs = execution_timeout_secs
     self._task_id = None
 
   def __setstate__(self, state):
@@ -219,6 +223,8 @@ class _RunTestExecution(execution_module.Execution):
       self._command = None
     if not hasattr(self, '_relative_cwd'):
       self._relative_cwd = 'out/Release'
+    if not hasattr(self, '_execution_timeout_secs'):
+      self._execution_timeout_secs = None
 
   @property
   def bot_id(self):
@@ -231,6 +237,10 @@ class _RunTestExecution(execution_module.Execution):
   @property
   def relative_cwd(self):
     return getattr(self, '_relative_cwd', 'out/Release')
+
+  @property
+  def execution_timeout_secs(self):
+    return getattr(self, '_execution_timeout_secs')
 
   def _AsDict(self):
     details = []
@@ -312,9 +322,8 @@ class _RunTestExecution(execution_module.Execution):
         },
         'extra_args': self._extra_args,
         'dimensions': self._dimensions,
-        # TODO(dberris): Make this configuration dependent.
-        'execution_timeout_secs': '2700',  # 45 minutes for all tasks.
-        'io_timeout_secs': '2700',  # Also set 45 minutes for all tasks.
+        'execution_timeout_secs': str(self._execution_timeout_secs or 2700),
+        'io_timeout_secs': str(self._execution_timeout_secs or 2700),
     }
 
     if self.command:

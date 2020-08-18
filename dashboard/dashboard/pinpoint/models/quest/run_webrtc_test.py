@@ -29,6 +29,15 @@ class RunWebRtcTest(run_test.RunTest):
     relative_cwd = arguments.get('relative_cwd', 'out/' + builder_cwd)
     return relative_cwd, command
 
+  def Start(self, change, isolate_server, isolate_hash):
+    return self._Start(
+        change,
+        isolate_server,
+        isolate_hash,
+        self._extra_args,
+        swarming_tags={},
+        execution_timeout_secs=10800)
+
 
 def _SanitizeFileName(name):
   safe_with_spaces = ''.join(c if c.isalnum() else ' ' for c in name)

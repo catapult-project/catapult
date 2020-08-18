@@ -39,3 +39,14 @@ class FromDictTest(unittest.TestCase):
     self.assertEqual(quest.command, expected.command)
     self.assertEqual(quest.relative_cwd, expected.relative_cwd)
     self.assertEqual(quest, expected)
+
+
+class StartTest(unittest.TestCase):
+
+  def testStart(self):
+    quest = run_webrtc_test.RunWebRtcTest('server', run_test_test.DIMENSIONS,
+                                          _BASE_EXTRA_ARGS, _BASE_SWARMING_TAGS,
+                                          _WEBRTCTEST_COMMAND,
+                                          'out/builder_name')
+    execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
+    self.assertEqual(execution._execution_timeout_secs, 10800)
