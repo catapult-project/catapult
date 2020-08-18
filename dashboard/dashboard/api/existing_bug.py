@@ -22,7 +22,6 @@ class ExistingBugHandler(api_request_handler.ApiRequestHandler):
   def Post(self):
     keys = self.request.get_all('key')
     bug_id = int(self.request.get('bug'))
-    project_id = self.request.get('project', 'chromium')
     alerts = ndb.get_multi([ndb.Key(urlsafe=k) for k in keys])
-    associate_alerts.AssociateAlerts(bug_id, project_id, alerts)
+    associate_alerts.AssociateAlerts(bug_id, alerts)
     return {}

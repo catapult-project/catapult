@@ -15,16 +15,6 @@ from dashboard.common import request_handler
 from dashboard.common import utils
 
 
-# TODO(crbug.com/1116480): This list should come from a call to a Monorail API.
-_MONORAIL_PROJECTS = [
-    'angleproject', 'aomedia', 'apvi', 'boringssl', 'chromedriver', 'chromium',
-    'crashpad', 'dawn', 'gerrit', 'git', 'gn', 'google-breakpad', 'gyp',
-    'libyuv', 'linux-syscall-support', 'monorail', 'nativeclient', 'openscreen',
-    'oss-fuzz', 'pdfium', 'pigweed', 'project-zero', 'skia', 'swiftshader',
-    'tint', 'v8', 'webm', 'webp', 'webports', 'webrtc'
-]
-
-
 class FileBugHandler(request_handler.RequestHandler):
   """Uses oauth2 to file a new bug with a set of alerts."""
 
@@ -74,9 +64,9 @@ class FileBugHandler(request_handler.RequestHandler):
       self._CreateBug(owner, cc, summary, description, project, labels,
                       components, keys)
     else:
-      self._ShowBugDialog(summary, description, project, keys)
+      self._ShowBugDialog(summary, description, keys)
 
-  def _ShowBugDialog(self, summary, description, project, urlsafe_keys):
+  def _ShowBugDialog(self, summary, description, urlsafe_keys):
     """Sends a HTML page with a form for filing the bug.
 
     Args:
@@ -93,8 +83,6 @@ class FileBugHandler(request_handler.RequestHandler):
             'keys': urlsafe_keys,
             'summary': summary,
             'description': description,
-            'default_project': project,
-            'projects': _MONORAIL_PROJECTS,
             'labels': labels,
             'components': components.union(owner_components),
             'owner': '',

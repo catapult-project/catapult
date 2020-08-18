@@ -186,7 +186,7 @@ This template contains HTML for the following things:
                      data-projectId="{{bug.projectId}}"
                      target="_blank"
                      class="bug-link bug-{{bug.state}} bug-{{bug.status}}">
-                     {{bug.projectId}}:{{bug.id}}
+                     {{bug.id}}
                   </a>
                 </td>
                 <td class="bug-status">{{bug.status}}</td>
@@ -222,16 +222,6 @@ This template contains HTML for the following things:
       <b>Description:</b><br>
       <textarea rows=10 cols=60 name="description">{{description}}</textarea>
       <br><br>
-      <b>Monorail project</b><br>
-      <select name="project">
-        {% for project in projects %}
-          {% if project == default_project %}
-            <option selected="selected">{{project}}</option>
-          {% else %}
-            <option>{{project}}</option>
-          {% endif %}
-        {% endfor %}
-      </select><br><br>
       <b>Labels:</b><br>
       {% for label in labels %}
       <label>
