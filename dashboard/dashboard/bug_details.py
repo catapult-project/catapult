@@ -32,25 +32,24 @@ class BugDetailsHandler(request_handler.RequestHandler):
       bug_id: Bug ID number, as a string
     """
     bug_id = int(self.request.get('bug_id'), 0)
-    project_id = self.request.get('project_id', 'chromium')
     if bug_id <= 0:
       self.ReportError('Invalid or no bug id specified.')
       return
 
     http = oauth2_decorator.DECORATOR.http()
-    self.response.out.write(json.dumps(GetBugDetails(bug_id, project_id, http)))
+    self.response.out.write(json.dumps(GetBugDetails(bug_id, http)))
 
 
-def GetBugDetails(bug_id, project_id, http):
-  bug_details = _GetDetailsFromMonorail(bug_id, project_id, http)
+def GetBugDetails(bug_id, http):
+  bug_details = _GetDetailsFromMonorail(bug_id, http)
   bug_details['review_urls'] = _GetLinkedRevisions(bug_details['comments'])
   bug_details['bisects'] = []
   return bug_details
 
 
-def _GetDetailsFromMonorail(bug_id, project_id, http):
+def _GetDetailsFromMonorail(bug_id, http):
   issue_tracker = issue_tracker_service.IssueTrackerService(http)
-  bug_details = issue_tracker.GetIssue(bug_id, project_id)
+  bug_details = issue_tracker.GetIssue(bug_id)
   if not bug_details:
     return {'error': 'Failed to get bug details from monorail API'}
   bug_details['comments'] = issue_tracker.GetIssueComments(bug_id)

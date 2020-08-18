@@ -90,7 +90,7 @@ was just clicked.
           <template is="dom-if" if="{{bugId}}">
             <div>
               <span hidden$={{alertInvalidOrIgnored}}>Bug ID:
-                <b><a target="_blank" href="http://crbug.com/{{projectId}}/{{bugId}}">{{projectId}}:{{bugId}}</a></b>
+                <b><a target="_blank" href="http://crbug.com/{{bugId}}">{{bugId}}</a></b>
               </span>
 
               <span hidden$="{{bugNotInvalid(bugId)}}">Invalid alert</span>
@@ -151,10 +151,6 @@ Polymer({
     bugId: {
       value: null,
       notify: true
-    },
-    projectId: {
-      type: String,
-      value: ''
     },
     hideStddev: {
       type: Boolean,

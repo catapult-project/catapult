@@ -406,10 +406,6 @@ Polymer({
     if (bugId) {
       params.bug_id = bugId;
     }
-    const projectId = uri.getParameter('project_id');
-    if (projectId) {
-      params.project_id = projectId;
-    }
     const rev = uri.getParameter('rev');
     if (rev) {
       params.rev = rev;
@@ -431,13 +427,9 @@ Polymer({
           }
           this.selectedKeys = response.selected_keys;
           this.bugId = uri.getParameter('bug_id');
-          this.projectId = uri.getParameter('project_id', 'chromium');
           if (this.bugId) {
             this.$['bug-info'].initialize(
-                this.bugId,
-                this.projectId,
-                this.alertsTable
-            );
+                this.bugId, this.alertsTable);
           }
           const charts = this.getCharts();
           for (let i = 0; i < charts.length; i++) {

@@ -115,13 +115,11 @@ const testOptionsForError = {
 
 tr.b.unittest.testSuite(function() {
   test('benchmarkSuccess', function() {
-    d.BUG_DETAILS.populateForTest(new Map([
-      [12345, new Map([['test_project', Promise.resolve(mockResponse)]])]
-    ]));
+    d.BUG_DETAILS.populateForTest(new Map(
+        [[12345, Promise.resolve(mockResponse)]]));
 
     const e = document.createElement('bug-details');
     e.bugId = 12345;
-    e.projectId = 'test_project';
     this.addHTMLOutput(e);
 
     assert.strictEqual(xhrCalls, 0);
@@ -130,23 +128,20 @@ tr.b.unittest.testSuite(function() {
 
   test('benchmarkErrorAndSuccess', function() {
     d.BUG_DETAILS.populateForTest(new Map([
-      [12345, new Map([['test_project', Promise.resolve(mockResponse)]])],
-      [54321, new Map([['test_project', Promise.reject(errorResponse)]])],
+      [12345, Promise.resolve(mockResponse)],
+      [54321, Promise.reject(errorResponse)],
     ]));
 
     let e = document.createElement('bug-details');
     e.bugId = 12345;
-    e.projectId = 'test_project';
     this.addHTMLOutput(e);
 
     e = document.createElement('bug-details');
     e.bugId = 54321;
-    e.projectId = 'test_project';
     this.addHTMLOutput(e);
 
     e = document.createElement('bug-details');
     e.bugId = -2;
-    e.projectId = 'test_project';
     this.addHTMLOutput(e);  // This should show an error.
 
     assert.strictEqual(xhrCalls, 0);
@@ -155,33 +150,29 @@ tr.b.unittest.testSuite(function() {
 
   test('compactAllInTableErrorAndSuccess', function() {
     d.BUG_DETAILS.populateForTest(new Map([
-      [1, new Map([['test_project', Promise.resolve(mockResponse)]])],
-      [2, new Map([['test_project', Promise.resolve(mockResponseVariation)]])],
-      [3, new Map([['test_project', Promise.reject(errorResponse)]])],
+      [1, Promise.resolve(mockResponse)],
+      [2, Promise.resolve(mockResponseVariation)],
+      [3, Promise.reject(errorResponse)],
     ]));
 
     let e = document.createElement('bug-details');
     e.bugId = 1;
-    e.projectId = 'test_project';
     e.compactView = true;
     this.addHTMLOutput(e);
 
     e = document.createElement('bug-details');
     e.bugId = 2;
-    e.projectId = 'test_project';
     e.compactView = true;
     this.addHTMLOutput(e);
 
     e = document.createElement('bug-details');
     e.bugId = 3;
-    e.projectId = 'test_project';
     e.compactView = true;
     this.addHTMLOutput(e);  // This should show an error.
 
     // This one shouldn't add anything to the Map.
     e = document.createElement('bug-details');
     e.bugId = -2;
-    e.projectId = 'test_project';
     e.compactView = true;
     this.addHTMLOutput(e);  // This won't appear (because it's compact view).
 
@@ -192,13 +183,11 @@ tr.b.unittest.testSuite(function() {
   test('compactNoneInTableSuccess', function() {
     let e = document.createElement('bug-details');
     e.bugId = 1;
-    e.projectId = 'test_project';
     e.compactView = true;
     this.addHTMLOutput(e);
 
     e = document.createElement('bug-details');
     e.bugId = 2;
-    e.projectId = 'test_project';
     e.compactView = true;
     this.addHTMLOutput(e);
 
@@ -209,20 +198,17 @@ tr.b.unittest.testSuite(function() {
   test('compactNoneInTableError', function() {
     let e = document.createElement('bug-details');
     e.bugId = 1;
-    e.projectId = 'test_project';
     e.compactView = true;
     this.addHTMLOutput(e);
 
     e = document.createElement('bug-details');
     e.bugId = 2;
-    e.projectId = 'test_project';
     e.compactView = true;
     this.addHTMLOutput(e);
 
     // This one shouldn't add anything to the Map.
     e = document.createElement('bug-details');
     e.bugId = -2;
-    e.projectId = 'test_project';
     e.compactView = true;
     this.addHTMLOutput(e);  // This won't appear.
 
