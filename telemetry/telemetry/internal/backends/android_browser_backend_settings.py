@@ -236,6 +236,25 @@ class WebLayerBackendSettings(WebViewBackendSettings):
   def IsWebView(self):
     return False
 
+class WebLayerBundleBackendSettings(WebLayerBackendSettings):
+  def GetApkName(self, device):
+    assert self.apk_name.endswith('_bundle')
+    del device  # unused
+    # Bundles are created using the generated tool in the output directory's
+    # bin directory instead of being output to the apk directory at compile
+    # time like a normal APK.
+    return os.path.join('..', 'bin', self.apk_name)
+
+  def FindSupportApks(self, apk_path, chrome_root):
+    del chrome_root
+    # Try to find the WebLayer embedder in apk directory.
+    if apk_path is not None:
+      embedder_apk_path = os.path.join(
+          os.path.dirname(apk_path), '..', 'apks', self.embedder_apk_name)
+      if os.path.exists(embedder_apk_path):
+        return [embedder_apk_path]
+    return []
+
 
 ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
     browser_type='android-content-shell',
@@ -252,6 +271,16 @@ ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
 # TODO(crbug.com/1038137): Add reference setting for android-weblayer
 ANDROID_WEBLAYER = WebLayerBackendSettings(
     browser_type='android-weblayer')
+
+# TODO(crbug.com/1038137): Add reference setting for android-weblayer
+ANDROID_WEBLAYER_GOOGLE_BUNDLE = WebLayerBundleBackendSettings(
+    browser_type='android-weblayer-google-bundle',
+    apk_name='monochrome_bundle')
+
+# TODO(crbug.com/1038137): Add reference setting for android-weblayer
+ANDROID_WEBLAYER_STANDALONE_GOOGLE_BUNDLE = WebLayerBundleBackendSettings(
+    browser_type='android-weblayer-standalone-google-bundle',
+    apk_name='system_webview_google_bundle')
 
 # TODO(crbug.com/1038137): Add reference setting for android-webview
 ANDROID_WEBVIEW = WebViewBackendSettings(
@@ -379,6 +408,8 @@ ANDROID_SYSTEM_CHROME = GenericChromeBackendSettings(
 ANDROID_BACKEND_SETTINGS = (
     ANDROID_CONTENT_SHELL,
     ANDROID_WEBLAYER,
+    ANDROID_WEBLAYER_GOOGLE_BUNDLE,
+    ANDROID_WEBLAYER_STANDALONE_GOOGLE_BUNDLE,
     ANDROID_WEBVIEW,
     ANDROID_WEBVIEW_BUNDLE,
     ANDROID_WEBVIEW_GOOGLE,

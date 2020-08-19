@@ -331,8 +331,12 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
             check_return=True)
 
     sdk_version = self._platform_backend.device.build_version_sdk
+    # Bundles are in the ../bin directory, so it's safer to just check the
+    # correct name is part of the path.
+    is_monochrome = apk_name is not None and (apk_name == 'Monochrome.apk' or
+                                              'monochrome_bundle' in apk_name)
     if ((is_webview_apk or
-         (apk_name == 'Monochrome.apk' and sdk_version < version_codes.Q)) and
+         (is_monochrome and sdk_version < version_codes.Q)) and
         sdk_version >= version_codes.NOUGAT):
       package_name = apk_helper.GetPackageName(self._local_apk)
       logging.warn('Setting %s as WebView implementation.', package_name)
