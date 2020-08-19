@@ -57,6 +57,13 @@ class CommandRunner(object):
     logging.debug(' '.join(ssh_command))
     return subprocess.Popen(ssh_command, **kwargs)
 
+  def RunCommand(self, command=None, ssh_args=None, **kwargs):
+    """Executes an SSH command on the remote host and returns stdout, stderr,
+    and return code of the command. Blocks."""
+    cmd_proc = self.RunCommandPiped(command, ssh_args, **kwargs)
+    stdout, stderr = cmd_proc.communicate()
+    return cmd_proc.returncode, stdout, stderr
+
 
 def StartSymbolizerForProcessIfPossible(input_file, output_file, build_id_file):
   """Starts an llvm symbolizer process if possible.

@@ -71,7 +71,6 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     try:
       self._browser_process = self._command_runner.RunCommandPiped(
           browser_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
       browser_id_file = os.path.join(self._config_dir, 'gen', 'fuchsia',
                                      'engine', 'web_engine_shell', 'ids.txt')
 
@@ -107,6 +106,9 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._browser_process.kill()
     if self._symbolizer_proc:
       self._symbolizer_proc.kill()
+    close_cmd = ['killall', 'context_provider.cmx']
+    self._command_runner.RunCommand(
+        close_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     self._browser_process = None
 
   def IsBrowserRunning(self):

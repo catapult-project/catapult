@@ -22,6 +22,8 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
         device.host,
         device.port)
     self._managed_repo = device.managed_repo
+    self._os_version = None
+    self._device_type = None
 
   @classmethod
   def SupportsDevice(cls, device):
@@ -68,10 +70,20 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
     return 'fuchsia'
 
   def GetDeviceTypeName(self):
-    return 'Device type not supported in Fuchsia.'
+    if not self._device_type:
+      _, self._device_type, _ = self._command_runner.RunCommand(
+          ['cat', '/config/build-info/board'],
+          stdout=subprocess.PIPE,
+          stderr=subprocess.PIPE)
+    return self._device_type
 
   def GetOSVersionName(self):
-    return 'OS Version not supported in Fuchsia.'
+    if not self._os_version:
+      _, self._os_version, _ = self._command_runner.RunCommand(
+          ['cat', '/config/build-info/version'],
+          stdout=subprocess.PIPE,
+          stderr=subprocess.PIPE)
+    return self._os_version
 
   def GetOSVersionDetailString(self):
     return ''
