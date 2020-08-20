@@ -2720,7 +2720,8 @@ class DeviceUtils(object):
   @property
   def pixel_density(self):
     density = self.GetProp('ro.sf.lcd_density', cache=True)
-    if not density and self.adb.is_emulator:
+    if not density:
+      # It might be an emulator, try the qemu prop.
       density = self.GetProp('qemu.sf.lcd_density', cache=True)
     return int(density)
 
