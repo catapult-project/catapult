@@ -93,10 +93,10 @@ def JobEntityToRowDict(entity):
             entity.get('retry_count', 0),
         'benchmark_arguments': {
             'benchmark': entity.get('benchmark_arguments.benchmark'),
-            'story': entity.get('story'),
-            'story_tags': entity.get('story_tags'),
-            'chart': entity.get('chart'),
-            'statistic': entity.get('statistic'),
+            'story': entity.get('benchmark_arguments.story'),
+            'story_tags': entity.get('benchmark_arguments.story_tags'),
+            'chart': entity.get('benchmark_arguments.chart'),
+            'statistic': entity.get('benchmark_arguments.statistic'),
         },
         'use_execution_engine':
             _IfNone(entity.get('use_execution_engine'), False),
