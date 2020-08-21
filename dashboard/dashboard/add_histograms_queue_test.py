@@ -8,18 +8,23 @@ from __future__ import absolute_import
 
 import copy
 import json
+import mock
 import sys
+import uuid
 import webapp2
 import webtest
 
 from google.appengine.ext import ndb
 
 from dashboard import add_histograms_queue
+from dashboard import find_anomalies
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
+from dashboard.models import upload_completion_token
+from dashboard.sheriff_config_client import SheriffConfigClient
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import generic_set
@@ -604,3 +609,157 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     row_dict = row.to_dict()
 
     self.assertNotIn('a_tracing_uri', row_dict)
+
+
+@mock.patch.object(SheriffConfigClient, '__init__',
+                   mock.MagicMock(return_value=None))
+@mock.patch.object(SheriffConfigClient, 'Match',
+                   mock.MagicMock(return_value=([], None)))
+class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
+
+  def setUp(self):
+    super(AddHistogramsQueueTestWithUploadCompletionToken, self).setUp()
+    app = webapp2.WSGIApplication([
+        ('/add_histograms_queue',
+         add_histograms_queue.AddHistogramsQueueHandler)
+    ])
+    self.testapp = webtest.TestApp(app)
+    testing_common.SetIsInternalUser('foo@bar.com', True)
+    self.SetCurrentUser('foo@bar.com')
+
+  def _CreateHistogramWithMeasurementAndAdd(self, status=200):
+    token_id = str(uuid.uuid4())
+    test_path = 'Chromium/win7/suite/metric'
+    token = upload_completion_token.Token(id=token_id).put().get()
+    token.PopulateMeasurements([test_path])
+    token.UpdateStateAsync(upload_completion_token.State.COMPLETED).wait()
+
+    graph_data.Bot(
+        key=ndb.Key('Master', 'Chromium', 'Bot', 'win7'),
+        internal_only=False).put()
+    params = [{
+        'data': TEST_HISTOGRAM,
+        'test_path': test_path,
+        'benchmark_description': None,
+        'revision': 123,
+        'token': token_id
+    }]
+    upload_data = json.dumps(params)
+    self.testapp.post('/add_histograms_queue', upload_data, status=status)
+    return upload_completion_token.Token.get_by_id(token_id)
+
+  def testPostHistogram_Success(self):
+    token = self._CreateHistogramWithMeasurementAndAdd()
+    self.assertEqual(token.state, upload_completion_token.State.COMPLETED)
+
+  @mock.patch.object(find_anomalies, 'ProcessTestsAsync',
+                     mock.MagicMock(side_effect=Exception()))
+  def testPostHistogram_Fail(self):
+    token = self._CreateHistogramWithMeasurementAndAdd()
+    self.assertEqual(token.state, upload_completion_token.State.FAILED)
+
+  @mock.patch.object(add_histograms_queue, '_ProcessRowAndHistogram',
+                     mock.MagicMock(side_effect=Exception()))
+  def testPostHistogram_FailToCreateFixture(self):
+    token = self._CreateHistogramWithMeasurementAndAdd(status=500)
+    self.assertEqual(token.state, upload_completion_token.State.FAILED)
+
+  def _CreateHistogramWithMultipleMeasurementAndAdd(self, status=200):
+    test_path1 = 'Chromium/win7/suite/metric1'
+    test_path2 = 'Chromium/win7/suite/metric2'
+    test_path3 = 'Chromium/win7/suite/metric3'
+
+    token_id = str(uuid.uuid4())
+    token = upload_completion_token.Token(id=token_id).put().get()
+    token.PopulateMeasurements([test_path1, test_path2, test_path3])
+    token.UpdateStateAsync(upload_completion_token.State.COMPLETED).wait()
+
+    graph_data.Bot(
+        key=ndb.Key('Master', 'Chromium', 'Bot', 'win7'),
+        internal_only=False).put()
+    params = [
+        {
+            'data': TEST_HISTOGRAM,
+            'test_path': test_path1,
+            'benchmark_description': None,
+            'revision': 123,
+            'token': token_id
+        },
+        {
+            'data': TEST_HISTOGRAM,
+            'test_path': test_path2,
+            'benchmark_description': None,
+            'revision': 5,
+            'token': token_id
+        },
+        {
+            'data': TEST_HISTOGRAM,
+            'test_path': test_path3,
+            'benchmark_description': None,
+            'revision': 42,
+            'token': token_id
+        },
+    ]
+    upload_data = json.dumps(params)
+    self.testapp.post('/add_histograms_queue', upload_data, status=status)
+    return upload_completion_token.Token.get_by_id(token_id)
+
+  def testPostMultipleHistograms_Success(self):
+    token = self._CreateHistogramWithMultipleMeasurementAndAdd()
+    self.assertEqual(token.state, upload_completion_token.State.COMPLETED)
+
+  @mock.patch.object(find_anomalies, 'ProcessTestsAsync',
+                     mock.MagicMock(side_effect=Exception()))
+  def testPostMultipleHistogram_Fail(self):
+    token = self._CreateHistogramWithMultipleMeasurementAndAdd()
+    self.assertEqual(token.state, upload_completion_token.State.FAILED)
+
+  @mock.patch.object(add_histograms_queue, '_ProcessRowAndHistogram',
+                     mock.MagicMock(side_effect=Exception()))
+  def testPostMultipleHistogram_FailToCreateFixture(self):
+    token = self._CreateHistogramWithMultipleMeasurementAndAdd(status=500)
+    substates = [child.state for child in ndb.get_multi(token.substates)]
+
+    self.assertEqual(token.state, upload_completion_token.State.FAILED)
+    self.assertTrue(
+        all(substate == upload_completion_token.State.FAILED
+            for substate in substates))
+
+  def testPostMultipleHistogram_MeasrementExpired(self):
+    test_path1 = 'Chromium/win7/suite/metric1'
+    test_path2 = 'Chromium/win7/suite/metric2'
+
+    token_id = str(uuid.uuid4())
+    token = upload_completion_token.Token(id=token_id).put().get()
+    _, measurement2 = token.PopulateMeasurements([test_path1, test_path2])
+    token.UpdateStateAsync(upload_completion_token.State.COMPLETED).wait()
+
+    measurement2.key.delete()
+    measurement2 = upload_completion_token.Measurement.get_by_id(
+        test_path2, parent=token.key)
+    self.assertEqual(measurement2, None)
+
+    graph_data.Bot(
+        key=ndb.Key('Master', 'Chromium', 'Bot', 'win7'),
+        internal_only=False).put()
+    params = [
+        {
+            'data': TEST_HISTOGRAM,
+            'test_path': test_path1,
+            'benchmark_description': None,
+            'revision': 123,
+            'token': token_id
+        },
+        {
+            'data': TEST_HISTOGRAM,
+            'test_path': test_path2,
+            'benchmark_description': None,
+            'revision': 5,
+            'token': token_id
+        },
+    ]
+    upload_data = json.dumps(params)
+    self.testapp.post('/add_histograms_queue', upload_data)
+
+    token = upload_completion_token.Token.get_by_id(token_id)
+    self.assertEqual(token.state, upload_completion_token.State.COMPLETED)

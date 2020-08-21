@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import itertools
 import json
 import logging
 import sys
@@ -25,6 +26,7 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
+from dashboard.models import upload_completion_token
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic
@@ -107,12 +109,36 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
     # Roughly, the processing of histograms and the processing of rows can be
     # done in parallel since there are no dependencies.
 
-    futures = []
+    histogram_futures = []
+    token_state_futures = []
 
-    for p in params:
-      futures.extend(_ProcessRowAndHistogram(p))
+    try:
+      for p in params:
+        histogram_futures.append((p, _ProcessRowAndHistogram(p)))
+    except:
+      for param, futures_info in itertools.izip_longest(params,
+                                                        histogram_futures):
+        if futures_info is not None:
+          continue
+        token_state_futures.append(
+            upload_completion_token.Measurement.UpdateStateByIdAsync(
+                param.get('test_path'),
+                upload_completion_token.State.FAILED,
+                parent_id=param.get('token')))
+      ndb.Future.wait_all(token_state_futures)
+      raise
 
-    ndb.Future.wait_all(futures)
+    for info, futures in histogram_futures:
+      operation_state = upload_completion_token.State.COMPLETED
+      for f in futures:
+        if f.get_exception() is not None:
+          operation_state = upload_completion_token.State.FAILED
+      token_state_futures.append(
+          upload_completion_token.Measurement.UpdateStateByIdAsync(
+              info.get('test_path'),
+              operation_state,
+              parent_id=info.get('token')))
+    ndb.Future.wait_all(token_state_futures)
 
 
 def _GetStoryFromDiagnosticsDict(diagnostics):

@@ -27,6 +27,7 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import histogram
+from dashboard.models import upload_completion_token
 from dashboard.sheriff_config_client import SheriffConfigClient
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
@@ -192,8 +193,9 @@ class AddHistogramsBaseTest(testing_common.TestCase):
     mock_obj = mock.MagicMock(wraps=BufferedFakeFile())
     self.mock_cloudstorage.open.return_value = mock_obj
 
-    self.testapp.post('/add_histograms', data, status=status)
+    r = self.testapp.post('/add_histograms', data, status=status)
     self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
+    return r
 
   def PostAddHistogramProcess(self, data):
     mock_read = mock.MagicMock(wraps=BufferedFakeFile(zlib.compress(data)))
@@ -231,7 +233,9 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
         samples=[1, 2, 3])
     data = json.dumps(hs.AsDicts())
 
-    self.PostAddHistogram({'data': data})
+    post_histogram_res = self.PostAddHistogram({'data': data})
+    self.assertEqual(json.loads(post_histogram_res.body), None)
+
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
     diagnostics = histogram.SparseDiagnostic.query().fetch()
@@ -1520,6 +1524,169 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     add_histograms._LogDebugInfo(histograms)
     self.assertEqual('No LOG_URLS in data.', mock_log.call_args_list[0][0][0])
     self.assertEqual('No BUILD_URLS in data.', mock_log.call_args_list[1][0][0])
+
+
+@mock.patch.object(SheriffConfigClient, '__init__',
+                   mock.MagicMock(return_value=None))
+@mock.patch.object(SheriffConfigClient, 'Match',
+                   mock.MagicMock(return_value=([], None)))
+class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
+
+  def setUp(self):
+    super(AddHistogramsUploadCompleteonTokenTest, self).setUp()
+
+    self._TrunOnUploadCompletionTokenExperiment()
+    hs = _CreateHistogram(
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=123,
+        benchmark_description='Benchmark description.',
+        samples=[1, 2, 3])
+    self.histogram_data = json.dumps(hs.AsDicts())
+
+  def _TrunOnUploadCompletionTokenExperiment(self):
+    """Sets the domain that users who can access internal data belong to."""
+    self.PatchObject(utils, 'ShouldTurnOnUploadCompletionTokenExperiment',
+                     mock.Mock(return_value=True))
+
+  def PostAddHistogram(self, data, status=200):
+    mock_obj = mock.MagicMock(wraps=BufferedFakeFile())
+    self.mock_cloudstorage.open.return_value = mock_obj
+    return self.testapp.post('/add_histograms', data, status=status).json
+
+  def testPost_Succeeds(self):
+    token_info = self.PostAddHistogram({'data': self.histogram_data})
+    self.assertTrue(token_info.get('token') is not None)
+    self.assertTrue(token_info.get('file') is not None)
+
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    self.assertEqual(token.key.id(), token_info['token'])
+    self.assertEqual(token.temporary_staging_file_path, token_info['file'])
+    self.assertEqual(token.state, upload_completion_token.State.PENDING)
+    self.assertEqual(token.internal_only, utils.IsInternalUser())
+
+    self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
+
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    self.assertEqual(token.state, upload_completion_token.State.COMPLETED)
+
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+                     mock.MagicMock(side_effect=Exception()))
+  def testPost_MeasurementFails(self):
+    token_info = self.PostAddHistogram({'data': self.histogram_data})
+
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    self.assertEqual(token.state, upload_completion_token.State.PENDING)
+
+    self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
+
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    self.assertEqual(token.state, upload_completion_token.State.FAILED)
+
+  @mock.patch.object(add_histograms, 'ProcessHistogramSet',
+                     mock.MagicMock(side_effect=Exception()))
+  def testPost_AddHistogramProcessFails(self):
+    token_info = self.PostAddHistogram({'data': self.histogram_data})
+
+    self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    self.assertEqual(token.state, upload_completion_token.State.FAILED)
+
+  @mock.patch.object(add_histograms_queue.graph_revisions,
+                     'AddRowsToCacheAsync')
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
+  def testPost_TokenExpiredBeforeProcess(self, mock_process_test,
+                                         mock_graph_revisions):
+    token_info = self.PostAddHistogram({'data': self.histogram_data})
+
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    self.assertEqual(token.state, upload_completion_token.State.PENDING)
+
+    token.key.delete()
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    self.assertEqual(token, None)
+
+    self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
+
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+    diagnostics = histogram.SparseDiagnostic.query().fetch()
+
+    # Perform same checks as for AddHistogramsEndToEndTest.testPost_Succeeds.
+
+    self.assertEqual(4, len(diagnostics))
+    histograms = histogram.Histogram.query().fetch()
+    self.assertEqual(1, len(histograms))
+
+    tests = graph_data.TestMetadata.query().fetch()
+
+    self.assertEqual('Benchmark description.', tests[0].description)
+
+    self.assertEqual(mock_process_test.call_count, 1)
+    rows = graph_data.Row.query().fetch()
+
+    mock_graph_revisions.assert_called_once_with(mock.ANY)
+    self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
+
+  @mock.patch.object(add_histograms_queue.graph_revisions,
+                     'AddRowsToCacheAsync')
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
+  def testPost_TokenExpiredAfterProcess(self, mock_process_test,
+                                        mock_graph_revisions):
+    token_info = self.PostAddHistogram({'data': self.histogram_data})
+
+    self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
+
+    token.key.delete()
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    self.assertEqual(token, None)
+
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+    diagnostics = histogram.SparseDiagnostic.query().fetch()
+
+    # Perform same checks as for AddHistogramsEndToEndTest.testPost_Succeeds.
+
+    self.assertEqual(4, len(diagnostics))
+    histograms = histogram.Histogram.query().fetch()
+    self.assertEqual(1, len(histograms))
+
+    tests = graph_data.TestMetadata.query().fetch()
+
+    self.assertEqual('Benchmark description.', tests[0].description)
+
+    self.assertEqual(mock_process_test.call_count, 1)
+    rows = graph_data.Row.query().fetch()
+
+    mock_graph_revisions.assert_called_once_with(mock.ANY)
+    self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
+
+  @mock.patch.object(utils, 'IsDevAppserver', mock.MagicMock(return_value=True))
+  def testPost_DevAppserverSucceeds(self):
+    token_info = self.PostAddHistogram(self.histogram_data)
+    self.assertTrue('token' in token_info)
+    self.assertTrue('file' in token_info)
+
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    self.assertEqual(token_info['file'], None)
+    self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
+    self.assertEqual(token.internal_only, utils.IsInternalUser())
+
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    self.assertEqual(token.state, upload_completion_token.State.COMPLETED)
 
 
 def RandomChars(length):

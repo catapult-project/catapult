@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import collections
 import logging
 import os
+import random
 import re
 import time
 import urllib
@@ -519,6 +520,26 @@ def _IsInternalUserCacheKey(email):
 
 def _IsAdministratorUserCacheKey(email):
   return 'is_administrator_{}'.format(email)
+
+
+def ShouldTurnOnUploadCompletionTokenExperiment():
+  """Checks whether current request should be part of upload completeon token
+  experiment.
+
+  True for 1% of requests from project-chromeperf-upload-token-experiment
+  group members. Does not guarantee, that multiple calls for one request will
+  return the same results. So call it only once and than pass the decision to
+  other parts of the code manually.
+  """
+  if IsDevAppserver():
+    return True
+  email = GetEmail()
+  if not email:
+    return False
+  if not IsGroupMember(
+      identity=email, group='project-chromeperf-upload-token-experiment'):
+    return False
+  return random.random() <= 0.01
 
 
 def IsGroupMember(identity, group):
