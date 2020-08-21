@@ -433,15 +433,16 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         self.assertEqual(test_expectations.expectations_for('b1/s1'),
                          Expectation(
                              test='b1/s1', results={ResultType.Failure}, retry_on_failure=True,
-                             is_slow_test=False, reason='crbug.com/23456'))
+                             is_slow_test=False, reason='crbug.com/23456',
+                             tags={'linux'}))
         self.assertEqual(test_expectations.expectations_for('b1/s2'),
                          Expectation(
                              test='b1/s2', results={ResultType.Pass}, retry_on_failure=True,
-                             is_slow_test=False))
+                             is_slow_test=False, tags={'linux'}))
         self.assertEqual(test_expectations.expectations_for('b1/s3'),
                          Expectation(
                              test='b1/s3', results={ResultType.Failure}, retry_on_failure=False,
-                             is_slow_test=False, reason='crbug.com/24341'))
+                             is_slow_test=False, reason='crbug.com/24341', tags={'linux'}))
         self.assertEqual(test_expectations.expectations_for('b1/s4'),
                          Expectation(
                              test='b1/s4', results={ResultType.Pass}, retry_on_failure=False,
@@ -470,23 +471,28 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         self.assertEqual(sorted(test_exp1.tags), ['intel', 'linux'])
         self.assertEqual(test_exp1.expectations_for('b1/s2'),
                          Expectation(
-                             test='b1/s2', results={ResultType.Pass, ResultType.Failure},
+                             test='b1/s2',
+                             results={ResultType.Pass, ResultType.Failure},
                              retry_on_failure=True, is_slow_test=False,
                              reason='crbug.com/2431 crbug.com/2432',
-                             trailing_comments=' # c1\n # c2\n'))
+                             trailing_comments=' # c1\n # c2\n',
+                             tags={'linux', 'intel'}))
         self.assertEqual(test_exp1.expectations_for('b1/s1'),
                          Expectation(
                              test='b1/s1', results={ResultType.Pass},
-                             retry_on_failure=True, is_slow_test=False))
+                             retry_on_failure=True, is_slow_test=False,
+                             tags={'intel'}))
         self.assertEqual(test_exp1.expectations_for('b1/s3'),
                          Expectation(
                              test='b1/s3', results={ResultType.Failure},
-                             retry_on_failure=False, is_slow_test=False))
+                             retry_on_failure=False, is_slow_test=False,
+                             tags={'linux'}))
         self.assertEqual(test_exp1.expectations_for('b1/s5'),
                          Expectation(
                              test='b1/s5', results={ResultType.Failure},
                              retry_on_failure=True, is_slow_test=True,
-                             reason='crbug.com/2431 crbug.com/2432'))
+                             reason='crbug.com/2431 crbug.com/2432',
+                             tags={'linux', 'intel'}))
 
     def testMergeExpectationsUsingOverrideResolution(self):
         raw_data1 = (
@@ -514,17 +520,20 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
                          Expectation(
                              test='b1/s2', results={ResultType.Pass},
                              retry_on_failure=False, is_slow_test=True,
-                             reason='crbug.com/2432'))
+                             reason='crbug.com/2432', tags={'intel'}))
         self.assertEqual(test_exp1.expectations_for('b1/s1'),
                          Expectation(test='b1/s1', results={ResultType.Pass},
-                                     retry_on_failure=True, is_slow_test=False))
+                                     retry_on_failure=True, is_slow_test=False,
+                                     tags={'intel'}))
         self.assertEqual(test_exp1.expectations_for('b1/s3'),
                          Expectation(test='b1/s3', results={ResultType.Failure},
-                                     retry_on_failure=False, is_slow_test=False))
+                                     retry_on_failure=False, is_slow_test=False,
+                                     tags={'linux'}))
         self.assertEqual(test_exp1.expectations_for('b1/s5'),
                          Expectation(test='b1/s5', results={ResultType.Pass},
                                      retry_on_failure=True, is_slow_test=False,
-                                     reason='crbug.com/2431'))
+                                     reason='crbug.com/2431',
+                                     tags={'intel'}))
 
     def testIsNotTestRetryOnFailureUsingEscapedGlob(self):
         raw_data = (
@@ -552,7 +561,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         self.assertEqual(test_expectations.expectations_for('b1/s1'),
                          Expectation(test='b1/s1', results={ResultType.Pass},
                                      retry_on_failure=True, is_slow_test=False,
-                                     reason='crbug.com/23456'))
+                                     reason='crbug.com/23456', tags={'linux'}))
 
     def testGlobsCanExistInMiddleofPatternUsingEscapeCharacter(self):
         raw_data = (

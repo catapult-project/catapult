@@ -538,6 +538,7 @@ class TestExpectations(object):
         # The longest matching test string (name or glob) has priority.
         self._results = set()
         self._reasons = set()
+        self._exp_tags = set()
         self._should_retry_on_failure = False
         self._is_slow_test = False
         self._trailing_comments = str()
@@ -549,6 +550,7 @@ class TestExpectations(object):
                         self._results.update(exp.results)
                     self._should_retry_on_failure |= exp.should_retry_on_failure
                     self._is_slow_test |= exp.is_slow_test
+                    self._exp_tags.update(exp.tags)
                     if exp.trailing_comments:
                         self._trailing_comments += exp.trailing_comments + '\n'
                     if exp.reason:
@@ -557,6 +559,7 @@ class TestExpectations(object):
                     self._results = set(exp.results)
                     self._should_retry_on_failure = exp.should_retry_on_failure
                     self._is_slow_test = exp.is_slow_test
+                    self._exp_tags = set(exp.tags)
                     self._trailing_comments = exp.trailing_comments
                     if exp.reason:
                         self._reasons = {exp.reason}
@@ -567,7 +570,7 @@ class TestExpectations(object):
 
         if self._results or self._is_slow_test or self._should_retry_on_failure:
             return Expectation(
-                    test=test, results=self._results,
+                    test=test, results=self._results, tags=self._exp_tags,
                     retry_on_failure=self._should_retry_on_failure,
                     is_slow_test=self._is_slow_test, reason=' '.join(self._reasons),
                     trailing_comments=self._trailing_comments)
@@ -585,7 +588,7 @@ class TestExpectations(object):
                 # globs.
                 if self._results or self._is_slow_test or self._should_retry_on_failure:
                     return Expectation(
-                            test=test, results=self._results,
+                            test=test, results=self._results, tags=self._exp_tags,
                             retry_on_failure=self._should_retry_on_failure,
                             is_slow_test=self._is_slow_test, reason=' '.join(self._reasons),
                             trailing_comments=self._trailing_comments)
