@@ -63,16 +63,17 @@ class UploadCompletionTokenTest(testing_common.TestCase):
     token.UpdateStateAsync(upload_completion_token.State.PROCESSING).wait()
     self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
 
-    measurement1.UpdateStateAsync(upload_completion_token.State.FAILED).wait()
+    measurement1.state = upload_completion_token.State.FAILED
+    measurement1.put()
     self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
 
     token.UpdateStateAsync(upload_completion_token.State.COMPLETED).wait()
-    measurement2.UpdateStateAsync(
-        upload_completion_token.State.COMPLETED).wait()
+    measurement2.state = upload_completion_token.State.COMPLETED
+    measurement2.put()
     self.assertEqual(token.state, upload_completion_token.State.FAILED)
 
-    measurement1.UpdateStateAsync(
-        upload_completion_token.State.COMPLETED).wait()
+    measurement1.state = upload_completion_token.State.COMPLETED
+    measurement1.put()
     self.assertEqual(token.state, upload_completion_token.State.COMPLETED)
 
   def testStatusUpdateWithExpiredMeasurement(self):
@@ -87,8 +88,8 @@ class UploadCompletionTokenTest(testing_common.TestCase):
     token.UpdateStateAsync(upload_completion_token.State.COMPLETED).wait()
     self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
 
-    measurement2.UpdateStateAsync(
-        upload_completion_token.State.COMPLETED).wait()
+    measurement2.state = upload_completion_token.State.COMPLETED
+    measurement2.put()
     self.assertEqual(token.state, upload_completion_token.State.COMPLETED)
 
   @unittest.expectedFailure
@@ -124,20 +125,26 @@ class UploadCompletionTokenTest(testing_common.TestCase):
     self.assertEqual(token.state, target_state)
 
   def testMeasurementUpdateStateByIdAsync(self):
-    target_state = upload_completion_token.State.COMPLETED
-
-    upload_completion_token.Measurement.UpdateStateByIdAsync(
-        None, target_state).wait()
-    upload_completion_token.Measurement.UpdateStateByIdAsync(
-        'expired', target_state).wait()
-
     test_path = 'test/path'
     token_id = str(uuid.uuid4())
+    target_state = upload_completion_token.State.COMPLETED
     token_key = upload_completion_token.Token(id=token_id).put()
     upload_completion_token.Measurement(id=test_path, parent=token_key).put()
 
     upload_completion_token.Measurement.UpdateStateByIdAsync(
-        test_path, target_state, token_id).wait()
+        None, token_id, target_state).wait()
+    upload_completion_token.Measurement.UpdateStateByIdAsync(
+        test_path, None, target_state).wait()
+    upload_completion_token.Measurement.UpdateStateByIdAsync(
+        'expired', token_id, target_state).wait()
+
+    measurement = upload_completion_token.Measurement.get_by_id(
+        test_path, parent=token_key)
+    self.assertNotEqual(measurement.state, target_state)
+
+    upload_completion_token.Measurement.UpdateStateByIdAsync(
+        test_path, token_id, target_state).wait()
+
     measurement = upload_completion_token.Measurement.get_by_id(
         test_path, parent=token_key)
     self.assertEqual(measurement.state, target_state)

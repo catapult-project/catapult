@@ -213,6 +213,8 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
         temporary_staging_file_path=temporary_staging_file_path,
     )
     token.put()
+    logging.info('Upload completion token created. Token id: %s',
+                 token_info['token'])
     return token, token_info
 
   def Post(self):

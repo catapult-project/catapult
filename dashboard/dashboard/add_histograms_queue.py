@@ -122,9 +122,8 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
           continue
         token_state_futures.append(
             upload_completion_token.Measurement.UpdateStateByIdAsync(
-                param.get('test_path'),
-                upload_completion_token.State.FAILED,
-                parent_id=param.get('token')))
+                param.get('test_path'), param.get('token'),
+                upload_completion_token.State.FAILED))
       ndb.Future.wait_all(token_state_futures)
       raise
 
@@ -135,9 +134,7 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
           operation_state = upload_completion_token.State.FAILED
       token_state_futures.append(
           upload_completion_token.Measurement.UpdateStateByIdAsync(
-              info.get('test_path'),
-              operation_state,
-              parent_id=info.get('token')))
+              info.get('test_path'), info.get('token'), operation_state))
     ndb.Future.wait_all(token_state_futures)
 
 
