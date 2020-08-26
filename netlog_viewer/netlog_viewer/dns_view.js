@@ -109,7 +109,12 @@ var DnsView = (function() {
 
         var addressesCell = addNode(tr, 'td');
 
-        if (e.error != undefined) {
+        // In M87, "error" was replaced with "net_error".
+        // TODO(https://crbug.com/1122054): Remove this once M87 hits stable.
+        if (e.error != undefined)
+          e.net_error = e.error;
+
+        if (e.net_error != undefined) {
           var errorText = e.error + ' (' + netErrorToString(e.error) + ')';
           var errorNode = addTextNode(addressesCell, 'error: ' + errorText);
           addressesCell.classList.add('warning-text');

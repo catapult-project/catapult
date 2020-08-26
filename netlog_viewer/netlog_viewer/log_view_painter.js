@@ -372,18 +372,6 @@ let proxySettingsToString;
       return;
     }
 
-    // For transferred bytes, display the bytes in hex and ASCII.
-    // TODO(eroman): 'hex_encoded_bytes' was removed in M73, and
-    //               support for it can be removed in the future.
-    if (key === 'hex_encoded_bytes' && typeof value === 'string') {
-      const bytes = tryParseHexToBytes(value);
-      if (bytes) {
-        out.writeArrowKey(key);
-        writeHexString(bytes, out);
-        return;
-      }
-    }
-
     if (key === 'bytes' && typeof value === 'string') {
       const bytes = tryParseBase64ToBytes(value);
       if (bytes) {
