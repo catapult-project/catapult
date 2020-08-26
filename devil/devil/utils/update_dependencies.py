@@ -116,7 +116,7 @@ def UpdateDependency(dependency_name, dependency_info, local_path, platform):
   remote_path = '%s_%s' % (dependency_name, dependency_sha1)
   gs_dest = 'gs://%s/%s/%s' % (bucket, folder, remote_path)
   ec, gsutil_output = cmd_helper.GetCmdStatusAndOutput(
-      ['gsutil', 'cp', local_path, gs_dest])
+      ['gsutil.py', 'cp', local_path, gs_dest])
   if ec:
     raise base_error.BaseError(
         'Failed to upload %s to %s: %s' % (remote_path, gs_dest, gsutil_output))
