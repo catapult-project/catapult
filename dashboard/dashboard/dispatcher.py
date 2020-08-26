@@ -51,6 +51,7 @@ from dashboard import speed_releasing
 from dashboard import update_dashboard_stats
 from dashboard import update_test_suite_descriptors
 from dashboard import update_test_suites
+from dashboard import uploads_info
 from dashboard.api import alerts as api_alerts
 from dashboard.api import bugs
 from dashboard.api import config
@@ -136,6 +137,7 @@ _URL_MAPPING = [
     ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler),
     ('/update_test_suite_descriptors',
      update_test_suite_descriptors.UpdateTestSuiteDescriptorsHandler),
+    ('/uploads/(.*)', uploads_info.UploadInfoHandler),
     (oauth2_decorator.DECORATOR.callback_path,
      oauth2_decorator.DECORATOR.callback_handler())
 ]

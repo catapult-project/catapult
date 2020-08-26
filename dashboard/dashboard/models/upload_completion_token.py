@@ -122,6 +122,9 @@ class Token(internal_only_model.InternalOnlyModel):
     self._LogStateChanged()
     return measurements
 
+  def GetMeasurements(self):
+    return ndb.get_multi(self.substates)
+
 
 class Measurement(internal_only_model.InternalOnlyModel):
   """Measurement represents state of added histogram.

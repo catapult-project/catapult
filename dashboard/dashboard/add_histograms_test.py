@@ -21,6 +21,7 @@ from google.appengine.ext import ndb
 
 from dashboard import add_histograms
 from dashboard import add_histograms_queue
+from dashboard import uploads_info
 from dashboard.api import api_auth
 from dashboard.api import api_request_handler
 from dashboard.common import testing_common
@@ -167,7 +168,8 @@ class AddHistogramsBaseTest(testing_common.TestCase):
         ('/add_histograms', add_histograms.AddHistogramsHandler),
         ('/add_histograms/process', add_histograms.AddHistogramsProcessHandler),
         ('/add_histograms_queue',
-         add_histograms_queue.AddHistogramsQueueHandler)
+         add_histograms_queue.AddHistogramsQueueHandler),
+        ('/uploads/(.*)', uploads_info.UploadInfoHandler)
     ])
     self.testapp = webtest.TestApp(app)
     testing_common.SetIsInternalUser('foo@bar.com', True)
@@ -1565,6 +1567,10 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     self.mock_cloudstorage.open.return_value = mock_obj
     return self.testapp.post('/add_histograms', data, status=status).json
 
+  def GetUploads(self, token_id, status=200):
+    return json.loads(
+        self.testapp.get('/uploads/%s' % token_id, status=status).body)
+
   def testPost_Succeeds(self):
     token_info = self.PostAddHistogram({'data': self.histogram_data})
     self.assertTrue(token_info.get('token') is not None)
@@ -1793,6 +1799,46 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
             'id: %s', token_info['token'])
     ]
     mock_log.assert_has_calls(log_calls, any_order=True)
+
+  def testFullCycle_Success(self):
+    token_info = self.PostAddHistogram({'data': self.histogram_data})
+
+    uploads_response = self.GetUploads(token_info['token'])
+    self.assertEqual(uploads_response['token'], token_info['token'])
+    self.assertEqual(uploads_response['state'], 'PENDING')
+    self.assertTrue(uploads_response.get('file') is not None)
+    self.assertTrue(uploads_response.get('created') is not None)
+    self.assertTrue(uploads_response.get('lastUpdated') is not None)
+    self.assertTrue(uploads_response.get('measurements') is None)
+
+    self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
+
+    uploads_response = self.GetUploads(token_info['token'])
+    self.assertEqual(uploads_response['state'], 'PROCESSING')
+    self.assertEqual(len(uploads_response.get('measurements')), 1)
+    self.assertEqual(uploads_response['measurements'][0]['name'],
+                     'master/bot/benchmark/hist')
+    self.assertEqual(uploads_response['measurements'][0]['state'], 'PROCESSING')
+
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    uploads_response = self.GetUploads(token_info['token'])
+    self.assertEqual(uploads_response['state'], 'COMPLETED')
+    self.assertEqual(uploads_response['measurements'][0]['state'], 'COMPLETED')
+
+  @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
+                     mock.MagicMock(side_effect=Exception()))
+  def testFullCycle_MeasurementFails(self):
+    token_info = self.PostAddHistogram({'data': self.histogram_data})
+    self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
+    self.ExecuteTaskQueueTasks('/add_histograms_queue',
+                               add_histograms.TASK_QUEUE_NAME)
+
+    uploads_response = self.GetUploads(token_info['token'])
+    self.assertEqual(uploads_response['state'], 'FAILED')
+    self.assertEqual(len(uploads_response.get('measurements')), 1)
+    self.assertEqual(uploads_response['measurements'][0]['state'], 'FAILED')
 
 
 def RandomChars(length):
