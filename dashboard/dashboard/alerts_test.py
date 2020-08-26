@@ -151,6 +151,7 @@ class AlertsTest(testing_common.TestCase):
         {
             'bug_components': ['component'],
             'bug_id': 10,
+            'project_id': 'chromium',
             'bug_labels': ['Restrict-View-Google'],
             'descriptor': {
                 'testSuite': 's',
