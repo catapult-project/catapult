@@ -322,8 +322,8 @@ class _RunTestExecution(execution_module.Execution):
         },
         'extra_args': self._extra_args,
         'dimensions': self._dimensions,
-        'execution_timeout_secs': str(self._execution_timeout_secs or 2700),
-        'io_timeout_secs': str(self._execution_timeout_secs or 2700),
+        'execution_timeout_secs': str(self.execution_timeout_secs or 2700),
+        'io_timeout_secs': str(self.execution_timeout_secs or 2700),
     }
 
     if self.command:
