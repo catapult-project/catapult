@@ -37,7 +37,7 @@ found in the LICENSE file.
     </style>
     <div id="container" style="display:none">
       <div class="info-bar">
-        <p><a href="http://crbug.com/{{bugId}}">crbug.com/{{bugId}}</a></p>
+        <p><a href="http://crbug.com/{{projectId}}/{{bugId}}">crbug.com/{{projectId}}/{{bugId}}</a></p>
         <p>
           <span id="revision_range"></span>
           <span id="warning" class="warning"></span>
@@ -58,16 +58,19 @@ Polymer({
   properties: {
     alertsTable: { value: null},
     bugId: { value: null},
+    projectId: {value: null},
   },
 
   /**
     * Initializes this element.
     * @param {Number} bugId A bug ID number.
+    * @param {String} projectId A project ID in Monorail.
     * @param {HTMLElement} alertsTable HTML element of alerts-table.
     */
-  initialize(bugId, alertsTable) {
+  initialize(bugId, projectId, alertsTable) {
     this.$.container.style.display = '';
     this.bugId = bugId;
+    this.projectId = projectId;
     this.alertsTable = alertsTable;
     this.alertsTable.addEventListener('changeselection',
         this.updateBugInfo.bind(this), false);

@@ -40,6 +40,7 @@ class GroupReportHandler(chart_handler.ChartHandler):
     Request parameters:
       keys: A comma-separated list of urlsafe Anomaly keys (optional).
       bug_id: A bug number on the Chromium issue tracker (optional).
+      project_id: A project ID in Monorail (optional).
       rev: A revision number (optional).
       sid: A hash of a group of keys from /short_uri (optional).
       group_id: An AlertGroup ID (optional).
@@ -48,6 +49,7 @@ class GroupReportHandler(chart_handler.ChartHandler):
       JSON for the /group_report page XHR request.
     """
     bug_id = self.request.get('bug_id')
+    project_id = self.request.get('project_id', 'chromium')
     rev = self.request.get('rev')
     keys = self.request.get('keys')
     hash_code = self.request.get('sid')
@@ -66,10 +68,11 @@ class GroupReportHandler(chart_handler.ChartHandler):
       if bug_id:
         try:
           alert_list, _, _ = anomaly.Anomaly.QueryAsync(
-              bug_id=bug_id, limit=_QUERY_LIMIT).get_result()
+              bug_id=bug_id, project_id=project_id,
+              limit=_QUERY_LIMIT).get_result()
         except ValueError:
-          raise request_handler.InvalidInputError('Invalid bug ID "%s".' %
-                                                  bug_id)
+          raise request_handler.InvalidInputError('Invalid bug ID "%s:%s".' %
+                                                  (project_id, bug_id))
       elif keys:
         alert_list = GetAlertsForKeys(keys)
       elif rev:
@@ -88,6 +91,7 @@ class GroupReportHandler(chart_handler.ChartHandler):
       }
       if bug_id:
         values['bug_id'] = bug_id
+        values['project_id'] = project_id
       if keys:
         values['selected_keys'] = keys
       self.GetDynamicVariables(values)

@@ -371,16 +371,18 @@ found in the LICENSE file.
           </td>
 
           <td>
-            <bug-info-span bug-id="{{item.bug_id}}"
-                           project-id="{{item.project_id}}"
-                           key="{{item.key}}"
-                           recovered$="{{item.recovered}}"
-                           xsrf-token="{{xsrfToken}}"
-                           on-untriaged="onUntriaged">
-            </bug-info-span>
-            <bisect-status hidden$="{{!item.bug_id}}"
-                           status="{{item.bisect_status}}">
-            </bisect-status>
+            <div>
+              <bug-info-span bug-id="{{item.bug_id}}"
+                            project-id="{{item.project_id}}"
+                            key="{{item.key}}"
+                            recovered$="{{item.recovered}}"
+                            xsrf-token="{{xsrfToken}}"
+                            on-untriaged="onUntriaged">
+              </bug-info-span>
+              <bisect-status hidden$="{{!item.bug_id}}"
+                            status="{{item.bisect_status}}">
+              </bisect-status>
+            </div>
           </td>
           <td class="revision_range">
             <revision-range start="{{getDisplayStartRev(item)}}" 
