@@ -526,7 +526,7 @@ def ShouldTurnOnUploadCompletionTokenExperiment():
   """Checks whether current request should be part of upload completeon token
   experiment.
 
-  True for 1% of requests from project-chromeperf-upload-token-experiment
+  True for 50% of requests from project-chromeperf-upload-token-experiment
   group members. Does not guarantee, that multiple calls for one request will
   return the same results. So call it only once and than pass the decision to
   other parts of the code manually.
@@ -539,7 +539,7 @@ def ShouldTurnOnUploadCompletionTokenExperiment():
   if not IsGroupMember(
       identity=email, group='project-chromeperf-upload-token-experiment'):
     return False
-  return random.random() <= 0.01
+  return random.random() <= 0.5
 
 
 def IsGroupMember(identity, group):
