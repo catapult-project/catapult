@@ -171,6 +171,16 @@ tr.exportTo('tr.model', function() {
       return this.getTimeTransformerRaw_(domainId, this.modelDomainId_).fn;
     },
 
+    getModelTimeTransformerInverse(domainId) {
+      this.onDomainSeen_(domainId);
+
+      if (!this.modelDomainId_) {
+        this.selectModelDomainId_();
+      }
+
+      return this.getTimeTransformerRaw_(this.modelDomainId_, domainId).fn;
+    },
+
     /**
      * Returns the error associated with the transformation given by
      * |getModelTimeTransformer(domainId)|.

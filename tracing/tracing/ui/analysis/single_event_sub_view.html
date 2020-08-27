@@ -154,6 +154,17 @@ Polymer({
       })
     });
 
+    if (event.category === 'android' && event.model !== undefined) {
+      rows.push({
+        name: 'Start (Absolute time)',
+        value: tr.v.ui.createScalarSpan(
+            event.model.convertTimestampFromModelTime('traceEventClock',
+                event.start), {
+              unit: tr.b.Unit.byName.timeStampInMs
+            })
+      });
+    }
+
     if (event.duration) {
       rows.push({
         name: 'Wall Duration',

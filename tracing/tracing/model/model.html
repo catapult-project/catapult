@@ -207,6 +207,16 @@ tr.exportTo('tr', function() {
         this.timestampShiftToZeroAmount_;
     },
 
+    convertTimestampFromModelTime(targetClockDomainName, ts) {
+      if (targetClockDomainName !== 'traceEventClock') {
+        throw new Error('Only traceEventClock is supported.');
+      }
+      const convertFn = this.clockSyncManager.getModelTimeTransformerInverse(
+          tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL);
+
+      return convertFn(ts) - this.timestampShiftToZeroAmount_;
+    },
+
     get numProcesses() {
       let n = 0;
       for (const p in this.processes) {
