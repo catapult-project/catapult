@@ -2279,6 +2279,7 @@ triaging functionality in the chart.
       if (annotation.g_anomaly) {
         if (annotation.g_anomaly.bug_id) {
           this.$.tooltip.bugId = annotation.g_anomaly.bug_id;
+          this.$.tooltip.projectId = annotation.g_anomaly.project_id;
           this.$.tooltip.alertInvalidOrIgnored =
               annotation.g_anomaly.bug_id < 0;
           this.$.tooltip.alertKey = annotation.g_anomaly.key;
@@ -2286,6 +2287,7 @@ triaging functionality in the chart.
         this.$.tooltip.recovered = annotation.g_anomaly.recovered;
       } else if (uriBugId !== null) {
         this.$.tooltip.bugId = uriBugId;
+        this.$.tooltip.projectId = uri.getParameter('project_id', 'chromium');
       }
 
       this.$.tooltip.bisectInfo = {
@@ -2327,6 +2329,7 @@ triaging functionality in the chart.
       this.$.tooltip.alerts = null;
       this.$.tooltip.triagedAlerts = null;
       this.$.tooltip.bugId = null;
+      this.$.tooltip.projectId = null;
       this.$.tooltip.alertKey = null;
       this.$.tooltip.recovered = null;
       this.$.tooltip.timestamp = null;

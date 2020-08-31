@@ -130,10 +130,12 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False):
   test_path = utils.TestPath(test_key)
   dashboard_link = email_template.GetReportPageLink(
       test_path, rev=anomaly_entity.end_revision, add_protocol_and_host=False)
+  project_id = anomaly_entity.project_id if (
+      anomaly_entity.project_id != '') else 'chromium'
 
   dct = {
       'bug_id': anomaly_entity.bug_id,
-      'project_id': anomaly_entity.project_id,
+      'project_id': project_id,
       'dashboard_link': dashboard_link,
       'end_revision': anomaly_entity.end_revision,
       'improvement': anomaly_entity.is_improvement,
