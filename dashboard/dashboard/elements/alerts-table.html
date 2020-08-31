@@ -301,10 +301,6 @@ found in the LICENSE file.
         z-index: var(--layer-dialogs);
       }
 
-      .bug_info_span {
-        white-space: nowrap;
-      }
-
       .error {
         color: #dd4b39;
         font-weight: bold;
@@ -374,17 +370,19 @@ found in the LICENSE file.
             </a>
           </td>
 
-          <td class="bug_info_span">
-            <bug-info-span bug-id="{{item.bug_id}}"
-                          project-id="{{item.project_id}}"
-                          key="{{item.key}}"
-                          recovered$="{{item.recovered}}"
-                          xsrf-token="{{xsrfToken}}"
-                          on-untriaged="onUntriaged">
-            </bug-info-span>
-            <bisect-status hidden$="{{!item.bug_id}}"
-                          status="{{item.bisect_status}}">
-            </bisect-status>
+          <td>
+            <div>
+              <bug-info-span bug-id="{{item.bug_id}}"
+                            project-id="{{item.project_id}}"
+                            key="{{item.key}}"
+                            recovered$="{{item.recovered}}"
+                            xsrf-token="{{xsrfToken}}"
+                            on-untriaged="onUntriaged">
+              </bug-info-span>
+              <bisect-status hidden$="{{!item.bug_id}}"
+                            status="{{item.bisect_status}}">
+              </bisect-status>
+            </div>
           </td>
           <td class="revision_range">
             <revision-range start="{{getDisplayStartRev(item)}}" 
