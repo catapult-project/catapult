@@ -38,6 +38,17 @@ class RunWebRtcTest(run_test.RunTest):
         swarming_tags={},
         execution_timeout_secs=10800)
 
+  @classmethod
+  def _ExtraTestArgs(cls, arguments):
+    results_filename = '${ISOLATED_OUTDIR}/webrtc_perf_tests/perf_results.json'
+    extra_test_args = [
+        '--test_artifacts_dir=${ISOLATED_OUTDIR}',
+        '--nologs',
+        '--isolated-script-test-perf-output=%s' % results_filename,
+    ]
+    extra_test_args += super(RunWebRtcTest, cls)._ExtraTestArgs(arguments)
+    return extra_test_args
+
 
 def _SanitizeFileName(name):
   safe_with_spaces = ''.join(c if c.isalnum() else ' ' for c in name)

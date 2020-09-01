@@ -19,7 +19,12 @@ _BASE_ARGUMENTS = {
     'builder': 'builder name',
     'target': 'foo_test',
 }
-_BASE_EXTRA_ARGS = []
+_BASE_EXTRA_ARGS = [
+    '--test_artifacts_dir=${ISOLATED_OUTDIR}',
+    '--nologs',
+    '--isolated-script-test-perf-output='
+    '${ISOLATED_OUTDIR}/webrtc_perf_tests/perf_results.json',
+]
 _WEBRTCTEST_COMMAND = [
     '../../tools_webrtc/flags_compatibility.py', '../../testing/test_env.py',
     os.path.join('.', 'foo_test')
