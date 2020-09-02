@@ -180,6 +180,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                     self._issue_tracker.add_comment_kwargs['summary'])
       self.assertIn('sheriff',
                     self._issue_tracker.add_comment_kwargs['summary'])
+      self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
 
   def testAddAnomalies_GroupTriaged_IssueClosed(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
@@ -222,6 +223,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                     self._issue_tracker.add_comment_kwargs['summary'])
       self.assertIn('sheriff',
                     self._issue_tracker.add_comment_kwargs['summary'])
+      self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
 
   def testAddAnomalies_GroupTriaged_IssueClosed_AutoBisect(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
@@ -263,6 +265,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                        self._issue_tracker.add_comment_args[0])
       self.assertIn('Added 2 regressions to the group',
                     self._issue_tracker.add_comment_args[1])
+    self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
 
   def testUpdate_GroupTriaged_IssueClosed(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
@@ -575,6 +578,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             issue=self._issue_tracker.issue,
         ))
     self.assertIn('inf', self._issue_tracker.add_comment_args[1])
+    self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
 
   def testArchive_GroupUntriaged(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]

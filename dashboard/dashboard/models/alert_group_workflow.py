@@ -245,7 +245,9 @@ class AlertGroupWorkflow(object):
         'All regressions for this issue have been marked recovered; closing.',
         status='WontFix',
         labels='Chromeperf-Auto-Closed',
-        project=self._group.project_id)
+        project=self._group.project_id,
+        send_email=False,
+    )
 
   def _ReopenWithNewRegressions(self, all_regressions, added, subscriptions):
     summary = _TEMPLATE_ISSUE_TITLE.render(
@@ -260,7 +262,9 @@ class AlertGroupWorkflow(object):
         labels=['Chromeperf-Auto-Reopened'],
         status='Unconfirmed',
         cc_list=cc,
-        project=self._group.project_id)
+        project=self._group.project_id,
+        send_email=False,
+    )
 
   def _FileNormalUpdate(self, all_regressions, added, subscriptions):
     summary = _TEMPLATE_ISSUE_TITLE.render(
@@ -274,7 +278,9 @@ class AlertGroupWorkflow(object):
         labels=labels,
         cc_list=cc,
         components=components,
-        project=self._group.project_id)
+        project=self._group.project_id,
+        send_email=False,
+    )
 
   def _GetRegressions(self, anomalies):
     regressions = []
@@ -430,7 +436,9 @@ class AlertGroupWorkflow(object):
         _TEMPLATE_AUTO_BISECT_COMMENT.render(
             {'test': utils.TestPath(regression.test)}),
         labels=['Chromeperf-Auto-Bisected'],
-        project=self._group.project_id)
+        project=self._group.project_id,
+        send_email=False,
+    )
     regression.pinpoint_bisects.append(job_id)
     regression.put()
 
