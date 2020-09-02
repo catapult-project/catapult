@@ -153,6 +153,24 @@ class AssociateAlertsTest(testing_common.TestCase):
     # When the bug ID is given and the alerts overlap, then the Anomaly
     # entities are updated and there is a response indicating success.
     key_map = self._AddAnomalies()
+    response = self.testapp.get(
+        '/associate_alerts?keys=%s,%s&bug_id=12345&project_id=test_project' %
+        (key_map[9996], key_map[10000]))
+    # The response page should have a bug number.
+    self.assertIn('12345', response.body)
+    # The Anomaly entities should be updated.
+    for anomaly_entity in anomaly.Anomaly.query().fetch():
+      if anomaly_entity.end_revision in (10000, 9996):
+        self.assertEqual(12345, anomaly_entity.bug_id)
+        self.assertEqual('test_project', anomaly_entity.project_id)
+      elif anomaly_entity.end_revision != 9997:
+        self.assertIsNone(anomaly_entity.bug_id)
+        self.assertEqual('chromium', anomaly_entity.project_id)
+
+  def testGet_WithBugId_AlertIsAssociatedWithBugIdAndNoProject(self):
+    # When the bug ID is given and the alerts overlap, then the Anomaly
+    # entities are updated and there is a response indicating success.
+    key_map = self._AddAnomalies()
     response = self.testapp.get('/associate_alerts?keys=%s,%s&bug_id=12345' %
                                 (key_map[9996], key_map[10000]))
     # The response page should have a bug number.
@@ -161,8 +179,10 @@ class AssociateAlertsTest(testing_common.TestCase):
     for anomaly_entity in anomaly.Anomaly.query().fetch():
       if anomaly_entity.end_revision in (10000, 9996):
         self.assertEqual(12345, anomaly_entity.bug_id)
+        self.assertEqual('chromium', anomaly_entity.project_id)
       elif anomaly_entity.end_revision != 9997:
         self.assertIsNone(anomaly_entity.bug_id)
+        self.assertEqual('chromium', anomaly_entity.project_id)
 
   def testGet_TargetBugHasNoAlerts_DoesNotAskForConfirmation(self):
     # Associating alert with bug ID that has no alerts is always OK.
@@ -193,22 +213,25 @@ class AssociateAlertsTest(testing_common.TestCase):
     for anomaly_entity in anomaly.Anomaly.query().fetch():
       if anomaly_entity.end_revision != 9997:
         self.assertIsNone(anomaly_entity.bug_id)
+        self.assertEqual('chromium', anomaly_entity.project_id)
 
   def testGet_WithConfirm_AssociatesWithNewBugId(self):
     # Associating alert with bug ID and with confirmed non-overlapping revision
     # range should update alert with bug ID.
     key_map = self._AddAnomalies()
     response = self.testapp.get(
-        '/associate_alerts?confirm=true&keys=%s,%s&bug_id=12345' %
-        (key_map[10000], key_map[10010]))
+        '/associate_alerts?confirm=true&keys=%s,%s&bug_id=12345&'
+        'project_id=test_project' % (key_map[10000], key_map[10010]))
     # The response page should have the bug number.
     self.assertIn('12345', response.body)
     # The Anomaly entities should be updated.
     for anomaly_entity in anomaly.Anomaly.query().fetch():
       if anomaly_entity.end_revision in (10000, 10010):
         self.assertEqual(12345, anomaly_entity.bug_id)
+        self.assertEqual('test_project', anomaly_entity.project_id)
       elif anomaly_entity.end_revision != 9997:
         self.assertIsNone(anomaly_entity.bug_id)
+        self.assertEqual('chromium', anomaly_entity.project_id)
 
   def testRevisionRangeFromSummary(self):
     # If the summary is in the expected format, a pair is returned.

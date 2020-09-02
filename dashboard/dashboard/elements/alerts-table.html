@@ -1201,10 +1201,12 @@ found in the LICENSE file.
         return alert.key;
       });
       const triagedBugId = e.detail.bugid;
+      const triagedProjectId = e.detail.projectid;
       this.checkedAlerts.forEach(function(alert) {
         if (triagedKeys.indexOf(alert.key) != -1) {
           const index = this.getAlertIndexByKey(alert.key);
           this.setAlertList(index, 'bug_id', triagedBugId);
+          this.setAlertList(index, 'project_id', triagedProjectId);
           if (!uri.getParameter('triaged')) {
             this.setAlertList(index, 'hideRow', true);
             this.setAlertList(index, 'selected', false);

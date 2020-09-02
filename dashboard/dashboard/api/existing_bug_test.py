@@ -50,3 +50,4 @@ class ExistingBugTest(testing_common.TestCase):
     response = self._Post(key=key.urlsafe(), bug=12345)
     self.assertEqual({}, response)
     self.assertEqual(12345, key.get().bug_id)
+    self.assertEqual('chromium', key.get().project_id)

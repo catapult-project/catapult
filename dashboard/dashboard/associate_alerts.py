@@ -31,6 +31,7 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
 
     Request parameters:
       bug_id: Bug ID number, as a string (when submitting the form).
+      project_id: Monorail project ID (when submitting the form).
       keys: Comma-separated alert keys in urlsafe format.
       confirm: If non-empty, associate alerts with a bug ID even if
           it appears that the alerts already associated with that bug
@@ -53,7 +54,9 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
     is_confirmed = bool(self.request.get('confirm'))
     bug_id = self.request.get('bug_id')
     if bug_id:
-      self._AssociateAlertsWithBug(bug_id, urlsafe_keys, is_confirmed)
+      project_id = self.request.get('project_id', 'chromium')
+      self._AssociateAlertsWithBug(bug_id, project_id, urlsafe_keys,
+                                   is_confirmed)
     else:
       self._ShowCommentDialog(urlsafe_keys)
 
@@ -93,13 +96,15 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
         sort='-id')
     return response.get('items', []) if response else []
 
-  def _AssociateAlertsWithBug(self, bug_id, urlsafe_keys, is_confirmed):
+  def _AssociateAlertsWithBug(self, bug_id, project_id, urlsafe_keys,
+                              is_confirmed):
     """Sets the bug ID for a set of alerts.
 
     This is done after the user enters and submits a bug ID.
 
     Args:
       bug_id: Bug ID number, as a string.
+      project_id: Monorial project ID.
       urlsafe_keys: Comma-separated Alert keys in urlsafe format.
       is_confirmed: Whether the user has confirmed that they really want
           to associate the alerts with a bug even if it appears that the
@@ -118,24 +123,30 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
     alert_entities = ndb.get_multi(alert_keys)
 
     if not is_confirmed:
-      warning_msg = self._VerifyAnomaliesOverlap(alert_entities, bug_id)
+      warning_msg = self._VerifyAnomaliesOverlap(alert_entities, bug_id,
+                                                 project_id)
       if warning_msg:
         self._ShowConfirmDialog('associate_alerts', warning_msg, {
             'bug_id': bug_id,
+            'project_id': project_id,
             'keys': urlsafe_keys,
         })
         return
 
-    AssociateAlerts(bug_id, alert_entities)
+    AssociateAlerts(bug_id, project_id, alert_entities)
 
-    self.RenderHtml('bug_result.html', {'bug_id': bug_id})
+    self.RenderHtml('bug_result.html', {
+        'bug_id': bug_id,
+        'project_id': project_id
+    })
 
-  def _VerifyAnomaliesOverlap(self, alerts, bug_id):
+  def _VerifyAnomaliesOverlap(self, alerts, bug_id, project_id):
     """Checks whether the alerts' revision ranges intersect.
 
     Args:
       alerts: A list of Alert entities to verify.
       bug_id: Bug ID number.
+      project_id: Monorail project ID.
 
     Returns:
       A string with warning message, or None if there's no warning.
@@ -144,16 +155,16 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
       return 'Selected alerts do not have overlapping revision range.'
     else:
       alerts_with_bug, _, _ = anomaly.Anomaly.QueryAsync(
-          bug_id=bug_id, limit=500).get_result()
+          bug_id=bug_id, project_id=project_id, limit=500).get_result()
 
       if not alerts_with_bug:
         return None
       if not utils.MinimumAlertRange(alerts_with_bug):
-        return ('Alerts in bug %s do not have overlapping revision '
-                'range.' % bug_id)
+        return ('Alerts in bug %s:%s do not have overlapping revision '
+                'range.' % (project_id, bug_id))
       elif not utils.MinimumAlertRange(alerts + alerts_with_bug):
         return ('Selected alerts do not have overlapping revision '
-                'range with alerts in bug %s.' % bug_id)
+                'range with alerts in bug %s:%s.' % (project_id, bug_id))
     return None
 
   def _ShowConfirmDialog(self, handler, message, parameters):
@@ -174,9 +185,10 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
         })
 
 
-def AssociateAlerts(bug_id, alerts):
+def AssociateAlerts(bug_id, project_id, alerts):
   for a in alerts:
     a.bug_id = bug_id
+    a.project_id = project_id
   ndb.put_multi(alerts)
 
 

@@ -197,7 +197,8 @@ Polymer({
         this.close();
         this.fire('triaged', {
           'alerts': this.alerts,
-          'bugid': data.bug_id
+          'bugid': data.bug_id,
+          'projectid': data.project_id
         });
         e.preventDefault();
         e.stopPropagation();
@@ -293,7 +294,8 @@ Polymer({
         function() {
           this.fire('triaged', {
             'alerts': this.alerts,
-            'bugid': this.bugid
+            'bugid': this.bugid,
+            'projectid': null
           });
           this.loading = false;
           if (successMessage) {

@@ -2136,11 +2136,14 @@ triaging functionality in the chart.
       const jsonSeriesIndex = event.detail.alerts[0].seriesIndex;
       const dataIndex = event.detail.alerts[0].dataIndex;
       const bugId = event.detail.bugid;
+      const projectId = event.detail.projectid;
 
       // Update the bug id locally.
       const annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
       annotation.g_anomaly.bug_id = bugId;
+      annotation.g_anomaly.project_id = projectId;
       this.$.tooltip.bugId = bugId;
+      this.$.tooltip.projectId = projectId;
       if (!bugId) {
         this.$.tooltip.alerts = this.$.tooltip.triagedAlerts;
         this.$.tooltip.triagedAlerts = null;
