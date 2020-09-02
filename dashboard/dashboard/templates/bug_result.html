@@ -161,8 +161,8 @@ This template contains HTML for the following things:
     {% elif bug_associate_form %}
       <form action="/associate_alerts" method="POST">
         <input type="hidden" name="keys" value="{{keys}}">
-        <input type="hidden" name="bug_id">
-        <input type="hidden" name="project_id">
+        <input type="hidden" name="bug_id" id="bug_id">
+        <input type="hidden" name="project_id" id="project_id">
         <input type="text" name="project_and_bug" id="project_and_bug"
                required placeholder="Bug ID" pattern=".*:?[0-9]+"
                oninput="splitProjectAndBug()">
