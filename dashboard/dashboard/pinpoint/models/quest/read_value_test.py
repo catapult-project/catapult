@@ -13,6 +13,7 @@ import sys
 import unittest
 
 from dashboard.pinpoint.models.quest import read_value
+from tracing.proto import histogram_proto
 from tracing.value import histogram_set
 from tracing.value import histogram as histogram_module
 from tracing.value.diagnostics import generic_set
@@ -137,6 +138,12 @@ class _ReadValueExecutionTest(unittest.TestCase):
     self._retrieve.side_effect = (
         '{"files": {"chartjson-output.json": {"h": "output json hash"}}}',
         json.dumps(contents),
+    )
+
+  def SetOutputFileContentsProto(self, contents):
+    self._retrieve.side_effect = (
+        '{"files": {"chartjson-output.json": {"h": "output json hash"}}}',
+        contents,
     )
 
   def SetOutputFileContentsRaw(self, contents):
@@ -709,6 +716,35 @@ class ReadValueTest(_ReadValueExecutionTest):
         results_filename='chartjson-output.json',
         metric='chart',
         trace_or_story='story')
+    execution = quest.Start(None, 'server', 'output hash')
+    execution.Poll()
+    self.assertReadValueError(execution, 'ReadValueNotFound')
+
+  def testReadHistogramsProtoValue(self):
+    hist_set = histogram_proto.Pb2().HistogramSet()
+    hist = hist_set.histograms.add()
+    hist.name = 'hist'
+    hist.unit.unit = histogram_proto.Pb2().COUNT
+    hist.all_bins[0].bin_count = 1
+    map1 = hist.all_bins[0].diagnostic_maps.add().diagnostic_map
+    map1['test'].generic_set.values.append('metric')
+
+    self.SetOutputFileContentsProto(hist_set.SerializeToString())
+    quest = read_value.ReadValue(
+        results_filename='chartjson-output.json',
+        metric='metric',
+        grouping_label='test')
+    execution = quest.Start(None, 'server', 'output hash')
+    execution.Poll()
+    self.assertReadValueSuccess(execution)
+
+  def testReadHistogramsProtoValueEmptyHistogramSet(self):
+    hist_set = histogram_proto.Pb2().HistogramSet()
+    self.SetOutputFileContentsProto(hist_set.SerializeToString())
+    quest = read_value.ReadValue(
+        results_filename='chartjson-output.json',
+        metric='metric',
+        grouping_label='test')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
     self.assertReadValueError(execution, 'ReadValueNotFound')

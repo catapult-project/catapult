@@ -120,15 +120,23 @@ class ReadValueExecution(execution.Execution):
     } for trace_url in self._trace_urls]
 
   def _Poll(self):
-    json_data = RetrieveOutputJson(self._isolate_server, self._isolate_hash,
-                                   self._results_filename)
+    isolate_output = RetrieveIsolateOutput(self._isolate_server,
+                                           self._isolate_hash,
+                                           self._results_filename)
 
     result_values = []
     histogram_exception = None
     graph_json_exception = None
+    json_data = None
+    proto_data = None
+    try:
+      json_data = json.loads(isolate_output)
+    except ValueError:
+      proto_data = isolate_output
+
     try:
       logging.debug('Attempting to parse as a HistogramSet.')
-      result_values = self._ParseHistograms(json_data)
+      result_values = self._ParseHistograms(json_data, proto_data)
       self._mode = 'histograms'
       logging.debug('Succeess.')
     except (errors.ReadValueNotFound, errors.ReadValueNoValues,
@@ -157,10 +165,13 @@ class ReadValueExecution(execution.Execution):
 
     self._Complete(result_values=tuple(result_values))
 
-  def _ParseHistograms(self, json_data):
+  def _ParseHistograms(self, json_data, proto_data):
     histograms = histogram_set.HistogramSet()
     try:
-      histograms.ImportDicts(json_data)
+      if json_data is not None:
+        histograms.ImportDicts(json_data)
+      elif proto_data is not None:
+        histograms.ImportProto(proto_data)
     except BaseException:
       raise errors.ReadValueUnknownFormat(self._results_filename)
 
@@ -262,9 +273,9 @@ def IsWindows(arguments):
   return False
 
 
-def RetrieveOutputJson(isolate_server, isolate_hash, filename):
-  logging.debug('Retrieving json output (%s, %s, %s)', isolate_server,
-                isolate_hash, filename)
+def RetrieveIsolateOutput(isolate_server, isolate_hash, filename):
+  logging.debug('Retrieving output (%s, %s, %s)', isolate_server, isolate_hash,
+                filename)
 
   retrieve_result = isolate.Retrieve(isolate_server, isolate_hash)
   response = json.loads(retrieve_result)
@@ -279,16 +290,19 @@ def RetrieveOutputJson(isolate_server, isolate_hash, filename):
     if filename not in output_files:
       raise errors.ReadValueNoFile(filename)
 
-  output_json_isolate_hash = output_files[filename]['h']
-  logging.debug('Retrieving %s', output_json_isolate_hash)
+  output_isolate_hash = output_files[filename]['h']
+  logging.debug('Retrieving %s', output_isolate_hash)
+
+  return isolate.Retrieve(isolate_server, output_isolate_hash)
+
+
+def RetrieveOutputJson(isolate_server, isolate_hash, filename):
+  isolate_output = RetrieveIsolateOutput(isolate_server, isolate_hash, filename)
 
   # TODO(dberris): Use incremental json parsing through a file interface, to
   # avoid having to load the whole string contents in memory. See
   # https://crbug.com/998517 for more context.
-  response = json.loads(
-      isolate.Retrieve(isolate_server, output_json_isolate_hash))
-
-  return response
+  return json.loads(isolate_output)
 
 
 def ExtractValuesFromHistograms(test_paths_to_match, histograms_by_path,
