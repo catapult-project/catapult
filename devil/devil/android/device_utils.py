@@ -278,6 +278,8 @@ _WEBVIEW_SYSUPDATE_MIN_VERSION_CODE = re.compile(
 
 _GOOGLE_FEATURES_RE = re.compile(r'^\s*com\.google\.')
 
+_EMULATOR_RE = re.compile(r'^generic_.*$')
+
 PS_COLUMNS = ('name', 'pid', 'ppid')
 ProcessInfo = collections.namedtuple('ProcessInfo', PS_COLUMNS)
 
@@ -2722,6 +2724,10 @@ class DeviceUtils(object):
       # It might be an emulator, try the qemu prop.
       density = self.GetProp('qemu.sf.lcd_density', cache=True)
     return int(density)
+
+  @property
+  def is_emulator(self):
+    return _EMULATOR_RE.match(self.GetProp('ro.product.device', cache=True))
 
   @property
   def build_description(self):
