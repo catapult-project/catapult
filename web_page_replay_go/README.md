@@ -29,12 +29,11 @@ mkdir -p $HOME/go/src/github.com/catapult-project
 ln -s $CATAPULT $HOME/go/src/github.com/catapult-project/catapult
 ```
 
-If you take this second approach, you will need to manually fetch the required
-packages:
+If you take this second approach, you will also need to set up Go to handle
+dependencies for you (if you haven't already):
 
 ```
-go get github.com/urfave/cli
-go get golang.org/x/net/http2
+go mod init github.com/catapult-project
 ```
 
 ## Sample usage
@@ -45,7 +44,8 @@ go get golang.org/x/net/http2
   Start wpr in record mode.
 
   ```
-  go run src/wpr.go record --http_port=8080 --https_port=8081 /tmp/archive.wprgo
+  cd path/to/web_page_replay_go/src
+  go run wpr.go record --http_port=8080 --https_port=8081 /tmp/archive.wprgo
   ```
   ...
 
@@ -65,8 +65,8 @@ go get golang.org/x/net/http2
 
   Start wpr in replay mode.
   ```
-  cd path/to/web_page_replay_go
-  go run src/wpr.go replay --http_port=8080 --https_port=8081 /tmp/archive.wprgo
+  cd path/to/web_page_replay_go/src
+  go run wpr.go replay --http_port=8080 --https_port=8081 /tmp/archive.wprgo
   ```
 
 * Terminal 2:
@@ -111,13 +111,15 @@ supported on Linux and Android.
 Installing the test CA. Specify a `--android_device_id` if you'd like to install
 the root CA on an android device.
 ```
-go run src/wpr.go installroot
+cd path/to/web_page_replay_go/src
+go run wpr.go installroot
 ```
 Uninstall the test CA. Specify a `--android_device_id` if you'd like to remove
 the root CA from an android device.
 
 ```
-go run src/wpr.go removeroot
+cd path/to/web_page_replay_go/src
+go run wpr.go removeroot
 ```
 
 ## Other use cases
@@ -126,7 +128,8 @@ go run src/wpr.go removeroot
 
 * Terminal 1:
 ```
-go run src/wpr.go replay --https_port=8081 --https_to_http_port=8082 \
+cd path/to/web_page_replay_go/src
+go run wpr.go replay --https_port=8081 --https_to_http_port=8082 \
   /tmp/archive.wprgo
 ```
 
@@ -148,7 +151,8 @@ path (`--full-path`).
 E.g.
 
 ```
-go run src/httparchive.go ls /tmp/archive.wprgo --host=example.com --full-path=/index.html
+cd path/to/web_page_replay_go/src
+go run httparchive.go ls /tmp/archive.wprgo --host=example.com --full-path=/index.html
 ```
 
 ## Running unit tests
