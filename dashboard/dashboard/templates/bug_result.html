@@ -161,11 +161,15 @@ This template contains HTML for the following things:
     {% elif bug_associate_form %}
       <form action="/associate_alerts" method="POST">
         <input type="hidden" name="keys" value="{{keys}}">
-        <input type="hidden" name="bug_id" id="bug_id">
-        <input type="hidden" name="project_id" id="project_id">
-        <input type="text" name="project_and_bug" id="project_and_bug"
-               required placeholder="Bug ID" pattern=".*:?[0-9]+"
-               oninput="splitProjectAndBug()">
+        <select name="project_id" id="project_id">
+          {% for project in projects %}
+            <option {% if project == 'chromium' %}selected{% endif %}>
+              {{project}}
+            </option>
+          {% endfor %}
+        </select>
+        <input type="text" name="bug_id" id="bug_id"
+               required placeholder="Bug ID" pattern="[0-9]+">
         <br><br>
         <input type="submit">
       </form>
@@ -202,28 +206,14 @@ This template contains HTML for the following things:
         </table>
       </div>
       <script>
-        function splitProjectAndBug() {
-          var project_and_bug = document.getElementById('project_and_bug').value;
-          if (project_and_bug.includes(':')) {
-            var res = project_and_bug.split(":");
-            document.getElementById('project_id').value = res[0];
-            document.getElementById('bug_id').value = res[res.length - 1];
-          }
-          else {
-            document.getElementById('project_id').value = 'chromium';
-            document.getElementById('bug_id').value = project_and_bug;
-          }
-        }
         function init() {
           var bugLinks = document.getElementsByClassName('bug-link');
           for (var i = 0; i < bugLinks.length; i++) {
             bugLinks[i].addEventListener('click', function(e) {
               var bugId = e.target.getAttribute('data-bugid');
               var projectId = e.target.getAttribute('data-projectid');
-              projectAndBug = projectId + ':' + bugId;
               document.getElementById('bug_id').value = bugId;
               document.getElementById('project_id').value = projectId;
-              document.getElementById('project_and_bug').value = projectAndBug;
               e.preventDefault();
             }, true);
           }
@@ -239,6 +229,15 @@ This template contains HTML for the following things:
       <br><br>
       <b>Description:</b><br>
       <textarea rows=10 cols=60 name="description">{{description}}</textarea>
+      <br><br>
+      <b>Monorail project</b><br>
+      <select name="project_id" id="project_id">
+        {% for project in projects %}
+          <option {% if project == 'chromium' %}selected{% endif %}>
+            {{project}}
+          </option>
+        {% endfor %}
+      </select>
       <br><br>
       <b>Labels:</b><br>
       {% for label in labels %}

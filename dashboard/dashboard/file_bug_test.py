@@ -137,6 +137,7 @@ class FileBugTest(testing_common.TestCase):
     cc = 'you@chromium.org'
     summary = 'test'
     description = 'Test test.'
+    project_id = None
     labels = []
     components = []
     test_path = 'ChromiumPerf/linux/scrolling/first_paint'
@@ -145,7 +146,8 @@ class FileBugTest(testing_common.TestCase):
     keys = [self._AddAnomaly(10, 20, test_key, subscription).urlsafe()]
     bisect = False
     result = file_bug.file_bug.FileBug(http, owner, cc, summary, description,
-                                       labels, components, keys, bisect)
+                                       project_id, labels, components, keys,
+                                       bisect)
     self.assertNotIn('bisect_error', result)
     self.assertNotIn('jobId', result)
 
@@ -158,6 +160,7 @@ class FileBugTest(testing_common.TestCase):
     cc = 'you@chromium.org,me@chromium.org,other@chromium.org,,'
     summary = 'test'
     description = 'Test test.'
+    project_id = None
     labels = []
     components = []
     test_path = 'ChromiumPerf/linux/scrolling/first_paint'
@@ -166,7 +169,8 @@ class FileBugTest(testing_common.TestCase):
     keys = [self._AddAnomaly(10, 20, test_key, subscription).urlsafe()]
     bisect = False
     result = file_bug.file_bug.FileBug(http, owner, cc, summary, description,
-                                       labels, components, keys, bisect)
+                                       project_id, labels, components, keys,
+                                       bisect)
     self.assertNotIn('bisect_error', result)
     self.assertNotIn('jobId', result)
 

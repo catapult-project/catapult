@@ -81,11 +81,13 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
       this_range = _RevisionRangeFromSummary(bug['summary'])
       bug['relevant'] = all(_RangesOverlap(this_range, r) for r in ranges)
 
-    self.RenderHtml('bug_result.html', {
-        'bug_associate_form': True,
-        'keys': urlsafe_keys,
-        'bugs': bugs
-    })
+    self.RenderHtml(
+        'bug_result.html', {
+            'bug_associate_form': True,
+            'keys': urlsafe_keys,
+            'bugs': bugs,
+            'projects': utils.MONORAIL_PROJECTS
+        })
 
   def _FetchBugs(self):
     http = oauth2_decorator.DECORATOR.http()
