@@ -557,22 +557,14 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    try:
-      if self.build_type == 'eng':
-        # 'eng' builds have root enabled by default and the adb session cannot
-        # be unrooted.
-        return True
-      # Devices using the system-as-root partition layout appear to not have
-      # a /root directory. See http://bit.ly/37F34sx for more context.
-      if (self.build_system_root_image == 'true'
-          or self.build_version_sdk >= version_codes.Q
-          # This may be redundant with the checks above.
-          or self.product_name in _SPECIAL_ROOT_DEVICE_LIST):
-        return self.GetProp('service.adb.root') == '1'
-      self.RunShellCommand(['ls', '/root'], check_return=True)
+    if self.build_type == 'eng':
+      # 'eng' builds have root enabled by default and the adb session cannot
+      # be unrooted.
       return True
-    except device_errors.AdbCommandFailedError:
-      return False
+    # Check if uid is 0. Such behavior has remained unchanged since
+    # android 2.2.3 (https://bit.ly/2QQzg67)
+    output = self.RunShellCommand(['id'], single_line=True)
+    return output.startswith('uid=0(root)')
 
   def NeedsSU(self, timeout=DEFAULT, retries=DEFAULT):
     """Checks whether 'su' is needed to access protected resources.
@@ -1499,9 +1491,14 @@ class DeviceUtils(object):
     if run_as:
       cmd = 'run-as %s sh -c %s' % (cmd_helper.SingleQuote(run_as),
                                     cmd_helper.SingleQuote(cmd))
-    if (as_root is _FORCE_SU) or (as_root and self.NeedsSU()):
-      # "su -c sh -c" allows using shell features in |cmd|
-      cmd = self._Su('sh -c %s' % cmd_helper.SingleQuote(cmd))
+    if as_root:
+      # Explicitly check the root status as the device may have lost it after
+      # reboot.
+      if not self.HasRoot():
+        self.EnableRoot()
+      if (as_root is _FORCE_SU) or self.NeedsSU():
+        # "su -c sh -c" allows using shell features in |cmd|
+        cmd = self._Su('sh -c %s' % cmd_helper.SingleQuote(cmd))
 
     output = handle_large_output(cmd, large_output)
 

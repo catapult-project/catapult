@@ -332,118 +332,20 @@ class DeviceUtilsIsOnlineTest(DeviceUtilsTest):
 
 class DeviceUtilsHasRootTest(DeviceUtilsTest):
   def testHasRoot_true(self):
-    with self.patch_call(
-        self.call.device.build_type,
-        return_value='userdebug'), (self.patch_call(
-            self.call.device.build_system_root_image,
-            return_value='')), (self.patch_call(
-                self.call.device.build_version_sdk,
-                return_value=version_codes.PIE)), (self.patch_call(
-                    self.call.device.product_name,
-                    return_value='notasailfish')), (self.assertCall(
-                        self.call.adb.Shell('ls /root'), 'foo\n')):
+    with self.patch_call(self.call.device.build_type,
+                         return_value='userdebug'), (self.assertCall(
+                             self.call.adb.Shell('id'), 'uid=0(root)\n')):
       self.assertTrue(self.device.HasRoot())
 
-  def testhasRootSpecial_true(self):
-    with self.patch_call(
-        self.call.device.build_type,
-        return_value='userdebug'), (self.patch_call(
-            self.call.device.build_system_root_image,
-            return_value='')), (self.patch_call(
-                self.call.device.build_version_sdk,
-                return_value=version_codes.PIE)), (self.patch_call(
-                    self.call.device.product_name,
-                    return_value='sailfish')), (self.assertCall(
-                        self.call.adb.Shell('getprop service.adb.root'),
-                        '1\n')):
-      self.assertTrue(self.device.HasRoot())
-
-  def testhasRootSpecialAosp_true(self):
-    with self.patch_call(
-        self.call.device.build_type,
-        return_value='userdebug'), (self.patch_call(
-            self.call.device.build_system_root_image,
-            return_value='')), (self.patch_call(
-                self.call.device.build_version_sdk,
-                return_value=version_codes.PIE)), (self.patch_call(
-                    self.call.device.product_name,
-                    return_value='aosp_sailfish')), (self.assertCall(
-                        self.call.adb.Shell('getprop service.adb.root'),
-                        '1\n')):
-      self.assertTrue(self.device.HasRoot())
-
-  def testhasRootEngBuild_true(self):
+  def testHasRootEngBuild_true(self):
     with self.patch_call(self.call.device.build_type, return_value='eng'):
       self.assertTrue(self.device.HasRoot())
 
   def testHasRoot_false(self):
-    with self.patch_call(
-        self.call.device.build_type,
-        return_value='userdebug'), (self.patch_call(
-            self.call.device.build_system_root_image,
-            return_value='')), (self.patch_call(
-                self.call.device.build_version_sdk,
-                return_value=version_codes.PIE)), (self.patch_call(
-                    self.call.device.product_name,
-                    return_value='notasailfish')), (self.assertCall(
-                        self.call.adb.Shell('ls /root'), self.ShellError())):
+    with self.patch_call(self.call.device.build_type,
+                         return_value='userdebug'), (self.assertCall(
+                             self.call.adb.Shell('id'), 'uid=2000(shell)\n')):
       self.assertFalse(self.device.HasRoot())
-
-  def testHasRootSpecial_false(self):
-    with self.patch_call(
-        self.call.device.build_type,
-        return_value='userdebug'), (self.patch_call(
-            self.call.device.build_system_root_image,
-            return_value='')), (self.patch_call(
-                self.call.device.build_version_sdk,
-                return_value=version_codes.PIE)), (self.patch_call(
-                    self.call.device.product_name,
-                    return_value='sailfish')), (self.assertCall(
-                        self.call.adb.Shell('getprop service.adb.root'), '\n')):
-      self.assertFalse(self.device.HasRoot())
-
-  def testHasRootSpecialAosp_false(self):
-    with self.patch_call(
-        self.call.device.build_type,
-        return_value='userdebug'), (self.patch_call(
-            self.call.device.build_system_root_image,
-            return_value='')), (self.patch_call(
-                self.call.device.build_version_sdk,
-                return_value=version_codes.PIE)), (self.patch_call(
-                    self.call.device.product_name,
-                    return_value='aosp_sailfish')), (self.assertCall(
-                        self.call.adb.Shell('getprop service.adb.root'), '\n')):
-      self.assertFalse(self.device.HasRoot())
-
-  def testHasRootSystemRootImage(self):
-    with self.patch_call(
-        self.call.device.build_type,
-        return_value='userdebug'), (self.patch_call(
-            self.call.device.build_system_root_image,
-            return_value='true')), (self.patch_call(
-                self.call.device.build_version_sdk,
-                return_value=version_codes.PIE)), (self.patch_call(
-                    self.call.device.product_name,
-                    return_value='notasailfish')), (self.assertCall(
-                        self.call.adb.Shell('getprop service.adb.root'),
-                        '1\n')):
-      self.assertTrue(self.device.HasRoot())
-
-  def testHasRoot10(self):
-    # All devices on Android 10 / Q and above should use the system-as-root
-    # partition layout, though they may not have the property set.
-    with self.patch_call(
-        self.call.device.build_type,
-        return_value='userdebug'), (self.patch_call(
-            self.call.device.build_system_root_image,
-            return_value='')), (self.patch_call(
-                self.call.device.build_version_sdk,
-                return_value=version_codes.Q)), (self.patch_call(
-                    self.call.device.product_name,
-                    return_value='notasailfish')), (self.assertCall(
-                        self.call.adb.Shell('getprop service.adb.root'),
-                        '1\n')):
-      self.assertTrue(self.device.HasRoot())
 
 
 class DeviceUtilsEnableRootTest(DeviceUtilsTest):
@@ -1417,6 +1319,7 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
     expected_cmd_without_su = """sh -c 'echo '"'"'%s'"'"''""" % payload
     expected_cmd = 'su -c %s' % expected_cmd_without_su
     with self.assertCalls(
+        (self.call.device.HasRoot(), True),
         (self.call.device.NeedsSU(), True),
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(
@@ -1433,6 +1336,20 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
     expected_cmd_without_su = "sh -c 'setprop service.adb.root 0'"
     expected_cmd = 'su -c %s' % expected_cmd_without_su
     with self.assertCalls(
+        (self.call.device.HasRoot(), True),
+        (self.call.device.NeedsSU(), True),
+        (self.call.device._Su(expected_cmd_without_su), expected_cmd),
+        (self.call.adb.Shell(expected_cmd), '')):
+      self.device.RunShellCommand(['setprop', 'service.adb.root', '0'],
+                                  check_return=True,
+                                  as_root=True)
+
+  def testRunShellCommand_withSuAndNotRoot(self):
+    expected_cmd_without_su = "sh -c 'setprop service.adb.root 0'"
+    expected_cmd = 'su -c %s' % expected_cmd_without_su
+    with self.assertCalls(
+        (self.call.device.HasRoot(), False),
+        (self.call.device.EnableRoot(), True),
         (self.call.device.NeedsSU(), True),
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),
         (self.call.adb.Shell(expected_cmd), '')):
@@ -1457,6 +1374,7 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
         'sh -c %s' % cmd_helper.SingleQuote(expected_cmd_with_run_as))
     expected_cmd = 'su -c %s' % expected_cmd_without_su
     with self.assertCalls(
+        (self.call.device.HasRoot(), True),
         (self.call.device.NeedsSU(), True),
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),
         (self.call.adb.Shell(expected_cmd), '')):
@@ -1675,7 +1593,8 @@ class DeviceUtilsKillAllTest(DeviceUtilsTest):
   def testKillAll_root(self):
     with self.assertCalls(
         (self.call.device.ListProcesses('some.process'),
-         Processes(('some.process', 1234))), (self.call.device.NeedsSU(), True),
+         Processes(('some.process', 1234))), (self.call.device.HasRoot(), True),
+        (self.call.device.NeedsSU(), True),
         (self.call.device._Su("sh -c 'kill -9 1234'"),
          "su -c sh -c 'kill -9 1234'"),
         (self.call.adb.Shell("su -c sh -c 'kill -9 1234'"), '')):
@@ -2542,6 +2461,7 @@ class DeviceUtilsWriteFileTest(DeviceUtilsTest):
     expected_cmd_without_su = "sh -c 'echo -n contents > /test/file'"
     expected_cmd = 'su -c %s' % expected_cmd_without_su
     with self.assertCalls(
+        (self.call.device.HasRoot(), True),
         (self.call.device.NeedsSU(), True),
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),
         (self.call.adb.Shell(expected_cmd), '')):
@@ -3049,32 +2969,38 @@ class DeviceUtilsGetSetEnforce(DeviceUtilsTest):
       self.assertEqual(None, self.device.GetEnforce())
 
   def testSetEnforce_Enforcing(self):
-    with self.assertCalls((self.call.device.NeedsSU(), False),
+    with self.assertCalls((self.call.device.HasRoot(), True),
+                          (self.call.device.NeedsSU(), False),
                           (self.call.adb.Shell('setenforce 1'), '')):
       self.device.SetEnforce(enabled=True)
 
   def testSetEnforce_Permissive(self):
-    with self.assertCalls((self.call.device.NeedsSU(), False),
+    with self.assertCalls((self.call.device.HasRoot(), True),
+                          (self.call.device.NeedsSU(), False),
                           (self.call.adb.Shell('setenforce 0'), '')):
       self.device.SetEnforce(enabled=False)
 
   def testSetEnforce_EnforcingWithInt(self):
-    with self.assertCalls((self.call.device.NeedsSU(), False),
+    with self.assertCalls((self.call.device.HasRoot(), True),
+                          (self.call.device.NeedsSU(), False),
                           (self.call.adb.Shell('setenforce 1'), '')):
       self.device.SetEnforce(enabled=1)
 
   def testSetEnforce_PermissiveWithInt(self):
-    with self.assertCalls((self.call.device.NeedsSU(), False),
+    with self.assertCalls((self.call.device.HasRoot(), True),
+                          (self.call.device.NeedsSU(), False),
                           (self.call.adb.Shell('setenforce 0'), '')):
       self.device.SetEnforce(enabled=0)
 
   def testSetEnforce_EnforcingWithStr(self):
-    with self.assertCalls((self.call.device.NeedsSU(), False),
+    with self.assertCalls((self.call.device.HasRoot(), True),
+                          (self.call.device.NeedsSU(), False),
                           (self.call.adb.Shell('setenforce 1'), '')):
       self.device.SetEnforce(enabled='1')
 
   def testSetEnforce_PermissiveWithStr(self):
-    with self.assertCalls((self.call.device.NeedsSU(), False),
+    with self.assertCalls((self.call.device.HasRoot(), True),
+                          (self.call.device.NeedsSU(), False),
                           (self.call.adb.Shell('setenforce 0'), '')):
       self.device.SetEnforce(enabled='0')  # Not recommended but it works!
 
