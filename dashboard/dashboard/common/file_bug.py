@@ -339,7 +339,7 @@ def FileBug(http,
   dashboard_issue_tracker_service = issue_tracker_service.IssueTrackerService(
       utils.ServiceAccountHttp())
   dashboard_issue_tracker_service.AddBugComment(bug_id, comment_body)
-  template_params = {'bug_id': bug_id}
+  template_params = {'bug_id': bug_id, 'project_id': project_id}
   if all(k.kind() == 'Anomaly' for k in alert_keys):
     logging.info('Kicking bisect for bug ' + str(bug_id))
     culprit_rev = _GetSingleCLForAnomalies(alerts)

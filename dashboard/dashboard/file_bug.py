@@ -100,7 +100,8 @@ class FileBugHandler(request_handler.RequestHandler):
     """Creates a bug, associates it with the alerts, sends a HTML response.
 
     Args:
-      owner: string, must end with @chromium.org if not empty.
+      owner: The owner of the bug, must end with @{project_id}.org or
+        @google.com if not empty.
       cc: CSV of email addresses to CC on the bug.
       summary: The new bug summary string.
       description: The new bug description string.
@@ -109,11 +110,17 @@ class FileBugHandler(request_handler.RequestHandler):
       components: List of component strings for the new bug.
       urlsafe_keys: Comma-separated alert keys in urlsafe format.
     """
-    # Only project members (@chromium.org accounts) can be owners of bugs.
-    if owner and not owner.endswith('@chromium.org'):
+    # Only project members (@{project_id}.org or @google.com accounts)
+    # can be owners of bugs.
+    project_domain = '@%s.org' % project_id
+    if owner and not owner.endswith(project_domain) and not owner.endswith(
+        '@google.com'):
       self.RenderHtml(
-          'bug_result.html',
-          {'error': 'Owner email address must end with @chromium.org.'})
+          'bug_result.html', {
+              'error':
+                  'Owner email address must end with %s or @google.com.' %
+                  project_domain
+          })
       return
 
     http = oauth2_decorator.DECORATOR.http()
