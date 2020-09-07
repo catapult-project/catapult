@@ -2,13 +2,14 @@ PROTOC=protoc
 
 PY_PROTOS=sheriff_pb2.py sheriff_config_pb2.py
 
+
+all: $(PY_PROTOS) ../../tracing/tracing/proto/histogram_pb2.py
+
 # We now depend on the tracing proto being defined.
 ../../tracing/tracing/proto/histogram_pb2.py:
 	$(MAKE) -C ../../tracing/tracing/proto histogram_pb2.py
 
-.PHONY: clean
-
-all: $(PY_PROTOS) ../../tracing/tracing/proto/histogram_pb2.py
+.PHONY: clean ../../tracing/tracing/proto/histogram_pb2.py
 
 %_pb2.py: proto/%.proto
 	$(PROTOC) -Iproto -I. --python_out=. $<
