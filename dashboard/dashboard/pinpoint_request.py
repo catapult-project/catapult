@@ -25,7 +25,7 @@ from dashboard.services import pinpoint_service
 _NON_CHROME_TARGETS = ['v8']
 _SUITE_CRREV_CONFIGS = {
     'v8': ['chromium', 'v8/v8'],
-    'webrtc_perf_tests': ['webrtc', 'webrtc/src'],
+    'webrtc_perf_tests': ['webrtc', 'src'],
 }
 
 
