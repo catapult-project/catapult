@@ -132,6 +132,7 @@ _PERMISSIONS_DENYLIST_RE = re.compile('|'.join(
         'android.permission.MANAGE_ACCOUNTS',
         'android.permission.MODIFY_AUDIO_SETTINGS',
         'android.permission.NFC',
+        'android.permission.QUERY_ALL_PACKAGES',
         'android.permission.READ_SYNC_SETTINGS',
         'android.permission.READ_SYNC_STATS',
         'android.permission.RECEIVE_BOOT_COMPLETED',
