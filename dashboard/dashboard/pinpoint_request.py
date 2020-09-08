@@ -25,6 +25,7 @@ from dashboard.services import pinpoint_service
 _NON_CHROME_TARGETS = ['v8']
 _SUITE_CRREV_CONFIGS = {
     'v8': ['chromium', 'v8/v8'],
+    'webrtc_perf_tests': ['webrtc', 'webrtc/src'],
 }
 
 
@@ -150,6 +151,10 @@ def GetIsolateTarget(bot_name, suite):
   # ChromeVR
   if suite.startswith('xr.'):
     return 'vr_perf_tests'
+
+  # WebRTC perf tests
+  if suite == 'webrtc_perf_tests':
+    return 'webrtc_perf_tests'
 
   # This is a special-case for webview, which we probably don't need to handle
   # in the Dashboard (instead should just support in Pinpoint through
