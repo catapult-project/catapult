@@ -314,7 +314,11 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         try:
           # Use a long timeout to handle slow Windows debug
           # (see crbug.com/815004)
-          py_utils.WaitFor(lambda: not self.IsBrowserRunning(), timeout=15)
+          # Allow specifying a custom shutdown timeout via the
+          # 'CHROME_SHUTDOWN_TIMEOUT' environment variable.
+          py_utils.WaitFor(lambda: not self.IsBrowserRunning(),
+                           timeout=int(os.getenv('CHROME_SHUTDOWN_TIMEOUT', 15))
+                          )
           logging.info('Successfully shut down browser cooperatively')
         except py_utils.TimeoutException as e:
           logging.warning('Failed to cooperatively shutdown. ' +
