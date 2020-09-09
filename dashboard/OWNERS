@@ -4,3 +4,7 @@ fancl@chromium.org
 
 # COMPONENT: Speed>Dashboard
 # TEAM: speed-services-dev@chromium.org
+
+# For WebRTC related changes:
+mbonadei@chromium.org
+jleconte@google.com
