@@ -26,18 +26,14 @@ group("vinn") {
   }
 
   if (is_chromeos) {
-    data += [ "third_party/v8/linux/arm/" ]
+    data += [
+        "third_party/v8/linux/arm/",
+        "third_party/v8/linux/mips/",
+        "third_party/v8/linux/mips64/",
+    ]
   }
 
-  if (is_chromeos) {
-    data += [ "third_party/v8/linux/mips/" ]
-  }
-
-  if (is_chromeos) {
-    data += [ "third_party/v8/linux/mips64/" ]
-  }
-
-  if (is_linux || is_android) {
+  if (is_linux || is_chromeos || is_android) {
     data += [ "third_party/v8/linux/x86_64/" ]
   }
 }
