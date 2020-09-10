@@ -18,14 +18,12 @@ _BASE_ARGUMENTS = {
     'benchmark': 'some_benchmark',
     'builder': 'builder name',
     'target': 'foo_test',
-    'story': 'foo_story_bob',
 }
 _BASE_EXTRA_ARGS = [
     '--test_artifacts_dir=${ISOLATED_OUTDIR}',
     '--nologs',
     '--isolated-script-test-perf-output='
     '${ISOLATED_OUTDIR}/webrtc_perf_tests/perf_results.json',
-    '--gtest_filter=*.Foo_Story',
 ]
 _WEBRTCTEST_COMMAND = [
     '../../tools_webrtc/flags_compatibility.py', '../../testing/test_env.py',
@@ -41,6 +39,32 @@ class FromDictTest(unittest.TestCase):
     expected = run_webrtc_test.RunWebRtcTest('server', run_test_test.DIMENSIONS,
                                              _BASE_EXTRA_ARGS,
                                              _BASE_SWARMING_TAGS,
+                                             _WEBRTCTEST_COMMAND,
+                                             'out/builder_name')
+    self.assertEqual(quest.command, expected.command)
+    self.assertEqual(quest.relative_cwd, expected.relative_cwd)
+    self.assertEqual(quest, expected)
+
+  def testGtestFilterEndingWithBob(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['story'] = 'foo_story_bob'
+    extra_args = _BASE_EXTRA_ARGS + ['--gtest_filter=*.Foo_Story*']
+    quest = run_webrtc_test.RunWebRtcTest.FromDict(arguments)
+    expected = run_webrtc_test.RunWebRtcTest('server', run_test_test.DIMENSIONS,
+                                             extra_args, _BASE_SWARMING_TAGS,
+                                             _WEBRTCTEST_COMMAND,
+                                             'out/builder_name')
+    self.assertEqual(quest.command, expected.command)
+    self.assertEqual(quest.relative_cwd, expected.relative_cwd)
+    self.assertEqual(quest, expected)
+
+  def testGtestFilterRampUp(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['story'] = 'rampdown'
+    extra_args = _BASE_EXTRA_ARGS + ['--gtest_filter=RampUpTest.*']
+    quest = run_webrtc_test.RunWebRtcTest.FromDict(arguments)
+    expected = run_webrtc_test.RunWebRtcTest('server', run_test_test.DIMENSIONS,
+                                             extra_args, _BASE_SWARMING_TAGS,
                                              _WEBRTCTEST_COMMAND,
                                              'out/builder_name')
     self.assertEqual(quest.command, expected.command)

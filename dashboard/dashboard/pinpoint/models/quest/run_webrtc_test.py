@@ -11,13 +11,44 @@ import os
 from dashboard.pinpoint.models.quest import run_test
 
 
-def _StoryToGtestName(story_name):
-  gtest_name = '_'.join(word.title() for word in story_name.split('_'))
+def _StoryToGtestFilter(story_name):
+  """Returns a gtest_filter to run only tests generating data for |story_name|.
+
+  WebRTC perf tests story names and gtest names are different and use different
+  formats (e.g. snake case vs camel case). This function uses some heuristics
+  to create a gtest filter that will allow PinPoint to run only the tests it
+  requires for the bisection (instead of running all the tests in the binary).
+
+  Here are the rules that compose this heuristic function:
+  - The gtest name is the story name with each word starting with a uppercase.
+  - If the story name is too long, it is sometimes truncated in the gtest
+    name but after at least 50 characters.
+  - The story in the gtest name can be followed by any set of character. This
+    can lead to running too much tests but is useful for TEST_F tests.
+  - Some tests simply don't fit in these rules (e.g. RampUpTest).
+
+  If the filter generated is wrong, PinPoint will not execute any tests, and
+  the bisection will fail to find a culprit. In that case, this function or the
+  test name needs to be updated.
+  """
   if story_name.endswith('_alice'):
-    gtest_name = gtest_name[:-len('_alice')]
+    story_name = story_name[:-len('_alice')]
+  elif story_name.endswith('_alice-video'):
+    story_name = story_name[:-len('_alice-video')]
   elif story_name.endswith('_bob'):
-    gtest_name = gtest_name[:-len('_bob')]
-  return gtest_name
+    story_name = story_name[:-len('_bob')]
+
+  if story_name in ['first_rampup', 'rampdown', 'second_rampup']:
+    return 'RampUpTest.*'
+  if story_name.startswith('real - estimated'):
+    return '*.Real_Estimated_*'
+  elif story_name.startswith('bwe_after_'):
+    return '*.Bwe_After_*'
+
+  if len(story_name) > 50:
+    story_name = story_name[:50]
+
+  return '*.%s*' % '_'.join(word.title() for word in story_name.split('_'))
 
 
 class RunWebRtcTest(run_test.RunTest):
@@ -58,7 +89,7 @@ class RunWebRtcTest(run_test.RunTest):
     # Gtests are filtered based on the story name.
     story = arguments.get('story')
     if story:
-      extra_test_args.append('--gtest_filter=*.%s' % _StoryToGtestName(story))
+      extra_test_args.append('--gtest_filter=%s' % _StoryToGtestFilter(story))
 
     extra_test_args += super(RunWebRtcTest, cls)._ExtraTestArgs(arguments)
     return extra_test_args
