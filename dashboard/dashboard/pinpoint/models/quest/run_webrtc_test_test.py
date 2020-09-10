@@ -18,12 +18,14 @@ _BASE_ARGUMENTS = {
     'benchmark': 'some_benchmark',
     'builder': 'builder name',
     'target': 'foo_test',
+    'story': 'foo_story_bob',
 }
 _BASE_EXTRA_ARGS = [
     '--test_artifacts_dir=${ISOLATED_OUTDIR}',
     '--nologs',
     '--isolated-script-test-perf-output='
     '${ISOLATED_OUTDIR}/webrtc_perf_tests/perf_results.json',
+    '--gtest_filter=*.Foo_Story',
 ]
 _WEBRTCTEST_COMMAND = [
     '../../tools_webrtc/flags_compatibility.py', '../../testing/test_env.py',

@@ -11,6 +11,15 @@ import os
 from dashboard.pinpoint.models.quest import run_test
 
 
+def _StoryToGtestName(story_name):
+  gtest_name = '_'.join(word.title() for word in story_name.split('_'))
+  if story_name.endswith('_alice'):
+    gtest_name = gtest_name[:-len('_alice')]
+  elif story_name.endswith('_bob'):
+    gtest_name = gtest_name[:-len('_bob')]
+  return gtest_name
+
+
 class RunWebRtcTest(run_test.RunTest):
 
   @classmethod
@@ -46,6 +55,11 @@ class RunWebRtcTest(run_test.RunTest):
         '--nologs',
         '--isolated-script-test-perf-output=%s' % results_filename,
     ]
+    # Gtests are filtered based on the story name.
+    story = arguments.get('story')
+    if story:
+      extra_test_args.append('--gtest_filter=*.%s' % _StoryToGtestName(story))
+
     extra_test_args += super(RunWebRtcTest, cls)._ExtraTestArgs(arguments)
     return extra_test_args
 
