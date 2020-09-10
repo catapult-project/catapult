@@ -81,7 +81,7 @@ class Token(internal_only_model.InternalOnlyModel):
     return State.COMPLETED
 
   def _LogStateChanged(self):
-    logging.info('Upload completion token updated. Id: %s, state: %s',
+    logging.info('Upload completion token updated. Token id: %s, state: %s',
                  self.key.id(), StateToString(self.state))
 
   @classmethod
@@ -156,8 +156,9 @@ class Measurement(internal_only_model.InternalOnlyModel):
     yield obj.put_async()
     token = token_key.get()
     logging.info(
-        'Upload completion token measurement updated. Measurement id: %s, '
-        'state: %s', measurement_id, StateToString(state))
+        'Upload completion token measurement updated. Token id: %s, '
+        'measurement id: %s, state: %s', parent_id, measurement_id,
+        StateToString(state))
     if token is not None:
       token._LogStateChanged()
     else:

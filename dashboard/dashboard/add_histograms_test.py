@@ -1722,22 +1722,23 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
             'Upload completion token created. Token id: %s',
             token_info['token']),
         mock.call(
-            'Upload completion token updated. Id: %s, state: %s',
+            'Upload completion token updated. Token id: %s, state: %s',
             token_info['token'], 'PROCESSING'),
         mock.call(
             'Upload completion token measurements created. Token id: %s, '
             'measurements: %r', token_info['token'], [measurement_id]),
         mock.call(
-            'Upload completion token updated. Id: %s, state: %s',
+            'Upload completion token updated. Token id: %s, state: %s',
             token_info['token'], 'PROCESSING'),
         mock.call(
-            'Upload completion token updated. Id: %s, state: %s',
+            'Upload completion token updated. Token id: %s, state: %s',
             token_info['token'], 'PROCESSING'),
         mock.call(
-            'Upload completion token measurement updated. Measurement id: %s, '
-            'state: %s', measurement_id, 'COMPLETED'),
+            'Upload completion token measurement updated. Token id: %s, '
+            'measurement id: %s, state: %s', token_info['token'],
+            measurement_id, 'COMPLETED'),
         mock.call(
-            'Upload completion token updated. Id: %s, state: %s',
+            'Upload completion token updated. Token id: %s, state: %s',
             token_info['token'], 'COMPLETED')
     ]
     mock_log.assert_has_calls(log_calls, any_order=True)
@@ -1752,7 +1753,7 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     log_calls = [
         mock.call('Upload completion token created. Token id: %s',
                   token_info['token']),
-        mock.call('Upload completion token updated. Id: %s, state: %s',
+        mock.call('Upload completion token updated. Token id: %s, state: %s',
                   token_info['token'], 'FAILED'),
     ]
     mock_log.assert_has_calls(log_calls, any_order=True)
@@ -1780,20 +1781,21 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
             'Upload completion token created. Token id: %s',
             token_info['token']),
         mock.call(
-            'Upload completion token updated. Id: %s, state: %s',
+            'Upload completion token updated. Token id: %s, state: %s',
             token_info['token'], 'PROCESSING'),
         mock.call(
             'Upload completion token measurements created. Token id: %s, '
             'measurements: %r', token_info['token'], [measurement_id]),
         mock.call(
-            'Upload completion token updated. Id: %s, state: %s',
+            'Upload completion token updated. Token id: %s, state: %s',
             token_info['token'], 'PROCESSING'),
         mock.call(
-            'Upload completion token updated. Id: %s, state: %s',
+            'Upload completion token updated. Token id: %s, state: %s',
             token_info['token'], 'PROCESSING'),
         mock.call(
-            'Upload completion token measurement updated. Measurement id: %s, '
-            'state: %s', measurement_id, 'COMPLETED'),
+            'Upload completion token measurement updated. Token id: %s, '
+            'measurement id: %s, state: %s', token_info['token'],
+            measurement_id, 'COMPLETED'),
         mock.call(
             'Upload completion token of the measurement is expried. Token '
             'id: %s', token_info['token'])
