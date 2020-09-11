@@ -48,7 +48,7 @@ def _StoryToGtestFilter(story_name):
   if len(story_name) > 50:
     story_name = story_name[:50]
 
-  return '*.%s*' % '_'.join(word.title() for word in story_name.split('_'))
+  return '*.%s*' % '_'.join(w.capitalize() for w in story_name.split('_'))
 
 
 class RunWebRtcTest(run_test.RunTest):
