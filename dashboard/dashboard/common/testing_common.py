@@ -383,10 +383,15 @@ class FakeIssueTrackerService(object):
                 'id', self._bug_id_counter), ('projectId', 'chromium')])
         }
     }
+    self.issue_comments = {('chromium', self._bug_id_counter): []}
 
   @property
   def issue(self):
     return self.issues.get(('chromium', self.bug_id))
+
+  @property
+  def comments(self):
+    return self.issue_comments.get(('chromium', self.bug_id))
 
   def NewBug(self, *args, **kwargs):
     self.new_bug_args = args
@@ -433,6 +438,9 @@ class FakeIssueTrackerService(object):
 
   def GetIssue(self, issue_id, project='chromium'):
     return self.issues.get((project, issue_id))
+
+  def GetIssueComments(self, issue_id, project='chromium'):
+    return self.issue_comments.get((project, issue_id), [])
 
 
 class FakeSheriffConfigClient(object):

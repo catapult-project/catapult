@@ -21,6 +21,8 @@ from dashboard.models import alert_group_workflow
 from dashboard.models import anomaly
 from dashboard.models import subscription
 
+_SERVICE_ACCOUNT_EMAIL = 'service-account@chromium.org'
+
 
 class AlertGroupWorkflowTest(testing_common.TestCase):
 
@@ -51,6 +53,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                 },
             }
         })
+    self._service_account = lambda: _SERVICE_ACCOUNT_EMAIL
 
   @staticmethod
   def _AddAnomaly(**kwargs):
@@ -192,7 +195,15 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         status=alert_group.AlertGroup.Status.closed,
     )
     self._issue_tracker.issue.update({
-        'state': 'closed',
+        'state':
+            'closed',
+        'comments': [{
+            'id': 1,
+            'author': _SERVICE_ACCOUNT_EMAIL,
+            'updates': {
+                'status': 'WontFix'
+            },
+        }],
     })
     self._sheriff_config.patterns = {
         '*': [
@@ -203,6 +214,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
+        service_account=self._service_account,
     )
     w.Process(
         update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
@@ -235,7 +247,15 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         status=alert_group.AlertGroup.Status.closed,
     )
     self._issue_tracker.issue.update({
-        'state': 'closed',
+        'state':
+            'closed',
+        'comments': [{
+            'id': 1,
+            'author': _SERVICE_ACCOUNT_EMAIL,
+            'updates': {
+                'status': 'WontFix'
+            },
+        }],
     })
     self._sheriff_config.patterns = {
         '*': [
@@ -249,6 +269,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
+        service_account=self._service_account,
     )
     w.Process(
         update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
@@ -275,7 +296,15 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         status=alert_group.AlertGroup.Status.triaged,
     )
     self._issue_tracker.issue.update({
-        'state': 'closed',
+        'state':
+            'closed',
+        'comments': [{
+            'id': 1,
+            'author': _SERVICE_ACCOUNT_EMAIL,
+            'updates': {
+                'status': 'WontFix'
+            },
+        }],
     })
     self._sheriff_config.patterns = {
         '*': [
@@ -286,6 +315,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         group.get(),
         sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
+        service_account=self._service_account,
     )
     w.Process(
         update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
@@ -295,6 +325,63 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         ))
 
     self.assertEqual(group.get().status, alert_group.AlertGroup.Status.closed)
+
+  def testAddAnomalies_GroupTriaged_IssueClosed_Manual(self):
+    anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    added = [self._AddAnomaly(), self._AddAnomaly()]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        anomalies=anomalies,
+        status=alert_group.AlertGroup.Status.closed,
+    )
+    self._issue_tracker.issue.update({
+        'state':
+            'closed',
+        'comments': [{
+            'id': 2,
+            'author': "sheriff@chromium.org",
+            'updates': {
+                'status': 'WontFix'
+            },
+        }, {
+            'id': 1,
+            'author': _SERVICE_ACCOUNT_EMAIL,
+            'updates': {
+                'status': 'WontFix'
+            },
+        }],
+    })
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        service_account=self._service_account,
+    )
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies + added),
+            issue=self._issue_tracker.issue,
+        ))
+
+    self.assertEqual(len(group.get().anomalies), 4)
+    self.assertEqual('closed', self._issue_tracker.issue.get('state'))
+    for a in added:
+      self.assertIn(a, group.get().anomalies)
+      self.assertEqual(group.get().bug.bug_id,
+                       self._issue_tracker.add_comment_args[0])
+      self.assertIn('Added 2 regressions to the group',
+                    self._issue_tracker.add_comment_args[1])
+    self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
 
   def testUpdate_GroupClosed_IssueOpen(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]

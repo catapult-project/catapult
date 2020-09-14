@@ -261,9 +261,11 @@ class IssueTrackerService(object):
     if not response:
       return None
     return [{
+        'id': r['id'],
         'author': r['author'].get('name'),
         'content': r['content'],
-        'published': r['published']
+        'published': r['published'],
+        'updates': r['updates']
     } for r in response.get('items')]
 
   def GetLastBugCommentsAndTimestamp(self, bug_id, project='chromium'):

@@ -26,12 +26,22 @@ from dashboard.models import subscription
 from dashboard.services import crrev_service
 from dashboard.services import pinpoint_service
 
+_SERVICE_ACCOUNT_EMAIL = 'service-account@chromium.org'
 
+
+@mock.patch.object(utils, 'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
 class GroupReportTestBase(testing_common.TestCase):
 
   def __init__(self, *args, **kwargs):
     super(GroupReportTestBase, self).__init__(*args, **kwargs)
     self.fake_issue_tracker = testing_common.FakeIssueTrackerService()
+    self.fake_issue_tracker.comments.append({
+        'id': 1,
+        'author': _SERVICE_ACCOUNT_EMAIL,
+        'updates': {
+            'status': 'WontFix',
+        },
+    })
     self.mock_get_sheriff_client = mock.MagicMock()
     self.fake_revision_info = testing_common.FakeRevisionInfoClient(
         infos={}, revisions={})
@@ -83,6 +93,7 @@ class GroupReportTestBase(testing_common.TestCase):
     return a.put()
 
 
+@mock.patch.object(utils, 'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
 class GroupReportTest(GroupReportTestBase):
 
@@ -408,6 +419,7 @@ class GroupReportTest(GroupReportTestBase):
                              r'Top 2 affected measurements in bot:')
 
 
+@mock.patch.object(utils, 'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
 class RecoveredAlertsTests(GroupReportTestBase):
 
@@ -489,6 +501,32 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self.assertRegexpMatches(self.fake_issue_tracker.add_comment_args[1],
                              r'test_suite/measurement/other_test_case')
 
+  def testManualClosedIssuesWithNewRegressions(self, mock_get_sheriff_client):
+    # pylint: disable=no-value-for-parameter
+    self.testClosesIssueOnAllRecovered()
+    self._SetUpMocks(mock_get_sheriff_client)
+    mock_get_sheriff_client().Match.return_value = ([
+        subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)
+    ], None)
+    self.fake_issue_tracker.comments.append({
+        'id': 2,
+        'author': "sheriff@chromium.org",
+        'updates': {
+            'status': 'WontFix',
+        },
+    })
+    # Then we add a new anomaly which should cause the issue to be reopened.
+    self._AddAnomaly(
+        start_revision=50,
+        end_revision=75,
+        test='master/bot/test_suite/measurement/other_test_case')
+    self._CallHandler()
+    logging.debug('Rendered:\n%s', self.fake_issue_tracker.add_comment_args[1])
+    self.assertEqual(self.fake_issue_tracker.issue["state"], 'closed')
+    self.assertRegexpMatches(self.fake_issue_tracker.add_comment_args[1],
+                             r'test_suite/measurement/other_test_case')
+
   def testStartAutoBisection(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     mock_get_sheriff_client().Match.return_value = ([
@@ -516,6 +554,7 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self.assertItemsEqual(group.bisection_ids, ['123456'])
 
 
+@mock.patch.object(utils, 'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
 class NonChromiumAutoTriage(GroupReportTestBase):
 
   def testFileIssue_InChromiumExplicitly(self):

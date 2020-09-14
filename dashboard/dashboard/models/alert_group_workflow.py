@@ -119,6 +119,7 @@ class AlertGroupWorkflow(object):
       crrev=None,
       gitiles=None,
       revision_info=None,
+      service_account=None,
   ):
     self._group = group
     self._config = config or self.Config(
@@ -132,6 +133,7 @@ class AlertGroupWorkflow(object):
     self._crrev = crrev or crrev_service
     self._gitiles = gitiles or gitiles_service
     self._revision_info = revision_info or revision_info_client
+    self._service_account = service_account or utils.ServiceAccountEmail
 
   def _PrepareGroupUpdate(self):
     now = datetime.datetime.utcnow()
@@ -143,6 +145,8 @@ class AlertGroupWorkflow(object):
         self._group.Status.closed
     }:
       issue = self._issue_tracker.GetIssue(
+          self._group.bug.bug_id, project=self._group.bug.project)
+      issue['comments'] = self._issue_tracker.GetIssueComments(
           self._group.bug.bug_id, project=self._group.bug.project)
     return self.GroupUpdate(now, anomalies, issue)
 
@@ -230,10 +234,20 @@ class AlertGroupWorkflow(object):
     if not new_regressions:
       return
 
-    if issue.get('state') == 'closed' and any(
-        a.auto_bisect_enable
-        for a in anomalies
-        if not a.is_improvement and not a.recovered):
+    closed_by_pinpoint = False
+    for c in sorted(
+        issue.get('comments', []), key=lambda c: c["id"], reverse=True):
+      if c.get('updates', {}).get('status') in ('WontFix', 'Fixed', 'Verified',
+                                                'Invalid', 'Duplicate', 'Done'):
+        closed_by_pinpoint = (c.get('author') == self._service_account())
+        break
+
+    has_new_regression = any(a.auto_bisect_enable
+                             for a in anomalies
+                             if not a.is_improvement and not a.recovered)
+
+    if (issue.get('state') == 'closed' and closed_by_pinpoint
+        and has_new_regression):
       self._ReopenWithNewRegressions(all_regressions, new_regressions,
                                      subscriptions)
     else:
