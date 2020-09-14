@@ -14,6 +14,7 @@ The class hierarchy for device exceptions is:
      |    +-- FastbootCommandFailedError
      |    +-- DeviceVersionError
      |    +-- DeviceChargingError
+     |    +-- RootUserBuildError
      +-- CommandTimeoutError
      +-- DeviceUnreachableError
      +-- NoDevicesError
@@ -228,3 +229,11 @@ class DeviceChargingError(CommandFailedError):
 
   def __init__(self, message, device_serial=None):
     super(DeviceChargingError, self).__init__(message, device_serial)
+
+
+class RootUserBuildError(CommandFailedError):
+  """Exception for being unable to root a device with "user" build."""
+
+  def __init__(self, message=None, device_serial=None):
+    super(RootUserBuildError, self).__init__(
+        message or 'Unable to root device with user build.', device_serial)
