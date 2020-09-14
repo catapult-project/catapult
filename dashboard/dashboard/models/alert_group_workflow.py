@@ -236,7 +236,7 @@ class AlertGroupWorkflow(object):
 
     closed_by_pinpoint = False
     for c in sorted(
-        issue.get('comments', []), key=lambda c: c["id"], reverse=True):
+        issue.get('comments') or [], key=lambda c: c["id"], reverse=True):
       if c.get('updates', {}).get('status') in ('WontFix', 'Fixed', 'Verified',
                                                 'Invalid', 'Duplicate', 'Done'):
         closed_by_pinpoint = (c.get('author') == self._service_account())
