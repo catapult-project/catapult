@@ -206,9 +206,9 @@ func (r *ReplayCommand) Flags() []cli.Flag {
 			Destination: &r.serveResponseInChronologicalSequence,
 		},
 		cli.BoolFlag{
-			Name:        "quiet_mode",
-			Usage:       "quiets the logging output by not logging the "+
-			  "ServeHTTP url call and responses",
+			Name: "quiet_mode",
+			Usage: "quiets the logging output by not logging the " +
+				"ServeHTTP url call and responses",
 			Destination: &r.quietMode,
 		})
 }

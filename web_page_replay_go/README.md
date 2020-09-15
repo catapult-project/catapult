@@ -175,6 +175,10 @@ openssl dgst -sha256 -binary | \
 base64
 ```
 
+## Debugging WPR
+The run_benchmark and record_wpr tools will build and invoke WPR from this directory if they 
+are run with the --use-local-wpr flag.
+
 ## Contribute
 Please read [contributor's guide][contribute]. We use the Catapult
 [issue tracker][tracker] for bugs and features. Once your change is reviewed

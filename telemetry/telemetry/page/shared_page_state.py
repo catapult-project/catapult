@@ -60,6 +60,8 @@ class SharedPageState(story_module.SharedState):
       self._page_test.SetOptions(self._finder_options)
 
     self._extra_wpr_args = browser_options.extra_wpr_args
+    if hasattr(finder_options, 'use_local_wpr') and finder_options.use_local_wpr:
+      self._extra_wpr_args.append('--use-local-wpr')
 
     profiling_mod = browser_interval_profiling_controller
     self._interval_profiling_controller = (

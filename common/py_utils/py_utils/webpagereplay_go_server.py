@@ -17,7 +17,6 @@ import py_utils
 from py_utils import atexit_with_log
 from py_utils import binary_manager
 
-
 _WPR_DIR = os.path.abspath(os.path.join(
     py_utils.GetCatapultDir(), 'web_page_replay_go'))
 
@@ -31,6 +30,7 @@ CHROME_BINARY_CONFIG = os.path.join(
 
 RECORD = '--record'
 INJECT_SCRIPTS = '--inject_scripts='
+USE_LOCAL_WPR = '--use-local-wpr'
 
 class ReplayError(Exception):
   """Catch-all exception for the module."""
@@ -103,8 +103,9 @@ class ReplayServer(object):
     self._temp_log_file_path = None
 
     self._downloader = binary_downloader
+    self._replay_options = replay_options
     self._cmd_line = self._GetCommandLine(
-        self._GetGoBinaryPath(), http_port, https_port,
+        self._GetGoBinaryPath(replay_options), http_port, https_port,
         replay_options, archive_path)
 
     if RECORD in replay_options or 'record' in replay_options:
@@ -126,8 +127,21 @@ class ReplayServer(object):
       self._downloader = binary_manager.BinaryManager(configs).FetchPath
     return self._downloader
 
-  def _GetGoBinaryPath(self):
+  def _GetGoBinaryPath(self, replay_options):
     """Gets the _go_binary_path if it already set, or downloads it."""
+    if USE_LOCAL_WPR in replay_options:
+      # Build WPR
+      go_folder = os.path.join(_WPR_DIR, 'src')
+      cur_cwd = os.getcwd()
+      os.chdir(go_folder)
+      try:
+        print subprocess.check_output(['go', 'build', os.path.join(go_folder, 'wpr.go')])
+      except subprocess.CalledProcessError:
+        exit(1)
+      os.chdir(cur_cwd)
+
+      return os.path.join(go_folder, 'wpr')
+
     if not ReplayServer._go_binary_path:
       downloader = self._GetDownloader()
       if not downloader:
@@ -180,7 +194,7 @@ class ReplayServer(object):
     """
     bad_options = []
     for option in options:
-      if option not in [RECORD, INJECT_SCRIPTS]:
+      if option not in [RECORD, INJECT_SCRIPTS, USE_LOCAL_WPR]:
         bad_options.append(option)
     if len(bad_options) > 0:
       raise ValueError("Invalid replay options %s" % bad_options)
@@ -365,13 +379,17 @@ class ReplayServer(object):
   def _CleanUpTempLogFilePath(self, log_level):
     if not self._temp_log_file_path:
       return ''
-    if logging.getLogger('').isEnabledFor(log_level):
+    if logging.getLogger('').isEnabledFor(log_level) or USE_LOCAL_WPR in self._replay_options:
       with open(self._temp_log_file_path, 'r') as f:
         wpr_log_output = f.read()
-      logging.log(log_level, '\n'.join([
-          '************************** WPR LOG *****************************',
-          wpr_log_output,
-          '************************** END OF WPR LOG **********************']))
+      output = ('************************** WPR LOG *****************************\n' +
+                '\n'.join(wpr_log_output.split('\n')) +
+                '************************** END OF WPR LOG **********************')
+      if logging.getLogger('').isEnabledFor(log_level):
+        logging.log(log_level, output)
+      else:
+        print output
+
     os.remove(self._temp_log_file_path)
     self._temp_log_file_path = None
 

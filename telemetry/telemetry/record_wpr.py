@@ -193,6 +193,9 @@ class WprRecorder(object):
       self._benchmark.AddCommandLineArgs(self._parser)
       self._benchmark.SetArgumentDefaults(self._parser)
     self._parser.add_option('--upload', action='store_true')
+    self._parser.add_option('--use-local-wpr', action='store_true',
+                            help='Builds and runs WPR from Catapult. '
+                            'Also enables WPR debug output to STDOUT.')
     self._SetArgumentDefaults()
 
   def _SetArgumentDefaults(self):
