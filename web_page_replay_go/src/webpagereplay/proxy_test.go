@@ -272,9 +272,3 @@ func TestUpdateDates(t *testing.T) {
 		t.Errorf("got: %v\nwant: %v\n", responseHeader, wantHeader)
 	}
 }
-
-func assertEquals(t *testing.T, actual, expected string) {
-	if expected != actual {
-		t.Errorf("Expected \"%s\" but was \"%s\"", expected, actual)
-	}
-}

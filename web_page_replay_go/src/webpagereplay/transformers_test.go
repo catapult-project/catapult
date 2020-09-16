@@ -254,3 +254,9 @@ func TestTransformCsp(t *testing.T) {
 		}
 	}
 }
+
+func assertEquals(t *testing.T, actual, expected string) {
+	if expected != actual {
+		t.Errorf("Expected \"%s\" but was \"%s\"", expected, actual)
+	}
+}
