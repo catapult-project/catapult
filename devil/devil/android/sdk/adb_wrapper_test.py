@@ -68,3 +68,12 @@ class AdbWrapperTest(unittest.TestCase):
     get_cmd_mock.return_value = (1, '- waiting for device - ')
     self.assertRaises(device_errors.DeviceUnreachableError, self.adb.Shell,
                       '/bin/true')
+
+  @mock.patch('devil.utils.cmd_helper.GetCmdStatusAndOutputWithTimeout')
+  def testRootConnectionClosedFailure(self, get_cmd_mock):
+    get_cmd_mock.side_effect = [
+        (1, 'unable to connect for root: closed'),
+        (0, ''),
+    ]
+    self.assertRaises(device_errors.AdbCommandFailedError, self.adb.Root,
+                      retries=0)

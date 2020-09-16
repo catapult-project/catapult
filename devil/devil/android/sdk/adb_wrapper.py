@@ -1069,7 +1069,16 @@ class AdbWrapper(object):
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
     """
-    output = self._RunDeviceAdbCmd(['root'], timeout, retries)
+    try:
+      output = self._RunDeviceAdbCmd(['root'], timeout, retries)
+    except device_errors.AdbCommandFailedError as e:
+      # For some devices, root can occasionally fail with this error and kick
+      # the device into adb 'offline' mode. Assuming this is transient, try
+      # waiting for the device to come back up before re-raising the exception
+      # and proceeding with any retries.
+      if 'unable to connect for root: closed' in e.output:
+        self.WaitForDevice()
+      raise
     if 'cannot' in output:
       raise device_errors.AdbCommandFailedError(
           ['root'], output, device_serial=self._device_serial)
