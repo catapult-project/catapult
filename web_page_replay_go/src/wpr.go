@@ -93,13 +93,13 @@ func (certCfg *CertConfig) Flags() []cli.Flag {
 	return []cli.Flag{
 		cli.StringFlag{
 			Name:        "https_cert_file",
-			Value:       "../wpr_cert.pem",
+			Value:       "wpr_cert.pem",
 			Usage:       "File containing a PEM-encoded X509 certificate to use with SSL.",
 			Destination: &certCfg.certFile,
 		},
 		cli.StringFlag{
 			Name:        "https_key_file",
-			Value:       "../wpr_key.pem",
+			Value:       "wpr_key.pem",
 			Usage:       "File containing a PEM-encoded private key to use with SSL.",
 			Destination: &certCfg.keyFile,
 		},
@@ -134,7 +134,7 @@ func (common *CommonConfig) Flags() []cli.Flag {
 		},
 		cli.StringFlag{
 			Name:  "inject_scripts",
-			Value: "../deterministic.js",
+			Value: "deterministic.js",
 			Usage: "A comma separated list of JavaScript sources to inject in all pages. " +
 				"By default a script is injected that eliminates sources of entropy " +
 				"such as Date() and Math.random() deterministic. " +
