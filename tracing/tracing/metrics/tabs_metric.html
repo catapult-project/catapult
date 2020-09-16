@@ -55,9 +55,13 @@ tr.exportTo('tr.metrics.tabs', function() {
         for (const slice of thread.asyncSliceGroup.slices) {
           if (slice.title === TAB_SWITCHING_SLICE_TITLE &&
               (legacy || slice.args.latency) &&
-              slice.start > startTabSwitchVisibilityRequest) {
-            // push legal tabSwitchLatency which only starts after the
-            // first legal TabSwitchVisibilityRequest's start time
+              slice.start > startTabSwitchVisibilityRequest - 1 /* ms */) {
+            // Push legal tabSwitchLatency which only starts after the
+            // first legal TabSwitchVisibilityRequest's start time.
+            // The tabSwitchLatency start time for a tab switch is earlier
+            // than the corresponding TabSwitchVisibilityRequest start
+            // time. Include tabSwitchLatency that is a little earlier
+            // (within 1 ms) than startTabSwitchVisibilityRequest.
             tabSwitchLatencies.push(
                 legacy ? slice.duration : slice.args.latency);
           }
