@@ -39,16 +39,10 @@ tr.b.unittest.testSuite(function() {
     // The last frame is outside the interaction period and should be
     // discarded. The durations between the remaining three frames are
     // 1 and 17.
-    let hist = histograms.getHistogramNamed('frame_times');
+    const hist = histograms.getHistogramNamed('frame_times');
     assert.closeTo(1, hist.min, 1e-6);
     assert.closeTo(17, hist.max, 1e-6);
     assert.closeTo(9, hist.average, 1e-6);
-
-    // One of the two frame times is not smooth.
-    hist = histograms.getHistogramNamed('percentage_smooth');
-    assert.closeTo(50, hist.min, 1e-6);
-    assert.closeTo(50, hist.max, 1e-6);
-    assert.closeTo(50, hist.average, 1e-6);
   });
 
   test('frameTimes_drmEvents', function() {
@@ -290,16 +284,10 @@ tr.b.unittest.testSuite(function() {
 
     // The fourth frame is outside the interaction period and should be
     // discarded. The durations between the remaining three frames are 1 and 17.
-    let hist = histograms.getHistogramNamed('ui_frame_times');
+    const hist = histograms.getHistogramNamed('ui_frame_times');
     assert.closeTo(1, hist.min, 1e-6);
     assert.closeTo(17, hist.max, 1e-6);
     assert.closeTo(9, hist.average, 1e-6);
-
-    // One of the two frame times is not smooth.
-    hist = histograms.getHistogramNamed('ui_percentage_smooth');
-    assert.closeTo(50, hist.min, 1e-6);
-    assert.closeTo(50, hist.max, 1e-6);
-    assert.closeTo(50, hist.average, 1e-6);
   });
 
   test('uiFrameTimesWithEnvironmentArg', function() {
