@@ -44,8 +44,8 @@ go mod init github.com/catapult-project
   Start wpr in record mode.
 
   ```
-  cd path/to/web_page_replay_go/src
-  go run wpr.go record --http_port=8080 --https_port=8081 /tmp/archive.wprgo
+  cd path/to/web_page_replay_go
+  go run src/wpr.go record --http_port=8080 --https_port=8081 /tmp/archive.wprgo
   ```
   ...
 
@@ -65,8 +65,8 @@ go mod init github.com/catapult-project
 
   Start wpr in replay mode.
   ```
-  cd path/to/web_page_replay_go/src
-  go run wpr.go replay --http_port=8080 --https_port=8081 /tmp/archive.wprgo
+  cd path/to/web_page_replay_go
+  go run src/wpr.go replay --http_port=8080 --https_port=8081 /tmp/archive.wprgo
   ```
 
 * Terminal 2:
@@ -111,15 +111,15 @@ supported on Linux and Android.
 Installing the test CA. Specify a `--android_device_id` if you'd like to install
 the root CA on an android device.
 ```
-cd path/to/web_page_replay_go/src
-go run wpr.go installroot
+cd path/to/web_page_replay_go
+go run src/wpr.go installroot
 ```
 Uninstall the test CA. Specify a `--android_device_id` if you'd like to remove
 the root CA from an android device.
 
 ```
-cd path/to/web_page_replay_go/src
-go run wpr.go removeroot
+cd path/to/web_page_replay_go
+go run src/wpr.go removeroot
 ```
 
 ## Other use cases
@@ -128,8 +128,8 @@ go run wpr.go removeroot
 
 * Terminal 1:
 ```
-cd path/to/web_page_replay_go/src
-go run wpr.go replay --https_port=8081 --https_to_http_port=8082 \
+cd path/to/web_page_replay_go
+go run src/wpr.go replay --https_port=8081 --https_to_http_port=8082 \
   /tmp/archive.wprgo
 ```
 
@@ -151,19 +151,29 @@ path (`--full-path`).
 E.g.
 
 ```
-cd path/to/web_page_replay_go/src
-go run httparchive.go ls /tmp/archive.wprgo --host=example.com --full-path=/index.html
+cd path/to/web_page_replay_go
+go run src/httparchive.go ls /tmp/archive.wprgo --host=example.com --full-path=/index.html
 ```
 
 ## Running unit tests
-Run all tests in a specific file.
+Run all tests in a specific file. Use '-v' flag to show results.
+Note: proxy_test requires more includes than just proxy.go.
 ```
-go test transformer_test.go transformer.go
+cd path/to/web_page_replay_go/src/webpagereplay
+go test archive_test.go archive.go
+go test transformers_test.go transformers.go
+go test proxy_test.go proxy.go transformers.go archive.go
 ```
 
 Run all tests in `webpagereplay` module.
 ```
-go test webpagereplay -run ''
+cd path/to/web_page_replay_go/src/webpagereplay
+go test -run ''
+```
+Or
+```
+cd path/to/web_page_replay_go
+go test -v github.com/catapult-project/catapult/web_page_replay_go/src/webpagereplay
 ```
 
 ## Generate public key hash for --ignore-certificate-errors-spki-list
@@ -176,7 +186,7 @@ base64
 ```
 
 ## Debugging WPR
-The run_benchmark and record_wpr tools will build and invoke WPR from this directory if they 
+The run_benchmark and record_wpr tools will build and invoke WPR from this directory if they
 are run with the --use-local-wpr flag.
 
 ## Contribute
