@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import logging
+import os
 import pprint
 import shlex
 import socket
@@ -239,6 +240,12 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       tracing_backend.FlushTracing()
 
     if self._devtools_client:
+      if "ENSURE_CLEAN_CHROME_SHUTDOWN" in os.environ:
+        # Forces a clean shutdown by sending a command to close the browser via
+        # the devtools client. Uses a long timeout as a clean shutdown can
+        # sometime take a long time to complete.
+        self._devtools_client.CloseBrowser()
+        py_utils.WaitFor(lambda: not self.IsBrowserRunning(), 300)
       self._devtools_client.Close()
       self._devtools_client = None
 

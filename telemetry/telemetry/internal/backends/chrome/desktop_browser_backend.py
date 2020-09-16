@@ -316,6 +316,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           # (see crbug.com/815004)
           # Allow specifying a custom shutdown timeout via the
           # 'CHROME_SHUTDOWN_TIMEOUT' environment variable.
+          # TODO(sebmarchand): Remove this now that there's an option to shut
+          # down Chrome via Devtools.
           py_utils.WaitFor(lambda: not self.IsBrowserRunning(),
                            timeout=int(os.getenv('CHROME_SHUTDOWN_TIMEOUT', 15))
                           )

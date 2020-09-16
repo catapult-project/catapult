@@ -226,6 +226,13 @@ class _DevToolsClientBackend(object):
       self._forwarder.Close()
       self._forwarder = None
 
+  def CloseBrowser(self):
+    """Close the browser instance."""
+    request = {
+        'method': 'Browser.close',
+    }
+    self._browser_websocket.SyncRequest(request, timeout=60)
+
   def IsAlive(self):
     """Whether the DevTools server is available and connectable."""
     if self._devtools_http is None:
