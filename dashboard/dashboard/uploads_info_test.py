@@ -69,7 +69,10 @@ class UploadInfo(testing_common.TestCase):
     test_path1 = 'Chromium/win7/suite/metric1'
     test_path2 = 'Chromium/win7/suite/metric2'
     token = upload_completion_token.Token(id=token_id).put().get()
-    measurement1, _ = token.PopulateMeasurements([test_path1, test_path2])
+    measurement1, _ = token.PopulateMeasurements({
+        test_path1: False,
+        test_path2: True
+    })
 
     measurement1.state = upload_completion_token.State.COMPLETED
     measurement1.put()

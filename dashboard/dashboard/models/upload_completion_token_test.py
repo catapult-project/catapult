@@ -56,8 +56,10 @@ class UploadCompletionTokenTest(testing_common.TestCase):
     token = upload_completion_token.Token(id=str(uuid.uuid4())).put().get()
     self.assertEqual(token.state, upload_completion_token.State.PENDING)
 
-    measurement1, measurement2 = token.PopulateMeasurements(
-        ['test/1', 'test/2'])
+    measurement1, measurement2 = token.PopulateMeasurements({
+        'test/1': True,
+        'test/2': False
+    })
     self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
 
     token.UpdateStateAsync(upload_completion_token.State.PROCESSING).wait()
@@ -78,8 +80,10 @@ class UploadCompletionTokenTest(testing_common.TestCase):
 
   def testStatusUpdateWithExpiredMeasurement(self):
     token = upload_completion_token.Token(id=str(uuid.uuid4())).put().get()
-    measurement1, measurement2 = token.PopulateMeasurements(
-        ['test/1', 'test/2'])
+    measurement1, measurement2 = token.PopulateMeasurements({
+        'test/1': True,
+        'test/2': False
+    })
 
     measurement1.key.delete()
 
@@ -95,16 +99,16 @@ class UploadCompletionTokenTest(testing_common.TestCase):
   @unittest.expectedFailure
   def testPopulateMeasurementsMultipleTimes(self):
     token = upload_completion_token.Token(id=str(uuid.uuid4())).put().get()
-    token.PopulateMeasurements(['test/1', 'test/2'])
-    token.PopulateMeasurements(['test/3', 'test/4'])
+    token.PopulateMeasurements({'test/1': True, 'test/2': False})
+    token.PopulateMeasurements({'test/3': False, 'test/4': False})
 
   def testCreateSameMeasurementsForDifferentTokens(self):
     test_path = 'test/path'
     token1 = upload_completion_token.Token(id=str(uuid.uuid4())).put().get()
-    token1.PopulateMeasurements([test_path])
+    token1.PopulateMeasurements({test_path: True})
 
     token2 = upload_completion_token.Token(id=str(uuid.uuid4())).put().get()
-    token2.PopulateMeasurements([test_path])
+    token2.PopulateMeasurements({test_path: True})
 
     measurement1 = upload_completion_token.Measurement.get_by_id(
         test_path, parent=token1.key)

@@ -818,6 +818,10 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     self._CheckOutOfOrderExpectations(expected)
 
 
+@mock.patch.object(SheriffConfigClient, '__init__',
+                   mock.MagicMock(return_value=None))
+@mock.patch.object(SheriffConfigClient, 'Match',
+                   mock.MagicMock(return_value=([], None)))
 class AddHistogramsTest(AddHistogramsBaseTest):
 
   def setUp(self):
@@ -1586,10 +1590,27 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     token = upload_completion_token.Token.get_by_id(token_info['token'])
     self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
 
+    measurements = token.GetMeasurements()
+    self.assertEqual(len(measurements), 1)
+    self.assertEqual(measurements[0].state,
+                     upload_completion_token.State.PROCESSING)
+    self.assertEqual(measurements[0].monitored, False)
+    self.assertEqual(measurements[0].histogram, None)
+
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
     token = upload_completion_token.Token.get_by_id(token_info['token'])
     self.assertEqual(token.state, upload_completion_token.State.COMPLETED)
+
+    measurements = token.GetMeasurements()
+    self.assertEqual(measurements[0].state,
+                     upload_completion_token.State.COMPLETED)
+    self.assertNotEqual(measurements[0].histogram, None)
+
+    added_histogram = measurements[0].histogram.get()
+    self.assertNotEqual(added_histogram, None)
+    self.assertEqual(added_histogram.test.id(), 'master/bot/benchmark/hist')
+    self.assertEqual(added_histogram.revision, 123)
 
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
                      mock.MagicMock(side_effect=Exception()))
@@ -1692,6 +1713,16 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
 
     mock_graph_revisions.assert_called_once_with(mock.ANY)
     self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
+
+  @mock.patch.object(utils, 'IsMonitored', mock.MagicMock(return_value=True))
+  def testPost_MonitoredMeasurementSucceeds(self):
+    token_info = self.PostAddHistogram({'data': self.histogram_data})
+    self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
+
+    token = upload_completion_token.Token.get_by_id(token_info['token'])
+    measurements = token.GetMeasurements()
+    self.assertEqual(len(measurements), 1)
+    self.assertEqual(measurements[0].monitored, True)
 
   @mock.patch.object(utils, 'IsDevAppserver', mock.MagicMock(return_value=True))
   def testPost_DevAppserverSucceeds(self):

@@ -15,6 +15,7 @@ import mock
 
 from google.appengine.ext import ndb
 
+from dashboard import sheriff_config_client
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import graph_data
@@ -490,6 +491,22 @@ class UtilsTest(testing_common.TestCase):
                      mock.MagicMock(return_value='internal@chromium.org'))
   def testShouldTurnOnUploadCompletionTokenExperiment_Positive(self):
     self.assertTrue(utils.ShouldTurnOnUploadCompletionTokenExperiment())
+
+  @mock.patch.object(sheriff_config_client.SheriffConfigClient, '__init__',
+                     mock.MagicMock(return_value=None))
+  @mock.patch.object(sheriff_config_client.SheriffConfigClient, 'Match',
+                     mock.MagicMock(return_value=(['someone'], None)))
+  def testIsMonitored_Positive(self):
+    sheriff_client = sheriff_config_client.GetSheriffConfigClient()
+    self.assertTrue(utils.IsMonitored(sheriff_client, 'test'))
+
+  @mock.patch.object(sheriff_config_client.SheriffConfigClient, '__init__',
+                     mock.MagicMock(return_value=None))
+  @mock.patch.object(sheriff_config_client.SheriffConfigClient, 'Match',
+                     mock.MagicMock(return_value=([], None)))
+  def testIsMonitored_Negative(self):
+    sheriff_client = sheriff_config_client.GetSheriffConfigClient()
+    self.assertFalse(utils.IsMonitored(sheriff_client, 'test'))
 
 
 def _MakeMockFetch(base64_encoded=True, status=200):

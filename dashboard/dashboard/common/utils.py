@@ -820,3 +820,12 @@ def GetSheriffForAutorollCommit(author, message):
   if not m:
     return None
   return m.group(1)
+
+
+def IsMonitored(sheriff_client, test_path):
+  """Checks if the test is monitored by sherrifs."""
+
+  subscriptions, _ = sheriff_client.Match(test_path, check=True)
+  if subscriptions:
+    return True
+  return False

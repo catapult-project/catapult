@@ -98,8 +98,8 @@ class Token(internal_only_model.InternalOnlyModel):
     self._LogStateChanged()
 
 
-  def PopulateMeasurements(self, test_paths):
-    """Creates measurements using list of keys.
+  def PopulateMeasurements(self, tests_monitored):
+    """Creates measurements using test paths and associated measurement info.
 
     Should be called only once for each token. The reason is that adding a new
     measurement to the substates list is not eventual-consistent and might
@@ -112,8 +112,10 @@ class Token(internal_only_model.InternalOnlyModel):
                        None), 'Measurements have already been populated'
 
     measurements = [
-        Measurement(id=path, parent=self.key) for path in test_paths
+        Measurement(id=path, parent=self.key, monitored=is_monitored)
+        for path, is_monitored in tests_monitored.items()
     ]
+
     self.substates = ndb.put_multi(measurements)
     self.put()
     logging.info(
@@ -143,18 +145,27 @@ class Measurement(internal_only_model.InternalOnlyModel):
 
   state = ndb.IntegerProperty(default=State.PROCESSING, indexed=False)
 
+  update_time = ndb.DateTimeProperty(auto_now=True, indexed=True)
+
+  monitored = ndb.BooleanProperty(default=False, indexed=True)
+
+  histogram = ndb.KeyProperty(kind='Histogram', indexed=True, default=None)
+
+  @classmethod
+  def GetById(cls, measurement_id, parent_id):
+    if measurement_id is None or parent_id is None:
+      return None
+    return cls.get_by_id(measurement_id, parent=ndb.Key('Token', parent_id))
+
   @classmethod
   @ndb.tasklet
   def UpdateStateByIdAsync(cls, measurement_id, parent_id, state):
-    if measurement_id is None or parent_id is None:
-      return
-    token_key = ndb.Key('Token', parent_id)
-    obj = cls.get_by_id(measurement_id, parent=token_key)
+    obj = cls.GetById(measurement_id, parent_id)
     if obj is None:
       return
     obj.state = state
     yield obj.put_async()
-    token = token_key.get()
+    token = Token.get_by_id(parent_id)
     logging.info(
         'Upload completion token measurement updated. Token id: %s, '
         'measurement id: %s, state: %s', parent_id, measurement_id,

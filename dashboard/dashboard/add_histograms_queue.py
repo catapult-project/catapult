@@ -254,8 +254,8 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
 
   def IsMonitored(client, test):
     reason = []
-    subscriptions, _ = client.Match(test.test_path, check=True)
-    if not subscriptions:
+    has_subscribers = utils.IsMonitored(client, test.test_path)
+    if not has_subscribers:
       reason.append('subscriptions')
     if not test.has_rows:
       reason.append('has_rows')
@@ -307,6 +307,12 @@ def _AddHistogramFromData(params, revision, test_key, internal_only):
       revision=revision,
       internal_only=internal_only)
   yield entity.put_async()
+
+  measurement = upload_completion_token.Measurement.GetById(
+      params.get('test_path'), params.get('token'))
+  if measurement is not None:
+    measurement.histogram = entity.key
+    measurement.put_async()
 
 
 @ndb.tasklet
