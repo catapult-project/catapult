@@ -39,7 +39,7 @@ DEFAULT_RETRIES = 2
 
 _ADB_VERSION_RE = re.compile(r'Android Debug Bridge version (\d+\.\d+\.\d+)')
 _EMULATOR_RE = re.compile(r'^emulator-[0-9]+$')
-_DEVICE_NOT_FOUND_RE = re.compile(r"error: device '(?P<serial>.+)' not found")
+_DEVICE_NOT_FOUND_RE = re.compile(r"device '(?P<serial>.+)' not found")
 _READY_STATE = 'device'
 _VERITY_DISABLE_RE = re.compile(r'(V|v)erity (is )?(already )?disabled'
                                 r'|Successfully disabled verity')
@@ -303,7 +303,7 @@ class AdbWrapper(object):
     # inconsistent with error reporting so many command failures present
     # differently.
     if status != 0 or (check_error and output.startswith('error:')):
-      not_found_m = _DEVICE_NOT_FOUND_RE.match(output)
+      not_found_m = _DEVICE_NOT_FOUND_RE.search(output)
       device_waiting_m = _WAITING_FOR_DEVICE_RE.match(output)
       if (device_waiting_m is not None
           or (not_found_m is not None

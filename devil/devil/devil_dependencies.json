@@ -16,7 +16,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "linux2_x86_64": {
-          "cloud_storage_hash": "8bd43e3930f6eec643d5dc64cab9e5bb4ddf4909",
+          "cloud_storage_hash": "528d0e88a0d876b0549840f0797beffca4a6a796",
           "download_path": "../bin/deps/linux2/x86_64/bin/adb"
         }
       }
