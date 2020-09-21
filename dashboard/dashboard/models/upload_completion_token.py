@@ -10,8 +10,8 @@ from google.appengine.ext import ndb
 
 from dashboard.models import internal_only_model
 
-# Adding histogram in average takes about 5 minutes, so holding token in
-# memory for 10 minutes should be enough.
+# 10 minutes should be enough for keeping the data in memory because processing
+# histograms takes 3.5 minutes in the 90th percentile.
 _MEMCACHE_TIMEOUT = 60 * 10
 
 
@@ -38,12 +38,8 @@ class Token(internal_only_model.InternalOnlyModel):
 
   Token can contain multiple Measurement. One per each histogram in the
   request. States of nested Measurements affect state of the Token.
-
-  For now, Token instances are only in memcache. Because of this, it is not
-  guaranteed that the Token will be present by request completion."
   """
   _use_memcache = True
-  _use_datastore = False
   _memcache_timeout = _MEMCACHE_TIMEOUT
 
   internal_only = ndb.BooleanProperty(default=True)
@@ -59,20 +55,13 @@ class Token(internal_only_model.InternalOnlyModel):
 
   temporary_staging_file_path = ndb.StringProperty(indexed=False, default=None)
 
-  substates = ndb.KeyProperty(repeated=True, kind='Measurement')
-
   @property
   def state(self):
-    if not self.substates:
+    measurements = self.GetMeasurements()
+    if not measurements:
       return self.state_
 
-    # "child is None" means that it was expired and removed from memcache.
-    # State of such child doesn't affect parent state.
-    all_states = [
-        child.state
-        for child in ndb.get_multi(self.substates)
-        if child is not None
-    ]
+    all_states = [child.state for child in measurements if child is not None]
     all_states.append(self.state_)
     if all(s == State.PENDING for s in all_states):
       return State.PENDING
@@ -102,48 +91,30 @@ class Token(internal_only_model.InternalOnlyModel):
     yield self.put_async()
     self._LogStateChanged()
 
+  @ndb.tasklet
+  def AddMeasurement(self, test_path, is_monitored):
+    """Creates measurement, associated to the current token."""
 
-  def PopulateMeasurements(self, tests_monitored):
-    """Creates measurements using test paths and associated measurement info.
+    measurement = Measurement(
+        id=test_path, parent=self.key, monitored=is_monitored)
+    yield measurement.put_async()
 
-    Should be called only once for each token. The reason is that adding a new
-    measurement to the substates list is not eventual-consistent and might
-    cause race conditions. But we also need to store list of keys in token
-    since measurements are only in memcache.
-    TODO(landrey): After entities are stored in Datastore, get rid of the
-    substates list.
-    """
-    assert not getattr(self, 'substates',
-                       None), 'Measurements have already been populated'
-
-    measurements = [
-        Measurement(id=path, parent=self.key, monitored=is_monitored)
-        for path, is_monitored in tests_monitored.items()
-    ]
-
-    self.substates = ndb.put_multi(measurements)
-    self.put()
     logging.info(
-        'Upload completion token measurements created. Token id: %s, '
-        'measurements: %r', self.key.id(), [m.id() for m in self.substates])
-    self._LogStateChanged()
-    return measurements
+        'Upload completion token measurement created. Token id: %s, '
+        'measurement id: %r', self.key.id(), measurement.key.id())
+    raise ndb.Return(measurement)
 
   def GetMeasurements(self):
-    return ndb.get_multi(self.substates)
+    return Measurement.query(ancestor=self.key).fetch()
 
 
 class Measurement(internal_only_model.InternalOnlyModel):
   """Measurement represents state of added histogram.
 
   Measurement are keyed by the full path to the test (for example
-  master/bot/test/metric/page).
-
-  For now, Measurement instances are only in memcache. Because of this, it is
-  not guaranteed that the Measurement will be present by request completion.
+  master/bot/test/metric/page) and parent token key.
   """
   _use_memcache = True
-  _use_datastore = False
   _memcache_timeout = _MEMCACHE_TIMEOUT
 
   internal_only = ndb.BooleanProperty(default=True)

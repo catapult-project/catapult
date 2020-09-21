@@ -17,6 +17,7 @@ import uuid
 import zlib
 
 from google.appengine.api import taskqueue
+from google.appengine.ext import ndb
 
 from dashboard import sheriff_config_client
 from dashboard.api import api_request_handler
@@ -396,7 +397,8 @@ def _CreateHistogramTasks(suite_path,
                           benchmark_description,
                           completion_token=None):
   tasks = []
-  tests_monitored = {}
+  duplicate_check = set()
+  measurement_add_futures = []
   sheriff_client = sheriff_config_client.GetSheriffConfigClient()
 
   for hist in histograms:
@@ -406,11 +408,11 @@ def _CreateHistogramTasks(suite_path,
     # Log the information here so we can see which histograms are being queued.
     logging.debug('Queueing: %s', test_path)
 
-    if test_path in tests_monitored:
+    if test_path in duplicate_check:
       raise api_request_handler.BadRequestError(
           'Duplicate histogram detected: %s' % test_path)
 
-    tests_monitored[test_path] = utils.IsMonitored(sheriff_client, test_path)
+    duplicate_check.add(test_path)
 
     # We create one task per histogram, so that we can get as much time as we
     # need for processing each histogram per task.
@@ -418,8 +420,11 @@ def _CreateHistogramTasks(suite_path,
                               diagnostics, completion_token)
     tasks.append(_MakeTask([task_dict]))
 
-  if completion_token is not None:
-    completion_token.PopulateMeasurements(tests_monitored)
+    if completion_token is not None:
+      measurement_add_futures.append(
+          completion_token.AddMeasurement(
+              test_path, utils.IsMonitored(sheriff_client, test_path)))
+  ndb.Future.wait_all(measurement_add_futures)
 
   return tasks
 
