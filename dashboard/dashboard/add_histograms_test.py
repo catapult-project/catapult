@@ -1534,8 +1534,8 @@ class AddHistogramsTest(AddHistogramsBaseTest):
 
 def _GetSyncedTokenUpdate(original_function):
 
-  def SyncedTokenUpdate(token, state):
-    fixture = original_function(token, state)
+  def SyncedTokenUpdate(token, state, error_message=None):
+    fixture = original_function(token, state, error_message)
     fixture.wait()
     return fixture
 
@@ -1586,6 +1586,7 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     self.assertEqual(token.key.id(), token_info['token'])
     self.assertEqual(token.temporary_staging_file_path, token_info['file'])
     self.assertEqual(token.state, upload_completion_token.State.PENDING)
+    self.assertEqual(token.error_message, None)
     self.assertEqual(token.internal_only, utils.IsInternalUser())
 
     self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
@@ -1596,6 +1597,7 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     self.assertEqual(len(measurements), 1)
     self.assertEqual(measurements[0].state,
                      upload_completion_token.State.PROCESSING)
+    self.assertEqual(measurements[0].error_message, None)
     self.assertEqual(measurements[0].monitored, False)
     self.assertEqual(measurements[0].histogram, None)
 
@@ -1607,6 +1609,7 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     measurements = token.GetMeasurements()
     self.assertEqual(measurements[0].state,
                      upload_completion_token.State.COMPLETED)
+    self.assertEqual(measurements[0].error_message, None)
     self.assertNotEqual(measurements[0].histogram, None)
 
     added_histogram = measurements[0].histogram.get()
@@ -1615,7 +1618,7 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     self.assertEqual(added_histogram.revision, 123)
 
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
-                     mock.MagicMock(side_effect=Exception()))
+                     mock.MagicMock(side_effect=Exception('Test error')))
   def testPost_MeasurementFails(self):
     token_info = self.PostAddHistogram({'data': self.histogram_data})
 
@@ -1630,15 +1633,18 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
                                add_histograms.TASK_QUEUE_NAME)
     token = upload_completion_token.Token.get_by_id(token_info['token'])
     self.assertEqual(token.state, upload_completion_token.State.FAILED)
+    # Error happened on measurement level.
+    self.assertEqual(token.error_message, None)
 
   @mock.patch.object(add_histograms, 'ProcessHistogramSet',
-                     mock.MagicMock(side_effect=Exception()))
+                     mock.MagicMock(side_effect=Exception('Test error')))
   def testPost_AddHistogramProcessFails(self):
     token_info = self.PostAddHistogram({'data': self.histogram_data})
 
     self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
     token = upload_completion_token.Token.get_by_id(token_info['token'])
     self.assertEqual(token.state, upload_completion_token.State.FAILED)
+    self.assertEqual(token.error_message, 'Test error')
 
   @mock.patch.object(add_histograms_queue.graph_revisions,
                      'AddRowsToCacheAsync')
@@ -1841,6 +1847,7 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     uploads_response = self.GetUploads(token_info['token'])
     self.assertEqual(uploads_response['token'], token_info['token'])
     self.assertEqual(uploads_response['state'], 'PENDING')
+    self.assertTrue(uploads_response.get('error_message') is None)
     self.assertTrue(uploads_response.get('file') is not None)
     self.assertTrue(uploads_response.get('created') is not None)
     self.assertTrue(uploads_response.get('lastUpdated') is not None)
@@ -1869,7 +1876,7 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     self.assertEqual(len(measurement['dimensions']), 5)
 
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
-                     mock.MagicMock(side_effect=Exception()))
+                     mock.MagicMock(side_effect=Exception('Test error')))
   def testFullCycle_MeasurementFails(self):
     token_info = self.PostAddHistogram({'data': self.histogram_data})
     self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
@@ -1880,6 +1887,8 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     self.assertEqual(uploads_response['state'], 'FAILED')
     self.assertEqual(len(uploads_response.get('measurements')), 1)
     self.assertEqual(uploads_response['measurements'][0]['state'], 'FAILED')
+    self.assertEqual(uploads_response['measurements'][0]['error_message'],
+                     'Test error')
 
 
 def RandomChars(length):

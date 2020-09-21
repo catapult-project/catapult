@@ -651,18 +651,24 @@ class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
   def testPostHistogram_Success(self):
     token = self._CreateHistogramWithMeasurementAndAdd()
     self.assertEqual(token.state, upload_completion_token.State.COMPLETED)
+    self.assertEqual(len(token.GetMeasurements()), 1)
+    self.assertEqual(token.GetMeasurements()[0].error_message, None)
 
   @mock.patch.object(find_anomalies, 'ProcessTestsAsync',
-                     mock.MagicMock(side_effect=Exception()))
+                     mock.MagicMock(side_effect=Exception('Test exception')))
   def testPostHistogram_Fail(self):
     token = self._CreateHistogramWithMeasurementAndAdd()
     self.assertEqual(token.state, upload_completion_token.State.FAILED)
+    self.assertEqual(len(token.GetMeasurements()), 1)
+    self.assertEqual(token.GetMeasurements()[0].error_message, 'Test exception')
 
   @mock.patch.object(add_histograms_queue, '_ProcessRowAndHistogram',
-                     mock.MagicMock(side_effect=Exception()))
+                     mock.MagicMock(side_effect=Exception('Test exception')))
   def testPostHistogram_FailToCreateFixture(self):
     token = self._CreateHistogramWithMeasurementAndAdd(status=500)
     self.assertEqual(token.state, upload_completion_token.State.FAILED)
+    self.assertEqual(len(token.GetMeasurements()), 1)
+    self.assertEqual(token.GetMeasurements()[0].error_message, 'Test exception')
 
   def _CreateHistogramWithMultipleMeasurementAndAdd(self, status=200):
     test_path1 = 'Chromium/win7/suite/metric1'
@@ -711,23 +717,36 @@ class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
   def testPostMultipleHistograms_Success(self):
     token = self._CreateHistogramWithMultipleMeasurementAndAdd()
     self.assertEqual(token.state, upload_completion_token.State.COMPLETED)
+    self.assertTrue(
+        all(measurement.state == upload_completion_token.State.COMPLETED
+            for measurement in token.GetMeasurements()))
+    self.assertTrue(
+        all(measurement.error_message is None
+            for measurement in token.GetMeasurements()))
 
   @mock.patch.object(find_anomalies, 'ProcessTestsAsync',
-                     mock.MagicMock(side_effect=Exception()))
+                     mock.MagicMock(side_effect=Exception('Test exception')))
   def testPostMultipleHistogram_Fail(self):
     token = self._CreateHistogramWithMultipleMeasurementAndAdd()
     self.assertEqual(token.state, upload_completion_token.State.FAILED)
+    self.assertTrue(
+        all(measurement.state == upload_completion_token.State.FAILED
+            for measurement in token.GetMeasurements()))
+    self.assertTrue(
+        all(measurement.error_message == 'Test exception'
+            for measurement in token.GetMeasurements()))
 
   @mock.patch.object(add_histograms_queue, '_ProcessRowAndHistogram',
-                     mock.MagicMock(side_effect=Exception()))
+                     mock.MagicMock(side_effect=Exception('Test exception')))
   def testPostMultipleHistogram_FailToCreateFixture(self):
     token = self._CreateHistogramWithMultipleMeasurementAndAdd(status=500)
-    substates = [child.state for child in ndb.get_multi(token.substates)]
-
     self.assertEqual(token.state, upload_completion_token.State.FAILED)
     self.assertTrue(
-        all(substate == upload_completion_token.State.FAILED
-            for substate in substates))
+        all(measurement.state == upload_completion_token.State.FAILED
+            for measurement in token.GetMeasurements()))
+    self.assertTrue(
+        all(measurement.error_message == 'Test exception'
+            for measurement in token.GetMeasurements()))
 
   def testPostMultipleHistogram_MeasrementExpired(self):
     test_path1 = 'Chromium/win7/suite/metric1'

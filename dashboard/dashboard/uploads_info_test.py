@@ -74,6 +74,24 @@ class UploadInfo(testing_common.TestCase):
     response = self.GetFullInfoRequest(token_id)
     self.assertEqual(response, expected)
 
+  def testGet_SuccessWithTokenErrorMessage(self):
+    token_id = str(uuid.uuid4())
+    token = upload_completion_token.Token(
+        id=token_id,
+        state_=upload_completion_token.State.FAILED,
+        error_message='Some error').put().get()
+
+    expected = {
+        'token': token_id,
+        'file': None,
+        'created': str(token.creation_time),
+        'lastUpdated': str(token.update_time),
+        'state': 'FAILED',
+        'error_message': 'Some error',
+    }
+    response = self.GetFullInfoRequest(token_id)
+    self.assertEqual(response, expected)
+
   def testGet_SuccessWithMeasurements(self):
     token_id = str(uuid.uuid4())
     test_path1 = 'Chromium/win7/suite/metric1'
@@ -85,6 +103,10 @@ class UploadInfo(testing_common.TestCase):
     })
 
     measurement1.state = upload_completion_token.State.COMPLETED
+    measurement1.put()
+
+    measurement2.state = upload_completion_token.State.FAILED
+    measurement2.error_message = 'Some error'
     measurement1.put()
 
     expected = {
@@ -102,7 +124,8 @@ class UploadInfo(testing_common.TestCase):
             },
             {
                 'name': test_path2,
-                'state': 'PROCESSING',
+                'state': 'FAILED',
+                'error_message': 'Some error',
                 'monitored': True,
                 'lastUpdated': str(measurement2.update_time),
             },

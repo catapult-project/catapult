@@ -115,7 +115,7 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
     try:
       for p in params:
         histogram_futures.append((p, _ProcessRowAndHistogram(p)))
-    except:
+    except Exception as e:  # pylint: disable=broad-except
       for param, futures_info in itertools.izip_longest(params,
                                                         histogram_futures):
         if futures_info is not None:
@@ -123,18 +123,22 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
         token_state_futures.append(
             upload_completion_token.Measurement.UpdateStateByIdAsync(
                 param.get('test_path'), param.get('token'),
-                upload_completion_token.State.FAILED))
+                upload_completion_token.State.FAILED, e.message))
       ndb.Future.wait_all(token_state_futures)
       raise
 
     for info, futures in histogram_futures:
       operation_state = upload_completion_token.State.COMPLETED
+      error_message = None
       for f in futures:
-        if f.get_exception() is not None:
+        exception = f.get_exception()
+        if exception is not None:
           operation_state = upload_completion_token.State.FAILED
+          error_message = exception.message
       token_state_futures.append(
           upload_completion_token.Measurement.UpdateStateByIdAsync(
-              info.get('test_path'), info.get('token'), operation_state))
+              info.get('test_path'), info.get('token'), operation_state,
+              error_message))
     ndb.Future.wait_all(token_state_futures)
 
 

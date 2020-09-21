@@ -40,6 +40,8 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
         'lastUpdated': str(token.update_time),
         'state': upload_completion_token.StateToString(token.state),
     }
+    if token.error_message is not None:
+      result['error_message'] = token.error_message
     if measurements:
       result['measurements'] = []
     for measurement in measurements:
@@ -49,6 +51,8 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
           'monitored': measurement.monitored,
           'lastUpdated': str(measurement.update_time),
       }
+      if measurement.error_message is not None:
+        info['error_message'] = measurement.error_message
       if measurement.histogram is not None:
         histogram_entity = measurement.histogram.get()
         attached_histogram = histogram_module.Histogram.FromDict(
@@ -112,6 +116,9 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
       - created: Date and time of creation.
       - lastUpdated: Date and time of last update.
       - state: Aggregated state of the token and all associated measurements.
+      - error_message: If historgam upload failed on token level (during
+        /add_histogram) will contain addition information about failure.
+        Absent otherwise.
       - measurements: List of json objects, that describes measurements
         associated with the token. If there are no such measurements, the field
         will be absent. This field may be absent if full information is not
@@ -119,6 +126,8 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
         - name: The path  of the measurement. It is a fully-qualified path in
           the Dashboard.
         - state: State of the measurement.
+        - error_message: If state is FAILED, contains addition information
+          about failure. Absent otherwise.
         - monitored: A boolean indicating whether the path is monitored by a
           sheriff configuration.
         - lastUpdated: Date and time of last update.

@@ -128,6 +128,22 @@ class UploadCompletionTokenTest(testing_common.TestCase):
                                                          target_state).wait()
     self.assertEqual(token.state, target_state)
 
+  def testUpdateObjectStateAsync_ErrorMessage(self):
+    target_state = upload_completion_token.State.FAILED
+    target_message = 'Some message'
+
+    token = upload_completion_token.Token(id=str(uuid.uuid4())).put().get()
+    upload_completion_token.Token.UpdateObjectStateAsync(
+        token, target_state, target_message).wait()
+    self.assertEqual(token.state, target_state)
+    self.assertEqual(token.error_message, target_message)
+
+  @unittest.expectedFailure
+  def testUpdateObjectStateAsyncWith_ErrorMessageFail(self):
+    token = upload_completion_token.Token(id=str(uuid.uuid4())).put().get()
+    upload_completion_token.Token.UpdateObjectStateAsync(
+        token, upload_completion_token.State.FAILED, 'Some message').wait()
+
   def testMeasurementUpdateStateByIdAsync(self):
     test_path = 'test/path'
     token_id = str(uuid.uuid4())
@@ -145,6 +161,7 @@ class UploadCompletionTokenTest(testing_common.TestCase):
     measurement = upload_completion_token.Measurement.get_by_id(
         test_path, parent=token_key)
     self.assertNotEqual(measurement.state, target_state)
+    self.assertEqual(measurement.error_message, None)
 
     upload_completion_token.Measurement.UpdateStateByIdAsync(
         test_path, token_id, target_state).wait()
@@ -152,6 +169,34 @@ class UploadCompletionTokenTest(testing_common.TestCase):
     measurement = upload_completion_token.Measurement.get_by_id(
         test_path, parent=token_key)
     self.assertEqual(measurement.state, target_state)
+    self.assertEqual(measurement.error_message, None)
+
+  def testMeasurementUpdateStateByIdAsync_ErrorMessage(self):
+    test_path = 'test/path'
+    token_id = str(uuid.uuid4())
+    target_state = upload_completion_token.State.FAILED
+    target_message = 'Some message'
+    token_key = upload_completion_token.Token(id=token_id).put()
+    upload_completion_token.Measurement(id=test_path, parent=token_key).put()
+
+    upload_completion_token.Measurement.UpdateStateByIdAsync(
+        test_path, token_id, target_state, target_message).wait()
+
+    measurement = upload_completion_token.Measurement.get_by_id(
+        test_path, parent=token_key)
+    self.assertEqual(measurement.state, target_state)
+    self.assertEqual(measurement.error_message, target_message)
+
+  @unittest.expectedFailure
+  def testMeasurementUpdateStateByIdAsync_ErrorMessageFaile(self):
+    test_path = 'test/path'
+    token_id = str(uuid.uuid4())
+    token_key = upload_completion_token.Token(id=token_id).put()
+    upload_completion_token.Measurement(id=test_path, parent=token_key).put()
+
+    upload_completion_token.Measurement.UpdateStateByIdAsync(
+        test_path, token_id, upload_completion_token.State.FAILED,
+        'Some message').wait()
 
 
 if __name__ == '__main__':

@@ -51,6 +51,8 @@ class Token(internal_only_model.InternalOnlyModel):
   state_ = ndb.IntegerProperty(
       name='state', default=State.PENDING, indexed=False)
 
+  error_message = ndb.StringProperty(indexed=False, default=None)
+
   creation_time = ndb.DateTimeProperty(auto_now_add=True, indexed=True)
 
   update_time = ndb.DateTimeProperty(auto_now=True, indexed=True)
@@ -86,14 +88,17 @@ class Token(internal_only_model.InternalOnlyModel):
 
   @classmethod
   @ndb.tasklet
-  def UpdateObjectStateAsync(cls, obj, state):
+  def UpdateObjectStateAsync(cls, obj, state, error_message=None):
     if obj is None:
       return
-    yield obj.UpdateStateAsync(state)
+    yield obj.UpdateStateAsync(state, error_message)
 
   @ndb.tasklet
-  def UpdateStateAsync(self, state):
+  def UpdateStateAsync(self, state, error_message=None):
+    assert error_message is None or state == State.FAILED
+
     self.state_ = state
+    self.error_message = error_message
     yield self.put_async()
     self._LogStateChanged()
 
@@ -145,6 +150,8 @@ class Measurement(internal_only_model.InternalOnlyModel):
 
   state = ndb.IntegerProperty(default=State.PROCESSING, indexed=False)
 
+  error_message = ndb.StringProperty(indexed=False, default=None)
+
   update_time = ndb.DateTimeProperty(auto_now=True, indexed=True)
 
   monitored = ndb.BooleanProperty(default=False, indexed=True)
@@ -159,11 +166,18 @@ class Measurement(internal_only_model.InternalOnlyModel):
 
   @classmethod
   @ndb.tasklet
-  def UpdateStateByIdAsync(cls, measurement_id, parent_id, state):
+  def UpdateStateByIdAsync(cls,
+                           measurement_id,
+                           parent_id,
+                           state,
+                           error_message=None):
+    assert error_message is None or state == State.FAILED
+
     obj = cls.GetById(measurement_id, parent_id)
     if obj is None:
       return
     obj.state = state
+    obj.error_message = error_message
     yield obj.put_async()
     token = Token.get_by_id(parent_id)
     logging.info(

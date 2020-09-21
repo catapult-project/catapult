@@ -170,7 +170,7 @@ class AddHistogramsProcessHandler(request_handler.RequestHandler):
       self.response.out.write(json.dumps({'error': e.message}))
 
       upload_completion_token.Token.UpdateObjectStateAsync(
-          token, upload_completion_token.State.FAILED).wait()
+          token, upload_completion_token.State.FAILED, e.message).wait()
 
 
 class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
