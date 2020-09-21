@@ -18,6 +18,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"strings"
 	"sync"
 )
 
@@ -40,10 +41,10 @@ type RequestMatch struct {
 }
 
 func (requestMatch *RequestMatch) SetMatch(
-		match *ArchivedRequest,
-		request *http.Request,
-		response *http.Response,
-		ratio float64) {
+	match *ArchivedRequest,
+	request *http.Request,
+	response *http.Response,
+	ratio float64) {
 	requestMatch.Match = match
 	requestMatch.Request = request
 	requestMatch.Response = response
@@ -114,6 +115,9 @@ type Archive struct {
 	// reset the Archive to serve responses from the start, the client may do so
 	// by incrementing its session id.
 	CurrentSessionId uint32
+	// If an incoming URL doesn't exactly match an entry in the archive,
+	// skip fuzzy matching and return nothing.
+	DisableFuzzyURLMatching bool
 }
 
 func newArchive() Archive {
@@ -147,7 +151,7 @@ func OpenArchive(path string) (*Archive, error) {
 	if err := json.Unmarshal(buf, &a); err != nil {
 		return nil, fmt.Errorf("json unmarshal failed: %v", err)
 	}
-	prepareArchiveForReplay(&a);
+	prepareArchiveForReplay(&a)
 	return &a, nil
 }
 
@@ -217,6 +221,7 @@ func (a *Archive) FindRequest(req *http.Request) (*http.Request, *http.Response,
 	aq := req.URL.Query()
 
 	var bestURL string
+	var bestURLs []string // For debugging fuzzy matching
 	var bestRatio float64
 
 	for ustr := range hostMap {
@@ -236,6 +241,12 @@ func (a *Archive) FindRequest(req *http.Request) (*http.Request, *http.Response,
 			}
 		}
 		ratio := 2 * float64(m) / float64(t)
+
+		if ratio > bestRatio {
+			bestURLs = nil
+		}
+		bestURLs = append(bestURLs, bestURL)
+
 		if ratio > bestRatio ||
 			// Map iteration order is non-deterministic, so we must break ties.
 			(ratio == bestRatio && ustr < bestURL) {
@@ -244,8 +255,14 @@ func (a *Archive) FindRequest(req *http.Request) (*http.Request, *http.Response,
 		}
 	}
 
-	if bestURL != "" {
+	if bestURL != "" && !a.DisableFuzzyURLMatching {
 		return a.findBestMatchInArchivedRequestSet(req, hostMap[bestURL])
+	} else if a.DisableFuzzyURLMatching {
+		logStr := "No exact match found for %s.\nFuzzy matching would have returned one of the following %d matches:\n%v\n"
+		if len(bestURLs) > 0 {
+			logStr += "\n"
+		}
+		log.Printf(logStr, reqUrl, len(bestURLs), strings.Join(bestURLs[:], "\n"))
 	}
 
 	return nil, nil, ErrNotFound
@@ -254,9 +271,9 @@ func (a *Archive) FindRequest(req *http.Request) (*http.Request, *http.Response,
 // Given an incoming request and a set of matches in the archive, identify the best match,
 // based on request headers.
 func (a *Archive) findBestMatchInArchivedRequestSet(
-		incomingReq *http.Request,
-		archivedReqs []*ArchivedRequest) (
-		*http.Request, *http.Response, error) {
+	incomingReq *http.Request,
+	archivedReqs []*ArchivedRequest) (
+	*http.Request, *http.Response, error) {
 	scheme := incomingReq.URL.Scheme
 
 	if len(archivedReqs) == 0 {

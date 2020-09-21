@@ -81,6 +81,7 @@ type ReplayCommand struct {
 	rulesFile                            string
 	serveResponseInChronologicalSequence bool
 	quietMode                            bool
+	disableFuzzyURLMatching              bool
 }
 
 type RootCACommand struct {
@@ -204,6 +205,11 @@ func (r *ReplayCommand) Flags() []cli.Flag {
 				"recorded response, and the second request with the " +
 				"second recorded response.",
 			Destination: &r.serveResponseInChronologicalSequence,
+		},
+		cli.BoolFlag{
+			Name:        "disable_fuzzy_url_matching",
+			Usage:       "When doing playback, require URLs to match exactly.",
+			Destination: &r.disableFuzzyURLMatching,
 		},
 		cli.BoolFlag{
 			Name: "quiet_mode",
@@ -400,6 +406,10 @@ func (r *ReplayCommand) Run(c *cli.Context) {
 	log.Printf("Opened archive %s", archiveFileName)
 
 	archive.ServeResponseInChronologicalSequence = r.serveResponseInChronologicalSequence
+	archive.DisableFuzzyURLMatching = r.disableFuzzyURLMatching
+	if archive.DisableFuzzyURLMatching {
+		log.Printf("Disabling fuzzy URL matching.")
+	}
 
 	timeSeedMs := archive.DeterministicTimeSeedMs
 	if timeSeedMs == 0 {

@@ -31,6 +31,7 @@ CHROME_BINARY_CONFIG = os.path.join(
 RECORD = '--record'
 INJECT_SCRIPTS = '--inject_scripts='
 USE_LOCAL_WPR = '--use-local-wpr'
+DISABLE_FUZZY_URL_MATCHING = '--disable-fuzzy-url-matching'
 
 class ReplayError(Exception):
   """Catch-all exception for the module."""
@@ -194,7 +195,8 @@ class ReplayServer(object):
     """
     bad_options = []
     for option in options:
-      if option not in [RECORD, INJECT_SCRIPTS, USE_LOCAL_WPR]:
+      if option not in [RECORD, INJECT_SCRIPTS,
+                        USE_LOCAL_WPR, DISABLE_FUZZY_URL_MATCHING]:
         bad_options.append(option)
     if len(bad_options) > 0:
       raise ValueError("Invalid replay options %s" % bad_options)
@@ -204,6 +206,8 @@ class ReplayServer(object):
       cmd_line.append('record')
     else:
       cmd_line.append('replay')
+    if DISABLE_FUZZY_URL_MATCHING in options:
+      cmd_line.append('--disable_fuzzy_url_matching')
     key_file = os.path.join(_WPR_DIR, 'wpr_key.pem')
     cert_file = os.path.join(_WPR_DIR, 'wpr_cert.pem')
     inject_script = os.path.join(_WPR_DIR, 'deterministic.js')

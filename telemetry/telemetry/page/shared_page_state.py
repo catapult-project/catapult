@@ -62,6 +62,9 @@ class SharedPageState(story_module.SharedState):
     self._extra_wpr_args = browser_options.extra_wpr_args
     if hasattr(finder_options, 'use_local_wpr') and finder_options.use_local_wpr:
       self._extra_wpr_args.append('--use-local-wpr')
+    if (hasattr(finder_options, 'disable_fuzzy_url_matching') and
+        finder_options.disable_fuzzy_url_matching):
+      self._extra_wpr_args.append('--disable-fuzzy-url-matching')
 
     profiling_mod = browser_interval_profiling_controller
     self._interval_profiling_controller = (
