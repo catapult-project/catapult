@@ -89,7 +89,7 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
     The |data| request parameter can be either a histogram or a sparse shared
     diagnostic; the set of diagnostics that are considered sparse (meaning that
     they don't normally change on every upload for a given benchmark from a
-    given bot) is shown in add_histograms.SPARSE_DIAGNOSTIC_TYPES.
+    given bot) is shown in histogram_helpers.SPARSE_DIAGNOSTIC_TYPES.
 
     See https://goo.gl/lHzea6 for detailed information on the JSON format for
     histograms and diagnostics.

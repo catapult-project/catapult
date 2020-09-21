@@ -32,32 +32,6 @@ from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import reserved_infos
 
-SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
-    reserved_infos.ARCHITECTURES.name,
-    reserved_infos.BENCHMARKS.name,
-    reserved_infos.BENCHMARK_DESCRIPTIONS.name,
-    reserved_infos.BOTS.name,
-    reserved_infos.BUG_COMPONENTS.name,
-    reserved_infos.DOCUMENTATION_URLS.name,
-    reserved_infos.GPUS.name,
-    reserved_infos.MASTERS.name,
-    reserved_infos.MEMORY_AMOUNTS.name,
-    reserved_infos.OS_NAMES.name,
-    reserved_infos.OS_VERSIONS.name,
-    reserved_infos.OWNERS.name,
-    reserved_infos.PRODUCT_VERSIONS.name,
-])
-
-HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
-    reserved_infos.DEVICE_IDS.name,
-    reserved_infos.STORIES.name,
-    reserved_infos.STORYSET_REPEATS.name,
-    reserved_infos.STORY_TAGS.name,
-])
-
-SPARSE_DIAGNOSTIC_NAMES = SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES.union(
-    HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES)
-
 TASK_QUEUE_NAME = 'histograms-queue'
 
 _RETRY_PARAMS = cloudstorage.RetryParams(backoff_factor=1.1)
@@ -488,7 +462,7 @@ def FindSuiteLevelSparseDiagnostics(histograms, suite_key, revision,
   diagnostics = {}
   for hist in histograms:
     for name, diag in hist.diagnostics.items():
-      if name in SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
+      if name in histogram_helpers.SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
         existing_entity = diagnostics.get(name)
         if existing_entity is None:
           diagnostics[name] = histogram.SparseDiagnostic(
@@ -508,7 +482,7 @@ def FindSuiteLevelSparseDiagnostics(histograms, suite_key, revision,
 def FindHistogramLevelSparseDiagnostics(hist):
   diagnostics = {}
   for name, diag in hist.diagnostics.items():
-    if name in HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
+    if name in histogram_helpers.HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES:
       diagnostics[name] = diag
   return diagnostics
 
@@ -558,7 +532,7 @@ def InlineDenseSharedDiagnostics(histograms):
   for hist in histograms:
     diagnostics = hist.diagnostics
     for name, diag in diagnostics.items():
-      if name not in SPARSE_DIAGNOSTIC_NAMES:
+      if name not in histogram_helpers.SPARSE_DIAGNOSTIC_NAMES:
         diag.Inline()
 
 

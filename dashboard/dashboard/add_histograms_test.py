@@ -169,7 +169,7 @@ class AddHistogramsBaseTest(testing_common.TestCase):
         ('/add_histograms/process', add_histograms.AddHistogramsProcessHandler),
         ('/add_histograms_queue',
          add_histograms_queue.AddHistogramsQueueHandler),
-        ('/uploads/(.*)', uploads_info.UploadInfoHandler)
+        ('/uploads/(.+)', uploads_info.UploadInfoHandler),
     ])
     self.testapp = webtest.TestApp(app)
     testing_common.SetIsInternalUser('foo@bar.com', True)
@@ -1573,7 +1573,9 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
 
   def GetUploads(self, token_id, status=200):
     return json.loads(
-        self.testapp.get('/uploads/%s' % token_id, status=status).body)
+        self.testapp.get(
+            '/uploads/%s?additional_info=measurements' % token_id,
+            status=status).body)
 
   def testPost_Succeeds(self):
     token_info = self.PostAddHistogram({'data': self.histogram_data})
@@ -1849,16 +1851,22 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     uploads_response = self.GetUploads(token_info['token'])
     self.assertEqual(uploads_response['state'], 'PROCESSING')
     self.assertEqual(len(uploads_response.get('measurements')), 1)
-    self.assertEqual(uploads_response['measurements'][0]['name'],
-                     'master/bot/benchmark/hist')
-    self.assertEqual(uploads_response['measurements'][0]['state'], 'PROCESSING')
+
+    measurement = uploads_response['measurements'][0]
+    self.assertEqual(measurement['name'], 'master/bot/benchmark/hist')
+    self.assertEqual(measurement['state'], 'PROCESSING')
+    self.assertEqual(measurement['monitored'], False)
+    self.assertTrue(measurement.get('dimensions') is None)
+    self.assertTrue(measurement.get('lastUpdated') is not None)
 
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
 
     uploads_response = self.GetUploads(token_info['token'])
+    measurement = uploads_response['measurements'][0]
     self.assertEqual(uploads_response['state'], 'COMPLETED')
-    self.assertEqual(uploads_response['measurements'][0]['state'], 'COMPLETED')
+    self.assertEqual(measurement['state'], 'COMPLETED')
+    self.assertEqual(len(measurement['dimensions']), 5)
 
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
                      mock.MagicMock(side_effect=Exception()))

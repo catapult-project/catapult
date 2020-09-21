@@ -137,7 +137,7 @@ _URL_MAPPING = [
     ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler),
     ('/update_test_suite_descriptors',
      update_test_suite_descriptors.UpdateTestSuiteDescriptorsHandler),
-    ('/uploads/(.*)', uploads_info.UploadInfoHandler),
+    ('/uploads/(.+)', uploads_info.UploadInfoHandler),
     (oauth2_decorator.DECORATOR.callback_path,
      oauth2_decorator.DECORATOR.callback_handler())
 ]

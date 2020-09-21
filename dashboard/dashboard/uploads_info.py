@@ -5,9 +5,24 @@
 from __future__ import absolute_import
 
 import logging
+import uuid
 
 from dashboard.api import api_request_handler
+from dashboard.common import histogram_helpers
+from dashboard.models import histogram
 from dashboard.models import upload_completion_token
+from tracing.value import histogram as histogram_module
+from tracing.value.diagnostics import diagnostic as diagnostic_module
+from tracing.value.diagnostics import generic_set
+from tracing.value.diagnostics import diagnostic_ref
+
+
+def _IsValidUuid(val):
+  try:
+    uuid.UUID(str(val))
+    return True
+  except ValueError:
+    return False
 
 
 class UploadInfoHandler(api_request_handler.ApiRequestHandler):
@@ -28,16 +43,42 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
     if measurements:
       result['measurements'] = []
     for measurement in measurements:
-      result['measurements'].append({
+      info = {
           'name': measurement.key.id(),
           'state': upload_completion_token.StateToString(measurement.state),
-      })
+          'monitored': measurement.monitored,
+          'lastUpdated': str(measurement.update_time),
+      }
+      if measurement.histogram is not None:
+        histogram_entity = measurement.histogram.get()
+        attached_histogram = histogram_module.Histogram.FromDict(
+            histogram_entity.data)
+        info['dimensions'] = []
+        for name, diagnostic in attached_histogram.diagnostics.items():
+          if name not in histogram_helpers.ADD_HISTOGRAM_RELATED_DIAGNOSTICS:
+            continue
+
+          if isinstance(diagnostic, diagnostic_ref.DiagnosticRef):
+            original_diagnostic = histogram.SparseDiagnostic.get_by_id(
+                diagnostic.guid)
+            diagnostic = diagnostic_module.Diagnostic.FromDict(
+                original_diagnostic.data)
+
+          # We don't have other diagnostics in
+          # histogram_helpers.ADD_HISTOGRAM_RELATED_DIAGNOSTICS if they apper
+          # in the future, dimensions format should be changed.
+          assert isinstance(diagnostic, generic_set.GenericSet)
+
+          info['dimensions'].append({'name': name, 'value': list(diagnostic)})
+
+      result['measurements'].append(info)
     return result
 
   def Get(self, *args):
     """Returns json, that describes state of the token.
 
-    Can be called by get request to /uploads/<token_id>.
+    Can be called by get request to /uploads/<token_id>. Measurements info can
+    be requested with GET parameter ?additional_info=measurements.
 
     Response is json of the form:
     {
@@ -50,6 +91,15 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
         {
           "name": "...",
           "state": "PROCESSING|FAILED|COMPLETED",
+          "monitored": True|False,
+          "lastUpdated": "...",
+          "dimentions": [
+            {
+              "name": "...",
+              "values": ["...", ...]
+            },
+            ...
+          ]
         },
         ...
       ]
@@ -62,25 +112,43 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
       - created: Date and time of creation.
       - lastUpdated: Date and time of last update.
       - state: Aggregated state of the token and all associated measurements.
-      - measurements: List of jsons, that describes measurements, associated
-        with the token. If there is no such measurements, the field will be
-        absent.
+      - measurements: List of json objects, that describes measurements
+        associated with the token. If there are no such measurements, the field
+        will be absent. This field may be absent if full information is not
+        requested.
         - name: The path  of the measurement. It is a fully-qualified path in
           the Dashboard.
         - state: State of the measurement.
+        - monitored: A boolean indicating whether the path is monitored by a
+          sheriff configuration.
+        - lastUpdated: Date and time of last update.
+        - dimentions: List of relevant for /add_histogram api diagnostics,
+          associated to the histogram, that is represented by the measurement.
+          This field will be present in response only after the histogram has
+          been added to Datastore.
+          - name: Name of the diagnostic.
+          - values: List of values, stored in the GenericSet diagnostic.
 
     Meaning of some common error codes:
+      - 400: Invalid format of the token id.
       - 403: The user is not authorized to check on the status of an upload.
-      - 404: Token could not be found. It is either expired or the token is
-        invalid.
+      - 404: Token could not be found. It is either expired or was never
+        created.
     """
     assert len(args) == 1
 
     token_id = args[0]
+    if not _IsValidUuid(token_id):
+      logging.error('Upload completion token id is not valid. Token id: %s',
+                    token_id)
+      raise ValueError
+
     token = upload_completion_token.Token.get_by_id(token_id)
     if token is None:
       logging.error('Upload completion token not found. Token id: %s', token_id)
       raise api_request_handler.NotFoundError
 
-    measurements = token.GetMeasurements()
+    measurements = None
+    if 'measurements' in self.request.get('additional_info'):
+      measurements = token.GetMeasurements()
     return self._GenerateResponse(token, measurements)
