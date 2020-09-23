@@ -42,16 +42,16 @@ class Token(internal_only_model.InternalOnlyModel):
   _use_memcache = True
   _memcache_timeout = _MEMCACHE_TIMEOUT
 
-  internal_only = ndb.BooleanProperty(default=True)
+  internal_only = ndb.BooleanProperty(default=True, indexed=False)
 
   state_ = ndb.IntegerProperty(
       name='state', default=State.PENDING, indexed=False)
 
   error_message = ndb.StringProperty(indexed=False, default=None)
 
-  creation_time = ndb.DateTimeProperty(auto_now_add=True, indexed=True)
+  creation_time = ndb.DateTimeProperty(auto_now_add=True, indexed=False)
 
-  update_time = ndb.DateTimeProperty(auto_now=True, indexed=True)
+  update_time = ndb.DateTimeProperty(auto_now=True, indexed=False)
 
   temporary_staging_file_path = ndb.StringProperty(indexed=False, default=None)
 
@@ -123,9 +123,9 @@ class Measurement(internal_only_model.InternalOnlyModel):
 
   error_message = ndb.StringProperty(indexed=False, default=None)
 
-  update_time = ndb.DateTimeProperty(auto_now=True, indexed=True)
+  update_time = ndb.DateTimeProperty(auto_now=True, indexed=False)
 
-  monitored = ndb.BooleanProperty(default=False, indexed=True)
+  monitored = ndb.BooleanProperty(default=False, indexed=False)
 
   histogram = ndb.KeyProperty(kind='Histogram', indexed=True, default=None)
 
