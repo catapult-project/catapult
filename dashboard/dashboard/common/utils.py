@@ -9,7 +9,6 @@ from __future__ import absolute_import
 import collections
 import logging
 import os
-import random
 import re
 import time
 import urllib
@@ -545,10 +544,8 @@ def ShouldTurnOnUploadCompletionTokenExperiment():
   email = GetEmail()
   if not email:
     return False
-  if not IsGroupMember(
-      identity=email, group='project-chromeperf-upload-token-experiment'):
-    return False
-  return random.random() <= 0.5
+  return IsGroupMember(identity=email,
+                       group='project-chromeperf-upload-token-experiment')
 
 
 def IsGroupMember(identity, group):

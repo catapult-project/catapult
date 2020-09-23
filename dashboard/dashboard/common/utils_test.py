@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 import base64
 import json
-import random
 import unittest
 
 import mock
@@ -479,14 +478,6 @@ class UtilsTest(testing_common.TestCase):
     self.assertFalse(utils.ShouldTurnOnUploadCompletionTokenExperiment())
 
   @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=True))
-  @mock.patch.object(random, 'random', mock.MagicMock(return_value=0.50001))
-  @mock.patch.object(utils, 'GetEmail',
-                     mock.MagicMock(return_value='internal@chromium.org'))
-  def testShouldNotTurnOnUploadCompletionTokenExperiment_RandomTooHigh(self):
-    self.assertFalse(utils.ShouldTurnOnUploadCompletionTokenExperiment())
-
-  @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=True))
-  @mock.patch.object(random, 'random', mock.MagicMock(return_value=0.42))
   @mock.patch.object(utils, 'GetEmail',
                      mock.MagicMock(return_value='internal@chromium.org'))
   def testShouldTurnOnUploadCompletionTokenExperiment_Positive(self):
