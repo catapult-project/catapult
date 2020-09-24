@@ -35,7 +35,7 @@ EMAIL_SCOPE = 'https://www.googleapis.com/auth/userinfo.email'
 _PROJECT_ID_KEY = 'project_id'
 _DEFAULT_CUSTOM_METRIC_VAL = 1
 OAUTH_SCOPES = ('https://www.googleapis.com/auth/userinfo.email',)
-OAUTH_ENDPOINTS = ['/api/', '/add_histograms', '/add_point']
+OAUTH_ENDPOINTS = ['/api/', '/add_histograms', '/add_point', '/uploads']
 
 _AUTOROLL_DOMAINS = (
     'chops-service-accounts.iam.gserviceaccount.com',
