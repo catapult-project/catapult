@@ -343,7 +343,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self.IsBrowserRunning() and self.browser.platform.GetOSName() != 'win':
       self._proc.send_signal(signal.SIGINT)
       try:
-        py_utils.WaitFor(lambda: not self.IsBrowserRunning(), timeout=5)
+        py_utils.WaitFor(lambda: not self.IsBrowserRunning(),
+                         timeout=int(os.getenv('CHROME_SHUTDOWN_TIMEOUT', 5))
+                        )
         self._proc = None
       except py_utils.TimeoutException:
         logging.warning('Failed to gracefully shutdown.')
