@@ -38,6 +38,7 @@ class SharedPageState(story_module.SharedState):
       # just collect a trace, then measurements are done after the fact by
       # analysing the trace itself.
       self._page_test = test
+      self._page_test_results = None
 
     if (self._device_type == 'desktop' and
         platform_module.GetHostPlatform().GetOSName() == 'chromeos'):
@@ -298,12 +299,20 @@ class SharedPageState(story_module.SharedState):
     if self._page_test:
       self._page_test.DidNavigateToPage(page, action_runner.tab)
 
+  def RunPageInteractions(self, action_runner, page):
+    # The purpose is similar to NavigateToPage.
+    with self.interval_profiling_controller.SamplePeriod(
+        'interactions', action_runner):
+      page.RunPageInteractions(action_runner)
+      if self._page_test:
+        self._page_test.ValidateAndMeasurePage(
+            page, action_runner.tab, self._page_test_results)
+
   def RunStory(self, results):
     self._PreparePage()
+    self._page_test_results = results
     self._current_page.Run(self)
-    if self._page_test:
-      self._page_test.ValidateAndMeasurePage(
-          self._current_page, self._current_tab, results)
+    self._page_test_results = None
 
   def TearDownState(self):
     self._StopBrowser()

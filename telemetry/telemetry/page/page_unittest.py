@@ -204,11 +204,7 @@ class TestPageRun(unittest.TestCase):
               'story_run', mock_action_runner),
           mock.call.interval_profiling_controller.SamplePeriod().__enter__(),
           mock.call.NavigateToPage(mock_action_runner, p),
-          mock.call.interval_profiling_controller.SamplePeriod(
-              'interactions', mock_action_runner),
-          mock.call.interval_profiling_controller.SamplePeriod().__enter__(),
-          mock.call.interval_profiling_controller.SamplePeriod().__exit__(
-              None, None, None),
+          mock.call.RunPageInteractions(mock_action_runner, p),
           mock.call.interval_profiling_controller.SamplePeriod().__exit__(
               None, None, None)
       ]

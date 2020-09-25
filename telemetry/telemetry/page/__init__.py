@@ -85,9 +85,7 @@ class Page(story.Story):
     with shared_state.interval_profiling_controller.SamplePeriod(
         'story_run', action_runner):
       shared_state.NavigateToPage(action_runner, self)
-      with shared_state.interval_profiling_controller.SamplePeriod(
-          'interactions', action_runner):
-        self.RunPageInteractions(action_runner)
+      shared_state.RunPageInteractions(action_runner, self)
     # Navigate to about:blank in order to force previous page's metrics to
     # flush. Needed for many UMA metrics reported from PageLoadMetricsObserver.
     if self._perform_final_navigation:
