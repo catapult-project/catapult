@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import collections
 import logging
 import os
+import random
 import re
 import time
 import urllib
@@ -534,7 +535,7 @@ def ShouldTurnOnUploadCompletionTokenExperiment():
   """Checks whether current request should be part of upload completeon token
   experiment.
 
-  True for 50% of requests from project-chromeperf-upload-token-experiment
+  True for 5% of requests from project-chromeperf-upload-token-experiment
   group members. Does not guarantee, that multiple calls for one request will
   return the same results. So call it only once and than pass the decision to
   other parts of the code manually.
@@ -544,8 +545,10 @@ def ShouldTurnOnUploadCompletionTokenExperiment():
   email = GetEmail()
   if not email:
     return False
-  return IsGroupMember(identity=email,
-                       group='project-chromeperf-upload-token-experiment')
+  if not IsGroupMember(
+      identity=email, group='project-chromeperf-upload-token-experiment'):
+    return False
+  return random.random() <= 0.05
 
 
 def IsGroupMember(identity, group):
