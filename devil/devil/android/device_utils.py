@@ -3567,9 +3567,6 @@ class DeviceUtils(object):
                      retries=1,
                      enable_usb_resets=False,
                      abis=None,
-                     # TODO(crbug.com/1097306): Remove this once clients have
-                     # stopped passing it.
-                     blacklist=None,
                      **kwargs):
     """Returns a list of DeviceUtils instances.
 
@@ -3621,10 +3618,6 @@ class DeviceUtils(object):
       select_multiple = False
       if device_arg:
         device_arg = (device_arg, )
-
-    # TODO(crbug.com/1097306): Remove this once clients have switched.
-    if blacklist and not denylist:
-      denylist = blacklist
 
     denylisted_devices = denylist.Read() if denylist else []
 

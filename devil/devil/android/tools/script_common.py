@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import argparse
 import os
 
 from devil import devil_env
@@ -66,22 +65,8 @@ def AddDeviceArguments(parser):
       default=[],
       help='Serial number of the Android device to use. (default: use all)')
 
-  # TODO(crbug.com/1097306): Simplify this to an ungrouped --denylist-file
-  # once all uses of --blacklist-file / args.blacklist_file have been updated.
-  class DenylistAction(argparse.Action):
-
-    #override
-    def __call__(self, parser, namespace, values, option_string=None):
-      setattr(namespace, 'denylist_file', values)
-      setattr(namespace, 'blacklist_file', values)
-
-  denylist_group = parser.add_mutually_exclusive_group()
-  denylist_group.add_argument('--denylist-file',
-                              help='Device denylist JSON file.',
-                              action=DenylistAction)
-  denylist_group.add_argument('--blacklist-file',
-                              help=argparse.SUPPRESS,
-                              action=DenylistAction)
+  parser.add_argument('--denylist-file',
+                      help='Device denylist JSON file.')
 
 
 def GetDevices(requested_devices, denylist_file):

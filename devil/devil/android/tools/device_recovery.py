@@ -230,8 +230,6 @@ def main():
   parser = argparse.ArgumentParser()
   logging_common.AddLoggingArguments(parser)
   script_common.AddEnvironmentArguments(parser)
-  # TODO(crbug.com/1097306): Remove this once callers switch to --denylist-file.
-  parser.add_argument('--blacklist-file', help=argparse.SUPPRESS)
   parser.add_argument('--denylist-file', help='Device denylist JSON file.')
   parser.add_argument(
       '--known-devices-file',
@@ -248,9 +246,6 @@ def main():
 
   denylist = (device_denylist.Denylist(args.denylist_file)
               if args.denylist_file else None)
-  # TODO(crbug.com/1097306): Remove this once callers switch to --denylist-file.
-  if not denylist and args.blacklist_file:
-    denylist = device_denylist.Denylist(args.blacklist_file)
 
   expected_devices = device_status.GetExpectedDevices(args.known_devices_files)
   usb_devices = set(lsusb.get_android_devices())

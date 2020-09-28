@@ -226,11 +226,6 @@ def AddArguments(parser):
   parser.add_argument(
       '--json-output', help='Output JSON information into a specified file.')
   parser.add_argument('--denylist-file', help='Device denylist JSON file.')
-  # TODO(crbug.com/1097306): Remove this once //testing/scripts/host_info.py
-  # stops using it.
-  parser.add_argument('--blacklist-file',
-                      dest='denylist_file',
-                      help=argparse.SUPPRESS)
   parser.add_argument(
       '--known-devices-file',
       action='append',

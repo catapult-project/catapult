@@ -203,11 +203,6 @@ def main(argv):
   parser = argparse.ArgumentParser(description='Launches the device monitor.')
   script_common.AddEnvironmentArguments(parser)
   parser.add_argument('--denylist-file', help='Path to device denylist file.')
-  # TODO(crbug.com/1097306): Remove this once chromium_android/api.py stops
-  # using it.
-  parser.add_argument('--blacklist-file',
-                      dest='denylist_file',
-                      help=argparse.SUPPRESS)
   args = parser.parse_args(argv)
 
   logger = logging.getLogger()

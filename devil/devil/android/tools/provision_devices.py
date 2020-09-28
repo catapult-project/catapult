@@ -625,9 +625,6 @@ def main(raw_args):
       metavar='NUM',
       help='wait for the device to reach this minimum battery'
       ' level before trying to continue')
-  # TODO(crbug.com/1097306): Remove after updating clients.
-  parser.add_argument('--output-device-blacklist',
-                      help=argparse.SUPPRESS)
   parser.add_argument('--output-device-denylist',
                       help='Json file to output the device denylist.')
   parser.add_argument(
@@ -674,10 +671,6 @@ def main(raw_args):
   logging_common.InitializeLogging(args)
   script_common.InitializeEnvironment(args)
 
-  output_device_denylist = args.output_device_denylist
-  if not output_device_denylist and args.output_device_blacklist:
-    output_device_denylist = args.output_device_blacklist
-
   try:
     return ProvisionDevices(
         args.devices,
@@ -691,7 +684,7 @@ def main(raw_args):
         enable_java_debug=args.enable_java_debug,
         max_battery_temp=args.max_battery_temp,
         min_battery_level=args.min_battery_level,
-        output_device_denylist=output_device_denylist,
+        output_device_denylist=args.output_device_denylist,
         reboot_timeout=args.reboot_timeout,
         remove_system_webview=args.remove_system_webview,
         system_app_remove_list=args.system_app_remove_list,
