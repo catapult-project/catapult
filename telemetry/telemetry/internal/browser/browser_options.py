@@ -230,8 +230,8 @@ class BrowserFinderOptions(optparse.Values):
 
     # Remote platform options
     group = optparse.OptionGroup(parser, 'Remote platform options')
-    group.add_option('--android-blacklist-file',
-                     help='Device blacklist JSON file.')
+    group.add_option('--android-denylist-file',
+                     help='Device denylist JSON file.')
     group.add_option(
         '--device',
         help='The device ID to use. '
@@ -488,7 +488,7 @@ class BrowserFinderOptions(optparse.Values):
         self.emulator_window = False
         self.use_webview_provider = False
         self.replace_system_package = False
-        self.blacklist_file = None
+        self.denylist_file = None
         self.test_devices = []
         self.enable_concurrent_adb = False
         self.logcat_output_dir = None
@@ -509,17 +509,17 @@ class BrowserFinderOptions(optparse.Values):
 
   # TODO(eakuefner): Factor this out into OptionBuilder pattern
   def BuildRemotePlatformOptions(self):
-    if self.device or self.android_blacklist_file:
+    if self.device or self.android_denylist_file:
       self.remote_platform_options = (
           remote_platform_options.AndroidPlatformOptions(
-              self.device, self.android_blacklist_file))
+              self.device, self.android_denylist_file))
 
       # We delete these options because they should live solely in the
       # AndroidPlatformOptions instance belonging to this class.
       if self.device:
         del self.device
-      if self.android_blacklist_file:
-        del self.android_blacklist_file
+      if self.android_denylist_file:
+        del self.android_denylist_file
     else:
       self.remote_platform_options = (
           remote_platform_options.AndroidPlatformOptions())

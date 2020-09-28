@@ -42,7 +42,7 @@ class FuchsiaDevice(device.Device):
     self._managed_repo = managed_repo
 
   @classmethod
-  def GetAllConnectedDevices(cls, blacklist):
+  def GetAllConnectedDevices(cls, denylist):
     return []
 
   @property

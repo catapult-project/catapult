@@ -10,8 +10,8 @@ class RemotePlatformOptions(object):
 class AndroidPlatformOptions(RemotePlatformOptions):
   """Android-specific remote platform options."""
 
-  def __init__(self, device=None, android_blacklist_file=None):
+  def __init__(self, device=None, android_denylist_file=None):
     super(AndroidPlatformOptions, self).__init__()
 
     self.device = device
-    self.android_blacklist_file = android_blacklist_file
+    self.android_denylist_file = android_denylist_file

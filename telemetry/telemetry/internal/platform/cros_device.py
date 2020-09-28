@@ -19,7 +19,7 @@ class CrOSDevice(device.Device):
     self._is_local = is_local
 
   @classmethod
-  def GetAllConnectedDevices(cls, blacklist):
+  def GetAllConnectedDevices(cls, denylist):
     return []
 
   @property

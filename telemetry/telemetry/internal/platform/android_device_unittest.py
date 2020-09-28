@@ -12,20 +12,20 @@ from telemetry.testing import system_stub
 import mock
 
 from devil.android import device_utils
-from devil.android import device_blacklist
+from devil.android import device_denylist
 
 
 class _BaseAndroidDeviceTest(unittest.TestCase):
   def setUp(self):
-    def check_blacklist_arg(blacklist):
-      self.assertTrue(blacklist is None
-                      or isinstance(blacklist, device_blacklist.Blacklist))
+    def check_denylist_arg(denylist):
+      self.assertTrue(denylist is None
+                      or isinstance(denylist, device_denylist.Denylist))
       return mock.DEFAULT
 
     self._healthy_device_patcher = mock.patch(
         'devil.android.device_utils.DeviceUtils.HealthyDevices')
     self._healthy_device_mock = self._healthy_device_patcher.start()
-    self._healthy_device_mock.side_effect = check_blacklist_arg
+    self._healthy_device_mock.side_effect = check_denylist_arg
     self._android_device_stub = system_stub.Override(
         android_device, ['subprocess'])
 

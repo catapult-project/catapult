@@ -8,7 +8,7 @@ import os
 from telemetry.internal.platform import cros_device
 from telemetry.internal.platform import device
 
-from devil.android import device_blacklist
+from devil.android import device_denylist
 from devil.android import device_errors
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
@@ -34,8 +34,8 @@ class AndroidDevice(device.Device):
     self._device_id = device_id
 
   @classmethod
-  def GetAllConnectedDevices(cls, blacklist):
-    device_serials = GetDeviceSerials(blacklist)
+  def GetAllConnectedDevices(cls, denylist):
+    device_serials = GetDeviceSerials(denylist)
     return [cls(s) for s in device_serials]
 
   @property
@@ -43,18 +43,18 @@ class AndroidDevice(device.Device):
     return self._device_id
 
 
-def _ListSerialsOfHealthyOnlineDevices(blacklist):
+def _ListSerialsOfHealthyOnlineDevices(denylist):
   return [d.adb.GetDeviceSerial()
-          for d in device_utils.DeviceUtils.HealthyDevices(blacklist)]
+          for d in device_utils.DeviceUtils.HealthyDevices(denylist)]
 
 
-def GetDeviceSerials(blacklist):
+def GetDeviceSerials(denylist):
   """Return the list of device serials of healthy devices.
 
   If a preferred device has been set with ANDROID_SERIAL, it will be first in
   the returned list. The arguments specify what devices to include in the list.
   """
-  device_serials = _ListSerialsOfHealthyOnlineDevices(blacklist)
+  device_serials = _ListSerialsOfHealthyOnlineDevices(denylist)
 
   preferred_device = os.environ.get('ANDROID_SERIAL')
   if preferred_device in device_serials:
@@ -74,17 +74,17 @@ def GetDevice(finder_options):
         'No adb command found. Will not try searching for Android browsers.')
     return None
 
-  if android_platform_options.android_blacklist_file:
-    blacklist = device_blacklist.Blacklist(
-        android_platform_options.android_blacklist_file)
+  if android_platform_options.android_denylist_file:
+    denylist = device_denylist.Denylist(
+        android_platform_options.android_denylist_file)
   else:
-    blacklist = None
+    denylist = None
 
   if (android_platform_options.device
-      and android_platform_options.device in GetDeviceSerials(blacklist)):
+      and android_platform_options.device in GetDeviceSerials(denylist)):
     return AndroidDevice(android_platform_options.device)
 
-  devices = AndroidDevice.GetAllConnectedDevices(blacklist)
+  devices = AndroidDevice.GetAllConnectedDevices(denylist)
   if len(devices) == 0:
     logging.warning('No android devices found.')
     return None
@@ -140,11 +140,11 @@ def FindAllAvailableDevices(options):
   devices = []
   try:
     if CanDiscoverDevices():
-      blacklist = None
-      if android_platform_options.android_blacklist_file:
-        blacklist = device_blacklist.Blacklist(
-            android_platform_options.android_blacklist_file)
-      devices = AndroidDevice.GetAllConnectedDevices(blacklist)
+      denylist = None
+      if android_platform_options.android_denylist_file:
+        denylist = device_denylist.Denylist(
+            android_platform_options.android_denylist_file)
+      devices = AndroidDevice.GetAllConnectedDevices(denylist)
   finally:
     if not devices and _HasValidAdb():
       try:
