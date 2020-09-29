@@ -225,7 +225,9 @@ class AlertGroupWorkflow(object):
 
     # Check whether all the anomalies associated have been marked recovered.
     if all(a.recovered for a in anomalies if not a.is_improvement):
-      return self._CloseBecauseRecovered()
+      if issue.get('state') == 'open':
+        self._CloseBecauseRecovered()
+      return
 
     new_regressions, subscriptions = self._GetRegressions(added)
     all_regressions, _ = self._GetRegressions(anomalies)
