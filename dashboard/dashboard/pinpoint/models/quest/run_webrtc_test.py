@@ -59,11 +59,25 @@ class RunWebRtcTest(run_test.RunTest):
       raise ValueError('Missing "target" in arguments.')
 
     # This is the command used to run webrtc_perf_tests.
-    command = arguments.get('command', [
-        '../../tools_webrtc/flags_compatibility.py',
-        '../../testing/test_env.py',
-        os.path.join('.', arguments.get('target'))
-    ])
+    if 'android' in arguments.get('configuration'):
+      default_command = [
+          '../../build/android/test_wrapper/logdog_wrapper.py',
+          '--target',
+          arguments.get('target'),
+          '--logdog-bin-cmd',
+          '../../bin/logdog_butler',
+          '--logcat-output-file',
+          '${ISOLATED_OUTDIR}/logcats',
+      ]
+    else:
+      default_command = [
+          '../../tools_webrtc/flags_compatibility.py',
+          '../../testing/test_env.py',
+          os.path.join('.', arguments.get('target')),
+          '--test_artifacts_dir=${ISOLATED_OUTDIR}',
+      ]
+    command = arguments.get('command', default_command)
+
     # The tests are run in the builder out directory.
     builder_cwd = _SanitizeFileName(arguments.get('builder'))
     relative_cwd = arguments.get('relative_cwd', 'out/' + builder_cwd)
@@ -82,7 +96,6 @@ class RunWebRtcTest(run_test.RunTest):
   def _ExtraTestArgs(cls, arguments):
     results_filename = '${ISOLATED_OUTDIR}/webrtc_perf_tests/perf_results.json'
     extra_test_args = [
-        '--test_artifacts_dir=${ISOLATED_OUTDIR}',
         '--nologs',
         '--isolated-script-test-perf-output=%s' % results_filename,
     ]
