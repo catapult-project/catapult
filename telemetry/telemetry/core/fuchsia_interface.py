@@ -32,10 +32,7 @@ class CommandRunner(object):
     self._port = port
 
   def _GetSshCommandLinePrefix(self):
-    prefix_cmd = ['ssh', '-F', self._config_path, self._host]
-    if self._port:
-      prefix_cmd += ['-p', str(self._port)]
-    return prefix_cmd
+    return ['ssh', '-F', self._config_path, self._host, '-p', str(self._port)]
 
   def RunCommandPiped(self, command=None, ssh_args=None, **kwargs):
     """Executes an SSH command on the remote host and returns a process object

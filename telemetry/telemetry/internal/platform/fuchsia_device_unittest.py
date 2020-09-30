@@ -63,7 +63,7 @@ class FuchsiaSDKUsageTest(unittest.TestCase):
     self._options.fuchsia_repo = None
 
   def testSkipSDKUseIfSshPortExists(self):
-    self._options.fuchsia_ssh_port = 22222
+    self._options.fuchsia_ssh_port = '22222'
     with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH +
                     '._DownloadFuchsiaSDK') as get_mock:
       found_devices = fuchsia_device.FindAllAvailableDevices(self._options)
