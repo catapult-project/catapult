@@ -29,13 +29,13 @@ _SDK_TOOLS = [
 
 class FuchsiaDevice(device.Device):
 
-  def __init__(self, target_name, host, ssh_config_dir,
+  def __init__(self, target_name, host, ssh_config,
                system_log_file, port, managed_repo):
     super(FuchsiaDevice, self).__init__(
         name='Fuchsia with host: %s' % host,
         guid='fuchsia:%s' % target_name)
     self._target_name = target_name
-    self._ssh_config_dir = ssh_config_dir
+    self._ssh_config = ssh_config
     self._system_log_file = system_log_file
     self._host = host
     self._port = port
@@ -58,8 +58,8 @@ class FuchsiaDevice(device.Device):
     return self._host
 
   @property
-  def ssh_config_dir(self):
-    return self._ssh_config_dir
+  def ssh_config(self):
+    return self._ssh_config
 
   @property
   def system_log_file(self):
@@ -91,7 +91,7 @@ def _FindFuchsiaDevice(sdk_root, is_emulator):
   if is_emulator:
     logging.warning('Fuchsia emulators not supported at this time.')
     return None
-  finder_cmd = [dev_finder_path, 'list', '-full',
+  finder_cmd = [dev_finder_path, 'list', '-full', '-netboot',
                 '-timeout', str(_LIST_DEVICES_TIMEOUT_SECS) + 's']
   device_list, _ = cmd_util.GetAllCmdOutput(finder_cmd)
   if not device_list:
@@ -131,19 +131,18 @@ def FindAllAvailableDevices(options):
   # If the ssh port of the device has been forwarded to a port on the host,
   # return that device directly.
   if options.fuchsia_ssh_port:
-    try:
-      return [FuchsiaDevice(target_name='local_device',
-                            host='localhost',
-                            system_log_file=options.fuchsia_system_log_file,
-                            ssh_config_dir=options.fuchsia_ssh_config_dir,
-                            port=int(options.fuchsia_ssh_port),
-                            managed_repo=options.fuchsia_repo)]
-    except ValueError:
-      logging.error('fuchsia-ssh-port must be an integer.')
+    return [FuchsiaDevice(target_name='local_device',
+                          host='localhost',
+                          system_log_file=options.fuchsia_system_log_file,
+                          ssh_config=options.fuchsia_ssh_config_dir,
+                          port=options.fuchsia_ssh_port,
+                          managed_repo=options.fuchsia_repo)]
+
   # Download the Fuchsia SDK if it doesn't exist.
   # TODO(https://crbug.com/1031763): Figure out how to use the dependency
   # manager.
   sdk_root = _DownloadFuchsiaSDKIfNecessary()
+
   try:
     device_list = _FindFuchsiaDevice(sdk_root, False)
   except OSError:
@@ -161,6 +160,6 @@ def FindAllAvailableDevices(options):
   return [FuchsiaDevice(target_name=target_name,
                         host=host,
                         system_log_file=options.fuchsia_system_log_file,
-                        ssh_config_dir=options.fuchsia_ssh_config_dir,
-                        port=22,
+                        ssh_config=options.fuchsia_ssh_config_dir,
+                        port=options.fuchsia_ssh_port,
                         managed_repo=options.fuchsia_repo)]

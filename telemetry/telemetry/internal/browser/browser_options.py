@@ -259,13 +259,23 @@ class BrowserFinderOptions(optparse.Values):
     parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser, 'Fuchsia platform options')
+
+    # TODO (crbug.com/1133039):
+    # Delete this flag once tests transition to fuchsia-ssh-config-file.
     group.add_option(
         '--fuchsia-ssh-config-dir',
         default='out/Release',
         help='Specify directory of the ssh_config file for the Fuchsia OS.')
+
+    group.add_option(
+        '--fuchsia-ssh-config',
+        dest='fuchsia_ssh_config_dir',
+        default='out/Release',
+        help='Specify the ssh_config file used to connect to the Fuchsia OS.')
     group.add_option(
         '--fuchsia-ssh-port',
         default=None,
+        type=int,
         help='The port on the host to which the ssh service running on the '
         'Fuchsia device was forwarded. Will skip using the device-finder tool '
         'if specified.')

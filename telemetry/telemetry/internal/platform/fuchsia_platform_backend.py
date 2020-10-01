@@ -15,10 +15,15 @@ from telemetry.internal.platform import platform_backend
 class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
   def __init__(self, device):
     super(FuchsiaPlatformBackend, self).__init__(device)
-    self._config_dir = device.ssh_config_dir
+    if os.path.isfile(device.ssh_config):
+      self._ssh_config = device.ssh_config
+    elif os.path.isfile(os.path.join(device.ssh_config, 'ssh_config')):
+      self._ssh_config = os.path.join(device.ssh_config, 'ssh_config')
+    else:
+      raise Exception('ssh config file not found.')
     self._system_log_file = device.system_log_file
     self._command_runner = CommandRunner(
-        os.path.join(self._config_dir, 'ssh_config'),
+        self._ssh_config,
         device.host,
         device.port)
     self._managed_repo = device.managed_repo
@@ -43,8 +48,8 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
     return self._command_runner
 
   @property
-  def config_dir(self):
-    return self._config_dir
+  def ssh_config(self):
+    return self._ssh_config
 
   def GetSystemLog(self):
     if not self._system_log_file:

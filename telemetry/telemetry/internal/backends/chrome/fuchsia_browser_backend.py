@@ -32,7 +32,11 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._browser_process = None
     self._devtools_port = None
     self._symbolizer_proc = None
-    self._config_dir = fuchsia_platform_backend.config_dir
+    if os.environ.get('CHROMIUM_OUTPUT_DIR'):
+      self._output_dir = os.environ.get('CHROMIUM_OUTPUT_DIR')
+    else:
+      self._output_dir = os.path.abspath(os.path.dirname(
+          fuchsia_platform_backend.ssh_config))
     self._browser_log = ''
     self._managed_repo = fuchsia_platform_backend.managed_repo
 
@@ -71,7 +75,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     try:
       self._browser_process = self._command_runner.RunCommandPiped(
           browser_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-      browser_id_file = os.path.join(self._config_dir, 'gen', 'fuchsia',
+      browser_id_file = os.path.join(self._output_dir, 'gen', 'fuchsia',
                                      'engine', 'web_engine_shell', 'ids.txt')
 
       # Symbolize stderr of browser process if possible
