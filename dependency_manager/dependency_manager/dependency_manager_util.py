@@ -7,7 +7,9 @@ import shutil
 import stat
 import subprocess
 import sys
-import zipfile_2_7_13 as zipfile
+import zipfile
+
+import six
 
 from dependency_manager import exceptions
 
@@ -17,7 +19,7 @@ def _WinReadOnlyHandler(func, path, execinfo):
     os.chmod(path, stat.S_IWRITE)
     func(path)
   else:
-    raise execinfo[0], execinfo[1], execinfo[2]
+    six.reraise(*execinfo)
 
 
 def RemoveDir(dir_path):

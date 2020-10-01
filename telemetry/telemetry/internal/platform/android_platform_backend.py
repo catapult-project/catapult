@@ -100,7 +100,7 @@ class _VideoRecorder(object):
     # Start recording the video in parallel to running the story, so that the
     # video recording here does not block running the story (which involve
     # executing additional commands in parallel on the device).
-    parallel_devices = device_utils.DeviceUtils.parallel([device], async=True)
+    parallel_devices = device_utils.DeviceUtils.parallel([device], asynch=True)
     self._runner = parallel_devices.pMap(record_video, self)
 
   def Stop(self, video_path):

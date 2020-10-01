@@ -10,7 +10,7 @@ import pipes
 import select
 import signal
 import string
-import StringIO
+import io
 import subprocess
 import sys
 import time
@@ -23,7 +23,10 @@ _SafeShellChars = frozenset(string.ascii_letters + string.digits + '@%_-+=:,./')
 
 # Cache the string-escape codec to ensure subprocess can find it
 # later. Return value doesn't matter.
-codecs.lookup('string-escape')
+if sys.version_info.major == 2:
+  codecs.lookup('string-escape')
+else:
+  unicode = str  # pylint: disable=redefined-builtin
 
 
 def SingleQuote(s):
@@ -100,7 +103,8 @@ def Popen(args,
           stderr=None,
           shell=None,
           cwd=None,
-          env=None):
+          env=None,
+          universal_newlines=None):
   # preexec_fn isn't supported on windows.
   if sys.platform == 'win32':
     close_fds = (stdin is None and stdout is None and stderr is None)
@@ -118,7 +122,8 @@ def Popen(args,
       shell=shell,
       close_fds=close_fds,
       env=env,
-      preexec_fn=preexec_fn)
+      preexec_fn=preexec_fn,
+      universal_newlines=universal_newlines)
 
 
 def Call(args, stdout=None, stderr=None, shell=None, cwd=None, env=None):
@@ -452,19 +457,20 @@ def GetCmdStatusAndOutputWithTimeout(args,
     TimeoutError on timeout.
   """
   _ValidateAndLogCommand(args, cwd, shell)
-  output = StringIO.StringIO()
+  output = io.StringIO()
   process = Popen(
       args,
       cwd=cwd,
       shell=shell,
       stdout=subprocess.PIPE,
       stderr=subprocess.STDOUT,
-      env=env)
+      env=env,
+      universal_newlines=True)
   try:
     for data in _IterProcessStdout(process, timeout=timeout):
       if logfile:
         logfile.write(data)
-      output.write(data)
+      output.write(unicode(data))
   except TimeoutError:
     raise TimeoutError(output.getvalue())
 
