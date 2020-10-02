@@ -1305,14 +1305,6 @@ class DeviceUtils(object):
       # consistent, we explicitly terminate it when skipping the install.
       self.ForceStop(package_name)
 
-    # There have been cases of APKs (namely Chrome) not being detected after
-    # being explicitly installed, so perform a sanity check now and fail
-    # early if the installation somehow failed.
-    if not self.IsApplicationInstalled(package_name):
-      raise device_errors.CommandFailedError(
-          'Package %s not installed on device after explicit install attempt.',
-          package_name)
-
     if (permissions is None
         and self.build_version_sdk >= version_codes.MARSHMALLOW):
       permissions = apk.GetPermissions()
