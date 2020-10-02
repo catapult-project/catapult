@@ -134,7 +134,7 @@ def FindAllAvailableDevices(options):
     return [FuchsiaDevice(target_name='local_device',
                           host='localhost',
                           system_log_file=options.fuchsia_system_log_file,
-                          ssh_config=options.fuchsia_ssh_config_dir,
+                          ssh_config=options.fuchsia_ssh_config,
                           port=options.fuchsia_ssh_port,
                           managed_repo=options.fuchsia_repo)]
 
@@ -160,6 +160,6 @@ def FindAllAvailableDevices(options):
   return [FuchsiaDevice(target_name=target_name,
                         host=host,
                         system_log_file=options.fuchsia_system_log_file,
-                        ssh_config=options.fuchsia_ssh_config_dir,
+                        ssh_config=options.fuchsia_ssh_config,
                         port=options.fuchsia_ssh_port,
                         managed_repo=options.fuchsia_repo)]

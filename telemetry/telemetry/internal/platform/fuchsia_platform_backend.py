@@ -17,8 +17,6 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
     super(FuchsiaPlatformBackend, self).__init__(device)
     if os.path.isfile(device.ssh_config):
       self._ssh_config = device.ssh_config
-    elif os.path.isfile(os.path.join(device.ssh_config, 'ssh_config')):
-      self._ssh_config = os.path.join(device.ssh_config, 'ssh_config')
     else:
       raise Exception('ssh config file not found.')
     self._system_log_file = device.system_log_file
