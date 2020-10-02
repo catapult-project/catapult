@@ -772,7 +772,7 @@ tr.exportTo('tr.e.importer', function() {
       // in the main thread, in order to get the correct thread object,
       // we should use pid and tid from main thread.
       if (data.startTime !== undefined) {
-        this.profileInfo_.set(event.id, {
+        this.profileInfo_.set(`${event.pid} ${event.id}`, {
           startTime: data.startTime,
           pid: event.pid,
           tid: event.tid
@@ -791,7 +791,8 @@ tr.exportTo('tr.e.importer', function() {
           throw new Error('samples and timeDeltas array should have same length');
         }
 
-        const profileTree = this.getOrCreateProfileTree_(sampleType, event.id);
+        const profileTree = this.getOrCreateProfileTree_(sampleType,
+            `${event.pid} ${event.id}`);
         const nodes = data[sampleType].nodes;
         const samples = data[sampleType].samples;
         if (nodes !== undefined) {

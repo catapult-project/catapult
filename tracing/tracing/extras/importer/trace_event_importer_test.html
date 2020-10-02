@@ -6627,6 +6627,97 @@ tr.b.unittest.testSuite(function() {
     checkParsedAndStreamInput(events, checkModel, false);
   });
 
+  test('importV8SamplesInStreamingFormat_id_collision', function() {
+    function checkModel(m) {
+      const samples = m.samples;
+      assert.strictEqual(m.samples.length, 4);
+      assert.strictEqual(Object.keys(m.processes).length, 2);
+      assert.deepEqual(samples.map(sample => sample.start.toFixed(3)), [
+        '0.011',
+        '0.012',
+        '0.013',
+        '0.016'
+      ]);
+      assert.deepEqual(samples.map(sample => sample.thread.getProcess().pid), [
+        1,
+        1,
+        2,
+        2
+      ]);
+      assert.deepEqual(samples[0].userFriendlyStack, [
+        'b url: b.js:1:2 Deoptimized reason: a reason',
+        'a url: a.js:1:2'
+      ]);
+      assert.deepEqual(samples[1].userFriendlyStack, [
+        'a url: a.js:1:2'
+      ]);
+      assert.deepEqual(samples[2].userFriendlyStack, [
+        'd url: d.js:2:3 Deoptimized reason: another reason',
+      ]);
+      assert.deepEqual(samples[3].userFriendlyStack, [
+        'c url: c.js:2:3',
+      ]);
+    }
+
+    const events = {
+      'traceEvents': [
+        {'pid': 1, 'tid': 2, 'ts': 3, 'ph': 'P',
+          'cat': 'disabled-by-default-v8.cpu_profiler',
+          'name': 'Profile',
+          'args': {'data': {'startTime': 10}},
+          'id': 123
+        },
+        {'pid': 2, 'tid': 2, 'ts': 3, 'ph': 'P',
+          'cat': 'disabled-by-default-v8.cpu_profiler',
+          'name': 'Profile',
+          'args': {'data': {'startTime': 10}},
+          'id': 123
+        },
+        {'pid': 1, 'tid': 3, 'ts': 4, 'ph': 'P',
+          'cat': 'disabled-by-default-v8.cpu_profiler',
+          'name': 'Profile',
+          'args': {
+            'data': {
+              'timeDeltas': [1, 1],
+              'cpuProfile': {
+                'nodes': [
+                  // eslint-disable-next-line
+                 {'callFrame': {'functionName': '(root)', 'scriptId': 0}, 'id': 1},
+                  // eslint-disable-next-line
+                 {'callFrame': {'functionName': 'a', 'url': 'a.js', 'scriptId': 1, 'lineNumber': 1, 'columnNumber': 2}, 'id': 2, 'parent': 1},
+                  // eslint-disable-next-line
+                 {'callFrame': {'functionName': 'b', 'url': 'b.js', 'scriptId': 2, 'lineNumber': 1, 'columnNumber': 2}, 'deoptReason': 'a reason', 'id': 3, 'parent': 2}
+                ],
+                'samples': [3, 2]
+              }
+            }
+          },
+          'id': 123
+        },
+        {'pid': 2, 'tid': 3, 'ts': 4, 'ph': 'P',
+          'cat': 'disabled-by-default-v8.cpu_profiler',
+          'name': 'Profile',
+          'args': {
+            'data': {
+              'timeDeltas': [3, 3],
+              'cpuProfile': {
+                'nodes': [
+                  // eslint-disable-next-line
+                 {'callFrame': {'functionName': 'c', 'url': 'c.js', 'scriptId': 3, 'lineNumber': 2, 'columnNumber': 3}, 'id': 4, 'parent': 2},
+                  // eslint-disable-next-line
+                 {'callFrame': {'functionName': 'd', 'url': 'd.js', 'scriptId': 4, 'lineNumber': 2, 'columnNumber': 3}, 'deoptReason': 'another reason', 'id': 5, 'parent': 3}
+                ],
+                'samples': [5, 4]
+              }
+            }
+          },
+          'id': 123
+        }
+      ]
+    };
+    checkParsedAndStreamInput(events, checkModel, false);
+  });
+
   test('scopedIdForEvent_defaultScopeAsyncEvent', function() {
     const event = {pid: 1, ph: 'b', id: '0x1000'};
     const id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
