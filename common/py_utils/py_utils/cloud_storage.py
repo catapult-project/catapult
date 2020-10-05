@@ -192,10 +192,33 @@ def IsNetworkIOEnabled():
   return disable_cloud_storage_env_val != '1'
 
 
-def List(bucket):
-  query = 'gs://%s/' % bucket
-  stdout = _RunCommand(['ls', query])
-  return [url[len(query):] for url in stdout.splitlines()]
+def List(bucket, prefix=None):
+  """Returns all paths matching the given prefix in bucket.
+
+  Returned paths are relative to the bucket root.
+  If path is given, 'gsutil ls gs://<bucket>/<path>' will be executed, otherwise
+  'gsutil ls gs://<bucket>' will be executed.
+
+  For more details, see:
+  https://cloud.google.com/storage/docs/gsutil/commands/ls#directory-by-directory,-flat,-and-recursive-listings
+
+  Args:
+    bucket: Name of cloud storage bucket to look at.
+    prefix: Path within the bucket to filter to.
+
+  Returns:
+    A list of files. All returned path are relative to the bucket root
+    directory. For example, List('my-bucket', path='foo/') will returns results
+    of the form ['/foo/123', '/foo/124', ...], as opposed to ['123', '124',
+    ...].
+  """
+  bucket_prefix = 'gs://%s' % bucket
+  if prefix is None:
+    full_path = bucket_prefix
+  else:
+    full_path = '%s/%s' % (bucket_prefix, prefix)
+  stdout = _RunCommand(['ls', full_path])
+  return [url[len(bucket_prefix):] for url in stdout.splitlines()]
 
 
 def ListDirs(bucket, path=''):

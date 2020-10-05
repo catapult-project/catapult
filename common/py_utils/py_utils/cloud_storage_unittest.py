@@ -171,6 +171,24 @@ class CloudStorageFakeFsUnitTest(BaseFakeFsUnitTest):
       cloud_storage._RunCommand = orig_run_command
 
   @mock.patch('py_utils.cloud_storage._RunCommand')
+  def testListNoPrefix(self, mock_run_command):
+    mock_run_command.return_value = '\n'.join(['gs://bucket/foo-file.txt',
+                                               'gs://bucket/foo1/',
+                                               'gs://bucket/foo2/'])
+
+    self.assertEqual(cloud_storage.List('bucket'),
+                     ['/foo-file.txt', '/foo1/', '/foo2/'])
+
+  @mock.patch('py_utils.cloud_storage._RunCommand')
+  def testListWithPrefix(self, mock_run_command):
+    mock_run_command.return_value = '\n'.join(['gs://bucket/foo/foo-file.txt',
+                                               'gs://bucket/foo/foo1/',
+                                               'gs://bucket/foo/foo2/'])
+
+    self.assertEqual(cloud_storage.List('bucket', 'foo'),
+                     ['/foo/foo-file.txt', '/foo/foo1/', '/foo/foo2/'])
+
+  @mock.patch('py_utils.cloud_storage._RunCommand')
   def testListDirs(self, mock_run_command):
     mock_run_command.return_value = '\n'.join(['gs://bucket/foo-file.txt',
                                                '',
