@@ -2133,15 +2133,21 @@ triaging functionality in the chart.
       * chart-tooltip.
       */
     onBugTriaged(event) {
-      const jsonSeriesIndex = event.detail.alerts[0].seriesIndex;
-      const dataIndex = event.detail.alerts[0].dataIndex;
       const bugId = event.detail.bugid;
       const projectId = event.detail.projectid;
-
+      // Update the impacted alert.
+      if (event.detail.alerts && event.detail.alerts.length) {
+        const jsonSeriesIndex = event.detail.alerts[0].seriesIndex;
+        const dataIndex = event.detail.alerts[0].dataIndex;
+        const annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
+        annotation.g_anomaly.bug_id = bugId;
+        annotation.g_anomaly.project_id = projectId;
+        if (bugId) {
+          const data = this.json.annotations[jsonSeriesIndex][dataIndex];
+          this.$.tooltip.alertKey = data.g_anomaly.key;
+        }
+      }
       // Update the bug id locally.
-      const annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
-      annotation.g_anomaly.bug_id = bugId;
-      annotation.g_anomaly.project_id = projectId;
       this.$.tooltip.bugId = bugId;
       this.$.tooltip.projectId = projectId;
       if (!bugId) {
@@ -2151,8 +2157,6 @@ triaging functionality in the chart.
         this.$.tooltip.alertInvalidOrIgnored = bugId < 0;
         this.$.tooltip.triagedAlerts = this.$.tooltip.alerts;
         this.$.tooltip.alerts = null;
-        const data = this.json.annotations[jsonSeriesIndex][dataIndex];
-        this.$.tooltip.alertKey = data.g_anomaly.key;
       }
       // Refresh the anomalies to make the one with the new bug id black.
       this.showAlerts();
