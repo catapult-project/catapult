@@ -26,13 +26,6 @@ found in the LICENSE file.
  * The distribution of durations between consecutive display compositor's swap
  * buffer calls, or DRM page flips on ChromeOS devices, during animations.
  *
- * frame_lengths
- * ============================
- * frame_times in vsyncs instead of milli-seconds. In other words, frame_lengths
- * is the distribution of durations between consecutive display compositor's
- * swap buffer calls, in terms of vsyncs. Short frames (ones shorter than half
- * of the refresh period) are filtered out, unlike in frame_times.
- *
  * avg_surface_fps
  * ==============================
  * Average number of frames, ignoring short frames, per second during
@@ -299,13 +292,6 @@ tr.exportTo('tr.metrics.rendering', function() {
         tr.b.math.Statistics.sum(frameSegments, fs => fs.duration);
     addJankCountHistograms(histograms, validFrames, prefix);
     const frameLengths = validFrames.map(frame => frame.length);
-    histograms.createHistogram(
-        prefix + 'frame_lengths',
-        tr.b.Unit.byName.unitlessNumber_smallerIsBetter,
-        frameLengths,
-        { binBoundaries: tr.v.HistogramBinBoundaries.createLinear(0, 5, 20),
-          summaryOptions: tr.metrics.rendering.SUMMARY_OPTIONS,
-          description: 'Frame times in vsyncs.' });
 
     histograms.createHistogram(
         prefix + 'avg_surface_fps',
