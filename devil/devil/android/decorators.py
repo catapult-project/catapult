@@ -9,6 +9,8 @@ import functools
 import itertools
 import sys
 
+import six
+
 from devil.android import device_errors
 from devil.utils import cmd_helper
 from devil.utils import reraiser_thread
@@ -60,10 +62,11 @@ def _TimeoutRetryWrapper(f,
         return timeout_retry.Run(
             impl, timeout, retries, desc=desc, retry_if_func=retry_if_func)
     except reraiser_thread.TimeoutError as e:
-      raise device_errors.CommandTimeoutError(str(e)), None, (sys.exc_info()[2])
+      six.reraise(device_errors.CommandTimeoutError(str(e)), None,
+                  (sys.exc_info()[2]))
     except cmd_helper.TimeoutError as e:
-      raise device_errors.CommandTimeoutError(
-          str(e), output=e.output), None, (sys.exc_info()[2])
+      six.reraise(device_errors.CommandTimeoutError(str(e)), None,
+                  (sys.exc_info()[2]))
 
   return timeout_retry_wrapper
 

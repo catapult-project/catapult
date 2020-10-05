@@ -99,7 +99,6 @@ group("telemetry_chrome_test_support") {
     "third_party/urllib3/",
     "third_party/webapp2/",
     "third_party/webtest/",
-    "third_party/zipfile/",
   ]
 
   data_deps += [
