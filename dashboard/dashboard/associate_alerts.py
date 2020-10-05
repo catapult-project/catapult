@@ -137,10 +137,14 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
 
     AssociateAlerts(bug_id, project_id, alert_entities)
 
-    self.RenderHtml('bug_result.html', {
-        'bug_id': bug_id,
-        'project_id': project_id
-    })
+    self.RenderHtml(
+        'bug_result.html', {
+            'bug_id': bug_id,
+            'project_id': project_id,
+            'bisect_error': '',
+            'issue_url': '',
+            'issue_id': 0,
+        })
 
   def _VerifyAnomaliesOverlap(self, alerts, bug_id, project_id):
     """Checks whether the alerts' revision ranges intersect.
