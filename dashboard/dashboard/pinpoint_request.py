@@ -309,9 +309,11 @@ def PinpointParamsFromBisectParams(params):
     alert_magnitude = FindMagnitudeBetweenCommits(
         utils.TestKey(test_path), start_commit, end_commit)
 
-  issue = anomaly.Issue(
-      project_id='chromium',
-      issue_id=int(params['bug_id']) if params['bug_id'] else None)
+  if isinstance(params['bug_id'], int):
+    issue_id = params['bug_id'] if params['bug_id'] > 0 else None
+  else:
+    issue_id = int(params['bug_id']) if params['bug_id'].isdigit() else None
+  issue = anomaly.Issue(project_id='chromium', issue_id=issue_id)
 
   return pinpoint_service.MakeBisectionRequest(
       test=utils.TestKey(test_path).get(),
