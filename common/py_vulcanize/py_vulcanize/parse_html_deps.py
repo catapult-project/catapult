@@ -15,6 +15,7 @@ from py_vulcanize import module
 from py_vulcanize import strip_js_comments
 import six
 
+
 def _AddToPathIfNeeded(path):
   if path not in sys.path:
     sys.path.insert(0, path)
@@ -134,7 +135,7 @@ class ExternalScript(Script):
 
 def _CreateSoupWithoutHeadOrBody(html):
   soupCopy = bs4.BeautifulSoup(html, 'html5lib')
-  soup = bs4.BeautifulSoup('', 'html5lib')
+  soup = bs4.BeautifulSoup()
   soup.reset()
   if soupCopy.head:
     for n in soupCopy.head.contents:

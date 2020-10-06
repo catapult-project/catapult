@@ -11,10 +11,6 @@ import signal
 import sys
 import unittest
 
-if sys.version_info.major >= 3:
-  basestring = str  # pylint: disable=redefined-builtin
-
-
 _CATAPULT_BASE_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
 
@@ -104,7 +100,7 @@ class AdbCompatibilityTest(device_test_case.DeviceTestCase):
   def testShell(self):
     under_test = self.getTestInstance()
     shell_ls_result = under_test.Shell('ls')
-    self.assertIsInstance(shell_ls_result, basestring)
+    self.assertIsInstance(shell_ls_result, str)
     self.assertTrue(bool(shell_ls_result))
 
   def testShell_failed(self):
@@ -115,7 +111,7 @@ class AdbCompatibilityTest(device_test_case.DeviceTestCase):
   def testShell_externalStorageDefined(self):
     under_test = self.getTestInstance()
     external_storage = under_test.Shell('echo $EXTERNAL_STORAGE')
-    self.assertIsInstance(external_storage, basestring)
+    self.assertIsInstance(external_storage, str)
     self.assertTrue(posixpath.isabs(external_storage))
 
   @contextlib.contextmanager

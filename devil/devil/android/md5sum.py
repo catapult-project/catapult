@@ -4,9 +4,9 @@
 
 import base64
 import gzip
-import io
 import os
 import re
+import StringIO
 
 from devil import devil_env
 from devil.android import device_errors
@@ -47,14 +47,13 @@ def CalculateHostMd5Sums(paths):
     raise IOError('File not built: %s' % md5sum_bin_host_path)
   out = ""
   for i in range(0, len(paths), _MAX_PATHS_PER_INVOCATION):
-    mem_file = io.BytesIO()
+    mem_file = StringIO.StringIO()
     compressed = gzip.GzipFile(fileobj=mem_file, mode="wb")
     compressed.write(";".join(
         [os.path.realpath(p) for p in paths[i:i+_MAX_PATHS_PER_INVOCATION]]))
     compressed.close()
     compressed_paths = base64.b64encode(mem_file.getvalue())
-    out += cmd_helper.GetCmdOutput([md5sum_bin_host_path, "-gz",
-        compressed_paths])
+    out += cmd_helper.GetCmdOutput([md5sum_bin_host_path, "-gz", compressed_paths])
 
   return dict(zip(paths, out.splitlines()))
 
@@ -98,7 +97,7 @@ def CalculateDeviceMd5Sums(paths, device):
   # Make sure it can find libbase.so
   md5sum_script += 'export LD_LIBRARY_PATH=%s;' % MD5SUM_DEVICE_LIB_PATH
   for i in range(0, len(paths), _MAX_PATHS_PER_INVOCATION):
-    mem_file = io.BytesIO()
+    mem_file = StringIO.StringIO()
     compressed = gzip.GzipFile(fileobj=mem_file, mode="wb")
     compressed.write(";".join(paths[i:i+_MAX_PATHS_PER_INVOCATION]))
     compressed.close()
