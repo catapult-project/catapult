@@ -432,8 +432,11 @@ class Forwarder(object):
       if exit_code != 0:
         logger.warning('Forwarder unable to shut down:\n%s', output)
         kill_cmd = ['pkill', '-9', 'host_forwarder']
+        strace_kill_cmd = ['strace', '-f', '-s', '256'] + kill_cmd
+        # This is currently being run through strace to help debug
+        # crbug.com/1038789.
         (exit_code, output) = cmd_helper.GetCmdStatusAndOutputWithTimeout(
-            kill_cmd, Forwarder._TIMEOUT)
+            strace_kill_cmd, Forwarder._TIMEOUT)
         if exit_code == -9:
           # pkill can exit with -9, seemingly in cases where the process it's
           # asked to kill dies sometime during pkill running. In this case,
